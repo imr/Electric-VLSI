@@ -1346,6 +1346,76 @@ public class Poly implements Shape
 		return false;
 	}
 
+	/*
+	 * Method to compute the area of this Poly.
+	 * @return the area of this Poly.
+	 * The calculation may return a negative value if the polygon points are counter-clockwise.
+	 */
+	public double areaPoly()
+	{
+		if (style == Type.FILLED || style == Type.CLOSED || style == Type.CROSSED ||
+			style == Type.TEXTCENT || style == Type.TEXTTOP || style == Type.TEXTBOT ||
+			style == Type.TEXTLEFT || style == Type.TEXTRIGHT || style == Type.TEXTTOPLEFT ||
+			style == Type.TEXTBOTLEFT || style == Type.TEXTTOPRIGHT || style == Type.TEXTBOTRIGHT ||
+			style == Type.TEXTBOX)
+		{
+			Rectangle2D bounds = getBox();
+			if (bounds != null)
+			{
+				double area = bounds.getWidth() * bounds.getHeight();
+
+				/* now determine the sign of the area */
+				double sign = 0;
+				if (points[0].getX() == points[1].getX())
+				{
+					/* first line is vertical */
+					sign = (points[2].getX() - points[1].getX()) * (points[1].getY() - points[0].getY());
+				} else
+				{
+					/* first line is horizontal */
+					sign = (points[1].getX() - points[0].getX()) * (points[1].getY() - points[2].getY());
+				}
+				if (sign < 0) area = -area;
+				return area;
+			}
+
+			return areaPoints(points);
+		}
+		return 0;
+	}
+
+	/**
+	 * Method to compute the area of a polygon defined by an array of points.
+	 * @param points the array of points.
+	 * @return the area of the polygon defined by these points.
+	 * The calculation may return a negative value if the points are counter-clockwise.
+	 */
+	public double areaPoints(Point2D [] points)
+	{
+		double area = 0.0;
+		double x0 = points[0].getX();
+		double y0 = points[0].getY();
+		double y1 = 0;
+		for(int i=1; i<points.length; i++)
+		{
+			double x1 = points[i].getX();
+			y1 = points[i].getY();
+
+			/* triangulate around the polygon */
+			double p1 = x1 - x0;
+			double p2 = y0 + y1;
+			double partial = p1 * p2;
+			area += partial / 2.0f;
+			x0 = x1;
+			y0 = y1;
+		}
+		double p1 = points[0].getX() - x0;
+		double p2 = points[0].getY() + y1;
+		double partial = p1 * p2;
+		area += partial / 2.0f;
+		return area;
+	}
+
 	/**
 	 * Method to return the X center coordinate of this Poly.
 	 * @return the X center coordinate of this Poly.

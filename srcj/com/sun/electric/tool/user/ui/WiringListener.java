@@ -66,7 +66,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 
-class WiringListener
+public class WiringListener
 	implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
 {
 	public static WiringListener theOne = new WiringListener();
@@ -218,8 +218,19 @@ class WiringListener
 
 		WiringPlan [] curPath = WiringPlan.getWiringPlan(wpStartList, wpEndList, endPoint);
 		if (curPath == null) return;
-		RealizeWiring job = new RealizeWiring(curPath, this);
+		RealizeWiring job = new RealizeWiring(curPath, cellBeingWired);
 		wnd.redraw();
+	}
+
+	public static List makeConnection(NodeInst fromNi, PortProto fromPP, NodeInst toNi, PortProto toPP, Point2D pt,
+		boolean nozigzag, boolean report)
+	{
+		WiringPlan [] startList = WiringPlan.getClosestEnd(fromNi, fromPP, pt, pt);
+		WiringPlan [] endList = WiringPlan.getClosestEnd(toNi, toPP, pt, pt);
+		WiringPlan [] curPath = WiringPlan.getWiringPlan(startList, endList, pt);
+		if (curPath == null) return null;
+		List added = doWiring(curPath, fromNi.getParent(), report);
+		return added;
 	}
 
 	public void keyPressed(KeyEvent evt)
@@ -239,8 +250,6 @@ class WiringListener
 	public void mouseMoved(MouseEvent evt) {}
 	public void keyReleased(KeyEvent evt) {}
 	public void keyTyped(KeyEvent evt) {}
-
-	public Cell getCellBeingWired() { return cellBeingWired; }
 
 	/**
 	 * Method to load the field variables from the parameters.
@@ -291,76 +300,64 @@ class WiringListener
 		return null;
 	}
 
-	/**
-	 * Class for scheduling a wiring task.
-	 */
-	protected static class RealizeWiring extends Job
+	private static List doWiring(WiringPlan [] wpList, Cell cell, boolean report)
 	{
-		WiringPlan [] wpList;
-		WiringListener wl;
-
-		protected RealizeWiring(WiringPlan [] wpList, WiringListener wl)
+		// get information about what is highlighted
+		List added = new ArrayList();
+		WiringPlan wpEnd = null;
+		int arcsCreated = 0, nodesCreated = 0;
+		for(int i=0; i<wpList.length; i++)
 		{
-			super("Wiring", User.tool, Job.Type.CHANGE, wl.getCellBeingWired(), null, Job.Priority.USER);
-			this.wpList = wpList;
-			this.wl = wl;
-			this.startJob();
-		}
-
-		public void doIt()
-		{
-			// get information about what is highlighted
-			Highlight.clear();
-			WiringPlan wpEnd = null;
-			int arcsCreated = 0, nodesCreated = 0;
-			for(int i=0; i<wpList.length; i++)
+			WiringPlan wp = wpList[i];
+			if (wp.getType() == WiringListener.Type.NODEADD)
 			{
-				WiringPlan wp = wpList[i];
-				if (wp.getType() == WiringListener.Type.NODEADD)
+				if (wp.getNodeObject() == null)
 				{
-					if (wp.getNodeObject() == null)
-					{
-						// create the nodeInst
-						Cell cell = wl.getCellBeingWired();
-						NodeInst newNi = NodeInst.makeInstance(wp.getNodeType(), wp.getNodeLocation(),
-							wp.getNodeWidth(), wp.getNodeHeight(), 0, cell, null);
-						if (newNi == null) return;
-						nodesCreated++;
-						wp.setNodeObject(newNi);
-						wpEnd = wp;
-					}
-				}
-				if (wp.getType() == WiringListener.Type.ARCADD)
-				{
-					NodeInst headNi, tailNi;
-					Object headObj = wp.getArcHeadObject();
-					if (headObj instanceof NodeInst) headNi = (NodeInst)headObj; else
-						headNi = (NodeInst)((WiringPlan)headObj).getNodeObject();
-					PortInst headPi = headNi.findPortInstFromProto(wp.getArcHeadPortProto());
-
-					Object tailObj = wp.getArcTailObject();
-					if (tailObj instanceof NodeInst) tailNi = (NodeInst)tailObj; else
-						tailNi = (NodeInst)((WiringPlan)tailObj).getNodeObject();
-					PortInst tailPi = tailNi.findPortInstFromProto(wp.getArcTailPortProto());
-
-					ArcProto ap = wp.getArcType();
-					if (ap == null)
-					{
-						System.out.println("Arc proto null");
-						return;
-					}
-					ArcInst newAi = ArcInst.makeInstance(ap, wp.getArcWidth(), headPi, tailPi, null);
-					if (newAi == null) return;
-					arcsCreated++;
-				}
-				if (wp.getType() == WiringListener.Type.ARCDEL)
-				{
-					ArcInst ai = wp.getArc();
-					ai.kill();
+					// create the nodeInst
+					NodeInst newNi = NodeInst.makeInstance(wp.getNodeType(), wp.getNodeLocation(),
+						wp.getNodeWidth(), wp.getNodeHeight(), 0, cell, null);
+					if (newNi == null) return null;
+					added.add(newNi);
+					nodesCreated++;
+					wp.setNodeObject(newNi);
+					wpEnd = wp;
 				}
 			}
+			if (wp.getType() == WiringListener.Type.ARCADD)
+			{
+				NodeInst headNi, tailNi;
+				Object headObj = wp.getArcHeadObject();
+				if (headObj instanceof NodeInst) headNi = (NodeInst)headObj; else
+					headNi = (NodeInst)((WiringPlan)headObj).getNodeObject();
+				PortInst headPi = headNi.findPortInstFromProto(wp.getArcHeadPortProto());
 
-			/* show the end node */
+				Object tailObj = wp.getArcTailObject();
+				if (tailObj instanceof NodeInst) tailNi = (NodeInst)tailObj; else
+					tailNi = (NodeInst)((WiringPlan)tailObj).getNodeObject();
+				PortInst tailPi = tailNi.findPortInstFromProto(wp.getArcTailPortProto());
+
+				ArcProto ap = wp.getArcType();
+				if (ap == null)
+				{
+					System.out.println("Arc proto null");
+					return null;
+				}
+				ArcInst newAi = ArcInst.makeInstance(ap, wp.getArcWidth(), headPi, tailPi, null);
+				if (newAi == null) return null;
+				arcsCreated++;
+				added.add(newAi);
+			}
+			if (wp.getType() == WiringListener.Type.ARCDEL)
+			{
+				ArcInst ai = wp.getArc();
+				ai.kill();
+			}
+		}
+
+		/* show the end node */
+		if (report)
+		{
+			Highlight.clear();
 			if (wpEnd != null)
 			{
 				NodeInst ni = (NodeInst)wpEnd.getNodeObject();
@@ -368,27 +365,50 @@ class WiringListener
 			}
 			if (arcsCreated != 0 || nodesCreated != 0)
 			{
-				String report = "Created ";
-				if (arcsCreated != 0) report += arcsCreated + " arcs";
-				if (nodesCreated != 0) report += " and " + nodesCreated + " nodes";
-				System.out.println(report);
+				String msg = "Created ";
+				if (arcsCreated != 0) msg += arcsCreated + " arcs";
+				if (nodesCreated != 0) msg += " and " + nodesCreated + " nodes";
+				System.out.println(msg);
 				playSound(arcsCreated);
 			}
 			Highlight.finished();
 		}
+		return added;
+	}
 
-		private static AudioClip clickSound = null;
+	private static AudioClip clickSound = null;
 
-		private void playSound(int arcsCreated)
+	private static void playSound(int arcsCreated)
+	{
+		if (User.isPlayClickSoundsWhenCreatingArcs())
 		{
-			if (User.isPlayClickSoundsWhenCreatingArcs())
-			{
-				URL url = getClass().getResource("Click.wav");
-				if (url == null) return;
-				if (clickSound == null)
-					clickSound = Applet.newAudioClip(url);
-				clickSound.play();
-			}
+			URL url = WiringListener.class.getResource("Click.wav");
+			if (url == null) return;
+			if (clickSound == null)
+				clickSound = Applet.newAudioClip(url);
+			clickSound.play();
+		}
+	}
+
+	/**
+	 * Class for scheduling a wiring task.
+	 */
+	protected static class RealizeWiring extends Job
+	{
+		WiringPlan [] wpList;
+		Cell cell;
+
+		protected RealizeWiring(WiringPlan [] wpList, Cell cell)
+		{
+			super("Wiring", User.tool, Job.Type.CHANGE, cell, null, Job.Priority.USER);
+			this.wpList = wpList;
+			this.cell = cell;
+			this.startJob();
+		}
+
+		public void doIt()
+		{
+			doWiring(wpList, cell, true);
 		}
 	}
 

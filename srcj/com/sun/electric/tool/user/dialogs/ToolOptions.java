@@ -40,6 +40,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.simulation.Spice;
 import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.drc.DRC;
+import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
 import java.util.Iterator;
@@ -1538,20 +1539,54 @@ public class ToolOptions extends javax.swing.JDialog
 
 	//******************************** ROUTING ********************************
 
+	private ArcProto initRoutDefArc;
+	private boolean initRoutMimicCanUnstitch;
+	private boolean initRoutMimicInteractive;
+	private boolean initRoutMimicMatchPorts;
+	private boolean initRoutMimicMatchNumArcs;
+	private boolean initRoutMimicMatchNodeSize;
+	private boolean initRoutMimicMatchNodeType;
+	private boolean initRoutMimicNoArcsSameDir;
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Routing tab.
 	 */
 	private void initRouting()
 	{
-		routDefaultArc.setEnabled(false);
-		routMimicCanUnstitch.setEnabled(false);
-		routMimicPortsMustMatch.setEnabled(false);
-		routMimicNumArcsMustMatch.setEnabled(false);
-		routMimicNodeSizesMustMatch.setEnabled(false);
-		routMimicNodeTypesMustMatch.setEnabled(false);
-		routMimicNoOtherArcs.setEnabled(false);
-		routMimicInteractive.setEnabled(false);
+		Technology tech = Technology.getCurrent();
+		routDefaultArc.addItem("DEFAULT ARC");
+		for(Iterator it = tech.getArcs(); it.hasNext(); )
+		{
+			ArcProto ap = (ArcProto)it.next();
+			routDefaultArc.addItem(ap.describe());
+		}
+		String prefArcName = Routing.getPreferredRoutingArc();
+		initRoutDefArc = null;
+		if (prefArcName.length() > 0)
+			initRoutDefArc = ArcProto.findArcProto(prefArcName);
+		if (initRoutDefArc != null)
+			routDefaultArc.setSelectedItem(initRoutDefArc.describe());
+
+		initRoutMimicCanUnstitch = Routing.isMimicStitchCanUnstitch();
+		routMimicCanUnstitch.setSelected(initRoutMimicCanUnstitch);
+
+		initRoutMimicMatchPorts = Routing.isMimicStitchMatchPorts();
+		routMimicPortsMustMatch.setSelected(initRoutMimicMatchPorts);
+
+		initRoutMimicMatchNumArcs = Routing.isMimicStitchMatchNumArcs();
+		routMimicNumArcsMustMatch.setSelected(initRoutMimicMatchNumArcs);
+
+		initRoutMimicMatchNodeSize = Routing.isMimicStitchMatchNodeSize();
+		routMimicNodeSizesMustMatch.setSelected(initRoutMimicMatchNodeSize);
+
+		initRoutMimicMatchNodeType = Routing.isMimicStitchMatchNodeType();
+		routMimicNodeTypesMustMatch.setSelected(initRoutMimicMatchNodeType);
+
+		initRoutMimicNoArcsSameDir = Routing.isMimicStitchNoOtherArcsSameDir();
+		routMimicNoOtherArcs.setSelected(initRoutMimicNoArcsSameDir);
+
+		initRoutMimicInteractive = Routing.isMimicStitchInteractive();
+		routMimicInteractive.setSelected(initRoutMimicInteractive);
 	}
 
 	/**
@@ -1560,6 +1595,47 @@ public class ToolOptions extends javax.swing.JDialog
 	 */
 	private void termRouting()
 	{
+		ArcProto ap = null;
+		int curArcIndex = routDefaultArc.getSelectedIndex();
+		if (curArcIndex > 0)
+		{
+			String curArcName = (String)routDefaultArc.getSelectedItem();
+			ap = ArcProto.findArcProto(curArcName);
+		}
+		if (ap != initRoutDefArc)
+		{
+			String newArcName = "";
+			if (ap != null) newArcName = ap.getTechnology().getTechName() + ":" + ap.getProtoName();
+			Routing.setPreferredRoutingArc(newArcName);
+		}
+		
+		boolean cur = routMimicCanUnstitch.isSelected();
+		if (cur != initRoutMimicCanUnstitch)
+			Routing.setMimicStitchCanUnstitch(cur);
+
+		cur = routMimicPortsMustMatch.isSelected();
+		if (cur != initRoutMimicMatchPorts)
+			Routing.setMimicStitchMatchPorts(cur);
+
+		cur = routMimicNumArcsMustMatch.isSelected();
+		if (cur != initRoutMimicMatchNumArcs)
+			Routing.setMimicStitchMatchNumArcs(cur);
+
+		cur = routMimicNodeSizesMustMatch.isSelected();
+		if (cur != initRoutMimicMatchNodeSize)
+			Routing.setMimicStitchMatchNodeSize(cur);
+
+		cur = routMimicNodeTypesMustMatch.isSelected();
+		if (cur != initRoutMimicMatchNodeType)
+			Routing.setMimicStitchMatchNodeType(cur);
+
+		cur = routMimicNoOtherArcs.isSelected();
+		if (cur != initRoutMimicNoArcsSameDir)
+			Routing.setMimicStitchNoOtherArcsSameDir(cur);
+
+		cur = routMimicInteractive.isSelected();
+		if (cur != initRoutMimicInteractive)
+			Routing.setMimicStitchInteractive(cur);
 	}
 
 	//******************************** COMPACTION ********************************

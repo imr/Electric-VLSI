@@ -23,15 +23,36 @@
  */
 package com.sun.electric.tool.routing;
 
+import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.FlagSet;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.ui.WiringListener;
 import com.sun.electric.tool.routing.Routing;
 
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.Point2D;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
@@ -41,16 +62,13 @@ import java.util.ArrayList;
  */
 public class AutoStitch
 {
+	/** the prefered arc */		static ArcProto preferredArc;
 
-//	#define MENUDISPX 150			/* x displacement of confirm menu */
-//	#define MENUDISPY   0			/* y displacement of confirm menu */
-//
-//	static ARCPROTO *ro_preferedarc;	/* the prefered arc */
-//
-//	// working memory for "ro_checkstitching()"
-//	static INTBIG     ro_nodesinareatotal = 0;
-//	static NODEINST **ro_nodesinarea;
-
+	/**
+	 * Method to do auto-stitching.
+	 * @param highlighted true to stitch only the highlighted objects.
+	 * False to stitch the entire current cell.
+	 */
 	public static void autoStitch(boolean highlighted)
 	{
 		List nodesToStitch = new ArrayList();
@@ -82,6 +100,7 @@ public class AutoStitch
 	protected static class AutoStitchJob extends Job
 	{
 		List nodesToStitch;
+		FlagSet nodeMark;
 
 		protected AutoStitchJob(List nodesToStitch)
 		{
@@ -92,843 +111,706 @@ public class AutoStitch
 
 		public void doIt()
 		{
-			System.out.println("No auto-stitching yet");
+			FlagSet cellMark = NodeProto.getFlagSet(1);
+			nodeMark = NodeInst.getFlagSet(1);
 
-//			// set temp1 flag on all cells that will be checked
-//			for(lib = el_curlib; lib != NOLIBRARY; lib = lib->nextlibrary)
-//				for(np = lib->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
-//					np->temp1 = 0;
-//
-//			// next pre-compute bounds on all nodes in cells to be changed
-//			count = 0;
-//			for(r = ro_firstrcheck; r != NORCHECK; r = r->nextcheck)
-//				if (r->entity->parent->temp1 == 0)
-//			{
-//				r->entity->parent->temp1++;
-//				for(ni = r->entity->parent->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//				{
-//					ni->temp1 = 0;
-//
-//					// count the ports on this node
-//					for(total=0, pp = ni->proto->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
-//						total++;
-//
-//					// get memory for bounding box of each port
-//					bbarray = emalloc((total * 4 * SIZEOFINTBIG), el_tempcluster);
-//					if (bbarray == 0)
-//					{
-//						ttyputnomemory();
-//						ni->temp2 = -1;
-//					} else
-//					{
-//						ni->temp2 = (INTBIG)bbarray;
-//						i = 0;
-//						for(pp = ni->proto->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
-//						{
-//							makerot(ni, trans);
-//							rni = ni;   rpp = pp;
-//							while (rni->proto->primindex == 0)
-//							{
-//								maketrans(rni, localtran);
-//								transmult(localtran, trans, temp);
-//								rni = rpp->subnodeinst;
-//								rpp = rpp->subportproto;
-//								makerot(rni, localtran);
-//								transmult(localtran, temp, trans);
-//							}
-//							xform(rni->lowx, rni->lowy, &x1, &y1, trans);
-//							xform(rni->highx, rni->highy, &x2, &y2, trans);
-//							bbarray[i++] = mini(x1, x2);  bbarray[i++] = maxi(x1, x2);
-//							bbarray[i++] = mini(y1, y2);  bbarray[i++] = maxi(y1, y2);
-//						}
-//					}
-//				}
-//			}
-//
-//			// next set ordinals on nodes to be checked
-//			order = 1;
-//			for(r = ro_firstrcheck; r != NORCHECK; r = r->nextcheck)
-//				r->entity->temp1 = order++;
-//
-//			// find out the prefered routing arc
-//			ro_preferedarc = NOARCPROTO;
-//			var = getvalkey((INTBIG)ro_tool, VTOOL, VARCPROTO, ro_preferedkey);
-//			if (var != NOVARIABLE) ro_preferedarc = (ARCPROTO *)var->addr; else
-//			{
-//				// see if there is a default user arc
-//				if (us_curarcproto != NOARCPROTO) ro_preferedarc = us_curarcproto;
-//			}
-//
-//			// finally, initialize the information about which layer is smallest on each arc
-//			for(tech = el_technologies; tech != NOTECHNOLOGY; tech = tech->nexttechnology)
-//				for(ap = tech->firstarcproto; ap != NOARCPROTO; ap = ap->nextarcproto)
-//					ap->temp1 = -1;
-//
-//			// now run through the nodeinsts to be checked for stitching
-//			for(r = ro_firstrcheck; r != NORCHECK; r = nextr)
-//			{
-//				nextr = r->nextcheck;
-//				if (!stopping(STOPREASONROUTING))
-//				{
-//					ni = r->entity;
-//					if ((ni->parent->userbits&NPLOCKED) != 0) continue;
-//					count += ro_checkstitching(ni);
-//				}
-//				ro_freercheck(r);
-//			}
-//			ro_firstrcheck = NORCHECK;
-//
-//			// free any memory associated with this operation
-//			for(lib = el_curlib; lib != NOLIBRARY; lib = lib->nextlibrary)
-//				for(np = lib->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
-//					if (np->temp1 != 0)
-//			{
-//				for(ni = np->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//					if (ni->temp2 != -1 && ni->temp2 != 0)
-//						efree((CHAR *)ni->temp2);
-//			}
-//
-//			// if selection was done, restore the highlighting
-//			if ((ro_state&SELDONE) != 0)
-//				(void)asktool(us_tool, x_("up-stack"));
-//
-//			// report results
-//			if (count != 0)
-//				ttyputmsg(_("AUTO ROUTING: added %ld %s"), count, makeplural(_("wire"), count));
+			// clear flag for finding cells that will be checked
+			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			{
+				Library lib = (Library)it.next();
+				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+				{
+					Cell cell = (Cell)cIt.next();
+					cell.clearBit(cellMark);
+				}
+			}
+
+			// next pre-compute bounds on all nodes in cells to be changed
+			int count = 0;
+			for(Iterator it = nodesToStitch.iterator(); it.hasNext(); )
+			{
+				NodeInst nodeToStitch = (NodeInst)it.next();
+				Cell parent = nodeToStitch.getParent();
+				if (parent.isBit(cellMark)) continue;
+				parent.setBit(cellMark);
+
+				for(Iterator nIt = parent.getNodes(); nIt.hasNext(); )
+				{
+					NodeInst ni = (NodeInst)nIt.next();
+					ni.clearBit(nodeMark);
+
+					// count the ports on this node
+					int total = ni.getProto().getNumPorts();
+
+					// get memory for bounding box of each port
+					double [] bbArray = new double[total*4];
+					ni.setTempObj(bbArray);
+					int i = 0;
+					for(Iterator pIt = ni.getProto().getPorts(); pIt.hasNext(); )
+					{
+						PortProto pp = (PortProto)pIt.next();
+						AffineTransform trans = ni.rotateOut();
+						NodeInst rNi = ni;
+						PortProto rPp = pp;
+						while (rNi.getProto() instanceof Cell)
+						{
+							AffineTransform temp = rNi.translateOut();
+							temp.preConcatenate(trans);
+							PortInst subPi = ((Export)rPp).getOriginalPort();
+							rPp = subPi.getPortProto();
+							rNi = subPi.getNodeInst();
+							trans = rNi.rotateOut();
+							trans.preConcatenate(temp);
+						}
+						Rectangle2D bounds = new Rectangle2D.Double(rNi.getGrabCenterX() - rNi.getXSize()/2, 
+							rNi.getGrabCenterY() - rNi.getYSize()/2, rNi.getXSize(), rNi.getYSize());
+						EMath.transformRect(bounds, trans);
+						bbArray[i++] = bounds.getMinX();
+						bbArray[i++] = bounds.getMaxX();
+						bbArray[i++] = bounds.getMinY();
+						bbArray[i++] = bounds.getMaxY();
+					}
+				}
+			}
+
+			// next mark nodes to be checked
+			for(Iterator it = nodesToStitch.iterator(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				ni.setBit(nodeMark);
+			}
+
+			// find out the prefered routing arc
+			preferredArc = null;
+			String preferredName = Routing.getPreferredRoutingArc();
+			if (preferredName.length() > 0) preferredArc = ArcProto.findArcProto(preferredName);
+			if (preferredArc == null)
+			{
+				// see if there is a default user arc
+				ArcProto curAp = User.tool.getCurrentArcProto();
+				if (curAp != null) preferredArc = curAp;
+			}
+
+			// finally, initialize the information about which layer is smallest on each arc
+			for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+			{
+				Technology tech = (Technology)it.next();
+				for(Iterator aIt = tech.getArcs(); aIt.hasNext(); )
+				{
+					PrimitiveArc ap = (PrimitiveArc)aIt.next();
+					ap.setTempObj(null);
+				}
+			}
+
+			// now run through the nodeinsts to be checked for stitching
+			for(Iterator it = nodesToStitch.iterator(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				if (ni.getParent().isAllLocked()) continue;
+				count += checkStitching(ni);
+			}
+
+			// report results
+			if (count != 0)
+				System.out.println("AUTO ROUTING: added " + count + " wires"); else
+					System.out.println("No arcs added");
+
+			// clean up
+			for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+			{
+				Technology tech = (Technology)it.next();
+				for(Iterator aIt = tech.getArcs(); aIt.hasNext(); )
+				{
+					PrimitiveArc ap = (PrimitiveArc)aIt.next();
+					ap.setTempObj(null);
+				}
+			}
+			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			{
+				Library lib = (Library)it.next();
+				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+				{
+					Cell cell = (Cell)cIt.next();
+					if (!cell.isBit(cellMark)) continue;
+					for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
+					{
+						NodeInst ni = (NodeInst)nIt.next();
+						ni.setTempObj(null);
+					}
+				}
+			}
+			cellMark.freeFlagSet();
+			nodeMark.freeFlagSet();
+
 		}
 
-//		/*
-//		 * routine to check nodeinst "ni" for possible stitching to neighboring
-//		 * nodeinsts
-//		 */
-//		INTBIG ro_checkstitching(NODEINST *ni)
-//		{
-//			REGISTER INTBIG search, lx, hx, ly, hy, bestdist, dist, ox, oy, stitched, count,
-//				tot, i, j, k, bbp, useportpoly, nodesinareacount, newtotal;
-//			INTBIG x, y;
-//			XARRAY trans, localtran, temp;
-//			REGISTER GEOM *geom;
-//			REGISTER NODEINST *oni, *rni, **newlist;
-//			REGISTER PORTPROTO *pp, *rpp, *bestpp;
-//			REGISTER PORTARCINST *pi;
-//			REGISTER ARCPROTO *ap;
-//			REGISTER POLYGON *polyptr;
-//			static POLYGON *poly = NOPOLYGON;
-//
-//			// get polygon
-//			(void)needstaticpolygon(&poly, 4, ro_tool->cluster);
-//
-//			// gather a list of other nodes that touch or overlap this one
-//			lx = ni->geom->lowx;   hx = ni->geom->highx;
-//			ly = ni->geom->lowy;   hy = ni->geom->highy;
-//			search = initsearch(lx-1, hx+1, ly-1, hy+1, ni->parent);
-//			nodesinareacount = 0;
-//			for(;;)
-//			{
-//				if ((geom = nextobject(search)) == NOGEOM) break;
-//				if (!geom->entryisnode) continue;
-//				if (nodesinareacount >= ro_nodesinareatotal)
-//				{
-//					newtotal = ro_nodesinareatotal * 2;
-//					if (nodesinareacount >= newtotal) newtotal = nodesinareacount + 50;
-//					newlist = (NODEINST **)emalloc(newtotal * (sizeof (NODEINST *)), ro_tool->cluster);
-//					if (newlist == 0) return(0);
-//					for(k=0; k<nodesinareacount; k++) newlist[k] = ro_nodesinarea[k];
-//					if (ro_nodesinareatotal > 0) efree((CHAR *)ro_nodesinarea);
-//					ro_nodesinareatotal = newtotal;
-//					ro_nodesinarea = newlist;
-//				}
-//				ro_nodesinarea[nodesinareacount++] = geom->entryaddr.ni;
-//			}
-//
-//			count = 0;
-//			for(k=0; k<nodesinareacount; k++)
-//			{
-//				// find another node in this area
-//				oni = ro_nodesinarea[k];
-//				if (stopping(STOPREASONROUTING)) { termsearch(search);   return(count); }
-//
-//				// don't check newly created nodes
-//		/*		if (oni->temp2 == 0) continue; */
-//
-//				// if both nodes are being checked, examine them only once
-//				if (oni->temp1 != 0 && oni->temp1 <= ni->temp1) continue;
-//
-//				// now look at every layer in this node
-//				if (ni->proto->primindex == 0)
-//				{
-//					// complex node instance: look at all ports
-//					if (ni->temp2 == 0 || ni->temp2 == -1) bbp = -1; else
-//						bbp = 0;
-//					for(pp = ni->proto->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
-//					{
-//						// first do a bounding box check
-//						if (bbp >= 0)
-//						{
-//							lx = ((INTBIG *)ni->temp2)[bbp++];
-//							hx = ((INTBIG *)ni->temp2)[bbp++];
-//							ly = ((INTBIG *)ni->temp2)[bbp++];
-//							hy = ((INTBIG *)ni->temp2)[bbp++];
-//							if (lx > oni->geom->highx || hx < oni->geom->lowx ||
-//								ly > oni->geom->highy || hy < oni->geom->lowy) continue;
-//						}
-//
-//						// stop now if already an arc on this port to other node
-//						for(pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//							if (pi->proto == pp && (pi->conarcinst->end[0].nodeinst == oni ||
-//									pi->conarcinst->end[1].nodeinst == oni)) break;
-//						if (pi != NOPORTARCINST) continue;
-//
-//						// find the primitive node at the bottom of this port
-//						makerot(ni, trans);
-//						rni = ni;   rpp = pp;
-//						while (rni->proto->primindex == 0)
-//						{
-//							maketrans(rni, localtran);
-//							transmult(localtran, trans, temp);
-//							rni = rpp->subnodeinst;
-//							rpp = rpp->subportproto;
-//							makerot(rni, localtran);
-//							transmult(localtran, temp, trans);
-//						}
-//
-//						// determine the smallest layer for all possible arcs
-//						for(i=0; pp->connects[i] != NOARCPROTO; i++)
-//						{
-//							ap = pp->connects[i];
-//							ro_findsmallestlayer(ap);
-//						}
-//
-//						// look at all polygons on this nodeinst
-//						useportpoly = 0;
-//						tot = nodeEpolys(rni, 0, NOWINDOWPART);
-//						if (tot == 0 || rni->proto == gen_simprobeprim)
-//						{
-//							useportpoly = 1;
-//							tot = 1;
-//						}
-//						for(j=0; j<tot; j++)
-//						{
-//							if (useportpoly != 0)
-//							{
-//								shapeportpoly(ni, pp, poly, FALSE);
-//							} else
-//							{
-//								shapeEnodepoly(rni, j, poly);
-//
-//								// only want electrically connected polygons
-//								if (poly->portproto == NOPORTPROTO) continue;
-//
-//								// only want polygons on correct part of this nodeinst
-//								if (poly->portproto->network != rpp->network) continue;
-//
-//								// transformed polygon
-//								xformpoly(poly, trans);
-//
-//								// if the polygon layer is pseudo, substitute real layer
-//								poly->layer = nonpseudolayer(poly->layer, poly->tech);
-//							}
-//
-//							// first see if the prefered arc is possible
-//							ap = ro_preferedarc;
-//							stitched = 0;
-//							for(i=0; pp->connects[i] != NOARCPROTO; i++)
-//							{
-//								if (pp->connects[i] != ap) continue;
-//
-//								// this polygon must be the smallest arc layer
-//								if (useportpoly == 0)
-//								{
-//									if (!samelayer(ap->tech, ap->temp1, poly->layer)) continue;
-//								}
-//
-//								// pass it on to the next test
-//								stitched = ro_testpoly(ni, pp, ap, poly, oni);
-//								count += stitched;
-//								break;
-//							}
-//
-//							// now look for any arc
-//							if (stitched == 0)
-//							{
-//								for(i=0; pp->connects[i] != NOARCPROTO; i++)
-//								{
-//									ap = pp->connects[i];
-//									if (ap == ro_preferedarc) continue;
-//
-//									// arc must be in the same technology
-//									if (ap->tech != rni->proto->tech) continue;
-//
-//									// this polygon must be the smallest arc layer
-//									if (useportpoly == 0)
-//									{
-//										if (!samelayer(ap->tech, ap->temp1, poly->layer)) continue;
-//									}
-//
-//									// pass it on to the next test
-//									stitched = ro_testpoly(ni, pp, ap, poly, oni);
-//									count += stitched;
-//									if (stitched != 0) break;
-//								}
-//							}
-//							if (stitched != 0) break;
-//						}
-//					}
-//				} else
-//				{
-//					// primitive node: check its layers
-//					makerot(ni, trans);
-//
-//					// save information about the other node
-//					ox = (oni->lowx + oni->highx) / 2;
-//					oy = (oni->lowy + oni->highy) / 2;
-//
-//					// look at all polygons on this nodeinst
-//					useportpoly = 0;
-//					tot = allnodeEpolys(ni, ro_autostitchplist, NOWINDOWPART, TRUE);
-//					if (tot == 0 || ni->proto == gen_simprobeprim)
-//					{
-//						useportpoly = 1;
-//						tot = 1;
-//					}
-//					for(j=0; j<tot; j++)
-//					{
-//						if (useportpoly != 0)
-//						{
-//							// search all ports for the closest
-//							bestpp = NOPORTPROTO;
-//							bestdist = 0;
-//							for(rpp = ni->proto->firstportproto; rpp != NOPORTPROTO; rpp = rpp->nextportproto)
-//							{
-//								// compute best distance to the other node
-//								portposition(ni, rpp, &x, &y);
-//								dist = abs(x-ox) + abs(y-oy);
-//								if (bestpp == NOPORTPROTO) bestdist = dist;
-//								if (dist > bestdist) continue;
-//								bestpp = rpp;   bestdist = dist;
-//							}
-//							if (bestpp == NOPORTPROTO) continue;
-//							rpp = bestpp;
-//							shapeportpoly(ni, rpp, poly, FALSE);
-//							polyptr = poly;
-//						} else
-//						{
-//							polyptr = ro_autostitchplist->polygons[j];
-//
-//							// only want electrically connected polygons
-//							if (polyptr->portproto == NOPORTPROTO) continue;
-//
-//							// if the polygon layer is pseudo, substitute real layer
-//							polyptr->layer = nonpseudolayer(polyptr->layer, polyptr->tech);
-//
-//							// get the correct port connected to this polygon
-//							rpp = NOPORTPROTO;
-//
-//							// search all ports for the closest connected to this layer
-//							bestpp = NOPORTPROTO;
-//							bestdist = 0;
-//							for(rpp = ni->proto->firstportproto; rpp != NOPORTPROTO; rpp = rpp->nextportproto)
-//								if (rpp->network == polyptr->portproto->network)
-//							{
-//								// compute best distance to the other node
-//								portposition(ni, rpp, &x, &y);
-//								dist = abs(x-ox) + abs(y-oy);
-//								if (bestpp == NOPORTPROTO) bestdist = dist;
-//								if (dist > bestdist) continue;
-//								bestpp = rpp;   bestdist = dist;
-//							}
-//							if (bestpp == NOPORTPROTO) continue;
-//							rpp = bestpp;
-//
-//							// transformed the polygon
-//							xformpoly(polyptr, trans);
-//						}
-//
-//						// stop now if already an arc on this port to other node
-//						for(pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//							if (pi->proto->network == rpp->network &&
-//									(pi->conarcinst->end[0].nodeinst == oni ||
-//										pi->conarcinst->end[1].nodeinst == oni)) break;
-//						if (pi != NOPORTARCINST) continue;
-//
-//						// first see if the prefered arc is possible
-//						ap = ro_preferedarc;
-//						stitched = 0;
-//						for(i=0; rpp->connects[i] != NOARCPROTO; i++)
-//						{
-//							if (rpp->connects[i] != ap) continue;
-//
-//							// arc must be in the same technology
-//							if (ap->tech != ni->proto->tech) break;
-//
-//							// this polygon must be the smallest arc layer
-//							ro_findsmallestlayer(ap);
-//							if (useportpoly == 0)
-//							{
-//								if (!samelayer(ap->tech, ap->temp1, polyptr->layer)) continue;
-//							}
-//
-//							// pass it on to the next test
-//							stitched = ro_testpoly(ni, rpp, ap, polyptr, oni);
-//							count += stitched;
-//							break;
-//						}
-//
-//						// now look for any arc
-//						if (stitched == 0)
-//						{
-//							for(i=0; rpp->connects[i] != NOARCPROTO; i++)
-//							{
-//								ap = rpp->connects[i];
-//								if (ap == ro_preferedarc) continue;
-//
-//								// arc must be in the same technology
-//								if (ap->tech != ni->proto->tech) continue;
-//
-//								// this polygon must be the smallest arc layer
-//								ro_findsmallestlayer(ap);
-//								if (useportpoly == 0)
-//								{
-//									if (!samelayer(ap->tech, ap->temp1, polyptr->layer)) continue;
-//								}
-//
-//								// pass it on to the next test
-//								stitched = ro_testpoly(ni, rpp, ap, polyptr, oni);
-//								count += stitched;
-//								if (stitched != 0) break;
-//							}
-//						}
-//						if (stitched != 0) break;
-//					}
-//				}
-//			}
-//			return(count);
-//		}
+		/*
+		 * Method to check NodeInst "ni" for possible stitching to neighboring NodeInsts.
+		 */
+		private int checkStitching(NodeInst ni)
+		{
+			Cell cell = ni.getParent();
+			Netlist netlist = cell.getUserNetlist();
+			double [] boundArray = (double [])ni.getTempObj();
+
+			// gather a list of other nodes that touch or overlap this one
+			List nodesInArea = new ArrayList();
+			Geometric.Search search = new Geometric.Search(ni.getBounds(), cell);
+			for(;;)
+			{
+				Geometric geom = search.nextObject();
+				if (geom == null) break;
+				if (geom instanceof NodeInst) nodesInArea.add(geom);
+			}
+
+			int count = 0;
+			for(Iterator it = nodesInArea.iterator(); it.hasNext(); )
+			{
+				// find another node in this area
+				NodeInst oNi = (NodeInst)it.next();
+
+				// if both nodes are being checked, examine them only once
+				if (oNi.isBit(nodeMark) && oNi.getNodeIndex() <= ni.getNodeIndex()) continue;
+
+				// now look at every layer in this node
+				Rectangle2D oBounds = oNi.getBounds();
+				if (ni.getProto() instanceof Cell)
+				{
+					// complex node instance: look at all ports
+					int bbp = 0;
+					for(Iterator pIt = ni.getProto().getPorts(); pIt.hasNext(); )
+					{
+						PortProto pp = (PortProto)pIt.next();
+
+						// first do a bounding box check
+						if (boundArray != null)
+						{
+							double lX = boundArray[bbp++];
+							double hX = boundArray[bbp++];
+							double lY = boundArray[bbp++];
+							double hY = boundArray[bbp++];
+							if (lX > oBounds.getMaxX() || hX < oBounds.getMinX() ||
+								lY > oBounds.getMaxY() || hY < oBounds.getMinY()) continue;
+						}
+
+						// stop now if already an arc on this port to other node
+						boolean found = false;
+						for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+						{
+							Connection con = (Connection)cIt.next();
+							PortInst pi = con.getPortInst();
+							if (pi.getPortProto() != pp) continue;
+							if (con.getArc().getHead().getPortInst().getNodeInst() == oNi ||
+								con.getArc().getTail().getPortInst().getNodeInst() == oNi) { found = true;   break; }
+						}
+						if (found) continue;
+
+						// find the primitive node at the bottom of this port
+						AffineTransform trans = ni.rotateOut();
+						NodeInst rNi = ni;
+						PortProto rPp = pp;
+						while (rNi.getProto() instanceof Cell)
+						{
+							AffineTransform temp = rNi.translateOut();
+							temp.preConcatenate(trans);
+							Export e = (Export)rPp;
+							rNi = e.getOriginalPort().getNodeInst();
+							rPp = e.getOriginalPort().getPortProto();
+
+							trans = rNi.rotateOut();
+							trans.preConcatenate(temp);
+						}
+
+						// determine the smallest layer for all possible arcs
+						ArcProto [] connections = pp.getBasePort().getConnections();
+						for(int i=0; i<connections.length; i++)
+						{
+							findSmallestLayer(connections[i]);
+						}
+
+						// look at all polygons on this nodeinst
+						boolean usePortPoly = false;
+						Technology tech = rNi.getProto().getTechnology();
+						Poly [] nodePolys = tech.getShapeOfNode(rNi, null, true, true);
+						int tot = nodePolys.length;
+						if (tot == 0 || rNi.getProto() == Generic.tech.simProbeNode)
+						{
+							usePortPoly = true;
+							tot = 1;
+						}
+						Netlist subNetlist = rNi.getParent().getUserNetlist();
+						for(int j=0; j<tot; j++)
+						{
+							Layer layer = null;
+							Poly poly = null;
+							if (usePortPoly)
+							{
+								poly = ni.getShapeOfPort(pp);
+								layer = poly.getLayer();
+							} else
+							{
+								poly = nodePolys[j];
+
+								// only want electrically connected polygons
+								if (poly.getPort() == null) continue;
+
+								// only want polygons on correct part of this nodeinst
+								if (!subNetlist.portsConnected(rNi, rPp, poly.getPort())) continue;
+
+								// transformed polygon
+								poly.transform(trans);
+
+								// if the polygon layer is pseudo, substitute real layer
+								layer = poly.getLayer();
+								if (layer != null) layer = layer.getNonPseudoLayer();
+							}
+
+							// see which arc can make the connection
+							boolean connected = false;
+							for(int pass=0; pass<2; pass++)
+							{
+								for(int i=0; i<connections.length; i++)
+								{
+									ArcProto ap = connections[i];
+									if (pass == 0)
+									{
+										if (ap != preferredArc) continue;
+									} else
+									{
+										if (ap == preferredArc) continue;
+
+										// arc must be in the same technology
+										if (ap.getTechnology() != rNi.getProto().getTechnology()) continue;
+									}
+
+									// this polygon must be the smallest arc layer
+									if (!usePortPoly)
+									{
+										if (!tech.sameLayer((Layer)ap.getTempObj(), layer)) continue;
+									}
+
+									// pass it on to the next test
+									connected = testPoly(ni, pp, ap, poly, oNi, netlist);
+									if (connected) { count++;   break; }
+								}
+								if (connected) break;
+							}
+							if (connected) break;
+						}
+					}
+				} else
+				{
+					// primitive node: check its layers
+					AffineTransform trans = ni.rotateOut();
+
+					// save information about the other node
+					double oX = oNi.getGrabCenterX();
+					double oY = oNi.getGrabCenterY();
+
+					// look at all polygons on this nodeinst
+					boolean usePortPoly = false;
+					Technology tech = ni.getProto().getTechnology();
+					Poly [] polys = tech.getShapeOfNode(ni, null, true, true);
+					int tot = polys.length;
+					if (tot == 0 || ni.getProto() == Generic.tech.simProbeNode)
+					{
+						usePortPoly = true;
+						tot = 1;
+					}
+					for(int j=0; j<tot; j++)
+					{
+						PortProto rPp = null;
+						Poly polyPtr = null;
+						if (usePortPoly)
+						{
+							// search all ports for the closest
+							PortProto bestPp = null;
+							double bestDist = 0;
+							for(Iterator pIt = ni.getProto().getPorts(); pIt.hasNext(); )
+							{
+								PortProto tPp = (PortProto)pIt.next();
+
+								// compute best distance to the other node
+								Poly portPoly = ni.getShapeOfPort(tPp);
+								double x = portPoly.getCenterX();
+								double y = portPoly.getCenterY();
+								double dist = Math.abs(x-oX) + Math.abs(y-oY);
+								if (bestPp == null) bestDist = dist;
+								if (dist > bestDist) continue;
+								bestPp = rPp;   bestDist = dist;
+							}
+							if (bestPp == null) continue;
+							rPp = bestPp;
+							polyPtr = ni.getShapeOfPort(rPp);
+						} else
+						{
+							polyPtr = polys[j];
+
+							// only want electrically connected polygons
+							if (polyPtr.getPort() == null) continue;
+
+							// search all ports for the closest connected to this layer
+							PortProto bestPp = null;
+							double bestDist = 0;
+							for(Iterator pIt = ni.getProto().getPorts(); pIt.hasNext(); )
+							{
+								PortProto tPp = (PortProto)pIt.next();
+								if (!netlist.portsConnected(ni, tPp, polyPtr.getPort())) continue;
+
+								// compute best distance to the other node
+								Poly portPoly = ni.getShapeOfPort(tPp);
+								double x = portPoly.getCenterX();
+								double y = portPoly.getCenterY();
+								double dist = Math.abs(x-oX) + Math.abs(y-oY);
+								if (bestPp == null) bestDist = dist;
+								if (dist > bestDist) continue;
+								bestPp = tPp;   bestDist = dist;
+							}
+							if (bestPp == null) continue;
+							rPp = bestPp;
+
+							// transformed the polygon
+							polyPtr.transform(trans);
+						}
+
+						// if the polygon layer is pseudo, substitute real layer
+						Layer layer = polyPtr.getLayer();
+						if (layer != null) layer = layer.getNonPseudoLayer();
+
+						// stop now if already an arc on this port to other node
+						boolean found = false;
+						for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+						{
+							Connection con = (Connection)cIt.next();
+							PortInst pi = con.getPortInst();
+							if (!netlist.portsConnected(ni, rPp, pi.getPortProto())) continue;
+							if (con.getArc().getHead().getPortInst().getNodeInst() == oNi ||
+								con.getArc().getTail().getPortInst().getNodeInst() == oNi) { found = true;   break; }
+						}
+						if (found) continue;
+
+						// see if an arc is possible
+						boolean connected = false;
+						ArcProto [] connections = rPp.getBasePort().getConnections();
+						for(int pass=0; pass<2; pass++)
+						{
+							for(int i=0; i<connections.length; i++)
+							{
+								ArcProto ap = connections[i];
+								if (pass == 0)
+								{
+									if (ap != preferredArc) continue;
+								} else
+								{
+									if (ap == preferredArc) continue;
+								}
+
+								// arc must be in the same technology
+								if (ap.getTechnology() != ni.getProto().getTechnology()) break;
+
+								// this polygon must be the smallest arc layer
+								findSmallestLayer(ap);
+								if (!usePortPoly)
+								{
+									Layer oLayer = (Layer)ap.getTempObj();
+									if (!ap.getTechnology().sameLayer(oLayer, layer)) continue;
+								}
+
+								// pass it on to the next test
+								connected = testPoly(ni, rPp, ap, polyPtr, oNi, netlist);
+								if (connected) { count++;   break; }
+							}
+							if (connected) break;
+						}
+						if (connected) break;
+					}
+				}
+			}
+			return count;
+		}
 
 		/*
-		 * routine to find exported polygons in node "oni" that abut with the polygon
+		 * Method to find exported polygons in node "oNi" that abut with the polygon
 		 * in "poly" on the same layer.  When they do, these should be connected to
 		 * nodeinst "ni", port "pp" with an arc of type "ap".  Returns the number of
 		 * connections made (0 if none).
 		 */
-//		INTBIG ro_testpoly(NODEINST *ni, PORTPROTO *pp, ARCPROTO *ap, POLYGON *poly, NODEINST *oni)
-//		{
-//			REGISTER NODEINST *rni;
-//			REGISTER PORTPROTO *rpp, *mpp, *bestpp;
-//			XARRAY localtran, temp, trans;
-//			INTBIG x, y, plx, phx, ply, phy, ox, oy;
-//			static POLYGON *opoly = NOPOLYGON;
-//			REGISTER INTBIG tot, j, bbp, dist, bestdist, lx, hx, ly, hy;
-//			REGISTER NETWORK *net, *onet;
-//
-//			// get polygon
-//			(void)needstaticpolygon(&opoly, 4, ro_tool->cluster);
-//
-//			// get network associated with the node/port
-//			net = getnetonport(ni, pp);
-//
-//			// now look at every layer in this node
-//			if (oni->proto->primindex == 0)
-//			{
-//				// complex cell: look at all exports
-//				if (oni->temp2 == 0 || oni->temp2 == -1) bbp = -1; else
-//				{
-//					getbbox(poly, &plx, &phx, &ply, &phy);
-//					bbp = 0;
-//				}
-//				for(mpp = oni->proto->firstportproto; mpp != NOPORTPROTO; mpp = mpp->nextportproto)
-//				{
-//					// first do a bounding box check
-//					if (bbp >= 0)
-//					{
-//						lx = ((INTBIG *)oni->temp2)[bbp++];
-//						hx = ((INTBIG *)oni->temp2)[bbp++];
-//						ly = ((INTBIG *)oni->temp2)[bbp++];
-//						hy = ((INTBIG *)oni->temp2)[bbp++];
-//						if (lx > phx || hx < plx || ly > phy || hy < ply) continue;
-//					}
-//
-//					// port must be able to connect to the arc
-//					if (!ro_canconnect(ap, mpp)) continue;
-//
-//					// do not stitch where there is already an electrical connection
-//					onet = getnetonport(oni, mpp);
-//					if (net != NONETWORK && onet == net) continue;
-//
-//					// find the primitive node at the bottom of this port
-//					makerot(oni, trans);
-//					rni = oni;   rpp = mpp;
-//					while (rni->proto->primindex == 0)
-//					{
-//						maketrans(rni, localtran);
-//						transmult(localtran, trans, temp);
-//						rni = rpp->subnodeinst;
-//						rpp = rpp->subportproto;
-//						makerot(rni, localtran);
-//						transmult(localtran, temp, trans);
-//					}
-//
-//					// see how much geometry is on this node
-//					tot = nodeEpolys(rni, 0, NOWINDOWPART);
-//					if (tot == 0)
-//					{
-//						// not a geometric primitive: look for ports that touch
-//						shapeportpoly(oni, mpp, opoly, FALSE);
-//						if (ro_comparepoly(oni, mpp, opoly, ni, pp, poly, ap) != 0)
-//							return(1);
-//					} else
-//					{
-//						// a geometric primitive: look for ports on layers that touch
-//						for(j=0; j<tot; j++)
-//						{
-//							shapeEnodepoly(rni, j, opoly);
-//
-//							// only want electrically connected polygons
-//							if (opoly->portproto == NOPORTPROTO) continue;
-//
-//							// only want polygons connected to correct part of nodeinst
-//							if (opoly->portproto->network != rpp->network) continue;
-//
-//							// if the polygon layer is pseudo, substitute real layer
-//							if (ni->proto != gen_simprobeprim)
-//							{
-//								opoly->layer = nonpseudolayer(opoly->layer, opoly->tech);
-//								if (!samelayer(ap->tech, ap->temp1, opoly->layer)) continue;
-//							}
-//
-//							// transform the polygon and pass it on to the next test
-//							xformpoly(opoly, trans);
-//							if (ro_comparepoly(oni, mpp, opoly, ni, pp, poly, ap) != 0)
-//								return(1);
-//						}
-//					}
-//				}
-//			} else
-//			{
-//				// primitive node: check its layers
-//				makerot(oni, trans);
-//
-//				// determine target point
-//				getcenter(poly, &ox, &oy);
-//
-//				// look at all polygons on this nodeinst
-//				tot = nodeEpolys(oni, 0, NOWINDOWPART);
-//				if (tot == 0)
-//				{
-//					// not a geometric primitive: look for ports that touch
-//					bestpp = NOPORTPROTO;
-//					bestdist = 0;
-//					for(rpp = oni->proto->firstportproto; rpp != NOPORTPROTO; rpp = rpp->nextportproto)
-//					{
-//						// compute best distance to the other node
-//						portposition(oni, rpp, &x, &y);
-//						dist = abs(x-ox) + abs(y-oy);
-//						if (bestpp == NOPORTPROTO) bestdist = dist;
-//						if (dist > bestdist) continue;
-//						bestpp = rpp;   bestdist = dist;
-//					}
-//					if (bestpp != NOPORTPROTO)
-//					{
-//						rpp = bestpp;
-//
-//						// port must be able to connect to the arc
-//						if (ro_canconnect(ap, rpp))
-//						{
-//							// transformed the polygon and pass it on to the next test
-//							shapeportpoly(oni, rpp, opoly, FALSE);
-//							if (ro_comparepoly(oni, rpp, opoly, ni, pp, poly, ap) != 0)
-//								return(1);
-//						}
-//					}
-//				} else
-//				{
-//					// a geometric primitive: look for ports on layers that touch
-//					for(j=0; j<tot; j++)
-//					{
-//						shapeEnodepoly(oni, j, opoly);
-//
-//						// only want electrically connected polygons
-//						if (opoly->portproto == NOPORTPROTO) continue;
-//
-//						// if the polygon layer is pseudo, substitute real layer
-//						opoly->layer = nonpseudolayer(opoly->layer, opoly->tech);
-//
-//						// this must be the smallest layer on the arc
-//						if (!samelayer(ap->tech, ap->temp1, opoly->layer)) continue;
-//
-//						// do not stitch where there is already an electrical connection
-//						onet = getnetonport(oni, opoly->portproto);
-//						if (net != NONETWORK && onet == net) continue;
-//
-//						// search all ports for the closest connected to this layer
-//						bestpp = NOPORTPROTO;
-//						bestdist = 0;
-//						for(rpp = oni->proto->firstportproto; rpp != NOPORTPROTO; rpp = rpp->nextportproto)
-//							if (rpp->network == opoly->portproto->network)
-//						{
-//							// compute best distance to the other node
-//							portposition(oni, rpp, &x, &y);
-//							dist = abs(x-ox) + abs(y-oy);
-//							if (bestpp == NOPORTPROTO) bestdist = dist;
-//							if (dist > bestdist) continue;
-//							bestpp = rpp;   bestdist = dist;
-//						}
-//						if (bestpp == NOPORTPROTO) continue;
-//						rpp = bestpp;
-//
-//						// port must be able to connect to the arc
-//						if (!ro_canconnect(ap, rpp)) continue;
-//
-//						// transformed the polygon and pass it on to the next test
-//						xformpoly(opoly, trans);
-//						if (ro_comparepoly(oni, rpp, opoly, ni, pp, poly, ap) != 0)
-//							return(1);
-//					}
-//				}
-//			}
-//			return(0);
-//		}
+		private static boolean testPoly(NodeInst ni, PortProto pp, ArcProto ap, Poly poly, NodeInst oNi, Netlist netlist)
+		{
+			// get network associated with the node/port
+			PortInst pi = ni.findPortInstFromProto(pp);
+			JNetwork net = netlist.getNetwork(pi);
+
+			// now look at every layer in this node
+			if (oNi.getProto() instanceof Cell)
+			{
+				// complex cell: look at all exports
+				double [] boundArray = (double [])oNi.getTempObj();
+				int bbp = 0;
+				Rectangle2D bounds = poly.getBounds2D();
+				for(Iterator it = oNi.getProto().getPorts(); it.hasNext(); )
+				{
+					PortProto mPp = (PortProto)it.next();
+
+					// first do a bounding box check
+					if (boundArray != null)
+					{
+						double lX = boundArray[bbp++];
+						double hX = boundArray[bbp++];
+						double lY = boundArray[bbp++];
+						double hY = boundArray[bbp++];
+						if (lX > bounds.getMaxX() || hX < bounds.getMinX() ||
+							lY > bounds.getMaxY() || hY < bounds.getMinY()) continue;
+					}
+
+					// port must be able to connect to the arc
+					if (!mPp.getBasePort().connectsTo(ap)) continue;
+
+					// do not stitch where there is already an electrical connection
+					JNetwork oNet = netlist.getNetwork(oNi.findPortInstFromProto(mPp));
+					if (net != null && oNet == net) continue;
+
+					// find the primitive node at the bottom of this port
+					AffineTransform trans = oNi.rotateOut();
+					NodeInst rNi = oNi;
+					PortProto rPp = mPp;
+					while (rNi.getProto() instanceof Cell)
+					{
+						AffineTransform temp = rNi.translateOut();
+						temp.preConcatenate(trans);
+						Export e = (Export)rPp;
+						rNi = e.getOriginalPort().getNodeInst();
+						rPp = e.getOriginalPort().getPortProto();
+
+						trans = rNi.rotateOut();
+						trans.preConcatenate(temp);
+					}
+
+					// see how much geometry is on this node
+					Technology tech = rNi.getProto().getTechnology();
+					Poly [] polys = tech.getShapeOfNode(rNi, null, true, true);
+					int tot = polys.length;
+					if (tot == 0)
+					{
+						// not a geometric primitive: look for ports that touch
+						Poly oPoly = oNi.getShapeOfPort(mPp);
+						if (comparePoly(oNi, mPp, oPoly, ni, pp, poly, ap, netlist))
+							return true;
+					} else
+					{
+						// a geometric primitive: look for ports on layers that touch
+						Netlist subNetlist = rNi.getParent().getUserNetlist();
+						for(int j=0; j<tot; j++)
+						{
+							Poly oPoly = polys[j];
+
+							// only want electrically connected polygons
+							if (oPoly.getPort() == null) continue;
+
+							// only want polygons connected to correct part of nodeinst
+							if (!subNetlist.portsConnected(rNi, rPp, oPoly.getPort())) continue;
+
+							// if the polygon layer is pseudo, substitute real layer
+							if (ni.getProto() != Generic.tech.simProbeNode)
+							{
+								Layer oLayer = oPoly.getLayer();
+								if (oLayer != null) oLayer = oLayer.getNonPseudoLayer();
+								if (!tech.sameLayer(oLayer, (Layer)ap.getTempObj())) continue;
+							}
+
+							// transform the polygon and pass it on to the next test
+							oPoly.transform(trans);
+							if (comparePoly(oNi, mPp, oPoly, ni, pp, poly, ap, netlist))
+								return true;
+						}
+					}
+				}
+			} else
+			{
+				// primitive node: check its layers
+				AffineTransform trans = oNi.rotateOut();
+
+				// determine target point
+				double ox = poly.getCenterX();
+				double oy = poly.getCenterY();
+
+				// look at all polygons on this nodeinst
+				Technology tech = oNi.getProto().getTechnology();
+				Poly [] polys = tech.getShapeOfNode(oNi, null, true, true);
+				int tot = polys.length;
+				if (tot == 0)
+				{
+					// not a geometric primitive: look for ports that touch
+					PortProto bestPp = null;
+					double bestDist = 0;
+					for(Iterator pIt = oNi.getProto().getPorts(); pIt.hasNext(); )
+					{
+						PortProto rPp = (PortProto)pIt.next();
+						// compute best distance to the other node
+						
+						Poly portPoly = oNi.getShapeOfPort(rPp);
+						double dist = Math.abs(portPoly.getCenterX()-ox) + Math.abs(portPoly.getCenterY()-oy);
+						if (bestPp == null) bestDist = dist;
+						if (dist > bestDist) continue;
+						bestPp = rPp;   bestDist = dist;
+					}
+					if (bestPp != null)
+					{
+						PortProto rPp = bestPp;
+
+						// port must be able to connect to the arc
+						if (rPp.getBasePort().connectsTo(ap))
+						{
+							// transformed the polygon and pass it on to the next test
+							Poly oPoly = oNi.getShapeOfPort(rPp);
+							if (comparePoly(oNi, rPp, oPoly, ni, pp, poly, ap, netlist))
+								return true;
+						}
+					}
+				} else
+				{
+					// a geometric primitive: look for ports on layers that touch
+					for(int j=0; j<tot; j++)
+					{
+						Poly oPoly = polys[j];
+
+						// only want electrically connected polygons
+						if (oPoly.getPort() == null) continue;
+
+						// if the polygon layer is pseudo, substitute real layer
+						Layer oLayer = oPoly.getLayer();
+						if (oLayer != null) oLayer = oLayer.getNonPseudoLayer();
+
+						// this must be the smallest layer on the arc
+						if (!tech.sameLayer((Layer)ap.getTempObj(), oLayer)) continue;
+
+						// do not stitch where there is already an electrical connection
+						PortInst oPi = oNi.findPortInstFromProto(oPoly.getPort());
+						JNetwork oNet = netlist.getNetwork(oPi);
+						if (net != null && oNet == net) continue;
+
+						// search all ports for the closest connected to this layer
+						PortProto bestPp = null;
+						double bestDist = 0;
+						for(Iterator pIt = oNi.getProto().getPorts(); pIt.hasNext(); )
+						{
+							PortProto rPp = (PortProto)pIt.next();
+							if (!netlist.portsConnected(oNi, rPp, oPoly.getPort())) continue;
+
+							// compute best distance to the other node
+							Poly portPoly = oNi.getShapeOfPort(rPp);
+							double dist = Math.abs(ox-portPoly.getCenterX()) + Math.abs(oy-portPoly.getCenterY());
+							if (bestPp == null) bestDist = dist;
+							if (dist > bestDist) continue;
+							bestPp = rPp;   bestDist = dist;
+						}
+						if (bestPp == null) continue;
+						PortProto rPp = bestPp;
+
+						// port must be able to connect to the arc
+						if (!rPp.getBasePort().connectsTo(ap)) continue;
+
+						// transformed the polygon and pass it on to the next test
+						oPoly.transform(trans);
+						if (comparePoly(oNi, rPp, oPoly, ni, pp, poly, ap, netlist))
+							return true;
+					}
+				}
+			}
+			return false;
+		}
 
 		/*
-		 * routine to compare polygon "opoly" from nodeinst "oni", port "opp" and
+		 * Method to compare polygon "oPoly" from nodeinst "oNi", port "opp" and
 		 * polygon "poly" from nodeinst "ni", port "pp".  If these polygons touch
 		 * or overlap then the two nodes should be connected with an arc of type
-		 * "ap".  If a connection is made, the routine returns nonzero, otherwise
-		 * it returns zero.
+		 * "ap".  If a connection is made, the method returns true, otherwise
+		 * it returns false.
 		 */
-//		INTBIG ro_comparepoly(NODEINST *oni, PORTPROTO *opp, POLYGON *opoly, NODEINST *ni,
-//			PORTPROTO *pp, POLYGON *poly, ARCPROTO *ap)
-//		{
-//			INTBIG x, y, ox, oy, lx, hx, ly, hy, olx, oly, ohx, ohy, ret, tx, ty, dist, tdist;
-//			ARCINST *alt1, *alt2;
-//			REGISTER PORTPROTO *tpp;
-//			NODEINST *con1, *con2;
-//			REGISTER ARCINST *newai;
-//
-//			// find the bounding boxes of the polygons
-//			getbbox(poly, &lx, &hx, &ly, &hy);
-//			getbbox(opoly, &olx, &ohx, &oly, &ohy);
-//
-//			// quit now if bounding boxes don't intersect
-//			if (lx > ohx || olx > hx || ly > ohy || oly > hy) return(0);
-//
-//			// be sure the closest ports are being used
-//			portposition(ni, pp, &x, &y);
-//			portposition(oni, opp, &ox, &oy);
-//			dist = computedistance(x, y, ox, oy);
-//			for(tpp = oni->proto->firstportproto; tpp != NOPORTPROTO; tpp = tpp->nextportproto)
-//			{
-//				if (tpp == opp) continue;
-//				if (tpp->network != opp->network) continue;
-//				portposition(oni, tpp, &tx, &ty);
-//				tdist = computedistance(x, y, tx, ty);
-//				if (tdist >= dist) continue;
-//				dist = tdist;
-//				opp = tpp;
-//				ox = tx;   oy = ty;
-//			}
-//			for(tpp = ni->proto->firstportproto; tpp != NOPORTPROTO; tpp = tpp->nextportproto)
-//			{
-//				if (tpp == pp) continue;
-//				if (tpp->network != pp->network) continue;
-//				portposition(ni, tpp, &tx, &ty);
-//				tdist = computedistance(ox, oy, tx, ty);
-//				if (tdist >= dist) continue;
-//				dist = tdist;
-//				pp = tpp;
-//				x = tx;   y = ty;
-//			}
-//
-//			// find some dummy position to help run the arc
-//			x = (ox+x) / 2;   y = (oy+y) / 2;
-//
-//			// run the wire
-//			newai = aconnect(ni->geom, pp, oni->geom, opp, ap, x, y, &alt1, &alt2, &con1, &con2, 900, TRUE, TRUE);
-//			ret = ro_didaccept(newai, alt1, alt2, con1, con2);
-//			return(ret);
-//		}
+		private static boolean comparePoly(NodeInst oNi, PortProto opp, Poly oPoly, NodeInst ni,
+			PortProto pp, Poly poly, ArcProto ap, Netlist netlist)
+		{
+			// find the bounding boxes of the polygons
+			Rectangle2D polyBounds = poly.getBounds2D();
+			Rectangle2D oPolyBounds = oPoly.getBounds2D();
 
-		/*
-		 * routine to examine up to three arcs that were created and see if they
-		 * are acceptable to the user.  Returns zero if not, nonzero if so.
-		 */
-//		INTBIG ro_didaccept(ARCINST *ai, ARCINST *alt1, ARCINST *alt2, NODEINST *con1, NODEINST *con2)
-//		{
-//			REGISTER VARIABLE *var;
-//			POPUPMENU *pm;
-//			REGISTER POPUPMENUITEM *miret;
-//			BOOLEAN butstate;
-//			WINDOWPART *w;
-//			INTBIG x, y, retval;
-//
-//			// if main arc wasn't created, no update
-//			if (ai == NOARCINST) return(0);
-//
-//			// see if user selection is to be done
-//			retval = 1;
-//			if ((ro_state&(SELECT|SELSKIP)) == SELECT)
-//			{
-//				// save highlighting on the first selection
-//				if ((ro_state&SELDONE) == 0)
-//				{
-//					(void)asktool(us_tool, x_("down-stack"));
-//					(void)setvalkey((INTBIG)ro_tool, VTOOL, ro_statekey, ro_state | SELDONE,
-//						VINTEGER|VDONTSAVE);
-//				}
-//
-//				// erase all highlighting
-//				(void)asktool(us_tool, x_("clear"));
-//
-//				// force the stitch to be drawn
-//				endobjectchange((INTBIG)ai, VARCINST);
-//				if (alt1 != NOARCINST) endobjectchange((INTBIG)alt1, VARCINST);
-//				if (alt2 != NOARCINST) endobjectchange((INTBIG)alt2, VARCINST);
-//				if (con1 != NONODEINST) endobjectchange((INTBIG)con1, VNODEINST);
-//				if (con2 != NONODEINST) endobjectchange((INTBIG)con2, VNODEINST);
-//
-//				// highlight the stitch
-//				(void)asktool(us_tool, x_("show-object"), (INTBIG)ai->geom);
-//				if (alt1 != NOARCINST) (void)asktool(us_tool, x_("show-object"), (INTBIG)alt1->geom);
-//				if (alt2 != NOARCINST) (void)asktool(us_tool, x_("show-object"), (INTBIG)alt2->geom);
-//				if (con1 != NONODEINST) (void)asktool(us_tool, x_("show-object"), (INTBIG)con1->geom);
-//				if (con2 != NONODEINST) (void)asktool(us_tool, x_("show-object"), (INTBIG)con2->geom);
-//				(void)asktool(us_tool, x_("flush-changes"));
-//
-//				// prepare confirm menu
-//				pm = (POPUPMENU *)emalloc(sizeof(POPUPMENU), ro_tool->cluster);
-//				if (pm == 0) return(0);
-//				pm->name = x_("x");
-//				pm->header = _("Confirm stitch");
-//				pm->total = 3;
-//				pm->list = (POPUPMENUITEM *)emalloc(pm->total * sizeof(POPUPMENUITEM), ro_tool->cluster);
-//				if (pm->list == 0) return(0);
-//				pm->list[0].attribute = _("&Accept");
-//				pm->list[0].value = 0;
-//				pm->list[0].response = NOUSERCOM;
-//				pm->list[1].attribute = _("&Reject");
-//				pm->list[1].value = 0;
-//				pm->list[1].response = NOUSERCOM;
-//				pm->list[2].attribute = _("Continue &silently");
-//				pm->list[2].value = 0;
-//				pm->list[2].response = NOUSERCOM;
-//
-//				// show confirm menu near first arc
-//				butstate = TRUE;
-//				if (el_curwindowpart != NOWINDOWPART)
-//				{
-//					w = el_curwindowpart;
-//					x = (ai->end[0].xpos + ai->end[1].xpos) / 2;
-//					y = (ai->end[0].ypos + ai->end[1].ypos) / 2;
-//					x = applyxscale(w, x-w->screenlx) + w->uselx + MENUDISPX;
-//					y = applyyscale(w, y-w->screenly) + w->usely + MENUDISPY;
-//				} else x = y = -1;
-//				miret = us_popupmenu(&pm, &butstate, TRUE, x, y, 4);
-//				(void)asktool(us_tool, x_("clear"));
-//				if (miret != NOPOPUPMENUITEM)
-//				{
-//					switch (miret - pm->list)
-//					{
-//						case 0: // accept
-//							break;	
-//						case 1: // reject
-//							startobjectchange((INTBIG)ai, VARCINST);
-//							if (killarcinst(ai)) ttyputerr(_("Problem retracting arc"));
-//							if (alt1 != NOARCINST)
-//							{
-//								startobjectchange((INTBIG)alt1, VARCINST);
-//								if (killarcinst(alt1))
-//									ttyputerr(_("Problem retracting arc"));
-//							}
-//							if (alt2 != NOARCINST)
-//							{
-//								startobjectchange((INTBIG)alt2, VARCINST);
-//								if (killarcinst(alt2))
-//									ttyputerr(_("Problem retracting arc"));
-//							}
-//							if (con1 != NONODEINST)
-//							{
-//								startobjectchange((INTBIG)con1, VNODEINST);
-//								if (killnodeinst(con1))
-//									ttyputerr(_("Problem retracting node"));
-//							}
-//							if (con2 != NONODEINST)
-//							{
-//								startobjectchange((INTBIG)con2, VNODEINST);
-//								if (killnodeinst(con2))
-//									ttyputerr(_("Problem retracting node"));
-//							}
-//							ttyputmsg(_("Stitch not made"));
-//							retval = 0;
-//							break;
-//						case 2: // continue silently
-//							var = getvalkey((INTBIG)ro_tool, VTOOL, VINTEGER, ro_statekey);
-//							if (var != NOVARIABLE)
-//								(void)setvalkey((INTBIG)ro_tool, VTOOL, ro_statekey,
-//									ro_state | SELSKIP, VINTEGER|VDONTSAVE);
-//							break;
-//					}
-//				}
-//				efree((CHAR *)pm->list);
-//				efree((CHAR *)pm);
-//			}
-//			return(retval);
-//		}
+			// quit now if bounding boxes don't intersect
+			if (polyBounds.getMinX() > oPolyBounds.getMaxX() || oPolyBounds.getMinX() > polyBounds.getMaxX() ||
+				polyBounds.getMinY() > oPolyBounds.getMaxY() || oPolyBounds.getMinY() > polyBounds.getMaxY()) return false;
 
-		/*
-		 * routine to determine whether arcproto "ap" can connect to portproto
-		 * "pp".  Returns true if it can connect.
-		 */
-//		BOOLEAN ro_canconnect(ARCPROTO *ap, PORTPROTO *pp)
-//		{
-//			REGISTER INTBIG i;
-//
-//			for(i=0; pp->connects[i] != NOARCPROTO; i++)
-//				if (pp->connects[i] == ap) return(TRUE);
-//			return(FALSE);
-//		}
+			// be sure the closest ports are being used
+			Poly portPoly = ni.getShapeOfPort(pp);
+			Point2D portCenter = new Point2D.Double(portPoly.getCenterX(), portPoly.getCenterY());
+			portPoly = oNi.getShapeOfPort(opp);
+			Point2D oPortCenter = new Point2D.Double(portPoly.getCenterX(), portPoly.getCenterY());
 
-		/*
-		 * routine to find the smallest layer on arc proto "ap" and cache that information
+			double dist = portCenter.distance(oPortCenter);
+			for(Iterator it = oNi.getProto().getPorts(); it.hasNext(); )
+			{
+				PortProto tPp = (PortProto)it.next();
+				if (tPp == opp) continue;
+				if (!netlist.portsConnected(oNi, tPp, opp)) continue;
+				portPoly = oNi.getShapeOfPort(tPp);
+				Point2D tPortCenter = new Point2D.Double(portPoly.getCenterX(), portPoly.getCenterY());
+				double tDist = portCenter.distance(tPortCenter);
+				if (tDist >= dist) continue;
+				dist = tDist;
+				opp = tPp;
+				oPortCenter.setLocation(tPortCenter);
+			}
+			for(Iterator it = ni.getProto().getPorts(); it.hasNext(); )
+			{
+				PortProto tPp = (PortProto)it.next();
+				if (tPp == pp) continue;
+				if (!netlist.portsConnected(ni, tPp, pp)) continue;
+				portPoly = ni.getShapeOfPort(tPp);
+				Point2D tPortCenter = new Point2D.Double(portPoly.getCenterX(), portPoly.getCenterY());
+				double tDist = oPortCenter.distance(tPortCenter);
+				if (tDist >= dist) continue;
+				dist = tDist;
+				pp = tPp;
+				portCenter.setLocation(tPortCenter);
+			}
+
+			// find some dummy position to help run the arc
+			double x = (oPortCenter.getX() + portCenter.getX()) / 2;
+			double y = (oPortCenter.getY() + portCenter.getY()) / 2;
+
+			// run the wire
+			List added = WiringListener.makeConnection(ni, pp, oNi, opp, new Point2D.Double(x,y), true, true);
+			if (added.size() == 0) return false;
+			return true;
+		}
+
+		/**
+		 * Method to find the smallest layer on arc proto "ap" and cache that information
 		 * in the "temp1" field of the arc proto.
 		 */
-//		void ro_findsmallestlayer(ARCPROTO *ap)
-//		{
-//			REGISTER ARCINST *ai;
-//			ARCINST arc;
-//			REGISTER float area, bestarea;
-//			REGISTER INTBIG i, j, bestfound;
-//			static POLYGON *poly = NOPOLYGON;
-//
-//			// quit if the value has already been computed
-//			if (ap->temp1 >= 0) return;
-//
-//			// get polygon
-//			(void)needstaticpolygon(&poly, 4, ro_tool->cluster);
-//
-//			// get a dummy arc to analyze
-//			ai = &arc;   initdummyarc(ai);
-//			ai->proto = ap;
-//			ai->width = defaultarcwidth(ap);
-//			ai->end[0].xpos = -5000;   ai->end[0].ypos = 0;
-//			ai->end[1].xpos = 5000;    ai->end[1].ypos = 0;
-//			ai->length = 10000;
-//
-//			// find the smallest layer
-//			bestfound = 0;
-//			bestarea = 0;
-//			j = arcpolys(ai, NOWINDOWPART);
-//			for(i=0; i<j; i++)
-//			{
-//				shapearcpoly(ai, i, poly);
-//				area = (float)fabs(areapoly(poly));
-//
-//				// LINTED "bestarea" used in proper order
-//				if (bestfound != 0 && area >= bestarea) continue;
-//				bestarea = area;
-//				bestfound++;
-//				ap->temp1 = poly->layer;
-//			}
-//		}
+		public static void findSmallestLayer(ArcProto ap)
+		{
+			// quit if the value has already been computed
+			if (ap.getTempObj() != null) return;
+
+			// get a dummy arc to analyze
+			ArcInst ai = ArcInst.makeDummyInstance((PrimitiveArc)ap, 100);
+
+			// find the smallest layer
+			boolean bestFound = false;
+			double bestArea = 0;
+			Technology tech = ap.getTechnology();
+			Poly [] polys = tech.getShapeOfArc(ai, null);
+			int tot = polys.length;
+			for(int i=0; i<tot; i++)
+			{
+				Poly poly = polys[i];
+				double area = Math.abs(poly.areaPoly());
+
+				if (bestFound && area >= bestArea) continue;
+				bestArea = area;
+				bestFound = true;
+				ap.setTempObj(poly.getLayer());
+			}
+		}
 
 	}
 

@@ -40,6 +40,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Point2D;
@@ -171,6 +172,39 @@ public class ArcInst extends Geometric
 			if (type.isNegated()) ai.setNegated();
 			if (type.isDirectional()) ai.setDirectional();
 		}
+		return ai;
+	}
+
+	/**
+	 * Method to create a "dummy" ArcInst for use outside of the database.
+	 * @param ap the prototype of the ArcInst.
+	 * @param arcLength the length of the ArcInst.
+	 * @return the dummy ArcInst.
+	 */
+	public static ArcInst makeDummyInstance(PrimitiveArc ap, double arcLength)
+	{
+		PrimitiveNode npEnd = ap.findPinProto();
+		if (npEnd == null) return null;
+
+		// create the head node
+		NodeInst niH = NodeInst.lowLevelAllocate();
+		niH.lowLevelPopulate(npEnd, new Point2D.Double(-arcLength/2,0), npEnd.getDefWidth(), npEnd.getDefHeight(), 0, null);
+		PortInst piH = niH.getOnlyPortInst();
+		Rectangle2D boundsH = piH.getBounds();
+		double xH = boundsH.getCenterX();
+		double yH = boundsH.getCenterY();
+
+		// create the tail node
+		NodeInst niT = NodeInst.lowLevelAllocate();
+		niT.lowLevelPopulate(npEnd, new Point2D.Double(arcLength/2,0), npEnd.getDefWidth(), npEnd.getDefHeight(), 0, null);
+		PortInst piT = niT.getOnlyPortInst();
+		Rectangle2D boundsT = piT.getBounds();
+		double xT = boundsT.getCenterX();
+		double yT = boundsT.getCenterY();
+
+		// create the arc that connects them
+		ArcInst ai = ArcInst.lowLevelAllocate();
+		ai.lowLevelPopulate(ap, ap.getDefaultWidth(), piH, new Point2D.Double(xH, yH), piT, new Point2D.Double(xT, yT));
 		return ai;
 	}
 

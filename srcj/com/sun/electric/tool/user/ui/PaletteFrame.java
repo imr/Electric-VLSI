@@ -898,38 +898,16 @@ public class PaletteFrame
 			}
 			if (entry instanceof NodeProto)
 			{
-				// rendering a node: reate the temporary node
+				// rendering a node: create the temporary node
 				NodeProto np = (NodeProto)entry;
-				NodeInst ni = NodeInst.lowLevelAllocate();
-				ni.lowLevelPopulate(np, new Point2D.Double(0,0), np.getDefWidth(), np.getDefHeight(), 0, null);
+				NodeInst ni = NodeInst.makeDummyInstance(np);
 				drawNodeInMenu(g, img, ni);
 			}
 			if (entry instanceof PrimitiveArc)
 			{
-				// rendering an arc
+				// rendering an arc: create the temporary arc
 				PrimitiveArc ap = (PrimitiveArc)entry;
-				PrimitiveNode npEnd = ap.findPinProto();
-				if (npEnd == null) return;
-
-				// create the head node
-				NodeInst niH = NodeInst.lowLevelAllocate();
-				niH.lowLevelPopulate(npEnd, new Point2D.Double(-menuArcLength/2,0), npEnd.getDefWidth(), npEnd.getDefHeight(), 0, null);
-				PortInst piH = niH.getOnlyPortInst();
-				Rectangle2D boundsH = piH.getBounds();
-				double xH = boundsH.getCenterX();
-				double yH = boundsH.getCenterY();
-
-				// create the tail node
-				NodeInst niT = NodeInst.lowLevelAllocate();
-				niT.lowLevelPopulate(npEnd, new Point2D.Double(menuArcLength/2,0), npEnd.getDefWidth(), npEnd.getDefHeight(), 0, null);
-				PortInst piT = niT.getOnlyPortInst();
-				Rectangle2D boundsT = piT.getBounds();
-				double xT = boundsT.getCenterX();
-				double yT = boundsT.getCenterY();
-
-				// create the arc that connects them
-				ArcInst ai = ArcInst.lowLevelAllocate();
-				ai.lowLevelPopulate(ap, ap.getDefaultWidth(), piH, new Point2D.Double(xH, yH), piT, new Point2D.Double(xT, yT));
+				ArcInst ai = ArcInst.makeDummyInstance(ap, menuArcLength);
 
 				// determine scale for rendering
 				double largest = 0;

@@ -113,6 +113,7 @@ public abstract class ArcProto extends ElectricObject
 	/** Flags bits for this ArcProto. */						private int userBits;
 	/** The function of this ArcProto. */						private Function function;
 	/** A temporary integer for this ArcProto. */				private int tempInt;
+	/** The temporary Object for this ArcProto. */				private Object tempObj;
 
 	// the meaning of the "userBits" field:
 	/** these arcs are fixed-length */					private static final int WANTFIX =            01;
@@ -140,6 +141,7 @@ public abstract class ArcProto extends ElectricObject
 	{
 		this.userBits = 0;
 		this.function = Function.UNKNOWN;
+		this.tempObj = null;
 	}
 
 	// ------------------------ public methods -------------------------------
@@ -494,6 +496,18 @@ public abstract class ArcProto extends ElectricObject
 	 * @return the temporary integer on this ArcProto.
 	 */
 	public int getTempInt() { return tempInt; }
+
+	/**
+	 * Method to set an arbitrary Object in a temporary location on this NodeProto.
+	 * @param tempObj the Object to be set on this ArcProto.
+	 */
+	public void setTempObj(Object tempObj) { checkChanging(); this.tempObj = tempObj; }
+
+	/**
+	 * Method to get the temporary Object on this ArcProto.
+	 * @return the temporary Object on this ArcProto.
+	 */
+	public Object getTempObj() { return tempObj; }
 
 	/**
 	 * Method to find the ArcProto with the given name.

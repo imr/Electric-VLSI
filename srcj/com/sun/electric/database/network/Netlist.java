@@ -273,6 +273,22 @@ public class Netlist
 		return networks[netIndex];
 	}
 
+	/**
+	 * Method to tell whether two PortProtos are electrically connected.
+	 * @param no the Nodable on which the PortProtos reside.
+	 * @param port1 the first PortProto.
+	 * @param port2 the second PortProto.
+	 * @return true if the two PortProtos are electrically connected.
+	 */
+	public boolean portsConnected(Nodable no, PortProto port1, PortProto port2)
+	{
+		int index1 = getNetIndex(no, port1, 0);
+		if (index1 < 0) return false;
+		int index2 = getNetIndex(no, port2, 0);
+		if (index2 < 0) return false;
+		return networks[index1] == networks[index2];
+	}
+
 	/*
 	 * Get network of port instance.
 	 */

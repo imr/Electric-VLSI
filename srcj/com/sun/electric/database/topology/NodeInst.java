@@ -185,6 +185,18 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
+	 * Method to create a "dummy" NodeInst for use outside of the database.
+	 * @param np the prototype of the NodeInst.
+	 * @return the dummy NodeInst.
+	 */
+	public static NodeInst makeDummyInstance(NodeProto np)
+	{
+		NodeInst ni = NodeInst.lowLevelAllocate();
+		ni.lowLevelPopulate(np, new Point2D.Double(0,0), np.getDefWidth(), np.getDefHeight(), 0, null);
+		return ni;
+	}
+
+	/**
 	 * Method to create a NodeInst.
 	 * @param protoType the NodeProto of which this is an instance.
 	 * @param center the center location of this NodeInst.
