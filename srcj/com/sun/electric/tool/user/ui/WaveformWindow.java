@@ -25,17 +25,16 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.HighlightListener;
+import com.sun.electric.tool.user.User;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -60,10 +59,10 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.HashSet;
 
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -84,15 +83,14 @@ public class WaveformWindow implements WindowContent, HighlightListener
 {
 	private static int panelSizeDigital = 30;
 	private static int panelSizeAnalog = 150;
+	private static Color [] colorArray = new Color [] {
+		Color.RED, Color.GREEN, Color.BLUE, Color.PINK, Color.ORANGE, Color.YELLOW, Color.CYAN, Color.MAGENTA};
 
 	/**
 	 * Test method to build a waveform with fake data.
 	 */
 	public static void makeFakeWaveformCommand()
 	{
-		Color [] colorArray = new Color [] {
-			Color.RED, Color.GREEN, Color.BLUE, Color.PINK, Color.ORANGE, Color.YELLOW, Color.CYAN, Color.MAGENTA};
-
 		// make the waveform data
 		Simulate.SimData sd = new Simulate.SimData();
 		double timeStep = 0.0000000001;
@@ -154,7 +152,6 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		/** high vertical axis for this trace (analog) */		private double analogHighValue;
 		/** vertical range for this trace (analog) */			private double analogRange;
 		/** the size of the window (in pixels) */				private Dimension sz;
-//		/** the cell that is in the window */					private Cell cell;
 		/** true if a time cursor is being dragged */			private boolean draggingMain, draggingExt;
 		/** true if an area is being dragged */					private boolean draggingArea;
 		/** true if this waveform panel is selected */			private boolean selected;
@@ -242,6 +239,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			{
 				public void actionPerformed(ActionEvent evt) { overlaySignalInPanel(); }
 			});
+			if (!isAnalog) overlaySignal.setEnabled(false);
 
 			// the "delete signal" button for this panel
 			deleteSignal = new JButton(iconDeleteSignal);
@@ -1367,6 +1365,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	/** let panel: the signal names */						private JPanel left;
 	/** right panel: the signal traces */					private JPanel right;
 	/** the "lock time" button. */							private JButton timeLock;
+	/** the "refresh" button. */							private JButton refresh;
 	/** the "grow panel" button for widening. */			private JButton growPanel;
 	/** the "shrink panel" button for narrowing. */			private JButton shrinkPanel;
 	/** the main scroll of all panels. */					private JScrollPane scrollAll;
@@ -1381,6 +1380,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	private static final ImageIcon iconAddPanel = new ImageIcon(WaveformWindow.class.getResource("ButtonSimAddPanel.gif"));
 	private static final ImageIcon iconLockTime = new ImageIcon(WaveformWindow.class.getResource("ButtonSimLockTime.gif"));
 	private static final ImageIcon iconUnLockTime = new ImageIcon(WaveformWindow.class.getResource("ButtonSimUnLockTime.gif"));
+	private static final ImageIcon iconRefresh = new ImageIcon(WaveformWindow.class.getResource("ButtonSimRefresh.gif"));
 	private static final ImageIcon iconGrowPanel = new ImageIcon(WaveformWindow.class.getResource("ButtonSimGrow.gif"));
 	private static final ImageIcon iconShrinkPanel = new ImageIcon(WaveformWindow.class.getResource("ButtonSimShrink.gif"));
 
@@ -1410,7 +1410,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		scrollAll = new JScrollPane(split);
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0;       gbc.gridy = 1;
-		gbc.gridwidth = 7;   gbc.gridheight = 1;
+		gbc.gridwidth = 8;   gbc.gridheight = 1;
 		gbc.weightx = 1;     gbc.weighty = 1;
 		gbc.anchor = GridBagConstraints.CENTER;
 		gbc.fill = java.awt.GridBagConstraints.BOTH;
@@ -1448,10 +1448,25 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			public void actionPerformed(ActionEvent evt) { togglePanelTimeLock(); }
 		});
 
+		refresh = new JButton(iconRefresh);
+		refresh.setBorderPainted(false);
+		refresh.setDefaultCapable(false);
+		gbc.gridx = 2;       gbc.gridy = 0;
+		gbc.gridwidth = 1;   gbc.gridheight = 1;
+		gbc.weightx = 0;     gbc.weighty = 0;
+		gbc.anchor = GridBagConstraints.CENTER;
+		gbc.fill = java.awt.GridBagConstraints.NONE;
+		gbc.insets = new Insets(0, 0, 0, 0);
+		overall.add(refresh, gbc);
+		refresh.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { refreshData(); }
+		});
+
 		growPanel = new JButton(iconGrowPanel);
 		growPanel.setBorderPainted(false);
 		growPanel.setDefaultCapable(false);
-		gbc.gridx = 2;       gbc.gridy = 0;
+		gbc.gridx = 3;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0;     gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
@@ -1466,7 +1481,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		shrinkPanel = new JButton(iconShrinkPanel);
 		shrinkPanel.setBorderPainted(false);
 		shrinkPanel.setDefaultCapable(false);
-		gbc.gridx = 3;       gbc.gridy = 0;
+		gbc.gridx = 4;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0;     gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
@@ -1479,7 +1494,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		});
 
 		mainPos = new JLabel("Main:");
-		gbc.gridx = 4;       gbc.gridy = 0;
+		gbc.gridx = 5;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0.3;   gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
@@ -1487,7 +1502,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		gbc.insets = new Insets(0, 0, 0, 0);
 		overall.add(mainPos, gbc);
 		extPos = new JLabel("Ext:");
-		gbc.gridx = 5;       gbc.gridy = 0;
+		gbc.gridx = 6;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0.3;   gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
@@ -1495,13 +1510,48 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		gbc.insets = new Insets(0, 0, 0, 0);
 		overall.add(extPos, gbc);
 		delta = new JLabel("Delta:");
-		gbc.gridx = 6;       gbc.gridy = 0;
+		gbc.gridx = 7;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0.3;   gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
 		gbc.fill = java.awt.GridBagConstraints.NONE;
 		gbc.insets = new Insets(0, 0, 0, 0);
 		overall.add(delta, gbc);
+	}
+
+	/**
+	 * Method to update the Simulation data for this waveform window.
+	 * When new data is read from disk, this is used.
+	 * @param sd new simulation data for this window.
+	 */
+	public void setSimData(Simulate.SimData sd)
+	{
+		this.sd = sd;
+		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next();
+			for(Iterator pIt = wp.waveSignals.values().iterator(); pIt.hasNext(); )
+			{
+				Signal ws = (Signal)pIt.next();
+				Simulate.SimSignal ss = ws.sSig;
+				ws.sSig = null;
+				for(Iterator sIt = sd.getSignals().iterator(); sIt.hasNext(); )
+				{
+					Simulate.SimSignal newSs = (Simulate.SimSignal)sIt.next();
+					if (newSs.getSignalContext().equals(ss.getSignalContext()) &&
+						newSs.getSignalName().equals(ss.getSignalName()))
+					{
+						ws.sSig = newSs;
+						break;
+					}
+				}
+				if (ws.sSig == null)
+				{
+					System.out.println("Could not find signal " + ss.getSignalContext() + ss.getSignalName() + " in the new data");
+				}
+			}
+		}
+		System.out.println("Simulation data refreshed from disk");
 	}
 
 	/**
@@ -1901,6 +1951,20 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	}
 
 	/**
+	 * Method to refresh the simulation data from disk.
+	 */
+	public void refreshData()
+	{
+		if (sd.getDataType() == null)
+		{
+			System.out.println("This simulation data did not come from disk...cannot refresh");
+			return;
+		}
+		Simulate.plotSimulationResults(sd.getDataType(), sd.getCell(), sd.getFileURL(), this);
+	}
+
+
+	/**
 	 * Method called when a new Panel is to be created.
 	 * This is typically overridden by the specific simulation module
 	 * which knows the signal names.
@@ -1967,6 +2031,8 @@ public class WaveformWindow implements WindowContent, HighlightListener
 					"Can only add analog signals to this panel");
 				return;
 			}
+			int sigNo = wp.waveSignals.size();
+			sig.setSignalColor(colorArray[sigNo % colorArray.length]);
 			Signal wsig = new Signal(wp, sig);
 			wp.signalButtons.validate();
 			wp.signalButtons.repaint();

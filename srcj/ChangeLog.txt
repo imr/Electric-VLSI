@@ -2,6 +2,8 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (6/21/04, SMR) Implemented Spice2 / GNUCap output reader.
+
 IMP: (6/21/04, GVG) Adapting code for 3D View. New commands in Build.xml and some layers got non-zero thickness.
 
 IMP: (6/21/04, SMR) Implemented "Edit / Selection / Push Selection", "Pop Selection".

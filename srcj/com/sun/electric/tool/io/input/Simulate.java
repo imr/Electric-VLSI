@@ -24,6 +24,7 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.simulation.Simulation;
@@ -60,6 +61,8 @@ public class Simulate extends Input
 		public static final int VDD_STRENGTH  = 014;
 
 		private Cell cell;
+		private OpenFile.Type type;
+		private URL fileURL;
 		private List signals;
 		private double [] commonTime;
 
@@ -105,6 +108,14 @@ public class Simulate extends Input
 		public void setCell(Cell cell) { this.cell = cell; }
 
 		public Cell getCell() { return cell; }
+
+		public void setDataType(OpenFile.Type type) { this.type = type; }
+
+		public OpenFile.Type getDataType() { return type; }
+
+		public void setFileURL(URL fileURL) { this.fileURL = fileURL; }
+
+		public URL getFileURL() { return fileURL; }
 
 		/**
 		 * Method to compute the time and value bounds of this simulation data.
@@ -261,7 +272,7 @@ public class Simulate extends Input
 	{
 		OpenFile.Type type = getCurrentSpiceOutputType();
 		if (type == null) return;
-		plotSimulationResults(type, null);
+		plotSimulationResults(type, null, null, null);
 	}
 
 	/**
@@ -273,7 +284,7 @@ public class Simulate extends Input
 		if (cell == null) return;
 		OpenFile.Type type = getCurrentSpiceOutputType();
 		if (type == null) return;
-		plotSimulationResults(type, cell);
+		plotSimulationResults(type, cell, null, null);
 	}
 
 	/**
@@ -281,7 +292,7 @@ public class Simulate extends Input
 	 */
 	public static void plotVerilogResults()
 	{
-		plotSimulationResults(OpenFile.Type.VERILOGOUT, null);
+		plotSimulationResults(OpenFile.Type.VERILOGOUT, null, null, null);
 	}
 
 	/**
@@ -291,13 +302,13 @@ public class Simulate extends Input
 	{
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
-		plotSimulationResults(OpenFile.Type.VERILOGOUT, cell);
+		plotSimulationResults(OpenFile.Type.VERILOGOUT, cell, null, null);
 	}
 
 	/**
 	 * Method to read simulation output of a given type.
 	 */
-	private static void plotSimulationResults(OpenFile.Type type, Cell cell)
+	public static void plotSimulationResults(OpenFile.Type type, Cell cell, URL fileURL, WaveformWindow ww)
 	{
 		Simulate is = null;
 		if (type == OpenFile.Type.HSPICEOUT)
@@ -325,37 +336,49 @@ public class Simulate extends Input
 			return;
 		}
 
-		URL fileURL = null;
 		if (cell == null)
 		{
-			String fileName = OpenFile.chooseInputFile(type, null);
-			if (fileName == null) return;
-			fileURL = TextUtils.makeURLToFile(fileName);
+			if (fileURL == null)
+			{
+				String fileName = OpenFile.chooseInputFile(type, null);
+				if (fileName == null) return;
+				fileURL = TextUtils.makeURLToFile(fileName);
+			}
+			String cellName = TextUtils.getFileNameWithoutExtension(fileURL);
+			cell = Library.getCurrent().findNodeProto(cellName);
+if (cell != null) System.out.println("presuming cell "+cell.describe());
 		} else
 		{
-			String [] extensions = type.getExtensions();
-			String filePath = TextUtils.getFilePath(cell.getLibrary().getLibFile());
-			String fileName = cell.getName() + "." + extensions[0];
-			fileURL = TextUtils.makeURLToFile(filePath + fileName);
+			if (fileURL == null)
+			{
+				String [] extensions = type.getExtensions();
+				String filePath = TextUtils.getFilePath(cell.getLibrary().getLibFile());
+				String fileName = cell.getName() + "." + extensions[0];
+				fileURL = TextUtils.makeURLToFile(filePath + fileName);
+			}
 		}
-		ReadSimulationOutput job = new ReadSimulationOutput(is, fileURL, cell);
+		ReadSimulationOutput job = new ReadSimulationOutput(type, is, fileURL, cell, ww);
 	}
 
 	/**
-	 * Class to read HSpice output in a new thread.
-	 * For a non-interactive script, use ReadHSpiceOutput job = new ReadHSpiceOutput(filename).
+	 * Class to read simulation output in a new thread.
 	 */
 	private static class ReadSimulationOutput extends Job
 	{
+		OpenFile.Type type;
 		Simulate is;
 		URL fileURL;
 		Cell cell;
-		protected ReadSimulationOutput(Simulate is, URL fileURL, Cell cell)
+		WaveformWindow ww;
+
+		protected ReadSimulationOutput(OpenFile.Type type, Simulate is, URL fileURL, Cell cell, WaveformWindow ww)
 		{
 			super("Read Simulation Output", tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+			this.type = type;
 			this.is = is;
 			this.fileURL = fileURL;
 			this.cell = cell;
+			this.ww = ww;
 			startJob();
 		}
 
@@ -364,7 +387,12 @@ public class Simulate extends Input
 			try
 			{
 				SimData sd = is.readSimulationOutput(fileURL, cell);
-				if (sd != null) showSimulationData(sd);
+				if (sd != null)
+				{
+					sd.setDataType(type);
+					sd.setFileURL(fileURL);
+					showSimulationData(sd, ww);
+				}
 			} catch (IOException e)
 			{
 				System.out.println("End of file reached while reading " + fileURL);
@@ -405,8 +433,15 @@ public class Simulate extends Input
 		return null;
 	}
 
-	private static void showSimulationData(SimData sd)
+	private static void showSimulationData(SimData sd, WaveformWindow ww)
 	{
+		// if the window already exists, update the data
+		if (ww != null)
+		{
+			ww.setSimData(sd);
+			return;
+		}
+
 		// determine extent of the data
 		Rectangle2D bounds = sd.getBounds();
 		double lowTime = bounds.getMinX();
@@ -415,9 +450,8 @@ public class Simulate extends Input
 		double highValue = bounds.getMaxY();
 		double timeRange = highTime - lowTime;
 
-		// make the waveform window
 		WindowFrame wf = WindowFrame.createWaveformWindow(sd);
-		WaveformWindow ww = (WaveformWindow)wf.getContent();
+		ww = (WaveformWindow)wf.getContent();
 		ww.setMainTimeCursor(timeRange*0.2 + lowTime);
 		ww.setExtensionTimeCursor(timeRange*0.8 + lowTime);
 		ww.setDefaultTimeRange(lowTime, highTime);
@@ -428,9 +462,12 @@ public class Simulate extends Input
 			Simulate.SimSignal sSig = (Simulate.SimSignal)sd.signals.get(0);
 			boolean isAnalog = false;
 			if (sSig instanceof SimAnalogSignal) isAnalog = true;
-			WaveformWindow.Panel wp = new WaveformWindow.Panel(ww, isAnalog);
-			if (isAnalog) wp.setValueRange(lowValue, highValue);
-			WaveformWindow.Signal wsig = new WaveformWindow.Signal(wp, sSig);
+			if (isAnalog)
+			{
+				WaveformWindow.Panel wp = new WaveformWindow.Panel(ww, isAnalog);
+				if (isAnalog) wp.setValueRange(lowValue, highValue);
+//				WaveformWindow.Signal wsig = new WaveformWindow.Signal(wp, sSig);
+			}
 		}
 		ww.getPanel().validate();
 	}

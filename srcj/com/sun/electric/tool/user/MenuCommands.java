@@ -412,6 +412,7 @@ public final class MenuCommands
             if (cm == ToolBar.CursorMode.SELECT) cursorSelect.setSelected(true);
             if (cm == ToolBar.CursorMode.WIRE) cursorWiring.setSelected(true);
         }
+
 		cursorPan = modeSubMenuEdit.addRadioButton(ToolBar.cursorPanName, false, editGroup, KeyStroke.getKeyStroke('P', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.panCommand(); } });
 		cursorZoom = modeSubMenuEdit.addRadioButton(ToolBar.cursorZoomName, false, editGroup, KeyStroke.getKeyStroke('Z', 0),
@@ -1486,6 +1487,7 @@ public final class MenuCommands
 				pj.setPrintService(printerToUse);
 			} catch (PrinterException e)
 			{
+				System.out.println("Printing error "+e);
 			}
 		}
 

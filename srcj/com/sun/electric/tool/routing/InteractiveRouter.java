@@ -26,14 +26,16 @@ package com.sun.electric.tool.routing;
 
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.geometry.Dimension2D;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.*;
 
 import java.awt.geom.Point2D;
@@ -227,8 +229,13 @@ public abstract class InteractiveRouter extends Router {
         Point2D endPoint = null;
         if (endObj instanceof PortInst) {
             PortInst endPort = (PortInst)endObj;
-            endPoint = new Point2D.Double(endPort.getBounds().getCenterX(),
-                                          endPort.getBounds().getCenterY());
+			endPoint = new Point2D.Double(endPort.getBounds().getCenterX(),
+										  endPort.getBounds().getCenterY());
+//			NodeInst ni = endPort.getNodeInst();
+//			PortProto pp = endPort.getPortProto();
+//			Poly poly = ni.getShapeOfPort(pp, clicked);
+//			Rectangle2D bounds = poly.getBounds();
+//          endPoint = new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
         }
         if (endObj instanceof NodeInst) {
             // find closest portinst to start from

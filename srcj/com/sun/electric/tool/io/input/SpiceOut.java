@@ -54,7 +54,7 @@ public class SpiceOut extends Simulate
 		// open the file
 		InputStream stream = TextUtils.getURLStream(fileURL);
 		if (stream == null) return null;
-		if (openBinaryInput(fileURL, stream)) return null;
+		if (openTextInput(fileURL, stream)) return null;
 
 		// show progress reading .tr0 file
 		startProgressDialog("Spice output", fileURL.getFile());
@@ -70,68 +70,53 @@ public class SpiceOut extends Simulate
 		return sd;
 	}
 
+	private final static String CELLNAME_HEADER = "*** SPICE deck for cell ";
+
 	private SimData readSpiceFile(Cell cell)
 		throws IOException
 	{
-//		datamode = FALSE;
-//		first = TRUE;
-//		numend = NONUMBERS;
-//		past_end = FALSE;
-//		sim_spice_signames = 0;
-//		numbers_limit = 256;
-//		numbers =  (float*)emalloc(numbers_limit * (sizeof (float)), sim_tool->cluster);
-//		if (numbers == NULL)
-//		{
-//			ttyputnomemory();
-//			return(-1);
-//		}
-//		for(;;)
-//		{
-//			if (stopping(STOPREASONSPICE)) break;
-//			if (sim_spice_getlinefromsimulator(line)) break;
-//			if (sim_spice_filelen > 0)
-//				DiaSetProgress(dia, sim_spice_filepos, sim_spice_filelen);
-//			if (first)
-//			{
-//				// check the first line for HSPICE format possibility
-//				first = FALSE;
-//				if (estrlen(line) >= 20 && line[16] == '9' && line[17] == '0' &&
-//					line[18] == '0' && line[19] == '7')
-//				{
-//					ttyputerr(_("This is an HSPICE file, not a SPICE2 or Gnucap file"));
-//					ttyputerr(_("Change the SPICE format and reread"));
-//					efree((CHAR*)numbers);
-//					return(-1);
-//				}
-//			}
-//			if (running != 0)
-//			{
-//				if (outputfile == NULL)
-//				{
-//					if (parsemode == SIMRUNYESPARSE)
-//						ttyputmsg(x_("%s"), (isprint(*line) ? line : &line[1]));
-//				} else sim_spice_xprintf(outputfile, FALSE, x_("%s\n"), line);
-//			}
-//
-//			// look for a cell name
-//			if ((sim_spice_cellname[0] == '\0') && (namesamen(line, x_("*** SPICE deck for cell "),25) == 0))
-//				if ((i = esscanf(line+25,x_("%s"),sim_spice_cellname)) != 1)
-//					sim_spice_cellname[0] = '\0';
-//			if (namesamen(line, x_(".END"), 4) == 0 && namesamen(line, x_(".ENDS"), 5) != 0)
-//			{
-//				past_end = TRUE;
-//				continue;
-//			}
-//			if (namesamen(line, x_("#Time"), 5) == 0)
-//			{
+		boolean datamode = false;
+		boolean first = true;
+		boolean past_end = false;
+		String sim_spice_cellname = null;
+		int mostSignals = 0;
+		List allNumbers = new ArrayList();
+		for(;;)
+		{
+			String line = getLine();
+			if (line == null) break;
+			if (first)
+			{
+				// check the first line for HSPICE format possibility
+				first = false;
+				if (line.length() >= 20 && line.substring(16,20).equals("9007"))
+				{
+					System.out.println("This is an HSPICE file, not a SPICE2 file");
+					System.out.println("Change the SPICE format and reread");
+					return null;
+				}
+			}
+			int len = line.length();
+			if (len < 2) continue;
+
+			// look for a cell name
+			if (sim_spice_cellname == null && line.startsWith(CELLNAME_HEADER))
+				sim_spice_cellname = line.substring(CELLNAME_HEADER.length());
+			if (line.startsWith(".END") && !line.startsWith(".ENDS"))
+			{
+				past_end = true;
+				continue;
+			}
+			if (line.startsWith("#Time"))
+			{
 //				sim_spice_signals = 0;
 //				ptr = line + 5;
 //				for(;;)
 //				{
-//					while (isspace(*ptr)) ptr++;
+//					while (isWhitespace(*ptr)) ptr++;
 //					if (*ptr == 0) break;
 //					CHAR *pt = ptr;
-//					while (!isspace(*pt)) pt++;
+//					while (!isWhitespace(*pt)) pt++;
 //					CHAR save = *pt;
 //					*pt = 0;
 //					CHAR **newsignames = (CHAR **)emalloc((sim_spice_signals + 1) * (sizeof (CHAR *)), sim_tool->cluster);
@@ -152,98 +137,71 @@ public class SpiceOut extends Simulate
 //						(void)allocstring(&sim_spice_signames[i], sim_spice_printlist[i], sim_tool->cluster);
 //					}
 //				}
-//				past_end = TRUE;
-//				continue;
-//			}
-//			if (past_end && !datamode)
-//			{
-//				if ((isspace(line[0]) || line[0] == '-') && isdigit(line[1]))
-//					datamode = TRUE;
-//			}
-//			if (past_end && datamode)
-//			{
-//				if (!((isspace(line[0]) || line[0] == '-') && isdigit(line[1])))
-//				{
-//					datamode = FALSE;
-//					past_end = FALSE;
-//				}
-//			}
-//			if (datamode)
-//			{
-//				ptr = line;
-//				sim_spice_signals = 0;
-//				for(;;)
-//				{
-//					while (isspace(*ptr)) ptr++;
-//					if (*ptr == 0) break;
-//					CHAR *pt = ptr;
-//					while (isalnum(*pt) || *pt == '.' || *pt == '+' || *pt == '-') pt++;
-//					CHAR save = *pt;
-//					*pt = 0;
-//					if (sim_spice_signals >= numbers_limit)
-//					{
-//						float *newnumbers =  (float*)emalloc(numbers_limit * 2 * (sizeof (float)), sim_tool->cluster);
-//						if (newnumbers == NULL)
-//						{
-//							ttyputnomemory();
-//							return(-1);
-//						}
-//						for (i = 0; i < sim_spice_signals; i++) newnumbers[i] = numbers[i];
-//						efree((CHAR*)numbers);
-//						numbers = newnumbers;
-//						numbers_limit *= 2;
-//
-//					}
-//					numbers[sim_spice_signals++] = (float)figureunits(ptr, VTUNITSNONE, 0);
-//					*pt = save;
-//					ptr = pt;
-//					while (*ptr != ' ' && *ptr != 0) ptr++;
-//				}
-//				if (sim_spice_signals > 1)
-//				{
-//					sim_spice_signals--;
-//					num = sim_spice_allocnumbers(sim_spice_signals);
-//					if (num == NONUMBERS) break;
-//					num->time = numbers[0];
-//					for(i=0; i<sim_spice_signals; i++) num->list[i] = numbers[i+1];
-//					if (numend == NONUMBERS) sim_spice_numbers = num; else
-//						numend->nextnumbers = num;
-//					num->nextnumbers = NONUMBERS;
-//					numend = num;
-//				}
-//			}
-//		}
-//		efree((CHAR*)numbers);
-//
-//		// generate dummy names
-//		if (sim_spice_signames == 0)
-//		{
-//			sim_spice_signames = (CHAR **)emalloc(sim_spice_signals * (sizeof (CHAR *)), sim_tool->cluster);
-//			if (sim_spice_signames == 0)
-//			{
-//				// terminate execution so we can restart simulator
-//				return(-1);
-//			}
-//			for(i=0; i<sim_spice_signals; i++)
-//			{
-//				(void)esnprintf(line, MAXLINE+5, x_("Signal %ld"), i+1);
-//				(void)allocstring(&sim_spice_signames[i], line, sim_tool->cluster);
-//			}
-//		}
-//		sim_spice_sigtypes = (INTSML *)emalloc(sim_spice_signals * SIZEOFINTSML, sim_tool->cluster);
-//		if (sim_spice_sigtypes == 0)
-//		{
-//			// terminate execution so we can restart simulator
-//			return(-1);
-//		}
-//		return(sim_spice_signals);
+				past_end = true;
+				continue;
+			}
+			if (past_end && !datamode)
+			{
+				if ((Character.isWhitespace(line.charAt(0)) || line.charAt(0) == '-') && Character.isDigit(line.charAt(1)))
+					datamode = true;
+			}
+			if (past_end && datamode)
+			{
+				if (!((Character.isWhitespace(line.charAt(0)) || line.charAt(0) == '-') && Character.isDigit(line.charAt(1))))
+				{
+					datamode = false;
+					past_end = false;
+				}
+			}
+			if (datamode)
+			{
+				List numbers = new ArrayList();
+				int ptr = 0;
+				while (ptr < len)
+				{
+					while (ptr < len && Character.isWhitespace(line.charAt(ptr))) ptr++;
+					int start = ptr;
+					while (ptr < len && !Character.isWhitespace(line.charAt(ptr))) ptr++;
+					numbers.add(new Double(TextUtils.atof(line.substring(start, ptr))));
+					ptr++;
+				}
+				if (numbers.size() > mostSignals) mostSignals = numbers.size();
+				allNumbers.add(numbers);
+			}
+		}
 
-//		SimData sd = new SimData();
-//		sd.setCell(cell);
-//		sd.signalNames = sim_spice_signames;
-//		sd.events = sim_spice_numbers;
-		System.out.println("CANNOT READ SPICE OUTPUT YET");
-		return null;
+		// generate dummy names
+		mostSignals--;
+		if (mostSignals <= 0)
+		{
+			System.out.println("No data found in the file");
+			return null;
+		}
+
+		SimData sd = new SimData();
+		sd.setCell(cell);
+
+		// convert lists to arrays
+		int numEvents = allNumbers.size();
+		sd.buildCommonTime(numEvents);
+		for(int i=0; i<numEvents; i++)
+		{
+			List row = (List)allNumbers.get(i);
+			sd.setCommonTime(i, ((Double)row.get(0)).doubleValue());
+		}
+		for(int j=0; j<mostSignals; j++)
+		{
+			Simulate.SimAnalogSignal as = new Simulate.SimAnalogSignal(sd);
+			as.setSignalName("Signal " + (j+1));
+			as.setCommonTimeUse(true);
+			as.buildValues(numEvents);
+			for(int i=0; i<numEvents; i++)
+			{
+				List row = (List)allNumbers.get(i);
+				as.setValue(i, ((Double)row.get(j+1)).doubleValue());
+			}
+		}
+		return sd;
 	}
 
 }

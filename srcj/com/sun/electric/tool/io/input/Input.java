@@ -335,6 +335,20 @@ public class Input extends IOTool
 		}
 	}
 
+	protected String getLine()
+		throws IOException
+	{
+		StringBuffer sb = new StringBuffer();
+		for(;;)
+		{
+			int c = lineReader.read();
+			if (c == -1) return null;
+			if (c == '\n') break;
+			sb.append((char)c);
+		}
+		return sb.toString();
+	}
+
 //	private static String [] fontNames = null;
 //
 //	/**
