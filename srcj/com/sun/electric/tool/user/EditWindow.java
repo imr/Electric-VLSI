@@ -55,8 +55,9 @@ public class EditWindow extends JPanel
 	 */
 	public static EditWindow newInstance(Cell cell)
 	{
+		
 		EditWindow window = new EditWindow(500, 500);
-		JFrame jf = new JFrame(cell.describe());
+		JInternalFrame jf = new JInternalFrame(cell.describe());
 		jf.getContentPane().add(window);
 		jf.pack();
 		jf.show();
