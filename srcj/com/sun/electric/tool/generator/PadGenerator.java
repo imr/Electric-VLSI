@@ -44,9 +44,11 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -66,26 +68,27 @@ import java.util.*;
 
 /**
  * @author Willy Chung
- *         <p>
+ *         <p/>
  *         To change the template for this generated type comment go to
  *         Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
  */
 public class PadGenerator {
-    public class ArrayAlign {
+    
+    public static class ArrayAlign {
         int lineno;
         String cellname;
         String inport;
         String outport;
     }
 
-    public class PadExports {
+    public static class PadExports {
         int lineno;
         String cellname;
         String padname;
         String corename;
     }
 
-    public class PlacePad {
+    public static class PlacePad {
         int lineno;
         String cellname;
         String exportsname;
@@ -94,26 +97,30 @@ public class PadGenerator {
         List associations;
     }
 
-    public class PortAssociate {
+    public static class Rotation {
+        int angle;
+    }
+
+    public static class PortAssociate {
         boolean export;
         String portname;
         String assocname;
     }
 
 
-    public class PadFrame extends Job {
+    public static class PadFrame extends Job {
         String filename;
         String padframename;                        // name of pad frame cell
+        String corename;                            // core cell to stick in pad frame
 
         int lineno;                             // line no of the pad array file we are processing
         Library cellLib;                        // library containing pad cells
         boolean copycells;                      // if we copy cells into the library with the pad ring
-        Cell corenp;                            // core cell to stick in pad frame
         List views;                             // list of strings defining views of pad frame to create.
         int angle;                              // angle of placed instances
         HashMap alignments;                     // how to align adjacent instances
         HashMap exports;                        // which ports to export
-        List pads;                              // list of pads to place
+        List orderedCommands;                   // list of orderedCommands to do
 
         protected PadFrame(String file) {
             super("Pad Frame Generator", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -123,7 +130,7 @@ public class PadGenerator {
             views = new ArrayList();
             angle = 0;
             lineno = 1;
-            pads = new ArrayList();
+            orderedCommands = new ArrayList();
             startJob();
         }
 
@@ -136,7 +143,7 @@ public class PadGenerator {
 
             File inputFile = new File(filename);
             if (inputFile == null || !inputFile.canRead()) {
-                System.out.println("Error reading file");
+                System.out.println("Error reading file "+filename);
                 return;
             }
 
@@ -482,6 +489,7 @@ public class PadGenerator {
 
         /**
          * Process the celllibrary keyword
+         *
          * @return true on success, false on error.
          */
         private boolean processCellLibrary(StringTokenizer str) {
@@ -489,6 +497,7 @@ public class PadGenerator {
             String keyWord;
             if (str.hasMoreTokens()) {
                 keyWord = str.nextToken();
+
                 URL fileURL = TextUtils.makeURLToFile(keyWord);
 
                 cellLib = Library.findLibrary(TextUtils.getFileNameWithoutExtension(fileURL));
@@ -534,6 +543,7 @@ public class PadGenerator {
 
         /**
          * Process any Views.
+         *
          * @return true on success, false on error.
          */
         private boolean processViews(StringTokenizer str) {
@@ -541,14 +551,17 @@ public class PadGenerator {
             while (str.hasMoreTokens()) {
                 keyWord = str.nextToken();
                 View view = View.findView(keyWord);
-                if (view != null) views.add(view);
-                else err("Unknown view '"+keyWord+"', ignoring");
+                if (view != null)
+                    views.add(view);
+                else
+                    err("Unknown view '" + keyWord + "', ignoring");
             }
             return true;
         }
 
         /**
          * Process the facet keyword
+         *
          * @return true on success, false on error.
          */
         private boolean processFacet(StringTokenizer str) {
@@ -561,17 +574,12 @@ public class PadGenerator {
 
         /**
          * Process the core keyword
+         *
          * @return true on success, false on error.
          */
         private boolean processCore(StringTokenizer str) {
-            String keyWord;
             if (str.hasMoreTokens()) {
-                keyWord = str.nextToken();
-                corenp = (Cell) NodeProto.findNodeProto(keyWord);
-                if (corenp == null) {
-                    System.out.println("Line " + lineno + ": cannot find core cell " + keyWord);
-                    return false;
-                }
+                corename = str.nextToken();
                 return true;
             }
             return false;
@@ -579,20 +587,27 @@ public class PadGenerator {
 
         /**
          * Process the rotate keyword
+         *
          * @return true on success, false on error.
          */
         private boolean processRotate(StringTokenizer str) {
             String keyWord;
+            int angle = 0;
             if (str.hasMoreTokens()) {
                 keyWord = str.nextToken();
                 if (keyWord.equals("c")) {
-                    angle = (angle + 2700) % 3600;
+                    angle = 2700;
+                    //angle = (angle + 2700) % 3600;
                 } else if (keyWord.equals("cc")) {
-                    angle = (angle + 900) % 3600;
+                    angle = 900;
+                    //angle = (angle + 900) % 3600;
                 } else {
                     System.out.println("Line " + lineno + ": incorrect rotation " + keyWord);
                     return false;
                 }
+                Rotation rot = new Rotation();
+                rot.angle = angle;
+                orderedCommands.add(rot);
                 return true;
             }
             return false;
@@ -600,6 +615,7 @@ public class PadGenerator {
 
         /**
          * Process the align keyword
+         *
          * @return true on success, false on error.
          */
         private boolean processAlign(StringTokenizer str) {
@@ -635,6 +651,7 @@ public class PadGenerator {
 
         /**
          * Process the export keyword
+         *
          * @return true on success, false on error.
          */
         private boolean processExport(StringTokenizer str) {
@@ -699,20 +716,19 @@ public class PadGenerator {
                         return false;
                     }
                     pad.associations.add(pa);
-                }
-                else {
+                } else {
                     // name=xxxx or gap=xxxx
                     String lhs = getLHS(keyWord);
                     String rhs = getRHS(keyWord, str);
                     if (lhs == null || rhs == null) {
-                        err("Parse error on assignment of "+keyWord);
+                        err("Parse error on assignment of " + keyWord);
                         return false;
                     }
                     if (lhs.equals("gap")) {
                         try {
                             pad.gap = Integer.parseInt(rhs);
                         } catch (java.lang.NumberFormatException e) {
-                            err("Error parsing integer for 'gap' = "+rhs);
+                            err("Error parsing integer for 'gap' = " + rhs);
                             return false;
                         }
                     } else if (lhs.equals("name")) {
@@ -727,7 +743,7 @@ public class PadGenerator {
                     }
                 }
             }
-            pads.add(pad);
+            orderedCommands.add(pad);
             return true;
         }
 
@@ -741,13 +757,13 @@ public class PadGenerator {
 
         private String getRHS(String keyword, StringTokenizer str) {
             if (keyword.indexOf("=") != -1) {
-                if (keyword.substring(keyword.indexOf("=")+1).equals("")) {
+                if (keyword.substring(keyword.indexOf("=") + 1).equals("")) {
                     // LHS= RHS
                     if (!str.hasMoreTokens()) return null;
                     return str.nextToken();
                 } else {
                     // LHS=RHS
-                    return keyword.substring(keyword.indexOf("=")+1);
+                    return keyword.substring(keyword.indexOf("=") + 1);
                 }
             } else {
                 if (!str.hasMoreTokens()) return null;
@@ -758,25 +774,26 @@ public class PadGenerator {
                     return str.nextToken();
                 } else {
                     // LHS =RHS
-                    return keyword.substring(keyword.indexOf("=")+1);
+                    return keyword.substring(keyword.indexOf("=") + 1);
                 }
             }
         }
 
         /**
          * Print the error message with the current line number.
+         *
          * @param msg
          */
         private void err(String msg) {
-            System.out.println("Line "+lineno + ": "+msg);
+            System.out.println("Line " + lineno + ": " + msg);
         }
 
         private void createPadFrames() {
             if (views.size() == 0) {
                 createPadFrame(padframename, null);
             } else {
-                for (Iterator it=views.iterator(); it.hasNext(); ) {
-                    View view = (View)it.next();
+                for (Iterator it = views.iterator(); it.hasNext();) {
+                    View view = (View) it.next();
                     if (view == View.SCHEMATIC) view = View.ICON;
                     createPadFrame(padframename, view);
                 }
@@ -784,6 +801,8 @@ public class PadGenerator {
         }
 
         private void createPadFrame(String name, View view) {
+            angle = 0;
+
             // first, try to create cell
             if (view != null) {
                 if (view == View.ICON) {
@@ -796,7 +815,7 @@ public class PadGenerator {
 
             Cell framecell = Cell.makeInstance(Library.getCurrent(), name);
             if (framecell == null) {
-                System.out.println("Could not create pad frame Cell: "+name);
+                System.out.println("Could not create pad frame Cell: " + name);
                 return;
             }
 
@@ -805,9 +824,18 @@ public class PadGenerator {
 
             NodeInst lastni = null;
             String lastpadname = null;
-            // cycle through all pads, placing them
-            for (Iterator it=pads.iterator(); it.hasNext(); ) {
-                PlacePad pad = (PlacePad)it.next();
+            // cycle through all orderedCommands, doing them
+            for (Iterator it = orderedCommands.iterator(); it.hasNext();) {
+
+                // Rotation commands are ordered with respect to Place commands.
+                Object obj = it.next();
+                if (obj instanceof Rotation) {
+                    angle = (angle + ((Rotation) obj).angle) % 3600;
+                    continue;
+                }
+
+                // otherwise this is a Place command
+                PlacePad pad = (PlacePad) obj;
                 lineno = pad.lineno;
 
                 // get cell
@@ -815,7 +843,7 @@ public class PadGenerator {
                 if (view != null) cellname = cellname + "{" + view.getAbbreviation() + "}";
                 Cell cell = cellLib.findNodeProto(cellname);
                 if (cell == null) {
-                    err("Could not create pad Cell: "+cellname);
+                    err("Could not create pad Cell: " + cellname);
                     continue;
                 }
 
@@ -825,14 +853,14 @@ public class PadGenerator {
                             cell.getView(), false, false, "", false, false, false);
                 }
                 if (cell == null) {
-                    err("Could not copy in pad Cell "+cellname);
+                    err("Could not copy in pad Cell " + cellname);
                     continue;
                 }
 
                 // get array alignment for this cell
-                ArrayAlign aa = (ArrayAlign)alignments.get(pad.cellname);
+                ArrayAlign aa = (ArrayAlign) alignments.get(pad.cellname);
                 if (aa == null) {
-                    err("No port alignment for cell "+pad.cellname);
+                    err("No port alignment for cell " + pad.cellname);
                     continue;
                 }
 
@@ -840,7 +868,7 @@ public class PadGenerator {
                 double centerX = 0, centerY = 0;
                 if (lastni != null) {
                     // get info on last nodeinst created
-                    ArrayAlign lastaa = (ArrayAlign)alignments.get(lastpadname);
+                    ArrayAlign lastaa = (ArrayAlign) alignments.get(lastpadname);
 
                     // get previous node's outport - use it to place this nodeinst
                     PortProto pp = (lastni.getProto()).findPortProto(lastaa.outport);
@@ -897,35 +925,35 @@ public class PadGenerator {
 
                 // get export for this cell, if any
                 if (pad.exportsname != null) {
-                    PadExports pe = (PadExports)exports.get(pad.cellname);
+                    PadExports pe = (PadExports) exports.get(pad.cellname);
                     if (pe != null) {
                         // pad export
                         PortProto pppad = cell.findPortProto(pe.padname);
                         if (pppad == null) {
-                            err("no port called '"+pe.padname+"' on Cell "+cell.noLibDescribe());
-                            continue;
-                        }
-                        pppad = Export.newInstance(framecell, ni.findPortInstFromProto(pppad), pad.exportsname);
-                        if (pppad == null)
-                            err("Creating export "+pad.exportsname);
-                        else {
-                            TextDescriptor td = pppad.getTextDescriptor();
-                            td.setAbsSize(14);
-                            padPorts.add(pppad);
+                            err("no port called '" + pe.padname + "' on Cell " + cell.noLibDescribe());
+                        } else {
+                            pppad = Export.newInstance(framecell, ni.findPortInstFromProto(pppad), pad.exportsname);
+                            if (pppad == null)
+                                err("Creating export " + pad.exportsname);
+                            else {
+                                TextDescriptor td = pppad.getTextDescriptor();
+                                td.setAbsSize(14);
+                                padPorts.add(pppad);
+                            }
                         }
                         // core export
                         PortProto ppcore = cell.findPortProto(pe.corename);
                         if (ppcore == null) {
-                            err("no port called '"+pe.padname+"' on Cell "+cell.noLibDescribe());
-                            continue;
-                        }
-                        ppcore = Export.newInstance(framecell, ni.findPortInstFromProto(ppcore), "core_"+pad.exportsname);
-                        if (ppcore == null)
-                            err("Creating export core_"+pad.exportsname);
-                        else {
-                            TextDescriptor td = ppcore.getTextDescriptor();
-                            td.setAbsSize(14);
-                            corePorts.add(ppcore);
+                            err("no port called '" + pe.padname + "' on Cell " + cell.noLibDescribe());
+                        } else {
+                            ppcore = Export.newInstance(framecell, ni.findPortInstFromProto(ppcore), "core_" + pad.exportsname);
+                            if (ppcore == null)
+                                err("Creating export core_" + pad.exportsname);
+                            else {
+                                TextDescriptor td = ppcore.getTextDescriptor();
+                                td.setAbsSize(14);
+                                corePorts.add(ppcore);
+                            }
                         }
                     }
                 }
@@ -936,6 +964,51 @@ public class PadGenerator {
             }
 
             WindowFrame frame = WindowFrame.createEditWindow(framecell);
+
+            // select all
+            MenuCommands.selectAllCommand();
+            // auto stitch everything
+            AutoStitch.autoStitch(true, true);
+
+            if (corename != null) {
+
+                // first, try to create cell
+                String corenameview = corename;
+                if (view != null) {
+                    corenameview = corename + "{" + view.getAbbreviation() + "}";
+                }
+                Cell corenp = (Cell) NodeProto.findNodeProto(corenameview);
+                if (corenp == null) {
+                    System.out.println("Line " + lineno + ": cannot find core cell " + corenameview);
+                } else {
+
+                    Rectangle2D bounds = framecell.getBounds();
+                    Point2D center = new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
+                    EditWindow.gridAlign(center);
+
+                    SizeOffset so = corenp.getSizeOffset();
+                    NodeInst ni = NodeInst.makeInstance(corenp, center, corenp.getDefWidth(), corenp.getDefHeight(), 0, framecell, null);
+
+                    for (Iterator ocit = orderedCommands.iterator(); ocit.hasNext();) {
+                        Object obj = ocit.next();
+                        if (obj instanceof PlacePad) {
+                            PlacePad pad = (PlacePad) obj;
+                            for (Iterator it = pad.associations.iterator(); it.hasNext();) {
+                                PortAssociate pa = (PortAssociate) it.next();
+                                if (pad.ni == null) continue;
+
+                                PortProto corepp = corenp.findPortProto(pa.assocname);
+                                PortInst pi2 = pad.ni.findPortInst(pa.portname);
+                                PortInst pi1 = ni.findPortInstFromProto(corepp);
+                                //PortInst pi2 = pad.ni.findPortInstFromProto(pa.pp);
+                                PrimitiveArc ap = Generic.tech.unrouted_arc;
+                                ArcInst ai = ArcInst.newInstance(ap, ap.getDefaultWidth(), pi1, pi2, null);
+                            }
+                        }
+                    }
+                }
+            }
+
             frame.getContent().fillScreen();
 
 
@@ -953,10 +1026,9 @@ public class PadGenerator {
                 // create the new icon cell
                 String iconCellName = framecell.getProtoName() + "{ic}";
                 Cell iconCell = Cell.makeInstance(Library.getCurrent(), iconCellName);
-                if (iconCell == null)
-                {
+                if (iconCell == null) {
                     JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-                        "Cannot create Icon cell " + iconCellName,
+                            "Cannot create Icon cell " + iconCellName,
                             "Icon creation failed", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
@@ -968,25 +1040,23 @@ public class PadGenerator {
 
                 // create the "black box"
                 NodeInst bbNi = null;
-                if (User.isIconGenDrawBody())
-                {
+                if (User.isIconGenDrawBody()) {
                     //bbNi = NodeInst.newInstance(Artwork.tech.boxNode, new Point2D.Double(0,0), xSize, ySize, 0, iconCell, null);
-                    bbNi = NodeInst.newInstance(Artwork.tech.openedThickerPolygonNode, new Point2D.Double(0,0), xSize, ySize, 0, iconCell, null);
+                    bbNi = NodeInst.newInstance(Artwork.tech.openedThickerPolygonNode, new Point2D.Double(0, 0), xSize, ySize, 0, iconCell, null);
                     if (bbNi == null) return;
                     bbNi.newVar(Artwork.ART_COLOR, new Integer(EGraphics.RED));
 
-                    Point2D [] points = new Point2D.Double[5];
-                    points[0] = new Point2D.Double(-0.5*xSize, -0.5*ySize);
-                    points[1] = new Point2D.Double(-0.5*xSize,  0.5*ySize);
-                    points[2] = new Point2D.Double( 0.5*xSize,  0.5*ySize);
-                    points[3] = new Point2D.Double( 0.5*xSize, -0.5*ySize);
-                    points[4] = new Point2D.Double(-0.5*xSize, -0.5*ySize);
+                    Point2D[] points = new Point2D.Double[5];
+                    points[0] = new Point2D.Double(-0.5 * xSize, -0.5 * ySize);
+                    points[1] = new Point2D.Double(-0.5 * xSize, 0.5 * ySize);
+                    points[2] = new Point2D.Double(0.5 * xSize, 0.5 * ySize);
+                    points[3] = new Point2D.Double(0.5 * xSize, -0.5 * ySize);
+                    points[4] = new Point2D.Double(-0.5 * xSize, -0.5 * ySize);
                     bbNi.newVar(NodeInst.TRACE, points);
 
                     // put the original cell name on it
                     Variable var = bbNi.newVar(Schematics.SCHEM_FUNCTION, framecell.getProtoName());
-                    if (var != null)
-                    {
+                    if (var != null) {
                         var.setDisplay();
                     }
                 }
@@ -995,70 +1065,66 @@ public class PadGenerator {
                 int total = 0;
                 int leftSide = padPorts.size();
                 int rightSide = corePorts.size();
-                for(Iterator it = padPorts.iterator(); it.hasNext(); )
-                {
-                    Export pp = (Export)it.next();
+                for (Iterator it = padPorts.iterator(); it.hasNext();) {
+                    Export pp = (Export) it.next();
                     if (pp.isBodyOnly()) continue;
 
                     // determine location of the port
                     double spacing = leadSpacing;
                     double xPos = 0, yPos = 0;
                     double xBBPos = 0, yBBPos = 0;
-                    xBBPos = -xSize/2;
+                    xBBPos = -xSize / 2;
                     xPos = xBBPos - leadLength;
-                    if (leftSide*2 < rightSide) spacing = leadSpacing * 2;
-                    yBBPos = yPos = ySize/2 - ((ySize - (leftSide-1)*spacing) / 2 + total * spacing);
+                    if (leftSide * 2 < rightSide) spacing = leadSpacing * 2;
+                    yBBPos = yPos = ySize / 2 - ((ySize - (leftSide - 1) * spacing) / 2 + total * spacing);
                     if (CircuitChanges.makeIconExport(pp, 0, xPos, yPos, xBBPos, yBBPos, iconCell))
                         total++;
                 }
 
                 total = 0;
-                for(Iterator it = corePorts.iterator(); it.hasNext(); )
-                {
-                    Export pp = (Export)it.next();
+                for (Iterator it = corePorts.iterator(); it.hasNext();) {
+                    Export pp = (Export) it.next();
                     if (pp.isBodyOnly()) continue;
 
                     // determine location of the port
                     double spacing = leadSpacing;
                     double xPos = 0, yPos = 0;
                     double xBBPos = 0, yBBPos = 0;
-                    xBBPos = xSize/2;
+                    xBBPos = xSize / 2;
                     xPos = xBBPos + leadLength;
-                    if (rightSide*2 < leftSide) spacing = leadSpacing * 2;
-                    yBBPos = yPos = ySize/2 - ((ySize - (rightSide-1)*spacing) / 2 + total * spacing);
+                    if (rightSide * 2 < leftSide) spacing = leadSpacing * 2;
+                    yBBPos = yPos = ySize / 2 - ((ySize - (rightSide - 1) * spacing) / 2 + total * spacing);
                     if (CircuitChanges.makeIconExport(pp, 1, xPos, yPos, xBBPos, yBBPos, iconCell))
                         total++;
                 }
 
                 // if no body, leads, or cell center is drawn, and there is only 1 export, add more
                 if (!User.isIconGenDrawBody() &&
-                    !User.isIconGenDrawLeads() &&
-                    User.isPlaceCellCenter() &&
-                    total <= 1)
-                {
-                    NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(0,0), xSize, ySize, 0, iconCell, null);
+                        !User.isIconGenDrawLeads() &&
+                        User.isPlaceCellCenter() &&
+                        total <= 1) {
+                    NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(0, 0), xSize, ySize, 0, iconCell, null);
                 }
 
                 // place an icon in the schematic
                 int exampleLocation = User.getIconGenInstanceLocation();
-                Point2D iconPos = new Point2D.Double(0,0);
+                Point2D iconPos = new Point2D.Double(0, 0);
                 Rectangle2D cellBounds = framecell.getBounds();
                 Rectangle2D iconBounds = iconCell.getBounds();
                 double halfWidth = iconBounds.getWidth() / 2;
                 double halfHeight = iconBounds.getHeight() / 2;
-                switch (exampleLocation)
-                {
+                switch (exampleLocation) {
                     case 0:		// upper-right
-                        iconPos.setLocation(cellBounds.getMaxX()+halfWidth, cellBounds.getMaxY()+halfHeight);
+                        iconPos.setLocation(cellBounds.getMaxX() + halfWidth, cellBounds.getMaxY() + halfHeight);
                         break;
                     case 1:		// upper-left
-                        iconPos.setLocation(cellBounds.getMinX()-halfWidth, cellBounds.getMaxY()+halfHeight);
+                        iconPos.setLocation(cellBounds.getMinX() - halfWidth, cellBounds.getMaxY() + halfHeight);
                         break;
                     case 2:		// lower-right
-                        iconPos.setLocation(cellBounds.getMaxX()+halfWidth, cellBounds.getMinY()-halfHeight);
+                        iconPos.setLocation(cellBounds.getMaxX() + halfWidth, cellBounds.getMinY() - halfHeight);
                         break;
                     case 3:		// lower-left
-                        iconPos.setLocation(cellBounds.getMinX()-halfWidth, cellBounds.getMinY()-halfHeight);
+                        iconPos.setLocation(cellBounds.getMinX() - halfWidth, cellBounds.getMinY() - halfHeight);
                         break;
                 }
                 EditWindow.gridAlign(iconPos);
@@ -1069,12 +1135,8 @@ public class PadGenerator {
         }
     }
 
-    public void ArrayFromFile() {
-        String fileName = OpenFile.chooseInputFile(OpenFile.Type.PADARR, null);
-        if (fileName == null) {
-            System.out.println("File not found");
-            return;
-        }
+    public static void generate(String fileName) {
+        if (fileName == null) return;
         PadFrame padFrame = new PadFrame(fileName);
     }
 

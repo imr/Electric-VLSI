@@ -2,6 +2,8 @@
 
 ************************* Version 8.00a: Released  *************************
 
+IMP: (5/24/04, JKG) Improved Pad Generator
+
 IMP: (5/24/04, SMR) Added node alignment commands "Edit / Move / Align..."
 
 BUG: (5/24/04, SMR) During long library input, concurrency exception is thrown.

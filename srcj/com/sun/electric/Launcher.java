@@ -25,6 +25,9 @@ package com.sun.electric;
 
 import com.sun.electric.tool.user.User;
 
+import java.util.Enumeration;
+import java.net.URL;
+
 /**
  * This class initializes the Electric by re-launching a JVM with sufficient memory.
  * It is the main entrypoint of the system.

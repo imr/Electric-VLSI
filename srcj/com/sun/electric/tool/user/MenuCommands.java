@@ -944,11 +944,11 @@ public final class MenuCommands
 
 	public static void closeLibraryCommand(Library lib)
 	{
-		int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), "Are you sure you want to delete library " + lib.getLibName() + "?");
+		int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), "Are you sure you want to close library " + lib.getLibName() + "?");
 		if (response != JOptionPane.YES_OPTION) return;
 		String libName = lib.getLibName();
 		if (lib.kill())
-			System.out.println("Library " + libName + " deleted");
+			System.out.println("Library " + libName + " closed");
 		WindowFrame.wantToRedoLibraryTree();
 		EditWindow.repaintAll();
 	}
@@ -991,11 +991,11 @@ public final class MenuCommands
 	 * For a non-interactive script, use SaveLibrary job = new SaveLibrary(filename).
 	 * Saves as an elib.
 	 */
-	protected static class SaveLibrary extends Job
+	public static class SaveLibrary extends Job
 	{
 		Library lib;
 
-		protected SaveLibrary(Library lib)
+		public SaveLibrary(Library lib)
 		{
 			super("Write Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.lib = lib;
@@ -1388,8 +1388,8 @@ public final class MenuCommands
 			{
 				if (arcCount == 1) GetInfoArc.showDialog();
 				if (nodeCount == 1) GetInfoNode.showDialog();
-				if (exportCount == 1) GetInfoExport.showDialog();
-				if (textCount == 1) GetInfoText.showDialog();
+				if (exportCount == 1) GetInfoExport2.showDialog();
+				if (textCount == 1) GetInfoText2.showDialog();
 			} else
 			{
 				GetInfoMulti.showDialog();
@@ -1399,7 +1399,7 @@ public final class MenuCommands
 
 	public static void attributesCommand()
 	{
-		Attributes.showDialog();
+		Attributes2.showDialog();
 	}
 
 	/**
@@ -2174,8 +2174,11 @@ public final class MenuCommands
 
 	public static void padFrameGeneratorCommand()
 	{
-		PadGenerator gen = new PadGenerator();
-		gen.ArrayFromFile();
+        String fileName = OpenFile.chooseInputFile(OpenFile.Type.PADARR, null);
+        if (fileName != null)
+        {
+		    PadGenerator.generate(fileName);
+        }
 	}
 	
 	public static void javaBshScriptCommand()
