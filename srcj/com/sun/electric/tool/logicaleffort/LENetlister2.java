@@ -217,7 +217,7 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
                 String msg = "WARNING: Instance "+ni.describe()+" has size "+TextUtils.formatDouble(leno.leX, 3)+" less than 1 ("+leno.getName()+")";
                 System.out.println(msg);
                 if (ni != null) {
-                    ErrorLogger.MessageLog log = errorLogger.logError(msg, ni.getParent(), 2);
+                    ErrorLogger.MessageLog log = errorLogger.logWarning(msg, ni.getParent(), 2);
                     log.addGeom(ni, true, ni.getParent(), leno.context);
                 }
             }
@@ -635,7 +635,7 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
             if (exp != null && lePortError.get(exp) == null) {
                 String msg = "Warning: Sizeable gate has no logical effort specified for port "+pp.getName()+" in cell "+cell.describe();
                 System.out.println(msg);
-                ErrorLogger.MessageLog log = errorLogger.logError(msg, cell, 0);
+                ErrorLogger.MessageLog log = errorLogger.logWarning(msg, cell, 0);
                 log.addExport(exp, true, cell, info.getContext().push(ni));
                 lePortError.put(exp, exp);
             }
