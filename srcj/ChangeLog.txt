@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02g: *********************************
 
+IMP: (02/02/05, GVG) Reorganizing layer coverage class so some functions can be called from regression scripts.
+Got rid of LayerCoverageJob.listGeometryOnNetworksNoJob and extended LayerCoverageJob.listGeometryOnNetworks.
+Added Extraction package in regression test suite (1 script for now).
+
 ************************* Version 8.02f: *********************************
 
 BUG: (02/02/05, SMR) Verilog output writes indexed signal names wrong (Bug #189).

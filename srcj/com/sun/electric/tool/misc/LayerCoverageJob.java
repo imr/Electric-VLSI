@@ -79,26 +79,36 @@ public class LayerCoverageJob extends Job
 	private Highlighter highlighter; // To highlight new implants
 	private GeometryOnNetwork geoms;  // Valid only for network job
 
-	public static GeometryOnNetwork listGeometryOnNetworks(Cell cell, HashSet nets, boolean printable) {
+	public static GeometryOnNetwork listGeometryOnNetworks(Cell cell, HashSet nets, boolean startJob) {
+        return (listGeometryOnNetworksInternal(cell, nets, startJob, GeometryHandler.ALGO_QTREE));
+    }
+    
+    public static GeometryOnNetwork listGeometryOnNetworksInternal(Cell cell, HashSet nets, boolean startJob,
+                                                                   int mode)
+    {
 	    if (cell == null || nets == null || nets.isEmpty()) return null;
 	    double lambda = 1; // lambdaofcell(np);
-	    GeometryOnNetwork geoms = new GeometryOnNetwork(cell, nets, lambda, printable);
+        // startJob is identical to printable
+	    GeometryOnNetwork geoms = new GeometryOnNetwork(cell, nets, lambda, startJob);
 
-		Job job = new LayerCoverageJob(Job.Type.EXAMINE, cell, NETWORK, false, GeometryHandler.ALGO_QTREE, null, geoms);
-        job.startJob();
+		Job job = new LayerCoverageJob(Job.Type.EXAMINE, cell, NETWORK, false, mode, null, geoms);
+        if (startJob)
+            job.startJob();
+        else
+            job.doIt();  // Former listGeometryOnNetworksNoJob
 	    return geoms;
 	}
 
-    public static GeometryOnNetwork listGeometryOnNetworksNoJob(Cell cell, HashSet nets, boolean printable) {
-        if (cell == null || nets == null || nets.isEmpty()) return null;
-        double lambda = 1; // lambdaofcell(np);
-        GeometryOnNetwork geoms = new GeometryOnNetwork(cell, nets, lambda, printable);
-
-        Job job = new LayerCoverageJob(Job.Type.EXAMINE, cell, NETWORK, false, GeometryHandler.ALGO_QTREE, null, geoms);
-        job.doIt();
-        return geoms;
-    }
-
+//    public static GeometryOnNetwork listGeometryOnNetworksNoJob(Cell cell, HashSet nets, boolean printable) {
+//        if (cell == null || nets == null || nets.isEmpty()) return null;
+//        double lambda = 1; // lambdaofcell(np);
+//        GeometryOnNetwork geoms = new GeometryOnNetwork(cell, nets, lambda, printable);
+//
+//        Job job = new LayerCoverageJob(Job.Type.EXAMINE, cell, NETWORK, false, GeometryHandler.ALGO_QTREE, null, geoms);
+//        job.doIt();
+//        return geoms;
+//    }
+    
 	public static class LayerVisitor extends HierarchyEnumerator.Visitor
 	{
 		private boolean testCase;

@@ -33,12 +33,15 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
@@ -73,13 +76,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Random;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * Class to handle the commands in the debugging pulldown menus.
@@ -94,10 +91,10 @@ public class DebugMenus {
 		helpMenu.addSeparator();
 
 		helpMenu.addMenuItem("Make fake circuitry MoCMOS", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeCircuitryCommand("mocmos"); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeCircuitryCommand("mocmos", true); } });
 		if (Technology.getTSMC90Technology() != null)
 			helpMenu.addMenuItem("Make fake circuitry TSMC90", null,
-					new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeCircuitryCommand("tsmc90"); } });
+					new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeCircuitryCommand("tsmc90", true); } });
 		helpMenu.addMenuItem("Make fake analog simulation window", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeWaveformCommand(); }});
 		helpMenu.addMenuItem("Make fake interval simulation window", null,
@@ -194,6 +191,8 @@ public class DebugMenus {
                         new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, GeometryHandler.ALGO_SWEEP, true);}});
         gildaMenu.addMenuItem("Covering Implants Old", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(false, false);}});
+        gildaMenu.addMenuItem("Test Bash", null,
+                new ActionListener() { public void actionPerformed(ActionEvent e) {bashTest();}});
         gildaMenu.addMenuItem("List Layer Coverage", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_QTREE, true); } });
 
@@ -259,10 +258,15 @@ public class DebugMenus {
 
 	// ---------------------- Help Menu additions -----------------
 
-	public static void makeFakeCircuitryCommand(String tech)
+	public static void makeFakeCircuitryCommand(String tech, boolean asJob)
 	{
 		// test code to make and show something
-		MakeFakeCircuitry job = new MakeFakeCircuitry(tech);
+        if (asJob)
+        {
+            MakeFakeCircuitry job = new MakeFakeCircuitry(tech);
+        }
+        else
+            MakeFakeCircuitry.doItInternal(tech);
 	}
 
 	/**
@@ -270,16 +274,26 @@ public class DebugMenus {
 	 */
 	private static class MakeFakeCircuitry extends Job
 	{
-		private String technology;
+		private String theTechnology;
 
 		protected MakeFakeCircuitry(String tech)
 		{
 			super("Make fake circuitry", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			technology = tech;
+			theTechnology = tech;
 			startJob();
 		}
 
 		public boolean doIt()
+		{
+            return (doItInternal(theTechnology));
+        }
+
+        /**
+         * External static call for regressions
+         * @param technology
+         * @return
+         */
+		private static boolean doItInternal(String technology)
 		{
 			// get information about the nodes
 			Technology  tech = Technology.findTechnology(technology);
@@ -621,6 +635,50 @@ public class DebugMenus {
 	}
 
 	// ---------------------- Gilda's Stuff MENU -----------------
+
+    /**
+     * Easy way to test bash scripts
+     */
+    public static void bashTest()
+    {
+String regressionname = "geoOnNet";
+String logname = "output/"+regressionname+Version.getVersion()+".log";
+boolean[] errorCounts = new boolean[2];
+double wireLength = 163.30159818105273;
+
+try {
+  TopLevel.getMessagesWindow().save(logname);
+  String techName = "tsmc90";
+  DebugMenus.makeFakeCircuitryCommand(techName, true);
+  Library rootLib = Library.findLibrary("noname");
+  Cell cell = rootLib.findNodeProto(techName+"test{lay}");
+  double calculatedValue = 0;
+
+  // Similar to ListGeomsAllNetworksJob
+  Netlist netlist = cell.getNetlist(true);
+  ArrayList networks = new ArrayList();
+  for (Iterator it = netlist.getNetworks(); it.hasNext(); ) {
+    networks.add(it.next());
+  }
+    // sort list of networks by name
+    Collections.sort(networks, new TextUtils.NetworksByName());
+    for (Iterator it = networks.iterator(); it.hasNext(); ) {
+        Network net = (Network)it.next();
+        HashSet nets = new HashSet();
+        nets.add(net);
+        LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworksInternal(cell, nets, false, GeometryHandler.ALGO_QTREE);
+        System.out.println("Network "+net+" has wire length "+geoms.getTotalWireLength());
+        // Only 1 net gives non zero value
+        if (geoms.getTotalWireLength() != 0)
+            calculatedValue = geoms.getTotalWireLength();
+    }
+    errorCounts[0] = !DBMath.doublesEqual(calculatedValue, wireLength);
+} catch (Exception e) {
+  System.out.println("exception: "+e);
+  e.printStackTrace();
+  System.exit(1);
+}
+    }
 
 	/**
 	 * First attempt for coverage implant

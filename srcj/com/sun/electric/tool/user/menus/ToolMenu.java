@@ -516,7 +516,7 @@ public class ToolMenu {
                 // get wire length
                 HashSet nets = new HashSet();
                 nets.add(layNet);
-                LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworksNoJob(schLayCells[1], nets, false);
+                LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworks(schLayCells[1], nets, false);
                 double length = geoms.getTotalWireLength();
 
                 // update wire length
@@ -929,7 +929,7 @@ public class ToolMenu {
                 Network net = (Network)it.next();
                 HashSet nets = new HashSet();
                 nets.add(net);
-                LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworksNoJob(cell, nets, false);
+                LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworks(cell, nets, false);
                 if (geoms.getTotalWireLength() == 0) continue;
                 System.out.println("Network "+net+" has wire length "+geoms.getTotalWireLength());
             }
