@@ -56,6 +56,7 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -876,7 +877,6 @@ public class Change extends EDialog implements HighlightListener
 			{
 				NodeInst ni = (NodeInst)it.next();
 				ni.clearBit(marked);
-				ni.setTempObj(null);
 			}
 			for(Iterator it = cell.getArcs(); it.hasNext(); )
 			{
@@ -938,6 +938,7 @@ public class Change extends EDialog implements HighlightListener
 				if (!ni.isBit(marked)) continue;
 				dupPins.add(ni);
 			}
+			HashMap newNodes = new HashMap();
 			for(Iterator it = dupPins.iterator(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
@@ -945,7 +946,7 @@ public class Change extends EDialog implements HighlightListener
 				NodeInst newNi = NodeInst.makeInstance(pin, ni.getAnchorCenter(), xS, yS, cell);
 				if (newNi == null) return;
 				newNi.clearBit(marked);
-				ni.setTempObj(newNi);
+				newNodes.put(ni, newNi);
 			}
 
 			// now create new arcs to replace the old ones
@@ -961,9 +962,10 @@ public class Change extends EDialog implements HighlightListener
 
 				NodeInst ni0 = ai.getHead().getPortInst().getNodeInst();
 				PortInst pi0 = null;
-				if (ni0.getTempObj() != null)
+				NodeInst newNi0 = (NodeInst)newNodes.get(ni0);
+				if (newNi0 != null)
 				{
-					ni0 = (NodeInst)ni0.getTempObj();
+					ni0 = newNi0;
 					pi0 = ni0.getOnlyPortInst();
 				} else
 				{
@@ -973,9 +975,10 @@ public class Change extends EDialog implements HighlightListener
 				}
 				NodeInst ni1 = ai.getTail().getPortInst().getNodeInst();
 				PortInst pi1 = null;
-				if (ni1.getTempObj() != null)
+				NodeInst newNi1 = (NodeInst)newNodes.get(ni1);
+				if (newNi1 != null)
 				{
-					ni1 = (NodeInst)ni1.getTempObj();
+					ni1 = newNi1;
 					pi1 = ni1.getOnlyPortInst();
 				} else
 				{

@@ -814,7 +814,6 @@ public abstract class Geometric extends ElectricObject
 	/** name of this Geometric object. */					protected Name name;
 	/** The text descriptor of name of Geometric. */		private TextDescriptor nameDescriptor;
 	/** bounds after transformation. */						protected Rectangle2D visBounds;
-	/** The temporary Object for the node or arc. */		private Object tempObj;
 	/** temporary integer value for the node or arc. */		private int tempInt;
 	/** Flag bits for this Geometric. */					protected int userBits;
 	/** The temporary flag bits. */							private int flagBits;
@@ -1124,18 +1123,6 @@ public abstract class Geometric extends ElectricObject
 	 * @param tempInt the integer to be set on this Geometric.
 	 */
 	public void setTempInt(int tempInt) { this.tempInt = tempInt; }
-
-	/**
-	 * Method to set an arbitrary Object in a temporary location on this Geometric.
-	 * @param tempObj the Object to be set on this Geometric.
-	 */
-	public void setTempObj(Object tempObj) { this.tempObj = tempObj; }
-
-	/**
-	 * Method to get the temporary Object on this Geometric.
-	 * @return the temporary Object on this Geometric.
-	 */
-	public Object getTempObj() { return tempObj; }
 
 	/**
 	 * Method to set a timestamp for constraint propagation on this Geometric.

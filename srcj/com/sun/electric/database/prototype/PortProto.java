@@ -412,7 +412,6 @@ public abstract class PortProto extends ElectricObject
 	/** Index of this PortProto in NodeProto ports. */			private int portIndex;
 	/** The text descriptor of this PortProto. */				private TextDescriptor descriptor;
 	/** A temporary integer value of this PortProto. */			private int tempInt;
-	/** The temporary Object. */								private Object tempObj;
 	/** The temporary flag bits. */								private int flagBits;
 
 	/**
@@ -424,7 +423,7 @@ public abstract class PortProto extends ElectricObject
 		this.parent = null;
 		this.userBits = 0;
 		this.descriptor = TextDescriptor.getExportTextDescriptor(this);
-		this.tempObj = null;
+
         // Prototypes are always assumed to be linked into the database
         setLinked(true);
 	}
@@ -622,6 +621,19 @@ public abstract class PortProto extends ElectricObject
 	}
 
 	/**
+	 * Method to return the angle range of this PortProto.
+	 * This is the range about the angle of allowable connections.
+	 * When this value is 180, then all angles are permissible, since arcs
+	 * can connect at up to 180 degrees in either direction from the port angle.
+	 * It is only used on PrimitivePorts, and is set during Technology creation.
+	 * @return the angle range of this PortProto.
+	 */
+	public int getAngleRange()
+	{
+		return (userBits & PORTARANGE) >> PORTARANGESH;
+	}
+
+	/**
 	 * Method to set the angle range of this PortProto.
 	 * This is the range about the angle of allowable connections.
 	 * When this value is 180, then all angles are permissible, since arcs
@@ -785,18 +797,6 @@ public abstract class PortProto extends ElectricObject
 	 * @return the temporary integer on this PortProto.
 	 */
 	public int getTempInt() { return tempInt; }
-
-	/**
-	 * Method to set an arbitrary Object in a temporary location on this PortProto.
-	 * @param tempObj the Object to be set on this PortProto.
-	 */
-	public void setTempObj(Object tempObj) { this.tempObj = tempObj; }
-
-	/**
-	 * Method to get the temporary Object on this PortProto.
-	 * @return the temporary Object on this PortProto.
-	 */
-	public Object getTempObj() { return tempObj; }
 
 	/**
 	 * Method to get access to flag bits on this PortProto.

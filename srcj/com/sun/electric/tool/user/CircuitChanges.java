@@ -3580,16 +3580,18 @@ public class CircuitChanges
 			FlagSet flag = Geometric.getFlagSet(1);
 
 			// remember the location of every node and arc
+			HashMap nodeLocation = new HashMap();
 			for(Iterator it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				ni.clearBit(flag);
-				ni.setTempObj(new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY()));
+				nodeLocation.put(ni, new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY()));
 			}
+			HashMap arcLocation = new HashMap();
 			for(Iterator it = cell.getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
-				ai.setTempObj(new Point2D.Double(ai.getTrueCenterX(), ai.getTrueCenterY()));
+				arcLocation.put(ai, new Point2D.Double(ai.getTrueCenterX(), ai.getTrueCenterY()));
 			}
 
 			// mark all nodes that want to move
@@ -3666,7 +3668,7 @@ public class CircuitChanges
 				ElectricObject eobj = h.getElectricObject();
 				if (!(eobj instanceof ArcInst)) continue;
 				ArcInst ai = (ArcInst)eobj;
-				Point2D pt = (Point2D)ai.getTempObj();
+				Point2D pt = (Point2D)arcLocation.get(ai);
 				if (pt.getX() != ai.getTrueCenterX() ||
 					pt.getY() != ai.getTrueCenterY()) continue;
 
@@ -3695,7 +3697,7 @@ public class CircuitChanges
 						NodeInst ni;
 						if (k == 0) ni = ai.getHead().getPortInst().getNodeInst(); else
 							ni = ai.getTail().getPortInst().getNodeInst();
-						Point2D nPt = (Point2D)ni.getTempObj();
+						Point2D nPt = (Point2D)nodeLocation.get(ni);
 						if (ni.getAnchorCenterX() != nPt.getX() || ni.getAnchorCenterY() != nPt.getY()) continue;
 
 						// fix all arcs that aren't sliding
@@ -3707,7 +3709,7 @@ public class CircuitChanges
 							if (oEObj instanceof ArcInst)
 							{
 								ArcInst oai = (ArcInst)oEObj;
-								Point2D aPt = (Point2D)oai.getTempObj();
+								Point2D aPt = (Point2D)arcLocation.get(oai);
 								if (aPt.getX() != oai.getTrueCenterX() ||
 									aPt.getY() != oai.getTrueCenterY()) continue;
 								if (oai.stillInPort(oai.getHead(),
@@ -3756,18 +3758,6 @@ public class CircuitChanges
 //						endobjectchange((INTBIG)ai, VARCINST);
 //					}
 //				}
-			}
-
-			// remove coordinate objects on nodes and arcs
-			for(Iterator it = cell.getNodes(); it.hasNext(); )
-			{
-				NodeInst ni = (NodeInst)it.next();
-				ni.setTempObj(null);
-			}
-			for(Iterator it = cell.getArcs(); it.hasNext(); )
-			{
-				ArcInst ai = (ArcInst)it.next();
-				ai.setTempObj(null);
 			}
 
 			// also move selected text

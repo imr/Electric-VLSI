@@ -397,17 +397,18 @@ public class ViewChanges
 
 			// determine number of inputs and outputs
 			int leftSide = 0, rightSide = 0, bottomSide = 0, topSide = 0;
+			HashMap portIndex = new HashMap();
 			for(Iterator it = exportList.iterator(); it.hasNext(); )
 			{
 				Export pp = (Export)it.next();
 				if (pp.isBodyOnly()) continue;
 				int index = iconPosition(pp);
 				switch (index)
-			{
-					case 0: pp.setTempInt(leftSide++);    break;
-					case 1: pp.setTempInt(rightSide++);   break;
-					case 2: pp.setTempInt(topSide++);     break;
-					case 3: pp.setTempInt(bottomSide++);  break;
+				{
+					case 0: portIndex.put(pp, new Integer(leftSide++));    break;
+					case 1: portIndex.put(pp, new Integer(rightSide++));   break;
+					case 2: portIndex.put(pp, new Integer(topSide++));     break;
+					case 3: portIndex.put(pp, new Integer(bottomSide++));  break;
 				}
 			}
 
@@ -437,6 +438,7 @@ public class ViewChanges
 			{
 				Export pp = (Export)it.next();
 				if (pp.isBodyOnly()) continue;
+				Integer portPosition = (Integer)portIndex.get(pp);
 
 				// determine location of the port
 				int index = iconPosition(pp);
@@ -449,23 +451,23 @@ public class ViewChanges
 						xBBPos = -xSize/2;
 						xPos = xBBPos - leadLength;
 						if (leftSide*2 < rightSide) spacing = leadSpacing * 2;
-						yBBPos = yPos = ySize/2 - ((ySize - (leftSide-1)*spacing) / 2 + pp.getTempInt() * spacing);
+						yBBPos = yPos = ySize/2 - ((ySize - (leftSide-1)*spacing) / 2 + portPosition.intValue() * spacing);
 						break;
 					case 1:		// right side
 						xBBPos = xSize/2;
 						xPos = xBBPos + leadLength;
 						if (rightSide*2 < leftSide) spacing = leadSpacing * 2;
-						yBBPos = yPos = ySize/2 - ((ySize - (rightSide-1)*spacing) / 2 + pp.getTempInt() * spacing);
+						yBBPos = yPos = ySize/2 - ((ySize - (rightSide-1)*spacing) / 2 + portPosition.intValue() * spacing);
 						break;
 					case 2:		// top
 						if (topSide*2 < bottomSide) spacing = leadSpacing * 2;
-						xBBPos = xPos = xSize/2 - ((xSize - (topSide-1)*spacing) / 2 + pp.getTempInt() * spacing);
+						xBBPos = xPos = xSize/2 - ((xSize - (topSide-1)*spacing) / 2 + portPosition.intValue() * spacing);
 						yBBPos = ySize/2;
 						yPos = yBBPos + leadLength;
 						break;
 					case 3:		// bottom
 						if (bottomSide*2 < topSide) spacing = leadSpacing * 2;
-						xBBPos = xPos = xSize/2 - ((xSize - (bottomSide-1)*spacing) / 2 + pp.getTempInt() * spacing);
+						xBBPos = xPos = xSize/2 - ((xSize - (bottomSide-1)*spacing) / 2 + portPosition.intValue() * spacing);
 						yBBPos = -ySize/2;
 						yPos = yBBPos - leadLength;
 						break;

@@ -858,11 +858,12 @@ public class ELIB extends LibraryFiles
 
 		// read the cells
 		portProtoIndex = 0;
+		HashMap nextInCellGroup = new HashMap();
 		for(int i=0; i<nodeProtoCount; i++)
 		{
 			Cell cell = nodeProtoList[i];
 			if (cell == null) continue;
-			if (readNodeProto(cell, i))
+			if (readNodeProto(cell, i, nextInCellGroup))
 			{
 				System.out.println("Error reading cell");
 				return true;
@@ -894,7 +895,7 @@ public class ELIB extends LibraryFiles
 				cell.setCellGroup(cg);
 
 				// move to the next in the group
-				Object other = cell.getTempObj();
+				Object other = nextInCellGroup.get(cell);
 				if (other == null) break;
 				if (!(other instanceof Cell)) break;
 				Cell otherCell = (Cell)other;
@@ -910,7 +911,6 @@ public class ELIB extends LibraryFiles
 		{
 			Cell cell = nodeProtoList[cellIndex];
 			if (cell == null) continue;
-			cell.setTempObj(null);
 			cell.lowLevelLink();
 		}
 
@@ -1834,7 +1834,7 @@ public class ELIB extends LibraryFiles
 	/**
 	 * Method to read a cell.  returns true upon error
 	 */
-	private boolean readNodeProto(Cell cell, int cellIndex)
+	private boolean readNodeProto(Cell cell, int cellIndex, HashMap nextInCellGroup)
 		throws IOException
 	{
 		// read the cell name
@@ -1861,7 +1861,7 @@ public class ELIB extends LibraryFiles
                     }
                 }
 
-				cell.setTempObj(nodeProtoList[k]);		// the "next in cell group" circular pointer
+                nextInCellGroup.put(cell, nodeProtoList[k]);		// the "next in cell group" circular pointer
 				k = readBigInteger();
 //				cell->nextcont = nodeProtoList[k];		// the "next in cell continuation" circular pointer
 			}

@@ -330,7 +330,6 @@ public class Cell extends AbstractNodeProto implements Comparable
 	/** 0-based index of this Cell. */								private int cellIndex;
 	/** This Cell's Technology. */									private Technology tech;
 	/** The temporary integer value. */								private int tempInt;
-	/** The temporary Object. */									private Object tempObj;
 	/** The temporary flag bits. */									private int flagBits;
 
 
@@ -455,10 +454,11 @@ public class Cell extends AbstractNodeProto implements Comparable
 		if (toLib == fromCell.getLibrary()) destLib = null;
 
 		// mark the proper prototype to use for each node
+		HashMap nodePrototypes = new HashMap();
 		for(Iterator it = fromCell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			ni.setTempObj(ni.getProto());
+			nodePrototypes.put(ni, ni.getProto());
 		}
 
 		// if doing a cross-library copy and can use existing ones from new library, do it
@@ -519,7 +519,7 @@ public class Cell extends AbstractNodeProto implements Comparable
 				if (!validPorts) continue;
 
 				// match found: use the prototype from the destination library
-				ni.setTempObj(lnt);
+				nodePrototypes.put(ni, lnt);
 			}
 		}
 
@@ -534,11 +534,12 @@ public class Cell extends AbstractNodeProto implements Comparable
 		newCell.lowLevelSetUserbits(fromCell.lowLevelGetUserbits());
 
 		// copy nodes
+		HashMap newNodes = new HashMap();
 		for(Iterator it = fromCell.getNodes(); it.hasNext(); )
 		{
 			// create the new nodeinst
 			NodeInst ni = (NodeInst)it.next();
-			NodeProto lnt = (NodeProto)ni.getTempObj();
+			NodeProto lnt = (NodeProto)nodePrototypes.get(ni);
 			double scaleX = ni.getXSize();   if (ni.isXMirrored()) scaleX = -scaleX;
 			double scaleY = ni.getYSize();   if (ni.isYMirrored()) scaleY = -scaleY;
 			NodeInst toNi = NodeInst.newInstance(lnt, new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY()),
@@ -546,7 +547,7 @@ public class Cell extends AbstractNodeProto implements Comparable
 			if (toNi == null) return null;
 
 			// save the new nodeinst address in the old nodeinst
-			ni.setTempObj(toNi);
+			newNodes.put(ni, toNi);
 
 			// copy miscellaneous information
 			toNi.setProtoTextDescriptor(ni.getProtoTextDescriptor());
@@ -559,7 +560,7 @@ public class Cell extends AbstractNodeProto implements Comparable
 		for(Iterator it = fromCell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			NodeInst toNi = (NodeInst)ni.getTempObj();
+			NodeInst toNi = (NodeInst)newNodes.get(ni);
 			toNi.copyVarsFrom(ni);
 
             // if this is an icon, and this nodeinst is the box with the name of the cell on it,
@@ -586,7 +587,7 @@ public class Cell extends AbstractNodeProto implements Comparable
 			{
 				opi[i] = null;
 				Connection con = ai.getConnection(i);
-				NodeInst ono = (NodeInst)con.getPortInst().getNodeInst().getTempObj();
+				NodeInst ono = (NodeInst)newNodes.get(con.getPortInst().getNodeInst());
 				PortProto pp = con.getPortInst().getPortProto();
 				if (ono.getProto() instanceof PrimitiveNode)
 				{
@@ -619,7 +620,7 @@ public class Cell extends AbstractNodeProto implements Comparable
 			Export pp = (Export)it.next();
 
 			// match sub-portproto in old nodeinst to sub-portproto in new one
-			NodeInst ni = (NodeInst)pp.getOriginalPort().getNodeInst().getTempObj();
+			NodeInst ni = (NodeInst)newNodes.get(pp.getOriginalPort().getNodeInst());
 			PortInst pi = ni.findPortInst(pp.getOriginalPort().getPortProto().getName());
 			if (pi == null)
 			{
@@ -3129,18 +3130,6 @@ public class Cell extends AbstractNodeProto implements Comparable
 	 * @return the temporary integer on this Cell.
 	 */
 	public int getTempInt() { return tempInt; }
-
-	/**
-	 * Method to set an arbitrary Object in a temporary location on this Cell.
-	 * @param tempObj the Object to be set on this Cell.
-	 */
-	public void setTempObj(Object tempObj) { checkChanging(); this.tempObj = tempObj; }
-
-	/**
-	 * Method to get the temporary Object on this Cell.
-	 * @return the temporary Object on this Cell.
-	 */
-	public Object getTempObj() { return tempObj; }
 
 	/**
 	 * Method to get access to flag bits on this Cell.

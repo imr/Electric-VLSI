@@ -47,6 +47,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.HashMap;
 
 import javax.swing.JOptionPane;
 
@@ -402,10 +403,11 @@ public class MimicStitch
 
 			Poly [] ro_mimicportpolys = new Poly[total];
 			int i = 0;
+			HashMap nodeIndex = new HashMap();
 			for(Iterator it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
-				ni.setTempInt(i);
+				nodeIndex.put(ni, new Integer(i));
 				for(Iterator pIt = ni.getProto().getPorts(); pIt.hasNext(); )
 				{
 					PortProto pp = (PortProto)pIt.next();
@@ -476,7 +478,7 @@ public class MimicStitch
 						if (oBounds.getMinY() - bounds.getMaxY() > dist) continue;
 
 						// compare each port
-						int portPos = ni.getTempInt();
+						int portPos = ((Integer)nodeIndex.get(ni)).intValue();
 						for(Iterator pIt = ni.getProto().getPorts(); pIt.hasNext(); )
 						{
 							PortProto pp = (PortProto)pIt.next();
@@ -505,7 +507,7 @@ public class MimicStitch
 							Point2D xy0 = new Point2D.Double(x0, y0);
 							Point2D want1 = new Point2D.Double(wantX1, wantY1);
 
-							int oPortPos = oNi.getTempInt();
+							int oPortPos = ((Integer)nodeIndex.get(oNi)).intValue();
 							for(Iterator oPIt = oNi.getProto().getPorts(); oPIt.hasNext(); )
 							{
 								PortProto opp = (PortProto)oPIt.next();

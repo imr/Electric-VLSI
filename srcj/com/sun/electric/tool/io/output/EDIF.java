@@ -1080,7 +1080,7 @@ public class EDIF extends Topology
 				writePoint(points[i + 1].getX(), points[i + 1].getY());
 
 				// calculate a point between the first and second point
-				Point2D si = computeArcCenter(points[i], points[i + 1], points[i + 2]);
+				Point2D si = GenMath.computeArcCenter(points[i], points[i + 1], points[i + 2]);
 				writePoint(si.getX(), si.getY());
 				writePoint(points[i + 2].getX(), points[i + 2].getY());
 				blockClose("openShape");
@@ -1206,32 +1206,6 @@ public class EDIF extends Topology
 			}
 			return;
 		}
-	}
-
-	/**
-	 * Method used by "ioedifo.c" and "routmaze.c".
-	 */
-	private Point2D computeArcCenter(Point2D c, Point2D p1, Point2D p2)
-	{
-		// reconstruct angles to p1 and p2
-		double radius = p1.distance(c);
-		double a1 = calculateAngle(radius, p1.getX() - c.getX(), p1.getY() - c.getY());
-		double a2 = calculateAngle(radius, p2.getX() - c.getX(), p1.getY() - c.getY());
-		if (a1 < a2) a1 += 3600;
-		double a = (a1 + a2) / 2;
-		double theta = a * Math.PI / 1800.0;	/* in radians */
-		return new Point2D.Double(c.getX() + radius * Math.cos(theta), c.getY() + radius * Math.sin(theta));
-	}
-
-	private double calculateAngle(double r, double dx, double dy)
-	{
-		double ratio, a1, a2;
-
-		ratio = 1800.0 / Math.PI;
-		a1 = Math.acos(dx/r) * ratio;
-		a2 = Math.asin(dy/r) * ratio;
-		if (a2 < 0.0) return 3600.0 - a1;
-		return a1;
 	}
 
 	/****************************** LOW-LEVEL BLOCK OUTPUT METHODS ******************************/

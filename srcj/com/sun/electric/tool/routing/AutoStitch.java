@@ -136,6 +136,7 @@ public class AutoStitch
 
 			// next pre-compute bounds on all nodes in cells to be changed
 			int count = 0;
+			HashMap nodeBounds = new HashMap();
 			for(Iterator it = nodesToStitch.iterator(); it.hasNext(); )
 			{
 				NodeInst nodeToStitch = (NodeInst)it.next();
@@ -153,7 +154,7 @@ public class AutoStitch
 
 					// get memory for bounding box of each port
 					double [] bbArray = new double[total*4];
-					ni.setTempObj(bbArray);
+					nodeBounds.put(ni, bbArray);
 					int i = 0;
 					for(Iterator pIt = ni.getProto().getPorts(); pIt.hasNext(); )
 					{
@@ -208,15 +209,7 @@ public class AutoStitch
 			}
 
 			// finally, initialize the information about which layer is smallest on each arc
-			for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
-			{
-				Technology tech = (Technology)it.next();
-				for(Iterator aIt = tech.getArcs(); aIt.hasNext(); )
-				{
-					PrimitiveArc ap = (PrimitiveArc)aIt.next();
-					ap.setTempObj(null);
-				}
-			}
+			HashMap arcLayers = new HashMap();
 
 			// now run through the nodeinsts to be checked for stitching
             HashMap arcCount = new HashMap();
@@ -224,7 +217,7 @@ public class AutoStitch
 			{
 				NodeInst ni = (NodeInst)it.next();
 				if (ni.getParent().isAllLocked()) continue;
-				count += checkStitching(ni, arcCount);
+				count += checkStitching(ni, arcCount, nodeBounds, arcLayers);
 			}
 
 			// report results
@@ -248,15 +241,6 @@ public class AutoStitch
 			}
 
 			// clean up
-			for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
-			{
-				Technology tech = (Technology)it.next();
-				for(Iterator aIt = tech.getArcs(); aIt.hasNext(); )
-				{
-					PrimitiveArc ap = (PrimitiveArc)aIt.next();
-					ap.setTempObj(null);
-				}
-			}
 			for(Iterator it = Library.getLibraries(); it.hasNext(); )
 			{
 				Library lib = (Library)it.next();
@@ -264,11 +248,6 @@ public class AutoStitch
 				{
 					Cell cell = (Cell)cIt.next();
 					if (!cell.isBit(cellMark)) continue;
-					for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
-					{
-						NodeInst ni = (NodeInst)nIt.next();
-						ni.setTempObj(null);
-					}
 				}
 			}
 			cellMark.freeFlagSet();
@@ -305,14 +284,14 @@ public class AutoStitch
 			return true;
 		}
 
-		/*
+		/**
 		 * Method to check NodeInst "ni" for possible stitching to neighboring NodeInsts.
 		 */
-		private int checkStitching(NodeInst ni, HashMap arcCount)
+		private int checkStitching(NodeInst ni, HashMap arcCount, HashMap nodeBounds, HashMap arcLayers)
 		{
 			Cell cell = ni.getParent();
 			Netlist netlist = cell.getUserNetlist();
-			double [] boundArray = (double [])ni.getTempObj();
+			double [] boundArray = (double [])nodeBounds.get(ni);
 
 			// gather a list of other nodes that touch or overlap this one
 			List nodesInArea = new ArrayList();
@@ -386,7 +365,7 @@ public class AutoStitch
 						ArcProto [] connections = pp.getBasePort().getConnections();
 						for(int i=0; i<connections.length; i++)
 						{
-							findSmallestLayer(connections[i]);
+							findSmallestLayer(connections[i], arcLayers);
 						}
 
 						// look at all polygons on this nodeinst
@@ -447,11 +426,12 @@ public class AutoStitch
 									// this polygon must be the smallest arc layer
 									if (!usePortPoly)
 									{
-										if (!tech.sameLayer((Layer)ap.getTempObj(), layer)) continue;
+										Layer oLayer = (Layer)arcLayers.get(ap);
+										if (!tech.sameLayer(oLayer, layer)) continue;
 									}
 
 									// pass it on to the next test
-									connected = testPoly(ni, pp, ap, poly, oNi, netlist);
+									connected = testPoly(ni, pp, ap, poly, oNi, netlist, nodeBounds, arcLayers);
 									if (connected) {
                                         Integer c = (Integer)arcCount.get(ap);
                                         if (c == null) c = new Integer(0);
@@ -580,15 +560,15 @@ public class AutoStitch
 								if (ap.getTechnology() != ni.getProto().getTechnology()) break;
 
 								// this polygon must be the smallest arc layer
-								findSmallestLayer(ap);
+								findSmallestLayer(ap, arcLayers);
 								if (!usePortPoly)
 								{
-									Layer oLayer = (Layer)ap.getTempObj();
+									Layer oLayer = (Layer)arcLayers.get(ap);
 									if (!ap.getTechnology().sameLayer(oLayer, layer)) continue;
 								}
 
 								// pass it on to the next test
-								connected = testPoly(ni, rPp, ap, polyPtr, oNi, netlist);
+								connected = testPoly(ni, rPp, ap, polyPtr, oNi, netlist, nodeBounds, arcLayers);
 								if (connected) {
                                     Integer c = (Integer)arcCount.get(ap);
                                     if (c == null) c = new Integer(0);
@@ -607,13 +587,13 @@ public class AutoStitch
 			return count;
 		}
 
-		/*
+		/**
 		 * Method to find exported polygons in node "oNi" that abut with the polygon
 		 * in "poly" on the same layer.  When they do, these should be connected to
 		 * nodeinst "ni", port "pp" with an arc of type "ap".  Returns the number of
 		 * connections made (0 if none).
 		 */
-		private boolean testPoly(NodeInst ni, PortProto pp, ArcProto ap, Poly poly, NodeInst oNi, Netlist netlist)
+		private boolean testPoly(NodeInst ni, PortProto pp, ArcProto ap, Poly poly, NodeInst oNi, Netlist netlist, HashMap nodeBounds, HashMap arcLayers)
 		{
 			// get network associated with the node/port
 			PortInst pi = ni.findPortInstFromProto(pp);
@@ -623,7 +603,7 @@ public class AutoStitch
 			if (oNi.getProto() instanceof Cell)
 			{
 				// complex cell: look at all exports
-				double [] boundArray = (double [])oNi.getTempObj();
+				double [] boundArray = (double [])nodeBounds.get(oNi);
 				int bbp = 0;
 				Rectangle2D bounds = poly.getBounds2D();
 				for(Iterator it = oNi.getProto().getPorts(); it.hasNext(); )
@@ -704,7 +684,8 @@ public class AutoStitch
 							{
 								Layer oLayer = oPoly.getLayer();
 								if (oLayer != null) oLayer = oLayer.getNonPseudoLayer();
-								if (!tech.sameLayer(oLayer, (Layer)ap.getTempObj())) continue;
+								Layer apLayer = (Layer)arcLayers.get(ap);
+								if (!tech.sameLayer(oLayer, apLayer)) continue;
 							}
 
 							// transform the polygon and pass it on to the next test
@@ -774,7 +755,8 @@ public class AutoStitch
 						if (oLayer != null) oLayer = oLayer.getNonPseudoLayer();
 
 						// this must be the smallest layer on the arc
-						if (!tech.sameLayer((Layer)ap.getTempObj(), oLayer)) continue;
+						Layer apLayer = (Layer)arcLayers.get(ap);
+						if (!tech.sameLayer(apLayer, oLayer)) continue;
 
 						// do not stitch where there is already an electrical connection
 						PortInst oPi = oNi.findPortInstFromProto(oPoly.getPort());
@@ -894,10 +876,10 @@ public class AutoStitch
 		 * Method to find the smallest layer on arc proto "ap" and cache that information
 		 * in the "temp1" field of the arc proto.
 		 */
-		public static void findSmallestLayer(ArcProto ap)
+		public static void findSmallestLayer(ArcProto ap, HashMap arcLayers)
 		{
 			// quit if the value has already been computed
-			if (ap.getTempObj() != null) return;
+			if (arcLayers.get(ap) != null) return;
 
 			// get a dummy arc to analyze
 			ArcInst ai = ArcInst.makeDummyInstance((PrimitiveArc)ap, 100);
@@ -916,7 +898,7 @@ public class AutoStitch
 				if (bestFound && area >= bestArea) continue;
 				bestArea = area;
 				bestFound = true;
-				ap.setTempObj(poly.getLayer());
+				arcLayers.put(ap, poly.getLayer());
 			}
 		}
 

@@ -294,7 +294,6 @@ public class GenMath
      * in (x1,y1) and (x2,y2)
      */
     public static Point2D [] arcconnects(int ang, Rectangle2D bounds1, Rectangle2D bounds2)
-    //double lx1, double hx1, double ly1, double hy1, double lx2, double hx2, double ly2, double hy2, INTBIG *x1, INTBIG *y1, INTBIG *x2, INTBIG *y2
     {
      	// first try simple solutions
     	Point2D [] points = new Point2D[2];
@@ -412,6 +411,32 @@ public class GenMath
         iPt.setLocation(iX, iY);
         return iPt.distance(pt);
     }
+
+	/**
+	 * Method used by "ioedifo.c" and "routmaze.c".
+	 */
+	public static Point2D computeArcCenter(Point2D c, Point2D p1, Point2D p2)
+	{
+		// reconstruct angles to p1 and p2
+		double radius = p1.distance(c);
+		double a1 = calculateAngle(radius, p1.getX() - c.getX(), p1.getY() - c.getY());
+		double a2 = calculateAngle(radius, p2.getX() - c.getX(), p1.getY() - c.getY());
+		if (a1 < a2) a1 += 3600;
+		double a = (a1 + a2) / 2;
+		double theta = a * Math.PI / 1800.0;	/* in radians */
+		return new Point2D.Double(c.getX() + radius * Math.cos(theta), c.getY() + radius * Math.sin(theta));
+	}
+
+	private static double calculateAngle(double r, double dx, double dy)
+	{
+		double ratio, a1, a2;
+
+		ratio = 1800.0 / Math.PI;
+		a1 = Math.acos(dx/r) * ratio;
+		a2 = Math.asin(dy/r) * ratio;
+		if (a2 < 0.0) return 3600.0 - a1;
+		return a1;
+	}
 
     /**
      * Method to find the two possible centers for a circle given a radius and two edge points.

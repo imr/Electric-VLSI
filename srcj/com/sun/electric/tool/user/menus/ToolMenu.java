@@ -40,6 +40,7 @@ import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.erc.ERCAntenna;
 import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.routing.River;
+import com.sun.electric.tool.routing.Maze;
 import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.routing.MimicStitch;
 import com.sun.electric.tool.Job;
@@ -84,89 +85,89 @@ import java.util.*;
  */
 public class ToolMenu {
 
-    protected static void addToolMenu(MenuBar menuBar) {
-        MenuBar.MenuItem m;
+	protected static void addToolMenu(MenuBar menuBar) {
+		MenuBar.MenuItem m;
 		int buckyBit = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
-        /****************************** THE TOOL MENU ******************************/
+		/****************************** THE TOOL MENU ******************************/
 
-        MenuBar.Menu toolMenu = new MenuBar.Menu("Tool", 'T');
-        menuBar.add(toolMenu);
+		MenuBar.Menu toolMenu = new MenuBar.Menu("Tool", 'T');
+		menuBar.add(toolMenu);
 
-        //------------------- DRC
+		//------------------- DRC
 
-        MenuBar.Menu drcSubMenu = new MenuBar.Menu("DRC", 'D');
-        toolMenu.add(drcSubMenu);
-        drcSubMenu.addMenuItem("Check Hierarchically", KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(false); }});
-        drcSubMenu.addMenuItem("Check Selection Area Hierarchically", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(true); }});
+		MenuBar.Menu drcSubMenu = new MenuBar.Menu("DRC", 'D');
+		toolMenu.add(drcSubMenu);
+		drcSubMenu.addMenuItem("Check Hierarchically", KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(false); }});
+		drcSubMenu.addMenuItem("Check Selection Area Hierarchically", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(true); }});
 
-        //------------------- Simulation (SPICE)
+		//------------------- Simulation (SPICE)
 
-        MenuBar.Menu spiceSimulationSubMenu = new MenuBar.Menu("Simulation (Spice)", 'S');
-        toolMenu.add(spiceSimulationSubMenu);
-        spiceSimulationSubMenu.addMenuItem("Write Spice Deck...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.SPICE, true); }});
-        spiceSimulationSubMenu.addMenuItem("Write CDL Deck...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.CDL, true); }});
-        spiceSimulationSubMenu.addMenuItem("Plot Spice Listing...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotSpiceResults(); }});
-        spiceSimulationSubMenu.addMenuItem("Plot Spice for This Cell", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotSpiceResultsThisCell(); }});
-        spiceSimulationSubMenu.addMenuItem("Set Spice Model...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setSpiceModel(); }});
-        spiceSimulationSubMenu.addMenuItem("Add Multiplier", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { addMultiplierCommand(); }});
+		MenuBar.Menu spiceSimulationSubMenu = new MenuBar.Menu("Simulation (Spice)", 'S');
+		toolMenu.add(spiceSimulationSubMenu);
+		spiceSimulationSubMenu.addMenuItem("Write Spice Deck...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.SPICE, true); }});
+		spiceSimulationSubMenu.addMenuItem("Write CDL Deck...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.CDL, true); }});
+		spiceSimulationSubMenu.addMenuItem("Plot Spice Listing...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotSpiceResults(); }});
+		spiceSimulationSubMenu.addMenuItem("Plot Spice for This Cell", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotSpiceResultsThisCell(); }});
+		spiceSimulationSubMenu.addMenuItem("Set Spice Model...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setSpiceModel(); }});
+		spiceSimulationSubMenu.addMenuItem("Add Multiplier", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { addMultiplierCommand(); }});
 
-        spiceSimulationSubMenu.addSeparator();
+		spiceSimulationSubMenu.addSeparator();
 
-        spiceSimulationSubMenu.addMenuItem("Set Generic Spice Template", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_TEMPLATE_KEY); }});
-        spiceSimulationSubMenu.addMenuItem("Set Spice 2 Template", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_2_TEMPLATE_KEY); }});
-        spiceSimulationSubMenu.addMenuItem("Set Spice 3 Template", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_3_TEMPLATE_KEY); }});
-        spiceSimulationSubMenu.addMenuItem("Set HSpice Template", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_H_TEMPLATE_KEY); }});
-        spiceSimulationSubMenu.addMenuItem("Set PSpice Template", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_P_TEMPLATE_KEY); }});
-        spiceSimulationSubMenu.addMenuItem("Set GnuCap Template", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_GC_TEMPLATE_KEY); }});
-        spiceSimulationSubMenu.addMenuItem("Set SmartSpice Template", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_SM_TEMPLATE_KEY); }});
+		spiceSimulationSubMenu.addMenuItem("Set Generic Spice Template", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_TEMPLATE_KEY); }});
+		spiceSimulationSubMenu.addMenuItem("Set Spice 2 Template", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_2_TEMPLATE_KEY); }});
+		spiceSimulationSubMenu.addMenuItem("Set Spice 3 Template", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_3_TEMPLATE_KEY); }});
+		spiceSimulationSubMenu.addMenuItem("Set HSpice Template", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_H_TEMPLATE_KEY); }});
+		spiceSimulationSubMenu.addMenuItem("Set PSpice Template", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_P_TEMPLATE_KEY); }});
+		spiceSimulationSubMenu.addMenuItem("Set GnuCap Template", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_GC_TEMPLATE_KEY); }});
+		spiceSimulationSubMenu.addMenuItem("Set SmartSpice Template", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_SM_TEMPLATE_KEY); }});
 
-        //------------------- Simulation (Verilog)
+		//------------------- Simulation (Verilog)
 
-        MenuBar.Menu verilogSimulationSubMenu = new MenuBar.Menu("Simulation (Verilog)", 'V');
-        toolMenu.add(verilogSimulationSubMenu);
-        verilogSimulationSubMenu.addMenuItem("Write Verilog Deck...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.VERILOG, true); } });
-        verilogSimulationSubMenu.addMenuItem("Plot Verilog VCD Dump...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotVerilogResults(); }});
-        verilogSimulationSubMenu.addMenuItem("Plot Verilog for This Cell", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotVerilogResultsThisCell(); }});
-        verilogSimulationSubMenu.addSeparator();
-        verilogSimulationSubMenu.addMenuItem("Set Verilog Template", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Verilog.VERILOG_TEMPLATE_KEY); }});
+		MenuBar.Menu verilogSimulationSubMenu = new MenuBar.Menu("Simulation (Verilog)", 'V');
+		toolMenu.add(verilogSimulationSubMenu);
+		verilogSimulationSubMenu.addMenuItem("Write Verilog Deck...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.VERILOG, true); } });
+		verilogSimulationSubMenu.addMenuItem("Plot Verilog VCD Dump...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotVerilogResults(); }});
+		verilogSimulationSubMenu.addMenuItem("Plot Verilog for This Cell", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotVerilogResultsThisCell(); }});
+		verilogSimulationSubMenu.addSeparator();
+		verilogSimulationSubMenu.addMenuItem("Set Verilog Template", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Verilog.VERILOG_TEMPLATE_KEY); }});
 
-        verilogSimulationSubMenu.addSeparator();
+		verilogSimulationSubMenu.addSeparator();
 
-        MenuBar.Menu verilogWireTypeSubMenu = new MenuBar.Menu("Set Verilog Wire", 'W');
-        verilogWireTypeSubMenu.addMenuItem("Wire", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setVerilogWireCommand(0); }});
-        verilogWireTypeSubMenu.addMenuItem("Trireg", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setVerilogWireCommand(1); }});
-        verilogWireTypeSubMenu.addMenuItem("Default", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setVerilogWireCommand(2); }});
-        verilogSimulationSubMenu.add(verilogWireTypeSubMenu);
+		MenuBar.Menu verilogWireTypeSubMenu = new MenuBar.Menu("Set Verilog Wire", 'W');
+		verilogWireTypeSubMenu.addMenuItem("Wire", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setVerilogWireCommand(0); }});
+		verilogWireTypeSubMenu.addMenuItem("Trireg", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setVerilogWireCommand(1); }});
+		verilogWireTypeSubMenu.addMenuItem("Default", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setVerilogWireCommand(2); }});
+		verilogSimulationSubMenu.add(verilogWireTypeSubMenu);
 
-        MenuBar.Menu transistorStrengthSubMenu = new MenuBar.Menu("Transistor Strength", 'T');
-        transistorStrengthSubMenu.addMenuItem("Weak", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setTransistorStrengthCommand(true); }});
-        transistorStrengthSubMenu.addMenuItem("Normal", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setTransistorStrengthCommand(false); }});
-        verilogSimulationSubMenu.add(transistorStrengthSubMenu);
+		MenuBar.Menu transistorStrengthSubMenu = new MenuBar.Menu("Transistor Strength", 'T');
+		transistorStrengthSubMenu.addMenuItem("Weak", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setTransistorStrengthCommand(true); }});
+		transistorStrengthSubMenu.addMenuItem("Normal", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setTransistorStrengthCommand(false); }});
+		verilogSimulationSubMenu.add(transistorStrengthSubMenu);
 
 		//------------------- Simulation (others)
 
@@ -197,14 +198,14 @@ public class ToolMenu {
 		netlisters.addMenuItem("FastHenry Arc Properties...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FastHenryArc.showFastHenryArcDialog(); }});
 
-        //------------------- ERC
+		//------------------- ERC
 
-        MenuBar.Menu ercSubMenu = new MenuBar.Menu("ERC", 'E');
-        toolMenu.add(ercSubMenu);
-        ercSubMenu.addMenuItem("Check Wells", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(false); } });
-        ercSubMenu.addMenuItem("Antenna Check", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { new ERCAntenna(); } });
+		MenuBar.Menu ercSubMenu = new MenuBar.Menu("ERC", 'E');
+		toolMenu.add(ercSubMenu);
+		ercSubMenu.addMenuItem("Check Wells", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(false); } });
+		ercSubMenu.addMenuItem("Antenna Check", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { new ERCAntenna(); } });
 
 		// ------------------- NCC
 		MenuBar.Menu nccSubMenu = new MenuBar.Menu("NCC", 'N');
@@ -220,79 +221,88 @@ public class ToolMenu {
 			}
 		});
 
-        //------------------- Network
+		//------------------- Network
 
-        MenuBar.Menu networkSubMenu = new MenuBar.Menu("Network", 'e');
-        toolMenu.add(networkSubMenu);
-        networkSubMenu.addMenuItem("Show Network", KeyStroke.getKeyStroke('K', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { showNetworkCommand(); } });
-        networkSubMenu.addMenuItem("List Networks", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { listNetworksCommand(); } });
-        networkSubMenu.addMenuItem("List Connections on Network", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { listConnectionsOnNetworkCommand(); } });
-        networkSubMenu.addMenuItem("List Exports on Network", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { listExportsOnNetworkCommand(); } });
-        networkSubMenu.addMenuItem("List Exports below Network", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { listExportsBelowNetworkCommand(); } });
-        networkSubMenu.addMenuItem("List Geometry on Network", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { listGeometryOnNetworkCommand(); } });
-        networkSubMenu.addSeparator();
-        networkSubMenu.addMenuItem("Show Power and Ground", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { showPowerAndGround(); } });
-        networkSubMenu.addMenuItem("Validate Power and Ground", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { validatePowerAndGround(); } });
-        networkSubMenu.addMenuItem("Redo Network Numbering", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { redoNetworkNumberingCommand(); } });
+		MenuBar.Menu networkSubMenu = new MenuBar.Menu("Network", 'e');
+		toolMenu.add(networkSubMenu);
+		networkSubMenu.addMenuItem("Show Network", KeyStroke.getKeyStroke('K', buckyBit),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { showNetworkCommand(); } });
+		networkSubMenu.addMenuItem("List Networks", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { listNetworksCommand(); } });
+		networkSubMenu.addMenuItem("List Connections on Network", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { listConnectionsOnNetworkCommand(); } });
+		networkSubMenu.addMenuItem("List Exports on Network", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { listExportsOnNetworkCommand(); } });
+		networkSubMenu.addMenuItem("List Exports below Network", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { listExportsBelowNetworkCommand(); } });
+		networkSubMenu.addMenuItem("List Geometry on Network", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { listGeometryOnNetworkCommand(); } });
+		networkSubMenu.addSeparator();
+		networkSubMenu.addMenuItem("Show Power and Ground", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { showPowerAndGround(); } });
+		networkSubMenu.addMenuItem("Validate Power and Ground", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { validatePowerAndGround(); } });
+		networkSubMenu.addMenuItem("Redo Network Numbering", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { redoNetworkNumberingCommand(); } });
 
-        //------------------- Logical Effort
+		//------------------- Logical Effort
 
-        MenuBar.Menu logEffortSubMenu = new MenuBar.Menu("Logical Effort", 'L');
-        logEffortSubMenu.addMenuItem("Optimize for Equal Gate Delays", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { optimizeEqualGateDelaysCommand(true); }});
-        logEffortSubMenu.addMenuItem("Optimize for Equal Gate Delays (no caching)", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { optimizeEqualGateDelaysCommand(false); }});
-        logEffortSubMenu.addMenuItem("Print Info for Selected Node", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { printLEInfoCommand(); }});
-        logEffortSubMenu.addMenuItem("Clear Sizes on Selected Node(s)", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { clearSizesNodableCommand(); }});
-        logEffortSubMenu.addMenuItem("Clear Sizes in all Libraries", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { clearSizesCommand(); }});
-        toolMenu.add(logEffortSubMenu);
+		MenuBar.Menu logEffortSubMenu = new MenuBar.Menu("Logical Effort", 'L');
+		logEffortSubMenu.addMenuItem("Optimize for Equal Gate Delays", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { optimizeEqualGateDelaysCommand(true); }});
+		logEffortSubMenu.addMenuItem("Optimize for Equal Gate Delays (no caching)", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { optimizeEqualGateDelaysCommand(false); }});
+		logEffortSubMenu.addMenuItem("Print Info for Selected Node", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { printLEInfoCommand(); }});
+		logEffortSubMenu.addMenuItem("Clear Sizes on Selected Node(s)", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { clearSizesNodableCommand(); }});
+		logEffortSubMenu.addMenuItem("Clear Sizes in all Libraries", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { clearSizesCommand(); }});
+		toolMenu.add(logEffortSubMenu);
 
-        //------------------- Routing
+		//------------------- Routing
 
-        MenuBar.Menu routingSubMenu = new MenuBar.Menu("Routing", 'R');
-        toolMenu.add(routingSubMenu);
-        routingSubMenu.addCheckBox("Enable Auto-Stitching", Routing.isAutoStitchOn(), null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { Routing.toggleEnableAutoStitching(e); } });
-        routingSubMenu.addMenuItem("Auto-Stitch Now", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { AutoStitch.autoStitch(false, true); }});
-        routingSubMenu.addMenuItem("Auto-Stitch Highlighted Now", KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { AutoStitch.autoStitch(true, true); }});
+		MenuBar.Menu routingSubMenu = new MenuBar.Menu("Routing", 'R');
+		toolMenu.add(routingSubMenu);
+		routingSubMenu.addCheckBox("Enable Auto-Stitching", Routing.isAutoStitchOn(), null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Routing.toggleEnableAutoStitching(e); } });
+		routingSubMenu.addMenuItem("Auto-Stitch Now", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { AutoStitch.autoStitch(false, true); }});
+		routingSubMenu.addMenuItem("Auto-Stitch Highlighted Now", KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { AutoStitch.autoStitch(true, true); }});
 
-        routingSubMenu.addSeparator();
+		routingSubMenu.addSeparator();
 
-        routingSubMenu.addCheckBox("Enable Mimic-Stitching", Routing.isMimicStitchOn(), null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { Routing.toggleEnableMimicStitching(e); }});
-        routingSubMenu.addMenuItem("Mimic-Stitch Now", KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { MimicStitch.mimicStitch(true); }});
-        routingSubMenu.addMenuItem("Mimic Selected", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { Routing.tool.mimicSelected(); }});
+		routingSubMenu.addCheckBox("Enable Mimic-Stitching", Routing.isMimicStitchOn(), null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Routing.toggleEnableMimicStitching(e); }});
+		routingSubMenu.addMenuItem("Mimic-Stitch Now", KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { MimicStitch.mimicStitch(true); }});
+		routingSubMenu.addMenuItem("Mimic Selected", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Routing.tool.mimicSelected(); }});
 
-        routingSubMenu.addSeparator();
-        routingSubMenu.addMenuItem("River-Route", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) { River.riverRoute(); }});
-        routingSubMenu.addSeparator();
+		routingSubMenu.addSeparator();
 
-        routingSubMenu.addMenuItem("Get Unrouted Wire", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { getUnroutedArcCommand(); }});
+		routingSubMenu.addMenuItem("Maze Route", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Maze.mazeRoute(); }});
 
-        //------------------- Generation
+		routingSubMenu.addSeparator();
 
-        MenuBar.Menu generationSubMenu = new MenuBar.Menu("Generation", 'G');
-        toolMenu.add(generationSubMenu);
-        generationSubMenu.addMenuItem("Coverage Implants Generator", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) {layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, false);}});
+		routingSubMenu.addMenuItem("River-Route", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { River.riverRoute(); }});
+
+		routingSubMenu.addSeparator();
+
+		routingSubMenu.addMenuItem("Unroute", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { Routing.unrouteCurrent(); }});
+		routingSubMenu.addMenuItem("Get Unrouted Wire", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { getUnroutedArcCommand(); }});
+
+		//------------------- Generation
+
+		MenuBar.Menu generationSubMenu = new MenuBar.Menu("Generation", 'G');
+		toolMenu.add(generationSubMenu);
+		generationSubMenu.addMenuItem("Coverage Implants Generator", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) {layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, false);}});
 		generationSubMenu.addMenuItem("Pad Frame Generator", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
 		generationSubMenu.addMenuItem("ROM Generator...", null,
@@ -300,165 +310,165 @@ public class ToolMenu {
 //		generationSubMenu.addMenuItem("Generate gate layouts", null,
 //			new ActionListener() { public void actionPerformed(ActionEvent e) { new com.sun.electric.tool.generator.layout.GateLayoutGenerator(); }});
 
-        toolMenu.addSeparator();
+		toolMenu.addSeparator();
 
-        toolMenu.addMenuItem("List Tools",null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { listToolsCommand(); } });
-        MenuBar.Menu languagesSubMenu = new MenuBar.Menu("Languages");
-        languagesSubMenu.addMenuItem("Run Java Bean Shell Script", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { javaBshScriptCommand(); }});
-        toolMenu.add(languagesSubMenu);
+		toolMenu.addMenuItem("List Tools",null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { listToolsCommand(); } });
+		MenuBar.Menu languagesSubMenu = new MenuBar.Menu("Languages");
+		languagesSubMenu.addMenuItem("Run Java Bean Shell Script", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { javaBshScriptCommand(); }});
+		toolMenu.add(languagesSubMenu);
 
-    }
+	}
 
 
-    // ---------------------------- Tool Menu Commands ----------------------------
+	// ---------------------------- Tool Menu Commands ----------------------------
 
-    // Logical Effort Tool
-    public static void optimizeEqualGateDelaysCommand(boolean newAlg)
-    {
-        EditWindow curEdit = EditWindow.needCurrent();
-        if (curEdit == null) return;
-        LETool letool = LETool.getLETool();
-        if (letool == null) {
-            System.out.println("Logical Effort tool not found");
-            return;
-        }
-        // set current cell to use global context
-        curEdit.setCell(curEdit.getCell(), VarContext.globalContext);
+	// Logical Effort Tool
+	public static void optimizeEqualGateDelaysCommand(boolean newAlg)
+	{
+		EditWindow curEdit = EditWindow.needCurrent();
+		if (curEdit == null) return;
+		LETool letool = LETool.getLETool();
+		if (letool == null) {
+			System.out.println("Logical Effort tool not found");
+			return;
+		}
+		// set current cell to use global context
+		curEdit.setCell(curEdit.getCell(), VarContext.globalContext);
 
-        // optimize cell for equal gate delays
-        letool.optimizeEqualGateDelays(curEdit.getCell(), curEdit.getVarContext(), curEdit, newAlg);
-    }
+		// optimize cell for equal gate delays
+		letool.optimizeEqualGateDelays(curEdit.getCell(), curEdit.getVarContext(), curEdit, newAlg);
+	}
 
-    /** Print Logical Effort info for highlighted nodes */
-    public static void printLEInfoCommand() {
-        EditWindow wnd = EditWindow.needCurrent();
-        if (wnd == null) return;
-        Highlighter highlighter = wnd.getHighlighter();
-        VarContext context = wnd.getVarContext();
+	/** Print Logical Effort info for highlighted nodes */
+	public static void printLEInfoCommand() {
+		EditWindow wnd = EditWindow.needCurrent();
+		if (wnd == null) return;
+		Highlighter highlighter = wnd.getHighlighter();
+		VarContext context = wnd.getVarContext();
 
-        if (highlighter.getNumHighlights() == 0) {
-            System.out.println("Nothing highlighted");
-            return;
-        }
-        for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext();) {
-            Highlight h = (Highlight)it.next();
-            if (h.getType() != Highlight.Type.EOBJ) continue;
+		if (highlighter.getNumHighlights() == 0) {
+			System.out.println("Nothing highlighted");
+			return;
+		}
+		for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext();) {
+			Highlight h = (Highlight)it.next();
+			if (h.getType() != Highlight.Type.EOBJ) continue;
 
-            ElectricObject eobj = h.getElectricObject();
-            if (eobj instanceof PortInst) {
-                PortInst pi = (PortInst)eobj;
-                pi.getInfo();
-                eobj = pi.getNodeInst();
-            }
-            if (eobj instanceof NodeInst) {
-                NodeInst ni = (NodeInst)eobj;
-                LETool.printResults(ni, context);
-            }
-        }
+			ElectricObject eobj = h.getElectricObject();
+			if (eobj instanceof PortInst) {
+				PortInst pi = (PortInst)eobj;
+				pi.getInfo();
+				eobj = pi.getNodeInst();
+			}
+			if (eobj instanceof NodeInst) {
+				NodeInst ni = (NodeInst)eobj;
+				LETool.printResults(ni, context);
+			}
+		}
 
-    }
+	}
 
-    public static void clearSizesNodableCommand() {
-        EditWindow wnd = EditWindow.needCurrent();
-        if (wnd == null) return;
-        Highlighter highlighter = wnd.getHighlighter();
+	public static void clearSizesNodableCommand() {
+		EditWindow wnd = EditWindow.needCurrent();
+		if (wnd == null) return;
+		Highlighter highlighter = wnd.getHighlighter();
 
-        if (highlighter.getNumHighlights() == 0) {
-            System.out.println("Nothing highlighted");
-            return;
-        }
-        for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext();) {
-            Highlight h = (Highlight)it.next();
-            if (h.getType() != Highlight.Type.EOBJ) continue;
+		if (highlighter.getNumHighlights() == 0) {
+			System.out.println("Nothing highlighted");
+			return;
+		}
+		for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext();) {
+			Highlight h = (Highlight)it.next();
+			if (h.getType() != Highlight.Type.EOBJ) continue;
 
-            ElectricObject eobj = h.getElectricObject();
-            if (eobj instanceof PortInst) {
-                PortInst pi = (PortInst)eobj;
-                pi.getInfo();
-                eobj = pi.getNodeInst();
-            }
-            if (eobj instanceof NodeInst) {
-                NodeInst ni = (NodeInst)eobj;
-                LETool.clearStoredSizesJob(ni);
-            }
-        }
-        System.out.println("Sizes cleared");
-    }
+			ElectricObject eobj = h.getElectricObject();
+			if (eobj instanceof PortInst) {
+				PortInst pi = (PortInst)eobj;
+				pi.getInfo();
+				eobj = pi.getNodeInst();
+			}
+			if (eobj instanceof NodeInst) {
+				NodeInst ni = (NodeInst)eobj;
+				LETool.clearStoredSizesJob(ni);
+			}
+		}
+		System.out.println("Sizes cleared");
+	}
 
-    public static void clearSizesCommand() {
-        for (Iterator it = Library.getVisibleLibraries(); it.hasNext(); ) {
-            Library lib = (Library)it.next();
-            LETool.clearStoredSizesJob(lib);
-        }
-        System.out.println("Sizes cleared");
-    }
+	public static void clearSizesCommand() {
+		for (Iterator it = Library.getVisibleLibraries(); it.hasNext(); ) {
+			Library lib = (Library)it.next();
+			LETool.clearStoredSizesJob(lib);
+		}
+		System.out.println("Sizes cleared");
+	}
 
-    /**
-     * Method to handle the "Show Network" command.
-     */
-    public static void showNetworkCommand()
-    {
-        EditWindow wnd = EditWindow.needCurrent();
-        Cell cell = wnd.getCell();
-        if (wnd == null) return;
-        Highlighter highlighter = wnd.getHighlighter();
+	/**
+	 * Method to handle the "Show Network" command.
+	 */
+	public static void showNetworkCommand()
+	{
+		EditWindow wnd = EditWindow.needCurrent();
+		Cell cell = wnd.getCell();
+		if (wnd == null) return;
+		Highlighter highlighter = wnd.getHighlighter();
 
-        Set nets = highlighter.getHighlightedNetworks();
-        //highlighter.clear();
-        highlighter.showNetworks(nets, cell.getUserNetlist(), cell);
-        highlighter.finished();
-    }
+		Set nets = highlighter.getHighlightedNetworks();
+		//highlighter.clear();
+		highlighter.showNetworks(nets, cell.getUserNetlist(), cell);
+		highlighter.finished();
+	}
 
-    /**
-     * Method to handle the "List Networks" command.
-     */
-    public static void listNetworksCommand()
-    {
-        Cell cell = WindowFrame.getCurrentCell();
-        if (cell == null) return;
-        Netlist netlist = cell.getUserNetlist();
-        int total = 0;
-        for(Iterator it = netlist.getNetworks(); it.hasNext(); )
-        {
-            Network net = (Network)it.next();
-            String netName = net.describe();
-            if (netName.length() == 0) continue;
-            StringBuffer infstr = new StringBuffer();
-            infstr.append("'" + netName + "'");
+	/**
+	 * Method to handle the "List Networks" command.
+	 */
+	public static void listNetworksCommand()
+	{
+		Cell cell = WindowFrame.getCurrentCell();
+		if (cell == null) return;
+		Netlist netlist = cell.getUserNetlist();
+		int total = 0;
+		for(Iterator it = netlist.getNetworks(); it.hasNext(); )
+		{
+			Network net = (Network)it.next();
+			String netName = net.describe();
+			if (netName.length() == 0) continue;
+			StringBuffer infstr = new StringBuffer();
+			infstr.append("'" + netName + "'");
 //			if (net->buswidth > 1)
 //			{
 //				formatinfstr(infstr, _(" (bus with %d signals)"), net->buswidth);
 //			}
-            boolean connected = false;
-            for(Iterator aIt = net.getArcs(); aIt.hasNext(); )
-            {
-                ArcInst ai = (ArcInst)aIt.next();
-                if (!connected)
-                {
-                    connected = true;
-                    infstr.append(", on arcs:");
-                }
-                infstr.append(" " + ai.describe());
-            }
+			boolean connected = false;
+			for(Iterator aIt = net.getArcs(); aIt.hasNext(); )
+			{
+				ArcInst ai = (ArcInst)aIt.next();
+				if (!connected)
+				{
+					connected = true;
+					infstr.append(", on arcs:");
+				}
+				infstr.append(" " + ai.describe());
+			}
 
-            boolean exported = false;
-            for(Iterator eIt = net.getExports(); eIt.hasNext(); )
-            {
-                Export pp = (Export)eIt.next();
-                if (!exported)
-                {
-                    exported = true;
-                    infstr.append(", with exports:");
-                }
-                infstr.append(" " + pp.getName());
-            }
-            System.out.println(infstr.toString());
-            total++;
-        }
-        if (total == 0) System.out.println("There are no networks in this cell");
-    }
+			boolean exported = false;
+			for(Iterator eIt = net.getExports(); eIt.hasNext(); )
+			{
+				Export pp = (Export)eIt.next();
+				if (!exported)
+				{
+					exported = true;
+					infstr.append(", with exports:");
+				}
+				infstr.append(" " + pp.getName());
+			}
+			System.out.println(infstr.toString());
+			total++;
+		}
+		if (total == 0) System.out.println("There are no networks in this cell");
+	}
 
     /**
      * Method to handle the "List Connections On Network" command.

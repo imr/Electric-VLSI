@@ -123,11 +123,11 @@ public class ELIB extends Output
 
 		// convert cellGroups to "next in cell group" pointers
 		FlagSet cellFlag = Cell.getFlagSet(1);
+		HashMap cellInSameGroup = new HashMap();
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			cell.clearBit(cellFlag);
-			cell.setTempObj(null);
 		}
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
@@ -142,14 +142,14 @@ public class ELIB extends Output
 				Cell cellInGroup = (Cell)git.next();
 				if (lastCellInGroup == null) firstCellInGroup = cellInGroup; else
 				{
-					lastCellInGroup.setTempObj(cellInGroup);
+					cellInSameGroup.put(lastCellInGroup, cellInGroup);
 				}
 				cellInGroup.setBit(cellFlag);
 				lastCellInGroup = cellInGroup;
 			}
 			if (lastCellInGroup == null || firstCellInGroup == null)
 				lastCellInGroup = firstCellInGroup = cell;
-			lastCellInGroup.setTempObj(firstCellInGroup);
+			cellInSameGroup.put(lastCellInGroup, firstCellInGroup);
 		}
 		cellFlag.freeFlagSet();
 
@@ -597,7 +597,7 @@ public class ELIB extends Output
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-			writeNodeProto(cell, true);
+			writeNodeProto(cell, true, cellInSameGroup);
 		}
 
 		// write all of the cells in external libraries
@@ -609,7 +609,7 @@ public class ELIB extends Output
 			{
 				Cell cell = (Cell)cit.next();
 				if (!cell.isBit(externalRefFlag)) continue;
-				writeNodeProto(cell, false);
+				writeNodeProto(cell, false, cellInSameGroup);
 			}
 		}
 
@@ -671,7 +671,7 @@ public class ELIB extends Output
 
 	// --------------------------------- OBJECT CONVERSION ---------------------------------
 
-	private void writeNodeProto(Cell cell, boolean thislib)
+	private void writeNodeProto(Cell cell, boolean thislib, HashMap cellInSameGroup)
 		throws IOException
 	{
 		if (compatibleWith6)
@@ -686,7 +686,7 @@ public class ELIB extends Output
 	
 			// write the "next in cell group" pointer
 			int nextGrp = -1;
-			Object obj = cell.getTempObj();
+			Object obj = cellInSameGroup.get(cell);
 			if (obj != null && obj instanceof Cell)
 			{
 				Cell nextInGroup = (Cell)obj;

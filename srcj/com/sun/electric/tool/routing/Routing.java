@@ -23,22 +23,33 @@
  */
 package com.sun.electric.tool.routing;
 
+import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.event.ActionEvent;
+import java.awt.geom.Point2D;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
+
 import javax.swing.AbstractButton;
 
 /**
@@ -217,201 +228,179 @@ public class Routing extends Listener
 
 	/**
 	 * Method to convert the current network(s) to an unrouted wire.
-	 * The method isn't used yet because there are no routers that use unrouted wires.
 	 */
 	public static void unrouteCurrent()
 	{
-		// see what is highlighted
-        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-        if (wf == null) return;
-        Highlighter highlighter = wf.getContent().getHighlighter();
-        if (highlighter == null) return;
-
-		Set nets = highlighter.getHighlightedNetworks();
-		if (nets.size() == 0)
-		{
-			System.out.println("Must select networks to unroute");
-			return;
-		}
-
-		// convert requested nets
-		highlighter.clear();
-		highlighter.finished();
-		for(Iterator it = nets.iterator(); it.hasNext(); )
-		{
-			Network net = (Network)it.next();
-
-			// now unroute the net
-			if (ro_unroutenet(net)) return;
-		}
+		UnrouteJob job = new UnrouteJob();
 	}
 
-	public static boolean ro_unroutenet(Network net)
+	private static class UnrouteJob extends Job
 	{
-//		// convert this net and mark arcs and nodes on it
-//		count = ro_findnetends(net, &nilist, &pplist, &xlist, &ylist);
-//
-//		// remove marked nodes and arcs
-//		np = net->parent;
-//		for(ai = np->firstarcinst; ai != NOARCINST; ai = nextai)
-//		{
-//			nextai = ai->nextarcinst;
-//			if (ai->temp1 == 0) continue;
-//			startobjectchange((INTBIG)ai, VARCINST);
-//			if (killarcinst(ai))
-//			{
-//				ttyputerr(_("Error deleting arc"));
-//				return(TRUE);
-//			}
-//		}
-//		for(ni = np->firstnodeinst; ni != NONODEINST; ni = nextni)
-//		{
-//			nextni = ni->nextnodeinst;
-//			if (ni->temp1 == 0) continue;
-//			startobjectchange((INTBIG)ni, VNODEINST);
-//			if (killnodeinst(ni))
-//			{
-//				ttyputerr(_("Error deleting intermediate node"));
-//				return(TRUE);
-//			}
-//		}
-//
-//		// now create the new unrouted wires
-//		bits = us_makearcuserbits(gen_unroutedarc);
-//		wid = defaultarcwidth(gen_unroutedarc);
-//		covered = (INTBIG *)emalloc(count * SIZEOFINTBIG, el_tempcluster);
-//		if (covered == 0) return(FALSE);
-//		for(i=0; i<count; i++) covered[i] = 0;
-//		for(first=0; ; first++)
-//		{
-//			found = 1;
-//			bestdist = besti = bestj = 0;
-//			for(i=0; i<count; i++)
-//			{
-//				for(j=i+1; j<count; j++)
-//				{
-//					if (first != 0)
-//					{
-//						if (covered[i] + covered[j] != 1) continue;
-//					}
-//					dist = computedistance(xlist[i], ylist[i], xlist[j], ylist[j]);
-//
-//					// LINTED "bestdist" used in proper order
-//					if (found == 0 && dist >= bestdist) continue;
-//					found = 0;
-//					bestdist = dist;
-//					besti = i;
-//					bestj = j;
-//				}
-//			}
-//			if (found != 0) break;
-//
-//			covered[besti] = covered[bestj] = 1;
-//			ai = newarcinst(gen_unroutedarc, wid, bits,
-//				nilist[besti], pplist[besti], xlist[besti], ylist[besti],
-//				nilist[bestj], pplist[bestj], xlist[bestj], ylist[bestj], np);
-//			if (ai == NOARCINST)
-//			{
-//				ttyputerr(_("Could not create unrouted arc"));
-//				return(TRUE);
-//			}
-//			endobjectchange((INTBIG)ai, VARCINST);
-//			(void)asktool(us_tool, x_("show-object"), (INTBIG)ai->geom);
-//		}
-		return false;
+		protected UnrouteJob()
+		{
+			super("Unroute", Routing.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			// see what is highlighted
+	        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+	        if (wf == null) return false;
+	        Highlighter highlighter = wf.getContent().getHighlighter();
+	        if (highlighter == null) return false;
+			Set nets = highlighter.getHighlightedNetworks();
+			if (nets.size() == 0)
+			{
+				System.out.println("Must select networks to unroute");
+				return false;
+			}
+
+			// convert requested nets
+			Cell cell = wf.getContent().getCell();
+			Netlist netList = cell.getUserNetlist();
+			highlighter.clear();
+
+			// make arrays of what to unroute
+			int total = nets.size();
+			Network [] netsToUnroute = new Network[total];
+			List [] netEnds = new List[total];
+			HashSet [] arcsToDelete = new HashSet[total];
+			HashSet [] nodesToDelete = new HashSet[total];
+			int i = 0;
+			for(Iterator it = nets.iterator(); it.hasNext(); )
+			{
+				Network net = (Network)it.next();
+				netsToUnroute[i] = net;
+				arcsToDelete[i] = new HashSet();
+				nodesToDelete[i] = new HashSet();
+				netEnds[i] = findNetEnds(net, arcsToDelete[i], nodesToDelete[i], netList);
+				i++;
+			}
+
+			// do the unrouting
+			for(int j=0; j<total; j++)
+			{
+				if (unrouteNet(netsToUnroute[j], arcsToDelete[j], nodesToDelete[j], netEnds[j], netList, highlighter)) return false;
+			}
+			highlighter.finished();
+			return true;
+		}
+
+		private static boolean unrouteNet(Network net, HashSet arcsToDelete, HashSet nodesToDelete, List netEnds, Netlist netList, Highlighter highlighter)
+		{
+			// remove marked nodes and arcs
+			for(Iterator it = arcsToDelete.iterator(); it.hasNext(); )
+			{
+				ArcInst ai = (ArcInst)it.next();
+				ai.kill();
+			}
+			for(Iterator it = nodesToDelete.iterator(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				ni.kill();
+			}
+
+			// now create the new unrouted wires
+			double wid = Generic.tech.unrouted_arc.getDefaultWidth();
+			int count = netEnds.size();
+			int [] covered = new int[count];
+			Point2D [] points = new Point2D[count];
+			for(int i=0; i<count; i++)
+			{
+				PortInst pi = (PortInst)netEnds.get(i);
+				Poly poly = pi.getPoly();
+				points[i] = new Point2D.Double(poly.getCenterX(), poly.getCenterY());
+				covered[i] = 0;
+			}
+			for(int first=0; ; first++)
+			{
+				boolean found = true;
+				double bestdist = 0;
+				int besti = 0, bestj = 0;
+				for(int i=0; i<count; i++)
+				{
+					for(int j=i+1; j<count; j++)
+					{
+						if (first != 0)
+						{
+							if (covered[i] + covered[j] != 1) continue;
+						}
+						double dist = points[i].distance(points[j]);
+	
+						if (!found && dist >= bestdist) continue;
+						found = false;
+						bestdist = dist;
+						besti = i;
+						bestj = j;
+					}
+				}
+				if (found) break;
+
+				covered[besti] = covered[bestj] = 1;
+				PortInst head = (PortInst)netEnds.get(besti);
+				PortInst tail = (PortInst)netEnds.get(bestj);
+				ArcInst ai = ArcInst.makeInstance(Generic.tech.unrouted_arc, wid, head, tail);
+				if (ai == null)
+				{
+					System.out.println("Could not create unrouted arc");
+					return true;
+				}
+				highlighter.addElectricObject(ai, ai.getParent());
+			}
+			return false;
+		}
 	}
 
 	/**
-	 * Method to find the endpoints of network "net" and store them in the array
-	 * "ni/pp/xp/yp".  Returns the number of nodes in the array.
-	 * As a side effect, sets "temp1" on nodes and arcs to nonzero if they are part
-	 * of the network.
+	 * Method to find the endpoints of a network.
+	 * @param net the network to "unroute".
+	 * @param arcsToDelete a HashSet of arcs that should be deleted.
+	 * @param nodesToDelete a HashSet of nodes that should be deleted.
+	 * @param netList the netlist for the current cell.
+	 * @return a List of PortInsts that should be wired together.
 	 */
-//	INTBIG ro_findnetends(NETWORK *net, NODEINST ***nilist, PORTPROTO ***pplist,
-//		INTBIG **xplist, INTBIG **yplist)
-//	{
-//		// initialize
-//		np = net->parent;
-//		listcount = 0;
-//		for(ai = np->firstarcinst; ai != NOARCINST; ai = ai->nextarcinst) ai->temp1 = 0;
-//		for(ni = np->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst) ni->temp1 = 0;
-//
-//		// look at every arc and see if it is part of the network
-//		for(ai = np->firstarcinst; ai != NOARCINST; ai = ai->nextarcinst)
-//		{
-//			if (ai->network != net) continue;
-//			ai->temp1 = 1;
-//
-//			// see if an end of the arc is a network "end"
-//			for(i=0; i<2; i++)
-//			{
-//				ni = ai->end[i].nodeinst;
-//				thispi = ai->end[i].portarcinst;
-//				term = FALSE;
-//				for(pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//					if (pi != thispi && pi->conarcinst->network == net) break;
-//				if (pi == NOPORTARCINST) term = TRUE;
-//				if (ni->firstportexpinst != NOPORTEXPINST) term = TRUE;
-//				if (ni->proto->primindex == 0) term = TRUE;
-//				if (term)
-//				{
-//					// valid network end: see if it is in the list
-//					for(j=0; j<listcount; j++)
-//						if (ni == ro_findnetlistni[j] && thispi->proto == ro_findnetlistpp[j])
-//							break;
-//					if (j < listcount) continue;
-//
-//					// add it to the list
-//					if (listcount >= ro_findnetlisttotal)
-//					{
-//						newtotal = listcount * 2;
-//						if (newtotal == 0) newtotal = 10;
-//						newlistni = (NODEINST **)emalloc(newtotal * (sizeof (NODEINST *)),
-//							ro_tool->cluster);
-//						newlistpp = (PORTPROTO **)emalloc(newtotal * (sizeof (PORTPROTO *)),
-//							ro_tool->cluster);
-//						newlistx = (INTBIG *)emalloc(newtotal * SIZEOFINTBIG,
-//							ro_tool->cluster);
-//						newlisty = (INTBIG *)emalloc(newtotal * SIZEOFINTBIG,
-//							ro_tool->cluster);
-//						for(j=0; j<listcount; j++)
-//						{
-//							newlistni[j] = ro_findnetlistni[j];
-//							newlistpp[j] = ro_findnetlistpp[j];
-//							newlistx[j] = ro_findnetlistx[j];
-//							newlisty[j] = ro_findnetlisty[j];
-//						}
-//						if (ro_findnetlisttotal > 0)
-//						{
-//							efree((CHAR *)ro_findnetlistni);
-//							efree((CHAR *)ro_findnetlistpp);
-//							efree((CHAR *)ro_findnetlistx);
-//							efree((CHAR *)ro_findnetlisty);
-//						}
-//						ro_findnetlistni = newlistni;
-//						ro_findnetlistpp = newlistpp;
-//						ro_findnetlistx = newlistx;
-//						ro_findnetlisty = newlisty;
-//						ro_findnetlisttotal = newtotal;
-//					}
-//					ro_findnetlistni[listcount] = ni;
-//					ro_findnetlistpp[listcount] = thispi->proto;
-//					ro_findnetlistx[listcount] = ai->end[i].xpos;
-//					ro_findnetlisty[listcount] = ai->end[i].ypos;
-//					listcount++;
-//				} else
-//				{
-//					// not a network end: mark the node for removal
-//					ni->temp1 = 1;
-//				}
-//			}
-//		}
-//		*nilist = ro_findnetlistni;
-//		*pplist = ro_findnetlistpp;
-//		*xplist = ro_findnetlistx;
-//		*yplist = ro_findnetlisty;
-//		return(listcount);
-//	}
+	public static List findNetEnds(Network net, HashSet arcsToDelete, HashSet nodesToDelete, Netlist netList)
+	{
+		// initialize
+		Cell cell = net.getParent();
+		List endList = new ArrayList();
+
+		// look at every arc and see if it is part of the network
+		for(Iterator it = cell.getArcs(); it.hasNext(); )
+		{
+			ArcInst ai = (ArcInst)it.next();
+			Network aNet = netList.getNetwork(ai, 0);
+			if (aNet != net) continue;
+			arcsToDelete.add(ai);
+
+			// see if an end of the arc is a network "end"
+			for(int i=0; i<2; i++)
+			{
+				Connection thisCon = ai.getConnection(i);
+				NodeInst ni = thisCon.getPortInst().getNodeInst();
+				boolean term = true;
+				for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+				{
+					Connection con = (Connection)cIt.next();
+					if (con != thisCon && netList.getNetwork(con.getArc(), 0) == net) { term = false;   break; }
+				}
+				if (ni.getNumExports() > 0) term = true;
+				if (ni.getProto() instanceof Cell) term = true;
+				if (term)
+				{
+					// valid network end: see if it is in the list
+					if (!endList.contains(thisCon.getPortInst()))
+						endList.add(thisCon.getPortInst());
+				} else
+				{
+					// not a network end: mark the node for removal
+					nodesToDelete.add(ni);
+				}
+			}
+		}
+		return endList;
+	}
 
 	/**
 	 * Method to return the most recent routing activity.

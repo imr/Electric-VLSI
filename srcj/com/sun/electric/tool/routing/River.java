@@ -70,10 +70,11 @@ import java.util.Comparator;
 import java.util.Collections;
 
 /**
- *	River Route - takes two sets of parallel points (connectors, ports, etc) and routes wires
- *        between them.  All wires are routed in a single layer with non intersecting lines.
- *
- *
+ * Class to do river routing.
+ * <P>
+ * River Routing takes two sets of parallel points (connectors, ports, etc) and routes wires
+ * between them.  All wires are routed in a single layer with non intersecting lines.
+ * <PRE>
  *                       p1        p2         p3      p4
  *                        |        |           |       |  /\ cell_off2
  *                       _|        |           |   ____|  \/
@@ -86,15 +87,16 @@ import java.util.Collections;
  *  cell_off1 /\  |     |     |    <>|
  *            \/  |     |     |      |
  *               a1    a2    a3     a4
- *
- * Restrictions
- *   (1)     The distance between the ports (p1..pn) and (a1..an) is >= pitch
- *   (2)     The parameter "width" specifies the width of all wires
- *           The parameter "space" specifies the distance between wires
- *           pitch = 2*(width/2) + space = space + width
- *
- * Extension - allow routing to and from the two sides
- *
+ * </PRE>
+ * Restrictions:
+ * <UL>
+ * <LI>The distance between the ports (p1..pn) and (a1..an) is >= "pitch"</LI>
+ * <LI>The parameter "width" specifies the width of all wires<BR>
+ *     The parameter "space" specifies the distance between wires<BR>
+ *     pitch = 2*(width/2) + space = space + width</LI>
+ * </UL>
+ * The sides:
+ * <PRE>
  *                        SIDE3
  *       ________________________________________
  *       |  route  |                  |  route  |
@@ -106,33 +108,36 @@ import java.util.Collections;
  *       | (first) |                  | (first) |
  *       |_________|__________________|_________|
  *                        SIDE1
+ * </PRE>
  */
 public class River
 {
-	static class ROUTEINFO
-	{
-		private TRANSFORM     origmatrix, invmatrix;
-		private List          rightp, leftp;		/* list of RDESC objects */
-		private double        fromline;				/* the initial coordinate of the route */
-		private double        toline;				/* final coordinate of the route */
-		private double        startright;			/* where to start wires on the right */
-		private double        startleft;			/* where to start wires on the left */
-		private double        height;
-		private double        llx, lly, urx, ury;
-		private int           xx;					/*  ROUTEINX route in X direction,
-												ROUTEINY route in Y direction */
-		private RCOORD       xaxis, yaxis;		/* linked list of possible routing coordinates */
-	};
-	private ROUTEINFO ro_rrinfo = new ROUTEINFO();
-	private double ro_rrbx, ro_rrby, ro_rrex, ro_rrey;
-	private static NodeInst moveCell;
-	private static boolean  moveCellValid;
+	private static final int ROUTEINX     = 1;
+	private static final int ROUTEINY     = 2;
+	private static final int ILLEGALROUTE = -1;
+	/** bottom to top  -- side 1 to side 3 */			private static final int BOTTOP   = 1;
+	/** side   to top  -- side 2 or side 4 to side 3 */	private static final int FROMSIDE = 2;
+	/** bottom to side -- side 1 to side 3 or side 2 */	private static final int TOSIDE   = 3;
 
-	/******** TRANSFORM ********/
+	/** list of RDESC objects */						private List     rightP, leftP;
+	/** the initial coordinate of the route */			private double   fromLine;
+	/** final coordinate of the route */				private double   toLine;
+	/**  ROUTEINX route in X, ROUTEINY route in Y */	private int      routDirection;
+	/** where to start wires on the right */			private double   startRight;
+	/** where to start wires on the left */				private double   startLeft;
+	/** linked list of possible routing coordinates */	private RCOORD   xAxis, yAxis;
+	private double   height;
+	private double   routBoundLX, routBoundLY, routBoundHX, routBoundHY;
+	private double   wireBoundLX, wireBoundLY, wireBoundHX, wireBoundHY;
+	private NodeInst moveCell;
+	private boolean  moveCellValid;
 
+	/**
+	 * Class for transformations.
+	 */
 	static class TRANSFORM
 	{
-		private double t11, t12;					/* graphics transformation */
+		private double t11, t12;
 		private double t21, t22;
 		private double tx, ty;
 
@@ -146,115 +151,119 @@ public class River
 			this.ty = ty;
 		}
 	};
-	private static final TRANSFORM ro_rrnorot     = new TRANSFORM( 1,  0,  0,  1, 0, 0);	/* X increasing, y2>y1 */
-	private static final TRANSFORM ro_rrrot90     = new TRANSFORM( 0,  1, -1,  0, 0, 0);	/* Y decreasing, x2>x1 */
-	private static final TRANSFORM ro_rrrot180    = new TRANSFORM(-1,  0,  0, -1, 0, 0);	/* X decreasing, y2<y1 */
-	private static final TRANSFORM ro_rrrot270    = new TRANSFORM( 0, -1,  1,  0, 0, 0);	/* Y increasing, x2<x1 or rot -90 */
-	private static final TRANSFORM ro_rrmirrorx   = new TRANSFORM(-1,  0,  0,  1, 0, 0);	/* X decreasing, y2>y1 mirror X coordinate, around Y axis */
-	private static final TRANSFORM ro_rrrot90mirx = new TRANSFORM( 0,  1,  1,  0, 0, 0);	/* Y increasing, x2>x1 rot90 and mirror X */
-	private static final TRANSFORM ro_rrmirrory   = new TRANSFORM( 1,  0,  0, -1, 0, 0);	/* X increasing, y2<y1 mirror Y coordinate, around X axis  */
-	private static final TRANSFORM ro_rrmirxr90   = new TRANSFORM( 0, -1, -1,  0, 0, 0);	/* Y decreasing, x2<x1 mirror X, rot90 */
-	private static final TRANSFORM ro_rrinverse   = new TRANSFORM( 1,  0,  0,  1, 0, 0);	/*tx,ty */
+	/** X increasing, y2>y1 */							private static final TRANSFORM xfNoRot        = new TRANSFORM( 1,  0,  0,  1, 0, 0);
+	/** Y decreasing, x2>x1 */							private static final TRANSFORM xfRot90        = new TRANSFORM( 0,  1, -1,  0, 0, 0);
+	/** X decreasing, y2<y1 */							private static final TRANSFORM xfRot180       = new TRANSFORM(-1,  0,  0, -1, 0, 0);
+	/** Y increasing, x2<x1 or rot -90 */				private static final TRANSFORM xfRot270       = new TRANSFORM( 0, -1,  1,  0, 0, 0);
+	/** X decreasing, y2>y1 mirror X, around Y axis */	private static final TRANSFORM xfMirrorX      = new TRANSFORM(-1,  0,  0,  1, 0, 0);
+	/** Y increasing, x2>x1 rot90 and mirror X */		private static final TRANSFORM xfRot90MirrorX = new TRANSFORM( 0,  1,  1,  0, 0, 0);
+	/** X increasing, y2<y1 mirror Y, around X axis */	private static final TRANSFORM xfMirrorY      = new TRANSFORM( 1,  0,  0, -1, 0, 0);
+	/** Y decreasing, x2<x1 mirror X, rot90 */			private static final TRANSFORM xfMirrorXRot90 = new TRANSFORM( 0, -1, -1,  0, 0, 0);
+	/** tx,ty */										private static final TRANSFORM xfInverse      = new TRANSFORM( 1,  0,  0,  1, 0, 0);
 
-	private static final int ROUTEINX      = 1;
-	private static final int ROUTEINY      = 2;
-	private static final int ILLEGALROUTE  = -1;
-
-	private static final int BOTTOP        = 1;					/* bottom to top  -- side 1 to side 3 */
-	private static final int FROMSIDE      = 2;					/* side   to top  -- side 2 or side 4 to side 3 */
-	private static final int TOSIDE        = 3;					/* bottom to side -- side 1 to side 3 or side 2 */
-
-	/******** RPOINT ********/
-
-	private static final int NOSIDE = -1;
-	private static final int SIDE1  = 1;
-	private static final int SIDE2  = 2;
-	private static final int SIDE3  = 3;
-	private static final int SIDE4  = 4;
-
+	/**
+	 * Class for points in the river routing.
+	 */
 	static class RPOINT
 	{
-		private int          	 side;				/* the side this point is on */
-		private double           x, y;				/* points coordinates */
-		private double           first, second;		/* nonrotated coordinates */
-		private RPOINT           next;				/* next one in the list */
+		private static final int NOSIDE = -1;
+		private static final int SIDE1  = 1;
+		private static final int SIDE2  = 2;
+		private static final int SIDE3  = 3;
+		private static final int SIDE4  = 4;
 
-		RPOINT(double x, double y, int side)
+		/** the side this point is on */	private int    side;
+		/** points coordinates */			private double x, y;
+		/** nonrotated coordinates */		private double first, second;
+		/** next one in the list */			private RPOINT next;
+
+		static String sideName(int side)
 		{
-			this.side = side;
-			this.x = x;
-			this.y = y;
-			this.first = 0;
-			this.second = 0;
-			this.next = null;
+			switch (side)
+			{
+				case SIDE1: return "bottom";
+				case SIDE2: return "right";
+				case SIDE3: return "top";
+				case SIDE4: return "left";
+			}
+			return "unknown";
 		}
 
-		RPOINT(RPATH rp, double first, double sec, RPOINT next)
+		RPOINT(double xV, double yV, int s)
 		{
-			this.side = NOSIDE;
-			this.x = 0;
-			this.y = 0;
-			this.first = first;
-			this.second = sec;
+			side = s;
+			x = xV;
+			y = yV;
+			first = 0;
+			second = 0;
+			next = null;
+		}
+
+		RPOINT(RPATH rp, double fir, double sec, RPOINT next)
+		{
+			side = NOSIDE;
+			x = 0;
+			y = 0;
+			first = fir;
+			second = sec;
 			this.next = next;
 			if (next != null) return;
-			rp.lastp = this;
+			rp.lastP = this;
 		}
 	};
 
-	/******** RPATH ********/
-
+	/**
+	 * Class for paths in the river routing.
+	 */
 	static class RPATH
 	{
-		private double          width;				/* the width of this path */
-		private ArcProto        pathtype;			/* the paty type for this wire */
-		private int             routetype;			/* how the wire needs to be routed - as above */
-		private RPOINT          pathdesc;			/* the path */
-		private RPOINT          lastp;				/* the last point on the path */
-		private RPATH           next;
+		/** the width of this path */			private double   width;
+		/** the paty type for this wire */		private ArcProto pathType;
+		/** the path */							private RPOINT   pathDesc;
+		/** the last point on the path */		private RPOINT   lastP;
 
-		RPATH(double width, ArcProto ptype, int routetype)
+		RPATH(double wid, ArcProto ptype)
 		{
-			this.width = width;
-			this.pathtype = ptype;
-			this.routetype = routetype;
-			this.pathdesc = null;
-			this.lastp = null;
-			this.next = null;
+			width = wid;
+			pathType = ptype;
+			pathDesc = null;
+			lastP = null;
 		}
 	};
 
-	/******** RDESC ********/
-
+	/**
+	 * Class for river routing.
+	 */
 	static class RDESC
 	{
-		private RPOINT         from;
-		private RPOINT         to;
-		private double         sortval;
-		private ArcInst        unroutedwire1;
-		private ArcInst        unroutedwire2;
-		private int            unroutedend1;
-		private int            unroutedend2;
-		private RPATH          path;
+		private RPOINT  from;
+		private RPOINT  to;
+		private double  sortVal;
+		private ArcInst unroutedWire1;
+		private ArcInst unroutedWire2;
+		private int     unroutedEnd1;
+		private int     unroutedEnd2;
+		private RPATH   path;
 
-		RDESC(double fx, double fy, int fside, double sx, double sy,
-			int sside, ArcInst ai1, int ae1, ArcInst ai2, int ae2)
+		RDESC(double fx, double fy, int fside, double sx, double sy, int sside,
+			ArcInst ai1, int ae1, ArcInst ai2, int ae2)
 		{
-			this.from = new RPOINT(fx, fy, fside);
-			this.to = new RPOINT(sx, sy, sside);
-			this.unroutedwire1 = ai1;   this.unroutedend1 = ae1;
-			this.unroutedwire2 = ai2;   this.unroutedend2 = ae2;
-			this.path = null;
+			from = new RPOINT(fx, fy, fside);
+			to = new RPOINT(sx, sy, sside);
+			unroutedWire1 = ai1;   unroutedEnd1 = ae1;
+			unroutedWire2 = ai2;   unroutedEnd2 = ae2;
+			path = null;
 		}
 	};
 
-	/******** RCOORD ********/
-
+	/**
+	 * Class for coordinate values in the river routing.
+	 */
 	static class RCOORD
 	{
-		private double       val;					/* the coordinate */
-		private int          total;				/* number of wires voting for this coordinate */
-		private RCOORD       next;
+		/** the coordinate */								private double val;
+		/** number of wires voting for this coordinate */	private int    total;
+															private RCOORD next;
 
 		RCOORD(double c)
 		{
@@ -263,6 +272,8 @@ public class River
 			this.next = null;
 		}
 	};
+
+	/*************************************** MAIN CONTROL CODE ***************************************/
 
 	public static void riverRoute()
 	{
@@ -277,7 +288,7 @@ public class River
 
 		protected RiverRouteJob(Cell cell)
 		{
-			super("River Route", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("River Route", Routing.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			startJob();
 		}
@@ -285,228 +296,42 @@ public class River
 		public boolean doIt()
 		{
 			River router = new River();
-			router.ro_river(cell);
+			router.river(cell);
 			return true;
 		}
 	}
 
-	private void ro_river(Cell cell)
+	private void river(Cell cell)
 	{
 		// locate wires
-		if (ro_findwires(cell))
+		if (findWires(cell))
 		{
-			// see if user selection is requested
-//			if ((ro_state&SELECT) == 0)
-//			{
-				// make wires
-				for(Iterator it = ro_rrinfo.rightp.iterator(); it.hasNext(); )
-				{
-					RDESC q = (RDESC)it.next();
-					ro_checkthecell(q.unroutedwire2.getConnection(q.unroutedend2).getPortInst().getNodeInst());
-				}
-				for(Iterator it = ro_rrinfo.leftp.iterator(); it.hasNext(); )
-				{
-					RDESC q = (RDESC)it.next();
-					ro_checkthecell(q.unroutedwire2.getConnection(q.unroutedend2).getPortInst().getNodeInst());
-				}
-
-				// if there is motion to be done, do it
-				if (moveCellValid && moveCell != null)
-				{
-					if (ro_move_instance()) ro_makethegeometry(cell);
-				} else ro_makethegeometry(cell);
-//			} else
-//			{
-				// show where wires will go and allow user confirmation
-//				ro_makepseudogeometry(cell);
-//				if (ro_query_user()) ro_makethegeometry(cell);
-//			}
-		}
-	}
-
-	private void ro_makethegeometry(Cell cell)
-	{
-//		(void)asktool(us_tool, x_("clear"));
-		HashSet arcsToDelete = new HashSet();
-		HashSet nodesToDelete = new HashSet();
-		for(Iterator it = ro_rrinfo.rightp.iterator(); it.hasNext(); )
-		{
-			RDESC q = (RDESC)it.next();
-			ro_makegeometry(q, cell);
-			ro_mark_tobedeleted(q.unroutedwire1, arcsToDelete, nodesToDelete);
-			if (q.unroutedwire1 != q.unroutedwire2) ro_mark_tobedeleted(q.unroutedwire2, arcsToDelete, nodesToDelete);
-		}
-		for(Iterator it = ro_rrinfo.leftp.iterator(); it.hasNext(); )
-		{
-			RDESC q = (RDESC)it.next();
-			ro_makegeometry(q, cell);
-			ro_mark_tobedeleted(q.unroutedwire2, arcsToDelete, nodesToDelete);
-			if (q.unroutedwire1 != q.unroutedwire2) ro_mark_tobedeleted(q.unroutedwire2, arcsToDelete, nodesToDelete);
-		}
-		ro_kill_wires(cell, arcsToDelete, nodesToDelete);
-	}
-
-	private void ro_mark_tobedeleted(ArcInst ai, HashSet arcsToDelete, HashSet nodesToDelete)
-	{
-		if (!ro_is_interesting_arc(ai, arcsToDelete)) return;
-
-		ro_set_flags(ai, arcsToDelete, nodesToDelete);
-		ArcInst ae = ai;  int e = 0;
-		for(;;)
-		{
-			NodeInst ni = ae.getConnection(e).getPortInst().getNodeInst();
-			if (!ro_isunroutedpin(ni)) break;
-			ArcInst oAi = null;
-			for(Iterator it = ni.getConnections(); it.hasNext(); )
+			// make wires
+			for(Iterator it = rightP.iterator(); it.hasNext(); )
 			{
-				Connection con = (Connection)it.next();
-				oAi = con.getArc();
-				if (!arcsToDelete.contains(oAi)) break;
-				oAi = null;
+				RDESC q = (RDESC)it.next();
+				checkTheCell(q.unroutedWire2.getConnection(q.unroutedEnd2).getPortInst().getNodeInst());
 			}
-			if (oAi == null) break;
-			ro_set_flags(oAi, arcsToDelete, nodesToDelete);
-			if (oAi.getConnection(0).getPortInst().getNodeInst() == ae.getConnection(e).getPortInst().getNodeInst()) e = 1; else e = 0;
-			ae = oAi;
-		}
-		ae = ai;  e = 1;
-		for(;;)
-		{
-			NodeInst ni = ae.getConnection(e).getPortInst().getNodeInst();
-			if (!ro_isunroutedpin(ni)) break;
-			ArcInst oAi = null;
-			for(Iterator it = ni.getConnections(); it.hasNext(); )
+			for(Iterator it = leftP.iterator(); it.hasNext(); )
 			{
-				Connection con = (Connection)it.next();
-				oAi = con.getArc();
-				if (!arcsToDelete.contains(oAi)) break;
-				oAi = null;
+				RDESC q = (RDESC)it.next();
+				checkTheCell(q.unroutedWire2.getConnection(q.unroutedEnd2).getPortInst().getNodeInst());
 			}
-			if (oAi == null) break;
-			ro_set_flags(oAi, arcsToDelete, nodesToDelete);
-			if (oAi.getConnection(0).getPortInst().getNodeInst() == ae.getConnection(e).getPortInst().getNodeInst()) e = 1; else e = 0;
-			ae = oAi;
-		}
-	}
 
-	private void ro_set_flags(ArcInst ai, HashSet arcsToDelete, HashSet nodesToDelete)
-	{
-		arcsToDelete.add(ai);
-		NodeInst niH = ai.getHead().getPortInst().getNodeInst();
-		if (ro_isunroutedpin(niH)) nodesToDelete.add(niH);
-		NodeInst niT = ai.getTail().getPortInst().getNodeInst();
-		if (ro_isunroutedpin(niT)) nodesToDelete.add(niT);
-	}
-
-	private void ro_kill_wires(Cell cell, HashSet arcsToDelete, HashSet nodesToDelete)
-	{
-		for(Iterator it = arcsToDelete.iterator(); it.hasNext(); )
-		{
-			ArcInst ai = (ArcInst)it.next();
-			ai.kill();
-		}
-		for(Iterator it = nodesToDelete.iterator(); it.hasNext(); )
-		{
-			NodeInst ni = (NodeInst)it.next();
-			if (ro_isunroutedpin(ni))
-				ro_delnodeinst(ni);
-		}
-	}
-
-	private void ro_delnodeinst(NodeInst ni)
-	{
-		// see if any arcs connect to this node
-		if (ni.getNumConnections() > 0) return;
-
-		// see if this nodeinst is a portinst of the cell
-		if (ni.getNumExports() > 0) return;
-
-		// now erase the nodeinst
-		ni.kill();
-	}
-
-	/**
-	 * make electric geometry
-	 */
-	private void ro_makegeometry(RDESC rd, Cell cell)
-	{
-		RPATH path = rd.path;
-
-		Poly poly1 = rd.unroutedwire1.getConnection(rd.unroutedend1).getPortInst().getPoly();
-		ro_rrbx = poly1.getCenterX();
-		ro_rrby = poly1.getCenterY();
-		Poly poly2 = rd.unroutedwire2.getConnection(rd.unroutedend2).getPortInst().getPoly();
-		ro_rrex = poly2.getCenterX();
-		ro_rrey = poly2.getCenterY();
-
-		NodeProto defnode = ((PrimitiveArc)path.pathtype).findPinProto();
-		PortProto defport = defnode.getPort(0); // there is always only one
-
-		RPOINT prev = path.pathdesc;
-		NodeInst prevnodeinst = ro_thenode(rd, defnode, prev, cell);
-		PortProto prevport = ro_theport(defport, rd, prev);
-
-		for(RPOINT rp = prev.next; rp != null; rp = rp.next)
-		{
-			if (rp.next != null)
+			// if there is motion to be done, do it
+			if (moveCellValid && moveCell != null)
 			{
-				if (prev.x == rp.x && rp.x == rp.next.x) continue;
-				if (prev.y == rp.y && rp.y == rp.next.y) continue;
-			}
-			NodeInst rpnodeinst = ro_thenode(rd, defnode, rp, cell);
-			PortProto rpport = ro_theport(defport, rd, rp);
-
-//			ArcInst ai = newarcinst(path.pathtype, path.width, FIXANG,
-//				prevnodeinst, prevport, prev.x, prev.y, rpnodeinst, rpport, rp.x, rp.y, cell);
-			prev = rp;   prevnodeinst = rpnodeinst;   prevport = rpport;
+				if (moveInstance()) makeTheGeometry(cell);
+			} else makeTheGeometry(cell);
 		}
 	}
 
-	private NodeInst ro_thenode(RDESC rd, NodeProto dn, RPOINT p, Cell cell)
-	{
-		if (p.x == ro_rrbx && p.y == ro_rrby)
-			return rd.unroutedwire1.getConnection(rd.unroutedend1).getPortInst().getNodeInst();
-
-		if (p.x == ro_rrex && p.y == ro_rrey)
-			return rd.unroutedwire2.getConnection(rd.unroutedend2).getPortInst().getNodeInst();
-
-		double wid = dn.getDefWidth();
-		double hei = dn.getDefHeight();
-		NodeInst ni = NodeInst.makeInstance(dn, new Point2D.Double(p.x, p.y), wid, hei, cell);
-		return ni;
-	}
-
-	private PortProto ro_theport(PortProto dp, RDESC rd, RPOINT p)
-	{
-		if (p.x == ro_rrbx && p.y == ro_rrby)
-			return rd.unroutedwire1.getConnection(rd.unroutedend1).getPortInst().getPortProto();
-
-		if (p.x == ro_rrex && p.y == ro_rrey)
-			return rd.unroutedwire2.getConnection(rd.unroutedend2).getPortInst().getPortProto();
-
-		return dp;
-	}
-
-	private boolean ro_move_instance()
-	{
-		NodeInst ni = moveCell;
-		if (!moveCellValid || ni == null)
-		{
-			System.out.println("River router: Cannot determine cell to move");
-			return false;
-		}
-
-		double lx = (ro_rrinfo.xx == ROUTEINX ? ro_rrinfo.height + ni.getAnchorCenterX() - ro_rrinfo.toline : ni.getAnchorCenterX());
-		double ly = (ro_rrinfo.xx == ROUTEINY ? ro_rrinfo.height + ni.getAnchorCenterY() - ro_rrinfo.toline : ni.getAnchorCenterY());
-		if (lx == ni.getAnchorCenterX() && ly == ni.getAnchorCenterY()) return true;
-		ni.modifyInstance(lx - ni.getAnchorCenterX(), ly - ni.getAnchorCenterY(), 0, 0, 0);
-		return true;
-	}
+	/*************************************** CODE TO DO RIVER ROUTING ***************************************/
 
 	/**
 	 * once the route occurs, make some geometry and move some cells around
 	 */
-	private void ro_checkthecell(NodeInst ni)
+	private void checkTheCell(NodeInst ni)
 	{
 		if (ni.getProto() instanceof Cell)
 		{
@@ -518,9 +343,9 @@ public class River
 		}
 	}
 
-	private boolean ro_findwires(Cell cell)
+	private boolean findWires(Cell cell)
 	{
-		ro_initialize();
+		initialize();
 
 		// reset flags on all arcs in this cell
 		HashSet arcsSeen = new HashSet();
@@ -536,7 +361,7 @@ public class River
 			for(Iterator it = allArcs.iterator(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
-				ro_addwire(theList, ai, arcsSeen);
+				addWire(theList, ai, arcsSeen);
 			}
 		} else
 		{
@@ -544,7 +369,7 @@ public class River
 			for(Iterator it = cell.getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
-				ro_addwire(theList, ai, arcsSeen);
+				addWire(theList, ai, arcsSeen);
 			}
 		}
 
@@ -555,16 +380,16 @@ public class River
 			RDESC rdesc = (RDESC)it.next();
 			if (first)
 			{
-				ro_rrinfo.llx = Math.min(rdesc.from.x, rdesc.to.x);
-				ro_rrinfo.lly = Math.min(rdesc.from.y, rdesc.to.y);
-				ro_rrinfo.urx = Math.max(rdesc.from.x, rdesc.to.x);
-				ro_rrinfo.ury = Math.max(rdesc.from.y, rdesc.to.y);
+				routBoundLX = Math.min(rdesc.from.x, rdesc.to.x);
+				routBoundLY = Math.min(rdesc.from.y, rdesc.to.y);
+				routBoundHX = Math.max(rdesc.from.x, rdesc.to.x);
+				routBoundHY = Math.max(rdesc.from.y, rdesc.to.y);
 			} else
 			{
-				ro_rrinfo.llx = Math.min(Math.min(ro_rrinfo.llx, rdesc.from.x), rdesc.to.x);
-				ro_rrinfo.lly = Math.min(Math.min(ro_rrinfo.lly, rdesc.from.y), rdesc.to.y);
-				ro_rrinfo.urx = Math.max(Math.max(ro_rrinfo.urx, rdesc.from.x), rdesc.to.x);
-				ro_rrinfo.ury = Math.max(Math.max(ro_rrinfo.ury, rdesc.from.y), rdesc.to.y);
+				routBoundLX = Math.min(Math.min(routBoundLX, rdesc.from.x), rdesc.to.x);
+				routBoundLY = Math.min(Math.min(routBoundLY, rdesc.from.y), rdesc.to.y);
+				routBoundHX = Math.max(Math.max(routBoundHX, rdesc.from.x), rdesc.to.x);
+				routBoundHY = Math.max(Math.max(routBoundHY, rdesc.from.y), rdesc.to.y);
 			}
 		}
 
@@ -573,8 +398,8 @@ public class River
 		for(Iterator it = theList.iterator(); it.hasNext(); )
 		{
 			RDESC rd = (RDESC)it.next();
-			ro_sumup(rd.unroutedwire1.getConnection(rd.unroutedend1), arcProtoUsage);
-			ro_sumup(rd.unroutedwire2.getConnection(rd.unroutedend2), arcProtoUsage);
+			sumUp(rd.unroutedWire1.getConnection(rd.unroutedEnd1), arcProtoUsage);
+			sumUp(rd.unroutedWire2.getConnection(rd.unroutedEnd2), arcProtoUsage);
 		}
 
 		// find the most popular ArcProto
@@ -600,43 +425,42 @@ public class River
 		}
 		System.out.println("River routing with " + wantAp.describe() + " arcs");
 
-		ro_figureoutrails(total);
-		ro_set_wires_to_rails(theList);
+		figureOutRails(total);
+		setWiresToRails(theList);
 
 		// figure out the worst design rule spacing for this type of arc
 		Technology.ArcLayer [] arcLayers = ((PrimitiveArc)wantAp).getLayers();
 		Layer layer = arcLayers[0].getLayer();
 		double amt = DRC.getMaxSurround(layer, Double.MAX_VALUE);
 		if (amt < 0) amt = 1;
-		return ro_unsorted_rivrot(wantAp, theList, wantAp.getDefaultWidth() - wantAp.getWidthOffset(), amt, amt, amt);
+		return unsortedRivRot(wantAp, theList, wantAp.getDefaultWidth() - wantAp.getWidthOffset(), amt, amt, amt);
 	}
 
 	/**
 	 * takes two unsorted list of ports and routes between them
 	 * warning - if the width is not even, there will be round off problems
 	 */
-	private boolean ro_unsorted_rivrot(ArcProto layerdesc, List lists, double width,
-		double space, double celloff1, double celloff2)
+	private boolean unsortedRivRot(ArcProto layerDesc, List lists, double width,
+		double space, double cellOff1, double cellOff2)
 	{
 		for(Iterator it = lists.iterator(); it.hasNext(); )
 		{
 			RDESC rd = (RDESC)it.next();
-			rd.sortval = (ro_rrinfo.xx != ROUTEINX ? rd.from.x : rd.from.y);
+			rd.sortVal = (routDirection != ROUTEINX ? rd.from.x : rd.from.y);
 		}
 		Collections.sort(lists, new SortRDESC());
 
-		return ro_sorted_rivrot(layerdesc, lists, width, space,
-			celloff1, celloff2);
+		return sortedRivRot(layerDesc, lists, width, space, cellOff1, cellOff2);
 	}
 
 	public static class SortRDESC implements Comparator
 	{
 		public int compare(Object o1, Object o2)
 		{
-			RDESC s1 = (RDESC)o1;
-			RDESC s2 = (RDESC)o2;
-			if (s1.sortval == s2.sortval) return 0;
-			if (s1.sortval > s2.sortval) return 1;
+			RDESC r1 = (RDESC)o1;
+			RDESC r2 = (RDESC)o2;
+			if (r1.sortVal == r2.sortVal) return 0;
+			if (r1.sortVal > r2.sortVal) return 1;
 			return -1;
 		}
 	}
@@ -645,101 +469,100 @@ public class River
 	 * takes two sorted list of ports and routes between them
 	 * warning - if the width is not even, there will be round off problems
 	 */
-	private boolean ro_sorted_rivrot(ArcProto layerdesc, List listr, double width,
-		double space, double celloff1, double celloff2)
+	private boolean sortedRivRot(ArcProto layerDesc, List listR, double width,
+		double space, double cellOff1, double cellOff2)
 	{
 		// ports invalid
-		if (!ro_check_points(listr, width, space)) return false;
-		ro_structure_points(listr);				// put in left/right
-		if (!ro_check_structured_points(ro_rrinfo.rightp, ro_rrinfo.leftp, celloff1, width, space))
-			return false;
-		if (ro_process_right(width, layerdesc, ro_rrinfo.rightp, celloff1, space, -1)) return false;
-		if (ro_process_left(width, layerdesc, ro_rrinfo.leftp, celloff1, space, 1)) return false;
-		double fixedheight = 0;
-		Double height = ro_calculate_height_and_process(ro_rrinfo.rightp, ro_rrinfo.leftp, width, celloff2, fixedheight);
-		if (height == null) return false;
-		ro_calculate_bb(ro_rrinfo.rightp, ro_rrinfo.leftp);
-		ro_rrinfo.height = height.doubleValue();
+		if (!checkPoints(listR, width, space)) return false;
+		structurePoints(listR);				// put in left/right
+		if (!checkStructuredPoints(rightP, leftP, cellOff1, width, space)) return false;
+		if (processRight(width, layerDesc, rightP, cellOff1, space, -1)) return false;
+		if (processLeft(width, layerDesc, leftP, cellOff1, space, 1)) return false;
+		Double dHeight = calculateHeightAndProcess(rightP, leftP, width, cellOff2);
+		if (dHeight == null) return false;
+		calculateBB(rightP, leftP);
+		height = dHeight.doubleValue();
 		return true;
 	}
 
-	private void ro_calculate_bb(List right, List left)
+	private void calculateBB(List right, List left)
 	{
-		ro_rrinfo.llx = ro_rrinfo.lly = Double.MAX_VALUE;
-		ro_rrinfo.urx = ro_rrinfo.ury = Double.MIN_VALUE;
+		routBoundLX = routBoundLY = Double.MAX_VALUE;
+		routBoundHX = routBoundHY = Double.MIN_VALUE;
 		for(Iterator it = right.iterator(); it.hasNext(); )
 		{
-			RDESC rright = (RDESC)it.next();
-			for(RPOINT rvp = rright.path.pathdesc; rvp != null; rvp = rvp.next)
+			RDESC rRight = (RDESC)it.next();
+			for(RPOINT rvp = rRight.path.pathDesc; rvp != null; rvp = rvp.next)
 			{
-				ro_rrinfo.llx = Math.min(ro_rrinfo.llx, rvp.x);
-				ro_rrinfo.lly = Math.min(ro_rrinfo.lly, rvp.y);
-				ro_rrinfo.urx = Math.max(ro_rrinfo.urx, rvp.x);
-				ro_rrinfo.ury = Math.max(ro_rrinfo.ury, rvp.y);
+				routBoundLX = Math.min(routBoundLX, rvp.x);
+				routBoundLY = Math.min(routBoundLY, rvp.y);
+				routBoundHX = Math.max(routBoundHX, rvp.x);
+				routBoundHY = Math.max(routBoundHY, rvp.y);
 			}
 		}
 		for(Iterator it = left.iterator(); it.hasNext(); )
 		{
-			RDESC lleft = (RDESC)it.next();
-			for(RPOINT rvp = lleft.path.pathdesc; rvp != null; rvp = rvp.next)
+			RDESC lLeft = (RDESC)it.next();
+			for(RPOINT rvp = lLeft.path.pathDesc; rvp != null; rvp = rvp.next)
 			{
-				ro_rrinfo.llx = Math.min(ro_rrinfo.llx, rvp.x);
-				ro_rrinfo.lly = Math.min(ro_rrinfo.lly, rvp.y);
-				ro_rrinfo.urx = Math.max(ro_rrinfo.urx, rvp.x);
-				ro_rrinfo.ury = Math.max(ro_rrinfo.ury, rvp.y);
+				routBoundLX = Math.min(routBoundLX, rvp.x);
+				routBoundLY = Math.min(routBoundLY, rvp.y);
+				routBoundHX = Math.max(routBoundHX, rvp.x);
+				routBoundHY = Math.max(routBoundHY, rvp.y);
 			}
 		}
 	}
 
-	private Double ro_calculate_height_and_process(List right, List left, double width, double co2, double minheight)
+	private Double calculateHeightAndProcess(List right, List left, double width, double co2)
 	{
-		double maxheight = Double.MIN_VALUE;
+		double minHeight = 0;
+		double maxHeight = Double.MIN_VALUE;
 		for(Iterator it = right.iterator(); it.hasNext(); )
 		{
 			RDESC rd = (RDESC)it.next();
-			maxheight = Math.max(maxheight, rd.path.lastp.second);
+			maxHeight = Math.max(maxHeight, rd.path.lastP.second);
 		}
 		for(Iterator it = left.iterator(); it.hasNext(); )
 		{
 			RDESC rd = (RDESC)it.next();
-			maxheight = Math.max(maxheight, rd.path.lastp.second);
+			maxHeight = Math.max(maxHeight, rd.path.lastP.second);
 		}
 
-		if (minheight != 0) maxheight = Math.max(minheight, maxheight+(width/2)+co2);
-			else maxheight = maxheight+(width/2)+co2;
-		maxheight = Math.max(maxheight, ro_rrinfo.toline);
+		if (minHeight != 0) maxHeight = Math.max(minHeight, maxHeight+(width/2)+co2);
+			else maxHeight = maxHeight+(width/2)+co2;
+		maxHeight = Math.max(maxHeight, toLine);
 
 		// make sure its at least where the coordinates are
 		for(Iterator it = right.iterator(); it.hasNext(); )
 		{
 			RDESC rd = (RDESC)it.next();
-			RPOINT lastp = rd.path.lastp;
-			if (lastp.side != SIDE2)
+			RPOINT lastP = rd.path.lastP;
+			if (lastP.side != RPOINT.SIDE2)
 			{
-				lastp.next = new RPOINT(rd.path, lastp.first, maxheight, null);
+				lastP.next = new RPOINT(rd.path, lastP.first, maxHeight, null);
 			}
-			ro_remap_points(rd.path.pathdesc, ro_rrinfo.invmatrix);
+			remapPoints(rd.path.pathDesc, xfInverse);
 		}
 		for(Iterator it = left.iterator(); it.hasNext(); )
 		{
 			RDESC rd = (RDESC)it.next();
-			RPOINT lastp = rd.path.lastp;
-			if (lastp.side != SIDE4)
+			RPOINT lastP = rd.path.lastP;
+			if (lastP.side != RPOINT.SIDE4)
 			{
-				lastp.next = new RPOINT(rd.path, lastp.first, maxheight, null);
+				lastP.next = new RPOINT(rd.path, lastP.first, maxHeight, null);
 			}
-			ro_remap_points(rd.path.pathdesc, ro_rrinfo.invmatrix);
+			remapPoints(rd.path.pathDesc, xfInverse);
 		}
-		ro_rrinfo.toline = ro_remap_second(ro_rrinfo.toline, ro_rrinfo.invmatrix);
-		ro_rrinfo.fromline = ro_remap_second(ro_rrinfo.fromline, ro_rrinfo.invmatrix);
-		return new Double(ro_remap_second(maxheight, ro_rrinfo.invmatrix));
+		toLine = remapSecond(toLine, xfInverse);
+		fromLine = remapSecond(fromLine, xfInverse);
+		return new Double(remapSecond(maxHeight, xfInverse));
 	}
 
 	/**
 	 * calculate the height of the channel, and remap the points back into the
 	 * original coordinate system
 	 */
-	private void ro_remap_points(RPOINT rp, TRANSFORM matrix)
+	private void remapPoints(RPOINT rp, TRANSFORM matrix)
 	{
 		for(; rp != null; rp = rp.next)
 		{
@@ -748,177 +571,164 @@ public class River
 		}
 	}
 
-	private double ro_remap_second(double sec, TRANSFORM matrix)
+	private double remapSecond(double sec, TRANSFORM matrix)
 	{
-		if (ro_rrinfo.xx == ROUTEINY) return sec * matrix.t22;
+		if (routDirection == ROUTEINY) return sec * matrix.t22;
 		return sec * matrix.t12;
 	}
 
-	private boolean ro_process_left(double width, ArcProto ptype, List rout, double co1, double space, double dir)
+	private boolean processLeft(double width, ArcProto ptype, List rout, double co1, double space, double dir)
 	{
-		boolean firsttime = true;
-		RPATH lastp = null;
-		double offset = ro_rrinfo.startright;
+		boolean firstTime = true;
+		RPATH lastP = null;
+		double offset = startRight;
 		for(Iterator it = rout.iterator(); it.hasNext(); )
 		{
 			RDESC rd = (RDESC)it.next();
-			if (rd.from.side != SIDE2)
+			if (rd.from.side != RPOINT.SIDE2)
 			{
-				if (firsttime)
+				if (firstTime)
 				{
-					rd.path = ro_makeorigpath(width, ptype, co1, rd.from, rd.to);
+					rd.path = makeOrigPath(width, ptype, co1, rd.from, rd.to);
 					if (rd.path == null) return true;
-					firsttime = false;
+					firstTime = false;
 				} else
-					rd.path = ro_addpath(lastp, width, ptype, rd.from, rd.to, space, co1, dir);
+					rd.path = addPath(lastP, width, ptype, rd.from, rd.to, space, co1, dir);
 				if (rd.path == null) return true;
 			} else
 			{
-				if (firsttime)
+				if (firstTime)
 				{
-					rd.path = ro_makesideorigpath(width, ptype, offset, rd.from, rd.to);
+					rd.path = makeSideOrigPath(width, ptype, offset, rd.from, rd.to);
 					if (rd.path == null) return true;
-					firsttime = false;
+					firstTime = false;
 				} else
 				{
-					rd.path = ro_sideaddpath(lastp, width, ptype, rd.from, rd.to, space, offset, dir);
+					rd.path = sideAddPath(lastP, width, ptype, rd.from, rd.to, space, offset, dir);
 					if (rd.path == null) return true;
 				}
 				offset += space+width;
 			}
-			lastp = rd.path;
+			lastP = rd.path;
 		}
 		return false;
 	}
 
-	private boolean ro_process_right(double width, ArcProto ptype, List rout, double co1, double space, int dir)
+	private boolean processRight(double width, ArcProto ptype, List rout, double co1, double space, int dir)
 	{
-		boolean firsttime = true;
-		RPATH lastp = null;
-		double offset = ro_rrinfo.startleft;
+		boolean firstTime = true;
+		RPATH lastP = null;
+		double offset = startLeft;
 
-		ro_reverse(rout);
+		reverse(rout);
 		for(Iterator it = rout.iterator(); it.hasNext(); )
 		{
 			RDESC rd = (RDESC)it.next();
-			if (rd.from.side != SIDE4)
+			if (rd.from.side != RPOINT.SIDE4)
 			{
 				// starting from bottom (side1)
-				if (firsttime)
+				if (firstTime)
 				{
-					rd.path = ro_makeorigpath(width, ptype, co1, rd.from, rd.to);
+					rd.path = makeOrigPath(width, ptype, co1, rd.from, rd.to);
 					if (rd.path == null) return true;
-					firsttime = false;
+					firstTime = false;
 				} else
-					rd.path = ro_addpath(lastp, width, ptype, rd.from, rd.to, space, co1, dir);
+					rd.path = addPath(lastP, width, ptype, rd.from, rd.to, space, co1, dir);
 				if (rd.path == null) return true;
 			} else
 			{
-				if (firsttime)
+				if (firstTime)
 				{
-					rd.path = ro_makesideorigpath(width, ptype, offset, rd.from, rd.to);
+					rd.path = makeSideOrigPath(width, ptype, offset, rd.from, rd.to);
 					if (rd.path == null) return true;
-					firsttime = false;
+					firstTime = false;
 				} else
 				{
-					rd.path = ro_sideaddpath(lastp, width, ptype, rd.from, rd.to, space, offset, dir);
+					rd.path = sideAddPath(lastP, width, ptype, rd.from, rd.to, space, offset, dir);
 					if (rd.path == null) return true;
 				}
 				offset += space+width;
 			}
-			lastp = rd.path;
+			lastP = rd.path;
 		}
-		ro_reverse(rout);  // return to normal
+		reverse(rout);  // return to normal
 		return false;
 	}
 
-	private RPATH ro_sideaddpath(RPATH path, double width, ArcProto ptype, RPOINT b, RPOINT t,
+	private RPATH sideAddPath(RPATH path, double width, ArcProto ptype, RPOINT b, RPOINT t,
 		double space, double offset, double dir)
 	{
-		RPATH rp = new RPATH(width, ptype, ro_routepathtype(b, t));
-		rp.pathdesc = new RPOINT(rp, b.first, offset, null);
+		RPATH rp = new RPATH(width, ptype);
+		rp.pathDesc = new RPOINT(rp, b.first, offset, null);
 
-		double minfirst = Math.min(b.first, t.first);
-		double maxfirst = Math.max(b.first, t.first);
-		RPOINT lp = path.pathdesc;
-		RPOINT lastp = rp.lastp;
+		double minFirst = Math.min(b.first, t.first);
+		double maxFirst = Math.max(b.first, t.first);
+		RPOINT lp = path.pathDesc;
+		RPOINT lastP = rp.lastP;
 
 		double newfirst = lp.first+dir*(space+rp.width);
-		while (lp != null && minfirst <= newfirst && newfirst <= maxfirst)
+		while (lp != null && minFirst <= newfirst && newfirst <= maxFirst)
 		{
 			// if first point then inconsistent second(y) offset 
-			if (lp == path.pathdesc)
-				lastp.next = new RPOINT(rp, newfirst, Math.min(lastp.second, offset), null);
+			if (lp == path.pathDesc)
+				lastP.next = new RPOINT(rp, newfirst, Math.min(lastP.second, offset), null);
 			else
-				lastp.next = new RPOINT(rp, newfirst, Math.max(lp.second+space+rp.width, offset), null);
-			lastp = lastp.next;   lp = lp.next;
+				lastP.next = new RPOINT(rp, newfirst, Math.max(lp.second+space+rp.width, offset), null);
+			lastP = lastP.next;   lp = lp.next;
 			if (lp != null) newfirst = lp.first+dir*(space+rp.width);
 		}
-		lastp.next = new RPOINT(rp, t.first, lastp.second, null);
-		rp.lastp.side = t.side;
+		lastP.next = new RPOINT(rp, t.first, lastP.second, null);
+		rp.lastP.side = t.side;
 		return(rp);
 	}
 
-	private RPATH ro_addpath(RPATH path, double width, ArcProto ptype, RPOINT b, RPOINT t,
+	private RPATH addPath(RPATH path, double width, ArcProto ptype, RPOINT b, RPOINT t,
 		double space, double co1, double dir)
 	{
-		RPATH rp = new RPATH(width, ptype, ro_routepathtype(b, t));
+		RPATH rp = new RPATH(width, ptype);
 		RPOINT i1 = new RPOINT(rp, b.first, b.second+(rp.width/2)+co1, null);
-		rp.pathdesc = new RPOINT(rp, b.first, b.second, i1);
-		double minfirst = Math.min(b.first, t.first);
-		double maxfirst = Math.max(b.first, t.first);
-		RPOINT lp = path.pathdesc;
-		RPOINT lastp = rp.lastp;
+		rp.pathDesc = new RPOINT(rp, b.first, b.second, i1);
+		double minFirst = Math.min(b.first, t.first);
+		double maxFirst = Math.max(b.first, t.first);
+		RPOINT lp = path.pathDesc;
+		RPOINT lastP = rp.lastP;
 
 		double newfirst = lp.first+dir*(space+rp.width);
-		while (lp != null && minfirst <= newfirst && newfirst <= maxfirst)
+		while (lp != null && minFirst <= newfirst && newfirst <= maxFirst)
 		{
 			// if first point then inconsistent second(y) offset
-			if (lp == path.pathdesc)
-				lastp.next = new RPOINT(rp, newfirst, lastp.second, null); else
-					lastp.next = new RPOINT(rp, newfirst, lp.second+space+rp.width, null);
-			lastp = lastp.next;   lp = lp.next;
+			if (lp == path.pathDesc)
+				lastP.next = new RPOINT(rp, newfirst, lastP.second, null); else
+					lastP.next = new RPOINT(rp, newfirst, lp.second+space+rp.width, null);
+			lastP = lastP.next;   lp = lp.next;
 			if (lp != null) newfirst = lp.first+dir*(space+rp.width);
 		}
-		lastp.next = new RPOINT(rp, t.first, lastp.second, null);
-		rp.lastp.side = t.side;
+		lastP.next = new RPOINT(rp, t.first, lastP.second, null);
+		rp.lastP.side = t.side;
 		return rp;
 	}
 
-	private RPATH ro_makeorigpath(double width, ArcProto ptype, double co1, RPOINT b, RPOINT t)
+	private RPATH makeOrigPath(double width, ArcProto ptype, double co1, RPOINT b, RPOINT t)
 	{
-		RPATH rp = new RPATH(width, ptype, ro_routepathtype(b, t));
+		RPATH rp = new RPATH(width, ptype);
 
 		RPOINT i1 = new RPOINT(rp, t.first, b.second+(width/2)+co1, null);
 		RPOINT i2 = new RPOINT(rp, b.first, b.second+(width/2)+co1, i1);
-		rp.pathdesc = new RPOINT(rp, b.first, b.second, i2);
-		rp.lastp.side = t.side;
+		rp.pathDesc = new RPOINT(rp, b.first, b.second, i2);
+		rp.lastP.side = t.side;
 		return rp;
 	}
 
-	private RPATH ro_makesideorigpath(double width, ArcProto ptype, double startoff, RPOINT b, RPOINT t)
+	private RPATH makeSideOrigPath(double width, ArcProto ptype, double startoff, RPOINT b, RPOINT t)
 	{
-		RPATH rp = new RPATH(width, ptype, ro_routepathtype(b, t));
+		RPATH rp = new RPATH(width, ptype);
 		RPOINT i1 = new RPOINT(rp, t.first, startoff, null);
-		rp.pathdesc = new RPOINT(rp, b.first, startoff, i1);
-		rp.lastp.side = t.side;
+		rp.pathDesc = new RPOINT(rp, b.first, startoff, i1);
+		rp.lastP.side = t.side;
 		return rp;
 	}
 
-	/**
-	 * the type of route for this wire: side to top, bottom to side, bottom to top
-	 */
-	private int ro_routepathtype(RPOINT b, RPOINT t)
-	{
-		if (b != null && t != null)
-		{
-			if (b.side != SIDE1) return FROMSIDE;
-			if (b.side != SIDE3) return TOSIDE;
-		}
-		return BOTTOP;
-	}
-
-	private void ro_reverse(List p)
+	private void reverse(List p)
 	{
 		int total = p.size();
 		if (total <= 1) return;
@@ -933,11 +743,11 @@ public class River
 		}
 	}
 
-	private boolean ro_check_structured_points(List right, List left, double co1, double width, double space)
+	private boolean checkStructuredPoints(List right, List left, double co1, double width, double space)
 	{
-		boolean fromside1 = false;
-		boolean toside2 = false;
-		double botoffs2 = 0;
+		boolean fromSide1 = false;
+		boolean toSide2 = false;
+		double botOffs2 = 0;
 
 		// ensure ordering is correct
 		for(Iterator it = right.iterator(); it.hasNext(); )
@@ -945,29 +755,29 @@ public class River
 			RDESC r = (RDESC)it.next();
 			switch (r.from.side)
 			{
-				case SIDE1:
-					fromside1 = true;
+				case RPOINT.SIDE1:
+					fromSide1 = true;
 					break;
-				case SIDE4:
-					if (fromside1)
+				case RPOINT.SIDE4:
+					if (fromSide1)
 					{
 						System.out.println("River router: Improper ordering of bottom right ports");
 						return false;
 					}
 					break;
 				default:
-					System.out.println("River router: Improper sides for bottom right ports");
+					System.out.println("River router: Improper sides for bottom right ports (" + RPOINT.sideName(r.from.side) + ")");
 					return false;
 			}
 			switch (r.to.side)
 			{
-				case SIDE2:
-					if (!toside2) botoffs2 = ro_rrinfo.fromline+co1+(width/2);
-						else botoffs2 += space+width;
-					toside2 = true;
+				case RPOINT.SIDE2:
+					if (!toSide2) botOffs2 = fromLine+co1+(width/2);
+						else botOffs2 += space+width;
+					toSide2 = true;
 					break;
-				case SIDE3:
-					if (toside2)
+				case RPOINT.SIDE3:
+					if (toSide2)
 					{
 						System.out.println("River router: Improper ordering of top right ports");
 						return false;
@@ -979,21 +789,21 @@ public class River
 			}
 		}
 
-		boolean fromside2 = false;   boolean toside3 = false;   boolean toside4 = false;   double botoffs4 = 0;
+		boolean fromSide2 = false;   boolean toSide3 = false;   boolean toSide4 = false;   double botOffs4 = 0;
 		for(Iterator it = left.iterator(); it.hasNext(); )
 		{
 			RDESC l = (RDESC)it.next();
 			switch (l.from.side)
 			{
-				case SIDE1:
-					if (fromside2)
+				case RPOINT.SIDE1:
+					if (fromSide2)
 					{
 						System.out.println("River router: Improper Ordering of Bottom Left Ports");
 						return false;
 					}
 					break;
-				case SIDE2:
-					fromside2 = true;
+				case RPOINT.SIDE2:
+					fromSide2 = true;
 					break;
 				default:
 					System.out.println("River router: Improper sides for Bottom Left Ports");
@@ -1001,99 +811,99 @@ public class River
 			}
 			switch (l.to.side)
 			{
-				case SIDE3:
-					toside3 = true;
+				case RPOINT.SIDE3:
+					toSide3 = true;
 					break;
-				case SIDE4:
-					if (!toside3)
+				case RPOINT.SIDE4:
+					if (!toSide3)
 					{
-						if (!toside4) botoffs4 = ro_rrinfo.fromline+co1+(width/2);
-							else botoffs4 += space+width;
+						if (!toSide4) botOffs4 = fromLine+co1+(width/2);
+							else botOffs4 += space+width;
 					} else
 					{
 						System.out.println("River router: Improper Ordering of Top Left Ports");
 						return false;
 					}
-					toside4 = true;
+					toSide4 = true;
 					break;
 				default:
 					System.out.println("River router: Improper sides for Top Left Ports");
 					return false;
 			}
 		}
-		if (botoffs2 == 0) ro_rrinfo.startright = ro_rrinfo.fromline+co1+(width/2);
-			else	       ro_rrinfo.startright = botoffs2+space+width;
+		if (botOffs2 == 0) startRight = fromLine+co1+(width/2);
+			else	       startRight = botOffs2+space+width;
 	
-		if (botoffs4 == 0) ro_rrinfo.startleft = ro_rrinfo.fromline+co1+(width/2);
-			else	       ro_rrinfo.startleft = botoffs4+space+width;
+		if (botOffs4 == 0) startLeft = fromLine+co1+(width/2);
+			else	       startLeft = botOffs4+space+width;
 		return true;
 	}
 
-	private void ro_structure_points(List listr)
+	private void structurePoints(List listr)
 	{
-		ro_rrinfo.rightp = new ArrayList();
-		ro_rrinfo.leftp = new ArrayList();
+		rightP = new ArrayList();
+		leftP = new ArrayList();
 		for(Iterator it = listr.iterator(); it.hasNext(); )
 		{
 			RDESC rd = (RDESC)it.next();
-			if (rd.to.first >= rd.from.first) ro_rrinfo.rightp.add(rd);
-				else ro_rrinfo.leftp.add(rd);
+			if (rd.to.first >= rd.from.first) rightP.add(rd);
+				else leftP.add(rd);
 		}
 	}
 
-	private boolean ro_check_points(List rdescList, double width, double space)
+	private boolean checkPoints(List rdescList, double width, double space)
 	{
-		int numRdesc = rdescList.size();
-		if (numRdesc == 0)
+		int numRDesc = rdescList.size();
+		if (numRDesc == 0)
 		{
 			// need at least one point
 			System.out.println("River router: Not enought points");
 			return false;
 		}
 
-		RDESC listlast = (RDESC)rdescList.get(numRdesc-1);
-		if (listlast.from == null || listlast.to == null)
+		RDESC listLast = (RDESC)rdescList.get(numRDesc-1);
+		if (listLast.from == null || listLast.to == null)
 		{
 			System.out.println("River router: Not the same number of points");
-			return false;	// not the same number of points
+			return false;
 		}
 
 		// decide route orientation
-		RDESC listp = (RDESC)rdescList.get(0);
-		TRANSFORM tmatrix = null;
+		RDESC listP = (RDESC)rdescList.get(0);
+		TRANSFORM tMatrix = null;
 		double val1 = 0, val2 = 0;
-		if (ro_rrinfo.xx == ROUTEINX)
+		if (routDirection == ROUTEINX)
 		{
 			// route in x direction
-			if (listp.to.x >= listp.from.x)
+			if (listP.to.x >= listP.from.x)
 			{											// x2>x1
-				if (listlast.from.y >= listp.from.y)
-					tmatrix = ro_rrrot90mirx;			// Y increasing
-						else tmatrix = ro_rrrot90;		// Y decreasing
+				if (listLast.from.y >= listP.from.y)
+					tMatrix = xfRot90MirrorX;			// Y increasing
+						else tMatrix = xfRot90;			// Y decreasing
 			} else
 			{											// x2<x1
-				if (listlast.from.y >= listp.from.y)
-					tmatrix = ro_rrrot270;				// Y increasing
-						else tmatrix = ro_rrmirxr90;	// Y decreasing
+				if (listLast.from.y >= listP.from.y)
+					tMatrix = xfRot270;					// Y increasing
+						else tMatrix = xfMirrorXRot90;	// Y decreasing
 			}
-			val1 = ro_rrinfo.fromline = ro_rrinfo.fromline * tmatrix.t12;
-			val2 = ro_rrinfo.toline = ro_rrinfo.toline * tmatrix.t12;
-		} else if (ro_rrinfo.xx == ROUTEINY)
+			val1 = fromLine = fromLine * tMatrix.t12;
+			val2 = toLine = toLine * tMatrix.t12;
+		} else if (routDirection == ROUTEINY)
 		{
 			// route in y direction
-			if (listp.to.y >= listp.from.y)
+			if (listP.to.y >= listP.from.y)
 			{											// y2>y1
-				if (listlast.from.x >= listp.from.x)
-					tmatrix = ro_rrnorot;				// X increasing
-						else tmatrix = ro_rrmirrorx;	// X decreasing
+				if (listLast.from.x >= listP.from.x)
+					tMatrix = xfNoRot;					// X increasing
+						else tMatrix = xfMirrorX;		// X decreasing
 			} else
 			{											// y2<y1
-				if (listlast.from.x >= listp.from.x)
-					tmatrix = ro_rrmirrory;				// X increasing
-						else tmatrix = ro_rrrot180;		// X decreasing
+				if (listLast.from.x >= listP.from.x)
+					tMatrix = xfMirrorY;				// X increasing
+						else tMatrix = xfRot180;		// X decreasing
 			}
-			val1 = ro_rrinfo.fromline = ro_rrinfo.fromline * tmatrix.t22;
-			val2 = ro_rrinfo.toline = ro_rrinfo.toline * tmatrix.t22;
+			val1 = fromLine = fromLine * tMatrix.t22;
+			val2 = toLine = toLine * tMatrix.t22;
 		} else
 		{
 			System.out.println("River router: Not between two parallel lines");
@@ -1101,24 +911,24 @@ public class River
 		}
 
 		// check ordering of coordinates
-		for(int i=0; i<numRdesc-1; i++)
+		for(int i=0; i<numRDesc-1; i++)
 		{
-			RDESC llist = (RDESC)rdescList.get(i);
-			RDESC llistNext = (RDESC)rdescList.get(i+1);
+			RDESC lList = (RDESC)rdescList.get(i);
+			RDESC lListNext = (RDESC)rdescList.get(i+1);
 
 			// make sure there are no crossings
-			if (ro_rrinfo.xx == ROUTEINY)
+			if (routDirection == ROUTEINY)
 			{
-				if ((llist.from.x > llistNext.from.x && llist.to.x < llistNext.to.x) ||
-					(llist.from.x < llistNext.from.x && llist.to.x > llistNext.to.x))
+				if ((lList.from.x > lListNext.from.x && lList.to.x < lListNext.to.x) ||
+					(lList.from.x < lListNext.from.x && lList.to.x > lListNext.to.x))
 				{
 					System.out.println("River router: Connections may not cross");
 					return false;
 				}
 			} else
 			{
-				if ((llist.from.y > llistNext.from.y && llist.to.y < llistNext.to.y) ||
-					(llist.from.y < llistNext.from.y && llist.to.y > llistNext.to.y))
+				if ((lList.from.y > lListNext.from.y && lList.to.y < lListNext.to.y) ||
+					(lList.from.y < lListNext.from.y && lList.to.y > lListNext.to.y))
 				{
 					System.out.println("River router: Connections may not cross");
 					return false;
@@ -1126,149 +936,149 @@ public class River
 			}
 		}
 
-		double bound1 = ro_rrinfo.llx * tmatrix.t11 + ro_rrinfo.lly * tmatrix.t21;
-		double bound2 = ro_rrinfo.urx * tmatrix.t11 + ro_rrinfo.ury * tmatrix.t21;
+		double bound1 = routBoundLX * tMatrix.t11 + routBoundLY * tMatrix.t21;
+		double bound2 = routBoundHX * tMatrix.t11 + routBoundHY * tMatrix.t21;
 		if (bound2 < bound1)
 		{
 			double temp = bound2;   bound2 = bound1;   bound1 = temp;
 		}
-		RPOINT lastfrom = null;   RPOINT lastto = null;
+		RPOINT lastFrom = null;   RPOINT lastTo = null;
 
 		// transform points and clip to boundary
 		for(Iterator it = rdescList.iterator(); it.hasNext(); )
 		{
-			RDESC llist = (RDESC)it.next();
-			llist.from.first = (llist.from.x * tmatrix.t11) + (llist.from.y * tmatrix.t21);
-			llist.from.second = (llist.from.x * tmatrix.t12) + (llist.from.y * tmatrix.t22);
-			llist.to.first = (llist.to.x * tmatrix.t11) + (llist.to.y * tmatrix.t21);
-			llist.from.second = (llist.to.x * tmatrix.t12) + (llist.to.y * tmatrix.t22);
-			if (llist.from.second != val1) ro_clipwire(llist.from, bound1, bound2);
-			if (llist.to.second != val2)  ro_clipwire(llist.to, bound1, bound2);
+			RDESC lList = (RDESC)it.next();
+			lList.from.first = (lList.from.x * tMatrix.t11) + (lList.from.y * tMatrix.t21);
+			lList.from.second = (lList.from.x * tMatrix.t12) + (lList.from.y * tMatrix.t22);
+			lList.to.first = (lList.to.x * tMatrix.t11) + (lList.to.y * tMatrix.t21);
+			lList.to.second = (lList.to.x * tMatrix.t12) + (lList.to.y * tMatrix.t22);
+			if (lList.from.second != val1) clipWire(lList.from, bound1, bound2);
+			if (lList.to.second != val2) clipWire(lList.to, bound1, bound2);
 
-			if (lastfrom != null && llist.from.side == SIDE1)
+			if (lastFrom != null && lList.from.side == RPOINT.SIDE1)
 			{
-				double diff1 = Math.abs(lastfrom.first - llist.from.first);
+				double diff1 = Math.abs(lastFrom.first - lList.from.first);
 				if (diff1 < width+space)
 				{
 					System.out.println("River router: Ports not design rule distance apart");
 					return false;
 				}
 			}
-			if (lastto != null && llist.to.side == SIDE3)
+			if (lastTo != null && lList.to.side == RPOINT.SIDE3)
 			{
-				double diff2 = Math.abs(lastto.first - llist.to.first);
+				double diff2 = Math.abs(lastTo.first - lList.to.first);
 				if (diff2 < width+space)
 				{
 					System.out.println("River router: Ports not design rule distance apart");
 					return false;
 				}
-			}		// not far enough apart
-			lastfrom = (llist.from.side == SIDE1) ? llist.from : null;
-			lastto = (llist.to.side == SIDE3) ? llist.to : null;
+			}
+
+			// not far enough apart
+			lastFrom = (lList.from.side == RPOINT.SIDE1) ? lList.from : null;
+			lastTo = (lList.to.side == RPOINT.SIDE3) ? lList.to : null;
 		}
 
 		// matrix to take route back to original coordinate system
-		ro_rrinverse.t11 = tmatrix.t11;   ro_rrinverse.t12 = tmatrix.t21;
-		ro_rrinverse.t21 = tmatrix.t12;   ro_rrinverse.t22 = tmatrix.t22;
-		ro_rrinverse.tx = listp.from.first; ro_rrinverse.ty = listp.from.second;
-									// right now these last terms are not used
-		ro_rrinfo.origmatrix = tmatrix;   ro_rrinfo.invmatrix = ro_rrinverse;
-		ro_rrinfo.fromline = val1;   ro_rrinfo.toline = val2;
+		xfInverse.t11 = tMatrix.t11;       xfInverse.t12 = tMatrix.t21;
+		xfInverse.t21 = tMatrix.t12;       xfInverse.t22 = tMatrix.t22;
+		xfInverse.tx = listP.from.first;   xfInverse.ty = listP.from.second;
+		fromLine = val1;   toLine = val2;
 		return true;
 	}
 
-	private void ro_clipwire(RPOINT p, double b1, double b2)
+	private void clipWire(RPOINT p, double b1, double b2)
 	{
 		double diff1 = Math.abs(b1 - p.first);
 		double diff2 = Math.abs(b2 - p.first);
 		if (diff1 < diff2)
 		{
-			p.first = b1;   p.side = SIDE4;
+			p.first = b1;   p.side = RPOINT.SIDE4;
 		} else
 		{
-			p.first = b2;   p.side = SIDE2;
+			p.first = b2;   p.side = RPOINT.SIDE2;
 		}
 	}
 
-	private void ro_set_wires_to_rails(List lists)
+	private void setWiresToRails(List lists)
 	{
 		for(Iterator it = lists.iterator(); it.hasNext(); )
 		{
 			RDESC r = (RDESC)it.next();
-			double fval = ro_point_val(r.from, ro_rrinfo.xx);
-			double tval = ro_point_val(r.to, ro_rrinfo.xx);
-			if ((fval != ro_rrinfo.fromline && tval == ro_rrinfo.fromline) ||
-				(tval != ro_rrinfo.toline && fval == ro_rrinfo.toline))
-					ro_swap_points(r);
+			double fVal = pointVal(r.from, routDirection);
+			double tVal = pointVal(r.to, routDirection);
+			if ((fVal != fromLine && tVal == fromLine) ||
+				(tVal != toLine && fVal == toLine))
+					swapPoints(r);
 		}
 	}
 
-	private void ro_swap_points(RDESC r)
+	private void swapPoints(RDESC r)
 	{
-		if (r.from.side != SIDE1 || r.to.side != SIDE3)
+		if (r.from.side != RPOINT.SIDE1 || r.to.side != RPOINT.SIDE3)
 			System.out.println("River router: Unexpected side designation");
 
 		RPOINT tmp = r.from;   r.from = r.to;   r.to = tmp;
 
-		r.from.side = SIDE1;   r.to.side = SIDE3;
-		ArcInst tmpwire = r.unroutedwire1;   int tmpe = r.unroutedend1;
-		r.unroutedwire1 = r.unroutedwire2;   r.unroutedend1 = r.unroutedend2;
-		r.unroutedwire2 = tmpwire;           r.unroutedend2 = tmpe;
+		r.from.side = RPOINT.SIDE1;   r.to.side = RPOINT.SIDE3;
+		ArcInst tmpwire = r.unroutedWire1;   int tmpe = r.unroutedEnd1;
+		r.unroutedWire1 = r.unroutedWire2;   r.unroutedEnd1 = r.unroutedEnd2;
+		r.unroutedWire2 = tmpwire;           r.unroutedEnd2 = tmpe;
 	}
 
-	private double ro_point_val(RPOINT rp, int xx)
+	private double pointVal(RPOINT rp, int xx)
 	{
 		return xx == ROUTEINX ? rp.x : rp.y;
 	}
 
-	private void ro_figureoutrails(int total)
+	private void figureOutRails(int total)
 	{
-		RCOORD lx = ro_largest(ro_rrinfo.xaxis);
-		RCOORD ly = ro_largest(ro_rrinfo.yaxis);
-		RCOORD nlx = ro_next_largest(ro_rrinfo.xaxis, lx);
-		RCOORD nly = ro_next_largest(ro_rrinfo.yaxis, ly);
+		RCOORD lX = largest(xAxis);
+		RCOORD lY = largest(yAxis);
+		RCOORD nLX = nextLargest(xAxis, lX);
+		RCOORD nLY = nextLargest(yAxis, lY);
 
 		// determine the type of route
 		RCOORD from = null;
 		RCOORD to = null;
 		int fxx = ILLEGALROUTE;
-		if (lx != null && nlx != null && lx.total == total && nlx.total == total)
+		if (lX != null && nLX != null && lX.total == total && nLX.total == total)
 		{
-			from = lx;   to = nlx;
+			from = lX;   to = nLX;
 			fxx = ROUTEINX;
-		} else if (ly != null && nly != null && ly.total == total && nly.total == total)
+		} else if (lY != null && nLY != null && lY.total == total && nLY.total == total)
 		{
-			from = ly;   to = nly;
+			from = lY;   to = nLY;
 			fxx = ROUTEINY;
-		} else if (lx != null && lx.total == (2*total))
+		} else if (lX != null && lX.total == (2*total))
 		{
-			from = to = lx;
+			from = to = lX;
 			fxx = ROUTEINX;
-		} else if (ly != null && ly.total == (2*total))
+		} else if (lY != null && lY.total == (2*total))
 		{
-			from = to = ly;
+			from = to = lY;
 			fxx = ROUTEINY;
 		}
 
 		if (fxx == ILLEGALROUTE)
 		{
-			if (lx.total >= total)
+			if (lX.total >= total)
 			{
-				// lx.total == total --- the other one an unusual case
-				// lx.total > total  --- both go to the same line
-				fxx = ROUTEINX;   from = lx;
-				to = (lx.total > total ? lx : nlx);
-			} else if (ly.total >= total)
+				// lX.total == total --- the other one an unusual case
+				// lX.total > total  --- both go to the same line
+				fxx = ROUTEINX;   from = lX;
+				to = (lX.total > total ? lX : nLX);
+			} else if (lY.total >= total)
 			{
-				// ly.total == total --- the other one an unusual case
-				// ly.total > total  --- both go to the same line
-				fxx = ROUTEINY;   from = ly;
-				to = (ly.total > total ? ly : nly);
+				// lY.total == total --- the other one an unusual case
+				// lY.total > total  --- both go to the same line
+				fxx = ROUTEINY;   from = lY;
+				to = (lY.total > total ? lY : nLY);
 			} else
 			{
-				fxx = (((ly.total+nly.total)>=(lx.total+nlx.total)) ? ROUTEINY : ROUTEINX);
-				from = (fxx == ROUTEINY ? ly : lx);
-				to = (fxx == ROUTEINY ? nly : nlx);
+				fxx = (((lY.total+nLY.total)>=(lX.total+nLX.total)) ? ROUTEINY : ROUTEINX);
+				from = (fxx == ROUTEINY ? lY : lX);
+				to = (fxx == ROUTEINY ? nLY : nLX);
 			}
 		}
 
@@ -1277,11 +1087,11 @@ public class River
 			RCOORD tmp = from;   from = to;   to = tmp;
 		}
 
-		ro_rrinfo.xx = fxx;
-		ro_rrinfo.fromline = from.val;   ro_rrinfo.toline = to.val;
+		routDirection = fxx;
+		fromLine = from.val;   toLine = to.val;
 	}
 
-	private RCOORD ro_largest(RCOORD cc)
+	private RCOORD largest(RCOORD cc)
 	{
 		RCOORD largest = cc;
 
@@ -1292,16 +1102,16 @@ public class River
 		return largest;
 	}
 
-	private RCOORD ro_next_largest(RCOORD cc, RCOORD largest)
+	private RCOORD nextLargest(RCOORD cc, RCOORD largest)
 	{
-		RCOORD nlargest = null;
+		RCOORD nLargest = null;
 
 		for( ; cc != null; cc = cc.next)
 		{
-			if (nlargest == null && cc != largest) nlargest = cc; else
-				if (nlargest != null && cc != largest && cc.total > nlargest.total) nlargest = cc;
+			if (nLargest == null && cc != largest) nLargest = cc; else
+				if (nLargest != null && cc != largest && cc.total > nLargest.total) nLargest = cc;
 		}
-		return nlargest;
+		return nLargest;
 	}
 
 	/**
@@ -1309,7 +1119,7 @@ public class River
 	 * increment the flag bits (temp1) IN the prototype thus indicating that
 	 * this river route point is allowed to connect to it
 	 */
-	private void ro_sumup(Connection con, HashMap arcProtoUsage)
+	private void sumUp(Connection con, HashMap arcProtoUsage)
 	{
 		ArcProto [] possibleArcs = con.getPortInst().getPortProto().getBasePort().getConnections();
 		for(int i=0; i<possibleArcs.length; i++)
@@ -1326,38 +1136,36 @@ public class River
 		}
 	}
 
-	private void ro_initialize()
+	private void initialize()
 	{
-		ro_rrinfo.rightp = null;
-		ro_rrinfo.leftp = null;
-		ro_rrinfo.origmatrix = null;
-		ro_rrinfo.invmatrix = null;
-		ro_rrinfo.fromline = ro_rrinfo.toline = Double.MIN_VALUE;
-		ro_rrinfo.startright = Double.MIN_VALUE;
-		ro_rrinfo.startleft = Double.MIN_VALUE;
-		ro_rrinfo.height = Double.MIN_VALUE;
-		ro_rrinfo.xx = ILLEGALROUTE;
+		rightP = null;
+		leftP = null;
+		fromLine = toLine = Double.MIN_VALUE;
+		startRight = Double.MIN_VALUE;
+		startLeft = Double.MIN_VALUE;
+		height = Double.MIN_VALUE;
+		routDirection = ILLEGALROUTE;
 
-		ro_rrinfo.xaxis = null;
-		ro_rrinfo.yaxis = null;
-		for(RCOORD c = ro_rrinfo.xaxis; c != null; c = c.next) c.total = -1;
-		for(RCOORD c = ro_rrinfo.yaxis; c != null; c = c.next) c.total = -1;
+		xAxis = null;
+		yAxis = null;
+		for(RCOORD c = xAxis; c != null; c = c.next) c.total = -1;
+		for(RCOORD c = yAxis; c != null; c = c.next) c.total = -1;
 		moveCell = null;   moveCellValid = true;
 	}
 
 	/**
 	 * figure out the wires to route at all
 	 */
-	private void ro_addwire(List list, ArcInst ai, HashSet arcsSeen)
+	private void addWire(List list, ArcInst ai, HashSet arcsSeen)
 	{
-		if (!ro_is_interesting_arc(ai, arcsSeen)) return;
+		if (!isInterestingArc(ai, arcsSeen)) return;
 
 		arcsSeen.add(ai);
 		ArcInst ae1 = ai;   int e1 = 0;
 		for(;;)
 		{
 			NodeInst ni = ae1.getConnection(e1).getPortInst().getNodeInst();
-			if (!ro_isunroutedpin(ni)) break;
+			if (!isUnroutedPin(ni)) break;
 			ArcInst oAi = null;
 			for(Iterator it = ni.getConnections(); it.hasNext(); )
 			{
@@ -1375,7 +1183,7 @@ public class River
 		for(;;)
 		{
 			NodeInst ni = ae2.getConnection(e2).getPortInst().getNodeInst();
-			if (!ro_isunroutedpin(ni)) break;
+			if (!isUnroutedPin(ni)) break;
 			ArcInst oAi = null;
 			for(Iterator it = ni.getConnections(); it.hasNext(); )
 			{
@@ -1398,24 +1206,24 @@ public class River
 		Poly poly2 = pi2.getPoly();
 		double ex = poly2.getCenterX();
 		double ey = poly2.getCenterY();
-		RDESC rd = new RDESC(bx, by, SIDE1, ex, ey, SIDE3, ae1, e1, ae2, e2);
+		RDESC rd = new RDESC(bx, by, RPOINT.SIDE1, ex, ey, RPOINT.SIDE3, ae1, e1, ae2, e2);
 		list.add(rd);
-		ro_vote(rd.from.x, rd.from.y, rd.to.x, rd.to.y);
+		vote(rd.from.x, rd.from.y, rd.to.x, rd.to.y);
 	}
 
-	private void ro_vote(double ffx, double ffy, double ttx, double tty)
+	private void vote(double ffx, double ffy, double ttx, double tty)
 	{
-		ro_rrinfo.xaxis = ro_tallyvote(ro_rrinfo.xaxis, ffx);
-		ro_rrinfo.yaxis = ro_tallyvote(ro_rrinfo.yaxis, ffy);
-		ro_rrinfo.xaxis = ro_tallyvote(ro_rrinfo.xaxis, ttx);
-		ro_rrinfo.yaxis = ro_tallyvote(ro_rrinfo.yaxis, tty);
+		xAxis = tallyVote(xAxis, ffx);
+		yAxis = tallyVote(yAxis, ffy);
+		xAxis = tallyVote(xAxis, ttx);
+		yAxis = tallyVote(yAxis, tty);
 	}
 
 	/**
 	 * Figure out which way to route (x and y) and the top coordinate and
 	 * bottom coordinate
 	 */
-	private RCOORD ro_tallyvote(RCOORD cc, double c)
+	private RCOORD tallyVote(RCOORD cc, double c)
 	{
 		if (cc == null)
 		{
@@ -1424,15 +1232,15 @@ public class River
 			return cc;
 		}
 
-		RCOORD ccinit = cc;
-		RCOORD cclast = null;
-		for( ; (cc != null && cc.total >= 0 && cc.val != c); cclast = cc, cc = cc.next) ;
+		RCOORD ccInit = cc;
+		RCOORD ccLast = null;
+		for( ; (cc != null && cc.total >= 0 && cc.val != c); ccLast = cc, cc = cc.next) ;
 		if (cc == null)
 		{
 			cc = new RCOORD(c);
-			cclast.next = cc;
+			ccLast.next = cc;
 			cc.total = 1;
-			return ccinit;
+			return ccInit;
 		} else
 		{
 			if (cc.total < 0)
@@ -1441,10 +1249,10 @@ public class River
 				cc.total = 1;
 			} else cc.total++;
 		}
-		return ccinit;
+		return ccInit;
 	}
 
-	private boolean ro_is_interesting_arc(ArcInst ai, HashSet arcsSeen)
+	private boolean isInterestingArc(ArcInst ai, HashSet arcsSeen)
 	{
 		// skip arcs already considered
 		if (arcsSeen.contains(ai)) return false;
@@ -1458,7 +1266,7 @@ public class River
 	/**
 	 * Method to return true if nodeinst "ni" is an unrouted pin
 	 */
-	private boolean ro_isunroutedpin(NodeInst ni)
+	private boolean isUnroutedPin(NodeInst ni)
 	{
 		// only want the unrouted pin
 		if (ni.getProto() != Generic.tech.unroutedPinNode &&
@@ -1467,65 +1275,196 @@ public class River
 		// found one
 		return true;
 	}
-}
 
-//	void ro_pseudomake(RDESC *rd, NODEPROTO *cell)
-//	{
-//		RPATH *path;
-//		REGISTER RPOINT *rp, *prev;
-//
-//		path = rd->path;
-//
-//		prev = path->pathdesc;
-//		for(rp = prev->next; rp != NULLRPOINT; rp = rp->next)
-//		{
-//			if (rp->next)
-//			{
-//				if (prev->x == rp->x && rp->x == rp->next->x) continue;
-//				if (prev->y == rp->y && rp->y == rp->next->y) continue;
-//			}
-//			(void)asktool(us_tool, x_("show-line"), prev->x, prev->y, rp->x, rp->y, cell);
-//			prev = rp;
-//		}
-//		ro_checkthecell(rd->unroutedwire2->end[rd->unroutedend2].nodeinst);
-//	}
-//	
-//	/*
-//	 * draw lines on the screen denoting what the route would look
-//	 * like if it was done
-//	 */
-//	void ro_makepseudogeometry(NODEPROTO *cell)
-//	{
-//		RDESC *q;
-//		INTBIG lambda;
-//
-//		lambda = lambdaofcell(cell);
-//		ttyputmsg(_("Routing bounds %s <= X <= %s   %s <= Y <= %s"), latoa(ro_rrinfo.llx, lambda),
-//			latoa(ro_rrinfo.urx, lambda), latoa(ro_rrinfo.lly, lambda), latoa(ro_rrinfo.ury, lambda));
-//
-//		// remove highlighting
-//		(void)asktool(us_tool, x_("clear"));
-//
-//		for(q = ro_rrinfo.rightp; q != NULLRDESC; q = q->next) ro_pseudomake(q, cell);
-//		for(q = ro_rrinfo.leftp; q != NULLRDESC; q = q->next) ro_pseudomake(q, cell);
-//	}
-//	
-//	BOOLEAN ro_query_user(void)
-//	{
-//		CHAR *par[MAXPARS];
-//		INTBIG count;
-//
-//		// wait for user response
-//		for(;;)
-//		{
-//			count = ttygetparam(_("River-route option: "), &ro_riverp, MAXPARS, par);
-//			if (count == 0) continue;
-//			if (par[0][0] == 'r') break;
-//			if (par[0][0] == 'm')
-//			{
-//				if (ro_move_instance()) return(TRUE);
-//			}
-//			if (par[0][0] == 'a') return(FALSE);
-//		}
-//		return(TRUE);
-//	}
+	/*************************************** CODE TO GENERATE CIRCUITRY ***************************************/
+
+	private void makeTheGeometry(Cell cell)
+	{
+        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+        if (wf != null)
+        {
+	        Highlighter highlighter = wf.getContent().getHighlighter();
+	        if (highlighter != null)
+	        {
+	        	highlighter.clear();
+	        	highlighter.finished();
+	        }
+        }
+
+		HashSet arcsToDelete = new HashSet();
+		HashSet nodesToDelete = new HashSet();
+		for(Iterator it = rightP.iterator(); it.hasNext(); )
+		{
+			RDESC q = (RDESC)it.next();
+			makeGeometry(q, cell);
+			markToBeDeleted(q.unroutedWire1, arcsToDelete, nodesToDelete);
+			if (q.unroutedWire1 != q.unroutedWire2) markToBeDeleted(q.unroutedWire2, arcsToDelete, nodesToDelete);
+		}
+		for(Iterator it = leftP.iterator(); it.hasNext(); )
+		{
+			RDESC q = (RDESC)it.next();
+			makeGeometry(q, cell);
+			markToBeDeleted(q.unroutedWire2, arcsToDelete, nodesToDelete);
+			if (q.unroutedWire1 != q.unroutedWire2) markToBeDeleted(q.unroutedWire2, arcsToDelete, nodesToDelete);
+		}
+		killWires(cell, arcsToDelete, nodesToDelete);
+	}
+
+	private void markToBeDeleted(ArcInst ai, HashSet arcsToDelete, HashSet nodesToDelete)
+	{
+		if (!isInterestingArc(ai, arcsToDelete)) return;
+
+		setFlags(ai, arcsToDelete, nodesToDelete);
+		ArcInst ae = ai;  int e = 0;
+		for(;;)
+		{
+			NodeInst ni = ae.getConnection(e).getPortInst().getNodeInst();
+			if (!isUnroutedPin(ni)) break;
+			ArcInst oAi = null;
+			for(Iterator it = ni.getConnections(); it.hasNext(); )
+			{
+				Connection con = (Connection)it.next();
+				oAi = con.getArc();
+				if (!arcsToDelete.contains(oAi)) break;
+				oAi = null;
+			}
+			if (oAi == null) break;
+			setFlags(oAi, arcsToDelete, nodesToDelete);
+			if (oAi.getConnection(0).getPortInst().getNodeInst() == ae.getConnection(e).getPortInst().getNodeInst()) e = 1; else e = 0;
+			ae = oAi;
+		}
+		ae = ai;  e = 1;
+		for(;;)
+		{
+			NodeInst ni = ae.getConnection(e).getPortInst().getNodeInst();
+			if (!isUnroutedPin(ni)) break;
+			ArcInst oAi = null;
+			for(Iterator it = ni.getConnections(); it.hasNext(); )
+			{
+				Connection con = (Connection)it.next();
+				oAi = con.getArc();
+				if (!arcsToDelete.contains(oAi)) break;
+				oAi = null;
+			}
+			if (oAi == null) break;
+			setFlags(oAi, arcsToDelete, nodesToDelete);
+			if (oAi.getConnection(0).getPortInst().getNodeInst() == ae.getConnection(e).getPortInst().getNodeInst()) e = 1; else e = 0;
+			ae = oAi;
+		}
+	}
+
+	private void setFlags(ArcInst ai, HashSet arcsToDelete, HashSet nodesToDelete)
+	{
+		arcsToDelete.add(ai);
+		NodeInst niH = ai.getHead().getPortInst().getNodeInst();
+		if (isUnroutedPin(niH)) nodesToDelete.add(niH);
+		NodeInst niT = ai.getTail().getPortInst().getNodeInst();
+		if (isUnroutedPin(niT)) nodesToDelete.add(niT);
+	}
+
+	private void killWires(Cell cell, HashSet arcsToDelete, HashSet nodesToDelete)
+	{
+		for(Iterator it = arcsToDelete.iterator(); it.hasNext(); )
+		{
+			ArcInst ai = (ArcInst)it.next();
+			ai.kill();
+		}
+		for(Iterator it = nodesToDelete.iterator(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			if (isUnroutedPin(ni))
+				delNodeInst(ni);
+		}
+	}
+
+	private void delNodeInst(NodeInst ni)
+	{
+		// see if any arcs connect to this node
+		if (ni.getNumConnections() > 0) return;
+
+		// see if this nodeinst is a portinst of the cell
+		if (ni.getNumExports() > 0) return;
+
+		// now erase the nodeinst
+		ni.kill();
+	}
+
+	/**
+	 * make electric geometry
+	 */
+	private void makeGeometry(RDESC rd, Cell cell)
+	{
+		RPATH path = rd.path;
+
+		Poly poly1 = rd.unroutedWire1.getConnection(rd.unroutedEnd1).getPortInst().getPoly();
+		wireBoundLX = poly1.getCenterX();
+		wireBoundLY = poly1.getCenterY();
+		Poly poly2 = rd.unroutedWire2.getConnection(rd.unroutedEnd2).getPortInst().getPoly();
+		wireBoundHX = poly2.getCenterX();
+		wireBoundHY = poly2.getCenterY();
+
+		NodeProto defNode = ((PrimitiveArc)path.pathType).findPinProto();
+		PortProto defPort = defNode.getPort(0); // there is always only one
+
+		RPOINT prev = path.pathDesc;
+		NodeInst prevNodeInst = theNode(rd, defNode, prev, cell);
+		PortProto prevPort = thePort(defPort, rd, prev);
+		PortInst prevPi = prevNodeInst.findPortInstFromProto(prevPort);
+
+		for(RPOINT rp = prev.next; rp != null; rp = rp.next)
+		{
+			if (rp.next != null)
+			{
+				if (prev.x == rp.x && rp.x == rp.next.x) continue;
+				if (prev.y == rp.y && rp.y == rp.next.y) continue;
+			}
+			NodeInst rpNodeInst = theNode(rd, defNode, rp, cell);
+			PortProto rpPort = thePort(defPort, rd, rp);
+			PortInst rpPi = rpNodeInst.findPortInstFromProto(rpPort);
+
+			ArcInst ai = ArcInst.makeInstance(path.pathType, path.width, prevPi, rpPi);
+			prev = rp;   prevPi = rpPi;
+		}
+	}
+
+	private NodeInst theNode(RDESC rd, NodeProto dn, RPOINT p, Cell cell)
+	{
+		if (p.x == wireBoundLX && p.y == wireBoundLY)
+			return rd.unroutedWire1.getConnection(rd.unroutedEnd1).getPortInst().getNodeInst();
+
+		if (p.x == wireBoundHX && p.y == wireBoundHY)
+			return rd.unroutedWire2.getConnection(rd.unroutedEnd2).getPortInst().getNodeInst();
+
+		double wid = dn.getDefWidth();
+		double hei = dn.getDefHeight();
+		NodeInst ni = NodeInst.makeInstance(dn, new Point2D.Double(p.x, p.y), wid, hei, cell);
+		return ni;
+	}
+
+	private PortProto thePort(PortProto dp, RDESC rd, RPOINT p)
+	{
+		if (p.x == wireBoundLX && p.y == wireBoundLY)
+			return rd.unroutedWire1.getConnection(rd.unroutedEnd1).getPortInst().getPortProto();
+
+		if (p.x == wireBoundHX && p.y == wireBoundHY)
+			return rd.unroutedWire2.getConnection(rd.unroutedEnd2).getPortInst().getPortProto();
+
+		return dp;
+	}
+
+	private boolean moveInstance()
+	{
+		NodeInst ni = moveCell;
+		if (!moveCellValid || ni == null)
+		{
+			System.out.println("River router: Cannot determine cell to move");
+			return false;
+		}
+
+		double lx = (routDirection == ROUTEINX ? height + ni.getAnchorCenterX() - toLine : ni.getAnchorCenterX());
+		double ly = (routDirection == ROUTEINY ? height + ni.getAnchorCenterY() - toLine : ni.getAnchorCenterY());
+		if (lx == ni.getAnchorCenterX() && ly == ni.getAnchorCenterY()) return true;
+		ni.modifyInstance(lx - ni.getAnchorCenterX(), ly - ni.getAnchorCenterY(), 0, 0, 0);
+		return true;
+	}
+}

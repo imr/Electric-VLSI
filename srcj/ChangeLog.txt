@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01x: *********************************
 
+IMP: (10/12/04, SMR) A holdover from "C Electric" is the "temporary object".  It is unsafe and wastes memory.
+     Its use has been replaced with HashMaps, and it has been removed from Geometric, ArcProto, and Cell.
+
+IMP/MAN: (10/12/04, SMR) Added unrouting.
+
 IMP/MAN: (10/11/04, SMR) Added river routing.
 
 BUG: (10/11/04, DN) Networks of isolated ports have no names.
