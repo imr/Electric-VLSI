@@ -417,7 +417,6 @@ public class PolyQTree
 		}
 		private boolean isOriginal()
 		{
-			boolean value = ((original >> 0 & 1) == 0);
 			return ((original >> 0 & 1) == 0);
 		}
 		private void setNotOriginal()
@@ -475,7 +474,7 @@ public class PolyQTree
 											// Checking if inner loop is pn
 											simplepath.append(pn.getPathIterator(null), true);
 											toDelete.add(pn);
-											break;
+											//break;  // @TODO might not work with double loops!!
 										}
 									}
 								}

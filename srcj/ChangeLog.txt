@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01x: *********************************
 
+FIX: (9/23/04, GVG) ERC fix to properly detect polygons with multiple loops inside. This error could be seen in
+qfour2:pads180nm_100um:pad_part_flwout{lay}.
+
+IMP: (9/23/04, GVG) Tuning of ERC sequence of steps. Results: ERC on pad2core:fillpads_all{lay} runs in 5 mins
+compared to more than 1hr (42793 areas and 38350 contact regions checked) 
 
 ************************* Version 8.01w: *********************************
 
@@ -22,7 +27,8 @@ IMP: (9/22/04, GVG) Refactoring NodeInst/ArcInst makeInstance/newInstance method
 
 IMP: (9/22/04, GVG) CrossLib dialog and scrollbars. Added syncronizer to keep 3 scrollbars aligned.
 
-IMP (9/21/04, RK) Performance tuning flat NCC algorithm. I replaced StratFrontier with LeafEquivRecord which is much more efficient. Flat NCC of top cell of qFourP2 without size checking has dropped from 16 minutes to 2.8 minutes. With size checking has dropped from 22 minutes to 8 minutes.
+IMP (9/21/04, RK) Performance tuning flat NCC algorithm. I replaced StratFrontier with LeafEquivRecord which is much more efficient.
+Flat NCC of top cell of qFourP2 without size checking has dropped from 16 minutes to 2.8 minutes. With size checking has dropped from 22 minutes to 8 minutes.
 
 ************************* Version 8.01v: *********************************
 

@@ -148,7 +148,6 @@ public class PolyMerge
 		}
 	}
 
-
 	/**
 	 * Method to return an Iterator over all of the Layers used in this Merge.
 	 * @return an Iterator over all of the Layers used in this Merge.
@@ -160,7 +159,9 @@ public class PolyMerge
 
 	public Collection getObjects(Object layer, boolean modified, boolean simple)
 	{
-		return (getMergedPoints((Layer)layer, false));
+		// Since simple is used, correct detection of loops must be guaranteed
+		// outside.
+		return (getMergedPoints((Layer)layer, simple));
 	}
 
 	/**
@@ -195,7 +196,6 @@ public class PolyMerge
 				Poly poly = new Poly(points);
 				poly.setLayer(layer);
 				poly.setStyle(Poly.Type.FILLED);
-				//polyList.add(poly);
 				lastMoveTo = null;
 				toDelete.clear();
 				if (!simple && !isSingular)
@@ -206,6 +206,10 @@ public class PolyMerge
 						Poly pn = (Poly)it.next();
 						if (pn.contains((Point2D)pointList.get(0)) ||
 						    poly.contains(pn.getPoints()[0]))
+						/*
+						if (pn.contains(poly.getBounds2D()) ||
+						    poly.contains(pn.getBounds2D()))
+						    */
 						{
 							points = pn.getPoints();
 							for (i = 0; i < points.length; i++)
@@ -214,7 +218,7 @@ public class PolyMerge
 							System.arraycopy(pointList.toArray(), 0, newPoints, 0, pointList.size());
 							poly = new Poly(newPoints);
 							toDelete.add(pn);
-							break;
+							//break;
 						}
 					}
 				}

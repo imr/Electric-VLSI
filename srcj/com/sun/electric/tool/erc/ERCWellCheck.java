@@ -85,7 +85,8 @@ public class ERCWellCheck
 	};
 	private static List wellAreas;
 
-	private static HashMap cellMerges;
+	private static HashMap cellMerges = new HashMap(); // make a map of merge information in each cell
+	private static HashMap doneCells = new HashMap(); // Mark if cells are done already.
 
 	/*
 	 * Method to analyze the current Cell for well errors.
@@ -120,17 +121,17 @@ public class ERCWellCheck
 		public boolean doIt()
 		{
 			long startTime = System.currentTimeMillis();
-			errorLogger = ErrorLogger.newInstance("ERC Well Check");
+			errorLogger = ErrorLogger.newInstance("ERC Well Check ");
 
 			// announce start of analysis
-			System.out.println("Checking Wells and Substrates...");
+			System.out.println("Checking Wells and Substrates in '" + cell.libDescribe() + "' ...");
 
 			// make a list of well and substrate contacts
 			wellCons = new ArrayList();
 			wellConIndex = 0;
 
-			// make a map of merge information in each cell
-			cellMerges = new HashMap();
+			doneCells.clear();
+            cellMerges.clear();
 
 			// enumerate the hierarchy below here
 			Visitor wcVisitor = new Visitor(newAlgorithm, this);
@@ -145,6 +146,8 @@ public class ERCWellCheck
 			for(Iterator it = topMerge.getKeyIterator(); it.hasNext(); )
 			{
 				Layer layer = (Layer)it.next();
+				if (!isERCLayerRelated(layer))
+					System.out.println("When does this happen 2?");
 
 				// Not sure if null goes here
 				Collection set = topMerge.getObjects(layer, false, true);
@@ -182,17 +185,21 @@ public class ERCWellCheck
 					largestNetNum = wc.netNum;
 			}
 			*/
+			System.out.println("Found " + wellAreas.size() + " well/select areas and " + wellCons.size() +
+			        " contact regions (took " + TextUtils.getElapsedTime(System.currentTimeMillis() - startTime) + ")");
 			for(Iterator it = wellAreas.iterator(); it.hasNext(); )
 			{
 				WellArea wa = (WellArea)it.next();
+
 				int wellType = getWellLayerType(wa.layer);
-				if (wellType != 1 && wellType != 2) continue;
+				if (wellType != ERCPWell && wellType != ERCNWell) continue;
 
 				// presume N-well
 				NodeProto.Function desiredContact = NodeProto.Function.SUBSTRATE;
 				String noContactError = "No N-Well contact found in this area";
 				int contactAction = ERC.getNWellCheck();
-				if (wellType == 1)
+
+				if (wellType == ERCPWell)
 				{
 					// P-well
 					desiredContact = NodeProto.Function.WELL;
@@ -244,6 +251,7 @@ public class ERCWellCheck
 						if (ERC.isMustConnectPWellToGround())
 						{
 							MessageLog err = errorLogger.logError("P-Well contact not connected to ground", cell, 0);
+							System.out.println("Data P-Well contact" + wc.index + " net = " + wc.netNum);
 							err.addPoint(wc.ctr.getX(), wc.ctr.getY(), cell);
 						}
 					} else
@@ -251,6 +259,7 @@ public class ERCWellCheck
 						if (ERC.isMustConnectNWellToPower())
 						{
 							MessageLog err = errorLogger.logError("N-Well contact not connected to power", cell, 0);
+							System.out.println("Data N-Well contact" + wc.index + " net = " + wc.netNum);
 							err.addPoint(wc.ctr.getX(), wc.ctr.getY(), cell);
 						}
 					}
@@ -307,6 +316,9 @@ public class ERCWellCheck
 			}
 
 			// make sure the wells are separated properly
+			// Local storage of rules.. otherwise getSpacingRule is called too many times
+			HashMap rulesCon = new HashMap();
+			HashMap rulesNonCon = new HashMap();
 			for(Iterator it = wellAreas.iterator(); it.hasNext(); )
 			{
 				WellArea wa = (WellArea)it.next();
@@ -317,17 +329,30 @@ public class ERCWellCheck
 					if (wa.layer != oWa.layer) continue;
 					boolean con = false;
 					if (wa.netNum == oWa.netNum && wa.netNum >= 0) con = true;
-					DRCRules.DRCRule rule = DRC.getSpacingRule(wa.layer, wa.layer, con, false, 0);
+					DRCRules.DRCRule rule = (con)?
+					        (DRCRules.DRCRule)rulesCon.get(wa.layer):
+					        (DRCRules.DRCRule)rulesNonCon.get(wa.layer);
+					// Might s
+					if (rule == null)
+					{
+						rule = DRC.getSpacingRule(wa.layer, wa.layer, con, false, 0);
+						if (con)
+							rulesCon.put(wa.layer, rule);
+						else
+							rulesNonCon.put(wa.layer, rule);
+					}
+					//DRCRules.DRCRule rule = DRC.getSpacingRule(wa.layer, wa.layer, con, false, 0);
 					if (rule == null || rule.value < 0) continue;
 					if (wa.bounds.getMinX() > oWa.bounds.getMaxX()+rule.value ||
 						oWa.bounds.getMinX() > wa.bounds.getMaxX()+rule.value ||
 						wa.bounds.getMinY() > oWa.bounds.getMaxY()+rule.value ||
 						oWa.bounds.getMinY() > wa.bounds.getMaxY()+rule.value) continue;
-					double dist = wa.poly.separation(oWa.poly);
-					if (dist < rule.value)
+					double dist = wa.poly.separation(oWa.poly); // dist == 0 -> intersect or inner loops
+					if (dist > 0 && dist < rule.value)
 					{
 						int layertype = getWellLayerType(wa.layer);
-						if (layertype == 0) continue;
+						if (layertype == ERCPSEUDO) continue;
+
 						MessageLog err = errorLogger.logError(wa.layer.getName() + " areas too close (are "
 						        + TextUtils.formatDouble(dist, 1) + ", should be "
 						        + TextUtils.formatDouble(rule.value, 1) + ")", cell, 0);
@@ -352,9 +377,10 @@ public class ERCWellCheck
 					WellArea wa = (WellArea)it.next();
 
 					int wellType = getWellLayerType(wa.layer);
-					if (wellType != 1 && wellType != 2) continue;
+					//if (wellType != ERCPWell && wellType != ERCNWell) continue;
+					if (!isERCLayerRelated(wa.layer)) continue;
 					NodeProto.Function desiredContact = NodeProto.Function.SUBSTRATE;
-					if (wellType == 1) desiredContact = NodeProto.Function.WELL;
+					if (wellType == ERCPWell) desiredContact = NodeProto.Function.WELL;
 
 					// find the worst distance to the edge of the area
 					Point2D [] points = wa.poly.getPoints();
@@ -495,6 +521,7 @@ public class ERCWellCheck
 					thisMerge = new PolyMerge();
 				cellMerges.put(cell, thisMerge);
 			}
+
             return true;
         }
 
@@ -505,41 +532,22 @@ public class ERCWellCheck
 	        GeometryHandler thisMerge = (GeometryHandler)cellMerges.get(info.getCell());
 			if (thisMerge == null) throw new Error("wrong condition in ERCWellCheck.enterCell()");
 
+	        // To mark if cell is already done
+			doneCells.put(cell, cell);
+
 			// merge everything sub trees
 			for(Iterator it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				NodeProto subNp = ni.getProto();
-				if (subNp instanceof PrimitiveNode)
+				if (subNp instanceof PrimitiveNode) continue;
+				// get sub-merge information for the cell instance
+				GeometryHandler subMerge = (GeometryHandler)cellMerges.get(subNp);
+				if (subMerge != null)
 				{
-					/*
-					PrimitiveNode pNp = (PrimitiveNode)subNp;
-					Technology tech = pNp.getTechnology();
-					Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, null, true, true);
-					int tot = nodeInstPolyList.length;
-					for(int i=0; i<tot; i++)
-					{
-						Poly poly = nodeInstPolyList[i];
-						Layer layer = poly.getLayer();
-						if (getWellLayerType(layer) == 0) continue;
-						poly.transform(trans);
-						Object newElem = poly;
-
-						if (newAlgorithm)
-							newElem = new PolyQTree.PolyNode(poly.getBounds2D());
-						thisMerge.add(layer, newElem);
-					}
-					*/
-				} else
-				{
-					// get sub-merge information for the cell instance
-					GeometryHandler subMerge = (GeometryHandler)cellMerges.get(subNp);
-					if (subMerge != null)
-					{
-						AffineTransform trans = ni.rotateOut();
-                        AffineTransform tTrans = ni.translateOut(trans);
-						thisMerge.addAll(subMerge, tTrans);
-					}
+					AffineTransform trans = ni.rotateOut();
+					AffineTransform tTrans = ni.translateOut(trans);
+					thisMerge.addAll(subMerge, tTrans);
 				}
 			}
 			for(Iterator it = cell.getArcs(); it.hasNext(); )
@@ -553,7 +561,11 @@ public class ERCWellCheck
 				{
 					Poly poly = arcInstPolyList[i];
 					Layer layer = poly.getLayer();
-					if (getWellLayerType(layer) == 0) continue;
+					//int layerType = getWellLayerType(layer);
+					// Only interested in well/select
+					if (!isERCLayerRelated(layer)) continue;
+					//if (layerType != ERCPWell && layerType != ERCNWell) continue;
+					if (getWellLayerType(layer) == ERCPSEUDO) continue;
 					Object newElem = poly;
 
 					if (newAlgorithm)
@@ -561,66 +573,22 @@ public class ERCWellCheck
 					thisMerge.add(layer, newElem, false);
 				}
 			}
-
-			// look for well and substrate contacts
-			/*
-	        for(Iterator it = cell.getNodes(); it.hasNext(); )
-			{
-				NodeInst ni = (NodeInst)it.next();
-				AffineTransform trans = ni.rotateOut();
-				NodeProto.Function fun = ni.getFunction();
-				if (fun == NodeProto.Function.WELL || fun == NodeProto.Function.SUBSTRATE)
-				{
-					WellCon wc = new WellCon();
-					wc.ctr = ni.getTrueCenter();
-					trans.transform(wc.ctr, wc.ctr);
-					info.getTransformToRoot().transform(wc.ctr, wc.ctr);
-					wc.np = ni.getProto();
-					wc.fun = fun;
-					wc.index = wellConIndex++;
-					wc.index = wellConIndex++;
-					PortInst pi = ni.getOnlyPortInst();
-					Netlist netList = info.getNetlist();
-					JNetwork net = netList.getNetwork(pi);
-					wc.netNum = info.getNetID(net);
-					wc.onProperRail = false;
-					if (net != null)
-					{
-						if (fun == NodeProto.Function.WELL)
-						{
-							// PWell: must be on ground
-//							for(pp = np->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
-//							{
-//								if ((pp->userbits&STATEBITS) != GNDPORT) continue;
-//								if (pp->network == net) break;
-//							}
-//							if (pp != null)
-								wc.onProperRail = true;
-						} else
-						{
-							// NWell: must be on power
-//							for(pp = np->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
-//							{
-//								if ((pp->userbits&STATEBITS) != PWRPORT) continue;
-//								if (pp->network == net) break;
-//							}
-//							if (pp != null)
-								wc.onProperRail = true;
-						}
-					}
-					wellCons.add(wc);
-				}
-			}
-			*/
        }
 
         public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
         {
 			// merge everything
-	        GeometryHandler thisMerge = (GeometryHandler)cellMerges.get(info.getCell());
-				NodeInst ni = no.getNodeInst();
-				//AffineTransform trans = ni.transformOut();
-	            AffineTransform trans = ni.rotateOut();
+	        Cell cell = info.getCell();
+	        GeometryHandler thisMerge = (GeometryHandler)cellMerges.get(cell);
+			NodeInst ni = no.getNodeInst();
+			//AffineTransform trans = ni.transformOut();
+			AffineTransform trans = ni.rotateOut();
+            NodeProto.Function fun = ni.getFunction();
+	        boolean wellSubsContact = (fun == NodeProto.Function.WELL || fun == NodeProto.Function.SUBSTRATE);
+
+	        // No done yet
+	        if (doneCells.get(cell) == null)
+	        {
 				NodeProto subNp = ni.getProto();
 				if (subNp instanceof PrimitiveNode)
 				{
@@ -632,7 +600,13 @@ public class ERCWellCheck
 					{
 						Poly poly = nodeInstPolyList[i];
 						Layer layer = poly.getLayer();
-						if (getWellLayerType(layer) == 0) continue;
+						int layerType = getWellLayerType(layer);
+						// Only interested in well/select regions
+						if (!isERCLayerRelated(layer)) continue;
+						//if (getWellLayerType(layer) == ERCPSEUDO) continue;
+						//if (layerType != ERCPWell && layerType != ERCNWell && !wellSubsContact)
+						//if (layerType != ERCPWell && layerType != ERCNWell && !wellSubsContact)
+						//	continue;
 						poly.transform(trans);
 						Object newElem = poly;
 
@@ -640,64 +614,46 @@ public class ERCWellCheck
 							newElem = new PolyQTree.PolyNode(poly.getBounds2D());
 						thisMerge.add(layer, newElem, false);
 					}
-				} else
-				{
-					// This condition might be when more than one instance of primitive node
-					// is placed in this current cell.
-					// get sub-merge information for the cell instance
-					/*
-					GeometryHandler subMerge = (GeometryHandler)cellMerges.get(subNp);
-					if (subMerge != null)
-					{
-						System.out.println("it will be merged outside");
-						/*
-						AffineTransform tTrans = ni.translateOut();
-						tTrans.concatenate(trans);
-						thisMerge.addAll(subMerge, tTrans);
-						throw new Error("wrong condition in ERCWellCheck.visitNodeInst()");
-					}
-	                */
 				}
+	        }
 
 			// look for well and substrate contacts
-				NodeProto.Function fun = ni.getFunction();
-				if (fun == NodeProto.Function.WELL || fun == NodeProto.Function.SUBSTRATE)
+			if (wellSubsContact)
+			{
+				WellCon wc = new WellCon();
+				wc.ctr = ni.getTrueCenter();
+				trans.transform(wc.ctr, wc.ctr);
+				info.getTransformToRoot().transform(wc.ctr, wc.ctr);
+				wc.np = ni.getProto();
+				wc.fun = fun;
+				wc.index = wellConIndex++;
+				PortInst pi = ni.getOnlyPortInst();
+				Netlist netList = info.getNetlist();
+				JNetwork net = netList.getNetwork(pi);
+				wc.netNum = info.getNetID(net);
+				wc.onProperRail = false;
+				if (net != null)
 				{
-					WellCon wc = new WellCon();
-					wc.ctr = ni.getTrueCenter();
-					trans.transform(wc.ctr, wc.ctr);
-					info.getTransformToRoot().transform(wc.ctr, wc.ctr);
-					wc.np = ni.getProto();
-					wc.fun = fun;
-					wc.index = wellConIndex++;
-					PortInst pi = ni.getOnlyPortInst();
-					Netlist netList = info.getNetlist();
-					JNetwork net = netList.getNetwork(pi);
-					wc.netNum = info.getNetID(net);
-					wc.onProperRail = false;
-					if (net != null)
+					boolean searchWell = (fun == NodeProto.Function.WELL);
+					// PWell: must be on ground or  NWell: must be on power
+					JNetwork parentNet = net;
+					HierarchyEnumerator.CellInfo cinfo = info;
+					while (cinfo.getParentInst() != null) {
+						parentNet = HierarchyEnumerator.getNetworkInParent(parentNet, cinfo.getParentInst());
+						cinfo = cinfo.getParentInfo();
+					}
+					if (parentNet != null)
 					{
-						boolean searchWell = (fun == NodeProto.Function.WELL);
-						// PWell: must be on ground or  NWell: must be on power
-                        JNetwork parentNet = net;
-                        HierarchyEnumerator.CellInfo cinfo = info;
-                        while (cinfo.getParentInst() != null) {
-                            parentNet = HierarchyEnumerator.getNetworkInParent(parentNet, cinfo.getParentInst());
-                            cinfo = cinfo.getParentInfo();
-                        }
-						//JNetwork parentNet = HierarchyEnumerator.getNetworkInParent(net, info.getParentInst());
-						if (parentNet != null)
+						for (Iterator it = parentNet.getExports(); !wc.onProperRail && it.hasNext();)
 						{
-							for (Iterator it = parentNet.getExports(); !wc.onProperRail && it.hasNext();)
-							{
-								Export exp = (Export)it.next();
-								if ((searchWell && exp.isGround()) || (!searchWell && exp.isPower()))
-									wc.onProperRail = true;
-							}
+							Export exp = (Export)it.next();
+							if ((searchWell && exp.isGround()) || (!searchWell && exp.isPower()))
+								wc.onProperRail = true;
 						}
 					}
-					wellCons.add(wc);
 				}
+				wellCons.add(wc);
+			}
             return true;
         }
     }
@@ -710,21 +666,40 @@ public class ERCWellCheck
 	 *   3: P-Select
 	 *   4: N-Select
 	 */
+	private static final int ERCPWell = 1;
+	private static final int ERCNWell = 2;
+	private static final int ERCPSelect = 3;
+	private static final int ERCNSelect = 4;
+	private static final int ERCPSEUDO = 0;
+
+	/**
+	 * Determine if layer is relevant for ERC process to
+	 * speed up calculation
+	 * @param layer
+	 * @return true for wells and selects
+	 */
+	private static boolean isERCLayerRelated(Layer layer)
+	{
+		int type = getWellLayerType(layer);
+		return (type == ERCPWell || type == ERCNWell ||
+		        type == ERCPSelect || type == ERCNSelect);
+	}
+
 	private static int getWellLayerType(Layer layer)
 	{
 		Layer.Function fun = layer.getFunction();
 		int extra = layer.getFunctionExtras();
-		if ((extra&Layer.Function.PSEUDO) != 0) return 0;
-		if (fun == Layer.Function.WELLP) return 1;
-		if (fun == Layer.Function.WELL || fun == Layer.Function.WELLN) return 2;
-		if (fun == Layer.Function.IMPLANTP) return 3;
-		if (fun == Layer.Function.IMPLANT || fun == Layer.Function.IMPLANTN) return 4;
+		if ((extra&Layer.Function.PSEUDO) != 0) return ERCPSEUDO;
+		if (fun == Layer.Function.WELLP) return ERCPWell;
+		if (fun == Layer.Function.WELL || fun == Layer.Function.WELLN) return ERCNWell;
+		if (fun == Layer.Function.IMPLANTP) return ERCPSelect;
+		if (fun == Layer.Function.IMPLANT || fun == Layer.Function.IMPLANTN) return ERCNSelect;
 		if (fun == Layer.Function.SUBSTRATE)
 		{
-			if ((extra&Layer.Function.PTYPE) != 0) return 3;
-			return 4;
+			if ((extra&Layer.Function.PTYPE) != 0) return ERCPSelect;
+			return ERCNSelect;
 		}
-		return 0;
+		return ERCPSEUDO;
 	}
 
 }
