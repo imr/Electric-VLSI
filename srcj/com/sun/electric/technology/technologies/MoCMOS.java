@@ -1419,7 +1419,7 @@ public class MoCMOS extends Technology
 		polyCap_lay.setFactory3DInfo(PO_LAYER, FOX_LAYER + pActive_lay.getDepth());				// Poly-Cap @TODO GVG Ask polyCap
 
 		polyCut_lay.setFactory3DInfo(metal1_lay.getDistance()-poly1_lay.getDepth(), poly1_lay.getDepth());				// Poly-Cut between poly and metal1
-		activeCut_lay.setFactory3DInfo(metal1_lay.getDistance()-transistorPoly_lay.getDepth(), transistorPoly_lay.getDepth());				// Active-Cut betweent trans_poly and metal1
+		activeCut_lay.setFactory3DInfo(metal1_lay.getDistance()-nActive_lay.getDepth(), nActive_lay.getDepth());				// Active-Cut betweent active and metal1
 
 		// Other layers
 		passivation_lay.setFactory3DInfo(PASS_LAYER, metal6_lay.getDepth());			// Passivation
