@@ -222,7 +222,7 @@ public class DirectedFloatingDecimal
 		buf.append(s.charAt(0));
 		if (s.length() > 1) {
 			buf.append('.');
-			buf.append(s, 1, s.length()-1);
+			buf.append(s.substring(1));
 		}
 		buf.append('E');
 		buf.append(-(long)bd.scale() + (s.length()-1));
