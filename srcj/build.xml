@@ -48,7 +48,7 @@
         <unjar dest="." src="${beanshell}"/>
 	</target>
 
-    <target name="jar" depends="init,compile" description="Make binary Jar file">
+	<target name="jarWithVersion" depends="init,compile" description="Make binary Jar file with version">
         <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
         	<arg value="-v"/>
         </java>
@@ -83,6 +83,38 @@
         </delete>
 	    <!-- Don't move this property definition up -->
         <property name="version" value=""/>
+    </target>
+
+    <target name="jar" depends="init,compile" description="Make binary Jar file">
+	    <antcall target="unjarBsh"></antcall>
+        <unjar dest="." src="${AppleJava}"/>
+        <delete dir="META-INF"/>
+        <copy file="packaging/electric.mf" tofile="electric.mf"/>
+        <jar basedir="." compress="true" jarfile="electric.jar" manifest="electric.mf">
+            <exclude name="apidoc/"/>
+            <exclude name="bin/"/>
+            <exclude name="intervalsimulation/"/>
+            <exclude name="packaging/"/>
+            <exclude name="build.xml" unless="source"/>
+            <exclude name="ChangeLog.txt" unless="source"/>
+            <exclude name="electric*.jar"/>
+            <exclude name="electric.mf"/>
+            <exclude name="Hack_stack.txt"/>
+            <exclude name="com/sun/electric/plugins/tsmc90/*.*" if="GNU"/>
+	        <exclude name="com/sun/electric/plugins/skill/*.*" if="GNU"/>
+	        <exclude name="com/sun/electric/tool/simulation/interval/*.*" if="GNU"/>
+            <exclude name="**/*.java" unless="source"/>
+            <exclude name="**/*.form" unless="source"/>
+            <exclude name="classes/" unless="source"/>
+        </jar>
+        <delete file="electric.mf"/>
+        <delete dir="bsh"/>
+        <delete dir="com/apple"/>
+        <delete quiet="true">
+            <fileset dir="com">
+                <include name="**/*.class"/>
+            </fileset>
+        </delete>
     </target>
 
     <target name="jarTSMC90" depends="init" description="Make binary Jar plugin for TSMC 90">

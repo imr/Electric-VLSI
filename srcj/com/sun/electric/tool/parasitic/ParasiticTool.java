@@ -135,6 +135,11 @@ public class ParasiticTool extends Tool{
             double area1 = 0, area2 = 0;
             double over1 = 0, over2 = 0;
             double length1 = 0, length2 = 0;
+            double thickP1 = p1.getLayer().getThickness();
+            double thickP2 = p1.getLayer().getThickness();
+
+            // 1 for now
+            thickP1 = thickP2 = 1;
             if (pdx > 0 && pdy > 0) // Diagonal
             {
                 // Two elements
@@ -146,16 +151,16 @@ public class ParasiticTool extends Tool{
                 // Poly1:X v/s Poly2:Y
                 length1 = p1.getBox().getWidth();
                 length2 = p2.getBox().getHeight();
-                area1 = p1.getLayer().getThickness() * p1.getBox().getHeight();
-                area2 = p2.getLayer().getThickness() * p2.getBox().getWidth();
+                area1 = thickP1 * p1.getBox().getHeight();
+                area2 = thickP2 * p2.getBox().getWidth();
                 newValue1.elements[0] = new ParasiticBucket(p1, area1, length1);
                 newValue1.elements[1] = new ParasiticBucket(p2, area2, length2);
 
                 // Poly1:X v/s Poly2:Y
                 length1 = p1.getBox().getHeight();
                 length2 = p2.getBox().getWidth();
-                area1 = p1.getLayer().getThickness() * p1.getBox().getWidth();
-                area2 = p2.getLayer().getThickness() * p2.getBox().getHeight();
+                area1 = thickP1 * p1.getBox().getWidth();
+                area2 = thickP2 * p2.getBox().getHeight();
                 newValue2.elements[0] = new ParasiticBucket(p1, area1, length1);
                 newValue2.elements[1] = new ParasiticBucket(p2, area2, length2);
 
@@ -185,8 +190,8 @@ public class ParasiticTool extends Tool{
                 int oppDir = (dir+1)%2;
                 over1 = over2 = Math.min(points1[1][oppDir], points2[1][oppDir]) -
                        Math.max(points1[0][oppDir], points2[0][oppDir]);
-                area1 = p1.getLayer().getThickness() * over1;
-                area2 = p2.getLayer().getThickness() * over2;
+                area1 = thickP1 * over1;
+                area2 = thickP2 * over2;
                 newValue.elements[0] = new ParasiticBucket(p1, area1, length1);
                 newValue.elements[1] = new ParasiticBucket(p2, area2, length2);
 
