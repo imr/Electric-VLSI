@@ -67,13 +67,21 @@ public class J3DMenu {
 		j3DMenu.addMenuItem("Open 3D Capacitance Window", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { WindowMenu.create3DViewCommand(true); } });
         j3DMenu.addMenuItem("Read Capacitance Data From Socket", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { J3DViewDialog.create3DViewDialog(TopLevel.getCurrentJFrame(), "localhost"); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { createSocketDialog(); } });
         j3DMenu.addMenuItem("Read Capacitance Data From File", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { readDemoDataFromFile(); } });
 		return j3DMenu;
     }
 
     // ---------------------- THE 3D MENU FUNCTIONS -----------------
+
+    public static void createSocketDialog()
+    {
+        Object value = JOptionPane.showInputDialog(null, "Hostname Dialog", "Enter hostname for socket connection", JOptionPane.PLAIN_MESSAGE,
+                null, null, "localhost");
+        if (value != null)
+            J3DViewDialog.create3DViewDialog(TopLevel.getCurrentJFrame(), value.toString());
+    }
 
     public static void readDemoDataFromFile()
     {

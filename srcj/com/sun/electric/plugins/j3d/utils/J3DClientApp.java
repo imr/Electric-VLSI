@@ -95,7 +95,7 @@ public class J3DClientApp extends Job
         {
             DatagramSocket socket = new DatagramSocket();
             InetAddress address = InetAddress.getByName(hostname);
-            address = InetAddress.getLocalHost();
+            //address = InetAddress.getLocalHost();
             String localHost = address.getHostName();
             int bufferLenght = 256;
             byte outBuffer[];
