@@ -434,7 +434,7 @@ public abstract class InteractiveRouter extends Router {
                 return ai.getWidth();
         }
         if (routeObj instanceof PortInst) {
-            width = getArcWidthToUse((PortInst)routeObj, ap);
+            width = Router.getArcWidthToUse((PortInst)routeObj, ap);
         }
         return width;
     }

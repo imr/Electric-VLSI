@@ -561,7 +561,7 @@ public class Technology extends ElectricObject
 			try
 			{
 				Class extraTechClass = Class.forName("com.sun.electric.plugins." + extraTechnologies[i]);
-				extraTechClass.getMethod("setItUp", null).invoke(null, null);
+				extraTechClass.getMethod("setItUp", (Class[])null).invoke(null, (Object[])null);
 	 		} catch (Exception e) {}
 		}
 

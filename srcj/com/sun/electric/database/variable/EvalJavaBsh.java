@@ -292,7 +292,7 @@ public class EvalJavaBsh
             evalMethod = interpreterClass.getMethod("eval", new Class[] {String.class});
             sourceMethod = interpreterClass.getMethod("source", new Class[] {String.class});
             setMethod = interpreterClass.getMethod("set", new Class[] {String.class, Object.class});
-            getTargetMethod = targetErrorClass.getMethod("getTarget", null);
+            getTargetMethod = targetErrorClass.getMethod("getTarget", (Class[])null);
         } catch (NoSuchMethodException e)
         {
             System.out.println("Can't find methods in the Bean Shell: " + e.getMessage());

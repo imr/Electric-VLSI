@@ -441,10 +441,8 @@ public class FindText extends EDialog
 		String replace = replaceString.getText();
 		WindowContent content = wf.getContent();
 		content.initTextSearch(search, caseSensitive.isSelected(),
-		                       regExp.isSelected(),
-		                       getWhatToSearch());
+		                       regExp.isSelected(), getWhatToSearch());
 		content.replaceAllText(replace);
-
 	}//GEN-LAST:event_replaceAllActionPerformed
 
 	private void replaceAndFindActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_replaceAndFindActionPerformed
@@ -484,8 +482,7 @@ public class FindText extends EDialog
 		if (lastSearch == null)
 		{
 			content.initTextSearch(search, caseSensitive.isSelected(), 
-			                       regExp.isSelected(),
-			                       getWhatToSearch());
+			                       regExp.isSelected(), getWhatToSearch());
 		}
 		lastSearch = search;
 		if (!content.findNextText(findReverse.isSelected())) lastSearch = null;

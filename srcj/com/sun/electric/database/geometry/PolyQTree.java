@@ -160,7 +160,7 @@ public class PolyQTree
 		public boolean equals(Object obj)
 		{
 			Area a = (Area)obj;
-			return (equals(a));
+			return (super.equals(a));
 		}
 		
 		/**
@@ -645,7 +645,7 @@ public class PolyQTree
 				{
 					PolyNode node = (PolyNode)it.next();
 
-					if (node.equals(obj))
+					if (node.equals((Object)obj))
 						return (true);
 
 

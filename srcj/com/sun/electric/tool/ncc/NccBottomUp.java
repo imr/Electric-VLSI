@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Date;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
@@ -96,10 +97,20 @@ public class NccBottomUp {
 	                           NccOptions options) {
 	    if (NccUtils.hasSkipAnnotation(schematic)) return true;
 		if (NccUtils.hasSkipAnnotation(layout)) return true;
-		System.out.println("Comparing: "+NccUtils.fullName(schematic)+
-                           " with: "+NccUtils.fullName(layout));
-		return NccEngine.compare(schematic, null, layout, null,  
+		System.out.print("Comparing: "+NccUtils.fullName(schematic)+
+                         " with: "+NccUtils.fullName(layout)+"   ...   ");
+		System.out.flush();
+		Date before = new Date();
+		boolean match = NccEngine.compare(schematic, null, layout, null,  
 		                         hierInfo, options);
+		Date after = new Date();
+
+		System.out.print(match ? "Matched " : "Mismatched ");
+		double elapsed = (after.getTime()-before.getTime())/1000.0;
+		System.out.println("in "+elapsed+" seconds.");
+		System.out.flush();
+
+		return match;
 	}
 
 	/** Prefer a schematic reference cell because mismatch diagnostics

@@ -64,12 +64,14 @@ public class Port extends NetObject {
 			  wire.nameString());
 	}
 	public String exportNamesString() {
-		String s= "";
+		StringBuffer sb = new StringBuffer();
+		sb.append("{ ");
 		for (Iterator it=names.iterator(); it.hasNext();) {
-			if (s.length()!=0)  s+=" ";
-			s += (String) it.next();
+			if (sb.length()>2)  sb.append(", ");
+			sb.append((String) it.next());
 		}
-		return s;
+		sb.append(" }");
+		return sb.toString();
 	}
 	public String nameString() {return "Port " + exportNamesString();}
 	public Iterator getExportNames() {return names.iterator();}

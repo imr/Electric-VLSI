@@ -107,10 +107,12 @@ public class NccEngine {
 			
 			boolean topoOK = HashCodePartitioning.doYourJob(globals);
 
+			expCheck.suggestMatchForPortsThatDontMatchByName();
+
 			boolean expTopoOK = 
 				expCheck.ensureExportsWithMatchingNamesAreOnEquivalentNets();
-
-			boolean sizesOK = StratCheckSizes.doYourJob(globals);
+            
+            boolean sizesOK = StratCheckSizes.doYourJob(globals);
 			
 			boolean OK = localOK && expNamesOK && topoOK && expTopoOK && sizesOK; 
 			if (!topoOK) StratDebug.doYourJob(globals);

@@ -1393,6 +1393,7 @@ public class EditWindow extends JPanel
 		searchTextArcs(search, caseSensitive, regExp, whatToSearch); 
 		searchTextExports(search, caseSensitive, regExp, whatToSearch);
 		searchTextCellVars(search, caseSensitive, regExp, whatToSearch);
+		if (foundInCell.size()==0) System.out.println("Nothing found");
 		currentFindPosition = -1;
 		currentStringInCell = null;
 	}
