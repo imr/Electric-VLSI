@@ -124,6 +124,7 @@ public class KeyBindingManager {
         //KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventPostProcessor(this);
     }
 
+    private boolean initialized = false;
     /**
      * Initialize: Reads all stored key bindings from preferences
      */
@@ -788,6 +789,8 @@ public class KeyBindingManager {
      * menu has been created.
      */
     public synchronized void restoreSavedBindings() {
+        if (initialized == true) return;
+        initialized = true;
         if (prefs == null) return;
         // try to see if binding saved in preferences for each action
         for (Iterator it = actionMap.entrySet().iterator(); it.hasNext(); ) {
