@@ -21,14 +21,27 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
 */
-//	Updated 4 October 2003
-
 package com.sun.electric.tool.ncc.jemNets;
-import com.sun.electric.tool.ncc.basicA.Messenger;
-import com.sun.electric.tool.ncc.jemNets.Part;
-import com.sun.electric.tool.ncc.jemNets.Wire;
+import com.sun.electric.tool.ncc.basic.*;
+import com.sun.electric.tool.ncc.basic.Messenger;
+import com.sun.electric.tool.generator.layout.LayoutLib;
+import java.util.Set;
+import java.util.HashSet;
 
 public class Resistor extends Part {
+	private static class ResistorPinType implements PinType {
+		public int numConnectionsToPinOfThisType(Part p, Wire w) {
+			int numConns = 0;
+			for (int i=0; i<p.pins.length; i++)   if (p.pins[i]==w) numConns++;
+			return numConns;
+		}
+		public String description() {return "Resistor pin";}
+	}
+	private static final Set PIN_TYPES = new HashSet();
+	static {
+		PIN_TYPES.add(new ResistorPinType());
+	}
+
     // ---------- private data -------------
     private static final int TERM_COEFFS[] = 
     	{Primes.get(1), Primes.get(1)}; //resistors are symmetric
@@ -99,6 +112,8 @@ public class Resistor extends Part {
     }
 
 	public int typeCode() {return Part.RESISTOR;}
+	
+	public Set getPinTypes() {return PIN_TYPES;}
 
     // ---------- printing methods ----------
 
@@ -119,6 +134,5 @@ public class Resistor extends Part {
     	}
     	return s;
     }
-
 }
 

@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: jemini_2.java
+ * File: NccJob.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -23,77 +23,55 @@
 */
 
 package com.sun.electric.tool.ncc;
-
-
-import java.util.*;
-
-import com.sun.electric.database.hierarchy.*;
-import com.sun.electric.database.prototype.*;
-import com.sun.electric.database.topology.*;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ArrayList;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.network.Netlist;
-import com.sun.electric.technology.*;
-import com.sun.electric.tool.io.*;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.WindowContent;
 
-import com.sun.electric.tool.ncc.basicA.Messenger;
+import com.sun.electric.tool.ncc.basic.NccUtils;
+import com.sun.electric.tool.ncc.basic.Messenger;
+import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 
 class NccMismatchException extends RuntimeException {
-	NccMismatchException() {
-		super("NCC mismatch found");	
-	}
+	NccMismatchException() {super("NCC mismatch found");}
 }
 
 class NccBotUp extends HierarchyEnumerator.Visitor {
 	private HashSet enteredCells = new HashSet();
-	private HashSet nccedCells = new HashSet();
+	private static HashSet nccedCells = new HashSet();
 	public boolean enterCell(HierarchyEnumerator.CellInfo info) {
 		Cell cell = info.getCell();
-		if (enteredCells.contains(cell)) {
-			return false;
-		} else {
-			enteredCells.add(cell);
-			return true;
-		}
+		if (enteredCells.contains(cell))  return false;
+
+		enteredCells.add(cell);
+		return true;
 	}
 	public void exitCell(HierarchyEnumerator.CellInfo info) {
 		Cell cell = info.getCell();
 		if (nccedCells.contains(cell)) return;
 		
-		Cell.CellGroup group = cell.getCellGroup();
-		Cell layout=null, schematic=null;
-		for (Iterator it=group.getCells(); it.hasNext();) {
-			Cell c = (Cell) it.next();
-			if (c.getView()==View.SCHEMATIC)   schematic=c;
-			else if (c.getView()==View.LAYOUT) layout=c;
-		}
-		if (layout!=null && schematic!=null) {
-//			String nm = schematic.getName();
-//			if (nm.equals("noise_gen") || // slow
-//				nm.equals("exp_50mV") || 
-//				nm.equals("exp_100mV") ||
-//				nm.equals("exp_150mV") ||
-//				nm.equals("exp_200mV") ||
-//				nm.equals("loco_wires") || // slow
-//				nm.equals("mem_inv_latch_36")) {
-//				System.out.println("Skipping: "+nm);
-//				return;
-//			}
-//			
-			System.out.println("Comparing schematic: "+
-							   schematic.getLibrary().getName() +
-							   ":"+
-			                   schematic.getName()+
-                               " with layout: "+layout.getLibrary().getName()+
-                               ":"+
-                               layout.getName());
-			NccOptions options = new NccOptions();
-			options.verbose = false;
-			boolean ok = NccEngine.compare(schematic, null, layout, null, 
-			                               options);
+		Cell[] schLay = NccUtils.findSchematicAndLayout(cell);
+
+		if (schLay!=null) {
+			Cell schematic = schLay[0];
+			Cell layout = schLay[1];
+			if (nccedCells.contains(schematic)) return;
+
+			if (NccUtils.hasSkipAnnotation(schematic)) return;
+			if (NccUtils.hasSkipAnnotation(layout)) return;
+			
+			boolean ok = NccUtils.nccTwoCells(schematic, layout);
 			if (!ok) throw new NccMismatchException();
 			nccedCells.add(cell);
 		}
@@ -104,148 +82,184 @@ class NccBotUp extends HierarchyEnumerator.Visitor {
 } 
 
 public class NccJob extends Job {
-	private Messenger messenger;
-	private boolean useCurrentCell;
+	private final int numWindows;
+	private final boolean bottomUp;
+	private final boolean hierarchical;
 	
-	private String fullName(Cell cell) {
-		String name = cell.getName();
-		int ver = cell.getVersion();
-		name += ";"+ver;
-		View view = cell.getView();
-		name += "{"+view.getAbbreviation()+"}";
-		return name;
-	}
-	
-	private void compareCellToSelf(Cell cell) {
-		messenger.println("SelfComparison of: "+fullName(cell));
-		NccOptions options = new NccOptions();
-		options.checkSizes = false;
-		options.mergeParallelCells = true;
-
-		List cells = new ArrayList();
-		cells.add(cell);  cells.add(cell);
-		List contexts = new ArrayList();
-		contexts.add(null);  contexts.add(null);
-		List netlists = new ArrayList();
-		Netlist netlist = cell.getNetlist(true);
-		netlists.add(netlist);  netlists.add(netlist);
-
-		boolean matched = NccEngine.compare(cells, contexts, netlists, options);
-		messenger.println("Ncc "+(matched ? "succeeds" : "fails"));
-		messenger.error(!matched, "Ncc fails");
-	}
-	
-	private void doOneCell(String testDir) {
-//		Library lib = 
-//			LayoutLib.openLibForRead("qFourP1", testDir+"qFourP1.elib");
-//		Cell cell = lib.findNodeProto("expTail{lay}");
-		Library lib = 
-			LayoutLib.openLibForRead("rxPads", testDir+"rings.elib");
-		Cell cell = lib.findNodeProto("rxPadArray{lay}");
-		compareCellToSelf(cell);
-	}
-	
-	
-	private void doLib(String testDir, String libName) {
-		Library lib = LayoutLib.openLibForRead(libName, 
-											   testDir+libName+".elib");
-		for (Iterator it=lib.getCells(); it.hasNext();) {
-			Cell cell = (Cell) it.next();
-			View view = cell.getView();
-			if (view==View.ICON)  continue;
-			// galleries
-			if (cell.getName().equals("gallery"))  continue;
-			if (cell.getName().equals("halfKeepIndex"))  continue;
-			if (cell.getName().equals("aScanIndex"))  continue;
-			if (cell.getName().equals("aScanIndexB"))  continue;
-			
-			// paralleled gates need random matching
-			// These were eliminated by the Cell based parallel merging
-//			if (cell.getName().equals("gaspRowC"))  continue;
-//			if (cell.getName().equals("gaspRing1"))  continue;
-//			if (cell.getName().equals("gaspRowD"))  continue;
-
-			// paralleling hidden from my merger!
-			if (cell.getName().equals("ringTx") &&
-				view==View.LAYOUT)  continue;
-				
-			// I don't understand this one				
-			if (cell.getName().equals("rxPadArray") &&
-				view==View.LAYOUT)  continue;
-			
-			compareCellToSelf(cell);									
-		}
-	}
-	
-	private void bottomUp(String testDir, String libName) {
-		Cell rootCell;
-		if (useCurrentCell) {
-			EditWindow wnd = EditWindow.getCurrent();
-			rootCell = wnd.getCell();
-			if (rootCell==null) {
-				System.out.println("Please open the schematic for which you " +
-								   "want to generate gate layouts.");
-			}
+	private boolean bottomUp() {
+		Cell rootCell = NccUtils.getCurrentCell();
+		if (rootCell==null) {
+			System.out.println("Please open the Cell you want to NCC.");
+			return false;
 		} else {
-			Library lib = LayoutLib.openLibForRead(libName, 
-												   testDir+libName+".elib");
-			rootCell = lib.findNodeProto("loco_top{sch}");
-			LayoutLib.error(rootCell==null, "can't find root Cell");
+			try {
+				bottomUp(rootCell);
+			} catch (NccMismatchException e) {
+				System.out.println(e);
+				return false;
+			}
+			return true;
 		}
-		if (rootCell!=null)  bottomUp(rootCell);
 	}
 	
-	public void bottomUp(Cell rootCell) {
+	private void bottomUp(Cell rootCell) {
 		Netlist rootNetlist = rootCell.getNetlist(true);
 		NccBotUp visitor = new NccBotUp();
 		HierarchyEnumerator.enumerateCell(rootCell, null, rootNetlist, visitor);											   
 	}
 	
+	private boolean nccSchAndLayViewsOfCurrentCell() {
+		Cell curCell = NccUtils.getCurrentCell();
+		if (curCell==null) {
+			System.out.println("Please open the Cell you wish to NCC");
+			return false;
+		} 
+		Cell[] schLay = NccUtils.findSchematicAndLayout(curCell);
+		if (schLay==null) {
+			System.out.println("current Cell doesn't have both schematic and layout views");
+			return false;
+		}
+		Cell sch = schLay[0];
+		Cell lay = schLay[1];
+		if (hierarchical) {
+			return NccHierarchical.compareHierarchical(sch, lay);
+		} else {
+			return NccUtils.nccTwoCells(sch, lay);
+		}
+	}
+	
+	private boolean nccCellsFromTwoWindows() {
+		List cells = NccUtils.getCellsFromWindows();
+		if (cells.size()<2) {
+			System.out.println("Two Cells aren't open in two windows");
+			return false;
+		} 
+		Cell c1 = (Cell) cells.get(0);
+		Cell c2 = (Cell) cells.get(1);
+		if (hierarchical) {
+			if (c1.getView()==View.SCHEMATIC) {
+				return NccHierarchical.compareHierarchical(c1, c2);
+			} else if (c2.getView()==View.SCHEMATIC){
+				return NccHierarchical.compareHierarchical(c2, c1);
+			} else {
+				System.out.println("no Schematic found");
+				return false;
+			}
+		} else {
+			return NccUtils.nccTwoCells(c1, c2);
+		}
+	}
+
     public boolean doIt() {
 		System.out.println("Ncc starting");
-		
-		String testDir = "c:/a1/kao/Sun/loco-final/";
-		boolean match = true;
-		try {
-			bottomUp(testDir, "pads2");
-		} catch (NccMismatchException e) {
-			match = false;
-			System.out.println(e);
+	
+		boolean ok;
+		if (bottomUp) {
+			ok = bottomUp();
+		} else if (numWindows==1) {
+			ok = nccSchAndLayViewsOfCurrentCell();
+		} else {
+			ok = nccCellsFromTwoWindows();
 		}
 		
-//		String homeDir;
-//		if (!LayoutLib.osIsWindows()) {
-//			homeDir = "/home/rkao/";
-//		} else {
-//			homeDir = "c:/";
-//		}
-//		String testDir = homeDir+"ivanTest/qFourP1/electric-final/";
-//
-//		doOneCell(testDir);		
-//		//doLib(testDir, "purple");		
-//		//doLib(testDir, "inv");		
-//		//doLib(testDir, "invDrive");		
-//		//doLib(testDir, "psDrive");
-//		//doLib(testDir, "srNand");
-//		//doLib(testDir, "gasp");
-//		//doLib(testDir, "senseAmp");
-//		//doLib(testDir, "scanChainFour");
-//		//doLib(testDir, "latches");
-//		//doLib(testDir, "gasP_COR");
-//		//doLib(testDir, "rings");
-//		//doLib(testDir, "senseAmp");
-//		//doLib(testDir, "senseReg");
-//		//doLib(testDir, "rxPads");
-		
 		System.out.println("Ncc done");
-		return match;
+		return ok;
     }
 
 	// ------------------------- public method --------------------------------
-	public NccJob(boolean useCurrentCell) {
-		super("Run Jemini", User.tool, Job.Type.CHANGE, 
+	public NccJob(int numWindows, boolean bottomUp, boolean hierarchical) {
+		super("Run NCC", User.tool, Job.Type.CHANGE, 
 			  null, null, Job.Priority.ANALYSIS);
-		this.useCurrentCell = useCurrentCell;
+		this.numWindows = numWindows;
+		this.bottomUp = bottomUp;
+		this.hierarchical = hierarchical;
 		startJob();
 	}
 }
+
+//String homeDir;
+//if (!LayoutLib.osIsWindows()) {
+//	homeDir = "/home/rkao/";
+//} else {
+//	homeDir = "c:/";
+//}
+//String testDir = homeDir+"ivanTest/qFourP1/electric-final/";
+//
+//doOneCell(testDir);		
+////doLib(testDir, "purple");		
+////doLib(testDir, "inv");		
+////doLib(testDir, "invDrive");		
+////doLib(testDir, "psDrive");
+////doLib(testDir, "srNand");
+////doLib(testDir, "gasp");
+////doLib(testDir, "senseAmp");
+////doLib(testDir, "scanChainFour");
+////doLib(testDir, "latches");
+////doLib(testDir, "gasP_COR");
+////doLib(testDir, "rings");
+////doLib(testDir, "senseAmp");
+////doLib(testDir, "senseReg");
+////doLib(testDir, "rxPads");
+
+
+//private void compareCellToSelf(Cell cell) {
+//	  messenger.println("SelfComparison of: "+fullName(cell));
+//	  NccOptions options = new NccOptions();
+//	  options.checkSizes = false;
+//	  options.mergeParallelCells = true;
+//
+//	  List cells = new ArrayList();
+//	  cells.add(cell);  cells.add(cell);
+//	  List contexts = new ArrayList();
+//	  contexts.add(null);  contexts.add(null);
+//	  List netlists = new ArrayList();
+//	  Netlist netlist = cell.getNetlist(true);
+//	  netlists.add(netlist);  netlists.add(netlist);
+//
+//	  boolean matched = NccEngine.compare(cells, contexts, netlists, options);
+//	  messenger.println("Ncc "+(matched ? "succeeds" : "fails"));
+//	  messenger.error(!matched, "Ncc fails");
+//}
+//	
+//private void doOneCell(String testDir) {
+////		Library lib = 
+////			LayoutLib.openLibForRead("qFourP1", testDir+"qFourP1.elib");
+////		Cell cell = lib.findNodeProto("expTail{lay}");
+//	  Library lib = 
+//		  LayoutLib.openLibForRead("rxPads", testDir+"rings.elib");
+//	  Cell cell = lib.findNodeProto("rxPadArray{lay}");
+//	  compareCellToSelf(cell);
+//}
+//	
+//	
+//private void doLib(String testDir, String libName) {
+//	  Library lib = LayoutLib.openLibForRead(libName, 
+//											 testDir+libName+".elib");
+//	  for (Iterator it=lib.getCells(); it.hasNext();) {
+//		  Cell cell = (Cell) it.next();
+//		  View view = cell.getView();
+//		  if (view==View.ICON)  continue;
+//		  // galleries
+//		  if (cell.getName().equals("gallery"))  continue;
+//		  if (cell.getName().equals("halfKeepIndex"))  continue;
+//		  if (cell.getName().equals("aScanIndex"))  continue;
+//		  if (cell.getName().equals("aScanIndexB"))  continue;
+//			
+//		  // paralleled gates need random matching
+//		  // These were eliminated by the Cell based parallel merging
+////			if (cell.getName().equals("gaspRowC"))  continue;
+////			if (cell.getName().equals("gaspRing1"))  continue;
+////			if (cell.getName().equals("gaspRowD"))  continue;
+//
+//		  // paralleling hidden from my merger!
+//		  if (cell.getName().equals("ringTx") &&
+//			  view==View.LAYOUT)  continue;
+//				
+//		  // I don't understand this one				
+//		  if (cell.getName().equals("rxPadArray") &&
+//			  view==View.LAYOUT)  continue;
+//			
+//		  compareCellToSelf(cell);									
+//	  }
+//}
+

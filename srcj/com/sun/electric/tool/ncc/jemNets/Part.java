@@ -23,10 +23,10 @@
 */
 package com.sun.electric.tool.ncc.jemNets;
 import com.sun.electric.tool.ncc.NccGlobals;
-import com.sun.electric.tool.ncc.basicA.Messenger;
+import com.sun.electric.tool.ncc.basic.Messenger;
 import com.sun.electric.tool.ncc.trees.NetObject;
-import com.sun.electric.tool.ncc.trees.JemCircuit;
-import com.sun.electric.tool.ncc.strategy.JemStrat;
+import com.sun.electric.tool.ncc.trees.Circuit;
+import com.sun.electric.tool.ncc.strategy.Strategy;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -43,6 +43,8 @@ import java.util.Set;
 public abstract class Part extends NetObject {
 	protected static final int RESISTOR = 0;
 	protected static final int TRANSISTOR = 1;
+	protected static final int SUBCIRCUIT = 2;
+	protected static final int TYPE_FIELD_WIDTH = 4;
 	
     // ---------- private data -------------
     protected Wire[] pins;
@@ -128,7 +130,7 @@ public abstract class Part extends NetObject {
 			Wire w= pins[i];
 			if(w!=null)	w.disconnect(this);
 		}
-		JemCircuit parent= (JemCircuit)getParent();
+		Circuit parent= (Circuit)getParent();
 		parent.remove(this);
     }
     
@@ -177,6 +179,10 @@ public abstract class Part extends NetObject {
 	 */
 	protected abstract boolean isThisGate(int x);
 	
+	/** Return a set of all the different pin types for this part */
+	public abstract Set getPinTypes();
+	
+	/** comma separated list of pins connected to w */
 	public abstract String connectionString(Wire w);
 
 	public Integer computeHashCode(){
@@ -212,7 +218,7 @@ public abstract class Part extends NetObject {
 	 * complain if it's wrong
 	 * @return true if all OK, false if there's a problem
 	 */
-	public void checkMe(JemCircuit parent){
+	public void checkMe(Circuit parent){
 		error(parent!=getParent(), "wrong parent");
 		for(int i=0; i<pins.length; i++){
 		    Wire w= pins[i];
@@ -224,7 +230,7 @@ public abstract class Part extends NetObject {
 	/** 
 	 * Get the number of distinct Wires this part is connected to.
 	 * For example, if all pins are connected to the same Wire then return 1.
-	 * This method is only used for sanity checking by JemStratCount.
+	 * This method is only used for sanity checking by StratCount.
 	 * @return the number of distinct Wires to which this Part is connected 
 	 */
 	public int getNumWiresConnected() {

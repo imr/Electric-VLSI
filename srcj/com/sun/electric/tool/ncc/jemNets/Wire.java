@@ -22,11 +22,10 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.jemNets;
-import com.sun.electric.tool.ncc.basicA.Messenger;
+import com.sun.electric.tool.ncc.basic.Messenger;
 import com.sun.electric.tool.ncc.trees.NetObject;
-//import com.sun.electric.tool.ncc.trees.JemTreeGroup;
 import com.sun.electric.tool.ncc.jemNets.Transistor;
-import com.sun.electric.tool.ncc.trees.JemCircuit;
+import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.NccGlobals;
 
 import java.util.Iterator;
@@ -43,8 +42,6 @@ public class Wire extends NetObject{
     private Set content = new HashSet();
 	private Port port;  	  // usually null because most Wires have no Port
 	private boolean isGlobal; // in Electric this is a Global wire 	
-
-    // ---------- private methods ----------
 
     // ---------- public methods ----------
 
@@ -130,7 +127,7 @@ public class Wire extends NetObject{
 	 * connection to see if it points back
 	 * @param parent the wire's parent
 	 */
-    public void checkMe(JemCircuit parent){
+    public void checkMe(Circuit parent){
     	error(getParent()!=parent, "wrong parent");
         for (Iterator it=getParts(); it.hasNext();) {
             NetObject nn=(NetObject)it.next();

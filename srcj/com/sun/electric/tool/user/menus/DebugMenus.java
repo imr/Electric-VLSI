@@ -95,20 +95,35 @@ public class DebugMenus {
 
         MenuBar.Menu russMenu = new MenuBar.Menu("Russell", 'R');
         menuBar.add(russMenu);
-        russMenu.addMenuItem("Gate Generator Regression", null,
-                             new ActionListener() {
+        russMenu.addMenuItem("NCC schematic and layout views of current cell", null, new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                new com.sun.electric.tool.generator.layout.GateRegression();
+                new com.sun.electric.tool.ncc.NccJob(1, false, false);
             }
         });
-        russMenu.addMenuItem("Jemini", null, new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                new com.sun.electric.tool.ncc.NccJob(false);
-            }
-        });
-		russMenu.addMenuItem("run Jemini on current cell", null, new ActionListener() {
+		russMenu.addMenuItem("NCC all Cells in hierarchy rooted at current cell", null, new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				new com.sun.electric.tool.ncc.NccJob(true);
+				new com.sun.electric.tool.ncc.NccJob(1, true, false);
+			}
+		});
+		russMenu.addMenuItem("NCC two cells from open windows", null, new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				new com.sun.electric.tool.ncc.NccJob(2, false, false);
+			}
+		});
+		russMenu.addMenuItem("hierarchical NCC schematic and layout views of current cell", null, new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				new com.sun.electric.tool.ncc.NccJob(1, false, true);
+			}
+		});
+		russMenu.addMenuItem("List NCC annotations in current Cell and its descendents", null, new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				new com.sun.electric.tool.ncc.ListNccAnnotations();
+			}
+		});
+		russMenu.addMenuItem("Gate Generator Regression", null,
+							 new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				new com.sun.electric.tool.generator.layout.GateRegression();
 			}
 		});
         russMenu.addMenuItem("create flat netlists for Ivan", null, new ActionListener() {

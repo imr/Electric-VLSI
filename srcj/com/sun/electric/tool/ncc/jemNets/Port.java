@@ -22,9 +22,9 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.jemNets;
-import com.sun.electric.tool.ncc.basicA.Messenger;
+import com.sun.electric.tool.ncc.basic.Messenger;
 import com.sun.electric.tool.ncc.NccGlobals;
-import com.sun.electric.tool.ncc.trees.JemCircuit;
+import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.NetObject;
 
 import java.util.HashMap;
@@ -56,7 +56,7 @@ public class Port extends NetObject {
 
     public String connectionString(int n){return "is on Wire: "+wire.getName();}
 
-	public void checkMe(JemCircuit parent){
+	public void checkMe(Circuit parent){
 		error(parent!=getParent(), "wrong parent");
 		error(wire==null, nameString() + " has null connection");
 		error(!wire.touches(this),

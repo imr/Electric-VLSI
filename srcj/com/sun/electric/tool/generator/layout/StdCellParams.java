@@ -355,9 +355,9 @@ public class StdCellParams {
 
 	/** Turn on Network Consistency Checking after each gate is generated.
 	 *<p> This just checks topology and ignores sizes. */
-	public void enableNCC(String schemLibFileNm) {
-		schemLib = LayoutLib.openLibForRead(schemLibFileNm, schemLibFileNm);
-		error(schemLib==null, "can't open schematic library: "+schemLibFileNm);
+	public void enableNCC(String libName) {
+		schemLib = Library.findLibrary(libName);
+		error(schemLib==null, "Please open the PurpleFour Library");
 	}
 
 	public void setVddExportName(String vddNm) {vddExportName=vddNm;}
@@ -839,7 +839,7 @@ public class StdCellParams {
 //		options.verboseGraphics = false;
 
 		boolean match =
-			NccEngine.compare(schem, null, layout, null, options);
+			NccEngine.compare(schem, null, layout, null, null, options);
 		error(!match, "layout not topologically identical to schematic!");
 	}
 

@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: NccOptions.java
+ * File: Primes.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -20,24 +20,42 @@
  * along with Electric(tm); see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
+*/
+
+package com.sun.electric.tool.ncc.basic;
+
+import java.util.ArrayList;
+
+/**
+ * Generate Prime numbers 
  */
-package com.sun.electric.tool.ncc;
+public class Primes {
+	private static int trial = 3;
+	private static ArrayList primes = new ArrayList();
+	static {
+		primes.add(new Integer(2));
+	}
+	private static void findNextPrime() {
+		while (true) {
+			for (int i=0; i<primes.size(); i++) {
+				int prime = ((Integer)primes.get(i)).intValue();
+				int r = trial % prime;
+				if (r==0) break;	// trial not prime
+				int q = trial / prime;
+				// Knuth. Fundamental Algorithms. pp 142
+				if (q<=prime) {
+					primes.add(new Integer(trial));
+					//System.out.println("next prime: "+trial);
+					trial += 2;
+					return;
+				}
+			}
+			trial += 2;
+		}
+	}
+	public static int get(int nth) {
+		while (primes.size()-1<nth) findNextPrime();
 
-import java.io.OutputStream;
-
-import com.sun.electric.tool.ncc.basic.Messenger;
-
-public class NccOptions {
-	/** enable size checking */
-	public boolean checkSizes = false;
-
-	/** merge parallel Cells into one */
-	public boolean mergeParallelCells;
-
-	/** print lots of progress messages */
-	public boolean verbose = true;
-	
-	/** for hierarchical comparisons try to continue comparing
-	 * higher up in the hierarchy even if this Cell doesn't match */
-	public boolean continueAfterMismatch = false;
+		return ((Integer) primes.get(nth)).intValue();
+	}
 }

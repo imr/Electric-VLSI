@@ -22,7 +22,6 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.ncc.jemNets;
-
 import java.awt.Dimension;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -39,7 +38,6 @@ import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.Collection;
 import java.util.Set;
-
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -64,66 +62,28 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.database.text.Name;
-
-import com.sun.electric.tool.ncc.basicA.Messenger;
-import com.sun.electric.tool.ncc.basicA.TransitiveRelation;
-import com.sun.electric.tool.ncc.jemNets.Wire;
+import com.sun.electric.tool.ncc.basic.Messenger;
+import com.sun.electric.tool.ncc.basic.NccUtils;
+import com.sun.electric.tool.ncc.basic.TransitiveRelation;
+import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
+import com.sun.electric.tool.ncc.processing.HierarchyInfo;
+import com.sun.electric.tool.ncc.processing.SubcircuitInfo;
 
 /**
  * NCC's representation of a netlist.
  */
 public class NccNetlist {
-	private NccGlobals globals;
+	private final NccGlobals globals;
+	private final Cell rootCell;
 	private ArrayList wires, parts, ports;
-	private String rootCellName;
-	private String skipNccReason;
-	private List exportsConnectedAnnot = new ArrayList();
-
-	private void processSkipAnnotation(String note) {
-		skipNccReason = "";
-		int sp = note.indexOf(" ");
-		if (sp!=-1) skipNccReason = note.substring(sp);
-	}
-	private void doAnnotation(String note) {
-		if (note.startsWith("exportsConnectedByParent")) {
-			exportsConnectedAnnot.add(note);
-		} else if (note.startsWith("skipNCC")) {
-			processSkipAnnotation(note);
-		} else {
-			System.out.println("Unrecognized NCC annotation: "+note);
-		}
-	}
-	private void readCellAnnotations(Cell rootCell) {
-		Variable nccVar = rootCell.getVar("ATTR_NCC");
-		if (nccVar==null) return;
-		Object annotation = nccVar.getObject();
-		
-		if (annotation instanceof String) {
-			doAnnotation((String) annotation);
-		} else if (annotation instanceof String[]) {
-			String[] ss = (String[]) annotation;
-			for (int i=0; i<ss.length; i++)  doAnnotation(ss[i]);
-		} else {
-			System.out.println("ignoring bad NCC annotation: "+annotation+
-							   " on Cell: "+rootCell.getName());
-		}
-	}
 
 	// ---------------------------- public methods ---------------------------
 	public NccNetlist(Cell root, VarContext context, Netlist netlist, 
-					  NccGlobals globals) {
+					  HierarchyInfo hierInfo, NccGlobals globals) {
 		this.globals = globals;
-		
-		String libNm = root.getLibrary().getName();
-		String cellNm = root.getName();
-		String viewNm = root.getView().getAbbreviation();
-		rootCellName = libNm+":"+cellNm+"{"+viewNm+"}";
+		this.rootCell = root; 
 
-		readCellAnnotations(root);
-		
-		if (skipNccReason!=null) return;
-
-		Visitor v = new Visitor(globals, exportsConnectedAnnot);
+		Visitor v = new Visitor(globals, hierInfo);
 		HierarchyEnumerator.enumerateCell(root, context, netlist, v);
 		wires = v.getWireList();
 		parts = v.getPartList();
@@ -132,8 +92,7 @@ public class NccNetlist {
 	public ArrayList getWireArray() {return wires;}
 	public ArrayList getPartArray() {return parts;}
 	public ArrayList getPortArray() {return ports;}
-	public String getRootCellName() {return rootCellName;}
-	public String getSkipNccReason() {return skipNccReason;}
+	public Cell getRootCell() {return rootCell;}
 }
 
 /** map from netID to NCC Wire */
@@ -292,11 +251,16 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	private NccGlobals globals;
 	private int depth = 0;
 
-	/** map from netID to Wire */	 private Wires wires;
-	/** all Parts in the net list */ private ArrayList parts = new ArrayList();
-	/** all ports in the net list */ private ArrayList ports = new ArrayList();
-	/** Exports connected by parent*/private List exportsConnAnnots = 
-	                                                           new ArrayList();
+	/** map from netID to Wire */	 
+	private Wires wires;
+	/** all Parts in the net list */ 
+	private final ArrayList parts = new ArrayList();
+	/** all ports in the net list */ 
+	private final ArrayList ports = new ArrayList();
+	/** NCC annotations for root Cell */   
+	private NccCellAnnotations rootAnnotations;
+	/** treat these Cells as primitives */
+	private final HierarchyInfo hierarchicalCompareInfo;
 	
 	// --------------------------- private methods ----------------------------
 	private void error(boolean pred, String msg) {globals.error(pred, msg);}
@@ -304,7 +268,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		for (int i=0; i<depth; i++)	 globals.print(" ");
 	}
 	private void addMatchingNetIDs(List netIDs, 
-	                               String pattern, 
+	                               NccCellAnnotations.NamePattern pattern, 
 								   HierarchyEnumerator.CellInfo rootInfo) {
 		Cell rootCell = rootInfo.getCell();  								 
 		for (Iterator it=rootCell.getPorts(); it.hasNext();) {
@@ -312,18 +276,18 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			int[] expNetIDs = rootInfo.getExportNetIDs(e);
 			for (int i=0; i<expNetIDs.length; i++) {
 				String expName = e.getNameKey().subname(i).toString();
-				if (expName.equals(pattern)) netIDs.add(new Integer(expNetIDs[i]));
+				if (pattern.matches(expName)) netIDs.add(new Integer(expNetIDs[i]));
 			}
 		}
 	}
 	private void doExportsConnAnnot(TransitiveRelation mergedNetIDs,
-	                                String note, 
+	                                List connected, 
 	            			        HierarchyEnumerator.CellInfo rootInfo) {
-		StringTokenizer st = new StringTokenizer(note);
-		st.nextToken();  // skip the keyword
 		List netIDs = new ArrayList();
-		while (st.hasMoreTokens()) {
-			addMatchingNetIDs(netIDs, st.nextToken(), rootInfo);
+		for (Iterator it=connected.iterator(); it.hasNext();) {
+			addMatchingNetIDs(netIDs, 
+			                  (NccCellAnnotations.NamePattern) it.next(), 
+			                  rootInfo);
 		}
 		for (int i=1; i<netIDs.size(); i++) {
 			mergedNetIDs.theseAreRelated(netIDs.get(0), netIDs.get(i));
@@ -331,8 +295,10 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	}
 	private void doExportsConnAnnots(TransitiveRelation mergedNetIDs,
 	                                 HierarchyEnumerator.CellInfo rootInfo) {
-		for (Iterator it=exportsConnAnnots.iterator(); it.hasNext();) {
-			doExportsConnAnnot(mergedNetIDs, (String)it.next(), rootInfo);					                                     
+		Cell root = rootInfo.getCell();	                                 	
+		if (rootAnnotations==null) return;
+		for (Iterator it=rootAnnotations.getExportsConnected(); it.hasNext();) {
+			doExportsConnAnnot(mergedNetIDs, (List)it.next(), rootInfo);					                                     
 		}
 	}
 	private void initWires(HierarchyEnumerator.CellInfo rootInfo) {
@@ -360,7 +326,8 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			Global global = globals.get(i);
 			String globName = global.getName();
 			int netIndex = rootNetlist.getNetIndex(global);
-			Wire wire = wires.get(netIndex, rootInfo);
+			int netID = rootInfo.getNetID(netIndex);
+			Wire wire = wires.get(netID, rootInfo);
 			portSet.add(wire.addExportName(globName));
 		}
 		
@@ -368,12 +335,9 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			ports.add(it.next());
 	}
 	
-	
-	/** 
-	 * Get the Wire that's attached to port pi. The Nodable must be an instance
+	/** Get the Wire that's attached to port pi. The Nodable must be an instance
 	 * of a PrimitiveNode. 
-	 * @return the attached Wire.
-	 */
+	 * @return the attached Wire. */
 	private Wire getWireForPortInst(PortInst pi, 
 					     		    HierarchyEnumerator.CellInfo info) {
 		NodeInst ni = pi.getNodeInst();
@@ -428,6 +392,60 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		}
 	}
 	
+	private void addToPins(Wire[] pins, int pinNdx, Wire w) {
+		if (pins[pinNdx]==null) {
+			pins[pinNdx] = w;
+		} else {
+			globals.error(pins[pinNdx]!=w, 
+						  "exports that should be connected aren't");
+		}
+	}
+	
+	private void doSubcircuit(SubcircuitInfo subcktInfo, NccCellInfo info) {
+		Cell cell = info.getCell();
+		Wire[] pins = new Wire[subcktInfo.numPorts()];
+
+		for (Iterator it=cell.getPorts(); it.hasNext();) {
+			Export e = (Export) it.next();
+			int[] expNetIDs = info.getExportNetIDs(e);
+			for (int i=0; i<expNetIDs.length; i++) {
+				Wire wire = wires.get(expNetIDs[i], info);
+				String expName = e.getNameKey().subname(i).toString();
+				int pinNdx = subcktInfo.getPortIndex(expName);
+				addToPins(pins, pinNdx, wire);
+			}
+		}
+		// connect pins corresponding to Exports created for global 
+		// schematic signals
+		Netlist netlist = info.getNetlist();
+		Global.Set globalNets = netlist.getGlobals();
+		for (int i=0; i<globalNets.size(); i++) {
+			Global global = globalNets.get(i);
+			String globalName = global.getName();
+			int pinNdx = subcktInfo.getPortIndex(globalName);
+			int netIndex = netlist.getNetIndex(global);
+			int netID = info.getNetID(netIndex);
+			Wire wire = wires.get(netID, info);
+			addToPins(pins, pinNdx, wire);
+		}
+		for (int i=0; i<pins.length; i++) 
+			globals.error(pins[i]==null, "disconnected subcircuit pins!");
+
+		String instName = info.getParentInst().getName();
+		parts.add(new Subcircuit(instName, subcktInfo, pins));
+	}
+	/** Check to see if the current Cell is being instantiated by the
+	 * root Cell and if an annotation in the root Cell says that I should
+	 * force the flattenning of that instance */
+	private boolean annotationForceFlatten(NccCellInfo info) {
+		if (info.isRootCell()) return false;
+		NccCellInfo parentInfo = (NccCellInfo) info.getParentInfo();
+		if (!parentInfo.isRootCell()) return false;
+		Nodable no = info.getParentInst();
+		String instName = no.getName();
+		if (rootAnnotations==null) return false;
+		return rootAnnotations.flattenInstance(instName);
+	}
 	
 	// --------------------------- public methods -----------------------------
 	public HierarchyEnumerator.CellInfo newCellInfo() {
@@ -442,11 +460,29 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			depth++;
 		}
 		if (info.isRootCell()) {
+			rootAnnotations = NccCellAnnotations.getAnnotations(info.getCell());
 			initWires(info);
 			createPortsFromExports(info);
-		} 
-		if (globals.getOptions().mergeParallelCells)  
+		} else {
+			// Subtle! Suppose mux21{sch}, mux21{lay}, and mux21_r{lay} are in 
+			// the same (simulated) CellGroup. Then we will first compare 
+			// mux21{sch} with mux21{lay}, and then with mux21_r{lay}. For the 
+			// second comparison hierarchicalCompareInfo will tell us to treat 
+			// mux21{sch} as a primitive. Ignore it. We NEVER want treat
+			// the root Cell as a primitive.
+			Cell cell = info.getCell();
+			if (!annotationForceFlatten(info) &&
+			    hierarchicalCompareInfo!=null && 
+				hierarchicalCompareInfo.treatAsPrimitive(cell)) {
+				SubcircuitInfo subcktInfo = 
+					hierarchicalCompareInfo.getSubcircuitInfo(cell);
+				doSubcircuit(subcktInfo, info);
+				return false;			
+			} 
+		}
+		if (globals.getOptions().mergeParallelCells) {  
 			info.recordMergeParallelInfo();
+		}
 		return true;
 	}
 
@@ -466,20 +502,17 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			return false; 
 		} else {
 			error(!(np instanceof Cell), "expecting Cell");
-			boolean expand = !info.isDiscardable(no);
-//			if (!expand) {
-//				globals.println("don't expand: "+
-//					info.getContext().getInstPath("/")+"/"+no.getName());
-//			}
-			return expand;
+			boolean paralleled = info.isDiscardable(no);
+			return !paralleled;
 		}
 	}
 	public ArrayList getWireList() {return wires.getWireArray();}
 	public ArrayList getPartList() {return parts;}
 	public ArrayList getPortList() {return ports;}
 	
-	public Visitor(NccGlobals globals, List exportsConnAnnots) {
-		this.globals=globals;
-		this.exportsConnAnnots = exportsConnAnnots;
+	public Visitor(NccGlobals globals, 
+	               HierarchyInfo hierarchicalCompareInfo) {
+		this.globals = globals;
+		this.hierarchicalCompareInfo = hierarchicalCompareInfo;
 	}
 }

@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: JemManager.java
+ * File: NccEngine.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -28,37 +28,43 @@
  * the User NCC options directly.  This allows programs to call the 
  * engine without becoming involved with how User's options are stored.
  */
-
 package com.sun.electric.tool.ncc;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Iterator;
+import java.io.File;
+import java.io.FileOutputStream;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.generator.layout.LayoutLib; 
 import com.sun.electric.database.hierarchy.Cell;
-
 import com.sun.electric.tool.ncc.lists.*;
-import com.sun.electric.tool.ncc.trees.JemCircuit;
-import com.sun.electric.tool.ncc.trees.JemEquivRecord;
+import com.sun.electric.tool.ncc.trees.Circuit;
+import com.sun.electric.tool.ncc.trees.EquivRecord;
 import com.sun.electric.tool.ncc.jemNets.NccNetlist;
-import com.sun.electric.tool.ncc.basicA.Messenger;
-import com.sun.electric.tool.ncc.strategy.JemStratLocal;
-import com.sun.electric.tool.ncc.strategy.JemStratVariable;
-import com.sun.electric.tool.ncc.strategy.JemStratDebug;
-import com.sun.electric.tool.ncc.strategy.JemStratResult;
-import com.sun.electric.tool.ncc.strategy.JemExportChecker;
-
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.io.File;
-import java.io.FileOutputStream;
+import com.sun.electric.tool.ncc.basic.*;
+import com.sun.electric.tool.ncc.basic.Messenger;
+import com.sun.electric.tool.ncc.processing.ExportChecker;
+import com.sun.electric.tool.ncc.processing.HierarchyInfo;
+import com.sun.electric.tool.ncc.processing.HashCodePartitioning;
+import com.sun.electric.tool.ncc.processing.LocalPartitioning;
+import com.sun.electric.tool.ncc.processing.SubcircuitInfo;
+import com.sun.electric.tool.ncc.processing.SerialParallelMerge;
+import com.sun.electric.tool.ncc.strategy.StratDebug;
+import com.sun.electric.tool.ncc.strategy.StratResult;
+import com.sun.electric.tool.ncc.strategy.StratCount;
+import com.sun.electric.tool.ncc.strategy.StratCheck;
 
 public class NccEngine {
 	// ------------------------------ private data ----------------------------
 	private NccGlobals globals;
-	private boolean matched = true;
 
 	// ----------------------- private methods --------------------------------
-	private List buildNccNetlists(List cells, List contexts, List netlists) {
+	private List buildNccNetlists(List cells, List contexts, List netlists, 
+	                              HierarchyInfo hierInfo) {
 		globals.error(cells.size()!=contexts.size() || 
 					  contexts.size()!=netlists.size(),
 					  "number of cells, contexts, and netlists must be the same");										
@@ -70,57 +76,71 @@ public class NccEngine {
 			Cell cell = (Cell) itCell.next();
 			VarContext context = (VarContext) itCon.next();
 			Netlist netlist = (Netlist) itNet.next();
-			NccNetlist nccList = new NccNetlist(cell, context, netlist, globals);
-			if (nccList.getSkipNccReason()!=null) {
-				System.out.println("Skip NCC of "+
-								   nccList.getRootCellName()+
-				                   " because "+nccList.getSkipNccReason());
-				return null;
-			}
+			NccNetlist nccList = 
+				new NccNetlist(cell, context, netlist, hierInfo, globals);
 			nccLists.add(nccList);
 		}
 		return nccLists;
 	}
 	
-	private boolean designsMatch() {
+	private boolean designsMatch(HierarchyInfo hierInfo) {
 		if (globals.getRoot()==null) {
 			globals.println("empty cell");
 			return true;
 		} else {
-			boolean checkExports = globals.getOptions().checkExports;
-			JemExportChecker expCheck = checkExports ? new JemExportChecker(globals) : null;
+			ExportChecker expCheck =  new ExportChecker(globals);
+			boolean expNamesOK = expCheck.matchByName();
 
-			if (!JemStratLocal.doYourJob(globals)) return false;
-			boolean same = JemStratVariable.doYourJob(globals);
-			if (checkExports)  
-				same &= expCheck.ensureExportsWithMatchingNamesAreOnEquivalentNets();
+			expCheck.saveInfoNeededToMakeMeASubcircuit(hierInfo);
+			
+			EquivRecord root = globals.getRoot();
+			StratCheck.doYourJob(root, globals);
+			StratCount.doYourJob(root, globals);
 
-			if (!same) JemStratDebug.doYourJob(globals);
-			return same;
+			SerialParallelMerge.doYourJob(globals);
+			StratCheck.doYourJob(root, globals);
+			StratCount.doYourJob(root, globals);
+
+			boolean localOK = LocalPartitioning.doYourJob(globals); 
+			if (!localOK) return false;
+			
+			boolean topoOK = HashCodePartitioning.doYourJob(globals);
+
+			boolean expTopoOK = 
+				expCheck.ensureExportsWithMatchingNamesAreOnEquivalentNets();
+
+			boolean OK = localOK && expNamesOK && topoOK && expTopoOK; 
+			if (!topoOK) StratDebug.doYourJob(globals);
+			return OK;
 		}
 	}
 	
-	private NccEngine(List cells, List contexts, List netlists,
-					  NccOptions options) {
+	private boolean areEquivalent(List cells, List contexts, 
+					  		      List netlists, HierarchyInfo hierInfo, 
+					  		      NccOptions options) {
 		globals = new NccGlobals(options);
 		
-		globals.print("****************************************");					  		
-		globals.println("****************************************");					  		
+		globals.println("****************************************"+					  		
+		                "****************************************");					  		
 
-		List nccNetlists = buildNccNetlists(cells, contexts, netlists);
-		if (nccNetlists!=null) {
-			globals.setInitialNetlists(nccNetlists);
-			matched = designsMatch();
+		List nccNetlists = 
+			buildNccNetlists(cells, contexts, netlists, hierInfo);
+		if (nccNetlists==null) {
 		}
-		
-		globals.print("****************************************");					  		
-		globals.println("****************************************");					  		
+		globals.setInitialNetlists(nccNetlists);
+		boolean match = designsMatch(hierInfo);
+
+		globals.println("****************************************"+					  		
+		                "****************************************");
+		return match;		              					  				
 	}
 
 	// -------------------------- public methods ------------------------------
 	/** 
 	 * Check to see if all cells are electrically equivalent.  Note that
 	 * the NCC engine can compare any number of Cells at the same time.
+	 * @param hierCompInfo Information needed to perform hierarchical
+	 * netlist comparison. For flat comparisons pass null.
 	 * @param cells a list of cells to compare.
 	 * @param contexts a list of VarContexts for the corresponding Cell. The
 	 * VarContxt is used to evaluate schematic 
@@ -129,15 +149,19 @@ public class NccEngine {
 	 * the caller wants a netlist with a particular model of connectivity, for
 	 * example treat resistors as shorted. Use null if you want to
 	 * use the Cell's current netlist. 
+	 * @param options NCC options
 	 */
 	public static boolean compare(List cells, List contexts, List netlists,
-							      NccOptions options) {
-		NccEngine ncc = new NccEngine(cells, contexts, netlists, options);
-		return ncc.matched;
+	                              HierarchyInfo hierCompInfo, 
+	                              NccOptions options) {
+		NccEngine ncc = new NccEngine();
+		return ncc.areEquivalent(cells, contexts, netlists, hierCompInfo, 
+		                         options);
 	}
 	/** compare two Cells starting at their roots */
 	public static boolean compare(Cell cell1, VarContext context1, 
 	    						  Cell cell2, VarContext context2, 
+	    						  HierarchyInfo hierCompInfo,
 	    						  NccOptions options) {
 		ArrayList cells = new ArrayList();
 		cells.add(cell1);
@@ -149,6 +173,6 @@ public class NccEngine {
 		netlists.add(cell1.getNetlist(true));
 		netlists.add(cell2.getNetlist(true));
 		
-		return compare(cells, contexts, netlists, options);
+		return compare(cells, contexts, netlists, hierCompInfo, options);
 	}
 }

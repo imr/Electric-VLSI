@@ -27,7 +27,7 @@
 package com.sun.electric.tool.ncc.trees;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.NccGlobals;
-import com.sun.electric.tool.ncc.basicA.Messenger;
+import com.sun.electric.tool.ncc.basic.Messenger;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -52,7 +52,7 @@ public abstract class NetObject {
 
     // ---------- private data -------------
     private String myName;
-    private JemCircuit myParent;
+    private Circuit myParent;
 	
     /** 
 	 * Get an identifying String for this NewObject.
@@ -86,7 +86,7 @@ public abstract class NetObject {
     /** 
 	 * Make sure this object is OK.
 	 */
-    public abstract void checkMe(JemCircuit parent);
+    public abstract void checkMe(Circuit parent);
 	
     // ---------- public methods ----------
 
@@ -94,17 +94,14 @@ public abstract class NetObject {
 
     /** 
 	 * getCode returns an integer hash code for this NetObject.
-	 * @return the integer hash code from this NetObjec's JemEquivRecord.
+	 * @return the integer hash code from this NetObjec's EquivRecord.
 	 */
     public int getCode(){return myParent.getCode();} //get my group code
 
-    /** 
-	 * getParent fetches the next JemTree towards the root.
-	 * @return the JemTree parent of this instance, if any.
-	 */
-    public JemCircuit getParent(){return myParent;}
+    /**	 @return the Circuit containing this NetObject */
+    public Circuit getParent(){return myParent;}
 
-	public void setParent(JemCircuit x){myParent=x;}
+	public void setParent(Circuit x){myParent=x;}
 
     /** 
 	 * toString returns the name and connections of this NetObject as
@@ -112,7 +109,7 @@ public abstract class NetObject {
 	 * @return a String with name and connections
 	 */
     public String toString(){
-        return (nameString() + ": " + connectionString(12));
+        return (nameString() + ": " + connectionString(100));
     }
 
     public abstract void printMe(int i, Messenger messenger); //i is the size limit

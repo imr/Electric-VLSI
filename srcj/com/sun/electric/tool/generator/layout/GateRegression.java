@@ -141,22 +141,12 @@ public class GateRegression extends Job {
 
 	public boolean doIt() {
 		System.out.println("begin execution of Gates");
-		boolean nfsWedged = true;
-		String homeDir;
-		if (!osIsWindows()) {
-			homeDir = "/home/rkao/";
-		} else if (nfsWedged) {
-			homeDir = "c:/a1/kao/Sun/";
-		} else {
-			homeDir = "x:/";
-		}
 
 		Library scratchLib = 
-		  LayoutLib.openLibForWrite("scratch", homeDir+"scratch");
+		  LayoutLib.openLibForWrite("scratch", "scratch");
 
 		StdCellParams stdCell = new StdCellParams(scratchLib);
-		stdCell.enableNCC(
-			homeDir + "loco-final/purpleFour.elib");
+		stdCell.enableNCC("purpleFour");
 		stdCell.setSizeQuantizationError(0.05);
 		stdCell.setMaxMosWidth(1000);
 		stdCell.setVddY(21);
