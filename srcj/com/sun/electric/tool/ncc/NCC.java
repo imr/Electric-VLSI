@@ -62,12 +62,10 @@ public class NCC {
 	private static Pref checkSizes = 
 		Pref.makeBooleanPref("CheckSizes", NCC.tool.prefs, false);
 	public static boolean getCheckSizes() {
-		//return checkSizes.getBoolean(); 
-		return false;
+		return checkSizes.getBoolean(); 
 	}
 	public static void setCheckSizes(boolean on) { 
-		//checkSizes.setBoolean(on); 
-		checkSizes.setBoolean(false);
+		checkSizes.setBoolean(on); 
 	}
 
 	private static Pref relativeSizeTolerance = 

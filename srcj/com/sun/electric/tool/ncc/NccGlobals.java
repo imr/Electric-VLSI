@@ -111,7 +111,7 @@ public class NccGlobals {
 	 */
 	public NccGlobals(NccOptions options) {
 		this.options = options;
-		this.messenger = new Messenger(true);
+		this.messenger = new Messenger(false);
 	}
 	public void setInitialNetlists(List nccNets) {
 		parts = buildEquivRec(CODE_PART, nccNets);

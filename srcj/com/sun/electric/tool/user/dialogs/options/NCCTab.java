@@ -67,7 +67,7 @@ public class NCCTab extends PreferencePanel
 		haltAfterFindingFirstMismatchedCell.
 			setSelected(initialHaltAfterFindingFirstMismatchedCell);
 
-		enableSizeChecking.setEnabled(false);
+		//enableSizeChecking.setEnabled(false);
 //		absoluteSizeTolerance.setEditable(false);
 	}
 
