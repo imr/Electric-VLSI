@@ -66,6 +66,7 @@ public class RouteElementArc extends RouteElement {
     /** Name of arc */                              private String arcName;
     /** Text descriptor of name */                  private TextDescriptor arcNameDescriptor;
     /** Angle of arc */                             private int arcAngle;
+    /** inherit properties from this arc */         private ArcInst inheritFrom;
 
     /** This contains the newly create instance, or the instance to delete */ private ArcInst arcInst;
 
@@ -81,9 +82,11 @@ public class RouteElementArc extends RouteElement {
      * @param headRE RouteElement (must be newNode or existingPortInst) at head of arc
      * @param tailRE RouteElement (must be newNode or existingPortInst) at tail or arc
      * @param nameTextDescriptor
+     * @param inheritFrom
      */
     public static RouteElementArc newArc(Cell cell, ArcProto ap, double arcWidth, RouteElementPort headRE, RouteElementPort tailRE,
-                                         Point2D headConnPoint, Point2D tailConnPoint, String name, TextDescriptor nameTextDescriptor) {
+                                         Point2D headConnPoint, Point2D tailConnPoint, String name, TextDescriptor nameTextDescriptor,
+                                         ArcInst inheritFrom) {
         RouteElementArc e = new RouteElementArc(RouteElementAction.newArc, cell);
         e.arcProto = ap;
         e.arcWidth = arcWidth;
@@ -105,6 +108,7 @@ public class RouteElementArc extends RouteElement {
         assert(e.tailConnPoint != null);
         e.arcAngle = 0;
         e.arcInst = null;
+        e.inheritFrom = inheritFrom;
         return e;
     }
 
@@ -124,6 +128,7 @@ public class RouteElementArc extends RouteElement {
         e.tailConnPoint = arcInstToDelete.getTail().getLocation();
         e.arcAngle = 0;
         e.arcInst = arcInstToDelete;
+        e.inheritFrom = null;
         return e;
     }
 
@@ -309,6 +314,7 @@ public class RouteElementArc extends RouteElement {
             }
             setDone();
             arcInst = newAi;
+            arcInst.copyConstraints(inheritFrom);
             return newAi;
         }
         if (getAction() == RouteElementAction.deleteArc) {

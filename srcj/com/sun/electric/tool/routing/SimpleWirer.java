@@ -128,7 +128,7 @@ public class SimpleWirer extends InteractiveRouter {
         // if either X or Y coords are the same, create a single arc
         if (startLoc.getX() == endLoc.getX() || startLoc.getY() == endLoc.getY()) {
             // single arc
-            RouteElement arcRE = RouteElementArc.newArc(cell, useArc, width, startRE, endRE, startLoc, endLoc, null, null);
+            RouteElement arcRE = RouteElementArc.newArc(cell, useArc, width, startRE, endRE, startLoc, endLoc, null, null, null);
             route.add(arcRE);
         } else {
             // otherwise, create new pin and two arcs for corner
@@ -139,8 +139,8 @@ public class SimpleWirer extends InteractiveRouter {
             double defheight = pn.getDefHeight()-so.getHighYOffset()-so.getLowYOffset();
             RouteElementPort pinRE = RouteElementPort.newNode(cell, pn, pn.getPort(0), cornerLoc,
                     defwidth, defheight);
-            RouteElement arcRE1 = RouteElementArc.newArc(cell, useArc, width, startRE, pinRE, startLoc, cornerLoc, null, null);
-            RouteElement arcRE2 = RouteElementArc.newArc(cell, useArc, width, pinRE, endRE, cornerLoc, endLoc, null, null);
+            RouteElement arcRE1 = RouteElementArc.newArc(cell, useArc, width, startRE, pinRE, startLoc, cornerLoc, null, null, null);
+            RouteElement arcRE2 = RouteElementArc.newArc(cell, useArc, width, pinRE, endRE, cornerLoc, endLoc, null, null, null);
             route.add(pinRE);
             route.add(arcRE1);
             route.add(arcRE2);

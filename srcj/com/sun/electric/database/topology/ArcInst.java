@@ -1048,6 +1048,7 @@ public class ArcInst extends Geometric
      * @param fromAi the arc from which to copy all arc properties
      */
     public void copyProperties(ArcInst fromAi) {
+        if (fromAi == null) return;
         copyVars(fromAi);
         copyConstraints(fromAi);
         setName(fromAi.getName());
@@ -1059,6 +1060,7 @@ public class ArcInst extends Geometric
      * @param fromAi the arcinst from which to copy constraints
      */
     public void copyConstraints(ArcInst fromAi) {
+        if (fromAi == null) return;
         /*
         setRigid(fromAi.isRigid());
         setFixedAngle(fromAi.isFixedAngle());
