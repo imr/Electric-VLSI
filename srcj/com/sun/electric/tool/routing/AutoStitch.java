@@ -637,8 +637,19 @@ public class AutoStitch
 					if (!mPp.getBasePort().connectsTo(ap)) continue;
 
 					// do not stitch where there is already an electrical connection
-					JNetwork oNet = netlist.getNetwork(oNi.findPortInstFromProto(mPp));
-					if (net != null && oNet == net) continue;
+					//JNetwork oNet = netlist.getNetwork(oNi.findPortInstFromProto(mPp));
+					//if (net != null && oNet == net) continue;
+
+                    // do not stitch if there is already an arc connecting these two ports
+                    PortInst oPi = oNi.findPortInstFromProto(mPp);
+                    boolean ignore = false;
+                    for (Iterator piit = oPi.getConnections(); piit.hasNext(); ) {
+                        Connection conn = (Connection)piit.next();
+                        ArcInst ai = conn.getArc();
+                        if (ai.getHead().getPortInst() == pi) ignore = true;
+                        if (ai.getTail().getPortInst() == pi) ignore = true;
+                    }
+                    if (ignore) continue;
 
 					// find the primitive node at the bottom of this port
 					AffineTransform trans = oNi.rotateOut();
