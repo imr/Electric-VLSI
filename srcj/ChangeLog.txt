@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02j: *********************************
 
+BUG: (04/01/05, RK) regressions: I removed Compaction regression from run.sh because that regression always fails
+
+IMP: (04/01/05, RK) NCC: added regression test for multiple hierarchy scan
+
 BUG: (04/01/05, RK) NCC: CompareList must always have something from both designs
 
 BUG: (03/31/05, GVG) Class exception while dragging cells from ExplorerTree into EditWindow on Mac (Bug #235)
