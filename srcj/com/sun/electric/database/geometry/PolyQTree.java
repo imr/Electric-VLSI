@@ -172,7 +172,7 @@ public class PolyQTree extends GeometryHandler
 
 	//--------------------------PRIVATE METHODS--------------------------
 	public static class PolyNode extends Area
-	        implements Comparable
+	        implements Comparable, PolyNodeMerge
 	{
 		private byte original;
 
@@ -208,6 +208,12 @@ public class PolyQTree extends GeometryHandler
 			Area a = (Area)obj;
 			return (super.equals(a));
 		}
+
+        public PolyBase getPolygon()
+        {
+            Point2D [] points = getPoints(false);
+            return (new PolyBase(points));
+        }
 
 		/**
 		 * Not to violate that equal objects must have equal hashcodes.

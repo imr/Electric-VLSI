@@ -48,7 +48,7 @@ import java.util.*;
  * that can be outlines, filled shapes, curves, text, and more.
  * The Poly also contains a Layer and some connectivity information.
  */
-public class PolyBase implements Shape
+public class PolyBase implements Shape, PolyNodeMerge
 {
 
 	/** the style (outline, text, lines, etc.) */			private Poly.Type style;
@@ -2208,4 +2208,7 @@ public class PolyBase implements Shape
     	if (from.getX() == to.getX() && from.getY() == to.getY()) return 1;
     	return 2;
     }
+
+    //------------------------------- PolyMerge Interface -------------------------------
+    public PolyBase getPolygon() {return this;}
 }

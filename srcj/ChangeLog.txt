@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02j: *********************************
 
+IMP: (03/18/05, GVG) Changes in ParasiticsTool to handle IRSIM deck generation. It generates
+so far information for transistors and capacitances.
+
+BUG: (03/17/05, GVG) In DRC introduced while adding new min area strategy.
+FIX: merge strategy stored in another place
+
 IMP: (03/18/05, RK) NCC: hierarchical with size checking compares pairs of Cells only if each is instantiated exactly once.  Regressions updated to test this new functionality.
 
 IMP: (03/16/05, RK) NCC: disambiguate based on MOS lengths in addition to widths

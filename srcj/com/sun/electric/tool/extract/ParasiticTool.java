@@ -25,24 +25,30 @@
 
 package com.sun.electric.tool.extract;
 
-import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.PolyBase;
+import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator;
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Network;
+import com.sun.electric.database.network.NetworkTool;
+import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.simulation.Simulation;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
@@ -59,7 +65,7 @@ public class ParasiticTool extends Tool{
 
 
     /**
-	 * Method to initialize the ERC tool.
+	 * Method to initialize the Parasitics tool.
 	 */
 	public void init()
 	{
@@ -74,6 +80,174 @@ public class ParasiticTool extends Tool{
     {
         AnalyzeParasitic job = new AnalyzeParasitic(network, cell);
     }
+
+    public static List calculateParasistic(ParasiticGenerator tool, Cell cell, VarContext context)
+    {
+        Netlist netList = cell.getNetlist(true);
+        if (context == null) context = VarContext.globalContext;
+        ParasiticVisitor visitor = new ParasiticVisitor(tool, cell, netList);
+        HierarchyEnumerator.enumerateCell(cell, context, netList, visitor);
+        List list = visitor.getParasitics();
+        return list;
+    }
+
+    private static class ParasiticVisitor extends HierarchyEnumerator.Visitor
+	{
+		private HashMap netMap;
+        private Netlist netList;
+        private List transList = new ArrayList();
+        private ParasiticGenerator tool;
+
+        public List getParasitics()
+        {
+            List list = new ArrayList(transList);
+
+            for (Iterator it = netMap.keySet().iterator(); it.hasNext();)
+            {
+                Object key = it.next();
+                Object value = netMap.get(key);
+                if (value != null) list.add(value);
+            }
+            return list;
+        }
+
+        public HierarchyEnumerator.CellInfo newCellInfo() { return new ParasiticCellInfo(); }
+
+		public ParasiticVisitor(ParasiticGenerator tool, Cell cell, Netlist netList)
+		{
+            this.netList = netList;
+            this.tool = tool;
+            netMap = new HashMap(netList.getNumNetworks());
+		}
+
+        /**
+         * @param info
+         */
+		public void exitCell(HierarchyEnumerator.CellInfo info)
+        {
+            // Done with root cell
+            if (info.getParentInfo() == null)
+            {
+                for (Iterator it = netMap.keySet().iterator(); it.hasNext();)
+                {
+                    Object obj = it.next();
+                    NetPBucket bucket = (NetPBucket)netMap.get(obj);
+                    GeometryHandler merge = bucket.merge;
+                    if (merge != null) merge.postProcess();
+                }
+            }
+        }
+
+        private NetPBucket getNetParasiticsBucket(Network net, HierarchyEnumerator.CellInfo info)
+        {
+            NetPBucket parasiticNet = (NetPBucket)netMap.get(net);
+            if (parasiticNet == null)
+            {
+                String removeContext = info.getContext().getInstPath("/");
+                int len = removeContext.length();
+                if (len > 0) len++;
+                String name = info.getUniqueNetName(net, "/").substring(len);
+                parasiticNet = new NetPBucket(info.getCell(), name);
+                netMap.put(net, parasiticNet);
+            }
+            return parasiticNet;
+        }
+
+		public boolean enterCell(HierarchyEnumerator.CellInfo info)
+		{
+            ParasiticCellInfo iinfo = (ParasiticCellInfo)info;
+            iinfo.extInit();
+
+            for(Iterator aIt = info.getCell().getArcs(); aIt.hasNext(); )
+            {
+                ArcInst ai = (ArcInst)aIt.next();
+
+                // don't count non-electrical arcs
+                if (ai.getProto().getFunction() == ArcProto.Function.NONELEC) continue;
+
+                Network net = netList.getNetwork(ai, 0);
+                if (net == null)
+                    continue;
+
+                NetPBucket parasiticNet = getNetParasiticsBucket(net, info);
+                if (parasiticNet == null)
+                    continue;
+
+                boolean isDiffArc = ai.isDiffusionArc();    // check arc function
+
+                Technology tech = ai.getProto().getTechnology();
+                Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
+                int tot = arcInstPolyList.length;
+                for(int j=0; j<tot; j++)
+                {
+                    Poly poly = arcInstPolyList[j];
+                    if (poly.getStyle().isText()) continue;
+
+                    Layer layer = poly.getLayer();
+                    if (layer.getTechnology() != Technology.getCurrent()) continue;
+                    if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+
+                    if (layer.isDiffusionLayer() || (!isDiffArc && layer.getCapacitance() > 0.0))
+                        parasiticNet.add(layer, poly);
+                }
+            }
+
+            return (true);
+		}
+
+        /**
+         *
+         * @param no
+         * @param info
+         * @return
+         */
+		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
+		{
+            NodeInst ni = no.getNodeInst();
+            NodeProto np = ni.getProto();
+            if (np instanceof Cell) return true;  // hierarchical
+
+            // Its like pins, facet-center
+			if (NodeInst.isSpecialNode(ni)) return (false);
+
+            // initialize to examine the polygons on this node
+            Technology tech = np.getTechnology();
+            AffineTransform trans = ni.rotateOut();
+            ExtractedPBucket parasitic = tool.createBucket(ni, netList, (ParasiticCellInfo)info);
+            if (parasitic != null) transList.add(parasitic);
+
+            Poly [] polyList = tech.getShapeOfNode(ni, null, true, true, null);
+            int tot = polyList.length;
+            for(int i=0; i<tot; i++)
+            {
+                Poly poly = polyList[i];
+
+                // make sure this layer connects electrically to the desired port
+                PortProto pp = poly.getPort();
+                if (pp == null) continue;
+                Network net = netList.getNetwork(ni, pp, 0);
+                if (net == null)
+                    continue;
+
+                // don't bother with layers without capacity
+                Layer layer = poly.getLayer();
+                if (!layer.isDiffusionLayer() && layer.getCapacitance() == 0.0) continue;
+                if (layer.getTechnology() != Technology.getCurrent()) continue;
+
+                // leave out the gate capacitance of transistors
+                if (layer.getFunction() == Layer.Function.GATE) continue;
+
+                NetPBucket parasiticNet = getNetParasiticsBucket(net, info);
+                if (parasiticNet == null)
+                    continue;
+
+                // get the area of this polygon
+                poly.transform(trans);
+                parasiticNet.add(layer, poly);
+            }
+			return (true);
+		}
+	}
 
     /****** inner class to store information ****/
     private static class ParasiticBucket
@@ -351,6 +525,33 @@ public class ParasiticTool extends Tool{
             System.out.println("Done (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
             return true;
         }
+    }
+
+    //----------------------------IRSIM Cell Info for HierarchyEnumerator--------------------
+
+    /** Parasitic Cell Info class */
+    public static class ParasiticCellInfo extends HierarchyEnumerator.CellInfo
+    {
+        /** M-factor to be applied to size */       private float mFactor;
+
+        /** initialize ParasiticCellInfo: called from enterCell */
+        protected void extInit()
+        {
+            HierarchyEnumerator.CellInfo parent = getParentInfo();
+            if (parent == null) mFactor = 1f;
+            	else mFactor = ((ParasiticCellInfo)parent).getMFactor();
+            // get mfactor from instance we pushed into
+            Nodable ni = getContext().getNodable();
+            if (ni == null) return;
+            Variable mvar = ni.getVar(Simulation.M_FACTOR_KEY);
+            if (mvar == null) return;
+            Object mval = getContext().evalVar(mvar, null);
+            if (mval == null) return;
+            mFactor = mFactor * VarContext.objectToFloat(mval, 1f);
+        }
+
+        /** get mFactor */
+        public float getMFactor() { return mFactor; }
     }
 
     /** PREFERENCES */

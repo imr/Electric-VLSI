@@ -448,7 +448,7 @@ public class Spice extends Topology
 				{
 					PolyBase poly = (PolyBase)pIt.next();
 					Point2D [] pointList = poly.getPoints();
-					int count = pointList.length;
+					//int count = pointList.length;
 
 					// compute perimeter and area
 					double perim = poly.getPerimeter();
@@ -456,7 +456,7 @@ public class Spice extends Topology
 
 					// accumulate this information
                     double scale = layoutTechnology.getScale(); // scale to convert units to nanometers
-                    if (layerIsDiff(layer)) {
+                    if (layer.isDiffusionLayer()) {
                         spNet.diffArea += area * maskScale * maskScale;
                         spNet.diffPerim += perim * maskScale;
                     } else {
@@ -1538,7 +1538,7 @@ public class Spice extends Topology
 
 			// don't bother with layers without capacity
 			Layer layer = poly.getLayer();
-			if (!layerIsDiff(layer) && layer.getCapacitance() == 0.0) continue;
+			if (!layer.isDiffusionLayer() && layer.getCapacitance() == 0.0) continue;
 			if (layer.getTechnology() != Technology.getCurrent()) continue;
 
 			// leave out the gate capacitance of transistors
@@ -1552,7 +1552,7 @@ public class Spice extends Topology
 			spNet.merge.addPolygon(layer, poly);
 
 			// count the number of transistors on this net
-			if (layerIsDiff(layer) && function.isTransistor()) spNet.transistorCount++;
+			if (layer.isDiffusionLayer() && function.isTransistor()) spNet.transistorCount++;
 		}
 	}
 
@@ -1584,7 +1584,7 @@ public class Spice extends Topology
 			if (layer.getTechnology() != Technology.getCurrent()) continue;
 			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
 
-			if (layerIsDiff(layer) ||
+			if (layer.isDiffusionLayer()||
 				(!isDiffArc && layer.getCapacitance() > 0.0))
 					merge.addPolygon(layer, poly);
 		}
@@ -1613,28 +1613,20 @@ public class Spice extends Topology
 	/******************** SUPPORT ********************/
 
 	/**
-	 * Method to return nonzero if layer "layer" is on diffusion
-	 * Return the type of the diffusion
-	 */
-	private boolean layerIsDiff(Layer layer)
-	{
-		int extras = layer.getFunctionExtras();
-		if ((extras&Layer.Function.PSEUDO) == 0)
-		{
-			if (layer.getFunction().isDiff()) return true;
-		}
-		return false;
-	}
-
-	/**
 	 * Method to return value if arc contains device active diffusion
 	 */
 	private boolean arcIsDiff(ArcInst ai)
 	{
 		ArcProto.Function fun = ai.getProto().getFunction();
-		if (fun == ArcProto.Function.DIFFP || fun == ArcProto.Function.DIFFN || fun == ArcProto.Function.DIFF) return true;
-		if (fun == ArcProto.Function.DIFFS || fun == ArcProto.Function.DIFFW) return true;
-		return false;
+        boolean newV = ai.isDiffusionArc();
+        boolean oldV = (fun == ArcProto.Function.DIFFP || fun == ArcProto.Function.DIFFN ||
+                fun == ArcProto.Function.DIFF || fun == ArcProto.Function.DIFFS || fun == ArcProto.Function.DIFFW);
+        if (newV != oldV)
+            System.out.println("Difference in arcIsDiff");
+        return oldV;
+//		if (fun == ArcProto.Function.DIFFP || fun == ArcProto.Function.DIFFN || fun == ArcProto.Function.DIFF) return true;
+//		if (fun == ArcProto.Function.DIFFS || fun == ArcProto.Function.DIFFW) return true;
+//		return false;
 	}
 
     private static final boolean CELLISEMPTYDEBUG = false;

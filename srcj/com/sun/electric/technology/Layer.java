@@ -415,6 +415,21 @@ public class Layer
 		return (functionExtras&Function.NONELEC) != 0;
 	}
 
+    /**
+     * Method to determine if the layer function corresponds to a diffusion layer.
+     * Used in parasitic calculation
+     * @return
+     */
+    public boolean isDiffusionLayer()
+    {
+        int extras = getFunctionExtras();
+		if ((extras&Layer.Function.PSEUDO) == 0)
+		{
+			if (getFunction().isDiff()) return true;
+		}
+		return false;
+    }
+
 	/**
 	 * Method to return the non-pseudo layer associated with this pseudo-Layer.
 	 * Pseudo layers are those used in pins, and have no real geometry.

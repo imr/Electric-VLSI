@@ -25,6 +25,7 @@
 package com.sun.electric.database.geometry;
 
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.HashMap;
@@ -39,6 +40,26 @@ public abstract class GeometryHandler {
     public static final int ALGO_MERGE = 0;
     public static final int ALGO_QTREE = 1;
     public static final int ALGO_SWEEP = 2;
+
+    /**
+     * Method to create appropiate GeometryHandler depending on the mode
+     * @param mode
+     * @param root
+     * @return
+     */
+    public static GeometryHandler createGeometryHandler(int mode, int initialSize, Rectangle2D root)
+    {
+        switch (mode)
+        {
+            case GeometryHandler.ALGO_MERGE:
+                return new PolyMerge();
+            case GeometryHandler.ALGO_QTREE:
+                return new PolyQTree(root);
+            case GeometryHandler.ALGO_SWEEP:
+                return new PolySweepMerge(initialSize);
+        }
+        return null;
+    }
 
     public GeometryHandler()
     {
@@ -96,4 +117,10 @@ public abstract class GeometryHandler {
     {
         return null;
     }
+
+    /**
+     * Method to perform operations after no more elemenets will
+     * be added. Valid for PolySweepMerge
+     */
+    public void postProcess() {;}
 }

@@ -2310,8 +2310,8 @@ public class Quick
 				if (minRule == null) continue;
 
 				// isGreaterThan doesn't consider equals condition therefore negate condition is used
-				//if (!DBMath.isGreaterThan(minRule.value, area)) continue;
-                if (!layer.getName().equals("Metal-1")) continue;
+				if (!DBMath.isGreaterThan(minRule.value, area)) continue;
+                //if (!layer.getName().equals("Metal-1")) continue;
                 
 				errorFound++;
 				int errorType = (minRule == minAreaRule) ? MINAREAERROR : ENCLOSEDAREAERROR;
@@ -2429,11 +2429,8 @@ public class Quick
 			QuickAreaEnumerator quickArea = new QuickAreaEnumerator(net, selectMerge, notExportedNodes, checkedNodes,
                     mergeMode);
 			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, cp.netlist, quickArea);
+            quickArea.mainMerge.postProcess();
 
-            if (mergeMode == GeometryHandler.ALGO_SWEEP)
-            {
-                ((PolySweepMerge)quickArea.mainMerge).postProcess();
-            }
 			// Job aborted
 			if (job != null && job.checkAbort()) return 0;
 
@@ -3843,7 +3840,8 @@ public class Quick
 			if (mainMerge == null)
             {
 				//mainMerge = new PolyQTree(info.getCell().getBounds());
-                mainMerge = newMergeTree(mode, info.getCell());
+                mainMerge = GeometryHandler.createGeometryHandler(mode, info.getCell().getTechnology().getNumLayers(),
+                        info.getCell().getBounds());
             }
             AffineTransform rTrans = info.getTransformToRoot();
 
@@ -4083,8 +4081,8 @@ public class Quick
 
             if (thisMerge == null)
             {
-                thisMerge = newMergeTree(mode, cell);
-                thisOtherMerge = newMergeTree(mode, cell);
+                thisMerge = GeometryHandler.createGeometryHandler(mode, cell.getTechnology().getNumLayers(), cell.getBounds());
+                thisOtherMerge = GeometryHandler.createGeometryHandler(mode, 4, cell.getBounds());
                 mainMergeMap.put(cell, thisMerge);
                 otherTypeMergeMap.put(cell, thisOtherMerge);
                 firstTime = true;
@@ -4136,11 +4134,9 @@ public class Quick
             {
                 GeometryHandler thisMerge = (GeometryHandler)mainMergeMap.get(info.getCell());
                 GeometryHandler thisOtherMerge = (GeometryHandler)otherTypeMergeMap.get(info.getCell());
-                if (mode == GeometryHandler.ALGO_SWEEP)
-                {
-                    ((PolySweepMerge)thisMerge).postProcess();
-                    ((PolySweepMerge)thisOtherMerge).postProcess();
-                }
+
+                thisMerge.postProcess();
+                thisOtherMerge.postProcess();
 
                 // merge everything sub trees
                 for(Iterator it = cell.getNodes(); it.hasNext(); )

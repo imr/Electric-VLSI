@@ -25,7 +25,6 @@
  */
 package com.sun.electric.tool.io.output;
 
-import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
@@ -38,16 +37,17 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
-import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.extract.*;
 
 import java.util.Date;
 import java.util.List;
@@ -58,14 +58,16 @@ import java.util.Iterator;
  * Class to write IRSIM netlists.
  */
 public class IRSIM extends Output
+        implements ParasiticGenerator
 {
     private VarContext context;
     private List components;
+    private Technology technology;
 
     /**
      * Class to define a component extracted from circuitry that is to be sent to the IRSIM simulator.
      */
-	public static class ComponentInfo
+	public static class ComponentInfoOLD
 	{
 		/** original node for this component */	public NodeInst ni;
 		/** component type (n or p, R or C) */	public char     type;
@@ -86,50 +88,97 @@ public class IRSIM extends Output
 	 */
 	public static void writeIRSIMFile(Cell cell, VarContext context, String filePath)
 	{
-		IRSIM out = new IRSIM();
-		out.writeNetlist(cell, context, filePath);
+		IRSIM out = new IRSIM(cell);
+        out.writeNetlist(cell, context, filePath);
+        //out.writeNetlistOLD(cell, context, filePath+".old");
 	}
 
 	/**
 	 * The main entry point for IRSIM extraction.
 	 * @param cell the top-level cell to extract.
 	 * @param context the hierarchical context to the cell.
-	 * @return a List of ComponentInfo objects that describes the circuit.
+	 * @return a List of ComponentInfoOLD objects that describes the circuit.
 	 */
 	public static List getIRSIMComponents(Cell cell, VarContext context)
 	{
 		// gather all components
-		IRSIM out = new IRSIM();
-		List components = out.getNetlist(cell, context);
-		return out.components;
+		IRSIM out = new IRSIM(cell);
+		return out.getNetlist(cell, context);
 	}
 
-	private List getNetlist(Cell cell, VarContext context)
+    private List getNetlistOld(Cell cell, VarContext context)
 	{
 		// gather all components
 		IRSIMNetlister netlister = new IRSIMNetlister();
 		Netlist netlist = cell.getNetlist(true);
         this.context = context;
-        if (context == null) this.context = VarContext.globalContext;
+       if (context == null) this.context = VarContext.globalContext;
         components = new ArrayList();
 		HierarchyEnumerator.enumerateCell(cell, context, netlist, netlister);
+		return components;
+	}
+
+	private List getNetlist(Cell cell, VarContext context)
+	{
+		// gather all components
+//		IRSIMNetlister netlister = new IRSIMNetlister();
+//		Netlist netlist = cell.getNetlist(true);
+        this.context = context;
+       if (context == null) this.context = VarContext.globalContext;
+//        components = new ArrayList();
+//		HierarchyEnumerator.enumerateCell(cell, context, netlist, netlister);
+        components = ParasiticTool.calculateParasistic(this, cell, context);
 		return components;
 	}
 
 	private void writeNetlist(Cell cell, VarContext context, String filePath)
 	{
 		// gather all components
-        components = getNetlist(cell, context);
+        List parasitics = getNetlist(cell, context);
 
 		// write them
 		if (openTextOutputStream(filePath)) return;
 
 		// write the header
-		Technology tech = cell.getTechnology();
-		if (tech == Schematics.tech)
-			tech = Technology.findTechnology(User.getSchematicTechnology());
-		double scale = tech.getScale() / 10;
-		printWriter.println("| units: " + scale + " tech: " + tech.getTechName() + " format: SU");
+		double scale = technology.getScale() / 10;
+		printWriter.println("| units: " + scale + " tech: " + technology.getTechName() + " format: SU");
+		printWriter.println("| IRSIM file for cell " + cell.noLibDescribe() +
+			" from library " + cell.getLibrary().getName());
+		emitCopyright("| ", "");
+		if (User.isIncludeDateAndVersionInOutput())
+		{
+			printWriter.println("| Created on " + TextUtils.formatDate(cell.getCreationDate()));
+			printWriter.println("| Last revised on " + TextUtils.formatDate(cell.getRevisionDate()));
+			printWriter.println("| Written on " + TextUtils.formatDate(new Date()) +
+				" by Electric VLSI Design System, version " + Version.getVersion());
+		} else
+		{
+			printWriter.println("| Written by Electric VLSI Design System");
+		}
+
+		// write the components
+		for(Iterator it = parasitics.iterator(); it.hasNext(); )
+		{
+			ExtractedPBucket ci = (ExtractedPBucket)it.next();
+            String info = ci.getInfo(technology.getScale());
+            if (info != null) printWriter.println(info);
+		}
+
+		if (closeTextOutputStream()) return;
+		System.out.println(filePath + " written");
+	}
+
+	private void writeNetlistOLD(Cell cell, VarContext context, String filePath)
+	{
+		// gather all components
+        components = getNetlistOld(cell, context);
+
+		// write them
+		if (openTextOutputStream(filePath)) return;
+
+		// write the header
+		double scale = technology.getScale() / 10;
+		printWriter.println("| units: " + scale + " tech: " + technology.getTechName() + " format: SU");
 		printWriter.println("| IRSIM file for cell " + cell.noLibDescribe() +
 			" from library " + cell.getLibrary().getName());
 		emitCopyright("| ", "");
@@ -147,7 +196,7 @@ public class IRSIM extends Output
 		// write the components
 		for(Iterator it = components.iterator(); it.hasNext(); )
 		{
-			ComponentInfo ci = (ComponentInfo)it.next();
+			ComponentInfoOLD ci = (ComponentInfoOLD)it.next();
 			if (ci.type == 'r' || ci.type == 'C')
 			{
 	            printWriter.print(ci.type);
@@ -178,9 +227,13 @@ public class IRSIM extends Output
 	/**
 	 * Creates a new instance of IRSIM
 	 */
-	private IRSIM()
+	private IRSIM(Cell cell)
 	{
         context = null;
+
+        technology = cell.getTechnology();
+		if (technology == Schematics.tech)
+			technology = Technology.findTechnology(User.getSchematicTechnology());
 	}
 
 	/** IRSIM Netlister */
@@ -191,8 +244,35 @@ public class IRSIM extends Output
 
         public boolean enterCell(HierarchyEnumerator.CellInfo info)
 		{
-            ((IRSIMCellInfo)info).extInit();
-            return true;            
+            IRSIMCellInfo iinfo = (IRSIMCellInfo)info;
+            iinfo.extInit();
+            double scale = technology.getScale() / 10;
+
+            Netlist netlist = info.getNetlist();
+            // Calculating capacitance and resistance for arcs
+            for (Iterator it = info.getCell().getArcs(); it.hasNext(); )
+            {
+                ArcInst arc = (ArcInst)it.next();
+                int width = netlist.getBusWidth(arc);
+                Network net = netlist.getNetwork(arc, 0);
+                ComponentInfoOLD ci = new ComponentInfoOLD();
+                String removeContext = context.getInstPath("/");
+                int len = removeContext.length();
+                if (len > 0) len++;
+                ci.type = 'C';
+                ci.netName1 = iinfo.getUniqueNetName(net, "/").substring(len);
+                ci.netName2 = "gnd";
+                Poly[] polys = technology.getShapeOfArc(arc);
+                if (polys.length != 1)
+                    System.out.println("Error, invalid geometry associated to arc " + arc + " in cell " + iinfo.getCell());
+                else
+                {
+                    Poly poly = polys[0];
+                    double area = poly.getArea();
+                    ci.rcValue = area * poly.getLayer().getCapacitance() * scale * scale;
+                }
+            }
+            return true;
         }        
 
         public void exitCell(HierarchyEnumerator.CellInfo info) {}
@@ -203,7 +283,6 @@ public class IRSIM extends Output
 
             NodeProto np = no.getProto();						// check if prototype is Primitive transistor
             if (!(np instanceof PrimitiveNode)) return true;	// descend and enumerate
-            PrimitiveNode pn = (PrimitiveNode)np;
 			NodeInst ni = (NodeInst)no; 						// Nodable is NodeInst because it is primitive node
 
 			// handle resistors and capacitors
@@ -248,7 +327,7 @@ public class IRSIM extends Output
 	            int len = removeContext.length();
 	            if (len > 0) len++;
 
-	            ComponentInfo ci = new ComponentInfo();
+	            ComponentInfoOLD ci = new ComponentInfoOLD();
 	            ci.ni = ni;
 	            if (fun == PrimitiveNode.Function.RESIST) ci.type = 'r'; else ci.type = 'C';
 	            ci.netName1 = iinfo.getUniqueNetName(net1, "/").substring(len);
@@ -279,7 +358,7 @@ public class IRSIM extends Output
             }
 
             // print out transistor
-            ComponentInfo ci = new ComponentInfo();
+            ComponentInfoOLD ci = new ComponentInfoOLD();
             ci.ni = ni;
             if (ni.getFunction() == PrimitiveNode.Function.TRANMOS || ni.getFunction() == PrimitiveNode.Function.TRA4NMOS)
             	ci.type = 'n'; else
@@ -293,7 +372,7 @@ public class IRSIM extends Output
             TransistorSize dim = ni.getTransistorSize(iinfo.getContext());
             if (dim == null || dim.getDoubleLength() == 0 || dim.getDoubleWidth() == 0)
             {
-            	//dim = new TransistorSize(new Double(2), new Double(2), new Double(2));
+            	dim = new TransistorSize(new Double(2), new Double(2), new Double(2));
                 System.out.println("Warning, ignoring non fet transistor " + ni + " in cell " + iinfo.getCell());
                 return false;
             }
@@ -311,7 +390,6 @@ public class IRSIM extends Output
             ci.sourcePerim = DBMath.round((dim.getDoubleWidth() + activeLen)*2);
             ci.drainArea = ci.sourceArea ;
             ci.drainPerim = ci.sourcePerim;
-            System.out.println("area source " + ci.sourceArea + " perim " + ci.sourcePerim);
             components.add(ci);
             return false;
         }
@@ -343,5 +421,109 @@ public class IRSIM extends Output
         /** get mFactor */
         protected float getMFactor() { return mFactor; }
     }
+    
+    //---------------------------- ParasiticGenerator interface --------------------
 
+    public ExtractedPBucket createBucket(NodeInst ni, Netlist netlistOLD,
+                                         ParasiticTool.ParasiticCellInfo info)
+    {
+        ExtractedPBucket bucket = null;
+        Netlist netlist = info.getNetlist();
+
+        // Depending on primitive node
+        if (ni.isPrimitiveTransistor())
+        {
+            PortInst g = ni.getTransistorGatePort();
+            PortInst d = ni.getTransistorDrainPort();
+            PortInst s = ni.getTransistorSourcePort();
+
+            if (g == null || d == null || s == null)
+            {
+                System.out.println("PortInst for " + ni + " null!");
+                return null;
+            }
+            Network gnet = netlist.getNetwork(g);
+            Network dnet = netlist.getNetwork(d);
+            Network snet = netlist.getNetwork(s);
+            if (gnet == null || dnet == null || snet == null)
+            {
+                System.out.println("Warning, ignoring unconnected transistor " + ni + " in cell " + info.getCell());
+                return null;
+            }
+
+            TransistorSize dim = ni.getTransistorSize(info.getContext());
+            if (dim == null || dim.getDoubleLength() == 0 || dim.getDoubleWidth() == 0)
+            {
+                System.out.println("Warning, ignoring non fet transistor " + ni + " in cell " + info.getCell());
+                return null;
+            }
+
+            // print out transistor
+            String removeContext = context.getInstPath("/");
+            int len = removeContext.length();
+            if (len > 0) len++;
+            String gName = info.getUniqueNetName(gnet, "/").substring(len);
+            String sName = info.getUniqueNetName(snet, "/").substring(len);
+            String dName = info.getUniqueNetName(dnet, "/").substring(len);
+
+            bucket = new TransistorPBucket(ni, dim, gName, sName, dName, info.getMFactor());
+        }
+        else
+        {
+            // handle resistors and capacitors
+			PrimitiveNode.Function fun = ni.getFunction();
+			if (fun == PrimitiveNode.Function.RESIST || fun == PrimitiveNode.Function.CAPAC ||
+				fun == PrimitiveNode.Function.ECAPAC)
+			{
+				Variable.Key varKey = Schematics.SCHEM_CAPACITANCE;
+				TextDescriptor.Unit unit = TextDescriptor.Unit.CAPACITANCE;
+				if (fun == PrimitiveNode.Function.RESIST)
+				{
+					varKey = Schematics.SCHEM_RESISTANCE;
+					unit = TextDescriptor.Unit.RESISTANCE;
+				}
+				Variable valueVar = ni.getVar(varKey);
+				String extra = "";
+				if (valueVar != null)
+				{
+					extra = valueVar.describe(info.getContext(), ni);
+					if (TextUtils.isANumber(extra))
+					{
+						double pureValue = TextUtils.atof(extra);
+						extra = TextUtils.displayedUnits(pureValue, unit, TextUtils.UnitScale.NONE);
+					}
+				}
+				PortInst end1 = ni.getPortInst(0);
+				PortInst end2 = ni.getPortInst(1);
+	            if (end1 == null || end2 == null)
+	            {
+	                System.out.println("PortInst for " + ni + " null!");
+	                return null;
+	            }
+	            Network net1 = netlist.getNetwork(end1);
+	            Network net2 = netlist.getNetwork(end2);
+	            if (net1 == null || net2 == null)
+	            {
+	                System.out.println("Warning, ignoring unconnected component " + ni + " in cell " + info.getCell());
+	                return null;
+	            }
+	            String removeContext = context.getInstPath("/");
+	            int len = removeContext.length();
+	            if (len > 0) len++;
+
+                char type = (fun == PrimitiveNode.Function.RESIST) ?
+                    'r' : 'C';
+//                StringBuffer line = new StringBuffer();
+//                line.append(type);
+//                line.append(" " + info.getUniqueNetName(net1, "/").substring(len));
+//                line.append(" " + info.getUniqueNetName(net2, "/").substring(len));
+//                line.append(" " + TextUtils.atof(extra));
+
+                double rcValue = TextUtils.atof(extra);
+                    bucket = new RCPBucket(type, info.getUniqueNetName(net1, "/").substring(len),
+                            info.getUniqueNetName(net2, "/").substring(len), rcValue);
+            }
+        }
+        return bucket;
+    }
 }

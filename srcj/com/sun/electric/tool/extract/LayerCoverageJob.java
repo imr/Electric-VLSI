@@ -110,7 +110,7 @@ public class LayerCoverageJob extends Job
 	    return geoms;
 	}
 
-    public static class LayerVisitor extends HierarchyEnumerator.Visitor
+    private static class LayerVisitor extends HierarchyEnumerator.Visitor
 	{
 		private GeometryHandler tree;
         private int mode;
@@ -124,7 +124,7 @@ public class LayerCoverageJob extends Job
 		/**
 		 * Determines if function of given layer is applicable for the corresponding operation
 		 */
-		private static boolean IsValidFunction(Layer.Function func, int function)
+		private static boolean isValidFunction(Layer.Function func, int function)
 		{
 			switch (function)
 			{
@@ -166,16 +166,6 @@ public class LayerCoverageJob extends Job
          */
 		public void exitCell(HierarchyEnumerator.CellInfo info)
         {
-            // Undo the transformation
-//            if (origBBox != null)
-//            {
-//                NodeInst thisInst = (NodeInst)info.getParentInst();
-//                if (thisInst != null) // not top cell
-//                {
-//                    AffineTransform trans = thisInst.transformOut();
-//                    //DBMath.transformRect(thisBBox, trans);
-//                }
-//            }
         }
 
         private boolean doesIntersectBoundingBox(Rectangle2D rect, HierarchyEnumerator.CellInfo info)
@@ -248,7 +238,7 @@ public class LayerCoverageJob extends Job
 					Layer layer = poly.getLayer();
 					Layer.Function func = layer.getFunction();
 
-					boolean value = IsValidFunction(func, function);
+					boolean value = isValidFunction(func, function);
 					if (!value) continue;
 
 					poly.transform(info.getTransformToRoot());
@@ -350,7 +340,7 @@ public class LayerCoverageJob extends Job
 				Layer.Function func = layer.getFunction();
 
 				// Only checking poly or metal for AREA case
-				boolean value = IsValidFunction(func, function);
+				boolean value = isValidFunction(func, function);
 				if (!value) continue;
 
 				if (poly.getPoints().length < 3)
@@ -411,20 +401,22 @@ public class LayerCoverageJob extends Job
 		super("Layer Coverage", User.tool, jobType, null, null, Priority.USER);
 		this.curCell = cell;
         this.mode = mode;
-        switch (mode)
-        {
-            case GeometryHandler.ALGO_MERGE:
-                this.tree = new PolyMerge();
-                break;
-            case GeometryHandler.ALGO_QTREE:
-                this.tree = new PolyQTree(curCell.getBounds());
-                break;
-            case GeometryHandler.ALGO_SWEEP:
-                this.tree = new PolySweepMerge();
-                break;
-        }
-        if (mode == GeometryHandler.ALGO_MERGE)
-		this.tree = new PolyQTree(curCell.getBounds());
+        this.tree = GeometryHandler.createGeometryHandler(mode, curCell.getTechnology().getNumLayers(),
+                curCell.getBounds());
+//        switch (mode)
+//        {
+//            case GeometryHandler.ALGO_MERGE:
+//                this.tree = new PolyMerge();
+//                break;
+//            case GeometryHandler.ALGO_QTREE:
+//                this.tree = new PolyQTree(curCell.getBounds());
+//                break;
+//            case GeometryHandler.ALGO_SWEEP:
+//                this.tree = new PolySweepMerge();
+//                break;
+//        }
+//        if (mode == GeometryHandler.ALGO_MERGE)
+//		this.tree = new PolyQTree(curCell.getBounds());
 		this.function = func;
 		this.deleteList = new ArrayList(); // should only be used by IMPLANT
 		this.highlighter = highlighter;
@@ -439,48 +431,11 @@ public class LayerCoverageJob extends Job
 		// enumerate the hierarchy below here
 		LayerVisitor visitor = new LayerVisitor(tree, deleteList, function,
                 originalPolygons, (geoms != null) ? (geoms.nets) : null, bBox);
-		HierarchyEnumerator.enumerateCell(curCell, VarContext.globalContext, NetworkTool.getUserNetlist(curCell), visitor);
-        if (mode == GeometryHandler.ALGO_SWEEP)
-            ((PolySweepMerge)tree).postProcess();
+		HierarchyEnumerator.enumerateCell(curCell, VarContext.globalContext, NetworkTool.getUserNetlist(curCell), visitor);  
+        tree.postProcess();
 
 		switch (function)
 		{
-//			case AREA:
-//				{
-//					double lambdaSqr = 1;
-//					// @todo GVG Calculates lambda!
-//					Rectangle2D bbox = curCell.getBounds();
-//					double totalArea =  (bbox.getHeight()*bbox.getWidth())/lambdaSqr;
-//                    List list = new ArrayList(tree.getKeySet());
-//				    Collections.sort(list, Layer.layerSort);
-//
-//					// Traversing tree with merged geometry
-//					for (Iterator it = list.iterator(); it.hasNext(); )
-//					{
-//						Layer layer = (Layer)it.next();
-//						Collection set = tree.getObjects(layer, false, true);
-//						double layerArea = 0;
-//
-//						// Get all objects and sum the area
-//						for (Iterator i = set.iterator(); i.hasNext(); )
-//						{
-//                            if (mode == GeometryHandler.ALGO_QTREE)
-//                            {
-//							    PolyQTree.PolyNode area = (PolyQTree.PolyNode)i.next();
-//							    layerArea += area.getArea();
-//                            }
-//                            else
-//                            {
-//                                PolyBase area = (PolyBase)i.next();
-//                                layerArea += area.getArea();
-//                            }
-//						}
-//						System.out.println("Layer " + layer.getName() + " covers " + TextUtils.formatDouble(layerArea) + " square lambda (" + TextUtils.formatDouble((layerArea/totalArea)*100, 0) + "%)");
-//					}
-//
-//					System.out.println("Cell is " + TextUtils.formatDouble(totalArea, 2) + " square lambda");
-//				}
-//				break;
 			case MERGE:
 			case IMPLANT:
 				{

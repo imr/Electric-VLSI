@@ -22,6 +22,9 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.io.output.IRSIM;
+import com.sun.electric.tool.extract.TransistorPBucket;
+import com.sun.electric.tool.extract.ExtractedPBucket;
+import com.sun.electric.tool.extract.RCPBucket;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -1021,92 +1024,91 @@ public class Sim
 			// load the circuit from memory
 			for(Iterator it = components.iterator(); it.hasNext(); )
 			{
-				IRSIM.ComponentInfo ci = (IRSIM.ComponentInfo)it.next();
-				switch (ci.type)
-				{
-					case 'n':
-						Trans t = new Trans();
-						t.tType = NCHAN;
+				ExtractedPBucket pb = (ExtractedPBucket)it.next();
 
-						t.gate = getNode(ci.netName1);
-						t.source = getNode(ci.netName2);
-						t.drain = getNode(ci.netName3);
+                if (pb instanceof TransistorPBucket)
+                {
+                    TransistorPBucket tb = (TransistorPBucket)pb;
+                    Trans t = new Trans();
 
-						long length = (long)(ci.length * theConfig.lambdaCM);
-						long width = (long)(ci.width * theConfig.lambdaCM);
-						if (width <= 0 || length <= 0)
-						{
-							System.out.println("Bad transistor width=" + width + " or length=" + length);
-							return;
-						}
-						((Node)t.gate).nCap += length * width * theConfig.CTGA;
+                    t.gate = getNode(tb.gateName);
+                    t.source = getNode(tb.sourceName);
+                    t.drain = getNode(tb.drainName);
+                    long length = (long)(tb.getTransistorLength() * theConfig.lambdaCM);
+                    long width = (long)(tb.getTransistorWidth() * theConfig.lambdaCM);
+                    if (width <= 0 || length <= 0)
+                    {
+                        System.out.println("Bad transistor width=" + width + " or length=" + length);
+                        return;
+                    }
+                    double activeArea = tb.getActiveArea();
+                    double activePerim = tb.getActivePerim();
+                    t.x = (int)tb.ni.getAnchorCenterX();
+                    t.y = (int)tb.ni.getAnchorCenterY();
 
-						t.x = (int)ci.ni.getAnchorCenterX();
-						t.y = (int)ci.ni.getAnchorCenterY();
-						t.source.nCap += ci.sourceArea * theConfig.lambda * theConfig.lambda * theConfig.CDA +
-							ci.sourcePerim * theConfig.lambda * theConfig.CDP;
-						t.drain.nCap += ci.drainArea * theConfig.lambda * theConfig.lambda * theConfig.CDA +
-							ci.drainPerim * theConfig.lambda * theConfig.CDP;
-						t.r = theConfig.rEquiv(NCHAN, width, length);
+                    ((Node)t.gate).nCap += length * width * theConfig.CTGA;
 
-						// link it to the list
-						readTransistorList.add(t);
-						break;
-					case 'p':
-						t = new Trans();
-						t.tType = PCHAN;
+                    switch (tb.getType())
+                    {
+                        case 'n':
+                            t.tType = NCHAN;
 
-						t.gate = getNode(ci.netName1);
-						t.source = getNode(ci.netName2);
-						t.drain = getNode(ci.netName3);
+                            t.source.nCap += activeArea * theConfig.lambda * theConfig.lambda * theConfig.CDA +
+                                activePerim * theConfig.lambda * theConfig.CDP;
+                            t.drain.nCap += activeArea * theConfig.lambda * theConfig.lambda * theConfig.CDA +
+                                activePerim * theConfig.lambda * theConfig.CDP;
+                            t.r = theConfig.rEquiv(NCHAN, width, length);
 
-						length = (long)(ci.length * theConfig.lambdaCM);
-						width = (long)(ci.width * theConfig.lambdaCM);
-						if (width <= 0 || length <= 0)
-						{
-							System.out.println("Bad transistor width=" + width + " or length=" + length);
-							return;
-						}
-						((Node)t.gate).nCap += length * width * theConfig.CTGA;
+                            // link it to the list
+                            readTransistorList.add(t);
+                            break;
+                        case 'p':
+                            t.tType = PCHAN;
 
-						t.x = (int)ci.ni.getAnchorCenterX();
-						t.y = (int)ci.ni.getAnchorCenterY();
-						t.source.nCap += ci.sourceArea * theConfig.lambda * theConfig.lambda * theConfig.CPDA +
-							ci.sourcePerim * theConfig.lambda * theConfig.CPDP;
-						t.drain.nCap += ci.drainArea * theConfig.lambda * theConfig.lambda * theConfig.CPDA +
-							ci.drainPerim * theConfig.lambda * theConfig.CPDP;
-						t.r = theConfig.rEquiv(PCHAN, width, length);
+                            t.source.nCap += activeArea * theConfig.lambda * theConfig.lambda * theConfig.CPDA +
+                                activePerim * theConfig.lambda * theConfig.CPDP;
+                            t.drain.nCap += activeArea * theConfig.lambda * theConfig.lambda * theConfig.CPDA +
+                                activePerim * theConfig.lambda * theConfig.CPDP;
+                            t.r = theConfig.rEquiv(PCHAN, width, length);
 
-						// link it to the list
-						readTransistorList.add(t);
-						break;
-					case 'r':
-						t = new Trans();
-						t.tType = RESIST;
-						t.gate = powerNode;
-						t.source = getNode(ci.netName1);
-						t.drain = getNode(ci.netName2);
-						t.r = theConfig.rEquiv(RESIST, 0, (long)(ci.rcValue * theConfig.lambdaCM));
+                            // link it to the list
+                            break;
+                    }
+                    readTransistorList.add(t);
+                }
+                else if (pb instanceof RCPBucket)
+                {
+                    RCPBucket rcb = (RCPBucket)pb;
+                    switch (rcb.getType())
+                    {
+                        case 'r':
+                            Trans t = new Trans();
+                            t.tType = RESIST;
+                            t.gate = powerNode;
+                            t.source = getNode(rcb.net1);
+                            t.drain = getNode(rcb.net2);
+                            t.r = theConfig.rEquiv(RESIST, 0, (long)(rcb.rcValue * theConfig.lambdaCM));
 
-						// link it to the list
-						readTransistorList.add(t);
-						break;
-					case 'C':
-						float cap = (float)(ci.rcValue / 1000);		// ff to pf conversion
-						Node n = getNode(ci.netName1);
-						Node m = getNode(ci.netName2);
-						if (n != m)
-						{
-							// add cap to both nodes
-							if (m != groundNode)	m.nCap += cap;
-							if (n != groundNode)	n.nCap += cap;
-						} else if (n == groundNode)
-						{
-							// same node, only GND makes sense
-							n.nCap += cap;
-						}
-						break;
-				}
+                            // link it to the list
+                            readTransistorList.add(t);
+                            break;
+                        case 'C':
+                            float cap = (float)(rcb.rcValue / 1000);		// ff to pf conversion
+                            Node n = getNode(rcb.net1);
+                            Node m = getNode(rcb.net2);
+                            if (n != m)
+                            {
+                                // add cap to both nodes
+                                if (m != groundNode)	m.nCap += cap;
+                                if (n != groundNode)	n.nCap += cap;
+                            } else if (n == groundNode)
+                            {
+                                // same node, only GND makes sense
+                                n.nCap += cap;
+                            }
+                            break;
+                    }
+                }
 			}
 			return;
 		}

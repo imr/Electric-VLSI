@@ -1886,4 +1886,12 @@ public class ArcInst extends Geometric implements Comparable
 		return poly;
 	}
 
+    /**
+     * Method to determin if arc contains active diffusion
+     * @return True if contains active diffusion
+     */
+    public boolean isDiffusionArc()
+    {
+        return getProto().getFunction().isDiffusion();
+    }
 }

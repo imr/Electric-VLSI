@@ -563,21 +563,23 @@ public class ERCWellCheck
 
 			if (thisMerge == null)
 			{
-                switch(check.mode)
-                {
-                    case GeometryHandler.ALGO_SWEEP:
-                        PolySweepMerge sweepMerge = new PolySweepMerge(ercLayers.size());
-                        if (Main.LOCALDEBUGFLAG)
-                            sweepMerge.setMode(PolySweepMerge.TWO_FRONTIER_MODE);
-                        thisMerge = sweepMerge;
-                        break;
-                    case GeometryHandler.ALGO_QTREE:
-                        thisMerge = new PolyQTree(cell.getBounds());
-                        break;
-                    case GeometryHandler.ALGO_MERGE:
-                        thisMerge = new PolyMerge();
-                        break;
-                }
+                thisMerge = GeometryHandler.createGeometryHandler(check.mode,
+                        ercLayers.size(), cell.getBounds());
+//                switch(check.mode)
+//                {
+//                    case GeometryHandler.ALGO_SWEEP:
+//                        PolySweepMerge sweepMerge = new PolySweepMerge(ercLayers.size());
+//                        if (Main.LOCALDEBUGFLAG)
+//                            sweepMerge.setMode(PolySweepMerge.TWO_FRONTIER_MODE);
+//                        thisMerge = sweepMerge;
+//                        break;
+//                    case GeometryHandler.ALGO_QTREE:
+//                        thisMerge = new PolyQTree(cell.getBounds());
+//                        break;
+//                    case GeometryHandler.ALGO_MERGE:
+//                        thisMerge = new PolyMerge();
+//                        break;
+//                }
 				check.cellMerges.put(cell, thisMerge);
 			}
 
@@ -620,8 +622,7 @@ public class ERCWellCheck
 					}
 				}
 
-                if (check.mode == GeometryHandler.ALGO_SWEEP)
-                    ((PolySweepMerge)thisMerge).postProcess();
+                thisMerge.postProcess();
 
                 // merge everything sub trees
                 for(Iterator it = cell.getNodes(); it.hasNext(); )
