@@ -1125,7 +1125,7 @@ public class ToolMenu {
 
         public boolean doIt()
         {
-            Variable var = ni.newVar("ATTR_M", new Double(1.0));
+            Variable var = ni.newVar(Simulation.M_FACTOR_KEY, new Double(1.0));
             if (var != null)
             {
                 var.setDisplay(true);

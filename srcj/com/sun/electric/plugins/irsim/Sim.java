@@ -21,6 +21,7 @@ package com.sun.electric.plugins.irsim;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.io.output.IRSIM;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -385,6 +386,19 @@ public class Sim
 
 	public static final int INPUT_MASK	=	(H_INPUT | L_INPUT | X_INPUT | U_INPUT);
 
+	/** event scheduling */							public static final int	DEBUG_EV	= 0x01;		
+	/** final value computation */					public static final int	DEBUG_DC	= 0x02;		
+	/** tau/delay computation */					public static final int	DEBUG_TAU	= 0x04;		
+	/** taup computation */							public static final int	DEBUG_TAUP	= 0x08;		
+	/** spike analysis */							public static final int	DEBUG_SPK	= 0x10;		
+	/** tree walk */								public static final int	DEBUG_TW	= 0x20;		
+	
+	public static final int	REPORT_DECAY	= 0x01;
+	public static final int	REPORT_DELAY	= 0x02;
+	public static final int	REPORT_TAU		= 0x04;
+	public static final int	REPORT_TCOORD	= 0x08;
+	public static final int REPORT_CAP      = 0x10;
+
 	/* resistance types */
 	/** static resistance */						public static final int	STATIC		= 0;
 	/** dynamic-high resistance */					public static final int	DYNHIGH 	= 1;
@@ -429,7 +443,8 @@ public class Sim
 		/** DEP */		new int[] {WEAK, WEAK,    WEAK,    WEAK}
 	};
 
-	static String   irsim_vchars = "0XX1";
+	public static String    irsim_vchars = "0XX1";
+	public static String [] states = { "OFF", "ON", "UKNOWN", "WEAK" };
 
 	public static final int	MAX_ERRS	= 20;
 
@@ -467,12 +482,15 @@ public class Sim
 	private List     nodeList;
 	private int      nodeIndexCounter;
 	private boolean  warnVdd, warnGnd;
+	public  int      irsim_debug;
+	public  int      irsim_treport = 0;
 
 	private Eval     irsim_model;
 	private Config   theConfig;
 
 	public Sim(Analyzer analyzer)
 	{
+		irsim_debug = Simulation.getIRSIMDebugging();
     	theConfig = new Config();
     	String steppingModel = Simulation.getIRSIMStepModel();
     	if (steppingModel.equals("Linear")) irsim_model = new SStep(analyzer, this); else
@@ -924,8 +942,101 @@ public class Sim
 		return false;
 	}
 
-	private void input_sim(URL simFileURL)
+	private void input_sim(URL simFileURL, List components)
 	{
+		if (components != null)
+		{
+			// load the circuit from memory
+			for(Iterator it = components.iterator(); it.hasNext(); )
+			{
+				IRSIM.ComponentInfo ci = (IRSIM.ComponentInfo)it.next();
+				switch (ci.type)
+				{
+					case 'n':
+						Trans t = new Trans();
+						t.ttype = NCHAN;
+
+						t.gate = irsim_GetNode(ci.netName1);
+						t.source = irsim_GetNode(ci.netName2);
+						t.drain = irsim_GetNode(ci.netName3);
+
+						long length = (long)(ci.length * theConfig.irsim_LAMBDACM);
+						long width = (long)(ci.width * theConfig.irsim_LAMBDACM);
+						if (width <= 0 || length <= 0)
+						{
+							System.out.println("Bad transistor width=" + width + " or length=" + length);
+							return;
+						}
+						((Node)t.gate).ncap += length * width * theConfig.irsim_CTGA;
+
+						t.x = (int)ci.ni.getAnchorCenterX();
+						t.y = (int)ci.ni.getAnchorCenterY();
+						t.source.ncap += ci.sourceArea * theConfig.irsim_LAMBDA * theConfig.irsim_LAMBDA * theConfig.irsim_CDA + ci.sourcePerim * theConfig.irsim_LAMBDA * theConfig.irsim_CDP;
+						t.drain.ncap += ci.drainArea * theConfig.irsim_LAMBDA * theConfig.irsim_LAMBDA * theConfig.irsim_CDA + ci.drainPerim * theConfig.irsim_LAMBDA * theConfig.irsim_CDP;
+
+						// link it to the list
+						t.setSTrans(rd_tlist);
+						rd_tlist = t;
+
+						t.r = theConfig.irsim_requiv(NCHAN, width, length);
+						break;
+					case 'p':
+						t = new Trans();
+						t.ttype = PCHAN;
+
+						t.gate = irsim_GetNode(ci.netName1);
+						t.source = irsim_GetNode(ci.netName2);
+						t.drain = irsim_GetNode(ci.netName3);
+
+						length = (long)(ci.length * theConfig.irsim_LAMBDACM);
+						width = (long)(ci.width * theConfig.irsim_LAMBDACM);
+						if (width <= 0 || length <= 0)
+						{
+							System.out.println("Bad transistor width=" + width + " or length=" + length);
+							return;
+						}
+						((Node)t.gate).ncap += length * width * theConfig.irsim_CTGA;
+
+						t.x = (int)ci.ni.getAnchorCenterX();
+						t.y = (int)ci.ni.getAnchorCenterY();
+						t.source.ncap += ci.sourceArea * theConfig.irsim_LAMBDA * theConfig.irsim_LAMBDA * theConfig.irsim_CPDA + ci.sourcePerim * theConfig.irsim_LAMBDA * theConfig.irsim_CPDP;
+						t.drain.ncap += ci.drainArea * theConfig.irsim_LAMBDA * theConfig.irsim_LAMBDA * theConfig.irsim_CPDA + ci.drainPerim * theConfig.irsim_LAMBDA * theConfig.irsim_CPDP;
+
+						// link it to the list
+						t.setSTrans(rd_tlist);
+						rd_tlist = t;
+
+						t.r = theConfig.irsim_requiv(PCHAN, width, length);
+						break;
+					case 'R':
+						t = new Trans();
+						t.ttype = RESIST;
+						t.gate = irsim_VDD_node;
+						t.source = irsim_GetNode(ci.netName1);
+						t.drain = irsim_GetNode(ci.netName2);
+						t.r = theConfig.irsim_requiv(RESIST, 0, (long)(ci.rcValue * theConfig.irsim_LAMBDACM));
+
+						// link it to the list
+						t.setSTrans(rd_tlist);
+						rd_tlist = t;
+						break;
+					case 'C':
+						float cap = (float)(ci.rcValue / 1000);		// ff to pf conversion
+						Node n = irsim_GetNode(ci.netName1);
+						Node m = irsim_GetNode(ci.netName2);
+						if (n != m)			// add cap to both nodes
+						{
+							if (m != irsim_GND_node)	m.ncap += cap;
+							if (n != irsim_GND_node)	n.ncap += cap;
+						} else if (n == irsim_GND_node)	// same node, only GND makes sense
+							n.ncap += cap;
+						break;
+				}
+			}
+			return;
+		}
+
+		// read the file
 		boolean R_error = false;
 		boolean A_error = false;
 
@@ -1026,7 +1137,7 @@ public class Sim
 		System.out.println("Loaded circuit, lambda=" + theConfig.irsim_LAMBDA + "u");
 	}
 
-	public boolean irsim_rd_network(URL simFileURL)
+	public boolean irsim_rd_network(URL simFileURL, List components)
 	{
 		rd_tlist = null;
 		nodeHash = new HashMap();
@@ -1071,7 +1182,7 @@ public class Sim
 
 		nerrs = 0;
 
-		input_sim(simFileURL);
+		input_sim(simFileURL, components);
 		if (nerrs > 0) return true;
 		return false;
 	}

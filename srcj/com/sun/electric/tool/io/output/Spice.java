@@ -337,7 +337,7 @@ public class Spice extends Topology
      */
     private void writeMFactor(VarContext context, Nodable no, StringBuffer infstr)
     {
-        Variable mVar = no.getVar("ATTR_M");
+        Variable mVar = no.getVar(Simulation.M_FACTOR_KEY);
         if (mVar == null) return;
         Object value = context.evalVar(mVar);
 

@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02j: *********************************
 
+IMP: (03/14/05, SMR) IRSIM and waveform improvements:
+		Added "debug", "report", and working "t" commands
+		Emitting resistors and capacitors
+		Takes circuit information directly from memory without temp files
+		Buttons next to "main" and "extension" cursors to center them
+
 IMP: (03/14/05, GVG) First version of movie feature.
 
 IMP: (03/14/05, RK) Modify qLite regression to test NCC black box support.

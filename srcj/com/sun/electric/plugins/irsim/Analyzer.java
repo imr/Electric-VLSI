@@ -27,6 +27,7 @@ import com.sun.electric.lib.LibFile;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.Output;
+import com.sun.electric.tool.io.output.IRSIM;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.Engine;
@@ -175,14 +176,18 @@ public class Analyzer extends Engine
     		/* now initialize the simulator */
     		System.out.println("IRSIM, version " + irsim_version);
 
-    		String fileToUse = fileName;
+//    		String fileToUse = fileName;
+    		List components = null;
+    		URL fileURL = null;
     		if (fileName == null)
     		{
-    			fileName = "Electric.XXXXXX";
-    			Output.writeCell(cell, context, fileName, FileType.IRSIM);
+    			components = IRSIM.getIRSIMComponents(cell, context);
+//    			fileName = "Electric.XXXXXX";
+//    			Output.writeCell(cell, context, fileName, FileType.IRSIM);
+    		} else
+    		{
+    			fileURL = TextUtils.makeURLToFile(fileName);
     		}
-
-    		URL fileURL = TextUtils.makeURLToFile(fileName);
 
     		// read the configuration file
     		String parameterFile = Simulation.getIRSIMParameterFile().trim();
@@ -208,14 +213,14 @@ public class Analyzer extends Engine
 
     		// Read network (.sim file)
     		analyzer.irsim_init_rsim();
-    		if (sim.irsim_rd_network(fileURL)) return true;
+    		if (sim.irsim_rd_network(fileURL, components)) return true;
 
-    		// remove the temporary network file
-    		if (fileToUse == null)
-    		{
-	    		File f = new File(fileName);
-	    		if (f != null) f.delete();
-    		}
+//    		// remove the temporary network file
+//    		if (fileToUse == null)
+//    		{
+//	    		File f = new File(fileName);
+//	    		if (f != null) f.delete();
+//    		}
 
     		sim.irsim_ConnectNetwork();	// connect all txtors to corresponding nodes
     		sim.getModel().irsim_init_event();
@@ -1129,6 +1134,7 @@ public class Analyzer extends Engine
 		if (cmdName.equals("c")) { doclock(args);   return; }
 		if (cmdName.equals("changes")) { dochanges(args);   return; }
 		if (cmdName.equals("clock")) { setclock(args);   return; }
+		if (cmdName.equals("debug")) { setdbg(args);   return; }
 		if (cmdName.equals("decay")) { setdecay(args);   return; }
 		if (cmdName.equals("h")) { setvalue(args);   return; }
 		if (cmdName.equals("l")) { setvalue(args);   return; }
@@ -1140,6 +1146,7 @@ public class Analyzer extends Engine
 		if (cmdName.equals("print")) { domsg(args);   return; }
 		if (cmdName.equals("printx")) { doprintX(args);   return; }
 		if (cmdName.equals("R")) { runseq(args);   return; }
+		if (cmdName.equals("report")) { setreport(args);   return; }
 		if (cmdName.equals("s")) { dostep(args);   return; }
 		if (cmdName.equals("set")) { setvector(args);   return; }
 		if (cmdName.equals("setpath")) { do_stats(args);   return; }
@@ -1149,6 +1156,7 @@ public class Analyzer extends Engine
 		if (cmdName.equals("tcap")) { print_tcap(args);   return; }
 		if (cmdName.equals("unitdelay")) { setunit(args);   return; }
 		if (cmdName.equals("until")) { doUntil(args);   return; }
+		if (cmdName.equals("w")) { display(args);   return; }
 
 		System.out.println("unrecognized command: " + cmdName);
 	}
@@ -1161,6 +1169,7 @@ public class Analyzer extends Engine
 	static final int PATH_CALL       = 5;
 	static final int FINDONE_CALL    = 6;
 	static final int ASSERTWHEN_CALL = 7;
+	static final int WATCH_CALL      = 8;
 
 	/**
 	 * Apply given function to each argument on the command line.
@@ -1189,16 +1198,11 @@ public class Analyzer extends Engine
 		for(int i = applyStart; i < applyEnd; i += 1)
 		{
 			String p = args[i];
-			String flag = args[0];
-			if (args[0].equals("+"))
+			boolean pos = true;
+			if (args[applyStart].equals("-"))
 			{
-				if (p.startsWith("-"))
-				{
-					flag = "-";
-					p = p.substring(1);
-				}
-				else
-					flag = "+";
+				pos = false;
+				applyStart++;
 			}
 
 			int found = 0;
@@ -1224,16 +1228,16 @@ public class Analyzer extends Engine
 					switch (fun)
 					{
 						case SETIN_CALL:
-							found += irsim_setin(n, flag);
+							found += irsim_setin(n, args[0]);
 							break;
 						case SETTRACE_CALL:
-							found += xtrace(n, flag);
+							found += xtrace(n, pos);
 							break;
 						case SETSTOP_CALL:
-							found += nstop(n, flag);
+							found += nstop(n, pos);
 							break;
 						case QUEST_CALL:
-							found += irsim_info(n, flag);
+							found += irsim_info(n, args[0]);
 							break;
 						case PATH_CALL:
 							found += do_cpath(n);
@@ -1244,7 +1248,10 @@ public class Analyzer extends Engine
 							found = 1;
 							break;
 						case ASSERTWHEN_CALL:
-							setupAssertWhen(n, flag);
+							setupAssertWhen(n, args[0]);
+							break;
+						case WATCH_CALL:
+							found += xwatch(n, pos);
 							break;
 					}
 				} else
@@ -1255,10 +1262,10 @@ public class Analyzer extends Engine
 						switch (fun)
 						{
 							case SETTRACE_CALL:
-								vtrace(b, flag);
+								vtrace(b, pos);
 								break;
 							case SETSTOP_CALL:
-								found += vstop(b, flag);
+								found += vstop(b, pos);
 								break;
 							case FINDONE_CALL:
 								f.vec = b;
@@ -1406,24 +1413,31 @@ public class Analyzer extends Engine
 			{
 				Sim.Trans t = (Sim.Trans)it.next();
 				infstr += "  ";
-
-				String drive = null;
-				Sim.Node rail = (t.drain.nflags & Sim.POWER_RAIL) != 0 ? t.drain : t.source;
-				if (Sim.BASETYPE(t.ttype) == Sim.NCHAN && rail == theSim.irsim_GND_node)
-					drive = "pulled down by ";
-				else if (Sim.BASETYPE(t.ttype) == Sim.PCHAN && rail == theSim.irsim_VDD_node)
-					drive = "pulled up by ";
-				else if (Sim.BASETYPE(t.ttype) == Sim.DEP && rail == theSim.irsim_VDD_node &&
-					Sim.other_node(t, rail) == t.gate)
-						drive = "pullup ";
-				else
-					infstr += ptrans(t);
-
-				if (drive != null)
+				if (theSim.irsim_debug == 0)
 				{
-					infstr += drive;
-					infstr += pgvalue(t);
-					infstr += pr_t_res(t.r);
+					String drive = null;
+					Sim.Node rail = (t.drain.nflags & Sim.POWER_RAIL) != 0 ? t.drain : t.source;
+					if (Sim.BASETYPE(t.ttype) == Sim.NCHAN && rail == theSim.irsim_GND_node)
+						drive = "pulled down by ";
+					else if (Sim.BASETYPE(t.ttype) == Sim.PCHAN && rail == theSim.irsim_VDD_node)
+						drive = "pulled up by ";
+					else if (Sim.BASETYPE(t.ttype) == Sim.DEP && rail == theSim.irsim_VDD_node &&
+						Sim.other_node(t, rail) == t.gate)
+							drive = "pullup ";
+					else
+						infstr += ptrans(t);
+	
+					if (drive != null)
+					{
+						infstr += drive;
+						infstr += pgvalue(t);
+						infstr += pr_t_res(t.r);
+						if (t.tlink != t && (theSim.irsim_treport & Sim.REPORT_TCOORD) != 0)
+							infstr += " <" + t.x + "," + t.y + ">";
+					}
+				} else
+				{
+					infstr += ptrans(t);
 				}
 			}
 		} else
@@ -1465,6 +1479,8 @@ public class Analyzer extends Engine
 	private String pgvalue(Sim.Trans t)
 	{
 		String infstr = "";
+		if (theSim.irsim_debug != 0)
+			infstr += "[" + Sim.states[t.state] + "] ";
 		if ((t.ttype & Sim.GATELIST) != 0)
 		{
 			infstr += "(";
@@ -1523,6 +1539,8 @@ public class Analyzer extends Engine
 		infstr += pvalue(t.source.nname, t.source);
 		infstr += pvalue(t.drain.nname, t.drain);
 		infstr += pr_t_res(t.r);
+		if (t.tlink != t && (theSim.irsim_treport & Sim.REPORT_TCOORD) != 0)
+			infstr += " <" + t.x + "," + t.y + ">";
 		return infstr;
 	}
 
@@ -1624,6 +1642,14 @@ public class Analyzer extends Engine
 	}
 
 	/**
+	 * Set watch of a node/vector.
+	 */
+	private void display(String [] args)
+	{
+		apply(WATCH_CALL, 0, args, 1, args.length);
+	}
+
+	/**
 	 * display bit vector.
 	 */
 	private void dvec(Bits b)
@@ -1652,7 +1678,7 @@ public class Analyzer extends Engine
 	/**
 	 * set/clear trace bit in node
 	 */
-	private int xtrace(Sim.Node n, String flag)
+	private int xtrace(Sim.Node n, boolean flag)
 	{
 		n = UnAlias(n);
 
@@ -1662,7 +1688,7 @@ public class Analyzer extends Engine
 			return 1;
 		}
 
-		if (flag.startsWith("+"))
+		if (flag)
 			n.nflags |= Sim.WATCHED;
 		else if ((n.nflags & Sim.WATCHED) != 0)
 		{
@@ -1674,11 +1700,28 @@ public class Analyzer extends Engine
 	}
 
 	/**
+	 * add/delete node to/from display list.
+	 */
+	private int xwatch(Sim.Node n, boolean flag)
+	{
+//		UnAlias(n);
+//
+//		if ((n.nflags & Sim.MERGED) == 0)
+//		{
+//			if (flag)
+//				irsim_iinsert_once(n, &wlist);
+//			else
+//				irsim_idelete(n, &wlist);
+//		}
+		return 1;
+	}
+
+	/**
 	 * set/clear trace bit in vector
 	 */
-	private void vtrace(Bits b, String flag)
+	private void vtrace(Bits b, boolean flag)
 	{
-		if (flag.startsWith("+"))
+		if (flag)
 			b.traced |= Sim.WATCHVECTOR;
 		else
 		{
@@ -1703,14 +1746,14 @@ public class Analyzer extends Engine
 	/**
 	 * set/clear stop bit in node
 	 */
-	private int nstop(Sim.Node n, String flag)
+	private int nstop(Sim.Node n, boolean flag)
 	{
 		n = UnAlias(n);
 
 		if ((n.nflags & Sim.MERGED) != 0)
 			return 1;
 
-		if (flag.startsWith("-"))
+		if (flag)
 			n.nflags &= ~Sim.STOPONCHANGE;
 		else
 			n.nflags |= Sim.STOPONCHANGE;
@@ -1720,9 +1763,9 @@ public class Analyzer extends Engine
 	/**
 	 * set/clear stop bit in vector
 	 */
-	private int vstop(Bits b, String flag)
+	private int vstop(Bits b, boolean flag)
 	{
-		if (flag.startsWith("+"))
+		if (flag)
 			b.traced |= Sim.STOPVECCHANGE;
 		else
 		{
@@ -2411,6 +2454,50 @@ public class Analyzer extends Engine
 			theSim.irsim_tdecay = Sim.ns2d(TextUtils.atof(args[1]));
 			if (theSim.irsim_tdecay < 0)
 				theSim.irsim_tdecay = 0;
+		}
+	}
+
+	private void setdbg(String [] args)
+	{
+		if (args[1].equalsIgnoreCase("ev")) theSim.irsim_debug |= Sim.DEBUG_EV; else
+			if (args[1].equalsIgnoreCase("dc")) theSim.irsim_debug |= Sim.DEBUG_DC; else
+				if (args[1].equalsIgnoreCase("tau")) theSim.irsim_debug |= Sim.DEBUG_TAU; else
+					if (args[1].equalsIgnoreCase("taup")) theSim.irsim_debug |= Sim.DEBUG_TAUP; else
+						if (args[1].equalsIgnoreCase("spk")) theSim.irsim_debug |= Sim.DEBUG_SPK; else
+							if (args[1].equalsIgnoreCase("tw")) theSim.irsim_debug |= Sim.DEBUG_TW; else
+								if (args[1].equalsIgnoreCase("off")) theSim.irsim_debug = 0;
+		System.out.print("Debugging");
+		if (theSim.irsim_debug == 0) System.out.println(" OFF"); else
+		{
+			if ((theSim.irsim_debug&Sim.DEBUG_EV) != 0) System.out.print(" event-scheduling");
+			if ((theSim.irsim_debug&Sim.DEBUG_DC) != 0) System.out.print(" final-value-computation");
+			if ((theSim.irsim_debug&Sim.DEBUG_TAU) != 0) System.out.print(" tau/delay-computation");
+			if ((theSim.irsim_debug&Sim.DEBUG_TAUP) != 0) System.out.print(" tauP-computation");
+			if ((theSim.irsim_debug&Sim.DEBUG_SPK) != 0) System.out.print(" spike-analysis");
+			if ((theSim.irsim_debug&Sim.DEBUG_TW) != 0) System.out.print(" tree-walk");
+			System.out.println();
+		}
+	}
+
+	/**
+	 * set irsim_treport parameter
+	 */
+	private void setreport(String [] args)
+	{
+		if (args[1].equalsIgnoreCase("decay")) theSim.irsim_treport |= Sim.REPORT_DECAY; else
+			if (args[1].equalsIgnoreCase("delay")) theSim.irsim_treport |= Sim.REPORT_DELAY; else
+				if (args[1].equalsIgnoreCase("tau")) theSim.irsim_treport |= Sim.REPORT_TAU; else
+					if (args[1].equalsIgnoreCase("tcoord")) theSim.irsim_treport |= Sim.REPORT_TCOORD; else
+						if (args[1].equalsIgnoreCase("none")) theSim.irsim_treport = 0;
+		System.out.print("Report");
+		if (theSim.irsim_treport == 0) System.out.println(" NONE"); else
+		{
+			if ((theSim.irsim_treport&Sim.REPORT_DECAY) != 0) System.out.print(" decay");
+			if ((theSim.irsim_treport&Sim.REPORT_DELAY) != 0) System.out.print(" delay");
+			if ((theSim.irsim_treport&Sim.REPORT_TAU) != 0) System.out.print(" tau");
+			if ((theSim.irsim_treport&Sim.DEBUG_TAUP) != 0) System.out.print(" tauP");
+			if ((theSim.irsim_treport&Sim.REPORT_TCOORD) != 0) System.out.print(" tcoord");
+			System.out.println();
 		}
 	}
 

@@ -54,6 +54,7 @@ public class Simulation extends Tool
 	/** key of Variable holding rise time. */				public static final Variable.Key RISE_DELAY_KEY = ElectricObject.newKey("SIM_rise_delay");
 	/** key of Variable holding fall time. */				public static final Variable.Key FALL_DELAY_KEY = ElectricObject.newKey("SIM_fall_delay");
 	/** key of Variable holding flag for weak nodes. */		public static final Variable.Key WEAK_NODE_KEY = ElectricObject.newKey("SIM_weak_node");
+	/** key of Variable holding "M" factors. */				public static final Variable.Key M_FACTOR_KEY = ElectricObject.newKey("ATTR_M");
 
 	private static boolean irsimChecked = false;
 	private static Class irsimClass = null;
@@ -744,6 +745,32 @@ public class Simulation extends Tool
 	 * @param p the parasitic level for IRSIM extraction.
 	 */
 	public static void setIRSIMParasiticLevel(int p) { cacheIRSIMParasiticLevel.setInt(p); }
+
+	private static Pref cacheIRSIMDebugging = Pref.makeIntPref("IRSIMDebugging", Simulation.tool.prefs, 0);
+	/**
+	 * Method to tell the debugging level for IRSIM simulation.
+	 * This is a combination of bits, where:
+	 * Bit 1: debug event scheduling (Sim.DEBUG_EV)
+	 * Bit 2: debug final value computation (Sim.DEBUG_DC)
+	 * Bit 3: debug tau/delay computation (Sim.DEBUG_TAU)
+	 * Bit 4: debug taup computation (Sim.DEBUG_TAUP)
+	 * Bit 5: debug spike analysis (Sim.DEBUG_SPK)
+	 * Bit 6: debug tree walk (Sim.DEBUG_TW)
+	 * @return the debugging level for IRSIM simulation.
+	 */
+	public static int getIRSIMDebugging() { return cacheIRSIMDebugging.getInt(); }
+	/**
+	 * Method to set the debugging level for IRSIM simulation.
+	 * This is a combination of bits, where:
+	 * Bit 1: debug event scheduling (Sim.DEBUG_EV)
+	 * Bit 2: debug final value computation (Sim.DEBUG_DC)
+	 * Bit 3: debug tau/delay computation (Sim.DEBUG_TAU)
+	 * Bit 4: debug taup computation (Sim.DEBUG_TAUP)
+	 * Bit 5: debug spike analysis (Sim.DEBUG_SPK)
+	 * Bit 6: debug tree walk (Sim.DEBUG_TW)
+	 * @param p the debugging level for IRSIM simulation.
+	 */
+	public static void setIRSIMDebugging(int p) { cacheIRSIMDebugging.setInt(p); }
 
 	private static Pref cacheIRSIMParameterFile = Pref.makeStringPref("IRSIMParameterFile", Simulation.tool.prefs, "scmos0.3.prm");
 	/**

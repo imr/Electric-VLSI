@@ -163,6 +163,7 @@ public class WaveformWindow implements WindowContent
 	/** the main scroll of all panels. */					private JScrollPane scrollAll;
 	/** the split between signal names and traces. */		private JSplitPane split;
 	/** labels for the text at the top */					private JLabel mainPos, extPos, delta;
+	/** buttons for centering the time cursors. */			private JButton centerMain, centerExt;
 	/** a list of panels in this window */					private List wavePanels;
 	/** a list of sweep signals in this window */			private List sweepSignals;
 	/** the time panel at the top of the wave window. */	private TimeTickPanel mainTimePanel;
@@ -2799,7 +2800,7 @@ public class WaveformWindow implements WindowContent
 		// the time section that shows the value of the main and extension cursors
 		JPanel timeLabelPanel = new JPanel();
 		timeLabelPanel.setLayout(new GridBagLayout());
-		gbc.gridx = 10;       gbc.gridy = 0;
+		gbc.gridx = 10;      gbc.gridy = 0;
 		gbc.gridwidth = 3;   gbc.gridheight = 1;
 		gbc.weightx = 0;     gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
@@ -2807,31 +2808,59 @@ public class WaveformWindow implements WindowContent
 		gbc.insets = new Insets(0, 4, 0, 4);
 		overall.add(timeLabelPanel, gbc);
 
-		mainPos = new JLabel("Main:");
+		mainPos = new JLabel("Main:", JLabel.RIGHT);
 		mainPos.setToolTipText("The main (white) time cursor");
 		gbc.gridx = 0;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
-		gbc.weightx = 0.3;     gbc.weighty = 0;
+		gbc.weightx = 0.3;   gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
 		gbc.fill = java.awt.GridBagConstraints.HORIZONTAL;
 		gbc.insets = new Insets(0, 0, 0, 0);
 		timeLabelPanel.add(mainPos, gbc);
 
-		extPos = new JLabel("Ext:");
-		extPos.setToolTipText("The extension (yellow) time cursor");
+		centerMain = new JButton("Center");
+		centerMain.setToolTipText("Center the main (white) time cursor");
 		gbc.gridx = 1;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
-		gbc.weightx = 0.3;     gbc.weighty = 0;
+		gbc.weightx = 0;     gbc.weighty = 0;
+		gbc.anchor = GridBagConstraints.WEST;
+		gbc.fill = java.awt.GridBagConstraints.NONE;
+		gbc.insets = new Insets(2, 4, 2, 0);
+		timeLabelPanel.add(centerMain, gbc);
+		centerMain.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { centerCursor(true); }
+		});
+
+		extPos = new JLabel("Ext:", JLabel.RIGHT);
+		extPos.setToolTipText("The extension (yellow) time cursor");
+		gbc.gridx = 2;       gbc.gridy = 0;
+		gbc.gridwidth = 1;   gbc.gridheight = 1;
+		gbc.weightx = 0.3;   gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
 		gbc.fill = java.awt.GridBagConstraints.HORIZONTAL;
 		gbc.insets = new Insets(0, 0, 0, 0);
 		timeLabelPanel.add(extPos, gbc);
 
-		delta = new JLabel("Delta:");
-		delta.setToolTipText("Time distance between cursors");
-		gbc.gridx = 2;       gbc.gridy = 0;
+		centerExt = new JButton("Center");
+		centerExt.setToolTipText("Center the extension (yellow) time cursor");
+		gbc.gridx = 3;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
-		gbc.weightx = 0.3;     gbc.weighty = 0;
+		gbc.weightx = 0;     gbc.weighty = 0;
+		gbc.anchor = GridBagConstraints.WEST;
+		gbc.fill = java.awt.GridBagConstraints.NONE;
+		gbc.insets = new Insets(2, 4, 2, 0);
+		timeLabelPanel.add(centerExt, gbc);
+		centerExt.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { centerCursor(false); }
+		});
+
+		delta = new JLabel("Delta:", JLabel.CENTER);
+		delta.setToolTipText("Time distance between cursors");
+		gbc.gridx = 4;       gbc.gridy = 0;
+		gbc.gridwidth = 1;   gbc.gridheight = 1;
+		gbc.weightx = 0.3;   gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
 		gbc.fill = java.awt.GridBagConstraints.HORIZONTAL;
 		gbc.insets = new Insets(0, 0, 0, 0);
@@ -4331,6 +4360,41 @@ public class WaveformWindow implements WindowContent
 		}
 		overall.validate();
 		redrawAllPanels();
+	}
+
+	/**
+	 * Method called when the main or extension cursors should be centered.
+	 * @param main true for the main cursor, false for the extension cursor.
+	 */
+	public void centerCursor(boolean main)
+	{
+		boolean havePanel = false;
+		double lowTime = 0, highTime = 0;
+		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next();
+			double low = wp.getMinTimeRange();
+			double high = wp.getMaxTimeRange();
+			if (havePanel)
+			{
+				lowTime = Math.max(lowTime, low);
+				highTime = Math.min(highTime, high);
+			} else
+			{
+				lowTime = low;
+				highTime = high;
+				havePanel = true;
+			}
+		}
+		if (!havePanel) return;
+		double center = (lowTime + highTime) / 2;
+		if (main) setMainTimeCursor(center); else
+			setExtensionTimeCursor(center);
+		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next();
+			wp.repaintWithTime();
+		}
 	}
 
 	/**

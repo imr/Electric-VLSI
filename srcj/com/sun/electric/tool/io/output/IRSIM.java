@@ -36,15 +36,20 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
 
 import java.util.Date;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * Class to write IRSIM netlists.
@@ -52,6 +57,24 @@ import java.util.Date;
 public class IRSIM extends Output
 {
     private VarContext context;
+    private List components;
+
+    /**
+     * Class to define a component extracted from circuitry that is to be sent to the IRSIM simulator.
+     */
+	public static class ComponentInfo
+	{
+		/** original node for this component */	public NodeInst ni;
+		/** component type (n or p, R or C) */	public char     type;
+		/** for transistors, the gate */		public String   netName1;
+		/** for transistors, the source */		public String   netName2;
+		/** for transistors, the drain */		public String   netName3;
+		/** transistor size */					public double   length, width;
+		/** transistor source info */			public double   sourceArea, sourcePerim;
+		/** transistor drain info */			public double   drainArea, drainPerim;
+		/** resistor/capacitor value */			public double   rcValue;
+	}
+
 	/**
 	 * The main entry point for IRSIM deck writing.
 	 * @param cell the top-level cell to write.
@@ -64,30 +87,40 @@ public class IRSIM extends Output
 		out.writeNetlist(cell, context, filePath);
 	}
 
-	private void writeNetlist(Cell cell, VarContext context, String filePath)
+	/**
+	 * The main entry point for IRSIM extraction.
+	 * @param cell the top-level cell to extract.
+	 * @param context the hierarchical context to the cell.
+	 * @return a List of ComponentInfo objects that describes the circuit.
+	 */
+	public static List getIRSIMComponents(Cell cell, VarContext context)
 	{
-		if (openTextOutputStream(filePath)) return;
-		writeHeader(cell);
+		// gather all components
+		IRSIM out = new IRSIM();
+		List components = out.getNetlist(cell, context);
+		return out.components;
+	}
 
+	private List getNetlist(Cell cell, VarContext context)
+	{
+		// gather all components
 		IRSIMNetlister netlister = new IRSIMNetlister();
 		Netlist netlist = cell.getNetlist(true);
         this.context = context;
+        components = new ArrayList();
 		HierarchyEnumerator.enumerateCell(cell, context, netlist, netlister);
-		if (closeTextOutputStream()) return;
-		System.out.println(filePath + " written");
+		return components;
 	}
 
-	/**
-	 * Creates a new instance of IRSIM
-	 */
-	private IRSIM()
+	private void writeNetlist(Cell cell, VarContext context, String filePath)
 	{
-        context = null;
-	}
+		// gather all components
+        components = getNetlist(cell, context);
 
-	private void writeHeader(Cell cell)
-	{
-		// get scale in centimicrons
+		// write them
+		if (openTextOutputStream(filePath)) return;
+
+		// write the header
 		Technology tech = cell.getTechnology();
 		if (tech == Schematics.tech)
 			tech = Technology.findTechnology(User.getSchematicTechnology());
@@ -106,9 +139,47 @@ public class IRSIM extends Output
 		{
 			printWriter.println("| Written by Electric VLSI Design System");
 		}
+
+		// write the components
+		for(Iterator it = components.iterator(); it.hasNext(); )
+		{
+			ComponentInfo ci = (ComponentInfo)it.next();
+			if (ci.type == 'R' || ci.type == 'C')
+			{
+	            printWriter.print(ci.type);
+				printWriter.print(" " + ci.netName1);
+				printWriter.print(" " + ci.netName2);
+				printWriter.println(" " + TextUtils.formatDouble(ci.rcValue));
+			} else
+			{
+		        printWriter.print(ci.type);
+		        printWriter.print(" " + ci.netName1);
+		        printWriter.print(" " + ci.netName2);
+		        printWriter.print(" " + ci.netName3);
+		        printWriter.print(" " + TextUtils.formatDouble(ci.length));
+		        printWriter.print(" " + TextUtils.formatDouble(ci.width));
+		        printWriter.print(" " + TextUtils.formatDouble(ci.ni.getAnchorCenterX()));
+		        printWriter.print(" " + TextUtils.formatDouble(ci.ni.getAnchorCenterY()));
+		        if (ci.type == 'n') printWriter.print(" g=S_gnd");
+		        if (ci.type == 'p') printWriter.print(" g=S_vdd");
+				printWriter.print(" s=A_" + ci.sourceArea + ",P_" + ci.sourcePerim);
+				printWriter.println(" d=A_" + ci.drainArea + ",P_" + ci.drainPerim);
+			}
+		}
+
+		if (closeTextOutputStream()) return;
+		System.out.println(filePath + " written");
 	}
 
-    /** IRSIM Netlister */
+	/**
+	 * Creates a new instance of IRSIM
+	 */
+	private IRSIM()
+	{
+        context = null;
+	}
+
+	/** IRSIM Netlister */
 	private class IRSIMNetlister extends HierarchyEnumerator.Visitor
     {
         public HierarchyEnumerator.CellInfo newCellInfo() { return new IRSIMCellInfo(); }
@@ -129,11 +200,60 @@ public class IRSIM extends Output
             if (!(np instanceof PrimitiveNode)) return true;	// descend and enumerate
             PrimitiveNode pn = (PrimitiveNode)np;
 			NodeInst ni = (NodeInst)no; 						// Nodable is NodeInst because it is primitive node
+
+			// handle resistors and capacitors
+			PrimitiveNode.Function fun = ni.getFunction();
+			if (fun == PrimitiveNode.Function.RESIST || fun == PrimitiveNode.Function.CAPAC ||
+				fun == PrimitiveNode.Function.ECAPAC)
+			{
+				Variable.Key varKey = Schematics.SCHEM_CAPACITANCE;
+				TextDescriptor.Unit unit = TextDescriptor.Unit.CAPACITANCE;
+				if (fun == PrimitiveNode.Function.RESIST)
+				{
+					varKey = Schematics.SCHEM_RESISTANCE;
+					unit = TextDescriptor.Unit.RESISTANCE;
+				}
+				Variable valueVar = ni.getVar(varKey);
+				String extra = "";
+				if (valueVar != null)
+				{
+					extra = valueVar.describe(context, ni);
+					if (TextUtils.isANumber(extra))
+					{
+						double pureValue = TextUtils.atof(extra);
+						extra = TextUtils.displayedUnits(pureValue, unit, TextUtils.UnitScale.NONE);
+					}
+				}
+				PortInst end1 = ni.getPortInst(0);
+				PortInst end2 = ni.getPortInst(1);
+	            if (end1 == null || end2 == null)
+	            {
+	                System.out.println("PortInst for " + ni + " null!");
+	                return false;
+	            }
+				Netlist netlist = info.getNetlist();
+	            Network net1 = netlist.getNetwork(end1);
+	            Network net2 = netlist.getNetwork(end2);
+	            if (net1 == null || net2 == null)
+	            {
+	                System.out.println("Warning, ignoring unconnected component " + ni + " in cell " + iinfo.getCell());
+	                return false;
+	            }
+	            String removeContext = context.getInstPath("/");
+	            int len = removeContext.length();
+	            if (len > 0) len++;
+
+	            ComponentInfo ci = new ComponentInfo();
+	            ci.ni = ni;
+	            if (fun == PrimitiveNode.Function.RESIST) ci.type = 'R'; else ci.type = 'C';
+	            ci.netName1 = iinfo.getUniqueNetName(net1, "/").substring(len);
+	            ci.netName2 = iinfo.getUniqueNetName(net2, "/").substring(len);
+	            ci.rcValue = TextUtils.atof(extra);
+	            components.add(ci);
+				return false;
+			}
+
             if (!(ni.isPrimitiveTransistor())) return false;	// not transistor, ignore
-            boolean isNMOS = false;
-            if (ni.getFunction() == PrimitiveNode.Function.TRANMOS ||
-                ni.getFunction() == PrimitiveNode.Function.TRA4NMOS)
-                	isNMOS = true;
 
             PortInst g = ni.getTransistorGatePort();
             PortInst d = ni.getTransistorDrainPort();
@@ -154,43 +274,36 @@ public class IRSIM extends Output
             }
 
             // print out transistor
-            if (isNMOS) printWriter.print("n"); else
-				printWriter.print("p");
+            ComponentInfo ci = new ComponentInfo();
+            ci.ni = ni;
+            if (ni.getFunction() == PrimitiveNode.Function.TRANMOS || ni.getFunction() == PrimitiveNode.Function.TRA4NMOS)
+            	ci.type = 'n'; else
+            		ci.type = 'p';
             String removeContext = context.getInstPath("/");
             int len = removeContext.length();
-            String gnetname = iinfo.getUniqueNetName(gnet, "/");
-            String snetname = iinfo.getUniqueNetName(snet, "/");
-            String dnetname = iinfo.getUniqueNetName(dnet, "/");
-			printWriter.print(" " + gnetname.substring(len+1, gnetname.length()));
-			printWriter.print(" " + snetname.substring(len+1, snetname.length()));
-			printWriter.print(" " + dnetname.substring(len+1, dnetname.length()));
+            if (len > 0) len++;
+            ci.netName1 = iinfo.getUniqueNetName(gnet, "/").substring(len);
+            ci.netName2 = iinfo.getUniqueNetName(snet, "/").substring(len);
+            ci.netName3 = iinfo.getUniqueNetName(dnet, "/").substring(len);
             TransistorSize dim = ni.getTransistorSize(iinfo.getContext());
             if (dim.getDoubleLength() == 0 || dim.getDoubleWidth() == 0)
             	dim = new TransistorSize(new Double(2), new Double(2));
             float m = iinfo.getMFactor();
-			printWriter.print(" " + dim.getLength());                   // length
-			printWriter.print(" " + (double)m * dim.getDoubleWidth());  // width
-			printWriter.print(" " + ni.getAnchorCenterX());             // xpos
-			printWriter.print(" " + ni.getAnchorCenterY());             // ypos
-            if (isNMOS)
-				printWriter.print(" g=S_gnd");
-            else
-				printWriter.print(" g=S_vdd");
+            ci.length = dim.getDoubleLength();
+            ci.width = dim.getDoubleWidth() * m;
 
 			// no parasitics yet
-            double sourceArea = dim.getDoubleWidth() * 6;
-            double sourcePerim = dim.getDoubleWidth() + 12;
-            double drainArea = dim.getDoubleWidth() * 6;
-            double drainPerim = dim.getDoubleWidth() + 12;
+            ci.sourceArea = dim.getDoubleWidth() * 6;
+            ci.sourcePerim = dim.getDoubleWidth() + 12;
+            ci.drainArea = dim.getDoubleWidth() * 6;
+            ci.drainPerim = dim.getDoubleWidth() + 12;
 /*
-            double sourceArea = 0;
-            double sourcePerim = 0;
-            double drainArea = 0;
-            double drainPerim = 0;
+            ci.sourceArea = 0;
+            ci.sourcePerim = 0;
+            ci.drainArea = 0;
+            ci.drainPerim = 0;
 */
-			printWriter.print(" s=A_" + sourceArea + ",P_" + sourcePerim);
-			printWriter.print(" d=A_" + drainArea + ",P_" + drainPerim);
-			printWriter.println();
+            components.add(ci);
             return false;
         }
     }
@@ -211,7 +324,7 @@ public class IRSIM extends Output
             // get mfactor from instance we pushed into
             Nodable ni = getContext().getNodable();
             if (ni == null) return;
-            Variable mvar = ni.getVar("ATTR_M");
+            Variable mvar = ni.getVar(Simulation.M_FACTOR_KEY);
             if (mvar == null) return;
             Object mval = getContext().evalVar(mvar, null);
             if (mval == null) return;
