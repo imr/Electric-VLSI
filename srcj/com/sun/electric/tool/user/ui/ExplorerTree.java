@@ -95,6 +95,8 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 	private static ImageIcon iconJobs = null;
 	private static ImageIcon iconLibraries = null;
 	private static ImageIcon iconErrors = null;
+    private static ImageIcon iconErrorMsg = null;
+    private static ImageIcon iconWarnMsg = null;
 	private static ImageIcon iconSignals = null;
 	private static ImageIcon iconViewIcon = null;
 	private static ImageIcon iconViewOldIcon = null;
@@ -413,7 +415,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
         if (nodeInfo instanceof ErrorLogger.MessageLog)
         {
             ErrorLogger.MessageLog el = (ErrorLogger.MessageLog)nodeInfo;
-            return el.describeError();
+            return el.getMessage();
         }
 		if (nodeInfo instanceof Simulation.SimSignal)
 		{
@@ -573,6 +575,22 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					setIcon(iconSignals);
 				}
 			}
+            if (nodeInfo instanceof ErrorLogger.MessageLog)
+            {
+                ErrorLogger.MessageLog theLog = (ErrorLogger.MessageLog)nodeInfo;
+                // Error   WarningLog
+                if (theLog instanceof ErrorLogger.WarningLog)
+                {
+                    if (iconWarnMsg == null)
+                        iconWarnMsg = Resources.getResource(getClass(), "IconViewLayout.gif");
+                    setIcon(iconWarnMsg);
+                } else // warning
+                {
+                    if (iconErrorMsg == null)
+                        iconErrorMsg = Resources.getResource(getClass(), "IconViewSchematics.gif");
+                    setIcon(iconErrorMsg);
+                }
+            }
 			if (nodeInfo instanceof Job)
 			{
 				Job j = (Job)nodeInfo;

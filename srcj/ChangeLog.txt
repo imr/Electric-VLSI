@@ -17,7 +17,7 @@ Side effect: wrong name assigned. FIX: NodeInst.newInstance passes also techBits
 BUG: (9/10/04, GVG) Zero-width arcs didn't get correct angle while copying them.
 FIX: ArcInst.newInstance passes def value for angles in case port points coincide
 
-IMP: ErrorLog handles warning messages. To-Do: assign a different icon to warning messages.
+IMP: ErrorLog handles warning messages. Red dot icon when it is an error and yellow one when its just a warning
 
 IMP: (9/10/04, SMR) In-line text editing starts the text selected.
 

@@ -392,7 +392,7 @@ public class Quick
 			{
 				// not a quiet DRC, so it must be incremental
 				if (errorLoggerIncremental == null) errorLoggerIncremental = ErrorLogger.newInstance("DRC (incremental)", true);
-				errorLoggerIncremental.clearErrors(cell);
+				errorLoggerIncremental.clearLogs(cell);
 				errorLogger = errorLoggerIncremental;
                 logsFound = errorLoggerIncremental.getNumLogs();
 			}

@@ -2733,6 +2733,13 @@ public class Cell extends NodeProto implements Comparable
 	            return (false);
             }
         }
+        // other node has more instances
+        if (getNumNodes() != toCompare.getNumNodes())
+        {
+            if (buffer != null)
+                buffer.append("Cell '" + toCompare.libDescribe() + "' has more nodes than '" + this + "'\n");
+            return (false);
+        }
 
         // Traversing Arcs
         for (Iterator it = getArcs(); it.hasNext(); )
@@ -2760,6 +2767,13 @@ public class Cell extends NodeProto implements Comparable
 	                buffer.append("No corresponding arc '" + arc + "' found in other cell" + "\n");
 	            return (false);
             }
+        }
+        // other node has more instances
+        if (getNumArcs() != toCompare.getNumArcs())
+        {
+            if (buffer != null)
+                buffer.append("Cell '" + toCompare.libDescribe() + "' has more arcs than '" + this + "'\n");
+            return (false);
         }
 
         // Traversing ports. This includes Exports
@@ -2790,6 +2804,13 @@ public class Cell extends NodeProto implements Comparable
                 return (false);
             }
         }
+        // other node has more instances
+        if (getNumPorts() != toCompare.getNumPorts())
+        {
+            if (buffer != null)
+                buffer.append("Cell '" + toCompare.libDescribe() + "' has more pors than '" + this + "'\n");
+            return (false);
+        }
 
         // Checking attributes
         noCheckAgain.clear();
@@ -2818,6 +2839,13 @@ public class Cell extends NodeProto implements Comparable
                     buffer.append("No corresponding variable '" + var + "' found in other cell" + "\n");
                 return (false);
             }
+        }
+        // other node has more instances
+        if (getNumVariables() != toCompare.getNumVariables())
+        {
+            if (buffer != null)
+                buffer.append("Cell '" + toCompare + "' has more variables than '" + this + "'\n");
+            return (false);
         }
         return (true);
 	}

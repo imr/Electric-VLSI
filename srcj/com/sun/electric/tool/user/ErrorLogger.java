@@ -268,7 +268,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         /**
          * Method to describe error "elv".
          */
-        public String describeError() { return message; }
+        public String getMessage() { return message; }
 
         /**
          * Returns true if this error log is still valid
@@ -403,7 +403,10 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         }
 
     }
-
+    public static class WarningLog extends MessageLog
+    {
+       private WarningLog(String message, int sortKey) {super(message, sortKey);}
+    }
 
     /** Current Logger */               private static ErrorLogger currentLogger;
     /** List of all loggers */          private static List allLoggers = new ArrayList();
@@ -520,7 +523,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         }
 
         // create a new ErrorLog object
-        MessageLog el = new MessageLog(message, sortKey);
+        MessageLog el = new WarningLog(message, sortKey);
 
         // store information about the error
         el.message = message;
@@ -563,16 +566,6 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
 		return (false);
 	}
 
-	/**
-	 * Method to remove all logged errors from this errorlog.
-	 */
-	public synchronized void clearAllErrors() {
-        allErrors.clear();
-		allWarnings.clear();
-        limitExceeded = false;
-        currentLogNumber = -1;
-    }
-
     /** Get the current logger */
     public static ErrorLogger getCurrent() {
         synchronized(allLoggers) {
@@ -585,14 +578,22 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
      * Removes all errors associated with Cell cell.
      * @param cell the cell for which errors will be removed
      */
-    public synchronized void clearErrors(Cell cell) {
-        ArrayList trimmedErrors = new ArrayList();
+    public synchronized void clearLogs(Cell cell) {
+        ArrayList trimmedLogs = new ArrayList();
+        // Errors
         for (Iterator it = allErrors.iterator(); it.hasNext(); ) {
             MessageLog log = (MessageLog)it.next();
-            if (log.logCell != cell) trimmedErrors.add(log);
+            if (log.logCell != cell) trimmedLogs.add(log);
         }
-        allErrors = trimmedErrors;
-        currentLogNumber = allErrors.size()-1;
+        allErrors = trimmedLogs;
+        trimmedLogs.clear();
+        // Warnings
+        for (Iterator it = allWarnings.iterator(); it.hasNext(); ) {
+            MessageLog log = (MessageLog)it.next();
+            if (log.logCell != cell) trimmedLogs.add(log);
+        }
+        allWarnings = trimmedLogs;
+        currentLogNumber = getNumLogs()-1;
     }
 
     /** Delete this logger */
@@ -826,7 +827,6 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         }
         if (currentLogNumber >= getNumLogs()) currentLogNumber = 0;
     }
-
 
     // ----------------------------- Explorer Tree Stuff ---------------------------
 
