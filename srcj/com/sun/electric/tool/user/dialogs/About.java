@@ -63,7 +63,7 @@ public class About extends EDialog
 			new CastOfThousands("Jonathan Gainsley", 		"User interface, logical effort"),
 			new CastOfThousands("Peter Gallant", 			"ALS simulator (C)"),
 			new CastOfThousands("R. Brian Gardiner", 		"Electric lifeline"),
-			new CastOfThousands("Gilda Garretón", 			"Geometry, parasitics"),
+			new CastOfThousands("Gilda Garretón", 			"Geometry, parasitics, 3D"),
 			new CastOfThousands("T. J. Goodman", 			"Texsim output (C)"),
 			new CastOfThousands("Gerrit Groenewold", 		"SPICE parts"),
 			new CastOfThousands("David Groulx", 		    "Node extraction (C)"),
