@@ -1,6 +1,8 @@
 			Java Electric change log
 
 ************************* Version 8.00a: Released  *************************
+IMP: (5/25/04, RK) Add fill123, fill123w, and fill34.
+
 IMP: (5/25/04, GVG) First draft for qTree to replace PolyMerge.
 
 IMP: (5/25/04, RK) Modify "Justin" command so it scans LoCo schematics and generates layout for all

@@ -1068,7 +1068,15 @@ public class FillLibGen extends Job {
 				}
 			}
 		}
-		Cell fill = FillCell.makeFillCell(lib, plans, 1, 4, capCell, false);
+		// Now do the odd-ball cases
+		Cell fill;
+		fill = FillCell.makeFillCell(lib, plans, 1, 4, capCell, false);
+		makeTiledCells(fill, plans, lib);
+		fill = FillCell.makeFillCell(lib, plans, 1, 3, capCell, false);
+		makeTiledCells(fill, plans, lib);
+		fill = FillCell.makeFillCell(lib, plans, 3, 4, capCell, false);
+		makeTiledCells(fill, plans, lib);
+		fill = FillCell.makeFillCell(lib, plans, 3, 4, capCell, true);
 		makeTiledCells(fill, plans, lib);
 		Gallery.makeGallery(lib);
 	}

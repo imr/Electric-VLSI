@@ -162,8 +162,8 @@ public class Loco extends Job {
 		}
 
 		//Library lib = doJustin(homeDir, stdCell);
-		Library lib = doTom();
-		//Library lib = doLoco();
+		//Library lib = doTom();
+		Library lib = doLoco();
 		Cell gallery = Gallery.makeGallery(lib);
 		DrcRings.addDrcRings(gallery, FILTER);
 		
@@ -283,7 +283,8 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 		
 		Cell cell = (Cell) no.getProto();
 		Library lib = cell.getLibrary();
-		if (lib.getLibName().equals(libName)) {
+		String libNm = lib.getLibName();
+		if (libNm.equals(libName)) {
 			String cellName = cell.getProtoName();
 			//if (cellNames.contains(cellName)) {
 				// Generate layout for this Cell
