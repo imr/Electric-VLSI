@@ -47,13 +47,6 @@ public class DRCTab extends PreferencePanel
 
 	public String getName() { return "DRC"; }
 
-	private boolean initialDRCIncrementalOn;
-	private boolean initialDRCOneErrorPerCell;
-	private boolean initialDRCUseMultipleThreads;
-	private boolean initialDRCIgnoreCenterCuts;
-    private boolean initialDRCIgnoreArea;
-    private boolean initialDRCPolySelect;
-	private int initialDRCNumberOfThreads;
 	private boolean requestedDRCClearDates;
 
 	/**
@@ -62,28 +55,20 @@ public class DRCTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		initialDRCIncrementalOn = DRC.isIncrementalDRCOn();
-		drcIncrementalOn.setSelected(initialDRCIncrementalOn);
-
-		initialDRCOneErrorPerCell = DRC.isOneErrorPerCell();
-		drcOneErrorPerCell.setSelected(initialDRCOneErrorPerCell);
-
-		initialDRCUseMultipleThreads = DRC.isUseMultipleThreads();
-		drcUseMultipleThreads.setSelected(initialDRCUseMultipleThreads);
-
-		initialDRCNumberOfThreads = DRC.getNumberOfThreads();
-		drcNumberOfThreads.setText(Integer.toString(initialDRCNumberOfThreads));
-
-		initialDRCIgnoreCenterCuts = DRC.isIgnoreCenterCuts();
-		drcIgnoreCenterCuts.setSelected(initialDRCIgnoreCenterCuts);
+		drcIncrementalOn.setSelected(DRC.isIncrementalDRCOn());
+		drcOneErrorPerCell.setSelected(DRC.isOneErrorPerCell());
+		drcUseMultipleThreads.setSelected(DRC.isUseMultipleThreads());
+		drcNumberOfThreads.setText(Integer.toString(DRC.getNumberOfThreads()));
+		drcIgnoreCenterCuts.setSelected(DRC.isIgnoreCenterCuts());
 
         // MinArea rules
-        initialDRCIgnoreArea = DRC.isIgnoreAreaChecking();
-		drcIgnoreArea.setSelected(initialDRCIgnoreArea);
+		drcIgnoreArea.setSelected(DRC.isIgnoreAreaChecking());
 
         // PolySelec rule
-        initialDRCPolySelect = DRC.isIgnorePolySelectChecking();
-		drcIgnorePolySelect.setSelected(initialDRCPolySelect);
+		drcIgnorePolySelect.setSelected(DRC.isIgnorePolySelectChecking());
+
+        // First error only
+        drcoOnlyFirstError.setSelected(DRC.isOnlyFirstChecking());
 
 		requestedDRCClearDates = false;
 		drcClearValidDates.addActionListener(new ActionListener()
@@ -108,34 +93,39 @@ public class DRCTab extends PreferencePanel
 	public void term()
 	{
 		boolean currentValue = drcIncrementalOn.isSelected();
-		if (currentValue != initialDRCIncrementalOn)
+		if (currentValue != DRC.isIncrementalDRCOn())
 			DRC.setIncrementalDRCOn(currentValue);
 
 		currentValue = drcOneErrorPerCell.isSelected();
-		if (currentValue != initialDRCOneErrorPerCell)
+		if (currentValue != DRC.isOneErrorPerCell())
 			DRC.setOneErrorPerCell(currentValue);
 
 		currentValue = drcUseMultipleThreads.isSelected();
-		if (currentValue != initialDRCUseMultipleThreads)
+		if (currentValue != DRC.isUseMultipleThreads())
 			DRC.setUseMultipleThreads(currentValue);
 
 		int currentNumberOfThreads = TextUtils.atoi(drcNumberOfThreads.getText());
-		if (currentNumberOfThreads != initialDRCNumberOfThreads)
+		if (currentNumberOfThreads != DRC.getNumberOfThreads())
 			DRC.setNumberOfThreads(currentNumberOfThreads);
 
 		currentValue = drcIgnoreCenterCuts.isSelected();
-		if (currentValue != initialDRCIgnoreCenterCuts)
+		if (currentValue != DRC.isIgnoreCenterCuts())
 			DRC.setIgnoreCenterCuts(currentValue);
 
         // For min area rules
         currentValue = drcIgnoreArea.isSelected();
-		if (currentValue != initialDRCIgnoreArea)
+		if (currentValue != DRC.isIgnoreAreaChecking())
 			DRC.setIgnoreAreaChecking(currentValue);
 
         // Poly Select rule
         currentValue = drcIgnorePolySelect.isSelected();
-		if (currentValue != initialDRCPolySelect)
+		if (currentValue != DRC.isIgnorePolySelectChecking())
 			DRC.setIgnorePolySelectChecking(currentValue);
+
+        // First error rule
+        currentValue = drcoOnlyFirstError.isSelected();
+		if (currentValue != DRC.isOnlyFirstChecking())
+			DRC.setOnlyFirstChecking(currentValue);
 
 		if (requestedDRCClearDates) DRC.resetDRCDates();
 	}
@@ -159,9 +149,11 @@ public class DRCTab extends PreferencePanel
         jLabel33 = new javax.swing.JLabel();
         drcNumberOfThreads = new javax.swing.JTextField();
         drcIgnoreCenterCuts = new javax.swing.JCheckBox();
-        minArea = new javax.swing.JPanel();
-        drcIgnoreArea = new javax.swing.JCheckBox();
         drcIgnorePolySelect = new javax.swing.JCheckBox();
+        drcIgnoreArea = new javax.swing.JCheckBox();
+        secondSeparator = new javax.swing.JSeparator();
+        drcoOnlyFirstError = new javax.swing.JCheckBox();
+        firstSeparator = new javax.swing.JSeparator();
         jPanel6 = new javax.swing.JPanel();
         drcEditRulesDeck = new javax.swing.JButton();
 
@@ -251,33 +243,13 @@ public class DRCTab extends PreferencePanel
         drcIgnoreCenterCuts.setText("Ignore center cuts in large contacts");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridy = 11;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         jPanel5.add(drcIgnoreCenterCuts, gridBagConstraints);
 
-        minArea.setLayout(new java.awt.GridBagLayout());
-
-        minArea.setBorder(new javax.swing.border.TitledBorder("Min. Area Rules"));
-        drcIgnoreArea.setText("Ignore area checking");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 11;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
-        minArea.add(drcIgnoreArea, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 12;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
-        jPanel5.add(minArea, gridBagConstraints);
-
-        drcIgnorePolySelect.setText("Ignore Polysilicon Select rule");
+        drcIgnorePolySelect.setText("Ignore polysilicon select rule");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 13;
@@ -285,6 +257,41 @@ public class DRCTab extends PreferencePanel
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         jPanel5.add(drcIgnorePolySelect, gridBagConstraints);
+
+        drcIgnoreArea.setText("Ignore area checking");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 12;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
+        jPanel5.add(drcIgnoreArea, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 14;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel5.add(secondSeparator, gridBagConstraints);
+
+        drcoOnlyFirstError.setSelected(true);
+        drcoOnlyFirstError.setText("Only first error per node");
+        drcoOnlyFirstError.setActionCommand("Only First Error perNode");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 15;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
+        jPanel5.add(drcoOnlyFirstError, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel5.add(firstSeparator, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -333,12 +340,14 @@ public class DRCTab extends PreferencePanel
     private javax.swing.JTextField drcNumberOfThreads;
     private javax.swing.JCheckBox drcOneErrorPerCell;
     private javax.swing.JCheckBox drcUseMultipleThreads;
+    private javax.swing.JCheckBox drcoOnlyFirstError;
+    private javax.swing.JSeparator firstSeparator;
     private javax.swing.JLabel jLabel33;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel6;
-    private javax.swing.JPanel minArea;
+    private javax.swing.JSeparator secondSeparator;
     // End of variables declaration//GEN-END:variables
 
 }

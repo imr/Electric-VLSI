@@ -710,7 +710,21 @@ public class DRC extends Listener
 	 * Method to set whether DRC should performance hierarchical area checking.
 	 * @param on true if DRC should performance hierarchical area checking.
 	 */
-	public static void setIgnorePolySelectChecking(boolean on) { cacheIgnorePolySelectChecking.setBoolean(on); }
+	public static void setIgnorePolySelectChecking(boolean on) { cacheIgnorePolySelectChecking.setBoolean(on); }  
+
+    private static Pref cacheOnlyFirstChecking = Pref.makeBooleanPref("OnlyFirstCheck", DRC.tool.prefs, false);
+    static { cacheOnlyFirstChecking.attachToObject(DRC.tool, "Tools/DRC tab", "DRC checks until first error in found per node"); }
+	/**
+	 * Method to tell whether DRC should stop when first error is found in node-node checking.
+	 * The default is "false".
+	 * @return true if DRC should performance hierarchical area checking.
+	 */
+	public static boolean isOnlyFirstChecking() { return cacheOnlyFirstChecking.getBoolean(); }
+	/**
+	 * Method to set whether DRC should stop when first error is found in node-node checking.
+	 * @param on true if DRC should stop when first error is found in node-node checking.
+	 */
+	public static void setOnlyFirstChecking(boolean on) { cacheOnlyFirstChecking.setBoolean(on); }
 
 	public static final Variable.Key POSTSCRIPT_FILEDATE = ElectricObject.newKey("IO_postscript_filedate");
 	/**
