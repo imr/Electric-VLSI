@@ -4,7 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02c: *********************************
 
-IMP: (01/20/05, GVG) Extra flag in DRC tab to stop checking after first error per node is found.
+IMP/MAN: (01/20/05, GVG) Extra flag in DRC tab to stop checking after first error per node is found.
 
 IMP: (01/20/05, GVG) Setting default colors for Artwork Arcs and Text Properties (in TextDescriptor.DescriptorPref)
 (Bug #152)
