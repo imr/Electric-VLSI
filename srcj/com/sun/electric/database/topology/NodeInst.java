@@ -271,7 +271,7 @@ public class NodeInst extends Geometric
 	 * @param dysize the amount to scale the NodeInst in Y.
 	 * @param drot the amount to alter the NodeInst rotation.
 	 */
-	public void modifyInstance(double dx, double dy, double dxsize, double dysize, double drot)
+	public void modifyInstance(double dx, double dy, double dxsize, double dysize, int drot)
 	{
 		// remove from the R-Tree structure
 		unLinkGeom(parent);
@@ -739,15 +739,15 @@ public class NodeInst extends Geometric
 			transform.rotate(Math.PI/2);
 			transform.translate(-cX, -cY);
 		}
-		transform.rotate(angle, cX, cY);
+		transform.rotate(angle*Math.PI/1800, cX, cY);
 		transform.translate(dx, dy);
-		/*System.out.println("rkTransformOut: {\n"
+		System.out.println("rkTransformOut: {\n"
 		                   + "    lowerCellBounds: " + bounds + "\n"
 						   + "    (cX, cY): " + cX + " " + cY + "\n"
-						   + "    angle: " + (angle*180/Math.PI) + "\n"
+						   + "    angle: " + (angle/10.0) + "\n"
 						   + "    (sX, sY): " + sX + " " + sY + "\n"
 						   + "    xform: " + transform + "\n"
-						   + "}\n");*/
+						   + "}\n");
 		return transform;
 	}
 
@@ -1513,7 +1513,7 @@ public class NodeInst extends Geometric
 			at.scale(1, -1);
 			at.rotate(Math.PI/2);
 		}
-		at.rotate(angle);
+		at.rotate(angle*Math.PI/1800);
 		at.scale(sX, sY);
 		return at;
 	}
@@ -1614,6 +1614,7 @@ public class NodeInst extends Geometric
 							+ "    dy: " + centY + "\n"
 							+ "}\n");
 
-		modifyInstance(centX-cX, centY-cY, sizeX-sX, sizeY-sY, newAngle*Math.PI/180-angle);
+		modifyInstance(centX-cX, centY-cY, sizeX-sX, sizeY-sY, 
+		               (int)Math.round(newAngle*10)-angle);
 	}
 }
