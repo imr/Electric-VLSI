@@ -219,10 +219,10 @@ public class Input // extends IOTool
 		{
 			in = (Input)new CIF();
 			if (in.openTextInput(fileURL)) return null;
-//		} else if (type == OpenFile.Type.GDS)
-//		{
-//			in = (Input)new GDS();
-//			if (in.openBinaryInput(fileURL)) return null;
+		} else if (type == OpenFile.Type.GDS)
+		{
+			in = (Input)new GDS();
+			if (in.openBinaryInput(fileURL)) return null;
 		} else
 		{
 			System.out.println("Unsupported input format");

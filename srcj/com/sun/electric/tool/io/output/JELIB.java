@@ -52,12 +52,13 @@ import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TreeSet;
 
-/** 
+/**
  * Class to write a library to disk in new Electric-Library format.
  */
 public class JELIB extends Output
@@ -439,6 +440,7 @@ public class JELIB extends Output
 
 		// write groups in alphabetical order
 		printWriter.print("\n# Groups:\n");
+		Collections.sort(groups, new GroupsByName());
 		for(Iterator it = groups.iterator(); it.hasNext(); )
 		{
 			Cell.CellGroup group = (Cell.CellGroup)it.next();
@@ -469,6 +471,18 @@ public class JELIB extends Output
 		lib.clearChangedMajor();
 		System.out.println(filePath + " written");
 		return false;
+	}
+
+	public static class GroupsByName implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Cell.CellGroup g1 = (Cell.CellGroup)o1;
+			Cell.CellGroup g2 = (Cell.CellGroup)o2;
+			String s1 = g1.getName();
+			String s2 = g2.getName();
+			return TextUtils.nameSameNumeric(s1, s2);
+		}
 	}
 
 	private String getNodeName(NodeInst ni, HashMap indices)
@@ -890,6 +904,7 @@ public class JELIB extends Output
 	/**
 	 * Method convert a string that is going to be quoted.
 	 * Inserts the quote character (^) before any quotation character (") or quote character (^) in the string.
+	 * Converts newlines to "^\n" (makeing the "\" and "n" separate characters).
 	 * @param str the string to convert.
 	 * @return the string with the appropriate quote characters.
 	 * If no conversion is necessary, the input string is returned.
@@ -901,7 +916,7 @@ public class JELIB extends Output
 		for(int i=0; i<len; i++)
 		{
 			char ch = str.charAt(i);
-			if (ch == '\n') ch = ' ';
+			if (ch == '\n') { infstr.append("^\\n");   continue; }
 			if (ch == '"' || ch == '^')
 				infstr.append('^');
 			infstr.append(ch);
@@ -912,6 +927,7 @@ public class JELIB extends Output
 	/**
 	 * Method convert a string that is not going to be quoted.
 	 * Inserts a quote character (^) before any separator (|), quotation character (") or quote character (^) in the string.
+	 * Converts newlines to spaces.
 	 * @param str the string to convert.
 	 * @return the string with the appropriate quote characters.
 	 * If no conversion is necessary, the input string is returned.
@@ -934,6 +950,7 @@ public class JELIB extends Output
 	/**
 	 * Method convert a string that is a variable name.
 	 * Inserts a quote character (^) before any separator (|), quotation character ("), open parenthesis, or quote character (^) in the string.
+	 * Converts newlines to spaces.
 	 * @param str the string to convert.
 	 * @return the string with the appropriate quote characters.
 	 * If no conversion is necessary, the input string is returned.

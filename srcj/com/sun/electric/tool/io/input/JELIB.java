@@ -372,7 +372,7 @@ public class JELIB extends LibraryFiles
 						", Primitive port " + primPortName + " has no primitive node before it", null, -1);
 					continue;
 				}
-				
+
 				PrimitivePort pp = (PrimitivePort)curPrim.findPortProto(primPortName);
 				if (pp == null)
 				{
@@ -455,17 +455,18 @@ public class JELIB extends LibraryFiles
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
+			String lowerCaseName = cell.getName().toLowerCase();
 			Cell.CellGroup group = cell.getCellGroup();
-			Cell.CellGroup groupOfName = (Cell.CellGroup)cellGroups.get(cell.getName());
+			Cell.CellGroup groupOfName = (Cell.CellGroup)cellGroups.get(lowerCaseName);
 			if (groupOfName == null)
 			{
-				cellGroups.put(cell.getName(), group);
+				cellGroups.put(lowerCaseName, group);
 			} else
 			{
 				if (groupOfName != group)
 				{
 					Input.errorLogger.logError(filePath + ", Library has multiple cells named " +
-						cell.getName() + " that are not in the same group", null, -1);
+						lowerCaseName + " that are not in the same group", null, -1);
 				}
 			}
 		}
@@ -483,7 +484,7 @@ public class JELIB extends LibraryFiles
 	private void instantiateCellContents()
 	{
 		System.out.println("Creating the circuitry...");
-        progress.setNote("Creating the circuitry");
+		progress.setNote("Creating the circuitry");
 
 		// count the number of lines that need to be processed
 		numToProcess = 0;
@@ -800,7 +801,7 @@ public class JELIB extends LibraryFiles
 			}
 
 			ArcInst ai = ArcInst.newInstance(ap, wid, headPI, tailPI, new Point2D.Double(headX, headY),
-			        new Point2D.Double(tailX, tailY), arcName, angle);
+				new Point2D.Double(tailX, tailY), arcName, angle);
 			if (ai == null)
 			{
 				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
@@ -1141,8 +1142,8 @@ public class JELIB extends LibraryFiles
 			{
 				Input.errorLogger.logError(fileName + ", line " + lineNumber +
 					", Cannot create variable: " + piece, null, -1);
-				continue;	
-			}			
+				continue;
+			}
 
 			// see if the variable is a "meaning option"
 			if (topLevelLibrary)
@@ -1205,7 +1206,7 @@ public class JELIB extends LibraryFiles
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
 							", Bad absolute size (semicolon missing): " + varBits, null, -1);
-						break;	
+						break;
 					}
 					td.setAbsSize(TextUtils.atoi(varBits.substring(j+1, semiPos)));
 					j = semiPos;
@@ -1216,7 +1217,7 @@ public class JELIB extends LibraryFiles
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
 							", Bad relative size (semicolon missing): " + varBits, null, -1);
-						break;	
+						break;
 					}
 					td.setRelSize(TextUtils.atof(varBits.substring(j+1, semiPos)));
 					j = semiPos;
@@ -1227,7 +1228,7 @@ public class JELIB extends LibraryFiles
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
 							", Bad X offset (semicolon missing): " + varBits, null, -1);
-						break;	
+						break;
 					}
 					td.setOff(TextUtils.atof(varBits.substring(j+1, semiPos)), td.getYOff());
 					j = semiPos;
@@ -1238,7 +1239,7 @@ public class JELIB extends LibraryFiles
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
 							", Bad Y offset (semicolon missing): " + varBits, null, -1);
-						break;	
+						break;
 					}
 					td.setOff(td.getXOff(), TextUtils.atof(varBits.substring(j+1, semiPos)));
 					j = semiPos;
@@ -1258,7 +1259,7 @@ public class JELIB extends LibraryFiles
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
 							", Bad font (semicolon missing): " + varBits, null, -1);
-						break;	
+						break;
 					}
 					TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(varBits.substring(j+1, semiPos));
 					td.setFace(af.getIndex());
@@ -1270,7 +1271,7 @@ public class JELIB extends LibraryFiles
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
 							", Bad color (semicolon missing): " + varBits, null, -1);
-						break;	
+						break;
 					}
 					td.setColorIndex(TextUtils.atoi(varBits.substring(j+1, semiPos)));
 					j = semiPos;
@@ -1303,7 +1304,7 @@ public class JELIB extends LibraryFiles
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
 							", Bad language specification: " + varBits, null, -1);
-						break;	
+						break;
 					}
 					char codeLetter = varBits.charAt(j);
 					if (var == null)
@@ -1326,7 +1327,7 @@ public class JELIB extends LibraryFiles
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
 							", Bad units specification: " + varBits, null, -1);
-						break;	
+						break;
 					}
 					char unitsLetter = varBits.charAt(j);
 					if (unitsLetter == 'R') td.setUnit(TextDescriptor.Unit.RESISTANCE); else
@@ -1596,11 +1597,21 @@ public class JELIB extends LibraryFiles
 					break;
 				}
 				StringBuffer sb = new StringBuffer();
-				while (objectPos < piece.length())
+				int len = piece.length();
+				while (objectPos < len)
 				{
 					objectPos++;
 					if (piece.charAt(objectPos) == '"') break;
-					if (piece.charAt(objectPos) == '^') objectPos++;
+					if (piece.charAt(objectPos) == '^')
+					{
+						objectPos++;
+						if (objectPos <= len - 2 && piece.charAt(objectPos) == '\\' && piece.charAt(objectPos+1) == 'n')
+						{
+							sb.append('\n');
+							objectPos++;
+							continue;
+						}
+					}
 					sb.append(piece.charAt(objectPos));
 				}
 				return sb.toString();

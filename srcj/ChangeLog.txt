@@ -4,10 +4,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ac: *********************************
 
+IMP: (10/22/04, SMR) Improved speed of arraying and re-exporting by improving speed of
+     finding a unique name in a cell.
+
+IMP: (10/21/04, SMR) Array no longer sets names when they are only temporary.
+
 ************************* Version 8.01ab: *********************************
 
-BUG: (10/21/04, GVG) DRC and cropping. After removing rounding in calcBound, cropping function was not working properly
-in DRC.
+BUG: (10/21/04, GVG) DRC and cropping. After removing rounding in calcBound, cropping function
+     was not working properly in DRC.
 FIX: DBMath.isGreaterThan instead of "<=".
 
 IMP: (10/21/04, SMR) JELIB reader checks that cells with the same name are in the same group.

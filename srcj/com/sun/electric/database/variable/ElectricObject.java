@@ -961,11 +961,16 @@ public abstract class ElectricObject
 			localSepString = "";
 		}
 
-		for(; ; nextIndex++)
-		{
-			String newName = name.substring(0,startPos) + localSepString + nextIndex + name.substring(endPos);
-			if (cell.isUniqueName(newName, cls, null)) return newName;
-		}
+		// find the unique index to use
+		String prefix = name.substring(0, startPos) + localSepString;
+		int uniqueIndex = cell.getUniqueNameIndex(prefix, cls, nextIndex);
+		return prefix + uniqueIndex + name.substring(endPos);
+
+//		for(; ; nextIndex++)
+//		{
+//			String newName = name.substring(0, startPos) + localSepString + nextIndex + name.substring(endPos);
+//			if (cell.isUniqueName(newName, cls, null)) return newName;
+//		}
 	}
 
 	/**

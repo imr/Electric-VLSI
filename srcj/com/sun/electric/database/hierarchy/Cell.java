@@ -2374,6 +2374,67 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	}
 
 	/**
+	 * Method to determine the index value which, when appended to a given string,
+	 * will generate a unique name in this Cell.
+	 * @param prefix the start of the string.
+	 * @param cls the type of object being examined.
+	 * @param startingIndex the starting value to append to the string.
+	 * @return a value that, when appended to the prefix, forms a unique name in the cell.
+	 */
+	public int getUniqueNameIndex(String prefix, Class cls, int startingIndex)
+	{
+		int len = prefix.length();
+		int uniqueIndex = startingIndex;
+		if (cls == PortProto.class)
+		{
+			for(Iterator it = getPorts(); it.hasNext(); )
+			{
+				PortProto pp = (PortProto)it.next();
+				if (pp.getName().startsWith(prefix))
+				{
+					String restOfName = pp.getName().substring(len);
+					if (TextUtils.isANumber(restOfName))
+					{
+						int indexVal = TextUtils.atoi(restOfName);
+						if (indexVal >= uniqueIndex) uniqueIndex = indexVal + 1;
+					}
+				}
+			}
+		} else if (cls == NodeInst.class)
+		{
+			for(Iterator it = getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				if (ni.getName().startsWith(prefix))
+				{
+					String restOfName = ni.getName().substring(len);
+					if (TextUtils.isANumber(restOfName))
+					{
+						int indexVal = TextUtils.atoi(restOfName);
+						if (indexVal >= uniqueIndex) uniqueIndex = indexVal + 1;
+					}
+				}
+			}
+		} else if (cls == ArcInst.class)
+		{
+			for(Iterator it = getArcs(); it.hasNext(); )
+			{
+				ArcInst ai = (ArcInst)it.next();
+				if (ai.getName().startsWith(prefix))
+				{
+					String restOfName = ai.getName().substring(len);
+					if (TextUtils.isANumber(restOfName))
+					{
+						int indexVal = TextUtils.atoi(restOfName);
+						if (indexVal >= uniqueIndex) uniqueIndex = indexVal + 1;
+					}
+				}
+			}
+		}
+		return uniqueIndex;
+	}
+
+	/**
 	 * Method to determine whether a name is unique in this Cell.
 	 * @param name the Name being tested to see if it is unique.
 	 * @param cls the type of object being examined.

@@ -28,6 +28,7 @@ import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -498,10 +499,10 @@ public class Array extends EDialog
 						setNewName(newNi, x, y);
 					} else
 					{
-						String nodeName = ni.getName();
-						if (nodeName != null)
+						Name nodeNameKey = ni.getNameKey();
+						if (!nodeNameKey.isTempname())
 						{
-							newNi.setName(ElectricObject.uniqueObjectName(nodeName, cell, NodeInst.class));
+							newNi.setName(ElectricObject.uniqueObjectName(ni.getName(), cell, NodeInst.class));
 							newNi.setNameTextDescriptor(ni.getNameTextDescriptor());
 						}
 					}
@@ -559,9 +560,10 @@ public class Array extends EDialog
 						setNewName(newAi, x, y);
 					} else
 					{
-						String arcName = ai.getName();
-						if (arcName != null) {
-							newAi.setName(ElectricObject.uniqueObjectName(arcName, cell, ArcInst.class));
+						Name arcNameKey = ai.getNameKey();
+						if (!arcNameKey.isTempname())
+						{
+							newAi.setName(ElectricObject.uniqueObjectName(ai.getName(), cell, ArcInst.class));
 							newAi.getNameTextDescriptor().copy(ai.getNameTextDescriptor());
 						}
 					}

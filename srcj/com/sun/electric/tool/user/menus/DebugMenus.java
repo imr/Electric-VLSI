@@ -199,10 +199,6 @@ public class DebugMenus {
 
 	public static void makeFakeCircuitryCommand(String tech)
 	{
-//		java.awt.Dimension foo = new java.awt.Dimension();
-//		foo.setSize(2.7, 3.2);
-//		System.out.println("wid="+foo.getWidth()+" hei="+foo.getHeight());
-
 		// test code to make and show something
 		MakeFakeCircuitry job = new MakeFakeCircuitry(tech);
 	}
