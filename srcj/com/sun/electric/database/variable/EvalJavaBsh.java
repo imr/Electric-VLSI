@@ -70,13 +70,6 @@ public class EvalJavaBsh
     /** turn on Bsh verbose DEBUG stmts */          private static boolean DEBUG = false;
     /** turn on stack trace stmts for exceptions */ private static boolean DEBUGSTACKTRACE = false;
 
-    public static class IgnorableException extends Exception {
-        public IgnorableException() { super(); }
-        public IgnorableException(String message) { super(message); }
-        public IgnorableException(String message, Throwable cause) { super(message, cause); }
-        public IgnorableException(Throwable cause) { super(cause); }
-    }
-
     // ------------------------ private and protected methods -------------------
 
     /** the contructor */
@@ -101,23 +94,27 @@ public class EvalJavaBsh
         }
 
         setVariable("evalJavaBsh", this);
-        doEval("Object P(String par) { return evalJavaBsh.P(par); }");
-        doEval("Object PAR(String par) { return evalJavaBsh.PAR(par); }");
+        try {
+            doEval("Object P(String par) { return evalJavaBsh.P(par); }");
+            doEval("Object PAR(String par) { return evalJavaBsh.PAR(par); }");
 
-        // the following is for running scripts
-        doEval("import com.sun.electric.tool.user.menus.MenuCommands;");
-        doEval("import com.sun.electric.database.hierarchy.*;");
-        doEval("import com.sun.electric.database.prototype.*;");
-        doEval("import com.sun.electric.database.topology.*;");
-        doEval("import com.sun.electric.database.variable.ElectricObject;");
-        doEval("import com.sun.electric.database.variable.FlagSet;");
-        doEval("import com.sun.electric.database.variable.TextDescriptor;");
-        doEval("import com.sun.electric.database.variable.VarContext;");
-        doEval("import com.sun.electric.database.variable.Variable;");
+            // the following is for running scripts
+            doEval("import com.sun.electric.tool.user.menus.MenuCommands;");
+            doEval("import com.sun.electric.database.hierarchy.*;");
+            doEval("import com.sun.electric.database.prototype.*;");
+            doEval("import com.sun.electric.database.topology.*;");
+            doEval("import com.sun.electric.database.variable.ElectricObject;");
+            doEval("import com.sun.electric.database.variable.FlagSet;");
+            doEval("import com.sun.electric.database.variable.TextDescriptor;");
+            doEval("import com.sun.electric.database.variable.VarContext;");
+            doEval("import com.sun.electric.database.variable.Variable;");
 
-        // do not import variable.EvalJavaBsh, because calling EvalJavaBsh.runScript
-        // will spawn jobs in an unexpected order
-        doEval("import com.sun.electric.tool.io.*;");
+            // do not import variable.EvalJavaBsh, because calling EvalJavaBsh.runScript
+            // will spawn jobs in an unexpected order
+            doEval("import com.sun.electric.tool.io.*;");
+        } catch (VarContext.EvalException e) {
+            e.printStackTrace(System.out);
+        }
     }
 
     /** Get the interpreter so other tools may add methods to it. There is only
@@ -175,7 +172,7 @@ public class EvalJavaBsh
      * @param info used to pass additional info from Electric to the interpreter, if needed.
      * @return the evaluated object.
      */
-    public synchronized Object eval(Object obj, VarContext context, Object info) {
+    protected synchronized Object evalVarObject(Object obj, VarContext context, Object info) throws VarContext.EvalException {
         if (obj instanceof String[]) {
             // concatentate arrayed strings
             String[] strArray = (String[])obj;
@@ -190,11 +187,20 @@ public class EvalJavaBsh
         for (int i=0; i<contextStack.size(); i++) {
             VarContext vc = (VarContext)contextStack.get(i);
             Object inf = infoStack.get(i);
-            if ((vc == context) && (inf == info)) return "Eval recursion error";
+            if ((vc == context) && (inf == info)) throw new VarContext.EvalException("JavaBeanShell Eval recursion error");
         }
         contextStack.push(context);             // push context
         infoStack.push(info);                   // push info
-        Object ret = doEval(expr);              // ask bsh to eval
+        Object ret;
+        try {
+            ret = doEval(expr);              // ask bsh to eval
+        } catch (VarContext.EvalException e) {
+            // we need to catch, pop off stacks, and re-throw to maintain
+            // proper state of stacks.
+            contextStack.pop();
+            infoStack.pop();
+            throw e;
+        }
         contextStack.pop();                     // pop context
         infoStack.pop();                        // pop info
         if (DEBUG) System.out.println("BSH: "+expr.toString()+" --> "+ret);
@@ -210,15 +216,15 @@ public class EvalJavaBsh
     /** Lookup variable for evaluation
      * @return an evaluated object
      */
-    public Object P(String name) throws IgnorableException {
+    public Object P(String name) throws VarContext.EvalException {
         VarContext context = (VarContext)contextStack.peek();
         Object val = context.lookupVarEval(name);
         if (val == null)
-            throw new IgnorableException(name.replaceFirst("ATTR_", "")+" not found");
+            throw new VarContext.EvalException(name.replaceFirst("ATTR_", "")+" not found");
         if (DEBUG) System.out.println(name + " ---> " + val + " ("+val.getClass()+")");
         try {
             // try to convert to a Number
-            Double d = new Double(val.toString());
+            Number d = TextUtils.parsePostFixNumber(val.toString());
             val = d;
             if (DEBUG) System.out.println("   converted to ---> " + val + " ("+val.getClass()+")");
         } catch (java.lang.NumberFormatException e) {
@@ -227,11 +233,11 @@ public class EvalJavaBsh
         return val;
     }
 
-    public Object PAR(String name) throws IgnorableException {
+    public Object PAR(String name) throws VarContext.EvalException {
         VarContext context = (VarContext)contextStack.peek();
         Object val = context.lookupVarFarEval(name);
         if (val == null)
-            throw new IgnorableException(name.replaceFirst("ATTR_", "")+" not found");
+            throw new VarContext.EvalException(name.replaceFirst("ATTR_", "")+" not found");
         if (DEBUG) System.out.println(name + " ---> " + val + " ("+val.getClass()+")");
         try {
             // try to convert to a Number
@@ -327,7 +333,7 @@ public class EvalJavaBsh
      * @param line the string to evaluate
      * @return an object representing the evaluated string, or null on error.
      */
-    private Object doEval(String line)
+    private Object doEval(String line) throws VarContext.EvalException
     {
         Object returnVal = null;
         try {
@@ -335,7 +341,12 @@ public class EvalJavaBsh
                 returnVal = evalMethod.invoke(envObject, new Object[] {line});
             }
         } catch (Exception e) {
-            returnVal = handleInvokeException(e, "Bean shell error evaluating "+line);
+            if (e instanceof InvocationTargetException) {
+                // rethrow original EvalException, if any
+                VarContext.EvalException ee = getEvalException((InvocationTargetException)e);
+                if (ee != null) throw ee;
+            }
+            handleInvokeException(e, "Bean shell error evaluating "+line);
         }
         return returnVal;
     }
@@ -357,7 +368,7 @@ public class EvalJavaBsh
         Throwable returnVal = null;
         if (interpreterClass != null) {
             try {
-                returnVal = (Throwable)getTargetMethod.invoke(ex, new Object[] {});
+                returnVal = (Throwable)getTargetMethod.invoke(ex, null);
             } catch (Exception e) {
                 handleInvokeException(e, "Bean shell error getting exception target");
             }
@@ -365,19 +376,35 @@ public class EvalJavaBsh
         return returnVal;
     }
 
+
+    /**
+     * If the InvocationTargetException was generated because of an EvalException,
+     * get the EvalException that is wrapped by the target exception.
+     * @param e the invocation target exception
+     * @return the initial eval exception, or null if none.
+     */
+    private VarContext.EvalException getEvalException(InvocationTargetException e) {
+        Throwable t = e.getCause();
+        if (t == null) return null;
+        Throwable tt = doGetTarget(t);
+        if (tt == null) return null;
+        if (tt instanceof VarContext.EvalException)
+            return (VarContext.EvalException)tt;
+        return null;
+    }
+
     /**
      * Handle exceptions thrown by attempting to invoke a reflected method or constructor.
      * @param e The exception thrown by the invoked method or constructor.
      * @param description a description of the event to be printed with the error message.
-     * @return a string describing the error
      */
-    private static String handleInvokeException(Exception e, String description) {
+    private static void handleInvokeException(Exception e, String description) {
 
         if (e instanceof InvocationTargetException) {
             // This wraps an exception thrown by the method invoked.
             Throwable t = e.getCause();
             if (t != null)
-                return handleBshError((Exception)t, description);
+                handleBshError((Exception)t, description);
         }
         else if (e instanceof IllegalArgumentException) {
             System.out.println(description+": "+e.getMessage());
@@ -392,40 +419,33 @@ public class EvalJavaBsh
             System.out.println(description+": "+e.getMessage());
             e.printStackTrace(System.out);
         }
-        return e.getMessage();
     }
 
     /**
      * Handle Bean Shell evaluation errors.  Sends it to system.out.
      * @param e the TargetError exception thrown.
      * @param description a description of the event that caused the error to be thrown.
-     * @return a string describing the error
      */
-    private static String handleBshError(Exception e, String description)
+    private static void handleBshError(Exception e, String description)
     {
-        String message = null;
         if (targetErrorClass.isInstance(e)) {
             // The Bean Shell had an error
             Throwable t = doGetTarget(e);
             if (t != null) {
-                if (t instanceof IgnorableException) {
+                if (t instanceof VarContext.EvalException) {
                     if (DEBUG) {
-                        System.out.println("IngorableException: "+description+": "+t.getMessage());
+                        System.out.println("EvalException: "+description+": "+t.getMessage());
                         if (DEBUGSTACKTRACE) e.printStackTrace(System.out);
                     }
-                    message = t.getMessage();
                 } else {
                     System.out.println(description+": "+t.getMessage());
                     if (DEBUGSTACKTRACE) e.printStackTrace(System.out);
-                    message = t.getMessage();
                 }
             }
         } else {
             System.out.println("Unhandled Bsh Exception: "+description+": "+e.getMessage());
             if (DEBUGSTACKTRACE) e.printStackTrace(System.out);
-            message = e.getMessage();
         }
-        return message;
     }
 
 }

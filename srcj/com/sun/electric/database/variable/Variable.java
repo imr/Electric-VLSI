@@ -409,24 +409,16 @@ public class Variable
 			/* special case for code: it is a string, the type applies to the result */
 			//makeStringVar(VSTRING, var->addr, purpose, units, infstr);
             if (context == null) context = VarContext.globalContext;
-            Object val = context.evalVar(this, eobj);
-            if (val == null)
-                returnVal.append("?");
-            else
-                 returnVal.append(makeStringVar(val, purpose, units));
+            Object val = null;
+            try {
+                val = context.evalVarRecurse(this, eobj);
+            } catch (VarContext.EvalException e) {
+                val = e.getMessage();
+            }
+            if (val == null) val = "?";
+            returnVal.append(makeStringVar(val, purpose, units));
         } else
 		{
-/*
-            // see if this is a number that has been stored as a string
-            // and convert it to the Number. This makes it consistent if the
-            // user sets it to Java code, which will then also convert it to a Number.
-            if (addr instanceof String) {
-                try {
-                    Number n = TextUtils.parsePostFixNumber((String)addr);
-                    addr = n;
-                } catch (NumberFormatException e) {}
-            }
-*/
 			returnVal.append(getPureValue(aindex, purpose));
 			if (addr instanceof Object[] && aindex >= 0)
 			{
@@ -434,22 +426,10 @@ public class Variable
 				whichIndex = "[" + aindex + "]";
 			}
 		}
-		//if (dispPos == TextDescriptor.DispPos.NAMEVALUE ||
-        //    dispPos == TextDescriptor.DispPos.NAMEVALINH ||
-        //   dispPos == TextDescriptor.DispPos.NAMEVALINHALL)
         if (dispPos == TextDescriptor.DispPos.NAMEVALUE)
 		{
 			return this.getTrueName() + whichIndex + "=" + returnVal.toString();
 		}
-        /*
-		if (dispPos == TextDescriptor.DispPos.NAMEVALINH)
-		{
-			return this.getTrueName() + whichIndex + "=?;def=" + returnVal.toString();
-		}
-		if (dispPos == TextDescriptor.DispPos.NAMEVALINHALL)
-		{
-			return this.getTrueName() + whichIndex + "=?;def=" + returnVal.toString();
-		}*/
 		return returnVal.toString();
 	}
 

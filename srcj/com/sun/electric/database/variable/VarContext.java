@@ -169,7 +169,8 @@ public class VarContext
      * If variable is TCL, uses ... to evaluate
      * If variable is Lisp, uses ... to evaluate
      * otherwise, just returns the Variable's object
-     * @return the evlauated Object
+     * @return the evlauated Object. Returns null if the variable
+     * is code and evaluation fails.
      */
     public Object evalVar(Variable var)
     {
@@ -179,17 +180,49 @@ public class VarContext
      * is passed to the evaluator.  'info' may be or contain 
      * additional information necessary for proper evaluation.
      * Usually info is the NodeInst on which the var exists.
+     * @return the evlauated Object. Returns null if the variable
+     * is code and evaluation fails.
      */
     public Object evalVar(Variable var, Object info)
     {
         if (var == null) return null;
+        try {
+            return evalVarRecurse(var, info);
+        } catch (EvalException e) {
+            return null;
+        }
+    }
+
+    public static class EvalException extends Exception {
+        public EvalException() { super(); }
+        public EvalException(String message) { super(message); }
+        public EvalException(String message, Throwable cause) { super(message, cause); }
+        public EvalException(Throwable cause) { super(cause); }
+    }
+
+    /**
+     * This is the recursive version of evalVar that may throw an EvalException.
+     * The message of the EvalException states the reason that evaluation failed.
+     * This is made public so code elsewhere that is meant to be used in Attribute's java code
+     * can call this method.  This is useful such that the first EvalException encountered is
+     * thrown all the way to the top of the eval caller, rather than getting caught and handled
+     * somewhere inbetween.
+     * @param var the variable to evaluate
+     * @param info an info object that may be needed by the evaluator
+     * @return the variable's object if not code, otherwise an evaluated result object if
+     * evaluation succeeds
+     * @throws EvalException an exception whose message contains the reason evaluation failed
+     */
+    public Object evalVarRecurse(Variable var, Object info) throws EvalException {
         Variable.Code code = var.getCode();
-        if (code == Variable.Code.JAVA) return EvalJavaBsh.evalJavaBsh.eval(var.getObject(), this, info);
+
+        if (code == Variable.Code.JAVA)
+            return EvalJavaBsh.evalJavaBsh.evalVarObject(var.getObject(), this, info);
         // TODO: if(code == Variable.Code.TCL) { }
         // TODO: if(code == Variable.Code.LISP) { }
         return var.getObject();
     }
-        
+
     /**
      * Lookup Variable one level up the hierarchy and evaluate. 
      * Looks for the var on the most recent NodeInst on the
@@ -199,7 +232,7 @@ public class VarContext
      * @return an object representing the evaluated variable,
      * or null if no var or default var found.
      */
-    protected Object lookupVarEval(String name)
+    protected Object lookupVarEval(String name) throws EvalException
     {
         if (ni == null) return null;
         Variable var = ni.getVar(name);
@@ -220,10 +253,11 @@ public class VarContext
 //             }
             var = np.getVar(name);
         }
-        //if (var == null) return "Var "+name.replaceFirst("ATTR_", "")+" not found";
-        if (var == null) return null;
+        if (var == null)
+            throw new EvalException(name.replaceFirst("ATTR_", "")+" not found");
+        //if (var == null) return null;
         // evaluate var in it's context
-        return this.pop().evalVar(var, ni);
+        return this.pop().evalVarRecurse(var, ni);
     }
     
     /** 
@@ -234,7 +268,7 @@ public class VarContext
      * @param name the name of the variable
      * @return evaluated Object, or null if not found
      */
-    protected Object lookupVarFarEval(String name)
+    protected Object lookupVarFarEval(String name) throws EvalException
     {
 		// look up the entire stack, starting with end
 		VarContext scan = this;
@@ -246,7 +280,7 @@ public class VarContext
             
             Variable var = ni.getVar(name);             // look up var
 			if (var != null)
-				return scan.pop().evalVar(var, ni);
+				return scan.pop().evalVarRecurse(var, ni);
 			NodeProto np = ni.getProto();               // look up default var value on prototype
 			if (np.isIcon()) {
 				Cell cell = ((Cell)np).getEquivalent();
@@ -262,7 +296,7 @@ public class VarContext
 //             }
             var = np.getVar(name);
             if (var != null)
-                return scan.pop().evalVar(var, ni);
+                return scan.pop().evalVarRecurse(var, ni);
 			scan = scan.prev;
 		}
 		return null;
