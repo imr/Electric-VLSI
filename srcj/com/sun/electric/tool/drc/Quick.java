@@ -95,6 +95,7 @@ public class Quick
 	private static final int POLYSELECTERROR   = 9;
 	// Different types of warnings
 	private static final int ZEROLENGTHARCWARN  = 10;
+	private static final int TECHMIXWARN  = 11;
 
 	/**
 	 * The CheckInst object is associated with every cell instance in the library.
@@ -556,9 +557,16 @@ public class Quick
 				if (onlyFirstError) break;
 			}
 		}
+		Technology cellTech = cell.getTechnology();
 		for(Iterator it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
+			Technology tech = ai.getProto().getTechnology();
+			if (tech != cellTech)
+			{
+				reportError(TECHMIXWARN, " belongs to " + tech.getTechName(), cell, 0, 0, null, null, ai, null, null, null, null);
+				continue;
+			}
 			if (bounds != null)
 			{
 				if (!ai.getBounds().intersects(bounds)) continue;
@@ -3512,6 +3520,10 @@ public class Quick
 					errorMessagePart2 = new StringBuffer(", layer " + layer1.getName());
 					errorMessagePart2.append(" LESS THAN " + TextUtils.formatDouble(limit) + " IN AREA (IS " + TextUtils.formatDouble(actual) + ")");
 					break;
+				case TECHMIXWARN:
+					errorMessage.append("Technology mixture warning:");
+					errorMessagePart2 = new StringBuffer(msg);
+					break;
 				case ZEROLENGTHARCWARN:
 					errorMessage.append("Zero width warning:");
 					errorMessagePart2 = new StringBuffer(msg);
@@ -3553,7 +3565,7 @@ public class Quick
 		if (rule != null && rule.length() > 0) errorMessage.append(" [rule " + rule + "]");
 		errorMessage.append(DRCexclusionMsg);
 
-		ErrorLogger.MessageLog err = (errorType == ZEROLENGTHARCWARN) ?
+		ErrorLogger.MessageLog err = (errorType == ZEROLENGTHARCWARN || errorType == TECHMIXWARN) ?
 		        errorLogger.logWarning(errorMessage.toString(), cell, sortLayer) :
 		        errorLogger.logError(errorMessage.toString(), cell, sortLayer);
 

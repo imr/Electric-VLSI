@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01at: *********************************
 
+IMP: (12/3/04, GVG) DRC: generating warnings if generic arcs are found in layout cells
+
 BUG: (12/3/04, GVG) TSMC90: Active ports got wrong active arcs attached (Bug #52)
 FIX: Switched to N type
 
