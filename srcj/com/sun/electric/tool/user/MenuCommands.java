@@ -93,6 +93,7 @@ import com.sun.electric.tool.user.ui.PaletteFrame;
 import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.SizeListener;
+import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.ZoomAndPanListener;
 
 import java.awt.Toolkit;
@@ -692,8 +693,10 @@ public final class MenuCommands
 				new ActionListener() { public void actionPerformed(ActionEvent e) { aboutCommand(); } });
 		}
 		helpMenu.addSeparator();
-		helpMenu.addMenuItem("Make fake circuitry...", null,
+		helpMenu.addMenuItem("Make fake circuitry", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeCircuitryCommand(); } });
+		helpMenu.addMenuItem("Make fake simulation window", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { WaveformWindow.makeFakeWaveformCommand(); }});
 //		helpMenu.addMenuItem("Whit Diffie's design...", null,
 //			new ActionListener() { public void actionPerformed(ActionEvent e) { whitDiffieCommand(); } });
 
@@ -2234,7 +2237,7 @@ public final class MenuCommands
 		if (fileName != null)
 		{
 			// start a job to run the script
-			EvalJavaBsh.tool.runScript(fileName);
+			EvalJavaBsh.runScript(fileName);
 		}
 	}
 

@@ -839,7 +839,7 @@ public class Highlight
 	 */
 	public void showHighlight(EditWindow wnd, Graphics g)
 	{
-		g.setColor(Color.white);
+		g.setColor(Color.WHITE);
 		if (type == Type.BBOX)
 		{
 			Point2D [] points = new Point2D.Double[5];

@@ -1432,7 +1432,8 @@ public class GetInfoText extends javax.swing.JDialog
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
 		setVisible(false);
-//		dispose();
+		theDialog = null;
+		dispose();
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

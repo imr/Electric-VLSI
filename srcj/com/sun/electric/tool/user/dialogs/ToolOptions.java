@@ -103,15 +103,15 @@ public class ToolOptions extends javax.swing.JDialog
 		void setStringValue(String newString) { this.newString = new String(newString); }
 		String getStringValue() { return newString; }
 
-		static Option newIntOption(int oldValue)
-		{
-			Option option = new Option();
-			option.type = ISINTEGER;
-			option.oldInt = option.newInt = oldValue;
-			return option;
-		}
-		void setIntValue(int newInt) { this.newInt = newInt; }
-		int getIntValue() { return newInt; }
+//		static Option newIntOption(int oldValue)
+//		{
+//			Option option = new Option();
+//			option.type = ISINTEGER;
+//			option.oldInt = option.newInt = oldValue;
+//			return option;
+//		}
+//		void setIntValue(int newInt) { this.newInt = newInt; }
+//		int getIntValue() { return newInt; }
 
 		static Option newDoubleOption(double oldValue)
 		{
@@ -123,15 +123,15 @@ public class ToolOptions extends javax.swing.JDialog
 		void setDoubleValue(double newDouble) { this.newDouble = newDouble; }
 		double getDoubleValue() { return newDouble; }
 
-		static Option newBooleanOption(boolean oldValue)
-		{
-			Option option = new Option();
-			option.type = ISBOOLEAN;
-			option.oldBoolean = option.newBoolean = oldValue;
-			return option;
-		}
-		void setBooleanValue(boolean newBoolean) { this.newBoolean = newBoolean; }
-		boolean getBooleanValue() { return newBoolean; }
+//		static Option newBooleanOption(boolean oldValue)
+//		{
+//			Option option = new Option();
+//			option.type = ISBOOLEAN;
+//			option.oldBoolean = option.newBoolean = oldValue;
+//			return option;
+//		}
+//		void setBooleanValue(boolean newBoolean) { this.newBoolean = newBoolean; }
+//		boolean getBooleanValue() { return newBoolean; }
 
 		int getType() { return type; }
 

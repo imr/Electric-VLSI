@@ -80,7 +80,7 @@ public final class Main
         }
 
         // run script
-        if (beanShellScript != null) EvalJavaBsh.tool.runScript(beanShellScript);
+        if (beanShellScript != null) EvalJavaBsh.runScript(beanShellScript);
 	}
 
     /** check if command line option 'option' present in 

@@ -107,7 +107,6 @@ public class EditWindow extends JPanel
     // constructor
     private EditWindow(Cell cell, WindowFrame wf)
 	{
-        //super(cell.describe(), true, true, true, true);
         this.cell = cell;
         this.wf = wf;
 		this.gridXSpacing = User.getDefGridXSpacing();

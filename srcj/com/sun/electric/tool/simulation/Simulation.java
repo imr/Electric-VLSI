@@ -61,12 +61,32 @@ public class Simulation extends Tool
 
 	private static Pref cacheVerilogUseAssign = Pref.makeBooleanPref("VerilogUseAssign", Simulation.tool.prefs, false);
     static { cacheVerilogUseAssign.attachToObject(Simulation.tool, "Tool Options, Verilog tab", "Use ASSIGN Construct"); }
+	/**
+	 * Method to tell whether Verilog deck generation should use the Assign statement.
+	 * The default is false.
+	 * @return true if Verilog deck generation should use the Assign statement.
+	 */
 	public static boolean getVerilogUseAssign() { return cacheVerilogUseAssign.getBoolean(); }
+	/**
+	 * Method to set whether Verilog deck generation should use the Assign statement.
+	 * @param use true if Verilog deck generation should use the Assign statement.
+	 */
 	public static void setVerilogUseAssign(boolean use) { cacheVerilogUseAssign.setBoolean(use); }
 
 	private static Pref cacheVerilogUseTrireg = Pref.makeBooleanPref("VerilogUseTrireg", Simulation.tool.prefs, false);
     static { cacheVerilogUseTrireg.attachToObject(Simulation.tool, "Tool Options, Verilog tab", "Default wire is Trireg"); }
+	/**
+	 * Method to tell whether Verilog deck generation should use Trireg by default.
+	 * The alternative is to use the "wire" statement.
+	 * The default is false.
+	 * @return true if Verilog deck generation should use Trireg by default.
+	 */
 	public static boolean getVerilogUseTrireg() { return cacheVerilogUseTrireg.getBoolean(); }
+	/**
+	 * Method to set whether Verilog deck generation should use Trireg by default.
+	 * The alternative is to use the "wire" statement.
+	 * @param use true if Verilog deck generation should use Trireg by default.
+	 */
 	public static void setVerilogUseTrireg(boolean use) { cacheVerilogUseTrireg.setBoolean(use); }
 
 	/****************************** CDL OPTIONS ******************************/
@@ -127,12 +147,48 @@ public class Simulation extends Tool
 
 	private static Pref cacheSpiceEngine = Pref.makeIntPref("SpiceEngine", Simulation.tool.prefs, 1);
     static { cacheSpiceEngine.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Spice Engine"); }
+	/**
+	 * Method to tell which SPICE engine is being used.
+	 * Since different versions of SPICE have slightly different syntax,
+	 * this is needed to tell the deck generator which variation to target.
+	 * @return which SPICE engine is being used.
+	 * These constants are available: <BR>
+	 * Simulation.SPICE_ENGINE_2 for Spice 2.<BR>
+	 * Simulation.SPICE_ENGINE_3 for Spice 3.<BR>
+	 * Simulation.SPICE_ENGINE_H for HSpice.<BR>
+	 * Simulation.SPICE_ENGINE_P for PSpice.<BR>
+	 * Simulation.SPICE_ENGINE_G for GNUCap.<BR>
+	 * Simulation.SPICE_ENGINE_S for Smart Spice.
+	 */
 	public static int getSpiceEngine() { return cacheSpiceEngine.getInt(); }
+	/**
+	 * Method to set which SPICE engine is being used.
+	 * Since different versions of SPICE have slightly different syntax,
+	 * this is needed to tell the deck generator which variation to target.
+	 * @param engine which SPICE engine is being used.
+	 * These constants are available: <BR>
+	 * Simulation.SPICE_ENGINE_2 for Spice 2.<BR>
+	 * Simulation.SPICE_ENGINE_3 for Spice 3.<BR>
+	 * Simulation.SPICE_ENGINE_H for HSpice.<BR>
+	 * Simulation.SPICE_ENGINE_P for PSpice.<BR>
+	 * Simulation.SPICE_ENGINE_G for GNUCap.<BR>
+	 * Simulation.SPICE_ENGINE_S for Smart Spice.
+	 */
 	public static void setSpiceEngine(int engine) { cacheSpiceEngine.setInt(engine); }
 
 	private static Pref cacheSpiceLevel = Pref.makeStringPref("SpiceLevel", Simulation.tool.prefs, "1");
     static { cacheSpiceLevel.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Spice Level"); }
+	/**
+	 * Method to tell which SPICE level is being used.
+	 * SPICE can use 3 different levels of simulation.
+	 * @return which SPICE level is being used (1, 2, or 3).
+	 */
 	public static String getSpiceLevel() { return cacheSpiceLevel.getString(); }
+	/**
+	 * Method to set which SPICE level is being used.
+	 * SPICE can use 3 different levels of simulation.
+	 * @param level which SPICE level is being used (1, 2, or 3).
+	 */
 	public static void setSpiceLevel(String level) { cacheSpiceLevel.setString(level); }
 
 	private static Pref cacheSpiceOutputFormat = Pref.makeStringPref("SpiceOutputFormat", Simulation.tool.prefs, "Standard");

@@ -61,6 +61,7 @@ public class WindowFrame
 	/** the right scrollbar on the edit window. */		private JScrollBar rightScrollBar;
 	/** the text edit window part */					private JTextArea textWnd;
 	/** the text edit window component. */				private JScrollPane textPanel;
+	/** the waveform window part. */					private JPanel waveformWnd;
 	/** the split pane that shows explorer and edit. */	private JSplitPane js;
     /** the internal frame (if MDI). */					private JInternalFrame jif = null;
     /** the top-level frame (if SDI). */				private TopLevel jf = null;
@@ -132,6 +133,9 @@ public class WindowFrame
 		textWnd = new JTextArea();
 		textWnd.setTabSize(4);
 		textPanel = new JScrollPane(textWnd);
+
+		// the waveform window (for simulation)
+		waveformWnd = new JPanel(new GridBagLayout());
 
 		// the left half: an explorer tree in a scroll pane
 		rootNode.removeAllChildren();
@@ -376,6 +380,12 @@ public class WindowFrame
 	public JTextArea getTextEditWindow() { return textWnd; }
 
 	/**
+	 * Method to return the waveform window associated with this frame.
+	 * @return the waveform window associated with this frame.
+	 */
+	public JPanel getWaveformWindow() { return waveformWnd; }
+
+	/**
 	 * Method to control the contents of this WindowFrame (text editing or circuit editing).
 	 * @param contents TEXTWINDOW if text editing is to be shown; DISPWINDOW for circuit editing.
 	 */
@@ -389,6 +399,9 @@ public class WindowFrame
 				break;
 			case TEXTWINDOW:
 				js.setRightComponent(textPanel);
+				break;
+			case WAVEFORMWINDOW:
+				js.setRightComponent(waveformWnd);
 				break;
 		}
 	}

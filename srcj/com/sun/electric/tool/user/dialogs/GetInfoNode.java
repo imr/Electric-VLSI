@@ -38,6 +38,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Artwork;
@@ -644,7 +645,7 @@ public class GetInfoNode extends javax.swing.JDialog
 		int index = list.getSelectedIndex();
 		if (parameters.isSelected())
 		{
-			AttValPair avp = (AttValPair)allAttributes.get(index);
+			AttValPair avp = (AttValPair)allParameters.get(index);
 			listEditLabel.setText("Parameter '" + avp.trueName + "'");
 			initialListTextField = new String(avp.value);
 			listEdit.setText(initialListTextField);
@@ -872,8 +873,13 @@ public class GetInfoNode extends javax.swing.JDialog
 				{
 					int index = dialog.list.getSelectedIndex();
 					AttValPair avp = (AttValPair)dialog.allParameters.get(index);
+					Variable oldVar = ni.getVar(avp.key);
+					TextDescriptor oldTD = oldVar.getTextDescriptor();
 					Variable var = ni.newVar(avp.key, currentTextField);
+					var.lowLevelSetFlags(oldVar.lowLevelGetFlags());
 					if (currentIndex == 3) var.setJava(); else var.clearCode();
+					TextDescriptor td = var.getTextDescriptor();
+					td.lowLevelSet(oldTD.lowLevelGet0(), oldTD.lowLevelGet1());
 					dialog.initialListTextField = currentTextField;
 					dialog.initialListPopupEntry = currentIndex;
 					changed = true;
@@ -888,8 +894,13 @@ public class GetInfoNode extends javax.swing.JDialog
 				{
 					int index = dialog.list.getSelectedIndex();
 					AttValPair avp = (AttValPair)dialog.allAttributes.get(index);
+					Variable oldVar = ni.getVar(avp.key);
+					TextDescriptor oldTD = oldVar.getTextDescriptor();
 					Variable var = ni.newVar(avp.key, currentTextField);
+					var.lowLevelSetFlags(oldVar.lowLevelGetFlags());
 					if (currentIndex == 3) var.setJava(); else var.clearCode();
+					TextDescriptor td = var.getTextDescriptor();
+					td.lowLevelSet(oldTD.lowLevelGet0(), oldTD.lowLevelGet1());
 					dialog.initialListTextField = currentTextField;
 					dialog.initialListPopupEntry = currentIndex;
 					changed = true;
@@ -1514,12 +1525,12 @@ public class GetInfoNode extends javax.swing.JDialog
 	{//GEN-HEADEREND:event_cancelActionPerformed
 		closeDialog(null);
 	}//GEN-LAST:event_cancelActionPerformed
-	
-	/** Closes the dialog */
+
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
 		setVisible(false);
-//		dispose();
+		theDialog = null;
+		dispose();
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

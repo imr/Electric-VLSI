@@ -46,9 +46,6 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.EditWindow;
 
-import bsh.Interpreter;
-import bsh.InterpreterError;
-
 import java.io.OutputStream;
 import java.lang.InterruptedException;
 import java.util.Iterator;
@@ -79,12 +76,7 @@ public class LETool extends Tool {
     
     /** Initialize tool - add calls to Bean Shell Evaluator */
     public void init() {
-        Interpreter env = EvalJavaBsh.tool.getInterpreter();
-        try {            
-            env.set("LE", tool);
-        } catch (bsh.EvalError e) {
-            System.out.println("  LETool init() bean shell error: "+e.getMessage());
-        }
+		EvalJavaBsh.setEnv("LE", tool);
    }
 
     /**
@@ -92,9 +84,9 @@ public class LETool extends Tool {
      * @return
      */
     public Object getdrive() {
-        Object info = EvalJavaBsh.tool.getCurrentInfo();
+        Object info = EvalJavaBsh.getCurrentInfo();
         if (!(info instanceof Nodable)) return "Not enough hierarchy";
-        VarContext context = EvalJavaBsh.tool.getCurrentContext();
+        VarContext context = EvalJavaBsh.getCurrentContext();
         if (context == null) return "null VarContext";
         Nodable ni = (Nodable)info;
         String ledrive = LETool.makeDriveStr(context.push(ni));
@@ -114,7 +106,7 @@ public class LETool extends Tool {
      * @return
      */
     public Object subdrive(String nodeName, String parName) {
-        Object info = EvalJavaBsh.tool.getCurrentInfo();            // when eval called on instances, info is that nodeinst
+        Object info = EvalJavaBsh.getCurrentInfo();            // when eval called on instances, info is that nodeinst
         if (!(info instanceof Nodable)) return "subdrive(): Not enough hierarchy information";
         Nodable no = (Nodable)info;                                 // this inst has LE.subdrive(...) on it
         if (no == null) return "subdrive(): Not enough hierarchy information";
@@ -129,7 +121,7 @@ public class LETool extends Tool {
             if (no == null) return "subdrive(): can't get equivalent schematic";
 
         }
-        VarContext context = EvalJavaBsh.tool.getCurrentContext();  // get current context
+        VarContext context = EvalJavaBsh.getCurrentContext();  // get current context
         if (context == null) return "subdrive(): null context";
         NodeProto np = no.getProto();                               // get contents of instance
         if (np == null) return "subdrive(): null nodeProto";

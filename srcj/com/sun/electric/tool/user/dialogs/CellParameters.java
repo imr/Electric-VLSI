@@ -330,34 +330,30 @@ public class CellParameters extends javax.swing.JDialog
 								var.setDisplay();
 						}
 					}
+
+					// ensure that every parameter of the cell is on the instance
 					for(Iterator cVIt = curCell.getVariables(); cVIt.hasNext(); )
 					{
 						Variable cVar = (Variable)cVIt.next();
 						TextDescriptor cTd = cVar.getTextDescriptor();
 						if (!cTd.isParam()) continue;
-						Variable instVar = null;
-						for(Iterator vIt = ni.getVariables(); vIt.hasNext(); )
-						{
-							Variable var = (Variable)vIt.next();
-							TextDescriptor td = var.getTextDescriptor();
-							if (!td.isParam()) continue;
-							if (var.getKey() == cVar.getKey()) { instVar = var;   break; }
-						}
+						Variable instVar = ni.getVar(cVar.getKey());
 						if (instVar == null)
 						{
 							// this cell parameter is not on the node: add to instance
-							Variable var = ni.newVar(cVar.getKey(), cVar.getObject());
-							if (var != null)
-							{
-								if (cVar.isTCL()) var.setTCL();
-								if (cVar.isLisp()) var.setLisp();
-								if (cVar.isJava()) var.setJava();
-								TextDescriptor td = var.getTextDescriptor();
-								td.setParam();
-								td.clearInterior();
-								td.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
-								td.setUnit(cTd.getUnit());
-							}
+							instVar = ni.newVar(cVar.getKey(), cVar.getObject());
+							instVar.setDisplay();
+						}
+						if (instVar != null)
+						{
+							if (cVar.isTCL()) instVar.setTCL();
+							if (cVar.isLisp()) instVar.setLisp();
+							if (cVar.isJava()) instVar.setJava();
+							TextDescriptor td = instVar.getTextDescriptor();
+							td.setParam();
+							td.clearInterior();
+							td.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
+							td.setUnit(cTd.getUnit());
 						}
 					}
 				}
@@ -454,7 +450,6 @@ public class CellParameters extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(headerMessage, gridBagConstraints);
 
-        newParameter.setText(" ");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
@@ -470,7 +465,6 @@ public class CellParameters extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(jLabel2, gridBagConstraints);
 
-        defaultValue.setText(" ");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;

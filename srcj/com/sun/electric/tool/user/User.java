@@ -717,14 +717,14 @@ public class User extends Listener
 
 	/****************************** MISCELLANEOUS PREFERENCES ******************************/
 
-	private static Pref cacheSchematicTechnology = Pref.makeStringPref("SchematicTechnology", User.tool.prefs, "");
+	private static Pref cacheSchematicTechnology = Pref.makeStringPref("SchematicTechnology", User.tool.prefs, "mocmos");
     static { cacheSchematicTechnology.attachToObject(User.tool, "Edit Options, Technology tab", "Use scale values from this technology"); }
 	/**
 	 * Method to the technology to use when schematics are found.
 	 * This is important in Spice deck generation (for example) because the Spice primitives may
 	 * say "2x3" on them, but a real technology (such as "mocmos") must be found to convert these pure
 	 * numbers to real spacings for the deck.
-	 * The default is "".
+	 * The default is "mocmos".
 	 * @return the technology to use when schematics are found.
 	 */
 	public static String getSchematicTechnology() { return cacheSchematicTechnology.getString(); }
@@ -819,10 +819,10 @@ public class User extends Listener
 	 */
 	public static void setErrorLimit(int limit) { cacheErrorLimit.setInt(limit); }
 
-	private static Pref cacheMemorySize = Pref.makeIntPref("MemorySize", User.tool.prefs, 500);
+	private static Pref cacheMemorySize = Pref.makeIntPref("MemorySize", User.tool.prefs, 1000);
 	/**
-	 * Method to tell the maximum memory to use for Electric.
-	 * The default is 500.
+	 * Method to tell the maximum memory to use for Electric, in megatybes.
+	 * The default is 1000 (1 gigabyte).
 	 * @return the maximum memory to use for Electric (in megabytes).
 	 */
 	public static int getMemorySize() { return cacheMemorySize.getInt(); }

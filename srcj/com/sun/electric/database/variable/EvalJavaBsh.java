@@ -27,6 +27,7 @@ package com.sun.electric.database.variable;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.User;
 
 import bsh.Interpreter;
 import bsh.InterpreterError;
@@ -45,30 +46,26 @@ import java.util.Stack;
  *
  * @author  gainsley
  */
-public class EvalJavaBsh extends Tool {
+public class EvalJavaBsh
+{
     
     // ------------------------ private data ------------------------------------
-        
-    /** The EvalJavaBsh Tool */                     public static EvalJavaBsh tool = new EvalJavaBsh();
-    
-    /** The bean shell interpreter */               private Interpreter env;
-    /** For replacing @variable */ private static final Pattern atPat = Pattern.compile("@(\\w+)");
-    /** For replacing @variable */ private static final Pattern pPat = Pattern.compile("(P|PAR)\\(\"(\\w+)\"\\)");
-    
-    /** Context stack for recursive eval calls */   private Stack contextStack = new Stack();
-    /** Info stack for recursive eval calls */      private Stack infoStack = new Stack();
-    
+
+	/** the singleton object of this class. */		private static EvalJavaBsh thisOne = new EvalJavaBsh();
+	/** The bean shell interpreter */               private static Interpreter env;
+    /** For replacing @variable */					private static final Pattern atPat = Pattern.compile("@(\\w+)");
+    /** For replacing @variable */					private static final Pattern pPat = Pattern.compile("(P|PAR)\\(\"(\\w+)\"\\)");
+
+    /** Context stack for recursive eval calls */   private static Stack contextStack = new Stack();
+    /** Info stack for recursive eval calls */      private static Stack infoStack = new Stack();
+
     /** turn on Bsh verbose debug stmts */          private static boolean debug = true;
-    
+
     // ------------------------ private and protected methods -------------------
-    
+
     /** the contructor */
-    private EvalJavaBsh() {
-        super("EvalJavaBsh");
-    }
-    
-    /** Initialize bean shell */
-    public void init() {
+    private EvalJavaBsh()
+    {
         env = new Interpreter();
         try {
             env.set("evalJavaBsh", this);
@@ -93,9 +90,17 @@ public class EvalJavaBsh extends Tool {
             handleBshError(e);
         }
     }
-     
+	public static void setEnv(String name, Tool tool)
+	{
+        try {            
+            env.set(name, tool);
+        } catch (bsh.EvalError e) {
+            System.out.println("Tool " + tool.getName() + ": Bean shell error: "+e.getMessage());
+        }
+	}
+
     /** Handle errors.  Sends it to system.out */
-    protected void handleBshError(bsh.EvalError e) {
+    public static void handleBshError(bsh.EvalError e) {
         //System.out.println("Bean Shell eval error: " + e.getMessage());
         if (debug) {
             if (e instanceof bsh.TargetError) {
@@ -106,26 +111,26 @@ public class EvalJavaBsh extends Tool {
             }
         }
     }
-    
+
     /** Get the interpreter so other tools may add methods to it. There is only
      * one interpreter, so be careful that separate tools do not conflict in 
      * terms of namespace.  I recommend when adding objects or methods to the
      * Interpreter you prepend the object or method names with the Tool name.
      */
-    public Interpreter getInterpreter() { return env; }
-    
+    public static Interpreter getInterpreter() { return env; }
+
     /**
      * See what the current context of eval is.
      * @return a VarContext.
      */
-    public VarContext getCurrentContext() { return (VarContext)contextStack.peek(); }
+    public static VarContext getCurrentContext() { return (VarContext)contextStack.peek(); }
 
     /**
      * See what the current info of eval is.
      * @return an Object.
      */
-    public Object getCurrentInfo() { return infoStack.peek(); }
-    
+    public static Object getCurrentInfo() { return infoStack.peek(); }
+
     /**
      * Replaces @var calls to P("var")
      * Replaces P("var") calls to P("ATTR_var")
@@ -154,7 +159,7 @@ public class EvalJavaBsh extends Tool {
        
        return sb.toString();
     }
-    
+
     /** Evaluate Object as if it were a String containing java code.
      * Note that this function may call itself recursively.
      * @param obj the object to be evaluated (toString() must apply).
@@ -162,7 +167,7 @@ public class EvalJavaBsh extends Tool {
      * @param info used to pass additional info from Electric to the interpreter, if needed.
      * @return the evaluated object.
      */
-    protected Object eval(Object obj, VarContext context, Object info) {
+    public static Object eval(Object obj, VarContext context, Object info) {
         String expr = replace(obj.toString());  // change @var calls to P(var)
         try {
             if (context == null) context = VarContext.globalContext;
@@ -195,25 +200,24 @@ public class EvalJavaBsh extends Tool {
         VarContext context = (VarContext)contextStack.peek();
         return context.lookupVarEval(name);
     }
-    
-    public Object PAR(String name) {
+
+	public Object PAR(String name) {
         VarContext context = (VarContext)contextStack.peek();
         return context.lookupVarFarEval(name);
     }
-    
-    //---------------------------Running Scripts-------------------------------------
-    
-    
-    /** Run a Java Bean Shell script */
-    public void runScript(String script) {
+
+	//---------------------------Running Scripts-------------------------------------
+
+	/** Run a Java Bean Shell script */
+    public static void runScript(String script) {
         runScriptJob job = new runScriptJob(script);
     }
-     
-    private class runScriptJob extends Job
+
+	static class runScriptJob extends Job
     {
         String script;
         protected runScriptJob(String script) {
-            super("JavaBsh script: "+script, EvalJavaBsh.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("JavaBsh script: "+script, User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.script = script;
             this.startJob();
         }
@@ -230,5 +234,5 @@ public class EvalJavaBsh extends Tool {
             }
         }
     }
-       
+
 }

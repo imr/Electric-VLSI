@@ -112,9 +112,6 @@ public class Tool extends ElectricObject
 		// Because of lazy evaluation, tools aren't initialized unless they're referenced here
 		User.tool.init();
 		Network.tool.init();
-        EvalJavaBsh.tool.init();
-        // Init LEtool -> must be initialized after EvalJavaBash init() runs, 
-        // otherwise Interpreter will be null
         LETool.tool.init();
         Simulation.tool.init();
         Routing.tool.init();
