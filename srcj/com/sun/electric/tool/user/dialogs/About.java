@@ -28,18 +28,42 @@ import com.sun.electric.database.text.Version;
 import javax.swing.JComboBox;
 import javax.swing.JList;
 import javax.swing.ListSelectionModel;
-import javax.swing.DefaultListModel;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import java.awt.Insets;
+import java.awt.GridBagConstraints;
+import javax.swing.SwingConstants;
+import java.awt.GridBagLayout;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.BorderLayout;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.DefaultListModel;
 
 
 /**
  * Class to handle the "About" dialog.
  */
+/**
+* This code was generated using CloudGarden's Jigloo
+* SWT/Swing GUI Builder, which is free for non-commercial
+* use. If Jigloo is being used commercially (ie, by a
+* for-profit company or business) then you should purchase
+* a license - please visit www.cloudgarden.com for details.
+*/
+
 public class About extends javax.swing.JDialog
 {
 	JList list;
 	DefaultListModel model;
 	boolean showingCast = false;
+
+	public About() {
+		initGUI();
+	}
 	static class CastOfThousands
 	{
 		String name;
@@ -166,7 +190,7 @@ public class About extends javax.swing.JDialog
         {
             public void windowClosing(java.awt.event.WindowEvent evt)
             {
-                closeDialog(evt);
+				AboutWindowClosing(evt);
             }
         });
 
@@ -600,7 +624,7 @@ public class About extends javax.swing.JDialog
 	}//GEN-LAST:event_regionChanged
 	
 	/** Closes the dialog */
-	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
+	private void AboutWindowClosing(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
 		setVisible(false);
 		dispose();
@@ -614,24 +638,205 @@ public class About extends javax.swing.JDialog
 	}
 	
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JPanel Bottom;
-    private javax.swing.JScrollPane Center;
-    private javax.swing.JPanel Top;
-    private javax.swing.JPanel TopLeft;
-    private javax.swing.JPanel TopRight;
-    private javax.swing.JButton castOfThousands;
-    private javax.swing.JButton copyingDetails;
-    private javax.swing.JComboBox jComboBox1;
-    private javax.swing.JLabel jLabel10;
-    private javax.swing.JLabel jLabel11;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel8;
-    private javax.swing.JLabel jLabel9;
-    private javax.swing.JButton ok;
-    private javax.swing.JLabel theIcon;
-    private javax.swing.JLabel version;
-    private javax.swing.JButton warrantyDetails;
-    // End of variables declaration//GEN-END:variables
+    private JPanel Bottom;
+    private JScrollPane Center;
+    private JPanel Top;
+    private JPanel TopLeft;
+    private JPanel TopRight;
+    private JButton castOfThousands;
+    private JButton copyingDetails;
+    private JComboBox jComboBox1;
+    private JLabel jLabel10;
+    private JLabel jLabel11;
+    private JLabel jLabel3;
+    private JLabel jLabel4;
+    private JLabel jLabel8;
+    private JLabel jLabel9;
+    private JButton ok;
+    private JLabel theIcon;
+    private JLabel version;
+    private JButton warrantyDetails;
+	/**
+	* Initializes the GUI.
+	* Auto-generated code - any changes you make will disappear.
+	*/
+	public void initGUI(){
+		try {
+			preInitGUI();
 	
+			Center = new JScrollPane();
+			Top = new JPanel();
+			TopRight = new JPanel();
+			theIcon = new JLabel();
+			jComboBox1 = new JComboBox();
+			TopLeft = new JPanel();
+			jLabel4 = new JLabel();
+			version = new JLabel();
+			ok = new JButton();
+			jLabel3 = new JLabel();
+			castOfThousands = new JButton();
+			Bottom = new JPanel();
+			jLabel9 = new JLabel();
+			jLabel8 = new JLabel();
+			warrantyDetails = new JButton();
+			copyingDetails = new JButton();
+			jLabel11 = new JLabel();
+			jLabel10 = new JLabel();
+	
+			BorderLayout thisLayout = new BorderLayout();
+			this.getContentPane().setLayout(thisLayout);
+			thisLayout.setHgap(0);
+			thisLayout.setVgap(10);
+			this.setTitle("About Electric");
+			this.setName("");
+			this.setSize(new java.awt.Dimension(607,458));
+			this.addWindowListener( new WindowAdapter() {
+				public void windowClosing(WindowEvent evt) {
+					AboutWindowClosing(evt);
+				}
+			});
+	
+			Center.setMinimumSize(new java.awt.Dimension(100,50));
+			Center.setPreferredSize(new java.awt.Dimension(300,200));
+			this.getContentPane().add(Center, BorderLayout.CENTER);
+	
+			BorderLayout TopLayout = new BorderLayout();
+			Top.setLayout(TopLayout);
+			TopLayout.setHgap(10);
+			TopLayout.setVgap(0);
+			this.getContentPane().add(Top, BorderLayout.NORTH);
+	
+			GridBagLayout TopRightLayout = new GridBagLayout();
+			TopRight.setLayout(TopRightLayout);
+			TopRightLayout.columnWidths = new int[] {1};
+			TopRightLayout.rowHeights = new int[] {1,1};
+			TopRightLayout.columnWeights = new double[] {0.1};
+			TopRightLayout.rowWeights = new double[] {0.1,0.1};
+			Top.add(TopRight, BorderLayout.CENTER);
+	
+			theIcon.setHorizontalAlignment(SwingConstants.CENTER);
+			theIcon.setMinimumSize(new java.awt.Dimension(64,64));
+			theIcon.setPreferredSize(new java.awt.Dimension(64,64));
+			theIcon.setMaximumSize(new java.awt.Dimension(64,64));
+			TopRight.add(theIcon, new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0, 10, 0, new Insets(0, 0, 0, 0), 0, 0));
+	
+			jComboBox1.setMinimumSize(new java.awt.Dimension(100,25));
+			jComboBox1.setPreferredSize(new java.awt.Dimension(100,25));
+			jComboBox1.setName("");
+			TopRight.add(jComboBox1, new GridBagConstraints(0, 1, 1, 1, 0.0, 0.0, 10, 0, new Insets(0, 0, 0, 0), 0, 0));
+			jComboBox1.addActionListener( new ActionListener() {
+				public void actionPerformed(ActionEvent evt) {
+					regionChanged(evt);
+				}
+			});
+	
+			GridBagLayout TopLeftLayout = new GridBagLayout();
+			TopLeft.setLayout(TopLeftLayout);
+			TopLeftLayout.columnWidths = new int[] {1,1};
+			TopLeftLayout.rowHeights = new int[] {1,1,1,1};
+			TopLeftLayout.columnWeights = new double[] {0.1,0.1};
+			TopLeftLayout.rowWeights = new double[] {0.1,0.1,0.1,0.1};
+			Top.add(TopLeft, BorderLayout.WEST);
+	
+			jLabel4.setText("The Electric VLSI Design System");
+			jLabel4.setHorizontalAlignment(SwingConstants.LEFT);
+			jLabel4.setVerticalAlignment(SwingConstants.TOP);
+			TopLeft.add(jLabel4, new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0, 17, 0, new Insets(0, 0, 0, 0), 0, 0));
+	
+			version.setText("Version 7.01a");
+			version.setHorizontalAlignment(SwingConstants.LEFT);
+			TopLeft.add(version, new GridBagConstraints(0, 1, 1, 1, 0.0, 0.0, 17, 0, new Insets(0, 0, 0, 0), 0, 0));
+	
+			ok.setText("OK");
+			TopLeft.add(ok, new GridBagConstraints(1, 0, 1, 3, 0.0, 0.1, 10, 0, new Insets(0, 0, 0, 0), 0, 0));
+			ok.addActionListener( new ActionListener() {
+				public void actionPerformed(ActionEvent evt) {
+					ok(evt);
+				}
+			});
+	
+			jLabel3.setText("Written by Steven M. Rubin");
+			jLabel3.setHorizontalAlignment(SwingConstants.LEFT);
+			TopLeft.add(jLabel3, new GridBagConstraints(0, 2, 1, 1, 0.0, 0.0, 17, 0, new Insets(0, 0, 0, 0), 0, 0));
+	
+			castOfThousands.setText("And A Cast of Thousands");
+			TopLeft.add(castOfThousands, new GridBagConstraints(0, 3, 2, 1, 0.0, 0.1, 10, 0, new Insets(0, 0, 0, 0), 0, 0));
+			castOfThousands.addActionListener( new ActionListener() {
+				public void actionPerformed(ActionEvent evt) {
+					showCast(evt);
+				}
+			});
+	
+			GridBagLayout BottomLayout = new GridBagLayout();
+			Bottom.setLayout(BottomLayout);
+			BottomLayout.columnWidths = new int[] {1,1,1};
+			BottomLayout.rowHeights = new int[] {1,1,1,1};
+			BottomLayout.columnWeights = new double[] {0.1,0.1,0.1};
+			BottomLayout.rowWeights = new double[] {0.1,0.1,0.1,0.1};
+			this.getContentPane().add(Bottom, BorderLayout.SOUTH);
+	
+			jLabel9.setText("Electric comes with ABSOLUTELY NO WARRANTY");
+			Bottom.add(jLabel9, new GridBagConstraints(0, 1, 2, 1, 0.0, 0.1, 17, 0, new Insets(0, 0, 0, 0), 0, 0));
+	
+			jLabel8.setText("Copyright (c) 2003 Sun Microsystems and Static Free Software");
+			jLabel8.setHorizontalAlignment(SwingConstants.LEFT);
+			Bottom.add(jLabel8, new GridBagConstraints(0, 0, 3, 1, 0.0, 0.1, 17, 0, new Insets(0, 0, 0, 0), 0, 0));
+	
+			warrantyDetails.setText("Warranty Details");
+			Bottom.add(warrantyDetails, new GridBagConstraints(2, 1, 1, 1, 0.0, 0.0, 10, 0, new Insets(0, 0, 0, 0), 0, 0));
+			warrantyDetails.addActionListener( new ActionListener() {
+				public void actionPerformed(ActionEvent evt) {
+					showWarranty(evt);
+				}
+			});
+	
+			copyingDetails.setText("Copying Details");
+			Bottom.add(copyingDetails, new GridBagConstraints(2, 2, 1, 2, 0.0, 0.0, 10, 0, new Insets(0, 0, 0, 0), 0, 0));
+			copyingDetails.addActionListener( new ActionListener() {
+				public void actionPerformed(ActionEvent evt) {
+					showCopying(evt);
+				}
+			});
+	
+			jLabel11.setText("redistribute it under certain conditions");
+			Bottom.add(jLabel11, new GridBagConstraints(0, 3, 2, 1, 0.0, 0.1, 17, 0, new Insets(0, 0, 0, 0), 0, 0));
+	
+			jLabel10.setText("This is free software, and you are welcome to");
+			Bottom.add(jLabel10, new GridBagConstraints(0, 2, 2, 1, 0.0, 0.1, 17, 0, new Insets(0, 0, 0, 0), 0, 0));
+	
+			postInitGUI();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	/** Add your pre-init code in here 	*/
+	public void preInitGUI(){
+	}
+
+	/** Add your post-init code in here 	*/
+	public void postInitGUI(){
+	}
+
+	/** Auto-generated main method */
+	public static void main(String[] args){
+		showGUI();
+	}
+
+	/**
+	* This static method creates a new instance of this class and shows
+	* it inside a new JFrame, (unless it is already a JFrame).
+	*
+	* It is a convenience method for showing the GUI, but it can be
+	* copied and used as a basis for your own code.	*
+	* It is auto-generated code - the body of this method will be
+	* re-generated after any changes are made to the GUI.
+	* However, if you delete this method it will not be re-created.	*/
+	public static void showGUI(){
+		try {
+			About inst = new About();
+			inst.setVisible(true);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 }

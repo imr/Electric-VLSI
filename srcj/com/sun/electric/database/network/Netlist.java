@@ -44,7 +44,6 @@ import com.sun.electric.database.topology.NodeInst;
 // import com.sun.electric.technology.technologies.Schematics;
 // import com.sun.electric.tool.Tool;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;

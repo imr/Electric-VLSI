@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project basedir="." default="all" name="electric">
+<project basedir="." default="run" name="electric">
 
     <target name="init">
         <property name="beanshell" value="../lib/java/bsh-1.2b3.jar"/>
         <property name="AppleJava" value="packaging/AppleJavaExtensions.jar"/>
     </target>
 
-    <target name="compile" depends="init">
+    <target depends="init" name="compile">
         <javac debug="true" deprecation="true" destdir="." srcdir=".">
             <classpath><pathelement location="${beanshell}"/></classpath>
             <classpath><pathelement location="${AppleJava}"/></classpath>
@@ -14,8 +14,8 @@
         </javac>
     </target>
 
-    <target name="run" depends="init,compile">
-        <java classname="com.sun.electric.Launcher" failonerror="true" fork="true">
+    <target depends="init,compile" name="run">
+        <java classname="com.sun.electric.Launcher" failonerror="true" fork="true" maxmemory="1024m">
             <classpath>
                 <pathelement location="."/>
                 <pathelement location="${beanshell}"/>
@@ -24,7 +24,7 @@
         </java>
     </target>
 
-    <target name="runMain" depends="init,compile">
+    <target depends="init,compile" name="runMain">
         <java classname="com.sun.electric.Main" failonerror="true" fork="true" maxmemory="256m">
             <classpath>
                 <pathelement location="."/>
@@ -34,7 +34,14 @@
         </java>
     </target>
 
-    <target name="jar" depends="init,compile" description="Make binary Jar file">
+    <target depends="init" name="checkStyle">
+        <taskdef classpath="C:\TEMP\checkstyle-3.4\checkstyle-all-3.4.jar" resource="checkstyletask.properties"/>
+        <checkstyle config="C:\TEMP\checkstyle-3.4\docs\sun_checks.xml">
+           <fileset dir="." includes="**/*.java"/>
+        </checkstyle>
+    </target>
+
+    <target depends="init,compile" description="Make binary Jar file" name="jar">
         <!-- To make a standalone app: -->
         <!-- 1. Create electric.mf manifest. -->
         <!-- 2. Put in it two lines: -->
@@ -42,9 +49,9 @@
         <!-- Main-Class: com.sun.electric.Launcher -->
         <!-- 3. Pass to <jar>: manifest="electric.mf" -->
         <property name="version" value=""/>
-        <unjar src="${beanshell}" dest="."/> 
-        <unjar src="${AppleJava}" dest="."/> 
-        <delete dir="META-INF"></delete>
+        <unjar dest="." src="${beanshell}"/> 
+        <unjar dest="." src="${AppleJava}"/> 
+        <delete dir="META-INF"/>
         <copy file="packaging/electric.mf" tofile="electric${version}.mf"/>
         <jar basedir="." compress="true" jarfile="electric${version}.jar" manifest="electric${version}.mf">
             <exclude name="apidoc/"/>
@@ -59,12 +66,12 @@
             <exclude name="**/*.java"/>
             <exclude name="**/*.form"/>
         </jar>
-        <delete file="electric${version}.mf"></delete>
-        <delete dir="bsh"></delete>
-        <delete dir="com/apple"></delete>
+        <delete file="electric${version}.mf"/>
+        <delete dir="bsh"/>
+        <delete dir="com/apple"/>
     </target>
 
-    <target name="mac-app" depends="jar">
+    <target depends="jar" name="mac-app">
         <property name="appdir" value="electric.app"/>
         <mkdir dir="${appdir}"/>
         <mkdir dir="${appdir}/Contents"/>
@@ -79,10 +86,10 @@
         <exec command="/Developer/Tools/SetFile -a B ${appdir}"/>
     </target>
 
-    <target name="jarSource" depends="init,compile" description="Make source Jar file">
-        <unjar src="${beanshell}" dest="."/> 
-        <unjar src="${AppleJava}" dest="."/> 
-        <delete dir="META-INF"></delete>
+    <target depends="init,compile" description="Make source Jar file" name="jarSource">
+        <unjar dest="." src="${beanshell}"/> 
+        <unjar dest="." src="${AppleJava}"/> 
+        <delete dir="META-INF"/>
         <jar basedir="." compress="true" jarfile="electric.jar" manifest="packaging/electric.mf">
             <exclude name="apidoc/"/>
             <exclude name="intervalsimulation/"/>
@@ -91,11 +98,11 @@
             <exclude name="Hack_stack.txt"/>
             <exclude name="**/.nbattrs"/>
         </jar>
-        <delete dir="bsh"></delete>
-        <delete dir="com/apple"></delete>
+        <delete dir="bsh"/>
+        <delete dir="com/apple"/>
     </target>
 
-    <target name="testJar" depends="init,jar" description="Run Jar file">
+    <target depends="init,jar" description="Run Jar file" name="testJar">
         <java classname="com.sun.electric.Launcher" failonerror="true" fork="true">
             <classpath>
                 <pathelement location="."/>
@@ -105,7 +112,7 @@
         </java>
     </target>
 
-    <target name="javadoc" depends="init" description="Create Javadoc">
+    <target depends="init" description="Create Javadoc" name="javadoc">
         <mkdir dir="apidoc"/>
         <javadoc destdir="apidoc" packagenames="com.sun.electric.*">
             <classpath>
@@ -118,7 +125,7 @@
         </javadoc>
     </target>
 
-    <target name="clean" depends="init" description="Clean all build products">
+    <target depends="init" description="Clean all build products" name="clean">
         <delete quiet="true">
             <fileset dir=".">
                 <include name="**/*.class"/>

@@ -23,37 +23,27 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.MenuCommands;
-import com.sun.electric.tool.user.KeyBindingManager;
-import com.sun.electric.tool.user.ui.PaletteFrame;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.Cursor;
-import java.awt.Component;
 import java.awt.Rectangle;
 import java.awt.GraphicsConfiguration;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.JDesktopPane;
 import javax.swing.JInternalFrame;
+import javax.swing.JPanel;
 import javax.swing.JMenuBar;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
 import javax.swing.UIManager;
 import javax.swing.ImageIcon;
 
@@ -90,7 +80,7 @@ public class TopLevel extends JFrame
 	/** The desktop pane (if MDI). */						private static JDesktopPane desktop = null;
 	/** The main frame (if MDI). */							private static TopLevel topLevel = null;
 	/** The only status bar (if MDI). */					private StatusBar sb = null;
-	/** The EditWindow associated with this (if SDI). */	private EditWindow wnd = null;
+	/** The WindowFrame associated with this (if SDI). */	private WindowFrame wf = null;
 	/** The size of the screen. */							private static Dimension scrnSize;
 	/** The current operating system. */					private static OS os;
 	/** The palette object. */								private static PaletteFrame palette;
@@ -274,7 +264,6 @@ public class TopLevel extends JFrame
 		{
 			Rectangle bounds = topLevel.getBounds();
 			Rectangle dBounds = desktop.getBounds();
-//			System.out.println("Toplevel is "+bounds+" desktop is "+dBounds);
 			if (dBounds.width != 0 && dBounds.height != 0)
 			{
 				return new Dimension(dBounds.width, dBounds.height);
@@ -302,14 +291,14 @@ public class TopLevel extends JFrame
 		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
-			EditWindow wnd = wf.getEditWindow();
-			wnd.setCursor(cursor);
+			JPanel panel = wf.getContent().getPanel();
+			panel.setCursor(cursor);
 		}
 	}
 
 	/**
-	 * Method to return the current EditWindow.
-	 * @return the current EditWindow.
+	 * Method to return the current JFrame on the screen.
+	 * @return the current JFrame.
 	 */
 	public static JFrame getCurrentJFrame()
 	{
@@ -324,18 +313,18 @@ public class TopLevel extends JFrame
 	}
 
 	/**
-	 * Method to return the EditWindow associated with this top-level window.
+	 * Method to return the WindowFrame associated with this top-level window.
 	 * This only makes sense for SDI applications where a WindowFrame is inside of a TopLevel.
-	 * @return the EditWindow associated with this top-level window.
+	 * @return the WindowFrame associated with this top-level window.
 	 */
-	public EditWindow getEditWindow() { return wnd; }
+//	public WindowFrame getWindowFrame() { return wf; }
 
 	/**
-	 * Method to set the edit window associated with this top-level window.
+	 * Method to set the WindowFrame associated with this top-level window.
 	 * This only makes sense for SDI applications where a WindowFrame is inside of a TopLevel.
-	 * @param wnd the EditWindow to associatd with this.
+	 * @param wf the WindowFrame to associatd with this.
 	 */
-	public void setEditWindow(EditWindow wnd) { this.wnd = wnd; }
+	public void setWindowFrame(WindowFrame wf) { this.wf = wf; }
     
     /**
      * Method called when done with this Frame.  Both the menuBar
@@ -363,7 +352,7 @@ public class TopLevel extends JFrame
         /* Note that this gets called from WindowFrame, and
             WindowFrame has a reference to EditWindow, so
             WindowFrame will call wnd.finished(). */
-        wnd = null;
+        wf = null;
         // dispose of myself
         super.dispose();
     }

@@ -26,17 +26,13 @@ package com.sun.electric.tool.routing;
 
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.technology.*;
-import com.sun.electric.technology.technologies.Generic;
 
 import java.awt.geom.Point2D;
 import java.util.List;

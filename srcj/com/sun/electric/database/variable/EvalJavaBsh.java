@@ -24,13 +24,12 @@
 
 package com.sun.electric.database.variable;
 
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 
 import bsh.Interpreter;
-import bsh.InterpreterError;
+//import bsh.InterpreterError;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;

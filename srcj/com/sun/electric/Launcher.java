@@ -23,12 +23,7 @@
  */
 package com.sun.electric;
 
-import com.sun.electric.Main;
 import com.sun.electric.tool.user.User;
-
-import java.lang.Runtime;
-import java.util.ArrayList;
-import java.util.Iterator;
 
 /**
  * This class initializes the User Interface.
@@ -54,9 +49,10 @@ public final class Launcher
 				// not able to relaunch a JVM: just start Electric
 				Main.main(args);
 			}
-		} catch(Exception e)
+		} catch (Exception e)
 		{
 			// problem figuring out what computer this is: just start Electric
+			e.printStackTrace(System.out);
 			Main.main(args);
 		}
 	}

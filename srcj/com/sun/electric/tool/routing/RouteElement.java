@@ -8,7 +8,6 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.tool.user.Highlight;
 
 import java.awt.geom.Point2D;

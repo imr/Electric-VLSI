@@ -26,28 +26,17 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.ErrorLog;
 
 import java.awt.Dimension;
-import java.awt.Image;
-import java.awt.Point;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Color;
-import java.awt.Rectangle;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.FlowLayout;
@@ -74,7 +63,6 @@ import javax.swing.JButton;
 import javax.swing.BoxLayout;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
-import java.util.EventListener;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -84,7 +72,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 /**
  * This class defines the a screenful of Panels that make up a waveform display.
  */
-public class WaveformWindow
+public class WaveformWindow implements WindowContent
 {
 	/**
 	 * Test method to build a waveform with fake data.
@@ -93,8 +81,8 @@ public class WaveformWindow
 	{
 		Color [] colorArray = new Color [] {
 			Color.RED, Color.GREEN, Color.BLUE, Color.PINK, Color.ORANGE, Color.YELLOW, Color.CYAN, Color.MAGENTA};
-		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-		if (wf == null) return;
+//		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+//		if (wf == null) return;
 
 		// make the waveform data
 		Simulate.SimData sd = new Simulate.SimData();
@@ -117,7 +105,8 @@ public class WaveformWindow
 		sd.cell = null;
 
 		// make the waveform window
-		WaveformWindow ww = new WaveformWindow(sd, wf);
+		WindowFrame wf = WindowFrame.createWaveformWindow(sd);
+		WaveformWindow ww = (WaveformWindow)wf.getContent();
 		ww.setMainTimeCursor(timeStep*22);
 		ww.setExtensionTimeCursor(timeStep*77);
 		ww.setDefaultTimeRange(0, timeStep*100);
@@ -172,7 +161,17 @@ public class WaveformWindow
 		private static final ImageIcon iconClosePanel = new ImageIcon(WaveformWindow.class.getResource("ButtonSimClose.gif"));
 		private static final ImageIcon iconDeleteSignal = new ImageIcon(WaveformWindow.class.getResource("ButtonSimDelete.gif"));
 		private static final ImageIcon iconDeleteAllSignals = new ImageIcon(WaveformWindow.class.getResource("ButtonSimDeleteAll.gif"));
-
+//
+//		public static void setListener(EventListener listener)
+//		{
+//			curMouseListener = (MouseListener)listener;
+//			curMouseMotionListener = (MouseMotionListener)listener;
+//			curMouseWheelListener = (MouseWheelListener)listener;
+//			curKeyListener = (KeyListener)listener;
+//		}
+//
+//		public static EventListener getListener() { return curMouseListener; }
+//
 	    // constructor
 		public Panel(WaveformWindow waveWindow)
 		{
@@ -789,8 +788,8 @@ public class WaveformWindow
 
 			// draw the time ticks
 			g.setColor(Color.WHITE);
-			g.drawLine(wavePanel.VERTLABELWIDTH, hei-1, wid, hei-1);
-			double displayedLow = wavePanel.scaleXToTime(wavePanel.VERTLABELWIDTH);
+			g.drawLine(WaveformWindow.Panel.VERTLABELWIDTH, hei-1, wid, hei-1);
+			double displayedLow = wavePanel.scaleXToTime(WaveformWindow.Panel.VERTLABELWIDTH);
 			double displayedHigh = wavePanel.scaleXToTime(wid);
 			StepSize ss = getSensibleValues(displayedHigh, displayedLow, 10);
 			if (ss.separation == 0.0) return;
@@ -863,6 +862,7 @@ public class WaveformWindow
 
 	/** the window that this lives in */					private WindowFrame wf;
 	/** the cell being simulated */							private Simulate.SimData sd;
+	private JPanel overall;
 	/** let panel: the signal names */						private JPanel left;
 	/** right panel: the signal traces */					private JPanel right;
 	private JButton timeLock;
@@ -889,7 +889,7 @@ public class WaveformWindow
 		this.timeLocked = true;
 
 		// the total panel in the waveform window
-		JPanel overall = new JPanel();
+		overall = new JPanel();
 		overall.setLayout(new GridBagLayout());
 
 		// the main part of the waveform window: a split-pane between names and traces
@@ -963,19 +963,36 @@ public class WaveformWindow
 		gbc.fill = java.awt.GridBagConstraints.NONE;
 		gbc.insets = new Insets(0, 0, 0, 0);
 		overall.add(delta, gbc);
-
-		// put this panel into the window
-		JPanel panel = wf.getWaveformWindow();
-		gbc.gridx = 0;       gbc.gridy = 0;
-		gbc.gridwidth = 1;   gbc.gridheight = 1;
-		gbc.weightx = 1;     gbc.weighty = 1;
-		gbc.anchor = GridBagConstraints.CENTER;
-		gbc.fill = java.awt.GridBagConstraints.BOTH;
-		gbc.insets = new Insets(0, 0, 0, 0);
-		panel.add(overall, gbc);
-		wf.setWaveformExplorerData(getSignalsForExplorer());
-		wf.setContent(WindowFrame.WAVEFORMWINDOW);
 	}
+
+	public JPanel getPanel() { return overall; }
+
+	public void setCell(Cell cell, VarContext context) { sd.cell = cell; }
+
+	/**
+	 * Method to return the cell that is shown in this window.
+	 * @return the cell that is shown in this window.
+	 */
+	public Cell getCell() { return sd.cell; }
+
+	public void loadExplorerTree(DefaultMutableTreeNode rootNode)
+	{
+		wf.libraryExplorerNode = null;
+		wf.jobExplorerNode = Job.getExplorerTree();
+		wf.errorExplorerNode = ErrorLog.getExplorerTree();
+		wf.signalExplorerNode = getSignalsForExplorer();
+		rootNode.add(wf.signalExplorerNode);
+		rootNode.add(wf.jobExplorerNode);
+		rootNode.add(wf.errorExplorerNode);
+	}
+
+	public void bottomScrollChanged(int e) {}
+
+	public void rightScrollChanged(int e) {}
+
+	public boolean cellHistoryCanGoBack() { return false; }
+
+	public boolean cellHistoryCanGoForward() { return false; }
 
 	private DefaultMutableTreeNode getSignalsForExplorer()
 	{
@@ -1025,12 +1042,6 @@ public class WaveformWindow
 			wp.repaint();
 		}
 	}
-
-	/**
-	 * Method to return the cell that is shown in this window.
-	 * @return the cell that is shown in this window.
-	 */
-	public Cell getCell() { return sd.cell; }
 
 	/**
 	 * Method to set the window title.
@@ -1391,4 +1402,22 @@ public class WaveformWindow
 		wp.waveSignals.clear();
 		wp.repaint();
 	}
+	
+	public void fillScreen()
+	{
+	}
+	
+	public void finished()
+	{
+		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next();
+			wp.finished();
+		}
+	}
+	
+	public void fireCellHistoryStatus()
+	{
+	}
+	
 }

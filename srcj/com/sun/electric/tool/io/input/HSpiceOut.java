@@ -24,14 +24,9 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.io.input.Input;
-import com.sun.electric.tool.io.input.Simulate;
 
-import java.awt.Color;
 import java.io.InputStream;
 import java.io.IOException;
-import java.io.LineNumberReader;
-import java.io.DataInputStream;
 import java.net.URL;
 import java.util.List;
 import java.util.ArrayList;

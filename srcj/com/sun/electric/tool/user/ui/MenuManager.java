@@ -41,7 +41,6 @@ import java.util.*;
 import java.util.List;
 import java.util.prefs.Preferences;
 import javax.swing.*;
-import javax.swing.plaf.basic.BasicMenuItemUI;
 
 /**
  * @author gainsley

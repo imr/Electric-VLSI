@@ -26,7 +26,6 @@ package com.sun.electric.tool.erc;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.JNetwork;
@@ -40,12 +39,11 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.DRC;
-import com.sun.electric.tool.erc.ERC;
 import com.sun.electric.tool.user.ErrorLog;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -91,7 +89,7 @@ public class ERCWellCheck
 	 */
 	public static void analyzeCurCell()
 	{
-		Cell curCell = Library.needCurCell();
+		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
         WellCheck job = new WellCheck(curCell);
 	}

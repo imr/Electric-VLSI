@@ -35,7 +35,6 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Listener;
-import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.dialogs.GetInfoNode;
 import com.sun.electric.tool.user.dialogs.GetInfoArc;
 import com.sun.electric.tool.user.dialogs.GetInfoExport;
@@ -45,8 +44,8 @@ import com.sun.electric.tool.user.dialogs.Attributes;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.PaletteFrame;
 import com.sun.electric.tool.user.ui.StatusBar;
+import com.sun.electric.tool.user.ui.WindowContent;
 
 import java.util.Iterator;
 
@@ -141,10 +140,9 @@ public class User extends Listener
 			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 			{
 				WindowFrame wf = (WindowFrame)it.next();
-				EditWindow wnd = wf.getEditWindow();
-				if (wnd == null) continue;
-				if (wnd.getCell() != cell) continue;
-				wnd.setWindowTitle();
+				WindowContent content = wf.getContent();
+				if (content.getCell() != cell) continue;
+				content.setWindowTitle();
 			}
 		}
 	}
@@ -158,10 +156,15 @@ public class User extends Listener
 	{
 		for(Iterator wit = WindowFrame.getWindows(); wit.hasNext(); )
 		{
-			WindowFrame window = (WindowFrame)wit.next();
-			EditWindow win = window.getEditWindow();
-			Cell winCell = win.getCell();
-			if (winCell == cell) win.repaintContents();
+			WindowFrame wf = (WindowFrame)wit.next();
+			WindowContent content = wf.getContent();
+			if (!(content instanceof EditWindow)) continue;
+			Cell winCell = content.getCell();
+			if (winCell == cell)
+			{
+				EditWindow wnd = (EditWindow)content;
+				wnd.repaintContents();
+			}
 		}
 
 		if (recurseUp)

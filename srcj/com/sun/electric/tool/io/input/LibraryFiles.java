@@ -23,33 +23,16 @@
  */
 package com.sun.electric.tool.io.input;
 
-import com.sun.electric.database.geometry.EMath;
-import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.FlagSet;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.MoCMOS;
-import com.sun.electric.tool.io.input.Input;
 
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.awt.geom.AffineTransform;
-import java.io.IOException;
-import java.io.File;
-import java.nio.ByteBuffer;
 import java.util.Iterator;
-import java.util.Date;
 import java.util.HashMap;
 
 

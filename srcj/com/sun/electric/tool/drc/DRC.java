@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.drc;
 
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
@@ -38,9 +37,8 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.drc.Quick;
-import com.sun.electric.tool.drc.Schematic;
 import com.sun.electric.tool.user.ErrorLog;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.util.Iterator;
 import java.util.Date;
@@ -175,7 +173,7 @@ public class DRC extends Tool
 	 */
 	public static void checkHierarchically()
 	{
-		Cell curCell = Library.needCurCell();
+		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
         CheckHierarchically job = new CheckHierarchically(curCell, false);
 	}
@@ -185,7 +183,7 @@ public class DRC extends Tool
 	 */
 	public static void checkAreaHierarchically()
 	{
-		Cell curCell = Library.needCurCell();
+		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
         CheckHierarchically job = new CheckHierarchically(curCell, true);
 	}

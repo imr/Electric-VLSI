@@ -26,8 +26,6 @@ package com.sun.electric.tool.user.dialogs;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
@@ -36,18 +34,15 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
-import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -57,7 +52,6 @@ import java.awt.geom.Point2D;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
-import javax.swing.JComboBox;
 import javax.swing.JRadioButton;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -126,7 +120,7 @@ public class Change extends javax.swing.JDialog
 		});
 
 		// find out what is going to be changed
-		this.geomToChange = geomToChange;
+		Change.geomToChange = geomToChange;
 		if (geomToChange instanceof NodeInst)
 		{
 			librariesPopup.setEnabled(true);
@@ -330,10 +324,10 @@ public class Change extends javax.swing.JDialog
 		public void doIt()
 		{
 			// handle node replacement
-			if (dialog.geomToChange instanceof NodeInst)
+			if (Change.geomToChange instanceof NodeInst)
 			{
 				// get node to be replaced
-				NodeInst ni = (NodeInst)dialog.geomToChange;
+				NodeInst ni = (NodeInst)Change.geomToChange;
 
 				// disallow replacing if lock is on
 				if (CircuitChanges.cantEdit(ni.getParent(), ni, true)) return;
@@ -444,7 +438,7 @@ public class Change extends javax.swing.JDialog
 				} else if (dialog.changeInCell.isSelected())
 				{
 					// replace throughout this cell if "requested
-					Cell cell = Library.getCurrent().getCurCell();
+					Cell cell = WindowFrame.getCurrentCell();
 					boolean found = true;
 					while (found)
 					{
@@ -471,7 +465,7 @@ public class Change extends javax.swing.JDialog
 				} else if (dialog.changeConnected.isSelected())
 				{
 					// replace all connected to this in the cell if requested
-					Cell curCell = Library.getCurrent().getCurCell();
+					Cell curCell = WindowFrame.getCurrentCell();
 					Netlist netlist = curCell.getUserNetlist();
 					List others = new ArrayList();
 					for(Iterator it = curCell.getNodes(); it.hasNext(); )
@@ -518,7 +512,7 @@ public class Change extends javax.swing.JDialog
 			} else
 			{
 				// get arc to be replaced
-				ArcInst ai = (ArcInst)dialog.geomToChange;
+				ArcInst ai = (ArcInst)Change.geomToChange;
 
 				// disallow replacement if lock is on
 				if (CircuitChanges.cantEdit(ai.getParent(), null, true)) return;
@@ -639,7 +633,7 @@ public class Change extends javax.swing.JDialog
 				} else if (dialog.changeInCell.isSelected())
 				{
 					// replace throughout this cell if requested
-					Cell cell = Library.getCurrent().getCurCell();
+					Cell cell = WindowFrame.getCurrentCell();
 					boolean found = true;
 					while (found)
 					{
@@ -667,7 +661,7 @@ public class Change extends javax.swing.JDialog
 				{
 					// replace all connected to this if requested
 					List others = new ArrayList();
-					Cell cell = Library.getCurrent().getCurCell();
+					Cell cell = WindowFrame.getCurrentCell();
 					Netlist netlist = cell.getUserNetlist();
 					for(Iterator it = cell.getArcs(); it.hasNext(); )
 					{

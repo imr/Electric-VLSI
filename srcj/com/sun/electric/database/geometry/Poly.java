@@ -23,7 +23,6 @@
  */
 package com.sun.electric.database.geometry;
 
-import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortProto;

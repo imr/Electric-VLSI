@@ -25,13 +25,10 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.MenuCommands;
-import com.sun.electric.tool.user.ui.ToolBar;
-import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Point;
 import java.awt.event.MouseMotionListener;
@@ -42,7 +39,6 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
 
 class OutlineListener
@@ -136,7 +132,7 @@ class OutlineListener
 		EditWindow wnd = (EditWindow)evt.getSource();
 
 		Point2D delta = wnd.deltaScreenToDatabase(newX - oldx, newY - oldy);
-		wnd.gridAlign(delta);
+		EditWindow.gridAlign(delta);
 		Point pt = wnd.deltaDatabaseToScreen(delta.getX(), delta.getY());
 		newX = oldx + pt.x;   newY = oldy + pt.y;
 

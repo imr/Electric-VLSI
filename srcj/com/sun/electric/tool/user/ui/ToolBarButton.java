@@ -29,8 +29,6 @@
 
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.tool.user.ui.ToolBar;
-
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.util.HashMap;
@@ -40,17 +38,9 @@ import javax.accessibility.Accessible;
 import javax.accessibility.AccessibleContext;
 import javax.accessibility.AccessibleRole;
 import javax.swing.AbstractButton;
-import javax.swing.DefaultButtonModel;
 import javax.swing.JToggleButton;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.UIManager;
-import javax.accessibility.Accessible;
-import javax.accessibility.AccessibleContext;
-import javax.accessibility.AccessibleRole;
-import java.awt.Component;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 import javax.swing.plaf.ButtonUI;
 
 

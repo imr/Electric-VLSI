@@ -23,8 +23,6 @@
  */
 package com.sun.electric.database.topology;
 
-import com.sun.electric.database.variable.ElectricObject;
-
 import java.awt.geom.Point2D;
 
 /**

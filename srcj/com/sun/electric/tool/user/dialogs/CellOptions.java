@@ -23,29 +23,18 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Dimension;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.HashMap;
-import javax.swing.JComboBox;
 import javax.swing.JList;
 import javax.swing.DefaultListModel;
 import javax.swing.ListSelectionModel;

@@ -24,12 +24,7 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.geometry.EMath;
-import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
@@ -41,14 +36,6 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import java.awt.geom.Point2D;
 import java.util.Iterator;
 import javax.swing.JFrame;
-import javax.swing.JComboBox;
-import javax.swing.JList;
-import javax.swing.ListSelectionModel;
-import javax.swing.DefaultListModel;
-import javax.swing.JScrollPane;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.text.Document;
 
 
 /**

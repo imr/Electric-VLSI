@@ -23,14 +23,11 @@
  */
 package com.sun.electric.database.hierarchy;
 
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.tool.user.ui.ExplorerTree;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.io.File;
 import java.util.List;
 import java.util.Comparator;
 import java.util.Collections;
@@ -182,7 +179,7 @@ public class Library extends ElectricObject
 			return;
 		}
 		cells.add(c);
-		ExplorerTree.explorerTreeChanged();
+		WindowFrame.redoLibraryTree();
 	}
 
 	void removeCell(Cell c)
@@ -194,7 +191,7 @@ public class Library extends ElectricObject
 			return;
 		}
 		cells.remove(c);
-		ExplorerTree.explorerTreeChanged();
+		WindowFrame.redoLibraryTree();
 	}
 
 	// ----------------- public interface --------------------
@@ -526,22 +523,6 @@ public class Library extends ElectricObject
 	 * Returns NULL if there is no current Cell.
 	 */
 	public Cell getCurCell() { return curCell; }
-
-	/**
-	 * Method to insist on a current Cell.
-	 * Prints an error message if there is no current Cell.
-	 * @return the current Cell in the current Library.
-	 * Returns NULL if there is no current Cell.
-	 */
-	public static Cell needCurCell()
-	{
-		Cell curCell = curLib.getCurCell();
-		if (curCell == null)
-		{
-			System.out.println("There is no current cell for this operation");
-		}
-		return curCell;
-	}
 
 	/**
 	 * Method to set the current Cell in this Library.

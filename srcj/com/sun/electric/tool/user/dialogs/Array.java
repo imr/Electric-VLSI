@@ -23,33 +23,22 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.Quick;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Clipboard;
-import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -62,8 +51,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Comparator;
 import java.util.Collections;
-import javax.swing.JComboBox;
-import javax.swing.JList;
 import javax.swing.JOptionPane;
 
 
@@ -398,12 +385,12 @@ public class Array extends javax.swing.JDialog
 			Collections.sort(arcList, new GeometricsByName());
 
 			// determine the distance between arrayed entries
-			double xOverlap = dialog.lastXDistance;
-			double yOverlap = dialog.lastYDistance;
-			if (dialog.lastSpacingType == SPACING_EDGE)
+			double xOverlap = Array.lastXDistance;
+			double yOverlap = Array.lastYDistance;
+			if (Array.lastSpacingType == SPACING_EDGE)
 			{
-				xOverlap = dialog.bounds.getWidth() - dialog.lastXDistance;
-				yOverlap = dialog.bounds.getHeight() - dialog.lastYDistance;
+				xOverlap = dialog.bounds.getWidth() - Array.lastXDistance;
+				yOverlap = dialog.bounds.getHeight() - Array.lastYDistance;
 			}
 			double cX = dialog.bounds.getCenterX();
 			double cY = dialog.bounds.getCenterY();
@@ -446,22 +433,22 @@ public class Array extends javax.swing.JDialog
 					if (!(geom instanceof NodeInst)) continue;
 					NodeInst ni = (NodeInst)geom;
 					double xPos = cX + xOverlap * xIndex;
-					if (dialog.lastLinearDiagonal && dialog.lastXRepeat == 1) xPos = cX + xOverlap * yIndex;
+					if (Array.lastLinearDiagonal && Array.lastXRepeat == 1) xPos = cX + xOverlap * yIndex;
 					double yPos = cY + yOverlap * yIndex;
-					if (dialog.lastLinearDiagonal && dialog.lastYRepeat == 1) yPos = cY + yOverlap * xIndex;
+					if (Array.lastLinearDiagonal && Array.lastYRepeat == 1) yPos = cY + yOverlap * xIndex;
 					double xOff = ni.getGrabCenterX() - cX;
 					double yOff = ni.getGrabCenterY() - cY;
-					if ((xIndex&1) != 0 && dialog.lastXStagger) yPos += yOverlap/2;
-					if ((yIndex&1) != 0 && dialog.lastYStagger) xPos += xOverlap/2;
+					if ((xIndex&1) != 0 && Array.lastXStagger) yPos += yOverlap/2;
+					if ((yIndex&1) != 0 && Array.lastYStagger) xPos += xOverlap/2;
 					int ro = ni.getAngle();
 					double sx = ni.getXSizeWithMirror();
 					double sy = ni.getYSizeWithMirror();
-					if ((xIndex&1) != 0 && dialog.lastXFlip)
+					if ((xIndex&1) != 0 && Array.lastXFlip)
 					{
 						sx = -sx;
 						xOff = -xOff;
 					}
-					if ((yIndex&1) != 0 && dialog.lastYFlip)
+					if ((yIndex&1) != 0 && Array.lastYFlip)
 					{
 						sy = -sy;
 						yOff = -yOff;
@@ -592,7 +579,7 @@ public class Array extends javax.swing.JDialog
 					objName = geomName.toString();
 			}
 			String totalName = objName + x + "-" + y;
-			if (dialog.lastXRepeat <= 1 || dialog.lastYRepeat <= 1)
+			if (Array.lastXRepeat <= 1 || Array.lastYRepeat <= 1)
 				totalName = objName + (x+y);
 			geom.setName(totalName);
 

@@ -387,7 +387,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 
     public static void clickZoomWireCommand()
     {
-        EditWindow.setListener(ClickZoomWireListener.theOne);
+        WindowFrame.setListener(ClickZoomWireListener.theOne);
         TopLevel.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         curMode = CursorMode.CLICKZOOMWIRE;
     }
@@ -397,7 +397,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 	 */
 	public static void selectCommand()
 	{
-		EditWindow.setListener(ClickAndDragListener.theOne);
+		WindowFrame.setListener(ClickAndDragListener.theOne);
 		TopLevel.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		curMode = CursorMode.SELECT;
 	}
@@ -407,7 +407,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 	 */
 	public static void wiringCommand()
 	{
-		EditWindow.setListener(WiringListener.theOne);
+		WindowFrame.setListener(WiringListener.theOne);
 		//makeCursors();
 		TopLevel.setCurrentCursor(wiringCursor);
 		curMode = CursorMode.WIRE;
@@ -433,7 +433,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 	 */
 	public static void panCommand()
 	{
-		EditWindow.setListener(ZoomAndPanListener.theOne);
+		WindowFrame.setListener(ZoomAndPanListener.theOne);
 		//makeCursors();
 		TopLevel.setCurrentCursor(panCursor);
 		curMode = CursorMode.PAN;
@@ -444,7 +444,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 	 */
 	public static void zoomCommand()
 	{
-		EditWindow.setListener(ZoomAndPanListener.theOne);
+		WindowFrame.setListener(ZoomAndPanListener.theOne);
 		TopLevel.setCurrentCursor(zoomCursor);
 		curMode = CursorMode.ZOOM;
 	}
@@ -471,9 +471,9 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 			return;
 		}
 
-		if (EditWindow.getListener() != OutlineListener.theOne)
+		if (WindowFrame.getListener() != OutlineListener.theOne)
 			OutlineListener.theOne.setNode(ni);
-		EditWindow.setListener(OutlineListener.theOne);
+		WindowFrame.setListener(OutlineListener.theOne);
 		TopLevel.setCurrentCursor(outlineCursor);
 		curMode = CursorMode.OUTLINE;
 	}
@@ -627,10 +627,10 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
                 }
             }
             if (useFrame == null) return;
-            EditWindow wnd = useFrame.getEditWindow();
-            if (wnd == null) return;
-            goBackButton.setEnabled(wnd.cellHistoryCanGoBack());
-            goForwardButton.setEnabled(wnd.cellHistoryCanGoForward());
+			WindowContent content = useFrame.getContent();
+            if (content == null) return;
+            goBackButton.setEnabled(content.cellHistoryCanGoBack());
+            goForwardButton.setEnabled(content.cellHistoryCanGoForward());
         }
     }
 

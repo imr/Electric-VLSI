@@ -31,20 +31,13 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.MenuCommands;
-import com.sun.electric.tool.user.ui.ToolBar;
-import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Cursor;
-import java.awt.Point;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseWheelListener;
@@ -53,7 +46,6 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
 import java.util.EventListener;
 import java.util.List;
@@ -83,7 +75,7 @@ public class SizeListener
 			EventListener newListener = null;
 
 			// remember the listener that was there before
-			EventListener oldListener = EditWindow.getListener();
+			EventListener oldListener = WindowFrame.getListener();
 			Cursor oldCursor = TopLevel.getCurrentCursor();
 
 			System.out.println("Click to stretch " + geom.describe());
@@ -91,7 +83,7 @@ public class SizeListener
 			if (newListener == null || !(newListener instanceof SizeListener))
 			{
 				newListener = new SizeListener();
-				EditWindow.setListener(newListener);
+				WindowFrame.setListener(newListener);
 			}
 			((SizeListener)newListener).stretchGeom = geom;
 			((SizeListener)newListener).oldListener = oldListener;
@@ -120,7 +112,7 @@ public class SizeListener
 	public void mouseReleased(MouseEvent evt)
 	{
 		// restore the listener to the former state
-		EditWindow.setListener(oldListener);
+		WindowFrame.setListener(oldListener);
 		TopLevel.setCurrentCursor(oldCursor);
 		showHighlight(null);
 
@@ -142,7 +134,7 @@ public class SizeListener
 		if (chr == KeyEvent.VK_A)
 		{
 			// restore the listener to the former state
-			EditWindow.setListener(oldListener);
+			WindowFrame.setListener(oldListener);
 			TopLevel.setCurrentCursor(oldCursor);
 			showHighlight(null);
 			System.out.println("Aborted");

@@ -23,16 +23,9 @@
  */
 package com.sun.electric.tool.io.input;
 
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.io.input.HSpiceOut;
-import com.sun.electric.tool.io.input.PSpiceOut;
-import com.sun.electric.tool.io.input.RawSpiceOut;
-import com.sun.electric.tool.io.input.SpiceOut;
-import com.sun.electric.tool.io.input.SmartSpiceOut;
-import com.sun.electric.tool.io.input.VerilogOut;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -40,12 +33,8 @@ import com.sun.electric.tool.user.ui.WaveformWindow;
 
 import java.awt.Color;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.File;
 import java.net.URL;
 import java.util.Iterator;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -209,8 +198,8 @@ public class Simulate extends Input
 
 	private static void showSimulationData(SimData sd)
 	{
-		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-		if (wf == null) return;
+//		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+//		if (wf == null) return;
 
 		// determine extent of the data
 		double lowTime=0, highTime=0, lowValue=0, highValue=0;
@@ -244,7 +233,8 @@ public class Simulate extends Input
 		double timeRange = highTime - lowTime;
 
 		// make the waveform window
-		WaveformWindow ww = new WaveformWindow(sd, wf);
+		WindowFrame wf = WindowFrame.createWaveformWindow(sd);
+		WaveformWindow ww = (WaveformWindow)wf.getContent();
 		ww.setMainTimeCursor(timeRange*0.2 + lowTime);
 		ww.setExtensionTimeCursor(timeRange*0.8 + lowTime);
 		ww.setDefaultTimeRange(lowTime, highTime);

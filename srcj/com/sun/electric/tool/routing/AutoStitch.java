@@ -43,12 +43,11 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.WiringListener;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
@@ -79,7 +78,7 @@ public class AutoStitch
 				nodesToStitch.add(it.next());
 		} else
 		{
-			Cell cell = Library.needCurCell();
+			Cell cell = WindowFrame.needCurCell();
 			if (cell == null) return;
 			for(Iterator it = cell.getNodes(); it.hasNext(); )
 			{

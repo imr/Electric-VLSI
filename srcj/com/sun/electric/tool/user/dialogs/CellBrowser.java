@@ -406,7 +406,7 @@ public class CellBrowser extends javax.swing.JDialog {
         if (cell == null) return;
 
         if (action == DoAction.newInstance) {
-            EventListener oldListener = EditWindow.getListener();
+            EventListener oldListener = WindowFrame.getListener();
             Cursor oldCursor = TopLevel.getCurrentCursor();
 
             // install listener that will place new node inst
@@ -417,16 +417,19 @@ public class CellBrowser extends javax.swing.JDialog {
             } else
             {
                 newListener = new PaletteFrame.PlaceNodeListener(null, cell, oldListener, oldCursor);
-                EditWindow.setListener(newListener);
+                WindowFrame.setListener(newListener);
             }
 
         } else if (action == DoAction.editCell) {
             boolean newWindow = editInNewWindow.isSelected();
 
-            if (newWindow) {
+			EditWindow wnd = EditWindow.getCurrent();
+			if (!newWindow && wnd == null) newWindow = true;
+			if (newWindow)
+			{
                 WindowFrame.createEditWindow(cell);
-            } else {
-                EditWindow wnd = EditWindow.getCurrent();
+			} else
+			{
                 wnd.setCell(cell, VarContext.globalContext);
             }
 

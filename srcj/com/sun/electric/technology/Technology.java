@@ -38,9 +38,6 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitiveArc;
-import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.technologies.Artwork;
@@ -49,13 +46,10 @@ import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.MoCMOSOld;
 import com.sun.electric.technology.technologies.MoCMOSSub;
 import com.sun.electric.technology.technologies.nMOS;
-import com.sun.electric.tool.drc.DRC;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Dimension;
 import java.awt.Color;
-import java.awt.geom.Dimension2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
@@ -1990,7 +1984,7 @@ public class Technology extends ElectricObject
 	public void setFactoryParasitics(double minResistance, double minCapacitance)
 	{
 		prefMinResistance = getParasiticPref("Resistance", prefMinResistance, this.minResistance = minResistance);
-		prefMinCapacitance = getParasiticPref("Capacitance", prefMinCapacitance, this.minCapacitance = this.minCapacitance);
+		prefMinCapacitance = getParasiticPref("Capacitance", prefMinCapacitance, this.minCapacitance = minCapacitance);
 	}
 
 	/**

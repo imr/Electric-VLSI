@@ -39,9 +39,7 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.NodeProto;
 
-import java.awt.Point;
 import java.awt.Color;
-import java.awt.geom.Point2D;
 
 /**
  * This is the n-channel MOS (from Mead & Conway) Technology.

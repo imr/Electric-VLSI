@@ -28,20 +28,15 @@ import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.ExplorerTree;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.WindowContent;
 
 import java.awt.geom.Point2D;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.Comparator;
 import java.util.Collections;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -278,9 +273,9 @@ public class ErrorLog
 		{
 			System.out.println("Type > and < to step through errors, or open the ERRORS view in the explorer");
 		}
-		rebuildExplorerTree();
-		ExplorerTree.explorerTreeChanged();
-		EditWindow.repaintAll();
+		WindowFrame.redoErrorTree();
+//		ExplorerTree.explorerTreeChanged();
+//		EditWindow.repaintAll();
 	}
 
 	/**
@@ -398,23 +393,21 @@ public class ErrorLog
 		return null;
 	}
 
-	/** error tree */            private static DefaultMutableTreeNode explorerTree = new DefaultMutableTreeNode("ERRORS");
+	/**
+	 * A static object is used so that its open/closed tree state can be maintained.
+	 */
+	private static String errorNode = "ERRORS";
 
 	public static DefaultMutableTreeNode getExplorerTree()
 	{
-		rebuildExplorerTree();
-		return explorerTree;
-	}
-	
-	private static void rebuildExplorerTree()
-	{
-		explorerTree.removeAllChildren();
+		DefaultMutableTreeNode explorerTree = new DefaultMutableTreeNode(errorNode);
 		for (Iterator it = allErrors.iterator(); it.hasNext();)
 		{
 			ErrorLog el = (ErrorLog)it.next();
 			DefaultMutableTreeNode node = new DefaultMutableTreeNode(el);
 			explorerTree.add(node);
 		}
+		return explorerTree;
 	}
 
 	/**
@@ -517,8 +510,8 @@ public class ErrorLog
 				for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 				{
 					WindowFrame wf = (WindowFrame)it.next();
-					EditWindow wnd = wf.getEditWindow();
-					if (wnd.getCell() == cell)
+					WindowContent content = wf.getContent();
+					if (content.getCell() == cell)
 					{
 						// already displayed.  should force window "wf" to front?
 						found = true;

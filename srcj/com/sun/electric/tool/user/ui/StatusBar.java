@@ -234,8 +234,8 @@ public class StatusBar extends JPanel
 			if (wnd != null) cell = wnd.getCell();
 		} else
 		{
-			EditWindow wnd = frame.getEditWindow();
-			if (wnd != null) cell = wnd.getCell();
+			Cell cellInPanel = frame.getContent().getCell();
+			if (cellInPanel != null) cell = cellInPanel;
 		}
 		String sizeMsg = "";
 		if (cell != null)

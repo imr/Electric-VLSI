@@ -23,8 +23,6 @@
  */
 package com.sun.electric.database.text;
 
-import java.lang.Character;
-
 /**
  * A Version is a text-parsing object for Electric's version number.
  * Electric's current version has the form:<BR>
@@ -51,7 +49,7 @@ public class Version
 	/**
 	 * This is the current version of Electric
 	 */
-	public static final String CURRENT = "8.00a";
+	public static final String CURRENT = "8.00b";
 
 	/**
 	 * Constructs a <CODE>Version</CODE> (cannot be called).

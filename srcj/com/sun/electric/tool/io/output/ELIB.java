@@ -24,7 +24,6 @@
 package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;

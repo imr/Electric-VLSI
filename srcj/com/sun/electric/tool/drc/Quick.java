@@ -23,12 +23,10 @@
  */
 package com.sun.electric.tool.drc;
 
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.network.Netlist;
@@ -39,7 +37,6 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
@@ -47,7 +44,6 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLog;
 import com.sun.electric.tool.user.Highlight;
@@ -257,7 +253,7 @@ public class Quick
 		CheckProto cp = checkEnumerateProtos(cell, netlist);
 
 		// see if any parameters are used below this cell
-		if (cp.treeParameterized)
+		if (cp.treeParameterized && numberOfThreads > 1)
 		{
 			// parameters found: cannot use multiple processors
 			System.out.println("Parameterized layout being used: multiprocessor decomposition disabled");
@@ -589,7 +585,7 @@ public class Quick
 		{
 			if (ni.getXSize() < sizeRule.sizeX || ni.getYSize() < sizeRule.sizeY)
 			{
-				SizeOffset so = tech.getSizeOffset(ni);
+				SizeOffset so = Technology.getSizeOffset(ni);
 				double minSize = 0, actual = 0;
 				if (sizeRule.sizeX - ni.getXSize() > sizeRule.sizeY - ni.getYSize())
 				{
@@ -2750,6 +2746,7 @@ public class Quick
 //		PortInst pi = ni.findPortInstFromProto(pp);
 		JNetwork net = netlist.getNetwork(ni, pp, 0);
 		Integer [] nets = (Integer [])networkLists.get(net);
+		if (nets == null) return -1;
 		return nets[globalIndex].intValue();
 	}
 

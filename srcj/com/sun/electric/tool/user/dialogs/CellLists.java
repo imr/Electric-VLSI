@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
@@ -32,18 +31,10 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.FlagSet;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.technology.technologies.Artwork;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.Rectangle2D;
 import java.io.FileOutputStream;
@@ -60,8 +51,6 @@ import java.util.HashMap;
 import java.util.Date;
 import java.util.Comparator;
 import java.util.Collections;
-import javax.swing.JComboBox;
-import javax.swing.JList;
 import javax.swing.JFrame;
 
 
@@ -107,7 +96,7 @@ public class CellLists extends javax.swing.JDialog
 			views.addItem(v.getFullName());
 		}
 
-		curCell = Library.getCurrent().getCurCell();
+		curCell = WindowFrame.getCurrentCell();
 		onlyCellsUnderCurrent.setEnabled(curCell != null);
 
 		switch (whichSwitch)
@@ -355,7 +344,7 @@ public class CellLists extends javax.swing.JDialog
 	 */
 	public static void listNodesInCellCommand()
 	{
-		Cell curCell = Library.needCurCell();
+		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
 
 		HashMap nodeCount = new HashMap();
@@ -451,7 +440,7 @@ public class CellLists extends javax.swing.JDialog
 	 */
 	public static void listCellInstancesCommand()
 	{
-		Cell curCell = Library.needCurCell();
+		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
 
 		HashMap nodeCount = new HashMap();
@@ -509,7 +498,7 @@ public class CellLists extends javax.swing.JDialog
 	 */
 	public static void listCellUsageCommand()
 	{
-		Cell curCell = Library.needCurCell();
+		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
 
 		HashMap nodeCount = new HashMap();
@@ -561,7 +550,7 @@ public class CellLists extends javax.swing.JDialog
 	 */
 	public static void describeThisCellCommand()
 	{
-		Cell curCell = Library.needCurCell();
+		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
 		int maxLen = curCell.describe().length();
 		printHeaderLine(maxLen);

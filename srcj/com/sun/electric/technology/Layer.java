@@ -26,7 +26,6 @@ package com.sun.electric.technology;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.text.Pref;
 
-import java.util.Iterator;
 import java.util.HashMap;
 
 /**
@@ -387,6 +386,7 @@ public class Layer
 		Pref pref = (Pref)map.get(this);
 		if (pref == null)
 		{
+			if (factory == null) factory = "";
 			pref = Pref.makeStringPref(what + "LayerFor" + name + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factory);
 			pref.attachToObject(tech, "IO Options, " + what + " tab", what + " for layer " + name + " in technology " + tech.getTechName());
 			map.put(this, pref);

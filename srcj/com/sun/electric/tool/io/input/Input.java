@@ -24,43 +24,29 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.geometry.EMath;
-import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.io.IOTool;
-import com.sun.electric.tool.io.input.LibraryFiles;
-import com.sun.electric.tool.io.input.ReadableDump;
 import com.sun.electric.tool.user.dialogs.Progress;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.MenuCommands;
 
 import java.awt.geom.Point2D;
-import java.io.File;
 import java.io.InputStream;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.FileNotFoundException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 
 /**
  * This class manages reading files in different formats.
@@ -323,6 +309,7 @@ public class Input extends IOTool
 
 	protected void closeInput()
 	{
+		if (inputStream == null) return;
 		try
 		{
 			inputStream.close();

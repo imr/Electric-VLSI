@@ -24,8 +24,6 @@
 package com.sun.electric.database.topology;
 
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.user.ui.EditWindow;

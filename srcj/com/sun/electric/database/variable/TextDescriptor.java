@@ -24,17 +24,13 @@
 package com.sun.electric.database.variable;
 
 import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.tool.user.ui.EditWindow;
 
-import java.awt.Point;
-import java.awt.geom.Point2D;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 
 /**
  * This class describes how variable text appears.

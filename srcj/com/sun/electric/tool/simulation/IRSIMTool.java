@@ -42,13 +42,7 @@ import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.user.ui.EditWindow;
-//import com.sun.electric.technology.technologies.;
 
-import java.util.ArrayList;
-import java.io.File;
-import java.io.PrintWriter;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.awt.Dimension;
 
 /**

@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.simulation;
 
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.ElectricObject;

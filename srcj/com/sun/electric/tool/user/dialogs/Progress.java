@@ -32,7 +32,6 @@ import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JTextArea;
-import javax.swing.JDesktopPane;
 
 /**
  * This class displays a progress dialog.

@@ -116,7 +116,7 @@ public class Undo
 		
 		public ElectricObject getObject() { return obj; }
 		public Type getType() { return type; }
-		private void setType(Type change) { this.type = type; }
+		private void setType(Type type) { this.type = type; }
 		public double getA1() { return a1; }
 		public double getA2() { return a2; }
 		public double getA3() { return a3; }
@@ -1056,9 +1056,9 @@ public class Undo
 		if (!recordChange()) return;
 		Type type = Type.OBJECTNEW;
 		if (obj instanceof Cell) type = Type.CELLNEW;
-		else if (obj instanceof NodeInst) type = type.NODEINSTNEW;
-		else if (obj instanceof ArcInst) type = type.ARCINSTNEW;
-		else if (obj instanceof Export) type = type.EXPORTNEW;
+		else if (obj instanceof NodeInst) type = Type.NODEINSTNEW;
+		else if (obj instanceof ArcInst) type = Type.ARCINSTNEW;
+		else if (obj instanceof Export) type = Type.EXPORTNEW;
 		Change ch = newChange(obj, type, null);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);

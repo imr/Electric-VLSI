@@ -23,8 +23,6 @@
  */
 package com.sun.electric.database.constraint;
 
-import com.sun.electric.database.constraint.Constraints;
-import com.sun.electric.database.change.Changes;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Poly;
@@ -41,7 +39,6 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.FlagSet;
-import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;

@@ -23,10 +23,8 @@
  */
 package com.sun.electric.database.geometry;
 
-import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.technology.Layer;
 
-import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Point2D;

@@ -25,7 +25,6 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.NodeProto;
@@ -47,7 +46,6 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.dialogs.Attributes;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Dimension;
@@ -55,17 +53,10 @@ import java.awt.geom.Point2D;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
-import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.ListSelectionModel;
 import javax.swing.DefaultListModel;
-import javax.swing.JScrollPane;
-import javax.swing.ListSelectionModel;
-import javax.swing.DefaultListModel;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.text.Document;
 
 
 /**
@@ -1488,7 +1479,7 @@ public class GetInfoNode extends javax.swing.JDialog
 		int currentIndex = theDialog.list.getSelectedIndex();
 		ArcInst ai = (ArcInst)theDialog.portObjects.get(currentIndex);
 		if (ai == null) return;
-		NodeInst ni = theDialog.shownNode;
+		NodeInst ni = GetInfoNode.shownNode;
 		Highlight.clear();
 		Highlight.addElectricObject(ni, ni.getParent());
 		Highlight.addElectricObject(ai, ai.getParent());

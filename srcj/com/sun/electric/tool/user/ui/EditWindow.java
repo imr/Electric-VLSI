@@ -32,12 +32,11 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.KeyBindingManager;
+import com.sun.electric.tool.user.ErrorLog;
 
 import java.awt.Dimension;
 import java.awt.Image;
@@ -48,6 +47,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Color;
 import java.awt.Rectangle;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseWheelListener;
@@ -57,6 +58,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.AdjustmentListener;
+import java.awt.event.AdjustmentEvent;
 import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
 import java.awt.geom.Point2D;
@@ -64,30 +67,35 @@ import java.awt.geom.Rectangle2D;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.EventListener;
+//import java.util.EventListener;
 import java.util.Set;
 import java.util.TreeSet;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
-import javax.swing.JTextArea;
 import javax.swing.JPopupMenu;
 import javax.swing.JMenuItem;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 /*
  * This class defines an editing window for displaying circuitry.
  */
 
-public class EditWindow extends JPanel
-	implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, ActionListener
+public class EditWindow
+	implements WindowContent
 {
-    /** the window scale */									private double scale;
-    /** the window offset */								private double offx = 0, offy = 0;
-    /** the window bounds in database units */				private Rectangle2D databaseBounds;
-    /** the size of the window (in pixels) */				private Dimension sz;
-    /** the cell that is in the window */					private Cell cell;
-    /** Cell's VarContext */                                private VarContext cellVarContext;
-    /** the window frame containing this editwindow */      private WindowFrame wf;
+	CircuitPart dispArea;
+	/** the window scale */									private double scale;
+	/** the window offset */								private double offx = 0, offy = 0;
+	/** the window bounds in database units */				private Rectangle2D databaseBounds;
+	/** the size of the window (in pixels) */				private Dimension sz;
+	/** the cell that is in the window */					private Cell cell;
+	/** Cell's VarContext */                                private VarContext cellVarContext;
+	/** the window frame containing this editwindow */      private WindowFrame wf;
 	/** the offscreen data for rendering */					private PixelDrawing offscreen = null;
+	/** the overall panel with disp area and sliders */		private JPanel overall;
+
+	/** the bottom scrollbar on the edit window. */			private JScrollBar bottomScrollBar;
+	/** the right scrollbar on the edit window. */			private JScrollBar rightScrollBar;
 
 	/** true if showing grid in this window */				private boolean showGrid = false;
 	/** X spacing of grid dots in this window */			private double gridXSpacing;
@@ -97,47 +105,266 @@ public class EditWindow extends JPanel
 	/** starting screen point for drags in this window */	private Point startDrag = new Point();
 	/** ending screen point for drags in this window */		private Point endDrag = new Point();
 
-    /** true if drawing popup cloud */                      private boolean showPopupCloud = false;
-    /** Strings to write to popup cloud */                  private List popupCloudText;
-    /** lower left corner of popup cloud */                 private Point2D popupCloudPoint;
-
-	/** current mouse listener */							private static MouseListener curMouseListener = ClickZoomWireListener.theOne;
-    /** current mouse motion listener */					private static MouseMotionListener curMouseMotionListener = ClickZoomWireListener.theOne;
-    /** current mouse wheel listener */						private static MouseWheelListener curMouseWheelListener = ClickZoomWireListener.theOne;
-    /** current key listener */								private static KeyListener curKeyListener = ClickZoomWireListener.theOne;
+	/** true if drawing popup cloud */                      private boolean showPopupCloud = false;
+	/** Strings to write to popup cloud */                  private List popupCloudText;
+	/** lower left corner of popup cloud */                 private Point2D popupCloudPoint;
 
 	/** list of windows to redraw (gets synchronized) */	private static List redrawThese = new ArrayList();
 	/** true if rendering a window now (synchronized) */	private static boolean runningNow = false;
 
     /** for drawing selection boxes */	private static final BasicStroke selectionLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {2}, 3);
 
-    // ************************************* CONTROL *************************************
+
+	public class CircuitPart extends JPanel
+		implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, ActionListener
+	{
+		EditWindow wnd;
+
+		CircuitPart(EditWindow wnd) { this.wnd = wnd; }
+
+		/**
+		 * Method to repaint this EditWindow.
+		 * Composites the image (taken from the PixelDrawing object)
+		 * with the grid, highlight, and any dragging rectangle.
+		 */
+		public void paint(Graphics g)
+		{
+			// to enable keys to be received
+			if (cell != null && cell == WindowFrame.getCurrentCell())
+				requestFocus();
+//
+//			// redo the explorer tree if it changed
+//			ExplorerTree.rebuildExplorerTree();
+
+			if (offscreen == null || !getSize().equals(sz))
+			{
+				setScreenSize(getSize());
+				repaintContents();
+				return;
+			}
+
+			// show the image
+			Image img = offscreen.getImage();
+			synchronized(img) { g.drawImage(img, 0, 0, this); };
+
+			synchronized(redrawThese)
+			{
+				if (redrawThese.size() > 0)
+				{
+					EditWindow nextWnd = (EditWindow)redrawThese.get(0);
+					redrawThese.remove(0);
+					RenderJob nextJob = new RenderJob(nextWnd, nextWnd.getOffscreen());
+					return;
+				}
+				runningNow = false;
+			}
+
+			// overlay other things if there is a valid cell
+			if (cell != null)
+			{
+				// add in grid if requested
+				if (showGrid) drawGrid(g);
+
+				// add in highlighting
+				for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+				{
+					Highlight h = (Highlight)it.next();
+					Cell highCell = h.getCell();
+					if (highCell != cell) continue;
+					h.showHighlight(wnd, g);
+				}
+
+				// add in drag area
+				if (doingAreaDrag) showDragBox(g);
+				// add in popup cloud
+				if (showPopupCloud) drawPopupCloud((Graphics2D)g);
+			}
+		}
+
+		// ************************************* EVENT LISTENERS *************************************
+
+		/** 
+		 * Respond to an action performed, in this case change the current cell
+		 * when the user clicks on an entry in the upHierarchy popup menu.
+		 */
+		public void actionPerformed(ActionEvent e)
+		{
+			JMenuItem source = (JMenuItem)e.getSource();
+			// extract library and cell from string
+			Cell cell = (Cell)NodeProto.findNodeProto(source.getText());
+			if (cell == null) return;
+			setCell(cell, VarContext.globalContext);
+		}
+
+		// the MouseListener events
+		public void mousePressed(MouseEvent evt)
+		{
+			CircuitPart dispPart = (CircuitPart)evt.getSource();
+			EditWindow wnd = dispPart.wnd;
+			WindowFrame.setCurrentWindowFrame(wnd.wf);
+
+			WindowFrame.curMouseListener.mousePressed(evt);
+		}
+		public void mouseReleased(MouseEvent evt) { WindowFrame.curMouseListener.mouseReleased(evt); }
+		public void mouseClicked(MouseEvent evt) { WindowFrame.curMouseListener.mouseClicked(evt); }
+		public void mouseEntered(MouseEvent evt)
+		{
+			showCoordinates(evt);
+			WindowFrame.curMouseListener.mouseEntered(evt);
+		}
+		public void mouseExited(MouseEvent evt) { WindowFrame.curMouseListener.mouseExited(evt); }
+
+		// the MouseMotionListener events
+		public void mouseMoved(MouseEvent evt)
+		{
+			showCoordinates(evt);
+			WindowFrame.curMouseMotionListener.mouseMoved(evt);
+		}
+		public void mouseDragged(MouseEvent evt)
+		{
+			showCoordinates(evt);
+			WindowFrame.curMouseMotionListener.mouseDragged(evt);
+		}
+
+		private void showCoordinates(MouseEvent evt)
+		{
+			CircuitPart dispPart = (CircuitPart)evt.getSource();
+			EditWindow wnd = dispPart.wnd;
+			if (wnd.getCell() == null) StatusBar.setCoordinates(null, wnd.wf); else
+			{
+				Point2D pt = wnd.screenToDatabase(evt.getX(), evt.getY());
+				EditWindow.gridAlign(pt);
+				StatusBar.setCoordinates("(" + pt.getX() + "," + pt.getY() + ")", wnd.wf);
+			}
+		}
+
+		// the MouseWheelListener events
+		public void mouseWheelMoved(MouseWheelEvent evt) { WindowFrame.curMouseWheelListener.mouseWheelMoved(evt); }
+
+		// the KeyListener events
+		public void keyPressed(KeyEvent evt) { WindowFrame.curKeyListener.keyPressed(evt); }
+		public void keyReleased(KeyEvent evt) { WindowFrame.curKeyListener.keyReleased(evt); }
+		public void keyTyped(KeyEvent evt) { WindowFrame.curKeyListener.keyTyped(evt); }
+	}
+
+
+   	private static final int SCROLLBARRESOLUTION = 200;
+
+	/**
+	 * Method to return the scroll bar resolution.
+	 * This is the extent of the JScrollBar.
+	 * @return the scroll bar resolution.
+	 */
+	public static int getScrollBarResolution() { return SCROLLBARRESOLUTION; }
 
     // constructor
     private EditWindow(Cell cell, WindowFrame wf)
 	{
+		dispArea = new CircuitPart(this);
         this.cell = cell;
         this.wf = wf;
 		this.gridXSpacing = User.getDefGridXSpacing();
 		this.gridYSpacing = User.getDefGridYSpacing();
 
 		sz = new Dimension(500, 500);
-		setSize(sz.width, sz.height);
-		setPreferredSize(sz);
+		dispArea.setSize(sz.width, sz.height);
+		dispArea.setPreferredSize(sz);
 		databaseBounds = new Rectangle2D.Double();
 
         cellHistory = new ArrayList();
         cellHistoryLocation = -1;
 
+		// the total panel in the waveform window
+		overall = new JPanel();
+		overall.setLayout(new GridBagLayout());
+
+		// the horizontal scroll bar
+		int thumbSize = SCROLLBARRESOLUTION / 20;
+		bottomScrollBar = new JScrollBar(JScrollBar.HORIZONTAL, SCROLLBARRESOLUTION/2, thumbSize, 0, SCROLLBARRESOLUTION+thumbSize);
+		bottomScrollBar.setBlockIncrement(SCROLLBARRESOLUTION / 4);
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.gridx = 0;   gbc.gridy = 1;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		overall.add(bottomScrollBar, gbc);
+		bottomScrollBar.addAdjustmentListener(new ScrollAdjustmentListener(this));
+		bottomScrollBar.setValue(bottomScrollBar.getMaximum()/2);
+
+		// the vertical scroll bar in the edit window
+		rightScrollBar = new JScrollBar(JScrollBar.VERTICAL, SCROLLBARRESOLUTION/2, thumbSize, 0, SCROLLBARRESOLUTION+thumbSize);
+		rightScrollBar.setBlockIncrement(SCROLLBARRESOLUTION / 4);
+		gbc = new GridBagConstraints();
+		gbc.gridx = 1;   gbc.gridy = 0;
+		gbc.fill = GridBagConstraints.VERTICAL;
+		overall.add(rightScrollBar, gbc);
+		rightScrollBar.addAdjustmentListener(new ScrollAdjustmentListener(this));
+		rightScrollBar.setValue(rightScrollBar.getMaximum()/2);
+
+		// put this object's display up
+		gbc = new GridBagConstraints();
+		gbc.gridx = 0;   gbc.gridy = 0;
+		gbc.fill = GridBagConstraints.BOTH;
+		gbc.weightx = gbc.weighty = 1;
+		overall.add(dispArea, gbc);
+
 		//setAutoscrolls(true);
         // add listeners --> BE SURE to remove listeners in finished()
-		addKeyListener(this);
-		addMouseListener(this);
-		addMouseMotionListener(this);
-		addMouseWheelListener(this);
+		dispArea.addKeyListener(dispArea);
+		dispArea.addMouseListener(dispArea);
+		dispArea.addMouseMotionListener(dispArea);
+		dispArea.addMouseWheelListener(dispArea);
 		if (wf != null) setCell(cell, VarContext.globalContext);
-
 	}
+
+	public void repaint() { dispArea.repaint(); }
+
+	public JPanel getPanel() { return overall; }
+
+	public void loadExplorerTree(DefaultMutableTreeNode rootNode)
+	{
+		wf.libraryExplorerNode = ExplorerTree.makeLibraryTree();
+		wf.jobExplorerNode = Job.getExplorerTree();
+		wf.errorExplorerNode = ErrorLog.getExplorerTree();
+		wf.signalExplorerNode = null;
+		rootNode.add(wf.libraryExplorerNode);
+		rootNode.add(wf.jobExplorerNode);
+		rootNode.add(wf.errorExplorerNode);
+	}
+
+	/**
+	 * This class handles changes to the edit window scroll bars.
+	 */
+	static class ScrollAdjustmentListener implements AdjustmentListener
+	{
+        /** A weak reference to the WindowFrame */
+		EditWindow wnd;               
+
+		ScrollAdjustmentListener(EditWindow wnd)
+		{
+			super();
+			this.wnd = wnd;
+//			this.wf = new WeakReference(wf);
+		}
+
+		public void adjustmentValueChanged(AdjustmentEvent e)
+		{
+			if (e.getSource() == wnd.getBottomScrollBar() && wnd.getCell() != null)
+				wnd.bottomScrollChanged(e.getValue());
+			if (e.getSource() == wnd.getRightScrollBar() && wnd.getCell() != null)
+				wnd.rightScrollChanged(e.getValue());
+		}
+	}
+
+	/**
+	 * Method to return the horizontal scroll bar at the bottom of the edit window.
+	 * @return the horizontal scroll bar at the bottom of the edit window.
+	 */
+	public JScrollBar getBottomScrollBar() { return bottomScrollBar; }
+
+	/**
+	 * Method to return the vertical scroll bar at the right side of the edit window.
+	 * @return the vertical scroll bar at the right side of the edit window.
+	 */
+	public JScrollBar getRightScrollBar() { return rightScrollBar; }
 
 	/**
 	 * Factory method to create a new EditWindow with a given cell, in a given WindowFrame.
@@ -158,7 +385,8 @@ public class EditWindow extends JPanel
 	{
 		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 		if (wf == null) return null;
-		return wf.getEditWindow();
+		if (wf.getContent() instanceof EditWindow) return (EditWindow)wf.getContent();
+		return null;
 	}
 
 	/**
@@ -224,29 +452,29 @@ public class EditWindow extends JPanel
 					// if auto-switching technology, do it
 					PaletteFrame.autoTechnologySwitch(cell);
 				}
-				if (cell.getView().isTextView())
+//				if (cell.getView().isTextView())
+//				{
+//					wf.setContent(WindowFrame.TEXTWINDOW);
+//
+//					// reload with text information
+//					JTextArea ta = wf.getTextEditWindow();
+//					Variable var = cell.getVar(Cell.CELL_TEXT_KEY);
+//					if (var != null)
+//					{
+//						int len = var.getLength();
+//						String [] lines = (String [])var.getObject();
+//						String totalText = "";
+//						for(int i=0; i<len; i++)
+//						{
+//							totalText += lines[i] + "\n";
+//						}
+//						ta.setText(totalText);
+//						ta.setCaretPosition(0);
+//					}
+//					return;
+//				} else
 				{
-					wf.setContent(WindowFrame.TEXTWINDOW);
-
-					// reload with text information
-					JTextArea ta = wf.getTextEditWindow();
-					Variable var = cell.getVar(Cell.CELL_TEXT_KEY);
-					if (var != null)
-					{
-						int len = var.getLength();
-						String [] lines = (String [])var.getObject();
-						String totalText = "";
-						for(int i=0; i<len; i++)
-						{
-							totalText += lines[i] + "\n";
-						}
-						ta.setText(totalText);
-						ta.setCaretPosition(0);
-					}
-					return;
-				} else
-				{
-					wf.setContent(WindowFrame.DISPWINDOW);
+//					wf.setContent(this);
 				}
 			}
 		}
@@ -270,8 +498,9 @@ public class EditWindow extends JPanel
 		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
-			EditWindow wnd = wf.getEditWindow();
-			if (wnd.getCell() == cell) return wnd;
+			WindowContent content = wf.getContent();
+			if (!(content instanceof EditWindow)) continue;
+			if (content.getCell() == cell) return (EditWindow)content;
 		}
 		return null;
 	}
@@ -296,10 +525,10 @@ public class EditWindow extends JPanel
             if (redrawThese.contains(this)) redrawThese.remove(this);
         }
         // remove myself from listener list
-		removeKeyListener(this);
-		removeMouseListener(this);
-		removeMouseMotionListener(this);
-		removeMouseWheelListener(this);
+		dispArea.removeKeyListener(dispArea);
+		dispArea.removeMouseListener(dispArea);
+		dispArea.removeMouseMotionListener(dispArea);
+		dispArea.removeMouseWheelListener(dispArea);
     }
 
 	// ************************************* RENDERING A WINDOW *************************************
@@ -312,7 +541,9 @@ public class EditWindow extends JPanel
 		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
-			EditWindow wnd = wf.getEditWindow();
+			WindowContent content = wf.getContent();
+			if (!(content instanceof EditWindow)) continue;
+			EditWindow wnd = (EditWindow)content;
 			wnd.repaintContents();
 		}
 	}
@@ -325,8 +556,10 @@ public class EditWindow extends JPanel
 		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
-			EditWindow wnd = wf.getEditWindow();
-			wnd.repaint();
+			WindowContent content = wf.getContent();
+			if (!(content instanceof EditWindow)) continue;
+			EditWindow wnd = (EditWindow)content;
+			wnd.dispArea.repaint();
 		}
 	}
 
@@ -355,65 +588,6 @@ public class EditWindow extends JPanel
 			runningNow = true;
 		}
 		RenderJob renderJob = new RenderJob(this, offscreen);
-	}
-
-	/**
-	 * Method to repaint this EditWindow.
-	 * Composites the image (taken from the PixelDrawing object)
-	 * with the grid, highlight, and any dragging rectangle.
-	 */
-	public void paint(Graphics g)
-	{
-		// to enable keys to be received
-		if (cell != null && cell == Library.getCurrent().getCurCell())
-			requestFocus();
-
-		// redo the explorer tree if it changed
-		ExplorerTree.rebuildExplorerTree();
-
-		if (offscreen == null || !getSize().equals(sz))
-		{
-			setScreenSize(getSize());
-			repaintContents();
-			return;
-		}
-
-		// show the image
-		Image img = offscreen.getImage();
-		synchronized(img) { g.drawImage(img, 0, 0, this); };
-
-		synchronized(redrawThese)
-		{
-			if (redrawThese.size() > 0)
-			{
-				EditWindow nextWnd = (EditWindow)redrawThese.get(0);
-				redrawThese.remove(0);
-				RenderJob nextJob = new RenderJob(nextWnd, nextWnd.getOffscreen());
-				return;
-			}
-			runningNow = false;
-		}
-
-		// overlay other things if there is a valid cell
-		if (cell != null)
-		{
-			// add in grid if requested
-			if (showGrid) drawGrid(g);
-
-			// add in highlighting
-			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
-			{
-				Highlight h = (Highlight)it.next();
-				Cell highCell = h.getCell();
-				if (highCell != cell) continue;
-				h.showHighlight(this, g);
-			}
-
-			// add in drag area
-			if (doingAreaDrag) showDragBox(g);
-            // add in popup cloud
-            if (showPopupCloud) drawPopupCloud((Graphics2D)g);
-		}
 	}
 
 	/**
@@ -736,11 +910,10 @@ public class EditWindow extends JPanel
 		double xCenter = bounds.getCenterX();
 
 		// get the current thumb position
-		JScrollBar bottom = wf.getBottomScrollBar();
-		int xThumbPos = bottom.getValue();
+		int xThumbPos = bottomScrollBar.getValue();
 
 		// figure out what the thumb position SHOULD be
-		int scrollBarResolution = WindowFrame.getScrollBarResolution();
+		int scrollBarResolution = EditWindow.getScrollBarResolution();
 		double scaleFactor = scrollBarResolution / 4;
 		int computedXThumbPos = (int)((offx - xCenter) / xWidth * scaleFactor) + scrollBarResolution/2;
 
@@ -766,12 +939,11 @@ public class EditWindow extends JPanel
 		double yCenter = bounds.getCenterY();
 
 		// get the current thumb position
-		JScrollBar right = wf.getRightScrollBar();
-		int yThumbPos = right.getValue();
-        System.out.println("right.getValue() is "+right.getValue());
+		int yThumbPos = rightScrollBar.getValue();
+        System.out.println("right.getValue() is "+rightScrollBar.getValue());
 
 		// figure out what the thumb position SHOULD be
-		int scrollBarResolution = WindowFrame.getScrollBarResolution();
+		int scrollBarResolution = EditWindow.getScrollBarResolution();
 		double scaleFactor = scrollBarResolution / 4;
 		int computedYThumbPos = (int)((yCenter - offy) / yHeight * scaleFactor) + scrollBarResolution/2;
 
@@ -790,25 +962,23 @@ public class EditWindow extends JPanel
 	 */
 	private void setScrollPositionOLD()
 	{
-		JScrollBar bottom = wf.getBottomScrollBar();
-		JScrollBar right = wf.getRightScrollBar();
-		bottom.setEnabled(cell != null);
-		right.setEnabled(cell != null);
+		rightScrollBar.setEnabled(cell != null);
+		bottomScrollBar.setEnabled(cell != null);
 		if (cell != null)
 		{
-			int scrollBarResolution = WindowFrame.getScrollBarResolution();
+			int scrollBarResolution = EditWindow.getScrollBarResolution();
 			double scaleFactor = scrollBarResolution / 4;
 
 			Rectangle2D bounds = cell.getBounds();
 			double xWidth = bounds.getWidth();
 			double xCenter = bounds.getCenterX();
 			int xThumbPos = (int)((offx - xCenter) / xWidth * scaleFactor) + scrollBarResolution/2;
-			bottom.setValue(xThumbPos);
+			bottomScrollBar.setValue(xThumbPos);
 
 			double yHeight = bounds.getHeight();
 			double yCenter = bounds.getCenterY();
 			int yThumbPos = (int)((yCenter - offy) / yHeight * scaleFactor) + scrollBarResolution/2;
-			right.setValue(yThumbPos);
+			rightScrollBar.setValue(yThumbPos);
 		}
 	}
 
@@ -821,11 +991,8 @@ public class EditWindow extends JPanel
      */
     public void setScrollPosition()
     {
-
-        JScrollBar bottom = wf.getBottomScrollBar();
-        JScrollBar right = wf.getRightScrollBar();
-        bottom.setEnabled(cell != null);
-        right.setEnabled(cell != null);
+        bottomScrollBar.setEnabled(cell != null);
+        rightScrollBar.setEnabled(cell != null);
 
         if (cell == null) return;
 
@@ -843,19 +1010,19 @@ public class EditWindow extends JPanel
 
         // adjust scroll bars to reflect new bounds (only if not being adjusted now)
         // newValue, newThumbSize, newMin, newMax
-        if (!bottom.getValueIsAdjusting()) {
-            bottom.getModel().setRangeProperties(
+        if (!bottomScrollBar.getValueIsAdjusting()) {
+            bottomScrollBar.getModel().setRangeProperties(
                     (int)(offx-0.5*viewBounds.getWidth()),
                     (int)viewBounds.getWidth(),
                     (int)(overallBounds.getX() - scrollPagePercent*overallBounds.getWidth()),
                     (int)((overallBounds.getX()+overallBounds.getWidth()) + scrollPagePercent*overallBounds.getWidth()),
                     false);
-            bottom.setEnabled(false);
-            bottom.setUnitIncrement((int)(0.05*viewBounds.getWidth()));
-            bottom.setBlockIncrement((int)(scrollPagePercent*viewBounds.getWidth()));
-            bottom.setEnabled(true);
+            bottomScrollBar.setEnabled(false);
+            bottomScrollBar.setUnitIncrement((int)(0.05*viewBounds.getWidth()));
+            bottomScrollBar.setBlockIncrement((int)(scrollPagePercent*viewBounds.getWidth()));
+            bottomScrollBar.setEnabled(true);
         }
-        if (!right.getValueIsAdjusting()) {
+        if (!rightScrollBar.getValueIsAdjusting()) {
             //System.out.println("overallBounds="+overallBounds);
             //System.out.println("cellBounds="+cellBounds);
             //System.out.println("offy="+offy);
@@ -863,19 +1030,19 @@ public class EditWindow extends JPanel
             //System.out.print(" extent="+(int)(cellBounds.getHeight()));
             //System.out.print(" min="+(int)(-((overallBounds.getY()+overallBounds.getHeight()) + 0.125*overallBounds.getHeight())));
             //System.out.println(" max="+(int)(-(overallBounds.getY() - 0.125*overallBounds.getHeight())));
-            right.getModel().setRangeProperties(
+            rightScrollBar.getModel().setRangeProperties(
                     (int)(-offy-0.5*viewBounds.getHeight()),
                     (int)(viewBounds.getHeight()),
                     (int)(-((overallBounds.getY()+overallBounds.getHeight()) + scrollPagePercent*overallBounds.getHeight())),
                     (int)(-(overallBounds.getY() - scrollPagePercent*overallBounds.getHeight())),
                     false);
-            //System.out.println("model is "+right.getModel());
-            right.setEnabled(false);
-            right.setUnitIncrement((int)(0.05*viewBounds.getHeight()));
-            right.setBlockIncrement((int)(scrollPagePercent*viewBounds.getHeight()));
-            right.setEnabled(true);
+            //System.out.println("model is "+rightScrollBar.getModel());
+            rightScrollBar.setEnabled(false);
+            rightScrollBar.setUnitIncrement((int)(0.05*viewBounds.getHeight()));
+            rightScrollBar.setBlockIncrement((int)(scrollPagePercent*viewBounds.getHeight()));
+            rightScrollBar.setEnabled(true);
         }
-        if (!bottom.getValueIsAdjusting() && !right.getValueIsAdjusting()) {
+        if (!bottomScrollBar.getValueIsAdjusting() && !rightScrollBar.getValueIsAdjusting()) {
             lastOverallBounds = overallBounds;
             lastOffset = getOffset();
         }
@@ -1082,28 +1249,15 @@ public class EditWindow extends JPanel
 				{
 					String cellName = (String)it.next();
 					JMenuItem menuItem = new JMenuItem(cellName);
-					menuItem.addActionListener(this);
+					menuItem.addActionListener(dispArea);
 					parents.add(menuItem);
 				}
-				parents.show(this, 0, 0);
+				parents.show(dispArea, 0, 0);
 			}
         } catch (NullPointerException e)
 		{
             e.printStackTrace();
 		}
-    }
-
-    /** 
-     * Respond to an action performed, in this case change the current cell
-     * when the user clicks on an entry in the upHierarchy popup menu.
-     */
-    public void actionPerformed(ActionEvent e)
-	{
-        JMenuItem source = (JMenuItem)e.getSource();
-        // extract library and cell from string
-        Cell cell = (Cell)NodeProto.findNodeProto(source.getText());
-        if (cell == null) return;
-        setCell(cell, VarContext.globalContext);
     }
 
     // ************************** Cell History Traversal  *************************************
@@ -1162,9 +1316,9 @@ public class EditWindow extends JPanel
      */
     public void fireCellHistoryStatus() {
         if (cellHistoryLocation > 0)
-            firePropertyChange(propGoBackEnabled, false, true);
+            dispArea.firePropertyChange(propGoBackEnabled, false, true);
         if (cellHistoryLocation < (cellHistory.size() - 1))
-            firePropertyChange(propGoForwardEnabled, false, true);
+            dispArea.firePropertyChange(propGoForwardEnabled, false, true);
     }
 
     /** Adds to cellHistory record list
@@ -1188,11 +1342,11 @@ public class EditWindow extends JPanel
                 cellHistory.remove(i);
             }
             // disable previously enabled forward button
-            firePropertyChange(propGoForwardEnabled, true, false);
+            dispArea.firePropertyChange(propGoForwardEnabled, true, false);
         }
 
         // if location is 0, adding should enable back button
-        if (cellHistoryLocation == 0) firePropertyChange(propGoBackEnabled, false, true);
+        if (cellHistoryLocation == 0) dispArea.firePropertyChange(propGoBackEnabled, false, true);
 
         // update history
         cellHistory.add(history);
@@ -1238,20 +1392,20 @@ public class EditWindow extends JPanel
         if (cellHistoryLocation == (cellHistory.size()-1)) {
             // was at end, forward button was disabled
             if (location < (cellHistory.size()-1))
-                firePropertyChange(propGoForwardEnabled, false, true);
+                dispArea.firePropertyChange(propGoForwardEnabled, false, true);
         } else {
             // not at end, forward button was enabled
             if (location == (cellHistory.size()-1))
-                firePropertyChange(propGoForwardEnabled, true, false);
+                dispArea.firePropertyChange(propGoForwardEnabled, true, false);
         }
         if (cellHistoryLocation == 0) {
             // at beginning, back button was disabled
             if (location > 0)
-                firePropertyChange(propGoBackEnabled, false, true);
+                dispArea.firePropertyChange(propGoBackEnabled, false, true);
         } else {
             // not at beginning, back button was enabled
             if (location == 0)
-                firePropertyChange(propGoBackEnabled, true, false);
+                dispArea.firePropertyChange(propGoBackEnabled, true, false);
         }
 
         //System.out.println("Setting cell to location="+location+", cellHistory.size()="+cellHistory.size());
@@ -1454,64 +1608,4 @@ public class EditWindow extends JPanel
 		GlyphVector gv = font.createGlyphVector(frc, text);
 		return gv;
 	}
-
-	// ************************************* EVENT LISTENERS *************************************
-	
-	public static void setListener(EventListener listener)
-	{
-		curMouseListener = (MouseListener)listener;
-		curMouseMotionListener = (MouseMotionListener)listener;
-		curMouseWheelListener = (MouseWheelListener)listener;
-		curKeyListener = (KeyListener)listener;
-	}
-
-	public static EventListener getListener() { return curMouseListener; }
-
-	// the MouseListener events
-	public void mousePressed(MouseEvent evt)
-	{
-		EditWindow wnd = (EditWindow)evt.getSource();
-		WindowFrame.setCurrentWindowFrame(wnd.wf);
-
-		curMouseListener.mousePressed(evt);
-	}
-	public void mouseReleased(MouseEvent evt) { curMouseListener.mouseReleased(evt); }
-	public void mouseClicked(MouseEvent evt) { curMouseListener.mouseClicked(evt); }
-	public void mouseEntered(MouseEvent evt)
-	{
-		showCoordinates(evt);
-		curMouseListener.mouseEntered(evt);
-	}
-	public void mouseExited(MouseEvent evt) { curMouseListener.mouseExited(evt); }
-
-	// the MouseMotionListener events
-	public void mouseMoved(MouseEvent evt)
-	{
-		showCoordinates(evt);
-		curMouseMotionListener.mouseMoved(evt);
-	}
-	public void mouseDragged(MouseEvent evt)
-	{
-		showCoordinates(evt);
-		curMouseMotionListener.mouseDragged(evt);
-	}
-
-	private void showCoordinates(MouseEvent evt)
-	{
-		EditWindow wnd = (EditWindow)evt.getSource();
-		if (wnd.getCell() == null) StatusBar.setCoordinates(null, wnd.wf); else
-		{
-			Point2D pt = wnd.screenToDatabase(evt.getX(), evt.getY());
-			EditWindow.gridAlign(pt);
-			StatusBar.setCoordinates("(" + pt.getX() + "," + pt.getY() + ")", wnd.wf);
-		}
-	}
-
-	// the MouseWheelListener events
-	public void mouseWheelMoved(MouseWheelEvent evt) { curMouseWheelListener.mouseWheelMoved(evt); }
-
-	// the KeyListener events
-	public void keyPressed(KeyEvent evt) { curKeyListener.keyPressed(evt); }
-	public void keyReleased(KeyEvent evt) { curKeyListener.keyReleased(evt); }
-	public void keyTyped(KeyEvent evt) { curKeyListener.keyTyped(evt); }
 }

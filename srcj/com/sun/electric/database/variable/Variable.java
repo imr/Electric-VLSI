@@ -24,14 +24,11 @@
 package com.sun.electric.database.variable;
 
 import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.technologies.Generic;
 
 import java.text.DecimalFormat;

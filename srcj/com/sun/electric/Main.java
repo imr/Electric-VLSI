@@ -36,12 +36,9 @@ import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
 
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.lang.reflect.Method;
 import java.net.URL;
+import java.util.List;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 // these may not exist on non-Macintosh platforms, and are stubbed-out in "AppleJavaExtensions.jar"
 import com.apple.eawt.Application;
@@ -60,34 +57,20 @@ public final class Main
 		MacOSXInterface.registerMacOSXApplication();
 
 		// convert args to array list
-        ArrayList argsList = new ArrayList();
+        List argsList = new ArrayList();
         for (int i=0; i<args.length; i++) argsList.add(args[i]);
 
 		TopLevel.OSInitialize();
 
 		// initialize database
-		new InitDatabase();
-
-        if (hasCommandLineOption(argsList, "-m")) {
-            // set multiheaded option here
-        }
-        String beanShellScript = getCommandLineOption(argsList, "-s");
-        if (!openCommandLineLibs(argsList)) {
-            // open default library (or maybe open none at all?)
-            Library mainLib = Library.newInstance("noname", null);
-            mainLib.setCurrent();
-			WindowFrame window1 = WindowFrame.createEditWindow(null);
-        }
-
-        // run script
-        if (beanShellScript != null) EvalJavaBsh.runScript(beanShellScript);
+		new InitDatabase(argsList);
 	}
 
     /** check if command line option 'option' present in 
      * command line args. If present, return true and remove if from the list.
      * Otherwise, return false.
      */
-    private static boolean hasCommandLineOption(ArrayList argsList, String option) 
+    private static boolean hasCommandLineOption(List argsList, String option) 
     {
         for (int i=0; i<argsList.size(); i++) {
             if (((String)argsList.get(i)).equals(option)) {
@@ -101,7 +84,7 @@ public final class Main
     /** get command line option for 'option'. Returns null if 
      * no such 'option'.  If found, remove it from the list.
      */
-    private static String getCommandLineOption(ArrayList argsList, String option)
+    private static String getCommandLineOption(List argsList, String option)
     {
         for (int i=0; i<argsList.size()-1; i++) {
             if (((String)argsList.get(i)).equals(option)) {
@@ -120,7 +103,7 @@ public final class Main
     /** open any libraries specified on the command line.  This method should be 
      * called after any valid options have been parsed out
      */
-    private static boolean openCommandLineLibs(ArrayList argsList)
+    private static boolean openCommandLineLibs(List argsList)
     {
         boolean openedALib = false;
         for (int i=0; i<argsList.size(); i++) {
@@ -142,9 +125,12 @@ public final class Main
 	 */
 	protected static class InitDatabase extends Job
 	{
-		protected InitDatabase()
+		List argsList;
+
+		protected InitDatabase(List argsList)
 		{
 			super("Init database", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.argsList = argsList;
 			startJob();
 		}
 
@@ -159,6 +145,21 @@ public final class Main
 			// initialize the constraint system
 			Layout con = Layout.getConstraint();
 			Constraints.setCurrent(con);
+
+			// do processing of arguments
+			if (hasCommandLineOption(argsList, "-m")) {
+				// set multiheaded option here
+			}
+			String beanShellScript = getCommandLineOption(argsList, "-s");
+			if (!openCommandLineLibs(argsList)) {
+				// open default library (or maybe open none at all?)
+				Library mainLib = Library.newInstance("noname", null);
+				mainLib.setCurrent();
+				WindowFrame window1 = WindowFrame.createEditWindow(null);
+			}
+
+			// run script
+			if (beanShellScript != null) EvalJavaBsh.runScript(beanShellScript);
 		}
 	}
 

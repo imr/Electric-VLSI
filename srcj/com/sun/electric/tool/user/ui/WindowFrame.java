@@ -23,148 +23,280 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.ErrorLog;
-
-import java.awt.GridBagConstraints;
-import java.awt.GraphicsConfiguration;
 import java.awt.Dimension;
+import java.awt.GraphicsConfiguration;
 import java.awt.Rectangle;
-import java.awt.GridBagLayout;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.AdjustmentListener;
-import java.awt.event.AdjustmentEvent;
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.EventListener;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
-import javax.swing.JPanel;
-import javax.swing.JScrollBar;
-import javax.swing.JTextArea;
+
+import javax.swing.ImageIcon;
+import javax.swing.JInternalFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JInternalFrame;
-import javax.swing.ImageIcon;
-import javax.swing.JOptionPane;
+import javax.swing.JTextArea;
 import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import java.lang.ref.WeakReference;
+import javax.swing.tree.TreePath;
 
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.io.input.Simulate;
+import com.sun.electric.tool.user.ErrorLog;
 
 /**
  * This class defines an edit window, with a cell explorer on the left side.
  */
 public class WindowFrame
 {
-	/** This frame has a circuit editing window. */		public static final int DISPWINDOW = 0;
-	/** This frame has a text editing window */			public static final int TEXTWINDOW = 1;
-	/** This frame has a waveform editing window */		public static final int WAVEFORMWINDOW = 2;
-	/** This frame has a 3D display window */			public static final int DISP3DWINDOW = 3;
-
-	/** the circuit edit window part */					private int contents;
-	/** the circuit edit window part */					private EditWindow wnd;
-	/** the circuit edit window component. */			private JPanel circuitPanel;
-	/** the bottom scrollbar on the edit window. */		private JScrollBar bottomScrollBar;
-	/** the right scrollbar on the edit window. */		private JScrollBar rightScrollBar;
+	/** the nature of the main window part (from above) */	private WindowContent content;
 	/** the text edit window part */					private JTextArea textWnd;
 	/** the text edit window component. */				private JScrollPane textPanel;
-	/** the waveform window part. */					private JPanel waveformWnd;
 	/** the split pane that shows explorer and edit. */	private JSplitPane js;
     /** the internal frame (if MDI). */					private JInternalFrame jif = null;
     /** the top-level frame (if SDI). */				private TopLevel jf = null;
     /** the internalframe listener */                   private InternalWindowsEvents internalWindowsEvents;
     /** the window event listener */                    private WindowsEvents windowsEvents;
+	/** the tree view part */							public ExplorerTree tree;
+	/** the explorer part of a frame. */				public DefaultMutableTreeNode rootNode;
+	/** the library explorer part. */					public DefaultMutableTreeNode libraryExplorerNode;
+	/** the job explorer part. */						public DefaultMutableTreeNode jobExplorerNode;
+	/** the error explorer part. */						public DefaultMutableTreeNode errorExplorerNode;
+	/** the signal explorer part. */					public DefaultMutableTreeNode signalExplorerNode;
+	/** the explorer part of a frame. */				private DefaultTreeModel treeModel;
 
-	/** the tree view part */							private ExplorerTree tree;
 	/** the offset of each new windows from the last */	private static int windowOffset = 0;
 	/** the list of all windows on the screen */		private static List windowList = new ArrayList();
 	/** the current windows. */							private static WindowFrame curWindowFrame = null;
-	/** the explorer part of a frame. */				private static DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Explorer");
-	/** the explorer part of a frame. */				private static DefaultTreeModel treeModel = null;
-	/** the waveform signal explorer data. */			private static DefaultMutableTreeNode waveformTree = null;
 
-	private static final int SCROLLBARRESOLUTION = 200;
+	/** current mouse listener */						public static MouseListener curMouseListener = ClickZoomWireListener.theOne;
+    /** current mouse motion listener */				public static MouseMotionListener curMouseMotionListener = ClickZoomWireListener.theOne;
+    /** current mouse wheel listener */					public static MouseWheelListener curMouseWheelListener = ClickZoomWireListener.theOne;
+    /** current key listener */							public static KeyListener curKeyListener = ClickZoomWireListener.theOne;
 
 	// constructor
-	private WindowFrame() {}
+	private WindowFrame()
+	{
+	}
 
 	/**
-	 * Method to create a new window on the screen that displays a Cell.
+	 * Method to set the content of this window.
+	 * The content is the object in the right side (EditWindow, WaveformWindow, etc.)
+	 * @param content the new content object.
+	 */
+	public void setContent(WindowContent content)
+	{
+		this.content = content;
+
+		rootNode.removeAllChildren();
+		content.loadExplorerTree(rootNode);
+		js.setRightComponent(content.getPanel());
+	}
+
+	/**
+	 * Method to get the content of this window.
+	 * The content is the object in the right side (EditWindow, WaveformWindow, etc.)
+	 * @return the content of this window.
+	 */
+	public WindowContent getContent() { return content; }
+
+	/**
+	 * Method called when the library/cell list subtree has changed.
+	 */
+	public static void redoLibraryTree()
+	{
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			if (wf.libraryExplorerNode == null) continue;
+
+			// remember the state of the tree
+			HashMap expanded = new HashMap();
+			wf.recursivelyCache(expanded, new TreePath(wf.rootNode), true);
+
+			// get the new library tree part
+			wf.libraryExplorerNode = ExplorerTree.makeLibraryTree();
+
+			// rebuild the tree
+			wf.rootNode.removeAllChildren();
+			wf.rootNode.add(wf.libraryExplorerNode);
+			if (wf.signalExplorerNode != null) wf.rootNode.add(wf.signalExplorerNode);
+			wf.rootNode.add(wf.jobExplorerNode);
+			wf.rootNode.add(wf.errorExplorerNode);
+
+			wf.tree.treeDidChange();
+			wf.treeModel.reload();
+			wf.recursivelyCache(expanded, new TreePath(wf.rootNode), false);
+		}
+	}
+
+	/**
+	 * Method called when the error list subtree has changed.
+	 */
+	public static void redoErrorTree()
+	{
+		for(Iterator it = windowList.iterator(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			if (wf.errorExplorerNode == null) continue;
+
+			// remember the state of the tree
+			HashMap expanded = new HashMap();
+			wf.recursivelyCache(expanded, new TreePath(wf.rootNode), true);
+
+			// get the new error part
+			wf.errorExplorerNode = ErrorLog.getExplorerTree();
+
+			// rebuild the tree
+			wf.rootNode.removeAllChildren();
+			if (wf.libraryExplorerNode != null) wf.rootNode.add(wf.libraryExplorerNode);
+			if (wf.signalExplorerNode != null) wf.rootNode.add(wf.signalExplorerNode);
+			wf.rootNode.add(wf.jobExplorerNode);
+			wf.rootNode.add(wf.errorExplorerNode);
+
+			wf.tree.treeDidChange();
+			wf.treeModel.reload();
+			wf.recursivelyCache(expanded, new TreePath(wf.rootNode), false);
+		}
+	}
+
+	/**
+	 * Method called when the Job list subtree has changed.
+	 */
+	public static void redoJobTree()
+	{
+		for(Iterator it = windowList.iterator(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			if (wf.jobExplorerNode == null) continue;
+
+			// remember the state of the tree
+			HashMap expanded = new HashMap();
+			wf.recursivelyCache(expanded, new TreePath(wf.rootNode), true);
+
+			// get the new jobs part
+			wf.jobExplorerNode = Job.getExplorerTree();
+
+			// rebuild the tree
+			wf.rootNode.removeAllChildren();
+			if (wf.libraryExplorerNode != null) wf.rootNode.add(wf.libraryExplorerNode);
+			if (wf.signalExplorerNode != null) wf.rootNode.add(wf.signalExplorerNode);
+			wf.rootNode.add(wf.jobExplorerNode);
+			wf.rootNode.add(wf.errorExplorerNode);
+
+			wf.tree.treeDidChange();
+			wf.treeModel.reload();
+			wf.recursivelyCache(expanded, new TreePath(wf.rootNode), false);
+		}
+	}
+
+	private void recursivelyCache(HashMap expanded, TreePath path, boolean cache)
+	{
+		DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
+		Object obj = node.getUserObject();
+		int numChildren = node.getChildCount();
+		if (numChildren == 0) return;
+
+		if (cache)
+		{
+//System.out.println("REMEMBERING: expanded="+tree.isExpanded(path)+" node="+obj);
+			if (tree.isExpanded(path)) expanded.put(obj, obj);
+		} else
+		{
+//System.out.println("PUTTINGBACK: expanded="+(expanded.get(obj) != null)+" node="+obj);
+			if (expanded.get(obj) != null) tree.expandPath(path);
+		}
+
+		// now recurse
+		for(int i=0; i<numChildren; i++)
+		{
+			DefaultMutableTreeNode child = (DefaultMutableTreeNode)node.getChildAt(i);
+			TreePath descentPath = path.pathByAddingChild(child);
+			recursivelyCache(expanded, descentPath, cache);
+		}
+	}
+
+	/**
+	 * Method to set the current listener that responds to clicks in any window.
+	 * There is a single listener in effect everywhere, usually controlled by the toolbar.
+	 * @param listener the new lister to be in effect.
+	 */
+	public static void setListener(EventListener listener)
+	{
+		curMouseListener = (MouseListener)listener;
+		curMouseMotionListener = (MouseMotionListener)listener;
+		curMouseWheelListener = (MouseWheelListener)listener;
+		curKeyListener = (KeyListener)listener;
+	}
+
+	/**
+	 * Method to get the current listener that responds to clicks in any window.
+	 * There is a single listener in effect everywhere, usually controlled by the toolbar.
+	 * @return the current listener.
+	 */
+	public static EventListener getListener() { return curMouseListener; }
+
+	/**
+	 * Method to create a new circuit-editing window on the screen that displays a Cell.
 	 * @param cell the cell to display.
 	 * @return the WindowFrame that shows the Cell.
 	 */
     public static WindowFrame createEditWindow(Cell cell)
     {
-        WindowFrame frame = new WindowFrame();
-        frame.createEditWindow(cell, null);
-        return frame;
+		WindowFrame frame = new WindowFrame();
+		EditWindow eWnd = EditWindow.CreateElectricDoc(cell, frame);
+		frame.buildWindowStructure(eWnd, cell, null);
+		setCurrentWindowFrame(frame);
+		frame.populateJFrame();
+		eWnd.fillScreen();
+		return frame;
     }
 
-	private void createEditWindow(Cell cell, GraphicsConfiguration gc)
+	/**
+	 * Method to create a new waveform window on the screen given the simulation data.
+	 * @param sd the simulation data to use in the waveform window.
+	 * @return the WindowFrame that shows the waveforms.
+	 */
+    public static WindowFrame createWaveformWindow(Simulate.SimData sd)
+    {
+		WindowFrame frame = new WindowFrame();
+		WaveformWindow wWnd = new WaveformWindow(sd, frame);
+		frame.buildWindowStructure(wWnd, sd.cell, null);
+		setCurrentWindowFrame(frame);
+		frame.populateJFrame();
+		wWnd.fillScreen();
+		return frame;
+    }
+
+	private void buildWindowStructure(WindowContent content, Cell cell, GraphicsConfiguration gc)
 	{
-		// the right half: an edit window with scroll bars
-		circuitPanel = new JPanel(new GridBagLayout());
-
-		// the horizontal scroll bar in the edit window
-		int thumbSize = SCROLLBARRESOLUTION / 20;
-		bottomScrollBar = new JScrollBar(JScrollBar.HORIZONTAL, SCROLLBARRESOLUTION/2, thumbSize, 0, SCROLLBARRESOLUTION+thumbSize);
-		bottomScrollBar.setBlockIncrement(SCROLLBARRESOLUTION / 4);
-		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.gridx = 0;   gbc.gridy = 1;
-		gbc.fill = GridBagConstraints.HORIZONTAL;
-		circuitPanel.add(bottomScrollBar, gbc);
-		bottomScrollBar.addAdjustmentListener(new ScrollAdjustmentListener(this));
-		bottomScrollBar.setValue(bottomScrollBar.getMaximum()/2);
-
-		// the vertical scroll bar in the edit window
-		rightScrollBar = new JScrollBar(JScrollBar.VERTICAL, SCROLLBARRESOLUTION/2, thumbSize, 0, SCROLLBARRESOLUTION+thumbSize);
-		rightScrollBar.setBlockIncrement(SCROLLBARRESOLUTION / 4);
-		gbc = new GridBagConstraints();
-		gbc.gridx = 1;   gbc.gridy = 0;
-		gbc.fill = GridBagConstraints.VERTICAL;
-		circuitPanel.add(rightScrollBar, gbc);
-		rightScrollBar.addAdjustmentListener(new ScrollAdjustmentListener(this));
-		rightScrollBar.setValue(rightScrollBar.getMaximum()/2);
-
-//		JButton explorerButton = Button.newInstance(new ImageIcon(frame.getClass().getResource("IconExplorer.gif")));
-//		js.setCorner(JScrollPane.LOWER_LEFT_CORNER, explorerButton);
-
-		// the edit window
-		wnd = EditWindow.CreateElectricDoc(null, this);
-		gbc = new GridBagConstraints();
-		gbc.gridx = 0;   gbc.gridy = 0;
-		gbc.fill = GridBagConstraints.BOTH;
-		gbc.weightx = gbc.weighty = 1;
-		circuitPanel.add(wnd, gbc);
-
-		// the text edit window (for textual cells)
-		textWnd = new JTextArea();
-		textWnd.setTabSize(4);
-		textPanel = new JScrollPane(textWnd);
-
-		// the waveform window (for simulation)
-		waveformWnd = new JPanel(new GridBagLayout());
+		this.content = content;
 
 		// the left half: an explorer tree in a scroll pane
-		rootNode.removeAllChildren();
-		rootNode.add(ExplorerTree.getLibraryExplorerTree());
-		rootNode.add(Job.getExplorerTree());
-		rootNode.add(ErrorLog.getExplorerTree());
+		rootNode = new DefaultMutableTreeNode("Explorer");
+		content.loadExplorerTree(rootNode);
 		treeModel = new DefaultTreeModel(rootNode);
 		tree = ExplorerTree.CreateExplorerTree(rootNode, treeModel);
-		ExplorerTree.explorerTreeChanged();
+		redoLibraryTree();
 		JScrollPane scrolledTree = new JScrollPane(tree);
 
 		// put them together into the split pane
 		js = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-		js.setRightComponent(circuitPanel);
+		js.setRightComponent(content.getPanel());
 		js.setLeftComponent(scrolledTree);
 		js.setDividerLocation(0.2);
-
 
         // initialize the frame
         String cellDescription = (cell == null) ? "no cell" : cell.describe();
@@ -173,17 +305,12 @@ public class WindowFrame
         if (windowOffset > 300) windowOffset = 0;
 
         // Put everything into the frame
-        populateJFrame();
 //		js.requestFocusInWindow();
-
-		wnd.setCell(cell, VarContext.globalContext);
 
 		// accumulate a list of current windows
 		synchronized(windowList) {
             windowList.add(this);
         }
-		setCurrentWindowFrame(this);
-        wnd.fillScreen();
 	}
 
     
@@ -224,7 +351,7 @@ public class WindowFrame
 			TopLevel.addToDesktop(jif);
             // add tool bar as listener so it can find out state of cell history in EditWindow
             jif.addInternalFrameListener(TopLevel.getTopLevel().getToolBar());
-            wnd.addPropertyChangeListener(TopLevel.getTopLevel().getToolBar());
+            content.getPanel().addPropertyChangeListener(TopLevel.getTopLevel().getToolBar());
 //			frame.jif.moveToFront();
 			try
 			{
@@ -236,10 +363,10 @@ public class WindowFrame
             windowsEvents = new WindowsEvents(this);
 			jf.addWindowListener(windowsEvents);
 			jf.addWindowFocusListener(windowsEvents);
-			jf.setEditWindow(wnd);
+			jf.setWindowFrame(this);
             // add tool bar as listener so it can find out state of cell history in EditWindow
-            wnd.addPropertyChangeListener(EditWindow.propGoBackEnabled, ((TopLevel)jf).getToolBar());
-            wnd.addPropertyChangeListener(EditWindow.propGoForwardEnabled, ((TopLevel)jf).getToolBar());
+            content.getPanel().addPropertyChangeListener(EditWindow.propGoBackEnabled, ((TopLevel)jf).getToolBar());
+            content.getPanel().addPropertyChangeListener(EditWindow.propGoForwardEnabled, ((TopLevel)jf).getToolBar());
 			jf.show();
 		}
     }
@@ -257,14 +384,14 @@ public class WindowFrame
             jif.removeInternalFrameListener(internalWindowsEvents);
             jif.removeInternalFrameListener(TopLevel.getTopLevel().getToolBar());
             // TODO: TopLevel.removeFromDesktop(jif);
-            wnd.removePropertyChangeListener(TopLevel.getTopLevel().getToolBar());
+            content.getPanel().removePropertyChangeListener(TopLevel.getTopLevel().getToolBar());
         } else {
             jf.getContentPane().remove(js);
             jf.removeWindowListener(windowsEvents);
             jf.removeWindowFocusListener(windowsEvents);
-            jf.setEditWindow(null);
-            wnd.removePropertyChangeListener(EditWindow.propGoBackEnabled, ((TopLevel)jf).getToolBar());
-            wnd.removePropertyChangeListener(EditWindow.propGoForwardEnabled, ((TopLevel)jf).getToolBar());
+            jf.setWindowFrame(null);
+            content.getPanel().removePropertyChangeListener(EditWindow.propGoBackEnabled, ((TopLevel)jf).getToolBar());
+            content.getPanel().removePropertyChangeListener(EditWindow.propGoForwardEnabled, ((TopLevel)jf).getToolBar());
         }
     }
 
@@ -278,11 +405,11 @@ public class WindowFrame
         depopulateJFrame();                         // remove all components from old Frame
         TopLevel oldFrame = jf;
         oldFrame.finished();                        // clear and garbage collect old Frame
-        Cell cell = wnd.getCell();                  // get current cell
+        Cell cell = content.getCell();                  // get current cell
         String cellDescription = (cell == null) ? "no cell" : cell.describe();  // new title
         createJFrame(cellDescription, gc);          // create new Frame
         populateJFrame();                           // populate new Frame
-        wnd.fireCellHistoryStatus();                // update tool bar history buttons
+        content.fireCellHistoryStatus();                // update tool bar history buttons
     }
 
 	/**
@@ -290,6 +417,32 @@ public class WindowFrame
 	 * @return the current WindowFrame.
 	 */
 	public static WindowFrame getCurrentWindowFrame() { synchronized(windowList) { return curWindowFrame; } }
+
+	/**
+	 * Method to return the current Cell.
+	 */
+	public static Cell getCurrentCell()
+	{
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		if (wf == null) return null;
+		return wf.getContent().getCell();
+	}
+
+	/**
+	 * Method to insist on a current Cell.
+	 * Prints an error message if there is no current Cell.
+	 * @return the current Cell in the current Library.
+	 * Returns NULL if there is no current Cell.
+	 */
+	public static Cell needCurCell()
+	{
+		Cell curCell = getCurrentCell();
+		if (curCell == null)
+		{
+			System.out.println("There is no current cell for this operation");
+		}
+		return curCell;
+	}
 
 	/**
 	 * Method to set the current WindowFrame.
@@ -304,8 +457,7 @@ public class WindowFrame
 		{
 			//if (!TopLevel.isMDIMode())
 			//	wf.jf.show();  // < ---- BAD BAD BAD BAD!!!!
-			EditWindow wnd = wf.getEditWindow();
-			Cell cell = wnd.getCell();
+			Cell cell = wf.getContent().getCell();
 			if (cell != null)
 			{
 				cell.getLibrary().setCurCell(cell);
@@ -351,7 +503,7 @@ public class WindowFrame
         }
 
         // tell EditWindow it's finished
-        wnd.finished();
+        content.finished();
 
         if (!TopLevel.isMDIMode()) {
             // if SDI mode, TopLevel enclosing frame is closing, dispose of it
@@ -359,32 +511,11 @@ public class WindowFrame
         }
     }
 
-
-    
 	/**
-	 * Method to return the scroll bar resolution.
-	 * This is the extent of the JScrollBar.
-	 * @return the scroll bar resolution.
+	 * Method to return the WaveformWindow associated with this frame.
+	 * @return the WaveformWindow associated with this frame.
 	 */
-	public static int getScrollBarResolution() { return SCROLLBARRESOLUTION; }
-
-	/**
-	 * Method to return the horizontal scroll bar at the bottom of the edit window.
-	 * @return the horizontal scroll bar at the bottom of the edit window.
-	 */
-	public JScrollBar getBottomScrollBar() { return bottomScrollBar; }
-
-	/**
-	 * Method to return the vertical scroll bar at the right side of the edit window.
-	 * @return the vertical scroll bar at the right side of the edit window.
-	 */
-	public JScrollBar getRightScrollBar() { return rightScrollBar; }
-
-	/**
-	 * Method to return the EditWindow associated with this frame.
-	 * @return the EditWindow associated with this frame.
-	 */
-	public EditWindow getEditWindow() { return wnd; }
+	public WaveformWindow getWaveformWindow() { return (WaveformWindow)content; }
 
 	/**
 	 * Method to return the text edit window associated with this frame.
@@ -392,44 +523,7 @@ public class WindowFrame
 	 */
 	public JTextArea getTextEditWindow() { return textWnd; }
 
-	/**
-	 * Method to return the waveform window associated with this frame.
-	 * @return the waveform window associated with this frame.
-	 */
-	public JPanel getWaveformWindow() { return waveformWnd; }
-
-	/**
-	 * Method to control the contents of this WindowFrame (text editing or circuit editing).
-	 * @param contents TEXTWINDOW if text editing is to be shown; DISPWINDOW for circuit editing.
-	 */
-	public void setContent(int contents)
-	{
-		if (this.contents == contents) return;
-		this.contents = contents;
-		rootNode.removeAllChildren();
-		switch (contents)
-		{
-			case DISPWINDOW:
-				js.setRightComponent(circuitPanel);
-				rootNode.add(ExplorerTree.getLibraryExplorerTree());
-				break;
-			case TEXTWINDOW:
-				js.setRightComponent(textPanel);
-				rootNode.add(ExplorerTree.getLibraryExplorerTree());
-				break;
-			case WAVEFORMWINDOW:
-				js.setRightComponent(waveformWnd);
-				rootNode.add(waveformTree);
-				break;
-		}
-		rootNode.add(Job.getExplorerTree());
-		rootNode.add(ErrorLog.getExplorerTree());
-		tree.updateThisExplorerTree();
-	}
-
-	public void setWaveformExplorerData(DefaultMutableTreeNode waveformTree) { this.waveformTree = waveformTree; }
-
-	public int getContents() { return contents; }
+//	public void setWaveformExplorerData(DefaultMutableTreeNode waveformTree) { this.waveformTree = waveformTree; }
 
 	/**
 	 * Method to return the ExplorerTree associated with this frame.
@@ -478,32 +572,6 @@ public class WindowFrame
             if (jf != null) jf.setTitle(title);
         }
     }
-
-	/**
-	 * This class handles changes to the edit window scroll bars.
-	 */
-	static class ScrollAdjustmentListener implements AdjustmentListener
-	{
-        /** A weak reference to the WindowFrame */
-		WeakReference wf;               
-
-		ScrollAdjustmentListener(WindowFrame wf)
-		{
-			super();
-			this.wf = new WeakReference(wf);
-		}
-
-		public void adjustmentValueChanged(AdjustmentEvent e)
-		{
-            WindowFrame frame = (WindowFrame)wf.get();
-			EditWindow wnd = frame.getEditWindow();
-			if (wnd == null) return;
-			if (e.getSource() == frame.getBottomScrollBar())
-				wnd.bottomScrollChanged(e.getValue());
-			if (e.getSource() == frame.getRightScrollBar())
-				wnd.rightScrollChanged(e.getValue());
-		}
-	}
 
 	/**
 	 * This class handles activation and close events for JFrame objects (used in SDI mode).

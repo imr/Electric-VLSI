@@ -2,6 +2,11 @@
 
 ************************* Version 8.00a: Released  *************************
 
+IMP: (5/10/04, SR) Put "IO Options" under "File" and "Tool Options" under "Tool".
+
+BUG: (5/10/04, SR) "IO Options" crashes if there are libraries read in.
+FIX: In "Layer.getLayerPref()" make sure "factory" is not null.
+
 BUG: (5/6/04, JKG) Delete Key Bindings and Reset Key Bindings didn't do anything.
 FIX: fixed.
 
@@ -11,6 +16,10 @@ BUG: (5/6/04, JKG) Wiring using ClickZoomWire tool to middle of a wire deleted n
 FIX: Name now transferred to one of new arc segments
 
 IMP: (5/6/04, JKG) Command button on MACs now converts clicks to "right" clicks
+
+IMP: (5/7/04, SR) Generalized the contents of a WindowFrame.  Created the
+     interface WindowContent and made both EditWindow and WaveformWindow
+     an implementation of that.
 
 IMP: (5/6/04, SR) Added the "File/Save All Libraries" command.
 

@@ -23,12 +23,9 @@
  */
 package com.sun.electric.technology;
 
-import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.technologies.Generic;
 
 import java.awt.Color;

@@ -23,45 +23,25 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.database.geometry.EMath;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.PixelDrawing;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Font;
-import java.awt.Image;
-import java.awt.Color;
-import java.awt.Graphics;
 import java.awt.GraphicsEnvironment;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
 import java.awt.image.Raster;
 import java.util.Iterator;
-import java.util.List;
-import java.util.ArrayList;
-import javax.swing.JComboBox;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
 
 
 /**
@@ -153,7 +133,7 @@ public class LayoutText extends javax.swing.JDialog
 	private void makeLayoutText(String layer, int tsize, double scale, String font, boolean italic,
 		boolean bold, boolean underline, double separation, String msg)
 	{
-		Cell curCell = Library.needCurCell();
+		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
 
 		// get the raster

@@ -25,8 +25,6 @@ package com.sun.electric.database.text;
 
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.dialogs.OptionReconcile;
 import com.sun.electric.tool.user.ui.TopLevel;
 

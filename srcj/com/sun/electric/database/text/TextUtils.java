@@ -30,7 +30,6 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.net.URL;
-import java.net.URLConnection;
 
 /**
  * This class is a collection of text utilities.

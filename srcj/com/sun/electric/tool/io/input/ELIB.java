@@ -54,9 +54,7 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
-import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.dialogs.Progress;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;

@@ -39,7 +39,6 @@ import com.sun.electric.tool.user.User;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 

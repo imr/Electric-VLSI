@@ -79,14 +79,12 @@ import com.sun.electric.tool.user.dialogs.NewCell;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.ToolOptions;
 import com.sun.electric.tool.user.dialogs.ViewControl;
-import com.sun.electric.tool.user.ui.MenuManager;
 import com.sun.electric.tool.user.ui.MenuManager.MenuItem;
 import com.sun.electric.tool.user.ui.MenuManager.Menu;
 import com.sun.electric.tool.user.ui.MenuManager.MenuBar;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.ExplorerTree;
 import com.sun.electric.tool.user.ui.PixelDrawing;
 import com.sun.electric.tool.user.ui.MessagesWindow;
 import com.sun.electric.tool.user.ui.PaletteFrame;
@@ -94,6 +92,7 @@ import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.SizeListener;
 import com.sun.electric.tool.user.ui.WaveformWindow;
+import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.ZoomAndPanListener;
 
 import java.awt.Toolkit;
@@ -114,7 +113,6 @@ import java.awt.print.PrinterException;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.HashMap;
 import javax.print.PrintServiceLookup;
 import javax.print.PrintService;
@@ -126,8 +124,6 @@ import javax.swing.JOptionPane;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
-import java.awt.event.WindowListener;
-import java.awt.event.WindowEvent;
 
 /**
  * This class has all of the pulldown menu commands in Electric.
@@ -166,6 +162,8 @@ public final class MenuCommands
 		fileMenu.add(importSubMenu);
 		importSubMenu.addMenuItem("Readable Dump", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(); } });
+		fileMenu.addMenuItem("I/O Options...",null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ioOptionsCommand(); } });
 
 		fileMenu.addSeparator();
 
@@ -273,12 +271,8 @@ public final class MenuCommands
 
 		editMenu.addSeparator();
 
-		editMenu.addMenuItem("I/O Options...",null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { ioOptionsCommand(); } });
 		editMenu.addMenuItem("Edit Options...",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { editOptionsCommand(); } });
-		editMenu.addMenuItem("Tool Options...",null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { toolOptionsCommand(); } });
 		editMenu.addMenuItem("Key Bindings...",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { keyBindingsCommand(); } });
 
@@ -684,6 +678,10 @@ public final class MenuCommands
 		Menu compactionSubMenu = new Menu("Compaction", 'C');
 		toolMenu.add(compactionSubMenu);
 
+		toolMenu.addSeparator();
+
+		toolMenu.addMenuItem("Tool Options...",null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { toolOptionsCommand(); } });
 		Menu languagesSubMenu = new Menu("Languages");
 		languagesSubMenu.addMenuItem("Run Java Bean Shell Script", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { javaBshScriptCommand(); }});
@@ -790,7 +788,7 @@ public final class MenuCommands
 		Library lib = Library.newInstance(newLibName, null);
 		if (lib == null) return;
 		lib.setCurrent();
-		ExplorerTree.explorerTreeChanged();
+		WindowFrame.redoLibraryTree();
 		EditWindow.repaintAll();
 	}
 
@@ -834,12 +832,17 @@ public final class MenuCommands
 			if (cell == null) System.out.println("No current cell in this library"); else
 			{
 				// check if edit window open with null cell, use that one if exists
-				for (Iterator it = WindowFrame.getWindows(); it.hasNext(); ) {
+				for (Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+				{
 					WindowFrame wf = (WindowFrame)it.next();
-					EditWindow wnd = wf.getEditWindow();
-					if (wnd.getCell() == null) {
-						wnd.setCell(cell, VarContext.globalContext);
-						return;
+					WindowContent content = wf.getContent();
+					if (content instanceof EditWindow)
+					{
+						if (content.getCell() == null)
+						{
+							content.setCell(cell, VarContext.globalContext);
+							return;
+						}
 					}
 				}
 				WindowFrame.createEditWindow(cell);
@@ -886,12 +889,17 @@ public final class MenuCommands
 			if (cell == null) System.out.println("No current cell in this library"); else
 			{
 				// check if edit window open with null cell, use that one if exists
-				for (Iterator it = WindowFrame.getWindows(); it.hasNext(); ) {
+				for (Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+				{
 					WindowFrame wf = (WindowFrame)it.next();
-					EditWindow wnd = wf.getEditWindow();
-					if (wnd.getCell() == null) {
-						wnd.setCell(cell, VarContext.globalContext);
-						return;
+					WindowContent content = wf.getContent();
+					if (content instanceof EditWindow)
+					{
+						if (content.getCell() == null)
+						{
+							content.setCell(cell, VarContext.globalContext);
+							return;
+						}
 					}
 				}
 				WindowFrame.createEditWindow(cell);
@@ -906,7 +914,7 @@ public final class MenuCommands
 		String libName = lib.getLibName();
 		if (lib.kill())
 			System.out.println("Library " + libName + " deleted");
-		ExplorerTree.explorerTreeChanged();
+		WindowFrame.redoLibraryTree();
 		EditWindow.repaintAll();
 	}
 
@@ -1004,7 +1012,7 @@ public final class MenuCommands
 		{
 			if (PostScript.syncAll()) return;
 		}
-		Cell cell = Library.needCurCell();
+		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
 
 		String [] extensions = type.getExtensions();
@@ -1055,7 +1063,7 @@ public final class MenuCommands
 	 */
 	public static void printCommand()
 	{
-		Cell printCell = Library.needCurCell();
+		Cell printCell = WindowFrame.needCurCell();
 		if (printCell == null) return;
 
 		PrinterJob pj = PrinterJob.getPrinterJob();
@@ -1491,7 +1499,7 @@ public final class MenuCommands
 		if (Highlight.getNumHighlights() == 0)
 		{
 			// information about the cell
-			Cell c = Library.getCurrent().getCurCell();
+			Cell c = WindowFrame.getCurrentCell();
             if (c != null) c.getInfo();
 		} else
 		{
@@ -1572,7 +1580,7 @@ public final class MenuCommands
 
 	private static void doSelection(boolean mustBeEasy, boolean mustBeHard)
 	{
-		Cell curCell = Library.needCurCell();
+		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
 
 		boolean cellsAreHard = !User.isEasySelectionOfCellInstances();
@@ -1617,7 +1625,7 @@ public final class MenuCommands
 	 */
 	public static void selectAllLikeThisCommand()
 	{
-		Cell curCell = Library.needCurCell();
+		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
 
 		HashMap likeThis = new HashMap();
@@ -1770,7 +1778,7 @@ public final class MenuCommands
 	 */
 	public static void deleteCellCommand()
 	{
-		Cell curCell = Library.needCurCell();
+		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
 		CircuitChanges.deleteCell(curCell, true);
 	}
@@ -1805,7 +1813,7 @@ public final class MenuCommands
 	 */
 	public static void newCellVersionCommand()
 	{
-		Cell curCell = Library.needCurCell();
+		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
 		CircuitChanges.newVersionOfCell(curCell);
 	}
@@ -1815,7 +1823,7 @@ public final class MenuCommands
 	 */
 	public static void duplicateCellCommand()
 	{
-		Cell curCell = Library.needCurCell();
+		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
 
 		String newName = JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), "Name of duplicated cell",
@@ -1914,7 +1922,7 @@ public final class MenuCommands
 
 	public static void editLayoutViewCommand()
 	{
-		Cell curCell = Library.needCurCell();
+		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
 		Cell layoutView = curCell.otherView(View.LAYOUT);
 		if (layoutView != null)
@@ -1923,7 +1931,7 @@ public final class MenuCommands
 
 	public static void editSchematicViewCommand()
 	{
-		Cell curCell = Library.needCurCell();
+		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
 		Cell schematicView = curCell.otherView(View.SCHEMATIC);
 		if (schematicView != null)
@@ -1932,7 +1940,7 @@ public final class MenuCommands
 
 	public static void editIconViewCommand()
 	{
-		Cell curCell = Library.needCurCell();
+		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
 		Cell iconView = curCell.otherView(View.ICON);
 		if (iconView != null)
@@ -1941,7 +1949,7 @@ public final class MenuCommands
 
 	public static void editVHDLViewCommand()
 	{
-		Cell curCell = Library.needCurCell();
+		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
 		Cell vhdlView = curCell.otherView(View.VHDL);
 		if (vhdlView != null)
@@ -1950,7 +1958,7 @@ public final class MenuCommands
 
 	public static void editDocViewCommand()
 	{
-		Cell curCell = Library.needCurCell();
+		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
 		Cell docView = curCell.otherView(View.DOC);
 		if (docView != null)
@@ -1959,7 +1967,7 @@ public final class MenuCommands
 
 	public static void editSkeletonViewCommand()
 	{
-		Cell curCell = Library.needCurCell();
+		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
 		Cell skelView = curCell.otherView(View.LAYOUTSKEL);
 		if (skelView != null)
@@ -1968,7 +1976,7 @@ public final class MenuCommands
 
 	public static void editOtherViewCommand()
 	{
-		Cell curCell = Library.needCurCell();
+		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
 
 		List views = View.getOrderedViews();
@@ -2149,7 +2157,8 @@ public final class MenuCommands
         // find current screen
 		EditWindow curEdit = EditWindow.getCurrent();
         WindowFrame curWF = WindowFrame.getCurrentWindowFrame();
-        GraphicsConfiguration curConfig = curEdit.getGraphicsConfiguration();
+		WindowContent content = curWF.getContent();
+        GraphicsConfiguration curConfig = content.getPanel().getGraphicsConfiguration();
         GraphicsDevice curDevice = curConfig.getDevice();
         
         // get all screens
@@ -2235,7 +2244,7 @@ public final class MenuCommands
 
 		public void doIt()
 		{
-			Cell cell = Library.needCurCell();
+			Cell cell = WindowFrame.needCurCell();
 			if (cell == null) return;
 			Variable templateVar = cell.getVar(templateKey);
 			if (templateVar != null)

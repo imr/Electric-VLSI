@@ -25,44 +25,30 @@ package com.sun.electric.tool.user;
 
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.network.JNetwork;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.ErrorLog;
 import com.sun.electric.tool.user.dialogs.NewExport;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Comparator;
 import java.util.Collections;
 import javax.swing.JOptionPane;
@@ -92,7 +78,7 @@ public final class ExportChanges
 
 	public static void describeExports(boolean summarize)
 	{
-		Cell cell = Library.needCurCell();
+		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
 		Netlist netlist = cell.getUserNetlist();
 
@@ -406,7 +392,7 @@ public final class ExportChanges
 	public static void reExportAll()
 	{
 		// make sure there is a current cell
-		Cell cell = Library.needCurCell();
+		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
 
 		// disallow port action if lock is on
@@ -422,7 +408,7 @@ public final class ExportChanges
 	public static void reExportHighlighted()
 	{
 		// make sure there is a current cell
-		Cell cell = Library.needCurCell();
+		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
 
 		// disallow port action if lock is on
@@ -446,7 +432,7 @@ public final class ExportChanges
 	public static void reExportPowerAndGround()
 	{
 		// make sure there is a current cell
-		Cell cell = Library.needCurCell();
+		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
 
 		// disallow port action if lock is on
@@ -569,7 +555,7 @@ public final class ExportChanges
 	public static void deleteExportsOnHighlighted()
 	{
 		// make sure there is a current cell
-		Cell cell = Library.needCurCell();
+		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
 
 		// disallow port action if lock is on
@@ -601,7 +587,7 @@ public final class ExportChanges
 	public static void deleteExportsInArea()
 	{
 		// make sure there is a current cell
-		Cell cell = Library.needCurCell();
+		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
 
 		// disallow port action if lock is on

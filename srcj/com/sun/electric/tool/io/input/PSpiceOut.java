@@ -24,8 +24,6 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.io.input.Input;
-import com.sun.electric.tool.io.input.Simulate;
 
 import java.io.InputStream;
 import java.io.IOException;

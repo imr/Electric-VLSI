@@ -33,7 +33,6 @@ import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.routing.InteractiveRouter;
 import com.sun.electric.tool.routing.SimpleWirer;
-import com.sun.electric.tool.routing.RouteElement;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveArc;
 
@@ -44,7 +43,6 @@ import java.awt.geom.Rectangle2D;
 import java.awt.*;
 import java.util.List;
 import java.util.Iterator;
-import java.util.ArrayList;
 import java.util.prefs.Preferences;
 
 /**
@@ -218,168 +216,170 @@ public class ClickZoomWireListener
 
         long currentTime = System.currentTimeMillis();
 
-        EditWindow wnd = (EditWindow)evt.getSource();
-        Cell cell = wnd.getCell();
-        if (cell == null) return;
-        clickX = evt.getX();
-        clickY = evt.getY();
-        Point2D dbClick = wnd.screenToDatabase(clickX, clickY);
-        lastdbMouseX = (int)dbClick.getX();
-        lastdbMouseY = (int)dbClick.getY();
-
-        boolean another = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
-        invertSelection = (evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0;
-        specialSelect = ToolBar.getSelectSpecial();
-
-        // ===== right mouse clicks =====
-
-        if (isRightMouse(evt)) {
-
-            rightMousePressedTimeStamp = currentTime;
-
-            // draw possible wire connection
-            if (!invertSelection) {
-                Iterator hIt = Highlight.getHighlights();
-                // if already 2 objects, wire them up
-                if (Highlight.getNumHighlights() == 2) {
-                    Highlight h1 = (Highlight)hIt.next();
-                    Highlight h2 = (Highlight)hIt.next();
-                    if (h1.getType() == Highlight.Type.EOBJ && h2.getType() == Highlight.Type.EOBJ) {
-                        modeRight = Mode.wiringConnect;
-                        wiringTarget = null;
-                        startObj = h1.getElectricObject();
-                        endObj = h2.getElectricObject();
-                        EditWindow.gridAlign(dbClick);
-                        router.startInteractiveRoute();
-                        router.highlightRoute(wnd, h1.getElectricObject(), h2.getElectricObject(), dbClick);
-                        return;
-                    }
-                }
-                // if one object, put into wire find mode
-                // which will draw possible wire route.
-                if (Highlight.getNumHighlights() == 1) {
-                    Highlight h1 = (Highlight)hIt.next();
-                    if (h1.getType() == Highlight.Type.EOBJ) {
-                        modeRight = Mode.wiringFind;
-                        wiringTarget = null;
-                        startObj = h1.getElectricObject();
-                        endObj = null;
-                        EditWindow.gridAlign(dbClick);
-                        router.startInteractiveRoute();
-                        router.highlightRoute(wnd, h1.getElectricObject(), null, dbClick);
-                        return;
-                    }
-                }
-                System.out.println("Must start new arc from one node or arc; or wire two node/arcs together");
-                return;
-            }
-            // drawing some sort of box
-            // clear current highlights first
-            wnd.setStartDrag(clickX, clickY);
-            wnd.setEndDrag(clickX, clickY);
-            wnd.setDoingAreaDrag();
-            // zoom out and zoom to box mode
-            if (invertSelection && !another) {
-                // A single click zooms out, but a drag box zooms to box
-                // The distinction is if the user starts dragging a box,
-                // which we check for in mouseDragged after a set time delay
-                modeRight = Mode.zoomOut;
-            }
-            // draw box
-            if (another && invertSelection) {
-                // the box we are going to draw is a highlight
-                Highlight.clear();
-                modeRight = Mode.drawBox;
-            }
-            return;
-        }
-
-        // ===== left mouse clicks ======
-
-        if (isLeftMouse(evt)) {
-
-            // if doing sticky move place objects now
-            if (modeLeft == Mode.stickyMove) {
-                // moving objects
-                if (another)
-                    dbClick = convertToOrthogonal(new Point2D.Double(dbMoveStartX, dbMoveStartY), dbClick);
-                Point2D dbDelta = new Point((int)dbClick.getX() - dbMoveStartX, (int)dbClick.getY() - dbMoveStartY);
-                EditWindow.gridAlign(dbDelta);
-                if (dbDelta.getX() != 0 || dbDelta.getY() != 0) {
-                    Highlight.setHighlightOffset(0, 0);
-                    CircuitChanges.manyMove(dbDelta.getX(), dbDelta.getY(), wnd);
-                    wnd.repaintContents();
-                }
-                modeLeft = Mode.none;
-                return;
-            }
-
-            // new time stamp must occur after checking for sticky move
-            leftMousePressedTimeStamp = evt.getWhen();
-
-            // ----- double-click responses -----
-
-            if (evt.getClickCount() == 2) {
-                /* if CTRL is being held, user wants to cycle through what's
-                under the cursor--pop up menu to let them select */
-                /*
-                if (another) {
-                    Rectangle2D bounds = new Rectangle2D.Double(clickX, clickY, 0, 0);
-                    underCursor = Highlight.findAllInArea(cell, false, another, true, specialSelect, true, bounds, wnd);
-                    JPopupMenu popup = selectPopupMenu(underCursor);
-                    popup.show(wnd, clickX, clickY);
-                    return;
-                } */
-                /* if no modifiers, do "get info" */
-                if (!another && !invertSelection) {
-                    if (Highlight.getNumHighlights() >= 1) {
-                        MenuCommands.getInfoCommand();
-                        return;
-                    }
-                }
-            }
-
-            // ----- single click responses -----
-
-            // if toolbar is in select mode, draw box
-            if (ToolBar.getSelectMode() == ToolBar.SelectMode.AREA) {
-                // select area
-                // area selection: just drag out a rectangle
-                wnd.setStartDrag(clickX, clickY);
-                wnd.setEndDrag(clickX, clickY);
-                wnd.setDoingAreaDrag();
-                Highlight.clear();
-                modeLeft = Mode.drawBox;
-                return;
-            }
-
-            // if already over highlighted object, move it
-            if (!another && !invertSelection && Highlight.overHighlighted(wnd, clickX, clickY)) {
-                // over something, user may want to move objects
-                dbMoveStartX = (int)dbClick.getX();
-                dbMoveStartY = (int)dbClick.getY();
-                modeLeft = Mode.move;
-            } else {
-                // findObject handles cycling through objects (another)
-                // and inverting selection (invertSelection)
-                // and selection special objects (specialSelection)
-                int numFound = Highlight.findObject(dbClick, wnd, false, another, invertSelection, true, false, specialSelect, true);
-                if (numFound == 0) {
-                    // not over anything: drag out a selection rectangle
-                    wnd.setStartDrag(clickX, clickY);
-                    wnd.setEndDrag(clickX, clickY);
-                    wnd.setDoingAreaDrag();
-                    modeLeft = Mode.selectBox;
-                } else {
-                    // over something, user may want to move objects
-                    dbMoveStartX = (int)dbClick.getX();
-                    dbMoveStartY = (int)dbClick.getY();
-                    modeLeft = Mode.move;
-                }
-            }
-            return;
-        }
-
+		if (evt.getSource() instanceof EditWindow.CircuitPart)
+		{
+	        EditWindow wnd = (EditWindow)evt.getSource();
+	        Cell cell = wnd.getCell();
+	        if (cell == null) return;
+	        clickX = evt.getX();
+	        clickY = evt.getY();
+	        Point2D dbClick = wnd.screenToDatabase(clickX, clickY);
+	        lastdbMouseX = (int)dbClick.getX();
+	        lastdbMouseY = (int)dbClick.getY();
+	
+	        boolean another = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
+	        invertSelection = (evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0;
+	        specialSelect = ToolBar.getSelectSpecial();
+	
+	        // ===== right mouse clicks =====
+	
+	        if (isRightMouse(evt)) {
+	
+	            rightMousePressedTimeStamp = currentTime;
+	
+	            // draw possible wire connection
+	            if (!invertSelection) {
+	                Iterator hIt = Highlight.getHighlights();
+	                // if already 2 objects, wire them up
+	                if (Highlight.getNumHighlights() == 2) {
+	                    Highlight h1 = (Highlight)hIt.next();
+	                    Highlight h2 = (Highlight)hIt.next();
+	                    if (h1.getType() == Highlight.Type.EOBJ && h2.getType() == Highlight.Type.EOBJ) {
+	                        modeRight = Mode.wiringConnect;
+	                        wiringTarget = null;
+	                        startObj = h1.getElectricObject();
+	                        endObj = h2.getElectricObject();
+	                        EditWindow.gridAlign(dbClick);
+	                        router.startInteractiveRoute();
+	                        router.highlightRoute(wnd, h1.getElectricObject(), h2.getElectricObject(), dbClick);
+	                        return;
+	                    }
+	                }
+	                // if one object, put into wire find mode
+	                // which will draw possible wire route.
+	                if (Highlight.getNumHighlights() == 1) {
+	                    Highlight h1 = (Highlight)hIt.next();
+	                    if (h1.getType() == Highlight.Type.EOBJ) {
+	                        modeRight = Mode.wiringFind;
+	                        wiringTarget = null;
+	                        startObj = h1.getElectricObject();
+	                        endObj = null;
+	                        EditWindow.gridAlign(dbClick);
+	                        router.startInteractiveRoute();
+	                        router.highlightRoute(wnd, h1.getElectricObject(), null, dbClick);
+	                        return;
+	                    }
+	                }
+	                System.out.println("Must start new arc from one node or arc; or wire two node/arcs together");
+	                return;
+	            }
+	            // drawing some sort of box
+	            // clear current highlights first
+	            wnd.setStartDrag(clickX, clickY);
+	            wnd.setEndDrag(clickX, clickY);
+	            wnd.setDoingAreaDrag();
+	            // zoom out and zoom to box mode
+	            if (invertSelection && !another) {
+	                // A single click zooms out, but a drag box zooms to box
+	                // The distinction is if the user starts dragging a box,
+	                // which we check for in mouseDragged after a set time delay
+	                modeRight = Mode.zoomOut;
+	            }
+	            // draw box
+	            if (another && invertSelection) {
+	                // the box we are going to draw is a highlight
+	                Highlight.clear();
+	                modeRight = Mode.drawBox;
+	            }
+	            return;
+	        }
+	
+	        // ===== left mouse clicks ======
+	
+	        if (isLeftMouse(evt)) {
+	
+	            // if doing sticky move place objects now
+	            if (modeLeft == Mode.stickyMove) {
+	                // moving objects
+	                if (another)
+	                    dbClick = convertToOrthogonal(new Point2D.Double(dbMoveStartX, dbMoveStartY), dbClick);
+	                Point2D dbDelta = new Point((int)dbClick.getX() - dbMoveStartX, (int)dbClick.getY() - dbMoveStartY);
+	                EditWindow.gridAlign(dbDelta);
+	                if (dbDelta.getX() != 0 || dbDelta.getY() != 0) {
+	                    Highlight.setHighlightOffset(0, 0);
+	                    CircuitChanges.manyMove(dbDelta.getX(), dbDelta.getY(), wnd);
+	                    wnd.repaintContents();
+	                }
+	                modeLeft = Mode.none;
+	                return;
+	            }
+	
+	            // new time stamp must occur after checking for sticky move
+	            leftMousePressedTimeStamp = evt.getWhen();
+	
+	            // ----- double-click responses -----
+	
+	            if (evt.getClickCount() == 2) {
+	                /* if CTRL is being held, user wants to cycle through what's
+	                under the cursor--pop up menu to let them select */
+	                /*
+	                if (another) {
+	                    Rectangle2D bounds = new Rectangle2D.Double(clickX, clickY, 0, 0);
+	                    underCursor = Highlight.findAllInArea(cell, false, another, true, specialSelect, true, bounds, wnd);
+	                    JPopupMenu popup = selectPopupMenu(underCursor);
+	                    popup.show(wnd, clickX, clickY);
+	                    return;
+	                } */
+	                /* if no modifiers, do "get info" */
+	                if (!another && !invertSelection) {
+	                    if (Highlight.getNumHighlights() >= 1) {
+	                        MenuCommands.getInfoCommand();
+	                        return;
+	                    }
+	                }
+	            }
+	
+	            // ----- single click responses -----
+	
+	            // if toolbar is in select mode, draw box
+	            if (ToolBar.getSelectMode() == ToolBar.SelectMode.AREA) {
+	                // select area
+	                // area selection: just drag out a rectangle
+	                wnd.setStartDrag(clickX, clickY);
+	                wnd.setEndDrag(clickX, clickY);
+	                wnd.setDoingAreaDrag();
+	                Highlight.clear();
+	                modeLeft = Mode.drawBox;
+	                return;
+	            }
+	
+	            // if already over highlighted object, move it
+	            if (!another && !invertSelection && Highlight.overHighlighted(wnd, clickX, clickY)) {
+	                // over something, user may want to move objects
+	                dbMoveStartX = (int)dbClick.getX();
+	                dbMoveStartY = (int)dbClick.getY();
+	                modeLeft = Mode.move;
+	            } else {
+	                // findObject handles cycling through objects (another)
+	                // and inverting selection (invertSelection)
+	                // and selection special objects (specialSelection)
+	                int numFound = Highlight.findObject(dbClick, wnd, false, another, invertSelection, true, false, specialSelect, true);
+	                if (numFound == 0) {
+	                    // not over anything: drag out a selection rectangle
+	                    wnd.setStartDrag(clickX, clickY);
+	                    wnd.setEndDrag(clickX, clickY);
+	                    wnd.setDoingAreaDrag();
+	                    modeLeft = Mode.selectBox;
+	                } else {
+	                    // over something, user may want to move objects
+	                    dbMoveStartX = (int)dbClick.getX();
+	                    dbMoveStartY = (int)dbClick.getY();
+	                    modeLeft = Mode.move;
+	                }
+	            }
+	            return;
+	        }
+	    }
     }
 
     /** Handle mouse dragged event.
@@ -395,139 +395,142 @@ public class ClickZoomWireListener
         if (debug) System.out.println("  ["+modeLeft+","+modeRight+"] "+evt.paramString());
         long currentTime = System.currentTimeMillis();
 
-        EditWindow wnd = (EditWindow)evt.getSource();
-        Cell cell = wnd.getCell();
-        if (cell == null) return;
-
-        int mouseX = evt.getX();
-        int mouseY = evt.getY();
-        Point2D dbMouse = wnd.screenToDatabase(mouseX, mouseY);
-        lastdbMouseX = (int)dbMouse.getX();
-        lastdbMouseY = (int)dbMouse.getY();
-
-        boolean another = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
-        specialSelect = ToolBar.getSelectSpecial();
-
-        // ===== Right mouse drags =====
-
-        if (isRightMouse(evt)) {
-
-            if (modeRight == Mode.zoomOut) {
-                // switch to zoomBox mode if the user is really dragging a box
-                // otherwise, we zoom out after specified delay
-                if ((currentTime - rightMousePressedTimeStamp) > zoomInDelayMillis)
-                    modeRight = Mode.zoomBox;
-            }
-            if (modeRight == Mode.drawBox || modeRight == Mode.zoomBox) {
-                // draw a box
-                wnd.setEndDrag(mouseX, mouseY);
-            }
-            if (modeRight == Mode.wiringFind || modeRight == Mode.stickyWiring) {
-                // see if anything under the pointer
-                int numFound = Highlight.findObject(dbMouse, wnd, false, false, false, true, false, specialSelect, false);
-                if (numFound == 0) {
-                    // not over anything, nothing to connect to
-                    EditWindow.gridAlign(dbMouse);
-                    endObj = null;
-                    wiringTarget = null;
-                } else {
-                    // The user can switch between wiring targets under the cursor using a key stroke
-                    // if wiring target non-null, and still under cursor, use that
-                    endObj = null;
-                    if (wiringTarget != null) {
-                        // check if still valid target
-                        EditWindow.gridAlign(dbMouse);
-                        List underCursor = Highlight.findAllInArea(cell, false, true, true, false, specialSelect, false,
-                            new Rectangle2D.Double(dbMouse.getX(), dbMouse.getY(), 0, 0), wnd);
-                        for (Iterator hs = underCursor.iterator(); hs.hasNext(); ) {
-                            Highlight h = (Highlight)hs.next();
-                            ElectricObject eobj = h.getElectricObject();
-                            if (eobj == wiringTarget) {
-                                endObj = wiringTarget;
-                                break;
-                            }
-                        }
-                        // wiringTarget is no longer valid, reset it
-                        if (endObj == null) wiringTarget = null;
-                    }
-                    // if target is null, find new target
-                    if (endObj == null) {
-                        Iterator hIt = Highlight.getHighlights();
-                        Highlight h2 = (Highlight)hIt.next();
-                        endObj = h2.getElectricObject();
-                    }
-                    EditWindow.gridAlign(dbMouse);
-                }
-                router.highlightRoute(wnd, startObj, endObj, dbMouse);
-                // clear any previous popup cloud
-                /*
-                wnd.clearShowPopupCloud();
-                // popup list of stuff under mouse to connect to if more than one
-                List underCursor = Highlight.findAllInArea(cell, false, true, true, false, specialSelect, false,
-                    new Rectangle2D.Double(dbMouse.getX(), dbMouse.getY(), 0, 0), wnd);
-                if (underCursor.size() > 1) {
-                    ArrayList text = new ArrayList();
-                    ArrayList portList = new ArrayList();
-                    text.add("Connect to:");
-                    int num = 1;
-                    for (int i=0; i<underCursor.size(); i++) {
-                        Highlight h = (Highlight)underCursor.get(i);
-                        ElectricObject obj = h.getElectricObject();
-                        if (num == 10) {
-                            text.add("...too many to display");
-                            break;
-                        }
-                        if (obj instanceof PortInst) {
-                            // only give option to connect to ports
-                            PortInst pi = (PortInst)obj;
-                            String str = "("+num+"): Port "+pi.getPortProto().getProtoName()+" on "+pi.getNodeInst().getName();
-                            text.add(str);
-                            portList.add(pi);
-                            num++;
-                        }
-                    }
-                    if (num > 2) {
-                        // only show if more than one port to connect to under mouse
-                        wnd.setShowPopupCloud(text, new Point2D.Double(mouseX, mouseY));
-                        wiringPopupCloudUp = true;
-                        wiringPopupCloudList = portList;
-                        wiringLastDBMouse = dbMouse;
-                    }
-                } */
-            }
-            if (modeRight == Mode.wiringConnect) {
-                EditWindow.gridAlign(dbMouse);
-                router.highlightRoute(wnd, startObj, endObj, dbMouse);
-            }
-        }
-
-        // ===== Left mouse drags =====
-
-        if (isLeftMouse(evt)) {
-
-            if (modeLeft == Mode.selectBox || modeLeft == Mode.drawBox) {
-                // select objects in box
-                wnd.setEndDrag(mouseX, mouseY);
-                wnd.repaint();
-            }
-            if (modeLeft == Mode.move || modeLeft == Mode.stickyMove) {
-                // moving objects
-                // ignore moving objects drag if not after specified delay
-                // this prevents accidental movements on user clicks
-                //if ((currentTime - leftMousePressedTimeStamp) < dragDelayMillis) return;
-                // if CTRL held, can only move orthogonally
-                if (another)
-                    dbMouse = convertToOrthogonal(new Point2D.Double(dbMoveStartX, dbMoveStartY), dbMouse);
-                // relocate highlight to under mouse
-                Point2D dbDelta = new Point((int)dbMouse.getX() - dbMoveStartX, (int)dbMouse.getY() - dbMoveStartY);
-                EditWindow.gridAlign(dbDelta);              // align to grid
-                Point2D screenDelta = wnd.deltaDatabaseToScreen((int)dbDelta.getX(), (int)dbDelta.getY());
-                Highlight.setHighlightOffset((int)screenDelta.getX(), (int)screenDelta.getY());
-                wnd.repaint();
-            }
-        }
-
-        wnd.repaint();
+ 		if (evt.getSource() instanceof EditWindow.CircuitPart)
+		{
+	        EditWindow wnd = (EditWindow)evt.getSource();
+	        Cell cell = wnd.getCell();
+	        if (cell == null) return;
+	
+	        int mouseX = evt.getX();
+	        int mouseY = evt.getY();
+	        Point2D dbMouse = wnd.screenToDatabase(mouseX, mouseY);
+	        lastdbMouseX = (int)dbMouse.getX();
+	        lastdbMouseY = (int)dbMouse.getY();
+	
+	        boolean another = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
+	        specialSelect = ToolBar.getSelectSpecial();
+	
+	        // ===== Right mouse drags =====
+	
+	        if (isRightMouse(evt)) {
+	
+	            if (modeRight == Mode.zoomOut) {
+	                // switch to zoomBox mode if the user is really dragging a box
+	                // otherwise, we zoom out after specified delay
+	                if ((currentTime - rightMousePressedTimeStamp) > zoomInDelayMillis)
+	                    modeRight = Mode.zoomBox;
+	            }
+	            if (modeRight == Mode.drawBox || modeRight == Mode.zoomBox) {
+	                // draw a box
+	                wnd.setEndDrag(mouseX, mouseY);
+	            }
+	            if (modeRight == Mode.wiringFind || modeRight == Mode.stickyWiring) {
+	                // see if anything under the pointer
+	                int numFound = Highlight.findObject(dbMouse, wnd, false, false, false, true, false, specialSelect, false);
+	                if (numFound == 0) {
+	                    // not over anything, nothing to connect to
+	                    EditWindow.gridAlign(dbMouse);
+	                    endObj = null;
+	                    wiringTarget = null;
+	                } else {
+	                    // The user can switch between wiring targets under the cursor using a key stroke
+	                    // if wiring target non-null, and still under cursor, use that
+	                    endObj = null;
+	                    if (wiringTarget != null) {
+	                        // check if still valid target
+	                        EditWindow.gridAlign(dbMouse);
+	                        List underCursor = Highlight.findAllInArea(cell, false, true, true, false, specialSelect, false,
+	                            new Rectangle2D.Double(dbMouse.getX(), dbMouse.getY(), 0, 0), wnd);
+	                        for (Iterator hs = underCursor.iterator(); hs.hasNext(); ) {
+	                            Highlight h = (Highlight)hs.next();
+	                            ElectricObject eobj = h.getElectricObject();
+	                            if (eobj == wiringTarget) {
+	                                endObj = wiringTarget;
+	                                break;
+	                            }
+	                        }
+	                        // wiringTarget is no longer valid, reset it
+	                        if (endObj == null) wiringTarget = null;
+	                    }
+	                    // if target is null, find new target
+	                    if (endObj == null) {
+	                        Iterator hIt = Highlight.getHighlights();
+	                        Highlight h2 = (Highlight)hIt.next();
+	                        endObj = h2.getElectricObject();
+	                    }
+	                    EditWindow.gridAlign(dbMouse);
+	                }
+	                router.highlightRoute(wnd, startObj, endObj, dbMouse);
+	                // clear any previous popup cloud
+	                /*
+	                wnd.clearShowPopupCloud();
+	                // popup list of stuff under mouse to connect to if more than one
+	                List underCursor = Highlight.findAllInArea(cell, false, true, true, false, specialSelect, false,
+	                    new Rectangle2D.Double(dbMouse.getX(), dbMouse.getY(), 0, 0), wnd);
+	                if (underCursor.size() > 1) {
+	                    ArrayList text = new ArrayList();
+	                    ArrayList portList = new ArrayList();
+	                    text.add("Connect to:");
+	                    int num = 1;
+	                    for (int i=0; i<underCursor.size(); i++) {
+	                        Highlight h = (Highlight)underCursor.get(i);
+	                        ElectricObject obj = h.getElectricObject();
+	                        if (num == 10) {
+	                            text.add("...too many to display");
+	                            break;
+	                        }
+	                        if (obj instanceof PortInst) {
+	                            // only give option to connect to ports
+	                            PortInst pi = (PortInst)obj;
+	                            String str = "("+num+"): Port "+pi.getPortProto().getProtoName()+" on "+pi.getNodeInst().getName();
+	                            text.add(str);
+	                            portList.add(pi);
+	                            num++;
+	                        }
+	                    }
+	                    if (num > 2) {
+	                        // only show if more than one port to connect to under mouse
+	                        wnd.setShowPopupCloud(text, new Point2D.Double(mouseX, mouseY));
+	                        wiringPopupCloudUp = true;
+	                        wiringPopupCloudList = portList;
+	                        wiringLastDBMouse = dbMouse;
+	                    }
+	                } */
+	            }
+	            if (modeRight == Mode.wiringConnect) {
+	                EditWindow.gridAlign(dbMouse);
+	                router.highlightRoute(wnd, startObj, endObj, dbMouse);
+	            }
+	        }
+	
+	        // ===== Left mouse drags =====
+	
+	        if (isLeftMouse(evt)) {
+	
+	            if (modeLeft == Mode.selectBox || modeLeft == Mode.drawBox) {
+	                // select objects in box
+	                wnd.setEndDrag(mouseX, mouseY);
+	                wnd.repaint();
+	            }
+	            if (modeLeft == Mode.move || modeLeft == Mode.stickyMove) {
+	                // moving objects
+	                // ignore moving objects drag if not after specified delay
+	                // this prevents accidental movements on user clicks
+	                //if ((currentTime - leftMousePressedTimeStamp) < dragDelayMillis) return;
+	                // if CTRL held, can only move orthogonally
+	                if (another)
+	                    dbMouse = convertToOrthogonal(new Point2D.Double(dbMoveStartX, dbMoveStartY), dbMouse);
+	                // relocate highlight to under mouse
+	                Point2D dbDelta = new Point((int)dbMouse.getX() - dbMoveStartX, (int)dbMouse.getY() - dbMoveStartY);
+	                EditWindow.gridAlign(dbDelta);              // align to grid
+	                Point2D screenDelta = wnd.deltaDatabaseToScreen((int)dbDelta.getX(), (int)dbDelta.getY());
+	                Highlight.setHighlightOffset((int)screenDelta.getX(), (int)screenDelta.getY());
+	                wnd.repaint();
+	            }
+	        }
+	
+	        wnd.repaint();
+	        }
     }
 
     /** Handle mouse released event
@@ -538,161 +541,163 @@ public class ClickZoomWireListener
 
         if (debug) System.out.println("  ["+modeLeft+","+modeRight+"] "+evt.paramString());
 
-        EditWindow wnd = (EditWindow)evt.getSource();
-        Cell cell = wnd.getCell();
-        if (cell == null) return;
-        // add back in offset
-        int releaseX = evt.getX();
-        int releaseY = evt.getY();
-        Point2D dbMouse = wnd.screenToDatabase(releaseX, releaseY);
-        boolean another = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
-        specialSelect = ToolBar.getSelectSpecial();
-
-        // ===== Right Mouse Release =====
-
-        if (isRightMouse(evt)) {
-
-            if (modeRight == Mode.zoomIn) {
-                // zoom in by a factor of two
-                double scale = wnd.getScale();
-                wnd.setScale(scale * 2);
-                wnd.clearDoingAreaDrag();
-                wnd.repaintContents();
-            }
-            if (modeRight == Mode.zoomOut) {
-                // zoom out by a factor of two
-                double scale = wnd.getScale();
-                wnd.setScale(scale / 2);
-                wnd.clearDoingAreaDrag();
-                wnd.repaintContents();
-            }
-            if (modeRight == Mode.drawBox || modeRight == Mode.zoomBox) {
-                // drawing boxes
-                Point2D start = wnd.screenToDatabase((int)wnd.getStartDrag().getX(), (int)wnd.getStartDrag().getY());
-                Point2D end = wnd.screenToDatabase((int)wnd.getEndDrag().getX(), (int)wnd.getEndDrag().getY());
-                double minSelX = Math.min(start.getX(), end.getX());
-                double maxSelX = Math.max(start.getX(), end.getX());
-                double minSelY = Math.min(start.getY(), end.getY());
-                double maxSelY = Math.max(start.getY(), end.getY());
-
-                if (modeRight == Mode.drawBox) {
-                    // just draw a highlight box
-                    Highlight.addArea(new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY), cell);
-                }
-                if (modeRight == Mode.zoomBox) {
-                    // zoom to box: focus on box
-                    Rectangle2D bounds = new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY);
-                    // don't zoom a box dimension is less than 4 (heuristic to prevent unintended zoom)
-                    // note these dimensions are in lambda, the db unit, not screen pixels
-                    if (bounds.getHeight() > 4 && bounds.getWidth() > 4)
-                        wnd.focusScreen(bounds);
-                    else {
-                        // modeRight == Mode.zoomOut
-                        // if not zoomBox, then user meant to zoomOut
-                        double scale = wnd.getScale();
-                        wnd.setScale(scale / 2);
-                        wnd.clearDoingAreaDrag();
-                        wnd.repaintContents();
-                    }
-
-                }
-                Highlight.finished();
-                wnd.clearDoingAreaDrag();
-                wnd.repaint();
-            }
-            if (modeRight == Mode.wiringFind || modeRight == Mode.stickyWiring) {
-                // see if anything under the pointer
-                /*
-                int numFound = Highlight.findObject(dbMouse, wnd, false, false, false, true, false, specialSelect, true);
-                if (numFound == 0) {
-                    // not over anything, nothing to connect to
-                    EditWindow.gridAlign(dbMouse);
-                    endObj = null;
-                } else {
-                    // connect objects
-                    Iterator hIt = Highlight.getHighlights();
-                    Highlight h2 = (Highlight)hIt.next();
-                    EditWindow.gridAlign(dbMouse);
-                    endObj = h2.getElectricObject();
-                }*/
-                EditWindow.gridAlign(dbMouse);
-                router.makeRoute(wnd, startObj, endObj, dbMouse);
-                // clear any popup cloud we had
-                //wnd.clearShowPopupCloud();
-                // clear last switched to highlight
-                wiringTarget = null;
-            }
-            if (modeRight == Mode.wiringConnect) {
-                EditWindow.gridAlign(dbMouse);
-                router.makeRoute(wnd, startObj, endObj, dbMouse);
-            }
-            modeRight = Mode.none;
-        }
-
-        // ===== Left Mouse Release =====
-
-        if (isLeftMouse(evt)) {
-
-            // ignore move if done within cancelMoveDelayMillis
-            long curTime = evt.getWhen();
-            if (debug) System.out.println("Time diff between click->release is: "+(curTime - leftMousePressedTimeStamp));
-            if (modeLeft == Mode.move || modeLeft == Mode.stickyMove) {
-                if ((curTime - leftMousePressedTimeStamp) < cancelMoveDelayMillis) {
-                    Highlight.setHighlightOffset(0, 0);
-                    modeLeft = Mode.none;
-                    wnd.repaint();
-                    return;
-                }
-            }
-
-            // if 'stickyMove' is true and we are moving stuff, ignore mouse release
-            if (getStickyMove() && (modeLeft == Mode.move)) {
-                // only do so if after cancel move delay
-                /*
-                if ((System.currentTimeMillis() - leftMousePressedTimeStamp) < dragDelayMillis)
-                    modeLeft = Mode.none;       // user left mouse button single click
-                else
-                */
-                    modeLeft = Mode.stickyMove; // user moving stuff in sticky mode
-            } else {
-
-                if (modeLeft == Mode.selectBox || modeLeft == Mode.drawBox) {
-                    // select all in box
-                    Point2D start = wnd.screenToDatabase((int)wnd.getStartDrag().getX(), (int)wnd.getStartDrag().getY());
-                    Point2D end = wnd.screenToDatabase((int)wnd.getEndDrag().getX(), (int)wnd.getEndDrag().getY());
-                    double minSelX = Math.min(start.getX(), end.getX());
-                    double maxSelX = Math.max(start.getX(), end.getX());
-                    double minSelY = Math.min(start.getY(), end.getY());
-                    double maxSelY = Math.max(start.getY(), end.getY());
-                    if (modeLeft == Mode.selectBox) {
-                        if (!invertSelection)
-                            Highlight.clear();
-                        Highlight.selectArea(wnd, minSelX, maxSelX, minSelY, maxSelY, invertSelection, specialSelect);
-                    }
-                    if (modeLeft == Mode.drawBox) {
-                        // just draw a highlight box
-                        Highlight.addArea(new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY), cell);
-                    }
-                    Highlight.finished();
-                    wnd.clearDoingAreaDrag();
-                    wnd.repaint();
-                }
-                if (modeLeft == Mode.move || modeLeft == Mode.stickyMove) {
-                    // moving objects
-                    if (another)
-                        dbMouse = convertToOrthogonal(new Point2D.Double(dbMoveStartX, dbMoveStartY), dbMouse);
-                    Point2D dbDelta = new Point((int)dbMouse.getX() - dbMoveStartX, (int)dbMouse.getY() - dbMoveStartY);
-                    EditWindow.gridAlign(dbDelta);
-                    if (dbDelta.getX() != 0 || dbDelta.getY() != 0) {
-                        Highlight.setHighlightOffset(0, 0);
-                        CircuitChanges.manyMove(dbDelta.getX(), dbDelta.getY(), wnd);
-                        wnd.repaintContents();
-                    }
-                }
-                modeLeft = Mode.none;
-            }
-        }
-
+		if (evt.getSource() instanceof EditWindow.CircuitPart)
+		{
+	        EditWindow wnd = (EditWindow)evt.getSource();
+	        Cell cell = wnd.getCell();
+	        if (cell == null) return;
+	        // add back in offset
+	        int releaseX = evt.getX();
+	        int releaseY = evt.getY();
+	        Point2D dbMouse = wnd.screenToDatabase(releaseX, releaseY);
+	        boolean another = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
+	        specialSelect = ToolBar.getSelectSpecial();
+	
+	        // ===== Right Mouse Release =====
+	
+	        if (isRightMouse(evt)) {
+	
+	            if (modeRight == Mode.zoomIn) {
+	                // zoom in by a factor of two
+	                double scale = wnd.getScale();
+	                wnd.setScale(scale * 2);
+	                wnd.clearDoingAreaDrag();
+	                wnd.repaintContents();
+	            }
+	            if (modeRight == Mode.zoomOut) {
+	                // zoom out by a factor of two
+	                double scale = wnd.getScale();
+	                wnd.setScale(scale / 2);
+	                wnd.clearDoingAreaDrag();
+	                wnd.repaintContents();
+	            }
+	            if (modeRight == Mode.drawBox || modeRight == Mode.zoomBox) {
+	                // drawing boxes
+	                Point2D start = wnd.screenToDatabase((int)wnd.getStartDrag().getX(), (int)wnd.getStartDrag().getY());
+	                Point2D end = wnd.screenToDatabase((int)wnd.getEndDrag().getX(), (int)wnd.getEndDrag().getY());
+	                double minSelX = Math.min(start.getX(), end.getX());
+	                double maxSelX = Math.max(start.getX(), end.getX());
+	                double minSelY = Math.min(start.getY(), end.getY());
+	                double maxSelY = Math.max(start.getY(), end.getY());
+	
+	                if (modeRight == Mode.drawBox) {
+	                    // just draw a highlight box
+	                    Highlight.addArea(new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY), cell);
+	                }
+	                if (modeRight == Mode.zoomBox) {
+	                    // zoom to box: focus on box
+	                    Rectangle2D bounds = new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY);
+	                    // don't zoom a box dimension is less than 4 (heuristic to prevent unintended zoom)
+	                    // note these dimensions are in lambda, the db unit, not screen pixels
+	                    if (bounds.getHeight() > 4 && bounds.getWidth() > 4)
+	                        wnd.focusScreen(bounds);
+	                    else {
+	                        // modeRight == Mode.zoomOut
+	                        // if not zoomBox, then user meant to zoomOut
+	                        double scale = wnd.getScale();
+	                        wnd.setScale(scale / 2);
+	                        wnd.clearDoingAreaDrag();
+	                        wnd.repaintContents();
+	                    }
+	
+	                }
+	                Highlight.finished();
+	                wnd.clearDoingAreaDrag();
+	                wnd.repaint();
+	            }
+	            if (modeRight == Mode.wiringFind || modeRight == Mode.stickyWiring) {
+	                // see if anything under the pointer
+	                /*
+	                int numFound = Highlight.findObject(dbMouse, wnd, false, false, false, true, false, specialSelect, true);
+	                if (numFound == 0) {
+	                    // not over anything, nothing to connect to
+	                    EditWindow.gridAlign(dbMouse);
+	                    endObj = null;
+	                } else {
+	                    // connect objects
+	                    Iterator hIt = Highlight.getHighlights();
+	                    Highlight h2 = (Highlight)hIt.next();
+	                    EditWindow.gridAlign(dbMouse);
+	                    endObj = h2.getElectricObject();
+	                }*/
+	                EditWindow.gridAlign(dbMouse);
+	                router.makeRoute(wnd, startObj, endObj, dbMouse);
+	                // clear any popup cloud we had
+	                //wnd.clearShowPopupCloud();
+	                // clear last switched to highlight
+	                wiringTarget = null;
+	            }
+	            if (modeRight == Mode.wiringConnect) {
+	                EditWindow.gridAlign(dbMouse);
+	                router.makeRoute(wnd, startObj, endObj, dbMouse);
+	            }
+	            modeRight = Mode.none;
+	        }
+	
+	        // ===== Left Mouse Release =====
+	
+	        if (isLeftMouse(evt)) {
+	
+	            // ignore move if done within cancelMoveDelayMillis
+	            long curTime = evt.getWhen();
+	            if (debug) System.out.println("Time diff between click->release is: "+(curTime - leftMousePressedTimeStamp));
+	            if (modeLeft == Mode.move || modeLeft == Mode.stickyMove) {
+	                if ((curTime - leftMousePressedTimeStamp) < cancelMoveDelayMillis) {
+	                    Highlight.setHighlightOffset(0, 0);
+	                    modeLeft = Mode.none;
+	                    wnd.repaint();
+	                    return;
+	                }
+	            }
+	
+	            // if 'stickyMove' is true and we are moving stuff, ignore mouse release
+	            if (getStickyMove() && (modeLeft == Mode.move)) {
+	                // only do so if after cancel move delay
+	                /*
+	                if ((System.currentTimeMillis() - leftMousePressedTimeStamp) < dragDelayMillis)
+	                    modeLeft = Mode.none;       // user left mouse button single click
+	                else
+	                */
+	                    modeLeft = Mode.stickyMove; // user moving stuff in sticky mode
+	            } else {
+	
+	                if (modeLeft == Mode.selectBox || modeLeft == Mode.drawBox) {
+	                    // select all in box
+	                    Point2D start = wnd.screenToDatabase((int)wnd.getStartDrag().getX(), (int)wnd.getStartDrag().getY());
+	                    Point2D end = wnd.screenToDatabase((int)wnd.getEndDrag().getX(), (int)wnd.getEndDrag().getY());
+	                    double minSelX = Math.min(start.getX(), end.getX());
+	                    double maxSelX = Math.max(start.getX(), end.getX());
+	                    double minSelY = Math.min(start.getY(), end.getY());
+	                    double maxSelY = Math.max(start.getY(), end.getY());
+	                    if (modeLeft == Mode.selectBox) {
+	                        if (!invertSelection)
+	                            Highlight.clear();
+	                        Highlight.selectArea(wnd, minSelX, maxSelX, minSelY, maxSelY, invertSelection, specialSelect);
+	                    }
+	                    if (modeLeft == Mode.drawBox) {
+	                        // just draw a highlight box
+	                        Highlight.addArea(new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY), cell);
+	                    }
+	                    Highlight.finished();
+	                    wnd.clearDoingAreaDrag();
+	                    wnd.repaint();
+	                }
+	                if (modeLeft == Mode.move || modeLeft == Mode.stickyMove) {
+	                    // moving objects
+	                    if (another)
+	                        dbMouse = convertToOrthogonal(new Point2D.Double(dbMoveStartX, dbMoveStartY), dbMouse);
+	                    Point2D dbDelta = new Point((int)dbMouse.getX() - dbMoveStartX, (int)dbMouse.getY() - dbMoveStartY);
+	                    EditWindow.gridAlign(dbDelta);
+	                    if (dbDelta.getX() != 0 || dbDelta.getY() != 0) {
+	                        Highlight.setHighlightOffset(0, 0);
+	                        CircuitChanges.manyMove(dbDelta.getX(), dbDelta.getY(), wnd);
+	                        wnd.repaintContents();
+	                    }
+	                }
+	                modeLeft = Mode.none;
+	            }
+	        }
+	        }
     }
 
     /**
@@ -702,26 +707,29 @@ public class ClickZoomWireListener
     public void mouseMoved(MouseEvent evt) {
 
         //if (debug) System.out.println("  ["+modeLeft+","+modeRight+"] "+evt.paramString());
+		if (evt.getSource() instanceof EditWindow.CircuitPart)
+		{
+			EditWindow.CircuitPart dispPart = (EditWindow.CircuitPart)evt.getSource();
+			EditWindow wnd = dispPart.wnd;
+			Cell cell = wnd.getCell();
+			if (cell == null) return;
 
-        EditWindow wnd = (EditWindow)evt.getSource();
-        Cell cell = wnd.getCell();
-        if (cell == null) return;
+			int mouseX = evt.getX();
+			int mouseY = evt.getY();
 
-        int mouseX = evt.getX();
-        int mouseY = evt.getY();
+			boolean another = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
+			specialSelect = ToolBar.getSelectSpecial();
 
-        boolean another = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
-        specialSelect = ToolBar.getSelectSpecial();
-
-        if (modeLeft == Mode.stickyMove) {
-            Point2D dbMouse = wnd.screenToDatabase(mouseX, mouseY);
-            if (another)
-                dbMouse = convertToOrthogonal(new Point2D.Double(dbMoveStartX, dbMoveStartY), dbMouse);
-            Point2D dbDelta = new Point((int)dbMouse.getX() - dbMoveStartX, (int)dbMouse.getY() - dbMoveStartY);
-            EditWindow.gridAlign(dbDelta);
-            Point2D screenDelta = wnd.deltaDatabaseToScreen((int)dbDelta.getX(), (int)dbDelta.getY());
-            Highlight.setHighlightOffset((int)screenDelta.getX(), (int)screenDelta.getY());
-            wnd.repaint();
+			if (modeLeft == Mode.stickyMove) {
+				Point2D dbMouse = wnd.screenToDatabase(mouseX, mouseY);
+				if (another)
+					dbMouse = convertToOrthogonal(new Point2D.Double(dbMoveStartX, dbMoveStartY), dbMouse);
+				Point2D dbDelta = new Point((int)dbMouse.getX() - dbMoveStartX, (int)dbMouse.getY() - dbMoveStartY);
+				EditWindow.gridAlign(dbDelta);
+				Point2D screenDelta = wnd.deltaDatabaseToScreen((int)dbDelta.getX(), (int)dbDelta.getY());
+				Highlight.setHighlightOffset((int)screenDelta.getX(), (int)screenDelta.getY());
+				wnd.repaint();
+			}
         }
     }
 
@@ -748,25 +756,29 @@ public class ClickZoomWireListener
 
         if (debug) System.out.println("  "+evt.paramString());
 
-        EditWindow wnd = (EditWindow)evt.getSource();
-        Cell cell = wnd.getCell();
-        if (cell == null) return;
+		if (evt.getSource() instanceof EditWindow.CircuitPart)
+		{
+			EditWindow.CircuitPart dispPart = (EditWindow.CircuitPart)evt.getSource();
+			EditWindow wnd = dispPart.wnd;
+			Cell cell = wnd.getCell();
+			if (cell == null) return;
 
-        boolean sideways = (evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0;
-        boolean sideways2 = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
+			boolean sideways = (evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0;
+			boolean sideways2 = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
 
-        int rotation = evt.getWheelRotation();
+			int rotation = evt.getWheelRotation();
 
-        // scroll left right if sideways
-        if (sideways || sideways2) {
-            // scroll right if roll foward (pos)
-            // scroll left if roll back (neg)
-            ZoomAndPanListener.panX(wnd, rotation);
-        } else {
-            // scroll up if roll forward (pos)
-            // scroll down if roll back (neg)
-            ZoomAndPanListener.panY(wnd, rotation);
-        }
+			// scroll left right if sideways
+			if (sideways || sideways2) {
+				// scroll right if roll foward (pos)
+				// scroll left if roll back (neg)
+				ZoomAndPanListener.panX(wnd, rotation);
+			} else {
+				// scroll up if roll forward (pos)
+				// scroll down if roll back (neg)
+				ZoomAndPanListener.panY(wnd, rotation);
+			}
+		}
     }
 
     /** Key pressed event
@@ -778,48 +790,52 @@ public class ClickZoomWireListener
         if (debug) System.out.println("  ["+modeLeft+","+modeRight+"] "+evt.paramString());
 
         int chr = evt.getKeyCode();
-        EditWindow wnd = (EditWindow)evt.getSource();
-        Cell cell = wnd.getCell();
-        if (cell == null) return;
+		if (evt.getSource() instanceof EditWindow.CircuitPart)
+		{
+			EditWindow.CircuitPart dispPart = (EditWindow.CircuitPart)evt.getSource();
+			EditWindow wnd = dispPart.wnd;
+			Cell cell = wnd.getCell();
+			if (cell == null) return;
 
-        // move stuff around
-        else if (chr == KeyEvent.VK_LEFT) {
-            moveSelected(-1, 0, evt.isShiftDown(), evt.isControlDown());
-        } else if (chr == KeyEvent.VK_RIGHT) {
-            moveSelected(1, 0, evt.isShiftDown(), evt.isControlDown());
-        } else if (chr == KeyEvent.VK_UP) {
-            moveSelected(0, 1, evt.isShiftDown(), evt.isControlDown());
-        } else if (chr == KeyEvent.VK_DOWN) {
-            moveSelected(0, -1, evt.isShiftDown(), evt.isControlDown());
-        }
-        // cancel current mode
-        else if (chr == KeyEvent.VK_ESCAPE) {
-            if (modeRight == Mode.wiringConnect || modeRight == Mode.wiringFind ||
-                modeRight == Mode.stickyWiring)
-                router.cancelInteractiveRoute();
-            modeLeft = Mode.none;
-            modeRight = Mode.none;
-            Highlight.setHighlightOffset(0, 0);
-            wnd.repaint();
-        }
-        // wiring popup cloud selection
-        /*
-        if (wiringPopupCloudUp && (modeRight == Mode.stickyWiring || modeRight == Mode.wiringFind)) {
-            for (int i=0; i<wiringPopupCloudList.size(); i++) {
-                if (chr == (KeyEvent.VK_1 + i)) {
-                    PortInst pi = (PortInst)wiringPopupCloudList.get(i);
-                    EditWindow.gridAlign(wiringLastDBMouse);
-                    router.makeRoute(wnd, startObj, pi, wiringLastDBMouse);
-                    wnd.clearShowPopupCloud();      // clear popup cloud
-                    wiringPopupCloudUp = false;
-                    modeRight = Mode.none;
-                    return;
-                }
-            }
-        } */
-        if (chr == KeyEvent.VK_SPACE) {
-            switchWiringTarget();
-        }
+			// move stuff around
+			else if (chr == KeyEvent.VK_LEFT) {
+				moveSelected(-1, 0, evt.isShiftDown(), evt.isControlDown());
+			} else if (chr == KeyEvent.VK_RIGHT) {
+				moveSelected(1, 0, evt.isShiftDown(), evt.isControlDown());
+			} else if (chr == KeyEvent.VK_UP) {
+				moveSelected(0, 1, evt.isShiftDown(), evt.isControlDown());
+			} else if (chr == KeyEvent.VK_DOWN) {
+				moveSelected(0, -1, evt.isShiftDown(), evt.isControlDown());
+			}
+			// cancel current mode
+			else if (chr == KeyEvent.VK_ESCAPE) {
+				if (modeRight == Mode.wiringConnect || modeRight == Mode.wiringFind ||
+					modeRight == Mode.stickyWiring)
+					router.cancelInteractiveRoute();
+				modeLeft = Mode.none;
+				modeRight = Mode.none;
+				Highlight.setHighlightOffset(0, 0);
+				wnd.repaint();
+			}
+			// wiring popup cloud selection
+			/*
+			if (wiringPopupCloudUp && (modeRight == Mode.stickyWiring || modeRight == Mode.wiringFind)) {
+				for (int i=0; i<wiringPopupCloudList.size(); i++) {
+					if (chr == (KeyEvent.VK_1 + i)) {
+						PortInst pi = (PortInst)wiringPopupCloudList.get(i);
+						EditWindow.gridAlign(wiringLastDBMouse);
+						router.makeRoute(wnd, startObj, pi, wiringLastDBMouse);
+						wnd.clearShowPopupCloud();      // clear popup cloud
+						wiringPopupCloudUp = false;
+						modeRight = Mode.none;
+						return;
+					}
+				}
+			} */
+			if (chr == KeyEvent.VK_SPACE) {
+				switchWiringTarget();
+			}
+		}
     }
 
     public void keyReleased(KeyEvent evt) {

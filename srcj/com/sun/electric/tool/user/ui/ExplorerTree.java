@@ -33,13 +33,10 @@ import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Simulate;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ErrorLog;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.dialogs.NewCell;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Component;
 import java.awt.event.MouseListener;
@@ -59,9 +56,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
 import javax.swing.ToolTipManager;
-import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeSelectionModel;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
@@ -76,7 +71,7 @@ public class ExplorerTree extends JTree
 	private TreeHandler handler = null;
 	private DefaultMutableTreeNode rootNode;
 	private DefaultTreeModel treeModel;
-	private HashMap expanded;
+//	private HashMap expanded;
 
 	private static final int SHOWALPHABETICALLY = 1;
 	private static final int SHOWBYCELLGROUP    = 2;
@@ -99,8 +94,6 @@ public class ExplorerTree extends JTree
 	private static ImageIcon iconViewOldMisc = null;
 	private static ImageIcon iconViewText = null;
 	private static ImageIcon iconViewOldText = null;
-	private static DefaultMutableTreeNode libraryExplorerTree = new DefaultMutableTreeNode("LIBRARIES");
-	private static boolean explorerChanged = true;
 
 	static class CellAndCount
 	{
@@ -149,8 +142,6 @@ public class ExplorerTree extends JTree
 
 		// register our own extended renderer for custom icons and tooltips
 		setCellRenderer(new MyRenderer());
-
-		expanded = new HashMap();
 	}
 
 	/**
@@ -159,73 +150,40 @@ public class ExplorerTree extends JTree
 	 */
 	public Object getCurrentlySelectedObject() { return handler.currentSelectedObject; }
 
+//	private void updateThisExplorerTree()
+//	{
+////System.out.println("rebuilding LIB EXPLORER");
+//		treeDidChange();
+//		treeModel.reload();
+//	}
+
 	/**
-	 * Method to return the tree structure that defines the current cell explorer.
-	 * This is a tree of DefaultMutableTreeNode objects that can be used to
-	 * explore the cell hierarchy.
-	 * @return the tree structure that defines the current cell explorer.
+	 * A static object is used so that its open/closed tree state can be maintained.
 	 */
-	public static DefaultMutableTreeNode getLibraryExplorerTree() { return libraryExplorerTree; }
+	private static String libraryNode = "LIBRARIES";
 
-	public static void explorerTreeChanged() { explorerChanged = true; }
-
-	public void updateThisExplorerTree()
+	public static DefaultMutableTreeNode makeLibraryTree()
 	{
-		treeDidChange();
-		treeModel.reload();
-	}
-
-	/**
-	 * Method called when the explorer information changes.
-	 * It updates the display for minor changes.  See JTree.treeDidChange().
-     */
-	public static synchronized void explorerTreeMinorlyChanged()
-	{
-		if (explorerChanged) return;
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
-		{
-			WindowFrame wf = (WindowFrame)it.next();
-            wf.getExplorerTree().treeDidChange();
-		}
-	}
-
-	public static synchronized void rebuildExplorerTree()
-	{
-		if (!explorerChanged) return;
-
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
-		{
-			WindowFrame wf = (WindowFrame)it.next();
-			wf.getExplorerTree().cacheExpansion();
-		}
+		DefaultMutableTreeNode libraryExplorerTree = new DefaultMutableTreeNode(libraryNode);
 
 		// reconstruct the tree
 		switch (howToShow)
 		{
 			case SHOWALPHABETICALLY:
-				rebuildExplorerTreeByName();
+				rebuildExplorerTreeByName(libraryExplorerTree);
 				break;
 			case SHOWBYCELLGROUP:
-				rebuildExplorerTreeByGroups();
+				rebuildExplorerTreeByGroups(libraryExplorerTree);
 				break;
 			case SHOWBYHIERARCHY:
-				rebuildExplorerTreeByHierarchy();
+				rebuildExplorerTreeByHierarchy(libraryExplorerTree);
 				break;
 		}
-
-		// redisplay
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
-		{
-			WindowFrame wf = (WindowFrame)it.next();
-			wf.getExplorerTree().treeModel.reload();
-			wf.getExplorerTree().restoreExpansion();
-		}
-		explorerChanged = false;
+		return libraryExplorerTree;
 	}
 
-	private static synchronized void rebuildExplorerTreeByName()
+	private static synchronized void rebuildExplorerTreeByName(DefaultMutableTreeNode libraryExplorerTree)
 	{
-		libraryExplorerTree.removeAllChildren();
 		List sortedList = Library.getVisibleLibrariesSortedByName();
 		for(Iterator it = sortedList.iterator(); it.hasNext(); )
 		{
@@ -241,9 +199,8 @@ public class ExplorerTree extends JTree
 		}
 	}
 
-	private static synchronized void rebuildExplorerTreeByHierarchy()
+	private static synchronized void rebuildExplorerTreeByHierarchy(DefaultMutableTreeNode libraryExplorerTree)
 	{
-		libraryExplorerTree.removeAllChildren();
 		List sortedList = Library.getVisibleLibrariesSortedByName();
 		for(Iterator it = sortedList.iterator(); it.hasNext(); )
 		{
@@ -314,9 +271,8 @@ public class ExplorerTree extends JTree
 		}
 	}
 
-	private static synchronized void rebuildExplorerTreeByGroups()
+	private static synchronized void rebuildExplorerTreeByGroups(DefaultMutableTreeNode libraryExplorerTree)
 	{
-		libraryExplorerTree.removeAllChildren();
 		List sortedList = Library.getVisibleLibrariesSortedByName();
 
 		FlagSet cellFlag = NodeProto.getFlagSet(1);
@@ -383,42 +339,30 @@ public class ExplorerTree extends JTree
 		}
 		cellFlag.freeFlagSet();
 	}
-
-	public synchronized void cacheExpansion()
-	{
-		expanded.clear();
-		recursivelyCache(new TreePath(rootNode), true);
-	}
-
-	public synchronized void restoreExpansion()
-	{
-		recursivelyCache(new TreePath(rootNode), false);
-		expanded.clear();
-	}
-
-	private void recursivelyCache(TreePath path, boolean cache)
-	{
-		DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
-		Object obj = node.getUserObject();
-		int numChildren = node.getChildCount();
-		if (numChildren == 0) return;
-
-		if (cache)
-		{
-			if (isExpanded(path)) expanded.put(obj, obj);
-		} else
-		{
-			if (expanded.get(obj) != null) expandPath(path);
-		}
-
-		// now recurse
-		for(int i=0; i<numChildren; i++)
-		{
-			DefaultMutableTreeNode child = (DefaultMutableTreeNode)node.getChildAt(i);
-			TreePath descentPath = path.pathByAddingChild(child);
-			recursivelyCache(descentPath, cache);
-		}
-	}
+//
+//	private static void recursivelyCache(ExplorerTree tree, HashMap expanded, TreePath path, boolean cache)
+//	{
+//		DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
+//		Object obj = node.getUserObject();
+//		int numChildren = node.getChildCount();
+//		if (numChildren == 0) return;
+//
+//		if (cache)
+//		{
+//			if (tree.isExpanded(path)) expanded.put(obj, obj);
+//		} else
+//		{
+//			if (expanded.get(obj) != null) tree.expandPath(path);
+//		}
+//
+//		// now recurse
+//		for(int i=0; i<numChildren; i++)
+//		{
+//			DefaultMutableTreeNode child = (DefaultMutableTreeNode)node.getChildAt(i);
+//			TreePath descentPath = path.pathByAddingChild(child);
+//			recursivelyCache(tree, expanded, descentPath, cache);
+//		}
+//	}
 
 	public String convertValueToText(Object value, boolean selected, boolean expanded, boolean leaf,
 		int row, boolean hasFocus)
@@ -482,6 +426,7 @@ public class ExplorerTree extends JTree
 			Simulate.SimSignal sig = (Simulate.SimSignal)nodeInfo;
 			return sig.signalName;
 		}
+		if (nodeInfo == null) return "";
 		return nodeInfo.toString();
 	}
 
@@ -946,7 +891,7 @@ public class ExplorerTree extends JTree
 		{
 			Library lib = (Library)currentSelectedObject;
 			lib.setCurrent();
-			explorerTreeChanged();
+			WindowFrame.redoLibraryTree();
 			EditWindow.repaintAll();
 		}
 
@@ -1036,22 +981,19 @@ public class ExplorerTree extends JTree
 		private void showAlphabeticallyAction()
 		{
 			howToShow = SHOWALPHABETICALLY;
-			explorerTreeChanged();
-			EditWindow.repaintAll();
+			WindowFrame.redoLibraryTree();
 		}
 
 		private void showByGroupAction()
 		{
 			howToShow = SHOWBYCELLGROUP;
-			explorerTreeChanged();
-			EditWindow.repaintAll();
+			WindowFrame.redoLibraryTree();
 		}
 
 		private void showByHierarchyAction()
 		{
 			howToShow = SHOWBYHIERARCHY;
-			explorerTreeChanged();
-			EditWindow.repaintAll();
+			WindowFrame.redoLibraryTree();
 		}
 
 	}

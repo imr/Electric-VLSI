@@ -33,7 +33,6 @@ import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.AffineTransform;
 
 /**
  * This class is the superclass for the Electric classes that have visual

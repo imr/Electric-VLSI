@@ -28,8 +28,6 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.MenuCommands;
-import com.sun.electric.tool.user.ui.ToolBar;
-import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Point;
 import java.awt.event.MouseMotionListener;

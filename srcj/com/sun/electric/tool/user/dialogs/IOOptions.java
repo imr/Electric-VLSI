@@ -24,10 +24,7 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.Generic;
@@ -35,6 +32,7 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.output.GDS;
 import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseAdapter;
@@ -46,17 +44,14 @@ import java.util.Iterator;
 import java.util.HashMap;
 import javax.print.PrintServiceLookup;
 import javax.print.PrintService;
-import javax.swing.JComboBox;
 import javax.swing.JList;
 import javax.swing.JTextArea;
 import javax.swing.ListSelectionModel;
 import javax.swing.DefaultListModel;
-import javax.swing.JScrollPane;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.text.Document;
 
 
 /**
@@ -824,7 +819,7 @@ public class IOOptions extends javax.swing.JDialog
 		initialPrintColorMethod = IOTool.getPrintColorMethod();
 		printPostScriptStyle.setSelectedIndex(initialPrintColorMethod);
 
-		initialCell = Library.getCurrent().getCurCell();
+		initialCell = WindowFrame.getCurrentCell();
 		initialEPSScale = 1;
 		initialEPSSyncFile = "";
 		if (initialCell != null)

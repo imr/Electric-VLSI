@@ -37,7 +37,6 @@ import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Point2D;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.HashSet;

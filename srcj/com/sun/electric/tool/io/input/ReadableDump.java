@@ -23,8 +23,6 @@
  */
 package com.sun.electric.tool.io.input;
 
-import com.sun.electric.database.geometry.EMath;
-import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
@@ -49,15 +47,12 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
-import com.sun.electric.tool.io.input.LibraryFiles;
-import com.sun.electric.tool.user.dialogs.Progress;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 /**
  * This class reads files in readable-dump (.txt) format.

@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.io.output;
 
-import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
@@ -41,7 +40,6 @@ import com.sun.electric.technology.technologies.Generic;
 
 import java.awt.geom.AffineTransform;
 import java.util.HashMap;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 

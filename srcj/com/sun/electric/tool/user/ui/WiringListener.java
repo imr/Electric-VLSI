@@ -44,8 +44,6 @@ import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.MenuCommands;
-import com.sun.electric.tool.user.ui.ToolBar;
-import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.applet.Applet;
 import java.applet.AudioClip;
@@ -58,9 +56,6 @@ import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.io.InputStream;
-import java.io.IOException;
-import java.lang.InterruptedException;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.List;

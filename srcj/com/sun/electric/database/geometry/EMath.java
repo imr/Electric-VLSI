@@ -26,9 +26,6 @@ package com.sun.electric.database.geometry;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
-import java.util.Date;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 
 /**
  * This class is a collection of math utilities.

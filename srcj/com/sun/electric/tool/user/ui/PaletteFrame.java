@@ -24,7 +24,6 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
@@ -32,7 +31,6 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
@@ -52,16 +50,13 @@ import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.dialogs.LayoutText;
 import com.sun.electric.tool.user.dialogs.CellBrowser;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.BorderLayout;
 import java.awt.Rectangle;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.Container;
@@ -86,13 +81,11 @@ import java.util.EventListener;
 import javax.swing.JInternalFrame;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.JDesktopPane;
 import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JMenuItem;
 import javax.swing.ImageIcon;
-import javax.swing.event.PopupMenuListener;
 
 /**
  * This class defines a palette window for component selection.
@@ -939,7 +932,7 @@ public class PaletteFrame
 		if (np != null)
 		{
 			// remember the listener that was there before
-			EventListener oldListener = EditWindow.getListener();
+			EventListener oldListener = WindowFrame.getListener();
 			Cursor oldCursor = TopLevel.getCurrentCursor();
 
 			if (whatToCreate != null) System.out.println("Click to create " + whatToCreate); else
@@ -955,7 +948,7 @@ public class PaletteFrame
 			} else
 			{
 				newListener = new PlaceNodeListener(panel, obj, oldListener, oldCursor);
-				EditWindow.setListener(newListener);
+				WindowFrame.setListener(newListener);
 			}
 			if (placeText != null)
 				((PlaceNodeListener)newListener).setTextNode(placeText);
@@ -1014,8 +1007,11 @@ public class PaletteFrame
 
 		public void setTextNode(String varName) { textNode = varName; }
 
-		private void updateBox(EditWindow wnd, int oldx, int oldy)
+		private void updateBox(Object source, int oldx, int oldy)
 		{
+			if (!(source instanceof EditWindow.CircuitPart)) return;
+			EditWindow.CircuitPart dispPart = (EditWindow.CircuitPart)source;
+			EditWindow wnd = dispPart.wnd;
 			if (isDrawn)
 			{
 				// undraw it
@@ -1075,9 +1071,12 @@ public class PaletteFrame
 
 		public void mouseReleased(MouseEvent evt)
 		{
+			if (!(evt.getSource() instanceof EditWindow.CircuitPart)) return;
+			EditWindow.CircuitPart dispPart = (EditWindow.CircuitPart)evt.getSource();
+			EditWindow wnd = dispPart.wnd;
+
 			oldx = evt.getX();
 			oldy = evt.getY();
-			EditWindow wnd = (EditWindow)evt.getSource();
 			if (wnd.getCell() == null)
 			{
 				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
@@ -1111,7 +1110,7 @@ public class PaletteFrame
         {
             Highlight.clear();
             Highlight.finished();
-            EditWindow.setListener(oldListener);
+            WindowFrame.setListener(oldListener);
             TopLevel.setCurrentCursor(oldCursor);
             if (window != null)
             {
@@ -1127,12 +1126,12 @@ public class PaletteFrame
 		public void mouseExited(MouseEvent evt) {}
 		public void mouseMoved(MouseEvent evt)
 		{
-			updateBox((EditWindow)evt.getSource(), evt.getX(), evt.getY());
+			updateBox(evt.getSource(), evt.getX(), evt.getY());
 		}
 
 		public void mouseDragged(MouseEvent evt)
 		{
-			updateBox((EditWindow)evt.getSource(), evt.getX(), evt.getY());
+			updateBox(evt.getSource(), evt.getX(), evt.getY());
 		}
 
 		public void mouseWheelMoved(MouseWheelEvent evt) {}

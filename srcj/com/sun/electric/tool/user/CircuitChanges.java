@@ -33,8 +33,6 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.hierarchy.NodeUsage;
-import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
@@ -52,13 +50,11 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowContent;
 
-import java.awt.Point;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -69,7 +65,6 @@ import java.util.Date;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Collections;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 /**
@@ -90,7 +85,7 @@ public class CircuitChanges
 	 */
 	public static void rotateObjects(int amount)
 	{
-		Cell cell = Library.needCurCell();
+		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
 
 		// disallow rotating if lock is on
@@ -121,7 +116,7 @@ public class CircuitChanges
 	 */
 	public static void mirrorObjects(boolean horizontally)
 	{
-		Cell cell = Library.needCurCell();
+		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
 
 		// disallow rotating if lock is on
@@ -654,9 +649,9 @@ public class CircuitChanges
         // update any windows that used the cell
         for (Iterator it = WindowFrame.getWindows(); it.hasNext(); ) {
             WindowFrame frame = (WindowFrame)it.next();
-            EditWindow wnd = frame.getEditWindow();
-            if (cell == wnd.getCell()) {
-                wnd.setCell(null, VarContext.globalContext);
+            WindowContent content = frame.getContent();
+            if (cell == content.getCell()) {
+                content.setCell(null, VarContext.globalContext);
             }
         }
 
@@ -700,9 +695,10 @@ public class CircuitChanges
 		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
-			EditWindow wnd = wf.getEditWindow();
-			if (wnd.getCell() == cell)
-				wnd.setCell(null, null);
+			WindowContent content = wf.getContent();
+			if (content == null) continue;
+			if (content.getCell() == cell)
+				content.setCell(null, null);
 		}
 
 //		prevversion = cell->prevversion;
@@ -824,7 +820,7 @@ public class CircuitChanges
 		} else
 		{
 			// just cleanup the current cell
-			Cell cell = Library.needCurCell();
+			Cell cell = WindowFrame.needCurCell();
 			if (cell == null) return;
 			us_cleanupcell(cell, true);
 		}
@@ -1195,7 +1191,7 @@ public class CircuitChanges
 	 */
 	public static void showNonmanhattanCommand()
 	{
-		Cell curCell = Library.needCurCell();
+		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
 
 		// see which cells (in any library) have nonmanhattan stuff
@@ -1436,9 +1432,10 @@ public class CircuitChanges
 			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 			{
 				WindowFrame wf = (WindowFrame)it.next();
-				EditWindow wnd = wf.getEditWindow();
-				if (wnd.getCell() == cell)
-					wnd.setCell(newVersion, null);
+				WindowContent content = wf.getContent();
+				if (content == null) continue;
+				if (content.getCell() == cell)
+					content.setCell(newVersion, null);
 			}
 			EditWindow.repaintAll();
 		}
@@ -1463,7 +1460,7 @@ public class CircuitChanges
 
 		public void doIt()
 		{
-			Cell curCell = Library.needCurCell();
+			Cell curCell = WindowFrame.needCurCell();
 			if (curCell == null) return;
 			Library lib = curCell.getLibrary();
 
@@ -1830,9 +1827,10 @@ public class CircuitChanges
 			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 			{
 				WindowFrame wf = (WindowFrame)it.next();
-				EditWindow wnd = wf.getEditWindow();
-				if (wnd.getCell() == cell)
-					wnd.setCell(dupCell, VarContext.globalContext);
+				WindowContent content = wf.getContent();
+				if (content == null) continue;
+				if (content.getCell() == cell)
+					content.setCell(dupCell, VarContext.globalContext);
 			}
 			EditWindow.repaintAll();
 		}

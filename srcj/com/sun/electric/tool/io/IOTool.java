@@ -23,32 +23,17 @@
  */
 package com.sun.electric.tool.io;
 
-import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.network.Network;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.user.dialogs.Progress;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.BufferedInputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.io.FileNotFoundException;
-import java.util.List;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Date;
 import javax.print.PrintServiceLookup;

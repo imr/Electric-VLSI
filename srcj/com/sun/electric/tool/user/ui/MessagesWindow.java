@@ -25,7 +25,6 @@ package com.sun.electric.tool.user.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Rectangle;
-import java.awt.Point;
 import java.awt.Dimension;
 import java.awt.Container;
 import java.awt.event.ActionEvent;

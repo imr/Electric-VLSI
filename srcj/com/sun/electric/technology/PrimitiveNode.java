@@ -24,9 +24,6 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.technology.Technology;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;

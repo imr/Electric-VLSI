@@ -28,16 +28,12 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.user.ui.ExplorerTree;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import java.lang.Thread;
-import java.text.SimpleDateFormat;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Date;
@@ -171,8 +167,8 @@ public abstract class Job implements ActionListener, Runnable {
 				notify();
 			allJobs.add(j);
             if (j.getDisplay()) {
-                explorerTree.add(j.myNode);
-                ExplorerTree.explorerTreeChanged();
+//                explorerTree.add(j.myNode);
+                WindowFrame.redoJobTree();
             }
 		}
 
@@ -186,14 +182,20 @@ public abstract class Job implements ActionListener, Runnable {
 				if (index < numStarted) numStarted--;
 			}
             if (j.getDisplay()) {
-                explorerTree.remove(j.myNode);
-                ExplorerTree.explorerTreeChanged();        
+//                explorerTree.remove(j.myNode);
+                WindowFrame.redoJobTree();        
             }
 		}
 
-		/** Build Job explorer tree */
+	/**
+	 * A static object is used so that its open/closed tree state can be maintained.
+	 */
+	private static String jobNode = "JOBS";
+
+	/** Build Job explorer tree */
 		public synchronized DefaultMutableTreeNode getExplorerTree() {
-			explorerTree.removeAllChildren();
+			DefaultMutableTreeNode explorerTree = new DefaultMutableTreeNode(jobNode);
+//			explorerTree.removeAllChildren();
 			for (Iterator it = allJobs.iterator(); it.hasNext();) {
                 Job j = (Job)it.next();
                 if (j.getDisplay()) {
@@ -219,7 +221,6 @@ public abstract class Job implements ActionListener, Runnable {
 	/** number of examine jobs */               private static int numExamine = 0;
 	/** database changes thread */              private static DatabaseChangesThread databaseChangesThread = new DatabaseChangesThread();
 	/** changing job */                         private static Job changingJob;
-    /** job tree */                             private static DefaultMutableTreeNode explorerTree = new DefaultMutableTreeNode("JOBS");
     /** my tree node */                         private DefaultMutableTreeNode myNode;
     /** delete when done if true */             private boolean deleteWhenDone;
     /** display on job list if true */          private boolean display;
@@ -344,7 +345,7 @@ public abstract class Job implements ActionListener, Runnable {
 		finished = true;                        // is this redundant with Thread.isAlive()?
         endTime = System.currentTimeMillis();
 //        Job.removeJob(this);
-        ExplorerTree.explorerTreeMinorlyChanged();
+        WindowFrame.redoJobTree();
 
 		// say something if it took more than a minute
 		if (endTime - startTime >= 60*1000)
@@ -364,7 +365,7 @@ public abstract class Job implements ActionListener, Runnable {
 
     protected void setProgress(String progress) {
         this.progress = progress;
-        ExplorerTree.explorerTreeMinorlyChanged();        
+        WindowFrame.redoJobTree();        
     }        
     
     private String getProgress() { return progress; }
@@ -381,11 +382,11 @@ public abstract class Job implements ActionListener, Runnable {
             return;
         }
         scheduledToAbort = true;
-        ExplorerTree.explorerTreeMinorlyChanged();
+        WindowFrame.redoJobTree();
     }
 
 	/** Confirmation that thread is aborted */
-    protected void setAborted() { aborted = true; ExplorerTree.explorerTreeMinorlyChanged(); }
+    protected void setAborted() { aborted = true; WindowFrame.redoJobTree(); }
     /** get scheduled to abort status */
     protected boolean getScheduledToAbort() { return scheduledToAbort; }
     /** get abort status */

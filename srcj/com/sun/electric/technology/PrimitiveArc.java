@@ -26,9 +26,6 @@ package com.sun.electric.technology;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;

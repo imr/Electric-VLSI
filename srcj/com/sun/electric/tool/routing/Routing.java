@@ -29,7 +29,6 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.Listener;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 
 /**

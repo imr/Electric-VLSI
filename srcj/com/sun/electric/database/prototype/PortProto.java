@@ -23,9 +23,7 @@
  */
 package com.sun.electric.database.prototype;
 
-import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.FlagSet;
