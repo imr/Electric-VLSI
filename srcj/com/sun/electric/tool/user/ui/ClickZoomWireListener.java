@@ -333,6 +333,7 @@ public class ClickZoomWireListener
 	                    }
 	                }
 	                System.out.println("Must start new arc from one node or arc; or wire two node/arcs together");
+                    modeRight = Mode.none;
 	                return;
 	            }
 	            // drawing some sort of box
