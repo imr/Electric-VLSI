@@ -99,6 +99,7 @@ public class Undo
 		/** Describes the change to a TextDescriptor. */					public static final Type DESCRIPTORMOD = new Type("DescriptMod");
         /** Describes a new library change */                               public static final Type LIBRARYNEW = new Type("LibraryNew");
         /** Describes a delete library change */                            public static final Type LIBRARYKILL = new Type("LibraryKill");
+        /** Describes a Cell-group change */                                public static final Type CELLGROUPMOD = new Type("CellGroupMod");
 	}
 
 	/**
@@ -438,6 +439,13 @@ public class Undo
 				type = Type.CELLNEW;
 				return;
 			}
+            if (type == Type.CELLGROUPMOD)
+            {
+                Cell cell = (Cell)obj;
+                Cell.CellGroup oldGroup = (Cell.CellGroup)o1;
+                cell.lowLevelSetCellGroup(oldGroup);
+                return;
+            }
 			if (type == Type.CELLMOD)
 			{
 				Cell cell = (Cell)obj;
@@ -610,7 +618,7 @@ public class Undo
 				cell = (Cell)obj;
 				lib = cell.getLibrary();
 				major = true;
-			} else if (type == Type.CELLMOD)
+			} else if (type == Type.CELLMOD || type == Type.CELLGROUPMOD)
 			{
 				cell = (Cell)obj;
 				lib = cell.getLibrary();
@@ -1207,6 +1215,7 @@ public class Undo
 	 * <LI>VARIABLEINSERT takes o1=var i1=index.
 	 * <LI>VARIABLEDELETE takes a1=var i1=index o2=oldValue.
 	 * <LI>DESCRIPTORMOD takes o1=descript i1=oldDescript0 i2=oldDescript1.
+     * <LI>CELLGROUPMOD takes o1=oldCellGroup
 	 * </UL>
 	 * @param obj the object to which the change applies.
 	 * @param change the change being recorded.
@@ -1320,6 +1329,20 @@ public class Undo
         fireChangeEvent(ch);
 		//Constraint.getCurrent().modifyCell(cell, oLX, oHX, oLY, oHY);
 	}
+
+    /**
+     * Method to store a change to a Cell's CellGroup in the change-control system.
+     * @param cell the Cell whose CellGroup is changing
+     * @param oldGroup the old CellGroup
+     */
+    public static void modifyCellGroup(Cell cell, Cell.CellGroup oldGroup)
+    {
+        if (!recordChange()) return;
+        Change ch = newChange(cell, Type.CELLGROUPMOD, oldGroup);
+
+        ch.broadcast(currentBatch.getNumChanges() <=1, false);
+        fireChangeEvent(ch);
+    }
 
 	/**
 	 * Method to store a change to a TextDescriptor in the change-control system.

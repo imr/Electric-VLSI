@@ -2138,19 +2138,32 @@ public class Cell extends NodeProto implements Comparable
 	 */
 	public void setCellGroup(CellGroup cellGroup)
 	{
-		if (cellGroup == null)
-		{
-			Exception e = new Exception("Cannot set CellGroup to NULL!");
-			ActivityLogger.logException(e);
-		}
-
-		// stop if already that way
-		if (this.cellGroup == cellGroup) return;
-
-		if (this.cellGroup != null) this.cellGroup.remove(this);
-		this.cellGroup = cellGroup;
-		if (cellGroup != null) cellGroup.add(this);
+        CellGroup oldGroup = this.cellGroup;
+        lowLevelSetCellGroup(cellGroup);
+        Undo.modifyCellGroup(this, oldGroup);
 	}
+
+    /**
+     * Low-level method to set a Cell's cell group. Do not use this
+     * unless you know what you are doing. This method bypasses Undo.
+     * @param cellGroup the new cell group
+     */
+    public void lowLevelSetCellGroup(CellGroup cellGroup) {
+
+        checkChanging();
+
+        if (cellGroup == null)
+        {
+            Exception e = new Exception("Cannot set CellGroup to NULL!");
+            ActivityLogger.logException(e);
+        }
+        // stop if already that way
+        if (this.cellGroup == cellGroup) return;
+
+        if (this.cellGroup != null) this.cellGroup.remove(this);
+        this.cellGroup = cellGroup;
+        if (cellGroup != null) cellGroup.add(this);
+    }
 
 	/****************************** VIEWS ******************************/
 
