@@ -585,6 +585,8 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         }
         allErrors = trimmedLogs;
         trimmedLogs.clear();
+
+	    trimmedLogs = new ArrayList();
         // Warnings
         for (Iterator it = allWarnings.iterator(); it.hasNext(); ) {
             MessageLog log = (MessageLog)it.next();
