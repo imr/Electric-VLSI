@@ -238,6 +238,9 @@ public final class Main
 			Layout con = Layout.getConstraint();
 			Constraints.setCurrent(con);
 
+            if (hasCommandLineOption(argsList, "-NOMINMEM")) {
+                // do nothing, just consume option: handled in Launcher
+            }
 			// do processing of arguments
 			if (hasCommandLineOption(argsList, "-m")) {
 				// set multiheaded option here

@@ -26,6 +26,7 @@ package com.sun.electric;
 import com.sun.electric.tool.user.User;
 
 import java.util.Enumeration;
+import java.util.List;
 import java.net.URL;
 
 /**
@@ -46,6 +47,16 @@ public final class Launcher
 	 */
 	public static void main(String[] args)
 	{
+        // ignore launcher if specified to do so
+        for (int i=0; i<args.length; i++) {
+            String str = args[i];
+            if (str.equals("-NOMINMEM")) {
+                // just start electric
+                Main.main(args);
+                return;
+            }
+        }
+
 		// launching is different on different computers
 		try{
 			String osName = System.getProperty("os.name").toLowerCase();
@@ -83,8 +94,21 @@ public final class Launcher
 			return;
 		}
 
-		String command = program + " -mx" + maxMemWanted + "m -jar electric.jar";
+        // get location of jar file
+        String jarfile = "electric.jar";
+        URL electric = Launcher.class.getResource("Main.class");
+        if (electric.getProtocol().equals("jar")) {
+            String file = electric.getFile();
+            file = file.replaceAll("file:", "");
+            file = file.replaceAll("!.*", "");
+            jarfile = file;
+        }
+
+		String command = program + " -mx" + maxMemWanted + "m -jar " + jarfile;
+        System.out.println("Current heap size of "+maxMem + "m is less than minimum required size of "+maxMemWanted+"m");
+        System.out.println("Re-executing Electric (run with option '-NOMINMEM' to not do this)");
         for (int i=0; i<args.length; i++) command += " " + args[i];
+        System.out.println("exec: "+command);
 		try
 		{
 			runtime.exec(command);
@@ -93,5 +117,20 @@ public final class Launcher
 			Main.main(args);
 		}
 	}
+
+    /** check if command line option 'option' present in
+     * command line args. If present, return true and remove if from the list.
+     * Otherwise, return false.
+     */
+    private static boolean hasCommandLineOption(List argsList, String option)
+    {
+        for (int i=0; i<argsList.size(); i++) {
+            if (((String)argsList.get(i)).equals(option)) {
+                argsList.remove(i);
+                return true;
+            }
+        }
+        return false;
+    }
 
 }
