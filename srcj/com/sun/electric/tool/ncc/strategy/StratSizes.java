@@ -137,9 +137,10 @@ public class StratSizes extends Strategy {
 	/** Find the OutlierRecord with the largest deviation */
 	private OutlierRecord findOutlierRecordWithLargestDeviation() {
 		OutlierRecord furthestOut = null;
-		LeafList frontier = StratFrontier.doYourJob(globals.getParts(), globals);
-		for (Iterator it=frontier.iterator(); it.hasNext();) {
-			EquivRecord r = (EquivRecord) it.next();
+		//LeafList frontier = StratFrontier.doYourJob(globals.getParts(), globals);
+		Iterator frontier = globals.getPartLeafEquivRecs().getUnmatched();
+		while (frontier.hasNext()) {
+			EquivRecord r = (EquivRecord) frontier.next();
 			if (r.isMismatched())  continue;
 			OutlierRecord farOut = buildOutlierRecord(r);
 			if (farOut==null) continue;

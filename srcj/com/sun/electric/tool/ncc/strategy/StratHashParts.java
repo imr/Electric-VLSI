@@ -22,11 +22,12 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.strategy;
+import java.util.Iterator;
+
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.jemNets.NetObject;
 import com.sun.electric.tool.ncc.jemNets.Part;
 import com.sun.electric.tool.ncc.lists.LeafList;
-import com.sun.electric.tool.ncc.lists.RecordList;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 public class StratHashParts extends Strategy {
@@ -35,8 +36,8 @@ public class StratHashParts extends Strategy {
 
     private StratHashParts(NccGlobals globals){super(globals);}
 	
-    private void preamble(int nbParts){
-		startTime("StratHashParts", nbParts+" Parts");
+    private void preamble(){
+		startTime("StratHashParts", " Parts");
     }
 	
     private void summary(LeafList offspring){
@@ -61,15 +62,14 @@ public class StratHashParts extends Strategy {
     }
 	
 	// ------------------ intended interface -----------------
-	public static LeafList doYourJob(RecordList l,
-										NccGlobals globals){
+	public static LeafList doYourJob(Iterator it, NccGlobals globals) {
 		StratHashParts jhpa = new StratHashParts(globals);
 
 		// If no Parts suppress all StratHashParts messages
-		if (l.size()==0) return new LeafList();
+		if (!it.hasNext()) return new LeafList();
 
-		jhpa.preamble(l.size());
-		LeafList offspring= jhpa.doFor(l);
+		jhpa.preamble();
+		LeafList offspring = jhpa.doFor(it);
 		jhpa.summary(offspring);
 		return offspring;
 	}

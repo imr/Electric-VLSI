@@ -38,12 +38,12 @@ public class StratRandomMatch extends Strategy {
 	private static final Integer CODE_REST = new Integer(2);
     private StratRandomMatch(NccGlobals globals){super(globals);}
 
-	private EquivRecord findSmallestActive(EquivRecord root) {
-		LeafList frontier = StratFrontier.doYourJob(root, globals);
+	private EquivRecord findSmallestActive(Iterator frontier) {
+		//LeafList frontier = StratFrontier.doYourJob(root, globals);
 		int minSz = Integer.MAX_VALUE;
 		EquivRecord minRec = null;
-		for (Iterator ri=frontier.iterator(); ri.hasNext();) {
-			EquivRecord r = (EquivRecord) ri.next();
+		while (frontier.hasNext()) {
+			EquivRecord r = (EquivRecord) frontier.next();
 			if (r.isMismatched())  continue;
 			int sz  = r.maxSize();
 			if (sz<minSz) {
@@ -55,8 +55,10 @@ public class StratRandomMatch extends Strategy {
 	}
 	
 	private EquivRecord findSmallestActive() {
-		EquivRecord w = findSmallestActive(globals.getWires());
-		EquivRecord p = findSmallestActive(globals.getParts());
+		EquivRecord w = 
+			findSmallestActive(globals.getWireLeafEquivRecs().getUnmatched());
+		EquivRecord p = 
+			findSmallestActive(globals.getPartLeafEquivRecs().getUnmatched());
 		if (p==null) return w;
 		if (w==null) return p;
 		return p.maxSize()<w.maxSize() ? p : w; 

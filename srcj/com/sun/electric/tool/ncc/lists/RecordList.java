@@ -44,14 +44,5 @@ public class RecordList {
 	public void clear(){content.clear();}
 	public int size(){return content.size();}
 
-	public LeafList apply(Strategy s){
-		LeafList out= new LeafList();
-		for (Iterator it=content.iterator(); it.hasNext();){
-			EquivRecord jr= (EquivRecord)it.next();
-			LeafList xx= s.doFor(jr);
-			out.addAll(xx);
-		}
-		return out;
-	}
 
 }

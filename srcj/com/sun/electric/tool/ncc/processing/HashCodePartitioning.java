@@ -24,6 +24,7 @@
 package com.sun.electric.tool.ncc.processing;
 
 import java.util.Date;
+import java.util.Iterator;
 
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.basic.NccUtils;
@@ -31,7 +32,6 @@ import com.sun.electric.tool.ncc.jemNets.NetObject;
 import com.sun.electric.tool.ncc.lists.LeafList;
 import com.sun.electric.tool.ncc.strategy.StratAdjacent;
 import com.sun.electric.tool.ncc.strategy.StratCount;
-import com.sun.electric.tool.ncc.strategy.StratFrontier;
 import com.sun.electric.tool.ncc.strategy.StratHashParts;
 import com.sun.electric.tool.ncc.strategy.StratHashWires;
 import com.sun.electric.tool.ncc.strategy.StratPortName;
@@ -48,7 +48,8 @@ public class HashCodePartitioning {
 	private LeafList hashFrontierParts(){
 		if (globals.getParts()==null)  return new LeafList();
 		globals.status2("----- hash all Parts on frontier");
-		LeafList frontier = StratFrontier.doYourJob(globals.getParts(), globals);
+//		LeafList frontier = StratFrontier.doYourJob(globals.getParts(), globals);
+		Iterator frontier = globals.getPartLeafEquivRecs().getUnmatched();
 		LeafList offspring = StratHashParts.doYourJob(frontier, globals);
 		return offspring;
 	}
@@ -56,7 +57,8 @@ public class HashCodePartitioning {
 	private LeafList hashFrontierWires(){
 		if (globals.getParts()==null)  return new LeafList();
 		globals.status2("----- hash all Wires on frontier");
-		LeafList frontier = StratFrontier.doYourJob(globals.getWires(), globals);
+//		LeafList frontier = StratFrontier.doYourJob(globals.getWires(), globals);
+		Iterator frontier = globals.getWireLeafEquivRecs().getUnmatched();
 		LeafList offspring = StratHashWires.doYourJob(frontier, globals);
 		return offspring;
 	}
@@ -66,14 +68,12 @@ public class HashCodePartitioning {
 		return er.getNetObjType()==NetObject.Type.PART;
 	}
 
-	/**
-	 * Takes a list of newly divided Part/Wire EquivRecords. If any
+	/** Takes a list of newly divided Part/Wire EquivRecords. If any
 	 * of them retire then find the retirees' neighbors and perform a
 	 * hash step on them to get newly divided Wire/Part
 	 * EquivRecords. Repeat until the hash step yields no newly
 	 * divided EquivRecords.
-	 * @param newDivided newly divided EquivRecords
-	 */
+	 * @param newDivided newly divided EquivRecords */
 	private void chaseRetired(LeafList newDivided) {
 		// if nothing divided then suppress chaseRetired messages
 		if (newDivided.size()==0) return;
@@ -87,8 +87,9 @@ public class HashCodePartitioning {
 			LeafList adjacent = StratAdjacent.doYourJob(newRetired, globals);
 			if (adjacent.size()==0)  break;
 			boolean doParts = isPartsList(adjacent);
-			newDivided = doParts ? StratHashParts.doYourJob(adjacent, globals) :
-								   StratHashWires.doYourJob(adjacent, globals);
+			newDivided = 
+				doParts ? StratHashParts.doYourJob(adjacent.iterator(), globals) :
+					      StratHashWires.doYourJob(adjacent.iterator(), globals);
 		}
 		globals.status2("------ done  chaseRetired after "+i+" passes");
 		//		StratCheck.doYourJob(globals.getRoot, globals);
@@ -133,11 +134,12 @@ public class HashCodePartitioning {
 		}
 	}
 	private boolean done() {
-		LeafList p = StratFrontier.doYourJob(globals.getParts(),
-		                                           globals);
-		LeafList w = StratFrontier.doYourJob(globals.getWires(),
-												   globals);
-		return p.size()==0 && w.size()==0;
+//		LeafList p = StratFrontier.doYourJob(globals.getParts(),
+//		                                           globals);
+//		LeafList w = StratFrontier.doYourJob(globals.getWires(),
+//												   globals);
+		return globals.getWireLeafEquivRecs().numUnmatched()==0 &&
+			   globals.getPartLeafEquivRecs().numUnmatched()==0;
 	}
 	
 	private void useExportNames() {

@@ -48,17 +48,17 @@ public class LeafList extends RecordList {
 	}
 
 	public String sizeInfoString() {
-		String max= " offspring max sizes:";
-		String diff= " offspring size differences: ";
+		StringBuffer max = new StringBuffer(" offspring max sizes:");
+		StringBuffer diff = new StringBuffer(" offspring size differences: ");
 
 		boolean matchOK= true;
 		for (Iterator it= iterator(); it.hasNext();) {
 			EquivRecord g= (EquivRecord)it.next();
-			max= max + " " + g.maxSize();
-			diff= diff + " " + g.maxSizeDiff();
+			max.append(" " + g.maxSize());
+			diff.append(" " + g.maxSizeDiff());
 			if(g.maxSizeDiff() > 0) matchOK= false;
 		}
-		if(matchOK)return (max);
+		if (matchOK) return (max.toString());
 		else return (max +"\n"+ diff + "\n WARNING: Mismatched sizes");
 	}
 	/** 

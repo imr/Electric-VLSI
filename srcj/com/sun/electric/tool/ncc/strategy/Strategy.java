@@ -52,43 +52,51 @@ import com.sun.electric.tool.ncc.trees.EquivRecord;
  *    calls to Record.apply(Strategy) produce multiple reports.
  */
 public abstract class Strategy {
-	// --------------- local variables -------------------
+	// ---------------------------- constants ---------------------------------
+	public static final Integer CODE_ERROR = null;
+    public static final Integer CODE_NO_CHANGE = new Integer(0);
+
+    // --------------- local variables -------------------
     protected int depth; //depth in the tree
     protected int getDepth(){return depth;}
 	public NccGlobals globals;	
     private Date theStartDate= null;
 	
-	public static final Integer CODE_ERROR = null;
-    public static final Integer CODE_NO_CHANGE = new Integer(0);
-	
-    /**
-     * Die if error occurs
+    /** Die if error occurs
      * @param pred true if error occurs
-     * @param msg message to print if error occurs
-     */
+     * @param msg message to print if error occurs */
     public void error(boolean pred, String msg) {globals.error(pred, msg);}
 	
     protected Strategy(NccGlobals globals) {this.globals=globals;}
 
-	/** 
-	 * Method doFor(RecordList) processes a list of leaf and internal
-	 * records.
+	private LeafList apply(Iterator it){
+		LeafList out= new LeafList();
+		while (it.hasNext()) {
+			EquivRecord jr= (EquivRecord)it.next();
+			out.addAll(doFor(jr));
+		}
+		return out;
+	}
+	
+	private LeafList apply(RecordList r) {
+		return apply(r.iterator());
+	}
+    
+	/** Apply this Strategy to a list of leaf and internal records.
 	 * @param r a RecordList of EquivRecords to process
-	 * @return a LeafList of the new leaf EquivRecords
-	 */
-    public LeafList doFor(RecordList r){
-		depth++;
-		LeafList out = r.apply(this);
-		depth--;
-        return out;
+	 * @return a LeafList of the new leaf EquivRecords */
+    public LeafList doFor(RecordList r) {return doFor(r.iterator());}
+	
+    public LeafList doFor(Iterator it) {
+    	depth++;
+    	LeafList out = apply(it);
+    	depth--;
+    	return out;
     }
 	
-	
-	/** 
-	 * Method doFor(EquivRecord) processes a single EquivRecord.
+	/** Method doFor(EquivRecord) processes a single EquivRecord.
 	 * @param rr the EquivRecord to process
-	 * @return a LeafList of the new leaf EquivRecords
-	 */	
+	 * @return a LeafList of the new leaf EquivRecords */	
     public LeafList doFor(EquivRecord rr){
 		depth++;
 		LeafList out = rr.apply(this);
@@ -96,16 +104,14 @@ public abstract class Strategy {
         return out;
     }
 
-    /** 
-	 * Method doFor(Circuit) process a single Circuit,
+    /** Method doFor(Circuit) process a single Circuit,
 	 * dividing the circuit according to this strategy, and 
 	 * placing the NetObjects of the Circuit into new Circuits 
 	 * mapped in the return according to the separation Integer. 
 	 * @param c the Circuit to process.
 	 * @return a CircuitMap of offspring Circuits.
 	 * Returns an empty map if no offspring intended, and
-	 * returns the input input Circuit if method fails to split.
-	 */
+	 * returns the input input Circuit if method fails to split. */
     public HashMap doFor(Circuit c){
 		depth++;
 		HashMap codeToNetObjs = c.apply(this);
@@ -113,12 +119,10 @@ public abstract class Strategy {
 		return codeToNetObjs;
 	}
 
-    /** 
-	 * doFor(NetObject) tests the NetObject to decide its catagory.
+    /**  doFor(NetObject) tests the NetObject to decide its catagory.
 	 * The default method generates no offspring.
 	 * @param n the NetObject to catagorize
-	 * @return an Integer for the choice.
-	 */
+	 * @return an Integer for the choice. */
     public Integer doFor(NetObject n) {return CODE_NO_CHANGE;}
 
 	//comments on the "code"th offspring of g

@@ -24,11 +24,12 @@
 /** StratHashWires hashes Wires by all Parts. */
 
 package com.sun.electric.tool.ncc.strategy;
+import java.util.Iterator;
+
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.jemNets.NetObject;
 import com.sun.electric.tool.ncc.jemNets.Wire;
 import com.sun.electric.tool.ncc.lists.LeafList;
-import com.sun.electric.tool.ncc.lists.RecordList;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 public class StratHashWires extends Strategy {
@@ -37,8 +38,8 @@ public class StratHashWires extends Strategy {
 	
 	private StratHashWires(NccGlobals globals){super(globals);}
 	
-	private void preamble(int nbWires){
-		startTime("StratHashWires", nbWires+" Wires");
+	private void preamble(){
+		startTime("StratHashWires", " Wires");
 	}
 	
 	private void summary(LeafList offspring){
@@ -71,14 +72,13 @@ public class StratHashWires extends Strategy {
 	}
 
 	// --------------- intended interface ------------------	
-	public static LeafList doYourJob(RecordList l,
-										NccGlobals globals){
+	public static LeafList doYourJob(Iterator it, NccGlobals globals){
 		// if no Wires suppress all StratHashWires messages
-		if (l.size()==0) return new LeafList();											
+		if (!it.hasNext()) return new LeafList();											
 											
 		StratHashWires hwa = new StratHashWires(globals);
-		hwa.preamble(l.size());
-		LeafList el = hwa.doFor(l);
+		hwa.preamble();
+		LeafList el = hwa.doFor(it);
 		hwa.summary(el);
 		return el;
 	}

@@ -41,6 +41,7 @@ import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.jemNets.NccNetlist;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
+import com.sun.electric.tool.ncc.trees.LeafEquivRecords;
 
 /**
  * Generate non-recurring random integers
@@ -69,14 +70,15 @@ public class NccGlobals {
 	private NccRandom randGen = new NccRandom();
 	/** all options controlling an Ncc run */ private final NccOptions options;
 
-    /** root of the EquivRecord tree */    private EquivRecord root;
+    /** root of the EquivRecord tree */       private EquivRecord root;
     /** subtree holding parts */              private EquivRecord parts;
     /** subtree holding wires */              private EquivRecord wires;
     /** subtree holding ports */              private EquivRecord ports;
 	/** root Cell of each netlist */  		  private Cell[] rootCells;
 	/** VarContext of root of each netlist */ private VarContext[] rootContexts;
 	/** pass number shared by strategies */   public int passNumber;
-	
+	/** leaf nodes of parts tree */           private LeafEquivRecords partLeafRecs;
+	/** leaf nodes of wires tree */           private LeafEquivRecords wireLeafRecs;
 	
 	private List getNetObjs(int code, NccNetlist nets) {
 		switch (code) {
@@ -118,8 +120,12 @@ public class NccGlobals {
 		ports = buildEquivRec(CODE_PORT, nccNets);
 
 		List el = new ArrayList();
-		if (parts!=null) el.add(parts);
-		if (wires!=null) el.add(wires);
+		if (parts!=null) el.add(parts); 
+		if (wires!=null) el.add(wires); 
+
+		partLeafRecs = new LeafEquivRecords(parts, this);
+		wireLeafRecs = new LeafEquivRecords(wires, this);
+		
 		if (ports!=null) el.add(ports);
 
 		root = EquivRecord.newRootRecord(el);
@@ -165,4 +171,7 @@ public class NccGlobals {
 	
 	/** Generate non-recurring pseudo-random integers */
 	public int getRandom() {return randGen.next();}
+	
+	public LeafEquivRecords getPartLeafEquivRecs() {return partLeafRecs;}
+	public LeafEquivRecords getWireLeafEquivRecs() {return wireLeafRecs;}
 }

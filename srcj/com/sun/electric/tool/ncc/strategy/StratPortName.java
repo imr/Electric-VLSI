@@ -59,8 +59,12 @@ public class StratPortName extends Strategy {
 		
 		StratPortName wn = new StratPortName(globals);
 		wn.preamble();
-        LeafList front = StratFrontier.doYourJob(globals.getWires(), globals);
-		LeafList el = wn.doFor(front);
+        //LeafList front = StratFrontier.doYourJob(globals.getWires(), globals);
+		Iterator frontier = globals.getWireLeafEquivRecs().getUnmatched();
+		LeafList ll = new LeafList();
+		while (frontier.hasNext()) ll.add(frontier.next());
+
+		LeafList el = wn.doFor(ll);
 		wn.summary(el);
 		return el;
 	}

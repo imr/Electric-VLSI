@@ -140,7 +140,7 @@ public class NccEngine {
 			boolean topoOK = HashCodePartitioning.doYourJob(globals);
 
 			Date d4 = new Date();
-			expCheck.suggestPortMatchesBasedOnTopology();
+			if (topoOK) expCheck.suggestPortMatchesBasedOnTopology();
 
 			boolean expTopoOK = 
 				expCheck.ensureExportsWithMatchingNamesAreOnEquivalentNets();
