@@ -1980,7 +1980,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	/**
 	 * Add a PortProto to this NodeProto.
 	 * Adds Exports for Cells, PrimitivePorts for PrimitiveNodes.
-	 * @param port the PortProto to add to this NodeProto.
+	 * @param export the PortProto to add to this NodeProto.
 	 * @param oldPortInsts a collection of PortInsts to Undo or null.
 	 */
 	void addExport(Export export, Collection oldPortInsts)
@@ -2059,6 +2059,21 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 				return pp;
 		}
 		return null;
+	}
+
+	/**
+	 * Method to determine if a given PortProto is considered as export
+	 * @param port
+	 * @return
+	 */
+	public boolean findPortProto(PortProto port)
+	{
+		for (int i = 0; i < exports.size(); i++)
+		{
+			PortProto pp = (PortProto) exports.get(i);
+			if (pp == port) return true;
+		}
+		return false;
 	}
 
 	/**

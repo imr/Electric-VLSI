@@ -25,10 +25,7 @@ package com.sun.electric.tool.drc;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.*;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.HierarchyEnumerator;
-import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.ArcProto;
@@ -2172,12 +2169,13 @@ public class Quick
 			return false;
 
 		GeometryHandler	selectMerge = new PolyQTree(cell.getBounds());
+		HashMap notExportedNodes = new HashMap();
 
 		// Get merged areas. Only valid for layers that have connections (metals/polys). No valid for NP/PP.A.1 rule
 		for(Iterator netIt = cp.netlist.getNetworks(); netIt.hasNext(); )
 		{
 			Network net = (Network)netIt.next();
-			QuickAreaEnumerator quickArea = new QuickAreaEnumerator(net, selectMerge);
+			QuickAreaEnumerator quickArea = new QuickAreaEnumerator(net, selectMerge, notExportedNodes);
 			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, cp.netlist, quickArea);
 
 			for(Iterator it = quickArea.metalMerge.getKeyIterator(); it.hasNext(); )
@@ -2185,6 +2183,28 @@ public class Quick
 				Layer layer = (Layer)it.next();
 				boolean localError = checkMinAreaLayer(quickArea.metalMerge, cell, layer);
 				if (!errorFound) errorFound = localError;
+			}
+		}
+
+		// Checking nodes not exported down in the hierarchy. Probably good enought not to collect networks first
+		for(Iterator niIt = notExportedNodes.keySet().iterator(); niIt.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)niIt.next();
+			for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
+			{
+				PortInst pi = (PortInst)pIt.next();
+				Cell parentCell = ni.getParent();
+				Netlist parentNetlist = parentCell.getNetlist(false);
+				Network net = parentNetlist.getNetwork(pi);
+				QuickAreaEnumerator quickArea = new QuickAreaEnumerator(net, selectMerge, null);
+				HierarchyEnumerator.enumerateCell(parentCell, VarContext.globalContext, parentNetlist, quickArea);
+
+				for(Iterator it = quickArea.metalMerge.getKeyIterator(); it.hasNext(); )
+				{
+					Layer layer = (Layer)it.next();
+					boolean localError = checkMinAreaLayer(quickArea.metalMerge, parentCell, layer);
+					if (!errorFound) errorFound = localError;
+				}
 			}
 		}
 
@@ -2615,6 +2635,7 @@ public class Quick
 		if (minOverlapRule == null) return false;
 		double value = minOverlapRule.value;
         boolean[] founds = new boolean[4];
+
 
 		Rectangle2D polyBnd = poly.getBounds2D();
         Area polyArea = new Area(poly);
@@ -3456,25 +3477,26 @@ public class Quick
     {
 		private Network jNet;
 		private GeometryHandler metalMerge;
-		private GeometryHandler otherTypetMerge;
+		private GeometryHandler otherTypeMerge;
 		private Layer polyLayer;
+		private HashMap notExportedNodes = new HashMap();
 
-		public QuickAreaEnumerator(Network jNet, GeometryHandler selectMerge)
+		public QuickAreaEnumerator(Network jNet, GeometryHandler selectMerge, HashMap notExportedNodes)
 		{
 			this.jNet = jNet;
-			this.otherTypetMerge = selectMerge;
+			this.otherTypeMerge = selectMerge;
+			this.notExportedNodes = notExportedNodes;
 		}
 
 		/**
 		 * Method to search if child network is connected to visitor network.
 		 * @param net
 		 * @param info
+		 * @param isExported
 		 * @return
 		 */
-		private boolean searchNetworkInParent(Network net, HierarchyEnumerator.CellInfo info)
+		private boolean searchNetworkInParent(Network net, HierarchyEnumerator.CellInfo info, boolean isExported)
 		{
-			if (net == null && Main.LOCALDEBUGFLAG)
-				System.out.println("Here error");
 			if (jNet == net) return true;
 			HierarchyEnumerator.CellInfo cinfo = info;
 			while (net != null && cinfo.getParentInst() != null) {
@@ -3511,7 +3533,7 @@ public class Quick
                     {
                         Export exp = (Export)arcIt.next();
                         Network net = info.getNetlist().getNetwork(exp, 0);
-                        found = searchNetworkInParent(net, info);
+                        found = searchNetworkInParent(net, info, true);
                     }
                 }
 
@@ -3540,7 +3562,7 @@ public class Quick
 					if (layer.getFunction().isMetal() || layer.getFunction().isPoly())
 						metalMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
 					else
-						otherTypetMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
+						otherTypeMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
 				}
 			}
 			return true;
@@ -3560,6 +3582,7 @@ public class Quick
 		 */
 		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
 		{
+			Cell cell = info.getCell();
 			NodeInst ni = no.getNodeInst();
 			AffineTransform trans = ni.rotateOut();
 			NodeProto np = ni.getProto();
@@ -3571,25 +3594,34 @@ public class Quick
 			if (!(np instanceof PrimitiveNode)) return (true);
 
 			PrimitiveNode pNp = (PrimitiveNode)np;
+			boolean pureNode = (pNp.getFunction() == PrimitiveNode.Function.NODE);
 			boolean forceChecking = false;
 			if (np instanceof PrimitiveNode)
 			{
 				if (isSpecialNode(np)) return (false);
-				PrimitiveNode pn = (PrimitiveNode)np;
-				forceChecking = pn.containsSubstrateLayer(); // forcing the checking
+				forceChecking = pNp.isPureImplantNode(); // forcing the checking
 			}
 
             boolean found = forceChecking;
+			boolean notExported = false;
 			Network thisNet = null;
 			for(Iterator pIt = ni.getPortInsts(); !found && pIt.hasNext(); )
 			{
 				PortInst pi = (PortInst)pIt.next();
+				boolean isExported = cell.findPortProto(pi.getPortProto());
 				thisNet = info.getNetlist().getNetwork(pi);
-				found = searchNetworkInParent(thisNet, info);
+				found = searchNetworkInParent(thisNet, info, isExported);
+				if (!isExported) notExported = true;
 			}
 			// Substrate layers are special so we must check node regardless network
+			notExported = notExported && !forceChecking && !pureNode && info.getParentInfo() != null;
 			if (!found)
-				return (false);
+			{
+				if (notExportedNodes != null && notExported)
+					notExportedNodes.put(ni, ni);
+				else
+					return (false);
+			}
 
 			Technology tech = pNp.getTechnology();
 			// electrical should not be null due to ports but causes
@@ -3607,11 +3639,11 @@ public class Quick
 
 				// make sure this layer connects electrically to the desired port
 				PortProto pp = poly.getPort();
-				found = forceChecking && layer.getFunction().isSubstrate();
-                if (pp != null)
+				found = forceChecking && layer.getFunction().isImplant();
+                if (!found && pp != null)
                 {
 					Network net = info.getNetlist().getNetwork(ni, pp, 0);
-					found = searchNetworkInParent(net, info);
+					found = searchNetworkInParent(net, info, true);
                 }
 				//	if (!forceChecking && !found) continue;
                 if (!found) continue;
@@ -3628,7 +3660,7 @@ public class Quick
 				if (layer.getFunction().isMetal() || layer.getFunction().isPoly())
 					metalMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
 				else
-					otherTypetMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
+					otherTypeMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
 			}
 
             return true;
