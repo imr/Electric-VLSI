@@ -535,8 +535,6 @@ public class ERCWellCheck
 					if (subMerge != null)
 					{
 						AffineTransform trans = ni.rotateOut();
-						//AffineTransform tTrans = ni.translateOut();
-						//tTrans.concatenate(trans);
                         AffineTransform tTrans = ni.translateOut(trans);
 						thisMerge.addAll(subMerge, tTrans);
 					}
@@ -679,14 +677,25 @@ public class ERCWellCheck
 					{
 						boolean searchWell = (fun == NodeProto.Function.WELL);
 						// PWell: must be on ground or  NWell: must be on power
-						JNetwork parentNet = HierarchyEnumerator.getNetworkInParent(net, info.getParentInst());
-						if (parentNet != null)
+						for (Iterator it = net.getExports(); !wc.onProperRail && it.hasNext();)
 						{
-							for (Iterator it = parentNet.getExports(); !wc.onProperRail && it.hasNext();)
+							Export exp = (Export)it.next();
+							if ((searchWell && exp.isGround()) || (!searchWell && exp.isPower()))
+								wc.onProperRail = true;
+						}
+
+						// If still not the case, search for exports
+						if (!wc.onProperRail)
+						{
+							JNetwork parentNet = HierarchyEnumerator.getNetworkInParent(net, info.getParentInst());
+							if (parentNet != null)
 							{
-								Export exp = (Export)it.next();
-								if ((searchWell && exp.isGround()) || (!searchWell && exp.isPower()))
-									wc.onProperRail = true;
+								for (Iterator it = parentNet.getExports(); !wc.onProperRail && it.hasNext();)
+								{
+									Export exp = (Export)it.next();
+									if ((searchWell && exp.isGround()) || (!searchWell && exp.isPower()))
+										wc.onProperRail = true;
+								}
 							}
 						}
 					}
