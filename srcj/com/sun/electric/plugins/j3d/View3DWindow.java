@@ -282,7 +282,7 @@ public class View3DWindow extends JPanel
 		BranchGroup objRoot = new BranchGroup();
 		objRoot.setCapability(BranchGroup.ALLOW_BOUNDS_READ);
         objRoot.setCapability(BranchGroup.ENABLE_PICK_REPORTING);
-        //objRoot.setCapability(BranchGroup.ALLOW_BOUNDS_WRITE);
+        objRoot.setCapability(BranchGroup.ALLOW_BOUNDS_WRITE);
 
 		// Create the TransformGroup node and initialize it to the
 		// identity. Enable the TRANSFORM_WRITE capability so that
@@ -822,73 +822,6 @@ public class View3DWindow extends JPanel
 
 			// Setting appearance
             JAppearance ap = getAppearance(layer);
-//			EGraphics graphics = layer.getGraphics();
-//			JAppearance ap = (JAppearance)graphics.get3DAppearance();
-//
-//			if (ap == null)
-//			{
-//				ap = new JAppearance(graphics);
-//				Color color = layer.getGraphics().getColor();
-//				Color3f objColor = new Color3f(color);
-//				/*
-//				ColoringAttributes ca = new ColoringAttributes(objColor, ColoringAttributes.SHADE_GOURAUD);
-//				ca.setCapability(ColoringAttributes.ALLOW_COLOR_WRITE);
-//				ap.setColoringAttributes(ca);
-//                */
-//
-//				/*
-//				TransparencyAttributes ta = new TransparencyAttributes();
-//				ta.setTransparencyMode(TransparencyAttributes.BLENDED);
-//				ta.setTransparency(0.5f);
-//				//ap.setTransparencyAttributes(ta);
-//                */
-//
-//				// Adding Rendering attributes to access visibility flag
-//				RenderingAttributes ra = new RenderingAttributes();
-//				ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_READ);
-//                ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_WRITE);
-//				ra.setVisible(layer.isVisible());
-//				ap.setRenderingAttributes(ra);
-//
-//				// Set up the polygon attributes
-//				//PolygonAttributes pa = new PolygonAttributes();
-//				//pa.setCullFace(PolygonAttributes.CULL_NONE);
-//				//pa.setPolygonMode(PolygonAttributes.POLYGON_LINE);
-//				//ap.setPolygonAttributes(pa);
-//
-//				//TextureAttributes texAttr = new TextureAttributes();
-//				//texAttr.setTextureMode(TextureAttributes.MODULATE);
-//				//texAttr.setTextureColorTable(pattern);
-//				//ap.setTextureAttributes(texAttr);
-//
-//				//LineAttributes lineAttr = new LineAttributes();
-//				//lineAttr.setLineAntialiasingEnable(true);
-//				//ap.setLineAttributes(lineAttr);
-//
-//				// Adding to internal material
-////				Material mat = new Material(objColor, black, objColor, white, 70.0f);
-//				Material mat = new Material();
-//				mat.setDiffuseColor(objColor);
-//				mat.setSpecularColor(objColor);
-//				mat.setAmbientColor(objColor);
-//                mat.setLightingEnable(true);
-//				mat.setCapability(Material.ALLOW_COMPONENT_READ);
-//				mat.setCapability(Material.ALLOW_COMPONENT_WRITE);
-//                ap.setMaterial(mat);
-//
-//				// For changing color
-//				//ap.setCapability(Appearance.ALLOW_COLORING_ATTRIBUTES_WRITE);
-//				//ap.setCapability(Appearance.ALLOW_COLORING_ATTRIBUTES_READ);
-//				// For highlight
-//				ap.setCapability(Appearance.ALLOW_MATERIAL_READ);
-//				ap.setCapability(Appearance.ALLOW_MATERIAL_WRITE);
-//				// For visibility
-//				ap.setCapability(Appearance.ALLOW_RENDERING_ATTRIBUTES_READ);
-//                ap.setCapability(Appearance.ALLOW_RENDERING_ATTRIBUTES_WRITE);
-//
-//				graphics.set3DAppearance(ap);
-//			}
-
 
 			if (poly.getBox() == null) // non-manhattan shape
 			{
@@ -984,14 +917,10 @@ public class View3DWindow extends JPanel
 			WindowContent content = wf.getContent();
 			if (!(content instanceof View3DWindow)) continue;
 			View3DWindow wnd = (View3DWindow)content;
-		    TransformGroup grp = wnd.u.getViewingPlatform().getViewPlatformTransform();
-		       /*
-		    grp.getTransform(vTrans);
-		    vTrans.setScale(vCenter);
-		    grp.setTransform(vTrans);
-		    */
-            System.out.println("implement setScaleFactor");
-			//view.setScaleFactor(value.doubleValue());
+            Enumeration enum = wnd.u.getLocale().getAllBranchGraphs();
+            wnd.objTrans.getTransform(vTrans);
+            vTrans.setScale(vCenter);
+            wnd.objTrans.setTransform(vTrans);
 		}
     }
 
