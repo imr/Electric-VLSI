@@ -345,17 +345,6 @@ public class View3DWindow extends JPanel
 		//addCell(cell);
 		View3DEnumerator view3D = new View3DEnumerator();
 		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, view3D);
-//		// Drawing nodes
-//		for(Iterator nodes = cell.getNodes(); nodes.hasNext(); )
-//		{
-//			addNode((NodeInst)nodes.next(), objTrans);
-//		}
-//
-//		// Drawing arcs
-//		for(Iterator arcs = cell.getArcs(); arcs.hasNext(); )
-//		{
-//			addArc((ArcInst)arcs.next(), objTrans);
-//		}
 
 		// Lights
         Color3f alColor = new Color3f(0.6f, 0.6f, 0.6f);
