@@ -1507,8 +1507,7 @@ public class ELIB extends LibraryFiles
 					" because ends are unknown");
 				continue;
 			}
-			int defAngle = ELIBConstants.getArcAngleFromBits(arcUserBits[i]) * 10;
-			if (ai.lowLevelPopulate(ap, width, headPortInst, new EPoint(headX, headY), tailPortInst, new EPoint(tailX, tailY), defAngle, name, -1))
+			if (ai.lowLevelPopulate(ap, width, headPortInst, new EPoint(headX, headY), tailPortInst, new EPoint(tailX, tailY), name, -1))
 			{
 				String msg = "ERROR: Cell "+cell.describe() + ": arc " + name + " could not be created";
                 System.out.println(msg);
@@ -1516,8 +1515,8 @@ public class ELIB extends LibraryFiles
 				continue;
 			}
 			ELIBConstants.applyELIBArcBits(ai, arcUserBits[i]);
-//			ai.lowLevelPopulate(ap, width, tailPortInst, new Point2D.Double(tailX, tailY), headPortInst, new Point2D.Double(headX, headY), defAngle, name, -1);
-			ai.lowLevelLink();
+			int defAngle = ai.lowLevelGetArcAngle() * 10;
+			ai.lowLevelLink(defAngle);
 		}
 	}
 
@@ -1753,9 +1752,8 @@ public class ELIB extends LibraryFiles
                 }
                 // give extra info to user if didn't contain port
                 Rectangle2D box = portLocation.getBox();
-
                 if (box != null) {
-                    extra = "...expected ("+x+","+y+"), found ("+box.getCenterX()+","+box.getCenterY()+")";
+                    extra = "...arc end at ("+x+","+y+"), but port runs "+box.getMinX()+"<=X<="+box.getMaxX()+" and "+box.getMinY()+"<=Y<="+box.getMaxY();
                 } else
 				{
                     extra = "...expected ("+x+","+y+"), polyDistance=" + portLocation.polyDistance(x, y);

@@ -217,8 +217,6 @@ public class ELIBConstants
 		return userBits;
 	}
 
-	public static int getArcAngleFromBits(int bits) { return (bits & AANGLE) >> AANGLESH; }
-
 	/**
 	 * Method to apply a set of "userbits" to an arc.
 	 * The "userbits" are a set of bits that describes constraints and other properties,

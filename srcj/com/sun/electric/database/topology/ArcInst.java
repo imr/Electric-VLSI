@@ -226,7 +226,7 @@ public class ArcInst extends Geometric implements Comparable
 
 		// create the arc that connects them
 		ArcInst ai = ArcInst.lowLevelAllocate();
-		ai.lowLevelPopulate(ap, ap.getDefaultWidth(), piH, new EPoint(xH, yH), piT, new EPoint(xT, yT), 0, null, -1);
+		ai.lowLevelPopulate(ap, ap.getDefaultWidth(), piH, new EPoint(xH, yH), piT, new EPoint(xT, yT), null, -1);
 		return ai;
 	}
 
@@ -284,7 +284,7 @@ public class ArcInst extends Geometric implements Comparable
 		if (type == null || head == null || tail == null || !head.isLinked() || !tail.isLinked()) return null;
 
 		ArcInst ai = lowLevelAllocate();
-		if (ai.lowLevelPopulate(type, width, head, headP, tail, tailP, defAngle, name, -1)) return null;
+		if (ai.lowLevelPopulate(type, width, head, headP, tail, tailP, name, -1)) return null;
 		if (!ai.headStillInPort(headP, false))
 		{
 			Cell parent = head.getNodeInst().getParent();
@@ -303,7 +303,7 @@ public class ArcInst extends Geometric implements Comparable
 				ai.getTail().getPortInst().describe() + " which is centered at (" + poly.getCenterX() + "," + poly.getCenterY() + ")");
 			return null;
 		}
-		if (ai.lowLevelLink()) return null;
+		if (ai.lowLevelLink(defAngle)) return null;
 
 		// handle change control, constraint, and broadcast
 		Undo.newObject(ai);
@@ -407,13 +407,12 @@ public class ArcInst extends Geometric implements Comparable
 	 * @param headPt the coordinate of the head end PortInst.
 	 * @param tailPort the tail end PortInst.
 	 * @param tailPt the coordinate of the tail end PortInst.
-	 * @param defAngle the default angle of this arc (if the endpoints are coincident).
 	 * @param name the name of this ArcInst
 	 * @param duplicate duplicate index of this ArcInst
 	 * @return true on error.
 	 */
 	public boolean lowLevelPopulate(ArcProto protoType, double width,
-		PortInst headPort, EPoint headPt, PortInst tailPort, EPoint tailPt, int defAngle, String name, int duplicate)
+		PortInst headPort, EPoint headPt, PortInst tailPort, EPoint tailPt, String name, int duplicate)
 	{
 		// initialize this object
 		this.protoType = protoType;
@@ -459,17 +458,18 @@ public class ArcInst extends Geometric implements Comparable
 		headLocation = headPt;
 		headEnd = new HeadConnection(this);
 		
-		// fill in the geometry
-		updateGeometric(defAngle);
+//		// fill in the geometry
+//		updateGeometric(defAngle);
 
 		return false;
 	}
 
 	/**
 	 * Low-level method to link the ArcInst into its Cell.
+	 * @param defAngle the default angle of this arc (if the endpoints are coincident).
 	 * @return true on error.
 	 */
-	public boolean lowLevelLink()
+	public boolean lowLevelLink(int defAngle)
 	{
 		if (!isUsernamed() && (name == null || !parent.isUniqueName(name, getClass(), this)) || checkNameKey(name))
 		{
@@ -487,7 +487,11 @@ public class ArcInst extends Geometric implements Comparable
 
 		// update end shrinkage information
 		updateShrinkage(headPortInst.getNodeInst());
-		updateShrinkage(tailPortInst.getNodeInst());
+		updateShrinkage(tailPortInst.getNodeInst());		
+		
+		// fill in the geometry
+		updateGeometric(defAngle);
+
 		return false;
 	}
 

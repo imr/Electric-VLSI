@@ -646,15 +646,15 @@ public class ReadableDump extends LibraryFiles
 //					ail.arcTailX[j] + "," + ail.arcTailY[j] + ") not in port");
 
 			ELIBConstants.applyELIBArcBits(ai, userBits);
-			int defAngle = ai.lowLevelGetArcAngle() * 10;
-			if (ai.lowLevelPopulate(ap, width, headPortInst, headPt, tailPortInst, tailPt, defAngle, name, -1))
+			if (ai.lowLevelPopulate(ap, width, headPortInst, headPt, tailPortInst, tailPt, name, -1))
 			{
 				String msg = "ERROR: Cell "+cell.describe() + ": arc " + name + " could not be created";
                 System.out.println(msg);
 				Input.errorLogger.logError(msg, cell, 1);
 				continue;
 			}
-			ai.lowLevelLink();
+			int defAngle = ai.lowLevelGetArcAngle() * 10;
+			ai.lowLevelLink(defAngle);
 		}
 	}
 
