@@ -32,6 +32,7 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.technology.SizeOffset;
@@ -62,6 +63,7 @@ public class RouteElementArc extends RouteElement {
     /** Head connecting point */                    private Point2D headConnPoint;
     /** Tail connecting point */                    private Point2D tailConnPoint;
     /** Name of arc */                              private String arcName;
+    /** Text descriptor of name */                  private TextDescriptor arcNameDescriptor;
     /** Angle of arc */                             private int arcAngle;
 
     /** This contains the newly create instance, or the instance to delete */ private ArcInst arcInst;
@@ -77,15 +79,17 @@ public class RouteElementArc extends RouteElement {
      * @param ap Type of ArcInst to make
      * @param headRE RouteElement (must be newNode or existingPortInst) at head of arc
      * @param tailRE RouteElement (must be newNode or existingPortInst) at tail or arc
+     * @param nameTextDescriptor
      */
     public static RouteElementArc newArc(Cell cell, ArcProto ap, double arcWidth, RouteElementPort headRE, RouteElementPort tailRE,
-                                         Point2D headConnPoint, Point2D tailConnPoint, String name) {
+                                         Point2D headConnPoint, Point2D tailConnPoint, String name, TextDescriptor nameTextDescriptor) {
         RouteElementArc e = new RouteElementArc(RouteElementAction.newArc, cell);
         e.arcProto = ap;
         e.arcWidth = arcWidth;
         e.headRE = headRE;
         e.tailRE = tailRE;
         e.arcName = name;
+        e.arcNameDescriptor = nameTextDescriptor;
         if (headRE.getAction() != RouteElement.RouteElementAction.newNode &&
             headRE.getAction() != RouteElement.RouteElementAction.existingPortInst)
             System.out.println("  ERROR: headRE of newArc RouteElementArc must be newNode or existingPortInst");
@@ -114,6 +118,7 @@ public class RouteElementArc extends RouteElement {
         e.headRE = RouteElementPort.existingPortInst(arcInstToDelete.getHead().getPortInst(), arcInstToDelete.getHead().getLocation());
         e.tailRE = RouteElementPort.existingPortInst(arcInstToDelete.getTail().getPortInst(), arcInstToDelete.getTail().getLocation());
         e.arcName = arcInstToDelete.getName();
+        e.arcNameDescriptor = arcInstToDelete.getNameTextDescriptor();
         e.headConnPoint = arcInstToDelete.getHead().getLocation();
         e.tailConnPoint = arcInstToDelete.getTail().getLocation();
         e.arcAngle = 0;
@@ -298,6 +303,9 @@ public class RouteElementArc extends RouteElement {
             ArcInst newAi = ArcInst.makeInstance(arcProto, arcWidth, headPi, headPoint, tailPi, tailPoint, arcName);
             if (arcAngle != 0)
                 newAi.setAngle(arcAngle);
+            if ((arcName != null) && (arcNameDescriptor != null)) {
+                newAi.getNameTextDescriptor().copy(arcNameDescriptor);
+            }
             setDone();
             arcInst = newAi;
             return newAi;

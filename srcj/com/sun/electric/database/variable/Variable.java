@@ -136,7 +136,7 @@ public class Variable
         // user input text may describe a number that is not parsable by the Java Bean Shell
         // (such as 0.01p, which equals 0.01E-12). To prevent this being a problem, any String
         // that is convertible to a Number via the above definition is done so here.
-/*
+
         if (addr instanceof String) {
             try {
                 Number n = TextUtils.parsePostFixNumber((String)addr);
@@ -148,7 +148,7 @@ public class Variable
                 if (n instanceof Double) System.out.println("Converted "+s+" to Double "+(Double)n);
             } catch (java.lang.NumberFormatException e) {}
         }
-*/
+
 		this.addr = addr;
 		this.descriptor = new TextDescriptor(owner, descriptor);
 		this.key = key;
