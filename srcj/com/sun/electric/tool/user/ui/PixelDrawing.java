@@ -1976,7 +1976,8 @@ public class PixelDrawing
 			boxedWidth = (int)rect.getWidth();
 			boxedHeight = (int)rect.getHeight();
             // clip if not within bounds
-            if (drawBounds != null && !drawBounds.intersects(rect)) return;
+            Rectangle2D dbBounds = wnd.screenToDatabase(rect);
+            if (drawBounds != null && !drawBounds.intersects(dbBounds)) return;
 		}
 
         // create RenderInfo
