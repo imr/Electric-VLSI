@@ -1077,14 +1077,16 @@ public class Technology extends ElectricObject
      * pass in VarContext.globalContext if no context needed.
 	 * @return the size of the NodeInst.
 	 */
-	public Dimension2D getTransistorSize(NodeInst ni, VarContext context)
+	public TransistorSize getTransistorSize(NodeInst ni, VarContext context)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		SizeOffset so = ni.getSizeOffset();
 		double width = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
 		double height = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
-		Dimension2D dim = new Dimension2D.Double(width, height);
-		return dim;
+		//Dimension2D dim = new Dimension2D.Double(width, height);
+		//return dim;
+        TransistorSize size = new TransistorSize(new Double(width), new Double(height));
+        return size;
 	}
 
     /**

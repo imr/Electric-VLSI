@@ -91,7 +91,7 @@
         </Constraint>
       </Constraints>
     </Component>
-    <Component class="javax.swing.JLabel" name="jLabel4">
+    <Component class="javax.swing.JLabel" name="xsizeLabel">
       <Properties>
         <Property name="text" type="java.lang.String" value="X size:"/>
       </Properties>
@@ -108,7 +108,7 @@
         </Constraint>
       </Constraints>
     </Component>
-    <Component class="javax.swing.JLabel" name="jLabel5">
+    <Component class="javax.swing.JLabel" name="ysizeLabel">
       <Properties>
         <Property name="text" type="java.lang.String" value="Y size:"/>
       </Properties>

@@ -45,6 +45,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.io.input.Simulate;
@@ -888,11 +889,11 @@ public class Spice extends Topology
 			if (modelName != null) infstr.append(" " + modelName);
 
 			// compute length and width (or area for nonMOS transistors)
-			Dimension2D size = ni.getTransistorSize(context);
-			if (size.getWidth() > 0 || size.getHeight() > 0)
+			TransistorSize size = ni.getTransistorSize(context);
+			if (size.getDoubleWidth() > 0 || size.getDoubleLength() > 0)
 			{
-				double w = maskScale * size.getWidth();
-				double l = maskScale * size.getHeight();
+				double w = maskScale * size.getDoubleWidth();
+				double l = maskScale * size.getDoubleLength();
 				if (!Simulation.isSpiceWriteTransSizeInLambda())
 				{
 					// make into microns (convert to nanometers then divide by 1000)

@@ -42,6 +42,7 @@ import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.ErrorLogger.ErrorLog;
@@ -428,8 +429,8 @@ public class ERCAntenna
 				} else
 				{
 					// touching the gate side of the transistor
-					Dimension2D dim = thisni.getTransistorSize(VarContext.globalContext);
-					totalGateArea += dim.getHeight() * dim.getWidth();
+					TransistorSize dim = thisni.getTransistorSize(VarContext.globalContext);
+					totalGateArea += dim.getDoubleLength() * dim.getDoubleWidth();
 					ret = ERCANTPATHGATE;
 				}
 			} else

@@ -2105,18 +2105,31 @@ public class Schematics extends Technology
 	 * and the height of the Dimension is the length of the transistor.
 	 * For non-FET transistors, the width of the dimension is the area of the transistor.
 	 */
-	public Dimension2D getTransistorSize(NodeInst ni, VarContext context)
+	public TransistorSize getTransistorSize(NodeInst ni, VarContext context)
 	{
 		if (ni.isFET())
 		{
-	        double length = VarContext.objectToDouble(context.evalVar(ni.getVar(ATTR_LENGTH)), 0);
-	        double width = VarContext.objectToDouble(context.evalVar(ni.getVar(ATTR_WIDTH)), 0);
-			Dimension2D dim = new Dimension2D.Double(width, length);
-	        return dim;
+            Object lengthObj = context.evalVar(ni.getVar(ATTR_LENGTH), ni);
+	        double length = VarContext.objectToDouble(lengthObj, -1);
+            if (length != -1) lengthObj = new Double(length);
+            if (lengthObj == null) lengthObj = ni.getVar(ATTR_LENGTH).getObject();
+
+            Object widthObj = context.evalVar(ni.getVar(ATTR_WIDTH), ni);
+	        double width = VarContext.objectToDouble(widthObj, -1);
+            if (width != -1) widthObj = new Double(width);
+            if (widthObj == null) widthObj = ni.getVar(ATTR_WIDTH).getObject();
+			//Dimension2D dim = new Dimension2D.Double(width, length);
+	        //return dim;
+            TransistorSize size = new TransistorSize(widthObj, lengthObj);
+            return size;
 		}
-		double area = VarContext.objectToDouble(context.evalVar(ni.getVar(ATTR_AREA)), 0);
-		Dimension2D dim = new Dimension2D.Double(area, 0);
-		return dim;
+        Object areaObj = context.evalVar(ni.getVar(ATTR_AREA));
+		double area = VarContext.objectToDouble(areaObj, -1);
+        if (area != -1) areaObj = new Double(area);
+		//Dimension2D dim = new Dimension2D.Double(area, 0);
+		//return dim;
+        TransistorSize size = new TransistorSize(areaObj, new Double(0));
+        return size;
     }
 
 	/****************************** GENERAL PREFERENCES ******************************/

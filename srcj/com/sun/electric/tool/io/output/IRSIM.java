@@ -38,6 +38,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.tool.user.User;
 
 import java.util.Date;
@@ -149,10 +150,10 @@ public class IRSIM extends Output
 			printWriter.print(" " + iinfo.getUniqueNetName(gnet, "/"));
 			printWriter.print(" " + iinfo.getUniqueNetName(snet, "/"));
 			printWriter.print(" " + iinfo.getUniqueNetName(dnet, "/"));
-            Dimension2D dim = ni.getTransistorSize(iinfo.getContext());
+            TransistorSize dim = ni.getTransistorSize(iinfo.getContext());
             float m = iinfo.getMFactor();
-			printWriter.print(" " + dim.getHeight());                // length
-			printWriter.print(" " + (double)m * dim.getWidth());     // width
+			printWriter.print(" " + dim.getLength());                // length
+			printWriter.print(" " + (double)m * dim.getDoubleWidth());     // width
 			printWriter.print(" " + ni.getAnchorCenterX());          // xpos
 			printWriter.print(" " + ni.getAnchorCenterY());          // ypos
             if (isNMOS)

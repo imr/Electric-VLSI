@@ -44,7 +44,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
-//import com.sun.electric.technology.TransistorSize;
+import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.MoCMOS;
@@ -77,7 +77,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 	private NodeInst shownNode = null;
 	private PortProto shownPort = null;
 	private double initialXPos, initialYPos;
-	private double initialXSize, initialYSize;
+	private String initialXSize, initialYSize;
 	private int initialRotation, initialPopupIndex;
     private Variable.Code initialListPopupEntry;
 	private boolean initialEasyToSelect, initialInvisibleOutsideCell, initialLocked, initialExpansion;
@@ -317,8 +317,8 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		initialName = ni.getName();
 		initialXPos = ni.getAnchorCenterX();
 		initialYPos = ni.getAnchorCenterY();
-        initialXSize = ni.getXSizeWithMirror();
-        initialYSize = ni.getYSizeWithMirror();
+        double initXSize = ni.getXSizeWithMirror();
+        double initYSize = ni.getYSizeWithMirror();
         initialRotation = ni.getAngle();
         swapXY = false;
         if (initialRotation == 900 || initialRotation == 2700) swapXY = true;
@@ -330,26 +330,41 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         SizeOffset so = ni.getSizeOffset();
         if (swapXY)
         {
-            xSize.setText(TextUtils.formatDouble(Math.abs(initialYSize) - so.getLowYOffset() - so.getHighYOffset()));
-            ySize.setText(TextUtils.formatDouble(Math.abs(initialXSize) - so.getLowXOffset() - so.getHighXOffset()));
+            xSize.setText(TextUtils.formatDouble(Math.abs(initYSize) - so.getLowYOffset() - so.getHighYOffset()));
+            ySize.setText(TextUtils.formatDouble(Math.abs(initXSize) - so.getLowXOffset() - so.getHighXOffset()));
         } else
         {
-            xSize.setText(TextUtils.formatDouble(Math.abs(initialXSize) - so.getLowXOffset() - so.getHighXOffset()));
-            ySize.setText(TextUtils.formatDouble(Math.abs(initialYSize) - so.getLowYOffset() - so.getHighYOffset()));
+            xSize.setText(TextUtils.formatDouble(Math.abs(initXSize) - so.getLowXOffset() - so.getHighXOffset()));
+            ySize.setText(TextUtils.formatDouble(Math.abs(initYSize) - so.getLowYOffset() - so.getHighYOffset()));
         }
 		rotation.setText(TextUtils.formatDouble(initialRotation / 10.0));
-		mirrorX.setSelected(initialXSize < 0);
-		mirrorY.setSelected(initialYSize < 0);
+		mirrorX.setSelected(initXSize < 0);
+		mirrorY.setSelected(initYSize < 0);
 
         // special case for transistors
-/*
         TransistorSize transSize = ni.getTransistorSize(VarContext.globalContext);
         if (transSize != null) {
-
+            swapXY = false;
+            xsizeLabel.setText("Width:");
+            ysizeLabel.setText("Length:");
+            double width = transSize.getDoubleWidth();
+            if (width == 0)
+                xSize.setText(transSize.getWidth().toString());
+            else
+                xSize.setText(TextUtils.formatDouble(width));
+            double length = transSize.getDoubleLength();
+            if (length == 0)
+                ySize.setText(transSize.getLength().toString());
+            else
+                ySize.setText(TextUtils.formatDouble(length));
         } else {
-
+            xsizeLabel.setText("X size:");
+            ysizeLabel.setText("Y size:");
         }
-*/
+
+        initialXSize = xSize.getText();
+        initialYSize = ySize.getText();
+
 		// in "more" version
 		easyToSelect.setEnabled(true);
 		invisibleOutsideCell.setEnabled(true);
@@ -366,18 +381,6 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		for(Iterator it = ni.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
-/*
-			if (var.getTextDescriptor().isParam())
-			{
-				// found a parameter
-				AttValPair avp = new AttValPair();
-				avp.key = var.getKey();
-				avp.trueName = var.getTrueName();
-				avp.value = var.getObject().toString();
-				avp.code = var.isCode();
-				continue;
-			}
-*/
 			String name = var.getKey().getName();
 			if (!name.startsWith("ATTR_")) continue;
 
@@ -419,18 +422,16 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		if ((fun == NodeProto.Function.TRANMOS || fun == NodeProto.Function.TRADMOS ||
 			fun == NodeProto.Function.TRAPMOS) && holdsOutline)
 		{
-			/* serpentine transistor: show width, edit length */
-            /*
+			// serpentine transistor: show width, edit length
 			serpWidth = 0;
-			Dimension2D size = ni.getTransistorSize(null);
-			if (size.getWidth() > 0 && size.getHeight() > 0)
+			TransistorSize size = ni.getTransistorSize(null);
+			if (size.getDoubleWidth() > 0 && size.getDoubleLength() > 0)
 			{
-				textFieldLabel.setText("Width=" + size.getWidth() + "; Length:");
-				initialTextField = new String(Double.toString(size.getHeight()));
-				serpWidth = size.getHeight();
+				textFieldLabel.setText("Width=" + size.getDoubleWidth() + "; Length:");
+				initialTextField = new String(Double.toString(size.getDoubleLength()));
+				serpWidth = size.getDoubleLength();
 				textField.setEditable(true);
 			}
-            */
 		}
 
 		// set the expansion button
@@ -471,26 +472,40 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		locked.setSelected(initialLocked);
 
 		// load special node information
-/*
+
 		if (np == Schematics.tech.transistorNode || np == Schematics.tech.transistor4Node)
 		{
+            /*
 			textField.setEditable(true);
-			Dimension2D d = ni.getTransistorSize(VarContext.globalContext);
+			TransistorSize d = ni.getTransistorSize(VarContext.globalContext);
 			if (ni.isFET())
 			{
 				textFieldLabel.setText("Width / length:");
-				initialTextField = d.getWidth() + " / " + d.getHeight();
+				initialTextField = d.getWidth() + " / " + d.getDoubleLength();
 			} else
 			{
 				textFieldLabel.setText("Area:");
-				initialTextField = Double.toString(d.getWidth());
+				initialTextField = Double.toString(d.getDoubleWidth());
 			}
 			textField.setText(initialTextField);
 
 			popupLabel.setText("Transistor type:");
 			popup.addItem(fun.getName());
+            */
+            if (!ni.isFET()) {
+                textField.setEditable(true);
+                textFieldLabel.setText("Area:");
+
+                TransistorSize d = ni.getTransistorSize(VarContext.globalContext);
+                initialTextField = Double.toString(d.getDoubleWidth());
+
+                textField.setText(initialTextField);
+
+                popupLabel.setText("Transistor type:");
+                popup.addItem(fun.getName());
+            }
 		}
-        */
+
 		scalableTrans = false;
 		if (np instanceof PrimitiveNode)
 		{
@@ -735,17 +750,6 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		if (attributes.isSelected())
 		{
 			// show attributes
-/*
-			for(Iterator it = allAttributes.iterator(); it.hasNext(); )
-			{
-				AttValPair avp = (AttValPair)it.next();
-				listModel.addElement(avp.trueName + " = " + avp.value);
-			}
-			see.setEnabled(false);
-			listEdit.setEditable(true);
-			listPopup.setEnabled(true);
-			listPopupLabel.setText("Type:");
-*/
             attributesTable.clearVariables();
             for (Iterator it = allAttributes.iterator(); it.hasNext(); ) {
                 AttValPair avp = (AttValPair)it.next();
@@ -848,6 +852,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			// handle special node information
 			if (np == Schematics.tech.transistorNode || np == Schematics.tech.transistor4Node)
 			{
+                /*
 				String currentTextField = dialog.textField.getText();
 				if (!currentTextField.equals(dialog.initialTextField))
 				{
@@ -871,7 +876,29 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 						dialog.initialTextField = currentTextField;
 						changed = true;
 					}
-				}
+				}*/
+                if (ni.isFET()) {
+                    // see if we can convert width and length to a Number
+                    double width = TextUtils.atof(dialog.xSize.getText(), null);
+                    Variable var = null;
+                    if (width == 0) {
+                        // set width to whatever text is there
+                        var = ni.updateVar(Schematics.ATTR_WIDTH, dialog.xSize.getText());
+                    } else {
+                        var = ni.updateVar(Schematics.ATTR_WIDTH, new Double(width));
+                    }
+                    if (var != null) var.setDisplay(true);
+
+                    double length = TextUtils.atof(dialog.ySize.getText(), null);
+                    if (length == 0) {
+                        // set length to whatever text is there
+                        var = ni.updateVar(Schematics.ATTR_LENGTH, dialog.ySize.getText());
+                    } else {
+                        var = ni.updateVar(Schematics.ATTR_LENGTH, new Double(length));
+                    }
+                    if (var != null) var.setDisplay(true);
+
+                }
 			}
 			if (dialog.scalableTrans)
 			{
@@ -1013,31 +1040,47 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			double currentXPos = TextUtils.atof(dialog.xPos.getText(), new Double(dialog.initialXPos));
 			double currentYPos = TextUtils.atof(dialog.yPos.getText(), new Double(dialog.initialYPos));
 			double currentXSize = 0, currentYSize = 0;
-			if (dialog.swapXY)
-			{
-				currentXSize = TextUtils.atof(dialog.ySize.getText(), new Double(dialog.initialYSize)) + so.getLowXOffset() + so.getHighXOffset();
-				currentYSize = TextUtils.atof(dialog.xSize.getText(), new Double(dialog.initialXSize)) + so.getLowYOffset() + so.getHighYOffset();
-			} else
-			{
-				currentXSize = TextUtils.atof(dialog.xSize.getText(), new Double(dialog.initialXSize)) + so.getLowXOffset() + so.getHighXOffset();
-				currentYSize = TextUtils.atof(dialog.ySize.getText(), new Double(dialog.initialYSize)) + so.getLowYOffset() + so.getHighYOffset();
-			}
-			if (dialog.mirrorX.isSelected()) currentXSize = -currentXSize;
-			if (dialog.mirrorY.isSelected()) currentYSize = -currentYSize;
+            double initXSize = 0, initYSize = 0;
+
+            // schematic transistors have width and length set by xsize, ysize fields
+            if (!(np == Schematics.tech.transistorNode) && !(np == Schematics.tech.transistor4Node))
+            {
+                if (dialog.swapXY)
+                {
+                    currentXSize = TextUtils.atof(dialog.ySize.getText(), new Double(ni.getYSize() - so.getLowXOffset() - so.getHighXOffset()));
+                    currentYSize = TextUtils.atof(dialog.xSize.getText(), new Double(ni.getXSize() - so.getLowYOffset() - so.getHighYOffset()));
+                } else
+                {
+                    currentXSize = TextUtils.atof(dialog.xSize.getText(), new Double(ni.getXSize() - so.getLowXOffset() - so.getHighXOffset()));
+                    currentYSize = TextUtils.atof(dialog.ySize.getText(), new Double(ni.getYSize() - so.getLowYOffset() - so.getHighYOffset()));
+                }
+                if (dialog.mirrorX.isSelected()) currentXSize = -currentXSize;
+                if (dialog.mirrorY.isSelected()) currentYSize = -currentYSize;
+                try {
+                    initXSize = Double.valueOf(dialog.initialXSize).doubleValue();
+                } catch (NumberFormatException e) {
+                    initXSize = currentXSize;
+                }
+                try {
+                    initYSize = Double.valueOf(dialog.initialYSize).doubleValue();
+                } catch (NumberFormatException e) {
+                    initYSize = currentYSize;
+                }
+            }
 			int currentRotation = (int)(TextUtils.atof(dialog.rotation.getText(), new Double(dialog.initialRotation)) * 10);
 			if (!DBMath.doublesEqual(currentXPos, dialog.initialXPos) ||
 				!DBMath.doublesEqual(currentYPos, dialog.initialYPos) ||
-				!DBMath.doublesEqual(currentXSize, dialog.initialXSize) ||
-				!DBMath.doublesEqual(currentYSize, dialog.initialYSize) ||
+				!DBMath.doublesEqual(currentXSize, initXSize) ||
+				!DBMath.doublesEqual(currentYSize, initYSize) ||
 				currentRotation != dialog.initialRotation || changed)
 			{
 				ni.modifyInstance(currentXPos - dialog.initialXPos, currentYPos - dialog.initialYPos,
-					currentXSize - dialog.initialXSize, currentYSize - dialog.initialYSize,
+					currentXSize - initXSize, currentYSize - initYSize,
 					currentRotation - dialog.initialRotation);
 				dialog.initialXPos = currentXPos;
 				dialog.initialYPos = currentYPos;
-				dialog.initialXSize = currentXSize;
-				dialog.initialYSize = currentYSize;
+				dialog.initialXSize = dialog.xSize.getText();
+				dialog.initialYSize = dialog.ySize.getText();
 				dialog.initialRotation = currentRotation;
 			}
 			return true;
@@ -1060,9 +1103,9 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         ok = new javax.swing.JButton();
         type = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
+        xsizeLabel = new javax.swing.JLabel();
         xSize = new javax.swing.JTextField();
-        jLabel5 = new javax.swing.JLabel();
+        ysizeLabel = new javax.swing.JLabel();
         ySize = new javax.swing.JTextField();
         jLabel6 = new javax.swing.JLabel();
         xPos = new javax.swing.JTextField();
@@ -1168,13 +1211,13 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         getContentPane().add(jLabel3, gridBagConstraints);
 
-        jLabel4.setText("X size:");
+        xsizeLabel.setText("X size:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
-        getContentPane().add(jLabel4, gridBagConstraints);
+        getContentPane().add(xsizeLabel, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -1185,13 +1228,13 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(xSize, gridBagConstraints);
 
-        jLabel5.setText("Y size:");
+        ysizeLabel.setText("Y size:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
-        getContentPane().add(jLabel5, gridBagConstraints);
+        getContentPane().add(ysizeLabel, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -1620,8 +1663,6 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
     private javax.swing.JCheckBox invisibleOutsideCell;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
@@ -1652,8 +1693,10 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
     private javax.swing.JRadioButton unexpanded;
     private javax.swing.JTextField xPos;
     private javax.swing.JTextField xSize;
+    private javax.swing.JLabel xsizeLabel;
     private javax.swing.JTextField yPos;
     private javax.swing.JTextField ySize;
+    private javax.swing.JLabel ysizeLabel;
     // End of variables declaration//GEN-END:variables
 	
 }

@@ -2122,7 +2122,7 @@ public class NodeInst extends Geometric implements Nodable
      * pass in VarContext.globalContext if no context needed.
 	 * @return the size of the NodeInst.
 	 */
-	public Dimension2D getTransistorSize(VarContext context)
+	public TransistorSize getTransistorSize(VarContext context)
 	{
         if (!isPrimitiveTransistor() && !isFET()) return null;
 		PrimitiveNode np = (PrimitiveNode)protoType;

@@ -2,6 +2,9 @@
 
 ************************* Version 8.01b: *********************************
 
+IMP: (8/03/04, JKG) GetInfoNode now shows transistor width/length instead of x/y size
+        for transistor nodes
+
 FIX: (8/2/04, RK) NCC wasn't checking that same named Exports are on the equivalent nets.
 
 IMP/MAN (8/2/04, RK) Added NCC annotation: "notSubcircuit". 

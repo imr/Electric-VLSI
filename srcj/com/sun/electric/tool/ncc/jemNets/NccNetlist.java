@@ -57,6 +57,7 @@ import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
@@ -358,9 +359,9 @@ class Visitor extends HierarchyEnumerator.Visitor {
 //		}
 		double width=0, length=0;
 		if (globals.getOptions().checkSizes) {
-			Dimension2D dim = ni.getTransistorSize(info.getContext());
-			width = mul * dim.getWidth();
-			length = dim.getHeight();
+			TransistorSize dim = ni.getTransistorSize(info.getContext());
+			width = mul * dim.getDoubleWidth();
+			length = dim.getDoubleLength();
 		}
 		Wire s = getWireForPortInst(ni.getTransistorSourcePort(), info);
 		Wire g = getWireForPortInst(ni.getTransistorGatePort(), info);
