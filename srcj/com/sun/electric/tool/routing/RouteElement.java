@@ -34,6 +34,9 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.PrimitiveNode;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -99,6 +102,7 @@ public class RouteElement {
     /** Head of arc */                              private RouteElement headRE;
     /** Tail of arc */                              private RouteElement tailRE;
     /** Name of arc */                              private String arcName;
+    /** Angle of arc */                             private int arcAngle;
 
     // ---- Delete Node/Arc info ----
     /** NodeInst to delete */                       private NodeInst nodeInstToDelete;
@@ -131,11 +135,10 @@ public class RouteElement {
         e.np = np;
         e.newNodePort = newNodePort;
         e.location = location;
-        e.width = width;
-        e.height = height;
         e.newNodeInst = null;
         e.isBisectArcPin = false;
         e.newArcs = new ArrayList();
+        e.setNodeSize(new Dimension2D.Double(width, height));
         return e;
     }
 
@@ -162,6 +165,7 @@ public class RouteElement {
             System.out.println("  ERROR: tailRE of newArc RouteElement must be newNode or existingPortInst");
         headRE.addConnectingNewArc(e);
         tailRE.addConnectingNewArc(e);
+        e.arcAngle = 0;
         return e;
     }
 
@@ -293,6 +297,16 @@ public class RouteElement {
     }
 
     /**
+     * Set a newArc's angle. This only does something if both the
+     * head and tail of the arc are coincident points. This does
+     * nothing if the RouteElement is not a newArc
+     * @param angle the angle, in tenth degrees
+     */
+    public void setArcAngle(int angle) {
+        if (action == RouteElementAction.newArc) arcAngle = angle;
+    }
+
+    /**
      * Return true if the new arc is a vertical arc, false otherwise
      */
     public boolean isNewArcVertical() {
@@ -364,8 +378,18 @@ public class RouteElement {
      */
     public void replaceArcEnd(RouteElement oldEnd, RouteElement newEnd) {
         if (action == RouteElementAction.newArc) {
-            if (headRE == oldEnd) headRE = newEnd;
-            if (tailRE == oldEnd) tailRE = newEnd;
+            if (headRE == oldEnd) {
+                headRE = newEnd;
+                // update book-keeping
+                oldEnd.removeConnectingNewArc(this);
+                newEnd.addConnectingNewArc(this);
+            }
+            if (tailRE == oldEnd) {
+                tailRE = newEnd;
+                // update book-keeping
+                oldEnd.removeConnectingNewArc(this);
+                newEnd.addConnectingNewArc(this);
+            }
         }
     }
 
@@ -381,6 +405,15 @@ public class RouteElement {
             newArcs.add(re);
         if (action == RouteElementAction.existingPortInst)
             newArcs.add(re);
+    }
+
+    /**
+     * Reomve a newArc that connects to this newNode or existingPortInst.
+     * @param re the RouteElement to remove
+     */
+    private void removeConnectingNewArc(RouteElement re) {
+        if (re.getAction() != RouteElementAction.newArc) return;
+        newArcs.remove(re);
     }
 
     /**
@@ -448,6 +481,25 @@ public class RouteElement {
         else return new Dimension2D.Double(-1, -1);
     }
 
+    /**
+     * Set the size of a newNode.  Does not make it smaller
+     * than the default size if this is a PrimitiveNode.
+     * Does nothing for other RouteElements.
+     * @param size the new size
+     */
+    public void setNodeSize(Dimension2D size) {
+        if (action == RouteElementAction.newNode) {
+            SizeOffset so = np.getSizeOffset();
+            double widthoffset = so.getLowXOffset() + so.getHighXOffset();
+            double heightoffset = so.getLowYOffset() + so.getHighYOffset();
+
+            double defWidth = np.getDefWidth() - widthoffset;       // this is width we see on the screen
+            double defHeight = np.getDefHeight() - heightoffset;    // this is height we see on the screen
+            if (size.getWidth() > defWidth) width = size.getWidth(); else width = defWidth;
+            if (size.getHeight() > defHeight) height = size.getHeight(); else height = defHeight;
+        }
+    }
+
     // -------------------------- Action/Highlight Methods ------------------------
 
     /**
@@ -462,7 +514,10 @@ public class RouteElement {
 
         if (action == RouteElementAction.newNode) {
             // create new Node
-            newNodeInst = NodeInst.makeInstance(np, location, width, height, 0, cell, null);
+            SizeOffset so = np.getSizeOffset();
+            double widthso = width +  so.getLowXOffset() + so.getHighXOffset();
+            double heightso = height + so.getLowYOffset() + so.getHighYOffset();
+            newNodeInst = NodeInst.makeInstance(np, location, widthso, heightso, 0, cell, null);
             if (newNodeInst == null) return null;
             setDone();
             return newNodeInst;
@@ -476,6 +531,8 @@ public class RouteElement {
             PortInst headPi = headRE.getConnectingPort();
             PortInst tailPi = tailRE.getConnectingPort();
             ArcInst newAi = ArcInst.makeInstance(ap, arcWidth, headPi, tailPi, arcName);
+            if (arcAngle != 0)
+                newAi.setAngle(arcAngle);
             setDone();
             return newAi;
         }

@@ -60,8 +60,8 @@ public class Route extends ArrayList {
         super(c);
         if (c instanceof Route) {
             Route r = (Route)c;
-            routeStart = r.getRouteStart();
-            routeEnd = r.getRouteEnd();
+            routeStart = r.getStart();
+            routeEnd = r.getEnd();
         } else {
             routeStart = null;
             routeEnd = null;
@@ -80,30 +80,30 @@ public class Route extends ArrayList {
 
 
     /** Sets the start of the Route */
-    public void setRouteStart(RouteElement startRE) {
+    public void setStart(RouteElement startRE) {
         if (!contains(startRE)) {
             add(startRE);
-            //System.out.println("Route.setRouteStart Error: argument not part of list");
+            //System.out.println("Route.setStart Error: argument not part of list");
             //return;
         }
         routeStart = startRE;
     }
 
     /** Get the start of the Route */
-    public RouteElement getRouteStart() { return routeStart; }
+    public RouteElement getStart() { return routeStart; }
 
     /** Sets the end of the Route */
-    public void setRouteEnd(RouteElement endRE) {
+    public void setEnd(RouteElement endRE) {
         if (!contains(endRE)) {
             add(endRE);
-            //System.out.println("Route.setRouteEnd Error: argument not part of list");
+            //System.out.println("Route.setEnd Error: argument not part of list");
             //return;
         }
         routeEnd = endRE;
     }
 
     /** Get the end of the Route */
-    public RouteElement getRouteEnd() { return routeEnd; }
+    public RouteElement getEnd() { return routeEnd; }
 
     /**
      * Reverse the Route. This just swaps and the start and end

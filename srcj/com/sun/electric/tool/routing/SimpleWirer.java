@@ -57,7 +57,7 @@ public class SimpleWirer extends InteractiveRouter {
 
     protected boolean planRoute(Route route, Cell cell, RouteElement endRE, Point2D clicked) {
 
-        RouteElement startRE = route.getRouteStart();
+        RouteElement startRE = route.getStart();
 
         // first, find location of corner of L if routing will be an L shape
         Point2D cornerLoc = null;
@@ -95,10 +95,12 @@ public class SimpleWirer extends InteractiveRouter {
                 useArc = Generic.tech.universal_arc;
             else {
                 // route vertically
-                if (!routeVertically(route, endRE, cornerLoc)) {
+                VerticalRoute vroute = new VerticalRoute(startRE, endRE);
+                if (!vroute.specifyRoute()) {
                     System.out.println("Don't know how to connect (using Technology "+cell.getTechnology()+"):\n   "+startRE+"\n   "+endRE);
                     return false;
                 }
+                vroute.buildRoute(route, cell, cornerLoc);
                 return true;
             }
         }
@@ -128,7 +130,7 @@ public class SimpleWirer extends InteractiveRouter {
         }
 
         route.add(endRE);
-        route.setRouteEnd(endRE);
+        route.setEnd(endRE);
         return true;
     }
 

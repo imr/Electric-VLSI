@@ -133,11 +133,12 @@ public abstract class InteractiveRouter extends Router {
 
         RouteElement startRE = RouteElement.existingPortInst(startPort);
         Route route = new Route();
-        route.add(startRE); route.setRouteStart(startRE);
-        route.setRouteEnd(startRE);
+        route.add(startRE); route.setStart(startRE);
+        route.setEnd(startRE);
 
-        Dimension2D size = getContactSize(startRE);
-        if (!routeVertically(route, arc, size, startRE.getLocation())) return false;
+        VerticalRoute vroute = new VerticalRoute(startRE, arc);
+        if (!vroute.specifyRoute()) return false;
+        vroute.buildRoute(route, startRE.getCell(), startRE.getLocation());
         createRoute(route, startPort.getNodeInst().getParent());
         return true;
     }
@@ -304,9 +305,9 @@ public abstract class InteractiveRouter extends Router {
 
         // add startRE and endRE to route
         route.add(startRE);
-        route.setRouteStart(startRE);
-        route.setRouteEnd(startRE);
-        //route.add(endRE); route.setRouteEnd(endRE);
+        route.setStart(startRE);
+        route.setEnd(startRE);
+        //route.add(endRE); route.setEnd(endRE);
 
         // Tell Router to route between startRE and endRE
         if (planRoute(route, cell, endRE, clicked))
@@ -451,8 +452,8 @@ public abstract class InteractiveRouter extends Router {
         // lines intersect, connect them
         RouteElement startRE = bisectArc(route, startArc, point);
         RouteElement endRE = bisectArc(route, endArc, point);
-        route.setRouteStart(startRE);
-        route.setRouteEnd(startRE);
+        route.setStart(startRE);
+        route.setEnd(startRE);
 
         // see if we can connect directly
         ArcProto useArc = getArcToUse(startRE.getPortProto(), endRE.getPortProto());
@@ -461,11 +462,12 @@ public abstract class InteractiveRouter extends Router {
             replaceRouteElementArcPin(route, endRE, startRE);
             // note that endRE was never added to the route, otherwise we'd remove it here
         } else {
-            boolean success = routeVertically(route, endRE, point);
-            if (!success) {
+            VerticalRoute vroute = new VerticalRoute(route.getEnd(), endRE);
+            if (!vroute.specifyRoute()) {
                 System.out.println("Can't route vertically between "+startArc+" and "+endArc);
                 return false;
             }
+            vroute.buildRoute(route, endRE.getCell(), point);
         }
         return true;
     }

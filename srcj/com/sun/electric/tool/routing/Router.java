@@ -36,9 +36,11 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.geometry.Dimension2D;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
 
 import java.util.List;
@@ -95,8 +97,8 @@ public abstract class Router {
         RouteElement startRE = RouteElement.existingPortInst(startPort);
         RouteElement endRE = RouteElement.existingPortInst(endPort);
         route.add(startRE);
-        route.setRouteStart(startRE);
-        route.setRouteEnd(startRE);
+        route.setStart(startRE);
+        route.setEnd(startRE);
         return planRoute(route, cell, endRE, hint);
     }
 
@@ -163,7 +165,7 @@ public abstract class Router {
                 else
                     System.out.println(nodesCreated+" nodes created");
             }
-            RouteElement finalRE = route.getRouteEnd();
+            RouteElement finalRE = route.getEnd();
             if (finalRE != null) {
                 Highlight.clear();
                 PortInst pi = finalRE.getConnectingPort();
@@ -179,199 +181,6 @@ public abstract class Router {
 
     // ------------------------ Protected Utility Methods ---------------------
 
-    /**
-     * Routes vertically (in Z) from the end of the route to newEndRE, and then
-     * makes newEndRE the end of the route.  Asserts that newEndRE is at the
-     * location as the end of the route.
-     * <P>For simplicity, this method assumes the RouteElement newEndRE, and the
-     * RouteElement that is the end of the 'route', both have valid PortProtos
-     * (i.e. they are newNodes or existingPortInst types of RouteElements).
-     * <p>They must also have the same location.
-     * @param newEndRE The new end of the Route.  Must be of type newNode or existingPortInst.
-     * @return true if successful, otherwise returns false and does not modify route.
-     */
-    public boolean routeVertically(Route route, RouteElement newEndRE, Point2D contactLocation) {
-
-        // newEndRE should not be part of route
-        assert (!route.contains(newEndRE));
-
-        // make sure both start and end of route have ports
-        PortProto endPort = newEndRE.getPortProto();
-        PortProto startPort = route.getRouteEnd().getPortProto();
-        assert ((endPort != null) && (startPort != null));
-
-        RouteElement startRE = route.getRouteEnd();
-
-        ArcProto [] endArcs = endPort.getBasePort().getConnections();
-        if (endArcs == null) return false;
-
-        // see what arcs endPort can connect to, and try to route to each
-        for (int i = 0; i < endArcs.length; i++) {
-            ArcProto endArc = endArcs[i];
-            if (endArc == Generic.tech.universal_arc) continue;
-            if (endArc == Generic.tech.invisible_arc) continue;
-            if (endArc == Generic.tech.unrouted_arc) continue;
-            if (endArc.isNotUsed()) continue;
-
-            Dimension2D contactSize = getContactSize(startRE, newEndRE);
-            if (!routeVertically(route, endArc, contactSize, contactLocation)) continue;
-
-            // add final connection
-            RouteElement lastNode = route.getRouteEnd();
-            if (newEndRE.isBisectArcPin() && newEndRE.getLocation().equals(lastNode.getLocation())) {
-                // replace endRE with lastNode
-                replaceRouteElementArcPin(route, newEndRE, lastNode);
-                // no need to create final arc
-            } else {
-                // find arc width to use
-                Cell cell = startRE.getCell();
-                double startArcWidth = getArcWidthToUse(startRE, endArc);
-                double endArcWidth = getArcWidthToUse(newEndRE, endArc);
-                if (endArcWidth > startArcWidth) startArcWidth = endArcWidth;
-                RouteElement arc = RouteElement.newArc(cell, endArc, startArcWidth, lastNode, newEndRE, null);
-                route.add(arc);
-                route.add(newEndRE);
-                route.setRouteEnd(newEndRE);
-            }
-            return true;
-        }
-        return false;
-    }
-
-
-    /**
-     * Extend the route vertically (in Z) from the end of the route to a new
-     * RouteElement node that can connect to endArc.
-     * @param endArc arc final element should be able to connect to
-     * @return true on success, otherwise returns false and does not modify the route
-     */
-    public boolean routeVertically(Route route, ArcProto endArc, Dimension2D contactSize,
-                                    Point2D contactLocation) {
-        // get start port
-        RouteElement startRE = route.getRouteEnd();
-        PortProto startPort = startRE.getPortProto();
-        if (startPort == null) return false;
-
-        // see if we can find way to connect to endArc
-        List bestRoute = new ArrayList();
-        if (!findConnectingPorts(bestRoute, startPort, endArc)) return false;
-        if (bestRoute.size() == 0) return false;
-
-        if (contactLocation == null) return false;
-        Cell cell = startRE.getCell();
-
-        RouteElement lastNode = startRE;
-        for (Iterator it = bestRoute.iterator(); it.hasNext(); ) {
-
-            // should always be arc proto, primitive port pair
-            ArcProto ap = (ArcProto)it.next();
-            PrimitivePort pp = (PrimitivePort)it.next();
-
-            // create new contact node RouteElement
-            double defHeight = pp.getParent().getDefHeight();
-            double defWidth = pp.getParent().getDefWidth();
-            double height = (contactSize.getHeight() < defHeight) ? defHeight : contactSize.getHeight();
-            double width = (contactSize.getWidth() < defWidth) ? defWidth : contactSize.getWidth();
-            RouteElement node = RouteElement.newNode(cell, pp.getParent(), pp,
-                    contactLocation, width, height);
-            route.add(node);
-
-            // if startRE is a bisectArcPin, replace it with first pin in vertical route
-            if (lastNode == startRE && startRE.isBisectArcPin() &&
-                    startRE.getLocation().equals(node.getLocation())) {
-                replaceRouteElementArcPin(route, startRE, node);
-                route.remove(startRE);
-            } else {
-                double arcWidth = getArcWidthToUse(lastNode, ap);
-                RouteElement arc = RouteElement.newArc(cell, ap, arcWidth, lastNode, node, null);
-                route.add(arc);
-            }
-            lastNode = node;        // add start of route (existing port inst)
-        }
-        route.setRouteEnd(lastNode);
-        return true;
-    }
-
-    private static int searchNumber;
-    private static final int SEARCHLIMIT = 100;
-    private static final boolean DEBUG = false;
-    /**
-     * Find a way to connect between PortProto <i>start</i> and ArcProto <i>ap</i>.
-     * If a way is found, a list of arc and port pairs is returned.  The list is always
-     * even in length, with each pair being an ArcProto followed by a PrimitivePort.
-     * The smallest example is a list of two elements, the first being an arc that can
-     * connect to both <i>start</i> and the PrimitivePort that is the second element in the
-     * list.  The PrimitivePort can also connect to <i>ap</i>. Use PrimitivePort.getParent()
-     * to find the PrimitiveNode on which the PrimitivePort resides.
-     * @param portsList an empty list into which to store the route description
-     * @param start the start of the route
-     * @param ap the arc the last primitive port will be able to connect to
-     * @return true on success, false on failure
-     */
-    private boolean findConnectingPorts(List portsList, PortProto start, ArcProto ap) {
-        if (DEBUG) System.out.println("***Trying to connect from "+start+" to "+ap);
-        searchNumber = 0;
-        return findConnectingPorts("  ", portsList, start, ap);
-    }
-    /** See findConnectingPorts (public version) */
-    private boolean findConnectingPorts(String ds, List portsList, PortProto start, ArcProto ap) {
-        // list should not be null
-        if (portsList == null) return false;
-        ds += "  ";
-
-        if (searchNumber > SEARCHLIMIT) return false;
-        searchNumber++;
-
-        // find what start can connect to
-        PrimitivePort startpp = start.getBasePort();
-        ArcProto [] startArcs = startpp.getConnections();
-        // find all ports that can connect to what start can connect to
-        for (int i = 0; i < startArcs.length; i++) {
-            ArcProto startArc = startArcs[i];
-            if (startArc == Generic.tech.universal_arc) continue;
-            if (startArc == Generic.tech.invisible_arc) continue;
-            if (startArc == Generic.tech.unrouted_arc) continue;
-            if (startArc.isNotUsed()) continue;
-            if (portsList.contains(startArc)) continue; // shouldn't have to traverse same arc twice
-            Technology tech = startArc.getTechnology();
-            if (DEBUG) System.out.println(ds+"Checking: Node="+startpp+", Arc="+startArc);
-            // first check if we can connect to end
-            if (startArc == ap) {
-                // we're done
-                //portsList.add(startArc);
-                if (DEBUG) System.out.println(ds+"...successfully connected to "+startArc);
-                return true;
-            }
-            // find all primitive ports in technology that can connect to
-            // this arc, and that are not already in list (and are not startpp)
-            Iterator portsIt = tech.getPorts();
-            for (; portsIt.hasNext(); ) {
-                PrimitivePort pp = (PrimitivePort)portsIt.next();
-                // ignore anything whose parent is not a CONTACT
-                if (pp.getParent().getFunction() != NodeProto.Function.CONTACT) continue;
-                if (DEBUG) System.out.println(ds+"Checking "+pp+" (parent is "+pp.getParent()+")");
-                if (pp.connectsTo(startArc)) {
-                    if (portsList.contains(pp)) continue;           // ignore ones we've already hit
-                    if (pp == startpp) continue;                    // ignore start port
-                    // add to list
-                    int lastSize = portsList.size();
-                    portsList.add(startArc); portsList.add(pp);
-                    if (DEBUG) System.out.println(ds+"...found intermediate node "+pp+" through "+startArc);
-                    // recurse, but ignore results if failed
-                    if (findConnectingPorts(ds, portsList, pp, ap)) {
-                        // success
-                        return true;
-                    }
-                    // else remove added junk and continue search
-                    while (portsList.size() > lastSize) {
-                        portsList.remove(portsList.size()-1);
-                    }
-                }
-            }
-        }
-        if (DEBUG) System.out.println(ds+"--- Bad path ---");
-        return false;               // no valid path to endpp found
-    }
 
     /**
      * Determine which arc type to use to connect two ports
@@ -444,24 +253,11 @@ public abstract class Router {
         return null;
     }
 
-    protected void replaceRouteElementArcPin(Route route, RouteElement bisectPinRE, RouteElement newPinRE) {
+    protected static void replaceRouteElementArcPin(Route route, RouteElement bisectPinRE, RouteElement newPinRE) {
         // go through route and update newArcs
         for (Iterator it = route.iterator(); it.hasNext(); ) {
             RouteElement e = (RouteElement)it.next();
             e.replaceArcEnd(bisectPinRE, newPinRE);
-        }
-    }
-
-    protected static void cleanRoute(Route route) {
-
-        // first pass: remove extra pins
-        for (Iterator it = route.iterator(); it.hasNext(); ) {
-
-            RouteElement re = (RouteElement)it.next();
-            Point2D location = re.getLocation();
-            if (location != null) {
-                // check if
-            }
         }
     }
 
@@ -581,14 +377,17 @@ public abstract class Router {
             if (re.isNewArcHorizontal()) {
                 if (re.getArcWidth() > height) height = re.getArcWidth();
             }
+            System.out.println("found newArc size "+width+","+height+" of type "+re.getArcProto());
         }
 
         // special case: if this is a contact cut, use the size of the contact cut
+/*
         if (re.getPortProto() != null) {
             if (re.getPortProto().getParent().getFunction() == NodeProto.Function.CONTACT) {
                 return re.getNodeSize();
             }
         }
+*/
 
         // if RE is an existingPortInst, use width of arcs connected to it.
         if (re.getAction() == RouteElement.RouteElementAction.existingPortInst) {
@@ -627,5 +426,4 @@ public abstract class Router {
 
         return new Dimension2D.Double(width, height);
     }
-
 }
