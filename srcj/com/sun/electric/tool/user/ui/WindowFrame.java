@@ -34,7 +34,7 @@ import java.awt.event.MouseWheelListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Method;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.EventListener;
 import java.util.HashMap;
@@ -57,10 +57,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.menus.MenuCommands;
-import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.menus.FileMenu;
-//import com.sun.electric.tool.user.ui.j3d.View3DWindow;
 import com.sun.electric.database.variable.VarContext;
 
 /**
@@ -146,21 +143,21 @@ public class WindowFrame
 
 		try
         {
-            view3DClass = Class.forName("com.sun.electric.tool.user.ui.j3d.View3DWindow");
+            view3DClass = Class.forName("com.sun.electric.plugins.j3d.View3DWindow");
 
         } catch (ClassNotFoundException e)
         {
-            System.out.println("Can't find 3D View module: " + e.getMessage());
+            System.out.println("Can't find 3D View plugin: " + e.getMessage());
 			return frame;
         }
 
+        Constructor constructor = null;
 		try
 		{
-			Object vWnd = view3DClass.newInstance();
-			Method constructor = view3DClass.getMethod("View3DWindow", new Class[] {String.class});
-			constructor.invoke(vWnd, new Object[] {cell, frame});
-			frame.buildWindowStructure((WindowContent)vWnd, cell, null);
+			constructor = view3DClass.getDeclaredConstructor(new Class[] {Cell.class, WindowFrame.class}) ;
+			Object vWnd = constructor.newInstance(new Object[] {cell, frame});
 
+			frame.buildWindowStructure((WindowContent)vWnd, cell, null);
 			setCurrentWindowFrame(frame);
 			frame.populateJFrame();
 		} catch (Exception e) {
