@@ -237,6 +237,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             highlightedNode = null;
             List arcList = new ArrayList();
             List contactList = new ArrayList();
+            List groupContactList = new ArrayList();
             List pinList = new ArrayList();
             List transList = new ArrayList();
             List wellList = new ArrayList();
@@ -285,7 +286,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                         if (np.isGroupNode())
                         {
                             map = np.getLayers()[2].getLayer(); // vias as mapping
-                            if (!np.isSpecialNode()) contactList.add(map);
+                            if (!np.isSpecialNode()) groupContactList.add(map);
                         } else
                             contactList.add(np);
 	                // Trick to get "well" in well contacts
@@ -352,57 +353,89 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 menuY = (menuY+1) / 2;
                 menuX = 2;
             }
-            // Sorting arcs/contacts/pins
             /*
+            // Sorting arcs/contacts/pins
             TechPaletteSort sort = new TechPaletteSort();
             Collections.sort(arcList, sort);
             Collections.sort(pinList, sort);
             Collections.sort(contactList, sort);
+            Collections.sort(groupContactList, sort);
+            // Repeat the first contact by rotation
+            if (groupContactList.size() > 0)
+            {
+                groupContactList.add(groupContactList.get(0));
+                Collections.rotate(groupContactList, 1);
+            }
+            else
+            {
+                contactList.add(contactList.get(0));
+                Collections.rotate(contactList, 1);
+            }
+            groupContactList.addAll(contactList);
             boolean withTrans = transList.size() > 0;
+            boolean withWell = wellList.size() > 0;
             boolean longer = (arcList.size() < (contactList.size() + wellList.size()));
             menuX = 3;
             inPalette.clear();
             // First Arcs
             for (int i = 0; i < arcList.size(); i++)
                 inPalette.add(arcList.get(i));
-            if (longer && withTrans)
+            if (withTrans)
                 inPalette.add(elementsMap.get(transList.get(0))); // First set of transistors
+            if (withWell)                      // First set of well
+            {
+                Object obj = wellList.get(0);
+                if (obj instanceof NodeInst)
+                    inPalette.add(obj);
+                else
+                    inPalette.add(elementsMap.get(obj));
+            }
             inPalette.add("Cell");
             // Second row are pins
             for (int i = 0; i < pinList.size(); i++)
                 inPalette.add(pinList.get(i));
-            if (longer && withTrans)
+            if (withTrans)
                 inPalette.add(elementsMap.get(transList.get(1))); // Second set of transistors
+            if (withWell)                      // Second set of wells
+            {
+                Object obj = wellList.get(1);
+                if (obj instanceof NodeInst)
+                    inPalette.add(obj);
+                else
+                    inPalette.add(elementsMap.get(obj));
+            }
             inPalette.add("Misc.");
             // Last one are contacts
-            for (int i = 0; i < contactList.size(); i++)
+            for (int i = 0; i < groupContactList.size(); i++)
             {
-                Object obj = contactList.get(i);
+                Object obj = groupContactList.get(i);
                 if (obj instanceof PrimitiveNode)
                     inPalette.add(obj);
                 else
                     inPalette.add(elementsMap.get(obj));
             }
             // Wells
-            for (int i = 0; i < wellList.size(); i++)
-            {
-                Object obj = wellList.get(i);
-                if (obj instanceof NodeInst)
-                    inPalette.add(obj);
-                else
-                    inPalette.add(elementsMap.get(obj));
-            }
+//            for (int i = 0; i < wellList.size(); i++)
+//            {
+//                Object obj = wellList.get(i);
+//                if (obj instanceof NodeInst)
+//                    inPalette.add(obj);
+//                else
+//                    inPalette.add(elementsMap.get(obj));
+//            }
             // Transistors fit better here
-            if (!longer && withTrans)
-            {
-               for (int i = 0; i < transList.size(); i++)
-               {
-                   inPalette.add(elementsMap.get(transList.get(i))); // Second set of transistors
-               }
-            }
+//            if (!longer && withTrans)
+//            {
+//               for (int i = 0; i < transList.size(); i++)
+//               {
+//                   inPalette.add(elementsMap.get(transList.get(i))); // Second set of transistors
+//               }
+//            }
             inPalette.add("Pure");
             menuY = arcList.size() + 1;
             if (withTrans) menuY++;
+            if (withWell) menuY++;
+
             */
         }
         Dimension size = TopLevel.getScreenSize();
@@ -425,26 +458,44 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 		public int compare(Object o1, Object o2)
 		{
             Object[] list = {o1, o2};
-            Object[] layerList = new Layer[2];
+            String[] nameList = new String[2];
 
-            for (int i = 0; i < layerList.length; i++)
+            for (int i = 0; i < nameList.length; i++)
             {
                 Object obj = list[i];
                 if (obj instanceof PrimitiveNode)
                 {
-                    // If contact, then uses via for sorting
-                    int index = (((PrimitiveNode)obj).getFunction() == PrimitiveNode.Function.CONTACT) ? 1 : 0;
-                    layerList[i] = ((PrimitiveNode)obj).getLayers()[index].getLayer();
+                    nameList[i] = ((PrimitiveNode)obj).getName();
                 } else if (obj instanceof PrimitiveArc)
                 {
-                    layerList[i] = ((PrimitiveArc)obj).getLayers()[0].getLayer();
+                    nameList[i] = ((PrimitiveArc)obj).getName();
                 } else if (obj instanceof Layer) {
-                    layerList[i] = obj;
+                    nameList[i] = ((Layer)obj).getName();
                 } else {
                     throw new Error("Case not implemented in TechPaletteSort");
                 }
             }
-            return Layer.LayerSort.compareStatic(layerList[0], layerList[1]);
+            return nameList[0].compareToIgnoreCase(nameList[1]);
+
+//
+//            for (int i = 0; i < layerList.length; i++)
+//            {
+//                Object obj = list[i];
+//                if (obj instanceof PrimitiveNode)
+//                {
+//                    // If contact, then uses via for sorting
+//                    int index = (((PrimitiveNode)obj).getFunction() == PrimitiveNode.Function.CONTACT) ? 1 : 0;
+//                    layerList[i] = ((PrimitiveNode)obj).getLayers()[index].getLayer();
+//                } else if (obj instanceof PrimitiveArc)
+//                {
+//                    layerList[i] = ((PrimitiveArc)obj).getLayers()[0].getLayer();
+//                } else if (obj instanceof Layer) {
+//                    layerList[i] = obj;
+//                } else {
+//                    throw new Error("Case not implemented in TechPaletteSort");
+//                }
+//            }
+//            return Layer.LayerSort.compareStatic(layerList[0], layerList[1]);
 		}
 	}
 
