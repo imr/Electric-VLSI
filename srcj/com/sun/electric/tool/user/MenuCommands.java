@@ -691,6 +691,8 @@ public final class MenuCommands
 		toolMenu.add(generationSubMenu);
 		generationSubMenu.addMenuItem("Pad Frame Generator", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
+		generationSubMenu.addMenuItem("Coverage Implants Generator", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { implantGeneratorCommand(); }});
 
 		Menu compactionSubMenu = new Menu("Compaction", 'C');
 		toolMenu.add(compactionSubMenu);
@@ -787,7 +789,7 @@ public final class MenuCommands
 		Menu gildaMenu = new Menu("Gilda", 'G');
 		menuBar.add(gildaMenu);
 		gildaMenu.addMenuItem("Covering Implants", null,
-		        new ActionListener() { public void actionPerformed(ActionEvent e) {implantObject();}});
+		        new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand();}});
 
         /********************************* Hidden Menus *******************************/
 
@@ -2507,7 +2509,7 @@ public final class MenuCommands
 	}
 
     // ---------------------- Gilda's Stuff MENU -----------------
-	public static void implantObject() {
+	public static void implantGeneratorCommand() {
 		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
 
@@ -2529,6 +2531,7 @@ public final class MenuCommands
 		{
 			PolyMerge merge = new PolyMerge();
 			List deleteList = new ArrayList(); // New coverage implants are pure primitive nodes
+			HashMap allLayers = new HashMap();
 
 			// Traversing arcs
 			for(Iterator it = curCell.getArcs(); it.hasNext(); )
@@ -2543,10 +2546,19 @@ public final class MenuCommands
 				for (int i = 0; i < polyList.length; i++)
 				{
 					Poly poly = polyList[i];
-					Layer.Function func = poly.getLayer().getFunction();
+					Layer layer = poly.getLayer();
+					Layer.Function func = layer.getFunction();
 					if ( func.isSubstrate() )
 					{
-						merge.addPolygon(poly.getLayer(), poly);
+						merge.addPolygon(layer, poly);
+						List rectList = (List)allLayers.get(layer);
+
+						if ( rectList == null )
+						{
+							rectList = new ArrayList();
+							allLayers.put(layer, rectList);
+						}
+						rectList.add(poly);
 					}
 				}
 			}
@@ -2577,18 +2589,58 @@ public final class MenuCommands
 					if ( func.isSubstrate() )
 					{
 						poly.transform(transform);
-						merge.addPolygon(poly.getLayer(), poly);
+						Layer layer = poly.getLayer();
+						merge.addPolygon(layer, poly);
+						List rectList = (List)allLayers.get(layer);
+
+						if ( rectList == null )
+						{
+							rectList = new ArrayList();
+							allLayers.put(layer, rectList);
+						}
+						rectList.add(poly);
 					}
 				}
 			}
 
 			// With polygons collected, new geometries are calculated
 			Highlight.clear();
+			List nodesList = new ArrayList();
+
+			// Need to detect if geometry was really modified
 			for(Iterator it = merge.getLayersUsed(); it.hasNext(); )
 			{
 				Layer layer = (Layer)it.next();
 				List list = merge.getMergedPoints(layer) ;
 
+				// Temp solution until qtree implementation is ready
+				// delete uncessary polygons. Doesn't insert poly if identical
+				// to original. Very ineficient!!
+				List rectList = (List)allLayers.get(layer);
+				List delList = new ArrayList();
+
+				for (Iterator iter = rectList.iterator(); iter.hasNext();)
+				{
+					Poly p = (Poly)iter.next();
+					Rectangle2D rect = p.getBounds2D();
+
+					for (Iterator i = list.iterator(); i.hasNext();)
+					{
+						Poly poly = (Poly)i.next();
+						Rectangle2D r = poly.getBounds2D();
+
+						if (r.equals(rect))
+						{
+							delList.add(poly);
+						}
+					}
+				}
+				for (Iterator iter = delList.iterator(); iter.hasNext();)
+				{
+					list.remove(iter.next());
+				}
+
+				// Ready to create new implants.
 				for(Iterator i = list.iterator(); i.hasNext(); )
 				{
 					Poly poly = (Poly)i.next();
@@ -2600,6 +2652,7 @@ public final class MenuCommands
 					Highlight.addElectricObject(node, curCell);
 					// New implant can't be selected again
 					node.setHardSelect();
+					nodesList.add(node);
 				}
 			}
 			Highlight.finished();
@@ -2608,6 +2661,8 @@ public final class MenuCommands
 				NodeInst node = (NodeInst)it .next();
 				node.kill();
 			}
+			if ( nodesList.isEmpty() )
+				System.out.println("No implant areas added");
 		}
 	}
 	// ---------------------- THE JON GAINSLEY MENU -----------------
