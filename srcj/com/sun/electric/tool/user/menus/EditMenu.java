@@ -937,7 +937,7 @@ public class EditMenu {
      * Class to handle the interactive selection of a jog point in an arc.
      */
     private static class InsertJogInArcListener
-        implements MouseMotionListener, MouseListener
+        implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
     {
         private EditWindow wnd;
         private ArcInst ai;
@@ -995,6 +995,22 @@ public class EditMenu {
 			EditWindow.gridAlign(mouseDB);
             Point2D insert = DBMath.closestPointToSegment(ai.getHead().getLocation(), ai.getTail().getLocation(), mouseDB);
             return insert;
+        }
+
+        public void mouseWheelMoved(MouseWheelEvent e) {
+            //To change body of implemented methods use File | Settings | File Templates.
+        }
+
+        public void keyPressed(KeyEvent e) {
+            //To change body of implemented methods use File | Settings | File Templates.
+        }
+
+        public void keyReleased(KeyEvent e) {
+            //To change body of implemented methods use File | Settings | File Templates.
+        }
+
+        public void keyTyped(KeyEvent e) {
+            //To change body of implemented methods use File | Settings | File Templates.
         }
 
         private static class InsertJogPoint extends Job
