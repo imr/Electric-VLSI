@@ -103,23 +103,40 @@ public class Export extends PortProto
 
         // if this was made on a schematic, and an icon exists, make the export on the icon as well
         Cell icon = parent.iconView();
-        if ((icon != null) && (icon.findExport(protoName) == null)) {
+        if (icon != null && icon.findExport(protoName) == null)
+        {
             // find analagous point to create export
             Rectangle2D bounds = parent.getBounds();
             double locX = portInst.getPoly().getCenterX();
             double locY = portInst.getPoly().getCenterY();
             Rectangle2D iconBounds = icon.getBounds();
-            double relLocXPercent = (locX - bounds.getX())/bounds.getWidth();
-            double relLocYPercent = (locY - bounds.getY())/bounds.getHeight();
-            double newlocX = relLocXPercent*iconBounds.getWidth() + iconBounds.getX();
-            double newlocY = relLocYPercent*iconBounds.getHeight() + iconBounds.getY();
+			double newlocX = (locX - bounds.getMinX()) / bounds.getWidth() * iconBounds.getWidth() + iconBounds.getMinX();
+			double bodyDX = 1;
+			double distToXEdge = locX - bounds.getMinX();
+			if (locX >= bounds.getCenterX())
+			{
+				bodyDX = -1;
+				distToXEdge = bounds.getMaxX() - locX;
+			}
+			double newlocY = (locY - bounds.getMinY()) / bounds.getHeight() * iconBounds.getHeight() + iconBounds.getMinY();
+			double bodyDY = 1;
+			double distToYEdge = locY - bounds.getMinY();
+			if (locY >= bounds.getCenterY())
+			{
+				bodyDY = -1;
+				distToYEdge = bounds.getMaxY() - locY;
+			}
+			if (distToXEdge > distToYEdge) bodyDX = 0; else bodyDY = 0;
+
             // round
             Point2D point = new Point2D.Double(newlocX, newlocY);
             EditWindow.gridAlign(point);
             newlocX = point.getX();
             newlocY = point.getY();
+
             // create export in icon
-            if (!CircuitChanges.makeIconExport(pp, 0, newlocX, newlocY, newlocX+1, newlocY, icon)) {
+            if (!CircuitChanges.makeIconExport(pp, 0, newlocX, newlocY, newlocX+bodyDX, newlocY+bodyDY, icon))
+            {
                 System.out.println("Warning: Failed to create associated export in icon "+icon.describe());
             }
         }

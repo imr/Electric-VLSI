@@ -498,7 +498,10 @@ public class Array extends EDialog
 					{
 						String nodeName = ni.getName();
 						if (nodeName != null)
+						{
 							newNi.setName(ElectricObject.uniqueObjectName(nodeName, cell, NodeInst.class));
+							newNi.setNameTextDescriptor(ni.getNameTextDescriptor());
+						}
 					}
 
 					nodeMap.put(ni, newNi);

@@ -4,15 +4,24 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01n: *********************************
 
+BUG: (9/13/04, SMR) Extracting cells doesn't handle mirroring right.
+FIX: In CircuitChanges.extractOneNode(), adjust for mirroring.
+
+IMP: (9/13/04, SMR) Made default explorer panel wider.
+
+IMP: (9/13/04, SMR) Improved the color mixing model to use vector addition and normalization.
+
+IMP: (9/13/04, SMR) Improved placement of icon ports when new schematic exports are created.
+
 BUG: (9/10/04, GVG) CrossLibCopy: not comparing attributes and wrong comparison for Exports
 FIX: Extra code in Cell, NodeInst, PortInst, PortProto and Variable.
 
 IMP/MAN: (9/10/04, GVG) New look@feel in CrossLibCopy dialog. Center column will display date comparison.
-Two extra toggles were created to handle quiet mode and "date and content" comparison. Buttons "List Diff" and "Examine
-Quietly" were removed
+     Two extra toggles were created to handle quiet mode and "date and content" comparison. Buttons "List Diff" and "Examine
+     Quietly" were removed
 
 BUG: (9/10/04, GVG) Technology bits not being copied in TechPalette for transistors in Schematics.
-Side effect: wrong name assigned. FIX: NodeInst.newInstance passes also techBits.
+     Side effect: wrong name assigned. FIX: NodeInst.newInstance passes also techBits.
 
 BUG: (9/10/04, GVG) Zero-width arcs didn't get correct angle while copying them.
 FIX: ArcInst.newInstance passes def value for angles in case port points coincide

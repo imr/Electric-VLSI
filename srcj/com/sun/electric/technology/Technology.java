@@ -2403,6 +2403,23 @@ public class Technology extends ElectricObject
 	}
 
 	/**
+	 * Method to normalize a color stored in a 3-long array.
+	 * @param a the array of 3 doubles that holds the color.
+	 * All values range from 0 to 1.
+	 * The values are adjusted so that they are normalized.
+	 */
+	private void normalizeColor(double [] a)
+	{
+		double mag = Math.sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
+		if (mag > 1.0e-11f)
+		{
+			a[0] /= mag;
+			a[1] /= mag;
+			a[2] /= mag;
+		}
+	}
+
+	/**
 	 * Sets the color map from transparent layers in this technology.
 	 * @param layers an array of colors, one per transparent layer.
 	 * This is expanded to a map that is 2 to the power "getNumTransparentLayers()".
@@ -2424,42 +2441,48 @@ public class Technology extends ElectricObject
 		Color [] map = new Color[numEntries];
 		for(int i=0; i<numEntries; i++)
 		{
-			int r=0, g=0, b=0;
-			int overlapCount = 0;
+			int r=200, g=200, b=200;
+			boolean hasPrevious = false;
 			for(int j=0; j<transparentLayers; j++)
 			{
 				if ((i & (1<<j)) == 0) continue;
-				overlapCount++;
-				r += layers[j].getRed();
-				g += layers[j].getGreen();
-				b += layers[j].getBlue();
-			}
-			if (overlapCount == 0) r = g = b = 200; else
-			{
-				r /= overlapCount;
-				g /= overlapCount;
-				b /= overlapCount;
+				if (hasPrevious)
+				{
+					// get the previous color
+					double [] lastColor = new double[3];
+					lastColor[0] = r / 255.0;
+					lastColor[1] = g / 255.0;
+					lastColor[2] = b / 255.0;
+					normalizeColor(lastColor);
+
+//					// dim the previous color
+//					for(int k=0; k<3; k++) lastColor[k] *= 0.5;
+
+					// get the current color
+					double [] curColor = new double[3];
+					curColor[0] = layers[j].getRed() / 255.0;
+					curColor[1] = layers[j].getGreen() / 255.0;
+					curColor[2] = layers[j].getBlue() / 255.0;
+					normalizeColor(curColor);
+
+					// combine them
+					for(int k=0; k<3; k++) curColor[k] += lastColor[k];
+					normalizeColor(curColor);
+					r = (int)(curColor[0] * 255.0);
+					g = (int)(curColor[1] * 255.0);
+					b = (int)(curColor[2] * 255.0);
+				} else
+				{
+					r = layers[j].getRed();
+					g = layers[j].getGreen();
+					b = layers[j].getBlue();
+					hasPrevious = true;
+				}
 			}
 			map[i] = new Color(r, g, b);
 		}
 		setColorMap(map);
 	}
-
-//	private static Color normalizeColor(Color a)
-//	{
-//		double r = a.getRed() / 255.0;
-//		double g = a.getGreen() / 255.0;
-//		double b = a.getBlue() / 255.0;
-//
-//		double mag = Math.sqrt(r * r + g * g + b * b);
-//		if (mag > 1.0e-11)
-//		{
-//			r /= mag;
-//			g /= mag;
-//			b /= mag;
-//		}
-//		return new Color((int)(r * 255), (int)(g * 255), (int)(b * 255));
-//	}
 
 	/**
 	 * Method to get the factory design rules.

@@ -547,8 +547,29 @@ public class JELIB extends LibraryFiles
 				}
 			}
 
+			// parse state information in field 8
+			String stateInfo = (String)pieces.get(8);
+			boolean expanded = false, locked = false, shortened = false,
+				visInside = false, wiped = false, hardSelect = false;
+			int techSpecific = 0;
+			for(int i=0; i<stateInfo.length(); i++)
+			{
+				char chr = stateInfo.charAt(i);
+				if (chr == 'E') expanded = true; else
+				if (chr == 'L') locked = true; else
+				if (chr == 'S') shortened = true; else
+				if (chr == 'V') visInside = true; else
+				if (chr == 'W') wiped = true; else
+				if (chr == 'A') hardSelect = true; else
+				if (Character.isDigit(chr))
+				{
+					techSpecific = TextUtils.atoi(stateInfo.substring(i));
+					break;
+				}
+			}
+
 			// create the node
-			NodeInst ni = NodeInst.newInstance(np, new Point2D.Double(x, y), wid, hei, angle, cell, nodeName, 0);
+			NodeInst ni = NodeInst.newInstance(np, new Point2D.Double(x, y), wid, hei, angle, cell, nodeName, techSpecific);
 			if (ni == null)
 			{
 				Input.errorLogger.logError(filePath + ", line " + (cc.lineNumber + line) +
@@ -563,26 +584,7 @@ public class JELIB extends LibraryFiles
 			// insert into map of disk names
 			diskName.put(diskNodeName, ni);
 
-			// parse state information in field 8
-			String stateInfo = (String)pieces.get(8);
-			boolean expanded = false, locked = false, shortened = false,
-				visInside = false, wiped = false, hardSelect = false;
-			for(int i=0; i<stateInfo.length(); i++)
-			{
-				char chr = stateInfo.charAt(i);
-				if (chr == 'E') expanded = true; else
-				if (chr == 'L') locked = true; else
-				if (chr == 'S') shortened = true; else
-				if (chr == 'V') visInside = true; else
-				if (chr == 'W') wiped = true; else
-				if (chr == 'A') hardSelect = true; else
-				if (Character.isDigit(chr))
-				{
-					int techSpecific = TextUtils.atoi(stateInfo.substring(i));
-					ni.setTechSpecific(techSpecific);
-					break;
-				}
-			}
+			// add state bits
 			if (expanded) ni.setExpanded(); else ni.clearExpanded();
 			if (locked) ni.setLocked(); else ni.clearLocked();
 			if (shortened) ni.setShortened(); else ni.clearShortened();
@@ -693,25 +695,13 @@ public class JELIB extends LibraryFiles
 			PortInst tailPI = figureOutPortInst(cell, tailPortName, tailNodeName, tailX, tailY, diskName, cc.lineNumber + line);
 			if (tailPI == null) continue;
 
-			ArcInst ai = ArcInst.newInstance(ap, wid, headPI, new Point2D.Double(headX, headY),
-				tailPI, new Point2D.Double(tailX, tailY), arcName, 0);
-			if (ai == null)
-			{
-				Input.errorLogger.logError(filePath + ", line " + (cc.lineNumber + line) +
-					" (cell " + cell.describe() + ") cannot create arc " + protoName, cell, -1);
-				continue;
-			}
-
-			// get the ard name text descriptor
-			String nameTextDescriptorInfo = (String)pieces.get(2);
-			loadTextDescriptor(ai.getNameTextDescriptor(), null, nameTextDescriptorInfo, filePath, cc.lineNumber + line);
-
 			// parse state information in field 4
 			String stateInfo = (String)pieces.get(4);
 			boolean rigid = false, fixedAngle = true, slidable = false,
 				extended = true, directional = false, reverseEnds = false,
 				hardSelect = false, skipHead = false, skipTail = false,
 				tailNegated = false, headNegated = false;
+			int angle = 0;
 			for(int i=0; i<stateInfo.length(); i++)
 			{
 				char chr = stateInfo.charAt(i);
@@ -728,11 +718,25 @@ public class JELIB extends LibraryFiles
 				if (chr == 'G') headNegated = true; else
 				if (Character.isDigit(chr))
 				{
-					int angle = TextUtils.atoi(stateInfo.substring(i));
-					ai.setAngle(angle);
+					angle = TextUtils.atoi(stateInfo.substring(i));
 					break;
 				}
 			}
+
+			ArcInst ai = ArcInst.newInstance(ap, wid, headPI, new Point2D.Double(headX, headY),
+				tailPI, new Point2D.Double(tailX, tailY), arcName, angle);
+			if (ai == null)
+			{
+				Input.errorLogger.logError(filePath + ", line " + (cc.lineNumber + line) +
+					" (cell " + cell.describe() + ") cannot create arc " + protoName, cell, -1);
+				continue;
+			}
+
+			// get the ard name text descriptor
+			String nameTextDescriptorInfo = (String)pieces.get(2);
+			loadTextDescriptor(ai.getNameTextDescriptor(), null, nameTextDescriptorInfo, filePath, cc.lineNumber + line);
+
+			// add state bits
 			ai.setRigid(rigid);
 			ai.setFixedAngle(fixedAngle);
 			ai.setSlidable(slidable);

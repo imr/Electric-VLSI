@@ -1266,6 +1266,7 @@ public class Undo
 	{
 		if (!recordChange()) return;
 		Change ch = newChange(ni, Type.NODEINSTMOD, null);
+		if (ch == null) return;
 		ch.setDoubles(oCX, oCY, oSX, oSY);
 		ch.i1 = oRot;
 		ni.setChange(ch);
@@ -1286,6 +1287,7 @@ public class Undo
 	{
 		if (!recordChange()) return;
 		Change ch = newChange(ai, Type.ARCINSTMOD, null);
+		if (ch == null) return;
 		ch.setDoubles(oHX, oHY, oTX, oTY);
 		ch.a5 = oWid;
 		ai.setChange(ch);
@@ -1303,6 +1305,7 @@ public class Undo
 	{
 		if (!recordChange()) return;
 		Change ch = newChange(pp, Type.EXPORTMOD, oldPi);
+		if (ch == null) return;
 		pp.setChange(ch);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
@@ -1322,6 +1325,7 @@ public class Undo
 	{
 		if (!recordChange()) return;
 		Change ch = newChange(cell, Type.CELLMOD, null);
+		if (ch == null) return;
 		ch.setDoubles(oLX, oHX, oLY, oHY);
 		cell.setChange(ch);
 
@@ -1339,6 +1343,7 @@ public class Undo
     {
         if (!recordChange()) return;
         Change ch = newChange(cell, Type.CELLGROUPMOD, oldGroup);
+		if (ch == null) return;
 
         ch.broadcast(currentBatch.getNumChanges() <=1, false);
         fireChangeEvent(ch);
@@ -1356,6 +1361,7 @@ public class Undo
 	{
 		if (!recordChange()) return;
 		Change ch = newChange(obj, Type.DESCRIPTORMOD, descript);
+		if (ch == null) return;
 		ch.i1 = oldDescript0;
 		ch.i2 = oldDescript1;
 		ch.i3 = oldColorIndex;
@@ -1380,6 +1386,7 @@ public class Undo
 		else if (obj instanceof Export) type = Type.EXPORTNEW;
         else if (obj instanceof Library) type = Type.LIBRARYNEW;
 		Change ch = newChange(obj, type, null);
+		if (ch == null) return;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
         fireChangeEvent(ch);
@@ -1402,6 +1409,7 @@ public class Undo
 		else if (obj instanceof ArcInst) type = Type.ARCINSTKILL;
         else if (obj instanceof Library) type = Type.LIBRARYKILL;
 		Change ch = newChange(obj, type, null);
+		if (ch == null) return;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
         fireChangeEvent(ch);
@@ -1418,6 +1426,7 @@ public class Undo
 		if (!recordChange()) return;
 		Type type = Type.EXPORTKILL;
 		Change ch = newChange(pp, type, oldPortInsts);
+		if (ch == null) return;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
         fireChangeEvent(ch);
@@ -1434,6 +1443,7 @@ public class Undo
 		if (!recordChange()) return;
 		Type type = Type.OBJECTRENAME;
 		Change ch = newChange(obj, type, oldName);
+		if (ch == null) return;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
         fireChangeEvent(ch);
@@ -1451,6 +1461,7 @@ public class Undo
 		if (!recordChange()) return;
 		Type type = Type.OBJECTREDRAW;
 		Change ch = newChange(obj, type, null);
+		if (ch == null) return;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
         fireChangeEvent(ch);
@@ -1466,6 +1477,7 @@ public class Undo
 		if (!recordChange()) return;
 		Type type = Type.VARIABLENEW;
 		Change ch = newChange(obj, type, var);
+		if (ch == null) return;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
         fireChangeEvent(ch);
@@ -1482,6 +1494,7 @@ public class Undo
 		if (!recordChange()) return;
 		Type type = Type.VARIABLEKILL;
 		Change ch = newChange(obj, type, var);
+		if (ch == null) return;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
         fireChangeEvent(ch);
@@ -1499,6 +1512,7 @@ public class Undo
 	{
 		if (!recordChange()) return;
 		Change ch = Undo.newChange(obj, Type.VARIABLEMODFLAGS, var);
+		if (ch == null) return;
 		ch.i1 = oldFlags;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
@@ -1517,6 +1531,7 @@ public class Undo
 	{
 		if (!recordChange()) return;
 		Change ch = Undo.newChange(obj, Type.VARIABLEMOD, var);
+		if (ch == null) return;
 		ch.i1 = index;
 		ch.o2 = oldValue;
 
@@ -1535,6 +1550,7 @@ public class Undo
 	{
 		if (!recordChange()) return;
 		Change ch = Undo.newChange(obj, Type.VARIABLEINSERT, var);
+		if (ch == null) return;
 		ch.i1 = index;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
@@ -1553,6 +1569,7 @@ public class Undo
 	{
 		if (!recordChange()) return;
 		Change ch = Undo.newChange(obj, Type.VARIABLEDELETE, var);
+		if (ch == null) return;
 		ch.i1 = index;
 		ch.o2 = oldValue;
 

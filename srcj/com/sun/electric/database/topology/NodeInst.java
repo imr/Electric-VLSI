@@ -602,6 +602,7 @@ public class NodeInst extends Geometric implements Nodable
 				newAi.getTail().setNegated(ai.getTail().isNegated());
 			}
 			newAi.copyVarsFrom(ai);
+			newAi.setNameTextDescriptor(ai.getNameTextDescriptor());
 			ai.kill();
 			newAi.setName(ai.getName());
 		}

@@ -1129,6 +1129,7 @@ public class Layout extends Constraints
 //			determineangle(ai);
 //		}
 		deletedArcs.add(ai);
+		ar2.setNameTextDescriptor(ai.getNameTextDescriptor());
 		ai.kill();
 		String oldName = ai.getName();
 		if (oldName != null) ar2.setName(oldName);

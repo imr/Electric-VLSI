@@ -205,7 +205,8 @@ public class WindowFrame
 		js = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 		js.setRightComponent(content.getPanel());
 		js.setLeftComponent(scrolledTree);
-		js.setDividerLocation(0.2);
+//		js.setDividerLocation(0.2);
+		js.setDividerLocation(200);
 
 		// initialize the frame
 		String cellDescription = (cell == null) ? "no cell" : cell.describe();

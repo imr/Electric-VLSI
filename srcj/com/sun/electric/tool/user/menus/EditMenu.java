@@ -1155,7 +1155,6 @@ public class EditMenu {
                 }
                 String arcName = ai.getName();
                 int angle = (ai.getAngle() + 900) % 3600;
-                ai.kill();
 
                 // create the new arcs
                 ArcInst newAi1 = ArcInst.makeInstance(ap, width, headPort, headPt, pi, insert, null);
@@ -1163,6 +1162,9 @@ public class EditMenu {
                 ArcInst newAi2 = ArcInst.makeInstance(ap, width, pi, insert, pi2, insert, null);
                 ArcInst newAi3 = ArcInst.makeInstance(ap, width, pi2, insert, tailPort, tailPt, null);
                 if (tailNegated) newAi3.getTail().setNegated(true);
+				newAi1.setNameTextDescriptor(ai.getNameTextDescriptor());
+				newAi3.setNameTextDescriptor(ai.getNameTextDescriptor());
+				ai.kill();
                 if (arcName != null)
                 {
                     if (headPt.distance(insert) > tailPt.distance(insert))

@@ -2443,20 +2443,28 @@ public class CircuitChanges
 		{
 			NodeInst ni = (NodeInst)it.next();
 
-			// do not yank "cell center" or "essential bounds" primitives
+			// do not extract "cell center" or "essential bounds" primitives
 			NodeProto np = ni.getProto();
 			if (np == Generic.tech.cellCenterNode || np == Generic.tech.essentialBoundsNode) continue;
 
 			Point2D pt = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
 			localTrans.transform(pt, pt);
-			int newAngle = ni.getAngle();
-			if (ni.isXMirrored() == ni.isYMirrored()) newAngle += topno.getAngle(); else
-				newAngle = newAngle + 3600 - topno.getAngle();
+			double xSize = ni.getXSizeWithMirror();
+			double ySize = ni.getYSizeWithMirror();
+			int newAngle = topno.getAngle();
+			boolean revAngle = false;
+			if (topno.isXMirrored() != topno.isYMirrored()) revAngle = !revAngle;
+			if (ni.isXMirrored() != ni.isYMirrored()) revAngle = !revAngle;
+			if (revAngle) newAngle = newAngle + 3600 - ni.getAngle(); else
+				newAngle += ni.getAngle();
+			if (topno.isXMirrored()) xSize = -xSize;
+			if (topno.isYMirrored()) ySize = -ySize;
+
 			newAngle = newAngle % 3600;   if (newAngle < 0) newAngle += 3600;
 			String name = null;
 			if (ni.isUsernamed())
 				name = ElectricObject.uniqueObjectName(ni.getName(), cell, NodeInst.class);
-			NodeInst newNi = NodeInst.makeInstance(np, pt, ni.getXSize(), ni.getYSize(), newAngle, cell, name, 0);
+			NodeInst newNi = NodeInst.makeInstance(np, pt, xSize, ySize, newAngle, cell, name, 0);
 			if (newNi == null) return;
 			newNodes.put(ni, newNi);
 			newNi.setNameTextDescriptor(ni.getNameTextDescriptor());
