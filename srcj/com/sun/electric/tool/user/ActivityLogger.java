@@ -7,6 +7,7 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.tool.user.menus.MenuBar;
 import com.sun.electric.tool.user.ui.*;
 import com.sun.electric.tool.Job;
+import com.sun.electric.Main;
 
 import javax.swing.*;
 import java.io.*;
@@ -165,7 +166,10 @@ public class ActivityLogger {
         String [] msg = {"Exception Caught!!!", "The exception below has been logged.",
                          "Please send \""+outputFile+ "\" to the developers",
                          "   " + e.toString() };
-        JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), msg, "Exception Caught", JOptionPane.ERROR_MESSAGE);
+	    if (!Main.BATCHMODE)
+            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), msg, "Exception Caught", JOptionPane.ERROR_MESSAGE);
+	    else
+	        System.out.println(msg);
         exceptionLogged = true;
     }
 

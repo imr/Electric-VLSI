@@ -37,6 +37,7 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.Main;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.*;
@@ -670,7 +671,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
 							System.out.println(msg);
 							System.out.println("Type > and < to step through " + extraMsg + ", or open the ERRORS view in the explorer");
 						}
-						if (getNumErrors() > 0)
+						if (getNumErrors() > 0 && !Main.BATCHMODE)
 						{
 							JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), msg,
 								errorSystem + " finished with Errors", JOptionPane.INFORMATION_MESSAGE);

@@ -57,6 +57,7 @@ import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.Main;
 
 /**
  * This class defines an edit window, with a cell explorer on the left side.
@@ -291,7 +292,7 @@ public class WindowFrame
 		} else
 		{
 			jf.getContentPane().add(js);
-			jf.show();
+			if (!Main.BATCHMODE) jf.show();
 		}
 	}
 
@@ -322,7 +323,7 @@ public class WindowFrame
 			// add tool bar as listener so it can find out state of cell history in EditWindow
 			content.getPanel().addPropertyChangeListener(EditWindow.propGoBackEnabled, ((TopLevel)jf).getToolBar());
 			content.getPanel().addPropertyChangeListener(EditWindow.propGoForwardEnabled, ((TopLevel)jf).getToolBar());
-			jf.show();
+			if (!Main.BATCHMODE) jf.show();
 		}
 	}
 

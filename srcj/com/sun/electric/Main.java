@@ -79,6 +79,7 @@ public final class Main
 {
     private static boolean DEBUG;   // global debug flag
     public static boolean NOTHREADING = false;             // to turn off Job threading
+	public static boolean BATCHMODE = false; // to run it in batch mode
 
 	private Main() {}
 
@@ -127,6 +128,7 @@ public final class Main
 	        System.out.println("\t-v: brief version information");
 	        System.out.println("\t-debug: debug mode. Extra information is available");
             System.out.println("\t-NOTHREADING: turn off Job threading.");
+	        System.out.println("\t-batch: running in batch mode.");
 	        System.out.println("\t-help: this message");
 
 			System.exit(0);
@@ -139,11 +141,15 @@ public final class Main
 		// initialize Mac OS 10 if applicable
 		MacOSXInterface.registerMacOSXApplication();
 
-		SplashWindow sw = new SplashWindow();
+		SplashWindow sw = null;
+
 
 		// -debug for debugging
 		if (hasCommandLineOption(argsList, "-debug")) DEBUG = true;
         if (hasCommandLineOption(argsList, "-NOTHREADING")) NOTHREADING = true;
+		if (hasCommandLineOption(argsList, "-batch")) BATCHMODE = true;
+
+		if (!Main.BATCHMODE) sw = new SplashWindow();
 
         boolean mdiMode = hasCommandLineOption(argsList, "-mdi");
         boolean sdiMode = hasCommandLineOption(argsList, "-sdi");
@@ -324,7 +330,7 @@ public final class Main
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
                     // remove the splash screen
-                    sw.removeNotify();
+                    if (sw != null) sw.removeNotify();
                     TopLevel.InitializeWindows();
                     // run script
                     if (beanShellScript != null) EvalJavaBsh.runScript(beanShellScript);

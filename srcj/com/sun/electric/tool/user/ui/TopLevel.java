@@ -288,7 +288,7 @@ public class TopLevel extends JFrame
 	 * The messages window runs along the bottom.
 	 * @return the messages window.
 	 */
-:q	public static MessagesWindow getMessagesWindow() { return messages; }
+	public static MessagesWindow getMessagesWindow() { return messages; }
 
 	/**
 	 * Method to return status bar associated with this TopLevel.
