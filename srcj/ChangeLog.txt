@@ -2,6 +2,8 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (7/15/04, RK) Added Size Checking. It doesn't work yet so disable it in the options dialog. Embellished the NCC Options Dialog. Added some documentation to the NCC page. Removed Hierarchical from NCC menu because it hasn't been adequately tested.
+
 BUG: (7/15/04, SMR) Cross-library moving may loop infinitely.
 FIX: In "database.constraint.Layout.oldPortPosition()", must use local copy of "pp" which is "bottomPP".
 

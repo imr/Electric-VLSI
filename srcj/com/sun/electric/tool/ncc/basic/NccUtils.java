@@ -39,8 +39,10 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.WindowContent;
+import com.sun.electric.database.variable.VarContext;
 
 import com.sun.electric.tool.ncc.NccEngine;
+import com.sun.electric.tool.ncc.NccJob;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 
@@ -54,13 +56,6 @@ public class NccUtils {
 			   c.getView().getAbbreviation()+
 			   "}";
 	}
-	public static boolean nccTwoCells(Cell schematic, Cell layout) {
-		System.out.println("Comparing: "+fullName(schematic)+
-						   " with: "+fullName(layout));
-		NccOptions options = new NccOptions();
-		options.verbose = false;
-		return NccEngine.compare(schematic, null, layout, null, null, options);
-	}
 	public static Cell[] findSchematicAndLayout(Cell cell) {
 		Cell.CellGroup group = cell.getCellGroup();
 		Cell layout=null, schematic=null;
@@ -72,30 +67,40 @@ public class NccUtils {
 		if (schematic!=null && layout!=null)  return new Cell[] {schematic, layout};
 		else return null;
 	}
-
-	public static Cell getCurrentCell() {
+	
+	public static CellContext getCurrentCellContext() {
 		EditWindow wnd = EditWindow.getCurrent();
-		if (wnd==null) return null;
-		return wnd.getCell();
+		return getCellContext(wnd);
 	}
-	public static List getCellsFromWindows() {
-		List cells = new ArrayList();
+
+	public static CellContext getCellContext(EditWindow wnd) {
+		if (wnd==null) return null;
+		Cell cell = wnd.getCell();
+		VarContext context = wnd.getVarContext();
+		return new CellContext(cell, context);
+	}
+	
+	public static List getCellContextsFromWindows() {
+		List cellCtxts = new ArrayList();
 
 		// first is always current window
-		Cell curCell = getCurrentCell();
-		if (curCell==null)  return cells;
-		cells.add(curCell);
+		EditWindow wnd = EditWindow.getCurrent();
+		CellContext curCellCtxt = getCellContext(wnd);
+
+		if (curCellCtxt==null)  return cellCtxts;
+		cellCtxts.add(curCellCtxt);
 
 		for(Iterator it=WindowFrame.getWindows(); it.hasNext();) {
 			WindowFrame wf = (WindowFrame)it.next();
 			WindowContent content = wf.getContent();
 			if (!(content instanceof EditWindow)) continue;
-			EditWindow wnd = (EditWindow)content;
-			Cell c = wnd.getCell();
-			if (c!=curCell)  cells.add(c);
+			EditWindow wnd2 = (EditWindow) content;
+			if (wnd2==wnd) continue;
+			CellContext cc = getCellContext((EditWindow)content);
+			cellCtxts.add(cc);
 		}
 
-		return cells;
+		return cellCtxts;
 	}
 
 	public static boolean hasSkipAnnotation(Cell c) {

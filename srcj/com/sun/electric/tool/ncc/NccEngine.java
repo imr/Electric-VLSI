@@ -57,6 +57,7 @@ import com.sun.electric.tool.ncc.strategy.StratDebug;
 import com.sun.electric.tool.ncc.strategy.StratResult;
 import com.sun.electric.tool.ncc.strategy.StratCount;
 import com.sun.electric.tool.ncc.strategy.StratCheck;
+import com.sun.electric.tool.ncc.strategy.StratCheckSizes;
 
 public class NccEngine {
 	// ------------------------------ private data ----------------------------
@@ -109,7 +110,9 @@ public class NccEngine {
 			boolean expTopoOK = 
 				expCheck.ensureExportsWithMatchingNamesAreOnEquivalentNets();
 
-			boolean OK = localOK && expNamesOK && topoOK && expTopoOK; 
+			boolean sizesOK = StratCheckSizes.doYourJob(globals);
+			
+			boolean OK = localOK && expNamesOK && topoOK && expTopoOK && sizesOK; 
 			if (!topoOK) StratDebug.doYourJob(globals);
 			return OK;
 		}
@@ -125,8 +128,6 @@ public class NccEngine {
 
 		List nccNetlists = 
 			buildNccNetlists(cells, contexts, netlists, hierInfo);
-		if (nccNetlists==null) {
-		}
 		globals.setInitialNetlists(nccNetlists);
 		boolean match = designsMatch(hierInfo);
 
@@ -161,7 +162,7 @@ public class NccEngine {
 	/** compare two Cells starting at their roots */
 	public static boolean compare(Cell cell1, VarContext context1, 
 	    						  Cell cell2, VarContext context2, 
-	    						  HierarchyInfo hierCompInfo,
+	    						  HierarchyInfo hierInfo,
 	    						  NccOptions options) {
 		ArrayList cells = new ArrayList();
 		cells.add(cell1);
@@ -173,6 +174,6 @@ public class NccEngine {
 		netlists.add(cell1.getNetlist(true));
 		netlists.add(cell2.getNetlist(true));
 		
-		return compare(cells, contexts, netlists, hierCompInfo, options);
+		return compare(cells, contexts, netlists, hierInfo, options);
 	}
 }

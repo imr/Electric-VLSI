@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: StratDebug.java
+ * File: StratDebug2.java
  *
  * Copyright (c) 2003 Sun Microsystems and Free Software
  *

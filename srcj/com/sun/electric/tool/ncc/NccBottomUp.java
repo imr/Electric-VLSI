@@ -84,22 +84,22 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 
 /** Run NCC hierarchically. By default, treat every Cell with both a layout and
  * a schematic view as a hierarchical entity. */
-public class NccHierarchical {
+public class NccBottomUp {
 	private CellUsage getCellUsage(Cell root) {
 		CellUsage visitor = new CellUsage();
 		HierarchyEnumerator.enumerateCell(root, null, null, visitor);
 		return visitor;
 	}
 
-	private boolean compare(Cell schematic, Cell layout, 
-	                        HierarchyInfo hierCompInfo,
-	                        NccOptions options) {
+	private boolean compareTwo(Cell schematic, Cell layout, 
+	                           HierarchyInfo hierInfo,
+	                           NccOptions options) {
 	    if (NccUtils.hasSkipAnnotation(schematic)) return true;
 		if (NccUtils.hasSkipAnnotation(layout)) return true;
 		System.out.println("Comparing: "+NccUtils.fullName(schematic)+
                            " with: "+NccUtils.fullName(layout));
 		return NccEngine.compare(schematic, null, layout, null,  
-		                         hierCompInfo, options);
+		                         hierInfo, options);
 	}
 
 	/** Prefer a schematic reference cell because mismatch diagnostics
@@ -128,11 +128,11 @@ public class NccHierarchical {
 		
 		Cell refCell = selectAndRemoveReferenceCell(cellsInGroup);
 
-		hierInfo.nextSubcircuit(groupName);
+		if (hierInfo!=null)  hierInfo.nextSubcircuit(groupName);
 		boolean match = true;
 		for (Iterator it=cellsInGroup.iterator(); it.hasNext();) {
 			Cell cell = (Cell) it.next();
-			match &= compare(refCell, cell, hierInfo, options);
+			match &= compareTwo(refCell, cell, hierInfo, options);
 		}
 		return match;
 	}
@@ -142,7 +142,8 @@ public class NccHierarchical {
 	 * <p>Since Java-Electric's CellGroups aren't completely functional yet
 	 * simulate the addition of Cells (e.g. from other libraries) to a 
 	 * CellGroup using the joinGroup annotation. */
-	private List getUsedCellsInGroup(Cell cell, CellUsage use1, CellUsage use2) {
+	private List getUsedCellsInGroup(Cell cell, CellUsage use1, 
+	                                 CellUsage use2) {
 		NccCellAnnotations ann = NccCellAnnotations.getAnnotations(cell);
 		Cell.CellGroup group = cell.getCellGroup();
 
@@ -169,10 +170,10 @@ public class NccHierarchical {
 		
 		/* Tricky: If the user compares two layouts or two schematics, we'd
 		 * like to perform the comparison hierarchically when the designs share
-		 * the same Cell. If the CellGroup size is >2 then this will automatically
-		 * happen. However, if the CellGroup size is 1 then we need to force 
-		 * an artificial comparison of that Cell with itself in order to add
-		 * the required information to HierarchyInfo. */
+		 * the same Cell. If the CellGroup size is >2 then this will 
+		 * automatically happen. However, if the CellGroup size is 1 then we 
+		 * need to force an artificial comparison of that Cell with itself in 
+		 * order to add the required information to HierarchyInfo. */
 		if (cellsInGroup.size()==1) {
 			Cell onlyCell = (Cell) cellsInGroup.iterator().next();
 			if (use1.cellIsUsed(onlyCell) && use2.cellIsUsed(onlyCell)) 
@@ -182,10 +183,11 @@ public class NccHierarchical {
 		return cellsInGroupList;
 	}
 	
-	private boolean compareCellGroups(CellUsage use1, CellUsage use2, 
+	private boolean compareCellGroups(CellUsage use1, CellUsage use2,
+	                                  boolean hierarchical, 
 	                                  NccOptions options) {
 		boolean match = true;
-		HierarchyInfo hierInfo = new HierarchyInfo();
+		HierarchyInfo hierInfo = hierarchical ? new HierarchyInfo() : null;
 		for (Iterator it=use1.cellsInReverseTopologicalOrder(); it.hasNext();) {
 			Cell cell = (Cell) it.next();
 			List cellsInGroup = getUsedCellsInGroup(cell, use1, use2);
@@ -193,15 +195,16 @@ public class NccHierarchical {
 
 			match &= compareCellsInGroup(cellsInGroup, grpNm, hierInfo,options);
 
-			// I've got to debug this stupid thing later. Hierarchical fails bug flat succeeds!!!
+			// TODO: I've got to debug this stupid thing later. Hierarchical 
+			// fails but flat succeeds!!!
 			String cellNm = cell.getName(); 
 			if (cellNm.equals("mem_core_36") || cellNm.equals("mem_core_45")) {
 				match = true;				
 			}
 
-			if (!match && !options.continueAfterMismatch) {
+			if (!match && options.haltAfterFirstMismatch) {
 				System.out.println( 
-					"Halting hierarchical NCC after finding first mismatch"
+					"Halting multiple cell NCC after finding first mismatch"
 				);
 				return false;
 			}
@@ -209,18 +212,19 @@ public class NccHierarchical {
 		return match;
 	}
 
-	private boolean compareCells(Cell c1, Cell c2, NccOptions options) {
+	private boolean compareCells(Cell c1, Cell c2, boolean hierarchical, 
+	                             NccOptions options) {
 		// find all Cells in both hierarchies
 		CellUsage use1 = getCellUsage(c1);
 		CellUsage use2 = getCellUsage(c2);
-		return compareCellGroups(use1, use2, options); 
+		return compareCellGroups(use1, use2, hierarchical, options); 
 	}
 	
-	public static boolean compareHierarchical(Cell c1, Cell c2) {
-		NccOptions options = new NccOptions();
-		options.verbose = false;
-		options.continueAfterMismatch = false;
-		NccHierarchical ncch = new NccHierarchical();
-		return ncch.compareCells(c1, c2, options);
+	public static boolean compare(Cell c1, Cell c2, boolean hierarchical, 
+	                              NccOptions options) {
+		// size checking not useful when we're doing all cells
+		options.checkSizes = false;
+		NccBottomUp ncch = new NccBottomUp();
+		return ncch.compareCells(c1, c2, hierarchical, options);
 	}
 }

@@ -199,11 +199,12 @@ public class ToolMenu {
 				new com.sun.electric.tool.ncc.NccJob(1, true, false);
 			}
 		});
-		nccSubMenu.addMenuItem("Hierarchical NCC each cell in the design, current cell is root", null, 0, new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				new com.sun.electric.tool.ncc.NccJob(1, false, true);
-			}
-		});
+		// comment out for release
+//		nccSubMenu.addMenuItem("Hierarchical NCC each cell in the design, current cell is root", null, 0, new ActionListener() {
+//			public void actionPerformed(ActionEvent e) {
+//				new com.sun.electric.tool.ncc.NccJob(1, false, true);
+//			}
+//		});
 		nccSubMenu.addMenuItem("List annotations of each cell in the design, current cell is root", null, 0, new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				new com.sun.electric.tool.ncc.ListNccAnnotations();

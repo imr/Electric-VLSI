@@ -30,14 +30,16 @@ import com.sun.electric.tool.ncc.basic.Messenger;
 public class NccOptions {
 	/** enable size checking */
 	public boolean checkSizes = false;
+	public double absoluteSizeTolerance;
+	public double relativeSizeTolerance;
 
-	/** merge parallel Cells into one */
-	public boolean mergeParallelCells;
+	/** merge parallel Cells into one. For Russell Kao use only! */
+	public boolean mergeParallelCells = false;
 
-	/** print lots of progress messages */
-	public boolean verbose = true;
+	/** print lots of progress messages. For Russell Kao use only! */
+	public boolean verbose = false;
 	
 	/** for hierarchical comparisons try to continue comparing
 	 * higher up in the hierarchy even if this Cell doesn't match */
-	public boolean continueAfterMismatch = false;
+	public boolean haltAfterFirstMismatch = true;
 }

@@ -349,7 +349,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		return wires.get(netIDs[0], info);
 	}
 
-	private void buildMOS(NodeInst ni, Transistor.Type type, NccCellInfo info){
+	private void buildMOS(NodeInst ni, Transistor.Type type, NccCellInfo info) {
 		String name = info.getUniqueNodableName(ni, "/");
 		int mul = info.getSizeMultiplier();
 //		if (mul!=1) {

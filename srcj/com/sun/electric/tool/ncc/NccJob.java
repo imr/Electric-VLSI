@@ -21,7 +21,6 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
 */
-
 package com.sun.electric.tool.ncc;
 import java.util.Set;
 import java.util.HashSet;
@@ -35,145 +34,126 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.WindowContent;
-
 import com.sun.electric.tool.ncc.basic.NccUtils;
+import com.sun.electric.tool.ncc.basic.CellContext;
 import com.sun.electric.tool.ncc.basic.Messenger;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 
-class NccMismatchException extends RuntimeException {
-	NccMismatchException() {super("NCC mismatch found");}
-}
-
-class NccBotUp extends HierarchyEnumerator.Visitor {
-	private HashSet enteredCells = new HashSet();
-	private static HashSet nccedCells = new HashSet();
-	public boolean enterCell(HierarchyEnumerator.CellInfo info) {
-		Cell cell = info.getCell();
-		if (enteredCells.contains(cell))  return false;
-
-		enteredCells.add(cell);
-		return true;
-	}
-	public void exitCell(HierarchyEnumerator.CellInfo info) {
-		Cell cell = info.getCell();
-		if (nccedCells.contains(cell)) return;
-		
-		Cell[] schLay = NccUtils.findSchematicAndLayout(cell);
-
-		if (schLay!=null) {
-			Cell schematic = schLay[0];
-			Cell layout = schLay[1];
-			if (nccedCells.contains(schematic)) return;
-
-			if (NccUtils.hasSkipAnnotation(schematic)) return;
-			if (NccUtils.hasSkipAnnotation(layout)) return;
-			
-			boolean ok = NccUtils.nccTwoCells(schematic, layout);
-			if (!ok) throw new NccMismatchException();
-			nccedCells.add(cell);
-		}
-	}
-	public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info) {
-		return true;
-	}
-} 
-
 public class NccJob extends Job {
 	private final int numWindows;
-	private final boolean bottomUp;
+	private final boolean bottomUpFlat;
 	private final boolean hierarchical;
 	
-	private boolean bottomUp() {
-		Cell rootCell = NccUtils.getCurrentCell();
-		if (rootCell==null) {
-			System.out.println("Please open the Cell you want to NCC.");
-			return false;
-		} else {
-			try {
-				bottomUp(rootCell);
-			} catch (NccMismatchException e) {
-				System.out.println(e);
-				return false;
-			}
-			return true;
-		}
-	}
-	
-	private void bottomUp(Cell rootCell) {
-		Netlist rootNetlist = rootCell.getNetlist(true);
-		NccBotUp visitor = new NccBotUp();
-		HierarchyEnumerator.enumerateCell(rootCell, null, rootNetlist, visitor);											   
-	}
-	
-	private boolean nccSchAndLayViewsOfCurrentCell() {
-		Cell curCell = NccUtils.getCurrentCell();
-		if (curCell==null) {
+	private CellContext[] getSchemLayFromCurrentWindow() {
+		CellContext curCellCtxt = NccUtils.getCurrentCellContext();
+		if (curCellCtxt==null) {
 			System.out.println("Please open the Cell you wish to NCC");
-			return false;
+			return null;
 		} 
-		Cell[] schLay = NccUtils.findSchematicAndLayout(curCell);
+		Cell[] schLay = NccUtils.findSchematicAndLayout(curCellCtxt.cell);
 		if (schLay==null) {
 			System.out.println("current Cell doesn't have both schematic and layout views");
-			return false;
+			return null;
 		}
-		Cell sch = schLay[0];
-		Cell lay = schLay[1];
-		if (hierarchical) {
-			return NccHierarchical.compareHierarchical(sch, lay);
-		} else {
-			return NccUtils.nccTwoCells(sch, lay);
-		}
+		CellContext[] cc = {
+			new CellContext(schLay[0], curCellCtxt.context),
+			new CellContext(schLay[1], curCellCtxt.context)
+		};
+		return cc;
 	}
 	
-	private boolean isSchemOrLay(Cell c) {
+	private boolean isSchemOrLay(CellContext cc) {
+		Cell c = cc.cell;
 		View v = c.getView();
 		boolean ok = v==View.SCHEMATIC || v==View.LAYOUT;
 		if (!ok) System.out.println("Cell: "+NccUtils.fullName(c)+
 									" isn't schematic or layout");
 		return ok;
 	}
-	
-	private boolean nccCellsFromTwoWindows() {
-		List cells = NccUtils.getCellsFromWindows();
-		if (cells.size()<2) {
+	/** @return null if not schematic or layout Cells */ 
+	private CellContext[] getTwoCellsFromTwoWindows() {
+		List cellCtxts = NccUtils.getCellContextsFromWindows();
+		if (cellCtxts.size()<2) {
 			System.out.println("Two Cells aren't open in two windows");
-			return false;
+			return null;
 		} 
-		Cell c1 = (Cell) cells.get(0);
-		Cell c2 = (Cell) cells.get(1);
-		if (!isSchemOrLay(c1) || isSchemOrLay(c2)) return false;
-		if (hierarchical) {
-			return NccHierarchical.compareHierarchical(c1, c2);
-		} else {
-			return NccUtils.nccTwoCells(c1, c2);
-		}
+		CellContext[] cellContexts = new CellContext[2];
+		cellContexts[0] = (CellContext) cellCtxts.get(0);
+		cellContexts[1] = (CellContext) cellCtxts.get(1);
+	
+		if (!isSchemOrLay(cellContexts[0]) || 
+		    !isSchemOrLay(cellContexts[1])) return null;
+	    return cellContexts;
+	}
+
+	/** @return array of two CellContexts to compare */
+	private CellContext[] getCellsFromWindows(int numWindows) {
+		if (numWindows==2) return getTwoCellsFromTwoWindows();
+		else return getSchemLayFromCurrentWindow();
+	}
+	
+	private NccOptions getOptionsFromNccConfigDialog() {
+		NccOptions options = new NccOptions();
+		options.verbose = false;
+		options.checkSizes = NCC.getCheckSizes();
+		options.relativeSizeTolerance = NCC.getRelativeSizeTolerance();
+		options.absoluteSizeTolerance = NCC.getAbsoluteSizeTolerance();
+		options.haltAfterFirstMismatch = NCC.getHaltAfterFirstMismatch();
+		return options;
+	}
+
+	private boolean nccTwoCells(CellContext[] cellCtxts, NccOptions options) {
+		Cell cell0 = cellCtxts[0].cell;
+		VarContext context0 = cellCtxts[0].context;
+		Cell cell1 = cellCtxts[1].cell;
+		VarContext context1 = cellCtxts[0].context;
+		System.out.println("Comparing: "+NccUtils.fullName(cell0)+
+						   " with: "+NccUtils.fullName(cell1));
+		return NccEngine.compare(cell0, context0, cell1, context1, null, options);
 	}
 
     public boolean doIt() {
 		System.out.println("Ncc starting");
-	
+		NccOptions options = getOptionsFromNccConfigDialog();
+		CellContext[] cellCtxts = getCellsFromWindows(numWindows);
+
 		boolean ok;
-		if (bottomUp) {
-			ok = bottomUp();
-		} else if (numWindows==1) {
-			ok = nccSchAndLayViewsOfCurrentCell();
+		if (cellCtxts==null) {
+			ok = false; 
+		} else if (bottomUpFlat || hierarchical) {
+			ok = NccBottomUp.compare(cellCtxts[0].cell, cellCtxts[1].cell, 
+			                         hierarchical, options);
 		} else {
-			ok = nccCellsFromTwoWindows();
+			ok = nccTwoCells(cellCtxts, options);
 		}
 		
-		System.out.println("Ncc done");
+		if (ok) System.out.print("Ncc done: no mismatches");
+		else  System.out.print("Ncc done: comparison failed");
 		return ok;
     }
 
 	// ------------------------- public method --------------------------------
-	public NccJob(int numWindows, boolean bottomUp, boolean hierarchical) {
-		super("Run NCC", User.tool, Job.Type.CHANGE, 
-			  null, null, Job.Priority.ANALYSIS);
+	/**
+	 * @param numWindows may be 1 or 2. 1 means compare the schematic and layout 
+	 * views of the current window. 2 means compare the 2 Cells open in 2 Windows.
+	 * @param bottomUpFlat NCC flat every cell in the hierarchy. bottomUpFlat
+	 * and hierarchy are mutually exclusive.
+	 * @param hierarchical NCC hierarchically every cell in the hierarchy. 
+	 * hierarchical and bottomUpFlat are mutually exclusive.
+	 */
+	public NccJob(int numWindows, boolean bottomUpFlat, boolean hierarchical) {
+		super("Run NCC", User.tool, Job.Type.CHANGE, null, null, 
+		      Job.Priority.ANALYSIS);
+		LayoutLib.error(numWindows!=1 && numWindows!=2, 
+                        "numWindows must be 1 or 2");
+		LayoutLib.error(bottomUpFlat && hierarchical,
+				     "I can't do bottomUpFlat or hierarchical simultaneously");
 		this.numWindows = numWindows;
-		this.bottomUp = bottomUp;
+		this.bottomUpFlat = bottomUpFlat;
 		this.hierarchical = hierarchical;
 		startJob();
 	}

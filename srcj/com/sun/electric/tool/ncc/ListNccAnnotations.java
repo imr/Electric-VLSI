@@ -36,6 +36,7 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.WindowContent;
 
 import com.sun.electric.tool.ncc.basic.NccUtils;
+import com.sun.electric.tool.ncc.basic.CellContext;
 import com.sun.electric.tool.ncc.basic.Messenger;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.generator.layout.LayoutLib;
@@ -80,17 +81,17 @@ class ScanHierForNccAnnot extends HierarchyEnumerator.Visitor {
 
 public class ListNccAnnotations extends Job {
     public boolean doIt() {
-		Cell curCell = NccUtils.getCurrentCell();
-		if (curCell==null) {
+		CellContext cellCtxt = NccUtils.getCurrentCellContext();
+		if (cellCtxt==null) {
 			System.out.println("Please open the root of the hierarchy for which you want to list NCC annotations.");
 			return false;
 		} 
 
 		System.out.println("Listing all NCC annotations for hierarchy rooted at Cell: "+
-						   NccUtils.fullName(curCell));
+						   NccUtils.fullName(cellCtxt.cell));
 		
 		ScanHierForNccAnnot visitor = new ScanHierForNccAnnot();
-		HierarchyEnumerator.enumerateCell(curCell, null, null, visitor);
+		HierarchyEnumerator.enumerateCell(cellCtxt.cell, null, null, visitor);
 		
 		System.out.println("Done listing NCC annotations");											   
 

@@ -19,30 +19,124 @@ To compare two cells, use these commands (in menu <B>Tool / NCC</B>):
 <UL>
 <LI>
    <B>Flat NCC schematic and layout of current cell</B>
-   compares the current cell and its equivalent schematic or layout.
+
+   From the Cell Group of the current Cell locate a schematic Cell and
+   a layout Cell and compare them. Flatten both netists before the
+   comparison. This is the most commonly used form of the NCC command.
+
 </LI>
 <LI>
    <B>Flat NCC two cells from open windows</B>
-   compares two cells that are the two opened windows (there must be exactly two windows).
+
+   Compare the two cells that are displayed in the two opened windows
+   (there must be exactly two windows). This is useful when the
+   schematic and layout are not in the same Cell Group. The command
+   can also be used to compare schematics with schematics or layout
+   with layout. However, the command refuses to compare icon Cells
+   since icons Cells don't have defined connectivity.
+
 </LI>
 <LI>
    <B>Flat NCC each cell in the design, current cell is root</B>
-   compares the current cell and its equivalent schematic or layout, and then recurses down the hierarchy.
+
+   Perform a flat netlist comparison for every Cell Group making up
+   the current design. This command assumes that all schematic and
+   layout Cells in a Cell Group are supposed to be topologically
+   identical. From the Cell Group of the current cell locate a
+   schematic Cell and a layout Cell. Walk the schematic and layout
+   hierarchies to identify all Cell Groups that are part of both
+   hierarchies. Starting with the leaf Cell Group, compare all
+   schematic and layout Cells that are used in the design.
+
 </LI>
 <LI>
-   <B>Hierarchical NCC each cell in the design, current cell is root</B>
-   compares the current cell and its equivalent schematic or layout, and then recurses down the hierarchy.
+   <B>List annotations of each cell in the design, current cell is root</B>
+
+   Print out a list of all the NCC annotations on all Cells in the
+   design. From the Cell Group of the current Cell locate a schematic
+   Cell and a layout Cell. Walk both hierarchies to identify all
+   schematic and layout Cells used in the design.  For each of these
+   Cells with NCC annotations on, print the name of the Cell followed
+   by the list of annotations.
 </LI>
 </UL>
 <TABLE><TR><TD>
-There is only one NCC setting, available in the "NCC" preferences (in menu <B>File / Preferences...</B>, "Tools" section, "NCC" tab).
-Component sizes can be allowed up to a specified amount or percentage.
+
+   There are a small number of NCC options available in the "NCC"
+   preferences (in menu <B>File / Preferences...</B>, "Tools" section,
+   "NCC" tab).  Please ignore everything in the "Size Checking" panel
+   because NCC Size Checking is presently disabled because it is not
+   yet ready for general distribution.
+
+<p>
+
+   In the "Checking All Cells" panel the "Halt after finding the first
+   mismatched Cell" check box determines whether the command "Flat NCC
+   each cell in the design, current cell is root" stops when it finds
+   the first mismatching Cell. It's generally a good idea to stop
+   because an error in a child Cell often creates many errors in its
+   parents.  Once you fix the child Cell a second invocation of the
+   command will continue where it left off. The command remembers
+   which Cells have compared successfully just for the duration of the
+   program. However, if you exit and restart Electric and rerun the
+   command it will start from scratch.
+
+
 </TD><TD><CENTER><IMG SRC="fig09-22.png" ALT="Figure 9.22"></CENTER></TD></TR></TABLE>
 <P>
-For an example of network consistency checking,
-open the Samples library (in menu <B>Help / Load Samples Library</B>) and compare the cells "tool-NCC{lay}" and "tool-NCC{sch}"
-.
-These two cells are equivalent and the checker will find them to be so.
+
+In certain situations the designer must annotate Cells to tell NCC
+what he means. It is quite common for a layout Cell to have two or
+more exports that are intended to be connected by the parent of the
+Cell. For example, a layout Cell might export vdd, vdd_1, and vdd_2
+with the expectation that the parent Cell will connect power to all
+three exports. However, the schematic Cell might be drawn with only
+one Export, vdd. In order to get the comparison to pass, the designer
+must add to the layout Cell an attribute named "NCC" with the value
+string:
+
+</p><p>
+
+<b> exportsConnectedByParent vdd vdd_1 vdd_2 </b>
+
+</p><p>
+
+Alternatively, the designer can use regular expressions. For example,
+the following annotation is quite common:
+
+</p><p>
+
+<b> exportsConnectedByParent vdd /vdd_[0-9]+/ </b>
+
+</p><p>
+
+Another situation where an annotation is useful is if you already know
+that a child cell has an error but you are sure that this error won't
+affect the NCC results of ancestor Cells.  For example, the annotation:
+
+</p><p>
+
+<b>skipNCC the Bozo that drew this layout didn't make the Export names
+match the schematic </b>
+
+</p><p>
+
+tells NCC not to bother comparing this particular Cell. Note that all
+characters following the token "skipNCC" to the end of the line are
+presumed to be a caustic editorial comment to be displayed prominently
+during the execution of the command.
+
+</p><p>
+
+Multiple NCC annotations may be added to a single NCC attribute by
+including each on a separate line.
+
+</p><p>
+
+For an example of network consistency checking, open the Samples
+library (in menu <B>Help / Load Samples Library</B>) and compare the
+cells "tool-NCC{lay}" and "tool-NCC{sch}".  These two cells are
+equivalent and the checker will find them to be so.
 
 <!-- TRAILER -->
 
