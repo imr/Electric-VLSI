@@ -1783,7 +1783,10 @@ public class ELIB extends LibraryFiles
 
                 if (box != null) {
                     extra = "...expected ("+x+","+y+"), found ("+box.getCenterX()+","+box.getCenterY()+")";
-                }
+                } else
+				{
+                    extra = "...expected ("+x+","+y+"), polyDistance=" + portLocation.polyDistance(x, y);
+				}
                 whatHappenedToPort = "has moved"+extra;
                 pi = null;
             } else {

@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ap: *********************************
 
+IMP: (11/17/04, DN) XSize and YSize of serpentine transistors are not properly calcualted.
+FIX: getShapeOfNode and getShapeOfPort use getAnchorCenter instead of getTrueCenter
+     In NodeInst use getShapeOfNode to calculate sizes of primitive with TRACE.
+
 IMP/MAN: (11/15/04, GVG) Network tool connected to 3D View
 
 IMP/MAN: (11/15/04, GVG) Ability to save ErrorLogger for debugging purposes.

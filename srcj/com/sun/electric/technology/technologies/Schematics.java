@@ -1799,10 +1799,14 @@ public class Schematics extends Technology
 		if (lambda != 1)
 		{
 			// standard port computation
-			double portLowX = ni.getTrueCenterX() + pp.getLeft().getMultiplier() * width + pp.getLeft().getAdder() * lambda;
-			double portHighX = ni.getTrueCenterX() + pp.getRight().getMultiplier() * width + pp.getRight().getAdder() * lambda;
-			double portLowY = ni.getTrueCenterY() + pp.getBottom().getMultiplier() * height + pp.getBottom().getAdder() * lambda;
-			double portHighY = ni.getTrueCenterY() + pp.getTop().getMultiplier() * height + pp.getTop().getAdder() * lambda;
+			double portLowX = ni.getAnchorCenterX() + pp.getLeft().getMultiplier() * width + pp.getLeft().getAdder() * lambda;
+			double portHighX = ni.getAnchorCenterX() + pp.getRight().getMultiplier() * width + pp.getRight().getAdder() * lambda;
+			double portLowY = ni.getAnchorCenterY() + pp.getBottom().getMultiplier() * height + pp.getBottom().getAdder() * lambda;
+			double portHighY = ni.getAnchorCenterY() + pp.getTop().getMultiplier() * height + pp.getTop().getAdder() * lambda;
+// 			double portLowX = ni.getTrueCenterX() + pp.getLeft().getMultiplier() * width + pp.getLeft().getAdder() * lambda;
+// 			double portHighX = ni.getTrueCenterX() + pp.getRight().getMultiplier() * width + pp.getRight().getAdder() * lambda;
+// 			double portLowY = ni.getTrueCenterY() + pp.getBottom().getMultiplier() * height + pp.getBottom().getAdder() * lambda;
+// 			double portHighY = ni.getTrueCenterY() + pp.getTop().getMultiplier() * height + pp.getTop().getAdder() * lambda;
 			double portX = (portLowX + portHighX) / 2;
 			double portY = (portLowY + portHighY) / 2;
 			Poly portPoly = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);

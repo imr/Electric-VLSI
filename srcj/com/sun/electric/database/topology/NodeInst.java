@@ -1228,39 +1228,41 @@ public class NodeInst extends Geometric implements Nodable
 		}
 
 		// special case for polygonally-defined nodes: compute precise geometry
-// 		if (pn.isHoldsOutline() && getTrace() != null)
-// 		{
-// 			AffineTransform trans = rotateOut();
-// 			Poly[] polys = pn.getTechnology().getShapeOfNode(this);
-// 			for (int i = 0; i < polys.length; i++)
-// 			{
-// 				Poly poly = polys[i];
-// 				poly.transform(trans);
-// 				if (i == 0)
-// 					visBounds.setRect(poly.getBounds2D());
-// 				else
-// 					Rectangle2D.union(poly.getBounds2D(), visBounds, visBounds);
-// 			}
-// 			return;
-// 		}
-		if (pn.isHoldsOutline())
+		if (pn.isHoldsOutline() && getTrace() != null)
 		{
-			Point2D [] outline = getTrace();
-			if (outline != null)
+			AffineTransform trans = rotateOut();
+			Poly[] polys = pn.getTechnology().getShapeOfNode(this);
+			for (int i = 0; i < polys.length; i++)
 			{
-				Point2D [] pointList = new Point2D.Double[outline.length];
-				for(int i=0; i<outline.length; i++)
-				{
-					pointList[i] = new Point2D.Double(getAnchorCenterX() + outline[i].getX(),
-					getAnchorCenterY() + outline[i].getY());
-				}
-				Poly poly = new Poly(pointList);
-				poly.setStyle(Poly.Type.OPENED);
-				poly.transform(rotateOut());
-				visBounds.setRect(poly.getBounds2D());
-				return;
+				Poly poly = polys[i];
+				poly.transform(trans);
+				if (i == 0)
+					visBounds.setRect(poly.getBounds2D());
+				else
+					Rectangle2D.union(poly.getBounds2D(), visBounds, visBounds);
 			}
+//  			System.out.println(this + " in " + parent + " calcBound=" + visBounds + " center=" + center +
+//  							   " sX=" + sX + " sY=" + sY);
+			return;
 		}
+// 		if (pn.isHoldsOutline())
+// 		{
+// 			Point2D [] outline = getTrace();
+// 			if (outline != null)
+// 			{
+// 				Point2D [] pointList = new Point2D.Double[outline.length];
+// 				for(int i=0; i<outline.length; i++)
+// 				{
+// 					pointList[i] = new Point2D.Double(getAnchorCenterX() + outline[i].getX(),
+// 					getAnchorCenterY() + outline[i].getY());
+// 				}
+// 				Poly poly = new Poly(pointList);
+// 				poly.setStyle(Poly.Type.OPENED);
+// 				poly.transform(rotateOut());
+// 				visBounds.setRect(poly.getBounds2D());
+// 				return;
+// 			}
+// 		}
 
 		// normal bounds computation
 		Poly poly = new Poly(center.getX(), center.getY(), Math.abs(sX), Math.abs(sY));
@@ -2695,63 +2697,61 @@ public class NodeInst extends Geometric implements Nodable
 			}
 		} else
 		{
-// 			PrimitiveNode pn = (PrimitiveNode)protoType;
-// 			if (pn.isHoldsOutline() && getTrace() != null)
+			PrimitiveNode pn = (PrimitiveNode)protoType;
+			if (pn.isHoldsOutline() && getTrace() != null)
+			{
+				Rectangle2D bounds = new Rectangle2D.Double();
+				Poly[] polys = pn.getTechnology().getShapeOfNode(this);
+				for (int i = 0; i < polys.length; i++)
+				{
+					Poly poly = polys[i];
+					if (i == 0)
+						bounds.setRect(poly.getBounds2D());
+					else
+						Rectangle2D.union(poly.getBounds2D(), bounds, bounds);
+				}
+				double width = DBMath.round(bounds.getWidth());
+				double height = DBMath.round(bounds.getHeight());
+				if (width != getXSize() || height != getYSize())
+				{
+					System.out.println("Cell " + parent.describe() + ", node " + describe() +
+						" is " + getXSize() + "x" + getYSize() +
+						" but has outline of size " + width + "x" + height +
+						" (REPAIRED)");
+					sX = isXMirrored() ? -width : width;
+					sY = isYMirrored() ? -height : height;
+					redoGeometric();
+					warningCount++;
+				}
+			}
+// 			Point2D [] points = getTrace();
+// 			if (points != null)
 // 			{
-// 				Rectangle2D bounds = new Rectangle2D.Double();
-// 				AffineTransform trans = rotateOut();
-// 				Poly[] polys = pn.getTechnology().getShapeOfNode(this);
-// 				for (int i = 0; i < polys.length; i++)
+// 				double lX = points[0].getX();
+// 				double hX = lX;
+// 				double lY = points[0].getY();
+// 				double hY = lY;
+// 				for(int i=1; i<points.length; i++)
 // 				{
-// 					Poly poly = polys[i];
-// 					poly.transform(trans);
-// 					if (i == 0)
-// 						bounds.setRect(poly.getBounds2D());
-// 					else
-// 						Rectangle2D.union(poly.getBounds2D(), bounds, bounds);
+// 					if (points[i].getX() < lX) lX = points[i].getX();
+// 					if (points[i].getX() > hX) hX = points[i].getX();
+// 					if (points[i].getY() < lY) lY = points[i].getY();
+// 					if (points[i].getY() > hY) hY = points[i].getY();
 // 				}
-// 				if (bounds.getWidth() != getXSize() || bounds.getHeight() != getYSize())
+// 				if (hX-lX != getXSize() || hY-lY != getYSize())
 // 				{
 // 					System.out.println("Cell " + parent.describe() + ", node " + describe() +
 // 						" is " + getXSize() + "x" + getYSize() +
-// 						" but has outline of size " + bounds.getWidth() + "x" + bounds.getHeight() +
+// 						" but has outline of size " + (hX-lX) + "x" + (hY-lY) +
 // 						" (REPAIRED)");
-// 					sX = DBMath.round(bounds.getWidth()) * (isXMirrored() ? -1 : 1);
-// 					sY = DBMath.round(bounds.getHeight()) * (isYMirrored() ? -1 : 1);
+// 					sX = DBMath.round(hX-lX) * (isXMirrored() ? -1 : 1);
+// 					sY = DBMath.round(hY-lY) * (isYMirrored() ? -1 : 1);
 // // 					sX = (hX-lX) * getXSize() / getXSizeWithMirror();
 // // 					sY = (hY-lY) * getYSize() / getYSizeWithMirror();
 // 					redoGeometric();
 // 					warningCount++;
 // 				}
 // 			}
-			Point2D [] points = getTrace();
-			if (points != null)
-			{
-				double lX = points[0].getX();
-				double hX = lX;
-				double lY = points[0].getY();
-				double hY = lY;
-				for(int i=1; i<points.length; i++)
-				{
-					if (points[i].getX() < lX) lX = points[i].getX();
-					if (points[i].getX() > hX) hX = points[i].getX();
-					if (points[i].getY() < lY) lY = points[i].getY();
-					if (points[i].getY() > hY) hY = points[i].getY();
-				}
-				if (hX-lX != getXSize() || hY-lY != getYSize())
-				{
-					System.out.println("Cell " + parent.describe() + ", node " + describe() +
-						" is " + getXSize() + "x" + getYSize() +
-						" but has outline of size " + (hX-lX) + "x" + (hY-lY) +
-						" (REPAIRED)");
-					sX = DBMath.round(hX-lX) * (isXMirrored() ? -1 : 1);
-					sY = DBMath.round(hY-lY) * (isYMirrored() ? -1 : 1);
-// 					sX = (hX-lX) * getXSize() / getXSizeWithMirror();
-// 					sY = (hY-lY) * getYSize() / getYSizeWithMirror();
-					redoGeometric();
-					warningCount++;
-				}
-			}
 		}
 		if (portInsts.size() != protoType.getNumPorts())
 		{

@@ -1484,8 +1484,10 @@ public class Technology
 				Point2D [] pointList = new Point2D.Double[outline.length];
 				for(int i=0; i<outline.length; i++)
 				{
-					pointList[i] = new Point2D.Double(ni.getTrueCenterX() + outline[i].getX(),
-						ni.getTrueCenterY() + outline[i].getY());
+					pointList[i] = new Point2D.Double(ni.getAnchorCenterX() + outline[i].getX(),
+						ni.getAnchorCenterY() + outline[i].getY());
+// 					pointList[i] = new Point2D.Double(ni.getTrueCenterX() + outline[i].getX(),
+// 						ni.getTrueCenterY() + outline[i].getY());
 				}
 				polys[0] = new Poly(pointList);
 				Technology.NodeLayer primLayer = primLayers[0];
@@ -1538,8 +1540,10 @@ public class Technology
 		int fillPoly = 0;
 		for(int i = 0; i < numBasicLayers; i++)
 		{
-			double xCenter = ni.getTrueCenterX();
-			double yCenter = ni.getTrueCenterY();
+			double xCenter = ni.getAnchorCenterX();
+			double yCenter = ni.getAnchorCenterY();
+// 			double xCenter = ni.getTrueCenterX();
+// 			double yCenter = ni.getTrueCenterY();
 			double xSize = ni.getXSize();
 			double ySize = ni.getYSize();
 			Technology.NodeLayer primLayer = primLayers[i];
@@ -1786,7 +1790,8 @@ public class Technology
 			double cX;
 			if (cutsX == 1)
 			{
-				cX = ni.getTrueCenterX();
+				cX = ni.getAnchorCenterX();
+//				cX = ni.getTrueCenterX();
 			} else
 			{
 				cX = cutBaseX + (cut % cutsX) * (cutSizeX + cutSep);
@@ -1796,7 +1801,8 @@ public class Technology
 			double cY;
 			if (cutsY == 1)
 			{
-				cY = ni.getTrueCenterY();
+				cY = ni.getAnchorCenterY();
+// 				cY = ni.getTrueCenterY();
 			} else
 			{
 				cY = cutBaseY + (cut / cutsX) * (cutSizeY + cutSep);
@@ -1883,8 +1889,10 @@ public class Technology
 			rwid += extraScale;
 
 			// prepare to fill the serpentine transistor
-			double xoff = theNode.getTrueCenterX();
-			double yoff = theNode.getTrueCenterY();
+			double xoff = theNode.getAnchorCenterX();
+			double yoff = theNode.getAnchorCenterY();
+// 			double xoff = theNode.getTrueCenterX();
+// 			double yoff = theNode.getTrueCenterY();
 			int thissg = segment;   int next = segment+1;
 			Point2D thisPt = points[thissg];
 			Point2D nextPt = points[next];
@@ -2020,8 +2028,10 @@ public class Technology
 			double polyExtend = specialValues[5];
 
 			// prepare to fill the serpentine transistor port
-			double xOff = theNode.getTrueCenterX();
-			double yOff = theNode.getTrueCenterY();
+			double xOff = theNode.getAnchorCenterX();
+			double yOff = theNode.getAnchorCenterY();
+// 			double xOff = theNode.getTrueCenterX();
+// 			double yOff = theNode.getTrueCenterY();
 			int total = points.length;
 			AffineTransform trans = theNode.rotateOut();
 
@@ -2200,8 +2210,10 @@ public class Technology
 			Point2D [] outline = ni.getTrace();
 			if (outline != null)
 			{
-				double cX = ni.getTrueCenterX();
-				double cY = ni.getTrueCenterY();
+				double cX = ni.getAnchorCenterX();
+				double cY = ni.getAnchorCenterY();
+// 				double cX = ni.getTrueCenterX();
+// 				double cY = ni.getTrueCenterY();
 				Point2D [] pointList = new Point2D.Double[outline.length];
 				for(int i=0; i<outline.length; i++)
 				{
@@ -2221,10 +2233,14 @@ public class Technology
 		}
 
 		// standard port computation
-		double portLowX = ni.getTrueCenterX() + pp.getLeft().getMultiplier() * ni.getXSize() + pp.getLeft().getAdder();
-		double portHighX = ni.getTrueCenterX() + pp.getRight().getMultiplier() * ni.getXSize() + pp.getRight().getAdder();
-		double portLowY = ni.getTrueCenterY() + pp.getBottom().getMultiplier() * ni.getYSize() + pp.getBottom().getAdder();
-		double portHighY = ni.getTrueCenterY() + pp.getTop().getMultiplier() * ni.getYSize() + pp.getTop().getAdder();
+		double portLowX = ni.getAnchorCenterX() + pp.getLeft().getMultiplier() * ni.getXSize() + pp.getLeft().getAdder();
+		double portHighX = ni.getAnchorCenterX() + pp.getRight().getMultiplier() * ni.getXSize() + pp.getRight().getAdder();
+		double portLowY = ni.getAnchorCenterY() + pp.getBottom().getMultiplier() * ni.getYSize() + pp.getBottom().getAdder();
+		double portHighY = ni.getAnchorCenterY() + pp.getTop().getMultiplier() * ni.getYSize() + pp.getTop().getAdder();
+// 		double portLowX = ni.getTrueCenterX() + pp.getLeft().getMultiplier() * ni.getXSize() + pp.getLeft().getAdder();
+// 		double portHighX = ni.getTrueCenterX() + pp.getRight().getMultiplier() * ni.getXSize() + pp.getRight().getAdder();
+// 		double portLowY = ni.getTrueCenterY() + pp.getBottom().getMultiplier() * ni.getYSize() + pp.getBottom().getAdder();
+// 		double portHighY = ni.getTrueCenterY() + pp.getTop().getMultiplier() * ni.getYSize() + pp.getTop().getAdder();
 		double portX = (portLowX + portHighX) / 2;
 		double portY = (portLowY + portHighY) / 2;
 		Poly portPoly = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
