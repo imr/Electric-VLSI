@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01aw: *********************************
 
+IMP: (12/16/04, GVG) New transistor sizes of OD18 and Native to comply with missing DRC rules
+
 BUG: (12/16/04, SMR) PostScript export of waveform windows crashes (Bug #119).
 FIX: In PostScript.java, check for null EditWindow pointer.
 
