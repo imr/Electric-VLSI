@@ -201,7 +201,7 @@ public class ERCWellCheck
 					if (contactAction == 0)
 					{
 						ErrorLog err = errorLogger.logError(noContactError, cell, 0);
-						err.addPoly(wa.poly, true);
+						err.addPoly(wa.poly, true, cell);
 					}
 				}
 			}
@@ -215,7 +215,7 @@ public class ERCWellCheck
 					String errorMsg = "N-Well contact is floating";
 					if (wc.fun == NodeProto.Function.WELL) errorMsg = "P-Well contact is floating";
 					ErrorLog err = errorLogger.logError(errorMsg, cell, 0);
-					err.addPoint(wc.ctr.getX(), wc.ctr.getY());
+					err.addPoint(wc.ctr.getX(), wc.ctr.getY(), cell);
 					continue;
 				}
 				if (!wc.onProperRail)
@@ -225,14 +225,14 @@ public class ERCWellCheck
 						if (ERC.isMustConnectPWellToGround())
 						{
 							ErrorLog err = errorLogger.logError("P-Well contact not connected to ground", cell, 0);
-							err.addPoint(wc.ctr.getX(), wc.ctr.getY());
+							err.addPoint(wc.ctr.getX(), wc.ctr.getY(), cell);
 						}
 					} else
 					{
 						if (ERC.isMustConnectNWellToPower())
 						{
 							ErrorLog err = errorLogger.logError("N-Well contact not connected to power", cell, 0);
-							err.addPoint(wc.ctr.getX(), wc.ctr.getY());
+							err.addPoint(wc.ctr.getX(), wc.ctr.getY(), cell);
 						}
 					}
 				}
@@ -247,8 +247,8 @@ public class ERCWellCheck
 					String errorMsg = "N-Well contacts are not connected";
 					if (wc.fun == NodeProto.Function.WELL) errorMsg = "P-Well contacts are not connected";
 					ErrorLog err = errorLogger.logError(errorMsg, cell, 0);
-					err.addPoint(wc.ctr.getX(), wc.ctr.getY());
-					err.addPoint(oWc.ctr.getX(), oWc.ctr.getY());
+					err.addPoint(wc.ctr.getX(), wc.ctr.getY(), cell);
+					err.addPoint(oWc.ctr.getX(), oWc.ctr.getY(), cell);
 					break;
 				}
 			}
@@ -314,8 +314,8 @@ public class ERCWellCheck
 							case 4: areaType = "N-Select";  break;
 						}
 						ErrorLog err = errorLogger.logError(areaType + " areas too close (are " + dist + ", should be " + rule.distance + ")", cell, 0);
-						err.addPoly(wa.poly, true);
-						err.addPoly(oWa.poly, true);
+						err.addPoly(wa.poly, true, cell);
+						err.addPoly(oWa.poly, true, cell);
 					}
 				}
 			}
@@ -528,7 +528,7 @@ public class ERCWellCheck
 					if (contactAction == 0)
 					{
 						ErrorLog err = errorLogger.logError(noContactError, cell, 0);
-						err.addPoly(wa.poly, true);
+						err.addPoly(wa.poly, true, cell);
 					}
 				}
 			}
@@ -542,7 +542,7 @@ public class ERCWellCheck
 					String errorMsg = "N-Well contact is floating";
 					if (wc.fun == NodeProto.Function.WELL) errorMsg = "P-Well contact is floating";
 					ErrorLog err = errorLogger.logError(errorMsg, cell, 0);
-					err.addPoint(wc.ctr.getX(), wc.ctr.getY());
+					err.addPoint(wc.ctr.getX(), wc.ctr.getY(), cell);
 					continue;
 				}
 				if (!wc.onProperRail)
@@ -552,14 +552,14 @@ public class ERCWellCheck
 						if (ERC.isMustConnectPWellToGround())
 						{
 							ErrorLog err = errorLogger.logError("P-Well contact not connected to ground", cell, 0);
-							err.addPoint(wc.ctr.getX(), wc.ctr.getY());
+							err.addPoint(wc.ctr.getX(), wc.ctr.getY(), cell);
 						}
 					} else
 					{
 						if (ERC.isMustConnectNWellToPower())
 						{
 							ErrorLog err = errorLogger.logError("N-Well contact not connected to power", cell, 0);
-							err.addPoint(wc.ctr.getX(), wc.ctr.getY());
+							err.addPoint(wc.ctr.getX(), wc.ctr.getY(), cell);
 						}
 					}
 				}
@@ -574,8 +574,8 @@ public class ERCWellCheck
 					String errorMsg = "N-Well contacts are not connected";
 					if (wc.fun == NodeProto.Function.WELL) errorMsg = "P-Well contacts are not connected";
 					ErrorLog err = errorLogger.logError(errorMsg, cell, 0);
-					err.addPoint(wc.ctr.getX(), wc.ctr.getY());
-					err.addPoint(oWc.ctr.getX(), oWc.ctr.getY());
+					err.addPoint(wc.ctr.getX(), wc.ctr.getY(), cell);
+					err.addPoint(oWc.ctr.getX(), oWc.ctr.getY(), cell);
 					break;
 				}
 			}
@@ -641,8 +641,8 @@ public class ERCWellCheck
 							case 4: areaType = "N-Select";  break;
 						}
 						ErrorLog err = errorLogger.logError(areaType + " areas too close (are " + dist + ", should be " + rule.distance + ")", cell, 0);
-						err.addPoly(wa.poly, true);
-						err.addPoly(oWa.poly, true);
+						err.addPoly(wa.poly, true, cell);
+						err.addPoly(oWa.poly, true, cell);
 					}
 				}
 			}

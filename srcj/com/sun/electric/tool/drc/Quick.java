@@ -3056,10 +3056,10 @@ public class Quick
 
 		ErrorLogger.ErrorLog err = errorLogger.logError(errorMessage, cell, sortLayer);
 		boolean showGeom = true;
-		if (poly1 != null) { showGeom = false;   err.addPoly(poly1, true); }
-		if (poly2 != null) { showGeom = false;   err.addPoly(poly2, true); }
-		err.addGeom(geom1, showGeom, 0, null);
-		if (geom2 != null) err.addGeom(geom2, showGeom, 0, null);
+		if (poly1 != null) { showGeom = false;   err.addPoly(poly1, true, cell); }
+		if (poly2 != null) { showGeom = false;   err.addPoly(poly2, true, cell); }
+		err.addGeom(geom1, showGeom, cell, null);
+		if (geom2 != null) err.addGeom(geom2, showGeom, cell, null);
 	}
 
 }

@@ -219,7 +219,7 @@ class NetCell
 				String msg = "Network: Layout cell " + cell.describe() + " has arrayed node " + ni.describe();
                 System.out.println(msg);
                 ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
-                log.addGeom(ni, true, 0, null);
+                log.addGeom(ni, true, cell, null);
             }
 		}
 		for (Iterator it = cell.getUsagesIn(); it.hasNext();) {
@@ -234,7 +234,7 @@ class NetCell
                     ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
                     for (Iterator nit = nu.getInsts(); nit.hasNext(); ) {
                         NodeInst ni = (NodeInst)nit.next();
-                        log.addGeom(ni, true, 0, null);
+                        log.addGeom(ni, true, cell, null);
                     }
 					err = true;
 				}
@@ -246,7 +246,7 @@ class NetCell
                 ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
                 for (Iterator nit = nu.getInsts(); nit.hasNext(); ) {
                     NodeInst ni = (NodeInst)nit.next();
-                    log.addGeom(ni, true, 0, null);
+                    log.addGeom(ni, true, cell, null);
                 }
 				err = true;
 			}
@@ -258,7 +258,7 @@ class NetCell
                     ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
                     for (Iterator nit = nu.getInsts(); nit.hasNext(); ) {
                         NodeInst ni = (NodeInst)nit.next();
-                        log.addGeom(ni, true, 0, null);
+                        log.addGeom(ni, true, cell, null);
                     }
 					err = true;
 				}
@@ -442,7 +442,7 @@ class NetCell
 						String msg = "Network: " + cell + " has connections on " + pi;
                         System.out.println(msg);
                         ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
-                        log.addPoly(pi.getPoly(), true);
+                        log.addPoly(pi.getPoly(), true, cell);
                     }
 					continue;
 				}
@@ -452,7 +452,7 @@ class NetCell
 					String msg = "Network: " + cell + " has unconnected pin " + pi.describe();
                     System.out.println(msg);
                     ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
-                    log.addGeom(ni, true, 0, null);
+                    log.addGeom(ni, true, cell, null);
                 }
 				addToDrawn(pi);
 				numDrawns++;
@@ -516,7 +516,7 @@ class NetCell
 				String msg = "Network: " + cell + " has bus name <"+ai.getNameKey()+"> on arc that is not a bus";
                 System.out.println(msg);
                 ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
-                log.addGeom(ai, true, 0, null);
+                log.addGeom(ai, true, cell, null);
             }
 			if (ai.isUsernamed())
 				addNetNames(ai.getNameKey());
@@ -638,13 +638,13 @@ class NetCell
             int numPorts = cell.getNumPorts();
             for (int i = 0; i < numPorts; i++) {
                 Export e = (Export)cell.getPort(i);
-                if (e.getName().equals(name.toString())) log.addExport(e, true);
+                if (e.getName().equals(name.toString())) log.addExport(e, true, cell, null);
             }
             int numArcs = cell.getNumArcs();
             for (int i = 0; i < numArcs; i++) {
                 ArcInst ai = cell.getArc(i);
                 if (!ai.isUsernamed()) continue;
-                if (ai.getName().equals(name.toString())) log.addGeom(ai, true, 0, null);
+                if (ai.getName().equals(name.toString())) log.addGeom(ai, true, cell, null);
             }
         }
 		else

@@ -359,7 +359,7 @@ public class CIF extends Geometry
 			{
 				err = errorLogger.logError("Resolution < " + minAllowedResolution + " on layer " + layer.getName(), cell, layer.getIndex());
 			}
-			err.addPoly(poly, false);
+			err.addPoly(poly, false, cell);
 		}
 	}
 

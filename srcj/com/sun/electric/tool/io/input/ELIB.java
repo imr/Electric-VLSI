@@ -1647,7 +1647,7 @@ public class ELIB extends LibraryFiles
         // if this was a dummy cell, log instance as an error so the user can find easily
         if (np.getVar(IO_DUMMY_OBJECT) != null) {
             ErrorLogger.ErrorLog error = Input.errorLogger.logError("Instance of dummy cell "+np.getName(), cell, 1);
-            error.addGeom(ni, true, 0, null);
+            error.addGeom(ni, true, cell, null);
         }
 
 		// convert outline information, if present
@@ -1709,7 +1709,7 @@ public class ELIB extends LibraryFiles
                                     pi.getPortProto().getName()+"' at the same location";
                             System.out.println("ERROR: "+msg);
                             ErrorLogger.ErrorLog error = Input.errorLogger.logError(msg, cell, 0);
-                            error.addGeom(ai, true, 0, null);
+                            error.addGeom(ai, true, cell, null);
                             return pi;
                         }
                     }
@@ -1743,12 +1743,12 @@ public class ELIB extends LibraryFiles
         String msg = "Cell "+cell.describe()+": Port '"+portname+"' on '"+nodeName+"' "+whatHappenedToPort+": leaving arc disconnected";
         System.out.println("ERROR: "+msg);
         ErrorLogger.ErrorLog error = Input.errorLogger.logError(msg, cell, 0);
-        error.addGeom(ai, true, 0, null);
+        error.addGeom(ai, true, cell, null);
 
         PrimitiveNode pn = ((PrimitiveArc)ap).findOverridablePinProto();
         node = NodeInst.newInstance(pn, new Point2D.Double(x, y), pn.getDefWidth(),
             pn.getDefHeight(), 0, cell, null);
-        error.addGeom(node, true, 0, null);
+        error.addGeom(node, true, cell, null);
         return node.getOnlyPortInst();
     }
 

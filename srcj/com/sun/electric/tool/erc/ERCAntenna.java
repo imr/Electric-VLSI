@@ -361,7 +361,7 @@ public class ERCAntenna
 								for(Iterator mIt = merges.iterator(); mIt.hasNext(); )
 								{
 									Poly merged = (Poly)mIt.next();
-									err.addPoly(merged, true);
+									err.addPoly(merged, true, cell);
 								}
 							}
 						}

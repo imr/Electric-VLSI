@@ -29,8 +29,10 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.WindowContent;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.*;
@@ -72,8 +74,8 @@ public class ErrorLogger implements ActionListener {
         double      x1, y1;
         double      x2, y2;
         double      cX, cY;
-        int         pathlen;
-        NodeInst [] path;
+        Cell        cell;
+        VarContext  context;
 
         /**
          * Method to describe an object on an error.
@@ -83,12 +85,7 @@ public class ErrorLogger implements ActionListener {
             String msg;
             if (geom instanceof NodeInst) msg = "Node " + geom.describe(); else
                 msg = "Arc " + geom.describe();
-            for(int i=0; i<pathlen; i++)
-            {
-                NodeInst ni = path[i];
-                msg += " in " + ni.getParent().getLibrary().getName() +
-                    ":" + ni.getParent().noLibDescribe() + ":" + ni.describe();
-            }
+            msg += " in " + context.getInstPath(".");
             return msg;
         }
     };
@@ -98,14 +95,13 @@ public class ErrorLogger implements ActionListener {
      */
     public static class ErrorLog {
         private String message;
-        private Cell   cell;
         private int    sortKey;
         private int    index;
+        private Cell    logCell;                // cell associated with log (not really used)
         private List   highlights;
 
-        private ErrorLog(String message, Cell cell, int sortKey) {
+        private ErrorLog(String message, int sortKey) {
             this.message = message;
-            this.cell = cell;
             this.sortKey = sortKey;
             index = 0;
             highlights = new ArrayList();
@@ -115,34 +111,35 @@ public class ErrorLogger implements ActionListener {
          * Method to add "geom" to the error in "errorlist".  Also adds a
          * hierarchical traversal path "path" (which is "pathlen" long).
          */
-        public void addGeom(Geometric geom, boolean showit, int pathlen, NodeInst [] path)
+        public void addGeom(Geometric geom, boolean showit, Cell cell, VarContext context)
         {
             ErrorHighlight eh = new ErrorHighlight();
             eh.type = ERRORTYPEGEOM;
             eh.geom = geom;
             eh.showgeom = showit;
-            eh.pathlen = pathlen;
-            if (pathlen > 0) eh.path = path;
+            eh.cell = cell;
+            eh.context = context;
             highlights.add(eh);
         }
 
         /**
          * Method to add "pp" to the error in "errorlist".
          */
-        public void addExport(Export pp, boolean showit)
+        public void addExport(Export pp, boolean showit, Cell cell, VarContext context)
         {
             ErrorHighlight eh = new ErrorHighlight();
             eh.type = ERRORTYPEEXPORT;
             eh.pp = pp;
             eh.showgeom = showit;
-            eh.pathlen = 0;
+            eh.cell = cell;
+            eh.context = context;
             highlights.add(eh);
         }
 
         /**
          * Method to add line (x1,y1)=>(x2,y2) to the error in "errorlist".
          */
-        public void addLine(double x1, double y1, double x2, double y2)
+        public void addLine(double x1, double y1, double x2, double y2, Cell cell)
         {
             ErrorHighlight eh = new ErrorHighlight();
             eh.type = ERRORTYPELINE;
@@ -150,14 +147,15 @@ public class ErrorLogger implements ActionListener {
             eh.y1 = y1;
             eh.x2 = x2;
             eh.y2 = y2;
-            eh.pathlen = 0;
+            eh.cell = cell;
+            eh.context = null;
             highlights.add(eh);
         }
 
         /**
          * Method to add polygon "poly" to the error in "errorlist".
          */
-        public void addPoly(Poly poly, boolean thick)
+        public void addPoly(Poly poly, boolean thick, Cell cell)
         {
             Point2D [] points = poly.getPoints();
             Point2D center = new Point2D.Double(poly.getCenterX(), poly.getCenterY());
@@ -174,7 +172,8 @@ public class ErrorLogger implements ActionListener {
                 eh.y2 = points[i].getY();
                 eh.cX = center.getX();
                 eh.cY = center.getY();
-                eh.pathlen = 0;
+                eh.cell = cell;
+                eh.context = null;
                 highlights.add(eh);
             }
         }
@@ -182,13 +181,14 @@ public class ErrorLogger implements ActionListener {
         /**
          * Method to add point (x,y) to the error in "errorlist".
          */
-        public void addPoint(double x, double y)
+        public void addPoint(double x, double y, Cell cell)
         {
             ErrorHighlight eh = new ErrorHighlight();
             eh.type = ERRORTYPEPOINT;
             eh.x1 = x;
             eh.y1 = y;
-            eh.pathlen = 0;
+            eh.cell = cell;
+            eh.context = null;
             highlights.add(eh);
         }
 
@@ -260,39 +260,48 @@ public class ErrorLogger implements ActionListener {
             {
                 Highlight.clear();
 
-                // validate the cell (it may have been deleted)
-                if (cell != null)
-                {
-                    if (!cell.isLinked())
-                    {
-                        return "(cell deleted): " + message;
-                    }
-
-                    // make sure it is shown
-                    boolean found = false;
-                    for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
-                    {
-                        WindowFrame wf = (WindowFrame)it.next();
-                        WindowContent content = wf.getContent();
-                        if (content.getCell() == cell)
-                        {
-                            // already displayed.  should force window "wf" to front? yes
-                            wf.getFrame().toFront();
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (!found)
-                    {
-                        // make a new window for the cell
-                        WindowFrame wf = WindowFrame.createEditWindow(cell);
-                    }
-                }
-
                 // first show the geometry associated with this error
                 for(Iterator it = highlights.iterator(); it.hasNext(); )
                 {
                     ErrorHighlight eh = (ErrorHighlight)it.next();
+
+                    // validate the cell (it may have been deleted)
+                    Cell cell = eh.cell;
+                    if (cell != null)
+                    {
+                        if (!cell.isLinked())
+                        {
+                            return "(cell deleted): " + message;
+                        }
+
+                        // make sure it is shown
+                        boolean found = false;
+                        for(Iterator it2 = WindowFrame.getWindows(); it2.hasNext(); )
+                        {
+                            WindowFrame wf = (WindowFrame)it2.next();
+                            WindowContent content = wf.getContent();
+                            if (!(content instanceof EditWindow)) continue;
+                            EditWindow wnd = (EditWindow)content;
+                            if (wnd.getCell() == cell)
+                            {
+                                if (((eh.context != null) && eh.context.equals(wnd.getVarContext())) ||
+                                        (eh.context == null)) {
+                                    // already displayed.  should force window "wf" to front? yes
+                                    wf.getFrame().toFront();
+                                    found = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!found)
+                        {
+                            // make a new window for the cell
+                            WindowFrame wf = WindowFrame.createEditWindow(cell);
+                            EditWindow wnd = (EditWindow)wf.getContent();
+                            wnd.setCell(eh.cell, eh.context);
+                        }
+                    }
+
                     switch (eh.type)
                     {
                         case ERRORTYPEGEOM:
@@ -320,22 +329,6 @@ public class ErrorLogger implements ActionListener {
                             Highlight.addLine(new Point2D.Double(eh.x1-consize, eh.y1+consize), new Point2D.Double(eh.x1+consize, eh.y1-consize), cell);
                             break;
                     }
-
-//				// set the hierarchical path
-//				if (eh.type == ERRORTYPEGEOM && eh.showgeom && eh.pathlen > 0)
-//				{
-//					cell = geomparent(eh.geom);
-//					for(w=el_topwindowpart; w != NOWINDOWPART; w = w->nextwindowpart)
-//						if (w->curnodeproto == cell) break;
-//					if (w != NOWINDOWPART)
-//					{
-//						for(int j=eh.pathlen-1; j>=0; j--)
-//						{
-//							sethierarchicalparent(cell, eh.path[j], w, 0, 0);
-//							cell = eh.path[j].getParent();
-//						}
-//					}
-//				}
                 }
 
                 Highlight.finished();
@@ -425,12 +418,12 @@ public class ErrorLogger implements ActionListener {
         }
 
         // create a new ErrorLog object
-        ErrorLog el = new ErrorLog(message, cell, sortKey);
+        ErrorLog el = new ErrorLog(message, sortKey);
 
         // store information about the error
         el.message = message;
-        el.cell = cell;
         el.sortKey = sortKey;
+        el.logCell = cell;
         el.highlights = new ArrayList();
 
         // add the ErrorLog into the global list
@@ -467,7 +460,7 @@ public class ErrorLogger implements ActionListener {
         ArrayList trimmedErrors = new ArrayList();
         for (Iterator it = allErrors.iterator(); it.hasNext(); ) {
             ErrorLog log = (ErrorLog)it.next();
-            if (log.cell != cell) trimmedErrors.add(log);
+            if (log.logCell != cell) trimmedErrors.add(log);
         }
         allErrors = trimmedErrors;
         trueNumErrors = allErrors.size();
