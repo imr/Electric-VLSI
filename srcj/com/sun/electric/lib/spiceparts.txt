@@ -70,7 +70,7 @@ ATTR_FallTime[0104,020040345020/0200]: "200ps"
 ATTR_PulseCurrent[0104,0100345020/0200]: "1mA"
 ATTR_PulseWidth[0104,020100345020/0200]: "3ns"
 ATTR_InitialCurrent[0101,0140345020/0200]: 0
-ATTR_SPICE_template[0104,0500342040/0200]: "I$(node_name) $(plus) $(minus) pulse $(InitialCurrent) $(PulseCurrent) $(DelayTime) $(RiseTime) $(FallTime) $(PulseWidth) $(Period)"
+ATTR_SPICE_template[0104,0500342040/0200]: "I$(node_name) $(plus) $(minus) pulse '$(InitialCurrent)' '$(PulseCurrent)' '$(DelayTime)' '$(RiseTime)' '$(FallTime)' '$(PulseWidth)' '$(Period)'"
 ATTR_DelayTime[0104,040345020/0200]: "0ns"
 ATTR_Period[0104,020140345020/0200]: "6ns"
 ATTR_RiseTime[0104,0345020/0200]: "200ps"
@@ -143,7 +143,7 @@ nodes: 4 arcs: 0 porttypes: 2
 variables: 8
 ATTR_FallTime[0104,020040345020/0200]: "200ps"
 ATTR_PulseWidth[0104,020100345020/0200]: "3ns"
-ATTR_SPICE_template[0104,0500342040/0200]: "V$(node_name) $(plus) $(minus) pulse $(InitialVoltage) $(PulseVoltage) $(DelayTime) $(RiseTime) $(FallTime) $(PulseWidth) $(Period)"
+ATTR_SPICE_template[0104,0500342040/0200]: "V$(node_name) $(plus) $(minus) pulse '$(InitialVoltage)' '$(PulseVoltage)' '$(DelayTime)' '$(RiseTime)' '$(FallTime)' '$(PulseWidth)' '$(Period)'"
 ATTR_DelayTime[0104,040345020/0200]: "0ns"
 ATTR_Period[0104,020140345020/0200]: "6ns"
 ATTR_RiseTime[0104,0345020/0200]: "200ps"
@@ -201,7 +201,7 @@ aadirty: 6638
 userbits: 131074
 nodes: 4 arcs: 0 porttypes: 2
 variables: 5
-ATTR_SPICE_template[0104,0500342040/0200]: "V$(node_name) $(plus) $(minus) DC=$(DCVoltage) AC=$(ACVoltage) SIN ($(DCVoltage) $(ACVoltage) $(Frequency) $(Delay))"
+ATTR_SPICE_template[0104,0500342040/0200]: "V$(node_name) $(plus) $(minus) DC='$(DCVoltage)' AC='$(ACVoltage)' SIN ('$(DCVoltage)' '$(ACVoltage)' '$(Frequency)' '$(Delay)')"
 ATTR_DCVoltage[0104,0140345020/0200]: "1V"
 ATTR_ACVoltage[0104,0100345020/0200]: "1V"
 ATTR_Frequency[0104,020100345020/0200]: "800M"
@@ -257,7 +257,7 @@ aadirty: 6638
 userbits: 131074
 nodes: 10 arcs: 0 porttypes: 2
 variables: 2
-ATTR_SPICE_template[0104,0500342040/0200]: "V$(node_name) $(plus) $(minus) DC $(Voltage)"
+ATTR_SPICE_template[0104,0500342040/0200]: "V$(node_name) $(plus) $(minus) DC '$(Voltage)'"
 ATTR_Voltage[0104,020040345020/0200]: "0V"
 **node: 0
 type: generic:Invisible-Pin
@@ -358,7 +358,7 @@ aadirty: 6638
 userbits: 131074
 nodes: 5 arcs: 0 porttypes: 2
 variables: 2
-ATTR_SPICE_template[0104,0500342040/0200]: "I$(node_name) $(plus) $(minus) DC $(DCCurrent)"
+ATTR_SPICE_template[0104,0500342040/0200]: "I$(node_name) $(plus) $(minus) DC '$(DCCurrent)'"
 ATTR_DCCurrent[0104,0345020/0200]: "1mA"
 **node: 0
 type: artwork:Opened-Polygon
@@ -419,7 +419,7 @@ aadirty: 6638
 userbits: 131074
 nodes: 5 arcs: 0 porttypes: 2
 variables: 5
-ATTR_SPICE_template[0104,0500342040/0200]: "I$(node_name) $(plus) $(minus) DC=$(DCCurrent) AC=$(ACCurrent) SIN ($(DCCurrent) $(ACCurrent) $(Frequency) $(Delay))"
+ATTR_SPICE_template[0104,0500342040/0200]: "I$(node_name) $(plus) $(minus) DC='$(DCCurrent)' AC='$(ACCurrent)' SIN ('$(DCCurrent)' '$(ACCurrent)' '$(Frequency)' '$(Delay)')"
 ATTR_DCCurrent[0104,020345020/0200]: "1A"
 ATTR_Frequency[0104,020020345020/0200]: "800M"
 ATTR_Delay[0104,020060345020/0200]: "1ns"
@@ -640,7 +640,7 @@ aadirty: 6638
 userbits: 131074
 nodes: 3 arcs: 0 porttypes: 1
 variables: 2
-ATTR_SPICE_template[0104,0500342040/0200]: ".NODESET V($(plus))=$(Parameter)"
+ATTR_SPICE_template[0104,0500342040/0200]: ".NODESET V($(plus))='$(Parameter)'"
 ATTR_Parameter[0104,020100345020/0200]: "null"
 **node: 0
 type: generic:Invisible-Pin
@@ -680,7 +680,7 @@ aadirty: 6638
 userbits: 131074
 nodes: 13 arcs: 0 porttypes: 4
 variables: 4
-ATTR_SPICE_template[0104,0500342040/0200]: "F$(node_name) $(x) $(y) cccs VSAMPLE $(Gain) max=$(Maximum) min=$(Minimum)"
+ATTR_SPICE_template[0104,0500342040/0200]: "F$(node_name) $(x) $(y) cccs VSAMPLE '$(Gain)' max='$(Maximum)' min='$(Minimum)'"
 ATTR_Minimum[0104,0100345020/0200]: "-10A"
 ATTR_Maximum[0104,0345020/0200]: "10A"
 ATTR_Gain[0101,0200345020/0200]: 1
@@ -816,7 +816,7 @@ aadirty: 6638
 userbits: 131074
 nodes: 13 arcs: 0 porttypes: 4
 variables: 4
-ATTR_SPICE_template[0104,0500342040/0200]: "H$(node_name) $(x) $(y) ccvs VSAMPLE $(Resistance) max=$(Maximum) min=$(Minimum)"
+ATTR_SPICE_template[0104,0500342040/0200]: "H$(node_name) $(x) $(y) ccvs VSAMPLE '$(Resistance)' max='$(Maximum)' min='$(Minimum)'"
 ATTR_Minimum[0104,0100345020/0200]: "-10A"
 ATTR_Maximum[0104,0345020/0200]: "10A"
 ATTR_Resistance[0101,0200345020/0200]: 1000
@@ -951,7 +951,7 @@ aadirty: 6638
 userbits: 131074
 nodes: 12 arcs: 0 porttypes: 4
 variables: 4
-ATTR_SPICE_template[0104,0500342040/0200]: "G$(node_name) $(x) $(y) vccs $(a) $(b) $(Gain) max=$(Maximum) min=$(Minimum)"
+ATTR_SPICE_template[0104,0500342040/0200]: "G$(node_name) $(x) $(y) vccs $(a) $(b) '$(Gain)' max='$(Maximum)' min='$(Minimum)'"
 ATTR_Minimum[0104,0100345020/0200]: "-1A"
 ATTR_Maximum[0104,0345020/0200]: "1A"
 ATTR_Gain[0105,0200345020/0200]: 0.001000
@@ -1079,7 +1079,7 @@ aadirty: 6638
 userbits: 131074
 nodes: 12 arcs: 0 porttypes: 4
 variables: 4
-ATTR_SPICE_template[0104,0500342040/0200]: "E$(node_name) $(x) $(y) vcvs $(a) $(b) $(Gain) max=$(Maximum) min=$(Minimum)"
+ATTR_SPICE_template[0104,0500342040/0200]: "E$(node_name) $(x) $(y) vcvs $(a) $(b) '$(Gain)' max='$(Maximum)' min='$(Minimum)'"
 ATTR_Minimum[0104,0100345020/0200]: "-10V"
 ATTR_Maximum[0104,0345020/0200]: "10V"
 ATTR_Gain[0101,0200345020/0200]: 1
@@ -1206,7 +1206,7 @@ aadirty: 6638
 userbits: 131074
 nodes: 15 arcs: 0 porttypes: 4
 variables: 3
-ATTR_SPICE_template[0104,0500342040/0200]: "T$(node_name) $(a) $(b) $(x) $(y) z0=$(z0) td=$(Delay)"
+ATTR_SPICE_template[0104,0500342040/0200]: "T$(node_name) $(a) $(b) $(x) $(y) z0='$(z0)' td='$(Delay)'"
 ATTR_z0[0101,0200405020/0200]: 50
 ATTR_Delay[0104,0405020/0200]: "100ns"
 **node: 0

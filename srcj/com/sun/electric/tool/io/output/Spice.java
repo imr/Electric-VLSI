@@ -327,7 +327,7 @@ public class Spice extends Topology
     {
         Variable mVar = no.getVar("ATTR_M");
 
-        if (mVar != null) infstr.append(" M=" + mVar.getObject().toString());
+        if (mVar != null) infstr.append(" M=" + formatParam(mVar.getObject().toString()));
     }
 
 	/**
@@ -910,13 +910,13 @@ public class Spice extends Topology
 				{
                     // schematic transistors may be text
                     if ((size.getDoubleLength() == 0) && (size.getLength() instanceof String)) {
-                        infstr.append(" L="+size.getLength());
+                        infstr.append(" L="+formatParam((String)size.getLength()));
                     } else {
                         infstr.append(" L=" + TextUtils.formatDouble(l, 2));
                         if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("U");
                     }
                     if ((size.getDoubleWidth() == 0) && (size.getWidth() instanceof String)) {
-                        infstr.append(" W="+size.getWidth());
+                        infstr.append(" W="+formatParam((String)size.getWidth()));
                     } else {
                         infstr.append(" W=" + TextUtils.formatDouble(w, 2));
                         if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("U");
@@ -931,9 +931,9 @@ public class Spice extends Topology
 				}
 			} else {
                 if ((size.getDoubleLength() == 0) && (size.getLength() instanceof String))
-                    infstr.append(" L="+size.getLength());
+                    infstr.append(" L="+formatParam((String)size.getLength()));
                 if ((size.getDoubleWidth() == 0) && (size.getWidth() instanceof String))
-                    infstr.append(" W="+size.getWidth());
+                    infstr.append(" W="+formatParam((String)size.getWidth()));
             }
 
 			// make sure transistor is connected to nets
@@ -1297,6 +1297,17 @@ public class Spice extends Topology
 		if (ni.getName() != null) partName += getSafeNetName(ni.getName());
 		multiLinePrint(false, partName + " " + cs1.getName() + " " + cs0.getName() + " " + extra + "\n");
 	}
+
+    /**
+     * This adds formatting to a Spice parameter value.  It adds single quotes
+     * around the param string if they do not already exist.
+     * @param param the string param value (without the name= part).
+     * @return a param string with single quotes around it
+     */
+    private static String formatParam(String param) {
+        if (param.endsWith("'") || param.startsWith("'")) return param;
+        return ("'"+param+"'");
+    }
 
 	/******************** PARASITIC CALCULATIONS ********************/
 
