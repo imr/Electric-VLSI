@@ -480,6 +480,7 @@ public class GDS extends Geometry
 		for(Iterator it = Library.getCurrent().getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
+            if (cell.getView() != topCell.getView()) continue; // ignore non-layout cells
 			cellNames.put(cell, makeUniqueName(cell, cellNames));
 		}
 		for(Iterator it = Library.getLibraries(); it.hasNext(); )
@@ -490,6 +491,7 @@ public class GDS extends Geometry
 			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
+                if (cell.getView() != topCell.getView()) continue; // ignore non-layout cells
 				cellNames.put(cell, makeUniqueName(cell, cellNames));
 			}
 		}
