@@ -757,14 +757,14 @@ public class Quick
 
 	/**
 	 * Method to detect if np is not relevant for DRC calculation and therefore
-	 * could be skip
+	 * could be skip. E.g. cellCenter, drcNodes, essential bounds and pins
 	 * @param np
 	 * @return
 	 */
 	private static boolean isSpecialNode(NodeProto np)
 	{
 		return (np == Generic.tech.cellCenterNode || np == Generic.tech.drcNode ||
-		        np == Generic.tech.essentialBoundsNode);
+		        np == Generic.tech.essentialBoundsNode || np.getFunction() == PrimitiveNode.Function.PIN);
 	}
 
 	/**
@@ -822,7 +822,11 @@ public class Quick
 				{
 					AffineTransform rTrans = ni.rotateOut();
 					rTrans.preConcatenate(upTrans);
-                    if (np.getFunction() == PrimitiveNode.Function.PIN) continue; // Sept 30
+                    if (np.getFunction() == PrimitiveNode.Function.PIN)
+                    {
+	                    System.out.println("This should not happend in Quick.checkCellInstContents()");
+	                    continue; // Sept 30
+                    }
 					Technology tech = np.getTechnology();
 					Poly [] primPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts);
 					convertPseudoLayers(ni, primPolyList);
@@ -1037,7 +1041,11 @@ public class Quick
 					// see if this type of node can interact with this layer
 					if (!checkLayerWithNode(layer, np)) continue;
 
-                    if (np.getFunction() == PrimitiveNode.Function.PIN) continue; // Sept 30
+                    if (np.getFunction() == PrimitiveNode.Function.PIN)
+                    {
+	                    System.out.println("This should not happen in Quick.badBoxInArea");
+	                    continue; // Sept 30
+                    }
 
 					// see if the objects directly touch
 					boolean touch = Geometric.objectsTouch(nGeom, geom);
@@ -2590,13 +2598,13 @@ public class Quick
 			if (!(g instanceof NodeInst)) continue;
 			NodeInst ni = (NodeInst)g;
 			NodeProto np = ni.getProto();
+			if (isSpecialNode(np)) continue; // Nov 4;
 			if (np instanceof Cell)
 			{
 				System.out.println("Skipping this case for now");
 			}
 			else
 			{
-				if (np.getFunction() == PrimitiveNode.Function.PIN) continue; // Sept 30
 				Technology tech = np.getTechnology();
 				Poly [] primPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts);
 				int tot = primPolyList.length;
@@ -2676,13 +2684,13 @@ public class Quick
             if (!(g instanceof NodeInst)) continue;
             NodeInst ni = (NodeInst)g;
             NodeProto np = ni.getProto();
+	        if (isSpecialNode(np)) continue; // Nov 4;
             if (np instanceof Cell)
             {
                 return (allPointsContainedInLayer(geom, (Cell)np, ruleBnd, points, founds));
             }
             else
             {
-                if (np.getFunction() == PrimitiveNode.Function.PIN) continue; // Sept 30
                 Technology tech = np.getTechnology();
                 Poly [] primPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts);
                 int tot = primPolyList.length;
@@ -2692,7 +2700,7 @@ public class Quick
                     if (!nPoly.getLayer().getFunction().isImplant()) continue;
                     boolean allFound = true;
 	                // No need of looping if one of them is already out
-                    for (int i = 0; allFound && i < points.length; i++)
+                    for (int i = 0; i < points.length; i++)
                     {
                         if (!founds[i]) founds[i] = nPoly.contains(points[i]);
 	                    if (!founds[i]) allFound = false;
@@ -3531,21 +3539,16 @@ public class Quick
 			if (!(np instanceof PrimitiveNode)) return (true);
 
 			PrimitiveNode pNp = (PrimitiveNode)np;
-			//if (np instanceof PrimitiveNode && np == Generic.tech.cellCenterNode) return (false);
+
 			if (np instanceof PrimitiveNode && isSpecialNode(np)) return (false);
 
 			boolean found = false;
-			boolean newFound = false;
 			Network thisNet = null;
 			for(Iterator pIt = ni.getPortInsts(); !found && pIt.hasNext(); )
 			{
 				PortInst pi = (PortInst)pIt.next();
 				thisNet = info.getNetlist().getNetwork(pi);
 				found = searchNetworkInParent(thisNet, info);
-				if (jNet == thisNet)
-					newFound = true;
-				if (found != newFound && Main.LOCALDEBUGFLAG)
-					System.out.println("Here mismatch");
 			}
 			if (!found)
 				return (false);
@@ -3571,7 +3574,8 @@ public class Quick
 				found = searchNetworkInParent(net, info);
 				if (net != thisNet)
 				{
-					if (found && Main.LOCALDEBUGFLAG) System.out.println("Another mismatch");
+					if (found && Main.LOCALDEBUGFLAG)
+						System.out.println("Another mismatch");
 				}
 				if (!found) continue;
 
