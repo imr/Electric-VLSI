@@ -344,12 +344,13 @@ public class VarContext
      */
     public Object evalVarRecurse(Variable var, Object info) throws EvalException {
         Variable.Code code = var.getCode();
+        Object value = var.getObject();
 
         if (code == Variable.Code.JAVA) {
-        	Object value = fastJavaVarEval(var, info);
+        	value = fastJavaVarEval(var, info);
 
         	// testing code
-        	//checkFastValue(value, var, info);
+        	checkFastValue(value, var, info);
         	
     		if (value==FAST_EVAL_FAILED) {
     			// OK, I give up.  Call the darn bean shell.
@@ -357,11 +358,11 @@ public class VarContext
                                                               this, info);
     			if (cache!=null) cache.put(var, info, value);
         	}
-            return value;
         }
         // TODO: if(code == Variable.Code.TCL) { }
         // TODO: if(code == Variable.Code.LISP) { }
-        return var.getObject();
+        value = ifNotNumberTryToConvertToNumber(value);
+        return value;
     }
     
     /**
