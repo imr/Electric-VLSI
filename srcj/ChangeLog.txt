@@ -2,11 +2,14 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.01ac: *********************************
+
+IMP: (10/22/04, GVG) Cross-shaped contacts are default in TechPalette. For PrimitiveNode, default node
+(e.g. cross-shaped contact or standard transistor) would be created unless you click on arrow.
+
 IMP: (10/22/04, DN) Network calculation is always performed in change thread.
   GUI thread can either "getUserNetlist" and wait until it is ready, or
   "acquireUserNetlist" and obtain "null" if it is not ready.
-
-************************* Version 8.01ac: *********************************
 
 IMP: (10/22/04, SMR) Improved speed of arraying and re-exporting by improving speed of
      finding a unique name in a cell.

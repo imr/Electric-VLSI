@@ -55,6 +55,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.geom.Point2D;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
 import java.util.List;
 import java.util.Iterator;
 import java.util.ArrayList;
@@ -377,8 +378,9 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 				if (nTransistorList.contains(obj)) list = nTransistorList;
 				else if (pTransistorList.contains(obj)) list = pTransistorList;
 				else if (contactList.contains(obj)) list = contactList;
-				// Menu only if more than one transistor is found
-				if (list != null && list.size() > 1)
+				// Menu only if more than one transistor or contact is found
+				// and only if click on right bottom corner.
+				if (list != null && list.size() > 1 && isCursorOnCorner(e))
 				{
 					JPopupMenu menu = new JPopupMenu(((PrimitiveNode)obj).getName());
 					PrimitiveNode thisNp = (PrimitiveNode)obj;
@@ -621,7 +623,6 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
      */
     private Object getObjectUnderCursor(MouseEvent e)
     {
-        TechPalette panel = (TechPalette)e.getSource();
         int x = e.getX() / (entrySize+1);
         int y = menuY - (e.getY() / (entrySize+1)) - 1;
         if (y < 0) y = 0;
@@ -629,6 +630,21 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         if (index < 0 || index >= inPalette.size()) return null;
         Object obj = inPalette.get(index);
         return obj;
+    }
+
+	/**
+     * Method to figure out which palette entry the cursor is over.
+     * @return true if mouse is over bottom right corner
+     */
+    private boolean isCursorOnCorner(MouseEvent e)
+    {
+		int entryS = (entrySize+1);
+        int x = e.getX() / (entryS);
+        int y = menuY - (e.getY() / (entryS)) - 1;
+        if (y < 0) y = 0;
+		double deltaX = (e.getX() - x*entryS)/(double)entryS;
+		double deltaY = (e.getY() - (menuY-y-1)*entryS)/(double)entryS;
+		return (deltaX > 0.75 && deltaY > 0.75);
     }
 
     /**

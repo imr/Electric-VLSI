@@ -82,7 +82,7 @@ public class Netlist
 	Netlist(NetCell netCell, Netlist other) {
 		this.netCell = netCell;
 		expectedModCount = netCell.modCount;
-		netMap = other.netMap.clone();
+		netMap = (int[])other.netMap.clone();
 		nm_net = new int[netMap.length];
 	}
 
