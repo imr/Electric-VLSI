@@ -28,6 +28,7 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -228,8 +229,8 @@ public abstract class InteractiveRouter extends Router {
 
         // first, convert NodeInsts to PortInsts, if it is one.
         // Now we don't have to worry about NodeInsts.
-        startObj = convertNodeInsts(startObj, clicked);
-        endObj = convertNodeInsts(endObj, clicked);
+        startObj = filterRouteObject(startObj, clicked);
+        endObj = filterRouteObject(endObj, clicked);
 
         // get the port types at each end so we can build electrical route
         PortProto startPort = getRoutePort(startObj);
@@ -378,9 +379,13 @@ public abstract class InteractiveRouter extends Router {
      * @return the PortInst on the NodeInst closest to where the user clicked,
      * or just the routeObj back if it is not a NodeInst.
      */
-    protected static ElectricObject convertNodeInsts(ElectricObject routeObj, Point2D clicked) {
+    protected static ElectricObject filterRouteObject(ElectricObject routeObj, Point2D clicked) {
         if (routeObj instanceof NodeInst) {
             return ((NodeInst)routeObj).findClosestPortInst(clicked);
+        }
+        if (routeObj instanceof Export) {
+            Export exp = (Export)routeObj;
+            return exp.getOriginalPort();
         }
         return routeObj;
     }

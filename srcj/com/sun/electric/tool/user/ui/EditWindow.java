@@ -2146,6 +2146,7 @@ public class EditWindow extends JPanel
      */
     public void upHierarchy()
 	{
+        if (cell == null) return;
         try {
             Nodable no = cellVarContext.getNodable();
 			if (no != null)
@@ -2623,7 +2624,10 @@ public class EditWindow extends JPanel
 
     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
         // if cell was deleted, set cell to null
-        if ((cell != null) && !cell.isLinked()) setCell(null, VarContext.globalContext, false);
+        if ((cell != null) && !cell.isLinked()) {
+            setCell(null, VarContext.globalContext, false);
+            cellHistoryGoBack();
+        }
     }
 
     public void databaseChanged(Undo.Change evt) {}

@@ -769,6 +769,7 @@ public class Clipboard
 			if (newPp == null) return;
 			newPp.setTextDescriptor(origPp.getTextDescriptor());
 			newPp.copyVars(origPp);
+            newPp.setCharacteristic(origPp.getCharacteristic());
 		}
 	}
 

@@ -274,7 +274,9 @@ public class ClickZoomWireListener
 	                if (Highlight.getNumHighlights() == 2) {
 	                    Highlight h1 = (Highlight)hIt.next();
 	                    Highlight h2 = (Highlight)hIt.next();
-	                    if (h1.getType() == Highlight.Type.EOBJ && h2.getType() == Highlight.Type.EOBJ) {
+                        ElectricObject eobj1 = h1.getElectricObject();
+                        ElectricObject eobj2 = h2.getElectricObject();
+	                    if (eobj1 != null && eobj2 != null) {
 	                        modeRight = Mode.wiringConnect;
 	                        wiringTarget = null;
 	                        startObj = h1.getElectricObject();
@@ -288,7 +290,8 @@ public class ClickZoomWireListener
 	                // which will draw possible wire route.
 	                if (Highlight.getNumHighlights() == 1) {
 	                    Highlight h1 = (Highlight)hIt.next();
-	                    if (h1.getType() == Highlight.Type.EOBJ) {
+                        ElectricObject eobj1 = h1.getElectricObject();
+	                    if (eobj1 != null) {
 	                        modeRight = Mode.wiringFind;
                             endObj = null;
 	                        wiringTarget = null;

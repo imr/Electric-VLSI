@@ -900,6 +900,10 @@ public class Highlight
 		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 		{
 			Highlight theH = (Highlight)it.next();
+
+            if (theH.getElectricObject() != null) return theH;
+
+/*
 			if (theH.type == Type.EOBJ)
 			{
 				if (h != null)
@@ -909,6 +913,7 @@ public class Highlight
 				}
 				h = theH;
 			}
+*/
 		}
 		if (h == null)
 		{
