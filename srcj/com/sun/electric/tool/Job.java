@@ -545,18 +545,21 @@ public abstract class Job implements ActionListener, Runnable {
             databaseChangesThread.removeJob(this);
         }
     }
-                
+
     /** Get info on Job */
     public String getInfo() {
         StringBuffer buf = new StringBuffer();
-        buf.append(toString()+"\n");
+        buf.append("Job "+toString());
         Date start = new Date(startTime);
-        buf.append("  start time: "+start+"\n");
+        //buf.append("  start time: "+start+"\n");
         if (finished) {
             Date end = new Date(endTime);
-            buf.append("  end time: "+end+"\n");
+            //buf.append("  end time: "+end+"\n");
             long time = endTime - startTime;
-            buf.append("  time taken: "+TextUtils.getElapsedTime(time)+"\n");
+            buf.append(" took: "+TextUtils.getElapsedTime(time));
+            buf.append(" (started at "+start+")");
+        } else {
+            buf.append(" did not successfully finish.");
         }
         return buf.toString();
     }
