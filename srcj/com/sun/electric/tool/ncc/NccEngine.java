@@ -30,6 +30,7 @@
  */
 package com.sun.electric.tool.ncc;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -103,9 +104,10 @@ public class NccEngine {
 	
 	private NccResult designsMatch(HierarchyInfo hierInfo, boolean hierInfoOnly) {
 		if (globals.getRoot()==null) {
-			globals.println("empty cell");
+			globals.status2("empty cell");
 			return new NccResult(true, true, true);
 		} else {
+			Date d0 = new Date();
 			ExportChecker expCheck = new ExportChecker(globals);
 			expCheck.markPortsForRenaming();
 			
@@ -118,21 +120,36 @@ public class NccEngine {
 			}
 			// Useless so far
 			//expCheck.printExportTypeWarnings();
+			Date d1 = new Date();
+			globals.status1("  Export name matching took: "+
+			                NccUtils.hourMinSec(d0, d1));
 			
 			SerialParallelMerge.doYourJob(globals);
+			Date d2 = new Date();
+			globals.status1("  Serial/parallel merge took: "+
+					        NccUtils.hourMinSec(d1, d2));
 		
 			printWireComponentCounts();
 
-			boolean localOK = LocalPartitioning.doYourJob(globals); 
+			boolean localOK = LocalPartitioning.doYourJob(globals);
+			Date d3 = new Date();
+			globals.status1("  Local partitioning took "+ 
+					        NccUtils.hourMinSec(d2, d3));
 			if (!localOK) return new NccResult(expNamesOK, false, false);
 
 			boolean topoOK = HashCodePartitioning.doYourJob(globals);
+
+			Date d4 = new Date();
 			expCheck.suggestPortMatchesBasedOnTopology();
 
 			boolean expTopoOK = 
 				expCheck.ensureExportsWithMatchingNamesAreOnEquivalentNets();
+            Date d5 = new Date();
+			globals.status1("  Export checking took "+NccUtils.hourMinSec(d4, d5));
             
-            boolean sizesOK = StratCheckSizes.doYourJob(globals);
+			boolean sizesOK = StratCheckSizes.doYourJob(globals);
+			Date d6 = new Date();
+			globals.status1("  Size checking took "+NccUtils.hourMinSec(d5, d6));
 			
 			if (!topoOK) ReportHashCodeFailure.reportHashCodeFailure(globals);
 
@@ -155,13 +172,16 @@ public class NccEngine {
 					  		        NccOptions options) {
 		globals = new NccGlobals(options);
 		
-		globals.println("****************************************"+					  		
+		globals.status2("****************************************"+					  		
 		                "****************************************");					  		
 
 		// black boxing is implemented by building netlists that are empty 
 		// except for their Exports.
+		Date before = new Date();
 		List nccNetlists = 
 			buildNccNetlists(cells, contexts, netlists, blackBox, hierInfo);
+		Date after = new Date();
+		globals.status1("  NCC net list construction took "+NccUtils.hourMinSec(before, after)+".");
 
 		/** If export assertions aren't OK then some netlist is invalid */
 		if (!exportAssertionsOK(nccNetlists)) {
@@ -169,9 +189,10 @@ public class NccEngine {
 		}
 
 		globals.setInitialNetlists(nccNetlists);
+
 		NccResult result = designsMatch(hierInfo, false);
 NccUtils.hang("NCC completed");
-		globals.println("****************************************"+					  		
+		globals.status2("****************************************"+					  		
 		                "****************************************");
 		return result;		              					  				
 	}

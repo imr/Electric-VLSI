@@ -23,8 +23,10 @@
 */
 package com.sun.electric.tool.ncc.processing;
 
+import java.util.Date;
+
 import com.sun.electric.tool.ncc.NccGlobals;
-import com.sun.electric.tool.ncc.NccOptions;
+import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.jemNets.NetObject;
 import com.sun.electric.tool.ncc.lists.LeafList;
 import com.sun.electric.tool.ncc.strategy.StratAdjacent;
@@ -45,7 +47,7 @@ public class HashCodePartitioning {
 
 	private LeafList hashFrontierParts(){
 		if (globals.getParts()==null)  return new LeafList();
-		globals.println("----- hash all Parts on frontier");
+		globals.status2("----- hash all Parts on frontier");
 		LeafList frontier = StratFrontier.doYourJob(globals.getParts(), globals);
 		LeafList offspring = StratHashParts.doYourJob(frontier, globals);
 		return offspring;
@@ -53,7 +55,7 @@ public class HashCodePartitioning {
 	
 	private LeafList hashFrontierWires(){
 		if (globals.getParts()==null)  return new LeafList();
-		globals.println("----- hash all Wires on frontier");
+		globals.status2("----- hash all Wires on frontier");
 		LeafList frontier = StratFrontier.doYourJob(globals.getWires(), globals);
 		LeafList offspring = StratHashWires.doYourJob(frontier, globals);
 		return offspring;
@@ -76,10 +78,10 @@ public class HashCodePartitioning {
 		// if nothing divided then suppress chaseRetired messages
 		if (newDivided.size()==0) return;
 		
-		globals.println("------ starting chaseRetired");
+		globals.status2("------ starting chaseRetired");
 		int i=0;
 		while (newDivided.size()!=0) {
-			globals.println("------ chaseRetired pass: " + i++);
+			globals.status2("------ chaseRetired pass: " + i++);
 			LeafList newRetired = newDivided.selectRetired(globals);
 			if (newRetired.size()==0) break;
 			LeafList adjacent = StratAdjacent.doYourJob(newRetired, globals);
@@ -88,9 +90,9 @@ public class HashCodePartitioning {
 			newDivided = doParts ? StratHashParts.doYourJob(adjacent, globals) :
 								   StratHashWires.doYourJob(adjacent, globals);
 		}
-		globals.println("------ done  chaseRetired after "+i+" passes");
+		globals.status2("------ done  chaseRetired after "+i+" passes");
 		//		StratCheck.doYourJob(globals.getRoot, globals);
-		globals.println();
+		globals.status2("");
 	}
 	
 //	/**
@@ -120,7 +122,7 @@ public class HashCodePartitioning {
 //	}
 	
 	private void hashFrontier() {
-		globals.println("----- hash all NetObjects on frontier");
+		globals.status2("----- hash all NetObjects on frontier");
 		while (true) {
 			LeafList partOffspring = hashFrontierParts();
 			chaseRetired(partOffspring);
@@ -139,7 +141,7 @@ public class HashCodePartitioning {
 	}
 	
 	private void useExportNames() {
-		globals.println("----- use Export Names");
+		globals.status2("----- use Export Names");
 		while (true) {
 			StratCount.doYourJob(globals);
 			LeafList offspring = StratPortName.doYourJob(globals);
@@ -149,7 +151,7 @@ public class HashCodePartitioning {
 		}
 	}
 	private void useTransistorSizes() {
-		globals.println("----- use transistor sizes");
+		globals.status2("----- use transistor sizes");
 		while (true) {
 			LeafList offspring = StratSizes.doYourJob(globals);
 			if (offspring.size()==0) break;
@@ -159,7 +161,7 @@ public class HashCodePartitioning {
 	}
 	
 	private void randomMatch() {
-		globals.println("----- random matching");
+		globals.status2("----- random matching");
 		while (true) {
 			LeafList offspring = StratRandomMatch.doYourJob(globals);
 			if (offspring.size()==0) break; 
@@ -168,20 +170,35 @@ public class HashCodePartitioning {
 		}
 	}
 	
+	private void doWork() {
+		if (done()) return;
+		Date d1 = new Date();
+		hashFrontier();
+		Date d2 = new Date();
+		globals.status1("  Hashing frontier took: "+NccUtils.hourMinSec(d1, d2));
+
+		if (done()) return;
+		useExportNames();
+		Date d3 = new Date();
+		globals.status1("  Using export names took: "+NccUtils.hourMinSec(d2, d3));
+
+		if (done()) return;
+		useTransistorSizes();
+		Date d4 = new Date();
+		globals.status1("  Using transistor sizes took: "+NccUtils.hourMinSec(d3, d4));
+
+		if (done()) return;
+		randomMatch();
+		Date d5 = new Date();
+		globals.status1("  Random match took: "+NccUtils.hourMinSec(d4, d5));
+	}
+	
 	// contructor does all the work
 	private HashCodePartitioning(NccGlobals globals){
 		this.globals = globals;
-
-		globals.println("----- starting HashCodePartitioning");
-
-		if (!done()) hashFrontier();
-		if (!done()) useExportNames();
-		NccOptions options = globals.getOptions();
-		StratCount.doYourJob(globals);
-		if (!done()) useTransistorSizes();
-		if (!done()) randomMatch();
-		
-		globals.println("----- done HashCodePartitioning");
+		globals.status2("----- starting HashCodePartitioning");
+		doWork();
+		globals.status2("----- done HashCodePartitioning");
 	}
 
 	// ------------------------ public methods --------------------------------

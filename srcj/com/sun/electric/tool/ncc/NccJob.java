@@ -107,7 +107,7 @@ public class NccJob extends Job {
 	
 	private NccOptions getOptionsFromNccConfigDialog() {
 		NccOptions options = new NccOptions();
-		options.verbose = false;
+		options.howMuchStatus = NCC.getHowMuchStatus();
 		options.checkSizes = NCC.getCheckSizes();
 		// convert percent to fraction
 		options.relativeSizeTolerance = NCC.getRelativeSizeTolerance()/100;

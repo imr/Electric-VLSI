@@ -41,6 +41,7 @@ public class NCCTab extends PreferencePanel
     private int initialMaxMismatched;
     private int initialMaxMembers;
     private int initialOperation;
+    private int initialHowMuchStatus;
     
 	/** Creates new form NCCTab */
 	public NCCTab(java.awt.Frame parent, boolean modal)
@@ -103,6 +104,9 @@ public class NCCTab extends PreferencePanel
         
         initialOperation = NCC.getOperation();
         setOperation(initialOperation);
+        
+        initialHowMuchStatus = NCC.getHowMuchStatus();
+        howMuchStatus.setText(Integer.toString(initialHowMuchStatus));
 	}
 
 	/**
@@ -151,6 +155,10 @@ public class NCCTab extends PreferencePanel
         if (currentOperation!=initialOperation) {
             NCC.setOperation(currentOperation);
         }
+        int currentHowMuchStatus = Integer.parseInt(howMuchStatus.getText());
+        if (currentHowMuchStatus!=initialHowMuchStatus) {
+            NCC.setHowMuchStatus(currentHowMuchStatus);
+        }
 	}
 
 	/** This method is called from within the constructor to
@@ -177,6 +185,9 @@ public class NCCTab extends PreferencePanel
         checkingAllCells = new javax.swing.JPanel();
         haltAfterFindingFirstMismatchedCell = new javax.swing.JCheckBox();
         skipPassed = new javax.swing.JCheckBox();
+        progressReport = new javax.swing.JPanel();
+        jLabel4 = new javax.swing.JLabel();
+        howMuchStatus = new javax.swing.JTextField();
         errorReport = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
@@ -315,6 +326,27 @@ public class NCCTab extends PreferencePanel
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         ncc.add(checkingAllCells, gridBagConstraints);
 
+        progressReport.setLayout(new java.awt.GridBagLayout());
+
+        progressReport.setBorder(new javax.swing.border.TitledBorder("Reporting Progress"));
+        jLabel4.setText("How many status messages to print (0->few, 2->many):");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        progressReport.add(jLabel4, gridBagConstraints);
+
+        howMuchStatus.setColumns(6);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        progressReport.add(howMuchStatus, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        ncc.add(progressReport, gridBagConstraints);
+
         errorReport.setLayout(new java.awt.GridBagLayout());
 
         errorReport.setBorder(new javax.swing.border.TitledBorder("Error Reporting"));
@@ -365,7 +397,7 @@ public class NCCTab extends PreferencePanel
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         ncc.add(errorReport, gridBagConstraints);
 
@@ -397,9 +429,11 @@ public class NCCTab extends PreferencePanel
     private javax.swing.JRadioButton flatTop;
     private javax.swing.JCheckBox haltAfterFindingFirstMismatchedCell;
     private javax.swing.JRadioButton hierAll;
+    private javax.swing.JTextField howMuchStatus;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel75;
     private javax.swing.JLabel jLabel76;
     private javax.swing.JRadioButton listAnn;
@@ -409,6 +443,7 @@ public class NCCTab extends PreferencePanel
     private javax.swing.JPanel ncc;
     private javax.swing.JPanel operation;
     private javax.swing.ButtonGroup operationGroup;
+    private javax.swing.JPanel progressReport;
     private javax.swing.JTextField relativeSizeTolerance;
     private javax.swing.JPanel sizeChecking;
     private javax.swing.JCheckBox skipPassed;

@@ -162,10 +162,10 @@ public class ReportHashCodeFailure {
 	// force StratCount to print
 	private StratCount.Counts printCounts() {
 		NccOptions options = globals.getOptions();
-		boolean saveVerbose = options.verbose;
-		options.verbose = true;
+		int saveHowMuchStatus = options.howMuchStatus;
+		options.howMuchStatus = 10;
 		StratCount.Counts counts = StratCount.doYourJob(globals);
-		options.verbose = saveVerbose;
+		options.howMuchStatus = saveHowMuchStatus;
 		return counts;
 	}
 	/** constructor does it all */

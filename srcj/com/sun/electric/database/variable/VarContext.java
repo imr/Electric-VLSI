@@ -22,14 +22,16 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.database.variable;
+import java.util.Map;import java.util.HashMap;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.generator.layout.LayoutLib;
 
 /**
  * VarContext represents a hierarchical path of NodeInsts.  Its
@@ -76,10 +78,130 @@ import com.sun.electric.database.text.TextUtils;
  */
 public class VarContext
 {
+	private static class ValueCache {
+		private static class EvalPair {
+			private Variable var;
+			private Object info;
+			public EvalPair(Variable v, Object i) {var=v;  info=i;}
+			public int hashCode() {return var.hashCode() * info.hashCode();}
+			public boolean equals(Object o) {
+				if (!(o instanceof EvalPair)) return false;
+				EvalPair ep = (EvalPair) o;
+				return var==ep.var && info==ep.info;
+			}
+		}
+	    private Map cache = new HashMap();
+		public boolean containsKey(Variable var, Object info) {
+			return cache.containsKey(new EvalPair(var, info));
+		}
+		public Object get(Variable var, Object info) {
+			return cache.get(new EvalPair(var, info));
+		}
+		public void put(Variable var, Object info, Object value) {
+			EvalPair key = new EvalPair(var, info); 
+			LayoutLib.error(cache.containsKey(key), "duplicate keys in ValueCache?");
+			cache.put(key, value);
+		}
+	}
+    private static final Object FAST_EVAL_FAILED = new Object(); 
+	
 	private VarContext prev;
     private Nodable ni;
     private PortInst pi;
+    private ValueCache cache;
 
+    // ------------------------ private methods -------------------------------
+	// For the global context.
+	private VarContext()
+	{
+		ni = null;
+		prev = this;
+	}
+
+    private VarContext(Nodable ni, VarContext prev, PortInst pi, boolean caching)
+	{
+		this.ni = ni;
+		this.prev = prev;
+        this.pi = pi;
+        this.cache = caching ? new ValueCache() : null;
+	}
+
+    private void throwNotFound(String name) throws EvalException {
+        throw new EvalException(name.replaceFirst("ATTR_", "")+" not found");
+    }
+    
+    private Object ifNotNumberTryToConvertToNumber(Object val) {
+        if (val instanceof Number) return val;
+        try {
+            Number d = TextUtils.parsePostFixNumber(val.toString());
+            val = d;
+        } catch (java.lang.NumberFormatException e) {
+            // just return original val object
+        }
+        return val;
+    }
+
+    /** If expression is a simple variable reference then return the name of
+     * the variable; otherwise return null */
+    private String getSimpleVarRef(String expr) {
+    	final String pOpen = "P(\"";
+    	final int pOpenLen = pOpen.length();
+    	final String pClose = "\")";
+    	final int pCloseLen = pClose.length();
+    	if (expr.startsWith(pOpen) && expr.endsWith(pClose)) {
+    		String varNm = expr.substring(pOpenLen, expr.length()-pCloseLen);
+    		return isValidIdentifier(varNm) ? varNm : null;
+    	}
+    	if (expr.startsWith("@")) {
+    		String varNm = expr.substring(1);
+    		return isValidIdentifier(varNm) ? varNm : null;
+    	}
+    	return null;
+    }
+    
+    private boolean isValidIdentifier(String identifier) {
+    	final int len = identifier.length();
+    	for (int i=0; i<len; i++) {
+    		if (!Character.isLetterOrDigit(identifier.charAt(i))) return false;
+    	}
+    	return true;
+    }
+
+    private Object fastJavaVarEval(Variable var, Object info) throws EvalException {
+    	// Avoid re-computing the value if it is already in the cache.
+    	// Use "contains" because the value might be null.
+    	if (cache!=null && cache.containsKey(var, info)) {
+        	return cache.get(var, info); 
+        }
+    	// Avoid calling bean shell if value is just a reference to another
+    	// variable.
+    	String expr = var.getObject().toString();
+		String varNm = getSimpleVarRef(expr);
+		if (varNm==null) return FAST_EVAL_FAILED; 
+		return lookupVarEval("ATTR_"+varNm);
+    }
+    
+    private void printValueCheckValue(Object value, Object checkValue) {
+		System.out.println("fast eval mismatch");
+		System.out.println("  fast value: "+value.toString());
+		System.out.println("  slow value: "+checkValue.toString());
+    }
+    
+    private void checkFastValue(Object value, Variable var, Object info) throws EvalException {
+    	if (value==FAST_EVAL_FAILED) return;
+    	Object checkValue = EvalJavaBsh.evalJavaBsh.evalVarObject(var.getObject(), this, info);
+		if (value==null) {
+			LayoutLib.error(value!=checkValue, "fast eval null mismatch");
+		} else {
+			if (!value.equals(checkValue)) {
+				System.out.println("fast eval mismatch");
+				printValueCheckValue(value, checkValue);
+				LayoutLib.error(true, "fast eval mismatch");
+			}
+		}
+    }
+
+    // ----------------------------- public methods ---------------------------
 	/**
 	 * The blank VarContext that is the parent of all VarContext chains.
 	 */
@@ -91,7 +213,24 @@ public class VarContext
 	 */
 	public VarContext push(Nodable ni)
 	{
-		return new VarContext(ni, this, null);
+		return new VarContext(ni, this, null, false);
+	}
+	
+	/**
+	 * Push a new level onto the VarContext stack. If the value of any of
+	 * ni's parameters is requested and if the computation of that value
+	 * requires a call to the bean shell then the value is saved in this 
+	 * VarContext so that future requests don't result in additional calls 
+	 * to the bean shell.  Note that this is implementing Call-By-Value
+	 * semantics whereas the non-caching VarContext implements Call-By-Name.
+	 * <p>
+	 * Be warned that there is no mechanism to automatically flush the caches 
+	 * when the design is modified. The design MUST NOT change over the 
+	 * life time of this VarContext. If the design might change then you should
+	 * use the non-caching VarContext. 
+	 */
+	public VarContext pushCaching(Nodable ni) {
+		return new VarContext(ni, this, null, true);
 	}
 
     /**
@@ -102,22 +241,8 @@ public class VarContext
      */
     public VarContext push(PortInst pi)
     {
-        return new VarContext(pi.getNodeInst(), this, pi);
+        return new VarContext(pi.getNodeInst(), this, pi, false);
     }
-
-	private VarContext(Nodable ni, VarContext prev, PortInst pi)
-	{
-		this.ni = ni;
-		this.prev = prev;
-        this.pi = pi;
-	}
-
-	// For the global context.
-	private VarContext()
-	{
-		ni = null;
-		prev = this;
-	}
 
 	/**
 	 * get the VarContext that existed before you called push on it.
@@ -160,6 +285,9 @@ public class VarContext
         if (ni != c.getNodable()) return false; // compare nodeinsts
         return prev.equals(c.pop());            // compare parents
     }
+    
+    /** Get rid of the variable cache thereby release its storage */
+    public void deleteVariableCache() {cache=null;}
 
     // ------------------------------ Variable Evaluation -----------------------
 
@@ -176,6 +304,7 @@ public class VarContext
     {
         return evalVar(var, null);
     }
+    
     /** Same as evalVar, except an additional object 'info'
      * is passed to the evaluator.  'info' may be or contain 
      * additional information necessary for proper evaluation.
@@ -216,13 +345,25 @@ public class VarContext
     public Object evalVarRecurse(Variable var, Object info) throws EvalException {
         Variable.Code code = var.getCode();
 
-        if (code == Variable.Code.JAVA)
-            return EvalJavaBsh.evalJavaBsh.evalVarObject(var.getObject(), this, info);
+        if (code == Variable.Code.JAVA) {
+        	Object value = fastJavaVarEval(var, info);
+
+        	// testing code
+        	//checkFastValue(value, var, info);
+        	
+    		if (value==FAST_EVAL_FAILED) {
+    			// OK, I give up.  Call the darn bean shell.
+        		value = EvalJavaBsh.evalJavaBsh.evalVarObject(var.getObject(), 
+                                                              this, info);
+    			if (cache!=null) cache.put(var, info, value);
+        	}
+            return value;
+        }
         // TODO: if(code == Variable.Code.TCL) { }
         // TODO: if(code == Variable.Code.LISP) { }
         return var.getObject();
     }
-
+    
     /**
      * Lookup Variable one level up the hierarchy and evaluate. 
      * Looks for the var on the most recent NodeInst on the
@@ -234,7 +375,7 @@ public class VarContext
      */
     protected Object lookupVarEval(String name) throws EvalException
     {
-        if (ni == null) return null;
+        if (ni == null) throwNotFound(name);
         Variable var = ni.getVar(name);
         if (var == null) {
             // look up default var on prototype
@@ -253,11 +394,16 @@ public class VarContext
 //             }
             var = np.getVar(name);
         }
-        if (var == null)
-            throw new EvalException(name.replaceFirst("ATTR_", "")+" not found");
-        //if (var == null) return null;
+        if (var == null) throwNotFound(name);
+
         // evaluate var in it's context
-        return this.pop().evalVarRecurse(var, ni);
+        Object val = this.pop().evalVarRecurse(var, ni);
+        if (val == null) throwNotFound(name);
+        
+        val = ifNotNumberTryToConvertToNumber(val);
+        if (val == null) throwNotFound(name);
+
+        return val;
     }
     
     /** 
@@ -272,16 +418,19 @@ public class VarContext
     {
 		// look up the entire stack, starting with end
 		VarContext scan = this;
-        
-        while (scan != null && ni != null)
+        Object value = null;
+        while (true)
 		{
-            Nodable ni = scan.getNodable();
-            if (ni == null) return null;
+            Nodable sni = scan.getNodable();
+            if (sni == null) break;
             
-            Variable var = ni.getVar(name);             // look up var
-			if (var != null)
-				return scan.pop().evalVarRecurse(var, ni);
-			NodeProto np = ni.getProto();               // look up default var value on prototype
+            Variable var = sni.getVar(name);             // look up var
+			if (var != null) {
+				value = scan.pop().evalVarRecurse(var, sni);
+				break;
+			}
+				
+			NodeProto np = sni.getProto();               // look up default var value on prototype
 			if (np.isIcon()) {
 				Cell cell = ((Cell)np).getEquivalent();
 				if (cell != null) np = cell;
@@ -295,11 +444,18 @@ public class VarContext
 //                 np = ni.getProto();
 //             }
             var = np.getVar(name);
-            if (var != null)
-                return scan.pop().evalVarRecurse(var, ni);
+            if (var != null) {
+            	value = scan.pop().evalVarRecurse(var, sni);
+            	break;
+            }
 			scan = scan.prev;
 		}
-		return null;
+        if (value == null) throwNotFound(name);
+        
+        value = ifNotNumberTryToConvertToNumber(value);
+        if (value == null) throwNotFound(name);
+        
+        return value;
 	}
     
     // ---------------------------------- Utility Methods ----------------------------

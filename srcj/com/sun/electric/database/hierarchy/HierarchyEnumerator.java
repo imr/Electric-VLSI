@@ -88,6 +88,7 @@ public final class HierarchyEnumerator {
 	}
 	// --------------------- private data ------------------------------
 	private Visitor visitor;
+	private boolean caching;
 	//private int nextNetID = 0; // first unassigned net number
 	private int cellCnt = 0; // For statistics
 	private int instCnt = 0; // For statistics
@@ -186,7 +187,7 @@ public final class HierarchyEnumerator {
 	}
 
 	/** portNdxToNetIDs translates an Export's index to an array of NetIDs */ 
-	private void enumerateCell(Nodable parentInst,	Cell cell,
+	private void enumerateCell(Nodable parentInst, Cell cell,
 	                           VarContext context, Netlist netlist, 
 	                           int[][] portNdxToNetIDs,
 		                       AffineTransform xformToRoot, CellInfo parent) {
@@ -221,13 +222,17 @@ public final class HierarchyEnumerator {
 					xformToRoot2.concatenate(((NodeInst)ni).rotateOut());
 					xformToRoot2.concatenate(((NodeInst)ni).translateOut());
 				}
-				enumerateCell(ni, (Cell)np, context.push(ni), 
+				enumerateCell(ni, (Cell)np, 
+							  caching ? context.pushCaching(ni): context.push(ni), 
 							  netlist.getNetlist(ni), 
 							  portNmToNetIDs2, xformToRoot2, info);
 			}
 		}
 
 		visitor.exitCell(info);
+		
+		// release storage associated with VarContext variable cache
+		context.deleteVariableCache();
 
 		// remove entries in netIdToNetDesc that we'll never use again
 		for (int i = firstNetID; i < lastNetIDPlusOne; i++) {
@@ -238,8 +243,9 @@ public final class HierarchyEnumerator {
 	//  Set up everything for the root cell and then initiate the
 	//  hierarchical traversal.
 	private void doIt(Cell root, VarContext context, Netlist netlist, 
-	                  Visitor visitor) {
+	                  Visitor visitor, boolean cache) {
 		this.visitor = visitor;
+		this.caching = cache;
 		if (context == null) context = VarContext.globalContext;
 		int[][] exportNdxToNetIDs = new int[0][];
 		rootGlobals = netlist.getGlobals();
@@ -771,10 +777,15 @@ public final class HierarchyEnumerator {
 	 * during the enumertion of the design hierarchy. */
 	public static void enumerateCell(Cell root, VarContext context, 
 	                                 Netlist netlist, Visitor visitor) {
-		if (netlist == null) netlist = Network.getUserNetlist(root);
-		(new HierarchyEnumerator()).doIt(root, context, netlist, visitor);
+		enumerateCell(root, context, netlist, visitor, false);
 	}
-
+	/** Experimental. Optionally caches results of variable evaluation. */
+	public static void enumerateCell(Cell root, VarContext context, 
+                                     Netlist netlist, Visitor visitor, 
+									 boolean caching) {
+		if (netlist == null) netlist = Network.getUserNetlist(root);
+		(new HierarchyEnumerator()).doIt(root, context, netlist, visitor, caching);
+	}
     /**
      * Method to count number of unique cells in hierarchy.  Useful
      * for progress tracking of hierarchical netlisters and writers.

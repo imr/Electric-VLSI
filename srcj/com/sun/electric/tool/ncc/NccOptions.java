@@ -33,8 +33,8 @@ public class NccOptions {
 	/** merge parallel Cells into one. For Russell Kao use only! */
 	//public boolean mergeParallelCells = false;
 
-	/** print lots of progress messages. For Russell Kao use only! */
-	public boolean verbose = false;
+	/** How many progress messages to print. 0 means minimal. 10 means maximum. */
+	public int howMuchStatus = 0;
 	
 	/** for hierarchical comparisons try to continue comparing
 	 * higher up in the hierarchy even if this Cell doesn't match */

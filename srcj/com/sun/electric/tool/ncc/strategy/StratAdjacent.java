@@ -63,7 +63,7 @@ public class StratAdjacent extends Strategy {
 //		globals.println("StratAdjacent done - processed " +
 //							numEquivProcessed + " EquivRecords");
 
-		globals.println(" StratAdjacent"+offspringStats(offspring));
+		globals.status2(" StratAdjacent"+offspringStats(offspring));
 
 //		elapsedTime();
 		return offspring.selectActive(globals);
@@ -103,7 +103,7 @@ public class StratAdjacent extends Strategy {
 //			String s= ("processed " + g.nameString());
 //			globals.println(s + " to find " + out.size() + " adjacent");
 		} else {
-			globals.println("processing " + g.nameString());
+			globals.status2("processing " + g.nameString());
 			super.doFor(g);
 		}
 		return new LeafList(); // return value is ignored

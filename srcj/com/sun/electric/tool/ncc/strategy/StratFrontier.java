@@ -35,8 +35,8 @@ public class StratFrontier extends Strategy {
     private StratFrontier(NccGlobals globals) {super(globals);}
 
     private void summary(LeafList x){
-		globals.println(" StratFrontier ");
-		globals.println(offspringStats(x));
+		globals.status2(" StratFrontier ");
+		globals.status2(offspringStats(x));
     }
 
 	public LeafList doFor(EquivRecord j){

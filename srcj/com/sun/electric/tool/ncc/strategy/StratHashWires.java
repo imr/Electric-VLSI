@@ -42,11 +42,11 @@ public class StratHashWires extends Strategy {
 	}
 	
 	private void summary(LeafList offspring){
-		globals.println(" processed " +
+		globals.status2(" processed " +
 					   numWiresProcessed + " Wires from " +
 					   numEquivProcessed + " leaf records");
-		globals.println(offspringStats(offspring));
-		globals.println(offspring.sizeInfoString());
+		globals.status2(offspringStats(offspring));
+		globals.status2(offspring.sizeInfoString());
 		elapsedTime();
 	}
 	

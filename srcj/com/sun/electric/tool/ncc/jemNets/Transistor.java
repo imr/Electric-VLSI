@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.basic.Primes;
 import com.sun.electric.tool.ncc.trees.Circuit;
 
@@ -328,10 +329,10 @@ public class Transistor extends Part {
 		return t+c+h;
 	}
 
-	public String nameString() {
-		return typeString()+" "+getName();
+	public String nameString() {return typeString()+" "+getName();}
+	public String valueString(){
+		return "W=" + NccUtils.round(width,2) + " L=" + NccUtils.round(length, 2);
 	}
-
 	public String connectionString(int n) {
 		String msg="";
 		for (int i=0; i<pins.length; i++) {
@@ -380,10 +381,6 @@ public class Transistor extends Part {
 		return type==t.type && length==t.length;
     }
 	
-	public String valueString(){
-		return "W= " + width + " L= " + length;
-	}
-
 	/** Merge two series Transistors into a single Transistor. 
 	 * Tricky: Parts on wire may be deleted or replicated. 
 	 * @param w wire joining diffusions of two transistors

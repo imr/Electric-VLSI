@@ -72,7 +72,7 @@ public class LeafList extends RecordList {
 			EquivRecord er= (EquivRecord) it.next();
 			if(er.isActive()) out.add(er);
 		}
-		globals.println(" selectActive found "+out.size()+
+		globals.status2(" selectActive found "+out.size()+
   					    " active leaf records");
 		return out;
 	}
@@ -87,7 +87,7 @@ public class LeafList extends RecordList {
 			EquivRecord er = (EquivRecord) it.next();
 			if(er.isRetired())  out.add(er);
 		}
-		globals.println(" selectRetired found "+out.size()+
+		globals.status2(" selectRetired found "+out.size()+
 					    " retired leaf records");
 		return out;
 	}

@@ -70,12 +70,12 @@ public class StratPortName extends Strategy {
 	}
 	
 	private void summary(LeafList offspring){
-		globals.println("StratPortName processed " +
+		globals.status2("StratPortName processed " +
 							numWiresProcessed + " Wires from " +
 							numEquivProcessed + " EquivRecords");
-		globals.println(offspringStats(offspring));
+		globals.status2(offspringStats(offspring));
 
-		globals.println(offspring.sizeInfoString());
+		globals.status2(offspring.sizeInfoString());
 		elapsedTime();
 	}
 	
@@ -84,16 +84,16 @@ public class StratPortName extends Strategy {
 	 * @param the Map to exhibit
 	 */
 	private void printTheMap(Map m){
-		globals.println("  printing an EquivRecord map of size= " + m.size());
+		globals.status2("  printing an EquivRecord map of size= " + m.size());
 		if(m.size() == 0)return;
 		for (Iterator it=m.keySet().iterator(); it.hasNext();) {
 			Wire w= (Wire)it.next();
 			Object oo= m.get(w);
 			if(oo == null){
-				globals.println(" "+w.nameString() + " maps to null");
+				globals.status2(" "+w.nameString() + " maps to null");
 			} else {
 				Integer i= (Integer)oo;
-				globals.println(" "+w.nameString() + " maps to " + i.intValue());
+				globals.status2(" "+w.nameString() + " maps to " + i.intValue());
 			}
 		}
 	}
@@ -176,7 +176,7 @@ public class StratPortName extends Strategy {
 			doneOne = true; 
 			
 			out = super.doFor(g);
-			globals.println(" processed "+g.nameString()+
+			globals.status2(" processed "+g.nameString()+
 							" with map size= "+theMap.size()+" yields " 
 							+out.size()+" offspring ");
 		} else {

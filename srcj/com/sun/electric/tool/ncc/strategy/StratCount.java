@@ -80,7 +80,7 @@ public class StratCount extends Strategy {
 			stats.incr(type, 1);
 		}
 		void print() {
-			globals.println(
+			globals.status2(
 				spaces(INDENT_WIDTH)+
 				leftJustifyInField("LeafRec size", LABEL_WIDTH)+
 				rightJustifyInField("#Part_Recs", FIELD_WIDTH)+
@@ -146,18 +146,18 @@ public class StratCount extends Strategy {
 		return s + spaces(fieldWidth - s.length());
     }
 	private void printLine(String label, NetObjStats stats) {
-		globals.println(spaces(INDENT_WIDTH) +
+		globals.status2(spaces(INDENT_WIDTH) +
 					    leftJustifyInField(label, LABEL_WIDTH) +
 					    stats.toString());
 	}
     private void printLine(String label, int data) {
-    	globals.println(spaces(INDENT_WIDTH) +
+    	globals.status2(spaces(INDENT_WIDTH) +
     				    leftJustifyInField(label, LABEL_WIDTH) +
     				    rightJustifyInField(String.valueOf(data), FIELD_WIDTH));
     }
 	private void printLine(String label, double data) {
 		data = Math.rint(data * 10)/10;
-		globals.println(spaces(INDENT_WIDTH) +
+		globals.status2(spaces(INDENT_WIDTH) +
 					    leftJustifyInField(label, LABEL_WIDTH) +
 					    rightJustifyInField(String.valueOf(data), FIELD_WIDTH));
 	}
@@ -172,7 +172,7 @@ public class StratCount extends Strategy {
     // Print the results when finished.
     private Counts summary(){
     	// print a label
-    	globals.println(
+    	globals.status2(
     		spaces(INDENT_WIDTH + LABEL_WIDTH) + 
 		   	rightJustifyInField("Parts", FIELD_WIDTH) +
 		   	rightJustifyInField("Wires", FIELD_WIDTH) +
@@ -187,10 +187,10 @@ public class StratCount extends Strategy {
     	int numEquivRecs = numMismatchedLeafRecs.getSumForAllTypes() +
     					   numRetiredLeafRecs.getSumForAllTypes() +
     					   numActiveLeafRecs.getSumForAllTypes();
-		globals.println("");
+		globals.status2("");
 		sizeHistogram.print();
 		
-		globals.println("");
+		globals.status2("");
 		//printLine("# InternalRecords", numInternalRecs);
 		//printLine("# Circuits", numCircuits);
 		printLine("max tree depth", maxDepth);

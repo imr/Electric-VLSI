@@ -43,14 +43,14 @@ public class StratDebug2 extends Strategy {
 	private StratDebug2(NccGlobals globals) {
 		super(globals);
 		NccOptions options = globals.getOptions();
-		boolean savedVerbose = options.verbose;
-		options.verbose = true;
+		int saveHowMuchStatus = options.howMuchStatus;
+		options.howMuchStatus = 10;
 		
-		globals.println("begin search for RK stuff");
+		globals.status2("begin search for RK stuff");
 		doFor(globals.getRoot());
-		globals.println("end search for RK stuff");
+		globals.status2("end search for RK stuff");
 		
-		options.verbose = savedVerbose;
+		options.howMuchStatus = saveHowMuchStatus;
 	}
 	
 	private boolean hasRKstuff(Circuit ckt) {
@@ -75,10 +75,10 @@ public class StratDebug2 extends Strategy {
 	public LeafList doFor(EquivRecord er) {
 		if (er.isLeaf()) {
 			if (hasRKstuff(er)) {
-				globals.println(er.nameString());
+				globals.status2(er.nameString());
 				List reasons = er.getPartitionReasonsFromRootToMe();
 				for (Iterator it=reasons.iterator(); it.hasNext();) {
-					globals.println("   "+it.next());
+					globals.status2("   "+it.next());
 				}
 				super.doFor(er);
 			}
@@ -89,12 +89,12 @@ public class StratDebug2 extends Strategy {
 	}
 	
 	public HashMap doFor(Circuit c) {
-		globals.println(" "+c.nameString());
+		globals.status2(" "+c.nameString());
 		return super.doFor(c);
 	}
 
     public Integer doFor(NetObject n){
-		globals.println("  "+n.toString());
+		globals.status2("  "+n.toString());
         return CODE_NO_CHANGE;
     }
     

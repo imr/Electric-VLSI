@@ -36,7 +36,7 @@ import java.util.Random;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.tool.ncc.basic.Messenger;
+import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.jemNets.NccNetlist;
 import com.sun.electric.tool.ncc.trees.Circuit;
@@ -68,7 +68,6 @@ public class NccGlobals {
 	/** used to assign new hash code values to EquivRecords */ 
 	private NccRandom randGen = new NccRandom();
 	/** all options controlling an Ncc run */ private final NccOptions options;
-	/** printing object */                    private final Messenger messenger;
 
     /** root of the EquivRecord tree */    private EquivRecord root;
     /** subtree holding parts */              private EquivRecord parts;
@@ -85,7 +84,7 @@ public class NccGlobals {
 		  case CODE_WIRE:  return nets.getWireArray(); 
 		  case CODE_PORT:  return nets.getPortArray();
 		}
-		messenger.error(true, "invalid code");
+		error("invalid code");
 		return null;
 	}
 	
@@ -112,7 +111,6 @@ public class NccGlobals {
 	 */
 	public NccGlobals(NccOptions options) {
 		this.options = options;
-		this.messenger = new Messenger(false);
 	}
 	public void setInitialNetlists(List nccNets) {
 		parts = buildEquivRec(CODE_PART, nccNets);
@@ -150,25 +148,21 @@ public class NccGlobals {
 		}
 		return rootCellNames;
 	}
-	
-	public void println(String msg) {
-		if (options.verbose) messenger.println(msg);
+	private void println(String s) {System.out.println(s); System.out.flush();}
+	public void status1(String msg) {
+		if (options.howMuchStatus>=1) println(msg);
 	}
-	public void println() {
-		if (options.verbose) messenger.println();
+	public void status2(String msg) {
+		if (options.howMuchStatus>=2) println(msg); 
 	}
-	public void print(String msg) {
-		if (options.verbose) messenger.print(msg);
-	}
-	public void flush() {messenger.flush();}
+	public void flush() {System.out.flush();}
 	public void error(boolean pred, String msg) {
-		messenger.error(pred, msg);
+		LayoutLib.error(pred, msg);
 	}
-	public void error(String msg) {messenger.error(true, msg);}
+	public void error(String msg) {LayoutLib.error(true, msg);}
 	
 	public NccOptions getOptions() {return options;}
 	
 	/** Generate non-recurring pseudo-random integers */
 	public int getRandom() {return randGen.next();}
-	public Messenger getMessenger() {return messenger;}
 }

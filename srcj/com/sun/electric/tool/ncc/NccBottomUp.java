@@ -47,6 +47,8 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 	private Map cellsInUse = new HashMap();
 	private List cellsInRevTopoOrder = new ArrayList();
 	private Map groupToAdditions = new HashMap();
+	private Cell root;
+	
 	private void processCellGroupAdditions(CellContext cellCtxt) {
 		NccCellAnnotations ann = NccCellAnnotations.getAnnotations(cellCtxt.cell);
 		if (ann==null) return;
@@ -61,6 +63,7 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 	}
 	public boolean enterCell(HierarchyEnumerator.CellInfo info) {
 		Cell cell = info.getCell();
+		if (root==null) root = cell;
 		VarContext context = info.getContext();
 		if (cellsInUse.containsKey(cell))  return false;
 		CellContext cellCtxt = new CellContext(cell, context); 
@@ -89,6 +92,7 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 		Set additions = (Set) groupToAdditions.get(group);
 		return additions!=null ? additions : new HashSet();
 	}
+	public Cell getRoot() {return root;}
 } 
 class Passed {
 	private static class Pair {
@@ -237,6 +241,13 @@ public class NccBottomUp {
 			if (use1.cellIsUsed(c)) cellsInGroup.add(use1.getCellContext(c));
 			if (use2.cellIsUsed(c)) cellsInGroup.add(use2.getCellContext(c));
 		}
+		
+		// finally the two root Cells should always be compared
+		if (cell==use1.getRoot()) 
+			cellsInGroup.add(use2.getCellContext(use2.getRoot()));
+		if (cell==use2.getRoot()) 
+			cellsInGroup.add(use1.getCellContext(use1.getRoot()));
+
 		LayoutLib.error(cellsInGroup.size()==0, "Cell not in its own group?");
 		
 		List cellsInGroupList = new ArrayList();
@@ -290,7 +301,8 @@ public class NccBottomUp {
 											  skipPassed, options); 
 			if (r==null) {
 				System.out.println(
-					"Halting multiple cell NCC because of failure to build " +					"a black box"
+					"Halting multiple cell NCC because of failure to build " +
+					"a black box"
 				);
 				return result;
 			}

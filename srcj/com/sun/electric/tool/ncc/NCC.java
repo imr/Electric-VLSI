@@ -123,4 +123,19 @@ public class NCC {
 		operation.setInt(i);
 	}
 
+	private static int boundStatus(int s) {		
+		s = Math.max(s, 0);
+		s = Math.min(s, 2);
+		return s;
+	}
+
+	private static Pref howMuchStatus =
+		Pref.makeIntPref("HowMuchStatus", NCC.tool.prefs, 0);
+	public static int getHowMuchStatus() {
+		return boundStatus(howMuchStatus.getInt());
+	}
+	public static void setHowMuchStatus(int i) {
+		howMuchStatus.setInt(boundStatus(i));
+	}
+
 }

@@ -365,11 +365,6 @@ public class EquivRecord {
 		return reasons;
 	}
 
-	/** 
-	 * printMe prints this EquivRecord
-	 */
-	public void printMe(NccGlobals globals) {globals.print(nameString()+"\n");}
-
 	/**
 	 * Construct a leaf EquivRecord that holds circuits
 	 * @param ckts Circuits belonging to Equivalence Record

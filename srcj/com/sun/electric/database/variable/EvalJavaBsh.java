@@ -219,34 +219,14 @@ public class EvalJavaBsh
     public Object P(String name) throws VarContext.EvalException {
         VarContext context = (VarContext)contextStack.peek();
         Object val = context.lookupVarEval(name);
-        if (val == null)
-            throw new VarContext.EvalException(name.replaceFirst("ATTR_", "")+" not found");
         if (DEBUG) System.out.println(name + " ---> " + val + " ("+val.getClass()+")");
-        try {
-            // try to convert to a Number
-            Number d = TextUtils.parsePostFixNumber(val.toString());
-            val = d;
-            if (DEBUG) System.out.println("   converted to ---> " + val + " ("+val.getClass()+")");
-        } catch (java.lang.NumberFormatException e) {
-            // just return original val object
-        }
         return val;
     }
 
     public Object PAR(String name) throws VarContext.EvalException {
         VarContext context = (VarContext)contextStack.peek();
         Object val = context.lookupVarFarEval(name);
-        if (val == null)
-            throw new VarContext.EvalException(name.replaceFirst("ATTR_", "")+" not found");
         if (DEBUG) System.out.println(name + " ---> " + val + " ("+val.getClass()+")");
-        try {
-            // try to convert to a Number
-            Number d = TextUtils.parsePostFixNumber(val.toString());
-            val = d;
-            if (DEBUG) System.out.println("   converted to ---> " + val + " ("+val.getClass()+")");
-        } catch (java.lang.NumberFormatException e) {
-            // just return original val object
-        }
         return val;
     }
 

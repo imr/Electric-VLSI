@@ -72,7 +72,7 @@ public class SerialParallelMerge {
 				if (Transistor.joinOnWire(w)) numMerged++;
 			}
 		}
-		globals.println("    Serial merged "+numMerged+" Transistors");
+		globals.status2("    Serial merged "+numMerged+" Transistors");
 
 		return numMerged>0;
 	}
@@ -142,7 +142,7 @@ public class SerialParallelMerge {
 				numMerged += parallelMergePartsOnWire(w);
 			}
 		}
-		globals.println("    Parallel merged " + numMerged + " Parts");
+		globals.status2("    Parallel merged " + numMerged + " Parts");
 		return numMerged>0;
 	}
 	
@@ -162,13 +162,13 @@ public class SerialParallelMerge {
 		if (parts==null)  return; // No Cell has Parts
 
 		int numParts = countUndeletedParts(parts);
-		globals.println("--- NCC starting merge process with " +
+		globals.status2("--- NCC starting merge process with " +
 						numParts + " Parts");
 		// Tricky: Don't give up if the first parallel merge attempt fails because 
 		// the following first serial merge may succeed!
 		boolean first = true;
 		for (int tripNumber=1; ; tripNumber++) {
-			globals.println("  parallel and series merge trip " + tripNumber);
+			globals.status2("  parallel and series merge trip " + tripNumber);
 			boolean progress = parallelMerge();
 			if (!first && !progress) break;
 			first = false;
@@ -176,9 +176,9 @@ public class SerialParallelMerge {
 			if (!progress) break;
 		}
 		numParts = countUndeletedParts(parts);
-		globals.println("--- NCC finishing merge process with " +
+		globals.status2("--- NCC finishing merge process with " +
 						numParts + " Parts");
-		globals.println();
+		globals.status2("");
 	}
 
 	private static void putInFinalForm(EquivRecord er) {

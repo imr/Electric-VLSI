@@ -28,7 +28,6 @@ package com.sun.electric.tool.ncc.jemNets;
 import java.util.Iterator;
 
 import com.sun.electric.tool.generator.layout.LayoutLib;
-import com.sun.electric.tool.ncc.basic.Messenger;
 import com.sun.electric.tool.ncc.trees.Circuit;
 
 /**  
@@ -51,19 +50,12 @@ public abstract class NetObject {
     // ---------- private data -------------
     private NccNameProxy myName;	// null means name is empty string
     private Circuit myParent;
+    private static final int MAX_CONN = 100;
 	
-    /** Get String specifying type and name
-	 * @return an identifying String.*/
-    public abstract String nameString();
-    
     /** Distinguish Parts, Wires, and Ports.
      * @return PART or WIRE or PORT */
     public abstract Type getNetObjType();
 
-    /** Get a String listing the connections for this NetObject.
-	 * @param n the maximum number of connections to list
-	 * @return a String of connections. */
-    public abstract String connectionString(int n);
 
     public abstract Iterator getConnected();
 
@@ -97,13 +89,18 @@ public abstract class NetObject {
 
 	public abstract boolean isDeleted(); 
 
-    /** Return the name and connections of this NetObject as
-	 * a String.
-	 * @return a String with name and connections */
-    public String toString(){
-        return (nameString() + ": " + connectionString(100));
-    }
+    public abstract String nameString();
+    public abstract String valueString();
+    public abstract String connectionString(int maxConn);
 
-    public abstract void printMe(int i, Messenger messenger); //i is the size limit
+	public String toString() {
+		StringBuffer sb = new StringBuffer();
+		sb.append(nameString());
+		String v = valueString();
+		if (!v.equals("")) sb.append(" "+v);
+		String c = connectionString(MAX_CONN);
+		if (!c.equals(" ")) sb.append(" "+c);
+		return sb.toString();
+	}
 }
 

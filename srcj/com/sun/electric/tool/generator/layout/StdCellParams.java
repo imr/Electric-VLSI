@@ -827,7 +827,7 @@ public class StdCellParams {
 		error(schem == null, "can't find schematic: " + schemNm);
 
 		NccOptions options = new NccOptions();
-		options.verbose = false;
+		options.howMuchStatus = 0;
 //		options.absTolerance = 200;
 //		options.checkExportNames = true;
 //		options.checkSizes = false;

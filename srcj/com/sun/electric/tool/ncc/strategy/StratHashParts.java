@@ -40,11 +40,11 @@ public class StratHashParts extends Strategy {
     }
 	
     private void summary(LeafList offspring){
-		globals.println(" processed " +
+		globals.status2(" processed " +
 					   numPartsProcessed + " Parts from " +
 					   numEquivProcessed + " leaf Records");
-		globals.println(offspringStats(offspring));
-		globals.println(offspring.sizeInfoString());
+		globals.status2(offspringStats(offspring));
+		globals.status2(offspring.sizeInfoString());
 		elapsedTime();
     }
 	

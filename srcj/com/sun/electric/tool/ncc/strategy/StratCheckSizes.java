@@ -46,15 +46,6 @@ public class StratCheckSizes extends Strategy {
 	private static abstract class Mismatch {
 		private StringBuffer sb = new StringBuffer();
 		private void aln(String s) {sb.append(s); sb.append("\n");}
-		private long pow(int x, int y) {
-			long prod = 1;
-			for (int i=0; i<y; i++)  prod*=x;
-			return prod;
-		}
-		private double round(double x, int places) {
-			long m = pow(10, places);
-			return Math.rint(x*m)/m;
-		}
 		public final double min, max;
 		public final Transistor minMos, maxMos;
 		Mismatch(double min, Transistor minMos, double max, Transistor maxMos) {
@@ -67,19 +58,19 @@ public class StratCheckSizes extends Strategy {
 		public abstract String widLen();
 		public abstract String wl();
 		public String toString() {
-			aln("  MOS"+
+			aln("    MOS"+
 				(isCap()?" capacitor":"")+
 				" "+widLen()+"s don't match. "+
-				" relativeError="+round(relErr()*100,1)+"%"+
-				" absoluteError="+round(absErr(),2));
-			aln("    "+wl()+"="+min+" for "+minMos.toString());
-			aln("    "+wl()+"="+max+" for "+maxMos.toString());
+				" relativeError="+NccUtils.round(relErr()*100,1)+"%"+
+				" absoluteError="+NccUtils.round(absErr(),2));
+			aln("      "+wl()+"="+NccUtils.round(min,2)+" for "+minMos.toString());
+			aln("      "+wl()+"="+NccUtils.round(max,2)+" for "+maxMos.toString());
 			return sb.toString();
 		}
 	}
 	private static class LengthMismatch extends Mismatch {
 		public String widLen() {return "length";}
-		public String wl() {return "l";}
+		public String wl() {return "L";}
 		public LengthMismatch(double min, Transistor minMos, double max, 
 				              Transistor maxMos) {
 			super(min, minMos, max, maxMos);
@@ -87,7 +78,7 @@ public class StratCheckSizes extends Strategy {
 	}
 	private static class WidthMismatch extends Mismatch {
 		public String widLen() {return "width";}
-		public String wl() {return "w";}
+		public String wl() {return "W";}
 		public WidthMismatch(double min, Transistor minMos, double max, 
 				             Transistor maxMos) {
 			super(min, minMos, max, maxMos);
@@ -127,13 +118,14 @@ public class StratCheckSizes extends Strategy {
     }
     private void summary() {
     	Collections.sort(mismatches, new MismatchComparator());
+    	System.out.println("  There are "+mismatches.size()+" size mismatches.");
     	for (Iterator it=mismatches.iterator(); it.hasNext();) {
     		Mismatch m = (Mismatch) it.next();
     		System.out.print(m.toString());
     	}
     }
 
-	private boolean matches() {return mismatches.size()!=0;}
+	private boolean matches() {return mismatches.size()==0;}
 
 	public LeafList doFor(EquivRecord j) {
 		if(j.isLeaf()) {

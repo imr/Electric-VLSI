@@ -53,17 +53,17 @@ public class StratPartPopularity extends Strategy {
 			EquivRecord r = (EquivRecord) it.next();
 			int value = r.getValue();
 			String reason = "part has "+value+" different Wires attached";
-			globals.println(reason);
+			globals.status2(reason);
 			r.setPartitionReason(reason);
 		}
 	}
 
     private void summary(LeafList offspring) {
-        globals.println("StratPartPopularity produced " + offspring.size() +
+        globals.status2("StratPartPopularity produced " + offspring.size() +
                         " offspring");
         if (offspring.size()!=0) {
-			globals.println(offspring.sizeInfoString());
-			globals.println(offspringStats(offspring));
+			globals.status2(offspring.sizeInfoString());
+			globals.status2(offspringStats(offspring));
         }
     }
 

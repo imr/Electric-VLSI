@@ -43,25 +43,25 @@ public class StratDebug extends Strategy {
 	private StratDebug(NccGlobals globals) {
 		super(globals);
 		NccOptions options = globals.getOptions();
-		boolean savedVerbose = options.verbose;
-		options.verbose = true;
+		int saveHowMuchStatus = options.howMuchStatus;
+		options.howMuchStatus = 10;
 		
-		globals.println("begin StratDebug");
-		globals.println("dumping mismatched EquivRecords");
+		globals.status2("begin StratDebug");
+		globals.status2("dumping mismatched EquivRecords");
 		doFor(globals.getRoot());
-		globals.println("end StratDebug");
+		globals.status2("end StratDebug");
 		
-		options.verbose = savedVerbose;
+		options.howMuchStatus = saveHowMuchStatus;
 	}
 	
     // ---------- the tree walking code ---------
 	public LeafList doFor(EquivRecord er) {
 		if (er.isLeaf()) {
 			if (er.isMismatched() && er.getNetObjType()!=Part.Type.PORT) {
-				globals.println(er.nameString());
+				globals.status2(er.nameString());
 				List reasons = er.getPartitionReasonsFromRootToMe();
 				for (Iterator it=reasons.iterator(); it.hasNext();) {
-					globals.println("   "+it.next());
+					globals.status2("   "+it.next());
 				}
 				super.doFor(er);
 			}
@@ -72,7 +72,7 @@ public class StratDebug extends Strategy {
 	}
 	
 	public HashMap doFor(Circuit c) {
-		globals.println(" "+c.nameString());
+		globals.status2(" "+c.nameString());
 		return super.doFor(c);
 	}
 
@@ -80,7 +80,7 @@ public class StratDebug extends Strategy {
 	 * 
 	 */
     public Integer doFor(NetObject n){
-		globals.println("  "+n.toString());
+		globals.status2("  "+n.toString());
         return CODE_NO_CHANGE;
     }
     

@@ -43,15 +43,12 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 
 
 public class NccUtils {
-	public static String fullName(Cell c) {
-		return c.libDescribe();
-//		return c.getLibrary().getName() +
-//			   ":"+
-//			   c.getName()+
-//			   "{"+
-//			   c.getView().getAbbreviation()+
-//			   "}";
+	private static long pow(int x, int y) {
+		long prod = 1;
+		for (int i=0; i<y; i++)  prod*=x;
+		return prod;
 	}
+	public static String fullName(Cell c) {return c.libDescribe();}
 	public static Cell[] findSchematicAndLayout(Cell cell) {
 		Cell.CellGroup group = cell.getCellGroup();
 		Cell layout=null, schematic=null;
@@ -189,5 +186,9 @@ public class NccUtils {
 //            System.out.println("Huh? I woke up.");
 //        }
     }
+	public static double round(double x, int places) {
+		long m = pow(10, places);
+		return Math.rint(x*m)/m;
+	}
 }
 

@@ -127,12 +127,12 @@ public abstract class Strategy {
 		for(Iterator it=g.iterator(); it.hasNext();){
 			EquivRecord er = (EquivRecord)it.next();
 			if(er.getValue()==value){
-				globals.println(label+": "+ er.nameString());
+				globals.status2(label+": "+ er.nameString());
 				return er;
 			}
 		}
 		//falls out if not found
-		globals.println(label+": none");
+		globals.status2(label+": none");
 		return null;
 	}
 
@@ -157,15 +157,14 @@ public abstract class Strategy {
 	
     protected void startTime(String strat, String target){
         theStartDate= new Date();
-        globals.println((globals.passNumber++)+" "+
+        globals.status2((globals.passNumber++)+" "+
 					   strat + " doing " + target);
     }
 
     protected long elapsedTime(){
         Date d= new Date();
         long time= d.getTime() - theStartDate.getTime();
-        globals.println(" took " + time + " miliseconds");
-        globals.println();
+        globals.status2(" took " + time + " miliseconds\n");
         return time;
     }
 

@@ -73,7 +73,7 @@ public class NccNetlist {
 		rootContext = context;
 
 		Visitor v = new Visitor(globals, hierInfo, blackBox, context);
-		HierarchyEnumerator.enumerateCell(root, context, netlist, v);
+		HierarchyEnumerator.enumerateCell(root, context, netlist, v, true);
 		wires = v.getWireList();
 		parts = v.getPartList();
 		ports = v.getPortList();
@@ -360,8 +360,10 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	
 	// --------------------------- private methods ----------------------------
 	private void error(boolean pred, String msg) {globals.error(pred, msg);}
-	private void spaces() {
-		for (int i=0; i<depth; i++)	 globals.print(" ");
+	private String spaces() {
+		StringBuffer sp = new StringBuffer();
+		for (int i=0; i<depth; i++)	 sp.append(" ");
+		return sp.toString();
 	}
 	private void addMatchingNetIDs(List netIDs, NamePattern pattern, 
 	                               CellInfo rootInfo) {
@@ -617,8 +619,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	public boolean enterCell(CellInfo ci) {
 		NccCellInfo info = (NccCellInfo) ci;
 		if (debug) {
-			spaces();
-			globals.println("Enter cell: " + info.getCell().getName());
+			globals.status2(spaces()+"Enter cell: " + info.getCell().getName());
 			depth++;
 		}
 		if (info.isRootCell()) {
@@ -658,8 +659,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	public void exitCell(CellInfo info) {
 		if (debug) {
 			depth--;
-			spaces();
-			globals.println("Exit cell: " + info.getCell().getName());
+			globals.status2(spaces()+"Exit cell: " + info.getCell().getName());
 		}
 	}
 	

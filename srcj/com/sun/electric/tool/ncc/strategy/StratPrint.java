@@ -43,7 +43,6 @@ public class StratPrint extends Strategy {
 
     // these integers set limits to the amount of output printing
     private static final int MAX_LINES= 4; //max number Parts or Wires to print
-    private static final int MAX_PINS=3; //max number Pins printed for Wires
 
     public String nameString(){return "StratPrint";}
 
@@ -52,15 +51,15 @@ public class StratPrint extends Strategy {
 	public static LeafList doYourJob(EquivRecord j,
 	                                     NccGlobals globals){
 		NccOptions options = globals.getOptions();
-		boolean savedVerbose = options.verbose;
-		options.verbose = true;
+		int saveHowMuchStatus = options.howMuchStatus;
+		options.howMuchStatus = 10;
 
 		StratPrint jsp = new StratPrint(globals);
 		jsp.preamble(j);
 		LeafList el= jsp.doFor(j); //prints content and offspring if any
 		jsp.summary();
 
-		options.verbose = savedVerbose;
+		options.howMuchStatus = saveHowMuchStatus;
 		return el;
 	}
 
@@ -72,24 +71,22 @@ public class StratPrint extends Strategy {
 	private void summary(){elapsedTime();}
 
 	public LeafList doFor(EquivRecord j){
-		globals.print("**  Depth= " + getDepth() + " ");
-		j.printMe(globals);
+		globals.status2("**  Depth= " + getDepth() + " "+j.nameString());
 		return super.doFor(j);
 	}
 
 	// has extra stuff to limit the amount of printing
 	public HashMap doFor(Circuit j){
-		globals.print("**  Depth= " + getDepth() +
-					 " " + j.nameString());
-
-		globals.println(j.numNetObjs()<MAX_LINES ? "" : " starts with");
+		globals.status2("**  Depth= " + getDepth() +
+					    " " + j.nameString()+
+						(j.numNetObjs()<MAX_LINES ? "" : " starts with"));
 
 		int count= 0;
 		HashMap codeToNetObjs = new HashMap();
 		for (Iterator it=j.getNetObjs(); it.hasNext();) {
 			NetObject n= (NetObject) it.next();
 			codeToNetObjs.put(CODE_NO_CHANGE, n);
-			/*if (count<MAX_LINES) */n.printMe(MAX_PINS, globals.getMessenger());
+			/*if (count<MAX_LINES) */globals.status2(n.toString());
 			count++;
 		}
 		return codeToNetObjs;

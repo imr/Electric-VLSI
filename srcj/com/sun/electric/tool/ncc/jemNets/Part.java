@@ -27,7 +27,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import com.sun.electric.tool.ncc.basic.Messenger;
 import com.sun.electric.tool.ncc.trees.Circuit;
 
 /** Part is an intermediate abstract sub-class of NetObject.
@@ -61,13 +60,6 @@ public abstract class Part extends NetObject {
 	public Iterator getConnected() {return Arrays.asList(pins).iterator();}
 
     public Type getNetObjType() {return Type.PART;}
-
-	/**
-	 * valueString reports the numeric values of this Part,
-	 * for example: width, length, resistance.
-	 * @return a String describing the Part's numeric values.
-	 */
-	public abstract String valueString();
 
 	/** 
 	 * Here is the accessor for the number of terminals on this Part
@@ -144,11 +136,6 @@ public abstract class Part extends NetObject {
 	/** returns a unique int value for each distinct Part type */
     public abstract int typeCode();
     	
-    /** returns the part type followed by the instance name */
-    public String nameString() {
-    	return typeString()+" "+getName();
-    }
-	
 	/** How many pins of this Part are connected to Wire.
 	 * @param w the Wire to test
 	 * @return number of pins connected to Wire */
@@ -178,9 +165,6 @@ public abstract class Part extends NetObject {
 	/** Return a set of all the different pin types for this part */
 	public abstract Set getPinTypes();
 	
-	/** comma separated list of pins connected to w */
-	public abstract String connectionString(Wire w);
-
 	public Integer computeHashCode(){
         int sum= 0;
         int codes[]= getTermCoefs();
@@ -235,16 +219,16 @@ public abstract class Part extends NetObject {
 		return wires.size();
 	}
 	
-	/** 
-	 * printMe prints out this NetObject
-	 * @param maxCon an integer length limit to the printout
-	 */
-	public void printMe(int maxCon, Messenger messenger){
-		String n= nameString();
-		String s= valueString();
-		String c= connectionString(maxCon);
-		messenger.println(n + " " + s + " " + c);
-	}
-	
+    /** returns the part type followed by the instance name */
+    public String nameString() {return typeString()+" "+getName();}
+    
+	/** Report the numeric values of this Part,
+	 * for example: width, length, resistance.
+	 * @return a String describing the Part's numeric values.*/
+	public abstract String valueString();
+
+	/** comma separated list of pins connected to w */
+	public abstract String connectionString(Wire w);
+
 }
 

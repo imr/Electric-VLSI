@@ -59,17 +59,17 @@ public class StratPartType extends Strategy {
 			int value = r.getValue();
 			String reason = "part type is "+
 			                typeCodeToTypeName.get(new Integer(value));
-			globals.println(reason);
+			globals.status2(reason);
 			r.setPartitionReason(reason);
 		}
 	}
 
     private void summary(LeafList offspring) {
-        globals.println("StratPartType produced " + offspring.size() +
+        globals.status2("StratPartType produced " + offspring.size() +
                         " offspring");
         if (offspring.size()!=0) {
-			globals.println(offspring.sizeInfoString());
-			globals.println(offspringStats(offspring));
+			globals.status2(offspring.sizeInfoString());
+			globals.status2(offspringStats(offspring));
         }
     }
     

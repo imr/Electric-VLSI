@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.TreeSet;
 
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.tool.ncc.basic.Messenger;
 import com.sun.electric.tool.ncc.trees.Circuit;
 
 /** An NCC Port holds all the Export names associated with a single NCC
@@ -104,7 +103,6 @@ public class Port extends NetObject {
 
 	public Wire getWire(){return wire;}
 
-    public String connectionString(int n){return "is on Wire: "+wire.getName();}
 
 	public void checkMe(Circuit parent){
 		error(parent!=getParent(), "wrong parent");
@@ -124,20 +122,13 @@ public class Port extends NetObject {
 		sb.append(" }");
 		return sb.toString();
 	}
-	public String nameString() {return "Port " + exportNamesString();}
 	public Iterator getExportNames() {return names.iterator();}
 	public boolean isDeleted() {return false;}
 	public void setToBeRenamed() {toBeRenamed = true;}
 	public boolean getToBeRenamed() {return toBeRenamed;}
 
-	public void printMe(int maxCon, Messenger messenger){
-		messenger.print("Port on wire: " + wire.getName() +
-		                " has Export names:");
-		for (Iterator it=names.iterator(); it.hasNext();) {
-			String nm = (String) it.next();
-			messenger.print(" "+nm);
-		}
-		messenger.println();
-	}
+	public String nameString() {return "Port "+exportNamesString();}
+	public String valueString() {return "";}
+    public String connectionString(int n){return "is on Wire: "+wire.getName();}
 }
 

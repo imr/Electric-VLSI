@@ -57,18 +57,18 @@ public class StratCountPartPinsOnWires extends Strategy {
 			EquivRecord r = (EquivRecord) it.next();
 			int value = r.getValue();
 			String reason = value+" = number of "+pinType.description()+" pins.";
-			globals.println(reason);
+			globals.status2(reason);
 			r.setPartitionReason(reason);
 		}
 	}
 
     private void summary(LeafList offspring) {
-        globals.println(" StratCountPartPinsOnWires produced " + offspring.size() +
+        globals.status2(" StratCountPartPinsOnWires produced " + offspring.size() +
                         " offspring when counting " + pinType.description() +
                         " pins");
         if (offspring.size()!=0) {
-			globals.println(offspring.sizeInfoString());
-			globals.println(offspringStats(offspring));
+			globals.status2(offspring.sizeInfoString());
+			globals.status2(offspringStats(offspring));
         }
     }
 

@@ -47,7 +47,7 @@ public class LocalPartitioning {
     NccGlobals globals;
     /** return a Set of all the types of Pins we might encounter */
 	private Set partitionPartsUsingLocalInformation() {
-		globals.println("Partition Parts using local information");
+		globals.status2("Partition Parts using local information");
 		Set pinTypes = new HashSet();
 		if (globals.getParts()==null) return pinTypes;
 		LeafList offspring = StratPartType.doYourJob(pinTypes, globals);
@@ -65,7 +65,7 @@ public class LocalPartitioning {
 	}
 
 	private void partitionWiresUsingLocalInformation(Set pinTypes) {
-		globals.println("Partition Wires using local information");
+		globals.status2("Partition Wires using local information");
 		EquivRecord root = globals.getRoot();
 		for (Iterator it=pinTypes.iterator(); it.hasNext();) {
 			PinType pinType = (PinType) it.next();
@@ -81,14 +81,14 @@ public class LocalPartitioning {
     private LocalPartitioning(NccGlobals globals) {this.globals = globals;}
     
     private boolean doYourJob2() {
-        globals.println("Begin partitioning based on local characteristics \n");
+        globals.status2("Begin partitioning based on local characteristics \n");
 
 		Set pinTypes = partitionPartsUsingLocalInformation();
 		partitionWiresUsingLocalInformation(pinTypes);
 
 		boolean match = StratPreanalysisReport.doYourJob(globals);
 
-		globals.println("End partitioning based on local characteristics ");
+		globals.status2("End partitioning based on local characteristics ");
 		return match;
     }
 	

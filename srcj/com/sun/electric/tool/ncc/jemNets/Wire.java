@@ -28,7 +28,6 @@ import java.util.Iterator;
 import java.util.Set;
 
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.tool.ncc.basic.Messenger;
 import com.sun.electric.tool.ncc.trees.Circuit;
 
 public class Wire extends NetObject{
@@ -170,9 +169,10 @@ public class Wire extends NetObject{
 //		return numPins;
 //     }
 
-    /** Get an identifying String for this NewObject.
-	 * @return an identifying String. */
+    /** Get an identifying String for NetObject. */
     public String nameString() {return ("Wire " + getName());}
+    
+    public String valueString() {return "";}
 
     /** Get a String indicating up to N connections for this NetObject.
 	 * @param n the maximum number of connections to list
@@ -191,11 +191,4 @@ public class Wire extends NetObject{
         }
         return s;
     }
-
-    public void printMe(int x, Messenger messenger){
-        int maxPins= 3;
-        messenger.print(nameString());
-        messenger.println(connectionString(maxPins));
-    }
-
 }
