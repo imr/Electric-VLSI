@@ -634,7 +634,7 @@ public abstract class Job implements ActionListener, Runnable {
      * @see #invokeExamineLater(Runnable, Object)
      */
     public static synchronized boolean acquireExamineLock(boolean block) {
-        if (!Main.getDebug()) return true;      // only enable if DEBUG mode
+        if (true) return true;      // disabled
         Thread thread = Thread.currentThread();
 
         // first check to see if we already have the lock
@@ -660,7 +660,7 @@ public abstract class Job implements ActionListener, Runnable {
      * @see #invokeExamineLater(Runnable, Object)
      */
     public static synchronized void releaseExamineLock() {
-        if (!Main.getDebug()) return;      // only enable if DEBUG mode
+        if (true) return;      // disabled
         Job dummy = databaseChangesThread.getJob(Thread.currentThread());
         assert(dummy != null);
         assert(dummy instanceof InthreadExamineJob);
