@@ -626,13 +626,13 @@ public class Quick
             long endTime = System.currentTimeMillis();
 			if (localErrors == 0 &&  localWarnings == 0)
 			{
-				System.out.println("   No errors/warnings found");
+				System.out.println("\tNo errors/warnings found");
 			} else
 			{
 				if (localErrors > 0)
-					System.out.println("   FOUND " + localErrors + " ERRORS");
+					System.out.println("\tFOUND " + localErrors + " ERRORS");
 				if (localWarnings > 0)
-					System.out.println("   FOUND " + localWarnings + " WARNINGS");
+					System.out.println("\tFOUND " + localWarnings + " WARNINGS");
 			}
             if (Main.getDebug())
                 System.out.println("\t(took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
@@ -877,6 +877,7 @@ public class Quick
 		Rectangle2D bb = (Rectangle2D)bounds.clone();
 		AffineTransform downTrans = thisNi.transformIn();
 		DBMath.transformRect(bb, downTrans);
+        long startTime = System.currentTimeMillis();
 
 		for(Iterator it = cell.searchIterator(bb); it.hasNext(); )
 		{
@@ -914,11 +915,6 @@ public class Quick
 				{
 					AffineTransform rTrans = ni.rotateOut();
 					rTrans.preConcatenate(upTrans);
-                    if (np.getFunction() == PrimitiveNode.Function.PIN)
-                    {
-	                    System.out.println("This should not happend in Quick.checkCellInstContents()");
-	                    continue; // Sept 30
-                    }
 					Technology tech = np.getTechnology();
 					Poly [] primPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts, null);
 					convertPseudoLayers(ni, primPolyList);
@@ -985,6 +981,13 @@ public class Quick
 				}
 			}
 		}
+
+        if (Main.getDebug())
+        {
+            long endTime = System.currentTimeMillis();
+            System.out.println("Node " + thisNi.getName() + " " + oNi.getName() + " " + globalIndex + " " +
+                    topGlobalIndex + " (" + TextUtils.getElapsedTime(endTime - startTime) + ")");
+        }
 		return logsFound;
 	}
 
@@ -1102,6 +1105,11 @@ public class Quick
 
 				if (NodeInst.isSpecialNode(ni)) continue; // Oct 5;
 
+                // Check if error was already found
+//                if (Main.getDebug() && Main.LOCALDEBUGFLAG && errorLogger.findMessage(cell, geom, nGeom.getParent(), nGeom, true))
+//                {
+//                    continue;
+//                }
 				// ignore nodes that are not primitive
 				if (np instanceof Cell)
 				{
@@ -1121,7 +1129,10 @@ public class Quick
 					// compute localIndex
 					if (badBoxInArea(poly, layer, tech, net, geom, trans, globalIndex, subBound, (Cell)np, localIndex,
 						             topCell, topGlobalIndex, subTrans, minSize, baseMulti, sameInstance))
+                    {
                         foundError = true;
+                        if (DRC.isOnlyFirstChecking()) return true;
+                    }
 				} else
 				{
 					// don't check between technologies
@@ -1201,7 +1212,11 @@ public class Quick
 							poly, layer, net, geom, trans, globalIndex,
 							npoly, nLayer, nNet, nGeom, rTrans, cellGlobalIndex,
 							con, dist, edge, rule);
-						if (ret) foundError = true;
+						if (ret)
+                        {
+                            foundError = true;
+                            if (DRC.isOnlyFirstChecking()) return true;
+                        }
 					}
 				}
 			} else
@@ -1273,7 +1288,11 @@ public class Quick
 						poly, layer, net, geom, trans, globalIndex,
 						nPoly, nLayer, nNet, nGeom, upTrans, cellGlobalIndex,
 						con, dist, edge, rule);
-					if (ret) foundError = true;
+					if (ret)
+                    {
+                        foundError = true;
+                        if (DRC.isOnlyFirstChecking()) return true;
+                    }
 				}
 			}
 		}
@@ -1436,7 +1455,7 @@ public class Quick
 							if (!pointsFound[0] && !pointsFound[1])
 							{
 								reportError(MINWIDTHERROR, null, cell, minWidth, actual, wRule.rule, rebuild,
-											geom1, layer1, rebuild, geom2, layer2);
+                                                geom1, layer1, rebuild, geom2, layer2);
 								allFound = false;
 							}
 
@@ -1922,7 +1941,7 @@ public class Quick
 	 */
 	private boolean findInteraction(InstanceInter dii)
 	{
-			for(Iterator it = instanceInteractionList.iterator(); it.hasNext(); )
+		for(Iterator it = instanceInteractionList.iterator(); it.hasNext(); )
 		{
 			InstanceInter thisII = (InstanceInter)it.next();
 			if (thisII.cell1 == dii.cell1 && thisII.cell2 == dii.cell2 &&
@@ -2885,10 +2904,6 @@ public class Quick
 	                    {
 		                    if (!founds[i]) checkExtraPoints.add(points[i]);
 	                    }
-	                    /*
-                         reportError(POLYSELECTERROR, "No enough surround, ", geom.getParent(), minOverlapRule.value, -1, minOverlapRule.rule,
-                                 distPoly, geom, layer, null, null, null);
-                                 */
                     }
 				}
 			}
@@ -3080,14 +3095,20 @@ public class Quick
 		convertPseudoLayers(ni, cropNodePolyList);
 		int tot = cropNodePolyList.length;
 		if (tot < 0) return false;
-		for(int j=0; j<tot; j++)
-			cropNodePolyList[j].transform(trans);
+        // Change #1
+//		for(int j=0; j<tot; j++)
+//			cropNodePolyList[j].transform(trans);
+        boolean [] rotated = new boolean[tot];
+        Arrays.fill(rotated, false);
 		boolean isConnected = false;
 		Netlist netlist = getCheckProto(ni.getParent()).netlist;
 		for(int j=0; j<tot; j++)
 		{
 			Poly poly = cropNodePolyList[j];
 			if (!tech.sameLayer(poly.getLayer(), nLayer)) continue;
+            //only transform when poly is valid
+            poly.transform(trans); // change 1
+            rotated[j] = true;
 			if (nNet >= 0)
 			{
 				if (poly.getPort() == null) continue;
@@ -3126,6 +3147,8 @@ public class Quick
 			{
 				Poly poly = cropNodePolyList[j];
 				if (!tech.sameLayer(poly.getLayer(), nLayer)) continue;
+
+                if (!rotated[j]) poly.transform(trans); // change 1
 
 				// warning: does not handle arbitrary polygons, only boxes
 				Rectangle2D polyBox = poly.getBox();
@@ -3561,8 +3584,9 @@ public class Quick
 		Cell np2 = (geom2 != null) ? geom2.getParent() : null;
 
 		// Message already logged
-		if ( geom2 != null && errorLogger.findMessage(cell, geom1, geom2.getParent(), geom2))
-			return;
+        boolean onlyWarning = (errorType == ZEROLENGTHARCWARN || errorType == TECHMIXWARN);
+		if ( geom2 != null && errorLogger.findMessage(cell, geom1, geom2.getParent(), geom2, !onlyWarning))
+            return;
 
 		StringBuffer errorMessage = new StringBuffer();
 		int sortLayer = cell.hashCode(); // 0;
@@ -3666,7 +3690,7 @@ public class Quick
 		if (rule != null && rule.length() > 0) errorMessage.append(" [rule " + rule + "]");
 		errorMessage.append(DRCexclusionMsg);
 
-		ErrorLogger.MessageLog err = (errorType == ZEROLENGTHARCWARN || errorType == TECHMIXWARN) ?
+		ErrorLogger.MessageLog err = (onlyWarning) ?
 		        errorLogger.logWarning(errorMessage.toString(), cell, sortLayer) :
 		        errorLogger.logError(errorMessage.toString(), cell, sortLayer);
 
