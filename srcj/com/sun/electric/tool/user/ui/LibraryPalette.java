@@ -1,0 +1,214 @@
+package com.sun.electric.tool.user.ui;
+
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.change.DatabaseChangeListener;
+import com.sun.electric.database.change.Undo;
+import com.sun.electric.tool.user.CircuitChanges;
+
+import javax.swing.*;
+import java.util.*;
+import java.util.List;
+import java.awt.*;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+
+/**
+ * This JPanel is a palette of library cells that can be placed in the
+ * PaletteFrame.
+ */
+public class LibraryPalette extends JPanel implements DatabaseChangeListener, MouseListener, 
+        PaletteFrame.PlaceNodeEventListener {
+
+    private Library library;
+    private JScrollPane scrollPane;
+    private JList cellJList;
+    private Map viewPortMap;    // key: library. Object: Integer
+    private JPopupMenu cellPopup;
+
+    /**
+     * The palette panel. This constructor is never used, use the Factory Method
+     * newInstance instead.
+     */
+    public LibraryPalette(Dimension preferredSize) {
+        library = null;
+        viewPortMap = new HashMap();
+        initComponents(preferredSize);
+        Undo.addDatabaseChangeListener(this);
+    }
+
+    /**
+     * Set the library whose cells will be displayed in the palette
+     */
+    public void setLibrary(Library lib) {
+        if (library != lib) {
+            // record old view port point
+            viewPortMap.put(library, cellJList.getVisibleRect());
+        }
+        library = lib;
+        updateCellList();
+    }
+
+    /**
+     * Initialize components
+     */
+    private void initComponents(Dimension preferredSize) {
+        scrollPane = new JScrollPane();
+        cellJList = new JList();
+        cellJList.setCellRenderer(new CustomCellRenderer());
+        cellJList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        cellJList.addMouseListener(this);
+        scrollPane.setViewportView(cellJList);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setPreferredSize(preferredSize);
+        setLayout(new java.awt.BorderLayout());
+        add(scrollPane, BorderLayout.CENTER);
+
+        updateCellList();
+    }
+
+    private void updateCellList() {
+        if (library == null) {
+            cellJList.setListData(new Object[0]);
+            return;
+        }
+
+        List cellList = new ArrayList();
+        for (Iterator it = library.getCells(); it.hasNext(); ) {
+            cellList.add(it.next());
+        }
+        cellList = Library.getCellsSortedByName(cellList);
+        cellJList.setListData(cellList.toArray());
+
+        Rectangle rect = (Rectangle)viewPortMap.get(library);
+        if (rect != null) {
+            cellJList.scrollRectToVisible(rect);
+        }
+    }
+
+    public void databaseChanged(Undo.Change evt) {}
+    public boolean isGUIListener() { return true; }
+    public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+        updateCellList();
+    }
+
+    public void mouseClicked(MouseEvent e) {}
+    public void mouseEntered(MouseEvent e) {}
+    public void mouseExited(MouseEvent e) {}
+    public void mouseReleased(MouseEvent e) {}
+    public void mousePressed(MouseEvent e) {
+        if (e.isShiftDown() || e.isControlDown() || e.isAltDown()) return;
+
+        if (e.isMetaDown()) {
+            // right click: popup menu at location
+            initCellPopup();
+            int index = cellJList.locationToIndex(new Point(e.getX(), e.getY()));
+            Object selected = cellJList.getModel().getElementAt(index);
+            cellJList.setSelectedValue(selected, false);
+            cellPopup.show(this, e.getX(), e.getY());
+        } else {
+            // place cell at location
+            Object selected = cellJList.getSelectedValue();
+            Cell cell = (Cell)selected;
+            PaletteFrame.placeInstance(cell, this, false);
+        }
+    }
+
+    public void placeNodeStarted(Object nodeToBePlaced) {
+    }
+    public void placeNodeFinished(boolean cancelled) {
+        cellJList.clearSelection();
+    }
+
+    private void initCellPopup() {
+        if (cellPopup != null) return;
+
+        cellPopup = new JPopupMenu();
+        JMenuItem m;
+        // edit / duplicate / rename / delete
+        m = new JMenuItem("Edit");
+        m.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) { selectedCellEdit(); }
+        });
+        cellPopup.add(m);
+        m = new JMenuItem("Duplicate");
+        m.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) { selectedCellDuplicate(); }
+        });
+        cellPopup.add(m);
+        m = new JMenuItem("Rename");
+        m.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) { selectedCellRename(); }
+        });
+        cellPopup.add(m);
+        m = new JMenuItem("Delete");
+        m.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) { selectedCellDelete(); }
+        });
+        cellPopup.add(m);
+    }
+
+    private void selectedCellEdit() {
+        Cell cell = (Cell)cellJList.getSelectedValue();
+        if (cell == null) return;
+        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+        if (wf == null) {
+            WindowFrame.createEditWindow(cell);
+        } else {
+            wf.setCellWindow(cell);
+        }
+        cellJList.clearSelection();
+    }
+    private void selectedCellDuplicate() {
+        Cell cell = (Cell)cellJList.getSelectedValue();
+        if (cell == null) return;
+        String newName = JOptionPane.showInputDialog(this, "Name of duplicated cell",
+            cell.getName() + "NEW");
+        if (newName == null) return;
+        CircuitChanges.duplicateCell(cell, newName);
+        cellJList.clearSelection();
+    }
+    private void selectedCellRename() {
+        Cell cell = (Cell)cellJList.getSelectedValue();
+        if (cell == null) return;
+        String newName = JOptionPane.showInputDialog(this, "New name for cell "+cell.getName(),
+            cell.getName() + "NEW");
+        if (newName == null) return;
+        CircuitChanges.renameCellInJob(cell, newName);
+        cellJList.clearSelection();
+    }
+    private void selectedCellDelete() {
+        Cell cell = (Cell)cellJList.getSelectedValue();
+        if (cell == null) return;
+        CircuitChanges.deleteCell(cell, true);
+        cellJList.clearSelection();
+    }
+
+    // -------------------------------------------------------------------
+
+    class CustomCellRenderer extends DefaultListCellRenderer {
+
+        /* This is the only method defined by ListCellRenderer.  We just
+        * reconfigure the Jlabel each time we're called.
+        */
+        public Component getListCellRendererComponent(
+                JList list,
+                Object value,   // value to display
+                int index,      // cell index
+                boolean iss,    // is the cell selected
+                boolean chf)    // the list and the cell have the focus
+        {
+            /* The DefaultListCellRenderer class will take care of
+            * the JLabels text property, it's foreground and background
+            * colors, and so on.
+            */
+            Cell cell = (Cell)value;
+            super.getListCellRendererComponent(list, cell.noLibDescribe(), index, iss, chf);
+            return this;
+        }
+    }
+
+}
