@@ -52,10 +52,10 @@ inflated: InflatedLinearMap.class
 	java -server -classpath $(JARLOC):. InflatedLinearMap
 
 floats: TestFloatingDecimal.class
-	java -server -enableassertions -XX:+PrintCompilation -classpath $(JARLOC):. TestFloatingDecimal
+	java -server -enableassertions -classpath $(JARLOC):. TestFloatingDecimal
 
-# floatp: FloatingDecimal.class
-#	java -server -XX:+PrintCompilation -classpath $(JARLOC):. FloatingDecimal
+floatp: TestFloatingDecimal.class
+	java -server -XX:+PrintCompilation -classpath $(JARLOC):. TestFloatingDecimal
 
 clean:
 	rm -rf *.class

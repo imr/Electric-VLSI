@@ -48,7 +48,6 @@ public class FloatingDecimal{
     static final int	maxDecimalExponent = 308;
     static final int	minDecimalExponent = -324;
     static final int	bigDecimalExponent = 324; // i.e. abs(minDecimalExponent)
-    static final int    minBinaryExponent = 1 - expBias - expShift; // log2(Double.MIN_VALUE)
 
     static final long	highbyte = 0xff00000000000000L;
     static final long	highbit  = 0x8000000000000000L;
@@ -63,7 +62,6 @@ public class FloatingDecimal{
     static final int	singleMaxDecimalDigits = 7;
     static final int	singleMaxDecimalExponent = 38;
     static final int	singleMinDecimalExponent = -45;
-    static final int    singleMinBinaryExponent = 1 - singleExpBias - singleExpShift; // log2(Float.MIN_VALUE)
 
     static final int	intDecimalDigits = 9;
 
@@ -1898,7 +1896,7 @@ public class FloatingDecimal{
 	    return isNegative?Double.NEGATIVE_INFINITY:Double.POSITIVE_INFINITY;
 
 	int pentExp = decExponent - nDigits;
-	// "Ev == digits.0 * 2^(decExponent - nDigits) * 5^pentExp"
+	// assert "Ev == digits.0 * 2^(decExponent - nDigits) * 5^pentExp"
 
 	// Cancel "5" factors from significand if "pentExp" is negative.
 	char[] localDigits = digits;
@@ -1933,11 +1931,10 @@ public class FloatingDecimal{
 	    nLocalDigits = nDigits - nZeros;
 	    System.arraycopy(localDigits, nZeros, localDigits, 0, nLocalDigits);
 	}
-	// "Ev == localDigits.0 * 2^(decExponent - nDigits) * 5^pentExp"
+	// assert "Ev == localDigits.0 * 2^(decExponent - nDigits) * 5^pentExp"
 
 	// Convert "localDigits" to "bits".
 	int binExp;
-	BigInteger Bits = null; // assert-only
 	int nBits; // size of "bits".
 	int wBits; // size of "bits" in words.
 	long lBits; // Left-adjusted higher "bits".
@@ -2006,7 +2003,7 @@ public class FloatingDecimal{
 	    nBits = 32*wBits - trailingZeroCnt(wBits == 2 ? (int)lBits : wBits == 1 ? (int)(lBits >>> 32) : bBits.data[0]);
 	}
 	binExp += decExponent - nDigits;
-	// "Ev == 0.bits * 2^binExp * 5^pentExp".
+	// assert "Ev == 0.bits * 2^binExp * 5^pentExp".
 
 	int threshExp;
 	Pow5 p5;
@@ -2020,20 +2017,7 @@ public class FloatingDecimal{
 	    threshExp = binExp - p5.nBits + 1;
 	    p5bBits = p5.bBitsD;
 	}
-	// "2^(threshExp - 2) <= Ev < 2^threshExp"
-
-	int minBinExp = (doublePrecision ? minBinaryExponent : singleMinBinaryExponent);
-	// Check if exact value between 0 and MIN_VALUE.
-	if (threshExp <= (roundHalf ? minBinExp - 1 : minBinExp)) {
-	    if (roundingMode == BigDecimal.ROUND_UNNECESSARY)      /* Rounding prohibited */
-		throw new ArithmeticException("Rounding necessary");
-	    double res;
-	    if (roundUp && !roundHalf)
-		res = (doublePrecision ? Double.MIN_VALUE : Float.MIN_VALUE);
-	    else
-		res = 0.0;
-	    return isNegative?-res:res;
-	}
+	// assert "2^(threshExp - 2) <= Ev < 2^threshExp"
 
 	// Partially multiply "0.bits * 2^binExp" by p^5
 	// Approximation will be "0.sumH * 2^binExp + 0.sumL * 2^(binExp - 32)"
@@ -2066,23 +2050,99 @@ public class FloatingDecimal{
 	 *   "Mult(x, y, m) = (Sum | 0 <= i, 0 <= j, i + j < m |
 	 *                     xbits[i*32:(i+1)*32-1]*ybits[j*32:(j+1)*32-1] * 2^(pa + pb - 32*(i+j+2))"
 	 * Let "sumHL" is concatenation of 64 bits of sumH and lower 32 bits of "sumL".
+	 * Estimating cancelled items of partial product and "sumL", accuracy of "sumH" is 4 bits.
 	 */
-	// "0.sumHL * 2^threshExp == Mult(0.bits * 2^binExp, 5^pentExp, 2)"
+	// assert "0.sumHL * 2^threshExp == Mult(0.bits * 2^binExp, 5^pentExp, 2)"
+	// assert "0 <= Ev - sumH.0 * 2^threshExp  <  4 * 2^(threshExp - 64)"
 
 	/*
-	 *Estimating cancelled items of partial product and "sumL", we have:
-	 * "0 <= Ev - sumH.0 * 2^threshExp  <  4 * 2^(threshExp - 64)"
-	 *
 	 * The accuracy of sumH permits to retain only two adjacent floating-point candidates.
-	 * The code below will put threshold between these candates into "threadExp" and "threshBits".
-	 * It also computed "diff = Diff(2), where Diff(m) is defined below.
+	 *
+	 * A vicinity of floating-point number for a given floating precision and
+	 * for a given rounding mode is a set of real numbers which rounds to this
+	 * floating point number.
+	 *
+	 * A threshold for a given floating precision and rounding mode is
+	 * a real number "Th = 0.threshBits * 2^threshExp" , which separates two
+	 * adjacent vicinities. Threshold is between adjacent floating-point numbers, for
+	 * HALF_* rounding modes and it is floating-point number otherwise.
+	 *
+	 * The code below chooses two adjacent vicinities and subtract threshold between them
+	 * from "sumHL". It also prepares in "ieeeBits" bit coding of the lower floating-point number
+	 * for HALF_* rounding modes, or threshold floating-point number otherwise.
 	 */
-
-	assert threshExp > (roundHalf ? minBinExp - 1 : minBinExp);
-	long threshBits = roundingThreshold(sumH, threshExp, roundHalf, doublePrecision);
-	assert threshBits == 0 || (threshBits & 0xC000000000000000L) != 0;
-	// "Th == (threshBits == 0 ? 1.0 : 0.threshBits)
-	sumH -= threshBits;
+	boolean highBit = (sumH & signMask) != 0;
+	int ieeeExp = threshExp - (highBit ? 1 : 2);
+	//System.out.println("threshExp="+threshExp+" ieeeExp="+ieeeExp+" sumH="+Long.toHexString(sumH));
+	long ieeeBits;
+	long threshBits;
+	int threshShift;
+	if (doublePrecision) {
+	    if (ieeeExp > -expBias) {
+		if (ieeeExp > expBias) {
+		    if (roundingMode == BigDecimal.ROUND_UNNECESSARY)      /* Rounding prohibited */
+			throw new ArithmeticException("Rounding necessary");
+		    double res = (roundHalf || roundUp ? Double.POSITIVE_INFINITY : Double.MAX_VALUE);
+		    return isNegative?-res:res;
+		}
+		threshShift = (highBit ? 62 - expShift : 61 - expShift);
+		threshBits = sumH >>> threshShift;
+		threshBits = roundHalf ? threshBits | 1 : (threshBits + 1) & ~1;
+		if (!roundHalf && ieeeExp == expBias && roundUp && (threshBits & (1L << (expShift + 2))) != 0) {
+		    assert threshBits == (1L << (expShift + 2));
+		    threshBits -= 2;
+		}
+		ieeeBits = (((long)(ieeeExp + (expBias - 1))) << expShift) + (threshBits >> 1);
+	    } else {
+		threshShift = (64 - expBias - expShift) - threshExp;
+		if (threshShift >= (roundHalf ? 64 : 63)) {
+		    if (roundingMode == BigDecimal.ROUND_UNNECESSARY)      /* Rounding prohibited */
+			throw new ArithmeticException("Rounding necessary");
+		    double res = (roundHalf || !roundUp ? 0.0 : Double.MIN_VALUE);
+		    return isNegative?-res:res;
+		}
+		assert threshShift < (roundHalf ? 64 : 63);
+		threshBits = sumH >>> threshShift;
+		threshBits = roundHalf ? threshBits | 1 : (threshBits + 1) & ~1;
+		ieeeBits = threshBits >> 1;
+	    }
+	    if (isNegative)
+		ieeeBits |= signMask;
+	} else {
+	    if (ieeeExp > - singleExpBias) {
+		if (ieeeExp > singleExpBias) {
+		    if (roundingMode == BigDecimal.ROUND_UNNECESSARY)      /* Rounding prohibited */
+			throw new ArithmeticException("Rounding necessary");
+		    double res = (roundHalf || roundUp ? Float.POSITIVE_INFINITY : Float.MAX_VALUE);
+		    return isNegative?-res:res;
+		}
+		threshShift = (highBit ? 62 - singleExpShift : 61 - singleExpShift);
+		threshBits = sumH >>> threshShift;
+		threshBits = roundHalf ? threshBits | 1 : (threshBits + 1) & ~1;
+		if (!roundHalf && ieeeExp == singleExpBias && roundUp && (threshBits & (1L << (singleExpShift + 2))) != 0) {
+		    assert threshBits == (1L << (singleExpShift + 2));
+		    threshBits -= 2;
+		}
+		ieeeBits = ((ieeeExp + (singleExpBias - 1)) << singleExpShift) + (threshBits >> 1);
+	    } else {
+		threshShift = (64 - singleExpBias - singleExpShift) - threshExp;
+		if (threshShift >= (roundHalf ? 64 : 63)) {
+		    if (roundingMode == BigDecimal.ROUND_UNNECESSARY)      /* Rounding prohibited */
+			throw new ArithmeticException("Rounding necessary");
+		    double res = (roundHalf || !roundUp ? 0.0 : Float.MIN_VALUE);
+		    return isNegative?-res:res;
+		}
+		assert threshShift < (roundHalf ? 64 : 63);
+		threshBits = sumH >>> threshShift;
+		threshBits = roundHalf ? threshBits | 1 : (threshBits + 1) & ~1;
+		ieeeBits = (int)(threshBits >> 1);
+	    }
+	    if (isNegative)
+		ieeeBits |= singleSignMask;
+	}
+	assert (1L << Math.max(62 - threshShift, 0)) <= threshBits && threshBits <= (1L << (64 - threshShift));
+	sumH -= threshBits << threshShift;
+	//System.out.println("Thresh="+Long.toHexString(threshBits << threshShift)+" ieeeBits="+Long.toHexString(ieeeBits));
 	long diff = sumH > Integer.MAX_VALUE ? Long.MAX_VALUE :
 	    sumH < Integer.MIN_VALUE ? -Long.MAX_VALUE :
 	    (sumH << 32) | sumL;
@@ -2090,15 +2150,7 @@ public class FloatingDecimal{
 	 * Define
 	 *   "Diff(m) = (Mult(0.bits * 2^binExp, 5^pentExp, m) - Th) * 2^(32*(m + 1) - threshExp)".
 	 */
-	// |diff| <  Long.MAX_VALUE  =>  diff == Diff(2)
-	// |diff| >= Long.MAX_VALUE  =>  signum(diff) == signum(Diff(2))
-
-	// Refine roundUp for found Th.
-	if (roundingMode == BigDecimal.ROUND_HALF_EVEN) {
-	    long mask = ~(threshBits|-threshBits); // mask of trailing zeros
-	    assert (mask&0x1ffL) == 0x1ffL : mask;
-	    roundUp = (((threshBits >>> 1)&mask) >>> 1) != ((threshBits >>> 2)&mask); // last two bits are '11'
-	}
+	// assert "|diff| <  Long.MAX_VALUE ? diff == Diff(2) : signum(diff) == signum(Diff(2))"
 
 	// Compute Diff(m) until signum(Diff) found.
 	for (int m = 2;; m++) {
@@ -2148,56 +2200,20 @@ public class FloatingDecimal{
 
 	if (roundingMode == BigDecimal.ROUND_UNNECESSARY && diff != 0)      /* Rounding prohibited */
 	    throw new ArithmeticException("Rounding necessary");
-	int correction = 0;
+	// Refine roundUp for found Th.
+	if (roundingMode == BigDecimal.ROUND_HALF_EVEN)
+	    roundUp = (threshBits&2) != 0;
+	// Correct ieeeBits
 	if (roundHalf) {
 	    if (roundUp && diff >= 0 || diff > 0)
-		correction = 1;
+		ieeeBits++;
 	} else {
 	    if (roundUp && diff > 0)
-		correction = 1;
+		ieeeBits++;
 	    if (!roundUp && diff < 0)
-		correction = -1;
+		ieeeBits--;
 	}
-	return assembleFromThresh(threshBits, threshExp, correction, doublePrecision);
-    }
-
-    /*
-     * A vicinity of floating-point number for a given floating precision and
-     * for a given rounding mode is a set of real numbers which rounds to this
-     * floating point number.
-     *
-     * A threshold for a given floating precision and rounding mode is
-     * a real number "thresh = 0.threshBits * 2^threshExp" , which separates two
-     * adjacent vicinities. Threshold is between adjacent floating-point numbers, for
-     * HALF_* rounding modes and it is floating-point number otherwise.
-     *
-     * This routing finds for given "x = 0.bits * 2^threshExp" the "nearest" threshold.
-     * For HALF_* rounding modes, it returns middle of interval with floating-point
-     * endpoints, to which "x" belongs. For other rounding modes, it returns floating-point
-     * number which is ROUND_UP of "x".
-     *
-     * This routine knows about minimal binary exponent and subnormal numbers, but it
-     * cosiders maximal binary exponent unlimited.
-     *
-     * "threshExp" should be greater then (roundHalf ? minBinExp - 1 : minBinExp).
-     * "bits" should be almost normalized (At least one of two most significant bits is "1").
-     * In this case 2^(threshExp - 2) <= thresh <= 2^threshExp. This routine returns 0 when
-     * thresh == 2^threshExp.
-     */
-    private static long roundingThreshold(long bits, int threshExp, boolean roundHalf, boolean doublePrecision) {
-	final int doubleShift = 63 - (expShift + 1);
-	final int singleShift = 63 - (singleExpShift + 1);
-	final int doubleSubnormalShift = 63 + minBinaryExponent;
-	final int singleSubnormalShift = 63 + singleMinBinaryExponent;
-	assert (bits & 0xC000000000000000L) != 0;
-	int shift = (doublePrecision ?
-	    Math.max( ((bits & signMask) != 0 ? doubleShift : doubleShift - 1), doubleSubnormalShift - threshExp ) :
-	    Math.max( ((bits & signMask) != 0 ? singleShift : singleShift - 1), singleSubnormalShift - threshExp ));
-	assert 9 <= shift && shift < (roundHalf ? 64 : 63);
-	bits >>>= shift;
-	bits = roundHalf ? bits | 1 : (bits + 1) & ~1;
-	assert (1L << Math.max(62 - shift, 0)) <= bits && bits <= (1L << (64 - shift));
-	return bits << shift;
+	return doublePrecision ? Double.longBitsToDouble(ieeeBits) : (double)Float.intBitsToFloat((int)ieeeBits);
     }
 
     /*
@@ -2221,57 +2237,6 @@ public class FloatingDecimal{
 	else if (eBits > eThresh)
 	    bThresh.lshiftMe(eBits - eThresh);
 	return bBits.cmp(bThresh.mult(pow5.big));
-    }
-
-    /*
-     * Returns double value assembled from "thresh" and corrected by "correction".
-     */
-    private double assembleFromThresh(long threshBits, int threshExp, int correction, boolean doublePrecision) {
-	// Normalize
-	if (threshBits == 0) {
-	    threshBits = signMask;
-	    threshExp++;
-	} else if ((threshBits&signMask) == 0) {
-	    threshBits <<= 1;
-	    threshExp--;
-	}
-
-	// Convert to IEEE bits and make correction
-	if (doublePrecision) {
-	    assert threshExp >= minBinaryExponent;
-	    long ieee;
-	    if (threshExp > expBias) { // Infinity
-		if (correction > 0)
-		    correction = 0;
-		ieee = (expBias*2 + 1) << expShift;
-	    } else if (threshExp >= -expBias + 1) { // Normal
-		int exp = threshExp + (expBias-1);
-		ieee = (((long)exp) << expShift) | ((threshBits & ~signMask) >>> (63 - expShift));
-	    } else { // Subnormal
-		ieee = (threshBits >> (threshExp + (63 - minBinaryExponent)));
-	    }
-	    if (isNegative)
-		ieee |= signMask;
-	    ieee += correction;
-	    return Double.longBitsToDouble(ieee);
-	} else {
-	    assert threshExp >= singleMinBinaryExponent;
-	    int ieee;
-	    if (threshExp > singleExpBias) { // Infinity
-		if (correction > 0)
-		    correction = 0;
-		ieee = (singleExpBias*2 + 1) << singleExpShift;
-	    } else if (threshExp >= -singleExpBias - 1) { // Normal
-		int exp = threshExp + (singleExpBias-1);
-		ieee = (exp << singleExpShift) | (int)((threshBits & ~signMask) >>> (63 - singleExpShift));
-	    } else { // Subnormal
-		ieee = (int)(threshBits >> (threshExp + (63 - singleMinBinaryExponent)));
-	    }
-	    if (isNegative)
-		ieee |= singleSignMask;
-	    ieee += correction;
-	    return (double)Float.intBitsToFloat(ieee);
-	}
     }
 
     /*
