@@ -181,6 +181,7 @@ public class Quick
 	{
 		Cell cell;
 		Poly poly;
+		NodeInst ni;
 	};
 	private List exclusionList = new ArrayList();
 
@@ -2073,71 +2074,44 @@ public class Quick
 				// Layer doesn't have min area
 				if (minAreaRule == null && encloseAreaRule == null) continue;
 
-				Collection set = quickArea.netMerge.getObjects(layer, false, false);
+				Collection set = quickArea.netMerge.getObjects(layer, false, true);
 
 				for(Iterator pIt = set.iterator(); pIt.hasNext(); )
 				{
 					PolyQTree.PolyNode pn = (PolyQTree.PolyNode)pIt.next();
-					Object[] polyArray = pn.getSimpleObjects().toArray();
-
+					//Object obj = loopList.get(j);
+					//PolyQTree.PolyNode localPn = (PolyQTree.PolyNode)polyArray[j];
+					if (pn == null) throw new Error("wrong condition in Quick.checkMinArea()");
+					/*
+					List list = (List)obj;
+					if ( list.size() > 1) Collections.sort(list);
+					*/
+					//Object[] list = pn.getSimpleObjects(true).toArray();
+					List list = pn.getSortedLoops();
+					// Order depends on area comparison done. First element is the smallest.
+					// and depending on # polygons it could be minArea or encloseArea
+					DRCRules.DRCRule evenRule = (list.size()%2==0) ? encloseAreaRule : minAreaRule;
+					DRCRules.DRCRule oddRule = (evenRule == minAreaRule) ? encloseAreaRule : minAreaRule;
+					//int count = 0;
+					//for(Iterator localIt = list.iterator(); localIt.hasNext(); )
 					// Looping over simple polygons. Possible problems with disconnected elements
 					// polyArray.length = Maximum number of distintic loops
-					List loopList = new ArrayList();
-					// Expensive operation!!
-					for (int i = 0; i < polyArray.length; i++)
+					for (int i = 0; i < list.size(); i++)
 					{
-						PolyQTree.PolyNode simplePn = (PolyQTree.PolyNode)polyArray[i];
-						boolean found = false;
-						for (int j = 0; !found && j < loopList.size(); j++)
-						{
-							List list = (List)loopList.get(j);
-							if (list == null) throw new Error("wrong condition in Quick.checkMinArea()");
-							for (int k = 0; !found && k < list.size(); k++)
-							{
-								PolyQTree.PolyNode thisPn = (PolyQTree.PolyNode)list.get(k);
-								if (thisPn.contains(simplePn.getBounds2D()) ||
-								    simplePn.contains(thisPn.getBounds2D()))
-								{
-									found = true;
-									list.add(simplePn);
-								}
-							}
-						}
-						if (!found)
-						{
-							List list = new ArrayList();
-							list.add(simplePn);
-							loopList.add(list);
-						}
-					}
-					//for (int i = 0; i < polyArray.length; i++)
-					for (int j = 0; j < loopList.size(); j++)
-					{
-						Object obj = loopList.get(j);
-						if (obj == null) throw new Error("wrong condition in Quick.checkMinArea()");
-						List list = (List)obj;
-						if ( list.size() > 1) Collections.sort(list);
-						// Order depends on area comparison done. First element is the smallest.
-						// and depending on # polygons it could be minArea or encloseArea
-						DRCRules.DRCRule evenRule = (list.size()%2==0) ? encloseAreaRule : minAreaRule;
-						DRCRules.DRCRule oddRule = (evenRule == minAreaRule) ? encloseAreaRule : minAreaRule;
-						for (int i = 0; i < list.size(); i++)
-						{
-							PolyQTree.PolyNode simplePn = (PolyQTree.PolyNode)list.get(i);
-							double area = simplePn.getArea();
-							DRCRules.DRCRule minRule = (i%2 == 0) ? evenRule : oddRule;
+						PolyQTree.PolyNode simplePn = (PolyQTree.PolyNode)list.get(i);
+						double area = simplePn.getArea();
+						DRCRules.DRCRule minRule = (i%2 == 0) ? evenRule : oddRule;
 
-							if (minRule == null) continue;
+						if (minRule == null) continue;
 
-							double actual = area - minRule.value;
+						double actual = area - minRule.value;
 
-							if (actual >= 0) continue;
+						if (actual >= 0) continue;
 
-							errorFound = true;
-							int errorType = (minRule == minAreaRule) ? MINAREAERROR : ENCLOSEDAREAERROR;
-							reportError(errorType, null, cell, minRule.value, area, minRule.rule,
-									new Poly(simplePn.getPoints()), ni, layer, null, null, null);
-						}
+						errorFound = true;
+						int errorType = (minRule == minAreaRule) ? MINAREAERROR : ENCLOSEDAREAERROR;
+						reportError(errorType, null, cell, minRule.value, area, minRule.rule,
+								new Poly(simplePn.getPoints()), ni, layer, null, null, null);
 					}
 				}
 			}
@@ -3069,6 +3043,7 @@ public class Quick
 				// extract the information about this DRC exclusion node
 				dex.poly = new Poly(ni.getBounds());
 				dex.poly.setStyle(Poly.Type.FILLED);
+				dex.ni = ni;
 
 				// see if it is already in the list
 				boolean found = false;
@@ -3121,9 +3096,19 @@ public class Quick
 //		}
 
 		// if this error is in an ignored area, don't record it
+		String DRCexclusionMsg = "";
 		if (exclusionList.size() > 0)
 		{
 			// determine the bounding box of the error
+			List polyList = new ArrayList(2);
+			List geomList = new ArrayList(2);
+			polyList.add(poly1); geomList.add(geom1);
+			if (poly2 != null)
+			{
+				polyList.add(poly2);
+				geomList.add(geom2);
+			}
+			/*
 			Rectangle2D polyBounds = poly1.getBounds2D();
 			double lX = polyBounds.getMinX();   double hX = polyBounds.getMaxX();
 			double lY = polyBounds.getMinY();   double hY = polyBounds.getMaxY();
@@ -3135,15 +3120,32 @@ public class Quick
 				if (polyBounds.getMinY() < lY) lY = polyBounds.getMinY();
 				if (polyBounds.getMaxY() > hY) hY = polyBounds.getMaxY();
 			}
+			*/
 			for(Iterator it = exclusionList.iterator(); it.hasNext(); )
 			{
 				DRCExclusion dex = (DRCExclusion)it.next();
 				if (cell != dex.cell) continue;
 				Poly poly = dex.poly;
+				int count = 0;
+
+				for (int i = 0; i < polyList.size(); i++)
+				{
+					Poly thisPoly = (Poly)polyList.get(i);
+					boolean found = poly.contains(thisPoly.getBounds2D());
+
+					if (found) count++;
+					else DRCexclusionMsg += " (DRC Exclusion '" + dex.ni.getName() + "' does not completely contain '" +
+						        ((Geometric)geomList.get(i)).describe() + "')";
+				}
+				// At least one DRC exclusion that contains both
+				if (count == polyList.size())
+					return;
+				/*
 				if (poly.isInside(new Point2D.Double(lX, lY)) &&
 					poly.isInside(new Point2D.Double(lX, hY)) &&
 					poly.isInside(new Point2D.Double(hX, lY)) &&
 					poly.isInside(new Point2D.Double(hX, hY))) return;
+					*/
 			}
 		}
 
@@ -3242,6 +3244,7 @@ public class Quick
 			errorMessage += errorMessagePart2;
 		}
 		if (rule != null && rule.length() > 0) errorMessage += " [rule " + rule + "]";
+		errorMessage += DRCexclusionMsg;
 
 		ErrorLogger.ErrorLog err = errorLogger.logError(errorMessage, cell, sortLayer);
 		boolean showGeom = true;

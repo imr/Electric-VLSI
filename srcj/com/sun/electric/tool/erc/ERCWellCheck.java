@@ -327,15 +327,7 @@ public class ERCWellCheck
 					{
 						int layertype = getWellLayerType(wa.layer);
 						if (layertype == 0) continue;
-						String areaType = null;
-						switch (layertype)
-						{
-							case 1: areaType = "P-Well";    break;
-							case 2: areaType = "N-Well";    break;
-							case 3: areaType = "P-Select";  break;
-							case 4: areaType = "N-Select";  break;
-						}
-						ErrorLog err = errorLogger.logError(areaType + " areas too close (are "
+						ErrorLog err = errorLogger.logError(wa.layer.getName() + " areas too close (are "
 						        + TextUtils.formatDouble(dist, 1) + ", should be "
 						        + TextUtils.formatDouble(rule.value, 1) + ")", cell, 0);
 						err.addPoly(wa.poly, true, cell);
@@ -454,130 +446,6 @@ public class ERCWellCheck
 		}
 	}
 
-    public static class VisitorNew extends HierarchyEnumerator.Visitor
-    {
-        public boolean enterCell(HierarchyEnumerator.CellInfo info)
-        {
-            return true;
-        }
-
-        public void exitCell(HierarchyEnumerator.CellInfo info)
-        {
-			// make an object for merging all of the wells in this cell
-			Cell cell = info.getCell();
-			PolyQTree merge = (PolyQTree)cellMerges.get(cell);
-
-			if (merge == null)
-			{
-				merge = new PolyQTree(cell.getBounds());
-				cellMerges.put(cell, merge);
-
-				// merge everything
-				for(Iterator it = cell.getNodes(); it.hasNext(); )
-				{
-					NodeInst ni = (NodeInst)it.next();
-					AffineTransform trans = ni.rotateOut();
-					NodeProto subNp = ni.getProto();
-
-					if (subNp instanceof PrimitiveNode)
-					{
-						PrimitiveNode pNp = (PrimitiveNode)subNp;
-						Technology tech = pNp.getTechnology();
-						Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, null, true, true);
-						int tot = nodeInstPolyList.length;
-						for(int i=0; i<tot; i++)
-						{
-							Poly poly = nodeInstPolyList[i];
-							Layer layer = poly.getLayer();
-							if (getWellLayerType(layer) == 0) continue;
-							poly.transform(trans);
-							merge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()));
-						}
-					} else
-					{
-						// get sub-merge information for the cell instance
-						PolyQTree subMerge = (PolyQTree)cellMerges.get(subNp);
-
-						if (subMerge != null)
-						{
-							AffineTransform tTrans = ni.translateOut();
-							tTrans.concatenate(trans);
-							merge.addAll(subMerge, tTrans);
-						}
-					}
-				}
-				for(Iterator it = cell.getArcs(); it.hasNext(); )
-				{
-					ArcInst ai = (ArcInst)it.next();
-
-					Technology tech = ai.getProto().getTechnology();
-					Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
-					int tot = arcInstPolyList.length;
-					for(int i=0; i<tot; i++)
-					{
-						Poly poly = arcInstPolyList[i];
-						Layer layer = poly.getLayer();
-						if (getWellLayerType(layer) == 0) continue;
-						merge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()));
-					}
-				}
-			}
-
-			// look for well and substrate contacts
-			for(Iterator it = cell.getNodes(); it.hasNext(); )
-			{
-				NodeInst ni = (NodeInst)it.next();
-				AffineTransform trans = ni.rotateOut();
-				NodeProto.Function fun = ni.getFunction();
-				if (fun == NodeProto.Function.WELL || fun == NodeProto.Function.SUBSTRATE)
-				{
-					WellCon wc = new WellCon();
-					wc.ctr = ni.getTrueCenter();
-					trans.transform(wc.ctr, wc.ctr);
-					info.getTransformToRoot().transform(wc.ctr, wc.ctr);
-					wc.np = ni.getProto();
-					wc.fun = fun;
-					wc.index = wellConIndex++;
-					PortInst pi = ni.getOnlyPortInst();
-					Netlist netList = info.getNetlist();
-					JNetwork net = netList.getNetwork(pi);
-					wc.netNum = info.getNetID(net);
-					wc.onProperRail = false;
-					if (net != null)
-					{
-						if (fun == NodeProto.Function.WELL)
-						{
-							// PWell: must be on ground
-//							for(pp = np->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
-//							{
-//								if ((pp->userbits&STATEBITS) != GNDPORT) continue;
-//								if (pp->network == net) break;
-//							}
-//							if (pp != null)
-								wc.onProperRail = true;
-						} else
-						{
-							// NWell: must be on power
-//							for(pp = np->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
-//							{
-//								if ((pp->userbits&STATEBITS) != PWRPORT) continue;
-//								if (pp->network == net) break;
-//							}
-//							if (pp != null)
-								wc.onProperRail = true;
-						}
-					}
-					wellCons.add(wc);
-				}
-			}
-       }
-
-        public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
-        {
-            return true;
-        }
-    }
-
 	public static class Visitor extends HierarchyEnumerator.Visitor
     {
 		boolean newAlgorithm;
@@ -589,6 +457,18 @@ public class ERCWellCheck
 
         public boolean enterCell(HierarchyEnumerator.CellInfo info)
         {
+			// make an object for merging all of the wells in this cell
+			Cell cell = info.getCell();
+	        GeometryHandler thisMerge = (GeometryHandler)cellMerges.get(cell);
+
+			if (thisMerge == null)
+			{
+				if (newAlgorithm)
+					thisMerge = new PolyQTree(cell.getBounds());
+				else
+					thisMerge = new PolyMerge();
+				cellMerges.put(cell, thisMerge);
+			}
             return true;
         }
 
@@ -596,76 +476,73 @@ public class ERCWellCheck
         {
 			// make an object for merging all of the wells in this cell
 			Cell cell = info.getCell();
-	        GeometryHandler merge = (GeometryHandler)cellMerges.get(cell);
+	        /*GeometryHandler merge = (GeometryHandler)cellMerges.get(cell);
+            */
+	        GeometryHandler thisMerge = (GeometryHandler)cellMerges.get(info.getCell());
+			if (thisMerge == null) throw new Error("wrong condition in ERCWellCheck.enterCell()");
 
-			if (merge == null)
+			// merge everything sub trees
+			for(Iterator it = cell.getNodes(); it.hasNext(); )
 			{
-				if (newAlgorithm)
-					merge = new PolyQTree(cell.getBounds());
-				else
-					merge = new PolyMerge();
-				cellMerges.put(cell, merge);
-			} else if (Main.getDebug())
-				System.out.println("Chech this condition in ERCWellCheck::exitCell");
-
-				// merge everything
-				for(Iterator it = cell.getNodes(); it.hasNext(); )
+				NodeInst ni = (NodeInst)it.next();
+				NodeProto subNp = ni.getProto();
+				if (subNp instanceof PrimitiveNode)
 				{
-					NodeInst ni = (NodeInst)it.next();
-					AffineTransform trans = ni.rotateOut();
-					NodeProto subNp = ni.getProto();
-					if (subNp instanceof PrimitiveNode)
-					{
-						PrimitiveNode pNp = (PrimitiveNode)subNp;
-						Technology tech = pNp.getTechnology();
-						Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, null, true, true);
-						int tot = nodeInstPolyList.length;
-						for(int i=0; i<tot; i++)
-						{
-							Poly poly = nodeInstPolyList[i];
-							Layer layer = poly.getLayer();
-							if (getWellLayerType(layer) == 0) continue;
-							poly.transform(trans);
-                            Object newElem = poly;
-
-							if (newAlgorithm)
-								newElem = new PolyQTree.PolyNode(poly.getBounds2D());
-							merge.add(layer, newElem);
-						}
-					} else
-					{
-						// get sub-merge information for the cell instance
-						GeometryHandler subMerge = (GeometryHandler)cellMerges.get(subNp);
-						if (subMerge != null)
-						{
-							AffineTransform tTrans = ni.translateOut();
-							tTrans.concatenate(trans);
-							merge.addAll(subMerge, tTrans);
-						}
-					}
-				}
-				for(Iterator it = cell.getArcs(); it.hasNext(); )
-				{
-					ArcInst ai = (ArcInst)it.next();
-
-					Technology tech = ai.getProto().getTechnology();
-					Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
-					int tot = arcInstPolyList.length;
+					/*
+					PrimitiveNode pNp = (PrimitiveNode)subNp;
+					Technology tech = pNp.getTechnology();
+					Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, null, true, true);
+					int tot = nodeInstPolyList.length;
 					for(int i=0; i<tot; i++)
 					{
-						Poly poly = arcInstPolyList[i];
+						Poly poly = nodeInstPolyList[i];
 						Layer layer = poly.getLayer();
 						if (getWellLayerType(layer) == 0) continue;
-                        Object newElem = poly;
+						poly.transform(trans);
+						Object newElem = poly;
 
 						if (newAlgorithm)
 							newElem = new PolyQTree.PolyNode(poly.getBounds2D());
-						merge.add(layer, newElem);
+						thisMerge.add(layer, newElem);
+					}
+					*/
+				} else
+				{
+					// get sub-merge information for the cell instance
+					GeometryHandler subMerge = (GeometryHandler)cellMerges.get(subNp);
+					if (subMerge != null)
+					{
+						AffineTransform trans = ni.rotateOut();
+						//AffineTransform tTrans = ni.translateOut();
+						//tTrans.concatenate(trans);
+                        AffineTransform tTrans = ni.translateOut(trans);
+						thisMerge.addAll(subMerge, tTrans);
 					}
 				}
+			}
+			for(Iterator it = cell.getArcs(); it.hasNext(); )
+			{
+				ArcInst ai = (ArcInst)it.next();
+
+				Technology tech = ai.getProto().getTechnology();
+				Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
+				int tot = arcInstPolyList.length;
+				for(int i=0; i<tot; i++)
+				{
+					Poly poly = arcInstPolyList[i];
+					Layer layer = poly.getLayer();
+					if (getWellLayerType(layer) == 0) continue;
+					Object newElem = poly;
+
+					if (newAlgorithm)
+						newElem = new PolyQTree.PolyNode(poly.getBounds2D());
+					thisMerge.add(layer, newElem);
+				}
+			}
 
 			// look for well and substrate contacts
-			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			/*
+	        for(Iterator it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				AffineTransform trans = ni.rotateOut();
@@ -712,10 +589,97 @@ public class ERCWellCheck
 					wellCons.add(wc);
 				}
 			}
+			*/
        }
 
         public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
         {
+			// merge everything
+	        GeometryHandler thisMerge = (GeometryHandler)cellMerges.get(info.getCell());
+				NodeInst ni = no.getNodeInst();
+				//AffineTransform trans = ni.transformOut();
+	            AffineTransform trans = ni.rotateOut();
+				NodeProto subNp = ni.getProto();
+				if (subNp instanceof PrimitiveNode)
+				{
+					PrimitiveNode pNp = (PrimitiveNode)subNp;
+					Technology tech = pNp.getTechnology();
+					Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, null, true, true);
+					int tot = nodeInstPolyList.length;
+					for(int i=0; i<tot; i++)
+					{
+						Poly poly = nodeInstPolyList[i];
+						Layer layer = poly.getLayer();
+						if (getWellLayerType(layer) == 0) continue;
+						poly.transform(trans);
+						Object newElem = poly;
+
+						if (newAlgorithm)
+							newElem = new PolyQTree.PolyNode(poly.getBounds2D());
+						thisMerge.add(layer, newElem);
+					}
+				} else
+				{
+					// This condition might be when more than one instance of primitive node
+					// is placed in this current cell.
+					// get sub-merge information for the cell instance
+					/*
+					GeometryHandler subMerge = (GeometryHandler)cellMerges.get(subNp);
+					if (subMerge != null)
+					{
+						System.out.println("it will be merged outside");
+						/*
+						AffineTransform tTrans = ni.translateOut();
+						tTrans.concatenate(trans);
+						thisMerge.addAll(subMerge, tTrans);
+						throw new Error("wrong condition in ERCWellCheck.visitNodeInst()");
+					}
+	                */
+				}
+
+			// look for well and substrate contacts
+				NodeProto.Function fun = ni.getFunction();
+				if (fun == NodeProto.Function.WELL || fun == NodeProto.Function.SUBSTRATE)
+				{
+					WellCon wc = new WellCon();
+					wc.ctr = ni.getTrueCenter();
+					trans.transform(wc.ctr, wc.ctr);
+					info.getTransformToRoot().transform(wc.ctr, wc.ctr);
+					wc.np = ni.getProto();
+					wc.fun = fun;
+					wc.index = wellConIndex++;
+					wc.index = wellConIndex++;
+					PortInst pi = ni.getOnlyPortInst();
+					Netlist netList = info.getNetlist();
+					JNetwork net = netList.getNetwork(pi);
+					wc.netNum = info.getNetID(net);
+					wc.onProperRail = false;
+					if (net != null)
+					{
+						if (fun == NodeProto.Function.WELL)
+						{
+							// PWell: must be on ground
+//							for(pp = np->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
+//							{
+//								if ((pp->userbits&STATEBITS) != GNDPORT) continue;
+//								if (pp->network == net) break;
+//							}
+//							if (pp != null)
+								wc.onProperRail = true;
+						} else
+						{
+							// NWell: must be on power
+//							for(pp = np->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
+//							{
+//								if ((pp->userbits&STATEBITS) != PWRPORT) continue;
+//								if (pp->network == net) break;
+//							}
+//							if (pp != null)
+								wc.onProperRail = true;
+						}
+					}
+					wellCons.add(wc);
+				}
             return true;
         }
     }

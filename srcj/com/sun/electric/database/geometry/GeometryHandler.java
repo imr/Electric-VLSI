@@ -25,6 +25,12 @@ public interface GeometryHandler {
 	// To iterate among leave elements
 	public Iterator getKeyIterator();
 
-	// To retrieve leave elements from internal structure
+	/**
+	 * To retrieve leave elements from internal structure
+	 * @param layer current layer under analysis
+	 * @param modified to avoid retrieving original polygons
+	 * @param simple to obtain simple polygons
+	 * @return
+	 */
 	public Collection getObjects(Object layer, boolean modified, boolean simple);
 }

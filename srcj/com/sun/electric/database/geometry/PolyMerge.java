@@ -93,14 +93,14 @@ public class PolyMerge
 		}
 
 		// add "poly" to "area"
+		/*
 		Rectangle2D bounds = poly.getBox();
-		if (bounds != null)
-		{
-			Area additionalArea = new Area(bounds);
-			area.add(additionalArea);
-		} else
-		{
-		}
+		assert(bounds != null);
+		**/
+		// It can't add only rectangles otherwise it doesn't cover
+		// serpentine transistors.
+		Area additionalArea = new Area(poly);
+		area.add(additionalArea);
 	}
 
 	/**
@@ -110,6 +110,7 @@ public class PolyMerge
 	 */
 	public void subPolygon(Layer layer, Poly poly)
 	{
+		throw new Error("not implemented in PolyMerge.subPolygon()");
 	}
 
 	/**
@@ -158,15 +159,16 @@ public class PolyMerge
 
 	public Collection getObjects(Object layer, boolean modified, boolean simple)
 	{
-		return (getMergedPoints((Layer)layer));
+		return (getMergedPoints((Layer)layer, false));
 	}
 
 	/**
 	 * Method to return list of Polys on a given Layer in this Merge.
 	 * @param layer the layer in question.
+	 * @param simple
 	 * @return the list of Polys that describes this Merge.
 	 */
-	public List getMergedPoints(Layer layer)
+	public List getMergedPoints(Layer layer, boolean simple)
 	{
 		Area area = (Area)allLayers.get(layer);
 		if (area == null) return null;
@@ -175,7 +177,10 @@ public class PolyMerge
 		double [] coords = new double[6];
 		List pointList = new ArrayList();
 		Point2D lastMoveTo = null;
-		// Gilda: best practice note:
+		boolean isSingular = area.isSingular();
+		List toDelete = new ArrayList();
+
+		// Gilda: best practice note: System.arraycopy
 		for(PathIterator pIt = area.getPathIterator(null); !pIt.isDone(); )
 		{
 			int type = pIt.currentSegment(coords);
@@ -189,9 +194,33 @@ public class PolyMerge
 				Poly poly = new Poly(points);
 				poly.setLayer(layer);
 				poly.setStyle(Poly.Type.FILLED);
-				polyList.add(poly);
-				pointList.clear();
+				//polyList.add(poly);
 				lastMoveTo = null;
+				toDelete.clear();
+				if (!simple && !isSingular)
+				{
+					Iterator it = polyList.iterator();
+					while (it.hasNext())
+					{
+						Poly pn = (Poly)it.next();
+						if (pn.contains((Point2D)pointList.get(0)) ||
+						    poly.contains(pn.getPoints()[0]))
+						{
+							points = pn.getPoints();
+							for (i = 0; i < points.length; i++)
+								pointList.add(points[i]);
+							Point2D[] newPoints = new Point2D[pointList.size()];
+							System.arraycopy(pointList.toArray(), 0, newPoints, 0, pointList.size());
+							poly = new Poly(newPoints);
+							toDelete.add(pn);
+							break;
+						}
+					}
+				}
+				if (poly != null)
+					polyList.add(poly);
+				polyList.removeAll(toDelete);
+				pointList.clear();
 			} else if (type == PathIterator.SEG_MOVETO || type == PathIterator.SEG_LINETO)
 			{
 				Point2D pt = new Point2D.Double(coords[0], coords[1]);

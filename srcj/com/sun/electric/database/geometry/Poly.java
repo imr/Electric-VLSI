@@ -23,7 +23,6 @@
  */
 package com.sun.electric.database.geometry;
 
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
@@ -35,6 +34,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.Main;
 
 import java.awt.Rectangle;
 import java.awt.Font;
@@ -246,7 +246,7 @@ public class Poly implements Shape
 		 * Method to get a text Type from an angle.
 		 * When rotating a node, the anchor point also rotates.
 		 * To to this elegantly, the Type is converted to an angle, rotated, and then converted back to a Type.
-		 * @param the angle of the text anchor.
+		 * @param angle of the text anchor.
 		 * @return a text Type that corresponds to the angle.
 		 */
 		public static Type getTextTypeFromAngle(int angle)
@@ -1456,7 +1456,15 @@ public class Poly implements Shape
 	 */
 	public boolean contains(Point2D p)
 	{
-		return isInside(new Point2D.Double(p.getX(), p.getY()));
+		if (Main.getDebug())
+		{
+			Point2D newP = new Point2D.Double(p.getX(), p.getY());
+			boolean contained = isInside(newP);
+			if ( !newP.equals(p) )
+				System.out.println("local copy changed in Poly.contains(Point2D) " + newP + " " + p);
+		}
+
+		return isInside(p);
 	}
 
 	/**
@@ -1471,7 +1479,11 @@ public class Poly implements Shape
 	 */
 	public boolean contains(double x, double y, double w, double h)
 	{
-		return false;
+		// Implementation not valid for non-convex polygons
+		return (isInside(new Point2D.Double(x, y)) &&
+				isInside(new Point2D.Double(x+w, y)) &&
+				isInside(new Point2D.Double(x, y+h)) &&
+				isInside(new Point2D.Double(x+w, y+h)));
 	}
 
 	/**
@@ -1498,7 +1510,8 @@ public class Poly implements Shape
 	 */
 	public boolean intersects(double x, double y, double w, double h)
 	{
-		return false;
+		throw new Error("intersects method not implemented in Poly.intersects()");
+		//return false;
 	}
 
 	/**

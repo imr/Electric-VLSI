@@ -414,7 +414,7 @@ public class Spice extends Topology
 			for(Iterator lIt = spNet.merge.getKeyIterator(); lIt.hasNext(); )
 			{
 				Layer layer = (Layer)lIt.next();
-				List polyList = spNet.merge.getMergedPoints(layer);
+				List polyList = spNet.merge.getMergedPoints(layer, true);
 				if (polyList == null) continue;
 				for(Iterator pIt = polyList.iterator(); pIt.hasNext(); )
 				{

@@ -336,7 +336,7 @@ public class ERCAntenna
 								if (oLay.getFunction().isMetal()) thickness = DEFMETALTHICKNESS; else
 									if (oLay.getFunction().isPoly()) thickness = DEFPOLYTHICKNESS;
 							}
-							List merges = vmerge.getMergedPoints(oLay);
+							List merges = vmerge.getMergedPoints(oLay, true);
 							for(Iterator mIt = merges.iterator(); mIt.hasNext(); )
 							{
 								Poly merged = (Poly)mIt.next();
@@ -358,7 +358,7 @@ public class ERCAntenna
 							for(Iterator lIt = vmerge.getKeyIterator(); lIt.hasNext(); )
 							{
 								Layer oLay = (Layer)lIt.next();
-								List merges = vmerge.getMergedPoints(oLay);
+								List merges = vmerge.getMergedPoints(oLay, true);
 								for(Iterator mIt = merges.iterator(); mIt.hasNext(); )
 								{
 									Poly merged = (Poly)mIt.next();

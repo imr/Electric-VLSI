@@ -686,7 +686,9 @@ public class Highlighter implements DatabaseChangeListener {
 					{
 						PortInst pi = (PortInst)eObj;
 						JNetwork net = netlist.getNetwork(pi);
-						if (net != null) nets.add(net); else
+						if (net != null)
+							nets.add(net);
+						else
 						{
 							// if port is isolated, grab all nets
 							if (pi.getPortProto().isIsolated())

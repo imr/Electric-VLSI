@@ -762,7 +762,7 @@ public class DebugMenus {
 			for(Iterator it = merge.getKeyIterator(); it.hasNext(); )
 			{
 				Layer layer = (Layer)it.next();
-				java.util.List list = merge.getMergedPoints(layer) ;
+				java.util.List list = merge.getMergedPoints(layer, true) ;
 
 				// Temp solution until qtree implementation is ready
 				// delete uncessary polygons. Doesn't insert poly if identical

@@ -431,7 +431,7 @@ public class PolyQTree
 		{
 			original |= 1 << 0;
 		}
-		public Collection getSimpleObjects()
+		private Collection getSimpleObjects(boolean simple)
 		{
 			Set set = new HashSet();
 			/*
@@ -446,6 +446,9 @@ public class PolyQTree
 				double [] coords = new double[6];
 				List pointList = new ArrayList();
                 PathIterator pi = getPathIterator(null);
+                List polyList = new ArrayList();
+                boolean isSingular = isSingular();
+				List toDelete = new ArrayList();
 
 				while (!pi.isDone()) {
 					switch (pi.currentSegment(coords)) {
@@ -459,9 +462,35 @@ public class PolyQTree
 									Line2D line = new Line2D.Double(((Point2D)points[i]), (Point2D)points[j]);
 									simplepath.append(line, true);
 								}
+								toDelete.clear();
+								//PolyNode node = new PolyNode(simplepath);
+								// Search possible inner loops
+								if (!simple && !isSingular)
+								{
+									Iterator it = polyList.iterator();
+									while (it.hasNext())
+									{
+										GeneralPath pn = (GeneralPath)it.next();
+										if (pn.contains((Point2D)pointList.get(0)))
+										{
+											pn.append(simplepath.getPathIterator(null), true);
+											simplepath = null;
+											break;
+										}
+										else if (simplepath.contains(pn.getCurrentPoint()))
+										{
+											// Checking if inner loop is pn
+											simplepath.append(pn.getPathIterator(null), true);
+											toDelete.add(pn);
+											break;
+										}
+									}
+								}
+								//set.add(node);
+								if (simplepath != null)
+									polyList.add(simplepath);
+								polyList.removeAll(toDelete);
 								pointList.clear();
-								PolyNode node = new PolyNode(simplepath);
-								set.add(node);
 							}
 							break;
 						default:
@@ -470,8 +499,21 @@ public class PolyQTree
 					}
 					pi.next();
 				}
+				for (Iterator it = polyList.iterator(); it.hasNext();)
+				{
+					GeneralPath pn = (GeneralPath)it.next();
+					PolyNode node = new PolyNode(pn);
+					set.add(node);
+				}
 			}
 			return set;
+		}
+		public List getSortedLoops()
+		{
+			Collection set = getSimpleObjects(true);
+			List list = new ArrayList(set);
+			Collections.sort(list);
+			return (list);
 		}
 	}
 	private static class PolyQNode
@@ -552,7 +594,7 @@ public class PolyQTree
 						if (node.isOriginal() || !simple)
 							set.add(node);
 						else
-							set.addAll(node.getSimpleObjects());
+							set.addAll(node.getSimpleObjects(false));
 					}
 				}
 			}
