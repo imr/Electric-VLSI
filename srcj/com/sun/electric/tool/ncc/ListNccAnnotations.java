@@ -28,8 +28,6 @@ import java.util.Iterator;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.tool.generator.layout.LayoutLib;
-import com.sun.electric.tool.ncc.basic.CellContext;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 
@@ -45,17 +43,6 @@ class ScanHierForNccAnnot extends HierarchyEnumerator.Visitor {
 			System.out.println("    "+it.next());
 		}
 	}
-
-//	private void scanForAnnot(Cell cell) {
-//		Cell.CellGroup g = cell.getCellGroup();
-//		for (Iterator it=g.getCells(); it.hasNext();) {
-//			Cell c = (Cell) it.next();
-//			if (c.getView()==View.SCHEMATIC || c.getView()==View.LAYOUT) {
-//				printAnn(c);								
-//			}
-//		}
-//	}
-	
 	public boolean enterCell(HierarchyEnumerator.CellInfo info) {
 		Cell cell = info.getCell();
 		if (enteredCells.contains(cell))  return false;
@@ -80,10 +67,9 @@ public class ListNccAnnotations {
 
 
 	// ------------------------- public method --------------------------------
-	public static void doYourJob(CellContext[] cellCtxts) {
-		LayoutLib.error(cellCtxts.length!=2, "expect 2 CellContexts");
-		scanHierarchy(cellCtxts[0].cell);
-		scanHierarchy(cellCtxts[1].cell);
+	public static void doYourJob(Cell cell1, Cell cell2) {
+		scanHierarchy(cell1);
+		scanHierarchy(cell2);
 
 		System.out.println("Done listing NCC annotations");											   
 	}

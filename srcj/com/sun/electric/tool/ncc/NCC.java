@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: DRC.java
+ * File: Ncc.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -22,120 +22,60 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.ncc;
-import java.util.prefs.Preferences;
 
-import com.sun.electric.database.text.Pref;
+import java.util.Date;
 
-/**
- * Contains NCC preferences
- */
-public class NCC {
-	public static final int HIER_EACH_CELL = 0;
-	public static final int FLAT_EACH_CELL = 1;
-	public static final int FLAT_TOP_CELL = 2;
-	public static final int LIST_ANNOTATIONS = 3;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.ncc.basic.NccUtils;
+
+/** Compare potentially multiple cells in a hierarchy. 
+ * <p>This is the class that should be used by programs wishing to perform
+ * netlist comparison. */
+public class Ncc {
+	private void prln(String s) {System.out.println(s);}
+
+	private Ncc() {}
 	
-	public static NCC tool = new NCC();
-	// per-package namespace for preferences
-	private Preferences prefs = Preferences.userNodeForPackage(this.getClass());
-
-	private static Pref checkSizes = 
-		Pref.makeBooleanPref("CheckSizes", NCC.tool.prefs, false);
-	public static boolean getCheckSizes() {
-		return checkSizes.getBoolean(); 
-	}
-	public static void setCheckSizes(boolean on) { 
-		checkSizes.setBoolean(on); 
-	}
-
-	private static Pref relativeSizeTolerance = 
-		Pref.makeDoublePref("RelativeSizeTolerance", NCC.tool.prefs, 0.0);
-	public static double getRelativeSizeTolerance() {
-		return relativeSizeTolerance.getDouble(); 
-	}
-	public static void setRelativeSizeTolerance(double d) { 
-		relativeSizeTolerance.setDouble(d); 
-	}
-
-	private static Pref absoluteSizeTolerance = 
-		Pref.makeDoublePref("AbsoluteSizeTolerance", NCC.tool.prefs, 0.0);
-	public static double getAbsoluteSizeTolerance() {
-		return absoluteSizeTolerance.getDouble(); 
-	}
-	public static void setAbsoluteSizeTolerance(double d) { 
-		absoluteSizeTolerance.setDouble(d); 
-	}
-
-	private static Pref haltAfterFirstMismatch = 
-		Pref.makeBooleanPref("HaltAfterFirstMismatch", NCC.tool.prefs, true);
-	public static boolean getHaltAfterFirstMismatch() {
-		return haltAfterFirstMismatch.getBoolean(); 
-	}
-	public static void setHaltAfterFirstMismatch(boolean on) { 
-		haltAfterFirstMismatch.setBoolean(on); 
-	}
-    
-	private static Pref skipPassed = 
-		Pref.makeBooleanPref("SkipPassed", NCC.tool.prefs, false);
-	public static boolean getSkipPassed() {
-		return skipPassed.getBoolean(); 
-	}
-	public static void setSkipPassed(boolean on) { 
-		skipPassed.setBoolean(on); 
-	}
-	
-	private static Pref maxMatchedClasses =
-		Pref.makeIntPref("MaxMatchedClasses", NCC.tool.prefs, 10);
-	public static int getMaxMatchedClasses() {
-		return maxMatchedClasses.getInt();
-	}
-	public static void setMaxMatchedClasses(int i) {
-		maxMatchedClasses.setInt(i);
-	}
-
-	private static Pref maxMismatchedClasses =
-		Pref.makeIntPref("MaxMismatchedClasses", NCC.tool.prefs, 10);
-	public static int getMaxMismatchedClasses() {
-		return maxMismatchedClasses.getInt();
-	}
-	public static void setMaxMismatchedClasses(int i) {
-		maxMismatchedClasses.setInt(i);
-	}
-
-	private static Pref maxClassMembers =
-		Pref.makeIntPref("MaxClassMembers", NCC.tool.prefs, 10);
-	public static int getMaxClassMembers() {
-		return maxClassMembers.getInt();
-	}
-	public static void setMaxClassMembers(int i) {
-		maxClassMembers.setInt(i);
-	}
-
-	private static Pref operation =
-		Pref.makeIntPref("Operation", NCC.tool.prefs, HIER_EACH_CELL);
-	public static int getOperation() {
-		int op = operation.getInt();
-		// guard against corrupted preferences
-		if (op<HIER_EACH_CELL || op>LIST_ANNOTATIONS) return HIER_EACH_CELL; 
-		return op;
-	}
-	public static void setOperation(int i) {
-		operation.setInt(i);
-	}
-
-	private static int boundStatus(int s) {		
-		s = Math.max(s, 0);
-		s = Math.min(s, 2);
-		return s;
-	}
-
-	private static Pref howMuchStatus =
-		Pref.makeIntPref("HowMuchStatus", NCC.tool.prefs, 0);
-	public static int getHowMuchStatus() {
-		return boundStatus(howMuchStatus.getInt());
-	}
-	public static void setHowMuchStatus(int i) {
-		howMuchStatus.setInt(boundStatus(i));
-	}
-
+    private NccResult compare1(Cell cell1, VarContext ctxt1,
+    		                   Cell cell2, VarContext ctxt2,
+							   NccOptions options) {
+		if (options.operation==NccOptions.LIST_ANNOTATIONS) {
+			ListNccAnnotations.doYourJob(cell1, cell2);
+			return new NccResult(true, true, true);
+		} else {
+	    	Date before = new Date();
+			NccResult result = new NccResult(false, false, false);
+			if (options.operation==NccOptions.FLAT_TOP_CELL) {
+				prln("Flat NCC top cell");
+				result = NccUtils.compareAndPrintStatus(cell1, ctxt1, cell2, 
+														ctxt2, null, options);
+			} else if (options.operation==NccOptions.FLAT_EACH_CELL) {
+				prln("Flat NCC every cell in the design");
+				result = NccBottomUp.compare(cell1, cell2, 
+				                             false, options.skipPassed, options);
+			} else if (options.operation==NccOptions.HIER_EACH_CELL) {
+				prln("Hierarchical NCC every cell in the design");
+				result = NccBottomUp.compare(cell1, cell2, 
+	                                         true, options.skipPassed, options);
+			} else {
+				LayoutLib.error(true, "bad operation: "+options.operation);
+				return result;
+			}
+			System.out.println("Summary for all cells: "+result.summary(options.checkSizes));
+			Date after = new Date();
+			System.out.println("NCC command completed in: "+
+			                   NccUtils.hourMinSec(before, after)+".");
+			return result;
+		}
+    }
+   
+    // ------------------------- public method --------------------------------
+    public static NccResult compare(Cell cell1, VarContext ctxt1, 
+    		                        Cell cell2, VarContext ctxt2, 
+									NccOptions options) {
+    	Ncc ncc = new Ncc();
+    	return ncc.compare1(cell1, ctxt1, cell2, ctxt2, options);
+    }
 }

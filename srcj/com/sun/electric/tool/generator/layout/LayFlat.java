@@ -203,7 +203,7 @@ public class LayFlat extends Job {
 	}
 
 	private Cell openCell(String libDir, String libNm, String cellNm) {
-		Library lib = LayoutLib.openLibForRead(libNm, libDir + libNm + ".elib");
+		Library lib = LayoutLib.openLibForRead(libDir + libNm + ".elib");
 		Cell cell = lib.findNodeProto(cellNm);
 		error(cell==null, "can't find cell: " + cellNm);
 		return cell;

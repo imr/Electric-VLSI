@@ -23,15 +23,23 @@
  */
 package com.sun.electric.tool.ncc;
 
-
 public class NccOptions {
+	/** what NCC operation to perform */
+	public static final int HIER_EACH_CELL = 0;
+	public static final int FLAT_EACH_CELL = 1;
+	public static final int FLAT_TOP_CELL = 2;
+	public static final int LIST_ANNOTATIONS = 3;
+	public int operation = HIER_EACH_CELL;
+	
 	/** enable size checking */
 	public boolean checkSizes = false;
 	public double absoluteSizeTolerance;
 	public double relativeSizeTolerance;
 
-	/** merge parallel Cells into one. For Russell Kao use only! */
-	//public boolean mergeParallelCells = false;
+	/** Don't recheck Cells that have passed NCC in the current run of 
+	 * Electric. This is a hack because it doesn't re-check a Cell if
+	 * it has been modified since the last comparison. */
+	public boolean skipPassed = false;
 
 	/** How many progress messages to print. 0 means minimal. 10 means maximum. */
 	public int howMuchStatus = 0;
@@ -42,13 +50,13 @@ public class NccOptions {
 	
 	/** If hash code partitioning detects a mismatch, how many mismatched 
 	 * Part or Wire Equivalence Classes should I print? */
-	public int maxMismatchedEquivRecsToPrint = 100;
+	public int maxMismatchedEquivRecsToPrint = 10;
 	
 	/** If hash code partitioning detects a mismatch, how many matched
 	 * Part or Wire Equivalence Classes should I print? */
-	public int maxMatchedEquivRecsToPrint = 100;
+	public int maxMatchedEquivRecsToPrint = 10;
 	
 	/** For all diagnostic messages, how many members of an equivalence
 	 * class should I print */ 
-	public int maxEquivRecMembersToPrint = 100;
+	public int maxEquivRecMembersToPrint = 10;
 }

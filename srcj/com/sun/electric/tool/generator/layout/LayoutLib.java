@@ -100,19 +100,19 @@ public class LayoutLib {
 	}
 
 	/** 
-	 * Open a library for reading. If a library named libName is
+	 * Open a library for reading. If a library is
 	 * already open then return it. Otherwise look for the library
 	 * file named libFileName and open that library.
 	 * 
-	 * @param libName the name of the Library
 	 * @param libFileName the fully qualified path name of the Library
 	 * file on disk
 	 * @return the open Library or null if it can't be found
 	 */
-	public static Library openLibForRead(String libName, String libFileName) {
+	public static Library openLibForRead(String libFileName) {
+		URL libFileURL = TextUtils.makeURLToFile(libFileName);
+		String libName = TextUtils.getFileNameWithoutExtension(libFileURL);
 		Library lib = Library.findLibrary(libName);
 		if (lib==null) {
-			URL libFileURL = TextUtils.makeURLToFile(libFileName);
 			lib = Input.readLibrary(libFileURL, OpenFile.Type.ELIB);
 		}
 		error(lib==null, "can't open Library for reading: "+libFileName);

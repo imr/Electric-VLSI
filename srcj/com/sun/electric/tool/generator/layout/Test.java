@@ -20,8 +20,7 @@ public class Test extends Job {
 		String libDir = "forDima/";
 		String libName = "power2_gates"; 
 
-		Library scratch = LayoutLib.openLibForRead(libName, 
-												   libDir+libName+".elib");
+		Library scratch = LayoutLib.openLibForRead(libDir+libName+".elib");
 
 		Cell c = scratch.findNodeProto("jtagBuf_pwr{sch}");
 

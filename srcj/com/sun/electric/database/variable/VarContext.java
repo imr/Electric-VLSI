@@ -350,7 +350,7 @@ public class VarContext
         	value = fastJavaVarEval(var, info);
 
         	// testing code
-        	checkFastValue(value, var, info);
+        	//checkFastValue(value, var, info);
         	
     		if (value==FAST_EVAL_FAILED) {
     			// OK, I give up.  Call the darn bean shell.

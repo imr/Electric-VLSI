@@ -24,8 +24,10 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import javax.swing.JPanel;
-import com.sun.electric.tool.ncc.NCC;
+
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.ncc.NccGuiOptions;
+import com.sun.electric.tool.ncc.NccOptions;
 
 /**
  * Class to handle the "NCC" tab of the Preferences dialog.
@@ -55,19 +57,19 @@ public class NCCTab extends PreferencePanel
 
 	private void setOperation(int op) {
         switch (op) {
-            case NCC.HIER_EACH_CELL: hierAll.setSelected(true); break;
-            case NCC.FLAT_EACH_CELL: flatAll.setSelected(true); break;
-            case NCC.FLAT_TOP_CELL: flatTop.setSelected(true); break;
-            case NCC.LIST_ANNOTATIONS: listAnn.setSelected(true); break;
+            case NccOptions.HIER_EACH_CELL: hierAll.setSelected(true); break;
+            case NccOptions.FLAT_EACH_CELL: flatAll.setSelected(true); break;
+            case NccOptions.FLAT_TOP_CELL: flatTop.setSelected(true); break;
+            case NccOptions.LIST_ANNOTATIONS: listAnn.setSelected(true); break;
             default: hierAll.setSelected(true); break;
         }
     }
     private int getOperation() {
-        if (hierAll.isSelected()) return NCC.HIER_EACH_CELL;
-        if (flatAll.isSelected()) return NCC.FLAT_EACH_CELL;
-        if (flatTop.isSelected()) return NCC.FLAT_TOP_CELL;
-        if (listAnn.isSelected()) return NCC.LIST_ANNOTATIONS;
-        return NCC.HIER_EACH_CELL;
+        if (hierAll.isSelected()) return NccOptions.HIER_EACH_CELL;
+        if (flatAll.isSelected()) return NccOptions.FLAT_EACH_CELL;
+        if (flatTop.isSelected()) return NccOptions.FLAT_TOP_CELL;
+        if (listAnn.isSelected()) return NccOptions.LIST_ANNOTATIONS;
+        return NccOptions.HIER_EACH_CELL;
     }
     
     /**
@@ -76,36 +78,36 @@ public class NCCTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		initialEnableSizeChecking = NCC.getCheckSizes();
+		initialEnableSizeChecking = NccGuiOptions.getCheckSizes();
 		enableSizeChecking.setSelected(initialEnableSizeChecking);
 		
-		initialRelativeSizeTolerance = NCC.getRelativeSizeTolerance();
+		initialRelativeSizeTolerance = NccGuiOptions.getRelativeSizeTolerance();
 		relativeSizeTolerance.setText(Double.toString(initialRelativeSizeTolerance));
 		
-		initialAbsoluteSizeTolerance = NCC.getAbsoluteSizeTolerance();
+		initialAbsoluteSizeTolerance = NccGuiOptions.getAbsoluteSizeTolerance();
 		absoluteSizeTolerance.setText(Double.toString(initialAbsoluteSizeTolerance));
 		
 		initialHaltAfterFindingFirstMismatchedCell = 
-			NCC.getHaltAfterFirstMismatch();
+			NccGuiOptions.getHaltAfterFirstMismatch();
 		haltAfterFindingFirstMismatchedCell.
 			setSelected(initialHaltAfterFindingFirstMismatchedCell);
 
-        initialSkipPassed = NCC.getSkipPassed();
+        initialSkipPassed = NccGuiOptions.getSkipPassed();
         skipPassed.setSelected(initialSkipPassed);
         
-        initialMaxMatched = NCC.getMaxMatchedClasses();
+        initialMaxMatched = NccGuiOptions.getMaxMatchedClasses();
         maxMatched.setText(Integer.toString(initialMaxMatched));
         
-        initialMaxMismatched = NCC.getMaxMismatchedClasses();
+        initialMaxMismatched = NccGuiOptions.getMaxMismatchedClasses();
         maxMismatched.setText(Integer.toString(initialMaxMismatched));
         
-        initialMaxMembers = NCC.getMaxClassMembers();
+        initialMaxMembers = NccGuiOptions.getMaxClassMembers();
         maxMembers.setText(Integer.toString(initialMaxMembers));
         
-        initialOperation = NCC.getOperation();
+        initialOperation = NccGuiOptions.getOperation();
         setOperation(initialOperation);
         
-        initialHowMuchStatus = NCC.getHowMuchStatus();
+        initialHowMuchStatus = NccGuiOptions.getHowMuchStatus();
         howMuchStatus.setText(Integer.toString(initialHowMuchStatus));
 	}
 
@@ -117,47 +119,47 @@ public class NCCTab extends PreferencePanel
 	{
 		boolean currentEnableSizeChecking = enableSizeChecking.isSelected();
 		if (currentEnableSizeChecking!=initialEnableSizeChecking) {
-			NCC.setCheckSizes(currentEnableSizeChecking);
+			NccGuiOptions.setCheckSizes(currentEnableSizeChecking);
 		}
 		double currentRelativeSizeTolerance = 
 			TextUtils.atof(relativeSizeTolerance.getText(), new Double(initialRelativeSizeTolerance));
 		if (currentRelativeSizeTolerance!=initialRelativeSizeTolerance) {
-			NCC.setRelativeSizeTolerance(currentRelativeSizeTolerance);
+			NccGuiOptions.setRelativeSizeTolerance(currentRelativeSizeTolerance);
 		}
 		double currentAbsoluteSizeTolerance = 
 			TextUtils.atof(absoluteSizeTolerance.getText(), new Double(initialAbsoluteSizeTolerance));
 		if (currentAbsoluteSizeTolerance!=initialAbsoluteSizeTolerance) {
-			NCC.setAbsoluteSizeTolerance(currentAbsoluteSizeTolerance);
+			NccGuiOptions.setAbsoluteSizeTolerance(currentAbsoluteSizeTolerance);
 		}
 		boolean currentHaltAfterFindingFirstMismatchedCell = 
 			haltAfterFindingFirstMismatchedCell.isSelected();
 		if (currentHaltAfterFindingFirstMismatchedCell!=
 			initialHaltAfterFindingFirstMismatchedCell ) {
-			NCC.setHaltAfterFirstMismatch(currentHaltAfterFindingFirstMismatchedCell);
+			NccGuiOptions.setHaltAfterFirstMismatch(currentHaltAfterFindingFirstMismatchedCell);
 		}
         boolean currentSkipPassed = skipPassed.isSelected();
         if (currentSkipPassed!=initialSkipPassed) {
-            NCC.setSkipPassed(currentSkipPassed);
+            NccGuiOptions.setSkipPassed(currentSkipPassed);
         }
         int currentMaxMatched = Integer.parseInt(maxMatched.getText());
         if (currentMaxMatched!=initialMaxMatched) {
-            NCC.setMaxMatchedClasses(currentMaxMatched);
+            NccGuiOptions.setMaxMatchedClasses(currentMaxMatched);
         }
         int currentMaxMismatched = Integer.parseInt(maxMismatched.getText());
         if (currentMaxMismatched!=initialMaxMismatched) {
-            NCC.setMaxMismatchedClasses(currentMaxMismatched);
+            NccGuiOptions.setMaxMismatchedClasses(currentMaxMismatched);
         }
         int currentMaxMembers = Integer.parseInt(maxMembers.getText());
         if (currentMaxMembers!=initialMaxMembers) {
-            NCC.setMaxClassMembers(currentMaxMembers);
+            NccGuiOptions.setMaxClassMembers(currentMaxMembers);
         }
         int currentOperation = getOperation();
         if (currentOperation!=initialOperation) {
-            NCC.setOperation(currentOperation);
+            NccGuiOptions.setOperation(currentOperation);
         }
         int currentHowMuchStatus = Integer.parseInt(howMuchStatus.getText());
         if (currentHowMuchStatus!=initialHowMuchStatus) {
-            NCC.setHowMuchStatus(currentHowMuchStatus);
+            NccGuiOptions.setHowMuchStatus(currentHowMuchStatus);
         }
 	}
 

@@ -203,7 +203,8 @@ public class NccBottomUp {
 				  NccUtils.buildBlackBoxes(refCC, thisCC, hierInfo, options);
 				if (!ok) return null;
 			} else {
-				NccResult r = NccUtils.compareAndPrintStatus(refCC, thisCC, 
+				NccResult r = NccUtils.compareAndPrintStatus(refCC.cell, refCC.context,
+						                                     thisCC.cell, thisCC.context, 
 															 hierInfo, options); 
 				result.and(r);
 				if (r.match())  passed.setPassed(refCC.cell, thisCC.cell);

@@ -128,16 +128,16 @@ public class NccUtils {
 		return time; 
 	}
 	
-	public static NccResult compareAndPrintStatus(CellContext c1, 
-												  CellContext c2, 
+	public static NccResult compareAndPrintStatus(Cell cell1, VarContext ctxt1, 
+												  Cell cell2, VarContext ctxt2, 
 							   	                  HierarchyInfo hierInfo,
 							                      NccOptions options) {
-		System.out.println("Comparing: "+NccUtils.fullName(c1.cell)+
-						   " with: "+NccUtils.fullName(c2.cell));
+		System.out.println("Comparing: "+NccUtils.fullName(cell1)+
+						   " with: "+NccUtils.fullName(cell2));
 		System.out.flush();
 		Date before = new Date();
-		NccResult result = NccEngine.compare(c1.cell, c1.context, 
-		                                     c2.cell, c2.context,  
+		NccResult result = NccEngine.compare(cell1, ctxt1, 
+		                                     cell2, ctxt2,  
 										     hierInfo, options);
 		Date after = new Date();
 
