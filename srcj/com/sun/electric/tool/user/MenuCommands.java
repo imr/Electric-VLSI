@@ -25,6 +25,8 @@ package com.sun.electric.tool.user;
 
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
@@ -42,6 +44,11 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.technology.technologies.Generic;
+//import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.erc.ERCWellCheck;
@@ -71,7 +78,6 @@ import com.sun.electric.tool.user.ui.PaletteFrame;
 import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.SizeListener;
-import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.ZoomAndPanListener;
@@ -80,6 +86,7 @@ import java.awt.Toolkit;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.Graphics;
+import java.awt.geom.AffineTransform;
 import java.awt.Image;
 import java.awt.Color;
 import java.awt.event.ActionListener;
@@ -94,8 +101,8 @@ import java.awt.print.PrinterException;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.EventListener;
 import javax.print.PrintServiceLookup;
 import javax.print.PrintService;
 import javax.swing.ButtonGroup;
@@ -328,16 +335,6 @@ public final class MenuCommands
 		cleanupSubMenu.addMenuItem("Shorten Selected Arcs", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.shortenArcsCommand(); }});
 
-
-		Menu textSubMenu = new Menu("Text");
-		editMenu.add(textSubMenu);
-		textSubMenu.addMenuItem("Find Text...", KeyStroke.getKeyStroke('L', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { FindText.findTextDialog(); }});
-		textSubMenu.addMenuItem("Read Text Cell...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { TextWindow.readTextCell(); }});
-		textSubMenu.addMenuItem("Write Text Cell...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { TextWindow.writeTextCell(); }});
-
 		Menu modeSubMenuSelect = new Menu("Select");
 		modeSubMenu.add(modeSubMenuSelect);
 		ButtonGroup selectGroup = new ButtonGroup();
@@ -538,8 +535,6 @@ public final class MenuCommands
         m = windowMenu.addMenuItem("Zoom In", KeyStroke.getKeyStroke('7', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { zoomInDisplay(); } });
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD7, buckyBit), null);
-        m = windowMenu.addMenuItem("Zoom Box", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { zoomBox(); } });
         m = windowMenu.addMenuItem("Focus on Highlighted", KeyStroke.getKeyStroke('F', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { focusOnHighlighted(); } });
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD5, buckyBit), null);
@@ -748,7 +743,7 @@ public final class MenuCommands
 				new com.sun.electric.tool.generator.layout.Test();
 			}
 		});
-
+                
 		/****************************** Jon's TEST MENU ******************************/
 
 		Menu jongMenu = new Menu("JonG", 'J');
@@ -766,6 +761,11 @@ public final class MenuCommands
 		jongMenu.addMenuItem("Open Purple Lib", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { openP4libCommand(); }});
 
+        /****************************** Gilda's TEST MENU ******************************/
+		Menu gildaMenu = new Menu("Gilda", 'G');
+		menuBar.add(gildaMenu);
+		gildaMenu.addMenuItem("Covering Implants", null,
+		        new ActionListener() { public void actionPerformed(ActionEvent e) {implantObject();}});
 
         /********************************* Hidden Menus *******************************/
 
@@ -921,11 +921,11 @@ public final class MenuCommands
 
 	public static void closeLibraryCommand(Library lib)
 	{
-		int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), "Are you sure you want to close library " + lib.getLibName() + "?");
+		int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), "Are you sure you want to delete library " + lib.getLibName() + "?");
 		if (response != JOptionPane.YES_OPTION) return;
 		String libName = lib.getLibName();
 		if (lib.kill())
-			System.out.println("Library " + libName + " closed");
+			System.out.println("Library " + libName + " deleted");
 		WindowFrame.wantToRedoLibraryTree();
 		EditWindow.repaintAll();
 	}
@@ -1411,8 +1411,8 @@ public final class MenuCommands
 			{
 				if (arcCount == 1) GetInfoArc.showDialog();
 				if (nodeCount == 1) GetInfoNode.showDialog();
-				if (exportCount == 1) GetInfoExport2.showDialog();
-				if (textCount == 1) GetInfoText2.showDialog();
+				if (exportCount == 1) GetInfoExport.showDialog();
+				if (textCount == 1) GetInfoText.showDialog();
 			} else
 			{
 				GetInfoMulti.showDialog();
@@ -1422,7 +1422,7 @@ public final class MenuCommands
 
 	public static void attributesCommand()
 	{
-		Attributes2.showDialog();
+		Attributes.showDialog();
 	}
 
 	/**
@@ -1897,17 +1897,6 @@ public final class MenuCommands
 		// zoom in
 		wf.getContent().zoomInContents();
 	}
-
-    public static void zoomBox()
-    {
-        EventListener listener = WindowFrame.getListener();
-        if (listener instanceof ClickZoomWireListener) {
-            ClickZoomWireListener c = (ClickZoomWireListener)listener;
-            c.zoomBoxSingleShot();
-        } else {
-            System.out.println("Can only zoom to Box using ClickZoomWire tool");
-        }
-    }
 
 	public static void focusOnHighlighted()
 	{
@@ -2538,8 +2527,112 @@ public final class MenuCommands
 		}
 	}
 
+    // ---------------------- Gilda's Stuff MENU -----------------
+	public static void implantObject() {
+		Cell curCell = WindowFrame.needCurCell();
+		if (curCell == null) return;
+
+		CoverImplant job = new CoverImplant(curCell);
+	}
+
+	protected static class CoverImplant extends Job
+	{
+		private Cell curCell;
+
+		protected CoverImplant(Cell cell)
+		{
+			super("Coverage Implant", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.curCell = cell;
+			startJob();
+		}
+
+		public void doIt()
+		{
+			PolyMerge merge = new PolyMerge();
+			List deleteList = new ArrayList(); // New coverage implants are pure primitive nodes
+
+			// Traversing arcs
+			for(Iterator it = curCell.getArcs(); it.hasNext(); )
+			{
+				ArcInst arc = (ArcInst)it.next();
+				ArcProto arcType = arc.getProto();
+				Technology tech = arcType.getTechnology();
+				Poly[] polyList = tech.getShapeOfArc(arc);
+
+				// Treating the arcs associated to each node
+				// Arcs don't need to be rotated
+				for (int i = 0; i < polyList.length; i++)
+				{
+					Poly poly = polyList[i];
+					Layer.Function func = poly.getLayer().getFunction();
+					if ( func.isSubstrate() )
+					{
+						merge.addPolygon(poly.getLayer(), poly);
+					}
+				}
+			}
+			// Traversing nodes
+			for(Iterator it = curCell.getNodes(); it.hasNext(); )
+			{
+				NodeInst node = (NodeInst)it .next();
+
+				// New coverage implants are pure primitive nodes
+				// and previous get deleted and ignored.
+				if ( node.getFunction() == NodeProto.Function.NODE )
+				{
+					deleteList.add(node);
+					continue;
+				}
+
+				NodeProto protoType = node.getProto();
+				if (protoType instanceof Cell) continue;
+
+				Technology tech = protoType.getTechnology();
+				Poly[] polyList = tech.getShapeOfNode(node);
+				AffineTransform transform = node.rotateOut();
+
+				for (int i = 0; i < polyList.length; i++)
+				{
+					Poly poly = polyList[i];
+					Layer.Function func = poly.getLayer().getFunction();
+					if ( func.isSubstrate() )
+					{
+						poly.transform(transform);
+						merge.addPolygon(poly.getLayer(), poly);
+					}
+				}
+			}
+
+			// With polygons collected, new geometries are calculated
+			Highlight.clear();
+			for(Iterator it = merge.getLayersUsed(); it.hasNext(); )
+			{
+				Layer layer = (Layer)it.next();
+				List list = merge.getMergedPoints(layer) ;
+
+				for(Iterator i = list.iterator(); i.hasNext(); )
+				{
+					Poly poly = (Poly)i.next();
+					Rectangle2D rect = poly.getBounds2D();
+					Point2D center = new Point2D.Double(rect.getCenterX(), rect.getCenterY());
+					PrimitiveNode priNode = layer.getPureLayerNode();
+					// Adding the new implant. New implant not assigned to any local variable                                .
+					NodeInst node = NodeInst.makeInstance(priNode, center, rect.getWidth(), rect.getHeight(), 0, curCell, null);
+					Highlight.addElectricObject(node, curCell);
+					// New implant can't be selected again
+					node.setHardSelect();
+				}
+			}
+			Highlight.finished();
+			for (Iterator it = deleteList.iterator(); it.hasNext(); )
+			{
+				NodeInst node = (NodeInst)it .next();
+				node.kill();
+			}
+		}
+	}
 	// ---------------------- THE JON GAINSLEY MENU -----------------
-	
+
 	public static void listVarsOnObject(boolean useproto) {
 		if (Highlight.getNumHighlights() == 0) {
 			// list vars on cell
@@ -2569,7 +2662,7 @@ public final class MenuCommands
 			}
 		}
 	}
-    
+
 	public static void evalVarsOnObject() {
 		EditWindow curEdit = EditWindow.getCurrent();
 		if (Highlight.getNumHighlights() == 0) {
@@ -2589,7 +2682,7 @@ public final class MenuCommands
 			}
 		}
 	}
-	
+
 	public static void listLibVars() {
 		Library lib = Library.getCurrent();
 		Iterator itVar = lib.getVariables();
@@ -2600,7 +2693,7 @@ public final class MenuCommands
 			System.out.println(var.getKey().getName() + ": " +obj);
 		}
 	}
-	
+
 	public static void openP4libCommand() {
 		URL url = TextUtils.makeURLToFile("/export/gainsley/soesrc_java/test/purpleFour.elib");
 		ReadELIB job = new ReadELIB(url);
