@@ -187,8 +187,9 @@ public class LESizer {
                             // only interested in drivers
                             if (pin.getDir() != Pin.Dir.OUTPUT) continue;
                             Instance inst = pin.getInstance();
-                            if ((inst.getType() == Instance.Type.LEGATE) ||
-                                (inst.getType() == Instance.Type.STATICGATE)) {
+//                            if ((inst.getType() == Instance.Type.LEGATE) ||
+//                                (inst.getType() == Instance.Type.STATICGATE)) {
+                            if ((inst.getType() == Instance.Type.LEGATE)) {
                                 // organize by groups
                                 int i = inst.getParallelGroup();
                                 Integer integer = new Integer(i);
