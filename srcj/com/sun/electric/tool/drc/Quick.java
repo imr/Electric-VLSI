@@ -2218,7 +2218,6 @@ public class Quick
 
 		// Select/well regions
 		GeometryHandler	selectMerge = new PolyQTree(cell.getBounds());
-		GeometryHandler	notExportedMerge = new PolyQTree(cell.getBounds());
 		HashMap notExportedNodes = new HashMap();
 		HashMap checkedNodes = new HashMap();
 
@@ -2244,12 +2243,12 @@ public class Quick
 		QuickAreaEnumerator quickArea = new QuickAreaEnumerator(notExportedNodes, checkedNodes);
 		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, cp.netlist, quickArea);
 		// Non exported nodes
-		for(Iterator it = quickArea.mainMerge.getKeyIterator(); it.hasNext(); )
-		{
-			Layer layer = (Layer)it.next();
-			boolean localError = checkMinAreaLayer(quickArea.mainMerge, cell, layer);
-			if (!errorFound) errorFound = localError;
-		}
+//		for(Iterator it = quickArea.mainMerge.getKeyIterator(); it.hasNext(); )
+//		{
+//			Layer layer = (Layer)it.next();
+//			boolean localError = checkMinAreaLayer(quickArea.mainMerge, cell, layer);
+//			if (!errorFound) errorFound = localError;
+//		}
 
 		// Special cases for select areas. You can't evaluate based on networks
 		for(Iterator it = selectMerge.getKeyIterator(); it.hasNext(); )
