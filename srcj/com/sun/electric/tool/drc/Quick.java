@@ -2178,6 +2178,9 @@ public class Quick
 			QuickAreaEnumerator quickArea = new QuickAreaEnumerator(net, selectMerge, notExportedNodes);
 			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, cp.netlist, quickArea);
 
+			// Job aborted
+			if (job != null && job.checkAbort()) return true;
+
 			for(Iterator it = quickArea.metalMerge.getKeyIterator(); it.hasNext(); )
 			{
 				Layer layer = (Layer)it.next();
@@ -2187,6 +2190,7 @@ public class Quick
 		}
 
 		// Checking nodes not exported down in the hierarchy. Probably good enought not to collect networks first
+		/*
 		for(Iterator niIt = notExportedNodes.keySet().iterator(); niIt.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)niIt.next();
@@ -2207,6 +2211,7 @@ public class Quick
 				}
 			}
 		}
+		*/
 
 		// Special cases for select areas. You can't evaluate based on networks
 		for(Iterator it = selectMerge.getKeyIterator(); it.hasNext(); )
@@ -3492,10 +3497,9 @@ public class Quick
 		 * Method to search if child network is connected to visitor network.
 		 * @param net
 		 * @param info
-		 * @param isExported
 		 * @return
 		 */
-		private boolean searchNetworkInParent(Network net, HierarchyEnumerator.CellInfo info, boolean isExported)
+		private boolean searchNetworkInParent(Network net, HierarchyEnumerator.CellInfo info)
 		{
 			if (jNet == net) return true;
 			HierarchyEnumerator.CellInfo cinfo = info;
@@ -3514,6 +3518,8 @@ public class Quick
 		 */
 		public boolean enterCell(HierarchyEnumerator.CellInfo info)
 		{
+			if (job != null && job.checkAbort()) return false;
+
 			if (metalMerge == null)
 				metalMerge = new PolyQTree(info.getCell().getBounds());
             AffineTransform rTrans = info.getTransformToRoot();
@@ -3533,7 +3539,7 @@ public class Quick
                     {
                         Export exp = (Export)arcIt.next();
                         Network net = info.getNetlist().getNetwork(exp, 0);
-                        found = searchNetworkInParent(net, info, true);
+                        found = searchNetworkInParent(net, info);
                     }
                 }
 
@@ -3582,6 +3588,8 @@ public class Quick
 		 */
 		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
 		{
+			if (job != null && job.checkAbort()) return false;
+
 			Cell cell = info.getCell();
 			NodeInst ni = no.getNodeInst();
 			AffineTransform trans = ni.rotateOut();
@@ -3602,7 +3610,7 @@ public class Quick
 				forceChecking = pNp.isPureImplantNode(); // forcing the checking
 			}
 
-            boolean found = forceChecking;
+            boolean found = false; //forceChecking;
 			boolean notExported = false;
 			Network thisNet = null;
 			for(Iterator pIt = ni.getPortInsts(); !found && pIt.hasNext(); )
@@ -3610,16 +3618,18 @@ public class Quick
 				PortInst pi = (PortInst)pIt.next();
 				boolean isExported = cell.findPortProto(pi.getPortProto());
 				thisNet = info.getNetlist().getNetwork(pi);
-				found = searchNetworkInParent(thisNet, info, isExported);
+				found = searchNetworkInParent(thisNet, info);
 				if (!isExported) notExported = true;
 			}
 			// Substrate layers are special so we must check node regardless network
 			notExported = notExported && !forceChecking && !pureNode && info.getParentInfo() != null;
 			if (!found)
 			{
+				/*
 				if (notExportedNodes != null && notExported)
 					notExportedNodes.put(ni, ni);
 				else
+				*/
 					return (false);
 			}
 
@@ -3643,7 +3653,7 @@ public class Quick
                 if (!found && pp != null)
                 {
 					Network net = info.getNetlist().getNetwork(ni, pp, 0);
-					found = searchNetworkInParent(net, info, true);
+					found = searchNetworkInParent(net, info);
                 }
 				//	if (!forceChecking && !found) continue;
                 if (!found) continue;
