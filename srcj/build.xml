@@ -86,6 +86,7 @@
 	        <classpath><pathelement location="${Java3DCore}"/></classpath>
 	        <classpath><pathelement location="${Java3DUtils}"/></classpath>
 	        <classpath><pathelement location="${JavaVecMath}"/></classpath>
+            <classpath><pathelement location="${AppleJava}"/></classpath>
         </javac>
         <jar basedir="." compress="true" jarfile="electric3d.jar">
             <include name="com/sun/electric/plugins/j3d/View3DWindow.class"/>

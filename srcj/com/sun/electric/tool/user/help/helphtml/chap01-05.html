@@ -24,6 +24,9 @@ To attach a plugin, it must be invoked from the command line by adding it to the
 For example, to add the beanshell (a file named "bsh-2.0b1.jar"), type:
 <CENTER><CODE>java -classpath electric.jar:bsh-2.0b1.jar com.sun.electric.Launcher</CODE></CENTER>
 <P>
+On Windows, you must use the ";" to separate jar files:
+<CENTER><CODE>java -classpath electric.jar;bsh-2.0b1.jar com.sun.electric.Launcher</CODE></CENTER>
+<P>
 Note that you must explicitly mention the main Electric class (com.sun.electric.Launcher)
 when using plug-ins since all of the jar files are grouped together as the "classpath".
 <P>
