@@ -336,8 +336,18 @@ public class PolyQTree {
 		 */
 		private boolean compact()
 		{
-			System.out.println("To implement") ;
-			return (false);
+			//System.out.println("To implement") ;
+			//@TODO GVG Compact tree
+			if (children != null)
+			{
+				for (int i = 0; i < PolyQTree.MAX_NUM_CHILDREN; i++)
+					if (children[i] != null)
+					{
+						//System.out.println("To implement") ;
+						return (false);
+					}
+			}
+			return (nodes == null || nodes.isEmpty());
 		}
 
 		/**
@@ -387,6 +397,8 @@ public class PolyQTree {
 
 						// if identical element was found, no need of re-insertion
 						// No need of reviewing other quadrants?
+						if (children[i] == null) continue;
+
 						if (children[i].findAndRemoveObjects(bb, obj, areaBB))
 							return (true);
 
@@ -443,6 +455,8 @@ public class PolyQTree {
 					if (((loc >> i) & 1) == 0)
 					{
 						Rectangle2D bb = getBox(box, centerX, centerY, i);
+
+						if (children[i] == null) children[i] = new PolyQNode();
 
 						children[i].insert(bb, obj, areaBB);
 					}

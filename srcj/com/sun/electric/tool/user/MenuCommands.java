@@ -1723,6 +1723,27 @@ public final class MenuCommands
 			{
 				Cell curCell = info.getCell();
 
+				// Traversing arcs
+				for (Iterator it = curCell.getArcs(); it.hasNext(); )
+				{
+					ArcInst arc = (ArcInst)it.next();
+					ArcProto arcType = arc.getProto();
+					Technology tech = arcType.getTechnology();
+					Poly[] polyList = tech.getShapeOfArc(arc);
+
+					// Treating the arcs associated to each node
+					// Arcs don't need to be rotated
+					for (int i = 0; i < polyList.length; i++)
+					{
+						Poly poly = polyList[i];
+						Layer layer = poly.getLayer();
+						Layer.Function func = layer.getFunction();
+
+						if (!testCase && !func.isPoly() && !func.isMetal()) continue;
+
+						tree.insert((Object)layer, curCell.getBounds(), new PolyQTree.PolyNode(poly));
+					}
+				}
 				// Traversing nodes
 				for (Iterator it = curCell.getNodes(); it.hasNext(); )
 				{
@@ -1752,7 +1773,6 @@ public final class MenuCommands
 							poly.transform(transform);
 							poly.transform(info.getTransformToRoot());
 
-							//System.out.println("Rect BB " + poly.getBounds() + " Trans" + info.getTransformToRoot() + " layer " + layer.getName());
 							tree.insert((Object)layer, curCell.getBounds(), new PolyQTree.PolyNode(poly));
 						}
 					}
