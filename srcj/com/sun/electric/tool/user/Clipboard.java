@@ -554,7 +554,9 @@ public class Clipboard
             Geometric geom = (Geometric)obj;
 
             if (geom instanceof NodeInst)
-                theNodes.add(geom);
+            {
+            	if (!theNodes.contains(geom)) theNodes.add(geom);
+            }
             if (geom instanceof ArcInst)
             {
                 ArcInst ai = (ArcInst)geom;
