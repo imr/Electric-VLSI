@@ -204,6 +204,93 @@ public class PolyQTree {
 			}
 			return(perimeter);
 		}
+
+		public boolean doesTouch(PathIterator opi)
+		{
+			// Adding first edges into hashMap
+
+			class PolyEdge
+			{
+				private Point2D p1, p2;
+
+				PolyEdge(Point2D a, Point2D b)
+				{
+					this.p1 = a;
+					this.p2 = b;
+				}
+				public int hashCode()
+				{
+					return (p1.hashCode() ^ p2.hashCode());
+				}
+				public boolean equals(Object obj)
+				{
+					if (obj == this) return (true);
+					if (!(obj instanceof PolyEdge)) return (false);
+					PolyEdge edge = (PolyEdge)obj;
+
+					return ((p1.equals(edge.p1) && p2.equals(p2)) ||
+					        (p1.equals(edge.p2) && p2.equals(p1)));
+				}
+			}
+			HashMap edges = new HashMap();
+			PathIterator pi = getPathIterator(null);
+			double [] coords = new double[6];
+			List pointList = new ArrayList();
+
+			while (!pi.isDone()) {
+				switch (pi.currentSegment(coords)) {
+	                case PathIterator.SEG_CLOSE:
+						{
+							Object [] points = pointList.toArray();
+							for (int i = 0; i < pointList.size(); i++)
+							{
+								int j = (i + 1)% pointList.size();
+								PolyEdge edge = new PolyEdge((Point2D)points[i], (Point2D)points[j]);
+								edges.put(edge, edge);
+							}
+							pointList.clear();
+						}
+						break;
+					default:
+						Point2D pt = new Point2D.Double(coords[0], coords[1]);
+						pointList.add(pt);
+	            }
+	            pi.next();
+			}
+
+			// Adding the other polygon
+			while (!opi.isDone()) {
+				switch (opi.currentSegment(coords)) {
+	                case PathIterator.SEG_CLOSE:
+						{
+							Object [] points = pointList.toArray();
+							for (int i = 0; i < pointList.size(); i++)
+							{
+								int j = (i + 1)% pointList.size();
+								Point2D p1 = (Point2D)points[i];
+								Point2D p2 = (Point2D)points[j];
+								if (p1.equals(p2))
+									continue;
+								PolyEdge edge = new PolyEdge(p1, p2);
+								if (edges.containsKey(edge))
+									return (true);
+								// Temporary solution until keys work! @TODO GVG get keys working
+								if (edges.containsValue(edge))
+									return (true);
+								edges.put(edge, edge);
+							}
+							pointList.clear();
+						}
+						break;
+					default:
+						Point2D pt = new Point2D.Double(coords[0], coords[1]);
+						pointList.add(pt);
+	            }
+	            opi.next();
+			}
+
+			return (false);
+		}
 		/**
 		 * Calculates area
 		 * @return area associated to the node
@@ -252,7 +339,13 @@ public class PolyQTree {
 		{
 			if (a.isRectangular())
 			{
-				return (intersects(a.getBounds2D())) ;
+				boolean inter = intersects(a.getBounds2D());
+				if (inter) return (inter);
+
+				// detecting if they touch each other...
+				inter = doesTouch(a.getBounds2D().getPathIterator(null));
+
+				return (inter);
 			}
 			else if (isRectangular())
 			{

@@ -1,8 +1,13 @@
 			Java Electric change log
 
-************************* Version 8.00: Released  *************************
+************************* Version 8.01: Released  *************************
+
+BUG: (7/16/04, GVG) PolyQTree doesn't properly merge polygons that are touching each other.
+FIX: Extra code for those cases.
 
 IMP: (7/16/04, GVG) Better thickness and distances for layers in 3D: technology MoCMOS
+
+************************* Version 8.00: Released  *************************
 
 BUG: (7/16/04, RK) Series merging needs to count both Pins and Parts
 
