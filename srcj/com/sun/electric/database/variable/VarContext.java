@@ -34,6 +34,7 @@ import com.sun.electric.tool.generator.layout.LayoutLib;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Stack;
 
 /**
  * VarContext represents a hierarchical path of NodeInsts.  Its
@@ -297,7 +298,56 @@ public class VarContext
         if (ni != c.getNodable()) return false; // compare nodeinsts
         return prev.equals(c.pop());            // compare parents
     }
-    
+
+    /**
+     * Remove N levels of parent context from this VarContext. Returns
+     * a new VarContext.  This will return VarContext.globalContext
+     * if the 'levels' is greater than or equal to the number of levels
+     * in this context.
+     * @param levels the number of levels of parent context to remove
+     * @return a new VarContext
+     */
+    public VarContext removeParentContext(int levels) {
+        Stack ports = new Stack();
+        Stack nodes = new Stack();
+        VarContext acontext = this;
+        while (acontext != VarContext.globalContext) {
+            ports.push(acontext.getPortInst());
+            nodes.push(acontext.getNodable());
+            acontext = acontext.pop();
+        }
+        for (int i=0; i<levels; i++) {
+            ports.pop();
+            nodes.pop();
+        }
+        acontext = VarContext.globalContext;
+        int size = ports.size();
+        for (int i=0; i<size; i++) {
+            PortInst pi = (PortInst)ports.pop();
+            Nodable no = (Nodable)nodes.pop();
+            if (pi != null) {
+                acontext = acontext.push(pi);
+            } else {
+                acontext = acontext.push(no);
+            }
+        }
+        return acontext;
+    }
+
+    /**
+     * Get the number of levels of context in this VarContext
+     * @return the number of levels of context in this VarContext
+     */
+    public int getNumLevels() {
+        int i=0;
+        VarContext acontext = this;
+        while (acontext != VarContext.globalContext) {
+            i++;
+            acontext = acontext.pop();
+        }
+        return i;
+    }
+
     /** Get rid of the variable cache thereby release its storage */
     public synchronized void deleteVariableCache() { cache=null; }
 
