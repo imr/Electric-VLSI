@@ -778,7 +778,7 @@ public class Technology extends ElectricObject
 		for(int i = 0; i < primLayers.length; i++)
 		{
 			Technology.ArcLayer primLayer = primLayers[i];
-			polys[polyNum] = ai.makePoly(ai.getXSize(), ai.getWidth() - primLayer.getOffset(), primLayer.getStyle());
+			polys[polyNum] = ai.makePoly(ai.getLength(), ai.getWidth() - primLayer.getOffset(), primLayer.getStyle());
 			if (polys[polyNum] == null) return null;
 			polys[polyNum].setLayer(primLayer.getLayer());
 			polyNum++;
@@ -979,7 +979,7 @@ public class Technology extends ElectricObject
 
 	public static SizeOffset getSizeOffset(NodeInst ni)
 	{
-		PrimitiveNode np = (PrimitiveNode)ni.getProto();
+		NodeProto np = ni.getProto();
 		return np.getSizeOffset();
 	}
 
@@ -1015,11 +1015,11 @@ public class Technology extends ElectricObject
 	{
 		// get information about the node
 		double halfWidth = ni.getXSize() / 2;
-		double lowX = ni.getCenterX() - halfWidth;
-		double highX = ni.getCenterX() + halfWidth;
+		double lowX = ni.getTrueCenterX() - halfWidth;
+		double highX = ni.getTrueCenterX() + halfWidth;
 		double halfHeight = ni.getYSize() / 2;
-		double lowY = ni.getCenterY() - halfHeight;
-		double highY = ni.getCenterY() + halfHeight;
+		double lowY = ni.getTrueCenterY() - halfHeight;
+		double highY = ni.getTrueCenterY() + halfHeight;
 
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		int specialType = np.getSpecialType();
@@ -1036,8 +1036,8 @@ public class Technology extends ElectricObject
 				Point2D [] pointList = new Point2D.Double[numPoints];
 				for(int i=0; i<numPoints; i++)
 				{
-					pointList[i] = new Point2D.Double(ni.getCenterX() + outline[i*2].floatValue(),
-						ni.getCenterY() + outline[i*2+1].floatValue());
+					pointList[i] = new Point2D.Double(ni.getTrueCenterX() + outline[i*2].floatValue(),
+						ni.getTrueCenterY() + outline[i*2+1].floatValue());
 				}
 				polys[0] = new Poly(pointList);
 				Technology.NodeLayer primLayer = primLayers[0];
@@ -1089,10 +1089,10 @@ public class Technology extends ElectricObject
 			Poly.Type style = primLayer.getStyle();
 			if (representation == Technology.NodeLayer.BOX || representation == Technology.NodeLayer.MINBOX)
 			{
-				double portLowX = ni.getCenterX() + primLayer.getLeftEdge().getMultiplier() * ni.getXSize() + primLayer.getLeftEdge().getAdder();
-				double portHighX = ni.getCenterX() + primLayer.getRightEdge().getMultiplier() * ni.getXSize() + primLayer.getRightEdge().getAdder();
-				double portLowY = ni.getCenterY() + primLayer.getBottomEdge().getMultiplier() * ni.getYSize() + primLayer.getBottomEdge().getAdder();
-				double portHighY = ni.getCenterY() + primLayer.getTopEdge().getMultiplier() * ni.getYSize() + primLayer.getTopEdge().getAdder();
+				double portLowX = ni.getTrueCenterX() + primLayer.getLeftEdge().getMultiplier() * ni.getXSize() + primLayer.getLeftEdge().getAdder();
+				double portHighX = ni.getTrueCenterX() + primLayer.getRightEdge().getMultiplier() * ni.getXSize() + primLayer.getRightEdge().getAdder();
+				double portLowY = ni.getTrueCenterY() + primLayer.getBottomEdge().getMultiplier() * ni.getYSize() + primLayer.getBottomEdge().getAdder();
+				double portHighY = ni.getTrueCenterY() + primLayer.getTopEdge().getMultiplier() * ni.getYSize() + primLayer.getTopEdge().getAdder();
 				double portX = (portLowX + portHighX) / 2;
 				double portY = (portLowY + portHighY) / 2;
 				polys[i] = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
@@ -1107,8 +1107,8 @@ public class Technology extends ElectricObject
 					double x = 0, y = 0;
 					if (xFactor != null && yFactor != null)
 					{
-						x = ni.getCenterX() + xFactor.getMultiplier() * ni.getXSize() + xFactor.getAdder();
-						y = ni.getCenterY() + yFactor.getMultiplier() * ni.getYSize() + yFactor.getAdder();
+						x = ni.getTrueCenterX() + xFactor.getMultiplier() * ni.getXSize() + xFactor.getAdder();
+						y = ni.getTrueCenterY() + yFactor.getMultiplier() * ni.getYSize() + yFactor.getAdder();
 					}
 					pointList[j] = new Point2D.Double(x, y);
 				}
@@ -1266,7 +1266,7 @@ public class Technology extends ElectricObject
 			double cX;
 			if (cutsX == 1)
 			{
-				cX = ni.getCenterX();
+				cX = ni.getTrueCenterX();
 			} else
 			{
 				cX = cutBaseX + (cut % cutsX) * (cutSizeX + cutSep);
@@ -1276,7 +1276,7 @@ public class Technology extends ElectricObject
 			double cY;
 			if (cutsY == 1)
 			{
-				cY = ni.getCenterY();
+				cY = ni.getTrueCenterY();
 			} else
 			{
 				cY = cutBaseY + (cut / cutsX) * (cutSizeY + cutSep);
@@ -1367,8 +1367,8 @@ public class Technology extends ElectricObject
 			rwid += extraScale;
 
 			// prepare to fill the serpentine transistor
-			double xoff = ni.getCenterX();
-			double yoff = ni.getCenterY();
+			double xoff = ni.getTrueCenterX();
+			double yoff = ni.getTrueCenterY();
 			int thissg = segment;   int next = segment+1;
 			Point2D thisPt = points[thissg];
 			Point2D nextPt = points[next];
@@ -1666,8 +1666,8 @@ public class Technology extends ElectricObject
 				Float [] outline = ni.getTrace();
 				if (outline != null)
 				{
-					double cX = ni.getCenterX();
-					double cY = ni.getCenterY();
+					double cX = ni.getTrueCenterX();
+					double cY = ni.getTrueCenterY();
 					int numPoints = outline.length / 2;
 					Point2D [] pointList = new Point2D.Double[numPoints];
 					for(int i=0; i<numPoints; i++)
@@ -1683,16 +1683,16 @@ public class Technology extends ElectricObject
 
 			// standard port computation
 			double halfWidth = ni.getXSize() / 2;
-			double lowX = ni.getCenterX() - halfWidth;
-			double highX = ni.getCenterX() + halfWidth;
+			double lowX = ni.getTrueCenterX() - halfWidth;
+			double highX = ni.getTrueCenterX() + halfWidth;
 			double halfHeight = ni.getYSize() / 2;
-			double lowY = ni.getCenterY() - halfHeight;
-			double highY = ni.getCenterY() + halfHeight;
+			double lowY = ni.getTrueCenterY() - halfHeight;
+			double highY = ni.getTrueCenterY() + halfHeight;
 
-			double portLowX = ni.getCenterX() + pp.getLeft().getMultiplier() * ni.getXSize() + pp.getLeft().getAdder();
-			double portHighX = ni.getCenterX() + pp.getRight().getMultiplier() * ni.getXSize() + pp.getRight().getAdder();
-			double portLowY = ni.getCenterY() + pp.getBottom().getMultiplier() * ni.getYSize() + pp.getBottom().getAdder();
-			double portHighY = ni.getCenterY() +pp.getTop().getMultiplier() * ni.getYSize() + pp.getTop().getAdder();
+			double portLowX = ni.getTrueCenterX() + pp.getLeft().getMultiplier() * ni.getXSize() + pp.getLeft().getAdder();
+			double portHighX = ni.getTrueCenterX() + pp.getRight().getMultiplier() * ni.getXSize() + pp.getRight().getAdder();
+			double portLowY = ni.getTrueCenterY() + pp.getBottom().getMultiplier() * ni.getYSize() + pp.getBottom().getAdder();
+			double portHighY = ni.getTrueCenterY() +pp.getTop().getMultiplier() * ni.getYSize() + pp.getTop().getAdder();
 			double portX = (portLowX + portHighX) / 2;
 			double portY = (portLowY + portHighY) / 2;
 			Poly portPoly = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);

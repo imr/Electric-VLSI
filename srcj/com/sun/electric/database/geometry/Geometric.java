@@ -771,9 +771,6 @@ public abstract class Geometric extends ElectricObject
 	/** name of this Geometric object */					protected Name name;
 	/** The text descriptor of name of Geometric. */		private TextDescriptor nameDescriptor;
 	/** bounds after transformation */						protected Rectangle2D visBounds;
-	/** center coordinate of this geometric */				protected Point2D center;
-	/** size of this geometric */							protected double sX, sY;
-	/** angle of this geometric (in tenth-degrees). */		protected int angle;
 	/** The temporary Object for the node or arc. */		private Object tempObj;
 	/** temporary integer value for the node or arc */		private int tempInt;
 	/** Flag bits for this Geometric. */					protected int userBits;
@@ -790,7 +787,6 @@ public abstract class Geometric extends ElectricObject
 	protected Geometric()
 	{
 		this.userBits = 0;
-		center = new Point2D.Double();
 		nameDescriptor = TextDescriptor.newNodeArcDescriptor(this);
 		visBounds = new Rectangle2D.Double(0, 0, 0, 0);
 	}
@@ -942,62 +938,28 @@ public abstract class Geometric extends ElectricObject
 	public boolean isUsernamed() { return name != null && !name.isTempname(); }
 
 	/**
-	 * Routine to return the center point of this Geometric object.
-	 * @return the center point of this Geometric object.
+	 * Routine to return the bounds of this Geometric.
+	 * @return the bounds of this Geometric.
 	 */
-	public Point2D getCenter() { return center; }
+	public Rectangle2D getBounds() { return visBounds; }
 
 	/**
 	 * Routine to return the center X coordinate of this Geometric.
 	 * @return the center X coordinate of this Geometric.
 	 */
-	public double getCenterX() { return center.getX(); }
+	public double getTrueCenterX() { return visBounds.getCenterX(); }
 
 	/**
 	 * Routine to return the center Y coordinate of this Geometric.
 	 * @return the center Y coordinate of this Geometric.
 	 */
-	public double getCenterY() { return center.getY(); }
+	public double getTrueCenterY() { return visBounds.getCenterY(); }
 
 	/**
-	 * Routine to return the rotation angle of this Geometric.
-	 * @return the rotation angle of this Geometric (in tenth-degrees).
+	 * Routine to return the center coordinate of this Geometric.
+	 * @return the center coordinate of this Geometric.
 	 */
-	public int getAngle() { return angle; }
-
-	/**
-	 * Routine to return the X size of this Geometric.
-	 * For ArcInsts, this is the length.
-	 * @return the X size of this Geometric.
-	 */
-	public double getXSize() { return Math.abs(sX); }
-
-	/**
-	 * Routine to return the Y size of this Geometric.
-	 * For ArcInsts, this is the width.
-	 * @return the Y size of this Geometric.
-	 */
-	public double getYSize() { return Math.abs(sY); }
-	
-	/**
-	 * Routine to return whether Geometric is mirrored about a 
-	 * horizontal line running through its center.
-	 * @return true if mirrored 
-	 */
-	public boolean getMirroredAboutXAxis(){ return sY<0;}
-	
-	/** 
-	 * Routine to return whether Geometric is mirrored about a
-	 * vertical line running through its center.
-	 * @return true if mirrored
-	 */
-	public boolean getMirroredAboutYAxis() { return sX<0; }
-
-	/**
-	 * Routine to return the bounds of this Geometric.
-	 * @return the bounds of this Geometric.
-	 */
-	public Rectangle2D getBounds() { return visBounds; }
+	public Point2D getTrueCenter() { return new Point2D.Double(visBounds.getCenterX(), visBounds.getCenterY()); }
 
 	/**
 	 * Low-level routine to get the user bits.

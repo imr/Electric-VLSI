@@ -190,7 +190,7 @@ public class OutputCIF extends OutputGeometry {
             int rotx = 0;//(int)scale((EMath.cos(ni.getAngle())>>14) * 100 >> 16);
             int roty = 0;//(int)scale((EMath.sin(ni.getAngle())>>14) * 100 >> 16);
             String line = "C "+cellNum+" R "+rotx+" "+roty+" "+
-                          "T "+ni.getCenterX()+" "+ni.getCenterY()+";";
+                          "T "+ni.getTrueCenterX()+" "+ni.getTrueCenterY()+";";
             writeLine(line);
         }
     }

@@ -241,8 +241,8 @@ public class GetInfoText extends javax.swing.JDialog
 		yOffset.setEditable(true);
 		if (posNotOffset)
 		{
-			initialXOffset = ni.getCenterX();
-			initialYOffset = ni.getCenterY();
+			initialXOffset = ni.getGrabCenterX();
+			initialYOffset = ni.getGrabCenterY();
 		} else
 		{
 			initialXOffset = td.getXOff();
@@ -491,8 +491,8 @@ public class GetInfoText extends javax.swing.JDialog
 				if (dialog.posNotOffset)
 				{
 					NodeInst ni = (NodeInst)eobj;
-					double dX = currentXOffset - ni.getCenterX();
-					double dY = currentYOffset - ni.getCenterY();
+					double dX = currentXOffset - ni.getGrabCenterX();
+					double dY = currentYOffset - ni.getGrabCenterY();
 					ni.modifyInstance(dX, dY, 0, 0, 0);
 				} else
 				{

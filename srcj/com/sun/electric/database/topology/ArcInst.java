@@ -102,10 +102,12 @@ public class ArcInst extends Geometric
 
 	/** Key of the obsolete variable holding arc name.*/public static final Variable.Key ARC_NAME = ElectricObject.newKey("ARC_name");
 
-	/** width of this arc instance */					private double arcWidth;
+	/** width of this ArcInst. */						private double width;
+	/** length of this ArcInst. */						private double length;
 	/** prototype of this arc instance */				private ArcProto protoType;
 	/** end connections of this arc instance */			private Connection [] ends;
 	/** 0-based index of this ArcInst in cell. */		private int arcIndex;
+	/** angle of this ArcInst (in tenth-degrees). */	private int angle;
 
 	/**
 	 * The constructor is never called.  Use the factory "newInstance" instead.
@@ -326,22 +328,22 @@ public class ArcInst extends Geometric
 	/**
 	 * Low-level routine to fill-in the ArcInst information.
 	 * @param protoType the ArcProto of this ArcInst.
-	 * @param arcWidth the width of this ArcInst.
+	 * @param width the width of this ArcInst.
 	 * @param headPort the head end PortInst.
 	 * @param headPt the coordinate of the head end PortInst.
 	 * @param tailPort the tail end PortInst.
 	 * @param tailPt the coordinate of the tail end PortInst.
 	 * @return true on error.
 	 */
-	public boolean lowLevelPopulate(ArcProto protoType, double arcWidth,
+	public boolean lowLevelPopulate(ArcProto protoType, double width,
 		PortInst headPort, Point2D headPt, PortInst tailPort, Point2D tailPt)
 	{
 		// initialize this object
 		this.protoType = protoType;
 
-		if (arcWidth <= 0)
-			arcWidth = protoType.getWidth();
-		this.arcWidth = arcWidth;
+		if (width <= 0)
+			width = protoType.getWidth();
+		this.width = width;
 
 		Cell parent = headPort.getNodeInst().getParent();
 		if (parent != tailPort.getNodeInst().getParent())
@@ -437,7 +439,7 @@ public class ArcInst extends Geometric
 		unLinkGeom(parent);
 
 		// now make the change
-		arcWidth = EMath.smooth(arcWidth + dWidth);
+		width = EMath.smooth(width + dWidth);
 		if (dHeadX != 0 || dHeadY != 0)
 		{
 			Point2D pt = ends[HEADEND].getLocation();
@@ -464,7 +466,19 @@ public class ArcInst extends Geometric
 	 * Routine to return the width of this ArcInst.
 	 * @return the width of this ArcInst.
 	 */
-	public double getWidth() { return arcWidth; }
+	public double getWidth() { return width; }
+
+	/**
+	 * Routine to return the length of this ArcInst.
+	 * @return the length of this ArcInst.
+	 */
+	public double getLength() { return length; }
+
+	/**
+	 * Routine to return the rotation angle of this Geometric.
+	 * @return the rotation angle of this Geometric (in tenth-degrees).
+	 */
+	public int getAngle() { return angle; }
 
 	/**
 	 * Routine to create a Poly object that describes an ArcInst.
@@ -711,14 +725,12 @@ public class ArcInst extends Geometric
 		Point2D p2 = ends[TAILEND].getLocation();
 		double dx = p2.getX() - p1.getX();
 		double dy = p2.getY() - p1.getY();
-		sX = Math.sqrt(dx * dx + dy * dy);
-		sY = arcWidth;
-		center.setLocation(EMath.smooth((p1.getX() + p2.getX()) / 2), EMath.smooth((p1.getY() + p2.getY()) / 2));
+		length = Math.sqrt(dx * dx + dy * dy);
 		if (p1.equals(p2)) angle = 0; else
 			angle = EMath.figureAngle(p1, p2);
 
 		// compute the bounds
-		Poly poly = makePoly(sX, arcWidth, Poly.Type.FILLED);
+		Poly poly = makePoly(length, width, Poly.Type.FILLED);
 		visBounds.setRect(poly.getBounds2D());
 	}
 

@@ -61,6 +61,7 @@ import java.util.Iterator;
 import java.util.Date;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.AffineTransform;
 import java.nio.ByteBuffer;
 
 
@@ -1227,6 +1228,17 @@ public class InputBinary extends Input
 		{
 			height = -height;
 			rotation = (rotation + 900) % 3600;
+		}
+
+		// figure out the grab center if this is a cell instance
+		if (np instanceof Cell)
+		{
+			Cell subCell = (Cell)np;
+			Rectangle2D bounds = subCell.getBounds();
+			Point2D shift = new Point2D.Double(-bounds.getCenterX(), -bounds.getCenterY());
+			AffineTransform trans = NodeInst.pureRotate(rotation, width, height);
+			trans.transform(shift, shift);
+			center.setLocation(center.getX() + shift.getX(), center.getY() + shift.getY());
 		}
 		ni.lowLevelPopulate(np, center, width, height, rotation, cell);
 		if (name != null) ni.setNameKey(name);

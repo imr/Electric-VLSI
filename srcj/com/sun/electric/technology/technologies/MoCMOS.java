@@ -3322,31 +3322,48 @@ public class MoCMOS extends Technology
 		if (!errorfound)
 		{
 			// clear the rules on the technology
-			newVar(DRC.MIN_CONNECTED_DISTANCES, conDist);
-			newVar(DRC.MIN_CONNECTED_DISTANCES_RULE, conDistRules);
-			newVar(DRC.MIN_UNCONNECTED_DISTANCES, unConDist);
-			newVar(DRC.MIN_UNCONNECTED_DISTANCES_RULE, unConDistRules);
+			Variable var = newVar(DRC.MIN_CONNECTED_DISTANCES, conDist);
+			if (var != null) var.setDontSave();
+			var = newVar(DRC.MIN_CONNECTED_DISTANCES_RULE, conDistRules);
+			if (var != null) var.setDontSave();
+			var = newVar(DRC.MIN_UNCONNECTED_DISTANCES, unConDist);
+			if (var != null) var.setDontSave();
+			var = newVar(DRC.MIN_UNCONNECTED_DISTANCES_RULE, unConDistRules);
+			if (var != null) var.setDontSave();
 
-			newVar(DRC.MIN_CONNECTED_DISTANCES_WIDE, conDistWide);
-			newVar(DRC.MIN_CONNECTED_DISTANCES_WIDE_RULE, conDistWideRules);
-			newVar(DRC.MIN_UNCONNECTED_DISTANCES_WIDE, unConDistWide);
-			newVar(DRC.MIN_UNCONNECTED_DISTANCES_WIDE_RULE, unConDistWideRules);
+			var = newVar(DRC.MIN_CONNECTED_DISTANCES_WIDE, conDistWide);
+			if (var != null) var.setDontSave();
+			var = newVar(DRC.MIN_CONNECTED_DISTANCES_WIDE_RULE, conDistWideRules);
+			if (var != null) var.setDontSave();
+			var = newVar(DRC.MIN_UNCONNECTED_DISTANCES_WIDE, unConDistWide);
+			if (var != null) var.setDontSave();
+			var = newVar(DRC.MIN_UNCONNECTED_DISTANCES_WIDE_RULE, unConDistWideRules);
+			if (var != null) var.setDontSave();
 			
-			newVar(DRC.MIN_CONNECTED_DISTANCES_MULTI, conDistMulti);
-			newVar(DRC.MIN_CONNECTED_DISTANCES_MULTI_RULE, conDistMultiRules);
-			newVar(DRC.MIN_UNCONNECTED_DISTANCES_MULTI, unConDistMulti);
-			newVar(DRC.MIN_UNCONNECTED_DISTANCES_MULTI_RULE, unConDistMultiRules);
+			var = newVar(DRC.MIN_CONNECTED_DISTANCES_MULTI, conDistMulti);
+			if (var != null) var.setDontSave();
+			var = newVar(DRC.MIN_CONNECTED_DISTANCES_MULTI_RULE, conDistMultiRules);
+			if (var != null) var.setDontSave();
+			var = newVar(DRC.MIN_UNCONNECTED_DISTANCES_MULTI, unConDistMulti);
+			if (var != null) var.setDontSave();
+			var = newVar(DRC.MIN_UNCONNECTED_DISTANCES_MULTI_RULE, unConDistMultiRules);
+			if (var != null) var.setDontSave();
 
-			newVar(DRC.MIN_EDGE_DISTANCES, edgeDist);
-			newVar(DRC.MIN_EDGE_DISTANCES_RULE, edgeDistRules);
+			var = newVar(DRC.MIN_EDGE_DISTANCES, edgeDist);
+			if (var != null) var.setDontSave();
+			var = newVar(DRC.MIN_EDGE_DISTANCES_RULE, edgeDistRules);
+			if (var != null) var.setDontSave();
 
-			newVar(DRC.MIN_WIDTH, minSize);
-			newVar(DRC.MIN_WIDTH_RULE, minSizeRules);
+			var = newVar(DRC.MIN_WIDTH, minSize);
+			if (var != null) var.setDontSave();
+			var = newVar(DRC.MIN_WIDTH_RULE, minSizeRules);
+			if (var != null) var.setDontSave();
 
-			newVar(DRC.WIDE_LIMIT, new Double(WIDELIMIT));
+			var = newVar(DRC.WIDE_LIMIT, new Double(WIDELIMIT));
+			if (var != null) var.setDontSave();
 
 			// reset valid DRC dates
-//			dr_reset_dates();
+			DRC.resetDates();
 		}
 
 		return(errorfound);

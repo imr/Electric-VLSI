@@ -30,6 +30,7 @@ import com.sun.electric.tool.user.UserMenuCommands;
 import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.EditWindow;
 
+import java.awt.Point;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseWheelListener;
@@ -157,6 +158,12 @@ class ClickAndDragListener
 		int newX = evt.getX();
 		int newY = evt.getY();
 		EditWindow wnd = (EditWindow)evt.getSource();
+
+		Point2D delta = wnd.deltaScreenToDatabase(newX - oldx, newY - oldy);
+		wnd.gridAlign(delta);
+		Point pt = wnd.deltaDatabaseToScreen(delta.getX(), delta.getY());
+		newX = oldx + pt.x;   newY = oldy + pt.y;
+
 		Cell cell = wnd.getCell();
         if (cell == null) return;
 

@@ -717,10 +717,10 @@ public class OutputBinary extends Output
 
 		// write descriptive information
 		Technology tech = ni.getParent().getTechnology();
-		int lowX = (int)((ni.getCenterX() - ni.getXSize()/2) * tech.getScale());
-		int highX = (int)((ni.getCenterX() + ni.getXSize()/2) * tech.getScale());
-		int lowY = (int)((ni.getCenterY() - ni.getYSize()/2) * tech.getScale());
-		int highY = (int)((ni.getCenterY() + ni.getYSize()/2) * tech.getScale());
+		int lowX = (int)((ni.getTrueCenterX() - ni.getXSize()/2) * tech.getScale());
+		int highX = (int)((ni.getTrueCenterX() + ni.getXSize()/2) * tech.getScale());
+		int lowY = (int)((ni.getTrueCenterY() - ni.getYSize()/2) * tech.getScale());
+		int highY = (int)((ni.getTrueCenterY() + ni.getYSize()/2) * tech.getScale());
 		writeBigInteger(lowX);
 		writeBigInteger(lowY);
 		writeBigInteger(highX);

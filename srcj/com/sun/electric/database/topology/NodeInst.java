@@ -113,14 +113,17 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	// ---------------------- private data ----------------------------------
-	/** prototype of this node instance */					private NodeProto protoType;
-	/** node usage of this node instance */					private NodeUsage nodeUsage;
-	/** 0-based index of this NodeInst in cell. */			private int nodeIndex;
-	/** labling information for this node instance */		private int textbits;
-	/** HashTable of portInsts on this node instance */		private List portInsts;
-	/** List of connections belonging to this instance */	private List connections;
-	/** List of Exports belonging to this node instance */	private List exports;
-	/** Text descriptor of prototype name */				private TextDescriptor protoDescriptor;
+	/** prototype of this NodeInst. */						private NodeProto protoType;
+	/** node usage of this NodeInst. */						private NodeUsage nodeUsage;
+	/** 0-based index of this NodeInst in Cell. */			private int nodeIndex;
+	/** labling information for this NodeInst. */			private int textbits;
+	/** HashTable of portInsts on this NodeInst. */			private List portInsts;
+	/** List of connections belonging to this NodeInst. */	private List connections;
+	/** List of Exports belonging to this NodeInst. */		private List exports;
+	/** Text descriptor of prototype name. */				private TextDescriptor protoDescriptor;
+	/** center coordinate of this NodeInst. */				private Point2D center;
+	/** size of this NodeInst (negative to mirror). */		private double sX, sY;
+	/** angle of this NodeInst (in tenth-degrees). */		private int angle;
 
 	// --------------------- private and protected methods ---------------------
 
@@ -136,6 +139,7 @@ public class NodeInst extends Geometric implements Nodable
 		this.connections = new ArrayList();
 		this.exports = new ArrayList();
 		this.protoDescriptor = TextDescriptor.newInstanceDescriptor(this);
+		center = new Point2D.Double();
 	}
 
 	/****************************** CREATE, DELETE, MODIFY ******************************/
@@ -686,7 +690,7 @@ public class NodeInst extends Geometric implements Nodable
 		unLinkGeom(parent);
 
 		// make the change
-		this.center.setLocation(EMath.smooth(getCenterX() + dX), EMath.smooth(getCenterY() + dY));
+		this.center.setLocation(EMath.smooth(getGrabCenterX() + dX), EMath.smooth(getGrabCenterY() + dY));
 
 		this.sX = EMath.smooth(this.sX + dXSize);
 		this.sY = EMath.smooth(this.sY + dYSize);
@@ -739,22 +743,72 @@ public class NodeInst extends Geometric implements Nodable
 	/****************************** GRAPHICS ******************************/
 
 	/**
+	 * Routine to return the rotation angle of this NodeInst.
+	 * @return the rotation angle of this NodeInst (in tenth-degrees).
+	 */
+	public int getAngle() { return angle; }
+
+	/**
+	 * Routine to return the center point of this NodeInst object.
+	 * @return the center point of this NodeInst object.
+	 */
+	public Point2D getGrabCenter() { return center; }
+
+	/**
+	 * Routine to return the center X coordinate of this NodeInst.
+	 * @return the center X coordinate of this NodeInst.
+	 */
+	public double getGrabCenterX() { return center.getX(); }
+
+	/**
+	 * Routine to return the center Y coordinate of this NodeInst.
+	 * @return the center Y coordinate of this NodeInst.
+	 */
+	public double getGrabCenterY() { return center.getY(); }
+
+	/**
+	 * Routine to return the X size of this NodeInst.
+	 * @return the X size of this NodeInst.
+	 */
+	public double getXSize() { return Math.abs(sX); }
+
+	/**
+	 * Routine to return the Y size of this NodeInst.
+	 * @return the Y size of this NodeInst.
+	 */
+	public double getYSize() { return Math.abs(sY); }
+	
+	/**
+	 * Routine to return whether NodeInst is mirrored about a 
+	 * horizontal line running through its center.
+	 * @return true if mirrored 
+	 */
+	public boolean getMirroredAboutXAxis(){ return sY<0;}
+	
+	/** 
+	 * Routine to return whether NodeInst is mirrored about a
+	 * vertical line running through its center.
+	 * @return true if mirrored
+	 */
+	public boolean getMirroredAboutYAxis() { return sX<0; }
+
+	/**
 	 * Routine to return the true center of this NodeInst.
 	 * For primitives, this is the same as the geometric center.
 	 * For cell instances, this is the location of the cell-center inside of the cell definition.
 	 * @return the true center of this NodeInst.
 	 */
-	public Point2D getTrueCenter()
-	{
-		if (getProto() instanceof PrimitiveNode) return center;
-
-		// build a transformation for the center point
-		AffineTransform transOut = transformOut();
-		AffineTransform trans = rotateOut(transOut);
-		Point2D trueCenter = new Point2D.Double(0, 0);
-		trans.transform(trueCenter, trueCenter);
-		return trueCenter;
-	}
+//	public Point2D getTrueCenter()
+//	{
+//		if (getProto() instanceof PrimitiveNode) return center;
+//
+//		// build a transformation for the center point
+//		AffineTransform transOut = transformOut();
+//		AffineTransform trans = rotateOut(transOut);
+//		Point2D trueCenter = new Point2D.Double(0, 0);
+//		trans.transform(trueCenter, trueCenter);
+//		return trueCenter;
+//	}
 
 	/**
 	 * Routine to return the starting and ending angle of an arc described by this NodeInst.
@@ -811,7 +865,7 @@ public class NodeInst extends Geometric implements Nodable
 	{
 		if (sX == 0 && sY == 0)
 		{
-			visBounds.setRect(getCenterX(), getCenterY(), 0, 0);
+			visBounds.setRect(getGrabCenterX(), getGrabCenterY(), 0, 0);
 		} else
 		{
 			// special case for arcs of circles
@@ -821,7 +875,7 @@ public class NodeInst extends Geometric implements Nodable
 				double [] angles = getArcDegrees();
 				if (angles[0] != 0.0 || angles[1] != 0.0)
 				{
-					Point2D [] pointList = Artwork.fillEllipse(getCenter(), Math.abs(sX), Math.abs(sY), angles[0], angles[1]);
+					Point2D [] pointList = Artwork.fillEllipse(getGrabCenter(), Math.abs(sX), Math.abs(sY), angles[0], angles[1]);
 					Poly poly = new Poly(pointList);
 					poly.setStyle(Poly.Type.OPENED);
 					poly.transform(rotateOut());
@@ -835,7 +889,7 @@ public class NodeInst extends Geometric implements Nodable
 			{
 				if (pinUseCount())
 				{
-					visBounds.setRect(getCenterX(), getCenterY(), 0, 0);
+					visBounds.setRect(getGrabCenterX(), getGrabCenterY(), 0, 0);
 					return;
 				}
 			}
@@ -850,7 +904,8 @@ public class NodeInst extends Geometric implements Nodable
 					Point2D [] pointList = new Point2D.Double[numPoints];
 					for(int i=0; i<numPoints; i++)
 					{
-						pointList[i] = new Point2D.Double(getCenterX() + outline[i*2].floatValue(), getCenterY() + outline[i*2+1].floatValue());
+						pointList[i] = new Point2D.Double(getGrabCenterX() + outline[i*2].floatValue(),
+							getGrabCenterY() + outline[i*2+1].floatValue());
 					}
 					Poly poly = new Poly(pointList);
 					poly.setStyle(Poly.Type.OPENED);
@@ -860,22 +915,28 @@ public class NodeInst extends Geometric implements Nodable
 				}
 			}
 
-			// The old way to do it:
-			// start with a unit polygon, centered at the origin
-//			Poly poly = new Poly(0.0, 0.0, 1.0, 1.0);
-//			AffineTransform scale = new AffineTransform();
-//			scale.setToScale(sX, sY);
-//			AffineTransform rotate = rotateAbout(angle, 0, 0, sX, sY);
-//			AffineTransform translate = new AffineTransform();
-//			translate.setToTranslation(getCenterX(), getCenterY());
-//			rotate.concatenate(scale);
-//			translate.concatenate(rotate);
-//			poly.transform(translate);
-
-			// the simpler way to do it:
-			Poly poly = new Poly(center.getX(), center.getY(), sX, sY);
-			AffineTransform trans = rotateOut();
-			poly.transform(trans);
+			// convert the center, rotation, and size into a bounds
+			double cX = center.getX(), cY = center.getY();
+			Poly poly = null;
+			if (protoType instanceof Cell)
+			{
+				// offset by distance from cell-center to the true center
+				Cell subCell = (Cell)protoType;
+				Rectangle2D bounds = subCell.getBounds();
+				Point2D shift = new Point2D.Double(-bounds.getCenterX(), -bounds.getCenterY());
+				AffineTransform trans = pureRotate(angle, sX, sY);
+				trans.transform(shift, shift);
+				cX -= shift.getX();
+				cY -= shift.getY();
+				poly = new Poly(cX, cY, Math.abs(sX), Math.abs(sY));
+				trans = rotateAbout(angle, cX, cY, sX, sY);
+				poly.transform(trans);
+			} else
+			{
+				poly = new Poly(cX, cY, sX, sY);
+				AffineTransform trans = rotateOut();
+				poly.transform(trans);
+			}
 
 			// return its bounds
 			visBounds.setRect(poly.getBounds2D());
@@ -910,8 +971,8 @@ public class NodeInst extends Geometric implements Nodable
 		// add in the cell name if appropriate
 		if (easyAnnotation && (nodeNameText != 0))
 		{
-			double cX = getCenterX();
-			double cY = getCenterY();
+			double cX = getTrueCenterX();
+			double cY = getTrueCenterY();
 			TextDescriptor td = getProtoTextDescriptor();
 			double offX = td.getXOff();
 			double offY = td.getYOff();
@@ -1002,10 +1063,10 @@ public class NodeInst extends Geometric implements Nodable
 		// inner coordinates to outer
 		Cell lowerCell = (Cell)protoType;
 		Rectangle2D bounds = lowerCell.getBounds();
-		double dx = getCenterX() - bounds.getCenterX();
-		double dy = getCenterY() - bounds.getCenterY();
+		double dx = getGrabCenterX() - bounds.getCenterX();
+		double dy = getGrabCenterY() - bounds.getCenterY();
 		AffineTransform transform = new AffineTransform();
-		transform.setToRotation(angle, getCenterX(), getCenterY());
+		transform.setToRotation(angle*Math.PI/1800, getGrabCenterX(), getGrabCenterY());
 		transform.translate(dx, dy);
 		return transform;
 	}
@@ -1025,17 +1086,17 @@ public class NodeInst extends Geometric implements Nodable
 	{
 		Cell lowerCell = (Cell)protoType;
 		Rectangle2D bounds = lowerCell.getBounds();
-		double dx = getCenterX() - bounds.getCenterX();
-		double dy = getCenterY() - bounds.getCenterY();
+		double dx = getGrabCenterX() - bounds.getCenterX();
+		double dy = getGrabCenterY() - bounds.getCenterY();
 		AffineTransform transform = new AffineTransform();
 		boolean transpose = sX<0 ^ sY<0;
 		if (transpose) {
-			transform.translate(getCenterX(), getCenterY());
+			transform.translate(getGrabCenterX(), getGrabCenterY());
 			transform.scale(1, -1);
 			transform.rotate(Math.PI/2);
-			transform.translate(-getCenterX(), -getCenterY());
+			transform.translate(-getGrabCenterX(), -getGrabCenterY());
 		}
-		transform.rotate(angle*Math.PI/1800, getCenterX(), getCenterY());
+		transform.rotate(angle*Math.PI/1800, getGrabCenterX(), getGrabCenterY());
 		transform.translate(dx, dy);
 //		System.out.println("rkTransformOut: {\n"
 //		                   + "    lowerCellBounds: " + bounds + "\n"
@@ -1058,13 +1119,13 @@ public class NodeInst extends Geometric implements Nodable
 	 * @return a transformation that moves up the hierarchy, including
 	 * the previous transformation.
 	 */
-	public AffineTransform transformOut(AffineTransform prevTransform)
-	{
-		AffineTransform transform = transformOut();
-		AffineTransform returnTransform = new AffineTransform(prevTransform);
-		returnTransform.concatenate(transform);
-		return returnTransform;
-	}
+//	public AffineTransform transformOut(AffineTransform prevTransform)
+//	{
+//		AffineTransform transform = transformOut();
+//		AffineTransform returnTransform = new AffineTransform(prevTransform);
+//		returnTransform.concatenate(transform);
+//		return returnTransform;
+//	}
 
 	/**
 	 * Routine to return a transformation that translates up the hierarchy.
@@ -1076,12 +1137,10 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public AffineTransform translateOut()
 	{
-		// to transform out of this node instance, first translate
-		// inner coordinates to outer
+		// to transform out of this node instance, translate inner coordinates to outer
 		Cell lowerCell = (Cell)protoType;
-		Rectangle2D bounds = lowerCell.getBounds();
-		double dx = getCenterX() - bounds.getCenterX();
-		double dy = getCenterY() - bounds.getCenterY();
+		double dx = getGrabCenterX();
+		double dy = getGrabCenterY();
 		AffineTransform transform = new AffineTransform();
 		transform.translate(dx, dy);
 		return transform;
@@ -1155,27 +1214,40 @@ public class NodeInst extends Geometric implements Nodable
 		transform.setToRotation(angle * Math.PI / 1800.0);
 
 		// add mirroring
-		if (sX < 0) transform.concatenate(mirrorX);
-		if (sY < 0) transform.concatenate(mirrorY);
+		if (sX < 0) transform.preConcatenate(mirrorX);
+		if (sY < 0) transform.preConcatenate(mirrorY);
 		return transform;
 	}
 
 	/**
 	 * Routine to return a transformation that rotates this NodeInst.
-	 * It transforms points on this NodeInst to account for the
-	 * NodeInst's rotation.
+	 * It transforms points on this NodeInst to account for the NodeInst's rotation.
+	 * The rotation happens about the node's Grab Point (the location of the cell-center inside of cell definitions).
 	 * @return a transformation that rotates this NodeInst.
 	 * If this NodeInst is not rotated, the returned transformation is identity.
 	 */
 	public AffineTransform rotateOut()
 	{
-		return rotateAbout(angle, getCenterX(), getCenterY(), sX, sY);
+		return rotateAbout(angle, getGrabCenterX(), getGrabCenterY(), sX, sY);
+	}
+
+	/**
+	 * Routine to return a transformation that rotates this NodeInst.
+	 * It transforms points on this NodeInst to account for the NodeInst's rotation.
+	 * The rotation happens about the node's true geometric center.
+	 * @return a transformation that rotates this NodeInst.
+	 * If this NodeInst is not rotated, the returned transformation is identity.
+	 */
+	public AffineTransform rotateOutAboutTrueCenter()
+	{
+		return rotateAbout(angle, getTrueCenterX(), getTrueCenterY(), sX, sY);
 	}
 
 	/**
 	 * Routine to return a transformation that rotates this NodeInst,
 	 * combined with a previous transformation.  It transforms points
 	 * on this NodeInst to account for the NodeInst's rotation.
+	 * The rotation happens about the node's Grab Point (the location of the cell-center inside of cell definitions).
 	 * @param prevTransform the previous transformation to be applied.
 	 * @return a transformation that rotates this NodeInst, combined
 	 * with a previous transformation..  If this NodeInst is not
@@ -1187,6 +1259,27 @@ public class NodeInst extends Geometric implements Nodable
 		if (angle == 0 && sX >= 0 && sY >= 0) return prevTransform;
 
 		AffineTransform transform = rotateOut();
+		AffineTransform returnTransform = new AffineTransform(prevTransform);
+		returnTransform.concatenate(transform);
+		return returnTransform;
+	}
+
+	/**
+	 * Routine to return a transformation that rotates this NodeInst,
+	 * combined with a previous transformation.  It transforms points
+	 * on this NodeInst to account for the NodeInst's rotation.
+	 * The rotation happens about the node's true geometric center.
+	 * @param prevTransform the previous transformation to be applied.
+	 * @return a transformation that rotates this NodeInst, combined
+	 * with a previous transformation..  If this NodeInst is not
+	 * rotated, the returned transformation is identity.
+	 */
+	public AffineTransform rotateOutAboutTrueCenter(AffineTransform prevTransform)
+	{
+		// if there is no transformation, stop now
+		if (angle == 0 && sX >= 0 && sY >= 0) return prevTransform;
+
+		AffineTransform transform = rotateOutAboutTrueCenter();
 		AffineTransform returnTransform = new AffineTransform(prevTransform);
 		returnTransform.concatenate(transform);
 		return returnTransform;
@@ -1206,10 +1299,10 @@ public class NodeInst extends Geometric implements Nodable
 
 		double width = getXSize() / 2;
 		double height = getYSize() / 2;
-		double lX = getCenterX() - width + so.getLowXOffset();
-		double hX = getCenterX() + width - so.getHighXOffset();
-		double lY = getCenterY() - height + so.getLowYOffset();
-		double hY = getCenterY() + height - so.getHighYOffset();
+		double lX = getTrueCenterX() - width + so.getLowXOffset();
+		double hX = getTrueCenterX() + width - so.getHighXOffset();
+		double lY = getTrueCenterY() - height + so.getLowYOffset();
+		double hY = getTrueCenterY() + height - so.getHighYOffset();
 		Poly poly = new Poly((lX+hX)/2, (lY+hY)/2, hX-lX, hY-lY);
 		if (getAngle() != 0 || isXMirrored() || isYMirrored())
 		{
@@ -2144,7 +2237,7 @@ public class NodeInst extends Geometric implements Nodable
 	public AffineTransform getPositionAsTransform() 
 	{
 		AffineTransform at = new AffineTransform();
-		at.setToTranslation(getCenterX(), getCenterY());
+		at.setToTranslation(getGrabCenterX(), getGrabCenterY());
 		boolean transpose = sX<0 ^ sY<0;
 		if (transpose){
 			at.scale(1, -1);
@@ -2251,7 +2344,7 @@ public class NodeInst extends Geometric implements Nodable
 							+ "    dy: " + centY + "\n"
 							+ "}\n");
 
-		modifyInstance(centX-getCenterX(), centY-getCenterY(), sizeX-sX,
+		modifyInstance(centX-getGrabCenterX(), centY-getGrabCenterY(), sizeX-sX,
 					   sizeY-sY, (int)Math.round(newAngle*10)-angle);
 	}
 

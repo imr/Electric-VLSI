@@ -288,8 +288,8 @@ public class Layout extends Constraint
 
 		// make changes to the nodeinst
 		int oldang = ni.getAngle();
-		double oldCX = ni.getCenterX();
-		double oldCY = ni.getCenterY();
+		double oldCX = ni.getGrabCenterX();
+		double oldCY = ni.getGrabCenterY();
 		double oldSX = ni.getXSize();
 		double oldSY = ni.getYSize();
 		ni.lowLevelModify(deltaCX, deltaCY, deltaSX, deltaSY, dAngle);
@@ -504,12 +504,12 @@ public class Layout extends Constraint
 				double othY = dy - onoPt.getY();
 
 				// figure out the new location of the other nodeinst
-				src.setLocation(ono.getCenterX()-ox, ono.getCenterY()-oy);
+				src.setLocation(ono.getGrabCenterX()-ox, ono.getGrabCenterY()-oy);
 				Point2D ptD = new Point2D.Double();
 				trans.transform(src, ptD);
 				dx = ptD.getX();   dy = ptD.getY();
-				dx = dx - ono.getCenterX() - othX;
-				dy = dy - ono.getCenterY() - othY;
+				dx = dx - ono.getGrabCenterX() - othX;
+				dy = dy - ono.getGrabCenterY() - othY;
 
 				// move the other nodeinst
 				nextAngle = dAngle;
@@ -823,8 +823,8 @@ public class Layout extends Constraint
 			Connection con = (Connection)it.next();
 			ArcInst oai = con.getArc();
 			if (oai == ai) continue;
-			if (oai.getXSize() < bestDist) continue;
-			bestDist = oai.getXSize();
+			if (oai.getLength() < bestDist) continue;
+			bestDist = oai.getLength();
 			bestAI = oai;
 		}
 
@@ -1077,8 +1077,8 @@ public class Layout extends Constraint
 		double m01 = trans.getShearX();
 		double m11 = trans.getScaleY();
 		double m10 = trans.getShearY();
-		double m02 = ni.getCenterX();
-		double m12 = ni.getCenterY();
+		double m02 = ni.getGrabCenterX();
+		double m12 = ni.getGrabCenterY();
 		Undo.Change change = ni.getChange();
 		if (change.getA3() == ni.getXSize() && change.getA4() == ni.getYSize() && change.getI1() == ni.getAngle())
 		{
@@ -1178,7 +1178,7 @@ public class Layout extends Constraint
 	{
 		// get current values
 		Cell np = (Cell)ni.getProto();
-		double cX = ni.getCenterX();   double cY = ni.getCenterY();
+		double cX = ni.getGrabCenterX();   double cY = ni.getGrabCenterY();
 		Rectangle2D cellBounds = np.getBounds();
 		double pCX = cellBounds.getCenterX();   double pCY = cellBounds.getCenterY();
 

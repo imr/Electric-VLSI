@@ -155,18 +155,18 @@ public class GetInfoMulti extends javax.swing.JDialog
 					NodeInst ni = (NodeInst)eobj;
 					if (numNodes != 0)
 					{
-						xPositionLow = Math.min(xPositionLow, ni.getCenterX());
-						xPositionHigh = Math.max(xPositionHigh, ni.getCenterX());
-						yPositionLow = Math.min(yPositionLow, ni.getCenterY());
-						yPositionHigh = Math.max(yPositionHigh, ni.getCenterY());
+						xPositionLow = Math.min(xPositionLow, ni.getGrabCenterX());
+						xPositionHigh = Math.max(xPositionHigh, ni.getGrabCenterX());
+						yPositionLow = Math.min(yPositionLow, ni.getGrabCenterY());
+						yPositionHigh = Math.max(yPositionHigh, ni.getGrabCenterY());
 						xSizeLow = Math.min(xSizeLow, ni.getXSize());
 						xSizeHigh = Math.max(xSizeHigh, ni.getXSize());
 						ySizeLow = Math.min(ySizeLow, ni.getYSize());
 						ySizeHigh = Math.max(ySizeHigh, ni.getYSize());
 					} else
 					{
-						xPositionLow = xPositionHigh = ni.getCenterX();
-						yPositionLow = yPositionHigh = ni.getCenterY();
+						xPositionLow = xPositionHigh = ni.getGrabCenterX();
+						yPositionLow = yPositionHigh = ni.getGrabCenterY();
 						xSizeLow = xSizeHigh = ni.getXSize();
 						ySizeLow =  ySizeHigh = ni.getYSize();
 					}
@@ -229,7 +229,8 @@ public class GetInfoMulti extends javax.swing.JDialog
 		if (numNodes + numArcs == 2)
 		{
 			listModel.addElement("---------------------------");
-			listModel.addElement("Distance between centers is " + firstGeom.getCenter().distance(secondGeom.getCenter()));
+			listModel.addElement("Distance between centers is " +
+				firstGeom.getTrueCenter().distance(secondGeom.getTrueCenter()));
 		}
 		if (numNodes != 0)
 		{
@@ -412,9 +413,9 @@ public class GetInfoMulti extends javax.swing.JDialog
 					NodeInst ni = (NodeInst)eobj;
 					nis[index] = ni;
 					if (currentXPosition.equals("")) dXP[index] = 0; else
-						dXP[index] = newXPosition - ni.getCenterX();
+						dXP[index] = newXPosition - ni.getGrabCenterX();
 					if (currentYPosition.equals("")) dYP[index] = 0; else
-						dYP[index] = newYPosition - ni.getCenterY();
+						dYP[index] = newYPosition - ni.getGrabCenterY();
 					if (currentXSize.equals("")) dXS[index] = 0; else
 						dXS[index] = newXSize - ni.getXSize();
 					if (currentYSize.equals("")) dYS[index] = 0; else

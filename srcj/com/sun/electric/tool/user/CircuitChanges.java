@@ -102,12 +102,15 @@ public class CircuitChanges
 				Highlight h = (Highlight)it.next();
 				if (h.getType() != Highlight.Type.EOBJ) continue;
 				ElectricObject eobj = h.getElectricObject();
+				if (eobj instanceof PortInst)
+					eobj = ((PortInst)eobj).getNodeInst();
+				if (!(eobj instanceof Geometric)) continue;
 				if (cell == null) cell = h.getCell(); else
 				{
 					if (cell != h.getCell())
 					{
-						JFrame jf = TopLevel.getCurrentJFrame();
-						JOptionPane.showMessageDialog(jf, "All objects to be deleted must be in the same cell",
+						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+							"All objects to be deleted must be in the same cell",
 								"Delete failed", JOptionPane.ERROR_MESSAGE);
 						return;
 					}
@@ -304,8 +307,8 @@ public class CircuitChanges
 		// make sure the user really wants to delete the cell
 		if (confirm)
 		{
-			JFrame jf = TopLevel.getCurrentJFrame();
-			int response = JOptionPane.showConfirmDialog(jf, "Are you sure you want to delete cell " + cell.describe() + "?");
+			int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+				"Are you sure you want to delete cell " + cell.describe() + "?");
 			if (response != JOptionPane.YES_OPTION) return;
 		}
 
@@ -442,8 +445,7 @@ public class CircuitChanges
 			if (!other.getProtoName().equalsIgnoreCase(cell.getProtoName())) continue;
 
 			// there is another cell with this name and view: warn that it will become old
-			JFrame jf = TopLevel.getCurrentJFrame();
-			int response = JOptionPane.showConfirmDialog(jf,
+			int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
 				"There is already a cell with that view.  Is it okay to make it an older version, and make this the newest version?");
 			if (response != JOptionPane.YES_OPTION) return;
 			break;
@@ -540,7 +542,7 @@ public class CircuitChanges
 			{
 				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
 					"The current cell must be a schematic in order to generate an icon",
-					"Icon creation failed", JOptionPane.ERROR_MESSAGE);
+						"Icon creation failed", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
 
@@ -569,8 +571,9 @@ public class CircuitChanges
 			iconCell = Cell.makeInstance(lib, iconCellName);
 			if (iconCell == null)
 			{
-				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Cannot create Icon cell " + iconCellName,
-					"Icon creation failed", JOptionPane.ERROR_MESSAGE);
+				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+					"Cannot create Icon cell " + iconCellName,
+						"Icon creation failed", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
 			iconCell.setWantExpanded();
@@ -1073,12 +1076,12 @@ public class CircuitChanges
 			{
 				NodeInst ni = (NodeInst)it.next();
 				ni.clearBit(flag);
-				ni.setTempObj(new Point2D.Double(ni.getCenterX(), ni.getCenterY()));
+				ni.setTempObj(new Point2D.Double(ni.getGrabCenterX(), ni.getGrabCenterY()));
 			}
 			for(Iterator it = cell.getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
-				ai.setTempObj(new Point2D.Double(ai.getCenterX(), ai.getCenterY()));
+				ai.setTempObj(new Point2D.Double(ai.getTrueCenterX(), ai.getTrueCenterY()));
 			}
 
 			int numNodes = 0;
@@ -1140,8 +1143,8 @@ public class CircuitChanges
 				if (!(eobj instanceof ArcInst)) continue;
 				ArcInst ai = (ArcInst)eobj;
 				Point2D pt = (Point2D)ai.getTempObj();
-				if (pt.getX() != ai.getCenterX() ||
-					pt.getY() != ai.getCenterY()) continue;
+				if (pt.getX() != ai.getTrueCenterX() ||
+					pt.getY() != ai.getTrueCenterY()) continue;
 
 				// see if the arc moves in its ports
 				boolean headInPort = false, tailInPort = false;
@@ -1169,7 +1172,7 @@ public class CircuitChanges
 						if (k == 0) ni = ai.getHead().getPortInst().getNodeInst(); else
 							ni = ai.getTail().getPortInst().getNodeInst();
 						Point2D nPt = (Point2D)ni.getTempObj();
-						if (ni.getCenterX() != nPt.getX() || ni.getCenterY() != nPt.getY()) continue;
+						if (ni.getGrabCenterX() != nPt.getX() || ni.getGrabCenterY() != nPt.getY()) continue;
 
 						// fix all arcs that aren't sliding
 						for(Iterator oIt = Highlight.getHighlights(); oIt.hasNext(); )
@@ -1181,8 +1184,8 @@ public class CircuitChanges
 							{
 								ArcInst oai = (ArcInst)oEObj;
 								Point2D aPt = (Point2D)oai.getTempObj();
-								if (aPt.getX() != oai.getCenterX() ||
-									aPt.getY() != oai.getCenterY()) continue;
+								if (aPt.getX() != oai.getTrueCenterX() ||
+									aPt.getY() != oai.getTrueCenterY()) continue;
 								if (oai.stillInPort(oai.getHead(),
 										new Point2D.Double(ai.getHead().getLocation().getX()+dx, ai.getHead().getLocation().getY()+dy), true) ||
 									oai.stillInPort(oai.getTail(),
@@ -1191,7 +1194,8 @@ public class CircuitChanges
 								Layout.setTempRigid(oai, true);
 							}
 						}
-						ni.modifyInstance(dx - (ni.getCenterX() - nPt.getX()), dy - (ni.getCenterY() - nPt.getY()), 0, 0, 0);
+						ni.modifyInstance(dx - (ni.getGrabCenterX() - nPt.getX()),
+							dy - (ni.getGrabCenterY() - nPt.getY()), 0, 0, 0);
 					}
 					continue;
 				}

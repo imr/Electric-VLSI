@@ -230,13 +230,13 @@ public class Maxwell
 				ni = (NodeInst)niIt.next();
 				transr = ni.rotateOut();
 				temptrans = ni.translateOut(trans);
-				temptrans = ni.transformOut(temptrans);
+				temptrans = ni.rotateOut(temptrans);
 				
 				if(ni.getProto().getTechnology().isNoPrimitiveNodes()==false)
 				{
 					transt = ni.translateOut();
 					subrot = ni.translateOut(temptrans);
-					subrot = ni.transformOut(subrot);
+					subrot = ni.rotateOut(subrot);
 					
 					//Cell.rebuildAllNetworks(null);		
 					Iterator it = ((Cell)ni.getProto()).getNetworks();

@@ -270,7 +270,7 @@ public class EditWindow extends JPanel
 		{
 			sz = getSize();
 			img = createImage(sz.width, sz.height);
-			fillScreen();
+			needsUpdate = true;
 		}
 		if (needsUpdate)
 		{
@@ -374,6 +374,7 @@ public class EditWindow extends JPanel
 	public void drawNode(Graphics2D g2, NodeInst ni, AffineTransform trans, boolean topLevel)
 	{
 		NodeProto np = ni.getProto();
+		AffineTransform localTrans = ni.rotateOut(trans);
 
 		// see if the node is completely clipped from the screen
 //		Rectangle2D clipBound = ni.getBounds();
@@ -383,7 +384,6 @@ public class EditWindow extends JPanel
 //		clipBound = clipPoly.getBounds();
 //System.out.println("node is "+clipBound.getWidth()+"x"+clipBound.getHeight()+" at ("+clipBound.getCenterX()+","+clipBound.getCenterY());
 
-		AffineTransform localTrans = ni.rotateOut(trans);
 		if (np instanceof Cell)
 		{
 			// cell instance
@@ -398,8 +398,9 @@ public class EditWindow extends JPanel
 			} else
 			{
 				// draw the outline
-				Poly poly = new Poly(ni.getCenterX(), ni.getCenterY(), ni.getXSize(), ni.getYSize());
-				poly.transform(localTrans);
+				Poly poly = new Poly(ni.getTrueCenterX(), ni.getTrueCenterY(), ni.getXSize(), ni.getYSize());
+				AffineTransform localPureTrans = ni.rotateOutAboutTrueCenter(trans);
+				poly.transform(localPureTrans);
 				g2.setColor(Color.black);
 				g2.setStroke(solidLine);
 				g2.draw(poly);
@@ -1147,7 +1148,7 @@ public class EditWindow extends JPanel
 			{
 				Rectangle2D cellBounds = cell.getBounds();
 				if (cellBounds.getWidth() == 0 && cellBounds.getHeight() == 0)
-					cellBounds.setRect(0, 0, 60, 60);
+					cellBounds = new Rectangle2D.Double(0, 0, 60, 60);
 				focusScreen(cellBounds);
 			}
 		}

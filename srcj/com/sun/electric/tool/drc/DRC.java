@@ -24,9 +24,15 @@
 package com.sun.electric.tool.drc;
 
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Tool;
+
+import java.util.Iterator;
+import java.util.prefs.Preferences;
+import java.util.prefs.BackingStoreException;
 
 /**
  * This is the Design Rule Checker tool.
@@ -76,6 +82,9 @@ public class DRC extends Tool
 	/** key of Variable for minimum node size rule. */
 	public static final Variable.Key MIN_NODE_SIZE_RULE = ElectricObject.newKey("DRC_min_node_size_rule");
 
+	/** key of Variable for last valid DRC date on a Cell. */
+	public static final Variable.Key LAST_GOOD_DRC = ElectricObject.newKey("DRC_last_good_drc");
+
 	public static class Rules
 	{
 		/** name of the technology */								public String    techName;
@@ -108,6 +117,8 @@ public class DRC extends Tool
 		public Rules() {}
 	}
 
+	private Preferences prefs = Preferences.userNodeForPackage(getClass());
+
 	/**
 	 * The constructor sets up the DRC tool.
 	 */
@@ -117,10 +128,104 @@ public class DRC extends Tool
 	}
 
 	/**
-	 * Routine to initialize the DRC tool.
+	 * Method to initialize the DRC tool.
 	 */
 	public void init()
 	{
 //		setOn();
 	}
+
+	/**
+	 * Method to delete all cached date information on all cells.
+	 */
+	public static void resetDates()
+	{
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			{
+				Cell cell = (Cell)cIt.next();
+				Variable var = cell.getVar(LAST_GOOD_DRC);
+				if (var == null) continue;
+				cell.delVar(LAST_GOOD_DRC);
+			}
+		}
+	}
+
+	/**
+	 * Method to force all DRC Preferences to be saved.
+	 */
+	private static void flushOptions()
+	{
+		try
+		{
+	        tool.prefs.flush();
+		} catch (BackingStoreException e)
+		{
+			System.out.println("Failed to save DRC options");
+		}
+	}
+
+	/**
+	 * Method to tell whether DRC should be done incrementally.
+	 * The default is "true".
+	 * @return true if DRC should be done incrementally.
+	 */
+	public static boolean isIncrementalDRCOn() { return tool.prefs.getBoolean("IncrementalDRCOn", true); }
+	/**
+	 * Method to set whether DRC should be done incrementally.
+	 * @param on true if DRC should be done incrementally.
+	 */
+	public static void setIncrementalDRCOn(boolean on) { tool.prefs.putBoolean("IncrementalDRCOn", on);   flushOptions(); }
+
+	/**
+	 * Method to tell whether DRC should report only one error per Cell.
+	 * The default is "false".
+	 * @return true if DRC should report only one error per Cell.
+	 */
+	public static boolean isOneErrorPerCell() { return tool.prefs.getBoolean("OneErrorPerCell", false); }
+	/**
+	 * Method to set whether DRC should report only one error per Cell.
+	 * @param on true if DRC should report only one error per Cell.
+	 */
+	public static void setOneErrorPerCell(boolean on) { tool.prefs.putBoolean("OneErrorPerCell", on);   flushOptions(); }
+
+	/**
+	 * Method to tell whether DRC should use multiple threads.
+	 * The default is "false".
+	 * @return true if DRC should use multiple threads.
+	 */
+	public static boolean isUseMultipleThreads() { return tool.prefs.getBoolean("UseMultipleThreads", false); }
+	/**
+	 * Method to set whether DRC should use multiple threads.
+	 * @param on true if DRC should use multiple threads.
+	 */
+	public static void setUseMultipleThreads(boolean on) { tool.prefs.putBoolean("UseMultipleThreads", on);   flushOptions(); }
+
+	/**
+	 * Method to return the number of threads to use when running DRC with multiple threads.
+	 * The default is 2.
+	 * @return the number of threads to use when running DRC with multiple threads.
+	 */
+	public static int getNumberOfThreads() { return tool.prefs.getInt("NumberOfThreads", 2); }
+	/**
+	 * Method to set the number of threads to use when running DRC with multiple threads.
+	 * @param rot the number of threads to use when running DRC with multiple threads.
+	 */
+	public static void setNumberOfThreads(int rot) { tool.prefs.putInt("NumberOfThreads", rot);   flushOptions(); }
+
+	/**
+	 * Method to tell whether DRC should ignore center cuts in large contacts.
+	 * Only the perimeter of cuts will be checked.
+	 * The default is "false".
+	 * @return true if DRC should ignore center cuts in large contacts.
+	 */
+	public static boolean isIgnoreCenterCuts() { return tool.prefs.getBoolean("IgnoreCenterCuts", false); }
+	/**
+	 * Method to set whether DRC should ignore center cuts in large contacts.
+	 * Only the perimeter of cuts will be checked.
+	 * @param on true if DRC should ignore center cuts in large contacts.
+	 */
+	public static void setIgnoreCenterCuts(boolean on) { tool.prefs.putBoolean("IgnoreCenterCuts", on);   flushOptions(); }
 }

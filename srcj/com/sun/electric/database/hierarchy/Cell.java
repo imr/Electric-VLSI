@@ -520,7 +520,7 @@ public class Cell extends NodeProto
 			NodeProto lnt = (NodeProto)ni.getTempObj();
 			double scaleX = ni.getXSize();   if (ni.isXMirrored()) scaleX = -scaleX;
 			double scaleY = ni.getYSize();   if (ni.isYMirrored()) scaleY = -scaleY;
-			NodeInst toNi = NodeInst.newInstance(lnt, new Point2D.Double(ni.getCenterX(), ni.getCenterY()),
+			NodeInst toNi = NodeInst.newInstance(lnt, new Point2D.Double(ni.getGrabCenterX(), ni.getGrabCenterY()),
 				scaleX, scaleY, ni.getAngle(), newCell, ni.getName());
 			if (toNi == null) return null;
 
@@ -942,7 +942,6 @@ public class Cell extends NodeProto
 				EMath.smooth(cellHighX - cellLowX), EMath.smooth(cellHighY - cellLowY));
 			boundsDirty = false;
 		}
-
 		return cellBounds;
 	}
 
@@ -978,10 +977,10 @@ public class Cell extends NodeProto
 		for (int i = 0; i < essenBounds.size(); i++)
 		{
 			NodeInst ni = (NodeInst) essenBounds.get(i);
-			minX = Math.min(minX, ni.getCenterX());
-			maxX = Math.max(maxX, ni.getCenterX());
-			minY = Math.min(minY, ni.getCenterY());
-			maxY = Math.max(maxY, ni.getCenterY());
+			minX = Math.min(minX, ni.getTrueCenterX());
+			maxX = Math.max(maxX, ni.getTrueCenterX());
+			minY = Math.min(minY, ni.getTrueCenterY());
+			maxY = Math.max(maxY, ni.getTrueCenterY());
 		}
 
 		return new Rectangle2D.Double(minX, minY, maxX - minX, maxY - minY);
@@ -996,8 +995,8 @@ public class Cell extends NodeProto
 	{
 		checkChanging();
 		// if there is no change, stop now
-		double cX = referencePointNode.getCenterX();
-		double cY = referencePointNode.getCenterY();
+		double cX = referencePointNode.getTrueCenterX();
+		double cY = referencePointNode.getTrueCenterY();
 		if (cX == 0 && cY == 0) return;
 
 		// move reference point by (dx,dy)

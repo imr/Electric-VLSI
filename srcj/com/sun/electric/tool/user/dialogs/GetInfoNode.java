@@ -254,8 +254,8 @@ public class GetInfoNode extends javax.swing.JDialog
 		apply.setEnabled(true);
 
 		initialName = ni.getName();
-		initialXPos = ni.getCenterX();
-		initialYPos = ni.getCenterY();
+		initialXPos = ni.getGrabCenterX();
+		initialYPos = ni.getGrabCenterY();
 		initialXSize = ni.getXSize();
 		if (ni.isXMirrored()) initialXSize = -initialXSize;
 		initialYSize = ni.getYSize();

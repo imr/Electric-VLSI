@@ -462,7 +462,7 @@ public class Clipboard
 			ArcInst ai = (ArcInst)geom;
 
 			double wid = ai.getWidth() - ai.getProto().getWidthOffset();
-			Poly poly = ai.makePoly(ai.getXSize(), wid, Poly.Type.FILLED);
+			Poly poly = ai.makePoly(ai.getLength(), wid, Poly.Type.FILLED);
 			Rectangle2D bounds = poly.getBounds2D();
 			if (bounds.getMinX() < corner.getY()) corner.setLocation(bounds.getMinX(), corner.getY());
 			if (bounds.getMinY() < corner.getY()) corner.setLocation(corner.getX(), bounds.getMinY());
@@ -553,8 +553,9 @@ public class Clipboard
 			String name = null;
 			if (ni.isUsernamed())
 				name = ElectricObject.uniqueObjectName(ni.getName(), tocell, NodeInst.class);
-			NodeInst newNi = NodeInst.newInstance(ni.getProto(), new Point2D.Double(ni.getCenterX()+dx, ni.getCenterY()+dy),
-				width, height, ni.getAngle(), tocell, name);
+			NodeInst newNi = NodeInst.newInstance(ni.getProto(),
+				new Point2D.Double(ni.getGrabCenterX()+dx, ni.getGrabCenterY()+dy),
+					width, height, ni.getAngle(), tocell, name);
 			if (newNi == null)
 			{
 				System.out.println("Cannot create node");

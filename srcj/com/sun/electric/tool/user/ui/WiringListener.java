@@ -523,7 +523,7 @@ class WiringListener
 				ArcInst ai = (ArcInst)geom;
 
 				// if point is on the arc, it may be a "t" operation
-				Poly poly = ai.makePoly(ai.getXSize(), ai.getWidth(), Poly.Type.FILLED);
+				Poly poly = ai.makePoly(ai.getLength(), ai.getWidth(), Poly.Type.FILLED);
 				if (poly.isInside(point))
 				{
 					// clicked on the arc
@@ -532,7 +532,7 @@ class WiringListener
 						PortInst pi = ai.getHead().getPortInst();
 						NodeInst ni = pi.getNodeInst();
 						WiringPlan [] list = new WiringPlan[1];
-						list[0] = WiringPlan.makeNode(ni, ni.getProto(), pi.getPortProto(), ni.getCenter(), ni.getXSize(), ni.getYSize());
+						list[0] = WiringPlan.makeNode(ni, ni.getProto(), pi.getPortProto(), ni.getTrueCenter(), ni.getXSize(), ni.getYSize());
 						return list;
 					}
 					if (ai.getTail().getLocation().distance(point) < ai.getWidth())
@@ -540,7 +540,7 @@ class WiringListener
 						PortInst pi = ai.getTail().getPortInst();
 						NodeInst ni = pi.getNodeInst();
 						WiringPlan [] list = new WiringPlan[1];
-						list[0] = WiringPlan.makeNode(ni, ni.getProto(), pi.getPortProto(), ni.getCenter(), ni.getXSize(), ni.getYSize());
+						list[0] = WiringPlan.makeNode(ni, ni.getProto(), pi.getPortProto(), ni.getTrueCenter(), ni.getXSize(), ni.getYSize());
 						return list;
 					}
 
@@ -570,7 +570,7 @@ class WiringListener
 				}
 				NodeInst ni = pi.getNodeInst();
 				WiringPlan [] list = new WiringPlan[1];
-				list[0] = WiringPlan.makeNode(ni, ni.getProto(), pi.getPortProto(), ni.getCenter(), ni.getXSize(), ni.getYSize());
+				list[0] = WiringPlan.makeNode(ni, ni.getProto(), pi.getPortProto(), ni.getTrueCenter(), ni.getXSize(), ni.getYSize());
 				return list;
 			}
 			return null;

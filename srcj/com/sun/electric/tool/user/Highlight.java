@@ -725,7 +725,7 @@ public class Highlight
 			double offset = ai.getProto().getWidthOffset();
 
 			// construct the polygons that describe the basic arc
-			Poly poly = ai.makePoly(ai.getXSize(), ai.getWidth() - offset, Poly.Type.CLOSED);
+			Poly poly = ai.makePoly(ai.getLength(), ai.getWidth() - offset, Poly.Type.CLOSED);
 			if (poly == null) return;
 			drawOutlineFromPoints(wnd, g,  poly.getPoints(), highOffX, highOffY, false);
 
@@ -741,7 +741,7 @@ public class Highlight
 							constraints = "F";
 					} else if (ai.isSlidable()) constraints = "S";
 				}
-				Point p = wnd.databaseToScreen(ai.getCenterX(), ai.getCenterY());
+				Point p = wnd.databaseToScreen(ai.getTrueCenterX(), ai.getTrueCenterY());
 				GlyphVector gv = wnd.getGlyphs(constraints, null);
 				Rectangle2D glyphBounds = gv.getVisualBounds();
 				g.drawString(constraints, (int)(p.x - glyphBounds.getWidth()/2 + highOffX),
@@ -762,8 +762,8 @@ public class Highlight
 		{
 			NodeInst ni = (NodeInst)realEObj;
 			NodeProto np = ni.getProto();
-			AffineTransform trans = ni.rotateOut();
-			SizeOffset so = new SizeOffset(0, 0, 0, 0);
+			SizeOffset so = new SizeOffset(0,0,0,0);
+			AffineTransform trans = ni.rotateOutAboutTrueCenter();
 			if (np instanceof PrimitiveNode)
 			{
 				PrimitiveNode pnp = (PrimitiveNode)np;
@@ -789,14 +789,14 @@ public class Highlight
 			}
 
 			// setup outline of node with standard offset
-			double portLowX = ni.getCenterX() - ni.getXSize()/2 + so.getLowXOffset();
-			double portHighX = ni.getCenterX() + ni.getXSize()/2 - so.getHighXOffset();
-			double portLowY = ni.getCenterY() - ni.getYSize()/2 + so.getLowYOffset();
-			double portHighY = ni.getCenterY() + ni.getYSize()/2 - so.getHighYOffset();
-			if (portLowX == portHighX && portLowY == portHighY)
+			double nodeLowX = ni.getTrueCenterX() - ni.getXSize()/2 + so.getLowXOffset();
+			double nodeHighX = ni.getTrueCenterX() + ni.getXSize()/2 - so.getHighXOffset();
+			double nodeLowY = ni.getTrueCenterY() - ni.getYSize()/2 + so.getLowYOffset();
+			double nodeHighY = ni.getTrueCenterY() + ni.getYSize()/2 - so.getHighYOffset();
+			if (nodeLowX == nodeHighX && nodeLowY == nodeHighY)
 			{
-				float x = (float)portLowX;
-				float y = (float)portLowY;
+				float x = (float)nodeLowX;
+				float y = (float)nodeLowY;
 				float size = 3 / (float)wnd.getScale();
 				Point c1 = wnd.databaseToScreen(x+size, y);
 				Point c2 = wnd.databaseToScreen(x-size, y);
@@ -806,9 +806,9 @@ public class Highlight
 				g.drawLine(c3.x + highOffX, c3.y + highOffY, c4.x + highOffX, c4.y + highOffY);
 			} else
 			{
-				double portX = (portLowX + portHighX) / 2;
-				double portY = (portLowY + portHighY) / 2;
-				Poly poly = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
+				double nodeX = (nodeLowX + nodeHighX) / 2;
+				double nodeY = (nodeLowY + nodeHighY) / 2;
+				Poly poly = new Poly(nodeX, nodeY, nodeHighX-nodeLowX, nodeHighY-nodeLowY);
 				poly.transform(trans);
 				drawOutlineFromPoints(wnd, g,  poly.getPoints(), highOffX, highOffY, false);
 			}
@@ -877,7 +877,7 @@ public class Highlight
 			} else if (eobj instanceof Geometric)
 			{
 				Geometric geom = (Geometric)eobj;
-				Poly [] polys = geom.getPolyList(var, geom.getCenterX(), geom.getCenterY(), wnd, false);
+				Poly [] polys = geom.getPolyList(var, geom.getTrueCenterX(), geom.getTrueCenterY(), wnd, false);
 				if (polys != null)
 				{
 					poly = polys[0];
@@ -900,7 +900,7 @@ public class Highlight
 				Geometric geom = (Geometric)eobj;
 				TextDescriptor td = geom.getNameTextDescriptor();
 				Point2D [] pointList = new Point2D.Double[1];
-				pointList[0] = new Point2D.Double(geom.getCenterX()+td.getXOff(), geom.getCenterY()+td.getYOff());
+				pointList[0] = new Point2D.Double(geom.getTrueCenterX()+td.getXOff(), geom.getTrueCenterY()+td.getYOff());
 				poly = new Poly(pointList);
 				poly.setStyle(td.getPos().getPolyType());
 				if (geom instanceof NodeInst)
@@ -932,7 +932,7 @@ public class Highlight
 					NodeInst ni = (NodeInst)eobj;
 					TextDescriptor td = ni.getProtoTextDescriptor();
 					Point2D [] pointList = new Point2D.Double[1];
-					pointList[0] = new Point2D.Double(ni.getCenterX()+td.getXOff(), ni.getCenterY()+td.getYOff());
+					pointList[0] = new Point2D.Double(ni.getTrueCenterX()+td.getXOff(), ni.getTrueCenterY()+td.getYOff());
 					poly = new Poly(pointList);
 					poly.setStyle(td.getPos().getPolyType());
 					poly.transform(ni.rotateOut());
@@ -1380,15 +1380,15 @@ public class Highlight
 		}
 
 		// get the bounds of the node in a polygon
-		SizeOffset so = ni.getProto().getSizeOffset();
-		Rectangle2D niBounds = ni.getBounds();
-		double lX = niBounds.getMinX() + so.getLowXOffset();
-		double hX = niBounds.getMaxX() + so.getHighXOffset();
-		double lY = niBounds.getMinY() + so.getLowYOffset();
-		double hY = niBounds.getMaxY() + so.getHighYOffset();
-		Poly nodePoly = new Poly((lX+hX)/2, (lY+hY)/2, hX-lX, hY-lY);
+		SizeOffset so = Technology.getSizeOffset(ni);
+		double lX = ni.getTrueCenterX() - ni.getXSize()/2 + so.getLowXOffset();
+		double hX = ni.getTrueCenterX() + ni.getXSize()/2 - so.getHighXOffset();
+		double lY = ni.getTrueCenterY() - ni.getYSize()/2 + so.getLowYOffset();
+		double hY = ni.getTrueCenterY() + ni.getYSize()/2 - so.getHighYOffset();
+		Poly nodePoly = new Poly((lX + hX) / 2, (lY + hY) / 2, hX-lX, hY-lY);
+		AffineTransform pureTrans = ni.rotateOutAboutTrueCenter();
+		nodePoly.transform(pureTrans);
 		nodePoly.setStyle(Poly.Type.FILLED);
-		nodePoly.transform(trans);
 		double dist = nodePoly.polyDistance(bounds);
 		return dist;
 	}
@@ -1424,7 +1424,7 @@ public class Highlight
 		double wid = ai.getWidth() - ai.getProto().getWidthOffset();
 		if (EMath.doublesEqual(wid, 0)) wid = 1;
 //		if (curvedarcoutline(ai, poly, FILLED, wid))
-			Poly poly = ai.makePoly(ai.getXSize(), wid, Poly.Type.FILLED);
+			Poly poly = ai.makePoly(ai.getLength(), wid, Poly.Type.FILLED);
 		return poly.polyDistance(bounds);
 	}
 

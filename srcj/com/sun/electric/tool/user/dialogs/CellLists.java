@@ -493,7 +493,7 @@ public class CellLists extends javax.swing.JDialog
 				{
 					NodeInst ni = (NodeInst)nIt.next();
 					if (ni.getProto() != cell) continue;
-					line += " (" + ni.getCenterX() + "," + ni.getCenterY() + ")";
+					line += " (" + ni.getGrabCenterX() + "," + ni.getGrabCenterY() + ")";
 				}
 				System.out.println(line);
 			}

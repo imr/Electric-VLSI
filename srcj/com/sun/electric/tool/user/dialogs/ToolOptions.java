@@ -33,6 +33,8 @@ import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.Prefs;
 import com.sun.electric.tool.simulation.Spice;
@@ -216,18 +218,43 @@ public class ToolOptions extends javax.swing.JDialog
 
 	//******************************** DRC ********************************
 
+	private boolean initialDRCIncrementalOn;
+	private boolean initialDRCOneErrorPerCell;
+	private boolean initialDRCUseMultipleThreads;
+	private boolean initialDRCIgnoreCenterCuts;
+	private int initialDRCNumberOfThreads;
+	private boolean requestedDRCClearDates;
+
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the DRC tab.
 	 */
 	private void initDRC()
 	{
-		drcIncrementalOn.setEnabled(false);
-		drcOneErrorPerCell.setEnabled(false);
-		drcClearValidDates.setEnabled(false);
-		drcUseMultipleProcessors.setEnabled(false);
-		drcNumberOfProcessors.setEditable(false);
-		drcIgnoreCenterCuts.setEnabled(false);		
+		initialDRCIncrementalOn = DRC.isIncrementalDRCOn();
+		drcIncrementalOn.setSelected(initialDRCIncrementalOn);
+
+		initialDRCOneErrorPerCell = DRC.isOneErrorPerCell();
+		drcOneErrorPerCell.setSelected(initialDRCOneErrorPerCell);
+
+		initialDRCUseMultipleThreads = DRC.isUseMultipleThreads();
+		drcUseMultipleThreads.setSelected(initialDRCUseMultipleThreads);
+
+		initialDRCNumberOfThreads = DRC.getNumberOfThreads();
+		drcNumberOfThreads.setText(Integer.toString(initialDRCNumberOfThreads));
+
+		initialDRCIgnoreCenterCuts = DRC.isIgnoreCenterCuts();
+		drcIgnoreCenterCuts.setSelected(initialDRCIgnoreCenterCuts);
+
+		requestedDRCClearDates = false;
+		drcClearValidDates.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt)
+			{
+				drcClearValidDates.setEnabled(false);		
+				requestedDRCClearDates = true;
+			}
+		});
 		drcEditRulesDeck.setEnabled(false);		
 	}
 
@@ -237,6 +264,27 @@ public class ToolOptions extends javax.swing.JDialog
 	 */
 	private void termDRC()
 	{
+		boolean currentIncrementalOn = drcIncrementalOn.isSelected();
+		if (currentIncrementalOn != initialDRCIncrementalOn)
+			DRC.setIncrementalDRCOn(currentIncrementalOn);
+
+		boolean currentOneErrorPerCell = drcOneErrorPerCell.isSelected();
+		if (currentOneErrorPerCell != initialDRCOneErrorPerCell)
+			DRC.setOneErrorPerCell(currentOneErrorPerCell);
+
+		boolean currentUseMultipleThreads = drcUseMultipleThreads.isSelected();
+		if (currentUseMultipleThreads != initialDRCUseMultipleThreads)
+			DRC.setUseMultipleThreads(currentUseMultipleThreads);
+
+		int currentNumberOfThreads = EMath.atoi(drcNumberOfThreads.getText());
+		if (currentNumberOfThreads != initialDRCNumberOfThreads)
+			DRC.setNumberOfThreads(currentNumberOfThreads);
+
+		boolean currentIgnoreCenterCuts = drcIgnoreCenterCuts.isSelected();
+		if (currentIgnoreCenterCuts != initialDRCIgnoreCenterCuts)
+			DRC.setIgnoreCenterCuts(currentIgnoreCenterCuts);
+
+		if (requestedDRCClearDates) DRC.resetDates();
 	}
 
 	//******************************** DESIGN RULES ********************************
@@ -244,8 +292,8 @@ public class ToolOptions extends javax.swing.JDialog
 	private JList designRulesFromList, designRulesToList;
 	private DefaultListModel designRulesFromModel, designRulesToModel;
 	private DRC.Rules drRules;
-	private boolean drUpdating = false;
-	private boolean [] drValidLayers;
+	private boolean designRulesUpdating = false;
+	private boolean [] designRulesValidLayers;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -253,9 +301,12 @@ public class ToolOptions extends javax.swing.JDialog
 	 */
 	private void initDesignRules()
 	{
-		drRules = Technology.getCurrent().getDRCRules();
+		Technology tech = Technology.getCurrent();
+		drRules = tech.getDRCRules();
 
-		// build the "from" area
+		drLayers.setSelected(true);
+
+		// build the "from" layer/node list
 		designRulesFromModel = new DefaultListModel();
 		designRulesFromList = new JList(designRulesFromModel);
 		designRulesFromList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -263,9 +314,10 @@ public class ToolOptions extends javax.swing.JDialog
 		designRulesFromList.clearSelection();
 		designRulesFromList.addMouseListener(new MouseAdapter()
 		{
-			public void mouseClicked(MouseEvent evt) { designRulesFromListClick(); }
+			public void mouseClicked(MouseEvent evt) { designRulesGetSelectedLayerLoadDRCToList(); }
 		});
 
+		// build the "to" layer list
 		designRulesToModel = new DefaultListModel();
 		designRulesToList = new JList(designRulesToModel);
 		designRulesToList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -273,7 +325,13 @@ public class ToolOptions extends javax.swing.JDialog
 		designRulesToList.clearSelection();
 		designRulesToList.addMouseListener(new MouseAdapter()
 		{
-			public void mouseClicked(MouseEvent evt) { designRulesToListClick(); }
+			public void mouseClicked(MouseEvent evt) { designRulesShowSelectedLayerRules(); }
+		});
+
+		// catch the "show only lines with valid rules" checkbox
+		drShowOnlyLinesWithRules.addMouseListener(new MouseAdapter()
+		{
+			public void mouseClicked(MouseEvent evt) { designRulesGetSelectedLayerLoadDRCToList(); }
 		});
 
 		// have the radio buttons trigger redisplay
@@ -287,36 +345,58 @@ public class ToolOptions extends javax.swing.JDialog
 		});
 
 		// have changes to edit fields get detected immediately
-		drMinWidth.getDocument().addDocumentListener(new DRCDocumentListener(this));
-		drMinWidthRule.getDocument().addDocumentListener(new DRCDocumentListener(this));
-		drMinHeight.getDocument().addDocumentListener(new DRCDocumentListener(this));
-		drNormalConnected.getDocument().addDocumentListener(new DRCDocumentListener(this));
-		drNormalConnectedRule.getDocument().addDocumentListener(new DRCDocumentListener(this));
-		drNormalUnconnected.getDocument().addDocumentListener(new DRCDocumentListener(this));
-		drNormalUnconnectedRule.getDocument().addDocumentListener(new DRCDocumentListener(this));
-		drNormalEdge.getDocument().addDocumentListener(new DRCDocumentListener(this));
-		drNormalEdgeRule.getDocument().addDocumentListener(new DRCDocumentListener(this));
-		drWideConnected.getDocument().addDocumentListener(new DRCDocumentListener(this));
-		drWideConnectedRule.getDocument().addDocumentListener(new DRCDocumentListener(this));
-		drWideUnconnected.getDocument().addDocumentListener(new DRCDocumentListener(this));
-		drWideUnconnectedRule.getDocument().addDocumentListener(new DRCDocumentListener(this));
-		drMultiConnected.getDocument().addDocumentListener(new DRCDocumentListener(this));
-		drMultiConnectedRule.getDocument().addDocumentListener(new DRCDocumentListener(this));
-		drMultiUnconnected.getDocument().addDocumentListener(new DRCDocumentListener(this));
-		drMultiUnconnectedRule.getDocument().addDocumentListener(new DRCDocumentListener(this));
+		DRCDocumentListener myDocumentListener = new DRCDocumentListener(this);
+		drMinWidth.getDocument().addDocumentListener(myDocumentListener);
+		drMinWidthRule.getDocument().addDocumentListener(myDocumentListener);
+		drMinHeight.getDocument().addDocumentListener(myDocumentListener);
+		drNormalConnected.getDocument().addDocumentListener(myDocumentListener);
+		drNormalConnectedRule.getDocument().addDocumentListener(myDocumentListener);
+		drNormalUnconnected.getDocument().addDocumentListener(myDocumentListener);
+		drNormalUnconnectedRule.getDocument().addDocumentListener(myDocumentListener);
+		drNormalEdge.getDocument().addDocumentListener(myDocumentListener);
+		drNormalEdgeRule.getDocument().addDocumentListener(myDocumentListener);
+		drWideConnected.getDocument().addDocumentListener(myDocumentListener);
+		drWideConnectedRule.getDocument().addDocumentListener(myDocumentListener);
+		drWideUnconnected.getDocument().addDocumentListener(myDocumentListener);
+		drWideUnconnectedRule.getDocument().addDocumentListener(myDocumentListener);
+		drMultiConnected.getDocument().addDocumentListener(myDocumentListener);
+		drMultiConnectedRule.getDocument().addDocumentListener(myDocumentListener);
+		drMultiUnconnected.getDocument().addDocumentListener(myDocumentListener);
+		drMultiUnconnectedRule.getDocument().addDocumentListener(myDocumentListener);
+		drWideLimit.getDocument().addDocumentListener(myDocumentListener);
 
-		// make the layer list
-		drValidLayers = new boolean[drRules.numLayers];
-		for(int i=0; i<drRules.numLayers; i++) drValidLayers[i] = true;
-		drLayers.setSelected(true);
-		dr_loaddrcruleobjects();
+		// figure out which layers are valid
+		designRulesValidLayers = new boolean[drRules.numLayers];
+		for(int i=0; i<drRules.numLayers; i++) designRulesValidLayers[i] = false;
+		for(Iterator it = tech.getNodes(); it.hasNext(); )
+		{
+			PrimitiveNode np = (PrimitiveNode)it.next();
+			if (np.isNotUsed()) continue;
+			Technology.NodeLayer [] layers = np.getLayers();
+			for(int i=0; i<layers.length; i++)
+			{
+				Technology.NodeLayer nl = layers[i];
+				Layer layer = nl.getLayer();
+				designRulesValidLayers[layer.getIndex()] = true;
+			}
+		}
+		for(Iterator it = tech.getArcs(); it.hasNext(); )
+		{
+			PrimitiveArc ap = (PrimitiveArc)it.next();
+			if (ap.isNotUsed()) continue;
+			Technology.ArcLayer [] layers = ap.getLayers();
+			for(int i=0; i<layers.length; i++)
+			{
+				Technology.ArcLayer al = layers[i];
+				Layer layer = al.getLayer();
+				designRulesValidLayers[layer.getIndex()] = true;
+			}
+		}
 
+		// load the dialog
 		drTechName.setText(drRules.techName);
-//		DiaSetText(dia, DDRR_WIDELIMIT, frtoa(rules->widelimit));
-
-		dr_loaddrcdialog();
-		dr_loaddrcdistance();
-//		changed = 0;
+		designRulesSetupForLayersOrNodes();
+		designRulesGetSelectedLayerLoadDRCToList();
 	}
 
 	/**
@@ -324,25 +404,8 @@ public class ToolOptions extends javax.swing.JDialog
 	 */
 	private void designRulesWhichSetChanged()
 	{
-		dr_loaddrcruleobjects();
-		dr_loaddrcdialog();
-	}
-
-	/**
-	 * Method called when the user clicks in the top list (the "from layer" list).
-	 */
-	private void designRulesFromListClick()
-	{
-		dr_loaddrcdialog();
-		dr_loaddrcdistance();
-	}
-
-	/**
-	 * Method called when the user clicks in the bottom list (the "to layer" list).
-	 */
-	private void designRulesToListClick()
-	{
-		dr_loaddrcdistance();
+		designRulesSetupForLayersOrNodes();
+		designRulesGetSelectedLayerLoadDRCToList();
 	}
 
 	/**
@@ -364,21 +427,38 @@ public class ToolOptions extends javax.swing.JDialog
 	 */
 	private void designRulesEditChanged()
 	{
-		if (drUpdating) return;
+		if (designRulesUpdating) return;
 		if (drNodes.isSelected())
 		{
 			// show node information
+			int lineNo = designRulesFromList.getSelectedIndex();
+			if (lineNo < 0) return;
+			String nName = (String)designRulesFromList.getSelectedValue();
+			for(int node=0; node<drRules.numNodes; node++)
+			{
+				if (!nName.equals(drRules.nodeNames[node])) continue;
+				String a = drMinWidth.getText();
+				if (a.length() == 0) drRules.minNodeSize[node*2] = new Double(-1); else
+					drRules.minNodeSize[node*2] = new Double(a);
+				a = drMinHeight.getText();
+				if (a.length() == 0) drRules.minNodeSize[node*2+1] = new Double(-1); else
+					drRules.minNodeSize[node*2+1] = new Double(a);
+				drRules.minNodeSizeRules[node] = drMinWidthRule.getText();
+				break;
+			}
 		} else
 		{
 			// get layer information
-			int layer1 = dr_rulesdialoggetlayer(designRulesFromList);
+			int layer1 = designRulesGetSelectedLayer(designRulesFromList);
 			if (layer1 < 0) return;
-			int layer2 = dr_rulesdialoggetlayer(designRulesToList);
+			int layer2 = designRulesGetSelectedLayer(designRulesToList);
 			if (layer2 < 0) return;
-			if (layer1 > layer2) { int temp = layer1; layer1 = layer2;  layer2 = temp; }
-			int dindex = (layer1+1) * (layer1/2) + (layer1&1) * ((layer1+1)/2);
-			dindex = layer2 + drRules.numLayers * layer1 - dindex;
+			int lowLayer = layer1, highLayer = layer2;
+			if (lowLayer > highLayer) { int temp = lowLayer; lowLayer = highLayer;  highLayer = temp; }
+			int dindex = (lowLayer+1) * (lowLayer/2) + (lowLayer&1) * ((lowLayer+1)/2);
+			dindex = highLayer + drRules.numLayers * lowLayer - dindex;
 
+			// get new normal spacing values
 			String a = drNormalConnected.getText();
 			if (a.length() == 0) drRules.conList[dindex] = new Double(-1); else
 				drRules.conList[dindex] = new Double(a);
@@ -388,6 +468,7 @@ public class ToolOptions extends javax.swing.JDialog
 				drRules.unConList[dindex] = new Double(a);
 			drRules.unConListRules[dindex] = drNormalUnconnectedRule.getText();
 
+			// get new wide values
 			a = drWideConnected.getText();
 			if (a.length() == 0) drRules.conListWide[dindex] = new Double(-1); else
 				drRules.conListWide[dindex] = new Double(a);
@@ -397,6 +478,7 @@ public class ToolOptions extends javax.swing.JDialog
 				drRules.unConListWide[dindex] = new Double(a);
 			drRules.unConListWideRules[dindex] = drWideUnconnectedRule.getText();
 
+			// get new multicut values
 			a = drMultiConnected.getText();
 			if (a.length() == 0) drRules.conListMulti[dindex] = new Double(-1); else
 				drRules.conListMulti[dindex] = new Double(a);
@@ -406,20 +488,33 @@ public class ToolOptions extends javax.swing.JDialog
 				drRules.unConListMulti[dindex] = new Double(a);
 			drRules.unConListMultiRules[dindex] = drMultiUnconnectedRule.getText();
 
+			// get new edge values
 			a = drNormalEdge.getText();
 			if (a.length() == 0) drRules.edgeList[dindex] = new Double(-1); else
 				drRules.edgeList[dindex] = new Double(a);
 			drRules.edgeListRules[dindex] = drNormalEdgeRule.getText();
 
+			// get new width limit
+			a = drWideLimit.getText();
+			drRules.wideLimit = new Double(a);
+
+			// redraw the entry in the "to" list
 			int lineNo = designRulesToList.getSelectedIndex();
-			String line = dr_loadoptlistline(dindex, lineNo, false);
+			String line = drMakeToListLine(dindex, lineNo, false);
 			designRulesToModel.setElementAt(line, lineNo);
+
+			// update layer width rules
+			a = drMinWidth.getText();
+			if (a.length() == 0) drRules.minWidth[layer1] = new Double(-1); else
+				drRules.minWidth[layer1] = new Double(a);
+			drRules.minWidthRules[layer1] = drMinWidthRule.getText();
 		}
 	}
 
-	private void dr_loaddrcruleobjects()
+	private void designRulesSetupForLayersOrNodes()
 	{
 		designRulesFromModel.clear();
+		designRulesUpdating = true;
 		if (drNodes.isSelected())
 		{
 			// list the nodes
@@ -427,28 +522,51 @@ public class ToolOptions extends javax.swing.JDialog
 				designRulesFromModel.addElement(drRules.nodeNames[i]);
 			drMinHeight.setEditable(true);
 
+			drNormalConnected.setText("");
 			drNormalConnected.setEditable(false);
+			drNormalConnectedRule.setText("");
 			drNormalConnectedRule.setEditable(false);
+			drNormalUnconnected.setText("");
 			drNormalUnconnected.setEditable(false);
+			drNormalUnconnectedRule.setText("");
 			drNormalUnconnectedRule.setEditable(false);
+
+			drNormalEdge.setText("");
 			drNormalEdge.setEditable(false);
+			drNormalEdgeRule.setText("");
 			drNormalEdgeRule.setEditable(false);
+			drWideLimit.setText("");
 			drWideLimit.setEditable(false);
+
+			drWideConnected.setText("");
 			drWideConnected.setEditable(false);
+			drWideConnectedRule.setText("");
 			drWideConnectedRule.setEditable(false);
+			drWideUnconnected.setText("");
 			drWideUnconnected.setEditable(false);
+			drWideUnconnectedRule.setText("");
 			drWideUnconnectedRule.setEditable(false);
+
+			drMultiConnected.setText("");
 			drMultiConnected.setEditable(false);
+			drMultiConnectedRule.setText("");
 			drMultiConnectedRule.setEditable(false);
+			drMultiUnconnected.setText("");
 			drMultiUnconnected.setEditable(false);
+			drMultiUnconnectedRule.setText("");
 			drMultiUnconnectedRule.setEditable(false);
+
 			drShowOnlyLinesWithRules.setEnabled(false);
 			drToList.setEnabled(false);
 		} else
 		{
 			// list the layers
 			for(int i=0; i<drRules.numLayers; i++)
+			{
+				if (!designRulesValidLayers[i]) continue;
 				designRulesFromModel.addElement(drRules.layerNames[i]);
+			}
+			drMinHeight.setText("");
 			drMinHeight.setEditable(false);
 
 			drNormalConnected.setEditable(true);
@@ -458,6 +576,7 @@ public class ToolOptions extends javax.swing.JDialog
 			drNormalEdge.setEditable(true);
 			drNormalEdgeRule.setEditable(true);
 			drWideLimit.setEditable(true);
+			drWideLimit.setText(drRules.wideLimit.toString());
 			drWideConnected.setEditable(true);
 			drWideConnectedRule.setEditable(true);
 			drWideUnconnected.setEditable(true);
@@ -470,52 +589,61 @@ public class ToolOptions extends javax.swing.JDialog
 			drToList.setEnabled(true);
 		}
 		designRulesFromList.setSelectedIndex(0);
+		designRulesUpdating = false;
 	}
 
 	/*
 	 * Method to show the detail on the selected layer/node in the upper scroll area.
+	 * Also called when the user clicks on the "show only lines with rules" checkbox.
 	 */
-	private void dr_loaddrcdialog()
+	private void designRulesGetSelectedLayerLoadDRCToList()
 	{
-		drUpdating = true;
+		designRulesUpdating = true;
 		if (drNodes.isSelected())
 		{
 			// show node information
 			int j = designRulesFromList.getSelectedIndex();
-			drMinWidth.setText(drRules.minNodeSize[j*2].toString());
-			drMinHeight.setText(drRules.minNodeSize[j*2+1].toString());
+			double wid = drRules.minNodeSize[j*2].doubleValue();
+			if (wid < 0) drMinWidth.setText(""); else
+				drMinWidth.setText(Double.toString(wid));
+			double hei = drRules.minNodeSize[j*2+1].doubleValue();
+			if (hei < 0) drMinHeight.setText(""); else
+				drMinHeight.setText(Double.toString(hei));
 			drMinWidthRule.setText(drRules.minNodeSizeRules[j]);
 		} else
 		{
 			// show layer information
 			boolean onlyvalid = drShowOnlyLinesWithRules.isSelected();
-			int j = dr_rulesdialoggetlayer(designRulesFromList);
-			if (j < 0) return;
-			if (drRules.minWidth[j].doubleValue() < 0) drMinWidth.setText(""); else
-				drMinWidth.setText(drRules.minWidth[j].toString());
-			drMinWidthRule.setText(drRules.minWidthRules[j]);
-			designRulesToModel.clear();
-			int count = 0;
-			for(int i=0; i<drRules.numLayers; i++)
+			int j = designRulesGetSelectedLayer(designRulesFromList);
+			if (j >= 0)
 			{
-				if (!drValidLayers[i]) continue;
-				int layer1 = j;
-				int layer2 = i;
-				if (layer1 > layer2) { int temp = layer1; layer1 = layer2;  layer2 = temp; }
-				int dindex = (layer1+1) * (layer1/2) + (layer1&1) * ((layer1+1)/2);
-				dindex = layer2 + drRules.numLayers * layer1 - dindex;
+				if (drRules.minWidth[j].doubleValue() < 0) drMinWidth.setText(""); else
+					drMinWidth.setText(drRules.minWidth[j].toString());
+				drMinWidthRule.setText(drRules.minWidthRules[j]);
+				designRulesToModel.clear();
+				int count = 0;
+				for(int i=0; i<drRules.numLayers; i++)
+				{
+					if (!designRulesValidLayers[i]) continue;
+					int layer1 = j;
+					int layer2 = i;
+					if (layer1 > layer2) { int temp = layer1; layer1 = layer2;  layer2 = temp; }
+					int dindex = (layer1+1) * (layer1/2) + (layer1&1) * ((layer1+1)/2);
+					dindex = layer2 + drRules.numLayers * layer1 - dindex;
 
-				String line = dr_loadoptlistline(dindex, i, onlyvalid);
-				if (line.length() == 0) continue;
-				designRulesToModel.addElement(line);
-				count++;
+					String line = drMakeToListLine(dindex, i, onlyvalid);
+					if (line.length() == 0) continue;
+					designRulesToModel.addElement(line);
+					count++;
+				}
+				if (count > 0) designRulesToList.setSelectedIndex(0);
 			}
-			if (count > 0) designRulesToList.setSelectedIndex(0);
 		}
-		drUpdating = false;
+		designRulesUpdating = false;
+		designRulesShowSelectedLayerRules();
 	}
 
-	private String dr_loadoptlistline(int dindex, int lindex, boolean onlyValid)
+	private String drMakeToListLine(int dindex, int lindex, boolean onlyValid)
 	{
 		String conDist = "";
 		if (drRules.conList[dindex].doubleValue() >= 0) conDist = drRules.conList[dindex].toString();
@@ -543,7 +671,7 @@ public class ToolOptions extends javax.swing.JDialog
 		return ret;
 	}
 
-	private int dr_rulesdialoggetlayer(JList theList)
+	private int designRulesGetSelectedLayer(JList theList)
 	{
 		int lineNo = theList.getSelectedIndex();
 		if (lineNo < 0) return -1;
@@ -555,56 +683,58 @@ public class ToolOptions extends javax.swing.JDialog
 		return -1;
 	}
 
-	private void dr_loaddrcdistance()
+	/**
+	 * Method called when the user clicks in the bottom list (the "to layer" list).
+	 */
+	private void designRulesShowSelectedLayerRules()
 	{
-		if (drNodes.isSelected())
-		{
-			// show node information
-		} else
-		{
-			// show layer information
-			drUpdating = true;
-			drNormalConnected.setText("");    drNormalConnectedRule.setText("");
-			drNormalUnconnected.setText("");  drNormalUnconnectedRule.setText("");
-			drWideConnected.setText("");      drWideConnectedRule.setText("");
-			drWideUnconnected.setText("");    drWideUnconnectedRule.setText("");
-			drMultiConnected.setText("");     drMultiConnectedRule.setText("");
-			drMultiUnconnected.setText("");   drMultiUnconnectedRule.setText("");
-			drNormalEdge.setText("");         drNormalEdgeRule.setText("");
+		if (designRulesUpdating) return;
 
-			int layer1 = dr_rulesdialoggetlayer(designRulesFromList);
-			if (layer1 < 0) return;
-			int layer2 = dr_rulesdialoggetlayer(designRulesToList);
-			if (layer2 < 0) return;
+		// nothing to show if node information is requested
+		if (drNodes.isSelected()) return;
 
-			if (layer1 > layer2) { int temp = layer1; layer1 = layer2;  layer2 = temp; }
-			int dindex = (layer1+1) * (layer1/2) + (layer1&1) * ((layer1+1)/2);
-			dindex = layer2 + drRules.numLayers * layer1 - dindex;
+		// show layer information
+		designRulesUpdating = true;
+		drNormalConnected.setText("");    drNormalConnectedRule.setText("");
+		drNormalUnconnected.setText("");  drNormalUnconnectedRule.setText("");
+		drWideConnected.setText("");      drWideConnectedRule.setText("");
+		drWideUnconnected.setText("");    drWideUnconnectedRule.setText("");
+		drMultiConnected.setText("");     drMultiConnectedRule.setText("");
+		drMultiUnconnected.setText("");   drMultiUnconnectedRule.setText("");
+		drNormalEdge.setText("");         drNormalEdgeRule.setText("");
 
-			if (drRules.conList[dindex].doubleValue() >= 0)
-				drNormalConnected.setText(drRules.conList[dindex].toString());
-			if (drRules.unConList[dindex].doubleValue() >= 0)
-				drNormalUnconnected.setText(drRules.unConList[dindex].toString());
-			if (drRules.conListWide[dindex].doubleValue() >= 0)
-				drWideConnected.setText(drRules.conListWide[dindex].toString());
-			if (drRules.unConListWide[dindex].doubleValue() >= 0)
-				drWideUnconnected.setText(drRules.unConListWide[dindex].toString());
-			if (drRules.conListMulti[dindex].doubleValue() >= 0)
-				drMultiConnected.setText(drRules.conListMulti[dindex].toString());
-			if (drRules.unConListMulti[dindex].doubleValue() >= 0)
-				drMultiUnconnected.setText(drRules.unConListMulti[dindex].toString());
-			if (drRules.edgeList[dindex].doubleValue() >= 0)
-				drNormalEdge.setText(drRules.edgeList[dindex].toString());
+		int layer1 = designRulesGetSelectedLayer(designRulesFromList);
+		if (layer1 < 0) return;
+		int layer2 = designRulesGetSelectedLayer(designRulesToList);
+		if (layer2 < 0) return;
 
-			drNormalConnectedRule.setText(drRules.conListRules[dindex]);
-			drNormalUnconnectedRule.setText(drRules.unConListRules[dindex]);
-			drWideConnectedRule.setText(drRules.conListWideRules[dindex]);
-			drWideUnconnectedRule.setText(drRules.unConListWideRules[dindex]);
-			drMultiConnectedRule.setText(drRules.conListMultiRules[dindex]);
-			drMultiUnconnectedRule.setText(drRules.unConListMultiRules[dindex]);
-			drNormalEdgeRule.setText(drRules.edgeListRules[dindex]);
-			drUpdating = false;
-		}
+		if (layer1 > layer2) { int temp = layer1; layer1 = layer2;  layer2 = temp; }
+		int dindex = (layer1+1) * (layer1/2) + (layer1&1) * ((layer1+1)/2);
+		dindex = layer2 + drRules.numLayers * layer1 - dindex;
+
+		if (drRules.conList[dindex].doubleValue() >= 0)
+			drNormalConnected.setText(drRules.conList[dindex].toString());
+		if (drRules.unConList[dindex].doubleValue() >= 0)
+			drNormalUnconnected.setText(drRules.unConList[dindex].toString());
+		if (drRules.conListWide[dindex].doubleValue() >= 0)
+			drWideConnected.setText(drRules.conListWide[dindex].toString());
+		if (drRules.unConListWide[dindex].doubleValue() >= 0)
+			drWideUnconnected.setText(drRules.unConListWide[dindex].toString());
+		if (drRules.conListMulti[dindex].doubleValue() >= 0)
+			drMultiConnected.setText(drRules.conListMulti[dindex].toString());
+		if (drRules.unConListMulti[dindex].doubleValue() >= 0)
+			drMultiUnconnected.setText(drRules.unConListMulti[dindex].toString());
+		if (drRules.edgeList[dindex].doubleValue() >= 0)
+			drNormalEdge.setText(drRules.edgeList[dindex].toString());
+
+		drNormalConnectedRule.setText(drRules.conListRules[dindex]);
+		drNormalUnconnectedRule.setText(drRules.unConListRules[dindex]);
+		drWideConnectedRule.setText(drRules.conListWideRules[dindex]);
+		drWideUnconnectedRule.setText(drRules.unConListWideRules[dindex]);
+		drMultiConnectedRule.setText(drRules.conListMultiRules[dindex]);
+		drMultiUnconnectedRule.setText(drRules.unConListMultiRules[dindex]);
+		drNormalEdgeRule.setText(drRules.edgeListRules[dindex]);
+		designRulesUpdating = false;
 	}
 
 	/**
@@ -613,6 +743,104 @@ public class ToolOptions extends javax.swing.JDialog
 	 */
 	private void termDesignRules()
 	{
+		NewDRCRules job = new NewDRCRules(this);
+	}
+
+	/**
+	 * Class to update primitive node information.
+	 */
+	protected static class NewDRCRules extends Job
+	{
+		ToolOptions dialog;
+
+		protected NewDRCRules(ToolOptions dialog)
+		{
+			super("Update Design Rules", DRC.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.dialog = dialog;
+			this.startJob();
+		}
+
+		public void doIt()
+		{
+			Technology tech = Technology.getCurrent();
+			DRC.Rules oldRules = tech.getDRCRules();
+
+			// update width-limit information
+			if (dialog.drRules.wideLimit != oldRules.wideLimit)
+				tech.newVar(DRC.WIDE_LIMIT, dialog.drRules.wideLimit);
+
+			// update layer-to-layer information
+			boolean conListChanged = false, conListRulesChanged = false;
+			boolean unConListChanged = false, unConListRulesChanged = false;
+			boolean conListWideChanged = false, conListWideRulesChanged = false;
+			boolean unConListWideChanged = false, unConListWideRulesChanged = false;
+			boolean conListMultiChanged = false, conListMultiRulesChanged = false;
+			boolean unConListMultiChanged = false, unConListMultiRulesChanged = false;
+			boolean edgeListChanged = false, edgeListRulesChanged = false;
+			for(int i=0; i<dialog.drRules.uTSize; i++)
+			{
+				if (!dialog.drRules.conList[i].equals(oldRules.conList[i])) conListChanged = true;
+				if (!dialog.drRules.conListRules[i].equals(oldRules.conListRules[i])) conListRulesChanged = true;
+				if (!dialog.drRules.unConList[i].equals(oldRules.unConList[i])) unConListChanged = true;
+				if (!dialog.drRules.unConListRules[i].equals(oldRules.unConListRules[i])) unConListRulesChanged = true;
+
+				if (!dialog.drRules.conListWide[i].equals(oldRules.conListWide[i])) conListWideChanged = true;
+				if (!dialog.drRules.conListWideRules[i].equals(oldRules.conListWideRules[i])) conListWideRulesChanged = true;
+				if (!dialog.drRules.unConListWide[i].equals(oldRules.unConListWide[i])) unConListWideChanged = true;
+				if (!dialog.drRules.unConListWideRules[i].equals(oldRules.unConListWideRules[i])) unConListWideRulesChanged = true;
+
+				if (!dialog.drRules.conListMulti[i].equals(oldRules.conListMulti[i])) conListMultiChanged = true;
+				if (!dialog.drRules.conListMultiRules[i].equals(oldRules.conListMultiRules[i])) conListMultiRulesChanged = true;
+				if (!dialog.drRules.unConListMulti[i].equals(oldRules.unConListMulti[i])) unConListMultiChanged = true;
+				if (!dialog.drRules.unConListMultiRules[i].equals(oldRules.unConListMultiRules[i])) unConListMultiRulesChanged = true;
+
+				if (!dialog.drRules.edgeList[i].equals(oldRules.edgeList[i])) edgeListChanged = true;
+				if (!dialog.drRules.edgeListRules[i].equals(oldRules.edgeListRules[i])) edgeListRulesChanged = true;
+			}
+			if (conListChanged) tech.newVar(DRC.MIN_CONNECTED_DISTANCES, dialog.drRules.conList);
+			if (conListRulesChanged) tech.newVar(DRC.MIN_CONNECTED_DISTANCES_RULE, dialog.drRules.conListRules);
+			if (unConListChanged) tech.newVar(DRC.MIN_UNCONNECTED_DISTANCES, dialog.drRules.unConList);
+			if (unConListRulesChanged) tech.newVar(DRC.MIN_UNCONNECTED_DISTANCES_RULE, dialog.drRules.unConListRules);
+
+			if (conListWideChanged) tech.newVar(DRC.MIN_CONNECTED_DISTANCES_WIDE, dialog.drRules.conListWide);
+			if (conListWideRulesChanged) tech.newVar(DRC.MIN_CONNECTED_DISTANCES_WIDE_RULE, dialog.drRules.conListWideRules);
+			if (unConListWideChanged) tech.newVar(DRC.MIN_UNCONNECTED_DISTANCES_WIDE, dialog.drRules.unConListWide);
+			if (unConListWideRulesChanged) tech.newVar(DRC.MIN_UNCONNECTED_DISTANCES_WIDE_RULE, dialog.drRules.unConListWideRules);
+
+			if (conListMultiChanged) tech.newVar(DRC.MIN_CONNECTED_DISTANCES_MULTI, dialog.drRules.conListMulti);
+			if (conListMultiRulesChanged) tech.newVar(DRC.MIN_CONNECTED_DISTANCES_MULTI_RULE, dialog.drRules.conListMultiRules);
+			if (unConListMultiChanged) tech.newVar(DRC.MIN_UNCONNECTED_DISTANCES_MULTI, dialog.drRules.unConListMulti);
+			if (unConListMultiRulesChanged) tech.newVar(DRC.MIN_UNCONNECTED_DISTANCES_MULTI_RULE, dialog.drRules.unConListMultiRules);
+
+			if (edgeListChanged) tech.newVar(DRC.MIN_EDGE_DISTANCES, dialog.drRules.edgeList);
+			if (edgeListRulesChanged) tech.newVar(DRC.MIN_EDGE_DISTANCES_RULE, dialog.drRules.edgeListRules);
+
+			// update per-layer information
+			boolean minWidthChanged = false, minWidthRulesChanged = false;
+			for(int i=0; i<dialog.drRules.numLayers; i++)
+			{
+				if (!dialog.drRules.minWidth[i].equals(oldRules.minWidth[i])) minWidthChanged = true;
+				if (!dialog.drRules.minWidthRules[i].equals(oldRules.minWidthRules[i])) minWidthRulesChanged = true;
+			}
+			if (minWidthChanged) tech.newVar(DRC.MIN_WIDTH, dialog.drRules.minWidth);
+			if (minWidthRulesChanged) tech.newVar(DRC.MIN_WIDTH_RULE, dialog.drRules.minWidthRules);
+
+			// update per-node information
+			int j = 0;
+			for(Iterator it = tech.getNodes(); it.hasNext(); )
+			{
+				PrimitiveNode np = (PrimitiveNode)it.next();
+				if (!dialog.drRules.minNodeSize[j*2].equals(oldRules.minNodeSize[j*2]) ||
+					!dialog.drRules.minNodeSize[j*2+1].equals(oldRules.minNodeSize[j*2+1]) ||
+					!dialog.drRules.minNodeSizeRules[j].equals(oldRules.minNodeSizeRules[j]))
+				{
+					np.setMinSize(dialog.drRules.minNodeSize[j*2].doubleValue(),
+						dialog.drRules.minNodeSize[j*2+1].doubleValue(),
+							dialog.drRules.minNodeSizeRules[j]);
+				}
+				j++;
+			}
+		}
 	}
 
 	//******************************** SPICE ********************************
@@ -1432,20 +1660,17 @@ public class ToolOptions extends javax.swing.JDialog
         drLayerOrNode = new javax.swing.ButtonGroup();
         tabPane = new javax.swing.JTabbedPane();
         drc = new javax.swing.JPanel();
-        jLabel30 = new javax.swing.JLabel();
+        jPanel3 = new javax.swing.JPanel();
         drcIncrementalOn = new javax.swing.JCheckBox();
-        jSeparator6 = new javax.swing.JSeparator();
-        jLabel31 = new javax.swing.JLabel();
+        jPanel4 = new javax.swing.JPanel();
         drcOneErrorPerCell = new javax.swing.JCheckBox();
         drcClearValidDates = new javax.swing.JButton();
-        jSeparator7 = new javax.swing.JSeparator();
-        jLabel32 = new javax.swing.JLabel();
-        drcUseMultipleProcessors = new javax.swing.JCheckBox();
+        jPanel5 = new javax.swing.JPanel();
+        drcUseMultipleThreads = new javax.swing.JCheckBox();
         jLabel33 = new javax.swing.JLabel();
-        drcNumberOfProcessors = new javax.swing.JTextField();
+        drcNumberOfThreads = new javax.swing.JTextField();
         drcIgnoreCenterCuts = new javax.swing.JCheckBox();
-        jSeparator8 = new javax.swing.JSeparator();
-        jLabel34 = new javax.swing.JLabel();
+        jPanel6 = new javax.swing.JPanel();
         drcEditRulesDeck = new javax.swing.JButton();
         designRules = new javax.swing.JPanel();
         jLabel35 = new javax.swing.JLabel();
@@ -1720,130 +1945,109 @@ public class ToolOptions extends javax.swing.JDialog
         tabPane.setToolTipText("");
         drc.setLayout(new java.awt.GridBagLayout());
 
-        jLabel30.setText("Incremental DRC:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
-        drc.add(jLabel30, gridBagConstraints);
+        jPanel3.setLayout(new java.awt.GridBagLayout());
 
+        jPanel3.setBorder(new javax.swing.border.TitledBorder("Incremental DRC"));
         drcIncrementalOn.setText("On");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
-        drc.add(drcIncrementalOn, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        drc.add(jSeparator6, gridBagConstraints);
-
-        jLabel31.setText("Hierarchical DRC:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
-        drc.add(jLabel31, gridBagConstraints);
+        jPanel3.add(drcIncrementalOn, gridBagConstraints);
 
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        drc.add(jPanel3, gridBagConstraints);
+
+        jPanel4.setLayout(new java.awt.GridBagLayout());
+
+        jPanel4.setBorder(new javax.swing.border.TitledBorder("Hierarchical DRC"));
         drcOneErrorPerCell.setText("Just 1 error per cell");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
-        drc.add(drcOneErrorPerCell, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel4.add(drcOneErrorPerCell, gridBagConstraints);
 
         drcClearValidDates.setText("Clear valid DRC dates");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
-        drc.add(drcClearValidDates, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        drc.add(jSeparator7, gridBagConstraints);
-
-        jLabel32.setText("Incremental and hierarchical:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
-        drc.add(jLabel32, gridBagConstraints);
+        jPanel4.add(drcClearValidDates, gridBagConstraints);
 
-        drcUseMultipleProcessors.setText("Use multiple processors");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        drc.add(jPanel4, gridBagConstraints);
+
+        jPanel5.setLayout(new java.awt.GridBagLayout());
+
+        jPanel5.setBorder(new javax.swing.border.TitledBorder("Incremental and Hierarchical"));
+        drcUseMultipleThreads.setText("Use multiple threads");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 8;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
-        drc.add(drcUseMultipleProcessors, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel5.add(drcUseMultipleThreads, gridBagConstraints);
 
-        jLabel33.setText("Number of processors:");
+        jLabel33.setText("Number of threads:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 9;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
-        drc.add(jLabel33, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel5.add(jLabel33, gridBagConstraints);
 
-        drcNumberOfProcessors.setColumns(6);
+        drcNumberOfThreads.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 9;
-        drc.add(drcNumberOfProcessors, gridBagConstraints);
+        jPanel5.add(drcNumberOfThreads, gridBagConstraints);
 
         drcIgnoreCenterCuts.setText("Ignore center cuts in large contacts");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 10;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
-        drc.add(drcIgnoreCenterCuts, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 11;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        drc.add(jSeparator8, gridBagConstraints);
-
-        jLabel34.setText("Dracula DRC Interface:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 12;
-        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
-        drc.add(jLabel34, gridBagConstraints);
+        jPanel5.add(drcIgnoreCenterCuts, gridBagConstraints);
 
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        drc.add(jPanel5, gridBagConstraints);
+
+        jPanel6.setLayout(new java.awt.GridBagLayout());
+
+        jPanel6.setBorder(new javax.swing.border.TitledBorder("Dracula DRC Interface"));
         drcEditRulesDeck.setText("Edit Rules Deck");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 13;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
-        drc.add(drcEditRulesDeck, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel6.add(drcEditRulesDeck, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        drc.add(jPanel6, gridBagConstraints);
 
         tabPane.addTab("DRC", drc);
 
@@ -1905,8 +2109,8 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         designRules.add(drShowOnlyLinesWithRules, gridBagConstraints);
 
         drToList.setPreferredSize(new java.awt.Dimension(150, 200));
@@ -3954,9 +4158,9 @@ public class ToolOptions extends javax.swing.JDialog
     private javax.swing.JButton drcEditRulesDeck;
     private javax.swing.JCheckBox drcIgnoreCenterCuts;
     private javax.swing.JCheckBox drcIncrementalOn;
-    private javax.swing.JTextField drcNumberOfProcessors;
+    private javax.swing.JTextField drcNumberOfThreads;
     private javax.swing.JCheckBox drcOneErrorPerCell;
-    private javax.swing.JCheckBox drcUseMultipleProcessors;
+    private javax.swing.JCheckBox drcUseMultipleThreads;
     private javax.swing.JButton factoryReset;
     private javax.swing.JPanel fastHenry;
     private javax.swing.JComboBox fhAfterAction;
@@ -3994,11 +4198,7 @@ public class ToolOptions extends javax.swing.JDialog
     private javax.swing.JLabel jLabel28;
     private javax.swing.JLabel jLabel29;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel30;
-    private javax.swing.JLabel jLabel31;
-    private javax.swing.JLabel jLabel32;
     private javax.swing.JLabel jLabel33;
-    private javax.swing.JLabel jLabel34;
     private javax.swing.JLabel jLabel35;
     private javax.swing.JLabel jLabel37;
     private javax.swing.JLabel jLabel38;
@@ -4049,15 +4249,16 @@ public class ToolOptions extends javax.swing.JDialog
     private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel4;
+    private javax.swing.JPanel jPanel5;
+    private javax.swing.JPanel jPanel6;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator10;
     private javax.swing.JSeparator jSeparator2;
     private javax.swing.JSeparator jSeparator3;
     private javax.swing.JSeparator jSeparator4;
     private javax.swing.JSeparator jSeparator5;
-    private javax.swing.JSeparator jSeparator6;
-    private javax.swing.JSeparator jSeparator7;
-    private javax.swing.JSeparator jSeparator8;
     private javax.swing.JSeparator jSeparator9;
     private javax.swing.JScrollPane leArc;
     private javax.swing.JTextField leConvergence;

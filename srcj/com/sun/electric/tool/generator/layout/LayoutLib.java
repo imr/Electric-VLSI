@@ -343,6 +343,7 @@ public class LayoutLib {
 		ni.modifyInstance(newX-getPosition(ni).getX(),
 						  newY-getPosition(ni).getY(), 0, 0, 0);
 	}
+
 	/**
 	 * Get the position of a NodeInst. In the coordinate space of the
 	 * NodeInst's parent, get the x and y-coordinates of the origin of
@@ -357,7 +358,7 @@ public class LayoutLib {
 			AffineTransform xForm = ni.transformOut();
 			return xForm.transform(new Point2D.Double(0, 0), null);
 		} else {
-			return ni.getCenter();
+			return ni.getGrabCenter();
 		}
 	}
 	/**
