@@ -78,8 +78,8 @@ public class LETool extends Tool {
     
     /** Initialize tool - add calls to Bean Shell Evaluator */
     public void init() {
-		EvalJavaBsh.setEnv("LE", tool);
-    }
+		EvalJavaBsh.setVariable("LE", tool);
+   }
 
 
     // =========================== Java Parameter Evaluation ======================

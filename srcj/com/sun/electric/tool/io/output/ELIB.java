@@ -307,7 +307,7 @@ public class ELIB extends Output
 		writeBigInteger(curNodeProto);
 
 		// write the version number
-		writeString(Version.CURRENT);
+		writeString(Version.getVersion());
 
 		// number the views and write nonstandard ones
 		for(Iterator it = View.getViews(); it.hasNext(); )
@@ -856,6 +856,19 @@ public class ELIB extends Output
 		int arcAngle = ai.getAngle() / 10;
 		ai.lowLevelSetArcAngle(arcAngle);
 		int userBits = ai.lowLevelGetUserbits();
+
+		// add a negated bit if the tail is negated
+		userBits &= ~(ELIBConstants.ISNEGATED | ELIBConstants.ISHEADNEGATED);
+		if (ai.getTail().isNegated())
+		{
+			if (ai.isReverseEnds()) userBits |= ELIBConstants.ISHEADNEGATED; else
+				userBits |= ELIBConstants.ISNEGATED;
+		}
+		if (ai.getHead().isNegated())
+		{
+			if (ai.isReverseEnds()) userBits |= ELIBConstants.ISNEGATED; else
+				userBits |= ELIBConstants.ISHEADNEGATED;
+		}
 		writeBigInteger(userBits);
 
 		// write variable information

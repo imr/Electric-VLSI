@@ -82,7 +82,7 @@ public class ArcInst extends Geometric
 	/** bits of right shift for AANGLE field */			private static final int AANGLESH =                   5;
 //	/** set if arc is to be drawn shortened */			private static final int ASHORT =                040000;
 	/** set if ends do not extend by half width */		private static final int NOEXTEND =             0400000;
-	/** set if ends are negated */						private static final int ISNEGATED =           01000000;
+//	/** set if ends are negated */						private static final int ISNEGATED =           01000000;
 	/** set if arc aims from end 0 to end 1 */			private static final int ISDIRECTIONAL =       02000000;
 	/** no extension/negation/arrows on end 0 */		private static final int NOTEND0 =             04000000;
 	/** no extension/negation/arrows on end 1 */		private static final int NOTEND1 =            010000000;
@@ -139,7 +139,6 @@ public class ArcInst extends Geometric
 			if (type.isFixedAngle()) ai.setFixedAngle();
 			if (type.isSlidable()) ai.setSlidable();
 			if (type.isExtended()) ai.setExtended(); else ai.clearExtended();
-			if (type.isNegated()) ai.setNegated();
 			if (type.isDirectional()) ai.setDirectional();
 		}
 		return ai;
@@ -168,7 +167,6 @@ public class ArcInst extends Geometric
 			if (type.isFixedAngle()) ai.setFixedAngle();
 			if (type.isSlidable()) ai.setSlidable();
 			if (type.isExtended()) ai.setExtended();
-			if (type.isNegated()) ai.setNegated();
 			if (type.isDirectional()) ai.setDirectional();
 		}
 		return ai;
@@ -253,14 +251,16 @@ public class ArcInst extends Geometric
 		{
 			Cell parent = head.getNodeInst().getParent();
 			System.out.println("Error in cell " + parent.describe() + ": head of " + type.getProtoName() +
-				" arc at (" + headPt.getX() + "," + headPt.getY() + ") does not fit in port");
+				" arc at (" + headPt.getX() + "," + headPt.getY() + ") does not fit in port " +
+				ai.getHead().getPortInst().describe());
 			return null;
 		}
 		if (!ai.stillInPort(ai.getTail(), tailPt, false))
 		{
 			Cell parent = tail.getNodeInst().getParent();
 			System.out.println("Error in cell " + parent.describe() + ": tail of " + type.getProtoName() +
-				" arc at (" + tailPt.getX() + "," + tailPt.getY() + ") does not fit in port");
+				" arc at (" + tailPt.getX() + "," + tailPt.getY() + ") does not fit in port " +
+				ai.getTail().getPortInst().describe());
 			return null;
 		}
 		if (name != null) ai.setName(name);
@@ -513,8 +513,8 @@ public class ArcInst extends Geometric
 	public double getLength() { return length; }
 
 	/**
-	 * Method to return the rotation angle of this Geometric.
-	 * @return the rotation angle of this Geometric (in tenth-degrees).
+	 * Method to return the rotation angle of this ArcInst.
+	 * @return the rotation angle of this ArcInst (in tenth-degrees).
 	 */
 	public int getAngle() { return angle; }
 
@@ -542,11 +542,13 @@ public class ArcInst extends Geometric
 
 		// determine the end extension on each end
 		double extendH = width/2;
-		if (getHead().getEndShrink() != 0)
-			extendH = getExtendFactor(width, getHead().getEndShrink());
+		int headShrink = getHead().getEndShrink();
+		if (headShrink != 0)
+			extendH = getExtendFactor(width, (short)headShrink);
 		double extendT = width/2;
-		if (getTail().getEndShrink() != 0)
-			extendT = getExtendFactor(width, getTail().getEndShrink());
+		int tailShrink = getTail().getEndShrink();
+		if (tailShrink != 0)
+			extendT = getExtendFactor(width, (short)tailShrink);
 		if (!isExtended())
 		{
 			// nonextension arc: set extension to zero for all included ends
@@ -824,8 +826,8 @@ public class ArcInst extends Geometric
 	 */
 	private void updateGeometric(int defAngle)
 	{
-		Point2D p1 = ends[HEADEND].getLocation();
-		Point2D p2 = ends[TAILEND].getLocation();
+		Point2D p1 = ends[TAILEND].getLocation();
+		Point2D p2 = ends[HEADEND].getLocation();
 		double dx = p2.getX() - p1.getX();
 		double dy = p2.getY() - p1.getY();
 		length = Math.sqrt(dx * dx + dy * dy);
@@ -890,6 +892,7 @@ public class ArcInst extends Geometric
 		if (poly.isInside(pt)) return true;
 
 		// no good
+//System.out.println("NOT STILL IN PORT BECAUSE pt="+pt+" reduce="+reduceForArc+" poly ctr=("+poly.getCenterX()+","+poly.getCenterY()+")");
 		return false;
 	}
 
@@ -1151,34 +1154,6 @@ public class ArcInst extends Geometric
 	 * @return true if this ArcInst has its ends extended.
 	 */
 	public boolean isExtended() { return (userBits & NOEXTEND) == 0; }
-
-	/**
-	 * Method to set this ArcInst to be negated.
-	 * Negated arcs have a bubble drawn on their tail end to indicate negation.
-	 * If the arc is reversed, then the bubble appears on the head.
-	 * This is used only in Schematics technologies to place negating bubbles on any node.
-	 * @see ArcInst#setReverseEnds
-	 */
-	public void setNegated() { userBits |= ISNEGATED; }
-
-	/**
-	 * Method to set this ArcInst to be not negated.
-	 * Negated arcs have a bubble drawn on their tail end to indicate negation.
-	 * If the arc is reversed, then the bubble appears on the head.
-	 * This is used only in Schematics technologies to place negating bubbles on any node.
-	 * @see ArcInst#setReverseEnds
-	 */
-	public void clearNegated() { userBits &= ~ISNEGATED; }
-
-	/**
-	 * Method to tell whether this ArcInst is negated.
-	 * Negated arcs have a bubble drawn on their tail end to indicate negation.
-	 * If the arc is reversed, then the bubble appears on the head.
-	 * This is used only in Schematics technologies to place negating bubbles on any node.
-	 * @return true if this ArcInst is negated.
-	 * @see ArcInst#setReverseEnds
-	 */
-	public boolean isNegated() { return (userBits & ISNEGATED) != 0; }
 
 	/**
 	 * Method to set this ArcInst to be directional.

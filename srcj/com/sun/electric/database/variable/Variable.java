@@ -26,6 +26,7 @@ package com.sun.electric.database.variable;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -254,19 +255,8 @@ public class Variable
 			if (ni.getProto() == Generic.tech.invisiblePinNode)
 			{
 				String varName = getKey().getName();
-				if (varName.equals("ART_message"))
-				{
-					description = "Annotation text";
-				} else if (varName.equals("VERILOG_code"))
-				{
-					description = "Verilog code";
-				} else if (varName.equals("VERILOG_declaration"))
-				{
-					description = "Verilog declaration";
-				} else if (varName.equals("SIM_spice_card"))
-				{
-					description = "SPICE code";
-				}
+				String betterName = betterVariableName(varName);
+				if (betterName != null) description = betterName;
 			}
 		} else if (eobj instanceof Cell)
 		{
@@ -287,20 +277,23 @@ public class Variable
 		if (name.equals("ARC_radius")) return "Arc Radius";
 		if (name.equals("ART_color")) return "Color";
 		if (name.equals("ART_degrees")) return "Number of Degrees";
-		if (name.equals("ART_message")) return "Text";
+		if (name.equals("ART_message")) return "Annotation text";
 		if (name.equals("NET_ncc_match")) return "NCC equivalence";
 		if (name.equals("NET_ncc_forcedassociation")) return "NCC association";
 		if (name.equals("NODE_name")) return "Node Name";
 		if (name.equals("SCHEM_capacitance")) return "Capacitance";
 		if (name.equals("SCHEM_diode")) return "Diode Size";
+		if (name.equals("SCHEM_global_name")) return "Global Signal Name";
 		if (name.equals("SCHEM_inductance")) return "Inductance";
 		if (name.equals("SCHEM_resistance")) return "Resistance";
 		if (name.equals("SIM_fall_delay")) return "Fall Delay";
 		if (name.equals("SIM_fasthenry_group_name")) return "FastHenry Group";
 		if (name.equals("SIM_rise_delay")) return "Rise Delay";
+		if (name.equals("SIM_spice_card")) return "SPICE code";
 		if (name.equals("SIM_spice_model")) return "SPICE model";
 		if (name.equals("transistor_width")) return "Transistor Width";
-		if (name.equals("SCHEM_global_name")) return "Global Signal Name";
+		if (name.equals("VERILOG_code")) return "Verilog code";
+		if (name.equals("VERILOG_declaration")) return "Verilog declaration";
 		return null;
 	}
 
@@ -455,9 +448,9 @@ public class Variable
 		if (addr instanceof Integer)
 			return ((Integer)addr).toString();
 		if (addr instanceof Float)
-			return (format((Float)addr, 3).toString()); // only display limited # of significant figures
+			return (TextUtils.formatDouble(((Float)addr).floatValue()));
 		if (addr instanceof Double)
-			return (format((Double)addr, 3).toString());  // only display limited # of significant figures
+			return (TextUtils.formatDouble(((Double)addr).doubleValue()));
 		if (addr instanceof Short)
 			return ((Short)addr).toString();
 		if (addr instanceof Byte)

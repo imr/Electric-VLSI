@@ -98,7 +98,7 @@ public class Verilog extends Topology
 			printWriter.print("/* Created on " + sdf.format(topCell.getCreationDate()) + " */\n");
 			printWriter.print("/* Last revised on " + sdf.format(topCell.getRevisionDate()) + " */\n");
 			printWriter.print("/* Written on " + sdf.format(new Date()) +
-				" by Electric VLSI Design System, version " + Version.CURRENT + " */\n");
+				" by Electric VLSI Design System, version " + Version.getVersion() + " */\n");
 		} else
 		{
 			printWriter.print("/* Written by Electric VLSI Design System */\n");
@@ -433,12 +433,12 @@ public class Verilog extends Topology
 
 							// see if this end is negated
 							boolean isNegated = false;
-							if (ai.isNegated())
-							{
-								if (ai.getTail().getPortInst() == pi && !ai.isReverseEnds() ||
-									ai.getHead().getPortInst() == pi && ai.isReverseEnds())
-										isNegated = true;
-							}
+//							if (ai.isNegated())
+//							{
+//								if (ai.getTail().getPortInst() == pi && !ai.isReverseEnds() ||
+//									ai.getHead().getPortInst() == pi && ai.isReverseEnds())
+//										isNegated = true;
+//							}
 
 							// write the port name
 							if (i == 0)
@@ -658,7 +658,7 @@ public class Verilog extends Topology
 		{
 			Connection con = (Connection)aIt.next();
 			if (con.getPortInst().getPortProto().getProtoName().equals("y") &&
-				con.getArc().isNegated()) return negative;
+				con.isNegated()) return negative;
 		}
 		return positive;
 	}

@@ -46,6 +46,7 @@ public class ELIBConstants
 	/** older magic number: version 2 */		public static final int MAGIC2 =  -1575;
 	/** oldest magic number: version 1 */		public static final int MAGIC1 =  -1573;
 
+	// bits found in the "type" field of a Variable:
 	/** Defines an undefined variable. */										public static final int VUNKNOWN =                  0;
 	/** Defines a 32-bit integer variable. */									public static final int VINTEGER =                 01;
 	/** Defines an unsigned address. */											public static final int VADDRESS =                 02;
@@ -84,6 +85,11 @@ public class ELIBConstants
 	/** Defines the right shift for VLENGTH. */									public static final int VLENGTHSH =                 9;
 	/** Defines whether the variable is interpreted code (with VCODE1). */		public static final int VCODE2 =          04000000000;
 
+	// bits found in the "userbits" field of an ArcInst:
+	/** set if head end of ArcInst is negated */								public static final int ISHEADNEGATED =       0200000;
+	/** set if tail end of ArcInst is negated */								public static final int ISNEGATED =          01000000;
+	/** reverse extension/negation/arrow ends */								public static final int REVERSEEND =        020000000;
+
 	/**
 	 * Method to convert an integer date read from disk to a Java Date object.
 	 * The Electric library disk format for dates is in seconds since the epoch.
@@ -92,7 +98,6 @@ public class ELIBConstants
 	 */
 	public static Date secondsToDate(int secondsSinceEpoch)
 	{
-//	the easy way?	return new Date(secondsSinceEpoch);
 		GregorianCalendar creation = new GregorianCalendar();
 		creation.setTimeInMillis(0);
 		creation.setLenient(true);

@@ -433,7 +433,6 @@ public class EditOptions extends javax.swing.JDialog
 		boolean initialRigid, rigid;
 		boolean initialFixedAngle, fixedAngle;
 		boolean initialSlidable, slidable;
-		boolean initialNegated, negated;
 		boolean initialDirectional, directional;
 		boolean initialEndsExtend, endsExtend;
 		double initialWid, wid;
@@ -466,7 +465,6 @@ public class EditOptions extends javax.swing.JDialog
 			pai.initialRigid = pai.rigid = ap.isRigid();
 			pai.initialFixedAngle = pai.fixedAngle = ap.isFixedAngle();
 			pai.initialSlidable = pai.slidable = ap.isSlidable();
-			pai.initialNegated = pai.negated = ap.isNegated();
 			pai.initialDirectional = pai.directional = ap.isDirectional();
 			pai.initialEndsExtend = pai.endsExtend = ap.isExtended();
 
@@ -495,10 +493,6 @@ public class EditOptions extends javax.swing.JDialog
             public void actionPerformed(ActionEvent evt) { newArcsPrimDataChanged(); }
         });
         arcSlidable.addActionListener(new ActionListener()
-        {
-            public void actionPerformed(ActionEvent evt) { newArcsPrimDataChanged(); }
-        });
-        arcNegated.addActionListener(new ActionListener()
         {
             public void actionPerformed(ActionEvent evt) { newArcsPrimDataChanged(); }
         });
@@ -532,7 +526,6 @@ public class EditOptions extends javax.swing.JDialog
 		arcRigid.setSelected(pai.rigid);
 		arcFixedAngle.setSelected(pai.fixedAngle);
 		arcSlidable.setSelected(pai.slidable);
-		arcNegated.setSelected(pai.negated);
 		arcDirectional.setSelected(pai.directional);
 		arcEndsExtend.setSelected(pai.endsExtend);
 
@@ -571,7 +564,6 @@ public class EditOptions extends javax.swing.JDialog
 		pai.rigid = arcRigid.isSelected();
 		pai.fixedAngle = arcFixedAngle.isSelected();
 		pai.slidable = arcSlidable.isSelected();
-		pai.negated = arcNegated.isSelected();
 		pai.directional = arcDirectional.isSelected();
 		pai.endsExtend = arcEndsExtend.isSelected();
 
@@ -623,8 +615,6 @@ public class EditOptions extends javax.swing.JDialog
 					ap.setFixedAngle(pai.fixedAngle);
 				if (pai.slidable != pai.initialSlidable)
 					ap.setSlidable(pai.slidable);
-				if (pai.negated != pai.initialNegated)
-					ap.setNegated(pai.negated);
 				if (pai.directional != pai.initialDirectional)
 					ap.setDirectional(pai.directional);
 				if (pai.endsExtend != pai.initialEndsExtend)
@@ -1394,7 +1384,6 @@ public class EditOptions extends javax.swing.JDialog
         newArc = new javax.swing.JPanel();
         jPanel7 = new javax.swing.JPanel();
         arcRigid = new javax.swing.JCheckBox();
-        arcNegated = new javax.swing.JCheckBox();
         arcFixedAngle = new javax.swing.JCheckBox();
         arcDirectional = new javax.swing.JCheckBox();
         arcSlidable = new javax.swing.JCheckBox();
@@ -1964,14 +1953,6 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel7.add(arcRigid, gridBagConstraints);
 
-        arcNegated.setText("Negated");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel7.add(arcNegated, gridBagConstraints);
-
         arcFixedAngle.setText("Fixed-angle");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -1982,10 +1963,10 @@ public class EditOptions extends javax.swing.JDialog
 
         arcDirectional.setText("Directional");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         jPanel7.add(arcDirectional, gridBagConstraints);
 
         arcSlidable.setText("Slidable");
@@ -1998,10 +1979,11 @@ public class EditOptions extends javax.swing.JDialog
 
         arcEndsExtend.setText("Ends extended");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         jPanel7.add(arcEndsExtend, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -3659,7 +3641,6 @@ public class EditOptions extends javax.swing.JDialog
     private javax.swing.JCheckBox arcDirectional;
     private javax.swing.JCheckBox arcEndsExtend;
     private javax.swing.JCheckBox arcFixedAngle;
-    private javax.swing.JCheckBox arcNegated;
     private javax.swing.JComboBox arcPin;
     private javax.swing.JComboBox arcProtoList;
     private javax.swing.JCheckBox arcRigid;

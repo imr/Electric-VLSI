@@ -42,34 +42,173 @@ import java.util.Collection;
  */
 public interface Changes
 {
+	/**
+	 * Method to initialize a tool.
+	 */
 	void init();
+	/**
+	 * Method to make a request of a tool (not used).
+	 * @param cmd the command request.
+	 */
 	void request(String cmd);
+	/**
+	 * Method to examine a cell because it has changed.
+	 * @param cell the Cell to examine.
+	 */
 	void examineCell(Cell cell);
+	/**
+	 * Method to give a tool a chance to run.
+	 */
 	void slice();
 
+	/**
+	 * Method to announce the start of a batch of changes.
+	 * @param tool the tool that generated the changes.
+	 * @param undoRedo true if these changes are from an undo or redo command.
+	 */
 	void startBatch(Tool tool, boolean undoRedo);
+	/**
+	 * Method to announce the end of a batch of changes.
+	 */
 	void endBatch();
 
+	/**
+	 * Method to announce a change to a NodeInst.
+	 * @param ni the NodeInst that was changed.
+	 * @param oCX the old X center of the NodeInst.
+	 * @param oCY the old Y center of the NodeInst.
+	 * @param oSX the old X size of the NodeInst.
+	 * @param oSY the old Y size of the NodeInst.
+	 * @param oRot the old rotation of the NodeInst.
+	 */
 	void modifyNodeInst(NodeInst ni, double oCX, double oCY, double oSX, double oSY, int oRot);
+	/**
+	 * Method to announce a change to many NodeInsts at once.
+	 * @param nis the NodeInsts that were changed.
+	 * @param oCX the old X centers of the NodeInsts.
+	 * @param oCY the old Y centers of the NodeInsts.
+	 * @param oSX the old X sizes of the NodeInsts.
+	 * @param oSY the old Y sizes of the NodeInsts.
+	 * @param oRot the old rotations of the NodeInsts.
+	 */
 	void modifyNodeInsts(NodeInst [] nis, double [] oCX, double [] oCY, double [] oSX, double [] oSY, int [] oRot);
+	/**
+	 * Method to announce a change to an ArcInst.
+	 * @param ai the ArcInst that changed.
+	 * @param oHX the old X coordinate of the ArcInst head end.
+	 * @param oHY the old Y coordinate of the ArcInst head end.
+	 * @param oTX the old X coordinate of the ArcInst tail end.
+	 * @param oTY the old Y coordinate of the ArcInst tail end.
+	 * @param oWid the old width of the ArcInst.
+	 */
 	void modifyArcInst(ArcInst ai, double oHX, double oHY, double oTX, double oTY, double oWid);
+	/**
+	 * Method to announce a change to an Export.
+	 * @param pp the Export that moved.
+	 * @param oldPi the old PortInst on which it resided.
+	 */
 	void modifyExport(Export pp, PortInst oldPi);
+	/**
+	 * Method to announce a change to a Cell.
+	 * @param cell the cell that was changed.
+	 * @param oLX the old low X bound of the Cell.
+	 * @param oHX the old high X bound of the Cell.
+	 * @param oLY the old low Y bound of the Cell.
+	 * @param oHY the old high Y bound of the Cell.
+	 */
 	void modifyCell(Cell cell, double oLX, double oHX, double oLY, double oHY);
+	/**
+	 * Method to announce a change to a TextDescriptor.
+	 * @param obj the ElectricObject on which the TextDescriptor resides.
+	 * @param descript the TextDescriptor that changed.
+	 * @param oldDescript0 the former word-0 bits in the TextDescriptor.
+	 * @param oldDescript1 the former word-1 bits in the TextDescriptor.
+	 */
 	void modifyTextDescript(ElectricObject obj, TextDescriptor descript, int oldDescript0, int oldDescript1);
 
+	/**
+	 * Method to announce the creation of a new ElectricObject.
+	 * @param obj the ElectricObject that was just created.
+	 */
 	void newObject(ElectricObject obj);
+	/**
+	 * Method to announce the deletion of an ElectricObject.
+	 * @param obj the ElectricObject that was just deleted.
+	 */
 	void killObject(ElectricObject obj);
+	/**
+	 * Method to announce the deletion of an Export.
+	 * @param pp the Export that was just deleted.
+	 * @param oldPortInsts the PortInsts that were on that Export (?).
+	 */
 	void killExport(Export pp, Collection oldPortInsts);
+	/**
+	 * Method to announce the renaming of an ElectricObject.
+	 * @param obj the ElectricObject that was renamed.
+	 * @param oldName the former name of that ElectricObject.
+	 */
 	void renameObject(ElectricObject obj, Name oldName);
+	/**
+	 * Method to request that an object be redrawn.
+	 * @param obj the ElectricObject to be redrawn.
+	 */
 	void redrawObject(ElectricObject obj);
+	/**
+	 * Method to announce a new Variable.
+	 * @param obj the ElectricObject on which the Variable resides.
+	 * @param var the newly created Variable.
+	 */
 	void newVariable(ElectricObject obj, Variable var);
+	/**
+	 * Method to announce a deleted Variable.
+	 * @param obj the ElectricObject on which the Variable resided.
+	 * @param var the deleted Variable.
+	 */
 	void killVariable(ElectricObject obj, Variable var);
+	/**
+	 * Method to announce a change to the flag bits of a Variable.
+	 * @param obj the ElectricObject on which the Variable resides.
+	 * @param var the Variable that was changed.
+	 * @param oldFlags the former flag bits on the Variable.
+	 */
 	void modifyVariableFlags(ElectricObject obj, Variable var, int oldFlags);
+	/**
+	 * Method to announce a change to a single entry of an arrayed Variable.
+	 * @param obj the ElectricObject on which the Variable resides.
+	 * @param var the Variable that was changed.
+	 * @param index the entry in the array that was changed.
+	 * @param oldValue the former value at that entry.
+	 */
 	void modifyVariable(ElectricObject obj, Variable var, int index, Object oldValue);
+	/**
+	 * Method to announce an insertion of a new entry in an arrayed Variable.
+	 * @param obj the ElectricObject on which the Variable resides.
+	 * @param var the Variable that was changed.
+	 * @param index the entry in the array that was inserted.
+	 */
 	void insertVariable(ElectricObject obj, Variable var, int index);
+	/**
+	 * Method to announce the deletion of a single entry in an arrayed Variable.
+	 * @param obj the ElectricObject on which the Variable resides.
+	 * @param var the Variable that was changed.
+	 * @param index the entry in the array that was deleted.
+	 * @param oldValue the former value of that entry.
+	 */
 	void deleteVariable(ElectricObject obj, Variable var, int index, Object oldValue);
 
+	/**
+	 * Method to announce that a Library has been read.
+	 * @param lib the Library that was read.
+	 */
 	void readLibrary(Library lib);
+	/**
+	 * Method to announce that a Library is about to be erased.
+	 * @param lib the Library that will be erased.
+	 */
 	void eraseLibrary(Library lib);
-	void writeLibrary(Library lib, boolean pass2);
+	/**
+	 * Method to announce that a Library is about to be written to disk.
+	 * @param lib the Library that will be saved.
+	 */
+	void writeLibrary(Library lib);
 }

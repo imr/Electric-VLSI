@@ -31,6 +31,14 @@ import com.sun.electric.tool.user.User;
  */
 public final class Launcher
 {
+	/**
+	 * The main entry point of Electric.
+	 * The "main" method in this class checks to make sure that
+	 * the JVM has enough memory.  If not, it invokes a new JVM
+	 * with the proper amount.  If so, it goes directly to Main.main
+	 * to start Electric.
+	 * @param args the arguments to the program.
+	 */
 	public static void main(String[] args)
 	{
 		// launching is different on different computers

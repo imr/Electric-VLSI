@@ -49,13 +49,19 @@ public class Version
 	/**
 	 * This is the current version of Electric
 	 */
-	public static final String CURRENT = "8.00d";
+	private static final String CURRENT = "8.00d";
 
 	/**
 	 * Constructs a <CODE>Version</CODE> (cannot be called).
 	 */
 	private Version() {}
-	
+
+	/**
+	 * Method to return the current Electric version.
+	 * @return the current Electric version.
+	 */
+	public static String getVersion() { return CURRENT; }
+
 	/**
 	 * Method to return the major part of a parsed Version number.
 	 * @return the major part of a parsed Version number.

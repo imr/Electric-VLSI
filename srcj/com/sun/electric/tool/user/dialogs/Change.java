@@ -360,10 +360,7 @@ public class Change extends javax.swing.JDialog
                 Library library = Library.findLibrary(line);
                 if (library == null) return;
 				line = (String)dialog.changeList.getSelectedValue();
-                Cell c = library.findNodeProto(line);
-                if (!(c instanceof NodeProto)) return;
-                NodeProto np = (NodeProto)c;
-				//NodeProto np = NodeProto.findNodeProto(line);
+                NodeProto np = NodeProto.findNodeProto(line);
 				if (np == null) return;
 
 				// sanity check

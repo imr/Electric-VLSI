@@ -109,7 +109,7 @@ public class CIF extends Geometry
 	{
 		if (User.isIncludeDateAndVersionInOutput())
 		{
-			writeLine("( Electric VLSI Design System, version " + Version.CURRENT + " );");
+			writeLine("( Electric VLSI Design System, version " + Version.getVersion() + " );");
 			SimpleDateFormat sdf = new SimpleDateFormat("EEE MMMM dd, yyyy HH:mm:ss");
 			Date now = new Date();
 			writeLine("( written on " + sdf.format(now) + " );");

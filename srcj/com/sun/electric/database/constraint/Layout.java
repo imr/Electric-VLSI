@@ -975,7 +975,7 @@ public class Layout extends Constraints
 			(ai.isRigid() && ai.getChangeClock() != changeClock-1) ||
 			ai.getChangeClock() == changeClock-2 ||
 			headPt.equals(tailPt) ||
-			(ai.getAngle() % 1800) == (EMath.figureAngle(headPt, tailPt) % 1800))
+			(ai.getAngle() % 1800) == (EMath.figureAngle(tailPt, headPt) % 1800))
 		{
 			updateArc(ai, headPt, tailPt, arctyp);
 			return;
@@ -1031,12 +1031,14 @@ public class Layout extends Constraints
 		ArcInst ar1 = ArcInst.newInstance(ap, wid, fpi, headPt, no2pi, no2Pt, null);
 		if (ar1 == null) return;
 		ar1.copyStateBits(ai);
+		if (ai.getHead().isNegated()) ar1.getHead().setNegated(true);
 		ArcInst ar2 = ArcInst.newInstance(ap, wid, no2pi, no2Pt, no1pi, no1Pt, null);
 		if (ar2 == null) return;
-		ar2.copyStateBits(ai);   ar2.clearNegated();
+		ar2.copyStateBits(ai);
 		ArcInst ar3 = ArcInst.newInstance(ap, wid, no1pi, no1Pt, tpi, tailPt, null);
 		if (ar3 == null) return;
-		ar3.copyStateBits(ai);   ar3.clearNegated();
+		ar3.copyStateBits(ai);
+		if (ai.getTail().isNegated()) ar3.getTail().setNegated(true);
 		if (ar1 == null || ar2 == null || ar3 == null)
 		{
 			System.out.println("Problem creating jog arcs");

@@ -68,6 +68,10 @@ import com.apple.eawt.ApplicationEvent;
  */
 public final class Main
 {
+	/**
+	 * The main entry point of Electric.
+	 * @param args the arguments to the program.
+	 */
 	public static void main(String[] args)
 	{
 		// initialize Mac OS 10 if applicable
@@ -101,7 +105,7 @@ public final class Main
 
 			JLabel l = new JLabel(new ImageIcon(LibFile.getLibFile("SplashImage.gif")));
 			whole.add(l, BorderLayout.CENTER);
-			JLabel v = new JLabel("Version " + Version.CURRENT, JLabel.CENTER);
+			JLabel v = new JLabel("Version " + Version.getVersion(), JLabel.CENTER);
 			whole.add(v, BorderLayout.SOUTH);
 			Font font = new Font(User.getDefaultFont(), Font.BOLD, 24);
 			v.setFont(font);
@@ -204,7 +208,7 @@ public final class Main
 	/**
 	 * Class to init all technologies.
 	 */
-	protected static class InitDatabase extends Job
+	private static class InitDatabase extends Job
 	{
 		List argsList;
 		SplashWindow sw;

@@ -1064,6 +1064,7 @@ public class Highlight
 			// draw the selected port
 			if (pp != null)
 			{
+				g.setColor(Color.YELLOW);
 				Poly poly = ni.getShapeOfPort(pp);
 				boolean opened = true;
 				if (poly.getStyle() == Poly.Type.FILLED || poly.getStyle() == Poly.Type.CLOSED) opened = false;
@@ -1085,6 +1086,7 @@ public class Highlight
 				{
 					drawOutlineFromPoints(wnd, g, poly.getPoints(), offX, offY, opened, null);
 				}
+				g.setColor(Color.WHITE);
 
                 // show name of port
                 if (!(np instanceof PrimitiveNode) && (g instanceof Graphics2D)) {

@@ -56,9 +56,11 @@ public class Pref
 	public static class Meaning
 	{
 		private ElectricObject eObj;
+		private Object desiredValue;
 		private Pref pref;
 		private String description, location;
 		private boolean marked;
+		private String [] trueMeaning;
 
 		Meaning(ElectricObject eObj, Pref pref, String location, String description)
 		{
@@ -72,6 +74,10 @@ public class Pref
 		public ElectricObject getElectricObject() { return eObj; }
 		public String getLocation() { return location; }
 		public String getDescription() { return description; }
+		public void setTrueMeaning(String [] trueMeaning) { this.trueMeaning = trueMeaning; }
+		public String [] getTrueMeaning() { return trueMeaning; }
+		public void setDesiredValue(Object desiredValue) { this.desiredValue = desiredValue; }
+		public Object getDesiredValue() { return desiredValue; }
 	}
 
 	public static final int BOOLEAN = 0;
@@ -227,9 +233,10 @@ public class Pref
 	 * Method to make this Pref a "meaning" option.
 	 * Options that relate to "meaning"
 	 */
-	public void attachToObject(ElectricObject eObj, String location, String description)
+	public Meaning attachToObject(ElectricObject eObj, String location, String description)
 	{
 		meaning = new Meaning(eObj, this, location, description);
+		return meaning;
 	}
 
 	public static Meaning getMeaningVariable(ElectricObject eObj, String name)
@@ -303,6 +310,7 @@ public class Pref
 			if (var == null) continue;
 			Object obj = var.getObject();
 			if (obj.equals(meaning.pref.cachedObj)) continue;
+			meaning.setDesiredValue(obj);
 			meaningsToReconcile.add(meaning);
 		}
 		for(Iterator it = allPrefs.iterator(); it.hasNext(); )
@@ -313,31 +321,15 @@ public class Pref
 
 			// this one is not mentioned in the library: make sure it is at factory defaults
 			if (pref.cachedObj.equals(pref.factoryObj)) continue;
+
 //System.out.println("Adding fake meaning variable "+pref.name+" where current="+pref.cachedObj+" but should be "+pref.factoryObj);
+			pref.meaning.setDesiredValue(pref.factoryObj);
 			meaningsToReconcile.add(pref.meaning);
 		}
+
 		if (meaningsToReconcile.size() == 0) return;
  		OptionReconcile dialog = new OptionReconcile(TopLevel.getCurrentJFrame(), true, meaningsToReconcile);
 		dialog.show();
-//		System.out.println("Reading this library caused options to change:");
-//		for(Iterator it = meaningVariablesThatChanged.iterator(); it.hasNext(); )
-//		{
-//			Meaning meaning = (Meaning)it.next();
-//			Variable var = meaning.eObj.getVar(meaning.pref.name);
-//			if (var == null) continue;
-//			Object obj = var.getObject();
-//			if (obj.equals(meaning.pref.cachedObj)) continue;
-//
-//			// set the option
-//			switch (meaning.pref.type)
-//			{
-//				case BOOLEAN: meaning.pref.setBoolean(((Integer)obj).intValue() != 0);   break;
-//				case INTEGER: meaning.pref.setInt(((Integer)obj).intValue());            break;
-//				case DOUBLE:  meaning.pref.setDouble(((Double)obj).doubleValue());       break;
-//				case STRING:  meaning.pref.setString((String)obj);                       break;
-//			}
-//			System.out.println("   "+meaning.description+" CHANGED TO "+obj);
-//		}
 	}
 
 	/****************************** FOR PREFERENCES ******************************/

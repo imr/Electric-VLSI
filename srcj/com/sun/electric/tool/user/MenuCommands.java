@@ -199,18 +199,16 @@ public final class MenuCommands
 		Menu arcSubMenu = new Menu("Arc", 'A');
 		editMenu.add(arcSubMenu);
 		arcSubMenu.addMenuItem("Rigid", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { arcRigidCommand(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcRigidCommand(); }});
 		arcSubMenu.addMenuItem("Not Rigid", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { arcNotRigidCommand(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcNotRigidCommand(); }});
 		arcSubMenu.addMenuItem("Fixed Angle", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { arcFixedAngleCommand(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcFixedAngleCommand(); }});
 		arcSubMenu.addMenuItem("Not Fixed Angle", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { arcNotFixedAngleCommand(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcNotFixedAngleCommand(); }});
 		arcSubMenu.addSeparator();
-		arcSubMenu.addMenuItem("Negated", KeyStroke.getKeyStroke('T', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { arcNegatedCommand(); }});
 		arcSubMenu.addMenuItem("Directional", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { arcDirectionalCommand(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcDirectionalCommand(); }});
 
 		editMenu.addSeparator();
 
@@ -243,6 +241,8 @@ public final class MenuCommands
 
 		editMenu.addMenuItem("Adjust Size", KeyStroke.getKeyStroke('B', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { SizeListener.sizeObjects(); } });
+		editMenu.addMenuItem("Toggle Port Negation", KeyStroke.getKeyStroke('T', buckyBit),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.toggleNegatedCommand(); }});
 
 		editMenu.addSeparator();
 
@@ -1292,174 +1292,6 @@ public final class MenuCommands
     {
         Clipboard.duplicate();
     }
-	/**
-	 * This method sets the highlighted arcs to Rigid
-	 */
-	public static void arcRigidCommand()
-	{
-		int numSet = 0;
-		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
-		{
-			Highlight h = (Highlight)it.next();
-			if (h.getType() != Highlight.Type.EOBJ) continue;
-			ElectricObject eobj = h.getElectricObject();
-			if (eobj instanceof ArcInst)
-			{
-				ArcInst ai = (ArcInst)eobj;
-				if (!ai.isRigid())
-				{
-					ai.setRigid();
-					numSet++;
-				}
-			}
-		}
-		if (numSet == 0) System.out.println("No arcs made Rigid"); else
-		{
-			System.out.println("Made " + numSet + " arcs Rigid");
-			EditWindow.repaintAll();
-		}
-	}
-
-	/**
-	 * This method sets the highlighted arcs to Non-Rigid
-	 */
-	public static void arcNotRigidCommand()
-	{
-		int numSet = 0;
-		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
-		{
-			Highlight h = (Highlight)it.next();
-			if (h.getType() != Highlight.Type.EOBJ) continue;
-			ElectricObject eobj = h.getElectricObject();
-			if (eobj instanceof ArcInst)
-			{
-				ArcInst ai = (ArcInst)eobj;
-				if (ai.isRigid())
-				{
-					ai.clearRigid();
-					numSet++;
-				}
-			}
-		}
-		if (numSet == 0) System.out.println("No arcs made Non-Rigid"); else
-		{
-			System.out.println("Made " + numSet + " arcs Non-Rigid");
-			EditWindow.repaintAll();
-		}
-	}
-
-	/**
-	 * This method sets the highlighted arcs to Fixed-Angle
-	 */
-	public static void arcFixedAngleCommand()
-	{
-		int numSet = 0;
-		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
-		{
-			Highlight h = (Highlight)it.next();
-			if (h.getType() != Highlight.Type.EOBJ) continue;
-			ElectricObject eobj = h.getElectricObject();
-			if (eobj instanceof ArcInst)
-			{
-				ArcInst ai = (ArcInst)eobj;
-				if (!ai.isFixedAngle())
-				{
-					ai.setFixedAngle();
-					numSet++;
-				}
-			}
-		}
-		if (numSet == 0) System.out.println("No arcs made Fixed-Angle"); else
-		{
-			System.out.println("Made " + numSet + " arcs Fixed-Angle");
-			EditWindow.repaintAll();
-		}
-	}
-
-	/**
-	 * This method sets the highlighted arcs to Not-Fixed-Angle
-	 */
-	public static void arcNotFixedAngleCommand()
-	{
-		int numSet = 0;
-		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
-		{
-			Highlight h = (Highlight)it.next();
-			if (h.getType() != Highlight.Type.EOBJ) continue;
-			ElectricObject eobj = h.getElectricObject();
-			if (eobj instanceof ArcInst)
-			{
-				ArcInst ai = (ArcInst)eobj;
-				if (ai.isFixedAngle())
-				{
-					ai.clearFixedAngle();
-					numSet++;
-				}
-			}
-		}
-		if (numSet == 0) System.out.println("No arcs made Not-Fixed-Angle"); else
-		{
-			System.out.println("Made " + numSet + " arcs Not-Fixed-Angle");
-			EditWindow.repaintAll();
-		}
-	}
-
-	/**
-	 * This method sets the highlighted arcs to be negated.
-	 */
-	public static void arcNegatedCommand()
-	{
-		int numSet = 0;
-		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
-		{
-			Highlight h = (Highlight)it.next();
-			if (h.getType() != Highlight.Type.EOBJ) continue;
-			ElectricObject eobj = h.getElectricObject();
-			if (eobj instanceof ArcInst)
-			{
-				ArcInst ai = (ArcInst)eobj;
-				if (!ai.isNegated())
-				{
-					ai.setNegated();
-					numSet++;
-				}
-			}
-		}
-		if (numSet == 0) System.out.println("No arcs negated"); else
-		{
-			System.out.println("Negated " + numSet + " arcs");
-			EditWindow.repaintAllContents();
-		}
-	}
-
-	/**
-	 * This method sets the highlighted arcs to be Directional.
-	 */
-	public static void arcDirectionalCommand()
-	{
-		int numSet = 0;
-		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
-		{
-			Highlight h = (Highlight)it.next();
-			if (h.getType() != Highlight.Type.EOBJ) continue;
-			ElectricObject eobj = h.getElectricObject();
-			if (eobj instanceof ArcInst)
-			{
-				ArcInst ai = (ArcInst)eobj;
-				if (!ai.isDirectional())
-				{
-					ai.setDirectional();
-					numSet++;
-				}
-			}
-		}
-		if (numSet == 0) System.out.println("No arcs made Directional"); else
-		{
-			System.out.println("Made " + numSet + " arcs Directional");
-			EditWindow.repaintAllContents();
-		}
-	}
-
 	/**
 	 * This method implements the command to show the I/O Options dialog.
 	 */

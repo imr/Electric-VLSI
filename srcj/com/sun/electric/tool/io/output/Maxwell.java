@@ -96,7 +96,7 @@ public class Maxwell extends Output
 			SimpleDateFormat sdf = new SimpleDateFormat("EEE MMMM dd, yyyy HH:mm:ss");
 			printWriter.print("# CELL CREATED ON " + sdf.format(cell.getCreationDate()) + "\n");
 			printWriter.print("# LAST REVISED ON " + sdf.format(cell.getRevisionDate()) + "\n");
-			printWriter.print("# Generated automatically by the Electric VLSI Design System, version " + Version.CURRENT + "\n");
+			printWriter.print("# Generated automatically by the Electric VLSI Design System, version " + Version.getVersion() + "\n");
 			printWriter.print("# WRITTEN ON " + sdf.format(new Date()) + "\n");
 		} else
 		{

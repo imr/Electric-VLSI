@@ -23,6 +23,9 @@
  */
 package com.sun.electric.database.topology;
 
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
+
 import java.awt.geom.Point2D;
 
 /**
@@ -37,10 +40,13 @@ public class Connection //extends ElectricObject
 {
 	// ------------------------- private data --------------------------------
 
-	/** the arc on one side of this connection */	private ArcInst arc;
+	/** the arc on one side of this Connection */	private ArcInst arc;
 	/** the PortInst on the connected node */		private PortInst portInst;
-	/** the location of this connection */			private Point2D location;
-	/** shrinkage factor for this end */			private short endShrink;
+	/** the location of this Connection */			private Point2D location;
+	/** flags for this Connection */				private short flags;
+
+	/** the shrinkage is from 0 to 90 */		private static final int SHRINKAGE = 0177;
+	/** set if the end is negated */			private static final int NEGATED   = 0200;
 
 	/**
 	 * The constructor creates a new Connection from the given values.
@@ -53,7 +59,7 @@ public class Connection //extends ElectricObject
 		this.arc = arc;
 		this.portInst = portInst;
 		this.location = (Point2D)pt.clone();
-		this.endShrink = 0;
+		this.flags = 0;
 	}
 
 	// --------------------------- public methods --------------------------
@@ -83,16 +89,43 @@ public class Connection //extends ElectricObject
 	public void setLocation(Point2D pt) { location.setLocation(pt.getX(), pt.getY()); }
 
 	/**
-	 * Method to return the location on this Connection.
-	 * @return the location on this Connection.
+	 * Method to return the shrinkage happening because of angled arcs on this Connection.
+	 * @return the shrinkage for this Connection.
 	 */
-	public short getEndShrink() { return endShrink; }
+	public int getEndShrink() { return (int)(flags & SHRINKAGE); }
 
 	/**
-	 * Method to set the end shrinkage on this Connection.
-	 * @param endShrink the end shrinkage on this Connection.
+	 * Method to set the shrinkage happening because of angled arcs on this Connection.
+	 * @param endShrink the shrinkage for this Connection.
 	 */
-	public void setEndShrink(short endShrink) { this.endShrink = endShrink; }
+	public void setEndShrink(int endShrink) { flags = (short)((flags & ~SHRINKAGE) | (endShrink & SHRINKAGE)); }
+
+	/**
+	 * Method to tell whether this connection is negated.
+	 * @return true if this connection is negated.
+	 */
+	public boolean isNegated() { return (flags & NEGATED) != 0; }
+
+	/**
+	 * Method to set whether this connection is negated.
+	 * @param negated true if this connection is negated.
+	 */
+	public void setNegated(boolean negated)
+	{
+		if (negated)
+		{
+			// only allow if negation is not supported on this port
+			if (portInst.getNodeInst().getProto() instanceof PrimitiveNode)
+			{
+				PrimitivePort pp = (PrimitivePort)portInst.getPortProto();
+				if (pp.isNegatable())
+					flags |= NEGATED;
+			}
+		} else
+		{
+			flags &= ~NEGATED;
+		}
+	}
 
 	/**
 	 * Method to determine whether this Connection is on the head end of the ArcInst.

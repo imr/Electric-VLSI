@@ -557,6 +557,7 @@ public class MoCMOS extends Technology
 	private MoCMOS()
 	{
 		setTechName("mocmos");
+		setTechShortName("MOSIS CMOS");
 		setTechDesc("MOSIS CMOS");
 		setFactoryScale(200);			// in nanometers: really 0.2 micron
 		setNoNegatedArcs();
@@ -2866,7 +2867,7 @@ public class MoCMOS extends Technology
 		}
 		int numPolys = 1;
 		if (isSecondPolysilicon()) numPolys = 2;
-		String description = "Complementary MOS (from MOSIS, 2-6 metals [now " + numMetals + "], 1-2 polys [now " +
+		String description = "MOSIS CMOS (2-6 metals [now " + numMetals + "], 1-2 polys [now " +
 			numPolys + "], flex rules [" + rules + "]";
 		if (isDisallowStackedVias()) description += ", stacked vias disallowed";
 		if (isAlternateActivePolyRules()) description += ", alternate contact rules";
@@ -3622,7 +3623,7 @@ public class MoCMOS extends Technology
 	public static void setSpecialTransistors(boolean on) { cacheUseSpecialTransistors.setBoolean(on); }
 
 	private static Pref cacheNumberOfMetalLayers = MoCMOSPref.makeIntPref("MoCMOSNumberOfMetalLayers", getTechnologyPreferences(), 4);
-    static { cacheNumberOfMetalLayers.attachToObject(tech, "Edit Options, Technology tab", "Number of Metal Layers"); }
+    static { cacheNumberOfMetalLayers.attachToObject(tech, "Edit Options, Technology tab", "MOSIS CMOS: Number of Metal Layers"); }
 	/**
 	 * Method to tell the number of metal layers in the MoCMOS technology.
 	 * The default is "4".
@@ -3636,7 +3637,11 @@ public class MoCMOS extends Technology
 	public static void setNumMetal(int num) { cacheNumberOfMetalLayers.setInt(num); }
 
 	private static Pref cacheRuleSet = MoCMOSPref.makeIntPref("MoCMOSRuleSet", getTechnologyPreferences(), 1);
-    static { cacheRuleSet.attachToObject(tech, "Edit Options, Technology tab", "Rule set (0=SCMOS, 1=Submicron, 2=Deep)"); }
+    static
+    {
+    	Pref.Meaning m = cacheRuleSet.attachToObject(tech, "Edit Options, Technology tab", "MOSIS CMOS rule set");
+    	m.setTrueMeaning(new String[] {"SCMOS", "Submicron", "Deep"});
+	}
 	/**
 	 * Method to tell the current rule set for this Technology.
 	 * @return the current rule set for this Technology:<BR>
@@ -3655,7 +3660,7 @@ public class MoCMOS extends Technology
 	public static void setRuleSet(int set) { cacheRuleSet.setInt(set); }
 
 	private static Pref cacheSecondPolysilicon = MoCMOSPref.makeBooleanPref("MoCMOSSecondPolysilicon", getTechnologyPreferences(), false);
-    static { cacheSecondPolysilicon.attachToObject(tech, "Edit Options, Technology tab", "Second Polysilicon Layer"); }
+    static { cacheSecondPolysilicon.attachToObject(tech, "Edit Options, Technology tab", "MOSIS CMOS: Second Polysilicon Layer"); }
 	/**
 	 * Method to tell the number of polysilicon layers in this Technology.
 	 * The default is false.
@@ -3670,7 +3675,7 @@ public class MoCMOS extends Technology
 	public static void setSecondPolysilicon(boolean on) { cacheSecondPolysilicon.setBoolean(on); }
 
 	private static Pref cacheDisallowStackedVias = MoCMOSPref.makeBooleanPref("MoCMOSDisallowStackedVias", getTechnologyPreferences(), false);
-    static { cacheDisallowStackedVias.attachToObject(tech, "Edit Options, Technology tab", "Disallow Stacked Vias"); }
+    static { cacheDisallowStackedVias.attachToObject(tech, "Edit Options, Technology tab", "MOSIS CMOS: Disallow Stacked Vias"); }
 	/**
 	 * Method to determine whether this Technology disallows stacked vias.
 	 * The default is false (they are allowed).
@@ -3684,7 +3689,7 @@ public class MoCMOS extends Technology
 	public static void setDisallowStackedVias(boolean on) { cacheDisallowStackedVias.setBoolean(on); }
 
 	private static Pref cacheAlternateActivePolyRules = MoCMOSPref.makeBooleanPref("MoCMOSAlternateActivePolyRules", getTechnologyPreferences(), false);
-    static { cacheAlternateActivePolyRules.attachToObject(tech, "Edit Options, Technology tab", "Alternate Active and Poly Contact Rules"); }
+    static { cacheAlternateActivePolyRules.attachToObject(tech, "Edit Options, Technology tab", "MOSIS CMOS: Alternate Active and Poly Contact Rules"); }
 	/**
 	 * Method to determine whether this Technology is using alternate Active and Poly contact rules.
 	 * The default is false.

@@ -622,7 +622,7 @@ public class Spice extends Topology
 			{
 				if (fun == NodeProto.Function.RESIST)
 				{
-					Variable resistVar = ni.getVar("sch_resistancekey");
+					Variable resistVar = ni.getVar(Schematics.SCHEM_RESISTANCE);
 					String extra = "";
 					if (resistVar != null)
 					{
@@ -636,7 +636,7 @@ public class Spice extends Topology
 					writeTwoPort(ni, "R", extra, cni, netList);
 				} else if (fun == NodeProto.Function.CAPAC || fun == NodeProto.Function.ECAPAC)
 				{
-					Variable capacVar = ni.getVar("sch_capacitancekey");
+					Variable capacVar = ni.getVar(Schematics.SCHEM_CAPACITANCE);
 					String extra = "";
 					if (capacVar != null)
 					{
@@ -650,7 +650,7 @@ public class Spice extends Topology
 					writeTwoPort(ni, "C", extra, cni, netList);
 				} else if (fun == NodeProto.Function.INDUCT)
 				{
-					Variable inductVar = ni.getVar("sch_inductancekey");
+					Variable inductVar = ni.getVar(Schematics.SCHEM_INDUCTANCE);
 					String extra = "";
 					if (inductVar != null)
 					{
@@ -664,7 +664,7 @@ public class Spice extends Topology
 					writeTwoPort(ni, "L", extra, cni, netList);
 				} else if (fun == NodeProto.Function.DIODE || fun == NodeProto.Function.DIODEZ)
 				{
-					Variable diodeVar = ni.getVar("sch_diodekey");
+					Variable diodeVar = ni.getVar(Schematics.SCHEM_DIODE);
 					String extra = "";
 					if (diodeVar != null)
 						extra = diodeVar.describe(-1, -1);
@@ -1030,7 +1030,7 @@ public class Spice extends Topology
 			multiLinePrint(true, "*** Created on " + sdf.format(topCell.getCreationDate()) + "\n");
 			multiLinePrint(true, "*** Last revised on " + sdf.format(topCell.getRevisionDate()) + "\n");
 			multiLinePrint(true, "*** Written on " + sdf.format(new Date()) +
-				" by Electric VLSI Design System, version " + Version.CURRENT + "\n");
+				" by Electric VLSI Design System, version " + Version.getVersion() + "\n");
 		} else
 		{
 			multiLinePrint(true, "*** Written by Electric VLSI Design System\n");
@@ -1052,11 +1052,11 @@ public class Spice extends Topology
 		String headerFile = Simulation.getSpiceHeaderCardInfo();
 		if (headerFile.length() > 0)
 		{
-			if (headerFile.startsWith(":::::"))
+			if (headerFile.startsWith("Extension "))
 			{
 				// extension specified: look for a file with the cell name and that extension
 				String headerPath = TextUtils.getFilePath(cell.getLibrary().getLibFile());
-				String fileName = headerPath + cell.getProtoName() + "." + headerFile.substring(5);
+				String fileName = headerPath + cell.getProtoName() + "." + headerFile.substring(10);
 				File test = new File(fileName);
 				if (test.exists())
 				{
@@ -1106,11 +1106,11 @@ public class Spice extends Topology
 		String trailerFile = Simulation.getSpiceTrailerCardInfo();
 		if (trailerFile.length() > 0)
 		{
-			if (trailerFile.startsWith(":::::"))
+			if (trailerFile.startsWith("Extension "))
 			{
 				// extension specified: look for a file with the cell name and that extension
 				String trailerpath = TextUtils.getFilePath(cell.getLibrary().getLibFile());
-				String fileName = trailerpath + cell.getProtoName() + "." + trailerFile.substring(5);
+				String fileName = trailerpath + cell.getProtoName() + "." + trailerFile.substring(10);
 				File test = new File(fileName);
 				if (test.exists())
 				{

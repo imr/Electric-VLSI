@@ -27,8 +27,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.output.GDS;
 import com.sun.electric.tool.simulation.Simulation;
@@ -101,7 +99,7 @@ public class IOOptions extends javax.swing.JDialog
 		initCDL();			// initialize the CDL panel
 		initDXF();			// initialize the DXF panel
 		initSUE();			// initialize the SUE panel
-		initUnits();		// initialize the Units panel
+		initScale();		// initialize the Scale panel
 		initCopyright();	// initialize the Copyright panel
 		initLibrary();		// initialize the Library panel
 		initPrinting();		// initialize the Printing panel
@@ -556,9 +554,9 @@ public class IOOptions extends javax.swing.JDialog
 
 	/**
 	 * Method called at the start of the dialog.
-	 * Caches current values and displays them in the Units tab.
+	 * Caches current values and displays them in the Scale tab.
 	 */
-	private void initUnits()
+	private void initScale()
 	{
 		// build the layers list
 		unitsTechnologyModel = new DefaultListModel();
@@ -577,8 +575,7 @@ public class IOOptions extends javax.swing.JDialog
 		for(Iterator it = Technology.getTechnologiesSortedByName().iterator(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
-			if (tech.isNonElectrical()) continue;
-			if (tech == Generic.tech || tech == Schematics.tech) continue;
+			if (!tech.isScaleRelevant()) continue;
 			double shownScale = tech.getScale() / 2.0;
 			unitValues.put(tech, new Double(shownScale));
 			unitsTechnologyModel.addElement(tech.getTechName() + " (scale=" + shownScale + " nanometers)");
@@ -592,7 +589,7 @@ public class IOOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Class to handle special changes to changes to a Technology in the Units panel.
+	 * Class to handle special changes to changes to a Technology in the Scale panel.
 	 */
 	private static class UnitsDocumentListener implements DocumentListener
 	{
@@ -641,9 +638,9 @@ public class IOOptions extends javax.swing.JDialog
 
 	/**
 	 * Method called when the "OK" panel is hit.
-	 * Updates any changed fields in the Units tab.
+	 * Updates any changed fields in the Scale tab.
 	 */
-	private void termUnits()
+	private void termScale()
 	{
 		for(Iterator it = unitValues.keySet().iterator(); it.hasNext(); )
 		{
@@ -2026,7 +2023,7 @@ public class IOOptions extends javax.swing.JDialog
 		termCDL();			// terminate the CDL panel
 		termDXF();			// terminate the DXF panel
 		termSUE();			// terminate the SUE panel
-		termUnits();		// terminate the Units panel
+		termScale();		// terminate the Scale panel
 		termCopyright();	// terminate the Copyright panel
 		termLibrary();		// terminate the Library panel
 		termPrinting();		// terminate the Printing panel

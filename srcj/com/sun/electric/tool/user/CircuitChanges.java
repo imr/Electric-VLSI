@@ -45,6 +45,7 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.*;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
@@ -324,6 +325,206 @@ public class CircuitChanges
 			if (ni.isBit(markObj)) continue;
 			ni.setBit(markObj);
 			us_spreadrotateconnection(ni, markObj);
+		}
+	}
+
+	/****************************** ARC MODIFICATION ******************************/
+
+	/**
+	 * This method sets the highlighted arcs to Rigid
+	 */
+	public static void arcRigidCommand()
+	{
+		int numSet = 0;
+		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+		{
+			Highlight h = (Highlight)it.next();
+			if (h.getType() != Highlight.Type.EOBJ) continue;
+			ElectricObject eobj = h.getElectricObject();
+			if (eobj instanceof ArcInst)
+			{
+				ArcInst ai = (ArcInst)eobj;
+				if (!ai.isRigid())
+				{
+					ai.setRigid();
+					numSet++;
+				}
+			}
+		}
+		if (numSet == 0) System.out.println("No arcs made Rigid"); else
+		{
+			System.out.println("Made " + numSet + " arcs Rigid");
+			EditWindow.repaintAll();
+		}
+	}
+
+	/**
+	 * This method sets the highlighted arcs to Non-Rigid
+	 */
+	public static void arcNotRigidCommand()
+	{
+		int numSet = 0;
+		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+		{
+			Highlight h = (Highlight)it.next();
+			if (h.getType() != Highlight.Type.EOBJ) continue;
+			ElectricObject eobj = h.getElectricObject();
+			if (eobj instanceof ArcInst)
+			{
+				ArcInst ai = (ArcInst)eobj;
+				if (ai.isRigid())
+				{
+					ai.clearRigid();
+					numSet++;
+				}
+			}
+		}
+		if (numSet == 0) System.out.println("No arcs made Non-Rigid"); else
+		{
+			System.out.println("Made " + numSet + " arcs Non-Rigid");
+			EditWindow.repaintAll();
+		}
+	}
+
+	/**
+	 * This method sets the highlighted arcs to Fixed-Angle
+	 */
+	public static void arcFixedAngleCommand()
+	{
+		int numSet = 0;
+		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+		{
+			Highlight h = (Highlight)it.next();
+			if (h.getType() != Highlight.Type.EOBJ) continue;
+			ElectricObject eobj = h.getElectricObject();
+			if (eobj instanceof ArcInst)
+			{
+				ArcInst ai = (ArcInst)eobj;
+				if (!ai.isFixedAngle())
+				{
+					ai.setFixedAngle();
+					numSet++;
+				}
+			}
+		}
+		if (numSet == 0) System.out.println("No arcs made Fixed-Angle"); else
+		{
+			System.out.println("Made " + numSet + " arcs Fixed-Angle");
+			EditWindow.repaintAll();
+		}
+	}
+
+	/**
+	 * This method sets the highlighted arcs to Not-Fixed-Angle
+	 */
+	public static void arcNotFixedAngleCommand()
+	{
+		int numSet = 0;
+		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+		{
+			Highlight h = (Highlight)it.next();
+			if (h.getType() != Highlight.Type.EOBJ) continue;
+			ElectricObject eobj = h.getElectricObject();
+			if (eobj instanceof ArcInst)
+			{
+				ArcInst ai = (ArcInst)eobj;
+				if (ai.isFixedAngle())
+				{
+					ai.clearFixedAngle();
+					numSet++;
+				}
+			}
+		}
+		if (numSet == 0) System.out.println("No arcs made Not-Fixed-Angle"); else
+		{
+			System.out.println("Made " + numSet + " arcs Not-Fixed-Angle");
+			EditWindow.repaintAll();
+		}
+	}
+
+	/**
+	 * This method sets the highlighted ports to be negated.
+	 */
+	public static void toggleNegatedCommand()
+	{
+		int numSet = 0;
+		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+		{
+			Highlight h = (Highlight)it.next();
+			if (h.getType() != Highlight.Type.EOBJ) continue;
+			ElectricObject eobj = h.getElectricObject();
+			if (eobj instanceof PortInst)
+			{
+				PortInst pi = (PortInst)eobj;
+				NodeInst ni = pi.getNodeInst();
+				for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+				{
+					Connection con = (Connection)cIt.next();
+					if (con.getPortInst() != pi) continue;
+					if (pi.getNodeInst().getProto() instanceof PrimitiveNode)
+					{
+						PrimitivePort pp = (PrimitivePort)pi.getPortProto();
+						if (pp.isNegatable())
+						{
+							boolean newNegated = !con.isNegated();
+							con.setNegated(newNegated);
+							numSet++;
+						}
+					}
+				}
+			}
+			if (eobj instanceof ArcInst)
+			{
+				ArcInst ai = (ArcInst)eobj;
+				for(int i=0; i<2; i++)
+				{
+					Connection con = ai.getConnection(i);
+					PortInst pi = con.getPortInst();
+					if (pi.getNodeInst().getProto() instanceof PrimitiveNode)
+					{
+						PrimitivePort pp = (PrimitivePort)pi.getPortProto();
+						if (pp.isNegatable())
+						{
+							boolean newNegated = !con.isNegated();
+							con.setNegated(newNegated);
+							numSet++;
+						}
+					}
+				}
+			}
+		}
+		if (numSet == 0) System.out.println("No ports negated"); else
+		{
+			System.out.println("Negated " + numSet + " ports");
+			EditWindow.repaintAllContents();
+		}
+	}
+
+	/**
+	 * This method sets the highlighted arcs to be Directional.
+	 */
+	public static void arcDirectionalCommand()
+	{
+		int numSet = 0;
+		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+		{
+			Highlight h = (Highlight)it.next();
+			if (h.getType() != Highlight.Type.EOBJ) continue;
+			ElectricObject eobj = h.getElectricObject();
+			if (eobj instanceof ArcInst)
+			{
+				ArcInst ai = (ArcInst)eobj;
+				if (!ai.isDirectional())
+				{
+					ai.setDirectional();
+					numSet++;
+				}
+			}
+		}
+		if (numSet == 0) System.out.println("No arcs made Directional"); else
+		{
+			System.out.println("Made " + numSet + " arcs Directional");
+			EditWindow.repaintAllContents();
 		}
 	}
 
@@ -1533,7 +1734,7 @@ public class CircuitChanges
 				bbNi.newVar(Artwork.ART_COLOR, new Integer(EGraphics.RED));
 
 				// put the original cell name on it
-				Variable var = bbNi.newVar("SCHEM_function", curCell.getProtoName());
+				Variable var = bbNi.newVar(Schematics.SCHEM_FUNCTION, curCell.getProtoName());
 				if (var != null)
 				{
 					var.setDisplay();
@@ -2412,8 +2613,8 @@ public class CircuitChanges
 				re.wid = re.reconAr[0].getWidth();
 
 				re.directional = re.reconAr[0].isDirectional() || re.reconAr[1].isDirectional();
-				re.negated = re.reconAr[0].isNegated() || re.reconAr[1].isNegated();
-				if (re.reconAr[0].isNegated() && re.reconAr[1].isNegated()) re.negated = false;
+//				re.negated = re.reconAr[0].isNegated() || re.reconAr[1].isNegated();
+//				if (re.reconAr[0].isNegated() && re.reconAr[1].isNegated()) re.negated = false;
 				re.ignoreHead = re.reconAr[0].isSkipHead() || re.reconAr[1].isSkipHead();
 				re.ignoreTail = re.reconAr[0].isSkipTail() || re.reconAr[1].isSkipTail();
 				re.reverseEnd = re.reconAr[0].isReverseEnds() || re.reconAr[1].isReverseEnds();
@@ -2467,7 +2668,7 @@ public class CircuitChanges
 			ArcInst newAi = ArcInst.makeInstance(ap, wid, reconPi[0], recon[0], reconPi[1], recon[1], null);
 			if (newAi == null) return null;
 			if (directional) newAi.setDirectional();
-			if (negated) newAi.setNegated();
+//			if (negated) newAi.setNegated();
 			if (ignoreHead) newAi.setSkipHead();
 			if (ignoreTail) newAi.setSkipTail();
 			if (reverseEnd) newAi.setReverseEnds();

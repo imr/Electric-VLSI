@@ -49,7 +49,7 @@ public class GetInfoArc extends javax.swing.JDialog
 	private double initialWidth;
 	private boolean initialEasyToSelect;
 	private boolean initialRigid, initialFixedAngle, initialSlidable;
-	private boolean initialNegated, initialDirectional, initialEndsExtend;
+	private boolean initialDirectional, initialEndsExtend;
 	private boolean initialSkipHead, initialSkipTail, initialReverseEnds;
 
 	/**
@@ -129,8 +129,6 @@ public class GetInfoArc extends javax.swing.JDialog
 				fixedAngle.setSelected(false);
 				slidable.setEnabled(false);
 				slidable.setSelected(false);
-				negated.setEnabled(false);
-				negated.setSelected(false);
 				directional.setEnabled(false);
 				directional.setSelected(false);
 				endsExtend.setEnabled(false);
@@ -155,7 +153,6 @@ public class GetInfoArc extends javax.swing.JDialog
 		rigid.setEnabled(true);
 		fixedAngle.setEnabled(true);
 		slidable.setEnabled(true);
-		negated.setEnabled(true);
 		directional.setEnabled(true);
 		endsExtend.setEnabled(true);
 		skipHead.setEnabled(true);
@@ -172,7 +169,6 @@ public class GetInfoArc extends javax.swing.JDialog
 		initialRigid = ai.isRigid();
 		initialFixedAngle = ai.isFixedAngle();
 		initialSlidable = ai.isSlidable();
-		initialNegated = ai.isNegated();
 		initialDirectional = ai.isDirectional();
 		initialEndsExtend = ai.isExtended();
 		initialSkipHead = ai.isSkipHead();
@@ -199,7 +195,6 @@ public class GetInfoArc extends javax.swing.JDialog
 		rigid.setSelected(initialRigid);
 		fixedAngle.setSelected(initialFixedAngle);
 		slidable.setSelected(initialSlidable);
-		negated.setSelected(initialNegated);
 		directional.setSelected(initialDirectional);
 		endsExtend.setSelected(initialEndsExtend);
 		skipHead.setSelected(initialSkipHead);
@@ -254,7 +249,6 @@ public class GetInfoArc extends javax.swing.JDialog
         directional = new javax.swing.JCheckBox();
         fixedAngle = new javax.swing.JCheckBox();
         skipHead = new javax.swing.JCheckBox();
-        negated = new javax.swing.JCheckBox();
         attributes = new javax.swing.JButton();
 
         setTitle("Arc Information");
@@ -550,16 +544,17 @@ public class GetInfoArc extends javax.swing.JDialog
 
         reverseEnds.setText("Reverse head and tail");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         jPanel2.add(reverseEnds, gridBagConstraints);
 
         endsExtend.setText("Ends extend");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         jPanel2.add(endsExtend, gridBagConstraints);
@@ -574,7 +569,7 @@ public class GetInfoArc extends javax.swing.JDialog
 
         skipTail.setText("Ignore tail");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
@@ -582,8 +577,8 @@ public class GetInfoArc extends javax.swing.JDialog
 
         directional.setText("Directional");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         jPanel2.add(directional, gridBagConstraints);
@@ -598,19 +593,11 @@ public class GetInfoArc extends javax.swing.JDialog
 
         skipHead.setText("Ignore head");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
-        jPanel2.add(skipHead, gridBagConstraints);
-
-        negated.setText("Negated");
-        gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
-        jPanel2.add(negated, gridBagConstraints);
+        jPanel2.add(skipHead, gridBagConstraints);
 
         attributes.setText("Attributes");
         attributes.addActionListener(new java.awt.event.ActionListener()
@@ -742,14 +729,6 @@ public class GetInfoArc extends javax.swing.JDialog
 				changed = true;
 			}
 
-			boolean currentNegated = dialog.negated.isSelected();
-			if (currentNegated != dialog.initialNegated)
-			{
-				if (currentNegated) ai.setNegated(); else
-					ai.clearNegated();
-				dialog.initialNegated = currentNegated;
-				changed = true;
-			}
 			boolean currentDirectional = dialog.directional.isSelected();
 			if (currentDirectional != dialog.initialDirectional)
 			{
@@ -827,7 +806,6 @@ public class GetInfoArc extends javax.swing.JDialog
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JTextField name;
-    private javax.swing.JCheckBox negated;
     private javax.swing.JLabel network;
     private javax.swing.JButton ok;
     private javax.swing.JCheckBox reverseEnds;

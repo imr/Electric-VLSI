@@ -554,11 +554,13 @@ public class NodeInst extends Geometric implements Nodable
 					pinPi, new Point2D.Double(cX, cY), null);
 				if (newAi == null) return null;
 				newAi.lowLevelSetUserbits(ai.lowLevelGetUserbits());
+				newAi.getHead().setNegated(ai.getHead().isNegated());
+
 				ArcInst newAi2 = ArcInst.newInstance(ai.getProto(), ai.getWidth(), pinPi, new Point2D.Double(cX, cY),
 					newPortInst[1], newPoint[1], null);
 				if (newAi2 == null) return null;
 				newAi2.lowLevelSetUserbits(ai.lowLevelGetUserbits());
-				newAi2.clearNegated();
+				newAi2.getTail().setNegated(ai.getTail().isNegated());
 				if (newPortInst[1].getNodeInst() == this)
 				{
 					ArcInst aiSwap = newAi;   newAi = newAi2;   newAi2 = aiSwap;
@@ -573,6 +575,8 @@ public class NodeInst extends Geometric implements Nodable
 					return null;
 				}
 				newAi.lowLevelSetUserbits(ai.lowLevelGetUserbits());
+				newAi.getHead().setNegated(ai.getHead().isNegated());
+				newAi.getTail().setNegated(ai.getTail().isNegated());
 			}
 			newAi.copyVars(ai);
 			ai.kill();
@@ -1309,6 +1313,21 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public Poly getShapeOfPort(PortProto thePort)
 	{
+		return getShapeOfPort(thePort, null);
+	}
+
+	/**
+	 * Method to return a Poly that describes the location of a port
+	 * on this NodeInst.
+	 * @param thePort the port on this NodeInst.
+	 * @param selectPt if not null, it requests a new location on the port,
+	 * away from existing arcs, and close to this point.
+	 * This is useful for "area" ports such as the left side of AND and OR gates.
+	 * @return a Poly that describes the location of the Export.
+	 * The Poly is transformed to account for rotation on this NodeInst.
+	 */
+	public Poly getShapeOfPort(PortProto thePort, Point2D selectPt)
+	{
 		NodeInst ni = this;
 		PortProto pp = thePort;
 
@@ -1324,7 +1343,7 @@ public class NodeInst extends Geometric implements Nodable
 
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		Technology tech = np.getTechnology();
-		Poly poly = tech.getShapeOfPort(ni, (PrimitivePort)pp);
+		Poly poly = tech.getShapeOfPort(ni, (PrimitivePort)pp, selectPt);
 		poly.transform(trans);
 		return poly;
 	}

@@ -58,7 +58,8 @@ public class CMOS extends Technology
 	private CMOS()
 	{
 		setTechName("cmos");
-		setTechDesc("Complementary MOS (old, N-Well, from Griswold)");
+		setTechShortName("Generic CMOS");
+		setTechDesc("CMOS (N-Well, Griswold rules)");
 		setFactoryScale(2000);   // in nanometers: really 2 microns
 		setNoNegatedArcs();
 		setStaticTechnology();

@@ -49,7 +49,7 @@
     </Container>
     <Component class="javax.swing.JLabel" name="optionHeader">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Options used with this library are different than current options:"/>
+        <Property name="text" type="java.lang.String" value="Options saved with this library are different than current options:"/>
       </Properties>
       <Constraints>
         <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
@@ -59,7 +59,7 @@
     </Component>
     <Component class="javax.swing.JButton" name="ignoreLibraryOptions">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Ignore Library Options"/>
+        <Property name="text" type="java.lang.String" value="Reject All Options"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="ignoreLibraryOptionsActionPerformed"/>
@@ -72,7 +72,7 @@
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel1">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Checked options will be taken from the library that was read."/>
+        <Property name="text" type="java.lang.String" value="Accepted options will be taken from the library that was read."/>
       </Properties>
       <Constraints>
         <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
@@ -82,7 +82,7 @@
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel2">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Unchecked options will use the existing values."/>
+        <Property name="text" type="java.lang.String" value="Rejected options will stay at their existing values."/>
       </Properties>
       <Constraints>
         <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">

@@ -915,15 +915,25 @@ public class PaletteFrame
 		if (obj instanceof String)
 		{
 			placeText = (String)obj;
-			if (placeText.equals("SIM_spice_card")) whatToCreate = "Spice code"; else
-			if (placeText.equals("VERILOG_code")) whatToCreate = "Verilog code"; else
-			if (placeText.equals("VERILOG_declaration")) whatToCreate = "Verilog declaration"; else
-				whatToCreate = "Annotation Text";
+			whatToCreate = Variable.betterVariableName(placeText);
 			obj = Generic.tech.invisiblePinNode;
 		}
 		if (obj instanceof NodeProto)
 		{
 			np = (NodeProto)obj;
+			if (np instanceof Cell)
+			{
+				// see if a contents is requested when it should be an icon
+				Cell cell = (Cell)np;
+				Cell iconCell = cell.iconView();
+				if (iconCell != null && iconCell != cell)
+				{
+					int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+						"Don't you really want to place the icon " + iconCell.describe() + "?");
+					if (response == JOptionPane.CANCEL_OPTION) return;
+					if (response == JOptionPane.YES_OPTION) obj = np = iconCell;
+				}
+			}
 		} else if (obj instanceof NodeInst)
 		{
 			ni = (NodeInst)obj;
@@ -1218,25 +1228,25 @@ public class PaletteFrame
 				if (ni != null) newNi.setTechSpecific(ni.getTechSpecific());
 				if (np == Schematics.tech.resistorNode)
 				{
-					Variable var = newNi.newVar("SCHEM_resistance", "100");
+					Variable var = newNi.newVar(Schematics.SCHEM_RESISTANCE, "100");
 					var.setDisplay();
 					TextDescriptor td = TextDescriptor.newNodeArcDescriptor(null);
 					var.setTextDescriptor(td);
 				} else if (np == Schematics.tech.capacitorNode)
 				{
-					Variable var = newNi.newVar("SCHEM_capacitance", "100M");
+					Variable var = newNi.newVar(Schematics.SCHEM_CAPACITANCE, "100M");
 					var.setDisplay();
 					TextDescriptor td = TextDescriptor.newNodeArcDescriptor(null);
 					var.setTextDescriptor(td);
 				} else if (np == Schematics.tech.inductorNode)
 				{
-					Variable var = newNi.newVar("SCHEM_inductance", "100");
+					Variable var = newNi.newVar(Schematics.SCHEM_INDUCTANCE, "100");
 					var.setDisplay();
 					TextDescriptor td = TextDescriptor.newNodeArcDescriptor(null);
 					var.setTextDescriptor(td);
 				} else if (np == Schematics.tech.diodeNode)
 				{
-					Variable var = newNi.newVar("SCHEM_diode", "10");
+					Variable var = newNi.newVar(Schematics.SCHEM_DIODE, "10");
 					var.setDisplay();
 					TextDescriptor td = TextDescriptor.newNodeArcDescriptor(null);
 					var.setTextDescriptor(td);
@@ -1244,13 +1254,13 @@ public class PaletteFrame
 				{
 					if (newNi.isFET())
 					{
-						Variable var = newNi.newVar("ATTR_width", "2");
+						Variable var = newNi.newVar(Schematics.ATTR_WIDTH, "2");
 						var.setDisplay();
 						TextDescriptor td = TextDescriptor.newNodeArcDescriptor(null);
 						td.setOff(0.5, -1);
 						var.setTextDescriptor(td);
 
-						var = newNi.newVar("ATTR_length", "2");
+						var = newNi.newVar(Schematics.ATTR_LENGTH, "2");
 						var.setDisplay();
 						td = TextDescriptor.newNodeArcDescriptor(null);
 						td.setOff(-0.5, -1);
@@ -1260,7 +1270,7 @@ public class PaletteFrame
 						var.setTextDescriptor(td);
 					} else
 					{
-						Variable var = newNi.newVar("ATTR_area", "10");
+						Variable var = newNi.newVar(Schematics.ATTR_AREA, "10");
 						var.setDisplay();
 						TextDescriptor td = TextDescriptor.newNodeArcDescriptor(null);
 						var.setTextDescriptor(td);

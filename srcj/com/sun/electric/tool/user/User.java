@@ -729,7 +729,7 @@ public class User extends Listener
 	/****************************** MISCELLANEOUS PREFERENCES ******************************/
 
 	private static Pref cacheSchematicTechnology = Pref.makeStringPref("SchematicTechnology", User.tool.prefs, "mocmos");
-    static { cacheSchematicTechnology.attachToObject(User.tool, "Edit Options, Technology tab", "Use scale values from this technology"); }
+    static { cacheSchematicTechnology.attachToObject(User.tool, "Edit Options, Technology tab", "Schematics use scale values from this technology"); }
 	/**
 	 * Method to the technology to use when schematics are found.
 	 * This is important in Spice deck generation (for example) because the Spice primitives may

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project basedir="." default="run" name="electric">
 
-    <target name="init">
+    <target name="init" description="Initialization">
         <property name="beanshell" value="../lib/java/bsh-1.2b3.jar"/>
         <property name="AppleJava" value="packaging/AppleJavaExtensions.jar"/>
     </target>
 
-    <target name="compile" depends="init">
+    <target name="compile" depends="init" description="Compile">
         <javac debug="true" deprecation="true" destdir="." srcdir=".">
             <classpath><pathelement location="${beanshell}"/></classpath>
             <classpath><pathelement location="${AppleJava}"/></classpath>
@@ -14,7 +14,7 @@
         </javac>
     </target>
 
-    <target name="run" depends="init,compile">
+    <target name="run" depends="init,compile" description="Run">
         <java classname="com.sun.electric.Launcher" failonerror="true" fork="true" maxmemory="1024m">
             <classpath>
                 <pathelement location="."/>
@@ -24,7 +24,7 @@
         </java>
     </target>
 
-    <target name="runMain" depends="init,compile">
+    <target name="runMain" depends="init,compile" description="Run the Main class">
         <java classname="com.sun.electric.Main" failonerror="true" fork="true" maxmemory="256m">
             <classpath>
                 <pathelement location="."/>
@@ -35,12 +35,6 @@
     </target>
 
     <target name="jar" depends="init,compile" description="Make binary Jar file">
-        <!-- To make a standalone app: -->
-        <!-- 1. Create electric.mf manifest. -->
-        <!-- 2. Put in it two lines: -->
-        <!-- Manifest-Version: 1.0 -->
-        <!-- Main-Class: com.sun.electric.Launcher -->
-        <!-- 3. Pass to <jar>: manifest="electric.mf" -->
         <property name="version" value=""/>
         <unjar dest="." src="${beanshell}"/> 
         <unjar dest="." src="${AppleJava}"/> 
@@ -55,7 +49,6 @@
             <exclude name="electric${version}.jar"/>
             <exclude name="electric${version}.mf"/>
             <exclude name="Hack_stack.txt"/>
-            <exclude name="**/.nbattrs"/>
             <exclude name="**/*.java"/>
             <exclude name="**/*.form"/>
         </jar>
@@ -69,23 +62,63 @@
         </delete>
     </target>
 
-    <target name="jarSource" depends="init,compile" description="Make source Jar file">
-        <unjar dest="." src="${beanshell}"/> 
+    <target name="jarGNU" depends="init,compile" description="Make binary Jar file for GNU">
+        <property name="version" value=""/>
         <unjar dest="." src="${AppleJava}"/> 
         <delete dir="META-INF"/>
-        <jar basedir="." compress="true" jarfile="electric.jar" manifest="packaging/electric.mf">
+        <copy file="packaging/electric.mf" tofile="electric${version}.mf"/>
+        <jar basedir="." compress="true" jarfile="electric${version}.jar" manifest="packaging/electric${version}.mf">
             <exclude name="apidoc/"/>
             <exclude name="intervalsimulation/"/>
             <exclude name="packaging/"/>
-            <exclude name="electric.jar"/>
+            <exclude name="electric${version}.jar"/>
+            <exclude name="electric${version}.mf"/>
             <exclude name="Hack_stack.txt"/>
-            <exclude name="**/.nbattrs"/>
+            <exclude name="**/*.java"/>
+            <exclude name="**/*.form"/>
         </jar>
-        <delete dir="bsh"/>
+        <delete file="electric${version}.mf"/>
         <delete dir="com/apple"/>
+        <delete quiet="true">
+            <fileset dir="com">
+                <include name="**/*.class"/>
+            </fileset>
+        </delete>
     </target>
 
-    <target name="mac-app" depends="jar">
+    <target name="jarGNUSource" depends="init,compile" description="Make source Jar file for GNU">
+        <property name="version" value=""/>
+        <unjar dest="." src="${AppleJava}"/> 
+        <delete dir="META-INF"/>
+        <copy file="packaging/electric.mf" tofile="electric${version}.mf"/>
+        <jar basedir="." compress="true" jarfile="electric${version}.jar" manifest="packaging/electric${version}.mf">
+            <exclude name="apidoc/"/>
+            <exclude name="intervalsimulation/"/>
+            <exclude name="packaging/"/>
+            <exclude name="electric${version}.jar"/>
+            <exclude name="electric${version}.mf"/>
+            <exclude name="Hack_stack.txt"/>
+        </jar>
+        <delete file="electric${version}.mf"/>
+        <delete dir="com/apple"/>
+        <delete quiet="true">
+            <fileset dir="com">
+                <include name="**/*.class"/>
+            </fileset>
+        </delete>
+    </target>
+
+    <target name="testJar" depends="init,jar" description="Run Jar file">
+        <java classname="com.sun.electric.Launcher" failonerror="true" fork="true">
+            <classpath>
+                <pathelement location="."/>
+                <pathelement location="${beanshell}"/>
+                <pathelement location="${AppleJava}"/>
+           </classpath>
+        </java>
+    </target>
+
+    <target name="mac-app" depends="jar" description="Build Macintosh Application">
         <property name="appdir" value="electric.app"/>
         <mkdir dir="${appdir}"/>
         <mkdir dir="${appdir}/Contents"/>
@@ -98,16 +131,6 @@
         <copy file="electric.icns" todir="${appdir}/Contents/Resources"/>
         <copy file="electric.jar" todir="${appdir}/Contents/Resources/Java"/>
         <exec command="/Developer/Tools/SetFile -a B ${appdir}"/>
-    </target>
-
-    <target name="testJar" depends="init,jar" description="Run Jar file">
-        <java classname="com.sun.electric.Launcher" failonerror="true" fork="true">
-            <classpath>
-                <pathelement location="."/>
-                <pathelement location="${beanshell}"/>
-                <pathelement location="${AppleJava}"/>
-           </classpath>
-        </java>
     </target>
 
     <target name="javadoc" depends="init" description="Create Javadoc">

@@ -29,12 +29,23 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 
 import java.awt.Frame;
+import java.awt.GridBagLayout;
+import java.awt.GridBagConstraints;
 import java.util.Iterator;
 import java.util.List;
 import java.util.HashMap;
 import javax.swing.JDialog;
 import javax.swing.JCheckBox;
-import javax.swing.Box;
+import javax.swing.JPanel;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import java.awt.Insets;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import javax.swing.JScrollPane;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JSeparator;
 
 
 /**
@@ -44,6 +55,7 @@ public class OptionReconcile extends JDialog
 {
 	private HashMap changedOptions;
 	
+
 	/** Creates new form Option Reconcile */
 	public OptionReconcile(Frame parent, boolean modal, List optionsThatChanged)
 	{
@@ -53,23 +65,58 @@ public class OptionReconcile extends JDialog
         getRootPane().setDefaultButton(ok);
 
 		changedOptions = new HashMap();
-		Box optionBox = Box.createVerticalBox();
+		JPanel optionBox = new JPanel();
+		optionBox.setLayout(new GridBagLayout());
 		optionPane.setViewportView(optionBox);
+		GridBagConstraints gbc = new GridBagConstraints();
+
+		// the second column header: the option description
+		gbc.gridx = 1;       gbc.gridy = 0;
+		gbc.gridwidth = 1;   gbc.gridheight = 1;
+		gbc.weightx = 0.2;   gbc.weighty = 0;
+		gbc.anchor = GridBagConstraints.WEST;
+		gbc.fill = GridBagConstraints.NONE;
+		optionBox.add(new JLabel("OPTION"), gbc);
+
+		// the third column header: the current value
+		gbc.gridx = 2;       gbc.gridy = 0;
+		gbc.gridwidth = 1;   gbc.gridheight = 1;
+		gbc.weightx = 0.2;   gbc.weighty = 0;
+		gbc.anchor = GridBagConstraints.WEST;
+		gbc.fill = GridBagConstraints.NONE;
+		optionBox.add(new JLabel("CURRENT VALUE"), gbc);
+
+		// the fourth column header: the Libraries value
+		gbc.gridx = 3;       gbc.gridy = 0;
+		gbc.gridwidth = 1;   gbc.gridheight = 1;
+		gbc.weightx = 0.2;   gbc.weighty = 0;
+		gbc.anchor = GridBagConstraints.WEST;
+		gbc.fill = GridBagConstraints.NONE;
+		optionBox.add(new JLabel("LIBRARY VALUE"), gbc);
+
+		// the fifth column header: the location of the option
+		gbc.gridx = 4;       gbc.gridy = 0;
+		gbc.gridwidth = 1;   gbc.gridheight = 1;
+		gbc.weightx = 0.2;   gbc.weighty = 0;
+		gbc.anchor = GridBagConstraints.WEST;
+		gbc.fill = GridBagConstraints.NONE;
+		optionBox.add(new JLabel("OPTION LOCATION"), gbc);
+
+		// the separator between the header and the body
+		gbc.gridx = 0;       gbc.gridy = 1;
+		gbc.gridwidth = 5;   gbc.gridheight = 1;
+		gbc.weightx = 1.0;   gbc.weighty = 0;
+		gbc.anchor = GridBagConstraints.CENTER;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		optionBox.add(new JSeparator(), gbc);
+
+		int rowNumber = 2;
 		for(Iterator it = optionsThatChanged.iterator(); it.hasNext(); )
 		{
 			Pref.Meaning meaning = (Pref.Meaning)it.next();
 			Pref pref = meaning.getPref();
 			Variable var = meaning.getElectricObject().getVar(pref.getPrefName());
-			Object obj = null;
-			if (var == null)
-			{
-				// not in a variable, so it must be at factory default
-				obj = pref.getFactoryValue();
-			} else
-			{
-				// in a variable: make sure that value is set
-				obj = var.getObject();
-			}
+			Object obj = meaning.getDesiredValue();
 			if (obj.equals(pref.getValue())) continue;
 
 			String oldValue = null, newValue = null;
@@ -80,8 +127,18 @@ public class OptionReconcile extends JDialog
 					newValue = ((Integer)obj).intValue() == 0 ? "OFF" : "ON";
 					break;
 				case Pref.INTEGER:
-					oldValue = Integer.toString(((Integer)pref.getValue()).intValue());
-					newValue = Integer.toString(((Integer)obj).intValue());
+					int oldIntValue = ((Integer)pref.getValue()).intValue();
+					int newIntValue = ((Integer)obj).intValue();
+					String [] trueMeaning = meaning.getTrueMeaning();
+					if (trueMeaning != null)
+					{
+						oldValue = trueMeaning[oldIntValue];
+						newValue = trueMeaning[newIntValue];
+					} else
+					{
+						oldValue = Integer.toString(oldIntValue);
+						newValue = Integer.toString(newIntValue);
+					}
 					break;
 				case Pref.DOUBLE:
 					oldValue = Double.toString(((Double)pref.getValue()).doubleValue());
@@ -99,11 +156,51 @@ public class OptionReconcile extends JDialog
 					newValue = obj.toString();
 					break;
 			}
-			String line = meaning.getDescription() + " is " + oldValue + " but library wants " + newValue + " (" + meaning.getLocation() + ")";
-			JCheckBox cb = new JCheckBox(line);
+
+			// the first column: the "Accept" checkbox
+			JCheckBox cb = new JCheckBox("Accept");
 			cb.setSelected(true);
-			optionBox.add(cb);
+			gbc.gridx = 0;       gbc.gridy = rowNumber;
+			gbc.gridwidth = 1;   gbc.gridheight = 1;
+			gbc.weightx = 0.2;   gbc.weighty = 0;
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.fill = GridBagConstraints.NONE;
+			optionBox.add(cb, gbc);
 			changedOptions.put(cb, meaning);
+
+			// the second column is the option description
+			gbc.gridx = 1;       gbc.gridy = rowNumber;
+			gbc.gridwidth = 1;   gbc.gridheight = 1;
+			gbc.weightx = 0.2;   gbc.weighty = 0;
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.fill = GridBagConstraints.NONE;
+			optionBox.add(new JLabel(meaning.getDescription()), gbc);
+
+			// the third column is the current value
+			gbc.gridx = 2;       gbc.gridy = rowNumber;
+			gbc.gridwidth = 1;   gbc.gridheight = 1;
+			gbc.weightx = 0.2;   gbc.weighty = 0;
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.fill = GridBagConstraints.NONE;
+			optionBox.add(new JLabel(oldValue), gbc);
+
+			// the fourth column is the Libraries value
+			gbc.gridx = 3;       gbc.gridy = rowNumber;
+			gbc.gridwidth = 1;   gbc.gridheight = 1;
+			gbc.weightx = 0.2;   gbc.weighty = 0;
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.fill = GridBagConstraints.NONE;
+			optionBox.add(new JLabel(newValue), gbc);
+
+			// the fifth column is the location of the option
+			gbc.gridx = 4;       gbc.gridy = rowNumber;
+			gbc.gridwidth = 1;   gbc.gridheight = 1;
+			gbc.weightx = 0.2;   gbc.weighty = 0;
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.fill = GridBagConstraints.NONE;
+			optionBox.add(new JLabel(meaning.getLocation()), gbc);
+
+			rowNumber++;
 		}
 	}
 
@@ -136,16 +233,7 @@ public class OptionReconcile extends JDialog
 				Pref pref = meaning.getPref();
 
 				Variable var = meaning.getElectricObject().getVar(pref.getPrefName());
-				Object obj = null;
-				if (var == null)
-				{
-					// not in a variable, so it must be at factory default
-					obj = pref.getFactoryValue();
-				} else
-				{
-					// in a variable: make sure that value is set
-					obj = var.getObject();
-				}
+				Object obj = meaning.getDesiredValue();
 
 				// set the option
 				switch (pref.getType())
@@ -161,7 +249,7 @@ public class OptionReconcile extends JDialog
 			}
 		}
 	}
-
+ 
 	/** This method is called from within the constructor to
 	 * initialize the form.
 	 * WARNING: Do NOT modify this code. The content of this method is
@@ -217,7 +305,7 @@ public class OptionReconcile extends JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(optionPane, gridBagConstraints);
 
-        optionHeader.setText("Options used with this library are different than current options:");
+        optionHeader.setText("Options saved with this library are different than current options:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -226,7 +314,7 @@ public class OptionReconcile extends JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(optionHeader, gridBagConstraints);
 
-        ignoreLibraryOptions.setText("Ignore Library Options");
+        ignoreLibraryOptions.setText("Reject All Options");
         ignoreLibraryOptions.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -241,7 +329,7 @@ public class OptionReconcile extends JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(ignoreLibraryOptions, gridBagConstraints);
 
-        jLabel1.setText("Checked options will be taken from the library that was read.");
+        jLabel1.setText("Accepted options will be taken from the library that was read.");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
@@ -250,7 +338,7 @@ public class OptionReconcile extends JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(jLabel1, gridBagConstraints);
 
-        jLabel2.setText("Unchecked options will use the existing values.");
+        jLabel2.setText("Rejected options will stay at their existing values.");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
@@ -288,5 +376,4 @@ public class OptionReconcile extends JDialog
     private javax.swing.JLabel optionHeader;
     private javax.swing.JScrollPane optionPane;
     // End of variables declaration//GEN-END:variables
-	
 }

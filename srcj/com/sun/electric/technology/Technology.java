@@ -34,6 +34,7 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
@@ -467,33 +468,35 @@ public class Technology extends ElectricObject
 	/** no primitives in this technology (don't auto-switch to it) */	private static final int NOPRIMTECHNOLOGY =   040;
 
 
-	/** name of the technology */						private String techName;
-	/** full description of the technology */			private String techDesc;
-	/** flags for the technology */						private int userBits;
-	/** 0-based index of the technology */				private int techIndex;
-	/** critical dimensions for the technology */		private double scale;
-	/** number of transparent layers in technology */	private int transparentLayers;
-	/** the color map for this technology */			private Color [] colorMap;
-	/** list of layers in the technology */				private List layers;
-	/** count of layers in the technology */			private int layerIndex = 0;
-	/** list of primitive nodes in the technology */	private List nodes;
-	/** list of arcs in the technology */				private List arcs;
-    /** list of PortProtos in this Technology. */       private List ports;
-	/** minimum resistance in this Technology. */		private double minResistance;
-	/** minimum capacitance in this Technology. */		private double minCapacitance;
-	/** true if parasitic overrides were examined. */	private boolean parasiticOverridesGathered = false;
-	/** Spice header cards, level 1. */					private String [] spiceHeaderLevel1;
-	/** Spice header cards, level 2. */					private String [] spiceHeaderLevel2;
-	/** Spice header cards, level 3. */					private String [] spiceHeaderLevel3;
-	/** scale for this Technology. */					private Pref prefScale;
-	/** Minimum resistance for this Technology. */		private Pref prefMinResistance;
-	/** Minimum capacitance for this Technology. */		private Pref prefMinCapacitance;
-	/** preferences for all technologies */				private static Preferences prefs = null;
+	/** name of this technology */							private String techName;
+	/** short, readable name of this technology */			private String techShortName;
+	/** full description of this technology */				private String techDesc;
+	/** flags for this technology */						private int userBits;
+	/** 0-based index of this technology */					private int techIndex;
+	/** critical dimensions for this technology */			private double scale;
+	/** true if "scale" is relevant to this technology */	private boolean scaleRelevant;
+	/** number of transparent layers in technology */		private int transparentLayers;
+	/** the color map for this technology */				private Color [] colorMap;
+	/** list of layers in this technology */				private List layers;
+	/** count of layers in this technology */				private int layerIndex = 0;
+	/** list of primitive nodes in this technology */		private List nodes;
+	/** list of arcs in this technology */					private List arcs;
+    /** list of PortProtos in this Technology. */			private List ports;
+	/** minimum resistance in this Technology. */			private double minResistance;
+	/** minimum capacitance in this Technology. */			private double minCapacitance;
+	/** true if parasitic overrides were examined. */		private boolean parasiticOverridesGathered = false;
+	/** Spice header cards, level 1. */						private String [] spiceHeaderLevel1;
+	/** Spice header cards, level 2. */						private String [] spiceHeaderLevel2;
+	/** Spice header cards, level 3. */						private String [] spiceHeaderLevel3;
+	/** scale for this Technology. */						private Pref prefScale;
+	/** Minimum resistance for this Technology. */			private Pref prefMinResistance;
+	/** Minimum capacitance for this Technology. */			private Pref prefMinCapacitance;
+	/** preferences for all technologies */					private static Preferences prefs = null;
 
-	/* static list of all Technologies in Electric */	private static List technologies = new ArrayList();
-	/* the current technology in Electric */			private static Technology curTech = null;
-	/* the current tlayout echnology in Electric */		private static Technology curLayoutTech = null;
-	/* counter for enumerating technologies */			private static int techNumber = 0;
+	/* static list of all Technologies in Electric */		private static List technologies = new ArrayList();
+	/* the current technology in Electric */				private static Technology curTech = null;
+	/* the current tlayout echnology in Electric */			private static Technology curLayoutTech = null;
+	/* counter for enumerating technologies */				private static int techNumber = 0;
 
 	/****************************** CONTROL ******************************/
 
@@ -508,6 +511,7 @@ public class Technology extends ElectricObject
 		this.arcs = new ArrayList();
         this.ports = new ArrayList();
 		this.scale = 1.0;
+		this.scaleRelevant = true;
 		this.techIndex = techNumber++;
 		userBits = 0;
 		if (prefs == null) prefs = Preferences.userNodeForPackage(getClass());
@@ -551,14 +555,6 @@ public class Technology extends ElectricObject
 		// do any specific intialization
 		init();
 
-//		// precache the CIF and GDS layer overrides to save time later
-//		for(Iterator it = this.getLayers(); it.hasNext(); )
-//		{
-//			Layer layer = (Layer)it.next();
-//			layer.getCIFLayer();
-//			layer.getGDSLayer();
-//		}
-		
 		// setup mapping from pseudo-layers to real layers
 		for(Iterator it = this.getLayers(); it.hasNext(); )
 		{
@@ -879,7 +875,10 @@ public class Technology extends ElectricObject
 
 		// see how many polygons describe this arc
 		boolean addArrow = false;
-		if (!tech.isNoDirectionalArcs() && ai.isDirectional()) addArrow = true;
+		if (!tech.isNoDirectionalArcs() && ai.isDirectional())
+		{
+			if (!ai.isSkipHead()) addArrow = true;
+		}
 		int numDisplayable = ai.numDisplayableVariables(true);
 		if (wnd == null) numDisplayable = 0;
 		int maxPolys = primLayers.length + numDisplayable;
@@ -888,13 +887,17 @@ public class Technology extends ElectricObject
 		int polyNum = 0;
 
 		// construct the polygons that describe the basic arc
+		Layer lastLayer = null;
 		for(int i = 0; i < primLayers.length; i++)
 		{
 			Technology.ArcLayer primLayer = primLayers[i];
 			polys[polyNum] = ai.makePoly(ai.getLength(), ai.getWidth() - primLayer.getOffset(), primLayer.getStyle());
 			if (polys[polyNum] == null) return null;
 			if (layerOverride != null) polys[polyNum].setLayer(layerOverride); else
-				polys[polyNum].setLayer(primLayer.getLayer());
+			{
+				lastLayer = primLayer.getLayer();
+				polys[polyNum].setLayer(lastLayer);
+			}
 			polyNum++;
 		}
 
@@ -905,31 +908,29 @@ public class Technology extends ElectricObject
 			Point2D tailLoc = ai.getTail().getLocation();
 			double headX = headLoc.getX();   double headY = headLoc.getY();
 			double tailX = tailLoc.getX();   double tailY = tailLoc.getY();
-			double angle = ai.getAngle();
+			int angle = ai.getAngle();
 			if (ai.isReverseEnds())
 			{
 				double swap = headX;   headX = tailX;   tailX = swap;
 				swap = headY;   headY = tailY;   tailY = swap;
-				angle += Math.PI;
+			} else
+			{
+				angle += 1800;
 			}
-			int numPoints = 6;
-			if (ai.isSkipHead()) numPoints = 2;
-			Point2D [] points = new Point2D.Double[numPoints];
-			points[0] = new Point2D.Double(headX, headY);
-			points[1] = new Point2D.Double(tailX, tailY);
+			Point2D [] points = new Point2D.Double[4];
 			if (!ai.isSkipHead())
 			{
+				int angleOfArrow = 300;		// 30 degrees
+				int backAngle1 = angle - angleOfArrow;
+				int backAngle2 = angle + angleOfArrow;
+				points[0] = new Point2D.Double(headX, headY);
+				points[1] = new Point2D.Double(headX + EMath.cos(backAngle1), headY + EMath.sin(backAngle1));
 				points[2] = points[0];
-				double angleOfArrow = Math.PI/6;		// 30 degrees
-				double backAngle1 = angle - angleOfArrow;
-				double backAngle2 = angle + angleOfArrow;
-				points[3] = new Point2D.Double(headX + Math.cos(backAngle1), headY + Math.sin(backAngle1));
-				points[4] = points[0];
-				points[5] = new Point2D.Double(headX + Math.cos(backAngle2), headY + Math.sin(backAngle2));
+				points[3] = new Point2D.Double(headX + EMath.cos(backAngle2), headY + EMath.sin(backAngle2));
 			}
 			polys[polyNum] = new Poly(points);
 			polys[polyNum].setStyle(Poly.Type.VECTORS);
-			polys[polyNum].setLayer(null);
+			polys[polyNum].setLayer(lastLayer);
 			polyNum++;
 		}
 		
@@ -1271,31 +1272,40 @@ public class Technology extends ElectricObject
 		int numBasicLayers = primLayers.length;
 
 		// if a MultiCut contact, determine the number of extra cuts
-		int numExtraCuts = 0;
+		int numExtraLayers = 0;
 		MultiCutData mcd = null;
 		SerpentineTrans std = null;
 		if (specialType == PrimitiveNode.MULTICUT)
 		{
 			mcd = new MultiCutData(ni, np.getSpecialValues());
-			if (reasonable) numExtraCuts = mcd.cutsReasonable; else
-				numExtraCuts = mcd.cutsTotal;
+			if (reasonable) numExtraLayers = mcd.cutsReasonable; else
+			numExtraLayers = mcd.cutsTotal;
 			numBasicLayers--;
 		} else if (specialType == PrimitiveNode.SERPTRANS)
 		{
 			std = new SerpentineTrans(ni);
 			if (std.layersTotal > 0)
 			{
-				numExtraCuts = std.layersTotal;
+				numExtraLayers = std.layersTotal;
 				numBasicLayers = 0;
 			}
 		}
 
+		// determine the number of negating bubbles
+		int numNegatingBubbles = 0;
+		for(Iterator it = ni.getConnections(); it.hasNext(); )
+		{
+			Connection con = (Connection)it.next();
+			if (con.isNegated()) numNegatingBubbles++;
+		}
+
 		// construct the polygon array
-		int numPolys = numBasicLayers + numExtraCuts;
+		int numPolys = numBasicLayers + numExtraLayers + numNegatingBubbles;
 		if (wnd != null) numPolys += ni.numDisplayableVariables(true);
 		Poly [] polys = new Poly[numPolys];
 		
 		// add in the basic polygons
+		int fillPoly = 0;
 		for(int i = 0; i < numBasicLayers; i++)
 		{
 			double xCenter = ni.getTrueCenterX();
@@ -1315,7 +1325,7 @@ public class Technology extends ElectricObject
 				double portLowY = yCenter + bottomEdge.getMultiplier() * ySize + bottomEdge.getAdder();
 				double portHighY = yCenter + topEdge.getMultiplier() * ySize + topEdge.getAdder();
 				Point2D [] pointList = Poly.makePoints(portLowX, portHighX, portLowY, portHighY);
-				polys[i] = new Poly(pointList);
+				polys[fillPoly] = new Poly(pointList);
 			} else if (representation == Technology.NodeLayer.POINTS)
 			{
 				TechPoint [] points = primLayer.getPoints();
@@ -1332,24 +1342,25 @@ public class Technology extends ElectricObject
 					}
 					pointList[j] = new Point2D.Double(x, y);
 				}
-				polys[i] = new Poly(pointList);
+				polys[fillPoly] = new Poly(pointList);
 			}
 			Poly.Type style = primLayer.getStyle();
 			if (style.isText())
 			{
-				polys[i].setString(primLayer.getMessage());
-				polys[i].setTextDescriptor(primLayer.getDescriptor());
+				polys[fillPoly].setString(primLayer.getMessage());
+				polys[fillPoly].setTextDescriptor(primLayer.getDescriptor());
 			}
 			polys[i].setStyle(style);
 			if (layerOverride != null) polys[i].setLayer(layerOverride); else
-				polys[i].setLayer(primLayer.getLayer());
+				polys[fillPoly].setLayer(primLayer.getLayer());
 			if (electrical)
 			{
 				int portIndex = primLayer.getPortNum();
 				PortProto port = null;
 				if (portIndex >= 0) port = np.getPort(portIndex);
-				polys[i].setPort(port);
+				polys[fillPoly].setPort(port);
 			}
+			fillPoly++;
 		}
 
 		// add in the extra contact cuts
@@ -1357,20 +1368,51 @@ public class Technology extends ElectricObject
 		{
 			Technology.NodeLayer primLayer = primLayers[numBasicLayers];
 			Poly.Type style = primLayer.getStyle();
-			for(int i = 0; i < numExtraCuts; i++)
+			for(int i = 0; i < numExtraLayers; i++)
 			{
-				polys[numBasicLayers+i] = mcd.fillCutPoly(ni, i);
-				polys[numBasicLayers+i].setStyle(style);
-				polys[numBasicLayers+i].setLayer(primLayer.getLayer());
+				polys[fillPoly] = mcd.fillCutPoly(ni, i);
+				polys[fillPoly].setStyle(style);
+				polys[fillPoly].setLayer(primLayer.getLayer());
+				fillPoly++;
+			}
+		}
+
+		// add in negating bubbles
+		if (numNegatingBubbles > 0)
+		{
+			double bubbleRadius = Schematics.getNegatingBubbleSize() / 2;
+			for(Iterator it = ni.getConnections(); it.hasNext(); )
+			{
+				Connection con = (Connection)it.next();
+				if (!con.isNegated()) continue;
+
+				// add a negating bubble
+				AffineTransform trans = ni.rotateIn();
+				Point2D portLocation = new Point2D.Double(con.getLocation().getX(), con.getLocation().getY());
+				trans.transform(portLocation, portLocation);
+				double x = portLocation.getX();
+				double y = portLocation.getY();
+				PrimitivePort pp = (PrimitivePort)con.getPortInst().getPortProto();
+				int angle = pp.getAngle() * 10;
+				double dX = EMath.cos(angle) * bubbleRadius;
+				double dY = EMath.sin(angle) * bubbleRadius;
+				Point2D [] points = new Point2D[2];
+				points[0] = new Point2D.Double(x+dX, y+dY);
+				points[1] = new Point2D.Double(x, y);
+				polys[fillPoly] = new Poly(points);
+				polys[fillPoly].setStyle(Poly.Type.CIRCLE);
+				polys[fillPoly].setLayer(Schematics.tech.node_lay);
+				fillPoly++;
 			}
 		}
 
 		// add in the extra transistor layers
 		if (std != null)
 		{
-			for(int i = 0; i < numExtraCuts; i++)
+			for(int i = 0; i < numExtraLayers; i++)
 			{
-				polys[numBasicLayers+i] = std.fillTransPoly(i);
+				polys[fillPoly] = std.fillTransPoly(i);
+				fillPoly++;
 			}
 		}
 
@@ -1378,7 +1420,7 @@ public class Technology extends ElectricObject
 		if (wnd != null)
 		{
 			Rectangle2D rect = ni.getBounds();
-			ni.addDisplayableVariables(rect, polys, numBasicLayers+numExtraCuts, wnd, true);
+			ni.addDisplayableVariables(rect, polys, fillPoly, wnd, true);
 		}
 		return polys;
 	}
@@ -1863,6 +1905,21 @@ public class Technology extends ElectricObject
 	 */
 	public Poly getShapeOfPort(NodeInst ni, PrimitivePort pp)
 	{
+		return getShapeOfPort(ni, pp, null);
+	}
+
+	/**
+	 * Returns a polygon that describes a particular port on a NodeInst.
+	 * @param ni the NodeInst that has the port of interest.
+	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
+	 * @param pp the PrimitivePort on that NodeInst that is being described.
+	 * @param selectPt if not null, it requests a new location on the port,
+	 * away from existing arcs, and close to this point.
+	 * This is useful for "area" ports such as the left side of AND and OR gates.
+	 * @return a Poly object that describes this PrimitivePort graphically.
+	 */
+	public Poly getShapeOfPort(NodeInst ni, PrimitivePort pp, Point2D selectPt)
+	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		if (np.getSpecialType() == PrimitiveNode.SERPTRANS)
 		{
@@ -1936,7 +1993,7 @@ public class Technology extends ElectricObject
 		if (pref == null)
 		{
 			pref = Pref.makeDoublePref("Mininum" + what + "IN" + getTechName(), prefs, factory);
-			pref.attachToObject(this, "Tool Options, Spice tab", "Technology " + getTechName() + ", Min. " + what);
+			pref.attachToObject(this, "Tool Options, Spice tab", getTechShortName() + " Min. " + what);
 		}
 		return pref;
 	}
@@ -2091,7 +2148,6 @@ public class Technology extends ElectricObject
 	 * Returns the name of this technology.
 	 * Each technology has a unique name, such as "mocmos" (MOSIS CMOS).
 	 * @return the name of this technology.
-	 * @see Technology#setTechName
 	 */
 	public String getTechName() { return techName; }
 
@@ -2100,6 +2156,22 @@ public class Technology extends ElectricObject
 	 * Technology names must be unique.
 	 */
 	protected void setTechName(String techName) { this.techName = techName; }
+
+	/**
+	 * Returns the short name of this technology.
+	 * The short name is user readable ("MOSIS CMOS" instead of "mocmos")
+	 * but is shorter than the "description" which often includes options.
+	 * @return the short name of this technology.
+	 */
+	public String getTechShortName() { return techShortName; }
+
+	/**
+	 * Sets the short name of this technology.
+	 * The short name is user readable ("MOSIS CMOS" instead of "mocmos")
+	 * but is shorter than the "description" which often includes options.
+	 * @param techShortName the short name for this technology.
+	 */
+	protected void setTechShortName(String techShortName) { this.techShortName = techShortName; }
 
 	/**
 	 * Returns the full description of this Technology.
@@ -2138,7 +2210,7 @@ public class Technology extends ElectricObject
 	public void setFactoryScale(double factory)
 	{
 		prefScale = Pref.makeDoublePref("ScaleFOR" + getTechName(), prefs, factory);
-		prefScale.attachToObject(this, "IO Options, Units tab", "Technology " + getTechName() + " scale");
+		prefScale.attachToObject(this, "IO Options, Scale tab", getTechShortName() + " scale");
 	}
 
 	/**
@@ -2153,6 +2225,28 @@ public class Technology extends ElectricObject
 		System.out.println("SETTING SCALE FOR "+techName+" TO "+scale);
 		prefScale.setDouble(scale);
 	}
+
+	/**
+	 * Method to tell whether scaling is relevant for this Technology.
+	 * Most technolgies produce drawings that are exact images of a final product.
+	 * For these technologies (CMOS, bipolar, etc.) the "scale" from displayed grid
+	 * units to actual dimensions is a relevant factor.
+	 * Other technologies, such as schematics, artwork, and generic,
+	 * are not converted to physical objects, and "scale" is not relevant no meaning for them.
+	 * @return true if scaling is relevant for this Technology.
+	 */
+	public boolean isScaleRelevant() { return scaleRelevant; }
+
+	/**
+	 * Method to set whether scaling is relevant for this Technology.
+	 * Most technolgies produce drawings that are exact images of a final product.
+	 * For these technologies (CMOS, bipolar, etc.) the "scale" from displayed grid
+	 * units to actual dimensions is a relevant factor.
+	 * Other technologies, such as schematics, artwork, and generic,
+	 * are not converted to physical objects, and "scale" is not relevant no meaning for them.
+	 * @param scaleRelevant true if scaling is relevant for this Technology.
+	 */
+	protected void setScaleRelevant(boolean scaleRelevant) { this.scaleRelevant = scaleRelevant; }
 
 	/**
 	 * Sets the number of transparent layers in this technology.

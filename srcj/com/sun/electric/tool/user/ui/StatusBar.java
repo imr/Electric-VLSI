@@ -275,7 +275,11 @@ public class StatusBar extends JPanel
 
 		Technology tech = Technology.getCurrent();
 		if (tech != null)
-			fieldTech.setText("TECHNOLOGY: " + tech.getTechName() + " (scale=" + (tech.getScale()/2.0) + "nm)");
+		{
+			String message = "TECHNOLOGY: " + tech.getTechName();
+			if (tech.isScaleRelevant()) message += " (scale=" + (tech.getScale()/2.0) + "nm)";
+			fieldTech.setText(message);
+		}
 
 		if (coords == null) fieldCoords.setText(""); else
 			fieldCoords.setText(coords);

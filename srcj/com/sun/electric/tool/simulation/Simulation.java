@@ -59,7 +59,7 @@ public class Simulation extends Tool
 	/****************************** VERILOG OPTIONS ******************************/
 
 	private static Pref cacheVerilogUseAssign = Pref.makeBooleanPref("VerilogUseAssign", Simulation.tool.prefs, false);
-    static { cacheVerilogUseAssign.attachToObject(Simulation.tool, "Tool Options, Verilog tab", "Use ASSIGN Construct"); }
+    static { cacheVerilogUseAssign.attachToObject(Simulation.tool, "Tool Options, Verilog tab", "Verilog uses Assign construct"); }
 	/**
 	 * Method to tell whether Verilog deck generation should use the Assign statement.
 	 * The default is false.
@@ -73,7 +73,7 @@ public class Simulation extends Tool
 	public static void setVerilogUseAssign(boolean use) { cacheVerilogUseAssign.setBoolean(use); }
 
 	private static Pref cacheVerilogUseTrireg = Pref.makeBooleanPref("VerilogUseTrireg", Simulation.tool.prefs, false);
-    static { cacheVerilogUseTrireg.attachToObject(Simulation.tool, "Tool Options, Verilog tab", "Default wire is Trireg"); }
+    static { cacheVerilogUseTrireg.attachToObject(Simulation.tool, "Tool Options, Verilog tab", "Verilog presumes wire is Trireg"); }
 	/**
 	 * Method to tell whether Verilog deck generation should use Trireg by default.
 	 * The alternative is to use the "wire" statement.
@@ -91,7 +91,7 @@ public class Simulation extends Tool
 	/****************************** CDL OPTIONS ******************************/
 
 	private static Pref cacheCDLLibName = Pref.makeStringPref("CDLLibName", Simulation.tool.prefs, "");
-    static { cacheCDLLibName.attachToObject(Simulation.tool, "IO Options, CDL tab", "Cadence Library Name"); }
+    static { cacheCDLLibName.attachToObject(Simulation.tool, "IO Options, CDL tab", "Cadence library name"); }
 	/**
 	 * Method to return the CDL library name.
 	 * CDL is a weak form of a Spice deck, and it includes a Cadence library name.
@@ -106,7 +106,7 @@ public class Simulation extends Tool
 	public static void setCDLLibName(String libName) { cacheCDLLibName.setString(libName); }
 
 	private static Pref cacheCDLLibPath = Pref.makeStringPref("CDLLibPath", Simulation.tool.prefs, "");
-    static { cacheCDLLibPath.attachToObject(Simulation.tool, "IO Options, CDL tab", "Cadence Library Path"); }
+    static { cacheCDLLibPath.attachToObject(Simulation.tool, "IO Options, CDL tab", "Cadence library path"); }
 	/**
 	 * Method to return the CDL library path.
 	 * CDL is a weak form of a Spice deck, and it includes a Cadence library.
@@ -121,7 +121,7 @@ public class Simulation extends Tool
 	public static void setCDLLibPath(String libName) { cacheCDLLibPath.setString(libName); }
 
 	private static Pref cacheCDLConvertBrackets = Pref.makeBooleanPref("CDLConvertBrackets", Simulation.tool.prefs, false);
-    static { cacheCDLConvertBrackets.attachToObject(Simulation.tool, "IO Options, CDL tab", "Convert brackets"); }
+    static { cacheCDLConvertBrackets.attachToObject(Simulation.tool, "IO Options, CDL tab", "CDL converts brackets"); }
 	/**
 	 * Method to tell whether CDL converts square bracket characters.
 	 * CDL is a weak form of a Spice deck, and it includes a Cadence library.
@@ -145,7 +145,11 @@ public class Simulation extends Tool
 	/** SmartSpice engine. */	public static final int SPICE_ENGINE_S = 5;
 
 	private static Pref cacheSpiceEngine = Pref.makeIntPref("SpiceEngine", Simulation.tool.prefs, 1);
-    static { cacheSpiceEngine.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Spice Engine"); }
+	static
+	{
+		Pref.Meaning m = cacheSpiceEngine.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Spice engine");
+		m.setTrueMeaning(new String[] {"Spice 2", "Spice 3", "HSpice", "PSpice", "GNUCap", "SmartSpice"});
+	}
 	/**
 	 * Method to tell which SPICE engine is being used.
 	 * Since different versions of SPICE have slightly different syntax,
@@ -176,7 +180,7 @@ public class Simulation extends Tool
 	public static void setSpiceEngine(int engine) { cacheSpiceEngine.setInt(engine); }
 
 	private static Pref cacheSpiceLevel = Pref.makeStringPref("SpiceLevel", Simulation.tool.prefs, "1");
-    static { cacheSpiceLevel.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Spice Level"); }
+    static { cacheSpiceLevel.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Spice level"); }
 	/**
 	 * Method to tell which SPICE level is being used.
 	 * SPICE can use 3 different levels of simulation.
@@ -191,7 +195,7 @@ public class Simulation extends Tool
 	public static void setSpiceLevel(String level) { cacheSpiceLevel.setString(level); }
 
 	private static Pref cacheSpiceOutputFormat = Pref.makeStringPref("SpiceOutputFormat", Simulation.tool.prefs, "Standard");
-    static { cacheSpiceOutputFormat.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Output Format"); }
+    static { cacheSpiceOutputFormat.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Spice output format"); }
 	/**
 	 * Method to tell the type of output files expected from Spice.
 	 * @return the type of output files expected from Spice.
@@ -242,12 +246,12 @@ public class Simulation extends Tool
 	}
 
 	private static Pref cacheSpiceHeaderCardInfo = Pref.makeStringPref("SpiceHeaderCardInfo", Simulation.tool.prefs, "");
-    static { cacheSpiceHeaderCardInfo.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Header Card Information"); }
+    static { cacheSpiceHeaderCardInfo.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Spice header card information"); }
 	/**
 	 * Method to get the Spice header card specification.
 	 * Header cards can come from one of three places, depending on the specification:<BR>
 	 * Specification="" means use built-in header cards.<BR>
-	 * Specification=":::::XXX" means use header cards from the file TOPCELL.XXX
+	 * Specification="Extension XXX" means use header cards from the file TOPCELL.XXX
 	 * where TOPCELL is the name of the top-level cell name and XXX is a specified extension.<BR>
 	 * Specification="XXX" means use header cards from the file XXX.
 	 * @return the Spice header card specification.
@@ -257,7 +261,7 @@ public class Simulation extends Tool
 	 * Method to set the Spice header card specification.
 	 * Header cards can come from one of three places, depending on the specification:<BR>
 	 * Specification="" means use built-in header cards.<BR>
-	 * Specification=":::::XXX" means use header cards from the file TOPCELL.XXX
+	 * Specification="Extension XXX" means use header cards from the file TOPCELL.XXX
 	 * where TOPCELL is the name of the top-level cell name and XXX is a specified extension.<BR>
 	 * Specification="XXX" means use header cards from the file XXX.
 	 * @param spec the Spice header card specification.
@@ -265,12 +269,12 @@ public class Simulation extends Tool
 	public static void setSpiceHeaderCardInfo(String spec) { cacheSpiceHeaderCardInfo.setString(spec); }
 
 	private static Pref cacheSpiceTrailerCardInfo = Pref.makeStringPref("SpiceTrailerCardInfo", Simulation.tool.prefs, "");
-    static { cacheSpiceTrailerCardInfo.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Trailer Card Information"); }
+    static { cacheSpiceTrailerCardInfo.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Spice trailer card information"); }
 	/**
 	 * Method to get the Spice trailer card specification.
 	 * Trailer cards can come from one of three places, depending on the specification:<BR>
 	 * Specification="" means use built-in trailer cards.<BR>
-	 * Specification=":::::XXX" means use trailer cards from the file TOPCELL.XXX
+	 * Specification="Extension XXX" means use trailer cards from the file TOPCELL.XXX
 	 * where TOPCELL is the name of the top-level cell name and XXX is a specified extension.<BR>
 	 * Specification="XXX" means use trailer cards from the file XXX.
 	 * @return the Spice trailer card specification.
@@ -280,7 +284,7 @@ public class Simulation extends Tool
 	 * Method to set the Spice trailer card specification.
 	 * Trailer cards can come from one of three places, depending on the specification:<BR>
 	 * Specification="" means use built-in trailer cards.<BR>
-	 * Specification=":::::XXX" means use trailer cards from the file TOPCELL.XXX
+	 * Specification="Extension XXX" means use trailer cards from the file TOPCELL.XXX
 	 * where TOPCELL is the name of the top-level cell name and XXX is a specified extension.<BR>
 	 * Specification="XXX" means use trailer cards from the file XXX.
 	 * @param spec the Spice trailer card specification.
@@ -288,7 +292,7 @@ public class Simulation extends Tool
 	public static void setSpiceTrailerCardInfo(String spec) { cacheSpiceTrailerCardInfo.setString(spec); }
 
 	private static Pref cacheSpiceUseParasitics = Pref.makeBooleanPref("SpiceUseParasitics", Simulation.tool.prefs, true);
-    static { cacheSpiceUseParasitics.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Use Parasitics"); }
+    static { cacheSpiceUseParasitics.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Spice uses parasitics"); }
 	/**
 	 * Method to tell whether or not to use parasitics in Spice output.
 	 * The default is true.
@@ -302,7 +306,7 @@ public class Simulation extends Tool
 	public static void setSpiceUseParasitics(boolean p) { cacheSpiceUseParasitics.setBoolean(p); }
 
 	private static Pref cacheSpiceUseNodeNames = Pref.makeBooleanPref("SpiceUseNodeNames", Simulation.tool.prefs, true);
-    static { cacheSpiceUseNodeNames.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Use Node Names"); }
+    static { cacheSpiceUseNodeNames.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Spice uses node names"); }
 	/**
 	 * Method to tell whether or not to use node names in Spice output.
 	 * If node names are off, then numbers are used.
@@ -318,7 +322,7 @@ public class Simulation extends Tool
 	public static void setSpiceUseNodeNames(boolean u) { cacheSpiceUseNodeNames.setBoolean(u); }
 
 	private static Pref cacheSpiceForceGlobalPwrGnd = Pref.makeBooleanPref("SpiceForceGlobalPwrGnd", Simulation.tool.prefs, false);
-    static { cacheSpiceForceGlobalPwrGnd.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Force Global VDD/GND"); }
+    static { cacheSpiceForceGlobalPwrGnd.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Spice forces global VDD/GND"); }
 	/**
 	 * Method to tell whether or not to write global power and ground in Spice output.
 	 * If this is off, then individual power and ground references are made.
@@ -334,7 +338,7 @@ public class Simulation extends Tool
 	public static void setSpiceForceGlobalPwrGnd(boolean g) { cacheSpiceForceGlobalPwrGnd.setBoolean(g); }
 
 	private static Pref cacheSpiceUseCellParameters = Pref.makeBooleanPref("SpiceUseCellParameters", Simulation.tool.prefs, false);
-    static { cacheSpiceForceGlobalPwrGnd.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Use Cell Parameters"); }
+    static { cacheSpiceForceGlobalPwrGnd.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Spice uses cell parameters"); }
 	/**
 	 * Method to tell whether or not to use cell parameters in Spice output.
 	 * When cell parameters are used, any parameterized cell is written many times,
@@ -352,7 +356,7 @@ public class Simulation extends Tool
 	public static void setSpiceUseCellParameters(boolean p) { cacheSpiceUseCellParameters.setBoolean(p); }
 
 	private static Pref cacheSpiceWriteTransSizeInLambda = Pref.makeBooleanPref("SpiceWriteTransSizeInLambda", Simulation.tool.prefs, false);
-    static { cacheSpiceWriteTransSizeInLambda.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Write Trans Sizes in Lambda"); }
+    static { cacheSpiceWriteTransSizeInLambda.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Spice writes transistor sizes in lambda"); }
 	/**
 	 * Method to tell whether or not to write transistor sizes in "lambda" grid units in Spice output.
 	 * Lambda grid units are the basic units of design.

@@ -91,7 +91,8 @@ public class Undo
 	}
 
 	/**
-	 * Change describes a single change.
+	 * The Change class describes a single change to the Electric database.
+	 * These objects are used to undo and redo changes.
 	 */
 	public static class Change
 	{
@@ -113,18 +114,66 @@ public class Undo
 			this.a3 = a3;
 			this.a4 = a4;
 		}
-		
+
+		/**
+		 * Method to get the ElectricObject associated with this Change.
+		 * @return the ElectricObject associated with this Change.
+		 */
 		public ElectricObject getObject() { return obj; }
+		/**
+		 * Method to get the type of this Change.
+		 * @return the type of this Change.
+		 */
 		public Type getType() { return type; }
+		/**
+		 * Method to set the type of this Change.
+		 * @param type the new type of this Change.
+		 */
 		private void setType(Type type) { this.type = type; }
+		/**
+		 * Method to get the first floating-point value associated with this Change.
+		 * @return the first floating-point value associated with this Change.
+		 */
 		public double getA1() { return a1; }
+		/**
+		 * Method to get the second floating-point value associated with this Change.
+		 * @return the second floating-point value associated with this Change.
+		 */
 		public double getA2() { return a2; }
+		/**
+		 * Method to get the third floating-point value associated with this Change.
+		 * @return the third floating-point value associated with this Change.
+		 */
 		public double getA3() { return a3; }
+		/**
+		 * Method to get the fourth floating-point value associated with this Change.
+		 * @return the fourth floating-point value associated with this Change.
+		 */
 		public double getA4() { return a4; }
+		/**
+		 * Method to get the fifth floating-point value associated with this Change.
+		 * @return the fifth floating-point value associated with this Change.
+		 */
 		public double getA5() { return a5; }
+		/**
+		 * Method to get the first integer value associated with this Change.
+		 * @return the first integer value associated with this Change.
+		 */
 		public int getI1() { return i1; }
+		/**
+		 * Method to get the second integer value associated with this Change.
+		 * @return the second integer value associated with this Change.
+		 */
 		public int getI2() { return i2; }
+		/**
+		 * Method to get the first Object associated with this Change.
+		 * @return the first Object associated with this Change.
+		 */
 		public Object getO1() { return o1; }
+		/**
+		 * Method to get the second Object associated with this Change.
+		 * @return the second Object associated with this Change.
+		 */
 		public Object getO2() { return o2; }
 
 		/**
@@ -132,7 +181,7 @@ public class Undo
 		 * @param firstchange true if this is the first change of a batch, so that a "startbatch" change must also be broadcast.
 		 * @param undoredo true if this is an undo/redo batch.
 		 */
-		void broadcast(boolean firstchange, boolean undoRedo)
+		private void broadcast(boolean firstchange, boolean undoRedo)
 		{
 			// start the batch if this is the first change
 			broadcasting = type;
@@ -264,7 +313,7 @@ public class Undo
 		/**
 		 * Method to undo the effects of this change.
 		 */
-		void reverse()
+		private void reverse()
 		{
 			// determine what needs to be marked as changed
 			setDirty(type, obj, o1);
@@ -575,7 +624,7 @@ public class Undo
 		/**
 		 * Method to describe this change as a string.
 		 */
-		String describe()
+		private String describe()
 		{
 			if (type == Type.NODEINSTNEW)
 			{
@@ -690,7 +739,7 @@ public class Undo
 	}
 
 	/**
-	 * ChangeBatch describes a batch of changes.
+	 * Class to describe a batch of changes to the Electric database.
 	 */
 	public static class ChangeBatch
 	{
@@ -703,11 +752,11 @@ public class Undo
 
 		ChangeBatch() {}
 		
-		void add(Change change) { changes.add(change); }
+		private void add(Change change) { changes.add(change); }
 		public Iterator getChanges() { return changes.iterator(); }
 		public int getNumChanges() { return changes.size(); }
 
-		void describe()
+		private void describe()
 		{
 			/* display the change batches */
 			int nodeInst = 0, arcInst = 0, export = 0, cell = 0, object = 0, variable = 0;

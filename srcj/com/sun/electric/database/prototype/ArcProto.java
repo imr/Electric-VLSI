@@ -354,22 +354,6 @@ public abstract class ArcProto extends ElectricObject
 	public boolean isExtended() { return getArcProtoBitPref("Extended", defaultExtendedPrefs, true).getBoolean(); }
 
 	/**
-	 * Method to set the negated factor for this ArcProto.
-	 * Negated arcs have a bubble drawn on their tail end to indicate negation.
-	 * This is used only in Schematics technologies to place negating bubbles on any node.
-	 * @param negated true if new instances of this ArcProto should be negated.
-	 */
-	public void setNegated(boolean negated) { getArcProtoBitPref("Negated", defaultNegatedPrefs, false).setBoolean(negated); }
-
-	/**
-	 * Method to tell if instances of this ArcProto are negated.
-	 * Negated arcs have a bubble drawn on their tail end to indicate negation.
-	 * This is used only in Schematics technologies to place negating bubbles on any node.
-	 * @return true if instances of this ArcProto are negated.
-	 */
-	public boolean isNegated() { return getArcProtoBitPref("Negated", defaultNegatedPrefs, false).getBoolean(); }
-
-	/**
 	 * Method to set the directional factor for this ArcProto.
 	 * Directional arcs have an arrow drawn on them to indicate flow.
 	 * It is only for documentation purposes and does not affect the circuit.

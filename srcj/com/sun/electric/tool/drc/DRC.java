@@ -759,7 +759,7 @@ public class DRC extends Tool
 	public static void setNumberOfThreads(int th) { cacheNumberOfThreads.setInt(th); }
 
 	private static Pref cacheIgnoreCenterCuts = Pref.makeBooleanPref("IgnoreCenterCuts", DRC.tool.prefs, false);
-    static { cacheIgnoreCenterCuts.attachToObject(DRC.tool, "Tool Options, DRC tab", "Ignore center cuts in large contacts"); }
+    static { cacheIgnoreCenterCuts.attachToObject(DRC.tool, "Tool Options, DRC tab", "DRC ignores center cuts in large contacts"); }
 	/**
 	 * Method to tell whether DRC should ignore center cuts in large contacts.
 	 * Only the perimeter of cuts will be checked.

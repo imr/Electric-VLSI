@@ -31,6 +31,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.ArcInst;
@@ -62,6 +63,14 @@ import java.util.HashMap;
 public class Schematics extends Technology
 {
 	/** key of Variable holding global signal name. */	public static final Variable.Key SCHEM_GLOBAL_NAME = ElectricObject.newKey("SCHEM_global_name");
+	/** key of Variable holding resistance. */			public static final Variable.Key SCHEM_RESISTANCE = ElectricObject.newKey("SCHEM_resistance");
+	/** key of Variable holding capacitance. */			public static final Variable.Key SCHEM_CAPACITANCE = ElectricObject.newKey("SCHEM_capacitance");
+	/** key of Variable holding inductance. */			public static final Variable.Key SCHEM_INDUCTANCE = ElectricObject.newKey("SCHEM_inductance");
+	/** key of Variable holding diode area. */			public static final Variable.Key SCHEM_DIODE = ElectricObject.newKey("SCHEM_diode");
+	/** key of Variable holding black-box function. */	public static final Variable.Key SCHEM_FUNCTION = ElectricObject.newKey("SCHEM_function");
+	/** key of Variable holding transistor width. */	public static final Variable.Key ATTR_WIDTH = ElectricObject.newKey("ATTR_width");
+	/** key of Variable holding transistor length. */	public static final Variable.Key ATTR_LENGTH = ElectricObject.newKey("ATTR_length");
+	/** key of Variable holding transistor area. */		public static final Variable.Key ATTR_AREA = ElectricObject.newKey("ATTR_area");
 
 	/** the Schematics Technology object. */			public static final Schematics tech = new Schematics();
 
@@ -97,6 +106,8 @@ public class Schematics extends Technology
 	/** Defines a Current gain two-port (CCCS). */		private static final int TWOPCCCS =  3;
 	/** Defines a Transmission Line two-port. */		private static final int TWOPTLINE = 4;
 
+	/** the node layer */				public Layer node_lay;
+
 	/** wire arc */						public PrimitiveArc wire_arc;
 	/** bus arc */						public PrimitiveArc bus_arc;
 
@@ -127,7 +138,7 @@ public class Schematics extends Technology
 	/** transistor-4 */					public PrimitiveNode transistor4Node;
 	/** global */						public PrimitiveNode globalNode;
 
-	private Layer arc_lay, bus_lay, node_lay, text_lay;
+	private Layer arc_lay, bus_lay, text_lay;
 	private Technology.NodeLayer [] ffLayersRSMS, ffLayersRSP, ffLayersRSN;
 	private Technology.NodeLayer [] ffLayersJKMS, ffLayersJKP, ffLayersJKN;
 	private Technology.NodeLayer [] ffLayersDMS, ffLayersDP, ffLayersDN;
@@ -146,20 +157,16 @@ public class Schematics extends Technology
 
 	// this much from the center to the left edge
 	/* 0.1 */			private final EdgeH LEFTBYP1 = new EdgeH(-0.1/2,0);
-	/* 0.1333... */		private final EdgeH LEFTBYP125 = new EdgeH(-0.1333/2,0);
-	/* 0.1666... */		private final EdgeH LEFTBYP166 = new EdgeH(-0.1666/2,0);
+	/* 0.1333... */		private final EdgeH LEFTBYP125 = new EdgeH(-0.125/2,0);
 	/* 0.2 */			private final EdgeH LEFTBYP2 = new EdgeH(-0.2/2,0);
 	/* 0.25 */			private final EdgeH LEFTBYP25 = new EdgeH(-0.25/2,0);
 	/* 0.3 */			private final EdgeH LEFTBYP3 = new EdgeH(-0.3/2,0);
-	/* 0.3333... */		private final EdgeH LEFTBYP33 = new EdgeH(-0.3333/2,0);
 	/* 0.35 */			private final EdgeH LEFTBYP35 = new EdgeH(-0.35/2,0);
-	/* 0.3666... */		private final EdgeH LEFTBYP3666 = new EdgeH(-0.3666/2,0);
 	/* 0.4 */			private final EdgeH LEFTBYP4 = new EdgeH(-0.4/2,0);
 	/* 0.45 */			private final EdgeH LEFTBYP45 = new EdgeH(-0.45/2,0);
 	/* 0.5 */			private final EdgeH LEFTBYP5 = new EdgeH(-0.5/2,0);
 	/* 0.6 */			private final EdgeH LEFTBYP6 = new EdgeH(-0.6/2,0);
-	/* 0.6333... */		private final EdgeH LEFTBYP6333 = new EdgeH(-0.6333/2,0);
-	/* 0.6666... */		private final EdgeH LEFTBYP66 = new EdgeH(-0.6666/2,0);
+	/* 0.6666... */		private final EdgeH LEFTBYP66 = new EdgeH(-0.6666666666/2,0);
 	/* 0.7 */			private final EdgeH LEFTBYP7 = new EdgeH(-0.7/2,0);
 	/* 0.75 */			private final EdgeH LEFTBYP75 = new EdgeH(-0.75/2,0);
 	/* 0.8 */			private final EdgeH LEFTBYP8 = new EdgeH(-0.8/2,0);
@@ -171,26 +178,23 @@ public class Schematics extends Technology
 
 	// this much from the center to the right edge
 	/* 0.1 */			private final EdgeH RIGHTBYP1 = new EdgeH(0.1/2,0);
-	/* 0.1333... */		private final EdgeH RIGHTBYP125 = new EdgeH(0.1333/2,0);
-	/* 0.1666... */		private final EdgeH RIGHTBYP166 = new EdgeH(0.1666/2,0);
+	/* 0.1333... */		private final EdgeH RIGHTBYP125 = new EdgeH(0.125/2,0);
 	/* 0.2 */			private final EdgeH RIGHTBYP2 = new EdgeH(0.2/2,0);
 	/* 0.25 */			private final EdgeH RIGHTBYP25 = new EdgeH(0.25/2,0);
 	/* 0.3 */			private final EdgeH RIGHTBYP3 = new EdgeH(0.3/2,0);
-	/* 0.3333... */		private final EdgeH RIGHTBYP33 = new EdgeH(0.3333/2,0);
+	/* 0.3333... */		private final EdgeH RIGHTBYP33 = new EdgeH(0.3333333333/2,0);
 	/* 0.35 */			private final EdgeH RIGHTBYP35 = new EdgeH(0.35/2,0);
-	/* 0.3666... */		private final EdgeH RIGHTBYP3666 = new EdgeH(0.3666/2,0);
-	/* 0.3833... */		private final EdgeH RIGHTBYP3833 = new EdgeH(0.3833/2,0);
+	/* 0.3833... */		private final EdgeH RIGHTBYP3833 = new EdgeH(0.3833333333/2,0);
 	/* 0.4 */			private final EdgeH RIGHTBYP4 = new EdgeH(0.4/2,0);
-	/* 0.4333... */		private final EdgeH RIGHTBYP433 = new EdgeH(0.4333/2,0);
+	/* 0.4333... */		private final EdgeH RIGHTBYP433 = new EdgeH(0.4333333333/2,0);
 	/* 0.45 */			private final EdgeH RIGHTBYP45 = new EdgeH(0.45/2,0);
 	/* 0.5 */			private final EdgeH RIGHTBYP5 = new EdgeH(0.5/2,0);
-	/* 0.5166... */		private final EdgeH RIGHTBYP5166 = new EdgeH(0.5166/2,0);
+	/* 0.5166... */		private final EdgeH RIGHTBYP5166 = new EdgeH(0.5166666666/2,0);
 	/* 0.55 */			private final EdgeH RIGHTBYP55 = new EdgeH(0.55/2,0);
-	/* 0.5666... */		private final EdgeH RIGHTBYP566 = new EdgeH(0.5666/2,0);
+	/* 0.5666... */		private final EdgeH RIGHTBYP566 = new EdgeH(0.5666666666/2,0);
 	/* 0.6 */			private final EdgeH RIGHTBYP6 = new EdgeH(0.6/2,0);
-	/* 0.6166... */		private final EdgeH RIGHTBYP6166 = new EdgeH(0.6166/2,0);
-	/* 0.6333... */		private final EdgeH RIGHTBYP6333 = new EdgeH(0.6333/2,0);
-	/* 0.6666... */		private final EdgeH RIGHTBYP66 = new EdgeH(0.6666/2,0);
+	/* 0.6166... */		private final EdgeH RIGHTBYP6166 = new EdgeH(0.6166666666/2,0);
+	/* 0.6666... */		private final EdgeH RIGHTBYP66 = new EdgeH(0.6666666666/2,0);
 	/* 0.7 */			private final EdgeH RIGHTBYP7 = new EdgeH(0.7/2,0);
 	/* 0.75 */			private final EdgeH RIGHTBYP75 = new EdgeH(0.75/2,0);
 	/* 0.8 */			private final EdgeH RIGHTBYP8 = new EdgeH(0.8/2,0);
@@ -200,49 +204,48 @@ public class Schematics extends Technology
 	// this much from the center to the bottom edge
 	/* 0.1 */			private final EdgeV BOTBYP1 = new EdgeV(-0.1/2,0); 
 	/* 0.125 */			private final EdgeV BOTBYP125 = new EdgeV(-0.125/2,0);   
-	/* 0.166...  */		private final EdgeV BOTBYP166 = new EdgeV(-0.166/2,0);	
+	/* 0.166...  */		private final EdgeV BOTBYP166 = new EdgeV(-0.166666666/2,0);
 	/* 0.2 */			private final EdgeV BOTBYP2 = new EdgeV(-0.2/2,0); 
-	/* 0.25 */			private final EdgeV BOTBYP25 = new EdgeV(-0.25/2,0);	
+	/* 0.25 */			private final EdgeV BOTBYP25 = new EdgeV(-0.25/2,0);
 	/* 0.3 */			private final EdgeV BOTBYP3 = new EdgeV(-0.3/2,0); 
-	/* 0.3333... */		private final EdgeV BOTBYP33 = new EdgeV(-0.3333/2,0);	
+	/* 0.3333... */		private final EdgeV BOTBYP33 = new EdgeV(-0.3333333333/2,0);
 	/* 0.375 */			private final EdgeV BOTBYP375 = new EdgeV(-0.375/2,0);        
 	/* 0.4 */			private final EdgeV BOTBYP4 = new EdgeV(-0.4/2,0); 
 	/* 0.5 */			private final EdgeV BOTBYP5 = new EdgeV(-0.5/2,0); 
 	/* 0.6 */			private final EdgeV BOTBYP6 = new EdgeV(-0.6/2,0); 
-	/* 0.6666... */		private final EdgeV BOTBYP66 = new EdgeV(-0.6666/2,0);	
+	/* 0.6666... */		private final EdgeV BOTBYP66 = new EdgeV(-0.6666666666/2,0);
 	/* 0.7 */			private final EdgeV BOTBYP7 = new EdgeV(-0.7/2,0); 
-	/* 0.75 */			private final EdgeV BOTBYP75 = new EdgeV(-0.75/2,0);	
+	/* 0.75 */			private final EdgeV BOTBYP75 = new EdgeV(-0.75/2,0);
 	/* 0.8 */			private final EdgeV BOTBYP8 = new EdgeV(-0.8/2,0); 
 	/* 0.875 */			private final EdgeV BOTBYP875 = new EdgeV(-0.875/2,0);        
-	/* 0.9 */			private final EdgeV BOTBYP9 = new EdgeV(-0.9/2,0);	
+	/* 0.9 */			private final EdgeV BOTBYP9 = new EdgeV(-0.9/2,0);
 
 	// this much from the center to the top edge
-	/* 0.1 */			private final EdgeV TOPBYP1 = new EdgeV(0.1/2,0);	
-	/* 0.2 */			private final EdgeV TOPBYP2 = new EdgeV(0.2/2,0);	
-	/* 0.25 */			private final EdgeV TOPBYP25 = new EdgeV(0.25/2,0);	
-	/* 0.3 */			private final EdgeV TOPBYP3 = new EdgeV(0.3/2,0);	
-	/* 0.3333... */		private final EdgeV TOPBYP33 = new EdgeV(0.3333/2,0);	
-	/* 0.4 */			private final EdgeV TOPBYP4 = new EdgeV(0.4/2,0);	
-	/* 0.5 */			private final EdgeV TOPBYP5 = new EdgeV(0.5/2,0);	
-	/* 0.5833... */		private final EdgeV TOPBYP5833 = new EdgeV(0.5833/2,0);	
-	/* 0.6 */			private final EdgeV TOPBYP6 = new EdgeV(0.6/2,0);	
-	/* 0.6666... */		private final EdgeV TOPBYP66 = new EdgeV(0.6666/2,0);	
-	/* 0.7 */			private final EdgeV TOPBYP7 = new EdgeV(0.7/2,0);	
-	/* 0.75 */			private final EdgeV TOPBYP75 = new EdgeV(0.75/2,0);	
-	/* 0.8 */			private final EdgeV TOPBYP8 = new EdgeV(0.8/2,0);	
-	/* 0.8666... */		private final EdgeV TOPBYP866 = new EdgeV(0.8666/2,0);	
-	/* 0.875 */			private final EdgeV TOPBYP875 = new EdgeV(0.875/2,0);	
-	/* 0.9 */			private final EdgeV TOPBYP9 = new EdgeV(0.9/2,0);	
+	/* 0.1 */			private final EdgeV TOPBYP1 = new EdgeV(0.1/2,0);
+	/* 0.2 */			private final EdgeV TOPBYP2 = new EdgeV(0.2/2,0);
+	/* 0.25 */			private final EdgeV TOPBYP25 = new EdgeV(0.25/2,0);
+	/* 0.3 */			private final EdgeV TOPBYP3 = new EdgeV(0.3/2,0);
+	/* 0.3333... */		private final EdgeV TOPBYP33 = new EdgeV(0.3333333333/2,0);
+	/* 0.4 */			private final EdgeV TOPBYP4 = new EdgeV(0.4/2,0);
+	/* 0.5 */			private final EdgeV TOPBYP5 = new EdgeV(0.5/2,0);
+	/* 0.5833... */		private final EdgeV TOPBYP5833 = new EdgeV(0.5833333333/2,0);
+	/* 0.6 */			private final EdgeV TOPBYP6 = new EdgeV(0.6/2,0);
+	/* 0.6666... */		private final EdgeV TOPBYP66 = new EdgeV(0.6666666666/2,0);
+	/* 0.75 */			private final EdgeV TOPBYP75 = new EdgeV(0.75/2,0);
+	/* 0.8 */			private final EdgeV TOPBYP8 = new EdgeV(0.8/2,0);
+	/* 0.9 */			private final EdgeV TOPBYP9 = new EdgeV(0.9/2,0);
 
 	// -------------------- private and protected methods ------------------------
 
 	private Schematics()
 	{
 		setTechName("schematic");
+		setTechShortName("Schematics");
 		setTechDesc("Schematic Capture");
 		setFactoryScale(2000);			// in nanometers: really 2 micron
 		setNonStandard();
 		setStaticTechnology();
+		setScaleRelevant(false);
 
 		//**************************************** LAYERS ****************************************
 
@@ -377,25 +380,26 @@ public class Schematics extends Technology
 		letterJ.setDescriptor(tdBig);
 
 		/** general buffer */
-		bufferNode = PrimitiveNode.newInstance("Buffer", this, 6.0, 6.0, new SizeOffset(0, 1, 0.5, 0.5),
+		bufferNode = PrimitiveNode.newInstance("Buffer", this, 6.0, 6.0, new SizeOffset(0, 1, 0.25, 0.25),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS,
 					new Technology.TechPoint [] {
-						new Technology.TechPoint(RIGHTBYP66, EdgeV.makeCenter()),
-						new Technology.TechPoint(EdgeH.makeLeftEdge(), TOPBYP875),
-						new Technology.TechPoint(EdgeH.makeLeftEdge(), BOTBYP875)
+						new Technology.TechPoint(EdgeH.fromRight(1), EdgeV.makeCenter()),
+						new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.fromTop(0.25)),
+						new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.fromBottom(0.25))
 					})
 			});
-		bufferNode.addPrimitivePorts(new PrimitivePort []
-			{
-				PrimitivePort.newInstance(this, bufferNode, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.makeLeftEdge(), EdgeV.makeCenter(), EdgeH.makeLeftEdge(), EdgeV.makeCenter()),
-				PrimitivePort.newInstance(this, bufferNode, new ArcProto[] {wire_arc}, "c", 270,0, 1, PortProto.Characteristic.UNKNOWN,
-					EdgeH.makeCenter(), BOTBYP33, EdgeH.makeCenter(), BOTBYP33),
-				PrimitivePort.newInstance(this, bufferNode, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 2, PortProto.Characteristic.UNKNOWN,
-					RIGHTBYP66, EdgeV.makeCenter(), RIGHTBYP66, EdgeV.makeCenter())
-			});
+		PrimitivePort bufferInPort = PrimitivePort.newInstance(this, bufferNode, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0,
+			PortProto.Characteristic.UNKNOWN, EdgeH.makeLeftEdge(), EdgeV.makeCenter(), EdgeH.makeLeftEdge(), EdgeV.makeCenter());
+		bufferInPort.setNegatable(true);
+		PrimitivePort bufferOutPort = PrimitivePort.newInstance(this, bufferNode, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 2,
+			PortProto.Characteristic.UNKNOWN, EdgeH.fromRight(1), EdgeV.makeCenter(), EdgeH.fromRight(1), EdgeV.makeCenter());
+		bufferOutPort.setNegatable(true);
+		PrimitivePort bufferSidePort = PrimitivePort.newInstance(this, bufferNode, new ArcProto[] {wire_arc}, "c", 270,0, 1,
+			PortProto.Characteristic.UNKNOWN, EdgeH.makeCenter(), EdgeV.fromBottom(2), EdgeH.makeCenter(), EdgeV.fromBottom(2));
+		bufferSidePort.setNegatable(true);
+		bufferNode.addPrimitivePorts(new PrimitivePort [] { bufferInPort, bufferSidePort, bufferOutPort});
 		bufferNode.setFunction(NodeProto.Function.BUFFER);
 
 		/** general and */
@@ -416,19 +420,21 @@ public class Schematics extends Technology
 						new Technology.TechPoint(EdgeH.fromCenter(0.5), EdgeV.fromCenter(-3))
 					})
 			});
-		PrimitivePort and_port = PrimitivePort.newInstance(this, andNode, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0, PortProto.Characteristic.IN,
-			EdgeH.fromCenter(-4), EdgeV.makeBottomEdge(), EdgeH.fromCenter(-4), EdgeV.makeTopEdge());
-		and_port.setIsolated();
-		andNode.addPrimitivePorts(new PrimitivePort []
-			{
-				and_port,
-				PrimitivePort.newInstance(this, andNode, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 1, PortProto.Characteristic.OUT,
-					EdgeH.fromCenter(3.5), EdgeV.makeBottomEdge(), EdgeH.fromCenter(3.5), EdgeV.makeTopEdge()),
-				PrimitivePort.newInstance(this, andNode, new ArcProto[] {wire_arc, bus_arc}, "yt", 0,0, 2, PortProto.Characteristic.OUT,
-					EdgeH.fromCenter(2.75), EdgeV.fromCenter(2), EdgeH.fromCenter(2.75), EdgeV.fromCenter(2)),
-				PrimitivePort.newInstance(this, andNode, new ArcProto[] {wire_arc, bus_arc}, "yc", 0,0, 3, PortProto.Characteristic.OUT,
-					EdgeH.fromCenter(2.75), EdgeV.fromCenter(-2), EdgeH.fromCenter(2.75), EdgeV.fromCenter(-2))
-			});
+		PrimitivePort andInPort = PrimitivePort.newInstance(this, andNode, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0,
+			PortProto.Characteristic.IN, EdgeH.fromCenter(-4), EdgeV.makeBottomEdge(), EdgeH.fromCenter(-4), EdgeV.makeTopEdge());
+		andInPort.setIsolated();
+		andInPort.setNegatable(true);
+		PrimitivePort andOutPort = PrimitivePort.newInstance(this, andNode, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 1,
+			PortProto.Characteristic.OUT, EdgeH.fromCenter(3.5), EdgeV.makeCenter(), EdgeH.fromCenter(3.5), EdgeV.makeCenter());
+		andOutPort.setNegatable(true);
+
+		PrimitivePort andTopPort = PrimitivePort.newInstance(this, andNode, new ArcProto[] {wire_arc, bus_arc}, "yt", 0,0, 2,
+			PortProto.Characteristic.OUT, EdgeH.fromCenter(2.75), EdgeV.fromCenter(2), EdgeH.fromCenter(2.75), EdgeV.fromCenter(2));
+		andTopPort.setNegatable(true);
+		PrimitivePort andBottomPort = PrimitivePort.newInstance(this, andNode, new ArcProto[] {wire_arc, bus_arc}, "yc", 0,0, 3,
+			PortProto.Characteristic.OUT, EdgeH.fromCenter(2.75), EdgeV.fromCenter(-2), EdgeH.fromCenter(2.75), EdgeV.fromCenter(-2));
+		andBottomPort.setNegatable(true);
+		andNode.addPrimitivePorts(new PrimitivePort [] { andInPort, andOutPort, andTopPort, andBottomPort});
 		andNode.setFunction(NodeProto.Function.GATEAND);
 
 		/** general or */
@@ -458,19 +464,20 @@ public class Schematics extends Technology
 					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(-3))
 				})
 			});
-		PrimitivePort or_port = PrimitivePort.newInstance(this, orNode, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0, PortProto.Characteristic.IN,
-			EdgeH.fromCenter(-4), EdgeV.makeBottomEdge(), EdgeH.fromCenter(-3), EdgeV.makeTopEdge());
-		or_port.setIsolated();
-		orNode.addPrimitivePorts(new PrimitivePort []
-			{
-				or_port,
-				PrimitivePort.newInstance(this, orNode, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 1, PortProto.Characteristic.OUT,
-					EdgeH.fromCenter(4.5), EdgeV.makeCenter(), EdgeH.fromCenter(4.5), EdgeV.makeCenter()),
-				PrimitivePort.newInstance(this, orNode, new ArcProto[] {wire_arc, bus_arc}, "yt", 0,0, 2, PortProto.Characteristic.OUT,
-					EdgeH.fromCenter(2.65), EdgeV.fromCenter(2), EdgeH.fromCenter(2.65), EdgeV.fromCenter(2)),
-				PrimitivePort.newInstance(this, orNode, new ArcProto[] {wire_arc, bus_arc}, "yc", 0,0, 3, PortProto.Characteristic.OUT,
-					EdgeH.fromCenter(2.65), EdgeV.fromCenter(-2), EdgeH.fromCenter(2.65), EdgeV.fromCenter(-2))
-			});
+		PrimitivePort orInPort = PrimitivePort.newInstance(this, orNode, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0,
+			PortProto.Characteristic.IN, EdgeH.fromCenter(-4), EdgeV.makeBottomEdge(), EdgeH.fromCenter(-3), EdgeV.makeTopEdge());
+		orInPort.setIsolated();
+		orInPort.setNegatable(true);
+		PrimitivePort orOutPort = PrimitivePort.newInstance(this, orNode, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 1,
+			PortProto.Characteristic.OUT, EdgeH.fromCenter(4.5), EdgeV.makeCenter(), EdgeH.fromCenter(4.5), EdgeV.makeCenter());
+		orOutPort.setNegatable(true);
+		PrimitivePort orTopPort = PrimitivePort.newInstance(this, orNode, new ArcProto[] {wire_arc, bus_arc}, "yt", 0,0, 2,
+			PortProto.Characteristic.OUT, EdgeH.fromCenter(2.65), EdgeV.fromCenter(2), EdgeH.fromCenter(2.65), EdgeV.fromCenter(2));
+		orTopPort.setNegatable(true);
+		PrimitivePort orBottomPort = PrimitivePort.newInstance(this, orNode, new ArcProto[] {wire_arc, bus_arc}, "yc", 0,0, 3,
+			PortProto.Characteristic.OUT, EdgeH.fromCenter(2.65), EdgeV.fromCenter(-2), EdgeH.fromCenter(2.65), EdgeV.fromCenter(-2));
+		orBottomPort.setNegatable(true);
+		orNode.addPrimitivePorts(new PrimitivePort [] {orInPort, orOutPort, orTopPort, orBottomPort});
 		orNode.setFunction(NodeProto.Function.GATEOR);
 
 		/** general xor */
@@ -504,19 +511,20 @@ public class Schematics extends Technology
 					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(-3))
 				})
 			});
-		PrimitivePort xor_port = PrimitivePort.newInstance(this, xorNode, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0, PortProto.Characteristic.IN,
+		PrimitivePort xorInPort = PrimitivePort.newInstance(this, xorNode, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0, PortProto.Characteristic.IN,
 			EdgeH.fromCenter(-4), EdgeV.makeBottomEdge(), EdgeH.fromCenter(-3), EdgeV.makeTopEdge());
-		xor_port.setIsolated();
-		xorNode.addPrimitivePorts(new PrimitivePort []
-			{
-				xor_port,
-				PrimitivePort.newInstance(this, xorNode, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 1, PortProto.Characteristic.OUT,
-					EdgeH.fromCenter(4.5), EdgeV.makeCenter(), EdgeH.fromCenter(4.5), EdgeV.makeCenter()),
-				PrimitivePort.newInstance(this, xorNode, new ArcProto[] {wire_arc, bus_arc}, "yt", 0,0, 2, PortProto.Characteristic.OUT,
-					EdgeH.fromCenter(2.65), EdgeV.fromCenter(2), EdgeH.fromCenter(2.65), EdgeV.fromCenter(2)),
-				PrimitivePort.newInstance(this, xorNode, new ArcProto[] {wire_arc, bus_arc}, "yc", 0,0, 3, PortProto.Characteristic.OUT,
-					EdgeH.fromCenter(2.65), EdgeV.fromCenter(-2), EdgeH.fromCenter(2.65), EdgeV.fromCenter(-2))
-			});
+		xorInPort.setIsolated();
+		xorInPort.setNegatable(true);
+		PrimitivePort xorOutPort = PrimitivePort.newInstance(this, xorNode, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 1,
+			PortProto.Characteristic.OUT, EdgeH.fromCenter(4.5), EdgeV.makeCenter(), EdgeH.fromCenter(4.5), EdgeV.makeCenter());
+		xorOutPort.setNegatable(true);
+		PrimitivePort xorTopPort = PrimitivePort.newInstance(this, xorNode, new ArcProto[] {wire_arc, bus_arc}, "yt", 0,0, 2,
+			PortProto.Characteristic.OUT, EdgeH.fromCenter(2.65), EdgeV.fromCenter(2), EdgeH.fromCenter(2.65), EdgeV.fromCenter(2));
+		xorTopPort.setNegatable(true);
+		PrimitivePort xorBottomPort = PrimitivePort.newInstance(this, xorNode, new ArcProto[] {wire_arc, bus_arc}, "yc", 0,0, 3,
+			PortProto.Characteristic.OUT, EdgeH.fromCenter(2.65), EdgeV.fromCenter(-2), EdgeH.fromCenter(2.65), EdgeV.fromCenter(-2));
+		xorBottomPort.setNegatable(true);
+		xorNode.addPrimitivePorts(new PrimitivePort [] {xorInPort, xorOutPort, xorTopPort, xorBottomPort});
 		xorNode.setFunction(NodeProto.Function.GATEXOR);
 
 		/** general flip flop */
@@ -680,23 +688,29 @@ public class Schematics extends Technology
 			ffBox, ffArrow, ffLetterQ, ffLetterQB, ffLetterPR, ffLetterCLR
 		};
 		flipflopNode = PrimitiveNode.newInstance("Flip-Flop", this, 6.0, 10.0, null, ffLayersRSMS);
+		PrimitivePort flipflopI1 = PrimitivePort.newInstance(this, flipflopNode, new ArcProto[] {wire_arc}, "i1", 180,45, 0,
+			PortProto.Characteristic.IN, EdgeH.makeLeftEdge(), TOPBYP6, EdgeH.makeLeftEdge(), TOPBYP6);
+		flipflopI1.setNegatable(true);
+		PrimitivePort flipflopI2 = PrimitivePort.newInstance(this, flipflopNode, new ArcProto[] {wire_arc}, "i2", 180,45, 1,
+			PortProto.Characteristic.IN, EdgeH.makeLeftEdge(), BOTBYP6, EdgeH.makeLeftEdge(), BOTBYP6);
+		flipflopI2.setNegatable(true);
+		PrimitivePort flipflopQ = PrimitivePort.newInstance(this, flipflopNode, new ArcProto[] {wire_arc}, "q", 0,45, 2,
+			PortProto.Characteristic.OUT, EdgeH.makeRightEdge(), TOPBYP6, EdgeH.makeRightEdge(), TOPBYP6);
+		flipflopQ.setNegatable(true);
+		PrimitivePort flipflopQB = PrimitivePort.newInstance(this, flipflopNode, new ArcProto[] {wire_arc}, "qb", 0,45, 3,
+			PortProto.Characteristic.OUT, EdgeH.makeRightEdge(), BOTBYP6, EdgeH.makeRightEdge(), BOTBYP6);
+		flipflopQB.setNegatable(true);
+		PrimitivePort flipflopCK = PrimitivePort.newInstance(this, flipflopNode, new ArcProto[] {wire_arc}, "ck", 180,45, 4,
+			PortProto.Characteristic.IN, EdgeH.makeLeftEdge(), EdgeV.makeCenter(), EdgeH.makeLeftEdge(), EdgeV.makeCenter());
+		flipflopCK.setNegatable(true);
+		PrimitivePort flipflopPRE = PrimitivePort.newInstance(this, flipflopNode, new ArcProto[] {wire_arc}, "preset", 90,45, 5,
+			PortProto.Characteristic.IN, EdgeH.makeCenter(), EdgeV.makeTopEdge(), EdgeH.makeCenter(), EdgeV.makeTopEdge());
+		flipflopPRE.setNegatable(true);
+		PrimitivePort flipflopCLR = PrimitivePort.newInstance(this, flipflopNode, new ArcProto[] {wire_arc}, "clear", 270,45, 6,
+			PortProto.Characteristic.IN, EdgeH.makeCenter(), EdgeV.makeBottomEdge(), EdgeH.makeCenter(), EdgeV.makeBottomEdge());
+		flipflopCLR.setNegatable(true);
 		flipflopNode.addPrimitivePorts(new PrimitivePort []
-			{
-				PrimitivePort.newInstance(this, flipflopNode, new ArcProto[] {wire_arc}, "i1", 180,45, 0, PortProto.Characteristic.IN,
-					EdgeH.makeLeftEdge(), TOPBYP6, EdgeH.makeLeftEdge(), TOPBYP6),
-				PrimitivePort.newInstance(this, flipflopNode, new ArcProto[] {wire_arc}, "i2", 180,45, 1, PortProto.Characteristic.IN,
-					EdgeH.makeLeftEdge(), BOTBYP6, EdgeH.makeLeftEdge(), BOTBYP6),
-				PrimitivePort.newInstance(this, flipflopNode, new ArcProto[] {wire_arc}, "q", 0,45, 2, PortProto.Characteristic.OUT,
-					EdgeH.makeRightEdge(), TOPBYP6, EdgeH.makeRightEdge(), TOPBYP6),
-				PrimitivePort.newInstance(this, flipflopNode, new ArcProto[] {wire_arc}, "qb", 0,45, 3, PortProto.Characteristic.OUT,
-					EdgeH.makeRightEdge(), BOTBYP6, EdgeH.makeRightEdge(), BOTBYP6),
-				PrimitivePort.newInstance(this, flipflopNode, new ArcProto[] {wire_arc}, "ck", 180,45, 4, PortProto.Characteristic.IN,
-					EdgeH.makeLeftEdge(), EdgeV.makeCenter(), EdgeH.makeLeftEdge(), EdgeV.makeCenter()),
-				PrimitivePort.newInstance(this, flipflopNode, new ArcProto[] {wire_arc}, "preset", 90,45, 5, PortProto.Characteristic.IN,
-					EdgeH.makeCenter(), EdgeV.makeTopEdge(), EdgeH.makeCenter(), EdgeV.makeTopEdge()),
-				PrimitivePort.newInstance(this, flipflopNode, new ArcProto[] {wire_arc}, "clear", 270,45, 6, PortProto.Characteristic.IN,
-					EdgeH.makeCenter(), EdgeV.makeBottomEdge(), EdgeH.makeCenter(), EdgeV.makeBottomEdge())
-			});
+			{flipflopI1, flipflopI2, flipflopQ, flipflopQB, flipflopCK, flipflopPRE, flipflopCLR});
 		flipflopNode.setFunction(NodeProto.Function.FLIPFLOP);
 
 		/** mux */
@@ -711,17 +725,17 @@ public class Schematics extends Technology
 						new Technology.TechPoint(LEFTBYP8, EdgeV.makeTopEdge())
 					})
 			});
-		PrimitivePort mux_port = PrimitivePort.newInstance(this, muxNode, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0, PortProto.Characteristic.IN,
-			LEFTBYP8, EdgeV.makeBottomEdge(), LEFTBYP8, EdgeV.makeTopEdge());
-		mux_port.setIsolated();
-		muxNode.addPrimitivePorts(new PrimitivePort []
-			{
-				mux_port,
-				PrimitivePort.newInstance(this, muxNode, new ArcProto[] {wire_arc}, "s", 270,0, 2, PortProto.Characteristic.IN,
-					EdgeH.makeCenter(), BOTBYP875, EdgeH.makeCenter(), BOTBYP875),
-				PrimitivePort.newInstance(this, muxNode, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 1, PortProto.Characteristic.OUT,
-					RIGHTBYP8, EdgeV.makeCenter(), RIGHTBYP8, EdgeV.makeCenter())
-			});
+		PrimitivePort muxInPort = PrimitivePort.newInstance(this, muxNode, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0,
+			PortProto.Characteristic.IN, LEFTBYP8, EdgeV.makeBottomEdge(), LEFTBYP8, EdgeV.makeTopEdge());
+		muxInPort.setIsolated();
+		muxInPort.setNegatable(true);
+		PrimitivePort muxOutPort = PrimitivePort.newInstance(this, muxNode, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 1,
+			PortProto.Characteristic.OUT, RIGHTBYP8, EdgeV.makeCenter(), RIGHTBYP8, EdgeV.makeCenter());
+		muxOutPort.setNegatable(true);
+		PrimitivePort muxSidePort = PrimitivePort.newInstance(this, muxNode, new ArcProto[] {wire_arc}, "s", 270,0, 2,
+			PortProto.Characteristic.IN, EdgeH.makeCenter(), BOTBYP875, EdgeH.makeCenter(), BOTBYP875);
+		muxSidePort.setNegatable(true);
+		muxNode.addPrimitivePorts(new PrimitivePort [] {muxInPort, muxSidePort, muxOutPort});
 		muxNode.setFunction(NodeProto.Function.MUX);
 
 		/** black box */
@@ -733,15 +747,19 @@ public class Schematics extends Technology
 		PrimitivePort bbox_port1 = PrimitivePort.newInstance(this, bboxNode, new ArcProto[] {wire_arc, bus_arc}, "a", 0,45, 0, PortProto.Characteristic.UNKNOWN,
 			EdgeH.makeRightEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge());
 		bbox_port1.setIsolated();
+		bbox_port1.setNegatable(true);
 		PrimitivePort bbox_port2 = PrimitivePort.newInstance(this, bboxNode, new ArcProto[] {wire_arc, bus_arc}, "b", 90,45, 1, PortProto.Characteristic.UNKNOWN,
 			EdgeH.makeLeftEdge(), EdgeV.makeTopEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge());
 		bbox_port2.setIsolated();
+		bbox_port2.setNegatable(true);
 		PrimitivePort bbox_port3 = PrimitivePort.newInstance(this, bboxNode, new ArcProto[] {wire_arc, bus_arc}, "c", 180,45, 2, PortProto.Characteristic.UNKNOWN,
 			EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeLeftEdge(), EdgeV.makeTopEdge());
 		bbox_port3.setIsolated();
+		bbox_port3.setNegatable(true);
 		PrimitivePort bbox_port4 = PrimitivePort.newInstance(this, bboxNode, new ArcProto[] {wire_arc, bus_arc}, "d", 270,45, 3, PortProto.Characteristic.UNKNOWN,
 			EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeBottomEdge());
 		bbox_port4.setIsolated();
+		bbox_port4.setNegatable(true);
 		bboxNode.addPrimitivePorts(new PrimitivePort [] {bbox_port1, bbox_port2, bbox_port3, bbox_port4});
 		bboxNode.setFunction(NodeProto.Function.UNKNOWN);
 
@@ -1539,40 +1557,33 @@ public class Schematics extends Technology
 			return super.getShapeOfArc(ai, wnd, layerOverride);
 
 		// Wire arc: if not negated, handle in a standard way
-		if (!ai.isNegated() || ai.isSkipTail())
+		if (!ai.getHead().isNegated() && !ai.getTail().isNegated())
 			return super.getShapeOfArc(ai, wnd, layerOverride);
 
-		// draw a negated Wire arc
+		// remove a gap for the negating bubble
 		Point2D headLoc = ai.getHead().getLocation();
 		Point2D tailLoc = ai.getTail().getLocation();
 		double headX = headLoc.getX();   double headY = headLoc.getY();
 		double tailX = tailLoc.getX();   double tailY = tailLoc.getY();
 		int angle = ai.getAngle();
-		double bubbleSize = 1.2;
+		double bubbleSize = getNegatingBubbleSize();
 		double cosDist = EMath.cos(angle) * bubbleSize;
 		double sinDist = EMath.sin(angle) * bubbleSize;
-		double bubbleX, bubbleY;
 		Point2D bubbleEdge;
-		if (ai.isReverseEnds())
+		if (ai.getHead().isNegated())
 		{
-			bubbleX = headX + cosDist/2;
-			bubbleY = headY + sinDist/2;
-			bubbleEdge = headLoc;
-			headX += cosDist;
-			headY += sinDist;
-		} else
+			headX -= cosDist;
+			headY -= sinDist;
+		}
+		if (ai.getTail().isNegated())
 		{
-			bubbleX = tailX - cosDist/2;
-			bubbleY = tailY - sinDist/2;
-			bubbleEdge = tailLoc;
-			tailX -= cosDist;
-			tailY -= sinDist;
+			tailX += cosDist;
+			tailY += sinDist;
 		}
 
-		Poly [] polys = new Poly[2];
+		Poly [] polys = new Poly[1];
 		Point2D newHead = new Point2D.Double(headX, headY);
 		Point2D newTail = new Point2D.Double(tailX, tailY);
-		Point2D newBubble = new Point2D.Double(bubbleX, bubbleY);
 
 		Point2D [] points = new Point2D.Double[2];
 		points[0] = newHead;
@@ -1581,15 +1592,143 @@ public class Schematics extends Technology
 		polys[0].setStyle(Poly.Type.OPENED);
 		polys[0].setLayer(arc_lay);
 
-		points = new Point2D.Double[2];
-		points[0] = newBubble;
-		points[1] = bubbleEdge;
-		polys[1] = new Poly(points);
-		polys[1].setStyle(Poly.Type.CIRCLE);
-		polys[1].setLayer(arc_lay);
-
 		// construct the polygons
 		return polys;
+	}
+
+	/**
+	 * Returns a polygon that describes a particular port on a NodeInst.
+	 * @param ni the NodeInst that has the port of interest.
+	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
+	 * @param pp the PrimitivePort on that NodeInst that is being described.
+	 * @param selectPt if not null, it requests a new location on the port,
+	 * away from existing arcs, and close to this point.
+	 * This is useful for "area" ports such as the left side of AND and OR gates.
+	 * @return a Poly object that describes this PrimitivePort graphically.
+	 */
+	public Poly getShapeOfPort(NodeInst ni, PrimitivePort pp, Point2D selectPt)
+	{
+		// only care if special selection is requested
+		if (selectPt != null)
+		{
+			// special selection only works for AND, OR, XOR, MUX, SWITCH
+			NodeProto np = ni.getProto();
+			if (np == andNode || np == orNode || np == xorNode || np == muxNode || np == switchNode)
+			{
+				// special selection only works for the input port (the first port, 0)
+				if (ni.findPortInstFromProto(pp) == ni.getPortInst(0))
+				{
+					// determine the grid size
+					double width = ni.getXSize();
+					double height = ni.getXSize();
+					double lambda = 1.0;
+					if (np == andNode)
+					{
+						lambda = width / 8;
+						if (height < lambda * 6) lambda = height / 6;
+					} else if (np == orNode || np == xorNode)
+					{
+						lambda = width / 10;
+						if (height < lambda * 6) lambda = height / 6;
+					}
+
+					// initialize
+					PortInst pi = ni.findPortInstFromProto(pp);
+					double wantX = selectPt.getX();
+					double wantY = selectPt.getY();
+					double bestDist = Double.MAX_VALUE;
+					int bestIndex = 0;
+					double bestX = 0, bestY = 0;
+
+					// determine total number of arcs already on this port
+					int total = 0;
+					for(Iterator it = ni.getConnections(); it.hasNext(); )
+					{
+						Connection con = (Connection)it.next();
+						if (con.getPortInst() == pi) total++;
+					}
+
+					// cycle through the arc positions
+					total = Math.max(total+2, 3);
+					if (np == this.switchNode)
+						total = (int)(ni.getXSize() / 2);
+					for(int i=0; i<total; i++)
+					{
+						// compute the position along the left edge
+						double yPosition=0, xPosition=0;
+			
+						if (np == this.switchNode)
+						{
+							yPosition = i * 2 + 1;
+							xPosition = -2;
+						} else
+						{
+							yPosition = (i+1)/2 * 2;
+							if ((i&1) != 0) yPosition = -yPosition;
+		
+							// compute indentation (for OR and XOR)
+							xPosition = -4;
+							if (np == muxNode)
+								xPosition = -ni.getXSize() * 4 / 10;
+							if (np == orNode || np == xorNode) switch (i)
+							{
+								case 0: xPosition += 0.75;   break;
+								case 1:
+								case 2: xPosition += 0.5;    break;
+							}
+						}
+
+						// fill the polygon with that point
+						double x = ni.getGrabCenterX() + xPosition * lambda;
+						double y = ni.getGrabCenterY() + yPosition * lambda;
+
+						// check for duplication
+						boolean found = false;
+						for(Iterator it = ni.getConnections(); it.hasNext(); )
+						{
+							Connection con = (Connection)it.next();
+							if (con.getLocation().getX() == x && con.getLocation().getY() == y)
+							{
+								found = true;
+								break;
+							}
+						}
+
+						// if there is no duplication, this is a possible position
+						if (!found)
+						{
+							double dist = Math.abs(wantX - x) + Math.abs(wantY - y);
+							if (dist < bestDist)
+							{
+								bestDist = dist;   bestX = x;   bestY = y;   bestIndex = i;
+							}
+						}
+					}
+					if (bestDist == Double.MAX_VALUE) System.out.println("Warning: cannot find gate port");
+
+					// make sure the node is large enough
+	//				if (bestIndex*lambda*2 >= ni.getYSize())
+	//				{
+	//					modifynodeinst(ni, 0, -lambda*2, 0, lambda*2, 0, 0);
+	//
+	//					// make this gate change visible if it is in a window
+	//					for(w = el_topwindowpart; w != NOWINDOWPART; w = w->nextwindowpart)
+	//						if (w->curnodeproto == ni->parent) break;
+	//					if (w != NOWINDOWPART) (void)asktool(us_tool, x_("flush-changes"));
+	//				}
+
+					// set the closest port
+					Point2D [] points = new Point2D[1];
+					points[0] = new Point2D.Double(bestX, bestY);
+					Poly poly = new Poly(points);
+					poly.setStyle(Poly.Type.FILLED);
+					return poly;
+				}
+			}
+		}
+
+		// special selection did not apply: do normal port computation
+		return super.getShapeOfPort(ni, pp, selectPt);
 	}
 
 	/**
@@ -1753,14 +1892,24 @@ public class Schematics extends Technology
 	 * @param ni the NodeInst.
      * @param context the VarContext, set to VarContext.globalContext if not needed.
 	 * @return the size of the NodeInst.
+	 * For FET transistors, the width of the Dimension is the width of the transistor
+	 * and the height of the Dimension is the length of the transistor.
+	 * For non-FET transistors, the width of the dimension is the area of the transistor.
 	 */
 	public Dimension getTransistorSize(NodeInst ni, VarContext context)
 	{
-        double length = VarContext.objectToDouble(context.evalVar(ni.getVar("ATTR_length")), 0);
-        double width = VarContext.objectToDouble(context.evalVar(ni.getVar("ATTR_width")), 0);
-        Dimension dim = new Dimension();
-        dim.setSize(width, length);
-        return dim;
+		if (ni.isFET())
+		{
+	        double length = VarContext.objectToDouble(context.evalVar(ni.getVar(ATTR_LENGTH)), 0);
+	        double width = VarContext.objectToDouble(context.evalVar(ni.getVar(ATTR_WIDTH)), 0);
+	        Dimension dim = new Dimension();
+	        dim.setSize(width, length);
+	        return dim;
+		}
+		double area = VarContext.objectToDouble(context.evalVar(ni.getVar(ATTR_AREA)), 0);
+		Dimension dim = new Dimension();
+		dim.setSize(area, 0);
+		return dim;
     }
 
 	/****************************** GENERAL PREFERENCES ******************************/
@@ -1845,6 +1994,20 @@ public class Schematics extends Technology
      */
 	public PortInst getTransistorDrainPort(NodeInst ni) { return ni.getPortInst(2); }
 
+	/******************** OPTIONS ********************/
+
+	private static Pref cacheBubbleSize = Pref.makeDoublePref("SchematicNegatingBubbleSize", getTechnologyPreferences(), 1.2);
+	/**
+	 * Method to tell the size of negating bubbles.
+	 * @return the size of negating bubbles (the diameter).
+	 */
+	public static double getNegatingBubbleSize() { return cacheBubbleSize.getDouble(); }
+	/**
+	 * Method to set the size of negating bubbles.
+	 * @param s the negating bubble size (the diameter).
+	 */
+	public static void setNegatingBubbleSize(double s) { cacheBubbleSize.setDouble(s); }
+
 //static CHAR *sch_node_vhdlstring[NODEPROTOCOUNT] = {
 //	x_(""), x_(""), x_(""),										/* pins */
 //	x_("buffer/inverter"), x_("and%ld/nand%ld"), x_("or%ld/nor%ld"), x_("xor%ld/xnor%ld"),	/* gates */
@@ -1863,30 +2026,6 @@ public class Schematics extends Technology
 
 //void sch_setmode(INTBIG count, CHAR *par[])
 //{
-//	REGISTER CHAR *pp;
-//	REGISTER INTBIG l;
-//
-//	if (count == 0)
-//	{
-//		/* report size of negating bubbles */
-//		ttyputmsg(M_("Diameter of negating bubbles is %s"), frtoa(sch_bubblediameter));
-//		return;
-//	}
-//
-//	l = estrlen(pp = par[0]);
-//	if (namesamen(pp, x_("negating-bubble-diameter"), l) == 0)
-//	{
-//		/* get new negating bubble diameter */
-//		if (count <= 1)
-//		{
-//			ttyputmsg(M_("Diameter of negating bubbles is %s"), frtoa(sch_bubblediameter));
-//			return;
-//		}
-//		l = atofr(par[1]);
-//		if (l > 0) sch_bubblediameter = l; else
-//			ttyputerr(M_("Bubble diameter must be positive and nonzero"));
-//		return;
-//	}
 //	if (namesamen(pp, x_("disable-differential-ports"), l) == 0)
 //	{
 //		if (sch_anddiffports != NOPORTPROTO)
@@ -1920,43 +2059,6 @@ public class Schematics extends Technology
 //		return;
 //	}
 //	ttyputbadusage(x_("technology tell schematic"));
-//}
-
-//INTBIG sch_request(CHAR *command, va_list ap)
-//{
-//	REGISTER PORTPROTO *pp;
-//
-//	if (namesame(command, x_("ignoring-resistor-topology")) == 0)
-//	{
-//		pp = sch_resistorprim->firstportproto->nextportproto;
-//		if ((pp->userbits&PORTNET) == 0) return(1);
-//		return(0);
-//	}
-//	if (namesame(command, x_("ignore-resistor-topology")) == 0)
-//	{
-//		pp = sch_resistorprim->firstportproto->nextportproto;
-//		pp->userbits = (pp->userbits & ~PORTNET);
-//		net_redoprim();
-//		return(0);
-//	}
-//	if (namesame(command, x_("include-resistor-topology")) == 0)
-//	{
-//		pp = sch_resistorprim->firstportproto->nextportproto;
-//		pp->userbits = (pp->userbits & ~PORTNET) | (1 << PORTNETSH);
-//		net_redoprim();
-//		return(0);
-//	}
-//
-//	if (namesame(command, x_("get-bubble-size")) == 0)
-//	{
-//		return(sch_bubblediameter);
-//	}
-//	if (namesame(command, x_("set-bubble-size")) == 0)
-//	{
-//		sch_bubblediameter = va_arg(ap, INTBIG);
-//		return(0);
-//	}
-//	return(0);
 //}
 
 //INTBIG sch_nodepolys(NODEINST *ni, INTBIG *reasonable, WINDOWPART *win, POLYLOOP *pl, SCHPOLYLOOP *schpl)
@@ -2080,144 +2182,5 @@ public class Schematics extends Technology
 //			tech_nodeprotosizeoffset(ni->proto, lx, ly, hx, hy, lambdaofnode(ni));
 //			break;
 //	}
-//}
-//
-//void sch_shapeportpoly(NODEINST *ni, PORTPROTO *pp, POLYGON *poly, XARRAY trans,
-//	BOOLEAN purpose)
-//{
-//	REGISTER INTBIG pindex, i, e, total, besti, xposition, yposition, x, y, lambda,
-//		wantx, wanty, bestdist, bestx, besty, dist, width, height;
-//	REGISTER PORTARCINST *pi;
-//	REGISTER ARCINST *ai;
-//	REGISTER WINDOWPART *w;
-//
-//	pindex = ni->proto->primindex;
-//
-//	switch (ni->proto->primindex)
-//	{
-//		case NAND:
-//			width = ni->highx - ni->lowx;
-//			height = ni->highy - ni->lowy;
-//			lambda = width / 8;
-//			if (height < lambda * 6) lambda = height / 6;
-//			break;
-//		case NOR:
-//		case NXOR:
-//			width = ni->highx - ni->lowx;
-//			height = ni->highy - ni->lowy;
-//			lambda = width / 10;
-//			if (height < lambda * 6) lambda = height / 6;
-//			break;
-//		default:
-//			lambda = lambdaofnode(ni);
-//			break;
-//	}
-//
-//	/* special case for extendible primitives */
-//	if (purpose && sch_nodeprotos[pindex-1]->portlist[0].addr == pp)
-//	{
-//		/* initialize */
-//		wantx = poly->xv[0];   wanty = poly->yv[0];
-//		poly->count = 1;
-//		poly->style = FILLED;
-//		bestdist = MAXINTBIG;
-//		besti = bestx = besty = 0;
-//
-//		/* schematic gates must keep connections discrete and separate */
-//		if (pindex == NAND || pindex == NOR || pindex == NXOR || pindex == NMUX)
-//		{
-//			/* determine total number of arcs already on this port */
-//			for(total=0, pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//				if (pi->proto == pp) total++;
-//
-//			/* cycle through the arc positions */
-//			total = maxi(total+2, 3);
-//			for(i=0; i<total; i++)
-//			{
-//				/* compute the position along the left edge */
-//				yposition = (i+1)/2 * WHOLE * 2;
-//				if ((i&1) != 0) yposition = -yposition;
-//
-//				/* compute indentation (for OR and XOR) */
-//				if (pindex != NMUX) xposition = -K4; else
-//					xposition = -(ni->highx - ni->lowx) * 4 / 10 * WHOLE / lambda;
-//				if (pindex == NOR || pindex == NXOR) switch (i)
-//				{
-//					case 0: xposition += T0;   break;
-//					case 1:
-//					case 2: xposition += H0;   break;
-//				}
-//
-//				/* fill the polygon with that point */
-//				x = getrange(ni->lowx, ni->highx, 0, xposition, lambda);
-//				y = getrange(ni->lowy, ni->highy, 0, yposition, lambda);
-//				xform(x, y, &poly->xv[0], &poly->yv[0], trans);
-//				x = poly->xv[0];   y = poly->yv[0];
-//
-//				/* check for duplication */
-//				for(pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//				{
-//					ai = pi->conarcinst;
-//					if (ai->end[0].portarcinst == pi) e = 0; else e = 1;
-//					if (ai->end[e].xpos == x && ai->end[e].ypos == y) break;
-//				}
-//
-//				/* if there is no duplication, this is a possible position */
-//				if (pi == NOPORTARCINST)
-//				{
-//					dist = abs(wantx - x) + abs(wanty - y);
-//					if (dist < bestdist)
-//					{
-//						bestdist = dist;   bestx = x;   besty = y;   besti = i;
-//					}
-//				}
-//			}
-//			if (bestdist == MAXINTBIG) ttyputerr(_("Warning: cannot find gate port"));
-//
-//			/* set the closest port */
-//			poly->xv[0] = bestx;   poly->yv[0] = besty;
-//
-//			/* make sure the node is large enough */
-//			if (besti*lambda*2 >= ni->highy - ni->lowy)
-//			{
-//				startobjectchange((INTBIG)ni, VNODEINST);
-//				modifynodeinst(ni, 0, -lambda*2, 0, lambda*2, 0, 0);
-//				endobjectchange((INTBIG)ni, VNODEINST);
-//
-//				/* make this gate change visible if it is in a window */
-//				for(w = el_topwindowpart; w != NOWINDOWPART; w = w->nextwindowpart)
-//					if (w->curnodeproto == ni->parent) break;
-//				if (w != NOWINDOWPART) (void)asktool(us_tool, x_("flush-changes"));
-//			}
-//			return;
-//		}
-//
-//		/* switches must discretize the location of connections */
-//		if (pindex == NSWITCH)
-//		{
-//			/* cycle through the possible positions */
-//			total = (ni->highy - ni->lowy) / lambda / 2;
-//			for(i=0; i<total; i++)
-//			{
-//				yposition = i * 2 * WHOLE + K1;
-//				xposition = -K2;
-//				x = getrange(ni->lowx, ni->highx, 0, xposition, lambda);
-//				y = getrange(ni->lowy, ni->highy, -H0, yposition, lambda);
-//				xform(x, y, &poly->xv[0], &poly->yv[0], trans);
-//				x = poly->xv[0];   y = poly->yv[0];
-//				dist = abs(wantx - x) + abs(wanty - y);
-//				if (dist < bestdist)
-//				{
-//					bestdist = dist;   bestx = x;   besty = y;   besti = i;
-//				}
-//			}
-//			if (bestdist == MAXINTBIG) ttyputerr(_("Warning: cannot find switch port"));
-//
-//			/* set the closest port */
-//			poly->xv[0] = bestx;   poly->yv[0] = besty;
-//			return;
-//		}
-//	}
-//	tech_fillportpoly(ni, pp, poly, trans, sch_nodeprotos[pindex-1], CLOSED, lambda);
 //}
 }

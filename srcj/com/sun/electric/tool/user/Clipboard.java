@@ -856,7 +856,7 @@ public class Clipboard
 		if (srcArc.isFixedAngle()) destArc.setFixedAngle(); else destArc.clearFixedAngle();
 		if (srcArc.isSlidable()) destArc.setSlidable(); else destArc.clearSlidable();
 		if (srcArc.isExtended()) destArc.setExtended(); else destArc.clearExtended();
-		if (srcArc.isNegated()) destArc.setNegated(); else destArc.clearNegated();
+//		if (srcArc.isNegated()) destArc.setNegated(); else destArc.clearNegated();
 		if (srcArc.isDirectional()) destArc.setDirectional(); else destArc.clearDirectional();
 		if (srcArc.isSkipHead()) destArc.setSkipHead(); else destArc.clearSkipHead();
 		if (srcArc.isSkipTail()) destArc.setSkipTail(); else destArc.clearSkipTail();

@@ -45,6 +45,7 @@ public class PrimitivePort extends PortProto
 	private EdgeV top;
 	private Technology tech;
 	private PortProto.Characteristic characteristic;
+	private boolean negatable;
 
 	// ---------------------- protected and private methods ----------------
 
@@ -69,6 +70,7 @@ public class PrimitivePort extends PortProto
 		this.bottom = bottom;
 		this.right = right;
 		this.top = top;
+		this.negatable = false;
         tech.addPortProto(this);
 	}
 
@@ -175,6 +177,18 @@ public class PrimitivePort extends PortProto
 	 */
 	public EdgeV getBottom() { return bottom; }
 
+	/**
+	 * Method to tell whether this type of port can be negated.
+	 * @return true if this type of port can be negated.
+	 */
+	public boolean isNegatable() { return negatable; }
+
+	/**
+	 * Method to tell set this type of port can be negated.
+	 * @param canNegate true if this type of port can be negated.
+	 */
+	public void setNegatable(boolean negatable) { this.negatable = negatable; }
+	
 	/**
 	 * Method to return true if this PrimitivePort can connect to an arc of a given type.
 	 * @param arc the ArcProto to test for connectivity.

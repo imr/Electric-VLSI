@@ -63,17 +63,43 @@ public class Simulate extends Input
 		private List signals;
 		private double [] commonTime;
 
+		/**
+		 * Constructor to build a new Simulation Data object.
+		 */
 		public SimData()
 		{
 			signals = new ArrayList();
 		}
 
+		/**
+		 * Method to get the list of signals in this Simulation Data object.
+		 * @return a List of signals.
+		 */
 		public List getSignals() { return signals; }
 
+		/**
+		 * Method to add a new signal to this Simulation Data object.
+		 * Signals can be either digital or analog.
+		 * @param ws the signal to add.
+		 * Instead of a "SimSignal", use either SimDigitalSignal or SimAnalogSignal.
+		 */
 		public void addSignal(SimSignal ws) { signals.add(ws); }
 
+		/**
+		 * Method to construct an array of time values that are common to all signals.
+		 * Some simulation data has all of its stimuli at the same time interval for every signal.
+		 * To save space, such data can use a common time array, kept in the Simulation Data.
+		 * If a signal wants to use its own time values, that can be done by placing the time
+		 * array in the signal.
+		 * @param numEvents the number of time events in the common time array.
+		 */
 		public void buildCommonTime(int numEvents) { commonTime = new double[numEvents]; }
 
+		/**
+		 * Method to load an entry in the common time array.
+		 * @param index the entry number.
+		 * @param time the time value at
+		 */
 		public void setCommonTime(int index, double time) { commonTime[index] = time; }
 
 		public void setCell(Cell cell) { this.cell = cell; }

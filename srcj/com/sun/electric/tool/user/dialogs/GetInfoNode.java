@@ -395,12 +395,30 @@ public class GetInfoNode extends javax.swing.JDialog
 		locked.setSelected(initialLocked);
 
 		// load special node information
+		if (np == Schematics.tech.transistorNode || np == Schematics.tech.transistor4Node)
+		{
+			textField.setEditable(true);
+			Dimension d = ni.getTransistorSize(VarContext.globalContext);
+			if (ni.isFET())
+			{
+				textFieldLabel.setText("Width / length:");
+				initialTextField = d.width + " / " + d.height;
+			} else
+			{
+				textFieldLabel.setText("Area:");
+				initialTextField = Double.toString(d.width);
+			}
+			textField.setText(initialTextField);
+
+			popupLabel.setText("Transistor type:");
+			popup.addItem(fun.getName());
+		}
 		if (fun == NodeProto.Function.DIODE || fun == NodeProto.Function.DIODEZ)
 		{
 			if (fun == NodeProto.Function.DIODEZ)
 				textFieldLabel.setText("Zener diode size:"); else
 					textFieldLabel.setText("Diode size:");
-			Variable var = ni.getVar("SCHEM_diode");
+			Variable var = ni.getVar(Schematics.SCHEM_DIODE);
 			if (var == null) initialTextField = "0"; else
 				initialTextField = new String(var.getObject().toString());
 			textField.setEditable(true);
@@ -411,7 +429,7 @@ public class GetInfoNode extends javax.swing.JDialog
 			textFieldLabel.setText("Resistance:");
 //			formatinfstr(infstr, x_(" (%s):"),
 //				TRANSLATE(us_resistancenames[(us_electricalunits&INTERNALRESUNITS) >> INTERNALRESUNITSSH]));
-			Variable var = ni.getVar("SCHEM_resistance");
+			Variable var = ni.getVar(Schematics.SCHEM_RESISTANCE);
 			if (var == null) initialTextField = "0"; else
 				initialTextField = new String(var.getObject().toString());
 			textField.setEditable(true);
@@ -424,7 +442,7 @@ public class GetInfoNode extends javax.swing.JDialog
 					textFieldLabel.setText("Capacitance:");
 //			formatinfstr(infstr, x_(" (%s):"),
 //				TRANSLATE(us_capacitancenames[(us_electricalunits&INTERNALCAPUNITS) >> INTERNALCAPUNITSSH]));
-			Variable var = ni.getVar("SCHEM_capacitance");
+			Variable var = ni.getVar(Schematics.SCHEM_CAPACITANCE);
 			if (var == null) initialTextField = "0"; else
 				initialTextField = new String(var.getObject().toString());
 			textField.setEditable(true);
@@ -435,7 +453,7 @@ public class GetInfoNode extends javax.swing.JDialog
 			textFieldLabel.setText("Inductance:");
 //			formatinfstr(infstr, x_(" (%s):"),
 //				TRANSLATE(us_inductancenames[(us_electricalunits&INTERNALINDUNITS) >> INTERNALINDUNITSSH]));
-			Variable var = ni.getVar("SCHEM_inductance");
+			Variable var = ni.getVar(Schematics.SCHEM_INDUCTANCE);
 			if (var == null) initialTextField = "0"; else
 				initialTextField = new String(var.getObject().toString());
 			textField.setEditable(true);
@@ -444,16 +462,11 @@ public class GetInfoNode extends javax.swing.JDialog
 		if (np == Schematics.tech.bboxNode)
 		{
 			textFieldLabel.setText("Function:");
-			Variable var = ni.getVar("SCHEM_function");
+			Variable var = ni.getVar(Schematics.SCHEM_FUNCTION);
 			if (var == null) initialTextField = ""; else
 				initialTextField = new String(var.getObject().toString());
 			textField.setEditable(true);
 			textField.setText(initialTextField);
-		}
-		if (np == Schematics.tech.transistorNode || np == Schematics.tech.transistor4Node)
-		{
-			textFieldLabel.setText("Transistor type:");
-			textField.setText(fun.getName());
 		}
 		if (fun == NodeProto.Function.FLIPFLOP)
 		{
@@ -479,7 +492,7 @@ public class GetInfoNode extends javax.swing.JDialog
 		if (np == Schematics.tech.globalNode)
 		{
 			textFieldLabel.setText("Global name:");
-			Variable var = ni.getVar("SCHEM_global_name");
+			Variable var = ni.getVar(Schematics.SCHEM_GLOBAL_NAME);
 			if (var == null) initialTextField = ""; else
 				initialTextField = new String(var.getObject().toString());
 			textField.setEditable(true);
@@ -757,13 +770,41 @@ public class GetInfoNode extends javax.swing.JDialog
 			}
 
 			// handle special node information
+			if (np == Schematics.tech.transistorNode || np == Schematics.tech.transistor4Node)
+			{
+				String currentTextField = dialog.textField.getText();
+				if (!currentTextField.equals(dialog.initialTextField))
+				{
+					if (ni.isFET())
+					{
+						double width = TextUtils.atof(currentTextField);
+						int slashPos = currentTextField.indexOf('/');
+						double length = 2;
+						if (slashPos >= 0)
+							length = TextUtils.atof(currentTextField.substring(slashPos+1).trim());
+						Variable var = ni.updateVar(Schematics.ATTR_WIDTH, new Double(width));
+						if (var != null) var.setDisplay();
+						var = ni.updateVar(Schematics.ATTR_LENGTH, new Double(length));
+						if (var != null) var.setDisplay();
+						dialog.initialTextField = currentTextField;
+						changed = true;
+					} else
+					{
+						Variable var = ni.updateVar(Schematics.ATTR_AREA, new Double(TextUtils.atof(currentTextField)));
+						if (var != null) var.setDisplay();
+						dialog.initialTextField = currentTextField;
+						changed = true;
+					}
+				}
+			}
 			NodeProto.Function fun = ni.getFunction();
 			if (fun == NodeProto.Function.DIODE || fun == NodeProto.Function.DIODEZ)
 			{
 				String currentTextField = dialog.textField.getText();
 				if (!currentTextField.equals(dialog.initialTextField))
 				{
-					ni.updateVar("SCHEM_diode", currentTextField);
+					Variable var = ni.updateVar(Schematics.SCHEM_DIODE, currentTextField);
+					if (var != null) var.setDisplay();
 					dialog.initialTextField = currentTextField;
 					changed = true;
 				}
@@ -773,7 +814,8 @@ public class GetInfoNode extends javax.swing.JDialog
 				String currentTextField = dialog.textField.getText();
 				if (!currentTextField.equals(dialog.initialTextField))
 				{
-					ni.updateVar("SCHEM_resistance", currentTextField);
+					Variable var = ni.updateVar(Schematics.SCHEM_RESISTANCE, currentTextField);
+					if (var != null) var.setDisplay();
 					dialog.initialTextField = currentTextField;
 					changed = true;
 				}
@@ -783,7 +825,8 @@ public class GetInfoNode extends javax.swing.JDialog
 				String currentTextField = dialog.textField.getText();
 				if (!currentTextField.equals(dialog.initialTextField))
 				{
-					ni.updateVar("SCHEM_capacitance", currentTextField);
+					Variable var = ni.updateVar(Schematics.SCHEM_CAPACITANCE, currentTextField);
+					if (var != null) var.setDisplay();
 					dialog.initialTextField = currentTextField;
 					changed = true;
 				}
@@ -793,7 +836,8 @@ public class GetInfoNode extends javax.swing.JDialog
 				String currentTextField = dialog.textField.getText();
 				if (!currentTextField.equals(dialog.initialTextField))
 				{
-					ni.updateVar("SCHEM_inductance", currentTextField);
+					Variable var = ni.updateVar(Schematics.SCHEM_INDUCTANCE, currentTextField);
+					if (var != null) var.setDisplay();
 					dialog.initialTextField = currentTextField;
 					changed = true;
 				}
@@ -803,7 +847,8 @@ public class GetInfoNode extends javax.swing.JDialog
 				String currentTextField = dialog.textField.getText();
 				if (!currentTextField.equals(dialog.initialTextField))
 				{
-					ni.updateVar("SCHEM_function", currentTextField);
+					Variable var = ni.updateVar(Schematics.SCHEM_FUNCTION, currentTextField);
+					if (var != null) var.setDisplay();
 					dialog.initialTextField = currentTextField;
 					changed = true;
 				}
@@ -816,11 +861,8 @@ public class GetInfoNode extends javax.swing.JDialog
 				String currentTextField = dialog.textField.getText();
 				if (!currentTextField.equals(dialog.initialTextField))
 				{
-					Variable var = ni.updateVar("SCHEM_global_name", currentTextField);
-//					if (var != null)
-//					{
-//						var.setDisplay();
-//					}
+					Variable var = ni.updateVar(Schematics.SCHEM_GLOBAL_NAME, currentTextField);
+					if (var != null) var.setDisplay();
 					dialog.initialTextField = currentTextField;
 					changed = true;
 				}

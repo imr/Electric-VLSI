@@ -74,6 +74,6 @@ public class Constraints implements Changes
 
 	public void readLibrary(Library lib) {}
 	public void eraseLibrary(Library lib) {}
-	public void writeLibrary(Library lib, boolean pass2) {}
+	public void writeLibrary(Library lib) {}
 
 }

@@ -181,7 +181,7 @@ public class IOTool extends Tool
 	/****************************** GENERAL OUTPUT PREFERENCES ******************************/
 
 	private static Pref cacheUseCopyrightMessage = Pref.makeBooleanPref("UseCopyrightMessage", IOTool.tool.prefs, false);
-    static { cacheUseCopyrightMessage.attachToObject(IOTool.tool, "IO Options, Copyright tab", "Use Copyright Message"); }
+    static { cacheUseCopyrightMessage.attachToObject(IOTool.tool, "IO Options, Copyright tab", "Use copyright message"); }
 	/**
 	 * Method to tell whether to add the copyright message to output decks.
 	 * The default is "false".
@@ -195,7 +195,7 @@ public class IOTool extends Tool
 	public static void setUseCopyrightMessage(boolean u) { cacheUseCopyrightMessage.setBoolean(u); }
 
 	private static Pref cacheCopyrightMessage = Pref.makeStringPref("CopyrightMessage", IOTool.tool.prefs, "");
-    static { cacheUseCopyrightMessage.attachToObject(IOTool.tool, "IO Options, Copyright tab", "Copyright Message"); }
+    static { cacheUseCopyrightMessage.attachToObject(IOTool.tool, "IO Options, Copyright tab", "Copyright message"); }
 	/**
 	 * Method to tell the copyright message that will be added to output decks.
 	 * The default is "".
@@ -266,7 +266,7 @@ public class IOTool extends Tool
 	/****************************** CIF OUTPUT PREFERENCES ******************************/
 
 	private static Pref cacheCIFOutMimicsDisplay = Pref.makeBooleanPref("CIFMimicsDisplay", IOTool.tool.prefs, false);
-    static { cacheCIFOutMimicsDisplay.attachToObject(IOTool.tool, "IO Options, CIF tab", "Output Mimics Display"); }
+    static { cacheCIFOutMimicsDisplay.attachToObject(IOTool.tool, "IO Options, CIF tab", "CIF output mimics display"); }
 
 	/**
 	 * Method to tell whether CIF Output mimics the display.
@@ -285,7 +285,7 @@ public class IOTool extends Tool
 	public static void setCIFOutMimicsDisplay(boolean on) { cacheCIFOutMimicsDisplay.setBoolean(on); }
 
 	private static Pref cacheCIFOutMergesBoxes = Pref.makeBooleanPref("CIFMergesBoxes", IOTool.tool.prefs, false);
-    static { cacheCIFOutMergesBoxes.attachToObject(IOTool.tool, "IO Options, CIF tab", "Output Merges Boxes"); }
+    static { cacheCIFOutMergesBoxes.attachToObject(IOTool.tool, "IO Options, CIF tab", "CIF output merges boxes"); }
 	/**
 	 * Method to tell whether CIF Output merges boxes into complex polygons.
 	 * This takes more time but produces a smaller output file.
@@ -301,7 +301,7 @@ public class IOTool extends Tool
 	public static void setCIFOutMergesBoxes(boolean on) { cacheCIFOutMergesBoxes.setBoolean(on); }
 
 	private static Pref cacheCIFOutInstantiatesTopLevel = Pref.makeBooleanPref("CIFInstantiatesTopLevel", IOTool.tool.prefs, true);
-    static { cacheCIFOutInstantiatesTopLevel.attachToObject(IOTool.tool, "IO Options, CIF tab", "Output Instantiates Top Level"); }
+    static { cacheCIFOutInstantiatesTopLevel.attachToObject(IOTool.tool, "IO Options, CIF tab", "CIF output instantiates top level"); }
 	/**
 	 * Method to tell whether CIF Output instantiates the top-level.
 	 * When this happens, a CIF "call" to the top cell is emitted.
@@ -347,7 +347,7 @@ public class IOTool extends Tool
 	/****************************** GDS OUTPUT PREFERENCES ******************************/
 
 	private static Pref cacheGDSOutMergesBoxes = Pref.makeBooleanPref("GDSMergesBoxes", IOTool.tool.prefs, false);
-    static { cacheGDSOutMergesBoxes.attachToObject(IOTool.tool, "IO Options, GDS tab", "Output merges Boxes"); }
+    static { cacheGDSOutMergesBoxes.attachToObject(IOTool.tool, "IO Options, GDS tab", "GDS output merges boxes"); }
 	/**
 	 * Method to tell whether GDS Output merges boxes into complex polygons.
 	 * This takes more time but produces a smaller output file.
@@ -363,7 +363,7 @@ public class IOTool extends Tool
 	public static void setGDSOutMergesBoxes(boolean on) { cacheGDSOutMergesBoxes.setBoolean(on); }
 
 	private static Pref cacheGDSOutWritesExportPins = Pref.makeBooleanPref("GDSWritesExportPins", IOTool.tool.prefs, false);
-    static { cacheGDSOutWritesExportPins.attachToObject(IOTool.tool, "IO Options, GDS tab", "Output writes export Pins"); }
+    static { cacheGDSOutWritesExportPins.attachToObject(IOTool.tool, "IO Options, GDS tab", "GDS output writes export pins"); }
 	/**
 	 * Method to tell whether GDS Output writes pins at Export locations.
 	 * Some systems can use this information to reconstruct export locations.
@@ -379,7 +379,7 @@ public class IOTool extends Tool
 	public static void setGDSOutWritesExportPins(boolean on) { cacheGDSOutWritesExportPins.setBoolean(on); }
 
 	private static Pref cacheGDSOutUpperCase = Pref.makeBooleanPref("GDSOutputUpperCase", IOTool.tool.prefs, false);
-    static { cacheGDSOutUpperCase.attachToObject(IOTool.tool, "IO Options, GDS tab", "Output all upper-case"); }
+    static { cacheGDSOutUpperCase.attachToObject(IOTool.tool, "IO Options, GDS tab", "GDS output all upper-case"); }
 	/**
 	 * Method to tell whether GDS Output makes all text upper-case.
 	 * Some systems insist on this.
@@ -395,7 +395,7 @@ public class IOTool extends Tool
 	public static void setGDSOutUpperCase(boolean on) { cacheGDSOutUpperCase.setBoolean(on); }
 
 	private static Pref cacheGDSOutDefaultTextLayer = Pref.makeIntPref("GDSDefaultTextLayer", IOTool.tool.prefs, 230);
-    static { cacheGDSOutDefaultTextLayer.attachToObject(IOTool.tool, "IO Options, GDS tab", "Output default text layer"); }
+    static { cacheGDSOutDefaultTextLayer.attachToObject(IOTool.tool, "IO Options, GDS tab", "GDS output default text layer"); }
 	/**
 	 * Method to tell the default GDS layer to use for the text of Export pins.
 	 * Export pins are annotated with text objects on this layer.

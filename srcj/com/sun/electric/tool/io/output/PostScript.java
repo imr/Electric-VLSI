@@ -279,7 +279,7 @@ public class PostScript extends Output
 		printWriter.print("%%%%Title: " + cell.describe() + "\n");
 		if (User.isIncludeDateAndVersionInOutput())
 		{
-			printWriter.print("%%%%Creator: Electric VLSI Design System version " + Version.CURRENT + "\n");
+			printWriter.print("%%%%Creator: Electric VLSI Design System version " + Version.getVersion() + "\n");
 			SimpleDateFormat sdf = new SimpleDateFormat("EEE MMMM dd, yyyy HH:mm:ss");
 			Date now = new Date();
 			printWriter.print("%%%%CreationDate: " + sdf.format(now) + "\n");

@@ -2184,6 +2184,7 @@ public class ToolOptions extends javax.swing.JDialog
         compaction = new javax.swing.JPanel();
         compAllowSpreading = new javax.swing.JCheckBox();
         compVerbose = new javax.swing.JCheckBox();
+        jLabel78 = new javax.swing.JLabel();
         cancel = new javax.swing.JButton();
         ok = new javax.swing.JButton();
         factoryReset = new javax.swing.JButton();
@@ -4388,6 +4389,13 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         compaction.add(compVerbose, gridBagConstraints);
 
+        jLabel78.setText("COMPACTION IS NOT YET SUPPORTED");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
+        compaction.add(jLabel78, gridBagConstraints);
+
         tabPane.addTab("Compaction", compaction);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -4589,6 +4597,7 @@ public class ToolOptions extends javax.swing.JDialog
     private javax.swing.JLabel jLabel75;
     private javax.swing.JLabel jLabel76;
     private javax.swing.JLabel jLabel77;
+    private javax.swing.JLabel jLabel78;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
