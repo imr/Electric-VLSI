@@ -147,7 +147,7 @@ public class PrimitivePort extends PortProto
 	 */
 	public Poly getPoly(NodeInst ni)
 	{
-		return tech.getPoly(ni, this);
+		return tech.getShapeOfPort(ni, this);
 	}
 
 	/**

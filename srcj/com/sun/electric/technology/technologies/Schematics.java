@@ -1318,7 +1318,7 @@ public class Schematics extends Technology
 	 * @param wnd the window in which this node will be drawn.
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShape(NodeInst ni, EditWindow wnd)
+	public Poly [] getShapeofNode(NodeInst ni, EditWindow wnd)
 	{
 		NodeProto prototype = ni.getProto();
 		if (!(prototype instanceof PrimitiveNode)) return null;
@@ -1504,7 +1504,7 @@ public class Schematics extends Technology
 				case TRANEMES:  primLayers = tran4LayersEMES;   break;
 			}
 		}
-		return getShape(ni, wnd, primLayers);
+		return getShapeOfNode(ni, wnd, primLayers);
 	}
 
 	/**
@@ -1515,16 +1515,16 @@ public class Schematics extends Technology
 	 * @param wnd the window in which this arc will be drawn.
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShape(ArcInst ai, EditWindow wnd)
+	public Poly [] getShapeOfArc(ArcInst ai, EditWindow wnd)
 	{
 		// Bus arcs are handled in a standard way
 		PrimitiveArc ap = (PrimitiveArc)ai.getProto();
 		if (ap == bus_arc)
-			return super.getShape(ai, wnd);
+			return super.getShapeOfArc(ai, wnd);
 
 		// Wire arc: if not negated, handle in a standard way
 		if (!ai.isNegated() || ai.isSkipTail())
-			return super.getShape(ai, wnd);
+			return super.getShapeOfArc(ai, wnd);
 
 		// draw a negated Wire arc
 		Point2D.Double headLoc = ai.getHead().getLocation();

@@ -27,10 +27,6 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.EGraphics;
@@ -38,6 +34,10 @@ import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.FlagSet;
@@ -45,6 +45,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.Generic;
@@ -452,37 +453,37 @@ public class Highlight
 			// construct the polygons that describe the basic arc
 			Poly poly = ai.makePoly(ai.getXSize(), ai.getWidth() - offset, Poly.Type.CLOSED);
 			if (poly == null) return;
-			Point2D.Double [] points = poly.getPoints();
-			drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY);
+			drawOutlineFromPoints(wnd, g,  poly.getPoints(), highOffX, highOffY);
 			return;
 		}
 
 		// highlight a NodeInst
 		NodeInst ni = (NodeInst)geom;
 		NodeProto np = ni.getProto();
+		AffineTransform trans = ni.rotateOut();
 		SizeOffset so = new SizeOffset(0, 0, 0, 0);
 		if (np instanceof PrimitiveNode)
 		{
 			PrimitiveNode pnp = (PrimitiveNode)np;
 			so = Technology.getSizeOffset(ni);
 
-			// special case for outline nodes
-			int [] specialValues = pnp.getSpecialValues();
-			if (np.isHoldsOutline()) 
-			{
-				Float [] outline = ni.getTrace();
-				if (outline != null)
-				{
-					int numPoints = outline.length / 2;
-					Point2D.Double [] pointList = new Point2D.Double[numPoints];
-					for(int i=0; i<numPoints; i++)
-					{
-						pointList[i] = new Point2D.Double(ni.getCenterX() + outline[i*2].floatValue(),
-							ni.getCenterY() + outline[i*2+1].floatValue());
-					}
-					drawOutlineFromPoints(wnd, g,  pointList, highOffX, highOffY);
-				}
-			}
+//			// special case for outline nodes
+//			int [] specialValues = pnp.getSpecialValues();
+//			if (np.isHoldsOutline()) 
+//			{
+//				Float [] outline = ni.getTrace();
+//				if (outline != null)
+//				{
+//					int numPoints = outline.length / 2;
+//					Point2D.Double [] pointList = new Point2D.Double[numPoints];
+//					for(int i=0; i<numPoints; i++)
+//					{
+//						pointList[i] = new Point2D.Double(ni.getCenterX() + outline[i*2].floatValue(),
+//							ni.getCenterY() + outline[i*2+1].floatValue());
+//					}
+//					drawOutlineFromPoints(wnd, g,  pointList, highOffX, highOffY);
+//				}
+//			}
 		}
 
 		// setup outline of node with standard offset
@@ -506,10 +507,19 @@ public class Highlight
 			double portX = (portLowX + portHighX) / 2;
 			double portY = (portLowY + portHighY) / 2;
 			Poly poly = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
-			AffineTransform trans = ni.rotateOut();
 			poly.transform(trans);
-			Point2D.Double [] points = poly.getPoints();
-			drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY);
+			drawOutlineFromPoints(wnd, g,  poly.getPoints(), highOffX, highOffY);
+		}
+	
+		// draw the selected port
+		PortProto pp = getPort();
+		if (pp != null)
+		{
+			PrimitivePort pnp = pp.getBasePort();
+			Technology tech = pnp.getParent().getTechnology();
+			Poly poly = tech.getShapeOfPort(ni, pnp);
+			poly.transform(trans);
+			drawOutlineFromPoints(wnd, g,  poly.getPoints(), highOffX, highOffY);
 		}
 	}
 
@@ -699,7 +709,7 @@ public class Highlight
 		if (directHitDist > slop) slop = directHitDist;
 		Rectangle2D.Double searchArea = new Rectangle2D.Double(pt.getX() - slop, pt.getY() - slop, slop*2, slop*2);
 
-		// 3 phases of examination: cells, arcs, then primitive nodes
+		// 4 phases of examination: text, cells, arcs, then primitive nodes
 		for(int phase=0; phase<4; phase++)
 		{
 			// ignore cells if requested
@@ -811,17 +821,24 @@ public class Highlight
 				// add the closest port
 				if (findPort)
 				{
-//					for(pp = curhigh->fromport->nextportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
-//					{
-//						shapeportpoly(ni, pp, poly, FALSE);
-//						if (isinside(wantx, wanty, poly))
-//						{
-//							prevdirect->status = HIGHFROM;
-//							prevdirect->fromgeom = geom;
-//							prevdirect->fromport = pp;
-//							break;
-//						}
-//					}
+					AffineTransform trans = ni.rotateOut();
+					double bestDist = Double.MAX_VALUE;
+					PortInst bestPort = null;
+					for(Iterator it = ni.getPortInsts(); it.hasNext(); )
+					{
+						PortInst pi = (PortInst)it.next();
+						PrimitivePort pp = pi.getPortProto().getBasePort();
+						Technology tech = pp.getParent().getTechnology();
+						Poly poly = tech.getShapeOfPort(ni, pp);
+						poly.transform(trans);
+						dist = poly.polyDistance(pt);
+						if (dist < bestDist)
+						{
+							bestDist = dist;
+							bestPort = pi;
+						}
+					}
+					if (bestPort != null) h.setPort(bestPort.getPortProto());
 				}
 				return h;
 			}
@@ -923,7 +940,7 @@ public class Highlight
 				if (fun == NodeProto.Function.TRANMOS || fun == NodeProto.Function.TRAPMOS || fun == NodeProto.Function.TRADMOS)
 				{
 					Technology tech = np.getTechnology();
-					Poly [] polys = tech.getShape(ni, wnd);
+					Poly [] polys = tech.getShapeOfNode(ni, wnd);
 					double bestDist = Double.MAX_VALUE;
 					for(int box=0; box<polys.length; box++)
 					{
@@ -931,7 +948,7 @@ public class Highlight
 						Layer layer = poly.getLayer();
 						if (layer == null) continue;
 						Layer.Function lf = layer.getFunction();
-						if (lf.isPoly() && !lf.isDiff()) continue;
+						if (!lf.isPoly() && !lf.isDiff()) continue;
 						poly.transform(trans);
 						double dist = poly.polyDistance(pt);
 						if (dist < bestDist) bestDist = dist;
@@ -943,7 +960,7 @@ public class Highlight
 				if (np.isEdgeSelect())
 				{
 					Technology tech = np.getTechnology();
-					Poly [] polys = tech.getShape(ni, wnd);
+					Poly [] polys = tech.getShapeOfNode(ni, wnd);
 					double bestDist = Double.MAX_VALUE;
 					for(int box=0; box<polys.length; box++)
 					{
@@ -978,7 +995,7 @@ public class Highlight
 		if (ap.isEdgeSelect())
 		{
 			Technology tech = ap.getTechnology();
-			Poly [] polys = tech.getShape(ai, wnd);
+			Poly [] polys = tech.getShapeOfArc(ai, wnd);
 			double bestDist = Double.MAX_VALUE;
 			for(int box=0; box<polys.length; box++)
 			{

@@ -783,7 +783,7 @@ public class Technology extends ElectricObject
 	 * @return an array of Poly objects that describes this NodeInst graphically.
 	 * This array includes displayable variables on the NodeInst.
 	 */
-	public Poly [] getShape(NodeInst ni, EditWindow wnd)
+	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd)
 	{
 		NodeProto prototype = ni.getProto();
 		if (!(prototype instanceof PrimitiveNode)) return null;
@@ -796,7 +796,7 @@ public class Technology extends ElectricObject
 		}
 		PrimitiveNode np = (PrimitiveNode)prototype;
 		Technology.NodeLayer [] primLayers = np.getLayers();
-		return getShape(ni, wnd, primLayers);
+		return getShapeOfNode(ni, wnd, primLayers);
 	}
 
 	/**
@@ -809,7 +809,7 @@ public class Technology extends ElectricObject
 	 * @return an array of Poly objects that describes this NodeInst graphically.
 	 * This array includes displayable variables on the NodeInst.
 	 */
-	public Poly [] getShape(NodeInst ni, EditWindow wnd, Technology.NodeLayer [] primLayers)
+	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, Technology.NodeLayer [] primLayers)
 	{
 		// get information about the node
 		double halfWidth = ni.getXSize() / 2;
@@ -1421,7 +1421,7 @@ public class Technology extends ElectricObject
 	 * @return an array of Poly objects that describes this ArcInst graphically.
 	 * This array includes displayable variables on the ArcInst.
 	 */
-	public Poly [] getShape(ArcInst ai, EditWindow wnd)
+	public Poly [] getShapeOfArc(ArcInst ai, EditWindow wnd)
 	{
 		// get information about the arc
 		PrimitiveArc ap = (PrimitiveArc)ai.getProto();
@@ -1496,7 +1496,7 @@ public class Technology extends ElectricObject
 	 * @param pp the PrimitivePort on that NodeInst that is being described.
 	 * @return a Poly object that describes this PrimitivePort graphically.
 	 */
-	public Poly getPoly(NodeInst ni, PrimitivePort pp)
+	public Poly getShapeOfPort(NodeInst ni, PrimitivePort pp)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		int [] specialValues = np.getSpecialValues();

@@ -157,11 +157,20 @@ public class ElectricObject
 				GlyphVector gv = wnd.getGlyphs(var.describe(0, -1), td);
 				Rectangle2D glyphBounds = gv.getVisualBounds();
 				height = glyphBounds.getHeight() / wnd.getScale();
-				if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT)
-					cY += height * (varLength-1) / 2;
-				if (style == Poly.Type.TEXTBOT || style == Poly.Type.TEXTBOTLEFT || style == Poly.Type.TEXTBOTRIGHT)
-					cY += height * (varLength-1);
-				if (!multipleStrings) varLength = 1;
+				if (multipleStrings)
+				{
+					if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT)
+						cY += height * (varLength-1) / 2;
+					if (style == Poly.Type.TEXTBOT || style == Poly.Type.TEXTBOTLEFT || style == Poly.Type.TEXTBOTRIGHT)
+						cY += height * (varLength-1);
+				} else
+				{
+					if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT)
+						cY -= height * (varLength-1) / 2;
+					if (style == Poly.Type.TEXTTOP || style == Poly.Type.TEXTTOPLEFT || style == Poly.Type.TEXTTOPRIGHT)
+						cY -= height * (varLength-1);
+					varLength = 1;
+				}
 			}
 			for(int i=0; i<varLength; i++)
 			{

@@ -415,7 +415,7 @@ public class Artwork extends Technology
 	 * @param wnd the window in which this node will be drawn.
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShape(NodeInst ni, EditWindow wnd)
+	public Poly [] getShapeofNode(NodeInst ni, EditWindow wnd)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		getGraphics(ni);
@@ -475,7 +475,7 @@ public class Artwork extends Technology
 				return polys;
 			}
 		}
-		return super.getShape(ni, wnd);
+		return super.getShapeOfNode(ni, wnd);
 	}
 
 	/**
@@ -486,10 +486,10 @@ public class Artwork extends Technology
 	 * @param wnd the window in which this arc will be drawn.
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShape(ArcInst ai, EditWindow wnd)
+	public Poly [] getShapeofArc(ArcInst ai, EditWindow wnd)
 	{
 		getGraphics(ai);
-		return super.getShape(ai, wnd);
+		return super.getShapeOfArc(ai, wnd);
 	}
 
 	/**

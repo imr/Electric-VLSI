@@ -479,7 +479,7 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 			{
 				PrimitiveNode prim = (PrimitiveNode)np;
 				Technology tech = prim.getTechnology();
-				Poly [] polys = tech.getShape(ni, this);
+				Poly [] polys = tech.getShapeOfNode(ni, this);
 				if (drawPolys(g2, polys, localTrans))
 					System.out.println("... while displaying node "+ni.describe() + " in cell " + ni.getParent().describe());
 			}
@@ -508,7 +508,7 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 	{
 		ArcProto ap = ai.getProto();
 		Technology tech = ap.getTechnology();
-		Poly [] polys = tech.getShape(ai, this);
+		Poly [] polys = tech.getShapeOfArc(ai, this);
 		if (drawPolys(g2, polys, trans))
 			System.out.println("... while displaying arc "+ai.describe() + " in cell " + ai.getParent().describe());
 	}
@@ -1011,7 +1011,9 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 		if (mode == ToolBar.Mode.SELECT)
 		{
 			// selection: if over selected things, move them
-			if (Highlight.overHighlighted(this, oldx, oldy))
+			boolean another = false;
+			if ((evt.getModifiers()&MouseEvent.CTRL_MASK) != 0) another = true;
+			if (!another && Highlight.overHighlighted(this, oldx, oldy))
 			{
 				doingMotionDrag = true;
 				return;
@@ -1019,7 +1021,7 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 
 			// standard selection: drag out a selection box
 			Point2D.Double pt = screenToDatabase(oldx, oldy);
-			Highlight.findObject(pt, this, false, false, true, false, false);
+			Highlight.findObject(pt, this, false, another, true, false, false);
 			if (Highlight.getNumHighlights() == 0)
 			{
 				startDrag.setLocation(oldx, oldy);

@@ -91,7 +91,7 @@ public class TopLevel extends JFrame
 		topLevel.setVisible(true);
 
 		// set an icon with the application
-		topLevel.setIconImage(new ImageIcon(libdir + "ElectricIcon.gif").getImage());
+		topLevel.setIconImage(new ImageIcon(topLevel.getClass().getResource("IconElectric.gif")).getImage());
 
 		// create the menu bar
 		JMenuBar menuBar = UserMenuCommands.createMenuBar();

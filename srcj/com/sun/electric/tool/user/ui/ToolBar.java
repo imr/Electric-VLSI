@@ -30,6 +30,9 @@ import javax.swing.JToolBar;
 import javax.swing.ImageIcon;
 import javax.swing.JPopupMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JButton;
+import javax.swing.JToggleButton;
+import javax.swing.ButtonGroup;
 import java.awt.BorderLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -56,9 +59,10 @@ public class ToolBar extends JToolBar
 		/** Describes Zoom mode (scale window contents). */		public static final Mode ZOOM = new Mode("zoom");
 	}
 
-	private static Button selectButton;
-	private static Button panButton;
-	private static Button zoomButton;
+	private static JToggleButton selectButton;
+	private static JToggleButton panButton;
+	private static JToggleButton zoomButton;
+	private static ButtonGroup modeGroup;
 	private static Mode curMode = Mode.SELECT;
 
 	private ToolBar() {}
@@ -71,11 +75,8 @@ public class ToolBar extends JToolBar
 		// create the toolbar
 		ToolBar toolbar = new ToolBar();
 
-		// get location of icon files
-		String libraryDirectory = TopLevel.getLibDir();
-
 		// the "Open file" button
-		Button openButton = Button.newInstance(new ImageIcon(libraryDirectory+"buttonOpen.gif"));
+		JButton openButton = Button.newInstance(new ImageIcon(toolbar.getClass().getResource("ButtonOpen.gif")));
 		openButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.openLibraryCommand(); } });
 		openButton.setToolTipText("Open");
@@ -85,32 +86,39 @@ public class ToolBar extends JToolBar
 		toolbar.addSeparator();
 
 		// the "Select mode" button
-		selectButton = Button.newInstance(new ImageIcon(libraryDirectory+"buttonSelect.gif"));
+		modeGroup = new ButtonGroup();
+		selectButton = new JToggleButton(new ImageIcon(toolbar.getClass().getResource("ButtonSelect.gif")));
 		selectButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectCommand(); } });
 		selectButton.setToolTipText("Select");
-		selectButton.setPressedLook(true);
+		selectButton.setBorderPainted(false);
+		selectButton.setSelected(true);
 		toolbar.add(selectButton);
+		modeGroup.add(selectButton);
 
 		// the "Pan mode" button
-		panButton = Button.newInstance(new ImageIcon(libraryDirectory+"buttonPan.gif"));
+		panButton = new JToggleButton(new ImageIcon(toolbar.getClass().getResource("ButtonPan.gif")));
 		panButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { panCommand(); } });
 		panButton.setToolTipText("Pan");
+		panButton.setBorderPainted(false);
 		toolbar.add(panButton);
+		modeGroup.add(panButton);
 
 		// the "Zoom mode" button
-		zoomButton = Button.newInstance(new ImageIcon(libraryDirectory+"buttonZoom.gif"));
+		zoomButton = new JToggleButton(new ImageIcon(toolbar.getClass().getResource("ButtonZoom.gif")));
 		zoomButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { zoomCommand(); } });
 		zoomButton.setToolTipText("Zoom");
+		zoomButton.setBorderPainted(false);
 		toolbar.add(zoomButton);
+		modeGroup.add(zoomButton);
 
 		// a separator
 		toolbar.addSeparator();
 
 		// a test button
-		Button testButton = Button.newInstance(new ImageIcon(libraryDirectory+"buttonTest.gif"));
+		Button testButton = Button.newInstance(new ImageIcon(toolbar.getClass().getResource("ButtonTest.gif")));
 		testButton.setToolTipText("test");
 
 		// set an area for popup menu to be triggered within a button
@@ -132,9 +140,6 @@ public class ToolBar extends JToolBar
 	 */
 	public static void selectCommand()
 	{
-		selectButton.setPressedLook(true);
-		panButton.setPressedLook(false);
-		zoomButton.setPressedLook(false);
 		curMode = Mode.SELECT;
 	}
 
@@ -143,9 +148,6 @@ public class ToolBar extends JToolBar
 	 */
 	public static void panCommand()
 	{
-		selectButton.setPressedLook(false);
-		panButton.setPressedLook(true);
-		zoomButton.setPressedLook(false);
 		curMode = Mode.PAN;
 	}
 
@@ -154,9 +156,6 @@ public class ToolBar extends JToolBar
 	 */
 	public static void zoomCommand()
 	{
-		selectButton.setPressedLook(false);
-		panButton.setPressedLook(false);
-		zoomButton.setPressedLook(true);
 		curMode = Mode.ZOOM;
 	}
 
