@@ -607,15 +607,16 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		public void mousePressed(MouseEvent e)
 		{
 			draggingCell = false;
-			cacheEvent(e);
 
 			// popup menu event (right click)
 			if (e.isPopupTrigger())
 			{
+                cacheEvent(e);
 				doContextMenu();
 				return;
 			}
 
+            cacheEvent(e);
 			WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 
 			// double click
@@ -682,6 +683,12 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 		public void mouseReleased(MouseEvent e)
 		{
+            // popup menu event (right click)
+            if (e.isPopupTrigger())
+            {
+                cacheEvent(e);
+                doContextMenu();
+            }
 		}
 
 		public void mouseDragged(MouseEvent e)
