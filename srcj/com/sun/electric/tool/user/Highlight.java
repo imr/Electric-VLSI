@@ -325,7 +325,7 @@ public class Highlight
      * Method to set the center point of a THICKLINE
      * @param pt the center point
      */
-    protected void setCenter(Point2D pt) { center = pt; }
+    protected void setCenter(Point2D pt) { center = new Point2D.Double(pt.getX(), pt.getY()); }
 
     /**
      * Method to get the center point of a THICKLINE
@@ -454,9 +454,13 @@ public class Highlight
                     getLineStart().equals(h.getLineStart()));
         }
         if (type == Type.THICKLINE) {
+            boolean centerEquals = false;
+            if (getCenter() != null && h.getCenter() != null) {
+                centerEquals = getCenter().equals(h.getCenter());
+            }
             return (getLineEnd().equals(h.getLineEnd()) &&
                     getLineStart().equals(h.getLineStart()) &&
-                    getCenter().equals(h.getCenter()));
+                    centerEquals);
         }
         if (type == Type.POLY) {
             return ((getPoly() == h.getPoly()) && (getColor() == h.getColor()));
