@@ -1053,7 +1053,7 @@ class NetSchem extends NetCell {
 			}
 			NetCell netCell = NetworkTool.getNetCell((Cell)np);
 			if (nodeOffsets[k] < 0) continue;
-			for (int i = 0, numPorts = getNumEquivPorts(); i < numPorts; i++) {
+			for (int i = 0, numPorts = netCell.getNumEquivPorts(); i < numPorts; i++) {
 				int j = netCell.getEquivPorts(i);
 				if (i == j) continue;
 				int di = drawns[nodeOffset + i];
