@@ -364,7 +364,8 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 				List list = null;
 				if (nTransistorList.contains(obj)) list = nTransistorList;
 				else if (pTransistorList.contains(obj)) list = pTransistorList;
-				if (list != null)
+				// Menu only if more than one transistor is found
+				if (list != null && list.size() > 1)
 				{
 					JPopupMenu menu = new JPopupMenu(((PrimitiveNode)obj).getName());
 
