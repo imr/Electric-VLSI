@@ -377,8 +377,8 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
         java.awt.GridBagConstraints gridBagConstraints;
 
         if (action == DoAction.newInstance) {
-            // remove done button, this is a one-shot action button
-            jPanel1.remove(done);
+            doAction.setText("New Instance");
+            done.setText("New Instance & Close");
         }
         else if (action == DoAction.editCell) {
             // add in a check box to open in a new window
@@ -486,6 +486,8 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
     }//GEN-LAST:event_cancelActionPerformed
     
     private void doneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_doneActionPerformed
+        if (action == DoAction.newInstance)
+            performAction();
         closeDialog(null);
     }//GEN-LAST:event_doneActionPerformed
 
@@ -527,7 +529,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
                 newListener = new PaletteFrame.PlaceNodeListener(null, cell, oldListener, oldCursor);
                 WindowFrame.setListener(newListener);
             }
-            closeDialog(null);                     // we have performed the action
+            //closeDialog(null);                     // we have performed the action
 
         } else if (action == DoAction.editCell) {
             boolean newWindow = editInNewWindow.isSelected();

@@ -5575,7 +5575,7 @@ public class CircuitChanges
 			if (!giveError) return true;
 			String [] options = {"Yes", "No", "Always"};
 			int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
-				"Changes to cell " + cell.describe() + " are locked.  Change anyway?",
+				"Changes to cell " + cell.describe() + " are locked.  Change "+((item == null)? "" : item.describe())+" anyway?",
 				"Allow changes", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
 				null, options, options[1]);
 			if (ret == 1) return true;

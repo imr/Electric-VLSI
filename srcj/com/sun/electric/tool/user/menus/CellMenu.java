@@ -157,7 +157,7 @@ public class CellMenu {
 
     public static void cellBrowserCommand(CellBrowser.DoAction action)
     {
-        CellBrowser dialog = new CellBrowser(TopLevel.getCurrentJFrame(), true, action);
+        CellBrowser dialog = new CellBrowser(TopLevel.getCurrentJFrame(), false, action);
         dialog.setVisible(true);
     }
 

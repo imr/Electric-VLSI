@@ -30,6 +30,8 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.change.DatabaseChangeListener;
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -57,7 +59,7 @@ import java.awt.event.ActionEvent;
  * </pre>
  * <p>To end logging, call errorLogger.termLogging(boolean explain).
  */
-public class ErrorLogger implements ActionListener {
+public class ErrorLogger implements ActionListener, DatabaseChangeListener {
 
     private static final int ERRORTYPEGEOM      = 1;
     private static final int ERRORTYPEEXPORT    = 2;
@@ -87,6 +89,12 @@ public class ErrorLogger implements ActionListener {
                 msg = "Arc " + geom.describe();
             msg += " in " + context.getInstPath(".");
             return msg;
+        }
+
+        public boolean isValid() {
+            if (type == ERRORTYPEEXPORT) return pp.isLinked();
+            if (type == ERRORTYPEGEOM) return geom.isLinked();
+            return true;
         }
     };
 
@@ -228,6 +236,22 @@ public class ErrorLogger implements ActionListener {
          * Method to describe error "elv".
          */
         public String describeError() { return message; }
+
+        /**
+         * Returns true if this error log is still valid
+         * (In a linked Cell, and all highlights are still valid)
+         * @return
+         */
+        public boolean isValid() {
+            if (!logCell.isLinked()) return false;
+            // check validity of highlights
+            boolean allValid = true;
+            for (Iterator it = highlights.iterator(); it.hasNext(); ) {
+                ErrorHighlight erh = (ErrorHighlight)it.next();
+                if (!erh.isValid()) { allValid = false; break; }
+            }
+            return allValid;
+        }
 
         /**
          * Method to return the error message associated with the current error.
@@ -397,6 +421,7 @@ public class ErrorLogger implements ActionListener {
             if (currentLogger == null) currentLogger = logger;
             allLoggers.add(logger);
         }
+        Undo.addDatabaseChangeListener(logger);
         return logger;
     }
 
@@ -493,6 +518,8 @@ public class ErrorLogger implements ActionListener {
                 else currentLogger = null;
             }
         }
+        Undo.removeDatabaseChangeListener(this);
+
         WindowFrame.wantToRedoErrorTree();
     }
 
@@ -718,4 +745,26 @@ public class ErrorLogger implements ActionListener {
             }
         }
     }
+
+    public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+        // check if any errors need to be deleted
+        boolean changed = false;
+        for (Iterator it = getErrors(); it.hasNext(); ) {
+            ErrorLog err = (ErrorLog)it.next();
+            if (!err.isValid()) {
+                deleteError(err);
+                changed = true;
+            }
+        }
+        if (changed)
+            WindowFrame.wantToRedoErrorTree();
+    }
+
+    public void databaseChanged(Undo.Change evt) {}
+
+    public boolean isGUIListener() {
+        return true;
+    }
+
+
 }
