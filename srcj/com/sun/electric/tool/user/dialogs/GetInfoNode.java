@@ -849,57 +849,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 				dialog.initialLocked = currentLocked;
 			}
 
-			// handle special node information
-			if (np == Schematics.tech.transistorNode || np == Schematics.tech.transistor4Node)
-			{
-                /*
-				String currentTextField = dialog.textField.getText();
-				if (!currentTextField.equals(dialog.initialTextField))
-				{
-					if (ni.isFET())
-					{
-						double width = TextUtils.atof(currentTextField);
-						int slashPos = currentTextField.indexOf('/');
-						double length = 2;
-						if (slashPos >= 0)
-							length = TextUtils.atof(currentTextField.substring(slashPos+1).trim());
-						Variable var = ni.updateVar(Schematics.ATTR_WIDTH, new Double(width));
-						if (var != null) var.setDisplay(true);
-						var = ni.updateVar(Schematics.ATTR_LENGTH, new Double(length));
-						if (var != null) var.setDisplay(true);
-						dialog.initialTextField = currentTextField;
-						changed = true;
-					} else
-					{
-						Variable var = ni.updateVar(Schematics.ATTR_AREA, new Double(TextUtils.atof(currentTextField)));
-						if (var != null) var.setDisplay(true);
-						dialog.initialTextField = currentTextField;
-						changed = true;
-					}
-				}*/
-                if (ni.isFET()) {
-                    // see if we can convert width and length to a Number
-                    double width = TextUtils.atof(dialog.xSize.getText(), null);
-                    Variable var = null;
-                    if (width == 0) {
-                        // set width to whatever text is there
-                        var = ni.updateVar(Schematics.ATTR_WIDTH, dialog.xSize.getText());
-                    } else {
-                        var = ni.updateVar(Schematics.ATTR_WIDTH, new Double(width));
-                    }
-                    if (var != null) var.setDisplay(true);
-
-                    double length = TextUtils.atof(dialog.ySize.getText(), null);
-                    if (length == 0) {
-                        // set length to whatever text is there
-                        var = ni.updateVar(Schematics.ATTR_LENGTH, dialog.ySize.getText());
-                    } else {
-                        var = ni.updateVar(Schematics.ATTR_LENGTH, new Double(length));
-                    }
-                    if (var != null) var.setDisplay(true);
-
-                }
-			}
+            // handle special node information
 			if (dialog.scalableTrans)
 			{
 				int index = dialog.popup.getSelectedIndex();
@@ -1042,31 +992,101 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			double currentXSize = 0, currentYSize = 0;
             double initXSize = 0, initYSize = 0;
 
-            // schematic transistors have width and length set by xsize, ysize fields
-            if (!(np == Schematics.tech.transistorNode) && !(np == Schematics.tech.transistor4Node))
+            // Figure out change in X and Y size
+            if (dialog.swapXY)
             {
-                if (dialog.swapXY)
-                {
-                    currentXSize = TextUtils.atof(dialog.ySize.getText(), new Double(ni.getYSize() - so.getLowXOffset() - so.getHighXOffset()));
-                    currentYSize = TextUtils.atof(dialog.xSize.getText(), new Double(ni.getXSize() - so.getLowYOffset() - so.getHighYOffset()));
-                } else
-                {
-                    currentXSize = TextUtils.atof(dialog.xSize.getText(), new Double(ni.getXSize() - so.getLowXOffset() - so.getHighXOffset()));
-                    currentYSize = TextUtils.atof(dialog.ySize.getText(), new Double(ni.getYSize() - so.getLowYOffset() - so.getHighYOffset()));
-                }
-                if (dialog.mirrorX.isSelected()) currentXSize = -currentXSize;
-                if (dialog.mirrorY.isSelected()) currentYSize = -currentYSize;
-                try {
-                    initXSize = Double.valueOf(dialog.initialXSize).doubleValue();
-                } catch (NumberFormatException e) {
-                    initXSize = currentXSize;
-                }
-                try {
-                    initYSize = Double.valueOf(dialog.initialYSize).doubleValue();
-                } catch (NumberFormatException e) {
-                    initYSize = currentYSize;
-                }
+                currentXSize = TextUtils.atof(dialog.ySize.getText(), new Double(ni.getYSize() - so.getLowXOffset() - so.getHighXOffset()));
+                currentYSize = TextUtils.atof(dialog.xSize.getText(), new Double(ni.getXSize() - so.getLowYOffset() - so.getHighYOffset()));
+            } else
+            {
+                currentXSize = TextUtils.atof(dialog.xSize.getText(), new Double(ni.getXSize() - so.getLowXOffset() - so.getHighXOffset()));
+                currentYSize = TextUtils.atof(dialog.ySize.getText(), new Double(ni.getYSize() - so.getLowYOffset() - so.getHighYOffset()));
             }
+            if (dialog.mirrorX.isSelected()) currentXSize = -currentXSize;
+            if (dialog.mirrorY.isSelected()) currentYSize = -currentYSize;
+            try {
+                initXSize = Double.valueOf(dialog.initialXSize).doubleValue();
+            } catch (NumberFormatException e) {
+                initXSize = currentXSize;
+            }
+            try {
+                initYSize = Double.valueOf(dialog.initialYSize).doubleValue();
+            } catch (NumberFormatException e) {
+                initYSize = currentYSize;
+            }
+            if (dialog.swapXY) {
+                double temp = initXSize;
+                initXSize = initYSize;
+                initYSize = temp;
+            }
+
+            // The following code is specific for transistors, and uses the X/Y size fields for
+            // Width and Length, and therefore may override the values such that the node size does not
+            // get set by them.
+            if (ni.getTransistorSize(VarContext.globalContext) != null) {
+
+                // see if this is a schematic transistor
+                if (np == Schematics.tech.transistorNode || np == Schematics.tech.transistor4Node)
+                {
+                    /*
+                    String currentTextField = dialog.textField.getText();
+                    if (!currentTextField.equals(dialog.initialTextField))
+                    {
+                        if (ni.isFET())
+                        {
+                            double width = TextUtils.atof(currentTextField);
+                            int slashPos = currentTextField.indexOf('/');
+                            double length = 2;
+                            if (slashPos >= 0)
+                                length = TextUtils.atof(currentTextField.substring(slashPos+1).trim());
+                            Variable var = ni.updateVar(Schematics.ATTR_WIDTH, new Double(width));
+                            if (var != null) var.setDisplay(true);
+                            var = ni.updateVar(Schematics.ATTR_LENGTH, new Double(length));
+                            if (var != null) var.setDisplay(true);
+                            dialog.initialTextField = currentTextField;
+                            changed = true;
+                        } else
+                        {
+                            Variable var = ni.updateVar(Schematics.ATTR_AREA, new Double(TextUtils.atof(currentTextField)));
+                            if (var != null) var.setDisplay(true);
+                            dialog.initialTextField = currentTextField;
+                            changed = true;
+                        }
+                    }*/
+                    if (ni.isFET()) {
+                        Object width, length;
+                        // see if we can convert width and length to a Number
+                        double w = TextUtils.atof(dialog.xSize.getText(), null);
+                        if (w == 0) {
+                            // set width to whatever text is there
+                            width = dialog.xSize.getText();
+                        } else {
+                            width = new Double(w);
+                        }
+
+                        double l = TextUtils.atof(dialog.ySize.getText(), null);
+                        if (l == 0) {
+                            // set length to whatever text is there
+                            length = dialog.ySize.getText();
+                        } else {
+                            length = new Double(l);
+                        }
+                        ni.setTransistorSize(width, length);
+                    }
+                } else {
+                    // this is a layout transistor
+                    if (!DBMath.doublesEqual(currentXSize, initXSize) ||
+                        !DBMath.doublesEqual(currentYSize, initYSize)) {
+                        // set transistor size
+                        ni.setTransistorSize(currentXSize, currentYSize);
+                    }
+                }
+
+                // negate nodeinst size change
+                currentXSize = initXSize;
+                currentYSize = initYSize;
+            }
+
 			int currentRotation = (int)(TextUtils.atof(dialog.rotation.getText(), new Double(dialog.initialRotation)) * 10);
 			if (!DBMath.doublesEqual(currentXPos, dialog.initialXPos) ||
 				!DBMath.doublesEqual(currentYPos, dialog.initialYPos) ||

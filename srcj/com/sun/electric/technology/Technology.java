@@ -1079,7 +1079,6 @@ public class Technology extends ElectricObject
 	 */
 	public TransistorSize getTransistorSize(NodeInst ni, VarContext context)
 	{
-		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		SizeOffset so = ni.getSizeOffset();
 		double width = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
 		double height = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
@@ -1088,6 +1087,21 @@ public class Technology extends ElectricObject
         TransistorSize size = new TransistorSize(new Double(width), new Double(height));
         return size;
 	}
+
+    /**
+     * Method to set the size of a transistor NodeInst in this Technology.
+     * You should be calling NodeInst.setTransistorSize instead of this.
+     * @param ni the NodeInst
+     * @param width the new width
+     * @param length the new length
+     */
+    public void setTransistorSize(NodeInst ni, double width, double length)
+    {
+        SizeOffset so = ni.getSizeOffset();
+        double oldWidth = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+        double oldLength = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+        ni.modifyInstance(0, 0, width - oldWidth, length - oldLength, 0);
+    }
 
     /**
      * Method to return a gate PortInst for this transistor NodeInst.

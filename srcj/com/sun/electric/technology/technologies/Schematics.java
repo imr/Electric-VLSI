@@ -2132,6 +2132,67 @@ public class Schematics extends Technology
         return size;
     }
 
+    /**
+     * Method to set the size of a transistor NodeInst in this technology.
+     * You should be calling NodeInst.setTransistorSize instead of this.
+     * Width may be the area for non-FET transistors, in which case length is ignored.
+     * You may also want to call setTransistorSize(NodeInst, Object, Object) to
+     * set the variables to a non-double value (such as a String).
+     * @param ni the NodeInst
+     * @param width the new width
+     * @param length the new length
+     */
+    public void setTransistorSize(NodeInst ni, double width, double length)
+    {
+        if (ni.isFET())
+        {
+            Variable var = ni.getVar(ATTR_LENGTH);
+            if (var != null) {
+                ni.updateVar(var.getKey(), new Double(length));
+            }
+            var = ni.getVar(ATTR_WIDTH);
+            if (var != null) {
+                ni.updateVar(var.getKey(), new Double(width));
+            }
+        } else {
+            Variable var = ni.getVar(ATTR_AREA);
+            if (var != null) {
+                ni.updateVar(var.getKey(), new Double(width));
+            }
+        }
+    }
+
+    /**
+     * Method to set the size of a transistor NodeInst in this technology.
+     * You should be calling NodeInst.setTransistorSize(Object, Object) instead.
+     * Width may be the area for non-FET transistors, in which case length is ignored.
+     * @param ni the NodeInst
+     * @param width the new width
+     * @param length the new length
+     */
+    public void setTransistorSize(NodeInst ni, Object width, Object length)
+    {
+        if (ni.isFET())
+        {
+            Variable var = ni.getVar(ATTR_LENGTH);
+            if (var != null) {
+                ni.updateVar(var.getKey(), length);
+                var.setDisplay(true);
+            }
+            var = ni.getVar(ATTR_WIDTH);
+            if (var != null) {
+                ni.updateVar(var.getKey(), width);
+                var.setDisplay(true);
+            }
+        } else {
+            Variable var = ni.getVar(ATTR_AREA);
+            if (var != null) {
+                ni.updateVar(var.getKey(), width);
+                var.setDisplay(true);
+            }
+        }
+    }
+
 	/****************************** GENERAL PREFERENCES ******************************/
 
 	/**

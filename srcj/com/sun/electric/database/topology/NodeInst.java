@@ -44,9 +44,11 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.Job;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -2128,6 +2130,35 @@ public class NodeInst extends Geometric implements Nodable
 		PrimitiveNode np = (PrimitiveNode)protoType;
 		return np.getTechnology().getTransistorSize(this, context);
 	}
+
+    /**
+     * Method to set the size of this transistor NodeInst. Does
+     * nothing if this is not a transistor NodeInst.
+     * @param width the new width of the transistor
+     * @param length the new length of the transistor
+     */
+    public void setTransistorSize(double width, double length)
+    {
+        if (!isPrimitiveTransistor() && !isFET()) return;
+		PrimitiveNode np = (PrimitiveNode)protoType;
+        Job.checkChanging();
+        np.getTechnology().setTransistorSize(this, width, length);
+    }
+
+    /**
+     * Method to set the size of a transistor NodeInst in this technology.
+     * Width may be the area for non-FET transistors, in which case length is ignored.
+     * This does nothing if the NodeInst's technology is not Schematics.
+     * @param width the new width
+     * @param length the new length
+     */
+    public void setTransistorSize(Object width, Object length)
+    {
+        Technology tech = protoType.getTechnology();
+        if (tech != Schematics.tech) return;
+        Job.checkChanging();
+        Schematics.tech.setTransistorSize(this, width, length);
+    }
 
     /**
      * Method to return a gate PortInst for this transistor NodeInst.
