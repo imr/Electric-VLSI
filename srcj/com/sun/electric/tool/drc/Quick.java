@@ -98,6 +98,7 @@ public class Quick
 	private static final int ENCLOSEDAREAERROR  = 8;
 	// Different types of warnings
 	private static final int ZEROLENGTHARCWARN  = 9;
+	private static final int MIXINGTECHWARN     = 10;
 
 	/**
 	 * The CheckInst object is associated with every cell instance in the library.
@@ -3166,14 +3167,19 @@ public class Quick
 	 */
 	private void buildLayerInteractions(Technology tech)
 	{
+		Technology old = layerInterTech;
 		if (layerInterTech == tech) return;
 
 		layerInterTech = tech;
 		int numLayers = tech.getNumLayers();
 
 		// build the node table
-        if (layersInterNodes != null && Main.getDebug())
-            System.out.println("Redoing the job again?");
+        if (layersInterNodes != null && old != null)
+        {
+	        ErrorLogger.MessageLog err =  errorLogger.logWarning("Switching from '" + old.getTechName() +
+	                "' to '" +  tech.getTechName() + "' in DRC process. Check for non desired nodes in cell '" +
+	                job.cell.describe() + "'", null, -1);
+        }
 
 		layersInterNodes = new HashMap();
 		for(Iterator it = tech.getNodes(); it.hasNext(); )
