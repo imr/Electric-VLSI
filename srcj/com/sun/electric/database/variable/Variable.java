@@ -147,7 +147,10 @@ public class Variable
 //	}
 	public TextDescriptor getTextDescriptor() { return descriptor; }
 	public void setDescriptor(TextDescriptor descriptor) { this.descriptor = descriptor; }
+
+	/** Low-level routine to get the type bits.  Should not normally be called. */
 	public int lowLevelGetFlags() { return flags; }
+	/** Low-level routine to set the type bits.  Should not normally be called. */
 	public void lowLevelSetFlags(int flags) { this.flags = flags; }
 
 	/** Set the Display bit */

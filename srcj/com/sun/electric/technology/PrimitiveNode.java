@@ -116,6 +116,7 @@ public class PrimitiveNode extends NodeProto
 	public double getHighXOffset() { return offset.getHighXOffset(); }
 	public double getLowYOffset() { return offset.getLowYOffset(); }
 	public double getHighYOffset() { return offset.getHighYOffset(); }
+	public Technology getTechnology() { return tech; }
 
 	public void addPrimitivePorts(PrimitivePort [] ports)
 	{
@@ -144,6 +145,10 @@ public class PrimitiveNode extends NodeProto
 		return this;
 	}
 	
+	/**
+	 * Routine to describe this Primitive NodeProto as a string.
+	 * If the primitive is not from the current technology, prepend the technology name.
+	 */
 	public String describe()
 	{
 		String name = "";

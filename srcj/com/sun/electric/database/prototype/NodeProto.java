@@ -23,12 +23,13 @@
  */
 package com.sun.electric.database.prototype;
 
-import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.network.JNetwork;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.FlagSet;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 
 import java.awt.Point;
@@ -208,8 +209,12 @@ public abstract class NodeProto extends ElectricObject
 	/** JNetworks that comprise this NodeProto */			private List networks;
 	/** All instances of this NodeProto */					private List instances;
 	/** flag bits */										protected int userBits;
-	/** temporary values */									private int temp1, temp2;
 	/** the function of this NodeProto */					private Function function;
+
+	/** temporary integer value */							private int tempInt;
+	/** temporary Object */									private Object tempObj;
+	/** temporary flag bits */								private int flagBits;
+	/** used to request flag bits */						private static FlagSet.Generator flagGenerator;
 
 	// ----------------- protected and private methods -----------------
 
@@ -219,6 +224,7 @@ public abstract class NodeProto extends ElectricObject
 		instances = new ArrayList();
 		networks = new ArrayList();
 		function = Function.UNKNOWN;
+		tempObj = null;
 	}
 
 	/**
@@ -403,15 +409,27 @@ public abstract class NodeProto extends ElectricObject
 	/** Get the In-Technology-Library bit */
 	public boolean isInTechnologyLibrary() { return (userBits & TECEDITCELL) != 0; }
 
-	/** Set the temporary value */
-	public void setTemp1(int temp1) { this.temp1 = temp1; }
-	/** Get the temporary value */
-	public int getTemp1() { return temp1; }
+	/** Gets a FlagSet for NodeProtos.  This can be used to set and test marks on NodeProtos. */
+	public static FlagSet getFlagSet(int numBits) { return FlagSet.getFlagSet(flagGenerator, numBits); }
+	/** Frees the FlagSet on NodeProtos.  The bits can be used elsewhere. */
+	public static void freeFlagSet(FlagSet fs) { fs.freeFlagSet(flagGenerator); }
 
-	/** Set the temporary value */
-	public void setTemp2(int temp2) { this.temp2 = temp2; }
-	/** Get the temporary value */
-	public int getTemp2() { return temp2; }
+	/** Sets the bits in FlagSet "set" on the current NodeProto. */
+	public void   setBit(FlagSet set) { flagBits = flagBits | set.getMask(); }
+	/** Clears the bits in FlagSet "set" on the current NodeProto. */
+	public void clearBit(FlagSet set) { flagBits = flagBits & set.getUnmask(); }
+	/** Tests the bits in FlagSet "set" on the current NodeProto.  Returns true if nonzero. */
+	public boolean isBit(FlagSet set) { return (flagBits & set.getMask()) != 0; }
+
+	/** Set the temporary integer value */
+	public void setTempInt(int tempInt) { this.tempInt = tempInt; }
+	/** Get the temporary integer value */
+	public int getTempInt() { return tempInt; }
+
+	/** Set the temporary object */
+	public void setTempObj(Object tempObj) { this.tempObj = tempObj; }
+	/** Get the temporary object */
+	public Object getTempObj() { return tempObj; }
 
 	public abstract double getDefWidth();
 	public abstract double getDefHeight();
@@ -421,7 +439,7 @@ public abstract class NodeProto extends ElectricObject
 	public abstract double getHighYOffset();
 
 	/** Get the Technology to which this NodeProto belongs */
-	public Technology getTechnology() { return tech; }
+	public abstract Technology getTechnology();
 
 	/** Set the Technology to which this NodeProto belongs (only works for Cells) */
 	public void setTechnology(Technology tech)
@@ -582,6 +600,9 @@ public abstract class NodeProto extends ElectricObject
 		return instances.iterator();
 	}
 
+	/**
+	 * Routine to describe this NodeProto as a string.
+	 */
 	public abstract String describe();
 
 	/**
@@ -609,6 +630,9 @@ public abstract class NodeProto extends ElectricObject
 		return false;
 	}
 
+	/** Low-level routine to get the user bits.  Should not normally be called. */
+	public int lowLevelGetUserbits() { return userBits; }
+	/** Low-level routine to set the user bits.  Should not normally be called. */
 	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
 
 	/** printable version of this object */

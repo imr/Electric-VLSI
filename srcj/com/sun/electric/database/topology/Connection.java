@@ -43,45 +43,28 @@ import java.util.HashMap;
 public class Connection extends ElectricObject
 {
 	// ------------------------- private data --------------------------------
-//	private static final JNetwork NO_SUBNET = new JNetwork(null);
 
-	private ArcInst arc; // the arc on one side of this connection 
-	private PortInst portInst;
-	private Point2D.Double location; // the location of this connection
+	/** the arc on one side of this connection */	private ArcInst arc;
+	/** the PortInst on the connected node */		private PortInst portInst;
+	/** the location of this connection */			private Point2D.Double location;
 
 	protected Connection(ArcInst arc, PortInst portInst, double x, double y)
 	{
 		this.arc = arc;
 		this.portInst = portInst;
 		this.location = new Point2D.Double(x, y);
-		portInst.getNodeInst().addConnection(this);
-	}
-
-	/** disconnect this connection from all database parts */
-	void remove()
-	{
-		portInst.getNodeInst().removeConnection(this);
-		arc.removeConnection(this, getArcEnd());
+//		portInst.getNodeInst().addConnection(this);
 	}
 
 	// --------------------------- public methods --------------------------
 	/** the arc this connection connects to */
-	public ArcInst getArc()
-	{
-		return arc;
-	}
+	public ArcInst getArc() { return arc; }
 
 	/** Get the PortInst connected to by this Connection */
-	public PortInst getPortInst()
-	{
-		return portInst;
-	}
+	public PortInst getPortInst() { return portInst; }
 
 	/** The location of this connection */
-	public Point2D.Double getLocation()
-	{
-		return location;
-	}
+	public Point2D.Double getLocation() { return location; }
 
 	/** Which end of the arc this connection connects to.  Arcs have
 	 * true ends and false ends. No more meaning can be read into the
@@ -90,6 +73,13 @@ public class Connection extends ElectricObject
 	{
 		return arc.getConnection(true) == this;
 	}
+
+	/** disconnect this connection from all database parts */
+//	void remove()
+//	{
+//		portInst.getNodeInst().removeConnection(this);
+//		arc.removeConnection(this, getArcEnd());
+//	}
 
 //	Iterator getConnections()
 //	{

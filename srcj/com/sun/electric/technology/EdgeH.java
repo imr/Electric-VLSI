@@ -25,8 +25,8 @@ package com.sun.electric.technology;
 
 public class EdgeH
 {
-	double multiplier;
-	double adder;
+	/** The multiplier (scales the width by this amount). */	private double multiplier;
+	/** The adder (adds this amount to the scaled width). */	private double adder;
 
 	public EdgeH(double multiplier, double adder)
 	{
@@ -34,23 +34,31 @@ public class EdgeH
 		this.adder = adder;
 	}
 
+	/** Defines the left edge of a primitive. */
 	public static final EdgeH LEFTEDGE = new EdgeH(-0.5, 0.0);
+	/** Defines the right edge of a primitive. */
 	public static final EdgeH RIGHTEDGE = new EdgeH(0.5, 0.0);
+	/** Defines the X center of a primitive. */
 	public static final EdgeH CENTER = new EdgeH(0.0, 0.0);
 
+	/** Returns the multiplier (scales the width by this amount). */
 	public double getMultiplier() { return multiplier; }
+	/** Returns the adder (adds this amount to the scaled width). */
 	public double getAdder() { return adder; }
 
+	/** In from the left edge by this amount. */
 	public static EdgeH fromLeft(double amt)
 	{
 		return new EdgeH(-0.5, amt);
 	}
 
+	/** In from the right edge by this amount. */
 	public static EdgeH fromRight(double amt)
 	{
 		return new EdgeH(0.5, -amt);
 	}
 
+	/** This amount from the center. */
 	public static EdgeH fromCenter(double amt)
 	{
 		return new EdgeH(0.0, amt);

@@ -28,6 +28,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
@@ -54,22 +55,35 @@ public final class UserInitial
 		UIMenu fileMenu = UIMenu.CreateUIMenu("File");
 		fileMenu.addMenuItem("Open", KeyStroke.getKeyStroke('O', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.openLibraryCommand(); } });
-		fileMenu.addMenuItem("Save", null,
+		fileMenu.addMenuItem("Save", KeyStroke.getKeyStroke('S', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.saveLibraryCommand(); } });
-		fileMenu.addMenuItem("Full Display", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.fullDisplayCommand(); } });
+		fileMenu.addMenuItem("Save as...",null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.saveAsLibraryCommand(); } });
+		fileMenu.addSeparator();
 		fileMenu.addMenuItem("Quit", KeyStroke.getKeyStroke('Q', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.quitCommand(); } });
+
+		// setup Steve's test menu
+		UIMenu steveMenu = UIMenu.CreateUIMenu("Steve");
+		steveMenu.addMenuItem("Show Cell Groups", KeyStroke.getKeyStroke('T', InputEvent.CTRL_MASK),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.showCellGroupsCommand(); } });
+		steveMenu.addMenuItem("Full Display", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.fullDisplayCommand(); } });
 
 		// create the menu bar
 		// should set com.apple.macos.useScreenMenuBar to TRUE (see http://developer.apple.com/documentation/Java/Conceptual/Java131Development/value_add/chapter_6_section_4.html)
 		// so, use -Dcom.apple.macos.useScreenMenuBar=true
 		JMenuBar menuBar = new JMenuBar();
 		menuBar.add(fileMenu);
+		menuBar.add(steveMenu);
 		UITopLevel.setMenuBar(menuBar);
 
 		// initialize all of the technologies
 		Technology.initAllTechnologies();
+
+		// create the first library
+		Library mainLib = Library.newInstance("noname", null);
+		Library.setCurrent(mainLib);
 
 		// test code to make and show something
 		makeFakeCircuitry();
@@ -91,10 +105,9 @@ public final class UserInitial
 		ArcProto m2Proto = ArcProto.findArcProto("mocmos:Metal-2");
 		ArcProto p1Proto = ArcProto.findArcProto("mocmos:Polysilicon-1");
 
+		// get the current library
+		Library mainLib = Library.getCurrent();
 
-		// create the first library
-		Library mainLib = Library.newInstance("noname", null);
-		Library.setCurrent(mainLib);
 
 		// create a layout cell in the library
 		Cell myCell = Cell.newInstance(mainLib, "test{lay}");
@@ -114,13 +127,19 @@ public final class UserInitial
 		PortInst p1Port = poly1Pin.getOnlyPortInst();
 		PortInst transRPort = transistor.findPortInst("p-trans-poly-right");
 		ArcInst metal2Arc = ArcInst.newInstance(m2Proto, m2Proto.getWidth(), m2Port, m1m2Port);
+		metal2Arc.setFixedAngle();
 		ArcInst metal1Arc = ArcInst.newInstance(m1Proto, m1Proto.getWidth(), contactPort, m1m2Port);
+		metal1Arc.setFixedAngle();
 		ArcInst polyArc = ArcInst.newInstance(p1Proto, p1Proto.getWidth(), contactPort, p1Port);
+		polyArc.setFixedAngle();
 		ArcInst polyArc2 = ArcInst.newInstance(p1Proto, p1Proto.getWidth(), transRPort, p1Port);
+		polyArc2.setFixedAngle();
 
 		// export the two pins
 		Export m1Export = Export.newInstance(myCell, metal12Via, m1m2Port, "in");
+		m1Export.setCharacteristic(PortProto.Characteristic.IN);
 		Export p1Export = Export.newInstance(myCell, poly1Pin, p1Port, "out");
+		p1Export.setCharacteristic(PortProto.Characteristic.OUT);
 		System.out.println("Created cell " + myCell.describe());
 
 
@@ -154,6 +173,7 @@ public final class UserInitial
 		PortInst instance1Port = instance1Node.findPortInst("in");
 		PortInst instance2Port = instance1UNode.findPortInst("in");
 		ArcInst instanceArc = ArcInst.newInstance(m1Proto, m1Proto.getWidth(), instance1Port, instance2Port);
+		instanceArc.setFixedAngle();
 		System.out.println("Created cell " + higherCell.describe());
 
 

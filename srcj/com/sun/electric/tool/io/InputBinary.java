@@ -36,6 +36,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
@@ -156,6 +157,8 @@ public class InputBinary extends Input
 	/** true to convert all text descriptor values */						private boolean convertTextDescriptors;
 	/** true to require text descriptor values */							private boolean alwaysTextDescriptors;
 
+	/** cell flag for recursive setup */									private FlagSet recursiveSetupFlag;
+
 	// ".elib" file version numbers
 	/** current magic number: version 12 */		public static final int MAGIC12 = -1595;
 	/** older magic number: version 11 */		public static final int MAGIC11 = -1593;
@@ -261,24 +264,24 @@ public class InputBinary extends Input
 		for (Iterator it = View.getViews(); it.hasNext();)
 		{
 			View view = (View) it.next();
-			view.setTemp1(0);
+			view.setTempInt(0);
 		}
-		View.UNKNOWN.setTemp1(-1);
-		View.LAYOUT.setTemp1(-2);
-		View.SCHEMATIC.setTemp1(-3);
-		View.ICON.setTemp1(-4);
-		View.SIMSNAP.setTemp1(-5);
-		View.SKELETON.setTemp1(-6);
-		View.VHDL.setTemp1(-7);
-		View.NETLIST.setTemp1(-8);
-		View.DOC.setTemp1(-9);
-		View.NETLISTNETLISP.setTemp1(-10);
-		View.NETLISTALS.setTemp1(-11);
-		View.NETLISTQUISC.setTemp1(-12);
-		View.NETLISTRSIM.setTemp1(-13);
-		View.NETLISTSILOS.setTemp1(-14);
-		View.VERILOG.setTemp1(-15);
-		View.COMP.setTemp1(-16);
+		View.UNKNOWN.setTempInt(-1);
+		View.LAYOUT.setTempInt(-2);
+		View.SCHEMATIC.setTempInt(-3);
+		View.ICON.setTempInt(-4);
+		View.SIMSNAP.setTempInt(-5);
+		View.SKELETON.setTempInt(-6);
+		View.VHDL.setTempInt(-7);
+		View.NETLIST.setTempInt(-8);
+		View.DOC.setTempInt(-9);
+		View.NETLISTNETLISP.setTempInt(-10);
+		View.NETLISTALS.setTempInt(-11);
+		View.NETLISTQUISC.setTempInt(-12);
+		View.NETLISTRSIM.setTempInt(-13);
+		View.NETLISTSILOS.setTempInt(-14);
+		View.VERILOG.setTempInt(-15);
+		View.COMP.setTempInt(-16);
 		if (magic <= MAGIC9)
 		{
 			int numExtraViews = readBigInteger();
@@ -292,7 +295,7 @@ public class InputBinary extends Input
 					view = View.makeInstance(viewName, viewShortName, 0);
 					if (view == null) return true;
 				}
-				view.setTemp1(i + 1);
+				view.setTempInt(i + 1);
 			}
 		}
 
@@ -815,7 +818,51 @@ public class InputBinary extends Input
 			if (readNodeProto(cell, i)) return true;
 		}
 
-		// add in external cells
+		// initialize for processing cell groups
+		FlagSet cellFlag = NodeProto.getFlagSet(1);
+		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
+		{
+			Cell cell = nodeProtoList[cellIndex];
+			if (cell == null) continue;
+			cell.clearBit(cellFlag);
+		}
+
+		// process the cell groups
+		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
+		{
+			Cell cell = nodeProtoList[cellIndex];
+			if (cell == null) continue;
+			if (cell.isBit(cellFlag)) continue;
+
+			// follow cell group links, give them a cell group
+			Cell.CellGroup cg = new Cell.CellGroup();
+			for(;;)
+			{
+				cell.setBit(cellFlag);
+				cell.setCellGroup(cg);
+
+				// move to the next in the group
+				Object other = cell.getTempObj();
+				if (other == null) break;
+				if (!(other instanceof Cell)) break;
+				Cell otherCell = (Cell)other;
+				if (otherCell == null) break;
+				if (otherCell.isBit(cellFlag)) break;
+				cell = otherCell;
+			}
+		}
+		NodeProto.freeFlagSet(cellFlag);
+
+		// cleanup cellgroup processing, link the cells
+		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
+		{
+			Cell cell = nodeProtoList[cellIndex];
+			if (cell == null) continue;
+			cell.setTempObj(null);
+			cell.lowLevelLink();
+		}
+
+		// now read external cells
 		for(int i=0; i<nodeProtoCount; i++)
 		{
 			Cell cell = nodeProtoList[i];
@@ -936,20 +983,22 @@ public class InputBinary extends Input
 		firstArcIndex[nodeProtoCount] = arcIndex;
 
 		// clear flag bits for scanning the library hierarchically
+		recursiveSetupFlag = NodeProto.getFlagSet(1);
 		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
 		{
 			Cell cell = nodeProtoList[cellIndex];
-			cell.setTemp1(0);
-			cell.setTemp2(cellIndex);
+			cell.clearBit(recursiveSetupFlag);
+			cell.setTempInt(cellIndex);
 		}
 
 		// scan library hierarchically and complete the setup
 		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
 		{
 			Cell cell = nodeProtoList[cellIndex];
-			if (cell.getTemp1() != 0) continue;
+			if (cell.isBit(recursiveSetupFlag)) continue;
 			completeCellSetupRecursively(cell, cellIndex);
 		}
+		NodeProto.freeFlagSet(recursiveSetupFlag);
 
 		if (curCell >= 0)
 		{
@@ -977,12 +1026,12 @@ public class InputBinary extends Input
 			if (np instanceof PrimitiveNode) continue;
 
 			// subcell: make sure that cell is setup
-			if (np.getTemp1() != 0) continue;
-			
+			if (np.isBit(recursiveSetupFlag)) continue;
+
 			// setup the subcell recursively
-			completeCellSetupRecursively((Cell)np,  np.getTemp2());
+			completeCellSetupRecursively((Cell)np,  np.getTempInt());
 		}
-		cell.setTemp1(1);
+		cell.setBit(recursiveSetupFlag);
 
 		// determine the lambda value for this cell
 		double lambda = 1.0;
@@ -1164,9 +1213,9 @@ public class InputBinary extends Input
 				// version 12 or later
 				theProtoName = readString();
 				int k = readBigInteger();
-//				cell->nextcellgrp = nodeProtoList[k];
+				cell.setTempObj(nodeProtoList[k]);		// the "next in cell group" circular pointer
 				k = readBigInteger();
-//				cell->nextcont = nodeProtoList[k];
+//				cell->nextcont = nodeProtoList[k];		// the "next in cell continuation" circular pointer
 			}
 			View v = getView(readBigInteger());
 			if (v == null) v = View.UNKNOWN;
@@ -1182,7 +1231,6 @@ public class InputBinary extends Input
 			theProtoName = readString();
 		}
 		cell.lowLevelPopulate(theProtoName);
-		cell.lowLevelLink();
 
 		// ignore the cell bounding box
 		int lowX = readBigInteger();
@@ -1801,6 +1849,7 @@ public class InputBinary extends Input
 
 	// --------------------------------- VARIABLES ---------------------------------
 
+	// this list is also in "OutputBinary.java"
 	private static final int VUNKNOWN =                  0;		/** undefined variable */
 	private static final int VINTEGER =                 01;		/** 32-bit integer variable */
 	private static final int VADDRESS =                 02;		/** unsigned address */
@@ -1836,6 +1885,7 @@ public class InputBinary extends Input
 	private static final int VDISPLAY =               0100;		/** display variable (uses textdescript field) */
 	private static final int VISARRAY =               0200;		/** set if variable is array of above objects */
 	private static final int VLENGTH =         03777777000;		/** array length (0: array is -1 terminated) */
+	private static final int VLENGTHSH =                 9;		/** right shift for VLENGTH */
 	private static final int VCODE2 =          04000000000;		/** variable is interpreted code (with VCODE1) */
 
 	/**
@@ -2234,7 +2284,7 @@ public class InputBinary extends Input
 		for(Iterator it = View.getViews(); it.hasNext(); )
 		{
 			v = (View) it.next();
-			if (v.getTemp1() == i) return v;
+			if (v.getTempInt() == i) return v;
 		}
 		return null;
 	}

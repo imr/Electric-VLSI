@@ -82,6 +82,7 @@ public class TecArtwork extends Technology
 	{
 		setTechName("artwork");
 		setTechDesc("General Purpose Sketchpad Facility");
+		setScale(4000);
 		setNonStandard();
 		setNonElectrical();
 		setNoNegatedArcs();
@@ -181,7 +182,7 @@ public class TecArtwork extends Technology
 			});
 		p_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, p_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, p_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.CENTER, EdgeV.CENTER, EdgeH.CENTER, EdgeV.CENTER)
 			});
 		p_node.setFunction(NodeProto.Function.PIN);
@@ -196,7 +197,7 @@ public class TecArtwork extends Technology
 			});
 		b_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, b_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "box", 180,0, 0, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, b_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "box", 180,0, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		b_node.setFunction(NodeProto.Function.ART);
@@ -209,7 +210,7 @@ public class TecArtwork extends Technology
 			});
 		cb_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, cb_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "fbox", 180,0, 0, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, cb_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "fbox", 180,0, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		cb_node.setFunction(NodeProto.Function.ART);
@@ -222,7 +223,7 @@ public class TecArtwork extends Technology
 			});
 		fb_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, fb_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "fbox", 180,0, 0, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, fb_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "fbox", 180,0, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		fb_node.setFunction(NodeProto.Function.ART);
@@ -235,7 +236,7 @@ public class TecArtwork extends Technology
 			});
 		c_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, c_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, c_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		c_node.setFunction(NodeProto.Function.ART);
@@ -249,7 +250,7 @@ public class TecArtwork extends Technology
 			});
 		fc_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, fc_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, fc_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		fc_node.setFunction(NodeProto.Function.ART);
@@ -263,7 +264,7 @@ public class TecArtwork extends Technology
 			});
 		s_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, s_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, s_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		s_node.setFunction(NodeProto.Function.ART);
@@ -277,7 +278,7 @@ public class TecArtwork extends Technology
 			});
 		t_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, t_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "triangle", 180,0, 0, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, t_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "triangle", 180,0, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		t_node.setFunction(NodeProto.Function.ART);
@@ -290,7 +291,7 @@ public class TecArtwork extends Technology
 			});
 		ft_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, ft_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "ftriangle", 180,0, 0, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, ft_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "ftriangle", 180,0, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		ft_node.setFunction(NodeProto.Function.ART);
@@ -303,7 +304,7 @@ public class TecArtwork extends Technology
 			});
 		a_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, a_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "arrow", 0,180, 0, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, a_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "arrow", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.RIGHTEDGE, EdgeV.CENTER, EdgeH.RIGHTEDGE, EdgeV.CENTER)
 			});
 		a_node.setFunction(NodeProto.Function.ART);
@@ -316,7 +317,7 @@ public class TecArtwork extends Technology
 			});
 		op_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, op_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, op_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		op_node.setFunction(NodeProto.Function.ART);
@@ -330,7 +331,7 @@ public class TecArtwork extends Technology
 			});
 		odp_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, odp_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, odp_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		odp_node.setFunction(NodeProto.Function.ART);
@@ -344,7 +345,7 @@ public class TecArtwork extends Technology
 			});
 		odp0_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, odp0_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, odp0_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		odp0_node.setFunction(NodeProto.Function.ART);
@@ -358,7 +359,7 @@ public class TecArtwork extends Technology
 			});
 		otp_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, otp_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, otp_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		otp_node.setFunction(NodeProto.Function.ART);
@@ -372,7 +373,7 @@ public class TecArtwork extends Technology
 			});
 		cp_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, cp_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, cp_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		cp_node.setFunction(NodeProto.Function.ART);
@@ -386,7 +387,7 @@ public class TecArtwork extends Technology
 			});
 		fp_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, fp_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, fp_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		fp_node.setFunction(NodeProto.Function.ART);
@@ -400,7 +401,7 @@ public class TecArtwork extends Technology
 			});
 		tc_node.addPrimitivePorts(new PrimitivePort[]
 			{
-				PrimitivePort.newInstance(this, tc_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, tc_node, new ArcProto [] {Solid_arc, Dotted_arc, Dashed_arc, Thicker_arc}, "site", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		tc_node.setFunction(NodeProto.Function.ART);

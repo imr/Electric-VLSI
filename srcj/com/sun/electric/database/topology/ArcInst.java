@@ -85,8 +85,10 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		this.userBits = 0;
 	}
 
-	/** recalculate the transform on this arc to get the endpoints
-	 * where they should be. */
+	/**
+	 * recalculate the transform on this arc to get the endpoints
+	 * where they should be.
+	 */
 	void updateGeometric()
 	{
 		Point2D.Double p1 = head.getLocation();
@@ -122,13 +124,13 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	public Connection getTail() { return tail; }
 
 	// Remove this ArcInst.  Will also remove the connections on either side.
-	public void remove()
-	{
-		head.remove();
-		tail.remove();
-		getParent().removeArc(this);
-		super.remove();
-	}
+//	public void remove()
+//	{
+//		head.remove();
+//		tail.remove();
+//		getParent().removeArc(this);
+//		super.remove();
+//	}
 
 	/** remove the connection from a particular end */
 	void removeConnection(Connection c, boolean onHead)
@@ -143,6 +145,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 			tail = null;
 	}
 
+	/** Reports information about this ArcInst */
 	public void getInfo()
 	{
 		System.out.println("--------- ARC INSTANCE: ---------");
@@ -224,6 +227,11 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 */
 	public boolean lowLevelLink()
 	{
+		// attach this arc to the two nodes it connects
+		head.getPortInst().getNodeInst().addConnection(head);
+		tail.getPortInst().getNodeInst().addConnection(tail);
+
+		// add this arc to the cell
 		Cell parent = getParent();
 		parent.addArc(this);
 		return false;
@@ -295,10 +303,10 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	/** Get the Far text bit */
 	public boolean isFarText() { return (userBits & AHASFARTEXT) != 0; }
 
-	/** Set the Arc angle value */
-	public void setArcAngle(int angle) { userBits = (userBits & ~AANGLE) | (angle << AANGLESH); }
-	/** Get the Arc angle value */
-	public int getArcAngle() { return (userBits & AANGLE) >> AANGLESH; }
+	/** Low-level routine to set the Arc angle value.  Should not normally be called. */
+	public void lowLevelSetArcAngle(int angle) { userBits = (userBits & ~AANGLE) | (angle << AANGLESH); }
+	/** Low-level routine to get the Arc angle value.  Should not normally be called. */
+	public int lowLevelGetArcAngle() { return (userBits & AANGLE) >> AANGLESH; }
 
 	/** Set the Shorten bit */
 	public void setShortened() { userBits |= ASHORT; }
@@ -363,7 +371,9 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	/** Get the Hard-to-Select bit */
 	public boolean isHardSelect() { return (userBits & HARDSELECTA) != 0; }
 
+	/** Low-level routine to get the flag bits.  Should not normally be called. */
 	public int lowLevelGetUserbits() { return userBits; }
+	/** Low-level routine to set the flag bits.  Should not normally be called. */
 	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
 
 	/** Get the width of this ArcInst.
@@ -393,15 +403,18 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		return protoType;
 	}
 
-	/** Get the network to which this ArcInst belongs.  An ArcInst
-	 * becomes part of a JNetwork only after you call
-	 * Cell.rebuildNetworks(). */
+	/**
+	 * Set the name of this ArcInst.
+	 */
 	public void setName(String name)
 	{
 		Variable var = setVal(VAR_ARC_NAME, name);
 		if (var != null) var.setDisplay();
 	}
 
+	/**
+	 * Get the name of this ArcInst.
+	 */
 	public String getName()
 	{
 		Variable var = getVal(VAR_ARC_NAME, String.class);
@@ -411,13 +424,13 @@ public class ArcInst extends Geometric /*implements Networkable*/
 
 	public Poly makearcpoly(double len, double wid, Poly.Type style)
 	{
-		Point2D end1 = head.getLocation();
-		Point2D end2 = tail.getLocation();
+		Point2D.Double end1 = head.getLocation();
+		Point2D.Double end2 = tail.getLocation();
 
 		// zero-width polygons are simply lines
 		if (wid == 0)
 		{
-			Poly poly = new Poly(new Point2D[]{end1, end2});
+			Poly poly = new Poly(new Point2D.Double[]{end1, end2});
 			if (style == Poly.Type.FILLED) style = Poly.Type.OPENED;
 			poly.setStyle(style);
 			return poly;
@@ -439,12 +452,12 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		}
 
 		// make the polygon
-		Poly poly = tech_makeendpointpoly(len, wid, getAngle(), end1, e1, end2, e2);
+		Poly poly = makeEndPointPoly(len, wid, getAngle(), end1, e1, end2, e2);
 		if (poly != null) poly.setStyle(style);
 		return poly;
 	}
 
-	Poly tech_makeendpointpoly(double len, double wid, double angle, Point2D end1, double e1,
+	Poly makeEndPointPoly(double len, double wid, double angle, Point2D end1, double e1,
 		Point2D end2, double e2)
 	{
 		double temp, xextra, yextra, xe1, ye1, xe2, ye2, w2, sa, ca;
@@ -517,6 +530,9 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		return null;
 	}
 
+	/**
+	 * Routine to describe this ArcInst as a string.
+	 */
 	public String describe()
 	{
 		return protoType.getProtoName();

@@ -38,10 +38,10 @@ import java.util.Iterator;
 
 public class Input
 {
-	String filePath;
-	Library lib;
-	FileInputStream fileInputStream;
-	DataInputStream dataInputStream;
+	/** Name of the file being input. */					protected String filePath;
+	/** The Library being input. */							protected Library lib;
+	/** The raw input stream. */							protected FileInputStream fileInputStream;
+	/** The binary input stream. */							protected DataInputStream dataInputStream;
 	/** static list of all libraries in Electric */			protected static List newLibraries = new ArrayList();
 
 	/**
@@ -122,7 +122,17 @@ public class Input
 			return null;
 		}
 		if (lib == null)
-			lib = Library.newInstance(n.getName(), fileName);
+		{
+			lib = Library.findLibrary(n.getName());
+			if (lib != null)
+			{
+				// library already exists, prompt for save
+				System.out.println("Library already exists: overwriting");
+			} else
+			{
+				lib = Library.newInstance(n.getName(), fileName);
+			}
+		}
 
 		// add to the list of libraries read at once
 		if (topLevel) newLibraries.clear();

@@ -93,6 +93,8 @@ public class Export extends PortProto
 		this.originalPort = originalPort;
 		this.originalNode = originalNode;
 		originalNode.addExport(this);
+		
+		this.userBits = originalPort.getPortProto().lowLevelGetUserbits();
 		return false;
 	}
 

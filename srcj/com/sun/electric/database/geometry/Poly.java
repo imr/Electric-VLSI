@@ -24,6 +24,7 @@
 package com.sun.electric.database.geometry;
 
 import com.sun.electric.technology.Layer;
+import com.sun.electric.database.geometry.EMath;
 
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -85,29 +86,14 @@ public class Poly implements Shape
 		/** big cross */									public static final Type BIGCROSS =       new Type();
 	}
 
-	private Layer layer;
-	private Point2D points[];
-	private Rectangle2D.Double bounds;
-	private Poly.Type style;
-	private String string;
-
-	/* text font sizes (in VARIABLE, NODEINST, PORTPROTO, and POLYGON->textdescription) */
-	/** points from 1 to TXTMAXPOINTS */					public static final int TXTPOINTS =        077;
-	/** right-shift of TXTPOINTS */							public static final int TXTPOINTSSH =        0;
-	public static final int TXTMAXPOINTS =      63;
-//	public static final int TXTSETPOINTS(p)   ((p)<<TXTPOINTSSH)
-//	public static final int TXTGETPOINTS(p)   (((p)&TXTPOINTS)>>TXTPOINTSSH)
-
-	public static final int TXTQGRID =    077700;		
-	public static final int TXTQGRIDSH =       6;		
-	public static final int TXTMAXQGRID =    511;
-//	public static final int TXTSETQGRID(ql) ((ql)<<TXTQGRIDSH)
-//	public static final int TXTGETQGRIDql) (((ql)&TXTQGRID)>>TXTQGRIDSH)
-	/** fixed-width text for text editing */			public static final int TXTEDITOR =     077770;
-	/** text for menu selection */						public static final int TXTMENU =       077771;
+	/** the layer (used for graphics) */					private Layer layer;
+	/** the points */										private Point2D.Double points[];
+	/** the bounds of the points */							private Rectangle2D.Double bounds;
+	/** the style (outline, text, lines, etc.) */			private Poly.Type style;
+	/** the string (if of type TEXT) */						private String string;
 
 	/** Create a new Poly given (x,y) points and a specific Layer */
-	public Poly(Point2D [] points)
+	public Poly(Point2D.Double [] points)
 	{
 		this.points = points;
 		layer = null;
@@ -120,7 +106,7 @@ public class Poly implements Shape
 	{
 		double halfWidth = width / 2;
 		double halfHeight = height / 2;
-		this.points = new Point2D[] {
+		this.points = new Point2D.Double[] {
 			new Point2D.Double(cX-halfWidth, cY-halfHeight),
 			new Point2D.Double(cX+halfWidth, cY-halfHeight),
 			new Point2D.Double(cX+halfWidth, cY+halfHeight),
@@ -130,16 +116,23 @@ public class Poly implements Shape
 		bounds = null;
 	}
 
+	/** Get the layer associated with this polygon. */
 	public Layer getLayer() { return layer; }
+	/** Set the layer associated with this polygon. */
 	public void setLayer(Layer layer) { this.layer = layer; }
 
+	/** Get the style (Poly.Type) associated with this polygon. */
 	public Poly.Type getStyle() { return style; }
+	/** Set the style (Poly.Type) associated with this polygon. */
 	public void setStyle(Poly.Type style) { this.style = style; }
 
+	/** Get the String associated with this polygon. */
 	public String getString() { return string; }
+	/** Set the String associated with this polygon. */
 	public void setString(String string) { this.string = string; }
 
-	public Point2D [] getPoints() { return points; }
+	/** Get the array of points associated with this polygon. */
+	public Point2D.Double [] getPoints() { return points; }
 
 	/** Get a transformed copy of this polygon, including scale, offset,
 	 * and rotation.
@@ -151,17 +144,196 @@ public class Poly implements Shape
 		bounds = null;
 	}
 
-	// SHAPE REQUIREMENTS:
-	/** TODO: write contains(double, double); */
-	public boolean contains(double x, double y)
+	/**
+	 * routine to return a Rectangle that describes the orthogonal box in polygon "poly".
+	 * If the polygon is not an orthogonal box, returns null.
+	 */
+	public Rectangle2D.Double getBox()
 	{
+		/* closed boxes must have exactly four points */
+		if (points.length == 4)
+		{
+			/* only closed polygons and text can be boxes */
+			if (style != Type.FILLED && style != Type.CLOSED && style != Type.TEXTBOX) return null;
+		} else if (points.length == 5)
+		{
+			if (style != Type.OPENED && style != Type.OPENEDT1 && style != Type.OPENEDT2 &&
+				style != Type.OPENEDT3 && style != Type.OPENEDO1) return null;
+			if (points[0].getX() != points[4].getX() || points[0].getY() != points[4].getY()) return null;
+		} else return null;
+
+		/* make sure the polygon is rectangular and orthogonal */
+		if (points[0].getX() == points[1].getX() && points[2].getX() == points[3].getX() &&
+			points[0].getY() == points[3].getY() && points[1].getY() == points[2].getY())
+		{
+			double cX = (points[2].getX() + points[0].getX()) / 2;
+			double cY = (points[1].getY() + points[0].getY()) / 2;
+			double sX, sY;
+			if (points[0].getX() < points[2].getX())
+			{
+				sX = points[2].getX() - points[0].getX();
+			} else
+			{
+				sX = points[0].getX() - points[1].getX();
+			}
+			if (points[0].getY() < points[1].getY())
+			{
+				sY = points[1].getY() - points[0].getY();
+			} else
+			{
+				sY = points[0].getY() - points[1].getY();
+			}
+			return new Rectangle2D.Double(cX, cY, sX, sY);
+		}
+		if (points[0].getX() == points[3].getX() && points[1].getX() == points[2].getX() &&
+			points[0].getY() == points[1].getY() && points[2].getY() == points[3].getY())
+		{
+			double cX = (points[1].getX() + points[0].getX()) / 2;
+			double cY = (points[2].getY() + points[0].getY()) / 2;
+			double sX, sY;
+			if (points[0].getX() < points[1].getX())
+			{
+				sX = points[1].getX() - points[0].getX();
+			} else
+			{
+				sX = points[0].getX() - points[1].getX();
+			}
+			if (points[0].getY() < points[2].getY())
+			{
+				sY = points[2].getY() - points[0].getY();
+			} else
+			{
+				sY = points[0].getY() - points[2].getY();
+			}
+			return new Rectangle2D.Double(cX, cY, sX, sY);
+		}
+		return null;
+	}
+
+	/**
+	 * routine to return true if (X,Y) is inside of polygon "poly"
+	 */
+	public boolean isinside(Point2D.Double pt)
+	{
+		if (style == Type.FILLED || style == Type.CLOSED || style == Type.CROSSED || style == Type.TEXTBOX)
+		{
+				/* check rectangular case for containment */
+			Rectangle2D.Double bounds = getBox();
+			if (bounds != null)
+			{
+				if (bounds.contains(pt)) return true;
+				return false;
+			}
+
+			/* general polygon containment by summing angles to vertices */
+			double ang = 0;
+			Point2D.Double lastPoint = points[points.length-1];
+			if (pt.equals(lastPoint)) return true;
+			double lastp = EMath.figureAngle(pt, lastPoint);
+			for(int i=0; i<points.length; i++)
+			{
+				Point2D.Double thisPoint = points[i];
+				if (pt.equals(thisPoint)) return true;
+				double thisp = EMath.figureAngle(pt, thisPoint);
+				double tang = lastp - thisp;
+				if (tang < -180) tang += 360;
+				if (tang > 180) tang -= 360;
+				ang += tang;
+				lastp = thisp;
+			}
+			if (Math.abs(ang) <= points.length) return false;
+			return true;
+		}
+
+		if (style == Type.CROSS || style == Type.BIGCROSS)
+		{
+			if (getCenterX() == pt.getX() && getCenterY() == pt.getY()) return true;
+			return false;
+		}
+
+		if (style == Type.OPENED || style == Type.OPENEDT1 || style == Type.OPENEDT2 ||
+			style == Type.OPENEDT3 || style == Type.VECTORS)
+		{
+			/* first look for trivial inclusion by being a vertex */
+			for(int i=0; i<points.length; i++)
+				if (pt.equals(points[i])) return true;
+
+			/* see if the point is on one of the edges */
+			if (style == Type.VECTORS)
+			{
+				for(int i=0; i<points.length; i += 2)
+					if (EMath.isOnLine(points[i], points[i+1], pt)) return true;
+			} else
+			{
+				for(int i=1; i<points.length; i++)
+					if (EMath.isOnLine(points[i-1], points[i], pt)) return true;
+			}
+			return false;
+		}
+
+		if (style == Type.CIRCLE || style == Type.THICKCIRCLE || style == Type.DISC)
+		{
+			double dist = EMath.computeDistance(points[0], points[1]);
+			double odist = EMath.computeDistance(points[0], pt);
+			if (odist < dist) return true;
+			return false;
+		}
+
+		if (style == Type.CIRCLEARC || style == Type.THICKCIRCLEARC)
+		{
+			/* first see if the point is at the proper angle from the center of the arc */
+			double ang = EMath.figureAngle(points[0], pt);
+			double endangle = EMath.figureAngle(points[0], points[1]);
+			double startangle = EMath.figureAngle(points[0], points[2]);
+			double angrange;
+			if (endangle > startangle)
+			{
+				if (ang < startangle || ang > endangle) return false;
+				angrange = endangle - startangle;
+			} else
+			{
+				if (ang < startangle && ang > endangle) return false;
+				angrange = 3600 - startangle + endangle;
+			}
+
+			/* now see if the point is the proper distance from the center of the arc */
+			double dist = EMath.computeDistance(points[0], pt);
+			double wantdist;
+			if (ang == startangle || angrange == 0)
+			{
+				wantdist = EMath.computeDistance(points[0], points[1]);
+			} else if (ang == endangle)
+			{
+				wantdist = EMath.computeDistance(points[0], points[2]);
+			} else
+			{
+				double startdist = EMath.computeDistance(points[0], points[1]);
+				double enddist = EMath.computeDistance(points[0], points[2]);
+				if (enddist == startdist) wantdist = startdist; else
+				{
+					wantdist = startdist + (ang - startangle) / angrange *
+						(enddist - startdist);
+				}
+			}
+			if (dist == wantdist) return true;
+			return false;
+		}
+
+		/* I give up */
 		return false;
 	}
 
-	/** TODO: write contains(Point2D); */
+	// SHAPE REQUIREMENTS:
+	/** Returns true if point (x,y) is contained in the poly. */
+	public boolean contains(double x, double y)
+	{
+		return isinside(new Point2D.Double(x, y));
+	}
+
+	/** Returns true if point "p" is contained in the poly. */
 	public boolean contains(Point2D p)
 	{
-		return contains(p.getX(), p.getY());
+		return isinside(new Point2D.Double(p.getX(), p.getY()));
 	}
 
 	/** TODO: write contains(double, double, double, double); */

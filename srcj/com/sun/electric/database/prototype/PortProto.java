@@ -31,6 +31,8 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.PrimitivePort;
 
+import java.util.HashMap;
+
 /**
  * A PortProto object lives at the PrimitiveNode level as a PrimitivePort,
  * or at the Cell level as an Export.  A PortProto has a descriptive name,
@@ -41,42 +43,85 @@ import com.sun.electric.technology.PrimitivePort;
 
 public abstract class PortProto extends ElectricObject implements Networkable
 {
+	/** angle of this port from node center */			public static final int PORTANGLE =               0777;
+	/** right shift of PORTANGLE field */				public static final int PORTANGLESH =                0;
+	/** range of valid angles about port angle */		public static final int PORTARANGE =           0377000;
+	/** right shift of PORTARANGE field */				public static final int PORTARANGESH =               9;
+	/** electrical net of primitive port (0-30) */		public static final int PORTNET =           0177400000;
+           /* 31 stands for one-port net */
+	/** right shift of PORTNET field */					public static final int PORTNETSH =                 17;
+	/** set if arcs to this port do not connect */		public static final int PORTISOLATED =      0200000000;
+	/** set if this port should always be drawn */		public static final int PORTDRAWN =         0400000000;
+	/** set to exclude this port from the icon */		public static final int BODYONLY =         01000000000;
+	/** input/output/power/ground/clock state */		public static final int STATEBITS =       036000000000;
+	/** right shift of STATEBITS */						public static final int STATEBITSSH =               27;
+	/** un-phased clock port */							public static final int CLKPORT =          02000000000;
+	/** clock phase 1 */								public static final int C1PORT =           04000000000;
+	/** clock phase 2 */								public static final int C2PORT =           06000000000;
+	/** clock phase 3 */								public static final int C3PORT =          010000000000;
+	/** clock phase 4 */								public static final int C4PORT =          012000000000;
+	/** clock phase 5 */								public static final int C5PORT =          014000000000;
+	/** clock phase 6 */								public static final int C6PORT =          016000000000;
+	/** input port */									public static final int INPORT =          020000000000;
+	/** output port */									public static final int OUTPORT =         022000000000;
+	/** bidirectional port */							public static final int BIDIRPORT =       024000000000;
+	/** power port */									public static final int PWRPORT =         026000000000;
+	/** ground port */									public static final int GNDPORT =         030000000000;
+	/** bias-level reference output port */				public static final int REFOUTPORT =      032000000000;
+	/** bias-level reference input port */				public static final int REFINPORT =       034000000000;
+	/** bias-level reference base port */				public static final int REFBASEPORT =     036000000000;
+
 	/**
-	 * Function is a typesafe enum class that describes the function of a portproto.
+	 * Characteristic is a typesafe enum class that describes the characteristics of a portproto.
 	 */
-	public static class Function
+	public static class Characteristic
 	{
 		private final String name;
+		private final int    bits;
 
-		private Function(String name) { this.name = name; }
+		private static HashMap characteristicList = new HashMap();
+
+		private Characteristic(String name, int bits)
+		{
+			this.name = name;
+			this.bits = bits;
+			characteristicList.put(new Integer(bits), this);
+		}
+		public int getBits() { return bits; }
+		public static Characteristic findCharacteristic(int bits)
+		{
+			Object obj = characteristicList.get(new Integer(bits));
+			if (obj == null) return null;
+			return (Characteristic)obj;
+		}
 
 		public String toString() { return name; }
 
-		/**   unknown port */						public static final Function UNKNOWN = new Function("unknown");
-		/**   un-phased clock port */				public static final Function CLK = new Function("clock");
-		/**   clock phase 1 */						public static final Function C1 = new Function("clock1");
-		/**   clock phase 2 */						public static final Function C2 = new Function("clock2");
-		/**   clock phase 3 */						public static final Function C3 = new Function("clock3");
-		/**   clock phase 4 */						public static final Function C4 = new Function("clock4");
-		/**   clock phase 5 */						public static final Function C5 = new Function("clock5");
-		/**   clock phase 6 */						public static final Function C6 = new Function("clock6");
-		/**   input port */							public static final Function IN = new Function("input");
-		/**   output port */						public static final Function OUT = new Function("output");
-		/**   bidirectional port */					public static final Function BIDIR = new Function("bidirectional");
-		/**   power port */							public static final Function PWR = new Function("power");
-		/**   ground port */						public static final Function GND = new Function("ground");
-		/**   bias-level reference output port */	public static final Function REFOUT = new Function("refout");
-		/**   bias-level reference input port */	public static final Function REFIN = new Function("refin");
-		/**   bias-level reference base port */		public static final Function REFBASE = new Function("refbase");
+		/**   unknown port */						public static final Characteristic UNKNOWN = new Characteristic("unknown", 0);
+		/**   un-phased clock port */				public static final Characteristic CLK = new Characteristic("clock", CLKPORT);
+		/**   clock phase 1 */						public static final Characteristic C1 = new Characteristic("clock1", C1PORT);
+		/**   clock phase 2 */						public static final Characteristic C2 = new Characteristic("clock2", C2PORT);
+		/**   clock phase 3 */						public static final Characteristic C3 = new Characteristic("clock3", C3PORT);
+		/**   clock phase 4 */						public static final Characteristic C4 = new Characteristic("clock4", C4PORT);
+		/**   clock phase 5 */						public static final Characteristic C5 = new Characteristic("clock5", C5PORT);
+		/**   clock phase 6 */						public static final Characteristic C6 = new Characteristic("clock6", C6PORT);
+		/**   input port */							public static final Characteristic IN = new Characteristic("input", INPORT);
+		/**   output port */						public static final Characteristic OUT = new Characteristic("output", OUTPORT);
+		/**   bidirectional port */					public static final Characteristic BIDIR = new Characteristic("bidirectional", BIDIRPORT);
+		/**   power port */							public static final Characteristic PWR = new Characteristic("power", PWRPORT);
+		/**   ground port */						public static final Characteristic GND = new Characteristic("ground", GNDPORT);
+		/**   bias-level reference output port */	public static final Characteristic REFOUT = new Characteristic("refout", REFOUTPORT);
+		/**   bias-level reference input port */	public static final Characteristic REFIN = new Characteristic("refin", REFINPORT);
+		/**   bias-level reference base port */		public static final Characteristic REFBASE = new Characteristic("refbase", REFBASEPORT);
 	}
 
 	// ------------------------ private data --------------------------
 
 	/** port name */								protected String protoName;
 	/** flag bits */								protected int userBits;
-	/** temporary values */							protected int temp1;
 	/** parent NodeProto */							protected NodeProto parent;
 	/** Text descriptor */							protected TextDescriptor descriptor;
+	/** temporary integer value */					protected int tempInt;
 	
 
 	/** Network that this port belongs to (in case two ports are permanently
@@ -86,16 +131,6 @@ public abstract class PortProto extends ElectricObject implements Networkable
 	private JNetwork network;
 
 	// ----------------------- public constants -----------------------
-	/** angle of this port from node center */			public static final int PORTANGLE=               0777;
-	/** right shift of PORTANGLE field */				public static final int PORTANGLESH=                0;
-	/** range of valid angles about port angle */		public static final int PORTARANGE=           0377000;
-	/** right shift of PORTARANGE field */				public static final int PORTARANGESH=               9;
-	/** electrical net of primitive port (0-30) */		public static final int PORTNET=           0177400000;
-           /* 31 stands for one-port net */
-	/** right shift of PORTNET field */					public static final int PORTNETSH=                 17;
-	/** set if arcs to this port do not connect */		public static final int PORTISOLATED=      0200000000;
-	/** set if this port should always be drawn */		public static final int PORTDRAWN=         0400000000;
-	/** set to exclude this port from the icon */		public static final int BODYONLY=         01000000000;
 
 	// ------------------ protected and private methods ---------------------
 
@@ -159,6 +194,18 @@ public abstract class PortProto extends ElectricObject implements Networkable
 	/** Get the Text Descriptor associated with this port. */
 	public void setTextDescriptor(TextDescriptor descriptor) { this.descriptor = descriptor; }
 
+	public Characteristic getCharacteristic()
+	{
+		Characteristic characteristic = Characteristic.findCharacteristic(userBits&STATEBITS);
+		return characteristic;
+	}
+
+
+	public void setCharacteristic(Characteristic characteristic)
+	{
+		userBits = (userBits & ~STATEBITS) | characteristic.getBits();
+	}
+
 	/** Get the first "real" (non-zero width) ArcProto style that can
 	 * connect to this port. */
 	public ArcProto getWire()
@@ -178,10 +225,13 @@ public abstract class PortProto extends ElectricObject implements Networkable
 
 	public abstract PortProto getEquivalent();
 
+	/** Low-level routine to get the user bits.  Should not normally be called. */
+	public int lowLevelGetUserbits() { return userBits; }
+	/** Low-level routine to set the user bits.  Should not normally be called. */
 	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
 
-	public int getTemp1() { return temp1; }
-	public void setTemp1(int temp1) { this.temp1 = temp1; }
+	public int getTempInt() { return tempInt; }
+	public void setTempInt(int tempInt) { this.tempInt = tempInt; }
 
 	public String toString()
 	{

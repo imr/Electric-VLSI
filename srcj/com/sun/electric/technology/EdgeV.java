@@ -25,8 +25,8 @@ package com.sun.electric.technology;
 
 public class EdgeV
 {
-	double multiplier;
-	double adder;
+	/** The multiplier (scales the height by this amount). */	private double multiplier;
+	/** The adder (adds this amount to the scaled height). */	private double adder;
 
 	public EdgeV(double multiplier, double adder)
 	{
@@ -34,23 +34,31 @@ public class EdgeV
 		this.adder = adder;
 	}
 
+	/** Defines the bottom edge of a primitive. */
 	public static final EdgeV BOTTOMEDGE = new EdgeV(-0.5, 0.0);
+	/** Defines the top edge of a primitive. */
 	public static final EdgeV TOPEDGE = new EdgeV(0.5, 0.0);
+	/** Defines the Y center of a primitive. */
 	public static final EdgeV CENTER = new EdgeV(0.0, 0.0);
 
+	/** Returns the multiplier (scales the height by this amount). */
 	public double getMultiplier() { return multiplier; }
+	/** Returns the adder (adds this amount to the scaled height). */
 	public double getAdder() { return adder; }
 
+	/** In from the top edge by this amount. */
 	public static EdgeV fromTop(double amt)
 	{
 		return new EdgeV(0.5, -amt);
 	}
 	
+	/** In from the bottom edge by this amount. */
 	public static EdgeV fromBottom(double amt)
 	{
 		return new EdgeV(-0.5, amt);
 	}
 	
+	/** This amount from the center. */
 	public static EdgeV fromCenter(double amt)
 	{
 		return new EdgeV(0.0, amt);

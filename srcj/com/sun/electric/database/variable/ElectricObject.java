@@ -144,7 +144,7 @@ public class ElectricObject
 	/** put an object value associated with a name */
 	public Variable setVal(String name, Object value)
 	{
-		Variable.Name vn = (Variable.Name)varNames.get(name);
+		Variable.Name vn = findName(name);
 		if (vn == null)
 		{
 			vn = new Variable.Name(name);
@@ -179,6 +179,7 @@ public class ElectricObject
 		vars.remove(name);
 	}
 
+	/** Return true if this variable name is deprecated. */
 	public boolean isdeprecatedvariable(String name)
 	{
 		return false;
@@ -189,26 +190,33 @@ public class ElectricObject
 	{
 		if (vars == null)
 			return (new ArrayList()).iterator();
-		return vars.keySet().iterator();
+		return vars.entrySet().iterator();
 	}
 
 	/** Return the number of Variables. */
 	public int getNumVariables()
 	{
 		if (vars == null) return 0;
-		return vars.keySet().size();
+		return vars.entrySet().size();
 	}
 
 	/** Return all the Variable names. */
 	public static Iterator getVariableNames()
 	{
-		return varNames.entrySet().iterator();
+		return varNames.keySet().iterator();
 	}
 
 	/** Return the number of Variable names. */
 	public static int getNumVariableNames()
 	{
-		return varNames.entrySet().size();
+		return varNames.keySet().size();
+	}
+
+	/** Returns the Variable.Name for this string. */
+	public static Variable.Name findName(String name)
+	{
+		Variable.Name vn = (Variable.Name)varNames.get(name);
+		return vn;
 	}
 
 	/** Print a full description of this object (in response to an INFO request). */

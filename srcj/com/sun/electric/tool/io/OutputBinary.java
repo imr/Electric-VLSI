@@ -36,6 +36,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
@@ -54,17 +55,15 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Date;
 import java.awt.geom.Point2D;
-import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
-import java.nio.DoubleBuffer;
-import java.nio.ByteOrder;
 import java.awt.geom.Rectangle2D;
 
 
 public class OutputBinary extends Output
 {
 
-	/** all of the names used in variables */			private static HashMap varNames;
+	/** cell flag for finding external cell refernces */		private FlagSet externalRefFlag;
+
+	/** all of the names used in variables */					private static HashMap varNames;
 
 	OutputBinary()
 	{
@@ -92,9 +91,9 @@ public class OutputBinary extends Output
 		throws IOException
 	{
 		writeBigInteger(InputBinary.MAGIC12);
-		writeBigInteger(2);		// size of Short
-		writeBigInteger(4);		// size of Int
-		writeBigInteger(1);		// size of Char
+		writeByte((byte)2);		// size of Short
+		writeByte((byte)4);		// size of Int
+		writeByte((byte)1);		// size of Char
 
 		// write the number of tools
 		int toolCount = Tool.getNumTools();
@@ -102,47 +101,79 @@ public class OutputBinary extends Output
 		int techCount = Technology.getNumTechnologies();
 		writeBigInteger(techCount);
 
+		// convert cellGroups to "next in cell group" pointers
+		FlagSet cellFlag = NodeProto.getFlagSet(1);
+		for(Iterator it = lib.getCells(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			cell.clearBit(cellFlag);
+			cell.setTempObj(null);
+		}
+		for(Iterator it = lib.getCells(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			if (cell.isBit(cellFlag)) continue;
+
+			// mark the group with "next" pointers
+			Cell firstCellInGroup = null;
+			Cell lastCellInGroup = null;
+			for(Iterator git = cell.getCellGroup().getCells(); git.hasNext(); )
+			{
+				Cell cellInGroup = (Cell)git.next();
+				if (lastCellInGroup == null) firstCellInGroup = cellInGroup; else
+				{
+					lastCellInGroup.setTempObj(cellInGroup);
+				}
+				cellInGroup.setBit(cellFlag);
+				lastCellInGroup = cellInGroup;
+			}
+			if (lastCellInGroup == null || firstCellInGroup == null)
+				lastCellInGroup = firstCellInGroup = cell;
+			lastCellInGroup.setTempObj(firstCellInGroup);
+		}
+		NodeProto.freeFlagSet(cellFlag);
+
 		// initialize the number of objects in the database
 		int nodeIndex = 0;
-		int portprotoIndex = 0;
-		int nodeprotoIndex = 0;
+		int portProtoIndex = 0;
+		int nodeProtoIndex = 0;
 		int arcIndex = 0;
-		int nodepprotoIndex = 0;
-		int portpprotoIndex = 0;
-		int arcprotoIndex = 0;
-		int cellIndex = 0;
+		int primNodeProtoIndex = 0;
+		int primPortProtoIndex = 0;
+		int arcProtoIndex = 0;
 
 		// count and number the cells, nodes, arcs, and ports in this library
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-			cell.setTemp1(nodeprotoIndex++);
+			cell.setTempInt(nodeProtoIndex++);
 			for(Iterator pit = cell.getPorts(); pit.hasNext(); )
 			{
 				Export pp = (Export)pit.next();
-				pp.setTemp1(portprotoIndex++);
+				pp.setTempInt(portProtoIndex++);
 			}
 			for(Iterator ait = cell.getArcs(); ait.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)ait.next();
-				ai.setTemp1(arcIndex++);
+				ai.setTempInt(arcIndex++);
 			}
 			for(Iterator nit = cell.getNodes(); nit.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)nit.next();
-				ni.setTemp1(nodeIndex++);
+				ni.setTempInt(nodeIndex++);
 			}
 		}
-		int cellsHere = nodeprotoIndex;
+		int cellsHere = nodeProtoIndex;
 
 		// prepare to locate references to cells in other libraries
+		FlagSet externalRefFlag = NodeProto.getFlagSet(1);
 		for(Iterator it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library olib = (Library)it.next();
 			for(Iterator cit = olib.getCells(); cit.hasNext(); )
 			{
 				Cell cell = (Cell)cit.next();
-				cell.setTemp2(0);
+				cell.clearBit(externalRefFlag);
 			}
 		}
 
@@ -203,7 +234,7 @@ public class OutputBinary extends Output
 					findXLibVariables(pp);
 				}
 				if (ni.getProto() instanceof Cell)
-					ni.getProto().setTemp2(1);
+					ni.getProto().setBit(externalRefFlag);
 			}
 			for(Iterator ait = cell.getArcs(); ait.hasNext(); )
 			{
@@ -220,12 +251,12 @@ public class OutputBinary extends Output
 			for(Iterator cit = olib.getCells(); cit.hasNext(); )
 			{
 				Cell cell = (Cell)cit.next();
-				if (cell.getTemp2() == 0) continue;
-				cell.setTemp1(nodeprotoIndex++);
+				if (!cell.isBit(externalRefFlag)) continue;
+				cell.setTempInt(nodeProtoIndex++);
 				for(Iterator eit = cell.getPorts(); eit.hasNext(); )
 				{
 					Export pp = (Export)eit.next();
-					pp.setTemp1(portprotoIndex++);
+					pp.setTempInt(portProtoIndex++);
 				}
 			}
 		}
@@ -237,34 +268,34 @@ public class OutputBinary extends Output
 			for(Iterator nit = tech.getNodes(); nit.hasNext(); )
 			{
 				PrimitiveNode np = (PrimitiveNode)nit.next();
-				np.setTemp1(-2 - nodepprotoIndex++);
+				np.setTempInt(-2 - primNodeProtoIndex++);
 				for(Iterator eit = np.getPorts(); eit.hasNext(); )
 				{
-					Export pp = (Export)eit.next();
-					pp.setTemp1(-2 - portpprotoIndex++);
+					PrimitivePort pp = (PrimitivePort)eit.next();
+					pp.setTempInt(-2 - primPortProtoIndex++);
 				}
 			}
 			for(Iterator ait = tech.getArcs(); ait.hasNext(); )
 			{
 				ArcProto ap = (ArcProto)ait.next();
-				ap.setTemp1(-2 - arcprotoIndex++);
+				ap.setTempInt(-2 - arcProtoIndex++);
 			}
 		}
 
 		// write number of objects
-		writeBigInteger(nodepprotoIndex);
-		writeBigInteger(portpprotoIndex);
-		writeBigInteger(arcprotoIndex);
-		writeBigInteger(nodeprotoIndex);
+		writeBigInteger(primNodeProtoIndex);
+		writeBigInteger(primPortProtoIndex);
+		writeBigInteger(arcProtoIndex);
+		writeBigInteger(nodeProtoIndex);
 		writeBigInteger(nodeIndex);
-		writeBigInteger(portprotoIndex);
+		writeBigInteger(portProtoIndex);
 		writeBigInteger(arcIndex);
 		writeBigInteger(0);
 
 		// write the current cell
 		int curNodeProto = -1;
 		if (lib.getCurCell() != null)
-			curNodeProto = lib.getCurCell().getTemp1();
+			curNodeProto = lib.getCurCell().getTempInt();
 		writeBigInteger(curNodeProto);
 
 		// write the version number
@@ -274,36 +305,36 @@ public class OutputBinary extends Output
 		for(Iterator it = View.getViews(); it.hasNext(); )
 		{
 			View view = (View)it.next();
-			view.setTemp1(0);
+			view.setTempInt(0);
 		}
-		View.UNKNOWN.setTemp1(-1);
-		View.LAYOUT.setTemp1(-2);
-		View.SCHEMATIC.setTemp1(-3);
-		View.ICON.setTemp1(-4);
-		View.SIMSNAP.setTemp1(-5);
-		View.SKELETON.setTemp1(-6);
-		View.VHDL.setTemp1(-7);
-		View.NETLIST.setTemp1(-8);
-		View.DOC.setTemp1(-9);
-		View.NETLISTNETLISP.setTemp1(-10);
-		View.NETLISTALS.setTemp1(-11);
-		View.NETLISTQUISC.setTemp1(-12);
-		View.NETLISTRSIM.setTemp1(-13);
-		View.NETLISTSILOS.setTemp1(-14);
-		View.VERILOG.setTemp1(-15);
-		View.COMP.setTemp1(-16);
+		View.UNKNOWN.setTempInt(-1);
+		View.LAYOUT.setTempInt(-2);
+		View.SCHEMATIC.setTempInt(-3);
+		View.ICON.setTempInt(-4);
+		View.SIMSNAP.setTempInt(-5);
+		View.SKELETON.setTempInt(-6);
+		View.VHDL.setTempInt(-7);
+		View.NETLIST.setTempInt(-8);
+		View.DOC.setTempInt(-9);
+		View.NETLISTNETLISP.setTempInt(-10);
+		View.NETLISTALS.setTempInt(-11);
+		View.NETLISTQUISC.setTempInt(-12);
+		View.NETLISTRSIM.setTempInt(-13);
+		View.NETLISTSILOS.setTempInt(-14);
+		View.VERILOG.setTempInt(-15);
+//		View.COMP.setTempInt(-16);
 		int i = 1;
 		for(Iterator it = View.getViews(); it.hasNext(); )
 		{
 			View view = (View)it.next();
-			if (view.getTemp1() == 0) view.setTemp1(i++);
+			if (view.getTempInt() == 0) view.setTempInt(i++);
 		}
 		i--;
 		writeBigInteger(i);
 		for(Iterator it = View.getViews(); it.hasNext(); )
 		{
 			View view = (View)it.next();
-			if (view.getTemp1() < 0) continue;
+			if (view.getTempInt() < 0) continue;
 			writeString(view.getFullName());
 			writeString(view.getShortName());
 		}
@@ -325,7 +356,7 @@ public class OutputBinary extends Output
 			for(Iterator cit = olib.getCells(); cit.hasNext(); )
 			{
 				Cell cell = (Cell)cit.next();
-				if (cell.getTemp2() == 0) continue;
+				if (!cell.isBit(externalRefFlag)) continue;
 				writeBigInteger(-1);
 				writeBigInteger(-1);
 				writeBigInteger(cell.getNumPorts());
@@ -340,9 +371,8 @@ public class OutputBinary extends Output
 			// write the technology name
 			writeString(tech.getTechName());
 
-			// count and write the number of primitive node prototypes
+			// write the primitive node prototypes
 			writeBigInteger(tech.getNumNodes());
-
 			for(Iterator nit = tech.getNodes(); nit.hasNext(); )
 			{
 				PrimitiveNode np = (PrimitiveNode)nit.next();
@@ -357,10 +387,8 @@ public class OutputBinary extends Output
 				}
 			}
 
-			// count and write the number of arc prototypes
-			writeBigInteger(tech.getNumArcs());
-
 			// write the primitive arc prototype names
+			writeBigInteger(tech.getNumArcs());
 			for(Iterator ait = tech.getArcs(); ait.hasNext(); )
 			{
 				PrimitiveArc ap = (PrimitiveArc)ait.next();
@@ -447,7 +475,7 @@ public class OutputBinary extends Output
 		for(Iterator it = View.getViews(); it.hasNext(); )
 		{
 			View view = (View)it.next();
-			writeBigInteger(view.getTemp1());
+			writeBigInteger(view.getTempInt());
 			writeVariables(view);
 		}
 
@@ -466,7 +494,7 @@ public class OutputBinary extends Output
 			for(Iterator cit = olib.getCells(); cit.hasNext(); )
 			{
 				Cell cell = (Cell)cit.next();
-				if (cell.getTemp2() == 0) continue;
+				if (!cell.isBit(externalRefFlag)) continue;
 				writeNodeProto(cell, false);
 			}
 		}
@@ -480,16 +508,12 @@ public class OutputBinary extends Output
 				ArcInst ai = (ArcInst)ait.next();
 				writeArcInst(ai);
 			}
-			for(Iterator nit = cell.getArcs(); nit.hasNext(); )
+			for(Iterator nit = cell.getNodes(); nit.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)nit.next();
 				writeNodeInst(ni);
 			}
 		}
-
-		// restore any damage to the database
-//		io_cleanup();
-
 
 		if (!lib.isHidden())
 		{
@@ -498,199 +522,230 @@ public class OutputBinary extends Output
 		lib.clearChangedMinor();
 		lib.clearChangedMajor();
 		lib.setFromDisk();
+		NodeProto.freeFlagSet(externalRefFlag);
 
 		// library written successfully
 		return false;
 	}
 
+	// --------------------------------- OBJECT CONVERSION ---------------------------------
+
 	void writeNodeProto(Cell cell, boolean thislib)
 		throws IOException
 	{
-//		INTBIG i;
-//		REGISTER PORTPROTO *pp;
-//		REGISTER LIBRARY *instlib;
-//		static INTBIG nullptr = -1;
+		// write cell information
+		writeString(cell.getProtoName());
 
-//		// write cell information
-//		writeString(cell.getProtoName());
-//		writeBigInteger(&cell->nextcellgrp->temp1);
-//		if (cell->nextcont != NONODEPROTO) writeBigInteger(&cell->nextcont->temp1); else
-//			writeBigInteger(&nullptr);
-//		writeBigInteger(&cell->cellview->temp1);
-//		i = cell->version;   writeBigInteger(&i);
-//		writeBigInteger(&cell->creationdate);
-//		writeBigInteger(&cell->revisiondate);
-//
-//		// write the nodeproto bounding box
-//		writeBigInteger(&cell->lowx);0
-//		writeBigInteger(&cell->highx);
-//		writeBigInteger(&cell->lowy);
-//		writeBigInteger(&cell->highy);
-//
-//		if (!thislib)
-//		{
-//			instlib = cell->lib;
-//			writeString(instlib->libfile);
-//		}
-//
-//		// write the number of portprotos on this nodeproto
-//		i = 0;
-//		for(pp = cell->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto) i++;
-//		writeBigInteger(&i);
-//
-//		// write the portprotos on this nodeproto
-//		for(pp = cell->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
-//		{
-//			if (thislib)
-//			{
-//				// write the connecting subnodeinst for this portproto
-//				if (pp->subnodeinst != NONODEINST) i = pp->subnodeinst->temp1; else
-//				{
-//					ttyputmsg(_("ERROR: Library %s, cell %s, export %s has no node"),
-//						cell->lib->libname, describenodeproto(cell), pp->protoname);
-//					i = -1;
-//				}	
-//				writeBigInteger(&i);
-//
-//				// write the portproto index in the subnodeinst
-//				if (pp->subnodeinst != NONODEINST && pp->subportproto != NOPORTPROTO)
-//				{
-//					i = pp->subportproto->temp1;
-//				} else
-//				{
-//					if (pp->subportproto != NOPORTPROTO)
-//						ttyputmsg(_("ERROR: Library %s, cell %s, export %s has no subport"),
-//							cell->lib->libname, describenodeproto(cell), pp->protoname);
-//					i = -1;
-//				}
-//				writeBigInteger(&i);
-//			}
-//
-//			// write the portproto name
-//			writeString(pp->protoname);
-//
-//			if (thislib)
-//			{
-//				// write the text descriptor
-//				writeBigInteger(&pp->textdescript[0]);
-//				writeBigInteger(&pp->textdescript[1]);
-//
-//				// write the portproto tool information
-//				writeBigInteger(&pp->userbits);
-//
-//				// write variable information
-//				writeVariables(pp);
-//			}
-//		}
-//
-//		if (thislib)
-//		{
-//			// write tool information
-//			writeBigInteger(&cell->adirty);
-//			writeBigInteger(&cell->userbits);
-//
-//			// write variable information
-//			writeVariables(cell);
-//		}
+		// write the "next in cell group" pointer
+		int nextGrp = -1;
+		Object obj = cell.getTempObj();
+		if (obj != null && obj instanceof Cell)
+		{
+			Cell nextInGroup = (Cell)obj;
+			nextGrp = nextInGroup.getTempInt();
+		}
+		writeBigInteger(nextGrp);
+
+		// write the "next in continuation" pointer
+		int nextCont = -1;
+		writeBigInteger(nextCont);
+		writeBigInteger(cell.getView().getTempInt());
+		writeBigInteger(cell.getVersion());
+		writeBigInteger((int)toElectricDate(cell.getCreationDate()));
+		writeBigInteger((int)toElectricDate(cell.getRevisionDate()));
+
+		// write the nodeproto bounding box
+		Technology tech = cell.getTechnology();
+		Rectangle2D bounds = cell.getBounds();
+		int lowX = (int)(bounds.getMinX() * tech.getScale());
+		int highX = (int)(bounds.getMaxX() * tech.getScale());
+		int lowY = (int)(bounds.getMinY() * tech.getScale());
+		int highY = (int)(bounds.getMaxY() * tech.getScale());
+		writeBigInteger(lowX);
+		writeBigInteger(highX);
+		writeBigInteger(lowY);
+		writeBigInteger(highY);
+
+		if (!thislib)
+		{
+			Library instlib = cell.getLibrary();
+			writeString(instlib.getLibFile());
+		}
+
+		// write the number of portprotos on this nodeproto
+		writeBigInteger(cell.getNumPorts());
+
+		// write the portprotos on this nodeproto
+		for(Iterator it = cell.getPorts(); it.hasNext(); )
+		{
+			Export pp = (Export)it.next();
+			if (thislib)
+			{
+				// write the connecting subnodeinst for this portproto
+				int i = -1;
+				if (pp.getOriginalNode() != null)
+				{
+					i = pp.getOriginalNode().getTempInt();
+				} else
+				{
+					System.out.println("ERROR: cell " + cell.describe() + " export " + pp.getProtoName() + " has no subnode");
+				}
+				writeBigInteger(i);
+
+				// write the portproto index in the subnodeinst
+				i = -1;
+				if (pp.getOriginalNode() != null && pp.getOriginalPort() != null)
+				{
+					i = pp.getOriginalPort().getPortProto().getTempInt();
+				} else
+				{
+					System.out.println("ERROR: cell " + cell.describe() + " export " + pp.getProtoName() + " has no subport");
+				}
+				writeBigInteger(i);
+			}
+
+			// write the portproto name
+			writeString(pp.getProtoName());
+
+			if (thislib)
+			{
+				// write the text descriptor
+				TextDescriptor td = pp.getTextDescriptor();
+				writeBigInteger(td.lowLevelGet0());
+				writeBigInteger(td.lowLevelGet1());
+
+				// write the portproto tool information
+				writeBigInteger(pp.lowLevelGetUserbits());
+
+				// write variable information
+				writeVariables(pp);
+			}
+		}
+
+		if (thislib)
+		{
+			// write tool information
+			writeBigInteger(0);		// was "adirty"
+			writeBigInteger(cell.lowLevelGetUserbits());
+
+			// write variable information
+			writeVariables(cell);
+		}
 	}
 
 	void writeNodeInst(NodeInst ni)
 		throws IOException
 	{
-//		INTBIG i;
-//		REGISTER ARCINST *ai;
-//		REGISTER PORTARCINST *pi;
-//		REGISTER PORTEXPINST *pe;
-//
-//		// write the nodeproto pointer
-//		writeBigInteger(&ni->proto->temp1);
-//
-//		// write descriptive information
-//		writeBigInteger(&ni->lowx);
-//		writeBigInteger(&ni->lowy);
-//		writeBigInteger(&ni->highx);
-//		writeBigInteger(&ni->highy);
-//		i = ni->transpose;   writeBigInteger(&i);
-//		i = ni->rotation;    writeBigInteger(&i);
-//
-//		writeBigInteger(&ni->textdescript[0]);
-//		writeBigInteger(&ni->textdescript[1]);
-//
-//		// count the arc ports
-//		i = 0;
-//		for(pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst) i++;
-//		writeBigInteger(&i);
-//
-//		// write the arc ports
-//		for(pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//		{
-//			// write the arcinst index (and the particular end on that arc)
-//			ai = pi->conarcinst;
-//			if (ai->end[0].portarcinst == pi) i = 0; else i = 1;
-//			i = (ai->temp1 << 1) + (ai->end[0].portarcinst == pi ? 0 : 1);
-//			writeBigInteger(&i);
-//
-//			// write the portinst prototype
-//			writeBigInteger(&pi->proto->temp1);
-//
-//			// write the variable information
-//			writeVariables(pi);
-//		}
-//
-//		// count the exports
-//		i = 0;
-//		for(pe = ni->firstportexpinst; pe != NOPORTEXPINST; pe = pe->nextportexpinst) i++;
-//		writeBigInteger(&i);
-//
-//		// write the exports
-//		for(pe = ni->firstportexpinst; pe != NOPORTEXPINST; pe = pe->nextportexpinst)
-//		{
-//			writeBigInteger(&pe->exportproto->temp1);
-//
-//			// write the portinst prototype
-//			writeBigInteger(&pe->proto->temp1);
-//
-//			// write the variable information
-//			writeVariables(pe);
-//		}
-//
-//		// write the tool information
-//		writeBigInteger(&ni->userbits);
-//
-//		// write variable information
-//		writeVariables(ni);
+		// write the nodeproto pointer
+		writeBigInteger(ni.getProto().getTempInt());
+
+		// write descriptive information
+		Technology tech = ni.getParent().getTechnology();
+		int lowX = (int)((ni.getCenterX() - ni.getXSize()/2) * tech.getScale());
+		int highX = (int)((ni.getCenterX() + ni.getXSize()/2) * tech.getScale());
+		int lowY = (int)((ni.getCenterY() - ni.getYSize()/2) * tech.getScale());
+		int highY = (int)((ni.getCenterY() + ni.getYSize()/2) * tech.getScale());
+		writeBigInteger(lowX);
+		writeBigInteger(lowY);
+		writeBigInteger(highX);
+		writeBigInteger(highY);
+		int transpose = 0;
+		if (ni.getXSize() < 0 || ni.getYSize() < 0) transpose = 1;
+		writeBigInteger(transpose);
+		int rotation = (int)(ni.getAngle() * 1800 / Math.PI);
+		writeBigInteger(rotation);
+
+		TextDescriptor td = ni.getTextDescriptor();
+		writeBigInteger(td.lowLevelGet0());
+		writeBigInteger(td.lowLevelGet1());
+
+		// write the arc ports
+		writeBigInteger(ni.getNumConnections());
+		for(Iterator it = ni.getConnections(); it.hasNext(); )
+		{
+			Connection con = (Connection)it.next();
+			ArcInst ai = con.getArc();
+			PortInst pi = con.getPortInst();
+			int i = ai.getTempInt() << 1;
+			if (ai.getHead().getPortInst() == pi) i += 0; else i += 1;
+			writeBigInteger(i);
+
+			// write the portinst prototype
+			writeBigInteger(pi.getPortProto().getTempInt());
+
+			// write the variable information
+			writeNoVariables();
+		}
+
+		// count the exports
+		writeBigInteger(ni.getNumExports());
+
+		// write the exports
+		for(Iterator it = ni.getExports(); it.hasNext(); )
+		{
+			Export pp = (Export)it.next();
+			writeBigInteger(pp.getTempInt());
+
+			// write the portinst prototype
+			writeBigInteger(pp.getOriginalPort().getPortProto().getTempInt());
+
+			// write the variable information
+			writeNoVariables();
+		}
+
+		// write the tool information
+		writeBigInteger(ni.lowLevelGetUserbits());
+
+		// write variable information
+		writeVariables(ni);
 	}
 
 	void writeArcInst(ArcInst ai)
 		throws IOException
 	{
 		// write the arcproto pointer
-		writeBigInteger(ai.getProto().getTemp1());
+		writeBigInteger(ai.getProto().getTempInt());
 
 		// write basic arcinst information
-		writeBigInteger((int)ai.getWidth());
+		Technology tech = ai.getProto().getTechnology();
+		writeBigInteger((int)(ai.getWidth() * tech.getScale()));
 
 		// write the arcinst head information
 		Point2D location = ai.getHead().getLocation();
-		writeBigInteger((int)location.getX());
-		writeBigInteger((int)location.getY());
-		writeBigInteger(ai.getHead().getPortInst().getNodeInst().getTemp1());
+		writeBigInteger((int)(location.getX() * tech.getScale()));
+		writeBigInteger((int)(location.getY() * tech.getScale()));
+		writeBigInteger(ai.getHead().getPortInst().getNodeInst().getTempInt());
 
 		// write the arcinst tail information
 		location = ai.getTail().getLocation();
-		writeBigInteger((int)location.getX());
-		writeBigInteger((int)location.getY());
-		writeBigInteger(ai.getTail().getPortInst().getNodeInst().getTemp1());
+		writeBigInteger((int)(location.getX() * tech.getScale()));
+		writeBigInteger((int)(location.getY() * tech.getScale()));
+		writeBigInteger(ai.getTail().getPortInst().getNodeInst().getTempInt());
 
 		// write the arcinst's tool information
-		writeBigInteger(ai.lowLevelGetUserbits());
+		int arcAngle = (int)(ai.getAngle() * 180 / Math.PI);
+		if (arcAngle < 0) arcAngle += 360;
+		ai.lowLevelSetArcAngle(arcAngle);
+		int userBits = ai.lowLevelGetUserbits();
+		writeBigInteger(userBits);
 
 		// write variable information
 		writeVariables(ai);
 	}
 
+	/**
+	 * routine to convert the Java Date object to an Electric-format date (seconds since the epoch).
+	 */
+	long toElectricDate(Date date)
+	{
+		GregorianCalendar creation = new GregorianCalendar();
+		creation.setTime(date);
+		return creation.getTimeInMillis();
+	}
+
 	// --------------------------------- VARIABLES ---------------------------------
 
+	// this list is also in "InputBinary.java"
 	private static final int VUNKNOWN =                  0;		/** undefined variable */
 	private static final int VINTEGER =                 01;		/** 32-bit integer variable */
 	private static final int VADDRESS =                 02;		/** unsigned address */
@@ -726,6 +781,7 @@ public class OutputBinary extends Output
 	private static final int VDISPLAY =               0100;		/** display variable (uses textdescript field) */
 	private static final int VISARRAY =               0200;		/** set if variable is array of above objects */
 	private static final int VLENGTH =         03777777000;		/** array length (0: array is -1 terminated) */
+	private static final int VLENGTHSH =                 9;		/** right shift for VLENGTH */
 	private static final int VCODE2 =          04000000000;		/** variable is interpreted code (with VCODE1) */
 
 	/**
@@ -734,15 +790,32 @@ public class OutputBinary extends Output
 	boolean writeNameSpace()
 		throws IOException
 	{
-		writeBigInteger(ElectricObject.getNumVariableNames());
-		
-		// THIS IS WRONG: MUST SORT BY INDEX AND WRITE IN THAT ORDER!!!
+		int numVariableNames = ElectricObject.getNumVariableNames();
+		writeBigInteger(numVariableNames);
+
+		Variable.Name [] nameList = new Variable.Name[numVariableNames];
 		for(Iterator it = ElectricObject.getVariableNames(); it.hasNext(); )
 		{
-			Variable.Name vn = (Variable.Name)it.next();
-			writeString(vn.getName());
+			String name = (String)it.next();
+			Variable.Name vn = ElectricObject.findName(name);
+			nameList[vn.getIndex()] = vn;
+		}
+		for(int i=0; i<numVariableNames; i++)
+		{
+			Variable.Name vn = nameList[i];
+			if (vn == null) writeString(""); else
+				writeString(vn.getName());
 		}
 		return false;
+	}
+
+	/**
+	 * routine to write an empty set of variables.
+	 */
+	void writeNoVariables()
+		throws IOException
+	{
+		writeBigInteger(0);
 	}
 
 	/**
@@ -765,12 +838,25 @@ public class OutputBinary extends Output
 			if (!var.isDontSave()) continue;
 			Variable.Name vn = var.getName();
 			writeSmallInteger((short)vn.getIndex());
-			writeBigInteger(var.lowLevelGetFlags());
+
+			// create the "type" field
+			Object varObj = var.getObject();
+			int type = var.lowLevelGetFlags() & ~(VTYPE|VISARRAY|VLENGTH);
+			if (varObj instanceof Object[])
+			{
+				Object [] objList = (Object [])varObj;
+				type |= getVarType(objList[0]) | VISARRAY | (objList.length << VLENGTHSH);
+			} else
+			{
+				type |= getVarType(varObj);
+			}
+			writeBigInteger(type);
+
+			// write the text descriptor
 			TextDescriptor td = var.getTextDescriptor();
 			writeBigInteger(td.lowLevelGet0());
 			writeBigInteger(td.lowLevelGet1());
 
-			Object varObj = var.getObject();
 			if (varObj instanceof Object[])
 			{
 				int len = ((Object[])varObj).length;
@@ -786,6 +872,25 @@ public class OutputBinary extends Output
 			}
 		}
 		return(count);
+	}
+
+	int getVarType(Object obj)
+	{
+		if (obj instanceof Integer) return VINTEGER;
+		if (obj instanceof Short) return VSHORT;
+		if (obj instanceof Byte) return VCHAR;
+		if (obj instanceof String) return VSTRING;
+		if (obj instanceof Float) return VFLOAT;
+		if (obj instanceof Double) return VDOUBLE;
+		if (obj instanceof Technology) return VTECHNOLOGY;
+		if (obj instanceof Library) return VLIBRARY;
+		if (obj instanceof Tool) return VTOOL;
+		if (obj instanceof NodeInst) return VNODEINST;
+		if (obj instanceof ArcInst) return VARCINST;
+		if (obj instanceof NodeProto) return VNODEPROTO;
+		if (obj instanceof ArcProto) return VARCPROTO;
+		if (obj instanceof PortProto) return VPORTPROTO;
+		return VUNKNOWN;
 	}
 
 	/**
@@ -851,94 +956,71 @@ public class OutputBinary extends Output
 		{
 			NodeInst ni = (NodeInst)obj;
 			if (ni == null) writeBigInteger(-1); else
-				writeBigInteger(ni.getTemp1());
+				writeBigInteger(ni.getTempInt());
 			return;
 		}
 		if (obj instanceof ArcInst)
 		{
 			ArcInst ai = (ArcInst)obj;
 			if (ai == null) writeBigInteger(-1); else
-				writeBigInteger(ai.getTemp1());
+				writeBigInteger(ai.getTempInt());
 			return;
 		}
 		if (obj instanceof NodeProto)
 		{
 			NodeProto np = (NodeProto)obj;
 			if (np == null) writeBigInteger(-1); else
-				writeBigInteger(np.getTemp1());
+				writeBigInteger(np.getTempInt());
 			return;
 		}
 		if (obj instanceof ArcProto)
 		{
 			ArcProto ap = (ArcProto)obj;
 			if (ap == null) writeBigInteger(-1); else
-				writeBigInteger(ap.getTemp1());
+				writeBigInteger(ap.getTempInt());
 			return;
 		}
 		if (obj instanceof PortProto)
 		{
 			PortProto pp = (PortProto)obj;
 			if (pp == null) writeBigInteger(-1); else
-				writeBigInteger(pp.getTemp1());
+				writeBigInteger(pp.getTempInt());
 			return;
 		}
 	}
 
-	// --------------------------------- OBJECT CONVERSION ---------------------------------
-
 	/*
 	 * Routine to scan the variables on an object (which are in "firstvar" and "numvar")
-	 * for NODEPROTO references.  Any found are marked (by setting "temp2" to 1).
+	 * for NODEPROTO references.  Any found are marked (by setting the "externalRefFlag" bit).
 	 * This is used to gather cross-library references.
 	 */
 	void findXLibVariables(ElectricObject obj)
 	{
-//		REGISTER INTBIG i;
-//		REGISTER INTBIG len, type, j;
-//		REGISTER VARIABLE *var;
-//		REGISTER NODEPROTO *np, **nparray;
-//
-//		for(i=0; i<numvar; i++)
-//		{
-//			var = &firstvar[i];
-//			type = var->type;
-//			if ((type&VDONTSAVE) != 0) continue;
-//			if ((type&VTYPE) != VNODEPROTO) continue;
-//			if ((type&VISARRAY) != 0)
-//			{
-//				len = (type&VLENGTH) >> VLENGTHSH;
-//				nparray = (NODEPROTO **)var->addr;
-//				if (len == 0) for(len=0; nparray[len] != NONODEPROTO; len++) ;
-//				for(j=0; j<len; j++)
-//				{
-//					np = nparray[j];
-//					if (np != NONODEPROTO && np->primindex == 0)
-//					{
-//						np->temp2 = 1;
-//					}
-//				}
-//			} else
-//			{
-//				np = (NODEPROTO *)var->addr;
-//				if (np != NONODEPROTO && np->primindex == 0)
-//				{
-//					np->temp2 = 1;
-//				}
-//			}
-//		}
-	}
-
-	/**
-	 * routine to convert the Java Date object to an Electric-format date (seconds since the epoch).
-	 */
-	int toElectricDate(Date secondsSinceEpoch)
-	{
-//		GregorianCalendar creation = new GregorianCalendar();
-//		creation.setTimeInMillis(0);
-//		creation.setLenient(true);
-//		creation.add(Calendar.SECOND, secondsSinceEpoch);
-//		return creation.getTime();
-		return 0;
+		for(Iterator it = obj.getVariables(); it.hasNext(); )
+		{
+			Variable var = (Variable)it.next();
+			if (var.isDontSave()) continue;
+			Object refObj = var.getObject();
+			if (refObj instanceof NodeProto || refObj instanceof NodeProto[])
+			{
+				if (refObj instanceof NodeProto[])
+				{
+					Object [] npArray = (Object [])refObj;
+					int len = npArray.length;
+					for(int j=0; j<len; j++)
+					{
+						NodeProto np = (NodeProto)npArray[j];
+						if (np instanceof Cell)
+							np.setBit(externalRefFlag);
+					}
+				} else
+				{
+					NodeProto np = (NodeProto)refObj;
+					if (np instanceof Cell)
+						np.setBit(externalRefFlag);
+				}
+			}
+		}
 	}
 
 	// --------------------------------- LOW-LEVEL INPUT ---------------------------------
@@ -951,9 +1033,6 @@ public class OutputBinary extends Output
 	{
 		dataOutputStream.write(b);
 	}
-
-	static ByteBuffer bb = ByteBuffer.allocateDirect(8);
-	static byte [] rawData = new byte[8];
 
 	/**
 	 * routine to write an integer (4 bytes) from the input stream and return it.

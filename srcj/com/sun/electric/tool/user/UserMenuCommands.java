@@ -31,6 +31,7 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.ui.UIEditFrame;
 import com.sun.electric.tool.user.ui.UIDialogOpenFile;
@@ -49,7 +50,7 @@ public final class UserMenuCommands
 	{
 	}
 
-	// ---------------------- public methods -----------------
+	// ---------------------- THE FILE MENU -----------------
 
 	public static void openLibraryCommand()
 	{
@@ -58,23 +59,18 @@ public final class UserMenuCommands
 		{
 			long startTime = System.currentTimeMillis();
 			Library lib = Input.ReadLibrary(fileName, null, Input.ImportType.BINARY);
+			if (lib == null) return;
 			long endTime = System.currentTimeMillis();
 			float finalTime = (endTime - startTime) / 1000F;
-			if (lib == null)
+			System.out.println("Library " + fileName + " read, took " + finalTime + " seconds");
+			Library.setCurrent(lib);
+			Cell cell = lib.getCurCell();
+			if (cell == null)
 			{
-				System.out.println("Error reading the library file");
+				System.out.println("No current cell in this library");
 			} else
 			{
-				System.out.println("Library " + fileName + " read, took " + finalTime + " seconds");
-				Library.setCurrent(lib);
-				Cell cell = lib.getCurCell();
-				if (cell == null)
-				{
-					System.out.println("No current cell in this library");
-				} else
-				{
-					lastFrame = UIEditFrame.CreateEditWindow(cell);
-				}
+				lastFrame = UIEditFrame.CreateEditWindow(cell);
 			}
 		}
 	}
@@ -88,7 +84,7 @@ public final class UserMenuCommands
 			fileName = lib.getLibFile();
 		} else
 		{
-			fileName = UIDialogOpenFile.ELIB.chooseOutputFile();
+			fileName = UIDialogOpenFile.ELIB.chooseOutputFile(lib.getLibName()+".elib");
 			if (fileName != null)
 			{
 				Library.LibraryName n = Library.LibraryName.newInstance(fileName);
@@ -101,11 +97,22 @@ public final class UserMenuCommands
 		if (error)
 		{
 			System.out.println("Error writing the library file");
-		} else
-		{
-			System.out.println("Library " + fileName + " written");
 		}
 	}
+
+	public static void saveAsLibraryCommand()
+	{
+		Library lib = Library.getCurrent();
+		lib.clearFromDisk();
+		saveLibraryCommand();
+	}
+
+	public static void quitCommand()
+	{
+		System.exit(0);
+	}
+
+	// ---------------------- THE STEVE MENU -----------------
 
 	public static void fullDisplayCommand()
 	{
@@ -132,8 +139,30 @@ public final class UserMenuCommands
 		}
 	}
 
-	public static void quitCommand()
+	public static void showCellGroupsCommand()
 	{
-		System.exit(0);
+		// list things by cell group
+		FlagSet cellFlag = NodeProto.getFlagSet(1);
+		Library curLib = Library.getCurrent();
+		for(Iterator it = curLib.getCells(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			cell.clearBit(cellFlag);
+		}
+		for(Iterator it = curLib.getCells(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			if (cell.isBit(cellFlag)) continue;
+
+			// untouched: show whole cell group
+			System.out.println("**** Cell group:");
+			for(Iterator git = cell.getCellGroup().getCells(); git.hasNext(); )
+			{
+				Cell cellInGroup = (Cell)git.next();
+				System.out.println("    " + cellInGroup.describe());
+				cellInGroup.setBit(cellFlag);
+			}
+		}
+		NodeProto.freeFlagSet(cellFlag);
 	}
 }

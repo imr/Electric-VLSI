@@ -83,8 +83,8 @@ public abstract class ArcProto extends ElectricObject
 	/** Default width of this wire */					protected double defaultWidth;
 	/** Width of other the material */					protected double widthOffset;
 	/** Flags for this arc */							private int userBits;
-	/** temporary value for this arc */					private int temp1;
 	/** function of this arc */							private Function function;
+	/** temporary integer value for this arc */			private int tempInt;
 
 	// the meaning of the "userBits" field:
 	/** these arcs are fixed-length */					private static final int WANTFIX =            01;
@@ -111,10 +111,13 @@ public abstract class ArcProto extends ElectricObject
 
 	// ------------------------ public methods -------------------------------
 
+	/** Get the name of this ArcProto. */
 	public String getProtoName() { return protoName; }
 
+	/** Get the Technology of this ArcProto. */
 	public Technology getTechnology() { return tech; }
 
+	/** Get the default width of this ArcProto. */
 	public double getDefaultWidth() { return defaultWidth; }
 
 	/** Get the default width of this type of arc.
@@ -200,9 +203,16 @@ public abstract class ArcProto extends ElectricObject
 	/** Get the arc angle increment */
 	public int getAngleIncrement() { return (userBits & AANGLEINC) >> AANGLEINCSH; }
 
-	public int getTemp1() { return temp1; }
-	public void setTemp1(int temp1) { this.temp1 = temp1; }
+	/** Get the temporary integer on this ArcProto. */
+	public int getTempInt() { return tempInt; }
+	/** Set the temporary integer on this ArcProto. */
+	public void setTempInt(int tempInt) { this.tempInt = tempInt; }
 
+	/**
+	 * Find an ArcProto named "line".
+	 * Presumes it is in the current technology, but an alternate
+	 * technology name can be given.
+	 */
 	public static ArcProto findArcProto(String line)
 	{
 		Technology tech = Technology.getCurrent();

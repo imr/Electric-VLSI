@@ -229,14 +229,10 @@ public class Library extends ElectricObject
 	 */
 	public static void setCurrent(Library lib) { curLib = lib; }
 	
-	/**
-	 * Get the user bits for this Library
-	 */
+	/** Low-level routine to get the user bits for this Library.  Should not normally be called. */
 	public int lowLevelGetUserBits() { return userBits; }
 	
-	/**
-	 * Set the user bits for this Library
-	 */
+	/** Low-level routine to set the user bits for this Library.  Should not normally be called. */
 	public void lowLevelSetUserBits(int userBits) { this.userBits = userBits; }
 
 	/**

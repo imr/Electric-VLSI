@@ -66,6 +66,7 @@ public class TecGeneric extends Technology
 	{
 		setTechName("generic");
 		setTechDesc("Useful primitives");
+		setScale(2000);
 
 		//**************************************** LAYERS ****************************************
 
@@ -139,7 +140,7 @@ public class TecGeneric extends Technology
 		//**************************************** NODES ****************************************
 
 		/** Universal pin */
-		univPinPort = PrimitivePort.newInstance(this, universalPin_node, new ArcProto[] {universal_arc}, "univ", 0,180, 0, PortProto.Function.UNKNOWN,
+		univPinPort = PrimitivePort.newInstance(this, universalPin_node, new ArcProto[] {universal_arc}, "univ", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.CENTER, EdgeV.CENTER, EdgeH.CENTER, EdgeV.CENTER);
 		universalPin_node = PrimitiveNode.newInstance("Universal-Pin", this, 1.0, 1.0, null,
 			new Technology.NodeLayer []
@@ -154,7 +155,7 @@ public class TecGeneric extends Technology
 		universalPin_node.setHoldsOutline();
 
 		/** Invisible pin */
-		invisPinPort = PrimitivePort.newInstance(this, invisiblePin_node, new ArcProto[] {invisible_arc}, "center", 0,180, 0, PortProto.Function.UNKNOWN,
+		invisPinPort = PrimitivePort.newInstance(this, invisiblePin_node, new ArcProto[] {invisible_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.CENTER, EdgeV.CENTER, EdgeH.CENTER, EdgeV.CENTER);
 		invisiblePin_node = PrimitiveNode.newInstance("Invisible-Pin", this, 1.0, 1.0, null,
 			new Technology.NodeLayer []
@@ -175,7 +176,7 @@ public class TecGeneric extends Technology
 			});
 		unroutedPin_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, unroutedPin_node, new ArcProto[] {unrouted_arc}, "unrouted", 0,180, 0, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, unroutedPin_node, new ArcProto[] {unrouted_arc}, "unrouted", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.CENTER, EdgeV.CENTER, EdgeH.CENTER, EdgeV.CENTER)
 			});
 		unroutedPin_node.setFunction(NodeProto.Function.PIN);
@@ -190,7 +191,7 @@ public class TecGeneric extends Technology
 			});
 		cellCenter_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, cellCenter_node, new ArcProto[] {invisible_arc, universal_arc}, "center", 0,180, 0, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, cellCenter_node, new ArcProto[] {invisible_arc, universal_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		cellCenter_node.setFunction(NodeProto.Function.ART);
@@ -204,7 +205,7 @@ public class TecGeneric extends Technology
 			});
 		port_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, port_node, new ArcProto[] {invisible_arc, universal_arc}, "center", 0,180, 0, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, port_node, new ArcProto[] {invisible_arc, universal_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		port_node.setFunction(NodeProto.Function.ART);
@@ -217,7 +218,7 @@ public class TecGeneric extends Technology
 			});
 		drc_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, drc_node, new ArcProto[] {invisible_arc, universal_arc}, "center", 0,180, 0, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, drc_node, new ArcProto[] {invisible_arc, universal_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.CENTER, EdgeV.CENTER, EdgeH.CENTER, EdgeV.CENTER)
 			});
 		drc_node.setFunction(NodeProto.Function.NODE);
@@ -234,7 +235,7 @@ public class TecGeneric extends Technology
 			});
 		essentialBounds_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, essentialBounds_node, new ArcProto[] {invisible_arc, universal_arc}, "center", 0,180, 0, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, essentialBounds_node, new ArcProto[] {invisible_arc, universal_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		essentialBounds_node.setFunction(NodeProto.Function.ART);
@@ -247,7 +248,7 @@ public class TecGeneric extends Technology
 			});
 		simProbe_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, simProbe_node, new ArcProto[] {invisible_arc, universal_arc}, "center", 0,180, 0, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, simProbe_node, new ArcProto[] {invisible_arc, universal_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		simProbe_node.setFunction(NodeProto.Function.ART);

@@ -45,7 +45,7 @@ public class View extends ElectricObject
 	/** the full name of the view */						private String fullName;
 	/** the abbreviation of the view */						private String shortName;
 	/** flag bits for the view */							private int type;
-	/** temporary integer for the view */					private int temp1;
+	/** temporary integer for the view */					private int tempInt;
 	/** a list of all views in existence */					private static List views = new ArrayList();
 	/** a list of views by short and long names */			private static HashMap viewNames = new HashMap();
 
@@ -154,8 +154,10 @@ public class View extends ElectricObject
 	 */
 	public String getShortName() { return shortName; }
 
-	public void setTemp1(int temp1) { this.temp1 = temp1; }
-	public int getTemp1() { return temp1; }
+	/** Sets the temporary integer value. */
+	public void setTempInt(int tempInt) { this.tempInt = tempInt; }
+	/** Returns the temporary integer value. */
+	public int getTempInt() { return tempInt; }
 
 	/** Get the Text-view bit */
 	public boolean isTextView() { return (type & TEXTVIEW) != 0; }

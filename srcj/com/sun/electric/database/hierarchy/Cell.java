@@ -60,9 +60,35 @@ public class Cell extends NodeProto
 {
 	// ------------------------- private classes -----------------------------
 
-	private class VersionGroup
+	/** A CellGroup contains related cells. This includes different
+	 * Views of a cell (e.g. the schematic, layout, and icon Views),
+	 * alternative icons, all the parts of a multi-part icon */
+	public static class CellGroup
+	{
+		// private data
+		ArrayList cells;
+
+		// private and protected methods
+		public CellGroup()
+		{
+			cells = new ArrayList();
+		}
+		void add(Cell f)
+		{
+			cells.add(f);
+			f.cellGroup = this;
+		}
+		void remove(Cell f) { cells.remove(f); }
+		public String toString() { return "CELLGROUP"; }
+
+		/** Return a list of all the Cells that are in this Cell's CellGroup */
+		public Iterator getCells() { return cells.iterator(); }
+	}
+
+	private static class VersionGroup
 	{
 		List versions;
+
 		public VersionGroup(Cell f)
 		{
 			versions = new ArrayList();
@@ -73,22 +99,14 @@ public class Cell extends NodeProto
 			versions.add(f);
 			f.versionGroup = this;
 		}
-		public void remove(Cell f)
-		{
-			versions.remove(f);
-		}
-		public int size()
-		{
-			return versions.size();
-		}
-		public Iterator iterator()
-		{
-			return versions.iterator();
-		}
+		public void remove(Cell f) { versions.remove(f); }
+
+		public int size() { return versions.size(); }
+		public Iterator iterator() { return versions.iterator(); }
 	}
 
 	// -------------------------- private data ---------------------------------
-	private static final Point2D.Double ORIGIN = new Point2D.Double(0, 0);
+
 	private static int currentTime = 0;
 
 	/** best guess technology */					private Technology tech;
@@ -108,14 +126,13 @@ public class Cell extends NodeProto
 	/** the bounds of the Cell */					private Rectangle2D.Double elecBounds;
 	/** whether the bounds need to be recomputed */	private boolean boundsDirty;
 	/** whether the bounds have anything in them */	private boolean boundsEmpty;
-	
-	
+	/** geometric data structure */					private Geometric.RTNode rTree;
 
 	// ------------------ protected and private methods -----------------------
 
+	/** Use the factory "newInstance" to create a Cell. */
 	private Cell()
 	{
-		this.cellGroup = new CellGroup(this);
 		this.versionGroup = new VersionGroup(this);
 	}
 
@@ -127,6 +144,7 @@ public class Cell extends NodeProto
 		Cell c = new Cell();
 		c.nodes = new ArrayList();
 		c.arcs = new ArrayList();
+		c.cellGroup = null;
 		c.timeStamp = -1; // initial time is in the past
 		c.tech = null;
 		c.lib = lib;
@@ -137,6 +155,7 @@ public class Cell extends NodeProto
 		c.elecBounds = new Rectangle2D.Double();
 		c.boundsEmpty = true;
 		c.boundsDirty = false;
+		c.rTree = Geometric.RTNode.makeTopLevel();
 		return c;
 	}
 
@@ -165,7 +184,7 @@ public class Cell extends NodeProto
 			for (Iterator it = lib.getCells(); it.hasNext();)
 			{
 				Cell c = (Cell) it.next();
-				if (n.getName().equals(c.getProtoName()) && n.getView() == c.getView() &&
+				if (n.getName().equalsIgnoreCase(c.getProtoName()) && n.getView() == c.getView() &&
 					version == c.getVersion())
 				{
 					System.out.println("Already a cell with this version");
@@ -179,7 +198,7 @@ public class Cell extends NodeProto
 			for (Iterator it = lib.getCells(); it.hasNext();)
 			{
 				Cell c = (Cell) it.next();
-				if (n.getName().equals(c.getProtoName()) && n.getView() == c.getView() &&
+				if (n.getName().equalsIgnoreCase(c.getProtoName()) && n.getView() == c.getView() &&
 					c.getVersion() >= version)
 						version = c.getVersion() + 1;
 			}
@@ -198,12 +217,33 @@ public class Cell extends NodeProto
 	 */
 	public boolean lowLevelLink()
 	{
+		// determine the cell group
+		if (cellGroup == null)
+		{
+			// look for similar-named cell and use its group
+			for (Iterator it = lib.getCells(); it.hasNext();)
+			{
+				Cell c = (Cell) it.next();
+				if (c.getCellGroup() == null) continue;
+				if (getProtoName().equalsIgnoreCase(c.getProtoName()))
+				{
+					cellGroup = c.getCellGroup();
+					break;
+				}
+			}
+			
+			// still none: make a new one
+			if (cellGroup == null) cellGroup = new CellGroup();
+		}
+
+		// add to cell group
+		cellGroup.add(this);
+
 		// add ourselves to the library
 		Library lib = getLibrary();
 		lib.addCell(this);
 
-		// add to cell group
-//		cellGroup.merge(nxtCellGrp);
+		// success
 		return false;
 	}
 
@@ -566,8 +606,7 @@ public class Cell extends NodeProto
 		buildNetworkList();
 	}
 
-	/** Get the Electric bounds.  This excludes invisible widths. Base
-	 * units */
+	/** Get the Electric bounds.  This excludes invisible widths. */
 	public Rectangle2D getBounds()
 	{
 		if (boundsDirty)
@@ -580,14 +619,11 @@ public class Cell extends NodeProto
 			for(Iterator it = nodes.iterator(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst) it.next();
-				double xOffset = ni.getXSize()/2;
-				double xCenter = ni.getCenterX();
-				double yOffset = ni.getYSize()/2;
-				double yCenter = ni.getCenterY();
-				double lowx = xCenter - xOffset;
-				double highx = xCenter + xOffset;
-				double lowy = yCenter - yOffset;
-				double highy = yCenter + yOffset;
+				Rectangle2D bounds = ni.getBounds();
+				double lowx = bounds.getMinX();
+				double highx = bounds.getMaxX();
+				double lowy = bounds.getMinY();
+				double highy = bounds.getMaxY();
 				if (boundsEmpty)
 				{
 					boundsEmpty = false;
@@ -615,13 +651,24 @@ public class Cell extends NodeProto
 			elecBounds.height);
 	}
 
+	/** Routine to get the width of this Cell. */
 	public double getDefWidth() { return elecBounds.width; }
+	/** Routine to get the height of this Cell. */
 	public double getDefHeight() { return elecBounds.height; }
 
+	/** Routine to get the low-X offset of this Cell (always zero for cells). */
 	public double getLowXOffset() { return 0; }
+	/** Routine to get the high-X offset of this Cell (always zero for cells). */
 	public double getHighXOffset() { return 0; }
+	/** Routine to get the low-Y offset of this Cell (always zero for cells). */
 	public double getLowYOffset() { return 0; }
+	/** Routine to get the high-Y offset of this Cell (always zero for cells). */
 	public double getHighYOffset() { return 0; }
+
+	/** Routine to get the R-Tree of this Cell */
+	public Geometric.RTNode getRTree() { return rTree; }
+	/** Routine to set the R-Tree of this Cell */
+	public void setRTree(Geometric.RTNode rTree) { this.rTree = rTree; }
 
 	/** If there are two or more essential bounds return the bounding
 	 * box that surrounds all of them; otherwise return null; */
@@ -774,62 +821,33 @@ public class Cell extends NodeProto
 		super.getInfo();
 	}
 
-	// --------------------------- public types -----------------------------
-
-	/** A CellGroup contains related cells. This includes different
-	 * Views of a cell (e.g. the schematic, layout, and icon Views),
-	 * alternative icons, all the parts of a multi-part icon */
-	public class CellGroup
-	{
-		// private data
-		ArrayList cells;
-		// private and protected methods
-		CellGroup(Cell f)
-		{
-			cells = new ArrayList();
-			add(f);
-		}
-		void add(Cell f)
-		{
-			cells.add(f);
-			f.cellGroup = this;
-		}
-		void remove(Cell f)
-		{
-			cells.remove(f);
-		}
-
-		// merge f's cell group into me
-		void merge(Cell f)
-		{
-			CellGroup fg = f.cellGroup;
-			if (fg == this)
-				return; // we are the same group
-
-			for (Iterator it = fg.getCells(); it.hasNext();)
-				add((Cell) it.next());
-		}
-		// public methods
-		/** Return a list of all the Cells that are in this Cell's CellGroup */
-		public Iterator getCells()
-		{
-			return cells.iterator();
-		}
-	}
-
-	// -------------------------- public constants -------------------------
-	/** This constant can be passed to <code>rebuildNetworks()</code> in
-	 * order to treat resistors as short circuits */
-	public static final ArrayList SHORT_RESISTORS = new ArrayList();
-
 	// ------------------------- public methods -----------------------------
+	/** Routine to get the CellGroup of this Cell. */
 	public CellGroup getCellGroup() { return cellGroup; }
+	/** Routine to set the CellGroup of this Cell. */
+	public void setCellGroup(CellGroup cellGroup) { this.cellGroup = cellGroup; }
+
+	/** Routine to get the library of this Cell. */
 	public Library getLibrary() { return lib; }
+
+	/** Routine to get the view of this Cell. */
 	public View getView() { return view; }
 
+	/** Routine to get the technology of this Cell. */
+	public Technology getTechnology()
+	{
+		if (tech == null) tech = Technology.whatTechnology(this, null, 0, 0, null, 0, 0);
+		return tech;
+	}
+
+	/** Routine to get the creation date of this Cell. */
 	public Date getCreationDate() { return creationDate; }
+	/** Low-level routine to set the creation date of this Cell.  Should not normally be called. */
 	public void lowLevelSetCreationDate(Date creationDate) { this.creationDate = creationDate; }
+
+	/** Routine to get the revision date of this Cell. */
 	public Date getRevisionDate() { return revisionDate; }
+	/** Low-level routine to set the revision date of this Cell.  Should not normally be called. */
 	public void lowLevelSetRevisionDate(Date revisionDate) { this.revisionDate = revisionDate; }
 
 //	/** Create an export for this Cell.

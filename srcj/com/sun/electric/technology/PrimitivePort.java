@@ -48,12 +48,11 @@ public class PrimitivePort extends PortProto
 	private EdgeH right;
 	private EdgeV top;
 	private Technology tech;
-	protected PortProto.Function function;
+	protected PortProto.Characteristic characteristic;
 
 	// ---------------------- protected and private methods ----------------
 	private PrimitivePort(Technology tech, PrimitiveNode parent, ArcProto [] portArcs, String protoName,
-		int portAngle, int portRange, int portTopology, PortProto.Function function,
-		EdgeH left, EdgeV bottom, EdgeH right, EdgeV top)
+		int portAngle, int portRange, int portTopology, EdgeH left, EdgeV bottom, EdgeH right, EdgeV top)
 	{
 		// initialize the parent object
 		this.parent = parent;
@@ -65,7 +64,6 @@ public class PrimitivePort extends PortProto
 		// initialize this object
 		this.tech = tech;
 		this.portArcs = portArcs;
-		this.function = function;
 		this.left = left;
 		this.bottom = bottom;
 		this.right = right;
@@ -73,7 +71,7 @@ public class PrimitivePort extends PortProto
 	}
 
 	public static PrimitivePort newInstance(Technology tech, PrimitiveNode parent, ArcProto [] portArcs, String protoName,
-		int portAngle, int portRange, int portTopology, PortProto.Function function,
+		int portAngle, int portRange, int portTopology, PortProto.Characteristic characteristic,
 		EdgeH left, EdgeV bottom, EdgeH right, EdgeV top)
 	{
 		if (tech != TecGeneric.tech && TecGeneric.tech != null)
@@ -87,8 +85,8 @@ public class PrimitivePort extends PortProto
 			portArcs = realPortArcs;
 		}
 		PrimitivePort pp = new PrimitivePort(tech, parent, portArcs, protoName,
-			portAngle, portRange, portTopology, function,
-			left, bottom, right, top);
+			portAngle, portRange, portTopology, left, bottom, right, top);
+		pp.setCharacteristic(characteristic);
 		return pp;
 	}
 

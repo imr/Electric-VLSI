@@ -27,16 +27,25 @@ import com.sun.electric.database.hierarchy.View;
 
 public class CellName
 {
-	private String name;
-	private View   view;
-	private int    version;
+	/** the name */		private String name;
+	/** the view */		private View   view;
+	/** the version */	private int    version;
 
 	private CellName() {}
-	
+
+	/** Routine to return the name part of a CellName. */
 	public String getName() { return name; }
+
+	/** Routine to return the view part of a CellName. */
 	public View getView() { return view; }
+
+	/** Routine to return the version part of a CellName. */
 	public int getVersion() { return version; }
 
+	/**
+	 * Routine to parse the cell name "name" and return a CellName object
+	 * that has the name, view, and version filled-in.
+	 */
 	public static CellName parseName(String name)
 	{
 		// figure out the view and version of the cell

@@ -31,11 +31,13 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.tool.user.UserMenuCommands;
 
 import javax.swing.JPanel;
 import java.awt.event.*;
@@ -336,24 +338,23 @@ public class UIEdit extends JPanel
 				AffineTransform saveAT = g2.getTransform();
 				double scale = 100;
 				g2.scale(1/scale, 1/scale);
-				Point2D [] points = poly.getPoints();
+				Point2D.Double [] points = poly.getPoints();
 				int ctrX = (int)(points[0].getX() * scale);
 				int ctrY = (int)(points[0].getY() * scale);
 				int startX = (int)(points[1].getX() * scale);
 				int startY = (int)(points[1].getY() * scale);
 				int endX = (int)(points[2].getX() * scale);
 				int endY = (int)(points[2].getY() * scale);
-				int radius;
-				if (startX == ctrX) radius = Math.abs(ctrY - startY); else
-					if (startY == ctrY) radius = Math.abs(ctrX - startX); else
-						radius = (int)Math.sqrt((ctrY - startY)*(ctrY - startY) + (ctrX - startX) * (ctrX - startX));
+				int radius = (int)(EMath.computeDistance(points[0], points[1]) * scale);
 				int diameter = radius * 2;
 				int startAngle = (int)(Math.atan2(startY-ctrY, startX-ctrX) * 180.0 / Math.PI);
+				if (startAngle < 0) startAngle += 360;
 				int endAngle = (int)(Math.atan2(endY-ctrY, endX-ctrX) * 180.0 / Math.PI);
-				if (endAngle < startAngle) endAngle += 360;
+				if (endAngle < 0) endAngle += 360;
+				if (startAngle < endAngle) startAngle += 360;
 				startAngle = 360 - startAngle;
 				endAngle = 360 - endAngle;
-				g2.drawArc(ctrX-radius, ctrY-radius, diameter, diameter, startAngle, endAngle - startAngle);
+				g2.drawArc(ctrX-radius, ctrY-radius, diameter, diameter, endAngle, startAngle - endAngle);
 				g2.setTransform(saveAT);
 			} else if (style == Poly.Type.CROSS || style == Poly.Type.BIGCROSS)
 			{
@@ -585,6 +586,11 @@ public class UIEdit extends JPanel
 
 	public void keyTyped(KeyEvent e)
 	{
+		if (e.getKeyChar() == 'f')
+		{
+			System.out.println("doing full display");
+			UserMenuCommands.fullDisplayCommand();
+		}
 	}
 
 	public void mouseWheelMoved(MouseWheelEvent e)

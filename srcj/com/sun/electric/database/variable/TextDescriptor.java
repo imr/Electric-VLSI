@@ -78,6 +78,21 @@ public class TextDescriptor
 	private static final int VTUNITSTIME =                7;		/* 1:   units: time */
 
 
+	/* text font sizes (in VARIABLE, NODEINST, PORTPROTO, and POLYGON->textdescription) */
+	/** points from 1 to TXTMAXPOINTS */					public static final int TXTPOINTS =        077;
+	/** right-shift of TXTPOINTS */							public static final int TXTPOINTSSH =        0;
+	public static final int TXTMAXPOINTS =      63;
+//	public static final int TXTSETPOINTS(p)   ((p)<<TXTPOINTSSH)
+//	public static final int TXTGETPOINTS(p)   (((p)&TXTPOINTS)>>TXTPOINTSSH)
+
+	public static final int TXTQGRID =    077700;		
+	public static final int TXTQGRIDSH =       6;		
+	public static final int TXTMAXQGRID =    511;
+//	public static final int TXTSETQGRID(ql) ((ql)<<TXTQGRIDSH)
+//	public static final int TXTGETQGRIDql) (((ql)&TXTQGRID)>>TXTQGRIDSH)
+	/** fixed-width text for text editing */			public static final int TXTEDITOR =     077770;
+	/** text for menu selection */						public static final int TXTMENU =       077771;
+
 	/**
 	 * Position is a typesafe enum class that describes the text position of a variable.
 	 */
@@ -173,9 +188,11 @@ public class TextDescriptor
 	{
 	}
 
-	/** routine to set the bits in the text descriptor directly. */
+	/** Low-level routine to set the bits in the text descriptor directly.  Should not normally be called. */
 	public void lowLevelSet(int descriptor0, int descriptor1) { this.descriptor0 = descriptor0;   this.descriptor1 = descriptor1; }
+	/** Low-level routine to get the first word of the text descriptor.  Should not normally be called. */
 	public int lowLevelGet0() { return descriptor0; }
+	/** Low-level routine to get the second word of the text descriptor.  Should not normally be called. */
 	public int lowLevelGet1() { return descriptor1; }
 
 	/** routine to clear the bits in the text descriptor. */

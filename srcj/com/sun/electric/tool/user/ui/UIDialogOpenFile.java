@@ -28,51 +28,87 @@ import com.sun.electric.tool.user.ui.UIFileFilter;
 import javax.swing.*;
 import java.io.File;
 
-public class UIDialogOpenFile
+public class UIDialogOpenFile extends JFileChooser
 {
-	private String extension;
-	private String description;
+	/** The file extension associated with this dialog */			private String extension;
+	/** The description of files associated with this dialog */		private String description;
+	/** True if this is a file save dialog */						private boolean saveDialog;
 
 	public static final UIDialogOpenFile TEXT = new UIDialogOpenFile(null, "Any File");
 	public static final UIDialogOpenFile ELIB = new UIDialogOpenFile("elib", "Library File");
 
+	/**
+	 * Constructor creates a link to files with the extension "extension" and
+	 * description "description".
+	 *
+	 * After construction, the "chooseInputFile()" or "chooseOutputFile()" methods
+	 * may be called to return a selected input or output file.
+	 */
 	public UIDialogOpenFile(String extension, String description)
 	{
 		this.extension = extension;
 		this.description = description;
 	}
 
+	/**
+	 * Routine to invoke an "open file" dialog and return the selected file.
+	 */
 	public String chooseInputFile()
 	{
-		JFileChooser fc = new JFileChooser();
+		saveDialog = false;
 		UIFileFilter filter = new UIFileFilter();
 		if (extension != null) filter.addExtension(extension);
-		fc.setDialogTitle("Read " + description);
+		setDialogTitle("Read " + description);
 		filter.setDescription(description);
-		fc.setFileFilter(filter);
-		int returnVal = fc.showOpenDialog(null);
+		setFileFilter(filter);
+		int returnVal = showOpenDialog(null);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
-			File file = fc.getSelectedFile();
+			File file = getSelectedFile();
 			return file.getPath();
 		}
 		return null;
 	}
 
-	public String chooseOutputFile()
+	/**
+	 * Routine to invoke a "save file" dialog and return the selected file.
+	 */
+	public String chooseOutputFile(String initialFile)
 	{
-		JFileChooser fc = new JFileChooser();
-		fc.setDialogTitle("Write " + description);
+		saveDialog = true;
+		setDialogTitle("Write " + description);
 		UIFileFilter filter = new UIFileFilter();
 		if (extension != null) filter.addExtension(extension);
 		filter.setDescription(description);
-		fc.setFileFilter(filter);
-		int returnVal = fc.showSaveDialog(null);
+		setFileFilter(filter);
+		setSelectedFile(new File(initialFile));
+		int returnVal = showSaveDialog(null);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
-			File file = fc.getSelectedFile();
+			File file = getSelectedFile();
 			return file.getPath();
 		}
 		return null;
+	}
+
+	/**
+	 * Routine called when the user clicks "ok" during file choosing.
+	 * Prevents overwriting of existing files.
+	 */
+	public void approveSelection()
+	{
+		File f = getSelectedFile();
+		if (saveDialog)
+		{
+			String filename = f.getName();
+			if (f.exists())
+			{
+				int result = JOptionPane.showConfirmDialog(this, "The file "+filename+" already exists, would you like to overwrite it?",
+					"Overwrite?", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+				if (result != JOptionPane.OK_OPTION) return;
+			}
+		}
+		setSelectedFile(f);
+		super.approveSelection();
 	}
 }

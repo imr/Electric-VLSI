@@ -296,6 +296,27 @@ public class NodeInst extends Geometric
 		}
 	}
 
+	/**
+	 * Recomputes the "WIPED" flag bit on the node, depending on whether there are wipable arcs.
+	 */
+	public void computeWipeState()
+	{
+		clearWiped();
+		if (getProto().isArcsWipe())
+		{
+			for(Iterator it = getConnections(); it.hasNext(); )
+			{
+				Connection con = (Connection)it.next();
+				ArcInst ai = con.getArc();
+				if (ai.getProto().isWipable())
+				{
+					setWiped();
+					break;
+				}
+			}
+		}
+	}
+
 	// ------------------------ public methods -------------------------------
 
 	/** Set the Far-Text bit */
@@ -359,6 +380,9 @@ public class NodeInst extends Geometric
 	/** Get the Locked bit */
 	public int getTechSpecific() { return (userBits & NTECHBITS) >> NTECHBITSSH; }
 
+	/** Low-level routine to get the user bits.  Should not normally be called. */
+	public int lowLevelGetUserbits() { return userBits; }
+	/** Low-level routine to set the user bits.  Should not normally be called. */
 	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
 
 	public AffineTransform transformOut()
@@ -484,11 +508,15 @@ public class NodeInst extends Geometric
 	void addConnection(Connection c)
 	{
 		connections.add(c);
+		NodeInst ni = c.getPortInst().getNodeInst();
+		ni.computeWipeState();
 	}
 
 	void removeConnection(Connection c)
 	{
 		connections.remove(c);
+		NodeInst ni = c.getPortInst().getNodeInst();
+		ni.computeWipeState();
 	}
 
 	public Iterator getExports()
@@ -538,6 +566,9 @@ public class NodeInst extends Geometric
 		if (var != null) var.setDisplay();
 	}
 
+	/**
+	 * Routine to describe this NodeInst as a string.
+	 */
 	public String describe()
 	{
 		return protoType.getProtoName();
