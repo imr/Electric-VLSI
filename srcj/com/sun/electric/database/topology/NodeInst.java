@@ -29,10 +29,7 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.hierarchy.NodeUsage;
+import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -683,8 +680,9 @@ public class NodeInst extends Geometric implements Nodable
 		if (checkAndRepair() > 0) return true;
 
 		// add to linked lists
+        nodeUsage = parent.addNode(this);
+        if (nodeUsage == null) return true;
 		linkGeom(parent);
-		nodeUsage = parent.addNode(this);
 		return false;
 	}
 

@@ -69,6 +69,7 @@ import com.apple.eawt.ApplicationEvent;
 public final class Main
 {
     private static boolean DEBUG;   // global debug flag
+    public static final boolean NOTHREADING = false;             // to turn off threading
 
 	private Main() {}
 

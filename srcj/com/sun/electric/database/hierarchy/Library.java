@@ -30,6 +30,8 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.FlagSet;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.util.List;
@@ -70,6 +72,7 @@ public class Library extends ElectricObject
 	/** Cell currently being edited */						private Cell curCell;
 	/** flag bits */										private int userBits;
 	/** The temporary flag bits. */							private int flagBits;
+    /** list of referenced libs */                          private List referencedLibs;
 
 	/** static list of all libraries in Electric */			private static List libraries = new ArrayList();
 	/** the current library in Electric */					private static Library curLib = null;
@@ -116,7 +119,8 @@ public class Library extends ElectricObject
 		lib.curCell = null;
 		lib.libName = legalName;
 		lib.libFile = libFile;
-	
+        lib.referencedLibs = new ArrayList();
+
 		// add the library to the global list
 		synchronized (libraries)
 		{
@@ -219,6 +223,150 @@ public class Library extends ElectricObject
 		}
 		WindowFrame.wantToRedoLibraryTree();
 	}
+
+    /**
+     * Adds lib as a referenced library. This also checks the dependency
+     * would create a circular dependency, in which case the reference is
+     * not logged, and the method returns a LibraryDependency object.
+     * If everything is ok, the method returns null.
+     * @param lib the library to be added as a referenced lib
+     * @return null if ok, a LibraryDependency object if this would create circular dependency
+     */
+    public LibraryDependency addReferencedLib(Library lib) {
+        synchronized(referencedLibs) {
+            if (referencedLibs.contains(lib)) return null;          // already a referenced lib, is ok
+        }
+        // check recursively if there is a circular dependency
+        List libDependencies = new ArrayList();
+        if (lib.isReferencedLib(this, libDependencies)) {
+            // there is a dependency
+
+            // trace the dependency (this is an expensive operation)
+            LibraryDependency d = new LibraryDependency();
+            d.startLib = lib;
+            d.finalRefLib = this;
+            Library startLib = lib;
+            for (Iterator itLib = libDependencies.iterator(); itLib.hasNext(); ) {
+
+                // startLib references refLib. Find out why
+                Library refLib = (Library)itLib.next();
+                boolean found = false;
+                // find a cell instance that creates dependency
+                for (Iterator itCell = startLib.getCells(); itCell.hasNext(); ) {
+                    Cell c = (Cell)itCell.next();
+                    for (Iterator it = c.getNodes(); it.hasNext(); ) {
+                        NodeInst ni = (NodeInst)it.next();
+                        NodeProto np = ni.getProto();
+                        if (np instanceof Cell) {
+                            Cell cc = (Cell)np;
+                            if (cc.getLibrary() == refLib) {
+                                d.dependencies.add(c);
+                                d.dependencies.add(cc);
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (found) break;
+                }
+                if (!found) System.out.println("ERROR: Library.addReferencedLib dependency trace failed inexplicably");
+                startLib = refLib;
+            }
+
+            return d;
+        }
+
+        // would not create circular dependency, add and return
+        synchronized(referencedLibs) {
+            referencedLibs.add(lib);
+        }
+        return null;
+    }
+
+    /**
+     * Try to remove lib as a referenced library. If it is no longer referenced,
+     * it is removed as a reference library.
+     * @param lib the reference library that may no longer be referenced
+     */
+    public void removeReferencedLib(Library lib) {
+        synchronized(referencedLibs) {
+            assert(referencedLibs.contains(lib));
+        }
+        boolean refFound = false;
+        for (Iterator itCell = getCells(); itCell.hasNext(); ) {
+            Cell c = (Cell)itCell.next();
+            for (Iterator it = c.getNodes(); it.hasNext(); ) {
+                NodeInst ni = (NodeInst)it.next();
+                NodeProto np = ni.getProto();
+                if (np instanceof Cell) {
+                    Cell cc = (Cell)np;
+                    if (cc.getLibrary() == lib) {
+                        refFound = true;
+                        break;
+                    }
+                }
+            }
+            if (refFound) break;
+        }
+        if (!refFound) {
+            // no instance that would create reference found, ok to remove reference
+            synchronized(referencedLibs) {
+                referencedLibs.remove(lib);
+            }
+        }
+    }
+
+    /**
+     * Checks to see if lib is referenced by this library, or by
+     * any libraries this library references, recursively.
+     * @param lib the lib to check if it is a referenced lib
+     * @return true if it is through any number of references, false otherwise
+     */
+    protected boolean isReferencedLib(Library lib, List libDepedencies) {
+        List reflibsCopy = new ArrayList();
+        synchronized(referencedLibs) {
+            if (referencedLibs.contains(lib)) {
+                libDepedencies.add(lib);
+                return true;
+            }
+            reflibsCopy.addAll(referencedLibs);
+        }
+        for (Iterator it = reflibsCopy.iterator(); it.hasNext(); ) {
+            Library reflib = (Library)it.next();
+
+            // if reflib already in dependency list, ignore
+            if (libDepedencies.contains(reflib)) continue;
+
+            // check recursively
+            libDepedencies.add(reflib);
+            if (reflib.isReferencedLib(lib, libDepedencies)) return true;
+            // remove reflib in accumulated list, try again
+            libDepedencies.remove(reflib);
+        }
+        return false;
+    }
+
+    public static class LibraryDependency {
+        private List dependencies;
+        private Library startLib;
+        private Library finalRefLib;
+
+        private LibraryDependency() {
+            dependencies = new ArrayList();
+        }
+
+        public String toString() {
+            StringBuffer buf = new StringBuffer();
+            buf.append("Library "+ startLib.getName() + " depends on Library "+finalRefLib.getName()+" through the following references:\n");
+            for (Iterator it = dependencies.iterator(); it.hasNext(); ) {
+                Cell libCell = (Cell)it.next();
+                Cell instance = (Cell)it.next();
+                buf.append("   "+libCell.getLibrary().getName()+":"+libCell.noLibDescribe()+ " instantiates "
+                                + instance.getLibrary().getName()+":"+instance.noLibDescribe()+"\n");
+            }
+            return buf.toString();
+        }
+    }
 
 	// ----------------- public interface --------------------
 

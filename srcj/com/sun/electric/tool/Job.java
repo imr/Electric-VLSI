@@ -32,6 +32,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.Main;
 
 import java.awt.Toolkit;
 import java.awt.geom.Point2D;
@@ -318,11 +319,12 @@ public abstract class Job implements ActionListener, Runnable {
         if (display)
             myNode = new DefaultMutableTreeNode(this);
 
-        databaseChangesThread.addJob(this);
-
-		// should figure out when to start the job properly...for now, just start it
-		//Thread t = new Thread(this, jobName);
-		//t.start();
+        if (Main.NOTHREADING) {
+            // turn off threading if needed for debugging
+            run();
+        } else {
+            databaseChangesThread.addJob(this);
+        }
     }
     
     
@@ -474,6 +476,8 @@ public abstract class Job implements ActionListener, Runnable {
 	 */
 	public static void checkChanging()
 	{
+        if (Main.NOTHREADING) return;
+
 		if (changingJob == null)
 		{
 			System.out.println("Database is changing but no change job is running");

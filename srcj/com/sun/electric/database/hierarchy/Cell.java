@@ -53,6 +53,7 @@ import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.Main;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -372,13 +373,7 @@ public class Cell extends NodeProto implements Comparable
 	 */
 	public static Cell makeInstance(Library lib, String name)
 	{
-		Job.checkChanging();
-		Cell cell = lowLevelAllocate(lib);
-		if (cell.lowLevelPopulate(name)) return null;
-		if (cell.lowLevelLink()) return null;
-
-		// handle change control, constraint, and broadcast
-		Undo.newObject(cell);
+		Cell cell = newInstance(lib, name);
 
 		// add cell-center if requested
 		if (User.isPlaceCellCenter())
@@ -1279,6 +1274,26 @@ public class Cell extends NodeProto implements Comparable
 			return null;
 		}
 
+        /*
+        // check to see if this instantiation would create a circular library dependency
+        NodeProto protoType = ni.getProto();
+        if (protoType instanceof Cell) {
+            Cell instProto = (Cell)protoType;
+            if (instProto.getLibrary() != getLibrary()) {
+                // a reference will be created, check it
+                Library.LibraryDependency libDep = getLibrary().addReferencedLib(instProto.getLibrary());
+                if (libDep != null) {
+                    // addition would create circular dependency
+                    System.out.println("ERROR: "+ getLibrary().getName()+":"+noLibDescribe() + " cannot instantiate " +
+                            instProto.getLibrary().getName()+":"+instProto.noLibDescribe() +
+                            " because it would create a circular library dependence: ");
+                    System.out.println(libDep.toString());
+                    return null;
+                }
+
+            }
+        }
+*/
 		// add the node
 		ni.setNodeIndex(nodes.size());
 		nodes.add(ni);
@@ -1332,6 +1347,11 @@ public class Cell extends NodeProto implements Comparable
 			lastNi.setNodeIndex(nodeIndex);
 		}
 		ni.setNodeIndex(-1);
+
+        // remove library dependency, if possible
+        if (ni.getProto() instanceof Cell) {
+            getLibrary().removeReferencedLib(((Cell)ni.getProto()).getLibrary());
+        }
 
 		// must recompute the bounds of the cell
 		boundsDirty = true;
@@ -2414,6 +2434,8 @@ public class Cell extends NodeProto implements Comparable
 	 */
 	public void checkChanging()
 	{
+        if (Main.NOTHREADING) return;
+
 		if (Job.getChangingThread() != Thread.currentThread())
 		{
 			if (Job.getChangingThread() == null)
@@ -2543,7 +2565,8 @@ public class Cell extends NodeProto implements Comparable
 	 */
 	public Technology getTechnology()
 	{
-		if (tech == null) tech = Technology.whatTechnology(this, null, 0, 0, null, 0, 0);
+		if (tech == null)
+            tech = Technology.whatTechnology(this, null, 0, 0, null, 0, 0);
 		return tech;
 	}
 
