@@ -69,14 +69,24 @@ public class Simulate extends Input
 
 	public static class SimSignal
 	{
+		public SimSignal(SimData sd)
+		{
+			this.sd = sd;
+			sd.signals.add(this);
+			this.signalColor = Color.RED;
+		}
+
 		public String signalName;
 		public Color signalColor;
+		public SimData sd;
 		public boolean useCommonTime;
 		public double [] time;
 		public List tempList;
 	}
+
 	public static class SimAnalogSignal extends SimSignal
 	{
+		public SimAnalogSignal(SimData sd) { super(sd); }
 		public double [] values;
 	}
 
@@ -199,8 +209,6 @@ public class Simulate extends Input
 
 	private static void showSimulationData(SimData sd)
 	{
-//		Color [] colorArray = new Color [] {
-//			Color.RED, Color.GREEN, Color.BLUE, Color.PINK, Color.ORANGE, Color.YELLOW, Color.CYAN, Color.MAGENTA};
 		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 		if (wf == null) return;
 
@@ -234,19 +242,18 @@ public class Simulate extends Input
 			}
 		}
 		double timeRange = highTime - lowTime;
-System.out.println("Time from "+lowTime+" to "+highTime);
-System.out.println("Values from "+lowValue+" to "+highValue);
+
 		// make the waveform window
 		WaveformWindow ww = new WaveformWindow(sd, wf);
 		ww.setMainTimeCursor(timeRange*0.2 + lowTime);
 		ww.setExtensionTimeCursor(timeRange*0.8 + lowTime);
+		ww.setDefaultTimeRange(lowTime, highTime);
 
 		// put waveform panels in it
 		for(int sig=0; sig<sd.signals.size(); sig++)
 		{
 			Simulate.SimSignal sSig = (Simulate.SimSignal)sd.signals.get(sig);
 			WaveformWindow.Panel wp = new WaveformWindow.Panel(ww);
-			wp.setTimeRange(lowTime, highTime);
 			wp.setValueRange(lowValue, highValue);
 			WaveformWindow.Signal wsig = new WaveformWindow.Signal(wp, sSig);
 if (sig > 20) break;

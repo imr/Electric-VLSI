@@ -2,6 +2,8 @@
 
 ************************* Version 7.01: Released  *************************
 
+IMP: (5/5/04, SR) The "Misc" palette entry now has Spice code and Verilog code/declarations.
+
 IMP: (5/5/04, SR) Converted file paths to URLs.
 
 IMP: (5/5/04, SR) Can now select default font in the "Text" tab of the

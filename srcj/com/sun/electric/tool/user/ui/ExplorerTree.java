@@ -31,6 +31,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ErrorLog;
 import com.sun.electric.tool.user.CircuitChanges;
@@ -150,6 +151,12 @@ public class ExplorerTree extends JTree
 
 		expanded = new HashMap();
 	}
+
+	/**
+	 * Method to return the currently selected object in the explorer tree.
+	 * @return the currently selected object in the explorer tree.
+	 */
+	public Object getCurrentlySelectedObject() { return handler.currentSelectedObject; }
 
 	/**
 	 * Method to return the tree structure that defines the current cell explorer.
@@ -477,6 +484,11 @@ public class ExplorerTree extends JTree
 			ErrorLog el = (ErrorLog)nodeInfo;
 			return el.describeError();
 		}
+		if (nodeInfo instanceof Simulate.SimSignal)
+		{
+			Simulate.SimSignal sig = (Simulate.SimSignal)nodeInfo;
+			return sig.signalName;
+		}
 		return nodeInfo.toString();
 	}
 
@@ -700,7 +712,7 @@ public class ExplorerTree extends JTree
 		private void cacheEvent(MouseEvent e)
 		{
 			currentPath = tree.getPathForLocation(e.getX(), e.getY());
-			if (currentPath == null) return;
+			if (currentPath == null) { currentSelectedObject = null;   return; }
 			tree.setSelectionPath(currentPath);
 			DefaultMutableTreeNode node = (DefaultMutableTreeNode)currentPath.getLastPathComponent();
 			currentSelectedObject = node.getUserObject();

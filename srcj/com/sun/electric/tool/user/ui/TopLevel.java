@@ -167,7 +167,7 @@ public class TopLevel extends JFrame
 			if (osName.startsWith("windows"))
 			{
 				os = OS.WINDOWS;
-                mdi = true;     // default
+				mdi = true;     // default
 				scrnSize.height -= 30;
 				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
 			} else if (osName.startsWith("linux") || osName.startsWith("solaris") || osName.startsWith("sunos"))

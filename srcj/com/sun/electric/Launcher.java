@@ -56,7 +56,7 @@ public final class Launcher
 			}
 		} catch(Exception e)
 		{
-			// problem figurint out what computer this is: just start Electric
+			// problem figuring out what computer this is: just start Electric
 			Main.main(args);
 		}
 	}

@@ -302,13 +302,13 @@ public class Name implements Comparable
 	private Name(String ons)
 	{
 		this.ons = ons;
-		this.ns = trimPlusMinus(ns);
+		this.ns = trimPlusMinus(ons);
 		this.numSuffix = 0;
 		String lower = ns.toLowerCase();
 		this.lowerCase = (ns.equals(lower) ? this : findTrimmedName(lower));
 		try
 		{
-			flags = checkNameThrow(ns);
+			flags = checkNameThrow(ons);
 		} catch (NumberFormatException e)
 		{
 			flags = ERROR;
@@ -426,7 +426,8 @@ public class Name implements Comparable
 	 */
 	private void makeSplitSubNames(int split)
 	{
-		if (split >= ns.length())
+		if (ns.length() == 0) return;
+		if (split < 0 || split >= ns.length())
 		{
 			System.out.println("HEY! string is '"+ns+"' but want index "+split);
 			return;

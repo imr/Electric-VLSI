@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.ElectricObject;
@@ -155,29 +156,56 @@ public class StatusBar extends JPanel
 		} else
 		{
 			// count the number of nodes and arcs selected
-			int nodeCount = 0, arcCount = 0;
-			int textCount = Highlight.getHighlightedText().size();
+			int nodeCount = 0, arcCount = 0, textCount = 0;
 			NodeInst theNode = null;
 			ArcInst theArc = null;
-			for(Iterator hIt = Highlight.getHighlighted(true, true).iterator(); hIt.hasNext(); )
+			Highlight theText = null;
+			for(Iterator hIt = Highlight.getHighlights(); hIt.hasNext(); )
 			{
-				ElectricObject eobj = (ElectricObject)hIt.next();
-				if (eobj instanceof NodeInst)
+				Highlight h = (Highlight)hIt.next();
+				if (h.getType() == Highlight.Type.EOBJ)
 				{
-					theNode = (NodeInst)eobj;
-					nodeCount++;
-				}
-				if (eobj instanceof ArcInst)
+					ElectricObject eObj = (ElectricObject)h.getElectricObject();
+					if (eObj instanceof NodeInst)
+					{
+						theNode = (NodeInst)eObj;
+						nodeCount++;
+					} else if (eObj instanceof ArcInst)
+					{
+						theArc = (ArcInst)eObj;
+						arcCount++;
+					}
+				} else if (h.getType() == Highlight.Type.TEXT)
 				{
-					theArc = (ArcInst)eobj;
-					arcCount++;
+					theText = h;
+					textCount++;
 				}
 			}
-
-			if (nodeCount + arcCount == 1 && textCount == 0)
+			if (nodeCount + arcCount + textCount == 1)
 			{
 				if (nodeCount == 1) selectedMsg = "SELECTED NODE: " + theNode.describe(); else
-					selectedMsg = "SELECTED ARC: " + theArc.describe();
+				{
+					if (arcCount == 1) selectedMsg = "SELECTED ARC: " + theArc.describe(); else
+					{
+						if (theText.getVar() != null)
+						{
+							selectedMsg = "SELECTED TEXT: " + theText.getVar().getFullDescription(theText.getElectricObject());
+						} else
+						{
+							if (theText.getName() != null)
+							{
+								if (theText.getElectricObject() instanceof NodeInst)
+									selectedMsg = "SELECTED TEXT: Node name"; else
+										selectedMsg = "SELECTED TEXT: Arc name";
+							} else
+							{
+								if (theText.getElectricObject() instanceof Export)
+									selectedMsg = "SELECTED TEXT: Export name"; else
+										selectedMsg = "SELECTED TEXT: Cell instance name";
+							}
+						}
+					}
+				}
 			} else
 			{
 				if (nodeCount + arcCount + textCount > 0)

@@ -516,28 +516,45 @@ public class PaletteFrame
 					JMenuItem menuItem = new JMenuItem("Cell Instance...");
 					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.cellBrowserCommand(CellBrowser.DoAction.newInstance); } });
 					specialMenu.add(menuItem);
+
 					specialMenu.addSeparator();
+
 					menuItem = new JMenuItem("Annotation Text");
-					menuItem.addActionListener(new PlacePopupListener(panel, ""));
+					menuItem.addActionListener(new PlacePopupListener(panel, "ART_message"));
 					specialMenu.add(menuItem);
 					menuItem = new JMenuItem("Layout Text...");
 					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeLayoutTextCommand(); } });
 					specialMenu.add(menuItem);
+
 					specialMenu.addSeparator();
+
 					menuItem = new JMenuItem("Cell Center");
 					menuItem.addActionListener(new PlacePopupListener(panel, Generic.tech.cellCenterNode));
 					specialMenu.add(menuItem);
 					menuItem = new JMenuItem("Essential Bounds");
 					menuItem.addActionListener(new PlacePopupListener(panel, Generic.tech.essentialBoundsNode));
 					specialMenu.add(menuItem);
+
 					specialMenu.addSeparator();
+
+					menuItem = new JMenuItem("Spice Code");
+					menuItem.addActionListener(new PlacePopupListener(panel, "SIM_spice_card"));
+					specialMenu.add(menuItem);
+					menuItem = new JMenuItem("Verilog Code");
+					menuItem.addActionListener(new PlacePopupListener(panel, "VERILOG_code"));
+					specialMenu.add(menuItem);
+					menuItem = new JMenuItem("Verilog Declaration");
+					menuItem.addActionListener(new PlacePopupListener(panel, "VERILOG_declaration"));
+					specialMenu.add(menuItem);
 					menuItem = new JMenuItem("Simulation Probe");
 					menuItem.addActionListener(new PlacePopupListener(panel, Generic.tech.simProbeNode));
 					specialMenu.add(menuItem);
 					menuItem = new JMenuItem("DRC Exclusion");
 					menuItem.addActionListener(new PlacePopupListener(panel, Generic.tech.drcNode));
 					specialMenu.add(menuItem);
+
 					specialMenu.addSeparator();
+
 					menuItem = new JMenuItem("Invisible Pin");
 					menuItem.addActionListener(new PlacePopupListener(panel, Generic.tech.invisiblePinNode));
 					specialMenu.add(menuItem);
@@ -639,7 +656,6 @@ public class PaletteFrame
 
 			public void actionPerformed(ActionEvent evt)
 			{
-				// the popup of libraies changed
 				JMenuItem mi = (JMenuItem)evt.getSource();
 				String msg = mi.getText();
 				placeInstance(obj, panel);
@@ -900,12 +916,17 @@ public class PaletteFrame
 	{
 		NodeProto np = null;
 		NodeInst ni = null;
-		boolean placeText = false;
+		String placeText = null;
+		String whatToCreate = null;
 
 		if (obj instanceof String)
 		{
+			placeText = (String)obj;
+			if (placeText.equals("SIM_spice_card")) whatToCreate = "Spice code"; else
+			if (placeText.equals("VERILOG_code")) whatToCreate = "Verilog code"; else
+			if (placeText.equals("VERILOG_declaration")) whatToCreate = "Verilog declaration"; else
+				whatToCreate = "Annotation Text";
 			obj = Generic.tech.invisiblePinNode;
-			placeText = true;
 		}
 		if (obj instanceof NodeProto)
 		{
@@ -921,9 +942,12 @@ public class PaletteFrame
 			EventListener oldListener = EditWindow.getListener();
 			Cursor oldCursor = TopLevel.getCurrentCursor();
 
-			if (np instanceof Cell)
-				System.out.println("Click to create an instance of cell " + np.describe()); else
-					System.out.println("Click to create node " + np.describe());
+			if (whatToCreate != null) System.out.println("Click to create " + whatToCreate); else
+			{
+				if (np instanceof Cell)
+					System.out.println("Click to create an instance of cell " + np.describe()); else
+						System.out.println("Click to create node " + np.describe());
+			}
 			EventListener newListener = oldListener;
 			if (newListener != null && newListener instanceof PlaceNodeListener)
 			{
@@ -933,8 +957,8 @@ public class PaletteFrame
 				newListener = new PlaceNodeListener(panel, obj, oldListener, oldCursor);
 				EditWindow.setListener(newListener);
 			}
-			if (placeText)
-				((PlaceNodeListener)newListener).setTextNode();
+			if (placeText != null)
+				((PlaceNodeListener)newListener).setTextNode(placeText);
 			if (panel != null)
 				panel.getFrame().highlightedNode = np;
 
@@ -953,7 +977,7 @@ public class PaletteFrame
 		private EventListener oldListener;
 		private Cursor oldCursor;
 		private boolean isDrawn;
-		private boolean isTextNode;
+		private String textNode;
 		private PalettePanel window;
 		private int defAngle;
 
@@ -964,7 +988,7 @@ public class PaletteFrame
 			this.oldListener = oldListener;
 			this.oldCursor = oldCursor;
 			this.isDrawn = false;
-			this.isTextNode = false;
+			this.textNode = null;
 
 			// get default creation angle
 			NodeProto np = null;
@@ -988,7 +1012,7 @@ public class PaletteFrame
 
 		public void setParameter(Object toDraw) { this.toDraw = toDraw; }
 
-		public void setTextNode() { isTextNode = true; }
+		public void setTextNode(String varName) { textNode = varName; }
 
 		private void updateBox(EditWindow wnd, int oldx, int oldy)
 		{
@@ -1077,7 +1101,7 @@ public class PaletteFrame
 			String descript = "Create ";
 			if (np instanceof Cell) descript += ((Cell)np).noLibDescribe(); else
 				descript += np.getProtoName() + " Primitive";
-			PlaceNewNode job = new PlaceNewNode(descript, toDraw, where, wnd.getCell(), isTextNode);
+			PlaceNewNode job = new PlaceNewNode(descript, toDraw, where, wnd.getCell(), textNode);
 
 			// restore the former listener to the edit windows
             finished();
@@ -1133,15 +1157,15 @@ public class PaletteFrame
 		Object toDraw;
 		Point2D where;
 		Cell cell;
-		boolean isTextNode;
+		String varName;
 
-		protected PlaceNewNode(String description, Object toDraw, Point2D where, Cell cell, boolean isTextNode)
+		protected PlaceNewNode(String description, Object toDraw, Point2D where, Cell cell, String varName)
 		{
 			super(description, User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.toDraw = toDraw;
 			this.where = where;
 			this.cell = cell;
-			this.isTextNode = isTextNode;
+			this.varName = varName;
 			startJob();
 		}
 
@@ -1159,7 +1183,7 @@ public class PaletteFrame
 			}
 			double width = np.getDefWidth();
 			double height = np.getDefHeight();
-			if (isTextNode) width = height = 0;
+			if (varName != null) width = height = 0;
 
 			// get default creation angle
 			int defAngle = 0;
@@ -1178,14 +1202,16 @@ public class PaletteFrame
 
 			NodeInst newNi = NodeInst.makeInstance(np, where, width, height, defAngle, cell, null);
 			if (newNi == null) return;
-			if (isTextNode)
+			if (varName != null)
 			{
 				// text object: add initial text
-				Variable var = newNi.newVar(Artwork.ART_MESSAGE, "text");
+				Variable var = newNi.newVar(varName, "text");
 				if (var != null)
 				{
 					var.setDisplay();
-					var.setTextDescriptor(TextDescriptor.newNonLayoutDescriptor(null));
+					TextDescriptor td = TextDescriptor.newNonLayoutDescriptor(null);
+					if (!varName.equals("ART_message")) td.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
+					var.setTextDescriptor(td);
 					Highlight h = Highlight.addText(newNi, cell, var, null);
 				}
 			} else

@@ -111,10 +111,8 @@ public class RawSpiceOut extends Simulate
 				signals = new Simulate.SimAnalogSignal[numSignals];
 				for(int i=0; i<numSignals; i++)
 				{
-					signals[i] = new Simulate.SimAnalogSignal();
+					signals[i] = new Simulate.SimAnalogSignal(sd);
 					signals[i].useCommonTime = true;
-					signals[i].signalColor = java.awt.Color.RED;
-					sd.signals.add(signals[i]);
 				}
 				continue;
 			}

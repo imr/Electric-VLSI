@@ -213,6 +213,11 @@ public class Simulation extends Tool
 	public static void setSpiceOutputFormat(String format) { cacheSpiceOutputFormat.setString(format); }
 
 	private static Pref cacheSpicePartsLibrary = null;
+	/**
+	 * Method to return the name of the current Spice parts library.
+	 * The Spice parts library is a library of icons that are used in Spice.
+	 * @return the name of the current Spice parts library.
+	 */
 	public static String getSpicePartsLibrary()
 	{
 		if (cacheSpicePartsLibrary == null)
@@ -222,6 +227,11 @@ public class Simulation extends Tool
 		}
 		return cacheSpicePartsLibrary.getString();
 	}
+	/**
+	 * Method to set the name of the current Spice parts library.
+	 * The Spice parts library is a library of icons that are used in Spice.
+	 * @param parts the name of the new current Spice parts library.
+	 */
 	public static void setSpicePartsLibrary(String parts)
 	{
 		if (cacheSpicePartsLibrary == null)
@@ -280,26 +290,83 @@ public class Simulation extends Tool
 
 	private static Pref cacheSpiceUseParasitics = Pref.makeBooleanPref("SpiceUseParasitics", Simulation.tool.prefs, true);
     static { cacheSpiceUseParasitics.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Use Parasitics"); }
+	/**
+	 * Method to tell whether or not to use parasitics in Spice output.
+	 * The default is true.
+	 * @return true to use parasitics in Spice output.
+	 */
 	public static boolean isSpiceUseParasitics() { return cacheSpiceUseParasitics.getBoolean(); }
-	public static void setSpiceUseParasitics(boolean v) { cacheSpiceUseParasitics.setBoolean(v); }
+	/**
+	 * Method to set whether or not to use parasitics in Spice output.
+	 * @param p true to use parasitics in Spice output.
+	 */
+	public static void setSpiceUseParasitics(boolean p) { cacheSpiceUseParasitics.setBoolean(p); }
 
 	private static Pref cacheSpiceUseNodeNames = Pref.makeBooleanPref("SpiceUseNodeNames", Simulation.tool.prefs, true);
     static { cacheSpiceUseNodeNames.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Use Node Names"); }
+	/**
+	 * Method to tell whether or not to use node names in Spice output.
+	 * If node names are off, then numbers are used.
+	 * The default is true.
+	 * @return true to use node names in Spice output.
+	 */
 	public static boolean isSpiceUseNodeNames() { return cacheSpiceUseNodeNames.getBoolean(); }
-	public static void setSpiceUseNodeNames(boolean v) { cacheSpiceUseNodeNames.setBoolean(v); }
+	/**
+	 * Method to set whether or not to use node names in Spice output.
+	 * If node names are off, then numbers are used.
+	 * @param u true to use node names in Spice output.
+	 */
+	public static void setSpiceUseNodeNames(boolean u) { cacheSpiceUseNodeNames.setBoolean(u); }
 
 	private static Pref cacheSpiceForceGlobalPwrGnd = Pref.makeBooleanPref("SpiceForceGlobalPwrGnd", Simulation.tool.prefs, false);
     static { cacheSpiceForceGlobalPwrGnd.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Force Global VDD/GND"); }
+	/**
+	 * Method to tell whether or not to write global power and ground in Spice output.
+	 * If this is off, then individual power and ground references are made.
+	 * The default is false.
+	 * @return true to write global power and ground in Spice output.
+	 */
 	public static boolean isSpiceForceGlobalPwrGnd() { return cacheSpiceForceGlobalPwrGnd.getBoolean(); }
-	public static void setSpiceForceGlobalPwrGnd(boolean v) { cacheSpiceForceGlobalPwrGnd.setBoolean(v); }
+	/**
+	 * Method to set whether or not to write global power and ground in Spice output.
+	 * If this is off, then individual power and ground references are made.
+	 * @param g true to write global power and ground in Spice output.
+	 */
+	public static void setSpiceForceGlobalPwrGnd(boolean g) { cacheSpiceForceGlobalPwrGnd.setBoolean(g); }
 
 	private static Pref cacheSpiceUseCellParameters = Pref.makeBooleanPref("SpiceUseCellParameters", Simulation.tool.prefs, false);
     static { cacheSpiceForceGlobalPwrGnd.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Use Cell Parameters"); }
+	/**
+	 * Method to tell whether or not to use cell parameters in Spice output.
+	 * When cell parameters are used, any parameterized cell is written many times,
+	 * once for each combination of parameter values.
+	 * The default is false.
+	 * @return true to use cell parameters in Spice output.
+	 */
 	public static boolean isSpiceUseCellParameters() { return cacheSpiceUseCellParameters.getBoolean(); }
-	public static void setSpiceUseCellParameters(boolean v) { cacheSpiceUseCellParameters.setBoolean(v); }
+	/**
+	 * Method to set whether or not to use cell parameters in Spice output.
+	 * When cell parameters are used, any parameterized cell is written many times,
+	 * once for each combination of parameter values.
+	 * @param p true to use cell parameters in Spice output.
+	 */
+	public static void setSpiceUseCellParameters(boolean p) { cacheSpiceUseCellParameters.setBoolean(p); }
 
 	private static Pref cacheSpiceWriteTransSizeInLambda = Pref.makeBooleanPref("SpiceWriteTransSizeInLambda", Simulation.tool.prefs, false);
     static { cacheSpiceWriteTransSizeInLambda.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Write Trans Sizes in Lambda"); }
+	/**
+	 * Method to tell whether or not to write transistor sizes in "lambda" grid units in Spice output.
+	 * Lambda grid units are the basic units of design.
+	 * When writing in these units, the values are simpler, but an overriding scale factor brings them to the proper size.
+	 * The default is false.
+	 * @return true to write transistor sizes in "lambda" grid units in Spice output.
+	 */
 	public static boolean isSpiceWriteTransSizeInLambda() { return cacheSpiceWriteTransSizeInLambda.getBoolean(); }
-	public static void setSpiceWriteTransSizeInLambda(boolean v) { cacheSpiceWriteTransSizeInLambda.setBoolean(v); }
+	/**
+	 * Method to set whether or not to write transistor sizes in "lambda" grid units in Spice output.
+	 * Lambda grid units are the basic units of design.
+	 * When writing in these units, the values are simpler, but an overriding scale factor brings them to the proper size.
+	 * @param l true to write transistor sizes in "lambda" grid units in Spice output.
+	 */
+	public static void setSpiceWriteTransSizeInLambda(boolean l) { cacheSpiceWriteTransSizeInLambda.setBoolean(l); }
 }

@@ -259,7 +259,7 @@ public class Variable
 					description = "Verilog declaration";
 				} else if (varName.equals("SIM_spice_card"))
 				{
-					description = "SPICE card";
+					description = "SPICE code";
 				}
 			}
 		} else if (eobj instanceof Cell)

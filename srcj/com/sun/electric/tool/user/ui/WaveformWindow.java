@@ -104,7 +104,7 @@ public class WaveformWindow
 			sd.commonTime[i] = i * timeStep;
 		for(int i=0; i<18; i++)
 		{
-			Simulate.SimAnalogSignal as = new Simulate.SimAnalogSignal();
+			Simulate.SimAnalogSignal as = new Simulate.SimAnalogSignal(sd);
 			as.signalName = "Signal"+(i+1);
 			as.signalColor = colorArray[i % colorArray.length];
 			as.useCommonTime = true;
@@ -113,7 +113,6 @@ public class WaveformWindow
 			{
 				as.values[k] = Math.sin((k+i*10) / (2.0+i*2)) * 4;
 			}
-			sd.signals.add(as);
 		}
 		sd.cell = null;
 
@@ -121,12 +120,12 @@ public class WaveformWindow
 		WaveformWindow ww = new WaveformWindow(sd, wf);
 		ww.setMainTimeCursor(timeStep*22);
 		ww.setExtensionTimeCursor(timeStep*77);
+		ww.setDefaultTimeRange(0, timeStep*100);
 
 		// make some waveform panels and put signals in them
 		for(int i=0; i<6; i++)
 		{
 			Panel wp = new Panel(ww);
-			wp.setTimeRange(0, timeStep*100);
 			wp.setValueRange(-5, 5);
 			for(int j=0; j<(i+1)*3; j++)
 			{
@@ -145,6 +144,7 @@ public class WaveformWindow
 		/** the main waveform window this is part of */			private WaveformWindow waveWindow;
 		/** maps signal buttons to the actual Signal */			private HashMap waveSignals;
 		/** the list of signal name buttons on the left */		private JPanel signalButtons;
+		/** the JScrollPane with of signal name buttons */		private JScrollPane signalButtonsPane;
 		/** the left side: with signal names etc. */			private JPanel leftHalf;
 		/** the right side: with signal traces */				private JPanel rightHalf;
 		/** the button to close this panel. */					private JButton close;
@@ -159,8 +159,8 @@ public class WaveformWindow
 		/** the cell that is in the window */					private Cell cell;
 		/** true if a time cursor is being dragged */			private boolean draggingMain, draggingExt;
 		/** true if an area is being dragged */					private boolean draggingArea;
-		private double dragStartX, dragStartY;
-		private double dragEndX, dragEndY;
+		private int dragStartX, dragStartY;
+		private int dragEndX, dragEndY;
 
 		private static final int VERTLABELWIDTH = 60;
 		private static Color background = null;
@@ -187,6 +187,8 @@ public class WaveformWindow
 			addMouseMotionListener(this);
 			addMouseWheelListener(this);
 			waveSignals = new HashMap();
+
+			setTimeRange(waveWindow.minTime, waveWindow.maxTime);
 
 			// the left side with signal names
 			leftHalf = new JPanel();
@@ -270,15 +272,15 @@ public class WaveformWindow
 			// the list of signals in this panel
 			signalButtons = new JPanel();
 			signalButtons.setLayout(new BoxLayout(signalButtons, BoxLayout.Y_AXIS));
-			JScrollPane signalList = new JScrollPane(signalButtons);
-			signalList.setPreferredSize(new Dimension(100, 150));
+			signalButtonsPane = new JScrollPane(signalButtons);
+			signalButtonsPane.setPreferredSize(new Dimension(100, 150));
 			gbc.gridx = 0;       gbc.gridy = 2;
 			gbc.gridwidth = 4;   gbc.gridheight = 1;
 			gbc.weightx = 1;     gbc.weighty = 1;
 			gbc.anchor = GridBagConstraints.CENTER;
 			gbc.fill = GridBagConstraints.BOTH;
 			gbc.insets = new Insets(0, 0, 0, 0);
-			leftHalf.add(signalList, gbc);
+			leftHalf.add(signalButtonsPane, gbc);
 
 			// the right side with signal traces
 			rightHalf = new JPanel();
@@ -468,14 +470,10 @@ public class WaveformWindow
 			if (draggingArea)
 			{
 				g.setColor(Color.WHITE);
-				int sX = scaleTimeToX(dragStartX);
-				int sY = scaleValueToY(dragStartY);
-				int eX = scaleTimeToX(dragEndX);
-				int eY = scaleValueToY(dragEndY);
-				int lowX = Math.min(sX, eX);
-				int highX = Math.max(sX, eX);
-				int lowY = Math.min(sY, eY);
-				int highY = Math.max(sY, eY);
+				int lowX = Math.min(dragStartX, dragEndX);
+				int highX = Math.max(dragStartX, dragEndX);
+				int lowY = Math.min(dragStartY, dragEndY);
+				int highY = Math.max(dragStartY, dragEndY);
 				g.drawLine(lowX, lowY, lowX, highY);
 				g.drawLine(lowX, highY, highX, highY);
 				g.drawLine(highX, highY, highX, lowY);
@@ -555,8 +553,14 @@ public class WaveformWindow
 							time = as.time[i];
 						int x = scaleTimeToX(time);
 						int y = scaleValueToY(as.values[i]);
+						if (x > lX-5 && x < hX+5 && y > lY-5 && y < hY+5)
+						{
+							foundList.add(ws);
+							break;
+						}
 						if (i != 0)
 						{
+							// should see if the line is in the area
 							double dist = EMath.distToLine(new Point2D.Double(lx, ly),  new Point2D.Double(x, y), cursor);
 							if (dist <= 5)
 							{
@@ -616,40 +620,39 @@ public class WaveformWindow
 				return;
 			}
 
-			// look for a selected signal
-			Panel wp = (Panel)evt.getSource();
-			List foundList = wp.findSignalsInArea(evt.getX(), evt.getX(), evt.getY(), evt.getY());
-			if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) == 0)
-			{
-				// standard click: add this as the only trace
-				clearHighlightedSignals();
-				for(Iterator it = foundList.iterator(); it.hasNext(); )
-				{
-					Signal ws = (Signal)it.next();
-					wp.addHighlightedSignal(ws);
-				}
-			} else
-			{
-				// shift click: add or remove to list of highlighted traces
-				for(Iterator it = foundList.iterator(); it.hasNext(); )
-				{
-					Signal ws = (Signal)it.next();
-					if (ws.highlighted) removeHighlightedSignal(ws); else
-						wp.addHighlightedSignal(ws);
-				}
-			}
-			if (foundList.size() == 0)
-			{
-				// drag area
-				draggingArea = true;
-				dragStartX = dragEndX = scaleXToTime(evt.getX());
-				dragStartY = dragEndY = scaleYToValue(evt.getY());
-			}
+			// drag area
+			draggingArea = true;
+			dragStartX = dragEndX = evt.getX();
+			dragStartY = dragEndY = evt.getY();
 		}
 
 		public void mouseReleased(MouseEvent evt)
 		{
-			draggingArea = false;
+			if (draggingArea)
+			{
+				draggingArea = false;
+				Panel wp = (Panel)evt.getSource();
+				List foundList = wp.findSignalsInArea(dragStartX, dragEndX, dragStartY, dragEndY);
+				if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) == 0)
+				{
+					// standard click: add this as the only trace
+					clearHighlightedSignals();
+					for(Iterator it = foundList.iterator(); it.hasNext(); )
+					{
+						Signal ws = (Signal)it.next();
+						wp.addHighlightedSignal(ws);
+					}
+				} else
+				{
+					// shift click: add or remove to list of highlighted traces
+					for(Iterator it = foundList.iterator(); it.hasNext(); )
+					{
+						Signal ws = (Signal)it.next();
+						if (ws.highlighted) removeHighlightedSignal(ws); else
+							wp.addHighlightedSignal(ws);
+					}
+				}
+			}
 			repaint();
 		}
 
@@ -673,8 +676,8 @@ public class WaveformWindow
 				waveWindow.redrawAll();
 			} else if (draggingArea)
 			{
-				dragEndX = scaleXToTime(evt.getX());
-				dragEndY = scaleYToValue(evt.getY());
+				dragEndX = evt.getX();
+				dragEndY = evt.getY();
 				repaint();
 			}
 		}
@@ -797,10 +800,12 @@ public class WaveformWindow
 	/** the cell being simulated */							private Simulate.SimData sd;
 	/** let panel: the signal names */						private JPanel left;
 	/** right panel: the signal traces */					private JPanel right;
+	private JScrollPane scrollAll;
 	/** labels for the text at the top */					private JLabel mainPos, extPos, delta;
 	/** a list of panels in this window */					private List wavePanels;
 	/** current "main" time cursor */						private double mainTime;
 	/** current "extension" time cursor */					private double extTime;
+	/** default range along horozintal axis */				private double minTime, maxTime;
 
 	private static final ImageIcon iconAddPanel = new ImageIcon(WaveformWindow.class.getResource("ButtonSimAddPanel.gif"));
 
@@ -823,7 +828,7 @@ public class WaveformWindow
 		right = new JPanel();
 		right.setLayout(new BoxLayout(right, BoxLayout.Y_AXIS));
 		JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
-		JScrollPane scroll = new JScrollPane(split);
+		scrollAll = new JScrollPane(split);
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0;       gbc.gridy = 1;
 		gbc.gridwidth = 4;   gbc.gridheight = 1;
@@ -831,7 +836,7 @@ public class WaveformWindow
 		gbc.anchor = GridBagConstraints.CENTER;
 		gbc.fill = java.awt.GridBagConstraints.BOTH;
 		gbc.insets = new Insets(0, 0, 0, 0);
-		overall.add(scroll, gbc);
+		overall.add(scrollAll, gbc);
 
 		// the top part of the waveform window: status information
 		JButton addPanel = new JButton(iconAddPanel);
@@ -892,7 +897,7 @@ public class WaveformWindow
 		for(Iterator it = sd.signals.iterator(); it.hasNext(); )
 		{
 			Simulate.SimSignal sSig = (Simulate.SimSignal)it.next();
-			signalsExplorerTree.add(new DefaultMutableTreeNode(sSig.signalName));
+			signalsExplorerTree.add(new DefaultMutableTreeNode(sSig));
 		}
 		return signalsExplorerTree;
 	}
@@ -913,6 +918,17 @@ public class WaveformWindow
 		extPos.setText("Ext: " + amount);
 		String diff = convertToEngineeringNotation(Math.abs(mainTime - extTime), "s", 9999);
 		delta.setText("Delta: " + diff);
+	}
+
+	/**
+	 * Method to set the time range in all panels.
+	 * @param minTime the low time value.
+	 * @param maxTime the high time value.
+	 */
+	public void setDefaultTimeRange(double minTime, double maxTime)
+	{
+		this.minTime = minTime;
+		this.maxTime = maxTime;
 	}
 
 	public void redrawAll()
@@ -1135,9 +1151,10 @@ public class WaveformWindow
 		}
 		left.remove(wp.leftHalf);
 		right.remove(wp.rightHalf);
-		left.validate();
-		right.validate();
 		wavePanels.remove(wp);
+		scrollAll.validate();
+		left.repaint();
+		right.repaint();
 		redrawAll();
 	}
 
@@ -1148,7 +1165,37 @@ public class WaveformWindow
 	 */
 	public void addSignalInNewPanel()
 	{
-		System.out.println("Cannot add a new signal panel");
+		ExplorerTree tree = wf.getExplorerTree();
+		Object obj = tree.getCurrentlySelectedObject();
+		if (obj instanceof Simulate.SimSignal)
+		{
+			Simulate.SimSignal sig = (Simulate.SimSignal)obj;
+			Panel wp = new Panel(this);
+			if (sig instanceof Simulate.SimAnalogSignal)
+			{
+				Simulate.SimAnalogSignal as = (Simulate.SimAnalogSignal)sig;
+				double lowValue = 0, highValue = 0;
+				for(int i=0; i<as.values.length; i++)
+				{
+					if (i == 0) lowValue = highValue = as.values[i]; else
+					{
+						if (as.values[i] < lowValue) lowValue = as.values[i];
+						if (as.values[i] > highValue) highValue = as.values[i];
+					}
+				}
+				double range = highValue - lowValue;
+				if (range == 0) range = 2;
+				double rangeExtra = range / 10;
+				wp.setValueRange(lowValue - rangeExtra, highValue + rangeExtra);
+			}
+			Signal wsig = new Signal(wp, sig);
+			wp.signalButtons.validate();
+			wp.signalButtons.repaint();
+			scrollAll.validate();
+			wp.repaint();
+			return;
+		}
+		System.out.println("First select a signal from the explorer tree");
 	}
 
 	/**
@@ -1159,7 +1206,19 @@ public class WaveformWindow
 	 */
 	public void overlaySignalInPanel(Panel wp)
 	{
-		System.out.println("Cannot add a signal to this panel");
+		ExplorerTree tree = wf.getExplorerTree();
+		Object obj = tree.getCurrentlySelectedObject();
+		if (obj instanceof Simulate.SimSignal)
+		{
+			Simulate.SimSignal sig = (Simulate.SimSignal)obj;
+			Signal wsig = new Signal(wp, sig);
+			wp.signalButtons.validate();
+			wp.signalButtons.repaint();
+			wp.signalButtonsPane.validate();
+			wp.repaint();
+			return;
+		}
+		System.out.println("First select a signal from the explorer tree");
 	}
 
 	/**

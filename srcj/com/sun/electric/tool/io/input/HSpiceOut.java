@@ -291,12 +291,10 @@ public class HSpiceOut extends Simulate
 		List timeValues = new ArrayList();
 		for(int k=0; k<numSignals; k++)
 		{
-			Simulate.SimAnalogSignal as = new Simulate.SimAnalogSignal();
+			Simulate.SimAnalogSignal as = new Simulate.SimAnalogSignal(sd);
 			as.useCommonTime = true;
 			as.signalName = signalNames[k];
-			as.signalColor = Color.RED;
 			as.tempList = new ArrayList();
-			sd.signals.add(as);
 		}
 		for(;;)
 		{
