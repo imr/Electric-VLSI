@@ -1210,12 +1210,16 @@ public class GenMath
 		}
 		if (codebit == LEFT || codebit == RIGHT)
 		{
-			int t = (y2-y1) * (value-x1) / (x2-x1);
+			long t = (y2-y1);
+			t *= (value-x1);
+			t /= (x2-x1);
 			y1 += t;
 			x1 = value;
 		} else if (codebit == BOTTOM || codebit == TOP)
 		{
-			int t = (x2-x1) * (value-y1) / (y2-y1);
+			long t = (x2-x1);
+			t *= (value-y1);
+			t /= (y2-y1);
 			x1 += t;
 			y1 = value;
 		}

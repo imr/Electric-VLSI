@@ -4,8 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02g: *********************************
 
+BUG: (02/07/05, SMR) GDS output crashes (Bug #193).
+FIX: In GDS.java, switched away from new outputDouble() implementation.
+
 IMP: (02/07/05, DN) Changed implementation of ArcInst and Connection: Connection's fields moved
      to Connection, immutable class EPoint is used for Locations.
+
+BUG: (02/06/05, SMR) Zooming in too far crashes.
+FIX: In GenMath.clipSegment(), do integer scaling using longs.
 
 IMP/MAN: (02/04/05, SMR) Directional arcs can now have arrow heads on either end. (Bug #150)
      Modified Arc Properties dialog to control directional, negated, and end extension.

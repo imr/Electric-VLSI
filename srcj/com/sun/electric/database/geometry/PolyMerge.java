@@ -282,6 +282,18 @@ public class PolyMerge
 	}
 
 	/**
+	 * Method to tell whether there is any valid geometry on a given layer of this merge.
+	 * @param layer the layer to test.
+	 * @return true if there is no valid geometry on the given layer in this merge.
+	 */
+	public boolean isEmpty(Layer layer)
+	{
+		Area area = (Area)layers.get(layer);
+		if (area == null) return true;
+		return area.isEmpty();
+	}
+
+	/**
 	 * Method to determine whether a rectangle exists in the merge.
 	 * @param layer the layer being tested.
 	 * @param rect the rectangle being tested.

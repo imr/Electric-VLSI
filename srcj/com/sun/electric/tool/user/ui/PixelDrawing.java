@@ -2176,7 +2176,10 @@ public class PixelDrawing
 								for(int x=j; x<=k; x++)
 								{
 									if ((pat & (1 << (15-(x&15)))) != 0)
-										opaqueData[baseIndex + x] = col;
+									{
+										int index = baseIndex + x;
+										opaqueData[index] = col;
+									}
 								}
 							} else
 							{

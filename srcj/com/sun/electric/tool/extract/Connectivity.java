@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: Connectivity.java
+ * Module to do node extraction (extract connectivity from a pure-layout cell)
  *
  * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *
@@ -742,7 +743,7 @@ public class Connectivity
 				PolyBase poly = (PolyBase)polyList.get(0);
 				double centerX = poly.getCenterX();
 				double centerY = poly.getCenterY();
-//System.out.println("\nConsider contact layer "+layer.getName()+" at ("+centerX+","+centerY+")");
+System.out.println("\nConsider contact layer "+layer.getName()+" at ("+centerX+","+centerY+")");
 
 				// now look through the list to see if anything matches
 				for(Iterator it = possibleVias.iterator(); it.hasNext(); )
@@ -795,7 +796,8 @@ public class Connectivity
 						if (subtractPoly)
 						{
 							// subtract areas of poly because the cuts cannot follow across a transistor
-							areaToUse.subtractLayers(tempLayer1, polyLayer, tempLayer1);
+							if (!areaToUse.isEmpty(polyLayer))
+								areaToUse.subtractLayers(tempLayer1, polyLayer, tempLayer1);
 						}
 						contactArea = areaToUse.getMergedPoints(tempLayer1, true);
 						areaToUse.deleteLayer(tempLayer1);
@@ -806,6 +808,7 @@ public class Connectivity
 
 					// not extracting exact cut placement: find the largest possible contact/via in this area
 					Rectangle2D largest = findLargestRectangle(contactArea, centerX, centerY, pv.minWidth-pv.largestShrink, pv.minHeight-pv.largestShrink);
+System.out.println("  Could be "+pNp.getName()+" in rectangle "+largest);
 					if (largest == null) continue;
 					centerX = largest.getCenterX();
 					centerY = largest.getCenterY();
@@ -844,7 +847,7 @@ public class Connectivity
 								double y = oPoly.getCenterY();
 								if (largest.contains(x, y))
 								{
-//System.out.println("    and also includes cut at ("+x+","+y+")");
+System.out.println("    and also includes cut at ("+x+","+y+")");
 									checkCutSize(oPoly, pNp, layer);
 									polyList.remove(oPoly);
 									merge.subPolygon(layer, oPoly);
