@@ -153,7 +153,7 @@ public class JThreeDSideView extends JPanel
         {
             Layer layer = (Layer)it.next();
             if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
-            if (!layer.isVisible()) continue;
+            //if (!layer.isVisible()) continue;
             double xyFactor = (layer.getFunctionExtras() == Layer.Function.CONMETAL) ? 0.8 : 1;
             J3DAppearance ap = (J3DAppearance)parentDialog.transparencyMap.get(layer);
             GenMath.MutableDouble thickness = (GenMath.MutableDouble)parentDialog.threeDThicknessMap.get(layer);

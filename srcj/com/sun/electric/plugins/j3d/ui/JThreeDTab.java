@@ -141,7 +141,10 @@ public class JThreeDTab extends ThreeDTab
             // Get a copy of JAppearance to set values temporarily
             // this function will generate JAppearance if doesn't exist yet
             J3DAppearance app = J3DAppearance.getAppearance(layer.getGraphics());
-            transparencyMap.put(layer, new J3DAppearance(app));
+            // forcing visibility
+            J3DAppearance newApp = new J3DAppearance(app);
+            newApp.getRenderingAttributes().setVisible(true);
+            transparencyMap.put(layer, newApp);
 
 		}
 		threeDLayerList.setSelectedIndex(0);
