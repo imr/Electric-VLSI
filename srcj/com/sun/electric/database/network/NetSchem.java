@@ -756,6 +756,7 @@ class NetSchem extends NetCell {
 		int numNodes = cell.getNumNodes();
 		for (int k = 0; k < numNodes; k++) {
 			NodeInst ni = cell.getNode(k);
+			if (ni.isIconOfParent()) continue;
 			NodeProto np = ni.getProto();
 			if (np instanceof PrimitiveNode) {
 				// Connect global primitives

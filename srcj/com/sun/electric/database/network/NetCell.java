@@ -442,8 +442,43 @@ class NetCell
 				numDrawns++;
 			}
 		}
+		// showDrawns();
 //  		System.out.println(cell + " has " + cell.getNumPorts() + " ports, " + cell.getNumNodes() + " nodes, " +
 //  			cell.getNumArcs() + " arcs, " + (arcsOffset - cell.getNumPorts()) + " portinsts, " + netMap.length + "(" + piDrawns + ") drawns");
+	}
+
+	void showDrawns() {
+		java.io.PrintWriter out;
+		String filePath = "tttt";
+		try
+		{
+            out = new java.io.PrintWriter(new java.io.BufferedWriter(new java.io.FileWriter(filePath, true)));
+        } catch (java.io.IOException e)
+		{
+            System.out.println("Error opening " + filePath);
+			return;
+        }
+
+		out.println("Drawns " + cell);
+		int numPorts = cell.getNumPorts();
+		for (int drawn = 0; drawn < numDrawns; drawn++) {
+			for (int i = 0; i < drawns.length; i++) {
+				if (drawns[i] != drawn) continue;
+				if (i < numPorts) {
+					out.println(drawn + ": " + cell.getPort(i));
+				} else if (i >= arcsOffset) {
+					out.println(drawn + ": " + cell.getArc(i - arcsOffset));
+				} else {
+					int k = 1;
+					for (; k < cell.getNumNodes() && ni_pi[k] <= i; k++) ;
+					k--;
+					NodeInst ni = cell.getNode(k);
+					PortInst pi = ni.getPortInst(i - ni_pi[k]);
+					out.println(drawn + ": " + pi);
+				}
+			}
+		}
+		out.close(); 
 	}
 
 	void initNetnames() {

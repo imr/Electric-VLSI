@@ -1,8 +1,4 @@
 import com.sun.electric.tool.simulation.interval.Interval;
-import net.sourceforge.interval.ia_math.RMath;
-import net.sourceforge.interval.ia_math.RealInterval;
-import net.sourceforge.interval.ia_math.IAMath;
-import su.nsk.nbsp.Functions;
 import java.lang.Math;
 import java.util.Random;
 import java.math.BigDecimal;
@@ -11,6 +7,7 @@ import java.math.MathContext;
 class Sum {
 
     private static Random rand = new Random(1234567);
+    private static double mean = 0.0;
     private static final int n = 1000000;
     private static double[] v = new double[n];
     private static double bsh, bsl;
@@ -26,7 +23,10 @@ class Sum {
     }
 
     static abstract class Accumulator {
-	int n = 0;
+	double sh;
+	double sl;
+	double norm;
+	int n;
 	String name;
 
 	Accumulator(String name) {
@@ -38,8 +38,10 @@ class Sum {
 	}
 
 	abstract void add(double v);
-	abstract double sum();
-	double suml() { return 0; }
+	double sum() { return sh; }
+	double suml() { return sl; }
+	double errSup() { return sl; }
+	double errInf() { return sl; }
 
 	double sum(double[] v) {
 	    for (int i = 0; i < v.length; i++)
@@ -49,52 +51,88 @@ class Sum {
 
     }
 
+    static class Add extends Accumulator {
+
+	Add() {
+	    super("add");
+	}
+
+	void add(double v) {
+	    sh += v;
+	}
+
+	double sum(double[] v) {
+	    for (int i = 0; i < v.length; i++)
+		add(v[i]);
+	    return sum();
+	}
+
+	double errInf() {
+	    return Double.NaN;
+	}
+
+	double errSup() {
+	    return Double.NaN;
+	}
+    }
+
     static class Add0 extends Accumulator {
-	private double s = 0;
 
 	Add0() {
 	    super("add0");
 	}
 
 	void add(double v) {
-	    s += v;
+	    sh += v;
+	    norm += (sh >= 0 ? sh : -sh);
+	    n++;
 	}
-
-	double sum() { return s; }
 
 	double sum(double[] v) {
 	    for (int i = 0; i < v.length; i++)
 		add(v[i]);
 	    return sum();
 	}
+
+	double errInf() {
+	    return - norm*(1.0 + n*0x1.0p-53)*0x1.0p-53;
+	}
+
+	double errSup() {
+	    return + norm*(1.0 + n*0x1.0p-53)*0x1.0p-53;
+	}
     }
 
     static class Add1 extends Accumulator {
-	private double sh = 0, sl = 0;
 
 	Add1() {
 	    super("add1");
 	}
 
 	void add(double v) {
-	    double x = sl + v;
-	    double y = sh + x;
-	    sl = (sh - y) + x;
-	    sh = y;
+	    norm += (v >= 0 ? v : -v);
+	    double x = sh + v;
+	    sl += (sh - x) + v;
+	    sh = x;
+	    n++;
 	}
-
-	double sum() { return sh; }
-	double suml() { return sl; }
 
 	double sum(double[] v) {
 	    for (int i = 0; i < v.length; i++)
 		add(v[i]);
 	    return sum();
 	}
+
+	double errInf() {
+	    return sl - norm*(1.0 + n*0x1.0p-53)*0x1.0p-53;
+	}
+
+	double errSup() {
+	    return sl + norm*(1.0 + n*0x1.0p-53)*0x1.0p-53;
+	}
     }
 
     static class Add2 extends Accumulator {
-	private double sh = 0, sl = 0;
 
 	Add2() {
 	    super("add2");
@@ -114,34 +152,40 @@ class Sum {
 		else
 		    sl += (v - x) + sh;
 	    }
+	    norm += (sl >= 0 ? sl : -sl);
 	    sh = x;
+	    n++;
 	}
-
-	double sum() { return sh; }
-	double suml() { return sl; }
 
 	double sum(double[] v) {
 	    for (int i = 0; i < v.length; i++)
 		add(v[i]);
 	    return sum();
 	}
+
+	double errInf() {
+	    return sl - norm*(1.0 + n*0x1.0p-53)*0x1.0p-53;
+	}
+
+	double errSup() {
+	    return sl + norm*(1.0 + n*0x1.0p-53)*0x1.0p-53;
+	}
     }
 
-    static class Add3 extends Accumulator {
-	private double sh = 0, sl = 0;
-
-	Add3() {
-	    super("add3");
+    static class AddM extends Accumulator {
+	Interval s = new Interval(0);
+	Interval vv = new Interval();
+	AddM() {
+	    super("addm");
 	}
 
 	void add(double v) {
-	    double x = sh + v;
-	    sl += (sh - x) + v;
-	    sh = x;
+	    s.add(vv.assign(v));
 	}
 
-	double sum() { return sh; }
-	double suml() { return sl; }
+	double sum() {
+	    return s.mid();
+	}
 
 	double sum(double[] v) {
 	    for (int i = 0; i < v.length; i++)
@@ -150,30 +194,38 @@ class Sum {
 	}
     }
 
-    private double inf, sup, infl = 0, supl = 0;
+    private double val, vall, errInf = 0, errSup = 0;
 
     private void sum() {
+	Add s = new Add();
+	val = s.sum(v);
+	vall = s.suml();
+	errInf = s.errInf();
+	errSup = s.errSup();
+    }
+
+    private void sum0() {
 	Add0 s = new Add0();
-	inf = sup = s.sum(v);
-	infl = supl = s.suml();
+	val = s.sum(v);
+	vall = s.suml();
+	errInf = s.errInf();
+	errSup = s.errSup();
     }
 
     private void dsum() {
 	Add1 s = new Add1();
-	inf = sup = s.sum(v);
-	infl = supl = s.suml();
+	val = s.sum(v);
+	vall = s.suml();
+	errInf = s.errInf();
+	errSup = s.errSup();
     }
 
     private void dsum2() {
 	Add2 s = new Add2();
-	inf = sup = s.sum(v);
-	infl = supl = s.suml();
-    }
-
-    private void dsum3() {
-	Add3 s = new Add3();
-	inf = sup = s.sum(v);
-	infl = supl = s.suml();
+	val = s.sum(v);
+	vall = s.suml();
+	errInf = s.errInf();
+	errSup = s.errSup();
     }
 
     private void msum() {
@@ -183,8 +235,10 @@ class Sum {
 	    vv.assign(v[i]);
 	    s.add(vv);
 	}
-	inf = s.inf();
-	sup = s.sup();
+	val = s.mid();
+	vall = 0;
+	errInf = s.inf() - val;
+	errSup = s.sup() - val;
     }
     
     private void nsum() {
@@ -194,29 +248,21 @@ class Sum {
 	    vv.assign(v[i]);
 	    s.add(vv);
 	}
-	inf = s.inf();
-	sup = s.sup();
-    }
-    
-    private void tsum() {
-	RealInterval s = new RealInterval(0);
-	for (int i = 0; i < v.length; i++) {
-	    RealInterval vv = new RealInterval(v[i]);
-	    s = IAMath.add(s, vv);
-	}
-	inf = s.lo();
-	sup = s.hi();
+	val = s.mid();
+	vall = 0;
+	errInf = s.inf() - val;
+	errSup = s.sup() - val;
     }
     
     public String toString() {
-	return bsh + "+" + "["+(inf-bsh+infl-bsl)+","+(sup-bsh+supl-bsl)+"]";
+	return (val-bsh+vall-bsl)+ " ["+(val-bsh+errInf-bsl)+","+(val-bsh+errSup-bsl)+"]";
     }
 
     public static void main (String argv[])
     {
 	long startTime = System.currentTimeMillis();
 	for (int i = 0; i < v.length; i++)
-	    v[i] = rand.nextGaussian();
+	    v[i] = rand.nextGaussian() + mean;
 	long endTime = System.currentTimeMillis();
 	System.out.println("**** Random took " + (endTime-startTime) + " mSec");
 
@@ -230,20 +276,25 @@ class Sum {
 	/* Warm */
 	for (int i = 0; i < 10; i++) {
 	    s.sum();
+	    s.sum0();
 	    s.dsum();
 	    s.dsum2();
-	    s.dsum3();
 	    s.msum();
 	    s.nsum();
-	    s.tsum();
 	}
 	System.out.println("warm");
 
-	long startTime2a = System.currentTimeMillis();
+	long startTime2 = System.currentTimeMillis();
 	for (int i = 0; i < 100; i++)
 	    s.sum();
+	long endTime2 = System.currentTimeMillis();
+	System.out.println("**** sum took " + (endTime2-startTime2) + " mSec =" + s);
+
+	long startTime2a = System.currentTimeMillis();
+	for (int i = 0; i < 100; i++)
+	    s.sum0();
 	long endTime2a = System.currentTimeMillis();
-	System.out.println("**** sum took " + (endTime2a-startTime2a) + " mSec =" + s);
+	System.out.println("**** sum0 took " + (endTime2a-startTime2a) + " mSec =" + s);
 
 	long startTime2b = System.currentTimeMillis();
 	for (int i = 0; i < 100; i++)
@@ -257,12 +308,6 @@ class Sum {
 	long endTime2c = System.currentTimeMillis();
 	System.out.println("**** dsum2 took " + (endTime2c-startTime2c) + " mSec =" + s);
 
-	long startTime2d = System.currentTimeMillis();
-	for (int i = 0; i < 100; i++)
-	    s.dsum3();
-	long endTime2d = System.currentTimeMillis();
-	System.out.println("**** dsum3 took " + (endTime2d-startTime2d) + " mSec =" + s);
-
 	long startTime3 = System.currentTimeMillis();
 	for (int i = 0; i < 100; i++)
 	    s.msum();
@@ -274,12 +319,5 @@ class Sum {
 	    s.nsum();
 	long endTime4 = System.currentTimeMillis();
 	System.out.println("**** nSum took " + (endTime4-startTime4) + " mSec =" + s);
-
-	long startTime5 = System.currentTimeMillis();
-	for (int i = 0; i < 100; i++)
-	    s.tsum();
-	long endTime5 = System.currentTimeMillis();
-	System.out.println("**** tSum took " + (endTime5-startTime5) + " mSec =" + s);
-
     }
 }
