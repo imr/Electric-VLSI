@@ -728,11 +728,6 @@ public class Quick
 //		gethierarchicaltraversal(state->hierarchybasesnapshot);
 
 		// get transformation out of the instance
-		/*
-		AffineTransform upTrans = ni.translateOut();
-		AffineTransform rTrans = ni.rotateOut();
-		upTrans.preConcatenate(rTrans);
-		*/
         AffineTransform upTrans = ni.translateOut(ni.rotateOut());
 
 		// get network numbering for the instance
@@ -811,16 +806,20 @@ public class Quick
 					rTransI.preConcatenate(tTransI);
 					DBMath.transformRect(subBounds, rTransI);
 
-					/*
 					Rectangle2D subBounds1 = new Rectangle2D.Double();
-					subBounds1.setRect(bb);
+					subBounds1.setRect(subBounds);
 					AffineTransform rTransI1 = ni.transformIn();
+					rTransI1.preConcatenate(downTrans);
 					DBMath.transformRect(subBounds1, rTransI1);
-                    */
 
-					AffineTransform subUpTrans = ni.translateOut();
-					AffineTransform rTrans = ni.rotateOut();
-					subUpTrans.preConcatenate(rTrans);
+					Rectangle2D subBounds2 = new Rectangle2D.Double();
+					subBounds2.setRect(bb);
+					AffineTransform rTransI2 = ni.transformIn();
+					DBMath.transformRect(subBounds2, rTransI2);
+
+					AffineTransform subUpTrans = ni.translateOut(ni.rotateOut());
+					//AffineTransform rTrans = ni.rotateOut();
+					//subUpTrans.preConcatenate(rTrans);
 					subUpTrans.preConcatenate(upTrans);
 
 					/*
@@ -836,7 +835,7 @@ public class Quick
 					int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
 
 //					if (!dr_quickparalleldrc) downhierarchy(ni, ni->proto, 0);
-					checkCellInstContents(subBounds, ni, //(Cell)np,
+					checkCellInstContents(bb, ni, //(Cell)np,
 						subUpTrans, localIndex, oNi, topGlobalIndex);
 //					if (!dr_quickparalleldrc) uphierarchy();
 				} else
@@ -925,8 +924,6 @@ public class Quick
 		double minSize = poly.getMinSize();
 
 		AffineTransform upTrans = oNi.translateOut(oNi.rotateOut());
-		//AffineTransform rTrans = oNi.rotateOut();
-		//upTrans.preConcatenate(rTrans);
 
 		CheckInst ci = (CheckInst)checkInsts.get(oNi);
 		int localIndex = topGlobalIndex * ci.multiplier + ci.localIndex + ci.offset;
@@ -1010,7 +1007,7 @@ public class Quick
 		DBMath.transformRect(rBound, upTrans);
 		Netlist netlist = getCheckProto(cell).netlist;
 
-		for(Iterator it = cell.searchIterator(bounds); it.hasNext(); )
+		for(Iterator it = cell.searchIterator(rBound); it.hasNext(); )
 		{
 			Geometric nGeom = (Geometric)it.next();
 			if (sameInstance && (nGeom == geom)) continue;
@@ -1033,9 +1030,9 @@ public class Quick
 					CheckInst ci = (CheckInst)checkInsts.get(ni);
 					int localIndex = cellGlobalIndex * ci.multiplier + ci.localIndex + ci.offset;
 
-					AffineTransform subTrans = ni.translateOut();
-					AffineTransform rTrans = ni.rotateOut();
-					subTrans.preConcatenate(rTrans);
+					AffineTransform subTrans = ni.translateOut(ni.rotateOut());
+					//AffineTransform rTrans = ni.rotateOut();
+					//subTrans.preConcatenate(rTrans);
 					subTrans.preConcatenate(upTrans);
 
 					// compute localIndex
@@ -1549,9 +1546,9 @@ public class Quick
 		int globalIndex = 0;
 
 		// get transformation out of this instance
-		AffineTransform upTrans = ni.translateOut();
-		AffineTransform rTrans = ni.rotateOut();
-		upTrans.preConcatenate(rTrans);
+		AffineTransform upTrans = ni.translateOut(ni.rotateOut());
+		//AffineTransform rTrans = ni.rotateOut();
+		//upTrans.preConcatenate(rTrans);
 
 		// get network numbering information for this instance
 		CheckInst ci = (CheckInst)checkInsts.get(ni);
@@ -1674,9 +1671,9 @@ public class Quick
 			tempTrans.preConcatenate(tTransI);
 			DBMath.transformRect(subBounds, tempTrans);
 
-			AffineTransform subTrans = ni.translateOut();
-			AffineTransform rTrans = ni.rotateOut();
-			subTrans.preConcatenate(rTrans);
+			AffineTransform subTrans = ni.translateOut(ni.rotateOut());
+			//AffineTransform rTrans = ni.rotateOut();
+			//subTrans.preConcatenate(rTrans);
 
 			// see if this polygon has errors in the cell
 			if (badBoxInArea(poly, polyLayer, tech, net, geom, trans, globalIndex,
@@ -2415,9 +2412,9 @@ public class Quick
 					DBMath.transformRect(newBounds, rotI);
 
 					// compute new matrix for sub-cell examination
-					AffineTransform trans = ni.translateOut();
-					AffineTransform rot = ni.rotateOut();
-					trans.preConcatenate(rot);
+					AffineTransform trans = ni.translateOut(ni.rotateOut());
+					//AffineTransform rot = ni.rotateOut();
+					//trans.preConcatenate(rot);
 					trans.preConcatenate(moreTrans);
 					if (lookForLayer(thisPoly, (Cell)ni.getProto(), layer, trans, newBounds,
 						pt1, pt2, pt3, pointsFound))
@@ -2522,9 +2519,9 @@ public class Quick
 					DBMath.transformRect(newBounds, rotI);
 
 					// compute new matrix for sub-cell examination
-					AffineTransform trans = ni.translateOut();
-					AffineTransform rot = ni.rotateOut();
-					trans.preConcatenate(rot);
+					AffineTransform trans = ni.translateOut(ni.rotateOut());
+					//AffineTransform rot = ni.rotateOut();
+					//trans.preConcatenate(rot);
 					trans.preConcatenate(moreTrans);
 					if (lookForLayerNew(geo1, poly1, geo2, poly2, (Cell)ni.getProto(), layer, trans, newBounds,
 						pt1, pt2, pt3, pointsFound))
@@ -3282,9 +3279,9 @@ public class Quick
 			if (np instanceof Cell)
 			{
 				// examine contents
-				AffineTransform tTrans = ni.translateOut();
-				AffineTransform rTrans = ni.rotateOut();
-				tTrans.preConcatenate(rTrans);
+				AffineTransform tTrans = ni.translateOut(ni.rotateOut());
+				//AffineTransform rTrans = ni.rotateOut();
+				//tTrans.preConcatenate(rTrans);
 				accumulateExclusion((Cell)np, tTrans);
 			}
 		}
