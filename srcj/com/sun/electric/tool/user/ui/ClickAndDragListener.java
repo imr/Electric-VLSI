@@ -193,12 +193,7 @@ class ClickAndDragListener
 		Cell cell = wnd.getCell();
         if (cell == null) return;
 
-        if (chr == KeyEvent.VK_F)
-		{
-			System.out.println("doing full display...");
-			UserMenuCommands.fullDisplayCommand();
-			System.out.println("...did full display");
-		} else if (chr == KeyEvent.VK_DELETE || chr == KeyEvent.VK_BACK_SPACE)
+		if (chr == KeyEvent.VK_DELETE || chr == KeyEvent.VK_BACK_SPACE)
 		{
 			CircuitChanges.deleteSelected();
 		} else if (chr == KeyEvent.VK_LEFT)

@@ -590,6 +590,22 @@ public class Library extends ElectricObject
 	public Cell getCurCell() { return curCell; }
 
 	/**
+	 * Routine to insist on a current Cell.
+	 * Prints an error message if there is no current Cell.
+	 * @return the current Cell in the current Library.
+	 * Returns NULL if there is no current Cell.
+	 */
+	public static Cell needCurCell()
+	{
+		Cell curCell = curLib.getCurCell();
+		if (curCell == null)
+		{
+			System.out.println("There is no current cell for this operation");
+		}
+		return curCell;
+	}
+
+	/**
 	 * Routine to set the current Cell in this Library.
 	 * @param curCell the new current Cell in this Library.
 	 */

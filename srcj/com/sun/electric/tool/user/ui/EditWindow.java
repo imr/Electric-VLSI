@@ -103,8 +103,7 @@ public class EditWindow extends JPanel
     /** Cell's VarContext */                                private VarContext cellVarContext;
     /** the offscreen image of the window */				private Image img = null;
     /** the window frame containing this editwindow */      private WindowFrame wf;
-	/** true if the window needs to be rerendered */		private boolean needsUpdate = false;
-	/** true to track the time for redraw */				private boolean trackTime = false;
+	/** true if the window needs to be rerendered */		private boolean needsUpdate = true;
 	/** true if showing grid in this window */				private boolean showGrid = false;
 	/** true if doing object-selection drag */				private boolean doingAreaDrag = false;
 	/** starting screen point for drags in this window */	private Point startDrag = new Point();
@@ -117,6 +116,7 @@ public class EditWindow extends JPanel
     /** an identity transformation */						private static final AffineTransform IDENTITY = new AffineTransform();
     /** the offset of each new window on the screen */		private static int windowOffset = 0;
 	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
+	/** TextDescriptor for empty window text. */			private static TextDescriptor noCellTextDescriptor = null;
 
     /** for drawing solid lines */		private static final BasicStroke solidLine = new BasicStroke(0);
     /** for drawing thick lines */		private static final BasicStroke thickLine = new BasicStroke(1);
@@ -177,8 +177,7 @@ public class EditWindow extends JPanel
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			EditWindow wnd = wf.getEditWindow();
-			wnd.needsUpdate = true;
-			wnd.repaint();
+			wnd.redraw();
 		}
 	}
 
@@ -233,7 +232,22 @@ public class EditWindow extends JPanel
 		Graphics2D g2 = (Graphics2D)img.getGraphics();
 		g2.setColor(Color.lightGray);
 		g2.fillRect(0, 0, sz.width, sz.height);
-		if (cell == null) return;
+		if (cell == null)
+		{
+			if (noCellTextDescriptor == null)
+			{
+				noCellTextDescriptor = new TextDescriptor(null);
+				noCellTextDescriptor.setAbsSize(18);
+				noCellTextDescriptor.setBold();
+			}
+			GlyphVector gv = getGlyphs("No cell in this window", noCellTextDescriptor);
+			Rectangle2D glyphBounds = gv.getVisualBounds();
+			int x = (int)(sz.width / 2 - glyphBounds.getWidth() / 2);
+			int y = (int)(sz.height / 2 + glyphBounds.getHeight() / 2);
+			g2.setColor(Color.BLACK);
+			g2.drawGlyphVector(gv, x, y);
+			return;
+		}
 
 		// setup graphics for rendering (start at bottom and work up)
 		g2.translate(sz.width/2, sz.height/2);
@@ -242,19 +256,9 @@ public class EditWindow extends JPanel
 
 		// if tracking time, start the clock
 		long startTime = 0;
-		if (trackTime) startTime = System.currentTimeMillis();
 
 		// draw everything
 		drawCell(g2, cell, IDENTITY, true);
-
-		// if tracking time, report the time
-		if (trackTime)
-		{
-			long endTime = System.currentTimeMillis();
-			float finalTime = (endTime - startTime) / 1000F;
-			System.out.println("Took " + finalTime + " seconds to redisplay");
-			trackTime = false;
-		}
 	}
 
 	/**
@@ -906,18 +910,38 @@ public class EditWindow extends JPanel
 	 */
 	public void setOffset(Point2D off) { offx = off.getX();   offy = off.getY(); }
 
-    public void fillScreen()
+	/**
+	 * Routine to focus the screen so that an area fills it.
+	 * @param bounds the area to make fill the screen.
+	 */
+	public void focusScreen(Rectangle2D bounds)
 	{
-        if (cell == null) return;
-        sz = getSize();
-        Rectangle2D cellBounds = cell.getBounds();
-        double scalex = sz.width/cellBounds.getWidth() * 0.9;
-        double scaley = sz.height/cellBounds.getHeight() * 0.9;
-        scale = Math.min(scalex, scaley);
-        offx = cellBounds.getCenterX();
-        offy = cellBounds.getCenterY();
-        needsUpdate = true;
-    }
+		sz = getSize();
+		double width = bounds.getWidth();
+		double height = bounds.getHeight();
+		if (width == 0 && height == 0) width = height = 2;
+		double scalex = sz.width/width * 0.9;
+		double scaley = sz.height/height * 0.9;
+		scale = Math.min(scalex, scaley);
+		offx = bounds.getCenterX();
+		offy = bounds.getCenterY();
+		needsUpdate = true;
+	}
+
+	/**
+	 * Routine to pan and zoom the screen so that the entire cell is displayed.
+	 */
+	public void fillScreen()
+	{
+		if (cell != null)
+		{
+			Rectangle2D cellBounds = cell.getBounds();
+			if (cellBounds.getWidth() == 0 && cellBounds.getHeight() == 0)
+				cellBounds.setRect(0, 0, 60, 60);
+			focusScreen(cellBounds);
+		}
+ 		needsUpdate = true;
+   }
 
     // ************************************* HIERARCHY TRAVERSAL *************************************
 
@@ -931,29 +955,21 @@ public class EditWindow extends JPanel
      * Push into an instance (go down the hierarchy)
      */
     public void downHierarchy() {
-        if (Highlight.getNumHighlights() <= 0) {
-            System.out.println("Nothing highlighted, cannot descend");
-            return;
-        }
-        if (Highlight.getNumHighlights() > 1) {
-            System.out.println("More than one thing highlighted, cannot descend");
-            return;
-        }
-        Iterator it = Highlight.getHighlights();
-        Highlight h = (Highlight)it.next();
+		Highlight h = Highlight.getOneHighlight();
+		if (h == null) return;
 		if (h.getType() != Highlight.Type.GEOM) {
-            System.out.println("Must select a node");
+            System.out.println("Must first select a cell instance");
             return;
         }
         Geometric geom = h.getGeom();
         if (!(geom instanceof NodeInst)) {
-            System.out.println("Cannot descend into that object");
+            System.out.println("Must first select a cell instance");
             return;
         }
         NodeInst ni = (NodeInst)geom;
         NodeProto np = ni.getProto();
         if (!(np instanceof Cell)) {
-            System.out.println("Cannot descend into that object");
+            System.out.println("Can only descend into cell instances");
             return;
         }
         Cell cell = (Cell)np;
@@ -1117,11 +1133,6 @@ public class EditWindow extends JPanel
 
 	// ************************************* MISCELLANEOUS *************************************
 
-	public void setTimeTracking(boolean trackTime)
-	{
-		this.trackTime = trackTime;
-	}
-
 	/**
 	 * Routine to return the cell that is shown in this window.
 	 * @return the cell that is shown in this window.
@@ -1142,7 +1153,8 @@ public class EditWindow extends JPanel
 		Highlight.finished();
 		fillScreen();
 		redraw();
-        wf.setTitle(cell.describe());
+		if (cell == null) wf.setTitle("***NONE***"); else
+	        wf.setTitle(cell.describe());
 	}
 	
 	public boolean isDoingAreaDrag() { return doingAreaDrag; }

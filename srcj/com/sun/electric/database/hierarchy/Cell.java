@@ -50,6 +50,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.technology.technologies.Schematics;
 
 import java.awt.geom.Point2D;
@@ -67,6 +68,8 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.Comparator;
 import java.util.Collections;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 /**
  * A Cell is a non-primitive NodeProto.
@@ -410,11 +413,22 @@ public class Cell extends NodeProto
 	public void kill()
 	{
 		checkChanging();
+
 		// remove ourselves from the cellGroup.
 		lowLevelUnlink();
 
 		// handle change control, constraint, and broadcast
 		Undo.killObject(this);
+	}
+
+	/**
+	 * Routine to create a new version of this Cell.
+	 * @return a new Cell that is a new version of this Cell.
+	 */
+	public Cell makeNewVersion()
+	{
+		Cell newVersion = Cell.copynodeproto(this, lib, noLibDescribe(), false);
+		return newVersion;
 	}
 
 	/**
@@ -688,12 +702,12 @@ public class Cell extends NodeProto
 		checkChanging();
 		// see if this cell already exists
 		Library lib = getLibrary();
-		Cell existingCell = lib.findNodeProto(name);
-		if (existingCell != null)
-		{
-			System.out.println("Cannot create cell " + name + " in library " + lib.getLibName() + " ...already exists");
-			return true;
-		}
+//		Cell existingCell = lib.findNodeProto(name);
+//		if (existingCell != null)
+//		{
+//			System.out.println("Cannot create cell " + name + " in library " + lib.getLibName() + " ...already exists");
+//			return true;
+//		}
 
 		CellName n = CellName.parseName(name);
 		if (n == null) return true;
@@ -1692,6 +1706,33 @@ public class Cell extends NodeProto
 		return false;
 	}
 
+	/**
+	 * Routine to determine whether this Cell is in use anywhere.
+	 * If it is, an error dialog is displayed.
+	 * @param action a description of the intended action (i.e. "delete").
+	 * @return true if this Cell is in use anywhere.
+	 */
+	public boolean isInUse(String action)
+	{
+		String parents = null;
+		for(Iterator it = getUsagesOf(); it.hasNext(); )
+		{
+			NodeUsage nu = (NodeUsage)it.next();
+			Cell parent = nu.getParent();
+			if (parents == null) parents = parent.describe(); else
+				parents += ", " + parent.describe();
+		}
+		if (parents != null)
+		{
+			JFrame jf = TopLevel.getCurrentJFrame();
+			JOptionPane.showMessageDialog(jf, "Cannot " + action + " cell " + describe() +
+				" because it is used in " + parents,
+					action + " failed", JOptionPane.ERROR_MESSAGE);
+			return true;
+		}
+		return false;
+	}
+
 	/****************************** VIEWS ******************************/
 
 	/**
@@ -1700,6 +1741,36 @@ public class Cell extends NodeProto
 	 * @return to get this Cell's View.
 	 */
 	public View getView() { return view; }
+
+	/**
+	 * Routine to change the view of this Cell.
+	 * @param newView the new View.
+	 */
+	public void setView(View newView)
+	{
+		// stop now if already this view
+		if (newView == view) return;
+
+		// unlink this Cell
+		lowLevelUnlink();
+
+		// if there is already another with the same view, name, and version, make this a newer version
+		int newVersion = version;
+		for(Iterator it = lib.getCells(); it.hasNext(); )
+		{
+			Cell other = (Cell)it.next();
+			if (other.view != newView) continue;
+			if (!other.protoName.equalsIgnoreCase(protoName)) continue;
+			if (other.version >= newVersion) newVersion = other.version + 1;
+		}
+
+		// set the new view and version
+		view = newView;
+		version = newVersion;
+
+		// link the Cell back
+		lowLevelLink();
+	}
 
 	/**
 	 * Routine to determine whether this NodeProto  is an icon Cell.
@@ -1726,7 +1797,7 @@ public class Cell extends NodeProto
 	public Cell contentsView()
 	{
 		// can only consider contents if this cell is an icon
-		if (getView() != View.ICON && getView() != View.SKELETON)
+		if (getView() != View.ICON && getView() != View.LAYOUTSKEL)
 			return null;
 
 		// first check to see if there is a schematics link
@@ -1770,6 +1841,24 @@ public class Cell extends NodeProto
 		{
 			Cell cellInGroup = (Cell)it.next();
 			if (cellInGroup.getView() == View.ICON) return cellInGroup;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Routine to find the Cell of a given View that is in the same group as this Cell.
+	 * @param view the View of the other Cell.
+	 * @return the Cell from this group with the specified View.
+	 * Returns null if no such Cell can be found.
+	 */
+	public Cell otherView(View view)
+	{
+		// look for views
+		for(Iterator it = getCellGroup().getCells(); it.hasNext(); )
+		{
+			Cell cellInGroup = (Cell)it.next();
+			if (cellInGroup.getView() == view) return cellInGroup;
 		}
 
 		return null;

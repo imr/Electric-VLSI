@@ -29,9 +29,12 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.dialogs.NewCell;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Component;
 import java.awt.event.MouseListener;
@@ -45,8 +48,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.HashMap;
 import javax.swing.ImageIcon;
+import javax.swing.JFrame;
 import javax.swing.JTree;
 import javax.swing.JPopupMenu;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
@@ -66,6 +71,13 @@ public class ExplorerTree extends JTree
 	private TreeHandler handler = null;
 	private DefaultMutableTreeNode rootNode;
 	private DefaultTreeModel treeModel;
+	private HashMap expanded;
+
+	private static final int SHOWALPHABETICALLY = 1;
+	private static final int SHOWBYCELLGROUP    = 2;
+	private static final int SHOWBYHIERARCHY    = 3;
+	private static int howToShow = SHOWBYCELLGROUP;
+
 	private static ImageIcon iconLibrary = null;
 	private static ImageIcon iconGroup = null;
 	private static ImageIcon iconJobs = null;
@@ -82,7 +94,6 @@ public class ExplorerTree extends JTree
 	private static ImageIcon iconViewOldText = null;
 	private static DefaultMutableTreeNode libraryExplorerTree = new DefaultMutableTreeNode("LIBRARIES");
 	private static boolean explorerChanged = true;
-	private HashMap expanded;
 
 	/**
 	 * Routine to create a new ExplorerTree.
@@ -105,6 +116,7 @@ public class ExplorerTree extends JTree
 		this.treeModel = treeModel;
 
 //		setEditable(true);
+//		setDragEnabled(true);
 
 		// single selection as default
 		getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
@@ -142,6 +154,7 @@ public class ExplorerTree extends JTree
      */
 	public static synchronized void explorerTreeMinorlyChanged()
 	{
+		if (explorerChanged) return;
 		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
@@ -160,8 +173,18 @@ public class ExplorerTree extends JTree
 		}
 
 		// reconstruct the tree
-//		rebuildExplorerTreeByName();
-		rebuildExplorerTreeByGroups();
+		switch (howToShow)
+		{
+			case SHOWALPHABETICALLY:
+				rebuildExplorerTreeByName();
+				break;
+			case SHOWBYCELLGROUP:
+				rebuildExplorerTreeByGroups();
+				break;
+			case SHOWBYHIERARCHY:
+				rebuildExplorerTreeByHierarchy();
+				break;
+		}
 
 		// redisplay
 		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
@@ -189,6 +212,10 @@ public class ExplorerTree extends JTree
 			}
 			libraryExplorerTree.add(libTree);
 		}
+	}
+
+	private static void rebuildExplorerTreeByHierarchy()
+	{
 	}
 
 	private static void rebuildExplorerTreeByGroups()
@@ -270,6 +297,7 @@ public class ExplorerTree extends JTree
 	public void restoreExpansion()
 	{
 		recursivelyCache(new TreePath(rootNode), false);
+		expanded.clear();
 	}
 
 	private void recursivelyCache(TreePath path, boolean cache)
@@ -540,6 +568,7 @@ public class ExplorerTree extends JTree
 			tree.addSelectionPath(currentPath);
 			tree.updateUI();
 
+//			tree.treeDidChange();
 //			EditWindow.redrawAll();
 		}
 
@@ -567,63 +596,169 @@ public class ExplorerTree extends JTree
 			}
 			if (currentSelectedObject instanceof Cell)
 			{
+				Cell cell = (Cell)currentSelectedObject;
 				JPopupMenu menu = new JPopupMenu("Cell");
+
 				JMenuItem menuItem = new JMenuItem("Edit");
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { editCellAction(false); } });
+
 				menuItem = new JMenuItem("Edit in New Window");
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { editCellAction(true); } });
+
 				menu.addSeparator();
-				menuItem = new JMenuItem("Delete");
+
+				menuItem = new JMenuItem("Create New Cell");
+				menu.add(menuItem);
+				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { newCellAction(); } });
+
+				menuItem = new JMenuItem("Create New Version of Cell");
+				menu.add(menuItem);
+				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { newCellVersionAction(); } });
+
+				menuItem = new JMenuItem("Duplicate Cell");
+				menu.add(menuItem);
+				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { duplicateCellAction(); } });
+
+				menu.addSeparator();
+
+				menuItem = new JMenuItem("Delete Cell");
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { deleteCellAction(); } });
-				menuItem = new JMenuItem("Rename");
+
+				menuItem = new JMenuItem("Rename Cell");
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { renameCellAction(); } });
+
+				menu.addSeparator();
+
+				JMenu subMenu = new JMenu("Change View");
+				menu.add(subMenu);
+				for(Iterator it = View.getOrderedViews().iterator(); it.hasNext(); )
+				{
+					View view = (View)it.next();
+					if (cell.getView() == view) continue;
+					JMenuItem subMenuItem = new JMenuItem(view.getFullName());
+					subMenu.add(subMenuItem);
+					subMenuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { reViewCellAction(e); } });
+				}
+
 				menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 				return;
 			}
 			if (currentSelectedObject instanceof Library)
 			{
+				Library lib = (Library)currentSelectedObject;
 				JPopupMenu menu = new JPopupMenu("Library");
+
 				JMenuItem menuItem = new JMenuItem("Open");
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { openAction(); } });
+
 				menuItem = new JMenuItem("Open all below here");
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { recursiveOpenAction(); } });
+
 				menuItem = new JMenuItem("Close all below here");
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { recursiveCloseAction(); } });
+
+				if (lib != Library.getCurrent())
+				{
+					menu.addSeparator();
+
+					menuItem = new JMenuItem("Make This the Current Library");
+					menu.add(menuItem);
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { setCurLibAction(); } });
+				}
+
 				menu.addSeparator();
-				menuItem = new JMenuItem("Make Current");
+
+				menuItem = new JMenuItem("Create New Cell");
 				menu.add(menuItem);
-				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { setCurLibAction(); } });
+				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { newCellAction(); } });
+
 				menu.addSeparator();
-				menuItem = new JMenuItem("Rename");
+
+				menuItem = new JMenuItem("Rename Library");
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { renameLibraryAction(); } });
-				menuItem = new JMenuItem("Delete");
+
+				menuItem = new JMenuItem("Delete Library");
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { deleteLibraryAction(); } });
+
 				menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 				return;
 			}
 			if (currentSelectedObject instanceof Cell.CellGroup)
 			{
 				JPopupMenu menu = new JPopupMenu("CellGroup");
+
 				JMenuItem menuItem = new JMenuItem("Open");
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { openAction(); } });
+
 				menuItem = new JMenuItem("Open all below here");
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { recursiveOpenAction(); } });
+
 				menuItem = new JMenuItem("Close all below here");
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { recursiveCloseAction(); } });
+
+				menu.addSeparator();
+
+				menuItem = new JMenuItem("Create New Cell");
+				menu.add(menuItem);
+				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { newCellAction(); } });
+
 				menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 				return;
+			}
+			if (currentSelectedObject instanceof String)
+			{
+				String msg = (String)currentSelectedObject;
+				if (msg.equalsIgnoreCase("libraries"))
+				{
+					JPopupMenu menu = new JPopupMenu("Libraries");
+
+					JMenuItem menuItem = new JMenuItem("Open");
+					menu.add(menuItem);
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { openAction(); } });
+
+					menuItem = new JMenuItem("Open all below here");
+					menu.add(menuItem);
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { recursiveOpenAction(); } });
+
+					menuItem = new JMenuItem("Close all below here");
+					menu.add(menuItem);
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { recursiveCloseAction(); } });
+
+					menu.addSeparator();
+
+					menuItem = new JMenuItem("Create New Cell");
+					menu.add(menuItem);
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { newCellAction(); } });
+
+					menu.addSeparator();
+
+					menuItem = new JMenuItem("Show Cells Alphabetically");
+					menu.add(menuItem);
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { showAlphabeticallyAction(); } });
+
+					menuItem = new JMenuItem("Show Cells by Group");
+					menu.add(menuItem);
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { showByGroupAction(); } });
+
+//					menuItem = new JMenuItem("Show Cells by Hierarchy");
+//					menu.add(menuItem);
+//					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { showByHierarchyAction(); } });
+
+					menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
+					return;
+				}
 			}
 		}
 
@@ -672,7 +807,7 @@ public class ExplorerTree extends JTree
 		{
 			Library lib = (Library)currentSelectedObject;
 			Library.setCurrent(lib);
-			ExplorerTree.explorerTreeChanged();
+			explorerTreeChanged();
 			EditWindow.redrawAll();
 		}
 
@@ -689,7 +824,9 @@ public class ExplorerTree extends JTree
 			Library lib = (Library)currentSelectedObject;
 			int response = JOptionPane.showConfirmDialog(tree, "Are you sure you want to delete library " + lib.getLibName() + "?");
 			if (response != JOptionPane.YES_OPTION) return;
-			System.out.println("can't delete library yet");
+			System.out.println("Library " + lib.getLibName() + " deleted");
+			lib.kill();
+			ExplorerTree.explorerTreeChanged();
 		}
 
 		private void editCellAction(boolean newWindow)
@@ -704,35 +841,33 @@ public class ExplorerTree extends JTree
 			}
 		}
 
+		private void newCellAction()
+		{
+			JFrame jf = TopLevel.getCurrentJFrame();
+			NewCell dialog = new NewCell(jf, true);
+			dialog.show();
+		}
+
+		private void newCellVersionAction()
+		{
+			Cell cell = (Cell)currentSelectedObject;
+			CircuitChanges.newVersionOfCell(cell);
+		}
+
+		private void duplicateCellAction()
+		{
+			Cell cell = (Cell)currentSelectedObject;
+
+			String newName = JOptionPane.showInputDialog(tree, "Name of duplicated cell",
+				cell.getProtoName() + "NEW");
+			if (newName == null) return;
+			CircuitChanges.duplicateCell(cell, newName);
+		}
+
 		private void deleteCellAction()
 		{
 			Cell cell = (Cell)currentSelectedObject;
-			int response = JOptionPane.showConfirmDialog(tree, "Are you sure you want to delete cell " + cell.describe() + "?");
-			if (response != JOptionPane.YES_OPTION) return;
-
-			// delete the cell
-			DeleteCell job = new DeleteCell(cell);
-		}
-
-		/**
-		 * Class to delete a cell in a new thread.
-		 */
-		protected static class DeleteCell extends Job
-		{
-			Cell cell;
-
-			protected DeleteCell(Cell cell)
-			{
-				super("Delete Cell", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-				this.cell = cell;
-				this.startJob();
-			}
-
-			public void doIt()
-			{
-				// should ensure that there are no instances of the cell!!!
-				cell.kill();
-			}
+			CircuitChanges.deleteCell(cell);
 		}
 
 		private void renameCellAction()
@@ -742,6 +877,39 @@ public class ExplorerTree extends JTree
 			if (response == null) return;
 			System.out.println("Want to rename cell " + cell.getProtoName() + " to " + response + " BUT CAN'T YET");
 		}
-		
+
+		private void reViewCellAction(ActionEvent e)
+		{
+			JMenuItem menuItem = (JMenuItem)e.getSource();
+			String viewName = menuItem.getText();
+			View newView = View.findView(viewName);
+			if (newView != null)
+			{
+				Cell cell = (Cell)currentSelectedObject;
+				CircuitChanges.changeCellView(cell, newView);
+			}
+		}
+
+		private void showAlphabeticallyAction()
+		{
+			howToShow = SHOWALPHABETICALLY;
+			explorerTreeChanged();
+			EditWindow.redrawAll();
+		}
+
+		private void showByGroupAction()
+		{
+			howToShow = SHOWBYCELLGROUP;
+			explorerTreeChanged();
+			EditWindow.redrawAll();
+		}
+
+		private void showByHierarchyAction()
+		{
+			howToShow = SHOWBYHIERARCHY;
+			explorerTreeChanged();
+			EditWindow.redrawAll();
+		}
+
 	}
 }

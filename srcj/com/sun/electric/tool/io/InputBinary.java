@@ -284,8 +284,8 @@ public class InputBinary extends Input
 		View.LAYOUT.setTempInt(-2);
 		View.SCHEMATIC.setTempInt(-3);
 		View.ICON.setTempInt(-4);
-		View.SIMSNAP.setTempInt(-5);
-		View.SKELETON.setTempInt(-6);
+		View.DOCWAVE.setTempInt(-5);
+		View.LAYOUTSKEL.setTempInt(-6);
 		View.VHDL.setTempInt(-7);
 		View.NETLIST.setTempInt(-8);
 		View.DOC.setTempInt(-9);
@@ -295,7 +295,7 @@ public class InputBinary extends Input
 		View.NETLISTRSIM.setTempInt(-13);
 		View.NETLISTSILOS.setTempInt(-14);
 		View.VERILOG.setTempInt(-15);
-		View.COMP.setTempInt(-16);
+		View.LAYOUTCOMP.setTempInt(-16);
 		if (magic <= MAGIC9)
 		{
 			int numExtraViews = readBigInteger();
@@ -306,8 +306,24 @@ public class InputBinary extends Input
 				View view = View.findView(viewName);
 				if (view == null)
 				{
-					view = View.newInstance(viewName, viewShortName);
-					if (view == null) return true;
+					// special conversion from old view names
+					if (version.getMajor() < 7 ||
+						(version.getMajor() == 7 && version.getMinor() < 1))
+					{
+						if (viewName.equals("compensated")) view = View.LAYOUTCOMP; else
+						if (viewName.equals("skeleton")) view = View.LAYOUTSKEL; else
+						if (viewName.equals("simulation-snapshot")) view = View.DOCWAVE; else
+						if (viewName.equals("netlist-netlisp-format")) view = View.NETLISTNETLISP; else
+						if (viewName.equals("netlist-rsim-format")) view = View.NETLISTRSIM; else
+						if (viewName.equals("netlist-silos-format")) view = View.NETLISTSILOS; else
+						if (viewName.equals("netlist-quisc-format")) view = View.NETLISTQUISC; else
+						if (viewName.equals("netlist-als-format")) view = View.NETLISTALS;
+					}
+					if (view == null)
+					{
+						view = View.newInstance(viewName, viewShortName);
+						if (view == null) return true;
+					}
 				}
 				view.setTempInt(i + 1);
 			}

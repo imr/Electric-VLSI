@@ -319,8 +319,8 @@ public class OutputBinary extends Output
 		View.LAYOUT.setTempInt(-2);
 		View.SCHEMATIC.setTempInt(-3);
 		View.ICON.setTempInt(-4);
-		View.SIMSNAP.setTempInt(-5);
-		View.SKELETON.setTempInt(-6);
+		View.DOCWAVE.setTempInt(-5);
+		View.LAYOUTSKEL.setTempInt(-6);
 		View.VHDL.setTempInt(-7);
 		View.NETLIST.setTempInt(-8);
 		View.DOC.setTempInt(-9);
@@ -330,7 +330,7 @@ public class OutputBinary extends Output
 		View.NETLISTRSIM.setTempInt(-13);
 		View.NETLISTSILOS.setTempInt(-14);
 		View.VERILOG.setTempInt(-15);
-//		View.COMP.setTempInt(-16);
+//		View.LAYOUTCOMP.setTempInt(-16);
 		int i = 1;
 		for(Iterator it = View.getViews(); it.hasNext(); )
 		{

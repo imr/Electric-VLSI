@@ -422,6 +422,60 @@ public class Highlight
 	}
 
 	/**
+	 * Routine to return the bounds of the highlighted objects.
+	 * @param wnd the window in which to get bounds.
+	 * @return the bounds of the highlighted objects (null if nothing is highlighted).
+	 */
+	public static Rectangle2D getHighlightedArea(EditWindow wnd)
+	{
+		// initially no area
+		Rectangle2D bounds = null;
+
+		// look at all highlighted objects
+		for(Iterator it = getHighlights(); it.hasNext(); )
+		{
+			Highlight h = (Highlight)it.next();
+
+			// find the bounds of this highlight
+			Rectangle2D highBounds = null;
+			if (h.getType() == Type.GEOM)
+			{
+				highBounds = h.getGeom().getBounds();
+			} else if (h.getType() == Type.TEXT)
+			{
+				Poly poly = h.computeTextPoly(wnd);
+				if (poly != null) highBounds = poly.getBounds2D();
+			} else if (h.getType() == Type.BBOX)
+			{
+				highBounds = h.getBounds();
+			} else if (h.getType() == Type.LINE)
+			{
+				double cX = (h.pt1.getX() + h.pt2.getX()) / 2;
+				double cY = (h.pt1.getY() + h.pt2.getY()) / 2;
+				double sX = Math.abs(h.pt1.getX() - h.pt2.getX());
+				double sY = Math.abs(h.pt1.getY() - h.pt2.getY());
+				highBounds = new Rectangle2D.Double(cX, cY, sX, sY);
+			}
+
+			// combine this highlight's bounds with the overall one
+			if (highBounds != null)
+			{
+				if (bounds == null)
+				{
+					bounds = new Rectangle2D.Double();
+					bounds.setRect(highBounds);
+				} else
+				{
+					Rectangle2D.union(bounds, highBounds, bounds);
+				}
+			}
+		}
+
+		// return the overall bounds
+		return bounds;
+	}
+
+	/**
 	 * Routine to return the only highlighted object.
 	 * If there is not one highlighted object, an error is issued.
 	 * @return the highlighted object (null if error).
@@ -486,6 +540,14 @@ public class Highlight
 		}
 
 		if (curWind != null) return curWind;
+
+		// just take any window
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			curWind = wf.getEditWindow();
+			if (curWind != null) return curWind;
+		}
 
 		System.out.println("No current window");
 		return null;
@@ -608,7 +670,6 @@ public class Highlight
 			points[0] = new Point2D.Double(pt1.getX(), pt1.getY());
 			points[1] = new Point2D.Double(pt2.getX(), pt2.getY());
 			drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY, false);
-//			System.out.println("Highlight LINE");
 			return;
 		}
 		if (type == Type.TEXT)
@@ -1140,18 +1201,18 @@ public class Highlight
 				switch (phase)
 				{
 					case 0:			// check Cell instances
-						if (geom instanceof ArcInst) break;
+						if (!(geom instanceof NodeInst)) break;
 						if (((NodeInst)geom).getProto() instanceof PrimitiveNode) break;
 						h = checkOutObject(geom, findPort, findSpecial, bounds, wnd, directHitDist);
 						if (h != null) list.add(h);
 						break;
 					case 1:			// check arcs
-						if (geom instanceof NodeInst) break;
+						if (!(geom instanceof ArcInst)) break;
 						h = checkOutObject(geom, findPort, findSpecial, bounds, wnd, directHitDist);
 						if (h != null) list.add(h);
 						break;
 					case 2:			// check primitive nodes
-						if (geom instanceof ArcInst) break;
+						if (!(geom instanceof NodeInst)) break;
 						if (((NodeInst)geom).getProto() instanceof Cell) break;
 						h = checkOutObject(geom, findPort, findSpecial, bounds, wnd, directHitDist);
 						if (h != null) list.add(h);

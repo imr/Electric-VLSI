@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
@@ -41,12 +42,17 @@ import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.Date;
 import java.util.ArrayList;
 import java.awt.geom.Point2D;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 /**
  * Class for user-level changes to the circuit.
@@ -55,6 +61,8 @@ public class CircuitChanges
 {
 	// constructor, never used
 	CircuitChanges() {}
+
+	/****************************** DELETE SELECTED OBJECTS ******************************/
 
 	/**
 	 * Routine to delete all selected objects.
@@ -68,7 +76,7 @@ public class CircuitChanges
 	{
 		protected DeleteSelected()
 		{
-			super("Delete", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Delete selected objects", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.startJob();
 		}
 
@@ -76,9 +84,7 @@ public class CircuitChanges
 		{
 			if (Highlight.getNumHighlights() == 0) return;
 			List deleteList = new ArrayList();
-			int i = 0;
 			Cell cell = null;
-			boolean warned = false;
 			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
@@ -86,10 +92,12 @@ public class CircuitChanges
 				Geometric geom = h.getGeom();
 				if (cell == null) cell = geom.getParent(); else
 				{
-					if (!warned && cell != geom.getParent())
+					if (cell != geom.getParent())
 					{
-						System.out.println("Warning: Not all objects being deleted are in the same cell");
-						warned = true;
+						JFrame jf = TopLevel.getCurrentJFrame();
+						JOptionPane.showMessageDialog(jf, "All objects to be deleted must be in the same cell",
+								"Delete failed", JOptionPane.ERROR_MESSAGE);
+						return;
 					}
 				}
 				deleteList.add(geom);
@@ -100,6 +108,435 @@ public class CircuitChanges
 		}
 	}
 
+	/****************************** DELETE OBJECTS IN A LIST ******************************/
+
+	/**
+	 * Routine to delete all of the Geometrics in a list.
+	 * @param cell the cell with the objects to be deleted.
+	 * @param list a List of Geometric objects to be deleted.
+	 */
+	public static void eraseObjectsInList(Cell cell, List list)
+	{
+		FlagSet deleteFlag = Geometric.getFlagSet(2);
+
+		// mark all nodes touching arcs that are killed
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			ni.setFlagValue(deleteFlag, 0);
+		}
+		for(Iterator it=list.iterator(); it.hasNext(); )
+		{
+			Geometric geom = (Geometric)it.next();
+			if (geom instanceof NodeInst) continue;
+			ArcInst ai = (ArcInst)geom;
+			ai.getHead().getPortInst().getNodeInst().setFlagValue(deleteFlag, 1);
+			ai.getTail().getPortInst().getNodeInst().setFlagValue(deleteFlag, 1);
+		}
+
+		// also mark all nodes on arcs that will be erased
+		for(Iterator it=list.iterator(); it.hasNext(); )
+		{
+			Geometric geom = (Geometric)it.next();
+			if (geom instanceof NodeInst)
+			{
+				NodeInst ni = (NodeInst)geom;
+				if (ni.getFlagValue(deleteFlag) != 0)
+					ni.setFlagValue(deleteFlag, 2);
+			}
+		}
+
+		// also mark all nodes on the other end of arcs connected to erased nodes
+		for(Iterator it=list.iterator(); it.hasNext(); )
+		{
+			Geometric geom = (Geometric)it.next();
+			if (geom instanceof NodeInst)
+			{
+				NodeInst ni = (NodeInst)geom;
+				for(Iterator sit = ni.getConnections(); sit.hasNext(); )
+				{
+					Connection con = (Connection)sit.next();
+					ArcInst ai = con.getArc();
+					Connection otherEnd = ai.getHead();
+					if (ai.getHead() == con) otherEnd = ai.getTail();
+					if (otherEnd.getPortInst().getNodeInst().getFlagValue(deleteFlag) == 0)
+						otherEnd.getPortInst().getNodeInst().setFlagValue(deleteFlag, 1);
+				}
+			}
+		}
+
+		// now kill all of the arcs
+		for(Iterator it=list.iterator(); it.hasNext(); )
+		{
+			Geometric geom = (Geometric)it.next();
+			if (geom instanceof ArcInst)
+			{
+				ArcInst ai = (ArcInst)geom;
+
+				ai.kill();
+			}
+		}
+
+		// next kill all of the nodes
+		for(Iterator it=list.iterator(); it.hasNext(); )
+		{
+			Geometric geom = (Geometric)it.next();
+			if (geom instanceof NodeInst)
+			{
+				NodeInst ni = (NodeInst)geom;
+				eraseNodeInst(ni);
+			}
+		}
+
+		// kill all pin nodes that touched an arc and no longer do
+		List nodesToDelete = new ArrayList();
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			if (ni.getFlagValue(deleteFlag) == 0) continue;
+			if (ni.getProto() instanceof PrimitiveNode)
+			{
+				if (ni.getProto().getFunction() != NodeProto.Function.PIN) continue;
+				if (ni.getNumConnections() != 0 || ni.getNumExports() != 0) continue;
+				nodesToDelete.add(ni);
+			}
+		}
+		for(Iterator it = nodesToDelete.iterator(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			eraseNodeInst(ni);
+		}
+
+		// kill all unexported pin or bus nodes left in the middle of arcs
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			if (ni.getFlagValue(deleteFlag) == 0) continue;
+			if (ni.getProto() instanceof PrimitiveNode)
+			{
+				if (ni.getProto().getFunction() != NodeProto.Function.PIN) continue;
+				if (ni.getNumExports() != 0) continue;
+//				erasePassThru(ni, FALSE, &ai);
+			}
+		}
+
+		deleteFlag.freeFlagSet();
+	}
+
+	/*
+	 * Routine to erase node "ni" and all associated arcs, exports, etc.
+	 */
+	private static void eraseNodeInst(NodeInst ni)
+	{
+		// erase all connecting ArcInsts on this NodeInst
+		int numConnectedArcs = ni.getNumConnections();
+		if (numConnectedArcs > 0)
+		{
+			ArcInst [] arcsToDelete = new ArcInst[numConnectedArcs];
+			int i = 0;
+			for(Iterator it = ni.getConnections(); it.hasNext(); )
+			{
+				Connection con = (Connection)it.next();
+				arcsToDelete[i++] = con.getArc();
+			}
+			for(int j=0; j<numConnectedArcs; j++)
+			{
+				ArcInst ai = arcsToDelete[j];
+
+				// delete the ArcInst
+				ai.kill();
+			}
+		}
+
+		// if this NodeInst has Exports, delete them
+		undoExport(ni, null);
+
+		// now erase the NodeInst
+		ni.kill();
+	}
+
+	/*
+	 * routine to recursively delete ports at nodeinst "ni" and all arcs connected
+	 * to them anywhere.  If "spt" is not NOPORTPROTO, delete only that portproto
+	 * on this nodeinst (and its hierarchically related ports).  Otherwise delete
+	 * all portprotos on this nodeinst.
+	 */
+	private static void undoExport(NodeInst ni, Export spt)
+	{
+		int numExports = ni.getNumExports();
+		if (numExports == 0) return;
+		Export exportsToDelete [] = new Export[numExports];
+		int i = 0;		
+		for(Iterator it = ni.getExports(); it.hasNext(); )
+		{
+			Export pp = (Export)it.next();
+			exportsToDelete[i++] = pp;
+		}
+		for(int j=0; j<numExports; j++)
+		{
+			Export pp = exportsToDelete[j];
+			if (spt != null && spt != pp) continue;
+			pp.kill();
+		}
+	}
+
+	/****************************** DELETE A CELL ******************************/
+
+	public static void deleteCell(Cell cell)
+	{
+		// see if this cell is in use anywhere
+		if (cell.isInUse("delete")) return;
+
+		// make sure the user really wants to delete the cell
+		JFrame jf = TopLevel.getCurrentJFrame();
+		int response = JOptionPane.showConfirmDialog(jf, "Are you sure you want to delete cell " + cell.describe() + "?");
+		if (response != JOptionPane.YES_OPTION) return;
+
+		// delete the cell
+		DeleteCell job = new DeleteCell(cell);
+	}
+
+	/**
+	 * Class to delete a cell in a new thread.
+	 */
+	protected static class DeleteCell extends Job
+	{
+		Cell cell;
+
+		protected DeleteCell(Cell cell)
+		{
+			super("Delete Cell" + cell.describe(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cell = cell;
+			this.startJob();
+		}
+
+		public void doIt()
+		{
+			// check cell usage once more
+			if (cell.isInUse("delete")) return;
+			doKillCell(cell);
+		}
+	}
+
+	/*
+	 * Routine to delete cell "cell".  Validity checks are assumed to be made (i.e. the
+	 * cell is not used and is not locked).
+	 */
+	private static void doKillCell(Cell cell)
+	{
+		// delete random references to this cell
+		Library lib = cell.getLibrary();
+		if (cell == lib.getCurCell()) lib.setCurCell(null);
+
+		// close windows that reference this cell
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			EditWindow wnd = wf.getEditWindow();
+			if (wnd.getCell() == cell)
+				wnd.setCell(null, null);
+		}
+
+//		prevversion = cell->prevversion;
+//		toolturnoff(net_tool, FALSE);
+		cell.kill();
+//		toolturnon(net_tool);
+
+//		// see if this was the latest version of a cell
+//		if (prevversion != NONODEPROTO)
+//		{
+//			// newest version was deleted: rename next older version
+//			for(ni = prevversion->firstinst; ni != NONODEINST; ni = ni->nextinst)
+//			{
+//				if ((ni->userbits&NEXPAND) != 0) continue;
+//				startobjectchange((INTBIG)ni, VNODEINST);
+//				endobjectchange((INTBIG)ni, VNODEINST);
+//			}
+//		}
+//
+//		// update status display if necessary
+//		if (us_curnodeproto != NONODEPROTO && us_curnodeproto->primindex == 0)
+//		{
+//			if (cell == us_curnodeproto)
+//			{
+//				if ((us_state&NONPERSISTENTCURNODE) != 0) us_setnodeproto(NONODEPROTO); else
+//					us_setnodeproto(el_curtech->firstnodeproto);
+//			}
+//		}
+	}
+
+	/****************************** DELETE UNUSED OLD VERSIONS OF CELLS ******************************/
+
+	public static void deleteUnusedOldVersions()
+	{
+		DeleteUnusedOldCells job = new DeleteUnusedOldCells();
+	}
+
+	/**
+	 * This class implement the command to delete unused old versions of cells.
+	 */
+	protected static class DeleteUnusedOldCells extends Job
+	{
+		protected DeleteUnusedOldCells()
+		{
+			super("Delete Unused Old Cells", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.startJob();
+		}
+
+		public void doIt()
+		{
+			boolean found = true;
+			int totalDeleted = 0;
+			while (found)
+			{
+				found = false;
+				for(Iterator it = Library.getCurrent().getCells(); it.hasNext(); )
+				{
+					Cell cell = (Cell)it.next();
+					if (cell.getNewestVersion() == cell) continue;
+					if (cell.getInstancesOf().hasNext()) continue;
+					System.out.println("Deleting cell " + cell.describe());
+					doKillCell(cell);
+					found = true;
+					totalDeleted++;
+					break;
+				}
+			}
+			if (totalDeleted == 0) System.out.println("No unused old cell versions to delete"); else
+			{
+				System.out.println("Deleted " + totalDeleted + " cells");
+				EditWindow.redrawAll();
+			}
+		}
+	}
+
+	/****************************** CHANGE A CELL'S VIEW ******************************/
+
+	public static void changeCellView(Cell cell, View newView)
+	{
+		// stop if already this way
+		if (cell.getView() == newView) return;
+
+		// warn if there is already a cell with that view
+		for(Iterator it = cell.getLibrary().getCells(); it.hasNext(); )
+		{
+			Cell other = (Cell)it.next();
+			if (other.getView() != newView) continue;
+			if (!other.getProtoName().equalsIgnoreCase(cell.getProtoName())) continue;
+
+			// there is another cell with this name and view: warn that it will become old
+			JFrame jf = TopLevel.getCurrentJFrame();
+			int response = JOptionPane.showConfirmDialog(jf,
+				"There is already a cell with that view.  Is it okay to make it an older version, and make this the newest version?");
+			if (response != JOptionPane.YES_OPTION) return;
+			break;
+		}
+		ChangeCellView job = new ChangeCellView(cell, newView);
+	}
+
+	/**
+	 * Class to change a cell's view in a new thread.
+	 */
+	protected static class ChangeCellView extends Job
+	{
+		Cell cell;
+		View newView;
+
+		protected ChangeCellView(Cell cell, View newView)
+		{
+			super("Change View of Cell" + cell.describe() + " to " + newView.getFullName(),
+				User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cell = cell;
+			this.newView = newView;
+			this.startJob();
+		}
+
+		public void doIt()
+		{
+			cell.setView(newView);
+			EditWindow.redrawAll();
+		}
+	}
+
+	/****************************** MAKE A NEW VERSION OF A CELL ******************************/
+
+	public static void newVersionOfCell(Cell cell)
+	{
+		NewCellVersion job = new NewCellVersion(cell);
+	}
+
+	/**
+	 * This class implement the command to make a new version of a cell.
+	 */
+	protected static class NewCellVersion extends Job
+	{
+		Cell cell;
+
+		protected NewCellVersion(Cell cell)
+		{
+			super("Create new Version of cell " + cell.describe(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cell = cell;
+			this.startJob();
+		}
+
+		public void doIt()
+		{
+			Cell newVersion = cell.makeNewVersion();
+			if (newVersion == null) return;
+
+			// change the display of old versions to the new one
+			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+			{
+				WindowFrame wf = (WindowFrame)it.next();
+				EditWindow wnd = wf.getEditWindow();
+				if (wnd.getCell() == cell)
+					wnd.setCell(newVersion, null);
+			}
+			EditWindow.redrawAll();
+		}
+	}
+
+	/****************************** MAKE A COPY OF A CELL ******************************/
+
+	public static void duplicateCell(Cell cell, String newName)
+	{
+		DuplicateCell job = new DuplicateCell(cell, newName);
+	}
+
+	/**
+	 * This class implement the command to duplicate a cell.
+	 */
+	protected static class DuplicateCell extends Job
+	{
+		Cell cell;
+		String newName;
+
+		protected DuplicateCell(Cell cell, String newName)
+		{
+			super("Duplicate cell " + cell.describe(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cell = cell;
+			this.newName = newName;
+			this.startJob();
+		}
+
+		public void doIt()
+		{
+			Cell dupCell = Cell.copynodeproto(cell, cell.getLibrary(), newName + "{" + cell.getView().getAbbreviation() + "}", false);
+			if (dupCell == null) return;
+
+			// change the display of old cell to the new one
+			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+			{
+				WindowFrame wf = (WindowFrame)it.next();
+				EditWindow wnd = wf.getEditWindow();
+				if (wnd.getCell() == cell)
+					wnd.setCell(dupCell, null);
+			}
+			EditWindow.redrawAll();
+		}
+	}
+
+	/****************************** MOVE SELECTED OBJECTS ******************************/
 
 	/**
 	 * routine to move the arcs in the GEOM module list "list" (terminated by
@@ -442,176 +879,6 @@ public class CircuitChanges
 		}
 	}
 
-	/**
-	 * Routine to delete all of the Geometrics in a list.
-	 * @param cell the cell with the objects to be deleted.
-	 * @param list a List of Geometric objects to be deleted.
-	 */
-	public static void eraseObjectsInList(Cell cell, List list)
-	{
-		FlagSet deleteFlag = Geometric.getFlagSet(2);
-
-		// mark all nodes touching arcs that are killed
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
-		{
-			NodeInst ni = (NodeInst)it.next();
-			ni.setFlagValue(deleteFlag, 0);
-		}
-		for(Iterator it=list.iterator(); it.hasNext(); )
-		{
-			Geometric geom = (Geometric)it.next();
-			if (geom instanceof NodeInst) continue;
-			ArcInst ai = (ArcInst)geom;
-			ai.getHead().getPortInst().getNodeInst().setFlagValue(deleteFlag, 1);
-			ai.getTail().getPortInst().getNodeInst().setFlagValue(deleteFlag, 1);
-		}
-
-		// also mark all nodes on arcs that will be erased
-		for(Iterator it=list.iterator(); it.hasNext(); )
-		{
-			Geometric geom = (Geometric)it.next();
-			if (geom instanceof NodeInst)
-			{
-				NodeInst ni = (NodeInst)geom;
-				if (ni.getFlagValue(deleteFlag) != 0)
-					ni.setFlagValue(deleteFlag, 2);
-			}
-		}
-
-		// also mark all nodes on the other end of arcs connected to erased nodes
-		for(Iterator it=list.iterator(); it.hasNext(); )
-		{
-			Geometric geom = (Geometric)it.next();
-			if (geom instanceof NodeInst)
-			{
-				NodeInst ni = (NodeInst)geom;
-				for(Iterator sit = ni.getConnections(); sit.hasNext(); )
-				{
-					Connection con = (Connection)sit.next();
-					ArcInst ai = con.getArc();
-					Connection otherEnd = ai.getHead();
-					if (ai.getHead() == con) otherEnd = ai.getTail();
-					if (otherEnd.getPortInst().getNodeInst().getFlagValue(deleteFlag) == 0)
-						otherEnd.getPortInst().getNodeInst().setFlagValue(deleteFlag, 1);
-				}
-			}
-		}
-
-		// now kill all of the arcs
-		for(Iterator it=list.iterator(); it.hasNext(); )
-		{
-			Geometric geom = (Geometric)it.next();
-			if (geom instanceof ArcInst)
-			{
-				ArcInst ai = (ArcInst)geom;
-
-				ai.kill();
-			}
-		}
-
-		// next kill all of the nodes
-		for(Iterator it=list.iterator(); it.hasNext(); )
-		{
-			Geometric geom = (Geometric)it.next();
-			if (geom instanceof NodeInst)
-			{
-				NodeInst ni = (NodeInst)geom;
-				eraseNodeInst(ni);
-			}
-		}
-
-		// kill all pin nodes that touched an arc and no longer do
-		List nodesToDelete = new ArrayList();
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
-		{
-			NodeInst ni = (NodeInst)it.next();
-			if (ni.getFlagValue(deleteFlag) == 0) continue;
-			if (ni.getProto() instanceof PrimitiveNode)
-			{
-				if (ni.getProto().getFunction() != NodeProto.Function.PIN) continue;
-				if (ni.getNumConnections() != 0 || ni.getNumExports() != 0) continue;
-				nodesToDelete.add(ni);
-			}
-		}
-		for(Iterator it = nodesToDelete.iterator(); it.hasNext(); )
-		{
-			NodeInst ni = (NodeInst)it.next();
-			eraseNodeInst(ni);
-		}
-
-		// kill all unexported pin or bus nodes left in the middle of arcs
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
-		{
-			NodeInst ni = (NodeInst)it.next();
-			if (ni.getFlagValue(deleteFlag) == 0) continue;
-			if (ni.getProto() instanceof PrimitiveNode)
-			{
-				if (ni.getProto().getFunction() != NodeProto.Function.PIN) continue;
-				if (ni.getNumExports() != 0) continue;
-//				erasePassThru(ni, FALSE, &ai);
-			}
-		}
-
-		deleteFlag.freeFlagSet();
-	}
-
-	/*
-	 * Routine to erase node "ni" and all associated arcs, exports, etc.
-	 */
-	private static void eraseNodeInst(NodeInst ni)
-	{
-		// erase all connecting ArcInsts on this NodeInst
-		int numConnectedArcs = ni.getNumConnections();
-		if (numConnectedArcs > 0)
-		{
-			ArcInst [] arcsToDelete = new ArcInst[numConnectedArcs];
-			int i = 0;
-			for(Iterator it = ni.getConnections(); it.hasNext(); )
-			{
-				Connection con = (Connection)it.next();
-				arcsToDelete[i++] = con.getArc();
-			}
-			for(int j=0; j<numConnectedArcs; j++)
-			{
-				ArcInst ai = arcsToDelete[j];
-
-				// delete the ArcInst
-				ai.kill();
-			}
-		}
-
-		// if this NodeInst has Exports, delete them
-		undoExport(ni, null);
-
-		// now erase the NodeInst
-		ni.kill();
-	}
-
-	/*
-	 * routine to recursively delete ports at nodeinst "ni" and all arcs connected
-	 * to them anywhere.  If "spt" is not NOPORTPROTO, delete only that portproto
-	 * on this nodeinst (and its hierarchically related ports).  Otherwise delete
-	 * all portprotos on this nodeinst.
-	 */
-	private static void undoExport(NodeInst ni, Export spt)
-	{
-		int numExports = ni.getNumExports();
-		if (numExports == 0) return;
-		Export exportsToDelete [] = new Export[numExports];
-		int i = 0;		
-		for(Iterator it = ni.getExports(); it.hasNext(); )
-		{
-			Export pp = (Export)it.next();
-			exportsToDelete[i++] = pp;
-		}
-		for(int j=0; j<numExports; j++)
-		{
-			Export pp = exportsToDelete[j];
-			if (spt != null && spt != pp) continue;
-			pp.kill();
-		}
-	}
-
 //	typedef struct Ireconnect
 //	{
 //		NETWORK *net;					/* network for this reconnection */
@@ -766,6 +1033,8 @@ public class CircuitChanges
 //		}
 //		return(retval);
 //	}
+
+	/****************************** COPY CELLS ******************************/
 
 	/**
 	 * recursive helper routine for "us_copycell" which copies cell "fromnp"
@@ -977,7 +1246,7 @@ public class CircuitChanges
 					}
 				}
 //				toolturnoff(net_tool, FALSE);
-				us_dokillcell(fromnp);
+				doKillCell(fromnp);
 //				toolturnon(net_tool);
 				fromnp = null;
 			}
@@ -999,92 +1268,6 @@ public class CircuitChanges
 			}
 		}
 		return newfromnp;
-	}
-
-	/*
-	 * Routine to delete cell "np".  Validity checks are assumed to be made (i.e. the
-	 * cell is not used and is not locked).
-	 */
-	private static void us_dokillcell(Cell np)
-	{
-//		// delete random references to this cell
-//		curcell = getcurcell();
-//		if (np == curcell)
-//		{
-//			(void)setval((INTBIG)el_curlib, VLIBRARY, x_("curnodeproto"), (INTBIG)NONODEPROTO, VNODEPROTO);
-//			us_clearhighlightcount();
-//		}
-//
-//		// close windows that reference this cell
-//		for(w = el_topwindowpart; w != NOWINDOWPART; w = nextw)
-//		{
-//			nextw = w->nextwindowpart;
-//			if (w->curnodeproto != np) continue;
-//			if (w == el_curwindowpart) iscurrent = TRUE; else iscurrent = FALSE;
-//			if (iscurrent)
-//				(void)setvalkey((INTBIG)us_tool, VTOOL, us_current_window_key, (INTBIG)NOWINDOWPART,
-//					VWINDOWPART|VDONTSAVE);
-//			startobjectchange((INTBIG)us_tool, VTOOL);
-//			neww = newwindowpart(w->location, w);
-//			if (neww == NOWINDOWPART) return;
-//
-//			// adjust the new window to account for borders in the old one
-//			if ((w->state&WINDOWTYPE) != DISPWINDOW)
-//			{
-//				neww->usehx -= DISPLAYSLIDERSIZE;
-//				neww->usely += DISPLAYSLIDERSIZE;
-//			}
-//			if ((w->state&WINDOWTYPE) == WAVEFORMWINDOW)
-//			{
-//				neww->uselx -= DISPLAYSLIDERSIZE;
-//				neww->usely -= DISPLAYSLIDERSIZE;
-//			}
-//			if ((w->state&WINDOWMODE) != 0)
-//			{
-//				neww->uselx -= WINDOWMODEBORDERSIZE;   neww->usehx += WINDOWMODEBORDERSIZE;
-//				neww->usely -= WINDOWMODEBORDERSIZE;   neww->usehy += WINDOWMODEBORDERSIZE;
-//			}
-//
-//			neww->curnodeproto = NONODEPROTO;
-//			neww->buttonhandler = DEFAULTBUTTONHANDLER;
-//			neww->charhandler = DEFAULTCHARHANDLER;
-//			neww->changehandler = DEFAULTCHANGEHANDLER;
-//			neww->termhandler = DEFAULTTERMHANDLER;
-//			neww->redisphandler = DEFAULTREDISPHANDLER;
-//			neww->state = (neww->state & ~(WINDOWTYPE|WINDOWMODE)) | DISPWINDOW;
-//			killwindowpart(w);
-//			endobjectchange((INTBIG)us_tool, VTOOL);
-//			if (iscurrent)
-//				(void)setvalkey((INTBIG)us_tool, VTOOL, us_current_window_key, (INTBIG)neww,
-//					VWINDOWPART|VDONTSAVE);
-//		}
-
-//		prevversion = np->prevversion;
-//		toolturnoff(net_tool, FALSE);
-		np.kill();
-//		toolturnon(net_tool);
-
-//		// see if this was the latest version of a cell
-//		if (prevversion != NONODEPROTO)
-//		{
-//			// newest version was deleted: rename next older version
-//			for(ni = prevversion->firstinst; ni != NONODEINST; ni = ni->nextinst)
-//			{
-//				if ((ni->userbits&NEXPAND) != 0) continue;
-//				startobjectchange((INTBIG)ni, VNODEINST);
-//				endobjectchange((INTBIG)ni, VNODEINST);
-//			}
-//		}
-//
-//		// update status display if necessary
-//		if (us_curnodeproto != NONODEPROTO && us_curnodeproto->primindex == 0)
-//		{
-//			if (np == us_curnodeproto)
-//			{
-//				if ((us_state&NONPERSISTENTCURNODE) != 0) us_setnodeproto(NONODEPROTO); else
-//					us_setnodeproto(el_curtech->firstnodeproto);
-//			}
-//		}
 	}
 
 	/*

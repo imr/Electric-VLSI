@@ -56,17 +56,19 @@ import com.sun.electric.tool.io.Output;
 import com.sun.electric.tool.user.Clipboard;
 import com.sun.electric.tool.user.ui.Menu;
 import com.sun.electric.tool.user.dialogs.About;
-import com.sun.electric.tool.user.dialogs.EditCell;
+import com.sun.electric.tool.user.dialogs.NewCell;
 import com.sun.electric.tool.user.dialogs.ToolOptions;
 import com.sun.electric.tool.user.dialogs.EditOptions;
 import com.sun.electric.tool.user.dialogs.IOOptions;
 import com.sun.electric.tool.user.dialogs.CrossLibCopy;
 import com.sun.electric.tool.user.dialogs.NewExport;
+import com.sun.electric.tool.user.dialogs.ViewControl;
 import com.sun.electric.tool.user.dialogs.GetInfoNode;
 import com.sun.electric.tool.user.dialogs.GetInfoArc;
 import com.sun.electric.tool.user.dialogs.GetInfoExport;
 import com.sun.electric.tool.user.dialogs.GetInfoText;
 import com.sun.electric.tool.user.dialogs.GetInfoMulti;
+import com.sun.electric.tool.user.dialogs.CellLists;
 import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.generator.PadGenerator;
@@ -75,6 +77,7 @@ import com.sun.electric.tool.simulation.IRSIMTool;
 //import com.sun.electric.tool.ncc.factory.NetFactory;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.ArrayList;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -84,6 +87,7 @@ import java.awt.event.InputEvent;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.KeyStroke;
+import javax.swing.JOptionPane;
 
 /**
  * This class has all of the pulldown menu commands in Electric.
@@ -168,18 +172,27 @@ public final class UserMenuCommands
 		// setup the Cell menu
 		Menu cellMenu = Menu.createMenu("Cell", 'C');
 		menuBar.add(cellMenu);
-		cellMenu.addMenuItem("Edit Cell", KeyStroke.getKeyStroke('N', InputEvent.CTRL_MASK),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { editCellCommand(); } });
+		cellMenu.addMenuItem("New Cell...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { newCellCommand(); } });
+		cellMenu.addMenuItem("Delete Current Cell", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { deleteCellCommand(); } });
+		cellMenu.addMenuItem("Cross-Library Copy...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { crossLibraryCopyCommand(); } });
 		cellMenu.addSeparator();
         cellMenu.addMenuItem("Down Hierarchy", KeyStroke.getKeyStroke('D', InputEvent.CTRL_MASK),
             new ActionListener() { public void actionPerformed(ActionEvent e) { downHierCommand(); }});
         cellMenu.addMenuItem("Up Hierarchy", KeyStroke.getKeyStroke('U', InputEvent.CTRL_MASK),
             new ActionListener() { public void actionPerformed(ActionEvent e) { upHierCommand(); }});
-		cellMenu.addMenuItem("Show Cell Groups", KeyStroke.getKeyStroke('T', InputEvent.CTRL_MASK),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { showCellGroupsCommand(); } });
 		cellMenu.addSeparator();
-		cellMenu.addMenuItem("Cross-Library Copy...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { crossLibraryCopyCommand(); } });
+		cellMenu.addMenuItem("New Version of Current Cell", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { newCellVersionCommand(); } });
+		cellMenu.addMenuItem("Duplicate Current Cell", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { duplicateCellCommand(); } });
+		cellMenu.addMenuItem("Delete Unused Old Versions", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { deleteOldCellVersionsCommand(); } });
+		cellMenu.addSeparator();
+		cellMenu.addMenuItem("General Cell Lists...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { generalCellListsCommand(); } });
 
 		// setup the Export menu
 		Menu exportMenu = Menu.createMenu("Export", 'X');
@@ -190,12 +203,37 @@ public final class UserMenuCommands
 		// setup the View menu
 		Menu viewMenu = Menu.createMenu("View", 'V');
 		menuBar.add(viewMenu);
+		menuBar.add(exportMenu);
+		viewMenu.addMenuItem("View Control...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { viewControlCommand(); } });
+		viewMenu.addSeparator();
+		viewMenu.addMenuItem("Edit Layout View", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { editLayoutViewCommand(); } });
+		viewMenu.addMenuItem("Edit Schematic View", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { editSchematicViewCommand(); } });
+		viewMenu.addMenuItem("Edit Icon View", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { editIconViewCommand(); } });
+		viewMenu.addMenuItem("Edit VHDL View", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { editVHDLViewCommand(); } });
+		viewMenu.addMenuItem("Edit Documentation View", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { editDocViewCommand(); } });
+		viewMenu.addMenuItem("Edit Skeleton View", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { editSkeletonViewCommand(); } });
+		viewMenu.addMenuItem("Edit Other View", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { editOtherViewCommand(); } });
 
 		// setup the Window menu
 		Menu windowMenu = Menu.createMenu("Window", 'W');
 		menuBar.add(windowMenu);
-		windowMenu.addMenuItem("Full Display", null,
+		windowMenu.addMenuItem("Fill Display", KeyStroke.getKeyStroke('9', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { fullDisplayCommand(); } });
+		windowMenu.addMenuItem("Zoom Out", KeyStroke.getKeyStroke('0', InputEvent.CTRL_MASK),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { zoomOutDisplayCommand(); } });
+		windowMenu.addMenuItem("Zoom In", KeyStroke.getKeyStroke('7', InputEvent.CTRL_MASK),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { zoomInDisplayCommand(); } });
+		windowMenu.addMenuItem("Focus on Highlighted", KeyStroke.getKeyStroke('F', InputEvent.CTRL_MASK),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { focusOnHighlightedCommand(); } });
+		windowMenu.addSeparator();
 		windowMenu.addMenuItem("Toggle Grid", KeyStroke.getKeyStroke('G', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { toggleGridCommand(); } });
 
@@ -681,12 +719,29 @@ public final class UserMenuCommands
 
 	// ---------------------- THE CELL MENU -----------------
 
-    public static void editCellCommand()
+    public static void newCellCommand()
 	{
 		JFrame jf = TopLevel.getCurrentJFrame();
- 		EditCell dialog = new EditCell(jf, true);
+ 		NewCell dialog = new NewCell(jf, true);
 		dialog.show();
     }
+
+    public static void deleteCellCommand()
+	{
+		Cell curCell = Library.needCurCell();
+		if (curCell == null) return;
+		CircuitChanges.deleteCell(curCell);
+    }
+
+	/**
+	 * This routine implements the command to do cross-library copies.
+	 */
+	public static void crossLibraryCopyCommand()
+	{
+		JFrame jf = TopLevel.getCurrentJFrame();
+ 		CrossLibCopy dialog = new CrossLibCopy(jf, true);
+		dialog.show();
+	}
 
 	public static void downHierCommand() {
         EditWindow curEdit = TopLevel.getCurrentEditWindow();
@@ -698,40 +753,46 @@ public final class UserMenuCommands
         curEdit.upHierarchy();
     }
 
-	public static void showCellGroupsCommand()
+	/**
+	 * This routine implements the command to make a new version of the current Cell.
+	 */
+	public static void newCellVersionCommand()
 	{
-		// list things by cell group
-		FlagSet cellFlag = NodeProto.getFlagSet(1);
-		Library curLib = Library.getCurrent();
-		for(Iterator it = curLib.getCells(); it.hasNext(); )
-		{
-			Cell cell = (Cell)it.next();
-			cell.clearBit(cellFlag);
-		}
-		for(Iterator it = curLib.getCells(); it.hasNext(); )
-		{
-			Cell cell = (Cell)it.next();
-			if (cell.isBit(cellFlag)) continue;
-
-			// untouched: show whole cell group
-			System.out.println("**** Cell group:");
-			for(Iterator git = cell.getCellGroup().getCells(); git.hasNext(); )
-			{
-				Cell cellInGroup = (Cell)git.next();
-				System.out.println("    " + cellInGroup.describe());
-				cellInGroup.setBit(cellFlag);
-			}
-		}
-		cellFlag.freeFlagSet();
+		Cell curCell = Library.needCurCell();
+		if (curCell == null) return;
+		CircuitChanges.newVersionOfCell(curCell);
 	}
 
 	/**
-	 * This routine implements the command to do cross-library copies.
+	 * This routine implements the command to make a copy of the current Cell.
 	 */
-	public static void crossLibraryCopyCommand()
+	public static void duplicateCellCommand()
+	{
+		Cell curCell = Library.needCurCell();
+		if (curCell == null) return;
+
+		JFrame jf = TopLevel.getCurrentJFrame();
+		String newName = JOptionPane.showInputDialog(jf, "Name of duplicated cell",
+			curCell.getProtoName() + "NEW");
+		if (newName == null) return;
+		CircuitChanges.duplicateCell(curCell, newName);
+	}
+
+	/**
+	 * This routine implements the command to delete old, unused versions of cells.
+	 */
+	public static void deleteOldCellVersionsCommand()
+	{
+		CircuitChanges.deleteUnusedOldVersions();
+	}
+
+	/**
+	 * This routine implements the command to create general Cell lists.
+	 */
+	public static void generalCellListsCommand()
 	{
 		JFrame jf = TopLevel.getCurrentJFrame();
- 		CrossLibCopy dialog = new CrossLibCopy(jf, true);
+ 		CellLists dialog = new CellLists(jf, true);
 		dialog.show();
 	}
 
@@ -747,31 +808,139 @@ public final class UserMenuCommands
 		dialog.show();
 	}
 
+	// ---------------------- THE EXPORT MENU -----------------
+
+	/**
+	 * This routine implements the command to control Views.
+	 */
+	public static void viewControlCommand()
+	{
+		JFrame jf = TopLevel.getCurrentJFrame();
+ 		ViewControl dialog = new ViewControl(jf, true);
+		dialog.show();
+	}
+
+	public static void editLayoutViewCommand()
+	{
+		Cell curCell = Library.needCurCell();
+		if (curCell == null) return;
+		Cell layoutView = curCell.otherView(View.LAYOUT);
+		if (layoutView != null)
+			WindowFrame.createEditWindow(layoutView);
+	}
+
+	public static void editSchematicViewCommand()
+	{
+		Cell curCell = Library.needCurCell();
+		if (curCell == null) return;
+		Cell schematicView = curCell.otherView(View.SCHEMATIC);
+		if (schematicView != null)
+			WindowFrame.createEditWindow(schematicView);
+	}
+
+	public static void editIconViewCommand()
+	{
+		Cell curCell = Library.needCurCell();
+		if (curCell == null) return;
+		Cell iconView = curCell.otherView(View.ICON);
+		if (iconView != null)
+			WindowFrame.createEditWindow(iconView);
+	}
+
+	public static void editVHDLViewCommand()
+	{
+		Cell curCell = Library.needCurCell();
+		if (curCell == null) return;
+		Cell vhdlView = curCell.otherView(View.VHDL);
+		if (vhdlView != null)
+			WindowFrame.createEditWindow(vhdlView);
+	}
+
+	public static void editDocViewCommand()
+	{
+		Cell curCell = Library.needCurCell();
+		if (curCell == null) return;
+		Cell docView = curCell.otherView(View.DOC);
+		if (docView != null)
+			WindowFrame.createEditWindow(docView);
+	}
+
+	public static void editSkeletonViewCommand()
+	{
+		Cell curCell = Library.needCurCell();
+		if (curCell == null) return;
+		Cell skelView = curCell.otherView(View.LAYOUTSKEL);
+		if (skelView != null)
+			WindowFrame.createEditWindow(skelView);
+	}
+
+	public static void editOtherViewCommand()
+	{
+		Cell curCell = Library.needCurCell();
+		if (curCell == null) return;
+
+		List views = View.getOrderedViews();
+		String [] viewNames = new String[views.size()];
+		for(int i=0; i<views.size(); i++)
+			viewNames[i] = ((View)views.get(i)).getFullName();
+		JFrame jf = TopLevel.getCurrentJFrame();
+		Object newName = JOptionPane.showInputDialog(jf, "Which associated view do you want to see?",
+			"Choose alternate view", JOptionPane.QUESTION_MESSAGE, null, viewNames, curCell.getView().getFullName());
+		if (newName == null) return;
+		String newViewName = (String)newName;
+		View newView = View.findView(newViewName);
+		Cell otherView = curCell.otherView(newView);
+		if (otherView != null)
+			WindowFrame.createEditWindow(otherView);
+	}
+
 	// ---------------------- THE WINDOW MENU -----------------
 
 	public static void fullDisplayCommand()
 	{
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
-		{
-			Library lib = (Library)it.next();
-			for(Iterator cit = lib.getCells(); cit.hasNext(); )
-			{
-				Cell cell = (Cell)cit.next();
-				for(Iterator nit = cell.getNodes(); nit.hasNext(); )
-				{
-					NodeInst ni = (NodeInst)nit.next();
-					ni.setExpanded();
-				}
-			}
-		}
-
 		// get the current window
-        EditWindow curEdit = TopLevel.getCurrentEditWindow();
-		if (curEdit != null)
-		{
-			curEdit.setTimeTracking(true);
-			curEdit.redraw();
-		}
+        EditWindow wnd = TopLevel.getCurrentEditWindow();
+		if (wnd == null) return;
+
+		// make the circuit fill the window
+		wnd.fillScreen();
+		wnd.redraw();
+	}
+
+	public static void zoomOutDisplayCommand()
+	{
+		// get the current window
+        EditWindow wnd = TopLevel.getCurrentEditWindow();
+		if (wnd == null) return;
+
+		// zoom out by a factor of two
+		double scale = wnd.getScale();
+		wnd.setScale(scale / 2);
+		wnd.redraw();
+	}
+
+	public static void zoomInDisplayCommand()
+	{
+		// get the current window
+        EditWindow wnd = TopLevel.getCurrentEditWindow();
+		if (wnd == null) return;
+
+		// zoom in by a factor of two
+		double scale = wnd.getScale();
+		wnd.setScale(scale * 2);
+		wnd.redraw();
+	}
+
+	public static void focusOnHighlightedCommand()
+	{
+		// get the current window
+        EditWindow wnd = TopLevel.getCurrentEditWindow();
+		if (wnd == null) return;
+
+		// focus on highlighting
+		Rectangle2D bounds = Highlight.getHighlightedArea(wnd);
+		wnd.focusScreen(bounds);
+		wnd.redraw();
 	}
 
 	/**
