@@ -736,7 +736,7 @@ public class CMOS extends Technology
 		mn_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, mn_node, new ArcProto [] {Metal_arc}, "metal", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		mn_node.setFunction(PrimitiveNode.Function.NODE);
 		mn_node.setHoldsOutline();
@@ -751,7 +751,7 @@ public class CMOS extends Technology
 		pn_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, pn_node, new ArcProto [] {Polysilicon_arc}, "polysilicon", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		pn_node.setFunction(PrimitiveNode.Function.NODE);
 		pn_node.setHoldsOutline();
@@ -766,7 +766,7 @@ public class CMOS extends Technology
 		dn_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, dn_node, new ArcProto [] {}, "diffusion", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		dn_node.setFunction(PrimitiveNode.Function.NODE);
 		dn_node.setHoldsOutline();
@@ -781,7 +781,7 @@ public class CMOS extends Technology
 		pn0_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, pn0_node, new ArcProto [] {}, "p+", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		pn0_node.setFunction(PrimitiveNode.Function.NODE);
 		pn0_node.setHoldsOutline();
@@ -796,7 +796,7 @@ public class CMOS extends Technology
 		cn_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, cn_node, new ArcProto [] {}, "cut", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		cn_node.setFunction(PrimitiveNode.Function.NODE);
 		cn_node.setHoldsOutline();
@@ -811,7 +811,7 @@ public class CMOS extends Technology
 		ocn_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, ocn_node, new ArcProto [] {}, "ohmic-cut", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		ocn_node.setFunction(PrimitiveNode.Function.NODE);
 		ocn_node.setHoldsOutline();
@@ -826,7 +826,7 @@ public class CMOS extends Technology
 		wn_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, wn_node, new ArcProto [] {}, "well", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		wn_node.setFunction(PrimitiveNode.Function.NODE);
 		wn_node.setHoldsOutline();
@@ -841,7 +841,7 @@ public class CMOS extends Technology
 		on_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, on_node, new ArcProto [] {}, "overglass", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		on_node.setFunction(PrimitiveNode.Function.NODE);
 		on_node.setHoldsOutline();

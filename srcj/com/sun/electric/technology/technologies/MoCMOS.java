@@ -2342,7 +2342,7 @@ public class MoCMOS extends Technology
 		metal1Node_node.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, metal1Node_node, new ArcProto[] {metalArcs[0]}, "metal-1", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		metal1Node_node.setFunction(PrimitiveNode.Function.NODE);
 		metal1Node_node.setHoldsOutline();
@@ -2357,7 +2357,7 @@ public class MoCMOS extends Technology
 		metal2Node_node.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, metal2Node_node, new ArcProto[] {metalArcs[1]}, "metal-2", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		metal2Node_node.setFunction(PrimitiveNode.Function.NODE);
 		metal2Node_node.setHoldsOutline();
@@ -2372,7 +2372,7 @@ public class MoCMOS extends Technology
 		metal3Node_node.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, metal3Node_node, new ArcProto[] {metalArcs[2]}, "metal-3", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		metal3Node_node.setFunction(PrimitiveNode.Function.NODE);
 		metal3Node_node.setHoldsOutline();
@@ -2387,7 +2387,7 @@ public class MoCMOS extends Technology
 		metal4Node_node.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, metal4Node_node, new ArcProto[] {metalArcs[3]}, "metal-4", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		metal4Node_node.setFunction(PrimitiveNode.Function.NODE);
 		metal4Node_node.setHoldsOutline();
@@ -2402,7 +2402,7 @@ public class MoCMOS extends Technology
 		metal5Node_node.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, metal5Node_node, new ArcProto[] {metalArcs[4]}, "metal-5", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		metal5Node_node.setFunction(PrimitiveNode.Function.NODE);
 		metal5Node_node.setHoldsOutline();
@@ -2418,7 +2418,7 @@ public class MoCMOS extends Technology
 		metal6Node_node.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, metal6Node_node, new ArcProto[] {metalArcs[5]}, "metal-6", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		metal6Node_node.setFunction(PrimitiveNode.Function.NODE);
 		metal6Node_node.setHoldsOutline();
@@ -2434,7 +2434,7 @@ public class MoCMOS extends Technology
 		poly1Node_node.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, poly1Node_node, new ArcProto[] {poly1_arc}, "polysilicon-1", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		poly1Node_node.setFunction(PrimitiveNode.Function.NODE);
 		poly1Node_node.setHoldsOutline();
@@ -2449,7 +2449,7 @@ public class MoCMOS extends Technology
 		poly2Node_node.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, poly2Node_node, new ArcProto[] {poly2_arc}, "polysilicon-2", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		poly2Node_node.setFunction(PrimitiveNode.Function.NODE);
 		poly2Node_node.setHoldsOutline();
@@ -2465,7 +2465,7 @@ public class MoCMOS extends Technology
 		pActiveNode_node.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, pActiveNode_node, new ArcProto[] {active_arc, activeArcs[P_TYPE], activeArcs[N_TYPE]}, "active", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		pActiveNode_node.setFunction(PrimitiveNode.Function.NODE);
 		pActiveNode_node.setHoldsOutline();
@@ -2480,7 +2480,7 @@ public class MoCMOS extends Technology
 		nActiveNode_node.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, nActiveNode_node, new ArcProto[] {active_arc, activeArcs[P_TYPE], activeArcs[N_TYPE]}, "active", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		nActiveNode_node.setFunction(PrimitiveNode.Function.NODE);
 		nActiveNode_node.setHoldsOutline();
@@ -2632,7 +2632,7 @@ public class MoCMOS extends Technology
 		pWellNode_node.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, pWellNode_node, new ArcProto[] {activeArcs[P_TYPE]}, "well", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(3), EdgeV.fromBottom(3), EdgeH.fromRight(3), EdgeV.fromTop(3))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		pWellNode_node.setFunction(PrimitiveNode.Function.NODE);
 		pWellNode_node.setHoldsOutline();
@@ -2647,7 +2647,7 @@ public class MoCMOS extends Technology
 		nWellNode_node.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, nWellNode_node, new ArcProto[] {activeArcs[P_TYPE]}, "well", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(3), EdgeV.fromBottom(3), EdgeH.fromRight(3), EdgeV.fromTop(3))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		nWellNode_node.setFunction(PrimitiveNode.Function.NODE);
 		nWellNode_node.setHoldsOutline();
@@ -2722,7 +2722,7 @@ public class MoCMOS extends Technology
 		polyTransistorNode_node.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, polyTransistorNode_node, new ArcProto[] {poly1_arc}, "trans-poly-1", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		polyTransistorNode_node.setFunction(PrimitiveNode.Function.NODE);
 		polyTransistorNode_node.setHoldsOutline();

@@ -115,6 +115,6 @@ public class HeadConnection extends Connection
 	 */
 	void setEndShrink(byte endShrink)
 	{
-		arc.tailShrink = endShrink;
+		arc.headShrink = endShrink;
 	}
 }

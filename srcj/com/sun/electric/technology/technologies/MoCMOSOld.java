@@ -1140,7 +1140,7 @@ public class MoCMOSOld extends Technology
 		mn_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, mn_node, new ArcProto [] {Metal_1_arc}, "metal-1", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		mn_node.setFunction(PrimitiveNode.Function.NODE);
 		mn_node.setHoldsOutline();
@@ -1155,7 +1155,7 @@ public class MoCMOSOld extends Technology
 		mn0_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, mn0_node, new ArcProto [] {Metal_2_arc}, "metal-2", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		mn0_node.setFunction(PrimitiveNode.Function.NODE);
 		mn0_node.setHoldsOutline();
@@ -1170,7 +1170,7 @@ public class MoCMOSOld extends Technology
 		pn_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, pn_node, new ArcProto [] {Polysilicon_arc}, "polysilicon", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		pn_node.setFunction(PrimitiveNode.Function.NODE);
 		pn_node.setHoldsOutline();
@@ -1185,7 +1185,7 @@ public class MoCMOSOld extends Technology
 		an_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, an_node, new ArcProto [] {Active_arc, S_Active_arc, D_Active_arc}, "active", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		an_node.setFunction(PrimitiveNode.Function.NODE);
 		an_node.setHoldsOutline();
@@ -1200,7 +1200,7 @@ public class MoCMOSOld extends Technology
 		dan_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, dan_node, new ArcProto [] {Active_arc, S_Active_arc, D_Active_arc}, "active", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		dan_node.setFunction(PrimitiveNode.Function.NODE);
 		dan_node.setHoldsOutline();
@@ -1290,7 +1290,7 @@ public class MoCMOSOld extends Technology
 		pwn_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, pwn_node, new ArcProto [] {S_Active_arc}, "well", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(3), EdgeV.fromBottom(3), EdgeH.fromRight(3), EdgeV.fromTop(3))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		pwn_node.setFunction(PrimitiveNode.Function.NODE);
 		pwn_node.setHoldsOutline();

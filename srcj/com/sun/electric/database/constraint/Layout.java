@@ -529,12 +529,12 @@ public class Layout extends Constraints
 			}
 
 			// find out which end of the arcinst is where, ignore internal arcs
-			Connection thisEnd = ai.getHead();   int thisEndIndex = 0;
-			Connection thatEnd = ai.getTail();   int thatEndIndex = 1;
+			Connection thisEnd = ai.getHead();   int thisEndIndex = ArcInst.HEADEND;
+			Connection thatEnd = ai.getTail();   int thatEndIndex = ArcInst.TAILEND;
 			if (thatEnd.getPortInst().getNodeInst() == ni)
 			{
-				thisEnd = ai.getTail();   thisEndIndex = 1;
-				thatEnd = ai.getHead();   thatEndIndex = 0;
+				thisEnd = ai.getTail();   thisEndIndex = ArcInst.TAILEND;
+				thatEnd = ai.getHead();   thatEndIndex = ArcInst.HEADEND;
 			}
 
 			NodeInst ono = thatEnd.getPortInst().getNodeInst();
@@ -630,7 +630,7 @@ public class Layout extends Constraints
 
 			// move the arcinst
 			if (DEBUG) System.out.println("    Altering arc, end moves to "+newPts[0]+" tail moves to "+newPts[1]);
-			doMoveArcInst(ai, newPts[0], newPts[1], 0);
+			doMoveArcInst(ai, newPts[ArcInst.HEADEND], newPts[ArcInst.TAILEND], 0);
 		}
 
 		// re-scan rigid arcs and recursively modify arcs on other nodes
@@ -643,8 +643,8 @@ public class Layout extends Constraints
 			if (!ai.isRigidModified()) continue;
 
 			// get the other nodeinst
-			Connection thisEnd = ai.getHead();   int thisEndIndex = 0;
-			Connection thatEnd = ai.getTail();   int thatEndIndex = 1;
+			Connection thisEnd = ai.getHead();
+			Connection thatEnd = ai.getTail();
 			NodeInst ono;
 			if (ai.getTail().getPortInst().getNodeInst() == ni) ono = ai.getHead().getPortInst().getNodeInst(); else
 				ono = ai.getTail().getPortInst().getNodeInst();
@@ -833,7 +833,7 @@ public class Layout extends Constraints
 						}
 						if (DEBUG) System.out.println("  Moving vertical arc so head=("+newPts[0].getX()+","+newPts[0].getY()+
 							") and tail=("+newPts[1].getX()+","+newPts[1].getY()+")");
-						doMoveArcInst(ai, newPts[0], newPts[1], 1);
+						doMoveArcInst(ai, newPts[ArcInst.HEADEND], newPts[ArcInst.TAILEND], 1);
 						if (!DBMath.doublesEqual(dx, odx))
 							if (modNodeArcs(ono, 0, 0, 0, false, false)) examineCell = true;
 						continue;
@@ -863,7 +863,7 @@ public class Layout extends Constraints
 					}
 					if (DEBUG) System.out.println("  Moving horizontal arc so head=("+newPts[0].getX()+","+newPts[0].getY()+
 						") and tail=("+newPts[1].getX()+","+newPts[1].getY()+")");
-					doMoveArcInst(ai, newPts[0], newPts[1], 1);
+					doMoveArcInst(ai, newPts[ArcInst.HEADEND], newPts[ArcInst.TAILEND], 1);
 					if (!DBMath.doublesEqual(dy, ody))
 						if (modNodeArcs(ono, 0, 0, 0, false, false)) examineCell = true;
 					continue;
@@ -895,7 +895,7 @@ public class Layout extends Constraints
 			// other node has changed or arc is funny, just use its position
 			if (DEBUG) System.out.println("  Moving nonmanhattan arc so head=("+newPts[0].getX()+","+newPts[0].getY()+
 				") and tail=("+newPts[1].getX()+","+newPts[1].getY()+")");
-			doMoveArcInst(ai, newPts[0], newPts[1], 1);
+			doMoveArcInst(ai, newPts[ArcInst.HEADEND], newPts[ArcInst.TAILEND], 1);
 		}
 
 		return examineCell;

@@ -4,12 +4,20 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02h: *********************************
 
+BUG: (02/08/05, SMR) Moving nodes may cause arcs to become disconnected (Bug #195).
+FIX: In Layout.java, make consistent use of head/tail arc ends.
+
+IMP: (02/08/05, SMR) Made all pure-layer nodes have ports that run to their edges
+     Technologies affected: MoCMOS, BiCMOS, Bipolar, CMOS, MoCMOSOld, MoCMOSSub, nMOS.
+
+IMP/MAN: (02/07/05, SMR) Added "Show Pure Layer Nodes" command to "Edit / Cleanup" menu.
+
 ************************* Version 8.02g: *********************************
 
 IMP: Sweep algorithm by default in ERC, geometry on network and coverage implants and list layer coverage.
 
 BUG: (02/07/05, SMR) GDS output crashes (Bug #193).
-FIX: In GDS.java, switched away from new outputDouble() implementation.
+FIX: In GDS.java, fixed new outputDouble() implementation.
 
 IMP: (02/07/05, DN) Changed implementation of ArcInst and Connection: Connection's fields moved
      to Connection, immutable class EPoint is used for Locations.

@@ -46,7 +46,7 @@ public class NetworkTab extends PreferencePanel
 	private boolean netUnifyPwrGndInitial, netUnifyLikeNamedNetsInitial, netIgnoreResistorsInitial;
 	private String netUnificationPrefixInitial;
 	private boolean netBusBaseZeroInitial, netBusAscendingInitial;
-	private boolean netExtractExactCutsInitial;
+	private boolean netExtractExactCutsInitial, netExtractGridAlignInitial;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -77,6 +77,9 @@ public class NetworkTab extends PreferencePanel
 
 		netExtractExactCutsInitial = Extract.isExactCutExtraction();
 		extractExactContacts.setSelected(netExtractExactCutsInitial);
+
+		netExtractGridAlignInitial = Extract.isGridAlignExtraction();
+		extractGridAlign.setSelected(netExtractGridAlignInitial);
 	}
 
 	public void term()
@@ -101,6 +104,9 @@ public class NetworkTab extends PreferencePanel
 
 		nowBoolean = extractExactContacts.isSelected();
 		if (netExtractExactCutsInitial != nowBoolean) Extract.setExactCutExtraction(nowBoolean);
+
+		nowBoolean = extractGridAlign.isSelected();
+		if (netExtractGridAlignInitial != nowBoolean) Extract.setGridAlignExtraction(nowBoolean);
 	}
 
 	/** This method is called from within the constructor to
@@ -128,6 +134,7 @@ public class NetworkTab extends PreferencePanel
         netDescending = new javax.swing.JRadioButton();
         jPanel3 = new javax.swing.JPanel();
         extractExactContacts = new javax.swing.JCheckBox();
+        extractGridAlign = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -227,8 +234,8 @@ public class NetworkTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel2.add(jLabel28, gridBagConstraints);
 
-        netDefaultOrder.add(netAscending);
         netAscending.setText("Ascending (0:N)");
+        netDefaultOrder.add(netAscending);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 11;
@@ -237,8 +244,8 @@ public class NetworkTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
         jPanel2.add(netAscending, gridBagConstraints);
 
-        netDefaultOrder.add(netDescending);
         netDescending.setText("Descending (N:0)");
+        netDefaultOrder.add(netDescending);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 12;
@@ -259,8 +266,19 @@ public class NetworkTab extends PreferencePanel
         jPanel3.setBorder(new javax.swing.border.TitledBorder("Node Extraction"));
         extractExactContacts.setText("Force exact cut placement");
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         jPanel3.add(extractExactContacts, gridBagConstraints);
+
+        extractGridAlign.setText("Grid-align geometry before extraction");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel3.add(extractGridAlign, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -282,6 +300,7 @@ public class NetworkTab extends PreferencePanel
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox extractExactContacts;
+    private javax.swing.JCheckBox extractGridAlign;
     private javax.swing.JLabel jLabel27;
     private javax.swing.JLabel jLabel28;
     private javax.swing.JLabel jLabel3;

@@ -324,6 +324,8 @@ public class EditMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.cleanupPinsCommand(true); }});
 		cleanupSubMenu.addMenuItem("Show Nonmanhattan", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.showNonmanhattanCommand(); }});
+		cleanupSubMenu.addMenuItem("Show Pure Layer Nodes", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.showPureLayerCommand(); }});
 		cleanupSubMenu.addMenuItem("Shorten Selected Arcs", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.shortenArcsCommand(); }});
 

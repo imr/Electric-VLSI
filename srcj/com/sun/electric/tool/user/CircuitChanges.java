@@ -3196,6 +3196,36 @@ public class CircuitChanges
 	}
 
 	/**
+	 * Method to highlight all pure layer nodes in the current cell.
+	 */
+	public static void showPureLayerCommand()
+	{
+		Cell curCell = WindowFrame.needCurCell();
+		if (curCell == null) return;
+
+        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+        if (wf == null) return;
+        Highlighter highlighter = wf.getContent().getHighlighter();
+        if (highlighter == null) return;
+
+		// show the pure layer nodes in the current cell
+		int i = 0;
+		for(Iterator nIt = curCell.getNodes(); nIt.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)nIt.next();
+			if (ni.getFunction() != PrimitiveNode.Function.NODE) continue;
+			if (i == 0) highlighter.clear();
+			highlighter.addElectricObject(ni, curCell);
+			i++;
+		}
+		if (i == 0) System.out.println("No pure layer nodes in this cell"); else
+		{
+			highlighter.finished();
+			System.out.println(i + " pure layer nodes in this cell");
+		}
+	}
+
+	/**
 	 * Method to shorten all selected arcs.
 	 * Since arcs may connect anywhere inside of the ports on nodes, a port with nonzero area will allow an arc
 	 * to move freely.

@@ -1389,7 +1389,7 @@ public class BiCMOS extends Technology
 		an_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, an_node, new ArcProto [] {Active_arc, Pdiff_arc, Ndiff_arc}, "active", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		an_node.setFunction(PrimitiveNode.Function.NODE);
 		an_node.setHoldsOutline();
@@ -1494,7 +1494,7 @@ public class BiCMOS extends Technology
 		mn_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, mn_node, new ArcProto [] {Metal_1_arc}, "metal-1", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		mn_node.setFunction(PrimitiveNode.Function.NODE);
 		mn_node.setHoldsOutline();
@@ -1509,7 +1509,7 @@ public class BiCMOS extends Technology
 		mn0_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, mn0_node, new ArcProto [] {Metal_2_arc}, "metal-2", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		mn0_node.setFunction(PrimitiveNode.Function.NODE);
 		mn0_node.setHoldsOutline();
@@ -1524,7 +1524,7 @@ public class BiCMOS extends Technology
 		pn0_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, pn0_node, new ArcProto [] {Polysilicon_arc}, "polysilicon", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		pn0_node.setFunction(PrimitiveNode.Function.NODE);
 		pn0_node.setHoldsOutline();
@@ -1539,7 +1539,7 @@ public class BiCMOS extends Technology
 		pn1_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, pn1_node, new ArcProto [] {Polysilicon_2_arc}, "P2", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		pn1_node.setFunction(PrimitiveNode.Function.NODE);
 		pn1_node.setHoldsOutline();
@@ -1555,7 +1555,7 @@ public class BiCMOS extends Technology
 		nn_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, nn_node, new ArcProto [] {Active_arc, Pdiff_arc, Ndiff_arc}, "active", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(3), EdgeV.fromBottom(3), EdgeH.fromRight(3), EdgeV.fromTop(3))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		nn_node.setFunction(PrimitiveNode.Function.NODE);
 		nn_node.setHoldsOutline();
@@ -1585,7 +1585,7 @@ public class BiCMOS extends Technology
 		nwn_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, nwn_node, new ArcProto [] {Pdiff_arc}, "well", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(3), EdgeV.fromBottom(3), EdgeH.fromRight(3), EdgeV.fromTop(3))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		nwn_node.setFunction(PrimitiveNode.Function.NODE);
 		nwn_node.setHoldsOutline();
@@ -1615,7 +1615,7 @@ public class BiCMOS extends Technology
 		pban_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, pban_node, new ArcProto [] {}, "P_Base", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		pban_node.setFunction(PrimitiveNode.Function.NODE);
 		pban_node.setHoldsOutline();
@@ -1630,7 +1630,7 @@ public class BiCMOS extends Technology
 		bn_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, bn_node, new ArcProto [] {}, "BCCD", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		bn_node.setFunction(PrimitiveNode.Function.NODE);
 		bn_node.setHoldsOutline();
@@ -1646,7 +1646,7 @@ public class BiCMOS extends Technology
 		pn2_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, pn2_node, new ArcProto [] {}, "Pdiff", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(3), EdgeV.fromBottom(3), EdgeH.fromRight(3), EdgeV.fromTop(3))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		pn2_node.setFunction(PrimitiveNode.Function.NODE);
 		pn2_node.setHoldsOutline();
@@ -1661,7 +1661,7 @@ public class BiCMOS extends Technology
 		ow_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, ow_node, new ArcProto [] {}, "Ohmic_Well", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		ow_node.setFunction(PrimitiveNode.Function.NODE);
 		ow_node.setHoldsOutline();
@@ -1676,7 +1676,7 @@ public class BiCMOS extends Technology
 		os_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, os_node, new ArcProto [] {}, "Ohmic_Substrate", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		os_node.setFunction(PrimitiveNode.Function.NODE);
 		os_node.setHoldsOutline();

@@ -41,6 +41,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.Highlighter;
 
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 
 public class RouteElementArc extends RouteElement {
 
@@ -267,9 +268,13 @@ public class RouteElementArc extends RouteElement {
             headPoly = headPi.getPoly();
             if (!headPoly.isInside(headPoint)) {
                 // can't connect
-                System.out.println("Arc head point ("+headPoint.getX()+","+headPoint.getY()+") not inside port "+headPi+": "+headPi.getBounds());
-               headPoly = headPi.getPoly();
-               return null;
+            	Rectangle2D headBounds = headPi.getBounds();
+                System.out.println("Arc head (" + headPoint.getX() + "," + headPoint.getY() + ") not inside port " + headPi + " which is "+
+               		headBounds.getMinX() + "<=X<=" + headBounds.getMaxX() + " and " + headBounds.getMinY() + "<=Y<=" + headBounds.getMaxY());
+                System.out.println("  Arc ran from node " + headPi.getNodeInst().describe() + ", port " + headPi.getPortProto().getName() +
+                	" to node " + tailPi.getNodeInst().describe() + ", port " + tailPi.getPortProto().getName());
+                headPoly = headPi.getPoly();
+                return null;
             }
 			Poly tailPoly = tailPi.getPoly();
 			if (!tailPoly.isInside(tailPoint))
@@ -290,7 +295,11 @@ public class RouteElementArc extends RouteElement {
             tailPoly = tailPi.getPoly();
             if (!tailPoly.isInside(tailPoint)) {
                 // can't connect
-                System.out.println("Arc tail point ("+tailPoint.getX()+","+tailPoint.getY()+") not inside port "+tailPi+": "+tailPi.getBounds());
+            	Rectangle2D tailBounds = tailPi.getBounds();
+                System.out.println("Arc tail (" + tailPoint.getX() + "," + tailPoint.getY() + ") not inside port " + headPi + " which is "+
+               		tailBounds.getMinX() + "<=X<=" + tailBounds.getMaxX() + " and " + tailBounds.getMinY() + "<=Y<=" + tailBounds.getMaxY());
+                System.out.println("  Arc ran from node " + headPi.getNodeInst().describe() + ", port " + headPi.getPortProto().getName() +
+                   	" to node " + tailPi.getNodeInst().describe() + ", port " + tailPi.getPortProto().getName());
                 return null;
             }
 

@@ -97,4 +97,19 @@ public class Extract extends Listener
 	 * @param e true if the node extractor should preserve contact/via cut placement precisely.
 	 */
 	public static void setExactCutExtraction(boolean e) { cacheExactCutExtraction.setBoolean(e); }
+
+	private static Pref cacheExactGridAlign = Pref.makeBooleanPref("GridAlignExtraction", Extract.tool.prefs, false);
+	/**
+	 * Method to tell whether the node extractor should grid-align geometry before extraction.
+	 * This is useful if the input geometry has many small alignment errors.
+	 * The default is "false".
+	 * @return true if the node extractor should grid-align geometry before extraction.
+	 */
+	public static boolean isGridAlignExtraction() { return cacheExactGridAlign.getBoolean(); }
+	/**
+	 * Method to set whether the node extractor should grid-align geometry before extraction.
+	 * This is useful if the input geometry has many small alignment errors.
+	 * @param a true if the node extractor should grid-align geometry before extraction.
+	 */
+	public static void setGridAlignExtraction(boolean a) { cacheExactGridAlign.setBoolean(a); }
 }

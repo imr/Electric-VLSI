@@ -73,9 +73,6 @@ import java.util.List;
  * Still to do:
  *    Nonmanhattan contacts
  *    Explicit connection where two cells overlap?
- *    In new CIF input test,
- *        Lower left and right contact areas not converted
- *        Metal-1-2 contacts along top overlap
  */
 public class Connectivity
 {
@@ -285,8 +282,15 @@ public class Connectivity
 				// finally add the geometry to the merge
 				poly.transform(trans);
 				Point2D [] points = poly.getPoints();
-				for(int i=0; i<points.length; i++)
-					points[i].setLocation(DBMath.round(points[i].getX()), DBMath.round(points[i].getY()));
+				if (Extract.isGridAlignExtraction())
+				{
+					for(int i=0; i<points.length; i++)
+						EditWindow.gridAlign(points[i]);
+				} else
+				{
+					for(int i=0; i<points.length; i++)
+						points[i].setLocation(DBMath.round(points[i].getX()), DBMath.round(points[i].getY()));
+				}
 				merge.addPolygon(layer, poly);
 			}
 		}
@@ -720,10 +724,7 @@ public class Connectivity
 	 */
 	private void extractVias(PolyMerge merge, PolyMerge originalMerge, Cell newCell)
 	{
-		// make map of PrimitiveNodes and their geometry
-		HashMap possibleAreas = new HashMap();
-
-		// look at all via layers and see if contacts can be extracted
+		// look at all via/cut layers in the technology
 		List layers = new ArrayList();
 		for(Iterator lIt = merge.getKeyIterator(); lIt.hasNext(); )
 			layers.add(lIt.next());
@@ -736,23 +737,23 @@ public class Connectivity
 			// compute the possible via nodes that this layer could become
 			List possibleVias = findPossibleVias(layer);
 
-			// look at all of the pieces of this layer
+			// get all of the geometry on the cut/via layer
 			List polyList = merge.getMergedPoints(layer, true);
-			while (polyList.size() > 0)
+
+			// look at all possible contact/via nodes that this can become
+			for(Iterator it = possibleVias.iterator(); it.hasNext(); )
 			{
-				PolyBase poly = (PolyBase)polyList.get(0);
-				double centerX = poly.getCenterX();
-				double centerY = poly.getCenterY();
-System.out.println("\nConsider contact layer "+layer.getName()+" at ("+centerX+","+centerY+")");
+				PossibleVia pv = (PossibleVia)it.next();
 
-				// now look through the list to see if anything matches
-				for(Iterator it = possibleVias.iterator(); it.hasNext(); )
+				// exact contact extraction does not grow to include multicut nodes
+				if (Extract.isExactCutExtraction())
 				{
-					PossibleVia pv = (PossibleVia)it.next();
-					PrimitiveNode pNp = pv.pNp;
-
-					if (Extract.isExactCutExtraction())
+					while (polyList.size() > 0)
 					{
+						PolyBase poly = (PolyBase)polyList.get(0);
+						double centerX = poly.getCenterX();
+						double centerY = poly.getCenterY();
+
 						// want exact cut locations, so create a single-cut contact
 						boolean gotMinimum = true;
 						double desiredWidth = pv.minWidth;
@@ -771,99 +772,119 @@ System.out.println("\nConsider contact layer "+layer.getName()+" at ("+centerX+"
 						}
 						if (gotMinimum)
 						{
-							checkCutSize(poly, pNp, layer);
-							realizeNode(pNp, centerX, centerY, desiredWidth, desiredHeight, 0, null, merge, newCell);
+							checkCutSize(poly, pv.pNp, layer);
+							realizeNode(pv.pNp, centerX, centerY, desiredWidth, desiredHeight, 0, null, merge, newCell);
 						}
-						continue;
 					}
-
-					List contactArea = (List)possibleAreas.get(pNp);
-					if (contactArea == null)
-					{
-						// merge all other layers and see how big the contact can be
-						boolean subtractPoly = false;
-						PolyMerge areaToUse = originalMerge;
-						for(int i=0; i<pv.layers.length; i++)
-						{
-							if (pv.layers[i] == activeLayer) subtractPoly = true;
-							double shrinkage = (pv.largestShrink-pv.shrink[i]) / 2;
-							if (i == 0) areaToUse.insetLayer(pv.layers[i], tempLayer1, shrinkage); else
-							{
-								areaToUse.insetLayer(pv.layers[i], tempLayer2, shrinkage);
-								areaToUse.intersectLayers(tempLayer1, tempLayer2, tempLayer1);
-							}
-						}
-						if (subtractPoly)
-						{
-							// subtract areas of poly because the cuts cannot follow across a transistor
-							if (!areaToUse.isEmpty(polyLayer))
-								areaToUse.subtractLayers(tempLayer1, polyLayer, tempLayer1);
-						}
-						contactArea = areaToUse.getMergedPoints(tempLayer1, true);
-						areaToUse.deleteLayer(tempLayer1);
-						if (contactArea == null) contactArea = new ArrayList();
-						possibleAreas.put(pNp, contactArea);
-					}
-					if (contactArea == null || contactArea.size() == 0) continue;
-
-					// not extracting exact cut placement: find the largest possible contact/via in this area
-					Rectangle2D largest = findLargestRectangle(contactArea, centerX, centerY, pv.minWidth-pv.largestShrink, pv.minHeight-pv.largestShrink);
-System.out.println("  Could be "+pNp.getName()+" in rectangle "+largest);
-					if (largest == null) continue;
-					centerX = largest.getCenterX();
-					centerY = largest.getCenterY();
-					double desiredWidth = largest.getWidth() + pv.largestShrink;
-					double desiredHeight = largest.getHeight() + pv.largestShrink;
-
-					// check all other layers
-					for(;;)
-					{
-						boolean gotMinimum = true;
-						for(int i=0; i<pv.layers.length; i++)
-						{
-							Layer nLayer = pv.layers[i];
-							double minLayWid = desiredWidth - pv.shrink[i];
-							double minLayHei = desiredHeight - pv.shrink[i];
-							Rectangle2D rect = new Rectangle2D.Double(centerX - minLayWid/2, centerY - minLayHei/2, minLayWid, minLayHei);
-							if (!originalMerge.contains(nLayer, rect))
-							{
-								gotMinimum = false;
-								break;
-							}
-						}
-						if (gotMinimum)
-						{
-							checkCutSize(poly, pNp, layer);
-							realizeNode(pNp, centerX, centerY, desiredWidth, desiredHeight, 0, null, merge, newCell);
-
-							// must remove the contact geometry explicitly because the new contact may not have cuts in the exact location
-							merge.subPolygon(layer, poly);
-
-							// remove other cuts in this area
-							for(int o=1; o<polyList.size(); o++)
-							{
-								PolyBase oPoly = (PolyBase)polyList.get(o);
-								double x = oPoly.getCenterX();
-								double y = oPoly.getCenterY();
-								if (largest.contains(x, y))
-								{
-System.out.println("    and also includes cut at ("+x+","+y+")");
-									checkCutSize(oPoly, pNp, layer);
-									polyList.remove(oPoly);
-									merge.subPolygon(layer, oPoly);
-									o--;
-								}
-							}
-							break;
-						}
-						desiredHeight--;
-						desiredWidth--;
-						if (desiredHeight < pv.minHeight || desiredWidth < pv.minWidth) break;
-					}
+					continue;
 				}
-				polyList.remove(poly);
+
+				// inexact contact extraction: merge all other layers and see how big the contact can be
+				extractInexactVias(layer, pv, polyList, merge, originalMerge, newCell);
 			}
 		}
+	}
+
+	private void extractInexactVias(Layer layer, PossibleVia pv, List polyList, PolyMerge merge, PolyMerge originalMerge, Cell newCell)
+	{
+		// build a polygon that covers all of the layers in this via
+		boolean subtractPoly = false;
+		for(int i=0; i<pv.layers.length; i++)
+		{
+			if (pv.layers[i] == activeLayer) subtractPoly = true;
+			double shrinkage = (pv.largestShrink-pv.shrink[i]) / 2;
+			if (i == 0) originalMerge.insetLayer(pv.layers[i], tempLayer1, shrinkage); else
+			{
+				originalMerge.insetLayer(pv.layers[i], tempLayer2, shrinkage);
+				originalMerge.intersectLayers(tempLayer1, tempLayer2, tempLayer1);
+			}
+		}
+		if (subtractPoly)
+		{
+			// subtract areas of polysilicon because the cuts cannot follow across a transistor
+			if (!originalMerge.isEmpty(polyLayer))
+				originalMerge.subtractLayers(tempLayer1, polyLayer, tempLayer1);
+		}
+	
+		// look at all of the cut/via pieces
+		for(int ind=0; ind < polyList.size(); ind++)
+		{
+			PolyBase poly = (PolyBase)polyList.get(ind);
+			double centerX = poly.getCenterX();
+			double centerY = poly.getCenterY();
+//System.out.println("Consider contact layer "+layer.getName()+" at ("+centerX+","+centerY+")");
+
+			// find the largest possible contact/via in this area
+			List contactArea = originalMerge.getMergedPoints(tempLayer1, true);
+			if (contactArea == null) continue;
+//System.out.println("  Looking for possibility of node "+pv.pNp.getName());
+			Rectangle2D largest = findLargestRectangle(contactArea, centerX, centerY, pv.minWidth-pv.largestShrink, pv.minHeight-pv.largestShrink);
+			if (largest == null) continue;
+//System.out.println("  Found "+pv.pNp.getName()+" in rectangle "+largest);
+			centerX = largest.getCenterX();
+			centerY = largest.getCenterY();
+			double desiredWidth = largest.getWidth() + pv.largestShrink;
+			double desiredHeight = largest.getHeight() + pv.largestShrink;
+
+			// check all other layers
+			for(;;)
+			{
+				boolean gotMinimum = true;
+				for(int i=0; i<pv.layers.length; i++)
+				{
+					Layer nLayer = pv.layers[i];
+					double minLayWid = desiredWidth - pv.shrink[i];
+					double minLayHei = desiredHeight - pv.shrink[i];
+					Rectangle2D rect = new Rectangle2D.Double(centerX - minLayWid/2, centerY - minLayHei/2, minLayWid, minLayHei);
+					if (!originalMerge.contains(nLayer, rect))
+					{
+						gotMinimum = false;
+						break;
+					}
+				}
+				if (gotMinimum)
+				{
+					checkCutSize(poly, pv.pNp, layer);
+					realizeNode(pv.pNp, centerX, centerY, desiredWidth, desiredHeight, 0, null, merge, newCell);
+	
+					// must remove the contact geometry explicitly because the new contact may not have cuts in the exact location
+					merge.subPolygon(layer, poly);
+					originalMerge.deleteLayer(tempLayer2);
+					double wid = desiredWidth - pv.largestShrink;
+					double hei = desiredHeight - pv.largestShrink;
+//System.out.println("Creating " + pv.pNp.getName()+" that is "+wid+"x"+hei+" at ("+centerX+","+centerY+")");
+					Rectangle2D rect = new Rectangle2D.Double(centerX-wid/2, centerY-hei/2, wid, hei);
+					originalMerge.addPolygon(tempLayer2, new Poly(rect));
+					originalMerge.subtractLayers(tempLayer1, tempLayer2, tempLayer1);
+	
+					// remove other cuts in this area
+					for(int o=0; o<polyList.size(); o++)
+					{
+						if (o == ind) continue;
+						PolyBase oPoly = (PolyBase)polyList.get(o);
+						double x = oPoly.getCenterX();
+						double y = oPoly.getCenterY();
+						if (largest.contains(x, y))
+						{
+//System.out.println("    and also includes cut at ("+x+","+y+")");
+							checkCutSize(oPoly, pv.pNp, layer);
+							polyList.remove(oPoly);
+							merge.subPolygon(layer, oPoly);
+							if (o < ind) ind--;
+							o--;
+						}
+					}
+					polyList.remove(poly);
+					ind--;
+					break;
+				}
+				desiredHeight--;
+				desiredWidth--;
+				if (desiredHeight < pv.minHeight || desiredWidth < pv.minWidth) break;
+			}
+		}
+		originalMerge.deleteLayer(tempLayer1);
+		originalMerge.deleteLayer(tempLayer2);
 	}
 
 	/**
@@ -1002,6 +1023,7 @@ System.out.println("    and also includes cut at ("+x+","+y+")");
 					}
 				}
 			}
+//System.out.println("Edges are LEFT="+closestLeft+" RIGHT="+closestRight+" TOP="+closestTop+" BOTTOM="+closestBottom);
 			if (closestTop == Double.MAX_VALUE || closestBottom == Double.MAX_VALUE ||
 				closestLeft == Double.MAX_VALUE || closestRight == Double.MAX_VALUE) return null;
 			Rectangle2D largest = new Rectangle2D.Double(centerX-closestLeft, centerY-closestBottom,
@@ -1742,6 +1764,7 @@ System.out.println("    and also includes cut at ("+x+","+y+")");
 
 					// make the polygon to describe the centerline
 					double length = cl.start.distance(cl.end);
+					if (length < DBMath.getEpsilon()) continue;
 					Poly clPoly = Poly.makeEndPointPoly(length, cl.width, cl.angle,
 						cl.start, 0, cl.end, 0);
 
@@ -1786,6 +1809,12 @@ System.out.println("    and also includes cut at ("+x+","+y+")");
 				}
 			}
 		}
+//System.out.println("Centerlines are:");
+//for(int i=0; i<numCenterlines; i++)
+//{
+//	Centerline cl = lines[i];
+//	System.out.println("    "+cl.width+" from ("+cl.start.getX()+","+cl.start.getY()+") to ("+cl.end.getX()+","+cl.end.getY()+")");
+//}
 
 		// now extend centerlines so they meet
 		for(int i=0; i<numCenterlines; i++)
@@ -1802,8 +1831,8 @@ System.out.println("    and also includes cut at ("+x+","+y+")");
 					Point2D intersect = GenMath.intersect(cl.start, cl.angle, oCl.start, oCl.angle);
 					if (intersect == null) continue;
 					Point2D newStart = cl.start, newEnd = cl.end;
-					if (intersect.getX() < Math.min(newStart.getX(), newEnd.getX()) || intersect.getX() > Math.max(newStart.getX(), newEnd.getX()) ||
-						intersect.getY() < Math.min(newStart.getY(), newEnd.getY()) || intersect.getY() > Math.max(newStart.getY(), newEnd.getY()))
+//					if (intersect.getX() < Math.min(newStart.getX(), newEnd.getX()) || intersect.getX() > Math.max(newStart.getX(), newEnd.getX()) ||
+//						intersect.getY() < Math.min(newStart.getY(), newEnd.getY()) || intersect.getY() > Math.max(newStart.getY(), newEnd.getY()))
 					{
 						double extendStart = 0, extendEnd = 0;
 						if (intersect.distance(newStart) < intersect.distance(newEnd))
@@ -1828,8 +1857,8 @@ System.out.println("    and also includes cut at ("+x+","+y+")");
 
 					newStart = oCl.start;
 					newEnd = oCl.end;
-					if (intersect.getX() < Math.min(newStart.getX(), newEnd.getX()) || intersect.getX() > Math.max(newStart.getX(), newEnd.getX()) ||
-						intersect.getY() < Math.min(newStart.getY(), newEnd.getY()) || intersect.getY() > Math.max(newStart.getY(), newEnd.getY()))
+//					if (intersect.getX() < Math.min(newStart.getX(), newEnd.getX()) || intersect.getX() > Math.max(newStart.getX(), newEnd.getX()) ||
+//						intersect.getY() < Math.min(newStart.getY(), newEnd.getY()) || intersect.getY() > Math.max(newStart.getY(), newEnd.getY()))
 					{
 						double extendStart = 0, extendEnd = 0;
 						if (intersect.distance(newStart) < intersect.distance(newEnd))
@@ -2109,6 +2138,7 @@ System.out.println("    and also includes cut at ("+x+","+y+")");
 			for(Iterator pIt = polyList.iterator(); pIt.hasNext(); )
 			{
 				PolyBase poly = (PolyBase)pIt.next();
+				if (poly.getArea() < DBMath.getEpsilon()) continue;
 
 				// special case: a rectangle on a routable layer that is wide enough: make it an arc
 				if (ap != null)
@@ -2301,27 +2331,27 @@ System.out.println("    and also includes cut at ("+x+","+y+")");
 
 	}
 
-//	/**
-//	 * Debugging method to report the coordinates of all geometry on a given layer.
-//	 */
-//	public static String describeLayer(PolyMerge merge, Layer layer)
-//	{
-//		List polyList = merge.getMergedPoints(layer, true);
-//		if (polyList == null) return "DOES NOT EXIST";
-//		StringBuffer sb = new StringBuffer();
-//		for(Iterator iit=polyList.iterator(); iit.hasNext(); )
-//		{
-//			PolyBase p = (PolyBase)iit.next();
-//			Point2D [] points = p.getPoints();
-//			sb.append(" [");
-//			for(int j=0; j<points.length; j++)
-//			{
-//				Point2D pt = points[j];
-//				if (j > 0) sb.append(" ");
-//				sb.append("("+TextUtils.formatDouble(pt.getX())+","+TextUtils.formatDouble(pt.getY())+")");
-//			}
-//			sb.append("]");
-//		}
-//		return sb.toString();
-//	}
+	/**
+	 * Debugging method to report the coordinates of all geometry on a given layer.
+	 */
+	public static String describeLayer(PolyMerge merge, Layer layer)
+	{
+		List polyList = merge.getMergedPoints(layer, true);
+		if (polyList == null) return "DOES NOT EXIST";
+		StringBuffer sb = new StringBuffer();
+		for(Iterator iit=polyList.iterator(); iit.hasNext(); )
+		{
+			PolyBase p = (PolyBase)iit.next();
+			Point2D [] points = p.getPoints();
+			sb.append(" [");
+			for(int j=0; j<points.length; j++)
+			{
+				Point2D pt = points[j];
+				if (j > 0) sb.append(" ");
+				sb.append("("+TextUtils.formatDouble(pt.getX())+","+TextUtils.formatDouble(pt.getY())+")");
+			}
+			sb.append("]");
+		}
+		return sb.toString();
+	}
 }

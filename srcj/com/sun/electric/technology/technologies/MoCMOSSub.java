@@ -1729,7 +1729,7 @@ public class MoCMOSSub extends Technology
 		mn_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, mn_node, new ArcProto [] {Metal_1_arc}, "metal-1", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		mn_node.setFunction(PrimitiveNode.Function.NODE);
 		mn_node.setHoldsOutline();
@@ -1744,7 +1744,7 @@ public class MoCMOSSub extends Technology
 		mn0_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, mn0_node, new ArcProto [] {Metal_2_arc}, "metal-2", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		mn0_node.setFunction(PrimitiveNode.Function.NODE);
 		mn0_node.setHoldsOutline();
@@ -1759,7 +1759,7 @@ public class MoCMOSSub extends Technology
 		mn1_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, mn1_node, new ArcProto [] {Metal_3_arc}, "metal-3", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		mn1_node.setFunction(PrimitiveNode.Function.NODE);
 		mn1_node.setHoldsOutline();
@@ -1774,7 +1774,7 @@ public class MoCMOSSub extends Technology
 		mn2_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, mn2_node, new ArcProto [] {Metal_4_arc}, "metal-4", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		mn2_node.setFunction(PrimitiveNode.Function.NODE);
 		mn2_node.setHoldsOutline();
@@ -1789,7 +1789,7 @@ public class MoCMOSSub extends Technology
 		mn3_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, mn3_node, new ArcProto [] {Metal_5_arc}, "metal-5", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		mn3_node.setFunction(PrimitiveNode.Function.NODE);
 		mn3_node.setHoldsOutline();
@@ -1804,7 +1804,7 @@ public class MoCMOSSub extends Technology
 		mn4_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, mn4_node, new ArcProto [] {Metal_6_arc}, "metal-6", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		mn4_node.setFunction(PrimitiveNode.Function.NODE);
 		mn4_node.setHoldsOutline();
@@ -1819,7 +1819,7 @@ public class MoCMOSSub extends Technology
 		pn_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, pn_node, new ArcProto [] {Polysilicon_1_arc}, "polysilicon-1", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromRight(1), EdgeV.fromTop(1))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		pn_node.setFunction(PrimitiveNode.Function.NODE);
 		pn_node.setHoldsOutline();
@@ -1834,7 +1834,7 @@ public class MoCMOSSub extends Technology
 		pn0_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, pn0_node, new ArcProto [] {Polysilicon_2_arc}, "polysilicon-2", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		pn0_node.setFunction(PrimitiveNode.Function.NODE);
 		pn0_node.setHoldsOutline();
@@ -1849,7 +1849,7 @@ public class MoCMOSSub extends Technology
 		an_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, an_node, new ArcProto [] {Active_arc, P_Active_arc, N_Active_arc}, "active", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		an_node.setFunction(PrimitiveNode.Function.NODE);
 		an_node.setHoldsOutline();
@@ -1864,7 +1864,7 @@ public class MoCMOSSub extends Technology
 		nan_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, nan_node, new ArcProto [] {Active_arc, P_Active_arc, N_Active_arc}, "active", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		nan_node.setFunction(PrimitiveNode.Function.NODE);
 		nan_node.setHoldsOutline();
@@ -2014,7 +2014,7 @@ public class MoCMOSSub extends Technology
 		pwn_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, pwn_node, new ArcProto [] {P_Active_arc}, "well", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(3), EdgeV.fromBottom(3), EdgeH.fromRight(3), EdgeV.fromTop(3))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		pwn_node.setFunction(PrimitiveNode.Function.NODE);
 		pwn_node.setHoldsOutline();
@@ -2029,7 +2029,7 @@ public class MoCMOSSub extends Technology
 		nwn_node.addPrimitivePorts(new PrimitivePort[]
 			{
 				PrimitivePort.newInstance(this, nwn_node, new ArcProto [] {P_Active_arc}, "well", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.fromLeft(3), EdgeV.fromBottom(3), EdgeH.fromRight(3), EdgeV.fromTop(3))
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		nwn_node.setFunction(PrimitiveNode.Function.NODE);
 		nwn_node.setHoldsOutline();
