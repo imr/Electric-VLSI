@@ -104,7 +104,7 @@ public class LENetlister1 extends LENetlister {
     }
     
     // Entry point: This netlists the cell
-    public boolean netlist(Cell cell, VarContext context) {
+    public boolean netlist(Cell cell, VarContext context, boolean useCaching) {
 
         //ArrayList connectedPorts = new ArrayList();
         //connectedPorts.add(Schematics.tech.resistorNode.getPortsList());
@@ -267,15 +267,17 @@ public class LENetlister1 extends LENetlister {
             return false;
         }
 
+        LECellInfo leinfo = (LECellInfo)info;
+        leinfo.leInit(constants);
+
         // check if conflicting settings
         if (topLevelCell != info.getCell()) {
-            if (isSettingsConflict(constants, topLevelCell, info.getCell())) {
+            if (isSettingsConflict(leinfo.getSettings(), topLevelCell, info.getContext(), info.getCell())) {
                 aborted = true;
                 return false;
             }
         }
 
-        ((LECellInfo)info).leInit();
         return true;
     }
 
@@ -502,48 +504,7 @@ public class LENetlister1 extends LENetlister {
      * Logical Effort Cell Info class.  Keeps track of:
      * <p>- M factors
      */
-    public class LECellInfo extends HierarchyEnumerator.CellInfo {
-
-        /** M-factor to be applied to size */       private float mFactor;
-        /** SU to be applied to gates in cell */    private float cellsu;
-
-        /** initialize LECellInfo: assumes CellInfo.init() has been called */
-        protected void leInit() {
-
-            HierarchyEnumerator.CellInfo parent = getParentInfo();
-
-            // check for M-Factor from parent
-            if (parent == null) mFactor = 1f;
-            else mFactor = ((LECellInfo)parent).getMFactor();
-
-            // check for su from parent
-            if (parent == null) cellsu = -1f;
-            else cellsu = ((LECellInfo)parent).getSU();
-
-            // get info from node we pushed into
-            Nodable ni = getContext().getNodable();
-            if (ni == null) return;
-
-            // get mfactor from instance we pushed into
-            Variable mvar = LETool.getMFactor(ni);
-            if (mvar != null) {
-                Object mval = getContext().evalVar(mvar, null);
-                if (mval != null)
-                    mFactor = mFactor * VarContext.objectToFloat(mval, 1f);
-            }
-
-            // get su from instance we pushed into
-            Variable suvar = ni.getVar("ATTR_su");
-            if (suvar != null) {
-                float su = VarContext.objectToFloat(getContext().evalVar(suvar, null), -1f);
-                if (su != -1f) cellsu = su;
-            }
-        }
-        
-        /** get mFactor */
-        protected float getMFactor() { return mFactor; }
-
-        protected float getSU() { return cellsu; }
+    public class LECellInfo extends LENetlister.LECellInfo {
 
     }
 

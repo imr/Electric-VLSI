@@ -2672,13 +2672,8 @@ public class EditWindow extends JPanel
 			desiredNO = (Nodable)possibleNodables.get(0);
 
 			// see if there are any waveform windows
-			boolean hasWaveform = false;
-			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
-			{
-				WindowFrame wf = (WindowFrame)it.next();
-				if (wf.getContent() instanceof WaveformWindow) { hasWaveform = true;   break; }
-			}
-			if (hasWaveform)
+			boolean promptUser = isArrayedContextMatter(desiredNO);
+			if (promptUser)
 			{
 				String [] manyOptions = new String[possibleNodables.size()];
 				int i = 0;
@@ -2722,6 +2717,32 @@ public class EditWindow extends JPanel
                 highlighter.finished();
             }
         }
+    }
+
+    /**
+     * Returns true if, in terms of context, it matters which index
+     * of the nodable we push into.
+     * @param no the nodable
+     * @return true if we need to ask the user which index to descent into,
+     * false otherwise.
+     */
+    public static boolean isArrayedContextMatter(Nodable no) {
+        // matters if there is a waveform window open
+        for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+        {
+            WindowFrame wf = (WindowFrame)it.next();
+            if (wf.getContent() instanceof WaveformWindow) { return true; }
+        }
+        // if getdrive is called
+        for (Iterator it = no.getVariables(); it.hasNext(); ) {
+            Variable var = (Variable)it.next();
+            Object obj = var.getObject();
+            if (obj instanceof String) {
+                String str = (String)obj;
+                if (str.matches(".*LE\\.getdrive.*")) return true;
+            }
+        }
+        return false;
     }
 
     /**

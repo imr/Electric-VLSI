@@ -414,7 +414,7 @@ public class Variable
 	 * Method to return a description of this Variable.
 	 * @return a description of this Variable.
 	 */
-	public String describe(VarContext context, ElectricObject eobj)
+	public String describe(VarContext context, Object eobj)
 	{
 		return describe(-1, context, eobj);
 	}
@@ -432,10 +432,10 @@ public class Variable
 	 * Method to return a String describing this Variable.
 	 * @param aindex if negative, print the entire array.
 	 * @param context the VarContext for this Variable.
-	 * @param eobj the ElectricObject on which this Variable resides.
+	 * @param eobj the Object on which this Variable resides.
 	 * @return a String desribing this Variable.
 	 */
-	public String describe(int aindex, VarContext context, ElectricObject eobj)
+	public String describe(int aindex, VarContext context, Object eobj)
 	{
 		TextDescriptor.Unit units = descriptor.getUnit();
 		StringBuffer returnVal = new StringBuffer();
@@ -531,6 +531,17 @@ public class Variable
 			return ((NodeInst)addr).describe();
 		if (addr instanceof ArcInst)
 			return ((ArcInst)addr).describe();
+        if (addr instanceof Object[]) {
+            StringBuffer buf = new StringBuffer();
+            buf.append("[");
+            Object [] objects = (Object[])addr;
+            for (int i=0; i<objects.length; i++) {
+                buf.append(makeStringVar(objects[i], units));
+                buf.append(", ");
+            }
+            buf.replace(buf.length()-2, buf.length(), "]");
+            return buf.toString();
+        }
 		return "?";
 	}
 

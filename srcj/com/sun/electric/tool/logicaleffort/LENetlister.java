@@ -97,7 +97,7 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
     
 
     /** Call to start netlisting. Returns false if failed */
-    public abstract boolean netlist(Cell cell, VarContext context);
+    public abstract boolean netlist(Cell cell, VarContext context, boolean useCaching);
 
     /** Call to stop or interrupt netlisting */
     public abstract void done();
@@ -167,14 +167,15 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
      * @param current the current settings (from the top level cell, or global options)
      * @return true if there was a conflict, false otherwise
      */
-    protected boolean isSettingsConflict(NetlisterConstants current, Cell topLevelCell, Cell subcell) {
+    protected boolean isSettingsConflict(NetlisterConstants current, Cell topLevelCell, VarContext context, Cell localCell) {
         assert(current != null);
-        NetlisterConstants local = getSettings(subcell);
+        NetlisterConstants local = getSettings(localCell);
         if (local == null) return false;
         if (!current.equals(local)) {
-            System.out.println("Error: Global settings from \""+topLevelCell.describe()+"\" do not match global settings from \""+subcell.describe()+"\"");
+            System.out.println("Error: Global settings from \""+topLevelCell.describe()+"\" do not match global settings from \""+context.getInstPath("/")+": "+localCell.noLibDescribe()+"\"");
             System.out.println("       Global settings are by definition global, and differences may indicate an inconsistency in your design.");
             System.out.println("       Note that step-up, \"su\", can be made local by defining a \"su\" parameter on an instance.");
+            System.out.println("\tglobal/parent vs local:");
             if (current.su != local.su) System.out.println("su:\t"+current.su+" vs "+local.su);
             if (current.wireRatio != local.wireRatio) System.out.println("wireRatio:\t"+current.wireRatio+" vs "+local.wireRatio);
             if (current.epsilon != local.epsilon) System.out.println("epsilon:\t"+current.epsilon+" vs "+local.epsilon);
@@ -259,6 +260,64 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
             return true;
         }
 
+    }
+
+    protected static class LECellInfo extends HierarchyEnumerator.CellInfo {
+
+        /** M-factor to be applied to size */       private float mFactor;
+        /** SU to be applied to gates in cell */    private float cellsu;
+        /** local settings */                       private NetlisterConstants localSettings;
+
+        protected void leInit(NetlisterConstants constants) {
+
+            HierarchyEnumerator.CellInfo parent = getParentInfo();
+
+            // check for M-Factor from parent
+            if (parent == null) mFactor = 1f;
+            else mFactor = ((LECellInfo)parent).getMFactor();
+
+            // check for su from parent
+            if (parent == null) cellsu = constants.su;
+            else cellsu = ((LECellInfo)parent).getSU();
+
+            // get info from node we pushed into
+            Nodable ni = getContext().getNodable();
+            if (ni != null) {
+                // get mfactor from instance we pushed into
+                Variable mvar = LETool.getMFactor(ni);
+                if (mvar != null) {
+                    Object mval = getContext().evalVar(mvar, null);
+                    if (mval != null)
+                        mFactor = mFactor * VarContext.objectToFloat(mval, 1f);
+                }
+
+                // get su from instance we pushed into
+                Variable suvar = ni.getVar(ATTR_su);
+                if (suvar != null) {
+                    float su = VarContext.objectToFloat(getContext().evalVar(suvar, null), -1f);
+                    if (su != -1f) cellsu = su;
+                }
+            }
+
+            localSettings = new NetlisterConstants(
+                    cellsu,
+                    constants.wireRatio,
+                    constants.epsilon,
+                    constants.maxIterations,
+                    constants.gateCap,
+                    constants.alpha,
+                    constants.keeperRatio
+            );
+        }
+
+        /** get mFactor */
+        protected float getMFactor() { return mFactor; }
+
+        protected float getSU() { return cellsu; }
+
+        protected NetlisterConstants getSettings() {
+            return localSettings;
+        }
     }
 
 }

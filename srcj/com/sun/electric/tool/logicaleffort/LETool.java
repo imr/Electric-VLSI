@@ -104,15 +104,38 @@ public class LETool extends Tool {
         Nodable ni = (Nodable)info;
 
         // Try to find drive strength
-        Variable var = getLEDRIVE(ni, context.push(ni));
-        if (var == null) {
-            // none found, try to find drive strength using old format from C-Electric
-            var = getLEDRIVE_old(ni, context);
+        // if Nodeinst, get different sizes if arrayed
+        Object val = null;
+        if ( (ni instanceof NodeInst) && (ni.getNameKey().busWidth() > 1)) {
+            Name name = ni.getNameKey();
+            ArrayList sizes = new ArrayList();
+            for (int i=0; i<name.busWidth(); i++) {
+                Nodable no = Netlist.getNodableFor((NodeInst)ni, i);
+                Variable var = getLEDRIVE(ni, context.push(no));
+                Object size = null;
+                if (var != null) size = var.getObject();
+                sizes.add(size);
+            }
+            if (sizes.size() > 5) {
+                Object [] objs = new Object[3];
+                objs[0] = sizes.get(0);
+                objs[1] = (Object)"...";
+                objs[2] = sizes.get(sizes.size()-1);
+                val = objs;
+            } else {
+                val = sizes.toArray();
+            }
+        } else {
+            Variable var = getLEDRIVE(ni, context.push(ni));
+            if (var == null) {
+                // none found, try to find drive strength using old format from C-Electric
+                var = getLEDRIVE_old(ni, context);
+            }
+            //if (var == null) return "No variable "+ledrive;
+            if (var == null)
+                throw new VarContext.EvalException("getdrive(): no size");
+            val = var.getObject();
         }
-        //if (var == null) return "No variable "+ledrive;
-        if (var == null)
-            throw new VarContext.EvalException("getdrive(): no size");
-        Object val = var.getObject();
         if (val == null)
             throw new VarContext.EvalException("getdrive(): size null");
         return val;
@@ -371,7 +394,7 @@ public class LETool extends Tool {
                 netlister = new LENetlister2(this);
             else
                 netlister = new LENetlister1(this);
-            boolean success = netlister.netlist(cell, context);
+            boolean success = netlister.netlist(cell, context, true);
             if (!success) return false;
 
             // calculate statistics

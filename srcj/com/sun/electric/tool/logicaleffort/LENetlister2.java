@@ -82,10 +82,10 @@ public class LENetlister2 extends LENetlister {
     /** for logging errors */                   private ErrorLogger errorLogger;
     /** record definition errors so no multiple warnings */ private HashMap lePortError;
     /** The top level cell netlisted */         private Cell topLevelCell;
+    /** whether or not to disable caching */    private boolean disableCaching = true;
 
 
     private static final boolean DEBUG = false;
-    private static final boolean DISABLE_CACHING = false;
     private static final boolean DEBUG_FIRSTPASS = false;
     private static final boolean DEBUG_PRINTCACHEDCELLS = false;
 
@@ -110,8 +110,9 @@ public class LENetlister2 extends LENetlister {
     }
     
     // Entry point: This netlists the cell
-    public boolean netlist(Cell cell, VarContext context) {
+    public boolean netlist(Cell cell, VarContext context, boolean useCaching) {
 
+        disableCaching = !useCaching;
         //ArrayList connectedPorts = new ArrayList();
         //connectedPorts.add(Schematics.tech.resistorNode.getPortsList());
         if (errorLogger != null) errorLogger.delete();
@@ -132,7 +133,7 @@ public class LENetlister2 extends LENetlister {
         topLevelCell = cell;
         FirstPassEnum firstPass = new FirstPassEnum(this);
         HierarchyEnumerator.enumerateCell(cell, context, netlist, firstPass);
-        firstPass.cleanup();
+        firstPass.cleanup(disableCaching);
         System.out.println("Cached "+cellMap.size()+" cells");
         if (DEBUG_FIRSTPASS) {
             for (Iterator it = cellMap.entrySet().iterator(); it.hasNext(); ) {
@@ -324,7 +325,7 @@ public class LENetlister2 extends LENetlister {
             }
         }
 
-        protected void cleanup() {
+        protected void cleanup(boolean disableCaching) {
             // remove all cachedCells that contain sizeable gates or are not context free
             HashMap cachedMap = new HashMap();
             for (Iterator it = netlister.cellMap.entrySet().iterator(); it.hasNext(); ) {
@@ -336,7 +337,7 @@ public class LENetlister2 extends LENetlister {
                 }
             }
             netlister.cellMap = cachedMap;
-            if (DISABLE_CACHING) netlister.cellMap = new HashMap();
+            if (disableCaching) netlister.cellMap = new HashMap();
         }
     }
 
@@ -359,16 +360,17 @@ public class LENetlister2 extends LENetlister {
             return false;
         }
 
+        LECellInfo leinfo = (LECellInfo)info;
+        leinfo.leInit(constants);
+
         // check if conflicting settings
         if (topLevelCell != info.getCell()) {
-            if (isSettingsConflict(constants, topLevelCell, info.getCell())) {
+            if (isSettingsConflict(leinfo.getSettings(), topLevelCell, info.getContext(), info.getCell())) {
                 aborted = true;
                 return false;
             }
         }
 
-        LECellInfo leinfo = (LECellInfo)info;
-        leinfo.leInit();
 
         boolean enter = true;
         // if there is a cachedCell, do not enter
@@ -449,49 +451,9 @@ public class LENetlister2 extends LENetlister {
      * Logical Effort Cell Info class.  Keeps track of:
      * <p>- M factors
      */
-    public static class LECellInfo extends HierarchyEnumerator.CellInfo {
+    public static class LECellInfo extends LENetlister.LECellInfo {
 
-        /** M-factor to be applied to size */       private float mFactor;
-        /** SU to be applied to gates in cell */    private float cellsu;
         /** the cached cell */                      private CachedCell cachedCell;
-
-        /** initialize LECellInfo: assumes CellInfo.init() has been called */
-        protected void leInit() {
-
-            HierarchyEnumerator.CellInfo parent = getParentInfo();
-
-            // check for M-Factor from parent
-            if (parent == null) mFactor = 1f;
-            else mFactor = ((LECellInfo)parent).getMFactor();
-
-            // check for su from parent
-            if (parent == null) cellsu = -1f;
-            else cellsu = ((LECellInfo)parent).getSU();
-
-            // get info from node we pushed into
-            Nodable ni = getContext().getNodable();
-            if (ni == null) return;
-
-            // get mfactor from instance we pushed into
-            Variable mvar = LETool.getMFactor(ni);
-            if (mvar != null) {
-                Object mval = getContext().evalVar(mvar, null);
-                if (mval != null)
-                    mFactor = mFactor * VarContext.objectToFloat(mval, 1f);
-            }
-
-            // get su from instance we pushed into
-            Variable suvar = ni.getVar(ATTR_su);
-            if (suvar != null) {
-                float su = VarContext.objectToFloat(getContext().evalVar(suvar, null), -1f);
-                if (su != -1f) cellsu = su;
-            }
-        }
-        
-        /** get mFactor */
-        protected float getMFactor() { return mFactor; }
-
-        protected float getSU() { return cellsu; }
 
         protected void setCachedCell(CachedCell c) { cachedCell = c; }
         protected CachedCell getCachedCell() { return cachedCell; }

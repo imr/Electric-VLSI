@@ -1099,7 +1099,7 @@ public class Spice extends Topology
                 for(Iterator it = paramValues.iterator(); it.hasNext(); )
                 {
                     Variable var = (Variable)it.next();
-                    String eval = var.describe(context, no.getNodeInst());
+                    String eval = var.describe(context, no);
                     //Object eval = context.evalVar(var, no);
                     if (eval == null) continue;
                     //uniqueCellName += "-" + var.getTrueName() + "-" + eval.toString();
