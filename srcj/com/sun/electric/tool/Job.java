@@ -8,6 +8,8 @@
 package com.sun.electric.tool;
 
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.hierarchy.Cell;
 
 import java.lang.Thread;
 import java.util.List;
@@ -55,7 +57,54 @@ import java.awt.Point;
  */
 public abstract class Job extends Thread implements ActionListener {
 
-    // Job Management
+	/**
+	 * Type is a typesafe enum class that describes the type of job (CHANGE or EXAMINE).
+	 */
+	public static class Type
+	{
+		private final String name;
+
+		private Type(String name) { this.name = name; }
+
+		/**
+		 * Returns a printable version of this Type.
+		 * @return a printable version of this Type.
+		 */
+		public String toString() { return name; }
+
+		/** Describes a database change. */			public static final Type CHANGE  = new Type("change");
+		/** Describes a database examination. */	public static final Type EXAMINE = new Type("examine");
+	}
+
+	/**
+	 * Priority is a typesafe enum class that describes the priority of a job.
+	 */
+	public static class Priority
+	{
+		private final String name;
+		private final int level;
+
+		private Priority(String name, int level) { this.name = name;   this.level = level; }
+
+		/**
+		 * Returns a printable version of this Priority.
+		 * @return a printable version of this Priority.
+		 */
+		public String toString() { return name; }
+
+		/**
+		 * Returns a level of this Priority.
+		 * @return a level of this Priority.
+		 */
+		public int getLevel() { return level; }
+
+		/** The highest priority: from the user. */		public static final Priority USER         = new Priority("user", 1);
+		/** Next lower priority: visible changes. */	public static final Priority VISCHANGES   = new Priority("visible-changes", 2);
+		/** Next lower priority: invisible changes. */	public static final Priority INVISCHANGES = new Priority("invisble-changes", 3);
+		/** Lowest priority: analysis. */				public static final Priority ANALYSIS     = new Priority("analysis", 4);
+	}
+
+	// Job Management
     /** all jobs */                             private static ArrayList allJobs = new ArrayList();
     /** job tree */                             private static DefaultMutableTreeNode explorerTree = new DefaultMutableTreeNode("JOBS");
     /** my tree node */                         private DefaultMutableTreeNode myNode;
@@ -66,22 +115,36 @@ public abstract class Job extends Thread implements ActionListener {
     /** is job finished? */                     private boolean finished;
     /** thread aborted? */                      private boolean aborted;
     /** schedule thread to abort */             private boolean scheduledToAbort;
+    /** name of job */                          private String jobName;
+    /** tool running the job */                 private Tool tool;
+    /** type of job (change or examine) */      private Type jobType;
+    /** priority of job */                      private Priority priority;
+    /** bottom of "up-tree" of cells affected */private Cell upCell;
+    /** top of "down-tree" of cells affected */ private Cell downCell;
     /** status */                               private String status = null;
     /** progress */                             private String progress = null;
     
     
     /** Creates a new instance of Job */
-    public Job(String name) {
-        super(name);
-        
+    public Job(String jobName, Tool tool, Type jobType, Cell upCell, Cell downCell, Priority priority) {
+        super(jobName);
+
+		this.jobName = jobName;
+		this.tool = tool;
+		this.jobType = jobType;
+		this.priority = priority;
+		this.upCell = upCell;
+		this.downCell = downCell;
         startTime = endTime = 0;
         finished = aborted = scheduledToAbort = false;
         myNode = new DefaultMutableTreeNode(this);
         
         Job.addJob(this);
+
+		// should figure out when to start the job properly...for now, just start it
+		start();
     }
-    
-    //--------------------------ABSTRACT METHODS--------------------------
+	//--------------------------ABSTRACT METHODS--------------------------
     
     /** This is the main work method.  This method should
      * perform all needed tasks.
@@ -106,7 +169,8 @@ public abstract class Job extends Thread implements ActionListener {
         explorerTree.add(j.myNode);
         WindowFrame.explorerTreeChanged();
     }
-    /** Remove job from list of jobs */
+
+	/** Remove job from list of jobs */
     private static synchronized void removeJob(Job j) { 
         if (allJobs.indexOf(j) != -1) {
             allJobs.remove(allJobs.indexOf(j));
@@ -121,12 +185,22 @@ public abstract class Job extends Thread implements ActionListener {
     /** Run gets called after the calling thread calls our start method */
     public void run() {
         startTime = System.currentTimeMillis();
-        doIt();
-        finished = true;                        // is this redundant with Thread.isAlive()?
+
+		if (jobType == Type.CHANGE) Undo.startChanges(tool, jobName, upCell);
+		doIt();
+		if (jobType == Type.CHANGE) Undo.endChanges();
+
+		finished = true;                        // is this redundant with Thread.isAlive()?
         endTime = System.currentTimeMillis();
-        // TODO : should 'ding' or make some noise so the user knows the job is done
-        WindowFrame.explorerTreeMinorlyChanged();        
-        System.out.println(this.getInfo());
+//        Job.removeJob(this);
+        WindowFrame.explorerTreeMinorlyChanged();
+
+		// say something if it took more than a minute
+		if (endTime - startTime >= 60*1000)
+		{
+			// TODO : should 'ding' or make some noise so the user knows the job is done
+			System.out.println(this.getInfo());
+		}
     }
 
     protected void setProgress(String progress) {
@@ -150,7 +224,8 @@ public abstract class Job extends Thread implements ActionListener {
         scheduledToAbort = true;
         WindowFrame.explorerTreeMinorlyChanged();
     }
-    /** Confirmation that thread is aborted */
+
+	/** Confirmation that thread is aborted */
     protected void setAborted() { aborted = true; WindowFrame.explorerTreeMinorlyChanged(); }
     /** get scheduled to abort status */
     protected boolean getScheduledToAbort() { return scheduledToAbort; }

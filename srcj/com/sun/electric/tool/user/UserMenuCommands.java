@@ -42,12 +42,14 @@ import com.sun.electric.tool.user.ui.DialogOpenFile;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.Input;
 import com.sun.electric.tool.io.Output;
 import com.sun.electric.tool.user.Clipboard;
 import com.sun.electric.tool.user.ui.Menu;
 import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.logicaleffort.LETool;
+//import com.sun.electric.tool.ncc.factory.NetFactory;
 
 import java.util.Iterator;
 import java.awt.event.ActionListener;
@@ -166,6 +168,14 @@ public final class UserMenuCommands
 		Menu ercSubMenu = Menu.createMenu("ERC", 'E');
 		toolMenu.add(ercSubMenu);
 		Menu networkSubMenu = Menu.createMenu("Network", 'N');
+		networkSubMenu.addMenuItem("NCC test 1", null, 
+            new ActionListener() { public void actionPerformed(ActionEvent e) { nccTest1Command(); }});
+		networkSubMenu.addMenuItem("NCC test 2", null, 
+            new ActionListener() { public void actionPerformed(ActionEvent e) { nccTest2Command(); }});
+		networkSubMenu.addMenuItem("NCC test 3", null, 
+            new ActionListener() { public void actionPerformed(ActionEvent e) { nccTest3Command(); }});
+		networkSubMenu.addMenuItem("NCC test 4", null, 
+            new ActionListener() { public void actionPerformed(ActionEvent e) { nccTest4Command(); }});
 		toolMenu.add(networkSubMenu);
 		Menu logEffortSubMenu = Menu.createMenu("Logical Effort", 'L');
         logEffortSubMenu.addMenuItem("Analyze Cell", null, 
@@ -221,31 +231,6 @@ public final class UserMenuCommands
 	// ---------------------- THE FILE MENU -----------------
 
 	/**
-	 * Class to read a library in a new thread.
-	 */
-	private static class OpenBinLibraryThread extends Thread
-	{
-		private String fileName;
-
-		OpenBinLibraryThread(String fileName) { this.fileName = fileName; }
-
-		public void run()
-		{
-			Undo.startChanges(User.tool, "ReadLibrary");
-			Library lib = Input.readLibrary(fileName, Input.ImportType.BINARY);
-			Undo.endChanges();
-			Undo.noUndoAllowed();
-			if (lib == null) return;
-			Library.setCurrent(lib);
-			Cell cell = lib.getCurCell();
-			if (cell == null) System.out.println("No current cell in this library"); else
-			{
-				WindowFrame.createEditWindow(cell);
-			}
-		}
-	}
-
-	/**
 	 * This routine implements the command to read a library.
 	 */
 	public static void openLibraryCommand()
@@ -253,26 +238,26 @@ public final class UserMenuCommands
 		String fileName = DialogOpenFile.ELIB.chooseInputFile(null);
 		if (fileName != null)
 		{
-			// start a new thread to do the input
-			OpenBinLibraryThread oThread = new OpenBinLibraryThread(fileName);
-			oThread.start();
+			// start a job to do the input
+			ReadBinaryLibrary job = new ReadBinaryLibrary(fileName);
 		}
 	}
 
 	/**
 	 * Class to read a library in a new thread.
 	 */
-	private static class OpenTxtLibraryThread extends Thread
+	protected static class ReadBinaryLibrary extends Job
 	{
-		private String fileName;
-
-		OpenTxtLibraryThread(String fileName) { this.fileName = fileName; }
-
-		public void run()
+		String fileName;
+		protected ReadBinaryLibrary(String fileName)
 		{
-			Undo.startChanges(User.tool, "ReadTextLibrary");
-			Library lib = Input.readLibrary(fileName, Input.ImportType.TEXT);
-			Undo.endChanges();
+			super("Read Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.fileName = fileName;
+		}
+
+		public void doIt()
+		{
+			Library lib = Input.readLibrary(fileName, Input.ImportType.BINARY);
 			Undo.noUndoAllowed();
 			if (lib == null) return;
 			Library.setCurrent(lib);
@@ -292,9 +277,34 @@ public final class UserMenuCommands
 		String fileName = DialogOpenFile.TEXT.chooseInputFile(null);
 		if (fileName != null)
 		{
-			// start a new thread to do the input
-			OpenTxtLibraryThread oThread = new OpenTxtLibraryThread(fileName);
-			oThread.start();
+			// start a job to do the input
+			ReadTextLibrary job = new ReadTextLibrary(fileName);
+		}
+	}
+
+	/**
+	 * Class to read a library in a new thread.
+	 */
+	protected static class ReadTextLibrary extends Job
+	{
+		String fileName;
+		protected ReadTextLibrary(String fileName)
+		{
+			super("Read Text Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.fileName = fileName;
+		}
+
+		public void doIt()
+		{
+			Library lib = Input.readLibrary(fileName, Input.ImportType.TEXT);
+			Undo.noUndoAllowed();
+			if (lib == null) return;
+			Library.setCurrent(lib);
+			Cell cell = lib.getCurCell();
+			if (cell == null) System.out.println("No current cell in this library"); else
+			{
+				WindowFrame.createEditWindow(cell);
+			}
 		}
 	}
 
@@ -571,7 +581,32 @@ public final class UserMenuCommands
         }
         letool.analyzeCell(curEdit.getCell(), curEdit.getVarContext(), curEdit);
     }
-    
+
+	// NCC Tool
+	public static void nccTest1Command()
+	{
+//		NetFactory nf = new NetFactory();
+//		nf.testOne();
+	}
+
+	public static void nccTest2Command()
+	{
+//		NetFactory nf = new NetFactory();
+//		nf.testTwo();
+	}
+
+	public static void nccTest3Command()
+	{
+//		NetFactory nf = new NetFactory();
+//		nf.testThree();
+	}
+
+	public static void nccTest4Command()
+	{
+//		NetFactory nf = new NetFactory();
+//		nf.testFour();
+	}
+
     // ---------------------- THE STEVE MENU -----------------
 
 	public static void getInfoCommand()
@@ -745,8 +780,9 @@ public final class UserMenuCommands
     }
     
     public static void openP4libCommand() {
-        OpenBinLibraryThread oThread = new OpenBinLibraryThread("/export/gainsley/soesrc_java/test/purpleFour.elib");
-        oThread.start();
+		ReadBinaryLibrary job = new ReadBinaryLibrary("/export/gainsley/soesrc_java/test/purpleFour.elib");
+//        OpenBinLibraryThread oThread = new OpenBinLibraryThread("/export/gainsley/soesrc_java/test/purpleFour.elib");
+//        oThread.start();
     }
     
     

@@ -615,13 +615,13 @@ public class Cell extends NodeProto
 			if (Undo.getChangingThread() == null)
 				System.out.println(this+" is changing without Undo.startChanges() lock");
 			else
-				System.out.println(this+" is changing by other thread");
+				System.out.println(this+" is changing by another thread");
 			//throw new IllegalStateException("Cell.checkChanging()");
 		}
 		Cell rootCell = Undo.getChangingCell();
 		if (lock != -1 && rootCell != null)
 		{
-			System.out.println(this+" is changing which is not in up-tree of "+rootCell);
+			System.out.println("Change to cell "+rootCell.describe()+" affects cell "+describe()+" which is not above it in the hierarchy");
 			//throw new IllegalStateException("Cell.checkChanging()");
 		}
 	}

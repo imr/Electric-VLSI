@@ -51,6 +51,7 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.UserMenuCommands;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlight;
@@ -134,143 +135,163 @@ public class Clipboard
 
 	public static void copy()
 	{
-		// get objects to copy
-		List geoms = Highlight.getHighlighted(true, true);
-		if (geoms.size() == 0)
+        CopyObjects job = new CopyObjects();
+	}
+
+	protected static class CopyObjects extends Job
+	{
+		protected CopyObjects() { super("Copy", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER); }
+
+		public void doIt()
 		{
-			System.out.println("First select objects to copy");
-			return;
+			// get objects to copy
+			List geoms = Highlight.getHighlighted(true, true);
+			if (geoms.size() == 0)
+			{
+				System.out.println("First select objects to copy");
+				return;
+			}
+
+			// determine the cell with these geometrics
+			EditWindow wnd = Highlight.getHighlightedWindow();
+			if (wnd == null) return;
+			Cell parent = wnd.getCell();
+
+			// remove contents of clipboard
+			clear();
+
+			// copy objects to clipboard
+	//		saveview = us_clipboardcell->cellview;
+	//		us_clipboardcell->cellview = parent->cellview;
+			copyListToCell(wnd, geoms, parent, clipCell, false, false, false);
+	//		us_clipboardcell->cellview = saveview;
 		}
-
-		// determine the cell with these geometrics
-		EditWindow wnd = Highlight.getHighlightedWindow();
-		if (wnd == null) return;
-		Cell parent = wnd.getCell();
-
-		// remove contents of clipboard
-		clear();
-
-		// copy objects to clipboard
-		Undo.startChanges(User.tool, "Copy");
-//		saveview = us_clipboardcell->cellview;
-//		us_clipboardcell->cellview = parent->cellview;
-		copyListToCell(wnd, geoms, parent, clipCell, false, false, false);
-//		us_clipboardcell->cellview = saveview;
-		Undo.endChanges();
 	}
 
 	public static void cut()
 	{
-		// get objects to copy
-		List geoms = Highlight.getHighlighted(true, true);
-		if (geoms.size() == 0)
+        CutObjects job = new CutObjects();
+	}
+
+	protected static class CutObjects extends Job
+	{
+		protected CutObjects() { super("Cut", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER); }
+
+		public void doIt()
 		{
-			System.out.println("First select objects to cut");
-			return;
+			// get objects to cut
+			List geoms = Highlight.getHighlighted(true, true);
+			if (geoms.size() == 0)
+			{
+				System.out.println("First select objects to cut");
+				return;
+			}
+
+			// determine the cell with these geometrics
+			EditWindow wnd = Highlight.getHighlightedWindow();
+			if (wnd == null) return;
+			Cell parent = wnd.getCell();
+
+			// remove contents of clipboard
+			clear();
+
+			// copy objects to clipboard
+	//		saveview = us_clipboardcell->cellview;
+	//		us_clipboardcell->cellview = parent->cellview;
+			copyListToCell(wnd, geoms, parent, clipCell, false, false, false);
+	//		us_clipboardcell->cellview = saveview;
+
+			// and delete the original objects
+			CircuitChanges.eraseObjectsInList(parent, geoms);
 		}
-
-		// determine the cell with these geometrics
-		EditWindow wnd = Highlight.getHighlightedWindow();
-		if (wnd == null) return;
-		Cell parent = wnd.getCell();
-
-		// remove contents of clipboard
-		clear();
-
-		// copy objects to clipboard
-		Undo.startChanges(User.tool, "Cut");
-//		saveview = us_clipboardcell->cellview;
-//		us_clipboardcell->cellview = parent->cellview;
-		copyListToCell(wnd, geoms, parent, clipCell, false, false, false);
-//		us_clipboardcell->cellview = saveview;
-
-		// and delete the original objects
-		CircuitChanges.eraseObjectsInList(parent, geoms);
-		Undo.endChanges();
 	}
 
 	public static void paste()
 	{
-		// get objects to paste
-		int ntotal = clipCell.getNumNodes();
-		int atotal = clipCell.getNumArcs();
-		int total = ntotal + atotal;
-		if (total == 0)
-		{
-			System.out.println("Nothing in the clipboard to paste");
-			return;
-		}
+        PasteObjects job = new PasteObjects();
+	}
 
-		// find out where the paste is going
-		EditWindow wnd = Highlight.getHighlightedWindow();
-		if (wnd == null) return;
-		Cell parent = wnd.getCell();
-		// special case of pasting on top of selected objects
-		List geoms = Highlight.getHighlighted(true, true);
-		if (geoms.size() > 0)
+	protected static class PasteObjects extends Job
+	{
+		protected PasteObjects() { super("Paste", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER); }
+
+		public void doIt()
 		{
-			// can only paste a single object onto selection
-			if (ntotal == 2 && atotal == 1)
+			// get objects to paste
+			int ntotal = clipCell.getNumNodes();
+			int atotal = clipCell.getNumArcs();
+			int total = ntotal + atotal;
+			if (total == 0)
 			{
-				ArcInst ai = (ArcInst)clipCell.getArcs().next();
-				NodeInst niHead = ai.getHead().getPortInst().getNodeInst();
-				NodeInst niTail = ai.getTail().getPortInst().getNodeInst();
-				Iterator nIt = clipCell.getNodes();
-				NodeInst ni1 = (NodeInst)nIt.next();
-				NodeInst ni2 = (NodeInst)nIt.next();
-				if ((ni1 == niHead && ni2 == niTail) ||
-					(ni1 == niTail && ni2 == niHead)) ntotal = 0;
-				total = ntotal + atotal;
-			}
-			if (total > 1)
-			{
-				System.out.println("Can only paste a single object on top of selected objects");
+				System.out.println("Nothing in the clipboard to paste");
 				return;
 			}
-			Highlight.clear();
-			boolean overlaid = false;
-			for(Iterator it = geoms.iterator(); it.hasNext(); )
+
+			// find out where the paste is going
+			EditWindow wnd = Highlight.getHighlightedWindow();
+			if (wnd == null) return;
+			Cell parent = wnd.getCell();
+			// special case of pasting on top of selected objects
+			List geoms = Highlight.getHighlighted(true, true);
+			if (geoms.size() > 0)
 			{
-				Geometric geom = (Geometric)it.next();
-				if (geom instanceof NodeInst && ntotal == 1)
+				// can only paste a single object onto selection
+				if (ntotal == 2 && atotal == 1)
 				{
-					NodeInst ni = (NodeInst)geom;
-					NodeInst firstInClip = (NodeInst)clipCell.getNodes().next();
-					Undo.startChanges(User.tool, "Paste");
-					ni = pasteNodeToNode(ni, firstInClip);
-					Undo.endChanges();
-					if (ni != null) overlaid = true;
-				} else if (geom instanceof ArcInst && atotal == 1)
-				{
-					ArcInst ai = (ArcInst)geom;
-					Undo.startChanges(User.tool, "Paste");
-					ai = pasteArcToArc(ai, (ArcInst)clipCell.getArcs().next());
-					Undo.endChanges();
-					if (ai != null) overlaid = true;
+					ArcInst ai = (ArcInst)clipCell.getArcs().next();
+					NodeInst niHead = ai.getHead().getPortInst().getNodeInst();
+					NodeInst niTail = ai.getTail().getPortInst().getNodeInst();
+					Iterator nIt = clipCell.getNodes();
+					NodeInst ni1 = (NodeInst)nIt.next();
+					NodeInst ni2 = (NodeInst)nIt.next();
+					if ((ni1 == niHead && ni2 == niTail) ||
+						(ni1 == niTail && ni2 == niHead)) ntotal = 0;
+					total = ntotal + atotal;
 				}
+				if (total > 1)
+				{
+					System.out.println("Can only paste a single object on top of selected objects");
+					return;
+				}
+				Highlight.clear();
+				boolean overlaid = false;
+				for(Iterator it = geoms.iterator(); it.hasNext(); )
+				{
+					Geometric geom = (Geometric)it.next();
+					if (geom instanceof NodeInst && ntotal == 1)
+					{
+						NodeInst ni = (NodeInst)geom;
+						NodeInst firstInClip = (NodeInst)clipCell.getNodes().next();
+						ni = pasteNodeToNode(ni, firstInClip);
+						if (ni != null) overlaid = true;
+					} else if (geom instanceof ArcInst && atotal == 1)
+					{
+						ArcInst ai = (ArcInst)geom;
+						ai = pasteArcToArc(ai, (ArcInst)clipCell.getArcs().next());
+						if (ai != null) overlaid = true;
+					}
+				}
+				if (!overlaid)
+					System.out.println("Nothing was pasted");
+				return;
 			}
-			if (!overlaid)
-				System.out.println("Nothing was pasted");
-			return;
-		}
 
-		List pasteList = new ArrayList();
-		for(Iterator it = clipCell.getNodes(); it.hasNext(); )
-		{
-			NodeInst ni = (NodeInst)it.next();
-			pasteList.add(ni);
-		}
-		for(Iterator it = clipCell.getArcs(); it.hasNext(); )
-		{
-			ArcInst ai = (ArcInst)it.next();
-			pasteList.add(ai);
-		}
+			List pasteList = new ArrayList();
+			for(Iterator it = clipCell.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				pasteList.add(ni);
+			}
+			for(Iterator it = clipCell.getArcs(); it.hasNext(); )
+			{
+				ArcInst ai = (ArcInst)it.next();
+				pasteList.add(ai);
+			}
 
-		// paste them into the current cell
-		boolean interactiveplace = true;
-		Undo.startChanges(User.tool, "Paste");
-		copyListToCell(wnd, pasteList, clipCell, wnd.getCell(), true, interactiveplace, false);
-		Undo.endChanges();
+			// paste them into the current cell
+			boolean interactiveplace = true;
+			copyListToCell(wnd, pasteList, clipCell, wnd.getCell(), true, interactiveplace, false);
+		}
 	}
 
 	/**

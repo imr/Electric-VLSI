@@ -84,7 +84,7 @@ public class LETool extends Tool {
     /** Analyze Cell called from menu */
     public void analyzeCell(Cell cell, VarContext context, EditWindow wnd) {
         AnalyzeCell acjob = new AnalyzeCell(cell, context, wnd);
-        acjob.start();
+//        acjob.start();
     }
     
     /** Actual Analyze cell job */
@@ -97,7 +97,7 @@ public class LETool extends Tool {
         /** EditWindow */                       private EditWindow wnd;
         
         protected AnalyzeCell(Cell cell, VarContext context, EditWindow wnd) {
-            super("Analyze Cell "+cell.describe());
+           super("Analyze Cell "+cell.describe(), tool, Job.Type.CHANGE, null, cell, Job.Priority.USER);
             progress = null;
             this.cell = cell;
             this.context = context;

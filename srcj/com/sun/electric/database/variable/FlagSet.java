@@ -92,7 +92,7 @@ public class FlagSet
 		FlagSet fs = new FlagSet();
 		fs.shift = shift;
 		fs.mask = mask << shift;
-		fs.unmask = ~mask;
+		fs.unmask = ~fs.mask;
 		generator.flagBitsUsed |= fs.mask;
 		fs.generator = generator;
 		return fs;

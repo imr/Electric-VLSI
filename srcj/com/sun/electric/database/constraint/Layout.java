@@ -1208,6 +1208,8 @@ public class Layout extends Constraint
 
 	FlagSet cellModFlag;
 	FlagSet cellNoModFlag;
+	FlagSet markNode;
+	FlagSet touchNode;
 
 	/*
 	 * routine to re-compute the bounds of the cell "cell" (because an object
@@ -1289,46 +1291,49 @@ public class Layout extends Constraint
 			return;
 		}
 
-//		/*
-//		 * if instances are scattered or port motion has occured, examine
-//		 * entire database in proper recursive order and adjust cell sizes
-//		 */
-//		cellModFlag = NodeProto.getFlagSet(1);
-//		cellNoModFlag = NodeProto.getFlagSet(1);
-//		for(Iterator it = Library.getLibraries(); it.hasNext(); )
-//		{
-//			Library lib = (Library)it.next();
-//			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
-//			{
-//				Cell c = (Cell)cIt.next();
-//				c.clearBit(cellModFlag);
-//				c.clearBit(cellNoModFlag);
-//			}
-//		}
-//		cell.setBit(cellModFlag);
-//		for(Iterator it = Library.getLibraries(); it.hasNext(); )
-//		{
-//			Library lib = (Library)it.next();
-//			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
-//			{
-//				Cell c = (Cell)cIt.next();
-//
-//				// only want cells with no instances as roots of trees
-//				Iterator iIt = c.getInstancesOf();
-//				if (iIt.hasNext()) continue;
-//
-//				// now look recursively at the nodes in this cell
-//				cla_lookdown(c);
-//			}
-//		}
-//		cellNoModFlag.freeFlagSet();
-//		cellModFlag.freeFlagSet();
+		/*
+		 * if instances are scattered or port motion has occured, examine
+		 * entire database in proper recursive order and adjust cell sizes
+		 */
+		cellModFlag = NodeProto.getFlagSet(1);
+		cellNoModFlag = NodeProto.getFlagSet(1);
+		markNode = NodeInst.getFlagSet(1);
+		touchNode = NodeInst.getFlagSet(1);
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			{
+				Cell c = (Cell)cIt.next();
+				c.clearBit(cellModFlag);
+				c.clearBit(cellNoModFlag);
+			}
+		}
+		cell.setBit(cellModFlag);
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			{
+				Cell c = (Cell)cIt.next();
+
+				// only want cells with no instances as roots of trees
+				Iterator iIt = c.getInstancesOf();
+				if (iIt.hasNext()) continue;
+
+				// now look recursively at the nodes in this cell
+				cla_lookdown(c);
+			}
+		}
+		touchNode.freeFlagSet();
+		markNode.freeFlagSet();
+		cellNoModFlag.freeFlagSet();
+		cellModFlag.freeFlagSet();
 	}
 
 	boolean cla_lookdown(Cell start)
 	{
 		// first look recursively to the bottom to see if this cell changed
-		FlagSet markNode = NodeInst.getFlagSet(1);
 		for(Iterator it = start.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
@@ -1366,12 +1371,10 @@ public class Layout extends Constraint
 		if (!start.isBit(cellModFlag))
 		{
 			start.setBit(cellNoModFlag);
-			markNode.freeFlagSet();
 			return false;
 		}
 
 		// mark those nodes that must change
-		FlagSet touchNode = NodeInst.getFlagSet(1);
 		for(Iterator it = start.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
@@ -1454,8 +1457,6 @@ public class Layout extends Constraint
 		if (oldCellBounds.equals(cellBounds) && !forcedLook)
 		{
 			start.setBit(cellModFlag);
-			touchNode.freeFlagSet();
-			markNode.freeFlagSet();
 			return false;
 		}
 
@@ -1463,8 +1464,6 @@ public class Layout extends Constraint
 		Undo.Change change = Undo.newChange(start, Undo.Type.CELLMOD);
 		change.setDoubles(oldCellBounds.getMinX(), oldCellBounds.getMaxX(), oldCellBounds.getMinY(), oldCellBounds.getMaxY(), 0);
 		start.setChange(change);
-		touchNode.freeFlagSet();
-		markNode.freeFlagSet();
 		return true;
 	}
 }

@@ -1009,12 +1009,12 @@ public class Undo
 	public static void endChanges()
 	{
 		// if no changes were recorded, stop
-		if (currentBatch == null)
-		{
-			System.out.println("Mismatch of Undo.startChanges() and Undo.endChanges()");
-			throw new IllegalStateException("Undo.endChanges()");
-		}
-		if (currentBatch.thread != Thread.currentThread())
+//		if (currentBatch == null)
+//		{
+//			System.out.println("Mismatch of Undo.startChanges() and Undo.endChanges()");
+//			throw new IllegalStateException("Undo.endChanges()");
+//		}
+		if (currentBatch != null && currentBatch.thread != Thread.currentThread())
 		{
 			System.out.println("Threads of Undo.startChanges() and Undo.endChanges() are different");
 			throw new IllegalStateException("Undo.endChanges()");

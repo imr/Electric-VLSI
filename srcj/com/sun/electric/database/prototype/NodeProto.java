@@ -87,254 +87,254 @@ public abstract class NodeProto extends ElectricObject
 		/**
 		 * Describes a node with unknown behavior.
 		 */
-		public static final Function UNKNOWN=   new Function("unknown",						"node",     "NPUNKNOWN");
+		public static final Function UNKNOWN =   new Function("unknown",						"node",     "NPUNKNOWN");
 		/**
 		 * Describes a single-layer pin.
 		 * Pins connects wires of a single layer, have no geometry, and connect in the center of the node.
 		 */
-		public static final Function PIN=       new Function("pin",							"pin",      "NPPIN");
+		public static final Function PIN =       new Function("pin",							"pin",      "NPPIN");
 		/**
 		 * Describes a two-layer contact.
 		 * Contacts connects wires of two different layers in the center of the node.
 		 */
-		public static final Function CONTACT=   new Function("contact",						"contact",  "NPCONTACT");
+		public static final Function CONTACT =   new Function("contact",						"contact",  "NPCONTACT");
 		/**
 		 * Describes a pure-layer node.
 		 * Pure-layer nodes have a solid piece of geometry on a single layer.
 		 */
-		public static final Function NODE=      new Function("pure-layer-node",				"plnode",   "NPNODE");
+		public static final Function NODE =      new Function("pure-layer-node",				"plnode",   "NPNODE");
 		/**
 		 * node a node that connects all ports.
 		 */
-		public static final Function CONNECT=   new Function("connection",					"conn",     "NPCONNECT");
+		public static final Function CONNECT =   new Function("connection",					"conn",     "NPCONNECT");
 		/**
 		 * Describes a MOS enhancement transistor.
 		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port.
 		 */
-		public static final Function TRANMOS=   new Function("nMOS-transistor",				"nmos",     "NPTRANMOS");
+		public static final Function TRANMOS =   new Function("nMOS-transistor",				"nmos",     "NPTRANMOS");
 		/**
 		 * Describes a MOS depletion transistor.
 		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port.
 		 */
-		public static final Function TRADMOS=   new Function("DMOS-transistor",				"dmos",     "NPTRADMOS");
+		public static final Function TRADMOS =   new Function("DMOS-transistor",				"dmos",     "NPTRADMOS");
 		/**
 		 * Describes a MOS complementary transistor.
 		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port.
 		 */
-		public static final Function TRAPMOS=   new Function("pMOS-transistor",				"pmos",     "NPTRAPMOS");
+		public static final Function TRAPMOS =   new Function("pMOS-transistor",				"pmos",     "NPTRAPMOS");
 		/**
 		 * Describes a NPN junction transistor.
 		 * It has base on the first port, emitter on the second port, and collector on the third port.
 		 */
-		public static final Function TRANPN=    new Function("NPN-transistor",				"npn",      "NPTRANPN");
+		public static final Function TRANPN =    new Function("NPN-transistor",				"npn",      "NPTRANPN");
 		/**
 		 * Describes a PNP junction transistor.
 		 * It has base on the first port, emitter on the second port, and collector on the third port.
 		 */
-		public static final Function TRAPNP=    new Function("PNP-transistor",				"pnp",      "NPTRAPNP");
+		public static final Function TRAPNP =    new Function("PNP-transistor",				"pnp",      "NPTRAPNP");
 		/**
 		 * Describes a N-channel junction transistor.
 		 * It has gate on the first port, source on the second port, and drain on the third port.
 		 */
-		public static final Function TRANJFET=  new Function("n-type-JFET-transistor",		"njfet",    "NPTRANJFET");
+		public static final Function TRANJFET =  new Function("n-type-JFET-transistor",		"njfet",    "NPTRANJFET");
 		/**
 		 * Describes a P-channel junction transistor.
 		 * It has gate on the first port, source on the second port, and drain on the third port.
 		 */
-		public static final Function TRAPJFET=  new Function("p-type-JFET-transistor",		"pjfet",    "NPTRAPJFET");
+		public static final Function TRAPJFET =  new Function("p-type-JFET-transistor",		"pjfet",    "NPTRAPJFET");
 		/**
 		 * Describes a MESFET depletion transistor.
 		 * It has gate on the first port, source on the second port, and drain on the third port.
 		 */
-		public static final Function TRADMES=   new Function("depletion-mesfet",			"dmes",     "NPTRADMES");
+		public static final Function TRADMES =   new Function("depletion-mesfet",			"dmes",     "NPTRADMES");
 		/**
 		 * Describes a MESFET enhancement transistor.
 		 * It has gate on the first port, source on the second port, and drain on the third port.
 		 */
-		public static final Function TRAEMES=   new Function("enhancement-mesfet",			"emes",     "NPTRAEMES");
+		public static final Function TRAEMES =   new Function("enhancement-mesfet",			"emes",     "NPTRAEMES");
 		/**
 		 * Describes a general-purpose transistor.
 		 * It is defined self-referentially by the prototype name of the primitive.
 		 */
-		public static final Function TRANSREF=  new Function("prototype-defined-transistor","tref",     "NPTRANSREF");
+		public static final Function TRANSREF =  new Function("prototype-defined-transistor","tref",     "NPTRANSREF");
 		/**
 		 * Describes an undetermined transistor.
 		 * It has gate on the first port, source on the second port, and drain on the third port.
 		 * The specific transistor type can be determined by examining the value from the NodeInst's "getTechSpecific" routine.
 		 */
-		public static final Function TRANS=     new Function("transistor",					"trans",    "NPTRANS");
+		public static final Function TRANS =     new Function("transistor",					"trans",    "NPTRANS");
 		/**
 		 * Describes a 4-port MOS enhancement transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
 		 */
-		public static final Function TRA4NMOS=  new Function("4-port-nMOS-transistor",		"nmos4p",   "NPTRA4NMOS");
+		public static final Function TRA4NMOS =  new Function("4-port-nMOS-transistor",		"nmos4p",   "NPTRA4NMOS");
 		/**
 		 * Describes a 4-port MOS depletion transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
 		 */
-		public static final Function TRA4DMOS=  new Function("4-port-DMOS-transistor",		"dmos4p",   "NPTRA4DMOS");
+		public static final Function TRA4DMOS =  new Function("4-port-DMOS-transistor",		"dmos4p",   "NPTRA4DMOS");
 		/**
 		 * Describes a 4-port MOS complementary transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
 		 */
-		public static final Function TRA4PMOS=  new Function("4-port-pMOS-transistor",		"pmos4p",   "NPTRA4PMOS");
+		public static final Function TRA4PMOS =  new Function("4-port-pMOS-transistor",		"pmos4p",   "NPTRA4PMOS");
 		/**
 		 * Describes a 4-port NPN junction transistor.
 		 * It has base on the first port, emitter on the second port, collector on the third port, and substrate on the fourth port.
 		 */
-		public static final Function TRA4NPN=   new Function("4-port-NPN-transistor",		"npn4p",    "NPTRA4NPN");
+		public static final Function TRA4NPN =   new Function("4-port-NPN-transistor",		"npn4p",    "NPTRA4NPN");
 		/**
 		 * Describes a 4-port PNP junction transistor.
 		 * It has base on the first port, emitter on the second port, collector on the third port, and substrate on the fourth port.
 		 */
-		public static final Function TRA4PNP=   new Function("4-port-PNP-transistor",		"pnp4p",    "NPTRA4PNP");
+		public static final Function TRA4PNP =   new Function("4-port-PNP-transistor",		"pnp4p",    "NPTRA4PNP");
 		/**
 		 * Describes a 4-port N-channel junction transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
 		 */
-		public static final Function TRA4NJFET= new Function("4-port-n-type-JFET-transistor","njfet4p", "NPTRA4NJFET");
+		public static final Function TRA4NJFET = new Function("4-port-n-type-JFET-transistor","njfet4p", "NPTRA4NJFET");
 		/**
 		 * Describes a 4-port P-channel junction transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
 		 */
-		public static final Function TRA4PJFET= new Function("4-port-p-type-JFET-transistor","pjfet4p", "NPTRA4PJFET");
+		public static final Function TRA4PJFET = new Function("4-port-p-type-JFET-transistor","pjfet4p", "NPTRA4PJFET");
 		/**
 		 * Describes a 4-port MESFET depletion transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
 		 */
-		public static final Function TRA4DMES=  new Function("4-port-depletion-mesfet",		"dmes4p",   "NPTRA4DMES");
+		public static final Function TRA4DMES =  new Function("4-port-depletion-mesfet",		"dmes4p",   "NPTRA4DMES");
 		/**
 		 * Describes a 4-port MESFET enhancement transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
 		 */
-		public static final Function TRA4EMES=  new Function("4-port-enhancement-mesfet",	"emes4p",   "NPTRA4EMES");
+		public static final Function TRA4EMES =  new Function("4-port-enhancement-mesfet",	"emes4p",   "NPTRA4EMES");
 		/**
 		 * Describes a general-purpose transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
 		 * The specific transistor type can be determined by examining the value from the NodeInst's "getTechSpecific" routine.
 		 */
-		public static final Function TRANS4=    new Function("4-port-transistor",			"trans4p",  "NPTRANS4");
+		public static final Function TRANS4 =    new Function("4-port-transistor",			"trans4p",  "NPTRANS4");
 		/**
 		 * Describes a resistor.
 		 */
-		public static final Function RESIST=    new Function("resistor",					"res",      "NPRESIST");
+		public static final Function RESIST =    new Function("resistor",					"res",      "NPRESIST");
 		/**
 		 * Describes a capacitor.
 		 */
-		public static final Function CAPAC=     new Function("capacitor",					"cap",      "NPCAPAC");
+		public static final Function CAPAC =     new Function("capacitor",					"cap",      "NPCAPAC");
 		/**
 		 * Describes an electrolytic capacitor.
 		 */
-		public static final Function ECAPAC=    new Function("electrolytic-capacitor",		"ecap",     "NPECAPAC");
+		public static final Function ECAPAC =    new Function("electrolytic-capacitor",		"ecap",     "NPECAPAC");
 		/**
 		 * Describes a diode.
 		 */
-		public static final Function DIODE=     new Function("diode",						"diode",    "NPDIODE");
+		public static final Function DIODE =     new Function("diode",						"diode",    "NPDIODE");
 		/**
 		 * Describes a zener diode.
 		 */
-		public static final Function DIODEZ=    new Function("zener-diode",					"zdiode",   "NPDIODEZ");
+		public static final Function DIODEZ =    new Function("zener-diode",					"zdiode",   "NPDIODEZ");
 		/**
 		 * Describes an inductor.
 		 */
-		public static final Function INDUCT=    new Function("inductor",					"ind",      "NPINDUCT");
+		public static final Function INDUCT =    new Function("inductor",					"ind",      "NPINDUCT");
 		/**
 		 * Describes a meter.
 		 */
-		public static final Function METER=     new Function("meter",						"meter",    "NPMETER");
+		public static final Function METER =     new Function("meter",						"meter",    "NPMETER");
 		/**
 		 * Describes a transistor base.
 		 */
-		public static final Function BASE=      new Function("base",						"base",     "NPBASE");
+		public static final Function BASE =      new Function("base",						"base",     "NPBASE");
 		/**
 		 * Describes a transistor emitter.
 		 */
-		public static final Function EMIT=      new Function("emitter",						"emit",     "NPEMIT");
+		public static final Function EMIT =      new Function("emitter",						"emit",     "NPEMIT");
 		/**
 		 * Describes a transistor collector.
 		 */
-		public static final Function COLLECT=   new Function("collector",					"coll",     "NPCOLLECT");
+		public static final Function COLLECT =   new Function("collector",					"coll",     "NPCOLLECT");
 		/**
 		 * Describes a buffer.
 		 * It has input on the first port, clocking on the second port, and output on the third port.
 		 */
-		public static final Function BUFFER=    new Function("buffer",						"buf",      "NPBUFFER");
+		public static final Function BUFFER =    new Function("buffer",						"buf",      "NPBUFFER");
 		/**
 		 * Describes an AND gate.
 		 * It has inputs on the first port and output on the second port.
 		 */
-		public static final Function GATEAND=   new Function("AND-gate",					"and",      "NPGATEAND");
+		public static final Function GATEAND =   new Function("AND-gate",					"and",      "NPGATEAND");
 		/**
 		 * Describes an OR gate.
 		 * It has inputs on the first port and output on the second port.
 		 */
-		public static final Function GATEOR=    new Function("OR-gate",						"or",       "NPGATEOR");
+		public static final Function GATEOR =    new Function("OR-gate",						"or",       "NPGATEOR");
 		/**
 		 * Describes an XOR gate.
 		 * It has inputs on the first port and output on the second port.
 		 */
-		public static final Function GATEXOR=   new Function("XOR-gate",					"xor",      "NPGATEXOR");
+		public static final Function GATEXOR =   new Function("XOR-gate",					"xor",      "NPGATEXOR");
 		/**
 		 * Describes a flip-flop.
 		 * The specific flip-flop type can be determined by examining the value from the NodeInst's "getTechSpecific" routine.
 		 */
-		public static final Function FLIPFLOP=  new Function("flip-flop",					"ff",       "NPFLIPFLOP");
+		public static final Function FLIPFLOP =  new Function("flip-flop",					"ff",       "NPFLIPFLOP");
 		/**
 		 * Describes a multiplexor.
 		 */
-		public static final Function MUX=       new Function("multiplexor",					"mux",      "NPMUX");
+		public static final Function MUX =       new Function("multiplexor",					"mux",      "NPMUX");
 		/**
 		 * Describes a power connection.
 		 */
-		public static final Function CONPOWER=  new Function("power",						"pwr",      "NPCONPOWER");
+		public static final Function CONPOWER =  new Function("power",						"pwr",      "NPCONPOWER");
 		/**
 		 * Describes a ground connection.
 		 */
-		public static final Function CONGROUND= new Function("ground",						"gnd",      "NPCONGROUND");
+		public static final Function CONGROUND = new Function("ground",						"gnd",      "NPCONGROUND");
 		/**
 		 * Describes voltage or current source.
 		 */
-		public static final Function SOURCE=    new Function("source",						"source",   "NPSOURCE");
+		public static final Function SOURCE =    new Function("source",						"source",   "NPSOURCE");
 		/**
 		 * Describes a substrate contact.
 		 */
-		public static final Function SUBSTRATE= new Function("substrate",					"substr",   "NPSUBSTRATE");
+		public static final Function SUBSTRATE = new Function("substrate",					"substr",   "NPSUBSTRATE");
 		/**
 		 * Describes a well contact.
 		 */
-		public static final Function WELL=      new Function("well",						"well",     "NPWELL");
+		public static final Function WELL =      new Function("well",						"well",     "NPWELL");
 		/**
 		 * Describes a pure artwork.
 		 */
-		public static final Function ART=       new Function("artwork",						"art",      "NPART");
+		public static final Function ART =       new Function("artwork",						"art",      "NPART");
 		/**
 		 * Describes an array.
 		 */
-		public static final Function ARRAY=     new Function("array",						"array",    "NPARRAY");
+		public static final Function ARRAY =     new Function("array",						"array",    "NPARRAY");
 		/**
 		 * Describes an alignment object.
 		 */
-		public static final Function ALIGN=     new Function("align",						"align",    "NPALIGN");
+		public static final Function ALIGN =     new Function("align",						"align",    "NPALIGN");
 		/**
 		 * Describes a current-controlled voltage source.
 		 */
-		public static final Function CCVS=      new Function("ccvs",						"ccvs",     "NPCCVS");
+		public static final Function CCVS =      new Function("ccvs",						"ccvs",     "NPCCVS");
 		/**
 		 * Describes a current-controlled current source.
 		 */
-		public static final Function CCCS=      new Function("cccs",						"cccs",     "NPCCCS");
+		public static final Function CCCS =      new Function("cccs",						"cccs",     "NPCCCS");
 		/**
 		 * Describes a voltage-controlled voltage source.
 		 */
-		public static final Function VCVS=      new Function("vcvs",						"vcvs",     "NPVCVS");
+		public static final Function VCVS =      new Function("vcvs",						"vcvs",     "NPVCVS");
 		/**
 		 * Describes a voltage-controlled current source.
 		 */
-		public static final Function VCCS=      new Function("vccs",						"vccs",     "NPVCCS");
+		public static final Function VCCS =      new Function("vccs",						"vccs",     "NPVCCS");
 		/**
 		 * Describes a transmission line.
 		 */
-		public static final Function TLINE=     new Function("transmission-line",			"transm",   "NPTLINE");
+		public static final Function TLINE =     new Function("transmission-line",			"transm",   "NPTLINE");
 	}
 
 	// ------------------------ private data --------------------------
@@ -1069,13 +1069,13 @@ public abstract class NodeProto extends ElectricObject
 	 * Routine to set the specified flag bits on this NodeProto.
 	 * @param set the flag bits that are to be set on this NodeProto.
 	 */
-	public void setBit(FlagSet set) { checkChanging(); flagBits = flagBits | set.getMask(); }
+	public void setBit(FlagSet set) { /*checkChanging();*/ flagBits = flagBits | set.getMask(); }
 
 	/**
 	 * Routine to set the specified flag bits on this NodeProto.
 	 * @param set the flag bits that are to be cleared on this NodeProto.
 	 */
-	public void clearBit(FlagSet set) { checkChanging(); flagBits = flagBits & set.getUnmask(); }
+	public void clearBit(FlagSet set) { /*checkChanging();*/ flagBits = flagBits & set.getUnmask(); }
 
 	/**
 	 * Routine to test the specified flag bits on this NodeProto.
