@@ -2,6 +2,9 @@
 
 ************************* Version 8.01j: *********************************
 
+BUG: (8.24/04, GVG) MoCMOS via4 spacing rule was found as wide rule. NOTE: Also found in C-Electric
+FIX: Transformed into standard spacing rule
+
 BUG: (8/23/04, GVG) DRC and wide rules in MoCMOS not properly translated to new data structure (Metal2-Metal3 wide
 distance setup calling wrong constructor)
 FIX: Adding missing argument (WIDELIMIT)

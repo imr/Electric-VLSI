@@ -451,7 +451,9 @@ public class MoCMOS extends Technology
 		new DRC.RuleTemplate("25.1", DRC.RuleTemplate.DE|DRC.RuleTemplate.M5,    DRC.RuleTemplate.NODSIZ,    null,             null,            7, "Metal-4-Metal-5-Con"),
 		new DRC.RuleTemplate("25.1", DRC.RuleTemplate.DE|DRC.RuleTemplate.M6,    DRC.RuleTemplate.NODSIZ,    null,             null,            5, "Metal-4-Metal-5-Con"),
 
-		new DRC.RuleTemplate("25.2", DRC.RuleTemplate.ALL,               DRC.RuleTemplate.SPACINGW, WIDELIMIT, "Via4",           "Via4",           3),
+		// Bug even in C-Electric
+		// new DRC.RuleTemplate("25.2", DRC.RuleTemplate.ALL,               DRC.RuleTemplate.SPACINGW, WIDELIMIT, "Via4",           "Via4",           3),
+		new DRC.RuleTemplate("25.2", DRC.RuleTemplate.ALL,               DRC.RuleTemplate.SPACING, "Via4",           "Via4",           3, null),
 
 		new DRC.RuleTemplate("25.3", DRC.RuleTemplate.ALL,               DRC.RuleTemplate.VIASUR,   "Metal-4",         null,            1, "Metal-4-Metal-5-Con"),
 
