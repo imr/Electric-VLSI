@@ -999,6 +999,7 @@ public class Cell extends NodeProto
 		if (ms == null)
 		{
 			ms = new MaxSuffix();
+			maxSuffix.put(basename, ms);
 			return basename.findSuffixed(0);
 		} else 
 		{
