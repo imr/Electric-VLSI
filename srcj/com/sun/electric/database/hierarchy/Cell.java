@@ -42,6 +42,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Map;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -176,6 +177,7 @@ public class Cell extends NodeProto
 	/** The NodeInst in this cell that defines the cell center. */	private NodeInst referencePointNode;
 	/** The Cell's essential-bounds. */								private List essenBounds = new ArrayList();
 	/** A list of NodeInsts in this Cell. */						private List nodes;
+	/** A map from NodeProto to NodeUsage */						private Map usages;
 	/** A list of ArcInsts in this Cell. */							private List arcs;
 	/** The current timestamp value. */								private static int currentTime = 0;
 	/** The timestamp of last network renumbering of this Cell */	private int networksTime;
@@ -205,6 +207,7 @@ public class Cell extends NodeProto
 	{
 		Cell c = new Cell();
 		c.nodes = new ArrayList();
+		c.usages = new HashMap();
 		c.arcs = new ArrayList();
 		c.cellGroup = null;
 		c.tech = null;
@@ -437,17 +440,20 @@ public class Cell extends NodeProto
 	 * Routine to add a new NodeInst to the cell.
 	 * @param ni the NodeInst to be included in the cell.
 	 */
-	public void addNode(NodeInst ni)
+	public NodeUsage addNode(NodeInst ni)
 	{
+		NodeUsage nu = addUsage(ni.getProto());
+
 		// error check
-		if (nodes.contains(ni))
+		if (nu.contains(ni))
 		{
 			System.out.println("Cell " + this +" already contains node inst " + ni);
-			return;
+			return null;
 		}
 
 		// add the node
 		nodes.add(ni);
+		nu.addInst(ni);
 
 		// must recompute the bounds of the cell
 		boundsDirty = true;
@@ -465,6 +471,7 @@ public class Cell extends NodeProto
 		{
 			essenBounds.add(ni);
 		}
+		return nu;
 	}
 
 	/**
@@ -473,11 +480,15 @@ public class Cell extends NodeProto
 	 */
 	public void removeNode(NodeInst ni)
 	{
-		if (!nodes.contains(ni))
+		NodeUsage nu = ni.getNodeUsage();
+		if (!nu.contains(ni))
 		{
 			System.out.println("Cell " + this +" doesn't contain node inst " + ni);
 			return;
 		}
+		nu.removeInst(ni);
+		if (nu.getNumInsts() == 0)
+			usages.remove(nu.getProto());
 		nodes.remove(ni);
 
 		// must recompute the bounds of the cell
@@ -487,6 +498,64 @@ public class Cell extends NodeProto
 		if (ni == referencePointNode)
 			referencePointNode = null;
 		essenBounds.remove(ni);
+	}
+
+	/**
+	 * Routine to find or to to add a new NodeUsage to the cell.
+	 * @param protoType is a NodeProto of node usage
+	 */
+	private NodeUsage addUsage(NodeProto protoType)
+	{
+		NodeUsage nu = (NodeUsage)usages.get(protoType);
+		if (nu == null)
+		{
+			nu = new NodeUsage(protoType, this);
+			usages.put(protoType, nu);
+		}
+		return nu;
+	}
+
+	private void showUsages()
+	{
+		System.out.println("Usages of "+this);
+		for (Iterator it = usages.entrySet().iterator(); it.hasNext();)
+		{
+			Map.Entry ent = (Map.Entry)it.next();
+			NodeProto np = (NodeProto)ent.getKey();
+			NodeUsage nu = (NodeUsage)ent.getValue();
+			if (nu.getProto() != np) System.out.println("?????????");
+			System.out.println("\t"+np+" "+nu.getNumInsts());
+		}
+	}
+
+	private class NodeInstsIterator implements Iterator
+	{
+		private Iterator uit;
+		private Iterator iit;
+
+		NodeInstsIterator()
+		{
+			uit = getNodeUsages();
+			if (uit.hasNext())
+			{
+				NodeUsage nu = (NodeUsage)uit.next();
+				iit = nu.getInsts();
+			}
+		}
+
+		public boolean hasNext() { return iit != null && iit.hasNext() || uit.hasNext(); }
+
+		public Object next()
+		{
+			if (iit == null || !iit.hasNext())
+			{
+				NodeUsage nu = (NodeUsage)uit.next();
+				iit = nu.getInsts();
+			}
+			return iit.next();
+		}
+
+		public void remove() {};
 	}
 
 	/**
@@ -511,7 +580,7 @@ public class Cell extends NodeProto
 			boundsEmpty = true;
 			cellLowX = cellHighX = cellLowY = cellHighY = 0;
 
-			for(Iterator it = nodes.iterator(); it.hasNext(); )
+			for(Iterator it = getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst) it.next();
 				if (ni.getProto() == Generic.tech.cellCenter_node) continue;
@@ -618,9 +687,9 @@ public class Cell extends NodeProto
 //	private HashMap copyNodes(Cell f)
 //	{
 //		HashMap oldToNew = new HashMap();
-//		for (int i = 0; i < nodes.size(); i++)
+//		for (Iterator it = getNodes(); it.hasNext();)
 //		{
-//			NodeInst oldInst = (NodeInst) nodes.get(i);
+//			NodeInst oldInst = (NodeInst) it.next();
 //			NodeProto oldProto = oldInst.getProto();
 //			if (oldProto instanceof PrimitiveNode
 //				&& oldProto.getProtoName().equals("Cell-Center"))
@@ -714,15 +783,11 @@ public class Cell extends NodeProto
 		System.out.println("  newestVersion= " + getNewestVersion().describe());
 		Rectangle2D rect = getBounds();
 		System.out.println("  location: (" + rect.getX() + "," + rect.getY() + "), size: " + rect.getWidth() + "x" + rect.getHeight());
-		System.out.println("  nodes (" + nodes.size() + "):");
-		for (int i = 0; i < nodes.size(); i++)
+		System.out.println("  nodes (" + getNumNodes() + "):");
+		for (Iterator it = getNodeUsages(); it.hasNext();)
 		{
-			if (i > 20)
-			{
-				System.out.println("     ...");
-				break;
-			}
-			System.out.println("     " + nodes.get(i));
+			NodeUsage nu = (NodeUsage)it.next();
+			System.out.println("     " + nu + " ("+nu.getNumInsts()+")");
 		}
 		System.out.println("  arcs (" + arcs.size() + "):");
 		for (int i = 0; i < arcs.size(); i++)
@@ -824,7 +889,7 @@ public class Cell extends NodeProto
 	 */
 	public Iterator getNodes()
 	{
-		return nodes.iterator();
+		return new NodeInstsIterator();
 	}
 
 	/**
@@ -833,7 +898,31 @@ public class Cell extends NodeProto
 	 */
 	public int getNumNodes()
 	{
-		return nodes.size();
+		int n = 0;
+		for (Iterator it = getNodeUsages(); it.hasNext();)
+		{
+			NodeUsage nu = (NodeUsage)it.next();
+			n += nu.getNumInsts();
+		}
+		return n;
+	}
+
+	/**
+	 * Routine to return an Iterator over all NodeUsage objects in this Cell.
+	 * @return an Iterator over all NodeUsage objects in this Cell.
+	 */
+	public Iterator getNodeUsages()
+	{
+		return usages.values().iterator();
+	}
+
+	/**
+	 * Routine to return the number of NodeUsage objects in this Cell.
+	 * @return the number of NodeUsage objects in this Cell.
+	 */
+	public int getNumNodeUsages()
+	{
+		return usages.size();
 	}
 
 	/**
@@ -843,9 +932,9 @@ public class Cell extends NodeProto
 	 */
 	public NodeInst findNode(String name)
 	{
-		for (int i = 0; i < nodes.size(); i++)
+		for (Iterator it = getNodes(); it.hasNext();)
 		{
-			NodeInst ni = (NodeInst) nodes.get(i);
+			NodeInst ni = (NodeInst) it.next();
 			String nodeNm = ni.getName();
 			if (nodeNm != null && nodeNm.equals(name))
 				return ni;
@@ -959,7 +1048,9 @@ public class Cell extends NodeProto
 			return arcs.contains(thing);
 		} else if (thing instanceof NodeInst)
 		{
-			return nodes.contains(thing);
+			NodeInst ni = (NodeInst)thing;
+			NodeUsage nu = (NodeUsage)usages.get(ni.getProto());
+			return (nu != null) && nu.contains(ni);
 		} else
 		{
 			return false;
@@ -1148,12 +1239,12 @@ public class Cell extends NodeProto
 	private boolean redoDescendents(HashMap userEquivPorts)
 	{
 		boolean redoThis = false;
-		for (int i = 0; i < nodes.size(); i++)
+		for (Iterator it = getNodeUsages(); it.hasNext();)
 		{
-			NodeInst ni = (NodeInst) nodes.get(i);
-			if (ni.isIconOfParent()) continue;
+			NodeUsage nu = (NodeUsage) it.next();
+			if (nu.isIconOfParent()) continue;
 
-			NodeProto np = ni.getProto();
+			NodeProto np = nu.getProto();
 			if (np.getEquivPortsCheckTime() != currentTime)
 				np.updateEquivPorts(userEquivPorts, currentTime);
 			if (networksTime < np.getEquivPortsUpdateTime())
@@ -1164,21 +1255,26 @@ public class Cell extends NodeProto
 
 	private void placeEachPortInstOnItsOwnNet()
 	{
-		for (int i = 0; i < nodes.size(); i++)
+		for (Iterator uit = getNodeUsages(); uit.hasNext();)
 		{
-			NodeInst ni = (NodeInst) nodes.get(i);
-			if (ni.isIconOfParent()) continue;
+			NodeUsage nu = (NodeUsage) uit.next();
+			if (nu.isIconOfParent()) continue;
 
-			NodeProto np = ni.getProto();
+			NodeProto np = nu.getProto();
 			np.numeratePorts();
 			int[] eq = np.getEquivPorts();
 			JNetwork[] nets = new JNetwork[eq.length];
-			for (Iterator it = ni.getPortInsts(); it.hasNext();)
+			for (Iterator iit = nu.getInsts(); iit.hasNext();)
 			{
-				PortInst pi = (PortInst) it.next();
-				int k = eq[pi.getPortProto().getTempInt()];
-				if (nets[k] == null) nets[k] = new JNetwork(this);
-				nets[k].addPortInst(pi);
+				NodeInst ni = (NodeInst)iit.next();
+				for (int i = 0; i < nets.length; i++) nets[i] = null;
+				for (Iterator pit = ni.getPortInsts(); pit.hasNext();)
+				{
+					PortInst pi = (PortInst) pit.next();
+					int k = eq[pi.getPortProto().getTempInt()];
+					if (nets[k] == null) nets[k] = new JNetwork(this);
+					nets[k].addPortInst(pi);
+				}
 			}
 		}
 	}
@@ -1210,87 +1306,6 @@ public class Cell extends NodeProto
 			e.getNetwork().addName(expNm);
 		}
 	}
-
-	/*
-	private PortProto getEquivPortProto(PortProto pp) {
-		NodeProto np = pp.getParent();
-		if (np instanceof Cell) {
-			String nm = pp.getProtoName();
-			return ((Cell)np).getEquivalent().findPortProto(nm);
-		} else {
-			return pp;
-		}
-	}
-	private void mergeNetsConnectedByNodeProtoSubnets()
-	{
-		for (int i = 0; i < nodes.size(); i++)
-		{
-			NodeInst ni = (NodeInst) nodes.get(i);
-
-			if (ni.isIconOfParent())
-				continue;
-
-			HashMap netToPort = new HashMap(); // subNet -> PortInst
-			for (Iterator it = ni.getPortInsts(); it.hasNext();)
-			{
-				PortInst piNew = (PortInst) it.next();
-				JNetwork subNet =
-					getEquivPortProto(piNew.getPortProto()).getNetwork();
-
-				if (subNet == null && ni.getProto() instanceof Cell)
-				{
-					System.out.println("Cell.mergeNets... : no subNet on Cell: "
-						+ ni.getProto().getProtoName()
-						+ " port: "
-						+ piNew.getPortProto());
-					return;
-				}
-
-				if (subNet != null)
-				{
-					PortInst piOld = (PortInst) netToPort.get(subNet);
-					if (piOld != null)
-					{
-						JNetwork.merge(piOld.getNetwork(), piNew.getNetwork());
-					} else
-					{
-						netToPort.put(subNet, piNew);
-					}
-				}
-			}
-		}
-	}
-
-	private void mergeNetsConnectedByUserEquivPorts(HashMap equivPorts)
-	{
-		for (int i = 0; i < nodes.size(); i++)
-		{
-			NodeInst ni = (NodeInst) nodes.get(i);
-
-			if (ni.isIconOfParent())
-				continue;
-
-			HashMap listToPort = new HashMap(); // equivList -> PortInst
-			for (Iterator it = ni.getPortInsts(); it.hasNext();)
-			{
-				PortInst piNew = (PortInst) it.next();
-				Object equivList =
-					equivPorts.get(getEquivPortProto(piNew.getPortProto()));
-				if (equivList != null)
-				{
-					PortInst piOld = (PortInst) listToPort.get(equivList);
-					if (piOld != null)
-					{
-						JNetwork.merge(piOld.getNetwork(), piNew.getNetwork());
-					} else
-					{
-						listToPort.put(equivList, piNew);
-					}
-				}
-			}
-		}
-	}
-	*/
 
 	protected void connectEquivPorts(int[] newEquivPorts)
 	{
@@ -1384,8 +1399,6 @@ public class Cell extends NodeProto
 
 		placeEachPortInstOnItsOwnNet();
 		mergeNetsConnectedByArcs();
-		//mergeNetsConnectedByNodeProtoSubnets();
-		//mergeNetsConnectedByUserEquivPorts(equivPorts);
 		addExportNamesToNets();
 		mergeSameNameNets();
 		buildNetworkList();

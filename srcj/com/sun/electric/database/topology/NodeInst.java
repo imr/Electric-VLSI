@@ -28,6 +28,7 @@ import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.ArcProto;
@@ -83,6 +84,7 @@ public class NodeInst extends Geometric
 
 	// ---------------------- private data ----------------------------------
 	/** prototype of this node instance */					private NodeProto protoType;
+	/** node usage of this node instance */					private NodeUsage nodeUsage;
 	/** flag bits for this node instance */					private int userBits;
 	/** labling information for this node instance */		private int textbits;
 	/** HashTable of portInsts on this node instance */		private HashMap portMap;
@@ -241,7 +243,7 @@ public class NodeInst extends Geometric
 		// add to linked lists
 		linkGeom(parent);
 		protoType.addInstance(this);
-		parent.addNode(this);
+		nodeUsage = parent.addNode(this);
 		return false;
 	}
 
@@ -254,6 +256,7 @@ public class NodeInst extends Geometric
 		unLinkGeom(parent);
 		protoType.removeInstance(this);
 		parent.removeNode(this);
+		nodeUsage = null;
 	}
 
 	/**
@@ -1035,6 +1038,12 @@ public class NodeInst extends Geometric
 	 * @return the prototype of this NodeInst.
 	 */
 	public NodeProto getProto() { return protoType; }
+
+	/**
+	 * Routine to return the NodeUsage of this NodeInst.
+	 * @return the NodeUsage of this NodeInst.
+	 */
+	public NodeUsage getNodeUsage() { return nodeUsage; }
 
 	/**
 	 * Routine to return the Text Descriptor associated with this NodeInst.
