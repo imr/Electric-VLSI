@@ -120,7 +120,7 @@ public final class Main
 		}
 
         ActivityLogger.initialize(true, true, false);
-        runThreadStatusTimer();
+        //runThreadStatusTimer();
         EventProcessor ep = new EventProcessor();
 
 		// initialize Mac OS 10 if applicable
