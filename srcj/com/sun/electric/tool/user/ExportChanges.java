@@ -1077,7 +1077,8 @@ public final class ExportChanges
 
 		// show the ports
         Highlighter highlighter = wnd.getHighlighter();
-		highlighter.clear();
+		//highlighter.clear();
+        /*
 		if (nodes != null)
 		{
 			for(Iterator it = nodes.iterator(); it.hasNext(); )
@@ -1085,7 +1086,7 @@ public final class ExportChanges
 				NodeInst ni = (NodeInst)it.next();
 				highlighter.addElectricObject(ni, cell);
 			}
-		}
+		}*/
 		for(int i=0; i<total; i++)
 		{
 			int index = (bestOff + i) % total;
