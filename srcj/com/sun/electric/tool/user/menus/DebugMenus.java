@@ -72,9 +72,7 @@ import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.io.File;
-import java.io.PrintWriter;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
 import java.net.URL;
@@ -777,15 +775,49 @@ try {
             Library lib = (Library)it.next();
             String libName = lib.getName();
             if (lib.getLibFile() == null) continue; // Clipboard
-            String fullName = lib.getLibFile().getFile();
             String oldName = "../../data/"+testpath+"/"+libName+".jelib";
             String newName = "tmp/sport/"+libName+".jelib";
             FileMenu.SaveLibrary job = new FileMenu.SaveLibrary(lib, "tmp/sport/"+libName, FileType.JELIB, false, true);
     job.performTask();
-            Exec e = new Exec("/usr/bin/diff " + oldName + " " + newName, null, dir, outputStream, errStream);
-            e.start();
-    outputStream.flush();
-            errStream.flush();
+
+            LineNumberReader oldReader = new LineNumberReader(new FileReader(oldName));
+            LineNumberReader newReader = new LineNumberReader(new FileReader(newName));
+            int oldLineNum = 0;
+            int newLineNum = -1;
+            boolean diff = false;
+            String oldLine = null, newLine = null;
+
+            for(;;)
+            {
+                oldLine = oldReader.readLine();
+                oldLineNum = oldReader.getLineNumber();
+                if (oldLine == null) break;
+                newLine = newReader.readLine();
+                newLineNum = newReader.getLineNumber();
+                if (newLine == null) break;
+                // skipping the headers
+                if (oldLine.startsWith("H") &&
+                        newLine.startsWith("H")) continue;
+                // skipping
+                if (oldLine.startsWith("L") &&
+                        newLine.startsWith("L"))
+                {
+                    int index = oldLine.indexOf("|");
+                    oldLine = oldLine.substring(1, index);
+                    index = newLine.indexOf("|");
+                    newLine = newLine.substring(1, index);
+                }
+                diff = !oldLine.equals(newLine);
+                if (diff) break;
+            }
+            System.out.println("Library " + oldName + " and " + newName + " at line " + oldLineNum);
+            System.out.println(oldLine);
+             System.out.println(newLine);
+
+//            Exec e = new Exec("/usr/bin/diff " + oldName + " " + newName, null, dir, outputStream, errStream);
+//            e.start();
+//    outputStream.flush();
+//            errStream.flush();
             //Runtime.getRuntime().exec("cmd /c /usr/bin/diff " + oldName + " " + newName + " >> gilda.log" );
         }
             outputStream.close();
