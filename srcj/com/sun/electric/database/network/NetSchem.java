@@ -360,6 +360,12 @@ class NetSchem extends NetCell {
 				changed = true;
 				portImplementation[i] = equivIndex;
 			}
+			if (equivIndex < 0) {
+				String msg = cell + ": Icon port <"+e.getNameKey()+"> has not equivalent port";
+				System.out.println(msg);
+				ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortPorts);
+				log.addExport(e, true);
+			}
 		}
 		return changed;
 	}
@@ -836,6 +842,7 @@ class NetSchem extends NetCell {
 				Export e = (Export) np.getPort(m);
 				int portIndex = m;
 				portIndex = icon.portImplementation[portIndex];
+				if (portIndex < 0) continue;
 				int portOffset = schem.portOffsets[portIndex] - schem.portOffsets[0];
 				int busWidth = e.getNameKey().busWidth();
 				int drawn = drawns[ni_pi[k] + m];
