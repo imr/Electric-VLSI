@@ -1707,10 +1707,10 @@ public class BiCMOS extends Technology
         nodeGroups = new Object[maxY][3];
         int count = -1;
 
-        nodeGroups[++count][0] = Metal_1_arc; nodeGroups[count][1] = mp_node;
-        nodeGroups[++count][0] = Metal_2_arc; nodeGroups[count][1] = mp0_node; nodeGroups[count][2] = mmc_node;
         nodeGroups[++count][0] = Polysilicon_arc; nodeGroups[count][1] = pp_node; nodeGroups[count][2] = mpc0_node;
         nodeGroups[++count][0] = Polysilicon_2_arc; nodeGroups[count][1] = pp0_node; nodeGroups[count][2] = mpc1_node;
+        nodeGroups[++count][0] = Metal_1_arc; nodeGroups[count][1] = mp_node;
+        nodeGroups[++count][0] = Metal_2_arc; nodeGroups[count][1] = mp0_node; nodeGroups[count][2] = mmc_node;
         nodeGroups[++count][0] = Pdiff_arc; nodeGroups[count][1] = pp1_node; nodeGroups[count][2] = mpc_node;
         nodeGroups[++count][0] = Ndiff_arc; nodeGroups[count][1] = np_node; nodeGroups[count][2] = mnc_node;
         nodeGroups[++count][0] = Active_arc; nodeGroups[count][1] = ap_node; nodeGroups[count][2] = mnwc_node;

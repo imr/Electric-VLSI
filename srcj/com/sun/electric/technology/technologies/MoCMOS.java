@@ -2792,6 +2792,13 @@ public class MoCMOS extends Technology
         int maxY = metalArcs.length + activeArcs.length + 1 /* poly*/;
         nodeGroups = new Object[maxY][4];
         int count = -1;
+
+        // Poly layer first (metal zero)
+        nodeGroups[++count][0] = poly1_arc;
+        nodeGroups[count][1] = poly1Pin_node;
+        nodeGroups[count][2] = metal1Poly1Contact_node;
+
+        // MXMY contacts
         for (int i = 0; i < metalArcs.length; i++)
         {
             nodeGroups[++count][0] = metalArcs[i];
@@ -2799,9 +2806,6 @@ public class MoCMOS extends Technology
             nodeGroups[count][2] = (i > 0) ? metalContactNodes[i-1] : null;
         }
 
-        nodeGroups[++count][0] = poly1_arc;
-        nodeGroups[count][1] = poly1Pin_node;
-        nodeGroups[count][2] = metal1Poly1Contact_node;
         String[] shortNames = {"p", "n"};
         for (int i = 0; i < activeArcs.length; i++)
         {

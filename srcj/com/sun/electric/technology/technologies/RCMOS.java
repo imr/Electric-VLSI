@@ -1060,9 +1060,9 @@ public class RCMOS extends Technology
         nodeGroups = new Object[maxY][3];
         int count = -1;
 
+        nodeGroups[++count][0] = polysilicon_arc; nodeGroups[count][1] = polysiliconPin_node; nodeGroups[count][2] = metal1PolyCon_node;
         nodeGroups[++count][0] = metal1_arc; nodeGroups[count][1] = metal1Pin_node; nodeGroups[count][2] = "Cell";
         nodeGroups[++count][0] = metal2_arc; nodeGroups[count][1] = metal2Pin_node; nodeGroups[count][2] = metal1Metal2Con_node;
-        nodeGroups[++count][0] = polysilicon_arc; nodeGroups[count][1] = polysiliconPin_node; nodeGroups[count][2] = metal1PolyCon_node;
         nodeGroups[++count][0] = sActive_arc; nodeGroups[count][1] = sActivePin_node; nodeGroups[count][2] = metal1SActiveCon_node;
         nodeGroups[++count][0] = dActive_arc; nodeGroups[count][1] = dActivePin_node; nodeGroups[count][2] = metal1DActiveCon_node;
         nodeGroups[++count][0] = substrateActive_arc; nodeGroups[count][1] = substrateActivePin_node; nodeGroups[count][2] = metal1SubstrateCon_node;

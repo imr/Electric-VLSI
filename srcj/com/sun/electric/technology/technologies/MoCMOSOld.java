@@ -1349,9 +1349,9 @@ public class MoCMOSOld extends Technology
         nodeGroups = new Object[maxY][3];
         int count = -1;
 
+        nodeGroups[++count][0] = Polysilicon_arc; nodeGroups[count][1] = pp_node; nodeGroups[count][2] = mpc_node;
         nodeGroups[++count][0] = Metal_1_arc; nodeGroups[count][1] = mp_node;
         nodeGroups[++count][0] = Metal_2_arc; nodeGroups[count][1] = mp0_node; nodeGroups[count][2] = mmc_node;
-        nodeGroups[++count][0] = Polysilicon_arc; nodeGroups[count][1] = pp_node; nodeGroups[count][2] = mpc_node;
         nodeGroups[++count][0] = S_Active_arc; nodeGroups[count][1] = sap_node; nodeGroups[count][2] = msac_node;
         nodeGroups[++count][0] = D_Active_arc; nodeGroups[count][1] = dap_node; nodeGroups[count][2] = mdac_node;
         nodeGroups[++count][0] = Active_arc; nodeGroups[count][1] = ap_node; nodeGroups[count][2] = mwc_node;

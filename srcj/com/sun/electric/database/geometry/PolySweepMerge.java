@@ -110,6 +110,7 @@ public class PolySweepMerge extends GeometryHandler
 		{
 			Object layer = it.next();
             PolySweepContainer container = (PolySweepContainer)layers.get(layer);
+            PolySweepContainer otherContainer = (PolySweepContainer)other.layers.get(layer);
 
             // Nothing valid in top cell
             if (container == null)
@@ -117,10 +118,9 @@ public class PolySweepMerge extends GeometryHandler
                 // No need of creating polyListArray
                 container = new PolySweepContainer(false);
                 layers.put(layer, container);
-                container.areas = new ArrayList();
+                container.areas = new ArrayList(otherContainer.areas.size());
             }
 
-            PolySweepContainer otherContainer = (PolySweepContainer)other.layers.get(layer);
             // Since I have to apply local transformation, I can't use the same array
             List otherAreas = new ArrayList(otherContainer.areas.size());
             for (int i = 0; i < otherContainer.areas.size(); i++)

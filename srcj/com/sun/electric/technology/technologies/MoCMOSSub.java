@@ -2127,14 +2127,14 @@ public class MoCMOSSub extends Technology
         nodeGroups = new Object[maxY][3];
         int count = -1;
 
+        nodeGroups[++count][0] = Polysilicon_1_arc; nodeGroups[count][1] = pp_node; nodeGroups[count][2] = mpc_node;
+        nodeGroups[++count][0] = Polysilicon_2_arc; nodeGroups[count][1] = pp0_node; nodeGroups[count][2] = mpc0_node;
         nodeGroups[++count][0] = Metal_1_arc; nodeGroups[count][1] = mp_node;
         nodeGroups[++count][0] = Metal_2_arc; nodeGroups[count][1] = mp0_node; nodeGroups[count][2] = mmc_node;
         nodeGroups[++count][0] = Metal_3_arc; nodeGroups[count][1] = mp1_node; nodeGroups[count][2] = mmc0_node;
         nodeGroups[++count][0] = Metal_4_arc; nodeGroups[count][1] = mp2_node; nodeGroups[count][2] = mmc1_node;
         nodeGroups[++count][0] = Metal_5_arc; nodeGroups[count][1] = mp3_node; nodeGroups[count][2] = mmc2_node;
         nodeGroups[++count][0] = Metal_6_arc; nodeGroups[count][1] = mp4_node; nodeGroups[count][2] = mmc3_node;
-        nodeGroups[++count][0] = Polysilicon_1_arc; nodeGroups[count][1] = pp_node; nodeGroups[count][2] = mpc_node;
-        nodeGroups[++count][0] = Polysilicon_2_arc; nodeGroups[count][1] = pp0_node; nodeGroups[count][2] = mpc0_node;
         nodeGroups[++count][0] = P_Active_arc; nodeGroups[count][1] = pap_node; nodeGroups[count][2] = mpac_node;
         nodeGroups[++count][0] = N_Active_arc; nodeGroups[count][1] = nap_node; nodeGroups[count][2] = mnac_node;
         nodeGroups[++count][0] = Active_arc; nodeGroups[count][1] = ap_node; nodeGroups[count][2] = mwc_node;

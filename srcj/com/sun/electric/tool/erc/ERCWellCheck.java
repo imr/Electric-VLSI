@@ -644,16 +644,16 @@ public class ERCWellCheck
 	        // Checking if job is scheduled for abort or already aborted
 	        //if (check.job!= null && check.job.checkForAbort()) return (false);
 
+			NodeInst ni = no.getNodeInst();
+	        if (NodeInst.isSpecialNode(ni))
+		        return false; // Nothing to do, Dec 9;
+
 			// merge everything
 	        Cell cell = info.getCell();
 	        GeometryHandler thisMerge = (GeometryHandler)check.cellMerges.get(cell);
-			NodeInst ni = no.getNodeInst();
-            PrimitiveNode.Function fun = ni.getFunction();
             AffineTransform trans = null;
+            PrimitiveNode.Function fun = ni.getFunction();
 	        boolean wellSubsContact = (fun == PrimitiveNode.Function.WELL || fun == PrimitiveNode.Function.SUBSTRATE);
-
-	        if (NodeInst.isSpecialNode(ni))
-		        return false; // Nothing to do, Dec 9;
 
 	        // No done yet
 	        if (check.doneCells.get(cell) == null)
