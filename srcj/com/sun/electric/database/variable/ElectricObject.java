@@ -86,7 +86,7 @@ public class ElectricObject
 	public Variable getVar(String name)
     {
         Variable.Key key = findKey(name);
-        return key != null ? getVar(key) : null;
+        return getVar(key, null);
     }
 
 	/**
@@ -96,9 +96,7 @@ public class ElectricObject
 	 */
 	public Variable getVar(Variable.Key key)
 	{
-		if (vars == null) return null;
-		Variable var = (Variable)vars.get(key);
-		return var;
+		return getVar(key, null);
 	}
 
 	/**
@@ -110,22 +108,52 @@ public class ElectricObject
 	public Variable getVar(String name, Class type)
     {
         Variable.Key key = findKey(name);
-        return key != null ? getVar(key, type) : null;
+        return getVar(key, type);
     }
 
 	/**
 	 * Method to return the Variable on this ElectricObject with a given key and type.
-	 * @param key the key of the Variable.
-	 * @param type the required type of the Variable.
-	 * @return the Variable with that key and type, or null if there is no such Variable.
+	 * @param key the key of the Variable. Returns null if key is null.
+	 * @param type the required type of the Variable. Ignored if null.
+	 * @return the Variable with that key and type, or null if there is no such Variable
+     * or default Variable value.
 	 */
 	public Variable getVar(Variable.Key key, Class type)
 	{
+        if (key == null) return null;
+        reinheritVars();
 		if (vars == null) return null;
 		Variable var = (Variable)vars.get(key);
-		if (var == null) return null;
-		if (!type.isInstance(var.getObject())) return null;
-		return var;
+		if (var != null) {
+            if (type == null) return var;                   // null type means any type
+            if (type.isInstance(var.getObject())) return var;
+        }
+        return null;
+    }
+
+    /**
+     * Re-inherits Variables from the Object that owns the
+     * "default" Variables for this object.
+     */
+    private void reinheritVars()
+    {
+        ElectricObject defOwner = getVarDefaultOwner();
+        if (defOwner == null) return;
+        if (defOwner == this) return;
+
+        // reinherit vars marked as parameters, unless they already exist
+        for (Iterator it = defOwner.getVariables(); it.hasNext(); ) {
+            Variable var = (Variable)it.next();
+            // skip if not a parameter
+            if (!var.getTextDescriptor().isParam()) continue;
+            // skip if we already have instance var
+            if ((vars != null) && (vars.get(var.getKey()) != null)) continue;
+            // otherwise make copy of default var locally
+            Variable newVar = newVar(var.getKey(), var.getObject());
+            if (newVar == null) continue;
+            newVar.setTextDescriptor(var.getTextDescriptor());
+            newVar.copyFlags(var);
+        }
 	}
 
     /**
@@ -148,6 +176,7 @@ public class ElectricObject
 	 */
 	public int numDisplayableVariables(boolean multipleStrings)
 	{
+        reinheritVars();
 		if (vars == null) return 0;
 
 		int numVars = 0;
@@ -452,22 +481,14 @@ public class ElectricObject
 		{
 			return newVar(key, value);
 		}
-		boolean oldCantSet = var.isCantSet();
-		Variable.Code oldCode = var.getCode();
-		boolean oldDisplay = var.isDisplay();
-		boolean oldTemporary = var.isDontSave();
-		TextDescriptor td = var.getTextDescriptor();
 
 		// set the variable
 		Variable newVar = newVar(key, value);
 		if (newVar == null) return null;
 
 		// restore values
-		newVar.setTextDescriptor(td);
-		if (oldCantSet) newVar.setCantSet();
-		newVar.setCode(oldCode);
-		if (oldDisplay) newVar.setDisplay(oldDisplay);
-		if (oldTemporary) newVar.setDontSave();
+		newVar.setTextDescriptor(var.getTextDescriptor());
+        newVar.copyFlags(var);
 		return newVar;
 	}
 
@@ -619,17 +640,11 @@ public class ElectricObject
 		for(Iterator it = other.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
-			Variable.Key key = var.getKey();
-			Object obj = var.getObject();
-			int flags = var.lowLevelGetFlags();
-			TextDescriptor td = var.getTextDescriptor();
-			Variable newVar = this.newVar(key, obj);
+            Variable newVar = this.newVar(var.getKey(), var.getObject());
 			if (newVar != null)
 			{
 				newVar.copyFlags(var);
-				newVar.setTextDescriptor(td);
-                newVar.setCode(var.getCode());
-                newVar.setDisplay(var.isDisplay());
+				newVar.setTextDescriptor(var.getTextDescriptor());
 			}
 		}
 
@@ -848,6 +863,7 @@ public class ElectricObject
 	 */
 	public Iterator getVariables()
 	{
+        reinheritVars();
 		if (vars == null)
 			return (new ArrayList()).iterator();
 		return vars.values().iterator();
@@ -859,6 +875,7 @@ public class ElectricObject
 	 */
 	public int getNumVariables()
 	{
+        reinheritVars();
 		if (vars == null) return 0;
 		return vars.entrySet().size();
 	}

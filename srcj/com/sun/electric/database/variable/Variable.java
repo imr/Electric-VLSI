@@ -133,7 +133,7 @@ public class Variable
 	 * @param descriptor a TextDescriptor to control how the Variable will be displayed.
 	 * @param key a Key object that identifies this Variable.
 	 */
-	public Variable(ElectricObject owner, Object addr, TextDescriptor descriptor, Key key)
+	protected Variable(ElectricObject owner, Object addr, TextDescriptor descriptor, Key key)
 	{
         // user input text may describe a number that is not parsable by the Java Bean Shell
         // (such as 0.01p, which equals 0.01E-12). To prevent this being a problem, any String
