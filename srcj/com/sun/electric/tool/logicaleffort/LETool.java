@@ -102,7 +102,7 @@ public class LETool extends Tool {
         Variable var = getLEDRIVE(ni, context.push(ni));
         if (var == null) {
             // none found, try to find drive strength using old format from C-Electric
-            var = getLEDRIVE_old(ni, context.push(ni));
+            var = getLEDRIVE_old(ni, context);
         }
         //if (var == null) return "No variable "+ledrive;
         if (var == null) throw new EvalJavaBsh.IgnorableException("getdrive() var not found");
@@ -174,9 +174,13 @@ public class LETool extends Tool {
             var = no.getVar("LEDRIVE_"+drive+";0;S");
             if (var != null) return var;            // look for var
             int i = drive.indexOf(';');
-            if (i == -1) return null;
+            if (i == -1) break;
             drive = drive.substring(i+1);             // remove top level of hierarchy
         }
+        // look for it at current level
+        if (DEBUG) System.out.println("  Looking for: LEDRIVE_0;S");
+        var = no.getVar("LEDRIVE_0;S");
+        if (var != null) return var;            // look for var
         return null;
     }
 
@@ -221,7 +225,7 @@ public class LETool extends Tool {
      * @return  a string denoting hierarchical path of node
      */
     private static String makeDriveStrOLD(VarContext context) {
-        String s = "LEDRIVE_"+makeDriveStrOLDRecurse(context.pop())+";0;S";
+        String s = "LEDRIVE_"+makeDriveStrOLDRecurse(context)+";0;S";
         //System.out.println("name is "+s);
         return s;
     }

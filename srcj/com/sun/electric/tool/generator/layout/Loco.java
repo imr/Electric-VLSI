@@ -100,12 +100,14 @@ public class Loco extends Job {
 		EditWindow wnd = EditWindow.getCurrent();
 		Cell cell = wnd.getCell();
 		if (cell==null) {
-			System.out.println("Please open the schematic for which you " +				               "want to generate gate layouts.");
+			System.out.println("Please open the schematic for which you " +
+				               "want to generate gate layouts.");
 			return;		
 		}
 		View view = cell.getView();
 		if (view!=View.SCHEMATIC) {
-			System.out.println("The current cell isn't a schematic. This " +				               "command only works on schematics.");
+			System.out.println("The current cell isn't a schematic. This " +
+				               "command only works on schematics.");
 			return;
 		}
 		System.out.println("Generating layouts for gates in the schematic: "+
@@ -158,7 +160,7 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 	private void generateCell(Nodable iconInst, VarContext context) {
 		String pNm = iconInst.getProto().getProtoName();
 		Variable var = iconInst.getVar("ATTR_X");
-		double x = getNumericVal(context.evalVar(var));
+		double x = getNumericVal(context.evalVar(var, iconInst));
 		if (x==-1) return;
 		
 		StdCellParams sc = stdCell;
