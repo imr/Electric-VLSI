@@ -131,6 +131,8 @@ public class ViewMenu {
         Cell schematicView = curCell.otherView(View.SCHEMATIC);
         if (schematicView != null)
             WindowFrame.createEditWindow(schematicView);
+        else
+            System.out.println("No schematic view for cell "+curCell.describe());
     }
 
     public static void editMultiPageSchematicViewCommand()
