@@ -1,5 +1,6 @@
 /* -*- tab-width: 4 -*-
  */
+import com.sun.electric.tool.simulation.interval.RawFile;
 import Jama.*;
 import Jama.util.Maths;
 import java.io.*;
@@ -480,37 +481,22 @@ public class Trick {
 		int k;
 		int numPoints = 10000;
 		int numVars = 1 + 3*3*2*2;
-		Matrix raw = new Matrix(numPoints + 1, numVars);
-		String varName[] = new String[numVars];
-		String varType[] = new String[numVars];
-		varName[0] = "t";
-		varType[0] = "time";
+		RawFile raw = new RawFile(numPoints + 1, numVars);
+		raw.setVar(0, "t", "time");
 		for (k = 0; k < 3; k++) {
-			varName[1 + k*12 + 0] = "va" + k;
-			varType[1 + k*12 + 0] = "voltage";
-			varName[1 + k*12 + 1] = "vb" + k;
-			varType[1 + k*12 + 1] = "voltage";
-			varName[1 + k*12 + 2] = "il" + k;
-			varType[1 + k*12 + 2] = "current";
-			varName[1 + k*12 + 3] = "dva" + k;
-			varType[1 + k*12 + 3] = "voltage";
-			varName[1 + k*12 + 4] = "dvb" + k;
-			varType[1 + k*12 + 4] = "voltage";
-			varName[1 + k*12 + 5] = "dil" + k;
-			varType[1 + k*12 + 5] = "current";
+			raw.setVar(1 + k*12 + 0, "va",     "voltage");
+			raw.setVar(1 + k*12 + 1, "vb",     "voltage");
+			raw.setVar(1 + k*12 + 2, "il",     "current");
+			raw.setVar(1 + k*12 + 3, "dva"+k,  "voltage");
+			raw.setVar(1 + k*12 + 4, "dvb"+k,  "voltage");
+			raw.setVar(1 + k*12 + 5, "dil"+k,  "current");
 
-			varName[1 + k*12 + 6] = "fva" + k;
-			varType[1 + k*12 + 6] = "voltage";
-			varName[1 + k*12 + 7] = "fvb" + k;
-			varType[1 + k*12 + 7] = "voltage";
-			varName[1 + k*12 + 8] = "fil" + k;
-			varType[1 + k*12 + 8] = "current";
-			varName[1 + k*12 + 9] = "dfva" + k;
-			varType[1 + k*12 + 9] = "voltage";
-			varName[1 + k*12 +10] = "dfvb" + k;
-			varType[1 + k*12 +10] = "voltage";
-			varName[1 + k*12 +11] = "dfil" + k;
-			varType[1 + k*12 +11] = "current";
+			raw.setVar(1 + k*12 + 6, "fva"+k,  "voltage");
+			raw.setVar(1 + k*12 + 7, "fvb"+k,  "voltage");
+			raw.setVar(1 + k*12 + 8, "fil"+k,  "current");
+			raw.setVar(1 + k*12 + 9, "dfva"+k, "voltage");
+			raw.setVar(1 + k*12 +10, "dfvb"+k, "voltage");
+			raw.setVar(1 + k*12 +11, "dfil"+k, "current");
 		}
 		double T = 20.0;
 		for (int i = 0; i <= numPoints; i++) {
@@ -541,7 +527,7 @@ public class Trick {
 				raw.set(i, 1 + k*12 +11, v.get(2,0));
 			}
 		}
-		RawWriter.write("trick.raw", varName, varType, raw);
+		raw.write("trick.raw");
     }
 
     private static void plotExcite(double te, boolean end)
@@ -550,38 +536,22 @@ public class Trick {
 		int k;
 		int numPoints = 10000;
 		int numVars = 11+3*3;
-		Matrix raw = new Matrix(numPoints + 1, numVars);
-		String varName[] = new String[numVars];
-		String varType[] = new String[numVars];
-		varName[0] = "t";
-		varType[0] = "time";
-		varName[1] = "vi";
-		varType[1] = "voltage";
-		varName[2] = "va";
-		varType[2] = "voltage";
-		varName[3] = "vb";
-		varType[3] = "voltage";
-		varName[4] = "il";
-		varType[4] = "current";
-		varName[5] = "eva";
-		varType[5] = "voltage";
-		varName[6] = "evb";
-		varType[6] = "voltage";
-		varName[7] = "eil";
-		varType[7] = "current";
-		varName[8] = "sva";
-		varType[8] = "voltage";
-		varName[9] = "svb";
-		varType[9] = "voltage";
-		varName[10] = "sil";
-		varType[10] = "current";
+		RawFile raw = new RawFile(numPoints + 1, numVars);
+		raw.setVar(0, "t",   "time");
+		raw.setVar(1, "vi",  "voltage");
+		raw.setVar(2, "va",  "voltage");
+		raw.setVar(3, "vb",  "voltage");
+		raw.setVar(4, "il",  "current");
+		raw.setVar(5, "eva", "voltage");
+		raw.setVar(6, "evb", "voltage");
+		raw.setVar(7, "eil", "current");
+		raw.setVar(8, "sva", "voltage");
+		raw.setVar(9, "svb", "voltage");
+		raw.setVar(10,"sil", "current");
 		for (k = 0; k < 3; k++) {
-			varName[11+k*3+0] = "va"+k;
-			varType[11+k*3+0] = "voltage";
-			varName[11+k*3+1] = "vb"+k;
-			varType[11+k*3+1] = "voltage";
-			varName[11+k*3+2] = "il"+k;
-			varType[11+k*3+2] = "current";
+			raw.setVar(11+k*3+0, "va"+k, "voltage");
+			raw.setVar(11+k*3+1, "vb"+k, "voltage");
+			raw.setVar(11+k*3+2, "il"+k, "current");
 		}
 
 		double T = 0.5;
@@ -611,7 +581,7 @@ public class Trick {
 				raw.set(i, 11+k*3+2, s.get(2, k));
 			}
 		}
-		RawWriter.write("excite.raw", varName, varType, raw);
+		raw.write("excite.raw");
     }
 
     static Matrix abs(Matrix S) {

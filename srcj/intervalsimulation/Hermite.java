@@ -1,3 +1,4 @@
+import com.sun.electric.tool.simulation.interval.RawFile;
 import net.sourceforge.interval.ia_math.*;
 import Jama.*;
 //import Jama.util.Maths;
@@ -173,25 +174,15 @@ class Hermite
 	{
 	    int numPoints = 10000;
 	    int numVars = 8;
-	    Matrix raw = new Matrix(numPoints + 1, numVars);
-	    String varName[] = new String[numVars];
-	    String varType[] = new String[numVars];
-	    varName[0] = "t";
-	    varType[0] = "time";
-	    varName[1] = "f";
-	    varType[1] = "voltage";
-	    varName[2] = "s";
-	    varType[2] = "voltage";
-	    varName[3] = "p";
-	    varType[3] = "voltage";
-	    varName[4] = "a";
-	    varType[4] = "voltage";
-	    varName[5] = "s1";
-	    varType[5] = "voltage";
-	    varName[6] = "s2";
-	    varType[6] = "voltage";
-	    varName[7] = "s3";
-	    varType[7] = "voltage";
+	    RawFile raw = new RawFile(numPoints + 1, numVars);
+	    raw.setVar(0, "t",  "time");
+	    raw.setVar(1, "f",  "voltage");
+	    raw.setVar(2, "s",  "voltage");
+	    raw.setVar(3, "p",  "voltage");
+	    raw.setVar(4, "a",  "voltage");
+	    raw.setVar(5, "s1", "voltage");
+	    raw.setVar(6, "s2", "voltage");
+	    raw.setVar(7, "s3", "voltage");
 
 	    for (int k = 0; k <= numPoints; k++)
 	    {
@@ -207,7 +198,7 @@ class Hermite
 		raw.set(k, 6, getV2(t));
 		raw.set(k, 7, getV3(t));
 	    }
-	    RawWriter.write("opt.raw", varName, varType, raw);
+	    raw.write("opt.raw");
 
 	}
     }
@@ -217,35 +208,20 @@ class Hermite
     {
 	int numPoints = 10000;
 	int numVars = 1+12;
-	Matrix raw = new Matrix(numPoints + 1, numVars);
-	String varName[] = new String[numVars];
-	String varType[] = new String[numVars];
-	varName[0] = "t";
-	varType[0] = "time";
-	varName[1] = "p00";
-	varType[1] = "voltage";
-	varName[2] = "p00d";
-	varType[2] = "voltage";
-	varName[3] = "p01";
-	varType[3] = "voltage";
-	varName[4] = "p01d";
-	varType[4] = "voltage";
-	varName[5] = "p10";
-	varType[5] = "voltage";
-	varName[6] = "p10d";
-	varType[6] = "voltage";
-	varName[7] = "p11";
-	varType[7] = "voltage";
-	varName[8] = "p11d";
-	varType[8] = "voltage";
-	varName[9] = "b00";
-	varType[9] = "voltage";
-	varName[10] = "b01";
-	varType[10] = "voltage";
-	varName[11] = "b10";
-	varType[11] = "voltage";
-	varName[12] = "b11";
-	varType[12] = "voltage";
+	RawFile raw = new RawFile(numPoints + 1, numVars);
+	raw.setVar(0, "t",    "time");
+	raw.setVar(1, "p00",  "voltage");
+	raw.setVar(2, "p00d", "voltage");
+	raw.setVar(3, "p01",  "voltage");
+	raw.setVar(4, "p01d", "voltage");
+	raw.setVar(5, "p10",  "voltage");
+	raw.setVar(6, "p10d", "voltage");
+	raw.setVar(7, "p11",  "voltage");
+	raw.setVar(8, "p11d", "voltage");
+	raw.setVar(9, "b00",  "voltage");
+	raw.setVar(10,"b01",  "voltage");
+	raw.setVar(11,"b10",  "voltage");
+	raw.setVar(12,"b11",  "voltage");
 
 	for (int k = 0; k <= numPoints; k++)
 	{
@@ -267,7 +243,7 @@ class Hermite
 	    raw.set(k,11, phi10(kk).doubleValue());
 	    raw.set(k,12, phi11(kk).doubleValue());
 	}
-	RawWriter.write("hermite.raw", varName, varType, raw);
+	raw.write("hermite.raw");
     }
 
     /**

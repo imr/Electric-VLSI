@@ -4,7 +4,7 @@
  *
  * File: Interval.java
  *
- * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -84,10 +84,6 @@ public class Interval
 	 * represented exactly. Some of other longs are not.
      */
 	private static final long EXACT_LONG = 1L << 53;
-    /**
-     * A constant holding Long.MAX_VALUE rounded down.
-     */
-	private static final double INF_MAX_LONG = SCALE_DOWN*2*(1L << 62); // 0x1.fffffffffffffp62;
 
 	// -----------------------------------------------------------------------
 	// Constructors
@@ -741,6 +737,330 @@ public class Interval
 		return !(this.inf <= y.sup && y.inf <= this.sup);
 	}
 
+	/**
+	 * Returns true iff double number x is contained in this interval.
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.contains(y) == false for x == [ EMPTY ] or y == NaN
+	 * </UL>
+	 */
+	public boolean in(long x) {
+		double xd = (double)x;
+		if (xd >= -EXACT_LONG && xd <= EXACT_LONG)
+			return inf <= xd && xd <= sup;
+		long xx = (long)xd;
+		return (xx > x || x == Long.MAX_VALUE ? inf < xd : inf <= xd) &&
+			(xx < x ? xd < sup : xd <= sup);
+	}
+
+	/**
+	 * Returns true iff double number x is contained in this interval.
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.contains(y) == false for x == [ EMPTY ] or y == NaN
+	 * </UL>
+	 */
+	public boolean in(double y) {
+		return y >= this.inf && y <= this.sup;
+	}
+
+	/** 
+	 * Returns true iff this interval is in interior of interval x.
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.in_interior(y) == true for x == [ EMPTY ] 
+	 * </UL>
+	 */
+	public boolean in_interior(Interval y) {
+		return (inf > y.inf && sup < y.sup) || isEmpty();
+	}
+
+	/**
+	 * Same as x.interior(y)
+	 */
+	public boolean interior(Interval y) {
+		return in_interior(y);
+	}
+
+
+	/**
+	 * Returns true iff this interval is a proper subset of interval x.
+	 * 
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.proper_subset(y) == true for x == [ EMPTY ] and y != [ EMPTY ] 
+	 * </UL>
+	 */
+	boolean proper_subset(Interval y) {
+		return (inf >= y.inf && sup <= y.sup && (inf > y.inf || sup < y.sup)) ||
+			(isEmpty() && ! y.isEmpty());
+	}
+
+	/**
+	 * Returns true iff this interval is a subset of interval x.
+	 * Special cases in the extended system:
+	 *
+	 * <UL>
+	 * <LI> x.subset(y) == true for x == [ EMPTY ] 
+	 * </UL>   
+	 */
+	boolean subset(Interval y) {
+		return y.inf <= inf && sup <= y.sup || isEmpty();
+	}
+  
+	/**
+	 * Returns true iff this interval is a proper superset of interval x.
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.proper_superset(y) == true for x != [ EMPTY ] and y == [ EMPTY ] 
+	 * </UL>
+	 */
+	boolean proper_superset(Interval y) {
+		return (inf <= y.inf && y.sup <= sup && (inf < y.inf || y.sup < sup)) ||
+			(y.isEmpty() && ! isEmpty());
+	}
+
+	/**
+	 * Returns true iff this interval is a superset of interval x.
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.superset(y) == true for y == [ EMPTY ] 
+	 * </UL>
+	 */
+	boolean superset(Interval y) {
+		return inf <= y.inf && y.sup <= sup || y.isEmpty();
+	}
+  
+	/**
+	 * Returns true iff this interval is set-equal to interval x.
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.seq(y) == true for x == y == [ EMPTY ] 
+	 * </UL>
+	 */
+	boolean seq(Interval y) {
+		return (inf == y.inf && sup == y.sup) || isEmpty() && y.isEmpty();
+	}
+  
+	/**
+	 * Returns true iff this interval is set-not-equal to interval x.
+	 */
+	boolean sne(Interval y) {
+		return !seq(y);
+	}
+
+	/**
+	 * Returns true iff this interval is set-greater-or-equal to 
+	 * interval x.
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.sge(y) == true for x == y == [ EMPTY ] 
+	 * </UL>
+	 */
+	boolean sge(Interval y) {
+		return inf >= y.inf && sup >= y.sup || isEmpty() && y.isEmpty();
+	}
+
+	/**
+	 * Returns true iff this interval is set-greater than interval x.
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.sgt(y) == false for x == [ EMPTY ] or y == [ EMPTY ] 
+	 * </UL>
+	 */
+	boolean sgt(Interval y) {
+		return inf > y.inf && sup > y.sup;
+	}
+  
+	/**
+	 * Returns true iff this interval is set-less-or-equal to 
+	 * interval x.
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.sle(y) == true for x == y == [ EMPTY ] 
+	 * </UL>
+	 */
+	boolean sle(Interval y) {
+		return inf <= y.inf && sup <= y.sup || isEmpty() && y.isEmpty();
+	}
+
+	/**
+	 * Returns true iff this interval is set-less than interval x.
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.slt(y) == false for x == [ EMPTY ] or y == [ EMPTY ] 
+	 * </UL>
+	 */
+	boolean slt(Interval y) {
+		return inf < y.inf && sup < y.sup;
+	}
+  
+	// -----------------------------------------------------------------------
+	// Certainly relations
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Returns true iff this interval is certainly-equal to interval x.
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.ceq(y) == false for x == [ EMPTY ] or y == [ EMPTY ] 
+	 * </UL>
+	 */
+	boolean ceq(Interval y) {
+		return sup <= y.inf && inf >= y.sup;
+	}
+
+	/**
+	 * Returns true iff this interval is certainly-not-equal to interval x.
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.cne(y) == true for x == [ EMPTY ] or y == [ EMPTY ] 
+	 * </UL>
+	 */
+	boolean cne(Interval y) {
+		return !(inf <= y.sup && y.inf <= sup);
+	}
+
+	/**
+	 * Returns true iff this interval is certainly-greater-or-equal to 
+	 * interval x.
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.cge(y) == false for x == [ EMPTY ] or y == [ EMPTY ]
+	 * </UL>
+	 */
+	boolean cge(Interval y) {
+		return inf >= y.sup;
+	}
+
+	/**
+	 * Returns true iff this interval is certainly-greater than interval x.
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.cgt(y) == false for x == [ EMPTY ] or y == [ EMPTY ] 
+	 * </UL>
+	 */
+	boolean cgt(Interval y) {
+		return inf > y.sup;
+	}
+
+	/**
+	 * Returns true iff this interval is certainly-less-or-equal to 
+	 * interval x.
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.cle(y) == false for x == [ EMPTY ] or y == [ EMPTY ]
+	 * </UL>
+	 */
+	boolean cle(Interval y) {
+		return sup <= y.inf;
+	}
+
+	/**
+	 * Returns true iff this interval is certainly-less than interval x.
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.clt(y) == false for x == [ EMPTY ] or y == [ EMPTY ] 
+	 * </UL>
+	 */
+	boolean clt(Interval y) {
+		return sup < y.inf;
+	}
+
+	// -----------------------------------------------------------------------
+	// Possibly relations
+	// -----------------------------------------------------------------------
+  
+	/**
+	 * Returns true iff this interval is possibly-equal to interval x.
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.peq(y) == false for x == [ EMPTY ] or y == [ EMPTY ] 
+	 * </UL>
+	 */
+	boolean peq(Interval y) {
+		return inf <= y.sup && sup >= y.inf;
+	}
+
+	/**
+	 * Returns true iff this interval is possibly-not-equal to interval x.
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.pne(y) == true for x == [ EMPTY ] or y == [ EMPTY ] 
+	 * </UL>
+	 */
+	boolean pne(Interval y) {
+		return !(sup <= y.inf && inf >= y.sup);
+	}
+
+	/**
+	 * Returns true iff this interval is possibly-greater-or-equal to 
+	 * interval x.
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.pge(y) == false for x == [ EMPTY ] or y == [ EMPTY ]
+	 * </UL>
+	 */
+	boolean pge(Interval y) {
+		return sup >= y.inf;
+	}
+
+	/**
+	 * Returns true iff this interval is possibly-greater than interval x.
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.pgt(y) == false for x == [ EMPTY ] or y == [ EMPTY ] 
+	 * </UL>
+	 */
+	boolean pgt(Interval y) {
+		return sup > y.inf;
+	}
+
+	/**
+	 * Returns true iff this interval is possibly-less-or-equal to 
+	 * interval x.
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.ple(y) == false for x == [ EMPTY ] or y == [ EMPTY ]
+	 * </UL>
+	 */
+	boolean ple(Interval y) {
+		return inf <= y.sup;
+	}
+
+	/**
+	 * Returns true iff this interval is possibly-less than interval x.
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.plt(y) == false for x == [ EMPTY ] or y == [ EMPTY ] 
+	 * </UL>
+	 */
+	boolean plt(Interval y) {
+		return inf < y.sup;
+	}
+
 	// -----------------------------------------------------------------------
 	// Arithmetic operations
 	// -----------------------------------------------------------------------
@@ -771,13 +1091,13 @@ public class Interval
 	public Interval add(Interval y) {
 		double l = this.inf + y.inf;
 		if (l - this.inf > y.inf || l - y.inf > this.inf) {
-//			assert Math.abs(l) >= MIN_NORMAL*2;
+			assert Math.abs(l) >= MIN_NORMAL*2;
 			l = (l < 0 ? l + l*ULP_EPS : l < Double.POSITIVE_INFINITY ? l*SCALE_DOWN : Double.MAX_VALUE);
 		}
 		inf = l;
 		double h = this.sup + y.sup;
 		if (h - this.sup < y.sup || h - y.sup < this.sup) {
-//			assert Math.abs(h) >= MIN_NORMAL*2;
+			assert Math.abs(h) >= MIN_NORMAL*2;
 			h = (h > 0 ? h + h*ULP_EPS : h > Double.NEGATIVE_INFINITY ? h*SCALE_DOWN : -Double.MAX_VALUE);
 		}
 		sup = h;
@@ -795,13 +1115,13 @@ public class Interval
 	public Interval sub(Interval y) {
 		double l = this.inf - y.inf;
 		if (this.inf - l < y.inf || l + y.inf > this.inf) {
-//			assert Math.abs(l) >= MIN_NORMAL*2;
+			assert Math.abs(l) >= MIN_NORMAL*2;
 			l = (l < 0 ? l + l*ULP_EPS : l < Double.POSITIVE_INFINITY ? l*SCALE_DOWN : Double.MAX_VALUE);
 		}
 		inf = l;
 		double h = this.sup - y.sup;
 		if (this.sup - h >  y.sup || h + y.sup < this.sup) {
-//			assert Math.abs(l) >= MIN_NORMAL*2;
+			assert Math.abs(l) >= MIN_NORMAL*2;
 			h = (h > 0 ? h + h*ULP_EPS : h > Double.NEGATIVE_INFINITY ? h*SCALE_DOWN : -Double.MAX_VALUE);
 		}
 		sup = h;
@@ -1037,29 +1357,29 @@ public class Interval
 	}
 
 	private static double nextPos(double x) {
-//		assert x >= 0;
+		assert x >= 0;
 		return x >= MIN_NORMAL*2 ? x + x*ULP_EPS : x + Double.MIN_VALUE;
 	}
 	private static double nextNeg(double x) {
-//		assert x <= 0;
+		assert x <= 0;
 		return x <= -MIN_NORMAL ? (x > Double.NEGATIVE_INFINITY ? x*SCALE_DOWN : -Double.MAX_VALUE) : x < 0 ? x + Double.MIN_VALUE : x;
 	}
 
 	private static double prevPos(double x) {
-//		assert x >= 0;
+		assert x >= 0;
 		return x >= MIN_NORMAL ? (x < Double.POSITIVE_INFINITY ? x*SCALE_DOWN : Double.MAX_VALUE ) : x > 0 ? x - Double.MIN_VALUE : x;
 	}
 
 	private static double prevNeg(double x) {
-//		assert x <= 0;
+		assert x <= 0;
 		return x <= MIN_NORMAL*2 ? x + x*ULP_EPS : x - Double.MIN_VALUE;
 	}
 
 	private double add_up(double x, double y) {
 		double z = x + y;
-//		assert z > 0;
+		assert z > 0;
 		if (z - x < y || z - y < x) {
-//			assert Math.abs(z) > MIN_NORMAL*2;
+			assert Math.abs(z) > MIN_NORMAL*2;
 			z = z + z*ULP_EPS;
 		}
 		return z;

@@ -1,3 +1,4 @@
+import com.sun.electric.tool.simulation.interval.RawFile;
 import net.sourceforge.interval.ia_math.*;
 import Jama.*;
 //import Jama.util.Maths;
@@ -76,34 +77,21 @@ class Diode
 	Diode d = new Diode();
 	d.ev.printAll(false);
 
+	double delta = 0.001;
 	int numPoints = 10000;
 	int numVars = 11;
-	Matrix raw = new Matrix(numPoints + 1, numVars);
-	double delta = 0.001;
-	String varName[] = new String[numVars];
-	String varType[] = new String[numVars];
-	varName[0] = "vd";
-	varType[0] = "voltage";
-	varName[1] = "j";
-	varType[1] = "current";
-	varName[2] = "g";
-	varType[2] = "conductance";
-	varName[3] = "jm";
-	varType[3] = "current";
-	varName[4] = "gm";
-	varType[4] = "conductance";
-	varName[5] = "jp";
-	varType[5] = "current";
-	varName[6] = "gp";
-	varType[6] = "conductance";
-	varName[7] = "jl";
-	varType[7] = "current";
-	varName[8] = "gl";
-	varType[8] = "conductance";
-	varName[9] = "jh";
-	varType[9] = "current";
-	varName[10] = "gh";
-	varType[10] = "conductance";
+	RawFile raw = new RawFile(numPoints + 1, numVars);
+	raw.setVar(0, "vd", "voltage");
+	raw.setVar(1, "j",  "current");
+	raw.setVar(2, "g",  "conductance");
+	raw.setVar(3, "jm", "current");
+	raw.setVar(4, "gm", "conductance");
+	raw.setVar(5, "jp", "current");
+	raw.setVar(6, "gp", "conductance");
+	raw.setVar(7, "jl", "current");
+	raw.setVar(8, "gl", "conductance");
+	raw.setVar(9, "jh", "current");
+	raw.setVar(10,"gh", "conductance");
 
 	for (int k = 0; k <= numPoints; k++)
 	{
@@ -133,6 +121,6 @@ class Diode
 	    raw.set(k, 10, d.gd.iv().hi());
 	    
 	}
-	RawWriter.write("diode.raw", varName, varType, raw);
+	raw.write("diode.raw");
     }
 }

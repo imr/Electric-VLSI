@@ -1,3 +1,4 @@
+import com.sun.electric.tool.simulation.interval.RawFile;
 import Jama.*;
 import java.io.*;
 import java.text.DecimalFormat;
@@ -62,19 +63,12 @@ public class IntervalExp {
 
 	int numPoints = 500;
 	int numVars = 1+4;
-	Matrix raw = new Matrix(numPoints + 1, numVars);
-	String varName[] = new String[numVars];
-	String varType[] = new String[numVars];
-	varName[0] = "omega";
-	varType[0] = "frequency";
-	varName[1] = "stupid";
-	varType[1] = "voltage";
-	varName[2] = "precise";
-	varType[2] = "voltage";
-	varName[3] = "fast1";
-	varType[3] = "voltage";
-	varName[4] = "fast2";
-	varType[4] = "voltage";
+	RawFile raw = new RawFile(numPoints + 1, numVars);
+	raw.setVar(0, "omega",   "frequency");
+	raw.setVar(1, "stupid",  "voltage");
+	raw.setVar(2, "precise", "voltage");
+	raw.setVar(3, "fast1",   "voltage");
+	raw.setVar(4, "fast2",   "voltage");
 
 	for (int ip = 0; ip <= numPoints; ip++) {
 	    double omega = 50.0/numPoints*ip;
@@ -143,6 +137,6 @@ public class IntervalExp {
 	    printM("A**(2**"+pow+")_.d=",Mi.delta);
     */
 	}
-	RawWriter.write("omega.raw", varName, varType, raw);
+	raw.write("omega.raw");
     }
 }

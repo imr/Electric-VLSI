@@ -7,7 +7,7 @@
     </target>
 
     <target name="compile" depends="init" description="Compile">
-        <javac debug="true" deprecation="true" destdir="." srcdir=".">
+        <javac debug="true" deprecation="true" destdir="." srcdir="." source="1.4">
             <classpath><pathelement location="${beanshell}"/></classpath>
             <classpath><pathelement location="${AppleJava}"/></classpath>
             <exclude name="intervalsimulation/"/>
@@ -25,7 +25,7 @@
     </target>
 
     <target name="runMain" depends="init,compile" description="Run the Main class">
-        <java classname="com.sun.electric.Main" failonerror="true" fork="true" maxmemory="256m">
+        <java classname="com.sun.electric.Main" failonerror="true" fork="true" maxmemory="512m">
             <classpath>
                 <pathelement location="."/>
                 <pathelement location="${beanshell}"/>
