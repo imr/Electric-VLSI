@@ -168,7 +168,7 @@ public class PixelDrawing
 {
 	/** Text smaller than this will not be drawn. */		public static final int MINIMUMTEXTSIZE = 5;
 
-	static class PolySeg
+	private static class PolySeg
 	{
 		int fx,fy, tx,ty, direction, increment;
 		PolySeg nextedge;
@@ -187,7 +187,7 @@ public class PixelDrawing
 	 * cell and orientation forms a "cell cache".  The Cell Cache is stored in the
 	 * "wnd" field (which has its own PixelDrawing object).
 	 */
-	static class ExpandedCellInfo
+	private static class ExpandedCellInfo
 	{
 		int instanceCount;
 		EditWindow wnd;
@@ -212,7 +212,7 @@ public class PixelDrawing
 	/** the technology of the window */						private Technology curTech;
 
 	// the patterned opaque bitmaps
-	static class PatternedOpaqueLayer
+	private static class PatternedOpaqueLayer
 	{
 		byte [][] bitMap;
 		byte [] compositeRow;

@@ -94,7 +94,7 @@ public class ExplorerTree extends JTree
 	private static ImageIcon iconViewText = null;
 	private static ImageIcon iconViewOldText = null;
 
-	static class CellAndCount
+	private static class CellAndCount
 	{
 		private Cell cell;
 		private int count;
@@ -519,7 +519,7 @@ public class ExplorerTree extends JTree
 	}
 
 
-	static class TreeHandler implements MouseListener, MouseMotionListener
+	private static class TreeHandler implements MouseListener, MouseMotionListener
 	{
 		private ExplorerTree tree;
 		private Object currentSelectedObject;

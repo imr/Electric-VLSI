@@ -238,7 +238,7 @@ public class CrossLibCopy extends EDialog
 	 * This class gets run when a cross-library copy finishes.
 	 * It updates the dialog display.
 	 */
-	static class DoneCopying implements Runnable
+	private static class DoneCopying implements Runnable
 	{
 		CrossLibCopy dialog;
 		int index;

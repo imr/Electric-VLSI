@@ -359,7 +359,7 @@ public class TopLevel extends JFrame
         }
     }
 
-	static class ReshapeComponentAdapter extends ComponentAdapter
+	private static class ReshapeComponentAdapter extends ComponentAdapter
 	{
 		public void componentMoved (ComponentEvent e) { saveLocation(e); }
 		public void componentResized (ComponentEvent e) { saveLocation(e); }
@@ -376,7 +376,7 @@ public class TopLevel extends JFrame
 	/**
 	 * This class handles close events for JFrame objects (used in MDI mode to quit).
 	 */
-	static class WindowsEvents extends WindowAdapter
+	private static class WindowsEvents extends WindowAdapter
 	{
 		WindowsEvents() { super(); }
 

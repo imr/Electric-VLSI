@@ -245,7 +245,7 @@ public class CellLists extends EDialog
 		}
 	}
 
-	static class SortByCellName implements Comparator
+	private static class SortByCellName implements Comparator
 	{
 		public int compare(Object o1, Object o2)
 		{
@@ -257,7 +257,7 @@ public class CellLists extends EDialog
 		}
 	}
 
-	static class SortByCellDate implements Comparator
+	private static class SortByCellDate implements Comparator
 	{
 		public int compare(Object o1, Object o2)
 		{
@@ -269,7 +269,7 @@ public class CellLists extends EDialog
 		}
 	}
 
-	static class SortByCellStructure implements Comparator
+	private static class SortByCellStructure implements Comparator
 	{
 		public int compare(Object o1, Object o2)
 		{
@@ -329,7 +329,7 @@ public class CellLists extends EDialog
 	 * Class for counting instances.
 	 * It is basically a modifiable Integer.
 	 */
-	static class InstanceCount
+	private static class InstanceCount
 	{
 		private int count;
 

@@ -111,7 +111,7 @@ public class Quick
 	 * This individual index is used to lookup an entry on each network in the cell
 	 * (an array is stored on each network, giving its global net number).
 	 */
-	static class CheckInst
+	private static class CheckInst
 	{
 		int localIndex;
 		int multiplier;
@@ -124,7 +124,7 @@ public class Quick
 	 * The CheckProto object is placed on every cell and is used only temporarily
 	 * to number the instances.
 	 */
-	static class CheckProto
+	private static class CheckProto
 	{
 		/** time stamp for counting within a particular parent */		int timeStamp;
 		/** number of instances of this cell in a particular parent */	int instanceCount;
@@ -166,7 +166,7 @@ public class Quick
 	 * The InstanceInter object records interactions between two cell instances and prevents checking
 	 * them multiple times.
 	 */
-	static class InstanceInter
+	private static class InstanceInter
 	{
 		/** the two cell instances being compared */	Cell cell1, cell2;
 		/** rotation of cell instance 1 */				int rot1;
@@ -181,7 +181,7 @@ public class Quick
 	/**
 	 * The DRCExclusion object lists areas where Generic:DRC-Nodes exist to ignore errors.
 	 */
-	static class DRCExclusion
+	private static class DRCExclusion
 	{
 		Cell cell;
 		Poly poly;

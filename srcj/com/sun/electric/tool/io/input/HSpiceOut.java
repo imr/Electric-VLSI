@@ -44,7 +44,7 @@ public class HSpiceOut extends Simulate
 	private byte [] binaryTR0Buffer;
 
 	// HSPICE name associations from the .pa0 file
-	static class PA0Line
+	private static class PA0Line
 	{
 		int     number;
 		String  string;

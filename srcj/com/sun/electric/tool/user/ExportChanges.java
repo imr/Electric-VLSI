@@ -69,7 +69,7 @@ public final class ExportChanges
 		dialog.show();
 	}
 
-	static class ExportList
+	private static class ExportList
 	{
 		Export pp;
 		int equiv;
@@ -355,7 +355,7 @@ public final class ExportChanges
 		return infstr;
 	}
 
-	static class ExportSortedByNameAndType implements Comparator
+	private static class ExportSortedByNameAndType implements Comparator
 	{
 		public int compare(Object o1, Object o2)
 		{
@@ -372,7 +372,7 @@ public final class ExportChanges
 		}
 	}
 
-	static class ExportSortedByBusIndex implements Comparator
+	private static class ExportSortedByBusIndex implements Comparator
 	{
 		public int compare(Object o1, Object o2)
 		{
@@ -794,7 +794,7 @@ public final class ExportChanges
 		}
 	}
 
-	static class ShownPorts
+	private static class ShownPorts
 	{
 		Point2D   loc;
 		PortProto pp;
@@ -1002,7 +1002,7 @@ public final class ExportChanges
 			System.out.println("Could not display " + ignored + " ports (outside of the window)");
 	}
 
-	static class SortPortAngle implements Comparator
+	private static class SortPortAngle implements Comparator
 	{
 		public int compare(Object o1, Object o2)
 		{

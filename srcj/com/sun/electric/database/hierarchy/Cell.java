@@ -270,7 +270,7 @@ public class Cell extends NodeProto implements Comparable
 		public Iterator iterator() { return versions.iterator(); }
 	}
 
-	class MaxSuffix { int v = 0; }
+	private class MaxSuffix { int v = 0; }
 
 	// -------------------------- private data ---------------------------------
 

@@ -237,7 +237,7 @@ public class SelectObject extends EDialog
 		}
 	}
 
-	static class SortStringsInsensitive implements Comparator
+	private static class SortStringsInsensitive implements Comparator
 	{
 		public int compare(Object o1, Object o2)
 		{

@@ -468,7 +468,7 @@ public class WiringListener
 	/**
 	 * Class for determining a plan to run wires between two points.
 	 */
-	static class WiringPlan
+	private static class WiringPlan
 	{
 		private Type type;
 		private NodeProto pinType;

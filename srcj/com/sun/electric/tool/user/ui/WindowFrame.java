@@ -643,7 +643,7 @@ public class WindowFrame
 	/**
 	 * This class handles activation and close events for JFrame objects (used in SDI mode).
 	 */
-	static class WindowsEvents extends WindowAdapter
+	private static class WindowsEvents extends WindowAdapter
 	{
         /** A weak reference to the WindowFrame */
 		WeakReference wf;
@@ -668,7 +668,7 @@ public class WindowFrame
 	/**
 	 * This class handles activation and close events for JInternalFrame objects (used in MDI mode).
 	 */
-	static class InternalWindowsEvents extends InternalFrameAdapter
+	private static class InternalWindowsEvents extends InternalFrameAdapter
 	{
         /** A weak reference to the WindowFrame */
 		WeakReference wf;

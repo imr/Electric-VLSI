@@ -96,7 +96,7 @@ public final class Main
 	/**
 	 * Class to display a Splash Screen at the start of the program.
 	 */
-	static class SplashWindow extends JFrame
+	private static class SplashWindow extends JFrame
 	{
 		public SplashWindow()
 		{
@@ -131,7 +131,7 @@ public final class Main
 	/**
 	 * This class handles deactivation of the splash screen and forces it back to the top.
 	 */
-	static class WindowsEvents implements WindowListener
+	private static class WindowsEvents implements WindowListener
 	{
 		SplashWindow sw;
 
@@ -305,7 +305,7 @@ public final class Main
 	/**
 	 * Class for initializing the Macintosh OS X world.
 	 */
-	static class MacOSXInterface extends ApplicationAdapter
+	private static class MacOSXInterface extends ApplicationAdapter
 	{
 		private static MacOSXInterface adapter = null;
 		private static Application application = null;

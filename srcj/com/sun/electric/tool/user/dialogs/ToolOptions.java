@@ -71,7 +71,7 @@ public class ToolOptions extends EDialog
 	private Technology curTech;
 	private Library curLib;
 
-	static class Option
+	private static class Option
 	{
 		int type;
 		String oldString, newString;
@@ -490,10 +490,10 @@ public class ToolOptions extends EDialog
 				if (!nName.equals(drRules.nodeNames[node])) continue;
 				String a = drMinWidth.getText();
 				if (a.length() == 0) drRules.minNodeSize[node*2] = new Double(-1); else
-					drRules.minNodeSize[node*2] = new Double(a);
+					drRules.minNodeSize[node*2] = new Double(TextUtils.atof(a));
 				a = drMinHeight.getText();
 				if (a.length() == 0) drRules.minNodeSize[node*2+1] = new Double(-1); else
-					drRules.minNodeSize[node*2+1] = new Double(a);
+					drRules.minNodeSize[node*2+1] = new Double(TextUtils.atof(a));
 				drRules.minNodeSizeRules[node] = drMinWidthRule.getText();
 				break;
 			}
@@ -512,42 +512,42 @@ public class ToolOptions extends EDialog
 			// get new normal spacing values
 			String a = drNormalConnected.getText();
 			if (a.length() == 0) drRules.conList[dindex] = new Double(-1); else
-				drRules.conList[dindex] = new Double(a);
+				drRules.conList[dindex] = new Double(TextUtils.atof(a));
 			drRules.conListRules[dindex] = drNormalConnectedRule.getText();
 			a = drNormalUnconnected.getText();
 			if (a.length() == 0) drRules.unConList[dindex] = new Double(-1); else
-				drRules.unConList[dindex] = new Double(a);
+				drRules.unConList[dindex] = new Double(TextUtils.atof(a));
 			drRules.unConListRules[dindex] = drNormalUnconnectedRule.getText();
 
 			// get new wide values
 			a = drWideConnected.getText();
 			if (a.length() == 0) drRules.conListWide[dindex] = new Double(-1); else
-				drRules.conListWide[dindex] = new Double(a);
+				drRules.conListWide[dindex] = new Double(TextUtils.atof(a));
 			drRules.conListWideRules[dindex] = drWideConnectedRule.getText();
 			a = drWideUnconnected.getText();
 			if (a.length() == 0) drRules.unConListWide[dindex] = new Double(-1); else
-				drRules.unConListWide[dindex] = new Double(a);
+				drRules.unConListWide[dindex] = new Double(TextUtils.atof(a));
 			drRules.unConListWideRules[dindex] = drWideUnconnectedRule.getText();
 
 			// get new multicut values
 			a = drMultiConnected.getText();
 			if (a.length() == 0) drRules.conListMulti[dindex] = new Double(-1); else
-				drRules.conListMulti[dindex] = new Double(a);
+				drRules.conListMulti[dindex] = new Double(TextUtils.atof(a));
 			drRules.conListMultiRules[dindex] = drMultiConnectedRule.getText();
 			a = drMultiUnconnected.getText();
 			if (a.length() == 0) drRules.unConListMulti[dindex] = new Double(-1); else
-				drRules.unConListMulti[dindex] = new Double(a);
+				drRules.unConListMulti[dindex] = new Double(TextUtils.atof(a));
 			drRules.unConListMultiRules[dindex] = drMultiUnconnectedRule.getText();
 
 			// get new edge values
 			a = drNormalEdge.getText();
 			if (a.length() == 0) drRules.edgeList[dindex] = new Double(-1); else
-				drRules.edgeList[dindex] = new Double(a);
+				drRules.edgeList[dindex] = new Double(TextUtils.atof(a));
 			drRules.edgeListRules[dindex] = drNormalEdgeRule.getText();
 
 			// get new width limit
 			a = drWideLimit.getText();
-			drRules.wideLimit = new Double(a);
+			drRules.wideLimit = new Double(TextUtils.atof(a));
 
 			// redraw the entry in the "to" list
 			int lineNo = designRulesToList.getSelectedIndex();
@@ -557,7 +557,7 @@ public class ToolOptions extends EDialog
 			// update layer width rules
 			a = drMinWidth.getText();
 			if (a.length() == 0) drRules.minWidth[layer1] = new Double(-1); else
-				drRules.minWidth[layer1] = new Double(a);
+				drRules.minWidth[layer1] = new Double(TextUtils.atof(a));
 			drRules.minWidthRules[layer1] = drMinWidthRule.getText();
 		}
 	}
@@ -755,36 +755,36 @@ public class ToolOptions extends EDialog
 		drNormalEdge.setText("");         drNormalEdgeRule.setText("");
 
 		int layer1 = designRulesGetSelectedLayer(designRulesFromList);
-		if (layer1 < 0) return;
 		int layer2 = designRulesGetSelectedLayer(designRulesToList);
-		if (layer2 < 0) return;
-
-		if (layer1 > layer2) { int temp = layer1; layer1 = layer2;  layer2 = temp; }
-		int dindex = (layer1+1) * (layer1/2) + (layer1&1) * ((layer1+1)/2);
-		dindex = layer2 + drRules.numLayers * layer1 - dindex;
-
-		if (drRules.conList[dindex].doubleValue() >= 0)
-			drNormalConnected.setText(drRules.conList[dindex].toString());
-		if (drRules.unConList[dindex].doubleValue() >= 0)
-			drNormalUnconnected.setText(drRules.unConList[dindex].toString());
-		if (drRules.conListWide[dindex].doubleValue() >= 0)
-			drWideConnected.setText(drRules.conListWide[dindex].toString());
-		if (drRules.unConListWide[dindex].doubleValue() >= 0)
-			drWideUnconnected.setText(drRules.unConListWide[dindex].toString());
-		if (drRules.conListMulti[dindex].doubleValue() >= 0)
-			drMultiConnected.setText(drRules.conListMulti[dindex].toString());
-		if (drRules.unConListMulti[dindex].doubleValue() >= 0)
-			drMultiUnconnected.setText(drRules.unConListMulti[dindex].toString());
-		if (drRules.edgeList[dindex].doubleValue() >= 0)
-			drNormalEdge.setText(drRules.edgeList[dindex].toString());
-
-		drNormalConnectedRule.setText(drRules.conListRules[dindex]);
-		drNormalUnconnectedRule.setText(drRules.unConListRules[dindex]);
-		drWideConnectedRule.setText(drRules.conListWideRules[dindex]);
-		drWideUnconnectedRule.setText(drRules.unConListWideRules[dindex]);
-		drMultiConnectedRule.setText(drRules.conListMultiRules[dindex]);
-		drMultiUnconnectedRule.setText(drRules.unConListMultiRules[dindex]);
-		drNormalEdgeRule.setText(drRules.edgeListRules[dindex]);
+		if (layer1 >= 0 && layer2 >= 0)
+		{
+			if (layer1 > layer2) { int temp = layer1; layer1 = layer2;  layer2 = temp; }
+			int dindex = (layer1+1) * (layer1/2) + (layer1&1) * ((layer1+1)/2);
+			dindex = layer2 + drRules.numLayers * layer1 - dindex;
+	
+			if (drRules.conList[dindex].doubleValue() >= 0)
+				drNormalConnected.setText(drRules.conList[dindex].toString());
+			if (drRules.unConList[dindex].doubleValue() >= 0)
+				drNormalUnconnected.setText(drRules.unConList[dindex].toString());
+			if (drRules.conListWide[dindex].doubleValue() >= 0)
+				drWideConnected.setText(drRules.conListWide[dindex].toString());
+			if (drRules.unConListWide[dindex].doubleValue() >= 0)
+				drWideUnconnected.setText(drRules.unConListWide[dindex].toString());
+			if (drRules.conListMulti[dindex].doubleValue() >= 0)
+				drMultiConnected.setText(drRules.conListMulti[dindex].toString());
+			if (drRules.unConListMulti[dindex].doubleValue() >= 0)
+				drMultiUnconnected.setText(drRules.unConListMulti[dindex].toString());
+			if (drRules.edgeList[dindex].doubleValue() >= 0)
+				drNormalEdge.setText(drRules.edgeList[dindex].toString());
+	
+			drNormalConnectedRule.setText(drRules.conListRules[dindex]);
+			drNormalUnconnectedRule.setText(drRules.unConListRules[dindex]);
+			drWideConnectedRule.setText(drRules.conListWideRules[dindex]);
+			drWideUnconnectedRule.setText(drRules.unConListWideRules[dindex]);
+			drMultiConnectedRule.setText(drRules.conListMultiRules[dindex]);
+			drMultiUnconnectedRule.setText(drRules.unConListMultiRules[dindex]);
+			drNormalEdgeRule.setText(drRules.edgeListRules[dindex]);
+		}
 		designRulesUpdating = false;
 	}
 
@@ -816,7 +816,7 @@ public class ToolOptions extends EDialog
 	private boolean spiceUseNodeNamesInitial;
 	private boolean spiceForceGlobalPwrGndInitial;
 	private boolean spiceUseCellParametersInitial;
-//	private boolean spiceWriteTransSizesInLambdaInitial;
+	private boolean spiceWriteTransSizesInLambdaInitial;
 	private double spiceTechMinResistanceInitial;
 	private double spiceTechMinCapacitanceInitial;
 	private String spiceHeaderCardInitial;
@@ -873,9 +873,8 @@ public class ToolOptions extends EDialog
 		spiceUseCellParametersInitial = Simulation.isSpiceUseCellParameters();
 		spiceUseCellParameters.setSelected(spiceUseCellParametersInitial);
 
-//		spiceWriteTransSizesInLambdaInitial = Simulation.isSpiceWriteTransSizeInLambda();
-//		spiceWriteTransSizesInLambda.setSelected(spiceWriteTransSizesInLambdaInitial);
-		spiceWriteTransSizesInLambda.setEnabled(false);
+		spiceWriteTransSizesInLambdaInitial = Simulation.isSpiceWriteTransSizeInLambda();
+		spiceWriteTransSizesInLambda.setSelected(spiceWriteTransSizesInLambdaInitial);
 
 		spiceRunParameters.setEnabled(false);
 
@@ -1110,8 +1109,8 @@ public class ToolOptions extends EDialog
 		booleanNow = spiceUseCellParameters.isSelected();
 		if (spiceUseCellParametersInitial != booleanNow) Simulation.setSpiceUseCellParameters(booleanNow);
 
-//		booleanNow = spiceWriteTransSizesInLambda.isSelected();
-//		if (spiceWriteTransSizesInLambdaInitial != booleanNow) Simulation.setSpiceWriteTransSizeInLambda(booleanNow);
+		booleanNow = spiceWriteTransSizesInLambda.isSelected();
+		if (spiceWriteTransSizesInLambdaInitial != booleanNow) Simulation.setSpiceWriteTransSizeInLambda(booleanNow);
 
 		booleanNow = spiceUseParasitics.isSelected();
 		if (spiceUseParasiticsInitial != booleanNow) Simulation.setSpiceUseParasitics(booleanNow);

@@ -153,7 +153,7 @@ public class HelpViewer extends javax.swing.JDialog {
         }
     }
 
-	class Hyperactive implements HyperlinkListener
+	private static class Hyperactive implements HyperlinkListener
 	{
  		public void hyperlinkUpdate(HyperlinkEvent e)
 		{

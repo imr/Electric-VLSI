@@ -435,7 +435,7 @@ public class Clipboard
 	 */
 	public String toString() { return "Clipboard"; }
 
-	static class NodeNameCaseInsensitive implements Comparator
+	private static class NodeNameCaseInsensitive implements Comparator
 	{
 		public int compare(Object o1, Object o2)
 		{
@@ -449,7 +449,7 @@ public class Clipboard
 		}
 	}
 
-	static class ArcNameCaseInsensitive implements Comparator
+	private static class ArcNameCaseInsensitive implements Comparator
 	{
 		public int compare(Object o1, Object o2)
 		{
@@ -463,7 +463,7 @@ public class Clipboard
 		}
 	}
 
-	static class ExportNameCaseInsensitive implements Comparator
+	private static class ExportNameCaseInsensitive implements Comparator
 	{
 		public int compare(Object o1, Object o2)
 		{
@@ -879,7 +879,7 @@ public class Clipboard
 	/**
 	 * Class to handle the interactive drag after a paste.
 	 */
-	static class PasteListener
+	private static class PasteListener
 		implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
 	{
 		private EditWindow wnd;

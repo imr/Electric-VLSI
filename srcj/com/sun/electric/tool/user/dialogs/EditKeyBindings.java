@@ -98,7 +98,9 @@ public class EditKeyBindings extends EDialog implements TreeSelectionListener {
         initComponents();
         buildCommandsTree();
     }
-    
+
+	protected void escapePressed() { doneActionPerformed(null); }
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is

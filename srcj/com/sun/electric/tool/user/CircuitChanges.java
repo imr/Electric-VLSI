@@ -1768,6 +1768,408 @@ public class CircuitChanges
 		}
 	}
 
+	/****************************** SHOW CELLS GRAPHICALLY ******************************/
+
+	/**
+	 * Method to graph the cells, starting from the current cell.
+	 */
+	public static void graphCellsFromCell()
+	{
+		Cell top = WindowFrame.needCurCell();
+		if (top == null) return;
+		GraphCells job = new GraphCells(top);
+	}
+
+	/**
+	 * Method to graph all cells in the current Library.
+	 */
+	public static void graphCellsInLibrary()
+	{
+		GraphCells job = new GraphCells(null);
+	}
+
+	/**
+	 * This class implement the command to make a graph of the cells.
+	 */
+	private static class GraphCells extends Job
+	{
+		private Cell top;
+
+		private static class CellGraphNode
+		{
+			int            depth;
+			int            clock;
+			double         x;
+			double         y;
+			double         yoff;
+			NodeInst       pin;
+			CellGraphNode  main;
+		}
+
+		protected GraphCells(Cell top)
+		{
+			super("Graph Cells", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			// create the graph cell
+			Cell graphCell = Cell.newInstance(Library.getCurrent(), "CellStructure");
+			if (graphCell == null) return false;
+//			if (graphCell->prevversion != NONODEPROTO)
+//				ttyputverbose(M_("Creating new version of cell: CellStructure")); else
+					System.out.println("Creating cell: CellStructure");
+
+			// create CellGraphNodes for every cell and initialize the depth to -1
+			HashMap cellGraphNodes = new HashMap();
+			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			{
+				Library lib = (Library)it.next();
+				if (lib.isHidden()) continue;
+				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+				{
+					Cell cell = (Cell)cIt.next();
+					CellGraphNode cgn = new CellGraphNode();
+					cgn.depth = -1;
+					cellGraphNodes.put(cell, cgn);
+				}
+			}
+
+			// find all top-level cells
+			if (top != null)
+			{
+				CellGraphNode cgn = (CellGraphNode)cellGraphNodes.get(top);
+				cgn.depth = 0;
+			} else
+			{
+				for(Iterator cIt = Library.getCurrent().getCells(); cIt.hasNext(); )
+				{
+					Cell cell = (Cell)cIt.next();
+					if (cell.getNumUsagesIn() == 0)
+					{
+						CellGraphNode cgn = (CellGraphNode)cellGraphNodes.get(cell);
+						cgn.depth = 0;
+					}
+				}
+			}
+
+			// now place all cells at their proper depth
+			int maxDepth = 0;
+			boolean more = true;
+			while (more)
+			{
+				more = false;
+				for(Iterator it = Library.getLibraries(); it.hasNext(); )
+				{
+					Library lib = (Library)it.next();
+					if (lib.isHidden()) continue;
+					for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+					{
+						Cell cell = (Cell)cIt.next();
+						CellGraphNode cgn = (CellGraphNode)cellGraphNodes.get(cell);
+						if (cgn.depth == -1) continue;
+						for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
+						{
+							NodeInst ni = (NodeInst)nIt.next();
+							if (!(ni.getProto() instanceof Cell)) continue;
+							Cell sub = (Cell)ni.getProto();
+	
+							// ignore recursive references (showing icon in contents)
+							if (ni.isIconOfParent()) continue;
+
+							CellGraphNode subCgn = (CellGraphNode)cellGraphNodes.get(sub);
+							if (subCgn.depth <= cgn.depth)
+							{
+								subCgn.depth = cgn.depth + 1;
+								if (subCgn.depth > maxDepth) maxDepth = subCgn.depth;
+								more = true;
+							}
+							Cell trueCell = sub.contentsView();
+							if (trueCell == null) continue;
+							CellGraphNode trueCgn = (CellGraphNode)cellGraphNodes.get(trueCell);
+							if (trueCgn.depth <= cgn.depth)
+							{
+								trueCgn.depth = cgn.depth + 1;
+								if (trueCgn.depth > maxDepth) maxDepth = trueCgn.depth;
+								more = true;
+							}
+						}
+					}
+				}
+
+				// add in any cells referenced from other libraries
+				if (!more && top == null)
+				{
+					for(Iterator cIt = Library.getCurrent().getCells(); cIt.hasNext(); )
+					{
+						Cell cell = (Cell)cIt.next();
+						CellGraphNode cgn = (CellGraphNode)cellGraphNodes.get(cell);
+						if (cgn.depth >= 0) continue;
+						cgn.depth = 0;
+						more = true;
+					}
+				}
+			}
+
+			// now assign X coordinates to each cell
+			maxDepth++;
+			double maxWidth = 0;
+			double [] xval = new double[maxDepth];
+			double [] yoff = new double[maxDepth];
+			for(int i=0; i<maxDepth; i++) xval[i] = yoff[i] = 0;
+			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			{
+				Library lib = (Library)it.next();
+				if (lib.isHidden()) continue;
+				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+				{
+					Cell cell = (Cell)cIt.next();
+					CellGraphNode cgn = (CellGraphNode)cellGraphNodes.get(cell);
+
+					// ignore icon cells from the graph (merge with contents)
+					if (cgn.depth == -1) continue;
+
+					// ignore associated cells for now
+					Cell trueCell = graphMainView(cell);
+					if (trueCell != null &&
+						(cell.getNumUsagesIn() == 0 || cell.getView() == View.ICON ||
+							cell.getView() == View.LAYOUTSKEL))
+					{
+						cgn.depth = -1;
+						continue;
+					}
+
+					cgn.x = xval[cgn.depth];
+					xval[cgn.depth] += cell.describe().length();
+					if (xval[cgn.depth] > maxWidth) maxWidth = xval[cgn.depth];
+					cgn.y = cgn.depth;
+					cgn.yoff = 0;
+				}
+			}
+
+			// now center each row
+			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			{
+				Library lib = (Library)it.next();
+				if (lib.isHidden()) continue;
+				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+				{
+					Cell cell = (Cell)cIt.next();
+					CellGraphNode cgn = (CellGraphNode)cellGraphNodes.get(cell);
+					if (cgn.depth == -1) continue;
+					if (xval[(int)cgn.y] < maxWidth)
+					{
+						double spread = maxWidth / xval[(int)cgn.y];
+						cgn.x = cgn.x * spread;
+					}
+				}
+			}
+
+			// generate accurate X/Y coordinates
+			double xScale = 2.0 / 3.0;
+			double yScale = 20;
+			double yOffset = 0.5;
+			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			{
+				Library lib = (Library)it.next();
+				if (lib.isHidden()) continue;
+				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+				{
+					Cell cell = (Cell)cIt.next();
+					CellGraphNode cgn = (CellGraphNode)cellGraphNodes.get(cell);
+					if (cgn.depth == -1) continue;
+					double x = cgn.x;   double y = cgn.y;
+					x = x * xScale;
+					y = -y * yScale + ((yoff[(int)cgn.y]++)%2) * yOffset;
+					cgn.x = x;   cgn.y = y;
+				}
+			}
+
+			// make unattached cells sit with their contents view
+			if (top == null)
+			{
+				for(Iterator it = Library.getLibraries(); it.hasNext(); )
+				{
+					Library lib = (Library)it.next();
+					if (lib.isHidden()) continue;
+					for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+					{
+						Cell cell = (Cell)cIt.next();
+						CellGraphNode cgn = (CellGraphNode)cellGraphNodes.get(cell);
+						if (cgn.depth != -1) continue;
+
+						if (cell.getNumUsagesIn() != 0 && cell.getView() != View.ICON &&
+							cell.getView() != View.LAYOUTSKEL) continue;
+						Cell trueCell = graphMainView(cell);
+						if (trueCell == null) continue;
+						CellGraphNode trueCgn = (CellGraphNode)cellGraphNodes.get(trueCell);
+						if (trueCgn.depth == -1) continue;
+		
+						cgn.pin = null;
+						cgn.main = trueCgn;
+						cgn.yoff += yOffset*2;
+						cgn.x = trueCgn.x;
+						cgn.y = trueCgn.y + trueCgn.yoff;
+					}
+				}
+			}
+
+			// write the header message
+			double xsc = maxWidth * xScale / 2;
+			NodeInst titleNi = NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(xsc, yScale), 0, 0, 0, graphCell, null);
+			if (titleNi == null) return false;
+			StringBuffer infstr = new StringBuffer();
+			if (top != null)
+			{
+				infstr.append("Structure below cell " + top.describe());
+			} else
+			{
+				infstr.append("Structure of library " + Library.getCurrent().getName());
+			}
+			Variable var = titleNi.newVar(Artwork.ART_MESSAGE, infstr.toString());
+			if (var != null)
+			{
+				var.setDisplay();
+				var.getTextDescriptor().setRelSize(6);
+			}
+
+			// place the components
+			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			{
+				Library lib = (Library)it.next();
+				if (lib.isHidden()) continue;
+				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+				{
+					Cell cell = (Cell)cIt.next();
+					if (cell == graphCell) continue;
+					CellGraphNode cgn = (CellGraphNode)cellGraphNodes.get(cell);
+					if (cgn.depth == -1) continue;
+
+					double x = cgn.x;   double y = cgn.y;
+					NodeInst ni = NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(x, y), 0, 0, 0, graphCell, null);
+					if (ni == null) return false;
+					cgn.pin = ni;
+
+					// write the cell name in the node
+					var = ni.newVar(Artwork.ART_MESSAGE, cell.describe());
+					if (var != null)
+					{
+						var.setDisplay();
+						var.getTextDescriptor().setRelSize(1);
+					}
+				}
+			}
+
+			// attach related components with rigid arcs
+			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			{
+				Library lib = (Library)it.next();
+				if (lib.isHidden()) continue;
+				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+				{
+					Cell cell = (Cell)cIt.next();
+					if (cell == graphCell) continue;
+					CellGraphNode cgn = (CellGraphNode)cellGraphNodes.get(cell);
+					if (cgn.depth == -1) continue;
+					if (cgn.main == null) continue;
+
+	//				ArcInst ai = newarcinst(art_solidarc, 0, FIXED, nd->pin, pinpp, nd->x, nd->y,
+	//					nd->main->pin, pinpp, nd->main->x, nd->main->y, graphCell);
+	//				if (ai == null) return;
+	//	
+	//				// set an invisible color on the arc
+	//				(void)setvalkey((INTBIG)ai, VARCINST, art_colorkey, 0, VINTEGER);
+				}
+			}
+
+			// build wires between the hierarchical levels
+			int clock = 0;
+			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			{
+				Library lib = (Library)it.next();
+				if (lib.isHidden()) continue;
+				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+				{
+					Cell cell = (Cell)cIt.next();
+					if (cell == graphCell) continue;
+
+					// always use the contents cell, not the icon
+					Cell trueCell = cell.contentsView();
+					if (trueCell == null) trueCell = cell;
+					CellGraphNode trueCgn = (CellGraphNode)cellGraphNodes.get(trueCell);
+					if (trueCgn.depth == -1) continue;
+
+					clock++;
+					for(Iterator nIt = trueCell.getNodes(); nIt.hasNext(); )
+					{
+						NodeInst ni = (NodeInst)nIt.next();
+						if (!(ni.getProto() instanceof Cell)) continue;
+
+						// ignore recursive references (showing icon in contents)
+						if (ni.isIconOfParent()) continue;
+						Cell sub = (Cell)ni.getProto();
+
+						Cell truesubnp = sub.contentsView();
+						if (truesubnp == null) truesubnp = sub;
+
+						CellGraphNode trueSubCgn = (CellGraphNode)cellGraphNodes.get(truesubnp);
+						if (trueSubCgn.clock == clock) continue;
+						trueSubCgn.clock = clock;
+
+						// draw a line from cell "trueCell" to cell "truesubnp"
+						if (trueSubCgn.depth == -1) continue;
+						PortInst toppinPi = trueCgn.pin.getOnlyPortInst();
+						PortInst niBotPi = trueSubCgn.pin.getOnlyPortInst();
+System.out.println("Arc from pin "+toppinPi+" to "+niBotPi);
+						ArcInst ai = ArcInst.makeInstance(Artwork.tech.solidArc, Artwork.tech.solidArc.getDefaultWidth(), toppinPi, niBotPi, null);
+						if (ai == null) return false;
+
+						// set an appropriate color on the arc (red for jumps of more than 1 level of depth)
+						int color = EGraphics.BLUE;
+						if (trueCgn.y - trueSubCgn.y > yScale+yOffset+yOffset) color = EGraphics.RED;
+						ai.newVar(Artwork.ART_COLOR, new Integer(color));
+					}
+				}
+			}
+			WindowFrame.createEditWindow(graphCell);
+			return true;
+		}
+	}
+
+	/**
+	 * Method to find the main cell that "np" is associated with in the graph.  This code is
+	 * essentially the same as "contentscell()" except that any original type is allowed.
+	 * Returns NONODEPROTO if the cell is not associated.
+	 */
+	private static Cell graphMainView(Cell cell)
+	{
+		// first check to see if there is a schematics link
+		for(Iterator it = cell.getCellGroup().getCells(); it.hasNext(); )
+		{
+			Cell cellInGroup = (Cell)it.next();
+			if (cellInGroup.getView() == View.SCHEMATIC) return cellInGroup;
+			if (cellInGroup.getView().isMultiPageView()) return cellInGroup;
+		}
+
+		// now check to see if there is any layout link
+		for(Iterator it = cell.getCellGroup().getCells(); it.hasNext(); )
+		{
+			Cell cellInGroup = (Cell)it.next();
+			if (cellInGroup.getView() == View.LAYOUT) return cellInGroup;
+		}
+
+		// finally check to see if there is any "unknown" link
+		for(Iterator it = cell.getCellGroup().getCells(); it.hasNext(); )
+		{
+			Cell cellInGroup = (Cell)it.next();
+			if (cellInGroup.getView() == View.UNKNOWN) return cellInGroup;
+		}
+
+		// no contents found
+		return null;
+	}
+
 	/****************************** EXTRACT CELL INSTANCES ******************************/
 
 	/**
@@ -2099,7 +2501,7 @@ public class CircuitChanges
 		eraseNodeInst(topno);
 	}
 
-	static class NodesByName implements Comparator
+	private static class NodesByName implements Comparator
 	{
 		public int compare(Object o1, Object o2)
 		{
@@ -2111,7 +2513,7 @@ public class CircuitChanges
 		}
 	}
 
-	static class ArcsByName implements Comparator
+	private static class ArcsByName implements Comparator
 	{
 		public int compare(Object o1, Object o2)
 		{
@@ -2123,7 +2525,7 @@ public class CircuitChanges
 		}
 	}
 
-	static class ExportsByName implements Comparator
+	private static class ExportsByName implements Comparator
 	{
 		public int compare(Object o1, Object o2)
 		{
@@ -3679,7 +4081,7 @@ public class CircuitChanges
 	 * This class handles deleting pins that are between two arcs,
 	 * and reconnecting the arcs without the pin.
 	 */
-	static class Reconnect
+	private static class Reconnect
 	{
 		/** node in the center of the reconnect */			private NodeInst ni;
 		/** number of arcs found on this reconnection */	private int arcsFound;
@@ -4329,7 +4731,7 @@ public class CircuitChanges
 
 	/****************************** NODE AND ARC REPLACEMENT ******************************/
 
-	static class PossibleVariables
+	private static class PossibleVariables
 	{
 		Variable.Key varKey;
 		PrimitiveNode pn;
@@ -4644,18 +5046,27 @@ public class CircuitChanges
 		newVar = ni.updateVar(var.getKey(), inheritAddress(np, posVar));
 		if (newVar != null)
 		{
+			TextDescriptor oldDescript = var.getTextDescriptor();
 			TextDescriptor newDescript = newVar.getTextDescriptor();
-			if (newDescript.isInterior())
+			if (oldDescript.isInterior())
+			{
 				newVar.clearDisplay();
+			} else
+			{
+				newVar.setDisplay();
+			}
 			newDescript.clearInherit();
 			newDescript.setOff(xc, yc);
-			if (newDescript.isParam())
+			if (oldDescript.isParam())
 			{
 				newDescript.clearInterior();
 				TextDescriptor.DispPos i = newDescript.getDispPart();
 				if (i == TextDescriptor.DispPos.NAMEVALINH || i == TextDescriptor.DispPos.NAMEVALINHALL)
 					newDescript.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
 			}
+			if (var.isJava()) newVar.setJava();
+			if (var.isTCL()) newVar.setTCL();
+			if (var.isLisp()) newVar.setLisp();
 		}
 	}
 

@@ -829,14 +829,17 @@ public class Spice extends Topology
 					  fun == NodeProto.Function.TRADMES || fun == NodeProto.Function.TRAEMES) &&
 					  spiceEngine == Simulation.SPICE_ENGINE_H))
 				{
-					infstr.append(" L=" + TextUtils.formatDouble(l, 2) + "U");
-					infstr.append(" W=" + TextUtils.formatDouble(w, 2) + "U");
+					infstr.append(" L=" + TextUtils.formatDouble(l, 2));
+					if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("U");
+					infstr.append(" W=" + TextUtils.formatDouble(w, 2));
+					if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("U");
 				}
 				if (fun != NodeProto.Function.TRANMOS && fun != NodeProto.Function.TRA4NMOS &&
 					fun != NodeProto.Function.TRAPMOS && fun != NodeProto.Function.TRA4PMOS &&
 					fun != NodeProto.Function.TRADMOS && fun != NodeProto.Function.TRA4DMOS)
 				{
-					infstr.append(" AREA=" + TextUtils.formatDouble(l*w, 2) + "P");
+					infstr.append(" AREA=" + TextUtils.formatDouble(l*w, 2));
+					if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("P");
 				}
 			}
 
@@ -874,10 +877,26 @@ public class Spice extends Topology
 							pd *= layoutTechnology.getScale() / 1000.0;
 						}
 					}
-					if (as > 0.0) infstr.append(" AS=" + TextUtils.formatDouble(as, 2) + "P");
-					if (ad > 0.0) infstr.append(" AD=" + TextUtils.formatDouble(ad, 2) + "P");
-					if (ps > 0.0) infstr.append(" PS=" + TextUtils.formatDouble(ps, 2) + "U");
-					if (pd > 0.0) infstr.append(" PD=" + TextUtils.formatDouble(pd, 2) + "U");
+					if (as > 0.0)
+					{
+						infstr.append(" AS=" + TextUtils.formatDouble(as, 2));
+						if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("P");
+					}
+					if (ad > 0.0)
+					{
+						infstr.append(" AD=" + TextUtils.formatDouble(ad, 2));
+						if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("P");
+					}
+					if (ps > 0.0)
+					{
+						infstr.append(" PS=" + TextUtils.formatDouble(ps, 2));
+						if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("U");
+					}
+					if (pd > 0.0)
+					{
+						infstr.append(" PD=" + TextUtils.formatDouble(pd, 2));
+						if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("U");
+					}
 				}
 			}
             // Writing MFactor if available.

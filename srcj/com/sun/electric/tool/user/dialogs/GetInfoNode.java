@@ -188,7 +188,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 
 	protected void escapePressed() { cancelActionPerformed(null); }
 
-	static class AttValPair
+	private static class AttValPair
 	{
 		Variable.Key key;
 		String trueName;

@@ -799,7 +799,7 @@ public class ELIB extends Output
 		writeVariables(ni, tech.getScale()*2);
 	}
 
-	static class OrderedConnections implements Comparator
+	private static class OrderedConnections implements Comparator
 	{
 		public int compare(Object o1, Object o2)
 		{
@@ -811,7 +811,7 @@ public class ELIB extends Output
 		}
 	}
 
-	static class OrderedExports implements Comparator
+	private static class OrderedExports implements Comparator
 	{
 		public int compare(Object o1, Object o2)
 		{

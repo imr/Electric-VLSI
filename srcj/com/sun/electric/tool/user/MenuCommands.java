@@ -558,19 +558,25 @@ public final class MenuCommands
 
 		cellMenu.addSeparator();
 
-		Menu cellInfotSubMenu = new Menu("Cell Info");
-		cellMenu.add(cellInfotSubMenu);
-		cellInfotSubMenu.addMenuItem("Describe this Cell", null,
+		Menu cellInfoSubMenu = new Menu("Cell Info");
+		cellMenu.add(cellInfoSubMenu);
+		cellInfoSubMenu.addMenuItem("Describe this Cell", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.describeThisCellCommand(); } });
-		cellInfotSubMenu.addMenuItem("General Cell Lists...", null,
+		cellInfoSubMenu.addMenuItem("General Cell Lists...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.generalCellListsCommand(); } });
-		cellInfotSubMenu.addSeparator();
-		cellInfotSubMenu.addMenuItem("List Nodes in this Cell", null,
+		cellInfoSubMenu.addSeparator();
+		cellInfoSubMenu.addMenuItem("List Nodes in this Cell", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.listNodesInCellCommand(); }});
-		cellInfotSubMenu.addMenuItem("List Cell Instances", null,
+		cellInfoSubMenu.addMenuItem("List Cell Instances", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.listCellInstancesCommand(); }});
-		cellInfotSubMenu.addMenuItem("List Cell Usage", null,
+		cellInfoSubMenu.addMenuItem("List Cell Usage", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.listCellUsageCommand(); }});
+		cellInfoSubMenu.addSeparator();
+		cellInfoSubMenu.addMenuItem("Graphically, Entire Library", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.graphCellsInLibrary(); }});
+		cellInfoSubMenu.addMenuItem("Graphically, From Current Cell", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.graphCellsFromCell(); }});
+
 		cellMenu.addMenuItem("Cell Properties...", null,
 			 new ActionListener() { public void actionPerformed(ActionEvent e) { cellControlCommand(); }});
 
@@ -1471,7 +1477,7 @@ public final class MenuCommands
 		}
 	}
 
-	static class ElectricPrinter implements Printable
+	private static class ElectricPrinter implements Printable
 	{
 		private Cell printCell;
 		private Image img = null;

@@ -259,7 +259,7 @@ public class EditOptions extends EDialog
 
 	//******************************** NEW NODES ********************************
 
-	static class PrimNodeInfo
+	private static class PrimNodeInfo
 	{
 		double initialWid, wid;
 		double initialHei, hei;
@@ -412,7 +412,7 @@ public class EditOptions extends EDialog
 
 	//******************************** NEW ARCS ********************************
 
-	static class PrimArcInfo
+	private static class PrimArcInfo
 	{
 		boolean initialRigid, rigid;
 		boolean initialFixedAngle, fixedAngle;

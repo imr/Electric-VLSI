@@ -76,7 +76,7 @@ public class ErrorLog
 	private static final int ERRORTYPETHICKLINE = 4;
 	private static final int ERRORTYPEPOINT     = 5;
 
-	static class ErrorHighlight
+	private static class ErrorHighlight
 	{
 		int         type;
 		Geometric   geom;
@@ -285,7 +285,7 @@ public class ErrorLog
 		Collections.sort(allErrors, new ErrorLogOrder());
 	}
 
-	static class ErrorLogOrder implements Comparator
+	private static class ErrorLogOrder implements Comparator
 	{
 		public int compare(Object o1, Object o2)
 		{

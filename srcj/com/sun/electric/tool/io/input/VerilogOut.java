@@ -41,7 +41,7 @@ import java.util.Iterator;
  */
 public class VerilogOut extends Simulate
 {
-	static class VerilogStimuli
+	private static class VerilogStimuli
 	{
 		double time;
 		int state;

@@ -67,7 +67,7 @@ import java.util.Iterator;
 public class ReadableDump extends LibraryFiles
 {
 	// ------------------------- private data ----------------------------
-	static class ArcInstList
+	private static class ArcInstList
 	{
 		private ArcInst []   arcList;
 		private ArcProto []  arcProto;
@@ -82,7 +82,7 @@ public class ReadableDump extends LibraryFiles
 		private int []       arcTailX;
 		private int []       arcTailY;
 	};
-	static class ExportList
+	private static class ExportList
 	{
 		private Export []   exportList;
 		private String []   exportName;

@@ -343,6 +343,81 @@ public class Variable
     }
 
 	/**
+	 * Method to express "value" as a string in "unittype" electrical units.
+	 * The scale of the units is in "unitscale".
+	 */
+	private static String displayedunits(double value, int unittype, int unitscale)
+	{
+		String postfix = "";
+//		pureunit = db_getpureunit(unittype, unitscale);
+//		switch (pureunit)
+//		{
+//			case PUREUNITGIGA:		/* giga:  x 1000000000 */
+//				value /= 1000000000.0f;
+//				postfix = x_("g");
+//				break;
+//			case PUREUNITMEGA:		/* mega:  x 1000000 */
+//				value /= 1000000.0f;
+//				postfix = x_("meg");		/* SPICE wants "x" */
+//				break;
+//			case PUREUNITKILO:		/* kilo:  x 1000 */
+//				value /= 1000.0f;
+//				postfix = x_("k");
+//				break;
+//			case PUREUNITNONE:		/* -:     x 1 */
+//				postfix = x_("");
+//				break;
+//			case PUREUNITMILLI:		/* milli: / 1000 */
+//				value *= 1000.0f;
+//				postfix = x_("m");
+//				break;
+//			case PUREUNITMICRO:		/* micro: / 1000000 */
+//				value *= 1000000.0f;
+//				postfix = x_("u");
+//				break;
+//			case PUREUNITNANO:		/* nano:  / 1000000000 */
+//				value *= 1000000000.0f;
+//				postfix = x_("n");
+//				break;
+//			case PUREUNITPICO:		/* pico:  / 1000000000000 */
+//				value *= 1000000000000.0f;
+//				postfix = x_("p");
+//				break;
+//			case PUREUNITFEMTO:		/* femto: / 1000000000000000 */
+//				value *= 1000000000000000.0f;
+//				postfix = x_("f");
+//				break;
+//		}
+		return TextUtils.formatDouble(value) + postfix;
+	}
+
+	private static String makeUnits(double value, TextDescriptor.Unit units)
+	{
+//		switch (units)
+//		{
+//			case VTUNITSRES:
+//				return(displayedunits(value, units,
+//					(us_electricalunits&INTERNALRESUNITS) >> INTERNALRESUNITSSH));
+//			case VTUNITSCAP:
+//				return(displayedunits(value, units,
+//					(us_electricalunits&INTERNALCAPUNITS) >> INTERNALCAPUNITSSH));
+//			case VTUNITSIND:
+//				return(displayedunits(value, units,
+//					(us_electricalunits&INTERNALINDUNITS) >> INTERNALINDUNITSSH));
+//			case VTUNITSCUR:
+//				return(displayedunits(value, units,
+//					(us_electricalunits&INTERNALCURUNITS) >> INTERNALCURUNITSSH));
+//			case VTUNITSVOLT:
+//				return(displayedunits(value, units,
+//					(us_electricalunits&INTERNALVOLTUNITS) >> INTERNALVOLTUNITSSH));
+//			case VTUNITSTIME:
+//				return(displayedunits(value, units,
+//					(us_electricalunits&INTERNALTIMEUNITS) >> INTERNALTIMEUNITSSH));
+//		}
+		return TextUtils.formatDouble(value);
+	}
+
+	/**
 	 * Method to return a String describing this Variable.
 	 * @param aindex if negative, print the entire array.
 	 * @param purpose if zero, the conversion is for human reading and should be easy to understand.
@@ -366,10 +441,10 @@ public class Variable
 			//makeStringVar(VSTRING, var->addr, purpose, units, infstr);
             if (context == null) context = VarContext.globalContext;
             Object val = context.evalVar(this, eobj);
-            if (val == null) 
+            if (val == null)
                 returnVal.append("?");
             else
-                returnVal.append(makeStringVar(val, purpose, units));
+                 returnVal.append(makeStringVar(val, purpose, units));
         } else
 		{
 			returnVal.append(getPureValue(aindex, purpose));
@@ -448,11 +523,17 @@ public class Variable
 	private String makeStringVar(Object addr, int purpose, TextDescriptor.Unit units)
 	{
 		if (addr instanceof Integer)
+		{
 			return ((Integer)addr).toString();
+		}
 		if (addr instanceof Float)
-			return (TextUtils.formatDouble(((Float)addr).floatValue()));
+		{
+			return makeUnits(((Float)addr).floatValue(), units);
+		}
 		if (addr instanceof Double)
-			return (TextUtils.formatDouble(((Double)addr).doubleValue()));
+		{
+			return makeUnits(((Double)addr).doubleValue(), units);
+		}
 		if (addr instanceof Short)
 			return ((Short)addr).toString();
 		if (addr instanceof Byte)

@@ -1614,7 +1614,7 @@ public class Poly implements Shape
 		}
 	}
 
-	class PolyPathIterator implements PathIterator
+	private class PolyPathIterator implements PathIterator
 	{
 		int idx = 0;
 		AffineTransform trans;

@@ -70,7 +70,7 @@ public class CellProperties extends EDialog
 	private boolean initialAutoTechnologySwitch;
 	private boolean initialPlaceCellCenter;
 
-	static class OldValues
+	private static class OldValues
 	{
 		boolean disAllMod;
 		boolean disInstMod;

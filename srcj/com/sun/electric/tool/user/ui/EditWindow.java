@@ -449,7 +449,7 @@ public class EditWindow extends JPanel
 	/**
 	 * This class handles changes to the edit window scroll bars.
 	 */
-	static class ScrollAdjustmentListener implements AdjustmentListener
+	private static class ScrollAdjustmentListener implements AdjustmentListener
 	{
         /** A weak reference to the WindowFrame */
 		EditWindow wnd;               

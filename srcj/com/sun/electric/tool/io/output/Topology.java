@@ -207,7 +207,7 @@ public abstract class Topology extends Output
 
 	//---------------------------- Utility Methods --------------------------------------
 
-	static class CellSignal
+	protected static class CellSignal
 	{
 		/** name to use for this network. */		private String name;
 		/** JNetwork for this signal. */			private JNetwork net;
@@ -229,7 +229,7 @@ public abstract class Topology extends Output
 		protected boolean isExported() { return pp != null; }
 	}
 
-	static class CellAggregateSignal
+	protected static class CellAggregateSignal
 	{
 		private String name;
 		private Export pp;
@@ -261,7 +261,7 @@ public abstract class Topology extends Output
 		}
 	}
 
-	static class CellNetInfo
+	protected static class CellNetInfo
 	{
 		private String paramName;
 		private HashMap cellSignals;
@@ -671,7 +671,7 @@ public abstract class Topology extends Output
 		return name.substring(0, i);
 	}
 
-	static class SortNetsByName implements Comparator
+	private static class SortNetsByName implements Comparator
 	{
 		public int compare(Object o1, Object o2)
 		{

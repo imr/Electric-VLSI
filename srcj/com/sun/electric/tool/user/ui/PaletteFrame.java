@@ -343,7 +343,7 @@ public class PaletteFrame
 	}
 
 	// The class that watches changes to the technology popup at the bottom of the component menu
-	static class TechnologyPopupActionListener implements ActionListener
+	private static class TechnologyPopupActionListener implements ActionListener
 	{
 		PaletteFrame palette;
 

@@ -364,7 +364,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 		}
 	}
 
-	static class SortMultipleHighlights implements Comparator
+	private static class SortMultipleHighlights implements Comparator
 	{
 		public int compare(Object o1, Object o2)
 		{

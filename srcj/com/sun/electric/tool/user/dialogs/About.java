@@ -53,7 +53,7 @@ public class About extends EDialog
 	DefaultListModel model;
 	boolean showingCast = false;
 
-	static class CastOfThousands
+	private static class CastOfThousands
 	{
 		String name;
 		String work;

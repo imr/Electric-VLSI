@@ -487,7 +487,7 @@ public class SizeListener
 		return newSize;
 	}
 
-	protected static class ScaleObject extends Job
+	private static class ScaleObject extends Job
 	{
 		private Geometric stretchGeom;
 		private Point2D stretchPt;
