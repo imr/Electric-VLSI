@@ -1070,8 +1070,8 @@ public class Cell extends NodeProto implements Comparable
 				if (lowy < cellLowY) cellLowY = lowy;
 				if (highy > cellHighY) cellHighY = highy;
 			}
-			cellBounds.setRect(DBMath.smooth(cellLowX), DBMath.smooth(cellLowY),
-				DBMath.smooth(cellHighX - cellLowX), DBMath.smooth(cellHighY - cellLowY));
+			cellBounds.setRect(DBMath.round(cellLowX), DBMath.round(cellLowY),
+				DBMath.round(cellHighX - cellLowX), DBMath.round(cellHighY - cellLowY));
 			boundsDirty = false;
 		}
 		return cellBounds;
@@ -1276,7 +1276,7 @@ public class Cell extends NodeProto implements Comparable
 			return null;
 		}
 
-
+        /*
         // check to see if this instantiation would create a circular library dependency
         NodeProto protoType = ni.getProto();
         if (protoType instanceof Cell) {
@@ -1295,7 +1295,7 @@ public class Cell extends NodeProto implements Comparable
 
             }
         }
-        
+*/
 		// add the node
 		ni.setNodeIndex(nodes.size());
 		nodes.add(ni);

@@ -718,10 +718,10 @@ public class NodeInst extends Geometric implements Nodable
 		unLinkGeom(parent);
 
 		// make the change
-		center.setLocation(DBMath.smooth(getAnchorCenterX() + dX), DBMath.smooth(getAnchorCenterY() + dY));
+		center.setLocation(DBMath.round(getAnchorCenterX() + dX), DBMath.round(getAnchorCenterY() + dY));
 
-		sX = DBMath.smooth(this.sX + dXSize);
-		sY = DBMath.smooth(this.sY + dYSize);
+		sX = DBMath.round(this.sX + dXSize);
+		sY = DBMath.round(this.sY + dYSize);
 
 		angle = (angle +dRot) % 3600;
 
@@ -1133,6 +1133,21 @@ public class NodeInst extends Geometric implements Nodable
 		// mirrors about the grab point. 
 		AffineTransform xform = rotateOut();
 		xform.concatenate(translateOut());
+		return xform;
+	}
+
+	/**
+	 * Method to return a transformation that moves down the hierarchy.
+	 * Presuming that this NodeInst is a Cell instance, the
+	 * transformation maps points in the Cell's coordinate space
+	 * into this NodeInst's parent Cell's coordinate space.
+	 * @return a transformation that moves down the hierarchy.
+	 */
+	public AffineTransform transformIn()
+	{
+		// The transform first rotates in, and then translates to the position..
+		AffineTransform xform = rotateIn();
+		xform.preConcatenate(translateIn());
 		return xform;
 	}
 

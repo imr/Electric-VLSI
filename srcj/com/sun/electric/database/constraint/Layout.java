@@ -369,7 +369,7 @@ public class Layout extends Constraints
 	/**
 	 * Method to modify all of the arcs connected to a NodeInst.
 	 * @param ni the NodeInst being examined.
-	 * @param dAngle the change in the nodes rotation (in tenth-degrees).
+	 * @param dangle the change in the nodes rotation (in tenth-degrees).
 	 * @param dSX the change in the node's X size.
 	 * @param dSY the change in the node's Y size.
 	 * @param flipX true if the node flipped in X coordinates.
@@ -702,8 +702,8 @@ public class Layout extends Constraints
 			// figure out the new location of this arcinst connection
 			Point2D src = new Point2D.Double(thisEnd.getLocation().getX()-ox, thisEnd.getLocation().getY()-oy);
 			trans.transform(src, newPts[thisEndIndex]);
-			newPts[thisEndIndex].setLocation(DBMath.smooth(newPts[thisEndIndex].getX()),
-				DBMath.smooth(newPts[thisEndIndex].getY()));
+			newPts[thisEndIndex].setLocation(DBMath.round(newPts[thisEndIndex].getX()),
+				DBMath.round(newPts[thisEndIndex].getY()));
 
 			// make sure the arc end is still in the port
 			Poly poly = thisEnd.getPortInst().getPoly();
@@ -786,7 +786,7 @@ public class Layout extends Constraints
 
 						if (dx != odx)
 						{
-							double xAmount = DBMath.smooth(dx-odx);
+							double xAmount = DBMath.round(dx-odx);
 							if (DEBUG) System.out.println("  Moving node "+ono.describe()+" by ("+xAmount+",0)");
 							if (alterNodeInst(ono, xAmount, 0, 0, 0, 0, true))
 								examineCell = true;
@@ -1155,11 +1155,8 @@ public class Layout extends Constraints
 			double dy = curPoly.getCenterY();
 			double ox = change.getA1();
 			double oy = change.getA2();
-            // Zero means flat port. Valid for new technology
-            if (oldPoly.getBounds2D().getWidth() > 0)
-                m00 = curPoly.getBounds2D().getWidth() / oldPoly.getBounds2D().getWidth();
-            if (oldPoly.getBounds2D().getHeight() >0)
-			    m11 = curPoly.getBounds2D().getHeight() / oldPoly.getBounds2D().getHeight();
+			m00 = curPoly.getBounds2D().getWidth() / oldPoly.getBounds2D().getWidth();
+			m11 = curPoly.getBounds2D().getHeight() / oldPoly.getBounds2D().getHeight();
 			m02 = dx - ono.getX() + ox;   m12 = dy - ono.getY() + oy;
 		}
 		trans.setTransform(m00, m10, m01, m11, m02, m12);
@@ -1331,8 +1328,8 @@ public class Layout extends Constraints
 				double sX = ni.getXSize();
 				double sY = ni.getYSize();
 
-				double dSX = DBMath.smooth(cellBounds.getWidth() - ni.getXSize());
-				double dSY = DBMath.smooth(cellBounds.getHeight() - ni.getYSize());
+				double dSX = DBMath.round(cellBounds.getWidth() - ni.getXSize());
+				double dSY = DBMath.round(cellBounds.getHeight() - ni.getYSize());
 				if (ni.isMirroredAboutYAxis()) dSX = -dSX;
 				if (ni.isMirroredAboutXAxis()) dSY = -dSY;
 				if (alterNodeInst(ni, 0, 0, dSX, dSY, 0, true)) forcedLook = true;
@@ -1478,8 +1475,8 @@ public class Layout extends Constraints
 				double sX = ni.getXSize();
 				double sY = ni.getYSize();
 
-				double dSX = DBMath.smooth(cellBounds.getWidth() - ni.getXSize());
-				double dSY = DBMath.smooth(cellBounds.getHeight() - ni.getYSize());
+				double dSX = DBMath.round(cellBounds.getWidth() - ni.getXSize());
+				double dSY = DBMath.round(cellBounds.getHeight() - ni.getYSize());
 				if (ni.isMirroredAboutYAxis()) dSX = -dSX;
 				if (ni.isMirroredAboutXAxis()) dSY = -dSY;
 				if (alterNodeInst(ni, 0, 0, dSX, dSY, 0, true)) forcedLook = true;

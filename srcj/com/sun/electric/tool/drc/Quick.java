@@ -387,7 +387,7 @@ public class Quick
             errorsFound = errorLogger.getNumErrors() - errorsFound;
         }
 
-		if (haveGoodDRCDate && count == 0)
+		if (!Main.getDebug() && haveGoodDRCDate && count == 0)
 		{
 			// some cells were sucessfully checked: save that information in the database
 			SaveDRCDates job = new SaveDRCDates(goodDRCDate);
@@ -735,7 +735,7 @@ public class Quick
 
 			// recursively search instance "ni" in the vicinity of "oNi"
 //			if (!dr_quickparalleldrc) downhierarchy(ni, ni->proto, 0);
-			checkCellInstContents(subBounds, (Cell)ni.getProto(), upTrans,
+			checkCellInstContents(subBounds, ni, upTrans,
 				localIndex, oNi, globalIndex);
 //			if (!dr_quickparalleldrc) uphierarchy();
 		}
@@ -748,12 +748,20 @@ public class Quick
 	 * They are then compared with objects in "oNi" (which is in that top-level cell),
 	 * which has global index "topGlobalIndex".
 	 */
-	private boolean checkCellInstContents(Rectangle2D bounds, Cell cell,
+	private boolean checkCellInstContents(Rectangle2D bounds, NodeInst thisNi,
 		AffineTransform upTrans, int globalIndex, NodeInst oNi, int topGlobalIndex)
 	{
+		Cell cell = (Cell)thisNi.getProto();
 		boolean errorsFound = false;
 		Netlist netlist = getCheckProto(cell).netlist;
-		for(Iterator it = cell.searchIterator(bounds); it.hasNext(); )
+
+		// Need to transform bounds coordinates first otherwise it won't
+		// never overlap
+		Rectangle2D bb = (Rectangle2D)bounds.clone();
+		AffineTransform downTrans = thisNi.transformIn();
+		DBMath.transformRect(bb, downTrans);
+
+		for(Iterator it = cell.searchIterator(bb); it.hasNext(); )
 		{
 			Geometric geom = (Geometric)it.next();
 			if (geom instanceof NodeInst)
@@ -778,7 +786,7 @@ public class Quick
 					int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
 
 //					if (!dr_quickparalleldrc) downhierarchy(ni, ni->proto, 0);
-					checkCellInstContents(subBounds, (Cell)np,
+					checkCellInstContents(subBounds, ni, //(Cell)np,
 						subUpTrans, localIndex, oNi, topGlobalIndex);
 //					if (!dr_quickparalleldrc) uphierarchy();
 				} else
@@ -1511,7 +1519,7 @@ public class Quick
 				subNodeBounds.getHeight() + worstInteractionDistance*2);
 
 			// recursively search instance "ni" in the vicinity of "oNi"
-			if (checkCellInstContents(subBounds, (Cell)ni.getProto(), upTrans,
+			if (checkCellInstContents(subBounds, ni, upTrans,
 				localIndex, oNi, globalIndex)) return true;
 		}
 		return false;
@@ -1670,7 +1678,7 @@ public class Quick
 	 */ 
 	private boolean findInteraction(InstanceInter dii)
 	{
-		for(Iterator it = instanceInteractionList.iterator(); it.hasNext(); )
+			for(Iterator it = instanceInteractionList.iterator(); it.hasNext(); )
 		{
 			InstanceInter thisII = (InstanceInter)it.next();
 			if (thisII.cell1 == dii.cell1 && thisII.cell2 == dii.cell2 &&
@@ -1964,7 +1972,7 @@ public class Quick
 				if (inter.getY() < Math.min(oFrom.getY(), oTo.getY()) || inter.getY() > Math.max(oFrom.getY(), oTo.getY())) continue;
 				double fdx = center.getX() - inter.getX();
 				double fdy = center.getY() - inter.getY();
-				actual = DBMath.smooth(Math.sqrt(fdx*fdx + fdy*fdy));
+				actual = DBMath.round(Math.sqrt(fdx*fdx + fdy*fdy));
 
 				// becuase this is done in integer, accuracy may suffer
 //				actual += 2;

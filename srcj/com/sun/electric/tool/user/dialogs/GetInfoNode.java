@@ -671,8 +671,8 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		if (np == Artwork.tech.circleNode || np == Artwork.tech.thickCircleNode)
 		{
 			double [] arcData = ni.getArcDegrees();
-			double start = DBMath.smooth(arcData[0] * 180.0 / Math.PI);
-			double curvature = DBMath.smooth(arcData[1] * 180.0 / Math.PI);
+			double start = DBMath.round(arcData[0] * 180.0 / Math.PI);
+			double curvature = DBMath.round(arcData[1] * 180.0 / Math.PI);
 			if (start != 0.0)
 			{
 				textFieldLabel.setText("Offset angle / Degrees of circle:");

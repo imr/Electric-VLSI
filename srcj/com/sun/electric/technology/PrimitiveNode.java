@@ -264,11 +264,13 @@ public class PrimitiveNode extends NodeProto
 	 * Method to set the default size of this PrimitiveNode.
 	 * @param defWidth the new default width of this PrimitiveNode.
 	 * @param defHeight the new default height of this PrimitiveNode.
+	 * @return return if any of the value was changed.
 	 */
-	public void setDefSize(double defWidth, double defHeight)
+	public boolean setDefSize(double defWidth, double defHeight)
 	{
-		getNodeProtoWidthPref(0).setDouble(defWidth);
-		getNodeProtoHeightPref(0).setDouble(defHeight);
+		boolean changed = getNodeProtoWidthPref(0).setDouble(defWidth);
+		changed = (!getNodeProtoHeightPref(0).setDouble(defHeight))? changed : true;
+		return (changed);
 	}
 
 	/**

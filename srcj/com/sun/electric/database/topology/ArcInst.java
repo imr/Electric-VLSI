@@ -117,7 +117,6 @@ public class ArcInst extends Geometric
 	private ArcInst()
 	{
 		arcIndex = -1;
-        setLinked(false);
 	}
 
 	/****************************** CREATE, DELETE, MODIFY ******************************/
@@ -438,7 +437,6 @@ public class ArcInst extends Geometric
 		// update end shrinkage information
 		for(int k=0; k<2; k++)
 			updateShrinkage(ends[k].getPortInst().getNodeInst());
-        setLinked(true);
 		return false;
 	}
 
@@ -458,7 +456,6 @@ public class ArcInst extends Geometric
 		// update end shrinkage information
 		for(int k=0; k<2; k++)
 			updateShrinkage(ends[k].getPortInst().getNodeInst());
-        setLinked(false);
 	}
 
 	/**
@@ -475,16 +472,17 @@ public class ArcInst extends Geometric
 		unLinkGeom(parent);
 
 		// now make the change
-		width = DBMath.smooth(width + dWidth);
+		width = DBMath.round(width + dWidth);
+
 		if (dHeadX != 0 || dHeadY != 0)
 		{
 			Point2D pt = ends[HEADEND].getLocation();
-			ends[HEADEND].setLocation(new Point2D.Double(DBMath.smooth(dHeadX+pt.getX()), DBMath.smooth(pt.getY()+dHeadY)));
+			ends[HEADEND].setLocation(new Point2D.Double(DBMath.round(dHeadX+pt.getX()), DBMath.round(pt.getY()+dHeadY)));
 		}
 		if (dTailX != 0 || dTailY != 0)
 		{
 			Point2D pt = ends[TAILEND].getLocation();
-			ends[TAILEND].setLocation(new Point2D.Double(DBMath.smooth(dTailX+pt.getX()), DBMath.smooth(pt.getY()+dTailY)));
+			ends[TAILEND].setLocation(new Point2D.Double(DBMath.round(dTailX+pt.getX()), DBMath.round(pt.getY()+dTailY)));
 		}
 		updateGeometric(getAngle());
 
@@ -971,7 +969,8 @@ public class ArcInst extends Geometric
 		if (!stillInPort(getHead(), headPt, false))
 		{
 			// allow for round-off error
-			headPt.setLocation(DBMath.smooth(headPt.getX()), DBMath.smooth(headPt.getY()));
+			headPt.setLocation(DBMath.round(headPt.getX()), DBMath.round(headPt.getY()));
+
 			if (!stillInPort(getHead(), headPt, false))
 			{
 				Poly poly = getHead().getPortInst().getPoly();
@@ -986,7 +985,8 @@ public class ArcInst extends Geometric
 		if (!stillInPort(getTail(), tailPt, false))
 		{
 			// allow for round-off error
-			tailPt.setLocation(DBMath.smooth(tailPt.getX()), DBMath.smooth(tailPt.getY()));
+			tailPt.setLocation(DBMath.round(tailPt.getX()), DBMath.round(tailPt.getY()));
+
 			if (!stillInPort(getTail(), tailPt, false))
 			{
 				Poly poly = getTail().getPortInst().getPoly();

@@ -519,10 +519,13 @@ public class Pref
 	/**
 	 * Method to set a new double value on this Pref object.
 	 * @param v the new double value of this Pref object.
+	 * @return true if preference was really changed.
 	 */
-	public void setDouble(double v)
+	public boolean setDouble(double v)
 	{
 		double cachedDouble = ((Double)cachedObj).doubleValue();
+		boolean changed = false;
+
 		if (v != cachedDouble)
 		{
 			cachedObj = new Double(v);
@@ -531,8 +534,10 @@ public class Pref
 				prefs.putDouble(name, v);
 				flushOptions();
 			}
+			changed = true;
 		}
 		setSideEffect();
+		return (changed);
 	}
 
 	/**

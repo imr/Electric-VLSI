@@ -2,6 +2,10 @@
 
 ************************* Version 8.01e: *********************************
 
+FIX: (8/9/04) DRC: Missing transformation in hierarchical DRC so neighbor cells were not checked.
+
+IMP: (8/9/04, GVG): GDS values in TSMC90 tech.
+
 IMP/MAN: (8/9/04, JKG) Added color chooser to GetInfoArc
 
 FIX: (8/9/04, JKG) Fixed X/Y size mirroring bug in GetInfoNode dialog

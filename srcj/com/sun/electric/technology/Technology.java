@@ -51,6 +51,7 @@ import com.sun.electric.technology.technologies.nMOS;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.Main;
 
 import java.awt.Dimension;
 import java.awt.Color;
@@ -2817,7 +2818,7 @@ public class Technology extends ElectricObject
 		{
 			if (errorLogger != null)
 				errorLogger.logError(errorMessage, null, outerLayer.getIndex());
-			else
+			else if (Main.getDebug())
 				System.out.println(errorMessage);
 		}
 	}
@@ -2855,34 +2856,45 @@ public class Technology extends ElectricObject
 	 * the layers are at least "width" wide.  Affects the default arc width
 	 * and the default pin size.
 	 */
-	protected void setLayerMinWidth(String layername, double width)
+	protected void setLayerMinWidth(String layername, String rulename, double width, ErrorLogger errorLogger)
 	{
 		// find the arc and set its default width
 		PrimitiveArc ap = findArcProto(layername);
 		if (ap == null) return;
-		ap.setDefaultWidth(width + ap.getWidthOffset());
+
+		boolean hasChanged = false;
+
+		hasChanged = (!ap.setDefaultWidth(width + ap.getWidthOffset())) ? hasChanged : true;
 
 		// find the arc's pin and set its size and port offset
 		PrimitiveNode np = ap.findPinProto();
-		if (np != null)
+		if (np == null) return;
+		SizeOffset so = np.getProtoSizeOffset();
+		double newWidth = width + so.getLowXOffset() + so.getHighXOffset();
+		double newHeight = width + so.getLowYOffset() + so.getHighYOffset();
+
+		hasChanged = (!np.setDefSize(newWidth, newHeight)) ? hasChanged : true;
+
+		PrimitivePort pp = (PrimitivePort)np.getPorts().next();
+		EdgeH left = pp.getLeft();
+		EdgeH right = pp.getRight();
+		EdgeV bottom = pp.getBottom();
+		EdgeV top = pp.getTop();
+		double indent = newWidth / 2;
+
+		hasChanged = (!left.setAdder(indent)) ? hasChanged : true;
+		hasChanged = (!right.setAdder(-indent)) ? hasChanged : true;
+		hasChanged = (!top.setAdder(-indent)) ? hasChanged : true;
+		hasChanged = (!bottom.setAdder(indent)) ? hasChanged : true;
+		if (hasChanged)
 		{
-			SizeOffset so = np.getProtoSizeOffset();
-			double newWidth = width + so.getLowXOffset() + so.getHighXOffset();
-			double newHeight = width + so.getLowYOffset() + so.getHighYOffset();
-			np.setDefSize(newWidth, newHeight);
-
-			PrimitivePort pp = (PrimitivePort)np.getPorts().next();
-			EdgeH left = pp.getLeft();
-			EdgeH right = pp.getRight();
-			EdgeV bottom = pp.getBottom();
-			EdgeV top = pp.getTop();
-			double indent = newWidth / 2;
-
-			//@ TODO GVG put message
-			left.setAdder(indent);
-			right.setAdder(-indent);
-			top.setAdder(-indent);
-			bottom.setAdder(indent);
+			// describe the error
+			String errorMessage = "Layer Minimum Size correction of " + indent + " done in '"
+					+ layername + ":" + getTechDesc() + "' by rule " + rulename;
+			if (errorLogger != null)
+				errorLogger.logError(errorMessage, null, -1);
+			else if (Main.getDebug())
+				System.out.println(errorMessage);
 		}
 	}
 

@@ -245,8 +245,9 @@ public abstract class ArcProto extends ElectricObject
 	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
 	 * This call returns the width of all of these layers. 
 	 * @param defaultWidth the full default width of this ArcProto.
+	 * @return returns true if preference was really changed.
 	 */
-	public void setDefaultWidth(double defaultWidth) { getArcProtoWidthPref(0).setDouble(defaultWidth); }
+	public boolean setDefaultWidth(double defaultWidth) { return(getArcProtoWidthPref(0).setDouble(defaultWidth)); }
 
 	/**
 	 * Method to return the full default width of this ArcProto.

@@ -3285,7 +3285,7 @@ public class MoCMOS extends Technology
 					case MINWID:
 						rules.minWidth[layert1] = new Double(distance);
 						rules.minWidthRules[layert1] = rule;
-						setLayerMinWidth(theRules[i].layer1, distance);
+						setLayerMinWidth(theRules[i].layer1, theRules[i].rule, distance, errorLogger);
 						break;
 					case NODSIZ:
 						setDefNodeSize(nty, distance, distance, rules);

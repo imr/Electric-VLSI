@@ -548,11 +548,13 @@ public class GenMath
      * @param a the value to round.
      * @return the rounded value.
      */
+    /*
     public static double smooth(double a)
     {
         long i = Math.round(a * 1000.0);
         return i / 1000.0;
     }
+    */
 
     private static final int LEFT    = 1;
     private static final int RIGHT   = 2;
