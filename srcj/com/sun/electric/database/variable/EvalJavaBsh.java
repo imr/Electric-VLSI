@@ -82,6 +82,17 @@ public class EvalJavaBsh extends Tool {
             
             // the following is for running scripts
             env.eval("import com.sun.electric.tool.user.UserMenuCommands;");
+            env.eval("import com.sun.electric.database.hierarchy.*;");
+            env.eval("import com.sun.electric.database.prototype.*;");
+            env.eval("import com.sun.electric.database.topology.*;");
+            env.eval("import com.sun.electric.database.variable.ElectricObject;");
+            env.eval("import com.sun.electric.database.variable.FlagSet;");
+            env.eval("import com.sun.electric.database.variable.TextDescriptor;");
+            env.eval("import com.sun.electric.database.variable.VarContext;");
+            env.eval("import com.sun.electric.database.variable.Variable;");
+            // do not import variable.EvalJavaBsh, because calling EvalJavaBsh.runScript
+            // will spawn jobs in an unexpected order
+            env.eval("import com.sun.electric.tool.io.*;");
 
         } catch (bsh.EvalError e) {
             handleBshError(e);

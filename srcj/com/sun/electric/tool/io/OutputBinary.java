@@ -1053,7 +1053,7 @@ public class OutputBinary extends Output
 		}
 	}
 
-	// --------------------------------- LOW-LEVEL INPUT ---------------------------------
+	// --------------------------------- LOW-LEVEL OUTPUT ---------------------------------
 
 	/**
 	 * routine to write a single byte from the input stream and return it.

@@ -1456,14 +1456,24 @@ public class InputBinary extends Input
 			File testFile = new File(externalFile);
 			if (!testFile.exists())
 			{
-				// try the exact path specified in the reference
-				externalFile = libFile.getPath();
-				testFile = libFile;
-				if (!testFile.exists())
-				{
-					// try the Electric library area
-					externalFile = LibFile.getLibFile(libFileName);
-				}
+                // try secondary library file locations
+                for (Iterator libIt = InputLibDirs.getLibDirs(); libIt.hasNext(); )
+                {
+                    externalFile = (String)libIt.next() + File.separator + libFileName;
+                    testFile = new File(externalFile);
+                    if (testFile.exists()) break;
+                }
+                if (!testFile.exists())
+                {
+                    // try the exact path specified in the reference
+                    externalFile = libFile.getPath();
+                    testFile = libFile;
+                    if (!testFile.exists())
+                    {
+                        // try the Electric library area
+                        externalFile = LibFile.getLibFile(libFileName);
+                    }
+                }
 			}
 			if (externalFile == null)
 			{

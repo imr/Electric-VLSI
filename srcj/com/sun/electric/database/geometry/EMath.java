@@ -671,5 +671,19 @@ public class EMath
 		if (angle <= 2700) return -sineTable[2700-angle];
 		return sineTable[angle-2700];
 	}
+    
+    /**
+     * Routine to return a long that represents the unsigned
+     * value of an integer.  I.e., the passed int is a set of 
+     * bits, and this method returns a number as if those bits 
+     * were interpreted as an unsigned int.
+     */
+    public static long unsignedIntValue(int n)
+    {
+        if (n > 0) return (long)n;              // int is > 0
+        long num = 0;
+        num = n | num;
+        return num;
+    }
 
 }

@@ -37,20 +37,22 @@ import javax.swing.AbstractAction;
 import java.awt.BorderLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import java.awt.Insets;
 import java.awt.event.KeyEvent;
+import java.awt.Insets;
 import java.awt.Cursor;
 import java.awt.Toolkit;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Dimension;
 
+
 /**
  * This class manages the Electric toolbar.
  */
 public class ToolBar extends JToolBar
 {
-	/**
+
+    /**
 	 * Mode is a typesafe enum class that describes the current editing mode (select, zoom, etc).
 	 */
 	public static class CursorMode
@@ -60,7 +62,7 @@ public class ToolBar extends JToolBar
 		private CursorMode(String name) { this.name = name; }
 
 		public String toString() { return "CursorMode="+name; }
-
+        
 		/** Describes Selection mode (click and drag). */		public static final CursorMode SELECT = new CursorMode("select");
 		/** Describes wiring mode (creating arcs). */			public static final CursorMode WIRE = new CursorMode("wire");
 		/** Describes Selection mode (click and drag). */		public static final CursorMode SELECTSPECIAL = new CursorMode("select");

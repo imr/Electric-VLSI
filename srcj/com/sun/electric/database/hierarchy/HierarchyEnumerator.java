@@ -177,6 +177,7 @@ public final class HierarchyEnumerator {
 				xformToRoot2.concatenate(ni.rkTransformOut());
 				enumerateCell(ni, (Cell)ni.getProto(), context.push(ni), portNmToNetIDs2,
 					xformToRoot2, info);
+                //visitor.visitNodeInstBottomUp(ni, info);
 			}
 			for (Iterator iit = nu.getProxies(); iit.hasNext();)
 			{
@@ -293,6 +294,11 @@ public final class HierarchyEnumerator {
 		 * then the return value is ignored by the
 		 * HierarchyEnumerator. */
 		public abstract boolean visitNodeInst(Nodable ni, CellInfo info);
+        
+        /** Using visitNodeInst implements a Top-Down traversal. If one
+         * wishes to implement Bottom-Up traversal, use this method instead,
+         * or in conjunction with visitNodeInst. */
+        //public abstract void visitNodeInstBottomUp(Nodable ni, CellInfo info);
 	}
 
 	/** The NetDescription object provides a JNetwork and the level of
@@ -502,4 +508,29 @@ public final class HierarchyEnumerator {
 		Visitor visitor) {
 		(new HierarchyEnumerator()).doIt(root, context, visitor);
 	}
+
+    /**
+     * Method to count number of unique cells in hierarchy.  Useful
+     * for progress tracking of hierarchical netlisters and writers.
+     */
+    public static int getNumUniqueChildCells(Cell cell)
+    {
+        HashMap uniqueChildCells = new HashMap();
+        hierCellsRecurse(cell, uniqueChildCells);
+        return uniqueChildCells.size();
+    }
+        
+    /** Recursive method used to traverse down hierarchy */
+    private static void hierCellsRecurse(Cell cell, HashMap uniqueCells)
+    {
+        for (Iterator uit = cell.getUsagesIn(); uit.hasNext();)
+        {
+            NodeUsage nu = (NodeUsage) uit.next();
+            if (nu.isIcon()) continue;
+            NodeProto np = nu.getProto();
+            if (!(np instanceof Cell)) continue;
+            uniqueCells.put((Cell)np, (Cell)np);
+            hierCellsRecurse((Cell)np, uniqueCells);
+        }
+    }
 }

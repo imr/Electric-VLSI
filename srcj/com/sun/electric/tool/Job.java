@@ -66,14 +66,6 @@ import java.awt.Point;
  * <p>Note that if your Job calls methods outside of this thread
  * that access shared data, those called methods should be synchronized.
  *
- * <p>Jobs may use the included OutputStream to print to a temporary
- * file instead of cluttering the message window while the user is 
- * still working.  To do so, simply define PrintStream out = new 
- * PrintStream(ostream), and use 'out' in place of 'System.out'.
- *
- * <p>The UI can manipulate the contents of the temporary file to 
- * display it in various ways for the user.
- *
  * @author  gainsley
  */
 public abstract class Job implements ActionListener, Runnable {

@@ -65,6 +65,7 @@ public class Input
 	/** the path to the library being read. */				protected static String mainLibDirectory = null;
 	/** static list of all libraries in Electric */			private static List newLibraries = new ArrayList();
 
+    
 	/**
 	 * Function is a typesafe enum class that describes the types of files that can be read.
 	 */
@@ -123,6 +124,7 @@ public class Input
 	public static Library readLibrary(String fileName, ImportType type)
 	{
 		long startTime = System.currentTimeMillis();
+        InputLibDirs.readLibDirs();
 		//Undo.noUndoAllowed();
 		Undo.changesQuiet(true);
 		Library lib = readALibrary(fileName, null, type);
@@ -328,5 +330,5 @@ public class Input
 		} else if (!name.isTempname()) return null;
 		return name;
 	}
-
+    
 }

@@ -2201,4 +2201,5 @@ public class NodeInst extends Geometric implements Nodable
 		double maxY = Math.max(ll.getY(), ur.getY());
 		return new Rectangle2D.Double(minX, minY, maxX-minX, maxY-minY);
 	}
+    
 }

@@ -179,7 +179,8 @@ public class IRSIMTool extends Tool {
             System.out.print("d=A_"+drainArea+",P_"+drainPerim);
             System.out.println();
             return false;
-        }        
+        }
+        
     }
 
     //----------------------------IRSIM Cell Info for HierarchyEnumerator--------------------

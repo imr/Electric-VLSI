@@ -57,10 +57,12 @@ import com.sun.electric.tool.io.Input;
 import com.sun.electric.tool.io.Output;
 import com.sun.electric.tool.user.Clipboard;
 import com.sun.electric.tool.user.ui.Menu;
+import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.dialogs.About;
 import com.sun.electric.tool.user.dialogs.NewCell;
 import com.sun.electric.tool.user.dialogs.ToolOptions;
 import com.sun.electric.tool.user.dialogs.EditOptions;
+import com.sun.electric.tool.user.dialogs.EditKeyBindings;
 import com.sun.electric.tool.user.dialogs.IOOptions;
 import com.sun.electric.tool.user.dialogs.CrossLibCopy;
 import com.sun.electric.tool.user.dialogs.NewExport;
@@ -77,6 +79,7 @@ import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.generator.PadGenerator;
 import com.sun.electric.tool.simulation.Spice;
 import com.sun.electric.tool.simulation.IRSIMTool;
+import com.sun.electric.tool.io.Output;
 //import com.sun.electric.tool.ncc.factory.NetFactory;
 
 import java.util.Iterator;
@@ -88,6 +91,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
+import javax.swing.ButtonGroup;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.KeyStroke;
@@ -98,6 +102,7 @@ import javax.swing.JOptionPane;
  */
 public final class UserMenuCommands
 {
+    
 	// It is never useful for anyone to create an instance of this class
 	private UserMenuCommands() {}
 
@@ -120,10 +125,14 @@ public final class UserMenuCommands
 		fileMenu.add(importSubMenu);
 		importSubMenu.addMenuItem("Readable Dump", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(); } });
-		fileMenu.addMenuItem("Save", KeyStroke.getKeyStroke('S', InputEvent.CTRL_MASK),
+        fileMenu.addMenuItem("Save", KeyStroke.getKeyStroke('S', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(); } });
 		fileMenu.addMenuItem("Save as...",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveAsLibraryCommand(); } });
+        Menu exportSubMenu = Menu.createMenu("Export");
+        fileMenu.add(exportSubMenu);
+        exportSubMenu.addMenuItem("CIF (Caltech Intermediate Format)", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(Output.ExportType.CIF); } });
 		if (TopLevel.getOperatingSystem() == TopLevel.OS.MACINTOSH)
 		{
 //			MRJApplicationUtils.registerQuitHandler(new MRJQuitHandler()
@@ -179,13 +188,46 @@ public final class UserMenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { editOptionsCommand(); } });
 		editMenu.addMenuItem("Tool Options...",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { toolOptionsCommand(); } });
-
+        editMenu.addMenuItem("Key Bindings...",null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { keyBindingsCommand(); } });
 		editMenu.addSeparator();
 
 		editMenu.addMenuItem("Get Info", KeyStroke.getKeyStroke('I', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { getInfoCommand(); } });
 
 		editMenu.addSeparator();
+        
+        Menu modeSubMenu = Menu.createMenu("Modes");
+        editMenu.add(modeSubMenu);
+        Menu modeSubMenuEdit = Menu.createMenu("Edit");
+        modeSubMenu.add(modeSubMenuEdit);
+        ButtonGroup editGroup = new ButtonGroup();
+        modeSubMenuEdit.addRadioButton("Select", true, editGroup, KeyStroke.getKeyStroke('M', 0),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Select"); } });
+        modeSubMenuEdit.addRadioButton("Wiring", false, editGroup, KeyStroke.getKeyStroke('W', 0),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Wiring"); } });
+        modeSubMenuEdit.addRadioButton("Special Select", false, editGroup, null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Special Select"); } });
+        modeSubMenuEdit.addRadioButton("Pan", false, editGroup, KeyStroke.getKeyStroke('P', 0),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Pan"); } });
+        modeSubMenuEdit.addRadioButton("Zoom", false, editGroup, KeyStroke.getKeyStroke('Z', 0),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Zoom"); } });
+        Menu modeSubMenuMovement = Menu.createMenu("Movement");
+        modeSubMenu.add(modeSubMenuMovement);
+        ButtonGroup movementGroup = new ButtonGroup();
+        modeSubMenuMovement.addRadioButton("Full", true, movementGroup, KeyStroke.getKeyStroke('F', 0),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { setMovementModeCommand("Full"); } });
+        modeSubMenuMovement.addRadioButton("Half", false, movementGroup, KeyStroke.getKeyStroke('H', 0),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { setMovementModeCommand("Half"); } });
+        modeSubMenuMovement.addRadioButton("Quarter", false, movementGroup, KeyStroke.getKeyStroke('Q', 0),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { setMovementModeCommand("Quarter"); } });
+        Menu modeSubMenuSelect = Menu.createMenu("Select");
+        modeSubMenu.add(modeSubMenuSelect);
+        ButtonGroup selectGroup = new ButtonGroup();
+        modeSubMenuSelect.addRadioButton("Area", true, selectGroup, null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { setSelectModeCommand("Area"); } });
+        modeSubMenuSelect.addRadioButton("Objects", false, selectGroup, null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { setSelectModeCommand("Objects"); } });
 
 		Menu selListSubMenu = Menu.createMenu("Selection");
 		editMenu.add(selListSubMenu);
@@ -382,14 +424,14 @@ public final class UserMenuCommands
 
 		Menu russMenu = Menu.createMenu("Russell", 'R');
 		menuBar.add(russMenu);
-		russMenu.addMenuItem("ivanFlat", new com.sun.electric.tool.generator.layout.IvanFlat());
-		russMenu.addMenuItem("layout flat", new com.sun.electric.tool.generator.layout.LayFlat());
-		russMenu.addMenuItem("gate regression", new ActionListener() {
+		russMenu.addMenuItem("ivanFlat", null, new com.sun.electric.tool.generator.layout.IvanFlat());
+		russMenu.addMenuItem("layout flat", null, new com.sun.electric.tool.generator.layout.LayFlat());
+		russMenu.addMenuItem("gate regression", null, new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
 			    new com.sun.electric.tool.generator.layout.GateRegression();
 		    }
 		});
-		russMenu.addMenuItem("create corrupt library", new ActionListener() {
+		russMenu.addMenuItem("create corrupt library", null, new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				new com.sun.electric.tool.generator.layout.BadLibrary();
 			}
@@ -403,6 +445,8 @@ public final class UserMenuCommands
             new ActionListener() { public void actionPerformed(ActionEvent e) { listVarsOnObject(false); }});
         jongMenu.addMenuItem("Describe Proto Vars", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { listVarsOnObject(true); }});
+        jongMenu.addMenuItem("Describe Current Library Vars", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { listLibVars(); }});
         jongMenu.addMenuItem("Eval Vars", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { evalVarsOnObject(); }});
         jongMenu.addMenuItem("LE test1", null,
@@ -418,6 +462,7 @@ public final class UserMenuCommands
 
 	/**
 	 * This routine implements the command to read a library.
+     * It is interactive, and pops up a dialog box.
 	 */
 	public static void openLibraryCommand()
 	{
@@ -431,6 +476,7 @@ public final class UserMenuCommands
 
 	/**
 	 * Class to read a library in a new thread.
+     * For a non-interactive script, use ReadBinaryLibrary job = new ReadBinaryLibrary(filename).
 	 */
 	protected static class ReadBinaryLibrary extends Job
 	{
@@ -468,6 +514,7 @@ public final class UserMenuCommands
 
 	/**
 	 * This routine implements the command to import a library (Readable Dump format).
+     * It is interactive, and pops up a dialog box.
 	 */
 	public static void importLibraryCommand()
 	{
@@ -480,7 +527,8 @@ public final class UserMenuCommands
 	}
 
 	/**
-	 * Class to read a library in a new thread.
+	 * Class to read a text library in a new thread.
+     * For a non-interactive script, use ReadTextLibrary job = new ReadTextLibrary(filename).
 	 */
 	protected static class ReadTextLibrary extends Job
 	{
@@ -501,6 +549,15 @@ public final class UserMenuCommands
 			Cell cell = lib.getCurCell();
 			if (cell == null) System.out.println("No current cell in this library"); else
 			{
+                // check if edit window open with null cell, use that one if exists
+                for (Iterator it = WindowFrame.getWindows(); it.hasNext(); ) {
+                    WindowFrame wf = (WindowFrame)it.next();
+                    EditWindow wnd = wf.getEditWindow();
+                    if (wnd.getCell() == null) {
+                        wnd.setCell(cell, VarContext.globalContext);
+                        return;
+                    }
+                }
 				WindowFrame.createEditWindow(cell);
 			}
 		}
@@ -508,6 +565,7 @@ public final class UserMenuCommands
 
 	/**
 	 * This routine implements the command to save a library.
+     * It is interactive, and pops up a dialog box.
 	 */
 	public static void saveLibraryCommand()
 	{
@@ -532,6 +590,8 @@ public final class UserMenuCommands
 
 	/**
 	 * Class to save a library in a new thread.
+     * For a non-interactive script, use SaveLibrary job = new SaveLibrary(filename).
+     * Saves as an elib.
 	 */
 	protected static class SaveLibrary extends Job
 	{
@@ -556,6 +616,7 @@ public final class UserMenuCommands
 
 	/**
 	 * This routine implements the command to save a library to a different file.
+     * It is interactive, and pops up a dialog box.
 	 */
 	public static void saveAsLibraryCommand()
 	{
@@ -564,7 +625,58 @@ public final class UserMenuCommands
 		saveLibraryCommand();
 	}
 
+    /**
+     * This routine implements the export cell command for different export types.
+     * It is interactive, and pops up a dialog box.
+     */
+    public static void exportCellCommand(Output.ExportType type)
+    {
+        EditWindow curEdit = TopLevel.getCurrentEditWindow();
+        Cell cell = curEdit.getCell();
+        if (cell == null) {
+            System.out.println("No Cell in current window");
+            return;
+        }
+        String filePath = DialogOpenFile.chooseOutputFile(DialogOpenFile.CIF, null, cell.getProtoName()+".cif");
+        exportCellCommand(cell, filePath, type);
+    }
+    /**
+     * This is the non-interactive version of exportCellCommand
+     */
+    public static void exportCellCommand(Cell cell, String filePath, Output.ExportType type)
+    {
+        ExportCell job = new ExportCell(cell, filePath, type);
+    }
+    
 	/**
+	 * Class to export a cell in a new thread.
+     * For a non-interactive script, use 
+     * ExportCell job = new ExportCell(Cell cell, String filename, Output.ExportType type).
+     * Saves as an elib.
+	 */
+	protected static class ExportCell extends Job
+	{
+        Cell cell;
+        String filePath;
+        Output.ExportType type;
+        
+        public ExportCell(Cell cell, String filePath, Output.ExportType type)
+        {
+			super("Export "+cell.describe()+" ("+type+")", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+            this.cell = cell;
+            this.filePath = filePath;
+            this.type = type;
+            this.startJob();
+        }
+        
+        public void doIt() 
+        {
+            Output.writeCell(cell, filePath, type);
+        }
+        
+    }
+        
+    /**
 	 * This routine implements the command to quit Electric.
 	 */
 	public static void quitCommand()
@@ -593,7 +705,7 @@ public final class UserMenuCommands
 	}
 
 	/**
-	 * This class implement the command to undo the last change.
+	 * This class implement the command to undo the last change (Redo).
 	 */
 	protected static class RedoCommand extends Job
 	{
@@ -619,7 +731,7 @@ public final class UserMenuCommands
 	}
 
 	/**
-	 * This routine implements the command to cut circuitry or text.
+	 * This routine implements the command to cut the highlighted circuitry or text.
 	 */
 	public static void cutCommand()
 	{
@@ -627,7 +739,7 @@ public final class UserMenuCommands
 	}
 
 	/**
-	 * This routine implements the command to copy circuitry or text.
+	 * This routine implements the command to copy the highlighted circuitry or text.
 	 */
 	public static void copyCommand()
 	{
@@ -642,6 +754,9 @@ public final class UserMenuCommands
 		Clipboard.paste();
 	}
 
+    /**
+     * This routine sets the highlighted arcs to Rigid
+     */
 	public static void arcRigidCommand()
 	{
 		int numSet = 0;
@@ -662,6 +777,9 @@ public final class UserMenuCommands
 		EditWindow.redrawAll();
 	}
 
+    /**
+     * This routine sets the highlighted arcs to Non-Rigid
+     */
 	public static void arcNotRigidCommand()
 	{
 		int numSet = 0;
@@ -682,6 +800,9 @@ public final class UserMenuCommands
 		EditWindow.redrawAll();
 	}
 
+    /**
+     * This routine sets the highlighted arcs to Fixed-Angle
+     */
 	public static void arcFixedAngleCommand()
 	{
 		int numSet = 0;
@@ -702,6 +823,9 @@ public final class UserMenuCommands
 		EditWindow.redrawAll();
 	}
 
+    /**
+     * This routine sets the highlighted arcs to Not-Fixed-Angle
+     */
 	public static void arcNotFixedAngleCommand()
 	{
 		int numSet = 0;
@@ -723,7 +847,7 @@ public final class UserMenuCommands
 	}
 
 	/**
-	 * This routine implements the command to show I/O Options.
+	 * This routine implements the command to show the I/O Options dialog.
 	 */
 	public static void ioOptionsCommand()
 	{
@@ -733,7 +857,7 @@ public final class UserMenuCommands
 	}
 
 	/**
-	 * This routine implements the command to show Edit Options.
+	 * This routine implements the command to show the Edit Options dialog.
 	 */
 	public static void editOptionsCommand()
 	{
@@ -743,7 +867,7 @@ public final class UserMenuCommands
 	}
 
 	/**
-	 * This routine implements the command to show Tool Options.
+	 * This routine implements the command to show the Tool Options dialog.
 	 */
 	public static void toolOptionsCommand()
 	{
@@ -751,7 +875,20 @@ public final class UserMenuCommands
  		ToolOptions dialog = new ToolOptions(jf, true);
 		dialog.show();
 	}
+    
+    /** 
+     * This routine implements the command to show the Key Bindings Options dialog.
+     */
+    public static void keyBindingsCommand()
+    {
+        JFrame jf = TopLevel.getCurrentJFrame();
+        EditKeyBindings dialog = new EditKeyBindings(jf, true);
+        dialog.show();
+    }
 
+    /** 
+     * This routine shows the GetInfo dialog for the highlighted nodes, arcs, and/or text.
+     */
 	public static void getInfoCommand()
 	{
 		if (Highlight.getNumHighlights() == 0)
@@ -805,6 +942,28 @@ public final class UserMenuCommands
 		}
 	}
 
+    public static void setEditModeCommand(String mode)
+    {
+        if (mode.equals("Select")) ToolBar.selectCommand();
+        if (mode.equals("Special Select")) ToolBar.selectSpecialCommand();
+        if (mode.equals("Wiring")) ToolBar.wiringCommand();
+        if (mode.equals("Pan")) ToolBar.panCommand();
+        if (mode.equals("Zoom")) ToolBar.zoomCommand();
+    }
+    
+    public static void setMovementModeCommand(String mode)
+    {
+        if (mode.equals("Full")) ToolBar.fullArrowDistanceCommand();
+        if (mode.equals("Half")) ToolBar.halfArrowDistanceCommand();
+        if (mode.equals("Quarter")) ToolBar.quarterArrowDistanceCommand();
+    }
+    
+    public static void setSelectModeCommand(String mode)
+    {
+        if (mode.equals("Area")) ToolBar.selectAreaCommand();
+        if (mode.equals("Objects")) ToolBar.selectObjectsCommand();
+    }
+    
     public static void selectAllCommand()
 	{
 		Cell curCell = Library.needCurCell();
@@ -826,6 +985,9 @@ public final class UserMenuCommands
 
 	// ---------------------- THE CELL MENU -----------------
 
+    /** 
+     * This command opens a dialog box to edit a cell.
+     */
     public static void newCellCommand()
 	{
 		JFrame jf = TopLevel.getCurrentJFrame();
@@ -860,11 +1022,17 @@ public final class UserMenuCommands
 		dialog.show();
 	}
 
+    /**
+     * This command pushes down the hierarchy
+     */
 	public static void downHierCommand() {
         EditWindow curEdit = TopLevel.getCurrentEditWindow();
         curEdit.downHierarchy();
     }
 
+    /**
+     * This command goes up the hierarchy
+     */
     public static void upHierCommand() {
         EditWindow curEdit = TopLevel.getCurrentEditWindow();
         curEdit.upHierarchy();
@@ -1093,7 +1261,7 @@ public final class UserMenuCommands
 
 	// ---------------------- THE EXPORT MENU -----------------
 
-	/**
+    /**
 	 * This routine implements the command to create a new Export.
 	 */
 	public static void newExportCommand()
@@ -1694,7 +1862,18 @@ public final class UserMenuCommands
             }
         }
     }
-
+    
+    public static void listLibVars() {
+        Library lib = Library.getCurrent();
+        Iterator itVar = lib.getVariables();
+        System.out.println("----------"+lib+" Vars-----------");
+        while(itVar.hasNext()) {
+            Variable var = (Variable)itVar.next();
+            Object obj = VarContext.globalContext.evalVar(var);
+            System.out.println(var.getKey().getName() + ": " +obj);
+        }
+    }
+    
     public static void openP4libCommand() {
 		ReadBinaryLibrary job = new ReadBinaryLibrary("/export/gainsley/soesrc_java/test/purpleFour.elib");
 //        OpenBinLibraryThread oThread = new OpenBinLibraryThread("/export/gainsley/soesrc_java/test/purpleFour.elib");

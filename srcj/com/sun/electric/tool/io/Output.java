@@ -24,10 +24,14 @@
 package com.sun.electric.tool.io;
 
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Cell;
 
 import java.io.FileOutputStream;
 import java.io.DataOutputStream;
 import java.io.BufferedOutputStream;
+import java.io.PrintWriter;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
@@ -37,9 +41,9 @@ import java.io.IOException;
  */
 public class Output
 {
-	protected String filePath;
-	protected FileOutputStream fileOutputStream;
-	protected DataOutputStream dataOutputStream;
+	/** file path */                            protected String filePath;
+	/** for writing text files */               protected PrintWriter printWriter;
+	/** for writing binary files */             protected DataOutputStream dataOutputStream;
 
 	/**
 	 * Function is a typesafe enum class that describes the types of files that can be written.
@@ -80,13 +84,24 @@ public class Output
 	 * This method is never called.
 	 * Instead, it is always overridden by the appropriate write subclass.
 	 * @param lib the Library to be written.
+     * @return true on error.
 	 */
 	protected boolean writeLib(Library lib) { return true; }
 
+    /**
+     * Routine to write a cell.
+     * This method is never called.
+     * Instead, it is always overridden by the appropriate write subclass.
+     * @param cell the Cell to be written.
+     * @return true on error.
+     */
+    protected boolean writeCell(Cell cell) { return true; }
+    
 	/**
 	 * Routine to write a Library with a particular format
 	 * @param lib the Library to be written.
 	 * @param type the format of the output file.
+     * @return true on error.
 	 */
 	public static boolean writeLibrary(Library lib, ExportType type)
 	{
@@ -96,44 +111,37 @@ public class Output
 		Library.Name n;
 		if (lib.getLibFile() != null) n = Library.Name.newInstance(lib.getLibFile()); else
 			n = Library.Name.newInstance(lib.getLibName());
+        boolean error = false;
 		if (type == ExportType.BINARY)
 		{
 			out = (Output)new OutputBinary();
 			n.setExtension("elib");
+            out.filePath = n.makeName();
+            if (out.openDataOutputStream()) error = true;
+            if (out.writeLib(lib)) error = true;
+            if (out.closeDataOutputStream()) error = true;
 		} else if (type == ExportType.TEXT)
 		{
 //			out = (Output)new OutputText();
 //			n.setExtension("txt");
-
+//          out.filePath = n.makeName();
+//          if (out.openPrintWriter()) error = true;
+//          if (out.writeLib(lib)) error = true;
+//          if (out.closePrintWriter()) error = true;          
+            
 			// no text reader yet, see if an elib can be found
 			out = (Output)new OutputBinary();
 			n.setExtension("elib");
+            out.filePath = n.makeName();
+            if (out.openDataOutputStream()) error = true;
+            if (out.writeLib(lib)) error = true;
+            if (out.closeDataOutputStream()) error = true;
 		} else
 		{
 			System.out.println("Unknown export type: " + type);
 			return true;
 		}
 
-		out.filePath = n.makeName();
-		try
-		{
-			out.fileOutputStream = new FileOutputStream(out.filePath);
-		} catch (FileNotFoundException e)
-		{
-			System.out.println("Could not write file " + out.filePath);
-			return true;
-		}
-		BufferedOutputStream bufStrm = new BufferedOutputStream(out.fileOutputStream);
-		out.dataOutputStream = new DataOutputStream(bufStrm);
-		boolean error = out.writeLib(lib);
-		try
-		{
-			out.dataOutputStream.close();
-		} catch (IOException e)
-		{
-			System.out.println("Error closing " + out.filePath);
-			return true;
-		}
 		if (error)
 		{
 			System.out.println("Error writing library");
@@ -141,4 +149,92 @@ public class Output
 		}
 		return false;
 	}
+    
+    /**
+     * Routine to write a Cell to a file with a particular format.
+     * @param cell the Cell to be written
+     * @param type the format of the output file
+     * @return true on error.
+     */
+    public static boolean writeCell(Cell cell, String filePath, ExportType type)
+    {
+        boolean error = false;
+        if (type == ExportType.CIF) {
+            Output out = new OutputCIF();
+            out.filePath = filePath;
+            if (out.openPrintWriter()) error = true;
+            if (out.writeCell(cell)) error = true;
+            if (out.closePrintWriter()) error = true;
+        }
+        
+		if (error)
+		{
+			System.out.println("Error writing "+type+" file");
+			return true;
+		}
+		return false;        
+    }
+
+    
+    /**
+     * Opens the dataOutputStream for writing of binary files.
+     * @return true on error.
+     */
+    protected boolean openDataOutputStream()
+    {
+        FileOutputStream fileOutputStream;
+		try
+		{
+			fileOutputStream = new FileOutputStream(filePath);
+		} catch (FileNotFoundException e)
+		{
+			System.out.println("Could not write file " + filePath);
+			return true;
+		}
+		BufferedOutputStream bufStrm = new BufferedOutputStream(fileOutputStream);
+		dataOutputStream = new DataOutputStream(bufStrm);
+        return false;
+    }
+    
+    /** 
+     * Closes the dataOutputStream.
+     * @return true on error.
+     */
+    protected boolean closeDataOutputStream()
+    {
+		try
+		{
+			dataOutputStream.close();
+		} catch (IOException e)
+		{
+			System.out.println("Error closing " + filePath);
+			return true;
+		}
+        return false;
+    }
+    
+    /**
+     * Open the printWriter for writing text files
+     * @return true on error.
+     */
+    protected boolean openPrintWriter()
+    {
+        try {
+            printWriter = new PrintWriter(new BufferedWriter(new FileWriter(filePath)));
+        } catch (IOException e) {
+            System.out.println("Error opening " + filePath);
+            return true;
+        }
+        return false;
+    }
+    
+    /** 
+     * Close the printWriter.
+     * @return true on error.
+     */
+    protected boolean closePrintWriter()
+    {
+        printWriter.close();
+        return false;
+    }
 }

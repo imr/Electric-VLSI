@@ -90,6 +90,7 @@ public class DialogOpenFile extends JFileChooser
 	public static final EFileFilter ELIB = new EFileFilter(new String[] {"elib"}, "Library File (elib)");
     public static final EFileFilter SPI  = new EFileFilter(new String[] {"spi", "sp"}, "Spice Deck (spi, sp)");
     public static final EFileFilter JAVA = new EFileFilter(new String[] {"java", "bsh"}, "Java Script File (java, bsh)");
+    public static final EFileFilter CIF  = new EFileFilter(new String[] {"cif"}, "CIF File (cif)");    
     public static final EFileFilter ARR  = new EFileFilter(new String[] {"arr"}, "Pad Generator Array File (arr)");
 
 	/** True if this is a file save dialog */						private boolean saveDialog;
@@ -154,6 +155,9 @@ public class DialogOpenFile extends JFileChooser
      */
 	public static String chooseOutputFile(FileFilter filter, String title, String defaultFile)
 	{
+        DialogOpenFile dialog = new DialogOpenFile();
+        dialog.addChoosableFileFilter(filter);
+        
         dialog.saveDialog = true;
         
         if (title == null) dialog.setDialogTitle("Write " + filter.getDescription()); else
