@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01aw: *********************************
 
+BUG: (12/15/04, GVG) DRC and new thick active layers: wrong bit detection for thick active layers that make DRC to fail
+FIX: negate condition in Quick.checkDist() (Bug #117)
+
 IMP: (12/15/04, GVG) MoCMOS: wrong min size of thick active pure nodes (2.0 instead of 4.0, rule 24.1)
 
 IMP: (12/15/04, GVG) TSMC90: new stipple patterns for OD18 (Bug #118)

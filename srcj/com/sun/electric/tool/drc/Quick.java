@@ -1305,8 +1305,11 @@ public class Quick
 				{
 					// Searching for THICK bit
 					int funExtras = layer1.getFunctionExtras();
-					if (fun.isDiff() && (funExtras&Layer.Function.THICK) == 0)
-						 maytouch = true;
+					if (fun.isDiff() && (funExtras&Layer.Function.THICK) != 0)
+					{
+						if (Main.LOCALDEBUGFLAG) System.out.println("Thick active found in Quick.checkDist");
+						maytouch = true;
+					}
 				}
 			}
 		}
@@ -2947,10 +2950,12 @@ public class Quick
 		// layers must be active or active contact
 		Layer.Function fun = layer1.getFunction();
 		int funExtras = layer1.getFunctionExtras();
+
 		if (!fun.isDiff())
 		{
 			if (!fun.isContact() || (funExtras&Layer.Function.CONDIFF) == 0) return false;
 		}
+
 		funExtras = layer2.getFunctionExtras();
 		fun = layer2.getFunction();
 		if (!fun.isDiff())
