@@ -123,8 +123,9 @@ public interface Changes
 	 * @param descript the TextDescriptor that changed.
 	 * @param oldDescript0 the former word-0 bits in the TextDescriptor.
 	 * @param oldDescript1 the former word-1 bits in the TextDescriptor.
+	 * @param oldColorIndex the former color index in the TextDescriptor.
 	 */
-	void modifyTextDescript(ElectricObject obj, TextDescriptor descript, int oldDescript0, int oldDescript1);
+	void modifyTextDescript(ElectricObject obj, TextDescriptor descript, int oldDescript0, int oldDescript1, int oldColorIndex);
 
 	/**
 	 * Method to announce the creation of a new ElectricObject.

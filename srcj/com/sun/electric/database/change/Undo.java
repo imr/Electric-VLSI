@@ -110,7 +110,7 @@ public class Undo
 		private ElectricObject obj;
 		private Type type;
 		private double a1, a2, a3, a4, a5;
-		private int i1, i2;
+		private int i1, i2, i3;
 		private Object o1, o2;
 
 		Change(ElectricObject obj, Type type)
@@ -176,6 +176,11 @@ public class Undo
 		 * @return the second integer value associated with this Change.
 		 */
 		public int getI2() { return i2; }
+		/**
+		 * Method to get the third integer value associated with this Change.
+		 * @return the third integer value associated with this Change.
+		 */
+		public int getI3() { return i3; }
 		/**
 		 * Method to get the first Object associated with this Change.
 		 * @return the first Object associated with this Change.
@@ -315,7 +320,7 @@ public class Undo
 				for(Iterator it = Tool.getListeners(); it.hasNext(); )
 				{
 					Listener listener = (Listener)it.next();
-					listener.modifyTextDescript(obj, (TextDescriptor)o1, i1, i2);
+					listener.modifyTextDescript(obj, (TextDescriptor)o1, i1, i2, i3);
 				}
 			}
 			broadcasting = null;
@@ -561,9 +566,12 @@ public class Undo
 				TextDescriptor descript = (TextDescriptor)o1;
 				int oldDescript0 = descript.lowLevelGet0();
 				int oldDescript1 = descript.lowLevelGet1();
+				int oldColorIndex = descript.getColorIndex();
 				descript.lowLevelSet(i1, i2);
+				descript.setColorIndex(i3);
 				i1 = oldDescript0;
 				i2 = oldDescript1;
+				i3 = oldColorIndex;
 				return;
 			}
 		}
@@ -1318,18 +1326,20 @@ public class Undo
 	 * @param descript the TextDescriptor that changed.
 	 * @param oldDescript0 the former word-0 value of the TextDescriptor.
 	 * @param oldDescript1 the former word-1 value of the TextDescriptor.
+	 * @param oldColorIndex the former color index of the TextDescriptor.
 	 */
-	public static void modifyTextDescript(ElectricObject obj, TextDescriptor descript, int oldDescript0, int oldDescript1)
+	public static void modifyTextDescript(ElectricObject obj, TextDescriptor descript, int oldDescript0, int oldDescript1, int oldColorIndex)
 	{
 		if (!recordChange()) return;
 		Change ch = newChange(obj, Type.DESCRIPTORMOD, descript);
 		ch.i1 = oldDescript0;
 		ch.i2 = oldDescript1;
+		ch.i3 = oldColorIndex;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
         fireChangeEvent(ch);
 		// tell constraint system about this TextDescriptor
-		Constraints.getCurrent().modifyTextDescript(obj, descript, oldDescript0, oldDescript1);
+		Constraints.getCurrent().modifyTextDescript(obj, descript, oldDescript0, oldDescript1, oldColorIndex);
 	}
 
 	/**

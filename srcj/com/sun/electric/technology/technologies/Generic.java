@@ -29,6 +29,7 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -290,7 +291,7 @@ public class Generic extends Technology
 		}
 		return super.getShapeOfNode(ni, wnd, electrical, reasonable, primLayers, layerOverride);
 	}
-
+	
 	/**
 	 * Method to update the connecitivity list for universal and invisible pins so that
 	 * they can connect to ALL arcs.  This is called at initialization and again

@@ -132,7 +132,7 @@ public class Constraints implements Changes
 	 * @param oldDescript0 the former word-0 bits in the TextDescriptor.
 	 * @param oldDescript1 the former word-1 bits in the TextDescriptor.
 	 */
-	public void modifyTextDescript(ElectricObject obj, TextDescriptor descript, int oldDescript0, int oldDescript1) {}
+	public void modifyTextDescript(ElectricObject obj, TextDescriptor descript, int oldDescript0, int oldDescript1, int oldColorIndex) {}
 
 	/**
 	 * Method to handle the creation of a new ElectricObject.

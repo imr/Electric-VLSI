@@ -995,6 +995,8 @@ public final class ExportChanges
 			System.out.println("No cell in this window");
 			return;
 		}
+
+		// determine the maximum number of ports to show
 		int total = cell.getNumPorts();
 		if (nodes != null)
 		{
@@ -1005,50 +1007,10 @@ public final class ExportChanges
 				total += ni.getNumPortInsts();
 			}
 		}
+
+		// associate ports with display locations (and compute the true number of ports to show)
 		Rectangle2D displayable = wnd.displayableBounds();
-		double digitIndentX = displayable.getWidth() / 15;
-		double digitIndentY = displayable.getHeight() / 15;
-
-		// allocate space for the port information
-		Point2D [] labelLocs = new Point2D.Double[total];
 		ShownPorts [] portList = new ShownPorts[total];
-		int numPerSide = (total + 3) / 4;
-		int leftSideCount, topSideCount, rightSideCount, botSideCount;
-		leftSideCount = topSideCount = rightSideCount = botSideCount = numPerSide;
-		if (leftSideCount + topSideCount + rightSideCount + botSideCount > total)
-			botSideCount--;
-		if (leftSideCount + topSideCount + rightSideCount + botSideCount > total)
-			topSideCount--;
-		if (leftSideCount + topSideCount + rightSideCount + botSideCount > total)
-			rightSideCount--;
-		int fill = 0;
-		for(int i=0; i<leftSideCount; i++)
-		{
-			labelLocs[fill++] = new Point2D.Double(displayable.getMinX() + digitIndentX,
-				displayable.getHeight() / (leftSideCount+1) * (i+1) + displayable.getMinY());
-		}
-		for(int i=0; i<topSideCount; i++)
-		{
-			labelLocs[fill++] = new Point2D.Double(displayable.getWidth() / (topSideCount+1) * (i+1) + displayable.getMinX(),
-				displayable.getMaxY() - digitIndentY);
-		}
-		for(int i=0; i<rightSideCount; i++)
-		{
-			labelLocs[fill++] = new Point2D.Double(displayable.getMaxX() - digitIndentX,
-				displayable.getMaxY() - displayable.getHeight() / (rightSideCount+1) * (i+1));
-		}
-		for(int i=0; i<botSideCount; i++)
-		{
-			labelLocs[fill++] = new Point2D.Double(displayable.getMaxX() - displayable.getWidth() / (botSideCount+1) * (i+1),
-				displayable.getMinY() + digitIndentY);
-		}
-//		for(int i=0; i<total; i++)
-//		{
-//			if ((w->state&INPLACEEDIT) != 0)
-//				xform(labelLocs[i], &labelLocs[i], w->intocell);
-//		}
-
-		// associate ports with display locations
 		total = 0;
 		int ignored = 0;
 		if (nodes == null)
@@ -1102,6 +1064,46 @@ public final class ExportChanges
 				}
 			}
 		}
+
+		// determine the location of the port labels
+		Point2D [] labelLocs = new Point2D.Double[total];
+		double digitIndentX = displayable.getWidth() / 15;
+		double digitIndentY = displayable.getHeight() / 15;
+		int numPerSide = (total + 3) / 4;
+		int leftSideCount, topSideCount, rightSideCount, botSideCount;
+		leftSideCount = topSideCount = rightSideCount = botSideCount = numPerSide;
+		if (leftSideCount + topSideCount + rightSideCount + botSideCount > total)
+			botSideCount--;
+		if (leftSideCount + topSideCount + rightSideCount + botSideCount > total)
+			topSideCount--;
+		if (leftSideCount + topSideCount + rightSideCount + botSideCount > total)
+			rightSideCount--;
+		int fill = 0;
+		for(int i=0; i<leftSideCount; i++)
+		{
+			labelLocs[fill++] = new Point2D.Double(displayable.getMinX() + digitIndentX,
+				displayable.getHeight() / (leftSideCount+1) * (i+1) + displayable.getMinY());
+		}
+		for(int i=0; i<topSideCount; i++)
+		{
+			labelLocs[fill++] = new Point2D.Double(displayable.getWidth() / (topSideCount+1) * (i+1) + displayable.getMinX(),
+				displayable.getMaxY() - digitIndentY);
+		}
+		for(int i=0; i<rightSideCount; i++)
+		{
+			labelLocs[fill++] = new Point2D.Double(displayable.getMaxX() - digitIndentX,
+				displayable.getMaxY() - displayable.getHeight() / (rightSideCount+1) * (i+1));
+		}
+		for(int i=0; i<botSideCount; i++)
+		{
+			labelLocs[fill++] = new Point2D.Double(displayable.getMaxX() - displayable.getWidth() / (botSideCount+1) * (i+1),
+				displayable.getMinY() + digitIndentY);
+		}
+//		for(int i=0; i<total; i++)
+//		{
+//			if ((w->state&INPLACEEDIT) != 0)
+//				xform(labelLocs[i], &labelLocs[i], w->intocell);
+//		}
 
 		// build a sorted list of ports around the center
 		double x = 0, y = 0;

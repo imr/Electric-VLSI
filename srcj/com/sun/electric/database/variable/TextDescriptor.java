@@ -614,6 +614,7 @@ public class TextDescriptor
 
 
 	/** the words of the text descriptor */		private int descriptor0, descriptor1;
+	/** the color of the text descriptor */		private int colorIndex;
 	/** the owner of the text descriptor */		ElectricObject owner;
 
 	/** preferences for all descriptors */	private static Preferences prefs = Preferences.userNodeForPackage(TextDescriptor.class);
@@ -626,6 +627,7 @@ public class TextDescriptor
 	{
 		this.owner = owner;
 		this.descriptor0 = this.descriptor1 = 0;
+		this.colorIndex = 0;
 	}
 
 	/**
@@ -638,6 +640,7 @@ public class TextDescriptor
 		this.owner = owner;
 		this.descriptor0 = descriptor.descriptor0;
 		this.descriptor1 = descriptor.descriptor1;
+		this.colorIndex = descriptor.colorIndex;
 	}
 
 	/**
@@ -646,11 +649,12 @@ public class TextDescriptor
 	 * @param descriptor0 lower word of the text descriptor.
 	 * @param descriptor1 higher word of the text descriptor.
 	 */
-	public TextDescriptor(ElectricObject owner, int descriptor0, int descriptor1)
+	public TextDescriptor(ElectricObject owner, int descriptor0, int descriptor1, int colorIndex)
 	{
 		this.owner = owner;
 		this.descriptor0 = descriptor0;
 		this.descriptor1 = descriptor1;
+		this.colorIndex = colorIndex;
 	}
 
 	/**
@@ -658,11 +662,12 @@ public class TextDescriptor
 	 * @param owner owner of this TextDescriptor.
 	 * @param descriptor the bits of the text descriptor.
 	 */
-	public TextDescriptor(ElectricObject owner, long descriptor)
+	public TextDescriptor(ElectricObject owner, long descriptor, int colorIndex)
 	{
 		this.owner = owner;
 		this.descriptor0 = (int)(descriptor >> 32);
 		this.descriptor1 = (int)(descriptor & 0xFFFFFFFF);
+		this.colorIndex = colorIndex;
 	}
 
 	/**
@@ -676,7 +681,7 @@ public class TextDescriptor
 	 */
 	public static TextDescriptor getNodeTextDescriptor(ElectricObject owner)
 	{
-		TextDescriptor td = new TextDescriptor(owner, cacheNodeDescriptor.getLong());
+		TextDescriptor td = new TextDescriptor(owner, cacheNodeDescriptor.getLong(), 0);
 		String fontName = getNodeTextDescriptorFont();
 		if (fontName.length() > 0) td.setFace(ActiveFont.findActiveFont(fontName).getIndex());
 		return td;
@@ -710,7 +715,7 @@ public class TextDescriptor
 	 */
 	public static TextDescriptor getArcTextDescriptor(ElectricObject owner)
 	{
-		TextDescriptor td = new TextDescriptor(owner, cacheArcDescriptor.getLong());
+		TextDescriptor td = new TextDescriptor(owner, cacheArcDescriptor.getLong(), 0);
 		String fontName = getArcTextDescriptorFont();
 		if (fontName.length() > 0) td.setFace(ActiveFont.findActiveFont(fontName).getIndex());
 		return td;
@@ -744,7 +749,7 @@ public class TextDescriptor
 	 */
 	public static TextDescriptor getExportTextDescriptor(ElectricObject owner)
 	{
-		TextDescriptor td = new TextDescriptor(owner, cacheExportDescriptor.getLong());
+		TextDescriptor td = new TextDescriptor(owner, cacheExportDescriptor.getLong(), 0);
 		String fontName = getExportTextDescriptorFont();
 		if (fontName.length() > 0) td.setFace(ActiveFont.findActiveFont(fontName).getIndex());
 		return td;
@@ -778,7 +783,7 @@ public class TextDescriptor
 	 */
 	public static TextDescriptor getAnnotationTextDescriptor(ElectricObject owner)
 	{
-		TextDescriptor td = new TextDescriptor(owner, cacheAnnotationDescriptor.getLong());
+		TextDescriptor td = new TextDescriptor(owner, cacheAnnotationDescriptor.getLong(), 0);
 		String fontName = getAnnotationTextDescriptorFont();
 		if (fontName.length() > 0) td.setFace(ActiveFont.findActiveFont(fontName).getIndex());
 		return td;
@@ -812,7 +817,7 @@ public class TextDescriptor
 	 */
 	public static TextDescriptor getInstanceTextDescriptor(ElectricObject owner)
 	{
-		TextDescriptor td = new TextDescriptor(owner, cacheInstanceDescriptor.getLong());
+		TextDescriptor td = new TextDescriptor(owner, cacheInstanceDescriptor.getLong(), 0);
 		String fontName = getInstanceTextDescriptorFont();
 		if (fontName.length() > 0) td.setFace(ActiveFont.findActiveFont(fontName).getIndex());
 		return td;
@@ -846,7 +851,7 @@ public class TextDescriptor
 	 */
 	public static TextDescriptor getCellTextDescriptor(ElectricObject owner)
 	{
-		TextDescriptor td = new TextDescriptor(owner, cacheCellDescriptor.getLong());
+		TextDescriptor td = new TextDescriptor(owner, cacheCellDescriptor.getLong(), 0);
 		String fontName = getCellTextDescriptorFont();
 		if (fontName.length() > 0) td.setFace(ActiveFont.findActiveFont(fontName).getIndex());
 		return td;
@@ -886,13 +891,14 @@ public class TextDescriptor
 		}
 		if (anObject instanceof TextDescriptor) {
 			TextDescriptor td = (TextDescriptor)anObject;
-			return descriptor0 == td.descriptor0 && descriptor1 == td.descriptor1;
+			return descriptor0 == td.descriptor0 && descriptor1 == td.descriptor1 &&
+			colorIndex == td.colorIndex;
 		}
 		return false;
     }
 
 	/**
-	 * Method checks if text descriptor can be changed..
+	 * Method checks if text descriptor can be changed.
 	 */
 	private void checkChanging()
 	{
@@ -900,7 +906,7 @@ public class TextDescriptor
 		owner.checkChanging();
 
 		// handle change control, constraint, and broadcast
-		Undo.modifyTextDescript(owner, this, descriptor0, descriptor1);
+		Undo.modifyTextDescript(owner, this, descriptor0, descriptor1, colorIndex);
 	}
 
 	/**
@@ -1060,6 +1066,7 @@ public class TextDescriptor
 		checkChanging();
 		this.descriptor0 = descriptor.descriptor0;
 		this.descriptor1 = descriptor.descriptor1;
+		this.colorIndex = descriptor.colorIndex;
 	}
 
 	/**
@@ -1070,7 +1077,8 @@ public class TextDescriptor
 	public boolean compare(TextDescriptor descriptor)
 	{
 		if (this.descriptor0 == descriptor.descriptor0 &&
-			this.descriptor1 == descriptor.descriptor1) return true;
+			this.descriptor1 == descriptor.descriptor1 &&
+			this.colorIndex == descriptor.colorIndex) return true;
 		return false;
 	}
 
@@ -1108,6 +1116,28 @@ public class TextDescriptor
 	public long lowLevelGet() { return ((long)descriptor0 << 32) | descriptor1; }
 
 	/**
+	 * Method to return the color index of the TextDescriptor.
+	 * Color indices are more general than colors, because they can handle
+	 * transparent layers, C-Electric-style opaque layers, and full color values.
+	 * Methods in "EGraphics" manipulate color indices.
+	 * @return the color index of the TextDescriptor.
+	 */
+	public int getColorIndex() { return colorIndex; }
+
+	/**
+	 * Method to set the color index of the TextDescriptor.
+	 * Color indices are more general than colors, because they can handle
+	 * transparent layers, C-Electric-style opaque layers, and full color values.
+	 * Methods in "EGraphics" manipulate color indices.
+	 * @param colorIndex the color index of the TextDescriptor.
+	 */
+	public void setColorIndex(int colorIndex)
+	{
+		checkChanging();
+		this.colorIndex = colorIndex;
+	}
+
+	/**
 	 * Method to return the text position of the TextDescriptor.
 	 * The text position describes the "anchor point" of the text,
 	 * which is the point on the text that is attached to the object and does not move.
@@ -1129,7 +1159,8 @@ public class TextDescriptor
 	public void setPos(Position p)
 	{
 		checkChanging();
-		descriptor0 = (descriptor0 & ~VTPOSITION) | p.getIndex(); }
+		descriptor0 = (descriptor0 & ~VTPOSITION) | p.getIndex();
+	}
 
 	/**
 	 * Method to return the text size of the text in this TextDescriptor.

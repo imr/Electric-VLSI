@@ -448,19 +448,19 @@ public class EGraphics
 	}
 
 	/**
-	 * Method to set the color index associated with this EGraphics.
+	 * Method to set the color of this EGraphics from a "color index".
 	 * Color indices are more general than colors, because they can handle
-	 * the old C-Electric color values as well as full color values.
+	 * transparent layers, C-Electric-style opaque layers, and full color values.
 	 * Artwork nodes and arcs represent individualized color by using color indices.
-	 * @param color the color index to set.
+	 * @param colorIndex the color index to set.
 	 */
-	public void setColorIndex(int color)
+	public void setColorIndex(int colorIndex)
 	{
-		if ((color&OPAQUEBIT) != 0)
+		if ((colorIndex&OPAQUEBIT) != 0)
 		{
 			// an opaque color
 			transparentLayer = 0;
-			switch (color)
+			switch (colorIndex)
 			{
 				case WHITE:   setColor(new Color(255, 255, 255));   break;
 				case BLACK:   setColor(new Color(  0,   0,   0));   break;
@@ -494,33 +494,33 @@ public class EGraphics
 			}
 			return;
 		}
-		if ((color&FULLRGBBIT) != 0)
+		if ((colorIndex&FULLRGBBIT) != 0)
 		{
 			// a full RGB color (opaque)
 			transparentLayer = 0;
-			setColor(new Color((color >> 24) & 0xFF, (color >> 16) & 0xFF, (color >> 8) & 0xFF));
+			setColor(new Color((colorIndex >> 24) & 0xFF, (colorIndex >> 16) & 0xFF, (colorIndex >> 8) & 0xFF));
 			return;
 		}
 
 		// a transparent color
-		if ((color&LAYERT1) != 0) transparentLayer = TRANSPARENT_1; else
-		if ((color&LAYERT2) != 0) transparentLayer = TRANSPARENT_2; else
-		if ((color&LAYERT3) != 0) transparentLayer = TRANSPARENT_3; else
-		if ((color&LAYERT4) != 0) transparentLayer = TRANSPARENT_4; else
-		if ((color&LAYERT5) != 0) transparentLayer = TRANSPARENT_5; else
-		if ((color&LAYERT6) != 0) transparentLayer = TRANSPARENT_6; else
-		if ((color&LAYERT7) != 0) transparentLayer = TRANSPARENT_7; else
-		if ((color&LAYERT8) != 0) transparentLayer = TRANSPARENT_8; else
-		if ((color&LAYERT9) != 0) transparentLayer = TRANSPARENT_9; else
-		if ((color&LAYERT10) != 0) transparentLayer = TRANSPARENT_10; else
-		if ((color&LAYERT11) != 0) transparentLayer = TRANSPARENT_11; else
-		if ((color&LAYERT12) != 0) transparentLayer = TRANSPARENT_12;
+		if ((colorIndex&LAYERT1) != 0) transparentLayer = TRANSPARENT_1; else
+		if ((colorIndex&LAYERT2) != 0) transparentLayer = TRANSPARENT_2; else
+		if ((colorIndex&LAYERT3) != 0) transparentLayer = TRANSPARENT_3; else
+		if ((colorIndex&LAYERT4) != 0) transparentLayer = TRANSPARENT_4; else
+		if ((colorIndex&LAYERT5) != 0) transparentLayer = TRANSPARENT_5; else
+		if ((colorIndex&LAYERT6) != 0) transparentLayer = TRANSPARENT_6; else
+		if ((colorIndex&LAYERT7) != 0) transparentLayer = TRANSPARENT_7; else
+		if ((colorIndex&LAYERT8) != 0) transparentLayer = TRANSPARENT_8; else
+		if ((colorIndex&LAYERT9) != 0) transparentLayer = TRANSPARENT_9; else
+		if ((colorIndex&LAYERT10) != 0) transparentLayer = TRANSPARENT_10; else
+		if ((colorIndex&LAYERT11) != 0) transparentLayer = TRANSPARENT_11; else
+		if ((colorIndex&LAYERT12) != 0) transparentLayer = TRANSPARENT_12;
 	}
 
 	/**
 	 * Method to convert a Color to a color index.
 	 * Color indices are more general than colors, because they can handle
-	 * the old C-Electric color values as well as full color values.
+	 * transparent layers, C-Electric-style opaque layers, and full color values.
 	 * Artwork nodes and arcs represent individualized color by using color indices.
 	 * @param color a Color object
 	 * @return the color index that describes that color.
@@ -537,8 +537,7 @@ public class EGraphics
 	/**
 	 * Method to convert a transparent layer to a color index.
 	 * Color indices are more general than colors, because they can handle
-	 * the old C-Electric color values as well as full color values.
-	 * One of the extensions they also have is the ability to describe the transarent layers.
+	 * transparent layers, C-Electric-style opaque layers, and full color values.
 	 * @param transparentLayer the transparent layer number.
 	 * @return the color index that describes that transparent layer.
 	 */
@@ -607,20 +606,20 @@ public class EGraphics
 	/**
 	 * Method to tell the name of the color with a given index.
 	 * Color indices are more general than colors, because they can handle
-	 * the old C-Electric color values as well as full color values.
-	 * @param color the color number.
+	 * transparent layers, C-Electric-style opaque layers, and full color values.
+	 * @param colorIndex the color number.
 	 * @return the name of that color.
 	 */
-	public static String getColorIndexName(int color)
+	public static String getColorIndexName(int colorIndex)
 	{
-		if ((color&FULLRGBBIT) != 0)
+		if ((colorIndex&FULLRGBBIT) != 0)
 		{
-			int red =   (color >> 24) & 0xFF;
-			int green = (color >> 16) & 0xFF;
-			int blue =  (color >> 8) & 0xFF;
+			int red =   (colorIndex >> 24) & 0xFF;
+			int green = (colorIndex >> 16) & 0xFF;
+			int blue =  (colorIndex >> 8) & 0xFF;
 			return "Color (" + red + "," + green + "," + blue + ")";
 		}
-		switch (color)
+		switch (colorIndex)
 		{
 			case WHITE:    return "white";
 			case BLACK:    return "black";
@@ -655,12 +654,12 @@ public class EGraphics
 			case LAYERT11: return "transparent-11";
 			case LAYERT12: return "transparent-12";
 		}
-		return "Color "+color;
+		return "ColorIndex "+colorIndex;
 	}
 
 	/**
-	 * Method to return the array of colors.
-	 * @return an array of the possible colors.
+	 * Method to return the array of color indices.
+	 * @return an array of the possible color indices.
 	 */
 	public static int [] getColorIndices()
 	{
@@ -671,8 +670,8 @@ public class EGraphics
 	}
 
 	/**
-	 * Method to return the array of transparent colors.
-	 * @return an array of the possible transparent colors.
+	 * Method to return the array of transparent color indices.
+	 * @return an array of the possible transparent color indices.
 	 */
 	public static int [] getTransparentColorIndices()
 	{

@@ -125,8 +125,9 @@ public class Listener extends Tool implements Changes
 	 * @param descript the TextDescriptor that changed.
 	 * @param oldDescript0 the former word-0 bits in the TextDescriptor.
 	 * @param oldDescript1 the former word-1 bits in the TextDescriptor.
+	 * @param oldColorIndex the former color index in the TextDescriptor.
 	 */
-	public void modifyTextDescript(ElectricObject obj, TextDescriptor descript, int oldDescript0, int oldDescript1) {}
+	public void modifyTextDescript(ElectricObject obj, TextDescriptor descript, int oldDescript0, int oldDescript1, int oldColorIndex) {}
 
 	/**
 	 * Method to handle the creation of a new ElectricObject.

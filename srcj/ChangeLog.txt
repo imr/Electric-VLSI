@@ -4,6 +4,12 @@ FIX/IMP (8/19/04, RK) NCC check's assertions: exportsConnectedByParent. It turns
 
 ************************* Version 8.01h: *********************************
 
+BUG: (8/18/04, SMR) "Show Ports On Node" and "Show Exports" display incorrectly when zoomed in.
+FIX: Determines visible ports before arranging them on the display.
+
+BUG/MAN: (8/18/04, SMR) "Size" on nodes doesn't work right for mirrored nodes; should not be center-based.
+FIX: Size now works from farthest corner (unless Control is held).
+
 FIX/IMP/MAN: (8/18/04, JKG) copy/paste fixes: default paste by center point, 
     can move anchor point, shows delta from copy to paste. Right click menu added when pasting.
 
