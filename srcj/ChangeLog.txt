@@ -4,6 +4,9 @@ IMP: (9/3/04, RK) Allow Hierarchical NCC from 2 windows
 
 ************************* Version 8.01l: *********************************
 
+BUG: (9/8/04, JKG) Window focus problems in MDI mode
+FIX: moved show() calls out of Job threads and into AWT Event thread.
+
 FIX: (9/8/04, JKG) Fixes to logical effort algorithms: mfactors on uncached
      alg, cap values on both algs, made compatible with diffn/diffp of old style gates
 

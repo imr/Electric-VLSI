@@ -78,9 +78,9 @@ public class Progress
 		if(TopLevel.isMDIMode())
 		{
 			jif.getContentPane().add(panel);
-			jif.show();
-			TopLevel.addToDesktop(jif);
-			jif.moveToFront();
+            TopLevel.addToDesktop(jif);
+			//jif.show();
+			//jif.moveToFront();
 		} else
 		{	
 			jf.getContentPane().add(panel);

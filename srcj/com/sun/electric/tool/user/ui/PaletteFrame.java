@@ -140,7 +140,7 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 		{
 			((JInternalFrame)palette.container).show();
 			TopLevel.addToDesktop((JInternalFrame)palette.container);
-			((JInternalFrame)palette.container).moveToFront();
+			//((JInternalFrame)palette.container).moveToFront();
 		} else
 		{
 			((JFrame)palette.container).show();

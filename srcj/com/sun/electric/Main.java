@@ -304,7 +304,7 @@ public final class Main
                 public void run() {
                     // remove the splash screen
                     sw.removeNotify();
-                    TopLevel.Initialize();
+                    TopLevel.InitializeWindows();
                     // run script
                     if (beanShellScript != null) EvalJavaBsh.runScript(beanShellScript);
                 }

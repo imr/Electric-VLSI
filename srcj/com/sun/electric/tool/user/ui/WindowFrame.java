@@ -295,11 +295,6 @@ public class WindowFrame
 			content.getPanel().addPropertyChangeListener(EditWindow.propGoForwardEnabled, TopLevel.getCurrentJFrame().getToolBar());
 //			frame.jif.moveToFront();
             TopLevel.addToDesktop(jif);
-            jif.show();
-			try
-			{
-				jif.setSelected(true);
-			} catch (java.beans.PropertyVetoException e) {}
 		} else
 		{
 			jf.getContentPane().add(js);

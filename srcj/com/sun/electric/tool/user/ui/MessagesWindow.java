@@ -122,7 +122,7 @@ public class MessagesWindow
 		if (TopLevel.isMDIMode())
 		{
 			((JInternalFrame)jf).pack();
-			((JInternalFrame)jf).show();
+			//((JInternalFrame)jf).show();
 			TopLevel.addToDesktop((JInternalFrame)jf);
 		} else
 		{

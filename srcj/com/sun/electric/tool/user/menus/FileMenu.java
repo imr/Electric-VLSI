@@ -247,10 +247,6 @@ public class FileMenu {
                 //EditWindow.repaintAll();
                 //EditWindow.repaintAllContents();
             }
-            if (WindowFrame.getCurrentWindowFrame() == null) {
-                // create a new frame
-                WindowFrame window1 = WindowFrame.createEditWindow(null);
-            }
             return true;
         }
     }
@@ -277,6 +273,21 @@ public class FileMenu {
         Cell cell = lib.getCurCell();
         if (cell == null) System.out.println("No current cell in this library"); else
         {
+            CreateCellWindow creator = new CreateCellWindow(cell);
+            if (!SwingUtilities.isEventDispatchThread()) {
+                SwingUtilities.invokeLater(creator);
+            } else {
+                creator.run();
+            }
+        }
+        return true;
+
+    }
+
+    public static class CreateCellWindow implements Runnable {
+        private Cell cell;
+        public CreateCellWindow(Cell cell) { this.cell = cell; }
+        public void run() {
             // check if edit window open with null cell, use that one if exists
             for (Iterator it = WindowFrame.getWindows(); it.hasNext(); )
             {
@@ -287,7 +298,7 @@ public class FileMenu {
                     wf.setCellWindow(cell);
                     //wf.requestFocus();
                     TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
-                    return true;
+                    return;
                 }
             }
             WindowFrame.createEditWindow(cell);
@@ -295,8 +306,6 @@ public class FileMenu {
             // no clean for now.
             TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
         }
-        return true;
-
     }
 
 	/**

@@ -154,12 +154,13 @@ public class TopLevel extends JFrame
 	 * Method to initialize the window system with the specified mode.
      * If mode is null, the mode is implied by the operating system.
 	 */
-	public static void Initialize()
+	public static void InitializeWindows()
 	{
 		// initialize the messages window and palette
-		messages = new MessagesWindow();
-		palette = PaletteFrame.newInstance();
+        messages = new MessagesWindow();
+        palette = PaletteFrame.newInstance();
         palette.loadForTechnology();
+        WindowFrame.createEditWindow(null);
     }
 
 	private static Pref cacheWindowLoc = Pref.makeStringPref("WindowLocation", User.tool.prefs, "");
@@ -316,16 +317,21 @@ public class TopLevel extends JFrame
 	 * @param jif the internal frame to add.
 	 */
 	public static void addToDesktop(JInternalFrame jif) {
+        AddToDesktopSafe addsafe = new AddToDesktopSafe(jif);
         if (desktop.isVisible() && !SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(new AddToDesktopSafe(jif));
-        } else
-            desktop.add(jif); 
+        } else {
+            addsafe.run();
+        }
     }
 
     private static class AddToDesktopSafe implements Runnable {
         private JInternalFrame jif;
         private AddToDesktopSafe(JInternalFrame jif) { this.jif = jif; }
-        public void run() { desktop.add(jif); }
+        public void run() {
+            desktop.add(jif);
+            jif.show();
+        }
     }
 
 	public static JDesktopPane getDesktop() { return desktop; }
