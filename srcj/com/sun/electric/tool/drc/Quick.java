@@ -447,6 +447,15 @@ public class Quick
 	 */
 	private int checkThisCell(Cell cell, int globalIndex, Rectangle2D bounds)
 	{
+		// Previous # of errors/warnings
+		int prevErrors = 0;
+		int prevWarns = 0;
+		if (errorLogger != null)
+		{
+			prevErrors = errorLogger.getNumErrors();
+			prevWarns = errorLogger.getNumWarnings();
+		}
+
 		// first check all subcells
 		boolean allSubCellsStillOK = true;
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
@@ -503,9 +512,6 @@ public class Quick
 		// announce progress
 		System.out.println("Checking cell " + cell.describe());
 
-		// remember how many errors there are on entry
-        int msgCount = (errorLogger != null) ? msgCount = errorLogger.getNumLogs() : 0;
-
 		// now look at every node and arc here
 		totalMsgFound = 0;
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
@@ -541,9 +547,9 @@ public class Quick
 		// if there were no errors, remember that
 		if (errorLogger != null)
 		{
-			int localErrors = errorLogger.getNumErrors();
-			int localWarnings = errorLogger.getNumWarnings();
-			if ((localErrors + localWarnings - msgCount) == 0)
+			int localErrors = errorLogger.getNumErrors() - prevErrors;
+			int localWarnings = errorLogger.getNumWarnings() - prevWarns;
+			if (localErrors == 0 &&  localWarnings == 0)
 			{
 				goodDRCDate.put(cell, new Date());
 				haveGoodDRCDate = true;
@@ -722,9 +728,12 @@ public class Quick
 //		gethierarchicaltraversal(state->hierarchybasesnapshot);
 
 		// get transformation out of the instance
+		/*
 		AffineTransform upTrans = ni.translateOut();
 		AffineTransform rTrans = ni.rotateOut();
 		upTrans.preConcatenate(rTrans);
+		*/
+        AffineTransform upTrans = ni.translateOut(ni.rotateOut());
 
 		// get network numbering for the instance
 		CheckInst ci = (CheckInst)checkInsts.get(ni);
@@ -802,11 +811,26 @@ public class Quick
 					rTransI.preConcatenate(tTransI);
 					DBMath.transformRect(subBounds, rTransI);
 
+					/*
+					Rectangle2D subBounds1 = new Rectangle2D.Double();
+					subBounds1.setRect(bb);
+					AffineTransform rTransI1 = ni.transformIn();
+					DBMath.transformRect(subBounds1, rTransI1);
+                    */
+
 					AffineTransform subUpTrans = ni.translateOut();
 					AffineTransform rTrans = ni.rotateOut();
 					subUpTrans.preConcatenate(rTrans);
 					subUpTrans.preConcatenate(upTrans);
 
+					/*
+					AffineTransform subUpTrans1 = ni.translateOut(ni.rotateOut());
+					subUpTrans1.preConcatenate(upTrans);
+					if (!subUpTrans1.equals(subUpTrans))
+					{
+						System.out.println("Wrong transform?");
+					}
+                    */
 					CheckInst ci = (CheckInst)checkInsts.get(ni);
 					
 					int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
@@ -819,6 +843,7 @@ public class Quick
 				{
 					AffineTransform rTrans = ni.rotateOut();
 					rTrans.preConcatenate(upTrans);
+
 					Technology tech = np.getTechnology();
 					Poly [] primPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts);
 					convertPseudoLayers(ni, primPolyList);
@@ -899,9 +924,9 @@ public class Quick
 		DBMath.transformRect(bounds, downTrans);
 		double minSize = poly.getMinSize();
 
-		AffineTransform upTrans = oNi.translateOut();
-		AffineTransform rTrans = oNi.rotateOut();
-		upTrans.preConcatenate(rTrans);
+		AffineTransform upTrans = oNi.translateOut(oNi.rotateOut());
+		//AffineTransform rTrans = oNi.rotateOut();
+		//upTrans.preConcatenate(rTrans);
 
 		CheckInst ci = (CheckInst)checkInsts.get(oNi);
 		int localIndex = topGlobalIndex * ci.multiplier + ci.localIndex + ci.offset;
@@ -967,7 +992,7 @@ public class Quick
 	 * which is associated with global index "globalIndex".
 	 * Checking looks in the area (lxbound-hxbound, lybound-hybound) in cell "cell" global index "cellGlobalIndex".
 	 * The polygon coordinates are in the space of cell "topCell", global index "topGlobalIndex",
-	 * and objects in "cell" can be transformed by "topTrans" to get to this space.
+	 * and objects in "cell" can be transformed by "upTrans" to get to this space.
 	 * The base object, in "geom" can be transformed by "trans" to get to this space.
 	 * The minimum size of this polygon is "minSize" and "baseMulti" is TRUE if it comes from a multicut contact.
 	 * If the two objects are in the same cell instance (nonhierarchical DRC), then "sameInstance" is TRUE.
@@ -977,12 +1002,12 @@ public class Quick
 	 */
 	private boolean badBoxInArea(Poly poly, Layer layer, Technology tech, int net, Geometric geom, AffineTransform trans,
 		int globalIndex, Rectangle2D bounds, Cell cell, int cellGlobalIndex,
-		Cell topCell, int topGlobalIndex, AffineTransform topTrans, double minSize, boolean baseMulti,
+		Cell topCell, int topGlobalIndex, AffineTransform upTrans, double minSize, boolean baseMulti,
 		boolean sameInstance)
 	{
 		Rectangle2D rBound = new Rectangle2D.Double();
 		rBound.setRect(bounds);
-		DBMath.transformRect(rBound, topTrans);
+		DBMath.transformRect(rBound, upTrans);
 		Netlist netlist = getCheckProto(cell).netlist;
 
 		for(Iterator it = cell.searchIterator(bounds); it.hasNext(); )
@@ -1011,7 +1036,7 @@ public class Quick
 					AffineTransform subTrans = ni.translateOut();
 					AffineTransform rTrans = ni.rotateOut();
 					subTrans.preConcatenate(rTrans);
-					subTrans.preConcatenate(topTrans);
+					subTrans.preConcatenate(upTrans);
 
 					// compute localIndex
 //					if (!dr_quickparalleldrc) downhierarchy(ni, np, 0);
@@ -1032,7 +1057,7 @@ public class Quick
 
 					// prepare to examine every layer in this nodeinst
 					AffineTransform rTrans = ni.rotateOut();
-					rTrans.preConcatenate(topTrans);
+					rTrans.preConcatenate(upTrans);
 
 					// get the shape of each nodeinst layer
 					Poly [] subPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts);
@@ -1048,8 +1073,12 @@ public class Quick
 						Layer nLayer = npoly.getLayer();
 						if (nLayer == null) continue;
 						if (nLayer.isNonElectrical()) continue;
+                        //npoly.transform(rTrans);
 
 						Rectangle2D nPolyRect = npoly.getBounds2D();
+                        //DBMath.transformRect(nPolyRect, trans);
+						//DBMath.transformRect(nPolyRect, upTrans);
+						//DBMath.transformRect(nPolyRect, rTrans);
 
 						// can't do this because "lxbound..." is local but the poly bounds are global
 						if (nPolyRect.getMinX() > rBound.getMaxX() ||
@@ -1122,7 +1151,7 @@ public class Quick
 				Poly [] subPolyList = tech.getShapeOfArc(ai);
 				int tot = subPolyList.length;
 				for(int i=0; i<tot; i++)
-					subPolyList[i].transform(topTrans);
+					subPolyList[i].transform(upTrans);
 				cropActiveArc(ai, subPolyList);
 				boolean multi = baseMulti;
 				for(int j=0; j<tot; j++)
@@ -1161,7 +1190,7 @@ public class Quick
 					// check the distance
 					boolean ret = checkDist(tech, topCell, topGlobalIndex,
 						poly, layer, net, geom, trans, globalIndex,
-						nPoly, nLayer, nNet, nGeom, topTrans, cellGlobalIndex,
+						nPoly, nLayer, nNet, nGeom, upTrans, cellGlobalIndex,
 						con, dist, edge, rule);
 					if (ret) return true;
 				}
@@ -1426,19 +1455,37 @@ public class Quick
 				if (pd <= 0) return false;
 
 				// see if the notch is filled
-				Point2D pt1 = new Point2D.Double();
-				Point2D pt2 = new Point2D.Double();
-				int intervening = findInterveningPoints(poly1, poly2, pt1, pt2);
-				if (intervening == 0) return false;
-				boolean needBoth = true;
-				if (intervening == 1) needBoth = false;
-				if (lookForPoints(pt1, pt2, layer1, cell, needBoth))
+				boolean newR = lookForCrossPolygons(geom1, poly1, geom2, poly2, layer1, cell);
+				/*
+				if (Main.getDebug())
 				{
-					return false;
+					Point2D pt1 = new Point2D.Double();
+					Point2D pt2 = new Point2D.Double();
+					int intervening = findInterveningPoints(poly1, poly2, pt1, pt2);
+					if (intervening == 0)
+					{
+						if (!newR)
+							System.out.println("DIfferent");
+						return false;
+					}
+					boolean needBoth = true;
+					if (intervening == 1) needBoth = false;
+					/*
+					if (lookForPoints(pt1, pt2, layer1, cell, needBoth))
+					{
+						return false;
+					}
+					*/
+				/*
+					boolean oldR = lookForPoints(pt1, pt2, layer1, cell, needBoth);
+					if (oldR != newR)
+							System.out.println("DIfferent 2");
 				}
+			*/
+				if (newR) return false;
 
 				// look further if on the same net and diagonally separate (1 intervening point)
-				if (net1 == net2 && intervening == 1) return false;
+				//if (net1 == net2 && intervening == 1) return false;
 				errorType = NOTCHERROR;
 			}
 		}
@@ -2261,14 +2308,18 @@ public class Quick
 			{
 				if (isBox1.getMinY() > isBox2.getMaxY())
 				{
-					pt1.setLocation(isBox1.getMaxX(), isBox1.getMaxY());
-					pt2.setLocation(isBox2.getMinX(), isBox2.getMinY());
+					//pt1.setLocation(isBox1.getMaxX(), isBox1.getMaxY());
+					//pt2.setLocation(isBox2.getMinX(), isBox2.getMinY());
+					pt1.setLocation(isBox1.getMaxX(), isBox1.getMinY());
+					pt2.setLocation(isBox2.getMinX(), isBox2.getMaxY());
 					return 1;
 				}
 				if (isBox2.getMinY() > isBox1.getMaxY())
 				{
-					pt1.setLocation(isBox1.getMaxX(), isBox1.getMinY());
-					pt2.setLocation(isBox2.getMinX(), isBox2.getMaxY());
+					//pt1.setLocation(isBox1.getMaxX(), isBox1.getMinY());
+					//pt2.setLocation(isBox2.getMinX(), isBox2.getMaxY());
+					pt1.setLocation(isBox1.getMaxX(), isBox1.getMaxY());
+					pt2.setLocation(isBox2.getMinX(), isBox2.getMinY());
 					return 1;
 				}
 			}
@@ -2308,8 +2359,32 @@ public class Quick
 		{
 			if (pointsFound[0] || pointsFound[1]) return true;
 		}
-
 		return false;
+	}
+
+		/**
+	 * Method to explore the points (xf1,yf1) and (xf2,yf2) to see if there is
+	 * geometry on layer "layer" (in or below cell "cell").  Returns true if there is.
+	 * If "needBoth" is true, both points must have geometry, otherwise only 1 needs it.
+	 */
+	private boolean lookForCrossPolygons(Geometric geo1, Poly poly1, Geometric geo2, Poly poly2, Layer layer, Cell cell)
+	{
+		Point2D pt1 = new Point2D.Double();
+		Point2D pt2 = new Point2D.Double();
+		int intervening = findInterveningPoints(poly1, poly2, pt1, pt2);
+
+		// compute bounds for searching inside cells
+		double flx = Math.min(pt1.getX(), pt2.getX());   double fhx = Math.max(pt1.getX(), pt2.getX());
+		double fly = Math.min(pt1.getY(), pt2.getY());   double fhy = Math.max(pt1.getY(), pt2.getY());
+		Rectangle2D bounds = new Rectangle2D.Double(flx, fly, fhx-flx, fhy-fly);
+
+		// search the cell for geometry that fills the notch
+		boolean [] pointsFound = new boolean[2];
+		pointsFound[0] = pointsFound[1] = false;
+		boolean allFound = lookForLayerNew(geo1, poly1, geo2, poly2, cell, layer, DBMath.MATID, bounds,
+		        pt1, pt2, null, pointsFound);
+
+		return allFound;
 	}
 
 	/**
@@ -2321,6 +2396,8 @@ public class Quick
 	private boolean lookForLayer(Poly thisPoly, Cell cell, Layer layer, AffineTransform moreTrans,
 		Rectangle2D bounds, Point2D pt1, Point2D pt2, Point2D pt3, boolean [] pointsFound)
 	{
+		int j;
+
 		for(Iterator it = cell.searchIterator(bounds); it.hasNext(); )
 		{
 			Geometric g = (Geometric)it.next();
@@ -2356,13 +2433,24 @@ public class Quick
 				{
 					Poly poly = layerLookPolyList[i];
 
-					if (thisPoly != null && poly.polySame(thisPoly)) continue;
-
 					if (!tech.sameLayer(poly.getLayer(), layer)) continue;
+
+					if (thisPoly != null && poly.polySame(thisPoly)) continue;
 					poly.transform(bound);
 					if (poly.isInside(pt1)) pointsFound[0] = true;
 					if (poly.isInside(pt2)) pointsFound[1] = true;
-					if (poly.isInside(pt3)) pointsFound[2] = true;
+					if (pt3 != null && poly.isInside(pt3)) pointsFound[2] = true;
+					boolean oldR = pointsFound[0] && pointsFound[1] && (pt3 == null || (pt3 != null && pointsFound[2]));
+					for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
+					boolean newR = (j == pointsFound.length);
+					if (newR != oldR)
+						System.out.println("Error in Quit.lookForLayer");
+					if (newR)
+						return true;
+					/*
+					if (pointsFound[0] && pointsFound[1] && pointsFound[2])
+						return true;
+						*/
 				}
 			} else
 			{
@@ -2377,11 +2465,136 @@ public class Quick
 					poly.transform(moreTrans);
 					if (poly.isInside(pt1)) pointsFound[0] = true;
 					if (poly.isInside(pt2)) pointsFound[1] = true;
-					if (poly.isInside(pt3)) pointsFound[2] = true;
+					if (pt3 != null && poly.isInside(pt3)) pointsFound[2] = true;
+					boolean oldR = pointsFound[0] && pointsFound[1] && (pt3 == null || (pt3 != null && pointsFound[2]));
+					for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
+					boolean newR = (j == pointsFound.length);
+					if (newR != oldR)
+						System.out.println("Error in Quit.lookForLayer");
+					if (newR)
+						return true;
 				}
 			}
+
+					boolean oldR = pointsFound[0] && pointsFound[1] && (pt3 == null || (pt3 != null && pointsFound[2]));
+					for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
+					boolean newR = (j == pointsFound.length);
+					if (newR != oldR)
+						System.out.println("Error in Quit.lookForLayer");
+					if (newR)
+						return true;
+			/*
 			if (pointsFound[0] && pointsFound[1] && pointsFound[2])
 				return true;
+				*/
+		}
+		return false;
+	}
+
+		/**
+	 * Method to examine cell "cell" in the area (lx<=X<=hx, ly<=Y<=hy) for objects
+	 * on layer "layer".  Apply transformation "moreTrans" to the objects.  If polygons are
+	 * found at (xf1,yf1) or (xf2,yf2) or (xf3,yf3) then sets "p1found/p2found/p3found" to 1.
+	 * If all locations are found, returns true.
+	 */
+	private boolean lookForLayerNew(Geometric geo1, Poly poly1, Geometric geo2, Poly poly2, Cell cell,
+	                                Layer layer, AffineTransform moreTrans, Rectangle2D bounds,
+	                                Point2D pt1, Point2D pt2, Point2D pt3, boolean [] pointsFound)
+	{
+		int j;
+
+		for(Iterator it = cell.searchIterator(bounds); it.hasNext(); )
+		{
+			Geometric g = (Geometric)it.next();
+			// Geometries to exclude from the search
+			//if ( geo1 == g || geo2 == g ) continue;
+			if (g instanceof NodeInst)
+			{
+				NodeInst ni = (NodeInst)g;
+				if (ni.getProto() instanceof Cell)
+				{
+					// compute bounding area inside of sub-cell
+					AffineTransform rotI = ni.rotateIn();
+					AffineTransform transI = ni.translateIn();
+					rotI.preConcatenate(transI);
+					Rectangle2D newBounds = new Rectangle2D.Double();
+					newBounds.setRect(bounds);
+					DBMath.transformRect(newBounds, rotI);
+
+					// compute new matrix for sub-cell examination
+					AffineTransform trans = ni.translateOut();
+					AffineTransform rot = ni.rotateOut();
+					trans.preConcatenate(rot);
+					trans.preConcatenate(moreTrans);
+					if (lookForLayerNew(geo1, poly1, geo2, poly2, (Cell)ni.getProto(), layer, trans, newBounds,
+						pt1, pt2, pt3, pointsFound))
+							return true;
+					continue;
+				}
+				AffineTransform bound = ni.rotateOut();
+				bound.preConcatenate(moreTrans);
+				Technology tech = ni.getProto().getTechnology();
+				Poly [] layerLookPolyList = tech.getShapeOfNode(ni, null, false, ignoreCenterCuts);
+				int tot = layerLookPolyList.length;
+				for(int i=0; i<tot; i++)
+				{
+					Poly poly = layerLookPolyList[i];
+					if (!tech.sameLayer(poly.getLayer(), layer)) continue;
+
+					if (poly1 != null && poly.polySame(poly1)) continue;
+					if (poly2 != null && poly.polySame(poly2)) continue;
+                    // Should be the transform before?
+					poly.transform(bound);
+					if (poly.isInside(pt1)) pointsFound[0] = true;
+					if (poly.isInside(pt2)) pointsFound[1] = true;
+					if (pt3 != null && poly.isInside(pt3)) pointsFound[2] = true;
+					boolean oldR = pointsFound[0] && pointsFound[1] && (pt3 == null || (pt3 != null && pointsFound[2]));
+					for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
+					boolean newR = (j == pointsFound.length);
+					if (newR != oldR)
+						System.out.println("Error in Quit.lookForLayer");
+					if (newR)
+						return true;
+					/*
+					if (pointsFound[0] && pointsFound[1] && pointsFound[2])
+						return true;
+						*/
+				}
+			} else
+			{
+				ArcInst ai = (ArcInst)g;
+				Technology tech = ai.getProto().getTechnology();
+				Poly [] layerLookPolyList = tech.getShapeOfArc(ai);
+				int tot = layerLookPolyList.length;
+				for(int i=0; i<tot; i++)
+				{
+					Poly poly = layerLookPolyList[i];
+					if (!tech.sameLayer(poly.getLayer(), layer)) continue;
+					poly.transform(moreTrans);
+					if (poly.isInside(pt1)) pointsFound[0] = true;
+					if (poly.isInside(pt2)) pointsFound[1] = true;
+					if (pt3 != null && poly.isInside(pt3)) pointsFound[2] = true;
+					boolean oldR = pointsFound[0] && pointsFound[1] && (pt3 == null || (pt3 != null && pointsFound[2]));
+					for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
+					boolean newR = (j == pointsFound.length);
+					if (newR != oldR)
+						System.out.println("Error in Quit.lookForLayer");
+					if (newR)
+						return true;
+				}
+			}
+
+					boolean oldR = pointsFound[0] && pointsFound[1] && (pt3 == null || (pt3 != null && pointsFound[2]));
+					for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
+					boolean newR = (j == pointsFound.length);
+					if (newR != oldR)
+						System.out.println("Error in Quit.lookForLayer");
+					if (newR)
+						return true;
+			/*
+			if (pointsFound[0] && pointsFound[1] && pointsFound[2])
+				return true;
+				*/
 		}
 		return false;
 	}
