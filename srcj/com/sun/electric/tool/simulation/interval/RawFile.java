@@ -29,6 +29,11 @@ import java.util.Locale;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 
+/**
+ * Class for writing Spice ".raw" files.
+ * Raw data consists of points in vector space.
+ * Components of vector have name and type.
+ */
 public class RawFile {
 	private int numVars;
 	private int numPoints;
@@ -36,6 +41,11 @@ public class RawFile {
 	private String[] varName;
 	private String[] varType;
 
+	/**
+	 * Constructs RawFile object.
+	 * @param numPoints number of points.
+	 * @param numvars dimension of vectors..
+	 */
 	public RawFile(int numPoints, int numVars) {
 		this.numVars = numVars;
 		this.numPoints = numPoints;
@@ -46,15 +56,32 @@ public class RawFile {
 			data[i] = new double[numVars];
     }
 
+	/**
+	 * Defines name and type of component of vector.
+	 * @param iVar index of component of vector.
+	 * @param varName name of component of vector..
+	 * @param varType type of component of vector..
+	 */
 	public void setVar(int iVar, String varName, String varType) {
 		this.varName[iVar] = varName;
 		this.varType[iVar] = varType;
 	}
 
+	/**
+	 * Sets value of component of point.
+	 * @param iPoint index of point.
+	 * @param iVar index of component of vector.
+	 * @param v value of component of point.
+	 * @param varType type of component of vector..
+	 */
 	public void set(int iPoint, int iVar, double v) {
 		data[iPoint][iVar] = v;
 	}
 
+	/**
+	 * Writes RawFile data to file.
+	 * @param fileName name of file.
+	 */
 	public void write(String fileName) {
 		try {
 			DecimalFormat fmt = new DecimalFormat("0.000000000000000000E00");

@@ -41,5 +41,11 @@ ulp: Ulp.class
 	java  -server -XX:+PrintCompilation  -classpath . Ulp
 	java  -client -XX:+PrintCompilation  -classpath . Ulp
 
+testint: TestIntervals.class
+	java -classpath $(JARLOC):. TestIntervals
+
+sum: Sum.class
+	java -server -XX:+PrintCompilation -classpath $(JARLOC):. Sum
+
 clean:
 	rm -rf *.class

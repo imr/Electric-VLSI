@@ -25,7 +25,7 @@
 package com.sun.electric.tool.simulation.interval;
 
 /**
- * Class for representation of intervals X = [a, b]. a and b are double 
+ * Mutable class for representation of intervals X = [a, b]. a and b are double 
  * precision floation point numbers with a <= b. 
  * 
  * Closed ("extended") interval system is emplemented, which is the extension
@@ -350,7 +350,7 @@ public class Interval
 	/**
 	 * Assigns entire interval [ -INF, +INF ].
 	 */
-	private Interval assignEntire() {
+	public Interval assignEntire() {
 		inf = Double.NEGATIVE_INFINITY;
 		sup = Double.POSITIVE_INFINITY;
 		return this;
@@ -359,7 +359,7 @@ public class Interval
 	/**
 	 * Assigns empty interval [-EMPTY ].
 	 */
-	private Interval assignEmpty() {
+	public Interval assignEmpty() {
 		inf = sup = Double.NaN;
 		return this;
 	}
@@ -697,7 +697,7 @@ public class Interval
 	 * <LI> x.interval_hull(y) == [ -INF,+INF ] for y == NaN
 	 * </UL>
 	 */
-	Interval interval_hull(double x) {
+	public Interval interval_hull(double x) {
 		if (isEmpty())
 			return assign(x);
 		if (x != x)
@@ -726,7 +726,7 @@ public class Interval
 	 * <LI> x.disjoint(y) == true for x or y == [ EMPTY ]
 	 * </UL>
 	 */
-	boolean disjoint(Interval y) {
+	public boolean disjoint(Interval y) {
 		return !(this.inf <= y.sup && y.inf <= this.sup);
 	}
   
@@ -794,7 +794,7 @@ public class Interval
 	 * <LI> x.proper_subset(y) == true for x == [ EMPTY ] and y != [ EMPTY ] 
 	 * </UL>
 	 */
-	boolean proper_subset(Interval y) {
+	public boolean proper_subset(Interval y) {
 		return (inf >= y.inf && sup <= y.sup && (inf > y.inf || sup < y.sup)) ||
 			(isEmpty() && ! y.isEmpty());
 	}
@@ -807,7 +807,7 @@ public class Interval
 	 * <LI> x.subset(y) == true for x == [ EMPTY ] 
 	 * </UL>   
 	 */
-	boolean subset(Interval y) {
+	public boolean subset(Interval y) {
 		return y.inf <= inf && sup <= y.sup || isEmpty();
 	}
   
@@ -819,7 +819,7 @@ public class Interval
 	 * <LI> x.proper_superset(y) == true for x != [ EMPTY ] and y == [ EMPTY ] 
 	 * </UL>
 	 */
-	boolean proper_superset(Interval y) {
+	public boolean proper_superset(Interval y) {
 		return (inf <= y.inf && y.sup <= sup && (inf < y.inf || y.sup < sup)) ||
 			(y.isEmpty() && ! isEmpty());
 	}
@@ -832,7 +832,7 @@ public class Interval
 	 * <LI> x.superset(y) == true for y == [ EMPTY ] 
 	 * </UL>
 	 */
-	boolean superset(Interval y) {
+	public boolean superset(Interval y) {
 		return inf <= y.inf && y.sup <= sup || y.isEmpty();
 	}
   
@@ -844,14 +844,14 @@ public class Interval
 	 * <LI> x.seq(y) == true for x == y == [ EMPTY ] 
 	 * </UL>
 	 */
-	boolean seq(Interval y) {
+	public boolean seq(Interval y) {
 		return (inf == y.inf && sup == y.sup) || isEmpty() && y.isEmpty();
 	}
   
 	/**
 	 * Returns true iff this interval is set-not-equal to interval x.
 	 */
-	boolean sne(Interval y) {
+	public boolean sne(Interval y) {
 		return !seq(y);
 	}
 
@@ -864,7 +864,7 @@ public class Interval
 	 * <LI> x.sge(y) == true for x == y == [ EMPTY ] 
 	 * </UL>
 	 */
-	boolean sge(Interval y) {
+	public boolean sge(Interval y) {
 		return inf >= y.inf && sup >= y.sup || isEmpty() && y.isEmpty();
 	}
 
@@ -876,7 +876,7 @@ public class Interval
 	 * <LI> x.sgt(y) == false for x == [ EMPTY ] or y == [ EMPTY ] 
 	 * </UL>
 	 */
-	boolean sgt(Interval y) {
+	public boolean sgt(Interval y) {
 		return inf > y.inf && sup > y.sup;
 	}
   
@@ -889,7 +889,7 @@ public class Interval
 	 * <LI> x.sle(y) == true for x == y == [ EMPTY ] 
 	 * </UL>
 	 */
-	boolean sle(Interval y) {
+	public boolean sle(Interval y) {
 		return inf <= y.inf && sup <= y.sup || isEmpty() && y.isEmpty();
 	}
 
@@ -901,7 +901,7 @@ public class Interval
 	 * <LI> x.slt(y) == false for x == [ EMPTY ] or y == [ EMPTY ] 
 	 * </UL>
 	 */
-	boolean slt(Interval y) {
+	public boolean slt(Interval y) {
 		return inf < y.inf && sup < y.sup;
 	}
   
@@ -917,7 +917,7 @@ public class Interval
 	 * <LI> x.ceq(y) == false for x == [ EMPTY ] or y == [ EMPTY ] 
 	 * </UL>
 	 */
-	boolean ceq(Interval y) {
+	public boolean ceq(Interval y) {
 		return sup <= y.inf && inf >= y.sup;
 	}
 
@@ -929,7 +929,7 @@ public class Interval
 	 * <LI> x.cne(y) == true for x == [ EMPTY ] or y == [ EMPTY ] 
 	 * </UL>
 	 */
-	boolean cne(Interval y) {
+	public boolean cne(Interval y) {
 		return !(inf <= y.sup && y.inf <= sup);
 	}
 
@@ -942,7 +942,7 @@ public class Interval
 	 * <LI> x.cge(y) == false for x == [ EMPTY ] or y == [ EMPTY ]
 	 * </UL>
 	 */
-	boolean cge(Interval y) {
+	public boolean cge(Interval y) {
 		return inf >= y.sup;
 	}
 
@@ -954,7 +954,7 @@ public class Interval
 	 * <LI> x.cgt(y) == false for x == [ EMPTY ] or y == [ EMPTY ] 
 	 * </UL>
 	 */
-	boolean cgt(Interval y) {
+	public boolean cgt(Interval y) {
 		return inf > y.sup;
 	}
 
@@ -967,7 +967,7 @@ public class Interval
 	 * <LI> x.cle(y) == false for x == [ EMPTY ] or y == [ EMPTY ]
 	 * </UL>
 	 */
-	boolean cle(Interval y) {
+	public boolean cle(Interval y) {
 		return sup <= y.inf;
 	}
 
@@ -979,7 +979,7 @@ public class Interval
 	 * <LI> x.clt(y) == false for x == [ EMPTY ] or y == [ EMPTY ] 
 	 * </UL>
 	 */
-	boolean clt(Interval y) {
+	public boolean clt(Interval y) {
 		return sup < y.inf;
 	}
 
@@ -995,7 +995,7 @@ public class Interval
 	 * <LI> x.peq(y) == false for x == [ EMPTY ] or y == [ EMPTY ] 
 	 * </UL>
 	 */
-	boolean peq(Interval y) {
+	public boolean peq(Interval y) {
 		return inf <= y.sup && sup >= y.inf;
 	}
 
@@ -1007,7 +1007,7 @@ public class Interval
 	 * <LI> x.pne(y) == true for x == [ EMPTY ] or y == [ EMPTY ] 
 	 * </UL>
 	 */
-	boolean pne(Interval y) {
+	public boolean pne(Interval y) {
 		return !(sup <= y.inf && inf >= y.sup);
 	}
 
@@ -1020,7 +1020,7 @@ public class Interval
 	 * <LI> x.pge(y) == false for x == [ EMPTY ] or y == [ EMPTY ]
 	 * </UL>
 	 */
-	boolean pge(Interval y) {
+	public boolean pge(Interval y) {
 		return sup >= y.inf;
 	}
 
@@ -1032,7 +1032,7 @@ public class Interval
 	 * <LI> x.pgt(y) == false for x == [ EMPTY ] or y == [ EMPTY ] 
 	 * </UL>
 	 */
-	boolean pgt(Interval y) {
+	public boolean pgt(Interval y) {
 		return sup > y.inf;
 	}
 
@@ -1045,7 +1045,7 @@ public class Interval
 	 * <LI> x.ple(y) == false for x == [ EMPTY ] or y == [ EMPTY ]
 	 * </UL>
 	 */
-	boolean ple(Interval y) {
+	public boolean ple(Interval y) {
 		return inf <= y.sup;
 	}
 
@@ -1057,7 +1057,7 @@ public class Interval
 	 * <LI> x.plt(y) == false for x == [ EMPTY ] or y == [ EMPTY ] 
 	 * </UL>
 	 */
-	boolean plt(Interval y) {
+	public boolean plt(Interval y) {
 		return inf < y.sup;
 	}
 
@@ -1094,12 +1094,12 @@ public class Interval
 			assert Math.abs(l) >= MIN_NORMAL*2;
 			l = (l < 0 ? l + l*ULP_EPS : l < Double.POSITIVE_INFINITY ? l*SCALE_DOWN : Double.MAX_VALUE);
 		}
-		inf = l;
 		double h = this.sup + y.sup;
 		if (h - this.sup < y.sup || h - y.sup < this.sup) {
 			assert Math.abs(h) >= MIN_NORMAL*2;
 			h = (h > 0 ? h + h*ULP_EPS : h > Double.NEGATIVE_INFINITY ? h*SCALE_DOWN : -Double.MAX_VALUE);
 		}
+		inf = l;
 		sup = h;
 		return this;
 	}
@@ -1113,17 +1113,17 @@ public class Interval
 	 * </UL>
 	 */
 	public Interval sub(Interval y) {
-		double l = this.inf - y.inf;
-		if (this.inf - l < y.inf || l + y.inf > this.inf) {
+		double l = this.inf - y.sup;
+		if (this.inf - l < y.sup || l + y.sup > this.inf) {
 			assert Math.abs(l) >= MIN_NORMAL*2;
 			l = (l < 0 ? l + l*ULP_EPS : l < Double.POSITIVE_INFINITY ? l*SCALE_DOWN : Double.MAX_VALUE);
 		}
-		inf = l;
-		double h = this.sup - y.sup;
-		if (this.sup - h >  y.sup || h + y.sup < this.sup) {
+		double h = this.sup - y.inf;
+		if (this.sup - h >  y.inf || h + y.inf < this.sup) {
 			assert Math.abs(l) >= MIN_NORMAL*2;
 			h = (h > 0 ? h + h*ULP_EPS : h > Double.NEGATIVE_INFINITY ? h*SCALE_DOWN : -Double.MAX_VALUE);
 		}
+		inf = l;
 		sup = h;
 		return this;
     }
@@ -1182,27 +1182,25 @@ public class Interval
 		}
 
 		if (l > 0)
-			inf = prevPos(l);
+			l = prevPos(l);
 		else if (l < 0)
-			inf = prevNeg(l);
+			l = prevNeg(l);
 		else if (l == 0)
-			inf = (this.inf >= 0 && y.inf >= 0 || this.sup <= 0 && y.sup <= 0) ? 0 : -Double.MIN_VALUE;
+			l = (this.inf >= 0 && y.inf >= 0 || this.sup <= 0 && y.sup <= 0) ? 0 : -Double.MIN_VALUE;
 		else if (this.inf == this.inf && y.inf == y.inf)
 			return assignEntire();
-		else
-			inf = l;
 
 		if (h > 0)
-			sup = nextPos(h);
+			h = nextPos(h);
 		else if (h < 0)
-			sup = nextNeg(h);
+			h = nextNeg(h);
 		else if (h == 0)
-			sup = (this.inf >= 0 && y.inf <= 0 || this.sup <= 0 && y.sup >= 0) ? 0 : Double.MIN_VALUE;
+			h = (this.inf >= 0 && y.sup <= 0 || this.sup <= 0 && y.inf >= 0) ? 0 : Double.MIN_VALUE;
 		else if (this.inf == this.inf && y.inf == y.inf)
 			return assignEntire();
-		else
-			sup = h;
 
+		inf = l;
+		sup = h;
 		return this;
 	}
 
@@ -1245,27 +1243,25 @@ public class Interval
 		}
 
 		if (l > 0)
-			inf = prevPos(l);
+			l = prevPos(l);
 		else if (l < 0)
-			inf = prevNeg(l);
+			l = prevNeg(l);
 		else if (l == 0)
-			inf = (this.inf >= 0 && y.inf > 0 || this.sup <= 0 && y.sup < 0) ? 0 : -Double.MIN_VALUE;
+			l = (this.inf >= 0 && y.inf > 0 || this.sup <= 0 && y.sup < 0) ? 0 : -Double.MIN_VALUE;
 		else if (this.inf == this.inf && y.inf == y.inf)
 			return assignEntire();
-		else
-			inf = l;
 
 		if (h > 0)
-			sup = nextPos(h);
+			h = nextPos(h);
 		else if (h < 0)
-			sup = nextNeg(h);
+			h = nextNeg(h);
 		else if (h == 0)
-			sup = (this.inf >= 0 && y.inf < 0 || this.sup <= 0 && y.sup > 0) ? 0 : Double.MIN_VALUE;
+			h = (this.inf >= 0 && y.sup < 0 || this.sup <= 0 && y.inf > 0) ? 0 : Double.MIN_VALUE;
 		else if (this.inf == this.inf && y.inf == y.inf)
 			return assignEntire();
-		else
-			sup = h;
 
+		inf = l;
+		sup = h;
 		return this;
 	}
 
@@ -1277,12 +1273,36 @@ public class Interval
 	 * Replaces this interval by an interval enclosure of its exponential.
 	 */
     public Interval exp() {
-		if (isEmpty())
-			return this;
-		inf = prevPos(Math.exp(this.inf));
-		sup = nextPos(Math.exp(this.sup));
+		double l = Math.exp(this.inf);
+		if (l > 0)
+			l = prevPos(l);
+		double h = Math.exp(this.sup);
+		h = nextPos(h);
+		inf = l;
+		sup = h;
 		return this;
     }
+
+	/**
+	 * Replaces this interval by an interval enclosure of its natural logarithm.
+	 */
+	public Interval log() {
+		double l = Math.log(this.inf);
+		double h = Math.log(this.sup);
+		if (l > 0)
+			l = prevPos(l);
+		else if (l < 0)
+			l = prevNeg(l);
+		else if (l != l && h == h)
+			l = Double.NEGATIVE_INFINITY;
+		if (h > 0)
+			h = nextPos(h);
+		else if (h < 0)
+			h = nextNeg(h);
+		inf = l;
+		sup = h;
+		return this;
+	}
 
 	// -----------------------------------------------------------------------
 	// predecessor and successor of a number
@@ -1372,7 +1392,7 @@ public class Interval
 
 	private static double prevNeg(double x) {
 		assert x <= 0;
-		return x <= MIN_NORMAL*2 ? x + x*ULP_EPS : x - Double.MIN_VALUE;
+		return x <= -MIN_NORMAL*2 ? x + x*ULP_EPS : x - Double.MIN_VALUE;
 	}
 
 	private double add_up(double x, double y) {
