@@ -5250,8 +5250,9 @@ public class CircuitChanges
             newDescript.setFace(oldDescript.getFace());
 
             TextDescriptor.DispPos i = newDescript.getDispPart();
-            if (i == TextDescriptor.DispPos.NAMEVALINH || i == TextDescriptor.DispPos.NAMEVALINHALL)
-                newDescript.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
+            newDescript.setDispPart(i);
+            //if (i == TextDescriptor.DispPos.NAMEVALINH || i == TextDescriptor.DispPos.NAMEVALINHALL)
+            //    newDescript.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
         }
         nivar.setCode(posVar.getCode());
 	}

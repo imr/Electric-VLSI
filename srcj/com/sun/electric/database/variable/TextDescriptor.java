@@ -173,42 +173,42 @@ public class TextDescriptor
 		/**
 		 * Describes text centered above a point.
 		 */
-		public static final Position UP = new Position("top", VTPOSUP, Poly.Type.TEXTBOT);
+		public static final Position UP = new Position("bottom", VTPOSUP, Poly.Type.TEXTBOT);
 
 		/**
 		 * Describes text centered below a point.
 		 */
-		public static final Position DOWN = new Position("bottom", VTPOSDOWN, Poly.Type.TEXTTOP);
+		public static final Position DOWN = new Position("top", VTPOSDOWN, Poly.Type.TEXTTOP);
 
 		/**
 		 * Describes text centered to left of a point.
 		 */
-		public static final Position LEFT = new Position("left", VTPOSLEFT, Poly.Type.TEXTRIGHT);
+		public static final Position LEFT = new Position("right", VTPOSLEFT, Poly.Type.TEXTRIGHT);
 
 		/**
 		 * Describes text centered to right of a point.
 		 */
-		public static final Position RIGHT = new Position("right", VTPOSRIGHT, Poly.Type.TEXTLEFT);
+		public static final Position RIGHT = new Position("left", VTPOSRIGHT, Poly.Type.TEXTLEFT);
 
 		/**
 		 * Describes text centered to upper-left of a point.
 		 */
-		public static final Position UPLEFT = new Position("upper-left", VTPOSUPLEFT, Poly.Type.TEXTBOTRIGHT);
+		public static final Position UPLEFT = new Position("lower-right", VTPOSUPLEFT, Poly.Type.TEXTBOTRIGHT);
 
 		/**
 		 * Describes text centered to upper-right of a point.
 		 */
-		public static final Position UPRIGHT = new Position("upper-right", VTPOSUPRIGHT, Poly.Type.TEXTBOTLEFT);
+		public static final Position UPRIGHT = new Position("lower-left", VTPOSUPRIGHT, Poly.Type.TEXTBOTLEFT);
 
 		/**
 		 * Describes text centered to lower-left of a point.
 		 */
-		public static final Position DOWNLEFT = new Position("lower-left", VTPOSDOWNLEFT, Poly.Type.TEXTTOPRIGHT);
+		public static final Position DOWNLEFT = new Position("upper-right", VTPOSDOWNLEFT, Poly.Type.TEXTTOPRIGHT);
 
 		/**
 		 * Describes text centered to lower-right of a point.
 		 */
-		public static final Position DOWNRIGHT = new Position("lower-right", VTPOSDOWNRIGHT, Poly.Type.TEXTTOPLEFT);
+		public static final Position DOWNRIGHT = new Position("upper-left", VTPOSDOWNRIGHT, Poly.Type.TEXTTOPLEFT);
 
 		/**
 		 * Describes text centered and limited to the object size.
@@ -231,7 +231,7 @@ public class TextDescriptor
 		{
 			this.name = name;
 			this.index = index;
-			positions.add(index, this);
+			positions.add(this);
 		}
 
 		/**
@@ -258,7 +258,13 @@ public class TextDescriptor
 		 * @param index the DispPos number desired.
 		 * @return the DispPos at a given index.
 		 */
-		public static DispPos getShowStylesAt(int index) { return (DispPos)positions.get(index); }
+		public static DispPos getShowStylesAt(int index) {
+            for (Iterator it = positions.iterator(); it.hasNext(); ) {
+                DispPos d = (DispPos)it.next();
+                if (d.index == index) return d;
+            }
+            return NAMEVALUE;
+        }
 
         /**
          * Get an iterator over all show styles.
@@ -281,7 +287,7 @@ public class TextDescriptor
 		 * Describes a Variable that displays its name, value, 1-level inherit.
 		 * The form of the display is "ATTR=VALUE;def=DEFAULT";
 		 */
-		public static final DispPos NAMEVALINH = new DispPos("name=inherit;def=value", VTDISPLAYNAMEVALINH);
+		//public static final DispPos NAMEVALINH = new DispPos("name=inherit;def=value", VTDISPLAYNAMEVALINH);
 
 		/**
 		 * Describes a Variable that displays its name and value.
@@ -293,7 +299,7 @@ public class TextDescriptor
 		 * Describes a Variable that displays its name, value, any inherit.
 		 * The form of the display is "ATTR=VALUE;def=DEFAULT";
 		 */
-		public static final DispPos NAMEVALINHALL = new DispPos("name=inheritAll;def=value", VTDISPLAYNAMEVALINHALL);
+		//public static final DispPos NAMEVALINHALL = new DispPos("name=inheritAll;def=value", VTDISPLAYNAMEVALINHALL);
 	}
 
 

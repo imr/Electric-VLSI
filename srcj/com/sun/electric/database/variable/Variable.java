@@ -430,9 +430,10 @@ public class Variable
 				whichIndex = "[" + aindex + "]";
 			}
 		}
-		if (dispPos == TextDescriptor.DispPos.NAMEVALUE ||
-            dispPos == TextDescriptor.DispPos.NAMEVALINH ||
-            dispPos == TextDescriptor.DispPos.NAMEVALINHALL)
+		//if (dispPos == TextDescriptor.DispPos.NAMEVALUE ||
+        //    dispPos == TextDescriptor.DispPos.NAMEVALINH ||
+        //   dispPos == TextDescriptor.DispPos.NAMEVALINHALL)
+        if (dispPos == TextDescriptor.DispPos.NAMEVALUE)
 		{
 			return this.getTrueName() + whichIndex + "=" + returnVal.toString();
 		}
