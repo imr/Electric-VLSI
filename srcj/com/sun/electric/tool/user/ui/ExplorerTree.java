@@ -893,6 +893,33 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 				return;
 			}
+			if (currentSelectedObject instanceof MultiPageCell)
+			{
+				MultiPageCell mpc = (MultiPageCell)currentSelectedObject;
+				Cell cell = mpc.cell;
+				JPopupMenu menu = new JPopupMenu("Cell");
+
+				JMenuItem menuItem = new JMenuItem("Edit");
+				menu.add(menuItem);
+				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { editCellAction(false); } });
+
+				menuItem = new JMenuItem("Edit in New Window");
+				menu.add(menuItem);
+				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { editCellAction(true); } });
+
+				menu.addSeparator();
+
+				menuItem = new JMenuItem("Place Instance of Cell");
+				menu.add(menuItem);
+				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { newCellInstanceAction(); } });
+
+				menuItem = new JMenuItem("Create New Cell");
+				menu.add(menuItem);
+				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { newCellAction(); } });
+
+				menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
+				return;
+			}
 			if (currentSelectedObject instanceof Library)
 			{
 				Library lib = (Library)currentSelectedObject;

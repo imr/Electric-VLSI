@@ -595,7 +595,7 @@ public class PixelDrawing
        		Rectangle2D cellBounds = subCell.getBounds();
 			Poly poly = new Poly(cellBounds);
 			poly.transform(subTrans);
-if (wnd.isInPlaceEdit()) poly.transform(wnd.getInPlaceTransformIn());
+			if (wnd.isInPlaceEdit()) poly.transform(wnd.getInPlaceTransformIn());
 			cellBounds = poly.getBounds2D();
 			Rectangle screenBounds = wnd.databaseToScreen(cellBounds);
 			if (screenBounds.width <= 0 || screenBounds.height <= 0) return;
@@ -634,8 +634,8 @@ if (wnd.isInPlaceEdit()) poly.transform(wnd.getInPlaceTransformIn());
 				{
 					// just draw it directly
 					drawCell(subCell, expandBounds, subTrans, false);
-					showCellPorts(ni, trans, Color.BLACK);
 				}
+				showCellPorts(ni, trans, Color.BLACK);
 			} else
 			{
 				// draw the black box of the instance

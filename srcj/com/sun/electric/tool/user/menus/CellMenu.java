@@ -183,34 +183,42 @@ public class CellMenu {
     	if (cell == null) return;
     	if (cell.getView() != View.SCHEMATIC)
     	{
-    		System.out.println("Only Schematic cells can be made multi-page");
-    		return;
-    	}
-    	Dimension d = new Dimension(0,0);
-    	if (Cell.FrameDescription.getCellFrameInfo(cell, d) != 0)
-    	{
-       		System.out.println("Must turn on cell frames before making the cell multi-page");
+    		JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Only Schematic cells can be made multi-page",
+    			"Cannot make multipage design", JOptionPane.ERROR_MESSAGE);
     		return;
     	}
 
-		SetMultiPageJob job = new SetMultiPageJob(cell);
+		SetMultiPageJob job = new SetMultiPageJob(cell, 1);
     }
 
+    /**
+     * Class to set a cell to be multi-page with a given page count.
+     */
     private static class SetMultiPageJob extends Job
 	{
 		private Cell cell;
+		private int numPages;
 
-		private SetMultiPageJob(Cell cell)
+		private SetMultiPageJob(Cell cell, int numPages)
 		{
 			super("Make Cell be Multi-Page", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
+			this.numPages = numPages;
 			startJob();
 		}
 
 		public boolean doIt()
 		{
+	    	Dimension d = new Dimension(0,0);
+	    	if (Cell.FrameDescription.getCellFrameInfo(cell, d) != 0)
+	    	{
+				cell.newVar(User.FRAME_SIZE, "a");
+	       		System.out.println("Multi-page schematics must have cell frames turned on.  Setting this to A-size.");
+	    	}
+			boolean wasMulti = cell.isMultiPage();
 	    	cell.setMultiPage(true);
-	    	System.out.println("Cell " + cell.describe() + " is now a multi-page schematic");
+	    	cell.newVar(Cell.MULTIPAGE_COUNT_KEY, new Integer(numPages));
+	    	if (!wasMulti) System.out.println("Cell " + cell.describe() + " is now a multi-page schematic");
 			return true;
 		}
 	}
@@ -230,6 +238,7 @@ public class CellMenu {
     		return;
     	}
     	int numPages = cell.getNumMultiPages();
+		SetMultiPageJob job = new SetMultiPageJob(cell, numPages+1);
     	wnd.setMultiPageNumber(numPages);
     }
 

@@ -369,6 +369,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 
 	/** Variable key for characteristic spacing for a cell. */		public static final Variable.Key CHARACTERISTIC_SPACING = ElectricObject.newKey("FACET_characteristic_spacing");
 	/** Variable key for text cell contents. */						public static final Variable.Key CELL_TEXT_KEY = ElectricObject.newKey("FACET_message");
+	/** Variable key for number of multipage pages. */				public static final Variable.Key MULTIPAGE_COUNT_KEY = ElectricObject.newKey("CELL_page_count");
 
 	/** set if instances should be expanded */						private static final int WANTNEXPAND   =           02;
 	/** set if everything in cell is locked */						private static final int NPLOCKED      =     04000000;
@@ -3035,6 +3036,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		if (!isMultiPage()) return 1;
 		Rectangle2D bounds = getBounds();
 		int numPages = (int)(bounds.getHeight() / FrameDescription.MULTIPAGESEPARATION) + 1;
+		Variable var = getVar(MULTIPAGE_COUNT_KEY, Integer.class);
+		if (var != null)
+		{
+			Integer storedCount = (Integer)var.getObject();
+			if (storedCount.intValue() > numPages) numPages = storedCount.intValue();
+		}
 		return numPages;
 	}
 

@@ -55,6 +55,7 @@ import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.Main;
@@ -992,17 +993,22 @@ public class WindowFrame
             }
         }
 
-        public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+        public void databaseEndChangeBatch(Undo.ChangeBatch batch)
+        {
             boolean changed = false;
-            for (Iterator it = batch.getChanges(); it.hasNext(); ) {
+            for (Iterator it = batch.getChanges(); it.hasNext(); )
+            {
                 Undo.Change change = (Undo.Change)it.next();
                 if (change.getType() == Undo.Type.LIBRARYKILL ||
                     change.getType() == Undo.Type.LIBRARYNEW ||
                     change.getType() == Undo.Type.CELLKILL ||
                     change.getType() == Undo.Type.CELLNEW ||
                     change.getType() == Undo.Type.CELLGROUPMOD ||
-                    (change.getType() == Undo.Type.OBJECTRENAME && change.getObject() instanceof Cell)) {
-                    changed = true; break;
+                    (change.getType() == Undo.Type.OBJECTRENAME && change.getObject() instanceof Cell) ||
+					(change.getType() == Undo.Type.VARIABLENEW && change.getObject() instanceof Cell && ((Variable)change.getO1()).getKey() == Cell.MULTIPAGE_COUNT_KEY))
+                {
+                    changed = true;
+                    break;
                 }
             }
             if (changed)

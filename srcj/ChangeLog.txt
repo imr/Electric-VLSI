@@ -4,7 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01aq: *********************************
 
-BUG: (11/11/04, SMR) "Make Alternate Layout View" produces Schematic cells.
+BUG: (11/23/04, SMR) Panning an expanded cell makes its exports go away.
+FIX: In PixelDrawing.drawNode()" always write exports.
+
+BUG: (11/22/04, SMR) "Make Alternate Layout View" produces Schematic cells.
 FIX: In "ViewChanges.makeLayoutCells()", use layout when creating new cells.
 
 BUG: (11/22/04, SMR) GDS output crashes when given a schematic.
