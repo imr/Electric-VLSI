@@ -452,7 +452,7 @@ class Placer {
 		
 		// Move NodeInsts in Electric.
 		void updateElectric(double rowHeight) {
-			nodeInst.modifyInstance(x, row*rowHeight, 0, 0, 0);
+			LayoutLib.modNodeInst(nodeInst, x, row*rowHeight,0,0,false,false,0);
 		}
 	}
 	

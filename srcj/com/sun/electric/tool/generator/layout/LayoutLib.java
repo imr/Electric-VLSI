@@ -38,67 +38,73 @@ import com.sun.electric.tool.io.*;
  */
 public class LayoutLib {
 	// ---------------------------- public data ------------------------------
-	/** Use +/- infinity to mean: "use the default size" */
+	/** Use the default size. When a width or height argument has this
+	 * value the object should be created with its default
+	 * dimension. Note that -DEF_SIZE is also a legal
+	 * constant. Negative dimensions specify mirroring for certain
+	 * methods. */
 	public static final double DEF_SIZE = Double.POSITIVE_INFINITY;
 
 	// ---------------------------- public methods ---------------------------
 	/**
 	 * Print a message, dump a stack trace, and throw a RuntimeException if 
-	 * predicate is true.
-	 * @param <code>pred</code> if true an error has occurred.
-	 * @param msg the message to print when an error occurs. 
+	 * errorHasOccurred argument is true.
+	 *
+	 * @param errorHasOccurred indicates a runtime error has been detected
+	 * @param msg the message to print when an error occurs
+	 * @throws RuntimeException if errorHasOccurred is true
 	 */
-	public static void error(boolean pred, String msg) {
-		if (!pred) return;
+	public static void error(boolean errorHasOccurred, String msg) {
+		if (!errorHasOccurred) return;
 		RuntimeException e = new RuntimeException(msg);
-		// Oddly enough, the following prints a stack trace in the
-		// Electric message window only
+		// The following prints a stack trace on the console
 		e.printStackTrace();
 
-		// while the following prints a stack trace in the Jose window
-		// only.
+		// The following prints a stack trace in the Electric messages window
 		throw e;
 	}
 	/** 
-	 * Open a library for reading.
-	 * <p> If a library named: <code>libNm</code> is already open then 
-	 * return it. Otherwise look for the file named: <code>libFileNm</code>
-	 * and open that library.
-	 * @param libNm the name of the Library
-	 * @param libFileNm the name of the Library file on disk
+	 * Open a library for reading. If a library named libName is
+	 * already open then return it. Otherwise look for the library
+	 * file named libFileName and open that library.
+	 * 
+	 * @param libName the name of the Library
+	 * @param libFileName the fully qualified path name of the Library
+	 * file on disk
 	 * @return the open Library or null if it can't be found
 	 */
-	public static Library openLibForRead(String libNm, String libFileNm) {
-		Library lib = Library.findLibrary(libNm);
+	public static Library openLibForRead(String libName, String libFileName) {
+		Library lib = Library.findLibrary(libName);
 		if (lib==null) {
-			lib = Input.readLibrary(libFileNm, Input.ImportType.BINARY);
+			lib = Input.readLibrary(libFileName, Input.ImportType.BINARY);
 		}
-		error(lib==null, "can't open Library for reading: "+libFileNm);
+		error(lib==null, "can't open Library for reading: "+libFileName);
 		return lib;
 	}
 	/**
-	 * Open a library for modification.
-	 * <p> If a library named <code>libNm</code> is already open then 
-	 * return it. Otherwise look for the file named: <code>libFileNm</code>
-	 * and open that library. If the file doesn't exist on disk then create 
-	 * a new Library. 
-	 * @param libNm the name of the Library
-	 * @param libFileNm the name of the Library file on disk
-	 * @return the library
+	 * Open a library for modification. If a library named libName is
+	 * already open then return it. Otherwise look for the file named:
+	 * libFileName and open that library. Finally, if all else fails
+	 * create a new Library and return it.
+	 *
+	 * @param libName the name of the Library
+	 * @param libFileName the fully qualified path name of the Library
+	 * file on disk
+	 * @return the desired library
 	 */
-	public static Library openLibForModify(String libNm, String libFileNm) {
+	public static Library openLibForModify(String libName, String libFileName) {
 		// return an open Library if it exists
-		Library lib = Library.findLibrary(libNm);
+		Library lib = Library.findLibrary(libName);
 		if (lib!=null)  return lib;
 
 		// open a Library file if it exists
-		lib = Input.readLibrary(libFileNm, Input.ImportType.BINARY);
+		lib = Input.readLibrary(libFileName, Input.ImportType.BINARY);
 		if (lib!=null)  return lib;
 		
 		// create a new Library
-		lib = Library.newInstance(libNm, libFileNm);
+		lib = Library.newInstance(libName, libFileName);
 
-		error(lib==null, "can't open Library for modify: "+libNm);
+		error(lib==null, "can't open Library for modify: "+libName);
 		return lib;
 	}
 	/**
@@ -109,44 +115,50 @@ public class LayoutLib {
 		Output.writeLibrary(lib, Output.ExportType.BINARY);
 	}
 	/**
-	 * Get the width of an ArcInst.
-	 * <p>Subtract off the "width offset" so that we return the same width as 
-	 * would be reported by the GUI.
- 	 * @param ai the ArcInst whose width is reported.
-	 * @return the width of the ArcInst. 
+	 * Get the width of an ArcInst. The getArcInstWidth method differs
+	 * from ArcInst.getWidth() in that it subtracts off the "width
+	 * offset". Hence, getArcInstWidth returns a width that matches
+	 * that reported by the GUI.
+	 *
+ 	 * @param ai the ArcInst whose width is reported
+	 * @return the width of the ArcInst.
 	 */
 	public static double getArcInstWidth(ArcInst ai) {
 		return ai.getWidth() - ai.getProto().getWidthOffset();
 	}
 	/**
-	 * Get the default width of a NodeProto.
-	 * <p>Subtract off the "width offset" so that we return the same width as
-	 * would be reported by the GUI.
+	 * Get the default width of a NodeProto. The getNodeProtoWidth
+	 * method differs from NodeProto.getDefWidth in that it subtracts
+	 * off the "width offset". Hence getNodeProtoWidth returns a width
+	 * that matches that reported by the GUI.
+	 *
 	 * @param np the NodeProto we want the width of.
-	 * @return the width of the NodeProto.
+	 * @return the width of the NodeProto. 
 	 */
 	public static double getNodeProtoWidth(NodeProto np) {
 		SizeOffset so = np.getSizeOffset();
 		return np.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
 	}
 	/**
-	 * Get the default height of a NodeProto.
-	 * <p>Subtract off the "height offset" so that we return the same height as
-	 * would be reported by the GUI.
-	 * @param np the NodeProto we want the height of.
-	 * @return the width of the NodeProto.
+	 * Get the default height of a NodeProto. The getNodeProtoHeight
+	 * method differs from NodeProto.getDefHeight in that it subtracts
+	 * off the "height offset". Hence getNodeProtoHeight returns a
+	 * height that matches that reported by the GUI.
+	 *
+	 * @param np the NodeProto we want the height of
+	 * @return the height of the NodeProto
 	 */
 	public static double getNodeProtoHeight(NodeProto np) {
 		SizeOffset so = np.getSizeOffset();
 		return np.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
 	}
 	/**
-	 * Find the width of the widest wire connected hierarchically to the given
-	 * PortInst.  
+	 * Find the width of the widest wire connected hierarchically to port.
+	 *
 	 * @param port the PortInst to check for attached wires.
 	 * @return the width of the widest wire. This width excludes the
-	 * "size_offset" so it matches the GUI's notion of "width". If no wire is 
-	 * found then return DEF_SIZE.
+	 * "width offset" so it matches the width reported by the GUI.
+	 * If no wire is attached to port then return DEF_SIZE.
 	 */
 	public static double widestWireWidth(PortInst port) {
 		NodeInst ni = port.getNodeInst();
@@ -163,7 +175,7 @@ public class LayoutLib {
 		return maxWid;
 	}
 
-	/** Return a list of ArcInsts attached to this PortInst.
+	/** Return a list of ArcInsts attached to PortInst, pi.
 	 * @param pi PortInst on which to find attached ArcInsts. */
 	public static Iterator getArcInstsOnPortInst(PortInst pi) {
 		ArrayList arcs = new ArrayList();
@@ -176,34 +188,64 @@ public class LayoutLib {
 	}
 
 	/**
-	 * Create a new NodeInst.
+	 * Create a new NodeInst.  The following geometric transformations
+	 * are performed upon the NodeProto in order to arrive at the
+	 * final position of the NodeInst in the coordinate space of the
+	 * parent:
+	 * <ol>
+	 * <li> Scale the NodeProto in x and y so that it has dimensions
+	 * |width| and |height|. All scaling is performed about the
+	 * NodeProto's origin, (0, 0).
+	 * <li> If width<0 then mirror the preceding result about the
+	 * y-axis.
+	 * <li> If height<0 then mirror the preceding result about the
+	 * x-axis.
+	 * <li> Rotating the preceding result clockwise by angle degrees.
+	 * <li> Translate the preceding result by (x, y). Note that the
+	 * NodeProto's origin always ends up at (x, y) in the
+	 * coordinate space of the parent.
+	 * </ol> 
+	 * 
+	 * The newNodeInst method differs from NodeInst.newInstance in the
+	 * following ways:
 	 *
-	 * <p>The specified dimensions will match those reported by the
-	 * GUI.
-	 * @param np the NodeProto to instantiate.
-	 * @param width the width of the NodeInst. Add "size_offset" to
-	 * <code>width</code> so that we end up with a NodeInst that the
-	 * GUI says is <code>width</code> wide. The <code>width</code>
-	 * argument is ignored if the NodeProto is a Cell since the width
-	 * of a NodeInst of a Cell must match the width of the Cell.
-	 * @param height the height of the NodeInst. Add "size_offset" to
-	 * <code>height</code> so we end up with a NodeInst that the GUI
-	 * says is <code>height</code> high. The <code>height</code>
-	 * argument is ignored if the NodeProto is a Cell since the height
-	 * of a NodeInst of a Cell must match the height of the Cell.
-	 * @param x the desired X coordinate of the NodeProto's reference
-	 * point in the coordinate space of the parent.
-	 * @param y the desired Y coordinate of the NodeProto's reference
-	 * point in the coordinate space of the parent.
-	 * @param angle the angle of rotation about the NodeProto's
-	 * reference point.
+	 * <ul>
+	 * <li>The "size offset" is added to the width and height
+	 * arguments before the object is created. The result is a
+	 * NodeInst that the GUI reports has dimensions: width x height.
+	 * <li>The angle is in units of degrees but is rounded to the
+	 * nearest tenth degree.
+	 * <li>If np is a Cell then the width and height are taken from
+	 * the Cell's defaults. The width and height arguments only
+	 * specify mirroring.
+	 * <li>If np is a Cell then rotation and mirroring are performed
+	 * relative to the Cell's origin.
+	 * <li>If np is a Cell then the NodeInst is positioned using the
+	 * Cell's origin.  That is, the resulting NodeInst will map the
+	 * Cell's origin to (x, y) in the coordinate space of the parent.
+	 * <li>If the width or height arguments are equal to DEF_SIZE then
+	 * the NodeInst is created using the NodeProto's default
+	 * dimensions. Eventually I will change this to <i>minimum</i>
+	 * dimensions.
+	 * </ul>
+	 * @param np the NodeProto to instantiate
+	 * @param width the desired width of the NodeInst
+	 * @param height the desired height of the NodeInst
+	 * @param x the desired x-coordinate of the NodeProto's origin in
+	 * the coordinate space of the parent. If x is negative then the
+	 * NodeInst mirrors about the y-axis.
+	 * @param y the desired y-coordinate of the NodeProto's origin in
+	 * the coordinate space of the parent. If y is negative then the
+	 * NodeInst mirrors about the x-axis.
+	 * @param angle the angle, in degrees, of rotation about the
+	 * NodeProto's origin.
 	 * @param parent the Cell that will contain the NodeInst.
 	 * @return the new NodeInst. 
 	 */
 	public static NodeInst newNodeInst(NodeProto np, 
-	                                   double width, double height,
-		                        	   double x, double y,
-		                        	   double angle, Cell parent) {
+		                               double x, double y,
+									   double width, double height,
+			                           double angle, Cell parent) {
 		if (np instanceof Cell) {
 			width = (width<0 ? -1 : 1) * np.getDefWidth();
 			height = (height<0 ? -1 : 1) * np.getDefHeight();
@@ -227,33 +269,110 @@ public class LayoutLib {
 			} else {
 				double hi = so.getHighYOffset();
 				double lo = so.getLowYOffset();
-				error(lo!=hi, "asymmetric X offset");
+				error(lo!=hi, "asymmetric Y offset");
 				height = signH * (Math.abs(height) + hi+lo);
 			}
-			
 		}
 		NodeInst ni = NodeInst.newInstance(np, new Point2D.Double(x, y),
 										   width, height,
 										   (int)Math.round(angle*10),
 										   parent, null);
 		error(ni==null, "newNodeInst failed");								
+
+		// adjust position so that translation is Cell-Center relative
+		if (np instanceof Cell) {
+			Point2D ref = getPosition(ni);
+			ni.modifyInstance(x-ref.getX(), y-ref.getY(), 0, 0, 0);
+		}
 		return ni;
 	}
 	/**
-	 * Create a new ArcInst.
-	 *
-	 * <p> The specified width will match that reported by the GUI.
-	 * @param ap the ArcProto to instantiate.
-	 * @param width the desired width of the ArcInst. Add the
-	 * "width_offset" to <code>width</code> so we end up with an
-	 * ArcInst that the GUI says is <code>width</code> wide.
-	 * @param head the head PortInst.
-	 * @param hX the X coordinate of the head PortInst.
-	 * @param hY the Y coordinate of the head PortInst.
-	 * @param tail the tail PortInst.
-	 * @param tX the X coordinate of the tail PortInst.
-	 * @param tY the Y coordinate of the tail PortInst.
-	 * @return the new ArcInst.
+	 * Modify the position of a NodeInst.  The size and position of a
+	 * NodeInst in the coordinate space of its parent cell is
+	 * determined by 5 parameters: x, y, width, height, and angle, as
+	 * described in the JavaDoc for newNodeInst. The modNodeInst
+	 * method modifies those parameters.
+	 * <p>The modNodeInst method differs from NodeInst.modifyInstance
+	 * in the following ways:
+	 * <ul>
+	 * <li>If ni is an instance of a Cell then mirroring, rotation,
+	 * and positioning are performed relative to the Cell's origin
+	 * <li>The arguments dw and dh, are added to the absolute values
+	 * of the NodeInst's x-size and y-size.
+	 * <li>The arguments mirrorAboutXAxis and mirrorAboutYAxis are
+	 * used to mirror the NodeInst about the x and y axes.
+	 * </ul>
+	 * @param ni the NodeInst to modify
+	 * @param dx the amount by which to change the x-coordinate of the
+	 * NodeInst's position
+	 * @param dy the amount by which to change the y-coordinate of the
+	 * NodeInst's position
+	 * @param dw the amount by which to change to absolute value of
+	 * the NodeInst's width
+	 * @param dh the amount by which to change to absolute value of
+	 * the NodeInst's height.
+	 * @param mirrorAboutYAxis if true then toggle the mirroring of
+	 * the NodeInst about the y-axis
+	 * @param mirrorAboutXAxis if true then toggle the mirroring of
+	 * the NodeInst about the x-axis
+	 * @param dangle the amount by which to change the NodeInst's angle
+	 */
+	public static void modNodeInst(NodeInst ni, double dx, double dy, 
+	                               double dw, double dh, 
+	                               boolean mirrorAboutYAxis, 
+	                               boolean mirrorAboutXAxis,
+								   double dAngle) {
+	    boolean oldMirX = ni.getMirroredAboutXAxis();
+	    boolean oldMirY = ni.getMirroredAboutYAxis();
+		double oldXS = ni.getXSize() * (oldMirY ? -1 : 1);
+		double oldYS = ni.getYSize() * (oldMirX ? -1 : 1);
+		 
+		double newX = getPosition(ni).getX() + dx;
+		double newY = getPosition(ni).getY() + dy;
+
+		double newW = Math.max(ni.getXSize() + dw, 0);
+		double newH = Math.max(ni.getYSize() + dh, 0);
+		
+		boolean newMirX = oldMirX ^ mirrorAboutXAxis;
+		boolean newMirY = oldMirY ^ mirrorAboutYAxis;
+		
+		double newXS = newW * (newMirY ? -1 : 1);
+		double newYS = newH * (newMirX ? -1 : 1);  
+		ni.modifyInstance(0, 0, newXS-oldXS, newYS-oldYS, 
+		                  (int)Math.rint(dAngle*10));
+		ni.modifyInstance(newX-getPosition(ni).getX(),
+						  newY-getPosition(ni).getY(), 0, 0, 0);
+	}
+	/**
+	 * Get the position of a NodeInst. In the coordinate space of the
+	 * NodeInst's parent, get the x and y-coordinates of the origin of
+	 * the NodeInst's NodeProto.
+	 * @param ni the NodeInst we want the position of
+	 * @return the x and y-coordinates of the origin of the
+	 * NodeInst's NodeProto
+	 */
+	public static Point2D getPosition(NodeInst ni) {
+		NodeProto np = ni.getProto();
+		if (np instanceof Cell) {
+			AffineTransform xForm = ni.transformOut();
+			return xForm.transform(new Point2D.Double(0, 0), null);
+		} else {
+			return ni.getCenter();
+		}
+	}
+	/**
+	 * Create a new ArcInst. This differs from ArcInst.newInstance in that
+	 * the "width-offset" is added to the width parameter. The result is an 
+	 * ArcInst that the GUI reports is width wide.
+	 * @param ap the ArcProto to instantiate
+	 * @param width the desired width of the ArcInst
+	 * @param head the head PortInst
+	 * @param hX the x-coordinate of the head PortInst
+	 * @param hY the y-coordinate of the head PortInst
+	 * @param tail the tail PortInst
+	 * @param tX the x-coordinate of the tail PortInst
+	 * @param tY the y-coordinate of the tail PortInst
+	 * @return the new ArcInst
 	 */
 	public static ArcInst newArcInst(ArcProto ap, double width,
 							  		 PortInst head, double hX, double hY,
@@ -275,18 +394,17 @@ public class LayoutLib {
 	}
 
 	/**
-	 * Create a new ArcInst.
-	 *
-	 * <p> The specified width will match that reported by the GUI.
+	 * Create a new ArcInst. This differs from ArcInst.newInstance in that
+	 * the "width-offset" is added to the width parameter. The result is an 
+	 * ArcInst that the GUI reports is width wide.
 	 *
 	 * <p> Connect the new ArcInst to the centers of the PortInsts.
-	 * If the centers don't share an X or Y coordinate then connect the head
-	 * and the tail using two ArcInsts. The ArcInst attached to the head is
-	 * horizontal and the ArcInst attached to the tail is vertical.
-	 * @param ap the head PortInst.
-	 * @param width the desired width of the ArcInst. Add the
-	 * "width_offset" to <code>width</code> so we end up with an
-	 * ArcInst that the GUI says is <code>width</code> wide.
+	 * If the centers don't share an X or y-coordinate then connect
+	 * the head and the tail using two ArcInsts. The ArcInst attached
+	 * to the head is horizontal and the ArcInst attached to the tail
+	 * is vertical.
+	 * @param ap the head PortInst
+	 * @param width the desired width of the ArcInst
 	 * @param head the head ArcInst
 	 * @param tail the tail ArcInst
 	 * @return the ArcInst connected to the tail.
@@ -303,7 +421,7 @@ public class LayoutLib {
 		} else {
 			Cell parent = head.getNodeInst().getParent();
 			NodeProto pinProto = ((PrimitiveArc)ap).findPinProto();
-			PortInst pin = newNodeInst(pinProto, DEF_SIZE, DEF_SIZE, tX, hY, 0, 
+			PortInst pin = newNodeInst(pinProto, tX, hY, DEF_SIZE, DEF_SIZE, 0, 
 			                           parent).getOnlyPortInst(); 
 			newArcInst(ap, width, head, pin);
 			return newArcInst(ap, width, pin, tail);
@@ -313,15 +431,15 @@ public class LayoutLib {
 	/**
 	 *  Create an export for a particular layer.
 	 *
-	 * <p> At the coordinates <code>(x, y)</code> create an instance of
-	 * a pin for the layer <code>ap</code>. Export that layer-pin's
-	 * PortInst.
+	 * <p> At the coordinates <code>(x, y)</code> create a NodeInst of
+	 * a layer-pin for the layer <code>ap</code>. Export that
+	 * layer-pin's PortInst.
 	 *
-	 * <p> Attach an arc to the layer-pin.  The arc is useful because
-	 * Electric uses the widest arc on a PortInst as a hint for the
-	 * width to use for all future arcs. Because Electric doesn't use
-	 * the size of layer-pins as width hints, the layer-pin is created
-	 * in it's default size.
+	 * <p> Attach an ArcInst of ArcProto ap to the layer-pin.  The
+	 * ArcInst is useful because Electric uses the widest ArcInst on a
+	 * PortInst as a hint for the width to use for all future
+	 * arcs. Because Electric doesn't use the size of layer-pins as
+	 * width hints, the layer-pin is created in it's default size.
 	 *
 	 * <p> <code>newExport</code> seems very specialized, but it's
 	 * nearly the only one I use when generating layout.
@@ -331,8 +449,8 @@ public class LayoutLib {
 	 * @param ap the ArcProto indicating the layer on which to create
 	 * the Export.
 	 * @param w width of the ArcInst serving as a hint.
-	 * @param x the X coordinate of the layer pin. 
-	 * @param y the Y coordinate of the layer pin.
+	 * @param x the x-coordinate of the layer pin. 
+	 * @param y the y-coordinate of the layer pin.
 	 */
 	public static Export newExport(Cell cell, String name, 
 	                               PortProto.Characteristic role,
@@ -341,7 +459,7 @@ public class LayoutLib {
 		error(np==null, "LayoutLib.newExport: This layer has no layer-pin");
 		
 		double defSz = LayoutLib.DEF_SIZE;
-		NodeInst ni = LayoutLib.newNodeInst(np, defSz, defSz, x, y, 0, cell);
+		NodeInst ni = LayoutLib.newNodeInst(np, x, y, defSz, defSz, 0, cell);
         LayoutLib.newArcInst(ap, w, ni.getOnlyPortInst(), ni.getOnlyPortInst());
 		
 		Export e = Export.newInstance(cell, ni.getOnlyPortInst(), name);
@@ -350,55 +468,68 @@ public class LayoutLib {
 	}
 	
 	/**
-	 * Get the essential or regular bounds.
-	 *
-	 * <p>If NodeInst <code>node</code> has an Essential Bounds then
-	 * return it. Otherwise return the regular bounds.
+	 * Get the essential or regular bounds.  If NodeInst
+	 * <code>node</code> has an Essential Bounds then return
+	 * it. Otherwise return the regular bounds.
 	 * @param node the NodeInst.
 	 * @return the Rectangle2D representing the bounds.
 	 */
-	public static Rectangle2D getAnyBounds(NodeInst node) {
+	public static Rectangle2D getBounds(NodeInst node) {
 		Rectangle2D bounds = node.findEssentialBounds();
 		if (bounds!=null) return bounds;
 		return node.getBounds();
 	}
+	/**
+	 * Get the essential or regular bounds.  If Cell c has an
+	 * Essential Bounds then return it. Otherwise return the regular
+	 * bounds.
+	 * @param c the Cell.
+	 * @return the Rectangle2D representing the bounds.
+	 */
+	public static Rectangle2D getBounds(Cell c) {
+		Rectangle2D bounds = c.findEssentialBounds();
+		if (bounds!=null) return bounds; 
+		return c.getBounds();
+	}
+
+	// --------------------- Abutment routines ---------------------------------
+	// There are too many abutment routines. I need to figure out how
+	// to eliminate some.
 
 	/**
 	 * Move NodeInst so it's left edge is at <code>leftX</code> and
-	 * it's reference point is at <code>refY</code>.
-	 *
-	 * <p> Don't alter the NodeInst's scale or rotation.
+	 * the y-coordinate of it's origin is at
+	 * <code>originY</code>. Don't alter the NodeInst's scale or
+	 * rotation.
 	 * @param node the NodeInst
-	 * @param leftX desired x coordinate of left edge of <code>node</code>.
-	 * @param refY desired y coordinate of <code>node</code>'s reference
-	 * point.
+	 * @param leftX desired x-coordinate of left edge of <code>node</code>.
+	 * @param originY desired y-coordinate of <code>node</code>'s origin
 	 */
-	public static void abutLeft(NodeInst node, double leftX, double refY) {
-		double cY = node.getCenterY();
+	public static void abutLeft(NodeInst node, double leftX, double originY) {
+		double cY = getPosition(node).getY();
 		Rectangle2D bd = node.findEssentialBounds();
 		error(bd==null,
 			  "can't abut NodeInsts that don't have essential-bounds");
-		node.modifyInstance(leftX-bd.getX(), refY-cY, 0, 0, 0);
+		LayoutLib.modNodeInst(node, leftX-bd.getX(), originY-cY, 0, 0, false, 
+						      false, 0);
 	}
 
 	/**
-	 * Abut an array of NodeInsts left to right.
-	 *
-	 * <p> Move the 0th NodeInst so it's left edge is at
-	 * <code>leftX</code> and it's reference point is at
-	 * <code>refY</code>. Abut the remaining nodes left to right.
-	 * Don't alter any NodeInst's scale or rotation.
-	 * @param leftX desired x coordinate of left edge of 0th NodeInst.
-	 * @param refY desired y coordinate of all NodeInst reference
-	 * points.
+	 * Abut an array of NodeInsts left to right. Move the 0th NodeInst
+	 * so it's left edge is at <code>leftX</code> and it the
+	 * y-coordinate of its origin is at <code>originY</code>. Abut the
+	 * remaining nodes left to right.  Don't alter any NodeInst's
+	 * scale or rotation.
+	 * @param leftX desired x-coordinate of left edge of 0th NodeInst.
+	 * @param originY desired y-coordinate of all NodeInst origins
 	 * @param nodeInsts the ArrayList of NodeInsts.
 	 */
-	public static void abutLeftRight(double leftX, double refY,
+	public static void abutLeftRight(double leftX, double originY,
 									 ArrayList nodeInsts) {
 		for (int i=0; i<nodeInsts.size(); i++) {
 			NodeInst ni = (NodeInst) nodeInsts.get(i);
 			if (i==0) {
-				abutLeft(ni, leftX, refY);
+				abutLeft(ni, leftX, originY);
 			} else {
 				abutLeftRight((NodeInst)nodeInsts.get(i-1), ni);
 			}
@@ -406,12 +537,10 @@ public class LayoutLib {
 	}
 
 	/**
-	 * Abut two NodeInsts left to right.
-	 *
-	 * <p>Move <code>rightNode</code> so its left edge coincides with
-	 * <code>leftNode</code>'s right edge, and
-	 * <code>rightNode</code>'s reference point lies on a horizontal
-	 * line through <code>leftNode</code>'s reference point. Don't
+	 * Abut two NodeInsts left to right.  Move <code>rightNode</code>
+	 * so its left edge coincides with <code>leftNode</code>'s right
+	 * edge, and the y-coordinate of <code>rightNode</code>'s is equal
+	 * to the y-coordinate of <code>leftNode</code>'s origin. Don't
 	 * move <code>leftNode</code>. Don't alter any node's scale or
 	 * rotation.
 	 * @param leftNode the NodeInst that doesn't move.
@@ -419,16 +548,15 @@ public class LayoutLib {
 	 * leftNode.
 	 */
 	public static void abutLeftRight(NodeInst leftNode, NodeInst rightNode) {
-		abutLeft(rightNode, leftNode.getBounds().getMaxX(),
-				 leftNode.getCenterY());
+		abutLeft(rightNode, getBounds(leftNode).getMaxX(),
+				 getPosition(leftNode).getY());
 	}
 
 	/**
-	 * Abut an array of NodeInsts left to right.
-	 * 
-	 * <p>Don't move the 0th node. Abut remaining nodes left to right.
-	 * Don't alter any NodeInst's scale or rotation.
-	 * @param nodeInsts the ArrayList of */
+	 * Abut an array of NodeInsts left to right. Don't move the 0th
+	 * node. Abut remaining nodes left to right.  Don't alter any
+	 * NodeInst's scale or rotation.
+	 * @param nodeInsts the ArrayList of NodeInsts */
 	public static void abutLeftRight(ArrayList nodeInsts) {
 		for (int i=1; i<nodeInsts.size(); i++) {
 			abutLeftRight((NodeInst)nodeInsts.get(i-1),
@@ -438,52 +566,50 @@ public class LayoutLib {
 	
 	/** Move a NodeInst so it's bottom edge is at <code>botY</code>.
 	 *
-	 * <p>Place <code>node</code>'s reference point at
-	 * <code>refX</code>. Don't alter <code>node</code>'s scale or
+	 * <p>Place <code>node</code>'s origin at
+	 * <code>originX</code>. Don't alter <code>node</code>'s scale or
 	 * rotation.
-	 * @param node the NodeInst to move.
-	 * @param refX desired x coordinate of NodeInst's reference point.
-	 * @param botY desired y coordinate of bottom edge of NodeInst.
+	 * @param node the NodeInst to move
+	 * @param originX desired x-coordinate of NodeInst's origin
+	 * @param botY desired y-coordinate of bottom edge of NodeInst
 	 */
-	public static void abutBottom(NodeInst node, double refX, double botY) {
-		double cX = node.getCenterX();
+	public static void abutBottom(NodeInst node, double originX, double botY) {
+		double cX = getPosition(node).getX();
 		Rectangle2D eb = node.findEssentialBounds();
 		error(eb==null,
 			  "can't abut a NodeInst that doesn't have Essential Bounds");
-		node.modifyInstance(refX-cX, botY-eb.getMinY(), 0, 0, 0);
+		LayoutLib.modNodeInst(node, originX-cX, botY-eb.getMinY(), 0, 0, 
+		                      false, false, 0);
 	}
 
 	/**
-	 * Abut two NodeInsts bottom to top.
-	 *
-	 * <p>Move <code>topNode</code> so its bottom edge coincides with
-	 * <code>bottomNode</code>'s top edge, and <code>topNode</code>'s
-	 * reference point lies on a vertical line through
-	 * <code>bottomNode</code>'s reference point. Don't move
-	 * <code>bottomNode</code>.  Don't alter any node's scale or
-	 * rotation. */
+	 * Abut two NodeInsts bottom to top. Move <code>topNode</code> so
+	 * its bottom edge coincides with <code>bottomNode</code>'s top
+	 * edge, and the y-coordinate of <code>topNode</code>'s origin is
+	 * equal to the y-coorinate of <code>bottomNode</code>'s
+	 * origin. Don't move <code>bottomNode</code>.  Don't alter any
+	 * node's scale or rotation. */
 	public static void abutBottomTop(NodeInst bottomNode, NodeInst topNode) {
-		abutBottom(topNode, bottomNode.getCenterX(),
-				   bottomNode.getBounds().getMaxY());
+		abutBottom(topNode, getPosition(bottomNode).getX(),
+				   getBounds(bottomNode).getMaxY());
 	}
 
 	/**
-	 * Abut a list of NodeInsts bottom to top.
-	 *
-	 * <p>Move first NodeInst so it's bottom edge is at bottomY and
-	 * it's reference point has the specified x coordinate. Abut
-	 * remaining nodes bottom to top.  Don't alter any NodeInst's
-	 * scale or rotation.
-	 * @param x desired x coordinate of all NodeInst reference points.
+	 * Abut a list of NodeInsts bottom to top. Move 0th NodeInst so
+	 * it's bottom edge is at botY and it's origin has the
+	 * x-coordinate, originX. Abut remaining nodes bottom to top.
+	 * Don't alter any NodeInst's scale or rotation.
+	 * @param originX desired x-coordinate of all NodeInst reference points.
 	 * Lambda units.
-	 * @param y desired y coordinate of bottom edge of first NodeInst.
+	 * @param botY desired y-coordinate of bottom edge of first NodeInst.
 	 * @param nodeInsts the list of NodeInsts to abut.
 	 */
-	public static void abutBottomTop(double x, double y, ArrayList nodeInsts) {
+	public static void abutBottomTop(double originX, double botY,
+									 ArrayList nodeInsts) {
 		for (int i=0; i<nodeInsts.size(); i++) {
 			NodeInst ni = (NodeInst) nodeInsts.get(i);
 			if (i==0) {
-				abutBottom(ni, x, y);
+				abutBottom(ni, originX, botY);
 			} else {
 				abutBottomTop((NodeInst)nodeInsts.get(i-1), ni);
 			}
@@ -491,10 +617,9 @@ public class LayoutLib {
 	}
 
 	/**
-	 * Abut a list of NodeInsts bottom to top.
-	 *
-	 * <p>Don't alter position of 0th node. Abut the remaining nodes
-	 * bottom to top.  Don't alter any NodeInst's scale or rotation.
+	 * Abut a list of NodeInsts bottom to top.  Don't alter position
+	 * of 0th node. Abut the remaining nodes bottom to top.  Don't
+	 * alter any NodeInst's scale or rotation.
 	 * @param nodeInsts the list of NodeInsts to abut.
 	 */
 	public static void abutBottomTop(ArrayList nodeInsts) {

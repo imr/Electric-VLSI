@@ -65,13 +65,13 @@ public class DrcRing {
     double pinHiY = h/2 + arcW/2;
     */
 	double defSz = LayoutLib.DEF_SIZE;
-    PortInst blPort = LayoutLib.newNodeInst(pin, defSz, defSz, pinLoX, pinLoY,
+    PortInst blPort = LayoutLib.newNodeInst(pin, pinLoX, pinLoY, defSz, defSz,
                                             0, f).getOnlyPortInst();
-    PortInst brPort = LayoutLib.newNodeInst(pin, defSz, defSz, pinHiX, pinLoY, 
+    PortInst brPort = LayoutLib.newNodeInst(pin, pinHiX, pinLoY, defSz, defSz, 
                                             0, f).getOnlyPortInst();
-    PortInst tlPort = LayoutLib.newNodeInst(pin, defSz, defSz, pinLoX, pinHiY, 
+    PortInst tlPort = LayoutLib.newNodeInst(pin, pinLoX, pinHiY, defSz, defSz, 
                                             0, f).getOnlyPortInst();
-    PortInst trPort = LayoutLib.newNodeInst(pin, defSz, defSz, pinHiX, pinHiY,
+    PortInst trPort = LayoutLib.newNodeInst(pin, pinHiX, pinHiY, defSz, defSz,
                                             0, f).getOnlyPortInst();
     LayoutLib.newArcInst(arc, arcW, blPort, brPort);
     LayoutLib.newArcInst(arc, arcW, tlPort, trPort);

@@ -137,8 +137,8 @@ public class Nand2PH {
 			resetHi.connect(nmosR.getGate(i, 'T'));
 		}
 		PortInst resetNjog =
-			LayoutLib.newNodeInst(Tech.m1pin, DEF_SIZE, DEF_SIZE, resetNJogX,
-								  nGatesY, 0, gate).getOnlyPortInst();
+			LayoutLib.newNodeInst(Tech.m1pin, resetNJogX, nGatesY, DEF_SIZE,
+								  DEF_SIZE, 0, gate).getOnlyPortInst();
 		resetHi.connect(resetNjog);
 		TrackRouter resetLo = new TrackRouterH(Tech.m2, 3, outLoY, gate);
 		resetLo.connect(resetNjog);
@@ -148,9 +148,9 @@ public class Nand2PH {
 		
 		// Connect upper and lower tracks of input A
 		PortInst jogA =
-		  LayoutLib.newNodeInst(Tech.m1pin, DEF_SIZE, DEF_SIZE,
-								nmosA.getGate(0, 'T').getBounds().getCenterX(),
-								pGatesY, 0, gate).getOnlyPortInst();
+		  LayoutLib.newNodeInst(Tech.m1pin, nmosA.getGate(0, 'T').getBounds().getCenterX(), pGatesY,
+								DEF_SIZE,
+								DEF_SIZE, 0, gate).getOnlyPortInst();
 		aGatesLo.connect(jogA);
 		aGatesHi.connect(jogA);
 		

@@ -24,6 +24,7 @@
 package com.sun.electric.tool.generator.layout;
 
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.Point2D;
 import java.util.*;
 
 import com.sun.electric.database.hierarchy.*;
@@ -35,50 +36,48 @@ import com.sun.electric.technology.*;
 import com.sun.electric.tool.generator.layout.gates.*;
 
 public class DrcRings {
-  public static class Filter {
-    public boolean skip(NodeInst ni) {return false;}
-  }
-
-  public static void addDrcRings(Cell gallery, Filter filter) {
-    if (filter==null) filter = new Filter();
-
-    Library lib = gallery.getLibrary();
-    StdCellParams stdCell = new StdCellParams(lib);
-
-    // record original gates to avoid putting DrcRings around DrcRings
-    ArrayList gates = new ArrayList();
-    for (Iterator it=gallery.getNodes(); it.hasNext();)  gates.add(it.next());
-
-    // place a DrcRing around each instance
-    for (int i=0; i<gates.size(); i++) {
-      NodeInst ni = (NodeInst) gates.get(i);
-
-      // skip things user doesn't want ring around
-      if (filter.skip(ni)) continue;
-
-      // only do Cells
-      if (ni.getProto() instanceof PrimitiveNode)  continue;
-      
-      Rectangle2D r = ni.getBounds();
-
-      double loX = r.getX();
-      double loY = r.getY();
-      double w = r.getWidth() + 3;
-      double h = r.getHeight() + 3;
-      Cell f = DrcRing.makePart(w, h, stdCell);
-      
-      // DrcRing reference point is the bottom left inside corner
-      double defSz = LayoutLib.DEF_SIZE;
-      LayoutLib.newNodeInst(f, defSz, defSz, loX-1.5, loY-1.5, 0, gallery);
-      /*
-      double ctrX = r.getCenterX();
-      double ctrY = r.getCenterY();
-      double w = r.getWidth() + 3;
-      double h = r.getHeight() + 3;
-      Cell f = DrcRing.makePart(w, h, stdCell);
-      
-      f.newInst(1, 1, ctrX, ctrY, 0, gallery);
-      */
-    }
-  }
+	public static class Filter {
+		public boolean skip(NodeInst ni) {return false;}
+	}
+	
+	public static void addDrcRings(Cell gallery, Filter filter) {
+		if (filter==null) filter = new Filter();
+		
+		Library lib = gallery.getLibrary();
+		StdCellParams stdCell = new StdCellParams(lib);
+		
+		// record original gates to avoid putting DrcRings around DrcRings
+		ArrayList gates = new ArrayList();
+		for (Iterator it=gallery.getNodes(); it.hasNext();) {
+			 gates.add(it.next()); 
+		} 
+		
+		// place a DrcRing around each instance
+		for (int i=0; i<gates.size(); i++) {
+			NodeInst ni = (NodeInst) gates.get(i);
+			
+			// skip things user doesn't want ring around
+			if (filter.skip(ni)) continue;
+			
+			// only do Cells
+			if (ni.getProto() instanceof PrimitiveNode)  continue;
+			
+			Rectangle2D cellBounds = LayoutLib.getBounds(ni);
+			
+			double ringW = cellBounds.getWidth() + 3;
+			double ringH = cellBounds.getHeight() + 3;
+			Cell ringProto = DrcRing.makePart(ringW, ringH, stdCell);
+			
+			// Center the ring about the cell			
+			NodeInst ringInst = LayoutLib.newNodeInst(ringProto, 0,0,0,0,0, 
+													  gallery);
+			Rectangle2D ringBounds = LayoutLib.getBounds(ringInst);
+			
+			LayoutLib.modNodeInst(ringInst,
+								  cellBounds.getCenterX()-ringBounds.getCenterX(),
+								  cellBounds.getCenterY()-ringBounds.getCenterY(),
+								  0, 0, false, false, 0);
+		}
+	}
+	
 }

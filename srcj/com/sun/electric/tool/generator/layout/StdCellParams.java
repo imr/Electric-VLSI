@@ -257,10 +257,10 @@ public class StdCellParams {
 		// I therefore fill the notch using a diffusion node.
 		double mosY = mos.getMosCenterY();
 
-		NodeInst dFill = LayoutLib.newNodeInst(diffNode, dist, diffWid, 
-											   thisX-dist/2, mosY, 0, f);
+		NodeInst dFill = LayoutLib.newNodeInst(diffNode, thisX-dist/2, mosY, 
+											   dist, diffWid, 0, f);
 		double contY = thisPort.getBounds().getCenterY(); // contact is always on grid
-		LayoutLib.newArcInst(diffArc, 0, thisPort, thisX, contY, 
+		LayoutLib.newArcInst(diffArc, DEF_SIZE, thisPort, thisX, contY, 
 							 dFill.getOnlyPortInst(), 
 							 dFill.getOnlyPortInst().getBounds().getCenterX(), 
 							 contY);
@@ -272,9 +272,9 @@ public class StdCellParams {
 			// m1 is 1 lambda narrower than diffusion contact width
 			double m1Wid = mos.getDiffContWidth() - 1;
 			NodeInst mFill = 
-				LayoutLib.newNodeInst(Tech.m1Node, dist, m1Wid,	thisX-dist/2,
-									  contY, 0, f);
-			LayoutLib.newArcInst(Tech.m1, 0, thisPort, mFill.getOnlyPortInst());
+				LayoutLib.newNodeInst(Tech.m1Node, thisX-dist/2, contY,	dist,
+									  m1Wid, 0, f);
+			LayoutLib.newArcInst(Tech.m1, DEF_SIZE, thisPort, mFill.getOnlyPortInst());
 		}
 	}
 
@@ -413,8 +413,9 @@ public class StdCellParams {
 			: ((Double) nmosTracks.get(-i - 1)).doubleValue();
 	}
 	/** A physical track number enumerates all tracks regardless of
-	 * whether the track is blocked. 0 is illegal. 1 and higher are PMOS
-	 * tracks. -1 and lower are NMOS tracks */
+	 * whether the track is blocked. The value 0 is illegal. Tracks 1
+	 * and higher are PMOS tracks. Tracks -1 and lower are NMOS
+	 * tracks */
 	public double getPhysTrackY(int i) {
 		error(i==0, "StdCellParams.getPhysTrackY: 0 is illegal track index");
 		return i>0
@@ -435,14 +436,16 @@ public class StdCellParams {
 	*/
 	public double getTrackPitch() {return trackPitch;}
 
-	/** Index of NMOS tracks ranges from -1 to -nbNmosTracks(). 0 is an
-	 * illegal index */
+	/** Get the number of NMOS tracks. The indices of NMOS tracks
+	 * range from -1 to -nbNmosTracks(). The value 0 is an illegal
+	 * index. */
 	public int nbNmosTracks() {
 		return nmosTracks.size();
 	}
 
-	/** Index of PMOS tracks ranges from 1 to nbPmosTracks().  0 is an
-	 * illegal index */
+	/** Get the number of PMOS tracks. The indices of PMOS tracks
+	 * range from 1 to nbPmosTracks().  The value 0 is an illegal
+	 * index. */
 	public int nbPmosTracks() {return pmosTracks.size();}
 
 	/*
@@ -579,15 +582,15 @@ public class StdCellParams {
 
 	private NodeInst addNmosWell(double loX, double hiX, double y, Cell cell) {
 		NodeInst well =
-			LayoutLib.newNodeInst(Tech.pwell, hiX-loX, nmosWellHeight,
-								(loX+hiX)/2, y-nmosWellHeight/2, 0, cell);
+			LayoutLib.newNodeInst(Tech.pwell, (loX+hiX)/2, y-nmosWellHeight/2,
+								hiX-loX, nmosWellHeight, 0, cell);
 		well.setHardSelect();
 		return well;
 	}
 	private NodeInst addPmosWell(double loX, double hiX, double y, Cell cell) {
 		NodeInst well =
-			LayoutLib.newNodeInst(Tech.nwell, hiX-loX, pmosWellHeight,
-								  (loX+hiX)/2, y+pmosWellHeight/2, 0, cell);
+			LayoutLib.newNodeInst(Tech.nwell, (loX+hiX)/2, y+pmosWellHeight/2,
+								  hiX-loX, pmosWellHeight, 0, cell);
 		well.setHardSelect();
 		return well;
 	}
@@ -622,24 +625,24 @@ public class StdCellParams {
 
 	/** essential bounds for PMOS only cells */
 	public void addPstackEssentialBounds(double loX, double hiX, Cell cell) {
-		LayoutLib.newNodeInst(Tech.essentialBounds, DEF_SIZE, DEF_SIZE, loX, 0,
+		LayoutLib.newNodeInst(Tech.essentialBounds, loX, 0, DEF_SIZE, DEF_SIZE,
 							  180, cell);
-		LayoutLib.newNodeInst(Tech.essentialBounds, DEF_SIZE, DEF_SIZE, hiX, 
-							  pmosWellHeight, 0, cell);
+		LayoutLib.newNodeInst(Tech.essentialBounds, hiX, pmosWellHeight, DEF_SIZE, 
+							  DEF_SIZE, 0, cell);
 	}
 	/** essential bounds for NMOS only cells */
 	public void addNstackEssentialBounds(double loX, double hiX, Cell cell) {
-		LayoutLib.newNodeInst(Tech.essentialBounds, DEF_SIZE, DEF_SIZE, loX, 
-							  -nmosWellHeight, 180, cell);
-		LayoutLib.newNodeInst(Tech.essentialBounds, DEF_SIZE, DEF_SIZE, hiX,
-							  0, 0, cell);
+		LayoutLib.newNodeInst(Tech.essentialBounds, loX, -nmosWellHeight, DEF_SIZE, 
+							  DEF_SIZE, 180, cell);
+		LayoutLib.newNodeInst(Tech.essentialBounds, hiX, 0, DEF_SIZE,
+							  DEF_SIZE, 0, cell);
 	}
 	/** essential bounds for cells with both NMOS and PMOS */
 	public void addEssentialBounds(double loX, double hiX, Cell cell) {
-		LayoutLib.newNodeInst(Tech.essentialBounds, DEF_SIZE, DEF_SIZE, loX, 
-		                      -nmosWellHeight, 180, cell);
-		LayoutLib.newNodeInst(Tech.essentialBounds, DEF_SIZE, DEF_SIZE, hiX, 
-			                  pmosWellHeight, 0, cell);
+		LayoutLib.newNodeInst(Tech.essentialBounds, loX, -nmosWellHeight, DEF_SIZE, 
+		                      DEF_SIZE, 180, cell);
+		LayoutLib.newNodeInst(Tech.essentialBounds, hiX, pmosWellHeight, DEF_SIZE, 
+			                  DEF_SIZE, 0, cell);
 	}
 
 	/** Print a warning if strength is less than the minimum allowable.
@@ -735,8 +738,8 @@ public class StdCellParams {
 			// The export doesn't yet exist.  Create and export a metal2 pin
 			// aligned with the first diffusion.
 			double x = leftDiff.getBounds().getCenterX();
-			NodeInst pinProt = LayoutLib.newNodeInst(Tech.m2pin, DEF_SIZE,
-			                                         DEF_SIZE, x, busY, 0, f);
+			NodeInst pinProt = LayoutLib.newNodeInst(Tech.m2pin, x,
+			                                         busY, DEF_SIZE, DEF_SIZE, 0, f);
 			PortInst pin = pinProt.getOnlyPortInst();
 			Export e = Export.newInstance(f, pin, exportNm);
 			PortProto.Characteristic role =	mos instanceof FoldedPmos 
@@ -779,10 +782,10 @@ public class StdCellParams {
 							// to center won't generate CIF resolution errors.
 							double dY = Math.ceil(notchHiY - notchLoY);
 							NodeInst patchNode = 
-							  LayoutLib.newNodeInst(Tech.m1Node, deltaX, dY,
-							  (leftX+rightX)/2, notchLoY+dY/2, 0, f);
+							  LayoutLib.newNodeInst(Tech.m1Node, (leftX+rightX)/2, notchLoY+dY/2,
+							  deltaX, dY, 0, f);
 							PortInst patch = patchNode.getOnlyPortInst();
-							LayoutLib.newArcInst(Tech.m1, 0, patch, thisDiff);
+							LayoutLib.newArcInst(Tech.m1, DEF_SIZE, patch, thisDiff);
 						}
 					}
 					lastDiff = thisDiff;
@@ -890,10 +893,10 @@ public class StdCellParams {
 			hiX = Math.max(hiX, b.getMaxX());
 			hiY = Math.max(hiY, b.getMaxY());
 		}
-		LayoutLib.newNodeInst(Tech.essentialBounds, DEF_SIZE, DEF_SIZE, 
-		                      loX, loY, 180, cell);
-		LayoutLib.newNodeInst(Tech.essentialBounds, DEF_SIZE, DEF_SIZE,
-		                      hiX, hiY, 0, cell);
+		LayoutLib.newNodeInst(Tech.essentialBounds, loX, loY, 
+		                      DEF_SIZE, DEF_SIZE, 180, cell);
+		LayoutLib.newNodeInst(Tech.essentialBounds, hiX, hiY,
+		                      DEF_SIZE, DEF_SIZE, 0, cell);
 	}
 
 	public HashMap getSchemTrackAssign(Cell schem) {
@@ -957,7 +960,7 @@ public class StdCellParams {
 		double w = r.getWidth() + selectOverhangsDiff * 2;
 		double h = r.getHeight() + selectOverhangsDiff * 2;
 		Cell f = diffNode.getParent();
-		LayoutLib.newNodeInst(sel, w, h, r.getCenterX(), r.getCenterY(), 0, f);
+		LayoutLib.newNodeInst(sel, r.getCenterX(), r.getCenterY(), w, h, 0, f);
 	}
 
 }

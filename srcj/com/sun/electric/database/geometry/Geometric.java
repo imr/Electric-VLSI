@@ -943,6 +943,20 @@ public class Geometric extends ElectricObject implements TextDescriptorOwner
 	 * @return the Y size of this Geometric.
 	 */
 	public double getYSize() { return Math.abs(sY); }
+	
+	/**
+	 * Routine to return whether Geometric is mirrored about a 
+	 * horizontal line running through its center.
+	 * @return true if mirrored 
+	 */
+	public boolean getMirroredAboutXAxis(){ return sY<0;}
+	
+	/** 
+	 * Routine to return whether Geometric is mirrored about a
+	 * vertical line running through its center.
+	 * @return true if mirrored
+	 */
+	public boolean getMirroredAboutYAxis() { return sX<0; }
 
 	/**
 	 * Routine to return the bounds of this Geometric.

@@ -449,7 +449,7 @@ public class SchemToLay {
 			NodeInst iconInst = (NodeInst) iconInsts.next();
 			if (!isUsefulIconInst(iconInst, schematic)) continue;
 			Cell lay = getPurpleLay(iconInst, context, stdCell);
-			NodeInst layInst = LayoutLib.newNodeInst(lay, 1, 1, 0, 0, 0, gasp);
+			NodeInst layInst = LayoutLib.newNodeInst(lay, 0, 0, 1, 1, 0, gasp);
 			iconToLay.put(iconInst, layInst);
 			layInsts.add(layInst);
 		}

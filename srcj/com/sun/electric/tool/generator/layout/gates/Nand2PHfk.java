@@ -54,13 +54,13 @@ public class Nand2PHfk {
 		nand = stdCell.newPart(nm, sz);
 
 		NodeInst inv2i = LayoutLib.newNodeInst(Inv2i.makePart(sz, stdCell),
-											   1, 1, 0, 0, 0, nand);
+											   0, 0, 1, 1, 0, nand);
 		NodeInst pms1 = LayoutLib.newNodeInst(Pms1.makePart(sz, stdCell),
-											  1, 1, 0, 0, 0, nand);
+											  0, 0, 1, 1, 0, nand);
 		NodeInst invK = LayoutLib.newNodeInst(Inv.makePart(sz/10, stdCell),
-											  -1, 1, 0, 0, 0, nand);
+											  0, 0, -1, 1, 0, nand);
 		NodeInst inv1 = LayoutLib.newNodeInst(Inv.makePart(1, stdCell),
-											  1, 1, 0, 0, 0, nand);
+											  0, 0, 1, 1, 0, nand);
 		ArrayList l = new ArrayList();
 		l.add(inv2i);
 		l.add(pms1);
@@ -71,7 +71,7 @@ public class Nand2PHfk {
 		// Well tie
 		Cell tieCell =
 			WellTie.makePart(true, false, pms1.getBounds().getWidth(), stdCell);
-		NodeInst tie = LayoutLib.newNodeInst(tieCell, 1, 1, 0, 0, 0, nand);
+		NodeInst tie = LayoutLib.newNodeInst(tieCell, 0, 0, 1, 1, 0, nand);
 		LayoutLib.abutLeftRight(inv2i, tie);
 		l.add(tie);
 

@@ -111,8 +111,8 @@ public class Inv_passgate {
 		for (int i=0; i<nbPullDnFolds; i+=2)  gnd.connect(nmos.getSrcDrn(i));
 		
 		// connect inverter output
-		PortInst invOut = LayoutLib.newNodeInst(Tech.m1pin, DEF_SIZE, DEF_SIZE,
-												invOutX, 0, 0, inv
+		PortInst invOut = LayoutLib.newNodeInst(Tech.m1pin, invOutX, 0,
+												DEF_SIZE, DEF_SIZE, 0, inv
 												).getOnlyPortInst();
 		TrackRouter invOutHi = new TrackRouterH(Tech.m2, 4, outHiY, inv);
 		invOutHi.connect(invOut);
@@ -144,8 +144,8 @@ public class Inv_passgate {
 		for (int i=nbPullDnFolds+1; i<nmos.nbSrcDrns(); i+=2) {
 			outLo.connect(nmos.getSrcDrn(i));
 		}
-		PortInst jog = LayoutLib.newNodeInst(Tech.m1pin, DEF_SIZE, DEF_SIZE,
-											 jogX, outLoY, 0, inv
+		PortInst jog = LayoutLib.newNodeInst(Tech.m1pin, jogX, outLoY,
+											 DEF_SIZE, DEF_SIZE, 0, inv
 											 ).getOnlyPortInst();
 		outLo.connect(jog);
 		

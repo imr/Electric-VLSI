@@ -103,9 +103,9 @@ public class TrackRouterH extends TrackRouter {
 			NodeProto pin = ((PrimitiveArc)portLyr).findPinProto();
 			double defSz = LayoutLib.DEF_SIZE; 
 			NodeInst pinInst = 
-			  LayoutLib.newNodeInst(pin, defSz, defSz,
-			                        lastPort.getBounds().getCenterX(),
-			                        center.doubleValue() + wireOffset,
+			  LayoutLib.newNodeInst(pin, lastPort.getBounds().getCenterX(), center.doubleValue() + wireOffset,
+			                        defSz,
+			                        defSz,
 			                        0, parent);
 			PortInst jog = pinInst.getOnlyPortInst();
 			LayoutLib.newArcInst(portLyr, newWid, lastPort, jog);

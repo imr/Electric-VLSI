@@ -55,7 +55,7 @@ class ViaStack {
 			double wid = Math.max(width, LayoutLib.getNodeProtoWidth(via));
 			double hei = Math.max(height, LayoutLib.getNodeProtoHeight(via));
 
-			PortInst viaAbove = LayoutLib.newNodeInst(via, wid, hei, x, y, 0, 
+			PortInst viaAbove = LayoutLib.newNodeInst(via, x, y, wid, hei, 0, 
 			                                          f).getOnlyPortInst();
 			if (viaBelow == null) {
 				// First via in stack
@@ -87,7 +87,7 @@ class ViaStack {
 		if (arc1==arc2) {
 			NodeProto pin = ((PrimitiveArc)arc1).findPinProto(); 
 			double defSz = LayoutLib.DEF_SIZE;
-			NodeInst pinInst = LayoutLib.newNodeInst(pin,defSz,defSz,x,y,0,f); 
+			NodeInst pinInst = LayoutLib.newNodeInst(pin,x,y,defSz,defSz,0,f); 
 			port1 =	port2 = pinInst.getOnlyPortInst();
 		} else if (deltaZ>0) {
 			// arc2 higher than arc1

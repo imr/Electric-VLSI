@@ -56,6 +56,8 @@ import com.sun.electric.tool.generator.layout.*;
 // cells are concatenated, a well tie from one cell might be adjacent
 // to a well tie from another cell.
 public class WellTie {
+	private static final double DEF_SIZE = LayoutLib.DEF_SIZE;
+	
 	// diff_cont_width + select_surround + select_space
 	private static final double WELL_CONT_PITCH = 5 + 4 + 2;
 	
@@ -112,9 +114,10 @@ public class WellTie {
 										stdCell.getNmosWellTieY());
 				// left well contact
 				PortInst left =
-					LayoutLib.newNodeInst(Tech.pwm1, 1, 1, leftWellContX,
-										  stdCell.getNmosWellTieY(), 0, tie
-										  ).getOnlyPortInst();
+					LayoutLib.newNodeInst(Tech.pwm1, leftWellContX, stdCell.getNmosWellTieY(), 
+					                      DEF_SIZE, 
+					                      DEF_SIZE, 
+					                      0, tie).getOnlyPortInst();
 				// connect them
 				TrackRouterH tr = 
 					new TrackRouterH(Tech.m2,
@@ -126,8 +129,9 @@ public class WellTie {
 				// Insert right contact if there's room. 
 				if (wid>=WELL_CONT_PITCH*2) {
 					PortInst right =
-						LayoutLib.newNodeInst(Tech.pwm1, 1, 1, rightWellContX,
-											  stdCell.getNmosWellTieY(), 0, tie
+						LayoutLib.newNodeInst(Tech.pwm1, rightWellContX, stdCell.getNmosWellTieY(), 
+						                      DEF_SIZE, 
+						                      DEF_SIZE, 0, tie
 											  ).getOnlyPortInst();
 					tr.connect(right);
 				}
@@ -146,8 +150,9 @@ public class WellTie {
 									 stdCell.getPmosWellTieY(), tie);
 				// left well contact
 				PortInst left =
-					LayoutLib.newNodeInst(Tech.nwm1, 1, 1, leftWellContX,
-										  stdCell.getPmosWellTieY(), 0, tie
+					LayoutLib.newNodeInst(Tech.nwm1, leftWellContX, stdCell.getPmosWellTieY(), 
+					                      DEF_SIZE,
+										  DEF_SIZE, 0, tie
 										  ).getOnlyPortInst();
 				// connect them
 				tr.connect(e);
@@ -156,8 +161,9 @@ public class WellTie {
 				// Insert right contact if there's room.
 				if (wid>=WELL_CONT_PITCH*2) {
 					PortInst right =
-						LayoutLib.newNodeInst(Tech.nwm1, 1, 1, rightWellContX,
-											  stdCell.getPmosWellTieY(), 0, tie
+						LayoutLib.newNodeInst(Tech.nwm1, rightWellContX, stdCell.getPmosWellTieY(), 
+						                      DEF_SIZE,
+											  DEF_SIZE, 0, tie
 											  ).getOnlyPortInst();
 					tr.connect(right);
 				}

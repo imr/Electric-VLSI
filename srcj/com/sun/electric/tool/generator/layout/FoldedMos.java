@@ -40,46 +40,58 @@ import com.sun.electric.technology.*;
  * FoldedMos is abstract.  Instantiate FoldedNmos or FoldedPmos instead.
  */
 public abstract class FoldedMos {
-	// -------------------------- public types ---------------------------------
-	/** Allow the user to specify the space between diffusion contacts
-	 * and gates and between adjacent gates.  There are a total of
-	 * nbFolds * (nbSeries-1) such spaces.
+	// -------------------------- public types -------------------------------
+	/** Users use GateSpace objects to tell the FoldedMos constructors
+	 * to leave additional space between diffusion contacts and gates
+	 * and between adjacent gates.  There are a total of nbFolds *
+	 * (nbSeries-1) such spaces.
 	 *
-	 * <p> We need to define "extra space".  The "normal" distance from
-	 * the center of a minimum sized diffusion contact and the center of
-	 * a minimum width transistor gate is 4 lambda. For this normal
-	 * spacing we define the "extra space" to be 0 lambda. However if
-	 * the width of the transistor is less than 5 lambda, then the
-	 * distance between the centers of the diffusion contact and the
-	 * gate must be 4.5 lambda. In that case we define the extra space
-	 * to be .5 lambda.
-	 *
-	 * <p> Similarly if the distance between the centers of two adjacent
-	 * series gates is 5 lambda then the "extraSpace" is 0
-	 * lambda. However if the distance between the centers of two
-	 * adjacent series gates is 6 lambda then the "extra space" is 1
-	 * lambda.
-	 * @param requiredExtraSpace the extra space required by the design
-	 * rules. Normally this is 0 lambda.  However, if the gate width is
-	 * less than 5 lambda, the requiredExtraSpace between the diffusion
-	 * contact and the gate is .5 lambda.
-	 * @param foldNdx the index of this fold. This will range between 0
-	 * and nbFolds-1
-	 * @param nbFolds the number of folds in this FoldedMos
-	 * @param spaceNdx the index of this space within this fold. This
-	 * will range between 0 and nbGates. If spaceNdx==0 or
-	 * spaceNdx==nbGates then getSpace must return the distance between
-	 * a diffusion contact and a gate. Otherwise getSpace must return
-	 * the distance between gates spaceNdx-1 and spaceNdx.
-	 * @param nbGates the total number of gates in this FoldedMos.
-	 * @param return the desired extra space. Note that the returned
-	 * extra space must be greater than or equal to requiredExtraSpace
-	 * to avoid DRC errors. */
+	 * <p> The FoldedMos constructor builds FoldedMos transistors from
+	 * left to right. Just before it adds a new poly gate or a new
+	 * diffusion contact (except for the first diffusion contact) it
+	 * calls GateSpace.getExtraSpace to find out the amount of "extra
+	 * space" it should leave between this new object and the
+	 * preceeding object.
+	 **/
 	public interface GateSpace {
+		/** The getExtraSpace() method returns the desired amount of
+		 * "extra space" to leave between the specified objects.
+		 *
+		 * <p> First, we define "extra space".  The "normal" distance
+		 * from the center of a minimum sized diffusion contact and
+		 * the center of a minimum width transistor gate is 4
+		 * lambda. For this normal spacing we define the "extra space"
+		 * to be 0 lambda. However if the width of the transistor is
+		 * less than 5 lambda, then the distance between the centers
+		 * of the diffusion contact and the gate must be 4.5
+		 * lambda. In that case we define the extra space to be .5
+		 * lambda.
+		 *
+		 * <p> Similarly if the distance between the centers of two
+		 * adjacent series gates is 5 lambda then the "extraSpace" is
+		 * 0 lambda. However if the distance between the centers of
+		 * two adjacent series gates is 6 lambda then the "extra
+		 * space" is 1 lambda.
+		 * @param requiredExtraSpace the extra space required by the design
+		 * rules. Normally this is 0 lambda.  However, if the gate width is
+		 * less than 5 lambda, the requiredExtraSpace between the diffusion
+		 * contact and the gate is .5 lambda.
+		 * @param foldNdx the index of this fold. This will range between 0
+		 * and nbFolds-1
+		 * @param nbFolds the number of folds in this FoldedMos
+		 * @param spaceNdx the index of this space within this fold. This
+		 * will range between 0 and nbGates. If spaceNdx==0 or
+		 * spaceNdx==nbGates then getSpace must return the distance between
+		 * a diffusion contact and a gate. Otherwise getSpace must return
+		 * the distance between gates spaceNdx-1 and spaceNdx.
+		 * @param nbGates the total number of gates in this FoldedMos.
+		 * @param return the desired extra space. Note that the returned
+		 * extra space must be greater than or equal to requiredExtraSpace
+		 * to avoid DRC errors. */
 		double getExtraSpace(double requiredExtraSpace, int foldNdx, 
 		                     int nbFolds, int spaceNdx, int nbGates);
 	}
-
+	
 	// ---------------------------- private data --------------------------------
 
 	// The diffusion width is important because it will be used as a
@@ -251,8 +263,8 @@ public abstract class FoldedMos {
 		for (int i=0;; i++) {
 			// put down diffustion contact
 			PortInst newPort = 
-				LayoutLib.newNodeInst(diffCont, LayoutLib.DEF_SIZE, difContWid,
-									  x, difContY, 0, f).getOnlyPortInst();
+				LayoutLib.newNodeInst(diffCont, x, difContY,
+									  LayoutLib.DEF_SIZE, difContWid, 0, f).getOnlyPortInst();
 			// Add redundant diffusion as a hint of the wire size to use to
 			// connect to this diffusion contact. Diffusion contact is
 			// always on grid.
@@ -278,13 +290,13 @@ public abstract class FoldedMos {
 					// of MOS.  Round up diff node width to multiple of lambda
 					// or else center will be off .5 lambda grid.
 					double w = Math.ceil(extraSp);
-					NodeInst dn = LayoutLib.newNodeInst(difNod, w, gateWidth,
-														x+w/2, mosY, 0, f);
+					NodeInst dn = LayoutLib.newNodeInst(difNod, x+w/2, mosY,
+														w, gateWidth, 0, f);
 					newDiffArc(diff, difContY, prevPort, dn.getOnlyPortInst());
 				}
 
 				x += (j==0 ? viaToMosPitch : mosToMosPitch) + extraSp;
-				NodeInst m = LayoutLib.newNodeInst(mos, gateWidth, 2, x, mosY,
+				NodeInst m = LayoutLib.newNodeInst(mos, x, mosY, gateWidth, 2,
 				                                   90, f);
 				moss[mosNdx++] = m;
 
@@ -302,8 +314,8 @@ public abstract class FoldedMos {
 			if (extraSp!=0) {
 				// fill diff notch from right end of MOS to center of diff cont
 				double w = Math.ceil(extraSp);
-				NodeInst dn = LayoutLib.newNodeInst(difNod, w, gateWidth, 
-													x - w/2, mosY, 0, f);
+				NodeInst dn = LayoutLib.newNodeInst(difNod, x - w/2, mosY, 
+													w, gateWidth, 0, f);
 				newDiffArc(diff, difContY, prevPort, dn.getOnlyPortInst());
 			}
 		}

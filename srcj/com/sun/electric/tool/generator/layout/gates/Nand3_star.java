@@ -180,7 +180,7 @@ class Nand3_star {
 							4, inaX, inaLoY);
 		TrackRouter inaLo = new TrackRouterH(Tech.m2, 3, inaLoY, nand);
 		inaLo.connect(nand.findExport("ina"));
-		PortInst jogb = LayoutLib.newNodeInst(Tech.m1pin, 3, 3, jogbX, inaLoY,
+		PortInst jogb = LayoutLib.newNodeInst(Tech.m1pin, jogbX, inaLoY, 3, 3,
 											  0, nand).getOnlyPortInst();
 		inaLo.connect(jogb);
 		

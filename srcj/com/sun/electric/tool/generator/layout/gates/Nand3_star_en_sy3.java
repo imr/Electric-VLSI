@@ -153,8 +153,8 @@ class Nand3_star_en_sy3 {
 							4, inbX, inbHiY);
 		TrackRouter inbHi = new TrackRouterH(Tech.m2, 3, inbHiY, nand);
 		inbHi.connect(nand.findExport("inb"));
-		PortInst jogb = LayoutLib.newNodeInst(Tech.m1pin, DEF_SIZE, DEF_SIZE,
-											  jogbX, inbHiY, 0, nand
+		PortInst jogb = LayoutLib.newNodeInst(Tech.m1pin, jogbX, inbHiY,
+											  DEF_SIZE, DEF_SIZE, 0, nand
 											  ).getOnlyPortInst();
 		inbHi.connect(jogb);
 		

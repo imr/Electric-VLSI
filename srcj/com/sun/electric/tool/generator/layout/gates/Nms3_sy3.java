@@ -110,7 +110,7 @@ public class Nms3_sy3 {
 		TrackRouter inaHi = new TrackRouterH(Tech.m2, 3, inaHiY, nand);
 		inaHi.connect(nand.findExport("ina"));
 		PortInst joga =
-			LayoutLib.newNodeInst(Tech.m1pin, 3, 3, jogaX, inaHiY, 0, nand
+			LayoutLib.newNodeInst(Tech.m1pin, jogaX, inaHiY, 3, 3, 0, nand
 								  ).getOnlyPortInst();
 		inaHi.connect(joga);
 

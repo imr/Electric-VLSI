@@ -50,7 +50,7 @@ public class VertTrack {
 		// (m1m1 space)/2 + (m1 width)/2
 		double inX = 1.5 + 2;
 		double inY = 0;
-		PortInst inPin = LayoutLib.newNodeInst(Tech.m1pin, 1, 1, inX, inY, 0,
+		PortInst inPin = LayoutLib.newNodeInst(Tech.m1pin, inX, inY, 1, 1, 0,
 											   vtrack).getOnlyPortInst();
 		Export.newInstance(vtrack, inPin, "in")
 			.setCharacteristic(PortProto.Characteristic.IN);

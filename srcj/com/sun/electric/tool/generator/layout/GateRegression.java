@@ -113,17 +113,9 @@ public class GateRegression extends Job {
 		Pms1.makePart(x, stdCell);
 		stdCell.setDoubleStrapGate(false);
 	}
-	private static void makeBad(StdCellParams stdCell) {
-		Cell c = null;
-		// This one causes soe to crash
-		//c = InvCTLn.makePart(1, stdCell);
-		
-		// This one (and many others) gives soe check and repair errors
-		c = Inv.makePart(1, stdCell);
-	}
 
 	private static void allSizes(StdCellParams stdCell) {
-		double maxSz = 10;
+		double maxSz = 1000;
 		for (double d=0.1; d<maxSz; d*=10) {
 			for (double x=d; x<Math.min(d*10, maxSz); x*=1.01) {
 				aPass(x, stdCell);
@@ -133,11 +125,10 @@ public class GateRegression extends Job {
 
 	public void doIt() {
 		System.out.println("begin execution of Gates");
-
 		boolean nfsWedged = true;
 		String homeDir;
 		if (!osIsWindows()) {
-			homeDir = "/home/rkao/";
+			homeDir = "/home/rkao";
 		} else if (nfsWedged) {
 			homeDir = "c:/a1/kao/Sun/";
 		} else {
@@ -153,32 +144,31 @@ public class GateRegression extends Job {
 		stdCell.setSizeQuantizationError(0.05);
 		stdCell.setMaxMosWidth(1000);
 
-//		// a normal run
+		// a normal run
+		allSizes(stdCell);
+		//aPass(20, stdCell);
+
+		// test the ability to move ground bus
+		stdCell.setGndY(stdCell.getGndY() - 7);
 		//allSizes(stdCell);
 		aPass(20, stdCell);
-//		makeBad(stdCell);
+		stdCell.setGndY(stdCell.getGndY() + 7);
 
-//		// test the ability to move ground bus
-//		stdCell.setGndY(stdCell.getGndY() - 7);
-//		//allSizes(stdCell);
-//		aPass(20, stdCell);
-//		stdCell.setGndY(stdCell.getGndY() + 7);
-//
-//		// test different PMOS to NMOS heights
-//		stdCell.setNmosWellHeight(50);
-//		stdCell.setPmosWellHeight(100);
-//		//allSizes(stdCell);
-//		aPass(20, stdCell);
-//
-//		stdCell.setNmosWellHeight(100);
-//		stdCell.setPmosWellHeight(50);
-//		//allSizes(stdCell);
-//		aPass(20, stdCell);
-//		stdCell.setNmosWellHeight(70);
-//		stdCell.setPmosWellHeight(70);
+		// test different PMOS to NMOS heights
+		stdCell.setNmosWellHeight(50);
+		stdCell.setPmosWellHeight(100);
+		//allSizes(stdCell);
+		aPass(20, stdCell);
+
+		stdCell.setNmosWellHeight(100);
+		stdCell.setPmosWellHeight(50);
+		//allSizes(stdCell);
+		aPass(20, stdCell);
+		stdCell.setNmosWellHeight(70);
+		stdCell.setPmosWellHeight(70);
 
 		Cell gallery = Gallery.makeGallery(scratchLib);
-//		DrcRings.addDrcRings(gallery, FILTER);
+		DrcRings.addDrcRings(gallery, FILTER);
 		
 		LayoutLib.writeLibrary(scratchLib);
 

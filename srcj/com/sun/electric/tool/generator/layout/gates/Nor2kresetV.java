@@ -135,7 +135,7 @@ public class Nor2kresetV {
 		// m1_wid + m1_space + m1_wid/2
 		LayoutLib.newExport(nor, "inb", PortProto.Characteristic.IN, Tech.m1,
 							4, inbX, inbHiY);
-		PortInst jog = LayoutLib.newNodeInst(Tech.m1pin, 1, 1, jogX, inbHiY, 0,
+		PortInst jog = LayoutLib.newNodeInst(Tech.m1pin, jogX, inbHiY, 1, 1, 0,
 											 nor).getOnlyPortInst();
 		TrackRouter inbHi = new TrackRouterH(Tech.m2, 3, inbHiY, nor);
 		inbHi.connect(nor.findExport("inb"));

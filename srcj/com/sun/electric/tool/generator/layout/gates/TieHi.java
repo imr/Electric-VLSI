@@ -61,8 +61,8 @@ public class TieHi {
 							Tech.m1, 4, pwrX, pwrY);
 
 		// connect the two exports using a via
-		PortInst via = LayoutLib.newNodeInst(Tech.m1m2, 4,
-											 stdCell.getVddWidth(), pwrX, pwrY,
+		PortInst via = LayoutLib.newNodeInst(Tech.m1m2, pwrX,
+											 pwrY, 4, stdCell.getVddWidth(),
 											 0, tieHi).getOnlyPortInst();
 		
 		LayoutLib.newArcInst(Tech.m2, DEF_SIZE,

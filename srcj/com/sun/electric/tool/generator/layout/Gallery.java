@@ -87,64 +87,68 @@ public class Gallery {
 	}
 
 	double width(NodeInst ni) {
-		return ni.getBounds().getWidth();
+		return LayoutLib.getBounds(ni).getWidth();
 	}
 
 	double height(NodeInst ni) {
-		return ni.getBounds().getHeight();
+		return LayoutLib.getBounds(ni).getHeight();
 	}
 
-	double getRow(ArrayList row, ListIterator it) {
+	double[] getRow(ArrayList row, ListIterator it) {
 		double x = 0;
-		double rowHeight = 0;
+		double highestAboveCenter = Double.MIN_VALUE;
+		double lowestBelowCenter = Double.MIN_VALUE;
 		while (it.hasNext()) {
 			NodeInst ni = (NodeInst) it.next();
 			// always add at least 1 part to each row
-			if (x!=0 && x+width(ni)>PAGE_WIDTH) {
-				it.previous();
-				break;
-			}
+			if (x!=0 && x+width(ni)>PAGE_WIDTH) {it.previous();  break;}
 			row.add(ni);
-			rowHeight = Math.max(rowHeight, height(ni));
+			Rectangle2D bounds = LayoutLib.getBounds(ni);
+			highestAboveCenter = Math.max(highestAboveCenter, bounds.getMaxY());
+			lowestBelowCenter = Math.min(lowestBelowCenter, bounds.getMinY());
 			x = x + width(ni) + HORIZONTAL_SPACE;
 		}
-		return rowHeight;
+		return new double[] {highestAboveCenter, lowestBelowCenter};
 	}
 
-	void placeRow(ArrayList row, double curTopY, Cell gallery) {
+	void placeRow(ArrayList row, double centerY, Cell gallery) {
 		double curLeftX = 0;
 		//System.out.println("Row at: "+y);
 		for (int i=0; i<row.size(); i++) {
 			NodeInst ni = (NodeInst) row.get(i);
-			Rectangle2D r = ni.getBounds();
+			double x = LayoutLib.getBounds(ni).getMinX();
+			double y = LayoutLib.getPosition(ni).getY();
 //			System.out.println("Instance initial bounding box: "+r);
 //			System.out.println("Put instance at: ("+x+", "+(y-r.getY())+")");
 
-			ni.modifyInstance(curLeftX-r.getX(), curTopY-r.getY(), 0, 0, 0);
+			LayoutLib.modNodeInst(ni, curLeftX-x, centerY-y, 0,0,false,false,0);
 
 			// label instance with text
 			double defSz = LayoutLib.DEF_SIZE;
 
 			NodeInst ti = 
-			  LayoutLib.newNodeInst(textPin, defSz, defSz, curLeftX+width(ni)/2, 
-			                        curTopY-TEXT_OFFSET_BELOW_CELL, 0, gallery);
+			  LayoutLib.newNodeInst(textPin, curLeftX+width(ni)/2, centerY-TEXT_OFFSET_BELOW_CELL, defSz, 
+			                        defSz, 0, gallery);
 			ti.setExpanded();
 //			String partNm = ni.getProto().getProtoName();
 //			System.out.println("Cell: "+partNm+" has width: "+width(ni));
 			//ti.setVar("ART_message", partNm);
 			//String s = (String) ni.getVar("ART_message");
 			//System.out.println("placeRow: NodeInst Width: "+width(ni));
-			curLeftX = curLeftX + r.getWidth() + HORIZONTAL_SPACE;
+			curLeftX = curLeftX + width(ni) + HORIZONTAL_SPACE;
 		}
 	}
 
 	void placeInstsOnPage(ArrayList insts, Cell gallery) {
-		double curTopY = 0;
+		double topY = 0;
 		for (ListIterator it=insts.listIterator(); it.hasNext();) {
 			ArrayList row = new ArrayList();
-			double rowHeight = getRow(row, it);
-			placeRow(row, curTopY, gallery);
-			curTopY = curTopY - rowHeight - VERTICAL_SPACE;
+			double[] hiLo = getRow(row, it);
+			double highestAboveCenter = hiLo[0];
+			double lowestBelowCenter = hiLo[1];
+			double centerY = topY - highestAboveCenter; 
+			placeRow(row, centerY, gallery);
+			topY = centerY + lowestBelowCenter - VERTICAL_SPACE;
 		}
 	}
 
