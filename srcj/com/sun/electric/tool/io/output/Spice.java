@@ -657,7 +657,7 @@ public class Spice extends Topology
 					if (low > high)
 					{
 						// single signal
-						JNetwork net = netList.getNetwork(no, pp, 0);
+						JNetwork net = netList.getNetwork(no, pp, cas.getExportIndex());
 						CellSignal cs = cni.getCellSignal(net);
 						infstr.append(" " + cs.getName());
 					} else
