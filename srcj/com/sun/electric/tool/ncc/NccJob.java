@@ -40,6 +40,45 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 
+class NccBotUp extends HierarchyEnumerator.Visitor {
+	private HashSet enteredCells = new HashSet();
+	private HashSet nccedCells = new HashSet();
+	public boolean enterCell(HierarchyEnumerator.CellInfo info) {
+		Cell cell = info.getCell();
+		if (enteredCells.contains(cell)) {
+			return false;
+		} else {
+			enteredCells.add(cell);
+			return true;
+		}
+	}
+	public void exitCell(HierarchyEnumerator.CellInfo info) {
+		Cell cell = info.getCell();
+		if (nccedCells.contains(cell)) return;
+		
+		Cell.CellGroup group = cell.getCellGroup();
+		Cell layout=null, schematic=null;
+		for (Iterator it=group.getCells(); it.hasNext();) {
+			Cell c = (Cell) it.next();
+			if (c.getView()==View.SCHEMATIC)   schematic=c;
+			else if (c.getView()==View.LAYOUT) layout=c;
+		}
+		if (layout!=null && schematic!=null) {
+			System.out.println("Comparing schematic: "+schematic.getName()+
+                               " with layout: "+layout.getName());
+			NccOptions options = new NccOptions();
+			options.verbose = schematic.getName().equals("samplers_2x3");
+			boolean ok = NccEngine.compare(schematic, null, layout, null, 
+			                               options);
+			LayoutLib.error(!ok, "NccJob finds mismatch");
+			nccedCells.add(cell);
+		}
+	}
+	public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info) {
+		return true;
+	}
+} 
+
 public class NccJob extends Job {
 	private Messenger messenger;
 	
@@ -113,32 +152,47 @@ public class NccJob extends Job {
 		}
 	}
 	
+	private void bottomUp(String testDir, String libName) {
+		Library lib = LayoutLib.openLibForRead(libName, 
+											   testDir+libName+".elib");
+		Cell rootCell = lib.findNodeProto("loco_top{sch}");
+		LayoutLib.error(rootCell==null, "can't find root Cell");
+		Netlist rootNetlist = rootCell.getNetlist(true);
+		NccBotUp visitor = new NccBotUp();
+		HierarchyEnumerator.enumerateCell(rootCell, null, rootNetlist, visitor);											   
+	}
+	
     public boolean doIt() {
 		System.out.println("Ncc starting");
-		String homeDir;
-		if (!LayoutLib.osIsWindows()) {
-			homeDir = "/home/rkao/";
-		} else {
-			homeDir = "x:/";
-		}
-		String testDir = homeDir+"ivanTest/qFourP1/electric-final/";
-
-		doOneCell(testDir);		
-		//doLib(testDir, "purple");		
-		//doLib(testDir, "inv");		
-		//doLib(testDir, "invDrive");		
-		//doLib(testDir, "psDrive");
-		//doLib(testDir, "srNand");
-		//doLib(testDir, "gasp");
-		//doLib(testDir, "senseAmp");
-		//doLib(testDir, "scanChainFour");
-		//doLib(testDir, "latches");
-		//doLib(testDir, "gasP_COR");
-		//doLib(testDir, "rings");
-		//doLib(testDir, "senseAmp");
-		//doLib(testDir, "senseReg");
-		//doLib(testDir, "rxPads");
 		
+		String testDir = "c:/a1/kao/Sun/loco-final/";
+		bottomUp(testDir, "pads2");
+
+//		String homeDir;
+//		if (!LayoutLib.osIsWindows()) {
+//			homeDir = "/home/rkao/";
+//		} else {
+//			homeDir = "c:/";
+//		}
+//		String testDir = homeDir+"ivanTest/qFourP1/electric-final/";
+//
+//		doOneCell(testDir);		
+//		//doLib(testDir, "purple");		
+//		//doLib(testDir, "inv");		
+//		//doLib(testDir, "invDrive");		
+//		//doLib(testDir, "psDrive");
+//		//doLib(testDir, "srNand");
+//		//doLib(testDir, "gasp");
+//		//doLib(testDir, "senseAmp");
+//		//doLib(testDir, "scanChainFour");
+//		//doLib(testDir, "latches");
+//		//doLib(testDir, "gasP_COR");
+//		//doLib(testDir, "rings");
+//		//doLib(testDir, "senseAmp");
+//		//doLib(testDir, "senseReg");
+//		//doLib(testDir, "rxPads");
+		
+		System.out.println("Ncc done");
 		return true;
     }
 

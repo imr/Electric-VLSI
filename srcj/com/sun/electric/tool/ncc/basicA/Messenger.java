@@ -40,7 +40,7 @@ public class Messenger {
 		if (logToFile) {
 			File f = new File("nccLog.txt");
 			String fileName = f.getAbsolutePath();
-			System.out.println("Ncc Logging to file: "+fileName);
+			//System.out.println("Ncc Logging to file: "+fileName);
 			FileOutputStream fileStrm = null;
 			try {
 				fileStrm = new FileOutputStream(f);

@@ -47,7 +47,7 @@ public class JemStratResult extends JemStrat {
 	 * @return true if matched (all leaf records retired)
 	 */
 	public static boolean doYourJob(JemLeafList mismatched, JemLeafList active,
-						  NccGlobals globals) {
+						  			NccGlobals globals) {
 		new JemStratResult(mismatched, active, globals);
 		return mismatched.size()==0 && active.size()==0;		
 	}

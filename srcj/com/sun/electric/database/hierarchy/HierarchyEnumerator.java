@@ -149,7 +149,7 @@ public final class HierarchyEnumerator {
 			if (netIndex == nextNetID()) {
 				JNetwork net = rootNetlist.getNetwork(netIndex);
 				netIdToNetDesc.add(new NetDescription(net, rootInfo));
-				System.out.println(global + " added at " + netIndex);
+				//System.out.println(global + " added at " + netIndex);
 			} else {
 				error(netIndex>nextNetID(),	
 					  "HierarchyEnumerator: unexpected order of global signal "+

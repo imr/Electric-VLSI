@@ -92,10 +92,12 @@ public class NccEngine {
 			globals.println("empty cell");
 			matched = true;				  	
 		} else {
-			JemExportChecker expCheck = new JemExportChecker(globals);
+			JemExportChecker expCheck = null;
+			if (options.checkExports) expCheck = new JemExportChecker(globals);
 			JemStratFixed.doYourJob(globals);
 			JemStratVariable.doYourJob(globals);
-			matched = expCheck.ensureExportsWithMatchingNamesAreOnEquivalentNets();
+			if (options.checkExports) 
+			    matched = expCheck.ensureExportsWithMatchingNamesAreOnEquivalentNets();
 			//JemStratDebug.doYourJob(globals);
 			
 			matched &= JemStratResult.doYourJob(mismatchList, activeList, globals);
@@ -124,7 +126,7 @@ public class NccEngine {
 		NccEngine ncc = new NccEngine(cells, contexts, netlists, options);
 		return ncc.matched;
 	}
-	/** compare two Cells */
+	/** compare two Cells starting at their roots */
 	public static boolean compare(Cell cell1, VarContext context1, 
 	    						  Cell cell2, VarContext context2, 
 	    						  NccOptions options) {

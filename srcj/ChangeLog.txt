@@ -2,6 +2,8 @@
 
 ************************* Version 8.00: Released  *************************
 
+BUG: (6/18/04, RK) Fixed various problems with NCC export checking
+
 IMP: (6/18/04, SMR) Changed binary file format to include cell anchor points.
 
 BUG: (6/18/04, SMR) Spice output uses wrong .global names.

@@ -46,8 +46,8 @@ public class Global
 	/** Buffer for construction Global.Set. */	private static PortProto.Characteristic[] globalsBuf;
 	/** Map Name -> Global. */					private static Map globalsByName = new HashMap();
 
-	/** global signal ground. */				public static final Global ground = newGlobal("Ground");
-	/** global signal power. */					public static final Global power = newGlobal("Power");
+	/** global signal ground. */				public static final Global ground = newGlobal("gnd");
+	/** global signal power. */					public static final Global power = newGlobal("vdd");
 
 	/**
 	 * Constructs Global signal with given name key.

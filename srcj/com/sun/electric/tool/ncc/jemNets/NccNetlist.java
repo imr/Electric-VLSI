@@ -23,6 +23,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Global;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.Variable;
@@ -232,6 +233,22 @@ class Visitor extends HierarchyEnumerator.Visitor {
 				portSet.add(wire.addExportName(expName));
 			}
 		}
+		// create exports for global schematic signals
+		Global.Set globals = rootNetlist.getGlobals();
+		for (int i=0; i<globals.size(); i++) {
+			Global global = globals.get(i);
+			String globName = global.getName();
+			int netIndex = rootNetlist.getNetIndex(global);
+			Wire wire = wires.get(netIndex, rootInfo);
+			portSet.add(wire.addExportName(globName));
+			// debug
+			//System.out.print("In Cell: "+rootCell.getLibrary().getName()+
+			//                 ":"+rootCell.getName()+"{"+
+			//                 rootCell.getView().getAbbreviation()+"} ");
+			//System.out.println("Adding global Export: "+globName+" to Wire: "+
+			//				   wire.getName());
+		}
+		
 		for (Iterator it=portSet.iterator(); it.hasNext();) 
 			ports.add(it.next());
 	}

@@ -58,10 +58,10 @@ public class Transistor extends Part {
 				}
 				coeffArrays.set(numPins, coeffArray);
 				// debug
-				System.out.print("New coeff array:");
-				for (int i=0; i<numPins; i++) 
-					System.out.print(" "+coeffArray[i]);
-				System.out.println();
+				//System.out.print("New coeff array:");
+				//for (int i=0; i<numPins; i++) 
+				//	System.out.print(" "+coeffArray[i]);
+				//System.out.println();
 			}
 			return coeffArray;
 		}

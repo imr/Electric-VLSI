@@ -1009,6 +1009,11 @@ public final class MenuCommands
 				new com.sun.electric.tool.generator.layout.GateRegression();
 			}
 		});
+		russMenu.addMenuItem("Jemini", null, new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				new com.sun.electric.tool.ncc.NccJob();
+			}
+		});
 		russMenu.addMenuItem("create flat netlists for Ivan", null, new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				new com.sun.electric.tool.generator.layout.IvanFlat();
@@ -1017,11 +1022,6 @@ public final class MenuCommands
 		russMenu.addMenuItem("layout flat", null, new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				new com.sun.electric.tool.generator.layout.LayFlat();
-			}
-		});
-		russMenu.addMenuItem("Jemini", null, new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				new com.sun.electric.tool.ncc.NccJob();
 			}
 		});
 		russMenu.addMenuItem("Random Test", null, new ActionListener() {

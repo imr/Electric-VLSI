@@ -45,7 +45,7 @@ public class Primes {
 				// Knuth. Fundamental Algorithms. pp 142
 				if (q<=prime) {
 					primes.add(new Integer(trial));
-					System.out.println("next prime: "+trial);
+					//System.out.println("next prime: "+trial);
 					trial += 2;
 					return;
 				}

@@ -42,7 +42,7 @@ public class JemExportChecker {
 	private NccGlobals globals;
 	private Messenger messenger;
 	private boolean match = true;
-	/** The 0th element is null. The ith Map maps every port of the 0th
+	/** The 0th element is null. The ith element maps every port of the 0th
 	 * design to the equivalent port of the ith design. */ 
 	private HashMap[] equivPortMaps;
 	 	
@@ -67,6 +67,19 @@ public class JemExportChecker {
 		}
 		return map;
 	}
+	private void pr(String s) {System.out.println(s);}
+	private void printOneToManyError(String design1, String exports1,
+								     String design2, String exports2a,
+								     String exports2b) {
+		pr("A single network in: "+design1+
+		   " has Exports with names that match multiple Exports in: "+
+		   design2+". However, the "+design2+
+		   " Exports are attached to more than one network.");
+		pr("    The "+design1+" Exports are: "+exports1);
+		pr("    The 1st set of "+design2+" Exports are: "+exports2a);
+		pr("    The 2nd set of "+design2+" Exports are: "+exports2b);
+		System.out.println();
+	}
 	/** For each port, p1, in ports1 make sure there is exactly one port in ports2 
 	 * that shares any of p1's export names. Return a map from ports1 ports
 	 * to matching ports2 ports */  
@@ -80,21 +93,15 @@ public class JemExportChecker {
 			for (Iterator itN=p1.getExportNames(); itN.hasNext();) {
 				String exportNm1 = (String) itN.next();
 				Port p = (Port) exportName2ToPort2.get(exportNm1);
-				if (p2!=null) {
-					System.out.println("A single network in: "+designName1+
-                                       " has Exports with names that match "+
-									   "multiple Exports in: "+
-                                       designName2+". However, the "+designName2+
-									   " Exports are attached to more than one network.");
-					System.out.println("\nThe "+designName1+" Exports are: "+
-									   p1.exportNamesString());
-					System.out.println("\nThe 1st set of "+designName2+
-									   " Exports are: "+p2.exportNamesString());
-					System.out.println("\nThe 2nd set of "+designName2+
-									   " Exports are: "+p2.exportNamesString());
-					match = false;
-				} else {
+				if (p==null) {
+					// do nothing
+				} else if (p2==null) {
 					p2 = p;
+				} else if (p!=p2) {
+					printOneToManyError(designName1, p1.exportNamesString(),
+					                    designName2, p.exportNamesString(),
+					                    p2.exportNamesString());
+					match = false;
 				}
 			}
 			if (p2==null) {
@@ -109,7 +116,7 @@ public class JemExportChecker {
 		}
 		return p1ToP2;
 	}
-	private boolean matchExportsByName() {
+	private void matchExportsByName() {
 		int numCkts = globals.getNumNetlistsBeingCompared();
 		String[] rootCellNames = globals.getRootCellNames();
 		JemCircuit[] portCkts = getJemCircuitsHoldingPorts();
@@ -122,7 +129,6 @@ public class JemExportChecker {
 								 portCkts[i], rootCellNames[i]);
 			equivPortMaps[i] = m;
 		}
-		return match;
 	}
 	
 	/** Constructor matches Exports by name. Run this before Gemini
@@ -146,13 +152,12 @@ public class JemExportChecker {
 				JemEquivRecord er0 = p0.getParent().getParent();
 				JemEquivRecord ern = pn.getParent().getParent();
 				if (er0!=ern) {
-					String msg;
-					msg = "Exports that match by name aren't on equivalent"+
-						  " networks\n"+
-						  "  Cell1: "+rootCellNames[0]+"\n"+
-						  "  Exports1: "+p0.exportNamesString()+"\n"+
-						  "  Cell2: "+rootCellNames[i]+"\n"+
-						  "  Exports2: "+pn.exportNamesString()+"\n";					System.out.println(msg);
+					pr("Exports that match by name aren't on equivalent"+
+					   " networks\n"+
+					   "  Cell1: "+rootCellNames[0]+"\n"+
+					   "  Exports1: "+p0.exportNamesString()+"\n"+
+					   "  Cell2: "+rootCellNames[i]+"\n"+
+					   "  Exports2: "+pn.exportNamesString()+"\n");
 					match = false;
 				}
     		}
