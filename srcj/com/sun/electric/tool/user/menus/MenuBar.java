@@ -34,6 +34,7 @@ import com.sun.electric.tool.user.KeyBindingManager;
 import com.sun.electric.tool.user.ui.ToolBarButton;
 import com.sun.electric.tool.user.ui.KeyBindings;
 import com.sun.electric.tool.user.ui.KeyStrokePair;
+import com.sun.electric.tool.user.ui.MessagesWindow;
 
 
 import java.awt.event.ActionListener;
@@ -439,6 +440,9 @@ public class MenuBar extends JMenuBar
         if (!retValue)
             retValue = menuBarGroup.keyBindingManager.processKeyEvent(e);
         // *do not* pass it to menus
+
+        // register action completed in messages window
+        MessagesWindow.userCommandIssued();
 
         return retValue;
     }
