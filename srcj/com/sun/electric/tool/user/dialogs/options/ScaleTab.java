@@ -77,7 +77,7 @@ public class ScaleTab extends PreferencePanel
 		unitValues = new HashMap();
 		int wantIndex = 0;
 		int index = 0;
-		for(Iterator it = Technology.getTechnologiesSortedByName().iterator(); it.hasNext(); )
+		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			if (!tech.isScaleRelevant()) continue;

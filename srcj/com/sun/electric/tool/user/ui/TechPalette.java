@@ -719,8 +719,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             } else if (msg.equals("Pure"))
             {
                 JPopupMenu pureMenu = new JPopupMenu("Pure");
-	            List list = Technology.getCurrent().getNodesSortedByName();
-                for(Iterator it = list.iterator(); it.hasNext(); )
+                for(Iterator it = Technology.getCurrent().getNodes(); it.hasNext(); )
                 {
                     PrimitiveNode np = (PrimitiveNode)it.next();
                     if (np.isNotUsed()) continue;

@@ -2663,14 +2663,7 @@ public class CircuitChanges
 		if (User.isExtractCopiesExports())
 		{
 			// initialize for queueing creation of new exports
-			List queuedExports = new ArrayList();
 			for(Iterator it = subCell.getPorts(); it.hasNext(); )
-				queuedExports.add(it.next());
-
-			// sort the exports by name
-			Collections.sort(queuedExports, new TextUtils.ExportsByName());
-
-			for(Iterator it = queuedExports.iterator(); it.hasNext(); )
 			{
 				Export pp = (Export)it.next();
 				NodeInst subNi = pp.getOriginalPort().getNodeInst();

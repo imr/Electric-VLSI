@@ -435,20 +435,8 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         list.clearSelection();
         listModel.clear();
 
-        // make a sorted list of variable names
-        List variables = new ArrayList();
-        for(Iterator it = selectedObject.getVariables(); it.hasNext(); )
-        {
-            Variable var = (Variable)it.next();
-            if (cellRenderer.getShowAttrOnly()) {
-                if (!var.isAttribute()) continue;
-            }
-            variables.add(var);
-        }
-        Collections.sort(variables, new TextUtils.VariablesByName());
-
         // show the variables
-        for(Iterator it = variables.iterator(); it.hasNext(); )
+        for(Iterator it = selectedObject.getVariables(); it.hasNext(); )
         {
             Variable var = (Variable)it.next();
             String varName = var.getKey().getName();

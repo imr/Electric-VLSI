@@ -36,9 +36,10 @@ import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.parasitic.ParasiticTool;
 
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.TreeMap;
 import java.util.prefs.Preferences;
 
 /**
@@ -47,7 +48,7 @@ import java.util.prefs.Preferences;
  * variables that keep track of the currently selected object, and other
  * useful information.
  */
-public class Tool
+public class Tool implements Comparable
 {
 	// The name of this tool
 	private String toolName;
@@ -55,7 +56,7 @@ public class Tool
 	private int toolIndex;
 
 	// the static list of all tools
-	private static List tools = new ArrayList();
+	private static TreeMap tools = new TreeMap();
 	private static List listeners = new ArrayList();
 	private static int toolNumber = 0;
 
@@ -78,14 +79,15 @@ public class Tool
 		this.toolName = toolName;
 		this.toolState = 0;
 		this.toolIndex = toolNumber++;
-		tools.add(this);
+		assert findTool(toolName) == null;
+		tools.put(toolName, this);
         prefs = Preferences.userNodeForPackage(this.getClass());  // per-package namespace for preferences
 	}
 
 	private void updateListeners()
 	{
 		listeners.clear();
-		for (Iterator it = tools.iterator(); it.hasNext(); )
+		for (Iterator it = tools.values().iterator(); it.hasNext(); )
 		{
 			Object o = it.next();
 			if (o instanceof Listener && ((Listener)o).isOn())
@@ -120,13 +122,7 @@ public class Tool
 	 */
 	public static Tool findTool(String name)
 	{
-		for (int i = 0; i < tools.size(); i++)
-		{
-			Tool t = (Tool) tools.get(i);
-			if (t.getName().equals(name))
-				return t;
-		}
-		return null;
+		return (Tool)tools.get(name);
 	}
 
 	/**
@@ -135,7 +131,7 @@ public class Tool
 	 */
 	public static Iterator getTools()
 	{
-		return tools.iterator();
+		return tools.values().iterator();
 	}
 
 	/**
@@ -276,6 +272,17 @@ public class Tool
 	 * @return true if this Tool does synthesis.
 	 */
 	public boolean isSynthesis() { return (toolState & TOOLSYNTHESIS) != 0; }
+
+    /**
+     * Compares Tools by their names.
+     * @param obj the other Tool.
+     * @return a comparison between the Tools.
+     */
+	public int compareTo(Object obj)
+	{
+		Tool that = (Tool)obj;
+		return toolName.compareTo(that.toolName);
+	}
 
 	/**
 	 * Returns a printable version of this Tool.

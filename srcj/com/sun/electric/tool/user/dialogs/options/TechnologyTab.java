@@ -102,7 +102,7 @@ public class TechnologyTab extends PreferencePanel
 
 		// Schematics
 		initialSchematicTechnology = User.getSchematicTechnology();
-		for(Iterator it = Technology.getTechnologiesSortedByName().iterator(); it.hasNext(); )
+		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			technologyPopup.addItem(tech.getTechName());

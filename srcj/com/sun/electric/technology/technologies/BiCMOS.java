@@ -56,7 +56,7 @@ public class BiCMOS extends Technology
 	// -------------------- private and protected methods ------------------------
 	private BiCMOS()
 	{
-		setTechName("bicmos");
+		super("bicmos");
 		setTechDesc("Bipolar/CMOS (from MOSIS, N-Well, SCE Rules)");
 		setFactoryScale(1000, true);   // in nanometers: really 1 microns
 		setNoNegatedArcs();

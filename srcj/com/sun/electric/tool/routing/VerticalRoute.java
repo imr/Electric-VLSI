@@ -427,61 +427,69 @@ public class VerticalRoute {
 
         // see if we can find a port in the current technology
         // that will connect the two arcs
-        for (Iterator portsIt = tech.getPorts(); portsIt.hasNext(); ) {
-            PrimitivePort pp = (PrimitivePort)portsIt.next();
-            // ignore anything whose parent is not a CONTACT
-            if (pp.getParent().getFunction() != PrimitiveNode.Function.CONTACT) continue;
-            if (DEBUGSEARCH) System.out.println(ds+"Checking if "+pp+" connects between "+startArc+" and "+endArc);
-            if (pp.connectsTo(startArc) && pp.connectsTo(endArc)) {
-                specifiedRoute.add(pp);
-                saveRoute(specifiedRoute);
-                return;                                // this connects between both arcs
-            }
-        }
+		for (Iterator nodesIt = tech.getNodes(); nodesIt.hasNext(); ) {
+			PrimitiveNode pn = (PrimitiveNode)nodesIt.next();
+            // ignore anything that is noy CONTACT
+            if (pn.getFunction() != PrimitiveNode.Function.CONTACT) continue;
+
+			for (Iterator portsIt = pn.getPorts(); portsIt.hasNext(); ) {
+				PrimitivePort pp = (PrimitivePort)portsIt.next();
+				if (DEBUGSEARCH) System.out.println(ds+"Checking if "+pp+" connects between "+startArc+" and "+endArc);
+				if (pp.connectsTo(startArc) && pp.connectsTo(endArc)) {
+					specifiedRoute.add(pp);
+					saveRoute(specifiedRoute);
+					return;                                // this connects between both arcs
+				}
+			}
+		}
 
         // try all contact ports as an intermediate
-        for (Iterator portsIt = tech.getPorts(); portsIt.hasNext(); ) {
-            PrimitivePort pp = (PrimitivePort)portsIt.next();
-            // ignore anything whose parent is not a CONTACT
-            if (pp.getParent().getFunction() != PrimitiveNode.Function.CONTACT) continue;
-            if (DEBUGSEARCH) System.out.println(ds+"Checking if "+pp+" (parent is "+pp.getParent()+") connects to "+startArc);
-            if (pp.connectsTo(startArc)) {
-                if (pp == startPort) continue;                       // ignore start port
-                if (pp == endPort) continue;                         // ignore end port
-                if (specifiedRoute.contains(pp)) continue;          // ignore ones we've already hit
-                // add to list
-                int prePortSize = specifiedRoute.size();
-                specifiedRoute.add(pp);
+		for (Iterator nodesIt = tech.getNodes(); nodesIt.hasNext(); ) {
+			PrimitiveNode pn = (PrimitiveNode)nodesIt.next();
+            // ignore anything that is noy CONTACT
+            if (pn.getFunction() != PrimitiveNode.Function.CONTACT) continue;
 
-                // now try to connect through all arcs that can connect to the found pp
-                int preArcSize = specifiedRoute.size();
-                ArcProto [] arcs = pp.getConnections();
-                for (int i=0; i<arcs.length; i++) {
-                    ArcProto tryarc = arcs[i];
-                    if (tryarc == Generic.tech.universal_arc) continue;
-                    if (tryarc == Generic.tech.invisible_arc) continue;
-                    if (tryarc == Generic.tech.unrouted_arc) continue;
-                    if (tryarc.isNotUsed()) continue;
-                    if (tryarc == startArc) continue;           // already connecting through startArc
-                    if (tryarc == this.startArc) continue;      // original arc connecting from
-                    if (specifiedRoute.contains(tryarc)) continue;       // already used this arc
-                    specifiedRoute.add(tryarc);
-                    if (DEBUGSEARCH) System.out.println(ds+"...found intermediate node "+pp+" through "+startArc+" to "+tryarc);
-                    // recurse
-                    findConnectingPorts(tryarc, endArc, ds);
+			for (Iterator portsIt = pn.getPorts(); portsIt.hasNext(); ) {
+				PrimitivePort pp = (PrimitivePort)portsIt.next();
+				if (DEBUGSEARCH) System.out.println(ds+"Checking if "+pp+" (parent is "+pp.getParent()+") connects to "+startArc);
+				if (pp.connectsTo(startArc)) {
+					if (pp == startPort) continue;                       // ignore start port
+					if (pp == endPort) continue;                         // ignore end port
+					if (specifiedRoute.contains(pp)) continue;          // ignore ones we've already hit
+					// add to list
+					int prePortSize = specifiedRoute.size();
+					specifiedRoute.add(pp);
 
-                    // remove added arcs and port and continue search
-                    while (specifiedRoute.size() > preArcSize) {
-                        specifiedRoute.remove(specifiedRoute.size()-1);
-                    }
-                }
+					// now try to connect through all arcs that can connect to the found pp
+					int preArcSize = specifiedRoute.size();
+					ArcProto [] arcs = pp.getConnections();
+					for (int i=0; i<arcs.length; i++) {
+						ArcProto tryarc = arcs[i];
+						if (tryarc == Generic.tech.universal_arc) continue;
+						if (tryarc == Generic.tech.invisible_arc) continue;
+						if (tryarc == Generic.tech.unrouted_arc) continue;
+						if (tryarc.isNotUsed()) continue;
+						if (tryarc == startArc) continue;           // already connecting through startArc
+						if (tryarc == this.startArc) continue;      // original arc connecting from
+						if (specifiedRoute.contains(tryarc)) continue;       // already used this arc
+						specifiedRoute.add(tryarc);
+						if (DEBUGSEARCH) System.out.println(ds+"...found intermediate node "+pp+" through "+startArc+" to "+tryarc);
+						// recurse
+						findConnectingPorts(tryarc, endArc, ds);
 
-                // that port didn't get us anywhere, clear list back to last good point
-                while (specifiedRoute.size() > prePortSize) {
-                    specifiedRoute.remove(specifiedRoute.size()-1);
-                }
-            }
-        }
+						// remove added arcs and port and continue search
+						while (specifiedRoute.size() > preArcSize) {
+							specifiedRoute.remove(specifiedRoute.size()-1);
+						}
+					}
+
+					// that port didn't get us anywhere, clear list back to last good point
+					while (specifiedRoute.size() > prePortSize) {
+						specifiedRoute.remove(specifiedRoute.size()-1);
+					}
+				}
+			}
+		}
 
         if (DEBUGSEARCH) System.out.println(ds+"--- Bad path ---");
         return;               // no valid path to endpp found

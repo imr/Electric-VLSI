@@ -54,7 +54,7 @@ public class CMOS extends Technology
 	// -------------------- private and protected methods ------------------------
 	private CMOS()
 	{
-		setTechName("cmos");
+		super("cmos");
 		setTechShortName("Generic CMOS");
 		setTechDesc("CMOS (N-Well, Griswold rules)");
 		setFactoryScale(2000, true);   // in nanometers: really 2 microns

@@ -73,7 +73,7 @@ public class GEM extends Technology
 	// -------------------- private and protected methods ------------------------
 	private GEM()
 	{
-		setTechName("gem");
+		super("gem");
 		setTechDesc("Temporal Specification Facility (from Lansky)");
 		setFactoryScale(1000, true);   // in nanometers: really 1 microns
 		setNoNegatedArcs();

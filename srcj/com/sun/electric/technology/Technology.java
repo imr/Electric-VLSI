@@ -66,6 +66,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.TreeMap;
 import java.util.prefs.Preferences;
 
 /**
@@ -101,7 +102,7 @@ import java.util.prefs.Preferences;
  * </UL>
  * @author Steven M. Rubin
  */
-public class Technology
+public class Technology implements Comparable
 {
     /**
 	 * Defines a single layer of a PrimitiveArc.
@@ -493,7 +494,7 @@ public class Technology
 	/** no primitives in this technology (don't auto-switch to it) */	private static final int NOPRIMTECHNOLOGY =   040;
 
 	/** preferences for all technologies */					private static Preferences prefs = null;
-	/** static list of all Technologies in Electric */		private static List technologies = new ArrayList();
+	/** static list of all Technologies in Electric */		private static TreeMap technologies = new TreeMap();
 	/** the current technology in Electric */				private static Technology curTech = null;
 	/** the current tlayout echnology in Electric */		private static Technology curLayoutTech = null;
 	/** counter for enumerating technologies */				private static int techNumber = 0;
@@ -510,9 +511,8 @@ public class Technology
 	/** the color map for this technology */				private Color [] colorMap;
 	/** list of layers in this technology */				private List layers;
 	/** count of layers in this technology */				private int layerIndex = 0;
-	/** list of primitive nodes in this technology */		private List nodes;
-	/** list of arcs in this technology */					private List arcs;
-    /** list of PortProtos in this Technology. */			private List ports;
+	/** list of primitive nodes in this technology */		private TreeMap nodes = new TreeMap();
+	/** list of arcs in this technology */					private TreeMap arcs = new TreeMap();
 	/** list of NodeLayers in this Technology. */			private List nodeLayers;
 	/** minimum resistance in this Technology. */			private double minResistance;
 	/** minimum capacitance in this Technology. */			private double minCapacitance;
@@ -534,12 +534,10 @@ public class Technology
 	 * Constructs a <CODE>Technology</CODE>.
 	 * This should not be called directly, but instead is invoked through each subclass's factory.
 	 */
-	protected Technology()
+	protected Technology(String techName)
 	{
+		this.techName = techName;
 		this.layers = new ArrayList();
-		this.nodes = new ArrayList();
-		this.arcs = new ArrayList();
-        this.ports = new ArrayList();
 		this.nodeLayers = new ArrayList();
 		this.scale = 1.0;
 		this.scaleRelevant = true;
@@ -548,7 +546,8 @@ public class Technology
 		if (prefs == null) prefs = Preferences.userNodeForPackage(getClass());
 
 		// add the technology to the global list
-		technologies.add(this);
+		assert findTechnology(techName) == null;
+		technologies.put(techName, this);
 	}
 
 	private static final String [] extraTechnologies = {"tsmc90.TSMC90"};
@@ -749,9 +748,13 @@ public class Technology
 	 */
 	public static Technology findTechnology(String name)
 	{
-		for (int i = 0; i < technologies.size(); i++)
+		if (name == null) return null;
+		Technology tech = (Technology) technologies.get(name);
+		if (tech != null) return tech;
+
+		for (Iterator it = getTechnologies(); it.hasNext(); )
 		{
-			Technology t = (Technology) technologies.get(i);
+			Technology t = (Technology) it.next();
 			if (t.techName.equalsIgnoreCase(name))
 				return t;
 		}
@@ -764,20 +767,7 @@ public class Technology
 	 */
 	public static Iterator getTechnologies()
 	{
-		return technologies.iterator();
-	}
-
-	/**
-	 * Method to return an iterator over all libraries.
-	 * @return an iterator over all libraries.
-	 */
-	public static List getTechnologiesSortedByName()
-	{
-		List sortedList = new ArrayList();
-		for(Iterator it = getTechnologies(); it.hasNext(); )
-			sortedList.add(it.next());
-		Collections.sort(sortedList, new TextUtils.TechnologiesByName());
-		return sortedList;
+		return technologies.values().iterator();
 	}
 
 	/**
@@ -937,9 +927,13 @@ public class Technology
 	 */
 	public PrimitiveArc findArcProto(String name)
 	{
-		for (int i = 0; i < arcs.size(); i++)
+		if (name == null) return null;
+		PrimitiveArc primArc = (PrimitiveArc)arcs.get(name);
+		if (primArc != null) return primArc;
+
+		for (Iterator it = getArcs(); it.hasNext(); )
 		{
-			PrimitiveArc ap = (PrimitiveArc) arcs.get(i);
+			PrimitiveArc ap = (PrimitiveArc) it.next();
 			if (ap.getName().equalsIgnoreCase(name))
 				return ap;
 		}
@@ -952,7 +946,7 @@ public class Technology
 	 */
 	public Iterator getArcs()
 	{
-		return arcs.iterator();
+		return arcs.values().iterator();
 	}
 
 	/**
@@ -971,7 +965,8 @@ public class Technology
 	 */
 	public void addArcProto(PrimitiveArc ap)
 	{
-		arcs.add(ap);
+		assert findArcProto(ap.getName()) == null;
+		arcs.put(ap.getName(), ap);
 	}
 
 	/**
@@ -1197,7 +1192,6 @@ public class Technology
 		List sortedList = new ArrayList();
 		for(Iterator it = getNodes(); it.hasNext(); )
 			sortedList.add(it.next());
-		Collections.sort(sortedList, new TextUtils.PrimitiveNodeByName());
 		return sortedList;
 	}
 
@@ -1208,9 +1202,13 @@ public class Technology
 	 */
 	public PrimitiveNode findNodeProto(String name)
 	{
-		for (int i = 0; i < nodes.size(); i++)
+		if (name == null) return null;
+		PrimitiveNode primNode = (PrimitiveNode)nodes.get(name);
+		if (primNode != null) return primNode;
+
+		for (Iterator it = getNodes(); it.hasNext(); )
 		{
-			PrimitiveNode pn = (PrimitiveNode) nodes.get(i);
+			PrimitiveNode pn = (PrimitiveNode) it.next();
 			if (pn.getName().equalsIgnoreCase(name))
 				return pn;
 		}
@@ -1223,7 +1221,7 @@ public class Technology
 	 */
 	public Iterator getNodes()
 	{
-		return nodes.iterator();
+		return nodes.values().iterator();
 	}
 
 	/**
@@ -1242,36 +1240,9 @@ public class Technology
 	 */
 	public void addNodeProto(PrimitiveNode np)
 	{
-		nodes.add(np);
+		assert findNodeProto(np.getName()) == null;
+		nodes.put(np.getName(), np);
 	}
-
-    /**
-     * Returns an Iterator on the PrimitivePort objects in this technology.
-     * @return an Iterator on the PrimitivePort objects in this technology.
-     */
-    public Iterator getPorts()
-    {
-        return ports.iterator();
-    }
-
-    /**
-     * Returns the number of PrimitivePorts objects in this technology.
-     * @return the number of PrimitivePorts objects in this technology.
-     */
-    public int getNumPorts()
-    {
-        return ports.size();
-    }
-
-    /**
-     * Method to add a new PrimitivePort to this Technology.
-     * This is usually done during initialization.
-     * @param pp the PrimitivePort to be added to this Technology.
-     */
-    public void addPortProto(PrimitivePort pp)
-    {
-        ports.add(pp);
-    }
 
     /**
      * Returns an Iterator on the Technology.NodeLayer objects in this technology.
@@ -3106,6 +3077,17 @@ public class Technology
 
 		// give up and report the generic technology
 		return retTech;
+	}
+
+    /**
+     * Compares Technologies by their names.
+     * @param obj the other Technology.
+     * @return a comparison between the Technologies.
+     */
+	public int compareTo(Object obj)
+	{
+		Technology that = (Technology)obj;
+		return TextUtils.nameSameNumeric(techName, that.techName);
 	}
 
 	/**

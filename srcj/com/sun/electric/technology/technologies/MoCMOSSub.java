@@ -55,7 +55,7 @@ public class MoCMOSSub extends Technology
 	// -------------------- private and protected methods ------------------------
 	private MoCMOSSub()
 	{
-		setTechName("mocmossub");
+		super("mocmossub");
 		setTechShortName("Submicron MOSIS CMOS");
 		setTechDesc("MOSIS CMOS (old submicron rules, 2-6 metals [now 6], double poly, converts to newer MOSIS CMOS)");
 		setFactoryScale(200, true);   // in nanometers: really 0.2 microns

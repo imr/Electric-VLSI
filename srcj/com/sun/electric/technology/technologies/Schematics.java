@@ -240,7 +240,7 @@ public class Schematics extends Technology
 
 	private Schematics()
 	{
-		setTechName("schematic");
+		super("schematic");
 		setTechShortName("Schematics");
 		setTechDesc("Schematic Capture");
 		setFactoryScale(2000, false);			// in nanometers: really 2 micron

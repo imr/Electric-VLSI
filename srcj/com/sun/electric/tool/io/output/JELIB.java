@@ -69,12 +69,10 @@ import java.util.TreeSet;
  */
 public class JELIB extends Output
 {
-	private static final boolean NEWREVISION = Version.getVersion().compareTo(Version.parseVersion("8.01aw")) >= 0;
 	private HashMap abbreviationMap;
 	private HashSet externalObjs;
 	private static Comparator nodesComparator = new TextUtils.NodesByName();
 	private static Comparator arcsComparator = new TextUtils.ArcsByName();
-	private static Comparator exportsComparator = new TextUtils.ExportsByName();
 
 	JELIB()
 	{
@@ -114,8 +112,7 @@ public class JELIB extends Output
 
 		// write header information (library, version, main cell)
 		printWriter.print("H" + convertString(lib.getName()) + "|" + Version.getVersion());
-		writeVars(lib, null);
-		printWriter.println();
+		printlnVars(lib, null);
 
 		// write view information
 		boolean viewHeaderPrinted = false;
@@ -147,175 +144,92 @@ public class JELIB extends Output
 			String libFile = eLib.getLibFile().toString();
 			printWriter.println();
 			printWriter.println("L" + convertString(eLib.getName()) + "|" + convertString(libFile));
-			TreeMap externalCells = new TreeMap();
 			for(Iterator cIt = eLib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
-				if (externalObjs.contains(cell)) externalCells.put(cell.getCellName(), cell);
-			}
-			for(Iterator cIt = externalCells.values().iterator(); cIt.hasNext(); )
-			{
-				Cell cell = (Cell)cIt.next();
+				if (!externalObjs.contains(cell)) continue;
 				Rectangle2D bounds = cell.getBounds();
-				if (NEWREVISION)
-				{
-					printWriter.print("R" + convertString(cell.getCellName().toString()) +
-						"|" + TextUtils.formatDouble(DBMath.round(bounds.getMinX()),0) +
-						"|" + TextUtils.formatDouble(DBMath.round(bounds.getMaxX()),0) +
-						"|" + TextUtils.formatDouble(DBMath.round(bounds.getMinY()),0) +
-						"|" + TextUtils.formatDouble(DBMath.round(bounds.getMaxY()),0) +
-						"|" + cell.getCreationDate().getTime() +
-						"|" + cell.getRevisionDate().getTime() +
-						"\n");
-				} else
-				{
-					printWriter.print("R" + convertString(cell.getName()) + ";" + cell.getVersion() +
-						"{" + convertString(cell.getView().getAbbreviation()) + "}" +
-						"|" + TextUtils.formatDouble(bounds.getMinX(),0) +
-						"|" + TextUtils.formatDouble(bounds.getMaxX(),0) +
-						"|" + TextUtils.formatDouble(bounds.getMinY(),0) +
-						"|" + TextUtils.formatDouble(bounds.getMaxY(),0) + "\n");
-				}
-				List sortedExports = new ArrayList();
+				printWriter.println("R" + convertString(cell.getCellName().toString()) +
+					"|" + TextUtils.formatDouble(DBMath.round(bounds.getMinX()),0) +
+					"|" + TextUtils.formatDouble(DBMath.round(bounds.getMaxX()),0) +
+					"|" + TextUtils.formatDouble(DBMath.round(bounds.getMinY()),0) +
+					"|" + TextUtils.formatDouble(DBMath.round(bounds.getMaxY()),0) +
+					"|" + cell.getCreationDate().getTime() +
+					"|" + cell.getRevisionDate().getTime());
 				for (Iterator eIt = cell.getPorts(); eIt.hasNext(); )
 				{
 					Export export = (Export)eIt.next();
-					if (externalObjs.contains(export)) sortedExports.add(export);
-				}
-				Collections.sort(sortedExports, exportsComparator);
-				for (Iterator eIt = sortedExports.iterator(); eIt.hasNext(); )
-				{
-					Export export = (Export)eIt.next();
-					if (NEWREVISION)
-					{
-						Poly poly = export.getOriginalPort().getPoly();
-						printWriter.println("F" + convertString(export.getName()) +
-							"|" + TextUtils.formatDouble(DBMath.round(poly.getCenterX()), 0) +
-							"|" + TextUtils.formatDouble(DBMath.round(poly.getCenterY()), 0));
-					} else
-					{
-						printWriter.print("#" + convertString(export.getName()));
-						printWriter.print("|" + describeDescriptor(null, export.getTextDescriptor()));
-						PortOriginal po = new PortOriginal(export.getOriginalPort());
-						PrimitivePort pp = po.getBottomPortProto();
-						PrimitiveNode pn = (PrimitiveNode)pp.getParent();
-						printWriter.print("|" + pn.getFullName() + "|");
-						if (pn.getNumPorts() > 1)
-							printWriter.print(pp.getName());
-						// port information
-						Poly poly = export.getOriginalPort().getPoly();
-						printWriter.print("|" + TextUtils.formatDouble(poly.getCenterX(), 0) +
-										  "|" + TextUtils.formatDouble(poly.getCenterY(), 0));
-						int angle = po.getAngleToTop();
-						printWriter.print(angle != 0 ? "|" + angle : "|");
-						printWriter.print("|" + export.getCharacteristic().getShortName());
-						if (export.isAlwaysDrawn()) printWriter.print("/A");
-						if (export.isBodyOnly()) printWriter.print("/B");
-						printWriter.print("\n");
-					}
+					if (!externalObjs.contains(export)) continue;
+
+					Poly poly = export.getOriginalPort().getPoly();
+					printWriter.println("F" + convertString(export.getName()) +
+						"|" + TextUtils.formatDouble(DBMath.round(poly.getCenterX()), 0) +
+						"|" + TextUtils.formatDouble(DBMath.round(poly.getCenterY()), 0));
 				}
 			}
 		}
 
 		// write tool information
-		TreeMap tools = new TreeMap();
+		boolean toolHeaderPrinted = false;
 		for(Iterator it = Tool.getTools(); it.hasNext(); )
 		{
 			Tool tool = (Tool)it.next();
-			if (Pref.getMeaningVariables(tool).size() != 0) tools.put(tool.getName(), tool);
-		}
-		if (tools.size() > 0)
-		{
-			printWriter.print("\n# Tools:\n");
-			for(Iterator it = tools.values().iterator(); it.hasNext(); )
+			if (Pref.getMeaningVariables(tool).size() == 0) continue;
+			if (!toolHeaderPrinted)
 			{
-				Tool tool = (Tool)it.next();
-				printWriter.print("O" + convertString(tool.getName()));
-				writeMeaningPrefs(tool);
-				printWriter.print("\n");
+				printWriter.println();
+				printWriter.println("# Tools:");
+				toolHeaderPrinted = true;
 			}
+			printWriter.print("O" + convertString(tool.getName()));
+			printlnMeaningPrefs(tool);
 		}
 
 		// write technology information
-		TreeMap technologies = new TreeMap();
 		for (Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
-			if (externalObjs.contains(tech) || Pref.getMeaningVariables(tech).size() != 0)
-				technologies.put(tech.getTechName(), tech);
-		}
-		for(Iterator it = technologies.values().iterator(); it.hasNext(); )
-		{
-			Technology tech = (Technology)it.next();
-			printWriter.print("\n# Technology " + tech.getTechName() + "\n");
+			if (!externalObjs.contains(tech) && Pref.getMeaningVariables(tech).size() == 0)
+				continue;
+
+			printWriter.println();
+			printWriter.println("# Technology " + tech.getTechName());
 			printWriter.print("T" + convertString(tech.getTechName()));
-			writeMeaningPrefs(tech);
-			printWriter.print("\n");
-			TreeMap primNodes = new TreeMap();
+			printlnMeaningPrefs(tech);
+
 			for(Iterator nIt = tech.getNodes(); nIt.hasNext(); )
 			{
 				PrimitiveNode pn = (PrimitiveNode)nIt.next();
-				if (externalObjs.contains(pn)) primNodes.put(pn.getName(), pn);
-			}
-			for(Iterator nIt = primNodes.values().iterator(); nIt.hasNext(); )
-			{
-				PrimitiveNode pn = (PrimitiveNode)nIt.next();
-				printWriter.print("D" + convertString(pn.getName()));
-//				writeVars(np, null);
-				printWriter.print("\n");
-				TreeMap primPorts = new TreeMap();
+				if (!externalObjs.contains(pn)) continue;
+
+				printWriter.println("D" + convertString(pn.getName()));
 				for(Iterator pIt = pn.getPorts(); pIt.hasNext(); )
 				{
 					PrimitivePort pp = (PrimitivePort)pIt.next();
-					if (externalObjs.contains(pp)) primPorts.put(pp.getName(), pp);
-				}
-				for(Iterator pIt = primPorts.values().iterator(); pIt.hasNext(); )
-				{
-					PrimitivePort pp = (PrimitivePort)pIt.next();
-					printWriter.print("P" + convertString(pp.getName()));
-//					writeVars(pp, null);
-					printWriter.print("\n");
+					if (!externalObjs.contains(pp)) continue;
+					printWriter.println("P" + convertString(pp.getName()));
 				}
 			}
-			TreeMap arcProtos = new TreeMap();
 			for(Iterator aIt = tech.getArcs(); aIt.hasNext(); )
 			{
 				ArcProto ap = (ArcProto)aIt.next();
-				if (externalObjs.contains(ap)) arcProtos.put(ap.getName(), ap);
-			}
-			for(Iterator aIt = arcProtos.values().iterator(); aIt.hasNext(); )
-			{
-				ArcProto ap = (ArcProto)aIt.next();
-				printWriter.print("W" + convertString(ap.getName()));
-// 				writeVars(ap, null);
-				printWriter.print("\n");
+				if (!externalObjs.contains(ap)) continue;
+				printWriter.println("W" + convertString(ap.getName()));
 			}
 		}
 
 		// write the cells of the database
-		TreeMap cells = new TreeMap();
+		List groups = new ArrayList();
 		for (Iterator cIt = lib.getCells(); cIt.hasNext(); )
 		{
 			Cell cell = (Cell)cIt.next();
-			cells.put(cell.getCellName(), cell);
-		}
-		List groups = new ArrayList();
-		for(Iterator cIt = cells.values().iterator(); cIt.hasNext(); )
-		{
-			// write the Cell name
-			Cell cell = (Cell)cIt.next();
 			if (!groups.contains(cell.getCellGroup()))
 				groups.add(cell.getCellGroup());
-			printWriter.print("\n# Cell " + cell.describe() + "\n");
-			if (NEWREVISION)
-			{
-				printWriter.print("C" + convertString(cell.getCellName().toString()));
-			} else
-			{
-				printWriter.print("C" + convertString(cell.getName()));
-				printWriter.print("|" + convertString(cell.getView().getAbbreviation()));
-				printWriter.print("|" + cell.getVersion());
-			}
+
+			// write the Cell name
+			printWriter.println();
+			printWriter.println("# Cell " + cell.describe());
+			printWriter.print("C" + convertString(cell.getCellName().toString()));
 			printWriter.print("|" + convertString(cell.getTechnology().getTechName()));
 			printWriter.print("|" + cell.getCreationDate().getTime());
 			printWriter.print("|" + cell.getRevisionDate().getTime());
@@ -326,8 +240,7 @@ public class JELIB extends Output
 			if (cell.isAllLocked()) cellBits.append("L");
 			if (cell.isInTechnologyLibrary()) cellBits.append("T");
 			printWriter.print("|" + cellBits.toString());
-			writeVars(cell, cell);
-			printWriter.print("\n");
+			printlnVars(cell, cell);
 
 			// write the nodes in this cell (sorted by node name)
 			List sortedNodes = new ArrayList();
@@ -369,51 +282,34 @@ public class JELIB extends Output
 			{
 				NodeInst ni = (NodeInst)it.next();
 				NodeProto np = ni.getProto();
-				if (NEWREVISION)
+				if (np instanceof Cell)
 				{
-					if (np instanceof Cell)
-					{
-						printWriter.print("I" + (String)abbreviationMap.get(np));
-					} else {
-						PrimitiveNode prim = (PrimitiveNode)np;
-						if (cell.getTechnology() == prim.getTechnology())
-							printWriter.print("N" + convertString(prim.getName()));
-						else
-							printWriter.print("N" + convertString(prim.getFullName()));
-					}
-				} else
-				{
-					if (np instanceof Cell) printWriter.print("I"); else
-						printWriter.print("N");
-					String nodeTypeName = (String)abbreviationMap.get(np);
-					printWriter.print(nodeTypeName);
+					printWriter.print("I" + (String)abbreviationMap.get(np));
+				} else {
+					PrimitiveNode prim = (PrimitiveNode)np;
+					if (cell.getTechnology() == prim.getTechnology())
+						printWriter.print("N" + convertString(prim.getName()));
+					else
+						printWriter.print("N" + convertString(prim.getFullName()));
 				}
 				printWriter.print("|" + getNodeName(ni, sortedNodeIndices) + "|");
 				if (!ni.getNameKey().isTempname())
 					printWriter.print(describeDescriptor(null, ni.getNameTextDescriptor()));
 				printWriter.print("|" + TextUtils.formatDouble(ni.getAnchorCenterX(), 0));
 				printWriter.print("|" + TextUtils.formatDouble(ni.getAnchorCenterY(), 0));
-				if (NEWREVISION)
+				if (np instanceof PrimitiveNode)
 				{
-					if (np instanceof PrimitiveNode)
-					{
-						printWriter.print("|" + TextUtils.formatDouble(ni.getXSize(), 0));
-						printWriter.print("|" + TextUtils.formatDouble(ni.getYSize(), 0));
-					}
-					printWriter.print('|');
-					if (ni.isXMirrored()) printWriter.print('X');
-					if (ni.isYMirrored()) printWriter.print('Y');
-					int angle = ni.getAngle() % 3600;
-					if (angle == 900 || angle == -2700) printWriter.print("R");
-					else if (angle == 1800 || angle == -1800) printWriter.print("RR");
-					else if (angle == 2700 || angle == -900) printWriter.print("RRR");
-					else if (angle != 0) printWriter.print(angle);
-				} else
-				{
-					printWriter.print("|" + TextUtils.formatDouble(ni.getXSizeWithMirror(), 0));
-					printWriter.print("|" + TextUtils.formatDouble(ni.getYSizeWithMirror(), 0));
-					printWriter.print("|" + ni.getAngle());
+					printWriter.print("|" + TextUtils.formatDouble(ni.getXSize(), 0));
+					printWriter.print("|" + TextUtils.formatDouble(ni.getYSize(), 0));
 				}
+				printWriter.print('|');
+				if (ni.isXMirrored()) printWriter.print('X');
+				if (ni.isYMirrored()) printWriter.print('Y');
+				int angle = ni.getAngle() % 3600;
+				if (angle == 900 || angle == -2700) printWriter.print("R");
+				else if (angle == 1800 || angle == -1800) printWriter.print("RR");
+				else if (angle == 2700 || angle == -900) printWriter.print("RRR");
+				else if (angle != 0) printWriter.print(angle);
 				StringBuffer nodeBits = new StringBuffer();
 				if (ni.isHardSelect()) nodeBits.append("A");
 				if (ni.isExpanded()) nodeBits.append("E");
@@ -423,25 +319,13 @@ public class JELIB extends Output
 				if (ni.isWiped()) nodeBits.append("W");
 				int ts = ni.getTechSpecific();
 				if (ts != 0) nodeBits.append(ts);
-				if (NEWREVISION)
+				printWriter.print("|" + nodeBits.toString());
+				if (np instanceof Cell)
 				{
-					printWriter.print("|" + nodeBits.toString());
-					if (np instanceof Cell)
-					{
-						String tdString = describeDescriptor(null, ni.getProtoTextDescriptor());
-						printWriter.print("|" + tdString);
-					}
-				} else
-				{
-					printWriter.print("|" + nodeBits.toString() + "|");
-					if (np instanceof Cell)
-					{
-						String tdString = describeDescriptor(null, ni.getProtoTextDescriptor());
-						printWriter.print(tdString);
-					}
+					String tdString = describeDescriptor(null, ni.getProtoTextDescriptor());
+					printWriter.print("|" + tdString);
 				}
-				writeVars(ni, cell);
-				printWriter.print("\n");
+				printlnVars(ni, cell);
 			}
 
 			// write the arcs in this cell
@@ -453,15 +337,10 @@ public class JELIB extends Output
 			{
 				ArcInst ai = (ArcInst)it.next();
 				PrimitiveArc ap = (PrimitiveArc)ai.getProto();
-				if (NEWREVISION)
-				{
-					if (cell.getTechnology() == ap.getTechnology())
-						printWriter.print("A" + convertString(ap.getName()));
-					else
-						printWriter.print("A" + convertString(ap.getFullName()));
-				} else {
-					printWriter.print("A" + convertString(ap.getTechnology().getTechName()) + ":" + convertString(ap.getName()));
-				}
+				if (cell.getTechnology() == ap.getTechnology())
+					printWriter.print("A" + convertString(ap.getName()));
+				else
+					printWriter.print("A" + convertString(ap.getFullName()));
 				printWriter.print("|" + convertString(ai.getName()) + "|");
 				if (!ai.getNameKey().isTempname())
 					printWriter.print(describeDescriptor(null, ai.getNameTextDescriptor()));
@@ -491,16 +370,11 @@ public class JELIB extends Output
 					printWriter.print("|" + TextUtils.formatDouble(con.getLocation().getX(), 0));
 					printWriter.print("|" + TextUtils.formatDouble(con.getLocation().getY(), 0));
 				}
-				writeVars(ai, cell);
-				printWriter.print("\n");
+				printlnVars(ai, cell);
 			}
 
 			// write the exports in this cell
-			List sortedExports = new ArrayList();
 			for(Iterator it = cell.getPorts(); it.hasNext(); )
-				sortedExports.add(it.next());
-			Collections.sort(sortedExports, exportsComparator);
-			for(Iterator it = sortedExports.iterator(); it.hasNext(); )
 			{
 				Export pp = (Export)it.next();
 				printWriter.print("E" + convertString(pp.getName()));
@@ -512,29 +386,20 @@ public class JELIB extends Output
 				printWriter.print("|" + getNodeName(subNI, sortedNodeIndices) + "|");
 				if (subNI.getProto().getNumPorts() > 1)
 					printWriter.print(convertString(subPP.getName()));
-
-				// port information
-				if (!NEWREVISION)
-				{
-					Poly poly = subPI.getPoly();
-					printWriter.print("|" + TextUtils.formatDouble(poly.getCenterX(), 0) +
-									  "|" + TextUtils.formatDouble(poly.getCenterY(), 0));
-				}
-
 				printWriter.print("|" + pp.getCharacteristic().getShortName());
 				if (pp.isAlwaysDrawn()) printWriter.print("/A");
 				if (pp.isBodyOnly()) printWriter.print("/B");
 
-				writeVars(pp, cell);
-				printWriter.print("\n");
+				printlnVars(pp, cell);
 			}
 
 			// write the end-of-cell marker
-			printWriter.print("X\n");
+			printWriter.println("X");
 		}
 
 		// write groups in alphabetical order
-		printWriter.print("\n# Groups:\n");
+		printWriter.println();
+		printWriter.println("# Groups:");
 		Collections.sort(groups, new GroupsByName());
 		for(Iterator it = groups.iterator(); it.hasNext(); )
 		{
@@ -545,13 +410,7 @@ public class JELIB extends Output
 			Cell main = group.getMainSchematics();
 			if (main != null)
 			{
-				if (NEWREVISION)
-				{
-					printWriter.print(convertString(main.getCellName().toString()));
-				} else
-				{
-					printWriter.print(convertString(main.describe()));
-				}
+				printWriter.print(convertString(main.getCellName().toString()));
 			}
 
 			TreeMap groupCells = new TreeMap();
@@ -564,15 +423,9 @@ public class JELIB extends Output
 			{
 				Cell cell = (Cell)cIt.next();
 				printWriter.print("|");
-				if (NEWREVISION)
-				{
-					printWriter.print(convertString(cell.getCellName().toString()));
-				} else
-				{
-					printWriter.print(convertString(cell.describe()));
-				}
+				printWriter.print(convertString(cell.getCellName().toString()));
 			}
-			printWriter.print("\n");
+			printWriter.println();
 		}
 
 		// clean up and return
@@ -599,12 +452,7 @@ public class JELIB extends Output
 		if (indices == null) return convertString(ni.getName());
 		Integer index = (Integer)indices.get(ni);
 		if (index != null)
-		{
-			if (NEWREVISION)
-				return "\"" + convertQuotedString(ni.getName()) + "\"" + index;
-			else
-				return convertString("\"" + ni.getName() + "\"" + index);
-		}
+			return "\"" + convertQuotedString(ni.getName()) + "\"" + index;
 		return convertString(ni.getName());
 	}
 
@@ -617,7 +465,7 @@ public class JELIB extends Output
 		for (Iterator cIt = lib.getCells(); cIt.hasNext(); )
 		{
 			Cell cell = (Cell)cIt.next();
-			gatherCell(cell, !NEWREVISION);
+			gatherCell(cell, false);
 			gatherVariables(cell);
 
 			for(Iterator it = cell.getNodes(); it.hasNext(); )
@@ -636,13 +484,6 @@ public class JELIB extends Output
 					PrimitiveNode np = (PrimitiveNode)ni.getProto();
 					externalObjs.add(np.getTechnology());
 					externalObjs.add(np);
-					if (!NEWREVISION)
-					{
-						if (!abbreviationMap.containsKey(np))
-						{
-							abbreviationMap.put(np, convertString(np.getTechnology().getTechName()) + ":" + convertString(np.getName()));
-						}
-					}
 				}
 			}
 
@@ -853,36 +694,10 @@ public class JELIB extends Output
 	 * "curCell" such that any references to objects in a cell must be in
 	 * this cell.
 	 */
-	private void writeVars(ElectricObject eObj, Cell curCell)
+	private void printlnVars(ElectricObject eObj, Cell curCell)
 	{
-		// count the number of variables
-		int numVars = 0;
-		for(Iterator it = eObj.getVariables(); it.hasNext(); )
-		{
-			Variable var = (Variable)it.next();
-			if (var.isDontSave()) continue;
-			numVars++;
-		}
-		if (numVars == 0) return;
-
-		// sort the variables if there are more than 1
-		Iterator varIterator = eObj.getVariables();
-		if (numVars > 1)
-		{
-			// must sort the names
-			List sortedVars = new ArrayList();
-			for(Iterator it = eObj.getVariables(); it.hasNext(); )
-			{
-				Variable var = (Variable)it.next();
-				if (var.isDontSave()) continue;
-				sortedVars.add(var);
-			}
-			Collections.sort(sortedVars, new TextUtils.VariablesByName());
-			varIterator = sortedVars.iterator();
-		}
-
 		// write the variables
-		for(Iterator it = varIterator; it.hasNext(); )
+		for(Iterator it = eObj.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
 			if (var.isDontSave()) continue;
@@ -894,12 +709,13 @@ public class JELIB extends Output
 			if (pt == null) pt = "";
 			printWriter.print(pt);
 		}
+		printWriter.println();
 	}
 
 	/**
 	 * Method to write the meaning preferences on an object.
 	 */
-	private void writeMeaningPrefs(Object obj)
+	private void printlnMeaningPrefs(Object obj)
 	{
 		List prefs = Pref.getMeaningVariables(obj);
 		for(Iterator it = prefs.iterator(); it.hasNext(); )
@@ -908,6 +724,7 @@ public class JELIB extends Output
 			Object value = pref.getValue();
 			printWriter.print("|" + convertVariableName(pref.getPrefName()) + "()" + makeString(value, null));
 		}
+		printWriter.println();
 	}
 
 	/**
@@ -963,15 +780,7 @@ public class JELIB extends Output
 		}
 		if (obj instanceof String)
 		{
-			if (NEWREVISION)
-			{
-				infstr.append(convertString((String)obj, inArray));
-			} else
-			{
-				infstr.append("\"");
-				infstr.append(convertQuotedString((String)obj));
-				infstr.append("\"");
-			}
+			infstr.append(convertString((String)obj, inArray));
 			return;
 		}
 		if (obj instanceof Float)
@@ -1100,26 +909,14 @@ public class JELIB extends Output
 	{
 		StringBuffer infstr = new StringBuffer();
 		int len = str.length();
-		if (NEWREVISION)
+		for(int i=0; i<len; i++)
 		{
-			for(int i=0; i<len; i++)
-			{
-				char ch = str.charAt(i);
-				if (ch == '\n') { infstr.append("\\n");   continue; }
-				if (ch == '\r') { infstr.append("\\r");   continue; }
-				if (ch == '"' || ch == '\\')
-					infstr.append('\\');
-				infstr.append(ch);
-			}
-		} else {
-			for(int i=0; i<len; i++)
-			{
-				char ch = str.charAt(i);
-				if (ch == '\n') { infstr.append("^\\n");   continue; }
-				if (ch == '"' || ch == '^')
-					infstr.append('^');
-				infstr.append(ch);
-			}
+			char ch = str.charAt(i);
+			if (ch == '\n') { infstr.append("\\n");   continue; }
+			if (ch == '\r') { infstr.append("\\r");   continue; }
+			if (ch == '"' || ch == '\\')
+				infstr.append('\\');
+			infstr.append(ch);
 		}
 		return infstr.toString();
 	}
@@ -1134,18 +931,7 @@ public class JELIB extends Output
 	 */
 	private String convertString(String str)
 	{
-		if (NEWREVISION) return convertString(str, (char)0, (char)0);
-		StringBuffer infstr = new StringBuffer();
-		int len = str.length();
-		for(int i=0; i<len; i++)
-		{
-			char ch = str.charAt(i);
-			if (ch == '\n') ch = ' ';
-			if (ch == '|' || ch == '^' || ch == '"')
-				infstr.append('^');
-			infstr.append(ch);
-		}
-		return infstr.toString();
+		return convertString(str, (char)0, (char)0);
 	}
 
 	/**
@@ -1180,18 +966,7 @@ public class JELIB extends Output
 	 */
 	private String convertVariableName(String str)
 	{
-		if (NEWREVISION) return convertString(str, '(', (char)0);
-		StringBuffer infstr = new StringBuffer();
-		int len = str.length();
-		for(int i=0; i<len; i++)
-		{
-			char ch = str.charAt(i);
-			if (ch == '\n') ch = ' ';
-			if (ch == '|' || ch == '^' || ch == '"' || ch == '(')
-				infstr.append('^');
-			infstr.append(ch);
-		}
-		return infstr.toString();
+		return convertString(str, '(', (char)0);
 	}
 
 	/**
@@ -1205,6 +980,6 @@ public class JELIB extends Output
 	 */
 	private String convertString(String str, boolean inArray)
 	{
-		return NEWREVISION && inArray ? convertString(str, ',', ']') : convertString(str, (char)0, (char)0);
+		return inArray ? convertString(str, ',', ']') : convertString(str, (char)0, (char)0);
 	}
 }

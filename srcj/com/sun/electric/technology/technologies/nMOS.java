@@ -55,7 +55,7 @@ public class nMOS extends Technology
 	// -------------------- private and protected methods ------------------------
 	private nMOS()
 	{
-		setTechName("nmos");
+		super("nmos");
 		setTechShortName("nMOS");
 		setTechDesc("nMOS (Mead & Conway abstract rules)");
 		setFactoryScale(2000, true);   // in nanometers: really 2 microns

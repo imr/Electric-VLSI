@@ -56,7 +56,7 @@ public class RCMOS extends Technology
 	// -------------------- private and protected methods ------------------------
 	private RCMOS()
 	{
-		setTechName("rcmos");
+		super("rcmos");
 		setTechShortName("Round CMOS");
 		setTechDesc("Complementary MOS (round, from MOSIS, P-Well, double metal)");
 		setFactoryScale(2000, true);   // in nanometers: really 2 microns

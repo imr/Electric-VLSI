@@ -94,7 +94,7 @@ public class Artwork extends Technology
 	// -------------------- private and protected methods ------------------------
 	private Artwork()
 	{
-		setTechName("artwork");
+		super("artwork");
 		setTechShortName("Artwork");
 		setTechDesc("General-purpose artwork components");
 		setFactoryScale(2000, false);			// in nanometers: really 2 micron

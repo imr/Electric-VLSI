@@ -112,7 +112,7 @@ public class LayerVisibility extends EDialog
 
 		// cache dimming
 		boolean noDimming = true;
-		for(Iterator it = Technology.getTechnologiesSortedByName().iterator(); it.hasNext(); )
+		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			for(Iterator lIt = tech.getLayers(); lIt.hasNext(); )
@@ -125,7 +125,7 @@ public class LayerVisibility extends EDialog
 		// cache visibility
 		visibility = new HashMap();
 		highlighted = new HashMap();
-		for(Iterator it = Technology.getTechnologiesSortedByName().iterator(); it.hasNext(); )
+		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			for(Iterator lIt = tech.getLayers(); lIt.hasNext(); )
@@ -139,7 +139,7 @@ public class LayerVisibility extends EDialog
 		}
 
 		// make a popup of Technologies
-		for(Iterator it = Technology.getTechnologiesSortedByName().iterator(); it.hasNext(); )
+		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			technology.addItem(tech.getTechName());
@@ -317,7 +317,7 @@ public class LayerVisibility extends EDialog
 	{
 		// see if anything was highlighted
 		boolean anyHighlighted = false;
-		for(Iterator it = Technology.getTechnologiesSortedByName().iterator(); it.hasNext(); )
+		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			for(Iterator lIt = tech.getLayers(); lIt.hasNext(); )
@@ -329,7 +329,7 @@ public class LayerVisibility extends EDialog
 		}
 
 		// update visibility and highlighting
-		for(Iterator it = Technology.getTechnologiesSortedByName().iterator(); it.hasNext(); )
+		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			for(Iterator lIt = tech.getLayers(); lIt.hasNext(); )

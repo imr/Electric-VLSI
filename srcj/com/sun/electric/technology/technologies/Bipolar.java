@@ -55,7 +55,7 @@ public class Bipolar extends Technology
 	// -------------------- private and protected methods ------------------------
 	private Bipolar()
 	{
-		setTechName("bipolar");
+		super("bipolar");
 		setTechDesc("Bipolar (self-aligned, single poly)");
 		setFactoryScale(2000, true);   // in nanometers: really 2 microns
 		setNoNegatedArcs();

@@ -3816,7 +3816,9 @@ public class Quick
 				for(Iterator pIt = ni.getPortInsts(); !found && pIt.hasNext(); )
 				{
 					PortInst pi = (PortInst)pIt.next();
-					boolean isExported = cell.findPortProto(pi.getPortProto());
+					PortProto pp = pi.getPortProto();
+					boolean isExported = (pp instanceof Export) && ((Export)pp).getParent() == cell;
+					//boolean isExported = cell.findPortProto(pp);
 					thisNet = info.getNetlist().getNetwork(pi);
 					found = searchNetworkInParent(thisNet, info);
 					if (!isExported) notExported = true;

@@ -407,7 +407,7 @@ public class Array extends EDialog
 			}
 			Collections.sort(nodeList, new TextUtils.GeometricsByName());
 			Collections.sort(arcList, new TextUtils.GeometricsByName());
-			Collections.sort(exportList, new TextUtils.ExportsByName());
+			Collections.sort(exportList);
 
 			// determine the distance between arrayed entries
 			double xOverlap = lastXDistance;

@@ -373,7 +373,7 @@ public class PrimitivePort implements PortProto, Comparable
 			int cmp = parent.compareTo(that.parent);
 			if (cmp != 0) return cmp;
 		}
-		return portIndex - that.portIndexText;
+		return portIndex - that.portIndex;
 //		return TextUtils.nameSameNumeric(getName(), that.getName());
 	}
 

@@ -130,7 +130,7 @@ public class CellProperties extends EDialog
 		});
 
 		// build the technology popup
-		for(Iterator it = Technology.getTechnologiesSortedByName().iterator(); it.hasNext();)
+		for(Iterator it = Technology.getTechnologies(); it.hasNext();)
 		{
 			Technology tech = (Technology)it.next();
 			whichTechnology.addItem(tech.getTechName());

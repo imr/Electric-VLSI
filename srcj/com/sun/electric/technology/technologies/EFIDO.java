@@ -50,7 +50,7 @@ public class EFIDO extends Technology
 	// -------------------- private and protected methods ------------------------
 	private EFIDO()
 	{
-		setTechName("efido");
+		super("efido");
 		setTechDesc("Digital Filters");
 		setFactoryScale(10000, true);   // in nanometers: really 10 microns
 		setNoNegatedArcs();

@@ -222,8 +222,7 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
         paletteSwitcher.add(libraryPalette, LIBRARYPALETTE);
 
         // Because the technology choices don't change, just popuplate the combo box here
-        List techList = Technology.getTechnologiesSortedByName();
-        for(Iterator it = techList.iterator(); it.hasNext(); )
+        for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
         {
             Technology tech = (Technology)it.next();
             if (tech == Generic.tech) continue;

@@ -68,7 +68,7 @@ public class Generic extends Technology
 	// -------------------- private and protected methods ------------------------
 	private Generic()
 	{
-		setTechName("generic");
+		super("generic");
 		setTechShortName("Generic");
 		setTechDesc("Useful primitives");
 		setFactoryScale(1000, false);			// in nanometers: really 1 micron

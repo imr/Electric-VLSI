@@ -507,7 +507,7 @@ public class MoCMOS extends Technology
 
 	private MoCMOS()
 	{
-		setTechName("mocmos");
+		super("mocmos");
 		setTechShortName("MOSIS CMOS");
 		setTechDesc("MOSIS CMOS");
 		setFactoryScale(200, true);			// in nanometers: really 0.2 micron

@@ -486,7 +486,8 @@ public class ViewChanges
 		List exportList = new ArrayList();
 		for(Iterator it = curCell.getPorts(); it.hasNext(); )
 			exportList.add(it.next());
-		Collections.sort(exportList, new TextUtils.ExportsByName(reverseIconExportOrder));
+		if (reverseIconExportOrder)
+			Collections.reverse(exportList);
 
 		// create the new icon cell
 		String iconCellName = curCell.getName() + "{ic}";
@@ -1074,16 +1075,15 @@ public class ViewChanges
 		{
 			// find out which technology they want to convert to
 			Technology oldTech = oldCell.getTechnology();
-			List techs = Technology.getTechnologiesSortedByName();
 			int numTechs = 0;
-			for(Iterator it = techs.iterator(); it.hasNext(); )
+			for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 			{
 				Technology tech = (Technology)it.next();
 				if (tech.isScaleRelevant()) numTechs++;
 			}
 			String [] techNames = new String[numTechs];
 			int i=0;
-			for(Iterator it = techs.iterator(); it.hasNext(); )
+			for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 			{
 				Technology tech = (Technology)it.next();
 				if (tech.isScaleRelevant()) techNames[i++] = tech.getTechName();
