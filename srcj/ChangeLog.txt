@@ -2,6 +2,9 @@
 
 ************************* Version 8.01l: *********************************
 
+IMP: (9/2/04, GVG) Better handling of collections of simple polygons and rings for 
+enclosure area checking.
+
 BUG: (9/2/04, GVG) Clipboard crashes if list in copyListToCell contains Exports
 FIX: Temporary fix to avoid the exception, non-Geometric objects are ignored.
 

@@ -50,6 +50,7 @@ import com.sun.electric.Main;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.Area;
 import java.util.*;
 
 /**
@@ -2080,22 +2081,63 @@ public class Quick
 					Object[] polyArray = pn.getSimpleObjects().toArray();
 
 					// Looping over simple polygons. Possible problems with disconnected elements
+					// polyArray.length = Maximum number of distintic loops
+					List loopList = new ArrayList();
+					// Expensive operation!!
 					for (int i = 0; i < polyArray.length; i++)
 					{
 						PolyQTree.PolyNode simplePn = (PolyQTree.PolyNode)polyArray[i];
-						double area = simplePn.getArea();
-						DRCRules.DRCRule minRule = (i%2 == 0) ? minAreaRule : encloseAreaRule;  // Even is enclosed area
+						boolean found = false;
+						for (int j = 0; !found && j < loopList.size(); j++)
+						{
+							List list = (List)loopList.get(j);
+							if (list == null) throw new Error("wrong condition in Quick.checkMinArea()");
+							for (int k = 0; !found && k < list.size(); k++)
+							{
+								PolyQTree.PolyNode thisPn = (PolyQTree.PolyNode)list.get(k);
+								if (thisPn.contains(simplePn.getBounds2D()) ||
+								    simplePn.contains(thisPn.getBounds2D()))
+								{
+									found = true;
+									list.add(simplePn);
+								}
+							}
+						}
+						if (!found)
+						{
+							List list = new ArrayList();
+							list.add(simplePn);
+							loopList.add(list);
+						}
+					}
+					//for (int i = 0; i < polyArray.length; i++)
+					for (int j = 0; j < loopList.size(); j++)
+					{
+						Object obj = loopList.get(j);
+						if (obj == null) throw new Error("wrong condition in Quick.checkMinArea()");
+						List list = (List)obj;
+						if ( list.size() > 1) Collections.sort(list);
+						// Order depends on area comparison done. First element is the smallest.
+						// and depending on # polygons it could be minArea or encloseArea
+						DRCRules.DRCRule evenRule = (list.size()%2==0) ? encloseAreaRule : minAreaRule;
+						DRCRules.DRCRule oddRule = (evenRule == minAreaRule) ? encloseAreaRule : minAreaRule;
+						for (int i = 0; i < list.size(); i++)
+						{
+							PolyQTree.PolyNode simplePn = (PolyQTree.PolyNode)list.get(i);
+							double area = simplePn.getArea();
+							DRCRules.DRCRule minRule = (i%2 == 0) ? evenRule : oddRule;
 
-						if (minRule == null) continue;
+							if (minRule == null) continue;
 
-						double actual = area - minRule.value;
+							double actual = area - minRule.value;
 
-						if (actual >= 0) continue;
+							if (actual >= 0) continue;
 
-						errorFound = true;
-						int errorType = (i%2==0) ? MINAREAERROR : ENCLOSEDAREAERROR;
-						reportError(errorType, null, cell, minRule.value, area, minRule.rule,
-								new Poly(simplePn.getPoints()), ni, layer, null, null, null);
+							errorFound = true;
+							int errorType = (minRule == minAreaRule) ? MINAREAERROR : ENCLOSEDAREAERROR;
+							reportError(errorType, null, cell, minRule.value, area, minRule.rule,
+									new Poly(simplePn.getPoints()), ni, layer, null, null, null);
+						}
 					}
 				}
 			}

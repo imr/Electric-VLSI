@@ -727,7 +727,9 @@ public class Clipboard
 			}
 			for(Iterator it = list.iterator(); it.hasNext(); )
 			{
-				Geometric geom = (Geometric)it.next();
+				Object obj = it.next();
+				if (!(obj instanceof Geometric)) continue; // Temporary fix?
+                Geometric geom = (Geometric)obj;
 				if (geom instanceof NodeInst) continue;
 				ArcInst ai = (ArcInst)geom;
 				ai = (ArcInst)ai.getTempObj();
@@ -739,7 +741,9 @@ public class Clipboard
 		// cleanup temp object pointers that correspond from old cell to new
 		for(Iterator it = list.iterator(); it.hasNext(); )
 		{
-			Geometric geom = (Geometric)it.next();
+			Object obj = it.next();
+			if (!(obj instanceof Geometric)) continue; // Temporary fix?
+            Geometric geom = (Geometric)obj;
 			geom.setTempObj(null);
 		}
 		for(Iterator it = theNodes.iterator(); it.hasNext(); )

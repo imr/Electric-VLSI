@@ -152,12 +152,27 @@ public class PolyQTree
 
 	//--------------------------PRIVATE METHODS--------------------------
 	public static class PolyNode extends Area
+	        implements Comparable
 	{
 		private byte original;
 
 		public PolyNode(Shape shape)
 		{
 			super(shape);
+		}
+
+		/**
+		 * Compare objects based on area.
+		 * This method doesn't guarantee (compare(x, y)==0) == (x.equals(y))
+		 * because x.equals relies on Area.equals()
+		 * @param o1
+		 * @return Returns a negative integer, zero, or a positive integer as the
+		 * first object has smaller than, equal to, or greater area than the second.
+		 */
+		public int compareTo(Object o1)
+		{
+            PolyNode n1 = (PolyNode)o1;
+			return ((int)(getArea() - n1.getArea()));
 		}
 
 		public boolean equals(Object obj)
