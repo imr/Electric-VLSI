@@ -151,13 +151,13 @@ public class ERC extends Tool
     /**** ANTENNA Preferences ***/
 	private Pref getArcProtoAntennaPref(ArcProto ap)
 	{
-		Pref pref = (Pref)defaultAntennaRatioPrefs.get(this);
+		Pref pref = (Pref)defaultAntennaRatioPrefs.get(ap);
 		if (pref == null)
 		{
 			double factory = ERCAntenna.DEFPOLYRATIO;
 			if (ap.getFunction().isMetal()) factory = ERCAntenna.DEFMETALRATIO;
 			pref = Pref.makeDoublePref("DefaultAntennaRatioFor" + ap.getName() + "IN" + ap.getTechnology().getTechName(), ERC.tool.prefs, factory);
-			defaultAntennaRatioPrefs.put(this, pref);
+			defaultAntennaRatioPrefs.put(ap, pref);
 		}
 		return pref;
 	}
