@@ -4362,22 +4362,25 @@ public class CircuitChanges
 	/****************************** COPY CELLS ******************************/
 
 	/**
-	 * recursive helper method for "us_copycell" which copies cell "fromCell"
-	 * to a new cell called "toName" in library "toLib" with the new view type
-	 * "toView".  All needed subcells are copied (unless "noSubCells" is true).
-	 * All shared view cells referenced by variables are copied too
-	 * (unless "noRelatedViews" is true).  If "useExisting" is TRUE, any subcells
-	 * that already exist in the destination library will be used there instead of
-	 * creating a cross-library reference.
-	 * If "move" is nonzero, delete the original after copying, and update all
-	 * references to point to the new cell.  If "subDescript" is empty, the operation
-	 * is a top-level request.  Otherwise, this is for a subcell, so only create a
-	 * new cell if one with the same name and date doesn't already exists.
+	 * Method to recursively copy cells between libraries.
+	 * @param fromCell the original cell being copied.
+	 * @param toName the name to give the cell in the destination library.
+	 * @param toLib the destination library to copy the cell.
+	 * @param toView the view to give the cell in the destination library.
+	 * @param verbose true to display extra information.
+	 * @param move true to move instead of copy (delete after copying).
+	 * @param subDescript a String describing the nature of this copy (empty string initially).
+	 * @param noRelatedViews true to avoid copying related views (schematic cell with layout, etc.)
+	 * @param noRelatedViewsThisLevel true to avoid copying related views for this
+	 * level of invocation only (but further recursion will use "noRelatedViews").
+	 * @param noSubCells true to avoid copying sub-cells.
+	 * @param useExisting true to use any existing cells in the destination library
+	 * instead of creating a cross-library reference.  False to copy everything needed.
 	 */
 	private static HashSet cellsCopied = null;
 	public static Cell copyRecursively(Cell fromCell, String toName, Library toLib,
 		View toView, boolean verbose, boolean move, String subDescript, boolean noRelatedViews,
-		boolean noSubCells, boolean useExisting)
+		boolean noRelatedViewsThisLevel, boolean noSubCells, boolean useExisting)
 	{
 		Date fromCellCreationDate = fromCell.getCreationDate();
 		Date fromCellRevisionDate = fromCell.getRevisionDate();
@@ -4415,7 +4418,7 @@ public class CircuitChanges
 
 					// copy subcell if not already there
 					Cell oNp = copyRecursively(cell, cell.getName(), toLib, cell.getView(),
-						verbose, move, "subcell ", noRelatedViews, noSubCells, useExisting);
+						verbose, move, "subcell ", noRelatedViews, noRelatedViews, noSubCells, useExisting);
 					if (oNp == null)
 					{
 						if (move) System.out.println("Move of subcell " + cell.describe() + " failed"); else
@@ -4429,7 +4432,7 @@ public class CircuitChanges
 		}
 
 		// also copy equivalent views
-		if (!noRelatedViews)
+		if (!noRelatedViewsThisLevel)
 		{
 			// first copy the icons
 			boolean found = true;
@@ -4447,7 +4450,7 @@ public class CircuitChanges
 
 					// copy equivalent view if not already there
 					Cell oNp = copyRecursively(np, np.getName(), toLib, np.getView(),
-						verbose, move, "alternate view ", true, noSubCells, useExisting);
+						verbose, move, "alternate view ", noRelatedViews, true, noSubCells, useExisting);
 					if (oNp == null)
 					{
 						if (move) System.out.println("Move of alternate view " + np.describe() + " failed"); else
@@ -4474,7 +4477,7 @@ public class CircuitChanges
 
 					// copy equivalent view if not already there
 					Cell oNp = copyRecursively(np, np.getName(), toLib, np.getView(),
-						verbose, move, "alternate view ", true, noSubCells, useExisting);
+						verbose, move, "alternate view ", noRelatedViews, true, noSubCells, useExisting);
 					if (oNp == null)
 					{
 						if (move) System.out.println("Move of alternate view " + np.describe() + " failed"); else

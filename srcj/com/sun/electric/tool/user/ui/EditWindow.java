@@ -967,7 +967,7 @@ public class EditWindow extends JPanel
 	{
 		// to enable keys to be received
 		if (wf == WindowFrame.getCurrentWindowFrame())
-			requestFocus();
+			requestFocusInWindow();
 
 		if (offscreen == null || !getSize().equals(sz))
 		{

@@ -1507,7 +1507,7 @@ public class ELIB extends LibraryFiles
 					" because ends are unknown");
 				continue;
 			}
-			int defAngle = ai.lowLevelGetArcAngle() * 10;
+			int defAngle = ELIBConstants.getArcAngleFromBits(arcUserBits[i]) * 10;
 			if (ai.lowLevelPopulate(ap, width, headPortInst, new EPoint(headX, headY), tailPortInst, new EPoint(tailX, tailY), defAngle, name, -1))
 			{
 				String msg = "ERROR: Cell "+cell.describe() + ": arc " + name + " could not be created";

@@ -858,7 +858,7 @@ public class PadGenerator {
                 // if copying cell, copy it into current library
                 if (copycells) {
                     cell = CircuitChanges.copyRecursively(cell, cell.getName(), Library.getCurrent(),
-                            cell.getView(), false, false, "", false, false, false);
+                            cell.getView(), false, false, "", false, false, false, false);
                 }
                 if (cell == null) {
                     err("Could not copy in pad Cell " + cellname);
