@@ -32,6 +32,7 @@ import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -44,10 +45,13 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.parasitic.ParasiticTool;
 import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.logicaleffort.LENetlister;
@@ -187,6 +191,8 @@ public class DebugMenus {
         menuBar.add(dimaMenu);
 	    dimaMenu.addMenuItem("Plot diode", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { Diode.plotDiode(User.getWorkingDirectory() + File.separator + "diode.raw"); } });
+	    dimaMenu.addMenuItem("Show tech vars", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { showTechnologyVariablesCommand(); } });
     }
 
 	// ---------------------- Help Menu additions -----------------
@@ -1442,6 +1448,90 @@ public class DebugMenus {
             return true;
         }
     }
+
+	// ---------------------- Dima's Stuff MENU -----------------
+
+	private static void showTechnologyVariablesCommand()
+	{
+		ShowTechnologyVariables job = new ShowTechnologyVariables();
+	}
+
+	/**
+	 * Class to show variables of Technology objects.
+	 */
+	private static class ShowTechnologyVariables extends Job
+	{
+		protected ShowTechnologyVariables()
+		{
+			super("Show technology variables", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			System.out.println("Technology variables.");
+			for (Iterator tit = Technology.getTechnologies(); tit.hasNext();)
+			{
+				Technology tech = (Technology)tit.next();
+				System.out.println(tech + ":");
+				for (Iterator vit = tech.getVariables(); vit.hasNext();)
+				{
+					Variable var = (Variable)vit.next();
+					System.out.println("tech has " + var);
+				}
+				for (Iterator nit = tech.getNodes(); nit.hasNext();)
+				{
+					PrimitiveNode pn = (PrimitiveNode)nit.next();
+					for (Iterator vit = pn.getVariables(); vit.hasNext();)
+					{
+						Variable var = (Variable)vit.next();
+						System.out.println(pn + " has " + var);
+					}
+					for (Iterator pit = pn.getPorts(); pit.hasNext();)
+					{
+						PrimitivePort pp = (PrimitivePort)pit.next();
+						for (Iterator vit = pp.getVariables(); vit.hasNext();)
+						{
+							Variable var = (Variable)vit.next();
+							System.out.println(pn + " " + pp + " has " + var);
+						}
+					}
+				}
+				for (Iterator ait = tech.getArcs(); ait.hasNext();)
+				{
+					PrimitiveArc an = (PrimitiveArc)ait.next();
+					for (Iterator vit = an.getVariables(); vit.hasNext();)
+					{
+						Variable var = (Variable)vit.next();
+						System.out.println(an + " has " + var);
+					}
+				}
+			}
+			System.out.println("Tool variables.");
+			for (Iterator tit = Tool.getTools(); tit.hasNext();)
+			{
+				Tool tool = (Tool)tit.next();
+				System.out.println(tool + ":");
+				for (Iterator vit = tool.getVariables(); vit.hasNext();)
+				{
+					Variable var = (Variable)vit.next();
+					System.out.println("tool has " + var);
+				}
+			}
+			System.out.println("View variables.");
+			for (Iterator wit = View.getViews(); wit.hasNext();)
+			{
+				View view = (View)wit.next();
+				System.out.println(view + ":");
+				for (Iterator vit = view.getVariables(); vit.hasNext();)
+				{
+					Variable var = (Variable)vit.next();
+					System.out.println("view has " + var);
+				}
+			}
+			return true;
+		}
+	}
 
 
 }
