@@ -74,7 +74,7 @@ public class Spice extends Topology
 //	/** key of Variable holding SPICE code. */					public static final Variable.Key SPICE_CARD_KEY = ElectricObject.newKey("SPICE_Code");
 	/** key of Variable holding SPICE model. */					public static final Variable.Key SPICE_MODEL_KEY = ElectricObject.newKey("SIM_spice_model");
 	/** key of Variable holding SPICE model file. */			public static final Variable.Key SPICE_MODEL_FILE_KEY = ElectricObject.newKey("SIM_spice_behave_file");
-	/** Old pre-fix for spice extension. */                     public static final Variable.Key SPICE_EXTENSION_KEY = ElectricObject.newKey(":::::");
+	/** Old pre-fix for spice extension. */                     public static final Variable.Key SPICE_PREFIX_KEY = ElectricObject.newKey(":::::");
 
 	/** maximum subcircuit name length */						private static final int SPICEMAXLENSUBCKTNAME     = 70;
 	/** legal characters in a spice deck */						private static final String SPICELEGALCHARS        = "!#$%*+-/<>[]_";
