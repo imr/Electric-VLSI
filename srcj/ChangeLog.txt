@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02e: *********************************
 
+BUG: (01/25/05, SMR) Auto-routing does not connect to pure-layer nodes with nonmanhattan shape.
+FIX: In Technology.getShapeOfNode(), set a port when outline is present and electrical layers requested.
+
 BUG: (01/24/04, JKG) HierarchyEnumerator.getNetworkInParent() did not handle
     globals correctly, because they are not explicitly exported.
 FIX: check for globals
@@ -11,6 +14,9 @@ FIX: check for globals
 BUG: (01/24/04, JKG) Additional windows (with menu bars) was causing duplicate
     key bindings.
 FIX: boolean check for initialization to occur only once.
+
+BUG: (01/24/05, SMR) Importing libraries doesn't mark them to be saved.
+FIX: In "Input.importLibrary()", set the library to have major changes.
 
 ************************* Version 8.02d: *********************************
 
@@ -21,6 +27,7 @@ FIX: A fix has been implemented that checks for version 8.02c of the libraries a
 
 BUG: (01/24/05, SMR) CIF input places cell instances incorrectly.
 FIX: In CIF.nodesCall(), must compute instance position to account for cell-centers.
+     In CIF.makeCall(), must make a copy of the matrix.
 
 IMP: (01/22/05, SMR) Finished coding PolyBase.contains().
 

@@ -44,6 +44,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 
 /**
@@ -75,7 +76,6 @@ public class CIF extends Input
 	private static final int NESTEND    = 117;
 	private static final int NOSPACE    = 118;
 	private static final int NONAME     = 119;
-	private static final int BADLAYER   = 120;
 
 	// enumerated types for cif 2.0 parser
 	private static final int SEMANTICERROR = 0;
@@ -365,7 +365,7 @@ public class CIF extends Input
 	/** number of chars in buffer */		private int              charactersRead;
 	/** flag to reset buffer */				private boolean          resetInputBuffer;
 	/** number of "fatal" errors */			private int              numFatalErrors;
-	/** null layer errors encountered */	private int              numNullLayerErrors;
+	/** null layer errors encountered */	private boolean          numNullLayerErrors;
 	/** ignore statements until DF */		private boolean          ignoreStatements;
 	/** 91 pending */						private boolean          namePending;
 	/** end command flag */					private boolean          endCommandFound;
@@ -383,6 +383,7 @@ public class CIF extends Input
 	/** the current cell */					private BackCIFCell      currentBackCell;
 	/** current technology for layers */	private Technology       curTech;
 	/** map from layer names to layers */	private HashMap          cifLayerNames;
+	/** set of unknown layers */			private HashSet          unknownLayerNames;
 	/** address of cell being defined */	private Cell             cellBeingBuilt;
 	/** name of the current cell */			private String           currentNodeProtoName;
 	/** the line being read */				private StringBuffer     inputBuffer;
@@ -424,7 +425,7 @@ public class CIF extends Input
 			}
 			if (currentFrontElement.identity == CEND)
 			{
-				lib.setCurCell(cellBeingBuilt);
+//				lib.setCurCell(cellBeingBuilt);		// THIS TAKES WAY TOO LONG
 				cellBeingBuilt = null;
 				continue;
 			}
@@ -677,9 +678,6 @@ public class CIF extends Input
 			System.out.println("Cannot find primitive to use for layer '" + layname + "' (number " + cb.lay + ")");
 			return true;
 		}
-		int l = cb.length;        int w = cb.width;
-		int lx = cb.cenX - l/2;   int ly = cb.cenY - w/2;
-		int hx = cb.cenX + l/2;   int hy = cb.cenY + w/2;
 		int r = GenMath.figureAngle(new Point2D.Double(0, 0), new Point2D.Double(cb.xRot, cb.yRot));
 		double x = convertFromCentimicrons(cb.cenX);
 		double y = convertFromCentimicrons(cb.cenY);
@@ -704,6 +702,14 @@ public class CIF extends Input
 		doneParser();
 
 		if (numFatalErrors > 0) return true;
+		if (unknownLayerNames.size() > 0)
+		{
+			System.out.println("Error: these layers appear in the CIF file but are not assigned to Electric layers:");
+			for(Iterator it = unknownLayerNames.iterator(); it.hasNext(); )
+			{
+				System.out.println("    " + (String)it.next());
+			}
+		}
 
 		Rectangle box = getInterpreterBounds();
 
@@ -737,6 +743,7 @@ public class CIF extends Input
 	{
 		// get the array of CIF names
 		cifLayerNames = new HashMap();
+		unknownLayerNames = new HashSet();
 		boolean valid = false;
 		curTech = Technology.getCurrent();
 		for(Iterator it = curTech.getLayers(); it.hasNext(); )
@@ -760,7 +767,7 @@ public class CIF extends Input
 
 	private void initInterpreter()
 	{
-		numNullLayerErrors = 0;
+		numNullLayerErrors = false;
 		isInCellDefinition = false;
 		ignoreStatements = false;
 		namePending = false;
@@ -800,7 +807,7 @@ public class CIF extends Input
 
 	private void doneInterpreter()
 	{
-		if (numNullLayerErrors != 0)
+		if (numNullLayerErrors)
 		{
 			errorReport("output on null layer", FATALSEMANTIC);
 		}
@@ -1767,7 +1774,7 @@ public class CIF extends Input
 		if (ignoreStatements) return;
 		if (currentLayer == null)
 		{
-			numNullLayerErrors++;
+			numNullLayerErrors = true;
 			return;
 		}
 		if (length == 0 || width == 0)
@@ -1853,7 +1860,7 @@ public class CIF extends Input
 		if (ignoreStatements) return;
 		if (currentLayer == null)
 		{
-			numNullLayerErrors++;
+			numNullLayerErrors = true;
 			return;
 		}
 		if (diameter == 0)
@@ -1922,8 +1929,7 @@ public class CIF extends Input
 		currentLayer = (Layer)cifLayerNames.get(lName);
 		if (currentLayer == null)
 		{
-			errorType = BADLAYER;
-			reportError();
+			unknownLayerNames.add(lName);
 		}
 	}
 
@@ -1961,7 +1967,19 @@ public class CIF extends Input
 		}
 
 		FrontCall obj = new FrontCall();
-		obj.matrix = matrixStackTop;
+
+		// must make a copy of the matrix
+		obj.matrix = new FrontMatrix();
+		obj.matrix.a11 = matrixStackTop.a11;
+		obj.matrix.a12 = matrixStackTop.a12;
+		obj.matrix.a21 = matrixStackTop.a21;
+		obj.matrix.a22 = matrixStackTop.a22;
+		obj.matrix.a31 = matrixStackTop.a31;
+		obj.matrix.a32 = matrixStackTop.a32;
+		obj.matrix.a33 = matrixStackTop.a33;
+		obj.matrix.type = matrixStackTop.type;
+		obj.matrix.multiplied = matrixStackTop.multiplied;
+
 		popTransform();		// return to previous state
 
 		obj.symNumber = symbol;
@@ -2129,7 +2147,7 @@ public class CIF extends Input
 		if (ignoreStatements) return;
 		if (currentLayer == null)
 		{
-			numNullLayerErrors++;
+			numNullLayerErrors = true;
 			return;
 		}
 		FrontWire obj = new FrontWire();
@@ -2273,7 +2291,7 @@ public class CIF extends Input
 		if (ignoreStatements) return;
 		if (currentLayer == null)
 		{
-			numNullLayerErrors++;
+			numNullLayerErrors = true;
 			return;
 		}
 		if (length < 3)
@@ -2387,7 +2405,9 @@ public class CIF extends Input
 		if (sym.boundsValid) return;			// already done
 		if (ob == null)			// empty symbol
 		{
-			String mess = "symbol " + sym.symNumber + " has no geometry in it";
+			String name = sym.name;
+			if (name == null) name = "#" + sym.symNumber;
+			String mess = "cell " + name + " has no geometry in it";
 			errorReport(mess, ADVISORY);
 			sym.bounds.l = 0;   sym.bounds.r = 0;
 			sym.bounds.b = 0;   sym.bounds.t = 0;
@@ -2792,7 +2812,6 @@ public class CIF extends Input
 			case NONAME:     errorReport("no name in name command", FATALSYNTAX); break;
 			case NESTEND:    errorReport("End command inside symbol definition", FATALSYNTAX); break;
 			case NOERROR:    errorReport("error signaled but not reported", FATALINTERNAL); break;
-			case BADLAYER:   errorReport("Unknown layer name", FATALINTERNAL); break;
 			default:         errorReport("uncaught error", FATALSYNTAX);
 		}
 		if (errorType != INTERNAL && errorType != NOSEMI && flushInput(';') < 0)

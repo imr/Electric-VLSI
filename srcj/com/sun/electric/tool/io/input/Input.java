@@ -187,6 +187,7 @@ public class Input
 
 		// create a new library
 		Library lib = Library.newInstance(libName, fileURL);
+		lib.setChangedMajor();
 
 		// initialize timer, error log, etc
 		long startTime = System.currentTimeMillis();

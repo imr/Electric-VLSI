@@ -103,7 +103,7 @@ public class AutoStitch
 		{
 			Cell cell = WindowFrame.needCurCell();
 			if (cell == null) return false;
-			runAutoStitch(cell, highlighted, forced);
+			runAutoStitch(cell, highlighted, forced, false);
 			return true;
 		}
 	}
@@ -113,8 +113,9 @@ public class AutoStitch
 	 * @param cell the cell in which to stitch.
 	 * @param highlighted true to auto-stitch only what is highlighted; false to do the entire current cell.
 	 * @param forced true if the stitching was explicitly requested (and so results should be printed).
+	 * @param noNewGeometry true to force arcs to land over existing geometry (prevents creation of new geometry).
 	 */
-	public static void runAutoStitch(Cell cell, boolean highlighted, boolean forced)
+	public static void runAutoStitch(Cell cell, boolean highlighted, boolean forced, boolean noNewGeometry)
 	{
 		List nodesToStitch = new ArrayList();
 		if (highlighted)
@@ -254,10 +255,25 @@ public class AutoStitch
 		nodeMark = null;
 
         // create the routes
-        for (Iterator it = allRoutes.iterator(); it.hasNext(); ) {
+        for (Iterator it = allRoutes.iterator(); it.hasNext(); )
+        {
             Route route = (Route)it.next();
             RouteElement re = (RouteElement)route.get(0);
             Cell c = re.getCell();
+
+            // if requesting no new geometry, make sure all arcs are default width
+            if (noNewGeometry)
+            {
+	            for (Iterator rIt = route.iterator(); rIt.hasNext(); )
+	            {
+	                Object obj = rIt.next();
+	                if (obj instanceof RouteElementArc)
+	                {
+	                    RouteElementArc reArc = (RouteElementArc)obj;
+	                    reArc.setArcWidth(reArc.getArcProto().getDefaultWidth());
+	                }
+	            }
+            }
             Router.createRouteNoJob(route, c, false, false, null);
         }
 
@@ -295,7 +311,6 @@ public class AutoStitch
 			Geometric geom = (Geometric)it.next();
 			if (geom instanceof NodeInst) nodesInArea.add(geom);
 		}
-
 		int count = 0;
 		for(Iterator it = nodesInArea.iterator(); it.hasNext(); )
 		{

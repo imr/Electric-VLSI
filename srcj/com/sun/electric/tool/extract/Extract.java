@@ -77,20 +77,24 @@ public class Extract extends Listener
 	public void init()
 	{
 	}
-	
+
     /****************************** OPTIONS ******************************/
 
-//	private static Pref cacheIncrementalDRCOn = Pref.makeBooleanPref("IncrementalDRCOn", Extract.tool.prefs, true);
-//	/**
-//	 * Method to tell whether DRC should be done incrementally.
-//	 * The default is "true".
-//	 * @return true if DRC should be done incrementally.
-//	 */
-//	public static boolean isIncrementalDRCOn() { return cacheIncrementalDRCOn.getBoolean(); }
-//	/**
-//	 * Method to set whether DRC should be done incrementally.
-//	 * @param on true if DRC should be done incrementally.
-//	 */
-//	public static void setIncrementalDRCOn(boolean on) { cacheIncrementalDRCOn.setBoolean(on); }
-
+	private static Pref cacheExactCutExtraction = Pref.makeBooleanPref("ExactCutExtraction", Extract.tool.prefs, false);
+	/**
+	 * Method to tell whether the node extractor should preserve contact/via cut placement precisely.
+	 * Since Electric automatically generates cuts, they may not land in the same place as those
+	 * that come from other systems.
+	 * The default is "false", meaning that the node extractor will create the largest contact
+	 * possible given the layer overlaps.
+	 * @return true if the node extractor should preserve contact/via cut placement precisely.
+	 */
+	public static boolean isExactCutExtraction() { return cacheExactCutExtraction.getBoolean(); }
+	/**
+	 * Method to set whether the node extractor should preserve contact/via cut placement precisely.
+	 * Since Electric automatically generates cuts, they may not land in the same place as those
+	 * that come from other systems.
+	 * @param e true if the node extractor should preserve contact/via cut placement precisely.
+	 */
+	public static void setExactCutExtraction(boolean e) { cacheExactCutExtraction.setBoolean(e); }
 }

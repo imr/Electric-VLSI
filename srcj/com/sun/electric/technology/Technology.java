@@ -1557,6 +1557,11 @@ public class Technology implements Comparable
 				polys[0].setStyle(primLayer.getStyle());
 				if (layerOverride != null) polys[0].setLayer(layerOverride); else
 					polys[0].setLayer(primLayer.getLayer());
+				if (electrical)
+				{
+					int portIndex = primLayer.getPortNum();
+					if (portIndex >= 0) polys[0].setPort(np.getPort(portIndex));
+				}
 				Rectangle2D rect = ni.getBounds();
 				if (wnd != null) ni.addDisplayableVariables(rect, polys, 1, wnd, true);
 				return polys;
@@ -1655,9 +1660,7 @@ public class Technology implements Comparable
 			if (electrical)
 			{
 				int portIndex = primLayer.getPortNum();
-				PortProto port = null;
-				if (portIndex >= 0) port = np.getPort(portIndex);
-				polys[fillPoly].setPort(port);
+				if (portIndex >= 0) polys[fillPoly].setPort(np.getPort(portIndex));
 			}
 			fillPoly++;
 		}
