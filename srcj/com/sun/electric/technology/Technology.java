@@ -707,6 +707,35 @@ public class Technology extends ElectricObject
 		return layer1 == layer2;
 	}
 
+	/**
+	 * Method to make a sorted list of layers in this Technology.
+	 * The list is sorted by depth (from bottom to top).
+	 * @return a sorted list of Layers in this Technology.
+	 */
+	public List getLayersSortedByHeight()
+	{
+		// determine order of overlappable layers in current technology
+		List layerList = new ArrayList();
+		for(Iterator it = getLayers(); it.hasNext(); )
+		{
+			layerList.add(it.next());
+		}
+		Collections.sort(layerList, new LayerHeight());
+		return(layerList);
+	}
+
+	static class LayerHeight implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Layer l1 = (Layer)o1;
+			Layer l2 = (Layer)o2;
+			int h1 = l1.getFunction().getHeight();
+			int h2 = l2.getFunction().getHeight();
+			return h1 - h2;
+		}
+	}
+
 	/****************************** ARCS ******************************/
 
 	/**

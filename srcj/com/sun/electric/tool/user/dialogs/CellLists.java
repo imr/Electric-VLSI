@@ -170,7 +170,7 @@ public class CellLists extends javax.swing.JDialog
 				line += "     UNRECORDED     ";
 		} else
 		{
-			line += sdf.format(creationDate);
+			line += sdf.format(revisionDate);
 		}
 		if (maxlen < 0) line += "\t"; else line += "   ";
 
@@ -222,7 +222,7 @@ public class CellLists extends javax.swing.JDialog
 		if (maxlen < 0) line += "\t"; else line += " ";
 
 		boolean goodDRC = false;
-		Variable var = cell.getVar("DRC_last_good_drc", Integer.class);
+		Variable var = cell.getVar("DRC_last_good_drc", Long.class);
 		if (var != null)
 		{
 			long lastGoodDateLong = ((Integer)var.getObject()).intValue();

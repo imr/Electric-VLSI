@@ -91,32 +91,6 @@ public class EMath
 	}
 
 	/**
-	 * Method to convert an integer date (seconds since the epoch) to a Java Date object.
-	 * @param secondsSinceEpoch the number of seconds since the epoch (Jan 1, 1970).
-	 * @return a Java Date object.
-	 */
-	public static Date secondsToDate(long secondsSinceEpoch)
-	{
-		GregorianCalendar creation = new GregorianCalendar();
-		creation.setTimeInMillis(0);
-		creation.setLenient(true);
-		creation.add(Calendar.SECOND, (int)secondsSinceEpoch);
-		return creation.getTime();
-	}
-
-	/**
-	 * Method to convert a Java Date object to an integer (seconds since the epoch).
-	 * @param date a Java Date object.
-	 * @return the number of seconds since the epoch (Jan 1, 1970);
-	 */
-	public static long dateToSeconds(Date date)
-	{
-		GregorianCalendar creation = new GregorianCalendar();
-		creation.setTime(date);
-		return creation.getTimeInMillis() / 1000;
-	}
-
-	/**
 	 * Method to tell whether a point is on a given line segment.
 	 * @param end1 the first end of the line segment.
 	 * @param end2 the second end of the line segment.
@@ -247,6 +221,41 @@ public class EMath
 		}
 		iPt.setLocation(iX, iY);
 		return iPt.distance(pt);
+	}
+
+	/**
+	 * Method to find the two possible centers for a circle given a radius and two edge points.
+	 * @param r the radius of the circle.
+	 * @param p1 one point on the edge of the circle.
+	 * @param p2 the other point on the edge of the circle.
+	 * @param d the distance between the two points.
+	 * @return an array of two Point2Ds, either of which could be the center.
+	 * Returns null if there are no possible centers.
+	 * This code was written by John Mohammed of Schlumberger.
+	 */
+	public static Point2D [] findCenters(double r, Point2D p1, Point2D p2, double d)
+	{
+		// quit now if the circles concentric
+		if (p1.getX() == p2.getX() && p1.getY() == p2.getY()) return null;
+
+		// find the intersections, if any
+		double r2 = r * r;
+		double delta_1 = -d / 2.0;
+		double delta_12 = delta_1 * delta_1;
+
+		// quit if there are no intersections
+		if (r2 < delta_12) return null;
+
+		// compute the intersection points
+		double delta_2 = Math.sqrt(r2 - delta_12);
+		double x1 = p2.getX() + ((delta_1 * (p2.getX() - p1.getX())) + (delta_2 * (p2.getY() - p1.getY()))) / d;
+		double y1 = p2.getY() + ((delta_1 * (p2.getY() - p1.getY())) + (delta_2 * (p1.getX() - p2.getX()))) / d;
+		double x2 = p2.getX() + ((delta_1 * (p2.getX() - p1.getX())) + (delta_2 * (p1.getY() - p2.getY()))) / d;
+		double y2 = p2.getY() + ((delta_1 * (p2.getY() - p1.getY())) + (delta_2 * (p2.getX() - p1.getX()))) / d;
+		Point2D [] retArray = new Point2D[2];
+		retArray[0] = new Point2D.Double(x1, y1);
+		retArray[1] = new Point2D.Double(x2, y2);
+		return retArray;
 	}
 
 	/**

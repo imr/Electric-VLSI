@@ -47,6 +47,7 @@ import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -63,6 +64,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 import java.util.List;
+import java.util.HashMap;
 import java.util.Date;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -768,6 +770,400 @@ public class CircuitChanges
 				EditWindow.redrawAll();
 			}
 		}
+	}
+
+	/****************************** CLEAN-UP ******************************/
+
+	public static void cleanupPinsCommand(boolean everywhere)
+	{
+		Highlight.clear();
+		if (everywhere)
+		{
+			boolean cleaned = false;
+			for(Iterator it = Library.getCurrent().getCells(); it.hasNext(); )
+			{
+				Cell cell = (Cell)it.next();
+				if (us_cleanupcell(cell, false)) cleaned = true;
+			}
+			if (!cleaned) System.out.println("Nothing to clean");
+		} else
+		{
+			// just cleanup the current cell
+			Cell cell = Library.needCurCell();
+			if (cell == null) return;
+			us_cleanupcell(cell, true);
+		}
+		Highlight.finished();
+	}
+
+	/**
+	 * Method to clean-up cell "np" as follows:
+	 *   remove stranded pins (*****OK*****)
+	 *   collapse redundant (inline) arcs
+	 *   highlight zero-size nodes (*****OK*****)
+	 *   removes duplicate arcs (*****OK*****)
+	 *   highlight oversize pins that allow arcs to connect without touching
+	 *   move unattached and invisible pins with text in a different location (*****OK*****)
+	 *   resize oversized pins that don't have oversized arcs on them (*****OK*****)
+	 * Returns true if changes are made.
+	 */
+	private static boolean us_cleanupcell(Cell cell, boolean justThis)
+	{
+		// look for unused pins that can be deleted (*****OK*****)
+		List pinsToRemove = new ArrayList();
+		List pinsToPassThrough = new ArrayList();
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			if (ni.getFunction() != NodeProto.Function.PIN) continue;
+
+			// if the pin is an export, save it
+			if (ni.getNumExports() > 0) continue;
+
+			// if the pin is not connected or displayed, delete it
+			if (ni.getNumConnections() == 0)
+			{
+				// see if the pin has displayable variables on it
+				boolean hasDisplayable = false;
+				for(Iterator vIt = ni.getVariables(); vIt.hasNext(); )
+				{
+					Variable var = (Variable)vIt.next();
+					if (var.isDisplay()) { hasDisplayable = true;   break; }
+				}
+				if (hasDisplayable) continue;
+
+				// disallow erasing if lock is on
+				if (cantEdit(cell, ni, true)) continue;
+
+				// no displayable variables: delete it
+				pinsToRemove.add(ni);
+				continue;
+			}
+
+			// if the pin is connected to two arcs along the same slope, delete it
+			if (ni.isInlinePin())
+			{
+//				if (us_erasepassthru(ni, false, &ai) >= 0)
+//					pinsToPassThrough.add(ni);
+			}
+		}
+
+		// look for oversized pins that can be reduced in size (*****OK*****)
+		HashMap pinsToScale = new HashMap();
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			if (ni.getFunction() != NodeProto.Function.PIN) continue;
+
+			// if the pin is standard size, leave it alone
+			double overSizeX = ni.getXSize() - ni.getProto().getDefWidth();
+			if (overSizeX < 0) overSizeX = 0;
+			double overSizeY = ni.getYSize() - ni.getProto().getDefHeight();
+			if (overSizeY < 0) overSizeY = 0;
+			if (overSizeX == 0 && overSizeY == 0) continue;
+
+			// all arcs must connect in the pin center
+			boolean arcsInCenter = true;
+			for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+			{
+				Connection con = (Connection)cIt.next();
+				ArcInst ai = con.getArc();
+				if (ai.getHead().getPortInst().getNodeInst() == ni)
+				{
+					if (ai.getHead().getLocation().getX() != ni.getGrabCenterX()) { arcsInCenter = false;   break; }
+					if (ai.getHead().getLocation().getY() != ni.getGrabCenterY()) { arcsInCenter = false;   break; }
+				}
+				if (ai.getTail().getPortInst().getNodeInst() == ni)
+				{
+					if (ai.getTail().getLocation().getX() != ni.getGrabCenterX()) { arcsInCenter = false;   break; }
+					if (ai.getTail().getLocation().getY() != ni.getGrabCenterY()) { arcsInCenter = false;   break; }
+				}
+			}
+			if (!arcsInCenter) continue;
+
+			// look for arcs that are oversized
+			double overSizeArc = 0;
+			for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+			{
+				Connection con = (Connection)cIt.next();
+				ArcInst ai = con.getArc();
+				double overSize = ai.getWidth() - ai.getProto().getDefaultWidth();
+				if (overSize < 0) overSize = 0;
+				if (overSize > overSizeArc) overSizeArc = overSize;
+			}
+
+			// if an arc covers the pin, leave the pin
+			if (overSizeArc >= overSizeX && overSizeArc >= overSizeY) continue;
+
+			double dSX = 0, dSY = 0;
+			if (overSizeArc < overSizeX) dSX = overSizeX - overSizeArc;
+			if (overSizeArc < overSizeY) dSY = overSizeY - overSizeArc;
+			pinsToScale.put(ni, new Point2D.Double(-dSX, -dSY));
+		}
+
+		// look for pins that are invisible and have text in different location (*****OK*****)
+		List textToMove = new ArrayList();
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			Point2D pt = ni.invisiblePinWithOffsetText(false);
+			if (pt != null)
+				textToMove.add(ni);
+		}
+
+		// highlight oversize pins that allow arcs to connect without touching
+		int overSizePins = 0;
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			if (ni.getFunction() != NodeProto.Function.PIN) continue;
+
+			// make sure all arcs touch each other
+			boolean nodeIsBad = false;
+			for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+			{
+				Connection con = (Connection)cIt.next();
+				ArcInst ai = con.getArc();
+				double i = ai.getWidth() - ai.getProto().getWidthOffset();
+				Poly poly = ai.curvedArcOutline(ai, Poly.Type.CLOSED, i);
+				if (poly == null)
+					poly = ai.makePoly(ai.getLength(), i, Poly.Type.FILLED);
+				for(Iterator oCIt = ni.getConnections(); oCIt.hasNext(); )
+				{
+					Connection oCon = (Connection)oCIt.next();
+					ArcInst oAi = oCon.getArc();
+					if (ai.getArcIndex() <= oAi.getArcIndex()) continue;
+					double oI = oAi.getWidth() - oAi.getProto().getWidthOffset();
+					Poly oPoly = ai.curvedArcOutline(oAi, Poly.Type.CLOSED, oI);
+					if (oPoly == null)
+						oPoly = ai.makePoly(oAi.getLength(), oI, Poly.Type.FILLED);
+					double dist = poly.separation(oPoly);
+System.out.println("Distance between two arcs on a pin is "+dist);
+					if (dist <= 0) continue;
+					nodeIsBad = true;
+					break;
+				}
+				if (nodeIsBad) break;
+			}
+			if (nodeIsBad)
+			{
+				if (justThis)
+				{
+					Highlight.addElectricObject(ni, cell);
+				}
+				overSizePins++;
+			}
+		}
+
+		// look for duplicate arcs (*****OK*****)
+		HashMap arcsToKill = new HashMap();
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+			{
+				Connection con = (Connection)cIt.next();
+				ArcInst ai = con.getArc();
+				int otherEnd = 0;
+				if (ai.getConnection(0) == con) otherEnd = 1;
+				boolean foundAnother = false;
+				for(Iterator oCIt = ni.getConnections(); oCIt.hasNext(); )
+				{
+					Connection oCon = (Connection)oCIt.next();
+					ArcInst oAi = oCon.getArc();
+					if (ai.getArcIndex() <= oAi.getArcIndex()) continue;
+					if (con.getPortInst().getPortProto() != oCon.getPortInst().getPortProto()) continue;
+					if (ai.getProto() != oAi.getProto()) continue;
+					int oOtherEnd = 0;
+					if (oAi.getConnection(0) == oCon) oOtherEnd = 1;
+					if (ai.getConnection(otherEnd).getPortInst().getNodeInst() !=
+						oAi.getConnection(oOtherEnd).getPortInst().getNodeInst()) continue;
+					if (ai.getConnection(otherEnd).getPortInst().getPortProto() !=
+						oAi.getConnection(oOtherEnd).getPortInst().getPortProto()) continue;
+
+					// this arc is a duplicate
+					arcsToKill.put(oAi, oAi);
+					foundAnother = true;
+					break;
+				}
+				if (foundAnother) break;
+			}
+		}
+
+		// now highlight negative or zero-size nodes (*****OK*****)
+		int zeroSize = 0, negSize = 0;
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			if (ni.getProto() == Generic.tech.cellCenterNode ||
+				ni.getProto() == Generic.tech.invisiblePinNode ||
+				ni.getProto() == Generic.tech.essentialBoundsNode) continue;
+			SizeOffset so = ni.getProto().getSizeOffset();
+			double sX = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+			double sY = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+			if (sX > 0 && sY > 0) continue;
+			if (justThis)
+			{
+				Highlight.addElectricObject(ni, cell);
+			}
+			if (sX < 0 || sY < 0) negSize++; else
+				zeroSize++;
+		}
+
+		if (pinsToRemove.size() == 0 &&
+			pinsToPassThrough.size() == 0 &&
+			pinsToScale.size() == 0 &&
+			zeroSize == 0 &&
+			negSize == 0 &&
+			textToMove.size() == 0 &&
+			overSizePins == 0 &&
+			arcsToKill.size() == 0)
+		{
+			if (justThis) System.out.println("Nothing to clean");
+			return false;
+		}
+
+		CleanupChanges job = new CleanupChanges(cell, justThis, pinsToRemove, pinsToPassThrough, pinsToScale, textToMove, arcsToKill,
+			zeroSize, negSize, overSizePins);
+		return true;
+	}
+	
+	/**
+	 * This class implements the changes needed to cleanup pins in a Cell.
+	 */
+	private static class CleanupChanges extends Job
+	{
+		private Cell cell;
+		private boolean justThis;
+		private List pinsToRemove;
+		private List pinsToPassThrough;
+		private HashMap pinsToScale;
+		private List textToMove;
+		private HashMap arcsToKill;
+		private int zeroSize, negSize, overSizePins;
+
+		private CleanupChanges(Cell cell, boolean justThis, List pinsToRemove, List pinsToPassThrough, HashMap pinsToScale, List textToMove, HashMap arcsToKill,
+			int zeroSize, int negSize, int overSizePins)
+		{
+			super("Cleanup cell " + cell.describe(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cell = cell;
+			this.justThis = justThis;
+			this.pinsToRemove = pinsToRemove;
+			this.pinsToPassThrough = pinsToPassThrough;
+			this.pinsToScale = pinsToScale;
+			this.textToMove = textToMove;
+			this.arcsToKill = arcsToKill;
+			this.zeroSize = zeroSize;
+			this.negSize = negSize;
+			this.overSizePins = overSizePins;
+			this.startJob();
+		}
+
+		public void doIt()
+		{
+			// do the queued operations
+			for(Iterator it = pinsToRemove.iterator(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				ni.kill();
+			}
+			for(Iterator it = pinsToPassThrough.iterator(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+	//			if (us_erasepassthru(ni, false, &ai) >= 0)
+	//				pinsToPassThrough.add(ni);
+			}
+			for(Iterator it = pinsToScale.keySet().iterator(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				Point2D scale = (Point2D)pinsToScale.get(ni);
+				ni.modifyInstance(0, 0, scale.getX(), scale.getY(), 0);
+			}
+			for(Iterator it = textToMove.iterator(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				ni.invisiblePinWithOffsetText(true);
+			}
+			for(Iterator it = arcsToKill.keySet().iterator(); it.hasNext(); )
+			{
+				ArcInst ai = (ArcInst)it.next();
+				ai.kill();
+			}
+
+			// report what was cleaned
+			String infstr = "";
+			if (!justThis) infstr += "Cell " + cell.describe() + ":";
+			boolean spoke = false;
+			if (pinsToRemove.size() != 0)
+			{
+				infstr += "Removed " + pinsToRemove.size() + " pins";
+				spoke = true;
+			}
+			if (arcsToKill.size() != 0)
+			{
+				if (spoke) infstr += "; ";
+				infstr += "Removed " + arcsToKill.size() + " duplicate arcs";
+				spoke = true;
+			}
+			if (pinsToScale.size() != 0)
+			{
+				if (spoke) infstr += "; ";
+				infstr += "Shrunk " + pinsToScale.size() + " pins";
+				spoke = true;
+			}
+			if (zeroSize != 0)
+			{
+				if (spoke) infstr += "; ";
+				if (justThis)
+				{
+					infstr += "Highlighted " + zeroSize + " zero-size pins";
+				} else
+				{
+					infstr += "Found " + zeroSize + " zero-size pins";
+				}
+				spoke = true;
+			}
+			if (negSize != 0)
+			{
+				if (spoke) infstr += "; ";
+				if (justThis)
+				{
+					infstr += "Highlighted " + negSize + " negative-size pins";
+				} else
+				{
+					infstr += "Found " + negSize + " negative-size pins";
+				}
+				spoke = true;
+			}
+			if (overSizePins != 0)
+			{
+				if (spoke) infstr += "; ";
+				if (justThis)
+				{
+					infstr += "Highlighted " + overSizePins + " oversize pins with arcs that don't touch";
+				} else
+				{
+					infstr += "Found " + overSizePins + " oversize pins with arcs that don't touch";
+				}
+				spoke = true;
+			}
+			if (textToMove.size() != 0)
+			{
+				if (spoke) infstr += "; ";
+				infstr += "Moved text on " + textToMove.size() + " pins with offset text";
+			}
+			System.out.println(infstr);
+		}
+	}
+
+	public static void showNonmanhattanCommand()
+	{
+		System.out.println("Can't show nonmanhattan yet");
+	}
+
+	public static void shortenArcsCommand()
+	{
+		System.out.println("Can't short arcs yet");
 	}
 
 	/****************************** CHANGE A CELL'S VIEW ******************************/

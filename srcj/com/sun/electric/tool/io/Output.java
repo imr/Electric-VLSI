@@ -40,8 +40,13 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.io.OutputCIF;
 import com.sun.electric.tool.io.OutputGDS;
+import com.sun.electric.tool.io.OutputPostScript;
+import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.ui.EditWindow;
 
+import java.awt.geom.Rectangle2D;
 import java.io.FileOutputStream;
 import java.io.DataOutputStream;
 import java.io.BufferedOutputStream;
@@ -82,10 +87,11 @@ public class Output extends IOTool
 		 */
 		public String toString() { return name; }
 
-		/** Describes binary output .*/			public static final ExportType BINARY=   new ExportType("binary");
-		/** Describes text output. */			public static final ExportType TEXT=     new ExportType("text");
-		/** Describes CIF output. */			public static final ExportType CIF=      new ExportType("CIF");
-		/** Describes GDS output. */			public static final ExportType GDS=      new ExportType("GDS");
+		/** Describes binary output .*/			public static final ExportType BINARY    = new ExportType("binary");
+		/** Describes text output. */			public static final ExportType TEXT      = new ExportType("text");
+		/** Describes CIF output. */			public static final ExportType CIF       = new ExportType("CIF");
+		/** Describes GDS output. */			public static final ExportType GDS       = new ExportType("GDS");
+		/** Describes PostScript output. */		public static final ExportType POSTSCRIPT= new ExportType("PostScript");
 	}
 
 	// ------------------------- private data ----------------------------
@@ -178,10 +184,12 @@ public class Output extends IOTool
 		if (type == ExportType.CIF)
 		{
 			error = OutputCIF.writeCIFFile(cell, filePath);
-		}
-		if (type == ExportType.GDS)
+		} else if (type == ExportType.GDS)
 		{
 			error = OutputGDS.writeGDSFile(cell, filePath);
+		} else if (type == ExportType.POSTSCRIPT)
+		{
+			error = OutputPostScript.writePostScriptFile(cell, filePath);
 		}
         
 		if (error)
@@ -378,6 +386,57 @@ public class Output extends IOTool
 		}
 	}
 
+	/**
+	 * Method to determine the area of a cell that is to be printed.
+	 * Returns null if the area cannot be determined.
+	 */
+	public Rectangle2D getAreaToPrint(Cell cell, boolean reduce)
+	{
+		Rectangle2D bounds = cell.getBounds();
+
+		// extend it and make it square
+		if (reduce)
+		{
+			double wid = bounds.getWidth() * 0.75;
+			double hei = bounds.getHeight() * 0.75;
+//			us_squarescreen(el_curwindowpart, NOWINDOWPART, FALSE, lx, hx, ly, hy, 0);
+			bounds.setRect(bounds.getCenterX(), bounds.getCenterY(), wid, hei);
+		}
+
+		if (getPlotArea() != 0)
+		{
+			if (getPlotArea() == 2)
+			{
+				EditWindow wnd = EditWindow.getCurrent();
+				if (wnd == null)
+				{
+					System.out.println("No current window: printing entire cell");
+				} else
+				{
+					bounds = wnd.getDisplayedBounds();
+				}
+			} else
+			{
+				EditWindow wnd = EditWindow.getCurrent();
+				if (wnd == null)
+				{
+					System.out.println("No current window: printing entire cell");
+				} else
+				{
+					Rectangle2D hBounds = Highlight.getHighlightedArea(wnd);
+					if (hBounds == null || hBounds.getWidth() == 0 || hBounds.getHeight() == 0)
+					{
+						System.out.println("Warning: no highlighted area; printing entire cell");
+					} else
+					{
+						bounds = hBounds;
+					}
+				}
+			}
+		}
+		return bounds;
+	}
+
 	/** 
      * Close the printWriter.
      * @return true on error.
@@ -415,5 +474,36 @@ public class Output extends IOTool
 	 * @param m the copyright message that will be added to output decks.
 	 */
 	public static void setCopyrightMessage(String m) { cacheCopyrightMessage.setString(m); }
+
+	private static Tool.Pref cachePlotArea = IOTool.tool.makeIntPref("PlotArea", 0);
+	/**
+	 * Method to tell the area of the screen to plot for printing/PostScript/HPGL.
+	 * @return the area of the screen to plot for printing/PostScript/HPGL:
+	 * 0=plot the entire cell (the default);
+	 * 1=plot only the highlighted area;
+	 * 2=plot only the displayed window.
+	 */
+	public static int getPlotArea() { return cachePlotArea.getInt(); }
+	/**
+	 * Method to set the area of the screen to plot for printing/PostScript/HPGL.
+	 * @param pa the area of the screen to plot for printing/PostScript/HPGL.
+	 * 0=plot the entire cell;
+	 * 1=plot only the highlighted area;
+	 * 2=plot only the displayed window.
+	 */
+	public static void setPlotArea(int pa) { cachePlotArea.setInt(pa); }
+
+	private static Tool.Pref cachePlotDate = IOTool.tool.makeBooleanPref("PlotDate", false);
+	/**
+	 * Method to tell whether to plot the date in PostScript/HPGL output.
+	 * The default is "false".
+	 * @return whether to plot the date in PostScript/HPGL output.
+	 */
+	public static boolean isPlotDate() { return cachePlotDate.getBoolean(); }
+	/**
+	 * Method to set whether to plot the date in PostScript/HPGL output.
+	 * @param pd true to plot the date in PostScript/HPGL output.
+	 */
+	public static void setPlotDate(boolean pd) { cachePlotDate.setBoolean(pd); }
 
 }

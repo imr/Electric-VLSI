@@ -123,7 +123,7 @@ public final class HierarchyEnumerator {
 	// NetIDs.
 	private void enumerateCell(Nodable parentInst,	Cell cell,
 	                           VarContext context, Netlist netlist, int[][] portNmToNetIDs,
-		                       AffineTransform xformToRoot,
+		                       AffineTransform xformToRoot, AffineTransform xformToRootRK,
 		                       CellInfo parent) {
 		CellInfo info = visitor.newCellInfo();
 		int firstNetID = nextNetID();
@@ -131,7 +131,7 @@ public final class HierarchyEnumerator {
 		int lastNetIDPlusOne = nextNetID();
 		cellCnt++;
 		info.init(parentInst, cell,	context, netlist, netToNetID, portNmToNetIDs,
-			      xformToRoot, netIdToNetDesc, parent);
+			      xformToRoot, xformToRootRK, netIdToNetDesc, parent);
 
 		boolean enumInsts = visitor.enterCell(info);
 		if (!enumInsts) return;
@@ -145,12 +145,18 @@ public final class HierarchyEnumerator {
 			if (descend && np instanceof Cell && !np.isIcon()) {
 				int[][] portNmToNetIDs2 = buildPortMap(netlist, ni, netToNetID);
 				AffineTransform xformToRoot2 = xformToRoot;
+				AffineTransform xformToRootRK2 = xformToRootRK;
 				if (ni instanceof NodeInst) {
+					xformToRootRK2 = new AffineTransform(xformToRootRK);
+					xformToRootRK2.concatenate(((NodeInst)ni).rkTransformOut());
+
+					// add transformation from lower level
 					xformToRoot2 = new AffineTransform(xformToRoot);
-					xformToRoot2.concatenate(((NodeInst)ni).rkTransformOut());
+					xformToRoot2.concatenate(((NodeInst)ni).rotateOut());
+					xformToRoot2.concatenate(((NodeInst)ni).translateOut());
 				}
 				enumerateCell(ni, (Cell)np, context.push(ni), netlist.getNetlist(ni), portNmToNetIDs2,
-					xformToRoot2, info);
+					xformToRoot2, xformToRootRK2, info);
 			}
 		}
 
@@ -168,11 +174,11 @@ public final class HierarchyEnumerator {
 // 					                   + np.getProtoName());
 // 				} else {
 // 					Map portNmToNetIDs2 = buildPortMap(ni, netToNetID);
-// 					AffineTransform xformToRoot2 =
-// 						new AffineTransform(xformToRoot);
-// 					xformToRoot2.concatenate(ni.rkTransformOut());
+// 					AffineTransform xformToRootRK2 =
+// 						new AffineTransform(xformToRootRK);
+// 					xformToRootRK2.concatenate(ni.rkTransformOut());
 // 					enumerateCell(ni, eq, context.push(ni), portNmToNetIDs2,
-// 						          xformToRoot2, info);
+// 						          xformToRootRK2, info);
 // 				}
 // 			}
 // 		}
@@ -192,12 +198,11 @@ public final class HierarchyEnumerator {
 		int numPorts = root.getNumPorts();
 		int[][] portNmToNetIDs = new int[0][];
 		enumerateCell(null,	root, context, netlist, portNmToNetIDs,
-		              new AffineTransform(), null);
+		              new AffineTransform(), new AffineTransform(), null);
 
-		System.out.println("A total of: " + nextNetID() + " nets were numbered");
-		System.out.println("A total of: " + cellCnt + " Cells were visited");
-		System.out.println(
-			"A total of: " + instCnt + " NodeInsts were visited");
+//		System.out.println("A total of: " + nextNetID() + " nets were numbered");
+//		System.out.println("A total of: " + cellCnt + " Cells were visited");
+//		System.out.println("A total of: " + instCnt + " NodeInsts were visited");
 	}
 
 	// ------------------------ public types ---------------------------
@@ -312,6 +317,7 @@ public final class HierarchyEnumerator {
 		private int[] netToNetID;
 		private int[][] exportNmToNetIDs;
 		private AffineTransform xformToRoot;
+		private AffineTransform xformToRootRK;
 		private Nodable parentInst;
 		private CellInfo parentInfo;
 		private List netIdToNetDesc;
@@ -320,7 +326,7 @@ public final class HierarchyEnumerator {
 		void init(Nodable parentInst, Cell cell, VarContext context,
 			      Netlist netlist,
 		          int[] netToNetID, int[][] exportNmToNetIDs, 
-				  AffineTransform xformToRoot, List netIdToNetDesc,	
+				  AffineTransform xformToRoot, AffineTransform xformToRootRK, List netIdToNetDesc,	
 				  CellInfo parentInfo) {
 			this.parentInst = parentInst;
 			this.cell = cell;
@@ -329,6 +335,7 @@ public final class HierarchyEnumerator {
 			this.netToNetID = netToNetID;
 			this.exportNmToNetIDs = exportNmToNetIDs;
 			this.xformToRoot = xformToRoot;
+			this.xformToRootRK = xformToRootRK;
 			this.parentInfo = parentInfo;
 			this.netIdToNetDesc = netIdToNetDesc;
 		}
@@ -420,17 +427,24 @@ public final class HierarchyEnumerator {
 		 * getPositionInRoot method is useful for flattening
 		 * layout. */
 		public final AffineTransform getPositionInRoot(NodeInst ni) {
-			AffineTransform x = new AffineTransform(xformToRoot);
+			AffineTransform x = new AffineTransform(xformToRootRK);
 			x.concatenate(ni.getPositionAsTransform());
 			return x;
 		}
+
+		/**
+		 * Method to get the transformation from the current location to the root.
+		 * If this is at the top cell, the transformation is identity.
+		 * @return the transformation from the current location to the root.
+		 */
+		public AffineTransform getTransformToRoot() { return xformToRoot; }
 
 		/** Find the position of a Point2D: p in the root Cell. The
 		 * getPositionInRoot method is useful for flattening
 		 * layout. */
 		public final Point2D getPositionInRoot(Point2D p) {
 			Point2D ans = new Point2D.Double();
-			xformToRoot.transform(p, ans);
+			xformToRootRK.transform(p, ans);
 			return ans;
 		}
 
@@ -454,7 +468,7 @@ public final class HierarchyEnumerator {
 			coords[6] = r.getX() + r.getWidth();
 			coords[7] = r.getY();
 
-			xformToRoot.transform(coords, 0, coords, 0, 8);
+			xformToRootRK.transform(coords, 0, coords, 0, 8);
 			double minX, minY, maxX, maxY;
 			minX = minY = Double.MAX_VALUE;
 			maxX = maxY = Double.MIN_VALUE;

@@ -844,7 +844,7 @@ public class InputText extends Input
 	 */
 	private void io_celcre()
 	{
-		curNodeProto.lowLevelSetCreationDate(EMath.secondsToDate(TextUtils.atoi(keyWord)));
+		curNodeProto.lowLevelSetCreationDate(BinaryConstants.secondsToDate(TextUtils.atoi(keyWord)));
 	}
 
 	/**
@@ -852,7 +852,7 @@ public class InputText extends Input
 	 */
 	private void io_celrev()
 	{
-		curNodeProto.lowLevelSetRevisionDate(EMath.secondsToDate(TextUtils.atoi(keyWord)));
+		curNodeProto.lowLevelSetRevisionDate(BinaryConstants.secondsToDate(TextUtils.atoi(keyWord)));
 	}
 
 	/**

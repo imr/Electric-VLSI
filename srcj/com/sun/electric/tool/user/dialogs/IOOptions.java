@@ -23,18 +23,24 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.io.Output;
 import com.sun.electric.tool.io.OutputCIF;
 import com.sun.electric.tool.io.OutputGDS;
+import com.sun.electric.tool.io.OutputPostScript;
 
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyAdapter;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 import java.util.Iterator;
 import javax.swing.JComboBox;
 import javax.swing.JList;
@@ -613,33 +619,100 @@ public class IOOptions extends javax.swing.JDialog
 
 	//******************************** PRINTING ********************************
 
+	private int initialPrintArea;
+	private boolean initialPrintDate;
+	private boolean initialPrintEncapsulated;
+	private boolean initialPrintPlotter;
+	private double initialPrintWidth, initialPrintHeight, initialPrintMargin;
+	private int initialPrintRotation;
+	private int initialPrintColorMethod;
+	private Cell initialCell;
+	private double initialEPSScale;
+	private String initialEPSSyncFile;
+
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Printing tab.
 	 */
 	private void initPrinting()
 	{
-		printPlotEntireCell.setEnabled(false);
-		printPlotHighlightedArea.setEnabled(false);
-		printPlotDisplayedWindow.setEnabled(false);
-		printPlotDateInCorner.setEnabled(false);
+		initialPrintArea = Output.getPlotArea();
+		switch (initialPrintArea)
+		{
+			case 0: printPlotEntireCell.setSelected(true);        break;
+			case 1: printPlotHighlightedArea.setSelected(true);   break;
+			case 2: printPlotDisplayedWindow.setSelected(true);   break;
+		}
+
+		initialPrintDate = OutputPostScript.isPlotDate();
+		printPlotDateInCorner.setSelected(initialPrintDate);
+
+		initialPrintEncapsulated = OutputPostScript.isEncapsulated();
+		printEncapsulated.setSelected(initialPrintEncapsulated);
+
+		initialPrintPlotter = OutputPostScript.isForPlotter();
+		if (initialPrintPlotter) printUsePlotter.setSelected(true); else
+			printUsePrinter.setSelected(true);
+
+		initialPrintWidth = OutputPostScript.getWidth();
+		printWidth.setText(Double.toString(initialPrintWidth));
+		initialPrintHeight = OutputPostScript.getHeight();
+		printHeight.setText(Double.toString(initialPrintHeight));
+		initialPrintMargin = OutputPostScript.getMargin();
+		printMargin.setText(Double.toString(initialPrintMargin));
+
+		printRotation.addItem("No Rotation");
+		printRotation.addItem("Rotate plot 90 degrees");
+		printRotation.addItem("Auto-rotate plot to fit");
+		initialPrintRotation = OutputPostScript.getRotation();
+		printRotation.setSelectedIndex(initialPrintRotation);
+
+		printPostScriptStyle.addItem("Black&White");
+		printPostScriptStyle.addItem("Color");
+		printPostScriptStyle.addItem("Color Stippled");
+		printPostScriptStyle.addItem("Color Merged");
+		initialPrintColorMethod = OutputPostScript.getColorMethod();
+		printPostScriptStyle.setSelectedIndex(initialPrintColorMethod);
+
+		initialCell = Library.getCurrent().getCurCell();
+		initialEPSScale = 1;
+		initialEPSSyncFile = "";
+		if (initialCell != null)
+		{
+			printCellName.setText("For cell: " + initialCell.describe());
+			initialEPSScale = OutputPostScript.getEPSScale(initialCell);
+			initialEPSSyncFile = OutputPostScript.getEPSSynchronizeFile(initialCell);
+			printSyncFileName.setText(initialEPSSyncFile);
+			printSetEPSSync.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { printSetEPSSyncActionPerformed(); }
+			});
+		} else
+		{
+			printCellName.setEnabled(false);
+			printEPSScaleLabel.setEnabled(false);
+			printEPSScale.setEditable(false);
+			printSynchLabel.setEnabled(false);
+			printSyncFileName.setEditable(false);
+			printSetEPSSync.setEnabled(false);
+		}
+		printEPSScale.setText(Double.toString(initialEPSScale));
+
+		// not yet:
 		printDefaultPrinter.setEnabled(false);
 		printResolution.setEditable(false);
-		printEncapsulated.setEnabled(false);
-		printPostScriptStyle.setEnabled(false);
-		printUsePrinter.setEnabled(false);
-		printUsePlotter.setEnabled(false);
-		printWidth.setEditable(false);
-		printHeight.setEditable(false);
-		printMargin.setEditable(false);
-		printRotation.setEnabled(false);
-		printEPSScale.setEditable(false);
-		printSynchronizeToFile.setEnabled(false);
 		printHPGL1.setEnabled(false);
 		printHPGL2.setEnabled(false);
 		printHPGLFillsPage.setEnabled(false);
 		printHPGLFixedScale.setEnabled(false);
 		printHPGLScale.setEditable(false);
+	}
+
+	private void printSetEPSSyncActionPerformed()
+	{
+		String fileName = OpenFile.chooseInputFile(OpenFile.POSTSCRIPT, null);
+		if (fileName == null) return;
+		printSyncFileName.setText(fileName);
 	}
 
 	/**
@@ -648,6 +721,53 @@ public class IOOptions extends javax.swing.JDialog
 	 */
 	private void termPrinting()
 	{
+		int printArea = 0;
+		if (printPlotHighlightedArea.isSelected()) printArea = 1; else
+			if (printPlotDisplayedWindow.isSelected()) printArea = 2;
+		if (printArea != initialPrintArea)
+			Output.setPlotArea(printArea);
+
+		boolean plotDate = printPlotDateInCorner.isSelected();
+		if (plotDate != initialPrintDate)
+			OutputPostScript.setPlotDate(plotDate);
+
+		boolean encapsulated = printEncapsulated.isSelected();
+		if (encapsulated != initialPrintEncapsulated)
+			OutputPostScript.setEncapsulated(encapsulated);
+
+		boolean plotter = printUsePlotter.isSelected();
+		if (plotter != initialPrintPlotter)
+			OutputPostScript.setForPlotter(plotter);
+
+		double width = TextUtils.atof(printWidth.getText());
+		if (width != initialPrintWidth)
+			OutputPostScript.setWidth(width);
+
+		double height = TextUtils.atof(printHeight.getText());
+		if (height != initialPrintHeight)
+			OutputPostScript.setHeight(height);
+
+		double margin = TextUtils.atof(printMargin.getText());
+		if (margin != initialPrintMargin)
+			OutputPostScript.setMargin(margin);
+
+		int rotation = printRotation.getSelectedIndex();
+		if (rotation != initialPrintRotation)
+			OutputPostScript.setRotation(rotation);
+
+		int colorMethod = printPostScriptStyle.getSelectedIndex();
+		if (colorMethod != initialPrintColorMethod)
+			OutputPostScript.setColorMethod(colorMethod);
+
+		if (initialCell != null)
+		{
+			double currentEPSScale = TextUtils.atof(printEPSScale.getText());
+			if (currentEPSScale != initialEPSScale && currentEPSScale != 0)
+				OutputPostScript.setEPSScale(initialCell, currentEPSScale);
+			String currentEPSSyncFile = printSyncFileName.getText();
+			if (!currentEPSSyncFile.equals(initialEPSSyncFile))
+				OutputPostScript.setEPSSynchronizeFile(initialCell, currentEPSSyncFile);
+		}
 	}
 
 	/** This method is called from within the constructor to
@@ -762,11 +882,14 @@ public class IOOptions extends javax.swing.JDialog
         jLabel23 = new javax.swing.JLabel();
         printMargin = new javax.swing.JTextField();
         printRotation = new javax.swing.JComboBox();
-        jLabel24 = new javax.swing.JLabel();
-        jLabel25 = new javax.swing.JLabel();
+        printCellName = new javax.swing.JLabel();
+        printEPSScaleLabel = new javax.swing.JLabel();
         printEPSScale = new javax.swing.JTextField();
-        printSynchronizeToFile = new javax.swing.JCheckBox();
         jLabel20 = new javax.swing.JLabel();
+        jSeparator1 = new javax.swing.JSeparator();
+        printSyncFileName = new javax.swing.JTextField();
+        printSynchLabel = new javax.swing.JLabel();
+        printSetEPSSync = new javax.swing.JButton();
         ok = new javax.swing.JButton();
         Cancel = new javax.swing.JButton();
 
@@ -1431,9 +1554,9 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel5.add(printHPGLFillsPage, gridBagConstraints);
 
         printHPGLFixedScale.setText("HPGL/2 plot fixed at:");
@@ -1442,24 +1565,24 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel5.add(printHPGLFixedScale, gridBagConstraints);
 
         printHPGLScale.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel5.add(printHPGLScale, gridBagConstraints);
 
         jLabel27.setText("grid units per pixel");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel5.add(jLabel27, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1563,41 +1686,32 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel6.add(printRotation, gridBagConstraints);
 
-        jLabel24.setText("For cell:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 6;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel6.add(jLabel24, gridBagConstraints);
-
-        jLabel25.setText("EPS Scale:");
+        printCellName.setText("For cell:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel6.add(printCellName, gridBagConstraints);
+
+        printEPSScaleLabel.setText("EPS Scale:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
-        jPanel6.add(jLabel25, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel6.add(printEPSScaleLabel, gridBagConstraints);
 
         printEPSScale.setColumns(8);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel6.add(printEPSScale, gridBagConstraints);
-
-        printSynchronizeToFile.setText("Synchronize to file:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel6.add(printSynchronizeToFile, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel6.add(printEPSScale, gridBagConstraints);
 
         jLabel20.setText("Rotation:");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1606,6 +1720,34 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel6.add(jLabel20, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 7;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanel6.add(jSeparator1, gridBagConstraints);
+
+        printSyncFileName.setText(" ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel6.add(printSyncFileName, gridBagConstraints);
+
+        printSynchLabel.setText("Synchronize to file:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        jPanel6.add(printSynchLabel, gridBagConstraints);
+
+        printSetEPSSync.setText("Set");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 6;
+        jPanel6.add(printSetEPSSync, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1745,8 +1887,6 @@ public class IOOptions extends javax.swing.JDialog
     private javax.swing.JLabel jLabel21;
     private javax.swing.JLabel jLabel22;
     private javax.swing.JLabel jLabel23;
-    private javax.swing.JLabel jLabel24;
-    private javax.swing.JLabel jLabel25;
     private javax.swing.JLabel jLabel26;
     private javax.swing.JLabel jLabel27;
     private javax.swing.JLabel jLabel3;
@@ -1760,6 +1900,7 @@ public class IOOptions extends javax.swing.JDialog
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel6;
+    private javax.swing.JSeparator jSeparator1;
     private javax.swing.JRadioButton libBackupHistory;
     private javax.swing.JRadioButton libBackupLast;
     private javax.swing.JCheckBox libCheckDatabase;
@@ -1767,8 +1908,10 @@ public class IOOptions extends javax.swing.JDialog
     private javax.swing.JPanel library;
     private javax.swing.ButtonGroup libraryGroup;
     private javax.swing.JButton ok;
+    private javax.swing.JLabel printCellName;
     private javax.swing.JComboBox printDefaultPrinter;
     private javax.swing.JTextField printEPSScale;
+    private javax.swing.JLabel printEPSScaleLabel;
     private javax.swing.JCheckBox printEncapsulated;
     private javax.swing.JRadioButton printHPGL1;
     private javax.swing.JRadioButton printHPGL2;
@@ -1784,7 +1927,9 @@ public class IOOptions extends javax.swing.JDialog
     private javax.swing.JComboBox printPostScriptStyle;
     private javax.swing.JTextField printResolution;
     private javax.swing.JComboBox printRotation;
-    private javax.swing.JCheckBox printSynchronizeToFile;
+    private javax.swing.JButton printSetEPSSync;
+    private javax.swing.JTextField printSyncFileName;
+    private javax.swing.JLabel printSynchLabel;
     private javax.swing.JRadioButton printUsePlotter;
     private javax.swing.JRadioButton printUsePrinter;
     private javax.swing.JTextField printWidth;

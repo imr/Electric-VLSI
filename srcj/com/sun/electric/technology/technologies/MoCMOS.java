@@ -3410,7 +3410,7 @@ public class MoCMOS extends Technology
 			if (var != null) var.setDontSave();
 
 			// reset valid DRC dates
-			DRC.resetDates();
+			DRC.resetDRCDates();
 		}
 
 		return(errorfound);

@@ -107,10 +107,9 @@ public class OutputCIF extends OutputGeometry
 		if (User.isIncludeDateAndVersionInOutput())
 		{
 			writeLine("( Electric VLSI Design System, version " + Version.CURRENT + " );");
-			SimpleDateFormat sdf = new SimpleDateFormat("MMMM dd, yyyy HH:mm:ss");
+			SimpleDateFormat sdf = new SimpleDateFormat("EEE MMMM dd, yyyy HH:mm:ss");
 			Date now = new Date();
-			String today = sdf.format(now);
-			writeLine("( written on " + today + " );");
+			writeLine("( written on " + sdf.format(now) + " );");
 		} else
 		{
 			writeLine("( Electric VLSI Design System );");

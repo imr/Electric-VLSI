@@ -37,6 +37,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.AdjustmentListener;
@@ -104,7 +105,8 @@ public class WindowFrame
 		final WindowFrame frame = new WindowFrame();
 
 		// initialize the frame
-		Dimension frameSize = new Dimension(800, 500);
+		Dimension scrnSize = TopLevel.getScreenSize();
+		Dimension frameSize = new Dimension(scrnSize.width * 4 / 5, scrnSize.height * 5 / 8);
         String cellDescription = (cell == null) ? "no cell" : cell.describe();
 		if (TopLevel.isMDIMode())
 		{
@@ -115,7 +117,7 @@ public class WindowFrame
 			frame.jif.setFrameIcon(new ImageIcon(frame.getClass().getResource("IconElectric.gif")));
 		} else
 		{
-			frame.jf = new TopLevel("Electric - " + cellDescription, frameSize, frame);
+			frame.jf = new TopLevel("Electric - " + cellDescription, new Rectangle(frameSize), frame);
 			frame.jf.setSize(frameSize);
 			frame.jf.setLocation(windowOffset+150, windowOffset);
 		}
@@ -178,7 +180,7 @@ public class WindowFrame
 		frame.js.setResizeWeight(0.5);
 		frame.js.setRightComponent(frame.circuitPanel);
 		frame.js.setLeftComponent(scrolledTree);
-		frame.js.setDividerLocation(0.3);
+		frame.js.setDividerLocation(250);
 		if (TopLevel.isMDIMode())
 		{
 			frame.jif.getContentPane().add(frame.js);

@@ -396,7 +396,7 @@ public class Quick
 			{
 				Cell cell = (Cell)it.next();
 				Long DRCDate = (Long)goodDRCDate.get(cell);
-				cell.newVar(DRC.LAST_GOOD_DRC, DRCDate);
+				DRC.setLastDRCDate(cell, new Date(DRCDate.longValue()));
 			}
 		}
 	}
@@ -455,11 +455,9 @@ public class Quick
 		// if the cell hasn't changed since the last good check, stop now
 		if (allSubCellsStillOK)
 		{
-			Variable var = cell.getVar(DRC.LAST_GOOD_DRC, Long.class);
-			if (var != null)
+			Date lastGoodDate = DRC.getLastDRCDate(cell);
+			if (lastGoodDate != null)
 			{
-				Long lastGoodDateInSeconds = (Long)var.getObject();
-				Date lastGoodDate = EMath.secondsToDate(lastGoodDateInSeconds.longValue());
 				Date lastChangeDate = cell.getRevisionDate();
 				if (lastGoodDate.after(lastChangeDate)) return 0;
 			}
@@ -504,7 +502,7 @@ public class Quick
 		int localErrors = ErrorLog.numErrors() - errCount;
 		if (localErrors == 0)
 		{
-			Long now = new Long(EMath.dateToSeconds(new Date()));
+			Long now = new Long(new Date().getTime());
 			goodDRCDate.put(cell, now);
 			haveGoodDRCDate = true;
 			System.out.println("   No errors found");

@@ -950,24 +950,22 @@ public class Highlight
 					boolean showWrap = ni.traceWraps();
 					double x = ni.getGrabCenterX() + points[point].getX();
 					double y = ni.getGrabCenterY() + points[point].getY();
-					float size = 3 / (float)wnd.getScale();
-					Point c1 = wnd.databaseToScreen(x+size, y+size);
-					Point c2 = wnd.databaseToScreen(x-size, y-size);
-					Point c3 = wnd.databaseToScreen(x-size, y+size);
-					Point c4 = wnd.databaseToScreen(x+size, y-size);
-					g.drawLine(c1.x + offX, c1.y + offY, c2.x + offX, c2.y + offY);
-					g.drawLine(c3.x + offX, c3.y + offY, c4.x + offX, c4.y + offY);
+					Point2D thisPt = new Point2D.Double(x, y);
+					trans.transform(thisPt, thisPt);
+					Point cThis = wnd.databaseToScreen(thisPt);
+					int size = 3;
+					g.drawLine(cThis.x + size + offX, cThis.y + size + offY, cThis.x - size + offX, cThis.y - size + offY);
+					g.drawLine(cThis.x + size + offX, cThis.y - size + offY, cThis.x - size + offX, cThis.y + size + offY);
 
 					// draw two connected lines
 					Point2D prevPt = null, nextPt = null;
-					Point2D thisPt = new Point2D.Double(x, y);
-					Point cThis = wnd.databaseToScreen(thisPt);
 					int prevPoint = point - 1;
 					if (prevPoint < 0 && showWrap) prevPoint = points.length - 1;
 					if (prevPoint >= 0)
 					{
 						prevPt = new Point2D.Double(ni.getGrabCenterX() + points[prevPoint].getX(),
 							ni.getGrabCenterY() + points[prevPoint].getY());
+						trans.transform(prevPt, prevPt);
 						if (prevPt.getX() == thisPt.getX() && prevPt.getY() == thisPt.getY()) prevPoint = -1; else
 						{
 							Point cPrev = wnd.databaseToScreen(prevPt);
@@ -984,6 +982,7 @@ public class Highlight
 					{
 						nextPt = new Point2D.Double(ni.getGrabCenterX() + points[nextPoint].getX(),
 							ni.getGrabCenterY() + points[nextPoint].getY());
+						trans.transform(nextPt, nextPt);
 						if (nextPt.getX() == thisPt.getX() && nextPt.getY() == thisPt.getY()) nextPoint = -1; else
 						{
 							Point cNext = wnd.databaseToScreen(nextPt);
@@ -1642,10 +1641,12 @@ public class Highlight
 					{
 						double bestDist = Double.MAX_VALUE;
 						int bestPoint = -1;
+						AffineTransform trans = ni.rotateOutAboutTrueCenter();
 						for(int i=0; i<points.length; i++)
 						{
 							Point2D pt = new Point2D.Double(ni.getGrabCenterX() + points[i].getX(),
 								ni.getGrabCenterY() + points[i].getY());
+							trans.transform(pt, pt);
 							dist = pt.distance(cursor);
 							if (dist < bestDist)
 							{

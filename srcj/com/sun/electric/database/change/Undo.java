@@ -1200,6 +1200,7 @@ public class Undo
 		endChanges();
 
 		// get the most recent batch of changes
+		if (undoneList == null) return false;
 		int listSize = undoneList.size();
 		if (listSize == 0) return false;
 		ChangeBatch batch = (ChangeBatch)undoneList.get(listSize-1);

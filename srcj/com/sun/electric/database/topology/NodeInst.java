@@ -1962,6 +1962,9 @@ public class NodeInst extends Geometric implements Nodable
 	/*
 	 * Method to tell if this NodeInst is an invisible-pin with text that is offset away from the pin center.
 	 * Since invisible pins with text are never shown, their text should not be offset.
+	 * @param repair true to fix such text by changing its offset to (0,0).
+	 * If this is selected, the change is made directly (so this must be called from
+	 * inside of a job).
 	 * @return the coordinates of the pin, if it has offset text.
 	 * Returns null if the pin is valid (or if it isn't a pin or doesn't have text).
 	 */
@@ -1995,14 +1998,7 @@ public class NodeInst extends Geometric implements Nodable
 			if (td.getXOff() != 0 || td.getYOff() != 0)
 			{
 				Point2D retVal = new Point2D.Double(getGrabCenterX() + td.getXOff(), getGrabCenterY() +td.getYOff());
-//				if (repair)
-//				{
-//					(void)startobjectchange((INTBIG)ni, VNODEINST);
-//					TDSETOFF(pp->textdescript, 0, 0);
-//					(void)setind((INTBIG)pp, VPORTPROTO, x_("textdescript"), 0, pp->textdescript[0]);
-//					(void)setind((INTBIG)pp, VPORTPROTO, x_("textdescript"), 1, pp->textdescript[1]);
-//					(void)endobjectchange((INTBIG)ni, VNODEINST);
-//				}
+				if (repair) td.setOff(0, 0);
 				return retVal;
 			}
 		}
@@ -2014,13 +2010,7 @@ public class NodeInst extends Geometric implements Nodable
 			if (var.isDisplay() && (td.getXOff() != 0 || td.getYOff() != 0))
 			{
 				Point2D retVal = new Point2D.Double(getGrabCenterX() + td.getXOff(), getGrabCenterY() +td.getYOff());
-//				if (repair)
-//				{
-//					(void)startobjectchange((INTBIG)ni, VNODEINST);
-//					TDSETOFF(var->textdescript, 0, 0);
-//					modifydescript((INTBIG)ni, VNODEINST, var, var->textdescript);
-//					(void)endobjectchange((INTBIG)ni, VNODEINST);
-//				}
+				if (repair) td.setOff(0, 0);
 				return retVal;
 			}
 		}

@@ -36,6 +36,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveArc;
@@ -553,6 +554,71 @@ public class ArcInst extends Geometric
 		// make the polygon
 		Poly poly = makeEndPointPoly(length, width, getAngle(), endH, extendH, endT, extendT);
 		if (poly != null) poly.setStyle(style);
+		return poly;
+	}
+
+	/**
+	 * Method to fill polygon "poly" with the outline of the curved arc in
+	 * "ai" whose width is "wid".  The style of the polygon is set to "style".
+	 * If there is no curvature information in the arc, the routine returns null,
+	 * otherwise it returns the curved polygon.
+	 */
+	public Poly curvedArcOutline(ArcInst ai, Poly.Type style, double wid)
+	{
+		// get the radius information on the arc
+		Variable var = ai.getVar("ARC_radius");
+		if (var == null) return null;
+		double radius = TextUtils.atof(var.getObject().toString());
+
+		// see if the radius can work with these arc ends
+		if (Math.abs(radius)*2 < ai.getLength()) return null;
+
+		// determine the center of the circle
+		Point2D [] centers = EMath.findCenters(Math.abs(radius), ai.getHead().getLocation(),
+			ai.getTail().getLocation(), ai.getLength());
+		if (centers == null) return null;
+
+		Point2D centerPt = centers[1];
+		if (radius < 0)
+		{
+			radius = -radius;
+			centerPt = centers[0];
+		}
+
+		// determine the base and range of angles
+		int angleBase = EMath.figureAngle(centerPt, ai.getHead().getLocation());
+		int angleRange = EMath.figureAngle(centerPt, ai.getTail().getLocation());
+		if (ai.isReverseEnds())
+		{
+			int i = angleBase;
+			angleBase = angleRange;
+			angleRange = i;
+		}
+		angleRange -= angleBase;
+		if (angleRange < 0) angleRange += 3600;
+
+		// determine the number of intervals to use for the arc
+		int pieces = angleRange;
+		while (pieces > 16) pieces /= 2;
+
+		// initialize the polygon
+		int points = (pieces+1) * 2;
+		Point2D [] pointArray = new Point2D[points];
+
+		// get the inner and outer radii of the arc
+		double outerRadius = radius + wid / 2;
+		double innerRadius = outerRadius - wid;
+
+		// fill the polygon
+		for(int i=0; i<=pieces; i++)
+		{
+			int a = (angleBase + i * angleRange / pieces) % 3600;
+			double sin = EMath.sin(a);   double cos = EMath.cos(a);
+			pointArray[i] = new Point2D.Double(cos * innerRadius + centerPt.getX(), sin * innerRadius + centerPt.getY());
+			pointArray[points-1-i] = new Point2D.Double(cos * outerRadius + centerPt.getX(), sin * outerRadius + centerPt.getY());
+		}
+		Poly poly = new Poly(pointArray);
+		poly.setStyle(style);
 		return poly;
 	}
 

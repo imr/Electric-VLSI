@@ -403,5 +403,34 @@ public class Tool extends ElectricObject
 		return "Tool '" + toolName;
 	}
     
+	public void setVarInJob(ElectricObject obj, Variable.Key key, Object newVal)
+	{
+		SetVarJob job = new SetVarJob(this, obj, key, newVal);
+	}
+
+	/**
+	 * Class for scheduling a wiring task.
+	 */
+	protected static class SetVarJob extends Job
+	{
+		ElectricObject obj;
+		Variable.Key key;
+		Object newVal;
+
+		protected SetVarJob(Tool tool, ElectricObject obj, Variable.Key key, Object newVal)
+		{
+			super("Add Variable", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.obj = obj;
+			this.key = key;
+			this.newVal = newVal;
+			this.startJob();
+		}
+
+		public void doIt()
+		{
+			obj.newVar(key, newVal);
+		}
+	}
+
 	public void init() {}
 }

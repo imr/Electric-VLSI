@@ -65,12 +65,10 @@ public class EGraphics
 	/** Describes the color dark blue. */					public final static int DBLUE =    0162;
 
 	// drawing styles
-	/** choice between solid and patterned */				private final static int NATURE =      1;
-	/** Draw as a solid fill. */							public final static int SOLIDC =       0;
-	/** Draw as a stipple pattern. */						public final static int PATTERNED =    1;
-	/** Set to ignore this layer. */						public final static int INVISIBLE =    2;
-//	/** temporary for INVISIBLE bit */						public final static int INVTEMP =      4;
-	/** Set to draw an outline around stipple pattern. */	public final static int OUTLINEPAT = 010;
+	/** choice between solid and patterned */				private final static int NATURE =     1;
+	/** Draw as a solid fill. */							public final static int SOLIDC =      0;
+	/** Draw as a stipple pattern. */						public final static int PATTERNED =   1;
+	/** Set to draw an outline around stipple pattern. */	public final static int OUTLINEPAT = 02;
 
 	/**
 	 * Method to create a graphics object.
@@ -96,9 +94,25 @@ public class EGraphics
 		this.pattern = pattern;
 		if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0 || blue > 255)
 		{
-			System.out.println("Graphics bad: (" + red + "," + green + "," + blue + ")");
+			System.out.println("Graphics color bad: (" + red + "," + green + "," + blue + ")");
 		}
 	}
+
+	/**
+	 * Method describes how this layer appears on a display.
+	 * This layer can be drawn as a solid fill or as a pattern.
+	 * @return true to draw this layer patterned (on a display).
+	 * False to draw this layer as a solid fill.
+	 */
+	public boolean isPatternedOnDisplay() { return (displayMethod & NATURE) == PATTERNED; }
+
+	/**
+	 * Method describes how this layer appears on a printer.
+	 * This layer can be drawn as a solid fill or as a pattern.
+	 * @return true to draw this layer patterned (on a printer).
+	 * False to draw this layer as a solid fill.
+	 */
+	public boolean isPatternedOnPrinter() { return (printMethod & NATURE) == PATTERNED; }
 
 	/**
 	 * Method to return the color associated with this EGraphics.
@@ -189,6 +203,11 @@ public class EGraphics
 		}
 	}
 
+	/**
+	 * Method to tell the name of the color with a given index.
+	 * @param index the color number.
+	 * @return the name of that color.
+	 */
 	public static String getColorName(int index)
 	{
 		switch (index)
@@ -217,9 +236,35 @@ public class EGraphics
 		return "Color "+index;
 	}
 
+	/**
+	 * Method to return the array of colors.
+	 * @return an array of the possible colors.
+	 */
 	public static int [] getColors()
 	{
 		return new int [] {WHITE, BLACK, RED, BLUE, GREEN, CYAN, MAGENTA, YELLOW,
 			GRAY, ORANGE, PURPLE, BROWN, LGRAY, DGRAY, LRED, DRED, LGREEN, DGREEN, LBLUE, DBLUE};
 	}
+
+	/**
+	 * Method to get the opacity of this Layer.
+	 * Opacity runs from 0 (transparent) to 1 (opaque).
+	 * @return the opacity of this Layer.
+	 */
+	public double getOpacity() { return opacity; }
+
+	/**
+	 * Method to get whether this Layer should be drawn in the foreground.
+	 * The foreground is the main "mix" of layers, such as metals and polysilicons.
+	 * The background is typically used by implant and well layers.
+	 * @return the whether this Layer should be drawn in the foreground.
+	 */
+	public boolean getForeground() { return foreground != 0; }
+
+	/**
+	 * Method to get the stipple pattern of this Layer.
+	 * The stipple pattern is a 16 x 16 pattern that is stored in 16 integers.
+	 * @return the stipple pattern of this Layer.
+	 */
+	public int [] getPattern() { return pattern; }
 }

@@ -25,6 +25,9 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.ui.PaletteFrame;
 
@@ -32,8 +35,13 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.Cursor;
+import java.awt.Component;
+import java.awt.Rectangle;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -89,10 +97,11 @@ public class TopLevel extends JFrame
 	 * Constructor to build a window.
 	 * @param name the title of the window.
 	 */
-	public TopLevel(String name, Dimension screenSize, WindowFrame frame)
+	public TopLevel(String name, Rectangle bound, WindowFrame frame)
 	{
 		super(name);
-		setSize(screenSize);
+		setLocation(bound.x, bound.y);
+		setSize(bound.width, bound.height);
 		getContentPane().setLayout(new BorderLayout());
 		setVisible(true);
 
@@ -114,7 +123,8 @@ public class TopLevel extends JFrame
 		if (isMDIMode())
 		{
 			addWindowListener(new WindowsEvents());
-		} else
+			addComponentListener(new ReshapeComponentAdapter());
+ 		} else
 		{
 			setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		}
@@ -131,6 +141,8 @@ public class TopLevel extends JFrame
 		MessagesWindow cl = new MessagesWindow(scrnSize);
 		palette = PaletteFrame.newInstance();
 	}
+
+	private static Tool.Pref cacheWindowLoc = User.tool.makeStringPref("WindowLocation", "");
 
 	/**
 	 * Method to initialize the window system.
@@ -164,12 +176,32 @@ public class TopLevel extends JFrame
 		// in MDI, create the top frame now
 		if (isMDIMode())
 		{
-			topLevel = new TopLevel("Electric", scrnSize, null);	
+			String loc = cacheWindowLoc.getString();
+			Rectangle bound = parseBound(loc);
+			if (bound == null)
+				bound = new Rectangle(scrnSize);
+//			System.out.println("prevloc="+loc);
+			topLevel = new TopLevel("Electric", bound, null);
 
 			// make the desktop
 			desktop = new JDesktopPane();
 			topLevel.getContentPane().add(desktop, BorderLayout.CENTER);
 		}
+	}
+
+	private static Rectangle parseBound(String loc)
+	{
+		int lowX = TextUtils.atoi(loc);
+		int commaPos = loc.indexOf(',');
+		if (commaPos < 0) return null;
+		int lowY = TextUtils.atoi(loc.substring(commaPos+1));
+		int spacePos = loc.indexOf(' ');
+		if (spacePos < 0) return null;
+		int width = TextUtils.atoi(loc.substring(spacePos+1));
+		int xPos = loc.indexOf('x');
+		if (xPos < 0) return null;
+		int height = TextUtils.atoi(loc.substring(xPos+1));
+		return new Rectangle(lowX, lowY, width, height);
 	}
 
 	/**
@@ -212,7 +244,15 @@ public class TopLevel extends JFrame
 	 * Method to return the size of the screen that Electric is on.
 	 * @return the size of the screen that Electric is on.
 	 */
-	public static Dimension getScreenSize() { return new Dimension(scrnSize); }
+	public static Dimension getScreenSize()
+	{
+		if (isMDIMode())
+		{
+			Rectangle bounds = topLevel.getBounds();
+			return new Dimension(bounds.width, bounds.height);
+		}
+		return new Dimension(scrnSize);
+	}
 
 	/**
 	 * Method to add an internal frame to the desktop.
@@ -266,6 +306,20 @@ public class TopLevel extends JFrame
 	 * @param wnd the EditWindow to associatd with this.
 	 */
 	public void setEditWindow(EditWindow wnd) { this.wnd = wnd; }
+
+	static class ReshapeComponentAdapter extends ComponentAdapter
+	{
+		public void componentMoved (ComponentEvent e) { saveLocation(e); } 
+		public void componentResized (ComponentEvent e) { saveLocation(e); } 
+
+		private void saveLocation(ComponentEvent e)
+		{
+			TopLevel frame = (TopLevel)e.getSource();
+			Rectangle bounds = frame.getBounds();
+			cacheWindowLoc.setString(bounds.getMinX() + "," + bounds.getMinY() + " " +
+				bounds.getWidth() + "x" + bounds.getHeight());
+		}
+	}
 
 	/**
 	 * This class handles close events for JFrame objects (used in MDI mode to quit).

@@ -63,6 +63,7 @@ import java.awt.BasicStroke;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Color;
+import java.awt.Image;
 import java.awt.Shape;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseListener;
@@ -81,6 +82,9 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Arc2D;
+import java.awt.image.BufferedImage;
+import java.awt.image.Raster;
+import java.awt.image.WritableRaster;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
@@ -112,6 +116,8 @@ public class EditWindow extends JPanel
     /** the cell that is in the window */					private Cell cell;
     /** Cell's VarContext */                                private VarContext cellVarContext;
     /** the offscreen image of the window */				private Image img = null;
+//	/** the offscreen bitmaps for transparent layers */		private BufferedImage [] layerImages;
+//	/** the rasters for transparent layers */				private WritableRaster [] layerRasters;
     /** the window frame containing this editwindow */      private WindowFrame wf;
 	/** true if the window needs to be rerendered */		private boolean needsUpdate = true;
 	/** true if showing grid in this window */				private boolean showGrid = false;
@@ -285,6 +291,13 @@ public class EditWindow extends JPanel
 		{
 			sz = getSize();
 			img = createImage(sz.width, sz.height);
+//			layerImages = new BufferedImage[5];
+//			layerRasters = new WritableRaster[5];
+//			for(int i=0; i<5; i++)
+//			{
+//				layerImages[i] = new BufferedImage(sz.width, sz.height, BufferedImage.TYPE_BYTE_BINARY);
+//				layerRasters[i] = layerImages[i].getRaster();
+//			}
 			needsUpdate = true;
 		}
 		if (needsUpdate)
@@ -957,7 +970,7 @@ public class EditWindow extends JPanel
 	 * Method to return the state of grid display in this window.
 	 * @return true if the grid is displayed in this window.
 	 */
-	public boolean getGrid() { return showGrid; }
+	public boolean isGrid() { return showGrid; }
 
 	/**
 	 * Method to return the distance between grid dots in the X direction.
@@ -1184,6 +1197,15 @@ public class EditWindow extends JPanel
 		offx = bounds.getCenterX();
 		offy = bounds.getCenterY();
 		needsUpdate = true;
+	}
+
+	public Rectangle2D getDisplayedBounds()
+	{
+		Rectangle2D bounds = new Rectangle2D.Double();
+		double width = sz.width/scale;
+		double height = sz.height/scale;
+		bounds.setRect(offx - width/2, offy - height/2, width, height);
+		return bounds;
 	}
 
 	/**

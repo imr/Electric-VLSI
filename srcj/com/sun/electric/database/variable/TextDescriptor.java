@@ -826,7 +826,7 @@ public class TextDescriptor
 	{
 		Size size = Size.newAbsSize(s);
 		if (size == null) return;
-		checkChanging();
+		if (owner != null) checkChanging();
 		descriptor1 = (descriptor1 & ~VTSIZE) | (size.getBits() << VTSIZESH);
 	}
 
@@ -839,7 +839,7 @@ public class TextDescriptor
 	{
 		Size size = Size.newRelSize(s);
 		if (size == null) return;
-		checkChanging();
+		if (owner != null) checkChanging();
 		descriptor1 = (descriptor1 & ~VTSIZE) | (size.getBits() << VTSIZESH);
 	}
 

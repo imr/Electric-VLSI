@@ -322,7 +322,7 @@ public class ToolOptions extends javax.swing.JDialog
 		if (currentIgnoreCenterCuts != initialDRCIgnoreCenterCuts)
 			DRC.setIgnoreCenterCuts(currentIgnoreCenterCuts);
 
-		if (requestedDRCClearDates) DRC.resetDates();
+		if (requestedDRCClearDates) DRC.resetDRCDates();
 	}
 
 	//******************************** DESIGN RULES ********************************
@@ -3795,10 +3795,10 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.gridheight = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(leArc, gridBagConstraints);
 
         jLabel4.setText("Global Fan-Out (step-up):");
@@ -3806,16 +3806,16 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(jLabel4, gridBagConstraints);
 
         leDisplayIntermediateCaps.setText("Display intermediate capacitances");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 10;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(leDisplayIntermediateCaps, gridBagConstraints);
 
         jLabel5.setText("Wire ratio for each layer:");
@@ -3823,8 +3823,8 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 7;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(jLabel5, gridBagConstraints);
 
         jLabel14.setText("Convergence epsilon:");
@@ -3832,8 +3832,8 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(jLabel14, gridBagConstraints);
 
         leHelp.setText("Help");
@@ -3848,8 +3848,8 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(jLabel15, gridBagConstraints);
 
         jLabel20.setText("Gate capacitance (fF/Lambda):");
@@ -3857,8 +3857,8 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(jLabel20, gridBagConstraints);
 
         jLabel22.setText("Default wire cap ratio (Cwire / Cgate):");
@@ -3866,8 +3866,8 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(jLabel22, gridBagConstraints);
 
         jLabel23.setText("Diffusion to gate cap ratio (alpha) :");
@@ -3875,8 +3875,8 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(jLabel23, gridBagConstraints);
 
         jLabel25.setText("Keeper size ratio (keeper size / driver size):");
@@ -3884,24 +3884,24 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(jLabel25, gridBagConstraints);
 
         leUseLocalSettings.setText("Use Local (cell) LE Settings");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 9;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(leUseLocalSettings, gridBagConstraints);
 
         leHighlightComponents.setText("Highlight components");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 8;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(leHighlightComponents, gridBagConstraints);
 
         jLabel6.setText("Wire ratio:");
@@ -3915,56 +3915,56 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(leGlobalFanOut, gridBagConstraints);
 
         leConvergence.setColumns(12);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(leConvergence, gridBagConstraints);
 
         leMaxIterations.setColumns(12);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(leMaxIterations, gridBagConstraints);
 
         leGateCapacitance.setColumns(12);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(leGateCapacitance, gridBagConstraints);
 
         leDefaultWireCapRatio.setColumns(12);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 4;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(leDefaultWireCapRatio, gridBagConstraints);
 
         leDiffToGateCapRatio.setColumns(12);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 5;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(leDiffToGateCapRatio, gridBagConstraints);
 
         leKeeperSizeRatio.setColumns(12);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 6;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         logicalEffort.add(leKeeperSizeRatio, gridBagConstraints);
 
         leWireRatio.setText(" ");

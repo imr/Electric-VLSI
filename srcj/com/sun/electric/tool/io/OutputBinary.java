@@ -627,8 +627,8 @@ public class OutputBinary extends Output
 		writeBigInteger(nextCont);
 		writeBigInteger(cell.getView().getTempInt());
 		writeBigInteger(cell.getVersion());
-		writeBigInteger((int)EMath.dateToSeconds(cell.getCreationDate()));
-		writeBigInteger((int)EMath.dateToSeconds(cell.getRevisionDate()));
+		writeBigInteger((int)BinaryConstants.dateToSeconds(cell.getCreationDate()));
+		writeBigInteger((int)BinaryConstants.dateToSeconds(cell.getRevisionDate()));
 
 		// write the nodeproto bounding box
 		Technology tech = cell.getTechnology();
@@ -1108,6 +1108,7 @@ public class OutputBinary extends Output
 				writeBigInteger(pp.getTempInt());
 			return;
 		}
+		System.out.println("Error: Cannot write objects of type " + obj.getClass());
 	}
 
 	/*

@@ -41,6 +41,7 @@ import com.sun.electric.tool.drc.Schematic;
 import com.sun.electric.tool.user.ErrorLog;
 
 import java.util.Iterator;
+import java.util.Date;
 
 /**
  * This is the Design Rule Checker tool.
@@ -215,24 +216,6 @@ public class DRC extends Tool
 			long endTime = System.currentTimeMillis();
 			int errorcount = ErrorLog.numErrors();
 			System.out.println(errorcount + " errors found (took " + Job.getElapsedTime(endTime - startTime) + ")");
-		}
-	}
-
-	/**
-	 * Method to delete all cached date information on all cells.
-	 */
-	public static void resetDates()
-	{
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
-		{
-			Library lib = (Library)it.next();
-			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
-			{
-				Cell cell = (Cell)cIt.next();
-				Variable var = cell.getVar(LAST_GOOD_DRC);
-				if (var == null) continue;
-				cell.delVar(LAST_GOOD_DRC);
-			}
 		}
 	}
 
@@ -789,4 +772,52 @@ public class DRC extends Tool
 	 * @param on true if DRC should ignore center cuts in large contacts.
 	 */
 	public static void setIgnoreCenterCuts(boolean on) { cacheIgnoreCenterCuts.setBoolean(on); }
+
+	public static final Variable.Key POSTSCRIPT_FILEDATE = ElectricObject.newKey("IO_postscript_filedate");
+	/**
+	 * Method to tell the date of the last successful DRC of a given Cell.
+	 * @param cell the cell to query.
+	 * @return the date of the last successful DRC of that Cell.
+	 */
+	public static Date getLastDRCDate(Cell cell)
+	{
+		Variable varDate = cell.getVar(LAST_GOOD_DRC, Integer[].class);
+		if (varDate == null) return null;
+		Integer [] lastDRCDateAsInts = (Integer [])varDate.getObject();
+		long lastDRCDateInSeconds = ((long)lastDRCDateAsInts[0].intValue() << 32) |
+			(lastDRCDateAsInts[1].intValue() & 0xFFFFFFFF);
+		Date lastDRCDate = new Date(lastDRCDateInSeconds);
+		return lastDRCDate;
+	}
+	/**
+	 * Method to set the date of the last successful DRC of a given Cell.
+	 * @param cell the cell to modify.
+	 * @param date the date of the last successful DRC of that Cell.
+	 */
+	public static void setLastDRCDate(Cell cell, Date date)
+	{
+		long iVal = date.getTime();
+		Integer [] dateArray = new Integer[2];
+		dateArray[0] = new Integer((int)(iVal >> 32));
+		dateArray[1] = new Integer((int)(iVal & 0xFFFFFFFF));
+		cell.newVar(DRC.LAST_GOOD_DRC, dateArray);
+//		tool.setVarInJob(cell, LAST_GOOD_DRC, dateArray);
+	}
+	/**
+	 * Method to delete all cached date information on all cells.
+	 */
+	public static void resetDRCDates()
+	{
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			{
+				Cell cell = (Cell)cIt.next();
+				Variable var = cell.getVar(LAST_GOOD_DRC);
+				if (var == null) continue;
+				cell.delVar(LAST_GOOD_DRC);
+			}
+		}
+	}
 }

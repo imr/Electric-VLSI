@@ -411,8 +411,9 @@ public class ToolBar extends JToolBar
 			return;
 		}
 
+		if (EditWindow.getListener() != OutlineListener.theOne)
+			OutlineListener.theOne.setNode(ni);
 		EditWindow.setListener(OutlineListener.theOne);
-		OutlineListener.theOne.setNode(ni);
 		TopLevel.setCurrentCursor(outlineCursor);
 		curMode = CursorMode.OUTLINE;
 		outlineButton.setSelected(true);

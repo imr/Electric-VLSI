@@ -56,6 +56,7 @@ import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.generator.PadGenerator;
 import com.sun.electric.tool.io.Input;
 import com.sun.electric.tool.io.Output;
+import com.sun.electric.tool.io.OutputPostScript;
 import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.routing.AutoStitch;
@@ -146,16 +147,18 @@ public final class MenuCommands
 		fileMenu.add(importSubMenu);
 		importSubMenu.addMenuItem("Readable Dump", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(); } });
-        fileMenu.addMenuItem("Save", KeyStroke.getKeyStroke('S', buckyBit),
+		fileMenu.addMenuItem("Save", KeyStroke.getKeyStroke('S', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(); } });
 		fileMenu.addMenuItem("Save as...",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveAsLibraryCommand(); } });
-        Menu exportSubMenu = Menu.createMenu("Export");
-        fileMenu.add(exportSubMenu);
-        exportSubMenu.addMenuItem("CIF (Caltech Intermediate Format)", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(Output.ExportType.CIF, OpenFile.CIF); } });
-       exportSubMenu.addMenuItem("GDS II (Stream)", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(Output.ExportType.GDS, OpenFile.GDS); } });
+		Menu exportSubMenu = Menu.createMenu("Export");
+		fileMenu.add(exportSubMenu);
+		exportSubMenu.addMenuItem("CIF (Caltech Intermediate Format)", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(Output.ExportType.CIF, OpenFile.CIF); } });
+		exportSubMenu.addMenuItem("GDS II (Stream)", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(Output.ExportType.GDS, OpenFile.GDS); } });
+		exportSubMenu.addMenuItem("PostScript", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(Output.ExportType.POSTSCRIPT, OpenFile.POSTSCRIPT); } });
 		if (TopLevel.getOperatingSystem() != TopLevel.OS.MACINTOSH)
 		{
 			fileMenu.addSeparator();
@@ -179,14 +182,14 @@ public final class MenuCommands
 
 		Menu arcSubMenu = Menu.createMenu("Arc", 'A');
 		editMenu.add(arcSubMenu);
-        arcSubMenu.addMenuItem("Rigid", null, 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { arcRigidCommand(); }});
-        arcSubMenu.addMenuItem("Not Rigid", null, 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { arcNotRigidCommand(); }});
-        arcSubMenu.addMenuItem("Fixed Angle", null, 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { arcFixedAngleCommand(); }});
-        arcSubMenu.addMenuItem("Not Fixed Angle", null, 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { arcNotFixedAngleCommand(); }});
+		arcSubMenu.addMenuItem("Rigid", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { arcRigidCommand(); }});
+		arcSubMenu.addMenuItem("Not Rigid", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { arcNotRigidCommand(); }});
+		arcSubMenu.addMenuItem("Fixed Angle", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { arcFixedAngleCommand(); }});
+		arcSubMenu.addMenuItem("Not Fixed Angle", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { arcNotFixedAngleCommand(); }});
 
 		editMenu.addSeparator();
 
@@ -199,14 +202,14 @@ public final class MenuCommands
 
 		Menu rotateSubMenu = Menu.createMenu("Rotate", 'R');
 		editMenu.add(rotateSubMenu);
-        rotateSubMenu.addMenuItem("90 Degrees Clockwise", null, 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.rotateObjects(2700); }});
-        rotateSubMenu.addMenuItem("90 Degrees Counterclockwise", KeyStroke.getKeyStroke('J', buckyBit), 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.rotateObjects(900); }});
-        rotateSubMenu.addMenuItem("180 Degrees", null, 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.rotateObjects(1800); }});
-        rotateSubMenu.addMenuItem("Other...", null, 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.rotateObjects(0); }});
+		rotateSubMenu.addMenuItem("90 Degrees Clockwise", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.rotateObjects(2700); }});
+		rotateSubMenu.addMenuItem("90 Degrees Counterclockwise", KeyStroke.getKeyStroke('J', buckyBit), 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.rotateObjects(900); }});
+		rotateSubMenu.addMenuItem("180 Degrees", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.rotateObjects(1800); }});
+		rotateSubMenu.addMenuItem("Other...", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.rotateObjects(0); }});
 
 		editMenu.addMenuItem("Mirror", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.mirrorObjects(); } });
@@ -226,8 +229,8 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { editOptionsCommand(); } });
 		editMenu.addMenuItem("Tool Options...",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { toolOptionsCommand(); } });
-        editMenu.addMenuItem("Key Bindings...",null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { keyBindingsCommand(); } });
+		editMenu.addMenuItem("Key Bindings...",null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { keyBindingsCommand(); } });
 
 		editMenu.addSeparator();
 
@@ -237,25 +240,25 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { attributesCommand(); } });
 
 		editMenu.addSeparator();
-        
-        Menu modeSubMenu = Menu.createMenu("Modes");
-        editMenu.add(modeSubMenu);
+
+		Menu modeSubMenu = Menu.createMenu("Modes");
+		editMenu.add(modeSubMenu);
 
 		Menu modeSubMenuEdit = Menu.createMenu("Edit");
-        modeSubMenu.add(modeSubMenuEdit);
-        ButtonGroup editGroup = new ButtonGroup();
-        cursorSelect = modeSubMenuEdit.addRadioButton("Select", true, editGroup, KeyStroke.getKeyStroke('M', 0),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Select"); } });
-        cursorWiring = modeSubMenuEdit.addRadioButton("Wiring", false, editGroup, KeyStroke.getKeyStroke('W', 0),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Wiring"); } });
-        cursorSelectSpecial = modeSubMenuEdit.addRadioButton("Special Select", false, editGroup, null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Special Select"); } });
-        cursorPan = modeSubMenuEdit.addRadioButton("Pan", false, editGroup, KeyStroke.getKeyStroke('P', 0),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Pan"); } });
-        cursorZoom = modeSubMenuEdit.addRadioButton("Zoom", false, editGroup, KeyStroke.getKeyStroke('Z', 0),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Zoom"); } });
+		modeSubMenu.add(modeSubMenuEdit);
+		ButtonGroup editGroup = new ButtonGroup();
+		cursorSelect = modeSubMenuEdit.addRadioButton("Select", true, editGroup, KeyStroke.getKeyStroke('M', 0),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Select"); } });
+		cursorWiring = modeSubMenuEdit.addRadioButton("Wiring", false, editGroup, KeyStroke.getKeyStroke('W', 0),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Wiring"); } });
+		cursorSelectSpecial = modeSubMenuEdit.addRadioButton("Special Select", false, editGroup, null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Special Select"); } });
+		cursorPan = modeSubMenuEdit.addRadioButton("Pan", false, editGroup, KeyStroke.getKeyStroke('P', 0),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Pan"); } });
+		cursorZoom = modeSubMenuEdit.addRadioButton("Zoom", false, editGroup, KeyStroke.getKeyStroke('Z', 0),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Zoom"); } });
 		cursorOutline = modeSubMenuEdit.addRadioButton("Outline Edit", false, editGroup, KeyStroke.getKeyStroke('Y', 0),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Outline Edit"); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Outline Edit"); } });
 		ToolBar.CursorMode cm = ToolBar.getCursorMode();
 		if (cm == ToolBar.CursorMode.SELECT) cursorSelect.setSelected(true); else
 		if (cm == ToolBar.CursorMode.WIRE) cursorWiring.setSelected(true); else
@@ -265,14 +268,14 @@ public final class MenuCommands
 			cursorOutline.setSelected(true);
 
 		Menu modeSubMenuMovement = Menu.createMenu("Movement");
-        modeSubMenu.add(modeSubMenuMovement);
-        ButtonGroup movementGroup = new ButtonGroup();
-        moveFull = modeSubMenuMovement.addRadioButton("Full", true, movementGroup, KeyStroke.getKeyStroke('F', 0),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { setMovementModeCommand("Full"); } });
-        moveHalf = modeSubMenuMovement.addRadioButton("Half", false, movementGroup, KeyStroke.getKeyStroke('H', 0),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { setMovementModeCommand("Half"); } });
-        moveQuarter = modeSubMenuMovement.addRadioButton("Quarter", false, movementGroup, KeyStroke.getKeyStroke('Q', 0),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { setMovementModeCommand("Quarter"); } });
+		modeSubMenu.add(modeSubMenuMovement);
+		ButtonGroup movementGroup = new ButtonGroup();
+		moveFull = modeSubMenuMovement.addRadioButton("Full", true, movementGroup, KeyStroke.getKeyStroke('F', 0),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { setMovementModeCommand("Full"); } });
+		moveHalf = modeSubMenuMovement.addRadioButton("Half", false, movementGroup, KeyStroke.getKeyStroke('H', 0),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { setMovementModeCommand("Half"); } });
+		moveQuarter = modeSubMenuMovement.addRadioButton("Quarter", false, movementGroup, KeyStroke.getKeyStroke('Q', 0),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { setMovementModeCommand("Quarter"); } });
 		double ad = ToolBar.getArrowDistance();
 		if (ad == 1.0) moveFull.setSelected(true); else
 		if (ad == 0.5) moveHalf.setSelected(true); else
@@ -283,25 +286,36 @@ public final class MenuCommands
 		editMenu.addMenuItem("Change...", KeyStroke.getKeyStroke('C', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Change.showChangeDialog(); } });
 
+		Menu cleanupSubMenu = Menu.createMenu("Cleanup Cell");
+		editMenu.add(cleanupSubMenu);
+		cleanupSubMenu.addMenuItem("Cleanup Pins", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.cleanupPinsCommand(false); }});
+		cleanupSubMenu.addMenuItem("Cleanup Pins Everywhere", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.cleanupPinsCommand(true); }});
+		cleanupSubMenu.addMenuItem("Show Nonmanhattan", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.showNonmanhattanCommand(); }});
+		cleanupSubMenu.addMenuItem("Shorten Selected Arcs", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.shortenArcsCommand(); }});
+
 		Menu modeSubMenuSelect = Menu.createMenu("Select");
-        modeSubMenu.add(modeSubMenuSelect);
-        ButtonGroup selectGroup = new ButtonGroup();
-        selectArea = modeSubMenuSelect.addRadioButton("Area", true, selectGroup, null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { setSelectModeCommand("Area"); } });
-        selectObjects = modeSubMenuSelect.addRadioButton("Objects", false, selectGroup, null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { setSelectModeCommand("Objects"); } });
+		modeSubMenu.add(modeSubMenuSelect);
+		ButtonGroup selectGroup = new ButtonGroup();
+		selectArea = modeSubMenuSelect.addRadioButton("Area", true, selectGroup, null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { setSelectModeCommand("Area"); } });
+		selectObjects = modeSubMenuSelect.addRadioButton("Objects", false, selectGroup, null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { setSelectModeCommand("Objects"); } });
 		ToolBar.SelectMode sm = ToolBar.getSelectMode();
 		if (sm == ToolBar.SelectMode.AREA) selectArea.setSelected(true); else
 			selectObjects.setSelected(true);
 
 		Menu selListSubMenu = Menu.createMenu("Selection");
 		editMenu.add(selListSubMenu);
-        selListSubMenu.addMenuItem("Select All", KeyStroke.getKeyStroke('A', buckyBit), 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { selectAllCommand(); }});
-        selListSubMenu.addMenuItem("Show Next Error", KeyStroke.getKeyStroke('>'), 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { showNextErrorCommand(); }});
-        selListSubMenu.addMenuItem("Show Previous Error", KeyStroke.getKeyStroke('<'), 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { showPrevErrorCommand(); }});
+		selListSubMenu.addMenuItem("Select All", KeyStroke.getKeyStroke('A', buckyBit), 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { selectAllCommand(); }});
+		selListSubMenu.addMenuItem("Show Next Error", KeyStroke.getKeyStroke('>'), 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { showNextErrorCommand(); }});
+		selListSubMenu.addMenuItem("Show Previous Error", KeyStroke.getKeyStroke('<'), 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { showPrevErrorCommand(); }});
 
 		/****************************** THE CELL MENU ******************************/
 
@@ -309,7 +323,7 @@ public final class MenuCommands
 		menuBar.add(cellMenu);
 
 		cellMenu.addMenuItem("Cell Control...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { cellControlCommand(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { cellControlCommand(); }});
 		cellMenu.addMenuItem("New Cell...", KeyStroke.getKeyStroke('N', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { newCellCommand(); } });
 		cellMenu.addMenuItem("Delete Current Cell", null,
@@ -320,9 +334,9 @@ public final class MenuCommands
 		cellMenu.addSeparator();
  
 		cellMenu.addMenuItem("Down Hierarchy", KeyStroke.getKeyStroke('D', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { downHierCommand(); }});
-        cellMenu.addMenuItem("Up Hierarchy", KeyStroke.getKeyStroke('U', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { upHierCommand(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { downHierCommand(); }});
+		cellMenu.addMenuItem("Up Hierarchy", KeyStroke.getKeyStroke('U', buckyBit),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { upHierCommand(); }});
 
 		cellMenu.addSeparator();
 
@@ -341,12 +355,12 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.generalCellListsCommand(); } });
 		Menu specListSubMenu = Menu.createMenu("Special Cell Lists");
 		cellMenu.add(specListSubMenu);
-        specListSubMenu.addMenuItem("List Nodes in this Cell", null, 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.listNodesInCellCommand(); }});
-        specListSubMenu.addMenuItem("List Cell Instances", null, 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.listCellInstancesCommand(); }});
-        specListSubMenu.addMenuItem("List Cell Usage", null, 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.listCellUsageCommand(); }});
+		specListSubMenu.addMenuItem("List Nodes in this Cell", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.listNodesInCellCommand(); }});
+		specListSubMenu.addMenuItem("List Cell Instances", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.listCellInstancesCommand(); }});
+		specListSubMenu.addMenuItem("List Cell Usage", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.listCellUsageCommand(); }});
 		cellMenu.addMenuItem("Cell Parameters...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { cellParametersCommand(); } });
 
@@ -354,20 +368,20 @@ public final class MenuCommands
 
 		Menu expandListSubMenu = Menu.createMenu("Expand Cell Instances");
 		cellMenu.add(expandListSubMenu);
-        expandListSubMenu.addMenuItem("One Level Down", null, 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { expandOneLevelDownCommand(); }});
-        expandListSubMenu.addMenuItem("All the Way", null, 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { expandFullCommand(); }});
-        expandListSubMenu.addMenuItem("Specified Amount", null, 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { expandSpecificCommand(); }});
+		expandListSubMenu.addMenuItem("One Level Down", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { expandOneLevelDownCommand(); }});
+		expandListSubMenu.addMenuItem("All the Way", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { expandFullCommand(); }});
+		expandListSubMenu.addMenuItem("Specified Amount", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { expandSpecificCommand(); }});
 		Menu unExpandListSubMenu = Menu.createMenu("Unexpand Cell Instances");
 		cellMenu.add(unExpandListSubMenu);
-        unExpandListSubMenu.addMenuItem("One Level Up", null, 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { unexpandOneLevelUpCommand(); }});
-        unExpandListSubMenu.addMenuItem("All the Way", null, 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { unexpandFullCommand(); }});
-        unExpandListSubMenu.addMenuItem("Specified Amount", null, 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { unexpandSpecificCommand(); }});
+		unExpandListSubMenu.addMenuItem("One Level Up", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { unexpandOneLevelUpCommand(); }});
+		unExpandListSubMenu.addMenuItem("All the Way", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { unexpandFullCommand(); }});
+		unExpandListSubMenu.addMenuItem("Specified Amount", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { unexpandSpecificCommand(); }});
 
 		/****************************** THE EXPORT MENU ******************************/
 
@@ -469,19 +483,19 @@ public final class MenuCommands
 		Menu drcSubMenu = Menu.createMenu("DRC", 'D');
 		toolMenu.add(drcSubMenu);
 		drcSubMenu.addMenuItem("Check Hierarchically", KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0), 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(); }});
 		drcSubMenu.addMenuItem("Check Selection Area Hierarchically", null, 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkAreaHierarchically(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkAreaHierarchically(); }});
 
 		Menu simulationSubMenu = Menu.createMenu("Simulation (SPICE)", 'S');
 		toolMenu.add(simulationSubMenu);
 		simulationSubMenu.addMenuItem("Write SPICE Deck...", null, 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { Spice.writeSpiceDeck(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Spice.writeSpiceDeck(); }});
 
 		Menu netlisters = Menu.createMenu("Simulation (others)");
-        netlisters.addMenuItem("Write IRSIM Netlist", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { irsimNetlistCommand(); }});
-        toolMenu.add(netlisters);
+		netlisters.addMenuItem("Write IRSIM Netlist", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { irsimNetlistCommand(); }});
+		toolMenu.add(netlisters);
 
 		Menu ercSubMenu = Menu.createMenu("ERC", 'E');
 		toolMenu.add(ercSubMenu);
@@ -491,40 +505,40 @@ public final class MenuCommands
 		networkSubMenu.addMenuItem("redo Network Numbering", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { redoNetworkNumberingCommand(); } });
 		networkSubMenu.addMenuItem("NCC test 1", null, 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { nccTest1Command(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { nccTest1Command(); }});
 		networkSubMenu.addMenuItem("NCC test 2", null, 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { nccTest2Command(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { nccTest2Command(); }});
 		networkSubMenu.addMenuItem("NCC test 3", null, 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { nccTest3Command(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { nccTest3Command(); }});
 		networkSubMenu.addMenuItem("NCC test 4", null, 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { nccTest4Command(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { nccTest4Command(); }});
 
 		Menu logEffortSubMenu = Menu.createMenu("Logical Effort", 'L');
-        logEffortSubMenu.addMenuItem("Analyze Cell", null, 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { analyzeCellCommand(); }});
+		logEffortSubMenu.addMenuItem("Analyze Cell", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { analyzeCellCommand(); }});
 		toolMenu.add(logEffortSubMenu);
 
 		Menu routingSubMenu = Menu.createMenu("Routing", 'R');
-        routingSubMenu.addMenuItem("Mimic-Stitch Now", KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { MimicStitch.mimicStitch(true); }});
-       routingSubMenu.addMenuItem("Auto-Stitch Now", null, 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { AutoStitch.autoStitch(false, true); }});
-        routingSubMenu.addMenuItem("Auto-Stitch Highlighted Now", KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { AutoStitch.autoStitch(true, true); }});
+		routingSubMenu.addMenuItem("Mimic-Stitch Now", KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { MimicStitch.mimicStitch(true); }});
+	   routingSubMenu.addMenuItem("Auto-Stitch Now", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { AutoStitch.autoStitch(false, true); }});
+		routingSubMenu.addMenuItem("Auto-Stitch Highlighted Now", KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { AutoStitch.autoStitch(true, true); }});
 		toolMenu.add(routingSubMenu);
 
 		Menu generationSubMenu = Menu.createMenu("Generation", 'G');
 		toolMenu.add(generationSubMenu);
-        generationSubMenu.addMenuItem("Pad Frame Generator", null, 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
+		generationSubMenu.addMenuItem("Pad Frame Generator", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
 
 		Menu compactionSubMenu = Menu.createMenu("Compaction", 'C');
 		toolMenu.add(compactionSubMenu);
  
 		Menu languagesSubMenu = Menu.createMenu("Languages");
-        languagesSubMenu.addMenuItem("Run Java Bean Shell Script", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { javaBshScriptCommand(); }});
-        toolMenu.add(languagesSubMenu);
+		languagesSubMenu.addMenuItem("Run Java Bean Shell Script", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { javaBshScriptCommand(); }});
+		toolMenu.add(languagesSubMenu);
 
 		/****************************** THE HELP MENU ******************************/
 
@@ -554,9 +568,9 @@ public final class MenuCommands
 		});
 		russMenu.addMenuItem("layout flat", null, new com.sun.electric.tool.generator.layout.LayFlat());
 		russMenu.addMenuItem("gate regression", null, new ActionListener() {
-		    public void actionPerformed(ActionEvent e) {
-			    new com.sun.electric.tool.generator.layout.GateRegression();
-		    }
+			public void actionPerformed(ActionEvent e) {
+				new com.sun.electric.tool.generator.layout.GateRegression();
+			}
 		});
 		russMenu.addMenuItem("Jemini", null, new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -568,19 +582,19 @@ public final class MenuCommands
 
 		Menu jongMenu = Menu.createMenu("JonG", 'J');
 		menuBar.add(jongMenu);
-        jongMenu.addMenuItem("Describe Vars", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { listVarsOnObject(false); }});
-        jongMenu.addMenuItem("Describe Proto Vars", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { listVarsOnObject(true); }});
-        jongMenu.addMenuItem("Describe Current Library Vars", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { listLibVars(); }});
-        jongMenu.addMenuItem("Eval Vars", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { evalVarsOnObject(); }});
-        jongMenu.addMenuItem("LE test1", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { LENetlister.test1(); }});
-        jongMenu.addMenuItem("Open Purple Lib", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { openP4libCommand(); }});
-            
+		jongMenu.addMenuItem("Describe Vars", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { listVarsOnObject(false); }});
+		jongMenu.addMenuItem("Describe Proto Vars", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { listVarsOnObject(true); }});
+		jongMenu.addMenuItem("Describe Current Library Vars", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { listLibVars(); }});
+		jongMenu.addMenuItem("Eval Vars", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { evalVarsOnObject(); }});
+		jongMenu.addMenuItem("LE test1", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { LENetlister.test1(); }});
+		jongMenu.addMenuItem("Open Purple Lib", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { openP4libCommand(); }});
+
 		// return the menu bar
 		return menuBar;
 	}
@@ -589,7 +603,7 @@ public final class MenuCommands
 
 	/**
 	 * This method implements the command to read a library.
-     * It is interactive, and pops up a dialog box.
+	 * It is interactive, and pops up a dialog box.
 	 */
 	public static void openLibraryCommand()
 	{
@@ -603,7 +617,7 @@ public final class MenuCommands
 
 	/**
 	 * Class to read a library in a new thread.
-     * For a non-interactive script, use ReadBinaryLibrary job = new ReadBinaryLibrary(filename).
+	 * For a non-interactive script, use ReadBinaryLibrary job = new ReadBinaryLibrary(filename).
 	 */
 	public static class ReadBinaryLibrary extends Job
 	{
@@ -625,15 +639,15 @@ public final class MenuCommands
 			Cell cell = lib.getCurCell();
 			if (cell == null) System.out.println("No current cell in this library"); else
 			{
-                // check if edit window open with null cell, use that one if exists
-                for (Iterator it = WindowFrame.getWindows(); it.hasNext(); ) {
-                    WindowFrame wf = (WindowFrame)it.next();
-                    EditWindow wnd = wf.getEditWindow();
-                    if (wnd.getCell() == null) {
-                        wnd.setCell(cell, VarContext.globalContext);
-                        return;
-                    }
-                }
+				// check if edit window open with null cell, use that one if exists
+				for (Iterator it = WindowFrame.getWindows(); it.hasNext(); ) {
+					WindowFrame wf = (WindowFrame)it.next();
+					EditWindow wnd = wf.getEditWindow();
+					if (wnd.getCell() == null) {
+						wnd.setCell(cell, VarContext.globalContext);
+						return;
+					}
+				}
 				WindowFrame.createEditWindow(cell);
 			}
 		}
@@ -641,7 +655,7 @@ public final class MenuCommands
 
 	/**
 	 * This method implements the command to import a library (Readable Dump format).
-     * It is interactive, and pops up a dialog box.
+	 * It is interactive, and pops up a dialog box.
 	 */
 	public static void importLibraryCommand()
 	{
@@ -655,7 +669,7 @@ public final class MenuCommands
 
 	/**
 	 * Class to read a text library in a new thread.
-     * For a non-interactive script, use ReadTextLibrary job = new ReadTextLibrary(filename).
+	 * For a non-interactive script, use ReadTextLibrary job = new ReadTextLibrary(filename).
 	 */
 	protected static class ReadTextLibrary extends Job
 	{
@@ -676,15 +690,15 @@ public final class MenuCommands
 			Cell cell = lib.getCurCell();
 			if (cell == null) System.out.println("No current cell in this library"); else
 			{
-                // check if edit window open with null cell, use that one if exists
-                for (Iterator it = WindowFrame.getWindows(); it.hasNext(); ) {
-                    WindowFrame wf = (WindowFrame)it.next();
-                    EditWindow wnd = wf.getEditWindow();
-                    if (wnd.getCell() == null) {
-                        wnd.setCell(cell, VarContext.globalContext);
-                        return;
-                    }
-                }
+				// check if edit window open with null cell, use that one if exists
+				for (Iterator it = WindowFrame.getWindows(); it.hasNext(); ) {
+					WindowFrame wf = (WindowFrame)it.next();
+					EditWindow wnd = wf.getEditWindow();
+					if (wnd.getCell() == null) {
+						wnd.setCell(cell, VarContext.globalContext);
+						return;
+					}
+				}
 				WindowFrame.createEditWindow(cell);
 			}
 		}
@@ -692,7 +706,7 @@ public final class MenuCommands
 
 	/**
 	 * This method implements the command to save a library.
-     * It is interactive, and pops up a dialog box.
+	 * It is interactive, and pops up a dialog box.
 	 */
 	public static void saveLibraryCommand()
 	{
@@ -716,8 +730,8 @@ public final class MenuCommands
 
 	/**
 	 * Class to save a library in a new thread.
-     * For a non-interactive script, use SaveLibrary job = new SaveLibrary(filename).
-     * Saves as an elib.
+	 * For a non-interactive script, use SaveLibrary job = new SaveLibrary(filename).
+	 * Saves as an elib.
 	 */
 	protected static class SaveLibrary extends Job
 	{
@@ -742,7 +756,7 @@ public final class MenuCommands
 
 	/**
 	 * This method implements the command to save a library to a different file.
-     * It is interactive, and pops up a dialog box.
+	 * It is interactive, and pops up a dialog box.
 	 */
 	public static void saveAsLibraryCommand()
 	{
@@ -751,57 +765,62 @@ public final class MenuCommands
 		saveLibraryCommand();
 	}
 
-    /**
-     * This method implements the export cell command for different export types.
-     * It is interactive, and pops up a dialog box.
-     */
-    public static void exportCellCommand(Output.ExportType type, OpenFile.EFileFilter filter)
-    {
-        Cell cell = Library.needCurCell();
-        if (cell == null) return;
+	/**
+	 * This method implements the export cell command for different export types.
+	 * It is interactive, and pops up a dialog box.
+	 */
+	public static void exportCellCommand(Output.ExportType type, OpenFile.EFileFilter filter)
+	{
+		if (type == Output.ExportType.POSTSCRIPT)
+		{
+			if (OutputPostScript.syncAll()) return;
+		}
+		Cell cell = Library.needCurCell();
+		if (cell == null) return;
 
 		String [] extensions = filter.getExtensions();
-        String filePath = OpenFile.chooseOutputFile(filter, null, cell.getProtoName() + "." + extensions[0]);
+		String filePath = OpenFile.chooseOutputFile(filter, null, cell.getProtoName() + "." + extensions[0]);
+		if (filePath == null) return;
 
 		exportCellCommand(cell, filePath, type);
-    }
-    /**
-     * This is the non-interactive version of exportCellCommand
-     */
-    public static void exportCellCommand(Cell cell, String filePath, Output.ExportType type)
-    {
-        ExportCell job = new ExportCell(cell, filePath, type);
-    }
-    
+	}
+	/**
+	 * This is the non-interactive version of exportCellCommand
+	 */
+	public static void exportCellCommand(Cell cell, String filePath, Output.ExportType type)
+	{
+		ExportCell job = new ExportCell(cell, filePath, type);
+	}
+	
 	/**
 	 * Class to export a cell in a new thread.
-     * For a non-interactive script, use 
-     * ExportCell job = new ExportCell(Cell cell, String filename, Output.ExportType type).
-     * Saves as an elib.
+	 * For a non-interactive script, use 
+	 * ExportCell job = new ExportCell(Cell cell, String filename, Output.ExportType type).
+	 * Saves as an elib.
 	 */
 	protected static class ExportCell extends Job
 	{
-        Cell cell;
-        String filePath;
-        Output.ExportType type;
-        
-        public ExportCell(Cell cell, String filePath, Output.ExportType type)
-        {
+		Cell cell;
+		String filePath;
+		Output.ExportType type;
+		
+		public ExportCell(Cell cell, String filePath, Output.ExportType type)
+		{
 			super("Export "+cell.describe()+" ("+type+")", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
-            this.cell = cell;
-            this.filePath = filePath;
-            this.type = type;
-            this.startJob();
-        }
-        
-        public void doIt() 
-        {
-            Output.writeCell(cell, filePath, type);
-        }
-        
-    }
-        
-    /**
+			this.cell = cell;
+			this.filePath = filePath;
+			this.type = type;
+			this.startJob();
+		}
+		
+		public void doIt() 
+		{
+			Output.writeCell(cell, filePath, type);
+		}
+		
+	}
+		
+	/**
 	 * This method implements the command to quit Electric.
 	 */
 	public static void quitCommand()
@@ -875,9 +894,9 @@ public final class MenuCommands
 		Clipboard.paste();
 	}
 
-    /**
-     * This method sets the highlighted arcs to Rigid
-     */
+	/**
+	 * This method sets the highlighted arcs to Rigid
+	 */
 	public static void arcRigidCommand()
 	{
 		int numSet = 0;
@@ -898,9 +917,9 @@ public final class MenuCommands
 		EditWindow.redrawAll();
 	}
 
-    /**
-     * This method sets the highlighted arcs to Non-Rigid
-     */
+	/**
+	 * This method sets the highlighted arcs to Non-Rigid
+	 */
 	public static void arcNotRigidCommand()
 	{
 		int numSet = 0;
@@ -921,9 +940,9 @@ public final class MenuCommands
 		EditWindow.redrawAll();
 	}
 
-    /**
-     * This method sets the highlighted arcs to Fixed-Angle
-     */
+	/**
+	 * This method sets the highlighted arcs to Fixed-Angle
+	 */
 	public static void arcFixedAngleCommand()
 	{
 		int numSet = 0;
@@ -944,9 +963,9 @@ public final class MenuCommands
 		EditWindow.redrawAll();
 	}
 
-    /**
-     * This method sets the highlighted arcs to Not-Fixed-Angle
-     */
+	/**
+	 * This method sets the highlighted arcs to Not-Fixed-Angle
+	 */
 	public static void arcNotFixedAngleCommand()
 	{
 		int numSet = 0;
@@ -993,19 +1012,19 @@ public final class MenuCommands
  		ToolOptions dialog = new ToolOptions(TopLevel.getCurrentJFrame(), true);
 		dialog.show();
 	}
-    
-    /** 
-     * This method implements the command to show the Key Bindings Options dialog.
-     */
-    public static void keyBindingsCommand()
-    {
-        EditKeyBindings dialog = new EditKeyBindings(TopLevel.getCurrentJFrame(), true);
-        dialog.show();
-    }
+	
+	/** 
+	 * This method implements the command to show the Key Bindings Options dialog.
+	 */
+	public static void keyBindingsCommand()
+	{
+		EditKeyBindings dialog = new EditKeyBindings(TopLevel.getCurrentJFrame(), true);
+		dialog.show();
+	}
 
-    /** 
-     * This method shows the GetInfo dialog for the highlighted nodes, arcs, and/or text.
-     */
+	/** 
+	 * This method shows the GetInfo dialog for the highlighted nodes, arcs, and/or text.
+	 */
 	public static void getInfoCommand()
 	{
 		if (Highlight.getNumHighlights() == 0)
@@ -1059,33 +1078,33 @@ public final class MenuCommands
 		}
 	}
 
-    public static void attributesCommand()
+	public static void attributesCommand()
 	{
 		Attributes.showDialog();
 	}
 
-    public static void setEditModeCommand(String mode)
-    {
-        if (mode.equals("Select")) ToolBar.selectCommand();
-        if (mode.equals("Special Select")) ToolBar.selectSpecialCommand();
-        if (mode.equals("Wiring")) ToolBar.wiringCommand();
-        if (mode.equals("Pan")) ToolBar.panCommand();
-        if (mode.equals("Zoom")) ToolBar.zoomCommand();
-        if (mode.equals("Outline Edit")) ToolBar.outlineEditCommand();
-    }
+	public static void setEditModeCommand(String mode)
+	{
+		if (mode.equals("Select")) ToolBar.selectCommand();
+		if (mode.equals("Special Select")) ToolBar.selectSpecialCommand();
+		if (mode.equals("Wiring")) ToolBar.wiringCommand();
+		if (mode.equals("Pan")) ToolBar.panCommand();
+		if (mode.equals("Zoom")) ToolBar.zoomCommand();
+		if (mode.equals("Outline Edit")) ToolBar.outlineEditCommand();
+	}
 
-    public static void setMovementModeCommand(String mode)
-    {
-        if (mode.equals("Full")) ToolBar.fullArrowDistanceCommand();
-        if (mode.equals("Half")) ToolBar.halfArrowDistanceCommand();
-        if (mode.equals("Quarter")) ToolBar.quarterArrowDistanceCommand();
-    }
+	public static void setMovementModeCommand(String mode)
+	{
+		if (mode.equals("Full")) ToolBar.fullArrowDistanceCommand();
+		if (mode.equals("Half")) ToolBar.halfArrowDistanceCommand();
+		if (mode.equals("Quarter")) ToolBar.quarterArrowDistanceCommand();
+	}
 
-    public static void setSelectModeCommand(String mode)
-    {
-        if (mode.equals("Area")) ToolBar.selectAreaCommand();
-        if (mode.equals("Objects")) ToolBar.selectObjectsCommand();
-    }
+	public static void setSelectModeCommand(String mode)
+	{
+		if (mode.equals("Area")) ToolBar.selectAreaCommand();
+		if (mode.equals("Objects")) ToolBar.selectObjectsCommand();
+	}
 
 	/**
 	 * This method implements the command to highlight all objects in the current Cell.
@@ -1109,7 +1128,7 @@ public final class MenuCommands
 			Highlight.addElectricObject(ai, curCell);
 		}
 		Highlight.finished();
-    }
+	}
 
 	/**
 	 * This method implements the command to show the next logged error.
@@ -1142,24 +1161,24 @@ public final class MenuCommands
 		dialog.show();
 	}
 
-    /** 
-     * This command opens a dialog box to edit a Cell.
-     */
-    public static void newCellCommand()
+	/** 
+	 * This command opens a dialog box to edit a Cell.
+	 */
+	public static void newCellCommand()
 	{
  		NewCell dialog = new NewCell(TopLevel.getCurrentJFrame(), true);
 		dialog.show();
-    }
+	}
 
 	/**
 	 * This method implements the command to delete the current Cell.
 	 */
-    public static void deleteCellCommand()
+	public static void deleteCellCommand()
 	{
 		Cell curCell = Library.needCurCell();
 		if (curCell == null) return;
 		CircuitChanges.deleteCell(curCell, true);
-    }
+	}
 
 	/**
 	 * This method implements the command to do cross-library copies.
@@ -1170,21 +1189,21 @@ public final class MenuCommands
 		dialog.show();
 	}
 
-    /**
-     * This command pushes down the hierarchy
-     */
+	/**
+	 * This command pushes down the hierarchy
+	 */
 	public static void downHierCommand() {
-        EditWindow curEdit = EditWindow.getCurrent();
-        curEdit.downHierarchy();
-    }
+		EditWindow curEdit = EditWindow.getCurrent();
+		curEdit.downHierarchy();
+	}
 
-    /**
-     * This command goes up the hierarchy
-     */
-    public static void upHierCommand() {
-        EditWindow curEdit = EditWindow.getCurrent();
-        curEdit.upHierarchy();
-    }
+	/**
+	 * This command goes up the hierarchy
+	 */
+	public static void upHierCommand() {
+		EditWindow curEdit = EditWindow.getCurrent();
+		curEdit.upHierarchy();
+	}
 
 	/**
 	 * This method implements the command to make a new version of the current Cell.
@@ -1376,7 +1395,7 @@ public final class MenuCommands
 	public static void fullDisplayCommand()
 	{
 		// get the current window
-        EditWindow wnd = EditWindow.getCurrent();
+		EditWindow wnd = EditWindow.getCurrent();
 		if (wnd == null) return;
 
 		// make the circuit fill the window
@@ -1387,7 +1406,7 @@ public final class MenuCommands
 	public static void zoomOutDisplayCommand()
 	{
 		// get the current window
-        EditWindow wnd = EditWindow.getCurrent();
+		EditWindow wnd = EditWindow.getCurrent();
 		if (wnd == null) return;
 
 		// zoom out by a factor of two
@@ -1399,7 +1418,7 @@ public final class MenuCommands
 	public static void zoomInDisplayCommand()
 	{
 		// get the current window
-        EditWindow wnd = EditWindow.getCurrent();
+		EditWindow wnd = EditWindow.getCurrent();
 		if (wnd == null) return;
 
 		// zoom in by a factor of two
@@ -1411,7 +1430,7 @@ public final class MenuCommands
 	public static void focusOnHighlightedCommand()
 	{
 		// get the current window
-        EditWindow wnd = EditWindow.getCurrent();
+		EditWindow wnd = EditWindow.getCurrent();
 		if (wnd == null) return;
 
 		// focus on highlighting
@@ -1428,11 +1447,11 @@ public final class MenuCommands
 		EditWindow wnd = EditWindow.getCurrent();
 		if (wnd != null)
 		{
-			wnd.setGrid(!wnd.getGrid());
+			wnd.setGrid(!wnd.isGrid());
 		}
 	}
 
-    /**
+	/**
 	 * This method implements the command to control Layer visibility.
 	 */
 	public static void layerVisibilityCommand()
@@ -1443,21 +1462,21 @@ public final class MenuCommands
 
 	// ---------------------- THE TOOLS MENU -----------------
 
-    // Logical Effort Tool
-    public static void analyzeCellCommand()
-    {
-        EditWindow curEdit = EditWindow.getCurrent();
-        if (curEdit == null) {
-            System.out.println("Please select valid window first");
-            return;
-        }
-        LETool letool = LETool.getLETool();
-        if (letool == null) {
-            System.out.println("Logical Effort tool not found");
-            return;
-        }
-        letool.analyzeCell(curEdit.getCell(), curEdit.getVarContext(), curEdit);
-    }
+	// Logical Effort Tool
+	public static void analyzeCellCommand()
+	{
+		EditWindow curEdit = EditWindow.getCurrent();
+		if (curEdit == null) {
+			System.out.println("Please select valid window first");
+			return;
+		}
+		LETool letool = LETool.getLETool();
+		if (letool == null) {
+			System.out.println("Logical Effort tool not found");
+			return;
+		}
+		letool.analyzeCell(curEdit.getCell(), curEdit.getVarContext(), curEdit);
+	}
 
 	public static void redoNetworkNumberingCommand()
 	{
@@ -1507,33 +1526,33 @@ public final class MenuCommands
 //		nf.testFour();
 	}
 
-    public static void irsimNetlistCommand()
-    {
-        EditWindow curEdit = EditWindow.getCurrent();
-        if (curEdit == null) {
-            System.out.println("Please select valid window first");
-            return;
-        }
-        IRSIMTool.tool.netlistCell(curEdit.getCell(), curEdit.getVarContext(), curEdit);
-    }        
+	public static void irsimNetlistCommand()
+	{
+		EditWindow curEdit = EditWindow.getCurrent();
+		if (curEdit == null) {
+			System.out.println("Please select valid window first");
+			return;
+		}
+		IRSIMTool.tool.netlistCell(curEdit.getCell(), curEdit.getVarContext(), curEdit);
+	}		
 
 	public static void padFrameGeneratorCommand()
 	{
 		PadGenerator gen = new PadGenerator();
 		gen.ArrayFromFile();
 	}
-    
-    public static void javaBshScriptCommand()
-    {
+	
+	public static void javaBshScriptCommand()
+	{
 		String fileName = OpenFile.chooseInputFile(OpenFile.JAVA, null);
 		if (fileName != null)
 		{
 			// start a job to run the script
-            EvalJavaBsh.tool.runScript(fileName);
-        }
-    }
+			EvalJavaBsh.tool.runScript(fileName);
+		}
+	}
 
-    // ---------------------- THE HELP MENU -----------------
+	// ---------------------- THE HELP MENU -----------------
 
 	public static void aboutCommand()
 	{
@@ -1572,7 +1591,7 @@ public final class MenuCommands
 
 	public static void makeFakeCircuitryCommand()
 	{
-        // test code to make and show something
+		// test code to make and show something
 		MakeFakeCircuitry job = new MakeFakeCircuitry();
 	}
 
@@ -1835,64 +1854,64 @@ public final class MenuCommands
 		}
 	}
 
-    // ---------------------- THE JON GAINSLEY MENU -----------------
-    
-    public static void listVarsOnObject(boolean useproto) {
-        if (Highlight.getNumHighlights() == 0) {
-            System.out.println("Nothing highlighted");
-            return;
-        }
-        for (Iterator it = Highlight.getHighlights(); it.hasNext();) {
-            Highlight h = (Highlight)it.next();
+	// ---------------------- THE JON GAINSLEY MENU -----------------
+	
+	public static void listVarsOnObject(boolean useproto) {
+		if (Highlight.getNumHighlights() == 0) {
+			System.out.println("Nothing highlighted");
+			return;
+		}
+		for (Iterator it = Highlight.getHighlights(); it.hasNext();) {
+			Highlight h = (Highlight)it.next();
 			if (h.getType() != Highlight.Type.EOBJ) continue;
-            ElectricObject eobj = h.getElectricObject();
-            if (eobj instanceof NodeInst) {
-                NodeInst ni = (NodeInst)eobj;
-                if (useproto) {
-                    System.out.println("using prototype");
-                    ((ElectricObject)ni.getProto()).getInfo();
-                } else {
-                    ni.getInfo();
-                }
-            }
-        }
-    }
+			ElectricObject eobj = h.getElectricObject();
+			if (eobj instanceof NodeInst) {
+				NodeInst ni = (NodeInst)eobj;
+				if (useproto) {
+					System.out.println("using prototype");
+					((ElectricObject)ni.getProto()).getInfo();
+				} else {
+					ni.getInfo();
+				}
+			}
+		}
+	}
 
-    public static void evalVarsOnObject() {
-        EditWindow curEdit = EditWindow.getCurrent();
-        if (Highlight.getNumHighlights() == 0) {
-            System.out.println("Nothing highlighted");
-            return;
-        }
-        for (Iterator it = Highlight.getHighlights(); it.hasNext();) {
-            Highlight h = (Highlight)it.next();
+	public static void evalVarsOnObject() {
+		EditWindow curEdit = EditWindow.getCurrent();
+		if (Highlight.getNumHighlights() == 0) {
+			System.out.println("Nothing highlighted");
+			return;
+		}
+		for (Iterator it = Highlight.getHighlights(); it.hasNext();) {
+			Highlight h = (Highlight)it.next();
 			if (h.getType() != Highlight.Type.EOBJ) continue;
-            ElectricObject eobj = h.getElectricObject();
-            Iterator itVar = eobj.getVariables();
-            while(itVar.hasNext()) {
-                Variable var = (Variable)itVar.next();
-                Object obj = curEdit.getVarContext().evalVar(var);
-                System.out.print(var.getKey().getName() + ": ");
-                System.out.println(obj);
-            }
-        }
-    }
-    
-    public static void listLibVars() {
-        Library lib = Library.getCurrent();
-        Iterator itVar = lib.getVariables();
-        System.out.println("----------"+lib+" Vars-----------");
-        while(itVar.hasNext()) {
-            Variable var = (Variable)itVar.next();
-            Object obj = VarContext.globalContext.evalVar(var);
-            System.out.println(var.getKey().getName() + ": " +obj);
-        }
-    }
-    
-    public static void openP4libCommand() {
+			ElectricObject eobj = h.getElectricObject();
+			Iterator itVar = eobj.getVariables();
+			while(itVar.hasNext()) {
+				Variable var = (Variable)itVar.next();
+				Object obj = curEdit.getVarContext().evalVar(var);
+				System.out.print(var.getKey().getName() + ": ");
+				System.out.println(obj);
+			}
+		}
+	}
+	
+	public static void listLibVars() {
+		Library lib = Library.getCurrent();
+		Iterator itVar = lib.getVariables();
+		System.out.println("----------"+lib+" Vars-----------");
+		while(itVar.hasNext()) {
+			Variable var = (Variable)itVar.next();
+			Object obj = VarContext.globalContext.evalVar(var);
+			System.out.println(var.getKey().getName() + ": " +obj);
+		}
+	}
+	
+	public static void openP4libCommand() {
 		ReadBinaryLibrary job = new ReadBinaryLibrary("/export/gainsley/soesrc_java/test/purpleFour.elib");
-//        OpenBinLibraryThread oThread = new OpenBinLibraryThread("/export/gainsley/soesrc_java/test/purpleFour.elib");
-//        oThread.start();
-    }
+//		OpenBinLibraryThread oThread = new OpenBinLibraryThread("/export/gainsley/soesrc_java/test/purpleFour.elib");
+//		oThread.start();
+	}
 
 }
