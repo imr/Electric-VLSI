@@ -72,7 +72,6 @@ public class ERCWellCheck
 		int                netNum;
 		boolean            onProperRail;
 		PrimitiveNode.Function fun;
-		//int                index;
 	};
 
 	/*
@@ -371,7 +370,6 @@ public class ERCWellCheck
 					WellArea wa = (WellArea)it.next();
 
 					int wellType = getWellLayerType(wa.poly.getLayer());
-					//if (wellType != ERCPWell && wellType != ERCNWell) continue;
 					if (!isERCLayerRelated(wa.poly.getLayer())) continue;
 					PrimitiveNode.Function desiredContact = PrimitiveNode.Function.SUBSTRATE;
 					if (wellType == ERCPWell) desiredContact = PrimitiveNode.Function.WELL;
@@ -632,9 +630,7 @@ public class ERCWellCheck
 				wc.ctr = ni.getTrueCenter();
 				trans.transform(wc.ctr, wc.ctr);
 				info.getTransformToRoot().transform(wc.ctr, wc.ctr);
-				//wc.np = ni.getProto();
 				wc.fun = fun;
-				//wc.index = job.wellConIndex++;     // FindBug Oct19
 				PortInst pi = ni.getOnlyPortInst();
 				Netlist netList = info.getNetlist();
 				Network net = netList.getNetwork(pi);

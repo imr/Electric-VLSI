@@ -3518,11 +3518,6 @@ public class Quick
 			if (metalMerge == null)
 				metalMerge = new PolyQTree(info.getCell().getBounds());
 
-			/*
-			if (selectMerge == null)
-				selectMerge = new PolyQTree(info.getCell().getBounds());
-				*/
-
 			// Check Arcs too
 			for(Iterator it = info.getCell().getArcs(); it.hasNext(); )
 			{
@@ -3566,12 +3561,30 @@ public class Quick
 			NodeProto np = ni.getProto();
 
 			// Skipping cells. Flat analysis for now
-			if (!(np instanceof PrimitiveNode)) return (false);
+			if (!(np instanceof PrimitiveNode)) return (true);
 
 			PrimitiveNode pNp = (PrimitiveNode)np;
 			if (np instanceof PrimitiveNode && np == Generic.tech.cellCenterNode) return (false);
 
 			boolean found = false;
+			/*
+			Network parentNet = jNet;
+			HierarchyEnumerator.CellInfo cinfo = info;
+			while (cinfo.getParentInst() != null) {
+				parentNet = HierarchyEnumerator.getNetworkInParent(parentNet, cinfo.getParentInst());
+				cinfo = cinfo.getParentInfo();
+			}
+					if (parentNet != null)
+					{
+						for (Iterator it = parentNet.getExports(); !found && it.hasNext();)
+						{
+							Export exp = (Export)it.next();
+							if ((searchWell && exp.isGround()) || (!searchWell && exp.isPower()))
+								wc.onProperRail = true;
+						}
+					}
+            */
+			
 			for(Iterator pIt = ni.getPortInsts(); !found && pIt.hasNext(); )
 			{
 				PortInst pi = (PortInst)pIt.next();
