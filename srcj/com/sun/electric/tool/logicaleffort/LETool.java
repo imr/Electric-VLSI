@@ -52,6 +52,8 @@ import java.io.OutputStream;
 import java.lang.InterruptedException;
 import java.util.Iterator;
 import java.util.Stack;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 /**
  * This is the Logical Effort Tool.  It doesn't actually do
@@ -146,7 +148,12 @@ public class LETool extends Tool {
         Cell cell = (Cell)np;
 
         NodeInst ni = cell.findNode(nodeName);                      // find nodeinst that has variable on it
-        if (ni == null) throw new VarContext.EvalException("subdrive(): no nodeInst named "+nodeName);
+        if (ni == null) {
+            // try converting to JElectric default name
+            ni = cell.findNode(convertToJElectricDefaultName(nodeName));
+            if (ni == null)
+                throw new VarContext.EvalException("subdrive(): no nodeInst named "+nodeName);
+        }
 
         Variable var = ni.getVar(parName);                          // find variable on nodeinst
         if (var == null) var = ni.getVar("ATTR_"+parName);          // maybe it's an attribute
@@ -242,6 +249,14 @@ public class LETool extends Tool {
             System.out.println("VarContext.getInstPath: context with null NodeInst?");
         }
         String me;
+        String name = getCElectricDefaultName(no);
+        me = name + ",0";
+
+        if (prefix.equals("")) return me;
+        return prefix + ";" + me;
+    }
+
+    private static String getCElectricDefaultName(Nodable no) {
         String name = no.getNodeInst().getName();
         int at = name.indexOf('@');
         if (at != -1) {
@@ -254,11 +269,23 @@ public class LETool extends Tool {
                 } catch (NumberFormatException e) {}
             }
         }
-                // two cases if arrayed node: one if just a NodeInst, another if Node Proxy
-        me = name + ",0";
+        return name;
+    }
 
-        if (prefix.equals("")) return me;
-        return prefix + ";" + me;
+    private static final Pattern celecDefaultNamePattern = Pattern.compile("^(\\D+)(\\d+)$");
+
+    private static String convertToJElectricDefaultName(String celectricDefaultName) {
+        Matcher mat = celecDefaultNamePattern.matcher(celectricDefaultName);
+        if (mat.matches()) {
+            try {
+                Integer i = new Integer(mat.group(2));
+                int ii = i.intValue() - 1;
+                if (ii >= 0) {
+                    celectricDefaultName = mat.group(1) + "@" + ii;
+                }
+            } catch (NumberFormatException e) {}
+        }
+        return celectricDefaultName;
     }
 
     protected static Variable getMFactor(Nodable no) {
