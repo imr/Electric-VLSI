@@ -4,7 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02j: *********************************
 
-IMP: (03/11/04, RK) Reorganized qLite regression data
+IMP/MAN: (03/11/05, GVG) Cleaning up 3D tab in preferences if j3d is not available. Some 3D options
+won't be available since they don't have sense if plugin is not available. This simplifies code
+maintenance.
+
+IMP: (03/11/05, RK) Reorganized qLite regression data
 
 IMP: (03/10/05, GVG) Adding ability to turn off/on bounding box associated to cells in 3D (Robert)
 
