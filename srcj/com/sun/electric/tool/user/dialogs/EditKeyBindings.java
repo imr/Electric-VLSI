@@ -6,7 +6,7 @@
 
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.tool.user.UserMenuCommands;
+import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.ui.Menu;
 
 import javax.swing.JMenu;
@@ -347,7 +347,7 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
     private void buildCommandsTree() {
         DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
         
-        menuBar = UserMenuCommands.createMenuBar();
+        menuBar = MenuCommands.createMenuBar();
         // now convert menuBar to tree
         for (int i=0; i<menuBar.getMenuCount(); i++) {
             Menu menu = (Menu)menuBar.getMenu(i);

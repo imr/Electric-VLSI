@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.user.ui;
+package com.sun.electric.tool.user.dialogs;
 
 import java.io.File;
 import java.util.List;
@@ -31,7 +31,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
 
-public class DialogOpenFile extends JFileChooser
+public class OpenFile extends JFileChooser
 {
 	static class EFileFilter extends FileFilter
 	{
@@ -95,12 +95,12 @@ public class DialogOpenFile extends JFileChooser
 
 	/** True if this is a file save dialog */						private boolean saveDialog;
     /** Remember last directory used */                             private static File fileChooserDir = initDir();
-    /** single dialog box...cause it takes so long to pop up */     private static DialogOpenFile dialog = new DialogOpenFile();
+    /** single dialog box...cause it takes so long to pop up */     private static OpenFile dialog = new OpenFile();
 
     /** Private constructor, use factory methods chooseInputFile or
      * chooseOutputFile instead.
      */
-    private DialogOpenFile()
+    private OpenFile()
     {
         // add list of file filters to this dialog
         for (Iterator it = EFileFilter.getAllFilters().iterator(); it.hasNext(); )
@@ -155,7 +155,7 @@ public class DialogOpenFile extends JFileChooser
      */
 	public static String chooseOutputFile(FileFilter filter, String title, String defaultFile)
 	{
-        DialogOpenFile dialog = new DialogOpenFile();
+        OpenFile dialog = new OpenFile();
         dialog.addChoosableFileFilter(filter);
         
         dialog.saveDialog = true;

@@ -31,6 +31,7 @@ import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ErrorLog;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.dialogs.NewCell;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -82,6 +83,7 @@ public class ExplorerTree extends JTree
 	private static ImageIcon iconGroup = null;
 	private static ImageIcon iconJobs = null;
 	private static ImageIcon iconLibraries = null;
+	private static ImageIcon iconErrors = null;
 	private static ImageIcon iconViewIcon = null;
 	private static ImageIcon iconViewOldIcon = null;
 	private static ImageIcon iconViewLayout = null;
@@ -371,6 +373,11 @@ public class ExplorerTree extends JTree
 			}
 			return groupName;
 		}
+		if (nodeInfo instanceof ErrorLog)
+		{
+			ErrorLog el = (ErrorLog)nodeInfo;
+			return el.describeError();
+		}
 		return nodeInfo.toString();
 	}
 
@@ -468,6 +475,11 @@ public class ExplorerTree extends JTree
 					if (iconLibraries == null)
 						iconLibraries = new ImageIcon(getClass().getResource("IconLibraries.gif"));
 					setIcon(iconLibraries);
+				} else if (theString.equalsIgnoreCase("errors"))
+				{
+					if (iconErrors == null)
+						iconErrors = new ImageIcon(getClass().getResource("IconErrors.gif"));
+					setIcon(iconErrors);
 				}
 			}
 			if (nodeInfo instanceof Job)
@@ -476,7 +488,6 @@ public class ExplorerTree extends JTree
 				//setToolTipText(j.getToolTip());
 				//System.out.println("set tool tip to "+j.getToolTip());
 			}
-
 			return this;
 		}
 	}
@@ -536,6 +547,14 @@ public class ExplorerTree extends JTree
 				{
 					Job job = (Job)currentSelectedObject;
 					System.out.println(job.getInfo());
+					return;
+				}
+
+				if (currentSelectedObject instanceof ErrorLog)
+				{
+					ErrorLog el = (ErrorLog)currentSelectedObject;
+					String msg = el.reportError();
+					System.out.println(msg);
 					return;
 				}
 

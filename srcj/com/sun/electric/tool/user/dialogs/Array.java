@@ -42,10 +42,12 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Clipboard;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.drc.Quick;
 import com.sun.electric.tool.Job;
 
 import java.awt.geom.Point2D;
@@ -69,10 +71,10 @@ import javax.swing.JOptionPane;
  */
 public class Array extends javax.swing.JDialog
 {
-	private static final int SPACING_EDGE = 1;
-	private static final int SPACING_CENTER = 2;
-	private static final int SPACING_CHARACTERISTIC = 3;
-	private static final int SPACING_MEASURED = 4;
+	/** Space by edge overlap. */				private static final int SPACING_EDGE = 1;
+	/** Space by centerline distance. */		private static final int SPACING_CENTER = 2;
+	/** Space by characteristic distance. */	private static final int SPACING_CHARACTERISTIC = 3;
+	/** Space by measured distance. */			private static final int SPACING_MEASURED = 4;
 
 	private static int lastXRepeat = 1, lastYRepeat = 1;
 	private static double lastXDistance = 0, lastYDistance = 0;
@@ -88,8 +90,22 @@ public class Array extends javax.swing.JDialog
 	/** the selected objects to be arrayed */				private HashMap selected;
 	/** the bounds of the selected objects */				private Rectangle2D bounds;
 
+	public static void showArrayDialog()
+	{
+		// first make sure something is selected
+		List highs = Highlight.getHighlighted(true, true);
+		if (highs.size() == 0)
+		{
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+				"Select some objects before arraying them.");
+			return;
+		}
+		Array dialog = new Array(TopLevel.getCurrentJFrame(), true);
+		dialog.show();
+	}
+
 	/** Creates new form Array */
-	public Array(java.awt.Frame parent, boolean modal)
+	private Array(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
 		setLocation(100, 50);
@@ -261,8 +277,6 @@ public class Array extends javax.swing.JDialog
 		{
 			public void actionPerformed(ActionEvent evt) { newSpacingSelected(); }
 		});
-
-		onlyDRCCorrect.setEnabled(false);
 	}
 
 	private void newSpacingSelected()
@@ -347,10 +361,10 @@ public class Array extends javax.swing.JDialog
 				cell = geom.getParent();
 				if (geom instanceof NodeInst)
 				{
-//					if (us_cantedit(np, geom, true)) return;
+					if (CircuitChanges.cantEdit(cell, (NodeInst)geom, true)) return;
 				} else
 				{
-//					if (us_cantedit(np, null, true)) return;
+					if (CircuitChanges.cantEdit(cell, null, true)) return;
 				}
 			}
 
@@ -393,15 +407,15 @@ public class Array extends javax.swing.JDialog
 			double cY = dialog.bounds.getCenterY();
 
 			// if only arraying where DRC clean, make an array of newly created nodes
+			NodeInst [] nodesToCheck = null;
+			boolean [] validity = null;
+			int checkNodeCount = 0;
 			if (lastDRCGood)
 			{
-//				nodestocheck = (NODEINST **)emalloc(lastXRepeat * lastYRepeat * (sizeof (NODEINST *)), us_tool->cluster);
-//				if (nodestocheck == 0) return;
-//				validity = (BOOLEAN *)emalloc(lastXRepeat * lastYRepeat * (sizeof (BOOLEAN)), us_tool->cluster);
-//				if (validity == 0) return;
-//				checknodecount = 0;
-//				if (nodecount == 1)
-//					nodestocheck[checknodecount++] = nodelist[0];
+				nodesToCheck = new NodeInst[lastXRepeat * lastYRepeat];
+				validity = new boolean[lastXRepeat * lastYRepeat];
+				if (nodeList.size() == 1)
+					nodesToCheck[checkNodeCount++] = (NodeInst)nodeList.get(0);
 			}
 
 			// create the array
@@ -423,6 +437,7 @@ public class Array extends javax.swing.JDialog
 				List queuedExports = new ArrayList();
 
 				// first replicate the nodes
+				boolean firstNode = true;
 				for(Iterator it = dialog.selected.keySet().iterator(); it.hasNext(); )
 				{
 					Geometric geom = (Geometric)it.next();
@@ -473,8 +488,11 @@ public class Array extends javax.swing.JDialog
 					}
 
 					ni.setTempObj(newNi);
-//					if (lastDRCGood && i == 0)
-//						nodestocheck[checknodecount++] = newNi;
+					if (lastDRCGood && firstNode)
+					{
+						nodesToCheck[checkNodeCount++] = newNi;
+						firstNode = false;
+					}
 				}
 
 				// create any queued exports
@@ -535,21 +553,18 @@ public class Array extends javax.swing.JDialog
 			}
 
 			// if only arraying where DRC valid, check them now and delete what is not valid
-//			if (lastDRCGood)
-//			{
-//				(void)asktool(dr_tool, x_("check-instances"), (INTBIG)np, checknodecount, (INTBIG)nodestocheck,
-//					(INTBIG)validity);
-//				for(i=1; i<checknodecount; i++)
-//				{
-//					if (!validity[i])
-//					{
-//						// delete the node
-//						killnodeinst(nodestocheck[i]);
-//					}
-//				}
-//				efree((CHAR *)nodestocheck);
-//				efree((CHAR *)validity);
-//			}
+			if (lastDRCGood)
+			{
+				Quick.doCheck(cell, checkNodeCount, nodesToCheck, validity, false);
+				for(int i=1; i<checkNodeCount; i++)
+				{
+					if (!validity[i])
+					{
+						// delete the node
+						nodesToCheck[i].kill();
+					}
+				}
+			}
 		}
 
 		static class GeometricsByName implements Comparator
@@ -648,8 +663,8 @@ public class Array extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 11;
         gridBagConstraints.gridheight = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(cancel, gridBagConstraints);
 
         ok.setText("OK");
@@ -665,8 +680,8 @@ public class Array extends javax.swing.JDialog
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 11;
         gridBagConstraints.gridheight = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(ok, gridBagConstraints);
 
         jLabel1.setText("X repeat factor:");
@@ -674,8 +689,8 @@ public class Array extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridheight = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(jLabel1, gridBagConstraints);
 
         xRepeat.setColumns(6);
@@ -692,8 +707,8 @@ public class Array extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
         getContentPane().add(flipAlternateColumns, gridBagConstraints);
 
         staggerAlternateColumns.setText("Stagger alternate columns");
@@ -701,8 +716,8 @@ public class Array extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         getContentPane().add(staggerAlternateColumns, gridBagConstraints);
 
         centerXAboutOriginal.setText("Center about original");
@@ -710,8 +725,8 @@ public class Array extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
         getContentPane().add(centerXAboutOriginal, gridBagConstraints);
 
         jLabel2.setText("Y repeat factor:");
@@ -719,8 +734,8 @@ public class Array extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridheight = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(jLabel2, gridBagConstraints);
 
         yRepeat.setColumns(6);
@@ -737,8 +752,8 @@ public class Array extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
         getContentPane().add(flipAlternateRows, gridBagConstraints);
 
         staggerAlternateRows.setText("Stagger alternate rows");
@@ -746,8 +761,8 @@ public class Array extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         getContentPane().add(staggerAlternateRows, gridBagConstraints);
 
         centerYAboutOriginal.setText("Center about original");
@@ -755,8 +770,8 @@ public class Array extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
         getContentPane().add(centerYAboutOriginal, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -772,8 +787,8 @@ public class Array extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 7;
         gridBagConstraints.gridheight = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(xOverlapLabel, gridBagConstraints);
 
         xSpacing.setColumns(6);
@@ -808,8 +823,8 @@ public class Array extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 9;
         gridBagConstraints.gridheight = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(yOverlapLabel, gridBagConstraints);
 
         ySpacing.setColumns(6);
@@ -844,8 +859,8 @@ public class Array extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 11;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         getContentPane().add(linearDiagonalArray, gridBagConstraints);
 
         generateArrayIndices.setText("Generate array indices");
@@ -853,8 +868,8 @@ public class Array extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 12;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         getContentPane().add(generateArrayIndices, gridBagConstraints);
 
         onlyDRCCorrect.setText("Only place entries that are DRC correct");
@@ -862,8 +877,8 @@ public class Array extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 13;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         getContentPane().add(onlyDRCCorrect, gridBagConstraints);
 
         pack();

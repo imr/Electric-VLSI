@@ -25,7 +25,7 @@ package com.sun.electric.tool.simulation;
 
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.DialogOpenFile;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.simulation.Simulation;
@@ -100,7 +100,7 @@ public class Spice
 		EditWindow wnd = EditWindow.getCurrent();
 		if (wnd == null) return;
 		if (wnd.getCell() == null) return;
-		String fileName = DialogOpenFile.chooseOutputFile(DialogOpenFile.SPI, null, wnd.getCell().getProtoName());
+		String fileName = OpenFile.chooseOutputFile(OpenFile.SPI, null, wnd.getCell().getProtoName());
 		if (fileName != null)
 		{
 			// start a job to do the deck writing

@@ -43,7 +43,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.UserMenuCommands;
+import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.EditWindow;
 
@@ -99,7 +99,7 @@ class WiringListener
 		{
 			if (Highlight.getNumHighlights() >= 1)
 			{
-				UserMenuCommands.getInfoCommand();
+				MenuCommands.getInfoCommand();
 				return;
 			}
 		}

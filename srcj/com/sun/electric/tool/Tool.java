@@ -23,7 +23,7 @@
  */
 package com.sun.electric.tool;
 
-import com.sun.electric.database.change.Change;
+import com.sun.electric.database.change.Changes;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
@@ -50,7 +50,7 @@ import java.util.prefs.Preferences;
  * variables that keep track of the currently selected object, and other
  * useful information.
  */
-public class Tool extends ElectricObject implements Change
+public class Tool extends ElectricObject implements Changes
 {
 	// The name of this tool
 	private String toolName;

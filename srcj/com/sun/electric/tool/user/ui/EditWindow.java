@@ -50,7 +50,7 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.UserMenuCommands;
+import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.ToolBar;

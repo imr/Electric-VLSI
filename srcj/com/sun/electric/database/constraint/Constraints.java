@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: Constraint.java
+ * File: Constraints.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -23,7 +23,7 @@
  */
 package com.sun.electric.database.constraint;
 
-import com.sun.electric.database.change.Change;
+import com.sun.electric.database.change.Changes;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
@@ -36,12 +36,12 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.Tool;
 
 
-public class Constraint implements Change
+public class Constraints implements Changes
 {
-	private static Constraint curConstraint = new Constraint();
+	private static Constraints curConstraint = new Constraints();
 
-	public static void setCurrent(Constraint con) { curConstraint = con; }
-	public static Constraint getCurrent() { return curConstraint; }
+	public static void setCurrent(Constraints con) { curConstraint = con; }
+	public static Constraints getCurrent() { return curConstraint; }
 
 	public void init() {}
 	public void request(String cmd) {}

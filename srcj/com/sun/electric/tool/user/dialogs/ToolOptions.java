@@ -40,7 +40,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.simulation.Spice;
 import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.drc.DRC;
-import com.sun.electric.tool.user.ui.DialogOpenFile;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 
 import java.util.Iterator;
 import java.util.List;
@@ -966,7 +966,7 @@ public class ToolOptions extends javax.swing.JDialog
 
 	private void spiceModelFileBrowseActionPerformed(ActionEvent evt)
 	{
-		String fileName = DialogOpenFile.chooseInputFile(DialogOpenFile.ANY, null);
+		String fileName = OpenFile.chooseInputFile(OpenFile.ANY, null);
 		if (fileName == null) return;
 		spiceModelCell.setText(fileName);
 		spiceUseModelFromFile.setSelected(true);
@@ -974,7 +974,7 @@ public class ToolOptions extends javax.swing.JDialog
 
 	private void spiceBrowseTrailerFileActionPerformed(ActionEvent evt)
 	{
-		String fileName = DialogOpenFile.chooseInputFile(DialogOpenFile.ANY, null);
+		String fileName = OpenFile.chooseInputFile(OpenFile.ANY, null);
 		if (fileName == null) return;
 		spiceTrailerCardFile.setText(fileName);
 		spiceTrailerCardsFromFile.setSelected(true);
@@ -982,7 +982,7 @@ public class ToolOptions extends javax.swing.JDialog
 
 	private void spiceBrowseHeaderFileActionPerformed(ActionEvent evt)
 	{
-		String fileName = DialogOpenFile.chooseInputFile(DialogOpenFile.ANY, null);
+		String fileName = OpenFile.chooseInputFile(OpenFile.ANY, null);
 		if (fileName == null) return;
 		spiceHeaderCardFile.setText(fileName);
 		spiceHeaderCardsFromFile.setSelected(true);

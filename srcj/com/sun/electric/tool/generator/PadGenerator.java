@@ -42,7 +42,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.ui.DialogOpenFile;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.lib.LibFile;
 
 import java.awt.geom.Point2D;
@@ -557,7 +557,7 @@ public class PadGenerator
 
 	public void ArrayFromFile()
 	{
-        String fileName = DialogOpenFile.chooseInputFile(DialogOpenFile.ARR, null);
+        String fileName = OpenFile.chooseInputFile(OpenFile.ARR, null);
 		if (fileName == null)
 		{
 			System.out.println("File not found");

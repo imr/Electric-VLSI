@@ -52,7 +52,7 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.UserMenuCommands;
+import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -372,7 +372,7 @@ public class Clipboard
 		boolean interactiveplace, boolean showoffset)
 	{
 		// make sure the destination cell can be modified
-//		if (us_cantedit(tocell, null, true)) return;
+		if (CircuitChanges.cantEdit(tocell, null, true)) return;
 
 		// make sure they are all in the same cell
 		for(Iterator it = list.iterator(); it.hasNext(); )
@@ -417,7 +417,7 @@ public class Clipboard
 			// check for cell instance lock
 			if (ni.getProto() instanceof Cell && tocell.isInstancesLocked())
 			{
-//				if (us_cantedit(tocell, ni, TRUE)) continue;
+				if (CircuitChanges.cantEdit(tocell, ni, true)) continue;
 			}
 			ni.setBit(inAreaFlag);
 		}

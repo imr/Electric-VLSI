@@ -29,6 +29,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ErrorLog;
 import com.sun.electric.tool.user.ui.Button;
 import com.sun.electric.tool.user.ui.PaletteFrame;
 
@@ -166,6 +167,7 @@ public class WindowFrame
 		rootNode.removeAllChildren();
 		rootNode.add(ExplorerTree.getLibraryExplorerTree());
 		rootNode.add(Job.getExplorerTree());
+		rootNode.add(ErrorLog.getExplorerTree());
 		treeModel = new DefaultTreeModel(rootNode);
 		frame.tree = ExplorerTree.CreateExplorerTree(rootNode, treeModel, frame.wnd);
 		ExplorerTree.explorerTreeChanged();

@@ -23,7 +23,7 @@
  */
 package com.sun.electric.database.change;
 
-import com.sun.electric.database.constraint.Constraint;
+import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -859,7 +859,7 @@ public class Undo
 			doneList.remove(0);
 		}
 		// start the batch of changes
-		Constraint.getCurrent().startBatch(tool, false);
+		Constraints.getCurrent().startBatch(tool, false);
 	}
 
 	/**
@@ -871,7 +871,7 @@ public class Undo
 		if (currentBatch == null) return;
 
 		// changes made: apply final constraints to this batch of changes
-		Constraint.getCurrent().endBatch();
+		Constraints.getCurrent().endBatch();
 
 		for(Iterator it = Tool.getTools(); it.hasNext(); )
 		{
@@ -977,7 +977,7 @@ public class Undo
 		pp.setChange(ch);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-		Constraint.getCurrent().modifyExport(pp, oldPi);
+		Constraints.getCurrent().modifyExport(pp, oldPi);
 	}
 
 	public static void modifyCell(Cell cell, double oLX, double oHX, double oLY, double oHY)
@@ -1000,7 +1000,7 @@ public class Undo
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
 		// tell constraint system about this TextDescriptor
-		Constraint.getCurrent().modifyTextDescript(obj, descript, oldDescript0, oldDescript1);
+		Constraints.getCurrent().modifyTextDescript(obj, descript, oldDescript0, oldDescript1);
 	}
 
 	public static void newObject(ElectricObject obj)
@@ -1014,7 +1014,7 @@ public class Undo
 		Change ch = newChange(obj, type, null);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-		Constraint.getCurrent().newObject(obj);
+		Constraints.getCurrent().newObject(obj);
 	}
 
 	public static void killObject(ElectricObject obj)
@@ -1028,7 +1028,7 @@ public class Undo
 		Change ch = newChange(obj, type, null);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-		Constraint.getCurrent().killObject(obj);
+		Constraints.getCurrent().killObject(obj);
 	}
 
 	public static void redrawObject(ElectricObject obj)
@@ -1047,7 +1047,7 @@ public class Undo
 		Change ch = newChange(obj, type, var);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-		Constraint.getCurrent().newVariable(obj, var);
+		Constraints.getCurrent().newVariable(obj, var);
 	}
 
 	public static void killVariable(ElectricObject obj, Variable var)
@@ -1057,7 +1057,7 @@ public class Undo
 		Change ch = newChange(obj, type, var);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-		Constraint.getCurrent().killVariable(obj, var);
+		Constraints.getCurrent().killVariable(obj, var);
 	}
 
 	public static void modifyVariableFlags(ElectricObject obj, Variable var, int oldFlags)
@@ -1067,7 +1067,7 @@ public class Undo
 		ch.i1 = oldFlags;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-		Constraint.getCurrent().modifyVariableFlags(obj, var, oldFlags);
+		Constraints.getCurrent().modifyVariableFlags(obj, var, oldFlags);
 	}
 
 	public static void modifyVariable(ElectricObject obj, Variable var, int index, Object oldValue)
@@ -1078,7 +1078,7 @@ public class Undo
 		ch.o2 = oldValue;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-		Constraint.getCurrent().modifyVariable(obj, var, index, oldValue);
+		Constraints.getCurrent().modifyVariable(obj, var, index, oldValue);
 	}
 
 	public static void insertVariable(ElectricObject obj, Variable var, int index)
@@ -1088,7 +1088,7 @@ public class Undo
 		ch.i1 = index;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-		Constraint.getCurrent().insertVariable(obj, var, index);
+		Constraints.getCurrent().insertVariable(obj, var, index);
 	}
 
 	public static void deleteVariable(ElectricObject obj, Variable var, int index, Object oldValue)
@@ -1099,7 +1099,7 @@ public class Undo
 		ch.o2 = oldValue;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-		Constraint.getCurrent().deleteVariable(obj, var, index, oldValue);
+		Constraints.getCurrent().deleteVariable(obj, var, index, oldValue);
 	}
 
 	/**

@@ -23,8 +23,8 @@
  */
 package com.sun.electric.database.constraint;
 
-import com.sun.electric.database.constraint.Constraint;
-import com.sun.electric.database.change.Change;
+import com.sun.electric.database.constraint.Constraints;
+import com.sun.electric.database.change.Changes;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Poly;
@@ -55,7 +55,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
-public class Layout extends Constraint
+public class Layout extends Constraints
 {
 	private static final Layout layoutConstraint = new Layout();
 

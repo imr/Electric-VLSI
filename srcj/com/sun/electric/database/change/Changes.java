@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: Change.java
+ * File: Changes.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -37,7 +37,7 @@ import com.sun.electric.tool.Tool;
 /**
  * This interface defines changes that are made to the database.
  */
-public interface Change
+public interface Changes
 {
 	void init();
 	void request(String cmd);

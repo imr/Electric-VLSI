@@ -36,8 +36,8 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.drc.DRCQuick;
-import com.sun.electric.tool.drc.DRCSchematics;
+import com.sun.electric.tool.drc.Quick;
+import com.sun.electric.tool.drc.Schematic;
 import com.sun.electric.tool.user.ErrorLog;
 
 import java.util.Iterator;
@@ -209,11 +209,11 @@ public class DRC extends Tool
 			if (cell.getView() == View.SCHEMATIC || cell.getTechnology() == Schematics.tech)
 			{
 				// hierarchical check of schematics
-				DRCSchematics.doCheck(cell);
+				Schematic.doCheck(cell);
 			} else
 			{
 				// hierarchical check of layout
-				DRCQuick.doCheck(cell, 0, null, null, justArea);
+				Quick.doCheck(cell, 0, null, null, justArea);
 			}
 			long endTime = System.currentTimeMillis();
 			int errorcount = ErrorLog.numErrors();

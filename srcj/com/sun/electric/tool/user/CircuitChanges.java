@@ -50,6 +50,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -1272,7 +1273,7 @@ public class CircuitChanges
 //	{
 //		// disallow erasing if lock is on
 //		Cell cell = ni.getParent();
-//		if (us_cantedit(cell, ni, TRUE)) return(-1);
+//		if (cantEdit(cell, ni, true)) return(-1);
 //
 //		// look for pairs arcs that will get reconnected
 //		firstrecon = NORECONNECT;
@@ -2148,6 +2149,78 @@ public class CircuitChanges
 		addr.newVar(var.getKey(), newIncrString);
 
 		return retVal;
+	}
+	/****************************** DETERMINE ABILITY TO MAKE CHANGES ******************************/
+
+	/**
+	 * Method to tell whether a NodeInst can be modified in a cell.
+	 * @param cell the Cell in which the NodeInst resides.
+	 * @param item the NodeInst (may be null).
+	 * @param giveError true to print an error message if the modification is disallowed.
+	 * @return true if the edit CANNOT be done.
+	 */
+	public static boolean cantEdit(Cell cell, NodeInst item, boolean giveError)
+	{
+		// if an instance is specified, check it
+		if (item != null)
+		{
+			if (item.isLocked())
+			{
+				if (!giveError) return true;
+				String [] options = {"Yes", "No", "Always"};
+				int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+					"Changes to locked node " + item.describe() + " are disallowed.  Change anyway?",
+					"Allow changes", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
+					null, options, options[1]);
+				if (ret == 1) return true;
+				if (ret == 2) item.clearLocked();
+			}
+			if (item.getProto() instanceof PrimitiveNode)
+			{
+				// see if a primitive is locked
+				if (item.getProto().isLockedPrim() &&
+					User.isDisallowModificationLockedPrims())
+				{
+					if (!giveError) return true;
+					String [] options = {"Yes", "No", "Always"};
+					int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+						"Changes to locked primitives (such as " + item.describe() + ") are disallowed.  Change anyway?",
+						"Allow changes", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
+						null, options, options[1]);
+					if (ret == 1) return true;
+					if (ret == 2) User.setDisallowModificationLockedPrims(false);
+				}
+			} else
+			{
+				// see if this type of cell is locked
+				if (cell.isInstancesLocked())
+				{
+					if (!giveError) return true;
+					String [] options = {"Yes", "No", "Always"};
+					int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+						"Instances in cell " + cell.describe() + " are locked.  You cannot move " + item.describe() +
+						".  Change anyway?",
+						"Allow changes", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
+						null, options, options[1]);
+					if (ret == 1) return true;
+					if (ret == 2) cell.clearInstancesLocked();
+				}
+			}
+		}
+
+		// check for general changes to the cell
+		if (cell.isAllLocked())
+		{
+			if (!giveError) return true;
+			String [] options = {"Yes", "No", "Always"};
+			int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+				"Changes to cell " + cell.describe() + " are locked.  Change anyway?",
+				"Allow changes", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
+				null, options, options[1]);
+			if (ret == 1) return true;
+			if (ret == 2) cell.clearAllLocked();
+		}
+		return false;
 	}
 
 }

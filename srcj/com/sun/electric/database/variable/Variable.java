@@ -24,7 +24,7 @@
 package com.sun.electric.database.variable;
 
 import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.constraint.Constraint;
+import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.topology.ArcInst;

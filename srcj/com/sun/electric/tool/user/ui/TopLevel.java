@@ -25,7 +25,7 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.tool.user.UserMenuCommands;
+import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.ui.PaletteFrame;
 
 import java.util.ArrayList;
@@ -102,7 +102,7 @@ public class TopLevel extends JFrame
 		setIconImage(new ImageIcon(getClass().getResource("IconElectric.gif")).getImage());
 
 		// create the menu bar
-		JMenuBar menuBar = UserMenuCommands.createMenuBar();
+		JMenuBar menuBar = MenuCommands.createMenuBar();
 		setJMenuBar(menuBar);
 
 		// create the tool bar
@@ -280,7 +280,7 @@ public class TopLevel extends JFrame
 	{
 		WindowsEvents() { super(); }
 
-		public void windowClosing(WindowEvent evt) { UserMenuCommands.quitCommand(); }
+		public void windowClosing(WindowEvent evt) { MenuCommands.quitCommand(); }
 	}
 	
 	/**

@@ -30,7 +30,7 @@ package com.sun.electric.tool.user.ui;
  * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
  */
 
-import com.sun.electric.tool.user.UserMenuCommands;
+import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.dialogs.EditKeyBindings;
 
 import java.awt.event.ActionListener;

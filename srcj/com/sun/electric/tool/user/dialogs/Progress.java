@@ -21,11 +21,12 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.user.ui;
+package com.sun.electric.tool.user.dialogs;
+
+import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.BorderLayout;
 import java.awt.Insets;
-
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
@@ -36,7 +37,7 @@ import javax.swing.JDesktopPane;
 /**
  * This class displays a progress dialog.
  */
-public class ProgressDialog
+public class Progress
 {
     private JProgressBar progressBar;
     private JTextArea taskOutput;
@@ -47,7 +48,7 @@ public class ProgressDialog
 	 * The constructor displays the progress dialog.
 	 * @param title the title of the dialog.
 	 */
-	public ProgressDialog(String title)
+	public Progress(String title)
 	{
 		if (TopLevel.isMDIMode())
 		{

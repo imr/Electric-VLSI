@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: UserMenuCommands.java
+ * File: MenuCommands.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -48,7 +48,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.ui.DialogOpenFile;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.Tool;
@@ -109,14 +109,14 @@ import javax.swing.JOptionPane;
 /**
  * This class has all of the pulldown menu commands in Electric.
  */
-public final class UserMenuCommands
+public final class MenuCommands
 {
 	public static JMenuItem selectArea, selectObjects;
 	public static JMenuItem moveFull, moveHalf, moveQuarter;
 	public static JMenuItem cursorSelect, cursorWiring, cursorSelectSpecial, cursorPan, cursorZoom;
 
 	// It is never useful for anyone to create an instance of this class
-	private UserMenuCommands() {}
+	private MenuCommands() {}
 
 	/**
 	 * Method to create the pulldown menus.
@@ -247,9 +247,9 @@ public final class UserMenuCommands
 			moveQuarter.setSelected(true);
 
 		editMenu.addMenuItem("Array...", KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { arrayCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Array.showArrayDialog(); } });
 		editMenu.addMenuItem("Change...", KeyStroke.getKeyStroke('C', 0),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { changeCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Change.showChangeDialog(); } });
 
 		Menu modeSubMenuSelect = Menu.createMenu("Select");
         modeSubMenu.add(modeSubMenuSelect);
@@ -487,11 +487,11 @@ public final class UserMenuCommands
 			    new com.sun.electric.tool.generator.layout.GateRegression();
 		    }
 		});
-//		russMenu.addMenuItem("Jemini", null, new ActionListener() {
-//			public void actionPerformed(ActionEvent e) {
-//				new com.sun.electric.tool.ncc.jemini_2();
-//			}
-//		});
+		russMenu.addMenuItem("Jemini", null, new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				new com.sun.electric.tool.ncc.jemini_2();
+			}
+		});
 		
 		/****************************** Jon's TEST MENU ******************************/
 
@@ -522,7 +522,7 @@ public final class UserMenuCommands
 	 */
 	public static void openLibraryCommand()
 	{
-		String fileName = DialogOpenFile.chooseInputFile(DialogOpenFile.ELIB, null);
+		String fileName = OpenFile.chooseInputFile(OpenFile.ELIB, null);
 		if (fileName != null)
 		{
 			// start a job to do the input
@@ -534,11 +534,11 @@ public final class UserMenuCommands
 	 * Class to read a library in a new thread.
      * For a non-interactive script, use ReadBinaryLibrary job = new ReadBinaryLibrary(filename).
 	 */
-	protected static class ReadBinaryLibrary extends Job
+	public static class ReadBinaryLibrary extends Job
 	{
 		String fileName;
 
-		protected ReadBinaryLibrary(String fileName)
+		public ReadBinaryLibrary(String fileName)
 		{
 			super("Read Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.fileName = fileName;
@@ -574,7 +574,7 @@ public final class UserMenuCommands
 	 */
 	public static void importLibraryCommand()
 	{
-		String fileName = DialogOpenFile.chooseInputFile(DialogOpenFile.TEXT, null);
+		String fileName = OpenFile.chooseInputFile(OpenFile.TEXT, null);
 		if (fileName != null)
 		{
 			// start a job to do the input
@@ -632,7 +632,7 @@ public final class UserMenuCommands
 			fileName = lib.getLibFile();
 		} else
 		{
-			fileName = DialogOpenFile.chooseOutputFile(DialogOpenFile.ELIB, null, lib.getLibName()+".elib");
+			fileName = OpenFile.chooseOutputFile(OpenFile.ELIB, null, lib.getLibName()+".elib");
 			if (fileName == null) return;
 
 			Library.Name n = Library.Name.newInstance(fileName);
@@ -692,7 +692,7 @@ public final class UserMenuCommands
             System.out.println("No Cell in current window");
             return;
         }
-        String filePath = DialogOpenFile.chooseOutputFile(DialogOpenFile.CIF, null, cell.getProtoName()+".cif");
+        String filePath = OpenFile.chooseOutputFile(OpenFile.CIF, null, cell.getProtoName()+".cif");
         exportCellCommand(cell, filePath, type);
     }
     /**
@@ -1009,24 +1009,6 @@ public final class UserMenuCommands
         if (mode.equals("Half")) ToolBar.halfArrowDistanceCommand();
         if (mode.equals("Quarter")) ToolBar.quarterArrowDistanceCommand();
     }
-
-	/**
-	 * This method implements the command to duplicate the selected objects in an arrayed layout.
-	 */
-    public static void arrayCommand()
-	{
-		Array dialog = new Array(TopLevel.getCurrentJFrame(), true);
-		dialog.show();
-	}
-
-	/**
-	 * This method implements the command to change the ProtoType of the currently selected object.
-	 */
-    public static void changeCommand()
-	{
-		Change dialog = new Change(TopLevel.getCurrentJFrame(), true);
-		dialog.show();
-	}
 
     public static void setSelectModeCommand(String mode)
     {
@@ -1483,7 +1465,7 @@ public final class UserMenuCommands
     
     public static void javaBshScriptCommand()
     {
-		String fileName = DialogOpenFile.chooseInputFile(DialogOpenFile.JAVA, null);
+		String fileName = OpenFile.chooseInputFile(OpenFile.JAVA, null);
 		if (fileName != null)
 		{
 			// start a job to run the script

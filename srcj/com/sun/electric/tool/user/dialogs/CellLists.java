@@ -38,10 +38,10 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.DialogOpenFile;
 import com.sun.electric.tool.Job;
 
 import java.awt.geom.Rectangle2D;
@@ -1091,7 +1091,7 @@ public class CellLists extends javax.swing.JDialog
 			// finally show the results
 			if (saveToDisk.isSelected())
 			{
-				String trueName = DialogOpenFile.chooseOutputFile(DialogOpenFile.TEXT, null, "celllist.txt");
+				String trueName = OpenFile.chooseOutputFile(OpenFile.TEXT, null, "celllist.txt");
 				if (trueName == null) System.out.println("Cannot write cell listing"); else
 				{
 					FileOutputStream fileOutputStream = null;

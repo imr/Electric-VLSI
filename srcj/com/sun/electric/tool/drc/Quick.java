@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: DRCQuick.java
+ * File: Quick.java
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *
@@ -93,7 +93,7 @@ import java.util.Date;
  * is not excessive (8 megabytes for a million-transistor chip).  It uses the CheckInst and CheckProto
  * objects.
  */
-public class DRCQuick
+public class Quick
 {
 	private static final double TINYDELTA = 0.001;
 

@@ -51,8 +51,8 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.BinaryConstants;
-import com.sun.electric.tool.user.ui.DialogOpenFile;
-import com.sun.electric.tool.user.ui.ProgressDialog;
+import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.dialogs.Progress;
 import com.sun.electric.lib.LibFile;
 
 import java.io.IOException;
@@ -1564,7 +1564,7 @@ public class InputBinary extends Input
 			{
 				System.out.println("CANNOT FIND referenced library " + libFile.getPath());
 				String description = "Reference library '" + libFileName + "'";
-				String pt = DialogOpenFile.chooseInputFile(DialogOpenFile.ELIB, description);
+				String pt = OpenFile.chooseInputFile(OpenFile.ELIB, description);
 				if (pt != null) externalFile = pt;
 			}
 			if (externalFile != null)

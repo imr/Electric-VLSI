@@ -24,7 +24,7 @@
 package com.sun.electric.database.topology;
 
 import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.constraint.Constraint;
+import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
@@ -268,7 +268,7 @@ public class NodeInst extends Geometric implements Nodable
 		// make the change
 		if (Undo.recordChange())
 		{
-			Constraint.getCurrent().modifyNodeInst(this, dX, dY, dXSize, dYSize, dRot);
+			Constraints.getCurrent().modifyNodeInst(this, dX, dY, dXSize, dYSize, dRot);
 		} else
 		{
 			lowLevelModify(dX, dY, dXSize, dYSize, dRot);
@@ -308,7 +308,7 @@ public class NodeInst extends Geometric implements Nodable
 		// make the change
 		if (Undo.recordChange())
 		{
-			Constraint.getCurrent().modifyNodeInsts(nis, dXs, dYs, dXSizes, dYSizes, dRots);
+			Constraints.getCurrent().modifyNodeInsts(nis, dXs, dYs, dXSizes, dYSizes, dRots);
 		} else
 		{
 			for(int i=0; i<nis.length; i++)

@@ -23,16 +23,25 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -40,25 +49,63 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.Job;
 
 import java.awt.geom.Point2D;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 import javax.swing.JComboBox;
+import javax.swing.JRadioButton;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
-
+import javax.swing.DefaultListModel;
+import javax.swing.ListSelectionModel;
 
 /**
  * Class to handle the "Change" dialog.
  */
 public class Change extends javax.swing.JDialog
 {
+	/** Change selected only. */				private static final int CHANGE_SELECTED = 1;
+	/** Change all connected to this. */		private static final int CHANGE_CONNECTED = 2;
+	/** Change all in this cell. */				private static final int CHANGE_CELL = 3;
+	/** Change all in this Library. */			private static final int CHANGE_LIBRARY = 4;
+	/** Change all in all Libraries. */			private static final int CHANGE_EVERYWHERE = 5;
+
+	private static boolean nodesAndArcs = false;
+	private static int whatToChange = CHANGE_SELECTED;
+	private static Geometric geomToChange;
+	private JList changeList;
+	private DefaultListModel changeListModel;
+
+	public static void showChangeDialog()
+	{
+		// first make sure something is selected
+		List highs = Highlight.getHighlighted(true, true);
+		Geometric geomToChange = null;
+		if (highs.size() == 1) geomToChange = (Geometric)highs.get(0);
+		if (geomToChange == null)
+		{
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+				"Select an object before changing it.");
+			return;
+		}
+		Change dialog = new Change(TopLevel.getCurrentJFrame(), true, geomToChange);
+		dialog.show();
+	}
+
 	/** Creates new form Change */
-	public Change(java.awt.Frame parent, boolean modal)
+	private Change(java.awt.Frame parent, boolean modal, Geometric geomToChange)
 	{
 		super(parent, modal);
 		setLocation(100, 50);
 		initComponents();
+
+		// build the change list
+		changeListModel = new DefaultListModel();
+		changeList = new JList(changeListModel);
+		changeList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		listPane.setViewportView(changeList);
 
 		// make a popup of libraries
 		List libList = Library.getVisibleLibrariesSortedByName();
@@ -69,6 +116,693 @@ public class Change extends javax.swing.JDialog
 		}
 		int curIndex = libList.indexOf(Library.getCurrent());
 		if (curIndex >= 0) librariesPopup.setSelectedIndex(curIndex);
+		librariesPopup.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { reload(); }
+		});
+
+		// find out what is going to be changed
+		this.geomToChange = geomToChange;
+		if (geomToChange instanceof NodeInst)
+		{
+			librariesPopup.setEnabled(true);
+			ignorePortNames.setEnabled(true);
+			allowMissingPorts.setEnabled(true);
+			showPrimitives.setEnabled(true);
+			showCells.setEnabled(true);
+			NodeInst ni = (NodeInst)geomToChange;
+			if (ni.getProto() instanceof Cell)
+			{
+				showCells.setSelected(true);
+//				us_curlib = ni->proto->lib;
+			} else
+			{
+				showPrimitives.setSelected(true);
+			}
+			changeNodesWithArcs.setSelected(false);
+			changeNodesWithArcs.setEnabled(false);
+		} else
+		{
+			librariesPopup.setEnabled(false);
+			ignorePortNames.setEnabled(false);
+			allowMissingPorts.setEnabled(false);
+			showPrimitives.setEnabled(false);
+			showCells.setEnabled(false);
+			changeNodesWithArcs.setEnabled(true);
+			changeNodesWithArcs.setSelected(nodesAndArcs);
+		}
+		showPrimitives.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { reload(); }
+		});
+		showCells.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { reload(); }
+		});
+		changeNodesWithArcs.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { reload(); }
+		});
+
+		// setup the radio buttons that select what to change
+		changeSelected.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { whatToChangeChanged(evt); }
+		});
+		changeConnected.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { whatToChangeChanged(evt); }
+		});
+		changeInCell.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { whatToChangeChanged(evt); }
+		});
+		changeInLibrary.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { whatToChangeChanged(evt); }
+		});
+		changeEverywhere.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { whatToChangeChanged(evt); }
+		});
+		switch (whatToChange)
+		{
+			case CHANGE_SELECTED:   changeSelected.setSelected(true);     break;
+			case CHANGE_CONNECTED:  changeConnected.setSelected(true);    break;
+			case CHANGE_CELL:       changeInCell.setSelected(true);       break;
+			case CHANGE_LIBRARY:    changeInLibrary.setSelected(true);    break;
+			case CHANGE_EVERYWHERE: changeEverywhere.setSelected(true);   break;
+		}
+		reload();
+	}
+
+	private void whatToChangeChanged(ActionEvent evt)
+	{
+		JRadioButton src = (JRadioButton)evt.getSource();
+		if (src == changeSelected) whatToChange = CHANGE_SELECTED; else
+		if (src == changeConnected) whatToChange = CHANGE_CONNECTED; else
+		if (src == changeInCell) whatToChange = CHANGE_CELL; else
+		if (src == changeInLibrary) whatToChange = CHANGE_LIBRARY; else
+		if (src == changeEverywhere) whatToChange = CHANGE_EVERYWHERE;
+		if (whatToChange == CHANGE_EVERYWHERE)
+		{
+			if (geomToChange instanceof ArcInst)
+			{
+				if (changeNodesWithArcs.isSelected())
+				{
+					changeNodesWithArcs.setSelected(false);
+					reload();
+				}
+				changeNodesWithArcs.setEnabled(false);
+			}
+		} else
+		{
+			if (geomToChange instanceof ArcInst)
+				changeNodesWithArcs.setEnabled(true);
+		}
+	}
+
+	private void reload()
+	{
+		changeListModel.clear();
+		Technology curTech = Technology.getCurrent();
+		if (geomToChange instanceof NodeInst)
+		{
+			if (showCells.isSelected())
+			{
+				// cell: only list other cells as replacements
+				String libName = (String)librariesPopup.getSelectedItem();
+				Library lib = Library.findLibrary(libName);
+				List cells = lib.getCellsSortedByName();
+				for(Iterator it = cells.iterator(); it.hasNext(); )
+				{
+					Cell cell = (Cell)it.next();
+					changeListModel.addElement(cell.noLibDescribe());
+				}
+//				(void)us_setscrolltocurrentcell(DCHG_ALTLIST, TRUE, FALSE, FALSE, FALSE, dia);
+			}
+			if (showPrimitives.isSelected())
+			{
+				// primitive: list primitives in this and the generic technology
+				for(Iterator it = curTech.getNodes(); it.hasNext(); )
+				{
+					PrimitiveNode np = (PrimitiveNode)it.next();
+					changeListModel.addElement(np.describe());
+				}
+				if (curTech != Generic.tech)
+				{
+					changeListModel.addElement("Generic:Universal-Pin");
+					changeListModel.addElement("Generic:Invisible-Pin");
+					changeListModel.addElement("Generic:Unrouted-Pin");
+				}
+			}
+		} else
+		{
+			// load arcs in current technology, arc's technology, and generic technology
+			ArcInst ai = (ArcInst)geomToChange;
+			PortProto pp1 = ai.getHead().getPortInst().getPortProto();
+			PortProto pp2 = ai.getTail().getPortInst().getPortProto();
+			for(Iterator it = curTech.getArcs(); it.hasNext(); )
+			{
+				PrimitiveArc ap = (PrimitiveArc)it.next();
+				if (!changeNodesWithArcs.isSelected())
+				{
+					if (!pp1.connectsTo(ap)) continue;
+					if (!pp2.connectsTo(ap)) continue;
+				}
+				changeListModel.addElement(ap.getProtoName());
+			}
+			if (curTech != Generic.tech)
+			{
+				for(Iterator it = curTech.getArcs(); it.hasNext(); )
+				{
+					PrimitiveArc ap = (PrimitiveArc)it.next();
+					if (!changeNodesWithArcs.isSelected())
+					{
+						if (!pp1.connectsTo(ap)) continue;
+						if (!pp2.connectsTo(ap)) continue;
+					}
+					changeListModel.addElement(ap.getProtoName());
+				}
+			}
+			Technology arcTech = ai.getProto().getTechnology();
+			if (arcTech != curTech && arcTech != Generic.tech)
+			{
+				for(Iterator it = arcTech.getArcs(); it.hasNext(); )
+				{
+					PrimitiveArc ap = (PrimitiveArc)it.next();
+					if (!changeNodesWithArcs.isSelected())
+					{
+						if (!pp1.connectsTo(ap)) continue;
+						if (!pp2.connectsTo(ap)) continue;
+					}
+					changeListModel.addElement(ap.getProtoName());
+				}
+			}
+		}
+		changeList.setSelectedIndex(0);
+	}
+
+	private void doTheChange()
+	{
+		// change the node/arc type
+		ChangeObject job = new ChangeObject(this);
+	}
+
+	/**
+	 * Class to change the node/arc type in a new thread.
+	 */
+	protected static class ChangeObject extends Job
+	{
+		Change dialog;
+
+		protected ChangeObject(Change dialog)
+		{
+			super("Change type", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.dialog = dialog;
+			this.startJob();
+		}
+
+		public void doIt()
+		{
+			// handle node replacement
+			if (dialog.geomToChange instanceof NodeInst)
+			{
+				// get node to be replaced
+				NodeInst ni = (NodeInst)dialog.geomToChange;
+
+				// disallow replacing if lock is on
+				if (CircuitChanges.cantEdit(ni.getParent(), ni, true)) return;
+
+				// get nodeproto to replace it with
+				String line = (String)dialog.changeList.getSelectedValue();
+				NodeProto np = NodeProto.findNodeProto(line);
+				if (np == null) return;
+
+				// sanity check
+				NodeProto oldNType = ni.getProto();
+				if (oldNType == np)
+				{
+					System.out.println("Node already of type " + np.describe());
+					return;
+				}
+
+				// get any arguments to the replace
+				boolean ignorePortNames = dialog.ignorePortNames.isSelected();
+				boolean allowMissingPorts = dialog.allowMissingPorts.isSelected();
+
+				// clear highlighting
+				Highlight.clear();
+				Highlight.finished();
+
+				// replace the nodeinsts
+				NodeInst onlyNewNi = CircuitChanges.replaceNodeInst(ni, np, ignorePortNames, allowMissingPorts);
+				if (onlyNewNi == null)
+				{
+					System.out.println(np.describe() + " does not fit in the place of " + oldNType.describe());
+					return;
+				}
+
+				// do additional replacements if requested
+				int total = 1;
+				if (dialog.changeEverywhere.isSelected())
+				{
+					// replace in all cells of library if requested
+					for(Iterator it = Library.getLibraries(); it.hasNext(); )
+					{
+						Library lib = (Library)it.next();
+						for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+						{
+							Cell cell = (Cell)cIt.next();
+							boolean found = true;
+							while (found)
+							{
+								found = false;
+								for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
+								{
+									NodeInst lNi = (NodeInst)nIt.next();
+									if (lNi.getProto() != oldNType) continue;
+
+									// do not replace the example icon
+									if (lNi.isIconOfParent())
+									{
+										System.out.println("Example icon in cell " + cell.describe() + " not replaced");
+										continue;
+									}
+
+									// disallow replacing if lock is on
+									if (CircuitChanges.cantEdit(cell, lNi, true)) continue;
+
+									NodeInst newNi = CircuitChanges.replaceNodeInst(lNi, np, ignorePortNames, allowMissingPorts);
+									if (newNi != null)
+									{
+										total++;
+										found = true;
+										break;
+									}
+								}
+							}
+						}
+					}
+					System.out.println("All " + total + " " + oldNType.describe() +
+						" nodes in all libraries replaced with " + np.describe());
+				} else if (dialog.changeInLibrary.isSelected())
+				{
+					// replace throughout this library if requested
+					Library lib = Library.getCurrent();
+					for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+					{
+						Cell cell = (Cell)cIt.next();
+						boolean found = true;
+						while (found)
+						{
+							found = false;
+							for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
+							{
+								NodeInst lNi = (NodeInst)nIt.next();
+								if (lNi.getProto() != oldNType) continue;
+
+								// disallow replacing if lock is on
+								if (CircuitChanges.cantEdit(cell, lNi, true)) continue;
+
+								NodeInst newNi = CircuitChanges.replaceNodeInst(lNi, np, ignorePortNames, allowMissingPorts);
+								if (newNi != null)
+								{
+									total++;
+									found = true;
+									break;
+								}
+							}
+						}
+					}
+					System.out.println("All " + total + " " + oldNType.describe() +
+						" nodes in library " + lib.getLibName() + " replaced with " + np.describe());
+				} else if (dialog.changeInCell.isSelected())
+				{
+					// replace throughout this cell if "requested
+					Cell cell = Library.getCurrent().getCurCell();
+					boolean found = true;
+					while (found)
+					{
+						found = false;
+						for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
+						{
+							NodeInst lNi = (NodeInst)nIt.next();
+							if (lNi.getProto() != oldNType) continue;
+
+							// disallow replacing if lock is on
+							if (CircuitChanges.cantEdit(cell, lNi, true)) continue;
+
+							NodeInst newNi = CircuitChanges.replaceNodeInst(lNi, np, ignorePortNames, allowMissingPorts);
+							if (newNi != null)
+							{
+								total++;
+								found = true;
+								break;
+							}
+						}
+					}
+					System.out.println("All " + total + " " + oldNType.describe() + " nodes in cell " +
+						cell.describe() + " replaced with " + np.describe());
+				} else if (dialog.changeConnected.isSelected())
+				{
+					// replace all connected to this in the cell if requested
+					Cell curCell = Library.getCurrent().getCurCell();
+					List others = new ArrayList();
+					for(Iterator it = curCell.getNodes(); it.hasNext(); )
+					{
+						NodeInst lNi = (NodeInst)it.next();
+						if (lNi.getProto() != oldNType) continue;
+						if (lNi == onlyNewNi) continue;
+
+						boolean found = false;
+						for(Iterator pIt = onlyNewNi.getPortInsts(); pIt.hasNext(); )
+						{
+							PortInst pi = (PortInst)pIt.next();
+							JNetwork net = pi.getNetwork();
+							for(Iterator lPIt = lNi.getPortInsts(); lPIt.hasNext(); )
+							{
+								PortInst lPi = (PortInst)lPIt.next();
+								JNetwork lNet = lPi.getNetwork();
+								if (lNet == net)
+								{
+									found = true;
+									break;
+								}
+							}
+							if (found) break;
+						}
+						if (found) others.add(lNi);
+					}
+
+					// make the changes
+					for(Iterator it = others.iterator(); it.hasNext(); )
+					{
+						NodeInst lNi = (NodeInst)it.next();
+
+						// disallow replacing if lock is on
+						if (CircuitChanges.cantEdit(curCell, lNi, true)) continue;
+
+						NodeInst newNi = CircuitChanges.replaceNodeInst(lNi, np, ignorePortNames, allowMissingPorts);
+						if (newNi != null)
+						{
+							total++;
+						}
+					}
+					System.out.println("All " + total + " " + oldNType.describe() +
+						" nodes connected to this replaced with " + np.describe());
+				} else System.out.println("Node " + oldNType.describe() + " replaced with " + np.describe());
+			} else
+			{
+				// get arc to be replaced
+				ArcInst ai = (ArcInst)dialog.geomToChange;
+
+				// disallow replacement if lock is on
+				if (CircuitChanges.cantEdit(ai.getParent(), null, true)) return;
+
+				String line = (String)dialog.changeList.getSelectedValue();
+				ArcProto ap = ArcProto.findArcProto(line);
+				if (ap == null)
+				{
+					System.out.println("Nothing called '" + line + "'");
+					return;
+				}
+
+				// sanity check
+				ArcProto oldAType = ai.getProto();
+				if (oldAType == ap)
+				{
+					System.out.println("Arc already of type " + ap.describe());
+					return;
+				}
+
+				// special case when replacing nodes, too
+				if (dialog.changeNodesWithArcs.isSelected())
+				{
+					if (dialog.changeInLibrary.isSelected())
+					{
+						for(Iterator it = Library.getCurrent().getCells(); it.hasNext(); )
+						{
+							Cell cell = (Cell)it.next();
+							us_replaceallarcs(cell, ai, ap, false, true);
+						}
+					} else
+					{
+						us_replaceallarcs(ai.getParent(), ai, ap, dialog.changeConnected.isSelected(),
+							dialog.changeInCell.isSelected());
+					}
+					return;
+				}
+
+				// remove highlighting
+				Highlight.clear();
+				Highlight.finished();
+
+				// replace the arcinst
+				ArcInst onlyNewAi = ai.replace(ap);
+				if (onlyNewAi == null)
+				{
+					System.out.println(ap.describe() + " does not fit in the place of " + oldAType.describe());
+					return;
+				}
+
+				// do additional replacements if requested
+				int total = 1;
+				if (dialog.changeEverywhere.isSelected())
+				{
+					// replace in all cells of library if requested
+					for(Iterator it = Library.getLibraries(); it.hasNext(); )
+					{
+						Library lib = (Library)it.next();
+						for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+						{
+							Cell cell = (Cell)cIt.next();
+							boolean found = true;
+							while (found)
+							{
+								found = false;
+								for(Iterator nIt = cell.getArcs(); nIt.hasNext(); )
+								{
+									ArcInst lAi = (ArcInst)nIt.next();
+									if (lAi.getProto() != oldAType) continue;
+
+									// disallow replacing if lock is on
+									if (CircuitChanges.cantEdit(cell, null, true)) continue;
+
+									ArcInst newAi = lAi.replace(ap);
+									if (newAi != null)
+									{
+										total++;
+										found = true;
+										break;
+									}
+								}
+							}
+						}
+					}
+					System.out.println("All " + total + " " + oldAType.describe() +
+						" arcs in the library replaced with " + ap.describe());
+				} else if (dialog.changeInLibrary.isSelected())
+				{
+					// replace throughout this library if requested
+					Library lib = Library.getCurrent();
+					for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+					{
+						Cell cell = (Cell)cIt.next();
+						boolean found = true;
+						while (found)
+						{
+							found = false;
+							for(Iterator nIt = cell.getArcs(); nIt.hasNext(); )
+							{
+								ArcInst lAi = (ArcInst)nIt.next();
+								if (lAi.getProto() != oldAType) continue;
+
+								// disallow replacing if lock is on
+								if (CircuitChanges.cantEdit(cell, null, true)) continue;
+
+								ArcInst newAi = lAi.replace(ap);
+								if (newAi != null)
+								{
+									total++;
+									found = true;
+									break;
+								}
+							}
+						}
+					}
+					System.out.println("All " + total + " " + oldAType.describe() +
+						" arcs in library " + lib.getLibName() + " replaced with " + ap.describe());
+				} else if (dialog.changeInCell.isSelected())
+				{
+					// replace throughout this cell if requested
+					Cell cell = Library.getCurrent().getCurCell();
+					boolean found = true;
+					while (found)
+					{
+						found = false;
+						for(Iterator nIt = cell.getArcs(); nIt.hasNext(); )
+						{
+							ArcInst lAi = (ArcInst)nIt.next();
+							if (lAi.getProto() != oldAType) continue;
+
+							// disallow replacing if lock is on
+							if (CircuitChanges.cantEdit(cell, null, true)) continue;
+
+							ArcInst newAi = lAi.replace(ap);
+							if (newAi != null)
+							{
+								total++;
+								found = true;
+								break;
+							}
+						}
+					}
+					System.out.println("All " + total + " " + oldAType.describe() +
+						" arcs in cell " + cell.describe() + " replaced with " + ap.describe());
+				} else if (dialog.changeConnected.isSelected())
+				{
+					// replace all connected to this if requested
+					List others = new ArrayList();
+					Cell cell = Library.getCurrent().getCurCell();
+					for(Iterator it = cell.getArcs(); it.hasNext(); )
+					{
+						ArcInst lAi = (ArcInst)it.next();
+						if (lAi == onlyNewAi) continue;
+						JNetwork net = onlyNewAi.getNetwork(0);
+						JNetwork lNet = lAi.getNetwork(0);
+						if (net == lNet) others.add(lAi);
+					}
+
+					for(Iterator it = others.iterator(); it.hasNext(); )
+					{
+						ArcInst lAi = (ArcInst)it.next();
+						ArcInst newAi = lAi.replace(ap);
+						if (newAi != null)
+						{
+							total++;
+						}
+					}
+					System.out.println("All " + total + " " + oldAType.describe() +
+						" arcs connected to this replaced with " + ap.describe());
+				} else System.out.println("Arc " + oldAType.describe() + " replaced with " +ap.describe());
+			}
+		}
+
+		/**
+		 * Method to replace arcs in "list" (that match the first arc there) with another of type
+		 * "ap", adding layer-change contacts
+		 * as needed to keep the connections.  If "connected" is true, replace all such arcs
+		 * connected to this.  If "thiscell" is true, replace all such arcs in the cell.
+		 */
+		private void us_replaceallarcs(Cell cell, ArcInst oldAi, ArcProto ap, boolean connected, boolean thiscell)
+		{
+//			/* mark the pin nodes that must be changed */
+//			for(ni = cell->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
+//				ni->temp1 = 0;
+//			for(ai = cell->firstarcinst; ai != NOARCINST; ai = ai->nextarcinst)
+//				ai->temp1 = 0;
+//
+//			for(i=0; list[i] != NOGEOM; i++)
+//			{
+//				if (list[i]->entryisnode) continue;
+//				ai = list[i]->entryaddr.ai;
+//				if (ai->proto != oldAi.getProto()) continue;
+//				ai->temp1 = 1;
+//			}
+//			if (connected)
+//			{
+//				for(ai = cell->firstarcinst; ai != NOARCINST; ai = ai->nextarcinst)
+//					if (ai->proto == oldAi->proto && ai->network == oldAi->network)
+//						ai->temp1 = 1;
+//			}
+//			if (thiscell)
+//			{
+//				for(ai = cell->firstarcinst; ai != NOARCINST; ai = ai->nextarcinst)
+//					if (ai->proto == oldAi->proto)
+//						ai->temp1 = 1;
+//			}
+//			for(ni = cell->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
+//			{
+//				if (ni->proto->primindex == 0) continue;
+//				if (ni->firstportexpinst != NOPORTEXPINST) continue;
+//				if (nodefunction(ni) != NPPIN) continue;
+//				for(pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
+//					if (pi->conarcinst->temp1 == 0) break;
+//				if (pi == NOPORTARCINST) ni->temp1 = 1;
+//			}
+//
+//			/* now create new pins where they belong */
+//			pin = getpinproto(ap);
+//			defaultnodesize(pin, &xs, &ys);
+//			for(ni = cell->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
+//			{
+//				if (ni->temp1 == 0) continue;
+//				cx = (ni->lowx + ni->highx) / 2;
+//				cy = (ni->lowy + ni->highy) / 2;
+//				lx = cx - xs / 2;   hx = lx + xs;
+//				ly = cy - ys / 2;   hy = ly + ys;
+//				newni = newnodeinst(pin, lx, hx, ly, hy, 0, 0, cell);
+//				if (newni == NONODEINST) return;
+//				endobjectchange((INTBIG)newni, VNODEINST);
+//				newni->temp1 = 0;
+//				ni->temp1 = (INTBIG)newni;
+//			}
+//
+//			/* now create new arcs to replace the old ones */
+//			for(ai = cell->firstarcinst; ai != NOARCINST; ai = ai->nextarcinst)
+//			{
+//				if (ai->temp1 == 0) continue;
+//				ni0 = ai->end[0].nodeinst;
+//				if (ni0->temp1 != 0)
+//				{
+//					ni0 = (NODEINST *)ni0->temp1;
+//					pp0 = ni0->proto->firstportproto;
+//				} else
+//				{
+//					/* need contacts to get to the right level */
+//					us_makecontactstack(ai, 0, ap, &ni0, &pp0);
+//					if (ni0 == NONODEINST) return;
+//				}
+//				ni1 = ai->end[1].nodeinst;
+//				if (ni1->temp1 != 0)
+//				{
+//					ni1 = (NODEINST *)ni1->temp1;
+//					pp1 = ni1->proto->firstportproto;
+//				} else
+//				{
+//					/* need contacts to get to the right level */
+//					us_makecontactstack(ai, 1, ap, &ni1, &pp1);
+//					if (ni1 == NONODEINST) return;
+//				}
+//
+//				wid = defaultarcwidth(ap);
+//				if (ai->width > wid) wid = ai->width;
+//				bits = us_makearcuserbits(ap);
+//				newai = newarcinst(ap, wid, bits, ni0, pp0, ai->end[0].xpos, ai->end[0].ypos,
+//					ni1, pp1, ai->end[1].xpos, ai->end[1].ypos, cell);
+//				if (newai == NOARCINST) return;
+//				(void)copyvars((INTBIG)ai, VARCINST, (INTBIG)newai, VARCINST, FALSE);
+//				newai->temp1 = 0;
+//				endobjectchange((INTBIG)newai, VARCINST);
+//			}
+//
+//			/* now remove the previous arcs and nodes */
+//			for(ai = cell->firstarcinst; ai != NOARCINST; ai = nextai)
+//			{
+//				nextai = ai->nextarcinst;
+//				if (ai->temp1 == 0) continue;
+//				startobjectchange((INTBIG)ai, VARCINST);
+//				(void)killarcinst(ai);
+//			}
+//			for(ni = cell->firstnodeinst; ni != NONODEINST; ni = nextni)
+//			{
+//				nextni = ni->nextnodeinst;
+//				if (ni->temp1 == 0) continue;
+//				startobjectchange((INTBIG)ni, VNODEINST);
+//				(void)killnodeinst(ni);
+//			}
+		}
 	}
 
 	/** This method is called from within the constructor to
@@ -80,6 +814,7 @@ public class Change extends javax.swing.JDialog
     {
         java.awt.GridBagConstraints gridBagConstraints;
 
+        changeOption = new javax.swing.ButtonGroup();
         cancel = new javax.swing.JButton();
         ok = new javax.swing.JButton();
         listPane = new javax.swing.JScrollPane();
@@ -120,8 +855,8 @@ public class Change extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 10;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(cancel, gridBagConstraints);
 
         ok.setText("OK");
@@ -136,8 +871,8 @@ public class Change extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 10;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(ok, gridBagConstraints);
 
         listPane.setMinimumSize(new java.awt.Dimension(150, 22));
@@ -148,54 +883,59 @@ public class Change extends javax.swing.JDialog
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.gridheight = 10;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(listPane, gridBagConstraints);
 
         changeSelected.setText("Change selected ones only");
+        changeOption.add(changeSelected);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         getContentPane().add(changeSelected, gridBagConstraints);
 
         changeConnected.setText("Change all connected to this");
+        changeOption.add(changeConnected);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         getContentPane().add(changeConnected, gridBagConstraints);
 
         changeInCell.setText("Change all in this cell");
+        changeOption.add(changeInCell);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         getContentPane().add(changeInCell, gridBagConstraints);
 
         changeInLibrary.setText("Change all in this library");
+        changeOption.add(changeInLibrary);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         getContentPane().add(changeInLibrary, gridBagConstraints);
 
         changeEverywhere.setText("Change all in all libraries");
+        changeOption.add(changeEverywhere);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 10, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 10, 4);
         getContentPane().add(changeEverywhere, gridBagConstraints);
 
         changeNodesWithArcs.setText("Change nodes with arcs");
@@ -203,8 +943,8 @@ public class Change extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(10, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(10, 4, 4, 4);
         getContentPane().add(changeNodesWithArcs, gridBagConstraints);
 
         showPrimitives.setText("Show primitives");
@@ -212,8 +952,8 @@ public class Change extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(showPrimitives, gridBagConstraints);
 
         showCells.setText("Show cells");
@@ -221,8 +961,8 @@ public class Change extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 7;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(showCells, gridBagConstraints);
 
         ignorePortNames.setText("Ignore port names");
@@ -230,8 +970,8 @@ public class Change extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 8;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(ignorePortNames, gridBagConstraints);
 
         jLabel1.setText("Library:");
@@ -252,8 +992,8 @@ public class Change extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 9;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(allowMissingPorts, gridBagConstraints);
 
         pack();
@@ -266,22 +1006,7 @@ public class Change extends javax.swing.JDialog
 
 	private void ok(java.awt.event.ActionEvent evt)//GEN-FIRST:event_ok
 	{//GEN-HEADEREND:event_ok
-//		String name = cellName.getText().trim();
-//		if (name.length() == 0)
-//		{
-//			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Must type a cell name");
-//			return;
-//		}
-//		String viewName = (String)view.getSelectedItem();
-//		View v = View.findView(viewName);
-//		if (v != View.UNKNOWN)  name += "{" + v.getAbbreviation() + "}";
-//		String libName = (String)library.getSelectedItem();
-//		Library lib = Library.findLibrary(libName);
-//		boolean makeWindow = newWindow.isSelected();
-
-//		// create the cell
-//		CreateCell job = new CreateCell(lib, name, makeWindow);
-
+		doTheChange();
 		closeDialog(null);
 	}//GEN-LAST:event_ok
 
@@ -292,47 +1017,6 @@ public class Change extends javax.swing.JDialog
 		dispose();
 	}//GEN-LAST:event_closeDialog
 
-//	/**
-//	 * Class to create a cell in a new thread.
-//	 */
-//	protected static class CreateCell extends Job
-//	{
-//		Library lib;
-//		String cellName;
-//		boolean newWindow;
-//
-//		protected CreateCell(Library lib, String cellName, boolean newWindow)
-//		{
-//			super("Create Cell " + cellName, User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-//			this.lib = lib;
-//			this.cellName = cellName;
-//			this.newWindow = newWindow;
-//			this.startJob();
-//		}
-//
-//		public void doIt()
-//		{
-//			// should ensure that the name is valid
-//			Cell cell = Cell.makeInstance(lib, cellName);
-//			if (cell == null)
-//			{
-//				System.out.println("Unable to create cell " + cellName);
-//				return;
-//			}
-//
-//			if (!newWindow)
-//			{
-//				EditWindow wnd = EditWindow.getCurrent();
-//				if (wnd != null)
-//				{
-//					wnd.setCell(cell, VarContext.globalContext);
-//					return;
-//				}
-//			}
-//			WindowFrame wf = WindowFrame.createEditWindow(cell);
-//		}
-//	}
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox allowMissingPorts;
     private javax.swing.JButton cancel;
@@ -341,6 +1025,7 @@ public class Change extends javax.swing.JDialog
     private javax.swing.JRadioButton changeInCell;
     private javax.swing.JRadioButton changeInLibrary;
     private javax.swing.JCheckBox changeNodesWithArcs;
+    private javax.swing.ButtonGroup changeOption;
     private javax.swing.JRadioButton changeSelected;
     private javax.swing.JCheckBox ignorePortNames;
     private javax.swing.JLabel jLabel1;

@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: DRCSchematics.java
+ * File: Schematic.java
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *
@@ -51,7 +51,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
-public class DRCSchematics
+public class Schematic
 {
 	private static FlagSet cellsCheckedBit;
 

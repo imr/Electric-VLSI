@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: UserInitial.java
+ * File: Main.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -21,10 +21,10 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.user;
+package com.sun.electric;
 
 import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.constraint.Constraint;
+import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
@@ -41,6 +41,8 @@ import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -53,7 +55,7 @@ import java.util.Iterator;
  * This class initializes the User Interface.
  * It is the main class of Electric.
  */
-public final class UserInitial
+public final class Main
 {
 	public static void main(String[] args)
 	{
@@ -128,7 +130,7 @@ public final class UserInitial
                 continue;
             }
             System.out.println("Opening library "+arg);
-    		UserMenuCommands.ReadBinaryLibrary job = new UserMenuCommands.ReadBinaryLibrary(arg);
+    		MenuCommands.ReadBinaryLibrary job = new MenuCommands.ReadBinaryLibrary(arg);
             openedALib = true;
         }
         return openedALib;
@@ -155,7 +157,7 @@ public final class UserInitial
 
 			// initialize the constraint system
 			Layout con = Layout.getConstraint();
-			Constraint.setCurrent(con);
+			Constraints.setCurrent(con);
 		}
 	}
 

@@ -32,6 +32,8 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.ExplorerTree;
 
 import java.util.Iterator;
 import java.util.List;
@@ -41,6 +43,7 @@ import java.util.TreeSet;
 import java.util.Comparator;
 import java.util.Collections;
 import java.awt.geom.Point2D;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 public class ErrorLog
 {
@@ -274,6 +277,9 @@ public class ErrorLog
 			System.out.println(" >  Show the next error");
 			System.out.println(" <  Show the previous error");
 		}
+		rebuildExplorerTree();
+		ExplorerTree.explorerTreeChanged();
+		EditWindow.redrawAll();
 	}
 
 	/**
@@ -391,6 +397,25 @@ public class ErrorLog
 		return null;
 	}
 
+	/** error tree */            private static DefaultMutableTreeNode explorerTree = new DefaultMutableTreeNode("ERRORS");
+
+	public static DefaultMutableTreeNode getExplorerTree()
+	{
+		rebuildExplorerTree();
+		return explorerTree;
+	}
+	
+	private static void rebuildExplorerTree()
+	{
+		explorerTree.removeAllChildren();
+		for (Iterator it = allErrors.iterator(); it.hasNext();)
+		{
+			ErrorLog el = (ErrorLog)it.next();
+			DefaultMutableTreeNode node = new DefaultMutableTreeNode(el);
+			explorerTree.add(node);
+		}
+	}
+
 	/**
 	 * Method to highlight an object on an error.
 	 */
@@ -425,17 +450,10 @@ public class ErrorLog
 	/**
 	 * Method to highlight and report error "elv".
 	 */
-//	void reporterror(void *elv)
-//	{
-//		REGISTER ERRORLIST *el;
-//
-//		if (elv == 0) return;
-//		el = (ERRORLIST *)elv;
-//		db_curerrorlist = el;
-//		db_nexterrorlist = db_curerrorlist->nexterrorlist;
-//		db_preverrorlist = db_curerrorlist->preverrorlist;
-//		(void)db_reportcurrenterror(1, 0, 0);
-//	}
+	public String reportError()
+	{
+		return db_reportcurrenterror(true, null);
+	}
 
 	/**
 	 * Method to request that "routine" be called whenever any changes are made to the list of

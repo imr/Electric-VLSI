@@ -24,7 +24,7 @@
 package com.sun.electric.database.variable;
 
 import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.constraint.Constraint;
+import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.tool.user.ui.EditWindow;

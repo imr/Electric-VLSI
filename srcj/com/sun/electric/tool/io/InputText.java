@@ -47,7 +47,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.user.ui.ProgressDialog;
+import com.sun.electric.tool.user.dialogs.Progress;
 
 import java.util.ArrayList;
 import java.util.Iterator;

@@ -24,7 +24,7 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.tool.user.ui.Button;
-import com.sun.electric.tool.user.UserMenuCommands;
+import com.sun.electric.tool.user.MenuCommands;
 
 import javax.swing.JToolBar;
 import javax.swing.ImageIcon;
@@ -139,7 +139,7 @@ public class ToolBar extends JToolBar
 		// the "Open file" button
 		JButton openButton = Button.newInstance(new ImageIcon(toolbar.getClass().getResource("ButtonOpen.gif")));
 		openButton.addActionListener(
-			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.openLibraryCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.openLibraryCommand(); } });
 		openButton.setToolTipText("Open");
 		toolbar.add(openButton);
 
@@ -244,19 +244,19 @@ public class ToolBar extends JToolBar
 		// the "Options" buttons
 		JButton editOptionButton = Button.newInstance(new ImageIcon(toolbar.getClass().getResource("ButtonOptionEdit.gif")));
 		editOptionButton.addActionListener(
-			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.editOptionsCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.editOptionsCommand(); } });
 		editOptionButton.setToolTipText("Edit Options");
 		toolbar.add(editOptionButton);
 
 		JButton toolOptionButton = Button.newInstance(new ImageIcon(toolbar.getClass().getResource("ButtonOptionTool.gif")));
 		toolOptionButton.addActionListener(
-			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.toolOptionsCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.toolOptionsCommand(); } });
 		toolOptionButton.setToolTipText("Tool Options");
 		toolbar.add(toolOptionButton);
 
 		JButton ioOptionButton = Button.newInstance(new ImageIcon(toolbar.getClass().getResource("ButtonOptionIO.gif")));
 		ioOptionButton.addActionListener(
-			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.ioOptionsCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.ioOptionsCommand(); } });
 		ioOptionButton.setToolTipText("I/O Options");
 		toolbar.add(ioOptionButton);
 
@@ -316,7 +316,7 @@ public class ToolBar extends JToolBar
 		TopLevel.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		curMode = CursorMode.SELECT;
 		selectButton.setSelected(true);
-		UserMenuCommands.cursorSelect.setSelected(true);
+		MenuCommands.cursorSelect.setSelected(true);
 	}
 
 	/**
@@ -329,7 +329,7 @@ public class ToolBar extends JToolBar
 		TopLevel.setCurrentCursor(wiringCursor);
 		curMode = CursorMode.WIRE;
 		wireButton.setSelected(true);
-		UserMenuCommands.cursorWiring.setSelected(true);
+		MenuCommands.cursorWiring.setSelected(true);
 	}
 
 	/**
@@ -342,7 +342,7 @@ public class ToolBar extends JToolBar
 		TopLevel.setCurrentCursor(specialSelectCursor);
 		curMode = CursorMode.SELECTSPECIAL;
 		selectSpecialButton.setSelected(true);
-		UserMenuCommands.cursorSelectSpecial.setSelected(true);
+		MenuCommands.cursorSelectSpecial.setSelected(true);
 	}
 
 	/**
@@ -355,7 +355,7 @@ public class ToolBar extends JToolBar
 		TopLevel.setCurrentCursor(panCursor);
 		curMode = CursorMode.PAN;
 		panButton.setSelected(true);
-		UserMenuCommands.cursorPan.setSelected(true);
+		MenuCommands.cursorPan.setSelected(true);
 	}
 
 	/**
@@ -368,7 +368,7 @@ public class ToolBar extends JToolBar
 		TopLevel.setCurrentCursor(zoomCursor);
 		curMode = CursorMode.ZOOM;
 		zoomButton.setSelected(true);
-		UserMenuCommands.cursorZoom.setSelected(true);
+		MenuCommands.cursorZoom.setSelected(true);
 	}
 
 	/**
@@ -384,7 +384,7 @@ public class ToolBar extends JToolBar
 	{
 		curArrowDistance = ArrowDistance.FULL;
 		fullButton.setSelected(true);
-		UserMenuCommands.moveFull.setSelected(true);
+		MenuCommands.moveFull.setSelected(true);
 	}
 
 	/**
@@ -394,7 +394,7 @@ public class ToolBar extends JToolBar
 	{
 		curArrowDistance = ArrowDistance.HALF;
 		halfButton.setSelected(true);
-		UserMenuCommands.moveHalf.setSelected(true);
+		MenuCommands.moveHalf.setSelected(true);
 	}
 
 	/**
@@ -404,7 +404,7 @@ public class ToolBar extends JToolBar
 	{
 		curArrowDistance = ArrowDistance.QUARTER;
 		quarterButton.setSelected(true);
-		UserMenuCommands.moveQuarter.setSelected(true);
+		MenuCommands.moveQuarter.setSelected(true);
 	}
 
 	/**
@@ -420,7 +420,7 @@ public class ToolBar extends JToolBar
 	{
 		curSelectMode = SelectMode.OBJECTS;
 		objectsButton.setSelected(true);
-		UserMenuCommands.selectObjects.setSelected(true);
+		MenuCommands.selectObjects.setSelected(true);
 	}
 
 	/**
@@ -430,7 +430,7 @@ public class ToolBar extends JToolBar
 	{
 		curSelectMode = SelectMode.AREA;
 		areaButton.setSelected(true);
-		UserMenuCommands.selectArea.setSelected(true);
+		MenuCommands.selectArea.setSelected(true);
 	}
 
 	/**
