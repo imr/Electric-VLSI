@@ -339,20 +339,22 @@ public class LayerVisibility extends EDialog
                 if (layerVis != null)
                 {
 	                if (layer.isVisible() != layerVis.booleanValue())
+	                {
 	                	layer.setVisible(layerVis.booleanValue());
 
-					// 3D appearance if available
-					Object obj3D = layer.getGraphics().get3DAppearance();
-					if (obj3D != null)
-					{
-						try
+						// 3D appearance if available
+						Object obj3D = layer.getGraphics().get3DAppearance();
+						if (obj3D != null)
 						{
-							if (setVisibilityMethod == null) setVisibilityMethod = view3DClass.getDeclaredMethod("set3DVisibility", new Class[] {Object.class, Boolean.class});
-							setVisibilityMethod.invoke(view3DClass, new Object[]{obj3D, layerVis});
-						} catch (Exception e) {
-							System.out.println("Cannot call 3D plugin method set3DVisibility: " + e.getMessage());
+							try
+							{
+								if (setVisibilityMethod == null) setVisibilityMethod = view3DClass.getDeclaredMethod("set3DVisibility", new Class[] {Object.class, Boolean.class});
+								setVisibilityMethod.invoke(view3DClass, new Object[]{obj3D, layerVis});
+							} catch (Exception e) {
+								System.out.println("Cannot call 3D plugin method set3DVisibility: " + e.getMessage());
+							}
 						}
-					}
+	                }
                 }
 
                 Boolean layerHighlighted = (Boolean)highlighted.get(layer.getNonPseudoLayer());
