@@ -32,6 +32,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
@@ -125,15 +126,15 @@ public class Sue extends Input
 	
 	private static class SueEquiv
 	{
-		String         suename;
-		NodeProto   intproto;
-		boolean        netateoutput;
-		int        rotation;
-		boolean        transpose;
-		double        xoffset;
-		double        yoffset;
-		PrimitiveNode.Function        detailbits;
-		SueExtraWire [] extrawires;
+		String                 suename;
+		NodeProto              intproto;
+		boolean                netateoutput;
+		int                    rotation;
+		boolean                transpose;
+		double                 xoffset;
+		double                 yoffset;
+		PrimitiveNode.Function detailbits;
+		SueExtraWire        [] extrawires;
 
 		private SueEquiv(String suename, NodeProto intproto, boolean netateoutput, int rotation, boolean transpose,
 			double xoffset, double yoffset, PrimitiveNode.Function detailbits, SueExtraWire [] extrawires)
@@ -295,7 +296,8 @@ public class Sue extends Input
 		Cell iconCell = null;
 		io_suelastline = null;
 		Point2D iconPt = null;
-//		numargs = 0;
+		List argumentKey = new ArrayList();
+		List argumentValue = new ArrayList();
 		for(;;)
 		{
 			// get the next line of text
@@ -370,7 +372,7 @@ public class Sue extends Input
 				String keyword1 = (String)keywords.get(1);
 				if (keyword1.equalsIgnoreCase(cellName))
 				{
-					if (parP.pt.getX() != 0 || parP.pt.getY() != 0)
+					if (parP.pt != null)
 					{
 						// queue icon placement
 						iconPt = parP.pt;
@@ -438,7 +440,7 @@ public class Sue extends Input
 						if (parP.theName.equalsIgnoreCase("gnd"))
 						{
 							AffineTransform trans = NodeInst.pureRotate(parP.rot, parP.trn);
-							Point2D offPt = new Point2D.Double(-2, 0);
+							Point2D offPt = new Point2D.Double(0, -2);
 							trans.transform(offPt, offPt);
 							xoff = offPt.getX();   yoff = offPt.getY();
 							proto = Schematics.tech.groundNode;
@@ -728,20 +730,20 @@ public class Sue extends Input
 							td.setParam(true);
 							td.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
 	
-//							// make sure the parameter exists in the cell definition
-//							cnp = contentsview(ni->proto);
-//							if (cnp == NONODEPROTO) cnp = ni->proto;
-//							var = getval((INTBIG)cnp, VNODEPROTO, -1, sueVarName);
-//							if (var == NOVARIABLE)
-//							{
-//								var = setval((INTBIG)cnp, VNODEPROTO, sueVarName, newaddr,
-//									newtype|VDISPLAY);
-//								if (var != NOVARIABLE)
-//								{
-//									TDSETISPARAM(var->textdescript, VTISPARAMETER);
-//									TDSETDISPPART(var->textdescript, VTDISPLAYNAMEVALINH);
-//								}
-//							}
+							// make sure the parameter exists in the cell definition
+							Cell cnp = ((Cell)ni.getProto()).contentsView();
+							if (cnp == null) cnp = (Cell)ni.getProto();
+							var = cnp.getVar(sueVarName);
+							if (var == null)
+							{
+								var = cnp.newVar(sueVarName, newaddr);
+								if (var != null)
+								{
+									td = var.getTextDescriptor();
+									td.setParam(true);
+									td.setDispPart(TextDescriptor.DispPos.NAMEVALUE);  // really wanted: VTDISPLAYNAMEVALINH
+								}
+							}
 						}
 					}
 				}
@@ -753,10 +755,10 @@ public class Sue extends Input
 			{
 				SueWire sw = new SueWire();
 				double fx = io_suemakex(TextUtils.atof((String)keywords.get(1)));
-				double fy = io_suemakex(TextUtils.atof((String)keywords.get(2)));
+				double fy = io_suemakey(TextUtils.atof((String)keywords.get(2)));
 				sw.pt[0] = new Point2D.Double(fx, fy);
 				double tx = io_suemakex(TextUtils.atof((String)keywords.get(3)));
-				double ty = io_suemakex(TextUtils.atof((String)keywords.get(4)));
+				double ty = io_suemakey(TextUtils.atof((String)keywords.get(4)));
 				sw.pt[1] = new Point2D.Double(tx, ty);
 				sueWires.add(sw);
 				continue;
@@ -875,70 +877,60 @@ public class Sue extends Input
 			// handle "icon_setup" for defining variables
 			if (keyword0.equalsIgnoreCase("icon_setup"))
 			{
-//				// extract parameters
-//				if (namesame(keywords[1], x_("$args")) != 0)
-//				{
-//					ttyputerr(_("Cell %s, line %ld: has unrecognized 'icon_setup'"),
-//						cellname, io_suelineno);
-//					continue;
-//				}
-//				pt = keywords[2];
-//				if (*pt == '{') pt++;
-//				for(;;)
-//				{
-//					while (*pt == ' ') pt++;
-//					if (*pt == '}' || *pt == 0) break;
-//	
-//					// collect up to a space or close curly
-//					startkey = pt;
-//					curly = 0;
-//					for(;;)
-//					{
-//						if (curly == 0)
-//						{
-//							if (*pt == 0 || *pt == ' ' || *pt == '}') break;
-//						}
-//						if (*pt == '{') curly++;
-//						if (*pt == '}') curly--;
-//						if (*pt == 0) break;
-//						pt++;
-//					}
-//					save = *pt;
-//					*pt = 0;
-//	
-//					// parse the keyword pair in "startkey"
-//					i = numargs+1;
-//					newargnames = (CHAR **)emalloc(i * (sizeof (CHAR *)), el_tempcluster);
-//					newargvalues = (CHAR **)emalloc(i * (sizeof (CHAR *)), el_tempcluster);
-//					for(i=0; i<numargs; i++)
-//					{
-//						// LINTED "argnames" used in proper order
-//						newargnames[i] = argnames[i];
-//	
-//						// LINTED "argvalues" used in proper order
-//						newargvalues[i] = argvalues[i];
-//					}
-//					if (numargs > 0)
-//					{
-//						efree((CHAR *)argnames);
-//						efree((CHAR *)argvalues);
-//					}
-//					argnames = newargnames;
-//					argvalues = newargvalues;
-//					startkey++;
-//					for(cpt = startkey; *cpt != 0; cpt++) if (*cpt == ' ') break;
-//					if (*cpt != 0) *cpt++ = 0;
-//					(void)allocstring(&argnames[numargs], startkey, el_tempcluster);
-//					while (*cpt == ' ') cpt++;
-//					if (*cpt == '{') cpt++;
-//					startkey = cpt;
-//					for(cpt = startkey; *cpt != 0; cpt++) if (*cpt == '}') break;
-//					if (*cpt != 0) *cpt++ = 0;
-//					(void)allocstring(&argvalues[numargs], startkey, el_tempcluster);
-//					numargs++;
-//	
-//					*pt = save;
-//				}
+				// extract parameters
+				String keyword1 = (String)keywords.get(1);
+				if (!keyword1.equalsIgnoreCase("$args"))
+				{
+					System.out.println("Cell " + cellName + ", line " + lineReader.getLineNumber() +
+						": has unrecognized 'icon_setup'");
+					continue;
+				}
+				String pt = (String)keywords.get(2);
+				int ptLen = pt.length();
+				int ptPos = 0;
+				if (ptPos < ptLen && pt.charAt(ptPos) == '{') ptPos++;
+				for(;;)
+				{
+					while (ptPos < ptLen && pt.charAt(ptPos) == ' ') ptPos++;
+					if (ptPos >= ptLen || pt.charAt(ptPos) == '}') break;
+	
+					// collect up to a space or close curly
+					int argStart = ptPos;
+					int curly = 0;
+					while (ptPos < ptLen)
+					{
+						char chr = pt.charAt(ptPos);
+						if (curly == 0)
+						{
+							if (chr == ' ' || chr == '}') break;
+						}
+						if (chr == '{') curly++;
+						if (chr == '}') curly--;
+						ptPos++;
+					}
+					String arg = pt.substring(argStart, ptPos++);
+
+					// parse the argument into key and value
+					int argPos = 0;
+					int argLen = arg.length();
+					if (argPos < argLen && arg.charAt(argPos) == '{')
+					{
+						argPos++;
+						if (arg.endsWith("}")) arg = arg.substring(0, --argLen);
+					}
+					int keyStart = argPos;
+					while (argPos < argLen && arg.charAt(argPos) != ' ') argPos++;
+					String key = arg.substring(keyStart, argPos);
+					while (argPos < argLen && arg.charAt(argPos) == ' ') argPos++;
+					String value = arg.substring(argPos);
+					if (value.startsWith("{"))
+					{
+						value = value.substring(1);
+						if (value.endsWith("}")) value = value.substring(0, value.length()-1);
+					}
+					argumentKey.add(key);
+					argumentValue.add(value);
+				}
 				continue;
 			}
 	
@@ -949,28 +941,35 @@ public class Sue extends Input
 				ParseParameters parP = new ParseParameters(keywords, 1);
 				if (parP.theLabel == null) continue;
 	
-//				// substitute parameters
-//				infstr = initinfstr();
-//				for(pt = thelabel; *pt != 0; pt++)
-//				{
-//					if (*pt == '$')
-//					{
-//						for(i=0; i<numargs; i++)
-//							if (namesamen(&pt[1], argnames[i], estrlen(argnames[i])) == 0) break;
-//						if (i < numargs)
-//						{
-//							addstringtoinfstr(infstr, argvalues[i]);
-//							pt += estrlen(argnames[i]);
-//							continue;
-//						}
-//					}
-//					addtoinfstr(infstr, *pt);
-//				}
-//				thelabel = returninfstr(infstr);
+				// substitute parameters
+				StringBuffer infstr = new StringBuffer();
+				for(int i=0; i<parP.theLabel.length(); i++)
+				{
+					char chr = parP.theLabel.charAt(i);
+					if (chr == '$')
+					{
+						String partial = parP.theLabel.substring(i+1);
+						int j = 0;
+						for( ; j<argumentKey.size(); j++)
+						{
+							String key = (String)argumentKey.get(j);
+							if (partial.startsWith(key)) break;
+						}
+						if (j < argumentKey.size())
+						{
+							infstr.append((String)argumentValue.get(j));
+							i += ((String)argumentKey.get(j)).length();
+							continue;
+						}
+					}
+					infstr.append(chr);
+				}
+				parP.theLabel = infstr.toString();
 
 				NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, parP.pt, 0, 0, cell);
 				if (ni == null) continue;
 				Variable var = ni.newVar(Artwork.ART_MESSAGE, parP.theLabel);
+				if (var != null) var.setDisplay(true);
 				continue;
 			}
 	
@@ -1016,10 +1015,6 @@ public class Sue extends Input
 			io_sueplacewires(sueWires, sueNets, cell);
 			io_sueplacenets(sueNets, cell);
 		}
-	
-//		// make sure cells are the right size
-//		if (schemCell != NONODEPROTO) (*el_curconstraint->solve)(schemCell);
-//		if (iconCell != NONODEPROTO) (*el_curconstraint->solve)(iconCell);
 	
 		// return the cell
 		if (schemCell != null) return schemCell;
@@ -1144,13 +1139,14 @@ public class Sue extends Input
 		 */
 		private ParseParameters(List keywords, int start)
 		{
-			double x = 0, y = 0;
 			rot = 0;
+			pt = null;
 			trn = false;
 			type = PortCharacteristic.UNKNOWN;
 			theName = null;
 			theLabel = null;
 			theText = null;
+
 			for(int i=start; i<keywords.size(); i += 2)
 			{
 				String keyword = (String)keywords.get(i);
@@ -1159,10 +1155,11 @@ public class Sue extends Input
 				{
 					int j = 0;
 					if (param.charAt(j) == '{') j++;
-					x = TextUtils.atof(param.substring(j));
+					double x = TextUtils.atof(param.substring(j));
 					while (j < param.length()-1 && !Character.isWhitespace(param.charAt(j))) j++;
 					while (j < param.length()-1 && Character.isWhitespace(param.charAt(j))) j++;
-					y = TextUtils.atof(param.substring(j));
+					double y = TextUtils.atof(param.substring(j));
+					pt = new Point2D.Double(io_suemakex(x), io_suemakey(y));
 				}
 				if (keyword.equalsIgnoreCase("-orient"))
 				{
@@ -1173,6 +1170,7 @@ public class Sue extends Input
 					if (param.equalsIgnoreCase("R90X")) { rot = 0;    trn = true; } else
 					if (param.equalsIgnoreCase("R90Y")) { rot = 1800; trn = true; } else
 					if (param.equalsIgnoreCase("RX"))   { rot = 2700; trn = true; }
+					rot = (3600 - rot) % 3600;
 				}
 				if (keyword.equalsIgnoreCase("-type"))
 				{
@@ -1195,8 +1193,6 @@ public class Sue extends Input
 							if (keyword.equalsIgnoreCase("-text")) theText = infstr;
 				}
 			}
-			pt = new Point2D.Double(io_suemakex(x), io_suemakey(y));
-			rot = (3600 - rot) % 3600;
 		}
 	}
 
@@ -1205,21 +1201,6 @@ public class Sue extends Input
 	 */
 	private void io_sueplacewires(List sueWires, List sueNets, Cell cell)
 	{
-//		SUEWIRE *sw, *osw;
-//		SUENET *sn;
-//		REGISTER INTBIG i, j, wid, px, py, lx, hx, ly, hy, sea, bits;
-//		REGISTER BOOLEAN propagatedbus, isbus;
-//		INTBIG xsize, ysize, x, y, ox, oy;
-//		REGISTER NODEPROTO *proto;
-//		REGISTER GEOM *geom;
-//		REGISTER PORTEXPINST *pe;
-//		NODEINST *ni;
-//		REGISTER ARCPROTO *ap;
-//		REGISTER NODEINST *bottomni, *oni;
-//		PORTPROTO *pp;
-//		REGISTER PORTPROTO *bottompp, *opp;
-//		REGISTER ARCINST *ai;
-	
 		// mark all wire ends as "unassigned", all wire types as unknown
 		for(Iterator wIt = sueWires.iterator(); wIt.hasNext(); )
 		{
@@ -1263,21 +1244,20 @@ public class Sue extends Input
 	
 					// determine whether this port is a bus
 					boolean isbus = false;
-//					bottomni = ni;   bottompp = pp;
-//					while (bottomni->proto->primindex == 0)
-//					{
-//						bottomni = bottompp->subnodeinst;
-//						bottompp = bottompp->subportproto;
-//					}
-//					if (bottomni->proto == Schematics.tech.wireConNode) continue;
-//					if (!isbus && ni->proto == Schematics.tech.offpageNode)
-//					{
-//						// see if there is a bus port on this primitive
-//						for(pe = ni->firstportexpinst; pe != NOPORTEXPINST; pe = pe->nextportexpinst)
-//						{
-//							if (net_buswidth(pe->exportproto->protoname) > 1) isbus = true;
-//						}
-//					}
+					PortOriginal fp = new PortOriginal(pi);
+					PortInst bottomPort = fp.getBottomPort();
+					NodeInst bottomNi = bottomPort.getNodeInst();
+					if (bottomNi.getProto() == Schematics.tech.wireConNode) continue;
+					if (!isbus && ni.getProto() == Schematics.tech.offpageNode)
+					{
+						// see if there is a bus port on this primitive
+						for(Iterator eIt = ni.getExports(); eIt.hasNext(); )
+						{
+							Export e = (Export)eIt.next();
+							Name eName = Name.findName(e.getName());
+							if (eName.busWidth() > 1) isbus = true;
+						}
+					}
 	
 					if (isbus)
 					{
@@ -1352,9 +1332,7 @@ public class Sue extends Input
 				if (sw.pi[i] == null)
 				{
 					// common point found: make a pin
-					double xSize = proto.getDefWidth();
-					double ySize = proto.getDefHeight();
-					NodeInst ni = NodeInst.makeInstance(proto, sw.pt[i], xSize, ySize, cell);
+					NodeInst ni = NodeInst.makeInstance(proto, sw.pt[i], proto.getDefWidth(), proto.getDefHeight(), cell);
 					sw.pi[i] = ni.getOnlyPortInst();
 				}
 	
@@ -1385,9 +1363,7 @@ public class Sue extends Input
 				{
 					NodeProto proto = Schematics.tech.wirePinNode;
 					if (sw.proto == Schematics.tech.bus_arc) proto = Schematics.tech.busPinNode;
-					double xsize = proto.getDefWidth();
-					double ysize = proto.getDefHeight();
-					NodeInst ni = NodeInst.makeInstance(proto, sw.pt[i], xsize, ysize, cell);
+					NodeInst ni = NodeInst.makeInstance(proto, sw.pt[i], proto.getDefWidth(), proto.getDefHeight(), cell);
 					sw.pi[i] = ni.getOnlyPortInst();
 				}
 			}
@@ -1403,45 +1379,37 @@ public class Sue extends Input
 			// if this is a bus, make sure it can connect */
 			if (sw.proto == Schematics.tech.bus_arc)
 			{
-//				for(int i=0; i<2; i++)
-//				{
-//					for(j=0; sw->pp[i]->connects[j] != NOARCPROTO; j++)
-//						if (sw->pp[i]->connects[j] == sch_busarc) break;
-//					if (sw->pp[i]->connects[j] == NOARCPROTO)
-//					{
-//						// this end cannot connect: fake the connection
-//						px = (sw->x[0] + sw->x[1]) / 2;
-//						py = (sw->y[0] + sw->y[1]) / 2;
-//						defaultnodesize(sch_buspinprim, &xsize , &ysize);
-//						lx = px - xsize/2;   hx = lx + xsize;
-//						ly = py - ysize/2;   hy = ly + ysize;
-//						ni = newnodeinst(sch_buspinprim, lx, hx, ly, hy, 0, 0, cell);
-//						if (ni == NONODEINST) break;
-//						endobjectchange((INTBIG)ni, VNODEINST);
-//						pp = ni->proto->firstportproto;
-//						ai = newarcinst(gen_unroutedarc, defaultarcwidth(gen_unroutedarc),
-//							us_makearcuserbits(gen_unroutedarc), ni, pp, px, py,
-//								sw->ni[i], sw->pp[i], sw->x[i], sw->y[i], cell);
-//						if (ai == NOARCINST)
-//						{
-//							ttyputerr(_("Error making fake connection"));
-//							break;
-//						}
-//						endobjectchange((INTBIG)ai, VARCINST);
-//						sw->ni[i] = ni;
-//						sw->pp[i] = pp;
-//						sw->x[i] = px;
-//						sw->y[i] = py;
-//					}
-//				}
+				for(int i=0; i<2; i++)
+				{
+					if (!sw.pi[i].getPortProto().getBasePort().connectsTo(Schematics.tech.bus_arc))
+					{
+						// this end cannot connect: fake the connection
+						double px = (sw.pt[0].getX() + sw.pt[1].getX()) / 2;
+						double py = (sw.pt[0].getY() + sw.pt[1].getY()) / 2;
+						Point2D pt = new Point2D.Double(px, py);
+						double xsize = Schematics.tech.busPinNode.getDefWidth();
+						double ysize = Schematics.tech.busPinNode.getDefHeight();
+						NodeInst ni = NodeInst.makeInstance(Schematics.tech.busPinNode, pt, xsize, ysize, cell);
+						if (ni == null) break;
+						PortInst pi = ni.getOnlyPortInst();
+						ArcInst ai = ArcInst.makeInstance(Generic.tech.unrouted_arc, Generic.tech.unrouted_arc.getDefaultWidth(), pi, sw.pi[i]);
+						if (ai == null)
+						{
+							System.out.println("Error making fake connection");
+							break;
+						}
+						sw.pi[i] = pi;
+						sw.pt[i] = pt;
+					}
+				}
 			}
 
 			ArcInst ai = ArcInst.makeInstance(sw.proto, wid, sw.pi[0], sw.pi[1], sw.pt[0], sw.pt[1], null);
 			if (ai == null)
 			{
-//				ttyputerr(_("Could not run a wire from %s to %s in cell %s"),
-//					describenodeinst(sw->ni[0]), describenodeinst(sw->ni[1]),
-//						describenodeproto(cell));
+				System.out.println("Cell " + cell.describe() +
+					": Could not run a wire from " + sw.pi[0].getNodeInst().describe() + " to " +
+					sw.pi[1].getNodeInst().describe());
 				continue;
 			}
 	
@@ -1457,52 +1425,53 @@ public class Sue extends Input
 //			}
 		}
 	
-//		// now look for implicit connections where "offpage" connectors touch
-//		for(ni = cell->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//		{
-//			if (ni->proto != sch_offpageprim) continue;
-//			if (ni->firstportarcinst != NOPORTARCINST) continue;
-//			pp = ni->proto->firstportproto->nextportproto;
-//			portposition(ni, pp, &x, &y);
-//			sea = initsearch(x, x, y, y, cell);
-//			for(;;)
-//			{
-//				geom = nextobject(sea);
-//				if (geom == NOGEOM) break;
-//				if (!geom->entryisnode) continue;
-//				oni = geom->entryaddr.ni;
-//				if (oni == ni) continue;
-//				for(opp = oni->proto->firstportproto; opp != NOPORTPROTO; opp = opp->nextportproto)
-//				{
-//					portposition(oni, opp, &ox, &oy);
-//					if (ox != x || oy != y) continue;
-//					for(i=0; i<3; i++)
-//					{
-//						switch (i)
-//						{
-//							case 0: ap = sch_busarc;      break;
-//							case 1: ap = sch_wirearc;     break;
-//							case 2: ap = gen_unroutedarc; break;
-//						}
-//						for(j=0; pp->connects[j] != NOARCPROTO; j++)
-//							if (pp->connects[j] == ap) break;
-//						if (pp->connects[j] == NOARCPROTO) continue;
-//						for(j=0; opp->connects[j] != NOARCPROTO; j++)
-//							if (opp->connects[j] == ap) break;
-//						if (opp->connects[j] == NOARCPROTO) continue;
-//						break;
-//					}
-//	
-//					wid = defaultarcwidth(ap);
-//					bits = us_makearcuserbits(ap);
-//					ai = newarcinst(ap, wid, bits, ni, pp, x, y, oni, opp, x, y, cell);
-//					if (ai != NOARCINST)
-//						endobjectchange((INTBIG)ai, VARCINST);
-//					break;
-//				}
-//				if (opp != NOPORTPROTO) break;
-//			}
-//		}
+		// now look for implicit connections where "offpage" connectors touch
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			if (ni.getProto() != Schematics.tech.offpageNode) continue;
+			if (ni.getNumConnections() > 0) continue;
+			PortInst pi = ni.getPortInst(1);
+			Poly piPoly = pi.getPoly();
+			double x = piPoly.getCenterX();
+			double y = piPoly.getCenterY();
+			Rectangle2D searchBounds = new Rectangle2D.Double(x, y, 0, 0);
+			for(Geometric.Search sea = new Geometric.Search(searchBounds, cell); sea.hasNext(); )
+			{
+				Geometric geom = (Geometric)sea.next();
+				if (!(geom instanceof NodeInst)) continue;
+				NodeInst oni = (NodeInst)geom;
+				if (oni == ni) continue;
+				boolean wired = false;
+				for(Iterator oIt = oni.getPortInsts(); oIt.hasNext(); )
+				{
+					PortInst oPi = (PortInst)oIt.next();
+					Poly oPiPoly = oPi.getPoly();
+					double ox = oPiPoly.getCenterX();
+					double oy = oPiPoly.getCenterY();
+					if (ox != x || oy != y) continue;
+					ArcProto ap = null;
+					for(int i=0; i<3; i++)
+					{
+						switch (i)
+						{
+							case 0: ap = Schematics.tech.bus_arc;     break;
+							case 1: ap = Schematics.tech.wire_arc;    break;
+							case 2: ap = Generic.tech.unrouted_arc;   break;
+						}
+						if (!pi.getPortProto().getBasePort().connectsTo(ap)) continue;
+						if (!oPi.getPortProto().getBasePort().connectsTo(ap)) continue;
+						break;
+					}
+	
+					double wid = ap.getDefaultWidth();
+					ArcInst ai = ArcInst.makeInstance(ap, wid, pi, oPi);
+					wired = true;
+					break;
+				}
+				if (wired) break;
+			}
+		}
 	}
 	
 	/**
@@ -1603,15 +1572,6 @@ public class Sue extends Input
 	 */
 	private void io_sueplacenets(List sueNets, Cell cell)
 	{
-//		SUENET *sn;
-//		REGISTER INTBIG pass;
-//		REGISTER BOOLEAN isbus;
-//		REGISTER ARCINST *ai, *bestai;
-//		REGISTER INTBIG cx, cy, dist, bestdist, sea;
-//		REGISTER GEOM *geom;
-//		REGISTER CHAR *netname, *busname;
-//		REGISTER void *infstr;
-	
 		// 3 passes: qualified labels, unqualified busses, unqualified wires
 		for(int pass=0; pass<3; pass++)
 		{
@@ -1619,74 +1579,174 @@ public class Sue extends Input
 			{
 				SueNet sn = (SueNet)it.next();
 
-//				// unqualified labels (starting with "[") happen second
-//				if (*sn->label == '[')
-//				{
-//					// unqualified label: pass 2 or 3 only
-//					if (pass == 0) continue;
-//				} else
-//				{
-//					// qualified label: pass 1 only
-//					if (pass != 0) continue;
-//				}
-//	
-//				// see if this is a bus
-//				if (net_buswidth(sn->label) > 1) isbus = TRUE; else isbus = FALSE;
-//	
-//				sea = initsearch(sn->x, sn->x, sn->y, sn->y, cell);
-//				bestai = NOARCINST;
-//				for(;;)
-//				{
-//					geom = nextobject(sea);
-//					if (geom == NOGEOM) break;
-//					if (geom->entryisnode) continue;
-//					ai = geom->entryaddr.ai;
-//					if (isbus)
-//					{
-//						if (ai->proto != sch_busarc) continue;
-//					} else
-//					{
-//						if (ai->proto == sch_busarc) continue;
-//					}
-//					cx = (ai->end[0].xpos + ai->end[1].xpos) / 2;
-//					cy = (ai->end[0].ypos + ai->end[1].ypos) / 2;
-//					dist = computedistance(cx, cy, sn->x, sn->y);
-//	
-//					// LINTED "bestdist" used in proper order
-//					if (bestai == NOARCINST || dist < bestdist)
-//					{
-//						bestai = ai;
-//						bestdist = dist;
-//					}
-//				}
-//				if (bestai != NOARCINST)
-//				{
-//					if (pass == 1)
-//					{
-//						// only allow busses
-//						if (bestai->proto != sch_busarc) continue;
-//					} else if (pass == 2)
-//					{
-//						// disallow busses
-//						if (bestai->proto == sch_busarc) continue;
-//					}
-//					netname = sn->label;
-//					if (*netname == '[')
-//					{
-//						// find the proper name of the network
-//						busname = io_suefindbusname(bestai);
-//						if (busname != 0)
-//						{
-//							infstr = initinfstr();
-//							addstringtoinfstr(infstr, busname);
-//							addstringtoinfstr(infstr, netname);
-//							netname = returninfstr(infstr);
-//						}
-//					}
-//					us_setarcname(bestai, netname);
-//				}
+				// unqualified labels (starting with "[") happen second
+				if (sn.label.startsWith("["))
+				{
+					// unqualified label: pass 2 or 3 only
+					if (pass == 0) continue;
+				} else
+				{
+					// qualified label: pass 1 only
+					if (pass != 0) continue;
+				}
+	
+				// see if this is a bus
+				Name lableName = Name.findName(sn.label);
+				boolean isbus = false;
+				if (lableName.busWidth() > 1) isbus = true;
+
+				ArcInst bestai = null;
+				double bestDist = Double.MAX_VALUE;
+				Rectangle2D searchBounds = new Rectangle2D.Double(sn.pt.getX(), sn.pt.getY(), 0, 0);
+				for(Geometric.Search sea = new Geometric.Search(searchBounds, cell); sea.hasNext(); )
+				{
+					Geometric geom = (Geometric)sea.next();
+					if (geom instanceof NodeInst) continue;
+					ArcInst ai = (ArcInst)geom;
+					if (isbus)
+					{
+						if (ai.getProto() != Schematics.tech.bus_arc) continue;
+					} else
+					{
+						if (ai.getProto() == Schematics.tech.bus_arc) continue;
+					}
+					double cx = (ai.getHead().getLocation().getX() + ai.getTail().getLocation().getX()) / 2;
+					double cy = (ai.getHead().getLocation().getY() + ai.getTail().getLocation().getY()) / 2;
+					Point2D ctr = new Point2D.Double(cx, cy);
+					double dist = ctr.distance(sn.pt);
+	
+					// LINTED "bestdist" used in proper order
+					if (bestai == null || dist < bestDist)
+					{
+						bestai = ai;
+						bestDist = dist;
+					}
+				}
+				if (bestai != null)
+				{
+					if (pass == 1)
+					{
+						// only allow busses
+						if (bestai.getProto() != Schematics.tech.bus_arc) continue;
+					} else if (pass == 2)
+					{
+						// disallow busses
+						if (bestai.getProto() == Schematics.tech.bus_arc) continue;
+					}
+					String netname = sn.label;
+					if (netname.startsWith("["))
+					{
+						// find the proper name of the network
+						String busname = io_suefindbusname(bestai);
+						if (busname != null)
+						{
+							netname = busname + netname;
+						}
+					}
+					bestai.setName(netname);
+				}
 			}
 		}
+	}
+	
+	/**
+	 * Method to start at "ai" and search all wires until it finds a named bus.
+	 * Returns zero if no bus name is found.
+	 */
+	private String io_suefindbusname(ArcInst ai)
+	{
+//		REGISTER ARCINST *oai;
+//		REGISTER CHAR *busname, *pt;
+//		REGISTER VARIABLE *var;
+//		static CHAR pseudobusname[50];
+//		REGISTER INTBIG index, len;
+	
+//		for(oai = ai->parent->firstarcinst; oai != NOARCINST; oai = oai->nextarcinst)
+//			oai->temp1 = 0;
+		String busname = io_suesearchbusname(ai);
+//		if (busname == null)
+//		{
+//			for(index=1; ; index++)
+//			{
+//				esnprintf(pseudobusname, 50, x_("NET%ld"), index);
+//				len = estrlen(pseudobusname);
+//				for(oai = ai->parent->firstarcinst; oai != NOARCINST; oai = oai->nextarcinst)
+//				{
+//					var = getvalkey((INTBIG)oai, VARCINST, VSTRING, el_arc_name_key);
+//					if (var == NOVARIABLE) continue;
+//					pt = (CHAR *)var->addr;
+//					if (namesame(pseudobusname, pt) == 0) break;
+//					if (namesamen(pseudobusname, pt, len) == 0 &&
+//						pt[len] == '[') break;
+//				}
+//				if (oai == NOARCINST) break;
+//			}
+//			busname = pseudobusname;
+//		}
+		return busname;
+	}
+	
+	private String io_suesearchbusname(ArcInst ai)
+	{
+//		REGISTER ARCINST *oai;
+//		REGISTER CHAR *busname;
+//		REGISTER INTBIG i;
+//		REGISTER NODEINST *ni;
+//		REGISTER PORTARCINST *pi;
+//		REGISTER PORTEXPINST *pe;
+//		REGISTER PORTPROTO *pp;
+//		REGISTER VARIABLE *var;
+//		REGISTER void *infstr;
+//	
+//		ai->temp1 = 1;
+//		if (ai->proto == sch_busarc)
+//		{
+//			var = getvalkey((INTBIG)ai, VARCINST, VSTRING, el_arc_name_key);
+//			if (var != NOVARIABLE)
+//			{
+//				infstr = initinfstr();
+//				for(busname = (CHAR *)var->addr; *busname != 0; busname++)
+//				{
+//					if (*busname == '[') break;
+//					addtoinfstr(infstr, *busname);
+//				}
+//				return(returninfstr(infstr));
+//			}
+//		}
+//		for(i=0; i<2; i++)
+//		{
+//			ni = ai->end[i].nodeinst;
+//			if (ni->proto != sch_wirepinprim && ni->proto != sch_buspinprim &&
+//				ni->proto != sch_offpageprim) continue;
+//			if (ni->proto == sch_buspinprim || ni->proto == sch_offpageprim)
+//			{
+//				// see if there is an arrayed port here
+//				for(pe = ni->firstportexpinst; pe != NOPORTEXPINST; pe = pe->nextportexpinst)
+//				{
+//					pp = pe->exportproto;
+//					for(busname = pp->protoname; *busname != 0; busname++)
+//						if (*busname == '[') break;
+//					if (*busname != 0)
+//					{
+//						infstr = initinfstr();
+//						for(busname = pp->protoname; *busname != 0; busname++)
+//						{
+//							if (*busname == '[') break;
+//							addtoinfstr(infstr, *busname);
+//						}
+//						return(returninfstr(infstr));
+//					}
+//				}
+//			}
+//			for(pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
+//			{
+//				oai = pi->conarcinst;
+//				if (oai->temp1 != 0) continue;
+//				busname = io_suesearchbusname(oai);
+//				if (busname != 0) return(busname);
+//			}
+//		}
+		return null;
 	}
 
 	/**
@@ -1757,7 +1817,7 @@ public class Sue extends Input
 	 */
 	private String io_sueparseexpression(String expression)
 	{
-//		infstr = initinfstr();
+//		StringBuffer infstr = new StringBuffer();
 //		while (*expression != 0)
 //		{
 //			keyword = getkeyword(&expression, x_(" \t,+-*/()"));
@@ -1797,104 +1857,3 @@ public class Sue extends Input
 		return -y / 8;
 	}
 }
-
-//	
-//	/*
-//	 * Routine to start at "ai" and search all wires until it finds a named bus.
-//	 * Returns zero if no bus name is found.
-//	 */
-//	CHAR *io_suefindbusname(ARCINST *ai)
-//	{
-//		REGISTER ARCINST *oai;
-//		REGISTER CHAR *busname, *pt;
-//		REGISTER VARIABLE *var;
-//		static CHAR pseudobusname[50];
-//		REGISTER INTBIG index, len;
-//	
-//		for(oai = ai->parent->firstarcinst; oai != NOARCINST; oai = oai->nextarcinst)
-//			oai->temp1 = 0;
-//		busname = io_suesearchbusname(ai);
-//		if (busname == 0)
-//		{
-//			for(index=1; ; index++)
-//			{
-//				esnprintf(pseudobusname, 50, x_("NET%ld"), index);
-//				len = estrlen(pseudobusname);
-//				for(oai = ai->parent->firstarcinst; oai != NOARCINST; oai = oai->nextarcinst)
-//				{
-//					var = getvalkey((INTBIG)oai, VARCINST, VSTRING, el_arc_name_key);
-//					if (var == NOVARIABLE) continue;
-//					pt = (CHAR *)var->addr;
-//					if (namesame(pseudobusname, pt) == 0) break;
-//					if (namesamen(pseudobusname, pt, len) == 0 &&
-//						pt[len] == '[') break;
-//				}
-//				if (oai == NOARCINST) break;
-//			}
-//			busname = pseudobusname;
-//		}
-//		return(busname);
-//	}
-//	
-//	CHAR *io_suesearchbusname(ARCINST *ai)
-//	{
-//		REGISTER ARCINST *oai;
-//		REGISTER CHAR *busname;
-//		REGISTER INTBIG i;
-//		REGISTER NODEINST *ni;
-//		REGISTER PORTARCINST *pi;
-//		REGISTER PORTEXPINST *pe;
-//		REGISTER PORTPROTO *pp;
-//		REGISTER VARIABLE *var;
-//		REGISTER void *infstr;
-//	
-//		ai->temp1 = 1;
-//		if (ai->proto == sch_busarc)
-//		{
-//			var = getvalkey((INTBIG)ai, VARCINST, VSTRING, el_arc_name_key);
-//			if (var != NOVARIABLE)
-//			{
-//				infstr = initinfstr();
-//				for(busname = (CHAR *)var->addr; *busname != 0; busname++)
-//				{
-//					if (*busname == '[') break;
-//					addtoinfstr(infstr, *busname);
-//				}
-//				return(returninfstr(infstr));
-//			}
-//		}
-//		for(i=0; i<2; i++)
-//		{
-//			ni = ai->end[i].nodeinst;
-//			if (ni->proto != sch_wirepinprim && ni->proto != sch_buspinprim &&
-//				ni->proto != sch_offpageprim) continue;
-//			if (ni->proto == sch_buspinprim || ni->proto == sch_offpageprim)
-//			{
-//				// see if there is an arrayed port here
-//				for(pe = ni->firstportexpinst; pe != NOPORTEXPINST; pe = pe->nextportexpinst)
-//				{
-//					pp = pe->exportproto;
-//					for(busname = pp->protoname; *busname != 0; busname++)
-//						if (*busname == '[') break;
-//					if (*busname != 0)
-//					{
-//						infstr = initinfstr();
-//						for(busname = pp->protoname; *busname != 0; busname++)
-//						{
-//							if (*busname == '[') break;
-//							addtoinfstr(infstr, *busname);
-//						}
-//						return(returninfstr(infstr));
-//					}
-//				}
-//			}
-//			for(pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//			{
-//				oai = pi->conarcinst;
-//				if (oai->temp1 != 0) continue;
-//				busname = io_suesearchbusname(oai);
-//				if (busname != 0) return(busname);
-//			}
-//		}
-//		return(0);
-//	}

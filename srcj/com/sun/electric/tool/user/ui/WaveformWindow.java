@@ -904,11 +904,14 @@ public class WaveformWindow implements WindowContent
 							SweepSignal ss = (SweepSignal)sweepSignals.get(s);
 							if (ss != null && !ss.included) continue;
 							int lastX = 0, lastY = 0;
+							numEvents = as.getNumEvents(s);
 							for(int i=0; i<numEvents; i++)
 							{
-								double time = ws.sSig.getTime(i);
+								double time = ws.sSig.getTime(i, s);
 								int x = scaleTimeToX(time);
 								int y = scaleValueToY(as.getSweepValue(s, i));
+//if (as.getSweepValue(s, i) != 0) System.out.println("For s="+s+", plotting point ("+(int)(time*1e11)+", "+as.getSweepValue(s, i)+") at X="+x+
+//		" SO V("+s+","+i+")="+as.getSweepValue(s, i));
 								if (i != 0)
 								{
 									if (processALine(g, lastX, lastY, x, y, bounds, result, ws, s)) break;

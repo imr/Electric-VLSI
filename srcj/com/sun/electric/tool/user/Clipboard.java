@@ -822,9 +822,7 @@ public class Clipboard
 			double dY = srcNode.getYSize() - destNode.getYSize();
 			if (dX != 0 || dY != 0)
 			{
-				double dlx = -dX/2;   double dhx = dX/2;
-				double dly = -dY/2;   double dhy = dY/2;
-				destNode.modifyInstance(dlx, dly, 0, 0, 0);
+				destNode.modifyInstance(0, 0, dX, dY, 0);
 			}
 		}
 

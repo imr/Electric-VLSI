@@ -361,25 +361,25 @@ public class HSpiceOut extends Simulate
 		int sweepCounter = sweepcnt;
 		for(;;)
 		{
-			// ignore sweep info
+			// get sweep info
 			if (sweepcnt > 0)
 			{
 				float sweepValue = getHSpiceFloat();
 				if (eofReached) break;
 				sd.addSweep(new Double(sweepValue));
 			}
-	
+
 			// now read the data
 			List allTheData = new ArrayList();
 			for(;;)
 			{
 				float [] oneSetOfData = new float[numSignals+1];
-	
+
 				// get the first number, see if it terminates
 				float time = getHSpiceFloat();
 				if (eofReached) break;
 				oneSetOfData[0] = time;
-	
+
 				// get a row of numbers
 				for(int k=0; k<numSignals; k++)
 				{
@@ -400,25 +400,27 @@ public class HSpiceOut extends Simulate
 		// transpose the data to sit properly in the simulation information
 		if (sweepcnt > 0)
 		{
-			List allTheData = (List)theSweeps.get(0);
-			int numEvents = allTheData.size();
-//System.out.println("version="+version+" sweepcnt="+sweepcnt+" numSignals="+numSignals+" numEvents="+numEvents);
-			sd.buildCommonTime(numEvents);
-			for(int i=0; i<numEvents; i++)
+			for(int k=0; k<sweepcnt; k++)
 			{
-				float [] dataRow = (float[])allTheData.get(i);
-				sd.setCommonTime(i, dataRow[0]);
+				List allTheData = (List)theSweeps.get(k);
+				int numEvents = allTheData.size();
+				sd.addCommonTime(numEvents);
+				for(int i=0; i<numEvents; i++)
+				{
+					float [] dataRow = (float[])allTheData.get(i);
+					sd.setCommonTime(i, k, dataRow[0]);
+				}
 			}
 			for(int j=0; j<numSignals; j++)
 			{
 				Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)sd.getSignals().get(j);
-				as.buildSweepValues(sweepcnt, numEvents);
+				as.setNumSweeps(sweepcnt);
 				for(int k=0; k<sweepcnt; k++)
 				{
-					allTheData = (List)theSweeps.get(k);
-					int sweepEvents = allTheData.size();
-					if (sweepEvents > numEvents) sweepEvents = numEvents;
-					for(int i=0; i<sweepEvents; i++)
+					List allTheData = (List)theSweeps.get(k);
+					int numEvents = allTheData.size();
+					as.buildSweepValues(k, numEvents);
+					for(int i=0; i<numEvents; i++)
 					{
 						float [] dataRow = (float[])allTheData.get(i);
 						as.setSweepValue(k, i, dataRow[j+1]);
@@ -444,19 +446,6 @@ public class HSpiceOut extends Simulate
 					as.setValue(i, dataRows[i][j+1]);
 			}
 		}
-
-//		// postprocess and add exports in cells
-//		java.util.HashSet contexts = new java.util.HashSet();
-//		for(int j=0; j<numSignals; j++)
-//		{
-//			Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)sd.getSignals().get(j);
-//			String context = as.getSignalContext();
-//			if (context != null) contexts.add(context);
-//		}
-//		for(Iterator it = contexts.iterator(); it.hasNext(); )
-//		{
-//			System.out.println("Context: "+(String)it.next());
-//		}
 
 		return sd;
 	}
@@ -640,7 +629,7 @@ public class HSpiceOut extends Simulate
 			fi = (fi0 << 24) | (fi1 << 16) | (fi2 << 8) | fi3;
 		}
 		float f = Float.intBitsToFloat(fi);
-		
+
 		if (f > 1.00000000E30 && f < 1.00000002E30)
 		{
 			eofReached = true;

@@ -86,6 +86,7 @@ public class Simulation extends Tool
 		private List signals;
 		private List sweeps;
 		private double [] commonTime;
+		private List sweepCommonTime;
 
 		/**
 		 * Constructor to build a new Simulation Data object.
@@ -94,6 +95,7 @@ public class Simulation extends Tool
 		{
 			signals = new ArrayList();
 			sweeps = new ArrayList();
+			sweepCommonTime = new ArrayList();
 		}
 
 		/**
@@ -121,11 +123,40 @@ public class Simulation extends Tool
 		public void buildCommonTime(int numEvents) { commonTime = new double[numEvents]; }
 
 		/**
+		 * Method to construct an array of time values that are common to all signals, but different
+		 * for the next sweep.
+		 * This method must be called in the order of sweeps.
+		 * Some simulation data has all of its stimuli at the same time interval for every signal.
+		 * To save space, such data can use a common time array, kept in the Simulation Data.
+		 * If a signal wants to use its own time values, that can be done by placing the time
+		 * array in the signal.
+		 * @param numEvents the number of time events in the common time array.
+		 * @param numSweeps the number of sweeps in the simulation data.
+		 */
+		public void addCommonTime(int numEvents)
+		{
+			double [] sct = new double[numEvents];
+			sweepCommonTime.add(sct);
+		}
+
+		/**
 		 * Method to load an entry in the common time array.
 		 * @param index the entry number.
 		 * @param time the time value at
 		 */
 		public void setCommonTime(int index, double time) { commonTime[index] = time; }
+
+		/**
+		 * Method to load an entry in the common time array for a particular sweep.
+		 * @param index the entry number.
+		 * @param sweep the sweep number.
+		 * @param time the time value at
+		 */
+		public void setCommonTime(int index, int sweep, double time)
+		{
+			double [] sct = (double [])sweepCommonTime.get(sweep);
+			sct[index] = time;
+		}
 
 		/**
 		 * Method to add information about another sweep in this simulation data.
@@ -396,6 +427,23 @@ public class Simulation extends Tool
 		}
 
 		/**
+		 * Method to return the value of time for a given event on this signal.
+		 * Depending on whether common time data is being used, the time information is
+		 * found on this signal or on the overall simulation data.
+		 * @param index the event being querried (0-based).
+		 * @return the value of time at that event.
+		 */
+		public double getTime(int index, int sweep)
+		{
+			if (useCommonTime)
+			{
+				double [] sct = (double [])sd.sweepCommonTime.get(sweep);
+				return sct[index];
+			}
+			return time[index];
+		}
+
+		/**
 		 * Method to return the time vector for this signal.
 		 * The vector is only valid if this signal is NOT using common time.
 		 * Signals can have their own time information, or they can use a "common time" array
@@ -469,7 +517,7 @@ public class Simulation extends Tool
 						for(int i=0; i<as.sweepValues[s].length; i++)
 						{
 							double time = 0;
-							time = as.getTime(i);
+							time = as.getTime(i, s);
 							double value = as.sweepValues[s][i];
 							if (first)
 							{
@@ -568,13 +616,22 @@ public class Simulation extends Tool
 		 * Method to initialize this as a sweep simulation signal with a specified number of sweeps and events.
 		 * Allocates arrays to hold those events.
 		 * @param numSweeps the number of sweeps in this signal.
-		 * @param numEvents the number of events in this signal.
 		 */
-		public void buildSweepValues(int numSweeps, int numEvents)
+		public void setNumSweeps(int numSweeps)
 		{
 			signalType = SWEEPSIGNAL;
 			sweepValues = new double[numSweeps][];
-			for(int i=0; i<numSweeps; i++) sweepValues[i] = new double[numEvents];
+		}
+
+		/**
+		 * Method to initialize this as a sweep simulation signal with a specified number of sweeps and events.
+		 * Allocates arrays to hold those events.
+		 * @param sweep the sweep number in this signal.
+		 * @param numEvents the number of events in this sweep of this signal.
+		 */
+		public void buildSweepValues(int sweep, int numEvents)
+		{
+			sweepValues[sweep] = new double[numEvents];
 		}
 
 		/**
@@ -722,6 +779,18 @@ public class Simulation extends Tool
 					return values.length;
 			}
 			return 0;
+		}
+
+		/**
+		 * Method to return the number of events in this signal.
+		 * This is the number of events along the horizontal axis, usually "time".
+		 * @param sweep the sweep number to query.
+		 * @return the number of events in this signal.
+		 */
+		public int getNumEvents(int sweep)
+		{
+			if (signalType != SWEEPSIGNAL) return 0;
+			return sweepValues[sweep].length;
 		}
 
 		/**

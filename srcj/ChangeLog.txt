@@ -4,15 +4,21 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01af: *********************************
 
+BUG: (10/27/04, SMR) Pasting primitives does not adjust sizes right (shifts their positions instead).
+FIX: In "Clipboard.pasteNodeToNode()" fixed this.
+
+BUG: (10/27/04, SMR) Sweeps in Spice are time-aligned with each other, which is wrong.
+FIX: Each sweep can now have its own time values.
+
 ************************* Version 8.01ae: *********************************
 
 FIX: (10/27/04, JKG) Added code in LibraryFiles.readExternalLibraryFromFilename to handle
-    references to other library formats.
+     references to other library formats.
 
 IMP/MAN: (10/27/04, JKG) Added File->Export->ELIB (version 7) All libraries command.
 
-BUG: (10/27/04, GVG) Miscellaneous: another attempt to remove out of bound exception and fix the group naming (it was removing last character due to <= condition)
-Removing TSMC90 PP/NP.S.7 rule in DRC.
+BUG: (10/27/04, GVG) Miscellaneous: another attempt to remove out of bound exception and fix the group naming
+     (it was removing last character due to <= condition) Removing TSMC90 PP/NP.S.7 rule in DRC.
 
 BUG: (10/26/04, SMR) Moving a cell to a different cell group fails if there are multiple versions.
 FIX: In "Cell.setCellGroup()", move all versions at once.
