@@ -1516,7 +1516,7 @@ public class GetInfoNode extends EDialog
 
 	private void attributesButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_attributesButtonActionPerformed
 	{//GEN-HEADEREND:event_attributesButtonActionPerformed
-		Attributes2.showDialog();
+		Attributes.showDialog();
 	}//GEN-LAST:event_attributesButtonActionPerformed
 
 	private void moreActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_moreActionPerformed

@@ -35,6 +35,8 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.technology.*;
 
 import java.awt.geom.Point2D;
+import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
 import java.util.List;
 import java.util.Iterator;
 import java.util.ArrayList;
@@ -208,6 +210,15 @@ public abstract class InteractiveRouter extends Router {
         RouteElement startRE = null;                // denote start of route
         RouteElement endRE = null;                  // denote end of route
 
+        // special case: if both objects are arc insts, check if they intersect
+        // if they intersect, connect them there
+        if ((startObj instanceof ArcInst) && endObj instanceof ArcInst) {
+            if (connectIntersectingArcs(route, (ArcInst)startObj, (ArcInst)endObj)) {
+                // arcs intersected, return new route
+                return route;
+            }
+        }
+
         // plan start of route
         if (startObj instanceof PortInst) {
             // portinst: just wrap in RouteElement
@@ -215,7 +226,7 @@ public abstract class InteractiveRouter extends Router {
         }
         if (startObj instanceof ArcInst) {
             // arc: figure out where on arc to start
-            startRE = findArcStartPoint(route, (ArcInst)startObj, clicked);
+            startRE = findArcConnectingPoint(route, (ArcInst)startObj, clicked);
         }
         if (startObj instanceof NodeInst) {
             // find closest portinst to start from
@@ -238,7 +249,10 @@ public abstract class InteractiveRouter extends Router {
             }
             if (endObj instanceof ArcInst) {
                 // arc: figure out where on arc to end
-                endRE = findArcStartPoint(route, (ArcInst)endObj, clicked);
+                // use startRE location when possible if connecting to arc
+                Point2D startPoint = startRE.getLocation();
+                if (startPoint == null) startPoint = clicked;
+                endRE = findArcConnectingPoint(route, (ArcInst)endObj, startPoint);
             }
             if (endRE == null) {
                 System.out.println("  Can't route to "+endObj);
@@ -287,7 +301,7 @@ public abstract class InteractiveRouter extends Router {
     // -------------------- Internal Router Utility Methods --------------------
     
     /**
-     * If drawing to/from an ArcInst, we may connect to the some
+     * If drawing to/from an ArcInst, we may connect to some
      * point along the arc.  This may bisect the arc, in which case
      * we delete the current arc, add in a pin at the appropriate
      * place, and create 2 new arcs to the old arc head/tail points.
@@ -304,7 +318,7 @@ public abstract class InteractiveRouter extends Router {
      * point, or a RouteElement holding an existingPortInst if
      * drawing from either end of the ArcInst.
      */
-    protected RouteElement findArcStartPoint(List route, ArcInst arc, Point2D clicked) {
+    protected RouteElement findArcConnectingPoint(List route, ArcInst arc, Point2D clicked) {
 
         Point2D head = arc.getHead().getLocation();
         Point2D tail = arc.getTail().getLocation();
@@ -364,6 +378,70 @@ public abstract class InteractiveRouter extends Router {
         }
         //route.add(startRE);           // DON'T ADD!!
         return startRE;
+    }
+
+    protected boolean connectIntersectingArcs(List route, ArcInst startArc, ArcInst endArc) {
+        // check if arcs intersect
+        // equation for line 1
+        // y = startSlope*x + startYint
+        Point2D startHead = startArc.getHead().getLocation();
+        Point2D startTail = startArc.getTail().getLocation();
+        double startSlope, startYint;
+        startSlope = (startTail.getY() - startHead.getY())/(startTail.getX() - startHead.getX());
+        startYint = startTail.getY() - startSlope*startTail.getX();
+        // equation for line 2
+        Point2D endHead = endArc.getHead().getLocation();
+        Point2D endTail = endArc.getTail().getLocation();
+        double endSlope, endYint;
+        endSlope = (endTail.getY() - endHead.getY())/(endTail.getX() - endHead.getX());
+        endYint = endTail.getY() - endSlope*endTail.getX();
+
+        // if slopes are the same, lines may be colinear or may not intersect
+        if (startSlope == endSlope) {
+            // ignore colinear case
+            // if don't intersect, do not edit route, and return false
+            return false;
+        }
+        // find intersecting point of lines
+        Point2D point = null;
+        if (Double.isInfinite(startSlope)) {
+            // startArc is vertical
+            // check if X coord startArc is within endArc
+            if (withinBounds(startHead.getX(), endHead.getX(), endTail.getX())) {
+                double y = endSlope*startHead.getX() + endYint;
+                point = new Point2D.Double(startHead.getX(), y);
+            }
+        } else if (Double.isInfinite(endSlope)) {
+            // endArc is vertical
+            // check if X coord startArc is within startArc
+            if (withinBounds(endHead.getX(), startHead.getX(), startTail.getX())) {
+                double y = startSlope*endHead.getX() + startYint;
+                point = new Point2D.Double(endHead.getX(), y);
+            }
+        } else {
+            double x, y;
+            x = (endYint - startYint)/(startSlope - endSlope);
+            y = startSlope*x + startYint;
+            // check if it is on both line segments
+            Point2D tryPoint = new Point2D.Double(x, y);
+            if (onSegment(tryPoint, new Line2D.Double(startHead, startTail)) &&
+                onSegment(tryPoint, new Line2D.Double(endHead, endTail))) {
+                point = tryPoint;
+            }
+        }
+        if (point == null) return false;
+
+        // lines intersect, connect them
+        RouteElement startRE = bisectArc(route, startArc, point);
+        RouteElement endRE = bisectArc(route, endArc, point);
+        List addedREs = routeVerticallyToPort(startRE, endRE.getPortProto());
+        if (addedREs == null) {
+            System.out.println("Can't route vertically between "+startArc+" and "+endArc);
+            return false;
+        }
+        route.addAll(addedREs);
+        route.add(endRE);
+        return true;
     }
 
     /**
@@ -431,4 +509,40 @@ public abstract class InteractiveRouter extends Router {
         }
     }
 
+
+    // ----------------------------------------------------------------------
+
+    protected boolean withinBounds(double point, double bound1, double bound2) {
+        double min, max;
+        if (bound1 < bound2) {
+            min = bound1; max = bound2;
+        } else {
+            min = bound2; max = bound1;
+        }
+        return ((point >= min) && (point <= max));
+    }
+
+
+    /**
+     * Returns true if point is on the line segment, false otherwise.
+     */
+    protected boolean onSegment(Point2D point, Line2D line) {
+        double minX, minY, maxX, maxY;
+        Point2D head = line.getP1();
+        Point2D tail = line.getP2();
+        if (head.getX() < tail.getX()) {
+            minX = head.getX(); maxX = tail.getX();
+        } else {
+            minX = tail.getX(); maxX = head.getX();
+        }
+        if (head.getY() < tail.getY()) {
+            minY = head.getY(); maxY = tail.getY();
+        } else {
+            minY = tail.getY(); maxY = head.getY();
+        }
+        if ((point.getX() >= minX) && (point.getX() <= maxX) &&
+            (point.getY() >= minY) && (point.getY() <= maxY))
+            return true;
+        return false;
+    }
 }

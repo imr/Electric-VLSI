@@ -199,7 +199,7 @@ public abstract class Router {
             List route = routeVerticallyToArc(startRE, endArc);
             // continue if no valid route found
             if (route == null || route.size() == 0) continue;
-            // else, valid route found.  Add last connection to endPort
+            // else, valid route found.
             return route;
         }
         return null;

@@ -28,12 +28,7 @@ import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.geometry.PolyQTree;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.hierarchy.NodeUsage;
+import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
@@ -111,8 +106,13 @@ import java.awt.print.Printable;
 import java.awt.print.PageFormat;
 import java.awt.print.PrinterException;
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.net.URL;
 import java.util.*;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 import javax.print.PrintServiceLookup;
 import javax.print.PrintService;
 import javax.swing.ButtonGroup;
@@ -887,6 +887,8 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { LENetlister.test1(); }});
 		jongMenu.addMenuItem("Open Purple Lib", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { openP4libCommand(); }});
+        //jongMenu.addMenuItem("Check Exports", null,
+        //    new ActionListener() { public void actionPerformed(ActionEvent e) { checkExports(); }});
 
         /****************************** Gilda's TEST MENU ******************************/
 		Menu gildaMenu = new Menu("Gilda", 'G');
@@ -1515,8 +1517,8 @@ public final class MenuCommands
 			{
 				if (arcCount == 1) GetInfoArc.showDialog();
 				if (nodeCount == 1) GetInfoNode.showDialog();
-				if (exportCount == 1) GetInfoExport2.showDialog();
-				if (textCount == 1) GetInfoText2.showDialog();
+				if (exportCount == 1) GetInfoExport.showDialog();
+				if (textCount == 1) GetInfoText.showDialog();
 			} else
 			{
 				GetInfoMulti.showDialog();
@@ -1529,7 +1531,7 @@ public final class MenuCommands
 	 */
 	public static void attributesCommand()
 	{
-		Attributes2.showDialog();
+		Attributes.showDialog();
 	}
 
 	/**

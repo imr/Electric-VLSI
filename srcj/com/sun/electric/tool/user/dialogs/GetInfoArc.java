@@ -620,7 +620,7 @@ public class GetInfoArc extends EDialog
 
 	private void attributesActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_attributesActionPerformed
 	{//GEN-HEADEREND:event_attributesActionPerformed
-		Attributes2.showDialog();
+		Attributes.showDialog();
 	}//GEN-LAST:event_attributesActionPerformed
 
 	private void tailSeeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tailSeeActionPerformed
