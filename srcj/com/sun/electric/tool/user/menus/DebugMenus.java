@@ -67,6 +67,7 @@ import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.ExecDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.dialogs.CoverageDialog;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WaveformWindow;
@@ -188,19 +189,21 @@ public class DebugMenus {
 	    gildaMenu.addMenuItem("3D View", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) { WindowMenu.create3DViewCommand(); } });
         gildaMenu.addMenuItem("Merge Polyons qTree", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.MERGE, GeometryHandler.ALGO_QTREE, true);}});
+                new ActionListener() { public void actionPerformed(ActionEvent e) {LayerCoverageJob.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.MERGE, GeometryHandler.ALGO_QTREE);}});
         gildaMenu.addMenuItem("Merge Polyons Sweep", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.MERGE, GeometryHandler.ALGO_SWEEP, true);}});        
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {LayerCoverageJob.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.MERGE, GeometryHandler.ALGO_SWEEP);}});
         gildaMenu.addMenuItem("Covering Implants qTree", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, GeometryHandler.ALGO_QTREE, true);}});
+                new ActionListener() { public void actionPerformed(ActionEvent e) {LayerCoverageJob.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, GeometryHandler.ALGO_QTREE);}});
         gildaMenu.addMenuItem("Covering Implants Sweep", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, GeometryHandler.ALGO_SWEEP, true);}});
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {LayerCoverageJob.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, GeometryHandler.ALGO_SWEEP);}});
         gildaMenu.addMenuItem("Covering Implants Old", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(false, false);}});
-        gildaMenu.addMenuItem("Test Bash", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) {bashTest();}});
+        gildaMenu.addMenuItem("Generate Fake Nodes", null,
+                new ActionListener() { public void actionPerformed(ActionEvent e) {genFakeNodes();}});
+        gildaMenu.addMenuItem("Bounding box layer coverage", null,
+                new ActionListener() { public void actionPerformed(ActionEvent e) {layerCoverage();}});
         gildaMenu.addMenuItem("List Layer Coverage", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_QTREE, true); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { LayerCoverageJob.layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_SWEEP); } });
 
         /****************************** Dima's TEST MENU ******************************/
 
@@ -556,6 +559,113 @@ public class DebugMenus {
 		}
 	}
 
+    public static void makeFakeCircuitryForCoverageCommand(String tech, boolean asJob)
+	{
+		// test code to make and show something
+        if (asJob)
+        {
+            FakeCoverageCircuitry job = new FakeCoverageCircuitry(tech);
+        }
+        else
+            FakeCoverageCircuitry.doItInternal(tech);
+	}
+
+    private static class FakeCoverageCircuitry extends Job
+    {
+        private String theTechnology;
+
+        protected FakeCoverageCircuitry(String tech)
+        {
+            super("Make fake circuitry for coverage tests", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            theTechnology = tech;
+            startJob();
+        }
+
+        public boolean doIt()
+        {
+            return (doItInternal(theTechnology));
+        }
+
+        private static boolean doItInternal(String technology)
+		{
+			// get information about the nodes
+			Technology  tech = Technology.findTechnology(technology);
+
+			if (tech == null)
+			{
+				System.out.println("Technology not found in createCoverageTestCells");
+				return (false);
+			}
+			tech.setCurrent();
+			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
+			if (wf != null) wf.loadComponentMenuForTechnology();
+
+			NodeProto m1NodeProto = Cell.findNodeProto(technology+":Metal-1-Node");
+            NodeProto m2NodeProto = Cell.findNodeProto(technology+":Metal-2-Node");
+            NodeProto m3NodeProto = Cell.findNodeProto(technology+":Metal-3-Node");
+            NodeProto m4NodeProto = Cell.findNodeProto(technology+":Metal-4-Node");
+
+            NodeProto invisiblePinProto = Cell.findNodeProto("generic:Invisible-Pin");
+
+			// get information about the arcs
+			ArcProto m1ArcProto = ArcProto.findArcProto(technology+":Metal-1");
+
+			// get the current library
+			Library mainLib = Library.getCurrent();
+
+			// create a layout cell in the library
+			Cell m1Cell = Cell.makeInstance(mainLib, technology+"Metal1Test{lay}");
+            NodeInst metal1Node = NodeInst.newInstance(m1NodeProto, new Point2D.Double(0, 0), m1NodeProto.getDefWidth(), m1NodeProto.getDefHeight(), m1Cell);
+
+            // Two metals
+            Cell myCell = Cell.makeInstance(mainLib, technology+"M1M2Test{lay}");
+            NodeInst node = NodeInst.newInstance(m1NodeProto, new Point2D.Double(-m1NodeProto.getDefWidth()/2, -m1NodeProto.getDefHeight()/2),
+                    m1NodeProto.getDefWidth(), m1NodeProto.getDefHeight(), myCell);
+            node = NodeInst.newInstance(m2NodeProto, new Point2D.Double(-m2NodeProto.getDefWidth()/2, m2NodeProto.getDefHeight()/2),
+                    m2NodeProto.getDefWidth(), m2NodeProto.getDefHeight(), myCell);
+            node = NodeInst.newInstance(m3NodeProto, new Point2D.Double(m3NodeProto.getDefWidth()/2, -m3NodeProto.getDefHeight()/2),
+                    m3NodeProto.getDefWidth(), m3NodeProto.getDefHeight(), myCell);
+            node = NodeInst.newInstance(m4NodeProto, new Point2D.Double(m4NodeProto.getDefWidth()/2, m4NodeProto.getDefHeight()/2),
+                    m4NodeProto.getDefWidth(), m4NodeProto.getDefHeight(), myCell);
+
+			// now up the hierarchy
+			Cell higherCell = Cell.makeInstance(mainLib, "higher{lay}");
+			Rectangle2D bounds = myCell.getBounds();
+			double myWidth = myCell.getDefWidth();
+			double myHeight = myCell.getDefHeight();
+			NodeInst instance1Node = NodeInst.newInstance(myCell, new Point2D.Double(0, 0), myWidth, myHeight, higherCell);
+			instance1Node.setExpanded();
+
+			NodeInst instance2Node = NodeInst.newInstance(myCell, new Point2D.Double(myWidth, 0), myWidth, myHeight, higherCell, 0, null, 0);
+			instance2Node.setExpanded();
+
+			NodeInst instance3Node = NodeInst.newInstance(myCell, new Point2D.Double(2*myWidth, 0), myWidth, myHeight, higherCell, 1800, null, 0);
+			instance3Node.setExpanded();
+
+			NodeInst instance4Node = NodeInst.newInstance(myCell, new Point2D.Double(3*myWidth, 0), myWidth, myHeight, higherCell, 2700, null, 0);
+			instance4Node.setExpanded();
+
+			// transposed
+			NodeInst instance5Node = NodeInst.newInstance(myCell, new Point2D.Double(0, myHeight), -myWidth, myHeight, higherCell);
+			instance5Node.setExpanded();
+
+			NodeInst instance6Node = NodeInst.newInstance(myCell, new Point2D.Double(myWidth, myHeight), -myWidth, myHeight, higherCell, 900, null, 0);
+			instance6Node.setExpanded();
+
+			NodeInst instance7Node = NodeInst.newInstance(myCell, new Point2D.Double(2*myWidth, myHeight), -myWidth, myHeight, higherCell, 1800, null, 0);
+			instance7Node.setExpanded();
+
+			NodeInst instance8Node = NodeInst.newInstance(myCell, new Point2D.Double(3*myWidth, myHeight), -myWidth, myHeight, higherCell, 2700, null, 0);
+			instance8Node.setExpanded();
+
+			System.out.println("Created cell " + higherCell.describe());
+
+			// display a cell
+			WindowFrame.createEditWindow(myCell);
+            return (true);
+		}
+    }
+
 	/**
 	 * Test method to build an analog waveform with fake data.
 	 */
@@ -647,8 +757,41 @@ public class DebugMenus {
     /**
      * Easy way to test bash scripts
      */
-    public static void bashTest()
+    public static void genFakeNodes()
     {
+        makeFakeCircuitryForCoverageCommand("tsmc90", true);
+        /*EditWindow wnd = EditWindow.getCurrent();
+        NodeInst[] cells = new NodeInst[2];
+        int count = 0;
+
+        // Getting the cells
+        for(Iterator it = wnd.getHighlighter().getHighlights().iterator();
+            it.hasNext() && count < 2; )
+        {
+            Highlight h = (Highlight)it.next();
+			ElectricObject eobj = h.getElectricObject();
+			if (h.getType() == Highlight.Type.EOBJ)
+            {
+                if (eobj instanceof NodeInst)
+                    cells[count++] = (NodeInst)eobj;
+                else if (eobj instanceof PortInst)
+                   cells[count++] = ((PortInst)eobj).getNodeInst(); 
+            }
+        }
+        if (count == 2)
+            System.out.println("Result " + DRCConnection.checkCellConnectivity(cells[0], cells[1]));*/
+    }
+
+    public static void layerCoverage()
+    {
+        EditWindow wnd = EditWindow.getCurrent();
+        Cell cell = wnd.getCell();
+
+        if (cell == null) return;
+
+        CoverageDialog.showDialog(cell);
+
+        //LayerCoverageJob.layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_SWEEP, cell.getBounds());
     }
 
 	/**

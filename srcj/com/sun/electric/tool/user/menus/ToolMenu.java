@@ -352,7 +352,7 @@ public class ToolMenu {
 		MenuBar.Menu generationSubMenu = new MenuBar.Menu("Generation", 'G');
 		toolMenu.add(generationSubMenu);
 		generationSubMenu.addMenuItem("Coverage Implants Generator", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) {layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, GeometryHandler.ALGO_SWEEP, false);}});
+			new ActionListener() { public void actionPerformed(ActionEvent e) {LayerCoverageJob.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, GeometryHandler.ALGO_SWEEP);}});
 		generationSubMenu.addMenuItem("Pad Frame Generator", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
 		generationSubMenu.addMenuItem("ROM Generator...", null,
@@ -1125,24 +1125,7 @@ public class ToolMenu {
         }
     }
 
-    /**
-     * Method to handle the "List Layer Coverage", "Coverage Implant Generator",  polygons merge
-     * except "List Geometry on Network" commands.
-     */
-    public static void layerCoverageCommand(Job.Type jobType, int func, int mode, boolean test)
-    {
-        Cell curCell = WindowFrame.needCurCell();
-        if (curCell == null) return;
-	    EditWindow wnd = EditWindow.needCurrent();
-	    Highlighter highlighter = null;
-	    if ((wnd != null) && (wnd.getCell() == curCell))
-		    highlighter = wnd.getHighlighter();
-
-        Job job = new LayerCoverageJob(jobType, curCell, func, test, mode, highlighter, null);
-        job.startJob();
-    }
-
-	public static void listToolsCommand()
+    public static void listToolsCommand()
     {
         System.out.println("Tools in Electric:");
         for(Iterator it = Tool.getTools(); it.hasNext(); )

@@ -36,6 +36,7 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
+import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortOriginal;
@@ -1617,13 +1618,6 @@ public class Quick
 				// if they touch, it is acceptable
 				if (pd <= 0) return false;
 
-				/*
-				if (!Main.LOCALDEBUGFLAG && net1 == net2)
-				{
-					return (false);
-				}
-				*/
-
 				// see if the notch is filled
 				boolean newR = lookForCrossPolygons(geom1, poly1, geom2, poly2, layer1, cell, overlap);
 				if (Main.LOCALDEBUGFLAG)
@@ -1661,21 +1655,11 @@ public class Quick
 				}
 				if (newR) return false;
 
-				/*
-				if (net1 == net2)
-				{
-					if (Main.LOCALDEBUGFLAG)
-						System.out.println("Should I return false before?");
-					return (false);
-				}
-				*/
-
 				// look further if on the same net and diagonally separate (1 intervening point)
 				//if (net1 == net2 && intervening == 1) return false;
 				errorType = NOTCHERROR;
 			}
 		}
-//if (debug) System.out.println("   ERROR FOUND");
 
 		String msg = null;
 		if (tinyNodeInst != null)
@@ -3724,18 +3708,18 @@ public class Quick
 
 		/**
 		 * Method to search if child network is connected to visitor network.
-		 */
-		private boolean searchNetworkInParent(Network net, HierarchyEnumerator.CellInfo info)
-		{
-			if (jNet == net) return true;
-			HierarchyEnumerator.CellInfo cinfo = info;
-			while (net != null && cinfo.getParentInst() != null) {
-				net = cinfo.getNetworkInParent(net);
-				if (jNet == net) return true;
-				cinfo = cinfo.getParentInfo();
-			}
-			return false;
-		}
+//		 */
+//		private boolean searchNetworkInParent(Network net, HierarchyEnumerator.CellInfo info)
+//		{
+//			if (jNet == net) return true;
+//			HierarchyEnumerator.CellInfo cinfo = info;
+//			while (net != null && cinfo.getParentInst() != null) {
+//				net = cinfo.getNetworkInParent(net);
+//				if (jNet == net) return true;
+//				cinfo = cinfo.getParentInfo();
+//			}
+//			return false;
+//		}
 
 		/**
 		 */
@@ -3764,7 +3748,7 @@ public class Quick
 						{
 							Export exp = (Export)arcIt.next();
 							Network net = info.getNetlist().getNetwork(exp, 0);
-							found = searchNetworkInParent(net, info);
+                            found = HierarchyEnumerator.searchNetworkInParent(net, info, jNet);
 						}
 					}
 
@@ -3841,9 +3825,9 @@ public class Quick
 					PortInst pi = (PortInst)pIt.next();
 					PortProto pp = pi.getPortProto();
 					boolean isExported = (pp instanceof Export) && ((Export)pp).getParent() == cell;
-					//boolean isExported = cell.findPortProto(pp);
 					thisNet = info.getNetlist().getNetwork(pi);
-					found = searchNetworkInParent(thisNet, info);
+					//found = searchNetworkInParent(thisNet, info);
+                    found = HierarchyEnumerator.searchNetworkInParent(thisNet, info, jNet);
 					if (!isExported) notExported = true;
 				}
 				// Substrate layers are special so we must check node regardless network
@@ -3893,7 +3877,7 @@ public class Quick
                     if (!found && pp != null)
 					{
 						Network net = info.getNetlist().getNetwork(ni, pp, 0);
-						found = searchNetworkInParent(net, info);
+						found = HierarchyEnumerator.searchNetworkInParent(net, info, jNet);
 					}
 					//	if (!forceChecking && !found) continue;
 					if (!found) continue;

@@ -203,7 +203,7 @@ public class EditMenu {
 		MenuBar.Menu editInfoSubMenu = new MenuBar.Menu("Info", 'V');
 		editMenu.add(editInfoSubMenu);
 		editInfoSubMenu.addMenuItem("List Layer Coverage", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_SWEEP, false); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { LayerCoverageJob.layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_SWEEP); } });
 		editInfoSubMenu.addMenuItem("Show Undo List", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); } });
 		editInfoSubMenu.addMenuItem("Describe this Technology", null,
