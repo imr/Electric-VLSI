@@ -48,7 +48,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ErrorLog;
+import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;

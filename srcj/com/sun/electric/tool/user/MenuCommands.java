@@ -2297,7 +2297,7 @@ public final class MenuCommands
 	 */
 	public static void showNextErrorCommand()
 	{
-		String msg = ErrorLog.reportNextError();
+		String msg = ErrorLogger.reportNextError();
 		System.out.println(msg);
 	}
 
@@ -2307,7 +2307,7 @@ public final class MenuCommands
 	 */
 	public static void showPrevErrorCommand()
 	{
-		String msg = ErrorLog.reportPrevError();
+		String msg = ErrorLogger.reportPrevError();
 		System.out.println(msg);
 	}
 

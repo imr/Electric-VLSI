@@ -616,18 +616,20 @@ public class Poly implements Shape
 			style == Type.OPENEDT3 || style == Type.VECTORS)
 		{
 			// first look for trivial inclusion by being a vertex
-			for(int i=0; i<points.length; i++)
-				if (pt.equals(points[i])) return true;
+			//for(int i=0; i<points.length; i++)
+			//	if (pt.equals(points[i])) return true;
+            for(int i=0; i<points.length; i++)
+                if (EMath.pointsClose(pt, points[i])) return true;
 
 			// see if the point is on one of the edges
 			if (style == Type.VECTORS)
 			{
 				for(int i=0; i<points.length; i += 2)
-					if (EMath.isOnLine(points[i], points[i+1], pt)) return true;
+					if (EMath.isCloseToLine(points[i], points[i+1], pt)) return true;
 			} else
 			{
 				for(int i=1; i<points.length; i++)
-					if (EMath.isOnLine(points[i-1], points[i], pt)) return true;
+					if (EMath.isCloseToLine(points[i-1], points[i], pt)) return true;
 			}
 			return false;
 		}

@@ -46,7 +46,7 @@ import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.ErrorLog;
+import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.EditWindow;
 
@@ -200,6 +200,7 @@ public class Quick
 	/** the other Geometric in "tiny" errors. */				private Geometric tinyGeometric;
 	/** for tracking the time of good DRC. */					private HashMap goodDRCDate = new HashMap();
 	/** for tracking the time of good DRC. */					private boolean haveGoodDRCDate;
+    /** for logging errors */                                   private ErrorLogger errorLogger;
 
 	/* for figuring out which layers are valid for DRC */
 	private Technology layersValidTech = null;
@@ -355,7 +356,7 @@ public class Quick
 
 		// now do the DRC
 		haveGoodDRCDate = false;
-		ErrorLog.initLogging("DRC");
+		errorLogger = ErrorLogger.newInstance("DRC");
 		if (count == 0)
 		{
 
@@ -365,14 +366,14 @@ public class Quick
 //			if (!dr_quickparalleldrc) endtraversehierarchy();
 
 			// sort the errors by layer
-			ErrorLog.sortErrors();
+			errorLogger.sortErrors();
 		} else
 		{
 			// check only these "count" instances
 			checkTheseInstances(cell, count, nodesToCheck, validity);
 		}
 
-		ErrorLog.termLogging(true);
+		errorLogger.termLogging(true);
 
 		if (haveGoodDRCDate)
 		{
@@ -471,7 +472,7 @@ public class Quick
 		System.out.println("Checking cell " + cell.describe());
 
 		// remember how many errors there are on entry
-		int errCount = ErrorLog.numErrors();
+		int errCount = errorLogger.numErrors();
 
 		// now look at every primitive node and arc here
 		totalErrorsFound = 0;
@@ -511,7 +512,7 @@ public class Quick
 		}
 
 		// if there were no errors, remember that
-		int localErrors = ErrorLog.numErrors() - errCount;
+		int localErrors = errorLogger.numErrors() - errCount;
 		if (localErrors == 0)
 		{
 			goodDRCDate.put(cell, new Date());
@@ -3019,7 +3020,7 @@ if (debug) System.out.println("   Arc2 crop reduces it to "+trueBox1.getMinX()+"
 		}
 		if (rule != null && rule.length() > 0) errorMessage += " [rule " + rule + "]";
 
-		ErrorLog err = ErrorLog.logError(errorMessage, cell, sortLayer);
+		ErrorLogger.ErrorLog err = errorLogger.logError(errorMessage, cell, sortLayer);
 		boolean showGeom = true;
 		if (poly1 != null) { showGeom = false;   err.addPoly(poly1, true); }
 		if (poly2 != null) { showGeom = false;   err.addPoly(poly2, true); }

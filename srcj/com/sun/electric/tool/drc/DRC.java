@@ -37,7 +37,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.ErrorLog;
+import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.util.Iterator;
@@ -240,7 +240,6 @@ public class DRC extends Tool
 	}
 
 	/** overrides of rules for each technology. */		private static HashMap prefDRCOverride = new HashMap();
-
 	/**
 	 * The constructor sets up the DRC tool.
 	 */
@@ -311,7 +310,7 @@ public class DRC extends Tool
 			long startTime = System.currentTimeMillis();
 			Quick.checkDesignRules(cell, 0, null, null, justArea);
 			long endTime = System.currentTimeMillis();
-			int errorcount = ErrorLog.numErrors();
+			int errorcount = ErrorLogger.getCurrent().numErrors();
 			System.out.println(errorcount + " errors found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
 			return true;
 		}
@@ -335,7 +334,7 @@ public class DRC extends Tool
 			long startTime = System.currentTimeMillis();
 			Schematic.doCheck(cell);
 			long endTime = System.currentTimeMillis();
-			int errorcount = ErrorLog.numErrors();
+			int errorcount = ErrorLogger.getCurrent().numErrors();
 			System.out.println(errorcount + " errors found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
 			return true;
 		}

@@ -36,7 +36,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ErrorLog;
+import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -70,6 +70,8 @@ public class CIF extends Geometry
 	/** cell to cell number map */						private HashMap cellNumbers;
 	/** scale factor from internal units. */			private double scaleFactor;
 
+    /** for storing generated errors */                 private ErrorLogger errorLogger;
+
 	/**
 	 * Main entry point for CIF output.
 	 * @param cell the top-level cell to write.
@@ -77,16 +79,15 @@ public class CIF extends Geometry
 	 */
 	public static void writeCIFFile(Cell cell, VarContext context, String filePath)
 	{
-		ErrorLog.initLogging("CIF resolution");
 		CIF out = new CIF();
 		if (out.openTextOutputStream(filePath)) return;
 		CIFVisitor visitor = out.makeCIFVisitor(getMaxHierDepth(cell));
 		if (out.writeCell(cell, context, visitor)) return;
 		if (out.closeTextOutputStream()) return;
 		System.out.println(filePath + " written");
-		if (ErrorLog.numErrors() != 0)
-			System.out.println(ErrorLog.numErrors() + " CIF RESOLUTION ERRORS FOUND");
-		ErrorLog.termLogging(true);
+		if (out.errorLogger.numErrors() != 0)
+			System.out.println(out.errorLogger.numErrors() + " CIF RESOLUTION ERRORS FOUND");
+		out.errorLogger.termLogging(true);
 	}
 
 	/**
@@ -103,6 +104,8 @@ public class CIF extends Geometry
 		minAllowedResolution = 0;
 		if (isCIFOutCheckResolution())
 			minAllowedResolution = getCIFOutResolution();
+
+        errorLogger = ErrorLogger.newInstance("CIF resolution");
 	}
 
 	protected void start()
@@ -347,13 +350,13 @@ public class CIF extends Geometry
 		{
 			// there was an error, for now print error
 			Layer layer = poly.getLayer();
-			ErrorLog err = null;
+			ErrorLogger.ErrorLog err = null;
 			if (layer == null)
 			{
-				err = ErrorLog.logError("Unknown layer", cell, layer.getIndex());
+				err = errorLogger.logError("Unknown layer", cell, layer.getIndex());
 			} else
 			{
-				err = ErrorLog.logError("Resolution < " + minAllowedResolution + " on layer " + layer.getName(), cell, layer.getIndex());
+				err = errorLogger.logError("Resolution < " + minAllowedResolution + " on layer " + layer.getName(), cell, layer.getIndex());
 			}
 			err.addPoly(poly, false);
 		}

@@ -33,7 +33,7 @@ import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Simulate;
-import com.sun.electric.tool.user.ErrorLog;
+import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.dialogs.NewCell;
@@ -393,11 +393,16 @@ public class ExplorerTree extends JTree
 			}
 			return groupName;
 		}
-		if (nodeInfo instanceof ErrorLog)
+		if (nodeInfo instanceof ErrorLogger)
 		{
-			ErrorLog el = (ErrorLog)nodeInfo;
-			return el.describeError();
+			ErrorLogger el = (ErrorLogger)nodeInfo;
+			return el.describe();
 		}
+        if (nodeInfo instanceof ErrorLogger.ErrorLog)
+        {
+            ErrorLogger.ErrorLog el = (ErrorLogger.ErrorLog)nodeInfo;
+            return el.describeError();
+        }
 		if (nodeInfo instanceof Simulate.SimSignal)
 		{
 			Simulate.SimSignal sig = (Simulate.SimSignal)nodeInfo;
@@ -585,10 +590,10 @@ public class ExplorerTree extends JTree
 					return;
 				}
 
-				if (currentSelectedObject instanceof ErrorLog)
+				if (currentSelectedObject instanceof ErrorLogger.ErrorLog)
 				{
-					ErrorLog el = (ErrorLog)currentSelectedObject;
-					String msg = el.reportError();
+					ErrorLogger.ErrorLog el = (ErrorLogger.ErrorLog)currentSelectedObject;
+					String msg = el.reportError(true, null);
 					System.out.println(msg);
 					return;
 				}

@@ -521,7 +521,35 @@ public class EMath
 		}
 		return false;
 	}
-	
+
+    /**
+     * Method to compare two double-precision coordinates within an approximate epsilon.
+     * @param a the first point.
+     * @param b the second point.
+     * @return true if the points are approximately equal (to a few decimal places).
+     */
+    public static boolean pointsClose(Point2D a, Point2D b)
+    {
+        if (doublesClose(a.getX(), b.getX()) &&
+                doublesClose(a.getY(), b.getY())) return true;
+        return false;
+    }
+
+
+    /**
+     * Like method 'isOnLine', except allows for double-precision error
+     * with an epsilon.
+     * @param start start of the line segment
+     * @param end end of the line segment
+     * @param pt a point to check
+     * @return true if basically on the line, false otherwise.
+     */
+    public static boolean isCloseToLine(Point2D start, Point2D end, Point2D pt)
+    {
+        Point2D closestPointOnSegment = closestPointToSegment(start, end, pt);
+        return pointsClose(closestPointOnSegment, pt);
+    }
+
 	/**
 	 * Method to round floating-point values to sensible quantities.
 	 * Rounds these numbers to the nearest thousandth.

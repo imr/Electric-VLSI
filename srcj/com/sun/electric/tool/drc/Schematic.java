@@ -46,7 +46,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.tool.user.ErrorLog;
+import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -56,15 +56,16 @@ import java.util.Iterator;
 public class Schematic
 {
 	private static FlagSet cellsCheckedBit;
+    private static ErrorLogger errorLogger;
 
 	public static void doCheck(Cell cell)
 	{
 		cellsCheckedBit = NodeProto.getFlagSet(1);
 		cellsCheckedBit.clearOnAllCells();
 
-		ErrorLog.initLogging("Schematic DRC");
+		errorLogger = ErrorLogger.newInstance("Schematic DRC");
 		checkSchematicCellRecursively(cell);
-		ErrorLog.termLogging(true);
+		errorLogger.termLogging(true);
 		cellsCheckedBit.freeFlagSet();
 	}
 
@@ -101,8 +102,8 @@ public class Schematic
 
 	private static void checkSchematicCell(Cell cell, boolean justThis)
 	{
-		if (justThis) ErrorLog.initLogging("Schematic DRC");
-		int initialErrorCount = ErrorLog.numErrors();
+		if (justThis) errorLogger = ErrorLogger.newInstance("Schematic DRC");
+		int initialErrorCount = errorLogger.numErrors();
 		Netlist netlist = Network.getUserNetlist(cell);
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
@@ -116,13 +117,13 @@ public class Schematic
 			ArcInst ai = (ArcInst)it.next();
 			schematicDoCheck(netlist, ai);
 		}
-		int errorCount = ErrorLog.numErrors();
+		int errorCount = errorLogger.numErrors();
 		int thisErrors = errorCount - initialErrorCount;
 		String indent = "   ";
 		if (justThis) indent = "";
 		if (thisErrors == 0) System.out.println(indent + "No errors found"); else
 			System.out.println(indent + thisErrors + " errors found");
-		if (justThis) ErrorLog.termLogging(true);
+		if (justThis) errorLogger.termLogging(true);
 	}
 
 	/*
@@ -151,7 +152,7 @@ public class Schematic
 					}
 					if (!found)
 					{
-						ErrorLog err = ErrorLog.logError("Bus pin does not connect to any bus arcs", cell, 0);
+						ErrorLogger.ErrorLog err = errorLogger.logError("Bus pin does not connect to any bus arcs", cell, 0);
 						err.addGeom(geom, true, 0, null);
 						return;
 					}
@@ -166,7 +167,7 @@ public class Schematic
 				}
 				if (i > 1)
 				{
-					ErrorLog err = ErrorLog.logError("Wire arcs cannot connect through a bus pin", cell, 0);
+					ErrorLogger.ErrorLog err = errorLogger.logError("Wire arcs cannot connect through a bus pin", cell, 0);
 					err.addGeom(geom, true, 0, null);
 					for(Iterator it = ni.getConnections(); it.hasNext(); )
 					{
@@ -193,7 +194,7 @@ public class Schematic
 					}
 					if (!found)
 					{
-						ErrorLog err = ErrorLog.logError("Stranded pin (not connected or exported)", cell, 0);
+						ErrorLogger.ErrorLog err = errorLogger.logError("Stranded pin (not connected or exported)", cell, 0);
 						err.addGeom(geom, true, 0, null);
 						return;
 					}
@@ -201,7 +202,7 @@ public class Schematic
 
 				if (ni.isInlinePin())
 				{
-					ErrorLog err = ErrorLog.logError("Unnecessary pin (between 2 arcs)", cell, 0);
+					ErrorLogger.ErrorLog err = errorLogger.logError("Unnecessary pin (between 2 arcs)", cell, 0);
 					err.addGeom(geom, true, 0, null);
 					return;
 				}
@@ -209,7 +210,7 @@ public class Schematic
 				Point2D pinLoc = ni.invisiblePinWithOffsetText(false);
 				if (pinLoc != null)
 				{
-					ErrorLog err = ErrorLog.logError("Invisible pin has text in different location", cell, 0);
+					ErrorLogger.ErrorLog err = errorLogger.logError("Invisible pin has text in different location", cell, 0);
 					err.addGeom(geom, true, 0, null);
 					err.addLine(ni.getAnchorCenterX(), ni.getAnchorCenterY(), pinLoc.getX(), pinLoc.getY());
 					return;
@@ -242,7 +243,7 @@ public class Schematic
 					{
 						// this node's parameter is no longer on the cell: delete from instance
 						String trueVarName = var.getTrueName();
-						ErrorLog err = ErrorLog.logError("Parameter '" + trueVarName + "' on node " + ni.describe() +
+						ErrorLogger.ErrorLog err = errorLogger.logError("Parameter '" + trueVarName + "' on node " + ni.describe() +
 //							" is invalid and has been deleted", cell, 0);
 							" is invalid", cell, 0);
 						err.addGeom(geom, true, 0, null);
@@ -256,7 +257,7 @@ public class Schematic
 						if (td.getUnit() != foundTD.getUnit())
 						{
 							String trueVarName = var.getTrueName();
-							ErrorLog err = ErrorLog.logError("Parameter '" + trueVarName + "' on node " + ni.describe() +
+							ErrorLogger.ErrorLog err = errorLogger.logError("Parameter '" + trueVarName + "' on node " + ni.describe() +
 								" had incorrect units (now fixed)", cell, 0);
 							err.addGeom(geom, true, 0, null);
 							td.setUnit(foundTD.getUnit());
@@ -268,7 +269,7 @@ public class Schematic
 							if (var.isDisplay())
 							{
 								String trueVarName = var.getTrueName();
-								ErrorLog err = ErrorLog.logError("Parameter '" + trueVarName + "' on node " + ni.describe() +
+								ErrorLogger.ErrorLog err = errorLogger.logError("Parameter '" + trueVarName + "' on node " + ni.describe() +
 									" should not be visible (now fixed)", cell, 0);
 								err.addGeom(geom, true, 0, null);
 								var.clearDisplay();
@@ -278,7 +279,7 @@ public class Schematic
 							if (!var.isDisplay())
 							{
 								String trueVarName = var.getTrueName();
-								ErrorLog err = ErrorLog.logError("Parameter '" + trueVarName + "' on node " + ni.describe() +
+								ErrorLogger.ErrorLog err = errorLogger.logError("Parameter '" + trueVarName + "' on node " + ni.describe() +
 									" should be visible (now fixed)", cell, 0);
 								err.addGeom(geom, true, 0, null);
 								var.setDisplay();
@@ -322,7 +323,7 @@ public class Schematic
 					if (ni.getNumConnections() != 1) continue;
 
 					// the arc dangles
-					ErrorLog err = ErrorLog.logError("Arc dangles", cell, 0);
+					ErrorLogger.ErrorLog err = errorLogger.logError("Arc dangles", cell, 0);
 					err.addGeom(geom, true, 0, null);
 					return;
 				}
@@ -344,7 +345,7 @@ public class Schematic
 				PortProto pp = pi.getPortProto().getEquivalent();
 				if (pp == null || pp == pi.getPortProto())
 				{
-					ErrorLog err = ErrorLog.logError("Arc " + ai.describe() + " connects to port " +
+					ErrorLogger.ErrorLog err = errorLogger.logError("Arc " + ai.describe() + " connects to port " +
 						pi.getPortProto().getName() + " of node " + ni.describe() +
 						", but there is no equivalent port in cell " + np.describe(), cell, 0);
 					err.addGeom(geom, true, 0, null);
@@ -357,7 +358,7 @@ public class Schematic
 				if (nodeSize <= 0) nodeSize = 1;
 				if (signals != portWidth && signals != portWidth*nodeSize)
 				{
-					ErrorLog err = ErrorLog.logError("Arc " + ai.describe() + " (" + signals + " wide) connects to port " +
+					ErrorLogger.ErrorLog err = errorLogger.logError("Arc " + ai.describe() + " (" + signals + " wide) connects to port " +
 						pp.getName() + " of node " + ni.describe() +
 						" (" + portWidth + " wide)", cell, 0);
 					err.addGeom(geom, true, 0, null);
@@ -659,7 +660,7 @@ public class Schematic
 		}
 
 		// report the error
-		ErrorLog err = ErrorLog.logError("Objects touch", geom.getParent(), 0);
+		ErrorLogger.ErrorLog err = errorLogger.logError("Objects touch", geom.getParent(), 0);
 		err.addGeom(geom, true, 0, null);
 		err.addGeom(oGeom, true, 0, null);
 		return true;
@@ -719,7 +720,7 @@ public class Schematic
 			oHigh = Math.max(oFx, oTx);
 			if (lowX >= oHigh || highX <= oLow) return false;
 		}
-		ErrorLog err = ErrorLog.logError("Arcs overlap", ai.getParent(), 0);
+		ErrorLogger.ErrorLog err = errorLogger.logError("Arcs overlap", ai.getParent(), 0);
 		err.addGeom(ai, true, 0, null);
 		err.addGeom(oAi, true, 0, null);
 

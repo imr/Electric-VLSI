@@ -55,7 +55,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.user.ErrorLog;
+import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.io.ELIBConstants;
 
 import java.awt.geom.Point2D;
@@ -1605,7 +1605,7 @@ public class ELIB extends LibraryFiles
 
         // if this was a dummy cell, log instance as an error so the user can find easily
         if (np.getVar(IO_DUMMY_OBJECT) != null) {
-            ErrorLog error = ErrorLog.logError("Instance of dummy cell "+np.getName(), cell, 1);
+            ErrorLogger.ErrorLog error = Input.errorLogger.logError("Instance of dummy cell "+np.getName(), cell, 1);
             error.addGeom(ni, true, 0, null);
         }
 
@@ -1667,7 +1667,7 @@ public class ELIB extends LibraryFiles
                             String msg = "Cell "+cell.getName()+": Port '"+portname+"' on '"+nodeName+"' not found, connecting to port '"+
                                     pi.getPortProto().getName()+"' at the same location";
                             System.out.println("ERROR: "+msg);
-                            ErrorLog error = ErrorLog.logError(msg, cell, 0);
+                            ErrorLogger.ErrorLog error = Input.errorLogger.logError(msg, cell, 0);
                             error.addGeom(ai, true, 0, null);
                             return pi;
                         }
@@ -1699,7 +1699,7 @@ public class ELIB extends LibraryFiles
         // create pin as new end point of arc
         String msg = "Cell "+cell.getName()+": Port '"+portname+"' on '"+nodeName+"' "+whatHappenedToPort+": leaving arc disconnected";
         System.out.println("ERROR: "+msg);
-        ErrorLog error = ErrorLog.logError(msg, cell, 0);
+        ErrorLogger.ErrorLog error = Input.errorLogger.logError(msg, cell, 0);
         error.addGeom(ai, true, 0, null);
 
         PrimitiveNode pn = ((PrimitiveArc)ap).findOverridablePinProto();

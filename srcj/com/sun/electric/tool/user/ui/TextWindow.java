@@ -34,7 +34,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ErrorLog;
+import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.dialogs.FindText;
 import com.sun.electric.tool.user.dialogs.OpenFile;
@@ -147,7 +147,7 @@ public class TextWindow
 	{
 		wf.libraryExplorerNode = ExplorerTree.makeLibraryTree();
 		wf.jobExplorerNode = Job.getExplorerTree();
-		wf.errorExplorerNode = ErrorLog.getExplorerTree();
+		wf.errorExplorerNode = ErrorLogger.getExplorerTree();
 		wf.signalExplorerNode = null;
 		rootNode.add(wf.libraryExplorerNode);
 		rootNode.add(wf.jobExplorerNode);

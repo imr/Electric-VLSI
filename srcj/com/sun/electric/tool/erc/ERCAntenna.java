@@ -43,7 +43,8 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.ErrorLog;
+import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.ErrorLogger.ErrorLog;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Dimension;
@@ -111,6 +112,8 @@ public class ERCAntenna
 	/** Map from Layers to ArcProtos. */					private HashMap    layerToArcProto;
 	/** Bit for marking ArcInsts and NodeInsts. */			private FlagSet    fsGeom;
 	/** Bit for marking Cells. */							private FlagSet    fsCell;
+
+    /** for storing errors */                               private ErrorLogger errorLogger;
 
 	/************************ CONTROL ***********************/
 
@@ -181,7 +184,7 @@ public class ERCAntenna
 
 		// initialize error logging
 		long startTime = System.currentTimeMillis();
-		ErrorLog.initLogging("ERC Antella Rules Check");
+		ErrorLogger.newInstance("ERC Antella Rules Check");
 
 		// now check each layer of the cell
 		int lasterrorcount = 0;
@@ -196,7 +199,7 @@ public class ERCAntenna
 
 			// do the check for this level
 			checkThisCell(topCell, lay);
-			int i = ErrorLog.numErrors();
+			int i = errorLogger.numErrors();
 			if (i != lasterrorcount)
 			{
 				System.out.println("  Found " + (i - lasterrorcount) + " errors");
@@ -205,7 +208,7 @@ public class ERCAntenna
 		}
 
 		long endTime = System.currentTimeMillis();
-		int errorCount = ErrorLog.numErrors();
+		int errorCount = errorLogger.numErrors();
 		if (errorCount == 0)
 		{
 			System.out.println("No antenna errors found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
@@ -213,7 +216,7 @@ public class ERCAntenna
 		{
 			System.out.println("FOUND " + errorCount + " ANTENNA ERRORS (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
 		}
-		ErrorLog.termLogging(true);
+		errorLogger.termLogging(true);
 		fsGeom.freeFlagSet();
 		fsCell.freeFlagSet();
 	}
@@ -351,7 +354,7 @@ public class ERCAntenna
 							// error
 							String errMsg = "layer " + lay.getName() + " has perimeter-area " + totalRegionPerimeterArea +
 								"; gates have area " + totalGateArea + ", ratio is " + ratio + " but limit is " + neededratio;
-							ErrorLog err = ErrorLog.logError(errMsg, cell, 0);
+							ErrorLog err = errorLogger.logError(errMsg, cell, 0);
 							for(Iterator lIt = vmerge.getLayersUsed(); lIt.hasNext(); )
 							{
 								Layer oLay = (Layer)lIt.next();

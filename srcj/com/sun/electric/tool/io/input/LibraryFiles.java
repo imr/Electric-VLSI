@@ -38,7 +38,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.ErrorLog;
+import com.sun.electric.tool.user.ErrorLogger;
 
 import java.io.InputStream;
 import java.io.File;
@@ -290,8 +290,8 @@ public class LibraryFiles extends Input
             }
 
             if (elib == null) {
-                System.out.println("Error: cannot find referenced library " + libFile.getPath() +
-                        ", creating new "+libName+" Library instead");
+                System.out.println("Error: cannot find referenced library " + libFile.getPath());
+                System.out.println("...Creating new "+libName+" Library instead");
                 elib = Library.newInstance(libName, null);
             }
 //			if (failed) elib->userbits |= UNWANTEDLIB; else

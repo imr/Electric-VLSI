@@ -32,6 +32,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Simulate;
+import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.ErrorLog;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.User;
@@ -1527,7 +1528,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	{
 		wf.libraryExplorerNode = null;
 		wf.jobExplorerNode = Job.getExplorerTree();
-		wf.errorExplorerNode = ErrorLog.getExplorerTree();
+		wf.errorExplorerNode = ErrorLogger.getExplorerTree();
 		wf.signalExplorerNode = getSignalsForExplorer();
 		rootNode.add(wf.signalExplorerNode);
 		rootNode.add(wf.jobExplorerNode);

@@ -38,7 +38,7 @@ import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.dialogs.Progress;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.MenuCommands;
-import com.sun.electric.tool.user.ErrorLog;
+import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.WindowContent;
 
@@ -63,6 +63,8 @@ public class Input extends IOTool
 
 	/** key of Varible holding true library of fake cell. */		public static final Variable.Key IO_TRUE_LIBRARY = ElectricObject.newKey("IO_true_library");
 	/** key of Variable to denote a dummy cell or library */        public static final Variable.Key IO_DUMMY_OBJECT = ElectricObject.newKey("IO_dummy_object");
+
+    /** Log errors. Static because shared between many readers */   protected static ErrorLogger errorLogger;
 
 	/** Name of the file being input. */					protected String filePath;
 	/** The Library being input. */							protected Library lib;
@@ -99,11 +101,11 @@ public class Input extends IOTool
 	 * @param type the type of library file (ELIB, CIF, GDS, etc.)
 	 * @return the read Library, or null if an error occurred.
 	 */
-	public static Library readLibrary(URL fileURL, OpenFile.Type type)
+	public static synchronized Library readLibrary(URL fileURL, OpenFile.Type type)
 	{
 		if (fileURL == null) return null;
 		long startTime = System.currentTimeMillis();
-        ErrorLog.initLogging("Library Read");
+        errorLogger = ErrorLogger.newInstance("Library Read");
 
 		LibDirs.readLibDirs();
 		//Undo.noUndoAllowed();
@@ -138,7 +140,7 @@ public class Input extends IOTool
 		}
 		Pref.reconcileMeaningVariables();
 
-        ErrorLog.termLogging(true);
+        errorLogger.termLogging(true);
 
 		return lib;
 	}

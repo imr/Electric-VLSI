@@ -57,7 +57,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Simulate;
-import com.sun.electric.tool.user.ErrorLog;
+import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.MenuCommands;
 //import com.sun.electric.tool.user.ui.j3d.View3DWindow;
 import com.sun.electric.database.variable.VarContext;
@@ -402,7 +402,7 @@ public class WindowFrame
 		if (wantToRedoJobTree)
 			jobExplorerNode = Job.getExplorerTree();
 		if (wantToRedoErrorTree)
-			errorExplorerNode = ErrorLog.getExplorerTree();
+			errorExplorerNode = ErrorLogger.getExplorerTree();
 
 		// rebuild the tree
 		rootNode.removeAllChildren();
