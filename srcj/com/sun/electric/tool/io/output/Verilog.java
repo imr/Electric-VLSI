@@ -568,7 +568,7 @@ public class Verilog extends Topology
 						{
 							// single signal
 							infstr.append("." + cas.getName() + "(");
-							JNetwork net = netList.getNetwork(no, pp, 0);
+							JNetwork net = netList.getNetwork(no, pp, cas.getExportIndex());
 							CellSignal cs = cni.getCellSignal(net);
 							infstr.append(cs.getName());
 							infstr.append(")");
@@ -1045,7 +1045,7 @@ public class Verilog extends Topology
 	protected Netlist getNetlistForCell(Cell cell)
 	{
 		// get network information about this cell
-		boolean shortResistors = false;
+		boolean shortResistors = true;
 		Netlist netList = cell.getNetlist(shortResistors);
 		return netList;
 	}

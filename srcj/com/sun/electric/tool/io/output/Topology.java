@@ -222,6 +222,7 @@ public abstract class Topology extends Output
 		/** JNetwork for this signal. */			private JNetwork net;
 		/** CellAggregate that this is part of. */	private CellAggregateSignal aggregateSignal;
 		/** export that this is part of. */			private Export pp;
+        /** if export is bussed, index of signal */ private int ppIndex;
 		/** true if part of a descending bus */		private boolean descending;
 		/** true if a power signal */				private boolean power;
 		/** true if a ground signal */				private boolean ground;
@@ -230,6 +231,7 @@ public abstract class Topology extends Output
 		protected String getName() { return name; }
 		protected JNetwork getNetwork() { return net; }
 		protected Export getExport() { return pp; }
+        protected int getExportIndex() { return ppIndex; }
 		protected CellAggregateSignal getAggregateSignal() { return aggregateSignal; }
 		protected boolean isDescending() { return descending; }
 		protected boolean isGlobal() { return globalSignal != null; }
@@ -242,6 +244,7 @@ public abstract class Topology extends Output
 	{
 		private String name;
 		private Export pp;
+        private int ppIndex;
 		private int low;
 		private int high;
 		private boolean supply;
@@ -253,6 +256,7 @@ public abstract class Topology extends Output
 		protected boolean isDescending() { return descending; }
 		protected boolean isSupply() { return supply; }
 		protected Export getExport() { return pp; }
+        protected int getExportIndex() { return ppIndex; }
 		protected int getLowIndex() { return low; }
 		protected int getHighIndex() { return high; }
 		protected int getFlags() { return flags; }
@@ -380,6 +384,7 @@ public abstract class Topology extends Output
 				JNetwork net = cni.netList.getNetwork(pp, i);
 				CellSignal cs = (CellSignal)cni.cellSignals.get(net);
 				cs.pp = pp;
+                cs.ppIndex = i;
 			}
 
 			if (portWidth <= 1) continue;
@@ -568,6 +573,7 @@ public abstract class Topology extends Output
 			CellAggregateSignal cas = new CellAggregateSignal();
 			cas.name = unIndexedName(cs.name);
 			cas.pp = cs.pp;
+            cas.ppIndex = cs.ppIndex;
 			cas.supply = cs.power | cs.ground;
 			cas.descending = cs.descending;
 			cas.flags = 0;
