@@ -1,6 +1,9 @@
 			Java Electric change log
 
 
+************************* Version 8.01h: *********************************
+
+
 ************************* Version 8.01g: *********************************
 
 FIX (8/17/04, RK) exportsConnectedByParent works on "implicit" expots created for global signals
