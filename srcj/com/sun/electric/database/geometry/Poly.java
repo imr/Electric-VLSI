@@ -297,7 +297,11 @@ public class Poly implements Shape
 	{
 		double halfWidth = width / 2;
 		double halfHeight = height / 2;
-		initialize(makePoints(cX-halfWidth, cX+halfWidth, cY-halfHeight, cY+halfHeight));
+		initialize(makePoints(cX-halfWidth, cX+halfWidth,cY-halfHeight , cY+halfHeight));
+		/*
+		initialize(makePoints(DBMath.round(cX-halfWidth), DBMath.round(cX+halfWidth),
+		        DBMath.round(cY-halfHeight), DBMath.round(cY+halfHeight)));
+		        */
 	}
 
 	/**
@@ -1719,7 +1723,7 @@ public class Poly implements Shape
 				if (y > hY) hY = y;
 			}
 			//bounds.setRect(lX, lY, hX-lX, hY-lY);
-			bounds.setRect(lX, lY, DBMath.round(hX-lX), DBMath.round(hY-lY));
+			bounds.setRect(DBMath.round(lX), DBMath.round(lY), DBMath.round(hX-lX), DBMath.round(hY-lY));
 		}
 	}
 

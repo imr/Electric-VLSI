@@ -677,6 +677,12 @@ public class Quick
 				if (onlyFirstError) return true;
 				errorsFound = true;
 			}
+			ret = checkMinArea(ai, layer, poly, tech);
+			if (ret)
+			{
+				if (onlyFirstError) return true;
+				errorsFound = true;
+			}
 			if (tech == layersValidTech && !layersValid[layerNum])
 			{
 				reportError(BADLAYERERROR, tech, null, ai.getParent(), 0, 0, null,
@@ -968,7 +974,7 @@ public class Quick
 		rBound.setRect(bounds);
 		DBMath.transformRect(rBound, topTrans);
 		Netlist netlist = getCheckProto(cell).netlist;
-		int count = 0;
+		//int count = 0;
 		for(Iterator it = cell.searchIterator(bounds); it.hasNext(); )
 		{
 			Geometric nGeom = (Geometric)it.next();
@@ -1340,8 +1346,18 @@ public class Quick
 			{
 				pdx = Math.max(lX2-hX1, lX1-hX2);
 				pdy = Math.max(lY2-hY1, lY1-hY2);
-				if (pdx == 0 && pdy == 0) pd = 1; else
+
+				/*
+				if ( (pdx == 0) != (DBMath.doublesEqual(pdx, 0)))
+				  System.out.println("ErrorX?");
+				if ( (pdy == 0) != (DBMath.doublesEqual(pdy, 0)))
+				  System.out.println("ErrorY?");
+				  */
+				if (pdx == 0 && pdy == 0)
+					pd = 1;
+				else
 				{
+					// They are overlapping if pdx < 0 && pdy < 0
 					pd = DBMath.round(Math.max(pdx, pdy));
 
 					if (pd < dist && pd > 0)
@@ -1375,7 +1391,7 @@ public class Quick
 
 		// see if the design rule is met
 		if (pd >= dist)
-		{ 
+		{
 			return false;
 		}
 		int errorType = SPACINGERROR;

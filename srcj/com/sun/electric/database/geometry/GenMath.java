@@ -504,8 +504,7 @@ public class GenMath
      */
     public static boolean doublesEqual(double a, double b)
     {
-        if (Math.abs(a-b) <= DBL_EPSILON) return true;
-        return false;
+        return (Math.abs(a-b) <= DBL_EPSILON);
     }
 
     /**

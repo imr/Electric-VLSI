@@ -1108,8 +1108,8 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 				!DBMath.doublesEqual(currentYSize, initYSize) ||
 				currentRotation != dialog.initialRotation || changed)
 			{
-				ni.modifyInstance(currentXPos - dialog.initialXPos, currentYPos - dialog.initialYPos,
-					currentXSize - initXSize, currentYSize - initYSize,
+				ni.modifyInstance(DBMath.round(currentXPos - dialog.initialXPos), DBMath.round(currentYPos - dialog.initialYPos),
+					DBMath.round(currentXSize - initXSize), DBMath.round(currentYSize - initYSize),
 					currentRotation - dialog.initialRotation);
 				dialog.initialXPos = currentXPos;
 				dialog.initialYPos = currentYPos;

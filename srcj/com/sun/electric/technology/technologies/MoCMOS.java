@@ -3537,7 +3537,7 @@ public class MoCMOS extends Technology
 	/**
 	 * Method to set the surround distance of layer "layer" from the via in node "nodename" to "surround".
 	 */
-	private void setLayerSurroundVia(PrimitiveNode nty, Layer layer, double surround)
+	private void setLayerSurroundViaOld(PrimitiveNode nty, Layer layer, double surround)
 	{
 		// find the via size
 		double [] specialValues = nty.getSpecialValues();

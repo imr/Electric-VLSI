@@ -2951,4 +2951,30 @@ public class Technology extends ElectricObject
 		rules.minNodeSize[index*2] = new Double(wid);
 		rules.minNodeSize[index*2+1] = new Double(hei);
 	}
+
+	/**
+	 * Method to set the surround distance of layer "layer" from the via in node "nodename" to "surround".
+	 */
+	protected void setLayerSurroundVia(PrimitiveNode nty, Layer layer, double surround)
+	{
+		// find the via size
+		double [] specialValues = nty.getSpecialValues();
+		double viasize = specialValues[0];
+		double layersize = viasize + surround*2;
+		double indent = (nty.getDefWidth() - layersize) / 2;
+
+		Technology.NodeLayer oneLayer = nty.findNodeLayer(layer);
+		if (oneLayer != null)
+		{
+			TechPoint [] points = oneLayer.getPoints();
+			EdgeH left = points[0].getX();
+			EdgeH right = points[1].getX();
+			EdgeV bottom = points[0].getY();
+			EdgeV top = points[1].getY();
+			left.setAdder(indent);
+			right.setAdder(-indent);
+			top.setAdder(-indent);
+			bottom.setAdder(indent);
+		}
+	}
 }
