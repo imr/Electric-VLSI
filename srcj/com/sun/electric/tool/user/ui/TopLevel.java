@@ -196,7 +196,9 @@ public class TopLevel extends JFrame
 		// setup the size of the screen
 		Toolkit tk = Toolkit.getDefaultToolkit();
 		scrnSize = tk.getScreenSize();
-		doubleClickDelay = Integer.parseInt(tk.getDesktopProperty("awt.multiClickInterval").toString());
+        Object click = tk.getDesktopProperty("awt.multiClickInterval");
+        if (click != null)
+		    doubleClickDelay = Integer.parseInt(click.toString());
 
 		// a more advanced way of determining the size of a screen
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
