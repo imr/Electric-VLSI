@@ -149,7 +149,7 @@ public class FileMenu {
 			fileMenu.addMenuItem("Quit", KeyStroke.getKeyStroke('Q', buckyBit),
 				new ActionListener() { public void actionPerformed(ActionEvent e) { quitCommand(); } });
 		}
-        fileMenu.addMenuItem("Force Quit", null,
+        fileMenu.addMenuItem("Force Quit (and Save)", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { forceQuit(); } });
 
     }
@@ -850,13 +850,108 @@ public class FileMenu {
     }
 
     /**
-     * Unsafe way to force Electric to quit
+     * Unsafe way to force Electric to quit.  If this method returns,
+     * it obviously did not kill electric (because of user input or some other reason).
      */
     public static void forceQuit() {
-        int i = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), new String [] {"Warning! All unsaved changes will be lost!",
-            "Do you really want to quit?"}, "Force Quit", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+        // check if libraries need to be saved
+        boolean dirty = false;
+        for(Iterator it = Library.getLibraries(); it.hasNext(); )
+        {
+            Library lib = (Library)it.next();
+            if (lib.isHidden()) continue;
+            if (!lib.isChangedMajor() && !lib.isChangedMinor()) continue;
+            dirty = true;
+            break;
+        }
+        if (dirty) {
+            String [] options = { "Force Save and Quit", "Cancel", "Quit without Saving"};
+            int i = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+                 new String [] {"Warning!  Libraries Changed!  Saving changes now may create bad libraries!"},
+                    "Force Quit", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null,
+                    options, options[1]);
+            if (i == 0) {
+                // force save
+                if (!forceSave(false)) {
+                    JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+                            "Error during forced library save, not quiting", "Saving Failed", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                System.exit(1);
+            }
+            if (i == 1) return;
+            if (i == 2) System.exit(1);
+        }
+        int i = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), new String [] {"Warning! You are about to kill Electric!",
+            "Do you really want to force quit?"}, "Force Quit", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
         if (i == JOptionPane.YES_OPTION) {
             System.exit(1);
         }
+    }
+
+    /**
+     * Force saving of libraries. This does not run in a Job, and could generate corrupt libraries.
+     * This saves all libraries to a new directory called "panic" in the current directory.
+     * @param confirm true to pop up confirmation dialog, false to just try to save
+     * @return true if libraries saved (if they needed saving), false otherwise
+     */
+    public static boolean forceSave(boolean confirm) {
+        boolean dirty = false;
+        for(Iterator it = Library.getLibraries(); it.hasNext(); )
+        {
+            Library lib = (Library)it.next();
+            if (lib.isHidden()) continue;
+            if (!lib.isChangedMajor() && !lib.isChangedMinor()) continue;
+            dirty = true;
+            break;
+        }
+        if (!dirty) {
+            System.out.println("Libraries have not changed, not saving");
+            return true;
+        }
+        if (confirm) {
+            String [] options = { "Cancel", "Force Save"};
+            int i = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+                 new String [] {"Warning! Saving changes now may create bad libraries!",
+                                "Libraries will be saved to \"Panic\" directory in current directory",
+                                "Do you really want to force save?"},
+                 "Force Save", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null,
+                 options, options[0]);
+            if (i == 0) return false;
+        }
+        // try to create the panic directory
+        String currentDir = User.getWorkingDirectory();
+        File panicDir = new File(currentDir, "panic");
+        if (!panicDir.exists() && !panicDir.mkdir()) {
+            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), new String [] {"Could not create panic directory",
+                 panicDir.getAbsolutePath()}, "Error creating panic directory", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+        // set libraries to save to panic dir
+        boolean retValue = true;
+        OpenFile.Type type = OpenFile.Type.ELIB;
+        for(Iterator it = Library.getLibraries(); it.hasNext(); )
+        {
+            Library lib = (Library)it.next();
+            if (lib.isHidden()) continue;
+            URL libURL = lib.getLibFile();
+            File newLibFile = null;
+            if (libURL.getPath() == null) {
+                newLibFile = new File(panicDir.getAbsolutePath(), lib.getName()+type.getExtensions()[0]);
+            } else {
+                File libFile = new File(libURL.getPath());
+                String fileName = libFile.getName();
+                if (fileName == null) fileName = lib.getName() + type.getExtensions()[0];
+                newLibFile = new File(panicDir.getAbsolutePath(), fileName);
+            }
+            URL newLibURL = TextUtils.makeURLToFile(newLibFile.getAbsolutePath());
+            lib.setLibFile(newLibURL);
+            boolean error = Output.writeLibrary(lib, type, false);
+            if (error) {
+                System.out.println("Error saving library "+lib.getName());
+                retValue = false;
+            }
+        }
+        return retValue;
     }
 }
