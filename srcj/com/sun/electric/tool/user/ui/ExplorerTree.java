@@ -424,6 +424,7 @@ public class ExplorerTree extends JTree
 		if (nodeInfo instanceof Simulate.SimSignal)
 		{
 			Simulate.SimSignal sig = (Simulate.SimSignal)nodeInfo;
+			if (sig.signalContext != null) return sig.signalContext + "." + sig.signalName;
 			return sig.signalName;
 		}
 		if (nodeInfo == null) return "";

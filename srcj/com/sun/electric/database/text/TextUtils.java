@@ -174,6 +174,19 @@ public class TextUtils
 	private static NumberFormat numberFormat = null;
 
 	/**
+	 * Method to convert a double to a string.
+	 * @param v the double value to format.
+	 * @return the string representation of the number.
+	 */
+	public static String formatDouble(double v)
+	{
+		if (numberFormat == null) numberFormat = NumberFormat.getInstance();
+		return numberFormat.format(v);
+	}
+
+	private static NumberFormat numberFormatSpecific = null;
+
+	/**
 	 * Method to convert a double to a string, with a guaranteed number of digits to the right of the decimal point.
 	 * @param v the double value to format.
 	 * @param numFractions the number of digits to the right of the decimal point.
@@ -181,10 +194,10 @@ public class TextUtils
 	 */
 	public static String formatDouble(double v, int numFractions)
 	{
-		if (numberFormat == null) numberFormat = NumberFormat.getInstance();
-		numberFormat.setMaximumFractionDigits(numFractions);
-		numberFormat.setMinimumFractionDigits(numFractions);
-		return numberFormat.format(v);
+		if (numberFormatSpecific == null) numberFormatSpecific = NumberFormat.getInstance();
+		numberFormatSpecific.setMaximumFractionDigits(numFractions);
+		numberFormatSpecific.setMinimumFractionDigits(numFractions);
+		return numberFormatSpecific.format(v);
 	}
 
 	/**

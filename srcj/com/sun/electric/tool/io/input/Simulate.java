@@ -46,6 +46,18 @@ public class Simulate extends Input
 {
 	public static class SimData
 	{
+		// logic levels and signal strengths in the window
+		public static final int LOGIC         =  03;
+		public static final int LOGIC_LOW     =   0;
+		public static final int LOGIC_X       =   1;
+		public static final int LOGIC_HIGH    =   2;
+		public static final int LOGIC_Z       =   3;
+		public static final int STRENGTH      = 014;
+		public static final int OFF_STRENGTH  =   0;
+		public static final int NODE_STRENGTH =  04;
+		public static final int GATE_STRENGTH = 010;
+		public static final int VDD_STRENGTH  = 014;
+
 		public Cell cell;
 		public List signals;
 		public double [] commonTime;
@@ -61,15 +73,17 @@ public class Simulate extends Input
 		public SimSignal(SimData sd)
 		{
 			this.sd = sd;
-			sd.signals.add(this);
+			if (sd != null) sd.signals.add(this);
 			this.signalColor = Color.RED;
 		}
 
 		public String signalName;
+		public String signalContext;
 		public Color signalColor;
 		public SimData sd;
 		public boolean useCommonTime;
 		public double [] time;
+		public List bussedSignals;
 		public List tempList;
 	}
 
@@ -77,6 +91,12 @@ public class Simulate extends Input
 	{
 		public SimAnalogSignal(SimData sd) { super(sd); }
 		public double [] values;
+	}
+
+	public static class SimDigitalSignal extends SimSignal
+	{
+		public SimDigitalSignal(SimData sd) { super(sd); }
+		public int [] state;
 	}
 
 	Simulate() {}
@@ -198,9 +218,6 @@ public class Simulate extends Input
 
 	private static void showSimulationData(SimData sd)
 	{
-//		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-//		if (wf == null) return;
-
 		// determine extent of the data
 		double lowTime=0, highTime=0, lowValue=0, highValue=0;
 		boolean first = true;
@@ -228,6 +245,25 @@ public class Simulate extends Input
 						if (as.values[i] > highValue) highValue = as.values[i];
 					}
 				}
+			} else if (sig instanceof SimDigitalSignal)
+			{
+				SimDigitalSignal ds = (SimDigitalSignal)sig;
+				if (ds.state == null) continue;
+				for(int i=0; i<ds.state.length; i++)
+				{
+					double time = 0;
+					if (sig.useCommonTime) time = sd.commonTime[i]; else
+						time = ds.time[i];
+					if (first)
+					{
+						first = false;
+						lowTime = highTime = time;
+					} else
+					{
+						if (time < lowTime) lowTime = time;
+						if (time > highTime) highTime = time;
+					}
+				}
 			}
 		}
 		double timeRange = highTime - lowTime;
@@ -243,8 +279,10 @@ public class Simulate extends Input
 		for(int sig=0; sig<sd.signals.size(); sig++)
 		{
 			Simulate.SimSignal sSig = (Simulate.SimSignal)sd.signals.get(sig);
-			WaveformWindow.Panel wp = new WaveformWindow.Panel(ww);
-			wp.setValueRange(lowValue, highValue);
+			boolean isAnalog = false;
+			if (sSig instanceof SimAnalogSignal) isAnalog = true;
+			WaveformWindow.Panel wp = new WaveformWindow.Panel(ww, isAnalog);
+			if (isAnalog) wp.setValueRange(lowValue, highValue);
 			WaveformWindow.Signal wsig = new WaveformWindow.Signal(wp, sSig);
 if (sig > 20) break;
 		}

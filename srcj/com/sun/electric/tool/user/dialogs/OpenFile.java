@@ -54,7 +54,7 @@ public class OpenFile
 		/** Describes Raw SmartSpice output. */	public static final Type RAWSSPICEOUT = new Type("RawSmartSpiceOutput", new String[] {"raw"}, "SmartSPICE Raw Output File (raw)");
 		/** Describes CDL decks.*/				public static final Type CDL          = new Type("CDL", new String[] {"cdl"}, "CDL Deck (cdl)");
 		/** Describes VERILOG decks. */			public static final Type VERILOG      = new Type("Verilog", new String[] {"v"}, "Verilog Deck (v)");
-		/** Describes VERILOG output. */		public static final Type VERILOGOUT   = new Type("VerilogOutput", new String[] {"vcd"}, "Verilog VCD Dump (vcd)");
+		/** Describes VERILOG output. */		public static final Type VERILOGOUT   = new Type("VerilogOutput", new String[] {"dump"}, "Verilog VCD Dump (vcd)");
 		/** Describes MAXWELL decks. */			public static final Type MAXWELL      = new Type("Maxwell", new String[] {"mac"}, "Maxwell Deck (mac)");
 		/** Describes IRSIM decks. */			public static final Type IRSIM        = new Type("IRSIM", new String[] {"sim"}, "IRSIM Deck (sim)");
 		/** Describes Java source. */			public static final Type JAVA         = new Type("Java", new String[] {"java", "bsh"}, "Java Script File (java, bsh)");

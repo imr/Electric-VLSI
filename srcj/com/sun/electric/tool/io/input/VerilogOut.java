@@ -32,6 +32,7 @@ import java.io.DataInputStream;
 import java.net.URL;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 
 /**
@@ -40,6 +41,18 @@ import java.util.Iterator;
  */
 public class VerilogOut extends Simulate
 {
+	static class VerilogStimuli
+	{
+		double time;
+		int state;
+
+		VerilogStimuli(double time, int state)
+		{
+			this.time = time;
+			this.state = state;
+		}
+	}
+
 	VerilogOut() {}
 
 	/**
@@ -70,39 +83,27 @@ public class VerilogOut extends Simulate
 	private SimData readVerilogFile()
 		throws IOException
 	{
-//		sim_timescale = 1.0;
-//		sim_vercurscope[0] = 0;
-//		sim_verlineno = 0;
-//		sim_vercurlevel = 0;
-//		numsignals = 0;
-//		verhash = 0;
-//		hashtablesize = 1;
-//		vslast = NOVERSIGNAL;
-//		sosymbol = newstringobj(sim_tool->cluster);
-//		soname = newstringobj(sim_tool->cluster);
-//		socontext = newstringobj(sim_tool->cluster);
+		Simulate.SimData sd = new Simulate.SimData();
+		double sim_timescale = 1.0;
+		String sim_vercurscope = "";
+		int sim_vercurlevel = 0;
+		int numSignals = 0;
+		HashMap symbolTable = new HashMap();
+		List curArray = null;
 		for(;;)
 		{
-			String verLine = getLineFromSimulator();
-			if (verLine == null) break;
-			List keywordList = getKeywords(verLine);
-			if (keywordList.size() == 0) continue;
-			String firstKeyword = (String)keywordList.iterator().next();
+			String keyword = getNextKeyword();
+			if (keyword == null) break;
 
-			/* ignore "$date", "$version" or "$timescale" */
-			if (firstKeyword.equals("$date") || firstKeyword.equals("$version"))
+			// ignore "$date", "$version" or "$timescale"
+			if (keyword.equals("$date") || keyword.equals("$version"))
 			{
-				sim_verparsetoend(keywordList);
+				sim_verparsetoend();
 				continue;
 			}
-			if (firstKeyword.equals("$timescale"))
+			if (keyword.equals("$timescale"))
 			{
-//				verLine = getLineFromSimulator();
-//				if (verLine == null) break;
-//				keywordList = getKeywords(line);
-//				if (keywordList.size() > 0)
-//				{
-//					String argument = (String)keywordList.iterator().next();
+				String units = getNextKeyword();
 //				units = -1;
 //				pt = sim_verline;
 //				keyword = getkeyword(&pt, x_(" "));
@@ -122,357 +123,371 @@ public class VerilogOut extends Simulate
 //					*pt = 0;
 //					sim_timescale = figureunits(keyword, VTUNITSTIME, units);
 //				}
-				sim_verparsetoend(keywordList);
+				sim_verparsetoend();
 				continue;
 			}
-			if (firstKeyword.equals("$scope"))
+			if (keyword.equals("$scope"))
 			{
-//				if (namesame(keyword, x_("module")) == 0 || namesame(keyword, x_("task")) == 0 ||
-//					namesame(keyword, x_("function")) == 0)
-//				{
-//					keyword = getkeyword(&pt, x_(" "));
-//					if (keyword != NOSTRING)
-//					{
-//						if (sim_vercurscope[0] != 0) strcat(sim_vercurscope, x_("."));
-//						strcat(sim_vercurscope, keyword);
-//						sim_vercurlevel++;
-//					}
-//				}
-				sim_verparsetoend(keywordList);
+				String scope = getNextKeyword();
+				if (scope == null) break;
+				if (scope.equals("module") || scope.equals("task") || scope.equals("function"))
+				{
+					// scan for arrays
+					cleanUpScope(curArray, sd);
+					curArray = new ArrayList();
+
+					String scopeName = getNextKeyword();
+					if (scopeName == null) break;
+					if (sim_vercurscope.length() > 0) sim_vercurscope += ".";
+					sim_vercurscope += scopeName;
+					sim_vercurlevel++;
+					curArray = new ArrayList();
+				}
+				sim_verparsetoend();
 				continue;
 			}
 
-			if (firstKeyword.equals("$upscope"))
+			if (keyword.equals("$upscope"))
 			{
-//				if (sim_vercurlevel <= 0 || sim_vercurscope[0] == 0)
-//				{
-//					ttyputerr(_("Unbalanced $upscope on line %ld"), sim_verlineno);
-//					continue;
-//				} else
-//				{
-//					len = strlen(sim_vercurscope);
-//					for(i=len-1; i>0; i--) if (sim_vercurscope[i] == '.') break;
-//					if (sim_vercurscope[i] == '.') sim_vercurscope[i] = 0;
-//					sim_vercurlevel--;
-//				}
-				sim_verparsetoend(keywordList);
+				if (sim_vercurlevel <= 0 || sim_vercurscope.length() == 0)
+				{
+					System.out.println("Unbalanced $upscope on line " + lineReader.getLineNumber());
+					continue;
+				}
+
+				// scan for arrays
+				cleanUpScope(curArray, sd);
+				curArray = new ArrayList();
+
+				int dotPos = sim_vercurscope.lastIndexOf('.');
+				if (dotPos >= 0)
+				{
+					sim_vercurscope = sim_vercurscope.substring(0, dotPos);
+					sim_vercurlevel--;
+				}
+				sim_verparsetoend();
 				continue;
 			}
 
-			if (firstKeyword.equals("$var"))
+			if (keyword.equals("$var"))
 			{
-//				keyword = getkeyword(&pt, x_(" "));
-//				if (keyword != NOSTRING)
-//				{
-//					if (namesame(keyword, x_("wire")) == 0 ||
-//						namesame(keyword, x_("supply0")) == 0 ||
-//						namesame(keyword, x_("supply1")) == 0 ||
-//						namesame(keyword, x_("reg")) == 0 ||
-//						namesame(keyword, x_("parameter")) == 0 ||
-//						namesame(keyword, x_("trireg")) == 0)
-//					{
-//						/* get the bus width */
-//						keyword = getkeyword(&pt, x_(" "));
-//						if (keyword == NOSTRING) continue;
-//						width = myatoi(keyword);
-//
-//						/* get the symbol name for this signal */
-//						keyword = getkeyword(&pt, x_(" "));
-//						if (keyword == NOSTRING) continue;
-//						clearstringobj(sosymbol);
-//						addstringtostringobj(keyword, sosymbol);
-//
-//						/* get the signal name */
-//						keyword = getkeyword(&pt, x_(" "));
-//						if (keyword == NOSTRING) continue;
-//						clearstringobj(soname);
-//						addstringtostringobj(keyword, soname);
-//
-//						/* see if there is an index */
-//						keyword = getkeyword(&pt, x_(" "));
-//						if (keyword == NOSTRING) continue;
-//						foundend = FALSE;
-//						if (namesame(keyword, x_("$end")) == 0) foundend = TRUE; else
-//							addstringtostringobj(keyword, soname);
-//
-//						/* set the context */
-//						clearstringobj(socontext);
-//						addstringtostringobj(sim_vercurscope, socontext);
-//
-//						/* allocate one big object with structure and names */
-//						structlen = sizeof (VERSIGNAL);
-//						symbol = getstringobj(sosymbol);   symbollen = (estrlen(symbol)+1) * SIZEOFCHAR;
-//						name = getstringobj(soname);       namelen = (estrlen(name)+1) * SIZEOFCHAR;
-//						context = getstringobj(socontext); contextlen = (estrlen(context)+1) * SIZEOFCHAR;
-//						structsize = structlen + symbollen + namelen + contextlen;
-//						onestruct = (UCHAR1 *)emalloc(structsize, sim_tool->cluster);
-//						if (onestruct == 0) continue;
-//						vs = (VERSIGNAL *)onestruct;
-//						vs->symbol = (CHAR *)&onestruct[structlen];
-//						vs->signalname = (CHAR *)&onestruct[structlen+symbollen];
-//						vs->signalcontext = (CHAR *)&onestruct[structlen+symbollen+namelen];
-//						strcpy(vs->symbol, symbol);
-//						strcpy(vs->signalname, name);
-//						strcpy(vs->signalcontext, context);
-//						vs->nextversignal = NOVERSIGNAL;
-//						if (vslast == NOVERSIGNAL) sim_verfirstsignal = vs; else
-//							vslast->nextversignal = vs;
-//						vslast = vs;
-//						vs->level = sim_vercurlevel;
-//						vs->flags = 0;
-//						vs->signal = 0;
-//						vs->total = 0;
-//						vs->count = 0;
-//						vs->width = width;
-//						vs->realversignal = NOVERSIGNAL;
-//						numsignals++;
-//
-//						if (width > 1)
-//						{
-//							/* create fake signals for the individual entries */
-//							vslist = (VERSIGNAL **)emalloc(width * (sizeof (VERSIGNAL *)), sim_tool->cluster);
-//							if (vslist == 0) continue;
-//							vs->signals = vslist;
-//							for(i=0; i<width; i++)
-//							{
-//								structlen = sizeof (VERSIGNAL);
-//								infstr = initinfstr();
-//								formatinfstr(infstr, x_("%s[%ld]"), vs->signalname, i);
-//								name = returninfstr(infstr);       namelen = (estrlen(name)+1) * SIZEOFCHAR;
-//								context = sim_vercurscope;         contextlen = (estrlen(context)+1) * SIZEOFCHAR;
-//								structsize = structlen + namelen + contextlen;
-//								onestruct = (UCHAR1 *)emalloc(structsize, sim_tool->cluster);
-//								if (onestruct == 0) break;
-//								subvs = (VERSIGNAL *)onestruct;
-//								subvs->symbol = 0;
-//								subvs->signalname = (CHAR *)&onestruct[structlen];
-//								subvs->signalcontext = (CHAR *)&onestruct[structlen+namelen];
-//								strcpy(subvs->signalname, name);
-//								strcpy(subvs->signalcontext, context);
-//								subvs->nextversignal = NOVERSIGNAL;
-//								if (vslast == NOVERSIGNAL) sim_verfirstsignal = subvs; else
-//									vslast->nextversignal = subvs;
-//								vslast = subvs;
-//								subvs->level = sim_vercurlevel;
-//								subvs->flags = 0;
-//								subvs->signal = 0;
-//								subvs->total = 0;
-//								subvs->count = 0;
-//								subvs->width = 1;
-//								subvs->realversignal = NOVERSIGNAL;
-//								vslist[i] = subvs;
-//								numsignals++;
-//							}
-//						}
-//						if (foundend) continue;
-//					} else
-//					{
-//						ttyputerr(_("Invalid $var on line %ld: %s"), sim_verlineno, sim_verline);
-//						continue;
-//					}
-//				}
-				sim_verparsetoend(keywordList);
+				String varName = getNextKeyword();
+				if (varName == null) break;
+				if (varName.equals("wire") || varName.equals("reg") ||
+					varName.equals("supply0") || varName.equals("supply1") ||
+					varName.equals("parameter") || varName.equals("trireg"))
+				{
+					// get the bus width
+					String widthText = getNextKeyword();
+					if (widthText == null) break;
+					int width = TextUtils.atoi(widthText);
+
+					// get the symbol name for this signal
+					String symbol = getNextKeyword();
+					if (symbol == null) break;
+
+					// get the signal name
+					String signalName = getNextKeyword();
+					if (signalName == null) break;
+
+					// see if there is an index
+					String index = getNextKeyword();
+					if (index == null) break;
+					if (index.equals("$end")) index = ""; else
+					{
+						sim_verparsetoend();
+					}
+					numSignals++;
+
+					Simulate.SimDigitalSignal sig = new Simulate.SimDigitalSignal(null);
+					sig.signalName = signalName + index;
+					sig.signalContext = sim_vercurscope;
+					sig.tempList = new ArrayList();
+
+					if (index.length() > 0 && width == 1)
+					{
+						curArray.add(sig);
+					} else
+					{
+						sd.signals.add(sig);
+					}
+
+					if (width > 1)
+					{
+						// create fake signals for the individual entries
+						sig.bussedSignals = new ArrayList();
+						for(int i=0; i<width; i++)
+						{
+							Simulate.SimDigitalSignal subSig = new Simulate.SimDigitalSignal(null);
+							subSig.signalName = signalName + "[" + i + "]";
+							subSig.signalContext = sim_vercurscope;
+							subSig.tempList = new ArrayList();
+							sig.bussedSignals.add(subSig);
+							addSignalToHashMap(subSig, symbol + "[" + i + "]", symbolTable);
+							numSignals++;
+						}
+					}
+
+					// put it in the symbol table
+					addSignalToHashMap(sig, symbol, symbolTable);
+				}
 				continue;
 			}
 
-			if (firstKeyword.equals("$enddefinitions"))
+			if (keyword.equals("$enddefinitions"))
 			{
-				sim_verparsetoend(keywordList);
-//				infstr = initinfstr();
-//				formatinfstr(infstr, _("Found %ld signal names"), numsignals);
-//				DiaSetTextProgress(sim_verprogressdialog, _("Building signal table..."));
-//				DiaSetCaptionProgress(sim_verprogressdialog, returninfstr(infstr));
-//
-//				/* build a table for finding signal names */
-//				for(i=0; i<256; i++) sim_charused[i] = -1;
-//				sim_numcharsused = 0;
-//				for(vs = sim_verfirstsignal; vs != NOVERSIGNAL; vs = vs->nextversignal)
-//				{
-//					if (vs->symbol == 0) continue;
-//					for(pt = vs->symbol; *pt != 0; pt++)
-//					{
-//						i = *pt & 0xFF;
-//						if (sim_charused[i] < 0)
-//							sim_charused[i] = ++sim_numcharsused;
-//					}
-//				}
-//
-//				hashtablesize = pickprime(numsignals*2);
-//				verhash = (VERSIGNAL **)emalloc(hashtablesize * (sizeof (VERSIGNAL *)), sim_tool->cluster);
-//				if (verhash == 0) return;
-//				for(i=0; i<hashtablesize; i++) verhash[i] = NOVERSIGNAL;
-//
-//				/* insert the signals */
-//				for(vs = sim_verfirstsignal; vs != NOVERSIGNAL; vs = vs->nextversignal)
-//				{
-//					if (vs->symbol == 0) continue;
-//					hashcode = sim_vergetsignalhash(vs->symbol) % hashtablesize;
-//					for(i=0; i<hashtablesize; i++)
-//					{
-//						if (verhash[hashcode] == NOVERSIGNAL)
-//						{
-//							verhash[hashcode] = vs;
-//							break;
-//						}
-//						if (strcmp(vs->symbol, verhash[hashcode]->symbol) == 0)
-//						{
-//							/* same symbol name: merge the signals */
-//							vs->realversignal = verhash[hashcode];
-//							break;
-//						}
-//						hashcode++;
-//						if (hashcode >= hashtablesize) hashcode = 0;
-//					}
-//				}
+				sim_verparsetoend();
+				System.out.println("Found " + numSignals + " signal names");
 //				DiaSetTextProgress(sim_verprogressdialog, _("Reading stimulus..."));
-//				continue;
-//			}
-//			if (firstKeyword.equals("$dumpvars"))
-//			{
-//				curtime = 0.0;
-//				for(;;)
-//				{
-//					if (xfgets(sim_verline, 300, sim_verfd)) break;
-//					sim_verlineno++;
-//					if ((sim_verlineno%1000) == 0)
-//					{
-//						if (stopping(STOPREASONSIMULATE)) break;
-//						curposition = xtell(sim_verfd);
-//						DiaSetProgress(sim_verprogressdialog, curposition, sim_verfilesize);
-//					}
-//					if (sim_verline[0] == '0' || sim_verline[0] == '1' ||
-//						sim_verline[0] == 'x' || sim_verline[0] == 'z')
-//					{
-//						symname = &sim_verline[1];
-//						hashcode = sim_vergetsignalhash(symname) % hashtablesize;
-//						vs = NOVERSIGNAL;
-//						for(i=0; i<hashtablesize; i++)
-//						{
-//							vs = verhash[hashcode];
-//							if (vs == NOVERSIGNAL) break;
-//							if (strcmp(symname, vs->symbol) == 0) break;
-//							hashcode++;
-//							if (hashcode >= hashtablesize) hashcode = 0;
-//						}
-//						if (vs == NOVERSIGNAL)
-//						{
-//							ttyputmsg(_("Unknown symbol '%s' on line %ld"), symname, sim_verlineno);
-//							continue;
-//						}
-//
-//						/* insert the stimuli */
-//						switch (sim_verline[0])
-//						{
-//							case '0': state = (LOGIC_LOW << 8) | GATE_STRENGTH;   break;
-//							case '1': state = (LOGIC_HIGH << 8) | GATE_STRENGTH;  break;
-//							case 'x': state = (LOGIC_X << 8) | GATE_STRENGTH;     break;
-//							case 'z': state = (LOGIC_Z << 8) | GATE_STRENGTH;     break;
-//						}
-//						sim_versetvalue(vs, curtime, state);
-//						continue;
-//					}
-//					if (sim_verline[0] == '$')
-//					{
-//						if (namesame(&sim_verline[0], x_("$end")) == 0) continue;
-//						ttyputmsg(_("Unknown directive on line %ld: %s"), sim_verlineno, sim_verline);
-//						continue;
-//					}
-//					if (sim_verline[0] == '#')
-//					{
-//						curtime = myatoi(&sim_verline[1]) * sim_timescale;
-//						continue;
-//					}
-//					if (sim_verline[0] == 'b')
-//					{
-//						for(pt = &sim_verline[1]; *pt != 0; pt++)
-//							if (*pt == ' ') break;
-//						if (*pt == 0)
-//						{
-//							ttyputmsg(_("Bus has missing signal name on line %ld: %s"), sim_verlineno, sim_verline);
-//							continue;
-//						}
-//						symname = &pt[1];
-//						hashcode = sim_vergetsignalhash(symname) % hashtablesize;
-//						vs = NOVERSIGNAL;
-//						for(i=0; i<hashtablesize; i++)
-//						{
-//							vs = verhash[hashcode];
-//							if (vs == NOVERSIGNAL) break;
-//							if (strcmp(symname, vs->symbol) == 0) break;
-//							hashcode++;
-//							if (hashcode >= hashtablesize) hashcode = 0;
-//						}
-//						if (vs == NOVERSIGNAL)
-//						{
-//							ttyputmsg(_("Unknown symbol '%s' on line %ld"), symname, sim_verlineno);
-//							continue;
-//						}
-//						for(i=0; i<vs->width; i++)
-//						{
-//							switch (sim_verline[i+1])
-//							{
-//								case '0': state = (LOGIC_LOW << 8) | GATE_STRENGTH;   break;
-//								case '1': state = (LOGIC_HIGH << 8) | GATE_STRENGTH;  break;
-//								case 'x': state = (LOGIC_X << 8) | GATE_STRENGTH;     break;
-//								case 'z': state = (LOGIC_Z << 8) | GATE_STRENGTH;     break;
-//							}
-//							sim_versetvalue(vs->signals[i], curtime, state);
-//						}
-//						continue;
-//					}
-//					ttyputmsg(_("Unknown stimulus on line %ld: %s"), sim_verlineno, sim_verline);
-//				}
+				continue;
 			}
+			if (keyword.equals("$dumpvars"))
+			{
+				System.out.println("dumpvars");
+
+				double curtime = 0.0;
+				for(;;)
+				{
+					String sim_verline = getLineFromSimulator();
+					if (sim_verline == null) break;
+					char chr = sim_verline.charAt(0);
+					String restOfLine = sim_verline.substring(1);
+					if (chr == '0' || chr == '1' || chr == 'x' || chr == 'z')
+					{
+						Object entry = symbolTable.get(restOfLine);
+						if (entry == null)
+						{
+							System.out.println("Unknown symbol '" + restOfLine + "' on line " + lineReader.getLineNumber());
+							continue;
+						}
+						if (entry instanceof List) entry = ((List)entry).get(0);
+						Simulate.SimDigitalSignal sig = (Simulate.SimDigitalSignal)entry;
+
+						// insert the stimuli
+						int state = 0;
+						switch (chr)
+						{
+							case '0': state = Simulate.SimData.LOGIC_LOW  | Simulate.SimData.GATE_STRENGTH;  break;
+							case '1': state = Simulate.SimData.LOGIC_HIGH | Simulate.SimData.GATE_STRENGTH;  break;
+							case 'x': state = Simulate.SimData.LOGIC_X    | Simulate.SimData.GATE_STRENGTH;  break;
+							case 'z': state = Simulate.SimData.LOGIC_Z    | Simulate.SimData.GATE_STRENGTH;  break;
+						}
+						VerilogStimuli vs = new VerilogStimuli(curtime, state);
+						sig.tempList.add(vs);
+						continue;
+					}
+					if (chr == '$')
+					{
+						if (restOfLine.equals("end")) continue;
+						System.out.println("Unknown directive on line " + lineReader.getLineNumber() + ": " + sim_verline);
+						continue;
+					}
+					if (chr == '#')
+					{
+						curtime = TextUtils.atoi(restOfLine) * sim_timescale;
+						continue;
+					}
+					if (chr == 'b')
+					{
+						int spacePos = restOfLine.indexOf(' ');
+						if (spacePos < 0)
+						{
+							System.out.println("Bus has missing signal name on line " + lineReader.getLineNumber() + ": " + sim_verline);
+							continue;
+						}
+						String symname = restOfLine.substring(spacePos+1);
+						Object entry = symbolTable.get(symname);
+						if (entry == null)
+						{
+							System.out.println("Unknown symbol '" + symname + "' on line " + lineReader.getLineNumber());
+							continue;
+						}
+						if (entry instanceof List) entry = ((List)entry).get(0);
+						Simulate.SimDigitalSignal sig = (Simulate.SimDigitalSignal)entry;
+						int i = 0;
+						for(Iterator it = sig.bussedSignals.iterator(); it.hasNext(); )
+						{
+							Simulate.SimDigitalSignal subSig = (Simulate.SimDigitalSignal)it.next();
+							char bit = restOfLine.charAt(i++);
+							int state = 0;
+							switch (bit)
+							{
+								case '0': state = Simulate.SimData.LOGIC_LOW  | Simulate.SimData.GATE_STRENGTH;  break;
+								case '1': state = Simulate.SimData.LOGIC_HIGH | Simulate.SimData.GATE_STRENGTH;  break;
+								case 'x': state = Simulate.SimData.LOGIC_X    | Simulate.SimData.GATE_STRENGTH;  break;
+								case 'z': state = Simulate.SimData.LOGIC_Z    | Simulate.SimData.GATE_STRENGTH;  break;
+							}
+							VerilogStimuli vs = new VerilogStimuli(curtime, state);
+							subSig.tempList.add(vs);
+						}
+						continue;
+					}
+					System.out.println("Unknown stimulus on line " + lineReader.getLineNumber() + ": " + sim_verline);
+				}
+			}
+			continue;
 		}
 
-//		SimData sd = new SimData();
-//		sd.signalNames = sim_spice_signames;
-//		sd.events = sim_spice_numbers;
-		System.out.println("CANNOT READ VERILOG OUTPUT YET");
-		return null;
+		// convert the stimuli
+		for(Iterator it = symbolTable.values().iterator(); it.hasNext(); )
+		{
+			Object entry = it.next();
+			List fullList = null;
+			if (entry instanceof List)
+			{
+				fullList = (List)entry;
+				entry = fullList.get(0);
+			} 
+			Simulate.SimDigitalSignal sig = (Simulate.SimDigitalSignal)entry;
+			int numStimuli = sig.tempList.size();
+			if (numStimuli == 0) continue;
+			sig.time = new double[numStimuli];
+			sig.state = new int[numStimuli];
+			int i = 0;
+			for(Iterator sIt = sig.tempList.iterator(); sIt.hasNext(); )
+			{
+				VerilogStimuli vs = (VerilogStimuli)sIt.next();
+				sig.useCommonTime = false;
+				sig.time[i] = vs.time;
+				sig.state[i] = vs.state;
+				i++;
+			}
+			sig.tempList = null;
+			if (fullList != null)
+			{
+				for(Iterator lIt = fullList.iterator(); lIt.hasNext(); )
+				{
+					Simulate.SimDigitalSignal oSig = (Simulate.SimDigitalSignal)lIt.next();
+					if (oSig.time == null) oSig.time = sig.time;
+					if (oSig.state == null) oSig.state = sig.state;
+					oSig.useCommonTime = false;
+				}
+			}
+		}
+		return sd;
 	}
 
-	private void sim_verparsetoend(List keywordList)
+	private void cleanUpScope(List curArray, Simulate.SimData sd)
+	{
+		if (curArray == null) return;
+
+		String last = null;
+		String scope = null;
+		int firstEntry = 0;
+		int firstIndex = 0;
+		int lastIndex = 0;
+		int numSignalsInArray = curArray.size();
+		for(int j=0; j<numSignalsInArray; j++)
+		{
+			Simulate.SimDigitalSignal sig = (Simulate.SimDigitalSignal)curArray.get(j);
+			int squarePos = sig.signalName.indexOf('[');
+			if (squarePos < 0) continue;
+			String purename = sig.signalName.substring(0, squarePos);
+			int index = TextUtils.atoi(sig.signalName.substring(squarePos+1));
+			if (last == null)
+			{
+				firstEntry = j;
+				last = purename;
+				firstIndex = lastIndex = index;
+				scope = sig.signalContext;
+			} else
+			{
+				if (last.equals(purename)) lastIndex = index; else
+				{
+					Simulate.SimDigitalSignal arraySig = new Simulate.SimDigitalSignal(sd);
+					arraySig.signalName = last + "[" + firstIndex + ":" + lastIndex + "]";
+					arraySig.signalContext = scope;
+					arraySig.bussedSignals = new ArrayList();
+					int width = j - firstEntry;
+					for(int i=0; i<width; i++)
+					{
+						Simulate.SimDigitalSignal subSig = (Simulate.SimDigitalSignal)curArray.get(firstEntry+i);
+						arraySig.bussedSignals.add(subSig);
+					}
+					last = null;
+				}
+			}
+		}
+		if (last != null)
+		{
+			Simulate.SimDigitalSignal arraySig = new Simulate.SimDigitalSignal(sd);
+			arraySig.signalName = last + "[" + firstIndex + ":" + lastIndex + "]";
+			arraySig.signalContext = scope;
+			arraySig.bussedSignals = new ArrayList();
+			int width = numSignalsInArray - firstEntry;
+			for(int i=0; i<width; i++)
+			{
+				Simulate.SimDigitalSignal subSig = (Simulate.SimDigitalSignal)curArray.get(firstEntry+i);
+				arraySig.bussedSignals.add(subSig);
+			}
+		}
+	}
+
+	private void addSignalToHashMap(Simulate.SimDigitalSignal sig, String symbol, HashMap symbolTable)
+	{
+		Object entry = symbolTable.get(symbol);
+		if (entry == null)
+		{
+			symbolTable.put(symbol, sig);
+		} else if (entry instanceof Simulate.SimDigitalSignal)
+		{
+			List manySigs = new ArrayList();
+			manySigs.add(entry);
+			manySigs.add(sig);
+			symbolTable.put(symbol, manySigs);
+		} else if (entry instanceof List)
+		{
+			((List)entry).add(sig);
+		}
+	}
+
+	private void sim_verparsetoend()
 		throws IOException
 	{
 		for(;;)
 		{
-			for(Iterator it = keywordList.iterator(); it.hasNext(); )
-			{
-				String keyword = (String)it.next();
-				if (keyword.equals("$end")) return;
-			}
-			String verLine = getLineFromSimulator();
-			if (verLine == null) break;
-			keywordList = getKeywords(verLine);
+			String keyword = getNextKeyword();
+			if (keyword == null || keyword.equals("$end")) break;
 		}
 	}
 
-	private List getKeywords(String line)
-	{
-		List keywords = new ArrayList();
+	private String lastLine = null;
+	private int linePos;
+	private int lineLen;
 
-		int len = line.length();
-		int startOfKeyword = -1;
-		for(int i=0; i<len; i++)
+	private String getNextKeyword()
+		throws IOException
+	{
+		String keyword = null;
+		for(;;)
 		{
-			char ch = line.charAt(i);
-			if (startOfKeyword < 0)
+			if (lastLine == null)
 			{
-				if (ch == ' ') continue;
-				startOfKeyword = i;
-			} else
-			{
-				if (ch != ' ') continue;
-				keywords.add(line.substring(startOfKeyword, i));
-				startOfKeyword = -1;
+				lastLine = getLineFromSimulator();
+				if (lastLine == null) break;
+				lineLen = lastLine.length();
+				linePos = 0;
 			}
+			if (linePos < lineLen)
+			{
+				char ch = lastLine.charAt(linePos);
+				if (ch == ' ')
+				{
+					linePos++;
+				} else
+				{
+					int startOfKeyword = linePos;
+					for(linePos++; linePos < lineLen; linePos++)
+					{
+						if (lastLine.charAt(linePos) == ' ') break;
+					}
+					keyword = lastLine.substring(startOfKeyword, linePos);
+				}
+			}
+			if (linePos >= lineLen) lastLine = null;
+			if (keyword != null) break;
 		}
-		if (startOfKeyword >= 0)
-		{
-			keywords.add(line.substring(startOfKeyword, len));
-		}
-		return keywords;
+		return keyword;
 	}
 
 }

@@ -81,8 +81,6 @@ public class WaveformWindow implements WindowContent
 	{
 		Color [] colorArray = new Color [] {
 			Color.RED, Color.GREEN, Color.BLUE, Color.PINK, Color.ORANGE, Color.YELLOW, Color.CYAN, Color.MAGENTA};
-//		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-//		if (wf == null) return;
 
 		// make the waveform data
 		Simulate.SimData sd = new Simulate.SimData();
@@ -114,7 +112,7 @@ public class WaveformWindow implements WindowContent
 		// make some waveform panels and put signals in them
 		for(int i=0; i<6; i++)
 		{
-			Panel wp = new Panel(ww);
+			Panel wp = new Panel(ww, true);
 			wp.setValueRange(-5, 5);
 			for(int j=0; j<(i+1)*3; j++)
 			{
@@ -173,13 +171,15 @@ public class WaveformWindow implements WindowContent
 //		public static EventListener getListener() { return curMouseListener; }
 //
 	    // constructor
-		public Panel(WaveformWindow waveWindow)
+		public Panel(WaveformWindow waveWindow, boolean isAnalog)
 		{
 			// remember state
 			this.waveWindow = waveWindow;
 
 			// setup this panel window
-			sz = new Dimension(500, 150);
+			int height = 30;
+			if (isAnalog) height = 150;
+			sz = new Dimension(500, height);
 			setSize(sz.width, sz.height);
 			setPreferredSize(sz);
 			setLayout(new FlowLayout());
@@ -275,7 +275,7 @@ public class WaveformWindow implements WindowContent
 			signalButtons = new JPanel();
 			signalButtons.setLayout(new BoxLayout(signalButtons, BoxLayout.Y_AXIS));
 			signalButtonsPane = new JScrollPane(signalButtons);
-			signalButtonsPane.setPreferredSize(new Dimension(100, 150));
+			signalButtonsPane.setPreferredSize(new Dimension(100, height));
 			gbc.gridx = 0;       gbc.gridy = 2;
 			gbc.gridwidth = 4;   gbc.gridheight = 1;
 			gbc.weightx = 1;     gbc.weighty = 1;
@@ -396,13 +396,15 @@ public class WaveformWindow implements WindowContent
 			g.fillRect(0, 0, wid, hei);
 
 			// look at all traces in this panel
+			boolean hasAnalog = false;
 			for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
 			{
 				Signal ws = (Signal)it.next();
-				g.setColor(ws.sSig.signalColor);
 				if (ws.sSig instanceof Simulate.SimAnalogSignal)
 				{
 					// draw analog trace
+					g.setColor(ws.sSig.signalColor);
+					hasAnalog = true;
 					Simulate.SimAnalogSignal as = (Simulate.SimAnalogSignal)ws.sSig;
 					int lx = 0, ly = 0;
 					int numEvents = as.values.length;
@@ -430,37 +432,155 @@ public class WaveformWindow implements WindowContent
 						lx = x;   ly = y;
 					}
 				}
+				if (ws.sSig instanceof Simulate.SimDigitalSignal)
+				{
+					// draw digital trace
+					g.setColor(ws.sSig.signalColor);
+					Simulate.SimDigitalSignal ds = (Simulate.SimDigitalSignal)ws.sSig;
+					if (ds.bussedSignals != null)
+					{
+						int busWidth = ds.bussedSignals.size();
+						long curValue = 0;
+						double curTime = 0;
+						int lastX = -1;
+						for(;;)
+						{
+							double nextTime = Double.MAX_VALUE;
+							int bit = 0;
+							boolean curDefined = true;
+							for(Iterator bIt = ds.bussedSignals.iterator(); bIt.hasNext(); )
+							{
+								Simulate.SimDigitalSignal subDS = (Simulate.SimDigitalSignal)bIt.next();
+								int numEvents = subDS.state.length;
+								boolean undefined = false;
+								for(int i=0; i<numEvents; i++)
+								{
+									double time = 0;
+									if (subDS.useCommonTime) time = waveWindow.sd.commonTime[i]; else
+										time = subDS.time[i];
+									if (time <= curTime)
+									{
+										switch (subDS.state[i] & Simulate.SimData.LOGIC)
+										{
+											case Simulate.SimData.LOGIC_LOW:  curValue &= ~(1<<bit);   undefined = false;   break;
+											case Simulate.SimData.LOGIC_HIGH: curValue |= (1<<bit);    undefined = false;   break;
+											case Simulate.SimData.LOGIC_X:
+											case Simulate.SimData.LOGIC_Z: undefined = true;    break;
+										}
+									} else
+									{
+										if (time < nextTime) nextTime = time;
+										break;
+									}
+								}
+								if (undefined) { curDefined = false;   break; }
+								bit++;
+							}
+							int x = scaleTimeToX(curTime);
+							if (x < VERTLABELWIDTH+5)
+							{
+								// on the left edge: just draw the "<"
+								drawALine(g, x, hei/2, x+5, hei-5, ws.highlighted);
+								drawALine(g, x, hei/2, x+5, 5, ws.highlighted);
+							} else
+							{
+								// bus change point: draw the "X"
+								drawALine(g, x-5, 5, x+5, hei-5, ws.highlighted);
+								drawALine(g, x+5, 5, x-5, hei-5, ws.highlighted);
+							}
+							if (lastX >= 0)
+							{
+								// previous bus change point: draw horizontal bars to connect
+								drawALine(g, lastX+5, 5, x-5, 5, ws.highlighted);
+								drawALine(g, lastX+5, hei-5, x-5, hei-5, ws.highlighted);
+							}
+							String valString = "XX";
+							if (curDefined) valString = Long.toString(curValue);
+
+							Font font = new Font(User.getDefaultFont(), Font.PLAIN, 12);
+							g.setFont(font);
+							FontRenderContext frc = new FontRenderContext(null, false, false);
+							GlyphVector gv = font.createGlyphVector(frc, valString);
+							Rectangle2D glyphBounds = gv.getVisualBounds();
+							int textHei = (int)glyphBounds.getHeight();
+
+							g.drawString(valString, x+2, hei/2+textHei/2);
+							if (nextTime == Double.MAX_VALUE) break;
+							curTime = nextTime;
+							lastX = x;
+						}
+					}
+					int lastx = VERTLABELWIDTH;
+					int lastState = 0;
+					if (ds.state == null) continue;
+					int numEvents = ds.state.length;
+					for(int i=0; i<numEvents; i++)
+					{
+						double time = 0;
+						if (ds.useCommonTime) time = waveWindow.sd.commonTime[i]; else
+							time = ds.time[i];
+						int x = scaleTimeToX(time);
+						int lowy = 0, highy = 0;
+						int state = ds.state[i] & Simulate.SimData.LOGIC;
+						switch (state)
+						{
+							case Simulate.SimData.LOGIC_LOW:  lowy = highy = 5;            break;
+							case Simulate.SimData.LOGIC_HIGH: lowy = highy = hei-5;        break;
+							case Simulate.SimData.LOGIC_X:    lowy = 5;   highy = hei-5;   break;
+							case Simulate.SimData.LOGIC_Z:    lowy = 5;   highy = hei-5;   break;
+						}
+						if (i != 0)
+						{
+							if (state != lastState)
+							{
+								drawALine(g, x, 5, x, hei-5, ws.highlighted);
+							}
+						}
+						if (lowy == highy)
+						{
+							drawALine(g, lastx, lowy, x, lowy, ws.highlighted);
+						} else
+						{
+							drawALine(g, lastx, lowy, x-lastx, highy-lowy, ws.highlighted);
+						}
+						lastx = x;
+						lastState = state;
+					}
+				}
 			}
 
 			// draw the vertical label
 			g.setColor(Color.WHITE);
 			g.drawLine(VERTLABELWIDTH, 0, VERTLABELWIDTH, hei);
-			double displayedLow = scaleYToValue(hei);
-			double displayedHigh = scaleYToValue(0);
-			StepSize ss = getSensibleValues(displayedHigh, displayedLow, 5);
-			if (ss.separation != 0.0)
+			if (hasAnalog)
 			{
-				double value = ss.low;
-				Font font = new Font(User.getDefaultFont(), Font.PLAIN, 12);
-				g.setFont(font);
-				FontRenderContext frc = new FontRenderContext(null, false, false);
-				for(;;)
+				double displayedLow = scaleYToValue(hei);
+				double displayedHigh = scaleYToValue(0);
+				StepSize ss = getSensibleValues(displayedHigh, displayedLow, 5);
+				if (ss.separation != 0.0)
 				{
-					if (value >= displayedLow)
+					double value = ss.low;
+					Font font = new Font(User.getDefaultFont(), Font.PLAIN, 12);
+					g.setFont(font);
+					FontRenderContext frc = new FontRenderContext(null, false, false);
+					for(;;)
 					{
-						if (value > displayedHigh) break;
-						int y = scaleValueToY(value);
-						g.drawLine(VERTLABELWIDTH-10, y, VERTLABELWIDTH, y);
-						String yValue = prettyPrint(value, ss.rangeScale, ss.stepScale);
-						GlyphVector gv = font.createGlyphVector(frc, yValue);
-						Rectangle2D glyphBounds = gv.getVisualBounds();
-						int height = (int)glyphBounds.getHeight();
-						int yPos = y + height / 2;
-						if (yPos-height <= 0) yPos = height+1;
-						if (yPos >= hei) yPos = hei;
-						g.drawString(yValue, VERTLABELWIDTH-10-(int)glyphBounds.getWidth()-2, yPos);
+						if (value >= displayedLow)
+						{
+							if (value > displayedHigh) break;
+							int y = scaleValueToY(value);
+							g.drawLine(VERTLABELWIDTH-10, y, VERTLABELWIDTH, y);
+							String yValue = prettyPrint(value, ss.rangeScale, ss.stepScale);
+							GlyphVector gv = font.createGlyphVector(frc, yValue);
+							Rectangle2D glyphBounds = gv.getVisualBounds();
+							int height = (int)glyphBounds.getHeight();
+							int yPos = y + height / 2;
+							if (yPos-height <= 0) yPos = height+1;
+							if (yPos >= hei) yPos = hei;
+							g.drawString(yValue, VERTLABELWIDTH-10-(int)glyphBounds.getWidth()-2, yPos);
+						}
+						value += ss.separation;
 					}
-					value += ss.separation;
 				}
 			}
 
@@ -483,6 +603,39 @@ public class WaveformWindow implements WindowContent
 				g.drawLine(lowX, highY, highX, highY);
 				g.drawLine(highX, highY, highX, lowY);
 				g.drawLine(highX, lowY, lowX, lowY);
+			}
+		}
+
+		private void drawALine(Graphics g, int fX, int fY, int tX, int tY, boolean highlighted)
+		{
+			g.drawLine(fX, fY, tX, tY);
+			if (highlighted)
+			{
+				if (fX == tX)
+				{
+					// vertical line
+					g.drawLine(fX-1, fY, tX-1, tY);
+					g.drawLine(fX+1, fY, tX+1, tY);
+				} else if (fY == tY)
+				{
+					// horizontal line
+					g.drawLine(fX, fY+1, tX, tY+1);
+					g.drawLine(fX, fY-1, tX, tY-1);
+				} else
+				{
+					if (highlighted)
+					{
+						int cX = (fX + tX) / 2;
+						int cY = (fY + tY) / 2;
+						int fXInc = 1, fYInc = 1, tXInc = 1, tYInc = 1;
+						if (fX < cX) fXInc = -1;
+						if (fY < cY) fYInc = -1;
+						if (tX < cX) tXInc = -1;
+						if (tY < cY) tYInc = -1;
+						g.drawLine(fX+fXInc, fY+fYInc, tX+tXInc, tY+tYInc);
+						g.drawLine(fX-fXInc, fY-fYInc, tX-tXInc, tY-tYInc);
+					}
+				}
 			}
 		}
 
@@ -997,10 +1150,28 @@ public class WaveformWindow implements WindowContent
 	private DefaultMutableTreeNode getSignalsForExplorer()
 	{
 		DefaultMutableTreeNode signalsExplorerTree = new DefaultMutableTreeNode("SIGNALS");
+		HashMap contextMap = new HashMap();
+		contextMap.put("", signalsExplorerTree);
 		for(Iterator it = sd.signals.iterator(); it.hasNext(); )
 		{
 			Simulate.SimSignal sSig = (Simulate.SimSignal)it.next();
-			signalsExplorerTree.add(new DefaultMutableTreeNode(sSig));
+			DefaultMutableTreeNode thisTree = signalsExplorerTree;
+			if (sSig.signalContext != null)
+			{
+				thisTree = (DefaultMutableTreeNode)contextMap.get(sSig.signalContext);
+				if (thisTree == null)
+				{
+					thisTree = new DefaultMutableTreeNode(sSig.signalContext);
+					contextMap.put(sSig.signalContext, thisTree);
+					int dotPos = sSig.signalContext.lastIndexOf('.');
+					String parent = "";
+					if (dotPos >= 0) parent = sSig.signalContext.substring(0, dotPos);
+					DefaultMutableTreeNode parentTree = (DefaultMutableTreeNode)contextMap.get(parent);
+					if (parentTree != null)
+						parentTree.add(thisTree);
+				}
+			}
+			thisTree.add(new DefaultMutableTreeNode(sSig));
 		}
 		return signalsExplorerTree;
 	}
@@ -1312,8 +1483,10 @@ public class WaveformWindow implements WindowContent
 		if (obj instanceof Simulate.SimSignal)
 		{
 			Simulate.SimSignal sig = (Simulate.SimSignal)obj;
-			Panel wp = new Panel(this);
-			if (sig instanceof Simulate.SimAnalogSignal)
+			boolean isAnalog = false;
+			if (sig instanceof Simulate.SimAnalogSignal) isAnalog = true;
+			Panel wp = new Panel(this, isAnalog);
+			if (isAnalog)
 			{
 				Simulate.SimAnalogSignal as = (Simulate.SimAnalogSignal)sig;
 				double lowValue = 0, highValue = 0;

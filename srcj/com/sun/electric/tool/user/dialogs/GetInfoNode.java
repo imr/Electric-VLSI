@@ -39,6 +39,8 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Schematics;
@@ -251,9 +253,10 @@ public class GetInfoNode extends javax.swing.JDialog
 		initialName = ni.getName();
 		initialXPos = ni.getGrabCenterX();
 		initialYPos = ni.getGrabCenterY();
-		initialXSize = ni.getXSize();
+		SizeOffset so = Technology.getSizeOffset(ni);
+		initialXSize = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
 		if (ni.isXMirrored()) initialXSize = -initialXSize;
-		initialYSize = ni.getYSize();
+		initialYSize = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
 		if (ni.isYMirrored()) initialYSize = -initialYSize;
 		initialRotation = ni.getAngle();
 

@@ -112,6 +112,22 @@ public class WindowFrame
 	 */
 	public WindowContent getContent() { return content; }
 
+	private boolean wantToRedo = false;
+
+	public static void wantToRedoLibraryTree()
+	{
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			wf.wantToRedo = true;
+		}
+	}
+
+	public void redoLibraryTreeIfRequested()
+	{
+		if (wantToRedo) redoLibraryTree();
+	}
+
 	/**
 	 * Method called when the library/cell list subtree has changed.
 	 */
@@ -224,6 +240,7 @@ public class WindowFrame
 		{
 			DefaultMutableTreeNode child = (DefaultMutableTreeNode)node.getChildAt(i);
 			TreePath descentPath = path.pathByAddingChild(child);
+			if (descentPath == null) continue;
 			recursivelyCache(expanded, descentPath, cache);
 		}
 	}

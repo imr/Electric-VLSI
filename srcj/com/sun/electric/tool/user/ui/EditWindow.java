@@ -135,9 +135,9 @@ public class EditWindow
 			// to enable keys to be received
 			if (cell != null && cell == WindowFrame.getCurrentCell())
 				requestFocus();
-//
-//			// redo the explorer tree if it changed
-//			ExplorerTree.rebuildExplorerTree();
+
+			// redo the explorer tree if it changed
+			wf.redoLibraryTreeIfRequested();
 
 			if (offscreen == null || !getSize().equals(sz))
 			{

@@ -33,6 +33,7 @@ import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
@@ -2961,7 +2962,7 @@ public class Quick
 
 			if (actual < 0) errorMessage += " OVERLAPS "; else
 				if (actual == 0) errorMessage += " TOUCHES "; else
-					errorMessage += " LESS (BY " + (limit-actual) + ") THAN " + limit + " TO ";
+					errorMessage += " LESS (BY " + TextUtils.formatDouble(limit-actual) + ") THAN " + TextUtils.formatDouble(limit) + " TO ";
 
 			if (np1 != np2)
 				errorMessage += "cell " + np2.describe() + ", ";

@@ -179,7 +179,7 @@ public class Library extends ElectricObject
 			return;
 		}
 		cells.add(c);
-		WindowFrame.redoLibraryTree();
+		WindowFrame.wantToRedoLibraryTree();
 	}
 
 	void removeCell(Cell c)
@@ -191,7 +191,7 @@ public class Library extends ElectricObject
 			return;
 		}
 		cells.remove(c);
-		WindowFrame.redoLibraryTree();
+		WindowFrame.wantToRedoLibraryTree();
 	}
 
 	// ----------------- public interface --------------------

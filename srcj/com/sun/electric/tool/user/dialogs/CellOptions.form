@@ -1,433 +1,940 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-
-<Form version="1.0" type="org.netbeans.modules.form.forminfo.JDialogFormInfo">
-  <NonVisualComponents>
-    <Component class="javax.swing.ButtonGroup" name="expansion">
-    </Component>
-  </NonVisualComponents>
-  <Properties>
-    <Property name="title" type="java.lang.String" value="Cell Control"/>
-    <Property name="name" type="java.lang.String" value=""/>
-  </Properties>
-  <SyntheticProperties>
-    <SyntheticProperty name="formSizePolicy" type="int" value="1"/>
-  </SyntheticProperties>
-  <Events>
-    <EventHandler event="windowClosing" listener="java.awt.event.WindowListener" parameters="java.awt.event.WindowEvent" handler="closeDialog"/>
-  </Events>
-  <AuxValues>
-    <AuxValue name="designerSize" type="java.awt.Dimension" value="-84,-19,0,5,115,114,0,18,106,97,118,97,46,97,119,116,46,68,105,109,101,110,115,105,111,110,65,-114,-39,-41,-84,95,68,20,2,0,2,73,0,6,104,101,105,103,104,116,73,0,5,119,105,100,116,104,120,112,0,0,1,95,0,0,2,116"/>
-  </AuxValues>
-
-  <Layout class="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout"/>
-  <SubComponents>
-    <Component class="javax.swing.JButton" name="cancel">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Cancel"/>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cancel"/>
-      </Events>
-      <Constraints>
-        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-          <GridBagConstraints gridX="4" gridY="8" gridWidth="2" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="4" insetsLeft="4" insetsBottom="4" insetsRight="4" anchor="10" weightX="0.5" weightY="0.0"/>
-        </Constraint>
-      </Constraints>
-    </Component>
-    <Component class="javax.swing.JButton" name="ok">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="OK"/>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="ok"/>
-      </Events>
-      <Constraints>
-        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-          <GridBagConstraints gridX="4" gridY="9" gridWidth="2" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="4" insetsLeft="4" insetsBottom="4" insetsRight="4" anchor="10" weightX="0.5" weightY="0.0"/>
-        </Constraint>
-      </Constraints>
-    </Component>
-    <Component class="javax.swing.JLabel" name="jLabel1">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Library:"/>
-      </Properties>
-      <Constraints>
-        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-          <GridBagConstraints gridX="0" gridY="0" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="4" insetsLeft="4" insetsBottom="4" insetsRight="4" anchor="17" weightX="0.0" weightY="0.0"/>
-        </Constraint>
-      </Constraints>
-    </Component>
-    <Component class="javax.swing.JComboBox" name="libraryPopup">
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="libraryPopupActionPerformed"/>
-      </Events>
-      <Constraints>
-        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-          <GridBagConstraints gridX="1" gridY="0" gridWidth="2" gridHeight="1" fill="2" ipadX="0" ipadY="0" insetsTop="4" insetsLeft="4" insetsBottom="4" insetsRight="4" anchor="10" weightX="0.0" weightY="0.0"/>
-        </Constraint>
-      </Constraints>
-    </Component>
-    <Container class="javax.swing.JScrollPane" name="cellPane">
-      <Properties>
-        <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-          <Dimension value="[200, 250]"/>
-        </Property>
-        <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-          <Dimension value="[200, 250]"/>
-        </Property>
-      </Properties>
-      <Constraints>
-        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-          <GridBagConstraints gridX="0" gridY="1" gridWidth="2" gridHeight="8" fill="1" ipadX="0" ipadY="0" insetsTop="4" insetsLeft="4" insetsBottom="4" insetsRight="4" anchor="10" weightX="1.0" weightY="1.0"/>
-        </Constraint>
-      </Constraints>
-
-      <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
-    </Container>
-    <Component class="javax.swing.JCheckBox" name="disallowModAnyInCell">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Disallow modification of anything in this cell"/>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="disallowModAnyInCellActionPerformed"/>
-      </Events>
-      <Constraints>
-        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-          <GridBagConstraints gridX="2" gridY="1" gridWidth="2" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="4" insetsLeft="4" insetsBottom="2" insetsRight="4" anchor="17" weightX="0.0" weightY="0.0"/>
-        </Constraint>
-      </Constraints>
-    </Component>
-    <Component class="javax.swing.JButton" name="setDisallowModAnyInCell">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Set"/>
-        <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-          <Dimension value="[53, 20]"/>
-        </Property>
-        <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-          <Dimension value="[53, 20]"/>
-        </Property>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="setDisallowModAnyInCellActionPerformed"/>
-      </Events>
-      <Constraints>
-        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-          <GridBagConstraints gridX="4" gridY="1" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="4" insetsLeft="4" insetsBottom="2" insetsRight="2" anchor="10" weightX="0.0" weightY="0.0"/>
-        </Constraint>
-      </Constraints>
-    </Component>
-    <Component class="javax.swing.JButton" name="clearDisallowModAnyInCell">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Clear"/>
-        <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-          <Dimension value="[64, 20]"/>
-        </Property>
-        <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-          <Dimension value="[64, 20]"/>
-        </Property>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="clearDisallowModAnyInCellActionPerformed"/>
-      </Events>
-      <Constraints>
-        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-          <GridBagConstraints gridX="5" gridY="1" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="4" insetsLeft="2" insetsBottom="2" insetsRight="4" anchor="10" weightX="0.0" weightY="0.0"/>
-        </Constraint>
-      </Constraints>
-    </Component>
-    <Component class="javax.swing.JCheckBox" name="disallowModInstInCell">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Disallow modification of instances in this cell"/>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="disallowModInstInCellActionPerformed"/>
-      </Events>
-      <Constraints>
-        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-          <GridBagConstraints gridX="2" gridY="2" gridWidth="2" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="2" insetsLeft="4" insetsBottom="2" insetsRight="4" anchor="17" weightX="0.0" weightY="0.0"/>
-        </Constraint>
-      </Constraints>
-    </Component>
-    <Component class="javax.swing.JButton" name="setDisallowModInstInCell">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Set"/>
-        <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-          <Dimension value="[53, 20]"/>
-        </Property>
-        <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-          <Dimension value="[53, 20]"/>
-        </Property>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="setDisallowModInstInCellActionPerformed"/>
-      </Events>
-      <Constraints>
-        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-          <GridBagConstraints gridX="4" gridY="2" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="2" insetsLeft="4" insetsBottom="2" insetsRight="2" anchor="10" weightX="0.0" weightY="0.0"/>
-        </Constraint>
-      </Constraints>
-    </Component>
-    <Component class="javax.swing.JButton" name="clearDisallowModInstInCell">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Clear"/>
-        <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-          <Dimension value="[64, 20]"/>
-        </Property>
-        <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-          <Dimension value="[64, 20]"/>
-        </Property>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="clearDisallowModInstInCellActionPerformed"/>
-      </Events>
-      <Constraints>
-        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-          <GridBagConstraints gridX="5" gridY="2" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="2" insetsLeft="2" insetsBottom="2" insetsRight="4" anchor="10" weightX="0.0" weightY="0.0"/>
-        </Constraint>
-      </Constraints>
-    </Component>
-    <Component class="javax.swing.JCheckBox" name="partOfCellLib">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Part of a cell-library"/>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="partOfCellLibActionPerformed"/>
-      </Events>
-      <Constraints>
-        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-          <GridBagConstraints gridX="2" gridY="3" gridWidth="2" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="2" insetsLeft="4" insetsBottom="2" insetsRight="4" anchor="17" weightX="0.0" weightY="0.0"/>
-        </Constraint>
-      </Constraints>
-    </Component>
-    <Component class="javax.swing.JButton" name="setPartOfCellLib">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Set"/>
-        <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-          <Dimension value="[53, 20]"/>
-        </Property>
-        <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-          <Dimension value="[53, 20]"/>
-        </Property>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="setPartOfCellLibActionPerformed"/>
-      </Events>
-      <Constraints>
-        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-          <GridBagConstraints gridX="4" gridY="3" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="2" insetsLeft="4" insetsBottom="2" insetsRight="2" anchor="10" weightX="0.0" weightY="0.0"/>
-        </Constraint>
-      </Constraints>
-    </Component>
-    <Component class="javax.swing.JButton" name="clearPartOfCellLib">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Clear"/>
-        <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-          <Dimension value="[64, 20]"/>
-        </Property>
-        <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-          <Dimension value="[64, 20]"/>
-        </Property>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="clearPartOfCellLibActionPerformed"/>
-      </Events>
-      <Constraints>
-        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-          <GridBagConstraints gridX="5" gridY="3" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="2" insetsLeft="2" insetsBottom="2" insetsRight="4" anchor="10" weightX="0.0" weightY="0.0"/>
-        </Constraint>
-      </Constraints>
-    </Component>
-    <Component class="javax.swing.JCheckBox" name="useTechEditor">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Use technology editor on this cell"/>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="useTechEditorActionPerformed"/>
-      </Events>
-      <Constraints>
-        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-          <GridBagConstraints gridX="2" gridY="4" gridWidth="2" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="2" insetsLeft="4" insetsBottom="4" insetsRight="4" anchor="17" weightX="0.0" weightY="0.0"/>
-        </Constraint>
-      </Constraints>
-    </Component>
-    <Component class="javax.swing.JButton" name="setUseTechEditor">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Set"/>
-        <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-          <Dimension value="[53, 20]"/>
-        </Property>
-        <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-          <Dimension value="[53, 20]"/>
-        </Property>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="setUseTechEditorActionPerformed"/>
-      </Events>
-      <Constraints>
-        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-          <GridBagConstraints gridX="4" gridY="4" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="2" insetsLeft="4" insetsBottom="4" insetsRight="2" anchor="10" weightX="0.0" weightY="0.0"/>
-        </Constraint>
-      </Constraints>
-    </Component>
-    <Component class="javax.swing.JButton" name="clearUseTechEditor">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Clear"/>
-        <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-          <Dimension value="[64, 20]"/>
-        </Property>
-        <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-          <Dimension value="[64, 20]"/>
-        </Property>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="clearUseTechEditorActionPerformed"/>
-      </Events>
-      <Constraints>
-        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-          <GridBagConstraints gridX="5" gridY="4" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="2" insetsLeft="2" insetsBottom="4" insetsRight="4" anchor="10" weightX="0.0" weightY="0.0"/>
-        </Constraint>
-      </Constraints>
-    </Component>
-    <Component class="javax.swing.JRadioButton" name="expandNewInstances">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Expand new instances"/>
-        <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
-          <ComponentRef name="expansion"/>
-        </Property>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="expandNewInstancesActionPerformed"/>
-      </Events>
-      <Constraints>
-        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-          <GridBagConstraints gridX="2" gridY="5" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="4" insetsLeft="4" insetsBottom="4" insetsRight="4" anchor="17" weightX="0.0" weightY="0.0"/>
-        </Constraint>
-      </Constraints>
-    </Component>
-    <Component class="javax.swing.JRadioButton" name="unexpandNewInstances">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Unexpand new instances"/>
-        <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
-          <ComponentRef name="expansion"/>
-        </Property>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="unexpandNewInstancesActionPerformed"/>
-      </Events>
-      <Constraints>
-        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-          <GridBagConstraints gridX="3" gridY="5" gridWidth="3" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="4" insetsLeft="4" insetsBottom="4" insetsRight="4" anchor="10" weightX="0.0" weightY="0.0"/>
-        </Constraint>
-      </Constraints>
-    </Component>
-    <Component class="javax.swing.JLabel" name="jLabel2">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Characteristic X Spacing:"/>
-      </Properties>
-      <Constraints>
-        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-          <GridBagConstraints gridX="2" gridY="6" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="4" insetsLeft="4" insetsBottom="4" insetsRight="4" anchor="17" weightX="0.0" weightY="0.0"/>
-        </Constraint>
-      </Constraints>
-    </Component>
-    <Component class="javax.swing.JTextField" name="charXSpacing">
-      <Properties>
-        <Property name="text" type="java.lang.String" value=" "/>
-      </Properties>
-      <Constraints>
-        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-          <GridBagConstraints gridX="3" gridY="6" gridWidth="2" gridHeight="1" fill="2" ipadX="0" ipadY="0" insetsTop="4" insetsLeft="4" insetsBottom="4" insetsRight="4" anchor="17" weightX="0.0" weightY="0.0"/>
-        </Constraint>
-      </Constraints>
-    </Component>
-    <Component class="javax.swing.JLabel" name="jLabel3">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Characteristic Y Spacing:"/>
-      </Properties>
-      <Constraints>
-        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-          <GridBagConstraints gridX="2" gridY="7" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="4" insetsLeft="4" insetsBottom="4" insetsRight="4" anchor="17" weightX="0.0" weightY="0.0"/>
-        </Constraint>
-      </Constraints>
-    </Component>
-    <Component class="javax.swing.JTextField" name="charYSpacing">
-      <Properties>
-        <Property name="text" type="java.lang.String" value=" "/>
-      </Properties>
-      <Constraints>
-        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-          <GridBagConstraints gridX="3" gridY="7" gridWidth="2" gridHeight="1" fill="2" ipadX="0" ipadY="0" insetsTop="4" insetsLeft="4" insetsBottom="4" insetsRight="4" anchor="10" weightX="0.0" weightY="0.0"/>
-        </Constraint>
-      </Constraints>
-    </Component>
-    <Component class="javax.swing.JLabel" name="jLabel4">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Every cell:"/>
-      </Properties>
-      <Constraints>
-        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-          <GridBagConstraints gridX="4" gridY="0" gridWidth="2" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="0" insetsBottom="0" insetsRight="0" anchor="10" weightX="0.0" weightY="0.0"/>
-        </Constraint>
-      </Constraints>
-    </Component>
-    <Component class="javax.swing.JButton" name="editCell">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Edit Cell"/>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="editCellActionPerformed"/>
-      </Events>
-      <Constraints>
-        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-          <GridBagConstraints gridX="2" gridY="8" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="4" insetsLeft="4" insetsBottom="4" insetsRight="4" anchor="10" weightX="0.0" weightY="0.0"/>
-        </Constraint>
-      </Constraints>
-    </Component>
-    <Component class="javax.swing.JTextField" name="cellName">
-      <Properties>
-        <Property name="text" type="java.lang.String" value=" "/>
-      </Properties>
-      <Constraints>
-        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-          <GridBagConstraints gridX="0" gridY="9" gridWidth="2" gridHeight="1" fill="2" ipadX="0" ipadY="0" insetsTop="4" insetsLeft="4" insetsBottom="4" insetsRight="4" anchor="10" weightX="0.0" weightY="0.0"/>
-        </Constraint>
-      </Constraints>
-    </Component>
-    <Component class="javax.swing.JButton" name="rename">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Rename Cell"/>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="renameActionPerformed"/>
-      </Events>
-      <Constraints>
-        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-          <GridBagConstraints gridX="2" gridY="9" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="4" insetsLeft="4" insetsBottom="4" insetsRight="4" anchor="10" weightX="0.0" weightY="0.0"/>
-        </Constraint>
-      </Constraints>
-    </Component>
-    <Component class="javax.swing.JButton" name="delete">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Delete Cell"/>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="deleteActionPerformed"/>
-      </Events>
-      <Constraints>
-        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-          <GridBagConstraints gridX="3" gridY="8" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="4" insetsLeft="4" insetsBottom="4" insetsRight="4" anchor="10" weightX="0.0" weightY="0.0"/>
-        </Constraint>
-      </Constraints>
-    </Component>
-    <Component class="javax.swing.JCheckBox" name="confirmDelete">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Confirm Delete"/>
-      </Properties>
-      <Constraints>
-        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-          <GridBagConstraints gridX="3" gridY="9" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="4" insetsLeft="4" insetsBottom="4" insetsRight="4" anchor="10" weightX="0.0" weightY="0.0"/>
-        </Constraint>
-      </Constraints>
-    </Component>
-  </SubComponents>
+<?xml version="1.0" encoding="UTF-8"?>
+<Form style="Swing" ide="eclipse" builder="jigloo" version="2.7.2">
+<NonVisualComponents>
+		<Component class="java.lang.Object" name="object1">
+			<Constraints>
+				<LayoutConstraint/>
+			</Constraints>
+			<Properties>
+			</Properties>
+			<SubComponents>
+				<Component class="javax.swing.ButtonGroup" name="expansion">
+					<Constraints>
+						<LayoutConstraint/>
+					</Constraints>
+					<Properties>
+					</Properties>
+				</Component>
+			</SubComponents>
+		</Component></NonVisualComponents>
+	<Component class="javax.swing.JDialog" name="CellOptions">
+		<Constraints>
+			<LayoutConstraint/>
+		</Constraints>
+		<Layout class="GridBag">
+			<Property name="columnWidths" type="IntegerArray">
+			<IntegerArray value="[ 1,1,1,1,1,1 ]"/>
+		</Property>
+			<Property name="rowHeights" type="IntegerArray">
+			<IntegerArray value="[ 1,1,1,1,1,1,1,1,1,1 ]"/>
+		</Property>
+			<Property name="columnWeights" type="DoubleArray">
+			<DoubleArray value="[ 0.1,0.1,0.1,0.1,0.1,0.1 ]"/>
+		</Property>
+			<Property name="rowWeights" type="DoubleArray">
+			<DoubleArray value="[ 0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1 ]"/>
+		</Property>
+			<Property name="columns" type="int" value="6"/>
+			<Property name="rows" type="int" value="10"/>
+		</Layout>
+		<Events>
+			<EventHandler event="windowClosing" listener="java.awt.event.WindowListener" handler="CellOptionsWindowClosing"/>
+		</Events>
+		<Properties>
+			<Property name="title" type="String" value="Cell Control"/>
+			<Property name="name" type="String" value=""/>
+		</Properties>
+		<SubComponents>
+			<Component class="javax.swing.JButton" name="cancel">
+				<Constraints>
+					<Constraint insetsleft="4"/>
+					<Constraint insetstop="4"/>
+					<Constraint insetsright="4"/>
+					<Constraint insetsbottom="4"/>
+					<LayoutConstraint class="java.awt.GridBagConstraints">
+						<Property name="gridx" type="int" value="4"/>
+						<Property name="gridy" type="int" value="8"/>
+						<Property name="gridwidth" type="int" value="2"/>
+						<Property name="gridheight" type="int" value="1"/>
+						<Property name="weightx" type="double" value="0.5"/>
+						<Property name="weighty" type="double" value="0.0"/>
+						<Property name="anchor" type="int" value="10"/>
+						<Property name="fill" type="int" value="0"/>
+						<Property name="insets" type="Insets">
+						<Insets value="[0, 0, 0, 0]"/>
+					</Property>
+						<Property name="ipadx" type="int" value="0"/>
+						<Property name="ipady" type="int" value="0"/>
+					</LayoutConstraint>
+				</Constraints>
+				<Events>
+					<EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" handler="cancel"/>
+				</Events>
+				<Properties>
+					<Property name="text" type="String" value="Cancel"/>
+				</Properties>
+			</Component>
+			<Component class="javax.swing.JButton" name="ok">
+				<Constraints>
+					<Constraint insetsleft="4"/>
+					<Constraint insetstop="4"/>
+					<Constraint insetsright="4"/>
+					<Constraint insetsbottom="4"/>
+					<LayoutConstraint class="java.awt.GridBagConstraints">
+						<Property name="gridx" type="int" value="4"/>
+						<Property name="gridy" type="int" value="9"/>
+						<Property name="gridwidth" type="int" value="2"/>
+						<Property name="gridheight" type="int" value="1"/>
+						<Property name="weightx" type="double" value="0.5"/>
+						<Property name="weighty" type="double" value="0.0"/>
+						<Property name="anchor" type="int" value="10"/>
+						<Property name="fill" type="int" value="0"/>
+						<Property name="insets" type="Insets">
+						<Insets value="[0, 0, 0, 0]"/>
+					</Property>
+						<Property name="ipadx" type="int" value="0"/>
+						<Property name="ipady" type="int" value="0"/>
+					</LayoutConstraint>
+				</Constraints>
+				<Events>
+					<EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" handler="ok"/>
+				</Events>
+				<Properties>
+					<Property name="text" type="String" value="OK"/>
+				</Properties>
+			</Component>
+			<Component class="javax.swing.JLabel" name="jLabel1">
+				<Constraints>
+					<Constraint insetsleft="4"/>
+					<Constraint insetstop="4"/>
+					<Constraint insetsright="4"/>
+					<Constraint insetsbottom="4"/>
+					<LayoutConstraint class="java.awt.GridBagConstraints">
+						<Property name="gridx" type="int" value="0"/>
+						<Property name="gridy" type="int" value="0"/>
+						<Property name="gridwidth" type="int" value="1"/>
+						<Property name="gridheight" type="int" value="1"/>
+						<Property name="weightx" type="double" value="0.0"/>
+						<Property name="weighty" type="double" value="0.0"/>
+						<Property name="anchor" type="int" value="17"/>
+						<Property name="fill" type="int" value="0"/>
+						<Property name="insets" type="Insets">
+						<Insets value="[0, 0, 0, 0]"/>
+					</Property>
+						<Property name="ipadx" type="int" value="0"/>
+						<Property name="ipady" type="int" value="0"/>
+					</LayoutConstraint>
+				</Constraints>
+				<Events>
+				</Events>
+				<Properties>
+					<Property name="text" type="String" value="Library:"/>
+				</Properties>
+			</Component>
+			<Component class="javax.swing.JComboBox" name="libraryPopup">
+				<Constraints>
+					<Constraint insetsleft="4"/>
+					<Constraint insetstop="4"/>
+					<Constraint insetsright="4"/>
+					<Constraint insetsbottom="4"/>
+					<LayoutConstraint class="java.awt.GridBagConstraints">
+						<Property name="gridx" type="int" value="1"/>
+						<Property name="gridy" type="int" value="0"/>
+						<Property name="gridwidth" type="int" value="2"/>
+						<Property name="gridheight" type="int" value="1"/>
+						<Property name="weightx" type="double" value="0.0"/>
+						<Property name="weighty" type="double" value="0.0"/>
+						<Property name="anchor" type="int" value="10"/>
+						<Property name="fill" type="int" value="2"/>
+						<Property name="insets" type="Insets">
+						<Insets value="[0, 0, 0, 0]"/>
+					</Property>
+						<Property name="ipadx" type="int" value="0"/>
+						<Property name="ipady" type="int" value="0"/>
+					</LayoutConstraint>
+				</Constraints>
+				<Events>
+					<EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" handler="libraryPopupActionPerformed"/>
+				</Events>
+				<Properties>
+				</Properties>
+			</Component>
+			<Component class="javax.swing.JScrollPane" name="cellPane">
+				<Constraints>
+					<Constraint insetsleft="4"/>
+					<Constraint insetstop="4"/>
+					<Constraint insetsright="4"/>
+					<Constraint insetsbottom="4"/>
+					<LayoutConstraint class="java.awt.GridBagConstraints">
+						<Property name="gridx" type="int" value="0"/>
+						<Property name="gridy" type="int" value="1"/>
+						<Property name="gridwidth" type="int" value="2"/>
+						<Property name="gridheight" type="int" value="8"/>
+						<Property name="weightx" type="double" value="1.0"/>
+						<Property name="weighty" type="double" value="1.0"/>
+						<Property name="anchor" type="int" value="10"/>
+						<Property name="fill" type="int" value="1"/>
+						<Property name="insets" type="Insets">
+						<Insets value="[0, 0, 0, 0]"/>
+					</Property>
+						<Property name="ipadx" type="int" value="0"/>
+						<Property name="ipady" type="int" value="0"/>
+					</LayoutConstraint>
+				</Constraints>
+				<Events>
+				</Events>
+				<Properties>
+					<Property name="minimumSize" type="Dimension">
+						<Dimension value="[200, 250]"/>
+					</Property>
+					<Property name="preferredSize" type="Dimension">
+						<Dimension value="[200, 250]"/>
+					</Property>
+				</Properties>
+			</Component>
+			<Component class="javax.swing.JCheckBox" name="disallowModAnyInCell">
+				<Constraints>
+					<Constraint insetsleft="4"/>
+					<Constraint insetstop="4"/>
+					<Constraint insetsright="4"/>
+					<Constraint insetsbottom="2"/>
+					<LayoutConstraint class="java.awt.GridBagConstraints">
+						<Property name="gridx" type="int" value="2"/>
+						<Property name="gridy" type="int" value="1"/>
+						<Property name="gridwidth" type="int" value="2"/>
+						<Property name="gridheight" type="int" value="1"/>
+						<Property name="weightx" type="double" value="0.0"/>
+						<Property name="weighty" type="double" value="0.0"/>
+						<Property name="anchor" type="int" value="17"/>
+						<Property name="fill" type="int" value="0"/>
+						<Property name="insets" type="Insets">
+						<Insets value="[0, 0, 0, 0]"/>
+					</Property>
+						<Property name="ipadx" type="int" value="0"/>
+						<Property name="ipady" type="int" value="0"/>
+					</LayoutConstraint>
+				</Constraints>
+				<Events>
+					<EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" handler="disallowModAnyInCellActionPerformed"/>
+				</Events>
+				<Properties>
+					<Property name="text" type="String" value="Disallow modification of anything in this cell"/>
+				</Properties>
+			</Component>
+			<Component class="javax.swing.JButton" name="setDisallowModAnyInCell">
+				<Constraints>
+					<Constraint insetsleft="4"/>
+					<Constraint insetstop="4"/>
+					<Constraint insetsright="2"/>
+					<Constraint insetsbottom="2"/>
+					<LayoutConstraint class="java.awt.GridBagConstraints">
+						<Property name="gridx" type="int" value="4"/>
+						<Property name="gridy" type="int" value="1"/>
+						<Property name="gridwidth" type="int" value="1"/>
+						<Property name="gridheight" type="int" value="1"/>
+						<Property name="weightx" type="double" value="0.0"/>
+						<Property name="weighty" type="double" value="0.0"/>
+						<Property name="anchor" type="int" value="10"/>
+						<Property name="fill" type="int" value="0"/>
+						<Property name="insets" type="Insets">
+						<Insets value="[0, 0, 0, 0]"/>
+					</Property>
+						<Property name="ipadx" type="int" value="0"/>
+						<Property name="ipady" type="int" value="0"/>
+					</LayoutConstraint>
+				</Constraints>
+				<Events>
+					<EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" handler="setDisallowModAnyInCellActionPerformed"/>
+				</Events>
+				<Properties>
+					<Property name="text" type="String" value="Set"/>
+					<Property name="minimumSize" type="Dimension">
+						<Dimension value="[53, 20]"/>
+					</Property>
+					<Property name="preferredSize" type="Dimension">
+						<Dimension value="[53, 20]"/>
+					</Property>
+				</Properties>
+			</Component>
+			<Component class="javax.swing.JButton" name="clearDisallowModAnyInCell">
+				<Constraints>
+					<Constraint insetsleft="2"/>
+					<Constraint insetstop="4"/>
+					<Constraint insetsright="4"/>
+					<Constraint insetsbottom="2"/>
+					<LayoutConstraint class="java.awt.GridBagConstraints">
+						<Property name="gridx" type="int" value="5"/>
+						<Property name="gridy" type="int" value="1"/>
+						<Property name="gridwidth" type="int" value="1"/>
+						<Property name="gridheight" type="int" value="1"/>
+						<Property name="weightx" type="double" value="0.0"/>
+						<Property name="weighty" type="double" value="0.0"/>
+						<Property name="anchor" type="int" value="10"/>
+						<Property name="fill" type="int" value="0"/>
+						<Property name="insets" type="Insets">
+						<Insets value="[0, 0, 0, 0]"/>
+					</Property>
+						<Property name="ipadx" type="int" value="0"/>
+						<Property name="ipady" type="int" value="0"/>
+					</LayoutConstraint>
+				</Constraints>
+				<Events>
+					<EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" handler="clearDisallowModAnyInCellActionPerformed"/>
+				</Events>
+				<Properties>
+					<Property name="text" type="String" value="Clear"/>
+					<Property name="minimumSize" type="Dimension">
+						<Dimension value="[64, 20]"/>
+					</Property>
+					<Property name="preferredSize" type="Dimension">
+						<Dimension value="[64, 20]"/>
+					</Property>
+				</Properties>
+			</Component>
+			<Component class="javax.swing.JCheckBox" name="disallowModInstInCell">
+				<Constraints>
+					<Constraint insetsleft="4"/>
+					<Constraint insetstop="2"/>
+					<Constraint insetsright="4"/>
+					<Constraint insetsbottom="2"/>
+					<LayoutConstraint class="java.awt.GridBagConstraints">
+						<Property name="gridx" type="int" value="2"/>
+						<Property name="gridy" type="int" value="2"/>
+						<Property name="gridwidth" type="int" value="2"/>
+						<Property name="gridheight" type="int" value="1"/>
+						<Property name="weightx" type="double" value="0.0"/>
+						<Property name="weighty" type="double" value="0.0"/>
+						<Property name="anchor" type="int" value="17"/>
+						<Property name="fill" type="int" value="0"/>
+						<Property name="insets" type="Insets">
+						<Insets value="[0, 0, 0, 0]"/>
+					</Property>
+						<Property name="ipadx" type="int" value="0"/>
+						<Property name="ipady" type="int" value="0"/>
+					</LayoutConstraint>
+				</Constraints>
+				<Events>
+					<EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" handler="disallowModInstInCellActionPerformed"/>
+				</Events>
+				<Properties>
+					<Property name="text" type="String" value="Disallow modification of instances in this cell"/>
+				</Properties>
+			</Component>
+			<Component class="javax.swing.JButton" name="setDisallowModInstInCell">
+				<Constraints>
+					<Constraint insetsleft="4"/>
+					<Constraint insetstop="2"/>
+					<Constraint insetsright="2"/>
+					<Constraint insetsbottom="2"/>
+					<LayoutConstraint class="java.awt.GridBagConstraints">
+						<Property name="gridx" type="int" value="4"/>
+						<Property name="gridy" type="int" value="2"/>
+						<Property name="gridwidth" type="int" value="1"/>
+						<Property name="gridheight" type="int" value="1"/>
+						<Property name="weightx" type="double" value="0.0"/>
+						<Property name="weighty" type="double" value="0.0"/>
+						<Property name="anchor" type="int" value="10"/>
+						<Property name="fill" type="int" value="0"/>
+						<Property name="insets" type="Insets">
+						<Insets value="[0, 0, 0, 0]"/>
+					</Property>
+						<Property name="ipadx" type="int" value="0"/>
+						<Property name="ipady" type="int" value="0"/>
+					</LayoutConstraint>
+				</Constraints>
+				<Events>
+					<EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" handler="setDisallowModInstInCellActionPerformed"/>
+				</Events>
+				<Properties>
+					<Property name="text" type="String" value="Set"/>
+					<Property name="minimumSize" type="Dimension">
+						<Dimension value="[53, 20]"/>
+					</Property>
+					<Property name="preferredSize" type="Dimension">
+						<Dimension value="[53, 20]"/>
+					</Property>
+				</Properties>
+			</Component>
+			<Component class="javax.swing.JButton" name="clearDisallowModInstInCell">
+				<Constraints>
+					<Constraint insetsleft="2"/>
+					<Constraint insetstop="2"/>
+					<Constraint insetsright="4"/>
+					<Constraint insetsbottom="2"/>
+					<LayoutConstraint class="java.awt.GridBagConstraints">
+						<Property name="gridx" type="int" value="5"/>
+						<Property name="gridy" type="int" value="2"/>
+						<Property name="gridwidth" type="int" value="1"/>
+						<Property name="gridheight" type="int" value="1"/>
+						<Property name="weightx" type="double" value="0.0"/>
+						<Property name="weighty" type="double" value="0.0"/>
+						<Property name="anchor" type="int" value="10"/>
+						<Property name="fill" type="int" value="0"/>
+						<Property name="insets" type="Insets">
+						<Insets value="[0, 0, 0, 0]"/>
+					</Property>
+						<Property name="ipadx" type="int" value="0"/>
+						<Property name="ipady" type="int" value="0"/>
+					</LayoutConstraint>
+				</Constraints>
+				<Events>
+					<EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" handler="clearDisallowModInstInCellActionPerformed"/>
+				</Events>
+				<Properties>
+					<Property name="text" type="String" value="Clear"/>
+					<Property name="minimumSize" type="Dimension">
+						<Dimension value="[64, 20]"/>
+					</Property>
+					<Property name="preferredSize" type="Dimension">
+						<Dimension value="[64, 20]"/>
+					</Property>
+				</Properties>
+			</Component>
+			<Component class="javax.swing.JCheckBox" name="partOfCellLib">
+				<Constraints>
+					<Constraint insetsleft="4"/>
+					<Constraint insetstop="2"/>
+					<Constraint insetsright="4"/>
+					<Constraint insetsbottom="2"/>
+					<LayoutConstraint class="java.awt.GridBagConstraints">
+						<Property name="gridx" type="int" value="2"/>
+						<Property name="gridy" type="int" value="3"/>
+						<Property name="gridwidth" type="int" value="2"/>
+						<Property name="gridheight" type="int" value="1"/>
+						<Property name="weightx" type="double" value="0.0"/>
+						<Property name="weighty" type="double" value="0.0"/>
+						<Property name="anchor" type="int" value="17"/>
+						<Property name="fill" type="int" value="0"/>
+						<Property name="insets" type="Insets">
+						<Insets value="[0, 0, 0, 0]"/>
+					</Property>
+						<Property name="ipadx" type="int" value="0"/>
+						<Property name="ipady" type="int" value="0"/>
+					</LayoutConstraint>
+				</Constraints>
+				<Events>
+					<EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" handler="partOfCellLibActionPerformed"/>
+				</Events>
+				<Properties>
+					<Property name="text" type="String" value="Part of a cell-library"/>
+				</Properties>
+			</Component>
+			<Component class="javax.swing.JButton" name="setPartOfCellLib">
+				<Constraints>
+					<Constraint insetsleft="4"/>
+					<Constraint insetstop="2"/>
+					<Constraint insetsright="2"/>
+					<Constraint insetsbottom="2"/>
+					<LayoutConstraint class="java.awt.GridBagConstraints">
+						<Property name="gridx" type="int" value="4"/>
+						<Property name="gridy" type="int" value="3"/>
+						<Property name="gridwidth" type="int" value="1"/>
+						<Property name="gridheight" type="int" value="1"/>
+						<Property name="weightx" type="double" value="0.0"/>
+						<Property name="weighty" type="double" value="0.0"/>
+						<Property name="anchor" type="int" value="10"/>
+						<Property name="fill" type="int" value="0"/>
+						<Property name="insets" type="Insets">
+						<Insets value="[0, 0, 0, 0]"/>
+					</Property>
+						<Property name="ipadx" type="int" value="0"/>
+						<Property name="ipady" type="int" value="0"/>
+					</LayoutConstraint>
+				</Constraints>
+				<Events>
+					<EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" handler="setPartOfCellLibActionPerformed"/>
+				</Events>
+				<Properties>
+					<Property name="text" type="String" value="Set"/>
+					<Property name="minimumSize" type="Dimension">
+						<Dimension value="[53, 20]"/>
+					</Property>
+					<Property name="preferredSize" type="Dimension">
+						<Dimension value="[53, 20]"/>
+					</Property>
+				</Properties>
+			</Component>
+			<Component class="javax.swing.JButton" name="clearPartOfCellLib">
+				<Constraints>
+					<Constraint insetsleft="2"/>
+					<Constraint insetstop="2"/>
+					<Constraint insetsright="4"/>
+					<Constraint insetsbottom="2"/>
+					<LayoutConstraint class="java.awt.GridBagConstraints">
+						<Property name="gridx" type="int" value="5"/>
+						<Property name="gridy" type="int" value="3"/>
+						<Property name="gridwidth" type="int" value="1"/>
+						<Property name="gridheight" type="int" value="1"/>
+						<Property name="weightx" type="double" value="0.0"/>
+						<Property name="weighty" type="double" value="0.0"/>
+						<Property name="anchor" type="int" value="10"/>
+						<Property name="fill" type="int" value="0"/>
+						<Property name="insets" type="Insets">
+						<Insets value="[0, 0, 0, 0]"/>
+					</Property>
+						<Property name="ipadx" type="int" value="0"/>
+						<Property name="ipady" type="int" value="0"/>
+					</LayoutConstraint>
+				</Constraints>
+				<Events>
+					<EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" handler="clearPartOfCellLibActionPerformed"/>
+				</Events>
+				<Properties>
+					<Property name="text" type="String" value="Clear"/>
+					<Property name="minimumSize" type="Dimension">
+						<Dimension value="[64, 20]"/>
+					</Property>
+					<Property name="preferredSize" type="Dimension">
+						<Dimension value="[64, 20]"/>
+					</Property>
+				</Properties>
+			</Component>
+			<Component class="javax.swing.JCheckBox" name="useTechEditor">
+				<Constraints>
+					<Constraint insetsleft="4"/>
+					<Constraint insetstop="2"/>
+					<Constraint insetsright="4"/>
+					<Constraint insetsbottom="4"/>
+					<LayoutConstraint class="java.awt.GridBagConstraints">
+						<Property name="gridx" type="int" value="2"/>
+						<Property name="gridy" type="int" value="4"/>
+						<Property name="gridwidth" type="int" value="2"/>
+						<Property name="gridheight" type="int" value="1"/>
+						<Property name="weightx" type="double" value="0.0"/>
+						<Property name="weighty" type="double" value="0.0"/>
+						<Property name="anchor" type="int" value="17"/>
+						<Property name="fill" type="int" value="0"/>
+						<Property name="insets" type="Insets">
+						<Insets value="[0, 0, 0, 0]"/>
+					</Property>
+						<Property name="ipadx" type="int" value="0"/>
+						<Property name="ipady" type="int" value="0"/>
+					</LayoutConstraint>
+				</Constraints>
+				<Events>
+					<EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" handler="useTechEditorActionPerformed"/>
+				</Events>
+				<Properties>
+					<Property name="text" type="String" value="Use technology editor on this cell"/>
+				</Properties>
+			</Component>
+			<Component class="javax.swing.JButton" name="setUseTechEditor">
+				<Constraints>
+					<Constraint insetsleft="4"/>
+					<Constraint insetstop="2"/>
+					<Constraint insetsright="2"/>
+					<Constraint insetsbottom="4"/>
+					<LayoutConstraint class="java.awt.GridBagConstraints">
+						<Property name="gridx" type="int" value="4"/>
+						<Property name="gridy" type="int" value="4"/>
+						<Property name="gridwidth" type="int" value="1"/>
+						<Property name="gridheight" type="int" value="1"/>
+						<Property name="weightx" type="double" value="0.0"/>
+						<Property name="weighty" type="double" value="0.0"/>
+						<Property name="anchor" type="int" value="10"/>
+						<Property name="fill" type="int" value="0"/>
+						<Property name="insets" type="Insets">
+						<Insets value="[0, 0, 0, 0]"/>
+					</Property>
+						<Property name="ipadx" type="int" value="0"/>
+						<Property name="ipady" type="int" value="0"/>
+					</LayoutConstraint>
+				</Constraints>
+				<Events>
+					<EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" handler="setUseTechEditorActionPerformed"/>
+				</Events>
+				<Properties>
+					<Property name="text" type="String" value="Set"/>
+					<Property name="minimumSize" type="Dimension">
+						<Dimension value="[53, 20]"/>
+					</Property>
+					<Property name="preferredSize" type="Dimension">
+						<Dimension value="[53, 20]"/>
+					</Property>
+				</Properties>
+			</Component>
+			<Component class="javax.swing.JButton" name="clearUseTechEditor">
+				<Constraints>
+					<Constraint insetsleft="2"/>
+					<Constraint insetstop="2"/>
+					<Constraint insetsright="4"/>
+					<Constraint insetsbottom="4"/>
+					<LayoutConstraint class="java.awt.GridBagConstraints">
+						<Property name="gridx" type="int" value="5"/>
+						<Property name="gridy" type="int" value="4"/>
+						<Property name="gridwidth" type="int" value="1"/>
+						<Property name="gridheight" type="int" value="1"/>
+						<Property name="weightx" type="double" value="0.0"/>
+						<Property name="weighty" type="double" value="0.0"/>
+						<Property name="anchor" type="int" value="10"/>
+						<Property name="fill" type="int" value="0"/>
+						<Property name="insets" type="Insets">
+						<Insets value="[0, 0, 0, 0]"/>
+					</Property>
+						<Property name="ipadx" type="int" value="0"/>
+						<Property name="ipady" type="int" value="0"/>
+					</LayoutConstraint>
+				</Constraints>
+				<Events>
+					<EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" handler="clearUseTechEditorActionPerformed"/>
+				</Events>
+				<Properties>
+					<Property name="text" type="String" value="Clear"/>
+					<Property name="minimumSize" type="Dimension">
+						<Dimension value="[64, 20]"/>
+					</Property>
+					<Property name="preferredSize" type="Dimension">
+						<Dimension value="[64, 20]"/>
+					</Property>
+				</Properties>
+			</Component>
+			<Component class="javax.swing.JRadioButton" name="expandNewInstances">
+				<Constraints>
+					<Constraint insetsleft="4"/>
+					<Constraint insetstop="4"/>
+					<Constraint insetsright="4"/>
+					<Constraint insetsbottom="4"/>
+					<LayoutConstraint class="java.awt.GridBagConstraints">
+						<Property name="gridx" type="int" value="2"/>
+						<Property name="gridy" type="int" value="5"/>
+						<Property name="gridwidth" type="int" value="1"/>
+						<Property name="gridheight" type="int" value="1"/>
+						<Property name="weightx" type="double" value="0.0"/>
+						<Property name="weighty" type="double" value="0.0"/>
+						<Property name="anchor" type="int" value="17"/>
+						<Property name="fill" type="int" value="0"/>
+						<Property name="insets" type="Insets">
+						<Insets value="[0, 0, 0, 0]"/>
+					</Property>
+						<Property name="ipadx" type="int" value="0"/>
+						<Property name="ipady" type="int" value="0"/>
+					</LayoutConstraint>
+				</Constraints>
+				<Events>
+					<EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" handler="expandNewInstancesActionPerformed"/>
+				</Events>
+				<Properties>
+					<Property name="text" type="String" value="Expand new instances"/>
+					<Property name="buttonGroup" type="ButtonGroup">
+						<ButtonGroup value="expansion"/>
+					</Property>
+				</Properties>
+			</Component>
+			<Component class="javax.swing.JRadioButton" name="unexpandNewInstances">
+				<Constraints>
+					<Constraint insetsleft="4"/>
+					<Constraint insetstop="4"/>
+					<Constraint insetsright="4"/>
+					<Constraint insetsbottom="4"/>
+					<LayoutConstraint class="java.awt.GridBagConstraints">
+						<Property name="gridx" type="int" value="3"/>
+						<Property name="gridy" type="int" value="5"/>
+						<Property name="gridwidth" type="int" value="3"/>
+						<Property name="gridheight" type="int" value="1"/>
+						<Property name="weightx" type="double" value="0.0"/>
+						<Property name="weighty" type="double" value="0.0"/>
+						<Property name="anchor" type="int" value="10"/>
+						<Property name="fill" type="int" value="0"/>
+						<Property name="insets" type="Insets">
+						<Insets value="[0, 0, 0, 0]"/>
+					</Property>
+						<Property name="ipadx" type="int" value="0"/>
+						<Property name="ipady" type="int" value="0"/>
+					</LayoutConstraint>
+				</Constraints>
+				<Events>
+					<EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" handler="unexpandNewInstancesActionPerformed"/>
+				</Events>
+				<Properties>
+					<Property name="text" type="String" value="Unexpand new instances"/>
+					<Property name="buttonGroup" type="ButtonGroup">
+						<ButtonGroup value="expansion"/>
+					</Property>
+				</Properties>
+			</Component>
+			<Component class="javax.swing.JLabel" name="jLabel2">
+				<Constraints>
+					<Constraint insetsleft="4"/>
+					<Constraint insetstop="4"/>
+					<Constraint insetsright="4"/>
+					<Constraint insetsbottom="4"/>
+					<LayoutConstraint class="java.awt.GridBagConstraints">
+						<Property name="gridx" type="int" value="2"/>
+						<Property name="gridy" type="int" value="6"/>
+						<Property name="gridwidth" type="int" value="1"/>
+						<Property name="gridheight" type="int" value="1"/>
+						<Property name="weightx" type="double" value="0.0"/>
+						<Property name="weighty" type="double" value="0.0"/>
+						<Property name="anchor" type="int" value="17"/>
+						<Property name="fill" type="int" value="0"/>
+						<Property name="insets" type="Insets">
+						<Insets value="[0, 0, 0, 0]"/>
+					</Property>
+						<Property name="ipadx" type="int" value="0"/>
+						<Property name="ipady" type="int" value="0"/>
+					</LayoutConstraint>
+				</Constraints>
+				<Events>
+				</Events>
+				<Properties>
+					<Property name="text" type="String" value="Characteristic X Spacing:"/>
+				</Properties>
+			</Component>
+			<Component class="javax.swing.JTextField" name="charXSpacing">
+				<Constraints>
+					<Constraint insetsleft="4"/>
+					<Constraint insetstop="4"/>
+					<Constraint insetsright="4"/>
+					<Constraint insetsbottom="4"/>
+					<LayoutConstraint class="java.awt.GridBagConstraints">
+						<Property name="gridx" type="int" value="3"/>
+						<Property name="gridy" type="int" value="6"/>
+						<Property name="gridwidth" type="int" value="2"/>
+						<Property name="gridheight" type="int" value="1"/>
+						<Property name="weightx" type="double" value="0.0"/>
+						<Property name="weighty" type="double" value="0.0"/>
+						<Property name="anchor" type="int" value="17"/>
+						<Property name="fill" type="int" value="2"/>
+						<Property name="insets" type="Insets">
+						<Insets value="[0, 0, 0, 0]"/>
+					</Property>
+						<Property name="ipadx" type="int" value="0"/>
+						<Property name="ipady" type="int" value="0"/>
+					</LayoutConstraint>
+				</Constraints>
+				<Events>
+				</Events>
+				<Properties>
+					<Property name="text" type="String" value=" "/>
+				</Properties>
+			</Component>
+			<Component class="javax.swing.JLabel" name="jLabel3">
+				<Constraints>
+					<Constraint insetsleft="4"/>
+					<Constraint insetstop="4"/>
+					<Constraint insetsright="4"/>
+					<Constraint insetsbottom="4"/>
+					<LayoutConstraint class="java.awt.GridBagConstraints">
+						<Property name="gridx" type="int" value="2"/>
+						<Property name="gridy" type="int" value="7"/>
+						<Property name="gridwidth" type="int" value="1"/>
+						<Property name="gridheight" type="int" value="1"/>
+						<Property name="weightx" type="double" value="0.0"/>
+						<Property name="weighty" type="double" value="0.0"/>
+						<Property name="anchor" type="int" value="17"/>
+						<Property name="fill" type="int" value="0"/>
+						<Property name="insets" type="Insets">
+						<Insets value="[0, 0, 0, 0]"/>
+					</Property>
+						<Property name="ipadx" type="int" value="0"/>
+						<Property name="ipady" type="int" value="0"/>
+					</LayoutConstraint>
+				</Constraints>
+				<Events>
+				</Events>
+				<Properties>
+					<Property name="text" type="String" value="Characteristic Y Spacing:"/>
+				</Properties>
+			</Component>
+			<Component class="javax.swing.JTextField" name="charYSpacing">
+				<Constraints>
+					<Constraint insetsleft="4"/>
+					<Constraint insetstop="4"/>
+					<Constraint insetsright="4"/>
+					<Constraint insetsbottom="4"/>
+					<LayoutConstraint class="java.awt.GridBagConstraints">
+						<Property name="gridx" type="int" value="3"/>
+						<Property name="gridy" type="int" value="7"/>
+						<Property name="gridwidth" type="int" value="2"/>
+						<Property name="gridheight" type="int" value="1"/>
+						<Property name="weightx" type="double" value="0.0"/>
+						<Property name="weighty" type="double" value="0.0"/>
+						<Property name="anchor" type="int" value="10"/>
+						<Property name="fill" type="int" value="2"/>
+						<Property name="insets" type="Insets">
+						<Insets value="[0, 0, 0, 0]"/>
+					</Property>
+						<Property name="ipadx" type="int" value="0"/>
+						<Property name="ipady" type="int" value="0"/>
+					</LayoutConstraint>
+				</Constraints>
+				<Events>
+				</Events>
+				<Properties>
+					<Property name="text" type="String" value=" "/>
+				</Properties>
+			</Component>
+			<Component class="javax.swing.JLabel" name="jLabel4">
+				<Constraints>
+					<Constraint insetsleft="0"/>
+					<Constraint insetstop="0"/>
+					<Constraint insetsright="0"/>
+					<Constraint insetsbottom="0"/>
+					<LayoutConstraint class="java.awt.GridBagConstraints">
+						<Property name="gridx" type="int" value="4"/>
+						<Property name="gridy" type="int" value="0"/>
+						<Property name="gridwidth" type="int" value="2"/>
+						<Property name="gridheight" type="int" value="1"/>
+						<Property name="weightx" type="double" value="0.0"/>
+						<Property name="weighty" type="double" value="0.0"/>
+						<Property name="anchor" type="int" value="10"/>
+						<Property name="fill" type="int" value="0"/>
+						<Property name="insets" type="Insets">
+						<Insets value="[0, 0, 0, 0]"/>
+					</Property>
+						<Property name="ipadx" type="int" value="0"/>
+						<Property name="ipady" type="int" value="0"/>
+					</LayoutConstraint>
+				</Constraints>
+				<Events>
+				</Events>
+				<Properties>
+					<Property name="text" type="String" value="Every cell:"/>
+				</Properties>
+			</Component>
+			<Component class="javax.swing.JButton" name="editCell">
+				<Constraints>
+					<Constraint insetsleft="4"/>
+					<Constraint insetstop="4"/>
+					<Constraint insetsright="4"/>
+					<Constraint insetsbottom="4"/>
+					<LayoutConstraint class="java.awt.GridBagConstraints">
+						<Property name="gridx" type="int" value="2"/>
+						<Property name="gridy" type="int" value="8"/>
+						<Property name="gridwidth" type="int" value="1"/>
+						<Property name="gridheight" type="int" value="1"/>
+						<Property name="weightx" type="double" value="0.0"/>
+						<Property name="weighty" type="double" value="0.0"/>
+						<Property name="anchor" type="int" value="10"/>
+						<Property name="fill" type="int" value="0"/>
+						<Property name="insets" type="Insets">
+						<Insets value="[0, 0, 0, 0]"/>
+					</Property>
+						<Property name="ipadx" type="int" value="0"/>
+						<Property name="ipady" type="int" value="0"/>
+					</LayoutConstraint>
+				</Constraints>
+				<Events>
+					<EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" handler="editCellActionPerformed"/>
+				</Events>
+				<Properties>
+					<Property name="text" type="String" value="Edit Cell"/>
+				</Properties>
+			</Component>
+			<Component class="javax.swing.JTextField" name="cellName">
+				<Constraints>
+					<Constraint insetsleft="4"/>
+					<Constraint insetstop="4"/>
+					<Constraint insetsright="4"/>
+					<Constraint insetsbottom="4"/>
+					<LayoutConstraint class="java.awt.GridBagConstraints">
+						<Property name="gridx" type="int" value="0"/>
+						<Property name="gridy" type="int" value="9"/>
+						<Property name="gridwidth" type="int" value="2"/>
+						<Property name="gridheight" type="int" value="1"/>
+						<Property name="weightx" type="double" value="0.0"/>
+						<Property name="weighty" type="double" value="0.0"/>
+						<Property name="anchor" type="int" value="10"/>
+						<Property name="fill" type="int" value="2"/>
+						<Property name="insets" type="Insets">
+						<Insets value="[0, 0, 0, 0]"/>
+					</Property>
+						<Property name="ipadx" type="int" value="0"/>
+						<Property name="ipady" type="int" value="0"/>
+					</LayoutConstraint>
+				</Constraints>
+				<Events>
+				</Events>
+				<Properties>
+					<Property name="text" type="String" value=" "/>
+				</Properties>
+			</Component>
+			<Component class="javax.swing.JButton" name="rename">
+				<Constraints>
+					<Constraint insetsleft="4"/>
+					<Constraint insetstop="4"/>
+					<Constraint insetsright="4"/>
+					<Constraint insetsbottom="4"/>
+					<LayoutConstraint class="java.awt.GridBagConstraints">
+						<Property name="gridx" type="int" value="2"/>
+						<Property name="gridy" type="int" value="9"/>
+						<Property name="gridwidth" type="int" value="1"/>
+						<Property name="gridheight" type="int" value="1"/>
+						<Property name="weightx" type="double" value="0.0"/>
+						<Property name="weighty" type="double" value="0.0"/>
+						<Property name="anchor" type="int" value="10"/>
+						<Property name="fill" type="int" value="0"/>
+						<Property name="insets" type="Insets">
+						<Insets value="[0, 0, 0, 0]"/>
+					</Property>
+						<Property name="ipadx" type="int" value="0"/>
+						<Property name="ipady" type="int" value="0"/>
+					</LayoutConstraint>
+				</Constraints>
+				<Events>
+					<EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" handler="renameActionPerformed"/>
+				</Events>
+				<Properties>
+					<Property name="text" type="String" value="Rename Cell"/>
+				</Properties>
+			</Component>
+			<Component class="javax.swing.JButton" name="delete">
+				<Constraints>
+					<Constraint insetsleft="4"/>
+					<Constraint insetstop="4"/>
+					<Constraint insetsright="4"/>
+					<Constraint insetsbottom="4"/>
+					<LayoutConstraint class="java.awt.GridBagConstraints">
+						<Property name="gridx" type="int" value="3"/>
+						<Property name="gridy" type="int" value="8"/>
+						<Property name="gridwidth" type="int" value="1"/>
+						<Property name="gridheight" type="int" value="1"/>
+						<Property name="weightx" type="double" value="0.0"/>
+						<Property name="weighty" type="double" value="0.0"/>
+						<Property name="anchor" type="int" value="10"/>
+						<Property name="fill" type="int" value="0"/>
+						<Property name="insets" type="Insets">
+						<Insets value="[0, 0, 0, 0]"/>
+					</Property>
+						<Property name="ipadx" type="int" value="0"/>
+						<Property name="ipady" type="int" value="0"/>
+					</LayoutConstraint>
+				</Constraints>
+				<Events>
+					<EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" handler="deleteActionPerformed"/>
+				</Events>
+				<Properties>
+					<Property name="text" type="String" value="Delete Cell"/>
+				</Properties>
+			</Component>
+			<Component class="javax.swing.JCheckBox" name="confirmDelete">
+				<Constraints>
+					<Constraint insetsleft="4"/>
+					<Constraint insetstop="4"/>
+					<Constraint insetsright="4"/>
+					<Constraint insetsbottom="4"/>
+					<LayoutConstraint class="java.awt.GridBagConstraints">
+						<Property name="gridx" type="int" value="3"/>
+						<Property name="gridy" type="int" value="9"/>
+						<Property name="gridwidth" type="int" value="1"/>
+						<Property name="gridheight" type="int" value="1"/>
+						<Property name="weightx" type="double" value="0.0"/>
+						<Property name="weighty" type="double" value="0.0"/>
+						<Property name="anchor" type="int" value="10"/>
+						<Property name="fill" type="int" value="0"/>
+						<Property name="insets" type="Insets">
+						<Insets value="[0, 0, 0, 0]"/>
+					</Property>
+						<Property name="ipadx" type="int" value="0"/>
+						<Property name="ipady" type="int" value="0"/>
+					</LayoutConstraint>
+				</Constraints>
+				<Events>
+				</Events>
+				<Properties>
+					<Property name="text" type="String" value="Confirm Delete"/>
+				</Properties>
+			</Component>
+		</SubComponents>
+	</Component>
 </Form>
