@@ -147,7 +147,7 @@ public class ScanChainXML {
      */
     public void addScanChainElement(String name, String access, String clears, String inport, String outport) {
         ScanChainElement e = new ScanChainElement(name, access, clears, inport, outport);
-        scanChainElements.put(name, e);
+        scanChainElements.put(name+"_"+inport, e);
     }
 
     /**
@@ -162,7 +162,7 @@ public class ScanChainXML {
      */
     public void addPassThroughCell(String cellName, String inport, String outport) {
         PassThroughCell p = new PassThroughCell(cellName, inport, outport);
-        passThroughCells.put(cellName, p);
+        passThroughCells.put(cellName+"_"+inport, p);
     }
 
     /**
@@ -664,12 +664,12 @@ public class ScanChainXML {
     // -------------------------------------------------------------------------
 
     private ScanChainElement getScanChainElement(String name, String sin) {
-        ScanChainElement e = (ScanChainElement)scanChainElements.get(name);
+        ScanChainElement e = (ScanChainElement)scanChainElements.get(name+"_"+sin);
         return e;
     }
 
     private PassThroughCell getPassThroughCell(String name, String sin) {
-        PassThroughCell p = (PassThroughCell)passThroughCells.get(name);
+        PassThroughCell p = (PassThroughCell)passThroughCells.get(name+"_"+sin);
         return p;
     }
 
