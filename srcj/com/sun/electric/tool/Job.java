@@ -219,6 +219,7 @@ public abstract class Job implements ActionListener, Runnable {
     /** all jobs */                             private static ArrayList allJobs = new ArrayList();
 	/** number of started jobs */               private static int numStarted = 0;
 	/** number of examine jobs */               private static int numExamine = 0;
+	/** default execution time in milis */      private static final int MIN_NUM_SECONDS = 60000;
 	/** database changes thread */              private static DatabaseChangesThread databaseChangesThread = new DatabaseChangesThread();
 	/** changing job */                         private static Job changingJob;
     /** my tree node */                         private DefaultMutableTreeNode myNode;
@@ -232,6 +233,8 @@ public abstract class Job implements ActionListener, Runnable {
     /** is job finished? */                     private boolean finished;
     /** thread aborted? */                      private boolean aborted;
     /** schedule thread to abort */             private boolean scheduledToAbort;
+	/** report execution time regardless MIN_NUM_SECONDS */
+												private boolean reportExecution = false;
     /** name of job */                          private String jobName;
     /** tool running the job */                 private Tool tool;
     /** type of job (change or examine) */      private Type jobType;
@@ -319,6 +322,12 @@ public abstract class Job implements ActionListener, Runnable {
         
     }
 
+	//--------------------------PROTECTED JOB METHODS-----------------------
+	/** Set reportExecution flag on/off */
+	protected void setReportExecutionFlag(boolean flag)
+	{
+		reportExecution = flag;
+	}
     //--------------------------PUBLIC JOB METHODS--------------------------
 
     /** Run gets called after the calling thread calls our start method */
@@ -347,8 +356,8 @@ public abstract class Job implements ActionListener, Runnable {
 //        Job.removeJob(this);
         WindowFrame.wantToRedoJobTree();
 
-		// say something if it took more than a minute
-		if (endTime - startTime >= 60*1000)
+		// say something if it took more than a minute by default
+		if (reportExecution || (endTime - startTime) >= MIN_NUM_SECONDS)
 		{
 			if (User.isBeepAfterLongJobs())
 			{

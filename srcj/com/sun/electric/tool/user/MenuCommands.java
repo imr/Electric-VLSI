@@ -2540,6 +2540,7 @@ public final class MenuCommands
 		{
 			super("Coverage Implant", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.curCell = cell;
+			setReportExecutionFlag(true);
 			startJob();
 		}
 
@@ -2668,6 +2669,7 @@ public final class MenuCommands
 		{
 			super("Coverage Implant Old", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.curCell = cell;
+			setReportExecutionFlag(true);
 			startJob();
 		}
 
