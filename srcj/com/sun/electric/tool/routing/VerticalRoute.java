@@ -160,12 +160,28 @@ public class VerticalRoute {
             endArcs[0] = endArc;
         }
 
+        // null out bad arcs
+        startArcs = nullBadArcs(startArcs);
+        endArcs = nullBadArcs(endArcs);
+
         if (endArcs == null || startArcs == null) {
             System.out.println("VerticalRoute: invalid start or end point");
             return false;
         }
+
         specifiedRoute = new ArrayList();
         return specifyRoute(startArcs, endArcs);
+    }
+
+    private static ArcProto [] nullBadArcs(ArcProto [] arcs) {
+        // null out bad ars
+        for (int i=0; i<arcs.length; i++) {
+            if (arcs[i] == Generic.tech.universal_arc) arcs[i] = null;
+            if (arcs[i] == Generic.tech.invisible_arc) arcs[i] = null;
+            if (arcs[i] == Generic.tech.unrouted_arc) arcs[i] = null;
+            if ((arcs[i] != null) && (arcs[i].isNotUsed())) arcs[i] = null;
+        }
+        return arcs;
     }
 
     /**
@@ -298,20 +314,48 @@ public class VerticalRoute {
      * Specify the route
      */
     private boolean specifyRoute(ArcProto [] startArcs, ArcProto [] endArcs) {
-        // try to find a way to connect
+
+        List bestSpecifiedRoute = new ArrayList();
+        boolean routeFound = false;
+
+        // try to find a way to connect, do exhaustive search
         for (int i=0; i<startArcs.length; i++) {
             for (int j=0; j<endArcs.length; j++) {
                 ArcProto startArc = startArcs[i];
                 ArcProto endArc = endArcs[j];
+
+                if (startArc == null || endArc == null) continue;
+
                 specifiedRoute.clear();
                 searchNumber = 0;
-                this.startArc = startArc;
-                this.endArc = endArc;
+
                 if (findConnectingPorts(startArc, endArc, "")) {
-                    return true;
+                    routeFound = true;
+
+                    if (bestSpecifiedRoute.size() == 0) {
+                        // first time through
+                        bestSpecifiedRoute.addAll(specifiedRoute);
+                        this.startArc = startArc;
+                        this.endArc = endArc;
+                    }
+
+                    // if found a better route, store that one
+                    if (specifiedRoute.size() < bestSpecifiedRoute.size()) {
+                        bestSpecifiedRoute.clear();
+                        bestSpecifiedRoute.addAll(specifiedRoute);
+                        this.startArc = startArc;
+                        this.endArc = endArc;
+                    }
                 }
             }
         }
+        specifiedRoute.clear();
+
+        if (routeFound) {
+            specifiedRoute.addAll(bestSpecifiedRoute);
+            return true;
+        }
+
         this.startArc = null;
         this.endArc = null;
         return false;
