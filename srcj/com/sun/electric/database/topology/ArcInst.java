@@ -666,14 +666,14 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		Point2D p2 = ends[TAILEND].getLocation();
 		double dx = p2.getX() - p1.getX();
 		double dy = p2.getY() - p1.getY();
-		this.sX = Math.sqrt(dx * dx + dy * dy);
-		this.sY = arcWidth;
-		this.center.setLocation(EMath.smooth((p1.getX() + p2.getX()) / 2), EMath.smooth((p1.getY() + p2.getY()) / 2));
-		if (p1.equals(p2)) this.angle = 0; else
-			this.angle = EMath.figureAngle(p1, p2);
+		sX = Math.sqrt(dx * dx + dy * dy);
+		sY = arcWidth;
+		center.setLocation(EMath.smooth((p1.getX() + p2.getX()) / 2), EMath.smooth((p1.getY() + p2.getY()) / 2));
+		if (p1.equals(p2)) angle = 0; else
+			angle = EMath.figureAngle(p1, p2);
 
 		// compute the bounds
-		Poly poly = makePoly(this.sX, arcWidth, Poly.Type.FILLED);
+		Poly poly = makePoly(sX, arcWidth, Poly.Type.FILLED);
 		visBounds.setRect(poly.getBounds2D());
 	}
 

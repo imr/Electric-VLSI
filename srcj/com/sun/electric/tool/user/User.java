@@ -25,9 +25,14 @@ package com.sun.electric.tool.user;
 
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.PaletteFrame;
+
 import java.util.Iterator;
 
 /**
@@ -38,6 +43,9 @@ public class User extends Tool
 	// ---------------------- private and protected methods -----------------
 
 	/** the User Interface tool. */		public static User tool = new User();
+
+	private ArcProto currentArcProto = null;
+	private NodeProto currentNodeProto = null;
 
 	/**
 	 * The constructor sets up the User tool.
@@ -55,7 +63,39 @@ public class User extends Tool
 		// the user interface tool is always on
 		setOn();
 		setIncremental();
+
+		// initialize the display
+		TopLevel.Initialize();
+		PaletteFrame pf = TopLevel.getPaletteFrame();
+
+		pf.loadForTechnology();
 	}
+
+	/**
+	 * Routine to return the "current" NodeProto, as maintained by the user interface.
+	 * @return the "current" NodeProto, as maintained by the user interface.
+	 */
+	public NodeProto getCurrentNodeProto() { return currentNodeProto; }
+
+	/**
+	 * Routine to set the "current" NodeProto, as maintained by the user interface.
+	 * @param np the new "current" NodeProto.
+	 */
+	public void setCurrentNodeProto(NodeProto np) { currentNodeProto = np; }
+
+	/**
+	 * Routine to return the "current" ArcProto, as maintained by the user interface.
+	 * The current ArcProto is highlighted with a bolder red border in the component menu on the left.
+	 * @return the "current" ArcProto, as maintained by the user interface.
+	 */
+	public ArcProto getCurrentArcProto() { return currentArcProto; }
+
+	/**
+	 * Routine to set the "current" ArcProto, as maintained by the user interface.
+	 * The current ArcProto is highlighted with a bolder red border in the component menu on the left.
+	 * @param np the new "current" ArcProto.
+	 */
+	public void setCurrentArcProto(ArcProto ap) { currentArcProto = ap; }
 
 	/**
 	 * Daemon routine called when a batch of changes ends.

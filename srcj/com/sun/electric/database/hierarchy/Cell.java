@@ -1276,12 +1276,12 @@ public class Cell extends NodeProto
 				if (ono.getProto() instanceof PrimitiveNode)
 				{
 					// primitives associate ports directly
-					opi[i] = ono.getPortInstFromProto(pp);
+					opi[i] = ono.findPortInstFromProto(pp);
 				} else
 				{
 					// cells associate ports by name
 					PortProto ppt = ono.getProto().findPortProto(pp.getProtoName());
-					if (ppt != null) opi[i] = ono.getPortInstFromProto(ppt);
+					if (ppt != null) opi[i] = ono.findPortInstFromProto(ppt);
 				}
 				if (opi[i] == null)
 					System.out.println("Error: no port for " + ai.getProto().describe() +

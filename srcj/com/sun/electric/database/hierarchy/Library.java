@@ -654,7 +654,6 @@ public class Library extends ElectricObject
 	 */
 	public Iterator getCells()
 	{
-//		Collections.sort(cells, new CellCaseInsensitive());
 		return cells.iterator();
 	}
 

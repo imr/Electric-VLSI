@@ -845,18 +845,22 @@ public class NodeInst extends Geometric implements Instancable
 				}
 			}
 
+			// The old way to do it:
 			// start with a unit polygon, centered at the origin
-			Poly poly = new Poly(0.0, 0.0, 1.0, 1.0);
+//			Poly poly = new Poly(0.0, 0.0, 1.0, 1.0);
+//			AffineTransform scale = new AffineTransform();
+//			scale.setToScale(sX, sY);
+//			AffineTransform rotate = rotateAbout(angle, 0, 0, sX, sY);
+//			AffineTransform translate = new AffineTransform();
+//			translate.setToTranslation(getCenterX(), getCenterY());
+//			rotate.concatenate(scale);
+//			translate.concatenate(rotate);
+//			poly.transform(translate);
 
-			// transform by the relevant amount
-			AffineTransform scale = new AffineTransform();
-			scale.setToScale(sX, sY);
-			AffineTransform rotate = rotateAbout(angle, 0, 0, sX, sY);
-			AffineTransform translate = new AffineTransform();
-			translate.setToTranslation(getCenterX(), getCenterY());
-			rotate.concatenate(scale);
-			translate.concatenate(rotate);
-			poly.transform(translate);
+			// the simpler way to do it:
+			Poly poly = new Poly(center.getX(), center.getY(), sX, sY);
+			AffineTransform trans = rotateOut();
+			poly.transform(trans);
 
 			// return its bounds
 			visBounds.setRect(poly.getBounds2D());
@@ -1198,7 +1202,7 @@ public class NodeInst extends Geometric implements Instancable
 	 */
 	public Float [] getTrace()
 	{
-		Variable var = this.getVar("trace", Float[].class);
+		Variable var = getVar("trace", Float[].class);
 		if (var == null) return null;
 		Object obj = var.getObject();
 		if (obj instanceof Object[]) return (Float []) obj;
@@ -1253,13 +1257,36 @@ public class NodeInst extends Geometric implements Instancable
 	}
 
 	/**
-	 * Routine to return the Portinst on this NodeInst with a given
-	 * prototype.
+	 * Routine to return the PortInst on this NodeInst that is closest to a point.
+	 * @param w the point of interest.
+	 * @return the closest PortInst to that point.
+	 */
+	public PortInst findClosestPortInst(Point2D w)
+	{
+		double bestDist = Double.MAX_VALUE;
+		PortInst bestPi = null;
+		for(Iterator it = portMap.values().iterator(); it.hasNext(); )
+		{
+			PortInst pi = (PortInst)it.next();
+			Poly piPoly = pi.getPoly();
+			Point2D piPt = new Point2D.Double(piPoly.getCenterX(), piPoly.getCenterY());
+			double thisDist = piPt.distance(w);
+			if (thisDist < bestDist)
+			{
+				bestDist = thisDist;
+				bestPi = pi;
+			}
+		}
+		return bestPi;
+	}
+
+	/**
+	 * Routine to return the Portinst on this NodeInst with a given prototype.
 	 * @param pp the PortProto to find.
 	 * @return the selected PortInst.  If the PortProto is not found,
 	 * return null.
 	 */
-	public PortInst getPortInstFromProto(PortProto pp)
+	public PortInst findPortInstFromProto(PortProto pp)
 	{
 		for(Iterator it = portMap.values().iterator(); it.hasNext(); )
 		{

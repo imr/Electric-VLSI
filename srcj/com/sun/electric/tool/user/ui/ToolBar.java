@@ -39,6 +39,11 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.Insets;
 import java.awt.event.KeyEvent;
+import java.awt.Cursor;
+import java.awt.Toolkit;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.Dimension;
 
 /**
  * This class manages the Electric toolbar.
@@ -57,6 +62,7 @@ public class ToolBar extends JToolBar
 		public String toString() { return "CursorMode="+name; }
 
 		/** Describes Selection mode (click and drag). */		public static final CursorMode SELECT = new CursorMode("select");
+		/** Describes wiring mode (creating arcs). */			public static final CursorMode WIRE = new CursorMode("wire");
 		/** Describes Selection mode (click and drag). */		public static final CursorMode SELECTSPECIAL = new CursorMode("select");
 		/** Describes Panning mode (move window contents). */	public static final CursorMode PAN = new CursorMode("pan");
 		/** Describes Zoom mode (scale window contents). */		public static final CursorMode ZOOM = new CursorMode("zoom");
@@ -99,13 +105,17 @@ public class ToolBar extends JToolBar
 		/** Describes Selection mode (click and drag). */		public static final SelectMode AREA = new SelectMode("area");
 	}
 
-	private static JToggleButton selectButton, selectSpecialButton, panButton, zoomButton;
+	private static JToggleButton selectButton, wireButton, selectSpecialButton, panButton, zoomButton;
 	private static JToggleButton fullButton, halfButton, quarterButton;
 	private static JToggleButton objectsButton, areaButton;
 	private static ButtonGroup modeGroup, arrowGroup, selectGroup;
 	private static CursorMode curMode = CursorMode.SELECT;
 	private static ArrowDistance curArrowDistance = ArrowDistance.FULL;
 	private static SelectMode curSelectMode = SelectMode.OBJECTS;
+	private static Cursor zoomCursor = null;
+	private static Cursor panCursor = null;
+	private static Cursor specialSelectCursor = null;
+	private static Cursor wiringCursor = null;
 
 	private ToolBar() {}
 
@@ -138,6 +148,14 @@ public class ToolBar extends JToolBar
 		selectButton.setSelected(true);
 		toolbar.add(selectButton);
 		modeGroup.add(selectButton);
+
+		// the "Wiring" button
+		wireButton = new JToggleButton(new ImageIcon(toolbar.getClass().getResource("ButtonWiring.gif")));
+		wireButton.addActionListener(
+			new ActionListener() { public void actionPerformed(ActionEvent e) { wiringCommand(); } });
+		wireButton.setToolTipText("Wiring");
+		toolbar.add(wireButton);
+		modeGroup.add(wireButton);
 
 		// the "Special select mode" button
 		selectSpecialButton = new JToggleButton(new ImageIcon(toolbar.getClass().getResource("ButtonSelectSpecial.gif")));
@@ -216,19 +234,19 @@ public class ToolBar extends JToolBar
 		// a separator
 		toolbar.addSeparator();
 
-		// a test button
-		Button testButton = Button.newInstance(new ImageIcon(toolbar.getClass().getResource("ButtonTest.gif")));
-		testButton.setToolTipText("test");
-
-		// set an area for popup menu to be triggered within a button
-		Insets insets = new Insets(22,22,32,32);
-		JPopupMenu popup = new JPopupMenu();
-		JMenuItem testItem = new JMenuItem("test 1");
-		popup.add(testItem);
-		testItem = new JMenuItem("test 2");
-		popup.add(testItem);
-		testButton.addPopupMenu(popup, insets);
-		toolbar.add(testButton);
+//		// a test button
+//		Button testButton = Button.newInstance(new ImageIcon(toolbar.getClass().getResource("ButtonTest.gif")));
+//		testButton.setToolTipText("test");
+//
+//		// set an area for popup menu to be triggered within a button
+//		Insets insets = new Insets(22,22,32,32);
+//		JPopupMenu popup = new JPopupMenu();
+//		JMenuItem testItem = new JMenuItem("test 1");
+//		popup.add(testItem);
+//		testItem = new JMenuItem("test 2");
+//		popup.add(testItem);
+//		testButton.addPopupMenu(popup, insets);
+//		toolbar.add(testButton);
 
 		// return the toolbar
 		return toolbar;
@@ -240,7 +258,19 @@ public class ToolBar extends JToolBar
 	public static void selectCommand()
 	{
 		EditWindow.setListener(ClickAndDragListener.theOne);
+		TopLevel.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		curMode = CursorMode.SELECT;
+	}
+
+	/**
+	 * Routine called when the "wiring" button is pressed.
+	 */
+	public static void wiringCommand()
+	{
+		EditWindow.setListener(WiringListener.theOne);
+		if (wiringCursor == null) wiringCursor = readCursor("CursorWiring.gif", 8, 24);
+		TopLevel.setCurrentCursor(wiringCursor);
+		curMode = CursorMode.WIRE;
 	}
 
 	/**
@@ -249,6 +279,8 @@ public class ToolBar extends JToolBar
 	public static void selectSpecialCommand()
 	{
 		EditWindow.setListener(ClickAndDragListener.theOne);
+		if (specialSelectCursor == null) specialSelectCursor = readCursor("CursorSelectSpecial.gif", 8, 9);
+		TopLevel.setCurrentCursor(specialSelectCursor);
 		curMode = CursorMode.SELECTSPECIAL;
 	}
 
@@ -258,6 +290,8 @@ public class ToolBar extends JToolBar
 	public static void panCommand()
 	{
 		EditWindow.setListener(ZoomAndPanListener.theOne);
+		if (panCursor == null) panCursor = readCursor("CursorPan.gif", 16, 16);
+		TopLevel.setCurrentCursor(panCursor);
 		curMode = CursorMode.PAN;
 	}
 
@@ -267,6 +301,8 @@ public class ToolBar extends JToolBar
 	public static void zoomCommand()
 	{
 		EditWindow.setListener(ZoomAndPanListener.theOne);
+		if (zoomCursor == null) zoomCursor = readCursor("CursorZoom.gif", 13, 13);
+		TopLevel.setCurrentCursor(zoomCursor);
 		curMode = CursorMode.ZOOM;
 	}
 
@@ -312,5 +348,19 @@ public class ToolBar extends JToolBar
 	 * @return the current selection mode (objects or area).
 	 */
 	public static SelectMode getSelectMode() { return curSelectMode; }
+
+	private static Cursor readCursor(String cursorName, int hotX, int hotY)
+	{
+		ImageIcon imageIcon = new ImageIcon(ToolBar.class.getResource(cursorName));
+		Image image = imageIcon.getImage();
+//		int width = image.getWidth(null);
+//		int height = image.getHeight(null);
+//		Dimension bestSize = Toolkit.getDefaultToolkit().getBestCursorSize(width, height);
+//		width = (int)bestSize.getWidth();
+//		height = (int)bestSize.getHeight();
+//		image = image.getScaledInstance(width, height, 0);
+		Cursor cursor = Toolkit.getDefaultToolkit().createCustomCursor(image, new Point(hotX, hotY), cursorName);
+		return cursor;
+	}
 
 }

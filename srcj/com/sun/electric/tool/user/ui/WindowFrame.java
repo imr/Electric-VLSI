@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.ui.Button;
 
 import java.util.Iterator;
 import java.util.List;
@@ -37,6 +38,8 @@ import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JDesktopPane;
+import javax.swing.JButton;
+import javax.swing.ImageIcon;
 import javax.swing.tree.*;
 import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
@@ -44,7 +47,7 @@ import javax.swing.event.InternalFrameEvent;
 /**
  * This class defines an edit window, with a cell explorer on the left side.
  */
-public class WindowFrame // extends JInternalFrame
+public class WindowFrame
 {
 	/** the edit window part */							private EditWindow wnd;
 	/** the tree view part */							private TreeView tree;
@@ -72,13 +75,13 @@ public class WindowFrame // extends JInternalFrame
 		{
 			frame.jif = new JInternalFrame(cell.describe(), true, true, true, true);
 			frame.jif.setSize(frameSize);
-			frame.jif.setLocation(windowOffset, windowOffset);
+			frame.jif.setLocation(windowOffset+100, windowOffset);
 			frame.jif.setAutoscrolls(true);
 		} else
 		{
 			frame.jf = new TopLevel("Electric - "+cell.describe(), frameSize);
 			frame.jf.setSize(frameSize);
-			frame.jf.setLocation(windowOffset, windowOffset);
+			frame.jf.setLocation(windowOffset+100, windowOffset);
 		}
 		windowOffset += 70;
 		if (windowOffset > 300) windowOffset = 0;
@@ -93,6 +96,7 @@ public class WindowFrame // extends JInternalFrame
 		frame.tree = TreeView.CreateTreeView(root, frame.wnd);
 		explorerTreeChanged();
 		JScrollPane scrolledTree = new JScrollPane(frame.tree);
+		JButton explorerButton = Button.newInstance(new ImageIcon(frame.getClass().getResource("IconExplorer.gif")));
 
 		// put them together into the frame
 		JSplitPane js = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
@@ -117,6 +121,8 @@ public class WindowFrame // extends JInternalFrame
 			frame.jf.show();
 			frame.jf.setEditWindow(frame.wnd);
 		}
+//		js.requestFocusInWindow();
+//		js.setCorner(JScrollPane.LOWER_LEFT_CORNER, explorerButton);
 
 		// accumulate a list of current windows
 		windowList.add(frame);

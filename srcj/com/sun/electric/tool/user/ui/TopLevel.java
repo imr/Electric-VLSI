@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.tool.user.UserMenuCommands;
+import com.sun.electric.tool.user.ui.PaletteFrame;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -35,6 +36,7 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.Cursor;
 
 import javax.swing.JFrame;
 import javax.swing.JDesktopPane;
@@ -82,6 +84,8 @@ public class TopLevel extends JFrame
 	/** The EditWindow associated with this (if SDI). */	private EditWindow wnd;
 	/** The size of the screen. */							private static Dimension scrnSize;
 	/** The current operating system. */					private static OS os;
+	/** The palette object system. */						private static PaletteFrame palette;
+	/** The cursor being displayed. */						private static Cursor cursor;
 
 	/**
 	 * Constructor to build a window.
@@ -112,6 +116,7 @@ public class TopLevel extends JFrame
 
 		windowList.add(this);
 		current = this;
+		cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
 	}
 
 	/**
@@ -158,6 +163,7 @@ public class TopLevel extends JFrame
 
 		// initialize the messages window
 		MessagesWindow cl = new MessagesWindow(scrnSize);
+		palette = PaletteFrame.newInstance();
 	}
 
 	/**
@@ -182,6 +188,19 @@ public class TopLevel extends JFrame
 	 * @return an iterator over all top-level windows.
 	 */
 	public static Iterator getWindows() { return windowList.iterator(); }
+
+	/**
+	 * Routine to return component palette window.
+	 * The component palette is the vertical toolbar on the left side.
+	 * @return the component palette window.
+	 */
+	public static PaletteFrame getPaletteFrame() { return palette; }
+
+	/**
+	 * Routine to return the size of the screen that Electric is on.
+	 * @return the size of the screen that Electric is on.
+	 */
+	public static Dimension getScreenSize() { return new Dimension(scrnSize); }
 
 	/**
 	 * Routine to remove a window from the list of top-level windows.
@@ -223,6 +242,22 @@ public class TopLevel extends JFrame
         {
         	return current.getEditWindow();
         }
+	}
+
+	public static Cursor getCurrentCursor() { return cursor; }
+
+	public static void setCurrentCursor(Cursor cursor)
+	{
+		TopLevel.cursor = cursor;
+		JFrame jf = TopLevel.getCurrentJFrame();
+		jf.setCursor(cursor);
+		palette.getWindow().setCursor(cursor);
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			EditWindow wnd = wf.getEditWindow();
+			wnd.setCursor(cursor);
+		}
 	}
 
 	/**

@@ -780,6 +780,48 @@ public abstract class NodeProto extends ElectricObject
 	 */
 	public Function getFunction() { return function; }
 
+	/*
+	 * Routine to return the function of this NodeProto, grouped according to its
+	 * general function.
+	 * For example, all transistors return the same value.
+	 * @return the group function of this NodeProto.
+	 */
+	public Function getGroupFunction()
+	{
+		if (function == Function.TRANMOS || function == Function.TRA4NMOS ||
+			function == Function.TRAPMOS || function == Function.TRA4PMOS ||
+			function == Function.TRADMOS || function == Function.TRA4DMOS ||
+			function == Function.TRANPN || function == Function.TRA4NPN ||
+			function == Function.TRAPNP || function == Function.TRA4PNP ||
+			function == Function.TRANJFET || function == Function.TRA4NJFET ||
+			function == Function.TRAPJFET || function == Function.TRA4PJFET ||
+			function == Function.TRADMES || function == Function.TRA4DMES ||
+			function == Function.TRAEMES || function == Function.TRA4EMES)
+				return Function.TRANS;
+		if (function == Function.RESIST || function == Function.CAPAC ||
+			function == Function.ECAPAC || function == Function.DIODE ||
+			function == Function.DIODEZ || function == Function.INDUCT)
+				return Function.INDUCT;
+		if (function == Function.CCVS || function == Function.CCCS ||
+			function == Function.VCVS || function == Function.VCCS ||
+			function == Function.TLINE)
+				return Function.TLINE;
+		if (function == Function.BASE || function == Function.EMIT ||
+			function == Function.COLLECT)
+				return Function.COLLECT;
+		if (function == Function.BUFFER || function == Function.GATEAND ||
+			function == Function.GATEOR || function == Function.MUX ||
+			function == Function.GATEXOR)
+				return Function.GATEXOR;
+		if (function == Function.CONPOWER || function == Function.CONGROUND)
+			return Function.CONGROUND;
+		if (function == Function.METER || function == Function.SOURCE)
+			return Function.SOURCE;
+		if (function == Function.SUBSTRATE || function == Function.WELL)
+			return Function.WELL;
+		return function;
+	}
+
 	/**
 	 * Routine to set this NodeProto so that instances of it are "arc-wipable".
 	 * For display efficiency reasons, pins that have arcs connected to them should not bother being drawn.

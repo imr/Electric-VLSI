@@ -122,7 +122,7 @@ public class nMOS extends Technology
 
 		/** I layer */
 		Layer I_lay = Layer.newInstance(this, "Implant",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 21364,4096,24384,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 250,250,0,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0000,   //                 
 						0x1111,   //    X   X   X   X

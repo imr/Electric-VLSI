@@ -122,7 +122,7 @@ public class CMOS extends Technology
 
 		/** P0 layer */
 		Layer P0_lay = Layer.newInstance(this, "P+",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 16508,4096,-800,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 255,190,6,0.8,1,
 			new int[] { 0x1000,   //    X            
 						0x0020,   //           X     
 						0x0000,   //                 
@@ -257,7 +257,7 @@ public class CMOS extends Technology
 
 		/** PP0 layer */
 		Layer PP0_lay = Layer.newInstance(this, "Pseudo-P+",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 16508,4096,-800,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 255,190,6,0.8,1,
 			new int[] { 0x1000,   //    X            
 						0x0020,   //           X     
 						0x0000,   //                 

@@ -144,6 +144,11 @@ public class Highlight
 	{
 		highlightList.clear();
 		highOffX = highOffY = 0;
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			wf.getEditWindow().repaint();
+		}
 	}
 
 	/**
@@ -193,6 +198,26 @@ public class Highlight
 		Highlight h = new Highlight(Type.BBOX);
 		h.bounds = new Rectangle2D.Double();
 		h.bounds.setRect(area);
+		h.cell = cell;
+
+		highlightList.add(h);
+		return h;
+	}
+
+	/**
+	 * Routine to add a line to the list of highlighted objects.
+	 * @param start the start point of the line to add to the list of highlighted objects.
+	 * @param end the end point of the line to add to the list of highlighted objects.
+	 * @param cell the Cell in which this line resides.
+	 * @return the newly created Highlight object.
+	 */
+	public static Highlight addLine(Point2D start, Point2D end, Cell cell)
+	{
+		Highlight h = new Highlight(Type.LINE);
+		h.pt1 = new Point2D.Double();
+		h.pt1.setLocation(start);
+		h.pt2 = new Point2D.Double();
+		h.pt2.setLocation(end);
 		h.cell = cell;
 
 		highlightList.add(h);
@@ -371,7 +396,7 @@ public class Highlight
 			for(Iterator it = getHighlights(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
-				if (h.getType() == Type.GEOM || h.getType() == Type.BBOX)
+				if (h.getType() == Type.GEOM || h.getType() == Type.BBOX || h.getType() == Type.LINE)
 				{
 					Cell parent = h.getGeom().getParent();
 					if (curWind != null && curWind.getCell() == parent) return curWind;
@@ -483,7 +508,11 @@ public class Highlight
 		}
 		if (type == Type.LINE)
 		{
-			System.out.println("Highlight LINE");
+			Point2D [] points = new Point2D.Double[2];
+			points[0] = new Point2D.Double(pt1.getX(), pt1.getY());
+			points[1] = new Point2D.Double(pt2.getX(), pt2.getY());
+			drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY, false);
+//			System.out.println("Highlight LINE");
 			return;
 		}
 		if (type == Type.TEXT)

@@ -256,7 +256,7 @@ public class EMath
 	public static Point2D closestPointToSegment(Point2D p1, Point2D p2, Point2D pt)
 	{
 		// find closest point on line
-		Point2D pi = closestPointToLine(pt, p2, pt);
+		Point2D pi = closestPointToLine(p1, p2, pt);
 
 		// see if that intersection point is actually on the segment
 		if (pi.getX() >= Math.min(p1.getX(), p2.getX()) &&

@@ -594,6 +594,45 @@ public class Artwork extends Technology
 		return v + cY;
 	}
 
+    /**
+	 * Routine to set default outline information on a NodeInst.
+	 * Very few primitives have default outline information (usually just in the Artwork Technology).
+	 * This method overrides the one in Technology.
+	 * @param ni the NodeInst to load with default outline information.
+	 */
+	public void setDefaultOutline(NodeInst ni)
+	{
+		PrimitiveNode np = (PrimitiveNode)ni.getProto();
+		if (np == openedPolygonNode || np == openedDottedPolygonNode ||
+			np == openedDashedPolygonNode ||  np == openedThickerPolygonNode ||
+			np == splineNode)
+		{
+			Float [] outline = new Float[8];
+			outline[0] = new Float(-3);
+			outline[1] = new Float(-3);
+			outline[2] = new Float(-1);
+			outline[3] = new Float(3);
+			outline[4] = new Float(1);
+			outline[5] = new Float(-3);
+			outline[6] = new Float(3);
+			outline[7] = new Float(3);
+			ni.setVar("trace", outline);
+		}
+		if (np == closedPolygonNode || np == filledPolygonNode)
+		{
+			Float [] outline = new Float[8];
+			outline[0] = new Float(0);
+			outline[1] = new Float(-3);
+			outline[2] = new Float(-3);
+			outline[3] = new Float(0);
+			outline[4] = new Float(0);
+			outline[5] = new Float(3);
+			outline[6] = new Float(3);
+			outline[7] = new Float(-3);
+			ni.setVar("trace", outline);
+		}
+	}
+
 	/*
 	 * Routine to convert the given spline control points into a spline curve.
 	 * @param cX the center X coordinate of the spline.

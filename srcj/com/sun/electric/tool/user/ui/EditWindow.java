@@ -181,8 +181,10 @@ public class EditWindow extends JPanel
 	public void paint(Graphics g)
 	{
         Graphics2D g2 = (Graphics2D)g;
-        // to enable keys to be recieved
+
+		// to enable keys to be recieved
 		requestFocus();
+
 		if (img == null || !getSize().equals(sz))
 		{
 			if (cell == null) return;
@@ -281,7 +283,7 @@ public class EditWindow extends JPanel
 	/**
 	 * Routine to draw node "ni", transformed through "trans".
 	 */
-	void drawNode(Graphics2D g2, NodeInst ni, AffineTransform trans, boolean topLevel)
+	public void drawNode(Graphics2D g2, NodeInst ni, AffineTransform trans, boolean topLevel)
 	{
 		NodeProto np = ni.getProto();
 
@@ -400,7 +402,7 @@ public class EditWindow extends JPanel
 	/**
 	 * Routine to draw arc "ai", transformed through "trans".
 	 */
-	void drawArc(Graphics2D g2, ArcInst ai, AffineTransform trans, boolean topLevel)
+	public void drawArc(Graphics2D g2, ArcInst ai, AffineTransform trans, boolean topLevel)
 	{
 		ArcProto ap = ai.getProto();
 		Technology tech = ap.getTechnology();
@@ -1064,6 +1066,8 @@ public class EditWindow extends JPanel
 		curMouseWheelListener = (MouseWheelListener)listener;
 		curKeyListener = (KeyListener)listener;
 	}
+
+	public static EventListener getListener() { return curMouseListener; }
 
 	// the MouseListener events
 	public void mousePressed(MouseEvent evt) { curMouseListener.mousePressed(evt); }

@@ -592,11 +592,11 @@ public class Clipboard
 				ArcInst ai = (ArcInst)it.next();
 				PortInst oldHeadPi = ai.getHead().getPortInst();
 				NodeInst headNi = (NodeInst)oldHeadPi.getNodeInst().getTempObj();
-				PortInst headPi = headNi.getPortInstFromProto(oldHeadPi.getPortProto());
+				PortInst headPi = headNi.findPortInstFromProto(oldHeadPi.getPortProto());
 
 				PortInst oldTailPi = ai.getTail().getPortInst();
 				NodeInst tailNi = (NodeInst)oldTailPi.getNodeInst().getTempObj();
-				PortInst tailPi = tailNi.getPortInstFromProto(oldTailPi.getPortProto());
+				PortInst tailPi = tailNi.findPortInstFromProto(oldTailPi.getPortProto());
 
 				String name = null;
 				if (ai.isUsernamed())
@@ -680,7 +680,7 @@ public class Clipboard
 			ni = (NodeInst)ni.getTempObj();
 
 			PortProto pp = pi.getPortProto();
-			PortInst newPi = ni.getPortInstFromProto(pp);
+			PortInst newPi = ni.findPortInstFromProto(pp);
 
 			Cell cell = ni.getParent();
 			String portname = ElectricObject.uniqueObjectName(origpp.getProtoName(), cell, PortProto.class, null);

@@ -46,12 +46,15 @@ import com.sun.electric.technology.technologies.CMOS;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.MoCMOSOld;
 import com.sun.electric.technology.technologies.MoCMOSSub;
+import com.sun.electric.technology.technologies.nMOS;
 import com.sun.electric.tool.user.Prefs;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Comparator;
+import java.util.Collections;
 import java.util.prefs.Preferences;
 import java.util.prefs.BackingStoreException;
 import java.awt.Dimension;
@@ -518,11 +521,12 @@ public class Technology extends ElectricObject
 		Generic.tech.setCurrent();		// must be called first
 
 		// now all of the rest
-		Schematics.tech.setCurrent();
 		Artwork.tech.setCurrent();
 		CMOS.tech.setCurrent();
 		MoCMOSOld.tech.setCurrent();
 		MoCMOSSub.tech.setCurrent();
+		nMOS.tech.setCurrent();
+		Schematics.tech.setCurrent();
 
 		// the last one is the real current technology
 		MoCMOS.tech.setCurrent();
@@ -584,6 +588,31 @@ public class Technology extends ElectricObject
 	public static Iterator getTechnologies()
 	{
 		return technologies.iterator();
+	}
+
+	static class TechnologyCaseInsensitive implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Technology c1 = (Technology)o1;
+			Technology c2 = (Technology)o2;
+			String s1 = c1.getTechName();
+			String s2 = c2.getTechName();
+			return s1.compareToIgnoreCase(s2);
+		}
+	}
+
+	/**
+	 * Routine to return an iterator over all libraries.
+	 * @return an iterator over all libraries.
+	 */
+	public static List getTechnologiesSortedByName()
+	{
+		List sortedList = new ArrayList();
+		for(Iterator it = getTechnologies(); it.hasNext(); )
+			sortedList.add(it.next());
+		Collections.sort(sortedList, new TechnologyCaseInsensitive());
+		return sortedList;
 	}
 
 	/****************************** LAYERS ******************************/
@@ -935,6 +964,14 @@ public class Technology extends ElectricObject
 	 */
 	public boolean isNoPrimitiveNodes() { return (userBits & NOPRIMTECHNOLOGY) != 0; }
 
+    /**
+	 * Routine to set default outline information on a NodeInst.
+	 * Very few primitives have default outline information (usually just in the Artwork Technology).
+	 * This method is overridden by the appropriate technology.
+	 * @param ni the NodeInst to load with default outline information.
+	 */
+	public void setDefaultOutline(NodeInst ni) {}
+
 	public static SizeOffset getSizeOffset(NodeInst ni)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
@@ -1044,7 +1081,7 @@ public class Technology extends ElectricObject
 			Technology.NodeLayer primLayer = primLayers[i];
 			int representation = primLayer.getRepresentation();
 			Poly.Type style = primLayer.getStyle();
-			if (representation == Technology.NodeLayer.BOX)
+			if (representation == Technology.NodeLayer.BOX || representation == Technology.NodeLayer.MINBOX)
 			{
 				double portLowX = ni.getCenterX() + primLayer.getLeftEdge().getMultiplier() * ni.getXSize() + primLayer.getLeftEdge().getAdder();
 				double portHighX = ni.getCenterX() + primLayer.getRightEdge().getMultiplier() * ni.getXSize() + primLayer.getRightEdge().getAdder();

@@ -128,6 +128,7 @@ public abstract class ArcProto extends ElectricObject
 	/** angle increment for this type of arc */			private static final int AANGLEINC =   017760000;
 	/** right shift for AANGLEINC */					private static final int AANGLEINCSH =        13;
 	/** set if arc is selectable by edge, not area */	private static final int AEDGESELECT = 020000000;
+	/** set if arc is not used */						private static final int ANOTUSED = 020000000000;
 
 	// ----------------- protected and private methods -------------------------
 
@@ -333,6 +334,28 @@ public abstract class ArcProto extends ElectricObject
 	 * @return true if instances of this ArcProto are directional.
 	 */
 	public boolean isDirectional() { return (userBits & WANTDIRECTIONAL) != 0; }
+
+	/**
+	 * Routine to set this ArcProto so that it is not used.
+	 * Unused arcs do not appear in the component menus and cannot be created by the user.
+	 * The state is useful for hiding arcs that the user should not use.
+	 */
+	public void setNotUsed() { checkChanging(); userBits |= ANOTUSED; }
+
+	/**
+	 * Routine to set this ArcProto so that it is used.
+	 * Unused arcs do not appear in the component menus and cannot be created by the user.
+	 * The state is useful for hiding arcs that the user should not use.
+	 */
+	public void clearNotUsed() { checkChanging(); userBits &= ~ANOTUSED; }
+
+	/**
+	 * Routine to tell if this ArcProto is used.
+	 * Unused arcs do not appear in the component menus and cannot be created by the user.
+	 * The state is useful for hiding arcs that the user should not use.
+	 * @return true if this ArcProto is used.
+	 */
+	public boolean isNotUsed() { return (userBits & ANOTUSED) != 0; }
 
 	/**
 	 * Routine to set this ArcProto so that instances of it can wipe nodes.

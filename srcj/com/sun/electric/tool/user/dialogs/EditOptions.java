@@ -80,6 +80,10 @@ public class EditOptions extends javax.swing.JDialog
         instanceMirror = new javax.swing.JCheckBox();
         newArc = new javax.swing.JPanel();
         selection = new javax.swing.JPanel();
+        selEasyCellInstances = new javax.swing.JCheckBox();
+        selEasyAnnotationText = new javax.swing.JCheckBox();
+        selCenterBasedPrimitives = new javax.swing.JCheckBox();
+        selDraggingEnclosesEntireObject = new javax.swing.JCheckBox();
         cell = new javax.swing.JPanel();
         port = new javax.swing.JPanel();
         frame = new javax.swing.JPanel();
@@ -92,7 +96,6 @@ public class EditOptions extends javax.swing.JDialog
         threeD = new javax.swing.JPanel();
         technology = new javax.swing.JPanel();
         cancel = new javax.swing.JButton();
-        factorySettings = new javax.swing.JButton();
         ok = new javax.swing.JButton();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
@@ -292,8 +295,8 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 7;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         newNode.add(instanceRotation, gridBagConstraints);
 
         instanceMirror.setText("Mirror X");
@@ -317,6 +320,38 @@ public class EditOptions extends javax.swing.JDialog
         jTabbedPane1.addTab("New Arcs", newArc);
 
         selection.setLayout(new java.awt.GridBagLayout());
+
+        selEasyCellInstances.setText("Easy selection of cell instances");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        selection.add(selEasyCellInstances, gridBagConstraints);
+
+        selEasyAnnotationText.setText("Easy selection of annotation text");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        selection.add(selEasyAnnotationText, gridBagConstraints);
+
+        selCenterBasedPrimitives.setText("Center-based primitives");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        selection.add(selCenterBasedPrimitives, gridBagConstraints);
+
+        selDraggingEnclosesEntireObject.setText("Dragging must enclose entire object");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        selection.add(selDraggingEnclosesEntireObject, gridBagConstraints);
 
         jTabbedPane1.addTab("Selection", selection);
 
@@ -386,21 +421,6 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 40, 4, 4);
         getContentPane().add(cancel, gridBagConstraints);
 
-        factorySettings.setText("Factory Settings");
-        factorySettings.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                factorySettingsActionPerformed(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(factorySettings, gridBagConstraints);
-
         ok.setText("OK");
         ok.addActionListener(new java.awt.event.ActionListener()
         {
@@ -459,11 +479,6 @@ public class EditOptions extends javax.swing.JDialog
 		closeDialog(null);
 	}//GEN-LAST:event_okActionPerformed
 
-	private void factorySettingsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_factorySettingsActionPerformed
-	{//GEN-HEADEREND:event_factorySettingsActionPerformed
-		System.out.println("Can't yet");
-	}//GEN-LAST:event_factorySettingsActionPerformed
-
 	private void cancelActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cancelActionPerformed
 	{//GEN-HEADEREND:event_cancelActionPerformed
 		closeDialog(null);
@@ -488,7 +503,6 @@ public class EditOptions extends javax.swing.JDialog
     private javax.swing.JPanel colors;
     private javax.swing.JCheckBox copyExports;
     private javax.swing.JCheckBox disallowModificationLockedPrims;
-    private javax.swing.JButton factorySettings;
     private javax.swing.JPanel frame;
     private javax.swing.JPanel grid;
     private javax.swing.JPanel icon;
@@ -514,6 +528,10 @@ public class EditOptions extends javax.swing.JDialog
     private javax.swing.JTextField primitiveRotation;
     private javax.swing.JTextField primitiveXSize;
     private javax.swing.JTextField primitiveYSize;
+    private javax.swing.JCheckBox selCenterBasedPrimitives;
+    private javax.swing.JCheckBox selDraggingEnclosesEntireObject;
+    private javax.swing.JCheckBox selEasyAnnotationText;
+    private javax.swing.JCheckBox selEasyCellInstances;
     private javax.swing.JPanel selection;
     private javax.swing.JPanel technology;
     private javax.swing.JPanel text;

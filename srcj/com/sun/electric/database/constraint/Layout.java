@@ -610,6 +610,7 @@ public class Layout extends Constraint
 			// if flexible arcinst has been changed, verify its connectivity
 			if (ai.getChangeClock() >= changeClock+1)
 			{
+//System.out.println("Arc "+ai.describe()+" has changed");
 				ensureArcInst(ai, 1);
 				continue;
 			}
@@ -705,6 +706,7 @@ public class Layout extends Constraint
 				double dy = newPts[thisEndIndex].getY() - thisEnd.getLocation().getY();
 				double odx = newPts[thatEndIndex].getX() - thatEnd.getLocation().getX();
 				double ody = newPts[thatEndIndex].getY() - thatEnd.getLocation().getY();
+//System.out.println("Arc "+ai.describe()+" will change, one end moves ("+dx+","+dy+") other moves ("+odx+","+ody+")");
 				if (EMath.doublesEqual(thisEnd.getLocation().getX(), thatEnd.getLocation().getX()))
 				{
 					// null arcinst must not be explicitly horizontal
@@ -972,7 +974,7 @@ public class Layout extends Constraint
 			updateArc(ai, headPt, tailPt, arctyp);
 			return;
 		}
-
+System.out.println("Jogging arc");
 		// manhattan arcinst becomes nonmanhattan: remember facts about it
 		PortInst fpi = head.getPortInst();
 		NodeInst fno = fpi.getNodeInst();   PortProto fpt = fpi.getPortProto();
@@ -1229,14 +1231,16 @@ public class Layout extends Constraint
 		Rectangle2D cellBounds = cell.getBounds();
 
 		// quit if it has not changed
-		if (oldCellBounds.equals(cellBounds)) return;
+		if (oldCellBounds.equals(cellBounds) && !forcedLook) return;
 
 		// advance the change clock
 		changeClock += 4;
 
 		// get former size of cell from change information
-		double flx = oldCellBounds.getMinX();   double fhx = oldCellBounds.getMaxX();
-		double fly = oldCellBounds.getMinY();   double fhy = oldCellBounds.getMaxY();
+//		double flx = oldCellBounds.getMinX();   double fhx = oldCellBounds.getMaxX();
+//		double fly = oldCellBounds.getMinY();   double fhy = oldCellBounds.getMaxY();
+		double flx = cellBounds.getMinX();   double fhx = cellBounds.getMaxX();
+		double fly = cellBounds.getMinY();   double fhy = cellBounds.getMaxY();
 		Undo.Change change = cell.getChange();
 		if (change != null && change.getType() == Undo.Type.CELLMOD)
 		{

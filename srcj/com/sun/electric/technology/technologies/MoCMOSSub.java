@@ -82,7 +82,7 @@ public class MoCMOSSub extends Technology
 
 		/** M0 layer */
 		Layer M0_lay = Layer.newInstance(this, "Metal-2",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 23421,4096,25160,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 224,95,255,0.8,1,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
 						0x4040,   //  X       X      
@@ -447,7 +447,7 @@ public class MoCMOSSub extends Technology
 
 		/** PM0 layer */
 		Layer PM0_lay = Layer.newInstance(this, "Pseudo-Metal-2",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 23421,4096,25160,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 224,95,255,0.8,1,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
 						0x4040,   //  X       X      

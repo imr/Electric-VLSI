@@ -94,6 +94,10 @@ public class EGraphics
 		this.opacity = opacity;
 		this.foreground = foreground;
 		this.pattern = pattern;
+		if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0 || blue > 255)
+		{
+			System.out.println("Graphics bad: (" + red + "," + green + "," + blue + ")");
+		}
 	}
 
 	/**

@@ -385,7 +385,7 @@ public abstract class Job implements ActionListener, Runnable {
 	{
 		if (changingJob == null)
 		{
-			System.out.println("Database is changing out if change job");
+			System.out.println("Database is changing but no change job is running");
 			//throw new IllegalStateException("Job.checkChanging()");
 		} else if (Thread.currentThread() != databaseChangesThread)
 		{

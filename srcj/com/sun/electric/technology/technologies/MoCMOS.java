@@ -1564,11 +1564,14 @@ public class MoCMOS extends Technology
 		poly2_arc.setFixedAngle();
 		poly2_arc.setWipable();
 		poly2_arc.setAngleIncrement(90);
+		poly2_arc.setNotUsed();
 
 		/** P-active arc */
 		PrimitiveArc pActive_arc = PrimitiveArc.newInstance(this, "P-Active", 15.0, new Technology.ArcLayer []
 		{
-			new Technology.ArcLayer(pActive_lay, 0, Poly.Type.FILLED)
+			new Technology.ArcLayer(pActive_lay, 12, Poly.Type.FILLED),
+			new Technology.ArcLayer(nWell_lay, 0, Poly.Type.FILLED),
+			new Technology.ArcLayer(pSelect_lay, 8, Poly.Type.FILLED)
 		});
 		pActive_arc.setFunction(PrimitiveArc.Function.DIFFP);
 		pActive_arc.setFixedAngle();
@@ -1579,7 +1582,9 @@ public class MoCMOS extends Technology
 		/** N-active arc */
 		PrimitiveArc nActive_arc = PrimitiveArc.newInstance(this, "N-Active", 15.0, new Technology.ArcLayer []
 		{
-			new Technology.ArcLayer(nActive_lay, 0, Poly.Type.FILLED)
+			new Technology.ArcLayer(nActive_lay, 12, Poly.Type.FILLED),
+			new Technology.ArcLayer(pWell_lay, 0, Poly.Type.FILLED),
+			new Technology.ArcLayer(nSelect_lay, 8, Poly.Type.FILLED)
 		});
 		nActive_arc.setFunction(PrimitiveArc.Function.DIFFN);
 		nActive_arc.setFixedAngle();
@@ -1597,6 +1602,7 @@ public class MoCMOS extends Technology
 		active_arc.setFixedAngle();
 		active_arc.setWipable();
 		active_arc.setAngleIncrement(90);
+		active_arc.setNotUsed();
 
 		//**************************************** NODES ****************************************
 
@@ -1721,6 +1727,7 @@ public class MoCMOS extends Technology
 		poly2Pin_node.setFunction(NodeProto.Function.PIN);
 		poly2Pin_node.setArcsWipe();
 		poly2Pin_node.setArcsShrink();
+		poly2Pin_node.setNotUsed();
 
 		/** P-active-pin */
 		pActivePin_node = PrimitiveNode.newInstance("P-Active-Pin", this, 15.0, 15.0, new SizeOffset(6, 6, 6, 6),
@@ -1851,6 +1858,7 @@ public class MoCMOS extends Technology
 			});
 		metal1Poly2Contact_node.setFunction(NodeProto.Function.CONTACT);
 		metal1Poly2Contact_node.setSpecialValues(new int [] {PrimitiveNode.MULTICUT, 2, 2, 4, 3, 0, 0, 0, 0});
+		metal1Poly2Contact_node.setNotUsed();
 
 		/** metal-1-polysilicon-1-2-contact */
 		metal1Poly12Contact_node = PrimitiveNode.newInstance("Metal-1-Polysilicon-1-2-Con", this, 15.0, 15.0, null,
@@ -1872,6 +1880,7 @@ public class MoCMOS extends Technology
 			});
 		metal1Poly12Contact_node.setFunction(NodeProto.Function.CONTACT);
 		metal1Poly12Contact_node.setSpecialValues(new int [] {PrimitiveNode.MULTICUT, 2, 2, (int)6.5, 3, 0, 0, 0, 0});
+		metal1Poly12Contact_node.setNotUsed();
 
 		/** P-Transistor */
 		pTransistor_node = PrimitiveNode.newInstance("P-Transistor", this, 15.0, 22.0, new SizeOffset(6, 6, 10, 10),
@@ -1981,6 +1990,7 @@ public class MoCMOS extends Technology
 			});
 		scalablePTransistor_node.setFunction(NodeProto.Function.TRAPMOS);
 		scalablePTransistor_node.setCanShrink();
+		scalablePTransistor_node.setNotUsed();
 
 		/** Scalable-N-Transistor */
 		scalableNTransistor_node = PrimitiveNode.newInstance("N-Transistor-Scalable", this, 17.0, 26.0, new SizeOffset(7, 7, 12, 12),
@@ -2026,6 +2036,7 @@ public class MoCMOS extends Technology
 			});
 		scalableNTransistor_node.setFunction(NodeProto.Function.TRANMOS);
 		scalableNTransistor_node.setCanShrink();
+		scalableNTransistor_node.setNotUsed();
 
 		/** metal-1-metal-2-contact */
 		metal1Metal2Contact_node = PrimitiveNode.newInstance("Metal-1-Metal-2-Con", this, 5.0, 5.0, new SizeOffset(0.5, 0.5, 0.5, 0.5),
@@ -2266,6 +2277,7 @@ public class MoCMOS extends Technology
 		poly2Node_node.setFunction(NodeProto.Function.NODE);
 		poly2Node_node.setHoldsOutline();
 		poly2Node_node.setSpecialValues(new int [] {PrimitiveNode.POLYGONAL, 0, 0, 0, 0, 0, 0, 0, 0});
+		poly2Node_node.setNotUsed();
 
 		/** P-Active-Node */
 		pActiveNode_node = PrimitiveNode.newInstance("P-Active-Node", this, 3.0, 3.0, null,

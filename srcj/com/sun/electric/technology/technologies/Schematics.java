@@ -932,7 +932,7 @@ public class Schematics extends Technology
 		transistorNode.setFunction(NodeProto.Function.TRANS);
 
 		/** resistor */
-		resistorNode = PrimitiveNode.newInstance("Resistor", this, 2.0, 1.0, new SizeOffset(1, 1, 0, 0),
+		resistorNode = PrimitiveNode.newInstance("Resistor", this, 6.0, 1.0, new SizeOffset(1, 1, 0, 0),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
@@ -1402,13 +1402,13 @@ public class Schematics extends Technology
 			{
 				busPinLayers[totalLayers++] = new Technology.NodeLayer(bus_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.fromCenter(busDiscSize))});
+					new Technology.TechPoint(EdgeH.CENTER, new EdgeV(busDiscSize, 0))});
 			}
 			if (wireDiscSize > 0)
 			{
 				busPinLayers[totalLayers++] = new Technology.NodeLayer(arc_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
-					new Technology.TechPoint(EdgeH.CENTER, EdgeV.fromCenter(wireDiscSize))});
+					new Technology.TechPoint(EdgeH.CENTER, new EdgeV(wireDiscSize, 0))});
 			}
 			primLayers = busPinLayers;
 		} else if (np == flipflopNode)

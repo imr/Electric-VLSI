@@ -41,7 +41,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -55,9 +54,6 @@ public final class UserInitial
 {
 	public static void main(String[] args)
 	{
-		// initialize the display	
-		TopLevel.Initialize();
-	
 		// initialize all of the technologies
 		new InitTechnologies();
 

@@ -241,7 +241,7 @@ public class Export extends PortProto
 		NodeInst newNodeInst = newPi.getNodeInst();
 		PortProto newPortProto = newPi.getPortProto();
 		newNodeInst.addExport(this);
-		originalPort = newNodeInst.getPortInstFromProto(newPortProto);
+		originalPort = newNodeInst.findPortInstFromProto(newPortProto);
 
 		// update all port characteristics exported from this one
 //		this->userbits = (this->userbits & STATEBITS) |
