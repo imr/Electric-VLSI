@@ -479,6 +479,7 @@ public class Technology extends ElectricObject
 	/** count of layers in the technology */			private int layerIndex = 0;
 	/** list of primitive nodes in the technology */	private List nodes;
 	/** list of arcs in the technology */				private List arcs;
+    /** list of PortProtos in this Technology. */       private List ports;
 	/** minimum resistance in this Technology. */		private double minResistance;
 	/** minimum capacitance in this Technology. */		private double minCapacitance;
 	/** true if parasitic overrides were examined. */	private boolean parasiticOverridesGathered = false;
@@ -499,6 +500,7 @@ public class Technology extends ElectricObject
 		this.layers = new ArrayList();
 		this.nodes = new ArrayList();
 		this.arcs = new ArrayList();
+        this.ports = new ArrayList();
 		this.scale = 1.0;
 		this.techIndex = techNumber++;
 		userBits = 0;
@@ -956,6 +958,34 @@ public class Technology extends ElectricObject
 	{
 		nodes.add(np);
 	}
+
+    /**
+     * Returns an Iterator on the PrimitivePort objects in this technology.
+     * @return an Iterator on the PrimitivePort objects in this technology.
+     */
+    public Iterator getPorts()
+    {
+        return ports.iterator();
+    }
+
+    /**
+     * Returns the number of PrimitivePorts objects in this technology.
+     * @return the number of PrimitivePorts objects in this technology.
+     */
+    public int getNumPorts()
+    {
+        return ports.size();
+    }
+
+    /**
+     * Method to add a new PrimitivePort to this Technology.
+     * This is usually done during initialization.
+     * @param pp the PrimitivePort to be added to this Technology.
+     */
+    public void addPortProto(PrimitivePort pp)
+    {
+        ports.add(pp);
+    }
 
 	/**
 	 * Method to return the pure "NodeProto Function" a primitive NodeInst in this Technology.

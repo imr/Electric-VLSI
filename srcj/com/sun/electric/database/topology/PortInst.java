@@ -31,6 +31,9 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Rectangle2D;
+import java.util.List;
+import java.util.Iterator;
+import java.util.ArrayList;
 
 /**
  * The PortInst class represents an instance of a Port.  It is the
@@ -81,7 +84,23 @@ public class PortInst extends ElectricObject
 	 */
 	public final int getPortIndex() { return portProto.getPortIndex(); }
 
-	/** 
+    /**
+     * Get iterator of all Connections
+     * that connect to this PortInst
+     * @return an iterator over associated Connections
+     */
+    public Iterator getConnections() {
+        List connections = new ArrayList();
+        // get connections on NodeInst
+        for (Iterator it = nodeInst.getConnections(); it.hasNext(); ) {
+            Connection c = (Connection)it.next();
+            if (c.getPortInst() == this)
+                connections.add(c);
+        }
+        return connections.iterator();
+    }
+
+	/**
 	 ** Method to return the equivalent PortProto of this PortInst's PortProto.
 	 * This is typically used to find the PortProto in the schematic view.
 	 * @return the equivalent PortProto of this PortInst's PortProto, or null if not found.

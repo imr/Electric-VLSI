@@ -23,6 +23,8 @@
  */
 package com.sun.electric.technology;
 
+import java.awt.geom.Rectangle2D;
+
 /**
  * The SizeOffset object describes the difference between the stored bounds of
  * a NodeInst and the displayed/selected bounds.
@@ -92,4 +94,18 @@ public class SizeOffset
 	{
 		return "SizeOffset {X:[" + lx + "," + hx + "] Y:[" + ly + "," + hy + "]}";
 	}
+
+    /**
+     * Returns a Rectangle2D representing bounds modified by
+     * this size offset.  Note here that I use the convention that
+     * +x is to the left and +y is up, whereas in Java components
+     * +y is down.
+     * @param bounds the bounds to be modified
+     * @return the modified bounds
+     */
+    public Rectangle2D modifyBounds(Rectangle2D bounds)
+    {
+        return new Rectangle2D.Double(bounds.getX()+lx, bounds.getY()+ly,
+                bounds.getWidth()-lx-hx, bounds.getHeight()-ly-hy);
+    }
 }

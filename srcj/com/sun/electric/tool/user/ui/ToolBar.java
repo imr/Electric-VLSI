@@ -44,14 +44,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
-import javax.swing.JToolBar;
-import javax.swing.ImageIcon;
-import javax.swing.JPopupMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JButton;
-import javax.swing.JToggleButton;
-import javax.swing.ButtonGroup;
-import javax.swing.AbstractAction;
+import javax.swing.*;
 
 
 /**
@@ -76,6 +69,7 @@ public class ToolBar extends JToolBar
 		/** Describes Selection mode (click and drag). */		public static final CursorMode SELECTSPECIAL = new CursorMode("select");
 		/** Describes Panning mode (move window contents). */	public static final CursorMode PAN = new CursorMode("pan");
 		/** Describes Zoom mode (scale window contents). */		public static final CursorMode ZOOM = new CursorMode("zoom");
+        /** Describes ClickZoomWire mode (does everything). */  public static final CursorMode CLICKZOOMWIRE = new CursorMode("clickzoomwire");
 		/** Describes Outline edit mode. */						public static final CursorMode OUTLINE = new CursorMode("outline");
 	}
 
@@ -116,7 +110,7 @@ public class ToolBar extends JToolBar
 		/** Describes Selection mode (click and drag). */		public static final SelectMode AREA = new SelectMode("area");
 	}
 
-	private static JToggleButton selectButton, wireButton, selectSpecialButton, panButton, zoomButton, outlineButton;
+	private static JToggleButton clickZoomWireButton, selectButton, wireButton, selectSpecialButton, panButton, zoomButton, outlineButton;
 	private static JToggleButton fullButton, halfButton, quarterButton;
 	private static JToggleButton objectsButton, areaButton;
 	private static ButtonGroup modeGroup, arrowGroup, selectGroup;
@@ -144,11 +138,19 @@ public class ToolBar extends JToolBar
 
 		// the "Select mode" button
 		modeGroup = new ButtonGroup();
+
+        clickZoomWireButton = new JToggleButton(new ImageIcon(toolbar.getClass().getResource("ButtonClickZoomWire.gif")));
+        clickZoomWireButton.addActionListener(
+            new ActionListener() { public void actionPerformed(ActionEvent e) { clickZoomWireCommand(); } });
+        clickZoomWireButton.setToolTipText("ClickZoomWire");
+        clickZoomWireButton.setSelected(true);
+        toolbar.add(clickZoomWireButton);
+        modeGroup.add(clickZoomWireButton);
+
 		selectButton = new JToggleButton(new ImageIcon(toolbar.getClass().getResource("ButtonSelect.gif")));
 		selectButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectCommand(); } });
 		selectButton.setToolTipText("Select");
-		selectButton.setSelected(true);
 		toolbar.add(selectButton);
 		modeGroup.add(selectButton);
 
@@ -329,6 +331,15 @@ public class ToolBar extends JToolBar
 		return cursor;
 	}
 
+    public static void clickZoomWireCommand()
+    {
+        EditWindow.setListener(ClickZoomWireListener.theOne);
+        TopLevel.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        curMode = CursorMode.CLICKZOOMWIRE;
+        clickZoomWireButton.setSelected(true);
+        MenuCommands.cursorClickZoomWire.setSelected(true);        
+    }
+
 	/**
 	 * Method called when the "select" button is pressed.
 	 */
@@ -397,17 +408,20 @@ public class ToolBar extends JToolBar
 	 */
 	public static void outlineEditCommand()
 	{
+        ButtonModel oldMode = modeGroup.getSelection();
 		NodeInst ni = (NodeInst)Highlight.getOneElectricObject(NodeInst.class);
 		if (ni == null)
 		{
 			System.out.println("Must first select a node with outline capabilities");
-			selectCommand();
+			if (oldMode == outlineButton) selectCommand(); else
+                setMode(oldMode);
 			return;
 		}
 		if (!ni.getProto().isHoldsOutline())
 		{
 			System.out.println("Cannot edit outline information on " + ni.getProto().describe() + " nodes");
-			selectCommand();
+            if (oldMode == outlineButton) selectCommand(); else
+                setMode(oldMode);
 			return;
 		}
 
@@ -419,6 +433,21 @@ public class ToolBar extends JToolBar
 		outlineButton.setSelected(true);
 		MenuCommands.cursorOutline.setSelected(true);
 	}
+
+    /**
+     * Set cursor mode based on last used button model
+     * @param model the button model corresponding to the desired mode
+     */
+    public static void setMode(ButtonModel model)
+    {
+        if (model == clickZoomWireButton) clickZoomWireCommand();
+        else if (model == selectButton) selectCommand();
+        else if (model == wireButton) wiringCommand();
+        else if (model == selectSpecialButton) selectSpecialCommand();
+        else if (model == panButton) panCommand();
+        else if (model == zoomButton) zoomCommand();
+        else if (model == outlineButton) outlineEditCommand();
+    }
 
 	/**
 	 * Method to tell which cursor mode is in effect.

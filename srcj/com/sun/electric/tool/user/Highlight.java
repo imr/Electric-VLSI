@@ -23,16 +23,11 @@
  */
 package com.sun.electric.tool.user;
 
-import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.database.geometry.EMath;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -42,49 +37,26 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.FlagSet;
+import com.sun.electric.database.network.Netlist;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.Artwork;
-import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.MenuCommands;
-import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.dialogs.GetInfoNode;
-import com.sun.electric.tool.user.dialogs.GetInfoArc;
-import com.sun.electric.tool.user.dialogs.GetInfoExport;
-import com.sun.electric.tool.user.dialogs.GetInfoText;
-import com.sun.electric.tool.user.dialogs.GetInfoMulti;
-import com.sun.electric.tool.user.dialogs.Attributes;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.ui.TopLevel;
 
-import java.awt.Dimension;
-import java.awt.Image;
-import java.awt.Point;
-import java.awt.BasicStroke;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.font.FontRenderContext;
-import java.awt.font.GlyphVector;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.awt.geom.GeneralPath;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
-import javax.swing.JPanel;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.awt.*;
+import java.awt.font.GlyphVector;
 
 /*
  * Class for highlighting of objects on the display.
@@ -155,10 +127,17 @@ public class Highlight
 	/** Screen offset for display of highlighting. */			private static int highOffX, highOffY;
 	/** the highlighted objects. */								private static List highlightList = new ArrayList();
 
+    // drawing properties
+
+    /** stroke type is solid line */
+    protected static final BasicStroke stroke = new BasicStroke(0);
+    /** stroke color is white */
+    protected static final Color color = Color.white;
+
 	private static final int EXACTSELECTDISTANCE = 5;
 	private static final int CROSSSIZE = 3;
 
-	private Highlight(Type type)
+	protected Highlight(Type type)
 	{
 		this.type = type;
 		this.eobj = null;
@@ -196,8 +175,8 @@ public class Highlight
 	}
 
 	/**
-	 * Method to add a Geometric to the list of highlighted objects.
-	 * @param geom the Geometric to add to the list of highlighted objects.
+	 * Method to add an ElectricObject to the list of highlighted objects.
+	 * @param eobj the ElectricObject to add to the list of highlighted objects.
 	 * @return the newly created Highlight object.
 	 */
 	public static Highlight addElectricObject(ElectricObject eobj, Cell cell)
@@ -295,8 +274,8 @@ public class Highlight
 	public ElectricObject getElectricObject() { return eobj; }
 
 	/**
-	 * Method to set the Geometric associated with this Highlight object.
-	 * @param geom the Geometric associated with this Highlight object.
+	 * Method to set the ElectricObject associated with this Highlight object.
+	 * @param eobj the ElectricObject associated with this Highlight object.
 	 */
 	private void setElectricObject(ElectricObject eobj) { this.eobj = eobj; }
 
@@ -392,6 +371,17 @@ public class Highlight
 			highlightList.add(it.next());
 		}
 	}
+
+    /**
+     * Method to remove a highlighted object from the list of
+     * highlights
+     * @param highlighted the highlighted object to remove.
+     */
+    public static void remove(Highlight highlighted)
+    {
+        if (highlightList.contains(highlighted))
+            highlightList.remove(highlightList.indexOf(highlighted));
+    }
 
 	/**
 	 * Method to return a List of all highlighted ElectricObjects.
@@ -745,9 +735,12 @@ public class Highlight
 	 * @param wnd the window in which to draw this highlight.
 	 * @param g the Graphics associated with the window.
 	 */
-	public void showHighlight(EditWindow wnd, Graphics g)
+	public void showHighlight(EditWindow wnd, Graphics2D g)
 	{
-		g.setColor(Color.white);
+        Stroke oldStroke = g.getStroke();               // save old settings
+        Color oldColor = g.getColor();
+        g.setStroke(stroke);                            // set highlight settings
+		g.setColor(color);
 		if (type == Type.BBOX)
 		{
 			Point2D [] points = new Point2D.Double[5];
@@ -1157,6 +1150,8 @@ public class Highlight
 				markObj.freeFlagSet();
 			}
 		}
+        g.setStroke(oldStroke);                         // restore old settings
+        g.setColor(oldColor);
 	}
 
 	/**
@@ -1350,7 +1345,47 @@ public class Highlight
 		} else
 		{
 			clear();
-			highlightList.add(underCursor.get(0));
+            // find smallest object found in search area around Point pt
+            // this makes it "do the right thing" from the user's
+            // point of view.
+            double side = 90/wnd.getScale();            // heuristic number for search area
+            Rectangle2D search = new Rectangle2D.Double(pt.getX()-0.5*side,
+                    pt.getY()-0.5*side, side, side);
+            double area = 0;
+            Highlight smallestHigh = null;
+            // search for smallest area object in search area
+            for (int i=0; i<underCursor.size(); i++)
+            {
+                Highlight h = (Highlight)underCursor.get(i);
+                ElectricObject eobj = h.getElectricObject();
+                // if this is a portInst, get NodeInst port is on
+                if (eobj instanceof PortInst)
+                    eobj = ((PortInst)eobj).getNodeInst();
+                // want to get bounds of geometric object
+                if (!(eobj instanceof Geometric)) continue;
+                Geometric geom = (Geometric)eobj;
+                // if geom is instance of a primitive node, need to factor in size offset
+                Rectangle2D geomBounds = geom.getBounds();
+                if (geom instanceof NodeInst) {
+                    NodeInst ni = (NodeInst)geom;
+                    if (ni.getProto() instanceof PrimitiveNode) {
+                        SizeOffset so = Technology.getSizeOffset(ni);
+                        geomBounds = so.modifyBounds(geomBounds);
+                    }
+                }
+                // find intersection area of search rectangle and geometry
+                Rectangle2D intersect = search.createIntersection(geomBounds);
+                double intersectArea = intersect.getWidth()*intersect.getHeight();
+                // choose smallest size
+                if ((intersectArea < area) || (smallestHigh == null)) {
+                    smallestHigh = h;
+                    area = intersectArea;
+                }
+            }
+            if (smallestHigh != null)
+                highlightList.add(smallestHigh);
+            else
+                highlightList.add(underCursor.get(0));  // use first one if search failed
 			finished();
 		}
 
@@ -1857,7 +1892,7 @@ public class Highlight
 	private boolean sameThing(Highlight other)
 	{
 		if (type != other.getType()) return false;
-		if (type == Type.BBOX || type == type.LINE) return false;
+		if (type == Type.BBOX || type == Type.LINE) return false;
 
 		if (type == Type.EOBJ)
 		{

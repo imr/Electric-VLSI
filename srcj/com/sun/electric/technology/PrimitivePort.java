@@ -68,6 +68,7 @@ public class PrimitivePort extends PortProto
 		this.bottom = bottom;
 		this.right = right;
 		this.top = top;
+        tech.addPortProto(this);
 	}
 
 	/**

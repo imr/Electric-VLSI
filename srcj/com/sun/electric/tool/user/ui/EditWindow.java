@@ -126,10 +126,14 @@ public class EditWindow extends JPanel
 	/** true if doing object-selection drag */				private boolean doingAreaDrag = false;
 	/** starting screen point for drags in this window */	private Point startDrag = new Point();
 	/** ending screen point for drags in this window */		private Point endDrag = new Point();
-	/** current mouse listener */							private static MouseListener curMouseListener = ClickAndDragListener.theOne;
-	/** current mouse motion listener */					private static MouseMotionListener curMouseMotionListener = ClickAndDragListener.theOne;
-	/** current mouse wheel listener */						private static MouseWheelListener curMouseWheelListener = ClickAndDragListener.theOne;
-	/** current key listener */								private static KeyListener curKeyListener = ClickAndDragListener.theOne;
+    /** current mouse listener */							private static MouseListener curMouseListener = ClickZoomWireListener.theOne;
+    /** current mouse motion listener */					private static MouseMotionListener curMouseMotionListener = ClickZoomWireListener.theOne;
+    /** current mouse wheel listener */						private static MouseWheelListener curMouseWheelListener = ClickZoomWireListener.theOne;
+    /** current key listener */								private static KeyListener curKeyListener = ClickZoomWireListener.theOne;
+//    /** current mouse listener */							private static MouseListener curMouseListener = ClickAndDragListener.theOne;
+//    /** current mouse motion listener */					private static MouseMotionListener curMouseMotionListener = ClickAndDragListener.theOne;
+//    /** current mouse wheel listener */						private static MouseWheelListener curMouseWheelListener = ClickAndDragListener.theOne;
+//    /** current key listener */								private static KeyListener curKeyListener = ClickAndDragListener.theOne;
 
     /** an identity transformation */						private static final AffineTransform IDENTITY = new AffineTransform();
     /** the offset of each new window on the screen */		private static int windowOffset = 0;

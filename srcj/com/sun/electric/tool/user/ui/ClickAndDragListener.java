@@ -161,7 +161,7 @@ class ClickAndDragListener
 		EditWindow wnd = (EditWindow)evt.getSource();
 
 		Point2D delta = wnd.deltaScreenToDatabase(newX - oldx, newY - oldy);
-		wnd.gridAlign(delta);
+		EditWindow.gridAlign(delta);
 		Point pt = wnd.deltaDatabaseToScreen(delta.getX(), delta.getY());
 		newX = oldx + pt.x;   newY = oldy + pt.y;
 
