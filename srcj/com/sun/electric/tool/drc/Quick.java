@@ -2327,6 +2327,9 @@ public class Quick
 		{
 			if (!fun.isContact() || (funExtras&Layer.Function.CONDIFF) == 0) return false;
 		}
+		if (funExtras != layer2.getFunctionExtras())
+			System.out.println("This seems an error. Ask Steve!");
+		funExtras = layer2.getFunctionExtras();
 		fun = layer2.getFunction();
 		if (!fun.isDiff())
 		{

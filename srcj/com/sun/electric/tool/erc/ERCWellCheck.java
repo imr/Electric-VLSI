@@ -99,348 +99,6 @@ public class ERCWellCheck
 		Cell curCell = wnd.getCell();
 		if (curCell == null) return;
         Job job = new WellCheck(curCell, newAlgorithm, highlighter);
-
-		/*
-		if (newAlgorithm)
-			job = new WellCheckNew(curCell, highlighter);
-		else
-		*/
-
-	}
-
-	private static class WellCheckNew extends Job
-	{
-		Cell cell;
-        ErrorLogger errorLogger;
-        Highlighter highlighter;
-
-		protected WellCheckNew(Cell cell, Highlighter highlighter)
-		{
-			super("ERC Well Check New", ERC.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
-			this.cell = cell;
-            this.highlighter = highlighter;
-			startJob();
-		}
-
-		public boolean doIt()
-		{
-			long startTime = System.currentTimeMillis();
-			errorLogger = ErrorLogger.newInstance("ERC Well Check New");
-
-			// announce start of analysis
-			System.out.println("Checking Wells and Substrates...");
-
-			// make a list of well and substrate contacts
-			wellCons = new ArrayList();
-			wellConIndex = 0;
-
-			// make a map of merge information in each cell
-			cellMerges = new HashMap();
-
-			// enumerate the hierarchy below here
-			VisitorNew wcVisitor = new VisitorNew();
-			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, wcVisitor);
-
-			// make a list of well and substrate areas
-			PolyQTree topMerge = (PolyQTree)cellMerges.get(cell);
-			wellAreas = new ArrayList();
-			int wellIndex = 0;
-
-			for(Iterator it = topMerge.getKeyIterator(); it.hasNext(); )
-			{
-				Layer layer = (Layer)it.next();
-				// Not sure if null goes here
-				Collection set = topMerge.getObjects(layer, false);
-
-				for(Iterator pIt = set.iterator(); pIt.hasNext(); )
-				{
-					WellArea wa = new WellArea();
-					PolyQTree.PolyNode pn = (PolyQTree.PolyNode)pIt.next();
-					wa.poly = new Poly(pn.getPoints());
-					wa.poly.setLayer(layer);
-					wa.poly.setStyle(Poly.Type.FILLED);
-					wa.bounds = wa.poly.getBounds2D();
-					wa.layer = layer;
-					wa.index = wellIndex++;
-					wellAreas.add(wa);
-				}
-			}
-
-			// number the well areas according to topology of contacts in them
-			int largestNetNum = 0;
-			for(Iterator it = wellCons.iterator(); it.hasNext(); )
-			{
-				WellCon wc = (WellCon)it.next();
-				if (wc.netNum > largestNetNum)
-					largestNetNum = wc.netNum;
-			}
-			for(Iterator it = wellAreas.iterator(); it.hasNext(); )
-			{
-				WellArea wa = (WellArea)it.next();
-				int wellType = getWellLayerType(wa.layer);
-				if (wellType != 1 && wellType != 2) continue;
-
-				// presume N-well
-				NodeProto.Function desiredContact = NodeProto.Function.SUBSTRATE;
-				String noContactError = "No N-Well contact found in this area";
-				int contactAction = ERC.getNWellCheck();
-				if (wellType == 1)
-				{
-					// P-well
-					desiredContact = NodeProto.Function.WELL;
-					contactAction = ERC.getPWellCheck();
-					noContactError = "No P-Well contact found in this area";
-				}
-
-				// find a contact in the area
-				boolean found = false;
-				for(Iterator cIt = wellCons.iterator(); cIt.hasNext(); )
-				{
-					WellCon wc = (WellCon)cIt.next();
-					if (wc.fun != desiredContact) continue;
-					if (!wa.bounds.contains(wc.ctr)) continue;
-					if (!wa.poly.contains(wc.ctr)) continue;
-					wa.netNum = wc.netNum;
-					found = true;
-					break;
-				}
-
-				// if no contact, issue appropriate errors
-				if (!found)
-				{
-					if (contactAction == 0)
-					{
-						ErrorLog err = errorLogger.logError(noContactError, cell, 0);
-						err.addPoly(wa.poly, true, cell);
-					}
-				}
-			}
-
-			// make sure all of the contacts are on the same net
-			for(Iterator it = wellCons.iterator(); it.hasNext(); )
-			{
-				WellCon wc = (WellCon)it.next();
-				if (wc.netNum == 0)
-				{
-					String errorMsg = "N-Well contact is floating";
-					if (wc.fun == NodeProto.Function.WELL) errorMsg = "P-Well contact is floating";
-					ErrorLog err = errorLogger.logError(errorMsg, cell, 0);
-					err.addPoint(wc.ctr.getX(), wc.ctr.getY(), cell);
-					continue;
-				}
-				if (!wc.onProperRail)
-				{
-					if (wc.fun == NodeProto.Function.WELL)
-					{
-						if (ERC.isMustConnectPWellToGround())
-						{
-							ErrorLog err = errorLogger.logError("P-Well contact not connected to ground", cell, 0);
-							err.addPoint(wc.ctr.getX(), wc.ctr.getY(), cell);
-						}
-					} else
-					{
-						if (ERC.isMustConnectNWellToPower())
-						{
-							ErrorLog err = errorLogger.logError("N-Well contact not connected to power", cell, 0);
-							err.addPoint(wc.ctr.getX(), wc.ctr.getY(), cell);
-						}
-					}
-				}
-				for(Iterator oIt = wellCons.iterator(); oIt.hasNext(); )
-				{
-					WellCon oWc = (WellCon)oIt.next();
-					if (oWc.index <= wc.index) continue;
-
-					if (oWc.netNum == 0) continue;
-					if (oWc.fun != wc.fun) continue;
-					if (oWc.netNum == wc.netNum) continue;
-					String errorMsg = "N-Well contacts are not connected";
-					if (wc.fun == NodeProto.Function.WELL) errorMsg = "P-Well contacts are not connected";
-					ErrorLog err = errorLogger.logError(errorMsg, cell, 0);
-					err.addPoint(wc.ctr.getX(), wc.ctr.getY(), cell);
-					err.addPoint(oWc.ctr.getX(), oWc.ctr.getY(), cell);
-					break;
-				}
-			}
-
-			// if just 1 N-Well contact is needed, see if it is there
-			if (ERC.getNWellCheck() == 1)
-			{
-				boolean found = false;
-				for(Iterator it = wellCons.iterator(); it.hasNext(); )
-				{
-					WellCon wc = (WellCon)it.next();
-					if (wc.fun == NodeProto.Function.SUBSTRATE) { found = true;   break; }
-				}
-				if (!found)
-				{
-					ErrorLog err = errorLogger.logError("No N-Well contact found in this cell", cell, 0);
-				}
-			}
-
-			// if just 1 P-Well contact is needed, see if it is there
-			if (ERC.getPWellCheck() == 1)
-			{
-				boolean found = false;
-				for(Iterator it = wellCons.iterator(); it.hasNext(); )
-				{
-					WellCon wc = (WellCon)it.next();
-					if (wc.fun == NodeProto.Function.WELL) { found = true;   break; }
-				}
-				if (!found)
-				{
-					ErrorLog err = errorLogger.logError("No P-Well contact found in this cell", cell, 0);
-				}
-			}
-
-			// make sure the wells are separated properly
-			for(Iterator it = wellAreas.iterator(); it.hasNext(); )
-			{
-				WellArea wa = (WellArea)it.next();
-				for(Iterator oIt = wellAreas.iterator(); oIt.hasNext(); )
-				{
-					WellArea oWa = (WellArea)oIt.next();
-					if (wa.index <= oWa.index) continue;
-					if (wa.layer != oWa.layer) continue;
-					boolean con = false;
-					if (wa.netNum == oWa.netNum && wa.netNum >= 0) con = true;
-					DRC.Rule rule = DRC.getSpacingRule(wa.layer, wa.layer, con, false, 0);
-					//DRC.Rule rule = DRC.getSpacingRule(wa.layer, wa.layer, con, false, false, 0);
-					if (rule.value < 0) continue;
-					if (wa.bounds.getMinX() > oWa.bounds.getMaxX()+rule.value ||
-						oWa.bounds.getMinX() > wa.bounds.getMaxX()+rule.value ||
-						wa.bounds.getMinY() > oWa.bounds.getMaxY()+rule.value ||
-						oWa.bounds.getMinY() > wa.bounds.getMaxY()+rule.value) continue;
-					double dist = wa.poly.separation(oWa.poly);
-					if (dist < rule.value)
-					{
-						int layertype = getWellLayerType(wa.layer);
-						if (layertype == 0) continue;
-						String areaType = null;
-						switch (layertype)
-						{
-							case 1: areaType = "P-Well";    break;
-							case 2: areaType = "N-Well";    break;
-							case 3: areaType = "P-Select";  break;
-							case 4: areaType = "N-Select";  break;
-						}
-						ErrorLog err = errorLogger.logError(areaType + " areas too close (are "
-						        + TextUtils.formatDouble(dist, 1) + ", should be "
-						        + TextUtils.formatDouble(rule.value, 1) + ")", cell, 0);
-						err.addPoly(wa.poly, true, cell);
-						err.addPoly(oWa.poly, true, cell);
-					}
-				}
-			}
-
-			// compute edge distance if requested
-			if (ERC.isFindWorstCaseWell())
-			{
-				double worstPWellDist = 0;
-				Point2D worstPWellCon = null;
-				Point2D worstPWellEdge = null;
-				double worstNWellDist = 0;
-				Point2D worstNWellCon = null;
-				Point2D worstNWellEdge = null;
-
-				for(Iterator it = wellAreas.iterator(); it.hasNext(); )
-				{
-					WellArea wa = (WellArea)it.next();
-
-					int wellType = getWellLayerType(wa.layer);
-					if (wellType != 1 && wellType != 2) continue;
-					NodeProto.Function desiredContact = NodeProto.Function.SUBSTRATE;
-					if (wellType == 1) desiredContact = NodeProto.Function.WELL;
-
-					// find the worst distance to the edge of the area
-					Point2D [] points = wa.poly.getPoints();
-					int count = points.length;
-					for(int i=0; i<count*2; i++)
-					{
-						// figure out which point is being analyzed
-						Point2D testPoint = null;
-						if (i < count)
-						{
-							int prev = i-1;
-							if (i == 0) prev = count-1;
-							testPoint = new Point2D.Double((points[prev].getX() + points[i].getX()) / 2, (points[prev].getY() + points[i].getY()) / 2);
-						} else
-						{
-							testPoint = points[i-count];
-						}
-
-						// find the closest contact to this point
-						boolean first = true;
-						double bestDist = 0;
-						WellCon bestWc = null;
-						for(Iterator cIt = wellCons.iterator(); cIt.hasNext(); )
-						{
-							WellCon wc = (WellCon)cIt.next();
-							if (wc.fun != desiredContact) continue;
-							if (!wa.bounds.contains(wc.ctr)) continue;
-							if (!wa.poly.contains(wc.ctr)) continue;
-							double dist = testPoint.distance(wc.ctr);
-							if (first || dist < bestDist)
-							{
-								bestDist = dist;
-								bestWc = wc;
-							}
-							first = false;
-						}
-						if (first) continue;
-
-						// accumulate worst distances to edges
-						if (wellType == 1)
-						{
-							if (bestDist > worstPWellDist)
-							{
-								worstPWellDist = bestDist;
-								worstPWellCon = bestWc.ctr;
-								worstPWellEdge = testPoint;
-							}
-						} else
-						{
-							if (bestDist > worstNWellDist)
-							{
-								worstNWellDist = bestDist;
-								worstNWellCon = bestWc.ctr;
-								worstNWellEdge = testPoint;
-							}
-						}
-					}
-				}
-
-				// show the farthest distance from a well contact
-				if (worstPWellDist > 0 || worstNWellDist > 0)
-				{
-					highlighter.clear();
-					if (worstPWellDist > 0)
-					{
-						highlighter.addLine(worstPWellCon, worstPWellEdge, cell);
-						System.out.println("Farthest distance from a P-Well contact is " + worstPWellDist);
-					}
-					if (worstNWellDist > 0)
-					{
-						highlighter.addLine(worstNWellCon, worstNWellEdge, cell);
-						System.out.println("Farthest distance from an N-Well contact is " + worstNWellDist);
-					}
-					highlighter.finished();
-				}
-			}
-
-			// report the number of errors found
-			long endTime = System.currentTimeMillis();
-			int errorCount = errorLogger.numErrors();
-			if (errorCount == 0)
-			{
-				System.out.println("No Well errors found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
-			} else
-			{
-				System.out.println("FOUND " + errorCount + " WELL ERRORS (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
-			}
-			errorLogger.termLogging(true);
-			return true;
-		}
 	}
 
 	private static class WellCheck extends Job
@@ -540,6 +198,7 @@ public class ERCWellCheck
 			}
 
 			// number the well areas according to topology of contacts in them
+			/* Not sure why this code is here
 			int largestNetNum = 0;
 			for(Iterator it = wellCons.iterator(); it.hasNext(); )
 			{
@@ -547,6 +206,7 @@ public class ERCWellCheck
 				if (wc.netNum > largestNetNum)
 					largestNetNum = wc.netNum;
 			}
+			*/
 			for(Iterator it = wellAreas.iterator(); it.hasNext(); )
 			{
 				WellArea wa = (WellArea)it.next();
@@ -593,7 +253,8 @@ public class ERCWellCheck
 			for(Iterator it = wellCons.iterator(); it.hasNext(); )
 			{
 				WellCon wc = (WellCon)it.next();
-				if (wc.netNum == 0)
+				// -1 means not connected in hierarchyEnumerator::numberNets()
+				if (wc.netNum == -1)
 				{
 					String errorMsg = "N-Well contact is floating";
 					if (wc.fun == NodeProto.Function.WELL) errorMsg = "P-Well contact is floating";
@@ -624,7 +285,7 @@ public class ERCWellCheck
 					WellCon oWc = (WellCon)oIt.next();
 					if (oWc.index <= wc.index) continue;
 
-					if (oWc.netNum == 0) continue;
+					if (oWc.netNum == -1) continue;   // before ==0
 					if (oWc.fun != wc.fun) continue;
 					if (oWc.netNum == wc.netNum) continue;
 					String errorMsg = "N-Well contacts are not connected";
@@ -1049,6 +710,7 @@ public class ERCWellCheck
 					info.getTransformToRoot().transform(wc.ctr, wc.ctr);
 					wc.np = ni.getProto();
 					wc.fun = fun;
+					wc.index = wellConIndex++;
 					wc.index = wellConIndex++;
 					PortInst pi = ni.getOnlyPortInst();
 					Netlist netList = info.getNetlist();

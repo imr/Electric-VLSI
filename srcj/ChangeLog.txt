@@ -1,10 +1,10 @@
 			Java Electric change log
 
 ************************* Version 8.01j: *********************************
-
+BUG: ERC reporting wrong floating well contacts (Justin reported).
+FIX: Non-connected contacts get netNum = -1 in Java
 
 ************************* Version 8.01i: *********************************
-
 IMP/MAN: (8/19/04, JKG) new command line options: -mdi (force MDI mode) and
     -sdi (force SDI mode). -m no longer works.
 
