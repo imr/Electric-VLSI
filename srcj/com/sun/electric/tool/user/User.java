@@ -1360,6 +1360,20 @@ public class User extends Listener
 	public static void setDefaultWindowTab(int t) { cacheDefaultWindowTab.setInt(t); }
 
     /**************************** 3D Display Preferences **************************************/
+
+    private static Pref cache3DCellBnd = Pref.makeBooleanPref("3DPCellBnd", User.tool.prefs, true);
+	/**
+	 * Method to tell whether to draw bounding box for the cells.
+	 * The default is "true".
+	 * @return true to draw bounding box for the cells.
+	 */
+	public static boolean is3DCellBndOn() { return cache3DCellBnd.getBoolean(); }
+	/**
+	 * Method to set whether to draw bounding box for the cells.
+	 * @param on true to draw bounding box for the cells.
+	 */
+	public static void set3DCellBndOn(boolean on) { cache3DCellBnd.setBoolean(on); }
+
 	private static Pref cache3DPerspective = Pref.makeBooleanPref("3DPerspective", User.tool.prefs, true);
 	/**
 	 * Method to tell whether to draw 3D views with perspective.
@@ -1399,31 +1413,18 @@ public class User extends Listener
 	 */
 	public static void set3DFactor(double value) { cache3DFactor.setDouble(value); }
 
-    private static Pref cache3DRotX = Pref.makeDoublePref("3DRotX", User.tool.prefs, 0);
+    private static Pref cache3DRot = Pref.makeStringPref("3DRotation", User.tool.prefs, "(0 0 0)");
 	/**
-	 * Method to get default rotation along X value for the view
-	 * The default is 0 and values are in radiant
-	 * @return rotation along X axis.
+	 * Method to get default rotation for the view along X, Y and Z
+	 * The default is (0 0 0) and values are in radiant
+	 * @return rotation along X, y and Z axes.
 	 */
-	public static double get3DRotX() { return cache3DRotX.getDouble(); }
+	public static String get3DRotation() { return cache3DRot.getString(); }
 	/**
-	 * Method to set default rotation angle along X. Values are in radiant
-	 * @param value angle on X
+	 * Method to set default rotation angles along X, Y and Z. Values are in radiant
+	 * @param value angles on X, Y and Z
 	 */
-	public static void set3DRotX(double value) { cache3DRotX.setDouble(value); }
-
-    private static Pref cache3DRotY = Pref.makeDoublePref("3DRotY", User.tool.prefs, 0);
-	/**
-	 * Method to get default rotation along Y value for the view
-	 * The default is 0 and values are in radiant
-	 * @return rotation along Y axis.
-	 */
-	public static double get3DRotY() { return cache3DRotY.getDouble(); }
-	/**
-	 * Method to set default rotation angle along Y. Values are in radiant
-	 * @param value angle on Y
-	 */
-	public static void set3DRotY(double value) { cache3DRotY.setDouble(value); }
+	public static void set3DRotation(String value) { cache3DRot.setString(value); }
 
     private static Pref cache3DOrigZoom = Pref.makeDoublePref("3DOrigZoom3D", User.tool.prefs, 1);
 	/**

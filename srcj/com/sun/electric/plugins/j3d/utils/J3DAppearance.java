@@ -121,6 +121,21 @@ public class J3DAppearance extends Appearance
         }
     }
 
+    /**
+     * Set visibility of appearance assigned to cell bounding box
+     * @param value
+     */
+    public static void setCellVisibility(boolean value)
+    {
+        cellApp.getRenderingAttributes().setVisible(value);
+    }
+
+    /**
+     * Method to get 3D appearance stored in EGraphics class. It will create
+     * object if doesn't exist.
+     * @param graphics
+     * @return
+     */
     public static J3DAppearance getAppearance(EGraphics graphics)
     {
         // Setting appearance
@@ -217,6 +232,12 @@ public class J3DAppearance extends Appearance
         if (cellApp == null)
         {
             cellApp = new J3DAppearance(null, TransparencyAttributes.SCREEN_DOOR, 0, null);
+
+            RenderingAttributes ra = new RenderingAttributes();
+            ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_READ);
+            ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_WRITE);
+            ra.setVisible(User.is3DCellBndOn());
+            cellApp.setRenderingAttributes(ra);
 
 			// Set up the polygon attributes
             PolygonAttributes pa = new PolygonAttributes();

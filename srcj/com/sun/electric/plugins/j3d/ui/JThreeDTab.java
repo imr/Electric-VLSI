@@ -165,14 +165,16 @@ public class JThreeDTab extends ThreeDTab
 		threeD.add(threeDSideView, gbc);
 
         scaleField.setText(TextUtils.formatDouble(User.get3DFactor()));
-        xRotField.setText(TextUtils.formatDouble(User.get3DRotX()));
-        yRotField.setText(TextUtils.formatDouble(User.get3DRotY()));
+        double[] rot = J3DUtils.transformIntoValues(User.get3DRotation());
+        xRotField.setText(TextUtils.formatDouble(rot[0]));
+        yRotField.setText(TextUtils.formatDouble(rot[1]));
+        zRotField.setText(TextUtils.formatDouble(rot[2]));
 
 		threeDPerspective.setSelected(User.is3DPerspective());
         // to turn on antialising if available. No by default because of performance.
         threeDAntialiasing.setSelected(User.is3DAntialiasing());
-
         threeDZoom.setText(TextUtils.formatDouble(User.get3DOrigZoom()));
+        threeDCellBnd.setSelected(User.is3DCellBndOn());
 
         for (Iterator it = modeMap.keySet().iterator(); it.hasNext();)
         {
@@ -292,15 +294,21 @@ public class JThreeDTab extends ThreeDTab
 				layer.setDistance(height.doubleValue());
 		}
 
-		boolean currentPerspective = threeDPerspective.isSelected();
-		if (currentPerspective != User.is3DPerspective())
-			User.set3DPerspective(currentPerspective);
+		boolean currentBoolean = threeDPerspective.isSelected();
+		if (currentBoolean != User.is3DPerspective())
+			User.set3DPerspective(currentBoolean);
 
-        boolean currentAntialiasing = threeDAntialiasing.isSelected();
-		if (currentAntialiasing != User.is3DAntialiasing())
+        currentBoolean = threeDAntialiasing.isSelected();
+		if (currentBoolean != User.is3DAntialiasing())
 		{
-            View3DWindow.setAntialiasing(currentAntialiasing);
-			User.set3DAntialiasing(currentAntialiasing);
+            View3DWindow.setAntialiasing(currentBoolean);
+			User.set3DAntialiasing(currentBoolean);
+		}
+        currentBoolean = threeDCellBnd.isSelected();
+		if (currentBoolean != User.is3DCellBndOn())
+		{
+            J3DAppearance.setCellVisibility(currentBoolean);
+			User.set3DCellBndOn(currentBoolean);
 		}
 
         double currentValue = TextUtils.atof(scaleField.getText());
@@ -310,13 +318,13 @@ public class JThreeDTab extends ThreeDTab
             User.set3DFactor(currentValue);
         }
 
-        currentValue = TextUtils.atof(xRotField.getText());
-        if (currentValue != User.get3DRotX())
-            User.set3DRotX(currentValue);
+        String rotationValue = "(" +
+                xRotField.getText() + " " +
+                yRotField.getText() + " " +
+                zRotField.getText() + ")";
+        if (!rotationValue.equals(User.get3DRotation()))
+            User.set3DRotation(rotationValue);
 
-        currentValue = TextUtils.atof(yRotField.getText());
-        if (currentValue != User.get3DRotY())
-            User.set3DRotY(currentValue);
         currentValue = TextUtils.atof(threeDZoom.getText());
         if (GenMath.doublesEqual(currentValue, 0))
             System.out.println(currentValue + " is an invalid zoom factor.");

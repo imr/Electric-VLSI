@@ -299,7 +299,8 @@ public class View3DWindow extends JPanel
 
         //translateB.setView(cellBnd.getWidth(), 0);
         Rectangle2D cellBnd = cell.getBounds();
-        rotateB.setRotation(User.get3DRotX(), User.get3DRotY());
+        double[] rotVals = J3DUtils.transformIntoValues(User.get3DRotation());
+        rotateB.setRotation(rotVals[0], rotVals[1], rotVals[2]);
         zoomB.setZoom(User.get3DOrigZoom());
 		proj.ortho(cellBnd.getMinX(), cellBnd.getMinX(), cellBnd.getMinY(), cellBnd.getMaxY(), (vDist+radius)/200.0, (vDist+radius)*2.0);
 

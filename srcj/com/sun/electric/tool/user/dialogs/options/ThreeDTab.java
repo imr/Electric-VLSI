@@ -101,7 +101,6 @@ public class ThreeDTab extends PreferencePanel
 
 	private boolean initial3DTextChanging = false;
 	private JList threeDLayerList;
-    private JTextField scaleField, rotXField, rotYField;
 	private DefaultListModel threeDLayerModel;
 	protected HashMap threeDThicknessMap, threeDDistanceMap;
 	private JPanel threeDSideView;
@@ -147,62 +146,6 @@ public class ThreeDTab extends PreferencePanel
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
 		threeD.add(threeDSideView, gbc);
-
-        // Z value
-        JLabel scaleLabel = new javax.swing.JLabel("Z Scale:");
-        gbc = new java.awt.GridBagConstraints();
-        gbc.gridx = 2;
-        gbc.gridy = 5;
-        gbc.insets = new java.awt.Insets(4, 4, 4, 4);
-        gbc.anchor = java.awt.GridBagConstraints.WEST;
-        threeD.add(scaleLabel, gbc);
-
-        scaleField = new javax.swing.JTextField();
-        scaleField.setColumns(6);
-        gbc = new java.awt.GridBagConstraints();
-        gbc.gridx = 3;
-        gbc.gridy = 5;
-        gbc.anchor = java.awt.GridBagConstraints.WEST;
-        threeD.add(scaleField, gbc);
-        scaleField.setText(TextUtils.formatDouble(User.get3DFactor()));
-
-        // Default rotation X
-        JLabel rotXLabel = new javax.swing.JLabel("Rotation X:");
-        gbc = new java.awt.GridBagConstraints();
-        gbc.gridx = 2;
-        gbc.gridy = 6;
-        gbc.insets = new java.awt.Insets(4, 4, 4, 4);
-        gbc.anchor = java.awt.GridBagConstraints.WEST;
-        threeD.add(rotXLabel, gbc);
-
-        rotXField = new javax.swing.JTextField();
-        rotXField.setColumns(6);
-        gbc = new java.awt.GridBagConstraints();
-        gbc.gridx = 3;
-        gbc.gridy = 6;
-        gbc.gridwidth = 2;
-        gbc.anchor = java.awt.GridBagConstraints.WEST;
-        threeD.add(rotXField, gbc);
-        rotXField.setText(TextUtils.formatDouble(User.get3DRotX()));
-
-        // Default rotation Y
-        JLabel rotYLabel = new javax.swing.JLabel("Rotation Y:");
-        gbc = new java.awt.GridBagConstraints();
-        gbc.gridx = 2;
-        gbc.gridy = 7;
-        gbc.insets = new java.awt.Insets(4, 4, 4, 4);
-        gbc.anchor = java.awt.GridBagConstraints.WEST;
-        threeD.add(rotYLabel, gbc);
-
-        rotYField = new javax.swing.JTextField();
-        rotYField.setColumns(6);
-        gbc = new java.awt.GridBagConstraints();
-        gbc.gridx = 3;
-        gbc.gridy = 7;
-        gbc.anchor = java.awt.GridBagConstraints.WEST;
-        threeD.add(rotYField, gbc);
-        rotYField.setText(TextUtils.formatDouble(User.get3DRotY()));
-
 		threeDValuesChanged(false);
 
 		threeDPerspective.setSelected(User.is3DPerspective());
@@ -427,36 +370,6 @@ public class ThreeDTab extends PreferencePanel
 			}
 			User.set3DAntialiasing(currentAntialiasing);
 		}
-        double currentValue = TextUtils.atof(scaleField.getText());
-        if (currentValue != User.get3DFactor())
-        {
-			// Using reflection to call 3D function
-			if (view3DClass != null)
-
-			try
-			{
-				if (set3DClass == null)
-					set3DClass = view3DClass.getDeclaredMethod("setScaleFactor", new Class[] {Double.class});
-				Double value = new Double(currentValue);
-				set3DClass.invoke(view3DClass, new Object[]{value});
-			} catch (Exception e) {
-				System.out.println("Cannot call 3D setScaleFactor plugin method: " + e.getMessage());
-			}
-            User.set3DFactor(currentValue);
-        }
-
-        currentValue = TextUtils.atof(rotXField.getText());
-        if (currentValue != User.get3DRotX())
-            User.set3DRotX(currentValue);
-
-        currentValue = TextUtils.atof(rotYField.getText());
-        if (currentValue != User.get3DRotY())
-            User.set3DRotY(currentValue);
-        currentValue = TextUtils.atof(threeDZoom.getText());
-        if (GenMath.doublesEqual(currentValue, 0))
-            System.out.println(currentValue + " is an invalid zoom factor.");
-        else if (currentValue != User.get3DOrigZoom())
-            User.set3DOrigZoom(currentValue);
 	}
 
 	/** This method is called from within the constructor to
