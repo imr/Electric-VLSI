@@ -225,7 +225,6 @@ public class ThreeDTab extends PreferencePanel
 				FontRenderContext frc = new FontRenderContext(null, true, true);
 				GlyphVector gv = font.createGlyphVector(frc, string);
 				LineMetrics lm = font.getLineMetrics(string, frc);
-				Rectangle rect = gv.getOutline(0, (float)(lm.getAscent()-lm.getLeading())).getBounds();
 				double txtHeight = lm.getHeight();
 				Graphics2D g2 = (Graphics2D)g;
 				g2.drawGlyphVector(gv, dim.width/3 + 1, (float)(yValue + txtHeight/2) - lm.getDescent());
