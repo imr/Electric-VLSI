@@ -286,11 +286,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 					String oneName = (String)it.next();
 					if (lastName != null)
 					{
-						if (oneName.length() <=0 || lastName.length() <= i || !lastName.substring(0, i).equals(oneName.substring(0, i))) { allSame = false;   break; }
+						if (oneName.length() < i || lastName.length() < i || !lastName.substring(0, i).equals(oneName.substring(0, i))) { allSame = false;   break; }
 					}
 					lastName = oneName;
 				}
-				if (allSame) return groupName = lastName.substring(0, i) + "*";	
+				if (allSame)
+					return groupName = lastName.substring(0, i) + "*";
 			}
 
 			// just list all of the different base names
