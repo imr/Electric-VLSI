@@ -182,7 +182,7 @@ public class VarContext
     public Object evalVar(Variable var, Object info)
     {
         if (var == null) return null;
-        if (var.isJava()) return(EvalJavaBsh.eval(var.getObject(), this, info));
+        if (var.isJava()) return(EvalJavaBsh.evalJavaBsh.eval(var.getObject(), this, info));
         // TODO: if(var.isTCL()) { }
         // TODO: if(var.isLisp()) { }
         return var.getObject();
@@ -283,7 +283,9 @@ public class VarContext
         }
         if (no instanceof NodeInst) {
             // nodeInst, we want netlisted name, assume zero index of arrayed node
-            no = Netlist.getNodableFor((NodeInst)no, 0);
+            //no = Netlist.getNodableFor((NodeInst)no, 0);
+            Nodable no2 = Netlist.getNodableFor((NodeInst)no, 0);
+            if (no2 != null) no = no2;
         }
         String me = no.getName();
 //         if (me==null) {

@@ -205,10 +205,10 @@ public class User extends Listener
 	{
 		GetInfoNode.load();
 		GetInfoArc.load();
-		GetInfoExport.load();
-		GetInfoText.load();
+		GetInfoExport2.load();
+		GetInfoText2.load();
 		GetInfoMulti.load();
-		Attributes.load();
+		Attributes2.load();
 		StatusBar.updateStatusBar();
 	}
 

@@ -78,7 +78,7 @@ public class LETool extends Tool {
     
     /** Initialize tool - add calls to Bean Shell Evaluator */
     public void init() {
-		EvalJavaBsh.setVariable("LE", tool);
+		EvalJavaBsh.evalJavaBsh.setVariable("LE", tool);
    }
 
 
@@ -88,12 +88,13 @@ public class LETool extends Tool {
      * Grabs a logical effort calculated size from the instance
      * @return
      */
-    public Object getdrive() {
+    public Object getdrive() throws EvalJavaBsh.IgnorableException {
 
         // info should be the node on which there is the variable with the getDrive() call
-        Object info = EvalJavaBsh.getCurrentInfo();
-        if (!(info instanceof Nodable)) return "Not enough hierarchy";
-        VarContext context = EvalJavaBsh.getCurrentContext();
+        Object info = EvalJavaBsh.evalJavaBsh.getCurrentInfo();
+        if (!(info instanceof Nodable))
+            return "Not enough hierarchy";
+        VarContext context = EvalJavaBsh.evalJavaBsh.getCurrentContext();
         if (context == null) return "null VarContext";
         Nodable ni = (Nodable)info;
 
@@ -104,9 +105,9 @@ public class LETool extends Tool {
             var = getLEDRIVE_old(ni, context.push(ni));
         }
         //if (var == null) return "No variable "+ledrive;
-        if (var == null) return "?";
+        if (var == null) throw new EvalJavaBsh.IgnorableException("getdrive() var not found");
         Object val = var.getObject();
-        if (val == null) return "?";
+        if (val == null) throw new EvalJavaBsh.IgnorableException("getdrive() value null");
         return val;
     }
 
@@ -119,7 +120,7 @@ public class LETool extends Tool {
     public Object subdrive(String nodeName, String parName) {
 
         // info should be the node on which there is the variable with the subDrive() call
-        Object info = EvalJavaBsh.getCurrentInfo();
+        Object info = EvalJavaBsh.evalJavaBsh.getCurrentInfo();
         if (!(info instanceof Nodable)) return "subdrive(): Not enough hierarchy information";
         Nodable no = (Nodable)info;                                 // this inst has LE.subdrive(...) on it
         if (no == null) return "subdrive(): Not enough hierarchy information";
@@ -136,7 +137,7 @@ public class LETool extends Tool {
             if (no == null) return "subdrive(): can't get equivalent schematic";
         }
 
-        VarContext context = EvalJavaBsh.getCurrentContext();  // get current context
+        VarContext context = EvalJavaBsh.evalJavaBsh.getCurrentContext();  // get current context
         if (context == null) return "subdrive(): null context";
 
         NodeProto np = no.getProto();                               // get contents of instance
@@ -151,7 +152,7 @@ public class LETool extends Tool {
         if (var == null) var = ni.getVar("ATTR_"+parName);          // maybe it's an attribute
         //if (var == null) return "subdrive(): no variable of name "+parName.replaceFirst("ATTR_", "");
         if (var == null) return "?";
-        return context.push(no).evalVar(var);                       // evaluate variable and return it
+        return context.push(no).evalVar(var, ni);                       // evaluate variable and return it
     }
 
     /**

@@ -94,6 +94,7 @@ import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
 import java.util.HashMap;
+import java.util.EventListener;
 import javax.print.PrintServiceLookup;
 import javax.print.PrintService;
 import javax.swing.ButtonGroup;
@@ -526,6 +527,8 @@ public final class MenuCommands
         m = windowMenu.addMenuItem("Zoom In", KeyStroke.getKeyStroke('7', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { zoomInDisplay(); } });
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD7, buckyBit), null);
+        m = windowMenu.addMenuItem("Zoom Box", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { zoomBox(); } });
         m = windowMenu.addMenuItem("Focus on Highlighted", KeyStroke.getKeyStroke('F', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { focusOnHighlighted(); } });
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD5, buckyBit), null);
@@ -1397,8 +1400,8 @@ public final class MenuCommands
 			{
 				if (arcCount == 1) GetInfoArc.showDialog();
 				if (nodeCount == 1) GetInfoNode.showDialog();
-				if (exportCount == 1) GetInfoExport.showDialog();
-				if (textCount == 1) GetInfoText.showDialog();
+				if (exportCount == 1) GetInfoExport2.showDialog();
+				if (textCount == 1) GetInfoText2.showDialog();
 			} else
 			{
 				GetInfoMulti.showDialog();
@@ -1408,7 +1411,7 @@ public final class MenuCommands
 
 	public static void attributesCommand()
 	{
-		Attributes.showDialog();
+		Attributes2.showDialog();
 	}
 
 	/**
@@ -1883,6 +1886,17 @@ public final class MenuCommands
 		// zoom in
 		wf.getContent().zoomInContents();
 	}
+
+    public static void zoomBox()
+    {
+        EventListener listener = WindowFrame.getListener();
+        if (listener instanceof ClickZoomWireListener) {
+            ClickZoomWireListener c = (ClickZoomWireListener)listener;
+            c.zoomBoxSingleShot();
+        } else {
+            System.out.println("Can only zoom to Box using ClickZoomWire tool");
+        }
+    }
 
 	public static void focusOnHighlighted()
 	{

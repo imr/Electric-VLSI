@@ -435,6 +435,47 @@ public class ElectricObject
 		return newVar;
 	}
 
+    /**
+     * Rename a Variable. Note that this creates a new variable of
+     * the new name and copies all values from the old variable, and
+     * then deletes the old variable.
+     * @param name the name of the var to rename
+     * @param newName the new name of the variable
+     * @return the new renamed variable
+     */
+    public Variable renameVar(String name, String newName) {
+        return renameVar(findKey(name), newName);
+    }
+
+    /**
+     * Rename a Variable. Note that this creates a new variable of
+     * the new name and copies all values from the old variable, and
+     * then deletes the old variable.
+     * @param key the name key of the var to rename
+     * @param newName the new name of the variable
+     * @return the new renamed variable, or null on error (no action taken)
+     */
+    public Variable renameVar(Variable.Key key, String newName) {
+        // see if newName exists already
+        Variable var = getVar(newName);
+        if (var != null) return null;            // name already exists
+
+        // get current Variable
+        Variable oldvar = getVar(key);
+        if (oldvar == null) return null;
+
+        // create new var
+        Variable newVar = newVar(newName, oldvar.getObject());
+        if (newVar == null) return null;
+        // copy settings from old var to new var
+        newVar.setTextDescriptor(oldvar.getTextDescriptor());
+        newVar.copyFlags(oldvar);
+        // delete old var
+        delVar(oldvar.getKey());
+
+        return newVar;
+    }
+
 	/**
 	 * Method to delete a Variable from this ElectricObject.
 	 * @param key the key of the Variable to delete.

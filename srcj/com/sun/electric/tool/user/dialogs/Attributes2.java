@@ -561,6 +561,30 @@ public class Attributes2 extends javax.swing.JDialog
         }
     }
 
+    protected static class RenameAttribute extends Job
+    {
+        String varName;
+        String newVarName;
+        ElectricObject owner;
+
+        protected RenameAttribute(String varName, String newVarName, ElectricObject owner)
+        {
+            super("Rename Attribute", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.varName = varName;
+            this.newVarName = newVarName;
+            this.owner = owner;
+            startJob();
+        }
+
+        public void doIt()
+        {
+            Variable var = owner.renameVar(varName, newVarName);
+            if (var == null)
+                System.out.println("Rename of variable failed");
+        }
+
+    }
+
     /**
      * Class to create or modify an attribute in a new thread.
      */
@@ -804,7 +828,7 @@ public class Attributes2 extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         body.add(jLabel2, gridBagConstraints);
 
-        name.setText("");
+        name.setText(" ");
         name.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyReleased(java.awt.event.KeyEvent evt) {
                 nameKeyReleased(evt);
@@ -826,7 +850,7 @@ public class Attributes2 extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         body.add(jLabel11, gridBagConstraints);
 
-        value.setText("");
+        value.setText(" ");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 4;
@@ -900,6 +924,12 @@ public class Attributes2 extends javax.swing.JDialog
         jPanel1.add(deleteButton, gridBagConstraints);
 
         renameButton.setText("Rename");
+        renameButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                renameButtonActionPerformed(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 0;
@@ -934,6 +964,42 @@ public class Attributes2 extends javax.swing.JDialog
         pack();
     }//GEN-END:initComponents
 
+    private void renameButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_renameButtonActionPerformed
+        Object ret = JOptionPane.showInputDialog(this, "New name for "+name.getText(),
+                "Rename Attribute", JOptionPane.QUESTION_MESSAGE, null, null, name.getText());
+        String newName = (String)ret;
+        newName = newName.trim();
+        if (newName.equals("")) {
+            JOptionPane.showMessageDialog(this, "Attribute name must not be empty",
+                    "Invalid Input", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // if same name, ignore
+        if (newName.equals(name.getText())) return;
+
+        if (cellRenderer.getShowAttrOnly())
+            newName = "ATTR_" + newName;
+
+        // check if variable name already exists
+        Variable var = selectedObject.getVar(newName);
+        if (var != null) {
+            JOptionPane.showMessageDialog(this, "Attribute of that name already exists",
+                    "No Action Taken", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        RenameAttribute job = new RenameAttribute(getSelectedVariable().getKey().getName(), newName, selectedObject);
+
+        if (cellRenderer.getShowAttrOnly())
+            newName = newName.substring(5);
+
+        // set current name to renamed name
+        initialName = newName;
+        name.setText(newName);
+
+    }//GEN-LAST:event_renameButtonActionPerformed
+
     private void nameKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_nameKeyReleased
         checkName();
     }//GEN-LAST:event_nameKeyReleased
@@ -951,7 +1017,8 @@ public class Attributes2 extends javax.swing.JDialog
                     "Invalid Input", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        varName = "ATTR_" + varName;
+        if (cellRenderer.getShowAttrOnly())
+            varName = "ATTR_" + varName;
 
         // check if var of this name already exists on object
         if (selectedObject.getVar(varName) != null) {

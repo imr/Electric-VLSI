@@ -105,6 +105,7 @@ public class ClickZoomWireListener
         public static final Mode stickyMove = new Mode("stickyMove"); // second move mode
         public static final Mode drawBox = new Mode("drawBox"); // drawing a box
         public static final Mode zoomBox = new Mode("zoomBox"); // drawing a box to zoom to
+        public static final Mode zoomBoxSingleShot = new Mode("zoomBoxSingleShot"); // drawing a box to zoom to
         public static final Mode zoomIn = new Mode("zoomIn"); // zoom in mode
         public static final Mode zoomOut = new Mode("zoomOut"); // zoom in mode
         public static final Mode selectBox = new Mode("selectBox"); // box for selection
@@ -169,6 +170,11 @@ public class ClickZoomWireListener
      * @return a Point2D containing the last mouse coords.
      */
     public Point2D getLastMouse() { return new Point2D.Double(mouseX, mouseY); }
+
+    /**
+     * Sets the mode to zoom box for the next right click only.
+     */
+    public void zoomBoxSingleShot() { modeRight = Mode.zoomBoxSingleShot; }
 
     /**
      * See if event is a left mouse click.  Platform independent.
@@ -244,7 +250,15 @@ public class ClickZoomWireListener
 	        if (isRightMouse(evt)) {
 	
 	            rightMousePressedTimeStamp = currentTime;
-	
+
+                if (modeRight == Mode.zoomBoxSingleShot) {
+                    // We will zoom to box
+                    wnd.setStartDrag(clickX, clickY);
+                    wnd.setEndDrag(clickX, clickY);
+                    wnd.setDoingAreaDrag();
+                    return;
+                }
+
 	            // draw possible wire connection
 	            if (!invertSelection) {
 	                Iterator hIt = Highlight.getHighlights();
@@ -282,7 +296,6 @@ public class ClickZoomWireListener
 	                return;
 	            }
 	            // drawing some sort of box
-	            // clear current highlights first
 	            wnd.setStartDrag(clickX, clickY);
 	            wnd.setEndDrag(clickX, clickY);
 	            wnd.setDoingAreaDrag();
@@ -422,7 +435,16 @@ public class ClickZoomWireListener
 	        // ===== Right mouse drags =====
 	
 	        if (isRightMouse(evt)) {
-	
+
+                if (modeRight == Mode.zoomBoxSingleShot) {
+                    // We will zoom to box
+                    if (!wnd.isDoingAreaDrag()) {
+                        wnd.setStartDrag(mouseX, mouseY);
+                        wnd.setEndDrag(mouseX, mouseY);
+                        wnd.setDoingAreaDrag();
+                    }
+                    wnd.setEndDrag(mouseX, mouseY);
+                }
 	            if (modeRight == Mode.zoomOut) {
 	                // switch to zoomBox mode if the user is really dragging a box
 	                // otherwise, we zoom out after specified delay
@@ -566,7 +588,7 @@ public class ClickZoomWireListener
 	        // ===== Right Mouse Release =====
 	
 	        if (isRightMouse(evt)) {
-	
+
 	            if (modeRight == Mode.zoomIn) {
 	                // zoom in by a factor of two
 	                double scale = wnd.getScale();
@@ -578,10 +600,11 @@ public class ClickZoomWireListener
 	                // zoom out by a factor of two
 	                double scale = wnd.getScale();
 	                wnd.setScale(scale / 2);
+                    wnd.setOffset(dbMouse);
 	                wnd.clearDoingAreaDrag();
 	                wnd.repaintContents();
 	            }
-	            if (modeRight == Mode.drawBox || modeRight == Mode.zoomBox) {
+	            if (modeRight == Mode.drawBox || modeRight == Mode.zoomBox || modeRight == Mode.zoomBoxSingleShot) {
 	                // drawing boxes
 	                Point2D start = wnd.screenToDatabase((int)wnd.getStartDrag().getX(), (int)wnd.getStartDrag().getY());
 	                Point2D end = wnd.screenToDatabase((int)wnd.getEndDrag().getX(), (int)wnd.getEndDrag().getY());
@@ -594,6 +617,14 @@ public class ClickZoomWireListener
 	                    // just draw a highlight box
 	                    Highlight.addArea(new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY), cell);
 	                }
+                    if (modeRight == Mode.zoomBoxSingleShot) {
+                        // zoom to box: focus on box
+                        Rectangle2D bounds = new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY);
+                        // don't zoom a box dimension is less than 4 (heuristic to prevent unintended zoom)
+                        // note these dimensions are in lambda, the db unit, not screen pixels
+                        if (bounds.getHeight() > 4 && bounds.getWidth() > 4)
+                            wnd.focusScreen(bounds);
+                    }
 	                if (modeRight == Mode.zoomBox) {
 	                    // zoom to box: focus on box
 	                    Rectangle2D bounds = new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY);

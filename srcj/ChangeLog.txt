@@ -2,6 +2,10 @@
 
 ************************* Version 8.00a: Released  *************************
 
+FIX: (5/20/04, JKG) LE.subdrive() fixed. Various EvalJavaBsh code clean-up. Now uses reflection only. 
+
+IMP: (5/20/04, JKG) New dialogs.
+
 IMP: (5/19/04, SMR) Text-edit windows now work.
 
 BUG: (5/18/04, SMR) Should show ports on expanded cells that aren't wired or further exported.
