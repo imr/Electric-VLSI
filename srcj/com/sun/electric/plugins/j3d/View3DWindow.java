@@ -74,12 +74,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import com.sun.j3d.utils.behaviors.mouse.MouseBehavior;
 import com.sun.j3d.utils.behaviors.mouse.MouseRotate;
@@ -615,13 +610,23 @@ public class View3DWindow extends JPanel
 			// Adding extra layers after polygons are rotated.
             if (nProto.getFunction().isTransistor() && gate != -1 && poly != -1)
             {
+				Point3d [] pts = new Point3d[8];
+				double max, delta;
 				Rectangle2D rect1 = polys[gate].getBounds2D();
+	            Point2D[] points = polys[gate].getPoints();
+	            double dist1 = points[0].distance(points[1]);
+	            double dist2 = points[0].distance(points[2]);
+	            if (dist1 > dist2)
+	            {
+		            delta = dist1/10;
+	            }
+	            else
+	                delta = dist2/10;
+	            
 				boolean alongX = !(rect1.getX() == polys[poly].getBounds2D().getX());
 
 				Poly gateP = new Poly(rect1);
 				rect1 = gateP.getBounds2D();
-				Point3d [] pts = new Point3d[8];
-				double max, delta;
 
 				if (alongX)
 				{
@@ -881,6 +886,23 @@ public class View3DWindow extends JPanel
 			{
 				int listLen = topList.size();
 				Point3d [] pts = new Point3d[listLen*2];
+				// Determining normal direction
+				Point3d p0 = (Point3d)topList.get(0);
+				Point3d p1 = new Point3d((Point3d)topList.get(1));
+				p1.sub(p0);
+				Point3d pn = new Point3d((Point3d)topList.get(topList.size()-1));
+				pn.sub(p0);
+				Vector3d aux = new Vector3d();
+				aux.cross(new Vector3d(p1), new Vector3d(pn));
+				// the other layer
+				Point3d b0 = new Point3d((Point3d)bottomList.get(0));
+				// Now the dot product
+				double dot = aux.dot(new Vector3d(b0));
+				if (dot > 0)  // Invert sequence of points otherwise the normals will be wrong
+				{
+					Collections.reverse(topList);
+					Collections.reverse(bottomList);
+				}
 				System.arraycopy(topList.toArray(), 0, pts, 0, listLen);
 				System.arraycopy(bottomList.toArray(), 0, pts, listLen, listLen);
 				int numFaces = listLen + 2; // contour + top + bottom
