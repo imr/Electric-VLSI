@@ -34,6 +34,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.user.User;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -347,10 +348,22 @@ public class VerticalRoute {
 
         // choose shortest route
         specifiedRoute = (SpecifiedRoute)allSpecifiedRoutes.get(0);
+        List zeroLengthRoutes = new ArrayList();
         for (int i=0; i<allSpecifiedRoutes.size(); i++) {
             SpecifiedRoute r = (SpecifiedRoute)allSpecifiedRoutes.get(i);
             if (r.size() < specifiedRoute.size()) specifiedRoute = r;
+            if (r.size() == 0) zeroLengthRoutes.add(r);
         }
+        // if multiple ways to connect that use only one wire, choose
+        // the one that uses the current wire, if any.
+        if (zeroLengthRoutes.size() > 0) {
+            for (Iterator it = zeroLengthRoutes.iterator(); it.hasNext(); ) {
+                SpecifiedRoute r = (SpecifiedRoute)it.next();
+                if (r.startArc == User.tool.getCurrentArcProto())
+                    specifiedRoute = r;
+            }
+        }
+
         allSpecifiedRoutes.clear();
         startArc = specifiedRoute.startArc;
         endArc = specifiedRoute.endArc;
