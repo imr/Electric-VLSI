@@ -26,6 +26,7 @@
 package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.geometry.Dimension2D;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
@@ -42,6 +43,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
+import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
@@ -180,6 +182,13 @@ public class IRSIM extends Output
 	}
 
 	/** IRSIM Netlister */
+    private static final List implLayers = new ArrayList(2);
+
+    static {
+	    implLayers.add(Layer.Function.DIFFP);
+	    implLayers.add(Layer.Function.DIFFN);
+    };
+
 	private class IRSIMNetlister extends HierarchyEnumerator.Visitor
     {
         public HierarchyEnumerator.CellInfo newCellInfo() { return new IRSIMCellInfo(); }
@@ -190,7 +199,7 @@ public class IRSIM extends Output
             return true;            
         }        
 
-        public void exitCell(HierarchyEnumerator.CellInfo info) {}        
+        public void exitCell(HierarchyEnumerator.CellInfo info) {}
 
         public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
         {
@@ -293,16 +302,31 @@ public class IRSIM extends Output
             ci.width = dim.getDoubleWidth() * m;
 
 			// no parasitics yet
-            ci.sourceArea = dim.getDoubleWidth() * 6;
-            ci.sourcePerim = dim.getDoubleWidth() + 12;
-            ci.drainArea = dim.getDoubleWidth() * 6;
-            ci.drainPerim = dim.getDoubleWidth() + 12;
-/*
-            ci.sourceArea = 0;
-            ci.sourcePerim = 0;
-            ci.drainArea = 0;
-            ci.drainPerim = 0;
-*/
+            // Only implant layers are required for source and drain
+            Poly [] implList = info.getCell().getTechnology().getShapeOfNode(ni, null, true, false, implLayers);
+            if (implList.length != 2)
+                System.out.println("ERROR, wrong number of implant layers in " + ni + ", cell " + iinfo.getCell());
+
+            // Drain and source regions are identical -> get value for only one and copy the second for now
+            Poly poly = implList[0];
+            double area = Math.abs(poly.getArea());
+            double perim = poly.getPerimeter();
+            ci.sourceArea = area;
+            ci.sourcePerim = perim;
+            ci.drainArea = area;
+//            ci.drainPerim = perim;
+//            System.out.println("New Source data " + ci.sourceArea + " " + ci.sourcePerim);
+//            System.out.println("New Drain data " + ci.drainArea + " " + ci.drainPerim);
+//            ci.sourceArea = dim.getDoubleWidth() * 6;
+//            ci.sourcePerim = dim.getDoubleWidth() + 12;
+//            ci.drainArea = dim.getDoubleWidth() * 6;
+////            ci.drainPerim = dim.getDoubleWidth() + 12;
+//            ci.sourceArea = dim.getDoubleWidth() * 3;
+//            ci.sourcePerim = (dim.getDoubleWidth() + 3)*2;
+//            ci.drainArea = ci.sourceArea ;
+//            ci.drainPerim = ci.sourcePerim;
+//            System.out.println("Old Source data " + ci.sourceArea + " " + ci.sourcePerim);
+//            System.out.println("Old Drain data " + ci.drainArea + " " + ci.drainPerim);
             components.add(ci);
             return false;
         }
