@@ -33,6 +33,8 @@ public class UIEditFrame extends JInternalFrame
 		UIEdit wnd = UIEdit.CreateElectricDoc(cell);
 		this.getContentPane().add(wnd);
 		show();
+//		this.moveToFront();
+//		this.toFront();
 	}
 
 	// factory

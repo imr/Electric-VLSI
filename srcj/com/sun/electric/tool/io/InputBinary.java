@@ -20,6 +20,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.user.ui.UITopLevel;
 
 import java.io.IOException;
 import java.io.File;
@@ -1022,6 +1023,8 @@ public class InputBinary extends Input
 			// convert portproto to portinst
 			String exportName = portProtoNameList[i];
 			PortInst pi = subNodeInst.findPortInst(subPortProto.getProtoName());
+			if (pi == null)
+				System.out.println("Cannot find port " + subPortProto.getProtoName() + " on node " + subNodeInst.describe());
 			if (pp.lowLevelPopulate(subNodeInst, pi)) return;
 		}
 
@@ -1354,7 +1357,7 @@ if (headPortProto == null || tailPortProto == null)
 				if (!testFile.exists())
 				{
 					// try the Electric library area
-					String libraryDirectory = "/lib";		// should fix this!!!
+					String libraryDirectory = UITopLevel.getLibDir();
 					externalFile = libraryDirectory + File.separator + libFileName;
 					testFile = new File(externalFile);
 					if (!testFile.exists()) externalFile = null;

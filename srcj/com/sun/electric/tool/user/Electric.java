@@ -1,26 +1,23 @@
 package com.sun.electric.tool.user;
 
-import com.sun.electric.tool.user.ui.UIEditFrame;
-import com.sun.electric.tool.user.ui.UIMenu;
-import com.sun.electric.tool.user.ui.UITopLevel;
-import com.sun.electric.tool.user.ui.UIDialogOpenFile;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.user.ui.UIEditFrame;
+import com.sun.electric.tool.user.ui.UIMenu;
+import com.sun.electric.tool.user.ui.UITopLevel;
+import com.sun.electric.tool.user.ui.UIDialogOpenFile;
 
-import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.Rectangle;
-import javax.swing.*;
-import java.awt.*;
 import java.awt.event.*;
+import javax.swing.*;
 
 public final class Electric
 {
@@ -28,6 +25,7 @@ public final class Electric
 
 	public static void main(String[] args)
 	{
+		// initialization
 		initializeEverything();
 
 		// get information about the nodes

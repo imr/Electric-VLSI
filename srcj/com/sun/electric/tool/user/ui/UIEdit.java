@@ -209,6 +209,7 @@ public class UIEdit extends JPanel
 				{
 					if (portlist[i] == null) continue;
 					Poly portPoly = portlist[i].getPoly();
+					if (portPoly == null) continue;
 					portPoly.transform(trans);
 					drawTextCentered(g2, portPoly.getCenterX(), portPoly.getCenterY(), portlist[i].getPortProto().getProtoName(), 0.25, Color.red);
 				}
@@ -472,6 +473,11 @@ public class UIEdit extends JPanel
 		double textHeight = glyphBounds.getHeight() * textScale;
 		if (textWidth > highX - lowX)
 		{
+			// text too big for box: scale it down
+			textScale *= (highX - lowX) / textWidth;
+		} else
+		{
+			// text smaller than box: scale it up (do we really want to do this?)
 			textScale *= (highX - lowX) / textWidth;
 		}
 		double x = (lowX + highX) / 2;

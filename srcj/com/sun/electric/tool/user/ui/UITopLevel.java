@@ -9,6 +9,7 @@ package com.sun.electric.tool.user.ui;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 
 
 /**
@@ -20,7 +21,8 @@ import java.awt.event.*;
 public class UITopLevel extends JFrame
 {
 	static JDesktopPane desktop;
-	static UITopLevel topLevel;	
+	static UITopLevel topLevel;
+	static String libdir;
 
 	private UITopLevel()
 	{
@@ -52,6 +54,17 @@ public class UITopLevel extends JFrame
 		// create the messages window
 		UIMessages cl = new UIMessages(desktop.getSize());
 		desktop.add(cl.getFrame());
+
+		// figure out the library directory
+		libdir = null;
+		File dir1 = new File ("./lib");
+		try
+		{
+			libdir = dir1.getCanonicalPath();
+		} catch(Exception e) { libdir = null; }
+		libdir = "C:\\DevelE\\Electric\\lib";
+
+		topLevel.setIconImage(new ImageIcon(UITopLevel.getLibDir() + "\\ElectricIcon.gif").getImage());
 	}
 	
 	public static void setMenuBar(JMenuBar menuBar)
@@ -60,6 +73,7 @@ public class UITopLevel extends JFrame
 	}
 
 	public static JDesktopPane getDesktop() { return desktop; }
+	public static String getLibDir() { return libdir; }
 
 	public void AddWindowExit()
 	{

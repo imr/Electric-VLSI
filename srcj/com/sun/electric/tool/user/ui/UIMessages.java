@@ -76,7 +76,6 @@ public class UIMessages
 		jf.show();
 
 		System.setOut(new java.io.PrintStream(this));
-System.out.println("height="+scrnSize.height);
 	}
 
 	public JInternalFrame getFrame() { return jf; }

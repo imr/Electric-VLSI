@@ -105,7 +105,13 @@ public class Export extends PortProto
 	{
 		// We just figure out where our basis thinks it is, and ask ni to
 		// transform it for us.
+if (originalPort == null)
+{
+	System.out.println("Null originalPort on Export " + protoName + " in cell " + parent.describe());
+	return null;
+}
 		Poly poly = originalPort.getPortProto().getPoly(originalNode);
+		if (poly == null) return null;
 		AffineTransform af = ni.transformOut();
 		poly.transform(af);
 		return poly;

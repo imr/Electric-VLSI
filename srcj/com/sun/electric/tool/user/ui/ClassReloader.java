@@ -1,4 +1,4 @@
-package com.sun.electric.tool.user;
+package com.sun.electric.tool.user.ui;
 
 import java.io.BufferedInputStream;
 import java.io.File;
