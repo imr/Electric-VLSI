@@ -29,9 +29,9 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.util.List;
 import java.util.Comparator;
+import java.util.Collections;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Collections;
 import java.io.File;
 import javax.swing.tree.DefaultMutableTreeNode;
 

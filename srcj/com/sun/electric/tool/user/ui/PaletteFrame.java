@@ -83,12 +83,11 @@ public class PaletteFrame
 {
 	/** the edit window part */							private PalettetWindow wnd;
 	/** the internal frame (if MDI). */					private JInternalFrame jif;
-	/** the top-level frame (if SDI). */				private TopLevel jf;
+	/** the top-level frame (if SDI). */				private JFrame jf;
 	/** the number of palette entries. */				private int menuX = -1, menuY = -1;
 	/** the size of a palette entry. */					private int entrySize;
 	/** the list of objects in the palette. */			private List inPalette;
 	/** the currently selected Node in the palette. */	private NodeProto highlightedNode;
-//	/** the currently selected Arc in the palette. */	private ArcProto highlightedArc;
 
 	static class PlaceNodeListener
 		implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
@@ -222,6 +221,7 @@ public class PaletteFrame
 			this.toDraw = toDraw;
 			this.where = where;
 			this.cell = cell;
+			this.startJob();
 		}
 
 		public void doIt()
@@ -240,7 +240,6 @@ public class PaletteFrame
 			if (newNi == null) return;
 			if (ni != null) newNi.setTechSpecific(ni.getTechSpecific());
 			np.getTechnology().setDefaultOutline(newNi);
-			newNi.endChange();
 			Highlight.addGeometric(newNi);
 		}
 	}
@@ -532,6 +531,12 @@ public class PaletteFrame
 							g.drawRect(imgX+1, imgY+1, frame.entrySize-3, frame.entrySize-3);
 							g.drawRect(imgX+2, imgY+2, frame.entrySize-5, frame.entrySize-5);
 						}
+						if (toDraw == Schematics.tech.diodeNode || toDraw == Schematics.tech.capacitorNode ||
+							toDraw == Schematics.tech.flipflopNode ||
+							(toDraw instanceof NodeInst && ((NodeInst)toDraw).getProto() == Schematics.tech.transistorNode))
+						{
+							drawArrow(g, x, y);
+						}
 					}
 					if (toDraw instanceof String)
 					{
@@ -544,6 +549,8 @@ public class PaletteFrame
 						int xpos = imgX+frame.entrySize/2 - strWid/2;
 						int ypos = imgY+frame.entrySize/2 + strHeight/2 - fm.getMaxDescent();
 						g.drawString(str, xpos, ypos);
+						if (str.equals("Inst.") || str.equals("Spice"))
+							drawArrow(g, x, y);
 					}
 				}
 			}
@@ -560,6 +567,22 @@ public class PaletteFrame
 				int yPos = (frame.entrySize+1) * i;
 				g.drawLine(0, yPos, frame.menuX*(frame.entrySize+1), yPos);
 			}
+		}
+
+		private void drawArrow(Graphics g, int x, int y)
+		{
+			int imgX = x * (frame.entrySize+1)+1;
+			int imgY = (frame.menuY-y-1) * (frame.entrySize+1)+1;
+			int [] arrowX = new int[3];
+			int [] arrowY = new int[3];
+			arrowX[0] = imgX-2 + frame.entrySize*7/8;
+			arrowY[0] = imgY-2 + frame.entrySize;
+			arrowX[1] = imgX-2 + frame.entrySize;
+			arrowY[1] = imgY-2 + frame.entrySize*7/8;
+			arrowX[2] = imgX-2 + frame.entrySize*7/8;
+			arrowY[2] = imgY-2 + frame.entrySize*3/4;
+			g.setColor(Color.BLACK);
+			g.fillPolygon(arrowX, arrowY, 3);
 		}
 
 		void drawNodeInMenu(Graphics g, Image img, NodeInst ni)
@@ -595,7 +618,9 @@ public class PaletteFrame
 			double scaley = frame.entrySize/largest * 0.8;
 			double scale = Math.min(scalex, scaley);
 			g2.scale(scale, -scale);
-			double offx = 0, offy = 0;
+			SizeOffset so = np.getSizeOffset();
+			double offx = 0;   // (so.getHighXOffset() - so.getLowXOffset()) / 2;
+			double offy = 0;   // (so.getHighYOffset() - so.getLowYOffset()) / 2;
 			g2.translate(-offx, -offy);
 			EditWindow w = EditWindow.CreateElectricDoc(null);
 			w.setScale(scale);
@@ -698,7 +723,7 @@ public class PaletteFrame
 			palette.jif.setAutoscrolls(true);
 		} else
 		{
-			palette.jf = new TopLevel("Components", frameSize);
+			palette.jf = new JFrame("Components");
 			palette.jf.setSize(frameSize);
 			palette.jf.setLocation(0, 0);
 			palette.jf.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -756,20 +781,6 @@ public class PaletteFrame
 	}
 
 	public PalettetWindow getWindow() { return wnd; }
-
-	public NodeProto getHighlightNode() { return highlightedNode; }
-
-	public void setHighlightNode(NodeProto np)
-	{
-		highlightedNode = np;
-	}
-
-//	public ArcProto getHighlightArc() { return highlightedArc; }
-
-//	public void setHighlightArc(ArcProto ap)
-//	{
-//		highlightedArc = ap;
-//	}
 
 	private static NodeInst makeNodeInst(NodeProto np, NodeProto.Function func, int angle)
 	{

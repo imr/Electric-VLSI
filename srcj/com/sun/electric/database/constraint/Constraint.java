@@ -51,9 +51,6 @@ public class Constraint implements Change
 	public void startBatch(Tool tool, boolean undoRedo) {}
 	public void endBatch() {}
 
-	public void startChange(ElectricObject obj) {}
-	public void endChange(ElectricObject obj) {}
-
 	public void modifyNodeInst(NodeInst ni, double dCX, double dCY, double dSX, double dSY, int dRot) {}
 	public void modifyNodeInsts(NodeInst [] nis, double [] dCX, double [] dCY, double [] dSX, double [] dSY, int [] dRot) {}
 	public void modifyArcInst(ArcInst ai, double oHX, double oHY, double oTX, double oTY, double oWid) {}

@@ -198,7 +198,6 @@ public class NodeInst extends Geometric implements Instancable
 		while (connections.size() > 0)
 		{
 			Connection con = (Connection)connections.get(connections.size() - 1);
-			con.getArc().startChange();
 			con.getArc().kill();
 		}
 
@@ -206,7 +205,6 @@ public class NodeInst extends Geometric implements Instancable
 		while (exports.size() > 0)
 		{
 			Export pp = (Export)exports.get(exports.size() - 1);
-			pp.startChange();
 			pp.kill();
 		}
 
@@ -349,7 +347,6 @@ public class NodeInst extends Geometric implements Instancable
 		}
 		NodeInst newNi = NodeInst.newInstance(np, new Point2D.Double(0, 0), newXS, newYS, getAngle(), getParent(), null);
 		if (newNi == null) return null;
-		newNi.endChange();
 
 		// adjust position of the new NodeInst to align centers
 		Point2D newCenter = newNi.getTrueCenter();
@@ -389,7 +386,6 @@ public class NodeInst extends Geometric implements Instancable
 			{
 				if (allowMissingPorts) continue;
 				System.out.println("No port on new node corresponds to old port: " + con.getPortInst().getPortProto().getProtoName());
-				newNi.startChange();
 				newNi.kill();
 				return null;
 			}
@@ -402,7 +398,6 @@ public class NodeInst extends Geometric implements Instancable
 				if (allowMissingPorts) continue;
 				System.out.println(ai.describe() + " arc on old port " + con.getPortInst().getPortProto().getProtoName() +
 					" cannot connect to new port " + opi.getPortProto().getProtoName());
-				newNi.startChange();
 				newNi.kill();
 				return null;
 			}
@@ -433,7 +428,6 @@ public class NodeInst extends Geometric implements Instancable
 			{
 				System.out.println("No port on new node corresponds to old port: " +
 					pp.getOriginalPort().getPortProto().getProtoName());
-				newNi.startChange();
 				newNi.kill();
 				return null;
 			}
@@ -442,7 +436,6 @@ public class NodeInst extends Geometric implements Instancable
 			// ensure that all arcs connected at exports still connect
 			if (pp.doesntConnect(opi.getPortProto().getBasePort()))
 			{
-				newNi.startChange();
 				newNi.kill();
 				return null;
 			}
@@ -464,7 +457,6 @@ public class NodeInst extends Geometric implements Instancable
 			{
 				if (allowMissingPorts) continue;
 				System.out.println("No port on new node corresponds to old port: " + con.getPortInst().getPortProto().getProtoName());
-				newNi.startChange();
 				newNi.kill();
 				return null;
 			}
@@ -498,7 +490,6 @@ public class NodeInst extends Geometric implements Instancable
 					System.out.println("Cannot re-connect " + ai.describe() + " arc");
 				} else
 				{
-					ai.startChange();
 					ai.kill();
 				}
 				continue;
@@ -545,15 +536,12 @@ public class NodeInst extends Geometric implements Instancable
 				newAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), newPortInst[0], newPoint[0], newPortInst[1], newPoint[1], null);
 				if (newAi == null)
 				{
-					newNi.startChange();
 					newNi.kill();
 					return null;
 				}
 				newAi.lowLevelSetUserbits(ai.lowLevelGetUserbits());
 			}
 			newAi.copyVars(ai);
-			newAi.endChange();
-			ai.startChange();
 			ai.kill();
 			newAi.setName(ai.getName());
 		}
@@ -580,10 +568,8 @@ public class NodeInst extends Geometric implements Instancable
 		newNi.setNameTextDescriptor(getNameTextDescriptor());
 		newNi.setProtoTextDescriptor(getProtoTextDescriptor());
 		newNi.lowLevelSetUserbits(lowLevelGetUserbits());
-		newNi.endChange();
 
 		// now delete the original nodeinst
-		startChange();
 		kill();
 		newNi.setName(getName());
 		return newNi;
@@ -630,20 +616,22 @@ public class NodeInst extends Geometric implements Instancable
 		}
 
 		// create all of the portInsts on this node inst
+		int i = 0;
 		for (Iterator it = protoType.getPorts(); it.hasNext();)
 		{
 			PortProto pp = (PortProto) it.next();
 			PortInst pi = PortInst.newInstance(pp, this);
+			pi.setIndex(i++);
 			portMap.put(pp.getProtoName(), pi);
 		}
 
 		// enumerate the port instances
-		int i = 0;
-		for(Iterator it = getPortInsts(); it.hasNext();)
-		{
-			PortInst pi = (PortInst) it.next();
-			pi.setIndex(i++);
-		}
+//		int i = 0;
+//		for(Iterator it = getPortInsts(); it.hasNext();)
+//		{
+//			PortInst pi = (PortInst) it.next();
+//			pi.setIndex(i++);
+//		}
 
 		this.center.setLocation(center);
 		this.sX = width;   this.sY = height;

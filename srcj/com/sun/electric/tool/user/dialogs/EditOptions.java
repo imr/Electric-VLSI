@@ -100,7 +100,7 @@ public class EditOptions extends javax.swing.JDialog
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
-        setTitle("Create New Export");
+        setTitle("Edit Options");
         setName("");
         addWindowListener(new java.awt.event.WindowAdapter()
         {
@@ -325,32 +325,32 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         selection.add(selEasyCellInstances, gridBagConstraints);
 
         selEasyAnnotationText.setText("Easy selection of annotation text");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         selection.add(selEasyAnnotationText, gridBagConstraints);
 
         selCenterBasedPrimitives.setText("Center-based primitives");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         selection.add(selCenterBasedPrimitives, gridBagConstraints);
 
         selDraggingEnclosesEntireObject.setText("Dragging must enclose entire object");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         selection.add(selDraggingEnclosesEntireObject, gridBagConstraints);
 
         jTabbedPane1.addTab("Selection", selection);

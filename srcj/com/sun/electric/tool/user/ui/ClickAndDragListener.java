@@ -72,7 +72,7 @@ class ClickAndDragListener
 
 			// standard selection: see if cursor is over anything
 			Point2D pt = wnd.screenToDatabase(oldx, oldy);
-			Highlight.findObject(pt, wnd, false, another, true, special);
+			Highlight.findObject(pt, wnd, false, another, true, special, true);
 			if (Highlight.getNumHighlights() == 0)
 			{
 				// not over anything: drag out a selection rectangle

@@ -288,9 +288,6 @@ public class Tool extends ElectricObject implements Change
 	public void startBatch(Tool tool, boolean undoRedo) {}
 	public void endBatch() {}
 
-	public void startChange(ElectricObject obj) {}
-	public void endChange(ElectricObject obj) {}
-
 	public void modifyNodeInst(NodeInst ni, double oCX, double oCY, double oSX, double oSY, int oRot) {}
 	public void modifyNodeInsts(NodeInst [] nis, double [] oCX, double [] oCY, double [] oSX, double [] oSY, int [] oRot) {}
 	public void modifyArcInst(ArcInst ai, double oHX, double oHY, double oTX, double oTY, double oWid) {}

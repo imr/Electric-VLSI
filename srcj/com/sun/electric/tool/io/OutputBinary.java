@@ -51,6 +51,10 @@ import com.sun.electric.tool.io.BinaryConstants;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Collections;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
@@ -675,38 +679,56 @@ public class OutputBinary extends Output
 		writeBigInteger(td.lowLevelGet0());
 		writeBigInteger(td.lowLevelGet1());
 
-		// write the arc ports
-		writeBigInteger(ni.getNumConnections());
-		for(Iterator it = ni.getConnections(); it.hasNext(); )
+		// sort the arc connections by their PortInst ordering
+		int numConnections = ni.getNumConnections();
+		writeBigInteger(numConnections);
+		if (numConnections > 0)
 		{
-			Connection con = (Connection)it.next();
-			ArcInst ai = con.getArc();
-			PortInst pi = con.getPortInst();
-			int i = ai.getTempInt() << 1;
-			if (ai.getHead().getPortInst() == pi) i += 0; else i += 1;
-			writeBigInteger(i);
+			// must write connections in proper order
+			List sortedList = new ArrayList();
+			for(Iterator it = ni.getConnections(); it.hasNext(); )
+				sortedList.add(it.next());
+			Collections.sort(sortedList, new OrderedConnections());
 
-			// write the portinst prototype
-			writeBigInteger(pi.getPortProto().getTempInt());
+			for(Iterator it = sortedList.iterator(); it.hasNext(); )
+			{
+				Connection con = (Connection)it.next();
+				ArcInst ai = con.getArc();
+				PortInst pi = con.getPortInst();
+				int i = ai.getTempInt() << 1;
+				if (ai.getHead().getPortInst() == pi) i += 0; else i += 1;
+				writeBigInteger(i);
 
-			// write the variable information
-			writeNoVariables();
+				// write the portinst prototype
+				writeBigInteger(pi.getPortProto().getTempInt());
+
+				// write the variable information
+				writeNoVariables();
+			}
 		}
 
-		// count the exports
-		writeBigInteger(ni.getNumExports());
-
 		// write the exports
-		for(Iterator it = ni.getExports(); it.hasNext(); )
+		int numExports = ni.getNumExports();
+		writeBigInteger(numExports);
+		if (numExports > 0)
 		{
-			Export pp = (Export)it.next();
-			writeBigInteger(pp.getTempInt());
+			// must write exports in proper order
+			List sortedList = new ArrayList();
+			for(Iterator it = ni.getExports(); it.hasNext(); )
+				sortedList.add(it.next());
+			Collections.sort(sortedList, new OrderedExports());
 
-			// write the portinst prototype
-			writeBigInteger(pp.getOriginalPort().getPortProto().getTempInt());
+			for(Iterator it = sortedList.iterator(); it.hasNext(); )
+			{
+				Export pp = (Export)it.next();
+				writeBigInteger(pp.getTempInt());
 
-			// write the variable information
-			writeNoVariables();
+				// write the portinst prototype
+				writeBigInteger(pp.getOriginalPort().getPortProto().getTempInt());
+
+				// write the variable information
+				writeNoVariables();
+			}
 		}
 
 		// write the tool information
@@ -714,6 +736,30 @@ public class OutputBinary extends Output
 
 		// write variable information
 		writeVariables(ni,  tech.getScale());
+	}
+
+	static class OrderedConnections implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Connection c1 = (Connection)o1;
+			Connection c2 = (Connection)o2;
+			int i1 = c1.getPortInst().getIndex();
+			int i2 = c2.getPortInst().getIndex();
+			return i1 - i2;
+		}
+	}
+
+	static class OrderedExports implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Export e1 = (Export)o1;
+			Export e2 = (Export)o2;
+			int i1 = e1.getOriginalPort().getIndex();
+			int i2 = e2.getOriginalPort().getIndex();
+			return i1 - i2;
+		}
 	}
 
 	private void writeArcInst(ArcInst ai)

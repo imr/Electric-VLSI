@@ -1257,7 +1257,6 @@ public class Cell extends NodeProto
 			NodeInst ni = (NodeInst)it.next();
 			NodeInst toNi = (NodeInst)ni.getTempObj();
 			toNi.copyVars(ni);
-			toNi.endChange();
 		}
 
 		// copy arcs
@@ -1299,7 +1298,6 @@ public class Cell extends NodeProto
 
 			// copy miscellaneous information
 			toAi.lowLevelSetUserbits(ai.lowLevelGetUserbits());
-			toAi.endChange();
 		}
 
 		// copy the Exports
@@ -1326,7 +1324,6 @@ public class Cell extends NodeProto
 			// copy miscellaneous information
 			ppt.lowLevelSetUserbits(pp.lowLevelGetUserbits());
 			ppt.setTextDescriptor(pp.getTextDescriptor());
-			ppt.endChange();
 		}
 
 		// copy cell variables
@@ -1335,7 +1332,6 @@ public class Cell extends NodeProto
 		// reset (copy) date information
 		newCell.lowLevelSetCreationDate(fromCell.getCreationDate());
 		newCell.lowLevelSetRevisionDate(fromCell.getRevisionDate());
-		newCell.endChange();
 
 		return newCell;
 	}

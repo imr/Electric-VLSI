@@ -499,33 +499,33 @@ public class ElectricObject
 		return varKeys.keySet().size();
 	}
 
-	/**
-	 * Routine to indicate that changes are starting on this ElectricObjects.
-	 */
-	public void startChange()
-	{
-		checkChanging();
-		// handle change control, constraint, and broadcast
-		if (Undo.recordChange())
-		{
-			// tell all tools about this change
-			Undo.Change ch = Undo.newChange(this, Undo.Type.OBJECTSTART);
-		}
-	}
+//	/**
+//	 * Routine to indicate that changes are starting on this ElectricObjects.
+//	 */
+//	public void startChange()
+//	{
+//		checkChanging();
+//		// handle change control, constraint, and broadcast
+//		if (Undo.recordChange())
+//		{
+//			// tell all tools about this change
+//			Undo.Change ch = Undo.newChange(this, Undo.Type.OBJECTSTART);
+//		}
+//	}
 
-	/**
-	 * Routine to indicate that changes are ending on this ElectricObjects.
-	 */
-	public void endChange()
-	{
-		checkChanging();
-		// handle change control, constraint, and broadcast
-		if (Undo.recordChange())
-		{
-			// tell all tools about this change
-			Undo.Change ch = Undo.newChange(this, Undo.Type.OBJECTEND);
-		}
-	}
+//	/**
+//	 * Routine to indicate that changes are ending on this ElectricObjects.
+//	 */
+//	public void endChange()
+//	{
+//		checkChanging();
+//		// handle change control, constraint, and broadcast
+//		if (Undo.recordChange())
+//		{
+//			// tell all tools about this change
+//			Undo.Change ch = Undo.newChange(this, Undo.Type.OBJECTEND);
+//		}
+//	}
 
 	/**
 	 * Routing to check whether changing of this cell allowed or not.

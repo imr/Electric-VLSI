@@ -133,9 +133,7 @@ public class CircuitChanges
 			if (total == 1 && firstGeom instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)firstGeom;
-				ni.startChange();
 				ni.modifyInstance(dx, dy, 0, 0, 0);
-				ni.endChange();
 				return;
 			}
 
@@ -221,12 +219,8 @@ public class CircuitChanges
 						}
 					}
 					if (j < 2) continue;
-					niList[0].startChange();
-					niList[1].startChange();
 					deltaRots[0] = deltaRots[1] = 0;
 					NodeInst.modifyInstances(niList, deltaXs, deltaYs, deltaNulls, deltaNulls, deltaRots);
-					niList[0].endChange();
-					niList[1].endChange();
 				}
 				return;
 			}
@@ -263,9 +257,7 @@ public class CircuitChanges
 					if (geom instanceof ArcInst)
 					{
 						ArcInst ai = (ArcInst)geom;
-						ai.startChange();
 						ai.modify(0, dx, dy, dx, dy);
-						ai.endChange();
 					}
 				}
 				return;
@@ -332,11 +324,7 @@ public class CircuitChanges
 						numNodes++;
 					}
 				}
-				for(int i=0; i<numNodes; i++)
-					nis[i].startChange();
 				NodeInst.modifyInstances(nis, dX, dY, dSize, dSize, dRot);
-				for(int i=0; i<numNodes; i++)
-					nis[i].endChange();
 			}
 
 			// look at all arcs and move them appropriately
@@ -364,9 +352,7 @@ public class CircuitChanges
 				// if both ends slide in their port, move the arc
 				if (headInPort && tailInPort)
 				{
-					ai.startChange();
 					ai.modify(0, dx, dy, dx, dy);
-					ai.endChange();
 					continue;
 				}
 
@@ -401,9 +387,7 @@ public class CircuitChanges
 								Layout.setTempRigid(oai, true);
 							}
 						}
-						ni.startChange();
 						ni.modifyInstance(dx - (ni.getCenterX() - nPt.getX()), dy - (ni.getCenterY() - nPt.getY()), 0, 0, 0);
-						ni.endChange();
 					}
 					continue;
 				}
@@ -519,22 +503,7 @@ public class CircuitChanges
 			{
 				ArcInst ai = (ArcInst)geom;
 
-				// see if nodes need to be undrawn to account for "Steiner Point" changes
-				NodeInst niH = ai.getHead().getPortInst().getNodeInst();
-				NodeInst niT = ai.getTail().getPortInst().getNodeInst();
-				if (niH.getFlagValue(deleteFlag) == 1 && niH.getProto().isWipeOn1or2())
-					niH.startChange();
-				if (niT.getFlagValue(deleteFlag) == 1 && niT.getProto().isWipeOn1or2())
-					niT.startChange();
-
-				ai.startChange();
 				ai.kill();
-
-				// see if nodes need to be redrawn to account for "Steiner Point" changes
-				if (niH.getFlagValue(deleteFlag) == 1 && niH.getProto().isWipeOn1or2())
-					niH.endChange();
-				if (niT.getFlagValue(deleteFlag) == 1 && niT.getProto().isWipeOn1or2())
-					niT.endChange();
 			}
 		}
 
@@ -604,24 +573,12 @@ public class CircuitChanges
 			{
 				ArcInst ai = arcsToDelete[j];
 
-				// see if nodes need to be undrawn to account for "Steiner Point" changes
-				NodeInst niH = ai.getHead().getPortInst().getNodeInst();
-				NodeInst niT = ai.getTail().getPortInst().getNodeInst();
-				if (niH.getProto().isWipeOn1or2()) niH.startChange();
-				if (niT.getProto().isWipeOn1or2()) niT.startChange();
-
 				// delete the ArcInst
-				ai.startChange();
 				ai.kill();
-
-				// see if nodes need to be redrawn to account for "Steiner Point" changes
-				if (niH.getProto().isWipeOn1or2()) niH.endChange();
-				if (niT.getProto().isWipeOn1or2()) niT.endChange();
 			}
 		}
 
 		// if this NodeInst has Exports, delete them
-		ni.startChange();
 		undoExport(ni, null);
 
 		// now erase the NodeInst
@@ -649,7 +606,6 @@ public class CircuitChanges
 		{
 			Export pp = exportsToDelete[j];
 			if (spt != null && spt != pp) continue;
-			pp.startChange();
 			pp.kill();
 		}
 	}

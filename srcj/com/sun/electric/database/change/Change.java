@@ -47,9 +47,6 @@ public interface Change
 	void startBatch(Tool tool, boolean undoRedo);
 	void endBatch();
 
-	void startChange(ElectricObject obj);
-	void endChange(ElectricObject obj);
-
 	void modifyNodeInst(NodeInst ni, double oCX, double oCY, double oSX, double oSY, int oRot);
 	void modifyNodeInsts(NodeInst [] nis, double [] oCX, double [] oCY, double [] oSX, double [] oSY, int [] oRot);
 	void modifyArcInst(ArcInst ai, double oHX, double oHY, double oTX, double oTY, double oWid);

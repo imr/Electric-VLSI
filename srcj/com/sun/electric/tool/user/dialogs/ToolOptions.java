@@ -980,7 +980,7 @@ public class ToolOptions extends javax.swing.JDialog
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
-        setTitle("Options");
+        setTitle("Tool Options");
         setName("");
         addWindowListener(new java.awt.event.WindowAdapter()
         {

@@ -370,10 +370,30 @@ public final class UserMenuCommands
 				lib.setLibName(n.getName());
 			}
 		}
-		boolean error = Output.writeLibrary(lib, Output.ExportType.BINARY);
-		if (error)
+		SaveLibrary job = new SaveLibrary(lib);
+	}
+
+	/**
+	 * Class to save a library in a new thread.
+	 */
+	protected static class SaveLibrary extends Job
+	{
+		Library lib;
+
+		protected SaveLibrary(Library lib)
 		{
-			System.out.println("Error writing the library file");
+			super("Write Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.lib = lib;
+			this.startJob();
+		}
+
+		public void doIt()
+		{
+			boolean error = Output.writeLibrary(lib, Output.ExportType.BINARY);
+			if (error)
+			{
+				System.out.println("Error writing the library file");
+			}
 		}
 	}
 

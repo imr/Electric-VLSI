@@ -73,8 +73,6 @@ public class Undo
 		/** Describes a newly-created Cell. */								public static final Type CELLNEW = new Type("CellNew");
 		/** Describes a deleted Cell. */									public static final Type CELLKILL = new Type("CellKill");
 		/** Describes a changed Cell. */									public static final Type CELLMOD = new Type("CellMod");
-		/** Describes the start of changes to an arbitrary object. */		public static final Type OBJECTSTART = new Type("ObjectStart");
-		/** Describes the end of changes to an arbitrary object. */			public static final Type OBJECTEND = new Type("ObjectEnd");
 		/** Describes the creation of an arbitrary object. */				public static final Type OBJECTNEW = new Type("ObjectNew");
 		/** Describes the deletion of an arbitrary object. */				public static final Type OBJECTKILL = new Type("ObjectKill");
 		/** Describes the creation of a Variable on an object. */			public static final Type VARIABLENEW = new Type("VariableNew");
@@ -192,20 +190,6 @@ public class Undo
 				{
 					Tool tool = (Tool)it.next();
 					if (tool.isOn()) tool.modifyCell((Cell)obj, a1, a2, a3, a4);
-				}
-			} else if (type == Type.OBJECTSTART)
-			{
-				for(Iterator it = Tool.getTools(); it.hasNext(); )
-				{
-					Tool tool = (Tool)it.next();
-					if (tool.isOn()) tool.startChange(obj);
-				}
-			} else if (type == Type.OBJECTEND)
-			{
-				for(Iterator it = Tool.getTools(); it.hasNext(); )
-				{
-					Tool tool = (Tool)it.next();
-					if (tool.isOn()) tool.endChange(obj);
 				}
 			} else if (type == Type.VARIABLENEW)
 			{
@@ -374,16 +358,6 @@ public class Undo
 				Rectangle2D bounds = cell.getBounds();
 				a1 = bounds.getMinX();   a2 = bounds.getMaxX();
 				a3 = bounds.getMinY();   a4 = bounds.getMaxY();
-				return;
-			}
-			if (type == Type.OBJECTSTART)
-			{
-				type = Type.OBJECTEND;
-				return;
-			}
-			if (type == Type.OBJECTEND)
-			{
-				type = Type.OBJECTSTART;
 				return;
 			}
 			if (type == Type.OBJECTNEW)
@@ -732,14 +706,6 @@ public class Undo
 				Cell cell = (Cell)obj;
 				return "Cell " + cell.describe() + " modified [was from " + a1 + "<=X<=" + a2 + " " + a3 + "<=Y<=" + a4 + "]";
 			}
-			if (type == Type.OBJECTSTART)
-			{
-				return "Start change to object " + obj;
-			}
-			if (type == Type.OBJECTEND)
-			{
-				return "End change to object " + obj;
-			}
 			if (type == Type.OBJECTNEW)
 			{
 				return "Created new object " + obj;
@@ -1020,8 +986,6 @@ public class Undo
 	 * <LI>CELLNEW takes nothing.
 	 * <LI>CELLKILL takes nothing.
 	 * <LI>CELLMOD takes a1=oldLowX a2=oldHighX a3=oldLowY a4=oldHighY.
-	 * <LI>OBJECTSTART takes nothing.
-	 * <LI>OBJECTEND takes nothing.
 	 * <LI>OBJECTNEW takes nothing.
 	 * <LI>OBJECTKILL takes nothing.
 	 * <LI>VARIABLENEW takes a1=objtype(obsolete) a2=key a3=type.

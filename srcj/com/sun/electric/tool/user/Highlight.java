@@ -353,7 +353,7 @@ public class Highlight
 			}
 			if (h.getType() == Type.BBOX)
 			{
-				List inArea = findAllInArea(h.getCell(), false, false, false, false, h.getBounds(), null);
+				List inArea = findAllInArea(h.getCell(), false, false, false, false, false, h.getBounds(), null);
 				for(Iterator ait = inArea.iterator(); ait.hasNext(); )
 				{
 					Highlight ah = (Highlight)ait.next();
@@ -438,7 +438,7 @@ public class Highlight
 		clear();
 		Rectangle2D searchArea = new Rectangle2D.Double(minSelX, minSelY, maxSelX - minSelX, maxSelY - minSelY);
 
-		List underCursor = findAllInArea(wnd.getCell(), false, false, false, findSpecial, searchArea, wnd);
+		List underCursor = findAllInArea(wnd.getCell(), false, false, false, findSpecial, true, searchArea, wnd);
 		for(Iterator it = underCursor.iterator(); it.hasNext(); )
 		{
 			Highlight h = (Highlight)it.next();
@@ -716,11 +716,12 @@ public class Highlight
 	 * @param another true to find another object under the point (when there are multiple ones).
 	 * @param findPort true to also show the closest port on a selected node.
 	 * @param findSpecial true to select hard-to-find objects.
+	 * @param findText true to select text objects.
 	 * The name of an unexpanded cell instance is always hard-to-select.
 	 * Other objects are set this way by the user (although the cell-center is usually set this way).
 	 */
 	public static void findObject(Point2D pt, EditWindow wnd, boolean exclusively,
-		boolean another, boolean findPort, boolean findSpecial)
+		boolean another, boolean findPort, boolean findSpecial, boolean findText)
 	{
 		// initialize
 		double bestdist = Double.MAX_VALUE;
@@ -729,7 +730,7 @@ public class Highlight
 		// search the relevant objects in the circuit
 		Cell cell = wnd.getCell();
 		Rectangle2D bounds = new Rectangle2D.Double(pt.getX(), pt.getY(), 0, 0);
-		List underCursor = findAllInArea(cell, exclusively, another, findPort, findSpecial, bounds, wnd);
+		List underCursor = findAllInArea(cell, exclusively, another, findPort, findSpecial, findText, bounds, wnd);
 
 		// if nothing under the cursor, stop now
 		if (underCursor.size() == 0)
@@ -787,6 +788,7 @@ public class Highlight
 	 * @param another true to find another object under the point (when there are multiple ones).
 	 * @param findPort true to also show the closest port on a selected node.
 	 * @param findSpecial true to select hard-to-find objects.
+	 * @param findText true to select text objects.
 	 * The name of an unexpanded cell instance is always hard-to-select.
 	 * Other objects are set this way by the user (although the cell-center is usually set this way).
 	 * @param bounds the area of the search (in database units).
@@ -794,8 +796,8 @@ public class Highlight
 	 * @return a list of Highlight objects.
 	 * The list is ordered by importance, so the deault action is to select the first entry.
 	 */
-	private static List findAllInArea(Cell cell, boolean exclusively, boolean another, boolean findPort,
-		 boolean findSpecial, Rectangle2D bounds, EditWindow wnd)
+	public static List findAllInArea(Cell cell, boolean exclusively, boolean another, boolean findPort,
+		 boolean findSpecial, boolean findText, Rectangle2D bounds, EditWindow wnd)
 	{
 		// make a list of things under the cursor
 		List list = new ArrayList();
@@ -809,7 +811,7 @@ public class Highlight
 		}
 
 		// look for text if a window was given
-		if (wnd != null)
+		if (findText && wnd != null)
 		{
 			// start by examining all text on this Cell
 			Poly [] polys = cell.getAllText(findSpecial, wnd);

@@ -153,9 +153,7 @@ public class Layout extends Constraint
 			for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
-				ni.startChange();
 				ni.modifyInstance(0, 0, 0, 0, 0);
-				ni.endChange();
 			}
 		}
 	}
@@ -172,9 +170,7 @@ public class Layout extends Constraint
 			for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
-				ni.startChange();
 				ni.modifyInstance(0, 0, 0, 0, 0);
-				ni.endChange();
 			}
 		}
 	}
@@ -195,10 +191,8 @@ public class Layout extends Constraint
 //					np = pp->parent;
 //					for(ni = np->firstinst; ni != NONODEINST; ni = ni->nextinst)
 //					{
-//						ni.startChange();
 //						(void)db_change((int)ni, NODEINSTMOD, ni->lowx, ni->lowy,
 //							ni->highx, ni->highy, ni->rotation, ni->transpose);
-//						ni.endChange();
 //					}
 //				}
 //			}
@@ -287,8 +281,8 @@ public class Layout extends Constraint
 //		// if simple rotation on transposed nodeinst, reverse rotation
 //		if (ni->transpose != 0 && dtrans == 0) dAngle = (3600 - dAngle) % 3600;
 
-		if (ni.getChangeClock() < changeClock-1 && announce)
-			Undo.newChange(ni, Undo.Type.OBJECTSTART);
+//		if (ni.getChangeClock() < changeClock-1 && announce)
+//			Undo.newChange(ni, Undo.Type.OBJECTSTART);
 
 		// make changes to the nodeinst
 		int oldang = ni.getAngle();
@@ -308,8 +302,8 @@ public class Layout extends Constraint
 				c.setInts(oldang, 0);
 			}
 			ni.setChange(c);
-			if (announce)
-				Undo.newChange(ni, Undo.Type.OBJECTEND);
+//			if (announce)
+//				Undo.newChange(ni, Undo.Type.OBJECTEND);
 		}
 
 		ni.setChangeClock(changeClock + change);
@@ -921,7 +915,7 @@ public class Layout extends Constraint
 	private static void updateArc(ArcInst ai, Point2D headPt, Point2D tailPt, int arctyp)
 	{
 		// start changes on this arc
-		Undo.newChange(ai, Undo.Type.OBJECTSTART);
+//		Undo.newChange(ai, Undo.Type.OBJECTSTART);
 
 		// set the proper arcinst position
 		Point2D oldHeadPt = ai.getHead().getLocation();
@@ -942,7 +936,7 @@ public class Layout extends Constraint
 		}
 
 		// end changes on this arc
-		Undo.newChange(ai, Undo.Type.OBJECTEND);
+//		Undo.newChange(ai, Undo.Type.OBJECTEND);
 	}
 
 	/**
@@ -1012,8 +1006,8 @@ System.out.println("Jogging arc");
 			System.out.println("Problem creating jog pins");
 			return;
 		}
-		Undo.newChange(no1, Undo.Type.OBJECTEND);
-		Undo.newChange(no2, Undo.Type.OBJECTEND);
+//		Undo.newChange(no1, Undo.Type.OBJECTEND);
+//		Undo.newChange(no2, Undo.Type.OBJECTEND);
 
 		Iterator it = np.getPorts();
 		PortProto pp = (PortProto)it.next();
@@ -1038,15 +1032,15 @@ System.out.println("Jogging arc");
 		}
 		ar2.copyVars(ai);
 		ar2.setNameTextDescriptor(ai.getNameTextDescriptor());
-		Undo.newChange(ar1, Undo.Type.OBJECTEND);
-		Undo.newChange(ar2, Undo.Type.OBJECTEND);
-		Undo.newChange(ar3, Undo.Type.OBJECTEND);
+//		Undo.newChange(ar1, Undo.Type.OBJECTEND);
+//		Undo.newChange(ar2, Undo.Type.OBJECTEND);
+//		Undo.newChange(ar3, Undo.Type.OBJECTEND);
 		ar1.setChangeClock(changeClock + arctyp);
 		ar2.setChangeClock(changeClock + arctyp);
 		ar3.setChangeClock(changeClock + arctyp);
 
 		// now kill the arcinst
-		Undo.newChange(ai, Undo.Type.OBJECTSTART);
+//		Undo.newChange(ai, Undo.Type.OBJECTSTART);
 //		if ((CHANGE *)ai->changeaddr != NOCHANGE)
 //		{
 //			ai->end[0].xpos = ((CHANGE *)ai->changeaddr)->p1;

@@ -580,8 +580,13 @@ public class EditWindow extends JPanel
 		AffineTransform saveAT = g2.getTransform();
 		double cScale = 100;
 		g2.scale(1/cScale, 1/cScale);
-		if (poly.getStyle() == Poly.Type.THICKCIRCLE) g2.setStroke(thickLine); else
+		if (poly.getStyle() == Poly.Type.THICKCIRCLE)
+		{
+			g2.setStroke(thickLine);
+		} else
+		{
 			g2.setStroke(solidLine);
+		}
 		Point2D [] points = poly.getPoints();
 		double ctrX = points[0].getX() * cScale;
 		double ctrY = points[0].getY() * cScale;

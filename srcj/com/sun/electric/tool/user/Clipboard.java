@@ -107,7 +107,6 @@ public class Clipboard
 		for(Iterator it = arcsToDelete.iterator(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
-			ai.startChange();
 			ai.kill();
 		}
 
@@ -121,7 +120,6 @@ public class Clipboard
 		for(Iterator it = exportsToDelete.iterator(); it.hasNext(); )
 		{
 			Export pp = (Export)it.next();
-			pp.startChange();
 			pp.kill();
 		}
 
@@ -135,7 +133,6 @@ public class Clipboard
 		for(Iterator it = nodesToDelete.iterator(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			ni.startChange();
 			ni.kill();
 		}
 	}
@@ -568,7 +565,6 @@ public class Clipboard
 			newNi.setProtoTextDescriptor(ni.getProtoTextDescriptor());
 			newNi.setNameTextDescriptor(ni.getNameTextDescriptor());
 			newNi.copyVars(ni);
-			newNi.endChange();
 			ni.setTempObj(newNi);
 //			us_dupnode = newNi;
 
@@ -624,7 +620,6 @@ public class Clipboard
 				newAr.copyStateBits(ai);
 				newAr.copyVars(ai);
 				newAr.setNameTextDescriptor(ai.getNameTextDescriptor());
-				newAr.endChange();
 				ai.setTempObj(newAr);
 			}
 		}
@@ -700,7 +695,6 @@ public class Clipboard
 			if (newpp == null) return;
 			newpp.setTextDescriptor(origpp.getTextDescriptor());
 			newpp.copyVars(origpp);
-			newpp.endChange();
 		}
 	}
 
@@ -718,7 +712,6 @@ public class Clipboard
 		}
 
 		// make the sizes the same if they are primitives
-		destNode.startChange();
 		if (destNode.getProto() instanceof PrimitiveNode)
 		{
 			double dx = srcNode.getXSize() - destNode.getXSize();
@@ -757,7 +750,6 @@ public class Clipboard
 		destNode.clearShortened();
 		destNode.clearWiped();
 		destNode.clearLocked();
-		destNode.endChange();
 
 		return(destNode);
 	}
@@ -848,14 +840,6 @@ public class Clipboard
 			//Variable var = newNi.getVar(NodeInst.NODE_NAME, String.class);
 			//if (var != null && !var.isDisplay())
 			//	newNi.delVar(NodeInst.NODE_NAME);
-
-			// end changes to node and all arcs touching this node
-			newNi.endChange();
-			for(Iterator it = newNi.getConnections(); it.hasNext(); )
-			{
-				Connection con = (Connection)it.next();
-				con.getArc().endChange();
-			}
 		}
 		return newNi;
 	}
@@ -914,7 +898,6 @@ public class Clipboard
 		// now delete parameters that are not in the prototype
 		if (cNp == null) cNp = cell;
 		boolean found = true;
-		boolean first = true;
 		while (found)
 		{
 			found = false;
@@ -932,15 +915,12 @@ public class Clipboard
 				}
 				if (oVar != null)
 				{
-					if (first) ni.startChange();
-					first = false;
 					ni.delVar(var.getKey().getName());
 					found = true;
 					break;
 				}
 			}
 		}
-		if (!first) ni.endChange();
 	}
 
 	/**
@@ -961,7 +941,6 @@ public class Clipboard
 			if (newVar != null) continue;
 
 			// set the attribute
-			ni.startChange();
 			newVar = ni.setVar(attrName, inheritAddress(pp, var));
 			if (newVar != null)
 			{
@@ -1020,7 +999,6 @@ public class Clipboard
 //				TDSETINHERIT(descript, 0);
 //				TDCOPY(newVar->textdescript, descript);
 			}
-			ni.endChange();
 		}
 	}
 
@@ -1041,9 +1019,7 @@ public class Clipboard
 				// parameter should be visible: make it so
 				if (!newVar.isDisplay())
 				{
-					ni.startChange();
 					newVar.setDisplay();
-					ni.endChange();
 				}
 			} else
 			{
@@ -1052,9 +1028,7 @@ public class Clipboard
 				{
 					if (var.describe(-1, -1).equals(newVar.describe(-1, -1)))
 					{
-						ni.startChange();
 						newVar.clearDisplay();
-						ni.endChange();
 					}
 				}
 			}
@@ -1082,7 +1056,6 @@ public class Clipboard
 		if (posVar == var) yc -= np.getBounds().getCenterY();
 
 		// set the attribute
-		ni.startChange();
 		newVar = ni.setVar(var.getKey().getName(), inheritAddress(np, posVar));
 		if (newVar != null)
 		{
@@ -1098,7 +1071,6 @@ public class Clipboard
 			}
 			newVar.setDescriptor(newDescript);
 		}
-		ni.endChange();
 	}
 
 	/**
@@ -1155,7 +1127,6 @@ public class Clipboard
 		}
 
 		// make the widths the same
-		destArc.startChange();
 		double dw = srcArc.getWidth() - destArc.getWidth();
 		if (dw != 0)
 			destArc.modify(dw, 0, 0, 0, 0);
@@ -1198,8 +1169,6 @@ public class Clipboard
 		if (srcArc.isSkipTail()) destArc.setSkipTail(); else destArc.clearSkipTail();
 		if (srcArc.isReverseEnds()) destArc.setReverseEnds(); else destArc.clearReverseEnds();
 		if (srcArc.isHardSelect()) destArc.setHardSelect(); else destArc.clearHardSelect();
-
-		destArc.endChange();
 		return destArc;
 	}
 
