@@ -119,11 +119,12 @@ public class Output
 			System.out.println("Could not write file " + out.filePath);
 			return true;
 		}
-		out.dataOutputStream = new DataOutputStream(out.fileOutputStream);
+		BufferedOutputStream bufStrm = new BufferedOutputStream(out.fileOutputStream);
+		out.dataOutputStream = new DataOutputStream(bufStrm);
 		boolean error = out.writeLib(lib);
 		try
 		{
-			out.fileOutputStream.close();
+			out.dataOutputStream.close();
 		} catch (IOException e)
 		{
 			System.out.println("Error closing " + out.filePath);

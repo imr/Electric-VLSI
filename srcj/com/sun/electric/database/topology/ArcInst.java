@@ -641,14 +641,11 @@ public class ArcInst extends Geometric /*implements Networkable*/
 
 	/**
 	 * Routine to return the width of this ArcInst.
-	 * Note that this call excludes material surrounding this ArcInst.
-	 * For example, if this is a diffusion ArcInst then return
-	 * the width of the diffusion and ignore the width of well and select.
 	 * @return the width of this ArcInst.
 	 */
 	public double getWidth()
 	{
-		return arcWidth - ((PrimitiveArc)protoType).getWidthOffset();
+		return arcWidth;
 	}
 
 	/**

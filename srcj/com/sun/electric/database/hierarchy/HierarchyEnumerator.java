@@ -14,12 +14,17 @@ import com.sun.electric.database.prototype.NodeProto;
  * hierarchy. Examples of such programs include the logical effort
  * engine and routers.
  *
- * <p>The HierarchyEnumerator enumerates all Cells and NodeInsts in the
- * flattened design. However, the HierarchyEnumerator does NOT create a
- * data structure representing the flattened design.  Instead, as the
- * HierarchyEnumerator enumerates the design it invokes methods in the
- * Visitor object. This allows the Visitor to build the data
- * structures that it needs for its particular problem.
+ * <p>The HierarchyEnumerator performs a recursive descent of
+ * the "completely expanded" design hierarchy. The HierarchyEnumerator
+ * brings the Visitor along with it during the excursion. 
+ * The HierarchyEnumerator doesn't build a flattened data structure,
+ * that's the prerogative of the Visitor. The HierarchyEnumerator simply
+ * invokes Visitor methods for each Cell instance and NodeInst.
+ * 
+ * <p>The following example illustrates the notion of "completely
+ * expanded". Suppose the root Cell instantiates Cell A twice, and
+ * Cell A instantiates Cell B twice. Then the HierarchyEnumerator
+ * visits two instances of Cell A and four instances of Cell B. 
  *
  * <p>Warning: this code is experimental. */
 public final class HierarchyEnumerator {
@@ -183,9 +188,7 @@ public final class HierarchyEnumerator {
 		 * to record additional application specific information for each
 		 * Cell, she should extend the CellInfo class and then override
 		 * this method to return an instance of that derived class. */
-		public CellInfo newCellInfo() {
-			return new CellInfo();
-		}
+		public CellInfo newCellInfo() {return new CellInfo();}
 
 		/** The HierarchyEnumerator is about to begin enumerating the
 		 * contents of a new Cell instance.
@@ -223,12 +226,8 @@ public final class HierarchyEnumerator {
 			this.info = info;
 		}
 
-		public JNetwork getNet() {
-			return net;
-		}
-		public CellInfo getCellInfo() {
-			return info;
-		}
+		public JNetwork getNet() {return net;}
+		public CellInfo getCellInfo() {return info;}
 	}
 
 	/** The CellInfo object is used to pass information to the Visitor
@@ -280,38 +279,27 @@ public final class HierarchyEnumerator {
 		}
 
 		/** The Cell currently being visited. */
-		public final Cell getCell() {
-			return cell;
-		}
+		public final Cell getCell() {return cell;}
 
 		/** This Cell is the root of the traversal */
-		public final boolean isRootCell() {
-			return parentInfo == null;
-		}
+		public final boolean isRootCell() {return parentInfo == null;}
 
 		/** The VarContext to use for evaluating all variables in this
 		 * Cell. */
-		public final VarContext getContext() {
-			return context;
-		}
+		public final VarContext getContext() {return context;}
 
 		/** Get the CellInfo for this Cell's parent.  If this Cell is the
 		 * root then return null. */
-		public final CellInfo getParentInfo() {
-			return parentInfo;
-		}
+		public final CellInfo getParentInfo() {return parentInfo;}
 
 		/** Get the NodeInst in the parent Cell that instantiates this
 		 * Cell instance. If this Cell is the root then return null. */
-		public final NodeInst getParentInst() {
-			return parentInst;
-		}
+		public final NodeInst getParentInst() {return parentInst;}
 
 		/** Get the CellInfo for the root Cell */
 		public final CellInfo getRootInfo() {
 			CellInfo i = this;
-			while (i.getParentInfo() != null)
-				i = i.getParentInfo();
+			while (i.getParentInfo()!=null)  i = i.getParentInfo();
 			return i;
 		}
 

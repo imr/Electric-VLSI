@@ -706,6 +706,14 @@ public class NodeInst extends Geometric
 
 	/**
 	 * RKao: temporary Hack to help me debug my HierarchyEnumerator.
+	 * Note: This is the C Electric positioning system.
+	 * 1) Translate and scale to occupy bounding box of width: sX,
+	 *    and height: sY centered at (cX, cY).
+	 * 2) Rotate about (cX, cY) by angle radians
+	 * 3) If sX<0 xor sY<0 then transpose. This means reflect about
+	 *    a line of slope -1 passing through (cX, cY). Note that 
+	 *    transpose is equivalent to rotating by 90 degrees followed
+	 *    by mirroring about the X axis.  
 	 */
 	public AffineTransform rkTransformOut()
 	{
@@ -714,15 +722,22 @@ public class NodeInst extends Geometric
 		double dx = cX - bounds.getCenterX();
 		double dy = cY - bounds.getCenterY();
 		AffineTransform transform = new AffineTransform();
+		boolean transpose = sX<0 ^ sY<0;
+		if (transpose) {
+			transform.translate(cX, cY);
+			transform.scale(1, -1);
+			transform.rotate(Math.PI/2);
+			transform.translate(-cX, -cY);
+		}
+		transform.rotate(angle, cX, cY);
 		transform.translate(dx, dy);
-		transform.rotate(angle, bounds.getCenterX(), bounds.getCenterY());
-		System.out.println("rkTransformOut: {\n"
+		/*System.out.println("rkTransformOut: {\n"
 		                   + "    lowerCellBounds: " + bounds + "\n"
 						   + "    (cX, cY): " + cX + " " + cY + "\n"
 						   + "    angle: " + (angle*180/Math.PI) + "\n"
 						   + "    (sX, sY): " + sX + " " + sY + "\n"
 						   + "    xform: " + transform + "\n"
-						   + "}\n");
+						   + "}\n");*/
 		return transform;
 	}
 
@@ -1476,6 +1491,11 @@ public class NodeInst extends Geometric
 	{
 		AffineTransform at = new AffineTransform();
 		at.setToTranslation(cX, cY);
+		boolean transpose = sX<0 ^ sY<0;
+		if (transpose){
+			at.scale(1, -1);
+			at.rotate(Math.PI/2);
+		}
 		at.rotate(angle);
 		at.scale(sX, sY);
 		return at;
@@ -1488,8 +1508,8 @@ public class NodeInst extends Geometric
 	}
 
 	private double angle0To360(double a) {
-		while (a > 360) a -= 360;
-		while (a < 0)	a += 360;
+		while (a >= 360) a -= 360;
+		while (a < 0)	 a += 360;
 		return a;
 	}
 
@@ -1517,7 +1537,7 @@ public class NodeInst extends Geometric
 	 */
 	public void setPositionFromTransform(AffineTransform xForm) {
 		double sizeX, sizeY, newAngle, centX, centY;
-		boolean debug = true;
+		boolean debug = false;
 
 		if (debug) System.out.println(xForm);
 
@@ -1556,11 +1576,12 @@ public class NodeInst extends Geometric
 		// round to 1/10 degrees
 		angleAC = Math.rint(angleAC * 10) / 10;
 		if (angleAC == 90) {
-			newAngle = angleC;
+			newAngle = angle0To360(angleC);
 		} else if (angleAC == 270) {
-			// mirror in X
-			sizeX = -sizeX;
-			newAngle = angle0To360(angleC + 180);
+			// By using geometric constructions on paper I determined that I 
+			// need to rotate by (270 degrees - angleC) and then transpose. 
+			newAngle = angle0To360(270 - angleC);
+			sizeX = -sizeX; // Negative size means transpose (not mirror)
 		} else {
 			System.out.println("error in NodeInst.setPositionFromTransform: "+
 							   "angle not 90 or 270: " + angleAC);
@@ -1576,6 +1597,6 @@ public class NodeInst extends Geometric
 							+ "    dy: " + centY + "\n"
 							+ "}\n");
 
-		modifyInstance(centX-cX, centY-cY, sizeX-sX, sizeY-sY, newAngle*180/Math.PI-angle);
+		modifyInstance(centX-cX, centY-cY, sizeX-sX, sizeY-sY, newAngle*Math.PI/180-angle);
 	}
 }
