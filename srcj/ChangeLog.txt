@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ao: *********************************
 
+BUG: (11/15/04, DN) GetInfoArc may cause error if ArcInst has not network on it.
+FIX: In GetInfoArc check getNetworkName == null.
+
 BUG: (11/15/04, DN) Arcs in ELIB from Electric C may not fit into port insts.
 FIX: In ELIB and JELIB readers use poly.polyDistance(pnt) < 0.02 instead of poly.isInside(pnt).
 
