@@ -417,7 +417,7 @@ public class LENetlister1 extends HierarchyEnumerator.Visitor implements LENetli
         // set mfactor
         float parentM = ((LECellInfo)info).getMFactor();
         inst.setMfactor(parentM);
-        var = ni.getVar("ATTR_M");
+        var = LETool.getMFactor(ni);
         if (var != null) {
             // set mfactor
             float m = VarContext.objectToFloat(info.getContext().evalVar(var), 1.0f);
@@ -512,7 +512,7 @@ public class LENetlister1 extends HierarchyEnumerator.Visitor implements LENetli
             if (ni == null) return;
 
             // get mfactor from instance we pushed into
-            Variable mvar = ni.getVar("ATTR_M");
+            Variable mvar = LETool.getMFactor(ni);
             if (mvar != null) {
                 Object mval = getContext().evalVar(mvar, null);
                 if (mval != null)

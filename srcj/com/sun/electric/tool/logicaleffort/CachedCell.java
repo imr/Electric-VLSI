@@ -101,7 +101,7 @@ public class CachedCell {
         CellNodable ceno = new CellNodable();
         ceno.no = no;
         ceno.subCell = subCell;
-        ceno.mfactorVar = no.getParameter("ATTR_M");
+        ceno.mfactorVar = LETool.getMFactor(no);
         cellnodables.put(no, ceno);
         if (subCell.isContainsSizableGates()) {
             containsSizableGates = true;

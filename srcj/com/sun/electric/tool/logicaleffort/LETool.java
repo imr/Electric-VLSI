@@ -88,14 +88,14 @@ public class LETool extends Tool {
      * Grabs a logical effort calculated size from the instance
      * @return
      */
-    public Object getdrive() throws EvalJavaBsh.IgnorableException {
+    public Object getdrive() throws VarContext.EvalException {
 
         // info should be the node on which there is the variable with the getDrive() call
         Object info = EvalJavaBsh.evalJavaBsh.getCurrentInfo();
         if (!(info instanceof Nodable))
-            return "Not enough hierarchy";
+            throw new VarContext.EvalException("getdrive(): Not enough hierarchy");
         VarContext context = EvalJavaBsh.evalJavaBsh.getCurrentContext();
-        if (context == null) return "null VarContext";
+        if (context == null) throw new VarContext.EvalException("getdrive(): null VarContext");
         Nodable ni = (Nodable)info;
 
         // Try to find drive strength
@@ -105,9 +105,9 @@ public class LETool extends Tool {
             var = getLEDRIVE_old(ni, context);
         }
         //if (var == null) return "No variable "+ledrive;
-        if (var == null) throw new EvalJavaBsh.IgnorableException("getdrive() var not found");
+        if (var == null) throw new VarContext.EvalException("getdrive(): no size");
         Object val = var.getObject();
-        if (val == null) throw new EvalJavaBsh.IgnorableException("getdrive() value null");
+        if (val == null) throw new VarContext.EvalException("getdrive(): size null");
         return val;
     }
 
@@ -117,13 +117,13 @@ public class LETool extends Tool {
      * @param parName name of parameter to evaluate
      * @return
      */
-    public Object subdrive(String nodeName, String parName) {
+    public Object subdrive(String nodeName, String parName) throws VarContext.EvalException {
 
         // info should be the node on which there is the variable with the subDrive() call
         Object info = EvalJavaBsh.evalJavaBsh.getCurrentInfo();
-        if (!(info instanceof Nodable)) return "subdrive(): Not enough hierarchy information";
+        if (!(info instanceof Nodable)) throw new VarContext.EvalException("subdrive(): Not enough hierarchy information");
         Nodable no = (Nodable)info;                                 // this inst has LE.subdrive(...) on it
-        if (no == null) return "subdrive(): Not enough hierarchy information";
+        if (no == null) throw new VarContext.EvalException("subdrive(): Not enough hierarchy");
 
         if (no instanceof NodeInst) {
             // networks have not been evaluated, calling no.getProto()
@@ -131,28 +131,28 @@ public class LETool extends Tool {
             // We need to re-evaluate networks to get equivalent schematic cell
             NodeInst ni = (NodeInst)no;
             Cell parent = no.getParent();                               // Cell in which inst which has LE.subdrive is
-            if (parent == null) return "subdrive(): null parent";
+            if (parent == null) throw new VarContext.EvalException("subdrive(): null parent");
 			int arrayIndex = 0;                                         // just use first index
             no = Netlist.getNodableFor(ni, arrayIndex);
-            if (no == null) return "subdrive(): can't get equivalent schematic";
+            if (no == null) throw new VarContext.EvalException("subdrive(): can't get equivalent schematic");
         }
 
         VarContext context = EvalJavaBsh.evalJavaBsh.getCurrentContext();  // get current context
-        if (context == null) return "subdrive(): null context";
+        if (context == null) throw new VarContext.EvalException("subdrive(): null context");
 
         NodeProto np = no.getProto();                               // get contents of instance
-        if (np == null) return "subdrive(): null nodeProto";
-        if (!(np instanceof Cell)) return "subdrive(): NodeProto not a Cell";
+        if (np == null) throw new VarContext.EvalException("subdrive(): null nodeProto");
+        if (!(np instanceof Cell)) throw new VarContext.EvalException("subdrive(): NodeProto not a Cell");
         Cell cell = (Cell)np;
 
         NodeInst ni = cell.findNode(nodeName);                      // find nodeinst that has variable on it
-        if (ni == null) return "subdrive(): no nodeInst of name "+nodeName;
+        if (ni == null) throw new VarContext.EvalException("subdrive(): no nodeInst named "+nodeName);
 
         Variable var = ni.getVar(parName);                          // find variable on nodeinst
         if (var == null) var = ni.getVar("ATTR_"+parName);          // maybe it's an attribute
         //if (var == null) return "subdrive(): no variable of name "+parName.replaceFirst("ATTR_", "");
-        if (var == null) return "?";
-        return context.push(no).evalVar(var, ni);                       // evaluate variable and return it
+        if (var == null) throw new VarContext.EvalException(parName.replaceFirst("ATTR_", "")+" not found");
+        return context.push(no).evalVarRecurse(var, ni);                       // evaluate variable and return it
     }
 
     /**
@@ -255,6 +255,11 @@ public class LETool extends Tool {
         return prefix + ";" + me;
     }
 
+    protected static Variable getMFactor(Nodable no) {
+        Variable var = no.getVar("ATTR_M");
+        if (var == null) var = no.getParameter("ATTR_M");
+        return var;
+    }
 
     // ============================== Menu Commands ===================================
 

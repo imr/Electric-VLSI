@@ -76,7 +76,6 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
     private static final boolean DEBUG = false;
     private static final boolean DISABLE_CACHING = false;
 
-    public static final Variable.Key ATTR_M = ElectricObject.newKey("ATTR_M");
     public static final Variable.Key ATTR_su = ElectricObject.newKey("ATTR_su");
     public static final Variable.Key ATTR_le = ElectricObject.newKey("ATTR_le");
 
@@ -139,6 +138,14 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
         HierarchyEnumerator.enumerateCell(cell, context, netlist, firstPass);
         firstPass.cleanup();
         System.out.println("Cached "+cellMap.size()+" cells");
+        if (DEBUG_FIRSTPASS) {
+            for (Iterator it = cellMap.entrySet().iterator(); it.hasNext(); ) {
+                Map.Entry entry = (Map.Entry)it.next();
+                Cell acell = (Cell)entry.getKey();
+                CachedCell cc = (CachedCell)entry.getValue();
+                System.out.println("Cached cell "+acell.describe());
+            }
+        }
         HierarchyEnumerator.enumerateCell(cell, context, netlist, this);
     }
 
@@ -447,7 +454,7 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
             if (ni == null) return;
 
             // get mfactor from instance we pushed into
-            Variable mvar = ni.getVar(ATTR_M);
+            Variable mvar = LETool.getMFactor(ni);
             if (mvar != null) {
                 Object mval = getContext().evalVar(mvar, null);
                 if (mval != null)
@@ -519,9 +526,7 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
         if (DEBUG) System.out.println("------------------------------------");
 
         // Build an LENodable. M can be variable or parameter
-        Variable mVar = ni.getVar(ATTR_M);
-        if (mVar == null) mVar = ni.getParameter("ATTR_M");
-        LENodable lenodable = new LENodable(ni, type, mVar, ni.getParameter("ATTR_su"), ni.getParameter("ATTR_LEPARALLGRP"));
+        LENodable lenodable = new LENodable(ni, type, LETool.getMFactor(ni), ni.getParameter("ATTR_su"), ni.getParameter("ATTR_LEPARALLGRP"));
         JNetwork outputJNet = null;
 
 		Netlist netlist = info.getNetlist();
