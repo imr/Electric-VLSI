@@ -491,7 +491,7 @@ public final class Main
 			System.setProperty("com.apple.macos.useScreenMenuBar", "true");
 			System.setProperty("apple.laf.useScreenMenuBar", "true");
 
-			// set the name of the leftmost pulldown menu to "Electric"
+			// set the name of the leftmost pulldown menu (under the apple) to "Electric"
 			System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Electric");
 
 			// create Mac objects for handling the "Electric" menu

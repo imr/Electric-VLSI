@@ -79,6 +79,7 @@
             <exclude name="electric-${version}.jar"/>
             <exclude name="electric.mf"/>
             <exclude name="Hack_stack.txt"/>
+	        <exclude name="com/sun/electric/plugins/irsim/*.*" if="GNU"/>
 	        <exclude name="com/sun/electric/plugins/skill/*.*" if="GNU"/>
             <exclude name="com/sun/electric/plugins/tsmc90/*.*" if="GNU"/>
             <exclude name="com/sun/electric/plugins/tsmc90/fill90nm/*.*" if="GNU"/>
@@ -114,6 +115,7 @@
             <exclude name="electric*.jar"/>
             <exclude name="electric.mf"/>
             <exclude name="Hack_stack.txt"/>
+	        <exclude name="com/sun/electric/plugins/irsim/*.*" if="GNU"/>
 	        <exclude name="com/sun/electric/plugins/skill/*.*" if="GNU"/>
             <exclude name="com/sun/electric/plugins/tsmc90/*.*" if="GNU"/>
             <exclude name="com/sun/electric/plugins/tsmc90/fill90nm/*.*" if="GNU"/>
