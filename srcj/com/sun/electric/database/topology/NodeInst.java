@@ -605,7 +605,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 			// make sure the arc can connect to this type of port
 			PortInst opi = oldAssoc[index].assn;
 			PortInst [] newPortInst = new PortInst[2];
-			Point2D [] newPoint = new Point2D.Double[2];
+			Point2D [] newPoint = new Point2D[2];
 			ArcInst ai = con.getArc();
 			for(int i=0; i<2; i++)
 			{
