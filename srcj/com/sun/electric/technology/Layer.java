@@ -42,7 +42,7 @@ public class Layer
 	public static class Function
 	{
 		private final String name;
-		private final String constantName;
+		//private final String constantName;
 		private final int level;
 		private final int height;
 		private final int extraBits;
@@ -50,7 +50,7 @@ public class Layer
 		private Function(String name, String constantName, int level, int height, int extraBits)
 		{
 			this.name = name;
-			this.constantName = constantName;
+			//this.constantName = constantName;
 			this.level = level;
 			this.height = height;
 			this.extraBits = extraBits;

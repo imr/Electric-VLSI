@@ -156,7 +156,7 @@ public class TextWindow extends JTextArea
 	private void textWindowContentChanged()
 	{
 //System.out.println("DIRTY");
-		cell.getLibrary().setChangedMajor();
+		if (cell != null) cell.getLibrary().setChangedMajor();
 		dirty = true;
 	}
 
@@ -232,6 +232,7 @@ public class TextWindow extends JTextArea
 		public boolean doIt()
 		{
 			Cell cell = tw.getCell();
+			if (cell == null) return false;
 			String [] strings = tw.convertToStrings();
 			cell.setTextViewContents(strings);
 			tw.dirty = false;
@@ -246,17 +247,6 @@ public class TextWindow extends JTextArea
 	public void setWindowTitle()
 	{
 		if (wf == null) return;
-		/*
-		if (cell == null)
-		{
-			wf.setTitle("***NONE***");
-			return;
-		}
-
-		String title = cell.describe();
-		if (cell.getLibrary() != Library.getCurrent())
-			title += " - Current library: " + Library.getCurrent().getName();
-			*/
 		wf.setTitle(wf.composeTitle(cell, ""));
 	}
 
@@ -272,9 +262,8 @@ public class TextWindow extends JTextArea
 	public void setCell(Cell cell, VarContext context)
 	{
 		this.cell = cell;
-		String oneLine = "";
-		String [] lines = cell.getTextViewContents();
-		if (lines != null) oneLine = makeOneString(lines);
+		String [] lines = (cell != null) ? cell.getTextViewContents() : null;
+		String oneLine = (lines != null) ? oneLine = makeOneString(lines) : "";
 //System.out.println("Setting text to "+oneLine);
 		this.setText(oneLine);
 		this.setSelectionStart(0);
