@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
@@ -39,7 +40,6 @@ import javax.swing.JPanel;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-
 
 /**
  * Class to handle the "GDS" tab of the Preferences dialog.
@@ -59,6 +59,10 @@ public class GDSTab extends PreferencePanel
 	private boolean initialGDSOutputMergesBoxes;
 	private boolean initialGDSOutputWritesExportPins;
 	private boolean initialGDSOutputUpperCase;
+	private boolean initialGDSInputIncludesText;
+	private boolean initialGDSInputExpandsCells;
+	private boolean initialGDSInputInstantiatesArrays;
+	private boolean initialGDSInputIgnoresUnknownLayers;
 	private int initialGDSTextLayer;
 	private JList gdsLayersList;
 	private DefaultListModel gdsLayersModel;
@@ -79,6 +83,15 @@ public class GDSTab extends PreferencePanel
 		gdsOutputUpperCase.setSelected(initialGDSOutputUpperCase);
 		initialGDSTextLayer = IOTool.getGDSOutDefaultTextLayer();
 		gdsDefaultTextLayer.setText(Integer.toString(initialGDSTextLayer));
+
+		initialGDSInputIncludesText = IOTool.isGDSInIncludesText();
+		gdsInputIncludesText.setSelected(initialGDSInputIncludesText);
+		initialGDSInputExpandsCells = IOTool.isGDSInExpandsCells();
+		gdsInputExpandsCells.setSelected(initialGDSInputExpandsCells);
+		initialGDSInputInstantiatesArrays = IOTool.isGDSInInstantiatesArrays();
+		gdsInputInstantiatesArrays.setSelected(initialGDSInputInstantiatesArrays);
+		initialGDSInputIgnoresUnknownLayers = IOTool.isGDSInIgnoresUnknownLayers();
+		gdsInputIgnoresUnknownLayers.setSelected(initialGDSInputIgnoresUnknownLayers);
 
 		// build the layers list
 		gdsLayersModel = new DefaultListModel();
@@ -106,12 +119,6 @@ public class GDSTab extends PreferencePanel
 		gdsLayerNumber.getDocument().addDocumentListener(myDocumentListener);
 		gdsPinLayer.getDocument().addDocumentListener(myDocumentListener);
 		gdsTextLayer.getDocument().addDocumentListener(myDocumentListener);
-
-		// not yet
-		gdsInputIncludesText.setEnabled(false);
-		gdsInputExpandsCells.setEnabled(false);
-		gdsInputInstantiatesArrays.setEnabled(false);
-		gdsInputIgnoresUnknownLayers.setEnabled(false);
 	}
 
 	/**
@@ -225,6 +232,19 @@ public class GDSTab extends PreferencePanel
 		int currentTextLayer = TextUtils.atoi(gdsDefaultTextLayer.getText());
 		if (currentTextLayer != initialGDSTextLayer)
 			IOTool.setGDSOutDefaultTextLayer(currentTextLayer);
+
+		boolean currentInputIncludesText = gdsInputIncludesText.isSelected();
+		if (currentInputIncludesText != initialGDSInputIncludesText)
+			IOTool.setGDSInIncludesText(currentInputIncludesText);
+		boolean currentInputExpandsCells = gdsInputExpandsCells.isSelected();
+		if (currentInputExpandsCells != initialGDSInputExpandsCells)
+			IOTool.setGDSInExpandsCells(currentInputExpandsCells);
+		boolean currentInputInstantiatesArrays = gdsInputInstantiatesArrays.isSelected();
+		if (currentInputInstantiatesArrays != initialGDSInputInstantiatesArrays)
+			IOTool.setGDSInInstantiatesArrays(currentInputInstantiatesArrays);
+		boolean currentInputIgnoresUnknownLayers = gdsInputIgnoresUnknownLayers.isSelected();
+		if (currentInputIgnoresUnknownLayers != initialGDSInputIgnoresUnknownLayers)
+			IOTool.setGDSInIgnoresUnknownLayers(currentInputIgnoresUnknownLayers);
 	}
 
 	/** This method is called from within the constructor to

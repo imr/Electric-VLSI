@@ -2470,6 +2470,7 @@ public class NodeInst extends Geometric implements Nodable
 	public int checkAndRepair()
 	{
 		int errorCount = 0;
+		int warningCount = 0;
 		if (protoType instanceof Cell)
 		{
 			// make sure the instance is the same size as the cell
@@ -2479,10 +2480,11 @@ public class NodeInst extends Geometric implements Nodable
 			{
 				System.out.println("Cell " + parent.describe() + ", node " + describe() +
 					" is " + getXSize() + "x" + getYSize() + ", but prototype is " + bounds.getWidth() +
-					" x " + bounds.getHeight() + " ****REPAIRED****");
+					" x " + bounds.getHeight() + " (REPAIRED)");
 				sX = bounds.getWidth() * (isMirroredAboutYAxis() ? -1 : 1);
 				sY = bounds.getHeight() * (isMirroredAboutXAxis() ? -1 : 1);
-				errorCount++;
+				redoGeometric();
+				warningCount++;
 			}
 		} else
 		{
@@ -2508,6 +2510,8 @@ public class NodeInst extends Geometric implements Nodable
 						" (REPAIRED)");
 					sX = (hX-lX) * getXSize() / getXSizeWithMirror();
 					sY = (hY-lY) * getYSize() / getYSizeWithMirror();
+					redoGeometric();
+					warningCount++;
 				}
 			}
 		}

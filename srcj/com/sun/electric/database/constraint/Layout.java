@@ -1303,7 +1303,7 @@ public class Layout extends Constraints
 	 * If "forcedLook" is true, the cell is re-examined regardless of
 	 * whether its size changed.
 	 */
-	void computeCell(Cell cell, boolean forcedLook)
+	private void computeCell(Cell cell, boolean forcedLook)
 	{
 		// get current boundary of cell
 		Rectangle2D oldCellBounds = new Rectangle2D.Double();
@@ -1428,8 +1428,8 @@ public class Layout extends Constraints
 				ni.clearBit(markNode);
 				Cell subCell = (Cell)ni.getProto();
 
-				// ignore recursive references (showing icon in contents)
-				if (ni.isIconOfParent()) continue;
+//				// ignore recursive references (showing icon in contents)
+//				if (ni.isIconOfParent()) continue;
 
 				// if this nodeinst is to change, mark the parent cell also
 				if (subCell.isBit(cellModFlag)) start.setBit(cellModFlag);
@@ -1459,7 +1459,7 @@ public class Layout extends Constraints
 			ni.clearBit(touchNode);
 			if (!(np instanceof Cell)) continue;
 			Cell subCell = (Cell)np;
-			if (ni.isIconOfParent()) continue;
+//			if (ni.isIconOfParent()) continue;
 			if (!subCell.isBit(cellModFlag)) continue;
 			ni.setBit(markNode);
 			ni.setBit(touchNode);

@@ -330,7 +330,8 @@ public class JELIB extends Output
 			{
 				NodeInst ni = (NodeInst)it.next();
 				NodeProto np = ni.getProto();
-				printWriter.print("N");
+				if (np instanceof Cell) printWriter.print("I"); else
+					printWriter.print("N");
 				StringBuffer nodeTypeName = (StringBuffer)abbreviationMap.get(np);
 				printWriter.print(nodeTypeName.toString());
 				printWriter.print("|" + convertString(getNodeName(ni, sortedNodeIndices)) + "|");

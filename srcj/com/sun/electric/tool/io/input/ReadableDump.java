@@ -400,6 +400,7 @@ public class ReadableDump extends LibraryFiles
 		for(int i=0; i<numNodes; i++)
 		{
 			NodeProto np = nil.protoType[i];
+			if (np == null) continue;
 			if (np instanceof PrimitiveNode) continue;
 			Cell subCell = (Cell)np;
 

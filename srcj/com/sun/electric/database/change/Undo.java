@@ -24,35 +24,35 @@
 package com.sun.electric.database.change;
 
 import com.sun.electric.database.constraint.Constraints;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.NodeUsage;
-import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 
-import javax.swing.*;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeEvent;
+
+import javax.swing.SwingUtilities;
 
 /**
  * This interface defines changes that are made to the database.
@@ -98,9 +98,9 @@ public class Undo
 		/** Describes the insertion of an entry in an arrayed Variable. */	public static final Type VARIABLEINSERT = new Type("VariableInsert");
 		/** Describes the deletion of an entry in an arrayed Variable. */	public static final Type VARIABLEDELETE = new Type("VariableDelete");
 		/** Describes the change to a TextDescriptor. */					public static final Type DESCRIPTORMOD = new Type("DescriptMod");
-        /** Describes a new library change */                               public static final Type LIBRARYNEW = new Type("LibraryNew");
-        /** Describes a delete library change */                            public static final Type LIBRARYKILL = new Type("LibraryKill");
-        /** Describes a Cell-group change */                                public static final Type CELLGROUPMOD = new Type("CellGroupMod");
+		/** Describes a new library change */								public static final Type LIBRARYNEW = new Type("LibraryNew");
+		/** Describes a delete library change */							public static final Type LIBRARYKILL = new Type("LibraryKill");
+		/** Describes a Cell-group change */								public static final Type CELLGROUPMOD = new Type("CellGroupMod");
 	}
 
 	/**
@@ -447,13 +447,13 @@ public class Undo
 				type = Type.CELLNEW;
 				return;
 			}
-            if (type == Type.CELLGROUPMOD)
-            {
-                Cell cell = (Cell)obj;
-                Cell.CellGroup oldGroup = (Cell.CellGroup)o1;
-                cell.lowLevelSetCellGroup(oldGroup);
-                return;
-            }
+			if (type == Type.CELLGROUPMOD)
+			{
+				Cell cell = (Cell)obj;
+				Cell.CellGroup oldGroup = (Cell.CellGroup)o1;
+				cell.lowLevelSetCellGroup(oldGroup);
+				return;
+			}
 			if (type == Type.CELLMOD)
 			{
 				Cell cell = (Cell)obj;
@@ -634,17 +634,20 @@ public class Undo
 			{
 				cell = obj.whichCell();
 				if (cell != null) lib = cell.getLibrary();
-            } else if (type == Type.OBJECTRENAME) {
-                cell = obj.whichCell();
-                if (cell != null) {
-                    lib = cell.getLibrary();
-                    // also mark libraries that reference this cell as dirty
-                    for (Iterator it = cell.getUsagesOf(); it.hasNext(); ) {
-                        NodeUsage nu = (NodeUsage)it.next();
-                        Cell parent = nu.getParent();
-                        parent.getLibrary().setChangedMinor();
-                    }
-                }
+			} else if (type == Type.OBJECTRENAME)
+			{
+				cell = obj.whichCell();
+				if (cell != null)
+				{
+					lib = cell.getLibrary();
+					// also mark libraries that reference this cell as dirty
+					for (Iterator it = cell.getUsagesOf(); it.hasNext(); )
+					{
+						NodeUsage nu = (NodeUsage)it.next();
+						Cell parent = nu.getParent();
+						parent.getLibrary().setChangedMinor();
+					}
+				}
 			} else if (type == Type.VARIABLENEW || type == Type.VARIABLEKILL || type == Type.VARIABLEMOD ||
 				type == Type.VARIABLEINSERT || type == Type.VARIABLEDELETE)
 			{
@@ -681,7 +684,7 @@ public class Undo
 			return false;
 		}
 
-        public String toString() { return describe(); }
+		public String toString() { return describe(); }
 
 		/**
 		 * Method to describe this change as a string.
@@ -817,11 +820,10 @@ public class Undo
 		private Tool tool;
 		private String activity;
 		private Cell upCell;
-        private List startingHighlights = null;            // highlights before changes made
-        private Point2D startHighlightsOffset = null;      // highlights offset before changes made
-        private List preUndoHighlights = null;             // highlights before undo of changes done
-        private Point2D preUndoHighlightsOffset = null;    // highlights offset before undo of changes done
-
+		private List startingHighlights = null;				// highlights before changes made
+		private Point2D startHighlightsOffset = null;		// highlights offset before changes made
+		private List preUndoHighlights = null;				// highlights before undo of changes done
+		private Point2D preUndoHighlightsOffset = null;		// highlights offset before undo of changes done
 
 		private ChangeBatch() {}
 		
@@ -841,7 +843,7 @@ public class Undo
 
 		private void describe()
 		{
-			/* display the change batches */
+			// display the change batches
 			int nodeInst = 0, arcInst = 0, export = 0, cell = 0, object = 0, variable = 0;
 			int batchSize = changes.size();
 			for(int j = 0; j<batchSize; j++)
@@ -983,12 +985,13 @@ public class Undo
 		 */
 		public static boolean contains(Cell cell)
 		{
-			for(Iterator it = changeCells.iterator(); it.hasNext(); )
-			{
-				ChangeCell cc = (ChangeCell)it.next();
-				if (cc.cell == cell) return true;
-			}
-			return false;
+			return changeCells.contains(cell);
+//			for(Iterator it = changeCells.iterator(); it.hasNext(); )
+//			{
+//				ChangeCell cc = (ChangeCell)it.next();
+//				if (cc.cell == cell) return true;
+//			}
+//			return false;
 		}
 
 		/**
@@ -1017,7 +1020,7 @@ public class Undo
 				return;
 			}
 
-			/* if not in the list, create the entry and try again */
+			// if not in the list, create the entry and try again
 			ChangeCell cc = ChangeCell.add(cell);
 			cc.forcedLook = true;
 		}
@@ -1032,15 +1035,13 @@ public class Undo
 	private static List doneList = new ArrayList();
 	private static List undoneList = new ArrayList();
 
-    /** List of all DatabaseChangeListeners */          private static List changeListeners = new ArrayList();
-    /** List of all PropertyChangeListeners */          private static List propertyChangeListeners = new ArrayList();
+	/** List of all DatabaseChangeListeners */          private static List changeListeners = new ArrayList();
+	/** List of all PropertyChangeListeners */          private static List propertyChangeListeners = new ArrayList();
 
-    /** Property fired if ability to Undo changes */
-    public static final String propUndoEnabled = "UndoEnabled";
-    /** Property fired if ability to Redo changes */
-    public static final String propRedoEnabled = "RedoEnabled";
-    private static boolean undoEnabled = false;
-    private static boolean redoEnabled = false;
+	/** Property fired if ability to Undo changes */	public static final String propUndoEnabled = "UndoEnabled";
+	/** Property fired if ability to Redo changes */	public static final String propRedoEnabled = "RedoEnabled";
+	private static boolean undoEnabled = false;
+	private static boolean redoEnabled = false;
 
 	/**
 	 * Method to start a new batch of changes.
@@ -1068,12 +1069,12 @@ public class Undo
 		currentBatch.tool = tool;
 		currentBatch.activity = activity;
 		currentBatch.upCell = cell;
-        currentBatch.startingHighlights = startingHighlights;
-        currentBatch.startHighlightsOffset = startingHighlightsOffset;
+		currentBatch.startingHighlights = startingHighlights;
+		currentBatch.startHighlightsOffset = startingHighlightsOffset;
 
 		// put at head of list
 		doneList.add(currentBatch);
-        setUndoEnabled(true);
+		setUndoEnabled(true);
 
 		// kill last batch if list is full
 		if (doneList.size() > maximumBatches)
@@ -1099,13 +1100,14 @@ public class Undo
 		// if no changes were recorded, stop
 		if (currentBatch == null) return;
 
-        // if no changes were recorded, stop
-        if (currentBatch.changes.size() == 0) {
-            // remove from doneList
-            doneList.remove(currentBatch);
-            overallBatchNumber--;
-            if (doneList.size() == 0) setUndoEnabled(false);
-        }
+		// if no changes were recorded, stop
+		if (currentBatch.changes.size() == 0)
+		{
+			// remove from doneList
+			doneList.remove(currentBatch);
+			overallBatchNumber--;
+			if (doneList.size() == 0) setUndoEnabled(false);
+		}
 
 		// changes made: apply final constraints to this batch of changes
 		Constraints.getCurrent().endBatch();
@@ -1115,104 +1117,122 @@ public class Undo
 			Listener listener = (Listener)it.next();
 			listener.endBatch();
 		}
-        fireEndChangeBatch(currentBatch);
+		fireEndChangeBatch(currentBatch);
 
 		currentBatch = null;
 	}
 
-    /** Add a DatabaseChangeListener. It will be notified when
-     * objects in the database change.
-     * @param l the listener
-     */
-    public static synchronized void addDatabaseChangeListener(DatabaseChangeListener l) {
-        changeListeners.add(l);
-    }
+	/** Add a DatabaseChangeListener. It will be notified when
+	 * objects in the database change.
+	 * @param l the listener
+	 */
+	public static synchronized void addDatabaseChangeListener(DatabaseChangeListener l)
+	{
+		changeListeners.add(l);
+	}
 
-    /** Remove a DatabaseChangeListener. */
-    public static synchronized void removeDatabaseChangeListener(DatabaseChangeListener l) {
-        changeListeners.remove(l);
-    }
+	/** Remove a DatabaseChangeListener. */
+	public static synchronized void removeDatabaseChangeListener(DatabaseChangeListener l)
+	{
+		changeListeners.remove(l);
+	}
 
-    /** Fire a change event to all database change listeners */
-    private static synchronized void fireChangeEvent(Change change) {
-        for (Iterator it = changeListeners.iterator(); it.hasNext(); ) {
-            DatabaseChangeListener l = (DatabaseChangeListener)it.next();
-            if (l.isGUIListener()) {
-                //SwingUtilities.invokeLater(new DatabaseChangeThread(l, change));
-                // do nothing: if it's delayed by invoke later, it may as well come from
-                // databaseEndChangeBatch
-            } else
-                l.databaseChanged(change);
-        }
-    }
+	/** Fire a change event to all database change listeners */
+	private static synchronized void fireChangeEvent(Change change)
+	{
+		for (Iterator it = changeListeners.iterator(); it.hasNext(); )
+		{
+			DatabaseChangeListener l = (DatabaseChangeListener)it.next();
+			if (l.isGUIListener())
+			{
+				//SwingUtilities.invokeLater(new DatabaseChangeThread(l, change));
+				// do nothing: if it's delayed by invoke later, it may as well come from
+				// databaseEndChangeBatch
+			} else
+				l.databaseChanged(change);
+		}
+	}
 
-    private static synchronized void fireEndChangeBatch(ChangeBatch batch) {
-        for (Iterator it = changeListeners.iterator(); it.hasNext(); ) {
-            DatabaseChangeListener l = (DatabaseChangeListener)it.next();
-            if (l.isGUIListener())
-                SwingUtilities.invokeLater(new DatabaseBatchThread(l, batch));
-            else
-                l.databaseEndChangeBatch(batch);
-        }
-    }
+	private static synchronized void fireEndChangeBatch(ChangeBatch batch)
+	{
+		for (Iterator it = changeListeners.iterator(); it.hasNext(); )
+		{
+			DatabaseChangeListener l = (DatabaseChangeListener)it.next();
+			if (l.isGUIListener())
+				SwingUtilities.invokeLater(new DatabaseBatchThread(l, batch));
+			else
+				l.databaseEndChangeBatch(batch);
+		}
+	}
 
-    /** Add a property change listener. This generates Undo and Redo enabled property changes */
-    public static synchronized void addPropertyChangeListener(PropertyChangeListener l) {
-        propertyChangeListeners.add(l);
-    }
+	/** Add a property change listener. This generates Undo and Redo enabled property changes */
+	public static synchronized void addPropertyChangeListener(PropertyChangeListener l)
+	{
+		propertyChangeListeners.add(l);
+	}
 
-    /** Remove a property change listener. */
-    public static synchronized void removePropertyChangeListener(PropertyChangeListener l) {
-        propertyChangeListeners.remove(l);
-    }
+	/** Remove a property change listener. */
+	public static synchronized void removePropertyChangeListener(PropertyChangeListener l)
+	{
+		propertyChangeListeners.remove(l);
+	}
 
-    private static synchronized void firePropertyChange(String prop, boolean oldValue, boolean newValue) {
-        for (Iterator it = propertyChangeListeners.iterator(); it.hasNext(); ) {
-            PropertyChangeListener l = (PropertyChangeListener)it.next();
-            PropertyChangeEvent e = new PropertyChangeEvent(Undo.class, prop,
-                    new Boolean(oldValue), new Boolean(newValue));
-            SwingUtilities.invokeLater(new PropertyChangeThread(l, e));
-        }
-    }
+	private static synchronized void firePropertyChange(String prop, boolean oldValue, boolean newValue)
+	{
+		for (Iterator it = propertyChangeListeners.iterator(); it.hasNext(); )
+		{
+			PropertyChangeListener l = (PropertyChangeListener)it.next();
+			PropertyChangeEvent e = new PropertyChangeEvent(Undo.class, prop,
+				new Boolean(oldValue), new Boolean(newValue));
+			SwingUtilities.invokeLater(new PropertyChangeThread(l, e));
+		}
+	}
 
-    private static synchronized void setUndoEnabled(boolean enabled) {
-        if (enabled != undoEnabled) {
-            firePropertyChange(propUndoEnabled, undoEnabled, enabled);
-            undoEnabled = enabled;
-        }
-    }
+	private static synchronized void setUndoEnabled(boolean enabled)
+	{
+		if (enabled != undoEnabled)
+		{
+			firePropertyChange(propUndoEnabled, undoEnabled, enabled);
+			undoEnabled = enabled;
+		}
+	}
 
-    private static synchronized void setRedoEnabled(boolean enabled) {
-        if (enabled != redoEnabled) {
-            firePropertyChange(propRedoEnabled, redoEnabled, enabled);
-            redoEnabled = enabled;
-        }
-    }
+	private static synchronized void setRedoEnabled(boolean enabled)
+	{
+		if (enabled != redoEnabled)
+		{
+			firePropertyChange(propRedoEnabled, redoEnabled, enabled);
+			redoEnabled = enabled;
+		}
+	}
 
-    public static synchronized boolean getUndoEnabled() { return undoEnabled; }
+	public static synchronized boolean getUndoEnabled() { return undoEnabled; }
 
-    public static synchronized boolean getRedoEnabled() { return redoEnabled; }
+	public static synchronized boolean getRedoEnabled() { return redoEnabled; }
 
-    private static class PropertyChangeThread implements Runnable {
-        private PropertyChangeListener l;
-        private PropertyChangeEvent e;
-        private PropertyChangeThread(PropertyChangeListener l, PropertyChangeEvent e) { this.l = l; this.e = e; }
-        public void run() { l.propertyChange(e); }
-    }
+	private static class PropertyChangeThread implements Runnable
+	{
+		private PropertyChangeListener l;
+		private PropertyChangeEvent e;
+		private PropertyChangeThread(PropertyChangeListener l, PropertyChangeEvent e) { this.l = l; this.e = e; }
+		public void run() { l.propertyChange(e); }
+	}
 
-    private static class DatabaseChangeThread implements Runnable {
-        private DatabaseChangeListener l;
-        private Change change;
-        private DatabaseChangeThread(DatabaseChangeListener l, Change c) { this.l = l; this.change = c; }
-        public void run() { l.databaseChanged(change); }
-    }
+	private static class DatabaseChangeThread implements Runnable
+	{
+		private DatabaseChangeListener l;
+		private Change change;
+		private DatabaseChangeThread(DatabaseChangeListener l, Change c) { this.l = l; this.change = c; }
+		public void run() { l.databaseChanged(change); }
+	}
 
-    private static class DatabaseBatchThread implements Runnable {
-        private DatabaseChangeListener l;
-        private ChangeBatch batch;
-        private DatabaseBatchThread(DatabaseChangeListener l, ChangeBatch b) { this.l = l; this.batch = b; }
-        public void run() { l.databaseEndChangeBatch(batch); }
-    }
+	private static class DatabaseBatchThread implements Runnable
+	{
+		private DatabaseChangeListener l;
+		private ChangeBatch batch;
+		private DatabaseBatchThread(DatabaseChangeListener l, ChangeBatch b) { this.l = l; this.batch = b; }
+		public void run() { l.databaseEndChangeBatch(batch); }
+	}
 
 	/**
 	 * Method to record and broadcast a change.
@@ -1242,7 +1262,7 @@ public class Undo
 	 * <LI>VARIABLEINSERT takes o1=var i1=index.
 	 * <LI>VARIABLEDELETE takes a1=var i1=index o2=oldValue.
 	 * <LI>DESCRIPTORMOD takes o1=descript i1=oldDescript0 i2=oldDescript1.
-     * <LI>CELLGROUPMOD takes o1=oldCellGroup
+	 * <LI>CELLGROUPMOD takes o1=oldCellGroup
 	 * </UL>
 	 * @param obj the object to which the change applies.
 	 * @param change the change being recorded.
@@ -1298,7 +1318,7 @@ public class Undo
 		ch.i1 = oRot;
 		ni.setChange(ch);
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-        fireChangeEvent(ch);
+		fireChangeEvent(ch);
 	}
 
 	/**
@@ -1319,7 +1339,7 @@ public class Undo
 		ch.a5 = oWid;
 		ai.setChange(ch);
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-        fireChangeEvent(ch);
+		fireChangeEvent(ch);
 	}
 
 	/**
@@ -1336,7 +1356,7 @@ public class Undo
 		pp.setChange(ch);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-        fireChangeEvent(ch);
+		fireChangeEvent(ch);
 		Constraints.getCurrent().modifyExport(pp, oldPi);
 	}
 
@@ -1357,24 +1377,24 @@ public class Undo
 		cell.setChange(ch);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-        fireChangeEvent(ch);
+		fireChangeEvent(ch);
 		//Constraint.getCurrent().modifyCell(cell, oLX, oHX, oLY, oHY);
 	}
 
-    /**
-     * Method to store a change to a Cell's CellGroup in the change-control system.
-     * @param cell the Cell whose CellGroup is changing
-     * @param oldGroup the old CellGroup
-     */
-    public static void modifyCellGroup(Cell cell, Cell.CellGroup oldGroup)
-    {
-        if (!recordChange()) return;
-        Change ch = newChange(cell, Type.CELLGROUPMOD, oldGroup);
+	/**
+	 * Method to store a change to a Cell's CellGroup in the change-control system.
+	 * @param cell the Cell whose CellGroup is changing
+	 * @param oldGroup the old CellGroup
+	 */
+	public static void modifyCellGroup(Cell cell, Cell.CellGroup oldGroup)
+	{
+		if (!recordChange()) return;
+		Change ch = newChange(cell, Type.CELLGROUPMOD, oldGroup);
 		if (ch == null) return;
 
-        ch.broadcast(currentBatch.getNumChanges() <=1, false);
-        fireChangeEvent(ch);
-    }
+		ch.broadcast(currentBatch.getNumChanges() <=1, false);
+		fireChangeEvent(ch);
+	}
 
 	/**
 	 * Method to store a change to a TextDescriptor in the change-control system.
@@ -1394,7 +1414,7 @@ public class Undo
 		ch.i3 = oldColorIndex;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-        fireChangeEvent(ch);
+		fireChangeEvent(ch);
 		// tell constraint system about this TextDescriptor
 		Constraints.getCurrent().modifyTextDescript(obj, descript, oldDescript0, oldDescript1, oldColorIndex);
 	}
@@ -1411,12 +1431,12 @@ public class Undo
 		else if (obj instanceof NodeInst) type = Type.NODEINSTNEW;
 		else if (obj instanceof ArcInst) type = Type.ARCINSTNEW;
 		else if (obj instanceof Export) type = Type.EXPORTNEW;
-        else if (obj instanceof Library) type = Type.LIBRARYNEW;
+		else if (obj instanceof Library) type = Type.LIBRARYNEW;
 		Change ch = newChange(obj, type, null);
 		if (ch == null) return;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-        fireChangeEvent(ch);
+		fireChangeEvent(ch);
 		Constraints.getCurrent().newObject(obj);
 	}
 
@@ -1434,12 +1454,12 @@ public class Undo
 		if (obj instanceof Cell) type = Type.CELLKILL;
 		else if (obj instanceof NodeInst) type = Type.NODEINSTKILL;
 		else if (obj instanceof ArcInst) type = Type.ARCINSTKILL;
-        else if (obj instanceof Library) type = Type.LIBRARYKILL;
+		else if (obj instanceof Library) type = Type.LIBRARYKILL;
 		Change ch = newChange(obj, type, null);
 		if (ch == null) return;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-        fireChangeEvent(ch);
+		fireChangeEvent(ch);
 		Constraints.getCurrent().killObject(obj);
 	}
 
@@ -1456,7 +1476,7 @@ public class Undo
 		if (ch == null) return;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-        fireChangeEvent(ch);
+		fireChangeEvent(ch);
 		Constraints.getCurrent().killExport(pp, oldPortInsts);
 	}
 
@@ -1473,7 +1493,7 @@ public class Undo
 		if (ch == null) return;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-        fireChangeEvent(ch);
+		fireChangeEvent(ch);
 		Constraints.getCurrent().renameObject(obj, oldName);
 	}
 
@@ -1491,7 +1511,7 @@ public class Undo
 		if (ch == null) return;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-        fireChangeEvent(ch);
+		fireChangeEvent(ch);
 	}
 
 	/**
@@ -1507,7 +1527,7 @@ public class Undo
 		if (ch == null) return;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-        fireChangeEvent(ch);
+		fireChangeEvent(ch);
 		Constraints.getCurrent().newVariable(obj, var);
 	}
 
@@ -1524,7 +1544,7 @@ public class Undo
 		if (ch == null) return;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-        fireChangeEvent(ch);
+		fireChangeEvent(ch);
 		Constraints.getCurrent().killVariable(obj, var);
 	}
 
@@ -1543,7 +1563,7 @@ public class Undo
 		ch.i1 = oldFlags;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-        fireChangeEvent(ch);
+		fireChangeEvent(ch);
 		Constraints.getCurrent().modifyVariableFlags(obj, var, oldFlags);
 	}
 
@@ -1563,7 +1583,7 @@ public class Undo
 		ch.o2 = oldValue;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-        fireChangeEvent(ch);
+		fireChangeEvent(ch);
 		Constraints.getCurrent().modifyVariable(obj, var, index, oldValue);
 	}
 
@@ -1581,7 +1601,7 @@ public class Undo
 		ch.i1 = index;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-        fireChangeEvent(ch);
+		fireChangeEvent(ch);
 		Constraints.getCurrent().insertVariable(obj, var, index);
 	}
 
@@ -1601,7 +1621,7 @@ public class Undo
 		ch.o2 = oldValue;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-        fireChangeEvent(ch);
+		fireChangeEvent(ch);
 		Constraints.getCurrent().deleteVariable(obj, var, index, oldValue);
 	}
 
@@ -1636,13 +1656,14 @@ public class Undo
 	public static boolean recordChange()
 	{
 		if (currentBatch == null) return false;
-        boolean recordChange = !doChangesQuietly;
-        if (doNextChangeQuietly != doChangesQuietly) {
-            // the next change state overrides the changesquietly state
-            recordChange = !doNextChangeQuietly;
-            // reset the next change quiet state
-            setNextChangeQuiet(doChangesQuietly);
-        }
+		boolean recordChange = !doChangesQuietly;
+		if (doNextChangeQuietly != doChangesQuietly)
+		{
+			// the next change state overrides the changesquietly state
+			recordChange = !doNextChangeQuietly;
+			// reset the next change quiet state
+			setNextChangeQuiet(doChangesQuietly);
+		}
 		return recordChange;
 	}
 
@@ -1652,21 +1673,23 @@ public class Undo
 	 */
 	public static boolean undoABatch()
 	{
-        // save highlights for redo
-        List savedHighlights = new ArrayList();
-        Point2D offset = new Point2D.Double(0, 0);
-        // for now, just save from the current window
-        EditWindow wnd = EditWindow.getCurrent();
-        Highlighter highlighter = null;
-        if (wnd != null) {
-            highlighter = wnd.getHighlighter();
-            for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext(); ) {
-                savedHighlights.add(it.next());
-            }
-            offset = highlighter.getHighlightOffset();
-            highlighter.clear();
-            highlighter.finished();
-        }
+		// save highlights for redo
+		List savedHighlights = new ArrayList();
+		Point2D offset = new Point2D.Double(0, 0);
+		// for now, just save from the current window
+		EditWindow wnd = EditWindow.getCurrent();
+		Highlighter highlighter = null;
+		if (wnd != null)
+		{
+			highlighter = wnd.getHighlighter();
+			for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext(); )
+			{
+				savedHighlights.add(it.next());
+			}
+			offset = highlighter.getHighlightOffset();
+			highlighter.clear();
+			highlighter.finished();
+		}
 
 		// close out the current batch
 		endChanges();
@@ -1677,12 +1700,12 @@ public class Undo
 		ChangeBatch batch = (ChangeBatch)doneList.get(listSize-1);
 		doneList.remove(listSize-1);
 		undoneList.add(batch);
-        if (doneList.size() == 0) setUndoEnabled(false);
-        setRedoEnabled(true);
+		if (doneList.size() == 0) setUndoEnabled(false);
+		setRedoEnabled(true);
 
-        // save pre undo highlights
-        batch.preUndoHighlights = savedHighlights;
-        batch.preUndoHighlightsOffset = offset;
+		// save pre undo highlights
+		batch.preUndoHighlights = savedHighlights;
+		batch.preUndoHighlightsOffset = offset;
 
 		// look through the changes in this batch
 		boolean firstChange = true;
@@ -1705,20 +1728,22 @@ public class Undo
 			Listener listener = (Listener)it.next();
 			listener.endBatch();
 		}
-        fireEndChangeBatch(batch);
+		fireEndChangeBatch(batch);
 
-        // restore highlights (must be done after all other tools have
-        // responded to changes)
-        List highlights = new ArrayList();
-        for (Iterator it = batch.startingHighlights.iterator(); it.hasNext(); ) {
-            highlights.add(it.next());
-        }
-        if (highlighter != null) {
-            highlighter.setHighlightList(highlights);
-            highlighter.setHighlightOffset((int)batch.startHighlightsOffset.getX(),
-                    (int)batch.startHighlightsOffset.getY());
-            highlighter.finished();
-        }
+		// restore highlights (must be done after all other tools have
+		// responded to changes)
+		List highlights = new ArrayList();
+		for (Iterator it = batch.startingHighlights.iterator(); it.hasNext(); )
+		{
+			highlights.add(it.next());
+		}
+		if (highlighter != null)
+		{
+			highlighter.setHighlightList(highlights);
+			highlighter.setHighlightOffset((int)batch.startHighlightsOffset.getX(),
+				(int)batch.startHighlightsOffset.getY());
+			highlighter.finished();
+		}
 
 		// mark that this batch is undone
 		batch.done = false;
@@ -1731,13 +1756,14 @@ public class Undo
 	 */
 	public static boolean redoABatch()
 	{
-        EditWindow wnd = EditWindow.getCurrent();
-        Highlighter highlighter = null;
-        if (wnd != null) highlighter = wnd.getHighlighter();
-        if (highlighter != null) {
-            highlighter.clear();
-            highlighter.finished();
-        }
+		EditWindow wnd = EditWindow.getCurrent();
+		Highlighter highlighter = null;
+		if (wnd != null) highlighter = wnd.getHighlighter();
+		if (highlighter != null)
+		{
+			highlighter.clear();
+			highlighter.finished();
+		}
 
 		// close out the current batch
 		endChanges();
@@ -1749,8 +1775,8 @@ public class Undo
 		ChangeBatch batch = (ChangeBatch)undoneList.get(listSize-1);
 		undoneList.remove(listSize-1);
 		doneList.add(batch);
-        if (undoneList.size() == 0) setRedoEnabled(false);
-        setUndoEnabled(true);
+		if (undoneList.size() == 0) setRedoEnabled(false);
+		setUndoEnabled(true);
 
 		// look through the changes in this batch
 		boolean firstChange = true;
@@ -1773,19 +1799,21 @@ public class Undo
 			Listener listener = (Listener)it.next();
 			listener.endBatch();
 		}
-        fireEndChangeBatch(batch);
+		fireEndChangeBatch(batch);
 
-        // set highlights to what they were before undo
-        List highlights = new ArrayList();
-        for (Iterator it = batch.preUndoHighlights.iterator(); it.hasNext(); ) {
-            highlights.add(it.next());
-        }
-        if (highlighter != null) {
-            highlighter.setHighlightList(highlights);
-            highlighter.setHighlightOffset((int)batch.preUndoHighlightsOffset.getX(),
-                    (int)batch.preUndoHighlightsOffset.getY());
-            highlighter.finished();
-        }
+		// set highlights to what they were before undo
+		List highlights = new ArrayList();
+		for (Iterator it = batch.preUndoHighlights.iterator(); it.hasNext(); )
+		{
+			highlights.add(it.next());
+		}
+		if (highlighter != null)
+		{
+			highlighter.setHighlightList(highlights);
+			highlighter.setHighlightOffset((int)batch.preUndoHighlightsOffset.getX(),
+				(int)batch.preUndoHighlightsOffset.getY());
+			highlighter.finished();
+		}
 
 		// mark that this batch is redone
 		batch.done = true;
@@ -1826,8 +1854,8 @@ public class Undo
  		// kill them all
  		doneList.clear();
  		undoneList.clear();
-        setUndoEnabled(false);
-        setRedoEnabled(false);
+		setUndoEnabled(false);
+		setRedoEnabled(false);
 	}
 
 	/**
@@ -1839,7 +1867,7 @@ public class Undo
 		endChanges();
 
 		undoneList.clear();
-        setRedoEnabled(false);
+		setRedoEnabled(false);
 	}
 
 	/**
@@ -1858,7 +1886,7 @@ public class Undo
 		{
 			doneList.remove(0);
 		}
-        if (doneList.size() == 0) setUndoEnabled(false);
+		if (doneList.size() == 0) setUndoEnabled(false);
 		return oldSize;
 	}
 

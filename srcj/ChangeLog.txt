@@ -14,18 +14,30 @@ IMP: (10/23/04, GVG) Cleaning TechPalette and putting in default position last P
 
 ************************* Version 8.01ac: *********************************
 
+IMP/MAN: (10/25/04, SMR) Added "BiCMOS" technology.
+
+BUG: (10/24/04, SMR) JELIB files fail if there is a library with the same name as a technology.
+FIX: In JELIB, node instances now distinguish between primitive and cell instance by using "N" and "I".
+
+IMP/MAN: (10/24/04, SMR) Added "EFIDO" (digital filter) technology.
+
+IMP/MAN: (10/24/04, SMR) Added "GDS" input.
+
+BUG: (10/24/04, SMR) Changing an icon size does not affect the "example" instance in the schematic.
+FIX: In "database.constraint.Layout.lookDown()", do not ignore example icons.
+
 BUG: (10/22/04, GVG) Out of bound in Cell.getName() as cell names don't have same length
 FIX: Skip cases where names don't have same length
 
 IMP: (10/22/04, GVG) Proper set of ErrorLog for Schematic DRC.
 
 IMP: (10/22/04, GVG) Cross-shaped contacts are default in TechPalette. For PrimitiveNode, default node
-(e.g. cross-shaped contact or standard transistor) would be created unless you click on arrow. Sizing of
-cross-shaped contacts based on cross section.
+     (e.g. cross-shaped contact or standard transistor) would be created unless you click on arrow.
+     Sizing of cross-shaped contacts based on cross section.
 
 IMP: (10/22/04, DN) Network calculation is always performed in change thread.
-  GUI thread can either "getUserNetlist" and wait until it is ready, or
-  "acquireUserNetlist" and obtain "null" if it is not ready.
+     GUI thread can either "getUserNetlist" and wait until it is ready, or
+     "acquireUserNetlist" and obtain "null" if it is not ready.
 
 IMP: (10/22/04, SMR) Improved speed of arraying and re-exporting by improving speed of
      finding a unique name in a cell.

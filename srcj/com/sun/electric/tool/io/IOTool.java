@@ -318,7 +318,7 @@ public class IOTool extends Tool
 	 */
 	public static void setCIFInSquaresWires(boolean s) { cacheCIFInSquaresWires.setBoolean(s); }
 
-	/****************************** GDS OUTPUT PREFERENCES ******************************/
+	/****************************** GDS PREFERENCES ******************************/
 
 	private static Pref cacheGDSOutMergesBoxes = Pref.makeBooleanPref("GDSMergesBoxes", IOTool.tool.prefs, false);
     static { cacheGDSOutMergesBoxes.attachToObject(IOTool.tool, "IO/GDS tab", "GDS output merges boxes"); }
@@ -385,6 +385,64 @@ public class IOTool extends Tool
 	 * If this is negative, do not write Export pins.
 	 */
 	public static void setGDSOutDefaultTextLayer(int num) { cacheGDSOutDefaultTextLayer.setInt(num); }
+
+	private static Pref cacheGDSInIncludesText = Pref.makeBooleanPref("GDSInIncludesText", IOTool.tool.prefs, false);
+	/**
+	 * Method to tell whether GDS Input ignores text.
+	 * Text can clutter the display, so some users don't want to read it.
+	 * The default is "false".
+	 * @return true if GDS Input ignores text.
+	 */
+	public static boolean isGDSInIncludesText() { return cacheGDSInIncludesText.getBoolean(); }
+	/**
+	 * Method to set whether GDS Input ignores text.
+	 * Text can clutter the display, so some users don't want to read it.
+	 * @param on true if GDS Input ignores text.
+	 */
+	public static void setGDSInIncludesText(boolean on) { cacheGDSInIncludesText.setBoolean(on); }
+
+	private static Pref cacheGDSInExpandsCells = Pref.makeBooleanPref("GDSInExpandsCells", IOTool.tool.prefs, false);
+	/**
+	 * Method to tell whether GDS Input expands cells.
+	 * The default is "false".
+	 * @return true if GDS Input expands cells.
+	 */
+	public static boolean isGDSInExpandsCells() { return cacheGDSInExpandsCells.getBoolean(); }
+	/**
+	 * Method to set whether GDS Input expands cells.
+	 * @param on true if GDS Input expands cells.
+	 */
+	public static void setGDSInExpandsCells(boolean on) { cacheGDSInExpandsCells.setBoolean(on); }
+
+	private static Pref cacheGDSInInstantiatesArrays = Pref.makeBooleanPref("GDSInInstantiatesArrays", IOTool.tool.prefs, true);
+	/**
+	 * Method to tell whether GDS Input instantiates arrays.
+	 * The default is "true".
+	 * When false, only the edges of arrays are instantiated, not those entries in the center.
+	 * @return true if GDS Input instantiates arrays.
+	 */
+	public static boolean isGDSInInstantiatesArrays() { return cacheGDSInInstantiatesArrays.getBoolean(); }
+	/**
+	 * Method to set whether GDS Input instantiates arrays.
+	 * When false, only the edges of arrays are instantiated, not those entries in the center.
+	 * @param on true if GDS Input instantiates arrays.
+	 */
+	public static void setGDSInInstantiatesArrays(boolean on) { cacheGDSInInstantiatesArrays.setBoolean(on); }
+
+	private static Pref cacheGDSInIgnoresUnknownLayers = Pref.makeBooleanPref("GDSInIgnoresUnknownLayers", IOTool.tool.prefs, false);
+	/**
+	 * Method to tell whether GDS Input ignores unknown layers
+	 * The default is "false".
+	 * Unknown layers are replaced with "DRC exclusion" nodes if not ignored.
+	 * @return true if GDS Input ignores unknown layers
+	 */
+	public static boolean isGDSInIgnoresUnknownLayers() { return cacheGDSInIgnoresUnknownLayers.getBoolean(); }
+	/**
+	 * Method to set whether GDS Input ignores unknown layers
+	 * Unknown layers are replaced with "DRC exclusion" nodes if not ignored.
+	 * @param on true if GDS Input ignores unknown layers
+	 */
+	public static void setGDSInIgnoresUnknownLayers(boolean on) { cacheGDSInIgnoresUnknownLayers.setBoolean(on); }
 
 	/****************************** POSTSCRIPT OUTPUT PREFERENCES ******************************/
 

@@ -42,8 +42,11 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.technology.technologies.BiCMOS;
 import com.sun.electric.technology.technologies.Bipolar;
 import com.sun.electric.technology.technologies.CMOS;
+import com.sun.electric.technology.technologies.EFIDO;
+import com.sun.electric.technology.technologies.GEM;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.MoCMOSOld;
@@ -582,8 +585,11 @@ public class Technology
 	{
 		// Because of lazy evaluation, technologies aren't initialized unless they're referenced here
 		Artwork.tech.setup();
+		BiCMOS.tech.setup();
 		Bipolar.tech.setup();
 		CMOS.tech.setup();
+		EFIDO.tech.setup();
+		GEM.tech.setup();
 		MoCMOS.tech.setup();
 		MoCMOSOld.tech.setup();
 		MoCMOSSub.tech.setup();

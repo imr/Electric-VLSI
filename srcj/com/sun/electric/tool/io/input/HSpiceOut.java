@@ -416,7 +416,9 @@ public class HSpiceOut extends Simulate
 				for(int k=0; k<sweepcnt; k++)
 				{
 					allTheData = (List)theSweeps.get(k);
-					for(int i=0; i<numEvents; i++)
+					int sweepEvents = allTheData.size();
+					if (sweepEvents > numEvents) sweepEvents = numEvents;
+					for(int i=0; i<sweepEvents; i++)
 					{
 						float [] dataRow = (float[])allTheData.get(i);
 						as.setSweepValue(k, i, dataRow[j+1]);

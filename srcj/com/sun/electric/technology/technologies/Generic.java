@@ -49,6 +49,7 @@ public class Generic extends Technology
 {
 	/** the Generic Technology object. */	public static final Generic tech = new Generic();
 	/** the Universal Layer. */				public Layer universal_lay;
+	/** the DRC exclusion Layer. */			public Layer drc_lay;
 	/** the Universal Pin node. */			public PrimitiveNode universalPinNode;
 	/** the Invisible Pin node. */			public PrimitiveNode invisiblePinNode;
 	/** the Unrouted Pin node. */			public PrimitiveNode unroutedPinNode;
@@ -95,7 +96,7 @@ public class Generic extends Technology
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** DRC layer */
-		Layer drc_lay = Layer.newInstance(this, "DRC",
+		drc_lay = Layer.newInstance(this, "DRC",
 			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, 0, 255,190,6,1.0,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
@@ -263,6 +264,9 @@ public class Generic extends Technology
 			});
 		simProbeNode.setFunction(PrimitiveNode.Function.ART);
 		simProbeNode.setCanBeZeroSize();
+
+		// The pure layer nodes
+		drc_lay.setPureLayerNode(drcNode);
 	}
 
 	private static Technology.NodeLayer[] NULLNODELAYER = new Technology.NodeLayer [] {};

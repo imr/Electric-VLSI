@@ -535,7 +535,8 @@ public class JELIB extends LibraryFiles
 		for(int line=0; line<numStrings; line++)
 		{
 			String cellString = (String)cc.cellStrings.get(line);
-			if (cellString.charAt(0) != 'N') continue;
+			char firstChar = cellString.charAt(0);
+			if (firstChar != 'N' && firstChar != 'I') continue;
 			numProcessed++;
 			if ((numProcessed%100) == 0) progress.setProgress(numProcessed * 100 / numToProcess);
 
@@ -562,11 +563,22 @@ public class JELIB extends LibraryFiles
 			{
 				prefixName = protoName.substring(0, colonPos);
 				protoName = protoName.substring(colonPos+1);
-				if (prefixName.equals(curLibName)) np = lib.findNodeProto(protoName); else
+				if (firstChar == 'N')
 				{
 					Technology tech = Technology.findTechnology(prefixName);
 					if (tech != null) np = tech.findNodeProto(protoName);
 					if (np == null)
+					{
+						if (prefixName.equals(curLibName)) np = lib.findNodeProto(protoName); else
+						{
+							cellLib = Library.findLibrary(prefixName);
+							if (cellLib != null)
+								np = cellLib.findNodeProto(protoName);
+						}
+					}
+				} else
+				{
+					if (prefixName.equals(curLibName)) np = lib.findNodeProto(protoName); else
 					{
 						cellLib = Library.findLibrary(prefixName);
 						if (cellLib != null)

@@ -97,11 +97,6 @@ public class TextDescriptor
 	private static final int VTUNITSDIST =                6;		/* 1:   units: distance */
 	private static final int VTUNITSTIME =                7;		/* 1:   units: time */
 
-	// text size information
-	private static final int TXTMAXPOINTS =       63;
-	private static final int TXTQGRIDSH =          6;		
-	private static final double TXTMAXQGRID =    127.75;
-
 	/**
 	 * Position is a typesafe enum class that describes the text position of a Variable.
 	 * The Position describes the "anchor point" of the text,
@@ -324,6 +319,11 @@ public class TextDescriptor
 	 */
 	public static class Size
 	{
+		// text size information
+		public static final int TXTMAXPOINTS =       63;
+		private static final int TXTQGRIDSH =          6;		
+		private static final double TXTMAXQGRID =    127.75;
+
 		private final boolean absolute;
 		private final double size;
 		private final int bits;
@@ -688,7 +688,7 @@ public class TextDescriptor
 	/**
 	 * Default TextDescriptor for NodeInsts is 1 unit tall.
 	 */
-	private static final Pref cacheNodeDescriptor = Pref.makeLongPref("TextDescriptorForNode", prefs, (4 << TXTQGRIDSH) << VTSIZESH);
+	private static final Pref cacheNodeDescriptor = Pref.makeLongPref("TextDescriptorForNode", prefs, (4 << Size.TXTQGRIDSH) << VTSIZESH);
 	/**
 	 * Method to return a TextDescriptor that is a default for Variables on NodeInsts.
 	 * @param owner owner of this TextDescriptor.
@@ -722,7 +722,7 @@ public class TextDescriptor
 	/**
 	 * Default TextDescriptor for ArcInsts is 1 unit tall.
 	 */
-	private static Pref cacheArcDescriptor = Pref.makeLongPref("TextDescriptorForArc", prefs, (4 << TXTQGRIDSH) << VTSIZESH);
+	private static Pref cacheArcDescriptor = Pref.makeLongPref("TextDescriptorForArc", prefs, (4 << Size.TXTQGRIDSH) << VTSIZESH);
 	/**
 	 * Method to return a TextDescriptor that is a default for Variables on ArcInsts.
 	 * @param owner owner of this TextDescriptor.
@@ -756,7 +756,7 @@ public class TextDescriptor
 	/**
 	 * Default TextDescriptor for Exports and Ports is 2 units tall.
 	 */
-	private static Pref cacheExportDescriptor = Pref.makeLongPref("TextDescriptorForExport", prefs, (8 << TXTQGRIDSH) << VTSIZESH);
+	private static Pref cacheExportDescriptor = Pref.makeLongPref("TextDescriptorForExport", prefs, (8 << Size.TXTQGRIDSH) << VTSIZESH);
 	/**
 	 * Method to return a TextDescriptor that is a default for Variables on Exports.
 	 * @param owner owner of this TextDescriptor.
@@ -790,7 +790,7 @@ public class TextDescriptor
 	/**
 	 * Default TextDescriptor for Annotations is 1 unit tall.
 	 */
-	private static Pref cacheAnnotationDescriptor = Pref.makeLongPref("TextDescriptorForAnnotation", prefs, (4 << TXTQGRIDSH) << VTSIZESH);
+	private static Pref cacheAnnotationDescriptor = Pref.makeLongPref("TextDescriptorForAnnotation", prefs, (4 << Size.TXTQGRIDSH) << VTSIZESH);
 	/**
 	 * Method to return a TextDescriptor that is a default for Variables on Annotations.
 	 * @param owner owner of this TextDescriptor.
@@ -824,7 +824,7 @@ public class TextDescriptor
 	/**
 	 * Default TextDescriptor for Cell Instance Names is 4 units tall.
 	 */
-	private static Pref cacheInstanceDescriptor = Pref.makeLongPref("TextDescriptorForInstance", prefs, (16 << TXTQGRIDSH) << VTSIZESH);
+	private static Pref cacheInstanceDescriptor = Pref.makeLongPref("TextDescriptorForInstance", prefs, (16 << Size.TXTQGRIDSH) << VTSIZESH);
 	/**
 	 * Method to return a TextDescriptor that is a default for Variables on Cell Instance Names.
 	 * @param owner owner of this TextDescriptor.
@@ -858,7 +858,7 @@ public class TextDescriptor
 	/**
 	 * Default TextDescriptor for Cell Variables is 1 unit tall.
 	 */
-	private static Pref cacheCellDescriptor = Pref.makeLongPref("TextDescriptorForCell", prefs, (4 << TXTQGRIDSH) << VTSIZESH);
+	private static Pref cacheCellDescriptor = Pref.makeLongPref("TextDescriptorForCell", prefs, (4 << Size.TXTQGRIDSH) << VTSIZESH);
 	/**
 	 * Method to return a TextDescriptor that is a default for Variables on Cell Variables.
 	 * @param owner owner of this TextDescriptor.
@@ -1246,8 +1246,8 @@ public class TextDescriptor
 	{
 		int textSize = (descriptor1 & VTSIZE) >> VTSIZESH;
 		if (textSize == 0) return Size.newRelSize(1);
-		if (textSize <= TXTMAXPOINTS) return Size.newAbsSize(textSize);
-		int sizeValue = textSize>>TXTQGRIDSH;
+		if (textSize <= Size.TXTMAXPOINTS) return Size.newAbsSize(textSize);
+		int sizeValue = textSize>>Size.TXTQGRIDSH;
 		double size = sizeValue / 4.0;
 		return Size.newRelSize(size);
 	}
