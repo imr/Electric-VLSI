@@ -25,6 +25,7 @@ package com.sun.electric.tool.user;
 
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
@@ -172,5 +173,28 @@ public final class UserMenuCommands
 			}
 		}
 		NodeProto.freeFlagSet(cellFlag);
+	}
+
+	// ---------------------- THE DIMA MENU -----------------
+
+	public static void redoNetworkNumberingCommand()
+	{
+		long startTime = System.currentTimeMillis();
+		System.out.println("**** Renumber networks of layout cells");
+		int ncell = 0;
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			for(Iterator cit = lib.getCells(); cit.hasNext(); )
+			{
+				Cell cell = (Cell)cit.next();
+				if (cell.getView() != View.LAYOUT) continue;
+				ncell++;
+				cell.rebuildNetworks(null);
+			}
+		}
+		long endTime = System.currentTimeMillis();
+		float finalTime = (endTime - startTime) / 1000F;
+		System.out.println("**** Renumber networks end, "+ncell+" cells took " + finalTime + " seconds");
 	}
 }

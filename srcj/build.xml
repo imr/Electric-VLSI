@@ -48,7 +48,7 @@
     </target>
 
     <target depends="init,all" description="Try running it." name="test">
-        <java classname="com.sun.electric.user.Electric" failonerror="true" fork="true">
+        <java classname="com.sun.electric.tool.user.UserInitial" failonerror="true" fork="true">
             <classpath>
                 <pathelement location="."/>
                 <pathelement location="${beanshell}"/>
