@@ -31,6 +31,7 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * This class describes how variable text appears.
@@ -106,12 +107,14 @@ public class TextDescriptor
 		private final String name;
 		private final int index;
 		private final Poly.Type pt;
+        private static List positions = new ArrayList();
 
 		private Position(String name, int index, Poly.Type pt)
 		{
 			this.name = name;
 			this.index = index;
 			this.pt = pt;
+            positions.add(this);
 		}
 
 		/**
@@ -132,14 +135,19 @@ public class TextDescriptor
 		 * Method to return the number Positions.
 		 * @return the number of Positions.
 		 */
-		public static int getNumPositions() { return thePositions.length; }
+		public static int getNumPositions() { return positions.size(); }
 
 		/**
 		 * Method to return the Position at a given index.
 		 * @param index the Position number desired.
 		 * @return the Position at a given index.
 		 */
-		public static Position getPositionAt(int index) { return thePositions[index]; }
+		public static Position getPositionAt(int index) { return (Position)positions.get(index); }
+
+        /**
+         * Get an iterator over all Positions
+         */
+        public static Iterator getPositions() { return positions.iterator(); }
 
 		/**
 		 * Returns a printable version of this Position.
@@ -155,12 +163,12 @@ public class TextDescriptor
 		/**
 		 * Describes text centered above a point.
 		 */
-		public static final Position UP = new Position("up", VTPOSUP, Poly.Type.TEXTBOT);
+		public static final Position UP = new Position("top", VTPOSUP, Poly.Type.TEXTBOT);
 
 		/**
 		 * Describes text centered below a point.
 		 */
-		public static final Position DOWN = new Position("down", VTPOSDOWN, Poly.Type.TEXTTOP);
+		public static final Position DOWN = new Position("bottom", VTPOSDOWN, Poly.Type.TEXTTOP);
 
 		/**
 		 * Describes text centered to left of a point.
@@ -175,22 +183,22 @@ public class TextDescriptor
 		/**
 		 * Describes text centered to upper-left of a point.
 		 */
-		public static final Position UPLEFT = new Position("up-left", VTPOSUPLEFT, Poly.Type.TEXTBOTRIGHT);
+		public static final Position UPLEFT = new Position("upper-left", VTPOSUPLEFT, Poly.Type.TEXTBOTRIGHT);
 
 		/**
 		 * Describes text centered to upper-right of a point.
 		 */
-		public static final Position UPRIGHT = new Position("up-right", VTPOSUPRIGHT, Poly.Type.TEXTBOTLEFT);
+		public static final Position UPRIGHT = new Position("upper-right", VTPOSUPRIGHT, Poly.Type.TEXTBOTLEFT);
 
 		/**
 		 * Describes text centered to lower-left of a point.
 		 */
-		public static final Position DOWNLEFT = new Position("down-left", VTPOSDOWNLEFT, Poly.Type.TEXTTOPRIGHT);
+		public static final Position DOWNLEFT = new Position("lower-left", VTPOSDOWNLEFT, Poly.Type.TEXTTOPRIGHT);
 
 		/**
 		 * Describes text centered to lower-right of a point.
 		 */
-		public static final Position DOWNRIGHT = new Position("down-right", VTPOSDOWNRIGHT, Poly.Type.TEXTTOPLEFT);
+		public static final Position DOWNRIGHT = new Position("lower-right", VTPOSDOWNRIGHT, Poly.Type.TEXTTOPLEFT);
 
 		/**
 		 * Describes text centered and limited to the object size.
@@ -198,8 +206,8 @@ public class TextDescriptor
 		 */
 		public static final Position BOXED = new Position("boxed", VTPOSBOXED, Poly.Type.TEXTBOX);
 
-		private static final Position [] thePositions = new Position[] {CENT, UP, DOWN,
-			LEFT, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT, BOXED};
+		//private static final Position [] thePositions = new Position[] {CENT, UP, DOWN,
+		//	LEFT, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT, BOXED};
 	}
 
 
@@ -236,14 +244,20 @@ public class TextDescriptor
 		 * Method to return the number DispPos.
 		 * @return the number DispPos.
 		 */
-		public static int getNumShowStyles() { return theDispPos.length; }
+		public static int getNumShowStyles() { return positions.size(); }
 
 		/**
 		 * Method to return the DispPos at a given index.
 		 * @param index the DispPos number desired.
 		 * @return the DispPos at a given index.
 		 */
-		public static DispPos getShowStylesAt(int index) { return theDispPos[index]; }
+		public static DispPos getShowStylesAt(int index) { return (DispPos)positions.get(index); }
+
+        /**
+         * Get an iterator over all show styles.
+         * @return an iterator over the list of show styles
+         */
+        public static Iterator getShowStyles() { return positions.iterator(); }
 
 		/**
 		 * Returns a printable version of this DispPos.
@@ -273,7 +287,7 @@ public class TextDescriptor
 		 * The form of the display is “ATTR=VALUE;def=DEFAULT”;
 		 */
 		public static final DispPos NAMEVALINHALL = new DispPos("name=inheritAll;def=value", VTDISPLAYNAMEVALINHALL);
-		private static final DispPos [] theDispPos = new DispPos[] {VALUE, NAMEVALUE, NAMEVALINH, NAMEVALINHALL};
+		//private static final DispPos [] theDispPos = new DispPos[] {VALUE, NAMEVALUE, NAMEVALINH, NAMEVALINHALL};
 	}
 
 
@@ -392,18 +406,43 @@ public class TextDescriptor
 		 */
 		public String getDescription() { return name; }
 
+        /**
+         * Get the angle of this rotation.
+         * @return the angle of this rotation.
+         */
+        public int getAngle() { return angle; }
+
+        /**
+         * Get the Rotation for the given angle.
+         * @param angle the angle.
+         * @return a Rotation for the given angle, or null if non exists.
+         */
+        public static Rotation getRotation(int angle) {
+            for (Iterator it = rotations.iterator(); it.hasNext(); ) {
+                Rotation rot = (Rotation)it.next();
+                if (rot.getAngle() == angle) return rot;
+            }
+            return null;
+        }
+
 		/**
 		 * Method to return the number Rotations.
 		 * @return the number Rotations.
 		 */
-		public static int getNumRotations() { return theRotations.length; }
+		public static int getNumRotations() { return rotations.size(); }
 
 		/**
 		 * Method to return the Rotation at a given index.
 		 * @param index the Rotation number desired.
 		 * @return the Rotation at a given index.
 		 */
-		public static Rotation getRotationAt(int index) { return theRotations[index]; }
+		public static Rotation getRotationAt(int index) { return (Rotation)rotations.get(index); }
+
+        /**
+         * Get an iterator over all rotations
+         * @return an iterator over all rotations
+         */
+        public static Iterator getRotations() { return rotations.iterator(); }
 
 		/**
 		 * Returns a printable version of this Rotation.
@@ -419,7 +458,7 @@ public class TextDescriptor
 														new Rotation(180, 2, "180 degrees");
 		/** Describes a Rotation of 270 degrees. */	public static final Rotation ROT270 =
 														new Rotation(270, 3, "90 degrees clockwise");
-		private static final Rotation [] theRotations = new Rotation[] {ROT0, ROT90, ROT180, ROT270};
+		//private static final Rotation [] theRotations = new Rotation[] {ROT0, ROT90, ROT180, ROT270};
 	}
 
 
@@ -457,14 +496,22 @@ public class TextDescriptor
 		 * Method to return the number Units.
 		 * @return the number Units.
 		 */
-		public static int getNumUnits() { return theUnits.length; }
+        public static int getNumUnits() { return units.size(); }
+        //public static int getNumUnits() { return theUnits.length; }
 
 		/**
 		 * Method to return the Unit at a given index.
 		 * @param index the Unit number desired.
 		 * @return the Unit at a given index.
 		 */
-		public static Unit getUnitAt(int index) { return theUnits[index]; }
+        public static Unit getUnitAt(int index) { return (Unit)units.get(index); }
+        //public static Unit getUnitAt(int index) { return theUnits[index]; }
+
+        /**
+         * Get an iterator over all units.
+         * @return an iterator over the list of unit types.
+         */
+        public static Iterator getUnits() { return units.iterator(); }
 
 		/**
 		 * Returns a printable version of this Unit.
@@ -480,8 +527,8 @@ public class TextDescriptor
 		/** Describes voltage units. */			public static final Unit VOLTAGE =     new Unit("voltage", VTUNITSVOLT);
 		/** Describes distance units. */		public static final Unit DISTANCE =    new Unit("distance", VTUNITSDIST);
 		/** Describes time units. */			public static final Unit TIME =        new Unit("time", VTUNITSTIME);
-		private static final Unit [] theUnits = new Unit[] {Unit.NONE, Unit.RESISTANCE, Unit.CAPACITANCE,
-			Unit.INDUCTANCE, Unit.CURRENT, Unit.VOLTAGE, Unit.DISTANCE, Unit.TIME};
+		//private static final Unit [] theUnits = new Unit[] {Unit.NONE, Unit.RESISTANCE, Unit.CAPACITANCE,
+		//	Unit.INDUCTANCE, Unit.CURRENT, Unit.VOLTAGE, Unit.DISTANCE, Unit.TIME};
 	}
 
 	/**
@@ -862,7 +909,7 @@ public class TextDescriptor
 	 * Method to return the text display part of the TextDescriptor.
 	 * @return the text display part of the TextDescriptor.
 	 */
-	public DispPos getDispPart() { return DispPos.theDispPos[(descriptor0 & VTDISPLAYPART) >> VTDISPLAYPARTSH]; }
+	public DispPos getDispPart() { return DispPos.getShowStylesAt((descriptor0 & VTDISPLAYPART) >> VTDISPLAYPARTSH); }
 
 	/**
 	 * Method to set the text display part of the TextDescriptor.
@@ -1107,7 +1154,7 @@ public class TextDescriptor
 	 * is volts, millivolts, microvolts, etc.
 	 * @return the Unit of the TextDescriptor.
 	 */
-	public Unit getUnit() { return Unit.theUnits[(descriptor1 & VTUNITS) >> VTUNITSSH]; }
+	public Unit getUnit() { return Unit.getUnitAt((descriptor1 & VTUNITS) >> VTUNITSSH); }
 
 	/**
 	 * Method to set the Unit of the TextDescriptor.

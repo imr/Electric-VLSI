@@ -331,8 +331,8 @@ public class CellBrowser extends javax.swing.JDialog {
         List viewList = View.getOrderedViews();
         for (Iterator it = viewList.iterator(); it.hasNext(); ) {
             View view = (View)it.next();
-            viewComboBox.addItem(view.getAbbreviation());
-            if (view.getAbbreviation().equals(lastSelectedView))
+            viewComboBox.addItem(view.getFullName());
+            if (view.getFullName().equals(lastSelectedView))
                 curIndex = i;               // see if this is the last selected view
             i++;
         }
@@ -489,7 +489,7 @@ public class CellBrowser extends javax.swing.JDialog {
         View view = null;
         for (Iterator it = View.getViews(); it.hasNext(); ) {
             View v = (View)it.next();
-            if (v.getAbbreviation().equals(viewName)) {
+            if (v.getFullName().equals(viewName)) {
                 view = v;
                 break;
             }

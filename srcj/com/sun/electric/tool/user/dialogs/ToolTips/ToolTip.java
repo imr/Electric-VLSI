@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: CellBrowser.java
+ * File: ToolTip.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -63,6 +63,8 @@ public class ToolTip extends javax.swing.JDialog {
         "Mouse Interface", "Getting Started", "Library Directory Management"
     };
 
+    private int currentTip;
+
     private JPanel controlPanel;
     private JScrollPane scrollPane;
     private JEditorPane editorPane;
@@ -87,10 +89,10 @@ public class ToolTip extends javax.swing.JDialog {
         Dimension labelSize = getSize();
         setLocation(screenSize.width/2 - (labelSize.width/2),
             screenSize.height/2 - (labelSize.height/2));
+        currentTip = -1;
         // look for tooltip
         loadToolTip(tooltip);
     }
-
 
     /**
      * Convert a Tool Tip name to a file name containing
@@ -121,16 +123,20 @@ public class ToolTip extends javax.swing.JDialog {
         int i = list.indexOf(tooltip);
         if (i == -1) {
             i = rand.nextInt() % allToolTips.length;
+            i = Math.abs(i);
         }
         loadToolTip(i);
     }
 
     private void loadToolTip(int i) {
+        if (i == currentTip) return;
         URL url = ToolTip.class.getResource(toolTipNameToFileName(allToolTips[i]));
         try {
             editorPane.setPage(url);
+            currentTip = i;
+            toolTips.setSelectedIndex(i);
         } catch (IOException e) {
-            //editorPane.setText("Tool tip "+allToolTips[i]+" not found\n");
+            System.out.println("Tool tip "+allToolTips[i]+" not found");
         }
     }
 

@@ -35,12 +35,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Listener;
-import com.sun.electric.tool.user.dialogs.GetInfoNode;
-import com.sun.electric.tool.user.dialogs.GetInfoArc;
-import com.sun.electric.tool.user.dialogs.GetInfoExport;
-import com.sun.electric.tool.user.dialogs.GetInfoText;
-import com.sun.electric.tool.user.dialogs.GetInfoMulti;
-import com.sun.electric.tool.user.dialogs.Attributes;
+import com.sun.electric.tool.user.dialogs.*;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -198,8 +193,8 @@ public class User extends Listener
 	{
 		GetInfoNode.load();
 		GetInfoArc.load();
-		GetInfoExport.load();
-		GetInfoText.load();
+		GetInfoExport2.load();
+		GetInfoText2.load();
 		GetInfoMulti.load();
 		Attributes.load();
 		StatusBar.updateStatusBar();

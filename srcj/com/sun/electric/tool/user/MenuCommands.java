@@ -57,28 +57,7 @@ import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.routing.MimicStitch;
 import com.sun.electric.tool.simulation.IRSIMTool;
-import com.sun.electric.tool.user.dialogs.About;
-import com.sun.electric.tool.user.dialogs.Array;
-import com.sun.electric.tool.user.dialogs.Attributes;
-import com.sun.electric.tool.user.dialogs.CellBrowser;
-import com.sun.electric.tool.user.dialogs.CellLists;
-import com.sun.electric.tool.user.dialogs.CellParameters;
-import com.sun.electric.tool.user.dialogs.CellOptions;
-import com.sun.electric.tool.user.dialogs.Change;
-import com.sun.electric.tool.user.dialogs.CrossLibCopy;
-import com.sun.electric.tool.user.dialogs.EditKeyBindings;
-import com.sun.electric.tool.user.dialogs.EditOptions;
-import com.sun.electric.tool.user.dialogs.GetInfoArc;
-import com.sun.electric.tool.user.dialogs.GetInfoExport;
-import com.sun.electric.tool.user.dialogs.GetInfoMulti;
-import com.sun.electric.tool.user.dialogs.GetInfoNode;
-import com.sun.electric.tool.user.dialogs.GetInfoText;
-import com.sun.electric.tool.user.dialogs.IOOptions;
-import com.sun.electric.tool.user.dialogs.LayerVisibility;
-import com.sun.electric.tool.user.dialogs.NewCell;
-import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.dialogs.ToolOptions;
-import com.sun.electric.tool.user.dialogs.ViewControl;
+import com.sun.electric.tool.user.dialogs.*;
 import com.sun.electric.tool.user.dialogs.ToolTips.ToolTip;
 import com.sun.electric.tool.user.ui.MenuBar;
 import com.sun.electric.tool.user.ui.MenuBar.Menu;
@@ -1566,8 +1545,8 @@ public final class MenuCommands
 			{
 				if (arcCount == 1) GetInfoArc.showDialog();
 				if (nodeCount == 1) GetInfoNode.showDialog();
-				if (exportCount == 1) GetInfoExport.showDialog();
-				if (textCount == 1) GetInfoText.showDialog();
+				if (exportCount == 1) GetInfoExport2.showDialog();
+				if (textCount == 1) GetInfoText2.showDialog();
 			} else
 			{
 				GetInfoMulti.showDialog();
@@ -2687,7 +2666,10 @@ public final class MenuCommands
 	
 	public static void listVarsOnObject(boolean useproto) {
 		if (Highlight.getNumHighlights() == 0) {
-			System.out.println("Nothing highlighted");
+			// list vars on cell
+            EditWindow wnd = EditWindow.getCurrent();
+            Cell cell = wnd.getCell();
+            cell.getInfo();
 			return;
 		}
 		for (Iterator it = Highlight.getHighlights(); it.hasNext();) {

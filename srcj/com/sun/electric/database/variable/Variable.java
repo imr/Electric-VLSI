@@ -627,6 +627,12 @@ public class Variable
 	 */
 	public boolean isCantSet() { return (flags & VCANTSET) != 0; }
 
+    /**
+     * Method to return if this is Variable is a User Attribute.
+     * @return true if this Variable is an attribute, false otherwise.
+     */
+    public boolean isAttribute() { return getKey().getName().startsWith("ATTR_"); }
+
 	/**
 	 * Returns a printable version of this Variable.
 	 * @return a printable version of this Variable.
