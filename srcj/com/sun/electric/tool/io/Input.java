@@ -25,10 +25,12 @@ package com.sun.electric.tool.io;
 
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.tool.user.ui.UITopLevel;
 
 import java.io.*;
 import java.util.List;
 import java.util.ArrayList;
+import javax.swing.ProgressMonitor;
 
 /**
  * This class manages reading files in different formats.
@@ -41,6 +43,8 @@ public class Input
 	/** Name of the file being input. */					protected String filePath;
 	/** The Library being input. */							protected Library lib;
 	/** The binary input stream. */							protected DataInputStream dataInputStream;
+	/** The length of the file. */							protected long fileLength;
+	/** The progress during input. */						protected static ProgressMonitor progress = null;
 	/** the path to the library being read. */				protected static String mainLibDirectory = null;
 	/** The raw input stream. */							private FileInputStream fileInputStream;
 	/** static list of all libraries in Electric */			private static List newLibraries = new ArrayList();
@@ -158,6 +162,7 @@ public class Input
 			{
 				// library already exists, prompt for save
 				System.out.println("Library already exists: overwriting");
+				lib.erase();
 			} else
 			{
 				lib = Library.newInstance(n.getName(), fileName);
@@ -170,9 +175,11 @@ public class Input
 
 		in.filePath = fileName;
 		in.lib = lib;
+		File file = new File(fileName);
+		in.fileLength = file.length(); 
 		try
 		{
-			in.fileInputStream = new FileInputStream(fileName);
+			in.fileInputStream = new FileInputStream(file);
 		} catch (FileNotFoundException e)
 		{
 			System.out.println("Could not find file " + fileName);
@@ -182,7 +189,15 @@ public class Input
 		BufferedInputStream bufStrm =
 		    new BufferedInputStream(in.fileInputStream, READ_BUFFER_SIZE);
 		in.dataInputStream = new DataInputStream(bufStrm);
+
+		// show progress
+		if (topLevel && progress == null)
+		{
+			progress = new ProgressMonitor(null, "Reading library "+lib.getLibName()+"...", "", 0, 1001);
+			progress.setProgress(0);
+		}
 		boolean error = in.ReadLib();
+		if (topLevel && progress != null) progress.close();
 		try
 		{
 			in.fileInputStream.close();

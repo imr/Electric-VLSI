@@ -55,6 +55,7 @@ import java.util.GregorianCalendar;
 import java.util.Date;
 import java.awt.geom.Point2D;
 import java.nio.ByteBuffer;
+import javax.swing.ProgressMonitor;
 
 
 /**
@@ -1475,10 +1476,12 @@ public class InputBinary extends Input
 			if (elib == null) return true;
 
 			// read the external library
-//			if (io_verbose < 0 && filelength > 0 && io_inputprogressdialog != 0)
-//			{
-//				(void)allocstring(&oldline2, DiaGetTextProgress(io_inputprogressdialog), el_tempcluster);
-//			}
+			String oldNote = progress.getNote();
+			if (progress != null)
+			{
+				progress.setProgress(0);
+				progress.setNote("Reading referenced library " + libName + "...");
+			}
 
 //			len = estrlen(elib->libfile);
 //			if (len > 4 && namesame(&elib->libfile[len-4], x_(".txt")) == 0)
@@ -1495,15 +1498,8 @@ public class InputBinary extends Input
 //				// queue this library for announcement through change control
 //				io_queuereadlibraryannouncement(elib);
 //			}
-//			if (io_verbose < 0 && filelength > 0 && io_inputprogressdialog != 0)
-//			{
-//				DiaSetProgress(io_inputprogressdialog, bytecount, filelength);
-//				infstr = initinfstr();
-//				formatinfstr(infstr, _("Reading library %s"), lib->libname);
-//				DiaSetCaptionProgress(io_inputprogressdialog, returninfstr(infstr));
-//				DiaSetTextProgress(io_inputprogressdialog, oldline2);
-//				efree(oldline2);
-//			}
+			progress.setProgress((int)(byteCount * 1000 / fileLength));
+			progress.setNote(oldNote);
 		}
 
 		// read the portproto names on this nodeproto
@@ -2493,13 +2489,9 @@ public class InputBinary extends Input
 			}
 		}
 		byteCount += diskSize;
-//		if (io_verbose < 0 && filelength > 0 && io_inputprogressdialog != 0)
-//		{
-//			if (byteCount > reported + REPORTINC)
-//			{
-//				DiaSetProgress(io_inputprogressdialog, byteCount, filelength);
-//				reported = byteCount;
-//			}
-//		}
+		if (progress != null && fileLength > 0)
+		{
+			progress.setProgress((int)(byteCount * 1000 / fileLength));
+		}
 	}
 }
