@@ -779,7 +779,7 @@ public class Technology extends ElectricObject
 	 * Returns the polygons that describe node "ni".
 	 * @param ni the NodeInst that is being described.
 	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
-	 * @param wnd the window in which this node will be drawn.
+	 * @param wnd the window in which this node will be drawn (null if no window scaling should be done).
 	 * @return an array of Poly objects that describes this NodeInst graphically.
 	 * This array includes displayable variables on the NodeInst.
 	 */
@@ -805,7 +805,7 @@ public class Technology extends ElectricObject
 	 * @param ni the NodeInst that is being described.
 	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
 	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
-	 * @param wnd the window in which this node will be drawn.
+	 * @param wnd the window in which this node will be drawn (null if no window scaling should be done).
 	 * @return an array of Poly objects that describes this NodeInst graphically.
 	 * This array includes displayable variables on the NodeInst.
 	 */
@@ -826,7 +826,8 @@ public class Technology extends ElectricObject
 			Float [] outline = ni.getTrace();
 			if (outline != null)
 			{
-				int numPolys = ni.numDisplayableVariables(true) + 1;
+				int numPolys = 1;
+				if (wnd != null) numPolys += ni.numDisplayableVariables(true);
 				Poly [] polys = new Poly[numPolys];
 				int numPoints = outline.length / 2;
 				Point2D.Double [] pointList = new Point2D.Double[numPoints];
@@ -840,7 +841,7 @@ public class Technology extends ElectricObject
 				polys[0].setStyle(primLayer.getStyle());
 				polys[0].setLayer(primLayer.getLayer());
 				Rectangle2D rect = ni.getBounds();
-				ni.addDisplayableVariables(rect, polys, 1, wnd, true);
+				if (wnd != null) ni.addDisplayableVariables(rect, polys, 1, wnd, true);
 				return polys;
 			}
 		}
@@ -866,7 +867,8 @@ public class Technology extends ElectricObject
 		}
 
 		// construct the polygon array
-		int numPolys = numBasicLayers + numExtraCuts + ni.numDisplayableVariables(true);
+		int numPolys = numBasicLayers + numExtraCuts;
+		if (wnd != null) numPolys += ni.numDisplayableVariables(true);
 		Poly [] polys = new Poly[numPolys];
 		
 		// add in the basic polygons
@@ -937,8 +939,11 @@ public class Technology extends ElectricObject
 		}
 
 		// add in the displayable variables
-		Rectangle2D rect = ni.getBounds();
-		ni.addDisplayableVariables(rect, polys, numBasicLayers+numExtraCuts, wnd, true);
+		if (wnd != null)
+		{
+			Rectangle2D rect = ni.getBounds();
+			ni.addDisplayableVariables(rect, polys, numBasicLayers+numExtraCuts, wnd, true);
+		}
 		return polys;
 	}
 

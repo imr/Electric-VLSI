@@ -25,6 +25,13 @@ package com.sun.electric.tool;
 
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.change.Change;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.user.User;
 
 import java.util.List;
@@ -258,7 +265,7 @@ public class Tool extends ElectricObject implements Change
 
 	public void init() {}
 	public void request(String cmd) {}
-	public void examineCell(com.sun.electric.database.hierarchy.Cell cell) {}
+	public void examineCell(Cell cell) {}
 	public void slice() {}
 
 	public void startBatch(Tool tool, boolean undoRedo) {}
@@ -267,23 +274,23 @@ public class Tool extends ElectricObject implements Change
 	public void startChange(ElectricObject obj) {}
 	public void endChange(ElectricObject obj) {}
 
-	public void modifyNodeInst(com.sun.electric.database.topology.NodeInst ni, double oLX, double oHX, double oLY, double oHY, int oRot, boolean oTrn) {}
-	public void modifyNodeInsts(com.sun.electric.database.topology.NodeInst[] nis, double[] oLX, double[] oHX, double[] oLY, double[] oHY, int[] oRot, boolean[] oTrn) {}
-	public void modifyArcInst(com.sun.electric.database.topology.ArcInst ai, double oHX, double oHY, double oTX, double oTY, int oWid, double oLen) {}
-	public void modifyExport(com.sun.electric.database.hierarchy.Export pp) {}
-	public void modifyCell(com.sun.electric.database.hierarchy.Cell cell) {}
+	public void modifyNodeInst(NodeInst ni, double oCX, double oCY, double oSX, double oSY, int oRot) {}
+	public void modifyNodeInsts(NodeInst [] nis, double [] oCX, double [] oCY, double [] oSX, double [] oSY, int [] oRot) {}
+	public void modifyArcInst(ArcInst ai, double oHX, double oHY, double oTX, double oTY, int oWid, double oLen) {}
+	public void modifyExport(Export pp) {}
+	public void modifyCell(Cell cell) {}
 	public void modifyTextDescript(ElectricObject obj, int key, Object oldValue) {}
 
 	public void newObject(ElectricObject obj) {}
 	public void killObject(ElectricObject obj) {}
-	public void newVariable(ElectricObject obj, com.sun.electric.database.variable.Variable.Name key, int type) {}
-	public void killVariable(ElectricObject obj, com.sun.electric.database.variable.Variable.Name key, Object oldValue, com.sun.electric.database.variable.TextDescriptor oldDescript) {}
-	public void modifyVariable(ElectricObject obj, com.sun.electric.database.variable.Variable.Name key, int type, int index, Object oldValue) {}
-	public void insertVariable(ElectricObject obj, com.sun.electric.database.variable.Variable.Name key, int type, int index) {}
-	public void deleteVariable(ElectricObject obj, com.sun.electric.database.variable.Variable.Name key, int type, int index, Object oldValue) {}
+	public void newVariable(ElectricObject obj, Variable.Name key, int type) {}
+	public void killVariable(ElectricObject obj, Variable.Name key, Object oldValue, TextDescriptor oldDescript) {}
+	public void modifyVariable(ElectricObject obj, Variable.Name key, int type, int index, Object oldValue) {}
+	public void insertVariable(ElectricObject obj, Variable.Name key, int type, int index) {}
+	public void deleteVariable(ElectricObject obj, Variable.Name key, int type, int index, Object oldValue) {}
 
-	public void readLibrary(com.sun.electric.database.hierarchy.Library lib) {}
-	public void eraseLibrary(com.sun.electric.database.hierarchy.Library lib) {}
-	public void writeLibrary(com.sun.electric.database.hierarchy.Library lib, boolean pass2) {}
+	public void readLibrary(Library lib) {}
+	public void eraseLibrary(Library lib) {}
+	public void writeLibrary(Library lib, boolean pass2) {}
 
 }

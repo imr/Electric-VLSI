@@ -149,7 +149,7 @@ public class Export extends PortProto
 		if (Undo.recordChange())
 		{
 			// tell all tools about this Export
-			Undo.Change ch = Undo.newChange(pp, Undo.Type.EXPORTNEW, 0, 0, 0, 0, 0, 0);
+			Undo.Change ch = Undo.newChange(pp, Undo.Type.EXPORTNEW);
 
 			// tell constraint system about new Export
 //			(*el_curconstraint->newobject)((INTBIG)pp, VPORTPROTO);
@@ -170,7 +170,7 @@ public class Export extends PortProto
 		if (Undo.recordChange())
 		{
 			// tell all tools about this Export
-			Undo.Change ch = Undo.newChange(this, Undo.Type.EXPORTKILL, 0, 0, 0, 0, 0, 0);
+			Undo.Change ch = Undo.newChange(this, Undo.Type.EXPORTKILL);
 
 			// tell constraint system about killed Export
 //			(*el_curconstraint->newobject)((INTBIG)this, VPORTPROTO);

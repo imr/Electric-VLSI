@@ -47,14 +47,13 @@ public class Connection extends ElectricObject
 	 * The constructor creates a new Connection from the given values.
 	 * @param arc the ArcInst that makes a Connection.
 	 * @param portInst the PortInst on a NodeInst that makes a Connection.
-	 * @param x the X coordinate on the NodeInst.
-	 * @param y the Y coordinate on the NodeInst.
+	 * @param pt the coordinate on the NodeInst.
 	 */
-	protected Connection(ArcInst arc, PortInst portInst, double x, double y)
+	protected Connection(ArcInst arc, PortInst portInst, Point2D.Double pt)
 	{
 		this.arc = arc;
 		this.portInst = portInst;
-		this.location = new Point2D.Double(x, y);
+		this.location = (Point2D.Double)pt.clone();
 	}
 
 	// --------------------------- public methods --------------------------

@@ -1254,8 +1254,8 @@ public abstract class NodeProto extends ElectricObject
 	}
 
 	/**
-	 * Routine to set tempInt of of every PortProto of this NodeProto to
-	 * sequential index of PortProto
+	 * Routine to set tempInt of every PortProto of this NodeProto to
+	 * sequential index of PortProto.
 	 */
 	public void numeratePorts()
 	{

@@ -31,6 +31,7 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.Variable;
@@ -43,6 +44,7 @@ import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.Input;
 import com.sun.electric.tool.io.Output;
+import com.sun.electric.tool.user.Clipboard;
 import com.sun.electric.tool.user.ui.Menu;
 import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.logicaleffort.LETool;
@@ -96,6 +98,24 @@ public final class UserMenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { redoCommand(); } });
 		editMenu.addMenuItem("Show Undo List", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); } });
+		editMenu.addSeparator();
+		editMenu.addMenuItem("Cut", KeyStroke.getKeyStroke('X', InputEvent.CTRL_MASK),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { cutCommand(); } });
+		editMenu.addMenuItem("Copy", KeyStroke.getKeyStroke('C', InputEvent.CTRL_MASK),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { copyCommand(); } });
+		editMenu.addMenuItem("Paste", KeyStroke.getKeyStroke('V', InputEvent.CTRL_MASK),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { pasteCommand(); } });
+		editMenu.addSeparator();
+		Menu arcSubMenu = Menu.createMenu("Arc", 'A');
+		editMenu.add(arcSubMenu);
+        arcSubMenu.addMenuItem("Rigid", null, 
+            new ActionListener() { public void actionPerformed(ActionEvent e) { arcRigidCommand(); }});
+        arcSubMenu.addMenuItem("Not Rigid", null, 
+            new ActionListener() { public void actionPerformed(ActionEvent e) { arcNotRigidCommand(); }});
+        arcSubMenu.addMenuItem("Fixed Angle", null, 
+            new ActionListener() { public void actionPerformed(ActionEvent e) { arcFixedAngleCommand(); }});
+        arcSubMenu.addMenuItem("Not Fixed Angle", null, 
+            new ActionListener() { public void actionPerformed(ActionEvent e) { arcNotFixedAngleCommand(); }});
 
 		// setup the Cell menu
 		Menu cellMenu = Menu.createMenu("Cell", 'C');
@@ -331,6 +351,110 @@ public final class UserMenuCommands
 	public static void showUndoListCommand()
 	{
 		Undo.showHistoryList();
+	}
+
+	/**
+	 * This routine implements the command to cut circuitry or text.
+	 */
+	public static void cutCommand()
+	{
+		Clipboard.cut();
+	}
+
+	/**
+	 * This routine implements the command to copy circuitry or text.
+	 */
+	public static void copyCommand()
+	{
+		Clipboard.copy();
+	}
+
+	/**
+	 * This routine implements the command to paste circuitry or text.
+	 */
+	public static void pasteCommand()
+	{
+		Clipboard.paste();
+	}
+
+	public static void arcRigidCommand()
+	{
+		int numSet = 0;
+		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+		{
+			Highlight h = (Highlight)it.next();
+			if (h.getType() != Highlight.Type.GEOM) continue;
+			Geometric geom = h.getGeom();
+			if (geom instanceof ArcInst)
+			{
+				ArcInst ai = (ArcInst)geom;
+				ai.setRigid();
+				numSet++;
+			}
+		}
+		if (numSet == 0) System.out.println("No arcs made Rigid"); else
+			System.out.println("Made " + numSet + " arcs Rigid");
+		EditWindow.redrawAll();
+	}
+
+	public static void arcNotRigidCommand()
+	{
+		int numSet = 0;
+		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+		{
+			Highlight h = (Highlight)it.next();
+			if (h.getType() != Highlight.Type.GEOM) continue;
+			Geometric geom = h.getGeom();
+			if (geom instanceof ArcInst)
+			{
+				ArcInst ai = (ArcInst)geom;
+				ai.clearRigid();
+				numSet++;
+			}
+		}
+		if (numSet == 0) System.out.println("No arcs made Non-Rigid"); else
+			System.out.println("Made " + numSet + " arcs Non-Rigid");
+		EditWindow.redrawAll();
+	}
+
+	public static void arcFixedAngleCommand()
+	{
+		int numSet = 0;
+		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+		{
+			Highlight h = (Highlight)it.next();
+			if (h.getType() != Highlight.Type.GEOM) continue;
+			Geometric geom = h.getGeom();
+			if (geom instanceof ArcInst)
+			{
+				ArcInst ai = (ArcInst)geom;
+				ai.setFixedAngle();
+				numSet++;
+			}
+		}
+		if (numSet == 0) System.out.println("No arcs made Fixed-Angle"); else
+			System.out.println("Made " + numSet + " arcs Fixed-Angle");
+		EditWindow.redrawAll();
+	}
+
+	public static void arcNotFixedAngleCommand()
+	{
+		int numSet = 0;
+		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+		{
+			Highlight h = (Highlight)it.next();
+			if (h.getType() != Highlight.Type.GEOM) continue;
+			Geometric geom = h.getGeom();
+			if (geom instanceof ArcInst)
+			{
+				ArcInst ai = (ArcInst)geom;
+				ai.clearFixedAngle();
+				numSet++;
+			}
+		}
+		if (numSet == 0) System.out.println("No arcs made Not-Fixed-Angle"); else
+			System.out.println("Made " + numSet + " arcs Not-Fixed-Angle");
+		EditWindow.redrawAll();
 	}
 
 	// ---------------------- THE CELL MENU -----------------

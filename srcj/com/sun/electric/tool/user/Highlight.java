@@ -52,6 +52,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.UserMenuCommands;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.util.Iterator;
 import java.util.List;
@@ -138,7 +139,7 @@ public class Highlight
 	/**
 	 * Routine to clear the list of highlighted objects.
 	 */
-	public static void clearHighlighting()
+	public static void clear()
 	{
 		highlightList.clear();
 		highOffX = highOffY = 0;
@@ -154,6 +155,44 @@ public class Highlight
 		Highlight h = new Highlight(Type.GEOM);
 		h.geom = geom;
 		h.cell = geom.getParent();
+
+		highlightList.add(h);
+		return h;
+	}
+
+	/**
+	 * Routine to add a text selection to the list of highlighted objects.
+	 * @param cell the Cell in which this area resides.
+	 * @param area the Rectangle that covers the test.
+	 * @param textStyle the style of drawing the text (grab point).
+	 * @param var the Variable associated with the text (text is then a visual of that variable).
+	 * @return the newly created Highlight object.
+	 */
+	public static Highlight addText(Cell cell, Rectangle2D.Double area, Poly.Type textStyle, Variable var)
+	{
+		Highlight h = new Highlight(Type.TEXT);
+		h.bounds = new Rectangle2D.Double();
+		h.bounds.setRect(area);
+		h.cell = cell;
+		h.textStyle = textStyle;
+		h.var = var;
+
+		highlightList.add(h);
+		return h;
+	}
+
+	/**
+	 * Routine to add an area to the list of highlighted objects.
+	 * @param area the Rectangular area to add to the list of highlighted objects.
+	 * @param cell the Cell in which this area resides.
+	 * @return the newly created Highlight object.
+	 */
+	public static Highlight addArea(Rectangle2D.Double area, Cell cell)
+	{
+		Highlight h = new Highlight(Type.BBOX);
+		h.bounds = new Rectangle2D.Double();
+		h.bounds.setRect(area);
+		h.cell = cell;
 
 		highlightList.add(h);
 		return h;
@@ -264,6 +303,95 @@ public class Highlight
 	public static Iterator getHighlights() { return highlightList.iterator(); }
 
 	/**
+	 * Routine to return an List of all highlighted Geometrics.
+	 * @param wantNodes true if NodeInsts should be included in the list.
+	 * @param wantArcs true if ArcInsts should be included in the list.
+	 * @return a list with the highlighted Geometrics.
+	 */
+	public static List getHighlighted(boolean wantNodes, boolean wantArcs)
+	{
+		// now place the objects in the list
+		List highlightedGeoms = new ArrayList();
+		for(Iterator it = getHighlights(); it.hasNext(); )
+		{
+			Highlight h = (Highlight)it.next();
+
+			if (h.getType() == Type.GEOM)
+			{
+				Geometric geom = h.getGeom();
+				if (geom instanceof NodeInst && !wantNodes) continue;
+				if (geom instanceof ArcInst && !wantArcs) continue;
+
+				if (highlightedGeoms.contains(geom)) continue;
+				highlightedGeoms.add(geom);
+			}
+			if (h.getType() == Type.BBOX)
+			{
+				List inArea = findAllInArea(h.getCell(), false, false, false, false, h.getBounds(), null);
+				for(Iterator ait = inArea.iterator(); ait.hasNext(); )
+				{
+					Highlight ah = (Highlight)ait.next();
+					if (ah.getType() == Type.GEOM)
+						highlightedGeoms.add(ah.getGeom());
+				}
+			}
+		}
+		return highlightedGeoms;
+	}
+
+	/**
+	 * Routine to return the current window in which the highlights reside.
+	 * @return the EditWindow to redraw with the highlighted objects.
+	 * Prints an error messagen returns null if no EditWindow can be determined.
+	 */
+	public static EditWindow getHighlightedWindow()
+	{
+		EditWindow curWind = null;
+		EditWindow undisplayedAlternate = null;
+		WindowFrame curWf = WindowFrame.getCurrent();
+		if (curWf != null && curWf.getEditWindow() != null)
+			curWind = curWf.getEditWindow();
+		Library lib = Library.getCurrent();
+		Cell cell = lib.getCurCell();
+		if (cell != null)
+		{
+			if (curWind != null && curWind.getCell() == cell) return curWind;
+
+//				     !!! beter way to find out the CURRENT window !!!
+			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+			{
+				WindowFrame wf = (WindowFrame)it.next();
+				curWind = wf.getEditWindow();
+				if (curWind != null) break;
+				if (curWind.getCell() == cell) break;
+			}
+		}
+
+		if (getNumHighlights() > 0)
+		{
+			// determine the cell with these geometrics
+			for(Iterator it = getHighlights(); it.hasNext(); )
+			{
+				Highlight h = (Highlight)it.next();
+				if (h.getType() == Type.GEOM || h.getType() == Type.BBOX)
+				{
+					Cell parent = h.getGeom().getParent();
+					if (curWind != null && curWind.getCell() == parent) return curWind;
+					EditWindow wnd = EditWindow.findWindow(parent);
+					if (wnd != null) undisplayedAlternate = wnd;
+				}
+			}
+			if (undisplayedAlternate != null)
+				return undisplayedAlternate;
+		}
+
+		if (curWind != null) return curWind;
+
+		System.out.println("No current window");
+		return null;
+	}
+
+	/**
 	 * Routine to set a screen offset for the display of highlighting.
 	 * @param offX the X offset (in pixels) of the highlighting.
 	 * @param offY the Y offset (in pixels) of the highlighting.
@@ -277,18 +405,15 @@ public class Highlight
 	/**
 	 * Routine to add everything in an area to the selection.
 	 * @param wnd the window being examined.
-	 * @param minSelX the low X coordinate of the area.
-	 * @param maxSelX the high X coordinate of the area.
-	 * @param minSelY the low Y coordinate of the area.
-	 * @param maxSelY the high Y coordinate of the area.
+	 * @param minSelX the low X coordinate of the area in database units.
+	 * @param maxSelX the high X coordinate of the area in database units.
+	 * @param minSelY the low Y coordinate of the area in database units.
+	 * @param maxSelY the high Y coordinate of the area in database units.
 	 */
 	public static void selectArea(EditWindow wnd, double minSelX, double maxSelX, double minSelY, double maxSelY, boolean findSpecial)
 	{
-		clearHighlighting();
-		Point2D.Double start = wnd.screenToDatabase((int)minSelX-EXACTSELECTDISTANCE, (int)minSelY-EXACTSELECTDISTANCE);
-		Point2D.Double end = wnd.screenToDatabase((int)maxSelX+EXACTSELECTDISTANCE, (int)maxSelY+EXACTSELECTDISTANCE);
-		Rectangle2D.Double searchArea = new Rectangle2D.Double(Math.min(start.getX(), end.getX()),
-			Math.min(start.getY(), end.getY()), Math.abs(start.getX() - end.getX()), Math.abs(start.getY() - end.getY()));
+		clear();
+		Rectangle2D.Double searchArea = new Rectangle2D.Double(minSelX, minSelY, maxSelX - minSelX, maxSelY - minSelY);
 
 		List underCursor = findAllInArea(wnd.getCell(), false, false, false, findSpecial, searchArea, wnd);
 		for(Iterator it = underCursor.iterator(); it.hasNext(); )
@@ -296,14 +421,6 @@ public class Highlight
 			Highlight h = (Highlight)it.next();
 			highlightList.add(h);
 		}
-//		Geometric.Search sea = new Geometric.Search(searchArea, wnd.getCell());
-//		for(;;)
-//		{
-//			Geometric nextGeom = sea.nextObject();
-//			if (nextGeom == null) break;
-//			Highlight h = checkOutObject(nextGeom, false, findSpecial, searchArea, wnd);
-//			if (h != null) highlightList.add(h);
-//		}
 	}
 
 	/**
@@ -319,6 +436,7 @@ public class Highlight
 		if (numHighlights == 0) return false;
 
 		Point2D.Double slop = wnd.deltaScreenToDatabase(EXACTSELECTDISTANCE*2, EXACTSELECTDISTANCE*2);
+		double directHitDist = slop.getX();
 		double slopWidth = Math.abs(slop.getX());
 		double slopHeight = Math.abs(slop.getY());
 		Point2D.Double start = wnd.screenToDatabase((int)x, (int)y);
@@ -328,7 +446,7 @@ public class Highlight
 		{
 			Geometric nextGeom = sea.nextObject();
 			if (nextGeom == null) break;
-			Highlight h = checkOutObject(nextGeom, true, true, searchArea, wnd);
+			Highlight h = checkOutObject(nextGeom, true, true, searchArea, wnd, directHitDist);
 			if (h == null) continue;
 			for(Iterator it = getHighlights(); it.hasNext(); )
 			{
@@ -356,7 +474,14 @@ public class Highlight
 		g.setColor(Color.white);
 		if (type == Type.BBOX)
 		{
-			System.out.println("Highlight BBOX");
+			Point2D.Double [] points = new Point2D.Double[5];
+			points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+			points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+			points[2] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+			points[3] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+			points[4] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+			drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY, false);
+			System.out.println("Highlight BBOX "+bounds);
 			return;
 		}
 		if (type == Type.LINE)
@@ -468,6 +593,25 @@ public class Highlight
 			Poly poly = ai.makePoly(ai.getXSize(), ai.getWidth() - offset, Poly.Type.CLOSED);
 			if (poly == null) return;
 			drawOutlineFromPoints(wnd, g,  poly.getPoints(), highOffX, highOffY, false);
+
+			if (getNumHighlights() == 1)
+			{
+				// this is the only thing highlighted: give more information about constraints
+				String constraints = "X";
+				if (ai.isRigid()) constraints = "R"; else
+				{
+					if (ai.isFixedAngle())
+					{
+						if (ai.isSlidable()) constraints = "FS"; else
+							constraints = "F";
+					} else if (ai.isSlidable()) constraints = "S";
+				}
+				Point p = wnd.databaseToScreen(ai.getCenterX(), ai.getCenterY());
+				GlyphVector gv = wnd.getGlyphs(constraints, null);
+				Rectangle2D glyphBounds = gv.getVisualBounds();
+				g.drawString(constraints, (int)(p.x - glyphBounds.getWidth()/2 + highOffX),
+					(int)(p.y + glyphBounds.getHeight()/2 + highOffY));
+			}
 			return;
 		}
 
@@ -563,7 +707,7 @@ public class Highlight
 		// if nothing under the cursor, stop now
 		if (underCursor.size() == 0)
 		{
-			clearHighlighting();
+			clear();
 			return;
 		}
 
@@ -576,7 +720,7 @@ public class Highlight
 				if (oldHigh.sameThing((Highlight)underCursor.get(i)))
 				{
 					// found the same thing: loop
-					clearHighlighting();
+					clear();
 					if (i < underCursor.size()-1)
 					{
 						highlightList.add(underCursor.get(i+1));
@@ -590,7 +734,7 @@ public class Highlight
 		}
 
 		// just use the first in the list
-		clearHighlighting();
+		clear();
 		highlightList.add(underCursor.get(0));
 
 //		// reevaluate if this is code
@@ -619,7 +763,7 @@ public class Highlight
 	 * The name of an unexpanded cell instance is always hard-to-select.
 	 * Other objects are set this way by the user (although the cell-center is usually set this way).
 	 * @param bounds the area of the search (in database units).
-	 * @param wnd the window being examined.
+	 * @param wnd the window being examined (null to ignore window scaling).
 	 * @return a list of Highlight objects.
 	 * The list is ordered by importance, so the deault action is to select the first entry.
 	 */
@@ -630,73 +774,81 @@ public class Highlight
 		List list = new ArrayList();
 
 		// this is the distance from an object that is necessary for a "direct hit"
-		Point2D.Double extra = wnd.deltaScreenToDatabase(EXACTSELECTDISTANCE, EXACTSELECTDISTANCE);
-		double directHitDist = extra.getX();
-
-		// start by examining all text on this Cell
-		Poly [] polys = cell.getAllText(findSpecial, wnd);
-		if (polys != null)
+		double directHitDist = 0;
+		if (wnd != null)
 		{
-			for(int i=0; i<polys.length; i++)
-			{
-				Poly poly = polys[i];
-				poly.setExactTextBounds(wnd);
-				double dist = poly.polyDistance(bounds);
-				if (dist >= directHitDist) continue;
-				Highlight h = new Highlight(Type.TEXT);
-				h.setCell(cell);
-				h.setTextStyle(poly.getStyle());
-				h.setBounds(poly.getBounds2DDouble());
-				h.setVar(poly.getVariable());
-				list.add(h);
-			}
+			Point2D.Double extra = wnd.deltaScreenToDatabase(EXACTSELECTDISTANCE, EXACTSELECTDISTANCE);
+			directHitDist = extra.getX();
 		}
 
-		// next examine all text on nodes in the cell
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		// look for text if a window was given
+		if (wnd != null)
 		{
-			NodeInst ni = (NodeInst)it.next();
-			AffineTransform trans = ni.rotateOut();
-			polys = ni.getAllText(findSpecial, wnd);
-			if (polys == null) continue;
-			for(int i=0; i<polys.length; i++)
+			// start by examining all text on this Cell
+			Poly [] polys = cell.getAllText(findSpecial, wnd);
+			if (polys != null)
 			{
-				Poly poly = polys[i];
-				poly.transform(trans);
-				poly.setExactTextBounds(wnd);
-				double dist = poly.polyDistance(bounds);
-				if (dist >= directHitDist) continue;
-				Highlight h = new Highlight(Type.TEXT);
-				h.setCell(cell);
-				h.setTextStyle(poly.getStyle());
-				h.setBounds(poly.getBounds2DDouble());
-				h.setVar(poly.getVariable());
-				h.setPort(poly.getPort());
-				h.setGeom(ni);
-				list.add(h);
+				for(int i=0; i<polys.length; i++)
+				{
+					Poly poly = polys[i];
+					poly.setExactTextBounds(wnd);
+					double dist = poly.polyDistance(bounds);
+					if (dist >= directHitDist) continue;
+					Highlight h = new Highlight(Type.TEXT);
+					h.setCell(cell);
+					h.setTextStyle(poly.getStyle());
+					h.setBounds(poly.getBounds2DDouble());
+					h.setVar(poly.getVariable());
+					list.add(h);
+				}
 			}
-		}
 
-		// next examine all text on arcs in the cell
-		for(Iterator it = cell.getArcs(); it.hasNext(); )
-		{
-			ArcInst ai = (ArcInst)it.next();
-			polys = ai.getAllText(findSpecial, wnd);
-			if (polys == null) continue;
-			for(int i=0; i<polys.length; i++)
+			// next examine all text on nodes in the cell
+			for(Iterator it = cell.getNodes(); it.hasNext(); )
 			{
-				Poly poly = polys[i];
-				poly.setExactTextBounds(wnd);
-				double dist = poly.polyDistance(bounds);
-				if (dist >= directHitDist) continue;
-				Highlight h = new Highlight(Type.TEXT);
-				h.setCell(cell);
-				h.setTextStyle(poly.getStyle());
-				h.setBounds(poly.getBounds2DDouble());
-				h.setVar(poly.getVariable());
-				h.setPort(poly.getPort());
-				h.setGeom(ai);
-				list.add(h);
+				NodeInst ni = (NodeInst)it.next();
+				AffineTransform trans = ni.rotateOut();
+				polys = ni.getAllText(findSpecial, wnd);
+				if (polys == null) continue;
+				for(int i=0; i<polys.length; i++)
+				{
+					Poly poly = polys[i];
+					poly.transform(trans);
+					poly.setExactTextBounds(wnd);
+					double dist = poly.polyDistance(bounds);
+					if (dist >= directHitDist) continue;
+					Highlight h = new Highlight(Type.TEXT);
+					h.setCell(cell);
+					h.setTextStyle(poly.getStyle());
+					h.setBounds(poly.getBounds2DDouble());
+					h.setVar(poly.getVariable());
+					h.setPort(poly.getPort());
+					h.setGeom(ni);
+					list.add(h);
+				}
+			}
+
+			// next examine all text on arcs in the cell
+			for(Iterator it = cell.getArcs(); it.hasNext(); )
+			{
+				ArcInst ai = (ArcInst)it.next();
+				polys = ai.getAllText(findSpecial, wnd);
+				if (polys == null) continue;
+				for(int i=0; i<polys.length; i++)
+				{
+					Poly poly = polys[i];
+					poly.setExactTextBounds(wnd);
+					double dist = poly.polyDistance(bounds);
+					if (dist >= directHitDist) continue;
+					Highlight h = new Highlight(Type.TEXT);
+					h.setCell(cell);
+					h.setTextStyle(poly.getStyle());
+					h.setBounds(poly.getBounds2DDouble());
+					h.setVar(poly.getVariable());
+					h.setPort(poly.getPort());
+					h.setGeom(ai);
+					list.add(h);
+				}
 			}
 		}
 
@@ -711,7 +863,7 @@ public class Highlight
 //			if (phase == 0 && !findSpecial && (us_useroptions&NOINSTANCESELECT) != 0) continue;
 
 			// examine everything in the area
-			Geometric.Search sea = new Geometric.Search(searchArea, wnd.getCell());
+			Geometric.Search sea = new Geometric.Search(searchArea, cell);
 			for(;;)
 			{
 				Geometric geom = sea.nextObject();
@@ -723,18 +875,18 @@ public class Highlight
 					case 0:			// check Cell instances
 						if (geom instanceof ArcInst) break;
 						if (((NodeInst)geom).getProto() instanceof PrimitiveNode) break;
-						h = checkOutObject(geom, findPort, findSpecial, bounds, wnd);
+						h = checkOutObject(geom, findPort, findSpecial, bounds, wnd, directHitDist);
 						if (h != null) list.add(h);
 						break;
 					case 1:			// check arcs
 						if (geom instanceof NodeInst) break;
-						h = checkOutObject(geom, findPort, findSpecial, bounds, wnd);
+						h = checkOutObject(geom, findPort, findSpecial, bounds, wnd, directHitDist);
 						if (h != null) list.add(h);
 						break;
 					case 2:			// check primitive nodes
 						if (geom instanceof ArcInst) break;
 						if (((NodeInst)geom).getProto() instanceof Cell) break;
-						h = checkOutObject(geom, findPort, findSpecial, bounds, wnd);
+						h = checkOutObject(geom, findPort, findSpecial, bounds, wnd, directHitDist);
 						if (h != null) list.add(h);
 						break;
 				}
@@ -749,15 +901,13 @@ public class Highlight
 	 * @param findPort true if a port should be selected with a NodeInst.
 	 * @param findSpecial true if hard-to-select and other special selection is being done.
 	 * @param bounds the selected area or point.
-	 * @param wnd the window being examined.
+	 * @param wnd the window being examined (null to ignore window scaling).
+	 * @param directHitDist the slop area to forgive when searching (a few pixels in screen space, transformed to database units).
 	 * @return a Highlight that defines the object, or null if the point is not over any part of this object.
 	 */
-	private static Highlight checkOutObject(Geometric geom, boolean findPort, boolean findSpecial, Rectangle2D.Double bounds, EditWindow wnd)
+	private static Highlight checkOutObject(Geometric geom, boolean findPort, boolean findSpecial, Rectangle2D.Double bounds,
+		EditWindow wnd, double directHitDist)
 	{
-		// compute threshold for direct hits
-		Point2D.Double extra = wnd.deltaScreenToDatabase(EXACTSELECTDISTANCE, EXACTSELECTDISTANCE);
-		double directHitDist = extra.getX();
-
 		if (geom instanceof NodeInst)
 		{
 			// examine a node object
@@ -770,11 +920,7 @@ public class Highlight
 //			if (ni.getProto() instanceof PrimitiveNode && (ni->proto->userbits&NINVISIBLE) != 0) return;
 
 			// do not "find" Invisible-Pins if they have text or exports
-			if (ni.getProto() == Generic.tech.invisiblePin_node)
-			{
-				if (ni.getNumExports() != 0) return null;
-				if (ni.numDisplayableVariables(false) != 0) return null;
-			}
+			if (ni.isInvisiblePinWithText()) return null;
 
 			// get the distance to the object
 			double dist = distToNode(bounds, ni, wnd);
@@ -834,7 +980,7 @@ public class Highlight
 	 * Routine to return the distance from a bound to a NodeInst.
 	 * @param bounds the bounds in question.
 	 * @param ni the NodeInst.
-	 * @param wnd the window being examined.
+	 * @param wnd the window being examined (null to ignore text/window scaling).
 	 * @return the distance from the bounds to the NodeInst.
 	 * Negative values are direct hits.
 	 */

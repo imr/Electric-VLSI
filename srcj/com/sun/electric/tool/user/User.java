@@ -63,9 +63,10 @@ public class User extends Tool
 	public void endBatch()
 	{
 		// redraw all windows with Cells that changed
-		for(Iterator it = Undo.getChangedCells(); it.hasNext(); )
+		for(Iterator it = Undo.ChangeCell.getIterator(); it.hasNext(); )
 		{
-			Cell cell = (Cell)it.next();
+			Undo.ChangeCell cc = (Undo.ChangeCell)it.next();
+			Cell cell = cc.getCell();
 			for(Iterator wit = WindowFrame.getWindows(); wit.hasNext(); )
 			{
 				WindowFrame window = (WindowFrame)wit.next();

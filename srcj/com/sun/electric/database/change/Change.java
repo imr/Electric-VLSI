@@ -49,8 +49,8 @@ public interface Change
 	void startChange(ElectricObject obj);
 	void endChange(ElectricObject obj);
 
-	void modifyNodeInst(NodeInst ni, double oLX, double oHX, double oLY, double oHY, int oRot, boolean oTrn);
-	void modifyNodeInsts(NodeInst [] nis, double [] oLX, double [] oHX, double [] oLY, double [] oHY, int [] oRot, boolean [] oTrn);
+	void modifyNodeInst(NodeInst ni, double oCX, double oCY, double oSX, double oSY, int oRot);
+	void modifyNodeInsts(NodeInst [] nis, double [] oCX, double [] oCY, double [] oSX, double [] oSY, int [] oRot);
 	void modifyArcInst(ArcInst ai, double oHX, double oHY, double oTX, double oTY, int oWid, double oLen);
 	void modifyExport(Export pp);
 	void modifyCell(Cell cell);

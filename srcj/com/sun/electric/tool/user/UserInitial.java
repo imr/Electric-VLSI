@@ -24,6 +24,8 @@
 package com.sun.electric.tool.user;
 
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.constraint.Constraint;
+import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -61,6 +63,10 @@ public final class UserInitial
 
 		// initialize all of the tools
 		Tool.initAllTools();
+
+		// initialize the constraint system
+		Layout con = Layout.getConstraint();
+		Constraint.setCurrent(con);
 
 		// create the first library
 		Library mainLib = Library.newInstance("noname", null);
@@ -319,6 +325,9 @@ public final class UserInitial
 		}
 		System.out.println("Created cell " + bigCell.describe());
 		Undo.endChanges();
+
+		// disallow undo
+		Undo.noUndoAllowed();
 
 		// show some stuff
 //		instance1Node.getInfo();

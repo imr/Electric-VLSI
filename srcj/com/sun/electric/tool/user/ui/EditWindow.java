@@ -90,7 +90,8 @@ import javax.swing.JPopupMenu;
  */
 
 public class EditWindow extends JPanel
-implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, ActionListener {
+	implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, ActionListener
+{
     /** the window scale */									private double scale;
     /** the window offset */								private double offx, offy;
     /** the size of the window (in pixels) */				private Dimension sz;
@@ -141,10 +142,32 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 		return ui;
 	}
 
+	public static EditWindow findWindow(Cell cell)
+	{
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			EditWindow wnd = wf.getEditWindow();
+			if (wnd.getCell() == cell) return wnd;
+		}
+		return null;
+	}
+
 	public void redraw()
 	{
 		needsUpdate = true;
 		repaint();
+	}
+
+	public static void redrawAll()
+	{
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			EditWindow wnd = wf.getEditWindow();
+			wnd.needsUpdate = true;
+			wnd.repaint();
+		}
 	}
 
 	public void paint(Graphics g)
@@ -208,7 +231,7 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
         this.cellVarContext = context;
 		Library curLib = Library.getCurrent();
 		curLib.setCurCell(cell);
-		Highlight.clearHighlighting();
+		Highlight.clear();
 //        if (lastPushed != null) Highlight.addGeometric(lastPushed);
 		fillScreen();
 		redraw();
@@ -474,15 +497,15 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 					drawText(g2, portPoly.getCenterX(), portPoly.getCenterX(), portPoly.getCenterY(), portPoly.getCenterY(), Poly.Type.TEXTCENT,
 						descript, portlist[i].getPortProto().getProtoName(), Color.red);
 				}
-				
-				// show displayable variables on the instance
-				int numPolys = ni.numDisplayableVariables(true);
-				Poly [] polys = new Poly[numPolys];
-				Rectangle2D rect = ni.getBounds();
-				ni.addDisplayableVariables(rect, polys, 0, this, true);
-				if (drawPolys(g2, polys, localTrans))
-					System.out.println("... while displaying instance "+ni.describe() + " in cell " + ni.getParent().describe());
 			}
+
+			// draw any displayable variables on the instance
+			int numPolys = ni.numDisplayableVariables(true);
+			Poly [] polys = new Poly[numPolys];
+			Rectangle2D rect = ni.getBounds();
+			ni.addDisplayableVariables(rect, polys, 0, this, true);
+			if (drawPolys(g2, polys, localTrans))
+				System.out.println("... while displaying instance "+ni.describe() + " in cell " + ni.getParent().describe());
 		} else
 		{
 			// primitive
@@ -972,7 +995,7 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 	// ************************************* WINDOW INTERACTION *************************************
 
 	private int oldx, oldy;
-	private ToolBar.Mode mode;
+	private ToolBar.CursorMode mode;
 
 	public Point2D.Double screenToDatabase(int screenX, int screenY)
 	{
@@ -1022,30 +1045,38 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 		oldx = evt.getX();
 		oldy = evt.getY();
 
-		mode = ToolBar.getMode();
-		if (mode == ToolBar.Mode.ZOOM)
+		mode = ToolBar.getCursorMode();
+		if (mode == ToolBar.CursorMode.ZOOM)
 		{
-			if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) != 0) mode = ToolBar.Mode.PAN;
-		} else if (mode == ToolBar.Mode.PAN)
+			if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) != 0) mode = ToolBar.CursorMode.PAN;
+		} else if (mode == ToolBar.CursorMode.PAN)
 		{
-			if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) != 0) mode = ToolBar.Mode.ZOOM;
+			if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) != 0) mode = ToolBar.CursorMode.ZOOM;
 		}
-		if (mode == ToolBar.Mode.SELECT || mode == ToolBar.Mode.SELECTSPECIAL)
+		if (mode == ToolBar.CursorMode.SELECT || mode == ToolBar.CursorMode.SELECTSPECIAL)
 		{
 			// selection: if over selected things, move them
-			boolean special = (mode == ToolBar.Mode.SELECTSPECIAL);
+			boolean special = (mode == ToolBar.CursorMode.SELECTSPECIAL);
 			boolean another = false;
 			if ((evt.getModifiers()&MouseEvent.CTRL_MASK) != 0) another = true;
-			if (!another && Highlight.overHighlighted(this, oldx, oldy))
+			if (ToolBar.getSelectMode() == ToolBar.SelectMode.OBJECTS)
 			{
-				doingMotionDrag = true;
-				return;
-			}
+				if (!another && Highlight.overHighlighted(this, oldx, oldy))
+				{
+					doingMotionDrag = true;
+					return;
+				}
 
-			// standard selection: drag out a selection box
-			Point2D.Double pt = screenToDatabase(oldx, oldy);
-			Highlight.findObject(pt, this, false, another, true, special);
-			if (Highlight.getNumHighlights() == 0)
+				// standard selection: drag out a selection box
+				Point2D.Double pt = screenToDatabase(oldx, oldy);
+				Highlight.findObject(pt, this, false, another, true, special);
+				if (Highlight.getNumHighlights() == 0)
+				{
+					startDrag.setLocation(oldx, oldy);
+					endDrag.setLocation(oldx, oldy);
+					doingAreaDrag = true;
+				}
+			} else
 			{
 				startDrag.setLocation(oldx, oldy);
 				endDrag.setLocation(oldx, oldy);
@@ -1060,11 +1091,20 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 		// handle dragging out a selection rectangle
 		if (doingAreaDrag)
 		{
-			double minSelX = Math.min(startDrag.getX(), endDrag.getX());
-			double maxSelX = Math.max(startDrag.getX(), endDrag.getX());
-			double minSelY = Math.min(startDrag.getY(), endDrag.getY());
-			double maxSelY = Math.max(startDrag.getY(), endDrag.getY());
-			Highlight.selectArea(this, minSelX, maxSelX, minSelY, maxSelY, mode == ToolBar.Mode.SELECTSPECIAL);
+			Point2D.Double start = screenToDatabase((int)startDrag.getX(), (int)startDrag.getY());
+			Point2D.Double end = screenToDatabase((int)endDrag.getX(), (int)endDrag.getY());
+			double minSelX = Math.min(start.getX(), end.getX());
+			double maxSelX = Math.max(start.getX(), end.getX());
+			double minSelY = Math.min(start.getY(), end.getY());
+			double maxSelY = Math.max(start.getY(), end.getY());
+			if (ToolBar.getSelectMode() == ToolBar.SelectMode.OBJECTS)
+			{
+				Highlight.selectArea(this, minSelX, maxSelX, minSelY, maxSelY, mode == ToolBar.CursorMode.SELECTSPECIAL);
+			} else
+			{
+				Highlight.clear();
+				Highlight h = Highlight.addArea(new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY), cell);
+			}
 			doingAreaDrag = false;
 			repaint();
 		}
@@ -1076,10 +1116,23 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 			int newX = evt.getX();
 			int newY = evt.getY();
 			Point2D.Double delta = deltaScreenToDatabase(newX - oldx, newY - oldy);
+			gridAlign(delta, 1);
 			Highlight.setHighlightOffset(0, 0);
 			CircuitChanges.manyMove(delta.getX(), delta.getY());
 			redraw();
 		}
+	}
+
+	/**
+	 * Routine to snap a point to the nearest database-space grid unit.
+	 * @param pt the point to be snapped.
+	 * @param alignment the size of the snap grid (1 to round to whole numbers)
+	 */
+	public static void gridAlign(Point2D.Double pt, double alignment)
+	{
+		long x = Math.round(pt.getX() / alignment);
+		long y = Math.round(pt.getY() / alignment);
+		pt.setLocation(x * alignment, y * alignment);
 	}
 
 	public void mouseClicked(MouseEvent evt) {}
@@ -1107,11 +1160,11 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 			repaint();
 			return;
 		}
-		if (mode == ToolBar.Mode.ZOOM)
+		if (mode == ToolBar.CursorMode.ZOOM)
 		{
 			// control key held: zoom
 			scale = scale * Math.exp((oldy-newY) / 100.0f);
-		} else if (mode == ToolBar.Mode.PAN)
+		} else if (mode == ToolBar.CursorMode.PAN)
 		{
 			// shift key held: pan
 			offx -= (newX - oldx) / scale;
@@ -1133,7 +1186,30 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 		} else if (chr == KeyEvent.VK_DELETE || chr == KeyEvent.VK_BACK_SPACE)
 		{
 			CircuitChanges.deleteSelected();
+		} else if (chr == KeyEvent.VK_LEFT)
+		{
+			moveSelected(-1, 0);
+		} else if (chr == KeyEvent.VK_RIGHT)
+		{
+			moveSelected(1, 0);
+		} else if (chr == KeyEvent.VK_UP)
+		{
+			moveSelected(0, 1);
+		} else if (chr == KeyEvent.VK_DOWN)
+		{
+			moveSelected(0, -1);
 		}
+	}
+
+	public void moveSelected(double dX, double dY)
+	{
+		// scale distance according to arrow motion
+		double arrowDistance = ToolBar.getArrowDistance();
+		dX *= arrowDistance;
+		dY *= arrowDistance;
+		Highlight.setHighlightOffset(0, 0);
+		CircuitChanges.manyMove(dX, dY);
+		redraw();
 	}
 
 	public void keyReleased(KeyEvent e)

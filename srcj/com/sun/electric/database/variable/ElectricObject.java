@@ -24,6 +24,7 @@
 package com.sun.electric.database.variable;
 
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -244,6 +245,215 @@ public class ElectricObject
 	}
 
 	/**
+	 * Routine to copy all variables from another ElectricObject to this ElectricObject.
+	 * @param other the other ElectricObject from which to copy Variables.
+	 * @param uniqueNames true to change node and arc names to be unique.
+	 */
+	public void copyVars(ElectricObject other, boolean uniqueNames)
+	{
+		for(Iterator it = other.getVariables(); it.hasNext(); )
+		{
+			Variable var = (Variable)it.next();
+			Variable.Name vn = var.getName();
+			Object obj = var.getObject();
+			int flags = var.lowLevelGetFlags();
+			TextDescriptor td = var.getTextDescriptor();
+			if (uniqueNames)
+			{
+				if (this instanceof NodeInst && vn.getName().equals("NODE_name"))
+				{
+					// if the node name wasn't displayable, do not copy
+					if (!var.isDisplay()) continue;
+
+					// find a unique node name
+					NodeInst ni = (NodeInst)this;
+					String objName = (String)obj;
+					String newName = uniqueObjectName(objName, ni.getParent(), NodeInst.class, ni);
+					if (!newName.equals(objName)) obj = newName;
+				} else if (this instanceof ArcInst && vn.getName().equals("ARC_name"))
+				{
+					// if the arc name wasn't displayable, do not copy
+					if (!var.isDisplay()) continue;
+
+					// find a unique node name
+					ArcInst ai = (ArcInst)this;
+					String objName = (String)obj;
+					String newName = uniqueObjectName(objName, ai.getParent(), ArcInst.class, ai);
+					if (!newName.equals(objName)) obj = newName;
+				}
+			}
+
+			Variable newVar = this.setVal(vn.getName(), obj);
+			if (newVar != null)
+			{
+				newVar.lowLevelSetFlags(flags);
+				newVar.setDescriptor(td);
+			}
+		}
+
+		// variables may affect geometry size
+//		if (this instanceof NodeInst || this instanceof ArcInst)
+//		{
+//			if (this instanceof NodeInst)
+//			{
+//				NodeInst ni = (NodeInst)this;
+//				geom = ni->geom;
+//				Cell np = ni.getParent();
+//			} else
+//			{
+//				ArcInst ai = (ArcInst)this;
+//				geom = ai->geom;
+//				Cell np = ai.getParent();
+//			}
+//			boundobj(geom, &lx, &hx, &ly, &hy);
+//			if (lx != geom->lowx || hx != geom->highx ||
+//				ly != geom->lowy || hy != geom->highy)
+//					updategeom(geom, np);
+//		}
+	}
+
+	/**
+	 * routine to return a unique object name in cell "cell" starting with the
+	 * name "name".
+	 */
+	public static String uniqueObjectName(String name, Cell cell, Class cls, ElectricObject exclude)
+	{
+		// first see if the name is unique
+		if (cell.isUniqueName(name, cls, exclude)) return name;
+
+		char separatechar = '_';
+
+		// now see if the name ends in "]"
+		int possibleend = 0;
+		int nameLen = name.length();
+		if (name.endsWith("]"))
+		{
+			// see if the array contents can be incremented
+			int possiblestart = -1;
+			int endpos = nameLen-1;
+			for(;;)
+			{
+				// find the range of characters in square brackets
+				int startpos = name.lastIndexOf('[', endpos);
+				if (startpos < 0) break;
+
+				// see if there is a comma in the bracketed expression
+				int i = name.indexOf(',', startpos);
+				if (i >= 0 && i < endpos)
+				{
+					// this bracketed expression cannot be incremented: move on
+					if (startpos > 0 && name.charAt(startpos-1) == ']')
+					{
+						endpos = startpos-1;
+						continue;
+					}
+					break;
+				}
+
+				// see if there is a colon in the bracketed expression
+				i = name.indexOf(':', startpos);
+				if (i >= 0 && i < endpos)
+				{
+					// colon: make sure there are two numbers
+					String firstIndex = name.substring(startpos+1, i);
+					String secondIndex = name.substring(i+1, endpos);
+					if (EMath.isANumber(firstIndex) && EMath.isANumber(secondIndex))
+					{
+						int startIndex = EMath.atoi(firstIndex);
+						int endindex = EMath.atoi(secondIndex);
+						int spacing = Math.abs(endindex - startIndex) + 1;
+						for(int nextindex = 1; ; nextindex++)
+						{
+							String newname = name.substring(0, startpos) + "[" + (startIndex+spacing*nextindex) +
+								":" + (endindex+spacing*nextindex) + name.substring(endpos);
+							if (cell.isUniqueName(newname, cls, null)) return newname;
+						}
+					}
+
+					// this bracketed expression cannot be incremented: move on
+					if (startpos > 0 && name.charAt(startpos-1) == ']')
+					{
+						endpos = startpos-1;
+						continue;
+					}
+					break;
+				}
+
+				// see if this bracketed expression is a pure number
+				String bracketedExpression = name.substring(startpos+1, endpos);
+				if (EMath.isANumber(bracketedExpression))
+				{
+					int nextindex = EMath.atoi(bracketedExpression) + 1;
+					for(; ; nextindex++)
+					{
+						String newname = name.substring(0, startpos) + "[" + nextindex + name.substring(endpos);
+						if (cell.isUniqueName(newname, cls, null)) return newname;
+					}
+				}
+
+				// remember the first index that could be incremented in a pinch
+				if (possiblestart < 0)
+				{
+					possiblestart = startpos;
+					possibleend = endpos;
+				}
+
+				// this bracketed expression cannot be incremented: move on
+				if (startpos > 0 && name.charAt(startpos-1) == ']')
+				{
+					endpos = startpos-1;
+					continue;
+				}
+				break;
+			}
+
+			// if there was a possible place to increment, do it
+			if (possiblestart >= 0)
+			{
+				// nothing simple, but this one can be incremented
+				int i;
+				for(i=possibleend-1; i>possiblestart; i--)
+					if (!Character.isDigit(name.charAt(i))) break;
+				int nextindex = EMath.atoi(name.substring(i+1)) + 1;
+				int startpos = i+1;
+				if (name.charAt(startpos-1) == separatechar) startpos--;
+				for(; ; nextindex++)
+				{
+					String newname = name.substring(0, startpos) + separatechar + nextindex + name.substring(possibleend);
+					if (cell.isUniqueName(newname, cls, null)) return newname;
+				}
+			}
+		}
+
+		// array contents cannot be incremented: increment base name
+		int startpos = 0;
+		for( ; startpos < name.length(); startpos++)
+			if (name.charAt(startpos) == '[') break;
+		int endpos = startpos;
+
+		// if there is a numeric part at the end, increment that
+		char [] oneChar = new char[1];
+		oneChar[0] = separatechar;
+		String localSepString = new String(oneChar);
+		while (startpos > 0 && Character.isDigit(name.charAt(startpos-1))) startpos--;
+		int nextindex = 1;
+		if (startpos >= endpos)
+		{
+			if (startpos > 0 && name.charAt(startpos-1) == separatechar) startpos--;
+		} else
+		{
+			nextindex = EMath.atoi(name.substring(startpos)) + 1;
+			localSepString = "";
+		}
+
+		for(; ; nextindex++)
+		{
+			String newname = name.substring(0,startpos) + localSepString + nextindex + name.substring(endpos);
+			if (cell.isUniqueName(newname, cls, null)) return newname;
+		}
+	}
+
+	/**
 	 * Routine to determine whether a Variable name on this object is deprecated.
 	 * Deprecated Variable names are those that were used in old versions of Electric,
 	 * but are no longer valid.
@@ -303,7 +513,7 @@ public class ElectricObject
 		if (Undo.recordChange())
 		{
 			// tell all tools about this change
-			Undo.Change ch = Undo.newChange(this, Undo.Type.OBJECTSTART, 0, 0, 0, 0, 0, 0);
+			Undo.Change ch = Undo.newChange(this, Undo.Type.OBJECTSTART);
 		}
 		Undo.clearNextChangeQuiet();
 	}
@@ -317,7 +527,7 @@ public class ElectricObject
 		if (Undo.recordChange())
 		{
 			// tell all tools about this change
-			Undo.Change ch = Undo.newChange(this, Undo.Type.OBJECTEND, 0, 0, 0, 0, 0, 0);
+			Undo.Change ch = Undo.newChange(this, Undo.Type.OBJECTEND);
 		}
 		Undo.clearNextChangeQuiet();
 	}

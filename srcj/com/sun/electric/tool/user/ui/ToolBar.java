@@ -48,26 +48,64 @@ public class ToolBar extends JToolBar
 	/**
 	 * Mode is a typesafe enum class that describes the current editing mode (select, zoom, etc).
 	 */
-	public static class Mode
+	public static class CursorMode
 	{
 		private String name;
 
-		private Mode(String name) { this.name = name; }
+		private CursorMode(String name) { this.name = name; }
 
-		public String toString() { return "Mode="+name; }
+		public String toString() { return "CursorMode="+name; }
 
-		/** Describes Selection mode (click and drag). */		public static final Mode SELECT = new Mode("select");
-		/** Describes Selection mode (click and drag). */		public static final Mode SELECTSPECIAL = new Mode("select");
-		/** Describes Panning mode (move window contents). */	public static final Mode PAN = new Mode("pan");
-		/** Describes Zoom mode (scale window contents). */		public static final Mode ZOOM = new Mode("zoom");
+		/** Describes Selection mode (click and drag). */		public static final CursorMode SELECT = new CursorMode("select");
+		/** Describes Selection mode (click and drag). */		public static final CursorMode SELECTSPECIAL = new CursorMode("select");
+		/** Describes Panning mode (move window contents). */	public static final CursorMode PAN = new CursorMode("pan");
+		/** Describes Zoom mode (scale window contents). */		public static final CursorMode ZOOM = new CursorMode("zoom");
 	}
 
-	private static JToggleButton selectButton;
-	private static JToggleButton selectSpecialButton;
-	private static JToggleButton panButton;
-	private static JToggleButton zoomButton;
-	private static ButtonGroup modeGroup;
-	private static Mode curMode = Mode.SELECT;
+	/**
+	 * Mode is a typesafe enum class that describes the distance that arrow keys move (full, half, or quarter).
+	 */
+	public static class ArrowDistance
+	{
+		private String name;
+		private double amount;
+
+		private ArrowDistance(String name, double amount)
+		{
+			this.name = name;
+			this.amount = amount;
+		}
+
+		public double getDistance() { return amount; }
+		public String toString() { return "ArrowDistance="+name; }
+
+		/** Describes full grid unit motion. */				public static final ArrowDistance FULL = new ArrowDistance("full", 1.0);
+		/** Describes half grid unit motion. */				public static final ArrowDistance HALF = new ArrowDistance("half", 0.5);
+		/** Describes quarter grid unit motion. */			public static final ArrowDistance QUARTER = new ArrowDistance("quarter", 0.25);
+	}
+
+	/**
+	 * SelectMode is a typesafe enum class that describes the current selection modes (objects or area).
+	 */
+	public static class SelectMode
+	{
+		private String name;
+
+		private SelectMode(String name) { this.name = name; }
+
+		public String toString() { return "SelectMode="+name; }
+
+		/** Describes Selection mode (click and drag). */		public static final SelectMode OBJECTS = new SelectMode("objects");
+		/** Describes Selection mode (click and drag). */		public static final SelectMode AREA = new SelectMode("area");
+	}
+
+	private static JToggleButton selectButton, selectSpecialButton, panButton, zoomButton;
+	private static JToggleButton fullButton, halfButton, quarterButton;
+	private static JToggleButton objectsButton, areaButton;
+	private static ButtonGroup modeGroup, arrowGroup, selectGroup;
+	private static CursorMode curMode = CursorMode.SELECT;
+	private static ArrowDistance curArrowDistance = ArrowDistance.FULL;
+	private static SelectMode curSelectMode = SelectMode.OBJECTS;
 
 	private ToolBar() {}
 
@@ -97,7 +135,6 @@ public class ToolBar extends JToolBar
 		selectButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectCommand(); } });
 		selectButton.setToolTipText("Select");
-//		selectButton.setBorderPainted(false);
 		selectButton.setSelected(true);
 		toolbar.add(selectButton);
 		modeGroup.add(selectButton);
@@ -107,7 +144,6 @@ public class ToolBar extends JToolBar
 		selectSpecialButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectSpecialCommand(); } });
 		selectSpecialButton.setToolTipText("Special Select");
-//		selectSpecialButton.setBorderPainted(false);
 		toolbar.add(selectSpecialButton);
 		modeGroup.add(selectSpecialButton);
 
@@ -116,7 +152,6 @@ public class ToolBar extends JToolBar
 		panButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { panCommand(); } });
 		panButton.setToolTipText("Pan");
-//		panButton.setBorderPainted(false);
 		toolbar.add(panButton);
 		modeGroup.add(panButton);
 
@@ -125,9 +160,58 @@ public class ToolBar extends JToolBar
 		zoomButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { zoomCommand(); } });
 		zoomButton.setToolTipText("Zoom");
-//		zoomButton.setBorderPainted(false);
 		toolbar.add(zoomButton);
 		modeGroup.add(zoomButton);
+
+		// a separator
+		toolbar.addSeparator();
+
+		// the "Full arrow distance" button
+		arrowGroup = new ButtonGroup();
+		fullButton = new JToggleButton(new ImageIcon(toolbar.getClass().getResource("ButtonFull.gif")));
+		fullButton.addActionListener(
+			new ActionListener() { public void actionPerformed(ActionEvent e) { fullArrowDistanceCommand(); } });
+		fullButton.setToolTipText("Full motion");
+		fullButton.setSelected(true);
+		toolbar.add(fullButton);
+		arrowGroup.add(fullButton);
+
+		// the "Half arrow distance" button
+		halfButton = new JToggleButton(new ImageIcon(toolbar.getClass().getResource("ButtonHalf.gif")));
+		halfButton.addActionListener(
+			new ActionListener() { public void actionPerformed(ActionEvent e) { halfArrowDistanceCommand(); } });
+		halfButton.setToolTipText("Half motion");
+		toolbar.add(halfButton);
+		arrowGroup.add(halfButton);
+
+		// the "Quarter arrow distance" button
+		quarterButton = new JToggleButton(new ImageIcon(toolbar.getClass().getResource("ButtonQuarter.gif")));
+		quarterButton.addActionListener(
+			new ActionListener() { public void actionPerformed(ActionEvent e) { quarterArrowDistanceCommand(); } });
+		quarterButton.setToolTipText("Quarter motion");
+		toolbar.add(quarterButton);
+		arrowGroup.add(quarterButton);
+
+		// a separator
+		toolbar.addSeparator();
+
+		// the "Select Objects" button
+		selectGroup = new ButtonGroup();
+		objectsButton = new JToggleButton(new ImageIcon(toolbar.getClass().getResource("ButtonObjects.gif")));
+		objectsButton.addActionListener(
+			new ActionListener() { public void actionPerformed(ActionEvent e) { selectObjectsCommand(); } });
+		objectsButton.setToolTipText("Select Objects");
+		objectsButton.setSelected(true);
+		toolbar.add(objectsButton);
+		selectGroup.add(objectsButton);
+
+		// the "Select Area" button
+		areaButton = new JToggleButton(new ImageIcon(toolbar.getClass().getResource("ButtonArea.gif")));
+		areaButton.addActionListener(
+			new ActionListener() { public void actionPerformed(ActionEvent e) { selectAreaCommand(); } });
+		areaButton.setToolTipText("Select Area");
+		toolbar.add(areaButton);
+		selectGroup.add(areaButton);
 
 		// a separator
 		toolbar.addSeparator();
@@ -153,27 +237,64 @@ public class ToolBar extends JToolBar
 	/**
 	 * Routine called when the "select" button is pressed.
 	 */
-	public static void selectCommand() { curMode = Mode.SELECT; }
+	public static void selectCommand() { curMode = CursorMode.SELECT; }
 
 	/**
 	 * Routine called when the "select special" button is pressed.
 	 */
-	public static void selectSpecialCommand() { curMode = Mode.SELECTSPECIAL; }
+	public static void selectSpecialCommand() { curMode = CursorMode.SELECTSPECIAL; }
 
 	/**
 	 * Routine called when the "pan" button is pressed.
 	 */
-	public static void panCommand() { curMode = Mode.PAN; }
+	public static void panCommand() { curMode = CursorMode.PAN; }
 
 	/**
 	 * Routine called when the "zoom" button is pressed.
 	 */
-	public static void zoomCommand() { curMode = Mode.ZOOM; }
+	public static void zoomCommand() { curMode = CursorMode.ZOOM; }
 
 	/**
 	 * Routine to tell which cursor mode is in effect.
-	 * @return the current mode (select, pan, or zoom).
+	 * @return the current mode (select, special-select, pan, or zoom).
 	 */
-	public static Mode getMode() { return curMode; }
+	public static CursorMode getCursorMode() { return curMode; }
+
+	/**
+	 * Routine called when the "full arrow distance" button is pressed.
+	 */
+	public static void fullArrowDistanceCommand() { curArrowDistance = ArrowDistance.FULL; }
+
+	/**
+	 * Routine called when the "half arrow distance" button is pressed.
+	 */
+	public static void halfArrowDistanceCommand() { curArrowDistance = ArrowDistance.HALF; }
+
+	/**
+	 * Routine called when the "quarter arrow distance" button is pressed.
+	 */
+	public static void quarterArrowDistanceCommand() { curArrowDistance = ArrowDistance.QUARTER; }
+
+	/**
+	 * Routine to tell what arrow distance is in effect.
+	 * @return the current arrow distance (1.0, 0.5, or 0.25).
+	 */
+	public static double getArrowDistance() { return curArrowDistance.getDistance(); }
+
+	/**
+	 * Routine called when the "select objects" button is pressed.
+	 */
+	public static void selectObjectsCommand() { curSelectMode = SelectMode.OBJECTS; }
+
+	/**
+	 * Routine called when the "select area" button is pressed.
+	 */
+	public static void selectAreaCommand() { curSelectMode = SelectMode.AREA; }
+
+	/**
+	 * Routine to tell what selection mode is in effect.
+	 * @return the current selection mode (objects or area).
+	 */
+	public static SelectMode getSelectMode() { return curSelectMode; }
 
 }

@@ -134,6 +134,65 @@ public class EMath
 	}
 
 	/**
+	 * Routine to determine whether or not a string is a number.
+	 * This method allows hexadecimal numbers as well as those with exponents.
+	 * @param pp the string to test.
+	 * @return true if it is a number.
+	 */
+	public static boolean isANumber(String pp)
+	{
+		/* ignore the minus sign */
+		int i = 0;
+		int len = pp.length();
+		if (i < len && (pp.charAt(i) == '+' || pp.charAt(i) == '-')) i++;
+
+		/* special case for hexadecimal prefix */
+		boolean xflag = false;
+		if (i < len-1 && pp.charAt(i) == '0' && (pp.charAt(i+1) == 'x' || pp.charAt(i+1) == 'X'))
+		{
+			i += 2;
+			xflag = true;
+		}
+
+		boolean founddigits = false;
+		if (xflag)
+		{
+			while (i < len && (Character.isDigit(pp.charAt(i)) ||
+				pp.charAt(i) == 'a' || pp.charAt(i) == 'A' ||
+				pp.charAt(i) == 'b' || pp.charAt(i) == 'B' ||
+				pp.charAt(i) == 'c' || pp.charAt(i) == 'C' ||
+				pp.charAt(i) == 'd' || pp.charAt(i) == 'D' ||
+				pp.charAt(i) == 'e' || pp.charAt(i) == 'E' ||
+				pp.charAt(i) == 'f' || pp.charAt(i) == 'F'))
+			{
+				i++;
+				founddigits = true;
+			}
+		} else
+		{
+			while (i < len && (Character.isDigit(pp.charAt(i)) || pp.charAt(i) == '.'))
+			{
+				if (pp.charAt(i) != '.') founddigits = true;
+				i++;
+			}
+		}
+		if (!founddigits) return false;
+		if (i == len) return true;
+
+		/* handle exponent of floating point numbers */
+		if (xflag) return false;
+		if (pp.charAt(i) != 'e' && pp.charAt(i) != 'E') return false;
+		i++;
+		if (i == len) return false;
+		if (pp.charAt(i) == '+' || pp.charAt(i) == '-') i++;
+		if (i == len) return false;
+		while (i < len && Character.isDigit(pp.charAt(i))) i++;
+		if (i == len) return true;
+
+		return false;
+	}
+
+	/**
 	 * Routine to tell whether a point is on a given line segment.
 	 * @param end1 the first end of the line segment.
 	 * @param end2 the second end of the line segment.
@@ -163,6 +222,71 @@ public class EMath
 		// handle nonmanhattan
 		if ((pt.getX()-end1.getX()) * (end2.getY()-end1.getY()) == (pt.getY()-end1.getY()) * (end2.getX()-end1.getX())) return true;
 		return false;
+	}
+
+	/**
+	 * Routine to find the point on a line segment that is closest to a given point.
+	 * @param p1 one end of the line segment.
+	 * @param p2 the other end of the line segment.
+	 * @param pt the point near the line segment.
+	 * @return a point on the line segment that is closest to "pt".
+	 * The point is guaranteed to be between the two points that define the segment.
+	 */
+	public static Point2D.Double closestPointToSegment(Point2D.Double p1, Point2D.Double p2, Point2D.Double pt)
+	{
+		// find closest point on line
+		Point2D.Double pi = closestPointToLine(pt, p2, pt);
+
+		// see if that intersection point is actually on the segment
+		if (pi.getX() >= Math.min(p1.getX(), p2.getX()) &&
+			pi.getX() <= Math.max(p1.getX(), p2.getX()) &&
+			pi.getY() >= Math.min(p1.getY(), p2.getY()) &&
+			pi.getY() <= Math.max(p1.getY(), p2.getY()))
+		{
+			// it is
+			return pi;
+		}
+
+		// intersection not on segment: choose one endpoint as the closest
+		double dist1 = pt.distance(p1);
+		double dist2 = pt.distance(p2);
+		if (dist2 < dist1) return p2;
+		return p1;
+	}
+
+	/**
+	 * Routine to find the point on a line that is closest to a given point.
+	 * @param p1 one end of the line.
+	 * @param p2 the other end of the line.
+	 * @param pt the point near the line.
+	 * @return a point on the line that is closest to "pt".
+	 * The point is not guaranteed to be between the two points that define the line.
+	 */
+	public static Point2D.Double closestPointToLine(Point2D.Double p1, Point2D.Double p2, Point2D.Double pt)
+	{
+		// special case for horizontal line
+		if (p1.getY() == p2.getY())
+		{
+			return new Point2D.Double(pt.getX(), p1.getY());
+		}
+
+		// special case for vertical line
+		if (p1.getX() == p2.getX())
+		{
+			return new Point2D.Double(p1.getX(), pt.getY());
+		}
+
+		// compute equation of the line
+		double m = (p1.getY() - p2.getY()) / (p1.getX() - p2.getX());
+		double b = -p1.getX() * m + p1.getY();
+
+		// compute perpendicular to line through the point
+		double mi = -1.0 / m;
+		double bi = -pt.getX() * mi + pt.getY();
+
+		// compute intersection of the lines
+		double t = (bi-b) / (m-mi);
+		return new Point2D.Double(t, m * t + b);
 	}
 
 	/**

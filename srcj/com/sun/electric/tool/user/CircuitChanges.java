@@ -60,7 +60,8 @@ public class CircuitChanges
 	public static void deleteSelected()
 	{
 		if (Highlight.getNumHighlights() == 0) return;
-		Geometric [] deleteList = new Geometric[Highlight.getNumHighlights()];
+		List deleteList = new ArrayList();
+//		Geometric [] deleteList = new Geometric[Highlight.getNumHighlights()];
 		int i = 0;
 		Cell cell = null;
 		boolean warned = false;
@@ -77,9 +78,9 @@ public class CircuitChanges
 					warned = true;
 				}
 			}
-			deleteList[i++] = geom;
+			deleteList.add(geom);
 		}
-		Highlight.clearHighlighting();
+		Highlight.clear();
 		Undo.startChanges(User.tool, "Delete");
 		eraseObjectsInList(cell, deleteList);
 		Undo.endChanges();
@@ -103,9 +104,11 @@ public class CircuitChanges
 		if (total == 1 && firstGeom instanceof NodeInst)
 		{
 			NodeInst ni = (NodeInst)firstGeom;
+			Undo.startChanges(User.tool, "Move");
 			ni.startChange();
 			ni.modifyInstance(dx, dy, 0, 0, 0);
 			ni.endChange();
+			Undo.endChanges();
 			return;
 		}
 
@@ -189,9 +192,11 @@ public class CircuitChanges
 				// see if the arc moves in its ports
 				if (ai.isSlidable())
 				{
-					if (ai.stillInPort(true, ai.getHead().getLocation().getX()+dx, ai.getHead().getLocation().getY()+dy) &&
-						ai.stillInPort(false, ai.getTail().getLocation().getX()+dx, ai.getTail().getLocation().getY()+dy))
-							continue;
+					Connection head = ai.getHead();
+					Connection tail = ai.getTail();
+					Point2D.Double newHead = new Point2D.Double(head.getLocation().getX()+dx, head.getLocation().getY()+dy);
+					Point2D.Double newTail = new Point2D.Double(tail.getLocation().getX()+dx, tail.getLocation().getY()+dy);
+					if (ai.stillInPort(head, newHead) && ai.stillInPort(tail, newTail)) continue;
 				}
 			}
 			onlySlidable = false;
@@ -206,9 +211,11 @@ public class CircuitChanges
 				if (geom instanceof ArcInst)
 				{
 					ArcInst ai = (ArcInst)geom;
+					Undo.startChanges(User.tool, "Slide Arc");
 					ai.startChange();
 					ai.modify(0, dx, dy, dx, dy);
 					ai.endChange();
+					Undo.endChanges();
 				}
 			}
 			return;
@@ -257,11 +264,13 @@ public class CircuitChanges
 //			if (!list[j]->entryisnode)
 //				(void)(*el_curconstraint->setobject)((INTBIG)list[j]->entryaddr.ai,
 //					VARCINST, CHANGETYPETEMPRIGID, 0);
+		Undo.startChanges(User.tool, "Move");
 		for(int i=0; i<numNodes; i++)
 			nis[i].startChange();
 		NodeInst.modifyInstances(nis, dX, dY, dSize, dSize, dRot);
 		for(int i=0; i<numNodes; i++)
 			nis[i].endChange();
+		Undo.endChanges();
 
 		// look at all arcs and move them appropriately
 		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
@@ -361,7 +370,12 @@ public class CircuitChanges
 		}
 	}
 
-	private static void eraseObjectsInList(Cell cell, Geometric [] list)
+	/**
+	 * Routine to delete all of the Geometrics in a list.
+	 * @param cell the cell with the objects to be deleted.
+	 * @param list a List of Geometric objects to be deleted.
+	 */
+	public static void eraseObjectsInList(Cell cell, List list)
 	{
 		FlagSet deleteFlag = Geometric.getFlagSet(2);
 
@@ -371,9 +385,9 @@ public class CircuitChanges
 			NodeInst ni = (NodeInst)it.next();
 			ni.setFlagValue(deleteFlag, 0);
 		}
-		for(int i=0; i < list.length; i++)
+		for(Iterator it=list.iterator(); it.hasNext(); )
 		{
-			Geometric geom = list[i];
+			Geometric geom = (Geometric)it.next();
 			if (geom instanceof NodeInst) continue;
 			ArcInst ai = (ArcInst)geom;
 			ai.getHead().getPortInst().getNodeInst().setFlagValue(deleteFlag, 1);
@@ -381,9 +395,9 @@ public class CircuitChanges
 		}
 
 		// also mark all nodes on arcs that will be erased
-		for(int i=0; i < list.length; i++)
+		for(Iterator it=list.iterator(); it.hasNext(); )
 		{
-			Geometric geom = list[i];
+			Geometric geom = (Geometric)it.next();
 			if (geom instanceof ArcInst) continue;
 			NodeInst ni = (NodeInst)geom;
 			if (ni.getFlagValue(deleteFlag) != 0)
@@ -391,14 +405,14 @@ public class CircuitChanges
 		}
 
 		// also mark all nodes on the other end of arcs connected to erased nodes
-		for(int i=0; i < list.length; i++)
+		for(Iterator it=list.iterator(); it.hasNext(); )
 		{
-			Geometric geom = list[i];
+			Geometric geom = (Geometric)it.next();
 			if (geom instanceof ArcInst) continue;
 			NodeInst ni = (NodeInst)geom;
-			for(Iterator it = ni.getConnections(); it.hasNext(); )
+			for(Iterator sit = ni.getConnections(); sit.hasNext(); )
 			{
-				Connection con = (Connection)it.next();
+				Connection con = (Connection)sit.next();
 				ArcInst ai = con.getArc();
 				Connection otherEnd = ai.getHead();
 				if (ai.getHead() == con) otherEnd = ai.getTail();
@@ -408,9 +422,9 @@ public class CircuitChanges
 		}
 
 		// now kill all of the arcs
-		for(int i=0; i < list.length; i++)
+		for(Iterator it=list.iterator(); it.hasNext(); )
 		{
-			Geometric geom = list[i];
+			Geometric geom = (Geometric)it.next();
 			if (geom instanceof NodeInst) continue;
 			ArcInst ai = (ArcInst)geom;
 
@@ -433,9 +447,9 @@ public class CircuitChanges
 		}
 
 		// next kill all of the nodes
-		for(int i=0; i < list.length; i++)
+		for(Iterator it=list.iterator(); it.hasNext(); )
 		{
-			Geometric geom = list[i];
+			Geometric geom = (Geometric)it.next();
 			if (geom instanceof ArcInst) continue;
 			NodeInst ni = (NodeInst)geom;
 			eraseNodeInst(ni);

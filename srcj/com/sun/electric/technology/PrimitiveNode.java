@@ -214,7 +214,9 @@ public class PrimitiveNode extends NodeProto
 	public void setSpecialValues(int [] specialValues) { this.specialValues = specialValues; }
 
 	/**
-	 * Does this PrimitiveNode act as a Pin (one port, small size)?
+	 * Routine to tell whether this PrimitiveNode is a Pin.
+	 * Pin nodes have one port, no valid geometry, and are used to connect arcs.
+	 * @return true if this PrimitiveNode is a Pin.
 	 */
 	public boolean isPin()
 	{

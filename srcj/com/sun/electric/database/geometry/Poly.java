@@ -752,6 +752,92 @@ public class Poly implements Shape
 	}
 
 	/**
+	 * Routine to find the point on this polygon closest to a given point.
+	 * @param pt the given point
+	 * @return a point on this Poly that is closest.
+	 */
+	public Point2D.Double closestPoint(Point2D.Double pt)
+	{
+		Type localStyle = style;
+		if (localStyle == Type.FILLED || localStyle == Type.CROSSED || localStyle == Type.TEXTCENT ||
+			localStyle == Type.TEXTTOP || localStyle == Type.TEXTBOT || localStyle == Type.TEXTLEFT ||
+			localStyle == Type.TEXTRIGHT || localStyle == Type.TEXTTOPLEFT || localStyle == Type.TEXTBOTLEFT ||
+			localStyle == Type.TEXTTOPRIGHT || localStyle == Type.TEXTBOTRIGHT || localStyle == Type.TEXTBOX)
+		{
+			// filled polygon: check for regularity first
+			Rectangle2D.Double bounds = getBox();
+			if (bounds != null)
+			{
+				double x = pt.getX();   double y = pt.getY();
+				if (x < bounds.getMinX()) x = bounds.getMinX();
+				if (x > bounds.getMaxX()) x = bounds.getMaxX();
+				if (y < bounds.getMinY()) y = bounds.getMinY();
+				if (y > bounds.getMaxY()) y = bounds.getMaxY();
+				return new Point2D.Double(x, y);
+			}
+			if (localStyle == Type.FILLED)
+			{
+				if (isInside(pt)) return pt;
+			}
+			localStyle = Type.CLOSED;
+			// FALLTHROUGH 
+		}
+		if (localStyle == Type.CLOSED)
+		{
+			// check outline of description
+			double bestDist = Double.MAX_VALUE;
+			Point2D.Double bestPoint = new Point2D.Double();
+			for(int i=0; i<points.length; i++)
+			{
+				int lastI;
+				if (i == 0) lastI = points.length-1; else
+					lastI = i-1;
+				Point2D.Double pc = EMath.closestPointToSegment(points[lastI], points[i], pt);
+				double dist = pc.distance(pt);
+				if (dist > bestDist) continue;
+				bestDist = dist;
+				bestPoint.setLocation(pc);
+			}
+			return bestPoint;
+		}
+		if (localStyle == Type.OPENED || localStyle == Type.OPENEDT1 ||
+			localStyle == Type.OPENEDT2 || localStyle == Type.OPENEDT3)
+		{
+			// check outline of description
+			double bestDist = Double.MAX_VALUE;
+			Point2D.Double bestPoint = new Point2D.Double();
+			for(int i=1; i<points.length; i++)
+			{
+				Point2D.Double pc = EMath.closestPointToSegment(points[i-1], points[i], pt);
+				double dist = pc.distance(pt);
+				if (dist > bestDist) continue;
+				bestDist = dist;
+				bestPoint.setLocation(pc);
+			}
+			return bestPoint;
+		}
+		if (localStyle == Type.VECTORS)
+		{
+			// check outline of description
+			double bestDist = Double.MAX_VALUE;
+			Point2D.Double bestPoint = new Point2D.Double();
+			for(int i=0; i<points.length; i += 2)
+			{
+				Point2D.Double pc = EMath.closestPointToSegment(points[i], points[i+1], pt);
+				double dist = pc.distance(pt);
+				if (dist > bestDist) continue;
+				bestDist = dist;
+				bestPoint.setLocation(pc);
+			}
+			return bestPoint;
+		}
+
+		// presume single-point polygon and use the center
+		Rectangle2D.Double bounds = getBounds2DDouble();
+		return new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
+	}
+
+	/**
 	 * Routine to tell whether a point is inside of this Poly.
 	 * This method is a requirement of the Shape implementation.
 	 * @param x the X coordinate of the point.

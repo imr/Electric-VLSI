@@ -27,6 +27,7 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
@@ -35,6 +36,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
@@ -196,6 +198,7 @@ public class Cell extends NodeProto
 	/** Whether the bounds need to be recomputed. */				private boolean boundsDirty;
 	/** Whether the bounds have anything in them. */				private boolean boundsEmpty;
 	/** The geometric data structure. */							private Geometric.RTNode rTree;
+	/** The Change object. */										private Undo.Change change;
 
 	// ------------------ protected and private methods -----------------------
 
@@ -356,7 +359,7 @@ public class Cell extends NodeProto
 		if (Undo.recordChange())
 		{
 			// tell all tools about this Cell
-			Undo.Change ch = Undo.newChange(cell, Undo.Type.CELLNEW, 0, 0, 0, 0, 0, 0);
+			Undo.Change ch = Undo.newChange(cell, Undo.Type.CELLNEW);
 
 			// tell constraint system about new Cell
 //			(*el_curconstraint->newobject)((INTBIG)cell, VNODEPROTO);
@@ -377,12 +380,166 @@ public class Cell extends NodeProto
 		if (Undo.recordChange())
 		{
 			// tell all tools about this Cell
-			Undo.Change ch = Undo.newChange(this, Undo.Type.CELLKILL, 0, 0, 0, 0, 0, 0);
+			Undo.Change ch = Undo.newChange(this, Undo.Type.CELLKILL);
 
 			// tell constraint system about killed Cell
 //			(*el_curconstraint->newobject)((INTBIG)this, VNODEPROTO);
 		}
 		Undo.clearNextChangeQuiet();
+	}
+
+	/**
+	 * Routine to recursively determine whether this Cell is a child of a given parent Cell.
+	 * If so, the relationship would be recursive.
+	 * @param parent the parent cell being examined.
+	 * @return true if, somewhere above the hierarchy of this Cell is the parent Cell.
+	 */
+	public boolean isAChildOf(Cell parent)
+	{
+		// special case: allow an icon to be inside of the contents for illustration
+		if (isIconOf(parent))
+		{
+			if (getView() == View.ICON && parent.getView() != View.ICON)
+				return false;
+		}
+
+		// make sure the child is not an icon
+		Cell child = this;
+		Cell np = contentsView();
+		if (np != null) child = np;
+
+		return child.db_isachildof(parent);
+	}
+
+	private boolean db_isachildof(Cell parent)
+	{
+		/* if they are the same, that is recursion */
+		if (this == parent) return true;
+
+		/* look through every instance of the parent cell */
+		for(Iterator it = parent.getInstancesOf(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+
+//			/* if two instances in a row have same parent, skip this one */
+//			if (ni->nextinst != NONODEINST && ni->nextinst->parent == ni->parent) continue;
+
+			/* recurse to see if the grandparent belongs to the child */
+			if (db_isachildof(ni.getParent())) return true;
+		}
+
+		/* if this has an icon, look at it's instances */
+		Cell np = parent.iconView();
+		if (np != null)
+		{
+			for(Iterator it = np.getInstancesOf(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+
+//				/* if two instances in a row have same parent, skip this one */
+//				if (ni->nextinst != NONODEINST && ni->nextinst->parent == ni->parent) continue;
+
+				/* special case: allow an icon to be inside of the contents for illustration */
+				NodeProto niProto = ni.getProto();
+				if (niProto instanceof Cell)
+				{
+					if (((Cell)niProto).isIconOf(parent))
+					{
+						if (parent.getView() != View.ICON) continue;
+					}
+				}
+
+				/* recurse to see if the grandparent belongs to the child */
+				if (db_isachildof(ni.getParent())) return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Routine to determine whether this Cell is an icon of another Cell.
+	 * @param cell the other cell which this may be an icon of.
+	 * @return true if this Cell is an icon of that other Cell.
+	 */
+	public boolean isIconOf(Cell cell)
+	{
+		if (getView() != View.ICON) return false;
+//		this = this->newestversion;
+		for(Iterator it = cell.getCellGroup().getCells(); it.hasNext(); )
+		{
+			Cell np = (Cell)it.next();
+			if (np == this) return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Routine to find the contents Cell associated with this Cell.
+	 * This only makes sense if the current Cell is an icon or skeleton Cell.
+	 * @return the contents Cell associated with this Cell.
+	 * Returns null if no such Cell can be found.
+	 */
+	public Cell contentsView()
+	{
+		// can only consider contents if this cell is an icon
+		if (getView() != View.ICON && getView() != View.SKELETON)
+			return null;
+
+		// first check to see if there is a schematics link
+		for(Iterator it = getCellGroup().getCells(); it.hasNext(); )
+		{
+			Cell cellInGroup = (Cell)it.next();
+			if (cellInGroup.getView() == View.SCHEMATIC) return cellInGroup;
+			if (cellInGroup.getView().isMultiPageView()) return cellInGroup;
+		}
+
+		// now check to see if there is any layout link
+		for(Iterator it = getCellGroup().getCells(); it.hasNext(); )
+		{
+			Cell cellInGroup = (Cell)it.next();
+			if (cellInGroup.getView() == View.LAYOUT) return cellInGroup;
+		}
+
+		// finally check to see if there is any "unknown" link
+		for(Iterator it = getCellGroup().getCells(); it.hasNext(); )
+		{
+			Cell cellInGroup = (Cell)it.next();
+			if (cellInGroup.getView() == View.UNKNOWN) return cellInGroup;
+		}
+
+		// no contents found
+		return null;
+	}
+
+	/**
+	 * Routine to find the icon Cell associated with this Cell.
+	 * @return the icon Cell associated with this Cell.
+	 * Returns null if no such Cell can be found.
+	 */
+	public Cell iconView()
+	{
+		// can only get icon view if this is a schematic
+		if (!isSchematicView()) return null;
+
+		// now look for views
+		for(Iterator it = getCellGroup().getCells(); it.hasNext(); )
+		{
+			Cell cellInGroup = (Cell)it.next();
+			if (cellInGroup.getView() == View.ICON) return cellInGroup;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Routine to return true if this Cell is a schematic view.
+	 * @return true if this Cell is a schematic view.
+	 */
+	public boolean isSchematicView()
+	{
+		if (getView() == View.SCHEMATIC ||
+			getView().isMultiPageView()) return true;
+		return false;
 	}
 
 	/**
@@ -632,6 +789,20 @@ public class Cell extends NodeProto
 	 * @param rTree the head of the new R-Tree for this Cell.
 	 */
 	public void setRTree(Geometric.RTNode rTree) { this.rTree = rTree; }
+
+	/**
+	 * Routine to set a Change object on this Cell.
+	 * This is used during constraint propagation to tell whether this object has already been changed and by how much.
+	 * @param change the Change object to be set on this Cell.
+	 */
+	public void setChange(Undo.Change change) { this.change = change; }
+
+	/**
+	 * Routine to get the Change object on this Cell.
+	 * This is used during constraint propagation to tell whether this object has already been changed and by how much.
+	 * @return the Change object on this Cell.
+	 */
+	public Undo.Change getChange() { return change; }
 
 	/**
 	 * Routine to compute the "essential bounds" of this Cell.
@@ -929,6 +1100,49 @@ public class Cell extends NodeProto
 				return ni;
 		}
 		return null;
+	}
+
+	/**
+	 * Routine to determine whether a name is unique in this Cell.
+	 * @param name the name being tested to see if it is unique.
+	 * @param cls the type of object being examined.
+	 * The only classes that can be examined are PortProto, NodeInst, and ArcInst.
+	 * @param exclude an object that should not be considered in this test (null to ignore the exclusion).
+	 * @return true if the name is unique in the Cell.  False if it already exists.
+	 */
+	public boolean isUniqueName(String name, Class cls, ElectricObject exclude)
+	{
+		if (cls == PortProto.class)
+		{
+			PortProto pp = findExport(name);
+			if (pp == null || exclude == pp) return true;
+			return false;
+		}
+		if (cls == NodeInst.class)
+		{
+			for(Iterator it = getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				if (exclude != null && exclude == ni) continue;
+				String nodeName = ni.getName();
+				if (nodeName == null) continue;
+				if (name.equals(nodeName)) return false;
+			}
+			return true;
+		}
+		if (cls == ArcInst.class)
+		{
+			for(Iterator it = getArcs(); it.hasNext(); )
+			{
+				ArcInst ai = (ArcInst)it.next();
+				if (exclude != null && exclude == ai) continue;
+				String arcName = ai.getName();
+				if (arcName == null) continue;
+				if (name.equals(arcName)) return false;
+			}
+			return true;
+		}
+		return true;
 	}
 
 	/**

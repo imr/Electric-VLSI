@@ -1105,7 +1105,7 @@ public class InputBinary extends Input
 					" because ends are unknown");
 				continue;
 			}
-			ai.lowLevelPopulate(ap, width, tailPortInst, tailX, tailY, headPortInst, headX, headY);
+			ai.lowLevelPopulate(ap, width, tailPortInst, new Point2D.Double(tailX, tailY), headPortInst, new Point2D.Double(headX, headY));
 			ai.lowLevelLink();
 		}
 	}

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.geometry;
 
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
@@ -770,7 +771,10 @@ public class Geometric extends ElectricObject
 	/** angle of this geometric (in tenth-degrees). */		protected int angle;
 	/** The temporary Object for the node or arc. */		private Object tempObj;
 	/** temporary integer value for the node or arc */		private int tempInt;
+	/** Flag bits for this Geometric. */					protected int userBits;
 	/** The temporary flag bits. */							private int flagBits;
+	/** The timestamp for changes. */						private int changeClock;
+	/** The Change object. */								private Undo.Change change;
 	/** The object used to request flag bits. */			private static FlagSet.Generator flagGenerator = new FlagSet.Generator();
 
 	// ------------------------ private and protected methods--------------------
@@ -780,6 +784,7 @@ public class Geometric extends ElectricObject
 	 */
 	protected Geometric()
 	{
+		this.userBits = 0;
 		visBounds = new Rectangle2D.Double(0, 0, 0, 0);
 	}
 
@@ -806,40 +811,6 @@ public class Geometric extends ElectricObject
 			visBounds.getWidth() + "x" + visBounds.getHeight());
 		System.out.println(" Parent cell: " + parent.describe());
         super.getInfo();
-	}
-
-	private AffineTransform rotateTranspose = new AffineTransform();
-	private AffineTransform mirrorX = new AffineTransform(-1, 0, 0, 1, 0, 0);
-	private AffineTransform mirrorY = new AffineTransform(1, 0, 0, -1, 0, 0);
-
-	/**
-	 * Routine to return a transformation that rotates an object about a point.
-	 * @param angle the amount to rotate (in tenth-degrees).
-	 * @param cX the center X coordinate about which to rotate.
-	 * @param cY the center Y coordinate about which to rotate.
-	 * @param sX the scale in X (negative to flip the X coordinate, or flip ABOUT the Y axis).
-	 * @param sY the scale in Y (negative to flip the Y coordinate, or flip ABOUT the X axis).
-	 * @return a transformation that rotates about that point.
-	 */
-	public AffineTransform rotateAbout(int angle, double cX, double cY, double sX, double sY)
-	{
-		AffineTransform transform = new AffineTransform();
-		if (sX < 0 || sY < 0)
-		{
-			// must do mirroring, so it is trickier
-			double cosine = EMath.cos(angle);
-			double sine = EMath.sin(angle);
-			rotateTranspose.setToRotation(angle * Math.PI / 1800.0, 0, 0);
-			transform.setToTranslation(cX, cY);
-			if (sX < 0) transform.concatenate(mirrorX);
-			if (sY < 0) transform.concatenate(mirrorY);
-			transform.concatenate(rotateTranspose);
-			transform.translate(-cX, -cY);
-		} else
-		{
-			transform.setToRotation(angle * Math.PI / 1800.0, cX, cY);
-		}
-		return transform;
 	}
 
 	// ------------------------ public methods -----------------------------
@@ -879,12 +850,14 @@ public class Geometric extends ElectricObject
 
 	/**
 	 * Routine to return the X size of this Geometric.
+	 * For ArcInsts, this is the length.
 	 * @return the X size of this Geometric.
 	 */
 	public double getXSize() { return Math.abs(sX); }
 
 	/**
 	 * Routine to return the Y size of this Geometric.
+	 * For ArcInsts, this is the width.
 	 * @return the Y size of this Geometric.
 	 */
 	public double getYSize() { return Math.abs(sY); }
@@ -894,6 +867,34 @@ public class Geometric extends ElectricObject
 	 * @return the bounds of this Geometric.
 	 */
 	public Rectangle2D.Double getBounds() { return visBounds; }
+
+	/**
+	 * Low-level routine to get the user bits.
+	 * The "user bits" are a collection of flags that are more sensibly accessed
+	 * through special methods.
+	 * This general access to the bits is required because the binary ".elib"
+	 * file format stores it as a full integer.
+	 * This should not normally be called by any other part of the system.
+	 * @return the "user bits".
+	 */
+	public int lowLevelGetUserbits() { return userBits; }
+
+	/**
+	 * Low-level routine to set the user bits.
+	 * The "user bits" are a collection of flags that are more sensibly accessed
+	 * through special methods.
+	 * This general access to the bits is required because the binary ".elib"
+	 * file format stores it as a full integer.
+	 * This should not normally be called by any other part of the system.
+	 * @param userBits the new "user bits".
+	 */
+	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
+
+	/**
+	 * Routine to copy the various state bits from another Geometric to this Geometric.
+	 * @param ai the other ArcInst to copy.
+	 */
+	public void copyStateBits(Geometric geom) { this.userBits = geom.userBits; }
 
 	/**
 	 * Routine to get access to flag bits on this Geometric.
@@ -963,5 +964,33 @@ public class Geometric extends ElectricObject
 	 * @return the temporary Object on this Geometric.
 	 */
 	public Object getTempObj() { return tempObj; }
+
+	/**
+	 * Routine to set a timestamp for constraint propagation on this Geometric.
+	 * This is used by the Layout constraint system.
+	 * @param changeClock the timestamp for constraint propagation.
+	 */
+	public void setChangeClock(int changeClock) { this.changeClock = changeClock; }
+
+	/**
+	 * Routine to get the timestamp for constraint propagation on this Geometric.
+	 * This is used by the Layout constraint system.
+	 * @return the timestamp for constraint propagation on this Geometric.
+	 */
+	public int getChangeClock() { return changeClock; }
+
+	/**
+	 * Routine to set a Change object on this Geometric.
+	 * This is used during constraint propagation to tell whether this object has already been changed and by how much.
+	 * @param change the Change object to be set on this Geometric.
+	 */
+	public void setChange(Undo.Change change) { this.change = change; }
+
+	/**
+	 * Routine to get the Change object on this Geometric.
+	 * This is used during constraint propagation to tell whether this object has already been changed and by how much.
+	 * @return the Change object on this Geometric.
+	 */
+	public Undo.Change getChange() { return change; }
 
 }

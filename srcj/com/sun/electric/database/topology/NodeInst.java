@@ -24,7 +24,9 @@
 package com.sun.electric.database.topology;
 
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.constraint.Constraint;
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.hierarchy.Cell;
@@ -38,6 +40,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -90,7 +93,6 @@ public class NodeInst extends Geometric
 	// ---------------------- private data ----------------------------------
 	/** prototype of this node instance */					private NodeProto protoType;
 	/** node usage of this node instance */					private NodeUsage nodeUsage;
-	/** flag bits for this node instance */					private int userBits;
 	/** labling information for this node instance */		private int textbits;
 	/** HashTable of portInsts on this node instance */		private HashMap portMap;
 	/** List of connections belonging to this instance */	private List connections;
@@ -105,7 +107,6 @@ public class NodeInst extends Geometric
 	private NodeInst()
 	{
 		// initialize this object
-		this.userBits = 0;
 		this.textbits = 0;
 		this.portMap = new HashMap();
 		this.connections = new ArrayList();
@@ -279,6 +280,15 @@ public class NodeInst extends Geometric
 	public static NodeInst newInstance(NodeProto protoType, Point2D.Double center, double width, double height,
 		int angle, Cell parent)
 	{
+		if (protoType instanceof Cell)
+		{
+			if (((Cell)protoType).isAChildOf(parent))
+			{
+				System.out.println("Cannot create instance of " + protoType.describe() + " in cell " + parent.describe() +
+					" because it is recursive");
+				return null;
+			}
+		}
 		NodeInst ni = lowLevelAllocate();
 		if (ni.lowLevelPopulate(protoType, center, width, height, angle, parent)) return null;
 		if (ni.lowLevelLink()) return null;
@@ -287,10 +297,10 @@ public class NodeInst extends Geometric
 		if (Undo.recordChange())
 		{
 			// tell all tools about this NodeInst
-			Undo.Change ch = Undo.newChange(ni, Undo.Type.NODEINSTNEW, 0, 0, 0, 0, 0, 0);
+			Undo.Change ch = Undo.newChange(ni, Undo.Type.NODEINSTNEW);
 
 			// tell constraint system about new NodeInst
-//			(*el_curconstraint->newobject)((INTBIG)ni, VNODEINST);
+			Constraint.getCurrent().newObject(ni);
 		}
 		Undo.clearNextChangeQuiet();
 		return ni;
@@ -324,53 +334,52 @@ public class NodeInst extends Geometric
 		if (Undo.recordChange())
 		{
 			// tell all tools about this NodeInst
-			Undo.Change ch = Undo.newChange(this, Undo.Type.NODEINSTKILL, 0, 0, 0, 0, 0, 0);
+			Undo.Change ch = Undo.newChange(this, Undo.Type.NODEINSTKILL);
 
 			// tell constraint system about killed NodeInst
-//			(*el_curconstraint->killobject)((INTBIG)ni, VNODEINST);
+			Constraint.getCurrent().killObject(this);
 		}
 	}
 
 	/**
 	 * Routine to change this NodeInst.
-	 * @param dx the amount to move the NodeInst in X.
-	 * @param dy the amount to move the NodeInst in Y.
-	 * @param dxsize the amount to scale the NodeInst in X.
-	 * @param dysize the amount to scale the NodeInst in Y.
-	 * @param drot the amount to alter the NodeInst rotation.
+	 * @param dX the amount to move the NodeInst in X.
+	 * @param dY the amount to move the NodeInst in Y.
+	 * @param dXSize the amount to scale the NodeInst in X.
+	 * @param dYSize the amount to scale the NodeInst in Y.
+	 * @param dRot the amount to alter the NodeInst rotation (in tenths of a degree).
 	 */
-	public void modifyInstance(double dx, double dy, double dxsize, double dysize, int drot)
+	public void modifyInstance(double dX, double dY, double dXSize, double dYSize, int dRot)
 	{
-		// remove from the R-Tree structure
-		unLinkGeom(parent);
+		// make sure the change values are sensible
+		dRot = dRot % 3600;
+		if (dRot < 0) dRot += 3600;
+		if (dX == 0 && dY == 0 && dXSize == 0 && dYSize == 0 && dRot == 0)
+		{
+			return;
+		}
 
 		// make the change
-		this.cX += dx;
-		this.cY += dy;
-
-		this.sX += dxsize;
-		this.sY += dysize;
-
-		this.angle += drot;
-
-		// fill in the Geometric fields
-		updateGeometric();
-
-		// link back into the R-Tree
-		linkGeom(parent);
-
-		// change the coordinates of every arc end connected to this
-		for(Iterator it = getConnections(); it.hasNext(); )
+		if (Undo.recordChange())
 		{
-			Connection con = (Connection)it.next();
-			if (con.getPortInst().getNodeInst() == this)
+			Constraint.getCurrent().modifyNodeInst(this, dX, dY, dXSize, dYSize, dRot);
+		} else
+		{
+			adjustInstance(dX, dY, dXSize, dYSize, dRot);
+
+			// change the coordinates of every arc end connected to this
+			for(Iterator it = getConnections(); it.hasNext(); )
 			{
-				Point2D.Double oldLocation = con.getLocation();
-				if (con.isHeadEnd()) con.getArc().modify(0, dx, dy, 0, 0); else
-					con.getArc().modify(0, 0, 0, dx, dy);
+				Connection con = (Connection)it.next();
+				if (con.getPortInst().getNodeInst() == this)
+				{
+					Point2D.Double oldLocation = con.getLocation();
+					if (con.isHeadEnd()) con.getArc().modify(0, dX, dY, 0, 0); else
+						con.getArc().modify(0, 0, 0, dX, dY);
+				}
 			}
+			parent.setDirty();
 		}
-		parent.setDirty();
 
 		// if the cell-center changed, notify the cell and fix lots of stuff
 		if (protoType instanceof PrimitiveNode && protoType == Generic.tech.cellCenter_node)
@@ -379,12 +388,51 @@ public class NodeInst extends Geometric
 		}
 	}
 
-	public static void modifyInstances(NodeInst [] nis, double [] dxs, double [] dys, double [] dxsizes, double [] dysizes, int [] drots)
+	/**
+	 * Routine to change many NodeInsts.
+	 * @param nis the NodeInsts to change.
+	 * @param dXs the amount to move the NodeInsts in X.
+	 * @param dYs the amount to move the NodeInsts in Y.
+	 * @param dXSizes the amount to scale the NodeInsts in X.
+	 * @param dYSizes the amount to scale the NodeInsts in Y.
+	 * @param dRots the amount to alter the NodeInst rotation (in tenths of a degree).
+	 */
+	public static void modifyInstances(NodeInst [] nis, double [] dXs, double [] dYs, double [] dXSizes, double [] dYSizes, int [] dRots)
 	{
 		for(int i=0; i<nis.length; i++)
 		{
-			nis[i].modifyInstance(dxs[i], dys[i], dxsizes[i], dysizes[i], drots[i]);
+			nis[i].modifyInstance(dXs[i], dYs[i], dXSizes[i], dYSizes[i], dRots[i]);
 		}
+	}
+
+	/**
+	 * Routine to adjust this NodeInst by the specified deltas.
+	 * This routine does not go through change control, and so should not be used unless you know what you are doing.
+	 * @param dX the change to the center X coordinate.
+	 * @param dY the change to the center Y coordinate.
+	 * @param dXSize the change to the X size.
+	 * @param dYSize the change to the Y size.
+	 * @param dRot the change to the rotation (in tenths of a degree).
+	 */
+	public void adjustInstance(double dX, double dY, double dXSize, double dYSize, int dRot)
+	{
+		// remove from the R-Tree structure
+		unLinkGeom(parent);
+
+		// make the change
+		this.cX = EMath.smooth(this.cX + dX);
+		this.cY = EMath.smooth(this.cY + dY);
+
+		this.sX = EMath.smooth(this.sX + dXSize);
+		this.sY = EMath.smooth(this.sY + dYSize);
+
+		this.angle += dRot;
+
+		// fill in the Geometric fields
+		updateGeometric();
+
+		// link back into the R-Tree
+		linkGeom(parent);
 	}
 
 	/**
@@ -708,28 +756,6 @@ public class NodeInst extends Geometric
 	public int getTechSpecific() { return (userBits & NTECHBITS) >> NTECHBITSSH; }
 
 	/**
-	 * Low-level routine to get the user bits.
-	 * The "user bits" are a collection of flags that are more sensibly accessed
-	 * through special methods.
-	 * This general access to the bits is required because the binary ".elib"
-	 * file format stores it as a full integer.
-	 * This should not normally be called by any other part of the system.
-	 * @return the "user bits".
-	 */
-	public int lowLevelGetUserbits() { return userBits; }
-
-	/**
-	 * Low-level routine to set the user bits.
-	 * The "user bits" are a collection of flags that are more sensibly accessed
-	 * through special methods.
-	 * This general access to the bits is required because the binary ".elib"
-	 * file format stores it as a full integer.
-	 * This should not normally be called by any other part of the system.
-	 * @param userBits the new "user bits".
-	 */
-	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
-
-	/**
 	 * Routine to tell whether this NodeInst is mirrored in the X axis.
 	 * Mirroring in the X axis implies that X coordinates are negated.
 	 * Thus, it is equivalent to mirroring ABOUT the Y axis.
@@ -917,6 +943,56 @@ public class NodeInst extends Geometric
 		return returnTransform;
 	}
 
+	private static AffineTransform rotateTranspose = new AffineTransform();
+	private static AffineTransform mirrorX = new AffineTransform(-1, 0, 0, 1, 0, 0);
+	private static AffineTransform mirrorY = new AffineTransform(1, 0, 0, -1, 0, 0);
+
+	/**
+	 * Routine to return a transformation that rotates an object about a point.
+	 * @param angle the amount to rotate (in tenth-degrees).
+	 * @param cX the center X coordinate about which to rotate.
+	 * @param cY the center Y coordinate about which to rotate.
+	 * @param sX the scale in X (negative to flip the X coordinate, or flip ABOUT the Y axis).
+	 * @param sY the scale in Y (negative to flip the Y coordinate, or flip ABOUT the X axis).
+	 * @return a transformation that rotates about that point.
+	 */
+	public static AffineTransform rotateAbout(int angle, double cX, double cY, double sX, double sY)
+	{
+		AffineTransform transform = new AffineTransform();
+		if (sX < 0 || sY < 0)
+		{
+			// must do mirroring, so it is trickier
+			rotateTranspose.setToRotation(angle * Math.PI / 1800.0);
+			transform.setToTranslation(cX, cY);
+			if (sX < 0) transform.concatenate(mirrorX);
+			if (sY < 0) transform.concatenate(mirrorY);
+			transform.concatenate(rotateTranspose);
+			transform.translate(-cX, -cY);
+		} else
+		{
+			transform.setToRotation(angle * Math.PI / 1800.0, cX, cY);
+		}
+		return transform;
+	}
+
+	/**
+	 * Routine to return a transformation that rotates an object.
+	 * @param angle the amount to rotate (in tenth-degrees).
+	 * @param sX the scale in X (negative to flip the X coordinate, or flip ABOUT the Y axis).
+	 * @param sY the scale in Y (negative to flip the Y coordinate, or flip ABOUT the X axis).
+	 * @return a transformation that rotates by this amount.
+	 */
+	public static AffineTransform pureRotate(int angle, double sX, double sY)
+	{
+		AffineTransform transform = new AffineTransform();
+		transform.setToRotation(angle * Math.PI / 1800.0);
+
+		// add mirroring
+		if (sX < 0) transform.concatenate(mirrorX);
+		if (sY < 0) transform.concatenate(mirrorY);
+		return transform;
+	}
+
 	/**
 	 * Routine to return a transformation that rotates this NodeInst.
 	 * It transforms points on this NodeInst to account for the NodeInst's rotation.
@@ -944,6 +1020,32 @@ public class NodeInst extends Geometric
 		AffineTransform returnTransform = new AffineTransform(prevTransform);
 		returnTransform.concatenate(transform);
 		return returnTransform;
+	}
+
+	/**
+	 * Routine to return the lower-left corner of this NodeInst.
+	 * The corner considers both the highlight offset and the rotation, so the
+	 * coordinate is that of the lower-left valid part, as placed in the database.
+	 * @return a Point with the location of this NodeInst's lower-left corner.
+	 */
+	public Point2D.Double getLowLeft()
+	{
+		SizeOffset so = getProto().getSizeOffset();
+
+		double width = getXSize() / 2;
+		double height = getYSize() / 2;
+		double lX = cX - width + so.getLowXOffset();
+		double hX = cX + width - so.getHighXOffset();
+		double lY = cY - height + so.getLowYOffset();
+		double hY = cY + height - so.getHighYOffset();
+		Poly poly = new Poly((lX+hX)/2, (lY+hY)/2, hX-lX, hY-lY);
+		if (getAngle() != 0 || isXMirrored() || isYMirrored())
+		{
+			AffineTransform trans = this.rotateOut();
+			poly.transform(trans);
+		}
+		Rectangle2D.Double bounds = poly.getBounds2DDouble();
+		return new Point2D.Double(bounds.getMinX(), bounds.getMinY());
 	}
 
 	/**
@@ -989,6 +1091,34 @@ public class NodeInst extends Geometric
 	public PortInst findPortInst(String name)
 	{
 		return (PortInst) portMap.get(name);
+	}
+
+	/**
+	 * Routine to return the Portinst on this NodeInst with a given prototype.
+	 * @param pp the PortProto to find.
+	 * @return the selected PortInst.  If the PortProto is not found, return null.
+	 */
+	public PortInst getPortInstFromProto(PortProto pp)
+	{
+		for(Iterator it = portMap.values().iterator(); it.hasNext(); )
+		{
+			PortInst pi = (PortInst)it.next();
+			if (pi.getPortProto() == pp) return pi;
+		}
+		return null;
+	}
+
+	/**
+	 * Routine to determine whether this is an Invisible Pin with text.
+	 * If so, it should not be selected, but its text should be instead.
+	 * @return true if this is an Invisible Pin with text.
+	 */
+	public boolean isInvisiblePinWithText()
+	{
+		if (getProto() != Generic.tech.invisiblePin_node) return false;
+		if (getNumExports() != 0) return true;
+		if (numDisplayableVariables(false) != 0) return true;
+		return false;
 	}
 
 	/**

@@ -30,6 +30,7 @@ import com.sun.electric.tool.Job;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
+import java.awt.Component;
 import javax.swing.JInternalFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -101,6 +102,18 @@ public class WindowFrame extends JInternalFrame
 		desktop.add(frame); 
 		frame.moveToFront();
 		return frame;
+	}
+
+	public static WindowFrame getCurrent()
+	{
+		for(Iterator it = windowList.iterator(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			if (wf.isSelected()) return wf;
+//			Component comp = wf.getFocusOwner();
+//			if (comp != null) return wf;
+		}
+		return null;
 	}
 
 	private void windowClosed()

@@ -81,6 +81,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	/** no extension/negation/arrows on end 1 */		private static final int NOTEND1 =            010000000;
 	/** reverse extension/negation/arrow ends */		private static final int REVERSEEND =         020000000;
 	/** set if arc can't slide around in ports */		private static final int CANTSLIDE =          040000000;
+	/** set if afixed arc was changed */				private static final int FIXEDMOD =          0100000000;
 //	/** if on, this arcinst is marked for death */		private static final int KILLA =             0200000000;
 //	/** arcinst re-drawing is scheduled */				private static final int REWANTA =           0400000000;
 //	/** only local arcinst re-drawing desired */		private static final int RELOCLA =          01000000000;
@@ -92,7 +93,6 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	// Name of the variable holding the ArcInst's name.
 	private static final String VAR_ARC_NAME = "ARC_name";
 
-	/** flags for this arc instance */					private int userBits;
 	/** width of this arc instance */					private double arcWidth;
 	/** prototype of this arc instance */				private ArcProto protoType;
 	/** end connections of this arc instance */			private Connection head, tail;
@@ -102,7 +102,6 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 */
 	private ArcInst()
 	{
-		this.userBits = 0;
 	}
 
 	// -------------------------- public methods -----------------------------
@@ -122,15 +121,13 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 * @param protoType the ArcProto of this ArcInst.
 	 * @param arcWidth the width of this ArcInst.
 	 * @param headPort the head end PortInst.
-	 * @param headX the X coordinate of the head end PortInst.
-	 * @param headY the Y coordinate of the head end PortInst.
+	 * @param headPt the coordinate of the head end PortInst.
 	 * @param tailPort the tail end PortInst.
-	 * @param tailX the X coordinate of the tail end PortInst.
-	 * @param tailY the Y coordinate of the tail end PortInst.
+	 * @param tailPt the coordinate of the tail end PortInst.
 	 * @return true on error.
 	 */
 	public boolean lowLevelPopulate(ArcProto protoType, double arcWidth,
-		PortInst headPort, double headX, double headY, PortInst tailPort, double tailX, double tailY)
+		PortInst headPort, Point2D.Double headPt, PortInst tailPort, Point2D.Double tailPt)
 	{
 		// initialize this object
 		this.protoType = protoType;
@@ -166,8 +163,8 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		}
 
 		// create node/arc connections and place them properly
-		head = new Connection(this, headPort, headX, headY);
-		tail = new Connection(this, tailPort, tailX, tailY);
+		head = new Connection(this, headPort, headPt);
+		tail = new Connection(this, tailPort, tailPt);
 		
 		// fill in the geometry
 		updateGeometric();
@@ -206,6 +203,37 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	}
 
 	/**
+	 * Low-level routine to change the width and end locations of this ArcInst.
+	 * @param dWidth the change to the ArcInst width.
+	 * @param dHeadX the change to the X coordinate of the head of this ArcInst.
+	 * @param dHeadY the change to the Y coordinate of the head of this ArcInst.
+	 * @param dTailX the change to the X coordinate of the tail of this ArcInst.
+	 * @param dTailY the change to the Y coordinate of the tail of this ArcInst.
+	 */
+	public void lowLevelMove(double dWidth, double dHeadX, double dHeadY, double dTailX, double dTailY)
+	{
+		// first remove from the R-Tree structure
+		unLinkGeom(parent);
+
+		// now make the change
+		arcWidth = EMath.smooth(arcWidth + dWidth);
+		if (dHeadX != 0 || dHeadY != 0)
+		{
+			Point2D.Double pt = head.getLocation();
+			head.setLocation(new Point2D.Double(EMath.smooth(dHeadX+pt.getX()), EMath.smooth(pt.getY()+dHeadY)));
+		}
+		if (dTailX != 0 || dTailY != 0)
+		{
+			Point2D.Double pt = tail.getLocation();
+			tail.setLocation(new Point2D.Double(EMath.smooth(dTailX+pt.getX()), EMath.smooth(pt.getY()+dTailY)));
+		}
+		updateGeometric();
+
+		// reinsert in the R-Tree structure
+		linkGeom(parent);
+	}
+
+	/**
 	 * Routine to create a new ArcInst connecting two PortInsts.
 	 * Since no coordinates are given, the ArcInst connects to the center of the PortInsts.
 	 * @param type the prototype of the new ArcInst.
@@ -222,7 +250,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		Rectangle2D tailBounds = tail.getBounds();
 		double tailX = tailBounds.getCenterX();
 		double tailY = tailBounds.getCenterY();
-		return newInstance(type, width, head, headX, headY, tail, tailX, tailY);
+		return newInstance(type, width, head, new Point2D.Double(headX, headY), tail, new Point2D.Double(tailX, tailY));
 	}
 
 	/**
@@ -231,30 +259,28 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 * @param type the prototype of the new ArcInst.
 	 * @param width the width of the new ArcInst.  The width must be > 0.
 	 * @param head the head end PortInst.
-	 * @param headX the X coordinate of the head end PortInst.
-	 * @param headY the Y coordinate of the head end PortInst.
+	 * @param headPt the coordinate of the head end PortInst.
 	 * @param tail the tail end PortInst.
-	 * @param tailX the X coordinate of the tail end PortInst.
-	 * @param tailY the Y coordinate of the tail end PortInst.
+	 * @param tailPt the coordinate of the tail end PortInst.
 	 * @return the newly created ArcInst, or null if there is an error.
 	 */
 	public static ArcInst newInstance(ArcProto type, double width,
-		PortInst head, double headX, double headY, PortInst tail, double tailX, double tailY)
+		PortInst head, Point2D.Double headPt, PortInst tail, Point2D.Double tailPt)
 	{
 		ArcInst ai = lowLevelAllocate();
-		if (ai.lowLevelPopulate(type, width, head, headX, headY, tail, tailX, tailY)) return null;
-		if (!ai.stillInPort(true, headX, headY))
+		if (ai.lowLevelPopulate(type, width, head, headPt, tail, tailPt)) return null;
+		if (!ai.stillInPort(ai.getHead(), headPt))
 		{
 			Cell parent = head.getNodeInst().getParent();
 			System.out.println("Error in cell " + parent.describe() + ": head of " + type.getProtoName() +
-				" arc at (" + headX + "," + headY + ") does not fit in port");
+				" arc at (" + headPt.getX() + "," + headPt.getY() + ") does not fit in port");
 			return null;
 		}
-		if (!ai.stillInPort(false, tailX, tailY))
+		if (!ai.stillInPort(ai.getTail(), tailPt))
 		{
 			Cell parent = tail.getNodeInst().getParent();
 			System.out.println("Error in cell " + parent.describe() + ": tail of " + type.getProtoName() +
-				" arc at (" + tailX + "," + tailY + ") does not fit in port");
+				" arc at (" + tailPt.getX() + "," + tailPt.getY() + ") does not fit in port");
 			return null;
 		}
 		if (ai.lowLevelLink()) return null;
@@ -263,7 +289,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		if (Undo.recordChange())
 		{
 			// tell all tools about this ArcInst
-			Undo.Change ch = Undo.newChange(ai, Undo.Type.ARCINSTNEW, 0, 0, 0, 0, 0, 0);
+			Undo.Change ch = Undo.newChange(ai, Undo.Type.ARCINSTNEW);
 
 			// tell constraint system about new ArcInst
 //			(*el_curconstraint->newobject)((INTBIG)ni, VARCINST);
@@ -284,7 +310,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		if (Undo.recordChange())
 		{
 			// tell all tools about this ArcInst
-			Undo.Change ch = Undo.newChange(this, Undo.Type.ARCINSTKILL, 0, 0, 0, 0, 0, 0);
+			Undo.Change ch = Undo.newChange(this, Undo.Type.ARCINSTKILL);
 
 			// tell constraint system about killed ArcInst
 //			(*el_curconstraint->killobject)((INTBIG)ni, VARCINST);
@@ -292,30 +318,32 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	}
 
 	/**
-	 * Routine to change the width of this ArcInst.
+	 * Routine to change the width and end locations of this ArcInst.
 	 * @param dWidth the change to the ArcInst width.
+	 * @param dHeadX the change to the X coordinate of the head of this ArcInst.
+	 * @param dHeadY the change to the Y coordinate of the head of this ArcInst.
+	 * @param dTailX the change to the X coordinate of the tail of this ArcInst.
+	 * @param dTailY the change to the Y coordinate of the tail of this ArcInst.
 	 */
 	public void modify(double dWidth, double dHeadX, double dHeadY, double dTailX, double dTailY)
 	{
-		// first remove from the R-Tree structure
-		unLinkGeom(parent);
+		// save old arc state
+		double oldxA = head.getLocation().getX();
+		double oldyA = head.getLocation().getY();
+		double oldxB = tail.getLocation().getX();
+		double oldyB = tail.getLocation().getY();
+		double oldWidth = getWidth();
 
-		// now make the change
-		arcWidth += dWidth;
-		if (dHeadX != 0 || dHeadY != 0)
-		{
-			Point2D.Double pt = head.getLocation();
-			head.setLocation(new Point2D.Double(EMath.smooth(dHeadX+pt.getX()), EMath.smooth(pt.getY()+dHeadY)));
-		}
-		if (dTailX != 0 || dTailY != 0)
-		{
-			Point2D.Double pt = tail.getLocation();
-			tail.setLocation(new Point2D.Double(EMath.smooth(dTailX+pt.getX()), EMath.smooth(pt.getY()+dTailY)));
-		}
-		updateGeometric();
+		// change the arc
+		lowLevelMove(dWidth, dHeadX, dHeadY, dTailX, dTailY);
 
-		// reinsert in the R-Tree structure
-		linkGeom(parent);
+		// track the change
+		if (Undo.recordChange())
+		{
+			Undo.Change change = Undo.newChange(this, Undo.Type.ARCINSTMOD);
+			change.setDoubles(oldxA, oldyA, oldxB, oldyB, oldWidth);
+			setChange(change);
+		}
 	}
 
 	/**
@@ -383,6 +411,25 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 * @return true if this ArcInst is slidable.
 	 */
 	public boolean isSlidable() { return (userBits & CANTSLIDE) == 0; }
+
+	/**
+	 * Routine to set that this rigid ArcInst was modified.
+	 * This is used during constraint processing only and should not be used elsewhere.
+	 */
+	public void setRigidModified() { userBits &= ~FIXEDMOD; }
+
+	/**
+	 * Routine to set that this rigid ArcInst was not modified.
+	 * This is used during constraint processing only and should not be used elsewhere.
+	 */
+	public void clearRigidModified() { userBits |= FIXEDMOD; }
+
+	/**
+	 * Routine to tell whether this rigid ArcInst was modified.
+	 * This is used during constraint processing only and should not be used elsewhere.
+	 * @return true if this rigid ArcInst was modified.
+	 */
+	public boolean isRigidModified() { return (userBits & FIXEDMOD) == 0; }
 
 	/**
 	 * Low-level routine to set the ArcInst angle in the "user bits".
@@ -600,28 +647,6 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	public boolean isHardSelect() { return (userBits & HARDSELECTA) != 0; }
 
 	/**
-	 * Low-level routine to get the user bits.
-	 * The "user bits" are a collection of flags that are more sensibly accessed
-	 * through special methods.
-	 * This general access to the bits is required because the binary ".elib"
-	 * file format stores it as a full integer.
-	 * This should not normally be called by any other part of the system.
-	 * @return the "user bits".
-	 */
-	public int lowLevelGetUserbits() { return userBits; }
-
-	/**
-	 * Low-level routine to set the user bits.
-	 * The "user bits" are a collection of flags that are more sensibly accessed
-	 * through special methods.
-	 * This general access to the bits is required because the binary ".elib"
-	 * file format stores it as a full integer.
-	 * This should not normally be called by any other part of the system.
-	 * @param userBits the new "user bits".
-	 */
-	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
-
-	/**
 	 * Routine to return a list of Polys that describes all text on this ArcInst.
 	 * @param hardToSelect is true if considering hard-to-select text.
 	 * @param wnd the window in which the text will be drawn.
@@ -702,18 +727,17 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	public Connection getTail() { return tail; }
 
 	/**
-	 * routine to tell whether end "e" of arcinst "ai" would be properly connected
-	 * to its nodeinst if it were located at (x, y), but considering the width of
-	 * the arc as a limiting factor.
+	 * Routine to tell whether a connection on this ArcInst contains a point.
+	 * @param con the connection on this ArcInst.
+	 * @param pt the point in question.
+	 * @return true if the point is inside of the port.
 	 */
-	public boolean stillInPort(boolean onHead, double x, double y)
+	public boolean stillInPort(Connection con, Point2D.Double pt)
 	{
 		// determine the area of the nodeinst
-		PortInst pi;
-		if (onHead) pi = head.getPortInst(); else
-			pi = tail.getPortInst();
+		PortInst pi = con.getPortInst();
 		Poly poly = pi.getPoly();
-		if (poly.isInside(new Point2D.Double(x, y))) return true;
+		if (poly.isInside(pt)) return true;
 
 		// no good
 		return false;

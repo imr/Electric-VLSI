@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.change;
 
+import com.sun.electric.database.constraint.Constraint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -87,35 +88,39 @@ public class Undo
 	public static class Change
 	{
 		private ElectricObject obj;
-		private Type change;
-		private double a1;
-		private double a2;
-		private double a3;
-		private double a4;
-		private int a5;
-		private int a6;
+		private Type type;
+		private double a1, a2, a3, a4, a5;
+		private int i1, i2;
 
-		Change(ElectricObject obj, Type change, double a1, double a2, double a3, double a4, int a5, int a6)
+		Change(ElectricObject obj, Type type)
 		{
 			this.obj = obj;
-			this.change = change;
+			this.type = type;
+		}
+		public void setDoubles(double a1, double a2, double a3, double a4, double a5)
+		{
 			this.a1 = a1;
 			this.a2 = a2;
 			this.a3 = a3;
 			this.a4 = a4;
 			this.a5 = a5;
-			this.a6 = a6;
+		}
+		public void setInts(int i1, int i2)
+		{
+			this.i1 = i1;
+			this.i2 = i2;
 		}
 		
 		public ElectricObject getObject() { return obj; }
-		public Type getChange() { return change; }
-		public void setChange(Type change) { this.change = change; }
+		public Type getType() { return type; }
+		public void setType(Type change) { this.type = type; }
 		public double getA1() { return a1; }
 		public double getA2() { return a2; }
 		public double getA3() { return a3; }
 		public double getA4() { return a4; }
-		public int getA5() { return a5; }
-		public int getA6() { return a6; }
+		public double getA5() { return a5; }
+		public int getI1() { return i1; }
+		public int getI2() { return i2; }
 
 		/**
 		 * Routine to broadcast a change to all tools that are on.
@@ -125,7 +130,7 @@ public class Undo
 		void broadcast(boolean firstchange, boolean undoRedo)
 		{
 			// start the batch if this is the first change
-			broadcasting = change;
+			broadcasting = type;
 			if (firstchange)
 			{
 				// broadcast a start-batch on the first change
@@ -135,88 +140,88 @@ public class Undo
 					if (tool.isOn()) tool.startBatch(tool, undoRedo);
 				}
 			}
-			if (change == Type.NODEINSTNEW || change == Type.ARCINSTNEW || change == Type.EXPORTNEW ||
-				change == Type.CELLNEW || change == Type.OBJECTNEW)
+			if (type == Type.NODEINSTNEW || type == Type.ARCINSTNEW || type == Type.EXPORTNEW ||
+				type == Type.CELLNEW || type == Type.OBJECTNEW)
 			{
 				for(Iterator it = Tool.getTools(); it.hasNext(); )
 				{
 					Tool tool = (Tool)it.next();
 					if (tool.isOn()) tool.newObject(obj);
 				}
-			} else if (change == Type.NODEINSTKILL || change == Type.ARCINSTKILL || change == Type.EXPORTKILL ||
-				change == Type.CELLKILL || change == Type.OBJECTKILL)
+			} else if (type == Type.NODEINSTKILL || type == Type.ARCINSTKILL || type == Type.EXPORTKILL ||
+				type == Type.CELLKILL || type == Type.OBJECTKILL)
 			{
 				for(Iterator it = Tool.getTools(); it.hasNext(); )
 				{
 					Tool tool = (Tool)it.next();
 					if (tool.isOn()) tool.killObject(obj);
 				}
-			} else if (change == Type.NODEINSTMOD)
+			} else if (type == Type.NODEINSTMOD)
 			{
 //				for(Iterator it = Tool.getTools(); it.hasNext(); )
 //				{
 //					Tool tool = (Tool)it.next();
 //					if (tool.isOn()) tool.modifyNodeInst(obj, a1, a2, a3, a4, a5. a6 != 0);
 //				}
-			} else if (change == Type.ARCINSTMOD)
+			} else if (type == Type.ARCINSTMOD)
 			{
 //				for(i=0; i<el_maxtools; i++)
 //					if ((el_tools[i].toolstate & TOOLON) != 0 && el_tools[i].modifyarcinst != 0)
 //						(*el_tools[i].modifyarcinst)((ARCINST *)c->entryaddr, c->p1, c->p2,
 //							c->p3, c->p4, c->p5, c->p6);
-			} else if (change == Type.EXPORTMOD)
+			} else if (type == Type.EXPORTMOD)
 			{
 //				for(i=0; i<el_maxtools; i++)
 //					if ((el_tools[i].toolstate & TOOLON) != 0 && el_tools[i].modifyportproto != 0)
 //						(*el_tools[i].modifyportproto)((PORTPROTO *)c->entryaddr, (NODEINST *)c->p1,
 //							(PORTPROTO *)c->p2);
-			} else if (change == Type.CELLMOD)
+			} else if (type == Type.CELLMOD)
 			{
 //				for(i=0; i<el_maxtools; i++)
 //					if ((el_tools[i].toolstate & TOOLON) != 0 && el_tools[i].modifynodeproto != 0)
 //						(*el_tools[i].modifynodeproto)((NODEPROTO *)c->entryaddr);
-			} else if (change == Type.OBJECTSTART)
+			} else if (type == Type.OBJECTSTART)
 			{
 				for(Iterator it = Tool.getTools(); it.hasNext(); )
 				{
 					Tool tool = (Tool)it.next();
 					if (tool.isOn()) tool.startChange(obj);
 				}
-			} else if (change == Type.OBJECTEND)
+			} else if (type == Type.OBJECTEND)
 			{
 				for(Iterator it = Tool.getTools(); it.hasNext(); )
 				{
 					Tool tool = (Tool)it.next();
 					if (tool.isOn()) tool.endChange(obj);
 				}
-			} else if (change == Type.VARIABLENEW)
+			} else if (type == Type.VARIABLENEW)
 			{
 //				for(i=0; i<el_maxtools; i++)
 //					if ((el_tools[i].toolstate & TOOLON) != 0 && el_tools[i].newvariable != 0)
 //						(*el_tools[i].newvariable)(c->entryaddr, c->p1, c->p2, c->p3);
-			} else if (change == Type.VARIABLEKILL)
+			} else if (type == Type.VARIABLEKILL)
 			{
 //				descript[0] = c->p5;
 //				descript[1] = c->p6;
 //				for(i=0; i<el_maxtools; i++)
 //					if ((el_tools[i].toolstate & TOOLON) != 0 && el_tools[i].killvariable != 0)
 //						(*el_tools[i].killvariable)(c->entryaddr, c->p1, c->p2, c->p3, c->p4, descript);
-			} else if (change == Type.VARIABLEMOD)
+			} else if (type == Type.VARIABLEMOD)
 			{
 //				for(i=0; i<el_maxtools; i++)
 //					if ((el_tools[i].toolstate & TOOLON) != 0 && el_tools[i].modifyvariable != 0)
 //						(*el_tools[i].modifyvariable)(c->entryaddr, c->p1, c->p2, c->p3, c->p4, c->p5);
-			} else if (change == Type.VARIABLEINSERT)
+			} else if (type == Type.VARIABLEINSERT)
 			{
 //				for(i=0; i<el_maxtools; i++)
 //					if ((el_tools[i].toolstate & TOOLON) != 0 && el_tools[i].insertvariable != 0)
 //						(*el_tools[i].insertvariable)(c->entryaddr, c->p1, c->p2, c->p3, c->p4);
-			} else if (change == Type.VARIABLEDELETE)
+			} else if (type == Type.VARIABLEDELETE)
 			{
 //				for(i=0; i<el_maxtools; i++)
 //					if ((el_tools[i].toolstate & TOOLON) != 0 && el_tools[i].deletevariable != 0)
 //						(*el_tools[i].deletevariable)(c->entryaddr, c->p1, c->p2, c->p3, c->p4, c->p5);
-			} else if (change == Type.DESCRIPTORMOD)
+			} else if (type == Type.DESCRIPTORMOD)
 			{
 //				descript[0] = c->p4;
 //				descript[1] = c->p5;
@@ -233,23 +238,23 @@ public class Undo
 		void reverse()
 		{
 			// determine what needs to be marked as changed
-			setDirty(change, obj);
+			setDirty(type, obj);
 
-			if (change == Type.NODEINSTNEW)
+			if (type == Type.NODEINSTNEW)
 			{
 				NodeInst ni = (NodeInst)obj;
 				ni.lowLevelUnlink();
-				change = Type.NODEINSTKILL;
+				type = Type.NODEINSTKILL;
 				return;
 			}
-			if (change == Type.NODEINSTKILL)
+			if (type == Type.NODEINSTKILL)
 			{
 				NodeInst ni = (NodeInst)obj;
 				ni.lowLevelLink();
-				change = Type.NODEINSTNEW;
+				type = Type.NODEINSTNEW;
 				return;
 			}
-			if (change == Type.NODEINSTMOD)
+			if (type == Type.NODEINSTMOD)
 			{
 				NodeInst ni = (NodeInst)obj;
 //				oldval = ni->lowx;       ni->lowx = c->p1;       c->p1 = oldval;
@@ -261,21 +266,21 @@ public class Undo
 				// need to call "updategeom()"
 				return;
 			}
-			if (change == Type.ARCINSTNEW)
+			if (type == Type.ARCINSTNEW)
 			{
 				ArcInst ai = (ArcInst)obj;
 				ai.lowLevelUnlink();
-				change = Type.ARCINSTKILL;
+				type = Type.ARCINSTKILL;
 				return;
 			}
-			if (change == Type.ARCINSTKILL)
+			if (type == Type.ARCINSTKILL)
 			{
 				ArcInst ai = (ArcInst)obj;
 				ai.lowLevelLink();
-				change = Type.ARCINSTNEW;
+				type = Type.ARCINSTNEW;
 				return;
 			}
-			if (change == Type.ARCINSTMOD)
+			if (type == Type.ARCINSTMOD)
 			{
 				ArcInst ai = (ArcInst)obj;
 //				oldval = ai->end[0].xpos;  ai->end[0].xpos = c->p1;   c->p1 = oldval;
@@ -289,21 +294,21 @@ public class Undo
 				// need to call "updategeom()"
 				return;
 			}
-			if (change == Type.EXPORTNEW)
+			if (type == Type.EXPORTNEW)
 			{
 				Export pp = (Export)obj;
 				pp.lowLevelUnlink();
-				change = Type.EXPORTKILL;
+				type = Type.EXPORTKILL;
 				return;
 			}
-			if (change == Type.EXPORTKILL)
+			if (type == Type.EXPORTKILL)
 			{
 				Export pp = (Export)obj;
 				pp.lowLevelLink();
-				change = Type.EXPORTNEW;
+				type = Type.EXPORTNEW;
 				return;
 			}
-			if (change == Type.EXPORTMOD)
+			if (type == Type.EXPORTMOD)
 			{
 //				Export pp = (Export)obj;
 //				oldsubni = pp->subnodeinst;
@@ -312,21 +317,21 @@ public class Undo
 //				c->p1 = (INTBIG)oldsubni;   c->p2 = (INTBIG)oldsubpp;
 				return;
 			}
-			if (change == Type.CELLNEW)
+			if (type == Type.CELLNEW)
 			{
 				Cell cell = (Cell)obj;
 				cell.lowLevelUnlink();
-				change = Type.CELLKILL;
+				type = Type.CELLKILL;
 				return;
 			}
-			if (change == Type.CELLKILL)
+			if (type == Type.CELLKILL)
 			{
 				Cell cell = (Cell)obj;
 				cell.lowLevelLink();
-				change = Type.CELLNEW;
+				type = Type.CELLNEW;
 				return;
 			}
-			if (change == Type.CELLMOD)
+			if (type == Type.CELLMOD)
 			{
 				Cell cell = (Cell)obj;
 //				oldval = cell->lowx;    cell->lowx = c->p1;    c->p1 = oldval;
@@ -335,17 +340,17 @@ public class Undo
 //				oldval = cell->highy;   cell->highy = c->p4;   c->p4 = oldval;
 				return;
 			}
-			if (change == Type.OBJECTSTART)
+			if (type == Type.OBJECTSTART)
 			{
-				change = Type.OBJECTEND;
+				type = Type.OBJECTEND;
 				return;
 			}
-			if (change == Type.OBJECTEND)
+			if (type == Type.OBJECTEND)
 			{
-				change = Type.OBJECTSTART;
+				type = Type.OBJECTSTART;
 				return;
 			}
-			if (change == Type.OBJECTNEW)
+			if (type == Type.OBJECTNEW)
 			{
 				// args: addr, type
 //				switch (c->p1&VTYPE)
@@ -367,10 +372,10 @@ public class Undo
 //						}
 //						break;
 //				}
-				change = Type.OBJECTKILL;
+				type = Type.OBJECTKILL;
 				return;
 			}
-			if (change == Type.OBJECTKILL)
+			if (type == Type.OBJECTKILL)
 			{
 				// args: addr, type
 //				switch (c->p1&VTYPE)
@@ -381,10 +386,10 @@ public class Undo
 //						el_views = view;
 //						break;
 //				}
-				change = Type.OBJECTNEW;
+				type = Type.OBJECTNEW;
 				return;
 			}
-			if (change == Type.VARIABLENEW)
+			if (type == Type.VARIABLENEW)
 			{
 				// args: addr, type, key, newtype, newdescript[0], newdescript[1]
 //				if ((c->p3&VCREF) != 0)
@@ -425,13 +430,13 @@ public class Undo
 //				c->p4 = var->type;
 //				c->p5 = var->textdescript[0];
 //				c->p6 = var->textdescript[1];
-				change = Type.VARIABLEKILL;
+				type = Type.VARIABLEKILL;
 //				var->type = VINTEGER;		// fake it out so no memory is deallocated
 //				nextchangequiet();
 //				(void)delvalkey(c->entryaddr, c->p1, c->p2);
 				return;
 			}
-			if (change == Type.VARIABLEKILL)
+			if (type == Type.VARIABLEKILL)
 			{
 				// args: addr, type, key, oldaddr, oldtype, olddescript
 //				if ((c->p4&VCREF) != 0)
@@ -460,10 +465,10 @@ public class Undo
 //				}
 //				db_freevar(c->p3, c->p4);
 //				c->p3 = c->p4;
-				change = Type.VARIABLENEW;
+				type = Type.VARIABLENEW;
 				return;
 			}
-			if (change == Type.VARIABLEMOD)
+			if (type == Type.VARIABLEMOD)
 			{
 				// args: addr, type, key, vartype, aindex, oldvalue
 //				if ((c->p3&VCREF) != 0)
@@ -502,7 +507,7 @@ public class Undo
 //				}
 				return;
 			}
-			if (change == Type.VARIABLEINSERT)
+			if (type == Type.VARIABLEINSERT)
 			{
 				// args: addr, type, key, vartype, aindex
 //				if (getindkey(c->entryaddr, c->p1, c->p2, c->p4, &oldval))
@@ -514,18 +519,18 @@ public class Undo
 //				nextchangequiet();
 //				(void)delindkey(c->entryaddr, c->p1, c->p2, c->p4);
 //				c->p5 = oldval;
-				change = Type.VARIABLEDELETE;
+				type = Type.VARIABLEDELETE;
 				return;
 			}
-			if (change == Type.VARIABLEDELETE)
+			if (type == Type.VARIABLEDELETE)
 			{
 				// args: addr, type, key, vartype, aindex, oldvalue
 //				nextchangequiet();
 //				(void)insindkey(c->entryaddr, c->p1, c->p2, c->p4, c->p5);
-				change = Type.VARIABLEINSERT;
+				type = Type.VARIABLEINSERT;
 				return;
 			}
-			if (change == Type.DESCRIPTORMOD)
+			if (type == Type.DESCRIPTORMOD)
 			{
 //				var = getvalkeynoeval(c->entryaddr, c->p1, -1, c->p2);
 //				if (var == NOVARIABLE) break;
@@ -540,44 +545,44 @@ public class Undo
 		 * @param change the type of change being made.
 		 * @param obj the object to which the change is applied.
 		 */
-		private static void setDirty(Type change, ElectricObject obj)
+		private static void setDirty(Type type, ElectricObject obj)
 		{
 			Cell cell = null;
 			Library lib = null;
 			boolean major = false;
-			if (change == Type.NODEINSTNEW || change == Type.NODEINSTKILL || change == Type.NODEINSTMOD)
+			if (type == Type.NODEINSTNEW || type == Type.NODEINSTKILL || type == Type.NODEINSTMOD)
 			{
 				NodeInst ni = (NodeInst)obj;
 				cell = ni.getParent();
 				lib = cell.getLibrary();
 				major = true;
-			} else if (change == Type.ARCINSTNEW || change == Type.ARCINSTKILL || change == Type.ARCINSTMOD)
+			} else if (type == Type.ARCINSTNEW || type == Type.ARCINSTKILL || type == Type.ARCINSTMOD)
 			{
 				ArcInst ai = (ArcInst)obj;
 				cell = ai.getParent();
 				lib = cell.getLibrary();
 				major = true;
-			} else if (change == Type.EXPORTNEW || change == Type.EXPORTKILL || change == Type.EXPORTMOD)
+			} else if (type == Type.EXPORTNEW || type == Type.EXPORTKILL || type == Type.EXPORTMOD)
 			{
 				Export pp = (Export)obj;
 				cell = (Cell)pp.getParent();
 				lib = cell.getLibrary();
 				major = true;
-			} else if (change == Type.CELLNEW || change == Type.CELLKILL)
+			} else if (type == Type.CELLNEW || type == Type.CELLKILL)
 			{
 				cell = (Cell)obj;
 				lib = cell.getLibrary();
 				major = true;
-			} else if (change == Type.CELLMOD)
+			} else if (type == Type.CELLMOD)
 			{
 				cell = (Cell)obj;
 				lib = cell.getLibrary();
-			} else if (change == Type.OBJECTNEW || change == Type.OBJECTKILL)
+			} else if (type == Type.OBJECTNEW || type == Type.OBJECTKILL)
 			{
 				cell = obj.whichCell();
 				if (cell != null) lib = cell.getLibrary();
-			} else if (change == Type.VARIABLENEW || change == Type.VARIABLEMOD ||
-				change == Type.VARIABLEINSERT || change == Type.VARIABLEDELETE)
+			} else if (type == Type.VARIABLENEW || type == Type.VARIABLEMOD ||
+				type == Type.VARIABLEINSERT || type == Type.VARIABLEDELETE)
 			{
 //				if ((a3&VDONTSAVE) == 0)
 //				{
@@ -587,7 +592,7 @@ public class Undo
 //					// special cases that make the change "major"
 //					if (db_majorvariable(a1, a2)) major = true;
 //				}
-			} else if (change == Type.VARIABLEKILL)
+			} else if (type == Type.VARIABLEKILL)
 			{
 //				if ((a4&VDONTSAVE) == 0)
 //				{
@@ -597,7 +602,7 @@ public class Undo
 //					// special cases that make the change "major"
 //					if (db_majorvariable(a1, a2)) major = true;
 //				}
-			} else if (change == Type.DESCRIPTORMOD)
+			} else if (type == Type.DESCRIPTORMOD)
 			{
 //				if ((a3&VDONTSAVE) == 0)
 //				{
@@ -610,9 +615,9 @@ public class Undo
 			if (cell != null)
 			{
 				if (major) cell.madeRevision();
-				if (!changeCells.contains(cell))
+				if (!ChangeCell.contains(cell))
 				{
-					changeCells.add(cell);
+					ChangeCell.add(cell);
 				}
 			}
 			if (lib != null)
@@ -627,54 +632,49 @@ public class Undo
 		 */
 		String describe()
 		{
-			if (change == Type.NODEINSTNEW)
+			if (type == Type.NODEINSTNEW)
 			{
 				NodeInst ni = (NodeInst)obj;
 				return "Node " + ni.describe() + " created in cell " + ni.getParent().describe();
 			}
-			if (change == Type.NODEINSTKILL)
+			if (type == Type.NODEINSTKILL)
 			{
 				NodeInst ni = (NodeInst)obj;
 				return "Node " + ni.describe() + " deleted from cell " + ni.getParent().describe();
 			}
-			if (change == Type.NODEINSTMOD)
+			if (type == Type.NODEINSTMOD)
 			{
 				NodeInst ni = (NodeInst)obj;
-				return "Node " + ni.describe() + " modified in cell " + ni.getParent().describe();
-//				formatinfstr(infstr, M_(" Node '%s' changed in cell %s [was %sx%s, center (%s,%s), rotated %ld"),
-//					describenodeinst(ni), describenodeproto(ni->parent), latoa(p3-p1, lambda),
-//					latoa(p4-p2, lambda), latoa((p1+p3)/2, lambda), latoa((p2+p4)/2, lambda), p5);
-//				if (p6 != 0) addstringtoinfstr(infstr, M_(", transposed"));
+				return "Node " + ni.describe() + " modified in cell " + ni.getParent().describe() +
+					"[was " + getA3() + "x" + getA4() + " at (" + getA1() + "," + getA2() + ") rotated " + getI1()/10.0 + "]";
 			}
-			if (change == Type.ARCINSTNEW)
+			if (type == Type.ARCINSTNEW)
 			{
 				ArcInst ai = (ArcInst)obj;
 				return "Arc " + ai.describe() + " created in cell " + ai.getParent().describe();
 			}
-			if (change == Type.ARCINSTKILL)
+			if (type == Type.ARCINSTKILL)
 			{
 				ArcInst ai = (ArcInst)obj;
 				return "Arc " + ai.describe() + " deleted from cell " + ai.getParent().describe();
 			}
-			if (change == Type.ARCINSTMOD)
+			if (type == Type.ARCINSTMOD)
 			{
 				ArcInst ai = (ArcInst)obj;
-				return "Arc " + ai.describe() + " modified in cell " + ai.getParent().describe();
-//				formatinfstr(infstr, M_(" Arc '%s' modified in cell %s [was %s wide %s long from (%s,%s) to (%s,%s)]"),
-//					describearcinst(ai), describenodeproto(ai->parent), latoa(p5, lambda), latoa(p6, lambda),
-//						latoa(p1, lambda), latoa(p2, lambda), latoa(p3, lambda), latoa(p4, lambda));
+				return "Arc " + ai.describe() + " modified in cell " + ai.getParent().describe() +
+					"[was " + getA5() + " wide from (" + getA1() + "," + getA2() + ") to (" + getA3() + "," + getA4() + ")]";
 			}
-			if (change == Type.EXPORTNEW)
+			if (type == Type.EXPORTNEW)
 			{
 				Export pp = (Export)obj;
 				return "Export " + pp.getProtoName() + " created in cell " + pp.getParent().describe();
 			}
-			if (change == Type.EXPORTKILL)
+			if (type == Type.EXPORTKILL)
 			{
 				Export pp = (Export)obj;
 				return "Export " + pp.getProtoName() + " deleted from cell " + pp.getParent().describe();
 			}
-			if (change == Type.EXPORTMOD)
+			if (type == Type.EXPORTMOD)
 			{
 				Export pp = (Export)obj;
 				return "Export " + pp.getProtoName() + " modified in cell " + pp.getParent().describe();
@@ -682,17 +682,17 @@ public class Undo
 //					pp->protoname, describenodeproto(pp->parent), describenodeinst((NODEINST *)p1),
 //					((PORTPROTO *)p2)->protoname);
 			}
-			if (change == Type.CELLNEW)
+			if (type == Type.CELLNEW)
 			{
 				Cell cell = (Cell)obj;
 				return "Cell " + cell.describe() + " created";
 			}
-			if (change == Type.CELLKILL)
+			if (type == Type.CELLKILL)
 			{
 				Cell cell = (Cell)obj;
 				return "Cell " + cell.describe() + " deleted";
 			}
-			if (change == Type.CELLMOD)
+			if (type == Type.CELLMOD)
 			{
 				Cell cell = (Cell)obj;
 				return "Cell " + cell.describe() + " modified";
@@ -700,36 +700,36 @@ public class Undo
 //					describenodeproto(np), latoa(p1, lambda), latoa(p2, lambda),
 //						latoa(p3, lambda), latoa(p4, lambda));
 			}
-			if (change == Type.OBJECTSTART)
+			if (type == Type.OBJECTSTART)
 			{
 				return "Start change to object " + obj;
 			}
-			if (change == Type.OBJECTEND)
+			if (type == Type.OBJECTEND)
 			{
 				return "End change to object " + obj;
 			}
-			if (change == Type.OBJECTNEW)
+			if (type == Type.OBJECTNEW)
 			{
 				return "Created new object " + obj;
 			}
-			if (change == Type.OBJECTKILL)
+			if (type == Type.OBJECTKILL)
 			{
 				return "Deleted object " + obj;
 			}
-			if (change == Type.VARIABLENEW)
+			if (type == Type.VARIABLENEW)
 			{
 				return "Created variable";
 //				formatinfstr(infstr, M_(" Variable '%s' created on %s"), changedvariablename(p1, p2, p3),
 //					describeobject(entryaddr, p1));
 			}
-			if (change == Type.VARIABLEKILL)
+			if (type == Type.VARIABLEKILL)
 			{
 				return "Deleted variable";
 //				myvar.key = p2;  myvar.type = p4;  myvar.addr = p3;
 //				formatinfstr(infstr, M_(" Variable '%s' killed on %s [was %s]"), changedvariablename(p1, p2, p4),
 //					describeobject(entryaddr, p1), describevariable(&myvar, -1, -1));
 			}
-			if (change == Type.VARIABLEMOD)
+			if (type == Type.VARIABLEMOD)
 			{
 				return "Modified variable";
 //				formatinfstr(infstr, M_(" Variable '%s[%ld]' changed on %s"), changedvariablename(p1, p2, p3), p4,
@@ -741,19 +741,19 @@ public class Undo
 //					formatinfstr(infstr, M_(" [was '%s']"), describevariable(&myvar, -1, -1));
 //				}
 			}
-			if (change == Type.VARIABLEINSERT)
+			if (type == Type.VARIABLEINSERT)
 			{
 				return "Inserted variable";
 //				formatinfstr(infstr, M_(" Variable '%s[%ld]' inserted on %s"), changedvariablename(p1, p2, p3), p4,
 //					describeobject(entryaddr, p1));
 			}
-			if (change == Type.VARIABLEDELETE)
+			if (type == Type.VARIABLEDELETE)
 			{
 				return "Deleted variable";
 //				formatinfstr(infstr, M_(" Variable '%s[%ld]' deleted on %s"), changedvariablename(p1, p2, p3), p4,
 //					describeobject(entryaddr, p1));
 			}
-			if (change == Type.DESCRIPTORMOD)
+			if (type == Type.DESCRIPTORMOD)
 			{
 				return "Modified Text Descriptor";
 //				formatinfstr(infstr, M_(" Text descriptor on variable %s changed [was 0%lo/0%lo]"),
@@ -765,9 +765,8 @@ public class Undo
 
 	/**
 	 * ChangeBatch describes a batch of changes.
-	 * There are no public methods or field variables.
 	 */
-	static class ChangeBatch
+	public static class ChangeBatch
 	{
 		private List changes;
 		private int batchNumber;
@@ -775,9 +774,11 @@ public class Undo
 		private Tool tool;
 		private String activity;
 
-		ChangeBatch()
-		{
-		}
+		ChangeBatch() {}
+		
+		void add(Change change) { changes.add(change); }
+		public Iterator getChanges() { return changes.iterator(); }
+		public int getNumChanges() { return changes.size(); }
 
 		void describe()
 		{
@@ -787,27 +788,27 @@ public class Undo
 			for(int j = 0; j<batchSize; j++)
 			{
 				Change ch = (Change)changes.get(j);
-				if (ch.getChange() == Type.NODEINSTNEW || ch.getChange() == Type.NODEINSTKILL || ch.getChange() == Type.NODEINSTMOD)
+				if (ch.getType() == Type.NODEINSTNEW || ch.getType() == Type.NODEINSTKILL || ch.getType() == Type.NODEINSTMOD)
 				{
 					nodeInst++;
-				} else if (ch.getChange() == Type.ARCINSTNEW || ch.getChange() == Type.ARCINSTKILL || ch.getChange() == Type.ARCINSTMOD)
+				} else if (ch.getType() == Type.ARCINSTNEW || ch.getType() == Type.ARCINSTKILL || ch.getType() == Type.ARCINSTMOD)
 				{
 					arcInst++;
-				} else if (ch.getChange() == Type.EXPORTNEW || ch.getChange() == Type.EXPORTKILL || ch.getChange() == Type.EXPORTMOD)
+				} else if (ch.getType() == Type.EXPORTNEW || ch.getType() == Type.EXPORTKILL || ch.getType() == Type.EXPORTMOD)
 				{
 					export++;
-				} else if (ch.getChange() == Type.CELLNEW || ch.getChange() == Type.CELLKILL || ch.getChange() == Type.CELLMOD)
+				} else if (ch.getType() == Type.CELLNEW || ch.getType() == Type.CELLKILL || ch.getType() == Type.CELLMOD)
 				{
 					cell++;
-				} else if (ch.getChange() == Type.OBJECTNEW || ch.getChange() == Type.OBJECTKILL)
+				} else if (ch.getType() == Type.OBJECTNEW || ch.getType() == Type.OBJECTKILL)
 				{
 					object++;
-				} else if (ch.getChange() == Type.VARIABLENEW || ch.getChange() == Type.VARIABLEKILL ||
-					ch.getChange() == Type.VARIABLEMOD || ch.getChange() == Type.VARIABLEINSERT ||
-					ch.getChange() == Type.VARIABLEDELETE)
+				} else if (ch.getType() == Type.VARIABLENEW || ch.getType() == Type.VARIABLEKILL ||
+					ch.getType() == Type.VARIABLEMOD || ch.getType() == Type.VARIABLEINSERT ||
+					ch.getType() == Type.VARIABLEDELETE)
 				{
 					variable++;
-				} else if (ch.getChange() == Type.DESCRIPTORMOD)
+				} else if (ch.getType() == Type.DESCRIPTORMOD)
 				{
 //					if ((VARIABLE *)c->p1 != NOVARIABLE) variable++; else
 //						if ((PORTPROTO *)c->p3 != NOPORTPROTO) export++; else
@@ -831,10 +832,80 @@ public class Undo
 		}
 	}
 
+	/**
+	 * ChangeBatch describes a batch of changes.
+	 * There are no public methods or field variables.
+	 */
+	public static class ChangeCell
+	{
+		private Cell cell;
+		private boolean forcedLook;
+		private static List changeCells = new ArrayList();
+
+		private ChangeCell(Cell cell)
+		{
+			this.cell = cell;
+			this.forcedLook = false;
+		}
+
+		public Cell getCell() { return cell;}
+		public boolean getForcedLook() { return forcedLook;}
+
+		public static void clear()
+		{
+			changeCells.clear();
+		}
+
+		public static ChangeCell add(Cell cell)
+		{
+			ChangeCell cc = new ChangeCell(cell);
+			changeCells.add(cc);
+			return cc;
+		}
+
+		public static boolean contains(Cell cell)
+		{
+			for(Iterator it = changeCells.iterator(); it.hasNext(); )
+			{
+				ChangeCell cc = (ChangeCell)it.next();
+				if (cc.cell == cell) return true;
+			}
+			return false;
+		}
+
+		/**
+		 * Routine to return a list of cells that have changed in this batch.
+		 * @return an Interator over the list of changed cells.
+		 */
+		public static Iterator getIterator()
+		{
+			return changeCells.iterator();
+		}
+
+		/*
+		 * Routine to ensure that cell "np" is given a hierarchical analysis by the
+		 * constraint system.
+		 */
+		public static void forceHierarchicalAnalysis(Cell cell)
+		{
+			if (currentBatch == null) return;
+			for(Iterator it = changeCells.iterator(); it.hasNext(); )
+			{
+				ChangeCell cc = (ChangeCell)it.next();
+				if (cc.cell != cell) continue;
+				cc.forcedLook = true;
+				return;
+			}
+
+			/* if not in the list, create the entry and try again */
+			ChangeCell cc = ChangeCell.add(cell);
+			cc.forcedLook = true;
+		}
+	}
+
 	private static Type broadcasting = null;
 	private static boolean doNextChangeQuietly = false;
 	private static boolean doChangesQuietly = false;
-	private static List changeCells = new ArrayList();
 	private static ChangeBatch currentBatch = null;
 	private static int maximumBatches = 20;
 	private static int overallBatchNumber = 0;
@@ -855,7 +926,7 @@ public class Undo
 		noRedoAllowed();
 
 		// erase the list of changed cells
-		changeCells.clear();
+		ChangeCell.clear();
 
 		// allocate a new change batch
 		currentBatch = new ChangeBatch();
@@ -884,7 +955,7 @@ public class Undo
 		if (currentBatch == null) return;
 
 		// changes made: apply final constraints to this batch of changes
-//		(*el_curconstraint->solve)(NONODEPROTO);
+		Constraint.getCurrent().endBatch();
 
 		for(Iterator it = Tool.getTools(); it.hasNext(); )
 		{
@@ -902,10 +973,10 @@ public class Undo
 	 * <UL>
 	 * <LI>NODEINSTNEW takes nothing.
 	 * <LI>NODEINSTKILL takes nothing.
-	 * <LI>NODEINSTMOD takes a1=oldLX a2=oldHX a3=oldLY a4=oldHY a5=oldRotation a6=oldTranspose.
+	 * <LI>NODEINSTMOD takes a1=oldLX a2=oldHX a3=oldLY a4=oldHY i1=oldRotation.
 	 * <LI>ARCINSTNEW takes nothing.
 	 * <LI>ARCINSTKILL takes nothing.
-	 * <LI>ARCINSTMOD takes a1=oldHeadX a2=oldHeadY a3=oldTailX a4=oldTailY a5=oldWidth a6=oldLength.
+	 * <LI>ARCINSTMOD takes a1=oldHeadX a2=oldHeadY a3=oldTailX a4=oldTailY a5=oldWidth.
 	 * <LI>EXPORTNEW takes nothing.
 	 * <LI>EXPORTKILL takes nothing.
 	 * <LI>EXPORTMOD takes a1=oldNodeInst a2=oldPortProto.
@@ -925,15 +996,9 @@ public class Undo
 	 * </UL>
 	 * @param obj the object to which the change applies.
 	 * @param change the change being recorded.
-	 * @param a1 parameter 1 to the change.
-	 * @param a2 parameter 2 to the change.
-	 * @param a3 parameter 3 to the change.
-	 * @param a4 parameter 4 to the change.
-	 * @param a5 parameter 5 to the change.
-	 * @param a6 parameter 6 to the change.
 	 * @return the change object (null on error).
 	 */
-	public static Change newChange(ElectricObject obj, Type change, double a1, double a2, double a3, double a4, int a5, int a6)
+	public static Change newChange(ElectricObject obj, Type change)
 	{
 		if (currentBatch == null) return null;
 		if (broadcasting != null)
@@ -947,17 +1012,24 @@ public class Undo
 
 		// see if this is the first change
 		boolean firstChange = false;
-		if (currentBatch.changes.size() == 0) firstChange = true;
+		if (currentBatch.getNumChanges() == 0) firstChange = true;
 
 		// get change module
-		Change ch = new Change(obj, change, a1, a2, a3, a4, a5, a6);
+		Change ch = new Change(obj, change);
+
 		// insert new change module into linked list
-		currentBatch.changes.add(ch);
+		currentBatch.add(ch);
 
 		// broadcast the change
 		ch.broadcast(firstChange, false);
 		return ch;
 	}
+
+	/**
+	 * Routine to return the current change batch.
+	 * @return the current change batch (null if no changes are being done).
+	 */
+	public static ChangeBatch getCurrentBatch() { return currentBatch; }
 
 	/**
 	 * Routine to request that the next change be made "quietly".
@@ -1111,15 +1183,6 @@ public class Undo
 			doneList.remove(0);
 		}
 		return oldSize;
-	}
-
-	/**
-	 * Routine to return a list of cells that have changed in this batch.
-	 * @return an Interator over the list of changed cells.
-	 */
-	public static Iterator getChangedCells()
-	{
-		return changeCells.iterator();
 	}
 
 	/**
