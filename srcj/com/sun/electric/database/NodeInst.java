@@ -135,7 +135,7 @@ public class NodeInst extends Geometric
 		
 		// enumerate the port instances
 		int i = 0;
-		for(Iterator it = ni.getPorts(); it.hasNext();)
+		for(Iterator it = ni.getPortInsts(); it.hasNext();)
 		{
 			PortInst pi = (PortInst) it.next();
 			pi.setIndex(i++);
@@ -210,7 +210,7 @@ public class NodeInst extends Geometric
 		System.out.println(" Prototype: " + prototype.describe());
 		super.getInfo();
 		System.out.println(" Ports:");
-		for(Iterator it = getPorts(); it.hasNext();)
+		for(Iterator it = getPortInsts(); it.hasNext();)
 		{
 			PortInst pi = (PortInst) it.next();
 			Poly p = pi.getPoly();
@@ -264,7 +264,7 @@ public class NodeInst extends Geometric
 			String expNm = e.getProtoName();
 			String portNm = e.getPortInst().getPortProto().getProtoName();
 			e.delete();
-			PortInst newPort = newInst.findPort(portNm);
+			PortInst newPort = newInst.findPortInst(portNm);
 			error(
 				newPort == null,
 				"NodeInst.moveExports: can't find port: "
@@ -396,13 +396,13 @@ public class NodeInst extends Geometric
 	}
 
 	/** Get an iterator for all PortInst's */
-	public Iterator getPorts()
+	public Iterator getPortInsts()
 	{
 		return portMap.values().iterator();
 	}
 
 	/** Get the number of PortInst's */
-	public int getNumPorts()
+	public int getNumPortInsts()
 	{
 		return portMap.size();
 	}
@@ -410,16 +410,16 @@ public class NodeInst extends Geometric
 	/** Get the only port. <br> This is quite useful for vias and pins
 	 * which have only one port. If there's more or less than one port
 	 * then die. */
-	public PortInst getPort()
+	public PortInst getOnlyPortInst()
 	{
 		int sz = portMap.size();
-		error(sz != 1, "NodeInst.getPort: there isn't exactly one port: " + sz);
+		error(sz != 1, "NodeInst.getOnlyPort: there isn't exactly one port: " + sz);
 		return (PortInst) portMap.values().iterator().next();
 	}
 
 	/** Find the PortInst with the given name. If no PortInst has this
 	 * name then return null. */
-	public PortInst findPort(String name)
+	public PortInst findPortInst(String name)
 	{
 		return (PortInst) portMap.get(name);
 	}
