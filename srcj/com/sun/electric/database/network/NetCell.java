@@ -35,7 +35,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -109,7 +109,13 @@ class NetCell
 	Iterator getNetworks()
 	{
 		if ((flags & VALID) == 0) redoNetworks();
-		return Arrays.asList(networks).iterator();
+		ArrayList nets = new ArrayList();
+		for (int i = 0; i < networks.length; i++)
+		{
+			if (networks[i] != null)
+				nets.add(networks[i]);
+		}
+		return nets.iterator();
 	}
 
 	/*
