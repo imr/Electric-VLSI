@@ -40,12 +40,10 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.ncc.Ncc;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.NccResult;
-import com.sun.electric.plugins.tsmc90.TSMC90;
 
 
 /** The bottom of the PMOS well and the top of the NMOS well are at
