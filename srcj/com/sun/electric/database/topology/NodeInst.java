@@ -246,10 +246,10 @@ public class NodeInst extends Geometric implements Nodable
 		// make sure the change values are sensible
 		dRot = dRot % 3600;
 		if (dRot < 0) dRot += 3600;
-		if (dX == 0 && dY == 0 && dXSize == 0 && dYSize == 0 && dRot == 0)
-		{
-			return;
-		}
+//		if (dX == 0 && dY == 0 && dXSize == 0 && dYSize == 0 && dRot == 0)
+//		{
+//			return;
+//		}
 
 		// make the change
 		if (Undo.recordChange())
@@ -798,6 +798,20 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
+	 * Routine to set the starting and ending angle of an arc described by this NodeInst.
+	 * These values are stored in the "ART_degrees" variable on the NodeInst.
+	 * @param start the starting offset of the angle (typically 0)
+	 * @param curvature the the amount of curvature
+	 */
+	public void setArcDegrees(double start, double curvature)
+	{
+		Float [] fAddr = new Float[2];
+		fAddr[0] = new Float(start);
+		fAddr[1] = new Float(curvature);
+		this.setVar("ART_degrees", fAddr);
+	}
+
+	/**
 	 * Routine to recalculate the Geometric bounds for this NodeInst.
 	 */
 	void Geometric()
@@ -922,10 +936,11 @@ public class NodeInst extends Geometric implements Nodable
 		{
 			Export pp = (Export)it.next();
 			polys[start] = pp.getNamePoly();
+//System.out.println("Port poly bounds "+polys[start].getBounds2D());
 			start++;
 
 			// add in variables on the exports
-			Poly poly = getShapeOfPort(pp.getOriginalPort().getPortProto());
+			Poly poly = pp.getOriginalPort().getPoly();
 			int numadded = pp.addDisplayableVariables(poly.getBounds2D(), polys, start, wnd, false);
 			for(int i=0; i<numadded; i++)
 				polys[start+i].setPort(pp);

@@ -80,7 +80,15 @@ public class EMath
 		try
 		{
 			v = Double.parseDouble(text);
-		} catch (NumberFormatException ex) {}
+		} catch (NumberFormatException ex)
+		{
+			int start = 0;
+			while (start < text.length() && text.charAt(start) == ' ') start++;
+			int end = start;
+			while (end < text.length() && Character.isDigit(text.charAt(end))) end++;
+			if (end <= start) return 0;
+			v = Double.parseDouble(text.substring(start, end-start));
+		}
 		return v;
 	}
 

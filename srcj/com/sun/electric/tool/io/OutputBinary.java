@@ -855,6 +855,7 @@ public class OutputBinary extends Output
 			int type = BinaryConstants.VSTRING;
 			if (geom.isUsernamed()) type |= BinaryConstants.VDISPLAY;
 			writeBigInteger(type);
+
 			// write the text descriptor of name
 			writeBigInteger(geom.getNameTextDescriptor().lowLevelGet0());
 			writeBigInteger(geom.getNameTextDescriptor().lowLevelGet1());
@@ -870,8 +871,6 @@ public class OutputBinary extends Output
 
 			// create the "type" field
 			Object varObj = var.getObject();
-			boolean convertTrace = false;
-			if (varObj instanceof Object[] && key.getName().equals("trace")) convertTrace = true;
 			int type = var.lowLevelGetFlags() & ~(BinaryConstants.VTYPE|BinaryConstants.VISARRAY|BinaryConstants.VLENGTH);
 			if (varObj instanceof Object[])
 			{
@@ -881,7 +880,6 @@ public class OutputBinary extends Output
 			{
 				type |= getVarType(varObj);
 			}
-			if (convertTrace) type = (type & ~BinaryConstants.VTYPE) | BinaryConstants.VINTEGER;
 			writeBigInteger(type);
 
 			// write the text descriptor
@@ -894,22 +892,10 @@ public class OutputBinary extends Output
 				int len = ((Object[])varObj).length;
 				writeBigInteger(len);
 
-				// special case for "trace" on a node: scale the values
-				if (convertTrace)
+				for(int i=0; i<len; i++)
 				{
-					Float [] outline = (Float [])varObj;
-					for(int i=0; i<len; i++)
-					{
-						int oneVal = (int)(outline[i].intValue() * scale);
-						writeBigInteger(oneVal);
-					}
-				} else
-				{
-					for(int i=0; i<len; i++)
-					{
-						Object oneObj = ((Object[])varObj)[i];
-						putOutVar(oneObj);
-					}
+					Object oneObj = ((Object[])varObj)[i];
+					putOutVar(oneObj);
 				}
 			} else
 			{

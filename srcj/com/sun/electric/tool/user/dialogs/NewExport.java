@@ -57,7 +57,7 @@ public class NewExport extends javax.swing.JDialog
 		initComponents();
 
 		// setup the export characteristics popup
-		for(Iterator it = PortProto.Characteristic.getCharacteristics(); it.hasNext(); )
+		for(Iterator it = PortProto.Characteristic.getOrderedCharacteristics().iterator(); it.hasNext(); )
 		{
 			PortProto.Characteristic ch = (PortProto.Characteristic)it.next();
 			exportCharacteristics.addItem(ch.getName());
@@ -101,8 +101,8 @@ public class NewExport extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         getContentPane().add(jLabel1, gridBagConstraints);
 
         jLabel2.setText("Export characteristics:");
@@ -110,8 +110,8 @@ public class NewExport extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         getContentPane().add(jLabel2, gridBagConstraints);
 
         jLabel3.setText("Reference export:");
@@ -126,9 +126,17 @@ public class NewExport extends javax.swing.JDialog
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(exportName, gridBagConstraints);
+
+        exportCharacteristics.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                exportCharacteristicsActionPerformed(evt);
+            }
+        });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
@@ -141,16 +149,16 @@ public class NewExport extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(alwaysDrawn, gridBagConstraints);
 
         bodyOnly.setText("Body only");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(bodyOnly, gridBagConstraints);
 
         cancel.setText("Cancel");
@@ -165,8 +173,8 @@ public class NewExport extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
-        gridBagConstraints.insets = new java.awt.Insets(4, 40, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 40, 4, 4);
         getContentPane().add(cancel, gridBagConstraints);
 
         ok.setText("OK");
@@ -181,8 +189,8 @@ public class NewExport extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 4;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 40);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 40);
         getContentPane().add(ok, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -195,9 +203,17 @@ public class NewExport extends javax.swing.JDialog
         pack();
     }//GEN-END:initComponents
 
+	private void exportCharacteristicsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_exportCharacteristicsActionPerformed
+	{//GEN-HEADEREND:event_exportCharacteristicsActionPerformed
+		String stringNow = (String)exportCharacteristics.getSelectedItem();
+		PortProto.Characteristic characteristic = PortProto.Characteristic.findCharacteristic(stringNow);
+		referenceExport.setEditable(characteristic.isReference());
+	}//GEN-LAST:event_exportCharacteristicsActionPerformed
+
 	private void okActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_okActionPerformed
 	{//GEN-HEADEREND:event_okActionPerformed
 		String name = exportName.getText();
+		String referenceName = referenceExport.getText();
 		String characteristics = (String)exportCharacteristics.getSelectedItem();
 		PortProto.Characteristic ch = PortProto.Characteristic.findCharacteristic(characteristics);
 		boolean drawn = alwaysDrawn.isSelected();
@@ -241,7 +257,7 @@ public class NewExport extends javax.swing.JDialog
 		}
 
 		// make the export
-		MakeExport job = new MakeExport(ni.getParent(), pi, name, body, drawn, ch);
+		MakeExport job = new MakeExport(ni.getParent(), pi, name, body, drawn, ch, referenceName);
 		closeDialog(null);
 	}//GEN-LAST:event_okActionPerformed
 
@@ -250,12 +266,13 @@ public class NewExport extends javax.swing.JDialog
 		Cell cell;
 		PortInst pi;
 		String name;
+		String referenceName;
 		boolean body;
 		boolean drawn;
 		PortProto.Characteristic ch;
 
 		protected MakeExport(Cell cell, PortInst pi, String name,
-			boolean body, boolean drawn, PortProto.Characteristic ch)
+			boolean body, boolean drawn, PortProto.Characteristic ch, String referenceName)
 		{
 			super("Make Export", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
@@ -264,6 +281,7 @@ public class NewExport extends javax.swing.JDialog
 			this.body = body;
 			this.drawn = drawn;
 			this.ch = ch;
+			this.referenceName = referenceName;
 			this.startJob();
 		}
 
@@ -278,6 +296,8 @@ public class NewExport extends javax.swing.JDialog
 			e.setCharacteristic(ch);
 			if (drawn) e.setAlwaysDrawn();
 			if (body) e.setBodyOnly();
+			if (ch.isReference())
+				e.setVar("EXPORT_reference_name", referenceName);
 		}
 	}
 

@@ -262,8 +262,7 @@ public class Export extends PortProto
 	 */
 	public Poly getNamePoly()
 	{
-		PortInst pi = getOriginalPort();
-		Poly poly = pi.getNodeInst().getShapeOfPort(pi.getPortProto());
+		Poly poly = getOriginalPort().getPoly();
 		double cX = poly.getCenterX();
 		double cY = poly.getCenterY();
 		TextDescriptor td = getTextDescriptor();

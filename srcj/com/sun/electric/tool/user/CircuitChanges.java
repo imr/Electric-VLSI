@@ -95,6 +95,7 @@ public class CircuitChanges
 				deleteList.add(geom);
 			}
 			Highlight.clear();
+			Highlight.finished();
 			eraseObjectsInList(cell, deleteList);
 		}
 	}

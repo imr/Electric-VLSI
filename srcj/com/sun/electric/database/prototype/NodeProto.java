@@ -80,6 +80,12 @@ public abstract class NodeProto extends ElectricObject
 		}
 
 		/**
+		 * Returns a name of this Function.
+		 * @return a name of this Function.
+		 */
+		public String getName() { return name; }
+
+		/**
 		 * Returns a short name of this Function.
 		 * @return a short name of this Function.
 		 */

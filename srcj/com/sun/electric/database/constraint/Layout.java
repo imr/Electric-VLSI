@@ -1055,7 +1055,8 @@ public class Layout extends Constraint
 //			determineangle(ai);
 //		}
 		ai.kill();
-		ar2.setName(ai.getName());
+		String oldName = ai.getName();
+		if (oldName != null) ar2.setName(oldName);
 	}
 
 	/*

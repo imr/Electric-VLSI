@@ -32,6 +32,10 @@ import com.sun.electric.technology.PrimitivePort;
 
 import java.util.Iterator;
 import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Collections;
 
 /**
  * The PortProto class defines a type of PortInst.
@@ -65,22 +69,23 @@ public abstract class PortProto extends ElectricObject
 	/** set if this port should always be drawn */		private static final int PORTDRAWN =         0400000000;
 	/** set to exclude this port from the icon */		private static final int BODYONLY =         01000000000;
 	/** input/output/power/ground/clock state */		private static final int STATEBITS =       036000000000;
-	/** right shift of STATEBITS */						private static final int STATEBITSSH =               27;
-	/** un-phased clock port */							private static final int CLKPORT =          02000000000;
-	/** clock phase 1 */								private static final int C1PORT =           04000000000;
-	/** clock phase 2 */								private static final int C2PORT =           06000000000;
-	/** clock phase 3 */								private static final int C3PORT =          010000000000;
-	/** clock phase 4 */								private static final int C4PORT =          012000000000;
-	/** clock phase 5 */								private static final int C5PORT =          014000000000;
-	/** clock phase 6 */								private static final int C6PORT =          016000000000;
-	/** input port */									private static final int INPORT =          020000000000;
-	/** output port */									private static final int OUTPORT =         022000000000;
-	/** bidirectional port */							private static final int BIDIRPORT =       024000000000;
-	/** power port */									private static final int PWRPORT =         026000000000;
-	/** ground port */									private static final int GNDPORT =         030000000000;
-	/** bias-level reference output port */				private static final int REFOUTPORT =      032000000000;
-	/** bias-level reference input port */				private static final int REFINPORT =       034000000000;
-	/** bias-level reference base port */				private static final int REFBASEPORT =     036000000000;
+	/** input/output/power/ground/clock state */		private static final int STATEBITSSHIFTED =         036;
+	/** input/output/power/ground/clock state */		private static final int STATEBITSSH =               27;
+	/** un-phased clock port */							private static final int CLKPORT =                    2;
+	/** clock phase 1 */								private static final int C1PORT =                     4;
+	/** clock phase 2 */								private static final int C2PORT =                     6;
+	/** clock phase 3 */								private static final int C3PORT =                     8;
+	/** clock phase 4 */								private static final int C4PORT =                    10;
+	/** clock phase 5 */								private static final int C5PORT =                    12;
+	/** clock phase 6 */								private static final int C6PORT =                    14;
+	/** input port */									private static final int INPORT =                    16;
+	/** output port */									private static final int OUTPORT =                   18;
+	/** bidirectional port */							private static final int BIDIRPORT =                 20;
+	/** power port */									private static final int PWRPORT =                   22;
+	/** ground port */									private static final int GNDPORT =                   24;
+	/** bias-level reference output port */				private static final int REFOUTPORT =                26;
+	/** bias-level reference input port */				private static final int REFINPORT =                 28;
+	/** bias-level reference base port */				private static final int REFBASEPORT =               30;
 
 	/**
 	 * Characteristic is a typesafe enum class that describes the function of a PortProto.
@@ -89,7 +94,9 @@ public abstract class PortProto extends ElectricObject
 	public static class Characteristic
 	{
 		private final String name;
-		private final int    bits;
+		private final int bits;
+		private final int order;
+		private static int ordering = 0;
 
 		private static HashMap characteristicList = new HashMap();
 
@@ -97,6 +104,7 @@ public abstract class PortProto extends ElectricObject
 		{
 			this.name = name;
 			this.bits = bits;
+			this.order = ordering++;
 			characteristicList.put(new Integer(bits), this);
 		}
 
@@ -104,7 +112,7 @@ public abstract class PortProto extends ElectricObject
 		 * Routine to return the bit value associated with this Characteristic.
 		 * @return the bit value associated with this Characteristic.
 		 */
-		int getBits() { return bits; }
+		public int getBits() { return bits; }
 
 		/**
 		 * Routine to return the name of this Characteristic.
@@ -113,11 +121,22 @@ public abstract class PortProto extends ElectricObject
 		public String getName() { return name; }
 
 		/**
+		 * Routine to tell whether this Characteristic is "reference".
+		 * Reference exports have an extra name that identifies the reference export.
+		 * @return true if this Characteristic is "reference".
+		 */
+		public boolean isReference()
+		{
+			if (this == REFIN || this == REFOUT || this == REFBASE) return true;
+			return false;
+		}
+
+		/**
 		 * Routine to find the characteristic associated with the given bit value.
 		 * @param bits the bit value associated with a Characteristic.
 		 * @return the desired Characteristic (null if not found).
 		 */
-		static Characteristic findCharacteristic(int bits)
+		public static Characteristic findCharacteristic(int bits)
 		{
 			Object obj = characteristicList.get(new Integer(bits));
 			if (obj == null) return null;
@@ -131,7 +150,7 @@ public abstract class PortProto extends ElectricObject
 		 */
 		public static Characteristic findCharacteristic(String wantName)
 		{
-			for(Iterator it = getCharacteristics(); it.hasNext(); )
+			for(Iterator it = characteristicList.values().iterator(); it.hasNext(); )
 			{
 				Characteristic ch = (Characteristic)it.next();
 				if (ch.name.equals(wantName)) return ch;
@@ -143,9 +162,23 @@ public abstract class PortProto extends ElectricObject
 		 * Routine to return an iterator over all of the PortProto Characteristics.
 		 * @return an iterator over all of the PortProto Characteristics.
 		 */
-		public static Iterator getCharacteristics()
+		public static List getOrderedCharacteristics()
 		{
-			return characteristicList.values().iterator();
+			List orderedList = new ArrayList();
+			for(Iterator it = characteristicList.values().iterator(); it.hasNext(); )
+				orderedList.add(it.next());
+			Collections.sort(orderedList, new CharacteristicOrder());
+			return orderedList;
+		}
+
+		static class CharacteristicOrder implements Comparator
+		{
+			public int compare(Object o1, Object o2)
+			{
+				Characteristic c1 = (Characteristic)o1;
+				Characteristic c2 = (Characteristic)o2;
+				return c1.order - c2.order;
+			}
 		}
 
 		/**
@@ -155,6 +188,11 @@ public abstract class PortProto extends ElectricObject
 		public String toString() { return name; }
 
 		/** Describes an unknown port. */						public static final Characteristic UNKNOWN = new Characteristic("unknown", 0);
+		/** Describes an input port. */							public static final Characteristic IN = new Characteristic("input", INPORT);
+		/** Describes an output port. */						public static final Characteristic OUT = new Characteristic("output", OUTPORT);
+		/** Describes a bidirectional port. */					public static final Characteristic BIDIR = new Characteristic("bidirectional", BIDIRPORT);
+		/** Describes a power port. */							public static final Characteristic PWR = new Characteristic("power", PWRPORT);
+		/** Describes a ground port. */							public static final Characteristic GND = new Characteristic("ground", GNDPORT);
 		/** Describes an un-phased clock port. */				public static final Characteristic CLK = new Characteristic("clock", CLKPORT);
 		/** Describes a clock phase 1 port. */					public static final Characteristic C1 = new Characteristic("clock1", C1PORT);
 		/** Describes a clock phase 2 port. */					public static final Characteristic C2 = new Characteristic("clock2", C2PORT);
@@ -162,11 +200,6 @@ public abstract class PortProto extends ElectricObject
 		/** Describes a clock phase 4 port. */					public static final Characteristic C4 = new Characteristic("clock4", C4PORT);
 		/** Describes a clock phase 5 port. */					public static final Characteristic C5 = new Characteristic("clock5", C5PORT);
 		/** Describes a clock phase 6 port. */					public static final Characteristic C6 = new Characteristic("clock6", C6PORT);
-		/** Describes an input port. */							public static final Characteristic IN = new Characteristic("input", INPORT);
-		/** Describes an output port. */						public static final Characteristic OUT = new Characteristic("output", OUTPORT);
-		/** Describes a bidirectional port. */					public static final Characteristic BIDIR = new Characteristic("bidirectional", BIDIRPORT);
-		/** Describes a power port. */							public static final Characteristic PWR = new Characteristic("power", PWRPORT);
-		/** Describes a ground port. */							public static final Characteristic GND = new Characteristic("ground", GNDPORT);
 		/** Describes a bias-level reference output port. */	public static final Characteristic REFOUT = new Characteristic("refout", REFOUTPORT);
 		/** Describes a bias-level reference input port. */		public static final Characteristic REFIN = new Characteristic("refin", REFINPORT);
 		/** Describes a bias-level reference base port. */		public static final Characteristic REFBASE = new Characteristic("refbase", REFBASEPORT);
@@ -275,7 +308,7 @@ public abstract class PortProto extends ElectricObject
 	 */
 	public Characteristic getCharacteristic()
 	{
-		Characteristic characteristic = Characteristic.findCharacteristic(userBits&STATEBITS);
+		Characteristic characteristic = Characteristic.findCharacteristic((userBits>>STATEBITSSH)&STATEBITSSHIFTED);
 		return characteristic;
 	}
 
@@ -285,7 +318,7 @@ public abstract class PortProto extends ElectricObject
 	 */
 	public void setCharacteristic(Characteristic characteristic)
 	{
-		userBits = (userBits & ~STATEBITS) | characteristic.getBits();
+		userBits = (userBits & ~STATEBITS) | (characteristic.getBits() << STATEBITSSH);
 	}
 
 	/**

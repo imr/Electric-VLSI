@@ -123,7 +123,32 @@ public class EGraphics
 		this.green = green;
 		this.blue = blue;
 	}
-	
+
+	public static int findColorIndex(String name)
+	{
+		if (name.equals("white"))       return WHITE;
+		if (name.equals("black"))       return BLACK;
+		if (name.equals("red"))         return RED;
+		if (name.equals("blue"))        return BLUE;
+		if (name.equals("green"))       return GREEN;
+		if (name.equals("cyan"))        return CYAN;
+		if (name.equals("magenta"))     return MAGENTA;
+		if (name.equals("yellow"))      return YELLOW;
+		if (name.equals("gray"))        return GRAY;
+		if (name.equals("orange"))      return ORANGE;
+		if (name.equals("purple"))      return PURPLE;
+		if (name.equals("brown"))       return BROWN;
+		if (name.equals("light-gray"))  return LGRAY;
+		if (name.equals("dark-gray"))   return DGRAY;
+		if (name.equals("light-red"))   return LRED;
+		if (name.equals("dark-red"))    return DRED;
+		if (name.equals("light-green")) return LGREEN;
+		if (name.equals("dark-green"))  return DGREEN;
+		if (name.equals("light-blue"))  return LBLUE;
+		if (name.equals("dark-blue"))   return DBLUE;
+		return 0;
+	}
+
 	/**
 	 * Routine to set the color associated with this EGraphics.
 	 * @param index the color to set.
@@ -162,5 +187,39 @@ public class EGraphics
 			case LBLUE:   this.red = 150;   this.green = 150;   this.blue = 255;   break;
 			case DBLUE:   this.red =   2;   this.green =  15;   this.blue = 159;   break;
 		}
+	}
+
+	public static String getColorName(int index)
+	{
+		switch (index)
+		{
+			case WHITE:   return "white";
+			case BLACK:   return "black";
+			case RED:     return "red";
+			case BLUE:    return "blue";
+			case GREEN:   return "green";
+			case CYAN:    return "cyan";
+			case MAGENTA: return "magenta";
+			case YELLOW:  return "yellow";
+			case GRAY:    return "gray";
+			case ORANGE:  return "orange";
+			case PURPLE:  return "purple";
+			case BROWN:   return "brown";
+			case LGRAY:   return "light-gray";
+			case DGRAY:   return "dark-gray";
+			case LRED:    return "light-red";
+			case DRED:    return "dark-red";
+			case LGREEN:  return "light-green";
+			case DGREEN:  return "dark-green";
+			case LBLUE:   return "light-blue";
+			case DBLUE:   return "dark-blue";
+		}
+		return "Color "+index;
+	}
+
+	public static int [] getColors()
+	{
+		return new int [] {WHITE, BLACK, RED, BLUE, GREEN, CYAN, MAGENTA, YELLOW,
+			GRAY, ORANGE, PURPLE, BROWN, LGRAY, DGRAY, LRED, DRED, LGREEN, DGREEN, LBLUE, DBLUE};
 	}
 }

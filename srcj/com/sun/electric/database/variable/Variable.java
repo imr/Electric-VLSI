@@ -234,7 +234,7 @@ public class Variable
         df.format(num.doubleValue(), buf, fp);
         return buf.toString();
     }
-    
+
 	/**
 	 * Routine to return a description of this Variable.
 	 * @return a description of this Variable.
@@ -252,7 +252,7 @@ public class Variable
     {
         return describe(aindex, purpose, VarContext.globalContext, null);
     }
-    
+
 	/**
 	 * routine to make a printable string from variable "val", array index
 	 * "aindex".  If "aindex" is negative, print the entire array.  If "purpose" is

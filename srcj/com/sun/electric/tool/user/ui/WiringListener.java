@@ -173,6 +173,7 @@ class WiringListener
 			Rectangle2D highlight = new Rectangle2D.Double(lx, ly, hx-lx, hy-ly);
 			Highlight.addArea(highlight, cellBeingWired);
 		}
+		Highlight.finished();
 		wnd.redraw();
 	}
 
@@ -336,6 +337,7 @@ class WiringListener
 				if (nodesCreated != 0) report += " and " + nodesCreated + " nodes";
 				System.out.println(report);
 			}
+			Highlight.finished();
 		}
 	}
 

@@ -271,6 +271,7 @@ public class Clipboard
 					return;
 				}
 				Highlight.clear();
+				Highlight.finished();
 				boolean overlaid = false;
 				for(Iterator it = geoms.iterator(); it.hasNext(); )
 				{
@@ -655,6 +656,7 @@ public class Clipboard
 				ai = (ArcInst)ai.getTempObj();
 				Highlight h = Highlight.addGeometric(ai);
 			}
+			Highlight.finished();
 		}
 
 		// cleanup temp object pointers that correspond from old cell to new

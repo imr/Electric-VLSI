@@ -54,6 +54,11 @@ import com.sun.electric.tool.user.dialogs.EditOptions;
 import com.sun.electric.tool.user.dialogs.IOOptions;
 import com.sun.electric.tool.user.dialogs.CrossLibCopy;
 import com.sun.electric.tool.user.dialogs.NewExport;
+import com.sun.electric.tool.user.dialogs.GetInfoNode;
+import com.sun.electric.tool.user.dialogs.GetInfoArc;
+import com.sun.electric.tool.user.dialogs.GetInfoExport;
+import com.sun.electric.tool.user.dialogs.GetInfoText;
+import com.sun.electric.tool.user.dialogs.GetInfoMulti;
 import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.generator.PadGenerator;
@@ -611,82 +616,45 @@ public final class UserMenuCommands
 		} else
 		{
 			// information about the selected items
+			int arcCount = 0;
+			int nodeCount = 0;
+			int exportCount = 0;
+			int textCount = 0;
+			int graphicsCount = 0;
 			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
 				if (h.getType() == Highlight.Type.GEOM)
 				{
 					Geometric geom = h.getGeom();
-					geom.getInfo();
-				} else if (h.getType() == Highlight.Type.TEXT)
-				{
-					if (h.getVar() != null)
+					if (geom instanceof NodeInst)
 					{
-						String trueName = h.getVar().getReadableName();
-						if (h.getGeom() != null)
-						{
-							if (h.getPort() != null)
-							{
-								System.out.println("TEXT: " + trueName + " on export '" + h.getPort().getProtoName() + "'");
-							} else
-							{
-								if (h.getGeom() instanceof NodeInst)
-								{
-									NodeInst ni = (NodeInst)h.getGeom();
-									if (ni.getProto() == Generic.tech.invisiblePinNode)
-									{
-										String varName = h.getVar().getKey().getName();
-										if (varName.equals("ART_message"))
-										{
-											System.out.println("TEXT: Nonlayout text");
-											continue;
-										}
-										if (varName.equals("VERILOG_code"))
-										{
-											System.out.println("TEXT: Verilog Code");
-											continue;
-										}
-										if (varName.equals("VERILOG_declaration"))
-										{
-											System.out.println("TEXT: Verilog declaration");
-											continue;
-										}
-										if (varName.equals("SIM_spice_card"))
-										{
-											System.out.println("TEXT: SPICE card");
-											continue;
-										}
-									}
-								}
-								System.out.println("TEXT: " + trueName + " on geometry " + h.getGeom().describe());
-							}
-						} else
-						{
-							System.out.println("TEXT: " + trueName + " on cell " + h.getCell().describe());
-						}
+						nodeCount++;
 					} else
 					{
-						if (h.getPort() != null)
-						{
-							System.out.println("TEXT: Export '" + h.getPort().getProtoName() + "'");
-						} else
-						{
-							if (h.getGeom() != null)
-							{
-								System.out.println("TEXT: Cell instance name " + h.getGeom().describe());
-							} else
-							{
-								System.out.println("TEXT: UNKNOWN");
-							}
-						}
+						arcCount++;
 					}
+				} else if (h.getType() == Highlight.Type.TEXT)
+				{
+					if (h.getVar() == null && h.getPort() != null) exportCount++; else
+						textCount++;
 				} else if (h.getType() == Highlight.Type.BBOX)
 				{
-					System.out.println("*** Area selected");
+					graphicsCount++;
 				} else if (h.getType() == Highlight.Type.LINE)
 				{
-					System.out.println("*** Line selected");
+					graphicsCount++;
 				}
+			}
+			if (arcCount <= 1 && nodeCount <= 1 && exportCount <= 1 && textCount <= 1 && graphicsCount == 0)
+			{
+				if (arcCount == 1) GetInfoArc.showDialog();
+				if (nodeCount == 1) GetInfoNode.showDialog();
+				if (exportCount == 1) GetInfoExport.showDialog();
+				if (textCount == 1) GetInfoText.showDialog();
+			} else
+			{
+				GetInfoMulti.showDialog();
 			}
 		}
 	}

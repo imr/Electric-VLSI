@@ -639,14 +639,17 @@ public class Library extends ElectricObject
 		CellName n = CellName.parseName(name);
 		if (n == null) return null;
 
+		Cell onlyWithName = null;
 		for (Iterator it = cells.iterator(); it.hasNext();)
 		{
 			Cell c = (Cell) it.next();
 			if (!n.getName().equalsIgnoreCase(c.getProtoName())) continue;
+			onlyWithName = c;
 			if (n.getView() != c.getView()) continue;
 			if (n.getVersion() > 0 && n.getVersion() != c.getVersion()) continue;
 			return c;
 		}
+		if (n.getView() == View.UNKNOWN && onlyWithName != null) return onlyWithName;
 		return null;
 	}
 

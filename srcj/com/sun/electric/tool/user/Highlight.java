@@ -48,9 +48,15 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.UserMenuCommands;
 import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.dialogs.GetInfoNode;
+import com.sun.electric.tool.user.dialogs.GetInfoArc;
+import com.sun.electric.tool.user.dialogs.GetInfoExport;
+import com.sun.electric.tool.user.dialogs.GetInfoText;
+import com.sun.electric.tool.user.dialogs.GetInfoMulti;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -104,8 +110,17 @@ public class Highlight
 	public static class Type
 	{
 		private final String name;
+		private int order;
+		private static int ordering = 1;
 
-		private Type(String name) { this.name = name; }
+		private Type(String name) { this.name = name;   this.order = ordering++; }
+
+		/**
+		 * Returns an ordering of this Type.
+		 * The ordering is used in the multi-object Get Info dialog.
+		 * @return an ordering of this Type.
+		 */
+		public int getOrder() { return order; }
 
 		/**
 		 * Returns a printable version of this Type.
@@ -149,6 +164,19 @@ public class Highlight
 			WindowFrame wf = (WindowFrame)it.next();
 			wf.getEditWindow().repaint();
 		}
+	}
+
+	/**
+	 * Routine to indicate that changes to highlighting are finished.
+	 * Call this after any change to highlighting.
+	 */
+	public static void finished()
+	{
+		GetInfoNode.load();
+		GetInfoArc.load();
+		GetInfoExport.load();
+		GetInfoText.load();
+		GetInfoMulti.load();
 	}
 
 	/**
@@ -465,6 +493,7 @@ public class Highlight
 			Highlight h = (Highlight)it.next();
 			highlightList.add(h);
 		}
+		Highlight.finished();
 	}
 
 	/**
@@ -545,9 +574,11 @@ public class Highlight
 			{
 				points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
 				points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+//				g.drawLine((int)points[0].getX() + highOffX, (int)points[0].getY() + highOffY, (int)points[1].getX() + highOffX, (int)points[1].getY() + highOffY);
 				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY, false);
 				points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
 				points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+//				g.drawLine((int)points[0].getX() + highOffX, (int)points[0].getY() + highOffY, (int)points[1].getX() + highOffX, (int)points[1].getY() + highOffY);
 				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY, false);
 			} else if (style == Poly.Type.TEXTBOT)
 			{
@@ -715,7 +746,7 @@ public class Highlight
 			poly.transform(trans);
 			drawOutlineFromPoints(wnd, g,  poly.getPoints(), highOffX, highOffY, false);
 		}
-	
+
 		// draw the selected port
 		PortProto pp = getPort();
 		if (pp != null)
@@ -724,7 +755,24 @@ public class Highlight
 			boolean opened = true;
 			if (poly.getStyle() == Poly.Type.FILLED || poly.getStyle() == Poly.Type.CLOSED) opened = false;
 			poly.transform(trans);
-			drawOutlineFromPoints(wnd, g,  poly.getPoints(), highOffX, highOffY, opened);
+			if (poly.getStyle() == Poly.Type.CIRCLE || poly.getStyle() == Poly.Type.THICKCIRCLE ||
+				poly.getStyle() == Poly.Type.DISC)
+			{
+				Point2D [] points = poly.getPoints();
+				double sX = points[0].distance(points[1]) * 2;
+				Point2D [] pts = Artwork.fillEllipse(points[0], sX, sX, 0, 360);
+				drawOutlineFromPoints(wnd, g,  pts, highOffX, highOffY, opened);
+			} else if (poly.getStyle() == Poly.Type.CIRCLEARC)
+			{
+				Point2D [] points = poly.getPoints();
+				double [] angles = ni.getArcDegrees();
+				double sX = points[0].distance(points[1]) * 2;
+				Point2D [] pts = Artwork.fillEllipse(points[0], sX, sX, angles[0], angles[1]);
+				drawOutlineFromPoints(wnd, g,  pts, highOffX, highOffY, opened);
+			} else
+			{
+				drawOutlineFromPoints(wnd, g,  poly.getPoints(), highOffX, highOffY, opened);
+			}
 		}
 	}
 
@@ -757,6 +805,7 @@ public class Highlight
 		if (underCursor.size() == 0)
 		{
 			clear();
+			finished();
 			return;
 		}
 
@@ -777,6 +826,7 @@ public class Highlight
 					{
 						highlightList.add(underCursor.get(0));
 					}
+					finished();
 					return;
 				}
 			}
@@ -785,6 +835,7 @@ public class Highlight
 		// just use the first in the list
 		clear();
 		highlightList.add(underCursor.get(0));
+		finished();
 
 //		// reevaluate if this is code
 //		if ((curhigh->status&HIGHTYPE) == HIGHTEXT && curhigh->fromvar != NOVARIABLE &&
@@ -863,6 +914,8 @@ public class Highlight
 				for(int i=0; i<polys.length; i++)
 				{
 					Poly poly = polys[i];
+
+					// do we need to do this? !!!
 					poly.transform(trans);
 					poly.setExactTextBounds(wnd);
 					double dist = poly.polyDistance(bounds);

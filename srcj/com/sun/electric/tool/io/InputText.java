@@ -24,6 +24,7 @@
 package com.sun.electric.tool.io;
 
 import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
@@ -474,8 +475,13 @@ public class InputText extends Input
 			Point2D center = new Point2D.Double((double)(cX-xoff) / lambda, (double)(cY-yoff) / lambda);
 			double width = (highX - lowX) / lambda;
 			double height = (highY - lowY) / lambda;
-			if (nil.nodeInstTranspose[j]) width = -width;
-			ni.lowLevelPopulate(np, center, width, height, nil.nodeInstRotation[j], cell);
+			int rotation = nil.nodeInstRotation[j];
+			if (nil.nodeInstTranspose[j])
+			{
+				height = -height;
+				rotation = (rotation + 900) % 3600;
+			}
+			ni.lowLevelPopulate(np, center, width, height, rotation, cell);
 			ni.setNameLow(name);
 			ni.lowLevelLink();
 
@@ -497,7 +503,20 @@ public class InputText extends Input
 			double headY = (ail.arcHeadY[j]-yoff) / lambda;
 			double tailX = (ail.arcTailX[j]-xoff) / lambda;
 			double tailY = (ail.arcTailY[j]-yoff) / lambda;
-			ai.lowLevelPopulate(ap, width, tailPortInst, new Point2D.Double(tailX, tailY), headPortInst, new Point2D.Double(headX, headY));
+			Point2D headPt = new Point2D.Double(headX, headY);
+			Point2D tailPt = new Point2D.Double(tailX, tailY);
+
+//			// make checks
+//			Poly poly = headPortInst.getPoly();
+//			if (!poly.isInside(headPt))
+//				System.out.println("Cell " + cell.describe() + ", arc " + ap.describe() + " head at (" +
+//					ail.arcHeadX[j] + "," + ail.arcHeadY[j] + ") not in port");
+//			poly = tailPortInst.getPoly();
+//			if (!poly.isInside(tailPt))
+//				System.out.println("Cell " + cell.describe() + ", arc " + ap.describe() + " tail at (" +
+//					ail.arcTailX[j] + "," + ail.arcTailY[j] + ") not in port");
+
+			ai.lowLevelPopulate(ap, width, tailPortInst, tailPt, headPortInst, headPt);
 			ai.setNameLow(name);
 			ai.lowLevelLink();
 		}

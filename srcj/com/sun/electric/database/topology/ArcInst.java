@@ -931,15 +931,19 @@ public class ArcInst extends Geometric
 		Point2D headPt = getHead().getLocation();
 		if (!stillInPort(getHead(), headPt, false))
 		{
+			Poly poly = getHead().getPortInst().getPoly();
 			System.out.println("Cell " + parent.describe() + ", arc " + describe() +
-				": head not in port, is at (" + headPt.getX() + "," + headPt.getY() + ")");
+				": head not in port, is at (" + headPt.getX() + "," + headPt.getY() + ") but port center is (" +
+				poly.getCenterX() + "," + poly.getCenterY() + ")");
 			errorCount++;
 		}
 		Point2D tailPt = getTail().getLocation();
 		if (!stillInPort(getTail(), tailPt, false))
 		{
+			Poly poly = getTail().getPortInst().getPoly();
 			System.out.println("Cell " + parent.describe() + ", arc " + describe() +
-				": tail not in port, is at (" + tailPt.getX() + "," + tailPt.getY() + ")");
+				": tail not in port, is at (" + tailPt.getX() + "," + tailPt.getY() + ") but port center is (" +
+				poly.getCenterX() + "," + poly.getCenterY() + ")");
 			errorCount++;
 		}
 

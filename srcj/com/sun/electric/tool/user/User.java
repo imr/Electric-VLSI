@@ -28,6 +28,11 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.user.dialogs.GetInfoNode;
+import com.sun.electric.tool.user.dialogs.GetInfoArc;
+import com.sun.electric.tool.user.dialogs.GetInfoExport;
+import com.sun.electric.tool.user.dialogs.GetInfoText;
+import com.sun.electric.tool.user.dialogs.GetInfoMulti;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -115,5 +120,12 @@ public class User extends Tool
 				if (winCell == cell) win.redraw();
 			}
 		}
+
+		// update any Get-Info dialogs
+		GetInfoNode.load();
+		GetInfoArc.load();
+		GetInfoExport.load();
+		GetInfoText.load();
+		GetInfoMulti.load();
 	}
 }

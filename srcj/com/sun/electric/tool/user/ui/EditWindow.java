@@ -626,6 +626,7 @@ public class EditWindow extends JPanel
 		if (descript != null)
 		{
 			size = descript.getTrueSize(this);
+			if (size <= 0) size = 1;
 			if (descript.isItalic()) fontStyle |= Font.ITALIC;
 			if (descript.isBold()) fontStyle |= Font.BOLD;
 		}
@@ -1047,8 +1048,8 @@ public class EditWindow extends JPanel
 
 	public Point deltaDatabaseToScreen(double dbDX, double dbDY)
 	{
-		int screenDX = (int)(dbDX * scale);
-		int screenDY = (int)(-dbDY * scale);
+		int screenDX = (int)Math.round(dbDX * scale);
+		int screenDY = (int)Math.round(-dbDY * scale);
 		return new Point(screenDX, screenDY);
 	}
 
@@ -1129,6 +1130,7 @@ public class EditWindow extends JPanel
 		curLib.setCurCell(cell);
 		Highlight.clear();
 //        if (lastPushed != null) Highlight.addGeometric(lastPushed);
+		Highlight.finished();
 		fillScreen();
 		redraw();
 	}

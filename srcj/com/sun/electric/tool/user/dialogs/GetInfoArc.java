@@ -1,0 +1,845 @@
+/* -*- tab-width: 4 -*-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: GetInfoArc.java
+ *
+ * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
+package com.sun.electric.tool.user.dialogs;
+
+import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.ui.TopLevel;
+
+import java.util.Iterator;
+import java.awt.geom.Point2D;
+import javax.swing.JFrame;
+import javax.swing.JComboBox;
+import javax.swing.JList;
+import javax.swing.ListSelectionModel;
+import javax.swing.DefaultListModel;
+import javax.swing.JScrollPane;
+import javax.swing.text.Document;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+
+
+/**
+ * Class to handle the "Arc Get-Info" dialog.
+ */
+public class GetInfoArc extends javax.swing.JDialog
+{
+	private static GetInfoArc theDialog = null;
+	private static ArcInst shownArc = null;
+	private String initialName;
+	private double initialWidth;
+	private boolean initialEasyToSelect;
+	private boolean initialRigid, initialFixedAngle, initialSlidable;
+	private boolean initialNegated, initialDirectional, initialEndsExtend;
+	private boolean initialSkipHead, initialSkipTail, initialReverseEnds;
+
+	/**
+	 * Routine to show the Arc Get-Info dialog.
+	 */
+	public static void showDialog()
+	{
+		if (theDialog == null)
+		{
+			JFrame jf = TopLevel.getCurrentJFrame();
+			theDialog = new GetInfoArc(jf, false);
+		}
+		theDialog.show();
+		theDialog.attributes.setEnabled(false);
+	}
+
+	/**
+	 * Routine to reload the Arc Get-Info dialog from the current highlighting.
+	 */
+	public static void load()
+	{
+		if (theDialog == null) return;
+		theDialog.loadArcInfo();
+	}
+
+	/** Creates new form Arc Get-Info */
+	public GetInfoArc(java.awt.Frame parent, boolean modal)
+	{
+		super(parent, modal);
+		setLocation(100, 50);
+		initComponents();
+		loadArcInfo();
+	}
+
+	private void loadArcInfo()
+	{
+		// must have a single node selected
+		ArcInst ai = null;
+		int arcCount = 0;
+		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+		{
+			Highlight h = (Highlight)it.next();
+			if (h.getType() == Highlight.Type.GEOM)
+			{
+				Geometric geom = h.getGeom();
+				if (geom instanceof ArcInst)
+				{
+					ai = (ArcInst)geom;
+					arcCount++;
+				}
+			}
+		}
+		if (arcCount > 1) ai = null;
+		if (ai == null)
+		{
+			if (shownArc != null)
+			{
+				// no arc selected, disable the dialog
+				name.setEditable(false);
+				width.setEditable(false);
+				easyToSelect.setEnabled(false);
+				rigid.setEnabled(false);
+				fixedAngle.setEnabled(false);
+				slidable.setEnabled(false);
+				negated.setEnabled(false);
+				directional.setEnabled(false);
+				endsExtend.setEnabled(false);
+				skipHead.setEnabled(false);
+				skipTail.setEnabled(false);
+				reverseEnds.setEnabled(false);
+
+				type.setText("");
+				network.setText("");
+				name.setText("");
+				width.setText("");
+				busSize.setText("");
+				angle.setText("");
+				headNode.setText("");
+				headLoc.setText("");
+				tailNode.setText("");
+				tailLoc.setText("");
+				rigid.setSelected(false);
+				fixedAngle.setSelected(false);
+				slidable.setSelected(false);
+				negated.setSelected(false);
+				directional.setSelected(false);
+				endsExtend.setSelected(false);
+				skipHead.setSelected(false);
+				skipTail.setSelected(false);
+				reverseEnds.setSelected(false);
+
+				shownArc = null;
+			}
+			return;
+		}
+
+		// enable it
+		name.setEditable(true);
+		width.setEditable(true);
+		easyToSelect.setEnabled(true);
+		rigid.setEnabled(true);
+		fixedAngle.setEnabled(true);
+		slidable.setEnabled(true);
+		negated.setEnabled(true);
+		directional.setEnabled(true);
+		endsExtend.setEnabled(true);
+		skipHead.setEnabled(true);
+		skipTail.setEnabled(true);
+		reverseEnds.setEnabled(true);
+
+		// get initial values
+		initialName = ai.getName();
+		initialWidth = ai.getWidth();
+		initialEasyToSelect = !ai.isHardSelect();
+		initialRigid = ai.isRigid();
+		initialFixedAngle = ai.isFixedAngle();
+		initialSlidable = ai.isSlidable();
+		initialNegated = ai.isNegated();
+		initialDirectional = ai.isDirectional();
+		initialEndsExtend = ai.isExtended();
+		initialSkipHead = ai.isSkipHead();
+		initialSkipTail = ai.isSkipTail();
+		initialReverseEnds = ai.isReverseEnds();
+
+		// load the dialog
+		type.setText(ai.getProto().describe());
+		network.setText("????");
+		name.setText(initialName);
+		width.setText(Double.toString(initialWidth));
+		busSize.setText("???");
+		angle.setText(Double.toString(ai.getAngle() / 10.0));
+		easyToSelect.setSelected(initialEasyToSelect);
+		headNode.setText(ai.getHead().getPortInst().getNodeInst().describe());
+		Point2D headPt = ai.getHead().getLocation();
+		headLoc.setText("(" + headPt.getX() + "," + headPt.getY() + ")");
+		tailNode.setText(ai.getTail().getPortInst().getNodeInst().describe());
+		Point2D tailPt = ai.getHead().getLocation();
+		tailLoc.setText("(" + tailPt.getX() + "," + tailPt.getY() + ")");
+		rigid.setSelected(initialRigid);
+		fixedAngle.setSelected(initialFixedAngle);
+		slidable.setSelected(initialSlidable);
+		negated.setSelected(initialNegated);
+		directional.setSelected(initialDirectional);
+		endsExtend.setSelected(initialEndsExtend);
+		skipHead.setSelected(initialSkipHead);
+		skipTail.setSelected(initialSkipTail);
+		reverseEnds.setSelected(initialReverseEnds);
+
+		shownArc = ai;
+	}
+
+	/** This method is called from within the constructor to
+	 * initialize the form.
+	 * WARNING: Do NOT modify this code. The content of this method is
+	 * always regenerated by the Form Editor.
+	 */
+    private void initComponents()//GEN-BEGIN:initComponents
+    {
+        java.awt.GridBagConstraints gridBagConstraints;
+
+        jPanel1 = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        type = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        network = new javax.swing.JLabel();
+        jLabel5 = new javax.swing.JLabel();
+        name = new javax.swing.JTextField();
+        jLabel6 = new javax.swing.JLabel();
+        width = new javax.swing.JTextField();
+        jLabel7 = new javax.swing.JLabel();
+        busSize = new javax.swing.JLabel();
+        jLabel9 = new javax.swing.JLabel();
+        angle = new javax.swing.JLabel();
+        easyToSelect = new javax.swing.JCheckBox();
+        cancel = new javax.swing.JButton();
+        jLabel11 = new javax.swing.JLabel();
+        headNode = new javax.swing.JLabel();
+        jLabel13 = new javax.swing.JLabel();
+        headLoc = new javax.swing.JLabel();
+        headSee = new javax.swing.JButton();
+        ok = new javax.swing.JButton();
+        jLabel15 = new javax.swing.JLabel();
+        tailNode = new javax.swing.JLabel();
+        jLabel17 = new javax.swing.JLabel();
+        tailLoc = new javax.swing.JLabel();
+        tailSee = new javax.swing.JButton();
+        apply = new javax.swing.JButton();
+        jPanel2 = new javax.swing.JPanel();
+        rigid = new javax.swing.JCheckBox();
+        reverseEnds = new javax.swing.JCheckBox();
+        endsExtend = new javax.swing.JCheckBox();
+        slidable = new javax.swing.JCheckBox();
+        skipTail = new javax.swing.JCheckBox();
+        directional = new javax.swing.JCheckBox();
+        fixedAngle = new javax.swing.JCheckBox();
+        skipHead = new javax.swing.JCheckBox();
+        negated = new javax.swing.JCheckBox();
+        attributes = new javax.swing.JButton();
+
+        setTitle("Arc Information");
+        setName("");
+        addWindowListener(new java.awt.event.WindowAdapter()
+        {
+            public void windowClosing(java.awt.event.WindowEvent evt)
+            {
+                closeDialog(evt);
+            }
+        });
+
+        jPanel1.setLayout(new java.awt.GridBagLayout());
+
+        jLabel1.setText("Type:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(jLabel1, gridBagConstraints);
+
+        type.setText(" ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(type, gridBagConstraints);
+
+        jLabel3.setText("Network:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(jLabel3, gridBagConstraints);
+
+        network.setText(" ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(network, gridBagConstraints);
+
+        jLabel5.setText("Name:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(jLabel5, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        jPanel1.add(name, gridBagConstraints);
+
+        jLabel6.setText("Width:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(jLabel6, gridBagConstraints);
+
+        width.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(width, gridBagConstraints);
+
+        jLabel7.setText("Bus size:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        jPanel1.add(jLabel7, gridBagConstraints);
+
+        busSize.setText(" ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(busSize, gridBagConstraints);
+
+        jLabel9.setText("Angle:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(jLabel9, gridBagConstraints);
+
+        angle.setText(" ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(angle, gridBagConstraints);
+
+        easyToSelect.setText("Easy to Select");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(easyToSelect, gridBagConstraints);
+
+        cancel.setText("Cancel");
+        cancel.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                cancelActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(cancel, gridBagConstraints);
+
+        jLabel11.setText("Head:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(jLabel11, gridBagConstraints);
+
+        headNode.setText(" ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(headNode, gridBagConstraints);
+
+        jLabel13.setText("At:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(jLabel13, gridBagConstraints);
+
+        headLoc.setText(" ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(headLoc, gridBagConstraints);
+
+        headSee.setText("See");
+        headSee.setMinimumSize(new java.awt.Dimension(56, 20));
+        headSee.setPreferredSize(new java.awt.Dimension(56, 20));
+        headSee.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                headSeeActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(headSee, gridBagConstraints);
+
+        ok.setText("OK");
+        ok.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                okActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(ok, gridBagConstraints);
+
+        jLabel15.setText("Tail:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(jLabel15, gridBagConstraints);
+
+        tailNode.setText(" ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(tailNode, gridBagConstraints);
+
+        jLabel17.setText("At:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(jLabel17, gridBagConstraints);
+
+        tailLoc.setText(" ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(tailLoc, gridBagConstraints);
+
+        tailSee.setText("See");
+        tailSee.setMinimumSize(new java.awt.Dimension(56, 20));
+        tailSee.setPreferredSize(new java.awt.Dimension(56, 20));
+        tailSee.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                tailSeeActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(tailSee, gridBagConstraints);
+
+        apply.setText("Apply");
+        apply.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                applyActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(apply, gridBagConstraints);
+
+        getContentPane().add(jPanel1, java.awt.BorderLayout.CENTER);
+
+        jPanel2.setLayout(new java.awt.GridBagLayout());
+
+        rigid.setText("Rigid");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel2.add(rigid, gridBagConstraints);
+
+        reverseEnds.setText("Reverse head and tail");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel2.add(reverseEnds, gridBagConstraints);
+
+        endsExtend.setText("Ends extend");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel2.add(endsExtend, gridBagConstraints);
+
+        slidable.setText("Slidable");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel2.add(slidable, gridBagConstraints);
+
+        skipTail.setText("Ignore tail");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel2.add(skipTail, gridBagConstraints);
+
+        directional.setText("Directional");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel2.add(directional, gridBagConstraints);
+
+        fixedAngle.setText("Fixed-angle");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel2.add(fixedAngle, gridBagConstraints);
+
+        skipHead.setText("Ignore head");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel2.add(skipHead, gridBagConstraints);
+
+        negated.setText("Negated");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel2.add(negated, gridBagConstraints);
+
+        attributes.setText("Attributes");
+        attributes.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                attributesActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridheight = 3;
+        jPanel2.add(attributes, gridBagConstraints);
+
+        getContentPane().add(jPanel2, java.awt.BorderLayout.SOUTH);
+
+        pack();
+    }//GEN-END:initComponents
+
+	private void attributesActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_attributesActionPerformed
+	{//GEN-HEADEREND:event_attributesActionPerformed
+		// Add your handling code here:
+	}//GEN-LAST:event_attributesActionPerformed
+
+	private void tailSeeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tailSeeActionPerformed
+	{//GEN-HEADEREND:event_tailSeeActionPerformed
+		if (shownArc == null) return;
+		ArcInst ai = shownArc;
+		NodeInst ni = shownArc.getTail().getPortInst().getNodeInst();
+		Highlight.clear();
+		Highlight.addGeometric(ni);
+		Highlight.addGeometric(ai);
+		Highlight.finished();
+	}//GEN-LAST:event_tailSeeActionPerformed
+
+	private void headSeeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_headSeeActionPerformed
+	{//GEN-HEADEREND:event_headSeeActionPerformed
+		if (shownArc == null) return;
+		ArcInst ai = shownArc;
+		NodeInst ni = shownArc.getHead().getPortInst().getNodeInst();
+		Highlight.clear();
+		Highlight.addGeometric(ni);
+		Highlight.addGeometric(ai);
+		Highlight.finished();
+	}//GEN-LAST:event_headSeeActionPerformed
+
+	private void applyActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_applyActionPerformed
+	{//GEN-HEADEREND:event_applyActionPerformed
+		if (shownArc == null) return;
+		ChangeArc job = new ChangeArc(shownArc, this);
+	}//GEN-LAST:event_applyActionPerformed
+
+	private void okActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_okActionPerformed
+	{//GEN-HEADEREND:event_okActionPerformed
+		applyActionPerformed(evt);
+		closeDialog(null);
+	}//GEN-LAST:event_okActionPerformed
+
+	private void cancelActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cancelActionPerformed
+	{//GEN-HEADEREND:event_cancelActionPerformed
+		closeDialog(null);
+	}//GEN-LAST:event_cancelActionPerformed
+	
+	/** Closes the dialog */
+	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
+	{
+		setVisible(false);
+//		dispose();
+	}//GEN-LAST:event_closeDialog
+
+	protected static class ChangeArc extends Job
+	{
+		ArcInst ai;
+		GetInfoArc dialog;
+
+		protected ChangeArc(ArcInst ai, GetInfoArc dialog)
+		{
+			super("Modify Arc", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.ai = ai;
+			this.dialog = dialog;
+			this.startJob();
+		}
+
+		public void doIt()
+		{
+			boolean changed = false;
+
+			String currentName = dialog.name.getText();
+			if (!currentName.equals(dialog.initialName))
+			{
+				ai.setName(currentName);
+				dialog.initialName = new String(currentName);
+				changed = true;
+			}
+			boolean currentEasyToSelect = dialog.easyToSelect.isSelected();
+			if (currentEasyToSelect != dialog.initialEasyToSelect)
+			{
+				if (currentEasyToSelect) ai.clearHardSelect(); else
+					ai.setHardSelect();
+				dialog.initialEasyToSelect = currentEasyToSelect;
+			}
+
+			boolean currentRigid = dialog.rigid.isSelected();
+			if (currentRigid != dialog.initialRigid)
+			{
+				if (currentRigid) ai.setRigid(); else
+					ai.clearRigid();
+				dialog.initialRigid = currentRigid;
+				changed = true;
+			}
+			boolean currentFixedAngle = dialog.fixedAngle.isSelected();
+			if (currentFixedAngle != dialog.initialFixedAngle)
+			{
+				if (currentFixedAngle) ai.setFixedAngle(); else
+					ai.clearFixedAngle();
+				dialog.initialFixedAngle = currentFixedAngle;
+				changed = true;
+			}
+			boolean currentSlidable = dialog.slidable.isSelected();
+			if (currentSlidable != dialog.initialSlidable)
+			{
+				if (currentSlidable) ai.setSlidable(); else
+					ai.clearSlidable();
+				dialog.initialSlidable = currentSlidable;
+				changed = true;
+			}
+
+			boolean currentNegated = dialog.negated.isSelected();
+			if (currentNegated != dialog.initialNegated)
+			{
+				if (currentNegated) ai.setNegated(); else
+					ai.clearNegated();
+				dialog.initialNegated = currentNegated;
+				changed = true;
+			}
+			boolean currentDirectional = dialog.directional.isSelected();
+			if (currentDirectional != dialog.initialDirectional)
+			{
+				if (currentDirectional) ai.setDirectional(); else
+					ai.clearDirectional();
+				dialog.initialDirectional = currentDirectional;
+				changed = true;
+			}
+			boolean currentEndsExtend = dialog.endsExtend.isSelected();
+			if (currentEndsExtend != dialog.initialEndsExtend)
+			{
+				if (currentEndsExtend) ai.setExtended(); else
+					ai.clearExtended();
+				dialog.initialEndsExtend = currentEndsExtend;
+				changed = true;
+			}
+
+			boolean currentSkipHead = dialog.skipHead.isSelected();
+			if (currentSkipHead != dialog.initialSkipHead)
+			{
+				if (currentSkipHead) ai.setSkipHead(); else
+					ai.clearSkipHead();
+				dialog.initialSkipHead = currentSkipHead;
+				changed = true;
+			}
+			boolean currentSkipTail = dialog.skipTail.isSelected();
+			if (currentSkipTail != dialog.initialSkipTail)
+			{
+				if (currentSkipTail) ai.setSkipTail(); else
+					ai.clearSkipTail();
+				dialog.initialSkipTail = currentSkipTail;
+				changed = true;
+			}
+			boolean currentReverseEnds = dialog.reverseEnds.isSelected();
+			if (currentReverseEnds != dialog.initialReverseEnds)
+			{
+				if (currentReverseEnds) ai.setReverseEnds(); else
+					ai.clearReverseEnds();
+				dialog.initialReverseEnds = currentReverseEnds;
+				changed = true;
+			}
+
+			double currentWidth = Double.parseDouble(dialog.width.getText());
+			if (!EMath.doublesEqual(currentWidth, dialog.initialWidth) || changed)
+			{
+				ai.modify(currentWidth - dialog.initialWidth, 0, 0, 0, 0);
+				dialog.initialWidth = currentWidth;
+			}
+		}
+	}
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel angle;
+    private javax.swing.JButton apply;
+    private javax.swing.JButton attributes;
+    private javax.swing.JLabel busSize;
+    private javax.swing.JButton cancel;
+    private javax.swing.JCheckBox directional;
+    private javax.swing.JCheckBox easyToSelect;
+    private javax.swing.JCheckBox endsExtend;
+    private javax.swing.JCheckBox fixedAngle;
+    private javax.swing.JLabel headLoc;
+    private javax.swing.JLabel headNode;
+    private javax.swing.JButton headSee;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel13;
+    private javax.swing.JLabel jLabel15;
+    private javax.swing.JLabel jLabel17;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel9;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JTextField name;
+    private javax.swing.JCheckBox negated;
+    private javax.swing.JLabel network;
+    private javax.swing.JButton ok;
+    private javax.swing.JCheckBox reverseEnds;
+    private javax.swing.JCheckBox rigid;
+    private javax.swing.JCheckBox skipHead;
+    private javax.swing.JCheckBox skipTail;
+    private javax.swing.JCheckBox slidable;
+    private javax.swing.JLabel tailLoc;
+    private javax.swing.JLabel tailNode;
+    private javax.swing.JButton tailSee;
+    private javax.swing.JLabel type;
+    private javax.swing.JTextField width;
+    // End of variables declaration//GEN-END:variables
+	
+}

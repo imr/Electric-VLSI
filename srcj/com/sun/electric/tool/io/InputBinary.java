@@ -364,6 +364,7 @@ public class InputBinary extends Input
 		nodeRotationList = new short[nodeCount];
 		nodeTransposeList = new boolean[nodeCount];
 
+
 		// allocate pointers for the ArcInsts
 		arcList = new ArcInst[arcCount];
 		arcTypeList = new ArcProto[arcCount];
@@ -383,6 +384,7 @@ public class InputBinary extends Input
 			arcHeadPortList[i] = null;
 			arcTailNodeList[i] = null;
 			arcTailPortList[i] = null;
+			arcNameList[i] = null;
 		}
 
 		// allocate pointers for the Exports
@@ -1636,6 +1638,7 @@ public class InputBinary extends Input
 		nodeHighYList[nodeIndex] = readBigInteger();
 		nodeTransposeList[nodeIndex] = readBigInteger() != 0;
 		nodeRotationList[nodeIndex] = (short)readBigInteger();
+		nodeNameList[nodeIndex] = null;
 
 		// versions 9 and later get text descriptor for cell name
 		int descript0 = 0, descript1 = 0;
@@ -1836,8 +1839,13 @@ public class InputBinary extends Input
 	}
 
 	/**
-	 * routine to read a set of object variables.  returns negative upon error and
-	 * otherwise returns the number of variables read
+	 * Routine to read a set of variables onto a given object.
+	 * @param obj the object onto which the variables will be stored.
+	 * @param index the index (in global arrays) of the arc or node being read (-1 if not a NodeInst or ArcInst).
+	 * These special indices must be used because node and arc names are checked for uniqueness within the
+	 * cell, but the cell has not been constructed yet.  So the names must be stored in a separate place
+	 * and applied later.
+	 * @return the number of variables read (negative on error).
 	 */
 	private int readVariables(ElectricObject obj, int index)
 		throws IOException
@@ -1941,19 +1949,22 @@ public class InputBinary extends Input
 			}
 
 			// Geometric names are saved as variables.
-			if ((obj instanceof NodeInst && realName[key].equals(NodeInst.NODE_NAME) ||
-				obj instanceof ArcInst && realName[key].equals(ArcInst.VAR_ARC_NAME)) &&
-				newAddr instanceof String)
+			if (newAddr instanceof String)
 			{
-				Geometric geom = (Geometric)obj;
-				geom.setNameTextDescriptor(TextDescriptor.newDescriptor(descript0, descript1));
-				Name name = makeGeomName(geom, newAddr, newtype);
-				if (obj instanceof NodeInst)
-					nodeNameList[index] = name;
-				else
-					arcNameList[index] = name;
-				continue;
+				if ((obj instanceof NodeInst && realName[key].equals(NodeInst.NODE_NAME)) ||
+					(obj instanceof ArcInst && realName[key].equals(ArcInst.VAR_ARC_NAME)))
+				{
+					Geometric geom = (Geometric)obj;
+					geom.setNameTextDescriptor(TextDescriptor.newDescriptor(descript0, descript1));
+					Name name = makeGeomName(geom, newAddr, newtype);
+					if (obj instanceof NodeInst)
+						nodeNameList[index] = name;
+					else
+						arcNameList[index] = name;
+					continue;
+				}
 			}
+
 			// see if the variable is deprecated
 			boolean invalid = obj.isDeprecatedVariable(realName[key]);
 			if (!invalid)

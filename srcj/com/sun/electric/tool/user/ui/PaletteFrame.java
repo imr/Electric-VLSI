@@ -890,6 +890,7 @@ public class PaletteFrame
 				isDrawn = true;
 				wnd.repaint();
 			}
+			Highlight.finished();
 		}
 
 		public void mouseReleased(MouseEvent evt)
@@ -918,6 +919,7 @@ public class PaletteFrame
 
 			// restore the former listener to the edit windows
 			Highlight.clear();
+			Highlight.finished();
 			EditWindow.setListener(oldListener);
 			window.frame.highlightedNode = null;
 			TopLevel.setCurrentCursor(oldCursor);
@@ -987,6 +989,7 @@ public class PaletteFrame
 			if (ni != null) newNi.setTechSpecific(ni.getTechSpecific());
 			np.getTechnology().setDefaultOutline(newNi);
 			Highlight.addGeometric(newNi);
+			Highlight.finished();
 		}
 	}
 }

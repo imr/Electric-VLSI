@@ -295,7 +295,7 @@ public class Input
 	}
 
 	/**
-	 * Routine to set name of Geometric object..
+	 * Routine to set name of Geometric object.
 	 * @param geom the Geometric object.
 	 * @param value name of object
 	 * @param td text descriptor.

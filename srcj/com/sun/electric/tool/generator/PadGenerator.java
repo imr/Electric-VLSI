@@ -23,10 +23,6 @@
  */
 package com.sun.electric.tool.generator;
 
-import java.awt.geom.Point2D;
-import java.io.*;
-import java.util.StringTokenizer;
-
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -38,13 +34,27 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.Input;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.DialogOpenFile;
+import com.sun.electric.lib.LibFile;
+
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.io.File;
+import java.io.FileReader;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.util.StringTokenizer;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * @author Willy Chung
@@ -59,272 +69,236 @@ public class PadGenerator
 		String cell;
 		String inport;
 		String outport;
-		ArrayAlign nextArrayAlign;
 	}
-	
+
 	public class PortAssociate
 	{
 		NodeInst ni;
 		PortProto pp;
 		PortProto corepp;
-		PortAssociate nextportassociate;
 	}
 
 	public class PadFrame extends Job
 	{
 		String filename;
-		
+
 		protected PadFrame(String file)
 		{
 			super("Pad Frame Generator", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.filename = file;
 			this.startJob();
 		}
-		
-	
+
 		public void doIt()
 		{
-			String lineRead, keyWord, truename, save, libname, cellname, exportname = null;
-			int copycells = 0;
-			int angle =0;
-			int lineno;
-			int gap =0, gapx =0, gapy = 0;
-			
+			String lineRead;
+			int gap = 0, gapx = 0, gapy = 0;
 			PortProto pp = null, exportpp;
-			Library lib, savelib;
-			NodeProto np, corenp;
-			Cell cell;
-			NodeInst ni = null, lastni;
-			ArcInst ai = null;
-			Technology savetech;
-			ArrayAlign aa, firstaa;
-			PortAssociate pa, firstpa;
-			Input.ImportType style;
-			Poly poly;
-			double centerX = 0;
-			double centerY = 0;
-			int filetypearray = -1;
+			Cell np;
 			double width = 0, height = 0;
-						
-			File inputFile = new File(this.filename);
-			
-			if(inputFile==null||inputFile.canRead()==false)
+
+			File inputFile = new File(filename);
+			if (inputFile == null || !inputFile.canRead())
 			{
 				System.out.println("Error reading file");
 				return;
 			}
-			
-			FileReader readFile;
-			try {
-				readFile = new FileReader(inputFile);
-			
-				BufferedReader readLine  = new BufferedReader(readFile);
-				StringTokenizer str;
-	
-				lineRead = readLine.readLine();
-		
-				firstaa = null;
-				firstpa = null;
-				lineno=1;
-				angle = 0;
-				copycells=0;
-				cell = null;
-				corenp = null;
-				lastni = null;
-				lib = null;
-				
-				while(lineRead!=null)
-				{
-					str = new StringTokenizer(lineRead, " \t");
-					if(str.hasMoreTokens())
-					{
-						keyWord = str.nextToken();
 
-						if(keyWord.charAt(0)!=';')
+			int angle = 0;
+			try {
+				FileReader readFile = new FileReader(inputFile);
+				BufferedReader readLine = new BufferedReader(readFile);
+
+				lineRead = readLine.readLine();
+
+				List arrayAlignList = new ArrayList();
+				List arrayPortAssociate = new ArrayList();
+				int lineno = 1;
+				boolean copycells = false;
+				Cell cell = null;
+				Cell corenp = null;
+				NodeInst lastni = null;
+				Library cellLib = null;
+
+				while (lineRead != null)
+				{
+					StringTokenizer str = new StringTokenizer(lineRead, " \t");
+					if (str.hasMoreTokens())
+					{
+						String keyWord = str.nextToken();
+
+						if (keyWord.charAt(0) != ';')
 						{
 							do
 							{
-								if(keyWord.equals("celllibrary"))
+								if (keyWord.equals("celllibrary"))
 								{
-									if(str.hasMoreTokens())
+									if (str.hasMoreTokens())
 									{
-										keyWord=str.nextToken();
-										style=Input.ImportType.BINARY;
-										String tmp[] = keyWord.split("\\.");
-									
-										if(tmp[1]=="txt")
+										keyWord = str.nextToken();
+										Library.Name n = Library.Name.newInstance(keyWord);
+										cellLib = Library.findLibrary(n.getName());
+										if (cellLib == null)
 										{
-											style=Input.ImportType.TEXT;
-										}
-										libname = tmp[0];
-										lib=Library.findLibrary(libname);
-										
-										if(lib==null)
-										{
-											lib = Library.newInstance(libname, inputFile.getName());
-											lib = Input.readLibrary(lib.getLibName(), style);
-											if(lib==null)
+											// library does not exist: see if file can be found locally
+											String externalFile = keyWord;
+											File testFile = new File(externalFile);
+											if (!testFile.exists())
 											{
-												System.out.println("Line "+lineno+": cannot read library " + keyWord);
+												// try the Electric library area
+												externalFile = LibFile.getLibFile(keyWord);
+											}
+
+											Input.ImportType style = Input.ImportType.BINARY;
+											if (n.getExtension().equals("txt")) style = Input.ImportType.TEXT;
+											Library saveLib = Library.getCurrent();
+											cellLib = Library.newInstance(n.getName(), externalFile);
+											cellLib = Input.readLibrary(externalFile, style);
+											if (cellLib == null)
+											{
+												System.out.println("Line " + lineno + ": cannot read library " + keyWord);
 												return;
-											}									
+											}		
+											Library.setCurrent(saveLib);
 										}
 									}
 
-									if(str.hasMoreTokens())
+									if (str.hasMoreTokens())
 									{
-										keyWord=str.nextToken();
-										if(keyWord.equals("copy"))
+										keyWord = str.nextToken();
+										if (keyWord.equals("copy"))
 										{
-											copycells=1;
+											copycells = true;
 										}
 									}
 									continue;
 								}
 								else if (keyWord.equals("facet"))
 								{
-									if(str.hasMoreTokens())
+									if (str.hasMoreTokens())
 									{
-										keyWord=str.nextToken();
+										keyWord = str.nextToken();
 										cell = Cell.newInstance(Library.getCurrent(), keyWord);
-										
-										if(cell==null)
+										if (cell == null)
 										{
-											System.out.println("Line "+lineno+": unable to create cell " + keyWord);
+											System.out.println("Line " + lineno + ": unable to create cell " + keyWord);
 											break;
 										}
-									}			
+									}
 									continue;			
 								}
 								else if (keyWord.equals("core"))
 								{
-									if(str.hasMoreTokens())
+									if (str.hasMoreTokens())
 									{
-										keyWord=str.nextToken();
-										corenp=NodeProto.findNodeProto(keyWord);
-										
-										if(corenp==null)
+										keyWord = str.nextToken();
+										corenp = (Cell)NodeProto.findNodeProto(keyWord);
+										if (corenp == null)
 										{
-											System.out.println("Line "+lineno+": cannot find core cell "+keyWord);
+											System.out.println("Line " + lineno + ": cannot find core cell " + keyWord);
 										}
 									}
 									continue;
 								}
-								else if(keyWord.equals("rotate"))
+								else if (keyWord.equals("rotate"))
 								{
-									if(str.hasMoreTokens())
+									if (str.hasMoreTokens())
 									{
-										keyWord=str.nextToken();
-										if(keyWord.equals("c"))
+										keyWord = str.nextToken();
+										if (keyWord.equals("c"))
 										{
 											angle = (angle+2700)%3600;
 										}
-										else if(keyWord.equals("cc"))
+										else if (keyWord.equals("cc"))
 										{
 											angle = (angle+900)%3600;
 										}
 										else
 										{
-											System.out.println("Line "+lineno+": incorrect rotation "+keyWord);
+											System.out.println("Line " + lineno + ": incorrect rotation " + keyWord);
 										}
 									}
 									continue;
 								}
-								else if(keyWord.equals("align"))
+								else if (keyWord.equals("align"))
 								{
-									aa = new ArrayAlign();
+									ArrayAlign aa = new ArrayAlign();
 									keyWord = str.nextToken();
-									
-									if(keyWord.equals(""))
+
+									if (keyWord.equals(""))
 									{
-										System.out.println("Line "+lineno+": missing 'cell' name");
+										System.out.println("Line " + lineno + ": missing 'cell' name");
 										break;
 									}
 									aa.cell = keyWord;
-									
+
 									keyWord = str.nextToken();
-									
-									if(keyWord.equals(""))
+
+									if (keyWord.equals(""))
 									{
-										System.out.println("Line "+lineno+": missing 'in port' name");
+										System.out.println("Line " + lineno + ": missing 'in port' name");
 										break;					
 									}
 									aa.inport = keyWord;
-									
+
 									keyWord = str.nextToken();
-									
-									if(keyWord.equals(""))
+
+									if (keyWord.equals(""))
 									{
-										System.out.println("Line "+lineno+": missing 'out port' name");	
+										System.out.println("Line " + lineno + ": missing 'out port' name");	
 										break;
 									}
 									aa.outport = keyWord;
-									
-									aa.nextArrayAlign = firstaa;
-									firstaa = aa;
+									arrayAlignList.add(aa);
 									continue;
 								}
-								else if(keyWord.equals("place"))
+								else if (keyWord.equals("place"))
 								{
 									keyWord = str.nextToken();
-									
-									if(cell==null)
+
+									if (cell == null)
 									{
-										System.out.println("Line "+lineno+": no 'facet' line specified for 'place'");
+										System.out.println("Line " + lineno + ": no 'facet' line specified for 'place'");
 										break;
 									}
-									
-									if(copycells!=0)
+
+									np = cellLib.findNodeProto(keyWord);
+									if (copycells)
 									{
-										np = NodeProto.findNodeProto(keyWord);
-								
-										if(np==null && lib==null && lib!=Library.getCurrent())
+										if (np != null)
 										{
-											savelib = Library.getCurrent();
-											Library.setCurrent(lib);
-											np=NodeProto.findNodeProto(keyWord);
-											Library.setCurrent(savelib);
-											
-											if(np!=null)
-											{
-												//copy
-												np = CircuitChanges.copyRecursively((Cell)np, np.getProtoName(), Library.getCurrent(),
-													((Cell)np).getView(), false, false, "", false, false, false);
-											}
+											// copy into the current library
+											np = CircuitChanges.copyRecursively(np, np.getProtoName(), Library.getCurrent(),
+												np.getView(), false, false, "", false, false, false);
 										}
 									}
-									else
+									if (np == null)
 									{
-										np = NodeProto.findNodeProto(lib.getLibName());
-									}
-									if(np == null)
-									{
-										System.out.println("Line "+lineno+": cannot find cell '"+keyWord+"'");
+										System.out.println("Line " + lineno + ": cannot find cell '" + keyWord + "'");
 										break;
 									}
-									
-									gap=0;
+
+									gap = 0;
 
 									exportpp = null;
+									String exportname = null;
 
-									while(str.hasMoreTokens())
+									while (str.hasMoreTokens())
 									{
 										keyWord = str.nextToken();
-										String temp, temp2;
-										if(keyWord.indexOf("=")!=-1)
+										String temp = keyWord;
+										int equalsLoc = keyWord.indexOf("=");
+										if (equalsLoc != -1)
 										{
-											temp=keyWord.substring(0,keyWord.indexOf("=")-1);										
+											temp = keyWord.substring(0, equalsLoc);										
 										}
-										else
+
+										if (temp.equals("gap"))
 										{
-											temp= keyWord;									
-										}
-										
-										if(temp.equals("gap"))
-										{
-											if(keyWord.indexOf("=")!=-1)
+											String temp2;
+											if (keyWord.indexOf("=") != -1)
 											{
-												if(keyWord.substring(keyWord.indexOf("=")+1)=="")
+												if (keyWord.substring(keyWord.indexOf("=")+1) == "")
 												{
 													temp2 = str.nextToken();
 												}
@@ -335,35 +309,35 @@ public class PadGenerator
 											}
 											else
 											{
-												keyWord=str.nextToken();
-											
-												if(keyWord.charAt(0)=='=')
+												keyWord = str.nextToken();
+
+												if (keyWord.charAt(0) == '=')
 												{
 													temp2 = keyWord.substring(1);										
 												}
 												else
 												{
-													System.out.println("Line "+lineno+": missing '=' after 'gap'");
+													System.out.println("Line " + lineno + ": missing '=' after 'gap'");
 													break;
 												}
 											}
-											
+
 											gap = Integer.parseInt(temp2);
 										}
-										else if(temp.equals("export"))
+										else if (temp.equals("export"))
 										{
-											if(!str.hasMoreTokens())
+											if (!str.hasMoreTokens())
 											{
-												System.out.println("Line "+lineno+": missing port name after 'export'");
+												System.out.println("Line " + lineno + ": missing port name after 'export'");
 												break;
 											}
-											
-											keyWord=str.nextToken();
-											
-											if(keyWord.indexOf("=")!=-1)
+
+											keyWord = str.nextToken();
+											String temp2;
+											if(keyWord.indexOf("=") != -1)
 											{
-												temp=keyWord.substring(0,keyWord.indexOf("=")-1);
-												if(keyWord.substring(keyWord.indexOf("=")+1)=="")
+												temp = keyWord.substring(0, keyWord.indexOf("="));
+												if (keyWord.substring(keyWord.indexOf("=")+1) == "")
 												{
 													temp2 = str.nextToken();
 												}
@@ -374,48 +348,48 @@ public class PadGenerator
 											}
 											else
 											{
-												temp= keyWord;
-												keyWord=str.nextToken();
-											
-												if(keyWord.charAt(0)=='=')
+												temp = keyWord;
+												keyWord = str.nextToken();
+
+												if (keyWord.charAt(0) == '=')
 												{
 													temp2 = keyWord.substring(1);										
 												}
 												else
 												{
-													System.out.println("Line "+lineno+": missing '=' after 'export PORT'");
+													System.out.println("Line " + lineno + ": missing '=' after 'export PORT'");
 													break;
 												}									
 											}
-											
+
 											exportpp = np.findPortProto(temp);
-											if(exportpp==null)
+											if (exportpp == null)
 											{
-												System.out.println("Line "+lineno+": no port '"+temp+"' on cell '"+temp+"'");
+												System.out.println("Line " + lineno + ": no port '" + temp + "' on cell '" + temp + "'");
 												break;
 											}
-											
+
 											exportname = temp2;
-											
-											if(exportname.equals(""))
+											if (exportname.equals(""))
 											{
-												System.out.println("Line "+lineno+": missing export name after 'export PORT='");
+												System.out.println("Line " + lineno + ": missing export name after 'export PORT='");
 												break;
 											}	
 										}
 										else
 										{
-											pa=new PortAssociate();
-											pa.ni=null;
-											pa.pp=np.findPortProto(temp);
-											if(pa.pp==null)
+											PortAssociate pa = new PortAssociate();
+											pa.ni = null;
+											pa.pp = np.findPortProto(temp);
+											if (pa.pp == null)
 											{
-												System.out.println("Line "+lineno+": no port '"+temp+"' on cell '"+temp+"'");
+												System.out.println("Line " + lineno + ": no export '" + temp + "' in cell " + np.describe());
 											}
-											
-											if(keyWord.indexOf("=")!=-1)
+
+											String temp2;
+											if (keyWord.indexOf("=") != -1)
 											{
-												if(keyWord.substring(keyWord.indexOf("=")+1)=="")
+												if (keyWord.substring(keyWord.indexOf("=")+1) == "")
 												{
 													temp2 = str.nextToken();
 												}
@@ -426,179 +400,161 @@ public class PadGenerator
 											}
 											else
 											{
-												keyWord=str.nextToken();
-		
-												if(keyWord.charAt(0)=='=')
+												keyWord = str.nextToken();
+
+												if(keyWord.charAt(0) == '=')
 												{
 													temp2 = keyWord.substring(1);										
 												}
 												else
 												{
-													System.out.println("Line "+lineno+": missing '=' after pad port name");
+													System.out.println("Line " + lineno + ": missing '=' after pad port name");
 													break;
 												}
 											}
-											
-											if(corenp==null)
+
+											if (corenp == null)
 											{
-												System.out.println("Line "+lineno+": no core cell for association");
-											}
-											pa.corepp=corenp.findPortProto(temp2);
-											
-											if(pa.corepp==null)
-											{
-												System.out.println("Line "+lineno+": no port '"+temp2+"' on cell '"+temp2+"'");
+												System.out.println("Line " + lineno + ": no core cell for association");
 												break;
 											}
-											pa.nextportassociate=firstpa;
-											firstpa=pa;
+											pa.corepp = corenp.findPortProto(temp2);
+											if (pa.corepp == null)
+											{
+												System.out.println("Line " + lineno + ": no port '" + temp2 + "' on cell '" + temp2 + "'");
+												break;
+											}
+											arrayPortAssociate.add(pa);
 										}
 									}					
-									if(lastni!=null)
+									double centerX = 0;
+									double centerY = 0;
+									if (lastni != null)
 									{
-										cellname=(lastni.getProtoEquivalent()).noLibDescribe();
-										for(aa=firstaa; aa!=null; aa=aa.nextArrayAlign)
+										String cellname = (lastni.getProtoEquivalent()).noLibDescribe();
+										ArrayAlign aa = null;
+										for(Iterator it = arrayAlignList.iterator(); it.hasNext(); )
 										{
-											if(aa.cell.equals(cellname))
-											{
-												break;
-											}
+											aa = (ArrayAlign)it.next();
+											if (aa.cell.equals(cellname)) break;
+											aa = null;
 										}
-										if(aa==null)
+										if (aa == null)
 										{
-											System.out.println("Line "+lineno+": no port alignment given for cell "+lastni.describe());
+											System.out.println("Line " + lineno + ": no port alignment given for cell " + lastni.describe());
 											break;
 										}
-										
-										pp=(lastni.getProto()).findPortProto(aa.outport); 
-										
-										if(pp==null)
+
+										pp = (lastni.getProto()).findPortProto(aa.outport); 
+										if (pp == null)
 										{
-											System.out.println("Line "+lineno+": no port called '"+aa.outport+"' on cell"+lastni.describe());
+											System.out.println("Line " + lineno + ": no port called '" + aa.outport + "' on cell" + lastni.describe());
 											break;
 										}
-										
-										poly = (lastni.findPortInstFromProto(pp)).getPoly();
+
+										Poly poly = (lastni.findPortInstFromProto(pp)).getPoly();
 										centerX = poly.getCenterX();
 										centerY = poly.getCenterY();
-										width=poly.getBounds().getWidth();
-										height=poly.getBounds().getHeight();
-										
-										cellname=np.whichCell().noLibDescribe();
-										
-										for(aa=firstaa; aa!=null; aa=aa.nextArrayAlign)
+										width = poly.getBounds().getWidth();
+										height = poly.getBounds().getHeight();
+
+										cellname = np.whichCell().noLibDescribe();
+
+										aa = null;
+										for(Iterator it = arrayAlignList.iterator(); it.hasNext(); )
 										{
-											if(aa.cell.equals(cellname))
-											{
-												break;
-											}
-										}						
-										if(aa==null)
+											aa = (ArrayAlign)it.next();
+											if (aa.cell.equals(cellname)) break;
+											aa = null;
+										}
+										if (aa == null)
 										{
-											System.out.println("Line "+lineno+": no port called '"+aa.outport+"' on cell "+np.describe());
+											System.out.println("Line " + lineno + ": no port called '" + aa.outport + "' on cell " + np.describe());
 											break;
 										}									
-										pp=np.findPortProto(aa.inport);
-										
-										if(pp==null)
+										pp = np.findPortProto(aa.inport);
+
+										if (pp == null)
 										{
-											System.out.println("Line "+lineno+": no port called '"+aa.inport+"' on cell "+np.describe());
+											System.out.println("Line " + lineno + ": no port called '" + aa.inport + "' on cell " + np.describe());
 											break;
 										}
 									}
-									
+
 									//corneroffset(NONODEINST,np,angle,0,&ox,&oy,false);
 									Point2D pointCenter = new Point2D.Double(centerX, centerY);
-												
-									ni=NodeInst.newInstance(np,pointCenter,width,height, angle, cell, null);
-									if(ni==null)
+									NodeInst ni = NodeInst.newInstance(np, pointCenter, np.getDefWidth(), np.getDefHeight(), angle, cell, null);
+									if (ni == null)
 									{
-										System.out.println("Line "+lineno+": problem creating"+np.describe()+" instance");
+										System.out.println("Line " + lineno + ": problem creating" + np.describe() + " instance");
 										break;
 									}
-									
-									if(lastni!=null)
+
+									if (lastni != null)
 									{
-										switch(angle)
+										switch (angle)
 										{
 											case 0:    gapx =  gap;   gapy =    0;   break;
 											case 900:  gapx =    0;   gapy =  gap;   break;
 											case 1800: gapx = -gap;   gapy =    0;   break;
 											case 2700: gapx =    0;   gapy = -gap;   break;
 										}
-										poly = ni.findPortInstFromProto(pp).getPoly();
+										Poly poly = ni.findPortInstFromProto(pp).getPoly();
 										double tempx = centerX - (poly.getCenterX()) - gapx;
 										double tempy = centerY - (poly.getCenterY()) - gapy;
-										ni.modifyInstance(tempx,tempy,0,0,0);
+										ni.modifyInstance(tempx, tempy, 0, 0, 0);
 									}
-									if(exportpp!=null)
+									if (exportpp != null)
 									{
-										pp=Export.newInstance(cell, ni.findPortInstFromProto(exportpp), exportname);
+										pp = Export.newInstance(cell, ni.findPortInstFromProto(exportpp), exportname);
 									}
-									lastni=ni;
-									
-									for(pa=firstpa; pa!=null; pa=pa.nextportassociate)
+									lastni = ni;
+
+									for(Iterator it=arrayPortAssociate.iterator(); it.hasNext(); )
 									{
-										if(pa.ni==null)
-										{
-											pa.ni=ni;
-										}
+										PortAssociate pa = (PortAssociate)it.next();
+										if (pa.ni == null) pa.ni = ni;
 									}
 									continue;
 								}
-									
-								System.out.println("Line "+lineno+": unknown keyword'"+keyWord+"'");
+
+								System.out.println("Line " + lineno + ": unknown keyword'" + keyWord + "'");
 								break;
-								
-							}while(str.hasMoreTokens());
+
+							} while(str.hasMoreTokens());
 						}
 					}
-//					else
-//					{
-//						System.out.println("Line "+lineno+ ": too short");
-//					}
-				
-				lineRead = readLine.readLine();
-				lineno++;
+
+					lineRead = readLine.readLine();
+					lineno++;
 				}
-				if(corenp!=null)
+				if (corenp != null)
 				{
-					centerX=cell.getBounds().getCenterX();
-					centerY=cell.getBounds().getCenterY();
-					Point2D center = new Point2D.Double(centerX, centerY);
-					
+					Rectangle2D bounds = cell.getBounds();
+					Point2D center = new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
 					EditWindow.gridAlign(center, 1);
-					//gridalign
-					savetech=Technology.getCurrent(); 
-					corenp.getTechnology().setCurrent();
 
 					SizeOffset so = corenp.getSizeOffset();
-					width = corenp.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
-					height = corenp.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
-					ni = NodeInst.newInstance(corenp, center, width, height, 0, cell, null);
-					
-					for(pa = firstpa; pa != null; pa = pa.nextportassociate)
-					{
-						if(pa.ni!=null)
-						{
-							continue;
-						}
-						
-						PortInst pi1=ni.findPortInstFromProto(pa.corepp);
-						PortInst pi2=pa.ni.findPortInstFromProto(pa.pp);
-						width = Generic.tech.unrouted_arc.getDefaultWidth();
+					NodeInst ni = NodeInst.newInstance(corenp, center, corenp.getDefWidth(), corenp.getDefHeight(), 0, cell, null);
 
-						ai = ArcInst.newInstance(Generic.tech.unrouted_arc, width, pi1, pi2, null);
+					for(Iterator it=arrayPortAssociate.iterator(); it.hasNext(); )
+					{
+						PortAssociate pa = (PortAssociate)it.next();
+						if (pa.ni == null) continue;
+
+						PortInst pi1 = ni.findPortInstFromProto(pa.corepp);
+						PortInst pi2 = pa.ni.findPortInstFromProto(pa.pp);
+						PrimitiveArc ap = Generic.tech.unrouted_arc;
+						ArcInst ai = ArcInst.newInstance(ap, ap.getDefaultWidth(), pi1, pi2, null);
 					}
 				}
 
-				//Par
-				//us_editcell
-			
+				WindowFrame.createEditWindow(cell);
+
 			} catch (IOException e1) {}
 		}
 	}
-	
+
 	public void ArrayFromFile()
 	{
 		DialogOpenFile arrayFileType = new DialogOpenFile("arr", "Pad Generator Array File");

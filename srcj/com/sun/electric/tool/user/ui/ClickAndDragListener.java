@@ -55,6 +55,16 @@ class ClickAndDragListener
 		oldy = evt.getY();
 		EditWindow wnd = (EditWindow)evt.getSource();
 
+		// show "get info" on double-click
+		if (evt.getClickCount() == 2)
+		{
+			if (Highlight.getNumHighlights() >= 1)
+			{
+				UserMenuCommands.getInfoCommand();
+				return;
+			}
+		}
+
 		// selection: if over selected things, move them
 		boolean special = (ToolBar.getCursorMode() == ToolBar.CursorMode.SELECTSPECIAL);
 		boolean another = false;
@@ -111,6 +121,7 @@ class ClickAndDragListener
 			{
 				Highlight.clear();
 				Highlight h = Highlight.addArea(new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY), cell);
+				Highlight.finished();
 			}
 			wnd.clearDoingAreaDrag();
 			wnd.repaint();
@@ -204,7 +215,7 @@ class ClickAndDragListener
 		dX *= arrowDistance;
 		dY *= arrowDistance;
 		Highlight.setHighlightOffset(0, 0);
-		CircuitChanges.manyMove(dX, dY);
+	CircuitChanges.manyMove(dX, dY);
 		wnd.redraw();
 	}
 
