@@ -676,6 +676,8 @@ public class View3DWindow extends JPanel
         repaint();
     }
 
+    public void highlighterLostFocus(Highlighter highlighterGainedFocus) {}
+
 	public Point getLastMousePosition()
 	{
 		//return new Point(lastXPosition, lastYPosition);

@@ -93,6 +93,16 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 	}
 
     /**
+     * Called when by a Highlighter when it loses focus. The argument
+     * is the Highlighter that has gained focus (may be null).
+     * @param highlighterGainedFocus the highlighter for the current window (may be null).
+     */
+    public void highlighterLostFocus(Highlighter highlighterGainedFocus) {
+        if (!isVisible()) return;
+        loadExportInfo();
+    }
+
+    /**
      * Respond to database changes
      * @param batch a batch of changes completed
      */
@@ -116,7 +126,6 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
     }
     public void databaseChanged(Undo.Change change) {}
     public boolean isGUIListener() { return true; }
-    protected void dialogFocusChanged() { loadExportInfo(); }
 
 	private void loadExportInfo()
 	{

@@ -126,6 +126,16 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 	}
 
     /**
+     * Called when by a Highlighter when it loses focus. The argument
+     * is the Highlighter that has gained focus (may be null).
+     * @param highlighterGainedFocus the highlighter for the current window (may be null).
+     */
+    public void highlighterLostFocus(Highlighter highlighterGainedFocus) {
+        if (!isVisible()) return;
+        loadInfo();        
+    }
+
+    /**
      * Respond to database changes
      * @param batch a batch of changes completed
      */
@@ -153,8 +163,6 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 
     /** This is a GUI listener */
     public boolean isGUIListener() { return true; }
-
-    protected void dialogFocusChanged() { loadInfo(); }
 
 	/** Creates new form Node Get-Info */
 	private GetInfoNode(java.awt.Frame parent, boolean modal)

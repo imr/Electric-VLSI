@@ -2830,6 +2830,13 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		}
 	}
 
+    /**
+     * Called when by a Highlighter when it loses focus. The argument
+     * is the Highlighter that has gained focus (may be null).
+     * @param highlighterGainedFocus the highlighter for the current window (may be null).
+     */
+    public void highlighterLostFocus(Highlighter highlighterGainedFocus) {}
+    
 	/**
 	 * Method to get a Set of currently highlighted networks in this WaveformWindow.
 	 */

@@ -76,9 +76,6 @@ public class EDialog extends JDialog
     /** used to cancel the dialog */
 	protected void escapePressed() {}
 
-    /** Called when the window focus changes */
-    protected void dialogFocusChanged() {}
-
     protected void focusClearOnTextField(JTextComponent textComponent) {
         textComponent.setSelectionStart(0);
         textComponent.setSelectionEnd(0);
@@ -111,7 +108,6 @@ public class EDialog extends JDialog
         public void focusLost(FocusEvent e) {
             //To change body of implemented methods use File | Settings | File Templates.
         }
-
     }
 
 
@@ -145,9 +141,6 @@ public class EDialog extends JDialog
                 EDialog dialog = (EDialog)dialogs.get(i);
                 // this seems to be causing problems on windows platforms
                 //dialog.toFront();
-
-                // for updating the dialog when a highlight changes
-                dialog.dialogFocusChanged();
             }
         }
 

@@ -38,6 +38,7 @@ import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.Point2D;
 import java.util.Iterator;
@@ -88,6 +89,16 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 	}
 
     /**
+     * Called when by a Highlighter when it loses focus. The argument
+     * is the Highlighter that has gained focus (may be null).
+     * @param highlighterGainedFocus the highlighter for the current window (may be null).
+     */
+    public void highlighterLostFocus(Highlighter highlighterGainedFocus) {
+        if (!isVisible()) return;
+        loadInfo();
+    }
+
+    /**
      * Respond to database changes
      * @param batch a batch of changes completed
      */
@@ -115,8 +126,6 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 
     /** This is a GUI listener */
     public boolean isGUIListener() { return true; }
-
-    protected void dialogFocusChanged() { loadInfo(); }
 
 	/** Creates new form Arc Get-Info */
 	private GetInfoArc(java.awt.Frame parent, boolean modal)

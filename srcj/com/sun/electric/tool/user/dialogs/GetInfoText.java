@@ -97,6 +97,16 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
         loadTextInfo();
     }
 
+    /**
+     * Called when by a Highlighter when it loses focus. The argument
+     * is the Highlighter that has gained focus (may be null).
+     * @param highlighterGainedFocus the highlighter for the current window (may be null).
+     */
+    public void highlighterLostFocus(Highlighter highlighterGainedFocus) {
+        if (!isVisible()) return;
+        loadTextInfo();        
+    }
+
     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
         if (!isVisible()) return;
 
@@ -116,7 +126,6 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
     }
     public void databaseChanged(Undo.Change change) {}
     public boolean isGUIListener() { return true; }
-    protected void dialogFocusChanged() { loadTextInfo(); }
 
     private void loadTextInfo() {
         // update current window

@@ -94,9 +94,27 @@ public class StatusBar extends JPanel implements HighlightListener
 		//SpringUtilities.makeCompactGrid(this, 1, getComponentCount(), 5,5,5,5);
 
 
-        // add myself as listener for highlight changes
-        frame.getContent().getHighlighter().addHighlightListener(this);
+        // add myself as listener for highlight changes in SDI mode
+        if (TopLevel.isMDIMode()) {
+            // do nothing
+        } else {
+            frame.getContent().getHighlighter().addHighlightListener(this);
+        }
 	}
+
+    /**
+     * Highlighter depends on MDI or SDI mode.
+     * @return the highlighter to use. May be null if none.
+     */
+    private Highlighter getHighlighter() {
+        if (TopLevel.isMDIMode()) {
+            // get current internal frame highlighter
+            EditWindow wnd = EditWindow.getCurrent();
+            if (wnd == null) return null;
+            return wnd.getHighlighter();
+        }
+        return frame.getContent().getHighlighter();
+    }
 
 	private void addField(JLabel field, int index)
 	{
@@ -159,6 +177,13 @@ public class StatusBar extends JPanel implements HighlightListener
     {
         updateSelectedText();
     }
+
+    /**
+     * Called when by a Highlighter when it loses focus. The argument
+     * is the Highlighter that has gained focus (may be null).
+     * @param highlighterGainedFocus the highlighter for the current window (may be null).
+     */
+    public void highlighterLostFocus(Highlighter highlighterGainedFocus) {}
 
 	/**
 	 * Method to update the status bar from current values.
@@ -237,7 +262,11 @@ public class StatusBar extends JPanel implements HighlightListener
             // count the number of nodes and arcs selected
             int nodeCount = 0, arcCount = 0, textCount = 0;
             Highlight lastHighlight = null;
-            Highlighter highlighter = frame.getContent().getHighlighter();
+            Highlighter highlighter = getHighlighter();
+            if (highlighter == null) {
+                fieldSelected.setText(selectedMsg);
+                return;
+            }
             for(Iterator hIt = highlighter.getHighlights().iterator(); hIt.hasNext(); )
             {
                 Highlight h = (Highlight)hIt.next();
@@ -345,7 +374,8 @@ public class StatusBar extends JPanel implements HighlightListener
      * Call when done with this Object. Cleans up references to this object.
      */
     public void finished() {
-        frame.getContent().getHighlighter().removeHighlightListener(this);
+        if (!TopLevel.isMDIMode())
+            frame.getContent().getHighlighter().removeHighlightListener(this);
     }
 
 }

@@ -50,6 +50,7 @@ import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Resources;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.database.variable.VarContext;
 
@@ -596,6 +597,10 @@ public class WindowFrame
 				// if auto-switching technology, do it
 				PaletteFrame.autoTechnologySwitch(cell);
 			}
+            if (wf.getContent() != null) {
+                Highlighter highlighter = wf.getContent().getHighlighter();
+                if (highlighter != null) highlighter.gainedFocus();
+            }
 		}
 		wantToRedoTitleNames();
 	}

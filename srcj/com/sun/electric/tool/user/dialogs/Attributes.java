@@ -111,6 +111,16 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
     }
 
     /**
+     * Called when by a Highlighter when it loses focus. The argument
+     * is the Highlighter that has gained focus (may be null).
+     * @param highlighterGainedFocus the highlighter for the current window (may be null).
+     */
+    public void highlighterLostFocus(Highlighter highlighterGainedFocus) {
+        if (!isVisible()) return;
+        loadAttributesInfo();        
+    }
+
+    /**
      * Reload if the database has changed in a way we care about
      * @param batch a batch of changes
      */

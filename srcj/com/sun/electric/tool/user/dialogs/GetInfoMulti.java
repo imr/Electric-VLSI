@@ -94,6 +94,16 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 	}
 
     /**
+     * Called when by a Highlighter when it loses focus. The argument
+     * is the Highlighter that has gained focus (may be null).
+     * @param highlighterGainedFocus the highlighter for the current window (may be null).
+     */
+    public void highlighterLostFocus(Highlighter highlighterGainedFocus) {
+        if (!isVisible()) return;
+        loadMultiInfo();        
+    }
+
+    /**
      * Respond to database changes we care about
      * @param batch a batch of changes
      */
@@ -119,7 +129,6 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
     }
     public void databaseChanged(Undo.Change change) {}
     public boolean isGUIListener() { return true; }
-    protected void dialogFocusChanged() { loadMultiInfo(); }
 
 	/** Creates new form Multi-Object Get Info */
 	private GetInfoMulti(java.awt.Frame parent, boolean modal)

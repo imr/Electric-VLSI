@@ -34,4 +34,11 @@ public interface HighlightListener {
      * and will be updated on the screen.
      */
     public void highlightChanged();
+
+    /**
+     * Called when by a Highlighter when it loses focus. The argument
+     * is the Highlighter that has gained focus (may be null).
+     * @param highlighterGainedFocus the highlighter for the current window (may be null).
+     */
+    public void highlighterLostFocus(Highlighter highlighterGainedFocus);
 }

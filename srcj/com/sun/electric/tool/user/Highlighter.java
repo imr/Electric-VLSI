@@ -1,3 +1,26 @@
+/* -*- tab-width: 4 -*-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: Highlighter.java
+ *
+ * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
 package com.sun.electric.tool.user;
 
 import com.sun.electric.database.hierarchy.Cell;
@@ -45,6 +68,7 @@ import java.awt.*;
 public class Highlighter implements DatabaseChangeListener {
 
     //public static Highlighter global = new Highlighter();
+    private static Highlighter currentHighlighter = null;
 
     /** Screen offset for display of highlighting. */			private int highOffX; private int highOffY;
     /** the highlighted objects. */								private List highlightList;
@@ -63,6 +87,7 @@ public class Highlighter implements DatabaseChangeListener {
         highlightListeners = new ArrayList();
         changed = false;
         Undo.addDatabaseChangeListener(this);
+        if (currentHighlighter == null) currentHighlighter = this;
     }
 
     /**
@@ -280,8 +305,6 @@ public class Highlighter implements DatabaseChangeListener {
             if (!changed) return;
         }
 
-        System.out.println("Highlighter finished (num sel="+getNumHighlights()+ " " + this);
-
 		// see if arcs of a single type were selected
 		boolean mixedArc = false;
 		ArcProto foundArcProto = null;
@@ -345,6 +368,31 @@ public class Highlighter implements DatabaseChangeListener {
             HighlightListener l = (HighlightListener)it.next();
             l.highlightChanged();
         }
+        changed = false;
+    }
+
+    /** Notify listeners that the current Highlighter has changed */
+    private synchronized void fireHighlighterLostFocus(Highlighter highlighterGainedFocus) {
+        List listenersCopy = new ArrayList(highlightListeners);
+        for (Iterator it = listenersCopy.iterator(); it.hasNext(); ) {
+            HighlightListener l = (HighlightListener)it.next();
+            l.highlighterLostFocus(highlighterGainedFocus);
+        }
+    }
+
+    /**
+     * Called when the Highlighter owner has gained focus, and the
+     * current highlighter switches to this.
+     */
+    public void gainedFocus() {
+        Highlighter oldHighlighter = null;
+        synchronized(currentHighlighter) {
+            oldHighlighter = currentHighlighter;
+            currentHighlighter = this;
+        }
+        // fire focus changed on old highlighter
+        if ((oldHighlighter != null) && (oldHighlighter != this))
+            oldHighlighter.fireHighlighterLostFocus(this);
     }
 
     /**
@@ -1090,8 +1138,9 @@ public class Highlighter implements DatabaseChangeListener {
 		// multiple objects under the cursor: see if looping through them
 		if (underCursor.size() > 1 && another)
 		{
-			for(int j=0; j<highlightList.size(); j++)
+			for(int j=0; j<getNumHighlights(); j++)
 			{
+                List highlightList = getHighlights();
 				Highlight oldHigh = (Highlight)highlightList.get(j);
 				for(int i=0; i<underCursor.size(); i++)
 				{
@@ -1100,17 +1149,17 @@ public class Highlighter implements DatabaseChangeListener {
 						// found the same thing: loop
 						if (invert)
 						{
-							highlightList.remove(j);
+							remove(oldHigh);
 						} else
 						{
 							clear();
 						}
 						if (i < underCursor.size()-1)
 						{
-							highlightList.add(underCursor.get(i+1));
+							addHighlight((Highlight)underCursor.get(i+1));
 						} else
 						{
-							highlightList.add(underCursor.get(0));
+							addHighlight((Highlight)underCursor.get(0));
 						}
 						finished();
 						return 1;
@@ -1123,21 +1172,22 @@ public class Highlighter implements DatabaseChangeListener {
 		if (invert)
 		{
 			Highlight newHigh = (Highlight)underCursor.get(0);
+            List highlightList = getHighlights();
 			for(int i=0; i<highlightList.size(); i++)
 			{
 				if (newHigh.sameThing((Highlight)highlightList.get(i)))
 				{
-					highlightList.remove(i);
+					remove((Highlight)highlightList.get(i));
 					finished();
 					return 1;
 				}
 			}
-			highlightList.add(newHigh);
+			addHighlight(newHigh);
 			finished();
 		} else
 		{
 			clear();
-			highlightList.add(underCursor.get(0));
+			addHighlight((Highlight)underCursor.get(0));
 			finished();
 		}
 
