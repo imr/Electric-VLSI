@@ -640,7 +640,7 @@ public class Spice extends Topology
 					String extra = "";
 					if (resistVar != null)
 					{
-						extra = resistVar.describe(-1, -1);
+						extra = resistVar.describe(context, ni);
 						if (TextUtils.isANumber(extra))
 						{
 							double pureValue = TextUtils.atof(extra);
@@ -654,7 +654,7 @@ public class Spice extends Topology
 					String extra = "";
 					if (capacVar != null)
 					{
-						extra = capacVar.describe(-1, -1);
+						extra = capacVar.describe(context, ni);
 						if (TextUtils.isANumber(extra))
 						{
 							double pureValue = TextUtils.atof(extra);
@@ -668,7 +668,7 @@ public class Spice extends Topology
 					String extra = "";
 					if (inductVar != null)
 					{
-						extra = inductVar.describe(-1, -1);
+						extra = inductVar.describe(context, ni);
 						if (TextUtils.isANumber(extra))
 						{
 							double pureValue = TextUtils.atof(extra);
@@ -681,7 +681,7 @@ public class Spice extends Topology
 					Variable diodeVar = ni.getVar(Schematics.SCHEM_DIODE);
 					String extra = "";
 					if (diodeVar != null)
-						extra = diodeVar.describe(-1, -1);
+						extra = diodeVar.describe(context, ni);
 					if (extra.length() == 0) extra = "DIODE";
 					writeTwoPort(ni, "D", extra, cni, netList);
 				}
