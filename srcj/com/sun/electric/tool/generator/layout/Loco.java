@@ -199,6 +199,7 @@ public class Loco extends Job {
             super("Generate Layout", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.cell = cell;
             this.outputLib = outputLib;
+            this.useSecondaryPower = useSecondaryPower;
             startJob();
         }
 
@@ -210,7 +211,7 @@ public class Loco extends Job {
                 stdCellPwr.setVddExportRole(PortProto.Characteristic.IN);
             } else {
                 stdCellPwr.setVddExportName("vdd");
-                stdCellPwr.setVddExportRole(PortProto.Characteristic.PWR);                
+                stdCellPwr.setVddExportRole(PortProto.Characteristic.PWR);
             }
             GenerateLayoutForGatesInSchematic visitor =
                     new GenerateLayoutForGatesInSchematic("redFour", new HashSet(), stdCell, stdCellPwr);
