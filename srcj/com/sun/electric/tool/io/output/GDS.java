@@ -859,15 +859,15 @@ public class GDS extends Geometry
 
 		int exponent = 64;
 		for(; (reg.doubleValue() < 0.0625) && (exponent > 0); exponent--)
-			reg = reg.multiply(new BigDecimal(16.0));
+			reg = reg.multiply(new BigDecimal(16));
 		if (exponent == 0) System.out.println("Exponent underflow");
 		for(; (reg.doubleValue() >= 1) && (exponent < 128); exponent++)
-			reg = reg.divide(new BigDecimal(16.0));
+			reg = reg.divide(new BigDecimal(16));
 		if (exponent > 127) System.out.println("Exponent overflow");
 		if (negSign) exponent |= 0x00000080;
-		BigDecimal f_mantissa = reg.remainder(new BigDecimal(1.0));
+		BigDecimal f_mantissa = reg.remainder(new BigDecimal(1));
 		for(int i = 0; i < 56; i++)
-			f_mantissa = f_mantissa.multiply(new BigDecimal(2.0));
+			f_mantissa = f_mantissa.multiply(new BigDecimal(2));
 		long mantissa = f_mantissa.longValue();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		baos.write(exponent);

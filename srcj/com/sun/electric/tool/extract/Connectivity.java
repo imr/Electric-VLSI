@@ -78,7 +78,7 @@ import java.util.prefs.Preferences;
  * This is the Connectivity extractor.
  * 
  * Still to do:
- *    Proper way to find large contacts (currently too slow)
+ *    Better way to find large contacts
  *    Serpentine transistors
  *    When extracting skeletons, allow mix of narrower and wider
  *    Cell instances in wiring paths
@@ -278,8 +278,6 @@ public class Connectivity
 
 	/********************************************** WIRE EXTRACTION **********************************************/
 
-	private static final boolean NEWWIRES = true;
-
 	private static class TouchingNode
 	{
 		NodeInst ni;
@@ -311,7 +309,6 @@ public class Connectivity
 
 				// examine the geometry on the layer
 				List polyList = merge.getMergedPoints(layer, true);
-				
 				for(Iterator pIt = polyList.iterator(); pIt.hasNext(); )
 				{
 					PolyBase poly = (PolyBase)pIt.next();
@@ -626,7 +623,13 @@ public class Connectivity
 
 		// sort the parallel wires by width
 		Collections.sort(centerlines, new ParallelWiresByWidth());
-
+System.out.print("For layer "+layer.getName()+", centerline widths are");
+for(Iterator it = centerlines.iterator(); it.hasNext(); )
+{
+	Centerline cl = (Centerline)it.next();
+	System.out.print(" "+cl.width);
+}
+System.out.println();
 		// now pull out the relevant ones
 		List validCenterlines = new ArrayList();
 		double goodWidth = -1;
@@ -839,12 +842,14 @@ public class Connectivity
 		cl.end.setLocation(newEndBX, newEndBY);
 		return true;
 	}
+
 	/********************************************** VIA/CONTACT EXTRACTION **********************************************/
 
 	private static class PossibleVia
 	{
 		PrimitiveNode pNp;
 		double minWidth, minHeight;
+		double largestShrink;
 		Layer [] layers;
 		double [] shrink;
 
@@ -877,46 +882,39 @@ public class Connectivity
 				PolyBase poly = (PolyBase)polyList.get(0);
 				double centerX = poly.getCenterX();
 				double centerY = poly.getCenterY();
-System.out.println("Consider contact layer "+layer.getName()+" at ("+centerX+","+centerY+")");
+//System.out.println("Consider contact layer "+layer.getName()+" at ("+centerX+","+centerY+")");
 
 				// now look through the list to see if anything matches
 				for(Iterator it = possibleVias.iterator(); it.hasNext(); )
 				{
 					PossibleVia pv = (PossibleVia)it.next();
 					PrimitiveNode pNp = pv.pNp;
-					
-					// determine the range of shrinkage values for the layers in the contact
-					double largestShrink = pv.shrink[0];
-					for(int i=1; i<pv.layers.length; i++)
-						if (pv.shrink[i] > largestShrink) largestShrink = pv.shrink[i];
 
-System.out.println("  Could it be primitive "+pNp.getName());
+//System.out.println("  Could it be primitive "+pNp.getName());
 					List contactArea = (List)possibleAreas.get(pNp);
 					if (contactArea == null)
 					{
 						// merge all other layers and see how big the contact can be
-						originalMerge.insetLayer(pv.layers[0], tempLayer1, (largestShrink-pv.shrink[0])/2);
-//System.out.println("    Inset layer "+pv.layers[0].getName()+" by "+((largestShrink-pv.shrink[0])/2));
+						originalMerge.insetLayer(pv.layers[0], tempLayer1, (pv.largestShrink-pv.shrink[0])/2);
 						for(int i=1; i<pv.layers.length; i++)
 						{
-//List xx = originalMerge.getMergedPoints(pv.layers[i], true);
-//System.out.println("    Inset layer "+pv.layers[i].getName()+" by "+((largestShrink-pv.shrink[i])/2)+" is "+xx);
-							originalMerge.insetLayer(pv.layers[i], tempLayer2, (largestShrink-pv.shrink[i])/2);
+							originalMerge.insetLayer(pv.layers[i], tempLayer2, (pv.largestShrink-pv.shrink[i])/2);
 							originalMerge.intersectLayers(tempLayer1, tempLayer2, tempLayer1);
 						}
 						contactArea = originalMerge.getMergedPoints(tempLayer1, true);
+						if (contactArea == null) contactArea = new ArrayList();
 						possibleAreas.put(pNp, contactArea);
 					}
+					if (contactArea == null || contactArea.size() == 0) continue;
 
-					//if (contactArea == null) System.out.println("  Cannot be "+pNp.getName());
-					if (contactArea == null) continue;
-					Rectangle2D largest = findLargestRectangle(contactArea, centerX, centerY, pv.minWidth-largestShrink, pv.minHeight-largestShrink);
+//					createLargestContact(centerX, centerY, pv, contactArea, polyList);
+					Rectangle2D largest = findLargestRectangle(contactArea, centerX, centerY, pv.minWidth-pv.largestShrink, pv.minHeight-pv.largestShrink);
 					if (largest == null) continue;
-System.out.println("  Contact is surrounded by area from "+largest.getMinX()+"<=X<="+largest.getMaxX()+" and "+largest.getMinY()+"<=Y<="+largest.getMaxY());
+//System.out.println("  Contact is surrounded by area from "+largest.getMinX()+"<=X<="+largest.getMaxX()+" and "+largest.getMinY()+"<=Y<="+largest.getMaxY());
 					centerX = largest.getCenterX();
 					centerY = largest.getCenterY();
-					double desiredWidth = largest.getWidth() + largestShrink;
-					double desiredHeight = largest.getHeight() + largestShrink;
+					double desiredWidth = largest.getWidth() + pv.largestShrink;
+					double desiredHeight = largest.getHeight() + pv.largestShrink;
 
 					// check all other layers
 					for(;;)
@@ -928,12 +926,8 @@ System.out.println("  Contact is surrounded by area from "+largest.getMinX()+"<=
 							double minLayWid = desiredWidth - pv.shrink[i];
 							double minLayHei = desiredHeight - pv.shrink[i];
 							Rectangle2D rect = new Rectangle2D.Double(centerX - minLayWid/2, centerY - minLayHei/2, minLayWid, minLayHei);
-							boolean foundLayer = false;
-							if (originalMerge.contains(nLayer, rect)) foundLayer = true;
-//System.out.println("    So, is there layer "+nLayer.getName()+" in area "+rect.getMinX()+"<=X<="+rect.getMaxX()+" and "+rect.getMinY()+"<=Y<="+rect.getMaxY()+" answer="+foundLayer);
-							if (!foundLayer)
+							if (!originalMerge.contains(nLayer, rect))
 							{
-//System.out.println("      That layer is:" +describeLayer(originalMerge, nLayer));
 								gotMinimum = false;
 								break;
 							}
@@ -941,7 +935,7 @@ System.out.println("  Contact is surrounded by area from "+largest.getMinX()+"<=
 						if (gotMinimum)
 						{
 							realizeNode(pNp, centerX, centerY, desiredWidth, desiredHeight, 0);
-System.out.println("  Is part of "+pNp.getName()+" contact which is "+desiredWidth+"x"+desiredHeight+" at ("+centerX+","+centerY+")");
+//System.out.println("  Is part of "+pNp.getName()+" contact which is "+desiredWidth+"x"+desiredHeight+" at ("+centerX+","+centerY+")");
 							// remove other cuts in this area
 							for(int o=1; o<polyList.size(); o++)
 							{
@@ -950,7 +944,7 @@ System.out.println("  Is part of "+pNp.getName()+" contact which is "+desiredWid
 								double y = oPoly.getCenterY();
 								if (largest.contains(x, y))
 								{
-System.out.println("    and also includes cut at ("+x+","+y+")");
+//System.out.println("    and also includes cut at ("+x+","+y+")");
 									polyList.remove(oPoly);
 									o--;
 								}
@@ -966,6 +960,22 @@ System.out.println("    and also includes cut at ("+x+","+y+")");
 			}
 		}
 	}
+
+//	private void createLargestContact(double centerX, double centerY, PossibleVia pv, List contactArea, List polyList)
+//	{
+//		if (pv.pNp.getSpecialType() == PrimitiveNode.MULTICUT)
+//		{
+//			/* determine distance to search for additional cuts
+//			 *   cut size is specialValues[0] x specialValues[1]
+//			 *   cut indented specialValues[2] x specialValues[3] from highlighting
+//			 *   cuts spaced specialValues[4] apart for 2-neighboring CO
+//			 *   cuts spaced specialValues[5] apart for 3-neighboring CO or more
+//			 */
+//			double [] specialValues = pv.pNp.getSpecialValues();
+//			double cutIncrement = (Math.max(specialValues[0], specialValues[1]) + Math.max(specialValues[4], specialValues[5])) * 2;
+//			
+//		}
+//	}
 
 	private Rectangle2D findLargestRectangle(List contactArea, double centerX, double centerY, double minWidth, double minHeight)
 	{
@@ -1111,6 +1121,11 @@ System.out.println("    and also includes cut at ("+x+","+y+")");
 				System.out.println("Errors found, not scanning for " + pNp.describe());
 				continue;
 			}
+			
+			// determine the range of shrinkage values for the layers in the contact
+			pv.largestShrink = pv.shrink[0];
+			for(int i=1; i<pv.layers.length; i++)
+				if (pv.shrink[i] > pv.largestShrink) pv.largestShrink = pv.shrink[i];
 
 			// add this to the list of possible vias
 			possibleVias.add(pv);
