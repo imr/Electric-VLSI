@@ -41,22 +41,20 @@ import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.PixelDrawing;
 
 import java.awt.Font;
 import java.awt.Image;
 import java.awt.Color;
-import java.awt.Shape;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import java.awt.font.FontRenderContext;
-import java.awt.font.GlyphVector;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferByte;
 import java.awt.image.Raster;
 import java.util.Iterator;
 import java.util.List;
@@ -155,20 +153,9 @@ public class LayoutText extends javax.swing.JDialog
 		Cell curCell = Library.needCurCell();
 		if (curCell == null) return;
 
-		// get the font
-		int fontStyle = Font.PLAIN;
-		if (italic) fontStyle |= Font.ITALIC;
-		if (bold) fontStyle |= Font.BOLD;
-		Font theFont = new Font(font, fontStyle, tsize);
-		if (theFont == null)
-		{
-			System.out.println("Could not find the proper font");
-			return;
-		}
-
-		// convert the text to a GlyphVector
-		FontRenderContext frc = new FontRenderContext(null, false, false);
-		GlyphVector gv = theFont.createGlyphVector(frc, msg);
+		// get the raster
+		Raster ras = PixelDrawing.renderText(msg, font, tsize, italic, bold);
+		if (ras == null) return;
 
 		/* determine the primitive to use for the layout */
 		String nodeName = (String)textLayer.getSelectedItem();
@@ -179,17 +166,8 @@ public class LayoutText extends javax.swing.JDialog
 			return;
 		}
 
-		Rectangle2D glyphBounds = gv.getVisualBounds();
-		int textHeight = (int)glyphBounds.getHeight() * 2;
-		int textWidth = (int)glyphBounds.getWidth() * 2;
-		BufferedImage img = new BufferedImage(textWidth, textHeight, BufferedImage.TYPE_BYTE_GRAY);
-		Graphics2D g2 = (Graphics2D)img.getGraphics();
-		g2.setColor(new Color(128,128,128));
-		g2.drawGlyphVector(gv, 0, textHeight/2);
-		Raster ras = img.getData();
-		int numSamples = ras.getWidth() * ras.getHeight();
-		int [] samples = new int[numSamples];
-		ras.getSamples(0, 0, ras.getWidth(), ras.getHeight(), 0, samples);
+		DataBufferByte dbb = (DataBufferByte)ras.getDataBuffer();
+		byte [] samples = dbb.getData();
 		int samp = 0;
 		for(int y=0; y<ras.getHeight(); y++)
 		{

@@ -110,12 +110,26 @@ public class EGraphics
 	public boolean isPatternedOnDisplay() { return (displayMethod & NATURE) == PATTERNED; }
 
 	/**
+	 * Method to tell whether this pattern has an outline around it.
+	 * When the layer is drawn as a pattern, the outline can be defined more clearly by drawing a line around the edge.
+	 * @return true to dan outline around this pattern (on the display).
+	 */
+	public boolean isOutlinePatternedOnDisplay() { return (displayMethod & OUTLINEPAT) != 0; }
+
+	/**
 	 * Method describes how this layer appears on a printer.
 	 * This layer can be drawn as a solid fill or as a pattern.
 	 * @return true to draw this layer patterned (on a printer).
 	 * False to draw this layer as a solid fill.
 	 */
 	public boolean isPatternedOnPrinter() { return (printMethod & NATURE) == PATTERNED; }
+
+	/**
+	 * Method to tell whether this pattern has an outline around it.
+	 * When the layer is drawn as a pattern, the outline can be defined more clearly by drawing a line around the edge.
+	 * @return true to dan outline around this pattern (on the printer).
+	 */
+	public boolean isOutlinePatternedOnPrinter() { return (printMethod & OUTLINEPAT) != 0; }
 
 	/**
 	 * Method to return the transparent layer associated with this EGraphics.

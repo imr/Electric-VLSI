@@ -53,6 +53,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Dimension;
+import java.awt.Color;
 import java.awt.geom.Dimension2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -476,6 +477,7 @@ public class Technology extends ElectricObject
 	/** 0-based index of the technology */				private int techIndex;
 	/** critical dimensions for the technology */		private double scale;
 	/** number of transparent layers in technology */	private int transparentLayers;
+	/** the color map for this technology */			private Color [] colorMap;
 	/** list of layers in the technology */				private List layers;
 	/** count of layers in the technology */			private int layerIndex = 0;
 	/** list of primitive nodes in the technology */	private List nodes;
@@ -2070,6 +2072,7 @@ public class Technology extends ElectricObject
 	 * Sets the number of transparent layers in this technology.
 	 * Users should never call this method.
 	 * It is set once by the technology during initialization.
+	 * @param num the number of transparent layers in this technology.
 	 * Informs the display system of the number of overlapping or transparent layers
 	 * in use.
 	 */
@@ -2079,8 +2082,28 @@ public class Technology extends ElectricObject
 	 * Returns the number of transparent layers in this technology.
 	 * Informs the display system of the number of overlapping or transparent layers
 	 * in use.
+	 * @return the number of transparent layers in this technology.
 	 */
-	protected int getNumTransparentLayers() { return transparentLayers; }
+	public int getNumTransparentLayers() { return transparentLayers; }
+
+	/**
+	 * Sets the color map for transparent layers in this technology.
+	 * Users should never call this method.
+	 * It is set once by the technology during initialization.
+	 * @param map the color map for transparent layers in this technology.
+	 * There must be a number of entries in this map equal to 2 to the power "getNumTransparentLayers()".
+	 */
+	protected void setColorMap(Color [] map)
+	{
+		colorMap = map;
+	}
+
+	/**
+	 * Returns the color map for transparent layers in this technology.
+	 * @return the color map for transparent layers in this technology.
+	 * The number of entries in this map equals 2 to the power "getNumTransparentLayers()".
+	 */
+	public Color [] getColorMap() { return colorMap; }
 
 	/**
 	 * Returns the 0-based index of this Technology.

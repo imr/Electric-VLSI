@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
@@ -327,7 +328,6 @@ public class PaletteFrame
 		//Undo.changesQuiet(false);
 		ni.lowLevelPopulate(np, pt, np.getDefWidth(), np.getDefHeight(), angle, null);
 		np.getTechnology().setPrimitiveFunction(ni, func);
-//		Undo.setNextChangeQuiet();
 		np.getTechnology().setDefaultOutline(ni);
 		return ni;
 	}
@@ -523,7 +523,8 @@ public class PaletteFrame
 				if (msg.equals("Cell"))
 				{
 					JPopupMenu cellMenu = new JPopupMenu("Cells");
-					for(Iterator it = Library.getCurrent().getCells(); it.hasNext(); )
+					List sortedCells = Library.getCurrent().getCellsSortedByName();
+					for(Iterator it = sortedCells.iterator(); it.hasNext(); )
 					{
 						Cell cell = (Cell)it.next();
 						JMenuItem menuItem = new JMenuItem(cell.describe());
@@ -600,18 +601,6 @@ public class PaletteFrame
 			LayoutText dialog = new LayoutText(TopLevel.getCurrentJFrame(), true);
 			dialog.show();
 		}
-
-//		static class MyPopupListener implements PopupMenuListener, MouseListener
-//		{
-//			public void popupMenuCanceled(javax.swing.event.PopupMenuEvent e) { System.out.println("cancelled"); }
-//			public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent e) {}
-//			public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent e) {}
-//			public void mouseClicked(MouseEvent e) {}
-//			public void mouseEntered(MouseEvent e) {}
-//			public void mouseExited(MouseEvent e) {}
-//			public void mousePressed(MouseEvent e) {}
-//			public void mouseReleased(MouseEvent e) { System.out.println("Mouse released"); }
-//		}
 
 		/**
 		 * Class to read a Spice library in a new thread.
@@ -748,25 +737,28 @@ public class PaletteFrame
 			g.clearRect(0, 0, wid, hei);
 			frame.entrySize = Math.min(wid / frame.menuX - 1, hei / frame.menuY - 1);
 
-			// make a single-square Image
-			Image img = createImage(frame.entrySize, frame.entrySize);
-			Graphics2D g2 = (Graphics2D)img.getGraphics();
-			//Undo.changesQuiet(true);
+			// create an EditWindow for rendering nodes and arcs
+			EditWindow w = EditWindow.CreateElectricDoc(null, null);
+			w.setSize(new Dimension(frame.entrySize, frame.entrySize));
+
+			// draw the menu entries
 			for(int x=0; x<frame.menuX; x++)
 			{
 				for(int y=0; y<frame.menuY; y++)
 				{
-					// render the entry into the Image
-					g2.clearRect(0, 0, frame.entrySize, frame.entrySize);
+					// render the entry into an Image
 					int index = x * frame.menuY + y;
 					if (index >= frame.inPalette.size()) continue;
 					Object toDraw = frame.inPalette.get(index);
-					drawMenuEntry(g, img, toDraw);
+					Image img = drawMenuEntry(w, toDraw);
 
 					// put the Image in the proper place
 					int imgX = x * (frame.entrySize+1)+1;
 					int imgY = (frame.menuY-y-1) * (frame.entrySize+1)+1;
-					g.drawImage(img, imgX, imgY, this);
+					if (img != null)
+					{
+						g.drawImage(img, imgX, imgY, this);
+					}
 
 					// highlight if an arc or node
 					if (toDraw instanceof PrimitiveArc)
@@ -801,6 +793,8 @@ public class PaletteFrame
 					if (toDraw instanceof String)
 					{
 						String str = (String)toDraw;
+						g.setColor(Color.LIGHT_GRAY);
+						g.fillRect(imgX, imgY, frame.entrySize, frame.entrySize);
 						g.setColor(Color.BLACK);
 						g.setFont(new Font("Helvetica", Font.PLAIN, 20));
 						FontMetrics fm = g.getFontMetrics();
@@ -814,7 +808,6 @@ public class PaletteFrame
 					}
 				}
 			}
-			//Undo.changesQuiet(false);
 
 			// show dividing lines
 			g.setColor(Color.BLACK);
@@ -846,10 +839,9 @@ public class PaletteFrame
 			g.fillPolygon(arrowX, arrowY, 3);
 		}
 
-		void drawNodeInMenu(Graphics g, Image img, NodeInst ni)
+		Image drawNodeInMenu(EditWindow wnd, NodeInst ni)
 		{
 			// determine scale for rendering
-			Graphics2D g2 = (Graphics2D)img.getGraphics();
 			NodeProto np = ni.getProto();
 			double largest = 0;
 			NodeProto.Function groupFunction = np.getGroupFunction();
@@ -874,39 +866,31 @@ public class PaletteFrame
 			}
 
 			// render it
-			g2.translate(frame.entrySize/2, frame.entrySize/2);
 			double scalex = frame.entrySize/largest * 0.8;
 			double scaley = frame.entrySize/largest * 0.8;
 			double scale = Math.min(scalex, scaley);
-			g2.scale(scale, -scale);
-			SizeOffset so = np.getSizeOffset();
-			double offx = 0;   // (so.getHighXOffset() - so.getLowXOffset()) / 2;
-			double offy = 0;   // (so.getHighYOffset() - so.getLowYOffset()) / 2;
-			g2.translate(-offx, -offy);
-			EditWindow w = EditWindow.CreateElectricDoc(null, null);
-			w.setScale(scale);
-			w.drawNode(g2, ni, new AffineTransform(), true);
+			wnd.initDrawing();
+			wnd.setScale(scale);
+			wnd.drawNode(ni, EMath.MATID, true);
+			return wnd.termDrawing();
 		}
 
 		private final static double menuArcLength = 8;
 
-		void drawMenuEntry(Graphics g, Image img, Object entry)
+		Image drawMenuEntry(EditWindow wnd, Object entry)
 		{
-			g.setColor(Color.lightGray);
-			Graphics2D g2 = (Graphics2D)img.getGraphics();
-
 			// setup graphics for rendering (start at bottom and work up)
 			if (entry instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)entry;
-				drawNodeInMenu(g, img, ni);
+				return drawNodeInMenu(wnd, ni);
 			}
 			if (entry instanceof NodeProto)
 			{
 				// rendering a node: create the temporary node
 				NodeProto np = (NodeProto)entry;
 				NodeInst ni = NodeInst.makeDummyInstance(np);
-				drawNodeInMenu(g, img, ni);
+				return drawNodeInMenu(wnd, ni);
 			}
 			if (entry instanceof PrimitiveArc)
 			{
@@ -924,17 +908,15 @@ public class PaletteFrame
 				}
 
 				// render the arc
-				g2.translate(frame.entrySize/2, frame.entrySize/2);
 				double scalex = frame.entrySize/largest * 0.8;
 				double scaley = frame.entrySize/largest * 0.8;
 				double scale = Math.min(scalex, scaley);
-				g2.scale(scale, -scale);
-				double offx = 0, offy = 0;
-				g2.translate(-offx, -offy);
-				EditWindow w = EditWindow.CreateElectricDoc(null, null);
-				w.setScale(scale);
-				w.drawArc(g2, ai, new AffineTransform(), true);
+				wnd.initDrawing();
+				wnd.setScale(scale);
+				wnd.drawArc(ai, EMath.MATID);
+				return wnd.termDrawing();
 			}
+			return null;
 		}
 	}
 

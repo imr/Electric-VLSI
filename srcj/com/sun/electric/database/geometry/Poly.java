@@ -823,11 +823,11 @@ public class Poly implements Shape
 		double hY = bounds.getMaxY();
 		GlyphVector gv = wnd.getGlyphs(getString(), getTextDescriptor());
 		Rectangle2D glyphBounds = gv.getVisualBounds();
-		Point2D corner = wnd.getTextCorner(gv, getStyle(), numLines, lX, hX, lY, hY);
+		Point2D corner = getTextCorner(wnd, gv, getStyle(), numLines, lX, hX, lY, hY);
 		double cX = corner.getX();
 		double cY = corner.getY();
 
-		double textScale = wnd.getTextScale(gv, getStyle(), lX, hX, lY, hY);
+		double textScale = getTextScale(wnd,gv, getStyle(), lX, hX, lY, hY);
 		double width = glyphBounds.getWidth() * textScale;
 		double height = glyphBounds.getHeight() * textScale * numLines;
 		points = new Point2D.Double[] {
@@ -836,6 +836,96 @@ public class Poly implements Shape
 			new Point2D.Double(cX+width, cY+height),
 			new Point2D.Double(cX, cY+height)};
 		this.bounds = null;
+	}
+
+	/**
+	 * Method to return the scaling factor between database and screen for the given text.
+	 * @param wnd the window with the text.
+	 * @param gv the GlyphVector describing the text.
+	 * @param style the grab-point information about where the text is anchored.
+	 * @param lX the low X bound of the polygon containing the text.
+	 * @param hX the high X bound of the polygon containing the text.
+	 * @param lY the low Y bound of the polygon containing the text.
+	 * @param hY the high Y bound of the polygon containing the text.
+	 * @return the scale of the text (from database to screen).
+	 */
+	private double getTextScale(EditWindow wnd, GlyphVector gv, Poly.Type style, double lX, double hX, double lY, double hY)
+	{
+		double textScale = 1.0/wnd.getScale();
+		if (style == Poly.Type.TEXTBOX)
+		{
+			Rectangle2D glyphBounds = gv.getVisualBounds();
+			double textWidth = glyphBounds.getWidth() * textScale;
+			if (textWidth > hX - lX)
+			{
+				// text too big for box: scale it down
+				textScale *= (hX - lX) / textWidth;
+			}
+		}
+		return textScale;
+	}
+
+	/**
+	 * Method to return the coordinates of the lower-left corner of text in a window.
+	 * @param wnd the window with the text.
+	 * @param gv the GlyphVector describing the text.
+	 * @param style the grab-point information about where the text is anchored.
+	 * @param lX the low X bound of the polygon containing the text.
+	 * @param hX the high X bound of the polygon containing the text.
+	 * @param lY the low Y bound of the polygon containing the text.
+	 * @param hY the high Y bound of the polygon containing the text.
+	 * @return the coordinates of the lower-left corner of the text.
+	 */
+	private Point2D getTextCorner(EditWindow wnd, GlyphVector gv, Poly.Type style, int numLines, double lX, double hX, double lY, double hY)
+	{
+		// adjust to place text in the center
+		Rectangle2D glyphBounds = gv.getVisualBounds();
+		double textScale = 1.0/wnd.getScale();
+		double cX = (lX + hX) / 2;
+		double cY = (lY + hY) / 2;
+		double textWidth = glyphBounds.getWidth() * textScale;
+		double textHeight = glyphBounds.getHeight() * textScale;
+		if (style == Poly.Type.TEXTCENT)
+		{
+			cX -= glyphBounds.getCenterX() * textScale;
+			cY += glyphBounds.getCenterY() * textScale;
+		} else if (style == Poly.Type.TEXTTOP)
+		{
+			cX -= glyphBounds.getCenterX() * textScale;
+			cY -= textHeight;
+		} else if (style == Poly.Type.TEXTBOT)
+		{
+			cX -= glyphBounds.getCenterX() * textScale;
+		} else if (style == Poly.Type.TEXTLEFT)
+		{
+			cY += glyphBounds.getCenterY() * textScale;
+		} else if (style == Poly.Type.TEXTRIGHT)
+		{
+			cX -= textWidth;
+			cY += glyphBounds.getCenterY() * textScale;
+		} else if (style == Poly.Type.TEXTTOPLEFT)
+		{
+			cY -= textHeight;
+		} else if (style == Poly.Type.TEXTBOTLEFT)
+		{
+		} else if (style == Poly.Type.TEXTTOPRIGHT)
+		{
+			cX -= textWidth;
+			cY -= textHeight;
+		} else if (style == Poly.Type.TEXTBOTRIGHT)
+		{
+			cX -= textWidth;
+		} if (style == Poly.Type.TEXTBOX)
+		{
+			if (textWidth > hX - lX)
+			{
+				// text too big for box: scale it down
+				textScale *= (hX - lX) / textWidth;
+			}
+			cX -= glyphBounds.getCenterX() * textScale;
+			cY += glyphBounds.getCenterY() * textScale;
+		}
+		return new Point2D.Double(cX, cY);
 	}
 
 	/**

@@ -54,6 +54,7 @@ import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.ToolBar;
+import com.sun.electric.tool.user.ui.PixelDrawing;
 
 import java.awt.Dimension;
 import java.awt.Image;
@@ -64,6 +65,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Color;
 import java.awt.Image;
+import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseListener;
@@ -85,6 +87,8 @@ import java.awt.geom.Arc2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
 import java.awt.image.WritableRaster;
+import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferInt;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
@@ -115,9 +119,8 @@ public class EditWindow extends JPanel
     /** the size of the window (in pixels) */				private Dimension sz;
     /** the cell that is in the window */					private Cell cell;
     /** Cell's VarContext */                                private VarContext cellVarContext;
-    /** the offscreen image of the window */				private Image img = null;
-//	/** the offscreen bitmaps for transparent layers */		private BufferedImage [] layerImages;
-//	/** the rasters for transparent layers */				private WritableRaster [] layerRasters;
+
+	/** the offscreen data for rendering */					private PixelDrawing offscreen = null;
     /** the window frame containing this editwindow */      private WindowFrame wf;
 	/** true if the window needs to be rerendered */		private boolean needsUpdate = true;
 	/** true if showing grid in this window */				private boolean showGrid = false;
@@ -130,12 +133,7 @@ public class EditWindow extends JPanel
     /** current mouse motion listener */					private static MouseMotionListener curMouseMotionListener = ClickZoomWireListener.theOne;
     /** current mouse wheel listener */						private static MouseWheelListener curMouseWheelListener = ClickZoomWireListener.theOne;
     /** current key listener */								private static KeyListener curKeyListener = ClickZoomWireListener.theOne;
-//    /** current mouse listener */							private static MouseListener curMouseListener = ClickAndDragListener.theOne;
-//    /** current mouse motion listener */					private static MouseMotionListener curMouseMotionListener = ClickAndDragListener.theOne;
-//    /** current mouse wheel listener */						private static MouseWheelListener curMouseWheelListener = ClickAndDragListener.theOne;
-//    /** current key listener */								private static KeyListener curKeyListener = ClickAndDragListener.theOne;
 
-    /** an identity transformation */						private static final AffineTransform IDENTITY = new AffineTransform();
     /** the offset of each new window on the screen */		private static int windowOffset = 0;
 	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
 	/** TextDescriptor for empty window text. */			private static TextDescriptor noCellTextDescriptor = null;
@@ -145,6 +143,10 @@ public class EditWindow extends JPanel
     /** for drawing dotted lines */		private static final BasicStroke dottedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {1}, 0);
     /** for drawing dashed lines */		private static final BasicStroke dashedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10, new float[] {10}, 0);
     /** for drawing selection boxes */	private static final BasicStroke selectionLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {2}, 3);
+	EGraphics blackGraphics = new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 0,0,0, 1.0,1,
+		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
+	EGraphics redGraphics = new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 255,0,0, 1.0,1,
+		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 
 
     // ************************************* CONTROL *************************************
@@ -166,6 +168,12 @@ public class EditWindow extends JPanel
 		addMouseMotionListener(this);
 		addMouseWheelListener(this);
 		if (wf != null) setCell(cell, VarContext.globalContext);
+	}
+
+	public void setSize(Dimension sz)
+	{
+		this.sz = sz;
+		offscreen = new PixelDrawing(sz, this);
 	}
 
 	// factory
@@ -282,8 +290,6 @@ public class EditWindow extends JPanel
 
 	public void paint(Graphics g)
 	{
-        Graphics2D g2 = (Graphics2D)g;
-
 		// to enable keys to be received
 		if (cell != null && cell == Library.getCurrent().getCurCell())
 			requestFocus();
@@ -291,31 +297,26 @@ public class EditWindow extends JPanel
 		// redo the explorer tree if it changed
 		ExplorerTree.rebuildExplorerTree();
 
-		if (img == null || !getSize().equals(sz))
+		if (offscreen == null || !getSize().equals(sz))
 		{
-			sz = getSize();
-			img = createImage(sz.width, sz.height);
-//			layerImages = new BufferedImage[5];
-//			layerRasters = new WritableRaster[5];
-//			for(int i=0; i<5; i++)
-//			{
-//				layerImages[i] = new BufferedImage(sz.width, sz.height, BufferedImage.TYPE_BYTE_BINARY);
-//				layerRasters[i] = layerImages[i].getRaster();
-//			}
+			setSize(getSize());
 			needsUpdate = true;
 		}
 		if (needsUpdate)
 		{
 			needsUpdate = false;
 			setScrollPosition();
+//long startTime = System.currentTimeMillis();
 			drawImage();
+//long endTime = System.currentTimeMillis();
+//System.out.println("Rendering took "+(endTime-startTime)+" milliseconds");
 		}
-		g2.drawImage(img, 0, 0, this);
+		g.drawImage(offscreen.getImage(), 0, 0, this);
 
         if (cell == null) return;
 
         // add in grid
-		if (showGrid) drawGrid(g2);
+		if (showGrid) drawGrid(g);
 
 		// add in highlighting
 		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
@@ -323,23 +324,26 @@ public class EditWindow extends JPanel
 			Highlight h = (Highlight)it.next();
 			Cell highCell = h.getCell();
 			if (highCell != cell) continue;
-			h.showHighlight(this, g2);
+			h.showHighlight(this, g);
 		}
 
 		// add in drag area
 		if (doingAreaDrag)
-			showDragBox(g2);
+			showDragBox(g);
 	}
+
+	public void initDrawing() { offscreen.clearImage(); }
+
+	public Image termDrawing() { offscreen.composite(); return offscreen.getImage(); }
 
 	/**
 	 * Method to draw the current window.
 	 */
-	void drawImage()
+	private void drawImage()
 	{
-		// set background color
-		Graphics2D g2 = (Graphics2D)img.getGraphics();
-		g2.setColor(Color.lightGray);
-		g2.fillRect(0, 0, sz.width, sz.height);
+		// initialize rendering into the offscreen image
+		initDrawing();
+
 		if (cell == null)
 		{
 			if (noCellTextDescriptor == null)
@@ -348,44 +352,33 @@ public class EditWindow extends JPanel
 				noCellTextDescriptor.setAbsSize(18);
 				noCellTextDescriptor.setBold();
 			}
-			GlyphVector gv = getGlyphs("No cell in this window", noCellTextDescriptor);
-			Rectangle2D glyphBounds = gv.getVisualBounds();
-			int x = (int)(sz.width / 2 - glyphBounds.getWidth() / 2);
-			int y = (int)(sz.height / 2 + glyphBounds.getHeight() / 2);
-			g2.setColor(Color.BLACK);
-			g2.drawGlyphVector(gv, x, y);
-			return;
+			Rectangle rect = new Rectangle(sz);
+			offscreen.drawText(rect, Poly.Type.TEXTBOX, noCellTextDescriptor, "No cell in this window", null, blackGraphics);
+		} else
+		{
+			// draw everything
+			drawCell(cell, EMath.MATID, true);
 		}
 
-		// setup graphics for rendering (start at bottom and work up)
-		g2.translate(sz.width/2, sz.height/2);
-		g2.scale(scale, -scale);
-		g2.translate(-offx, -offy);
-
-		// if tracking time, start the clock
-		long startTime = 0;
-
-		// draw everything
-		drawCell(g2, cell, IDENTITY, true);
+		// merge transparent image into opaque one
+		termDrawing();
 	}
 
 	/**
 	 * Method to draw the contents of cell "c", transformed through "prevTrans".
 	 */
-	void drawCell(Graphics2D g2, Cell cell, AffineTransform prevTrans, boolean topLevel)
+	void drawCell(Cell cell, AffineTransform prevTrans, boolean topLevel)
 	{
 		// draw all arcs
-		Iterator arcs = cell.getArcs();
-		while (arcs.hasNext())
+		for(Iterator arcs = cell.getArcs(); arcs.hasNext(); )
 		{
-			drawArc(g2, (ArcInst)arcs.next(), prevTrans, topLevel);
+			drawArc((ArcInst)arcs.next(), prevTrans);
 		}
 
 		// draw all nodes
-		Iterator nodes = cell.getNodes();
-		while (nodes.hasNext())
+		for(Iterator nodes = cell.getNodes(); nodes.hasNext(); )
 		{
-			drawNode(g2, (NodeInst)nodes.next(), prevTrans, topLevel);
+			drawNode((NodeInst)nodes.next(), prevTrans, topLevel);
 		}
 
 		// show cell variables if at the top level
@@ -394,16 +387,15 @@ public class EditWindow extends JPanel
 			// show displayable variables on the instance
 			int numPolys = cell.numDisplayableVariables(true);
 			Poly [] polys = new Poly[numPolys];
-//			Rectangle2D rect = cell.getBounds();
 			cell.addDisplayableVariables(CENTERRECT, polys, 0, this, true);
-			drawPolys(g2, polys, new AffineTransform());
+			drawPolys(polys, EMath.MATID);
 		}
 	}
 
 	/**
 	 * Method to draw node "ni", transformed through "trans".
 	 */
-	public void drawNode(Graphics2D g2, NodeInst ni, AffineTransform trans, boolean topLevel)
+	public void drawNode(NodeInst ni, AffineTransform trans, boolean topLevel)
 	{
 		NodeProto np = ni.getProto();
 		AffineTransform localTrans = ni.rotateOut(trans);
@@ -426,23 +418,31 @@ public class EditWindow extends JPanel
 			{
 				// show the contents
 				AffineTransform subTrans = ni.translateOut(localTrans);
-				drawCell(g2, subCell, subTrans, false);
+				drawCell(subCell, subTrans, false);
 			} else
 			{
-				// draw the outline
+				// draw the instance outline
 				Rectangle2D bounds = ni.getBounds();
 				Poly poly = new Poly(bounds.getCenterX(), bounds.getCenterY(), ni.getXSize(), ni.getYSize());
 				AffineTransform localPureTrans = ni.rotateOutAboutTrueCenter(trans);
 				poly.transform(localPureTrans);
-				g2.setColor(Color.black);
-				g2.setStroke(solidLine);
-				g2.draw(poly);
+				Point2D [] points = poly.getPoints();
+				for(int i=0; i<points.length; i++)
+				{
+					int lastI = i - 1;
+					if (lastI < 0) lastI = points.length - 1;
+					Point from = databaseToScreen(points[lastI]);
+					Point to = databaseToScreen(points[i]);
+					offscreen.drawLine(from, to, null, blackGraphics, 0);
+				}
+
+				// draw the instance name
 				if (User.isTextVisibilityOnInstance())
 				{
 					bounds = poly.getBounds2D();
+					Rectangle rect = databaseToScreen(bounds);
 					TextDescriptor descript = ni.getProtoTextDescriptor();
-					drawText(g2, bounds.getMinX(), bounds.getMaxX(), bounds.getMinY(), bounds.getMaxY(),
-						Poly.Type.TEXTBOX, descript, np.describe(), Color.black);
+					offscreen.drawText(rect, Poly.Type.TEXTBOX, descript, np.describe(), null, blackGraphics);
 				}
 
 				// show the ports that are not further exported or connected
@@ -476,7 +476,7 @@ public class EditWindow extends JPanel
 					if (portDisplayLevel == 2)
 					{
 						// draw port as a cross
-						drawCross(g2, portPoly, Color.red);
+						offscreen.drawCross(portPoly, redGraphics);
 					} else
 					{
 						// draw port as text
@@ -490,8 +490,9 @@ public class EditWindow extends JPanel
 								// use shorter port name
 								portName = pp.getShortProtoName();
 							}
-							drawText(g2, portPoly.getCenterX(), portPoly.getCenterX(), portPoly.getCenterY(), portPoly.getCenterY(), type,
-								descript, portName, Color.red);
+							Point pt = databaseToScreen(portPoly.getCenterX(), portPoly.getCenterY());
+							Rectangle rect = new Rectangle(pt);
+							offscreen.drawText(rect, type, descript, portName, null, redGraphics);
 						}
 					}
 				}
@@ -505,8 +506,7 @@ public class EditWindow extends JPanel
 				Poly [] polys = new Poly[numPolys];
 				Rectangle2D rect = ni.getBounds();
 				ni.addDisplayableVariables(rect, polys, 0, this, true);
-				if (drawPolys(g2, polys, localTrans))
-					System.out.println("... while displaying instance "+ni.describe() + " in cell " + ni.getParent().describe());
+				drawPolys(polys, localTrans);
 			}
 		} else
 		{
@@ -522,8 +522,7 @@ public class EditWindow extends JPanel
 				}
 				Technology tech = prim.getTechnology();
 				Poly [] polys = tech.getShapeOfNode(ni, wnd);
-				if (drawPolys(g2, polys, localTrans))
-					System.out.println("... while displaying node "+ni.describe() + " in cell " + ni.getParent().describe());
+				drawPolys(polys, localTrans);
 			}
 		}
 
@@ -540,7 +539,7 @@ public class EditWindow extends JPanel
 				if (exportDisplayLevel == 2)
 				{
 					// draw port as a cross
-					drawCross(g2, poly, Color.black);
+					offscreen.drawCross(poly, blackGraphics);
 				} else
 				{
 					// draw port as text
@@ -552,8 +551,9 @@ public class EditWindow extends JPanel
 						// use shorter port name
 						portName = e.getShortProtoName();
 					}
-					drawText(g2, poly.getCenterX(), poly.getCenterX(), poly.getCenterY(), poly.getCenterY(), type,
-						descript, portName, Color.black);
+					Point pt = databaseToScreen(poly.getCenterX(), poly.getCenterY());
+					Rectangle textRect = new Rectangle(pt);
+					offscreen.drawText(textRect, type, descript, portName, null, blackGraphics);
 				}
 
 				// draw variables on the export
@@ -562,8 +562,7 @@ public class EditWindow extends JPanel
 				{
 					Poly [] polys = new Poly[numPolys];
 					e.addDisplayableVariables(rect, polys, 0, this, true);
-					if (drawPolys(g2, polys, localTrans))
-						System.out.println("... while displaying export in cell " + ni.getParent().describe());
+					drawPolys(polys, localTrans);
 				}
 			}
 		}
@@ -572,24 +571,22 @@ public class EditWindow extends JPanel
 	/**
 	 * Method to draw arc "ai", transformed through "trans".
 	 */
-	public void drawArc(Graphics2D g2, ArcInst ai, AffineTransform trans, boolean topLevel)
+	public void drawArc(ArcInst ai, AffineTransform trans)
 	{
 		ArcProto ap = ai.getProto();
 		Technology tech = ap.getTechnology();
 		EditWindow wnd = this;
 		if (!User.isTextVisibilityOnArc()) wnd = null;
 		Poly [] polys = tech.getShapeOfArc(ai, wnd);
-		if (drawPolys(g2, polys, trans))
-			System.out.println("... while displaying arc "+ai.describe() + " in cell " + ai.getParent().describe());
+		drawPolys(polys, trans);
 	}
 
 	/**
 	 * Method to draw polygon "poly", transformed through "trans".
-	 * Returns true on error.
 	 */
-	boolean drawPolys(Graphics2D g2, Poly [] polys, AffineTransform trans)
+	private void drawPolys(Poly [] polys, AffineTransform trans)
 	{
-		if (polys == null) return false;
+		if (polys == null) return;
 		for(int i = 0; i < polys.length; i++)
 		{
 			// get the polygon and transform it
@@ -597,191 +594,22 @@ public class EditWindow extends JPanel
 			if (poly == null)
 			{
 				System.out.println("Warning: poly " + i + " of list of " + polys.length + " is null");
-				return true;
+				return;
 			}
 			Layer layer = poly.getLayer();
-
-			// set the color
-			Color color = Color.black;
+			EGraphics graphics = null;
 			if (layer != null)
 			{
 				if (!layer.isVisible()) continue;
-				EGraphics graphics = layer.getGraphics();
-				color = graphics.getColor();
+				graphics = layer.getGraphics();
 			}
-			g2.setPaint(color);
 
-			// now draw it
+			// transform the bounds
 			poly.transform(trans);
-			Poly.Type style = poly.getStyle();
-			if (style == Poly.Type.FILLED)
-			{
-				g2.fill(poly);
-			} else if (style == Poly.Type.CLOSED || style == Poly.Type.OPENED || style == Poly.Type.OPENEDT1 ||
-				style == Poly.Type.OPENEDT2 || style == Poly.Type.OPENEDT3 || style == Poly.Type.OPENEDO1 ||
-				style == Poly.Type.VECTORS)
-			{
-				drawOutline(g2, poly);
-			} else if (style == Poly.Type.CROSSED)
-			{
-				g2.setStroke(solidLine);
-				GeneralPath gp = new GeneralPath();
-				Point2D [] points = poly.getPoints();
-				gp.moveTo((float)points[0].getX(), (float)points[0].getY());
-				for(int j=1; j<points.length; j++)
-					gp.lineTo((float)points[j].getX(), (float)points[j].getY());
-				gp.lineTo((float)points[0].getX(), (float)points[0].getY());
-				gp.lineTo((float)points[2].getX(), (float)points[2].getY());
-				gp.moveTo((float)points[1].getX(), (float)points[1].getY());
-				gp.lineTo((float)points[3].getX(), (float)points[3].getY());
-				g2.draw(gp);
-			} else if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTTOP || style == Poly.Type.TEXTBOT ||
-				style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT || style == Poly.Type.TEXTTOPLEFT ||
-				style == Poly.Type.TEXTBOTLEFT || style == Poly.Type.TEXTTOPRIGHT || style == Poly.Type.TEXTBOTRIGHT ||
-				style == Poly.Type.TEXTBOX)
-			{
-				double lX = poly.getCenterX();
-				double hX = lX;
-				double lY = poly.getCenterY();
-				double hY = lY;
-				if (style == Poly.Type.TEXTBOX)
-				{
-					Rectangle2D bounds = poly.getBounds2D();
-					lX = bounds.getMinX();   hX = bounds.getMaxX();
-					lY = bounds.getMinY();   hY = bounds.getMaxY();
-				}
-				TextDescriptor descript = poly.getTextDescriptor();
-				String str = poly.getString();
-				drawText(g2, lX, hX, lY, hY, style, descript, str, Color.black);
-			} else if (style == Poly.Type.CIRCLE || style == Poly.Type.THICKCIRCLE || style == Poly.Type.DISC)
-			{
-				drawCircular(g2, poly);
-			} else if (style == Poly.Type.CIRCLEARC || style == Poly.Type.THICKCIRCLEARC)
-			{
-				AffineTransform saveAT = g2.getTransform();
-				double scale = 100;
-				g2.scale(1/scale, 1/scale);
-				Point2D [] points = poly.getPoints();
-				int ctrX = (int)(points[0].getX() * scale);
-				int ctrY = (int)(points[0].getY() * scale);
-				int startX = (int)(points[1].getX() * scale);
-				int startY = (int)(points[1].getY() * scale);
-				int endX = (int)(points[2].getX() * scale);
-				int endY = (int)(points[2].getY() * scale);
-				int radius = (int)(points[0].distance(points[1]) * scale);
-				int diameter = radius * 2;
-				int startAngle = (int)(Math.atan2(startY-ctrY, startX-ctrX) * 180.0 / Math.PI);
-				if (startAngle < 0) startAngle += 360;
-				int endAngle = (int)(Math.atan2(endY-ctrY, endX-ctrX) * 180.0 / Math.PI);
-				if (endAngle < 0) endAngle += 360;
-				if (startAngle < endAngle) startAngle += 360;
-				startAngle = 360 - startAngle;
-				endAngle = 360 - endAngle;
-				g2.drawArc(ctrX-radius, ctrY-radius, diameter, diameter, startAngle, endAngle - startAngle);
-				g2.setTransform(saveAT);
-			} else if (style == Poly.Type.CROSS || style == Poly.Type.BIGCROSS)
-			{
-				// draw the big cross
-				drawCross(g2, poly, Color.black);
-			}
+
+			// render the polygon
+			offscreen.renderPoly(poly, graphics);
 		}
-		return false;
-	}
-
-	// ************************************* SPECIAL SHAPE DRAWING *************************************
-
-	/**
-	 * Method to draw a large or small cross, as described in "poly".
-	 */
-	void drawCross(Graphics2D g2, Poly poly, Color color)
-	{
-		float x = (float)poly.getCenterX();
-		float y = (float)poly.getCenterY();
-		float size = 5 / (float)scale;
-		if (poly.getStyle() == Poly.Type.CROSS) size = 3 / (float)scale;
-		g2.setStroke(solidLine);
-		g2.setColor(color);
-		GeneralPath gp = new GeneralPath();
-		gp.moveTo(x+size, y);  gp.lineTo(x-size, y);
-		gp.moveTo(x, y+size);  gp.lineTo(x, y-size);
-		g2.draw(gp);
-	}
-
-	/**
-	 * Method to draw lines, as described in "poly".
-	 */
-	void drawOutline(Graphics2D g2, Poly poly)
-	{
-		Poly.Type theStyle = poly.getStyle();
-		AffineTransform saveAT = g2.getTransform();
-		double theScale = scale;
-		if (theStyle == Poly.Type.OPENEDT3) theScale /= 2;
-		g2.scale(1/theScale, 1/theScale);
-		if (theStyle == Poly.Type.OPENEDT1) g2.setStroke(dottedLine); else
-		if (theStyle == Poly.Type.OPENEDT2) g2.setStroke(dashedLine); else
-		if (theStyle == Poly.Type.OPENEDT3) g2.setStroke(thickLine); else
-			g2.setStroke(solidLine);
-
-		GeneralPath gp = new GeneralPath();
-		Point2D [] points = poly.getPoints();
-		if (theStyle == Poly.Type.VECTORS)
-		{
-			for(int j=0; j<points.length; j+=2)
-			{
-				gp.moveTo((float)(points[j].getX()*theScale), (float)(points[j].getY()*theScale));
-				gp.lineTo((float)(points[j+1].getX()*theScale), (float)(points[j+1].getY()*theScale));
-			}
-		} else
-		{
-			gp.moveTo((float)(points[0].getX()*theScale), (float)(points[0].getY()*theScale));
-			for(int j=1; j<points.length; j++)
-			{
-				gp.lineTo((float)(points[j].getX()*theScale), (float)(points[j].getY()*theScale));
-			}
-			if (theStyle == Poly.Type.CLOSED)
-				gp.lineTo((float)(points[0].getX()*theScale), (float)(points[0].getY()*theScale));
-		}
-		g2.draw(gp);
-		g2.setTransform(saveAT);
-	}
-
-	/**
-	 * Method to draw a circle or a disc, as described in "poly".
-	 */
-	void drawCircular(Graphics2D g2, Poly poly)
-	{
-		AffineTransform saveAT = g2.getTransform();
-		double cScale = 100;
-		g2.scale(1/cScale, 1/cScale);
-		if (poly.getStyle() == Poly.Type.THICKCIRCLE)
-		{
-			g2.setStroke(thickLine);
-		} else
-		{
-			g2.setStroke(solidLine);
-		}
-		Point2D [] points = poly.getPoints();
-		double ctrX = points[0].getX() * cScale;
-		double ctrY = points[0].getY() * cScale;
-		double edgeX = points[1].getX() * cScale;
-		double edgeY = points[1].getY() * cScale;
-		double radius;
-		if (edgeX == ctrX) radius = Math.abs(ctrY - edgeY); else
-			if (edgeY == ctrY) radius = Math.abs(ctrX - edgeX); else
-				radius = Math.sqrt((ctrY - edgeY)*(ctrY - edgeY) + (ctrX - edgeX) * (ctrX - edgeX));
-		double diameter = radius * 2;
-        Arc2D circle = new Arc2D.Double((int)ctrX-radius, (int)ctrY-radius, (int)diameter, (int)diameter,
-                                        (int)0.0, (int)360.0, Arc2D.OPEN);
-        if (poly.getStyle() == Poly.Type.DISC)
-		{
-            g2.fill(circle);
-			//g2.fillOval(ctrX-radius, ctrY-radius, diameter, diameter);
-		} else
-		{
-            g2.draw(circle);
-            //g2.drawOval(ctrX-radius, ctrY-radius, diameter, diameter);
-		}
-		g2.setTransform(saveAT);
 	}
 
 	/**
@@ -813,134 +641,6 @@ public class EditWindow extends JPanel
 		FontRenderContext frc = new FontRenderContext(null, false, false);
 		GlyphVector gv = font.createGlyphVector(frc, text);
 		return gv;
-	}
-
-	/**
-	 * Method to return the coordinates of the lower-left corner of text in this window.
-	 * @param gv the GlyphVector describing the text.
-	 * @param style the grab-point information about where the text is anchored.
-	 * @param lX the low X bound of the polygon containing the text.
-	 * @param hX the high X bound of the polygon containing the text.
-	 * @param lY the low Y bound of the polygon containing the text.
-	 * @param hY the high Y bound of the polygon containing the text.
-	 * @return the coordinates of the lower-left corner of the text.
-	 */
-	public Point2D getTextCorner(GlyphVector gv, Poly.Type style, int numLines, double lX, double hX, double lY, double hY)
-	{
-		// adjust to place text in the center
-		Rectangle2D glyphBounds = gv.getVisualBounds();
-		double textScale = 1.0/scale;
-		double cX = (lX + hX) / 2;
-		double cY = (lY + hY) / 2;
-		double textWidth = glyphBounds.getWidth() * textScale;
-		double textHeight = glyphBounds.getHeight() * textScale;
-		if (style == Poly.Type.TEXTCENT)
-		{
-			cX -= glyphBounds.getCenterX() * textScale;
-			cY += glyphBounds.getCenterY() * textScale;
-		} else if (style == Poly.Type.TEXTTOP)
-		{
-			cX -= glyphBounds.getCenterX() * textScale;
-			cY -= textHeight;
-		} else if (style == Poly.Type.TEXTBOT)
-		{
-			cX -= glyphBounds.getCenterX() * textScale;
-		} else if (style == Poly.Type.TEXTLEFT)
-		{
-			cY += glyphBounds.getCenterY() * textScale;
-		} else if (style == Poly.Type.TEXTRIGHT)
-		{
-			cX -= textWidth;
-			cY += glyphBounds.getCenterY() * textScale;
-		} else if (style == Poly.Type.TEXTTOPLEFT)
-		{
-			cY -= textHeight;
-		} else if (style == Poly.Type.TEXTBOTLEFT)
-		{
-		} else if (style == Poly.Type.TEXTTOPRIGHT)
-		{
-			cX -= textWidth;
-			cY -= textHeight;
-		} else if (style == Poly.Type.TEXTBOTRIGHT)
-		{
-			cX -= textWidth;
-		} if (style == Poly.Type.TEXTBOX)
-		{
-			if (textWidth > hX - lX)
-			{
-				// text too big for box: scale it down
-				textScale *= (hX - lX) / textWidth;
-			}
-			cX -= glyphBounds.getCenterX() * textScale;
-			cY += glyphBounds.getCenterY() * textScale;
-		}
-		return new Point2D.Double(cX, cY);
-	}
-
-	/**
-	 * Method to return the scaling factor between database and screen for the given text.
-	 * @param gv the GlyphVector describing the text.
-	 * @param style the grab-point information about where the text is anchored.
-	 * @param lX the low X bound of the polygon containing the text.
-	 * @param hX the high X bound of the polygon containing the text.
-	 * @param lY the low Y bound of the polygon containing the text.
-	 * @param hY the high Y bound of the polygon containing the text.
-	 * @return the scale of the text (from database to screen).
-	 */
-	public double getTextScale(GlyphVector gv, Poly.Type style, double lX, double hX, double lY, double hY)
-	{
-		double textScale = 1.0/scale;
-		if (style == Poly.Type.TEXTBOX)
-		{
-			Rectangle2D glyphBounds = gv.getVisualBounds();
-			double textWidth = glyphBounds.getWidth() * textScale;
-			if (textWidth > hX - lX)
-			{
-				// text too big for box: scale it down
-				textScale *= (hX - lX) / textWidth;
-			}
-		}
-		return textScale;
-	}
-
-	/**
-	 * Method to draw text on the window.
-	 * @param g2 the Graphics object for drawing.
-	 * @param lX the low X bound of the polygon containing the text.
-	 * @param hX the high X bound of the polygon containing the text.
-	 * @param lY the low Y bound of the polygon containing the text.
-	 * @param hY the high Y bound of the polygon containing the text.
-	 * @param style the grab-point information about where the text is anchored.
-	 * @param descript the text descriptor for the text.
-	 * @param text the text to be drawn.
-	 * @param color the color to draw the text.
-	 */
-	void drawText(Graphics2D g2, double lX, double hX, double lY, double hY, Poly.Type style, TextDescriptor descript, String text, Color color)
-	{
-		GlyphVector gv = getGlyphs(text, descript);
-		Rectangle2D glyphBounds = gv.getVisualBounds();
-		Point2D corner = getTextCorner(gv, style, 1, lX, hX, lY, hY);
-		double cX = corner.getX();
-		double cY = corner.getY();
-
-		// determine scaling for the window
-		double textScale = getTextScale(gv, style, lX, hX, lY, hY);
-
-		// draw the text
-		AffineTransform saveAT = g2.getTransform();
-		g2.translate(cX, cY);
-		g2.scale(textScale, -textScale);
-		g2.translate(-cX, -cY);
-		g2.setColor(color);
-		g2.drawGlyphVector(gv, (float)cX, (float)cY);
-		if (descript != null && descript.isUnderline())
-		{
-			GeneralPath gp = new GeneralPath();
-			gp.moveTo((float)cX, (float)cY);
-			gp.lineTo((float)(cX+glyphBounds.getWidth()), (float)cY);
-			g2.draw(gp);
-		}
-		g2.setTransform(saveAT);
 	}
 
 	private void showDragBox(Graphics g)
@@ -1193,7 +893,6 @@ public class EditWindow extends JPanel
 	 */
 	public void focusScreen(Rectangle2D bounds)
 	{
-		sz = getSize();
 		double width = bounds.getWidth();
 		double height = bounds.getHeight();
 		if (width == 0 && height == 0) width = height = 2;
@@ -1346,6 +1045,12 @@ public class EditWindow extends JPanel
 
 	// ************************************* COORDINATES *************************************
 
+	/**
+	 * Method to convert a screen coordinate to database coordinates.
+	 * @param screenX the X coordinate (on the screen in this EditWindow).
+	 * @param screenY the Y coordinate (on the screen in this EditWindow).
+	 * @return the coordinate of that point in database units.
+	 */
 	public Point2D screenToDatabase(int screenX, int screenY)
 	{
 		double dbX = (screenX - sz.width/2) / scale + offx;
@@ -1353,18 +1058,12 @@ public class EditWindow extends JPanel
 		return new Point2D.Double(dbX, dbY);
 	}
 
-	public Point databaseToScreen(double dbX, double dbY)
-	{
-		int screenX = (int)(sz.width/2 + (dbX - offx) * scale);
-		int screenY = (int)(sz.height/2 - (dbY - offy) * scale);
-		return new Point(screenX, screenY);
-	}
-
-	public Point databaseToScreen(Point2D db)
-	{
-		return databaseToScreen(db.getX(), db.getY());
-	}
-
+	/**
+	 * Method to convert a screen distance to a database distance.
+	 * @param screenDX the X coordinate change (on the screen in this EditWindow).
+	 * @param screenDY the Y coordinate change (on the screen in this EditWindow).
+	 * @return the distance in database units.
+	 */
 	public Point2D deltaScreenToDatabase(int screenDX, int screenDY)
 	{
 		double dbDX = screenDX / scale;
@@ -1372,6 +1071,70 @@ public class EditWindow extends JPanel
 		return new Point2D.Double(dbDX, dbDY);
 	}
 
+
+	/**
+	 * Method to convert a database X coordinate to screen coordinates.
+	 * @param dbX the X coordinate (in database units).
+	 * @return the coordinate on the screen.
+	 */
+	public int databaseToScreenX(double dbX)
+	{
+		return (int)(sz.width/2 + (dbX - offx) * scale);
+	}
+
+	/**
+	 * Method to convert a database Y coordinate to screen coordinates.
+	 * @param dbY the Y coordinate (in database units).
+	 * @return the coordinate on the screen.
+	 */
+	public int databaseToScreenY(double dbY)
+	{
+		return (int)(sz.height/2 - (dbY - offy) * scale);
+	}
+
+	/**
+	 * Method to convert a database coordinate to screen coordinates.
+	 * @param dbX the X coordinate (in database units).
+	 * @param dbY the Y coordinate (in database units).
+	 * @return the coordinate on the screen.
+	 */
+	public Point databaseToScreen(double dbX, double dbY)
+	{
+		return new Point(databaseToScreenX(dbX), databaseToScreenY(dbY));
+	}
+
+	/**
+	 * Method to convert a database coordinate to screen coordinates.
+	 * @param db the coordinate (in database units).
+	 * @return the coordinate on the screen.
+	 */
+	public Point databaseToScreen(Point2D db)
+	{
+		return new Point(databaseToScreenX(db.getX()), databaseToScreenY(db.getY()));
+	}
+
+	/**
+	 * Method to convert a database rectangle to screen coordinates.
+	 * @param db the rectangle (in database units).
+	 * @return the rectangle on the screen.
+	 */
+	public Rectangle databaseToScreen(Rectangle2D db)
+	{
+		int screenLX = (int)(sz.width/2 + (db.getMinX() - offx) * scale);
+		int screenHX = (int)(sz.width/2 + (db.getMaxX() - offx) * scale);
+		int screenLY = (int)(sz.height/2 - (db.getMinY() - offy) * scale);
+		int screenHY = (int)(sz.height/2 - (db.getMaxY() - offy) * scale);
+		if (screenHX < screenLX) { int swap = screenHX;   screenHX = screenLX; screenLX = swap; }
+		if (screenHY < screenLY) { int swap = screenHY;   screenHY = screenLY; screenLY = swap; }
+		return new Rectangle(screenLX, screenLY, screenHX-screenLX, screenHY-screenLY);
+	}
+
+	/**
+	 * Method to convert a database distance to a screen distance.
+	 * @param dbX the X change (in database units).
+	 * @param dbY the Y change (in database units).
+	 * @return the distance on the screen.
+	 */
 	public Point deltaDatabaseToScreen(double dbDX, double dbDY)
 	{
 		int screenDX = (int)Math.round(dbDX * scale);
