@@ -59,12 +59,7 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.user.dialogs.ChangeCurrentLib;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.ToolBar;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WaveformWindow;
-import com.sun.electric.tool.user.ui.WindowContent;
-import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.*;
 import com.sun.electric.tool.user.menus.MenuCommands;
 
 import java.awt.geom.AffineTransform;
@@ -3982,6 +3977,7 @@ public class CircuitChanges
 
 				ni.modifyInstance(dX, dY, 0, 0, 0);
                 if (verbose) System.out.println("Moved "+ni.describe()+": delta(X,Y) = ("+dX+","+dY+")");
+                StatusBar.updateStatusBar();
 				return true;
 			}
 
@@ -4074,6 +4070,7 @@ public class CircuitChanges
 					NodeInst.modifyInstances(niList, deltaXs, deltaYs, deltaNulls, deltaNulls, deltaRots);
 				}
                 if (verbose) System.out.println("Moved many objects: delta(X,Y) = ("+dX+","+dY+")");
+                StatusBar.updateStatusBar();
 				return true;
 			}
 
@@ -4114,6 +4111,7 @@ public class CircuitChanges
                         if (verbose) System.out.println("Moved "+ai.describe()+": delta(X,Y) = ("+dX+","+dY+")");
 					}
 				}
+                StatusBar.updateStatusBar();
 				return true;
 			}
 
@@ -4303,6 +4301,7 @@ public class CircuitChanges
 			// also move selected text
 			moveSelectedText(highlightedText);
             if (verbose) System.out.println("Moved many objects: delta(X,Y) = ("+dX+","+dY+")");
+            StatusBar.updateStatusBar();
 			return true;
 		}
 
