@@ -35,7 +35,7 @@ import java.util.HashSet;
  */
 public class ImmutableCell
 {
-	/** Node name. */
+	/** Cell name. */
 	public final String name;
 	/** Array which maps nodeIds to ImmutableNodeInstances. It may contain may nulls. */
 	final ImmutableNodeInst[] nodes;
@@ -142,11 +142,10 @@ public class ImmutableCell
 				// deleted
 			} else {
 				// updated
-				if (!newNode.name.equals(oldNode.name))
-					checkNames = true;
+				if (!newNode.name.equals(oldNode.name)) checkNames = true;
 			}
 		}
-		if (checkNames)	checkNames(newNodes);
+		if (checkNames) checkNames(newNodes);
 		return new ImmutableCell(this.name, newNodes);
 	}
 
@@ -173,8 +172,7 @@ public class ImmutableCell
 				do { length--; } while (length > 0 && nodes[length - 1] == null);
 		} else {
 			// updated
-			if (!node.name.equals(oldNode.name))
-				checkName = true;
+			if (!node.name.equals(oldNode.name)) checkName = true;
 		}
 		if (checkName && findNodeId(node.name) >= 0)
 			throw new IllegalArgumentException("node " + node.name + " exists");
@@ -182,6 +180,19 @@ public class ImmutableCell
 		System.arraycopy(nodes, 0, newNodes, 0, Math.min(nodes.length, length));
 		if (nodeId < length) newNodes[nodeId] = node;
 		return new ImmutableCell(this.name, newNodes);
+	}
+
+	/**
+	 * Returns ImmutableCell which differs from this ImmutableCell by protoId
+	 * of node with specified nodeId.
+	 * @param nodeId node id.
+	 * @param protoId new node protoId.
+	 * @return ImmutableCell which differs from this ImmutableCell by protoId of node.
+	 * @throws ArrayIndexOutOfBoundsException if there is no node with such nodeId or protoId is negative.
+	 * @throws IllegalArgumentException if node with such name exists in a cell.
+	 */
+	public ImmutableCell withNodeProto(int nodeId, int protoId) {
+		return withNode(nodeId, getNodeByIdSurely(nodeId).withProto(protoId));
 	}
 
 	/**
@@ -224,9 +235,8 @@ public class ImmutableCell
 			int length = nodes.length;
 			while (length > 0 && nodes[length - 1] == null) length--;
 			if (length == oldNodes.length) {
-				int i;
-				for (i = length - 1; i >= 0; i--)
-					if (nodes[i] != oldNodes[i]) break;
+				int i = length - 1;
+				while (i >= 0 && nodes[i] == oldNodes[i]) i--;
 				if (i < 0) return oldNodes;
 			}
 			if (length > 0) {

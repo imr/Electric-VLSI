@@ -40,6 +40,9 @@ public class Snapshot
 
 	private static final ImmutableCell[] NULL_CELLS = {};
 
+	/** EMPTY Snapshot without any cells. */
+	public static final Snapshot EMPTY = new Snapshot(NULL_CELLS);
+	
 	Snapshot(ImmutableCell[] cells) {
 		this.cells = cells;
 		check();
@@ -112,7 +115,7 @@ public class Snapshot
 	 * @throws IllegalArgumentException if cells have duplicate names.
 	 * @throws ArrayIndexOutOfBoundsException if some node has bad protoId.
 	 */
-	public Snapshot withCells(ImmutableCell[] nodes) {
+	public Snapshot withCells(ImmutableCell[] cells) {
 		ImmutableCell[] newCells = clone(cells, this.cells);
 		if (newCells == this.cells) return this;
 		boolean checkNames = false;
@@ -134,7 +137,7 @@ public class Snapshot
 				if (!newCell.name.equals(oldCell.name))	checkNames = true;
 				if (newCell.nodes != oldCell.nodes) checkProto = true;
 			}
-			if (checkProto) newCell.checkProto(newCells);
+			if (checkProto && !checkProtos) newCell.checkProto(newCells);
 		}
 		if (checkNames) checkNames(newCells);
 		if (checkProtos) checkProto(newCells);
@@ -168,10 +171,8 @@ public class Snapshot
 				do { length--; } while (length > 0 && cells[length - 1] == null);
 		} else {
 			// updated
-			if (!cell.name.equals(oldCell.name))
-				checkName = true;
-			if (cell.nodes != oldCell.nodes)
-				checkProto = true;
+			if (!cell.name.equals(oldCell.name)) checkName = true;
+			if (cell.nodes != oldCell.nodes) checkProto = true;
 		}
 		if (checkName && findCellId(cell.name) >= 0)
 			throw new IllegalArgumentException("cell " + cell.name + " exists");
@@ -215,6 +216,19 @@ public class Snapshot
 	}
 
 	/**
+	 * Returns Snapshot which differs from this Snapshot by protoId
+	 * of node with specified cellId and nodeId.
+	 * @param cellId cell id.
+	 * @param nodeId node id.
+	 * @param protoId new node protoId.
+	 * @return Snapshot which differs from this Snapshot by name of node.
+	 * @throws ArrayIndexOutOfBoundsException if there is no node with this cellId and nodeId, or protoId is negative.
+	 * @throws IllegalArgumentException if cell with such name exists in database.
+	 */
+	public Snapshot withNodeProto(int cellId, int nodeId, int protoId) {
+		return withCell(cellId, getCellByIdSurely(cellId).withNodeProto(nodeId, protoId));
+	}
+	/**
 	 * Returns Snapshot which differs from this Snapshot by name
 	 * of node with specified cellId and nodeId.
 	 * @param cellId cell id.
@@ -246,8 +260,8 @@ public class Snapshot
 	/**
 	 * Make a defensive copy of array of cells. Array with trailing nulls is truncated.
 	 * If new array has the same entries as old, old is returned.
-	 * @param nodes array to copy, or null
-	 * @param oldNodes old array which may be returned if it has the same entries as new.
+	 * @param cells array to copy, or null
+	 * @param oldCells old array which may be returned if it has the same entries as new.
 	 * @throws ConcurrentModificationException if cells array was modified during construction.
 	 */
 	private static ImmutableCell[] clone(ImmutableCell[] cells, ImmutableCell[] oldCells) {

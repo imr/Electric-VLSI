@@ -4,7 +4,7 @@
  *
  * File: ImmutableNodeInst.java
  *
- * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,6 +56,18 @@ public class ImmutableNodeInst
 		if (name == null) throw new NullPointerException("name");
 		if (anchor == null) throw new NullPointerException("anchor");
 		return new ImmutableNodeInst(protoId, name, anchor);
+	}
+
+	/**
+	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by protoId.
+	 * @param protoId node protoId.
+	 * @return ImmutableNodeInst which differs from this ImmutableNodeInst by protoId.
+	 * @throws ArrayIndexOutOfBoundsException if protoId is negative.
+	 */
+	public ImmutableNodeInst withProto(int protoId) {
+		if (this.protoId == protoId) return this;
+		if (protoId < 0) throw new ArrayIndexOutOfBoundsException(protoId);
+		return new ImmutableNodeInst(protoId, this.name, this.anchor);
 	}
 
 	/**

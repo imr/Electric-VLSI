@@ -24,7 +24,8 @@
 
 package com.sun.electric.tool.user.menus;
 
-//import com.sun.electric.database.DatabaseChangeThread;
+import com.sun.electric.database.Cell_;
+import com.sun.electric.database.DatabaseChangeThread;
 import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.Snapshot;
@@ -1598,30 +1599,35 @@ P 704883 0 0 0
 		(new DatabaseTestThread()).start();
 	}
 
-	private static class DatabaseTestThread extends Thread/*DatabaseChangeThread*/ {
+	private static class DatabaseTestThread extends DatabaseChangeThread {
 		public void run() {
-			ImmutableCell[] icells = new ImmutableCell[3];
-
-			ImmutableNodeInst[] inodes0 = new ImmutableNodeInst[10];
-			inodes0[0] = ImmutableNodeInst.newInstance(0, "n0", EPoint.ORIGIN);
-			inodes0[3] = ImmutableNodeInst.newInstance(2, "n3", new EPoint(2, 3));
-			icells[0] = ImmutableCell.newInstance("c0", inodes0);
-
-			ImmutableNodeInst[] inodes2 = new ImmutableNodeInst[1];
-			inodes2[0] = ImmutableNodeInst.newInstance(2, "qq", EPoint.ORIGIN);
-			icells[2] = ImmutableCell.newInstance("c2", inodes2);
-
-			Snapshot s = Snapshot.newInstance(icells);
-
-			s.check();
-			print(s);
-			try {
-				s = s.withNodeName(0, 3, "qwerty");
-			} catch (Throwable e) {
-				e.printStackTrace();
-			}
-			s.check();
-			print(s);
+			Cell_ cell = Cell_.newInstance("c0");
+			print(backup(null));
+//			ImmutableCell[] icells = new ImmutableCell[3];
+//
+//			ImmutableNodeInst[] inodes0 = new ImmutableNodeInst[10];
+//			inodes0[0] = ImmutableNodeInst.newInstance(0, "n0", EPoint.ORIGIN);
+//			inodes0[3] = ImmutableNodeInst.newInstance(2, "n3", new EPoint(2, 3));
+//			icells[0] = ImmutableCell.newInstance("c0", inodes0);
+//
+//			inodes0[2] = ImmutableNodeInst.newInstance(2, "n2", new EPoint(2, 2));
+//			icells[0] = icells[0].withNodes(inodes0);
+//
+//			ImmutableNodeInst[] inodes2 = new ImmutableNodeInst[1];
+//			inodes2[0] = ImmutableNodeInst.newInstance(2, "qq", EPoint.ORIGIN);
+//			icells[2] = ImmutableCell.newInstance("c2", inodes2);
+//
+//			Snapshot s = Snapshot.newInstance(icells);
+//
+//			s.check();
+//			print(s);
+//			try {
+//				s = s.withNodeName(0, 3, "qwerty");
+//			} catch (Throwable e) {
+//				e.printStackTrace();
+//			}
+//			s.check();
+//			print(s);
 		}
 	}
 
@@ -1634,7 +1640,7 @@ P 704883 0 0 0
 			for (int nodeId = 0, maxNodeId = cell.maxNodeId(); nodeId <= maxNodeId; nodeId++) {
 				ImmutableNodeInst node = cell.getNodeById(nodeId);
 				if (node == null) continue;
-				out.println(nodeId + "\tnode " + node.name + " " + node.protoId + " " + node.anchor);
+				out.println(nodeId + "\tnode " + node.name + " " + s.getCellById(node.protoId).name + " " + node.anchor);
 			}
 		}
 		out.println("----");
