@@ -1264,7 +1264,7 @@ public class Quick
 			double pdx = Math.max(trueBox2.getMinX()-trueBox1.getMaxX(), trueBox1.getMinX()-trueBox2.getMaxX());
 			double pdy = Math.max(trueBox2.getMinY()-trueBox1.getMaxY(), trueBox1.getMinY()-trueBox2.getMaxY());
 			pd = Math.max(pdx, pdy);
-			if (pdx == 0 && pdy == 0) pd = 1;
+			if (pdx == 0 && pdy == 0) pd = 0;
 			if (maytouch)
 			{
 				// they are electrically connected: see if they touch
@@ -1298,10 +1298,13 @@ public class Quick
 									lyb -= minWidth/2;   hyb += minWidth/2;
 									Poly rebuild = new Poly((lxb+hxb)/2, (lyb+hyb)/2, hxb-lxb, hyb-lyb);
 									rebuild.setStyle(Poly.Type.FILLED);
+                                    /*
 									reportError(MINWIDTHERROR, null, cell, minWidth,
                                             actual, sizeRule, rebuild,
 											geom1, layer1, null, null, null);
 									return true;
+                                    */
+                                    if (Main.getDebug()) System.out.println("Quick.checkDist code decomissioned");
 								}
 							} else
 							{
@@ -1316,10 +1319,12 @@ public class Quick
 									lxb -= minWidth/2;   hxb += minWidth/2;
 									Poly rebuild = new Poly((lxb+hxb)/2, (lyb+hyb)/2, hxb-lxb, hyb-lyb);
 									rebuild.setStyle(Poly.Type.FILLED);
-									reportError(MINWIDTHERROR, null, cell, minWidth,
+									/*reportError(MINWIDTHERROR, null, cell, minWidth,
                                             actual, sizeRule, rebuild,
 											geom1, layer1, null, null, null);
 									return true;
+                                   */
+                                   if (Main.getDebug()) System.out.println("Quick.checkDist code decomissioned");
 								}
 							}
 						}
@@ -1390,7 +1395,7 @@ public class Quick
 				  System.out.println("ErrorY?");
 				  */
 				if (pdx == 0 && pdy == 0)
-					pd = 1;
+					pd = 0;
 				else
 				{
 					// They are overlapping if pdx < 0 && pdy < 0
@@ -1418,7 +1423,8 @@ public class Quick
 				style != Poly.Type.OPENEDT3 && style != Poly.Type.VECTORS) return false;
 
 			// make sure polygons don't intersect
-			if (poly1.intersects(poly2)) pd = 0; else
+			if (poly1.intersects(poly2)) pd = 0;
+            else
 			{
 				// find distance between polygons
 				pd = poly1.separation(poly2);
