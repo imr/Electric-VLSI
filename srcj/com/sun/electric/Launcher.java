@@ -108,10 +108,9 @@ public final class Launcher
         }
 
 		String command = program + " -mx" + maxMemWanted + "m -jar " + jarfile;
-        System.out.println("Current heap size of "+maxMem + "m is less than minimum required size of "+maxMemWanted+"m");
-        System.out.println("Re-executing Electric (run with option '-NOMINMEM' to not do this)");
+        System.out.println("Rerunning Electric with memory footprint of "+maxMemWanted+"m because "+maxMem+"m is too small");
         for (int i=0; i<args.length; i++) command += " " + args[i];
-        System.out.println("exec: "+command);
+        //System.out.println("exec: "+command);
 		try
 		{
 			runtime.exec(command);
