@@ -27,9 +27,15 @@ import com.sun.electric.Main;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.OptionReconcile;
 import com.sun.electric.tool.user.ui.TopLevel;
 
+import java.io.FileNotFoundException;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -37,6 +43,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.prefs.BackingStoreException;
+import java.util.prefs.InvalidPreferencesFormatException;
 import java.util.prefs.Preferences;
 
 /**
@@ -205,6 +212,115 @@ public class Pref
 	 * The constructor for the Pref.
 	 */
 	protected Pref() {}
+
+	public static void importPrefs()
+	{
+		// prompt for the XML file
+        String fileName = OpenFile.chooseInputFile(FileType.PREFS, "Saved Preferences");
+        if (fileName == null) return;
+
+        // import preferences
+        try
+		{
+			FileInputStream inputStream = new FileInputStream(fileName);
+
+			System.out.println("Importing preferences...");
+
+			// reset all preferences to factory values
+			for(Iterator it = allPrefs.iterator(); it.hasNext(); )
+			{
+				Pref pref = (Pref)it.next();
+				switch (pref.type)
+				{
+					case BOOLEAN:
+						if (pref.getBoolean() != pref.getBooleanFactoryValue())
+							pref.setBoolean(pref.getBooleanFactoryValue());
+						break;
+					case INTEGER:
+						if (pref.getInt() != pref.getIntFactoryValue())
+							pref.setInt(pref.getIntFactoryValue());
+						break;
+					case LONG:
+						if (pref.getLong() != pref.getLongFactoryValue())
+							pref.setLong(pref.getLongFactoryValue());
+						break;
+					case DOUBLE:
+						if (pref.getDouble() != pref.getDoubleFactoryValue())
+							pref.setDouble(pref.getDoubleFactoryValue());
+						break;
+					case STRING:
+						if (!pref.getString().equals(pref.getStringFactoryValue()))
+							pref.setString(pref.getStringFactoryValue());
+						break;
+				}
+			}
+
+			// import preferences
+			Preferences.importPreferences(inputStream);
+			inputStream.close();
+
+			// recache all prefs
+			for(Iterator it = allPrefs.iterator(); it.hasNext(); )
+			{
+				Pref pref = (Pref)it.next();
+				switch (pref.type)
+				{
+					case BOOLEAN:
+						boolean curBoolean = pref.prefs.getBoolean(pref.name, pref.getBooleanFactoryValue());
+						pref.cachedObj = new Integer(curBoolean ? 1 : 0);
+						break;
+					case INTEGER:
+						pref.cachedObj = new Integer(pref.prefs.getInt(pref.name, pref.getIntFactoryValue()));
+						break;
+					case LONG:
+						pref.cachedObj = new Long(pref.prefs.getLong(pref.name, pref.getLongFactoryValue()));
+						break;
+					case DOUBLE:
+						pref.cachedObj = new Double(pref.prefs.getDouble(pref.name, pref.getDoubleFactoryValue()));
+						break;
+					case STRING:
+						pref.cachedObj = pref.prefs.get(pref.name, pref.getStringFactoryValue());
+						break;
+				}
+			}
+		} catch (InvalidPreferencesFormatException e)
+		{
+			System.out.println("Invalid preferences format");
+			return;
+		} catch (IOException e)
+		{
+			System.out.println("Error reading preferences file");
+			return;
+		}
+
+		System.out.println("...preferences imported from " + fileName);
+	}
+
+	public static void exportPrefs()
+	{
+		// prompt for the XML file
+        String fileName = OpenFile.chooseOutputFile(FileType.PREFS, "Saved Preferences", "electricPrefs");
+        if (fileName == null) return;
+
+        // save preferences there
+        try
+		{
+			FileOutputStream outputStream = new FileOutputStream(fileName);
+			Preferences root = Preferences.userNodeForPackage(Main.class);
+			root.exportSubtree(outputStream);
+			outputStream.close();
+		} catch (BackingStoreException e)
+		{
+			System.out.println("Error writing file");
+			return;
+		} catch (IOException e)
+		{
+			System.out.println("Error writing file");
+			return;
+		}
+
+		System.out.println("Preferences saved to " + fileName);
+	}
 
 	/**
 	 * Factory methods to create a boolean Pref objects.

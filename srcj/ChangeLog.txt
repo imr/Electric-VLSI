@@ -4,10 +4,29 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02h: *********************************
 
+BUG: (02/11/05, SMR) Copying cells doesn't get arcs right.
+FIX: In Cell.copyNodeProto(), make sure the end coordinates match the PortInsts.
+
+BUG: (02/11/05, SMR) Verilog templates ignore parameters that have default values.
+FIX: In Verilog.writeTemplate(), look to prototype if variable is not in instance.
+
+BUG: (02/11/05, SMR) Verilog templates include square brackets in output (Bug #201).
+FIX: In Verilog.writeTemplate(), request that instance names be "bus converted".
+
+IMP: (02/11/05, SMR) "Measure" mode in waveform window now crosses panels.
+
+IMP: (02/10/05, SMR) Can now import/export preferences (Bug #196).
+
+BUG: (02/10/05, SMR) Ascending from a "down hierarchy in place" may display wrong (Bug #199).
+FIX: In EditWindow.upHierarchy() and downHierarchy() must call PixelDrawing.clearSubCellCache().
+
+BUG: (02/10/05, SMR) Descending into a rotated cell displays global coordinates wrong (Bug #198).
+FIX: In EditWindow.showCoordinates() compute transformations properly.
+
 IMP/MAN: (02/10/05, GVG) New coverage tab under Tool section in preferences. Second version of new layer coverage tool
 
 IMP: (02/10/05, GVG) Rollback of "Made all pure-layer nodes have ports that run to their edges" changes
-in MoCMOS.
+     in MoCMOS.
 
 IMP: (02/10/05, RK) I changed the layout generator for inv so it uses a different floorplan with a 10 lambda wide output bus for strengths x>25.
 

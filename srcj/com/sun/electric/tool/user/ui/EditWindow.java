@@ -398,7 +398,8 @@ public class EditWindow extends JPanel
 						if (first) first = false; else
 							path += " / ";
 						path = ni.describe() + path;
-						AffineTransform trans = ni.rotateOut(ni.translateOut());
+//						AffineTransform trans = ni.rotateOut(ni.translateOut());
+						AffineTransform trans = ni.translateOut(ni.rotateOut());
 						trans.transform(ptPath, ptPath);
 						vc = vc.pop();
 					}
@@ -2667,6 +2668,7 @@ public class EditWindow extends JPanel
 	        else
 	            setCell(schCell, cellVarContext.push(ni), true, redisplay);
         }
+		PixelDrawing.clearSubCellCache();
         if (!redisplay) fullRepaint();
 
         // if highlighted was a port inst, then highlight the corresponding export
@@ -2784,6 +2786,7 @@ public class EditWindow extends JPanel
 				{
 					setCell(parent, context, true, true);
 				}
+				PixelDrawing.clearSubCellCache();
 
 				// highlight node we came from
 				if (selectedExport != null)

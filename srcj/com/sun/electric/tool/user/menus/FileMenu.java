@@ -29,6 +29,7 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
@@ -116,6 +117,8 @@ public class FileMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.READABLEDUMP); } });
 		importSubMenu.addMenuItem("Text Cell Contents...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { TextWindow.readTextCell(); }});
+		importSubMenu.addMenuItem("Preferences...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Pref.importPrefs(); }});
 
 		fileMenu.addSeparator();
 
@@ -167,6 +170,8 @@ public class FileMenu {
 		exportSubMenu.addSeparator();
 		exportSubMenu.addMenuItem("ELIB (Version 6)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { if (checkInvariants()) saveLibraryCommand(Library.getCurrent(), FileType.ELIB, true, false); } });
+		exportSubMenu.addMenuItem("Preferences...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Pref.exportPrefs(); }});
 
 		fileMenu.addSeparator();
 

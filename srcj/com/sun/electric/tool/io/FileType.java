@@ -63,6 +63,7 @@ public class FileType {
 	/** Describes PAL files. */				public static final FileType PAL          = new FileType("PAL", new String[] {"pal"}, "PAL File (pal)");
 	/** Describes PostScript files. */		public static final FileType POSTSCRIPT   = new FileType("PostScript", new String[] {"ps"}, "PostScript (ps)");
 	/** Describes PostScript files. */		public static final FileType PNG          = new FileType("PNG", new String[] {"png"}, "PNG (png)");
+	/** Describes Preferences files. */		public static final FileType PREFS        = new FileType("Preferences", new String[] {"xml"}, "Preferences (xml)");
 	/** Describes PSpice standard output.*/	public static final FileType PSPICEOUT    = new FileType("PSpiceOutput", new String[] {"spo"}, "PSpice/Spice3 Output File (spo)");
 	/** Describes Raw Spice output. */		public static final FileType RAWSPICEOUT  = new FileType("RawSpiceOutput", new String[] {"raw"}, "Spice Raw Output File (raw)");
 	/** Describes Raw SmartSpice output. */	public static final FileType RAWSSPICEOUT = new FileType("RawSmartSpiceOutput", new String[] {"raw"}, "SmartSPICE Raw Output File (raw)");

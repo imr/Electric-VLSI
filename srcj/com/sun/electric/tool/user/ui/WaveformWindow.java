@@ -230,9 +230,9 @@ public class WaveformWindow implements WindowContent
 		/** true if this waveform panel is analog */			private boolean isAnalog;
 		/** the time panel at the top of this panel. */			private TimeTickPanel timePanel;
 		/** the number of this panel. */						private int panelNumber;
-
-		private int dragStartX, dragStartY;
-		private int dragEndX, dragEndY;
+		/** all panels that the "measure" tool crosses into */	private HashSet measureWindows;
+		/** extent of area dragged-out by cursor */				private int dragStartX, dragStartY;
+		/** extent of area dragged-out by cursor */				private int dragEndX, dragEndY;
 
 		private static final int VERTLABELWIDTH = 60;
 		private static Color background = null;
@@ -1482,6 +1482,14 @@ public class WaveformWindow implements WindowContent
 			// set this to be the selected panel
 			makeSelectedPanel();
 
+			// reset dragging from last time
+			for(Iterator it = waveWindow.getPanels(); it.hasNext(); )
+			{
+				Panel wp = (Panel)it.next();
+				if (wp.draggingArea) wp.repaint();
+				wp.draggingArea = false;
+			}
+
 			if (evt.getClickCount() == 2 && evt.getX() < VERTLABELWIDTH)
 			{
 				WaveformZoom dialog = new WaveformZoom(TopLevel.getCurrentJFrame(), analogLowValue, analogHighValue, minTime, maxTime, waveWindow, this);
@@ -1519,10 +1527,9 @@ public class WaveformWindow implements WindowContent
 				if (mode == ToolBar.CursorMode.PAN) mouseMovedPan(evt); else
 					mouseMovedSelect(evt);
 		}
-//static int indexdebug=1;
+
 		public void mouseDragged(MouseEvent evt)
 		{
-//System.out.println("DRAGGED "+(indexdebug++));
 			ToolBar.CursorMode mode = ToolBar.getCursorMode();
 			if (ClickZoomWireListener.isRightMouse(evt) && (evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0)
 				mode = ToolBar.CursorMode.ZOOM;
@@ -1554,7 +1561,7 @@ public class WaveformWindow implements WindowContent
 		public void mousePressedSelect(MouseEvent evt)
 		{
 			// see if the time cursors are selected
-			draggingMain = draggingExt = draggingArea = false;
+			draggingMain = draggingExt = false;
 			int mainX = scaleTimeToX(waveWindow.mainTime);
 			if (Math.abs(mainX - evt.getX()) < 5)
 			{
@@ -1572,7 +1579,11 @@ public class WaveformWindow implements WindowContent
 			draggingArea = true;
 			Point pt = new Point(evt.getX(), evt.getY());
 			if (ToolBar.getCursorMode() == ToolBar.CursorMode.MEASURE)
+			{
 				pt = snapPoint(pt);
+				measureWindows = new HashSet();
+				measureWindows.add(this);
+			}
 			dragEndX = dragStartX = pt.x;
 			dragEndY = dragStartY = pt.y;
 		}
@@ -1698,14 +1709,49 @@ public class WaveformWindow implements WindowContent
 				Point pt = new Point(evt.getX(), evt.getY());
 				if (ToolBar.getCursorMode() == ToolBar.CursorMode.MEASURE)
 				{
-					pt = snapPoint(pt);
 					Rectangle rect = getBounds();
 					Panel curPanel = (Panel)evt.getSource();
+					Point scPt = evt.getComponent().getLocationOnScreen();
+
+					// if not in current window, find out where it crossed into
 					if (!rect.contains(pt))
 					{
-//						startPanel = (Panel)evt.getSource();
-//System.out.println("  OFF SCREEN");
-						waveWindow.redrawAllPanels();
+						Point globalPt = new Point(scPt.x+evt.getX(), scPt.y+evt.getY());
+						for(Iterator it = waveWindow.getPanels(); it.hasNext(); )
+						{
+							Panel wp = (Panel)it.next();
+							Point oPt = wp.getLocationOnScreen();
+							Dimension sz = wp.getSize();
+							if (globalPt.x < oPt.x) continue;
+							if (globalPt.x > oPt.x + sz.width) continue;
+							if (globalPt.y < oPt.y) continue;
+							if (globalPt.y > oPt.y + sz.height) continue;
+							measureWindows.add(wp);
+							wp.draggingArea = true;
+							curPanel = wp;
+						}
+					}
+
+					// snap to waveform point
+					if (curPanel == this) pt = snapPoint(pt); else
+					{
+						Point oPt = curPanel.getLocationOnScreen();
+						pt.y = pt.y + scPt.y - oPt.y;
+						pt = curPanel.snapPoint(pt);
+						pt.y = pt.y - scPt.y + oPt.y;
+					}
+
+					// update all windows the measurement may have crossed over
+					for(Iterator it = measureWindows.iterator(); it.hasNext(); )
+					{
+						Panel wp = (Panel)it.next();
+						if (wp == this) continue;
+						Point oPt = wp.getLocationOnScreen();
+						wp.dragStartX = dragStartX;
+						wp.dragStartY = dragStartY + scPt.y - oPt.y;
+						wp.dragEndX = pt.x;
+						wp.dragEndY = pt.y + scPt.y - oPt.y;
+						wp.repaint();
 					}
 				}
 				dragEndX = pt.x;

@@ -368,7 +368,6 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
             } else if (eObj instanceof ArcInst)
             {
                 theArc = (ArcInst)eObj;
-                // TODO: remove try/catch when Netlist is thread safe
 				Netlist netlist = theArc.getParent().acquireUserNetlist();
 				if (netlist == null)
                     return("netlist exception! try again");

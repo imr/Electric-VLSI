@@ -723,20 +723,13 @@ public class Verilog extends Topology
 				infstr.append(cs.getName());
 			} else if (paramName.equalsIgnoreCase("node_name"))
 			{
-				infstr.append(getSafeNetName(no.getName(), false));
+				infstr.append(getSafeNetName(no.getName(), true));
 			} else
 			{
 				// no port name found, look for variable name
 				String attrName = "ATTR_" + paramName;
 				Variable var = no.getVar(attrName);
-				if (var == null)
-				{
-//					// value not found: see if this is a parameter and use default
-//					nip = ni->proto;
-//					nipc = contentsview(nip);
-//					if (nipc != NONODEPROTO) nip = nipc;
-//					var = getval((INTBIG)nip, VNODEPROTO, -1, line);
-				}
+                if (var == null) var = no.getParameter(attrName);
 				if (var == null) infstr.append("??"); else
 				{
                     infstr.append(context.evalVar(var));
