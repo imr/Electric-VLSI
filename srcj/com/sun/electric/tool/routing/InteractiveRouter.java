@@ -478,7 +478,8 @@ public abstract class InteractiveRouter extends Router {
             }
             System.out.println("");
         }*/
-        if (startPoly.getBox() == null || (endPoly != null && endPoly.getBox() == null)) {
+        if ((startPoly.getBox() == null && startPoly.getPoints().length != 2) ||
+            (endPoly != null && endPoly.getBox() == null && endPoly.getPoints().length != 2)) {
             // special case: one of the polys is not a rectangle
             startPoint.setLocation(startPoly.closestPoint(clicked));
             if (endPoly == null) {
