@@ -597,7 +597,6 @@ public class ClickZoomWireListener
 	                // relocate highlight to under mouse
 	                Point2D dbDelta = new Point2D.Double(dbMouse.getX() - dbMoveStartX, dbMouse.getY() - dbMoveStartY);
 	                EditWindow.gridAlign(dbDelta);              // align to grid
-                    System.out.println("Delta is "+dbDelta);
 	                Point2D screenDelta = wnd.deltaDatabaseToScreen(dbDelta.getX(), dbDelta.getY());
 	                highlighter.setHighlightOffset((int)screenDelta.getX(), (int)screenDelta.getY());
                     // display amount to be moved in center of screen
