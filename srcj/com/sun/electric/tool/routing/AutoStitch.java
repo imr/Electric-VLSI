@@ -776,8 +776,8 @@ public class AutoStitch
 
 			// run the wire
 			List added = WiringListener.makeConnection(ni, pp, oNi, opp, new Point2D.Double(x,y), true, true);
-            PortInst pi = ni.getPortInst(pp);
-            PortInst opi = oNi.getPortInst(opp);
+            PortInst pi = ni.findPortInstFromProto(pp);
+            PortInst opi = oNi.findPortInstFromProto(opp);
             Route route = router.planRoute(ni.getParent(), pi, opi, new Point2D.Double(x,y));
             if (route.size() == 0) return false;
             Router.createRouteNoJob(route, ni.getParent(), false);

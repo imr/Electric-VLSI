@@ -1432,21 +1432,6 @@ public class NodeInst extends Geometric implements Nodable
 		return (PortInst)portInsts.get(portIndex);
 	}
 
-    /**
-     * Get the PortInst on this node whose prototype is 'proto'.
-     * Returns null if none found.
-     * @param proto the port prototype
-     * @return the portinst which has the same prototype, or null if none found.
-     */
-    public PortInst getPortInst(PortProto proto)
-    {
-        for (Iterator it = portInsts.iterator(); it.hasNext(); ) {
-            PortInst pi = (PortInst)it.next();
-            if (pi.getPortProto() == proto) return pi;
-        }
-        return null;
-    }
-
 	/**
 	 * Method to return the only PortInst on this NodeInst.
 	 * This is quite useful for vias and pins which have only one PortInst.
