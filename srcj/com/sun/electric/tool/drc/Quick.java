@@ -523,6 +523,11 @@ public class Quick
 		// announce progress
 		System.out.println("Checking cell " + cell.describe());
 
+
+		// Check the area first but only when is not incremental
+		if (!DRC.isIgnoreAreaChecking() && !onlyFirstError)
+			checkMinArea(cell);
+
 		// now look at every node and arc here
 		totalMsgFound = 0;
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
@@ -593,10 +598,11 @@ public class Quick
 		if (np instanceof PrimitiveNode && np == Generic.tech.cellCenterNode)
 			return false;
 
+		/*
 		// Check the area first but only when is not incremental
 		if (!DRC.isIgnoreAreaChecking() && !onlyFirstError)
 			checkMinArea(ni);
-
+        */
 		// get all of the polygons on this node
 		//NodeProto.Function fun = ni.getFunction();
 		Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts);
@@ -735,9 +741,6 @@ public class Quick
 	 */
 	private boolean checkCellInst(NodeInst ni, int globalIndex)
 	{
-		// get current position in traversal hierarchy
-//		gethierarchicaltraversal(state->hierarchybasesnapshot);
-
 		// get transformation out of the instance
         AffineTransform upTrans = ni.translateOut(ni.rotateOut());
 
@@ -2117,75 +2120,64 @@ public class Quick
 	 * Method to ensure that polygon "poly" on layer "layer" from object "geom" in
 	 * technology "tech" meets minimum area rules. Returns true
 	 * if an error is found.
-	 * @param ni
+	 * @param cell
 	 * @return
 	 */
-	private boolean checkMinArea(NodeInst ni)
+	private boolean checkMinArea(Cell cell)
 	{
-		Cell cell = ni.getParent();
 		CheckProto cp = getCheckProto(cell);
-		NodeProto np = ni.getProto();
 		boolean errorFound = false;
 
 		// Nothing to check
 		if (minAreaLayerMap.isEmpty() && enclosedAreaLayerMap.isEmpty())
 			return false;
 
-		if (!(np instanceof PrimitiveNode)) return false;
-
-		PrimitiveNode pNp = (PrimitiveNode)np;
-        Set jNetSet = new HashSet();
-
-		for(Iterator portIt = ni.getPortInsts(); portIt.hasNext(); )
+		// Get merged areas
+		for(Iterator netIt = cp.netlist.getNetworks(); netIt.hasNext(); )
 		{
-			PortInst pi = (PortInst)portIt.next();
-			JNetwork net = cp.netlist.getNetwork(pi);
-			if (net == null) continue;
+			JNetwork net = (JNetwork)netIt.next();
+			QuickAreaEnumerator quickArea = new QuickAreaEnumerator(net);
+			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, cp.netlist, quickArea);
 
-			jNetSet.add(net);
-		}
-			// Get merged areas
-		QuickAreaEnumerator quickArea = new QuickAreaEnumerator(jNetSet);
-		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, cp.netlist, quickArea);
-
-		for(Iterator it = pNp.layerIterator(); it.hasNext(); )
-		{
-			Layer layer = (Layer)it.next();
-			DRCRules.DRCRule minAreaRule = (DRCRules.DRCRule)minAreaLayerMap.get(layer);
-			DRCRules.DRCRule encloseAreaRule = (DRCRules.DRCRule)enclosedAreaLayerMap.get(layer);
-
-			// Layer doesn't have min area
-			if (minAreaRule == null && encloseAreaRule == null) continue;
-
-			Collection set = quickArea.netMerge.getObjects(layer, false, true);
-
-			for(Iterator pIt = set.iterator(); pIt.hasNext(); )
+			for(Iterator it = quickArea.netMerge.getKeyIterator(); it.hasNext(); )
 			{
-				PolyQTree.PolyNode pn = (PolyQTree.PolyNode)pIt.next();
-				if (pn == null) throw new Error("wrong condition in Quick.checkMinArea()");
-				List list = pn.getSortedLoops();
-				// Order depends on area comparison done. First element is the smallest.
-				// and depending on # polygons it could be minArea or encloseArea
-				DRCRules.DRCRule evenRule = (list.size()%2==0) ? encloseAreaRule : minAreaRule;
-				DRCRules.DRCRule oddRule = (evenRule == minAreaRule) ? encloseAreaRule : minAreaRule;
-				// Looping over simple polygons. Possible problems with disconnected elements
-				// polyArray.length = Maximum number of distintic loops
-				for (int i = 0; i < list.size(); i++)
+				Layer layer = (Layer)it.next();
+				DRCRules.DRCRule minAreaRule = (DRCRules.DRCRule)minAreaLayerMap.get(layer);
+				DRCRules.DRCRule encloseAreaRule = (DRCRules.DRCRule)enclosedAreaLayerMap.get(layer);
+
+				// Layer doesn't have min area
+				if (minAreaRule == null && encloseAreaRule == null) continue;
+
+				Collection set = quickArea.netMerge.getObjects(layer, false, true);
+
+				for(Iterator pIt = set.iterator(); pIt.hasNext(); )
 				{
-					PolyQTree.PolyNode simplePn = (PolyQTree.PolyNode)list.get(i);
-					double area = simplePn.getArea();
-					DRCRules.DRCRule minRule = (i%2 == 0) ? evenRule : oddRule;
+					PolyQTree.PolyNode pn = (PolyQTree.PolyNode)pIt.next();
+					if (pn == null) throw new Error("wrong condition in Quick.checkMinArea()");
+					List list = pn.getSortedLoops();
+					// Order depends on area comparison done. First element is the smallest.
+					// and depending on # polygons it could be minArea or encloseArea
+					DRCRules.DRCRule evenRule = (list.size()%2==0) ? encloseAreaRule : minAreaRule;
+					DRCRules.DRCRule oddRule = (evenRule == minAreaRule) ? encloseAreaRule : minAreaRule;
+					// Looping over simple polygons. Possible problems with disconnected elements
+					// polyArray.length = Maximum number of distintic loops
+					for (int i = 0; i < list.size(); i++)
+					{
+						PolyQTree.PolyNode simplePn = (PolyQTree.PolyNode)list.get(i);
+						double area = simplePn.getArea();
+						DRCRules.DRCRule minRule = (i%2 == 0) ? evenRule : oddRule;
 
-					if (minRule == null) continue;
+						if (minRule == null) continue;
 
-					double actual = DBMath.round(area - minRule.value);
+						double actual = DBMath.round(area - minRule.value);
 
-					if (actual >= 0) continue;
+						if (actual >= 0) continue;
 
-					errorFound = true;
-					int errorType = (minRule == minAreaRule) ? MINAREAERROR : ENCLOSEDAREAERROR;
-					reportError(errorType, null, cell, minRule.value, area, minRule.rule,
-							null/*new Poly(simplePn.getPoints())*/, ni, layer, null, null, null);
+						errorFound = true;
+						int errorType = (minRule == minAreaRule) ? MINAREAERROR : ENCLOSEDAREAERROR;
+						reportError(errorType, null, cell, minRule.value, area, minRule.rule,
+								new Poly(simplePn.getPoints()), null /*ni*/, layer, null, null, null);
+					}
 				}
 			}
 		}
@@ -3365,11 +3357,12 @@ public class Quick
 		}
 
 		// describe the error
+		Cell np1 = null;
 		String errorMessage = "";
-		Cell np1 = geom1.getParent();
-		int sortLayer = np1.hashCode(); // 0;
+		int sortLayer = cell.hashCode(); // 0;
 		if (errorType == SPACINGERROR || errorType == NOTCHERROR)
 		{
+			np1 = geom1.getParent();
 			// describe spacing width error
 			if (errorType == SPACINGERROR)
 				errorMessage += "Spacing";
@@ -3437,7 +3430,6 @@ public class Quick
 					errorMessage += "Minimum width error:";
 					errorMessagePart2 = ", layer " + layer1.getName();
 					errorMessagePart2 += " LESS THAN " + TextUtils.formatDouble(limit) + " WIDE (IS " + TextUtils.formatDouble(actual) + ")";
-                    //showPoly = false;
                     break;
 				case MINSIZEERROR:
 					errorMessage += "Minimum size error:";
@@ -3452,13 +3444,14 @@ public class Quick
 					errorMessagePart2 += " NEEDS SURROUND OF LAYER " + layer2.getName() + " BY " + limit;
 					break;
 			}
-			errorMessage += " cell " + np1.describe();
-			if (geom1 instanceof NodeInst)
+			if (np1 != null && cell != np1) System.out.println("Error here");
+
+			errorMessage += " cell " + cell.describe();
+			if (geom1 != null)
 			{
-				errorMessage += ", node " + geom1.describe();
-			} else
-			{
-				errorMessage += ", arc " + geom1.describe();
+				errorMessage += (geom1 instanceof NodeInst) ?
+				        ", node " + geom1.describe() :
+				        ", arc " + geom1.describe();
 			}
 			if (layer1 != null) sortLayer = layer1.getIndex();
 			errorMessage += errorMessagePart2;
@@ -3473,20 +3466,20 @@ public class Quick
 		boolean showGeom = true;
 		if (poly1 != null) { showGeom = false;   err.addPoly(poly1, true, cell); }
 		if (poly2 != null) { showGeom = false;   err.addPoly(poly2, true, cell); }
-		err.addGeom(geom1, showGeom, cell, null);
+		if (geom1 != null) err.addGeom(geom1, showGeom, cell, null);
 		if (geom2 != null) err.addGeom(geom2, showGeom, cell, null);
 	}
 
 	// Extra functions to check area
 	private class QuickAreaEnumerator extends HierarchyEnumerator.Visitor
     {
-		private Set jNetSet;
+		private JNetwork jNet;
 		private GeometryHandler netMerge;
 		private Layer polyLayer;
 
-		public QuickAreaEnumerator(Set jNetSet)
+		public QuickAreaEnumerator(JNetwork jNet)
 		{
-			this.jNetSet = jNetSet;
+			this.jNet = jNet;
 		}
 		public boolean enterCell(HierarchyEnumerator.CellInfo info)
 		{
@@ -3500,8 +3493,7 @@ public class Quick
 				Technology tech = ai.getProto().getTechnology();
 				JNetwork aNet = info.getNetlist().getNetwork(ai, 0);
 
-				//if (aNet != jNet) continue; // no same net
-				if (!jNetSet.contains(aNet)) continue; // no same net
+				if (aNet != jNet) continue; // no same net
 
 				Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
 				int tot = arcInstPolyList.length;
@@ -3543,19 +3535,16 @@ public class Quick
 			for(Iterator pIt = ni.getPortInsts(); !found && pIt.hasNext(); )
 			{
 				PortInst pi = (PortInst)pIt.next();
+				JNetwork net = info.getNetlist().getNetwork(pi);
 				PortProto subPP = pi.getPortProto();
-				JNetwork net = info.getNetlist().getNetwork(ni, subPP, 0);
-				if (jNetSet.contains(net))
-				//if (net == jNet)
-				{
+				if (jNet == net)
 					found = true;
-					//break;
-				}
 			}
 			if (!found) return (false);
 
 			Technology tech = pNp.getTechnology();
-			// electrical should be null to merge poly and transistor-poly
+			// electrical should not be null due to ports but causes
+			// problems with poly and transistor-poly
 			Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, null, true, true);
 			int tot = nodeInstPolyList.length;
 			for(int i=0; i<tot; i++)
@@ -3565,6 +3554,13 @@ public class Quick
 
 				// No area associated
 				if (minAreaLayerMap.get(layer) == null && enclosedAreaLayerMap.get(layer) == null)
+					continue;
+
+				// make sure this layer connects electrically to the desired port
+				PortProto pp = poly.getPort();
+                if (pp == null) continue;
+				JNetwork net = info.getNetlist().getNetwork(ni, pp, 0);
+				if (net != jNet)
 					continue;
 
 				// it has to take into account poly and transistor poly as one layer
