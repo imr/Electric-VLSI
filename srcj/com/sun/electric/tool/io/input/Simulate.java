@@ -254,7 +254,7 @@ if (sig > 20) break;
 		int bytesRead = 0;
 		for(;;)
 		{
-			int ch = dataInputStream.read();
+			int ch = lineReader.read();
 			if (ch == -1) return null;
 			bytesRead++;
 			if (ch == '\n' || ch == '\r') break;

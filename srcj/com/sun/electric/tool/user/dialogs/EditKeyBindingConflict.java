@@ -94,12 +94,12 @@ public class EditKeyBindingConflict extends javax.swing.JDialog {
         dispose();
     }//GEN-LAST:event_closeDialog
     
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        new EditKeyBindingConflict(new javax.swing.JFrame(), true).show();
-    }
+//    /**
+//     * @param args the command line arguments
+//     */
+//    public static void main(String args[]) {
+//        new EditKeyBindingConflict(new javax.swing.JFrame(), true).show();
+//    }
     
     
     // Variables declaration - do not modify//GEN-BEGIN:variables

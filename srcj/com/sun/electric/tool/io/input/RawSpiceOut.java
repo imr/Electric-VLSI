@@ -51,7 +51,7 @@ public class RawSpiceOut extends Simulate
 		// open the file
 		InputStream stream = TextUtils.getURLStream(fileURL);
 		if (stream == null) return null;
-		if (openBinaryInput(fileURL, stream)) return null;
+		if (openTextInput(fileURL, stream)) return null;
 
 		// show progress reading .tr0 file
 		startProgressDialog("Raw Spice output", fileURL.getFile());

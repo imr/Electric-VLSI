@@ -300,7 +300,7 @@ public class Pref
 		{
 			Meaning meaning = (Meaning)it.next();
 			meaning.marked = true;
-System.out.println("Found meaning variable "+meaning.pref.name+" found on " + meaning.eObj);
+//System.out.println("Found meaning variable "+meaning.pref.name+" found on " + meaning.eObj);
 			Variable var = meaning.eObj.getVar(meaning.pref.name);
 			if (var == null) continue;
 			Object obj = var.getObject();
@@ -315,7 +315,7 @@ System.out.println("Found meaning variable "+meaning.pref.name+" found on " + me
 
 			// this one is not mentioned in the library: make sure it is at factory defaults
 			if (pref.cachedObj.equals(pref.factoryObj)) continue;
-System.out.println("Adding fake meaning variable "+pref.name+" where current="+pref.cachedObj+" but should be "+pref.factoryObj);
+//System.out.println("Adding fake meaning variable "+pref.name+" where current="+pref.cachedObj+" but should be "+pref.factoryObj);
 			meaningsToReconcile.add(pref.meaning);
 		}
 		if (meaningsToReconcile.size() == 0) return;

@@ -27,13 +27,25 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.Highlight;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
 import java.util.Iterator;
-import javax.swing.*;
+import javax.swing.AbstractButton;
+import javax.swing.JToolBar;
+import javax.swing.JButton;
+import javax.swing.ImageIcon;
+import javax.swing.ButtonGroup;
+import javax.swing.JInternalFrame;
 import javax.swing.event.InternalFrameListener;
 import javax.swing.event.InternalFrameEvent;
 

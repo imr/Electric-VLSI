@@ -61,8 +61,17 @@ import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.*;
-import javax.swing.*;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.EventListener;
+import java.util.Set;
+import java.util.TreeSet;
+import javax.swing.JPanel;
+import javax.swing.JScrollBar;
+import javax.swing.JTextArea;
+import javax.swing.JPopupMenu;
+import javax.swing.JMenuItem;
 
 /*
  * This class defines an editing window for displaying circuitry.
@@ -993,43 +1002,46 @@ public class EditWindow extends JPanel
     public void upHierarchy()
 	{
         try {
-            Nodable ni = cellVarContext.getNodable();
-			if (ni == null) return;
-            Cell parent = ni.getParent();
-            VarContext context = cellVarContext.pop();
-            // see if this was in history, if so, restore offset and scale
-            // search backwards to get most recent entry
-            // search history **before** calling setCell, otherwise we find
-            // the history record for the cell we just switched to
-            CellHistory foundHistory = null;
-            for (int i=cellHistory.size()-1; i>-1; i--) {
-                CellHistory history = (CellHistory)cellHistory.get(i);
-                if ((history.cell == parent) && (history.context.equals(context))) {
-                    foundHistory = history;
-                    break;
-                }
-            }
-            setCell(parent, context, true);
-            if (foundHistory != null) {
-                setOffset(foundHistory.offset);
-                setScale(foundHistory.scale);
-            }
-			if (ni instanceof NodeInst)
-				Highlight.addElectricObject((NodeInst)ni, parent);
-        } catch (NullPointerException e)
-		{
-            e.printStackTrace();
-            // no parent - if icon, go to sch view
-            if (cell.getView() == View.ICON)
+            Nodable no = cellVarContext.getNodable();
+			if (no != null)
 			{
-                Cell schCell = cell.getEquivalent();
-                if (schCell == null) return;        // nothing to do
-                setCell(schCell, VarContext.globalContext);
-                return;
-            }            
+				Cell parent = no.getParent();
+				VarContext context = cellVarContext.pop();
+				CellHistory foundHistory = null;
+				// see if this was in history, if so, restore offset and scale
+				// search backwards to get most recent entry
+				// search history **before** calling setCell, otherwise we find
+				// the history record for the cell we just switched to
+				for (int i=cellHistory.size()-1; i>-1; i--) {
+					CellHistory history = (CellHistory)cellHistory.get(i);
+					if ((history.cell == parent) && (history.context.equals(context))) {
+						foundHistory = history;
+						break;
+					}
+				}
+				setCell(parent, context, true);
+				if (foundHistory != null) {
+					setOffset(foundHistory.offset);
+					setScale(foundHistory.scale);
+				}
+				if (no instanceof NodeInst)
+					Highlight.addElectricObject((NodeInst)no, parent);
+				return;
+			}
+
+			// no parent - if icon, go to sch view
+			if (cell.getView() == View.ICON)
+			{
+				Cell schCell = cell.getEquivalent();
+				if (schCell != null)
+				{
+					setCell(schCell, VarContext.globalContext);
+					return;
+				}
+			}            
 
 			// find all possible parents in all libraries
-            Set found = new TreeSet();
+			Set found = new TreeSet();
 			for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
@@ -1044,6 +1056,7 @@ public class EditWindow extends JPanel
 					for(Iterator it = iconView.getInstancesOf(); it.hasNext(); )
 					{
 						NodeInst ni = (NodeInst)it.next();
+						if (ni.isIconOfParent()) continue;
 						Cell parent = ni.getParent();
 						found.add(parent.describe());
 					}
@@ -1060,7 +1073,7 @@ public class EditWindow extends JPanel
 				// just one parent cell: show it
 				String cellName = (String)found.iterator().next();
 				Cell parent = (Cell)NodeProto.findNodeProto(cellName);
-                setCell(parent, VarContext.globalContext);
+				setCell(parent, VarContext.globalContext);
 			} else
 			{
 				// prompt the user to choose a parent cell
@@ -1074,7 +1087,10 @@ public class EditWindow extends JPanel
 				}
 				parents.show(this, 0, 0);
 			}
-        }
+        } catch (NullPointerException e)
+		{
+            e.printStackTrace();
+		}
     }
 
     /** 
