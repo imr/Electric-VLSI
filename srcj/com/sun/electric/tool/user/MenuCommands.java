@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user;
 
-
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
@@ -353,7 +352,7 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { defaultParamVisibilityCommand(); } });
 		editInfoSubMenu.addSeparator();
 		editInfoSubMenu.addMenuItem("List Layer Coverage", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(false); } });
 
 		editMenu.addSeparator();
 
@@ -1051,7 +1050,7 @@ public final class MenuCommands
 		gildaMenu.addMenuItem("Covering Implants Old", null,
 		        new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(false, false);}});
 		gildaMenu.addMenuItem("List Layer Coverage", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(true); } });
 
         /********************************* Hidden Menus *******************************/
 
@@ -1798,63 +1797,114 @@ public final class MenuCommands
 	/**
 	 * Method to handle the "List Layer Coverage" command.
 	 */
-	public static void layerCoverageCommand()
+	public static void layerCoverageCommand(boolean test)
 	{
 		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
-        Job job = new LayerCoverage(curCell);
+        Job job = new LayerCoverage(curCell, test);
 	}
 
 	private static class LayerCoverage extends Job
 	{
 		private Cell curCell;
+        private boolean testCase;
+		PolyQTree tree = new PolyQTree();
 
-		protected LayerCoverage(Cell cell)
+		public static class LayerVisitor extends HierarchyEnumerator.Visitor
 		{
-			super("Layer Coverage", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
-			this.curCell = cell;
-			setReportExecutionFlag(true);
-			startJob();
-		}
+			private boolean testCase;
+			private PolyQTree tree;
+			private AffineTransform transformation;
 
-		public void doIt()
-		{
-			PolyQTree tree = new PolyQTree();
-
-			// Traversing nodes
-			for (Iterator it = curCell.getNodes(); it.hasNext(); )
+			public LayerVisitor(boolean test, PolyQTree t)
 			{
-				NodeInst node = (NodeInst)it .next();
+				this.testCase = test;
+				this.tree = t;
+			}
+		    public void exitCell(HierarchyEnumerator.CellInfo info)
+            {
+                //return true;
+            }
+			public boolean enterCell(HierarchyEnumerator.CellInfo info)
+			{
+				Cell curCell = info.getCell();
 
-				// Coverage implants are pure primitive nodes
-				// and they are ignored.
-				if (node.getFunction() == NodeProto.Function.NODE) continue;
-
-				NodeProto protoType = node.getProto();
-				if (protoType instanceof Cell)
+				// Traversing arcs
+				for (Iterator it = curCell.getArcs(); it.hasNext(); )
 				{
-					System.out.println("recursive");
-				}
-                else
-				{
-					Technology tech = protoType.getTechnology();
-					Poly[] polyList = tech.getShapeOfNode(node);
-					AffineTransform transform = node.rotateOut();
+					ArcInst arc = (ArcInst)it.next();
+					ArcProto arcType = arc.getProto();
+					Technology tech = arcType.getTechnology();
+					Poly[] polyList = tech.getShapeOfArc(arc);
 
+					// Treating the arcs associated to each node
+					// Arcs don't need to be rotated
 					for (int i = 0; i < polyList.length; i++)
 					{
 						Poly poly = polyList[i];
 						Layer layer = poly.getLayer();
 						Layer.Function func = layer.getFunction();
 
-						// Only checking poly or metal
-						if (!func.isPoly() && !func.isMetal()) continue;
+						if (!testCase && !func.isPoly() && !func.isMetal()) continue;
 
-						poly.transform(transform);
-						tree.insert((Object)layer, curCell.getBounds(), new PolyQTree.PolyNode(poly.getBounds2D()));
+						tree.insert((Object)layer, curCell.getBounds(), new PolyQTree.PolyNode(poly));
 					}
 				}
+				// Traversing nodes
+				for (Iterator it = curCell.getNodes(); it.hasNext(); )
+				{
+					NodeInst node = (NodeInst)it .next();
+
+					// Coverage implants are pure primitive nodes
+					// and they are ignored.
+					if (!testCase && node.getFunction() == NodeProto.Function.NODE) continue;
+
+					NodeProto protoType = node.getProto();
+					//  Analyzing only leaves
+					if (!(protoType instanceof Cell))
+					{
+						Technology tech = protoType.getTechnology();
+						Poly[] polyList = tech.getShapeOfNode(node);
+						AffineTransform transform = node.rotateOut();
+
+						for (int i = 0; i < polyList.length; i++)
+						{
+							Poly poly = polyList[i];
+							Layer layer = poly.getLayer();
+							Layer.Function func = layer.getFunction();
+
+							// Only checking poly or metal
+							if (!testCase && !func.isPoly() && !func.isMetal()) continue;
+
+							poly.transform(transform);
+							poly.transform(info.getTransformToRoot());
+
+							tree.insert((Object)layer, curCell.getBounds(), new PolyQTree.PolyNode(poly));
+						}
+					}
+				}
+				return true;
 			}
+			public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
+            {
+                return true;
+            }
+		}
+
+		protected LayerCoverage(Cell cell, boolean test)
+		{
+			super("Layer Coverage", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+			this.curCell = cell;
+			this.testCase = test;
+			setReportExecutionFlag(true);
+			startJob();
+		}
+
+		public void doIt()
+		{
+			// enumerate the hierarchy below here
+			LayerVisitor visitor = new LayerVisitor(testCase, tree);
+            HierarchyEnumerator.enumerateCell(curCell, VarContext.globalContext, null, visitor);
 
 			double lambdaSqr = 1;
 			// @todo GVG Calculates lambda!
