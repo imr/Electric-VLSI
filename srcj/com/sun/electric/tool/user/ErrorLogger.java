@@ -778,7 +778,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         }
         else
         {
-            el = (MessageLog)allWarnings.get(logNumber);
+            el = (MessageLog)allWarnings.get(logNumber-allErrors.size());
             extraMsg = " warning " + (logNumber+1-allErrors.size()) + " of " + allWarnings.size();
         }
         String message = el.reportLog(showHigh, gPair);
