@@ -381,12 +381,12 @@ public class RouteElement {
      * Router may want to remove this pin later if it places a
      * connecting contact cut in the same position.
      */
-    public void setIsBisectArcPin(boolean state) {
+    public void setBisectArcPin(boolean state) {
         if (action == RouteElementAction.newNode)
             isBisectArcPin = state;
     }
 
-    /** see setIsBisectArcPin */
+    /** see setBisectArcPin */
     public boolean isBisectArcPin() {
         if (action == RouteElementAction.newNode)
             return isBisectArcPin;

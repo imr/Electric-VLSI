@@ -59,7 +59,8 @@ import java.awt.geom.Point2D;
 public class VerticalRoute {
     /** start of the route */                   private RouteElement startRE;
     /** end of the route */                     private RouteElement endRE;
-    /** list of arcs and nodes to make route */ private List specifiedRoute;
+    /** list of arcs and nodes to make route */ private SpecifiedRoute specifiedRoute;
+    /** list of all valid specified routes */   private List allSpecifiedRoutes;
     /** first arc (from startRE) */             private ArcProto startArc;
     /** last arct (to endRE) */                 private ArcProto endArc;
     /** start object (ignored in search) */     private ElectricObject startObj;
@@ -70,6 +71,17 @@ public class VerticalRoute {
     private static final boolean DEBUG = false;
     private static final boolean DEBUGSEARCH = false;
 
+    private static class SpecifiedRoute extends ArrayList {
+        ArcProto startArc;
+        ArcProto endArc;
+
+        void printRoute() {
+            for (int k=0; k<size(); k++) {
+                System.out.println("   "+k+": "+get(k));
+            }
+        }
+    }
+
     /**
      * Create new VerticalRoute object to route between startRE and endRE
      * @param startRE the start of the route
@@ -79,6 +91,7 @@ public class VerticalRoute {
         this.startRE = startRE;
         this.endRE = endRE;
         specifiedRoute = null;
+        allSpecifiedRoutes = null;
         startArc = null;
         endArc = null;
     }
@@ -92,6 +105,7 @@ public class VerticalRoute {
         this.startRE = startRE;
         this.endRE = null;
         specifiedRoute = null;
+        allSpecifiedRoutes = null;
         startArc = null;
         this.endArc = endArc;
     }
@@ -105,6 +119,7 @@ public class VerticalRoute {
         this.startRE = null;
         this.endRE = null;
         specifiedRoute = null;
+        allSpecifiedRoutes = null;
         this.startArc = startArc;
         this.endArc = endArc;
     }
@@ -169,7 +184,6 @@ public class VerticalRoute {
             return false;
         }
 
-        specifiedRoute = new ArrayList();
         return specifyRoute(startArcs, endArcs);
     }
 
@@ -315,50 +329,44 @@ public class VerticalRoute {
      */
     private boolean specifyRoute(ArcProto [] startArcs, ArcProto [] endArcs) {
 
-        List bestSpecifiedRoute = new ArrayList();
-        boolean routeFound = false;
+        specifiedRoute = new SpecifiedRoute();
+        allSpecifiedRoutes = new ArrayList();
+        this.startArc = null;
+        this.endArc = null;
 
         // try to find a way to connect, do exhaustive search
         for (int i=0; i<startArcs.length; i++) {
             for (int j=0; j<endArcs.length; j++) {
                 ArcProto startArc = startArcs[i];
                 ArcProto endArc = endArcs[j];
-
                 if (startArc == null || endArc == null) continue;
 
                 specifiedRoute.clear();
+                specifiedRoute.startArc = startArc;
+                specifiedRoute.endArc = endArc;
                 searchNumber = 0;
-
-                if (findConnectingPorts(startArc, endArc, "")) {
-                    routeFound = true;
-
-                    if (bestSpecifiedRoute.size() == 0) {
-                        // first time through
-                        bestSpecifiedRoute.addAll(specifiedRoute);
-                        this.startArc = startArc;
-                        this.endArc = endArc;
-                    }
-
-                    // if found a better route, store that one
-                    if (specifiedRoute.size() < bestSpecifiedRoute.size()) {
-                        bestSpecifiedRoute.clear();
-                        bestSpecifiedRoute.addAll(specifiedRoute);
-                        this.startArc = startArc;
-                        this.endArc = endArc;
-                    }
-                }
+                if (DEBUGSEARCH) System.out.println("** Start search startArc="+startArc+", endArc="+endArc);
+                findConnectingPorts(startArc, endArc, "");
             }
         }
-        specifiedRoute.clear();
 
-        if (routeFound) {
-            specifiedRoute.addAll(bestSpecifiedRoute);
-            return true;
+        if (allSpecifiedRoutes.size() == 0) return false;           // nothing found
+
+        // choose shortest route
+        specifiedRoute = (SpecifiedRoute)allSpecifiedRoutes.get(0);
+        for (int i=0; i<allSpecifiedRoutes.size(); i++) {
+            SpecifiedRoute r = (SpecifiedRoute)allSpecifiedRoutes.get(i);
+            if (r.size() < specifiedRoute.size()) specifiedRoute = r;
+        }
+        allSpecifiedRoutes.clear();
+        startArc = specifiedRoute.startArc;
+        endArc = specifiedRoute.endArc;
+        if (DEBUGSEARCH) {
+            System.out.println("*** Using Best Route: ");
+            specifiedRoute.printRoute();
         }
 
-        this.startArc = null;
-        this.endArc = null;
-        return false;
+        return true;
     }
 
     /**
@@ -373,14 +381,16 @@ public class VerticalRoute {
      * @param startArc connect from this arc
      * @param endArc connect to this arc
      * @param ds spacing for debug messages, if enabled
-     * @return true if a way to connect was found, false otherwise.
      */
-    private boolean findConnectingPorts(ArcProto startArc, ArcProto endArc, String ds) {
+    private void findConnectingPorts(ArcProto startArc, ArcProto endArc, String ds) {
 
-        if (startArc == endArc) return true;    // don't need anything to connect between them
+        if (startArc == endArc) {
+            saveRoute(specifiedRoute);
+            return;    // don't need anything to connect between them
+        }
 
         ds += "  ";
-        if (searchNumber > SEARCHLIMIT) return false;
+        if (searchNumber > SEARCHLIMIT) return;
         searchNumber++;
         Technology tech = startArc.getTechnology();
 
@@ -390,11 +400,11 @@ public class VerticalRoute {
             PrimitivePort pp = (PrimitivePort)portsIt.next();
             // ignore anything whose parent is not a CONTACT
             if (pp.getParent().getFunction() != NodeProto.Function.CONTACT) continue;
-            if (DEBUGSEARCH) System.out.println(ds+"Checking "+pp+" (parent is "+pp.getParent()+")");
+            if (DEBUGSEARCH) System.out.println(ds+"Checking if "+pp+" connects between "+startArc+" and "+endArc);
             if (pp.connectsTo(startArc) && pp.connectsTo(endArc)) {
-                if (DEBUGSEARCH) System.out.println(ds+"Success! using "+pp+" to connect "+startArc+" and "+endArc);
                 specifiedRoute.add(pp);
-                return true;                                // this connects between both arcs
+                saveRoute(specifiedRoute);
+                return;                                // this connects between both arcs
             }
         }
 
@@ -403,7 +413,7 @@ public class VerticalRoute {
             PrimitivePort pp = (PrimitivePort)portsIt.next();
             // ignore anything whose parent is not a CONTACT
             if (pp.getParent().getFunction() != NodeProto.Function.CONTACT) continue;
-            if (DEBUGSEARCH) System.out.println(ds+"Checking "+pp+" (parent is "+pp.getParent()+")");
+            if (DEBUGSEARCH) System.out.println(ds+"Checking if "+pp+" (parent is "+pp.getParent()+") connects to "+startArc);
             if (pp.connectsTo(startArc)) {
                 if (pp == startObj) continue;                       // ignore start port
                 if (pp == endObj) continue;                         // ignore end port
@@ -427,10 +437,9 @@ public class VerticalRoute {
                     specifiedRoute.add(tryarc);
                     if (DEBUGSEARCH) System.out.println(ds+"...found intermediate node "+pp+" through "+startArc+" to "+tryarc);
                     // recurse
-                    if (findConnectingPorts(tryarc, endArc, ds)) {
-                        return true;                            // success!
-                    }
-                    // otherwise, remove bad added arcs and port and continue
+                    findConnectingPorts(tryarc, endArc, ds);
+
+                    // remove added arcs and port and continue search
                     while (specifiedRoute.size() > preArcSize) {
                         specifiedRoute.remove(specifiedRoute.size()-1);
                     }
@@ -444,6 +453,23 @@ public class VerticalRoute {
         }
 
         if (DEBUGSEARCH) System.out.println(ds+"--- Bad path ---");
-        return false;               // no valid path to endpp found
+        return;               // no valid path to endpp found
+    }
+
+    /**
+     * Save a successful route
+     * @param route the route to save
+     */
+    private void saveRoute(SpecifiedRoute route) {
+        // create copy and store it
+        if (DEBUGSEARCH) {
+            System.out.println("** Found Route for: startArc="+route.startArc+", endArc="+route.endArc);
+            route.printRoute();
+        }
+        SpecifiedRoute loggedRoute = new SpecifiedRoute();
+        loggedRoute.startArc = route.startArc;
+        loggedRoute.endArc = route.endArc;
+        loggedRoute.addAll(route);
+        allSpecifiedRoutes.add(loggedRoute);
     }
 }

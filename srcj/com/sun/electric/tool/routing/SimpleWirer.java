@@ -28,6 +28,8 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
@@ -57,7 +59,7 @@ public class SimpleWirer extends InteractiveRouter {
 
     protected boolean planRoute(Route route, Cell cell, RouteElement endRE, Point2D clicked) {
 
-        RouteElement startRE = route.getStart();
+        RouteElement startRE = route.getEnd();
 
         // first, find location of corner of L if routing will be an L shape
         Point2D cornerLoc = null;
@@ -109,6 +111,22 @@ public class SimpleWirer extends InteractiveRouter {
             }
         }
 
+        route.add(endRE);
+        route.setEnd(endRE);
+
+        // startRE and endRE can be connected with an arc.  If one of them is a bisectArcPin,
+        // and can be replaced by the other, just replace it and we're done.
+        if (isElementReplacable(startRE, endRE)) {
+            Router.replaceRouteElementArcPin(route, startRE, endRE);
+            route.remove(startRE);
+            return true;
+        } else if (isElementReplacable(endRE, startRE)) {
+            Router.replaceRouteElementArcPin(route, endRE, startRE);
+            route.remove(endRE);
+            route.setEnd(startRE);
+            return true;
+        }
+
         // find arc width to use
         double width = getArcWidthToUse(startRE, useArc);
         double width2 = getArcWidthToUse(endRE, useArc);
@@ -133,46 +151,19 @@ public class SimpleWirer extends InteractiveRouter {
             route.add(arcRE2);
         }
 
-        route.add(endRE);
-        route.setEnd(endRE);
         return true;
     }
 
-
     /**
-     * Build a stack of contacts to connect between <code>startRE</code> and
-     * <code>endRE</code>.  This is a recursive method.  It does not actually build
-     * the final arc to endRE, but instead returns a RouteElement in the same
-     * location as startRE that can be used to connect to endRE (using
-     * getArcToUse(returnedRE, endRE).
-     * @param route a route to add new contacts and arcs to
-     * @param contactsUsed the contacts used so far (prevents duplication).
-     * Should be null or empty list on initial call.
-     * @param startRE the start of the route
-     * @param endRE the end of the route
-     * @return a RouteElement located at startRE's location, that can connect to endRE.
+     * Checks to see if re is a bisect arc pin, and if it can be replaced with replacement
+     * @return true if re is replacable by replacement
      */
-    /*
-    protected RouteElement buildContacts(List route, Set contactsUsed, RouteElement startRE, RouteElement endRE) {
-
-        PortProto startPort = startRE.getPortProto();
-        PortProto endPort = endRE.getPortProto();
-        
-        if (contactsUsed == null) contactsUsed = new HashSet();
-        // go through all contacts, see if any connect to startRE
-        // there may be more than one, in which case more than one
-        // possible solution must be explored
-        // NOTE: use only current technology
-        Technology tech = Technology.getCurrent();
-        for (Iterator it = tech.getNodes(); it.hasNext(); ) {
-            PrimitiveNode pn = (PrimitiveNode)it.next();
-            if (pn.getFunction() != NodeProto.Function.CONTACT) continue;
-            // contacts only have one port, which connects to two arcs
-            PrimitivePort pp = (PrimitivePort)pn.getPorts().next();
-            ArcProto [] arcs = pp.getConnections();
-        }
-        return null;
-    }*/
+    private boolean isElementReplacable(RouteElement re, RouteElement replacement) {
+        if (!re.isBisectArcPin()) return false;
+        // if replacement is an existing port inst, see if re's location lies within port
+        if (re.getLocation().equals(replacement.getConnPoint())) return true;
+        return false;
+    }
 
     /**
      * Determines what route quadrant pt is compared to refPoint.
