@@ -177,6 +177,9 @@ public class LETool extends Tool {
             if (i == -1) break;
             drive = drive.substring(i+1);             // remove top level of hierarchy
         }
+        // didn't find it: try converting new default names to old default style names
+        
+
         // look for it at current level
         if (DEBUG) System.out.println("  Looking for: LEDRIVE_0;S");
         var = no.getVar("LEDRIVE_0;S");

@@ -138,7 +138,7 @@ public class LESizer2 {
                         }
                     }
                     if ((loopLeno.getNodable().getNodeInst() == leno.getNodable().getNodeInst()) &&
-                        (loopLeno.context == leno.context)) {
+                        (loopLeno.context.getInstPath(".").equals(leno.context.getInstPath(".")))) {
                         // this must be an arrayed driver: not this also adds current instance at some point as well
                         arrayedDrivers.add(loopLeno);
                     }

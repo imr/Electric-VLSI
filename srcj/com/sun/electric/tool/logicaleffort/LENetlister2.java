@@ -397,6 +397,8 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
                 LENetwork net = getNetwork(globalID, info);
                 net.add(pin);
             }
+            //uniqueLeno.print();
+            //uniqueLeno.printPins();
         }
         return false;
     }
@@ -582,9 +584,11 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
         LENodable leno = null;
         for (Iterator it = allLENodables.iterator(); it.hasNext(); ) {
             LENodable aleno = (LENodable)it.next();
-            if (aleno.getNodable() == no && (aleno.context == context)) {
-                leno = aleno;
-                break;
+            if (aleno.getNodable() == no) {
+                if (aleno.context.getInstPath(".").equals(context.getInstPath("."))) {
+                    leno = aleno;
+                    break;
+                }
             }
         }
         if (leno == null) return false;
@@ -603,6 +607,7 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
         ArrayList wiresDrivenPins = new ArrayList();
         ArrayList gatesFightingPins = new ArrayList();
 
+        if (outputNet == null) return false;
         for (Iterator it = outputNet.getAllPins().iterator(); it.hasNext(); ) {
             LEPin pin = (LEPin)it.next();
             LENodable loopLeno = pin.getInstance();
@@ -615,6 +620,7 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
             }
             if (pin.getDir() == LEPin.Dir.OUTPUT) {
                 if (loopLeno.isGate()) gatesFightingPins.add(pin);
+                if (loopLeno.getType() == LENodable.Type.TRANSISTOR) loadsDrivenPins.add(pin);
             }
         }
         System.out.println("Note: Load = Size * LE * M");

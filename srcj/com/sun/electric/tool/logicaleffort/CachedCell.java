@@ -176,6 +176,7 @@ public class CachedCell {
                 if (retVal == null) return false;
                 subCellMFactor *= VarContext.objectToFloat(retVal, 1);
             }
+            if (ceno.subCell.isContextFree(constants)) continue;
             if (!ceno.subCell.isContextFreeRecurse(context.push(no), subCellMFactor, constants))
                 return false;
         }

@@ -5,6 +5,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.technology.technologies.Schematics;
 
@@ -273,10 +274,16 @@ public class LENodable {
         System.out.println("    M Factor\t= "+mfactor);
     }
 
+    protected void printPins() {
+        for (Iterator it = pins.iterator(); it.hasNext(); ) {
+            LEPin pin = (LEPin)it.next();
+            System.out.println("Pin "+pin.getName()+", le="+pin.getLE()+", dir="+pin.getDir()+" on network "+pin.getJNetwork());
+        }
+    }
+
     protected float printLoadInfo(LEPin pin, float alpha) {
         StringBuffer buf = new StringBuffer();
         buf.append(getType().toString());
-        buf.append("\t"+getName());
         buf.append("\tSize="+TextUtils.formatDouble(leX, 2));
         buf.append("\tLE="+TextUtils.formatDouble(pin.getLE(), 2));
         buf.append("\tM="+TextUtils.formatDouble(mfactor, 2));
@@ -289,6 +296,7 @@ public class LENodable {
             load = (float)(leX*pin.getLE()*mfactor);
             buf.append("\tLoad="+TextUtils.formatDouble(load, 2));
         }
+        buf.append("\t"+getName());
         System.out.println(buf.toString());
         return load;
     }

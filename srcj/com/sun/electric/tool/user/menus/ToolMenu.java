@@ -239,9 +239,9 @@ public class ToolMenu {
 
         MenuBar.Menu logEffortSubMenu = new MenuBar.Menu("Logical Effort", 'L');
         logEffortSubMenu.addMenuItem("Optimize for Equal Gate Delays", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { optimizeEqualGateDelaysCommand(false); }});
-        logEffortSubMenu.addMenuItem("Optimize for Equal Gate Delays with Caching", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { optimizeEqualGateDelaysCommand(true); }});
+        logEffortSubMenu.addMenuItem("Optimize for Equal Gate Delays (no caching)", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { optimizeEqualGateDelaysCommand(false); }});
         logEffortSubMenu.addMenuItem("Print Info for Selected Node", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { printLEInfoCommand(); }});
         toolMenu.add(logEffortSubMenu);
