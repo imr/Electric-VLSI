@@ -45,9 +45,9 @@ public class NameFactory {
 		"j" , "k", "l", "m", "n", "o", "p", "q", "r",
 		"s" , "t", "u", "v", "w", "x", "y", "z" };
 
-	/** Here is the constructor for NameFactory.
-		* @return a new NameFactory
-		*/
+	/** 
+	 * the constructor for NameFactory.
+	 */
 	public NameFactory(){
 		myHash= new Hashtable();
 		si= 0;
@@ -66,7 +66,7 @@ public class NameFactory {
     /** 
 	 * Here is a factory method for finding or making a Name with
 	 * the given String.
-	 * @param the String to use for this name
+	 * @param s the String to use for this name
 	 * @return a Name with the input String, newly created only if necessary
 	 */
     public Name namePlease(String s){
@@ -83,8 +83,8 @@ public class NameFactory {
 
 	/**
 	 * Here is a factory method for making a bus name with a bracketed index
-	 * @param the String to use as the base name
-	 * @param the integer bus index
+	 * @param s the String to use as the base name
+	 * @param i the integer bus index
 	 * @return a Name with the bus string
 	 */
 	public Name namePlease(String s, int i){
@@ -124,16 +124,13 @@ public class NameFactory {
 
 	/**
 	 * Here is a method to test whether a given string is known to this factory.
-	 * @param the String to test
+	 * @param s the String to test
 	 * @return true if the String is known, false otherwise
 	 */
     public boolean isKnown(String s){return myHash.containsKey(s);}
 
 	//this is the test code
-	/** Here ia method that tests various features of the NetFactory class.
-		* @param none
-		* @return none
-		*/
+	/** Here ia method that tests various features of the NetFactory class.	*/
     public void testMe(){
 		Messenger.line("testing NameFactory");
 		for (int i=0; i<30; i++){

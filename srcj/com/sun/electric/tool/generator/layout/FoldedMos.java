@@ -85,7 +85,7 @@ public abstract class FoldedMos {
 		 * a diffusion contact and a gate. Otherwise getSpace must return
 		 * the distance between gates spaceNdx-1 and spaceNdx.
 		 * @param nbGates the total number of gates in this FoldedMos.
-		 * @param return the desired extra space. Note that the returned
+		 * @return the desired extra space. Note that the returned
 		 * extra space must be greater than or equal to requiredExtraSpace
 		 * to avoid DRC errors. */
 		double getExtraSpace(double requiredExtraSpace, int foldNdx, 

@@ -62,14 +62,14 @@ public class Wire extends NetObject{
 
     /** 
 	 * disconnect the indicated Part from this Wire
-	 * @param the Part to remove
+	 * @param p the Part to remove
 	 * @return true if it was properly removed.
 	 */
     public boolean disconnect(Part p){return content.remove(p);}
 
     /** 
 	 * add the indicated Part or Port to this Wire
-	 * @param the NetObject to add
+	 * @param p the NetObject to add
 	 * complain if the NetObject to add isn't a Part or a Port
 	 * @return true if properly added, false otherwise
 	 */
@@ -98,7 +98,7 @@ public class Wire extends NetObject{
 	
     /** 
 	 * Factory - return a Wire with the given Name
-	 * @param the Name to give the wire
+	 * @param n the Name to give the wire
 	 * @return the Wire with that name
 	 */
     public static Wire please(Name n){
@@ -115,8 +115,8 @@ public class Wire extends NetObject{
     /**
 	 * Factory - return a Wire with the given String as its name
 	 * adopted by the JemCircuit cc
-	 * @param the JemCircuit to contain this Wire
-	 * @param the String name to give the wire
+	 * @param cc the JemCircuit to contain this Wire
+	 * @param nn the String name to give the wire
 	 * @return the Wire with that name
 	 */
     public static Wire please(JemCircuit cc, Name nn){
@@ -172,8 +172,7 @@ public class Wire extends NetObject{
     /** 
 	 * check that this Wire is properly structured.  check each
 	 * connection to see if it points back
-	 * @param the Messenger to report errors
-	 * @return true if all was OK, false if problems
+	 * @param parent the wire's parent
 	 */
     public void checkMe(JemCircuit parent){
     	error(getParent()!=parent, "wrong parent");
@@ -187,7 +186,7 @@ public class Wire extends NetObject{
 
     /** 
 	 * Does this Wire touch the given Part?
-	 * @param the Part to test
+	 * @param p the Part to test
 	 * @return true if it touches, false if not
 	 */
     public boolean touches(Part p){return content.contains(p);}
@@ -285,7 +284,7 @@ public class Wire extends NetObject{
 
     /** 
 	 * Get a String indicating up to N connections for this NetObject.
-	 * @param the maximum number of connections to list
+	 * @param n the maximum number of connections to list
 	 * @return a String of connections.
 	 */
     public String connectionString(int n){

@@ -36,11 +36,11 @@ import java.util.List;
 public class TransistorOne extends Transistor {
 
     // ---------- private data -------------
-    private static int numCon= 3;
-    private static int termCoefs[] = {47,13,47};
+    private static final int NUM_CON= 3;
+    private static final int TERM_COEFFS[] = {47,13,47};
 
     // ---------- private methods ----------
-    protected TransistorOne(Name n){super(n, numCon);}
+    protected TransistorOne(Name n){super(n, NUM_CON);}
 
     public void flip(){
         Wire w= pins[0];
@@ -67,7 +67,7 @@ public class TransistorOne extends Transistor {
     // ---------- abstract commitment ----------
 
 	public boolean isThisGate(int x){return (x == 1);}
-    public int[] getTermCoefs(){return termCoefs;} //the terminal coeficients
+    public int[] getTermCoefs(){return TERM_COEFFS;} //the terminal coeficients
 
     // ---------- public methods ----------
 

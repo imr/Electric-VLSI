@@ -81,21 +81,19 @@ public abstract class JemRecord {
 
 	/** 
 	 * setParent checks the proposed parent's class before writing it.
-	 * @param the JemParent proposed
-	 * @return true if parent was accepted, false otherwise
+	 * @param x the JemParent proposed
 	 */
 	public void setParent(JemHistoryRecord x){myParent=x;}
 	
 	/** 
 	 * The apply method does a JemStrat strategy in this JemRecord
-	 * @param the JemStrat to apply to this JemRecord
+	 * @param s the JemStrat to apply to this JemRecord
 	 * @return the JemEquivList of offspring that result, empty if none
 	 */
 	public abstract JemEquivList apply(JemStrat s);
 	
 	/** 
 	 *  a routine to print this JemRecord on a Messenger.
-	 * @param the Messenger to use for output
 	 */
 	public abstract void printMe();
 	

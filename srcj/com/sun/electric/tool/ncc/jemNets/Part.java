@@ -71,8 +71,8 @@ public abstract class Part extends NetObject {
     public Type getNetObjType() {return Type.PART;}
 
 	/**
-	 *  valueString reports the numeric values of this Part,
-	 *  e.g. width, length, resistance.
+	 * valueString reports the numeric values of this Part,
+	 * for example: width, length, resistance.
 	 * @return a String describing the Part's numeric values.
 	 */
 	public abstract String valueString();
@@ -99,7 +99,7 @@ public abstract class Part extends NetObject {
 
 	/** 
 	 * This method attempts to merge this Part in parallel with another Part
-	 * @param the other Part with which to merge
+	 * @param p the other Part with which to merge
 	 * @return true if merge was successful, false otherwise
 	 */
 	public abstract boolean parallelMerge(Part p);
@@ -109,7 +109,7 @@ public abstract class Part extends NetObject {
 	 * parts. Because there is a possibility of hash code collisions,
 	 * I examine all n^2 combinations to guarantee that all possible
 	 * parallel merges are performed.
-	 * @param j Collection of Parts to merge in parallel
+	 * @param parts Collection of Parts to merge in parallel
 	 * @return the count of Parts actually merged
 	 */
     public static int parallelMerge(Collection parts){
@@ -134,7 +134,7 @@ public abstract class Part extends NetObject {
 		
 	/** 
 	 * A method to disconnect a Wire from this Part
-	 * @param the Wire to disconnect
+	 * @param w the Wire to disconnect
 	 * @return true if the Wire was disconnected, false if not
 	 * found on this Part
 	 */
@@ -166,7 +166,7 @@ public abstract class Part extends NetObject {
 	
 	/** 
 	 * A method to test if a Part touches a Wire.
-	 * @param the Wire to test
+	 * @param w the Wire to test
 	 * @return true if this Part touches the Wire, false otherwise
 	 */
 	public boolean touches(Wire w){
@@ -180,7 +180,7 @@ public abstract class Part extends NetObject {
 	/** 
 	 * A method to test if this Part touches a Wire with a gate connection.
 	 * Transistors that have gates must provide touchesAtGate.
-	 * @param the Wire to test
+	 * @param w the Wire to test
 	 * @return true if a gate terminal of this Part touches the Wire
 	 */
     public abstract boolean touchesAtGate(Wire w);
@@ -212,8 +212,10 @@ public abstract class Part extends NetObject {
 //		return null;
 //	} //end of computeCode
 
-    //compute the name code for this object
-    //as the sum of the Object hashCode()'s of its wires
+    /**
+     * compute the name code for this object. The name code is the
+     * sum of the Object hashCode()'s of its wires
+     */
     public Integer computeNameCode(){
         int sum= 0;
 		int hash= 0;
@@ -268,7 +270,7 @@ public abstract class Part extends NetObject {
 	 * The Part must compute a hash code contribution for a Wire to
 	 * use.  because the Wire doesn't know how it's connected to this
 	 * Part and multiple connections are allowed.
-	 * @param the Wire for which a hash code is needed
+	 * @param w the Wire for which a hash code is needed
 	 * @return an int with the code contribution.
 	 */
     public int getHashFor(Wire w){
@@ -298,7 +300,7 @@ public abstract class Part extends NetObject {
 	
 	/** 
 	 * printMe prints out this NetObject
-	 * @param an integer length limit to the printout
+	 * @param maxCon an integer length limit to the printout
 	 */
 	public void printMe(int maxCon){
 		String n= nameString();

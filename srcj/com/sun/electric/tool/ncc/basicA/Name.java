@@ -38,8 +38,8 @@ public class Name implements Comparable {
 	/** how many Names have been made */	private static int numNames= 0;
 
 	/** Here is the access method for the number of Names created.
-		* @return the number of Names created
-		*/
+	 * @return the number of Names created
+	 */
 	public static int getNumberNames(){return numNames;}
 
 	/** Here is the constructor for Names.
@@ -48,24 +48,21 @@ public class Name implements Comparable {
 	private Name(String s){
 		numNames++;
 		myString= s;
-	} //end of constructor
+	}
 
     // ---------- public methods ----------
 
 	/** please is a factory method for making names.
-		* @param a string to associate with this name
-		* @return the newly created Name
-		*/
-	public static Name please(String s){
-		Name n= new Name(s);
-		return n;
-	} //end of please
+	 * @param s a string to associate with this name
+	 * @return the newly created Name
+	 */
+	public static Name please(String s){return new Name(s);}
 
 	/** The compareTo method compares this name with another.
-		* needed for the Comparable interface.
-		* @param the Name to compare with this one
-		* @return an integer indicating their relative order
-		*/
+	 * needed for the Comparable interface.
+	 * @param x the Name to compare with this one
+	 * @return an integer indicating their relative order
+	 */
 	public int compareTo(Object x){
 		if(x instanceof Name){
 			Name n= (Name)x;
@@ -74,12 +71,13 @@ public class Name implements Comparable {
 		return 0;
 	} //end of compareTo
 
-	/** The parallelMerge method combines names by concatinating their Strings.
-		* I believe that the parallelMerge method has fallen into disuse.
-		* I intended parallelMerge ultimately to combine bus names.
-		* @param the Name to merge with this one
-		* @return a Name with the combined strings
-		*/
+	/** 
+	 * The parallelMerge method combines names by concatinating their Strings.
+	 * I believe that the parallelMerge method has fallen into disuse.
+	 * I intended parallelMerge ultimately to combine bus names.
+	 * @param x the Name to merge with this one
+	 * @return a Name with the combined strings
+	 */
 	public Name parallelMerge(Name x){
 		if(x == null)return this;
 		if(x == this)return this;

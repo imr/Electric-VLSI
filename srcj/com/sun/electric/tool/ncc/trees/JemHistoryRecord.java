@@ -60,8 +60,9 @@ public class JemHistoryRecord extends JemRecord {
 	/**
 	 * A factory method to make a JemHistoryRecord holding several
 	 * JemEquivRecords
-	 * @param r a JemEquivList containing the offspring
-	 * JemEquivRecords
+	 * @param lameDuck the JemEquivRecord that is about to be 
+	 * replaced by the new JemHistoryRecord
+	 * @param offspring the children of the new JemHistoryRecord
 	 * @return null if no offspring or a JemHistoryRecord with those
 	 * offspring
 	 */
@@ -90,7 +91,7 @@ public class JemHistoryRecord extends JemRecord {
 
 	/** 
 	 * The apply method applies a JemStrat to this JemHistoryRecord.
-	 * @param the JemStrat to apply
+	 * @param js the JemStrat to apply
 	 * @return a JemEquivList of the resulting offspring
 	 */
 	public JemEquivList apply(JemStrat js){
@@ -133,7 +134,7 @@ public class JemHistoryRecord extends JemRecord {
 	/**
 	 * findSmallest searches recursively for the JemEquivRecord with
 	 * fewest NetObjects in its circuits.
-	 * @param the JemRecordList to search
+	 * @param c the JemRecordList to search
 	 * @return the JemEquivRecord with fewest NetObjects in its circuits
 	 */
     public static JemEquivRecord findSmallestIn(JemRecordList c){
@@ -203,7 +204,6 @@ public class JemHistoryRecord extends JemRecord {
 	/** 
 	 * The printMe method prints this JemJistoryRecord on a given
 	 * Messenger
-	 * @param the Messenger to use
 	 */
 	public void printMe(){
 		Messenger.line(nameString() + 		

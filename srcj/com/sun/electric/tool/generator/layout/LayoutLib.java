@@ -63,6 +63,25 @@ public class LayoutLib {
 		// The following prints a stack trace in the Electric messages window
 		throw e;
 	}
+	/**
+	 * Find out if we're currently running under windows. 
+	 * @return true if operating system is some variant of Microsoft Windows.
+	 */
+	public static boolean osIsWindows() {
+		Properties props = System.getProperties();
+		String osName = ((String) props.get("os.name")).toLowerCase();
+		return osName.indexOf("windows") != -1;
+	}
+	/**
+	 * get user name from System properties 
+	 * @return name of user
+	 */
+	public static String userName() {
+		Properties props = System.getProperties();
+		String name = (String) props.get("user.name");
+		return name;
+	}
+
 	/** 
 	 * Open a library for reading. If a library named libName is
 	 * already open then return it. Otherwise look for the library
@@ -315,7 +334,7 @@ public class LayoutLib {
 	 * the NodeInst about the y-axis
 	 * @param mirrorAboutXAxis if true then toggle the mirroring of
 	 * the NodeInst about the x-axis
-	 * @param dangle the amount by which to change the NodeInst's angle
+	 * @param dAngle the amount by which to change the NodeInst's angle
 	 */
 	public static void modNodeInst(NodeInst ni, double dx, double dy, 
 	                               double dw, double dh, 

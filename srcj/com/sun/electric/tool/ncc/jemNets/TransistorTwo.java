@@ -89,7 +89,7 @@ public class TransistorTwo extends Transistor{
 	/** 
 	 * Merge two TransistorOnes into a TransistorTwo.  
 	 * @param w wire joining diffusions of two transistors
-	 * @return
+	 * @return true if merge has taken place
 	 */
     public static boolean joinOnWire(Wire w){
 		TransistorOne ta= null;

@@ -31,12 +31,12 @@ import com.sun.electric.tool.ncc.jemNets.Wire;
 
 public class Resistor extends Part{
     // ---------- private data -------------
-    private static int numCon= 2;
-    private static int termCoefs[] = {17,17}; //resistors are symmetric
+    private static final int NUM_CON= 2;
+    private static final int TERM_COEFFS[] = {17,17}; //resistors are symmetric
     private float myValue= 0; //resistance
 
     // ---------- private methods ----------
-    private Resistor(Name n){super(n, numCon);}
+    private Resistor(Name n){super(n, NUM_CON);}
 
     private void flip(){
         Wire w = pins[0];
@@ -54,8 +54,8 @@ public class Resistor extends Part{
     // ---------- abstract commitment ----------
 
 	public boolean isThisGate(int x){return false;}
-    public int getNumCon(){return numCon;}
-    public int[] getTermCoefs(){return termCoefs;} //the terminal coeficients
+    public int getNumCon(){return NUM_CON;}
+    public int[] getTermCoefs(){return TERM_COEFFS;} //the terminal coeficients
 	public String valueString(){
 		String sz= "R= " + myValue;
 		return sz;
@@ -67,9 +67,9 @@ public class Resistor extends Part{
     public void setValue(float v){myValue= v;}
 
 	/** A method to test if this Part touches a Wire with a gate connection.
-		* @param the Wire to test
-		* @return false because Resistors don't have gates.
-		*/
+	 * @param w the Wire to test
+	 * @return false because Resistors don't have gates.
+	 */
     public boolean touchesAtGate(Wire w){return false;}
 	
     public void connect(Wire ss, Wire ee){

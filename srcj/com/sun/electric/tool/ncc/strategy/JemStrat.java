@@ -78,7 +78,7 @@ public abstract class JemStrat {
 
 	/** 
 	 * Method doFor(JemRecordList) processes a list of JemRecords.
-	 * @param  a JemRecordList of JemRecords to process
+	 * @param r a JemRecordList of JemRecords to process
 	 * @return a JemEquivList of the new frontier JemEquivRecords
 	 */
     public JemEquivList doFor(JemRecordList r){
@@ -91,7 +91,7 @@ public abstract class JemStrat {
 	
 	/** 
 	 * Method doFor(JemRecord) processes a single JemRecord.
-	 * @param  the JemRecords to process
+	 * @param rr the JemRecords to process
 	 * @return a JemEquivList of the new frontier JemEquivRecords
 	 */	
     public JemEquivList doFor(JemRecord rr){
@@ -106,7 +106,7 @@ public abstract class JemStrat {
 	 * dividing the circuit according to this strategy, and 
 	 * placing the NetObjects of the JemCircuit into new JemCircuits 
 	 * mapped in the return according to the separation Integer. 
-	 * @param  the JemCircuit to process.
+	 * @param c the JemCircuit to process.
 	 * @return a JemCircuitMap of offspring JemCircuits.
 	 * Returns an empty map if no offspring intended, and
 	 * returns the input input JemCircuit if method fails to split.
@@ -120,7 +120,7 @@ public abstract class JemStrat {
 
     /** 
 	 * doFor(NetObject) tests the NetObject to decide its catagory.
-	 * @param  The NetObject to catagorize
+	 * @param  n the NetObject to catagorize
 	 * @return an Integer for the choice, or null to drop this NetObject.
 	 */
     public abstract Integer doFor(NetObject n);

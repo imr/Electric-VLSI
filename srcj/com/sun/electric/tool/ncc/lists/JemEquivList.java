@@ -78,7 +78,6 @@ public class JemEquivList extends JemRecordList {
 
 	/** 
 	 * selectActive selects JemEquivRecords that aren't retired or mismatched
-	 * @param in the input JemEquivList
 	 * @return a JemEquivList, possibly empty, of those that do retire.
 	 */
 	public JemEquivList selectActive(){
@@ -94,7 +93,6 @@ public class JemEquivList extends JemRecordList {
 
 	/** 
 	 * selectRetired selects JemEquivRecords that are retired
-	 * @param in the input JemEquivList
 	 * @return a JemEquivList, possibly empty, of those that do retire.
 	 */
 	public JemEquivList selectRetired(){

@@ -37,8 +37,6 @@ import java.util.Date;
 public class Messenger{
 	private static PrintStream logStrm;
 	
-	//public static Messenger toTestPlease(String s){return new Messenger();}
-
 	/** Specify a log file. */
 	public static void setLogFile(String logFileName){
 		File f = new File(logFileName);

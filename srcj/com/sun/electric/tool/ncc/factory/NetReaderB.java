@@ -102,14 +102,11 @@ public class NetReaderB {
     } //end of getMyTokenizer
 
 	/**
-	 * The getAline method reads and parses one line from the input
-	 * file.
-	 * @param the StreamTokenizer to use for input
-	 * @return the number of tokens read in the line (not used)
-	 * @return (implicit) puts values into theLine and theDoubles
+	 * getAline reads and parses one line from the input
+	 * file. It places its results into theLine and theDoubles arrays.
+	 * @param st the StreamTokenizer to use for input
+	 * @return the number of tokens read in the line
 	 */
-    //convert a line into an array of Strings.
-    //returns null if last one
     public int getAline(StreamTokenizer st){
         int i= 0;
         int j= 0;
@@ -138,7 +135,7 @@ public class NetReaderB {
 
 	/**
 	 * Here is a debug method to print the tokens just read
-	 * @param int ii to say how many tokens to print
+	 * @param ii to say how many tokens to print
 	 */
     public void printAstringLine(int ii){
         for(int i=0; i<ii; i++){
@@ -219,7 +216,7 @@ public class NetReaderB {
 
 	/** 
 	 * Here is a method to read a file and make a JemCircuit
-	 * @param String fileName - the location of the file to read
+	 * @param fileName - the location of the file to read
 	 * @return the newly created JemCircuit
 	 */
 	public JemCircuit read(String fileName){

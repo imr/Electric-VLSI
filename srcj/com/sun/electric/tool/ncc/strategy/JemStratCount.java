@@ -296,7 +296,6 @@ public class JemStratCount extends JemStrat {
 	/**
 	 * Count things in the tree rooted at j.
 	 * @param j root of the tree 
-	 * @param portsRecordToSkip the Ports JemRecord. Don't count items in this tree. 
 	 * @return an empty list
 	 */
 	public static JemEquivList doYourJob(JemRecord j) {

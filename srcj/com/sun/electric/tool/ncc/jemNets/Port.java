@@ -84,25 +84,6 @@ public class Port extends NetObject {
 
 	public Wire getMyWire(){return wire;}
 
-	/** 
-	 * Compute a hash code for Wire w to use.  special because a Ports
-	 * must not have an impact on a Wire unless retired
-	 * @param the Wire for which hash code is needed
-	 * @return the hash code for the wire to use
-	 */
-    public int getHashFor(Wire w){
-		JemCircuit circuit= (JemCircuit)getParent();
-		JemEquivRecord g= (JemEquivRecord)circuit.getParent();
-		if(g.isRetired())return getCode();
-		else return 0;
-	}
-	
-	public Integer computeCode(int i){
-		Wire w= getMyWire();
-		int ii= getHashFor(w);
-		return new Integer(ii);
-	}
-	
     public String nameString(){
         return ("Port " + getStringName());
     }

@@ -513,14 +513,6 @@ public final class MenuCommands
 		toolMenu.add(networkSubMenu);
 		networkSubMenu.addMenuItem("redo Network Numbering", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { redoNetworkNumberingCommand(); } });
-		networkSubMenu.addMenuItem("NCC test 1", null, 
-			new ActionListener() { public void actionPerformed(ActionEvent e) { nccTest1Command(); }});
-		networkSubMenu.addMenuItem("NCC test 2", null, 
-			new ActionListener() { public void actionPerformed(ActionEvent e) { nccTest2Command(); }});
-		networkSubMenu.addMenuItem("NCC test 3", null, 
-			new ActionListener() { public void actionPerformed(ActionEvent e) { nccTest3Command(); }});
-		networkSubMenu.addMenuItem("NCC test 4", null, 
-			new ActionListener() { public void actionPerformed(ActionEvent e) { nccTest4Command(); }});
 
 		Menu logEffortSubMenu = Menu.createMenu("Logical Effort", 'L');
 		logEffortSubMenu.addMenuItem("Analyze Cell", null, 
@@ -575,7 +567,11 @@ public final class MenuCommands
 				new com.sun.electric.tool.generator.layout.IvanFlat();
 			}	
 		});
-		russMenu.addMenuItem("layout flat", null, new com.sun.electric.tool.generator.layout.LayFlat());
+		russMenu.addMenuItem("layout flat", null, new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				new com.sun.electric.tool.generator.layout.LayFlat();
+			}
+		});
 		russMenu.addMenuItem("gate regression", null, new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				new com.sun.electric.tool.generator.layout.GateRegression();
@@ -584,6 +580,11 @@ public final class MenuCommands
 		russMenu.addMenuItem("Jemini", null, new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				new com.sun.electric.tool.ncc.jemini_2();
+			}
+		});
+		russMenu.addMenuItem("Random Test", null, new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				new com.sun.electric.tool.generator.layout.Test();
 			}
 		});
 		
@@ -1585,35 +1586,6 @@ public final class MenuCommands
 		long endTime = System.currentTimeMillis();
 		float finalTime = (endTime - startTime) / 1000F;
 		System.out.println("**** Renumber networks of "+ncell+" cells took " + finalTime + " seconds");
-	}
-
-	// NCC Tool
-	public static void nccTest1Command()
-	{
-		System.out.println("Not yet");
-//		NetFactory nf = new NetFactory();
-//		nf.testOne();
-	}
-
-	public static void nccTest2Command()
-	{
-		System.out.println("Not yet");
-//		NetFactory nf = new NetFactory();
-//		nf.testTwo();
-	}
-
-	public static void nccTest3Command()
-	{
-		System.out.println("Not yet");
-//		NetFactory nf = new NetFactory();
-//		nf.testThree();
-	}
-
-	public static void nccTest4Command()
-	{
-		System.out.println("Not yet");
-//		NetFactory nf = new NetFactory();
-//		nf.testFour();
 	}
 
 	public static void irsimNetlistCommand()

@@ -4,8 +4,7 @@ package com.sun.electric.tool.generator.layout;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
+import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.Map;
@@ -21,12 +20,9 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.tool.io.Input;
-import com.sun.electric.tool.io.Output;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.User;
 
 class Flattener extends HierarchyEnumerator.Visitor {
 	private static final boolean debug = false;
@@ -136,7 +132,7 @@ class Flattener extends HierarchyEnumerator.Visitor {
 				NodeInst ni2 =
 					NodeInst.newInstance(np, new Point2D.Double(0, 0),
 						                 1, 1, 0, flatCell, null);
-				ni2.setPositionFromTransform(at);
+//				ni2.setPositionFromTransform(at);
 				for (Iterator it = ni.getPortInsts(); it.hasNext();) {
 					PortInst pi = (PortInst) it.next();
 					PortInst pi2 = ni2.findPortInst(pi.getPortProto().getProtoName());
@@ -160,7 +156,7 @@ class FlatInfo extends HierarchyEnumerator.CellInfo {
 	}
 }
 
-public class LayFlat implements ActionListener {
+public class LayFlat extends Job {
 	private static void error(boolean pred, String msg) {
 		if(pred) {
 			System.out.println(msg);
@@ -176,36 +172,12 @@ public class LayFlat implements ActionListener {
 
 	private static String userName() {
 		Properties props = System.getProperties();
-		return (String) props.get("user.name");
-	}
-	private Library openLibForRead(String libNm, String libFileNm) {
-		Library lib = Library.findLibrary(libNm);
-		if (lib==null) {
-			Input.readLibrary(libFileNm, Input.ImportType.BINARY);
-			lib = Library.findLibrary(libNm);
-		}
-		error(lib==null, "can't open Library for reading: "+libFileNm);
-		return lib;
+		String name = (String) props.get("user.name");
+		return name;
 	}
 
-	private Library openLibForAppend(String libNm, String libFileNm) {
-		Library lib = Library.findLibrary(libNm);
-		if (lib==null) {
-			lib = Library.newInstance(libNm, libFileNm);
-		}
-		error(lib==null, "can't open Library for reading: "+libFileNm);
-		return lib;
-	}
-
-	// Electric doesn't open the spiceparts.txt file properly yet. Read 
-	// this in explicitly. 
-	private void openSpiceParts(String libDir) {
-		String spNm = "spiceparts";
-		Library lib = openLibForRead(spNm, libDir + spNm + ".elib");
-	}
 	private Cell openCell(String libDir, String libNm, String cellNm) {
-		openSpiceParts(libDir);
-		Library lib = openLibForRead(libNm, libDir + libNm + ".elib");
+		Library lib = LayoutLib.openLibForRead(libNm, libDir + libNm + ".elib");
 		Cell cell = lib.findNodeProto(cellNm);
 		error(cell==null, "can't find cell: " + cellNm);
 		return cell;
@@ -256,36 +228,38 @@ public class LayFlat implements ActionListener {
 		return cell;
 	}
 
-	public void actionPerformed(ActionEvent e) {
-		Thread doItThread = new Thread() {
-			public void run() {
-				doIt(new String[] {});
-			}
-		};
-		doItThread.start();
-	}
-
-	void doIt(String[] args) {
+	public void doIt() {
 		System.out.println("Begin flat");
 		Cell cell = getTestCell();
-		Library scratch = 
-			openLibForAppend("scratch", 
-		                     getHomeDir()+"work/async/scratch.elib");
-		Cell flatCell = Cell.newInstance(scratch, "flatCell{lay}");
-		WindowFrame window1 = WindowFrame.createEditWindow(flatCell);
-		Flattener flattener = new Flattener(flatCell);
-		long startTime = System.currentTimeMillis();
-		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext,
-										  null, flattener);
-		long endTime = System.currentTimeMillis();
-		double deltaTime = (endTime - startTime) / 1000.0;
-		System.out.println("Flattening took " + deltaTime + " seconds");
+		Library scratch = LayoutLib.openLibForModify(
+			"scratch", 
+		    getHomeDir()+"work/async/scratch.elib");
+		Cell lowCell = Cell.newInstance(scratch, "lowCell{lay}");
+		NodeInst.newInstance(Tech.m1m2, new Point2D.Double(1,2),
+							 5, 9, 0, lowCell, null);
+		Cell hiCell = Cell.newInstance(scratch, "hiCell{lay}");
+		Rectangle2D b = lowCell.getBounds();
+		NodeInst lowInst = 
+		NodeInst.newInstance(lowCell, new Point2D.Double(0,0),
+							 b.getWidth(), b.getHeight(), 0, hiCell, null);
+		System.out.println(lowInst.getGrabCenter());
+		
+//		WindowFrame window1 = WindowFrame.createEditWindow(flatCell);
+//		Flattener flattener = new Flattener(flatCell);
+//		long startTime = System.currentTimeMillis();
+//		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext,
+//										  null, flattener);
+//		long endTime = System.currentTimeMillis();
+//		double deltaTime = (endTime - startTime) / 1000.0;
+//		System.out.println("Flattening took " + deltaTime + " seconds");
 
-		Output.writeLibrary(scratch, Output.ExportType.BINARY);			                            
+//		LayoutLib.writeLibrary(scratch);			                            
 		System.out.println("Done");
 	}
+	public LayFlat() {
+		super("Run Layout Flattener", User.tool, Job.Type.CHANGE, 
+			  null, null, Job.Priority.ANALYSIS);
+		startJob();
 
-	public static void main(String[] args) {
-		(new LayFlat()).doIt(args);
 	}
 }

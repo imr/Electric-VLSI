@@ -61,13 +61,13 @@ public abstract class NetObject {
     
     /**
      * Distinguish Parts, Wires, and Ports.
-     * @return
+     * @return PART or WIRE or PORT
      */
     public abstract Type getNetObjType();
 
     /** 
 	 * Get a String listing the connections for this NetObject.
-	 * @param the maximum number of connections to list
+	 * @param n the maximum number of connections to list
 	 * @return a String of connections.
 	 */
     public abstract String connectionString(int n);

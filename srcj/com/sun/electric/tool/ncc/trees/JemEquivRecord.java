@@ -172,7 +172,7 @@ public class JemEquivRecord extends JemRecord{
 	/** 
 	 * The apply method applies a JemStrat to this JemEquivRecord,
 	 * returning a list, possibly empty, of offspring.
-	 * @param the strategy to apply
+	 * @param js the strategy to apply
 	 * @return the JemEquivList of offspring
 	 */
 	public JemEquivList apply(JemStrat js) {
@@ -287,7 +287,6 @@ public class JemEquivRecord extends JemRecord{
 
 	/** 
 	 * printMe prints this JemEquivRecord on a given Messenger.
-	 * @param the Messenger to use for output
 	 */
 	public void printMe(){
 		Messenger.line(nameString() + " value= " + value +

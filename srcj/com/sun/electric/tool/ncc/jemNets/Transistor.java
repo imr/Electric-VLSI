@@ -97,7 +97,7 @@ public abstract class Transistor extends Part{
 		private Type(String s){name=s;}
     }
 	
-	protected final static Type Ntype= new Type("N-");
-    protected final static Type Ptype= new Type("P-");
+	protected static final Type Ntype= new Type("N-");
+    protected static final Type Ptype= new Type("P-");
 
 }

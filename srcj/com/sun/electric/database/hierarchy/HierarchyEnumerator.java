@@ -79,7 +79,8 @@ public final class HierarchyEnumerator {
 
 	private int nextNetID() { return netIdToNetDesc.size(); }
 
-	private int[] numberNets(Cell cell, Netlist netlist, int[][] portNmToNetIDs, CellInfo info) {
+	private int[] numberNets(Cell cell, Netlist netlist, 
+							 int[][] portNdxToNetIDs, CellInfo info) {
 		int numNets = netlist.getNumNetworks();
 		int[] netToNetID = new int[numNets];
 		Arrays.fill(netToNetID, -1);
@@ -97,16 +98,17 @@ public final class HierarchyEnumerator {
 					netIdToNetDesc.add(new NetDescription(net, info));
 					System.out.println(global + " added at " + netIndex);
 				} else if (netIndex > nextNetID()) {
-					System.out.println("ierarchyEnumerator: unexpected order of global signal " + global);
+					System.out.println("HierarchyEnumerator: unexpected order"+
+									   " of global signal " + global);
 				}
 				globalToNetID[globalIndex] = netID = netIndex;
 			}
 			netToNetID[netIndex] = netID;
 		}
-		for (int i = 0; i < portNmToNetIDs.length; i++) {
+		for (int i = 0; i < portNdxToNetIDs.length; i++) {
 			Export export = (Export) cell.getPort(i);
-			int[] ids = portNmToNetIDs[i];
-			for (int j = 0; j < ids.length; j++) {
+			int[] ids = portNdxToNetIDs[i];
+			for (int j=0; j<ids.length; j++) {
 				int netIndex = netlist.getNetIndex(export, j);
 				netToNetID[netIndex] = ids[j];
 			}
@@ -126,7 +128,7 @@ public final class HierarchyEnumerator {
 	private int[][] buildPortMap(Netlist netlist, Nodable ni, int[] netToNetID) {
 		Cell cell = (Cell)ni.getProto();
 		int numPorts = cell.getNumPorts();
-		int[][] portNmToNetIDs = new int[numPorts][];
+		int[][] portNdxToNetIDs = new int[numPorts][];
 		for (int i = 0; i < numPorts; i++) {
 			PortProto pp = cell.getPort(i);
 			int busWidth = pp.getProtoNameKey().busWidth();
@@ -137,24 +139,23 @@ public final class HierarchyEnumerator {
 				error(netID < 0, "no netID for net");
 				netIDs[j] = netID;
 			}
-			portNmToNetIDs[i] = netIDs;
+			portNdxToNetIDs[i] = netIDs;
 		}
-		return portNmToNetIDs;
+		return portNdxToNetIDs;
 	}
 
-	// portNmToNetIDs is a map from an Export name to an array of
-	// NetIDs.
+	/** portNdxToNetIDs translates an Export's index to an array of NetIDs */ 
 	private void enumerateCell(Nodable parentInst,	Cell cell,
-	                           VarContext context, Netlist netlist, int[][] portNmToNetIDs,
-		                       AffineTransform xformToRoot, AffineTransform xformToRootRK,
-		                       CellInfo parent) {
+	                           VarContext context, Netlist netlist, 
+	                           int[][] portNdxToNetIDs,
+		                       AffineTransform xformToRoot, CellInfo parent) {
 		CellInfo info = visitor.newCellInfo();
 		int firstNetID = nextNetID();
-		int[] netToNetID = numberNets(cell, netlist, portNmToNetIDs, info);
+		int[] netToNetID = numberNets(cell, netlist, portNdxToNetIDs, info);
 		int lastNetIDPlusOne = nextNetID();
 		cellCnt++;
-		info.init(parentInst, cell,	context, netlist, netToNetID, portNmToNetIDs,
-			      xformToRoot, xformToRootRK, netIdToNetDesc, parent);
+		info.init(parentInst, cell,	context, netlist, netToNetID, portNdxToNetIDs,
+			      xformToRoot, netIdToNetDesc, parent);
 
 		boolean enumInsts = visitor.enterCell(info);
 		if (!enumInsts) return;
@@ -168,18 +169,15 @@ public final class HierarchyEnumerator {
 			if (descend && np instanceof Cell && !np.isIcon()) {
 				int[][] portNmToNetIDs2 = buildPortMap(netlist, ni, netToNetID);
 				AffineTransform xformToRoot2 = xformToRoot;
-				AffineTransform xformToRootRK2 = xformToRootRK;
 				if (ni instanceof NodeInst) {
-					xformToRootRK2 = new AffineTransform(xformToRootRK);
-					xformToRootRK2.concatenate(((NodeInst)ni).rkTransformOut());
-
 					// add transformation from lower level
 					xformToRoot2 = new AffineTransform(xformToRoot);
 					xformToRoot2.concatenate(((NodeInst)ni).rotateOut());
 					xformToRoot2.concatenate(((NodeInst)ni).translateOut());
 				}
-				enumerateCell(ni, (Cell)np, context.push(ni), netlist.getNetlist(ni), portNmToNetIDs2,
-					xformToRoot2, xformToRootRK2, info);
+				enumerateCell(ni, (Cell)np, context.push(ni), 
+							  netlist.getNetlist(ni), 
+							  portNmToNetIDs2, xformToRoot2, info);
 			}
 		}
 
@@ -193,16 +191,16 @@ public final class HierarchyEnumerator {
 
 	//  Set up everything for the root cell and then initiate the
 	//  hierarchical traversal.
-	private void doIt(Cell root, VarContext context, Netlist netlist, Visitor visitor) {
+	private void doIt(Cell root, VarContext context, Netlist netlist, 
+	                  Visitor visitor) {
 		this.visitor = visitor;
 		if (context == null) context = VarContext.globalContext;
-		int numPorts = root.getNumPorts();
 		int[][] portNmToNetIDs = new int[0][];
 		rootGlobals = netlist.getGlobals();
 		globalToNetID = new int[rootGlobals.size()];
 		Arrays.fill(globalToNetID, -1);
 		enumerateCell(null,	root, context, netlist, portNmToNetIDs,
-		              new AffineTransform(), new AffineTransform(), null);
+		              new AffineTransform(), null);
 
 //		System.out.println("A total of: " + nextNetID() + " nets were numbered");
 //		System.out.println("A total of: " + cellCnt + " Cells were visited");
@@ -321,7 +319,6 @@ public final class HierarchyEnumerator {
 		private int[] netToNetID;
 		private int[][] exportNmToNetIDs;
 		private AffineTransform xformToRoot;
-		private AffineTransform xformToRootRK;
 		private Nodable parentInst;
 		private CellInfo parentInfo;
 		private List netIdToNetDesc;
@@ -330,7 +327,7 @@ public final class HierarchyEnumerator {
 		void init(Nodable parentInst, Cell cell, VarContext context,
 			      Netlist netlist,
 		          int[] netToNetID, int[][] exportNmToNetIDs, 
-				  AffineTransform xformToRoot, AffineTransform xformToRootRK, List netIdToNetDesc,	
+				  AffineTransform xformToRoot, List netIdToNetDesc,	
 				  CellInfo parentInfo) {
 			this.parentInst = parentInst;
 			this.cell = cell;
@@ -339,10 +336,141 @@ public final class HierarchyEnumerator {
 			this.netToNetID = netToNetID;
 			this.exportNmToNetIDs = exportNmToNetIDs;
 			this.xformToRoot = xformToRoot;
-			this.xformToRootRK = xformToRootRK;
 			this.parentInfo = parentInfo;
 			this.netIdToNetDesc = netIdToNetDesc;
 		}
+		/**
+		 * <p>Return an AffineTransform that encodes the size, rotation, and 
+		 * center of this NodeInst.
+		 *  
+		 * <p>The returned AffineTransform has the property that when
+		 * it is applied to a unit square centered at the origin the
+		 * result is the bounding box of the NodeInst.
+		 * This transform is useful because it can be used to 
+		 * map the position of a NodeInst through levels of the design 
+		 * hierarchy.
+		 *  
+		 * <p>Note that the user can set the position of a NodeInst 
+		 * using NodeInst.setPositionFromTransform(). For example, the 
+		 * following operations make no change to a NodeInst's position:
+		 * 
+		 * <code>
+		 * ni.setPositionFromTransform(ni.getPositionFromTransform());
+		 * </code>
+		 */
+//		public AffineTransform getPositionAsTransform(NodeInst ni) {
+//			AffineTransform at = new AffineTransform();
+//			at.setToTranslation(getGrabCenterX(), getGrabCenterY());
+//			boolean transpose = sX<0 ^ sY<0;
+//			if (transpose){
+//				at.scale(1, -1);
+//				at.rotate(Math.PI/2);
+//			}
+//			at.rotate(angle*Math.PI/1800);
+//			at.scale(sX, sY);
+//			return at;
+//		}
+
+		private double angleFromXY(double x, double y) {
+			double ans = Math.atan2(y, x) * 180/Math.PI;
+			//System.out.println("(x, y): ("+x+", "+y+")  angle: "+ans);
+			return ans;
+		}
+
+		private double angle0To360(double a) {
+			while (a >= 360) a -= 360;
+			while (a < 0)	 a += 360;
+			return a;
+		}
+
+		/**
+		 * Temporary for testing the HierarchyEnumerator.
+		 * 
+		 * <p>Set the size, angle, and center of this NodeInst based upon an
+		 * affine transformation. 
+		 * 
+		 * <p>The AffineTransform must map a unit square centered at the 
+		 * origin to the desired bounding box for the NodeInst. 
+		 *
+		 * <p>Note that this operation cannot succeed for all affine
+		 * transformations.  The reason is that Electric's transformations
+		 * always preserve right angles whereas, in general, affine
+		 * transformations do not.  If the given affine transformation does
+		 * not preserve right angles this method will print a warning
+		 * displaying the angle that results when a right angle is
+		 * transformed.
+		 * 
+		 * <p>Warning: this code is experimental
+		 * @param xForm the affine transformation. xForm must yield the 
+		 * bounding box of the NodeInst when applied to a unit square 
+		 * centered at the origin. 
+		 */
+//		public void setPositionFromTransform(AffineTransform xForm) {
+//			double sizeX, sizeY, newAngle, centX, centY;
+//			boolean debug = false;
+//
+//			if (debug) System.out.println(xForm);
+//
+//			Point2D a = new Point2D.Double(0, 1); // along Y axis
+//			Point2D b = new Point2D.Double(0, 0); // origin
+//			Point2D c = new Point2D.Double(1, 0); // along X axis
+//
+//			Point2D aP = new Point2D.Double();
+//			Point2D bP = new Point2D.Double();
+//			Point2D cP = new Point2D.Double();
+//
+//			xForm.transform(a, aP);
+//			xForm.transform(b, bP);
+//			xForm.transform(c, cP);
+//
+//			if (debug) {
+//				System.out.println("aP: " + aP);
+//				System.out.println("bP: " + bP);
+//				System.out.println("cP: " + cP);
+//			}
+//
+//			sizeX = bP.distance(cP);
+//			sizeY = bP.distance(aP);
+//			centX = bP.getX();
+//			centY = bP.getY();
+//		
+//			double angleA = angleFromXY(aP.getX() - bP.getX(), aP.getY() - bP.getY());
+//			double angleC = angleFromXY(cP.getX() - bP.getX(), cP.getY() - bP.getY());
+//			double angleAC = angle0To360(angleA - angleC);
+//
+//			if (debug) {
+//				System.out.println("angleC: " + angleC);
+//				System.out.println("angleA: " + angleA);
+//				System.out.println("angleAC: " + angleAC);
+//			}
+//			// round to 1/10 degrees
+//			angleAC = Math.rint(angleAC * 10) / 10;
+//			if (angleAC == 90) {
+//				newAngle = angle0To360(angleC);
+//			} else if (angleAC == 270) {
+//				// By using geometric constructions on paper I determined that I 
+//				// need to rotate by (270 degrees - angleC) and then transpose. 
+//				newAngle = angle0To360(270 - angleC);
+//				sizeX = -sizeX; // Negative size means transpose (not mirror)
+//			} else {
+//				System.out.println("error in NodeInst.setPositionFromTransform: "+
+//								   "angle not 90 or 270: " + angleAC);
+//				newAngle = angleC;
+//			}
+//
+//			if (debug) System.out.println(
+//							"setPositionFromTransform: new position {\n"
+//								+ "    sizeX: " + sizeX + "\n"
+//								+ "    sizeY: " + sizeY + "\n"
+//								+ "    angle: "  + newAngle + "\n"
+//								+ "    dx: " + centX + "\n"
+//								+ "    dy: " + centY + "\n"
+//								+ "}\n");
+//
+//			modifyInstance(centX-getGrabCenterX(), centY-getGrabCenterY(), sizeX-sX,
+//						   sizeY-sY, (int)Math.round(newAngle*10)-angle);
+//		}
+
 
 		/** The Cell currently being visited. */
 		public final Cell getCell() {return cell;}
@@ -431,8 +559,8 @@ public final class HierarchyEnumerator {
 		 * getPositionInRoot method is useful for flattening
 		 * layout. */
 		public final AffineTransform getPositionInRoot(NodeInst ni) {
-			AffineTransform x = new AffineTransform(xformToRootRK);
-			x.concatenate(ni.getPositionAsTransform());
+			AffineTransform x = new AffineTransform(xformToRoot);
+//			x.concatenate(ni.getPositionAsTransform());
 			return x;
 		}
 
@@ -448,7 +576,7 @@ public final class HierarchyEnumerator {
 		 * layout. */
 		public final Point2D getPositionInRoot(Point2D p) {
 			Point2D ans = new Point2D.Double();
-			xformToRootRK.transform(p, ans);
+			xformToRoot.transform(p, ans);
 			return ans;
 		}
 
@@ -472,7 +600,7 @@ public final class HierarchyEnumerator {
 			coords[6] = r.getX() + r.getWidth();
 			coords[7] = r.getY();
 
-			xformToRootRK.transform(coords, 0, coords, 0, 8);
+			xformToRoot.transform(coords, 0, coords, 0, 8);
 			double minX, minY, maxX, maxY;
 			minX = minY = Double.MAX_VALUE;
 			maxX = maxY = Double.MIN_VALUE;
@@ -496,11 +624,8 @@ public final class HierarchyEnumerator {
 	 * root. If context is null then VarContext.globalContext is used.
 	 * @param visitor the object responsible for doing something useful
 	 * during the enumertion of the design hierarchy. */
-	public static void enumerateCell(
-		Cell root,
-		VarContext context,
-		Netlist netlist,
-		Visitor visitor) {
+	public static void enumerateCell(Cell root, VarContext context, 
+	                                 Netlist netlist, Visitor visitor) {
 		if (netlist == null) netlist = Network.getUserNetlist(root);
 		(new HierarchyEnumerator()).doIt(root, context, netlist, visitor);
 	}
@@ -509,18 +634,15 @@ public final class HierarchyEnumerator {
      * Method to count number of unique cells in hierarchy.  Useful
      * for progress tracking of hierarchical netlisters and writers.
      */
-    public static int getNumUniqueChildCells(Cell cell)
-    {
+    public static int getNumUniqueChildCells(Cell cell) {
         HashMap uniqueChildCells = new HashMap();
         hierCellsRecurse(cell, uniqueChildCells);
         return uniqueChildCells.size();
     }
         
     /** Recursive method used to traverse down hierarchy */
-    private static void hierCellsRecurse(Cell cell, HashMap uniqueCells)
-    {
-        for (Iterator uit = cell.getUsagesIn(); uit.hasNext();)
-        {
+    private static void hierCellsRecurse(Cell cell, HashMap uniqueCells) {
+        for (Iterator uit = cell.getUsagesIn(); uit.hasNext();) {
             NodeUsage nu = (NodeUsage) uit.next();
             if (nu.isIcon()) continue;
             NodeProto np = nu.getProto();
