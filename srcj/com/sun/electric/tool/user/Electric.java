@@ -14,6 +14,8 @@ import com.sun.electric.technology.technologies.TecSchematics;
 import com.sun.electric.technology.technologies.TecArtwork;
 import com.sun.electric.technology.technologies.TecCMOS;
 import com.sun.electric.technology.technologies.TecMoCMOS;
+import com.sun.electric.technology.technologies.TecMoCMOSOld;
+import com.sun.electric.technology.technologies.TecMoCMOSSub;
 
 import java.awt.Point;
 import java.awt.geom.Point2D;
@@ -58,6 +60,8 @@ public final class Electric
 		Technology.setCurrent(TecSchematics.tech);
 		Technology.setCurrent(TecArtwork.tech);
 		Technology.setCurrent(TecCMOS.tech);
+		Technology.setCurrent(TecMoCMOSOld.tech);
+		Technology.setCurrent(TecMoCMOSSub.tech);
 		Technology.setCurrent(TecMoCMOS.tech);
 
 		// get information about the nodes

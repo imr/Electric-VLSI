@@ -46,6 +46,8 @@ public class Input
 	{
 	}
 
+	static String mainLibDirectory = null;
+
 	// ----------------------- public methods -------------------------------
 
 	public boolean ReadLib() { return true; }
@@ -61,8 +63,22 @@ public class Input
 			return null;
 		}
 		in.filePath = fileName;
+		boolean topLevel = false;
 		if (lib == null)
-			lib = Library.newInstance(fileName, fileName);
+		{
+			File f = new File(fileName);
+			String libName = f.getName();
+			if (libName.endsWith(".elib"))
+			{
+				libName = libName.substring(0, libName.length()-5);
+			} else if (libName.endsWith(".txt"))
+			{
+				libName = libName.substring(0, libName.length()-4);
+			}
+			lib = Library.newInstance(libName, fileName);
+			mainLibDirectory = f.getParent();
+			topLevel = true;
+		}
 		in.lib = lib;
 		try
 		{
@@ -70,14 +86,17 @@ public class Input
 		} catch (FileNotFoundException e)
 		{
 			System.out.println("Could not find file " + fileName);
+			if (topLevel) mainLibDirectory = null;
 			return null;
 		}
 		in.dataInputStream = new DataInputStream(in.fileInputStream);
 		if (in.ReadLib())
 		{
 			System.out.println("Error reading library");
+			if (topLevel) mainLibDirectory = null;
 			return null;
 		}
+		if (topLevel) mainLibDirectory = null;
 		return in.lib;
 	}
 }

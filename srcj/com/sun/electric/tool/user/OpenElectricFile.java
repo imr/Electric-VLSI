@@ -42,6 +42,7 @@ public class OpenElectricFile implements ActionListener
 			Library lib = Input.ReadLibrary(file.getPath(), null, Input.ImportType.BINARY);
 			if (lib != null)
 			{
+				Library.setCurrent(lib);
 				Cell cell = lib.getCurCell();
 				if (cell != null)
 				{

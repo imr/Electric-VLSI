@@ -1303,11 +1303,9 @@ public class BinaryIn extends Input
 		View v = getView(readBigInteger());
 		if (v == null) v = View.UNKNOWN;
 		int version = readBigInteger();
-		theProtoName += ";" + version + "{" + v.getShortName() + "}";
+		String fullCellName = theProtoName + ";" + version + "{" + v.getShortName() + "}";
 		int creationDate = readBigInteger();
 		int revisionDate = readBigInteger();
-//		cell.lowLevelSetCreationDate(fromElectricDate(creationDate));
-//		cell.lowLevelSetRevisionDate(fromElectricDate(revisionDate));
 
 		// read the nodeproto bounding box
 		int lowX = readBigInteger();
@@ -1334,16 +1332,21 @@ public class BinaryIn extends Input
 		Library elib = Library.findLibrary(libName);
 		if (elib == null)
 		{
-			// library does not exist: see if file is there
-			String externalFile = null;
-//			io = xopen(libfilename, filetype, io_mainlibdirectory, &filename);
-//			if (io == 0)
+			// library does not exist: see if file is in the same directory as the main file
+			String externalFile = mainLibDirectory + File.separator + libFileName;
+			File testFile = new File(externalFile);
+			if (!testFile.exists())
 			{
-				// try the path specified in the reference
-				if (libFile.exists()) externalFile = libFile.getPath(); else
+				// try the exact path specified in the reference
+				externalFile = libFile.getPath();
+				testFile = libFile;
+				if (!testFile.exists())
 				{
-//					// try the library area
-//					io = xopen(libfilename, filetype, el_libdir, &filename);
+					// try the Electric library area
+					String libraryDirectory = "/lib";		// should fix this!!!
+					externalFile = libraryDirectory + File.separator + libFileName;
+					testFile = new File(externalFile);
+					if (!testFile.exists()) externalFile = null;
 				}
 			}
 			if (externalFile != null)
@@ -1407,11 +1410,11 @@ public class BinaryIn extends Input
 			if (index > 0) dummyCellName += "." + index;
 			if (lib.findNodeProto(dummyCellName) == null) break;
 		}
-		Cell c = lib.findNodeProto(theProtoName);
+		Cell c = elib.findNodeProto(fullCellName);
 		if (c == null)
 		{
 			// cell not found in library: issue warning
-			System.out.println("Cannot find cell " + theProtoName + " in library " + elib.getLibName());
+			System.out.println("Cannot find cell " + fullCellName + " in library " + elib.getLibName());
 		}
 
 		// if cell found, check that size is unchanged
@@ -1422,7 +1425,7 @@ public class BinaryIn extends Input
 //			{
 //				ttyputerr(_("Error: cell %s in library %s has changed size since its use in library %s"),
 //					nldescribenodeproto(np), elib->libname, lib->libname);
-//				np = NONODEPROTO;
+//				c = null;
 //			}
 		}
 
@@ -1440,7 +1443,7 @@ public class BinaryIn extends Input
 //				{
 //					ttyputerr(_("Error: cell %s in library %s must have port %s"),
 //						describenodeproto(np), elib->libname, protoname);
-//					np = NONODEPROTO;
+//					c = null;
 //					break;
 //				}
 //				pp->temp1 = 1;
