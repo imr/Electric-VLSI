@@ -1248,7 +1248,7 @@ public class ReadableDump extends LibraryFiles
 		int slashPos = keyWord.indexOf('/');
 		if (slashPos >= 0)
 			td1 = TextUtils.atoi(keyWord.substring(slashPos+1));
-		TextDescriptor td = new TextDescriptor(null, td0, td1);
+		TextDescriptor td = new TextDescriptor(null, td0, td1, 0);
 		Input.fixTextDescriptorFont(td);
 		nodeInstList[curCellNumber].theNode[curNodeInstIndex].setProtoTextDescriptor(td);
 	}
@@ -1482,7 +1482,7 @@ public class ReadableDump extends LibraryFiles
 		int slashPos = keyWord.indexOf('/');
 		if (slashPos >= 0)
 			td1 = TextUtils.atoi(keyWord, slashPos+1);
-		TextDescriptor td = new TextDescriptor(null, td0, td1);
+		TextDescriptor td = new TextDescriptor(null, td0, td1, 0);
 		Input.fixTextDescriptorFont(td);
 		exportList[curCellNumber].exportList[curExportIndex].setTextDescriptor(td);
 	}
@@ -1622,7 +1622,7 @@ public class ReadableDump extends LibraryFiles
 				if (slashPos >= 0)
 					td1 = TextUtils.atoi(keyWord, slashPos+1);
 			}
-			TextDescriptor td = new TextDescriptor(null, td0, td1);
+			TextDescriptor td = new TextDescriptor(null, td0, td1, 0);
 
 			// get value
 			if (getKeyword())

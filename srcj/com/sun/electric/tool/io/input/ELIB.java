@@ -726,6 +726,7 @@ public class ELIB extends LibraryFiles
 
 			int index = tech.getIndex();
 			techScale[index] = lambda;
+//System.out.println("Library "+lib.getName()+" technology "+tech.getTechName()+" lambda is "+lambda);
 			if (topLevelLibrary)
 			{
 				String varName = tech.getScaleVariableName();
@@ -1926,7 +1927,7 @@ public class ELIB extends LibraryFiles
 					descript1 = readBigInteger();
 				}
 			}
-			TextDescriptor descript = new TextDescriptor(null, descript0, descript1);
+			TextDescriptor descript = new TextDescriptor(null, descript0, descript1, 0);
 			Input.fixTextDescriptorFont(descript);
 			pp.setTextDescriptor(descript);
 
@@ -2227,7 +2228,7 @@ public class ELIB extends LibraryFiles
 				descript1 = readBigInteger();
 			}
 		}
-		TextDescriptor descript = new TextDescriptor(null, descript0, descript1);
+		TextDescriptor descript = new TextDescriptor(null, descript0, descript1, 0);
 		Input.fixTextDescriptorFont(descript);
 		ni.setProtoTextDescriptor(descript);
 
@@ -2545,7 +2546,7 @@ public class ELIB extends LibraryFiles
 					(obj instanceof ArcInst && realKey[key] == ArcInst.ARC_NAME))
 				{
 					Geometric geom = (Geometric)obj;
-					TextDescriptor nameDescript = new TextDescriptor(null, descript0, descript1);
+					TextDescriptor nameDescript = new TextDescriptor(null, descript0, descript1, 0);
 					Input.fixTextDescriptorFont(nameDescript);
 					geom.setNameTextDescriptor(nameDescript);
 					Name name = makeGeomName(geom, newAddr, newtype);
@@ -2579,7 +2580,7 @@ public class ELIB extends LibraryFiles
 				System.out.println("Error reading variable");
 				return -1;
 			}
-			var.setTextDescriptor(new TextDescriptor(null, descript0, descript1));
+			var.setTextDescriptor(new TextDescriptor(null, descript0, descript1, 0));
 			var.lowLevelSetFlags(newtype);
 
 			// handle updating of technology caches
