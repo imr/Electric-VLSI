@@ -36,6 +36,7 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ui.MessagesWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.technology.PrimitiveNode;
 
 import java.awt.geom.AffineTransform;
 import java.awt.*;
@@ -126,7 +127,7 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
         boolean verbose = true;
         // create a new sizer
         sizer = new LESizer(algorithm, this, job);
-        boolean success = sizer.optimizeLoops((float)0.01, maxIterations, verbose, alpha, keeperRatio);
+        boolean success = sizer.optimizeLoops(epsilon, maxIterations, verbose, alpha, keeperRatio);
         //out.println("---------After optimization:------------");
         //lesizer.printDesign();
         // get rid of the sizer
@@ -263,6 +264,7 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
     public boolean visitNodeInst(Nodable ni, HierarchyEnumerator.CellInfo info) {
         float leX = (float)0.0;
         boolean wire = false;
+        boolean primitiveTransistor = false;
 
         // Check if this NodeInst is tagged as a logical effort node
         Instance.Type type = null;
@@ -290,14 +292,36 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
             // This creates an instance which has Type LEWIRE, but has
             // boolean leGate set to false; it will not be sized
             var = ni.getVar("ATTR_L");
-            float len = VarContext.objectToFloat(info.getContext().evalVar(var), (float)0.0);
+            float len = VarContext.objectToFloat(info.getContext().evalVar(var), 0.0f);
             var = ni.getVar("ATTR_width");
-            float width = VarContext.objectToFloat(info.getContext().evalVar(var), (float)3.0f);
+            float width = VarContext.objectToFloat(info.getContext().evalVar(var), 3.0f);
             leX = (float)(0.95f*len + 0.05f*len*(width/3.0f))*wireRatio;  // equivalent lambda of gate
             leX = leX/9.0f;                         // drive strength X=1 is 9 lambda of gate
             wire = true;
         }
-        else if (ni.getVar("ATTR_LESETTINGS") != null) return false;
+        else if ((ni.getProto() != null) && (ni.getProto().getFunction().isTransistor())) {
+            // handle transistor loads
+            type = Instance.Type.STATICGATE;
+            var = ni.getVar("ATTR_width");
+            if (var == null) {
+                System.out.println("Error: transistor "+ni+" has no width in Cell "+info.getCell());
+                return false;
+            }
+            float width = VarContext.objectToFloat(info.getContext().evalVar(var), (float)3.0);
+            var = ni.getVar("ATTR_length");
+            if (var == null) {
+                System.out.println("Error: transistor "+ni+" has no length in Cell "+info.getCell());
+                return false;
+            }
+            float length = VarContext.objectToFloat(info.getContext().evalVar(var), (float)2.0);
+            // not exactly correct because assumes all cap is area cap, which it isn't
+            leX = (float)(width*length/2.0f);
+            leX = leX/9.0f;
+            primitiveTransistor = true;
+        }
+        else if (ni.getVar("ATTR_LESETTINGS") != null)
+            return false;
+
 
         if (type == null) return true;              // descend into and process
 
@@ -316,6 +340,11 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
             Pin.Dir dir = Pin.Dir.INPUT;
             // if it's not an output, it doesn't really matter what it is.
             if (pp.getCharacteristic() == PortProto.Characteristic.OUT) dir = Pin.Dir.OUTPUT;
+            if (primitiveTransistor) {
+                // primitive Electric Transistors have their source and drain set to BIDIR, we
+                // want them set to OUTPUT so that they count as diffusion capacitance
+                if (pp.getCharacteristic() == PortProto.Characteristic.BIDIR) dir = Pin.Dir.OUTPUT;
+            }
             pins.add(new Pin(pp.getProtoName(), dir, le, netName));
             if (DEBUG) System.out.println("    Added "+dir+" pin "+pp.getProtoName()+", le: "+le+", netName: "+netName+", JNetwork: "+netlist.getNetwork(ni,pp,0));
             if (type == Instance.Type.WIRE) break;    // this is LEWIRE, only add one pin of it
