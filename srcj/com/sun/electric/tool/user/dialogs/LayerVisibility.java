@@ -109,6 +109,7 @@ public class LayerVisibility extends EDialog
 			{
 				Layer layer = (Layer)lIt.next();
 				Boolean layerVis = (Boolean)visibility.get(layer);
+                if (layerVis == null) continue;
 				layer.setVisible(layerVis.booleanValue());
 			}
 		}
