@@ -87,7 +87,12 @@ public final class Main
 		// -debug for debugging
 		if (hasCommandLineOption(argsList, "-debug")) DEBUG = true;
 
-		TopLevel.OSInitialize(null);
+        boolean mdiMode = hasCommandLineOption(argsList, "-mdi");
+        boolean sdiMode = hasCommandLineOption(argsList, "-sdi");
+        TopLevel.Mode mode = null;
+        if (mdiMode) mode = TopLevel.Mode.MDI;
+        if (sdiMode) mode = TopLevel.Mode.SDI;
+		TopLevel.OSInitialize(mode);
 
 		// initialize database
 		new InitDatabase(argsList, sw);
