@@ -2445,7 +2445,9 @@ public class Quick
 		// compute bounds for searching inside cells
 		double flx = Math.min(pt1.getX(), pt2.getX());   double fhx = Math.max(pt1.getX(), pt2.getX());
 		double fly = Math.min(pt1.getY(), pt2.getY());   double fhy = Math.max(pt1.getY(), pt2.getY());
-		Rectangle2D bounds = new Rectangle2D.Double(flx, fly, DBMath.round(fhx-flx), DBMath.round(fhy-fly));
+		Rectangle2D bounds = new Rectangle2D.Double(DBMath.round(flx-TINYDELTA), DBMath.round(fly-TINYDELTA),
+                DBMath.round(fhx-flx+2*TINYDELTA), DBMath.round(fhy-fly+2*TINYDELTA));
+            // Adding delta otherwise it won't consider points along edges.
         // Mind bounding boxes could have zero width or height
 
 		// search the cell for geometry that fills the notch

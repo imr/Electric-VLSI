@@ -36,7 +36,6 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.ui.*;
 import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
