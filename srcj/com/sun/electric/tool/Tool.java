@@ -38,6 +38,7 @@ import com.sun.electric.tool.parasitic.ParasiticTool;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.prefs.Preferences;
@@ -56,7 +57,8 @@ public class Tool implements Comparable
 	private int toolIndex;
 
 	// the static list of all tools
-	private static TreeMap tools = new TreeMap();
+	private static LinkedHashMap tools = new LinkedHashMap();
+//	private static TreeMap tools = new TreeMap();
 	private static List listeners = new ArrayList();
 	private static int toolNumber = 0;
 
