@@ -4,9 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02a: *********************************
 
-IMP/MAN: (11/3/04, GVG) Default technology in preferences. It will be used for setting palette
+IMP: (11/3/04, GVG) Another algorithm for DRC TSMC90 PP/NP.R.1 rule
 
-IMP: (11/2/04, GVG) Rule CO.C.1 implemented in TSMC90
+IMP/MAN: (11/3/04, GVG) Default technology in preferences. It will be used for setting palette
 
 BUG: (11/2/04, RK) Repair bugs from partial conversion of gate layout generators to tsmc90
 

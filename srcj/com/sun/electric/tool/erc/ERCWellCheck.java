@@ -120,8 +120,6 @@ public class ERCWellCheck
 				System.out.println("Free v/s Total Memory " +
 						Runtime.getRuntime().freeMemory() + " / " + Runtime.getRuntime().totalMemory());
 			}
-			// make a list of well and substrate contacts
-			//wellConIndex = 0;
 
 			// enumerate the hierarchy below here
 			Visitor wcVisitor = new Visitor(newAlgorithm, this);
@@ -645,6 +643,8 @@ public class ERCWellCheck
 						parentNet = cinfo.getNetworkInParent(parentNet);
 //						parentNet = HierarchyEnumerator.getNetworkInParent(parentNet, cinfo.getParentInst());
 						cinfo = cinfo.getParentInfo();
+						if (parentNet == null && Main.LOCALDEBUGFLAG)
+							System.out.println("parentNet null in ERC. Stop loop?");
 					}
 					if (parentNet != null)
 					{

@@ -137,12 +137,6 @@ public class PolyBase implements Shape
 		this.points = points;
 		this.layer = null;
 		this.bounds = null;
-		/*
-		this.string = null;
-		this.name = null;
-		this.descript = null;
-		this.var = null;
-		*/
 		this.pp = null;
 	}
 
@@ -454,6 +448,21 @@ public class PolyBase implements Shape
 			//if (!bounds.contains(points[i])) return false;
 		}
 		return true;
+	}
+
+	/** Method to check if point is part of the point set that defines
+	 * the polygon
+	 * @param point
+	 * @return true if found in points set
+	 */
+	public boolean isPointOnCorner(Point2D point)
+	{
+		for (int i = 0; i < points.length; i++)
+		{
+			if (point.equals(points[i]))
+				return (true);
+		}
+		return (false);
 	}
 
 	/**

@@ -474,9 +474,7 @@ public class Quick
 			// recursively check the subcell
 			CheckInst ci = (CheckInst)checkInsts.get(ni);
 			int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
-//			if (!dr_quickparalleldrc) downhierarchy(ni, np, 0);
 			int retval = checkThisCell((Cell)np, localIndex, subBounds);
-//			if (!dr_quickparalleldrc) uphierarchy();
 			if (retval < 0) return -1;
 			if (retval > 0) allSubCellsStillOK = false;
 		}
@@ -2612,12 +2610,11 @@ public class Quick
         boolean[] founds = new boolean[4];
 
 		Rectangle2D polyBnd = poly.getBounds2D();
+		Point2D[] origPts = poly.getPoints();
         Area polyArea = new Area(poly);
         Area polyAreaBase = new Area(poly);
-		Rectangle2D searchBounds = new Rectangle2D.Double(polyBnd.getMinX()-value, polyBnd.getMinY()-value,
-			polyBnd.getWidth() + value*2, polyBnd.getHeight() + value*2);
 
-		for(Iterator sIt = cell.searchIterator(searchBounds); sIt.hasNext(); )
+		for(Iterator sIt = cell.searchIterator(polyBnd); sIt.hasNext(); )
 		{
 			Geometric g = (Geometric)sIt.next();
 			if (!(g instanceof NodeInst)) continue;
@@ -2644,16 +2641,30 @@ public class Quick
                     // Checking if are covered by select is surrounded by minOverlapRule
                     Area distPolyArea = (Area)polyAreaBase.clone();
                     distPolyArea.subtract(polyArea);
-                    Rectangle2D rect = nPoly.getBounds2D();
                     Rectangle2D interRect = distPolyArea.getBounds2D();
                     Rectangle2D ruleBnd = new Rectangle2D.Double(interRect.getMinX()-value, interRect.getMinY()-value,
                             interRect.getWidth() + value*2, interRect.getHeight() + value*2);
                     PolyBase extPoly = new PolyBase(ruleBnd);
+					PolyBase distPoly = new PolyBase(distPolyArea.getBounds2D());
                     Arrays.fill(founds, false);
+					// Removing points on original polygon. No very efficient though
+					Point2D[] points = extPoly.getPoints();
+					Point2D[] distPoints = distPoly.getPoints();
+					// Only valid for 4-point polygons!!
+					if (distPoints.length != points.length)
+						System.out.println("This case is not valid in Quick.checkSelectOverPolysilicon");
+					for (int i = 0; i < points.length; i++)
+					{
+						// Check if point is corner
+						boolean found = poly.isPointOnCorner(distPoints[i]);
+						// Point along edge
+						if (!found)
+							founds[i] = true;
+					}
                     boolean foundAll = allPointsContainedInLayer(cell, ruleBnd, extPoly.getPoints(), founds);
                     if (!foundAll)
                     {
-                         reportError(POLYSELECTERROR, "No enough surrond", cell, minOverlapRule.value, -1, minOverlapRule.rule,
+                         reportError(POLYSELECTERROR, "No enough surround", cell, minOverlapRule.value, -1, minOverlapRule.rule,
                             new Poly(distPolyArea.getBounds2D()), geom, layer, null, null, null);
                     }
 				}
@@ -3448,6 +3459,7 @@ public class Quick
 		{
 			if (metalMerge == null)
 				metalMerge = new PolyQTree(info.getCell().getBounds());
+            AffineTransform rTrans = info.getTransformToRoot();
 
 			// Check Arcs too
 			for(Iterator it = info.getCell().getArcs(); it.hasNext(); )
@@ -3461,13 +3473,15 @@ public class Quick
 				{
 					Export exp = (Export)arcIt.next();
 					Network net = info.getNetlist().getNetwork(exp, 0);
+					if (net == null)
+						 if (Main.LOCALDEBUGFLAG) System.out.println("Here error");
 					HierarchyEnumerator.CellInfo cinfo = info;
-					while (!found && cinfo.getParentInst() != null) {
+					while (!found && net != null && cinfo.getParentInst() != null) {
 						net = cinfo.getNetworkInParent(net);
 //						net = HierarchyEnumerator.getNetworkInParent(net, cinfo.getParentInst());
 						if (jNet == net)
 						{
-							if (Main.getDebug()) System.out.println("Found network in Arc " + ai + " network " + net);
+							if (Main.LOCALDEBUGFLAG) System.out.println("Found network in Arc " + ai + " network " + net);
 							found = true;
 							break;
 						}
@@ -3497,6 +3511,8 @@ public class Quick
 							polyLayer = layer;
 						layer = polyLayer;
 					}
+					if (rTrans.getType() != AffineTransform.TYPE_IDENTITY)
+						poly.transform(rTrans);
 					if (layer.getFunction().isMetal() || layer.getFunction().isPoly())
 						metalMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
 					else
@@ -3511,6 +3527,9 @@ public class Quick
 			NodeInst ni = no.getNodeInst();
 			AffineTransform trans = ni.rotateOut();
 			NodeProto np = ni.getProto();
+			AffineTransform root = info.getTransformToRoot();
+			if (root.getType() != AffineTransform.TYPE_IDENTITY)
+				trans.preConcatenate(root);
 
 			// Cells
 			if (!(np instanceof PrimitiveNode)) return (true);
