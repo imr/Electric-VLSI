@@ -41,15 +41,15 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
 
+import java.util.*;
 import java.util.List;
-import java.util.Iterator;
-import java.util.ArrayList;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.*;
@@ -128,6 +128,8 @@ public abstract class Router {
 
         int arcsCreated = 0;
         int nodesCreated = 0;
+        HashMap arcsCreatedMap = new HashMap();
+        HashMap nodesCreatedMap = new HashMap();
         // pass 1: build all newNodes
         for (Iterator it = route.iterator(); it.hasNext(); ) {
             RouteElement e = (RouteElement)it.next();
@@ -135,6 +137,13 @@ public abstract class Router {
                 if (e.isDone()) continue;
                 e.doAction();
                 nodesCreated++;
+                RouteElementPort rep = (RouteElementPort)e;
+                Integer i = (Integer)nodesCreatedMap.get(rep.getPortProto().getParent());
+                if (i == null) {
+                    i = new Integer(0);
+                }
+                i = new Integer(i.intValue() + 1);
+                nodesCreatedMap.put(rep.getPortProto().getParent(), i);
             }
         }
         // pass 2: do all other actions (deletes, newArcs)
@@ -143,10 +152,47 @@ public abstract class Router {
             e.doAction();
             if (e.getAction() == RouteElement.RouteElementAction.newArc) {
                 arcsCreated++;
+                RouteElementArc rea = (RouteElementArc)e;
+                Integer i = (Integer)arcsCreatedMap.get(rea.getArcProto());
+                if (i == null) {
+                    i = new Integer(0);
+                }
+                i = new Integer(i.intValue() + 1);
+                arcsCreatedMap.put(rea.getArcProto(), i);
             }
         }
 
         if (verbose) {
+            List arcEntries = new ArrayList(arcsCreatedMap.keySet());
+            List nodeEntries = new ArrayList(nodesCreatedMap.keySet());
+            if (arcEntries.size() == 0 && nodeEntries.size() == 0) {
+                System.out.println("Nothing wired");
+            } else if (arcEntries.size() == 1 && nodeEntries.size() == 0) {
+                ArcProto ap = (ArcProto)arcEntries.iterator().next();
+                Integer i = (Integer)arcsCreatedMap.get(ap);
+                System.out.println("Wiring added: "+i+" "+ap.describe()+" arcs");
+            } else if (arcEntries.size() == 1 && nodeEntries.size() == 1) {
+                ArcProto ap = (ArcProto)arcEntries.iterator().next();
+                NodeProto np = (NodeProto)nodeEntries.iterator().next();
+                Integer i = (Integer)arcsCreatedMap.get(ap);
+                Integer i2 = (Integer)nodesCreatedMap.get(np);
+                System.out.println("Wiring added: "+i+" "+ap.describe()+" arcs, "+i2+" "+np.describe()+" nodes");
+            } else {
+                System.out.println("Wiring added:");
+                Collections.sort(arcEntries, new TextUtils.ObjectsByToString());
+                Collections.sort(nodeEntries, new TextUtils.ObjectsByToString());
+                for (Iterator it = arcEntries.iterator(); it.hasNext();) {
+                    ArcProto ap = (ArcProto)it.next();
+                    Integer i = (Integer)arcsCreatedMap.get(ap);
+                    System.out.println("    "+i+" "+ap.describe()+" arcs");
+                }
+                for (Iterator it = nodeEntries.iterator(); it.hasNext();) {
+                    NodeProto np = (NodeProto)it.next();
+                    Integer i = (Integer)nodesCreatedMap.get(np);
+                    System.out.println("    "+i+" "+np.describe()+" nodes");
+                }
+            }
+/*
             if (arcsCreated == 1)
                 System.out.print("1 arc, ");
             else
@@ -155,6 +201,7 @@ public abstract class Router {
                 System.out.println("1 node created");
             else
                 System.out.println(nodesCreated+" nodes created");
+*/
 			User.playSound(arcsCreated);
         }
 
