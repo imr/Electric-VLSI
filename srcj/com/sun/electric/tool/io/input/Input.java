@@ -337,6 +337,11 @@ public class Input extends IOTool
 		}
 	}
 
+	/**
+	 * Method to read the next line of text from a file.
+	 * @return the line (null on EOF).
+	 * @throws IOException
+	 */
 	protected String getLine()
 		throws IOException
 	{
@@ -346,6 +351,25 @@ public class Input extends IOTool
 			int c = lineReader.read();
 			if (c == -1) return null;
 			if (c == '\n') break;
+			sb.append((char)c);
+		}
+		return sb.toString();
+	}
+
+	/**
+	 * Method to read a line of text, when the file has been opened in binary mode.
+	 * @return the line (null on EOF).
+	 * @throws IOException
+	 */
+	protected String getLineFromBinary()
+		throws IOException
+	{
+		StringBuffer sb = new StringBuffer();
+		for(;;)
+		{
+			int c = dataInputStream.read();
+			if (c == -1) return null;
+			if (c == '\n' || c == '\r') break;
 			sb.append((char)c);
 		}
 		return sb.toString();

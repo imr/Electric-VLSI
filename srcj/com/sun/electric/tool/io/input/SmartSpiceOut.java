@@ -37,7 +37,7 @@ import java.util.Iterator;
 
 /**
  * Class for reading and displaying waveforms from SmartSpice Raw output.
- * Thease are contained in .??? files.
+ * Thease are contained in .dump files.
  */
 public class SmartSpiceOut extends Simulate
 {
@@ -54,7 +54,7 @@ public class SmartSpiceOut extends Simulate
 		// open the file
 		InputStream stream = TextUtils.getURLStream(fileURL);
 		if (stream == null) return null;
-		if (openTextInput(fileURL, stream)) return null;
+		if (openBinaryInput(fileURL, stream)) return null;
 
 		// show progress reading .tr0 file
 		startProgressDialog("SmartSpice output", fileURL.getFile());
@@ -81,7 +81,7 @@ public class SmartSpiceOut extends Simulate
 		int rowcount = -1;
 		for(;;)
 		{
-			String line = getLine();
+			String line = getLineFromBinary();
 			if (line == null) break;
 			if (first)
 			{
@@ -131,7 +131,7 @@ public class SmartSpiceOut extends Simulate
 				{
 					if (i != 0)
 					{
-						restOfLine = getLine();
+						restOfLine = getLineFromBinary();
 						if (restOfLine == null) break;
 						restOfLine = restOfLine.trim();
 					}

@@ -349,6 +349,32 @@ public class VerilogOut extends Simulate
 				}
 			}
 		}
+
+		// remove singular top-level signal name
+		String singularPrefix = null;
+		for(Iterator it = sd.getSignals().iterator(); it.hasNext(); )
+		{
+			Simulate.SimSignal sSig = (Simulate.SimSignal)it.next();
+			String context = sSig.getSignalContext();
+			if (context == null) { singularPrefix = null;   break; }
+			int dotPos = context.indexOf('.');
+			if (dotPos >= 0) context = context.substring(0, dotPos);
+			if (singularPrefix == null) singularPrefix = context; else
+			{
+				if (!singularPrefix.equals(context)) { singularPrefix = null;   break; }
+			} 
+		}
+		if (singularPrefix != null)
+		{
+			int len = singularPrefix.length();
+			for(Iterator it = sd.getSignals().iterator(); it.hasNext(); )
+			{
+				Simulate.SimSignal sSig = (Simulate.SimSignal)it.next();
+				String context = sSig.getSignalContext();
+				if (context.length() <= len) sSig.setSignalContext(""); else
+					sSig.setSignalContext(context.substring(len+1));
+			}
+		}
 		return sd;
 	}
 

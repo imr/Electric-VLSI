@@ -262,38 +262,41 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			{
 				public void actionPerformed(ActionEvent evt) { closePanel(); }
 			});
-
-			// the "delete signal" button for this panel
-			deleteSignal = new JButton(iconDeleteSignal);
-			deleteSignal.setBorderPainted(false);
-			deleteSignal.setDefaultCapable(false);
-			gbc.gridx = 1;       gbc.gridy = 1;
-			gbc.gridwidth = 1;   gbc.gridheight = 1;
-			gbc.weightx = 0.25;  gbc.weighty = 0;
-			gbc.anchor = GridBagConstraints.NORTH;
-			gbc.fill = GridBagConstraints.NONE;
-			gbc.insets = new Insets(0, 0, 0, 0);
-			leftHalf.add(deleteSignal, gbc);
-			deleteSignal.addActionListener(new ActionListener()
+	
+			if (isAnalog)
 			{
-				public void actionPerformed(ActionEvent evt) { deleteSignalFromPanel(); }
-			});
+				// the "delete signal" button for this panel
+				deleteSignal = new JButton(iconDeleteSignal);
+				deleteSignal.setBorderPainted(false);
+				deleteSignal.setDefaultCapable(false);
+				gbc.gridx = 1;       gbc.gridy = 1;
+				gbc.gridwidth = 1;   gbc.gridheight = 1;
+				gbc.weightx = 0.25;  gbc.weighty = 0;
+				gbc.anchor = GridBagConstraints.NORTH;
+				gbc.fill = GridBagConstraints.NONE;
+				gbc.insets = new Insets(0, 0, 0, 0);
+				leftHalf.add(deleteSignal, gbc);
+				deleteSignal.addActionListener(new ActionListener()
+				{
+					public void actionPerformed(ActionEvent evt) { deleteSignalFromPanel(); }
+				});
 
-			// the "delete all signal" button for this panel
-			deleteAllSignals = new JButton(iconDeleteAllSignals);
-			deleteAllSignals.setBorderPainted(false);
-			deleteAllSignals.setDefaultCapable(false);
-			gbc.gridx = 2;       gbc.gridy = 1;
-			gbc.gridwidth = 1;   gbc.gridheight = 1;
-			gbc.weightx = 0.25;  gbc.weighty = 0;
-			gbc.anchor = GridBagConstraints.NORTH;
-			gbc.fill = GridBagConstraints.NONE;
-			gbc.insets = new Insets(0, 0, 0, 0);
-			leftHalf.add(deleteAllSignals, gbc);
-			deleteAllSignals.addActionListener(new ActionListener()
-			{
-				public void actionPerformed(ActionEvent evt) { deleteAllSignalsFromPanel(); }
-			});
+				// the "delete all signal" button for this panel
+				deleteAllSignals = new JButton(iconDeleteAllSignals);
+				deleteAllSignals.setBorderPainted(false);
+				deleteAllSignals.setDefaultCapable(false);
+				gbc.gridx = 2;       gbc.gridy = 1;
+				gbc.gridwidth = 1;   gbc.gridheight = 1;
+				gbc.weightx = 0.25;  gbc.weighty = 0;
+				gbc.anchor = GridBagConstraints.NORTH;
+				gbc.fill = GridBagConstraints.NONE;
+				gbc.insets = new Insets(0, 0, 0, 0);
+				leftHalf.add(deleteAllSignals, gbc);
+				deleteAllSignals.addActionListener(new ActionListener()
+				{
+					public void actionPerformed(ActionEvent evt) { deleteAllSignalsFromPanel(); }
+				});
+			}
 
 			// the list of signals in this panel
 			signalButtons = new JPanel();
@@ -937,7 +940,8 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			int chr = evt.getKeyCode();
 			if (chr == KeyEvent.VK_DELETE || chr == KeyEvent.VK_BACK_SPACE)
 			{
-				waveWindow.deleteSignalFromPanel(this);
+				if (this.isAnalog) waveWindow.deleteSignalFromPanel(this); else
+					closePanel();
 			}
 		}
 		public void keyReleased(KeyEvent evt) {}
@@ -1473,21 +1477,24 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		gbc.insets = new Insets(0, 0, 0, 0);
 		overall.add(scrollAll, gbc);
 
-		// the top part of the waveform window: status information
-		JButton addPanel = new JButton(iconAddPanel);
-		addPanel.setBorderPainted(false);
-		addPanel.setDefaultCapable(false);
-		gbc.gridx = 0;       gbc.gridy = 0;
-		gbc.gridwidth = 1;   gbc.gridheight = 1;
-		gbc.weightx = 0;     gbc.weighty = 0;
-		gbc.anchor = GridBagConstraints.CENTER;
-		gbc.fill = java.awt.GridBagConstraints.NONE;
-		gbc.insets = new Insets(0, 0, 0, 0);
-		overall.add(addPanel, gbc);
-		addPanel.addActionListener(new ActionListener()
+		if (isDataAnalog())
 		{
-			public void actionPerformed(ActionEvent evt) { addNewPanel(); }
-		});
+			// the top part of the waveform window: status information
+			JButton addPanel = new JButton(iconAddPanel);
+			addPanel.setBorderPainted(false);
+			addPanel.setDefaultCapable(false);
+			gbc.gridx = 0;       gbc.gridy = 0;
+			gbc.gridwidth = 1;   gbc.gridheight = 1;
+			gbc.weightx = 0;     gbc.weighty = 0;
+			gbc.anchor = GridBagConstraints.CENTER;
+			gbc.fill = java.awt.GridBagConstraints.NONE;
+			gbc.insets = new Insets(0, 0, 0, 0);
+			overall.add(addPanel, gbc);
+			addPanel.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { addNewPanel(); }
+			});
+		}
 
 		timeLock = new JButton(iconLockTime);
 		timeLock.setBorderPainted(false);
@@ -1773,7 +1780,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			{
 				Signal ws = (Signal)sIt.next();
 				JNetwork net = findNetwork(netlist, ws.sSig.getSignalName());
-				nets.add(net);
+				if (net != null) nets.add(net);
 			}
 		}
 		return nets;
@@ -2108,14 +2115,22 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	}
 
 
+	private boolean isDataAnalog()
+	{
+		if (sd.getSignals().size() > 0)
+		{
+			Simulate.SimSignal sSig = (Simulate.SimSignal)sd.getSignals().get(0);
+			if (sSig instanceof Simulate.SimAnalogSignal) return true;
+		}
+		return false;
+	}
+
 	/**
 	 * Method called when a new Panel is to be created.
 	 */
 	private void addNewPanel()
 	{
-		Simulate.SimSignal sSig = (Simulate.SimSignal)sd.getSignals().get(0);
-		boolean isAnalog = false;
-		if (sSig instanceof Simulate.SimAnalogSignal) isAnalog = true;
+		boolean isAnalog = isDataAnalog();
 		if (isAnalog)
 		{
 			WaveformWindow.Panel wp = new WaveformWindow.Panel(this, isAnalog);
