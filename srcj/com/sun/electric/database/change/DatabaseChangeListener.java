@@ -29,6 +29,12 @@ import java.util.List;
  * The Undo class handles logging and broadcasting of changes to the database.
  * Any class that implements the DatabaseChangeListener interface, and is added
  * to the Undo class's listeners will receive change events.
+ * <P>
+ * <B>IMPORTANT:</B> If the listener is a Swing object, or will modify Swing objects
+ * as a result of a database change, you will want to return <i>true</i> for your
+ * implementation of method 'isGUIListener'.  This is because Swing is not thread safe,
+ * so care must be taken when the database thread generats event that will cause modification
+ * of Swing objects.  Otherwise, deadlock is possible.
  */
 public interface DatabaseChangeListener {
 
@@ -47,4 +53,17 @@ public interface DatabaseChangeListener {
      * @param evt the change event.
      */
     public void databaseChanged(Undo.Change evt);
+
+
+    /**
+     * It is very important that you take care to implement this method properly.
+     * If the listener is a Swing component, or will modify Swing components as a result
+     * of a database change, this method should return true.  Otherwise, it should return
+     * false.  This is because Swing is not thread safe, so the database thread must
+     * take care when generating change events that will modify Swing components. All
+     * Swing component modification must take place in the java AWT Event thread.
+     * @return true if the listener is a Swing component, or will modify Swing
+     * components as a result of a database change event.  False otherwise.
+     */
+    public boolean isGUIListener();
 }

@@ -40,6 +40,7 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.User;
 
+import javax.swing.*;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -1076,14 +1077,20 @@ public class Undo
     private static synchronized void fireChangeEvent(Change change) {
         for (Iterator it = changeListeners.iterator(); it.hasNext(); ) {
             DatabaseChangeListener l = (DatabaseChangeListener)it.next();
-            l.databaseChanged(change);
+            if (l.isGUIListener())
+                SwingUtilities.invokeLater(new DatabaseChangeThread(l, change));
+            else
+                l.databaseChanged(change);
         }
     }
 
     private static synchronized void fireEndChangeBatch(ChangeBatch batch) {
         for (Iterator it = changeListeners.iterator(); it.hasNext(); ) {
             DatabaseChangeListener l = (DatabaseChangeListener)it.next();
-            l.databaseEndChangeBatch(batch);
+            if (l.isGUIListener())
+                SwingUtilities.invokeLater(new DatabaseBatchThread(l, batch));
+            else
+                l.databaseEndChangeBatch(batch);
         }
     }
 
@@ -1102,7 +1109,7 @@ public class Undo
             PropertyChangeListener l = (PropertyChangeListener)it.next();
             PropertyChangeEvent e = new PropertyChangeEvent(Undo.class, prop,
                     new Boolean(oldValue), new Boolean(newValue));
-            l.propertyChange(e);
+            SwingUtilities.invokeLater(new PropertyChangeThread(l, e));
         }
     }
 
@@ -1123,6 +1130,27 @@ public class Undo
     public static synchronized boolean getUndoEnabled() { return undoEnabled; }
 
     public static synchronized boolean getRedoEnabled() { return redoEnabled; }
+
+    private static class PropertyChangeThread implements Runnable {
+        private PropertyChangeListener l;
+        private PropertyChangeEvent e;
+        private PropertyChangeThread(PropertyChangeListener l, PropertyChangeEvent e) { this.l = l; this.e = e; }
+        public void run() { l.propertyChange(e); }
+    }
+
+    private static class DatabaseChangeThread implements Runnable {
+        private DatabaseChangeListener l;
+        private Change change;
+        private DatabaseChangeThread(DatabaseChangeListener l, Change c) { this.l = l; this.change = c; }
+        public void run() { l.databaseChanged(change); }
+    }
+
+    private static class DatabaseBatchThread implements Runnable {
+        private DatabaseChangeListener l;
+        private ChangeBatch batch;
+        private DatabaseBatchThread(DatabaseChangeListener l, ChangeBatch b) { this.l = l; this.batch = b; }
+        public void run() { l.databaseEndChangeBatch(batch); }
+    }
 
 	/**
 	 * Method to record and broadcast a change.

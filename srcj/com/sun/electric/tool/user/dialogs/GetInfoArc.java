@@ -103,6 +103,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
         }
     }
     public void databaseChanged(Undo.Change change) {}
+    public boolean isGUIListener() { return true; }    
 
 	/** Creates new form Arc Get-Info */
 	private GetInfoArc(java.awt.Frame parent, boolean modal)

@@ -111,6 +111,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
         }
     }
     public void databaseChanged(Undo.Change change) {}
+    public boolean isGUIListener() { return true; }    
 
 	/** Creates new form Multi-Object Get Info */
 	private GetInfoMulti(java.awt.Frame parent, boolean modal)

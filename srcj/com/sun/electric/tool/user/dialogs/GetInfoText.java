@@ -113,6 +113,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
         }
     }
     public void databaseChanged(Undo.Change change) {}
+    public boolean isGUIListener() { return true; }
 
     private void loadTextInfo() {
         // must have a single text selected

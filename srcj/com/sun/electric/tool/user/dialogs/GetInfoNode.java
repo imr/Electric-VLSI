@@ -140,6 +140,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         }
     }
     public void databaseChanged(Undo.Change change) {}
+    public boolean isGUIListener() { return true; }
 
 	/** Creates new form Node Get-Info */
 	private GetInfoNode(java.awt.Frame parent, boolean modal)

@@ -2626,7 +2626,7 @@ public class EditWindow extends JPanel
         if ((cell != null) && !cell.isLinked()) setCell(null, VarContext.globalContext, false);
     }
 
-    public void databaseChanged(Undo.Change evt) {
-
-    }
+    public void databaseChanged(Undo.Change evt) {}
+    
+    public boolean isGUIListener() { return true; }
 }

@@ -126,6 +126,8 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
 
     public void databaseChanged(Undo.Change evt) {}
 
+    public boolean isGUIListener() { return true; }    
+
 	protected void escapePressed() { cancelActionPerformed(null); }
 
     /** This method is called from within the constructor to

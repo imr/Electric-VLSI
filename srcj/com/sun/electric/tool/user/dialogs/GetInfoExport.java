@@ -113,6 +113,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
         }
     }
     public void databaseChanged(Undo.Change change) {}
+    public boolean isGUIListener() { return true; }    
 
 	private void loadExportInfo()
 	{

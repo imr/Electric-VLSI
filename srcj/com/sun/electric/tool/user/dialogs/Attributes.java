@@ -130,6 +130,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         }
     }
     public void databaseChanged(Undo.Change change) {}
+    public boolean isGUIListener() { return true; }
 
     /**
      * Creates new form Attributes.
