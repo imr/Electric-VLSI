@@ -2,12 +2,12 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.01am: *********************************
+
 IMP: (11/10/04, DN) Sorting of objects in JELIB output for regression purposes.
      View is comparable. TextUtils.nameSameNumeric and TextUtils.atoi work with Unicode digits.
 
 IMP: (11/10/04, DN) Better diagnostic in JELIB reader when point doesn't fit a port.
-
-************************* Version 8.01am: *********************************
 
 BUG: (11/10/04, RK) Make gate generator generate gates for every instance of a Cell (For Justin)
 
