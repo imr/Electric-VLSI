@@ -145,7 +145,7 @@ public final class Main
 		protected InitDatabase()
 		{
 			super("Init database", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
