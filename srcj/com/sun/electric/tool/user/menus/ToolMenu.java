@@ -480,7 +480,7 @@ public class ToolMenu {
                 // get wire length
                 HashSet nets = new HashSet();
                 nets.add(layNet);
-                LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworks(schLayCells[1], nets, false);
+                LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworksNoJob(schLayCells[1], nets, false);
                 double length = geoms.getTotalWireLength();
 
                 // update wire length
@@ -820,20 +820,34 @@ public class ToolMenu {
         if (wnd == null) return;
         Cell cell = wnd.getCell();
         if (cell == null) return;
-        Netlist netlist = cell.getNetlist(true);
-        ArrayList networks = new ArrayList();
-        for (Iterator it = netlist.getNetworks(); it.hasNext(); ) {
-            networks.add(it.next());
+        ListGeomsAllNetworksJob job = new ListGeomsAllNetworksJob(cell);
+    }
+
+    public static class ListGeomsAllNetworksJob extends Job {
+        private Cell cell;
+        public ListGeomsAllNetworksJob(Cell cell) {
+            super("ListGeomsAllNetworks", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+            this.cell = cell;
+            startJob();
         }
-        // sort list of networks by name
-        Collections.sort(networks, new TextUtils.NetworksByName());
-        for (Iterator it = networks.iterator(); it.hasNext(); ) {
-            Network net = (Network)it.next();
-            HashSet nets = new HashSet();
-            nets.add(net);
-            LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworks(cell, nets, false);
-            if (geoms.getTotalWireLength() == 0) continue;
-            System.out.println("Network "+net+" has wire length "+geoms.getTotalWireLength());
+
+        public boolean doIt() {
+            Netlist netlist = cell.getNetlist(true);
+            ArrayList networks = new ArrayList();
+            for (Iterator it = netlist.getNetworks(); it.hasNext(); ) {
+                networks.add(it.next());
+            }
+            // sort list of networks by name
+            Collections.sort(networks, new TextUtils.NetworksByName());
+            for (Iterator it = networks.iterator(); it.hasNext(); ) {
+                Network net = (Network)it.next();
+                HashSet nets = new HashSet();
+                nets.add(net);
+                LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworksNoJob(cell, nets, false);
+                if (geoms.getTotalWireLength() == 0) continue;
+                System.out.println("Network "+net+" has wire length "+geoms.getTotalWireLength());
+            }
+            return true;
         }
     }
 

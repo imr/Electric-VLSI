@@ -55,10 +55,21 @@ public class LayerCoverageJob extends Job
 	    GeometryOnNetwork geoms = new GeometryOnNetwork(cell, nets, lambda, printable);
 
 		Job job = new LayerCoverageJob(Job.Type.EXAMINE, cell, NETWORK, false, null, geoms);
+        job.startJob();
 	    return geoms;
 
 		// @TODO GVG lambda and ratio ==0 (when is the case?)
 	}
+
+    public static GeometryOnNetwork listGeometryOnNetworksNoJob(Cell cell, HashSet nets, boolean printable) {
+        if (cell == null || nets == null || nets.isEmpty()) return null;
+        double lambda = 1; // lambdaofcell(np);
+        GeometryOnNetwork geoms = new GeometryOnNetwork(cell, nets, lambda, printable);
+
+        Job job = new LayerCoverageJob(Job.Type.EXAMINE, cell, NETWORK, false, null, geoms);
+        job.doIt();
+        return geoms;
+    }
 
 	public static class LayerVisitor extends HierarchyEnumerator.Visitor
 	{
@@ -274,7 +285,6 @@ public class LayerCoverageJob extends Job
 		this.geoms = geoms; // Valid only for network
 
 		setReportExecutionFlag(true);
-		startJob();
 	}
 
 	public boolean doIt()
