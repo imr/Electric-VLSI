@@ -38,31 +38,11 @@ public class Snapshot
 	/** Array which maps cellIds to ImmutableCells. It may contain may nulls. */
 	private final ImmutableCell[] cells;
 
+	private static final ImmutableCell[] NULL_CELLS = {};
+
 	Snapshot(ImmutableCell[] cells) {
 		this.cells = cells;
-	}
-
-	/**
-	 * Returns new Snapshot object.
-	 * @param cells array of cells, may contain nulls.
-	 * @return new Snapshot object.
-	 * @throws IllegalArgumentException if cell names have duplicates.
-	 * @throws ConcurrentModificationException if cells array was modified during construction.
-	 */
-	public static Snapshot newInstance(ImmutableCell[] cells) {
-		ImmutableCell[] newCells = {};
-		if (cells != null) {
-			int length = cells.length;
-			while (length > 0 && cells[length - 1] == null)
-				length--;
-			if (length > 0) {
-				newCells = new ImmutableCell[length];
-				System.arraycopy(cells, 0, newCells, 0, length);
-				if (newCells[length - 1] == null) throw new ConcurrentModificationException();
-			}
-		}
-		checkNames(newCells);
-		return new Snapshot(newCells);
+		check();
 	}
 
 	/**
@@ -75,11 +55,24 @@ public class Snapshot
 
 	/**
 	 * Returns cell with specified cellId, or null.
+	 * @param cellId specified cellId.
 	 * @return cell with specified cellId, or null.
-	 * @throws ArrayIndexOutOfBoundsError, if cellId is negative.
+	 * @throws ArrayIndexOutOfBoundsException, if cellId is negative.
 	 */
 	public ImmutableCell getCellById(int cellId) {
 		return cellId < cells.length ? cells[cellId] : null;
+	}
+
+	/**
+	 * Returns cell with specified cellId.
+	 * @param cellId specified cellId.
+	 * @return cell with specified cellId.
+	 * @throws ArrayIndexOutOfBoundsException, if there is no cell with such cellId.
+	 */
+	private ImmutableCell getCellByIdSurely(int cellId) {
+		ImmutableCell cell = cells[cellId];
+		if (cell == null) throw new ArrayIndexOutOfBoundsException(cellId);
+		return cell;
 	}
 
 	/**
@@ -98,6 +91,57 @@ public class Snapshot
 	}
 
 	/**
+	 * Returns new Snapshot object.
+	 * @param cells array of cells, may contain nulls.
+	 * @return new Snapshot object.
+	 * @throws IllegalArgumentException if cell names have duplicates.
+	 * @throws ConcurrentModificationException if cells array was modified during construction.
+	 */
+	public static Snapshot newInstance(ImmutableCell[] cells) {
+		ImmutableCell[] newCells = clone(cells, NULL_CELLS);
+		checkNames(newCells);
+		checkProto(newCells);
+		return new Snapshot(newCells);
+	}
+
+	/**
+	 * Returns Snapshot which differs from this Snapshot by cells.
+	 * Old snapshot is used for faster invariant check.
+	 * @param cells new nodes array or null.
+	 * @return Snapshot which differs from this Snapshot by cells.
+	 * @throws IllegalArgumentException if cells have duplicate names.
+	 * @throws ArrayIndexOutOfBoundsException if some node has bad protoId.
+	 */
+	public Snapshot withCells(ImmutableCell[] nodes) {
+		ImmutableCell[] newCells = clone(cells, this.cells);
+		if (newCells == this.cells) return this;
+		boolean checkNames = false;
+		boolean checkProtos = false;
+		for (int i = 0; i < newCells.length; i++) {
+			ImmutableCell oldCell = getCellById(i);
+			ImmutableCell newCell = newCells[i];
+			if (oldCell == newCell) continue;
+			boolean checkProto = false;
+			if (oldCell == null) {
+				// created
+				checkNames = true;
+				checkProto = true;
+			} else if (newCell == null) {
+				// deleted
+				checkProtos = true;
+			} else {
+				// updated
+				if (!newCell.name.equals(oldCell.name))	checkNames = true;
+				if (newCell.nodes != oldCell.nodes) checkProto = true;
+			}
+			if (checkProto) newCell.checkProto(newCells);
+		}
+		if (checkNames) checkNames(newCells);
+		if (checkProtos) checkProto(newCells);
+		return new Snapshot(newCells);
+	}
+
+	/**
 	 * Returns Snapshot which differs from this Snapshot by cell with specified cellId.
 	 * @param cellId cell id.
 	 * @param cell new cell with specified cellId, or null to delete cell.
@@ -106,22 +150,39 @@ public class Snapshot
 	 * @throws IllegalArgumentException if cell with such name exists in a cell.
 	 */
 	public Snapshot withCell(int cellId, ImmutableCell cell) {
-		if (cellId < 0) throw new ArrayIndexOutOfBoundsException(cellId);
+		ImmutableCell oldCell = getCellById(cellId);
+		if (cell == oldCell) return this;
 		int length = cells.length;
-		if (cell != null) {
-			if (cellId < length && cells[cellId] != null && cells[cellId].name.equals(cell.name)) {
-				if (cells[cellId] == cell) return this;
-			} else if (findCellId(cell.name) >= 0) {
-				throw new IllegalArgumentException("cell " + cell.name + " exists");
-			}
+		boolean checkName = false;
+		boolean checkProtos = false;
+		boolean checkProto = false;
+		if (oldCell == null) {
+			// created
+			checkName = true;
+			checkProto = true;
 			if (cellId >= length) length = cellId + 1;
+		} else if (cell == null) {
+			// deleted
+			checkProtos = true;
+			if (cellId == length - 1)
+				do { length--; } while (length > 0 && cells[length - 1] == null);
 		} else {
-			if (cellId >= length || cells[cellId] == null) return this;
-			if (cellId == length - 1 && cell == null) length--;
-			while (length > 0 && cells[length - 1] == null)
-				length--;
+			// updated
+			if (!cell.name.equals(oldCell.name))
+				checkName = true;
+			if (cell.nodes != oldCell.nodes)
+				checkProto = true;
 		}
-		return withCell(cellId, cell, length);
+		if (checkName && findCellId(cell.name) >= 0)
+			throw new IllegalArgumentException("cell " + cell.name + " exists");
+		ImmutableCell[] newCells = new ImmutableCell[length];
+		System.arraycopy(cells, 0, newCells, 0, Math.min(cells.length, length));
+		if (cellId < length) newCells[cellId] = cell;
+		if (checkProtos)
+			checkProto(newCells);
+		else if (checkProto)
+			cell.checkProto(newCells);
+		return new Snapshot(newCells);
 	}
 
 	/**
@@ -135,14 +196,7 @@ public class Snapshot
 	 * @throws IllegalArgumentException if cell with such name exists in database.
 	 */
 	public Snapshot withCellName(int cellId, String name) {
-		ImmutableCell cell = cells[cellId];
-		if (cell == null) throw new ArrayIndexOutOfBoundsException(cellId);
-		if (cell.name.equals(name)) {
-			if (cell.name == name) return this;
-		} else if (findCellId(cell.name) >= 0) {
-			throw new IllegalArgumentException("cell " + cell.name + " exists");
-		}
-		return withCell(cellId, cell.withName(name), cells.length);
+		return withCell(cellId, getCellByIdSurely(cellId).withName(name));
 	}
 
 	/**
@@ -157,12 +211,7 @@ public class Snapshot
 	 * @throws IllegalArgumentException if node with new name exists in the cell.
 	 */
 	public Snapshot withNode(int cellId, int nodeId, ImmutableNodeInst node) {
-		ImmutableCell oldCell = cells[cellId];
-		if (oldCell == null) throw new ArrayIndexOutOfBoundsException(cellId);
-		node.checkProto(cells);
-		ImmutableCell newCell = oldCell.withNode(nodeId, node);
-		if (newCell == oldCell) return this;
-		return withCell(cellId, newCell, cells.length);
+		return withCell(cellId, getCellByIdSurely(cellId).withNode(nodeId, node));
 	}
 
 	/**
@@ -177,11 +226,7 @@ public class Snapshot
 	 * @throws IllegalArgumentException if cell with such name exists in database.
 	 */
 	public Snapshot withNodeName(int cellId, int nodeId, String name) {
-		ImmutableCell oldCell = cells[cellId];
-		if (oldCell == null) throw new ArrayIndexOutOfBoundsException(cellId);
-		ImmutableCell newCell = oldCell.withNodeName(nodeId, name);
-		if (newCell == oldCell) return this;
-		return withCell(cellId, newCell, cells.length);
+		return withCell(cellId, getCellByIdSurely(cellId).withNodeName(nodeId, name));
 	}
 
 	/**
@@ -195,24 +240,35 @@ public class Snapshot
 	 * @throws NullPointerException if anchor is null.
 	 */
 	public Snapshot withNodeAnchor(int cellId, int nodeId, EPoint anchor) {
-		ImmutableCell oldCell = cells[cellId];
-		if (oldCell == null) throw new ArrayIndexOutOfBoundsException(cellId);
-		ImmutableCell newCell = oldCell.withNodeAnchor(nodeId, anchor);
-		if (newCell == oldCell) return this;
-		return withCell(cellId, newCell, cells.length);
+		return withCell(cellId, getCellByIdSurely(cellId).withNodeAnchor(nodeId, anchor));
 	}
 
-	private Snapshot withCell(int cellId, ImmutableCell cell, int cellsLength) {
-		ImmutableCell[] newCells = new ImmutableCell[cellsLength];
-		System.arraycopy(cells, 0, newCells, 0, Math.min(cells.length, cellsLength));
-		if (cellId < cellsLength) newCells[cellId] = cell;
-		if (cell != null)
-			cell.checkProto(newCells);
-		else
-			checkProto(newCells);
-		return new Snapshot(newCells);
+	/**
+	 * Make a defensive copy of array of cells. Array with trailing nulls is truncated.
+	 * If new array has the same entries as old, old is returned.
+	 * @param nodes array to copy, or null
+	 * @param oldNodes old array which may be returned if it has the same entries as new.
+	 * @throws ConcurrentModificationException if cells array was modified during construction.
+	 */
+	private static ImmutableCell[] clone(ImmutableCell[] cells, ImmutableCell[] oldCells) {
+		ImmutableCell[] newCells = NULL_CELLS;
+		if (cells != null) {
+			int length = cells.length;
+			while (length > 0 && cells[length - 1] == null) length--;
+			if (length == oldCells.length) {
+				int i;
+				for (i = length - 1; i >= 0; i--)
+					if (cells[i] != oldCells[i]) break;
+				if (i < 0) return oldCells;
+			}
+			if (length > 0) {
+				newCells = new ImmutableCell[length];
+				System.arraycopy(cells, 0, newCells, 0, length);
+				if (newCells[length - 1] == null) throw new ConcurrentModificationException();
+			}
+		}
+		return newCells;
 	}
-
 
 	/**
 	 * Checks invariant of this Snapshot.
@@ -249,7 +305,7 @@ public class Snapshot
 	 * @param cells array with cells, may contain nulls.
 	 * @throws ArrayOutOfBoundsException if protoId of some node is not contained.
 	 */
-	void checkProto(ImmutableCell[] cells) {
+	private static void checkProto(ImmutableCell[] cells) {
 		for (int i = 0; i < cells.length; i++) {
 			ImmutableCell cell = cells[i];
 			if (cell != null) cell.checkProto(cells);

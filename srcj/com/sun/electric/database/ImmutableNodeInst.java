@@ -31,12 +31,9 @@ import com.sun.electric.database.geometry.EPoint;
  */
 public class ImmutableNodeInst
 {
-	/** Prototype cell id. */
-	public final int protoId;
-	/** Node name. */
-	public final String name;
-	/** Node anchor point. */
-	public final EPoint anchor;
+	/** Prototype cell id. */		public final int protoId;
+	/** Node name. */				public final String name;
+	/** Node anchor point. */		public final EPoint anchor;
 
 	ImmutableNodeInst(int protoId, String name, EPoint anchor) {
 		this.protoId = protoId;

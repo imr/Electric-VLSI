@@ -4,7 +4,7 @@
  *
  * File: ImmutableCell.java
  *
- * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,38 +38,14 @@ public class ImmutableCell
 	/** Node name. */
 	public final String name;
 	/** Array which maps nodeIds to ImmutableNodeInstances. It may contain may nulls. */
-	final  ImmutableNodeInst[] nodes;
+	final ImmutableNodeInst[] nodes;
+
+	private static final ImmutableNodeInst[] NULL_NODES = {};
 
 	ImmutableCell(String name, ImmutableNodeInst[] nodes) {
 		this.name = name;
 		this.nodes = nodes;
 		check();
-	}
-
-	/**
-	 * Returns new ImmutableCell object.
-	 * @param name cell name.
-	 * @param nodes array of nodes, may contain nulls.
-	 * @return new Cell object.
-	 * @throws NullPointerException if name is null.
-	 * @throws IllegalArgumentException if node names have duplicates.
-	 * @throws ConcurrentModificationException if nodes array was modified during construction.
-	 */
-	public static ImmutableCell newInstance(String name, ImmutableNodeInst[] nodes) {
-		if (name == null) throw new NullPointerException("name");
-		ImmutableNodeInst[] newNodes = {};
-		if (nodes != null) {
-			int length = nodes.length;
-			while (length > 0 && nodes[length - 1] == null)
-				length--;
-			if (length > 0) {
-				newNodes = new ImmutableNodeInst[length];
-				System.arraycopy(nodes, 0, newNodes, 0, length);
-				if (newNodes[length - 1] == null) throw new ConcurrentModificationException();
-			}
-		}
-		checkNames(newNodes);
-		return new ImmutableCell(name, newNodes);
 	}
 
 	/**
@@ -82,11 +58,24 @@ public class ImmutableCell
 
 	/**
 	 * Returns node with specified nodeId, or null.
+	 * @param nodeId specified nodeId.
 	 * @return node with specified nodeId, or null.
-	 * @throws ArrayIndexOutOfBoundsError, if nodeId is negative.
+	 * @throws ArrayIndexOutOfBoundsException, if nodeId is negative.
 	 */
 	public ImmutableNodeInst getNodeById(int nodeId) {
 		return nodeId < nodes.length ? nodes[nodeId] : null;
+	}
+
+	/**
+	 * Returns node with specified nodeId.
+	 * @param nodeId specified nodeId.
+	 * @return node with specified nodeId.
+	 * @throws ArrayIndexOutOfBoundsException, if there is no node with such nodeId.
+	 */
+	private ImmutableNodeInst getNodeByIdSurely(int nodeId) {
+		ImmutableNodeInst node = nodes[nodeId];
+		if (node == null) throw new ArrayIndexOutOfBoundsException(nodeId);
+		return node;
 	}
 
 	/**
@@ -105,6 +94,22 @@ public class ImmutableCell
 	}
 
 	/**
+	 * Returns new ImmutableCell object.
+	 * @param name cell name.
+	 * @param nodes array of nodes, may contain nulls.
+	 * @return new Cell object.
+	 * @throws NullPointerException if name is null.
+	 * @throws IllegalArgumentException if node names have duplicates.
+	 * @throws ConcurrentModificationException if nodes array was modified during construction.
+	 */
+	public static ImmutableCell newInstance(String name, ImmutableNodeInst[] nodes) {
+		if (name == null) throw new NullPointerException("name");
+		ImmutableNodeInst[] newNodes = clone(nodes, NULL_NODES);
+		checkNames(newNodes);
+		return new ImmutableCell(name, newNodes);
+	}
+
+	/**
 	 * Returns ImmutableCell which differs from this ImmutableCell by name.
 	 * @param name cell name.
 	 * @return ImmutableCell which differs from this ImmutableCell by name.
@@ -117,6 +122,35 @@ public class ImmutableCell
 	}
 
 	/**
+	 * Returns ImmutableCell which differs from this ImmutableCell by node.
+	 * @param nodes new nodes array or null.
+	 * @return ImmutableCell which differs from this ImmutableCell by nodes.
+	 * @throws IllegalArgumentException if nodes have duplicate names.
+	 */
+	public ImmutableCell withNodes(ImmutableNodeInst[] nodes) {
+		ImmutableNodeInst[] newNodes = clone(nodes, this.nodes);
+		if (newNodes == this.nodes) return this;
+		boolean checkNames = false;
+		for (int i = 0; i < newNodes.length; i++) {
+			ImmutableNodeInst oldNode = getNodeById(i);
+			ImmutableNodeInst newNode = newNodes[i];
+			if (oldNode == newNode) continue;
+			if (oldNode == null) {
+				// created
+				checkNames = true;
+			} else if (newNode == null) {
+				// deleted
+			} else {
+				// updated
+				if (!newNode.name.equals(oldNode.name))
+					checkNames = true;
+			}
+		}
+		if (checkNames)	checkNames(newNodes);
+		return new ImmutableCell(this.name, newNodes);
+	}
+
+	/**
 	 * Returns ImmutableCell which differs from this ImmutableCell by node with specified nodeId.
 	 * @param nodeId node id.
 	 * @param node new node for specified nodeId, or null to delete node.
@@ -125,22 +159,29 @@ public class ImmutableCell
 	 * @throws IllegalArgumentException if node with such name exists in a cell.
 	 */
 	public ImmutableCell withNode(int nodeId, ImmutableNodeInst node) {
-		if (nodeId < 0) throw new ArrayIndexOutOfBoundsException(nodeId);
+		ImmutableNodeInst oldNode = getNodeById(nodeId);
+		if (node == oldNode) return this;
 		int length = nodes.length;
-		if (node != null) {
-			if (nodeId < length && nodes[nodeId] != null && nodes[nodeId].name.equals(node.name)) {
-				if (nodes[nodeId] == node) return this;
-			} else if (findNodeId(node.name) >= 0) {
-				throw new IllegalArgumentException("node " + node.name + " exists");
-			}
+		boolean checkName = false;
+		if (oldNode == null) {
+			// created
+			checkName = true;
 			if (nodeId >= length) length = nodeId + 1;
+		} else if (node == null) {
+			// deleted
+			if (nodeId == length - 1)
+				do { length--; } while (length > 0 && nodes[length - 1] == null);
 		} else {
-			if (nodeId >= length || nodes[nodeId] == null) return this;
-			if (nodeId == length - 1 && node == null) length--;
-			while (length > 0 && nodes[length - 1] == null)
-				length--;
+			// updated
+			if (!node.name.equals(oldNode.name))
+				checkName = true;
 		}
-		return withNode(nodeId, node, length);
+		if (checkName && findNodeId(node.name) >= 0)
+			throw new IllegalArgumentException("node " + node.name + " exists");
+		ImmutableNodeInst[] newNodes = new ImmutableNodeInst[length];
+		System.arraycopy(nodes, 0, newNodes, 0, Math.min(nodes.length, length));
+		if (nodeId < length) newNodes[nodeId] = node;
+		return new ImmutableCell(this.name, newNodes);
 	}
 
 	/**
@@ -149,19 +190,12 @@ public class ImmutableCell
 	 * @param nodeId node id.
 	 * @param name new node name.
 	 * @return ImmutableCell which differs from this ImmutableCell by name of node.
-	 * @throws ArrayIndexOutOfBoundsException if there is no node with this nodeId.
+	 * @throws ArrayIndexOutOfBoundsException if there is no node with such nodeId.
 	 * @throws NullPointerException if name is null.
 	 * @throws IllegalArgumentException if node with such name exists in a cell.
 	 */
 	public ImmutableCell withNodeName(int nodeId, String name) {
-		ImmutableNodeInst node = nodes[nodeId];
-		if (node == null) throw new ArrayIndexOutOfBoundsException(nodeId);
-		if (node.name.equals(name)) {
-			if (node.name == name) return this;
-		} else if (findNodeId(name) >= 0) {
-			throw new IllegalArgumentException("node " + node.name + " exists");
-		}
-		return withNode(nodeId, node.withName(name), nodes.length);
+		return withNode(nodeId, getNodeByIdSurely(nodeId).withName(name));
 	}
 
 	/**
@@ -170,22 +204,38 @@ public class ImmutableCell
 	 * @param nodeId node id.
 	 * @param anchor new anchor point
 	 * @return ImmutableCell which differs from this ImmutableCell by anchor of node.
-	 * @throws ArrayIndexOutOfBoundsException if there is no node with this nodeId.
+	 * @throws ArrayIndexOutOfBoundsException if there is no node with such nodeId.
 	 * @throws NullPointerException if anchr is null.
 	 */
 	public ImmutableCell withNodeAnchor(int nodeId, EPoint anchor) {
-		ImmutableNodeInst oldNode = nodes[nodeId];
-		if (oldNode == null) throw new ArrayIndexOutOfBoundsException(nodeId);
-		ImmutableNodeInst newNode = oldNode.withAnchor(anchor);
-		if (newNode == oldNode) return this;
-		return withNode(nodeId, newNode, nodes.length);
+		return withNode(nodeId, getNodeByIdSurely(nodeId).withAnchor(anchor));
 	}
 
-	private ImmutableCell withNode(int nodeId, ImmutableNodeInst node, int nodesLength) {
-		ImmutableNodeInst[] newNodes = new ImmutableNodeInst[nodesLength];
-		System.arraycopy(nodes, 0, newNodes, 0, Math.min(nodes.length, nodesLength));
-		if (nodeId < nodesLength) newNodes[nodeId] = node;
-		return new ImmutableCell(this.name, newNodes);
+	/**
+	 * Make a defensive copy of array of nodes. Array with trailing nulls is truncated.
+	 * If new array has the same entries as old, old is returned.
+	 * @param nodes array to copy, or null
+	 * @param oldNodes old array which may be returned if it has the same entries as new.
+	 * @throws ConcurrentModificationException if nodes array was modified during construction.
+	 */
+	private static ImmutableNodeInst[] clone(ImmutableNodeInst[] nodes, ImmutableNodeInst[] oldNodes) {
+		ImmutableNodeInst[] newNodes = NULL_NODES;
+		if (nodes != null) {
+			int length = nodes.length;
+			while (length > 0 && nodes[length - 1] == null) length--;
+			if (length == oldNodes.length) {
+				int i;
+				for (i = length - 1; i >= 0; i--)
+					if (nodes[i] != oldNodes[i]) break;
+				if (i < 0) return oldNodes;
+			}
+			if (length > 0) {
+				newNodes = new ImmutableNodeInst[length];
+				System.arraycopy(nodes, 0, newNodes, 0, length);
+				if (newNodes[length - 1] == null) throw new ConcurrentModificationException();
+			}
+		}
+		return newNodes;
 	}
 
 	/**
