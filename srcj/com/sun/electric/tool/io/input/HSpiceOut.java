@@ -39,7 +39,8 @@ import java.util.List;
  */
 public class HSpiceOut extends Simulate
 {
-	private boolean isTR0Binary;				/* true if tr0 file is binary */
+	/** true if tr0 file is binary */					private boolean isTR0Binary;
+	/** true if binary tr0 file has bytes swapped */	private boolean isTR0BinarySwapped;
 	private int binaryTR0Size, binaryTR0Position;
 	private boolean eofReached;
 	private byte [] binaryTR0Buffer;
@@ -299,6 +300,7 @@ public class HSpiceOut extends Simulate
 		sd.setCell(cell);
 		eofReached = false;
 		List timeValues = new ArrayList();
+		List allTheData = new ArrayList();
 		for(int k=0; k<numSignals; k++)
 		{
 			Simulation.SimAnalogSignal as = new Simulation.SimAnalogSignal(sd);
@@ -312,7 +314,6 @@ public class HSpiceOut extends Simulate
 			{
 				as.setSignalName(signalNames[k]);
 			}
-			as.tempList = new ArrayList();
 		}
 		for(;;)
 		{
@@ -322,15 +323,17 @@ public class HSpiceOut extends Simulate
 			timeValues.add(new Double(time));
 
 			// get a row of numbers
+			float [] oneSetOfData = new float[numSignals];
 			for(int k=1; k<=numSignals; k++)
 			{
-				double value = getHSpiceFloat();
+				float value = getHSpiceFloat();
 				if (eofReached) break;
 				int l = k - nodcnt;
 				if (k < nodcnt) l = k + numnoi - 1;
 				Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)sd.getSignals().get(l);
-				as.tempList.add(new Double(value));
+				oneSetOfData[k-1] = value;
 			}
+			allTheData.add(oneSetOfData);
 			if (eofReached) break;
 		}
 		closeInput();
@@ -345,8 +348,7 @@ public class HSpiceOut extends Simulate
 			Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)sd.getSignals().get(j);
 			as.buildValues(numEvents);
 			for(int i=0; i<numEvents; i++)
-				as.setValue(i, ((Double)as.tempList.get(i)).doubleValue());
-			as.tempList = null;
+				as.setValue(i, ((float [])allTheData.get(i))[j]);
 		}
 		return sd;
 	}
@@ -383,7 +385,8 @@ public class HSpiceOut extends Simulate
 		{
 			int uval = dataInputStream.read();
 			if (uval == -1) return true;
-			blocks = (blocks << 8) | uval;
+			if (isTR0BinarySwapped) blocks = ((blocks >> 8) & 0xFFFFFF) | ((uval&0xFF) << 24); else
+				blocks = (blocks << 8) | uval;
 		}
 		updateProgressDialog(4);
 
@@ -398,7 +401,8 @@ public class HSpiceOut extends Simulate
 		{
 			int uval = dataInputStream.read();
 			if (uval == -1) return true;
-			bytes = (bytes << 8) | uval;
+			if (isTR0BinarySwapped) bytes = ((bytes >> 8) & 0xFFFFFF) | ((uval&0xFF) << 24); else
+				bytes = (bytes << 8) | uval;
 		}
 		updateProgressDialog(4);
 
@@ -413,7 +417,8 @@ public class HSpiceOut extends Simulate
 		{
 			int uval = dataInputStream.read();
 			if (uval == -1) return true;
-			trailer = (trailer << 8) | uval;
+			if (isTR0BinarySwapped) trailer = ((trailer >> 8) & 0xFFFFFF) | ((uval&0xFF) << 24); else
+				trailer = (trailer << 8) | uval;
 		}
 		if (trailer != bytes) return true;
 		updateProgressDialog(4);
@@ -437,9 +442,11 @@ public class HSpiceOut extends Simulate
 			int i = dataInputStream.read();
 			if (i == -1) return(i);
 			updateProgressDialog(1);
-			if (i == 0)
+			if (i == 0 || i == 4)
 			{
 				isTR0Binary = true;
+				isTR0BinarySwapped = false;
+				if (i == 4) isTR0BinarySwapped = true;
 				binaryTR0Buffer = new byte[8192];
 				if (readBinaryTR0Block(true)) return(-1);
 			} else
@@ -468,7 +475,7 @@ public class HSpiceOut extends Simulate
 	 * Method to read the next floating point number from the HSPICE file into "val".
 	 * Returns positive on error, negative on EOF, zero if OK.
 	 */
-	private double getHSpiceFloat()
+	private float getHSpiceFloat()
 		throws IOException
 	{
 		if (!isTR0Binary)
@@ -483,7 +490,7 @@ public class HSpiceOut extends Simulate
 			}
 			String result = line.toString();
 			if (result.equals("0.10000E+31")) { eofReached = true;   return 0; }
-			return TextUtils.atof(result);
+			return (float)TextUtils.atof(result);
 		}
 
 		// binary format
@@ -491,11 +498,18 @@ public class HSpiceOut extends Simulate
 		int fi1 = getByteFromFile() & 0xFF;
 		int fi2 = getByteFromFile() & 0xFF;
 		int fi3 = getByteFromFile() & 0xFF;
-		int fi = (fi0 << 24) | (fi1 << 16) | (fi2 << 8) | fi3;
+		int fi = 0;
+		if (isTR0BinarySwapped)
+		{
+			fi = (fi3 << 24) | (fi2 << 16) | (fi1 << 8) | fi0;
+		} else
+		{
+			fi = (fi0 << 24) | (fi1 << 16) | (fi2 << 8) | fi3;
+		}
 		float f = Float.intBitsToFloat(fi);
 		
 		if (f > 1.00000000E30 && f < 1.00000002E30) { eofReached = true;   return 0; }
-		return (double)f;
+		return f;
 	}
 
 }

@@ -1103,7 +1103,7 @@ public class ArcInst extends Geometric
         if (fromAi == null) return;
         copyVarsFrom(fromAi);
         copyConstraints(fromAi);
-        setName(fromAi.getName());
+//        setName(fromAi.getName());
         setNameTextDescriptor(fromAi.getNameTextDescriptor());
     }
 

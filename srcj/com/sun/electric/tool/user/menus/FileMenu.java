@@ -609,20 +609,36 @@ public class FileMenu {
      */
     public static void printCommand()
     {
-        Cell printCell = WindowFrame.needCurCell();
-        if (printCell == null) return;
-        EditWindow wnd = EditWindow.getCurrent();
-        if (wnd == null) return;
-        VarContext context = wnd.getVarContext();
+    	WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+    	if (wf == null)
+    	{
+    		System.out.println("No current window to print");
+    		return;
+    	}
 
         PrinterJob pj = PrinterJob.getPrinterJob();
-        pj.setJobName("Cell "+printCell.describe());
-        ElectricPrinter ep = new ElectricPrinter();
-        ep.setPrintCell(printCell, context);
-        if (pageFormat != null)
-            pj.setPrintable(ep, pageFormat);
-        else
-            pj.setPrintable(ep);
+        pj.setJobName(wf.getTitle());
+ 		if (pageFormat == null)
+			pageFormat = pj.defaultPage();
+
+		// resize the window if this is a WaveformWindow
+		Dimension oldSize = null;
+		if (wf.getContent() instanceof WaveformWindow)
+		{
+			System.out.println("Cannot print the waveform window");
+			return;
+//			int iw = (int)pageFormat.getImageableWidth();
+//			int ih = (int)pageFormat.getImageableHeight();
+//			JPanel overall = wf.getContent().getPanel();
+//			oldSize = overall.getSize();
+//			overall.setSize(iw, ih);
+//			overall.validate();
+//			overall.repaint();
+		}
+
+		ElectricPrinter ep = new ElectricPrinter();
+		ep.setPrintWindow(wf);
+        pj.setPrintable(ep, pageFormat);
 
         // see if a default printer should be mentioned
         String pName = IOTool.getPrinterName();
@@ -652,23 +668,57 @@ public class FileMenu {
             printerToUse = pj.getPrintService();
             if (printerToUse != null)
 				IOTool.setPrinterName(printerToUse.getName());
-            PrintJob job = new PrintJob(printCell, pj);
+//			SwingUtilities.invokeLater(new PrintJobAWT(wf, pj, oldSize));
+            PrintJob job = new PrintJob(wf, pj, oldSize);
         }
     }
+
+//	private static class PrintJobAWT implements Runnable
+//	{
+//		private WindowFrame wf;
+//		private PrinterJob pj;
+//		private Dimension oldSize;
+//
+//		PrintJobAWT(WindowFrame wf, PrinterJob pj, Dimension oldSize)
+//		{
+//			this.wf = wf;
+//			this.pj = pj;
+//			this.oldSize = oldSize;
+//		}
+//
+//		public void run()
+//		{
+//			try {
+//				pj.print();
+//			} catch (PrinterException pe)
+//			{
+//				System.out.println("Print aborted.");
+//			}
+//
+//			if (oldSize != null)
+//			{
+//				JPanel overall = wf.getContent().getPanel();
+//				overall.setSize(oldSize);
+//				overall.validate();
+//			}
+//		}
+//	}
 
     /**
      * Class to print a cell in a new thread.
      */
     private static class PrintJob extends Job
     {
-        Cell cell;
-        PrinterJob pj;
+    	private WindowFrame wf;
+        private PrinterJob pj;
+        private Dimension oldSize;
 
-        public PrintJob(Cell cell, PrinterJob pj)
+        public PrintJob(WindowFrame wf, PrinterJob pj, Dimension oldSize)
         {
-            super("Print "+cell.describe(), User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
-            this.cell = cell;
-            this.pj = pj;
+            super("Print "+wf.getTitle(), User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+			this.wf = wf;
+			this.pj = pj;
+			this.oldSize = oldSize;
             startJob();
         }
 
@@ -680,19 +730,24 @@ public class FileMenu {
             {
                 System.out.println("Print aborted.");
             }
+
+			if (oldSize != null)
+			{
+				JPanel overall = wf.getContent().getPanel();
+				overall.setSize(oldSize);
+				overall.validate();
+			}
             return true;
         }
     }
 
     private static class ElectricPrinter implements Printable
     {
-        private Cell printCell;
-        private VarContext context;
+    	private WindowFrame wf;
         private Image img = null;
 
-        public void setPrintCell(Cell printCell, VarContext context) {
-            this.printCell = printCell;
-            this.context = context;
+        public void setPrintWindow(WindowFrame wf) {
+            this.wf = wf;
         }
 
         public int print(Graphics g, PageFormat pageFormat, int page)
@@ -700,25 +755,42 @@ public class FileMenu {
         {
             if (page != 0) return Printable.NO_SUCH_PAGE;
 
-            // create an EditWindow for rendering this cell
-            if (img == null)
-            {
-                EditWindow w = EditWindow.CreateElectricDoc(null, null);
-                int iw = (int)pageFormat.getImageableWidth();
-                int ih = (int)pageFormat.getImageableHeight();
-                w.setScreenSize(new Dimension(iw, ih));
-                w.setCell(printCell, context);
-                PixelDrawing offscreen = w.getOffscreen();
-                offscreen.setBackgroundColor(Color.WHITE);
-                offscreen.drawImage(null);
-                img = offscreen.getImage();
-            }
+			// handle different window types
+			if (wf.getContent() instanceof EditWindow)
+			{
+				EditWindow wnd = (EditWindow)wf.getContent();
+				VarContext context = wnd.getVarContext();
+				Cell printCell = wnd.getCell();
+				if (printCell == null) return Printable.NO_SUCH_PAGE;
 
-            // copy the image to the page
-            int ix = (int)pageFormat.getImageableX();
-            int iy = (int)pageFormat.getImageableY();
-            g.drawImage(img, ix, iy, null);
-            return Printable.PAGE_EXISTS;
+	            // create an EditWindow for rendering this cell
+	            if (img == null)
+	            {
+	                EditWindow w = EditWindow.CreateElectricDoc(null, null);
+	                int iw = (int)pageFormat.getImageableWidth();
+	                int ih = (int)pageFormat.getImageableHeight();
+	                w.setScreenSize(new Dimension(iw, ih));
+	                w.setCell(printCell, context);
+	                PixelDrawing offscreen = w.getOffscreen();
+	                offscreen.setBackgroundColor(Color.WHITE);
+	                offscreen.drawImage(null);
+	                img = offscreen.getImage();
+	            }
+	
+	            // copy the image to the page
+	            int ix = (int)pageFormat.getImageableX();
+	            int iy = (int)pageFormat.getImageableY();
+	            g.drawImage(img, ix, iy, null);
+	            return Printable.PAGE_EXISTS;
+			} else if (wf.getContent() instanceof WaveformWindow)
+			{
+				WaveformWindow ww = (WaveformWindow)wf.getContent();
+				ww.printIt(g);
+				return Printable.PAGE_EXISTS;
+			}
+
+			// can't handle this type of window
+			return Printable.NO_SUCH_PAGE;
         }
     }
 

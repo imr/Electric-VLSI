@@ -2,6 +2,10 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+BUG: (9/9/4, SMR) Area-erase doesn't work in schematics.
+FIX: Better choice of nodes to delete.
+
+IMP: (9/9/04, SMR) HSpice output reader now handles binary files with bytes swapped.
 
 ************************* Version 8.01n: *********************************
 

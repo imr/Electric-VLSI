@@ -426,7 +426,8 @@ public class Input // extends IOTool
 		byteCount += bytesRead;
 		if (progress != null && fileLength > 0)
 		{
-			progress.setProgress((int)(byteCount * 100 / fileLength));
+			long pct = byteCount * 100L / fileLength;
+			progress.setProgress((int)pct);
 		}
 	}
 

@@ -1405,17 +1405,29 @@ public class CircuitChanges
 					headPtAdj = tailPtAdj;
 					tailPtAdj = swap;
 				}
+				Name name = ai.getNameKey();
+				String newName = null;
+				if (!name.isTempname()) newName = name.toString();
 				if (!tailPt.equals(tailPtAdj))
 				{
 					// create a pin at this point
 					PrimitiveNode pin = ((PrimitiveArc)ai.getProto()).findPinProto();
 					NodeInst ni = NodeInst.makeInstance(pin, tailPtAdj, pin.getDefWidth(), pin.getDefHeight(), 0, cell, null);
-					if (ni == null) continue;
+					if (ni == null)
+					{
+						System.out.println("Error creating pin for shortening of arc "+ai.describe());
+						continue;
+					}
 
 					ArcInst ai1 = ArcInst.makeInstance(ai.getProto(), ai.getWidth(),
 						ai.getTail().getPortInst(), ai.getTail().getLocation(),
-						ni.getOnlyPortInst(), tailPtAdj, ai.getName());
-					if (ai1 == null) continue;
+						ni.getOnlyPortInst(), tailPtAdj, newName);
+					if (ai1 == null)
+					{
+						System.out.println("Error shortening arc "+ai.describe());
+						continue;
+					}
+					newName = null;
 					ai1.copyProperties(ai);
 				}
 				if (!headPt.equals(headPtAdj))
@@ -1423,11 +1435,19 @@ public class CircuitChanges
 					// create a pin at this point
 					PrimitiveNode pin = ((PrimitiveArc)ai.getProto()).findPinProto();
 					NodeInst ni = NodeInst.makeInstance(pin, headPtAdj, pin.getDefWidth(), pin.getDefHeight(), 0, cell, null);
-					if (ni == null) continue;
+					if (ni == null)
+					{
+						System.out.println("Error creating pin for shortening of arc "+ai.describe());
+						continue;
+					}
 
 					ArcInst ai1 = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), ni.getOnlyPortInst(), headPtAdj,
-						ai.getHead().getPortInst(), ai.getHead().getLocation(), ai.getName());
-					if (ai1 == null) continue;
+						ai.getHead().getPortInst(), ai.getHead().getLocation(), newName);
+					if (ai1 == null)
+					{
+						System.out.println("Error shortening arc "+ai.describe());
+						continue;
+					}
 					ai1.copyProperties(ai);
 				}
 				ai.kill();
@@ -1442,8 +1462,8 @@ public class CircuitChanges
 				// if the node is outside of the area, ignore it
 				double cX = ni.getTrueCenterX();
 				double cY = ni.getTrueCenterY();
-				if (cX > hX || cX < lX || cY > hY || cY < lY) continue;
-		
+				if (cX >= hX || cX <= lX || cY >= hY || cY <= lY) continue;
+
 				// if it cannot be modified, stop
 				if (cantEdit(cell, ni, true)) continue;
 				nodesToDelete.add(ni);
@@ -4818,12 +4838,12 @@ public class CircuitChanges
 
 			if (verbose)
 			{
-				if (Library.getCurrent() != toLib)
+				if (fromCell.getLibrary() != toLib)
 				{
 					String msg = "";
 					if (move) msg += "Moved "; else
 						 msg += "Copied ";
-					msg += subDescript + newFromCell.libDescribe() +
+					msg += subDescript + fromCell.libDescribe() +
 						" to library " + toLib.getName();
 					System.out.println(msg);
 				} else

@@ -1940,6 +1940,8 @@ public class WaveformWindow implements WindowContent
 				this.color = Color.RED;
 				wavePanel.digitalSignalButton.setText(sigName);
 				wavePanel.waveSignals.put(wavePanel.digitalSignalButton, this);
+				sigButton = wavePanel.digitalSignalButton;
+				sigButton.setForeground(this.color);
 			}
 		}
 
@@ -3808,6 +3810,20 @@ public class WaveformWindow implements WindowContent
 			mainTimePanel.repaint();
 		// redo the explorer tree if it changed
 		//wf.redoExplorerTreeIfRequested();
+	}
+
+	public void printIt(Graphics g)
+	{
+		overall.paint(g);
+		left.paint(g);
+		right.paint(g);
+		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next();
+			wp.paint(g);
+		}
+		if (mainTimePanel != null)
+			mainTimePanel.paint(g);
 	}
 
 	public void fireCellHistoryStatus()
