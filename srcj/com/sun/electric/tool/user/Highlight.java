@@ -424,6 +424,46 @@ public class Highlight
     }
 
     /**
+     * Check if two Highlights highlight the same thing
+     * @param other the other highlight
+     * @return true if equal, false otherwise
+     */
+    public boolean equals(Object other) {
+        if (!(other instanceof Highlight)) return false;
+        Highlight h = (Highlight)other;
+        if (h.getType() != type) return false;
+        if (cell != h.getCell()) return false;
+        if (type == Type.EOBJ) {
+            return (eobj == h.getElectricObject());
+        }
+        if (type == Type.TEXT) {
+            return ((eobj == h.getElectricObject()) &&
+                    (var == h.getVar()) &&
+                    (name == h.getName()));
+        }
+        if (type == Type.MESSAGE) {
+            return (getLocation().equals(h.getLocation()) &&
+                    getMessage().equals(h.getMessage()));
+        }
+        if (type == Type.BBOX) {
+            return (getBounds().equals(h.getBounds()));
+        }
+        if (type == Type.LINE) {
+            return (getLineEnd().equals(h.getLineEnd()) &&
+                    getLineStart().equals(h.getLineStart()));
+        }
+        if (type == Type.THICKLINE) {
+            return (getLineEnd().equals(h.getLineEnd()) &&
+                    getLineStart().equals(h.getLineStart()) &&
+                    getCenter().equals(h.getCenter()));
+        }
+        if (type == Type.POLY) {
+            return ((getPoly() == h.getPoly()) && (getColor() == h.getColor()));
+        }
+        return false;
+    }
+
+    /**
 	 * Method to tell whether this Highlight is text that stays with its node.
 	 * The two possibilities are (1) text on invisible pins
 	 * (2) export names, when the option to move exports with their labels is requested.

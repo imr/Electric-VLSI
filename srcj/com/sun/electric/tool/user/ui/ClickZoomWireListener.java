@@ -843,29 +843,40 @@ public class ClickZoomWireListener
         Highlighter highlighter = wnd.getHighlighter();
         Highlighter mouseOverHighlighter = wnd.getMouseOverHighlighter();
 
-        // draw mouse over highlight
-        mouseOverHighlighter.copyState(highlighter);
+        // create temporary highlighter
+        Highlighter tempHighlighter = new Highlighter(Highlighter.MOUSEOVER_HIGHLIGHTER, null);
+        tempHighlighter.copyState(highlighter);
 
         Point2D screenMouse = wnd.databaseToScreen(dbMouse);
-        if (!another && !invertSelection && mouseOverHighlighter.overHighlighted(wnd,
+        if (!another && !invertSelection && tempHighlighter.overHighlighted(wnd,
                 (int)screenMouse.getX(), (int)screenMouse.getY())) {
             // maintain current selection
-            mouseOverHighlighter.finished();
         } else {
             // find something that would get selected
-            mouseOverHighlighter.findObject(dbMouse, wnd, false, another, invertSelection, true, false, specialSelect, true);
-            // findObject calls finish()
+            tempHighlighter.findObject(dbMouse, wnd, false, another, invertSelection, true, false, specialSelect, true);
+        }
+        // check if mouse-over highlight needs to change
+        List mouseOld = mouseOverHighlighter.getHighlights();
+        List mouseNew = tempHighlighter.getHighlights();
+        boolean changed = false;
+        if (mouseOld.size() == mouseNew.size()) {
+            for (int i=0; i<mouseOld.size(); i++) {
+                Highlight h1 = (Highlight)mouseOld.get(i);
+                Highlight h2 = (Highlight)mouseNew.get(i);
+                if (!h1.equals(h2)) { changed = true; break; }
+            }
+        } else
+            changed = true;
+
+        if (changed) {
+            // copy state into mouse highlighter, signal change (using finished)
+            mouseOverHighlighter.copyState(tempHighlighter);
+            mouseOverHighlighter.finished();
         }
     }
     
     public void mouseClicked(MouseEvent e) {
-        //To change body of implemented methods use File | Settings | File Templates
-	    // to detect connection with other WindowContents.
-	    if (e.getSource() instanceof EditWindow)
-	    {
-		    EditWindow wnd = (EditWindow)e.getSource();
-	        WindowFrame.show3DHighlight(wnd);
-	    }
+        //To change body of implemented methods use File | Settings | File Templates.
     }
 
     public void mouseEntered(MouseEvent e) {
