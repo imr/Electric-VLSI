@@ -876,8 +876,27 @@ public class Poly implements Shape
 			}
 		}
 
-		Font font = wnd.getFont(getTextDescriptor());
-		if (font == null) return true;
+		Type style = getStyle();
+		Font font = wnd.getFont(descript);
+		if (font == null)
+		{
+			int size = EditWindow.getDefaultFontSize();
+			if (descript != null) size = descript.getTrueSize(wnd);
+			if (size <= 0) size = 1;
+			double cX = getBounds2D().getCenterX();
+			double cY = getBounds2D().getCenterY();
+			int sizeIndent = (size+1) / 4;
+			int fakeWidth = theString.length() * size;
+			Point2D pt = getTextCorner(style, cX, cY, fakeWidth, size);
+			cX = pt.getX();   cY = pt.getY();
+			points = new Point2D.Double[] {
+				new Point2D.Double(cX, cY+sizeIndent),
+				new Point2D.Double(cX+fakeWidth, cY+sizeIndent),
+				new Point2D.Double(cX+fakeWidth, cY+size-sizeIndent),
+				new Point2D.Double(cX, cY+size-sizeIndent)};
+			this.bounds = null;
+			return false;
+		}
 		Rectangle2D bounds = getBounds2D();
 		double lX = bounds.getMinX();
 		double hX = bounds.getMaxX();
@@ -885,15 +904,22 @@ public class Poly implements Shape
 		double hY = bounds.getMaxY();
 		GlyphVector gv = wnd.getGlyphs(theString, font);
 		Rectangle2D glyphBounds = gv.getVisualBounds();
-		Type style = getStyle();
 		style = rotateType(style, eObj);
-		Point2D corner = getTextCorner(wnd, font, gv, style, lX, hX, lY, hY);
-		double cX = corner.getX();
-		double cY = corner.getY();
-		double textScale = getTextScale(wnd, gv, getStyle(), lX, hX, lY, hY);
+
+		// adjust to place text in the center
+		double textScale = getTextScale(wnd, gv, style, lX, hX, lY, hY);
+		double textWidth = glyphBounds.getWidth();
+		double textHeight = font.getSize();
+		double scaledWidth = textWidth * textScale;
+		double scaledHeight = textHeight * textScale;
+		double cX = (lX + hX) / 2;
+		double cY = (lY + hY) / 2;
+		Point2D corner = getTextCorner(style, cX, cY, scaledWidth, scaledHeight);
+		cX = corner.getX();
+		cY = corner.getY();
 		double width = glyphBounds.getWidth() * textScale;
 		double height = font.getSize() * textScale * numLines;
-		switch (getTextDescriptor().getRotation().getIndex())
+		switch (descript.getRotation().getIndex())
 		{
 			case 1:		// rotate 90 counterclockwise
 				double saveWidth = width;
@@ -1038,24 +1064,15 @@ public class Poly implements Shape
 
 	/**
 	 * Method to return the coordinates of the lower-left corner of text in a window.
-	 * @param wnd the window with the text.
-	 * @param gv the GlyphVector describing the text.
 	 * @param style the anchor information for the text.
-	 * @param lX the low X bound of the polygon containing the text.
-	 * @param hX the high X bound of the polygon containing the text.
-	 * @param lY the low Y bound of the polygon containing the text.
-	 * @param hY the high Y bound of the polygon containing the text.
+	 * @param cX the center X bound of the polygon containing the text.
+	 * @param cY the center Y bound of the polygon containing the text.
+	 * @param scaledWidth the width of the polygon containing the text.
+	 * @param scaledHeight the height of the polygon containing the text.
 	 * @return the coordinates of the lower-left corner of the text.
 	 */
-	private Point2D getTextCorner(EditWindow wnd, Font font, GlyphVector gv, Poly.Type style, double lX, double hX, double lY, double hY)
+	private Point2D getTextCorner(Poly.Type style, double cX, double cY, double scaledWidth, double scaledHeight)
 	{
-		// adjust to place text in the center
-		Rectangle2D glyphBounds = gv.getVisualBounds();
-		double textScale = getTextScale(wnd, gv, style, lX, hX, lY, hY);
-		double textWidth = glyphBounds.getWidth();
-		double textHeight = font.getSize();
-		double scaledWidth = textWidth * textScale;
-		double scaledHeight = textHeight * textScale;
 		double offX = 0, offY = 0;
 		if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTBOX)
 		{
@@ -1112,8 +1129,6 @@ public class Poly implements Shape
 					break;
 			}
 		}
-		double cX = (lX + hX) / 2;
-		double cY = (lY + hY) / 2;
 		return new Point2D.Double(cX+offX, cY+offY);
 	}
 

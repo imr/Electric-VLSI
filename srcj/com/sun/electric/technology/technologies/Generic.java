@@ -48,6 +48,7 @@ import java.util.Iterator;
 public class Generic extends Technology
 {
 	/** the Generic Technology object. */	public static final Generic tech = new Generic();
+	/** the Universal Layer. */				public Layer universal_lay;
 	/** the Universal Pin node. */			public PrimitiveNode universalPinNode;
 	/** the Invisible Pin node. */			public PrimitiveNode invisiblePinNode;
 	/** the Unrouted Pin node. */			public PrimitiveNode unroutedPinNode;
@@ -74,7 +75,7 @@ public class Generic extends Technology
 		//**************************************** LAYERS ****************************************
 
 		/** Universal layer */
-		Layer universal_lay = Layer.newInstance(this, "Universal",
+		universal_lay = Layer.newInstance(this, "Universal",
 			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, 0, 0,0,0,1.0,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 

@@ -2,6 +2,11 @@
 
 ************************* Version 8.01l: *********************************
 
+IMP: (9/2/04, SMR) Small text is now drawn "greek" and is selectable.
+
+BUG: (9/2/04, SMR) Port text is not the right size.
+FIX: In PixelDrawing.showCellPorts(), use size from the actual Export.
+
 IMP: (9/2/04, GVG) Better handling of collections of simple polygons and rings for 
 enclosure area checking.
 

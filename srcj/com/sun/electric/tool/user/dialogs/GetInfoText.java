@@ -432,9 +432,11 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 			this.cti = cti;
 			this.wnd = wnd;
 
+			// make the field bigger
 			if (cti.isMultiLineCapable())
 			{
-				tc = new JEditorPane("text/plain", cti.initialText);
+				JEditorPane ep = new JEditorPane("text/plain", cti.initialText);
+				tc = ep;
 				height *= 2;
 			} else
 			{
@@ -445,12 +447,16 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 				});
 				tc = tf;
 			}
+			width += 4;
+
 			tc.setSize(new Dimension(width, height));
 			tc.setLocation(lowX, lowY);
 			tc.setBorder(new EmptyBorder(0,0,0,0));
 			if (theFont != null) tc.setFont(theFont);
+			javax.swing.text.Document doc = tc.getDocument();
+			System.out.println("Document is "+doc);
 			tc.selectAll();
-	
+
 			wnd.add(tc);
 			tc.setVisible(true);
 			tc.repaint();

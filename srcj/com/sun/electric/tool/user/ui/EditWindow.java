@@ -711,7 +711,15 @@ public class EditWindow extends JPanel
 		{
 			// do the hard work of re-rendering the image
             //long start = System.currentTimeMillis();
-			offscreen.drawImage(bounds);
+            try
+            {
+				offscreen.drawImage(bounds);
+            } catch (java.util.ConcurrentModificationException e)
+            {
+				System.out.println("GOT ConcurrentModificationException during redisplay!");
+            	ActivityLogger.logException(e);
+				wnd.repaintContents(bounds);
+            }
             //long end = System.currentTimeMillis();
             //System.out.println("Rerender time "+TextUtils.getElapsedTime(end-start));
 

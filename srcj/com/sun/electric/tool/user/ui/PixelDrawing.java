@@ -798,7 +798,11 @@ public class PixelDrawing
 				// draw port as text
 				if (User.isTextVisibilityOnPort())
 				{
+					// combine all features of port text with color of the port
 					TextDescriptor descript = portPoly.getTextDescriptor();
+					TextDescriptor portDescript = pp.getTextDescriptor();
+					TextDescriptor newDescript = new TextDescriptor(pp, portDescript);
+					newDescript.lowLevelSetColorIndex(descript.getColorIndex());
 					Poly.Type type = descript.getPos().getPolyType();
 					String portName = pp.getName();
 					if (portDisplayLevel == 1)
@@ -808,7 +812,7 @@ public class PixelDrawing
 					}
 					Point pt = wnd.databaseToScreen(portPoly.getCenterX(), portPoly.getCenterY());
 					Rectangle rect = new Rectangle(pt);
-					drawText(rect, type, descript, portName, null, portGraphics);
+					drawText(rect, type, newDescript, portName, null, portGraphics);
 				}
 			}
 		}
@@ -1288,7 +1292,7 @@ public class PixelDrawing
 				if (hX >= sz.width) hX = sz.width-1;
 				if (lY < 0) lY = 0;
 				if (hY >= sz.height) hY = sz.height-1;
-				if (lX > hX || lY > hY) return;
+//				if (lX > hX || lY > hY) return;
 
 				// draw the box
 				drawBox(lX, hX, lY, hY, layerBitMap, graphics);
@@ -1965,9 +1969,31 @@ public class PixelDrawing
 		int rotation = 0;
 		if (descript != null)
 		{
+			rotation = descript.getRotation().getIndex();
+			int colorIndex = descript.getColorIndex();
+			if (colorIndex != 0)
+			{
+				Color full = EGraphics.getColorFromIndex(colorIndex);
+				if (full != null) col = full.getRGB() & 0xFFFFFF;
+			}
 			size = descript.getTrueSize(wnd);
 			if (size < MINIMUMTEXTSIZE)
 			{
+				// text too small: make it "greek"
+				if (size < 1) size = 1;
+				int sizeIndent = (size+1) / 4;
+				int fakeWidth = len * size;
+				Point pt = getTextCorner(fakeWidth, size, style, rect, rotation);
+
+				// do clipping
+				int lX = pt.x;   int hX = lX + fakeWidth;
+				int lY = pt.y + sizeIndent;   int hY = pt.y + size - sizeIndent;
+				if (lX < 0) lX = 0;
+				if (hX >= sz.width) hX = sz.width-1;
+				if (lY < 0) lY = 0;
+				if (hY >= sz.height) hY = sz.height-1;
+
+				drawBox(lX, hX, lY, hY, layerBitMap, desc);
 				return;
 			}
 			italic = descript.isItalic();
@@ -1978,13 +2004,6 @@ public class PixelDrawing
 			{
 				TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(fontIndex);
 				if (af != null) fontName = af.getName();
-			}
-			rotation = descript.getRotation().getIndex();
-			int colorIndex = descript.getColorIndex();
-			if (colorIndex != 0)
-			{
-				Color full = EGraphics.getColorFromIndex(colorIndex);
-				if (full != null) col = full.getRGB() & 0xFFFFFF;
 			}
 		}
 

@@ -923,10 +923,7 @@ public class Technology extends ElectricObject
 
 		// see how many polygons describe this arc
 		boolean addArrow = false;
-		if (!tech.isNoDirectionalArcs() && ai.isDirectional())
-		{
-			if (!ai.isSkipHead()) addArrow = true;
-		}
+		if (!tech.isNoDirectionalArcs() && ai.isDirectional()) addArrow = true;
 		int numDisplayable = ai.numDisplayableVariables(true);
 		if (wnd == null) numDisplayable = 0;
 		int maxPolys = primLayers.length + numDisplayable;
@@ -965,20 +962,29 @@ public class Technology extends ElectricObject
 			{
 				angle += 1800;
 			}
-			Point2D [] points = new Point2D.Double[4];
-			if (!ai.isSkipHead())
+			Point2D [] points = null;
+			
+			if (ai.isSkipHead())
 			{
+				points = new Point2D.Double[2];
+				points[0] = new Point2D.Double(headX, headY);
+				points[1] = new Point2D.Double(tailX, tailY);
+			} else
+			{
+				points = new Point2D.Double[6];
 				int angleOfArrow = 300;		// 30 degrees
 				int backAngle1 = angle - angleOfArrow;
 				int backAngle2 = angle + angleOfArrow;
 				points[0] = new Point2D.Double(headX, headY);
-				points[1] = new Point2D.Double(headX + DBMath.cos(backAngle1), headY + DBMath.sin(backAngle1));
-				points[2] = points[0];
-				points[3] = new Point2D.Double(headX + DBMath.cos(backAngle2), headY + DBMath.sin(backAngle2));
+				points[1] = new Point2D.Double(tailX, tailY);
+				points[2] = new Point2D.Double(headX, headY);
+				points[3] = new Point2D.Double(headX + DBMath.cos(backAngle1), headY + DBMath.sin(backAngle1));
+				points[4] = points[0];
+				points[5] = new Point2D.Double(headX + DBMath.cos(backAngle2), headY + DBMath.sin(backAngle2));
 			}
 			polys[polyNum] = new Poly(points);
 			polys[polyNum].setStyle(Poly.Type.VECTORS);
-			polys[polyNum].setLayer(lastLayer);
+			polys[polyNum].setLayer(Generic.tech.universal_lay);
 			polyNum++;
 		}
 		
