@@ -188,8 +188,9 @@ public class View3DWindow extends JPanel
 		canvas.addMouseListener(this);
 
         // Set global appearances before create the elements
-        J3DAppearance.setCellAppearanceValues();
-        J3DAppearance.setHighlightedAppearanceValues();
+        J3DAppearance.setCellAppearanceValues(this);
+        J3DAppearance.setHighlightedAppearanceValues(this);
+
 
 		// Create a simple scene and attach it to the virtual universe
 		BranchGroup scene = createSceneGraph(cell, infiniteBounds);
@@ -335,28 +336,31 @@ public class View3DWindow extends JPanel
 		View3DEnumerator view3D = new View3DEnumerator();
 		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, view3D);
 
-		// Lights
-        Color3f alColor = new Color3f(0.6f, 0.6f, 0.6f);
-        AmbientLight aLgt = new AmbientLight(alColor); //J3DUtils.white);
-        AmbientLight ambLight = new AmbientLight( true, new Color3f( 1.0f, 1.0f, 1.0f ) );
-		Vector3f lightDir1 = new Vector3f(-1.0f, -1.0f, -1.0f);
-        Vector3f lightDir2 = new Vector3f(1.0f, 1.0f, 1.0f);
-		DirectionalLight light1 = new DirectionalLight(J3DUtils.white, lightDir1);
-        DirectionalLight light2 = new DirectionalLight(J3DUtils.white, lightDir2);
-        DirectionalLight headLight = new DirectionalLight( );
+        // lights
+        J3DUtils.createLights(objRoot, objTrans);
 
-		// Setting the influencing bounds
-		light1.setInfluencingBounds(infiniteBounds);
-        light2.setInfluencingBounds(infiniteBounds);
-        ambLight.setInfluencingBounds(infiniteBounds);
-	    aLgt.setInfluencingBounds(infiniteBounds);
-        headLight.setInfluencingBounds(infiniteBounds);
-		// Allow to turn off light while the scene graph is live
-		light1.setCapability(Light.ALLOW_STATE_WRITE);
-		// Add light to the env.
-        objRoot.addChild(aLgt);
-		objTrans.addChild(light1);
-        //objTrans.addChild(light2);
+		// Lights
+//        Color3f alColor = new Color3f(0.6f, 0.6f, 0.6f);
+//        AmbientLight aLgt = new AmbientLight(alColor); //J3DUtils.white);
+//        AmbientLight ambLight = new AmbientLight( true, new Color3f( 1.0f, 1.0f, 1.0f ) );
+//		Vector3f lightDir1 = new Vector3f(-1.0f, -1.0f, -1.0f);
+//        Vector3f lightDir2 = new Vector3f(1.0f, 1.0f, 1.0f);
+//		DirectionalLight light1 = new DirectionalLight(J3DUtils.white, lightDir1);
+//        DirectionalLight light2 = new DirectionalLight(J3DUtils.white, lightDir2);
+//        DirectionalLight headLight = new DirectionalLight( );
+//
+//		// Setting the influencing bounds
+//		light1.setInfluencingBounds(infiniteBounds);
+//        light2.setInfluencingBounds(infiniteBounds);
+//        ambLight.setInfluencingBounds(infiniteBounds);
+//	    aLgt.setInfluencingBounds(infiniteBounds);
+//        headLight.setInfluencingBounds(infiniteBounds);
+//		// Allow to turn off light while the scene graph is live
+//		light1.setCapability(Light.ALLOW_STATE_WRITE);
+//		// Add light to the env.
+//        objRoot.addChild(aLgt);
+//		objTrans.addChild(light1);
+//        //objTrans.addChild(light2);
 
 		// Picking tools
         //PickZoomBehavior behavior2 = new PickZoomBehavior(objRoot, canvas, infiniteBounds);

@@ -48,13 +48,12 @@ public class JThreeDSideView extends JPanel
     {
         parentDialog = dialog;
         GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
-        BoundingSphere infiniteBounds = new BoundingSphere(new Point3d(), Double.MAX_VALUE);
         setLayout(new BorderLayout());
         Canvas3D canvas = new Canvas3D(config);
         add("Center", canvas);
         canvas.addMouseListener(this);
 
-        BranchGroup scene = createSceneGraph(canvas, infiniteBounds);
+        BranchGroup scene = createSceneGraph(canvas, J3DUtils.infiniteBounds);
 
 //        SimpleUniverse u = new SimpleUniverse(canvas);
 //        u.getViewingPlatform().setNominalViewingTransform();
@@ -77,11 +76,11 @@ public class JThreeDSideView extends JPanel
         BranchGroup rotateBG = new BranchGroup();
         rotateBG.addChild(rotate);
         u.getViewingPlatform().addChild(rotateBG);
-        rotate.setSchedulingBounds(infiniteBounds);
+        rotate.setSchedulingBounds(J3DUtils.infiniteBounds);
 
         JMouseZoom zoom = new JMouseZoom(canvas, MouseZoom.INVERT_INPUT);
         zoom.setTransformGroup(u.getViewingPlatform().getMultiTransformGroup().getTransformGroup(1));
-        zoom.setSchedulingBounds(infiniteBounds);
+        zoom.setSchedulingBounds(J3DUtils.infiniteBounds);
         zoom.setFactor(0.7);    // default 0.4
         BranchGroup zoomBG = new BranchGroup();
         zoomBG.addChild(zoom);
@@ -89,7 +88,7 @@ public class JThreeDSideView extends JPanel
 
         JMouseTranslate translate = new JMouseTranslate(canvas, MouseTranslate.INVERT_INPUT);
         translate.setTransformGroup(u.getViewingPlatform().getMultiTransformGroup().getTransformGroup(2));
-        translate.setSchedulingBounds(infiniteBounds);
+        translate.setSchedulingBounds(J3DUtils.infiniteBounds);
         translate.setFactor(0.01 * (highHeight-lowHeight)); // default 0.02
         BranchGroup translateBG = new BranchGroup();
         translateBG.addChild(translate);
@@ -167,7 +166,7 @@ public class JThreeDSideView extends JPanel
         }
 
         // lights
-        J3DUtils.createLights(infiniteBounds, objRoot, objTrans);
+        J3DUtils.createLights(objRoot, objTrans);
 
         // picking tool
         pickCanvas = new PickCanvas(canvas, objRoot);

@@ -49,25 +49,46 @@ public final class J3DUtils
 {
     /** standard colors to be used by materials **/         public static final Color3f black = new Color3f(0.0f, 0.0f, 0.0f);
     /** standard colors to be used by materials **/         public static final Color3f white = new Color3f(1.0f, 1.0f, 1.0f);
+    /** Ambiental light **/                 private static Color3f ambientalColor;
+    /** Directional light **/               private static Color3f directionalColor;
+    /** Directional vector **/              private static Vector3f light1 = new Vector3f(-1.0f, -1.0f, -1.0f);
 
-    public static void createLights(BoundingSphere infiniteBounds, BranchGroup scene, TransformGroup objTrans)
+    public static final BoundingSphere infiniteBounds = new BoundingSphere(new Point3d(), Double.MAX_VALUE);
+
+    /**
+     * Method to set ambiental color
+     * @param initValue null if value has to be redone from user data
+     */
+    public static void setAmbientalColor(Object initValue)
     {
+        ambientalColor = new Color3f(new Color(User.get3DColorAmbientLight()));
+        if (initValue == null)
+            System.out.println("brodcast change in ambiental color");
+    }
 
-        // Lights
-        Color3f alColor = new Color3f(0.6f, 0.6f, 0.6f);
-        AmbientLight aLgt = new AmbientLight(alColor);
-        Vector3f lightDir1 = new Vector3f(-1.0f, -1.0f, -1.0f);
-        DirectionalLight light1 = new DirectionalLight(white, lightDir1);
+    public static void setDirectionalColor(Object initValue)
+    {
+        directionalColor = new Color3f(new Color(User.get3DColorDirectionalLight()));
+        if (initValue == null)
+            System.out.println("brodcast change in directional color");
+    }
 
-        // Setting the influencing bounds
-        light1.setInfluencingBounds(infiniteBounds);
-        aLgt.setInfluencingBounds(infiniteBounds);
+    public static void createLights(BranchGroup scene, TransformGroup objTrans)
+    {
+        // Checking if light colors are available
+        setDirectionalColor(scene);
+        setAmbientalColor(scene);
+
+        AmbientLight ambientalLight =  new AmbientLight(ambientalColor);
+        ambientalLight.setInfluencingBounds(infiniteBounds);
+        DirectionalLight directionalLight = new DirectionalLight(directionalColor, light1);
+        directionalLight.setInfluencingBounds(infiniteBounds);
         // Allow to turn off light while the scene graph is live
-        light1.setCapability(Light.ALLOW_STATE_WRITE);
-        // Add light to the env.
-        scene.addChild(aLgt);
-        objTrans.addChild(light1);
+        directionalLight.setCapability(Light.ALLOW_STATE_WRITE);
 
+        // Add lights to the env.
+        scene.addChild(ambientalLight);
+        objTrans.addChild(directionalLight);
     }
 
     public static void setViewPoint(SimpleUniverse u, Canvas3D canvas, BranchGroup scene, Rectangle2D cellBnd)

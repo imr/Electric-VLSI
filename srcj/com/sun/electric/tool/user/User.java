@@ -957,55 +957,121 @@ public class User extends Listener
 	 */
 	public static void setColorInstanceOutline(int c) { cacheColorInstanceOutline.setInt(c); }
 
-    private static Pref cacheColorInstanceCell3D = Pref.makeIntPref("ColorInstanceCell3D", User.tool.prefs, Color.GRAY.getRGB());
+    /****************************** 3D COLOR PREFERENCES ******************************/
+
+    private static Pref cache3DColorInstanceCell = Pref.makeIntPref("3DColorInstanceCell", User.tool.prefs, Color.GRAY.getRGB());
 	/**
 	 * Method to get the color of the cell instance on the 3D display.
 	 * The default is "gray".
 	 * @return the color of the cell instance on the 3D display.
 	 */
-	public static int getColorInstanceCell3D() { return cacheColorInstanceCell3D.getInt(); }
+	public static int get3DColorInstanceCell() { return cache3DColorInstanceCell.getInt(); }
 	/**
 	 * Method to set the color of the cell instance on the 3D display.
 	 * @param c the color of the cell instance on the 3D display.
 	 */
-	public static void setColorInstanceCell3D(int c)
+	public static void set3DColorInstanceCell(int c)
     {
-        cacheColorInstanceCell3D.setInt(c);
+        cache3DColorInstanceCell.setInt(c);
 
         try
         {
             Class j3DAppClass = Resources.get3DClass("utils.J3DAppearance");
-            Method setCellAppMethod = j3DAppClass.getDeclaredMethod("setCellAppearanceValues", new Class[] {});
-            setCellAppMethod.invoke(j3DAppClass, new Object[]{});
+            Method setMethod = j3DAppClass.getDeclaredMethod("setCellAppearanceValues", new Class[] {Object.class});
+            setMethod.invoke(j3DAppClass, new Object[]{null});
         } catch (Exception e) {
             System.out.println("Cannot call 3D plugin method setCellAppearanceValues: " + e.getMessage());
         }
     }
 
-    private static Pref cacheColorHighlighted3D = Pref.makeIntPref("ColorHighlighted3D", User.tool.prefs, Color.GRAY.getRGB());
+    private static Pref cache3DColorHighlighted = Pref.makeIntPref("3DColorHighlighted", User.tool.prefs, Color.GRAY.getRGB());
 	/**
 	 * Method to get the color of the highlighted instance on the 3D display.
 	 * The default is "gray".
 	 * @return the color of the highlighted instance on the 3D display.
 	 */
-	public static int getColorHighlighted3D() { return cacheColorHighlighted3D.getInt(); }
+	public static int get3DColorHighlighted() { return cache3DColorHighlighted.getInt(); }
 	/**
 	 * Method to set the color of the highlighted instance on the 3D display.
 	 * @param c the color of the highlighted instance on the 3D display.
 	 */
-	public static void setColorHighlighted3D(int c)
+	public static void set3DColorHighlighted(int c)
     {
-        cacheColorHighlighted3D.setInt(c);
+        cache3DColorHighlighted.setInt(c);
 
         try
         {
             Class j3DAppClass = Resources.get3DClass("utils.J3DAppearance");
-            Method setHighlightAppMethod = j3DAppClass.getDeclaredMethod("setHighlightedAppearanceValues", new Class[] {});
-            setHighlightAppMethod.invoke(j3DAppClass, new Object[]{});
+            Method setMethod = j3DAppClass.getDeclaredMethod("setHighlightedAppearanceValues", new Class[] {Object.class});
+            setMethod.invoke(j3DAppClass, new Object[]{null});
         } catch (Exception e) {
             System.out.println("Cannot call 3D plugin method setHighlightedAppearanceValues: " + e.getMessage());
         }
     }
+
+    private static Pref cache3DColorAmbient = Pref.makeIntPref("3DColorAmbient", User.tool.prefs, Color.GRAY.getRGB());
+	/**
+	 * Method to get the ambiental color on the 3D display.
+	 * The default is "gray".
+	 * @return the ambiental color on the 3D display.
+	 */
+	public static int get3DColorAmbientLight() { return cache3DColorAmbient.getInt(); }
+	/**
+	 * Method to set the ambiental color on the 3D display.
+	 * @param c the ambiental color on the 3D display.
+	 */
+	public static void set3DColorAmbientLight(int c)
+    {
+        cache3DColorAmbient.setInt(c);
+
+        try
+        {
+            Class j3DUtilsClass = Resources.get3DClass("utils.J3DUtils");
+            Method setMethod = j3DUtilsClass.getDeclaredMethod("setAmbientalColor", new Class[] {Object.class});
+            setMethod.invoke(j3DUtilsClass, new Object[]{null});
+        } catch (Exception e) {
+            System.out.println("Cannot call 3D plugin method setAmbientalColor: " + e.getMessage());
+        }
+    }
+
+    private static Pref cache3DColorLight = Pref.makeIntPref("3DColorAmbient", User.tool.prefs, Color.GRAY.getRGB());
+	/**
+	 * Method to get the color of directional light on the 3D display.
+	 * The default is "gray".
+	 * @return the color of directional light on the 3D display.
+	 */
+	public static int get3DColorDirectionalLight() { return cache3DColorLight.getInt(); }
+	/**
+	 * Method to set the color of directional light on the 3D display.
+	 * @param c the color of directional light on the 3D display.
+	 */
+	public static void set3DColorDirectionalLight(int c)
+    {
+        cache3DColorLight.setInt(c);
+
+        try
+        {
+            Class j3DUtilsClass = Resources.get3DClass("utils.J3DUtils");
+            Method setMethod = j3DUtilsClass.getDeclaredMethod("setDirectionalColor", new Class[] {Object.class});
+            setMethod.invoke(j3DUtilsClass, new Object[]{null});
+        } catch (Exception e) {
+            System.out.println("Cannot call 3D plugin method setDirectionalColor: " + e.getMessage());
+        }
+    }
+
+    private static Pref cache3DLightDirOne = Pref.makeStringPref("3DLightDirOne", User.tool.prefs, "1 0 0");
+	/**
+	 * Method to return the first light direction.
+	 * The default is the X axis.
+	 * @return the company name to use in schematic frames.
+	 */
+	public static String get3DLightDirOne() { return cache3DLightDirOne.getString(); }
+	/**
+	 * Method to set the first light direction.
+     * It is stored as string
+	 * @param c the company name to use in schematic frames.
+	 */
+	public static void set3DLightDirOne(String c) { cache3DLightDirOne.setString(c); }
 
 	/****************************** UNITS PREFERENCES ******************************/
 

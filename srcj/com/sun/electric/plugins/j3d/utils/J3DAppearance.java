@@ -30,8 +30,8 @@ public class J3DAppearance extends Appearance
 
     private EGraphics graphics; // reference to layer for fast access to appearance
 
-	/** cell has a unique appearance **/                    public static J3DAppearance cellApp;
-    /** highligh appearance **/ public static J3DAppearance highligtAp;
+	/** cell has a unique appearance **/    public static J3DAppearance cellApp;
+    /** highligh appearance **/             public static J3DAppearance highligtAp;
 
     public J3DAppearance(J3DAppearance app)
     {
@@ -155,10 +155,6 @@ public class J3DAppearance extends Appearance
      * @param material material to change if available
      * @param color
      */
-    /**
-     *
-     * @param color
-     */
     public void set3DColor(Object material, Color color)
     {
         Material mat = (material == null) ? getMaterial() : (Material)material;
@@ -168,20 +164,29 @@ public class J3DAppearance extends Appearance
         mat.setSpecularColor(objColor);
         mat.setAmbientColor(objColor);
     }
-    
-    public static void setHighlightedAppearanceValues()
+
+    /**
+     * Method to access appearance of highlighted nodes in 3D
+     * @param initValue false if appearance has to be changed according to user value
+     */
+    public static void setHighlightedAppearanceValues(Object initValue)
     {
-        Color userColor = new Color(User.getColorHighlighted3D());
+        Color userColor = new Color(User.get3DColorHighlighted());
 
         if (highligtAp == null)
             highligtAp = new J3DAppearance(null, TransparencyAttributes.BLENDED, 0.5f, userColor);
-        else // just redoing color
+        else if (initValue == null) // redoing color only when it was changed in GUI
             highligtAp.set3DColor(null, userColor);
     }
 
-    public static void setCellAppearanceValues()
+    /**
+     * Method to access appearance for cells in 3D
+     * @param initValue no null if appearance has to be changed according to user value. Using
+     * this mechanism to avoid the creation of new Boolean() just for the checking
+     */
+    public static void setCellAppearanceValues(Object initValue)
     {
-        Color3f userColor = new Color3f(new Color(User.getColorInstanceCell3D()));
+        Color3f userColor = new Color3f(new Color(User.get3DColorInstanceCell()));
 
         if (cellApp == null)
         {
@@ -211,7 +216,7 @@ public class J3DAppearance extends Appearance
             cellApp.setCapability(Appearance.ALLOW_COLORING_ATTRIBUTES_READ);
             cellApp.setCapability(Appearance.ALLOW_COLORING_ATTRIBUTES_WRITE);
         }
-        else // just redoing color
+        else if (initValue == null) // redoing color only when it was changed in GUI
         {
             ColoringAttributes ca = cellApp.getColoringAttributes();
             Color3f curColor = new Color3f();

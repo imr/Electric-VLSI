@@ -176,13 +176,23 @@ public class ColorsTab extends PreferencePanel
 		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
 
         // 3D Stuff
-        color = User.getColorInstanceCell3D();
-		name = "Special: CELL INSTANCES IN 3D";
+        color = User.get3DColorInstanceCell();
+		name = "Special: 3D CELL INSTANCES";
 		colorLayerModel.addElement(name);
 		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
 
-        color = User.getColorHighlighted3D();
-		name = "Special: HIGHLIGHTED INSTANCES IN 3D";
+        color = User.get3DColorHighlighted();
+		name = "Special: 3D HIGHLIGHTED INSTANCES";
+		colorLayerModel.addElement(name);
+		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
+
+        color = User.get3DColorAmbientLight();
+		name = "Special: 3D AMBIENT LIGHT";
+		colorLayerModel.addElement(name);
+		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
+
+        color = User.get3DColorDirectionalLight();
+		name = "Special: 3D DIRECTIONAL LIGHT";
 		colorLayerModel.addElement(name);
 		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
 
@@ -331,18 +341,32 @@ public class ColorsTab extends PreferencePanel
 						User.setColorInstanceOutline(color.intValue());
 						colorChanged = true;
 					}
-                } else if (layerName.equals("Special: CELL INSTANCES IN 3D"))
+                } else if (layerName.equals("Special: 3D CELL INSTANCES"))
 				{
-					if (color.intValue() != User.getColorInstanceCell3D())
+					if (color.intValue() != User.get3DColorInstanceCell())
 					{
-						User.setColorInstanceCell3D(color.intValue());
+						User.set3DColorInstanceCell(color.intValue());
 						colorChanged = true;
 					}
-                } else if (layerName.equals("Special: HIGHLIGHTED INSTANCES IN 3D"))
+                } else if (layerName.equals("Special: 3D HIGHLIGHTED INSTANCES"))
 				{
-					if (color.intValue() != User.getColorHighlighted3D())
+					if (color.intValue() != User.get3DColorHighlighted())
 					{
-						User.setColorHighlighted3D(color.intValue());
+						User.set3DColorHighlighted(color.intValue());
+						colorChanged = true;
+					}
+                } else if (layerName.equals("Special: 3D AMBIENT LIGHT"))
+				{
+					if (color.intValue() != User.get3DColorAmbientLight())
+					{
+						User.set3DColorAmbientLight(color.intValue());
+						colorChanged = true;
+					}
+                } else if (layerName.equals("Special: 3D DIRECTIONAL LIGHT"))
+				{
+					if (color.intValue() != User.get3DColorDirectionalLight())
+					{
+						User.set3DColorDirectionalLight(color.intValue());
 						colorChanged = true;
 					}
 				}

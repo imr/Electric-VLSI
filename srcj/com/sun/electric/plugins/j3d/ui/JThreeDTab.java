@@ -232,6 +232,9 @@ public class JThreeDTab extends ThreeDTab
             public void actionPerformed(ActionEvent evt) { threeDValuesChanged(true); }
         });
 
+        // Light boxes
+        String light1 = User.get3DLightDirOne();
+        dirOneBox.setSelected(!(light1.equals("") || light1.equals("0 0 0 ")));
         // Setting the initial values
 		threeDValuesChanged(false);
 	}
@@ -370,12 +373,29 @@ public class JThreeDTab extends ThreeDTab
         threeDAntialiasing = new javax.swing.JCheckBox();
         jLabel48 = new javax.swing.JLabel();
         threeDZoom = new javax.swing.JTextField();
-        jPanel1 = new javax.swing.JPanel();
+        transparencyPanel = new javax.swing.JPanel();
         transparencyMode = new javax.swing.JComboBox();
         transparancyField = new javax.swing.JTextField();
         transparencyLabel = new javax.swing.JLabel();
         transparencyModeLabel = new javax.swing.JLabel();
         separator = new javax.swing.JSeparator();
+        directionPanel = new javax.swing.JPanel();
+        dirOneBox = new javax.swing.JCheckBox();
+        dirTwoBox = new javax.swing.JCheckBox();
+        dirOnePanel = new javax.swing.JPanel();
+        xDirOne = new javax.swing.JLabel();
+        yDirOne = new javax.swing.JLabel();
+        zDirOne = new javax.swing.JLabel();
+        xDirOneField = new javax.swing.JTextField();
+        yDirOneField = new javax.swing.JTextField();
+        zDirOneField = new javax.swing.JTextField();
+        dirTwoPanel = new javax.swing.JPanel();
+        xDirTwo = new javax.swing.JLabel();
+        yDirTwo = new javax.swing.JLabel();
+        zDirTwo = new javax.swing.JLabel();
+        xDirTwoField = new javax.swing.JTextField();
+        yDirTwoField = new javax.swing.JTextField();
+        zDirTwoField = new javax.swing.JTextField();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -441,6 +461,7 @@ public class JThreeDTab extends ThreeDTab
         threeD.add(threeDHeight, gridBagConstraints);
 
         threeDPerspective.setText("Use Perspective");
+        threeDPerspective.setToolTipText("Perspective or Parallel View");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 6;
@@ -449,6 +470,7 @@ public class JThreeDTab extends ThreeDTab
         threeD.add(threeDPerspective, gridBagConstraints);
 
         threeDAntialiasing.setText("Use Antialiasing");
+        threeDAntialiasing.setToolTipText("Turn on Antialiasing if available");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 7;
@@ -472,9 +494,9 @@ public class JThreeDTab extends ThreeDTab
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         threeD.add(threeDZoom, gridBagConstraints);
 
-        jPanel1.setLayout(new java.awt.GridBagLayout());
+        transparencyPanel.setLayout(new java.awt.GridBagLayout());
 
-        jPanel1.setBorder(new javax.swing.border.TitledBorder("Transparency Options"));
+        transparencyPanel.setBorder(new javax.swing.border.TitledBorder("Transparency Options"));
         transparencyMode.setToolTipText("");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -483,7 +505,7 @@ public class JThreeDTab extends ThreeDTab
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel1.add(transparencyMode, gridBagConstraints);
+        transparencyPanel.add(transparencyMode, gridBagConstraints);
 
         transparancyField.setMinimumSize(new java.awt.Dimension(20, 21));
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -493,7 +515,7 @@ public class JThreeDTab extends ThreeDTab
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel1.add(transparancyField, gridBagConstraints);
+        transparencyPanel.add(transparancyField, gridBagConstraints);
 
         transparencyLabel.setText("Factor:");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -502,13 +524,13 @@ public class JThreeDTab extends ThreeDTab
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel1.add(transparencyLabel, gridBagConstraints);
+        transparencyPanel.add(transparencyLabel, gridBagConstraints);
 
         transparencyModeLabel.setText("Mode:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        jPanel1.add(transparencyModeLabel, gridBagConstraints);
+        transparencyPanel.add(transparencyModeLabel, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
@@ -516,7 +538,7 @@ public class JThreeDTab extends ThreeDTab
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
-        threeD.add(jPanel1, gridBagConstraints);
+        threeD.add(transparencyPanel, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -525,10 +547,146 @@ public class JThreeDTab extends ThreeDTab
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         threeD.add(separator, gridBagConstraints);
 
+        directionPanel.setLayout(new java.awt.GridBagLayout());
+
+        directionPanel.setBorder(new javax.swing.border.TitledBorder("Light Information"));
+        dirOneBox.setSelected(true);
+        dirOneBox.setText("Enable Light 1");
+        dirOneBox.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                dirOneBoxStateChanged(evt);
+            }
+        });
+
+        directionPanel.add(dirOneBox, new java.awt.GridBagConstraints());
+
+        dirTwoBox.setText("Enable Light 2");
+        dirTwoBox.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                dirTwoBoxStateChanged(evt);
+            }
+        });
+
+        directionPanel.add(dirTwoBox, new java.awt.GridBagConstraints());
+
+        dirOnePanel.setLayout(new java.awt.GridBagLayout());
+
+        xDirOne.setText("X:");
+        dirOnePanel.add(xDirOne, new java.awt.GridBagConstraints());
+
+        yDirOne.setText("Y:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        dirOnePanel.add(yDirOne, gridBagConstraints);
+
+        zDirOne.setText("Z:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        dirOnePanel.add(zDirOne, gridBagConstraints);
+
+        xDirOneField.setText(null);
+        xDirOneField.setMinimumSize(new java.awt.Dimension(30, 21));
+        xDirOneField.setPreferredSize(new java.awt.Dimension(30, 21));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        dirOnePanel.add(xDirOneField, gridBagConstraints);
+
+        yDirOneField.setText(null);
+        yDirOneField.setMinimumSize(new java.awt.Dimension(30, 21));
+        yDirOneField.setPreferredSize(new java.awt.Dimension(30, 21));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        dirOnePanel.add(yDirOneField, gridBagConstraints);
+
+        zDirOneField.setText(null);
+        zDirOneField.setMinimumSize(new java.awt.Dimension(30, 21));
+        zDirOneField.setPreferredSize(new java.awt.Dimension(30, 21));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        dirOnePanel.add(zDirOneField, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        directionPanel.add(dirOnePanel, gridBagConstraints);
+
+        dirTwoPanel.setLayout(new java.awt.GridBagLayout());
+
+        dirTwoPanel.setEnabled(false);
+        xDirTwo.setText("X:");
+        dirTwoPanel.add(xDirTwo, new java.awt.GridBagConstraints());
+
+        yDirTwo.setText("Y:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        dirTwoPanel.add(yDirTwo, gridBagConstraints);
+
+        zDirTwo.setText("Z:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        dirTwoPanel.add(zDirTwo, gridBagConstraints);
+
+        xDirTwoField.setText(null);
+        xDirTwoField.setMinimumSize(new java.awt.Dimension(30, 21));
+        xDirTwoField.setPreferredSize(new java.awt.Dimension(30, 21));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        dirTwoPanel.add(xDirTwoField, gridBagConstraints);
+
+        yDirTwoField.setText(null);
+        yDirTwoField.setMinimumSize(new java.awt.Dimension(30, 21));
+        yDirTwoField.setPreferredSize(new java.awt.Dimension(30, 21));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        dirTwoPanel.add(yDirTwoField, gridBagConstraints);
+
+        zDirTwoField.setText(null);
+        zDirTwoField.setMinimumSize(new java.awt.Dimension(30, 21));
+        zDirTwoField.setPreferredSize(new java.awt.Dimension(30, 21));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        dirTwoPanel.add(zDirTwoField, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        directionPanel.add(dirTwoPanel, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.RELATIVE;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        threeD.add(directionPanel, gridBagConstraints);
+
         getContentPane().add(threeD, new java.awt.GridBagConstraints());
 
         pack();
     }//GEN-END:initComponents
+
+    private void dirTwoBoxStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_dirTwoBoxStateChanged
+        dirTwoPanel.setVisible(dirTwoBox.isSelected());
+        //xDirTwo.setEnabled(dirTwoBox.isSelected());
+    }//GEN-LAST:event_dirTwoBoxStateChanged
+
+    private void dirOneBoxStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_dirOneBoxStateChanged
+        dirOnePanel.setVisible(dirOneBox.isSelected());
+    }//GEN-LAST:event_dirOneBoxStateChanged
 
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
@@ -538,10 +696,14 @@ public class JThreeDTab extends ThreeDTab
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JCheckBox dirOneBox;
+    private javax.swing.JPanel dirOnePanel;
+    private javax.swing.JCheckBox dirTwoBox;
+    private javax.swing.JPanel dirTwoPanel;
+    private javax.swing.JPanel directionPanel;
     private javax.swing.JLabel jLabel45;
     private javax.swing.JLabel jLabel47;
     private javax.swing.JLabel jLabel48;
-    private javax.swing.JPanel jPanel1;
     private javax.swing.JSeparator separator;
     private javax.swing.JPanel threeD;
     private javax.swing.JCheckBox threeDAntialiasing;
@@ -555,6 +717,19 @@ public class JThreeDTab extends ThreeDTab
     private javax.swing.JLabel transparencyLabel;
     private javax.swing.JComboBox transparencyMode;
     private javax.swing.JLabel transparencyModeLabel;
+    private javax.swing.JPanel transparencyPanel;
+    private javax.swing.JLabel xDirOne;
+    private javax.swing.JTextField xDirOneField;
+    private javax.swing.JLabel xDirTwo;
+    private javax.swing.JTextField xDirTwoField;
+    private javax.swing.JLabel yDirOne;
+    private javax.swing.JTextField yDirOneField;
+    private javax.swing.JLabel yDirTwo;
+    private javax.swing.JTextField yDirTwoField;
+    private javax.swing.JLabel zDirOne;
+    private javax.swing.JTextField zDirOneField;
+    private javax.swing.JLabel zDirTwo;
+    private javax.swing.JTextField zDirTwoField;
     // End of variables declaration//GEN-END:variables
 
 }
