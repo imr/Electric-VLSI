@@ -2,6 +2,22 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (6/8/04, SMR) Implemented Windows / Messages Window menu with "Save Messages" and "Clear".
+
+IMP: (6/8/04, SMR) Implemented Tools / Routing command "Mimic-Selected".
+
+IMP: (6/8/04, SMR) Implemented Tools / Routing commands "Enable Mimic Stitching" and "Enable Auto Stitching".
+
+IMP: (6/8/04, SMR) Implemented Tools / Spice submenu "Set Spice Model".
+
+IMP: (6/8/04, SMR) Implemented Tools / Verilog submenu "Set Verilog Wire" with commands "Wire", "Trireg" and "Default".
+
+IMP: (6/7/04, SMR) Implemented "View" commands "Edit Multi-Page Schematic View" and "Make Multi-Page Schematic View".
+
+IMP: (6/7/04, SMR) Implemented "Make Grid Just Visible"
+
+IMP: (6/7/04, SMR) Implemented "Match Other Window".
+
 IMP: (6/7/04, SMR) Implemented "Color" tab of "Edit Options" as well as the color commands
      "Black Background Colors", "White Background Colors", and "Restore Default Colors".
 

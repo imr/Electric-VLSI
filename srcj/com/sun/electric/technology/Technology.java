@@ -491,8 +491,8 @@ public class Technology extends ElectricObject
 	/** critical dimensions for this technology */			private double scale;
 	/** true if "scale" is relevant to this technology */	private boolean scaleRelevant;
 	/** number of transparent layers in technology */		private int transparentLayers;
-	/** the color map for this technology */				private Color [] colorMap;
 	/** the saved transparent colors for this technology */	private Pref [] transparentColorPrefs;
+	/** the color map for this technology */				private Color [] colorMap;
 	/** list of layers in this technology */				private List layers;
 	/** count of layers in this technology */				private int layerIndex = 0;
 	/** list of primitive nodes in this technology */		private List nodes;
@@ -2275,36 +2275,6 @@ public class Technology extends ElectricObject
 	public boolean isScaleRelevant() { return scaleRelevant; }
 
 	/**
-	 * Sets the number of transparent layers in this technology.
-	 * Users should never call this method.
-	 * It is set once by the technology during initialization.
-	 * @param num the number of transparent layers in this technology.
-	 * Informs the display system of the number of overlapping or transparent layers
-	 * in use.
-	 */
-	protected void setNumTransparentLayers(int num) { transparentLayers = num; }
-
-	/**
-	 * Returns the number of transparent layers in this technology.
-	 * Informs the display system of the number of overlapping or transparent layers
-	 * in use.
-	 * @return the number of transparent layers in this technology.
-	 */
-	public int getNumTransparentLayers() { return transparentLayers; }
-
-	/**
-	 * Sets the color map for transparent layers in this technology.
-	 * Users should never call this method.
-	 * It is set once by the technology during initialization.
-	 * @param map the color map for transparent layers in this technology.
-	 * There must be a number of entries in this map equal to 2 to the power "getNumTransparentLayers()".
-	 */
-	protected void setColorMap(Color [] map)
-	{
-		colorMap = map;
-	}
-
-	/**
 	 * Sets the color map for transparent layers in this technology.
 	 * Users should never call this method.
 	 * It is set once by the technology during initialization.
@@ -2312,9 +2282,10 @@ public class Technology extends ElectricObject
 	 * This is expanded to a map that is 2 to the power "getNumTransparentLayers()".
 	 * Color merging is computed automatically.
 	 */
-	protected void factorySetColorMapFromLayers(Color [] layers)
+	protected void setFactoryTransparentLayers(Color [] layers)
 	{
 		// pull these values from preferences
+		transparentLayers = layers.length;
 		transparentColorPrefs = new Pref[transparentLayers];
 		for(int i=0; i<layers.length; i++)
 		{
@@ -2325,8 +2296,28 @@ public class Technology extends ElectricObject
 	}
 
 	/**
+	 * Returns the number of transparent layers in this technology.
+	 * Informs the display system of the number of overlapping or transparent layers
+	 * in use.
+	 * @return the number of transparent layers in this technology.
+	 * There may be 0 transparent layers in technologies that don't do overlapping,
+	 * such as Schematics.
+	 */
+	public int getNumTransparentLayers() { return transparentLayers; }
+
+	/**
 	 * Sets the color map for transparent layers in this technology.
-	 * @param map an array of colors, one per transparent layer.
+	 * @param map the color map for transparent layers in this technology.
+	 * There must be a number of entries in this map equal to 2 to the power "getNumTransparentLayers()".
+	 */
+	public void setColorMap(Color [] map)
+	{
+		colorMap = map;
+	}
+
+	/**
+	 * Sets the color map from transparent layers in this technology.
+	 * @param layers an array of colors, one per transparent layer.
 	 * This is expanded to a map that is 2 to the power "getNumTransparentLayers()".
 	 * Color merging is computed automatically.
 	 */
@@ -2397,26 +2388,26 @@ public class Technology extends ElectricObject
 		return true;
 	}
 
-	/**
-	 * Method to write a description of this Technology.
-	 * Displays the description in the Messages Window.
-	 */
-	public void getInfo()
-	{
-		System.out.println(" Name: " + techName);
-		System.out.println(" Description: " + techDesc);
-		System.out.println(" Nodes (" + nodes.size() + ")");
-		for (int i = 0; i < nodes.size(); i++)
-		{
-			System.out.println("     " + nodes.get(i));
-		}
-		System.out.println(" Arcs (" + arcs.size() + ")");
-		for (int i = 0; i < arcs.size(); i++)
-		{
-			System.out.println("     " + arcs.get(i));
-		}
-		super.getInfo();
-	}
+//	/**
+//	 * Method to write a description of this Technology.
+//	 * Displays the description in the Messages Window.
+//	 */
+//	public void getInfo()
+//	{
+//		System.out.println(" Name: " + techName);
+//		System.out.println(" Description: " + techDesc);
+//		System.out.println(" Nodes (" + nodes.size() + ")");
+//		for (int i = 0; i < nodes.size(); i++)
+//		{
+//			System.out.println("     " + nodes.get(i));
+//		}
+//		System.out.println(" Arcs (" + arcs.size() + ")");
+//		for (int i = 0; i < arcs.size(); i++)
+//		{
+//			System.out.println("     " + arcs.get(i));
+//		}
+//		super.getInfo();
+//	}
 
 	/**
 	 * Method to determine the appropriate Technology to use for a Cell.
@@ -2442,11 +2433,13 @@ public class Technology extends ElectricObject
 	 * @param endArcProto the ending point in the "arcProtoList" array.
 	 * @return the Technology for that cell.
 	 */
-	public static Technology whatTechnology(NodeProto cell, NodeProto [] nodeProtoList, int startNodeProto, int endNodeProto,
+	public static Technology whatTechnology(NodeProto cellOrPrim, NodeProto [] nodeProtoList, int startNodeProto, int endNodeProto,
 		ArcProto [] arcProtoList, int startArcProto, int endArcProto)
 	{
 		// primitives know their technology
-		if (cell instanceof PrimitiveNode) return(((PrimitiveNode)cell).getTechnology());
+		if (cellOrPrim instanceof PrimitiveNode)
+			return(((PrimitiveNode)cellOrPrim).getTechnology());
+		Cell cell = (Cell)cellOrPrim;
 
 		// count the number of technologies
 		int maxTech = 0;
@@ -2480,7 +2473,7 @@ public class Technology extends ElectricObject
 			}
 		} else
 		{
-			for(Iterator it = ((Cell)cell).getNodes(); it.hasNext(); )
+			for(Iterator it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				NodeProto np = ni.getProto();
@@ -2507,7 +2500,7 @@ public class Technology extends ElectricObject
 			}
 		} else
 		{
-			for(Iterator it = ((Cell)cell).getArcs(); it.hasNext(); )
+			for(Iterator it = cell.getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 				ArcProto ap = ai.getProto();
@@ -2542,7 +2535,7 @@ public class Technology extends ElectricObject
 		}
 
 		Technology retTech = null;
-		if (((Cell)cell).getView() == View.ICON)
+		if (cell.getView() == View.ICON)
 		{
 			// in icons, if there is any artwork, use it
 			if (useCount[Artwork.tech.getIndex()] > 0) return(Artwork.tech);
@@ -2552,7 +2545,7 @@ public class Technology extends ElectricObject
 
 			// use artwork as a default
 			retTech = Artwork.tech;
-		} else if (((Cell)cell).getView() == View.SCHEMATIC)
+		} else if (cell.getView() == View.SCHEMATIC || cell.getView().isMultiPageView())
 		{
 			// in schematic, if there are any schematic components, use it
 			if (useCount[Schematics.tech.getIndex()] > 0) return(Schematics.tech);

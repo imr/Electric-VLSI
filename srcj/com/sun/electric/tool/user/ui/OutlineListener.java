@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
@@ -55,19 +56,56 @@ class OutlineListener
 
 	public void setNode(NodeInst ni)
 	{
+		high = Highlight.getOneHighlight();
+		point = 0;
+		EditWindow wnd = EditWindow.getCurrent();
+
 		outlineNode = ni;
 		Point2D [] origPoints = outlineNode.getTrace();
 		if (origPoints == null)
 		{
 			// node has no points: fake some
-			System.out.println("MAKE FAKE POINTS");
+			if (ni.getFunction() == NodeProto.Function.NODE)
+			{
+				InitializePoints job = new InitializePoints(this, ni);
+				return;
+			}
 		}
 
-		high = Highlight.getOneHighlight();
 		high.setPoint(0);
-		point = 0;
-		EditWindow wnd = EditWindow.getCurrent();
 		if (wnd != null) wnd.repaintContents();
+	}
+
+	/**
+	 * Class to initialize the points on an outline node that has no points.
+	 */
+	protected static class InitializePoints extends Job
+	{
+		OutlineListener listener;
+		NodeInst ni;
+
+		protected InitializePoints(OutlineListener listener, NodeInst ni)
+		{
+			super("Initialize Outline Points", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.listener = listener;
+			this.ni = ni;
+			startJob();
+		}
+
+		public void doIt()
+		{
+			Point2D [] points = new Point2D[4];
+			double halfWid = ni.getXSize() / 2;
+			double halfHei = ni.getYSize() / 2;
+			points[0] = new Point2D.Double(-halfWid, -halfHei);
+			points[1] = new Point2D.Double(-halfWid,  halfHei);
+			points[2] = new Point2D.Double( halfWid,  halfHei);
+			points[3] = new Point2D.Double( halfWid, -halfHei);
+			ni.newVar(NodeInst.TRACE, points);
+			listener.high.setPoint(0);
+			EditWindow wnd = EditWindow.getCurrent();
+			if (wnd != null) wnd.repaintContents();
+		}
 	}
 
 	public void mousePressed(MouseEvent evt)

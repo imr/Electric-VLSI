@@ -57,41 +57,13 @@ public class MoCMOSOld extends Technology
 		setFactoryScale(1000, true);   // in nanometers: really 1 microns
 		setNoNegatedArcs();
 		setStaticTechnology();
-		setNumTransparentLayers(5);
-		setColorMap(new Color []
+		setFactoryTransparentLayers(new Color []
 		{
-			new Color(200,200,200), //  0:        +           +        +       +      
-			new Color( 96,209,255), //  1: Metal-1+           +        +       +      
-			new Color(255,155,192), //  2:        +Polysilicon+        +       +      
-			new Color( 96,127,192), //  3: Metal-1+Polysilicon+        +       +      
-			new Color(107,226, 96), //  4:        +           +S-Active+       +      
-			new Color( 40,186, 96), //  5: Metal-1+           +S-Active+       +      
-			new Color(107,137, 72), //  6:        +Polysilicon+S-Active+       +      
-			new Color( 40,113, 72), //  7: Metal-1+Polysilicon+S-Active+       +      
-			new Color(224, 95,255), //  8:        +           +        +Metal-2+      
-			new Color( 85, 78,255), //  9: Metal-1+           +        +Metal-2+      
-			new Color(224, 57,192), // 10:        +Polysilicon+        +Metal-2+      
-			new Color( 85, 47,192), // 11: Metal-1+Polysilicon+        +Metal-2+      
-			new Color( 94, 84, 96), // 12:        +           +S-Active+Metal-2+      
-			new Color( 36, 69, 96), // 13: Metal-1+           +S-Active+Metal-2+      
-			new Color( 94, 51, 72), // 14:        +Polysilicon+S-Active+Metal-2+      
-			new Color( 36, 42, 72), // 15: Metal-1+Polysilicon+S-Active+Metal-2+      
-			new Color(240,221,181), // 16:        +           +        +       +P-Well
-			new Color( 91,182,181), // 17: Metal-1+           +        +       +P-Well
-			new Color(240,134,136), // 18:        +Polysilicon+        +       +P-Well
-			new Color( 91,111,136), // 19: Metal-1+Polysilicon+        +       +P-Well
-			new Color(101,196, 68), // 20:        +           +S-Active+       +P-Well
-			new Color( 38,161, 68), // 21: Metal-1+           +S-Active+       +P-Well
-			new Color(101,119, 51), // 22:        +Polysilicon+S-Active+       +P-Well
-			new Color( 38, 98, 51), // 23: Metal-1+Polysilicon+S-Active+       +P-Well
-			new Color(211, 82,181), // 24:        +           +        +Metal-2+P-Well
-			new Color( 80, 68,181), // 25: Metal-1+           +        +Metal-2+P-Well
-			new Color(211, 50,136), // 26:        +Polysilicon+        +Metal-2+P-Well
-			new Color( 80, 41,136), // 27: Metal-1+Polysilicon+        +Metal-2+P-Well
-			new Color( 89, 73, 68), // 28:        +           +S-Active+Metal-2+P-Well
-			new Color( 33, 60, 68), // 29: Metal-1+           +S-Active+Metal-2+P-Well
-			new Color( 89, 44, 51), // 30:        +Polysilicon+S-Active+Metal-2+P-Well
-			new Color( 33, 36, 51), // 31: Metal-1+Polysilicon+S-Active+Metal-2+P-Well
+			new Color( 96,209,255), // Metal-1
+			new Color(255,155,192), // Polysilicon
+			new Color(107,226, 96), // S-Active
+			new Color(224, 95,255), // Metal-2
+			new Color(240,221,181)  // P-Well
 		});
 
 		//**************************************** LAYERS ****************************************

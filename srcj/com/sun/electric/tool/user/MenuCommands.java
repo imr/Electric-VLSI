@@ -67,6 +67,7 @@ import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.logicaleffort.LETool;
+import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.routing.MimicStitch;
 import com.sun.electric.tool.simulation.IRSIMTool;
@@ -449,6 +450,12 @@ public final class MenuCommands
 		editMenu.add(specialSubMenu);
 		specialSubMenu.addMenuItem("Show Undo List", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); } });
+		m = specialSubMenu.addMenuItem("Show Cursor Coordinates", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); }});
+		m.setEnabled(false);
+		m = specialSubMenu.addMenuItem("Artwork Appearance...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); }});
+		m.setEnabled(false);
 
 		Menu selListSubMenu = new Menu("Selection");
 		editMenu.add(selListSubMenu);
@@ -472,6 +479,13 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectMakeEasyCommand(); }});
 		selListSubMenu.addMenuItem("Make Selected Hard", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectMakeHardCommand(); }});
+		selListSubMenu.addSeparator();
+		m = selListSubMenu.addMenuItem("Push Selection", KeyStroke.getKeyStroke('1', buckyBit),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { selectMakeEasyCommand(); }});
+		m.setEnabled(false);
+		m = selListSubMenu.addMenuItem("Pop Selection", KeyStroke.getKeyStroke('3', buckyBit),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { selectMakeEasyCommand(); }});
+		m.setEnabled(false);
 		selListSubMenu.addSeparator();
 		selListSubMenu.addMenuItem("Enclosed Objects", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectEnclosedObjectsCommand(); }});
@@ -512,6 +526,9 @@ public final class MenuCommands
 
 		cellMenu.addMenuItem("Down Hierarchy", KeyStroke.getKeyStroke('D', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { downHierCommand(); }});
+		m = cellMenu.addMenuItem("Down Hierarchy In Place", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { downHierCommand(); }});
+		m.setEnabled(false);
 		cellMenu.addMenuItem("Up Hierarchy", KeyStroke.getKeyStroke('U', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { upHierCommand(); }});
 
@@ -559,6 +576,9 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { unexpandFullCommand(); }});
 		unExpandListSubMenu.addMenuItem("Specified Amount", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { unexpandSpecificCommand(); }});
+		m = cellMenu.addMenuItem("Look Inside Highlighted", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { unexpandSpecificCommand(); }});
+		m.setEnabled(false);
 
 		cellMenu.addSeparator();
 		cellMenu.addMenuItem("Package Into Cell...", null,
@@ -626,6 +646,8 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { editLayoutViewCommand(); } });
 		viewMenu.addMenuItem("Edit Schematic View", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { editSchematicViewCommand(); } });
+		viewMenu.addMenuItem("Edit Multi-Page Schematic View...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { editMultiPageSchematicViewCommand(); } });
 		viewMenu.addMenuItem("Edit Icon View", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { editIconViewCommand(); } });
 		viewMenu.addMenuItem("Edit VHDL View", null,
@@ -641,6 +663,8 @@ public final class MenuCommands
 
 		viewMenu.addMenuItem("Make Icon View", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.makeIconViewCommand(); } });
+		viewMenu.addMenuItem("Make Multi-Page Schematic View...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.makeMultiPageSchematicViewCommand(); } });
 
 		/****************************** THE WINDOW MENU ******************************/
 
@@ -657,12 +681,19 @@ public final class MenuCommands
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, buckyBit), null);
         m = windowMenu.addMenuItem("Zoom In", KeyStroke.getKeyStroke('7', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { zoomInDisplay(); } });
+
+		Menu specialZoomSubMenu = new Menu("Special Zoom");
+		windowMenu.add(specialZoomSubMenu);
+		m = specialZoomSubMenu.addMenuItem("Focus on Highlighted", KeyStroke.getKeyStroke('F', buckyBit),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { focusOnHighlighted(); } });
+		menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD5, buckyBit), null);
+		m = specialZoomSubMenu.addMenuItem("Zoom Box", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { zoomBoxCommand(); }});
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD7, buckyBit), null);
-        m = windowMenu.addMenuItem("Zoom Box", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { zoomBoxCommand(); } });
-        m = windowMenu.addMenuItem("Focus on Highlighted", KeyStroke.getKeyStroke('F', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { focusOnHighlighted(); } });
-        menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD5, buckyBit), null);
+		specialZoomSubMenu.addMenuItem("Make Grid Just Visible", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { makeGridJustVisibleCommand(); }});
+		specialZoomSubMenu.addMenuItem("Match Other Window", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { matchOtherWindowCommand(); }});
 
         windowMenu.addSeparator();
 
@@ -729,10 +760,19 @@ public final class MenuCommands
 		colorSubMenu.addMenuItem("White Background Colors", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { whiteBackgroundCommand(); }});
 
+		Menu messagesSubMenu = new Menu("Messages Window");
+		windowMenu.add(messagesSubMenu);
+		messagesSubMenu.addMenuItem("Save Messages", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { TopLevel.getMessagesWindow().save(); }});
+		messagesSubMenu.addMenuItem("Clear", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { TopLevel.getMessagesWindow().clear(); }});
+
 		/****************************** THE TOOL MENU ******************************/
 
 		Menu toolMenu = new Menu("Tool", 'T');
 		menuBar.add(toolMenu);
+
+		//------------------- DRC
 
 		Menu drcSubMenu = new Menu("DRC", 'D');
 		toolMenu.add(drcSubMenu);
@@ -740,6 +780,8 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(); }});
 		drcSubMenu.addMenuItem("Check Selection Area Hierarchically", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkAreaHierarchically(); }});
+
+		//------------------- Simulation (SPICE)
 
 		Menu spiceSimulationSubMenu = new Menu("Simulation (SPICE)", 'S');
 		toolMenu.add(spiceSimulationSubMenu);
@@ -749,10 +791,16 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.CDL, true); }});
 		spiceSimulationSubMenu.addMenuItem("Plot Spice Listing...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotSpiceResults(); }});
+		m = spiceSimulationSubMenu.addMenuItem("Plot Spice for This Cell", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { addMultiplierCommand(); }});
+		m.setEnabled(false);
+		spiceSimulationSubMenu.addMenuItem("Set Spice Model...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setSpiceModel(); }});
 		spiceSimulationSubMenu.addMenuItem("Add Multiplier", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { addMultiplierCommand(); }});
 
 		spiceSimulationSubMenu.addSeparator();
+
 		spiceSimulationSubMenu.addMenuItem("Set Generic SPICE Template", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_TEMPLATE_KEY); }});
 		spiceSimulationSubMenu.addMenuItem("Set SPICE 2 Template", null,
@@ -768,22 +816,40 @@ public final class MenuCommands
 		spiceSimulationSubMenu.addMenuItem("Set SmartSPICE Template", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_SM_TEMPLATE_KEY); }});
 
+		//------------------- Simulation (Verilog)
+
 		Menu verilogSimulationSubMenu = new Menu("Simulation (Verilog)", 'V');
 		toolMenu.add(verilogSimulationSubMenu);
 		verilogSimulationSubMenu.addMenuItem("Write Verilog Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.VERILOG, true); } });
 		verilogSimulationSubMenu.addMenuItem("Plot Verilog VCD Dump...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotVerilogResults(); }});
+		m = verilogSimulationSubMenu.addMenuItem("Plot Verilog for This Cell", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { addMultiplierCommand(); }});
+		m.setEnabled(false);
 		verilogSimulationSubMenu.addSeparator();
 		verilogSimulationSubMenu.addMenuItem("Set Verilog Template", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Verilog.VERILOG_TEMPLATE_KEY); }});
+
 		verilogSimulationSubMenu.addSeparator();
+
+		Menu verilogWireTypeSubMenu = new Menu("Set Verilog Wire", 'W');
+		verilogWireTypeSubMenu.addMenuItem("Wire", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setVerilogWireCommand(0); }});
+		verilogWireTypeSubMenu.addMenuItem("Trireg", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setVerilogWireCommand(1); }});
+		verilogWireTypeSubMenu.addMenuItem("Default", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setVerilogWireCommand(2); }});
+		verilogSimulationSubMenu.add(verilogWireTypeSubMenu);
+
 		Menu transistorStrengthSubMenu = new Menu("Transistor Strength", 'T');
 		transistorStrengthSubMenu.addMenuItem("Weak", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setTransistorStrengthCommand(true); }});
 		transistorStrengthSubMenu.addMenuItem("Normal", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setTransistorStrengthCommand(false); }});
 		verilogSimulationSubMenu.add(transistorStrengthSubMenu);
+
+		//------------------- Simulation (others)
 
 		Menu netlisters = new Menu("Simulation (others)");
 		toolMenu.add(netlisters);
@@ -792,12 +858,16 @@ public final class MenuCommands
 		netlisters.addMenuItem("Write Maxwell Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.MAXWELL, true); } });
 
+		//------------------- ERC
+
 		Menu ercSubMenu = new Menu("ERC", 'E');
 		toolMenu.add(ercSubMenu);
 		ercSubMenu.addMenuItem("Check Wells", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(true); } });
 		ercSubMenu.addMenuItem("Antenna Check", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { new ERCAntenna(); } });
+
+		//------------------- Network
 
 		Menu networkSubMenu = new Menu("Network", 'N');
 		toolMenu.add(networkSubMenu);
@@ -821,6 +891,8 @@ public final class MenuCommands
 		networkSubMenu.addMenuItem("Redo Network Numbering", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { redoNetworkNumberingCommand(); } });
 
+		//------------------- Logical Effort
+
 		Menu logEffortSubMenu = new Menu("Logical Effort", 'L');
 		logEffortSubMenu.addMenuItem("Optimize for Equal Gate Delays", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { optimizeEqualGateDelaysCommand(); }});
@@ -828,18 +900,38 @@ public final class MenuCommands
             new ActionListener() { public void actionPerformed(ActionEvent e) { printLEInfoCommand(); }});
 		toolMenu.add(logEffortSubMenu);
 
+		//------------------- Routing
 
 		Menu routingSubMenu = new Menu("Routing", 'R');
-		routingSubMenu.addMenuItem("Mimic-Stitch Now", KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { MimicStitch.mimicStitch(true); }});
+		toolMenu.add(routingSubMenu);
+		routingSubMenu.addCheckBox("Enable Auto-Stitching", Routing.isAutoStitchOn(), null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Routing.toggleEnableAutoStitching(e); } });
 	    routingSubMenu.addMenuItem("Auto-Stitch Now", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { AutoStitch.autoStitch(false, true); }});
 		routingSubMenu.addMenuItem("Auto-Stitch Highlighted Now", KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { AutoStitch.autoStitch(true, true); }});
-		toolMenu.add(routingSubMenu);
+
 		routingSubMenu.addSeparator();
+
+		routingSubMenu.addCheckBox("Enable Mimic-Stitching", Routing.isMimicStitchOn(), null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Routing.toggleEnableMimicStitching(e); }});
+		routingSubMenu.addMenuItem("Mimic-Stitch Now", KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { MimicStitch.mimicStitch(true); }});
+		routingSubMenu.addMenuItem("Mimic Selected", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Routing.tool.mimicSelected(); }});
+
+		routingSubMenu.addSeparator();
+
 		routingSubMenu.addMenuItem("Get Unrouted Wire", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { getUnroutedArcCommand(); }});
+		m = routingSubMenu.addMenuItem("Copy Routing Topology", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { addMultiplierCommand(); }});
+		m.setEnabled(false);
+		m = routingSubMenu.addMenuItem("Paste Routing Topology", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { addMultiplierCommand(); }});
+		m.setEnabled(false);
+
+		//------------------- Generation
 
 		Menu generationSubMenu = new Menu("Generation", 'G');
 		toolMenu.add(generationSubMenu);
@@ -847,6 +939,8 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { implantGeneratorCommand(true, false); }});
 		generationSubMenu.addMenuItem("Pad Frame Generator", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
+
+		//------------------- Compaction
 
 		Menu compactionSubMenu = new Menu("Compaction", 'C');
 		toolMenu.add(compactionSubMenu);
@@ -2332,6 +2426,31 @@ public final class MenuCommands
 			WindowFrame.createEditWindow(schematicView);
 	}
 
+	public static void editMultiPageSchematicViewCommand()
+	{
+		Cell curCell = WindowFrame.needCurCell();
+		if (curCell == null) return;
+		String newSchematicPage = JOptionPane.showInputDialog("Page Number", "");
+		if (newSchematicPage == null) return;
+		int pageNo = TextUtils.atoi(newSchematicPage);
+		if (pageNo <= 0)
+		{
+			System.out.println("Multi-page schematics are numbered starting at page 1");
+			return;
+		}
+		View v = View.findMultiPageSchematicView(pageNo);
+		if (v != null)
+		{
+			Cell otherView = curCell.otherView(v);
+			if (otherView != null)
+			{
+				WindowFrame.createEditWindow(otherView);
+				return;
+			}
+		}
+		System.out.println("Cannot find schematic page " + pageNo + " of this cell");
+	}
+
 	public static void editIconViewCommand()
 	{
 		Cell curCell = WindowFrame.needCurCell();
@@ -2426,6 +2545,55 @@ public final class MenuCommands
         WindowFrame.setListener(ClickZoomWireListener.theOne);
         ClickZoomWireListener.theOne.zoomBoxSingleShot(oldListener);
     }
+
+	/**
+	 * Method to make the current window's grid be just visible.
+	 * If it is zoomed-out beyond grid visibility, it is zoomed-in so that the grid is shown.
+	 * If it is zoomed-in such that the grid is not at minimum pitch,
+	 * it is zoomed-out so that the grid is barely able to fit.
+	 */
+	public static void makeGridJustVisibleCommand()
+	{
+		EditWindow wnd = EditWindow.needCurrent();
+		if (wnd == null) return;
+		Rectangle2D displayable = wnd.displayableBounds();
+		Dimension sz = wnd.getSize();
+		double scaleX = wnd.getGridXSpacing() * sz.width / 5 / displayable.getWidth();
+		double scaleY = wnd.getGridYSpacing() * sz.height / 5 / displayable.getHeight();
+		double scale = Math.min(scaleX, scaleY);
+		wnd.setScale(wnd.getScale() / scale);
+		wnd.repaintContents();
+	}
+
+	/**
+	 * Method to zoom the current window so that its scale matches that of the "other" window.
+	 * For this to work, there must be exactly one other window shown.
+	 */
+	public static void matchOtherWindowCommand()
+	{
+		EditWindow wnd = EditWindow.needCurrent();
+		if (wnd == null) return;
+		int numOthers = 0;
+		EditWindow other = null;
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			if (wf.getContent() instanceof EditWindow)
+			{
+				EditWindow wfWnd = (EditWindow)wf.getContent();
+				if (wfWnd == wnd) continue;
+				numOthers++;
+				other = wfWnd;
+			}
+		}
+		if (numOthers != 1)
+		{
+			System.out.println("There must be exactly two windows in order for one to match the other");
+			return;
+		}
+		wnd.setScale(other.getScale());
+		wnd.repaintContents();
+	}
 
 	public static void focusOnHighlighted()
 	{
@@ -3839,9 +4007,6 @@ public final class MenuCommands
 				}
 			}
 			System.out.println("Created cell " + bigCell.describe());
-
-			// disallow undo
-			Undo.noUndoAllowed();
 
 			// display a cell
 			WindowFrame.createEditWindow(myCell);

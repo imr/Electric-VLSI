@@ -71,7 +71,6 @@ public class ExplorerTree extends JTree
 	private TreeHandler handler = null;
 	private DefaultMutableTreeNode rootNode;
 	private DefaultTreeModel treeModel;
-//	private HashMap expanded;
 
 	private static final int SHOWALPHABETICALLY = 1;
 	private static final int SHOWBYCELLGROUP    = 2;
@@ -149,13 +148,6 @@ public class ExplorerTree extends JTree
 	 * @return the currently selected object in the explorer tree.
 	 */
 	public Object getCurrentlySelectedObject() { return handler.currentSelectedObject; }
-
-//	private void updateThisExplorerTree()
-//	{
-////System.out.println("rebuilding LIB EXPLORER");
-//		treeDidChange();
-//		treeModel.reload();
-//	}
 
 	/**
 	 * A static object is used so that its open/closed tree state can be maintained.
@@ -347,7 +339,7 @@ public class ExplorerTree extends JTree
 		if (nodeInfo instanceof Cell)
 		{
 			Cell cell = (Cell)nodeInfo;
-			if (cell.getView() == View.SCHEMATIC)
+			if (cell.getView() == View.SCHEMATIC || cell.getView().isMultiPageView())
 			{
 				Cell.CellGroup group = cell.getCellGroup();
 				Cell mainSchematic = group.getMainSchematics();
@@ -355,7 +347,8 @@ public class ExplorerTree extends JTree
 				for(Iterator gIt = group.getCells(); gIt.hasNext(); )
 				{
 					Cell cellInGroup = (Cell)gIt.next();
-					if (cellInGroup.getView() == View.SCHEMATIC) numSchematics++;
+					if (cellInGroup.getView() == View.SCHEMATIC ||
+						cellInGroup.getView().isMultiPageView()) numSchematics++;
 				}
 				if (numSchematics > 1 && cell == mainSchematic)
 					return cell.noLibDescribe() + " **";
@@ -450,7 +443,7 @@ public class ExplorerTree extends JTree
 						iconViewOldLayout = new ImageIcon(getClass().getResource("IconViewOldLayout.gif"));
 					if (cell.getNewestVersion() == cell) setIcon(iconViewLayout); else
 						setIcon(iconViewOldLayout);
-				} else if (cell.getView() == View.SCHEMATIC)
+				} else if (cell.getView() == View.SCHEMATIC || cell.getView().isMultiPageView())
 				{
 					if (iconViewSchematics == null)
 						iconViewSchematics = new ImageIcon(getClass().getResource("IconViewSchematics.gif"));

@@ -118,19 +118,19 @@ public class PrimitivePort extends PortProto
 		return pp;
 	}
 
-	/*
-	 * Method to write a description of this PrimitivePort.
-	 * Displays the description in the Messages Window.
-	 */
-	public void getInfo()
-	{
-		System.out.println(" Connection types: " + portArcs.length);
-		for (int i = 0; i < portArcs.length; i++)
-		{
-			System.out.println("   * " + portArcs[i]);
-		}
-		super.getInfo();
-	}
+//	/**
+//	 * Method to write a description of this PrimitivePort.
+//	 * Displays the description in the Messages Window.
+//	 */
+//	public void getInfo()
+//	{
+//		System.out.println(" Connection types: " + portArcs.length);
+//		for (int i = 0; i < portArcs.length; i++)
+//		{
+//			System.out.println("   * " + portArcs[i]);
+//		}
+//		super.getInfo();
+//	}
 
 	// ------------------------ public methods ------------------------
 

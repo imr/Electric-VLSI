@@ -1763,10 +1763,10 @@ public class Cell extends NodeProto
 		return true;
 	}
 
-	/*
-	 * Method to write a description of this Cell.
-	 * Displays the description in the Messages Window.
-	 */
+//	/**
+//	 * Method to write a description of this Cell.
+//	 * Displays the description in the Messages Window.
+//	 */
 //	public void getInfo()
 //	{
 //		System.out.println("--------- CELL " + describe() +  " ---------");

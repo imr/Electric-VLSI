@@ -296,17 +296,17 @@ public class Export extends PortProto
 	 */
 	public Cell whichCell() { return (Cell)getParent(); };
 
-	/**
-	 * Method to write a description of this Export.
-	 * Displays the description in the Messages Window.
-	 */
-	public void getInfo()
-	{
-		System.out.println(" Original: " + originalPort);
-		System.out.println(" Base: " + getBasePort());
-		System.out.println(" Cell: " + parent.describe());
-		super.getInfo();
-	}
+//	/**
+//	 * Method to write a description of this Export.
+//	 * Displays the description in the Messages Window.
+//	 */
+//	public void getInfo()
+//	{
+//		System.out.println(" Original: " + originalPort);
+//		System.out.println(" Base: " + getBasePort());
+//		System.out.println(" Cell: " + parent.describe());
+//		super.getInfo();
+//	}
 
 	/**
 	 * Returns a printable version of this Export.

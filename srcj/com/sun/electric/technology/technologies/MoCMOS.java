@@ -563,8 +563,7 @@ public class MoCMOS extends Technology
 		setFactoryScale(200, true);			// in nanometers: really 0.2 micron
 		setNoNegatedArcs();
 		setStaticTechnology();
-		setNumTransparentLayers(5);
-		factorySetColorMapFromLayers(new Color []
+		setFactoryTransparentLayers(new Color []
 		{
 			new Color( 96,209,255), // Metal-1
 			new Color(255,155,192), // Polysilicon-1
@@ -2217,7 +2216,7 @@ public class MoCMOS extends Technology
 		metal4Metal5Contact_node.setSpecialType(PrimitiveNode.MULTICUT);
 		metal4Metal5Contact_node.setSpecialValues(new double [] {2, 2, 1, 3});
 		metal4Metal5Contact_node.setNotUsed();
-		metal4Metal5Contact_node.setMinSize(7, 8, "25.3, 26.3");
+		metal4Metal5Contact_node.setMinSize(7, 7, "25.3, 26.3");
 
 		/** metal-5-metal-6-contact */
 		metal5Metal6Contact_node = PrimitiveNode.newInstance("Metal-5-Metal-6-Con", this, 8.0, 8.0, new SizeOffset(1, 1, 1, 1),

@@ -2765,6 +2765,52 @@ public class CircuitChanges
 		}
 	}
 
+	/****************************** MAKE A MULTI-PAGE SCHEMATIC FOR A CELL ******************************/
+
+	public static void makeMultiPageSchematicViewCommand()
+	{
+		Cell curCell = WindowFrame.needCurCell();
+		if (curCell == null) return;
+		String newSchematicPage = JOptionPane.showInputDialog("Page Number", "");
+		if (newSchematicPage == null) return;
+		int pageNo = TextUtils.atoi(newSchematicPage);
+		if (pageNo <= 0)
+		{
+			System.out.println("Multi-page schematics are numbered starting at page 1");
+			return;
+		}
+		MakeMultiPageView job = new MakeMultiPageView(curCell, pageNo);
+	}
+
+	private static class MakeMultiPageView extends Job
+	{
+		private Cell cell;
+		private int pageNo;
+
+		protected MakeMultiPageView(Cell cell, int pageNo)
+		{
+			super("Make Icon View", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cell = cell;
+			this.pageNo = pageNo;
+			startJob();
+		}
+
+		public void doIt()
+		{
+			View v = View.findMultiPageSchematicView(pageNo);
+			if (v == null)
+			{
+				v = View.newMultiPageSchematicInstance(pageNo);
+			}
+			Cell otherView = cell.otherView(v);
+			if (otherView == null)
+			{
+				otherView = Cell.makeInstance(cell.getLibrary(), cell.getProtoName() + "{p" + pageNo + "}");
+			}
+			WindowFrame.createEditWindow(otherView);
+		}
+	}
+
 	/****************************** MAKE AN ICON FOR A CELL ******************************/
 
 	public static void makeIconViewCommand()

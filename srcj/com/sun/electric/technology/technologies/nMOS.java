@@ -57,41 +57,13 @@ public class nMOS extends Technology
 		setFactoryScale(2000, true);   // in nanometers: really 2 microns
 		setNoNegatedArcs();
 		setStaticTechnology();
-		setNumTransparentLayers(5);
-		setColorMap(new Color []
+		setFactoryTransparentLayers(new Color []
 		{
-			new Color(200,200,200), //  0:      +           +         +       +              
-			new Color(  0,  0,200), //  1: Metal+           +         +       +              
-			new Color(220,  0,120), //  2:      +Polysilicon+         +       +              
-			new Color( 80,  0,160), //  3: Metal+Polysilicon+         +       +              
-			new Color( 70,250, 70), //  4:      +           +Diffusion+       +              
-			new Color(  0,140,140), //  5: Metal+           +Diffusion+       +              
-			new Color(180,130,  0), //  6:      +Polysilicon+Diffusion+       +              
-			new Color( 55, 70,140), //  7: Metal+Polysilicon+Diffusion+       +              
-			new Color(250,250,  0), //  8:      +           +         +Implant+              
-			new Color( 85,105,160), //  9: Metal+           +         +Implant+              
-			new Color(190, 80,100), // 10:      +Polysilicon+         +Implant+              
-			new Color( 70, 50,150), // 11: Metal+Polysilicon+         +Implant+              
-			new Color( 80,210,  0), // 12:      +           +Diffusion+Implant+              
-			new Color( 50,105,130), // 13: Metal+           +Diffusion+Implant+              
-			new Color(170,110,  0), // 14:      +Polysilicon+Diffusion+Implant+              
-			new Color( 60, 60,130), // 15: Metal+Polysilicon+Diffusion+Implant+              
-			new Color(180,180,180), // 16:      +           +         +       +Buried-Contact
-			new Color(  0,  0,180), // 17: Metal+           +         +       +Buried-Contact
-			new Color(200,  0,100), // 18:      +Polysilicon+         +       +Buried-Contact
-			new Color( 60,  0,140), // 19: Metal+Polysilicon+         +       +Buried-Contact
-			new Color( 50,230, 50), // 20:      +           +Diffusion+       +Buried-Contact
-			new Color(  0,120,120), // 21: Metal+           +Diffusion+       +Buried-Contact
-			new Color(160,110,  0), // 22:      +Polysilicon+Diffusion+       +Buried-Contact
-			new Color( 35, 50,120), // 23: Metal+Polysilicon+Diffusion+       +Buried-Contact
-			new Color(230,230,  0), // 24:      +           +         +Implant+Buried-Contact
-			new Color( 65, 85,140), // 25: Metal+           +         +Implant+Buried-Contact
-			new Color(170, 60, 80), // 26:      +Polysilicon+         +Implant+Buried-Contact
-			new Color( 50, 30,130), // 27: Metal+Polysilicon+         +Implant+Buried-Contact
-			new Color( 60,190,  0), // 28:      +           +Diffusion+Implant+Buried-Contact
-			new Color( 30, 85,110), // 29: Metal+           +Diffusion+Implant+Buried-Contact
-			new Color(150, 90,  0), // 30:      +Polysilicon+Diffusion+Implant+Buried-Contact
-			new Color( 40, 40,110), // 31: Metal+Polysilicon+Diffusion+Implant+Buried-Contact
+			new Color(  0,  0,200), // Metal
+			new Color(220,  0,120), // Polysilicon
+			new Color( 70,250, 70), // Diffusion
+			new Color(250,250,  0), // Implant
+			new Color(180,180,180)  // Buried-Contact
 		});
 
 		//**************************************** LAYERS ****************************************

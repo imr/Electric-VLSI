@@ -57,41 +57,13 @@ public class CMOS extends Technology
 		setFactoryScale(2000, true);   // in nanometers: really 2 microns
 		setNoNegatedArcs();
 		setStaticTechnology();
-		setNumTransparentLayers(5);
-		setColorMap(new Color []
+		setFactoryTransparentLayers(new Color []
 		{
-			new Color(200,200,200), //  0:      +           +         +  +      
-			new Color(  0,  0,255), //  1: Metal+           +         +  +      
-			new Color(223,  0,  0), //  2:      +Polysilicon+         +  +      
-			new Color(150, 20,150), //  3: Metal+Polysilicon+         +  +      
-			new Color(  0,255,  0), //  4:      +           +Diffusion+  +      
-			new Color(  0,160,160), //  5: Metal+           +Diffusion+  +      
-			new Color(180,130,  0), //  6:      +Polysilicon+Diffusion+  +      
-			new Color( 55, 70,140), //  7: Metal+Polysilicon+Diffusion+  +      
-			new Color(255,190,  6), //  8:      +           +         +P++      
-			new Color(100,100,200), //  9: Metal+           +         +P++      
-			new Color(255,114,  1), // 10:      +Polysilicon+         +P++      
-			new Color( 70, 50,150), // 11: Metal+Polysilicon+         +P++      
-			new Color(180,255,  0), // 12:      +           +Diffusion+P++      
-			new Color( 40,160,160), // 13: Metal+           +Diffusion+P++      
-			new Color(200,180, 70), // 14:      +Polysilicon+Diffusion+P++      
-			new Color( 60, 60,130), // 15: Metal+Polysilicon+Diffusion+P++      
-			new Color(170,140, 30), // 16:      +           +         +  +P-Well
-			new Color(  0,  0,180), // 17: Metal+           +         +  +P-Well
-			new Color(200,130, 10), // 18:      +Polysilicon+         +  +P-Well
-			new Color( 60,  0,140), // 19: Metal+Polysilicon+         +  +P-Well
-			new Color(156,220,  3), // 20:      +           +Diffusion+  +P-Well
-			new Color(  0,120,120), // 21: Metal+           +Diffusion+  +P-Well
-			new Color(170,170,  0), // 22:      +Polysilicon+Diffusion+  +P-Well
-			new Color( 35, 50,120), // 23: Metal+Polysilicon+Diffusion+  +P-Well
-			new Color(200,160, 20), // 24:      +           +         +P++P-Well
-			new Color( 65, 85,140), // 25: Metal+           +         +P++P-Well
-			new Color(170, 60, 80), // 26:      +Polysilicon+         +P++P-Well
-			new Color( 50, 30,130), // 27: Metal+Polysilicon+         +P++P-Well
-			new Color( 60,190,  0), // 28:      +           +Diffusion+P++P-Well
-			new Color( 30,110,100), // 29: Metal+           +Diffusion+P++P-Well
-			new Color(150, 90,  0), // 30:      +Polysilicon+Diffusion+P++P-Well
-			new Color( 40, 40,110), // 31: Metal+Polysilicon+Diffusion+P++P-Well
+			new Color(  0,  0,255), // Metal
+			new Color(223,  0,  0), // Polysilicon
+			new Color(  0,255,  0), // Diffusion
+			new Color(255,190,  6), // P+
+			new Color(170,140, 30)  // P-Well
 		});
 
 		//**************************************** LAYERS ****************************************

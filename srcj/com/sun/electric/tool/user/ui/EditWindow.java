@@ -1029,10 +1029,7 @@ public class EditWindow extends JPanel
 		/* grid spacing */
 		int x0 = (int)gridXSpacing;
 		int y0 = (int)gridYSpacing;
-
-		// Gilda 06/03/04
-		if (x0 == 0) x0 = 1; // similar to (int)User.getDefGridXSpacing();
-		if (y0 == 0) y0 = 1; // similar to (int)User.getDefGridYSpacing();
+		if (x0 == 0 || y0 == 0) return;
 
 		// bold dot spacing
 		int xspacing = User.getDefGridXBoldFrequency();

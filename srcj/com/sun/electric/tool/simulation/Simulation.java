@@ -25,12 +25,18 @@ package com.sun.electric.tool.simulation;
 
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.io.output.Spice;
+import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.user.Highlight;
+
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * This is the Simulation Interface tool.
@@ -60,6 +66,91 @@ public class Simulation extends Tool
 	}
 
 	/**
+	 * Method to set a Spice model on the selected node.
+	 */
+	public static void setSpiceModel()
+	{
+		NodeInst ni = (NodeInst)Highlight.getOneElectricObject(NodeInst.class);
+		if (ni == null) return;
+		SetSpiceModel job = new SetSpiceModel(ni);
+	}
+
+	/**
+	 * Class to set a Spice Model in a new thread.
+	 */
+	private static class SetSpiceModel extends Job
+	{
+		NodeInst ni;
+		protected SetSpiceModel(NodeInst ni)
+		{
+			super("Set Spice Model", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.ni = ni;
+			startJob();
+		}
+
+		public void doIt()
+		{
+			Variable var = ni.newVar(Spice.SPICE_MODEL_KEY, "SPICE-Model");
+			var.setDisplay();
+		}
+	}
+
+	/**
+	 * Method to set the type of the currently selected wires.
+	 * This is used by the Verilog netlister.
+	 * @param type 0 for wire; 1 for trireg; 2 for default.
+	 */
+	public static void setVerilogWireCommand(int type)
+	{
+		List list = Highlight.getHighlighted(false, true);
+		if (list.size() == 0)
+		{
+			System.out.println("Must select arcs before setting their type");
+			return;
+		}
+		SetWireType job = new SetWireType(list, type);
+	}
+
+	/**
+	 * Class to set Verilog wire types in a new thread.
+	 */
+	private static class SetWireType extends Job
+	{
+		List list;
+		int type;
+		protected SetWireType(List list, int type)
+		{
+			super("Change Verilog Wire Types", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.list = list;
+			this.type = type;
+			startJob();
+		}
+
+		public void doIt()
+		{
+			for(Iterator it = list.iterator(); it.hasNext(); )
+			{
+				ArcInst ai = (ArcInst)it.next();
+				switch (type)
+				{
+					case 0:		// set to "wire"
+						Variable var = ai.newVar(Verilog.WIRE_TYPE_KEY, "wire");
+						var.setDisplay();
+						break;
+					case 1:		// set to "trireg"
+						var = ai.newVar(Verilog.WIRE_TYPE_KEY, "trireg");
+						var.setDisplay();
+						break;
+					case 2:		// set to default
+						if (ai.getVar(Verilog.WIRE_TYPE_KEY) != null)
+							ai.delVar(Verilog.WIRE_TYPE_KEY);
+						break;
+				}
+			}
+		}
+	}
+
+	/**
 	 * Method to set the strength of the currently selected transistor.
 	 * This is used by the Verilog netlister.
 	 * @param weak true to set the currently selected transistor to be weak.
@@ -73,8 +164,7 @@ public class Simulation extends Tool
 	}
 
 	/**
-	 * Class to read a text library in a new thread.
-	 * For a non-interactive script, use ReadTextLibrary job = new ReadTextLibrary(filename).
+	 * Class to set transistor strengths in a new thread.
 	 */
 	private static class SetTransistorStrength extends Job
 	{

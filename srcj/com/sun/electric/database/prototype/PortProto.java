@@ -300,16 +300,16 @@ public abstract class PortProto extends ElectricObject
 		parent.removePort(this);
 	}
 
-	/*
-	 * Method to write a description of this PortProto.
-	 * Displays the description in the Messages Window.
-	 */
-	public void getInfo()
-	{
-		System.out.println(" Parent: " + parent);
-		System.out.println(" Name: " + protoName);
-		super.getInfo();
-	}
+//	/**
+//	 * Method to write a description of this PortProto.
+//	 * Displays the description in the Messages Window.
+//	 */
+//	public void getInfo()
+//	{
+//		System.out.println(" Parent: " + parent);
+//		System.out.println(" Name: " + protoName);
+//		super.getInfo();
+//	}
 
 	/**
 	 * Method to return the name key of this PortProto.

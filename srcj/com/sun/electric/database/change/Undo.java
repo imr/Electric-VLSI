@@ -701,7 +701,7 @@ public class Undo
 			if (type == Type.CELLMOD)
 			{
 				Cell cell = (Cell)obj;
-				return "Cell " + cell.describe() + " modified [was from " + a1 + "<=X<=" + a2 + " " + a3 + "<=Y<=" + a4 + "]";
+				return "Cell " + cell.describe() + " modified (was from " + a1 + "<=X<=" + a2 + " " + a3 + "<=Y<=" + a4 + ")";
 			}
 			if (type == Type.OBJECTNEW)
 			{
@@ -713,7 +713,7 @@ public class Undo
 			}
 			if (type == Type.OBJECTRENAME)
 			{
-				return "Renamed object " + obj + " oldName " + (Name)o1;
+				return "Renamed object " + obj + " (was " + (Name)o1 + ")";
 			}
 			if (type == Type.OBJECTREDRAW)
 			{

@@ -23,12 +23,18 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.tool.user.dialogs.OpenFile;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.FileWriter;
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 import javax.swing.JFrame;
@@ -39,10 +45,6 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ImageIcon;
 import javax.swing.SwingUtilities;
-
-//// the bean shell
-//import bsh.EvalError;
-//import bsh.Interpreter;
 
 /**
  * a console for the Java side of Electric.  Used because the standard
@@ -63,8 +65,8 @@ public class MessagesWindow
 	private int histidx = 0;
 	private Thread ticker = null;
 	private StringBuffer buffer = new StringBuffer();
-//	private Interpreter bi;
 	private Container jf;
+	private PrintWriter printWriter = null;
 
 	// -------------------- private and protected methods ------------------------
 	public MessagesWindow()
@@ -84,7 +86,6 @@ public class MessagesWindow
 			jFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 			contentFrame = jFrame.getContentPane();
 		}
-//		bi = new Interpreter();
 		history = new ArrayList();
 		entry = new JTextField();
 		entry.addActionListener(this);
@@ -129,6 +130,32 @@ public class MessagesWindow
 		// don't close!
 	}
 
+	/**
+	 * Method to erase everything in the messages window.
+	 */
+	public void clear()
+	{
+		info.setText("");
+	}
+
+	/**
+	 * Method to start saving the messages window.
+	 */
+	public void save()
+	{
+		String filePath = OpenFile.chooseOutputFile(OpenFile.Type.TEXT, null, "emessages.txt");
+		if (filePath == null) return;
+		try
+		{
+			printWriter = new PrintWriter(new BufferedWriter(new FileWriter(filePath)));
+		} catch (IOException e)
+		{
+			System.out.println("Error creating " + filePath);
+			return;
+		}
+		System.out.println("Messages will be saved to " + filePath);
+	}
+
 	public void write(byte[] b)
 	{
 		appendString(new String(b));
@@ -148,6 +175,11 @@ public class MessagesWindow
 	{
 		synchronized (buffer)
 		{
+			if (printWriter != null)
+			{
+				printWriter.print(str);
+				printWriter.flush();
+			}
 			buffer.append(str);
 			if (ticker == null)
 			{
@@ -250,29 +282,7 @@ public class MessagesWindow
 			Runtime rt = Runtime.getRuntime();
 			System.out.println("Total memory: " + rt.totalMemory());
 			System.out.println("Free memory: " + rt.freeMemory());
-//		} else
-//		{
-//			// try to execute it
-//			interpret(cmds);
 		}
 	}
-
-//	public void interpret(String args[])
-//	{
-//		StringBuffer sb = new StringBuffer();
-//		for (int i = 0; i < args.length - 1; i++)
-//		{
-//			sb.append(args[i] + " ");
-//		}
-//		sb.append(args[args.length - 1]);
-//		try
-//		{
-//			Object obj = bi.eval(sb.toString());
-//			System.out.println("=>" + obj);
-//		} catch (EvalError ee)
-//		{
-//			System.out.println(ee);
-//		}
-//	}
 
 }

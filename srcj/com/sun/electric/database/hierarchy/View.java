@@ -207,6 +207,23 @@ public class View extends ElectricObject
 	}
 
 	/**
+	 * Method to create a Multipage Schematic View for the given page number.
+	 * @param page the page number of the View.
+	 * @return the newly created Multipage Schematic View.
+	 */
+	public static View newMultiPageSchematicInstance(int page)
+	{
+		// make sure this can be done now
+		Job.checkChanging();
+
+		View view = makeInstance("schematic-page-" + page, "p" + page, MULTIPAGEVIEW, overallOrder++);
+
+		// handle change control, constraint, and broadcast
+		Undo.newObject(view);
+		return view;
+	}
+
+	/**
 	 * Method to delete this View.
 	 */
 	public void kill()
@@ -292,6 +309,17 @@ public class View extends ElectricObject
 	public static View findView(String name)
 	{
 		return (View) viewNames.get(name);
+	}
+
+	/**
+	 * Method to return a View for a multipage schematic from its page number.
+	 * @param page the page number of the View.
+	 * @return the specified View, or null if no such View exists.
+	 */
+	public static View findMultiPageSchematicView(int page)
+	{
+		String viewName = "schematic-page-" + page;
+		return findView(viewName);
 	}
 
 	/**
