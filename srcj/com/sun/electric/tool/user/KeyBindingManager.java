@@ -34,10 +34,8 @@ import com.sun.electric.tool.user.ui.KeyStrokePair;
 import com.sun.electric.tool.user.ui.KeyBindings;
 
 import javax.swing.*;
-import java.util.HashMap;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Iterator;
 import java.util.prefs.Preferences;
 import java.util.prefs.BackingStoreException;
 import java.awt.event.KeyEvent;
@@ -643,6 +641,28 @@ public class KeyBindingManager {
         return k.getEnabled();
     }
 
+    /**
+     * Check if there are any bindings that do not have any
+     * associated actions.
+     */
+    public synchronized void deleteEmptyBindings() {
+        Set keys = actionMap.keySet();
+        for (Iterator it = keys.iterator(); it.hasNext(); ) {
+            String key = (String)it.next();
+            ActionListener action = (ActionListener)actionMap.get(key);
+            if (action instanceof KeyBindings) {
+                KeyBindings bindings = (KeyBindings)action;
+                Iterator listenersIt = bindings.getActionListeners();
+                if (!listenersIt.hasNext()) {
+                    // no listeners on the action
+                    System.out.println("Warning: Deleting defunct binding for "+key+" [ "+bindings.bindingsToString()+ " ]...action does not exist anymore");
+                    // delete bindings
+                    removeBindingsFromPrefs(key);
+                }
+            }
+        }
+    }
+
     // --------------------------------- Private -------------------------------------
 
     /**
@@ -741,6 +761,16 @@ public class KeyBindingManager {
             bindings.add((KeyStrokePair)it.next());
         }
         return bindings;
+    }
+
+    /**
+     * Remove any bindings stored for actionDesc.
+     */
+    private synchronized void removeBindingsFromPrefs(String actionDesc) {
+        if (prefs == null) return;
+        if (actionDesc == null || actionDesc.equals("")) return;
+
+        prefs.remove(prefPrefix+actionDesc);
     }
 
 }

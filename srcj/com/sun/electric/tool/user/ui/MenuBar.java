@@ -558,6 +558,14 @@ public class MenuBar extends JMenuBar
         }
     }
 
+    /**
+     * Check if there are any bindings (usually from preferences)
+     * that no longer have an associated action.
+     */
+    public void deleteEmptyBindings() {
+        menuBarGroup.keyBindingManager.deleteEmptyBindings();
+    }
+
     // ------------------------------ Clean Up Methods ----------------------------
 
     /**
