@@ -112,7 +112,10 @@ public class Library extends ElectricObject
 		lib.libFile = libFile;
 	
 		// add the library to the global list
-		libraries.add(lib);
+		synchronized (libraries)
+		{
+			libraries.add(lib);
+		}
 
 		return lib;
 	}
@@ -154,7 +157,10 @@ public class Library extends ElectricObject
 		erase();
 
 		// remove it from the list of libraries
-		libraries.remove(this);
+		synchronized (libraries)
+		{
+			libraries.remove(this);
+		}
 
 		// set the new current library if appropriate
 		if (newCurLib != null) newCurLib.setCurrent();
@@ -178,7 +184,10 @@ public class Library extends ElectricObject
 			System.out.println("Tried to re-add a cell to a library: " + c);
 			return;
 		}
-		cells.add(c);
+		synchronized (cells)
+		{
+			cells.add(c);
+		}
 		WindowFrame.wantToRedoLibraryTree();
 	}
 
@@ -190,7 +199,10 @@ public class Library extends ElectricObject
 			System.out.println("Tried to remove a non-existant Cell from a library: " + c);
 			return;
 		}
-		cells.remove(c);
+		synchronized (cells)
+		{
+			cells.remove(c);
+		}
 		WindowFrame.wantToRedoLibraryTree();
 	}
 
@@ -458,8 +470,11 @@ public class Library extends ElectricObject
 	public static List getVisibleLibrariesSortedByName()
 	{
 		List sortedList = new ArrayList();
-		for(Iterator it = new VisibleLibraryIterator(); it.hasNext(); )
-			sortedList.add(it.next());
+		synchronized (libraries)
+		{
+			for(Iterator it = new VisibleLibraryIterator(); it.hasNext(); )
+				sortedList.add(it.next());
+		}
 		Collections.sort(sortedList, new LibCaseInsensitive());
 		return sortedList;
 	}
@@ -594,8 +609,11 @@ public class Library extends ElectricObject
 	public List getCellsSortedByName()
 	{
 		List sortedList = new ArrayList();
-		for(Iterator it = getCells(); it.hasNext(); )
-			sortedList.add(it.next());
+		synchronized (cells)
+		{
+			for(Iterator it = getCells(); it.hasNext(); )
+				sortedList.add(it.next());
+		}
 		Collections.sort(sortedList, new CellCaseInsensitive());
 		return sortedList;
 	}

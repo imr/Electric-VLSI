@@ -122,7 +122,10 @@ public class Cell extends NodeProto
 		 */
 		void add(Cell cell)
 		{
-			cells.add(cell);
+			synchronized(cells)
+			{
+				cells.add(cell);
+			}
 			cell.cellGroup = this;
 		}
 
@@ -132,7 +135,10 @@ public class Cell extends NodeProto
 		 */
 		void remove(Cell f)
 		{
-			cells.remove(f);
+			synchronized (cells)
+			{
+				cells.remove(f);
+			}
 		}
 
 		/**
@@ -154,8 +160,11 @@ public class Cell extends NodeProto
 		public List getCellsSortedByView()
 		{
 			List sortedList = new ArrayList();
-			for(Iterator it = cells.iterator(); it.hasNext(); )
-				sortedList.add(it.next());
+			synchronized(cells)
+			{
+				for(Iterator it = cells.iterator(); it.hasNext(); )
+					sortedList.add(it.next());
+			}
 			Collections.sort(sortedList, new CellsByView());
 			return sortedList;
 		}

@@ -564,9 +564,9 @@ public class TextUtils
 				return url.openStream();
 			} catch (IOException e) {
                 if (errorMsg != null)
-                    errorMsg.append("Error: cannot open URL: "+e.getMessage()+"\n");
+                    errorMsg.append("Error: cannot open " + e.getMessage() + "\n");
                 else
-                    System.out.println("Error: cannot open URL: "+e.getMessage());
+                    System.out.println("Error: cannot open " + e.getMessage());
             }
 		}
 		return null;

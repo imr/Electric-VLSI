@@ -35,6 +35,7 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.MenuCommands;
+import com.sun.electric.tool.user.dialogs.EditOptions;
 import com.sun.electric.tool.user.help.HelpViewer;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -324,7 +325,7 @@ public final class Main
 		public void handlePreferences(ApplicationEvent ae)
 		{
 			ae.setHandled(true);
-			MenuCommands.editOptionsCommand();
+			EditOptions.editOptionsCommand();
 		}
 
 		/**
