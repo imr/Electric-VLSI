@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Random;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.ncc.basic.Messenger;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.jemNets.NccNetlist;
@@ -74,6 +75,7 @@ public class NccGlobals {
     /** subtree holding wires */              private EquivRecord wires;
     /** subtree holding ports */              private EquivRecord ports;
 	/** root Cell of each netlist */  		  private Cell[] rootCells;
+	/** VarContext of root of each netlist */ private VarContext[] rootContexts;
 	/** pass number shared by strategies */   public int passNumber;
 	
 	
@@ -125,10 +127,12 @@ public class NccGlobals {
 		root = EquivRecord.newRootRecord(el);
 		
 		rootCells = new Cell[nccNets.size()];
+		rootContexts = new VarContext[nccNets.size()];
 		int i=0;
 		for (Iterator it=nccNets.iterator(); it.hasNext(); i++) {
 			NccNetlist nl = (NccNetlist) it.next();
 			rootCells[i] = nl.getRootCell();
+			rootContexts[i] = nl.getRootContext();
 		}
 	}
 	
@@ -138,6 +142,7 @@ public class NccGlobals {
 	public EquivRecord getPorts() {return ports;}
 	public int getNumNetlistsBeingCompared() {return rootCells.length;}
 	public Cell[] getRootCells() {return rootCells;}
+	public VarContext[] getRootContexts() {return rootContexts;}
 	public String[] getRootCellNames() {
 		String[] rootCellNames = new String[rootCells.length];
 		for (int i=0; i<rootCells.length; i++) {

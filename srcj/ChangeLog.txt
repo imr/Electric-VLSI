@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01p: *********************************
 
+IMP: (9/16/04, RK) Sort size errors by relative error
+
 BUG: (9/16/04, GVG) Fix in geometry on network: wrong network selected
 
 IMP: (9/15/04, GVG) Check box in DRC Tab to disable area checking.

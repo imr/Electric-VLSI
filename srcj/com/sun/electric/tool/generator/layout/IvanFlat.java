@@ -115,19 +115,20 @@ class IvanFlater extends HierarchyEnumerator.Visitor {
 
 	private String generateNetName(int id,
 		                           HierarchyEnumerator.CellInfo info) {
-		HierarchyEnumerator.NetDescription netDesc =
-			info.netIdToNetDescription(id);
-		String pathNm = netDesc.getCellInfo().getContext().getInstPath("/");
-		if (!pathNm.endsWith("/"))
-			pathNm += "/";
-		String netNm;
-		Iterator it = netDesc.getNet().getNames();
-		if (it.hasNext()) {
-			netNm = pathNm + (String) it.next();
-		} else {
-			netNm = pathNm + id;
-		}
-		return netNm;
+//		HierarchyEnumerator.NetDescription netDesc =
+//			info.netIdToNetDescription(id);
+//		String pathNm = netDesc.getCellInfo().getContext().getInstPath("/");
+//		if (!pathNm.endsWith("/"))
+//			pathNm += "/";
+//		String netNm;
+//		Iterator it = netDesc.getNet().getNames();
+//		if (it.hasNext()) {
+//			netNm = pathNm + (String) it.next();
+//		} else {
+//			netNm = pathNm + id;
+//		}
+//		return netNm;
+		return null;
 	}
 
 	private String getNetNm(NodeInst ni, String portNm,	

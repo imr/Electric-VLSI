@@ -60,6 +60,7 @@ import com.sun.electric.tool.ncc.processing.SubcircuitInfo;
 public class NccNetlist {
 	private final NccGlobals globals;
 	private final Cell rootCell;
+	private final VarContext rootContext;
 	private ArrayList wires, parts, ports;
 	private boolean exportAssertionsOK;
 
@@ -68,7 +69,8 @@ public class NccNetlist {
 					  HierarchyInfo hierInfo, boolean blackBox, 
 					  NccGlobals globals) {
 		this.globals = globals;
-		this.rootCell = root; 
+		rootCell = root; 
+		rootContext = context;
 
 		Visitor v = new Visitor(globals, hierInfo, blackBox, context);
 		HierarchyEnumerator.enumerateCell(root, context, netlist, v);
@@ -82,6 +84,7 @@ public class NccNetlist {
 	public ArrayList getPortArray() {return ports;}
 	public boolean exportAssertionsOK() {return exportAssertionsOK;}
 	public Cell getRootCell() {return rootCell;}
+	public VarContext getRootContext() {return rootContext;}
 }
 
 /** map from netID to NCC Wire */

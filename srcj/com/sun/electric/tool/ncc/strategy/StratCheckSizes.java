@@ -25,6 +25,11 @@
 /** StratFrontier finds all non-retired EquivRecords */
 
 package com.sun.electric.tool.ncc.strategy;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
 
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.NccOptions;
@@ -37,10 +42,62 @@ import com.sun.electric.tool.ncc.lists.LeafList;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 public class StratCheckSizes extends Strategy {
+	// ----------------------- private types ----------------------------------0
+	private static abstract class Mismatch {
+		private StringBuffer sb = new StringBuffer();
+		private void aln(String s) {sb.append(s); sb.append("\n");}
+		private long pow(int x, int y) {
+			long prod = 1;
+			for (int i=0; i<y; i++)  prod*=x;
+			return prod;
+		}
+		private double round(double x, int places) {
+			long m = pow(10, places);
+			return Math.rint(x*m)/m;
+		}
+		public final double min, max;
+		public final Transistor minMos, maxMos;
+		Mismatch(double min, Transistor minMos, double max, Transistor maxMos) {
+			this.min=min; this.max=max;
+			this.minMos=minMos; this.maxMos=maxMos;
+		}
+		public double relErr() {return (max-min)/min;}
+		public double absErr() {return max-min;}
+		public boolean isCap() {return minMos.isCapacitor();}
+		public abstract String widLen();
+		public abstract String wl();
+		public String toString() {
+			aln("  MOS"+
+				(isCap()?" capacitor":"")+
+				" "+widLen()+"s don't match. "+
+				" relativeError="+round(relErr()*100,1)+"%"+
+				" absoluteError="+round(absErr(),2));
+			aln("    "+wl()+"="+min+" for "+minMos.toString());
+			aln("    "+wl()+"="+max+" for "+maxMos.toString());
+			return sb.toString();
+		}
+	}
+	private static class LengthMismatch extends Mismatch {
+		public String widLen() {return "length";}
+		public String wl() {return "l";}
+		public LengthMismatch(double min, Transistor minMos, double max, 
+				              Transistor maxMos) {
+			super(min, minMos, max, maxMos);
+		}
+	}
+	private static class WidthMismatch extends Mismatch {
+		public String widLen() {return "width";}
+		public String wl() {return "w";}
+		public WidthMismatch(double min, Transistor minMos, double max, 
+				             Transistor maxMos) {
+			super(min, minMos, max, maxMos);
+		}
+	}
+	// ------------------------------ private data -----------------------------
 	private NccOptions options;
 	private double minWidth, maxWidth, minLength, maxLength;
 	private Transistor minWidMos, maxWidMos, minLenMos, maxLenMos;
-	private boolean matches = true;
+	private List mismatches = new ArrayList();
 	
     private StratCheckSizes(NccGlobals globals) {
     	super(globals);
@@ -49,38 +106,34 @@ public class StratCheckSizes extends Strategy {
     
     private void checkWidthMismatch() {
 		if (!NccUtils.sizesMatch(maxWidth, minWidth, options)) {
-			boolean isCap = minWidMos.isCapacitor(); 
-			if (isCap) {
-				System.out.print("  MOS capacitor widths don't match. ");
-			} else {
-				System.out.print("  MOS widths don't match. ");
-			}
-			double relWidErr = (maxWidth - minWidth) / minWidth;
-			double absWidErr = maxWidth - minWidth;
-			System.out.println(" relativeError="+relWidErr+" absoluteError="+absWidErr);
-			System.out.println("    W="+minWidth+" for "+minWidMos.toString());
-			System.out.println("    W="+maxWidth+" for "+maxWidMos.toString());
-			// Capacitor mismatches deserve warnings not errors
-			/*if (!isCap)*/  matches = false;
+			mismatches.add(new WidthMismatch(minWidth, minWidMos, 
+					                         maxWidth, maxWidMos));
 		}
     }
     private void checkLengthMismatch() {
     	if (!NccUtils.sizesMatch(maxLength, minLength, options)) {
-			boolean isCap = minLenMos.isCapacitor(); 
-			if (isCap) {
-				System.out.print("  MOS capacitor lengths don't match. ");
-			} else {
-				System.out.print("  MOS lengths don't match. ");
-			}
-			double relLenErr = (maxLength - minLength) / minLength;
-			double absLenErr = maxLength - minLength;
-			System.out.println(" relativeError="+relLenErr+" absoluteError="+absLenErr);
-			System.out.println("    L="+minLength+" for "+minLenMos.toString());
-			System.out.println("    L="+maxLength+" for "+maxLenMos.toString());
-			// Capacitor mismatches deserve warnings not errors
-			/*if (!isCap)*/  matches = false;
+    		mismatches.add(new LengthMismatch(minLength, minLenMos, 
+    				                          maxLength, maxLenMos));
     	}
     }
+    private static class MismatchComparator implements Comparator {
+    	public int compare(Object o1, Object o2) {
+    		Mismatch m1 = (Mismatch) o1;
+    		Mismatch m2 = (Mismatch) o2;
+    		double diff = m1.relErr() - m2.relErr();
+    		if (diff==0) return 0;
+    		return diff>0 ? 1 : -1;
+    	}
+    }
+    private void summary() {
+    	Collections.sort(mismatches, new MismatchComparator());
+    	for (Iterator it=mismatches.iterator(); it.hasNext();) {
+    		Mismatch m = (Mismatch) it.next();
+    		System.out.print(m.toString());
+    	}
+    }
+
+	private boolean matches() {return mismatches.size()!=0;}
 
 	public LeafList doFor(EquivRecord j) {
 		if(j.isLeaf()) {
@@ -105,28 +158,14 @@ public class StratCheckSizes extends Strategy {
 			globals.error(!(p instanceof Transistor), "unimplemented part type");
 			Transistor t = (Transistor) p;
 			double w = t.getWidth();
-			if (w<minWidth) {
-				minWidth = w;
-				minWidMos = t;
-			}
-			if (w>maxWidth) {
-				maxWidth = w;
-				maxWidMos = t;
-			}
+			if (w<minWidth) {minWidth=w;  minWidMos=t;}
+			if (w>maxWidth) {maxWidth=w;  maxWidMos=t;}
 			double l = t.getLength();
-			if (l<minLength) {
-				minLength = l;
-				minLenMos = t;
-			}
-			if (l>maxLength) {
-				maxLength = l;
-				maxLenMos = t;
-			}
+			if (l<minLength) {minLength=l;  minLenMos=t;}
+			if (l>maxLength) {maxLength=l;  maxLenMos=t;}
 		}
 		return CODE_NO_CHANGE;
 	}
-	
-	private boolean matches() {return matches;}
 
 	// ------------------- intended interface ------------------------
     public static boolean doYourJob(NccGlobals globals) {
@@ -138,6 +177,7 @@ public class StratCheckSizes extends Strategy {
     	
     	StratCheckSizes jsf = new StratCheckSizes(globals);
     	jsf.doFor(parts);
+    	jsf.summary();
     	return jsf.matches(); 
     }
 }

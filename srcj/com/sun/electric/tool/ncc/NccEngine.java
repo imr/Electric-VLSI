@@ -90,10 +90,13 @@ public class NccEngine {
 		int[] partCounts = getNetObjCounts(globals.getParts(), numCells);
 		int[] wireCounts = getNetObjCounts(globals.getWires(), numCells);
 		String[] cellNames = globals.getRootCellNames();
+		VarContext[] contexts = globals.getRootContexts();
 		for (int i=0; i<cellNames.length; i++) {
 			System.out.println(
 				"  Cell: "+cellNames[i]+" has "+wireCounts[i]+" wires and "+
-				partCounts[i]+" parts, after series/parallel combination"
+				partCounts[i]+" parts, after series/parallel combination. "+
+				"Instance path: "+
+				contexts[i].getInstPath("/")
 			);
 		}
 	}

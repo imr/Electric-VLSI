@@ -65,7 +65,7 @@ public class EvalJavaBsh
     /** Context stack for recursive eval calls */   private Stack contextStack = new Stack();
     /** Info stack for recursive eval calls */      private Stack infoStack = new Stack();
 
-    /** the singleton object of this class. */		public static EvalJavaBsh evalJavaBsh = new EvalJavaBsh();
+    /** the singleton object of this class. */		public static final EvalJavaBsh evalJavaBsh = new EvalJavaBsh();
 
     /** turn on Bsh verbose DEBUG stmts */          private static boolean DEBUG = false;
     /** turn on stack trace stmts for exceptions */ private static boolean DEBUGSTACKTRACE = false;

@@ -150,7 +150,7 @@ public class NccJob extends Job {
 				LayoutLib.error(true, "bad operation: "+operation);
 				return false;
 			}
-			System.out.println("Summary for all cells "+result.summary(options.checkSizes));
+			System.out.println("Summary for all cells: "+result.summary(options.checkSizes));
 			Date after = new Date();
 			System.out.println("NCC command completed in: "+
 			                   NccUtils.hourMinSec(before, after)+".");

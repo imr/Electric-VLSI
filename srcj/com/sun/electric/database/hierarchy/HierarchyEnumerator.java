@@ -321,7 +321,7 @@ public final class HierarchyEnumerator {
 	 * hierarchy in which the JNetwork occurs. The visitor can use
 	 * NetDescription to formulate, for example, the name of
 	 * the net */
-	public static class NetDescription {
+	private static class NetDescription {
 		private JNetwork net;
 		private CellInfo info;
 		NetDescription(JNetwork net, CellInfo info) {
@@ -726,9 +726,7 @@ public final class HierarchyEnumerator {
 
 	// ----------------------- public methods --------------------------
 
-	/** Begin enumeration of the contents of the Cell root.  You MUST
-	 * call rebuildNetworks() on the root Cell before calling
-	 * beginEnumeration().
+	/** Begin enumeration of the contents of the Cell root.
 	 * @param root the starting point of the enumeration.
 	 * @param context the VarContext for evaluating parameters in Cell
 	 * root. If context is null then VarContext.globalContext is used.
