@@ -2,6 +2,12 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (7/5/04, SMR) Implemented opening and closing of bus contents in waveform window.
+
+IMP: (7/5/04, SMR) Implemented saving of waveforms with cells.
+
+IMP: (7/5/04, SMR) Digital waveforms now reflect level values in edit window.
+
 BUG: (7/4/04, DN) Network wasn't highlighted when click on icon's port.
 FIX: Use 0-th nodable of the icon in "Highlight.showHighlight".
 

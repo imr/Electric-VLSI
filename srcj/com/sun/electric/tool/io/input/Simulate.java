@@ -34,7 +34,11 @@ import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Iterator;
 import java.net.URL;
+
+import javax.swing.JOptionPane;
 
 
 /**
@@ -124,8 +128,26 @@ public class Simulate extends Input
 				fileURL = TextUtils.makeURLToFile(fileName);
 			}
 			String cellName = TextUtils.getFileNameWithoutExtension(fileURL);
-			cell = Library.getCurrent().findNodeProto(cellName);
-if (cell != null) System.out.println("presuming cell "+cell.describe());
+			Library curLib = Library.getCurrent();
+			cell = curLib.findNodeProto(cellName);
+			if (cell != null)
+			{
+				// prompt for the cell
+				List cellList = curLib.getCellsSortedByName();
+				String [] cellNames = new String[cellList.size()];
+				int i = 0;
+				for(Iterator it = cellList.iterator(); it.hasNext(); )
+				{
+					Cell aCell = (Cell)it.next();
+					cellNames[i++] = aCell.describe();
+				}
+				String defaultCell = cellNames[0];
+				if (cell != null) defaultCell = cell.describe();
+				String selectedCell = (String)JOptionPane.showInputDialog(null, "Which cell is associated with this data",
+					"Cells in library " + curLib.getName(), JOptionPane.INFORMATION_MESSAGE, null, cellNames, defaultCell);
+				if (selectedCell != null)
+					cell = curLib.findNodeProto(selectedCell);
+			}
 		} else
 		{
 			if (fileURL == null)

@@ -177,6 +177,16 @@ public class Simulation extends Tool
 			}
 			return new Rectangle2D.Double(lowTime, lowValue, highTime-lowTime, highValue-lowValue);
 		}
+
+		public boolean isAnalog()
+		{
+			if (getSignals().size() > 0)
+			{
+				SimSignal sSig = (SimSignal)getSignals().get(0);
+				if (sSig instanceof SimAnalogSignal) return true;
+			}
+			return false;
+		}
 	}
 
 	public static class SimSignal
@@ -441,6 +451,58 @@ public class Simulation extends Tool
 		ww.setExtensionTimeCursor(timeRange*0.8 + lowTime);
 		ww.setDefaultTimeRange(lowTime, highTime);
 
+		if (sd.cell != null)
+		{
+			Variable var = sd.cell.getVar(WaveformWindow.WINDOW_SIGNAL_ORDER);
+			if (var != null && var.getObject() instanceof String[])
+			{
+				// load the window with previous signal set
+				String [] signalNames = (String [])var.getObject();
+				boolean isAnalog = sd.isAnalog();
+				boolean showedSomething = false;
+				for(int i=0; i<signalNames.length; i++)
+				{
+					String signalName = signalNames[i];
+					WaveformWindow.Panel wp = null;
+					boolean firstSignal = true;
+
+					// add signals to the panel
+					int start = 0;
+					for(;;)
+					{
+						int tabPos = signalName.indexOf('\t', start);
+						String sigName = null;
+						if (tabPos < 0) sigName = signalName.substring(start); else
+						{
+							sigName = signalName.substring(start, tabPos);
+							start = tabPos+1;
+						}
+						for(int j=0; j<sd.signals.size(); j++)
+						{
+							Simulation.SimSignal sSig= (Simulation.SimSignal)sd.signals.get(j);
+							String aSigName = sSig.getSignalName();
+							if (sSig.getSignalContext() != null) aSigName = sSig.getSignalContext() + aSigName;
+							if (sigName.equals(aSigName))
+							{
+								if (firstSignal)
+								{
+									firstSignal = false;
+									wp = new WaveformWindow.Panel(ww, isAnalog);
+									if (isAnalog) wp.setValueRange(lowValue, highValue);
+									wp.makeSelectedPanel();
+									showedSomething = true;
+								}
+								new WaveformWindow.Signal(wp, sSig);
+								break;
+							}
+						}
+						if (tabPos < 0) break;
+					}
+				}
+				if (showedSomething) return;
+			}
+		}
+
 		// put the first waveform panels in it
 		if (sd.signals.size() > 0)
 		{
@@ -457,7 +519,7 @@ public class Simulation extends Tool
 				// put all top-level signals in
 				for(int i=0; i<sd.signals.size(); i++)
 				{
-					Simulation.SimDigitalSignal sDSig= (Simulation.SimDigitalSignal)sd.signals.get(i);
+					Simulation.SimDigitalSignal sDSig = (Simulation.SimDigitalSignal)sd.signals.get(i);
 					if (sDSig.getSignalContext() != null) continue;
 					WaveformWindow.Panel wp = new WaveformWindow.Panel(ww, false);
 					wp.makeSelectedPanel();

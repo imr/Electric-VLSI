@@ -387,6 +387,9 @@ public class EditWindow extends JPanel
 		}
 
 		if (cell != null && User.isCheckCellDates()) cell.checkCellDates();
+
+		// clear list of cross-probed levels for this EditWindow
+		clearCrossProbeLevels();
 	}
 
 	/**
@@ -543,6 +546,9 @@ public class EditWindow extends JPanel
 			// add in the frame if present
 			drawCellFrame(g);
 
+			// add cross-probed level display
+			showCrossProbeLevels(g);
+
 			// add in highlighting
             long start = System.currentTimeMillis();
 			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
@@ -685,6 +691,100 @@ public class EditWindow extends JPanel
 		setScale(scale);
 		offscreen.drawArc(ai, DBMath.MATID);
 		return offscreen.composite();
+	}
+
+	// ************************************* SIMULATION CROSSPROBE LEVEL DISPLAY *************************************
+
+	private static class CrossProbe
+	{
+		boolean isLine;
+		Point2D start, end;
+		Rectangle2D box;
+		Color color;
+	};
+
+	private List crossProbeObjects = new ArrayList();
+
+	/**
+	 * Method to clear the list of cross-probed levels in this EditWindow.
+	 * Cross-probed levels are displays of the current simulation value
+	 * at a point in the display, and come from the Waveform Window.
+	 */
+	public void clearCrossProbeLevels()
+	{
+		crossProbeObjects.clear();
+	}
+
+	/**
+	 * Method to tell whether there is any cross-probed data in this EditWindow.
+	 * Cross-probed levels are displays of the current simulation value
+	 * at a point in the display, and come from the Waveform Window.
+	 * @return true if there are any cross-probed data displays in this EditWindow.
+	 */
+	public boolean hasCrossProbeData()
+	{
+		if (crossProbeObjects.size() > 0) return true;
+		return false;
+	}
+
+	/**
+	 * Method to add a line to the list of cross-probed levels in this EditWindow.
+	 * Cross-probed levels are displays of the current simulation value
+	 * at a point in the display, and come from the Waveform Window.
+	 * @param start the starting point of the line.
+	 * @param end the ending point of the line.
+	 * @param color the color of the line.
+	 */
+	public void addCrossProbeLine(Point2D start, Point2D end, Color color)
+	{
+		CrossProbe cp = new CrossProbe();
+		cp.isLine = true;
+		cp.start = start;
+		cp.end = end;
+		cp.color = color;
+		crossProbeObjects.add(cp);
+	}
+
+	/**
+	 * Method to add a box to the list of cross-probed levels in this EditWindow.
+	 * Cross-probed levels are displays of the current simulation value
+	 * at a point in the display, and come from the Waveform Window.
+	 * @param box the bounds of the box.
+	 * @param color the color of the box.
+	 */
+	public void addCrossProbeBox(Rectangle2D box, Color color)
+	{
+		CrossProbe cp = new CrossProbe();
+		cp.isLine = false;
+		cp.box = box;
+		cp.color = color;
+		crossProbeObjects.add(cp);
+	}
+
+	private void showCrossProbeLevels(Graphics g)
+	{
+		for(Iterator it = crossProbeObjects.iterator(); it.hasNext(); )
+		{
+			CrossProbe cp = (CrossProbe)it.next();
+			g.setColor(cp.color);
+			if (cp.isLine)
+			{
+				// draw a line
+				Point pS = databaseToScreen(cp.start);
+				Point pE = databaseToScreen(cp.end);
+				g.drawLine(pS.x, pS.y, pE.x, pE.y);
+			} else
+			{
+				// draw a box
+				Point pS = databaseToScreen(cp.box.getMinX(), cp.box.getMinY());
+				Point pE = databaseToScreen(cp.box.getMaxX(), cp.box.getMaxY());
+				int lX = Math.min(pS.x, pE.x);
+				int lY = Math.min(pS.y, pE.y);
+				int wid = Math.abs(pS.x - pE.x);
+				int hei = Math.abs(pS.y - pE.y);
+				g.fillRect(lX, lY, wid, hei);
+			}
+		}
 	}
 
 	// ************************************* DRAG BOX *************************************
