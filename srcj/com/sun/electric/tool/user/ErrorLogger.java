@@ -708,9 +708,9 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
 						if (getNumErrors() == 0) extraMsg = "warnings";
 						else  if (getNumWarnings() == 0) extraMsg = "errors";
 						String msg = errorSystem + " found "+getNumErrors()+" errors, "+getNumWarnings()+" warnings!";
+						System.out.println(msg);
 						if (getNumLogs() > 0)
 						{
-							System.out.println(msg);
 							System.out.println("Type > and < to step through " + extraMsg + ", or open the ERRORS view in the explorer");
 						}
 						if (getNumErrors() > 0 && !Main.BATCHMODE)
