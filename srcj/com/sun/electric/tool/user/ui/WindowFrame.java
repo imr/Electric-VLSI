@@ -197,7 +197,7 @@ public class WindowFrame
 		content.loadExplorerTree(rootNode);
 		treeModel = new DefaultTreeModel(rootNode);
 		tree = ExplorerTree.CreateExplorerTree(rootNode, treeModel);
-		wantToRedoLibraryTree();
+		//wantToRedoLibraryTree();
 		JScrollPane scrolledTree = new JScrollPane(tree);
 
 		// put them together into the split pane

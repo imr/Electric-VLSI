@@ -222,7 +222,7 @@ public class Library extends ElectricObject
             }
 			cells.add(c);
 		}
-		WindowFrame.wantToRedoLibraryTree();
+		//WindowFrame.wantToRedoLibraryTree();
 	}
 
 	/**
@@ -241,7 +241,7 @@ public class Library extends ElectricObject
             }
 			cells.remove(c);
 		}
-		WindowFrame.wantToRedoLibraryTree();
+		//WindowFrame.wantToRedoLibraryTree();
 	}
 
     /**
@@ -749,7 +749,7 @@ public class Library extends ElectricObject
 		String extension = TextUtils.getExtension(libFile);
 		if (extension.length() > 0) newLibFile += "." + extension;
 		this.libFile = TextUtils.makeURLToFile(newLibFile);
-		WindowFrame.wantToRedoLibraryTree();
+		//WindowFrame.wantToRedoLibraryTree();
 	}
 
 	/**

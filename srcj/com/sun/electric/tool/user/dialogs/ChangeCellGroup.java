@@ -83,7 +83,7 @@ public class ChangeCellGroup extends EDialog {
 
         public boolean doIt() {
             cell.setCellGroup(newGroup);
-            WindowFrame.wantToRedoLibraryTree();
+            //WindowFrame.wantToRedoLibraryTree();
             return true;
         }
     }

@@ -807,7 +807,7 @@ public class Change extends EDialog implements HighlightListener
 					} else System.out.println("Arc " + oldAType.describe() + " replaced with " +ap.describe());
 				}
             }
-            WindowFrame.wantToRedoLibraryTree();
+            //WindowFrame.wantToRedoLibraryTree();
 			return true;
 		}
 

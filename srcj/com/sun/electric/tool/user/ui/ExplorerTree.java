@@ -950,7 +950,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		{
 			Library lib = (Library)currentSelectedObject;
 			lib.setCurrent();
-			WindowFrame.wantToRedoLibraryTree();
+			//WindowFrame.wantToRedoLibraryTree();
 			WindowFrame.wantToRedoTitleNames();
 			EditWindow.repaintAll();
 		}
@@ -1045,19 +1045,19 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		private void showAlphabeticallyAction()
 		{
 			howToShow = SHOWALPHABETICALLY;
-			WindowFrame.wantToRedoLibraryTree();
+			//WindowFrame.wantToRedoLibraryTree();
 		}
 
 		private void showByGroupAction()
 		{
 			howToShow = SHOWBYCELLGROUP;
-			WindowFrame.wantToRedoLibraryTree();
+			//WindowFrame.wantToRedoLibraryTree();
 		}
 
 		private void showByHierarchyAction()
 		{
 			howToShow = SHOWBYHIERARCHY;
-			WindowFrame.wantToRedoLibraryTree();
+			//WindowFrame.wantToRedoLibraryTree();
 		}
 
 	}
