@@ -1057,7 +1057,7 @@ public class Highlight
 								ni.getTrueCenterY() + outline[i].getY());
 						}
 						trans.transform(pointList, 0, pointList, 0, numPoints);
-						drawOutlineFromPoints(wnd, g, pointList, highOffX, highOffY, true, null);
+						drawOutlineFromPoints(wnd, g, pointList, 0, 0, true, null);
 						drewOutline = true;
 					}
 				}

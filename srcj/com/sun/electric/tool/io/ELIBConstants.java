@@ -23,6 +23,15 @@
  */
 package com.sun.electric.tool.io;
 
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.tool.Tool;
+import com.sun.electric.technology.Technology;
+
 import java.util.Date;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -117,5 +126,32 @@ public class ELIBConstants
 		GregorianCalendar creation = new GregorianCalendar();
 		creation.setTime(date);
 		return creation.getTimeInMillis() / 1000;
+	}
+
+	/**
+	 * Method to convert from Java types to "elib" types.
+	 * The "elib" types are used when saving libraries to disk.
+	 * They were the constants used in the C Electric's object implementation,
+	 * and are still used in both the "elib" and Readable Dump files.
+	 * @param obj an Object of any class in the Electric world.
+	 * @return the "elib" integer type number for that class of object.
+	 */
+	public static int getVarType(Object obj)
+	{
+		if (obj instanceof Integer) return ELIBConstants.VINTEGER;
+		if (obj instanceof Short) return ELIBConstants.VSHORT;
+		if (obj instanceof Byte) return ELIBConstants.VCHAR;
+		if (obj instanceof String) return ELIBConstants.VSTRING;
+		if (obj instanceof Float) return ELIBConstants.VFLOAT;
+		if (obj instanceof Double) return ELIBConstants.VDOUBLE;
+		if (obj instanceof Technology) return ELIBConstants.VTECHNOLOGY;
+		if (obj instanceof Library) return ELIBConstants.VLIBRARY;
+		if (obj instanceof Tool) return ELIBConstants.VTOOL;
+		if (obj instanceof NodeInst) return ELIBConstants.VNODEINST;
+		if (obj instanceof ArcInst) return ELIBConstants.VARCINST;
+		if (obj instanceof NodeProto) return ELIBConstants.VNODEPROTO;
+		if (obj instanceof ArcProto) return ELIBConstants.VARCPROTO;
+		if (obj instanceof PortProto) return ELIBConstants.VPORTPROTO;
+		return ELIBConstants.VUNKNOWN;
 	}
 }

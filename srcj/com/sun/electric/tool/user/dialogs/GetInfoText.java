@@ -370,13 +370,13 @@ public class GetInfoText extends EDialog {
         textPanel.applyChanges();
         attrPanel.applyChanges();
 
-       boolean changed = false;
+        boolean changed = false;
 
         // see if text changed
         String currentText = theText.getText();
         if (!currentText.equals(initialText)) changed = true;
 
-       if (changed) {
+        if (changed) {
             // split text into lines
 	        // Should skip empty lines
             String[] textArray = new String[theText.getLineCount()];

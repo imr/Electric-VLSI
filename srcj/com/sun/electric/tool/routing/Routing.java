@@ -68,7 +68,7 @@ public class Routing extends Listener
 	 */
 	private Routing()
 	{
-		super("Routing");
+		super("routing");
 	}
 
 	/**

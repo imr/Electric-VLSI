@@ -169,7 +169,7 @@ public final class MenuCommands
 		fileMenu.addMenuItem("Close Library", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { closeLibraryCommand(Library.getCurrent()); } });
 		fileMenu.addMenuItem("Save Library", KeyStroke.getKeyStroke('S', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent()); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.ELIB); } });
 		fileMenu.addMenuItem("Save Library as...",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveAsLibraryCommand(); } });
 		fileMenu.addMenuItem("Save All Libraries",null,
@@ -182,6 +182,8 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.GDS, false); } });
 		exportSubMenu.addMenuItem("PostScript", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.POSTSCRIPT, false); } });
+		exportSubMenu.addMenuItem("Readable Dump", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.READABLEDUMP); } });
 
 		fileMenu.addSeparator();
 
@@ -334,7 +336,13 @@ public final class MenuCommands
 		Menu editInfoSubMenu = new Menu("Info", 'V');
 		editMenu.add(editInfoSubMenu);
 		editInfoSubMenu.addMenuItem("Attributes...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { attributesCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Attributes.showDialog(); } });
+		editInfoSubMenu.addMenuItem("See All Parameters on Node", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { seeAllParametersCommand(); } });
+		editInfoSubMenu.addMenuItem("Hide All Parameters on Node", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { hideAllParametersCommand(); } });
+		editInfoSubMenu.addMenuItem("Default Parameter Visibility", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { defaultParamVisibilityCommand(); } });
 		editInfoSubMenu.addSeparator();
 		editInfoSubMenu.addMenuItem("List Layer Coverage", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(); } });
@@ -347,16 +355,16 @@ public final class MenuCommands
 		Menu modeSubMenuEdit = new Menu("Edit");
 		modeSubMenu.add(modeSubMenuEdit);
 		ButtonGroup editGroup = new ButtonGroup();
-        JMenuItem cursorClickZoomWire, cursorSelect, cursorWiring, cursorPan, cursorZoom, cursorOutline;
+        JMenuItem cursorClickZoomWire, cursorSelect, cursorWiring, cursorPan, cursorZoom, cursorOutline, cursorMeasure;
 		cursorClickZoomWire = modeSubMenuEdit.addRadioButton(ToolBar.cursorClickZoomWireName, true, editGroup, KeyStroke.getKeyStroke('S', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.clickZoomWireCommand(); } });
         ToolBar.CursorMode cm = ToolBar.getCursorMode();
         if (cm == ToolBar.CursorMode.CLICKZOOMWIRE) cursorClickZoomWire.setSelected(true);
         if (ToolBar.secondaryInputModes) {
-		cursorSelect = modeSubMenuEdit.addRadioButton(ToolBar.cursorSelectName, false, editGroup, KeyStroke.getKeyStroke('M', 0),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.selectCommand(); } });
-		cursorWiring = modeSubMenuEdit.addRadioButton(ToolBar.cursorWiringName, false, editGroup, KeyStroke.getKeyStroke('W', 0),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.wiringCommand(); } });
+			cursorSelect = modeSubMenuEdit.addRadioButton(ToolBar.cursorSelectName, false, editGroup, KeyStroke.getKeyStroke('M', 0),
+				new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.selectCommand(); } });
+			cursorWiring = modeSubMenuEdit.addRadioButton(ToolBar.cursorWiringName, false, editGroup, KeyStroke.getKeyStroke('W', 0),
+				new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.wiringCommand(); } });
             if (cm == ToolBar.CursorMode.SELECT) cursorSelect.setSelected(true);
             if (cm == ToolBar.CursorMode.WIRE) cursorWiring.setSelected(true);
         }
@@ -366,9 +374,12 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.zoomCommand(); } });
 		cursorOutline = modeSubMenuEdit.addRadioButton(ToolBar.cursorOutlineName, false, editGroup, KeyStroke.getKeyStroke('Y', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.outlineEditCommand(); } });
+		cursorMeasure = modeSubMenuEdit.addRadioButton(ToolBar.cursorMeasureName, false, editGroup, KeyStroke.getKeyStroke('M', 0),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.measureCommand(); } });
 		if (cm == ToolBar.CursorMode.PAN) cursorPan.setSelected(true);
 		if (cm == ToolBar.CursorMode.ZOOM) cursorZoom.setSelected(true);
-	    if (cm == ToolBar.CursorMode.OUTLINE) cursorOutline.setSelected(true);
+		if (cm == ToolBar.CursorMode.OUTLINE) cursorOutline.setSelected(true);
+		if (cm == ToolBar.CursorMode.MEASURE) cursorMeasure.setSelected(true);
 
 		Menu modeSubMenuMovement = new Menu("Movement");
 		modeSubMenu.add(modeSubMenuMovement);
@@ -453,6 +464,9 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectMakeEasyCommand(); }});
 		selListSubMenu.addMenuItem("Make Selected Hard", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectMakeHardCommand(); }});
+		selListSubMenu.addSeparator();
+		selListSubMenu.addMenuItem("Enclosed Objects", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { selectEnclosedObjectsCommand(); }});
 		selListSubMenu.addSeparator();
 		selListSubMenu.addMenuItem("Show Next Error", KeyStroke.getKeyStroke('>'),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showNextErrorCommand(); }});
@@ -1077,27 +1091,29 @@ public final class MenuCommands
 	 * It is interactive, and pops up a dialog box.
      * @return true if library saved, false otherwise.
 	 */
-	public static boolean saveLibraryCommand(Library lib)
+	public static boolean saveLibraryCommand(Library lib, OpenFile.Type type)
 	{
+		String [] extensions = type.getExtensions();
+		String extension = extensions[0];
 		String fileName;
-		if (lib.isFromDisk())
+		if (lib.isFromDisk() && type == OpenFile.Type.ELIB)
 		{
 			fileName = lib.getLibFile().getPath();
 		} else
 		{
-			fileName = OpenFile.chooseOutputFile(OpenFile.Type.ELIB, null, lib.getLibName()+".elib");
+			fileName = OpenFile.chooseOutputFile(type, null, lib.getLibName() + "." + extension);
 			if (fileName == null) return false;
 
 			int dotPos = fileName.lastIndexOf('.');
-			if (dotPos < 0) fileName += ".elib"; else
+			if (dotPos < 0) fileName += "." + extension; else
 			{
-				if (!fileName.substring(dotPos+1).equals("elib"))
+				if (!fileName.substring(dotPos+1).equals(extension))
 				{
-					fileName = fileName.substring(0, dotPos) + ".elib";
+					fileName = fileName.substring(0, dotPos) + "." + extension;
 				}
 			}
 		}
-		SaveLibrary job = new SaveLibrary(lib, fileName);
+		SaveLibrary job = new SaveLibrary(lib, fileName, type);
         return true;
 	}
 
@@ -1110,12 +1126,14 @@ public final class MenuCommands
 	{
 		Library lib;
 		String newName;
+		OpenFile.Type type;
 
-		public SaveLibrary(Library lib, String newName)
+		public SaveLibrary(Library lib, String newName, OpenFile.Type type)
 		{
 			super("Write Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.lib = lib;
 			this.newName = newName;
+			this.type = type;
 			startJob();
 		}
 
@@ -1129,7 +1147,7 @@ public final class MenuCommands
 				lib.setLibName(TextUtils.getFileNameWithoutExtension(libURL));
 			}
 
-			boolean error = Output.writeLibrary(lib, OpenFile.Type.ELIB);
+			boolean error = Output.writeLibrary(lib, type);
 			if (error)
 			{
 				System.out.println("Error writing the library file");
@@ -1145,7 +1163,7 @@ public final class MenuCommands
 	{
 		Library lib = Library.getCurrent();
 		lib.clearFromDisk();
-		saveLibraryCommand(lib);
+		saveLibraryCommand(lib, OpenFile.Type.ELIB);
 	}
 
 	/**
@@ -1158,7 +1176,7 @@ public final class MenuCommands
 			Library lib = (Library)it.next();
 			if (lib.isHidden()) continue;
 			if (!lib.isChangedMajor() && !lib.isChangedMinor()) continue;
-			if (!saveLibraryCommand(lib)) break;
+			if (!saveLibraryCommand(lib, OpenFile.Type.ELIB)) break;
 		}
 	}
 
@@ -1402,7 +1420,7 @@ public final class MenuCommands
 			if (ret == 0)
 			{
 				// save the library
-				if (!saveLibraryCommand(lib))
+				if (!saveLibraryCommand(lib, OpenFile.Type.ELIB))
                     saveCancelled = true;
 				continue;
 			}
@@ -1528,11 +1546,114 @@ public final class MenuCommands
 	}
 
 	/**
-	 * Method to handle the "Attributes" command.
+	 * Method to handle the "See All Parameters on Node" command.
 	 */
-	public static void attributesCommand()
+	public static void seeAllParametersCommand()
 	{
-		Attributes.showDialog();
+		ParameterVisibility job = new ParameterVisibility(0);
+	}
+
+	/**
+	 * Method to handle the "Hide All Parameters on Node" command.
+	 */
+	public static void hideAllParametersCommand()
+	{
+		ParameterVisibility job = new ParameterVisibility(1);
+	}
+
+	/**
+	 * Method to handle the "Default Parameter Visibility" command.
+	 */
+	public static void defaultParamVisibilityCommand()
+	{
+		ParameterVisibility job = new ParameterVisibility(2);
+	}
+
+	/**
+	 * Class to do antenna checking in a new thread.
+	 */
+	private static class ParameterVisibility extends Job
+	{
+		private int how;
+	
+		protected ParameterVisibility(int how)
+		{
+			super("Change Parameter Visibility", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.how = how;
+			startJob();
+		}
+	
+		public void doIt()
+		{
+			// change visibility of parameters on the current node(s)
+			int changeCount = 0;
+			List list = Highlight.getHighlighted(true, false);
+			for(Iterator it = list.iterator(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				if (!(ni.getProto() instanceof Cell)) continue;
+				boolean changed = false;
+				for(Iterator vIt = ni.getVariables(); vIt.hasNext(); )
+				{
+					Variable var = (Variable)vIt.next();
+					Variable nVar = findParameterSource(var, ni);
+					if (nVar == null) continue;
+					switch (how)
+					{
+						case 0:			// make all parameters visible
+							if (var.isDisplay()) continue;
+							var.setDisplay();
+							changed = true;
+							break;
+						case 1:			// make all parameters invisible
+							if (!var.isDisplay()) continue;
+							var.clearDisplay();
+							changed = true;
+							break;
+						case 2:			// make all parameters have default visiblity
+							if (nVar.getTextDescriptor().isInterior())
+							{
+								// prototype wants parameter to be invisible
+								if (!var.isDisplay()) continue;
+								var.clearDisplay();
+								changed = true;
+							} else
+							{
+								// prototype wants parameter to be visible
+								if (var.isDisplay()) continue;
+								var.setDisplay();
+								changed = true;
+							}
+							break;
+					}
+				}
+				if (changed)
+				{
+					Undo.redrawObject(ni);
+					changeCount++;
+				}
+			}
+			if (changeCount == 0) System.out.println("No Parameter visibility changed"); else
+				System.out.println("Changed visibility on " + changeCount + " nodes");
+		}
+	}
+
+	/**
+	 * Method to find the formal parameter that corresponds to the actual parameter
+	 * "var" on node "ni".  Returns null if not a parameter or cannot be found.
+	 */
+	private static Variable findParameterSource(Variable var, NodeInst ni)
+	{
+		// find this parameter in the cell
+		Cell np = (Cell)ni.getProto();
+		Cell cnp = np.contentsView();
+		if (cnp != null) np = cnp;
+		for(Iterator it = np.getVariables(); it.hasNext(); )
+		{
+			Variable nVar = (Variable)it.next();
+			if (var.getKey() == nVar.getKey()) return nVar;
+		}
+		return null;
 	}
 
 	/**
@@ -1920,6 +2041,21 @@ public final class MenuCommands
 				ai.setHardSelect();
 			}
 		}
+	}
+
+	/**
+	 * This method implements the command to replace the rectangular highlight
+	 * with the selection of objects in that rectangle.
+	 */
+	public static void selectEnclosedObjectsCommand()
+	{
+		EditWindow wnd = EditWindow.needCurrent();
+		if (wnd == null) return;
+		Rectangle2D selection = Highlight.getHighlightedArea(wnd);
+		Highlight.clear();
+		Highlight.selectArea(wnd, selection.getMinX(), selection.getMaxX(), selection.getMinY(), selection.getMaxY(), false,
+			ToolBar.getSelectSpecial());
+		Highlight.finished();
 	}
 
 	/**

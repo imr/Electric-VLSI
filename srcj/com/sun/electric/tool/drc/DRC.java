@@ -157,7 +157,7 @@ public class DRC extends Tool
 	 */
 	private DRC()
 	{
-		super("DRC");
+		super("drc");
 	}
 
 	/**

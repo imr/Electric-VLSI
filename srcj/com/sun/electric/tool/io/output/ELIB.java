@@ -404,7 +404,7 @@ public class ELIB extends Output
 		// write the userbits for the library
 		writeBigInteger(lib.lowLevelGetUserBits());
 
-		// write the tool lambda values
+		// write the tool scale values
 		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
@@ -710,7 +710,7 @@ public class ELIB extends Output
 
 		// write descriptive information
 		Technology tech = ni.getParent().getTechnology();
-			int lowX, highX, lowY, highY;
+		int lowX, highX, lowY, highY;
 		if (np instanceof Cell)
 		{
 			lowX = (int)((ni.getTrueCenterX() - ni.getXSize()/2) * tech.getScale()*2);
@@ -940,10 +940,10 @@ public class ELIB extends Output
 			if (varObj instanceof Object[])
 			{
 				Object [] objList = (Object [])varObj;
-				type |= getVarType(objList[0]) | ELIBConstants.VISARRAY | (objList.length << ELIBConstants.VLENGTHSH);
+				type |= ELIBConstants.getVarType(objList[0]) | ELIBConstants.VISARRAY | (objList.length << ELIBConstants.VLENGTHSH);
 			} else
 			{
-				type |= getVarType(varObj);
+				type |= ELIBConstants.getVarType(varObj);
 			}
 
 			// special case for "trace" information on NodeInsts
@@ -1002,25 +1002,6 @@ public class ELIB extends Output
 		}
 
 		return(count);
-	}
-
-	private int getVarType(Object obj)
-	{
-		if (obj instanceof Integer) return ELIBConstants.VINTEGER;
-		if (obj instanceof Short) return ELIBConstants.VSHORT;
-		if (obj instanceof Byte) return ELIBConstants.VCHAR;
-		if (obj instanceof String) return ELIBConstants.VSTRING;
-		if (obj instanceof Float) return ELIBConstants.VFLOAT;
-		if (obj instanceof Double) return ELIBConstants.VDOUBLE;
-		if (obj instanceof Technology) return ELIBConstants.VTECHNOLOGY;
-		if (obj instanceof Library) return ELIBConstants.VLIBRARY;
-		if (obj instanceof Tool) return ELIBConstants.VTOOL;
-		if (obj instanceof NodeInst) return ELIBConstants.VNODEINST;
-		if (obj instanceof ArcInst) return ELIBConstants.VARCINST;
-		if (obj instanceof NodeProto) return ELIBConstants.VNODEPROTO;
-		if (obj instanceof ArcProto) return ELIBConstants.VARCPROTO;
-		if (obj instanceof PortProto) return ELIBConstants.VPORTPROTO;
-		return ELIBConstants.VUNKNOWN;
 	}
 
 	/**

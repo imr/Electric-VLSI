@@ -40,6 +40,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.io.IOTool;
@@ -128,12 +129,14 @@ public class Output extends IOTool
 		{
 			Technology tech = (Technology)it.next();
 			if (tech.isScaleRelevant()) continue;
+			if (tech == Generic.tech) continue;
 			if (tech.getScale() > largestScale) largestScale = tech.getScale();
 		}
 		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			if (tech.isScaleRelevant()) continue;
+			if (tech == Generic.tech) continue;
 			tech.setScale(largestScale);
 		}
 
@@ -189,18 +192,11 @@ public class Output extends IOTool
             if (out.closeBinaryOutputStream()) return true;
 		} else if (type == OpenFile.Type.READABLEDUMP)
 		{
-//			out = (Output)new ReadableDump();
-//			String properOutputName = TextUtils.getFilePath(libFile) + TextUtils.getFileNameWithoutExtension(libFile) + ".txt";
-//          if (out.openTextOutputStream(properOutputName)) error = true;
-//          if (out.writeLib(lib)) error = true;
-//          if (out.closeTextOutputStream()) error = true;          
-            
-			// no text writer yet, see if an elib can be found
-			out = (Output)new ELIB();
-			String properOutputName = TextUtils.getFilePath(libFile) + TextUtils.getFileNameWithoutExtension(libFile) + ".elib";
-            if (out.openBinaryOutputStream(properOutputName)) return true;
-            if (out.writeLib(lib)) return true;
-            if (out.closeBinaryOutputStream()) return true;
+			out = (Output)new ReadableDump();
+			String properOutputName = TextUtils.getFilePath(libFile) + TextUtils.getFileNameWithoutExtension(libFile) + ".txt";
+			if (out.openTextOutputStream(properOutputName)) return true;
+			if (out.writeLib(lib)) return true;
+			if (out.closeTextOutputStream()) return true;
 		} else
 		{
 			System.out.println("Unknown export type: " + type);

@@ -45,7 +45,7 @@ class OutlineListener
 	implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
 {
 	public static OutlineListener theOne = new OutlineListener();
-	private int oldx, oldy;
+	private double oldX, oldY;
 	private boolean doingMotionDrag;
 	private int point;
 	private NodeInst outlineNode;
@@ -56,6 +56,13 @@ class OutlineListener
 	public void setNode(NodeInst ni)
 	{
 		outlineNode = ni;
+		Point2D [] origPoints = outlineNode.getTrace();
+		if (origPoints == null)
+		{
+			// node has no points: fake some
+			
+		}
+
 		high = Highlight.getOneHighlight();
 		high.setPoint(0);
 		point = 0;
@@ -65,8 +72,8 @@ class OutlineListener
 
 	public void mousePressed(MouseEvent evt)
 	{
-		oldx = evt.getX();
-		oldy = evt.getY();
+		int x = evt.getX();
+		int y = evt.getY();
 		EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
 		EditWindow wnd = ecp.getEditWindow();
 		Cell cell = wnd.getCell();
@@ -82,8 +89,86 @@ class OutlineListener
 			}
 		}
 
+		// right click: add a point
+		if (ClickZoomWireListener.isRightMouse(evt))
+		{
+			// add a point
+			AffineTransform trans = outlineNode.rotateOutAboutTrueCenter();
+			Point2D [] origPoints = outlineNode.getTrace();
+			if (origPoints == null)
+			{
+				Point2D [] newPoints = new Point2D[1];
+				newPoints[0] = new Point2D.Double(outlineNode.getAnchorCenterX(), outlineNode.getAnchorCenterY());
+				EditWindow.gridAlign(newPoints[0]);
+				setNewPoints(newPoints, 0);
+				point = 0;
+				oldX = newPoints[point].getX();
+				oldY = newPoints[point].getY();
+			} else if (origPoints.length == 1)
+			{
+				Point2D [] newPoints = new Point2D[2];
+				newPoints[0] = new Point2D.Double(outlineNode.getAnchorCenterX() + origPoints[0].getX(),
+					outlineNode.getAnchorCenterY() + origPoints[0].getY());
+				trans.transform(newPoints[0], newPoints[0]);
+				EditWindow.gridAlign(newPoints[0]);
+				newPoints[1] = new Point2D.Double(newPoints[0].getX() + 2, newPoints[0].getY() + 2);
+				EditWindow.gridAlign(newPoints[1]);
+				setNewPoints(newPoints, 1);
+				point = 1;
+				oldX = newPoints[point].getX();
+				oldY = newPoints[point].getY();
+			} else
+			{
+				Point2D [] newPoints = new Point2D[origPoints.length+1];
+				int j = 0;
+				for(int i=0; i<origPoints.length; i++)
+				{
+					// copy the original point
+					newPoints[j++] = new Point2D.Double(outlineNode.getAnchorCenterX() + origPoints[i].getX(),
+						outlineNode.getAnchorCenterY() + origPoints[i].getY());
+					if (i == point)
+					{
+						// found the selected point, make the insertion
+						if (i+1 >= origPoints.length)
+						{
+							// insertion point at the end: figure out what to do
+							if (outlineNode.traceWraps())
+							{
+								// outline wraps: make this between here and first point
+								newPoints[j] = new Point2D.Double(outlineNode.getAnchorCenterX() + (origPoints[i].getX() + origPoints[0].getX()) / 2,
+									outlineNode.getAnchorCenterY() + (origPoints[i].getY() + origPoints[0].getY()) / 2);
+								EditWindow.gridAlign(newPoints[j]);
+								j++;
+							} else
+							{
+								// outline does not wrap: make new one be relative to previous one
+								newPoints[j] = new Point2D.Double(outlineNode.getAnchorCenterX() + origPoints[i].getX()*2 + origPoints[i-1].getX(),
+									outlineNode.getAnchorCenterY() + origPoints[i].getY()*2 + origPoints[i-1].getY());
+								EditWindow.gridAlign(newPoints[j]);
+								j++;
+							}
+						} else
+						{
+							// there is a "next" point, make this one between here and there
+							newPoints[j] = new Point2D.Double(outlineNode.getAnchorCenterX() + (origPoints[i].getX() + origPoints[i+1].getX()) / 2,
+								outlineNode.getAnchorCenterY() + (origPoints[i].getY() + origPoints[i+1].getY()) / 2);
+							EditWindow.gridAlign(newPoints[j]);
+							j++;
+						}
+					}
+				}
+				trans.transform(newPoints, 0, newPoints, 0, newPoints.length);
+				setNewPoints(newPoints, point+1);
+				oldX = newPoints[point+1].getX();
+				oldY = newPoints[point+1].getY();
+			}
+			doingMotionDrag = true;
+			wnd.repaint();
+			return;
+		}
+
 		// standard click-and-drag: see if cursor is over anything
-		Point2D pt = wnd.screenToDatabase(oldx, oldy);
+		Point2D pt = wnd.screenToDatabase(x, y);
 		int numFound = Highlight.findObject(pt, wnd, true, false, false, false, true, false, false);
 		doingMotionDrag = false;
 		if (numFound != 0)
@@ -92,8 +177,14 @@ class OutlineListener
 			outlineNode = (NodeInst)Highlight.getOneElectricObject(NodeInst.class);
 			if (high != null && outlineNode != null)
 			{
-				doingMotionDrag = true;
 				point = high.getPoint();
+				Point2D [] origPoints = outlineNode.getTrace();
+				if (origPoints != null)
+				{
+					doingMotionDrag = true;
+					oldX = outlineNode.getAnchorCenterX() + origPoints[point].getX();
+					oldY = outlineNode.getAnchorCenterY() + origPoints[point].getY();
+				}
 			}
 		}
 		wnd.repaint();
@@ -112,12 +203,11 @@ class OutlineListener
 			doingMotionDrag = false;
 			int newX = evt.getX();
 			int newY = evt.getY();
-			Point2D delta = wnd.deltaScreenToDatabase(newX - oldx, newY - oldy);
-			EditWindow.gridAlign(delta);
-			if (delta.getX() == 0 && delta.getY() == 0) return;
+			Point2D curPt = wnd.screenToDatabase(newX, newY);
+			EditWindow.gridAlign(curPt);
 			Highlight.setHighlightOffset(0, 0);
 
-			moveSelectedPoint(delta.getX(), delta.getY());
+			moveSelectedPoint(curPt.getX() - oldX, curPt.getY() - oldY);
 			wnd.repaintContents();
 		}
 	}
@@ -129,25 +219,24 @@ class OutlineListener
 
 	public void mouseDragged(MouseEvent evt)
 	{
-		int newX = evt.getX();
-		int newY = evt.getY();
 		EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
 		EditWindow wnd = ecp.getEditWindow();
 
-		Point2D delta = wnd.deltaScreenToDatabase(newX - oldx, newY - oldy);
-		EditWindow.gridAlign(delta);
-		Point pt = wnd.deltaDatabaseToScreen(delta.getX(), delta.getY());
-		newX = oldx + pt.x;   newY = oldy + pt.y;
+		int newX = evt.getX();
+		int newY = evt.getY();
+		Point2D curPt = wnd.screenToDatabase(newX, newY);
+		EditWindow.gridAlign(curPt);
+		Point pt = wnd.databaseToScreen(curPt.getX(), curPt.getY());
+
+		Point gridPt = wnd.databaseToScreen(oldX, oldY);
 
 		// show moving of the selected point
 		if (doingMotionDrag)
 		{
-			Highlight.setHighlightOffset(newX - oldx, newY - oldy);
+			Highlight.setHighlightOffset(pt.x - gridPt.x, pt.y - gridPt.y);
 			wnd.repaint();
 			return;
 		}
-		oldx = newX;
-		oldy = newY;
 		wnd.repaint();
 	}
 
@@ -204,62 +293,6 @@ class OutlineListener
 		{
 			double arrowDistance = ToolBar.getArrowDistance();
 			moveSelectedPoint(0, -arrowDistance);
-		} else if (chr == KeyEvent.VK_A)
-		{
-			// add a point
-			AffineTransform trans = outlineNode.rotateOutAboutTrueCenter();
-			Point2D [] origPoints = outlineNode.getTrace();
-			if (origPoints == null)
-			{
-				Point2D [] newPoints = new Point2D[1];
-				newPoints[0] = new Point2D.Double(outlineNode.getAnchorCenterX(), outlineNode.getAnchorCenterY());
-				setNewPoints(newPoints, 0);
-				return;
-			}
-			if (origPoints.length == 1)
-			{
-				Point2D [] newPoints = new Point2D[2];
-				newPoints[0] = new Point2D.Double(outlineNode.getAnchorCenterX() + origPoints[0].getX(),
-					outlineNode.getAnchorCenterY() + origPoints[0].getY());
-				trans.transform(newPoints[0], newPoints[0]);
-				newPoints[1] = new Point2D.Double(newPoints[0].getX() + 2, newPoints[0].getY() + 2);
-				setNewPoints(newPoints, 1);
-				return;
-			}
-			Point2D [] newPoints = new Point2D[origPoints.length+1];
-			int j = 0;
-			for(int i=0; i<origPoints.length; i++)
-			{
-				// copy the original point
-				newPoints[j++] = new Point2D.Double(outlineNode.getAnchorCenterX() + origPoints[i].getX(),
-					outlineNode.getAnchorCenterY() + origPoints[i].getY());
-				if (i == point)
-				{
-					// found the selected point, make the insertion
-					if (i+1 >= origPoints.length)
-					{
-						// insertion point at the end: figure out what to do
-						if (outlineNode.traceWraps())
-						{
-							// outline wraps: make this between here and first point
-							newPoints[j++] = new Point2D.Double(outlineNode.getAnchorCenterX() + (origPoints[i].getX() + origPoints[0].getX()) / 2,
-								outlineNode.getAnchorCenterY() + (origPoints[i].getY() + origPoints[0].getY()) / 2);
-						} else
-						{
-							// outline does not wrap: make new one be relative to previous one
-							newPoints[j++] = new Point2D.Double(outlineNode.getAnchorCenterX() + origPoints[i].getX()*2 + origPoints[i-1].getX(),
-								outlineNode.getAnchorCenterY() + origPoints[i].getY()*2 + origPoints[i-1].getY());
-						}
-					} else
-					{
-						// there is a "next" point, make this one between here and there
-						newPoints[j++] = new Point2D.Double(outlineNode.getAnchorCenterX() + (origPoints[i].getX() + origPoints[i+1].getX()) / 2,
-							outlineNode.getAnchorCenterY() + (origPoints[i].getY() + origPoints[i+1].getY()) / 2);
-					}
-				}
-			}
-			trans.transform(newPoints, 0, newPoints, 0, newPoints.length);
-			setNewPoints(newPoints, point+1);
 		} else if (chr == KeyEvent.VK_PERIOD)
 		{
 			// advance to next point

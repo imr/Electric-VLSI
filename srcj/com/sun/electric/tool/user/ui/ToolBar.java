@@ -30,6 +30,7 @@ import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.dialogs.EditOptions;
 import com.sun.electric.tool.user.dialogs.IOOptions;
 import com.sun.electric.tool.user.dialogs.ToolOptions;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 
 import java.awt.Component;
 import java.awt.Cursor;
@@ -69,7 +70,8 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
     /** Menu name that exists on ToolBar, public for consistency matching */ public static final String cursorWiringName = "Wiring";
     /** Menu name that exists on ToolBar, public for consistency matching */ public static final String cursorPanName = "Pan";
     /** Menu name that exists on ToolBar, public for consistency matching */ public static final String cursorZoomName = "Zoom";
-    /** Menu name that exists on ToolBar, public for consistency matching */ public static final String cursorOutlineName = "Outline Edit";
+	/** Menu name that exists on ToolBar, public for consistency matching */ public static final String cursorOutlineName = "Outline Edit";
+	/** Menu name that exists on ToolBar, public for consistency matching */ public static final String cursorMeasureName = "Measure Distance";
     /** Menu name that exists on ToolBar, public for consistency matching */ public static final String specialSelectName = "Special Select";
 	/** Menu name that exists on ToolBar, public for consistency matching */ public static final String OpenLibraryName = "Open Library";
 	/** Menu name that exists on ToolBar, public for consistency matching */ public static final String SaveLibraryName = "Save Library";
@@ -97,6 +99,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		/** Describes Panning mode (move window contents). */	public static final CursorMode PAN = new CursorMode("pan");
 		/** Describes Zoom mode (scale window contents). */		public static final CursorMode ZOOM = new CursorMode("zoom");
 		/** Describes Outline edit mode. */						public static final CursorMode OUTLINE = new CursorMode("outline");
+		/** Describes Measure mode. */							public static final CursorMode MEASURE = new CursorMode("measure");
 	}
 
 	/**
@@ -145,6 +148,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 	public static Cursor panCursor = readCursor("CursorPan.gif", 8, 8);
 	public static Cursor wiringCursor = readCursor("CursorWiring.gif", 0, 0);
 	public static Cursor outlineCursor = readCursor("CursorOutline.gif", 0, 0);
+	public static Cursor measureCursor = readCursor("CursorMeasure.gif", 0, 0);
 
     public static final ImageIcon selectSpecialIconOn = new ImageIcon(ToolBar.class.getResource("ButtonSelectSpecialOn.gif"));
     public static final ImageIcon selectSpecialIconOff = new ImageIcon(ToolBar.class.getResource("ButtonSelectSpecialOff.gif"));
@@ -161,7 +165,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		toolbar.setFloatable(true);
 		toolbar.setRollover(true);
 
-        ToolBarButton clickZoomWireButton, selectButton, wireButton, panButton, zoomButton, outlineButton;
+        ToolBarButton clickZoomWireButton, selectButton, wireButton, panButton, zoomButton, outlineButton, measureButton;
         ToolBarButton fullButton, halfButton, quarterButton;
         ToolBarButton objectsButton, areaButton;
         ToolBarButton selectSpecialButton;
@@ -181,7 +185,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		toolbar.saveLibraryButton = ToolBarButton.newInstance(SaveLibraryName,
 		        new ImageIcon(toolbar.getClass().getResource("ButtonSaveLibrary.gif")));
         toolbar.saveLibraryButton.addActionListener(
-            new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.saveLibraryCommand(Library.getCurrent()); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.saveLibraryCommand(Library.getCurrent(), OpenFile.Type.ELIB); } });
         toolbar.saveLibraryButton.setToolTipText(SaveLibraryName);
         toolbar.saveLibraryButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
         // setModel before setEnable... not sure why yet
@@ -240,12 +244,21 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 
 		// the "Outline edit mode" button
 		outlineButton = ToolBarButton.newInstance(cursorOutlineName,
-            new ImageIcon(toolbar.getClass().getResource("ButtonOutline.gif")));
+			new ImageIcon(toolbar.getClass().getResource("ButtonOutline.gif")));
 		outlineButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { outlineEditCommand(); } });
 		outlineButton.setToolTipText("Outline Edit");
 		toolbar.add(outlineButton);
 		modeGroup.add(outlineButton);
+
+		// the "Measure mode" button
+		measureButton = ToolBarButton.newInstance(cursorMeasureName,
+			new ImageIcon(toolbar.getClass().getResource("ButtonMeasure.gif")));
+		measureButton.addActionListener(
+			new ActionListener() { public void actionPerformed(ActionEvent e) { measureCommand(); } });
+		measureButton.setToolTipText("Measure Distances");
+		toolbar.add(measureButton);
+		modeGroup.add(measureButton);
 
 		// a separator
 		toolbar.addSeparator();
@@ -527,6 +540,16 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		curMode = CursorMode.OUTLINE;
 	}
 
+	/**
+	 * Method called when the "measure" button is pressed.
+	 */
+	public static void measureCommand()
+	{
+		WindowFrame.setListener(MeasureListener.theOne);
+		TopLevel.setCurrentCursor(measureCursor);
+		curMode = CursorMode.MEASURE;
+	}
+
     /**
      * Set cursor mode
      * @param mode the CursorMode corresponding to the desired mode
@@ -538,12 +561,13 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
         else if (mode == CursorMode.WIRE) ToolBarButton.doClick(cursorWiringName);
         else if (mode == CursorMode.PAN) ToolBarButton.doClick(cursorPanName);
         else if (mode == CursorMode.ZOOM) ToolBarButton.doClick(cursorZoomName);
-        else if (mode == CursorMode.OUTLINE) ToolBarButton.doClick(cursorOutlineName);
+		else if (mode == CursorMode.OUTLINE) ToolBarButton.doClick(cursorOutlineName);
+		else if (mode == CursorMode.MEASURE) ToolBarButton.doClick(cursorMeasureName);
     }
 
 	/**
 	 * Method to tell which cursor mode is in effect.
-	 * @return the current mode (select, special-select, pan, zoom, or outline).
+	 * @return the current mode (select, pan, zoom, outline, measure).
 	 */
 	public static CursorMode getCursorMode() { return curMode; }
 

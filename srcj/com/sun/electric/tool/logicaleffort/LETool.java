@@ -68,7 +68,7 @@ public class LETool extends Tool {
 
     /** Creates a new instance of LETool */
     private LETool() {
-        super("logical effort");
+        super("logeffort");
     }
 
     /** get LETool */

@@ -251,6 +251,9 @@ public class TextWindow
 		String [] lines = cell.getTextViewContents();
 		if (lines == null) return;
 		textArea.setText(makeOneString(lines));
+		textArea.setSelectionStart(0);
+		textArea.setSelectionEnd(0);
+		dirty = false;
 		setWindowTitle();
 	}
 

@@ -203,7 +203,7 @@ public class ClickZoomWireListener
      * See if event is a right mouse click.  Platform independent.
      * One-button macs: Command + click == right mouse click.
      */
-    private boolean isRightMouse(MouseEvent evt) {
+    public static boolean isRightMouse(MouseEvent evt) {
         if (isMac) {
             if (evt.isMetaDown()) {
                 if ((evt.getModifiers() & MouseEvent.BUTTON1_MASK) == MouseEvent.BUTTON1_MASK)

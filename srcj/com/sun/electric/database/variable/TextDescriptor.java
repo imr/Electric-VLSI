@@ -54,8 +54,8 @@ public class TextDescriptor
 	private static final int VTDISPLAYPART =            060;		/* 0: bits telling what to display */
 	private static final int VTDISPLAYPARTSH =            4;		/* 0: right shift of VTDISPLAYPART */
 	private static final int VTDISPLAYVALUE =             0;		/* 0:   display value */
-	private static final int VTDISPLAYNAMEVALUE =         1;		/* 0:   display name and value */
-	private static final int VTDISPLAYNAMEVALINH =        2;		/* 0:   display name, value, 1-level inherit */
+	private static final int VTDISPLAYNAMEVALUE =         2;		/* 0:   display name and value */
+	private static final int VTDISPLAYNAMEVALINH =        1;		/* 0:   display name, value, 1-level inherit */
 	private static final int VTDISPLAYNAMEVALINHALL =     3;		/* 0:   display name, value, any inherit */
 	private static final int VTITALIC =                0100;		/* 0: set for italic text */
 	private static final int VTBOLD =                  0200;		/* 0: set for bold text */
@@ -271,16 +271,16 @@ public class TextDescriptor
 		public static final DispPos VALUE = new DispPos("value", VTDISPLAYVALUE);
 
 		/**
-		 * Describes a Variable that displays its name and value.
-		 * The form of the display is “ATTR=VALUE”;
-		 */
-		public static final DispPos NAMEVALUE = new DispPos("name=value", VTDISPLAYNAMEVALUE);
-
-		/**
 		 * Describes a Variable that displays its name, value, 1-level inherit.
 		 * The form of the display is “ATTR=VALUE;def=DEFAULT”;
 		 */
 		public static final DispPos NAMEVALINH = new DispPos("name=inherit;def=value", VTDISPLAYNAMEVALINH);
+
+		/**
+		 * Describes a Variable that displays its name and value.
+		 * The form of the display is “ATTR=VALUE”;
+		 */
+		public static final DispPos NAMEVALUE = new DispPos("name=value", VTDISPLAYNAMEVALUE);
 
 		/**
 		 * Describes a Variable that displays its name, value, any inherit.
@@ -1117,7 +1117,9 @@ public class TextDescriptor
 	public void setDispPart(DispPos d)
 	{
 		checkChanging();
+//System.out.println("word 0 was "+Integer.toOctalString(descriptor0));
 		descriptor0 = (descriptor0 & ~VTDISPLAYPART) | (d.getIndex() << VTDISPLAYPARTSH);
+//System.out.println("word 0 is "+Integer.toOctalString(descriptor0)+" after adding in "+Integer.toOctalString((d.getIndex() << VTDISPLAYPARTSH))+ ("disppos="+d+")"));
 	}
 
 	/**

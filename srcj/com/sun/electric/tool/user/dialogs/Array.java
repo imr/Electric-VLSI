@@ -39,7 +39,9 @@ import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Clipboard;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.MeasureListener;
 
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
@@ -173,17 +175,18 @@ public class Array extends EDialog
 		}
 
 		// see if there was a measured distance
-//		if (us_validmesaure)
-//		{
-//			spaceByMeasuredDistance.setEnabled(true);
-//			spacingMeasuredX = abs(us_lastmeasurex);
-//			spacingMeasuredY = abs(us_lastmeasurey);
-//			if (lastSpacingType == SPACING_MEASURED)
-//			{
-//				lastXDistance = spacingMeasuredX;
-//				lastYDistance = spacingMeasuredY;
-//			}
-//		} else
+		Dimension dim = MeasureListener.getLastMeasuredDistance();
+		if (dim.width > 0 || dim.height > 0)
+		{
+			spaceByMeasuredDistance.setEnabled(true);
+			spacingMeasuredX = dim.width;
+			spacingMeasuredY = dim.height;
+			if (lastSpacingType == SPACING_MEASURED)
+			{
+				lastXDistance = spacingMeasuredX;
+				lastYDistance = spacingMeasuredY;
+			}
+		} else
 		{
 			spaceByMeasuredDistance.setEnabled(false);
 			if (lastSpacingType == SPACING_MEASURED)

@@ -2,8 +2,18 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (6/4/04, SMR) Outline listener uses right button to create points, not "a".
+
+IMP: (6/4/04, SMR) Implemented Measure-Distance mode.
+
+IMP: (6/4/04, SMR) Implemented Edit / Selection / "Enclosed Objects"
+
+IMP: (6/4/04, SMR) Implemented Edit / Info / "See All Parameters on Node", "Hide All Parameters on Node", "Default Parameter Visibility"
+
+IMP: (6/4/04, SMR) Implemented readable dump output.
+
 BUG: (6/04/04, GVG) If empty lines are inserted as vars, null and outbound exceptions are thrown om Poly.java and
-GetInfoText.java respectively.
+     GetInfoText.java respectively.
 FIX: Skip access if object array[i] is null.
 
 IMP: (6/3/04, SMR) Searching objects in a cell is now an Iterator.
@@ -24,13 +34,13 @@ IMP: (6/2/04, SMR) "Array" dialog gives a choice of going by row or by column
 
 IMP: (6/2/04, SMR) Implemented ERC antenna check
 
-IMP: (6/2/04, SMR) Implemented "Edit / Move / Align to Grid"
+IMP: (6/2/04, SMR) Implemented Edit / Move / "Align to Grid"
 
-IMP: (6/1/04, SMR) Implemented "Edit / Text / Change Text Size..."
+IMP: (6/1/04, SMR) Implemented Edit / Text / "Change Text Size..."
 
-IMP: (6/1/04, SMR) Implemented "Edit / Selection / Deselect All Arcs".
+IMP: (6/1/04, SMR) Implemented Edit / Selection / "Deselect All Arcs".
 
-IMP: (6/1/04, SMR) Implemented "Edit / Selection / Select Object..." which can select nodes, arcs, exports, or networks.
+IMP: (6/1/04, SMR) Implemented Edit / Selection / "Select Object..." which can select nodes, arcs, exports, or networks.
 
 IMP: (5/31/04, SMR) Implemented cell instance extraction and packaging.
 

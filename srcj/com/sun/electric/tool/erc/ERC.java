@@ -39,7 +39,7 @@ public class ERC extends Tool
 	 */
 	private ERC()
 	{
-		super("ERC");
+		super("erc");
 	}
 
 	/**
