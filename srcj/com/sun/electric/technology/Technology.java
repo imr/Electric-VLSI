@@ -720,6 +720,18 @@ public class Technology extends ElectricObject
 		return sortedList;
 	}
 
+	/**
+	 * Method to determine whether a Variable key on this object is deprecated.
+	 * Deprecated Variable keys are those that were used in old versions of Electric,
+	 * but are no longer valid.
+	 * @param key the key of the Variable.
+	 * @return true if the Variable key is deprecated.
+	 */
+	public boolean isDeprecatedVariable(Variable.Key key)
+	{
+		return Pref.getMeaningVariable(this, key.getName()) == null;
+	}
+
     /**
      * Returns true if this Technology is completely linked into database.
 	 * This means that technology is in Technology&#46;technologies 

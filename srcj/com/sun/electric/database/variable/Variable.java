@@ -60,7 +60,7 @@ public class Variable
 		 * Method to create a new Key object with the specified name.
 		 * @param name the name of the Variable.
 		 */
-		protected Key(String name)
+		Key(String name)
 		{
 			this.name = name;
 			this.index = currentIndex++;
@@ -95,7 +95,7 @@ public class Variable
         private final String name;
         private static final ArrayList allCodes = new ArrayList();
 
-        public Code(String name) {
+        private Code(String name) {
             this.name = name;
             allCodes.add(this);
         }
@@ -136,7 +136,7 @@ public class Variable
 	 * @param descriptor a TextDescriptor to control how the Variable will be displayed.
 	 * @param key a Key object that identifies this Variable.
 	 */
-	protected Variable(ElectricObject owner, Object addr, TextDescriptor descriptor, Key key)
+	Variable(ElectricObject owner, Object addr, TextDescriptor descriptor, Key key)
 	{
         // user input text may describe a number that is not parsable by the Java Bean Shell
         // (such as 0.01p, which equals 0.01E-12). To prevent this being a problem, any String

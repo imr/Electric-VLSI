@@ -26,6 +26,7 @@ package com.sun.electric.technology;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Generic;
 
 import java.awt.Color;
@@ -137,6 +138,18 @@ public class PrimitivePort extends PortProto
 
 	// ------------------------ public methods ------------------------
 
+	/**
+	 * Method to determine whether a Variable key on this object is deprecated.
+	 * Deprecated Variable keys are those that were used in old versions of Electric,
+	 * but are no longer valid.
+	 * @param key the key of the Variable.
+	 * @return true if the Variable key is deprecated.
+	 */
+	public boolean isDeprecatedVariable(Variable.Key key)
+	{
+		return true;
+	}
+
     /**
      * Returns true if this PrimitivePort is completely linked into database.
 	 * This means there is path to this PrimitivePort through lists:
@@ -144,11 +157,12 @@ public class PrimitivePort extends PortProto
      */
 	public boolean isActuallyLinked()
 	{
-		if (parent == null || !(parent instanceof PrimitiveNode)) return false;
-		PrimitiveNode pn = (PrimitiveNode)parent;
-		int portIndex = getPortIndex();
-		return pn.isActuallyLinked() &&
-			0 <= portIndex && portIndex < pn.getNumPorts() && pn.getPort(portIndex) == this;
+		return false;
+// 		if (parent == null || !(parent instanceof PrimitiveNode)) return false;
+// 		PrimitiveNode pn = (PrimitiveNode)parent;
+// 		int portIndex = getPortIndex();
+// 		return pn.isActuallyLinked() &&
+// 			0 <= portIndex && portIndex < pn.getNumPorts() && pn.getPort(portIndex) == this;
 	}
 
 	/**

@@ -256,15 +256,15 @@ public class ELIB extends Output
 		{
 			Technology tech = (Technology)it.next();
 			findXLibVariables(tech);
-			for(Iterator ait = tech.getArcs(); ait.hasNext(); )
-			{
-				ArcProto ap = (ArcProto)ait.next();
-				findXLibVariables(ap);
-			}
+// 			for(Iterator ait = tech.getArcs(); ait.hasNext(); )
+// 			{
+// 				ArcProto ap = (ArcProto)ait.next();
+// 				findXLibVariables(ap);
+// 			}
 			for(Iterator nit = tech.getNodes(); nit.hasNext(); )
 			{
 				PrimitiveNode np = (PrimitiveNode)nit.next();
-				findXLibVariables(np);
+//				findXLibVariables(np);
 				for(Iterator eit = np.getPorts(); eit.hasNext(); )
 				{
 					PrimitivePort pp = (PrimitivePort)eit.next();
@@ -272,11 +272,11 @@ public class ELIB extends Output
 				}
 			}
 		}
-		for(Iterator it = View.getViews(); it.hasNext(); )
-		{
-			View view = (View)it.next();
-			findXLibVariables(view);
-		}
+// 		for(Iterator it = View.getViews(); it.hasNext(); )
+// 		{
+// 			View view = (View)it.next();
+// 			findXLibVariables(view);
+// 		}
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
@@ -576,7 +576,9 @@ public class ELIB extends Output
 			for(Iterator ait = tech.getArcs(); ait.hasNext(); )
 			{
 				PrimitiveArc ap = (PrimitiveArc)ait.next();
-				writeVariables(ap, 0);
+				// write zero number of Variables
+				writeBigInteger(0);
+//				writeVariables(ap, 0);
 			}
 		}
 
@@ -587,7 +589,9 @@ public class ELIB extends Output
 			for(Iterator nit = tech.getNodes(); nit.hasNext(); )
 			{
 				PrimitiveNode np = (PrimitiveNode)nit.next();
-				writeVariables(np, 0);
+				// write zero number of Variables
+				writeBigInteger(0);
+//				writeVariables(np, 0);
 			}
 		}
 
@@ -613,7 +617,9 @@ public class ELIB extends Output
 			View view = (View)it.next();
 			Integer viewIndex = (Integer)viewMap.get(view);
 			writeBigInteger(viewIndex.intValue());
-			writeVariables(view, 0);
+			// write zero number of Variables
+			writeBigInteger(0);
+//			writeVariables(view, 0);
 		}
 
 		// write cells if creating version-6-compatible output

@@ -44,7 +44,7 @@ import java.util.NoSuchElementException;
  * Technology.  It has a name, and several functions that describe how
  * to draw it
  */
-public class PrimitiveNode extends ElectricObject implements NodeProto
+public class PrimitiveNode implements NodeProto
 {
 	/**
 	 * Function is a typesafe enum class that describes the function of a NodeProto.
@@ -482,7 +482,7 @@ public class PrimitiveNode extends ElectricObject implements NodeProto
 		tech.addNodeProto(this);
 
         // Prototypes are always assumed to be linked into the database
-        setLinked(true);
+//        setLinked(true);
 	}
 
 	// ------------------------- public methods -------------------------------
@@ -677,12 +677,12 @@ public class PrimitiveNode extends ElectricObject implements NodeProto
 	public int getDefPlacementAngle()
 	{
 		int defAngle = User.getNewNodeRotation();
-		Variable var = getVar(User.PLACEMENT_ANGLE, Integer.class);
-		if (var != null)
-		{
-			Integer rot = (Integer)var.getObject();
-			defAngle = rot.intValue();
-		}
+// 		Variable var = getVar(User.PLACEMENT_ANGLE, Integer.class);
+// 		if (var != null)
+// 		{
+// 			Integer rot = (Integer)var.getObject();
+// 			defAngle = rot.intValue();
+// 		}
 		return defAngle;
 	}
 
@@ -1307,22 +1307,5 @@ public class PrimitiveNode extends ElectricObject implements NodeProto
 		}
 	}
 
-    /**
-     * Method which indicates that this object is in database.
-     * Some objects are not in database, for example Geometrics in PaletteFrame.
-     * PrimitiveNodes are not considered database objects, because their state
-     * is not stored to disk with the libraries. They are actually a technology object.
-     * @return true if this object is in database.
-     */
-//    protected boolean isDatabaseObject() { return false; }
-
-    /**
-     * Returns true if this PrimitiveNode is completely linked into database.
-	 * This means there is path to this PrimitiveNode through lists:
-	 * Technology&#46;technologies->Technology&#46;nodes-> PrimitiveNode
-     */
-	public boolean isActuallyLinked()
-	{
-		return tech != null && tech.findNodeProto(getName()) == this;
-	}
+	private void checkChanging() {}
 }

@@ -798,21 +798,23 @@ public class ELIB extends LibraryFiles
 		// read the arcproto variables
 		for(int i=0; i<arcProtoCount; i++)
 		{
-			PrimitiveArc ap = arcProtoList[i];
-			int j = readVariables(ap, -1);
-			if (j < 0) return true;
-			if (j > 0) getArcProtoList(i);
-			Input.fixVariableFont(ap);
+			ignoreVariables();
+// 			PrimitiveArc ap = arcProtoList[i];
+// 			int j = readVariables(ap, -1);
+// 			if (j < 0) return true;
+// 			if (j > 0) getArcProtoList(i);
+// 			Input.fixVariableFont(ap);
 		}
 
 		// read the primitive nodeproto variables
 		for(int i=0; i<primNodeProtoCount; i++)
 		{
-			PrimitiveNode np = primNodeProtoList[i];
-			int j = readVariables(np, -1);
-			if (j < 0) return true;
-			if (j > 0) getPrimNodeProtoList(i);
-			Input.fixVariableFont(np);
+			ignoreVariables();
+// 			PrimitiveNode np = primNodeProtoList[i];
+// 			int j = readVariables(np, -1);
+// 			if (j < 0) return true;
+// 			if (j > 0) getPrimNodeProtoList(i);
+// 			Input.fixVariableFont(np);
 		}
 
 		// read the primitive portproto variables
@@ -834,8 +836,9 @@ public class ELIB extends LibraryFiles
 				View v = getView(j);
 				if (v != null)
 				{
-					if (readVariables(v, -1) < 0) return true;
-					Input.fixVariableFont(v);
+					ignoreVariables();
+// 					if (readVariables(v, -1) < 0) return true;
+// 					Input.fixVariableFont(v);
 				} else
 				{
 					System.out.println("View index " + j + " not found");
@@ -938,26 +941,26 @@ public class ELIB extends LibraryFiles
 			Technology tech = techList[i];
 			fixExternalVariables(tech);
 		}
-		for(int i=0; i<arcProtoCount; i++)
-		{
-			PrimitiveArc ap = arcProtoList[i];
-			fixExternalVariables(ap);
-		}
-		for(int i=0; i<primNodeProtoCount; i++)
-		{
-			PrimitiveNode np = primNodeProtoList[i];
-			fixExternalVariables(np);
-		}
+// 		for(int i=0; i<arcProtoCount; i++)
+// 		{
+// 			PrimitiveArc ap = arcProtoList[i];
+// 			fixExternalVariables(ap);
+// 		}
+// 		for(int i=0; i<primNodeProtoCount; i++)
+// 		{
+// 			PrimitiveNode np = primNodeProtoList[i];
+// 			fixExternalVariables(np);
+// 		}
 		for(int i=0; i<primPortProtoCount; i++)
 		{
 			PrimitivePort pp = primPortProtoList[i];
 			fixExternalVariables(pp);
 		}
-		for(Iterator it = View.getViews(); it.hasNext(); )
-		{
-			View view = (View) it.next();
-			fixExternalVariables(view);
-		}
+// 		for(Iterator it = View.getViews(); it.hasNext(); )
+// 		{
+// 			View view = (View) it.next();
+// 			fixExternalVariables(view);
+// 		}
 		for(int i=0; i<nodeProtoCount; i++)
 		{
 			Cell cell = nodeProtoList[i];

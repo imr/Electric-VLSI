@@ -633,11 +633,9 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 // 				np = (NodeProto)ni.getProto();
 				defAngle = ni.getAngle();
 			}
-			if (toDraw instanceof NodeProto)
+			if (toDraw instanceof PrimitiveNode)
 			{
-// 				pn = (PrimitiveNode)toDraw;
-// 				defAngle = pn.getDefPlacementAngle();
-				defAngle = User.getNewNodeRotation();
+ 				defAngle = ((PrimitiveNode)toDraw).getDefPlacementAngle();
 			}
 
             //if (window != null) {
@@ -845,8 +843,7 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 				techBits = ni.getTechSpecific();
 			} else if (np instanceof PrimitiveNode)
 			{
-				PrimitiveNode pn = (PrimitiveNode)np;
-				defAngle = pn.getDefPlacementAngle();
+				defAngle = ((PrimitiveNode)np).getDefPlacementAngle();
 				if (defAngle >= 3600)
 				{
 					defAngle %= 3600;

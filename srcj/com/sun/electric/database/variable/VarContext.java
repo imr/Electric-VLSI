@@ -30,7 +30,6 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 
 import java.util.HashMap;
@@ -393,17 +392,12 @@ public class VarContext
     {
         if (ni == null) throwNotFound(name);
         Variable var = ni.getVar(name);
-        if (var == null) {
+        if (var == null && ni.getProto() instanceof Cell) {
             // look up default var on prototype
-			NodeProto np = ni.getProto();
-			if (np instanceof Cell) {
-				Cell cell = (Cell)np;
-				Cell equiv = cell.getEquivalent();
-				if (equiv != null) cell = equiv;
-				var = cell.getVar(name);
-			} else {
-				var = ((PrimitiveNode)np).getVar(name);
-			}
+			Cell cell = (Cell)ni.getProto();
+			Cell equiv = cell.getEquivalent();
+			if (equiv != null) cell = equiv;
+			var = cell.getVar(name);
         }
         if (var == null) throwNotFound(name);
 
@@ -442,13 +436,11 @@ public class VarContext
 			}
 				
 			NodeProto np = sni.getProto();               // look up default var value on prototype
-			if (np instanceof Cell) {
-				Cell cell = (Cell)np;
+			if (np instanceof Cell && sni.getProto() instanceof Cell) {
+				Cell cell = (Cell)sni.getProto();
 				Cell equiv = cell.getEquivalent();
 				if (equiv != null) cell = equiv;
 				var = cell.getVar(name);
-			} else {
-				var = ((PrimitiveNode)np).getVar(name);
 			}
             if (var != null) {
             	value = scan.pop().evalVarRecurse(var, sni);

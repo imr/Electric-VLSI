@@ -1482,11 +1482,11 @@ public class DebugMenus {
 				for (Iterator nit = tech.getNodes(); nit.hasNext();)
 				{
 					PrimitiveNode pn = (PrimitiveNode)nit.next();
-					for (Iterator vit = pn.getVariables(); vit.hasNext();)
-					{
-						Variable var = (Variable)vit.next();
-						System.out.println(pn + " has " + var);
-					}
+// 					for (Iterator vit = pn.getVariables(); vit.hasNext();)
+// 					{
+// 						Variable var = (Variable)vit.next();
+// 						System.out.println(pn + " has " + var);
+// 					}
 					for (Iterator pit = pn.getPorts(); pit.hasNext();)
 					{
 						PrimitivePort pp = (PrimitivePort)pit.next();
@@ -1497,15 +1497,15 @@ public class DebugMenus {
 						}
 					}
 				}
-				for (Iterator ait = tech.getArcs(); ait.hasNext();)
-				{
-					PrimitiveArc an = (PrimitiveArc)ait.next();
-					for (Iterator vit = an.getVariables(); vit.hasNext();)
-					{
-						Variable var = (Variable)vit.next();
-						System.out.println(an + " has " + var);
-					}
-				}
+// 				for (Iterator ait = tech.getArcs(); ait.hasNext();)
+// 				{
+// 					PrimitiveArc an = (PrimitiveArc)ait.next();
+// 					for (Iterator vit = an.getVariables(); vit.hasNext();)
+// 					{
+// 						Variable var = (Variable)vit.next();
+// 						System.out.println(an + " has " + var);
+// 					}
+// 				}
 			}
 			System.out.println("Tool variables.");
 			for (Iterator tit = Tool.getTools(); tit.hasNext();)
@@ -1518,17 +1518,17 @@ public class DebugMenus {
 					System.out.println("tool has " + var);
 				}
 			}
-			System.out.println("View variables.");
-			for (Iterator wit = View.getViews(); wit.hasNext();)
-			{
-				View view = (View)wit.next();
-				System.out.println(view + ":");
-				for (Iterator vit = view.getVariables(); vit.hasNext();)
-				{
-					Variable var = (Variable)vit.next();
-					System.out.println("view has " + var);
-				}
-			}
+// 			System.out.println("View variables.");
+// 			for (Iterator wit = View.getViews(); wit.hasNext();)
+// 			{
+// 				View view = (View)wit.next();
+// 				System.out.println(view + ":");
+// 				for (Iterator vit = view.getVariables(); vit.hasNext();)
+// 				{
+// 					Variable var = (Variable)vit.next();
+// 					System.out.println("view has " + var);
+// 				}
+// 			}
 			return true;
 		}
 	}

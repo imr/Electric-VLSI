@@ -23,8 +23,8 @@
  */
 package com.sun.electric.database.hierarchy;
 
-import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.variable.ElectricObject;
+//import com.sun.electric.database.change.Undo;
+//import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.Job;
 
 import java.util.List;
@@ -42,7 +42,7 @@ import java.util.Collections;
  * <P>
  * Electric has a set of Views at the start, and users can define their own.
  */
-public class View extends ElectricObject
+public class View /* extends ElectricObject */
 {
 	// -------------------------- private data -----------------------------
 
@@ -182,7 +182,7 @@ public class View extends ElectricObject
 		View view = makeInstance(fullName, abbreviation, 0, getNextOrder());
 
 		// handle change control, constraint, and broadcast
-		Undo.newObject(view);
+//		Undo.newObject(view);
 		return view;
 	}
 
@@ -202,7 +202,7 @@ public class View extends ElectricObject
 		View view = makeInstance(fullName, abbreviation, TEXTVIEW, getNextOrder());
 
 		// handle change control, constraint, and broadcast
-		Undo.newObject(view);
+//		Undo.newObject(view);
 		return view;
 	}
 
@@ -219,7 +219,7 @@ public class View extends ElectricObject
 		View view = makeInstance("schematic-page-" + page, "p" + page, MULTIPAGEVIEW, getNextOrder());
 
 		// handle change control, constraint, and broadcast
-		Undo.newObject(view);
+//		Undo.newObject(view);
 		return view;
 	}
 
@@ -228,37 +228,37 @@ public class View extends ElectricObject
 	 */
 	public void kill()
 	{
-		// cannot delete the permanent views (created at initialization)
-		if (isPermanentView()) return;
-
-		// cannot delete views that are in use
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
-		{
-			Library lib = (Library)it.next();
-			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
-			{
-				Cell cell = (Cell)cIt.next();
-				if (cell.getView() == this)
-				{
-					System.out.println("Cannot delete view " + this.getFullName() +
-						" because it is in use (for example, cell " + cell.describe() + ")");
-					return;
-				}
-			}
-		}
-
-		// make sure this can be done now
-		Job.checkChanging();
-
-		// handle change control, constraint, and broadcast
-		Undo.killObject(this);
-
-		// delete this view
-        synchronized(View.class) {
-            viewNames.remove(fullName);
-            viewNames.remove(abbreviation);
-            views.remove(this);
-        }
+// 		// cannot delete the permanent views (created at initialization)
+// 		if (isPermanentView()) return;
+// 
+// 		// cannot delete views that are in use
+// 		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+// 		{
+// 			Library lib = (Library)it.next();
+// 			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+// 			{
+// 				Cell cell = (Cell)cIt.next();
+// 				if (cell.getView() == this)
+// 				{
+// 					System.out.println("Cannot delete view " + this.getFullName() +
+// 						" because it is in use (for example, cell " + cell.describe() + ")");
+// 					return;
+// 				}
+// 			}
+// 		}
+// 
+// 		// make sure this can be done now
+// 		Job.checkChanging();
+// 
+// 		// handle change control, constraint, and broadcast
+// 		Undo.killObject(this);
+// 
+// 		// delete this view
+//         synchronized(View.class) {
+//             viewNames.remove(fullName);
+//             viewNames.remove(abbreviation);
+//             views.remove(this);
+//         }
 	}
 
 	/****************************** IMPLEMENTATION ******************************/

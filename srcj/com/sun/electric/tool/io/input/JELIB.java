@@ -332,7 +332,7 @@ public class JELIB extends LibraryFiles
 				}
 
 				// get additional variables starting at position 1
-				addVariables(curPrim, pieces, 1, filePath, lineReader.getLineNumber());
+//				addVariables(curPrim, pieces, 1, filePath, lineReader.getLineNumber());
 				continue;
 			}
 
@@ -357,7 +357,7 @@ public class JELIB extends LibraryFiles
 				}
 
 				// get additional variables starting at position 1
-				addVariables(pp, pieces, 1, filePath, lineReader.getLineNumber());
+//				addVariables(pp, pieces, 1, filePath, lineReader.getLineNumber());
 				continue;
 			}
 
@@ -381,7 +381,7 @@ public class JELIB extends LibraryFiles
 				}
 
 				// get additional variables starting at position 1
-				addVariables(ap, pieces, 1, filePath, lineReader.getLineNumber());
+//				addVariables(ap, pieces, 1, filePath, lineReader.getLineNumber());
 				continue;
 			}
 
@@ -968,6 +968,30 @@ public class JELIB extends LibraryFiles
 				continue;
 			}
 			char varType = piece.charAt(objectPos++);
+			switch (varType)
+			{
+				case 'B':
+				case 'C':
+				case 'D':
+				case 'E':
+				case 'F':
+				case 'G':
+				case 'H':
+				case 'I':
+				case 'L':
+				case 'O':
+				case 'P':
+				case 'R':
+				case 'S':
+				case 'T':
+				case 'V':
+				case 'Y':
+					break; // break from switch
+				default:
+					Input.errorLogger.logError(fileName + ", line " + lineNumber +
+						", Variable type invalid: " + piece, null, -1);
+					continue; // continue loop
+			}
 			if (objectPos >= piece.length())
 			{
 				Input.errorLogger.logError(fileName + ", line " + lineNumber +
@@ -981,7 +1005,6 @@ public class JELIB extends LibraryFiles
 				objectPos++;
 				while (objectPos < piece.length())
 				{
-					if (piece.charAt(objectPos) == ']') break;
 					int start = objectPos;
 					boolean inQuote = false;
 					while (objectPos < piece.length())
@@ -998,7 +1021,7 @@ public class JELIB extends LibraryFiles
 							objectPos++;
 							continue;
 						}
-						if (piece.charAt(objectPos) == ',') break;
+						if (piece.charAt(objectPos) == ',' || piece.charAt(objectPos) == ']') break;
 						if (piece.charAt(objectPos) == '"')
 						{
 							inQuote = true;
@@ -1007,13 +1030,26 @@ public class JELIB extends LibraryFiles
 					}
 					Object oneObj = getVariableValue(piece.substring(start, objectPos), 0, varType, fileName, lineNumber);
 					objList.add(oneObj);
+					if (piece.charAt(objectPos) == ']') break;
 					objectPos++;
+				}
+				if (objectPos >= piece.length())
+				{
+					Input.errorLogger.logError(fileName + ", line " + lineNumber +
+						", Badly formed array (no closed bracket): " + piece, null, -1);
+					continue;
+				}
+				else if (objectPos < piece.length() - 1)
+				{
+					Input.errorLogger.logError(fileName + ", line " + lineNumber +
+						", Badly formed array (extra characters after closed bracket): " + piece, null, -1);
+					continue;
 				}
 				int limit = objList.size();
 				Object [] objArray = null;
 				switch (varType)
 				{
-					case 'A': objArray = new ArcInst[limit];        break;
+// 					case 'A': objArray = new ArcInst[limit];        break;
 					case 'B': objArray = new Boolean[limit];        break;
 					case 'C': objArray = new Cell[limit];           break;
 					case 'D': objArray = new Double[limit];         break;
@@ -1023,7 +1059,7 @@ public class JELIB extends LibraryFiles
 					case 'H': objArray = new Short[limit];          break;
 					case 'I': objArray = new Integer[limit];        break;
 					case 'L': objArray = new Library[limit];        break;
-					case 'N': objArray = new NodeInst[limit];       break;
+// 					case 'N': objArray = new NodeInst[limit];       break;
 					case 'O': objArray = new Tool[limit];           break;
 					case 'P': objArray = new PrimitiveNode[limit];  break;
 					case 'R': objArray = new ArcProto[limit];       break;
@@ -1265,47 +1301,55 @@ public class JELIB extends LibraryFiles
 	 */
 	private Object getVariableValue(String piece, int objectPos, char varType, String fileName, int lineNumber)
 	{
+		int colonPos;
+		String libName;
+		Library lib;
+		int secondColonPos;
+		String cellName;
+		Cell cell;
+		int commaPos;
+
 		switch (varType)
 		{
-			case 'A':		// ArcInst (should delay analysis until database is built!!!)
-				int colonPos = piece.indexOf(':', objectPos);
-				if (colonPos < 0)
-				{
-					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Badly formed Export (missing library colon): " + piece, null, -1);
-					break;
-				}
-				String libName = piece.substring(objectPos, colonPos);
-				Library lib = Library.findLibrary(libName);
-				if (lib == null)
-				{
-					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Unknown library: " + libName, null, -1);
-					break;
-				}
-				int secondColonPos = piece.indexOf(':', colonPos+1);
-				if (secondColonPos < 0)
-				{
-					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Badly formed Export (missing cell colon): " + piece, null, -1);
-					break;
-				}
-				String cellName = piece.substring(colonPos+1, secondColonPos);
-				Cell cell = lib.findNodeProto(cellName);
-				if (cell == null)
-				{
-					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Unknown Cell: " + piece, null, -1);
-					break;
-				}
-				String arcName = piece.substring(secondColonPos+1);
-				int commaPos = arcName.indexOf(',');
-				if (commaPos >= 0) arcName = arcName.substring(0, commaPos);
-				ArcInst ai = cell.findArc(arcName);
-				if (ai == null)
-					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Unknown ArcInst: " + piece, null, -1);
-				return ai;
+// 			case 'A':		// ArcInst (should delay analysis until database is built!!!)
+// 				int colonPos = piece.indexOf(':', objectPos);
+// 				if (colonPos < 0)
+// 				{
+// 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
+// 						", Badly formed Export (missing library colon): " + piece, null, -1);
+// 					break;
+// 				}
+// 				String libName = piece.substring(objectPos, colonPos);
+// 				Library lib = Library.findLibrary(libName);
+// 				if (lib == null)
+// 				{
+// 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
+// 						", Unknown library: " + libName, null, -1);
+// 					break;
+// 				}
+// 				int secondColonPos = piece.indexOf(':', colonPos+1);
+// 				if (secondColonPos < 0)
+// 				{
+// 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
+// 						", Badly formed Export (missing cell colon): " + piece, null, -1);
+// 					break;
+// 				}
+// 				String cellName = piece.substring(colonPos+1, secondColonPos);
+// 				Cell cell = lib.findNodeProto(cellName);
+// 				if (cell == null)
+// 				{
+// 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
+// 						", Unknown Cell: " + piece, null, -1);
+// 					break;
+// 				}
+// 				String arcName = piece.substring(secondColonPos+1);
+// 				int commaPos = arcName.indexOf(',');
+// 				if (commaPos >= 0) arcName = arcName.substring(0, commaPos);
+// 				ArcInst ai = cell.findArc(arcName);
+// 				if (ai == null)
+// 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
+// 						", Unknown ArcInst: " + piece, null, -1);
+// 				return ai;
 			case 'B':		// Boolean
 				return new Boolean(piece.charAt(objectPos)=='T' ? true : false);
 			case 'C':		// Cell (should delay analysis until database is built!!!)
@@ -1390,45 +1434,45 @@ public class JELIB extends LibraryFiles
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
 						", Unknown Library: " + piece, null, -1);
 				return lib;
-			case 'N':		// NodeInst (should delay analysis until database is built!!!)
-				colonPos = piece.indexOf(':', objectPos);
-				if (colonPos < 0)
-				{
-					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Badly formed Export (missing library colon): " + piece, null, -1);
-					break;
-				}
-				libName = piece.substring(objectPos, colonPos);
-				lib = Library.findLibrary(libName);
-				if (lib == null)
-				{
-					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Unknown library: " + libName, null, -1);
-					break;
-				}
-				secondColonPos = piece.indexOf(':', colonPos+1);
-				if (secondColonPos < 0)
-				{
-					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Badly formed Export (missing cell colon): " + piece, null, -1);
-					break;
-				}
-				cellName = piece.substring(colonPos+1, secondColonPos);
-				cell = lib.findNodeProto(cellName);
-				if (cell == null)
-				{
-					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Unknown Cell: " + piece, null, -1);
-					break;
-				}
-				String nodeName = piece.substring(secondColonPos+1);
-				commaPos = nodeName.indexOf(',');
-				if (commaPos >= 0) nodeName = nodeName.substring(0, commaPos);
-				NodeInst ni = cell.findNode(nodeName);
-				if (ni == null)
-					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Unknown NodeInst: " + piece, null, -1);
-				return ni;
+// 			case 'N':		// NodeInst (should delay analysis until database is built!!!)
+// 				colonPos = piece.indexOf(':', objectPos);
+// 				if (colonPos < 0)
+// 				{
+// 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
+// 						", Badly formed Export (missing library colon): " + piece, null, -1);
+// 					break;
+// 				}
+// 				libName = piece.substring(objectPos, colonPos);
+// 				lib = Library.findLibrary(libName);
+// 				if (lib == null)
+// 				{
+// 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
+// 						", Unknown library: " + libName, null, -1);
+// 					break;
+// 				}
+// 				secondColonPos = piece.indexOf(':', colonPos+1);
+// 				if (secondColonPos < 0)
+// 				{
+// 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
+// 						", Badly formed Export (missing cell colon): " + piece, null, -1);
+// 					break;
+// 				}
+// 				cellName = piece.substring(colonPos+1, secondColonPos);
+// 				cell = lib.findNodeProto(cellName);
+// 				if (cell == null)
+// 				{
+// 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
+// 						", Unknown Cell: " + piece, null, -1);
+// 					break;
+// 				}
+// 				String nodeName = piece.substring(secondColonPos+1);
+// 				commaPos = nodeName.indexOf(',');
+// 				if (commaPos >= 0) nodeName = nodeName.substring(0, commaPos);
+// 				NodeInst ni = cell.findNode(nodeName);
+// 				if (ni == null)
+// 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
+// 						", Unknown NodeInst: " + piece, null, -1);
+// 				return ni;
 			case 'O':		// Tool
 				String toolName = piece.substring(objectPos);
 				commaPos = toolName.indexOf(',');
@@ -1454,7 +1498,7 @@ public class JELIB extends LibraryFiles
 						", Unknown technology: " + techName, null, -1);
 					break;
 				}
-				nodeName = piece.substring(colonPos+1);
+				String nodeName = piece.substring(colonPos+1);
 				commaPos = nodeName.indexOf(',');
 				if (commaPos >= 0) nodeName = nodeName.substring(0, commaPos);
 				PrimitiveNode np = tech.findNodeProto(nodeName);
@@ -1478,7 +1522,7 @@ public class JELIB extends LibraryFiles
 						", Unknown technology: " + techName, null, -1);
 					break;
 				}
-				arcName = piece.substring(colonPos+1);
+				String arcName = piece.substring(colonPos+1);
 				commaPos = arcName.indexOf(',');
 				if (commaPos >= 0) arcName = arcName.substring(0, commaPos);
 				ArcProto ap = tech.findArcProto(arcName);

@@ -181,7 +181,7 @@ public class JELIB extends Output
 				for(Iterator nIt = tech.getNodes(); nIt.hasNext(); )
 				{
 					PrimitiveNode np = (PrimitiveNode)nIt.next();
-					if (np.numPersistentVariables() != 0) { hasPersistent = true;   break; }
+// 					if (np.numPersistentVariables() != 0) { hasPersistent = true;   break; }
 					for(Iterator pIt = np.getPorts(); pIt.hasNext(); )
 					{
 						PrimitivePort pp = (PrimitivePort)pIt.next();
@@ -190,14 +190,14 @@ public class JELIB extends Output
 					if (hasPersistent) break;
 				}
 			}
-			if (!hasPersistent)
-			{
-				for(Iterator aIt = tech.getArcs(); aIt.hasNext(); )
-				{
-					ArcProto ap = (ArcProto)aIt.next();
-					if (ap.numPersistentVariables() != 0) { hasPersistent = true;   break; }
-				}
-			}
+// 			if (!hasPersistent)
+// 			{
+// 				for(Iterator aIt = tech.getArcs(); aIt.hasNext(); )
+// 				{
+// 					ArcProto ap = (ArcProto)aIt.next();
+// 					if (ap.numPersistentVariables() != 0) { hasPersistent = true;   break; }
+// 				}
+// 			}
 			if (!hasPersistent) continue;
 
 			printWriter.print("\n# Technology " + tech.getTechName() + "\n");
@@ -208,7 +208,7 @@ public class JELIB extends Output
 			{
 				PrimitiveNode np = (PrimitiveNode)nIt.next();
 				hasPersistent = false;
-				if (np.numPersistentVariables() != 0) hasPersistent = true; else
+// 				if (np.numPersistentVariables() != 0) hasPersistent = true; else
 				{
 					for(Iterator pIt = np.getPorts(); pIt.hasNext(); )
 					{
@@ -219,7 +219,7 @@ public class JELIB extends Output
 				if (!hasPersistent) continue;
 
 				printWriter.print("D" + convertString(np.getName()));
-				writeVars(np, null);
+// 				writeVars(np, null);
 				printWriter.print("\n");
 				for(Iterator pIt = np.getPorts(); pIt.hasNext(); )
 				{
@@ -230,35 +230,35 @@ public class JELIB extends Output
 					printWriter.print("\n");
 				}
 			}
-			for(Iterator aIt = tech.getArcs(); aIt.hasNext(); )
-			{
-				ArcProto ap = (ArcProto)aIt.next();
-				if (ap.numPersistentVariables() == 0) continue;
-				printWriter.print("W" + convertString(ap.getName()));
-				writeVars(ap, null);
-				printWriter.print("\n");
-			}
+// 			for(Iterator aIt = tech.getArcs(); aIt.hasNext(); )
+// 			{
+// 				ArcProto ap = (ArcProto)aIt.next();
+// 				if (ap.numPersistentVariables() == 0) continue;
+// 				printWriter.print("W" + convertString(ap.getName()));
+// 				writeVars(ap, null);
+// 				printWriter.print("\n");
+// 			}
 		}
 
 		// write view information
-		boolean hasPersistent = false;
-		for(Iterator it = View.getViews(); it.hasNext(); )
-		{
-			View v = (View)it.next();
-			if (v.numPersistentVariables() != 0) { hasPersistent = true;  break; }
-		}
-		if (hasPersistent)
-		{
-			printWriter.print("\n# Views:\n");
-			for(Iterator it = View.getViews(); it.hasNext(); )
-			{
-				View v = (View)it.next();
-				if (v.numPersistentVariables() == 0) continue;
-				printWriter.print("V" + convertString(v.getFullName()) + "|" + convertString(v.getAbbreviation()));
-				writeVars(v, null);
-				printWriter.print("\n");
-			}
-		}
+// 		boolean hasPersistent = false;
+// 		for(Iterator it = View.getViews(); it.hasNext(); )
+// 		{
+// 			View v = (View)it.next();
+// 			if (v.numPersistentVariables() != 0) { hasPersistent = true;  break; }
+// 		}
+// 		if (hasPersistent)
+// 		{
+// 			printWriter.print("\n# Views:\n");
+// 			for(Iterator it = View.getViews(); it.hasNext(); )
+// 			{
+// 				View v = (View)it.next();
+// 				if (v.numPersistentVariables() == 0) continue;
+// 				printWriter.print("V" + convertString(v.getFullName()) + "|" + convertString(v.getAbbreviation()));
+// 				writeVars(v, null);
+// 				printWriter.print("\n");
+// 			}
+// 		}
 
 		// write the cells of the database
 		List cells = lib.getCellsSortedByName();

@@ -573,7 +573,12 @@ public class Pref
 	 */
 	public Meaning attachToObject(ElectricObject eObj, String location, String description)
 	{
-		meaning = new Meaning(eObj, this, location, description);
+		if (meaning == null)
+		{
+			meaning = new Meaning(eObj, this, location, description);
+		} else {
+			System.out.println("Meaning " + name + " already attached to " + eObj);
+		}
  //       List list = (List)meaningPrefs.get(this.name);
  //       if (list == null) { list = new ArrayList(); }
  //       list.add(meaning);

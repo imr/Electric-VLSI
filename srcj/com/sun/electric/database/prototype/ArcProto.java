@@ -44,7 +44,7 @@ import java.util.HashMap;
  * <P>
  * The basic ArcProto has a name, default width, function, and more.
  */
-public abstract class ArcProto extends ElectricObject
+public abstract class ArcProto
 {
 	/**
 	 * Function is a typesafe enum class that describes the function of an ArcProto.
@@ -200,7 +200,7 @@ public abstract class ArcProto extends ElectricObject
 		this.function = Function.UNKNOWN;
 
         // arcprotos are always considered in the database
-        setLinked(true);
+//        setLinked(true);
 	}
 
 	// ------------------------ public methods -------------------------------
@@ -448,14 +448,14 @@ public abstract class ArcProto extends ElectricObject
 	 * Unused arcs do not appear in the component menus and cannot be created by the user.
 	 * The state is useful for hiding arcs that the user should not use.
 	 */
-	public void setNotUsed() { checkChanging(); userBits |= ANOTUSED; }
+	public void setNotUsed() { /* checkChanging();*/ userBits |= ANOTUSED; }
 
 	/**
 	 * Method to set this ArcProto so that it is used.
 	 * Unused arcs do not appear in the component menus and cannot be created by the user.
 	 * The state is useful for hiding arcs that the user should not use.
 	 */
-	public void clearNotUsed() { checkChanging(); userBits &= ~ANOTUSED; }
+	public void clearNotUsed() { /*checkChanging();*/ userBits &= ~ANOTUSED; }
 
 	/**
 	 * Method to tell if this ArcProto is used.

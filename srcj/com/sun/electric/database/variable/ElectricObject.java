@@ -523,6 +523,11 @@ public abstract class ElectricObject
 	 */
 	public Variable newVar(Variable.Key key, Object value)
 	{
+		if (isDeprecatedVariable(key))
+		{
+			System.out.println("Deprecated variable " + key.getName() + " was not created on " + this);
+			return null;
+		}
 		checkChanging();
         Variable oldVar;
         synchronized(this) {

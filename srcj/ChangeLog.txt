@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ab: *********************************
 
+IMP: (10/20/04, DN) Deprectated those variables on Technology, Tool,
+View, PrimitiveNode/Arc/Part objects which are not meaningful preferences.
+
 ************************* Version 8.01aa: *********************************
 
 IMP: (10/20/04, GVG) Moving rounding operation from PolyBase.calcBound to ELIB.getArcEnd.

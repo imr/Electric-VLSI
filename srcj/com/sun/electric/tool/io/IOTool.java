@@ -155,7 +155,7 @@ public class IOTool extends Tool
 	public static void setUseCopyrightMessage(boolean u) { cacheUseCopyrightMessage.setBoolean(u); }
 
 	private static Pref cacheCopyrightMessage = Pref.makeStringPref("CopyrightMessage", IOTool.tool.prefs, "");
-    static { cacheUseCopyrightMessage.attachToObject(IOTool.tool, "General/Copyright tab", "Copyright message"); }
+    static { cacheCopyrightMessage.attachToObject(IOTool.tool, "General/Copyright tab", "Copyright message"); }
 	/**
 	 * Method to tell the copyright message that will be added to output decks.
 	 * The default is "".

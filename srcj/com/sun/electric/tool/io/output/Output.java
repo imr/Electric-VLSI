@@ -392,29 +392,29 @@ public class Output
 			for(Iterator nIt = tech.getNodes(); nIt.hasNext(); )
 			{
 				PrimitiveNode np = (PrimitiveNode)nIt.next();
-				checkFontUsage(np, fontFound);
+//				checkFontUsage(np, fontFound);
 				for(Iterator pIt = np.getPorts(); pIt.hasNext(); )
 				{
 					PrimitivePort pp = (PrimitivePort)pIt.next();
 					checkFontUsage(pp, fontFound);
 				}
 			}
-			for(Iterator aIt = tech.getArcs(); aIt.hasNext(); )
-			{
-				PrimitiveArc ap = (PrimitiveArc)aIt.next();
-				checkFontUsage(ap, fontFound);
-			}
+// 			for(Iterator aIt = tech.getArcs(); aIt.hasNext(); )
+// 			{
+// 				PrimitiveArc ap = (PrimitiveArc)aIt.next();
+// 				checkFontUsage(ap, fontFound);
+// 			}
 		}
 		for(Iterator it = Tool.getTools(); it.hasNext(); )
 		{
 			Tool tool = (Tool)it.next();
 			checkFontUsage(tool, fontFound);
 		}
-		for(Iterator it = View.getViews(); it.hasNext(); )
-		{
-			View view = (View)it.next();
-			checkFontUsage(view, fontFound);
-		}
+// 		for(Iterator it = View.getViews(); it.hasNext(); )
+// 		{
+// 			View view = (View)it.next();
+// 			checkFontUsage(view, fontFound);
+// 		}
 
 		// now save the associations
 		List associations = new ArrayList();

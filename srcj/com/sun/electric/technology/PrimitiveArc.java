@@ -63,7 +63,7 @@ public class PrimitiveArc extends ArcProto
 		this.layers = layers;
 		setFactoryDefaultWidth(defaultWidth);
         // Prototypes are always assumed to be linked into the database
-        setLinked(true);        
+//        setLinked(true);        
 	}
 
 	// ------------------------ public methods -------------------------------
@@ -234,24 +234,5 @@ public class PrimitiveArc extends ArcProto
 	public String toString()
 	{
 		return "PrimitiveArc " + describe();
-	}
-
-    /**
-     * Method which indicates that this object is in database.
-     * Some objects are not in database, for example Geometrics in PaletteFrame.
-     * PrimitiveArcs are technology objects: they are not stored to disk with
-     * the libraries.
-     * @return true if this object is in database.
-     */
-//    protected boolean isDatabaseObject() { return false; }
-
-    /**
-     * Returns true if this PrimitiveArc is completely linked into database.
-	 * This means there is path to this PrimitiveArc through lists:
-	 * Technology&#46;technologies->Technology&#46;arcs-> PrimitiveArc
-     */
-	public boolean isActuallyLinked()
-	{
-		return tech != null && tech.findArcProto(getName()) == this;
 	}
 }
