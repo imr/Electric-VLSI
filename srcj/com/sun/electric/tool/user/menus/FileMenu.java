@@ -240,10 +240,12 @@ public class FileMenu {
             }
             if (success) {
                 // close no name library
-                mainLib.kill();
+                //mainLib.kill();
                 //WindowFrame.wantToRedoLibraryTree();
-                EditWindow.repaintAll();
-                EditWindow.repaintAllContents();
+                // the calls to repaint actually cause the 
+                // EditWindow to come up BLANK in Linux SDI mode
+                //EditWindow.repaintAll();
+                //EditWindow.repaintAllContents();
             }
             if (WindowFrame.getCurrentWindowFrame() == null) {
                 // create a new frame
