@@ -4,6 +4,20 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02b: *********************************
 
+IMP: (01/13/05, JKG) Spice generated node names are now determinant.
+
+IMP: (01/13/05, JKG) CDL: "convert brackets" option now works properly;
+    empty subcircuits are not netlisted.
+
+IMP: (01/13/05, JKG) CIF generated names are now NAME instead of NAME_lay_.
+
+IMP/MAN: (01/13/05, JKG) Added Export command to export 'exports only' in Skill.
+
+IMP/MAN: (01/13/05, JKG) Added option on Skill preferences tab to truncate cell names to
+    match names in GDS files.
+
+IMP: (01/13/05, JKG) Topology: "getSafeNetName" now properly applied to non-aggregating netlisters
+
 IMP: (01/12/05, SMR) First implementation of node extractor.
 
 BUG: (01/13/05, DN) Rename arc/nodes and undo can spoil database invariants (Bug #157).
