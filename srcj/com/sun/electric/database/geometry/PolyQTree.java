@@ -182,7 +182,16 @@ public class PolyQTree
 			Area a = (Area)obj;
 			return (super.equals(a));
 		}
-		
+
+		/**
+		 * Not to violate that equal objects must have equal hashcodes.
+		 * @return
+		 */
+		public int hasCode()
+		{
+			throw new UnsupportedOperationException();
+		}
+
 		/**
 		 *
 		 * @return

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.Main;
 import javax.swing.ImageIcon;
 import java.net.URL;
 
@@ -44,7 +45,6 @@ public class Resources {
 	public static ImageIcon getResource(Class theClass, String iconName)
 	{
 		return (new ImageIcon(getURLResource(theClass, iconName)));
-		//return (new ImageIcon(theClass.getResource(resourceLocation+iconName)));
 	}
 
 	/**
@@ -72,10 +72,10 @@ public class Resources {
 
         } catch (ClassNotFoundException e)
         {
-            System.out.println("Can't find 3D View plugin: " + e.getMessage());
+            if (Main.getDebug()) System.out.println("Can't find 3D View plugin: " + e.getMessage());
         } catch (Error e)
         {
-            System.out.println("Java3D not installed: " + e.getMessage());
+            if (Main.getDebug()) System.out.println("Java3D not installed: " + e.getMessage());
         }
 		return (view3DClass);
 	}

@@ -3336,7 +3336,7 @@ public class Quick
 		if (errorLogger == null) return;
 
 		// if this error is in an ignored area, don't record it
-		String DRCexclusionMsg = "";
+		StringBuffer DRCexclusionMsg = new StringBuffer();
 		if (exclusionList.size() > 0)
 		{
 			// determine the bounding box of the error
@@ -3361,8 +3361,8 @@ public class Quick
 					boolean found = poly.contains(thisPoly.getBounds2D());
 
 					if (found) count++;
-					else DRCexclusionMsg += "\n\t(DRC Exclusion '" + dex.ni.getName() + "' does not completely contain '" +
-						        ((Geometric)geomList.get(i)).describe() + "')";
+					else DRCexclusionMsg.append("\n\t(DRC Exclusion '" + dex.ni.getName() + "' does not completely contain '" +
+						        ((Geometric)geomList.get(i)).describe() + "')");
 				}
 				// At least one DRC exclusion that contains both
 				if (count == polyList.size())
@@ -3372,19 +3372,19 @@ public class Quick
 
 		// describe the error
 		Cell np1 = null;
-		String errorMessage = "";
+		StringBuffer errorMessage = new StringBuffer();
 		int sortLayer = cell.hashCode(); // 0;
 		if (errorType == SPACINGERROR || errorType == NOTCHERROR)
 		{
 			np1 = geom1.getParent();
 			// describe spacing width error
 			if (errorType == SPACINGERROR)
-				errorMessage += "Spacing";
+				errorMessage.append("Spacing");
 			else
-				errorMessage += "Notch";
+				errorMessage.append("Notch");
 			if (layer1 == layer2)
-				errorMessage += " (layer " + layer1.getName() + ")";
-			errorMessage += ": ";
+				errorMessage.append(" (layer " + layer1.getName() + ")");
+			errorMessage.append(": ");
 			Cell np2 = geom2.getParent();
 
 			// Message already logged
@@ -3393,89 +3393,88 @@ public class Quick
 
 			if (np1 != np2)
 			{
-				errorMessage += "cell " + np1.describe() + ", ";
+				errorMessage.append("cell " + np1.describe() + ", ");
 			} else if (np1 != cell)
 			{
-				errorMessage += "[in cell " + np1.describe() + "] ";
+				errorMessage.append("[in cell " + np1.describe() + "] ");
 			}
 			if (geom1 instanceof NodeInst)
-				errorMessage += "node " + geom1.describe();
+				errorMessage.append("node " + geom1.describe());
 			else
-				errorMessage += "arc " + geom1.describe();
+				errorMessage.append("arc " + geom1.describe());
 			if (layer1 != layer2)
-				errorMessage += ", layer " + layer1.getName();
+				errorMessage.append(", layer " + layer1.getName());
 
-			if (actual < 0) errorMessage += " OVERLAPS ";
-			else if (actual == 0) errorMessage += " TOUCHES ";
-			else errorMessage += " LESS (BY " + TextUtils.formatDouble(limit-actual) + ") THAN " + TextUtils.formatDouble(limit) + " TO ";
+			if (actual < 0) errorMessage.append(" OVERLAPS ");
+			else if (actual == 0) errorMessage.append(" TOUCHES ");
+			else errorMessage.append(" LESS (BY " + TextUtils.formatDouble(limit-actual) + ") THAN " + TextUtils.formatDouble(limit) + " TO ");
 
 			if (np1 != np2)
-				errorMessage += "cell " + np2.describe() + ", ";
+				errorMessage.append("cell " + np2.describe() + ", ");
 			if (geom2 instanceof NodeInst)
-				errorMessage += "node " + geom2.describe();
+				errorMessage.append("node " + geom2.describe());
 			else
-				errorMessage += "arc " + geom2.describe();
+				errorMessage.append("arc " + geom2.describe());
 			if (layer1 != layer2)
-				errorMessage += ", layer " + layer2.getName();
+				errorMessage.append(", layer " + layer2.getName());
 			if (msg != null)
-				errorMessage += "; " + msg;
-			//sortLayer = Math.min(layer1.getIndex(), layer2.getIndex());
+				errorMessage.append("; " + msg);
 		} else
 		{
 			// describe minimum width/size or layer error
-			String errorMessagePart2 = "";
+			StringBuffer errorMessagePart2 = null;
 			switch (errorType)
 			{
 				case MINAREAERROR:
-					errorMessage += "Minimum area error:";
-					errorMessagePart2 = ", layer " + layer1.getName();
-					errorMessagePart2 += " LESS THAN " + TextUtils.formatDouble(limit) + " IN AREA (IS " + TextUtils.formatDouble(actual) + ")";
+					errorMessage.append("Minimum area error:");
+					errorMessagePart2 = new StringBuffer(", layer " + layer1.getName());
+					errorMessagePart2.append(" LESS THAN " + TextUtils.formatDouble(limit) + " IN AREA (IS " + TextUtils.formatDouble(actual) + ")");
 					break;
 				case ENCLOSEDAREAERROR:
-					errorMessage += "Enclosed area error:";
-					errorMessagePart2 = ", layer " + layer1.getName();
-					errorMessagePart2 += " LESS THAN " + TextUtils.formatDouble(limit) + " IN AREA (IS " + TextUtils.formatDouble(actual) + ")";
+					errorMessage.append("Enclosed area error:");
+					errorMessagePart2 = new StringBuffer(", layer " + layer1.getName());
+					errorMessagePart2.append(" LESS THAN " + TextUtils.formatDouble(limit) + " IN AREA (IS " + TextUtils.formatDouble(actual) + ")");
 					break;
 				case ZEROLENGTHARCWARN:
-					errorMessage += "Zero width warning:";
-					errorMessagePart2 = msg;
+					errorMessage.append("Zero width warning:");
+					errorMessagePart2 = new StringBuffer(msg);
 					break;
 				case MINWIDTHERROR:
-					errorMessage += "Minimum width error:";
-					errorMessagePart2 = ", layer " + layer1.getName();
-					errorMessagePart2 += " LESS THAN " + TextUtils.formatDouble(limit) + " WIDE (IS " + TextUtils.formatDouble(actual) + ")";
+					errorMessage.append("Minimum width error:");
+					errorMessagePart2 = new StringBuffer(", layer " + layer1.getName());
+					errorMessagePart2.append(" LESS THAN " + TextUtils.formatDouble(limit) + " WIDE (IS " + TextUtils.formatDouble(actual) + ")");
                     break;
 				case MINSIZEERROR:
-					errorMessage += "Minimum size error:";
-					errorMessagePart2 = " LESS THAN " + TextUtils.formatDouble(limit) + " IN SIZE (IS " + TextUtils.formatDouble(actual) + ")";
+					errorMessage.append("Minimum size error:");
+					errorMessagePart2 = new StringBuffer(" LESS THAN " + TextUtils.formatDouble(limit) + " IN SIZE (IS " + TextUtils.formatDouble(actual) + ")");
 					break;
 				case BADLAYERERROR:
-					errorMessage += "Invalid layer (" + layer1.getName() + "):";
+					errorMessage.append("Invalid layer (" + layer1.getName() + "):");
 					break;
 				case LAYERSURROUNDERROR:
-					errorMessage += "Layer surround error:";
-					errorMessagePart2 = ", layer %" + layer1.getName();
-					errorMessagePart2 += " NEEDS SURROUND OF LAYER " + layer2.getName() + " BY " + limit;
+					errorMessage.append("Layer surround error:");
+					errorMessagePart2 = new StringBuffer(", layer %" + layer1.getName());
+					errorMessagePart2.append(" NEEDS SURROUND OF LAYER " + layer2.getName() + " BY " + limit);
 					break;
 			}
-			if (np1 != null && cell != np1) System.out.println("Error here");
+			if (Main.getDebug() && cell != np1) System.out.println("Error here");
 
-			errorMessage += " cell " + cell.describe();
+			errorMessage.append(" cell " + cell.describe());
 			if (geom1 != null)
 			{
-				errorMessage += (geom1 instanceof NodeInst) ?
+				errorMessage.append((geom1 instanceof NodeInst) ?
 				        ", node " + geom1.describe() :
-				        ", arc " + geom1.describe();
+				        ", arc " + geom1.describe());
 			}
 			if (layer1 != null) sortLayer = layer1.getIndex();
-			errorMessage += errorMessagePart2;
+			errorMessage.append(errorMessagePart2);
 		}
-		if (rule != null && rule.length() > 0) errorMessage += " [rule " + rule + "]";
-		errorMessage += DRCexclusionMsg;
+		if (rule != null && rule.length() > 0) errorMessage.append(" [rule " + rule + "]");
+		errorMessage.append(DRCexclusionMsg);
 
 		ErrorLogger.MessageLog err = (errorType == ZEROLENGTHARCWARN) ?
-		        errorLogger.logWarning(errorMessage, cell, sortLayer) :
-		        errorLogger.logError(errorMessage, cell, sortLayer);
+		        errorLogger.logWarning(errorMessage.toString(), cell, sortLayer) :
+		        errorLogger.logError(errorMessage.toString(), cell, sortLayer);
 
 		boolean showGeom = true;
 		if (poly1 != null) { showGeom = false;   err.addPoly(poly1, true, cell); }

@@ -6,6 +6,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01z: *********************************
 
+BUG: (10/19/04, GVG) Library Read errors give null exception.
+FIX: Test if highlighter != null in ErrorLogger
+
+IMP: (10/19/04, GVG) StringBuffer instead of String for loops (findBugs source).
+
 BUG: (10/19/04, SMR) JELIB input creates extra exports in icons.
 FIX: When JELIB input creates an export, disallow creation of associated icon export.
 
@@ -13,7 +18,6 @@ BUG: (10/19/04, SMR) Cannot place cell instances.
 FIX: In "PaletteFrame.java", allow all NodeProto placements, not just PrimitiveNode.
 
 ************************* Version 8.01y: *********************************
-
 BUG: (10/18/04, GVG) Rounding error in DRC min width checking
 FIX: DBMath.isGreater() function added to consolidate comparison and rounding operations
 

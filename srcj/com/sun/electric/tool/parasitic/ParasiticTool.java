@@ -103,11 +103,11 @@ public class ParasiticTool extends Tool{
          */
         public String toString()
         {
-            String message = "";
+	        StringBuffer buf = new StringBuffer();
             for (int i = 0; i < 2; i++)
-                message += "Poly " + i + ":" + elements[i].poly.getBounds2D() +
-                        "(area=" + elements[i].area + ", length=" +  elements[i].length + ") ";
-            return (message);
+                buf.append("Poly " + i + ":" + elements[i].poly.getBounds2D() +
+                        "(area=" + elements[i].area + ", length=" +  elements[i].length + ") ");
+            return (buf.toString());
         }
 
         /**
@@ -199,7 +199,7 @@ public class ParasiticTool extends Tool{
     /****************************** OPTIONS ******************************/
 
     /****************************** Job ******************************/
-    protected class AnalyzeParasitic extends Job
+    protected static class AnalyzeParasitic extends Job
     {
         Cell cell;
         Network net;

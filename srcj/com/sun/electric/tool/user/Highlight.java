@@ -464,6 +464,15 @@ public class Highlight
         return false;
     }
 
+	/**
+	 * Not to violate that equal objects must have equal hashcodes.
+	 * @return
+	 */
+	public int hasCode()
+	{
+		throw new UnsupportedOperationException();
+	}
+
     /**
 	 * Method to tell whether this Highlight is text that stays with its node.
 	 * The two possibilities are (1) text on invisible pins

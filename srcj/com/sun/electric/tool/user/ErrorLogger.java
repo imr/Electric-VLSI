@@ -399,7 +399,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
                     }
                 }
 
-                highlighter.finished();
+                if (highlighter != null) highlighter.finished();
             }
 
             // return the error message

@@ -232,29 +232,29 @@ public abstract class Geometric extends ElectricObject
 		{
 			if (indent == 0) branchCount = 0;
 
-			String line = "";
-			for(int i=0; i<indent; i++) line += " ";
-			line += "RTNode";
+			StringBuffer line = new StringBuffer();
+			for(int i=0; i<indent; i++) line.append(" ");
+			line.append("RTNode");
 			if (flag)
 			{
 				branchCount++;
-				line += " NUMBER " + branchCount;
+				line.append(" NUMBER " + branchCount);
 			}
-			line += " X(" + bounds.getMinX() + "-" + bounds.getMaxX() + ") Y(" + bounds.getMinY() + "-" + bounds.getMaxY() + ") has " +
-				total + " children:";
+			line.append(" X(" + bounds.getMinX() + "-" + bounds.getMaxX() + ") Y(" + bounds.getMinY() + "-" + bounds.getMaxY() + ") has " +
+				total + " children:");
 			System.out.println(line);
 
 			for(int j=0; j<total; j++)
 			{
 				if (flag)
 				{
-					line = "";
-					for(int i=0; i<indent+3; i++) line += " ";
+					line = new StringBuffer();
+					for(int i=0; i<indent+3; i++) line.append(" ");
 					Geometric child = (Geometric)getChild(j);
 //					child.setTempInt(branchCount);
 					Rectangle2D childBounds = child.getBounds();
-					line += "Child X(" + childBounds.getMinX() + "-" + childBounds.getMaxX() + ") Y(" +
-						childBounds.getMinY() + "-" + childBounds.getMaxY() + ") is " + child.describe();
+					line.append("Child X(" + childBounds.getMinX() + "-" + childBounds.getMaxX() + ") Y(" +
+						childBounds.getMinY() + "-" + childBounds.getMaxY() + ") is " + child.describe());
 					System.out.println(line);
 				} else
 				{

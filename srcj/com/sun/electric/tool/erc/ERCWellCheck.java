@@ -46,6 +46,7 @@ import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.ErrorLogger.MessageLog;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.Main;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -60,9 +61,7 @@ public class ERCWellCheck
 	// well areas
 	static class WellArea
 	{
-		//Rectangle2D bounds;
 		PolyBase        poly;
-		//Layer       layer;
 		int         netNum;
 		int         index;
 	};
@@ -73,8 +72,7 @@ public class ERCWellCheck
 		int                netNum;
 		boolean            onProperRail;
 		PrimitiveNode.Function fun;
-		//NodeProto          np;
-		int                index;
+		//int                index;
 	};
 
 	/*
@@ -98,7 +96,7 @@ public class ERCWellCheck
         ErrorLogger errorLogger;
         Highlighter highlighter;
 		List wellCons = new ArrayList();
-	    int wellConIndex;
+	    //int wellConIndex;
 		List wellAreas = new ArrayList();
 		HashMap cellMerges = new HashMap(); // make a map of merge information in each cell
 		HashMap doneCells = new HashMap(); // Mark if cells are done already.
@@ -118,16 +116,14 @@ public class ERCWellCheck
 			errorLogger = ErrorLogger.newInstance("ERC Well Check ");
 
 			// announce start of analysis
-			System.out.println("Checking Wells and Substrates in '" + cell.libDescribe() + "' ...");
-			System.out.println("Free v/s Total Memory " +
-			        Runtime.getRuntime().freeMemory() + " / " + Runtime.getRuntime().totalMemory());
-
+			if (Main.getDebug())
+			{
+				System.out.println("Checking Wells and Substrates in '" + cell.libDescribe() + "' ...");
+				System.out.println("Free v/s Total Memory " +
+						Runtime.getRuntime().freeMemory() + " / " + Runtime.getRuntime().totalMemory());
+			}
 			// make a list of well and substrate contacts
-			//wellCons.clear();
-			wellConIndex = 0;
-
-			//doneCells.clear();
-            //cellMerges.clear();
+			//wellConIndex = 0;
 
 			// enumerate the hierarchy below here
 			Visitor wcVisitor = new Visitor(newAlgorithm, this);
@@ -137,7 +133,6 @@ public class ERCWellCheck
 	        if (checkForAbort()) return (false);
 
 			// make a list of well and substrate areas
-			//wellAreas.clear();
 			int wellIndex = 0;
 
 			GeometryHandler topMerge = (GeometryHandler)cellMerges.get(cell);
@@ -165,27 +160,19 @@ public class ERCWellCheck
 					wa.poly = poly;
 					wa.poly.setLayer(layer);
 					wa.poly.setStyle(Poly.Type.FILLED);
-					//wa.bounds = wa.poly.getBounds2D();
-					//wa.layer = layer;
 					wa.index = wellIndex++;
 					wellAreas.add(wa);
 				}
 			}
 
-			// number the well areas according to topology of contacts in them
-			/* Not sure why this code is here
-			int largestNetNum = 0;
-			for(Iterator it = wellCons.iterator(); it.hasNext(); )
+			if (Main.getDebug())
 			{
-				WellCon wc = (WellCon)it.next();
-				if (wc.netNum > largestNetNum)
-					largestNetNum = wc.netNum;
+				System.out.println("Found " + wellAreas.size() + " well/select areas and " + wellCons.size() +
+						" contact regions (took " + TextUtils.getElapsedTime(System.currentTimeMillis() - startTime) + ")");
+				System.out.println("Free v/s Total Memory Intermediate step: " +
+						Runtime.getRuntime().freeMemory() + " / " + Runtime.getRuntime().totalMemory());
+
 			}
-			*/
-			System.out.println("Found " + wellAreas.size() + " well/select areas and " + wellCons.size() +
-			        " contact regions (took " + TextUtils.getElapsedTime(System.currentTimeMillis() - startTime) + ")");
-            System.out.println("Free v/s Total Memory Intermediate step: " +
-			        Runtime.getRuntime().freeMemory() + " / " + Runtime.getRuntime().totalMemory());
 
 			for(Iterator it = wellAreas.iterator(); it.hasNext(); )
 			{
@@ -213,7 +200,6 @@ public class ERCWellCheck
 				{
 					WellCon wc = (WellCon)cIt.next();
 					if (wc.fun != desiredContact) continue;
-					//if (!wa.bounds.contains(wc.ctr)) continue;
 					if (!wa.poly.getBounds2D().contains(wc.ctr)) continue;
 					if (!wa.poly.contains(wc.ctr)) continue;
 					wa.netNum = wc.netNum;
@@ -336,7 +322,7 @@ public class ERCWellCheck
 					DRCRules.DRCRule rule = (con)?
 					        (DRCRules.DRCRule)rulesCon.get(waLayer):
 					        (DRCRules.DRCRule)rulesNonCon.get(waLayer);
-					// Might s
+					// @TODO Might still return NULL the first time!!. Need another array or aux class?
 					if (rule == null)
 					{
 						rule = DRC.getSpacingRule(waLayer, waLayer, con, false, 0);
@@ -476,8 +462,12 @@ public class ERCWellCheck
 			{
 				System.out.println("FOUND " + errorCount + " WELL ERRORS (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
 			}
-			System.out.println("Free v/s Total Memory Final Step: " +
-			        Runtime.getRuntime().freeMemory() + " / " + Runtime.getRuntime().totalMemory());
+
+			if (Main.getDebug())
+			{
+				System.out.println("Free v/s Total Memory Final Step: " +
+						Runtime.getRuntime().freeMemory() + " / " + Runtime.getRuntime().totalMemory());
+			}
 			wellAreas.clear();
 			wellCons.clear();
 			doneCells.clear();
@@ -644,7 +634,7 @@ public class ERCWellCheck
 				info.getTransformToRoot().transform(wc.ctr, wc.ctr);
 				//wc.np = ni.getProto();
 				wc.fun = fun;
-				wc.index = job.wellConIndex++;
+				//wc.index = job.wellConIndex++;     // FindBug Oct19
 				PortInst pi = ni.getOnlyPortInst();
 				Netlist netList = info.getNetlist();
 				Network net = netList.getNetwork(pi);

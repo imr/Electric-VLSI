@@ -178,9 +178,9 @@ public class LayerVisibility extends EDialog
 			Layer layer = (Layer)it.next();
 			layerList.add(layer);
 			Boolean layerVisible = (Boolean)visibility.get(layer);
-			String layerName = layer.getName();
-			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) layerName += " (for pins)";
-			JCheckBox cb = new JCheckBox(layerName);
+			StringBuffer layerName = new StringBuffer(layer.getName());
+			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) layerName.append(" (for pins)");
+			JCheckBox cb = new JCheckBox(layerName.toString());
 			cb.setSelected(layerVisible.booleanValue());
 			cb.addMouseListener(new MouseAdapter()
 			{
