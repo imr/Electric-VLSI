@@ -93,21 +93,21 @@ public class View extends ElectricObject
 	/**
 	 * Defines the VHDL view (a text view).
 	 * Cells with this view contains a textual description in the VHDL hardware-description language.
-	 * The text is located in the “FACET_message” variable on the cell.
+	 * The text is located in the "FACET_message" variable on the cell.
 	 */
 	public static final View VHDL = makeInstance("VHDL", "vhdl", PERMANENTVIEW|TEXTVIEW, 5);
 
 	/**
 	 * Defines the Verilog view (a text view).
 	 * Cells with this view contains a textual description in the Verilog hardware-description language.
-	 * The text is located in the “FACET_message” variable on the cell.
+	 * The text is located in the "FACET_message" variable on the cell.
 	 */
 	public static final View VERILOG = makeInstance("Verilog", "ver", PERMANENTVIEW|TEXTVIEW, 6);
 
 	/**
 	 * Defines the Documentation view (a text view).
 	 * Cells with this view contain documentation for other cells in the cell group.
-	 * The text is located in the “FACET_message” variable on the cell.
+	 * The text is located in the "FACET_message" variable on the cell.
 	 */
 	public static final View DOC = makeInstance("documentation", "doc", PERMANENTVIEW|TEXTVIEW, 7);
 
@@ -120,42 +120,42 @@ public class View extends ElectricObject
 	/**
 	 * Defines the general Netlist view (a text view).
 	 * Cells with this view contain an unknown format netlist.
-	 * The text is located in the “FACET_message” variable on the cell.
+	 * The text is located in the "FACET_message" variable on the cell.
 	 */
 	public static final View NETLIST = makeInstance("netlist", "net", PERMANENTVIEW|TEXTVIEW, 9);
 
 	/**
 	 * Defines the NetLisp (netlist) view (a text view).
 	 * Cells with this view contain a "netlisp" format netlist (for simulation).
-	 * The text is located in the “FACET_message” variable on the cell.
+	 * The text is located in the "FACET_message" variable on the cell.
 	 */
 	public static final View NETLISTNETLISP = makeInstance("netlist.netlisp", "net.netlisp", PERMANENTVIEW|TEXTVIEW, 10);
 
 	/**
 	 * Defines the RSIM (netlist) view (a text view).
 	 * Cells with this view contain an "RSIM" format netlist (for simulation).
-	 * The text is located in the “FACET_message” variable on the cell.
+	 * The text is located in the "FACET_message" variable on the cell.
 	 */
 	public static final View NETLISTRSIM = makeInstance("netlist.rsim", "net.rsim", PERMANENTVIEW|TEXTVIEW, 11);
 
 	/**
 	 * Defines the SILOS (netlist) view (a text view).
 	 * Cells with this view contain a "SILOS" format netlist (for simulation).
-	 * The text is located in the “FACET_message” variable on the cell.
+	 * The text is located in the "FACET_message" variable on the cell.
 	 */
 	public static final View NETLISTSILOS = makeInstance("netlist.silos", "net.silos", PERMANENTVIEW|TEXTVIEW, 12);
 
 	/**
 	 * Defines the QUISC (netlist) view (a text view).
 	 * Cells with this view contain an "QUISC" format netlist (for place-and-route by the QUISC Silicon Compiler).
-	 * The text is located in the “FACET_message” variable on the cell.
+	 * The text is located in the "FACET_message" variable on the cell.
 	 */
 	public static final View NETLISTQUISC = makeInstance("netlist.quisc", "net.quisc", PERMANENTVIEW|TEXTVIEW, 13);
 
 	/**
 	 * Defines the ALS (netlist) view (a text view).
 	 * Cells with this view contain an "ALS" format netlist (for simulation).
-	 * The text is located in the “FACET_message” variable on the cell.
+	 * The text is located in the "FACET_message" variable on the cell.
 	 */
 	public static final View NETLISTALS = makeInstance("netlist.als", "net.als", PERMANENTVIEW|TEXTVIEW, 14);
 

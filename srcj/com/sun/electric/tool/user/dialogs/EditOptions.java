@@ -96,7 +96,7 @@ public class EditOptions extends EDialog
 	public static void editOptionsCommand()
 	{
 		EditOptions dialog = new EditOptions(TopLevel.getCurrentJFrame(), true);
-		dialog.show();
+		dialog.setVisible(true);
 	}
 
 	/** Creates new form Edit Options */
@@ -142,6 +142,7 @@ public class EditOptions extends EDialog
 		initColors();			// initialize the Colors Options panel
 		initText();				// initialize the Text Options panel
 		init3D();				// initialize the 3D Options panel
+		initUnits();			// initialize the Units Options panel
 		initTechnology();		// initialize the Technology Options panel
 	}
 
@@ -175,6 +176,7 @@ public class EditOptions extends EDialog
 			dialog.termColors();		// terminate the Colors Options panel
 			dialog.termText();			// terminate the Text Options panel
 			dialog.term3D();			// terminate the 3D Options panel
+			dialog.termUnits();			// terminate the Units Options panel
 			dialog.termTechnology();	// terminate the Technology Options panel
 			dialog.closeDialog(null);
 			return true;
@@ -2052,6 +2054,118 @@ public class EditOptions extends EDialog
 			User.set3DPerspective(currentPerspective);
 	}
 
+	//******************************** UNITS ********************************
+
+	private TextUtils.UnitScale initialUnitsDistance;
+	private TextUtils.UnitScale initialUnitsResistance;
+	private TextUtils.UnitScale initialUnitsCapacitance;
+	private TextUtils.UnitScale initialUnitsInductance;
+	private TextUtils.UnitScale initialUnitsAmperage;
+	private TextUtils.UnitScale initialUnitsVoltage;
+	private TextUtils.UnitScale initialUnitsTime;
+
+//	/** Describes "giga" scale (one billion). */	public static final UnitScale GIGA =  new UnitScale("giga:  x 1000000000",      -3);
+//	/** Describes mega scale (one million). */		public static final UnitScale MEGA =  new UnitScale("mega:  x 1000000",         -2);
+//	/** Describes kilo scale (one thousand). */		public static final UnitScale KILO =  new UnitScale("kilo:  x 1000",            -1);
+//	/** Describes unit scale (one). */				public static final UnitScale NONE =  new UnitScale("-:     x 1",                0);
+//	/** Describes milli scale (1 thousandth). */	public static final UnitScale MILLI = new UnitScale("milli: / 1000",             1);
+//	/** Describes micro scale (1 millionth). */		public static final UnitScale MICRO = new UnitScale("micro: / 1000000",          2);
+//	/** Describes nano scale (1 billionth). */		public static final UnitScale NANO =  new UnitScale("nano:  / 1000000000",       3);
+//	/** Describes pico scale (1 quadrillionth). */	public static final UnitScale PICO =  new UnitScale("pico:  / 1000000000000",    4);
+//	/** Describes femto scale (1 quintillionth). */	public static final UnitScale FEMTO = new UnitScale("femto: / 1000000000000000", 5);
+	/**
+	 * Method called at the start of the dialog.
+	 * Caches current values and displays them in the Units tab.
+	 */
+	private void initUnits()
+	{
+		unitsDistance.addItem("Millimeters");
+		unitsDistance.addItem("Microns");
+		unitsDistance.addItem("Nanometers");
+		initialUnitsDistance = User.getDistanceUnits();
+		unitsDistance.setSelectedIndex(initialUnitsDistance.getIndex() - TextUtils.UnitScale.MILLI.getIndex());
+
+		unitsResistance.addItem("Giga-ohms");
+		unitsResistance.addItem("Mega-ohms");
+		unitsResistance.addItem("Kilo-ohms");
+		unitsResistance.addItem("Ohms");
+		initialUnitsResistance = User.getResistanceUnits();
+		unitsResistance.setSelectedIndex(initialUnitsResistance.getIndex() - TextUtils.UnitScale.GIGA.getIndex());
+
+		unitsCapacitance.addItem("Farads");
+		unitsCapacitance.addItem("Milli-farads");
+		unitsCapacitance.addItem("Micro-farads");
+		unitsCapacitance.addItem("Nano-farads");
+		unitsCapacitance.addItem("Pico-farads");
+		unitsCapacitance.addItem("Femto-farads");
+		initialUnitsCapacitance = User.getCapacitanceUnits();
+		unitsCapacitance.setSelectedIndex(initialUnitsCapacitance.getIndex() - TextUtils.UnitScale.NONE.getIndex());
+
+		unitsInductance.addItem("Henrys");
+		unitsInductance.addItem("Milli-henrys");
+		unitsInductance.addItem("Micro-henrys");
+		unitsInductance.addItem("Nano-henrys");
+		initialUnitsInductance = User.getInductanceUnits();
+		unitsInductance.setSelectedIndex(initialUnitsInductance.getIndex() - TextUtils.UnitScale.NONE.getIndex());
+
+		unitsCurrent.addItem("Amps");
+		unitsCurrent.addItem("Milli-amps");
+		unitsCurrent.addItem("Micro-amps");
+		initialUnitsAmperage = User.getAmperageUnits();
+		unitsCurrent.setSelectedIndex(initialUnitsAmperage.getIndex() - TextUtils.UnitScale.NONE.getIndex());
+
+		unitsVoltage.addItem("Kilo-volts");
+		unitsVoltage.addItem("Volts");
+		unitsVoltage.addItem("Milli-volts");
+		unitsVoltage.addItem("Micro-volts");
+		initialUnitsVoltage = User.getVoltageUnits();
+		unitsVoltage.setSelectedIndex(initialUnitsVoltage.getIndex() - TextUtils.UnitScale.KILO.getIndex());
+
+		unitsTime.addItem("Seconds");
+		unitsTime.addItem("Milli-seconds");
+		unitsTime.addItem("Micro-seconds");
+		unitsTime.addItem("Nano-seconds");
+		unitsTime.addItem("Pico-seconds");
+		unitsTime.addItem("Femto-seconds");
+		initialUnitsTime = User.getTimeUnits();
+		unitsTime.setSelectedIndex(initialUnitsTime.getIndex() - TextUtils.UnitScale.NONE.getIndex());
+	}
+
+	/**
+	 * Method called when the "OK" panel is hit.
+	 * Updates any changed fields in the Units tab.
+	 */
+	private void termUnits()
+	{
+		TextUtils.UnitScale currentDistance = TextUtils.UnitScale.findFromIndex(unitsDistance.getSelectedIndex());
+		if (currentDistance != initialUnitsDistance)
+			User.setDistanceUnits(currentDistance);
+
+		TextUtils.UnitScale currentResistance = TextUtils.UnitScale.findFromIndex(unitsResistance.getSelectedIndex());
+		if (currentResistance != initialUnitsResistance)
+			User.setResistanceUnits(currentResistance);
+
+		TextUtils.UnitScale currentCapacitance = TextUtils.UnitScale.findFromIndex(unitsCapacitance.getSelectedIndex());
+		if (currentCapacitance != initialUnitsCapacitance)
+			User.setCapacitanceUnits(currentCapacitance);
+
+		TextUtils.UnitScale currentInductance = TextUtils.UnitScale.findFromIndex(unitsInductance.getSelectedIndex());
+		if (currentInductance != initialUnitsInductance)
+			User.setInductanceUnits(currentInductance);
+
+		TextUtils.UnitScale currentAmperage = TextUtils.UnitScale.findFromIndex(unitsCurrent.getSelectedIndex());
+		if (currentAmperage != initialUnitsAmperage)
+			User.setAmperageUnits(currentAmperage);
+
+		TextUtils.UnitScale currentVoltage = TextUtils.UnitScale.findFromIndex(unitsVoltage.getSelectedIndex());
+		if (currentVoltage != initialUnitsVoltage)
+			User.setVoltageUnits(currentVoltage);
+
+		TextUtils.UnitScale currentTime = TextUtils.UnitScale.findFromIndex(unitsTime.getSelectedIndex());
+		if (currentTime != initialUnitsTime)
+			User.setTimeUnits(currentTime);
+	}
+
 	//******************************** TECHNOLOGY ********************************
 
 	private int initialTechRules;
@@ -2421,6 +2535,22 @@ public class EditOptions extends EDialog
         threeDThickness = new javax.swing.JTextField();
         threeDHeight = new javax.swing.JTextField();
         threeDPerspective = new javax.swing.JCheckBox();
+        units = new javax.swing.JPanel();
+        jLabel39 = new javax.swing.JLabel();
+        unitsDistance = new javax.swing.JComboBox();
+        jLabel40 = new javax.swing.JLabel();
+        unitsResistance = new javax.swing.JComboBox();
+        jLabel50 = new javax.swing.JLabel();
+        unitsCapacitance = new javax.swing.JComboBox();
+        jLabel51 = new javax.swing.JLabel();
+        unitsInductance = new javax.swing.JComboBox();
+        jLabel63 = new javax.swing.JLabel();
+        unitsCurrent = new javax.swing.JComboBox();
+        jLabel64 = new javax.swing.JLabel();
+        unitsVoltage = new javax.swing.JComboBox();
+        jLabel65 = new javax.swing.JLabel();
+        unitsTime = new javax.swing.JComboBox();
+        jLabel66 = new javax.swing.JLabel();
         technology = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
         jLabel49 = new javax.swing.JLabel();
@@ -3925,8 +4055,8 @@ public class EditOptions extends EDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         bottom.add(textSmartVerticalInside, gridBagConstraints);
 
         textSmartVerticalOutside.setText("Outside");
@@ -3960,8 +4090,8 @@ public class EditOptions extends EDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         bottom.add(textSmartHorizontalInside, gridBagConstraints);
 
         textSmartHorizontalOutside.setText("Outside");
@@ -4052,6 +4182,123 @@ public class EditOptions extends EDialog
         threeD.add(threeDPerspective, gridBagConstraints);
 
         tabPane.addTab("3D", threeD);
+
+        units.setLayout(new java.awt.GridBagLayout());
+
+        jLabel39.setText("Distance:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        units.add(jLabel39, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        units.add(unitsDistance, gridBagConstraints);
+
+        jLabel40.setText("Resistance:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        units.add(jLabel40, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        units.add(unitsResistance, gridBagConstraints);
+
+        jLabel50.setText("Capacitance:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        units.add(jLabel50, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        units.add(unitsCapacitance, gridBagConstraints);
+
+        jLabel51.setText("Inductance:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        units.add(jLabel51, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        units.add(unitsInductance, gridBagConstraints);
+
+        jLabel63.setText("Current:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        units.add(jLabel63, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        units.add(unitsCurrent, gridBagConstraints);
+
+        jLabel64.setText("Voltage:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        units.add(jLabel64, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        units.add(unitsVoltage, gridBagConstraints);
+
+        jLabel65.setText("Time:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        units.add(jLabel65, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        units.add(unitsTime, gridBagConstraints);
+
+        jLabel66.setText("These units will be used for display");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        units.add(jLabel66, gridBagConstraints);
+
+        tabPane.addTab("Units", units);
 
         technology.setLayout(new java.awt.GridBagLayout());
 
@@ -4367,7 +4614,9 @@ public class EditOptions extends EDialog
     private javax.swing.JLabel jLabel36;
     private javax.swing.JLabel jLabel37;
     private javax.swing.JLabel jLabel38;
+    private javax.swing.JLabel jLabel39;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel40;
     private javax.swing.JLabel jLabel41;
     private javax.swing.JLabel jLabel42;
     private javax.swing.JLabel jLabel43;
@@ -4378,6 +4627,8 @@ public class EditOptions extends EDialog
     private javax.swing.JLabel jLabel48;
     private javax.swing.JLabel jLabel49;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel50;
+    private javax.swing.JLabel jLabel51;
     private javax.swing.JLabel jLabel52;
     private javax.swing.JLabel jLabel53;
     private javax.swing.JLabel jLabel54;
@@ -4390,6 +4641,10 @@ public class EditOptions extends EDialog
     private javax.swing.JLabel jLabel60;
     private javax.swing.JLabel jLabel61;
     private javax.swing.JLabel jLabel62;
+    private javax.swing.JLabel jLabel63;
+    private javax.swing.JLabel jLabel64;
+    private javax.swing.JLabel jLabel65;
+    private javax.swing.JLabel jLabel66;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
@@ -4492,6 +4747,14 @@ public class EditOptions extends EDialog
     private javax.swing.JLabel threeDTechnology;
     private javax.swing.JTextField threeDThickness;
     private javax.swing.JPanel top;
+    private javax.swing.JPanel units;
+    private javax.swing.JComboBox unitsCapacitance;
+    private javax.swing.JComboBox unitsCurrent;
+    private javax.swing.JComboBox unitsDistance;
+    private javax.swing.JComboBox unitsInductance;
+    private javax.swing.JComboBox unitsResistance;
+    private javax.swing.JComboBox unitsTime;
+    private javax.swing.JComboBox unitsVoltage;
     // End of variables declaration//GEN-END:variables
 	
 }

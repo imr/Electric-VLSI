@@ -693,27 +693,7 @@ public class CircuitChanges
 	 */
 	public static void arcRigidCommand()
 	{
-		int numSet = 0;
-		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
-		{
-			Highlight h = (Highlight)it.next();
-			if (h.getType() != Highlight.Type.EOBJ) continue;
-			ElectricObject eobj = h.getElectricObject();
-			if (eobj instanceof ArcInst)
-			{
-				ArcInst ai = (ArcInst)eobj;
-				if (!ai.isRigid())
-				{
-					ai.setRigid();
-					numSet++;
-				}
-			}
-		}
-		if (numSet == 0) System.out.println("No arcs made Rigid"); else
-		{
-			System.out.println("Made " + numSet + " arcs Rigid");
-			EditWindow.repaintAll();
-		}
+		ChangeArcProperties job = new ChangeArcProperties(1);
 	}
 
 	/**
@@ -721,27 +701,7 @@ public class CircuitChanges
 	 */
 	public static void arcNotRigidCommand()
 	{
-		int numSet = 0;
-		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
-		{
-			Highlight h = (Highlight)it.next();
-			if (h.getType() != Highlight.Type.EOBJ) continue;
-			ElectricObject eobj = h.getElectricObject();
-			if (eobj instanceof ArcInst)
-			{
-				ArcInst ai = (ArcInst)eobj;
-				if (ai.isRigid())
-				{
-					ai.clearRigid();
-					numSet++;
-				}
-			}
-		}
-		if (numSet == 0) System.out.println("No arcs made Non-Rigid"); else
-		{
-			System.out.println("Made " + numSet + " arcs Non-Rigid");
-			EditWindow.repaintAll();
-		}
+		ChangeArcProperties job = new ChangeArcProperties(2);
 	}
 
 	/**
@@ -749,27 +709,7 @@ public class CircuitChanges
 	 */
 	public static void arcFixedAngleCommand()
 	{
-		int numSet = 0;
-		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
-		{
-			Highlight h = (Highlight)it.next();
-			if (h.getType() != Highlight.Type.EOBJ) continue;
-			ElectricObject eobj = h.getElectricObject();
-			if (eobj instanceof ArcInst)
-			{
-				ArcInst ai = (ArcInst)eobj;
-				if (!ai.isFixedAngle())
-				{
-					ai.setFixedAngle();
-					numSet++;
-				}
-			}
-		}
-		if (numSet == 0) System.out.println("No arcs made Fixed-Angle"); else
-		{
-			System.out.println("Made " + numSet + " arcs Fixed-Angle");
-			EditWindow.repaintAll();
-		}
+		ChangeArcProperties job = new ChangeArcProperties(3);
 	}
 
 	/**
@@ -777,26 +717,188 @@ public class CircuitChanges
 	 */
 	public static void arcNotFixedAngleCommand()
 	{
-		int numSet = 0;
-		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+		ChangeArcProperties job = new ChangeArcProperties(4);
+	}
+
+	/**
+	 * This method toggles the directionality of highlighted arcs.
+	 */
+	public static void arcDirectionalCommand()
+	{
+		ChangeArcProperties job = new ChangeArcProperties(5);
+	}
+
+	/**
+	 * This method sets the highlighted arcs to be End-Extended.
+	 */
+	public static void arcEndsExtendCommand()
+	{
+		ChangeArcProperties job = new ChangeArcProperties(6);
+	}
+
+	/**
+	 * This method sets the highlighted arcs to be Reversed.
+	 */
+	public static void arcReverseCommand()
+	{
+		ChangeArcProperties job = new ChangeArcProperties(7);
+	}
+
+	/**
+	 * This method sets the highlighted arcs to have their head skipped.
+	 */
+	public static void arcSkipHeadCommand()
+	{
+		ChangeArcProperties job = new ChangeArcProperties(8);
+	}
+
+	/**
+	 * This method sets the highlighted arcs to have their tail skipped.
+	 */
+	public static void arcSkipTailCommand()
+	{
+		ChangeArcProperties job = new ChangeArcProperties(9);
+	}
+
+	private static class ChangeArcProperties extends Job
+	{
+		private int how;
+
+		protected ChangeArcProperties(int how)
 		{
-			Highlight h = (Highlight)it.next();
-			if (h.getType() != Highlight.Type.EOBJ) continue;
-			ElectricObject eobj = h.getElectricObject();
-			if (eobj instanceof ArcInst)
+			super("Align objects", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.how = how;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			// make sure changing arcs is allowed
+			Cell cell = WindowFrame.needCurCell();
+			if (cell == null) return false;
+			if (CircuitChanges.cantEdit(cell, null, true)) return false;
+
+			int numSet = 0, numUnset = 0;
+			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 			{
-				ArcInst ai = (ArcInst)eobj;
-				if (ai.isFixedAngle())
+				Highlight h = (Highlight)it.next();
+				if (h.getType() != Highlight.Type.EOBJ) continue;
+				ElectricObject eobj = h.getElectricObject();
+				if (eobj instanceof ArcInst)
 				{
-					ai.clearFixedAngle();
-					numSet++;
+					ArcInst ai = (ArcInst)eobj;
+					switch (how)
+					{
+						case 1:
+							if (!ai.isRigid())
+							{
+								ai.setRigid();
+								numSet++;
+							}
+							break;
+						case 2:
+							if (ai.isRigid())
+							{
+								ai.clearRigid();
+								numSet++;
+							}
+							break;
+						case 3:
+							if (!ai.isFixedAngle())
+							{
+								ai.setFixedAngle();
+								numSet++;
+							}
+							break;
+						case 4:
+							if (ai.isFixedAngle())
+							{
+								ai.clearFixedAngle();
+								numSet++;
+							}
+							break;
+						case 5:		// toggle directionality
+							if (ai.isDirectional())
+							{
+								ai.clearDirectional();
+								numUnset++;
+							} else
+							{
+								ai.setDirectional();
+								numSet++;
+							}
+							break;
+						case 6:		// end-extended
+							if (ai.isExtended())
+							{
+								ai.clearExtended();
+								numUnset++;
+							} else
+							{
+								ai.setExtended();
+								numSet++;
+							}
+							break;
+						case 7:		// reverse end
+							if (ai.isReverseEnds())
+							{
+								ai.clearReverseEnds();
+								numUnset++;
+							} else
+							{
+								ai.setReverseEnds();
+								numSet++;
+							}
+							break;
+						case 8:		// skip head
+							if (ai.isSkipHead())
+							{
+								ai.clearSkipHead();
+								numUnset++;
+							} else
+							{
+								ai.setSkipHead();
+								numSet++;
+							}
+							break;
+						case 9:		// skip tail
+							if (ai.isSkipTail())
+							{
+								ai.clearSkipTail();
+								numUnset++;
+							} else
+							{
+								ai.setSkipTail();
+								numSet++;
+							}
+							break;
+					}
 				}
 			}
-		}
-		if (numSet == 0) System.out.println("No arcs made Not-Fixed-Angle"); else
-		{
-			System.out.println("Made " + numSet + " arcs Not-Fixed-Angle");
-			EditWindow.repaintAll();
+
+			if (numSet == 0 && numUnset == 0) System.out.println("No changes were made"); else
+			{
+				String action = "";
+				boolean repaintContents = false;
+				switch (how)
+				{
+					case 1: action = "Rigid";   break;
+					case 2: action = "Non-Rigid";   break;
+					case 3: action = "Fixed-Angle";   break;
+					case 4: action = "Not-Fixed-Angle";   break;
+					case 5: action = "Directional";   repaintContents = true;   break;
+					case 6: action = "have ends extended";   repaintContents = true;   break;
+					case 7: action = "reversed";   repaintContents = true;   break;
+					case 8: action = "skip head";   repaintContents = true;   break;
+					case 9: action = "skip tail";   repaintContents = true;   break;
+				}
+				if (numUnset == 0) System.out.println("Made " + numSet + " arcs " + action); else
+					if (numSet == 0) System.out.println("Made " + numUnset + " arcs not " + action); else
+						System.out.println("Made " + numSet + " arcs " + action + "; and " + numUnset + " arcs not " + action);
+				if (repaintContents) EditWindow.repaintAllContents(); else
+					EditWindow.repaintAll();
+			}
+			return true;
 		}
 	}
 
@@ -805,186 +907,77 @@ public class CircuitChanges
 	 */
 	public static void toggleNegatedCommand()
 	{
-		int numSet = 0;
-		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+		ToggleNegationJob job = new ToggleNegationJob();
+	}
+
+	private static class ToggleNegationJob extends Job
+	{
+		protected ToggleNegationJob()
 		{
-			Highlight h = (Highlight)it.next();
-			if (h.getType() != Highlight.Type.EOBJ) continue;
-			ElectricObject eobj = h.getElectricObject();
-			if (eobj instanceof PortInst)
+			super("Toggle negation", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			// make sure negation is allowed
+			Cell cell = WindowFrame.needCurCell();
+			if (cell == null) return false;
+			if (CircuitChanges.cantEdit(cell, null, true)) return false;
+
+			int numSet = 0;
+			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 			{
-				PortInst pi = (PortInst)eobj;
-				NodeInst ni = pi.getNodeInst();
-				for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+				Highlight h = (Highlight)it.next();
+				if (h.getType() != Highlight.Type.EOBJ) continue;
+				ElectricObject eobj = h.getElectricObject();
+				if (eobj instanceof PortInst)
 				{
-					Connection con = (Connection)cIt.next();
-					if (con.getPortInst() != pi) continue;
-					if (pi.getNodeInst().getProto() instanceof PrimitiveNode)
+					PortInst pi = (PortInst)eobj;
+					NodeInst ni = pi.getNodeInst();
+					for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
 					{
-						PrimitivePort pp = (PrimitivePort)pi.getPortProto();
-						if (pp.isNegatable())
+						Connection con = (Connection)cIt.next();
+						if (con.getPortInst() != pi) continue;
+						if (pi.getNodeInst().getProto() instanceof PrimitiveNode)
 						{
-							boolean newNegated = !con.isNegated();
-							con.setNegated(newNegated);
-							numSet++;
+							PrimitivePort pp = (PrimitivePort)pi.getPortProto();
+							if (pp.isNegatable())
+							{
+								boolean newNegated = !con.isNegated();
+								con.setNegated(newNegated);
+								numSet++;
+							}
+						}
+					}
+				}
+				if (eobj instanceof ArcInst)
+				{
+					ArcInst ai = (ArcInst)eobj;
+					for(int i=0; i<2; i++)
+					{
+						Connection con = ai.getConnection(i);
+						PortInst pi = con.getPortInst();
+						if (pi.getNodeInst().getProto() instanceof PrimitiveNode)
+						{
+							PrimitivePort pp = (PrimitivePort)pi.getPortProto();
+							if (pp.isNegatable())
+							{
+								boolean newNegated = !con.isNegated();
+								con.setNegated(newNegated);
+								numSet++;
+							}
 						}
 					}
 				}
 			}
-			if (eobj instanceof ArcInst)
+			if (numSet == 0) System.out.println("No ports negated"); else
 			{
-				ArcInst ai = (ArcInst)eobj;
-				for(int i=0; i<2; i++)
-				{
-					Connection con = ai.getConnection(i);
-					PortInst pi = con.getPortInst();
-					if (pi.getNodeInst().getProto() instanceof PrimitiveNode)
-					{
-						PrimitivePort pp = (PrimitivePort)pi.getPortProto();
-						if (pp.isNegatable())
-						{
-							boolean newNegated = !con.isNegated();
-							con.setNegated(newNegated);
-							numSet++;
-						}
-					}
-				}
+				System.out.println("Negated " + numSet + " ports");
+				EditWindow.repaintAllContents();
 			}
+			return true;
 		}
-		if (numSet == 0) System.out.println("No ports negated"); else
-		{
-			System.out.println("Negated " + numSet + " ports");
-			EditWindow.repaintAllContents();
-		}
-	}
-
-	/**
-	 * This method sets the highlighted arcs to be Directional.
-	 */
-	public static void arcDirectionalCommand()
-	{
-		setSelectedArcs(1);
-	}
-
-	private static void setSelectedArcs(int how)
-	{
-		int numSet = 0, numUnset = 0;
-		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
-		{
-			Highlight h = (Highlight)it.next();
-			if (h.getType() != Highlight.Type.EOBJ) continue;
-			ElectricObject eobj = h.getElectricObject();
-			if (eobj instanceof ArcInst)
-			{
-				ArcInst ai = (ArcInst)eobj;
-				switch (how)
-				{
-					case 1:		// directional
-						if (ai.isDirectional())
-						{
-							ai.clearDirectional();
-							numUnset++;
-						} else
-						{
-							ai.setDirectional();
-							numSet++;
-						}
-						break;
-					case 2:		// end-extended
-						if (ai.isExtended())
-						{
-							ai.clearExtended();
-							numUnset++;
-						} else
-						{
-							ai.setExtended();
-							numSet++;
-						}
-						break;
-					case 3:		// reverse end
-						if (ai.isReverseEnds())
-						{
-							ai.clearReverseEnds();
-							numUnset++;
-						} else
-						{
-							ai.setReverseEnds();
-							numSet++;
-						}
-						break;
-					case 4:		// skip head
-						if (ai.isSkipHead())
-						{
-							ai.clearSkipHead();
-							numUnset++;
-						} else
-						{
-							ai.setSkipHead();
-							numSet++;
-						}
-						break;
-					case 5:		// skip tai;
-						if (ai.isSkipTail())
-						{
-							ai.clearSkipTail();
-							numUnset++;
-						} else
-						{
-							ai.setSkipTail();
-							numSet++;
-						}
-						break;
-				}
-			}
-		}
-		if (numSet == 0 && numUnset == 0) System.out.println("No changes were made"); else
-		{
-			if (how == 3) { numSet += numUnset;   numUnset= 0; }
-			String action = "Directional";
-			switch (how)
-			{
-				case 2: action = "have ends extended";   break;
-				case 3: action = "reversed";   break;
-				case 4: action = "skip head";   break;
-				case 5: action = "skip tail";   break;
-			}
-			if (numUnset == 0) System.out.println("Made " + numSet + " arcs " + action); else
-				if (numSet == 0) System.out.println("Made " + numUnset + " arcs not " + action); else
-					System.out.println("Made " + numSet + " arcs " + action + "; and " + numUnset + " arcs not " + action);
-			EditWindow.repaintAllContents();
-		}
-	}
-
-	/**
-	 * This method sets the highlighted arcs to be End-Extended.
-	 */
-	public static void arcEndsExtendCommand()
-	{
-		setSelectedArcs(2);
-	}
-
-	/**
-	 * This method sets the highlighted arcs to be Reversed.
-	 */
-	public static void arcReverseCommand()
-	{
-		setSelectedArcs(3);
-	}
-
-	/**
-	 * This method sets the highlighted arcs to have their head skipped.
-	 */
-	public static void arcSkipHeadCommand()
-	{
-		setSelectedArcs(4);
-	}
-
-	/**
-	 * This method sets the highlighted arcs to have their tail skipped.
-	 */
-	public static void arcSkipTailCommand()
-	{
-		setSelectedArcs(5);
 	}
 
 	/**
@@ -1014,6 +1007,11 @@ public class CircuitChanges
 
 		public boolean doIt()
 		{
+			// make sure ripping arcs is allowed
+			Cell cell = WindowFrame.needCurCell();
+			if (cell == null) return false;
+			if (CircuitChanges.cantEdit(cell, null, true)) return false;
+
 			for(Iterator it = list.iterator(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
@@ -1181,9 +1179,16 @@ public class CircuitChanges
 		public boolean doIt()
 		{
 			if (Highlight.getNumHighlights() == 0) return false;
+
+			// make sure deletion is allowed
+			Cell cell = WindowFrame.needCurCell();
+			if (cell != null)
+			{
+				if (cantEdit(cell, null, true)) return false;
+			}
+
 			List highlightedText = Highlight.getHighlightedText(true);
 			List deleteList = new ArrayList();
-			Cell cell = null;
 			Geometric oneGeom = null;
 			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 			{
@@ -1193,15 +1198,12 @@ public class CircuitChanges
 				if (eobj instanceof PortInst)
 					eobj = ((PortInst)eobj).getNodeInst();
 				if (!(eobj instanceof Geometric)) continue;
-				if (cell == null) cell = h.getCell(); else
+				if (cell != h.getCell())
 				{
-					if (cell != h.getCell())
-					{
-						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-							"All objects to be deleted must be in the same cell",
-								"Delete failed", JOptionPane.ERROR_MESSAGE);
-						return false;
-					}
+					JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+						"All objects to be deleted must be in the same cell",
+							"Delete failed", JOptionPane.ERROR_MESSAGE);
+					return false;
 				}
 				oneGeom = (Geometric)eobj;
 				deleteList.add(eobj);
@@ -1228,13 +1230,6 @@ public class CircuitChanges
 			for(Iterator it = highlightedText.iterator(); it.hasNext(); )
 			{
 				Highlight high = (Highlight)it.next();
-
-				// disallow erasing if lock is on
-				Cell np = high.getCell();
-				if (np != null)
-				{
-					if (cantEdit(np, null, true)) continue;
-				}
 
 //				// do not deal with text on an object if the object is already in the list
 //				if (high.fromgeom != NOGEOM)
@@ -1441,6 +1436,7 @@ public class CircuitChanges
 			if (geom instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)geom;
+				if (cantEdit(cell, ni, true)) continue;
 				if (ni.getFlagValue(deleteFlag) != 0)
 					ni.setFlagValue(deleteFlag, 2);
 			}
@@ -1817,8 +1813,8 @@ public class CircuitChanges
 			// create the graph cell
 			Cell graphCell = Cell.newInstance(Library.getCurrent(), "CellStructure");
 			if (graphCell == null) return false;
-//			if (graphCell->prevversion != NONODEPROTO)
-//				ttyputverbose(M_("Creating new version of cell: CellStructure")); else
+			if (graphCell.getNumVersions() > 1)
+				System.out.println("Creating new version of cell: CellStructure"); else
 					System.out.println("Creating cell: CellStructure");
 
 			// create CellGraphNodes for every cell and initialize the depth to -1
@@ -2074,12 +2070,14 @@ public class CircuitChanges
 					if (cgn.depth == -1) continue;
 					if (cgn.main == null) continue;
 
-	//				ArcInst ai = newarcinst(art_solidarc, 0, FIXED, nd->pin, pinpp, nd->x, nd->y,
-	//					nd->main->pin, pinpp, nd->main->x, nd->main->y, graphCell);
-	//				if (ai == null) return;
-	//	
-	//				// set an invisible color on the arc
-	//				(void)setvalkey((INTBIG)ai, VARCINST, art_colorkey, 0, VINTEGER);
+					PortInst firstPi = cgn.pin.getOnlyPortInst();
+					PortInst secondPi = cgn.main.pin.getOnlyPortInst();
+					ArcInst ai = ArcInst.makeInstance(Artwork.tech.solidArc, 0, firstPi, firstPi, null);
+					if (ai == null) return false;
+					ai.setRigid();
+
+					// set an invisible color on the arc
+					ai.newVar(Artwork.ART_COLOR, new Integer(0));
 				}
 			}
 
@@ -2121,9 +2119,10 @@ public class CircuitChanges
 						if (trueSubCgn.depth == -1) continue;
 						PortInst toppinPi = trueCgn.pin.getOnlyPortInst();
 						PortInst niBotPi = trueSubCgn.pin.getOnlyPortInst();
-System.out.println("Arc from pin "+toppinPi+" to "+niBotPi);
 						ArcInst ai = ArcInst.makeInstance(Artwork.tech.solidArc, Artwork.tech.solidArc.getDefaultWidth(), toppinPi, niBotPi, null);
 						if (ai == null) return false;
+						ai.clearFixedAngle();
+						ai.clearRigid();
 
 						// set an appropriate color on the arc (red for jumps of more than 1 level of depth)
 						int color = EGraphics.BLUE;
@@ -2826,6 +2825,9 @@ System.out.println("Arc from pin "+toppinPi+" to "+niBotPi);
 
 		public boolean doIt()
 		{
+			// make sure moving the node is allowed
+			if (CircuitChanges.cantEdit(cell, null, true)) return false;
+
 			// do the queued operations
 			for(Iterator it = pinsToRemove.iterator(); it.hasNext(); )
 			{
@@ -3056,6 +3058,11 @@ System.out.println("Arc from pin "+toppinPi+" to "+niBotPi);
 
 		public boolean doIt()
 		{
+			// make sure shortening is allowed
+			Cell cell = WindowFrame.needCurCell();
+			if (cell == null) return false;
+			if (CircuitChanges.cantEdit(cell, null, true)) return false;
+
 			List selected = Highlight.getHighlighted(false, true);
 			int l = 0;
 			double [] dX = new double[2];
@@ -3626,8 +3633,7 @@ System.out.println("Arc from pin "+toppinPi+" to "+niBotPi);
 	/****************************** MOVE SELECTED OBJECTS ******************************/
 
 	/**
-	 * Method to move the arcs in the GEOM module list "list" (terminated by
-	 * NOGEOM) and the "total" nodes in the list "nodelist" by (dX, dY).
+	 * Method to move the selected geometry by (dX, dY).
 	 */
 	public static void manyMove(double dX, double dY)
 	{
@@ -3657,6 +3663,9 @@ System.out.println("Arc from pin "+toppinPi+" to "+niBotPi);
 			ElectricObject firstEObj = firstH.getElectricObject();
 			Cell cell = firstH.getCell();
 
+			// make sure moving is allowed
+			if (CircuitChanges.cantEdit(cell, null, true)) return false;
+
 			// special case if moving only one node
 			if (total == 1 && firstH.getType() == Highlight.Type.EOBJ &&
 				((firstEObj instanceof NodeInst) || firstEObj instanceof PortInst))
@@ -3667,6 +3676,10 @@ System.out.println("Arc from pin "+toppinPi+" to "+niBotPi);
                 } else {
 				    ni = (NodeInst)firstEObj;
                 }
+
+				// make sure moving the node is allowed
+				if (CircuitChanges.cantEdit(cell, ni, true)) return false;
+
 				ni.modifyInstance(dX, dY, 0, 0, 0);
                 if (verbose) System.out.println("Moved "+ni.describe()+": delta(X,Y) = ("+dX+","+dY+")");
 				return true;
@@ -3812,6 +3825,10 @@ System.out.println("Arc from pin "+toppinPi+" to "+niBotPi);
 			{
 				NodeInst ni = (NodeInst)it.next();
 				ni.clearBit(flag);
+
+				// make sure moving the node is allowed
+				if (CircuitChanges.cantEdit(cell, ni, true)) continue;
+
 				ni.setTempObj(new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY()));
 			}
 			for(Iterator it = cell.getArcs(); it.hasNext(); )

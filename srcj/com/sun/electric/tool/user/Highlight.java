@@ -1343,12 +1343,13 @@ public class Highlight
 	 * Method to convert this Highlight to a series of points that describes the text.
 	 * It is assumed that this Highlight describes text.
 	 */
-	public static Point2D [] describeHighlightText(EditWindow wnd, ElectricObject eobj, Variable var, Name name)
+	public static Point2D [] describeHighlightText(EditWindow wnd, ElectricObject eObj, Variable var, Name name)
 	{
-		Poly poly = eobj.computeTextPoly(wnd, var, name);
+		Poly poly = eObj.computeTextPoly(wnd, var, name);
 		if (poly == null) return null;
-		Poly.Type style = poly.getStyle();
 		Rectangle2D bounds = poly.getBounds2D();
+		Poly.Type style = poly.getStyle();
+		style = Poly.rotateType(style, eObj);
 		if (style == Poly.Type.TEXTCENT)
 		{
 			Point2D [] points = new Point2D.Double[4];
@@ -1441,9 +1442,9 @@ public class Highlight
 		if (style == Poly.Type.TEXTBOX)
 		{
 			Point2D [] points = new Point2D.Double[12];
-			if (eobj instanceof Geometric)
+			if (eObj instanceof Geometric)
 			{
-				bounds = ((Geometric)eobj).getBounds();
+				bounds = ((Geometric)eObj).getBounds();
 			}
 			double lX = bounds.getMinX();
 			double hX = bounds.getMaxX();
@@ -1621,7 +1622,8 @@ public class Highlight
 					for(int i=0; i<polys.length; i++)
 					{
 						Poly poly = polys[i];
-						if (poly.setExactTextBounds(wnd)) continue;
+						if (poly.setExactTextBounds(wnd, cell)) continue;
+
                         // ignore areaMustEnclose if bounds is size 0,0
 						if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
 						{
@@ -1651,7 +1653,8 @@ public class Highlight
 				{
 					Poly poly = polys[i];
 					poly.transform(trans);
-					if (poly.setExactTextBounds(wnd)) continue;
+					if (poly.setExactTextBounds(wnd, ni)) continue;
+
                     // ignore areaMustEnclose if bounds is size 0,0
 					if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
 					{
@@ -1695,7 +1698,8 @@ public class Highlight
 					for(int i=0; i<polys.length; i++)
 					{
 						Poly poly = polys[i];
-						if (poly.setExactTextBounds(wnd)) continue;
+						if (poly.setExactTextBounds(wnd, ai)) continue;
+
                         // ignore areaMustEnclose if bounds is size 0,0
                         if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
 						{

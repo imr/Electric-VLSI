@@ -96,8 +96,8 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         }
         theDialog.loadAttributesInfo();
         if (!theDialog.isVisible()) theDialog.pack();
-        theDialog.show();
-    }
+		theDialog.setVisible(true);
+   }
 
     /**
      * Reloads the dialog when Highlights change

@@ -733,9 +733,9 @@ public final class MenuCommands
         m = windowMenu.addMenuItem("Pan Down", KeyStroke.getKeyStroke('2', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panY(WindowFrame.getCurrentWindowFrame(), 1); }});
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD2, buckyBit), null);
+
 		Menu panningDistanceSubMenu = new Menu("Panning Distance");
 		windowMenu.add(panningDistanceSubMenu);
-
 		ButtonGroup windowPanGroup = new ButtonGroup();
 		JMenuItem panSmall, panMedium, panLarge;
 		panSmall = panningDistanceSubMenu.addRadioButton("Small", true, windowPanGroup, null,
@@ -745,6 +745,13 @@ public final class MenuCommands
 		panLarge = panningDistanceSubMenu.addRadioButton("Large", true, windowPanGroup, null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panningDistanceCommand(0.6); } });
 		panLarge.setSelected(true);
+
+		Menu centerSubMenu = new Menu("Center");
+		windowMenu.add(centerSubMenu);
+		centerSubMenu.addMenuItem("Selection", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.centerSelection(); }});
+		centerSubMenu.addMenuItem("Cursor", KeyStroke.getKeyStroke('5', buckyBit),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.centerCursor(e); }});
 
         windowMenu.addSeparator();
 
@@ -1682,7 +1689,7 @@ public final class MenuCommands
         // edit key bindings for current menu
         TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
 		EditKeyBindings dialog = new EditKeyBindings(top.getTheMenuBar(), top, true);
-		dialog.show();
+		dialog.setVisible(true);
 	}
 
 	/**
@@ -2311,7 +2318,7 @@ public final class MenuCommands
 	public static void cellControlCommand()
 	{
 		CellProperties dialog = new CellProperties(TopLevel.getCurrentJFrame(), true);
-		dialog.show();
+		dialog.setVisible(true);
 	}
 
 	/**
@@ -2320,13 +2327,13 @@ public final class MenuCommands
 	public static void newCellCommand()
 	{
  		NewCell dialog = new NewCell(TopLevel.getCurrentJFrame(), true);
-		dialog.show();
+		dialog.setVisible(true);
 	}
 
     public static void cellBrowserCommand(CellBrowser.DoAction action)
     {
         CellBrowser dialog = new CellBrowser(TopLevel.getCurrentJFrame(), true, action);
-        dialog.show();
+		dialog.setVisible(true);
     }
 
 	/**
@@ -2335,7 +2342,7 @@ public final class MenuCommands
 	public static void crossLibraryCopyCommand()
 	{
  		CrossLibCopy dialog = new CrossLibCopy(TopLevel.getCurrentJFrame(), true);
-		dialog.show();
+		dialog.setVisible(true);
 	}
 
 	/**
@@ -2392,7 +2399,7 @@ public final class MenuCommands
 	public static void cellParametersCommand()
 	{
  		CellParameters dialog = new CellParameters(TopLevel.getCurrentJFrame(), true);
-		dialog.show();
+		dialog.setVisible(true);
 	}
 
 	// ---------------------- THE VIEW MENU -----------------
@@ -2403,7 +2410,7 @@ public final class MenuCommands
 	public static void viewControlCommand()
 	{
  		ViewControl dialog = new ViewControl(TopLevel.getCurrentJFrame(), true);
-		dialog.show();
+		dialog.setVisible(true);
 	}
 
 	public static void changeViewCommand()
@@ -2772,7 +2779,7 @@ public final class MenuCommands
 	public static void layerVisibilityCommand()
 	{
  		LayerVisibility dialog = new LayerVisibility(TopLevel.getCurrentJFrame(), false);
-		dialog.show();
+		dialog.setVisible(true);
 	}
 
 	/**
@@ -3470,13 +3477,13 @@ public final class MenuCommands
 	public static void aboutCommand()
 	{
 		About dialog = new About(TopLevel.getCurrentJFrame(), true);
-		dialog.show();
+		dialog.setVisible(true);
 	}
 
     public static void toolTipsCommand()
     {
         HelpViewer dialog = new HelpViewer(TopLevel.getCurrentJFrame(), false, null);
-        dialog.show();
+		dialog.setVisible(true);
     }
 
 	public static void describeTechnologyCommand()

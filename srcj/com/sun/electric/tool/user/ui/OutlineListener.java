@@ -30,6 +30,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.MenuCommands;
+import com.sun.electric.tool.user.CircuitChanges;
 
 import java.awt.Point;
 import java.awt.event.MouseMotionListener;
@@ -130,6 +131,9 @@ class OutlineListener
 		// right click: add a point
 		if (ClickZoomWireListener.isRightMouse(evt))
 		{
+			// make sure outline adjustment is allowed
+			if (CircuitChanges.cantEdit(cell, null, true)) return;
+
 			// add a point
 			AffineTransform trans = outlineNode.rotateOutAboutTrueCenter();
 			Point2D [] origPoints = outlineNode.getTrace();
@@ -238,6 +242,10 @@ class OutlineListener
 		if (doingMotionDrag)
 		{
 			doingMotionDrag = false;
+
+			// make sure outline adjustment is allowed
+			if (CircuitChanges.cantEdit(cell, null, true)) return;
+
 			int newX = evt.getX();
 			int newY = evt.getY();
 			Point2D curPt = wnd.screenToDatabase(newX, newY);

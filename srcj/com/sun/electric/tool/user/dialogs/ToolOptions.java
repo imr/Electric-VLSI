@@ -150,7 +150,7 @@ public class ToolOptions extends EDialog
 	public static void toolOptionsCommand()
 	{
 		ToolOptions dialog = new ToolOptions(TopLevel.getCurrentJFrame(), true);
-		dialog.show();
+		dialog.setVisible(true);
 	}
 
 	/** Creates new form ToolOptions */

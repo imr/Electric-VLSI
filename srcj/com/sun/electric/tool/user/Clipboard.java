@@ -219,6 +219,9 @@ public class Clipboard
             Point2D mouseDB = wnd.screenToDatabase((int)mouse.getX(), (int)mouse.getY());
             EditWindow.gridAlign(mouseDB);
 
+			// make sure deletion is allowed
+			if (CircuitChanges.cantEdit(parent, null, true)) return false;
+
 			// copy objects to clipboard
 			copyListToCell(wnd, geoms, parent, clipCell, false, mouseDB.getX(), mouseDB.getY());
 
@@ -377,6 +380,9 @@ public class Clipboard
 
 		public boolean doIt()
 		{
+			// make sure pasting is allowed
+			if (CircuitChanges.cantEdit(dst.getParent(), null, true)) return false;
+
 			ArcInst ai = pasteArcToArc(dst, src);
 			if (ai == null) System.out.println("Nothing was pasted");
 			return true;
@@ -397,6 +403,9 @@ public class Clipboard
 
 		public boolean doIt()
 		{
+			// make sure pasting is allowed
+			if (CircuitChanges.cantEdit(dst.getParent(), null, true)) return false;
+
 			NodeInst ni = pasteNodeToNode(dst, src);
 			if (ni == null) System.out.println("Nothing was pasted");
 			return true;
@@ -422,6 +431,9 @@ public class Clipboard
 			// find out where the paste is going
 			EditWindow wnd = EditWindow.needCurrent();
 			Cell parent = wnd.getCell();
+
+			// make sure pasting is allowed
+			if (CircuitChanges.cantEdit(parent, null, true)) return false;
 
 			// paste them into the current cell
 			copyListToCell(wnd, pasteList, clipCell, parent, true, dX, dY);
@@ -489,9 +501,6 @@ public class Clipboard
         double dX = -mouseX;
         double dY = -mouseY;
 
-		// make sure the destination cell can be modified
-		if (CircuitChanges.cantEdit(toCell, null, true)) return;
-
 		// make sure they are all in the same cell
 		for(Iterator it = list.iterator(); it.hasNext(); )
 		{
@@ -531,12 +540,6 @@ public class Clipboard
 			Geometric geom = (Geometric)it.next();
 			if (geom instanceof ArcInst) continue;
 			NodeInst ni = (NodeInst)geom;
-
-			// check for cell instance lock
-			if (ni.getProto() instanceof Cell && toCell.isInstancesLocked())
-			{
-				if (CircuitChanges.cantEdit(toCell, ni, true)) continue;
-			}
 			ni.setBit(inAreaFlag);
 		}
 

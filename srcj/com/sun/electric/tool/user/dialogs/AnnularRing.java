@@ -73,7 +73,7 @@ public class AnnularRing extends EDialog
 			return;
 		}
 		AnnularRing dialog = new AnnularRing(TopLevel.getCurrentJFrame(), true, cell);
-		dialog.show();
+		dialog.setVisible(true);
 	}
 
     /** Creates new form AnnularRing */

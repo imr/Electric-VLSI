@@ -279,19 +279,19 @@ public class TextDescriptor
 
 		/**
 		 * Describes a Variable that displays its name, value, 1-level inherit.
-		 * The form of the display is “ATTR=VALUE;def=DEFAULT”;
+		 * The form of the display is "ATTR=VALUE;def=DEFAULT";
 		 */
 		public static final DispPos NAMEVALINH = new DispPos("name=inherit;def=value", VTDISPLAYNAMEVALINH);
 
 		/**
 		 * Describes a Variable that displays its name and value.
-		 * The form of the display is “ATTR=VALUE”;
+		 * The form of the display is "ATTR=VALUE";
 		 */
 		public static final DispPos NAMEVALUE = new DispPos("name=value", VTDISPLAYNAMEVALUE);
 
 		/**
 		 * Describes a Variable that displays its name, value, any inherit.
-		 * The form of the display is “ATTR=VALUE;def=DEFAULT”;
+		 * The form of the display is "ATTR=VALUE;def=DEFAULT";
 		 */
 		public static final DispPos NAMEVALINHALL = new DispPos("name=inheritAll;def=value", VTDISPLAYNAMEVALINHALL);
 	}

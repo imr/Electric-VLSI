@@ -68,7 +68,7 @@ public class IOOptions extends EDialog
 	public static void ioOptionsCommand()
 	{
 		IOOptions dialog = new IOOptions(TopLevel.getCurrentJFrame(), true);
-		dialog.show();
+		dialog.setVisible(true);
 	}
 
 	/** Creates new form IOOptions */

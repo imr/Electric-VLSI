@@ -250,7 +250,7 @@ public class OpenFile
 			FileDialog dialog = new FileDialog(TopLevel.getCurrentJFrame(), title, FileDialog.LOAD);
 			dialog.setDirectory(User.getWorkingDirectory());
 			dialog.setFilenameFilter(type.getFileFilterAWT());
-			dialog.show();
+			dialog.setVisible(true);
 			String fileName = dialog.getFile();
 			if (fileName == null) return null;
 			User.setWorkingDirectory(dialog.getDirectory());
@@ -314,7 +314,7 @@ public class OpenFile
 			awtDialog.setDirectory(User.getWorkingDirectory());
 			awtDialog.setFile(defaultFile);
 			awtDialog.setFilenameFilter(type.getFileFilterAWT());
-			awtDialog.show();
+			awtDialog.setVisible(true);
 			String fileName = awtDialog.getFile();
 			if (fileName == null) return null;
 			return awtDialog.getDirectory() + fileName;

@@ -24,6 +24,7 @@
 package com.sun.electric.database.text;
 
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.tool.user.User;
 
 import java.io.File;
 import java.io.InputStream;
@@ -368,8 +369,28 @@ public class TextUtils
 	public static class UnitScale
 	{
 		private final String name;
+		private final int index;
 
-		private UnitScale(String name) { this.name = name; }
+		private UnitScale(String name, int index)
+		{
+			this.name = name;
+			this.index = index;
+		}
+
+		/**
+		 * Method to convert this UnitScale to an integer.
+		 * Used when storing these as preferences.
+		 * @return the index of this UnitScale.
+		 */
+		public int getIndex() { return index; }
+
+		/**
+		 * Method to convert the index value to a UnitScale.
+		 * Used when storing these as preferences.
+		 * @param index the index of the UnitScale.
+		 * @return the indexed UnitScale.
+		 */
+		public static UnitScale findFromIndex(int index) { return allUnits[index - UNIT_BASE]; }
 
 		/**
 		 * Returns a printable version of this Unit.
@@ -377,15 +398,21 @@ public class TextUtils
 		 */
 		public String toString() { return name; }
 
-		/** Describes no units. */				public static final UnitScale GIGA =  new UnitScale("giga:  x 1000000000");
-		/** Describes resistance units. */		public static final UnitScale MEGA =  new UnitScale("mega:  x 1000000");
-		/** Describes capacitance units. */		public static final UnitScale KILO =  new UnitScale("kilo:  x 1000");
-		/** Describes inductance units. */		public static final UnitScale NONE =  new UnitScale("-:     x 1");
-		/** Describes current units. */			public static final UnitScale MILLI = new UnitScale("milli: / 1000");
-		/** Describes voltage units. */			public static final UnitScale MICRO = new UnitScale("micro: / 1000000");
-		/** Describes distance units. */		public static final UnitScale NANO =  new UnitScale("nano:  / 1000000000");
-		/** Describes time units. */			public static final UnitScale PICO =  new UnitScale("pico:  / 1000000000000");
-		/** Describes time units. */			public static final UnitScale FEMTO = new UnitScale("femto: / 1000000000000000");
+		/** The smallest unit value. */					private static final int UNIT_BASE =  -3;
+		/** Describes "giga" scale (one billion). */	public static final UnitScale GIGA =  new UnitScale("giga:  x 1000000000",      -3);
+		/** Describes mega scale (one million). */		public static final UnitScale MEGA =  new UnitScale("mega:  x 1000000",         -2);
+		/** Describes kilo scale (one thousand). */		public static final UnitScale KILO =  new UnitScale("kilo:  x 1000",            -1);
+		/** Describes unit scale (one). */				public static final UnitScale NONE =  new UnitScale("-:     x 1",                0);
+		/** Describes milli scale (1 thousandth). */	public static final UnitScale MILLI = new UnitScale("milli: / 1000",             1);
+		/** Describes micro scale (1 millionth). */		public static final UnitScale MICRO = new UnitScale("micro: / 1000000",          2);
+		/** Describes nano scale (1 billionth). */		public static final UnitScale NANO =  new UnitScale("nano:  / 1000000000",       3);
+		/** Describes pico scale (1 quadrillionth). */	public static final UnitScale PICO =  new UnitScale("pico:  / 1000000000000",    4);
+		/** Describes femto scale (1 quintillionth). */	public static final UnitScale FEMTO = new UnitScale("femto: / 1000000000000000", 5);
+
+		private final static UnitScale [] allUnits =
+		{
+			GIGA, MEGA, KILO, NONE, MILLI, MICRO, NANO, PICO, FEMTO
+		};
 	}
 
 	/**
@@ -429,6 +456,39 @@ public class TextUtils
 			postFix = "f";
 		}
 		return value + postFix;
+	}
+
+	/**
+	 * Method to convert a floating point value to a string, given that it is a particular type of unit.
+	 * Each unit has a default scale.  For example, if Capacitance value 0.0000012 is being converted, and
+	 * Capacitance is currently using microFarads, then the result will be "1.2m".
+	 * If, however, capacitance is currently using milliFarads, the result will be 0.0012u".
+	 * @param value the floating point value.
+	 * @param units the type of unit.
+	 * @return a string describing that value in the current unit.
+	 */
+	public static String makeUnits(double value, TextDescriptor.Unit units)
+	{
+		if (units == TextDescriptor.Unit.RESISTANCE)
+		{
+			return displayedUnits(value, units, User.getResistanceUnits());
+		} else if (units == TextDescriptor.Unit.CAPACITANCE)
+		{
+			return displayedUnits(value, units, User.getCapacitanceUnits());
+		} else if (units == TextDescriptor.Unit.INDUCTANCE)
+		{
+			return displayedUnits(value, units, User.getInductanceUnits());
+		} else if (units == TextDescriptor.Unit.CURRENT)
+		{
+			return displayedUnits(value, units, User.getAmperageUnits());
+		} else if (units == TextDescriptor.Unit.VOLTAGE)
+		{
+			return displayedUnits(value, units, User.getVoltageUnits());
+		} else if (units == TextDescriptor.Unit.TIME)
+		{
+			return displayedUnits(value, units, User.getTimeUnits());
+		}
+		return formatDouble(value);
 	}
 
 	/**

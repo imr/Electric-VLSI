@@ -95,7 +95,7 @@ public class Change extends EDialog
 			return;
 		}
 		Change dialog = new Change(TopLevel.getCurrentJFrame(), true, geomToChange);
-		dialog.show();
+		dialog.setVisible(true);
 	}
 
 	/** Creates new form Change */

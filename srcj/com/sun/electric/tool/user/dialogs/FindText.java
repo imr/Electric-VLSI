@@ -71,7 +71,7 @@ public class FindText extends EDialog
 	public static void findTextDialog()
 	{
 		FindText dialog = new FindText(TopLevel.getCurrentJFrame(), false);
-		dialog.show();
+		dialog.setVisible(true);
 	}
 
 	/** Creates new form Search and Replace */

@@ -31,6 +31,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -221,6 +222,48 @@ public class Poly implements Shape
 		 * but if there are more they are averaged and the cross is drawn in the center.
 		 */
 		public static final Type BIGCROSS = new Type("big-cross", false);
+
+		/**
+		 * Method to get the "angle" of a style of text.
+		 * When rotating a node, the anchor point also rotates.
+		 * To to this elegantly, the Type is converted to an angle, rotated, and then converted back to a Type.
+		 * @return the angle of this text Type.
+		 */
+		public int getTextAngle()
+		{
+			if (this == TEXTLEFT) return 0;
+			if (this == TEXTBOTLEFT) return 450;
+			if (this == TEXTBOT) return 900;
+			if (this == TEXTBOTRIGHT) return 1350;
+			if (this == TEXTRIGHT) return 1800;
+			if (this == TEXTTOPRIGHT) return 2250;
+			if (this == TEXTTOP) return 2700;
+			if (this == TEXTTOPLEFT) return 3150;
+			return 0;
+		}
+
+		/**
+		 * Method to get a text Type from an angle.
+		 * When rotating a node, the anchor point also rotates.
+		 * To to this elegantly, the Type is converted to an angle, rotated, and then converted back to a Type.
+		 * @param the angle of the text anchor.
+		 * @return a text Type that corresponds to the angle.
+		 */
+		public static Type getTextTypeFromAngle(int angle)
+		{
+			switch (angle)
+			{
+				case 0:    return TEXTLEFT;
+				case 450:  return TEXTBOTLEFT;
+				case 900:  return TEXTBOT;
+				case 1350: return TEXTBOTRIGHT;
+				case 1800: return TEXTRIGHT;
+				case 2250: return TEXTTOPRIGHT;
+				case 2700: return TEXTTOP;
+				case 3150: return TEXTTOPLEFT;
+			}
+			return TEXTCENT;
+		}
 	}
 
 	/** the style (outline, text, lines, etc.) */			private Poly.Type style;
@@ -772,9 +815,11 @@ public class Poly implements Shape
 	/**
 	 * Method to convert text Polys to their precise bounds in a given window.
 	 * @param wnd the window.
+	 * @param eObj the ElectricObject on which this text resides.
+	 * If that ElectricObject is a NodeInst and the node is rotated, it affects the text anchor point.
 	 * @return true if the text is too small to display.
 	 */
-	public boolean setExactTextBounds(EditWindow wnd)
+	public boolean setExactTextBounds(EditWindow wnd, ElectricObject eObj)
 	{
 		String theString = getString().trim();
 		if (theString.length() == 0) return true;
@@ -804,7 +849,9 @@ public class Poly implements Shape
 		double hY = bounds.getMaxY();
 		GlyphVector gv = wnd.getGlyphs(theString, font);
 		Rectangle2D glyphBounds = gv.getVisualBounds();
-		Point2D corner = getTextCorner(wnd, font, gv, getStyle(), lX, hX, lY, hY);
+		Type style = getStyle();
+		style = rotateType(style, eObj);
+		Point2D corner = getTextCorner(wnd, font, gv, style, lX, hX, lY, hY);
 		double cX = corner.getX();
 		double cY = corner.getY();
 		double textScale = getTextScale(wnd, gv, getStyle(), lX, hX, lY, hY);
@@ -834,6 +881,38 @@ public class Poly implements Shape
 			new Point2D.Double(cX, cY+height)};
 		this.bounds = null;
 		return false;
+	}
+
+	/**
+	 * Method to rotate a text Type according to the rotation of the object on which it resides.
+	 * @param origType the original text Type.
+	 * @param eObj the ElectricObject on which the text resides.
+	 * @return the new text Type that accounts for the rotation.
+	 */
+	public static Type rotateType(Type origType, ElectricObject eObj)
+	{
+		NodeInst ni = null;
+		if (eObj instanceof NodeInst)
+		{
+			ni = (NodeInst)eObj;
+		} else if (eObj instanceof Export)
+		{
+			Export pp = (Export)eObj;
+			ni = pp.getOriginalPort().getNodeInst();
+		} else return origType;
+		int nodeAngle = ni.getAngle();
+		if (nodeAngle != 0 || ni.isMirroredAboutXAxis() || ni.isMirroredAboutYAxis())
+		{
+			if ((nodeAngle%900) == 0 && origType != Type.TEXTCENT && origType != Type.TEXTBOX)
+			{
+				int angle = origType.getTextAngle();
+				if (ni.isMirroredAboutXAxis() != ni.isMirroredAboutYAxis()) nodeAngle = 3600 - nodeAngle;
+				angle = (angle + nodeAngle) % 3600; 
+				Type style = Type.getTextTypeFromAngle(angle);
+				return style;
+			}
+		}
+		return origType;
 	}
 
 	/**

@@ -198,6 +198,8 @@ public class EditWindow extends JPanel
 
 	// ************************************* EVENT LISTENERS *************************************
 
+	private int lastXPosition, lastYPosition;
+
 	/** 
 	 * Respond to an action performed, in this case change the current cell
 	 * when the user clicks on an entry in the upHierarchy popup menu.
@@ -214,33 +216,50 @@ public class EditWindow extends JPanel
 	// the MouseListener events
 	public void mousePressed(MouseEvent evt)
 	{
+		lastXPosition = evt.getX();   lastYPosition = evt.getY();
+
 		EditWindow wnd = (EditWindow)evt.getSource();
 		WindowFrame.setCurrentWindowFrame(wnd.wf);
 
 		WindowFrame.curMouseListener.mousePressed(evt);
 	}
 
-	public void mouseReleased(MouseEvent evt) { WindowFrame.curMouseListener.mouseReleased(evt); }
+	public void mouseReleased(MouseEvent evt)
+	{
+		lastXPosition = evt.getX();   lastYPosition = evt.getY();
+		WindowFrame.curMouseListener.mouseReleased(evt);
+	}
 
-	public void mouseClicked(MouseEvent evt) { WindowFrame.curMouseListener.mouseClicked(evt); }
+	public void mouseClicked(MouseEvent evt)
+	{
+		lastXPosition = evt.getX();   lastYPosition = evt.getY();
+		WindowFrame.curMouseListener.mouseClicked(evt);
+	}
 
 	public void mouseEntered(MouseEvent evt)
 	{
+		lastXPosition = evt.getX();   lastYPosition = evt.getY();
 		showCoordinates(evt);
 		WindowFrame.curMouseListener.mouseEntered(evt);
 	}
 
-	public void mouseExited(MouseEvent evt) { WindowFrame.curMouseListener.mouseExited(evt); }
+	public void mouseExited(MouseEvent evt)
+	{
+		lastXPosition = evt.getX();   lastYPosition = evt.getY();
+		WindowFrame.curMouseListener.mouseExited(evt);
+	}
 
 	// the MouseMotionListener events
 	public void mouseMoved(MouseEvent evt)
 	{
+		lastXPosition = evt.getX();   lastYPosition = evt.getY();
 		showCoordinates(evt);
 		WindowFrame.curMouseMotionListener.mouseMoved(evt);
 	}
 
 	public void mouseDragged(MouseEvent evt)
 	{
+		lastXPosition = evt.getX();   lastYPosition = evt.getY();
 		showCoordinates(evt);
 		WindowFrame.curMouseMotionListener.mouseDragged(evt);
 	}
@@ -269,6 +288,11 @@ public class EditWindow extends JPanel
     public void highlightChanged() {
         repaint();
     }
+
+	public Point getLastMousePosition()
+	{
+		return new Point(lastXPosition, lastYPosition);
+	}
 
 	// ************************************* INFORMATION *************************************
 

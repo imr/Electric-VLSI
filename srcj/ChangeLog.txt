@@ -2,6 +2,14 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (6/15/04, SMR) Changed all "dialog.show()" calls to "dialog.setVisible(true)" because of deprecation in 1.5.
+
+IMP: (6/15/04, SMR) Implemented "Window / Center / Selection" and "Window / Center / Cursor".
+
+IMP: (6/15/04, SMR) Implemented cell locking.
+
+IMP: (6/15/04, SMR) Implemented graphing of cell structure.
+
 IMP: (6/15/04, SMR) "Change current library" and "Change" dialogs accept double-click to terminate.
 
 IMP: (6/14/04, SMR) Implemented SPICE writing in lambda units.

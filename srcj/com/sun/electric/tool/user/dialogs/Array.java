@@ -91,7 +91,7 @@ public class Array extends EDialog
 			return;
 		}
 		Array dialog = new Array(TopLevel.getCurrentJFrame(), true);
-		dialog.show();
+		dialog.setVisible(true);
 	}
 
 	/** Creates new form Array */

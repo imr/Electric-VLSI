@@ -775,7 +775,7 @@ public class Cell extends NodeProto implements Comparable
 			if (c.getView() != getView()) continue;
 			if (getName().equalsIgnoreCase(c.getName()))
 			{
-				versionGroup = c.getVersionGroup();
+				versionGroup = c.versionGroup;
 				break;
 			}
 		}
@@ -2388,11 +2388,11 @@ public class Cell extends NodeProto implements Comparable
 		return (Cell) getVersions().next();
 	}
 
-	/**
-	 * Method to get the VersionGroup that this Cell is part of.
-	 * @return the VersionGroup that this Cell is part of.
-	 */
-	public VersionGroup getVersionGroup() { return versionGroup; }
+//	/**
+//	 * Method to get the VersionGroup that this Cell is part of.
+//	 * @return the VersionGroup that this Cell is part of.
+//	 */
+//	public VersionGroup getVersionGroup() { return versionGroup; }
 
 	/**
 	 * Method to put this Cell into the given VersionGroup.

@@ -62,7 +62,8 @@ import java.util.prefs.BackingStoreException;
  *   Look in: ~/.java/.userPrefs/com/sun/electric
  * </LI>
  * <LI><B>Macintosh System 10:</B>
- *   DON'T KNOW YET.
+ *   In your home directory, under Library/Preferences.
+ *   Look at: ~/Library/Preferences/com.sun.electric.plist
  * </LI>
  * </UL>
  */
@@ -635,7 +636,7 @@ public class Pref
 
 		if (meaningsToReconcile.size() == 0) return;
  		OptionReconcile dialog = new OptionReconcile(TopLevel.getCurrentJFrame(), true, meaningsToReconcile);
-		dialog.show();
+		dialog.setVisible(true);
 	}
 
 	/****************************** private methods ******************************/

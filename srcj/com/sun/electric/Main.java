@@ -261,7 +261,7 @@ public final class Main
             boolean showTips = prefs.getBoolean(HelpViewer.showOnStartUp, true);
             if (showTips) {
                 HelpViewer tip = new HelpViewer(TopLevel.getCurrentJFrame(), false, "Mouse Interface");
-                tip.show();
+                tip.setVisible(true);
             }
             return true;
 		}
@@ -302,7 +302,7 @@ public final class Main
 	/**
 	 * Class for initializing the Macintosh OS X world.
 	 */
-	private static class MacOSXInterface extends ApplicationAdapter
+	static class MacOSXInterface extends ApplicationAdapter
 	{
 		private static MacOSXInterface adapter = null;
 		private static Application application = null;

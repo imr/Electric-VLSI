@@ -287,7 +287,7 @@ public class ElectricObject
 			}
 		}
 		if (poly != null)
-			poly.setExactTextBounds(wnd);
+			poly.setExactTextBounds(wnd, this);
 		return poly;
 	}
 

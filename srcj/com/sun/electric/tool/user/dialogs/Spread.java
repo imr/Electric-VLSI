@@ -63,7 +63,7 @@ public class Spread extends EDialog
 		if (ni == null) return;
 
 		Spread dialog = new Spread(TopLevel.getCurrentJFrame(), true);
-		dialog.show();
+		dialog.setVisible(true);
 	}
 
 	/** Creates new form Spread */

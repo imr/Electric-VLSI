@@ -66,7 +66,7 @@ public final class ExportChanges
 	public static void newExportCommand()
 	{
  		NewExport dialog = new NewExport(TopLevel.getCurrentJFrame(), true);
-		dialog.show();
+		dialog.setVisible(true);
 	}
 
 	private static class ExportList

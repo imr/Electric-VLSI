@@ -37,6 +37,7 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.dialogs.EDialog;
 
 import java.awt.Cursor;
@@ -115,7 +116,7 @@ public class SizeListener
 	public static void sizeAllNodes()
 	{
 		SizeObjects dialog = new SizeObjects(TopLevel.getCurrentJFrame(), true, true);
-		dialog.show();
+		dialog.setVisible(true);
 	}
 
 	/**
@@ -124,7 +125,7 @@ public class SizeListener
 	public static void sizeAllArcs()
 	{
 		SizeObjects dialog = new SizeObjects(TopLevel.getCurrentJFrame(), true, false);
-		dialog.show();
+		dialog.setVisible(true);
 	}
 
 	/**
@@ -274,6 +275,11 @@ public class SizeListener
 
 		public boolean doIt()
 		{
+			// make sure moving the node is allowed
+			Cell cell = WindowFrame.needCurCell();
+			if (cell == null) return false;
+			if (CircuitChanges.cantEdit(cell, null, true)) return false;
+
 			double xS = TextUtils.atof(dialog.xSize.getText());
 			double yS = 0;
 			if (dialog.nodes)
@@ -502,6 +508,9 @@ public class SizeListener
 
 		public boolean doIt()
 		{
+			// make sure moving the node is allowed
+			if (CircuitChanges.cantEdit(stretchGeom.getParent(), null, true)) return false;
+
 			if (stretchGeom instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)stretchGeom;

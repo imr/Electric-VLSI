@@ -67,7 +67,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 		}
         theDialog.loadArcInfo();
         if (!theDialog.isVisible()) theDialog.pack();
-		theDialog.show();
+		theDialog.setVisible(true);
 	}
 
     /**

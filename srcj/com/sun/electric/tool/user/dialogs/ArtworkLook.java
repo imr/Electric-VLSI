@@ -78,7 +78,7 @@ public class ArtworkLook extends EDialog
 			return;
 		}
 		ArtworkLook dialog = new ArtworkLook(TopLevel.getCurrentJFrame(), true, eObj);
-		dialog.show();
+		dialog.setVisible(true);
 	}
 
 	ColorPatternPanel.Info li;

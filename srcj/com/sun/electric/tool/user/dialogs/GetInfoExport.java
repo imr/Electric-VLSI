@@ -78,7 +78,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 		}
         theDialog.loadExportInfo();
         if (!theDialog.isVisible()) theDialog.pack();
-		theDialog.show();
+		theDialog.setVisible(true);
 	}
 
     /**

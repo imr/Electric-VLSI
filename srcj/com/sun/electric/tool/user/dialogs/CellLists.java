@@ -77,7 +77,7 @@ public class CellLists extends EDialog
 	{
 		JFrame jf = TopLevel.getCurrentJFrame();
  		CellLists dialog = new CellLists(jf, true);
-		dialog.show();
+		dialog.setVisible(true);
 	}
 
 	/** Creates new form New Cell */

@@ -36,7 +36,7 @@ public class MoveBy extends EDialog
 	public static void showMoveByDialog()
 	{
 		MoveBy dialog = new MoveBy(TopLevel.getCurrentJFrame(), true);
-		dialog.show();
+		dialog.setVisible(true);
 	}
 
 	/** Creates new form Move By */

@@ -65,7 +65,7 @@ public class SelectObject extends EDialog
 	public static void selectObjectDialog()
 	{
 		SelectObject dialog = new SelectObject(TopLevel.getCurrentJFrame(), false);
-		dialog.show();
+		dialog.setVisible(true);
 	}
 
 	/** Creates new form Search and Replace */

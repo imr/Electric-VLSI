@@ -31,6 +31,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
@@ -889,6 +890,141 @@ public class User extends Listener
 	 * @param c the color of the instance outlines on the display.
 	 */
 	public static void setColorInstanceOutline(int c) { cacheColorInstanceOutline.setInt(c); }
+
+	/****************************** UNITS PREFERENCES ******************************/
+
+	private static Pref cacheDistanceUnits = Pref.makeIntPref("DistanceUnits", User.tool.prefs, TextUtils.UnitScale.NANO.getIndex());
+	/**
+	 * Method to get current distance units.
+	 * The default is "nanometers".
+	 * @return the current distance units.
+	 */
+	public static TextUtils.UnitScale getDistanceUnits()
+	{
+		return TextUtils.UnitScale.findFromIndex(cacheDistanceUnits.getInt());
+	}
+	/**
+	 * Method to set the current distance units.
+	 * @param us the current distance units.
+	 */
+	public static void setDistanceUnits(TextUtils.UnitScale us)
+	{
+		cacheDistanceUnits.setInt(us.getIndex());
+	}
+
+	private static Pref cacheResistanceUnits = Pref.makeIntPref("ResistanceUnits", User.tool.prefs, TextUtils.UnitScale.NONE.getIndex());
+	/**
+	 * Method to get current resistance units.
+	 * The default is "ohms".
+	 * @return the current resistance units.
+	 */
+	public static TextUtils.UnitScale getResistanceUnits()
+	{
+		return TextUtils.UnitScale.findFromIndex(cacheResistanceUnits.getInt());
+	}
+	/**
+	 * Method to set the current resistance units.
+	 * @param us the current resistance units.
+	 */
+	public static void setResistanceUnits(TextUtils.UnitScale us)
+	{
+		cacheResistanceUnits.setInt(us.getIndex());
+	}
+
+	private static Pref cacheCapacitanceUnits = Pref.makeIntPref("CapacitanceUnits", User.tool.prefs, TextUtils.UnitScale.PICO.getIndex());
+	/**
+	 * Method to get current capacitance units.
+	 * The default is "picofarads".
+	 * @return the current capacitance units.
+	 */
+	public static TextUtils.UnitScale getCapacitanceUnits()
+	{
+		return TextUtils.UnitScale.findFromIndex(cacheCapacitanceUnits.getInt());
+	}
+	/**
+	 * Method to set the current capacitance units.
+	 * @param us the current capacitance units.
+	 */
+	public static void setCapacitanceUnits(TextUtils.UnitScale us)
+	{
+		cacheCapacitanceUnits.setInt(us.getIndex());
+	}
+
+	private static Pref cacheInductanceUnits = Pref.makeIntPref("InductanceUnits", User.tool.prefs, TextUtils.UnitScale.NANO.getIndex());
+	/**
+	 * Method to get current inductance units.
+	 * The default is "nanohenrys".
+	 * @return the current inductance units.
+	 */
+	public static TextUtils.UnitScale getInductanceUnits()
+	{
+		return TextUtils.UnitScale.findFromIndex(cacheInductanceUnits.getInt());
+	}
+	/**
+	 * Method to set the current inductance units.
+	 * @param us the current inductance units.
+	 */
+	public static void setInductanceUnits(TextUtils.UnitScale us)
+	{
+		cacheInductanceUnits.setInt(us.getIndex());
+	}
+
+	private static Pref cacheAmperageUnits = Pref.makeIntPref("AmperageUnits", User.tool.prefs, TextUtils.UnitScale.MILLI.getIndex());
+	/**
+	 * Method to get current amperage (current) units.
+	 * The default is "milliamps".
+	 * @return the current amperage (current) units.
+	 */
+	public static TextUtils.UnitScale getAmperageUnits()
+	{
+		return TextUtils.UnitScale.findFromIndex(cacheAmperageUnits.getInt());
+	}
+	/**
+	 * Method to set the current amperage (current) units.
+	 * @param us the current amperage (current) units.
+	 */
+	public static void setAmperageUnits(TextUtils.UnitScale us)
+	{
+		cacheAmperageUnits.setInt(us.getIndex());
+	}
+
+	private static Pref cacheVoltageUnits = Pref.makeIntPref("VoltageUnits", User.tool.prefs, TextUtils.UnitScale.NONE.getIndex());
+	/**
+	 * Method to get current voltage units.
+	 * The default is "volts".
+	 * @return the current voltage) units.
+	 */
+	public static TextUtils.UnitScale getVoltageUnits()
+	{
+		return TextUtils.UnitScale.findFromIndex(cacheVoltageUnits.getInt());
+	}
+	/**
+	 * Method to set the current voltage units.
+	 * @param us the current voltage units.
+	 */
+	public static void setVoltageUnits(TextUtils.UnitScale us)
+	{
+		cacheVoltageUnits.setInt(us.getIndex());
+	}
+
+	private static Pref cacheTimeUnits = Pref.makeIntPref("TimeUnits", User.tool.prefs, TextUtils.UnitScale.NONE.getIndex());
+	/**
+	 * Method to get current time units.
+	 * The default is "seconds".
+	 * @return the current time) units.
+	 */
+	public static TextUtils.UnitScale getTimeUnits()
+	{
+		return TextUtils.UnitScale.findFromIndex(cacheTimeUnits.getInt());
+	}
+	/**
+	 * Method to set the current time units.
+	 * @param us the current time units.
+	 */
+	public static void setTimeUnits(TextUtils.UnitScale us)
+	{
+		cacheTimeUnits.setInt(us.getIndex());
+	}
 
 	/****************************** MISCELLANEOUS PREFERENCES ******************************/
 

@@ -99,7 +99,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		}
         theDialog.loadNodeInfo();
         if (!theDialog.isVisible()) theDialog.pack();
-		theDialog.show();
+		theDialog.setVisible(true);
 	}
 
     /**

@@ -83,7 +83,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
         }
         theDialog.loadTextInfo();
         if (!theDialog.isVisible()) theDialog.pack();
-        theDialog.show();
+		theDialog.setVisible(true);
     }
 
     /**

@@ -672,6 +672,7 @@ public class PixelDrawing
 					}
 					Point pt = wnd.databaseToScreen(poly.getCenterX(), poly.getCenterY());
 					Rectangle textRect = new Rectangle(pt);
+					type = Poly.rotateType(type, ni);
 					drawText(textRect, type, descript, portName, null, blackGraphics);
 				}
 

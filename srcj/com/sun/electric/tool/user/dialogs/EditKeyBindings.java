@@ -341,7 +341,7 @@ public class EditKeyBindings extends EDialog implements TreeSelectionListener {
         JMenuItem item = getSelectedMenuItem();
         if (item == null) return;
         EditKeyBinding dialog = new EditKeyBinding(item, menuBar, TopLevel.getCurrentJFrame(), true);
-        dialog.show();
+		dialog.setVisible(true);
 
         // update tree view
         DefaultTreeModel model = (DefaultTreeModel)commandsTree.getModel();

@@ -27,6 +27,7 @@ import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.database.hierarchy.Cell;
 
 import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
@@ -34,6 +35,7 @@ import java.awt.event.MouseWheelListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.ActionEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
@@ -244,5 +246,31 @@ public class ZoomAndPanListener
 		panningAmount = amount;
 	}
 
+	/**
+	 * This method implements the command to center the selected objects.
+	 */
+	public static void centerSelection()
+	{
+		EditWindow wnd = EditWindow.needCurrent();
+		if (wnd == null) return;
+		Rectangle2D bounds = Highlight.getHighlightedArea(wnd);
+		if (bounds == null) return;
+		wnd.setOffset(new Point2D.Double(bounds.getCenterX(), bounds.getCenterY()));
+		wnd.repaintContents(null);
+	}
+
+	/**
+	 * This method implements the command to center the cursor.
+	 */
+	public static void centerCursor(ActionEvent e)
+	{
+		EditWindow wnd = EditWindow.needCurrent();
+		if (wnd == null) return;
+		Point pt = wnd.getLastMousePosition();
+		Point2D center = wnd.screenToDatabase(pt.x, pt.y);
+		wnd.setOffset(center);
+		wnd.repaintContents(null);
+
+	}
 
 }

@@ -39,6 +39,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -92,7 +93,7 @@ public class ChangeText extends EDialog
 	public static void changeTextDialog()
 	{
 		ChangeText dialog = new ChangeText(TopLevel.getCurrentJFrame(), true);
-		dialog.show();
+		dialog.setVisible(true);
 	}
 
 	/** Creates new form Change Text */
@@ -200,6 +201,14 @@ public class ChangeText extends EDialog
 		lowUnitSize = -1;
 		if (changeSelectedObjects.isSelected())
 		{
+			// make sure text adjustment is allowed
+			if (change)
+			{
+				Cell cell = WindowFrame.needCurCell();
+				if (cell == null) return;
+				if (CircuitChanges.cantEdit(cell, null, true)) return;
+			}
+
 			for(Iterator it = Highlight.getHighlightedText(false).iterator(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
@@ -263,6 +272,12 @@ public class ChangeText extends EDialog
 	 */
 	private void findAllInCell(Cell cell, boolean change)
 	{
+		// make sure text adjustment is allowed
+		if (change)
+		{
+			if (CircuitChanges.cantEdit(cell, null, true)) return;
+		}
+
 		// text on nodes
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
