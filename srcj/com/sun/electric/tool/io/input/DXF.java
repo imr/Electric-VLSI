@@ -54,42 +54,42 @@ import java.util.List;
  */
 public class DXF extends Input
 {
-	private static class DXFLAYER
+	private static class DXFLayer
 	{
-		String   layerName;
-		int		 layerColor;
-		double   layerRed, layerGreen, layerBlue;
-		DXFLAYER next;
+		private String   layerName;
+		private int		 layerColor;
+		private double   layerRed, layerGreen, layerBlue;
+		private DXFLayer next;
 	};
 
-	private static class FORWARDREF
+	private static class ForwardRef
 	{
-		String     refname;
-		Cell       parent;
-		double     x, y;
-		int        rot;
-		int        xrep, yrep;
-		double     xspa, yspa;
-		double     xsca, ysca;
-		FORWARDREF nextforwardref;
+		private String     refName;
+		private Cell       parent;
+		private double     x, y;
+		private int        rot;
+		private int        xRep, yRep;
+		private double     xSpa, ySpa;
+		private double     xSca, ySca;
+		private ForwardRef nextForwardRef;
 	};
 
-	private int                 io_dxfgroupid;
-	private int                 io_dxfignoredpoints, io_dxfignoredattribdefs, io_dxfignoredattributes;
-	private int                 io_dxfreadpolylines, io_dxfreadlines, io_dxfreadcircles, io_dxfreadsolids,
-						        io_dxfread3dfaces, io_dxfreadarcs, io_dxfreadinserts, io_dxfreadtexts;
-	private String              io_dxfline;
-	private DXFLAYER            io_dxffirstlayer;
-	private FORWARDREF          io_dxffirstforwardref;
-	private Cell                io_dxfmaincell;
-	private Cell                io_dxfcurcell;
-	private boolean             io_dxfpairvalid;
-	private List                io_dxfheadertext;
-	private List                io_dxfheaderid;
-	private int                 io_dxfinputmode;			/* 0: pairs not read, 1: normal pairs, 2: blank lines */
+	private int                 lastGroupID;
+	private String              lastText;
+	private boolean             lastPairValid;
+	private int                 ignoredPoints, ignoredAttributeDefs, ignoredAttributes;
+	private int                 readPolyLines, readLines, readCircles, readSolids,
+								read3DFaces, readArcs, readInserts, readTexts;
+	private DXFLayer            firstLayer;
+	private ForwardRef          firstForwardRef;
+	private Cell                mainCell;
+	private Cell                curCell;
+	private List                headerText;
+	private List                headerID;
+	private int                 inputMode;			/* 0: pairs not read, 1: normal pairs, 2: blank lines */
 	private HashSet             validLayerNames;
 	private HashSet             ignoredLayerNames;
-	private TextUtils.UnitScale io_dxfdispunit;
+	private TextUtils.UnitScale dispUnit;
 	private int                 groupID;
 	private String              text;
 	/** key of Variable holding DXF layer name. */			public static final Variable.Key DXF_LAYER_KEY = ElectricObject.newKey("IO_dxf_layer");
@@ -106,7 +106,7 @@ public class DXF extends Input
 		boolean ret = false;
 		try
 		{
-			ret = io_readdxflibrary(lib);
+			ret = readLibrary(lib);
 		} catch (IOException e)
 		{
 		}
@@ -116,36 +116,36 @@ public class DXF extends Input
 	/**
 	 * Method to read the DXF file into library "lib".  Returns true on error.
 	 */
-	private boolean io_readdxflibrary(Library lib)
+	private boolean readLibrary(Library lib)
 		throws IOException
 	{
 		// set the scale
-		io_dxfsetcurunits();
+		setCurUnits();
 
 		// examine technology for acceptable DXF layer names
-		io_dxfgetacceptablelayers();
+		getAcceptableLayers();
 
 		// make the only cell in this library
-		io_dxfmaincell = Cell.makeInstance(lib, lib.getName());
-		if (io_dxfmaincell == null) return true;
-		lib.setCurCell(io_dxfmaincell);
-		io_dxfcurcell = io_dxfmaincell;
-		io_dxfheaderid = new ArrayList();
-		io_dxfheadertext = new ArrayList();
+		mainCell = Cell.makeInstance(lib, lib.getName());
+		if (mainCell == null) return true;
+		lib.setCurCell(mainCell);
+		curCell = mainCell;
+		headerID = new ArrayList();
+		headerText = new ArrayList();
 		ignoredLayerNames = new HashSet();
 
 		// read the file
-		io_dxfpairvalid = false;
+		lastPairValid = false;
 		boolean err = false;
-		io_dxfclearlayers();
-		io_dxffirstforwardref = null;
-		io_dxfignoredpoints = io_dxfignoredattributes = io_dxfignoredattribdefs = 0;
-		io_dxfreadpolylines = io_dxfreadlines = io_dxfreadcircles = io_dxfreadsolids = 0;
-		io_dxfread3dfaces = io_dxfreadarcs = io_dxfreadinserts = io_dxfreadtexts = 0;
-		io_dxfinputmode = 0;
+		firstLayer = null;
+		firstForwardRef = null;
+		ignoredPoints = ignoredAttributes = ignoredAttributeDefs = 0;
+		readPolyLines = readLines = readCircles = readSolids = 0;
+		read3DFaces = readArcs = readInserts = readTexts = 0;
+		inputMode = 0;
 		for(;;)
 		{
-			if (io_dxfgetnextpair()) break;
+			if (getNextPair()) break;
 
 			// must have section change here
 			if (groupID != 0)
@@ -159,7 +159,7 @@ public class DXF extends Input
 			if (text.equals("SECTION"))
 			{
 				// see what section is coming
-				if (io_dxfgetnextpair()) break;
+				if (getNextPair()) break;
 				if (groupID != 2)
 				{
 					System.out.println("Expected group 2 (name) at line " + lineReader.getLineNumber());
@@ -168,32 +168,32 @@ public class DXF extends Input
 				}
 				if (text.equals("HEADER"))
 				{
-					if (err = io_dxfreadheadersection()) break;
+					if (err = readHeaderSection()) break;
 					continue;
 				}
 				if (text.equals("TABLES"))
 				{
-					if (err = io_dxfreadtablessection()) break;
+					if (err = readTablesSection()) break;
 					continue;
 				}
 				if (text.equals("BLOCKS"))
 				{
-					if (err = io_dxfreadentities(lib)) break;
+					if (err = readEntities(lib)) break;
 					continue;
 				}
 				if (text.equals("ENTITIES"))
 				{
-					if (err = io_dxfreadentities(lib)) break;
+					if (err = readEntities(lib)) break;
 					continue;
 				}
 				if (text.equals("CLASSES"))
 				{
-					if (err = io_dxfignoresection()) break;
+					if (err = ignoreSection()) break;
 					continue;
 				}
 				if (text.equals("OBJECTS"))
 				{
-					if (err = io_dxfignoresection()) break;
+					if (err = ignoreSection()) break;
 					continue;
 				}
 			}
@@ -203,28 +203,28 @@ public class DXF extends Input
 		}
 
 		// insert forward references
-		for(FORWARDREF fr = io_dxffirstforwardref; fr != null; fr = fr.nextforwardref)
+		for(ForwardRef fr = firstForwardRef; fr != null; fr = fr.nextForwardRef)
 		{
 			// have to search by hand because of weird prototype names
 			Cell found = null;
 			for(Iterator it = lib.getCells(); it.hasNext(); )
 			{
 				Cell cell = (Cell)it.next();
-				if (cell.getName().equals(fr.refname)) { found = cell;   break; }
+				if (cell.getName().equals(fr.refName)) { found = cell;   break; }
 			}
 			if (found == null)
 			{
-				System.out.println("Cannot find block '" + fr.refname + "'");
+				System.out.println("Cannot find block '" + fr.refName + "'");
 				continue;
 			}
 			if (IOTool.isDXFInputFlattensHierarchy())
 			{
-				if (io_dxfextractinsert(found, fr.x, fr.y, fr.xsca, fr.ysca, fr.rot, fr.parent)) return true;
+				if (extractInsert(found, fr.x, fr.y, fr.xSca, fr.ySca, fr.rot, fr.parent)) return true;
 			} else
 			{
-				if (fr.xsca != 1.0 || fr.ysca != 1.0)
+				if (fr.xSca != 1.0 || fr.ySca != 1.0)
 				{
-					found = io_dxfgetscaledcell(found, fr.xsca, fr.ysca);
+					found = getScaledCell(found, fr.xSca, fr.ySca);
 					if (found == null) return true;
 				}
 				Rectangle2D bounds = found.getBounds();
@@ -235,88 +235,88 @@ public class DXF extends Input
 		}
 
 		// save header with library
-		if (io_dxfheaderid.size() > 0)
+		if (headerID.size() > 0)
 		{
-			int len = io_dxfheaderid.size();
+			int len = headerID.size();
 			Integer [] headerIDs = new Integer[len];
-			for(int i=0; i<len; i++) headerIDs[i] = (Integer)io_dxfheaderid.get(i);
+			for(int i=0; i<len; i++) headerIDs[i] = (Integer)headerID.get(i);
 			lib.newVar(DXF_HEADER_ID_KEY, headerIDs);
 		}
-		if (io_dxfheadertext.size() > 0)
+		if (headerText.size() > 0)
 		{
-			int len = io_dxfheadertext.size();
+			int len = headerText.size();
 			String [] headerTexts = new String[len];
-			for(int i=0; i<len; i++) headerTexts[i] = (String)io_dxfheadertext.get(i);
+			for(int i=0; i<len; i++) headerTexts[i] = (String)headerText.get(i);
 			lib.newVar(DXF_HEADER_TEXT_KEY, headerTexts);
 		}
 
-		if (io_dxfreadpolylines > 0 || io_dxfreadlines > 0 || io_dxfreadcircles > 0 ||
-			io_dxfreadsolids > 0 || io_dxfread3dfaces > 0 || io_dxfreadarcs > 0 ||
-			io_dxfreadtexts > 0 || io_dxfreadinserts > 0)
+		if (readPolyLines > 0 || readLines > 0 || readCircles > 0 ||
+			readSolids > 0 || read3DFaces > 0 || readArcs > 0 ||
+			readTexts > 0 || readInserts > 0)
 		{
 			String warning = "Read";
 			boolean first = true;
-			if (io_dxfreadpolylines > 0)
+			if (readPolyLines > 0)
 			{
 				if (first) warning += ",";	first = false;
-				warning += " " + io_dxfreadpolylines + " polylines";
+				warning += " " + readPolyLines + " polylines";
 			}
-			if (io_dxfreadlines > 0)
+			if (readLines > 0)
 			{
 				if (first) warning += ",";	first = false;
-				warning += " " + io_dxfreadlines + " lines";
+				warning += " " + readLines + " lines";
 			}
-			if (io_dxfreadcircles > 0)
+			if (readCircles > 0)
 			{
 				if (first) warning += ",";	first = false;
-				warning += " " + io_dxfreadcircles + " circles";
+				warning += " " + readCircles + " circles";
 			}
-			if (io_dxfreadsolids > 0)
+			if (readSolids > 0)
 			{
 				if (first) warning += ",";	first = false;
-				warning += " " + io_dxfreadsolids + " solids";
+				warning += " " + readSolids + " solids";
 			}
-			if (io_dxfread3dfaces > 0)
+			if (read3DFaces > 0)
 			{
 				if (first) warning += ",";	first = false;
-				warning += " " + io_dxfread3dfaces + " 3d faces";
+				warning += " " + read3DFaces + " 3d faces";
 			}
-			if (io_dxfreadarcs > 0)
+			if (readArcs > 0)
 			{
 				if (first) warning += ",";	first = false;
-				warning += " " + io_dxfreadarcs + " arcs";
+				warning += " " + readArcs + " arcs";
 			}
-			if (io_dxfreadtexts > 0)
+			if (readTexts > 0)
 			{
 				if (first) warning += ",";	first = false;
-				warning += " " + io_dxfreadtexts + " texts";
+				warning += " " + readTexts + " texts";
 			}
-			if (io_dxfreadinserts > 0)
+			if (readInserts > 0)
 			{
 				if (first) warning += ",";	first = false;
-				warning += " " + io_dxfreadinserts + " inserts";
+				warning += " " + readInserts + " inserts";
 			}
 			System.out.println(warning);
 		}
 
-		if (io_dxfignoredpoints > 0 || io_dxfignoredattributes > 0 || io_dxfignoredattribdefs > 0)
+		if (ignoredPoints > 0 || ignoredAttributes > 0 || ignoredAttributeDefs > 0)
 		{
 			String warning = "Ignored";
 			boolean first = true;
-			if (io_dxfignoredpoints > 0)
+			if (ignoredPoints > 0)
 			{
 				if (first) warning += ",";	first = false;
-				warning += " " + io_dxfignoredpoints + " points";
+				warning += " " + ignoredPoints + " points";
 			}
-			if (io_dxfignoredattributes > 0)
+			if (ignoredAttributes > 0)
 			{
 				if (first) warning += ",";	first = false;
-				warning += " " + io_dxfignoredattributes + " attributes";
+				warning += " " + ignoredAttributes + " attributes";
 			}
-			if (io_dxfignoredattribdefs > 0)
+			if (ignoredAttributeDefs > 0)
 			{
 				if (first) warning += ",";	first = false;
-				warning += " " + io_dxfignoredattribdefs + " attribute definitions";
+				warning += " " + ignoredAttributeDefs + " attribute definitions";
 			}
 			System.out.println(warning);
 		}
@@ -343,63 +343,63 @@ public class DXF extends Input
 	 * Method to read the next group ID and content pair from the file.
 	 * Returns true on end-of-file.
 	 */
-	private boolean io_dxfgetnextpair()
+	private boolean getNextPair()
 		throws IOException
 	{
-		if (io_dxfpairvalid)
+		if (lastPairValid)
 		{
-			text = io_dxfline;
-			groupID = io_dxfgroupid;
-			io_dxfpairvalid = false;
+			text = lastText;
+			groupID = lastGroupID;
+			lastPairValid = false;
 			return false;
 		}
 
 		for(;;)
 		{
 			// read a line and get the group ID
-			io_dxfline = io_dxfgetnextline(false);
-			if (io_dxfline == null)
+			lastText = getNextLine(false);
+			if (lastText == null)
 			{
 				System.out.println("Unexpected end-of-file at line " + lineReader.getLineNumber());
 				return true;
 			}
-			String groupLine = io_dxfline.trim();
+			String groupLine = lastText.trim();
 			if (!TextUtils.isANumber(groupLine))
 			{
-				System.out.println("Invalid group ID on line " + lineReader.getLineNumber() + " (" + io_dxfline + ")");
+				System.out.println("Invalid group ID on line " + lineReader.getLineNumber() + " (" + lastText + ")");
 				return true;
 			}
 			groupID = TextUtils.atoi(groupLine);
 
 			// ignore blank line if file is double-spaced
-			if (io_dxfinputmode == 2) io_dxfgetnextline(true);
+			if (inputMode == 2) getNextLine(true);
 
 			// read a line and get the text
-			io_dxfline = io_dxfgetnextline(true);
-			if (io_dxfline == null)
+			lastText = getNextLine(true);
+			if (lastText == null)
 			{
 				System.out.println("Unexpected end-of-file at line " + lineReader.getLineNumber());
 				return true;
 			}
-			text = io_dxfline.trim();
+			text = lastText.trim();
 
 			// ignore blank line if file is double-spaced
-			if (io_dxfinputmode == 2) io_dxfgetnextline(true);
+			if (inputMode == 2) getNextLine(true);
 
-			if (io_dxfinputmode == 0)
+			if (inputMode == 0)
 			{
 				// see if file is single or double spaced
-				if (io_dxfline.length() != 0) io_dxfinputmode = 1; else
+				if (lastText.length() != 0) inputMode = 1; else
 				{
-					io_dxfinputmode = 2;
-					io_dxfline = io_dxfgetnextline(true);
-					if (io_dxfline == null)
+					inputMode = 2;
+					lastText = getNextLine(true);
+					if (lastText == null)
 					{
 						System.out.println("Unexpected end-of-file at line " + lineReader.getLineNumber());
 						return true;
 					}
-					text = io_dxfline;
-					io_dxfgetnextline(true);
+					text = lastText;
+					getNextLine(true);
 				}
 			}
 
@@ -410,7 +410,7 @@ public class DXF extends Input
 		return false;
 	}
 
-	private String io_dxfgetnextline(boolean canBeBlank)
+	private String getNextLine(boolean canBeBlank)
 		throws IOException
 	{
 		for(;;)
@@ -422,29 +422,29 @@ public class DXF extends Input
 
 	/****************************************** READING SECTIONS ******************************************/
 
-	private boolean io_dxfreadheadersection()
+	private boolean readHeaderSection()
 		throws IOException
 	{
 		// just save everything until the end-of-section
 		for(int line=0; ; line++)
 		{
-			if (io_dxfgetnextpair()) return true;
+			if (getNextPair()) return true;
 			if (groupID == 0 && text.equals("ENDSEC")) break;
 
 			// save it
-			io_dxfheaderid.add(new Integer(groupID));
-			io_dxfheadertext.add(text);
+			headerID.add(new Integer(groupID));
+			headerText.add(text);
 		}
 		return false;
 	}
 
-	private boolean io_dxfreadtablessection()
+	private boolean readTablesSection()
 		throws IOException
 	{
 		// just ignore everything until the end-of-section
 		for(;;)
 		{
-			if (io_dxfgetnextpair()) return true;
+			if (getNextPair()) return true;
 
 			// quit now if at the end of the table section
 			if (groupID == 0 && text.equals("ENDSEC")) break;
@@ -453,30 +453,30 @@ public class DXF extends Input
 			if (groupID != 0 || !text.equals("TABLE")) continue;
 
 			// a table: see what kind it is
-			if (io_dxfgetnextpair()) return true;
+			if (getNextPair()) return true;
 			if (groupID != 2 || !text.equals("LAYER")) continue;
 
 			// a layer table: ignore the size information
-			if (io_dxfgetnextpair()) return true;
+			if (getNextPair()) return true;
 			if (groupID != 70) continue;
 
 			// read the layers
-			DXFLAYER layer = null;
+			DXFLayer layer = null;
 			for(;;)
 			{
-				if (io_dxfgetnextpair()) return true;
+				if (getNextPair()) return true;
 				if (groupID == 0 && text.equals("ENDTAB")) break;
 				if (groupID == 0 && text.equals("LAYER"))
 				{
 					// make a new layer
-					layer = new DXFLAYER();
+					layer = new DXFLayer();
 					layer.layerName = null;
 					layer.layerColor = -1;
 					layer.layerRed = 1.0;
 					layer.layerGreen = 1.0;
 					layer.layerBlue = 1.0;
-					layer.next = io_dxffirstlayer;
-					io_dxffirstlayer = layer;
+					layer.next = firstLayer;
+					firstLayer = layer;
 				}
 				if (groupID == 2 && layer != null)
 				{
@@ -485,8 +485,8 @@ public class DXF extends Input
 				if (groupID == 62 && layer != null)
 				{
 					layer.layerColor = TextUtils.atoi(text);
-					DXFLAYER found = null;
-					for(DXFLAYER l = io_dxffirstlayer; l != null; l = l.next)
+					DXFLayer found = null;
+					for(DXFLayer l = firstLayer; l != null; l = l.next)
 					{
 						if (l == layer) continue;
 						if (l.layerColor == layer.layerColor) { found = l;   break; }
@@ -534,13 +534,13 @@ public class DXF extends Input
 		return false;
 	}
 
-	private boolean io_dxfignoresection()
+	private boolean ignoreSection()
 		throws IOException
 	{
 		// just ignore everything until the end-of-section
 		for(;;)
 		{
-			if (io_dxfgetnextpair()) return true;
+			if (getNextPair()) return true;
 			if (groupID == 0 && text.equals("ENDSEC")) break;
 		}
 		return false;
@@ -548,13 +548,13 @@ public class DXF extends Input
 
 	/****************************************** READING ENTITIES ******************************************/
 
-	private boolean io_dxfreadentities(Library lib)
+	private boolean readEntities(Library lib)
 		throws IOException
 	{
 		// read the blocks/entities section
 		for(;;)
 		{
-			if (io_dxfgetnextpair()) return true;
+			if (getNextPair()) return true;
 			if (groupID != 0)
 			{
 				System.out.println("Unknown group code (" + groupID + ") at line " + lineReader.getLineNumber());
@@ -563,38 +563,38 @@ public class DXF extends Input
 
 			if (text.equals("ARC"))
 			{
-				if (io_dxfreadarcentity()) return true;
+				if (readArcEntity()) return true;
 				continue;
 			}
 			if (text.equals("ATTDEF"))
 			{
-				io_dxfignoreentity();
-				io_dxfignoredattribdefs++;
+				ignoreEntity();
+				ignoredAttributeDefs++;
 				continue;
 			}
 			if (text.equals("ATTRIB"))
 			{
-				io_dxfignoreentity();
-				io_dxfignoredattributes++;
+				ignoreEntity();
+				ignoredAttributes++;
 				continue;
 			}
 			if (text.equals("BLOCK"))
 			{
-				String msg = io_dxfreadblock();
+				String msg = readBlock();
 				if (msg == null) return true;
-				io_dxfcurcell = Cell.makeInstance(lib, io_dxfblockname(msg));
-				if (io_dxfcurcell == null) return true;
+				curCell = Cell.makeInstance(lib, makeBlockName(msg));
+				if (curCell == null) return true;
 				continue;
 			}
 			if (text.equals("CIRCLE"))
 			{
-				if (io_dxfreadcircleentity()) return true;
+				if (readCircleEntity()) return true;
 				continue;
 			}
 			if (text.equals("ENDBLK"))
 			{
-				io_dxfignoreentity();
-				io_dxfcurcell = io_dxfmaincell;
+				ignoreEntity();
+				curCell = mainCell;
 				continue;
 			}
 			if (text.equals("ENDSEC"))
@@ -603,48 +603,48 @@ public class DXF extends Input
 			}
 			if (text.equals("INSERT"))
 			{
-				if (io_dxfreadinsertentity(lib)) return true;
+				if (readInsertEntity(lib)) return true;
 				continue;
 			}
 			if (text.equals("LINE"))
 			{
-				if (io_dxfreadlineentity()) return true;
+				if (readLineEntity()) return true;
 				continue;
 			}
 			if (text.equals("POINT"))
 			{
-				io_dxfignoreentity();
-				io_dxfignoredpoints++;
+				ignoreEntity();
+				ignoredPoints++;
 				continue;
 			}
 			if (text.equals("POLYLINE"))
 			{
-				if (io_dxfreadpolylineentity()) return true;
+				if (readPolyLineEntity()) return true;
 				continue;
 			}
 			if (text.equals("SEQEND"))
 			{
-				io_dxfignoreentity();
+				ignoreEntity();
 				continue;
 			}
 			if (text.equals("SOLID"))
 			{
-				if (io_dxfreadsolidentity()) return true;
+				if (readSolidEntity()) return true;
 				continue;
 			}
 			if (text.equals("TEXT"))
 			{
-				if (io_dxfreadtextentity()) return true;
+				if (readTextEntity()) return true;
 				continue;
 			}
 			if (text.equals("VIEWPORT"))
 			{
-				io_dxfignoreentity();
+				ignoreEntity();
 				continue;
 			}
 			if (text.equals("3DFACE"))
 			{
-				if (io_dxfread3dfaceentity()) return true;
+				if (read3DFaceEntity()) return true;
 				continue;
 			}
 			System.out.println("Unknown entity type (" + text + ") at line " + lineReader.getLineNumber());
@@ -656,22 +656,22 @@ public class DXF extends Input
 	private double scaleString(String text)
 	{
 		double v = TextUtils.atof(text);
-		return TextUtils.convertFromDistance(v, Artwork.tech, io_dxfdispunit);
+		return TextUtils.convertFromDistance(v, Artwork.tech, dispUnit);
 	}
 
-	private boolean io_dxfreadarcentity()
+	private boolean readArcEntity()
 		throws IOException
 	{
-		DXFLAYER layer = null;
+		DXFLayer layer = null;
 		double x = 0, y = 0, z = 0;
 		double rad = 0;
 		double sAngle = 0, eAngle = 0;
 		for(;;)
 		{
-			if (io_dxfgetnextpair()) return true;
+			if (getNextPair()) return true;
 			switch (groupID)
 			{
-				case 8:  layer = io_dxfgetlayer(text);    break;
+				case 8:  layer = getLayer(text);          break;
 				case 10: x = scaleString(text);           break;
 				case 20: y = scaleString(text);           break;
 				case 30: z = scaleString(text);           break;
@@ -681,113 +681,113 @@ public class DXF extends Input
 			}
 			if (groupID == 0)
 			{
-				io_dxfpushpair(groupID, text);
+				pushPair(groupID, text);
 				break;
 			}
 		}
-		if (!io_dxfacceptablelayer(layer)) return false;
+		if (!isAcceptableLayer(layer)) return false;
 		if (sAngle >= 360.0) sAngle -= 360.0;
-		int iangle = (int)(sAngle * 10.0);
-		NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(x, y), rad*2, rad*2, io_dxfcurcell, iangle%3600, null, 0);
+		int iAngle = (int)(sAngle * 10.0);
+		NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(x, y), rad*2, rad*2, curCell, iAngle%3600, null, 0);
 		if (ni == null) return true;
 		if (sAngle > eAngle) eAngle += 360.0;
-		double startoffset = sAngle;
-		startoffset -= (double)iangle / 10.0;
-		ni.setArcDegrees(startoffset * Math.PI / 1800.0, (eAngle-sAngle) * Math.PI / 180.0);
+		double startOffset = sAngle;
+		startOffset -= (double)iAngle / 10.0;
+		ni.setArcDegrees(startOffset * Math.PI / 1800.0, (eAngle-sAngle) * Math.PI / 180.0);
 		ni.newVar(DXF_LAYER_KEY, layer.layerName);
-		io_dxfreadarcs++;
+		readArcs++;
 		return false;
 	}
 
-	private String io_dxfreadblock()
+	private String readBlock()
 		throws IOException
 	{
 		String saveMsg = null;
 		for(;;)
 		{
-			if (io_dxfgetnextpair()) return null;
+			if (getNextPair()) return null;
 			if (groupID == 2) saveMsg = text; else
 			if (groupID == 0)
 			{
-				io_dxfpushpair(groupID, text);
+				pushPair(groupID, text);
 				break;
 			}
 		}
 		return saveMsg;
 	}
 
-	private boolean io_dxfreadcircleentity()
+	private boolean readCircleEntity()
 		throws IOException
 	{
-		DXFLAYER layer = null;
+		DXFLayer layer = null;
 		double x = 0, y = 0, z = 0;
 		double rad = 0;
 		for(;;)
 		{
-			if (io_dxfgetnextpair()) return true;
+			if (getNextPair()) return true;
 			switch (groupID)
 			{
-				case 8:  layer = io_dxfgetlayer(text);    break;
-				case 10: x = scaleString(text);           break;
-				case 20: y = scaleString(text);           break;
-				case 30: z = scaleString(text);           break;
-				case 40: rad = scaleString(text);         break;
+				case 8:  layer = getLayer(text);    break;
+				case 10: x = scaleString(text);     break;
+				case 20: y = scaleString(text);     break;
+				case 30: z = scaleString(text);     break;
+				case 40: rad = scaleString(text);   break;
 			}
 			if (groupID == 0)
 			{
-				io_dxfpushpair(groupID, text);
+				pushPair(groupID, text);
 				break;
 			}
 		}
-		if (!io_dxfacceptablelayer(layer)) return false;
-		NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(x, y), rad*2, rad*2, io_dxfcurcell);
+		if (!isAcceptableLayer(layer)) return false;
+		NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(x, y), rad*2, rad*2, curCell);
 		if (ni == null) return true;
 		ni.newVar(DXF_LAYER_KEY, layer.layerName);
-		io_dxfreadcircles++;
+		readCircles++;
 		return false;
 	}
 
-	private boolean io_dxfreadinsertentity(Library lib)
+	private boolean readInsertEntity(Library lib)
 		throws IOException
 	{
-		DXFLAYER layer = null;
+		DXFLayer layer = null;
 		int rot = 0;
 		String name = null;
-		int xrep = 1, yrep = 1;
+		int xRep = 1, yRep = 1;
 		double x = 0, y = 0, z = 0;
-		double xspa = 0, yspa = 0;
-		double xsca = 1, ysca = 1;
+		double xSpa = 0, ySpa = 0;
+		double xSca = 1, ySca = 1;
 		for(;;)
 		{
-			if (io_dxfgetnextpair()) return true;
+			if (getNextPair()) return true;
 			switch (groupID)
 			{
-				case 8:  layer = io_dxfgetlayer(text);    break;
+				case 8:  layer = getLayer(text);          break;
 				case 10: x = scaleString(text);           break;
 				case 20: y = scaleString(text);           break;
 				case 30: z = scaleString(text);           break;
 				case 50: rot = TextUtils.atoi(text);      break;
-				case 41: xsca = TextUtils.atof(text);     break;
-				case 42: ysca = TextUtils.atof(text);     break;
-				case 70: xrep = TextUtils.atoi(text);     break;
-				case 71: yrep = TextUtils.atoi(text);     break;
-				case 44: xspa = scaleString(text);        break;
-				case 45: yspa = scaleString(text);        break;
+				case 41: xSca = TextUtils.atof(text);     break;
+				case 42: ySca = TextUtils.atof(text);     break;
+				case 70: xRep = TextUtils.atoi(text);     break;
+				case 71: yRep = TextUtils.atoi(text);     break;
+				case 44: xSpa = scaleString(text);        break;
+				case 45: ySpa = scaleString(text);        break;
 				case 2:  name = text;                     break;
 			}
 			if (groupID == 0)
 			{
-				io_dxfpushpair(groupID, text);
+				pushPair(groupID, text);
 				break;
 			}
 		}
 
-		String pt = io_dxfblockname(name);
+		String pt = makeBlockName(name);
 		if (pt != null)
 		{
-			if (xrep != 1 || yrep != 1)
+			if (xRep != 1 || yRep != 1)
 			{
-				System.out.println("Cannot insert block '" + pt + "' repeated " + xrep + "x" + yrep + " times");
+				System.out.println("Cannot insert block '" + pt + "' repeated " + xRep + "x" + yRep + " times");
 				return false;
 			}
 
@@ -800,81 +800,81 @@ public class DXF extends Input
 			}
 			if (found == null)
 			{
-				FORWARDREF fr = new FORWARDREF();
-				fr.refname = pt;
-				fr.parent = io_dxfcurcell;
+				ForwardRef fr = new ForwardRef();
+				fr.refName = pt;
+				fr.parent = curCell;
 				fr.x = x;		fr.y = y;
 				fr.rot = rot;
-				fr.xrep = xrep;	fr.yrep = yrep;
-				fr.xspa = xspa;	fr.yspa = yspa;
-				fr.xsca = xsca;	fr.ysca = ysca;
-				fr.nextforwardref = io_dxffirstforwardref;
-				io_dxffirstforwardref = fr;
+				fr.xRep = xRep;	fr.yRep = yRep;
+				fr.xSpa = xSpa;	fr.ySpa = ySpa;
+				fr.xSca = xSca;	fr.ySca = ySca;
+				fr.nextForwardRef = firstForwardRef;
+				firstForwardRef = fr;
 				return false;
 			}
 
 			if (IOTool.isDXFInputFlattensHierarchy())
 			{
-				if (io_dxfextractinsert(found, x, y, xsca, ysca, rot, io_dxfcurcell)) return true;
+				if (extractInsert(found, x, y, xSca, ySca, rot, curCell)) return true;
 			} else
 			{
-				if (xsca != 1.0 || ysca != 1.0)
+				if (xSca != 1.0 || ySca != 1.0)
 				{
-					found = io_dxfgetscaledcell(found, xsca, ysca);
+					found = getScaledCell(found, xSca, ySca);
 					if (found == null) return true;
 				}
 				double sX = found.getDefWidth();
 				double sY = found.getDefHeight();
-				NodeInst ni = NodeInst.makeInstance(found, new Point2D.Double(x, y), sX, sY, io_dxfcurcell, rot*10, null, 0);
+				NodeInst ni = NodeInst.makeInstance(found, new Point2D.Double(x, y), sX, sY, curCell, rot*10, null, 0);
 				if (ni == null) return true;
 				ni.setExpanded();
 			}
 		}
-		io_dxfreadinserts++;
+		readInserts++;
 		return false;
 	}
 
-	private boolean io_dxfreadlineentity()
+	private boolean readLineEntity()
 		throws IOException
 	{
-		DXFLAYER layer = null;
+		DXFLayer layer = null;
 		int lineType = 0;
 		double x1 = 0, y1 = 0, z1 = 0;
 		double x2 = 0, y2 = 0, z2 = 0;
 		for(;;)
 		{
-			if (io_dxfgetnextpair()) return true;
+			if (getNextPair()) return true;
 			switch (groupID)
 			{
-				case 8:  layer = io_dxfgetlayer(text);     break;
-				case 10: x1 = scaleString(text);           break;
-				case 20: y1 = scaleString(text);           break;
-				case 30: z1 = scaleString(text);           break;
-				case 11: x2 = scaleString(text);           break;
-				case 21: y2 = scaleString(text);           break;
-				case 31: z2 = scaleString(text);           break;
+				case 8:  layer = getLayer(text);     break;
+				case 10: x1 = scaleString(text);     break;
+				case 20: y1 = scaleString(text);     break;
+				case 30: z1 = scaleString(text);     break;
+				case 11: x2 = scaleString(text);     break;
+				case 21: y2 = scaleString(text);     break;
+				case 31: z2 = scaleString(text);     break;
 			}
 			if (groupID == 0)
 			{
-				io_dxfpushpair(groupID, text);
+				pushPair(groupID, text);
 				break;
 			}
 		}
-		if (!io_dxfacceptablelayer(layer)) return false;
+		if (!isAcceptableLayer(layer)) return false;
 		double cX = (x1 + x2) / 2;
 		double cY = (y1 + y2) / 2;
 		double sX = Math.abs(x1 - x2);
 		double sY = Math.abs(y1 - y2);
 		NodeProto np = Artwork.tech.openedDashedPolygonNode;
 		if (lineType == 0) np = Artwork.tech.openedPolygonNode;
-		NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, cY), sX, sY, io_dxfcurcell);
+		NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, cY), sX, sY, curCell);
 		if (ni == null) return true;
 		Point2D [] points = new Point2D[2];
 		points[0] = new Point2D.Double(x1 - cX, y1 - cY);
 		points[1] = new Point2D.Double(x2 - cX, y2 - cY);
 		ni.newVar(NodeInst.TRACE, points);
 		ni.newVar(DXF_LAYER_KEY, layer.layerName);
-		io_dxfreadlines++;
+		readLines++;
 		return false;
 	}
 
@@ -884,11 +884,11 @@ public class DXF extends Input
 		double bulge;
 	}
 
-	private boolean io_dxfreadpolylineentity()
+	private boolean readPolyLineEntity()
 		throws IOException
 	{
 		boolean closed = false;
-		DXFLAYER layer = null;
+		DXFLayer layer = null;
 		int lineType = 0;
 		boolean inEnd = false;
 		List polyPoints = new ArrayList();
@@ -896,10 +896,10 @@ public class DXF extends Input
 		boolean hasBulgeInfo = false;
 		for(;;)
 		{
-			if (io_dxfgetnextpair()) return true;
+			if (getNextPair()) return true;
 			if (groupID == 8)
 			{
-				layer = io_dxfgetlayer(text);
+				layer = getLayer(text);
 				continue;
 			}
 
@@ -938,7 +938,7 @@ public class DXF extends Input
 			{
 				if (inEnd)
 				{
-					io_dxfpushpair(groupID, text);
+					pushPair(groupID, text);
 					break;
 				}
 				if (text.equals("SEQEND"))
@@ -957,7 +957,7 @@ public class DXF extends Input
 		}
 
 		int count = polyPoints.size();
-		if (io_dxfacceptablelayer(layer) && count >= 3)
+		if (isAcceptableLayer(layer) && count >= 3)
 		{
 			// see if there is bulge information
 			if (hasBulgeInfo)
@@ -978,28 +978,28 @@ public class DXF extends Input
 						// special case the semicircle bulges
 						if (Math.abs(lastPp.bulge) == 1.0)
 						{
-							double xc = (x1 + x2) / 2;
-							double yc = (y1 + y2) / 2;
-							if ((y1 == yc && x1 == xc) || (y2 == yc && x2 == xc))
+							double cX = (x1 + x2) / 2;
+							double cY = (y1 + y2) / 2;
+							if ((y1 == cY && x1 == cX) || (y2 == cY && x2 == cX))
 							{
 								System.out.println("Domain error in polyline bulge computation");
 								continue;
 							}
-							double sa = Math.atan2(y1-yc, x1-xc);
-							double ea = Math.atan2(y2-yc, x2-xc);
+							double sA = Math.atan2(y1-cY, x1-cX);
+							double eA = Math.atan2(y2-cY, x2-cX);
 							if (lastPp.bulge < 0.0)
 							{
-								double r2 = sa;   sa = ea;   ea = r2;
+								double r2 = sA;   sA = eA;   eA = r2;
 							}
-							if (sa < 0.0) sa += 2.0 * Math.PI;
-							sa = sa * 1800.0 / Math.PI;
-							int iangle = (int)sa;
-							double rad = new Point2D.Double(xc, yc).distance(new Point2D.Double(x1, y1));
-							NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(xc, yc), rad*2, rad*2, io_dxfcurcell, iangle, null, 0);
+							if (sA < 0.0) sA += 2.0 * Math.PI;
+							sA = sA * 1800.0 / Math.PI;
+							int iAngle = (int)sA;
+							double rad = new Point2D.Double(cX, cY).distance(new Point2D.Double(x1, y1));
+							NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(cX, cY), rad*2, rad*2, curCell, iAngle, null, 0);
 							if (ni == null) return true;
-							double startoffset = sa;
-							startoffset -= iangle;
-							ni.setArcDegrees(startoffset * Math.PI / 1800.0, Math.PI);
+							double startOffset = sA;
+							startOffset -= iAngle;
+							ni.setArcDegrees(startOffset * Math.PI / 1800.0, Math.PI);
 							ni.newVar(DXF_LAYER_KEY, layer.layerName);
 							continue;
 						}
@@ -1011,21 +1011,21 @@ public class DXF extends Input
 						double dist = Math.sqrt(dx*dx + dy*dy);
 
 						// compute radius of arc (bulge is tangent of 1/4 of included arc angle)
-						double incangle = Math.atan(lastPp.bulge) * 4.0;
-						double arcrad = Math.abs((dist / 2.0) / Math.sin(incangle / 2.0));
-						double rad = arcrad;
+						double incAngle = Math.atan(lastPp.bulge) * 4.0;
+						double arcRad = Math.abs((dist / 2.0) / Math.sin(incAngle / 2.0));
+						double rad = arcRad;
 
 						// prepare to compute the two circle centers
-						double r2 = arcrad*arcrad;
+						double r2 = arcRad*arcRad;
 						double delta_1 = -dist / 2.0;
 						double delta_12 = delta_1 * delta_1;
 						double delta_2 = Math.sqrt(r2 - delta_12);
 
 						// pick one center, according to bulge sign
-						double bulgesign = lastPp.bulge;
-						if (Math.abs(bulgesign) > 1.0) bulgesign = -bulgesign;
+						double bulgeSign = lastPp.bulge;
+						if (Math.abs(bulgeSign) > 1.0) bulgeSign = -bulgeSign;
 						double xcf = 0, ycf = 0;
-						if (bulgesign > 0.0)
+						if (bulgeSign > 0.0)
 						{
 							xcf = x02 + ((delta_1 * (x02-x01)) + (delta_2 * (y01-y02))) / dist;
 							ycf = y02 + ((delta_1 * (y02-y01)) + (delta_2 * (x02-x01))) / dist;
@@ -1042,25 +1042,25 @@ public class DXF extends Input
 							System.out.println("Domain error in polyline computation");
 							continue;
 						}
-						double sa = Math.atan2(y01-ycf, x01-xcf);
-						double ea = Math.atan2(y02-ycf, x02-xcf);
+						double sA = Math.atan2(y01-ycf, x01-xcf);
+						double eA = Math.atan2(y02-ycf, x02-xcf);
 						if (lastPp.bulge < 0.0)
 						{
-							r2 = sa;   sa = ea;   ea = r2;
+							r2 = sA;   sA = eA;   eA = r2;
 						}
-						if (sa < 0.0) sa += 2.0 * Math.PI;
-						if (ea < 0.0) ea += 2.0 * Math.PI;
-						sa = sa * 1800.0 / Math.PI;
-						ea = ea * 1800.0 / Math.PI;
+						if (sA < 0.0) sA += 2.0 * Math.PI;
+						if (eA < 0.0) eA += 2.0 * Math.PI;
+						sA = sA * 1800.0 / Math.PI;
+						eA = eA * 1800.0 / Math.PI;
 
 						// create the arc node
-						int iangle = (int)sa;
-						NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(x1, y1), rad*2, rad*2, io_dxfcurcell, iangle%3600, null, 0);
+						int iAngle = (int)sA;
+						NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(x1, y1), rad*2, rad*2, curCell, iAngle%3600, null, 0);
 						if (ni == null) return true;
-						if (sa > ea) ea += 3600.0;
-						double startoffset = sa;
-						startoffset -= (double)iangle;
-						ni.setArcDegrees(startoffset * Math.PI / 1800.0, (ea-sa) * Math.PI / 1800.0);
+						if (sA > eA) eA += 3600.0;
+						double startOffset = sA;
+						startOffset -= (double)iAngle;
+						ni.setArcDegrees(startOffset * Math.PI / 1800.0, (eA-sA) * Math.PI / 1800.0);
 						ni.newVar(DXF_LAYER_KEY, layer.layerName);
 						continue;
 					}
@@ -1070,7 +1070,7 @@ public class DXF extends Input
 					double cY = (y1 + y2) / 2;
 					NodeProto np = Artwork.tech.openedDashedPolygonNode;
 					if (lineType == 0) np = Artwork.tech.openedPolygonNode;
-					NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, cY), Math.abs(x1 - x2), Math.abs(y1 - y2), io_dxfcurcell);
+					NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, cY), Math.abs(x1 - x2), Math.abs(y1 - y2), curCell);
 					if (ni == null) return true;
 					Point2D [] points = new Point2D[2];
 					points[0] = new Point2D.Double(x1 - cX, y1 - cY);
@@ -1106,7 +1106,7 @@ public class DXF extends Input
 					if (lineType == 0) np = Artwork.tech.openedPolygonNode; else
 						np = Artwork.tech.openedDashedPolygonNode;
 				}
-				NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, cY), hX-lX, hY-lY, io_dxfcurcell);
+				NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, cY), hX-lX, hY-lY, curCell);
 				if (ni == null) return true;
 				Point2D [] points = new Point2D[count];
 				for(int i=0; i<count; i++)
@@ -1118,14 +1118,14 @@ public class DXF extends Input
 				ni.newVar(DXF_LAYER_KEY, layer.layerName);
 			}
 		}
-		io_dxfreadpolylines++;
+		readPolyLines++;
 		return false;
 	}
 
-	private boolean io_dxfreadsolidentity()
+	private boolean readSolidEntity()
 		throws IOException
 	{
-		DXFLAYER layer = null;
+		DXFLayer layer = null;
 		double factor = 1.0;
 		double x1 = 0, y1 = 0, z1 = 0;
 		double x2 = 0, y2 = 0, z2 = 0;
@@ -1133,29 +1133,29 @@ public class DXF extends Input
 		double x4 = 0, y4 = 0, z4 = 0;
 		for(;;)
 		{
-			if (io_dxfgetnextpair()) return true;
+			if (getNextPair()) return true;
 			switch (groupID)
 			{
-				case 8:  layer = io_dxfgetlayer(text);     break;
-				case 10: x1 = scaleString(text);           break;
-				case 20: y1 = scaleString(text);           break;
-				case 30: z1 = scaleString(text);           break;
-				case 11: x2 = scaleString(text);           break;
-				case 21: y2 = scaleString(text);           break;
-				case 31: z2 = scaleString(text);           break;
-				case 12: x3 = scaleString(text);           break;
-				case 22: y3 = scaleString(text);           break;
-				case 32: z3 = scaleString(text);           break;
-				case 13: x4 = scaleString(text);           break;
-				case 23: y4 = scaleString(text);           break;
-				case 33: z4 = scaleString(text);           break;
+				case 8:  layer = getLayer(text);     break;
+				case 10: x1 = scaleString(text);     break;
+				case 20: y1 = scaleString(text);     break;
+				case 30: z1 = scaleString(text);     break;
+				case 11: x2 = scaleString(text);     break;
+				case 21: y2 = scaleString(text);     break;
+				case 31: z2 = scaleString(text);     break;
+				case 12: x3 = scaleString(text);     break;
+				case 22: y3 = scaleString(text);     break;
+				case 32: z3 = scaleString(text);     break;
+				case 13: x4 = scaleString(text);     break;
+				case 23: y4 = scaleString(text);     break;
+				case 33: z4 = scaleString(text);     break;
 				case 230:
 					factor = TextUtils.atof(text);
 					break;
 			}
 			if (groupID == 0)
 			{
-				io_dxfpushpair(groupID, text);
+				pushPair(groupID, text);
 				break;
 			}
 		}
@@ -1163,14 +1163,14 @@ public class DXF extends Input
 		x2 = x2 * factor;
 		x3 = x3 * factor;
 		x4 = x4 * factor;
-		if (!io_dxfacceptablelayer(layer)) return false;
-		double lx = Math.min(Math.min(x1, x2), Math.min(x3, x4));
-		double hx = Math.max(Math.max(x1, x2), Math.max(x3, x4));
-		double ly = Math.min(Math.min(y1, y2), Math.min(y3, y4));
-		double hy = Math.max(Math.max(y1, y2), Math.max(y3, y4));
-		double cX = (lx + hx) / 2;
-		double cY = (ly + hy) / 2;
-		NodeInst ni = NodeInst.makeInstance(Artwork.tech.filledPolygonNode, new Point2D.Double(cX, cY), hx-lx, hy-ly, io_dxfcurcell);
+		if (!isAcceptableLayer(layer)) return false;
+		double lX = Math.min(Math.min(x1, x2), Math.min(x3, x4));
+		double hX = Math.max(Math.max(x1, x2), Math.max(x3, x4));
+		double lY = Math.min(Math.min(y1, y2), Math.min(y3, y4));
+		double hY = Math.max(Math.max(y1, y2), Math.max(y3, y4));
+		double cX = (lX + hX) / 2;
+		double cY = (lY + hY) / 2;
+		NodeInst ni = NodeInst.makeInstance(Artwork.tech.filledPolygonNode, new Point2D.Double(cX, cY), hX-lX, hY-lY, curCell);
 		if (ni == null) return true;
 		Point2D [] points = new Point2D[4];
 		points[0] = new Point2D.Double(x1 - cX, y1 - cY);
@@ -1179,44 +1179,44 @@ public class DXF extends Input
 		points[3] = new Point2D.Double(x4 - cX, y4 - cY);
 		ni.newVar(NodeInst.TRACE, points);
 		ni.newVar(DXF_LAYER_KEY, layer.layerName);
-		io_dxfreadsolids++;
+		readSolids++;
 		return false;
 	}
 
-	private boolean io_dxfreadtextentity()
+	private boolean readTextEntity()
 		throws IOException
 	{
-		DXFLAYER layer = null;
+		DXFLayer layer = null;
 		String msg = null;
 		double x = 0, y = 0;
 		double height = 0, xAlign = 0;
-		boolean gotxa = false;
+		boolean gotXA = false;
 		for(;;)
 		{
-			if (io_dxfgetnextpair()) return true;
+			if (getNextPair()) return true;
 			switch (groupID)
 			{
-				case 8:  layer = io_dxfgetlayer(text);                 break;
+				case 8:  layer = getLayer(text);                       break;
 				case 10: x = scaleString(text);                        break;
 				case 20: y = scaleString(text);                        break;
 				case 40: height = scaleString(text);                   break;
-				case 11: xAlign = scaleString(text);   gotxa = true;   break;
+				case 11: xAlign = scaleString(text);   gotXA = true;   break;
 				case 1:  msg = text;                                   break;
 			}
 			if (groupID == 0)
 			{
-				io_dxfpushpair(groupID, text);
+				pushPair(groupID, text);
 				break;
 			}
 		}
-		double lx = x, hx = x;
-		double ly = y, hy = y;
-		if (gotxa)
+		double lX = x, hX = x;
+		double lY = y, hY = y;
+		if (gotXA)
 		{
-			lx = Math.min(x, xAlign);
-			hx = lx + Math.abs(xAlign-x) * 2;
-			ly = y;
-			hy = y + height;
+			lX = Math.min(x, xAlign);
+			hX = lX + Math.abs(xAlign-x) * 2;
+			lY = y;
+			hY = y + height;
 		} else
 		{
 			if (msg != null)
@@ -1224,14 +1224,14 @@ public class DXF extends Input
 				double h = 1;
 				EditWindow wnd = EditWindow.getCurrent();
 				if (wnd != null) h = wnd.getTextScreenSize(height);
-				lx = x;	hx = x + height * h;
-				ly = y;	hy = y + height;
+				lX = x;	hX = x + height * h;
+				lY = y;	hY = y + height;
 			}
 		}
-		if (!io_dxfacceptablelayer(layer)) return false;
+		if (!isAcceptableLayer(layer)) return false;
 		if (msg != null)
 		{
-			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double((lx+hx)/2, (ly+hy)/2), hx-lx, hy-ly, io_dxfcurcell);
+			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double((lX+hX)/2, (lY+hY)/2), hX-lX, hY-lY, curCell);
 			if (ni == null) return true;
 			Variable var = ni.newVar(Artwork.ART_MESSAGE, msg);
 			if (var != null)
@@ -1242,55 +1242,55 @@ public class DXF extends Input
 				td.setAbsSize(TextDescriptor.Size.TXTMAXPOINTS);
 			}
 			ni.newVar(DXF_LAYER_KEY, layer.layerName);
-			io_dxfreadtexts++;
+			readTexts++;
 		}
 		return false;
 	}
 
-	private boolean io_dxfread3dfaceentity()
+	private boolean read3DFaceEntity()
 		throws IOException
 	{
-		DXFLAYER layer = null;
+		DXFLayer layer = null;
 		double x1 = 0, y1 = 0, z1 = 0;
 		double x2 = 0, y2 = 0, z2 = 0;
 		double x3 = 0, y3 = 0, z3 = 0;
 		double x4 = 0, y4 = 0, z4 = 0;
 		for(;;)
 		{
-			if (io_dxfgetnextpair()) return true;
+			if (getNextPair()) return true;
 			switch (groupID)
 			{
-				case 8:  layer = io_dxfgetlayer(text);   break;
-				case 10: x1 = scaleString(text);         break;
-				case 20: y1 = scaleString(text);         break;
-				case 30: z1 = scaleString(text);         break;
+				case 8:  layer = getLayer(text);   break;
+				case 10: x1 = scaleString(text);   break;
+				case 20: y1 = scaleString(text);   break;
+				case 30: z1 = scaleString(text);   break;
 
-				case 11: x2 = scaleString(text);         break;
-				case 21: y2 = scaleString(text);         break;
-				case 31: z2 = scaleString(text);         break;
+				case 11: x2 = scaleString(text);   break;
+				case 21: y2 = scaleString(text);   break;
+				case 31: z2 = scaleString(text);   break;
 
-				case 12: x3 = scaleString(text);         break;
-				case 22: y3 = scaleString(text);         break;
-				case 32: z3 = scaleString(text);         break;
+				case 12: x3 = scaleString(text);   break;
+				case 22: y3 = scaleString(text);   break;
+				case 32: z3 = scaleString(text);   break;
 
-				case 13: x4 = scaleString(text);         break;
-				case 23: y4 = scaleString(text);         break;
-				case 33: z4 = scaleString(text);         break;
+				case 13: x4 = scaleString(text);   break;
+				case 23: y4 = scaleString(text);   break;
+				case 33: z4 = scaleString(text);   break;
 			}
 			if (groupID == 0)
 			{
-				io_dxfpushpair(groupID, text);
+				pushPair(groupID, text);
 				break;
 			}
 		}
-		if (!io_dxfacceptablelayer(layer)) return false;
-		double lx = Math.min(Math.min(x1, x2), Math.min(x3, x4));
-		double hx = Math.max(Math.max(x1, x2), Math.max(x3, x4));
-		double ly = Math.min(Math.min(y1, y2), Math.min(y3, y4));
-		double hy = Math.max(Math.max(y1, y2), Math.max(y3, y4));
-		double cX = (lx + hx) / 2;
-		double cY = (ly + hy) / 2;
-		NodeInst ni = NodeInst.makeInstance(Artwork.tech.closedPolygonNode, new Point2D.Double(cX, cY), hx-lx, hy-ly, io_dxfcurcell);
+		if (!isAcceptableLayer(layer)) return false;
+		double lX = Math.min(Math.min(x1, x2), Math.min(x3, x4));
+		double hX = Math.max(Math.max(x1, x2), Math.max(x3, x4));
+		double lY = Math.min(Math.min(y1, y2), Math.min(y3, y4));
+		double hY = Math.max(Math.max(y1, y2), Math.max(y3, y4));
+		double cX = (lX + hX) / 2;
+		double cY = (lY + hY) / 2;
+		NodeInst ni = NodeInst.makeInstance(Artwork.tech.closedPolygonNode, new Point2D.Double(cX, cY), hX-lX, hY-lY, curCell);
 		if (ni == null) return true;
 		Point2D [] points = new Point2D[4];
 		points[0] = new Point2D.Double(x1 - cX, y1 - cY);
@@ -1299,24 +1299,24 @@ public class DXF extends Input
 		points[3] = new Point2D.Double(x4 - cX, y4 - cY);
 		ni.newVar(NodeInst.TRACE, points);
 		ni.newVar(DXF_LAYER_KEY, layer.layerName);
-		io_dxfread3dfaces++;
+		read3DFaces++;
 		return false;
 	}
 
-	private void io_dxfignoreentity()
+	private void ignoreEntity()
 		throws IOException
 	{
 		for(;;)
 		{
-			if (io_dxfgetnextpair()) break;
+			if (getNextPair()) break;
 			if (groupID == 0) break;
 		}
-		io_dxfpushpair(groupID, text);
+		pushPair(groupID, text);
 	}
 
 	/****************************************** READING SUPPORT ******************************************/
 
-	private boolean io_dxfacceptablelayer(DXFLAYER layer)
+	private boolean isAcceptableLayer(DXFLayer layer)
 	{
 		if (IOTool.isDXFInputReadsAllLayers()) return true;
 		if (layer == null) return false;
@@ -1327,7 +1327,7 @@ public class DXF extends Input
 		return false;
 	}
 
-	private boolean io_dxfextractinsert(Cell onp, double x, double y, double xsca, double ysca, int rot, Cell np)
+	private boolean extractInsert(Cell onp, double x, double y, double xSca, double ySca, int rot, Cell np)
 	{
 		// rotate "rot*10" about point [(onp->lowx+onp->highx)/2+x, (onp->lowy+onp->highy)/2+y]
 		AffineTransform trans = NodeInst.pureRotate(rot*10, false, false);
@@ -1352,16 +1352,16 @@ public class DXF extends Input
 				return true;
 			}
 			if (ni.getProto() == Generic.tech.cellCenterNode) continue;
-			double sX = ni.getXSize() * xsca;
-			double sY = ni.getYSize() * ysca;
-			double cx = x + ni.getAnchorCenterX() * xsca;
-			double cy = y + ni.getAnchorCenterY() * ysca;
-			Point2D tPt = new Point2D.Double(cx, cy);
+			double sX = ni.getXSize() * xSca;
+			double sY = ni.getYSize() * ySca;
+			double cX = x + ni.getAnchorCenterX() * xSca;
+			double cY = y + ni.getAnchorCenterY() * ySca;
+			Point2D tPt = new Point2D.Double(cX, cY);
 			trans.transform(tPt, tPt);
 			if (ni.isXMirrored()) sX = -sX;
 			if (ni.isYMirrored()) sY = -sY;
-			NodeInst nni = NodeInst.makeInstance(ni.getProto(), tPt, sX, sY, np, (ni.getAngle()+rot*10)%3600, null, 0);
-			if (nni == null) return true;
+			NodeInst nNi = NodeInst.makeInstance(ni.getProto(), tPt, sX, sY, np, (ni.getAngle()+rot*10)%3600, null, 0);
+			if (nNi == null) return true;
 			if (ni.getProto() == Artwork.tech.closedPolygonNode || ni.getProto() == Artwork.tech.filledPolygonNode ||
 				ni.getProto() == Artwork.tech.openedPolygonNode || ni.getProto() == Artwork.tech.openedDashedPolygonNode)
 			{
@@ -1372,38 +1372,38 @@ public class DXF extends Input
 					int len = oldTrace.length;
 					Point2D [] newTrace = new Point2D[len];
 					for(int i=0; i<len; i++)
-						newTrace[i] = new Point2D.Double(oldTrace[i].getX() * xsca, oldTrace[i].getY() * ysca);
-					nni.newVar(NodeInst.TRACE, newTrace);
+						newTrace[i] = new Point2D.Double(oldTrace[i].getX() * xSca, oldTrace[i].getY() * ySca);
+					nNi.newVar(NodeInst.TRACE, newTrace);
 				}
 			} else if (ni.getProto() == Generic.tech.invisiblePinNode)
 			{
 				// copy text information
 				Variable var = ni.getVar(Artwork.ART_MESSAGE);
-				if (var != null) nni.newVar(Artwork.ART_MESSAGE, var.getObject());
+				if (var != null) nNi.newVar(Artwork.ART_MESSAGE, var.getObject());
 			} else if (ni.getProto() == Artwork.tech.circleNode || ni.getProto() == Artwork.tech.thickCircleNode)
 			{
 				// copy arc information
 				double [] curvature = ni.getArcDegrees();
-				nni.setArcDegrees(curvature[0], curvature[1]);
+				nNi.setArcDegrees(curvature[0], curvature[1]);
 			}
 
 			// copy other information
 			Variable var = ni.getVar(DXF_LAYER_KEY);
-			if (var != null) nni.newVar(DXF_LAYER_KEY, var.getObject());
+			if (var != null) nNi.newVar(DXF_LAYER_KEY, var.getObject());
 			var = ni.getVar(Artwork.ART_COLOR);
-			if (var != null) nni.newVar(Artwork.ART_COLOR, var.getObject());
+			if (var != null) nNi.newVar(Artwork.ART_COLOR, var.getObject());
 		}
 		return false;
 	}
 
-	private Cell io_dxfgetscaledcell(Cell onp, double xsca, double ysca)
+	private Cell getScaledCell(Cell onp, double xSca, double ySca)
 	{
-		String fviewname = "scaled" + xsca + "x" + ysca;
-		String sviewname = "s" + xsca + "x" + ysca;
-		View view = View.findView(fviewname);
+		String fViewName = "scaled" + xSca + "x" + ySca;
+		String sViewName = "s" + xSca + "x" + ySca;
+		View view = View.findView(fViewName);
 		if (view == null)
 		{
-			view = View.newInstance(fviewname, sviewname);
+			view = View.newInstance(fViewName, sViewName);
 			if (view == null) return null;
 		}
 
@@ -1412,8 +1412,8 @@ public class DXF extends Input
 		if (rightView != null) return rightView;
 
 		// not found: create it
-		String cellname = onp.getName() + "{" + sviewname + "}";
-		Cell np = Cell.makeInstance(onp.getLibrary(), cellname);
+		String cellName = onp.getName() + "{" + sViewName + "}";
+		Cell np = Cell.makeInstance(onp.getLibrary(), cellName);
 		if (np == null) return null;
 
 		for(Iterator it = onp.getNodes(); it.hasNext(); )
@@ -1424,9 +1424,9 @@ public class DXF extends Input
 				System.out.println("Cannot insert block '" + onp.describe() + "'...it has inserts in it");
 				return null;
 			}
-			NodeInst nni = NodeInst.makeInstance(ni.getProto(), ni.getAnchorCenter(),
-				ni.getXSizeWithMirror()*xsca, ni.getYSizeWithMirror()*ysca, np, ni.getAngle(), null, 0);
-			if (nni == null) return null;
+			NodeInst nNi = NodeInst.makeInstance(ni.getProto(), ni.getAnchorCenter(),
+				ni.getXSizeWithMirror()*xSca, ni.getYSizeWithMirror()*ySca, np, ni.getAngle(), null, 0);
+			if (nNi == null) return null;
 			if (ni.getProto() == Artwork.tech.closedPolygonNode || ni.getProto() == Artwork.tech.filledPolygonNode ||
 				ni.getProto() == Artwork.tech.openedPolygonNode || ni.getProto() == Artwork.tech.openedDashedPolygonNode)
 			{
@@ -1437,62 +1437,57 @@ public class DXF extends Input
 					int len = oldTrace.length;
 					Point2D [] newTrace = new Point2D[len];
 					for(int i=0; i<len; i++)
-						newTrace[i] = new Point2D.Double(oldTrace[i].getX() * xsca, oldTrace[i].getY() * ysca);
-					nni.newVar(NodeInst.TRACE, newTrace);
+						newTrace[i] = new Point2D.Double(oldTrace[i].getX() * xSca, oldTrace[i].getY() * ySca);
+					nNi.newVar(NodeInst.TRACE, newTrace);
 				}
 			} else if (ni.getProto() == Generic.tech.invisiblePinNode)
 			{
 				// copy text information
 				Variable var = ni.getVar(Artwork.ART_MESSAGE);
-				if (var != null) nni.newVar(Artwork.ART_MESSAGE, var.getObject());
+				if (var != null) nNi.newVar(Artwork.ART_MESSAGE, var.getObject());
 			} else if (ni.getProto() == Artwork.tech.circleNode || ni.getProto() == Artwork.tech.thickCircleNode)
 			{
 				// copy arc information
 				double [] curvature = ni.getArcDegrees();
-				nni.setArcDegrees(curvature[0], curvature[1]);
+				nNi.setArcDegrees(curvature[0], curvature[1]);
 			}
 
 			// copy layer information
 			Variable var = ni.getVar(DXF_LAYER_KEY);
-			if (var != null) nni.newVar(DXF_LAYER_KEY, var.getObject());
+			if (var != null) nNi.newVar(DXF_LAYER_KEY, var.getObject());
 		}
 		return np;
 	}
 
-	private DXFLAYER io_dxfgetlayer(String name)
+	private DXFLayer getLayer(String name)
 	{
-		for(DXFLAYER layer = io_dxffirstlayer; layer != null; layer = layer.next)
+		for(DXFLayer layer = firstLayer; layer != null; layer = layer.next)
 			if (name.equals(layer.layerName)) return layer;
 
 		// create a new one
-		DXFLAYER layer = new DXFLAYER();
+		DXFLayer layer = new DXFLayer();
 		layer.layerName = name;
 		layer.layerColor = -1;
 		layer.layerRed = 1.0;
 		layer.layerGreen = 1.0;
 		layer.layerBlue = 1.0;
-		layer.next = io_dxffirstlayer;
-		io_dxffirstlayer = layer;
+		layer.next = firstLayer;
+		firstLayer = layer;
 		return layer;
 	}
 
-	private void io_dxfclearlayers()
+	private void pushPair(int groupID, String text)
 	{
-		io_dxffirstlayer = null;
-	}
-
-	private void io_dxfpushpair(int groupID, String text)
-	{
-		io_dxfgroupid = groupID;
-		io_dxfline = text;
-		io_dxfpairvalid = true;
+		lastGroupID = groupID;
+		lastText = text;
+		lastPairValid = true;
 	}
 
 	/**
-	 * Method to examine the variable "IO_dxf_layer_names" on the artwork technology and obtain
+	 * Method to examine the layer names on the artwork technology and obtain
 	 * a list of acceptable layer names and numbers.
 	 */
-	private void io_dxfgetacceptablelayers()
+	private void getAcceptableLayers()
 	{
 		validLayerNames = new HashSet();
 		for(Iterator it = Artwork.tech.getLayers(); it.hasNext(); )
@@ -1516,7 +1511,7 @@ public class DXF extends Input
 	 * Method to convert a block name "name" into a valid Electric cell name (converts
 	 * bad characters).
 	 */
-	private String io_dxfblockname(String name)
+	private String makeBlockName(String name)
 	{
 		StringBuffer infstr = new StringBuffer();
 		for(int i=0; i<name.length(); i++)
@@ -1530,22 +1525,22 @@ public class DXF extends Input
 
 	/**
 	 * Method to set the conversion units between DXF files and real distance.
-	 * The value is stored in the global "io_dxfdispunit".
+	 * The value is stored in the global "dispUnit".
 	 */
-	private void io_dxfsetcurunits()
+	private void setCurUnits()
 	{
 		int units = IOTool.getDXFScale();
 		switch (units)
 		{
-			case -3: io_dxfdispunit = TextUtils.UnitScale.GIGA;   break;
-			case -2: io_dxfdispunit = TextUtils.UnitScale.MEGA;   break;
-			case -1: io_dxfdispunit = TextUtils.UnitScale.KILO;   break;
-			case  0: io_dxfdispunit = TextUtils.UnitScale.NONE;   break;
-			case  1: io_dxfdispunit = TextUtils.UnitScale.MILLI;  break;
-			case  2: io_dxfdispunit = TextUtils.UnitScale.MICRO;  break;
-			case  3: io_dxfdispunit = TextUtils.UnitScale.NANO;   break;
-			case  4: io_dxfdispunit = TextUtils.UnitScale.PICO;   break;
-			case  5: io_dxfdispunit = TextUtils.UnitScale.FEMTO;  break;
+			case -3: dispUnit = TextUtils.UnitScale.GIGA;   break;
+			case -2: dispUnit = TextUtils.UnitScale.MEGA;   break;
+			case -1: dispUnit = TextUtils.UnitScale.KILO;   break;
+			case  0: dispUnit = TextUtils.UnitScale.NONE;   break;
+			case  1: dispUnit = TextUtils.UnitScale.MILLI;  break;
+			case  2: dispUnit = TextUtils.UnitScale.MICRO;  break;
+			case  3: dispUnit = TextUtils.UnitScale.NANO;   break;
+			case  4: dispUnit = TextUtils.UnitScale.PICO;   break;
+			case  5: dispUnit = TextUtils.UnitScale.FEMTO;  break;
 		}
 	}
 }

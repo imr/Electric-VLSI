@@ -201,8 +201,8 @@ public class Input
 // 			}
 // 		}
 
-		// create a new library
-		lib = Library.newInstance(libName, fileURL);
+//		// create a new library
+//		lib = Library.newInstance(libName, fileURL);
 
 // 		// delete any former library with the same name
 // 		if (deleteThis != null) deleteThis.kill();
@@ -212,6 +212,7 @@ public class Input
         errorLogger = ErrorLogger.newInstance("File Import");
 		LibDirs.readLibDirs();
 
+		Library lib = null;
 		try {
 			Undo.changesQuiet(true);
 
@@ -222,6 +223,7 @@ public class Input
 			if (type == OpenFile.Type.CIF)
 			{
 				in = (Input)new CIF();
+				in.lib = Library.newInstance(libName, fileURL);
 				if (in.openTextInput(fileURL)) return null;
 			} else if (type == OpenFile.Type.DEF)
 			{
@@ -253,8 +255,12 @@ public class Input
 				return null;
 			}
 
+			// create a new library
+			in.lib = Library.newInstance(libName, fileURL);
+
 			// import the library
-			boolean error = in.importALibrary(lib);
+			boolean error = in.importALibrary(in.lib);
+			if (!error) lib = in.lib;
 			in.closeInput();
 
 		} finally {
