@@ -41,8 +41,7 @@ import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 
-import javax.swing.JLabel;
-import javax.swing.JPanel;
+import javax.swing.*;
 import javax.swing.border.BevelBorder;
 
 
@@ -60,9 +59,11 @@ public class StatusBar extends JPanel implements HighlightListener
 
 	public StatusBar(WindowFrame frame)
 	{
+		//super(new SpringLayout());
 		super(new GridLayout());
 
 		setBorder(new BevelBorder(BevelBorder.LOWERED));
+        //SpringLayout layout = (SpringLayout)this.getLayout();
 
 		//fillPosition = 0;
 		this.frame = frame;
@@ -71,6 +72,26 @@ public class StatusBar extends JPanel implements HighlightListener
 		addField(fieldTech = new JLabel(), 2);
 		fieldCoords = new JLabel();
 		if (User.isShowCursorCoordinates()) addField(fieldCoords, 3);
+
+		/*
+		//layout.putConstraint(SpringLayout.NORTH, fieldCoords, 10, SpringLayout.NORTH, this);
+		layout.putConstraint(SpringLayout.NORTH, fieldSelected, 10, SpringLayout.NORTH, this);
+		layout.putConstraint(SpringLayout.NORTH, fieldSize, 10, SpringLayout.NORTH, this);
+		layout.putConstraint(SpringLayout.NORTH, fieldTech, 10, SpringLayout.NORTH, this);
+		//layout.putConstraint(SpringLayout.SOUTH, fieldCoords, 5, SpringLayout.SOUTH, this);
+		layout.putConstraint(SpringLayout.SOUTH, fieldSelected, 5, SpringLayout.SOUTH, this);
+		layout.putConstraint(SpringLayout.SOUTH, fieldSize, 5, SpringLayout.SOUTH, this);
+		layout.putConstraint(SpringLayout.SOUTH, fieldTech, 5, SpringLayout.SOUTH, this);
+
+		//layout.putConstraint(SpringLayout.EAST, this, 5, SpringLayout.EAST, fieldCoords);
+        layout.putConstraint(SpringLayout.WEST, fieldSelected, 5, SpringLayout.WEST, this);
+		layout.putConstraint(SpringLayout.WEST, fieldSize, 5, SpringLayout.EAST, fieldSelected);
+		layout.putConstraint(SpringLayout.WEST, fieldTech, 5, SpringLayout.EAST, fieldSize);
+		layout.putConstraint(SpringLayout.WEST, fieldCoords, 5, SpringLayout.EAST, fieldTech);
+		*/
+
+		//SpringUtilities.makeCompactGrid(this, 1, getComponentCount(), 5,5,5,5);
+
 
         // add myself as listener for highlight changes
         Highlight.addHighlightListener(this);
@@ -186,8 +207,8 @@ public class StatusBar extends JPanel implements HighlightListener
 			{
 //				String width = Double.toString(cell.getBounds().getWidth());
 				Rectangle2D bounds = cell.getBounds();
-				sizeMsg = "SIZE: " + TextUtils.formatDouble(bounds.getWidth(),3) + "x" +
-                        TextUtils.formatDouble(bounds.getHeight(), 3);
+				sizeMsg = "SIZE: " + TextUtils.formatDouble(bounds.getWidth(),1) + "x" +
+                        TextUtils.formatDouble(bounds.getHeight(), 1);
 			}
 		}
 		fieldSize.setText(sizeMsg);

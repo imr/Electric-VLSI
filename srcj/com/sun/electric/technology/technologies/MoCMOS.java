@@ -1432,20 +1432,20 @@ public class MoCMOS extends Technology
 		padFrame_lay.setFactorySkillLayer("");				// Pad-Frame
 
 		// The layer height
-		metal1_lay.setFactory3DInfo(0, 17);					// Metal-1
-		metal2_lay.setFactory3DInfo(0, 19);					// Metal-2
-		metal3_lay.setFactory3DInfo(0, 21);					// Metal-3
-		metal4_lay.setFactory3DInfo(0, 23);					// Metal-4
-		metal5_lay.setFactory3DInfo(0, 25);					// Metal-5
-		metal6_lay.setFactory3DInfo(0, 27);					// Metal-6
-		poly1_lay.setFactory3DInfo(0, 15);					// Polysilicon-1
-		poly2_lay.setFactory3DInfo(0, 16);					// Polysilicon-2
-		pActive_lay.setFactory3DInfo(0, 13);				// P-Active
-		nActive_lay.setFactory3DInfo(0, 13);				// N-Active
-		pSelect_lay.setFactory3DInfo(0, 12);				// P-Select
-		nSelect_lay.setFactory3DInfo(0, 12);				// N-Select
-		pWell_lay.setFactory3DInfo(0, 11);					// P-Well
-		nWell_lay.setFactory3DInfo(0, 11);					// N-Well
+		metal1_lay.setFactory3DInfo(0.1, 17);					// Metal-1
+		metal2_lay.setFactory3DInfo(0.2, 19);					// Metal-2
+		metal3_lay.setFactory3DInfo(0.3, 21);					// Metal-3
+		metal4_lay.setFactory3DInfo(0.4, 23);					// Metal-4
+		metal5_lay.setFactory3DInfo(0.5, 25);					// Metal-5
+		metal6_lay.setFactory3DInfo(0.6, 27);					// Metal-6
+		poly1_lay.setFactory3DInfo(0.7, 15);					// Polysilicon-1
+		poly2_lay.setFactory3DInfo(0.8, 16);					// Polysilicon-2
+		pActive_lay.setFactory3DInfo(0.9, 13);				// P-Active
+		nActive_lay.setFactory3DInfo(1.0, 13);				// N-Active
+		pSelect_lay.setFactory3DInfo(0.1, 12);				// P-Select
+		nSelect_lay.setFactory3DInfo(0.2, 12);				// N-Select
+		pWell_lay.setFactory3DInfo(0.3, 11);					// P-Well
+		nWell_lay.setFactory3DInfo(0.4, 11);					// N-Well
 		polyCut_lay.setFactory3DInfo(2, 16);				// Poly-Cut
 		activeCut_lay.setFactory3DInfo(4, 15);				// Active-Cut
 		via1_lay.setFactory3DInfo(2, 18);					// Via-1

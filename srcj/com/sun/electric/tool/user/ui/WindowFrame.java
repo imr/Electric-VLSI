@@ -43,7 +43,6 @@ import java.util.List;
 
 import javax.swing.ImageIcon;
 import javax.swing.JInternalFrame;
-import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
@@ -134,7 +133,12 @@ public class WindowFrame
 	{
 		WindowFrame frame = new WindowFrame();
 
-		//WindowContent vWnd1 = new View3DWindow(cell, frame);
+		/*
+		WindowContent vWnd = new View3DWindow(cell, frame);
+		frame.buildWindowStructure((WindowContent)vWnd, cell, null);
+		setCurrentWindowFrame(frame);
+		frame.populateJFrame();
+         */
 
 		Class view3DClass;
 
@@ -157,7 +161,6 @@ public class WindowFrame
 
 			setCurrentWindowFrame(frame);
 			frame.populateJFrame();
-			//vWnd.fillScreen()
 		} catch (Exception e) {
             System.out.println("Can't open 3D View window: " + e.getMessage());
         }
