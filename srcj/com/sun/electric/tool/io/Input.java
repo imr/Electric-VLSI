@@ -166,6 +166,20 @@ public class Input
 			System.out.println("Unknown import type: " + type);
 			return null;
 		}
+
+		// RKao: Test for file existence BEFORE we create a new Library
+		in.filePath = fileName;
+		File file = new File(fileName);
+		in.fileLength = file.length(); 
+		try
+		{
+			in.fileInputStream = new FileInputStream(file);
+		} catch (FileNotFoundException e)
+		{
+			System.out.println("Could not find file: " + fileName);
+			if (topLevel) mainLibDirectory = null;
+			return null;
+		}
 		
 		if (lib == null)
 		{
@@ -180,24 +194,12 @@ public class Input
 				lib = Library.newInstance(n.getName(), fileName);
 			}
 		}
-
 		// add to the list of libraries read at once
 		if (topLevel) newLibraries.clear();
 		newLibraries.add(lib);
 
-		in.filePath = fileName;
 		in.lib = lib;
-		File file = new File(fileName);
-		in.fileLength = file.length(); 
-		try
-		{
-			in.fileInputStream = new FileInputStream(file);
-		} catch (FileNotFoundException e)
-		{
-			System.out.println("Could not find file " + fileName);
-			if (topLevel) mainLibDirectory = null;
-			return null;
-		}
+
 		BufferedInputStream bufStrm =
 		    new BufferedInputStream(in.fileInputStream, READ_BUFFER_SIZE);
 		in.dataInputStream = new DataInputStream(bufStrm);

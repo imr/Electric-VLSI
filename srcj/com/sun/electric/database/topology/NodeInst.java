@@ -650,7 +650,7 @@ public class NodeInst extends Geometric implements Instancable
 		this.angle = angle;
 
 		// fill in the geometry
-		updateGeometric();
+		Geometric();
 		return false;
 	}
 
@@ -713,7 +713,7 @@ public class NodeInst extends Geometric implements Instancable
 		this.angle += dRot;
 
 		// fill in the Geometric fields
-		updateGeometric();
+		Geometric();
 
 		// link back into the R-Tree
 		linkGeom(parent);
@@ -792,7 +792,7 @@ public class NodeInst extends Geometric implements Instancable
 	/**
 	 * Routine to recalculate the Geometric bounds for this NodeInst.
 	 */
-	void updateGeometric()
+	void Geometric()
 	{
 		if (sX == 0 && sY == 0)
 		{
@@ -927,14 +927,16 @@ public class NodeInst extends Geometric implements Instancable
 
 	/**
 	 * Routine to return a transformation that moves up the hierarchy.
-	 * Presuming that this NodeInst is a Cell instance, the transformation goes
-	 * from the space of that Cell to the space of this NodeInst's parent Cell.
-	 * The transformation includes the rotation of this NodeInst.
+	 * Presuming that this NodeInst is a Cell instance, the
+	 * transformation goes from the space of that Cell to the space of
+	 * this NodeInst's parent Cell.  The transformation includes the
+	 * rotation of this NodeInst.
 	 * @return a transformation that moves up the hierarchy.
 	 */
 	public AffineTransform transformOut()
 	{
-		// to transform out of this node instance, first translate inner coordinates to outer
+		// to transform out of this node instance, first translate
+		// inner coordinates to outer
 		Cell lowerCell = (Cell)protoType;
 		Rectangle2D bounds = lowerCell.getBounds();
 		double dx = getCenterX() - bounds.getCenterX();
@@ -972,25 +974,26 @@ public class NodeInst extends Geometric implements Instancable
 		}
 		transform.rotate(angle*Math.PI/1800, getCenterX(), getCenterY());
 		transform.translate(dx, dy);
-        /*
-		System.out.println("rkTransformOut: {\n"
-		                   + "    lowerCellBounds: " + bounds + "\n"
-						   + "    (cX, cY): " + getCenterX() + " " + getCenterY() + "\n"
-						   + "    angle: " + (angle/10.0) + "\n"
-						   + "    (sX, sY): " + sX + " " + sY + "\n"
-						   + "    xform: " + transform + "\n"
-						   + "}\n");
-         */
+//		System.out.println("rkTransformOut: {\n"
+//		                   + "    lowerCellBounds: " + bounds + "\n"
+//						   + "    (cX, cY): " + cX + " " + cY + "\n"
+//						   + "    angle: " + (angle/10.0) + "\n"
+//						   + "    (sX, sY): " + sX + " " + sY + "\n"
+//						   + "    xform: " + transform + "\n"
+//						   + "}\n");
 		return transform;
 	}
 
 	/**
-	 * Routine to return a transformation that moves up the hierarchy, combined with a previous transformation.
-	 * Presuming that this NodeInst is a Cell instance, the transformation goes
-	 * from the space of that Cell to the space of this NodeInst's parent Cell.
+	 * Routine to return a transformation that moves up the hierarchy,
+	 * combined with a previous transformation.  Presuming that this
+	 * NodeInst is a Cell instance, the transformation goes from the
+	 * space of that Cell to the space of this NodeInst's parent Cell.
 	 * The transformation includes the rotation of this NodeInst.
-	 * @param prevTransform the previous transformation to the NodeInst's Cell.
-	 * @return a transformation that moves up the hierarchy, including the previous transformation.
+	 * @param prevTransform the previous transformation to the
+	 * NodeInst's Cell.
+	 * @return a transformation that moves up the hierarchy, including
+	 * the previous transformation.
 	 */
 	public AffineTransform transformOut(AffineTransform prevTransform)
 	{
@@ -1010,7 +1013,8 @@ public class NodeInst extends Geometric implements Instancable
 	 */
 	public AffineTransform translateOut()
 	{
-		// to transform out of this node instance, first translate inner coordinates to outer
+		// to transform out of this node instance, first translate
+		// inner coordinates to outer
 		Cell lowerCell = (Cell)protoType;
 		Rectangle2D bounds = lowerCell.getBounds();
 		double dx = getCenterX() - bounds.getCenterX();
@@ -1021,13 +1025,15 @@ public class NodeInst extends Geometric implements Instancable
 	}
 
 	/**
-	 * Routine to return a transformation that translates up the hierarchy, combined with a previous transformation.
-	 * Presuming that this NodeInst is a Cell instance, the transformation goes
-	 * from the space of that Cell to the space of this NodeInst's parent Cell.
-	 * However, it does not account for the rotation of this NodeInst...it only
-	 * translates from one space to another.
+	 * Routine to return a transformation that translates up the
+	 * hierarchy, combined with a previous transformation.  Presuming
+	 * that this NodeInst is a Cell instance, the transformation goes
+	 * from the space of that Cell to the space of this NodeInst's
+	 * parent Cell.  However, it does not account for the rotation of
+	 * this NodeInst...it only translates from one space to another.
 	 * @param prevTransform the previous transformation to the NodeInst's Cell.
-	 * @return a transformation that translates up the hierarchy, including the previous transformation.
+	 * @return a transformation that translates up the hierarchy,
+	 * including the previous transformation.
 	 */
 	public AffineTransform translateOut(AffineTransform prevTransform)
 	{
@@ -1046,8 +1052,10 @@ public class NodeInst extends Geometric implements Instancable
 	 * @param angle the amount to rotate (in tenth-degrees).
 	 * @param cX the center X coordinate about which to rotate.
 	 * @param cY the center Y coordinate about which to rotate.
-	 * @param sX the scale in X (negative to flip the X coordinate, or flip ABOUT the Y axis).
-	 * @param sY the scale in Y (negative to flip the Y coordinate, or flip ABOUT the X axis).
+	 * @param sX the scale in X (negative to flip the X coordinate, or
+	 * flip ABOUT the Y axis).
+	 * @param sY the scale in Y (negative to flip the Y coordinate, or
+	 * flip ABOUT the X axis).
 	 * @return a transformation that rotates about that point.
 	 */
 	public static AffineTransform rotateAbout(int angle, double cX, double cY, double sX, double sY)
@@ -1072,8 +1080,10 @@ public class NodeInst extends Geometric implements Instancable
 	/**
 	 * Routine to return a transformation that rotates an object.
 	 * @param angle the amount to rotate (in tenth-degrees).
-	 * @param sX the scale in X (negative to flip the X coordinate, or flip ABOUT the Y axis).
-	 * @param sY the scale in Y (negative to flip the Y coordinate, or flip ABOUT the X axis).
+	 * @param sX the scale in X (negative to flip the X coordinate, or
+	 * flip ABOUT the Y axis).
+	 * @param sY the scale in Y (negative to flip the Y coordinate, or
+	 * flip ABOUT the X axis).
 	 * @return a transformation that rotates by this amount.
 	 */
 	public static AffineTransform pureRotate(int angle, double sX, double sY)
@@ -1089,7 +1099,8 @@ public class NodeInst extends Geometric implements Instancable
 
 	/**
 	 * Routine to return a transformation that rotates this NodeInst.
-	 * It transforms points on this NodeInst to account for the NodeInst's rotation.
+	 * It transforms points on this NodeInst to account for the
+	 * NodeInst's rotation.
 	 * @return a transformation that rotates this NodeInst.
 	 * If this NodeInst is not rotated, the returned transformation is identity.
 	 */
@@ -1099,11 +1110,13 @@ public class NodeInst extends Geometric implements Instancable
 	}
 
 	/**
-	 * Routine to return a transformation that rotates this NodeInst, combined with a previous transformation.
-	 * It transforms points on this NodeInst to account for the NodeInst's rotation.
+	 * Routine to return a transformation that rotates this NodeInst,
+	 * combined with a previous transformation.  It transforms points
+	 * on this NodeInst to account for the NodeInst's rotation.
 	 * @param prevTransform the previous transformation to be applied.
-	 * @return a transformation that rotates this NodeInst, combined with a previous transformation..
-	 * If this NodeInst is not rotated, the returned transformation is identity.
+	 * @return a transformation that rotates this NodeInst, combined
+	 * with a previous transformation..  If this NodeInst is not
+	 * rotated, the returned transformation is identity.
 	 */
 	public AffineTransform rotateOut(AffineTransform prevTransform)
 	{
@@ -1117,10 +1130,12 @@ public class NodeInst extends Geometric implements Instancable
 	}
 
 	/**
-	 * Routine to return the lower-left corner of this NodeInst.
-	 * The corner considers both the highlight offset and the rotation, so the
-	 * coordinate is that of the lower-left valid part, as placed in the database.
-	 * @return a Point with the location of this NodeInst's lower-left corner.
+	 * Routine to return the lower-left corner of this NodeInst.  The
+	 * corner considers both the highlight offset and the rotation, so
+	 * the coordinate is that of the lower-left valid part, as placed
+	 * in the database.
+	 * @return a Point with the location of this NodeInst's lower-left
+	 * corner.
 	 */
 	public Point2D getLowLeft()
 	{
@@ -1143,7 +1158,8 @@ public class NodeInst extends Geometric implements Instancable
 	}
 
 	/**
-	 * Routine to return a Poly that describes the location of a port on this NodeInst.
+	 * Routine to return a Poly that describes the location of a port
+	 * on this NodeInst.
 	 * @param thePort the port on this NodeInst.
 	 * @return a Poly that describes the location of the Export.
 	 * The Poly is transformed to account for rotation on this NodeInst.
@@ -1172,10 +1188,12 @@ public class NodeInst extends Geometric implements Instancable
 
 	/**
 	 * Routine to return the "outline" information on this NodeInst.
-	 * Outline information is a set of coordinate points that further refines the NodeInst description.
-	 * It is typically used in Artwork primitives to give them a precise shape.
-	 * It is also used by pure-layer nodes in all layout technologies to allow them to take any shape.
-	 * It is even used by many MOS transistors to allow a precise gate path to be specified.
+	 * Outline information is a set of coordinate points that further
+	 * refines the NodeInst description.  It is typically used in
+	 * Artwork primitives to give them a precise shape.  It is also
+	 * used by pure-layer nodes in all layout technologies to allow
+	 * them to take any shape.  It is even used by many MOS
+	 * transistors to allow a precise gate path to be specified.
 	 * @return an array of Floats, organized as X/Y/X/Y.
 	 */
 	public Float [] getTrace()
@@ -1235,9 +1253,11 @@ public class NodeInst extends Geometric implements Instancable
 	}
 
 	/**
-	 * Routine to return the Portinst on this NodeInst with a given prototype.
+	 * Routine to return the Portinst on this NodeInst with a given
+	 * prototype.
 	 * @param pp the PortProto to find.
-	 * @return the selected PortInst.  If the PortProto is not found, return null.
+	 * @return the selected PortInst.  If the PortProto is not found,
+	 * return null.
 	 */
 	public PortInst getPortInstFromProto(PortProto pp)
 	{
@@ -1267,7 +1287,7 @@ public class NodeInst extends Geometric implements Instancable
 	public void addExport(Export e)
 	{
 		exports.add(e);
-		updateGeometric();
+		Geometric();
 	}
 
 	/**
@@ -1281,7 +1301,7 @@ public class NodeInst extends Geometric implements Instancable
 			throw new RuntimeException("Tried to remove a non-existant export");
 		}
 		exports.remove(e);
-		updateGeometric();
+		Geometric();
 	}
 
 	/**
@@ -1472,7 +1492,7 @@ public class NodeInst extends Geometric implements Instancable
 		connections.add(c);
 		NodeInst ni = c.getPortInst().getNodeInst();
 		ni.computeWipeState();
-		updateGeometric();
+		Geometric();
 	}
 
 	/**
@@ -1484,7 +1504,7 @@ public class NodeInst extends Geometric implements Instancable
 		connections.remove(c);
 		NodeInst ni = c.getPortInst().getNodeInst();
 		ni.computeWipeState();
-		updateGeometric();
+		Geometric();
 	}
 
 	/**
@@ -1963,42 +1983,6 @@ public class NodeInst extends Geometric implements Instancable
 	 */
 	public boolean isYMirrored() { return sY < 0; }
 
-	/** Same as newInst except it takes width and height instead of
-	 * scaleX and scaleY. <p> Width and height are in Lambda units. <p>
-	 * If width or height is 0 then use the default width or height.
-	 * <p> Note: since Cells can only be scaled by either 1 or -1, it's
-	 * more convenient to use <code>newInst</code> for Cells
-	 **/
-//	public NodeInst newInstWH(
-//		double width,
-//		double height,
-//		double x,
-//		double y,
-//		double angle,
-//		Cell parent)
-//	{
-//		error(this instanceof Cell,
-//			"newInstWH only handles primitiveNodes. " + "use newInst instead");
-//		if (sizeOffset.lx != sizeOffset.hx || sizeOffset.ly != sizeOffset.hy)
-//		{
-//			System.out.println("in newInstWH: " + sizeOffset);
-//			error(true, "newInstWH.init: unimplemented: asymmetric offsets");
-//		}
-//
-//		int w = lambdaToBase(width), h = lambdaToBase(height);
-//
-//		ElectricPosition ep =
-//			joseToElecPosition(
-//				hideInvisWidToScale(w),
-//				hideInvisHeiToScale(h),
-//				lambdaToBase(x),
-//				lambdaToBase(y),
-//				angle,
-//				parent);
-//
-//		return Electric.newNodeInst(this.getAddr(), ep.lx, ep.ly, ep.hx, ep.hy, ep.transpose, ep.angle, parent.getAddr());
-//	}
-
 	/**
 	 * Temporary for testing the HierarchyEnumerator.
 	 * 
@@ -2130,7 +2114,36 @@ public class NodeInst extends Geometric implements Instancable
 							+ "    dy: " + centY + "\n"
 							+ "}\n");
 
-		modifyInstance(centX-getCenterX(), centY-getCenterY(), sizeX-sX, sizeY-sY, 
-		               (int)Math.round(newAngle*10)-angle);
+		modifyInstance(centX-getCenterX(), centY-getCenterY(), sizeX-sX,
+					   sizeY-sY, (int)Math.round(newAngle*10)-angle);
+	}
+
+	/**
+	 * Return the Essential Bounds of this NodeInst.
+	 *
+	 * <p>If this is a NodeInst of a Cell, and if that Cell has
+	 * Essential Bounds, then map that Cell's Essential Bounds into
+	 * the coordinate space of the Cell that contains this NodeInst,
+	 * and return the Rectangle2D that contains those
+	 * bounds. Otherwise return null.
+	 * @return the Rectangle2D containing the essential bounds or null
+	 * if the essential bounds don't exist.
+	 */
+	public Rectangle2D findEssentialBounds() 
+	{
+		NodeProto np = getProto();
+		if (!(np instanceof Cell)) return null;
+		Rectangle2D eb = ((Cell)np).findEssentialBounds();
+		if (eb==null)  return null;
+		AffineTransform xForm = translateOut();
+		Point2D ll = new Point2D.Double(eb.getMinX(), eb.getMinY());
+		ll = xForm.transform(ll, null);
+		Point2D ur = new Point2D.Double(eb.getMaxX(), eb.getMaxY());
+		ur = xForm.transform(ur, null);
+		double minX = Math.min(ll.getX(), ur.getX());
+		double minY = Math.min(ll.getY(), ur.getY());
+		double maxX = Math.max(ll.getX(), ur.getX());
+		double maxY = Math.max(ll.getY(), ur.getY());
+		return new Rectangle2D.Double(minX, minY, maxX-minX, maxY-minY);
 	}
 }

@@ -1087,7 +1087,7 @@ public class Cell extends NodeProto
 	 * @return the bounding area of the essential bounds.
 	 * Returns null if an essential bounds cannot be determined.
 	 */
-	Rectangle2D findEssentialBounds()
+	public Rectangle2D findEssentialBounds()
 	{
 		if (essenBounds.size() < 2)
 			return null;
