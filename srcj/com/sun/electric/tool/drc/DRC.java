@@ -713,28 +713,28 @@ public class DRC extends Listener
 	 * @param cell the cell to query.
 	 * @return the date of the last successful DRC of that Cell.
 	 */
-	public static Date getLastDRCDate(Cell cell)
-	{
-		Variable varDate = cell.getVar(DRCRules.LAST_GOOD_DRC, Integer[].class);
-		if (varDate == null) return null;
-		Integer [] lastDRCDateAsInts = (Integer [])varDate.getObject();
-		long lastDRCDateInSecondsHigh = lastDRCDateAsInts[0].intValue();
-		long lastDRCDateInSecondsLow = lastDRCDateAsInts[1].intValue();
-		long lastDRCDateInSeconds = (lastDRCDateInSecondsHigh << 32) | (lastDRCDateInSecondsLow & 0xFFFFFFFFL);
-		Date lastDRCDate = new Date(lastDRCDateInSeconds);
-		return lastDRCDate;
-	}
-	/**
-	 * Method to set the date of the last successful DRC of a given Cell.
-	 * @param cell the cell to modify.
-	 * @param date the date of the last successful DRC of that Cell.
-	 */
-	public static void setLastDRCDate(Cell cell, Date date)
-	{
-		long iVal = date.getTime();
-		Integer [] dateArray = new Integer[2];
-		dateArray[0] = new Integer((int)(iVal >> 32));
-		dateArray[1] = new Integer((int)(iVal & 0xFFFFFFFF));
-		cell.newVar(DRCRules.LAST_GOOD_DRC, dateArray);
-	}
+//	public static Date getLastDRCDate(Cell cell)
+//	{
+//		Variable varDate = cell.getVar(DRCRules.LAST_GOOD_DRC, Integer[].class);
+//		if (varDate == null) return null;
+//		Integer [] lastDRCDateAsInts = (Integer [])varDate.getObject();
+//		long lastDRCDateInSecondsHigh = lastDRCDateAsInts[0].intValue();
+//		long lastDRCDateInSecondsLow = lastDRCDateAsInts[1].intValue();
+//		long lastDRCDateInSeconds = (lastDRCDateInSecondsHigh << 32) | (lastDRCDateInSecondsLow & 0xFFFFFFFFL);
+//		Date lastDRCDate = new Date(lastDRCDateInSeconds);
+//		return lastDRCDate;
+//	}
+//	/**
+//	 * Method to set the date of the last successful DRC of a given Cell.
+//	 * @param cell the cell to modify.
+//	 * @param date the date of the last successful DRC of that Cell.
+//	 */
+//	public static void setLastDRCDate(Cell cell, Date date)
+//	{
+//		long iVal = date.getTime();
+//		Integer [] dateArray = new Integer[2];
+//		dateArray[0] = new Integer((int)(iVal >> 32));
+//		dateArray[1] = new Integer((int)(iVal & 0xFFFFFFFF));
+//		cell.newVar(DRCRules.LAST_GOOD_DRC, dateArray);
+//	}
 }

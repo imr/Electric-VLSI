@@ -134,6 +134,8 @@ public class Quick
 	private HashMap minAreaLayerMap = new HashMap();    // For minimum area checking
 	private HashMap enclosedAreaLayerMap = new HashMap();    // For enclosed area checking
 	private DRC.CheckDRCLayoutJob job; // Reference to running job
+	private HashMap cellsMap = new HashMap(); // for cell caching
+    private HashMap nodesMap = new HashMap(); // for node caching
 
 	public Quick(DRC.CheckDRCLayoutJob job)
 	{
@@ -177,8 +179,8 @@ public class Quick
 	/** total errors found in all threads. */					private int totalMsgFound;
 	/** a NodeInst that is too tiny for its connection. */		private NodeInst tinyNodeInst;
 	/** the other Geometric in "tiny" errors. */				private Geometric tinyGeometric;
-	/** for tracking the time of good DRC. */					private HashMap goodDRCDate = new HashMap();
-	/** for tracking the time of good DRC. */					private boolean haveGoodDRCDate;
+	/** for tracking the time of good DRC. */					//private HashMap goodDRCDate = new HashMap();
+	/** for tracking the time of good DRC. */					//private boolean haveGoodDRCDate;
 	/** for logging errors */                                   private ErrorLogger errorLogger;
 	/** for logging incremental errors */                       private static ErrorLogger errorLoggerIncremental = null;
 	/** Top cell for DRC */                                     private Cell topCell;
@@ -249,6 +251,9 @@ public class Quick
 	    // determine if min area must be checked (if any layer got valid data)
 	    minAreaLayerMap.clear();
 	    enclosedAreaLayerMap.clear();
+	    cellsMap.clear();
+	    nodesMap.clear();
+
 	    // No incremental neither per Cell
 	    if (!DRC.isIgnoreAreaChecking() && !onlyFirstError)
 	    {
@@ -363,7 +368,7 @@ public class Quick
 		accumulateExclusion(cell, DBMath.MATID);
 
 		// now do the DRC
-		haveGoodDRCDate = false;
+		//haveGoodDRCDate = false;
 		errorLogger = null;
         int logsFound = 0;
 		if (count == 0)
@@ -396,39 +401,39 @@ public class Quick
             logsFound = errorLogger.getNumLogs() - logsFound;
         }
 
-		if (!Main.getDebug() && haveGoodDRCDate && count == 0)
-		{
-			// some cells were sucessfully checked: save that information in the database
-			SaveDRCDates job = new SaveDRCDates(goodDRCDate);
-		}
+//		if (!Main.getDebug() && haveGoodDRCDate && count == 0)
+//		{
+//			// some cells were sucessfully checked: save that information in the database
+//			SaveDRCDates job = new SaveDRCDates(goodDRCDate);
+//		}
         return logsFound;
 	}
 
 	/**
 	 * Class to save good DRC dates in a new thread.
 	 */
-	private static class SaveDRCDates extends Job
-	{
-		HashMap goodDRCDate;
-
-		protected SaveDRCDates(HashMap goodDRCDate)
-		{
-			super("Remember DRC Successes", DRC.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.goodDRCDate = goodDRCDate;
-			startJob();
-		}
-
-		public boolean doIt()
-		{
-			for(Iterator it = goodDRCDate.keySet().iterator(); it.hasNext(); )
-			{
-				Cell cell = (Cell)it.next();
-				Date now = (Date)goodDRCDate.get(cell);
-				DRC.setLastDRCDate(cell, now);
-			}
-			return true;
-		}
-	}
+//	private static class SaveDRCDates extends Job
+//	{
+//		HashMap goodDRCDate;
+//
+//		protected SaveDRCDates(HashMap goodDRCDate)
+//		{
+//			super("Remember DRC Successes", DRC.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+//			this.goodDRCDate = goodDRCDate;
+//			startJob();
+//		}
+//
+//		public boolean doIt()
+//		{
+//			for(Iterator it = goodDRCDate.keySet().iterator(); it.hasNext(); )
+//			{
+//				Cell cell = (Cell)it.next();
+//				Date now = (Date)goodDRCDate.get(cell);
+//				DRC.setLastDRCDate(cell, now);
+//			}
+//			return true;
+//		}
+//	}
 
 	/*************************** QUICK DRC CELL EXAMINATION ***************************/
 
@@ -441,6 +446,15 @@ public class Quick
 		// Job aborted or scheduled for abort
 		if (job != null && job.checkAbort()) return -1;
 
+		if (Main.LOCALDEBUGFLAG)
+		{
+		if (cellsMap.get(cell) != null)
+		{
+			System.out.println("Done already cell " + cell.getName());
+			return (0);
+		}
+		}
+
 		// Previous # of errors/warnings
 		int prevErrors = 0;
 		int prevWarns = 0;
@@ -450,6 +464,7 @@ public class Quick
 			prevWarns = errorLogger.getNumWarnings();
 		}
 
+		cellsMap.put(cell, cell);
 		// first check all subcells
 		boolean allSubCellsStillOK = true;
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
@@ -481,7 +496,8 @@ public class Quick
 			CheckInst ci = (CheckInst)checkInsts.get(ni);
 			int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
 			int retval = checkThisCell((Cell)np, localIndex, subBounds);
-			if (retval < 0) return -1;
+			if (retval < 0)
+				return -1;
 			if (retval > 0) allSubCellsStillOK = false;
 		}
 
@@ -490,15 +506,15 @@ public class Quick
 		cp.cellChecked = true;
 
 		// if the cell hasn't changed since the last good check, stop now
-		if (allSubCellsStillOK)
-		{
-			Date lastGoodDate = DRC.getLastDRCDate(cell);
-			if (lastGoodDate != null)
-			{
-				Date lastChangeDate = cell.getRevisionDate();
-				if (lastGoodDate.after(lastChangeDate)) return 0;
-			}
-		}
+//		if (allSubCellsStillOK)
+//		{
+//			Date lastGoodDate = DRC.getLastDRCDate(cell);
+//			if (lastGoodDate != null)
+//			{
+//				Date lastChangeDate = cell.getRevisionDate();
+//				if (lastGoodDate.after(lastChangeDate)) return 0;
+//			}
+//		}
 
 		// announce progress
 		System.out.println("Checking cell " + cell.describe());
@@ -547,8 +563,8 @@ public class Quick
 			int localWarnings = errorLogger.getNumWarnings() - prevWarns;
 			if (localErrors == 0 &&  localWarnings == 0)
 			{
-				goodDRCDate.put(cell, new Date());
-				haveGoodDRCDate = true;
+				//goodDRCDate.put(cell, new Date());
+				//haveGoodDRCDate = true;
 				System.out.println("   No errors/warnings found");
 			} else
 			{
@@ -573,6 +589,17 @@ public class Quick
 		NodeProto np = ni.getProto();
 		Technology tech = np.getTechnology();
 		AffineTransform trans = ni.rotateOut();
+
+		if (Main.LOCALDEBUGFLAG)
+		{
+		if (nodesMap.get(ni) != null)
+		{
+			System.out.println("Done already node " + ni.getName());
+			return (false);
+		}
+
+		nodesMap.put(ni, ni);
+		}
 
 		// Skipping special nodes
 		if (NodeInst.isSpecialNode(ni)) return false; // Oct 5;
@@ -662,6 +689,17 @@ public class Quick
 		Network net = cp.netlist.getNetwork(ai, 0);
 		if (net == null) return false;
 		Integer [] netNumbers = (Integer [])networkLists.get(net);
+
+		if (Main.LOCALDEBUGFLAG)
+		{
+			if (nodesMap.get(ai) != null)
+			{
+				System.out.println("Done already arc " + ai.getName());
+				return (false);
+			}
+
+			nodesMap.put(ai, ai);
+		}
 
 		// get all of the polygons on this arc
 		Technology tech = ai.getProto().getTechnology();
@@ -1435,7 +1473,7 @@ public class Quick
 					return (false);
 				}
 				*/
-				
+
 				// see if the notch is filled
 				boolean newR = lookForCrossPolygons(geom1, poly1, geom2, poly2, layer1, cell, overlap);
 				if (Main.LOCALDEBUGFLAG)
@@ -2161,47 +2199,39 @@ public class Quick
 		if (minAreaLayerMap.isEmpty() && enclosedAreaLayerMap.isEmpty())
 			return false;
 
+		// Select/well regions
 		GeometryHandler	selectMerge = new PolyQTree(cell.getBounds());
+		GeometryHandler	notExportedMerge = new PolyQTree(cell.getBounds());
 		HashMap notExportedNodes = new HashMap();
+		HashMap checkedNodes = new HashMap();
 
 		// Get merged areas. Only valid for layers that have connections (metals/polys). No valid for NP/PP.A.1 rule
 		for(Iterator netIt = cp.netlist.getNetworks(); netIt.hasNext(); )
 		{
 			Network net = (Network)netIt.next();
-			QuickAreaEnumerator quickArea = new QuickAreaEnumerator(net, selectMerge, notExportedNodes);
+			QuickAreaEnumerator quickArea = new QuickAreaEnumerator(net, selectMerge, notExportedNodes, checkedNodes);
 			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, cp.netlist, quickArea);
 
 			// Job aborted
 			if (job != null && job.checkAbort()) return true;
 
-			for(Iterator it = quickArea.metalMerge.getKeyIterator(); it.hasNext(); )
+			for(Iterator it = quickArea.mainMerge.getKeyIterator(); it.hasNext(); )
 			{
 				Layer layer = (Layer)it.next();
-				boolean localError = checkMinAreaLayer(quickArea.metalMerge, cell, layer);
+				boolean localError = checkMinAreaLayer(quickArea.mainMerge, cell, layer);
 				if (!errorFound) errorFound = localError;
 			}
 		}
 
 		// Checking nodes not exported down in the hierarchy. Probably good enought not to collect networks first
-		for(Iterator niIt = notExportedNodes.keySet().iterator(); niIt.hasNext(); )
+		QuickAreaEnumerator quickArea = new QuickAreaEnumerator(notExportedNodes, checkedNodes);
+		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, cp.netlist, quickArea);
+		// Non exported nodes
+		for(Iterator it = quickArea.mainMerge.getKeyIterator(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)niIt.next();
-			for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
-			{
-				PortInst pi = (PortInst)pIt.next();
-				Cell parentCell = ni.getParent();
-				Netlist parentNetlist = parentCell.getNetlist(false);
-				Network net = parentNetlist.getNetwork(pi);
-				QuickAreaEnumerator quickArea = new QuickAreaEnumerator(net, selectMerge, null);
-				HierarchyEnumerator.enumerateCell(parentCell, VarContext.globalContext, parentNetlist, quickArea);
-
-				for(Iterator it = quickArea.metalMerge.getKeyIterator(); it.hasNext(); )
-				{
-					Layer layer = (Layer)it.next();
-					boolean localError = checkMinAreaLayer(quickArea.metalMerge, parentCell, layer);
-					if (!errorFound) errorFound = localError;
-				}
-			}
+			Layer layer = (Layer)it.next();
+			boolean localError = checkMinAreaLayer(quickArea.mainMerge, cell, layer);
+			if (!errorFound) errorFound = localError;
 		}
 
 		// Special cases for select areas. You can't evaluate based on networks
@@ -2225,7 +2255,6 @@ public class Quick
 		NodeProto np = ni.getProto();
 		if (np instanceof Cell) return false;
 		PrimitiveNode pnp = (PrimitiveNode)np;
-		Technology tech = pnp.getTechnology();
 		if (pnp.getSpecialType() != PrimitiveNode.MULTICUT) return false;
 		double [] specialValues = pnp.getSpecialValues();
 		Technology.MultiCutData mcd = new Technology.MultiCutData(ni, specialValues);
@@ -2400,7 +2429,7 @@ public class Quick
 		// compute bounds for searching inside cells
 		double flx = Math.min(pt1.getX(), pt2.getX());   double fhx = Math.max(pt1.getX(), pt2.getX());
 		double fly = Math.min(pt1.getY(), pt2.getY());   double fhy = Math.max(pt1.getY(), pt2.getY());
-		Rectangle2D bounds = new Rectangle2D.Double(flx, fly, fhx-flx, fhy-fly);
+		Rectangle2D bounds = new Rectangle2D.Double(flx, fly, DBMath.round(fhx-flx), DBMath.round(fhy-fly));
 
 		// search the cell for geometry that fills the notch
 		boolean [] pointsFound = new boolean[2];
@@ -2430,6 +2459,7 @@ public class Quick
 			if (g instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)g;
+				if (NodeInst.isSpecialNode(ni)) continue; // Nov 16, no need for checking pins or other special nodes;
 				if (ni.getProto() instanceof Cell)
 				{
 					// compute bounding area inside of sub-cell
@@ -2470,7 +2500,6 @@ public class Quick
 					boolean newR = (j == pointsFound.length);
 					if (newR)
                     {
-                        if (skip) System.out.println("This case in lookForLayer node");
 						return true;
                     }
                     // No need of checking rest of the layers?
@@ -2494,7 +2523,6 @@ public class Quick
 					boolean newR = (j == pointsFound.length);
 					if (newR)
                     {
-                        if (skip) System.out.println("This case in lookForLayer arc");
 						return true;
                     }
                     // No need of checking rest of the layers
@@ -2505,7 +2533,6 @@ public class Quick
 			for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
             if (j == pointsFound.length)
             {
-                if (skip) System.out.println("This case in lookForLayer final");
                 System.out.println("When?");
                 return true;
             }
@@ -2531,17 +2558,24 @@ public class Quick
 		for(Iterator it = cell.searchIterator(bounds); it.hasNext(); )
 		{
 			Geometric g = (Geometric)it.next();
+
+			if (g == geo1 || g == geo2)
+			{
+				continue;
+				//System.out.println("Skip in lookForLayerNew");
+			}
+
 			// I can't skip geometries to exclude from the search
 			if (g instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)g;
+				if (NodeInst.isSpecialNode(ni)) continue; // Nov 16, no need for checking pins or other special nodes;
 				if (ni.getProto() instanceof Cell)
 				{
 					// compute bounding area inside of sub-cell
 					AffineTransform rotI = ni.rotateIn();
 					AffineTransform transI = ni.translateIn();
 					rotI.preConcatenate(transI);
-					//Rectangle2D newBounds = new Rectangle2D.Double();  // Sept 30
 					newBounds.setRect(bounds);
 					DBMath.transformRect(newBounds, rotI);
 
@@ -2589,7 +2623,7 @@ public class Quick
 				{
 					Poly poly = layerLookPolyList[i];
 					if (!tech.sameLayer(poly.getLayer(), layer)) continue;
-					poly.transform(moreTrans);
+					poly.transform(moreTrans);  // @TODO Should still evaluate isInside if pointsFound[i] is already valid?
 					if (poly.isInside(pt1)) pointsFound[0] = true;
 					if (poly.isInside(pt2)) pointsFound[1] = true;
 					if (pt3 != null && poly.isInside(pt3)) pointsFound[2] = true;
@@ -3337,6 +3371,8 @@ public class Quick
 				for (int i = 0; i < polyList.size(); i++)
 				{
 					Poly thisPoly = (Poly)polyList.get(i);
+					if (thisPoly == null)
+						continue; // MinNode case
 					boolean found = poly.contains(thisPoly.getBounds2D());
 
 					if (found) count++;
@@ -3466,20 +3502,32 @@ public class Quick
 		if (geom2 != null) err.addGeom(geom2, showGeom, cell, null);
 	}
 
+	/**************************************************************************************************************
+	 *  QuickAreaEnumerator class
+	 **************************************************************************************************************/
 	// Extra functions to check area
 	private class QuickAreaEnumerator extends HierarchyEnumerator.Visitor
     {
 		private Network jNet;
-		private GeometryHandler metalMerge;
+		private GeometryHandler mainMerge;
 		private GeometryHandler otherTypeMerge;
 		private Layer polyLayer;
-		private HashMap notExportedNodes = new HashMap();
+		private HashMap notExportedNodes;
+		private HashMap checkedNodes;
 
-		public QuickAreaEnumerator(Network jNet, GeometryHandler selectMerge, HashMap notExportedNodes)
+		public QuickAreaEnumerator(Network jNet, GeometryHandler selectMerge, HashMap notExportedNodes,
+		                           HashMap checkedNodes)
 		{
 			this.jNet = jNet;
 			this.otherTypeMerge = selectMerge;
 			this.notExportedNodes = notExportedNodes;
+			this.checkedNodes = checkedNodes;
+		}
+
+		public QuickAreaEnumerator(HashMap notExportedNodes, HashMap checkedNodes)
+		{
+			this.notExportedNodes = notExportedNodes;
+			this.checkedNodes = checkedNodes;
 		}
 
 		/**
@@ -3509,55 +3557,58 @@ public class Quick
 		{
 			if (job != null && job.checkAbort()) return false;
 
-			if (metalMerge == null)
-				metalMerge = new PolyQTree(info.getCell().getBounds());
+			if (mainMerge == null)
+				mainMerge = new PolyQTree(info.getCell().getBounds());
             AffineTransform rTrans = info.getTransformToRoot();
 
-			// Check Arcs too
-			for(Iterator it = info.getCell().getArcs(); it.hasNext(); )
+			// Check Arcs too if network is not null
+			if (jNet != null)
 			{
-				ArcInst ai = (ArcInst)it.next();
-				Technology tech = ai.getProto().getTechnology();
-				Network aNet = info.getNetlist().getNetwork(ai, 0);
-				boolean found = false;
-
-                // aNet is null if ArcProto is Artwork
-                if (aNet != null)
-                {
-                    for (Iterator arcIt = aNet.getExports(); !found && arcIt.hasNext();)
-                    {
-                        Export exp = (Export)arcIt.next();
-                        Network net = info.getNetlist().getNetwork(exp, 0);
-                        found = searchNetworkInParent(net, info);
-                    }
-                }
-
-				if (!found && aNet != jNet)
-					continue; // no same net
-
-				Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
-				int tot = arcInstPolyList.length;
-				for(int i=0; i<tot; i++)
+				for(Iterator it = info.getCell().getArcs(); it.hasNext(); )
 				{
-					Poly poly = arcInstPolyList[i];
-					Layer layer = poly.getLayer();
+					ArcInst ai = (ArcInst)it.next();
+					Technology tech = ai.getProto().getTechnology();
+					Network aNet = info.getNetlist().getNetwork(ai, 0);
+					boolean found = false;
 
-					// No area associated
-					if (minAreaLayerMap.get(layer) == null && enclosedAreaLayerMap.get(layer) == null)
-						continue;
-
-					// it has to take into account poly and transistor poly as one layer
-					if (layer.getFunction().isPoly())
+					// aNet is null if ArcProto is Artwork
+					if (aNet != null)
 					{
-						if (polyLayer == null)
-							polyLayer = layer;
-						layer = polyLayer;
+						for (Iterator arcIt = aNet.getExports(); !found && arcIt.hasNext();)
+						{
+							Export exp = (Export)arcIt.next();
+							Network net = info.getNetlist().getNetwork(exp, 0);
+							found = searchNetworkInParent(net, info);
+						}
 					}
-					poly.transform(rTrans);
-					if (layer.getFunction().isMetal() || layer.getFunction().isPoly())
-						metalMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
-					else
-						otherTypeMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
+
+					if (!found && aNet != jNet)
+						continue; // no same net
+
+					Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
+					int tot = arcInstPolyList.length;
+					for(int i=0; i<tot; i++)
+					{
+						Poly poly = arcInstPolyList[i];
+						Layer layer = poly.getLayer();
+
+						// No area associated
+						if (minAreaLayerMap.get(layer) == null && enclosedAreaLayerMap.get(layer) == null)
+							continue;
+
+						// it has to take into account poly and transistor poly as one layer
+						if (layer.getFunction().isPoly())
+						{
+							if (polyLayer == null)
+								polyLayer = layer;
+							layer = polyLayer;
+						}
+						poly.transform(rTrans);
+						if (layer.getFunction().isMetal() || layer.getFunction().isPoly())
+							mainMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
+						else
+							otherTypeMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
+					}
 				}
 			}
 			return true;
@@ -3591,32 +3642,49 @@ public class Quick
 			if (!(np instanceof PrimitiveNode)) return (true);
 
 			PrimitiveNode pNp = (PrimitiveNode)np;
-			boolean pureNode = (pNp.getFunction() == PrimitiveNode.Function.NODE);
+			boolean found = false;
 			boolean forceChecking = false;
-			if (np instanceof PrimitiveNode)
-			{
-				if (NodeInst.isSpecialNode(ni)) return (false);
-				forceChecking = pNp.isPureImplantNode(); // forcing the checking
-			}
 
-            boolean found = false; //forceChecking;
-			boolean notExported = false;
-			Network thisNet = null;
-			for(Iterator pIt = ni.getPortInsts(); !found && pIt.hasNext(); )
+			if (jNet != null)
 			{
-				PortInst pi = (PortInst)pIt.next();
-				boolean isExported = cell.findPortProto(pi.getPortProto());
-				thisNet = info.getNetlist().getNetwork(pi);
-				found = searchNetworkInParent(thisNet, info);
-				if (!isExported) notExported = true;
+				boolean pureNode = (pNp.getFunction() == PrimitiveNode.Function.NODE);
+				if (np instanceof PrimitiveNode)
+				{
+					if (NodeInst.isSpecialNode(ni)) return (false);
+					forceChecking = pNp.isPureImplantNode(); // forcing the checking
+				}
+
+				boolean notExported = false;
+				Network thisNet = null;
+				for(Iterator pIt = ni.getPortInsts(); !found && pIt.hasNext(); )
+				{
+					PortInst pi = (PortInst)pIt.next();
+					boolean isExported = cell.findPortProto(pi.getPortProto());
+					thisNet = info.getNetlist().getNetwork(pi);
+					found = searchNetworkInParent(thisNet, info);
+					if (!isExported) notExported = true;
+				}
+				// Substrate layers are special so we must check node regardless network
+				notExported = notExported && !forceChecking && !pureNode && info.getParentInfo() != null;
+				if (!found)
+				{
+					if (notExportedNodes != null && notExported)
+					{
+						//addNodeInst(ni, pNp, forceChecking, null, trans, nonExportedMerge, nonExportedMerge);
+						notExportedNodes.put(ni, ni);
+					}
+					//else
+						return (false);
+				}
+				// Removing node if it was found included in a network
+				notExportedNodes.remove(ni);
+				checkedNodes.put(ni, ni);
 			}
-			// Substrate layers are special so we must check node regardless network
-			notExported = notExported && !forceChecking && !pureNode && info.getParentInfo() != null;
-			if (!found)
+			else
 			{
-				if (notExportedNodes != null && notExported)
-					notExportedNodes.put(ni, ni);
-				else
+				if (!notExportedNodes.containsKey(ni))
+					return (false); // not to consider
+				if (checkedNodes.containsKey(ni))
 					return (false);
 			}
 
@@ -3635,15 +3703,79 @@ public class Quick
 					continue;
 
 				// make sure this layer connects electrically to the desired port
-				PortProto pp = poly.getPort();
-				found = forceChecking && layer.getFunction().isImplant();
-                if (!found && pp != null)
-                {
-					Network net = info.getNetlist().getNetwork(ni, pp, 0);
-					found = searchNetworkInParent(net, info);
-                }
-				//	if (!forceChecking && !found) continue;
-                if (!found) continue;
+				// but only when checking networks, no nonExported.
+				if (jNet != null)
+				{
+					PortProto pp = poly.getPort();
+					found = forceChecking && layer.getFunction().isImplant();
+					if (!found && pp != null)
+					{
+						Network net = info.getNetlist().getNetwork(ni, pp, 0);
+						found = searchNetworkInParent(net, info);
+					}
+					//	if (!forceChecking && !found) continue;
+					if (!found) continue;
+				}
+				// it has to take into account poly and transistor poly as one layer
+				if (layer.getFunction().isPoly())
+				{
+					if (polyLayer == null)
+						polyLayer = layer;
+					layer = polyLayer;
+				}
+				poly.roundPoints(); // Trying to avoid mismatches while joining areas.
+				poly.transform(trans);
+				// otherTypeMerge is null if nonExported nodes are analyzed
+				if (otherTypeMerge == null || layer.getFunction().isMetal() || layer.getFunction().isPoly())
+					mainMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
+				else
+					otherTypeMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
+			}
+
+            return true;
+		}
+		
+		/**
+		 * Method to add node after network was checked
+		 * @param ni
+		 * @param pNp
+		 * @param forceChecking
+		 * @param info
+		 * @param merge1
+		 * @param merge2
+		 */ 
+		private void addNodeInst(NodeInst ni, PrimitiveNode pNp, boolean forceChecking,
+		                           HierarchyEnumerator.CellInfo info, AffineTransform trans,
+		                           GeometryHandler merge1, GeometryHandler merge2)
+		{
+			Technology tech = pNp.getTechnology();
+			
+			// electrical should not be null due to ports but causes
+			// problems with poly and transistor-poly
+			Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, null, true, true);
+			int tot = nodeInstPolyList.length;
+			for(int i=0; i<tot; i++)
+			{
+				Poly poly = nodeInstPolyList[i];
+				Layer layer = poly.getLayer();
+
+				// No area rule associated
+				if (minAreaLayerMap.get(layer) == null && enclosedAreaLayerMap.get(layer) == null)
+					continue;
+
+				if (info != null)
+				{
+					// make sure this layer connects electrically to the desired port
+					PortProto pp = poly.getPort();
+					boolean found = forceChecking && layer.getFunction().isImplant();
+					if (!found && pp != null)
+					{
+						Network net = info.getNetlist().getNetwork(ni, pp, 0);
+						found = searchNetworkInParent(net, info);
+					}
+					//	if (!forceChecking && !found) continue;
+					if (!found) continue;   
+				}
 
 				// it has to take into account poly and transistor poly as one layer
 				if (layer.getFunction().isPoly())
@@ -3655,12 +3787,10 @@ public class Quick
 				poly.roundPoints(); // Trying to avoid mismatches while joining areas.
 				poly.transform(trans);
 				if (layer.getFunction().isMetal() || layer.getFunction().isPoly())
-					metalMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
+					merge1.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
 				else
-					otherTypeMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
+					merge2.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
 			}
-
-            return true;
 		}
     }
 }

@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ap: *********************************
 
+IMP: (11/16/04, GVG) DRC: dates stored disabled.
+
+BUG: (11/16/04, GVG) Rounding issue in Quick.lookForCrossPolygons()
+FIX: round bounding box before looking for points. This fixes JonG's DRC notch error reported on 11/09/05 (90nm tech)
+
 BUG: (11/16/04, GVG) MOSRules.getMaxSurround()didn't consider information about wide rules
 FIX: condition added. Plus 100 is the new wide value for TSMC180nm
 

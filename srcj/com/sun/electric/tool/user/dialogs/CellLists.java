@@ -211,7 +211,7 @@ public class CellLists extends EDialog
 		if (maxlen < 0) line += "\t"; else line += " ";
 
 		boolean goodDRC = false;
-		Date lastGoodDate = DRC.getLastDRCDate(cell);
+		Date lastGoodDate = null; // DRC.getLastDRCDate(cell);
 		if (lastGoodDate != null && cell.getRevisionDate().before(lastGoodDate)) goodDRC = true;
 		if (goodDRC) line += "D"; else line += " ";
 		if (maxlen < 0) line += "\t"; else line += " ";
