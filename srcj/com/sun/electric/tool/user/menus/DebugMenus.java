@@ -129,6 +129,8 @@ public class DebugMenus {
             new ActionListener() { public void actionPerformed(ActionEvent e) { shakeDisplay(); }});
         jongMenu.addMenuItem("Run command", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { runCommand(); }});
+        jongMenu.addMenuItem("Start defunct Job", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { startDefunctJob(); }});
 
         /****************************** Gilda's TEST MENU ******************************/
         // Only active in debug mode. Doesn't work
@@ -625,6 +627,33 @@ public class DebugMenus {
             } catch (InterruptedException e) {}
         }
     }
+
+    public static void startDefunctJob() {
+        DefunctJob j = new DefunctJob();
+    }
+
+    private static ArrayList sharedList = new ArrayList();
+
+    private static void changeSharedList() {
+        //if (sharedList.size() < 100) sharedList.add(new Integer(sharedList.size()));
+        //else sharedList.remove(sharedList.size()-1);
+        Object o = sharedList.get(0);
+    }
+
+    private static class DefunctJob extends Job {
+
+        public DefunctJob() {
+            super("Defunct Job", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            startJob();
+        }
+
+        public boolean doIt() {
+            while (true) {
+                changeSharedList();
+            }
+        }
+    }
+
 
     public static void runCommand() {
         ExecDialog d = new ExecDialog(TopLevel.getCurrentJFrame(), false);

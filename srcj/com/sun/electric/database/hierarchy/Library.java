@@ -189,13 +189,13 @@ public class Library extends ElectricObject
 	public void addCell(Cell c)
 	{
 		// sanity check: make sure Cell isn't already in the list
-		if (cells.contains(c))
-		{
-			System.out.println("Tried to re-add a cell to a library: " + c);
-			return;
-		}
-		synchronized (cells)
-		{
+        synchronized (cells)
+        {
+            if (cells.contains(c))
+            {
+                System.out.println("Tried to re-add a cell to a library: " + c);
+                return;
+            }
 			cells.add(c);
 		}
 		WindowFrame.wantToRedoLibraryTree();
@@ -208,13 +208,13 @@ public class Library extends ElectricObject
 	public void removeCell(Cell c)
 	{
 		// sanity check: make sure Cell is in the list
-		if (!cells.contains(c))
-		{
-			System.out.println("Tried to remove a non-existant Cell from a library: " + c);
-			return;
-		}
-		synchronized (cells)
-		{
+        synchronized (cells)
+        {
+            if (!cells.contains(c))
+            {
+                System.out.println("Tried to remove a non-existant Cell from a library: " + c);
+                return;
+            }
 			cells.remove(c);
 		}
 		WindowFrame.wantToRedoLibraryTree();
@@ -444,7 +444,11 @@ public class Library extends ElectricObject
 	 */
 	public static Iterator getLibraries()
 	{
-		return libraries.iterator();
+        ArrayList librariesCopy = new ArrayList();
+        synchronized(libraries) {
+            librariesCopy.addAll(libraries);
+        }
+        return librariesCopy.iterator();
 	}
 
 	/**
@@ -679,7 +683,11 @@ public class Library extends ElectricObject
 	 */
 	public Iterator getCells()
 	{
-		return cells.iterator();
+        ArrayList cellsCopy = new ArrayList();
+        synchronized(cells) {
+            cellsCopy.addAll(cells);
+        }
+        return cellsCopy.iterator();
 	}
 
 	/**
