@@ -1993,15 +1993,17 @@ public class Quick
 		{
 			boolean tooSmallWidth = DBMath.isGreater(minWidthRule.value, bounds.getWidth());
 			boolean tooSmallHeight = DBMath.isGreater(minWidthRule.value, bounds.getHeight());
+			/*
 			if (bounds.getWidth() >= minWidthRule.value && bounds.getHeight() >= minWidthRule.value)
 			{
 				if (Main.getDebug() && (tooSmallWidth || tooSmallHeight))
 					System.out.println("Wrong rounding condition found in Quick.checkMinWidth()");
 				return false;
 			}
+			*/
 			if (!tooSmallWidth && !tooSmallHeight)
 			{
-				if (Main.getDebug()) System.out.println("Wrong rounding condition found in Quick.checkMinWidth()");
+				//if (Main.getDebug()) System.out.println("Wrong rounding condition found in Quick.checkMinWidth()");
 				return false;
 			}
 
@@ -3457,7 +3459,6 @@ public class Quick
 					errorMessagePart2.append(" NEEDS SURROUND OF LAYER " + layer2.getName() + " BY " + limit);
 					break;
 			}
-			if (Main.getDebug() && cell != np1) System.out.println("Error here");
 
 			errorMessage.append(" cell " + cell.describe());
 			if (geom1 != null)
