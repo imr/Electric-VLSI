@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02i: *********************************
 
+IMP/MAN: (03/02/05, GVG) Colors used for cells and highlighted nodes in 3D view are available as special colors in ColorsTab
+
 BUG: (03/01/05, GVG) Arcs in TechPalette got zero area bounding box after tail/head changes (Bug 211)
 FIX: In ArcInst.makeDummyInstance, calculate bounding box with angle=0
 
