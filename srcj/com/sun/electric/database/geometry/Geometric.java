@@ -29,6 +29,7 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.TextDescriptorOwner;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Point2D;
@@ -42,7 +43,7 @@ import java.awt.geom.AffineTransform;
  * Besides representing the geometry of these objects, it organizes them
  * into an R-tree, which is a spatial structure that enables fast searching.
  */
-public class Geometric extends ElectricObject
+public class Geometric extends ElectricObject implements TextDescriptorOwner
 {
 	/** lower bound on R-tree node size */			private static final int MINRTNODESIZE = 4;
 	/** upper bound on R-tree node size */			private static final int MAXRTNODESIZE = (MINRTNODESIZE*2);
@@ -775,7 +776,6 @@ public class Geometric extends ElectricObject
 	/** size of this geometric */							protected double sX, sY;
 	/** angle of this geometric (in tenth-degrees). */		protected int angle;
 	/** The temporary Object for the node or arc. */		private Object tempObj;
-	/** Index of this Geometric in a cell */				private int index;
 	/** temporary integer value for the node or arc */		private int tempInt;
 	/** Flag bits for this Geometric. */					protected int userBits;
 	/** The temporary flag bits. */							private int flagBits;
@@ -792,9 +792,9 @@ public class Geometric extends ElectricObject
 	{
 		this.userBits = 0;
 		center = new Point2D.Double();
-		nameDescriptor = TextDescriptor.newNodeArcDescriptor();
+		nameDescriptor = TextDescriptor.newNodeArcDescriptor(this);
 		visBounds = new Rectangle2D.Double(0, 0, 0, 0);
-		index = -1;
+		setIndex(-1);
 	}
 
 	/**
@@ -809,6 +809,12 @@ public class Geometric extends ElectricObject
 	 * @return a description of this Geometric as a string.
 	 */
 	public String describe() { return "?"; }
+
+	/**
+	 * Routing to check whether changing of this cell allowed or not.
+	 * By default checks whole database change. Overriden in subclasses.
+	 */
+	public void checkChanging() { if (parent != null) parent.checkChanging(); }
 
 	/*
 	 * Routine to determine the appropriate Cell associated with this ElectricObject.
@@ -892,7 +898,7 @@ public class Geometric extends ElectricObject
 	 * The Text Descriptor applies to the display of that name.
 	 * @param descriptor the Text Descriptor for name of this Geometric.
 	 */
-	public void setNameTextDescriptor(TextDescriptor descriptor) { this.nameDescriptor = descriptor; }
+	public void setNameTextDescriptor(TextDescriptor descriptor) { this.nameDescriptor.copy(descriptor); }
 
 	/**
 	 * Retruns true if this Geometric was named by user.
@@ -1016,18 +1022,6 @@ public class Geometric extends ElectricObject
 	 * @return true if the flag bits are set.
 	 */
 	public boolean isBit(FlagSet set) { return (flagBits & set.getMask()) != 0; }
-
-	/**
-	 * Routine to set an index of this Geometric in a cell.
-	 * @param index an index of this Geometric in a cell.
-	 */
-	public void setIndex(int index) { this.index = index; }
-
-	/**
-	 * Routine to get the index of this Geometric in a cell.
-	 * @return index of this Geoemetric in a cell.
-	 */
-	public int getIndex() { return index; }
 
 	/**
 	 * Routine to get the temporary integer on this Geometric.

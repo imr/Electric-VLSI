@@ -35,7 +35,7 @@ import java.awt.geom.Point2D;
  * the node for a list of its connections.  The connections that point
  * to the portproto are also connected to the wires of interest.
  */
-public class Connection extends ElectricObject
+public class Connection //extends ElectricObject
 {
 	// ------------------------- private data --------------------------------
 

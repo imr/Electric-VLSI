@@ -35,7 +35,7 @@ import java.text.FieldPosition;
 /**
  * The Variable class defines a single attribute-value pair that can be attached to any ElectricObject.
  */
-public class Variable
+public class Variable implements TextDescriptorOwner
 {
 	/**
 	 * The Key class caches Variable names.
@@ -96,7 +96,7 @@ public class Variable
 	{
 		this.owner = owner;
 		this.addr = addr;
-		this.descriptor = descriptor;
+		this.descriptor = new TextDescriptor(this, descriptor);
 		this.key = key;
 	}
     
@@ -111,6 +111,11 @@ public class Variable
 		key = null;
 	}
     
+	/**
+	 * Routine to check if this Variable can be changed.
+	 */
+	public void checkChanging() { owner.checkChanging(); }
+
     /**
      * Get the number of entries stored in this Variable.
 	 * For non-arrayed Variables, this is 1.
@@ -377,7 +382,7 @@ public class Variable
 	 * The TextDescriptor gives information for displaying the Variable.
 	 * @param descriptor the new TextDescriptor on this Variable.
 	 */
-	public void setDescriptor(TextDescriptor descriptor) { owner.checkChanging(); this.descriptor = descriptor; }
+	public void setDescriptor(TextDescriptor descriptor) { owner.checkChanging(); this.descriptor.copy(descriptor); }
 
 	/**
 	 * Low-level routine to get the type bits.

@@ -420,7 +420,7 @@ public abstract class NodeProto extends ElectricObject
 	public void addPort(PortProto port)
 	{
 		checkChanging();
-		port.setIndex(ports.size());
+		port.setPortIndex(ports.size());
 		ports.add(port);
 		notifyCellsNetworks();
 	}
@@ -436,7 +436,7 @@ public abstract class NodeProto extends ElectricObject
 		ports.remove(ind);
 		for (; ind < ports.size(); )
 		{
-			((PortProto)ports.get(ind)).setIndex(ind);
+			((PortProto)ports.get(ind)).setPortIndex(ind);
 		}
 		notifyCellsNetworks();
 	}

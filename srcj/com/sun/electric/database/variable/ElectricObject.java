@@ -50,6 +50,7 @@ public class ElectricObject
 	// ------------------------ private data ------------------------------------
 
 	/** extra variables (null if no variables yet) */		private HashMap vars;
+	/** Index of this ElectricObject */						private int index;
 
 	/** a list of all variable keys */						private static HashMap varKeys = new HashMap();
 	/** key for NODE_NAME */								public static final Variable.Key nodeNameKey = new Variable.Key(NodeInst.NODE_NAME);
@@ -241,7 +242,7 @@ public class ElectricObject
 		Variable v = (Variable) vars.get(name);
 		if (v == null)
 		{
-			v = new Variable(this, value, TextDescriptor.newNodeArcDescriptor(), key);
+			v = new Variable(this, value, TextDescriptor.newNodeArcDescriptor(null), key);
 			vars.put(name, v);
 		} else
 		{
@@ -548,17 +549,22 @@ public class ElectricObject
 //	}
 
 	/**
+	 * Routine to set an index of this PortProto in NodeProto ports.
+	 * @param index an index of this PortProto in NodeProto ports.
+	 */
+	protected void setIndex(int index) { this.index = index; }
+
+	/**
+	 * Routine to get the index of this PortProto in NodeProto ports.
+	 * @return index of this PortProto in NodeProto ports.
+	 */
+	public final int getIndex() { return index; }
+
+	/**
 	 * Routing to check whether changing of this cell allowed or not.
 	 * By default checks whole database change. Overriden in subclasses.
 	 */
-	public void checkChanging()
-	{
-		Cell cell = whichCell();
-		if (cell != null)
-			cell.checkChanging();
-		else
-			Job.checkChanging();
-	}
+	public void checkChanging() { Job.checkChanging(); }
 
 
 	/**

@@ -65,6 +65,7 @@ public class Library extends ElectricObject
 	/** flag bits */										private int userBits;
 
 	/** static list of all libraries in Electric */			private static List libraries = new ArrayList();
+	/** number of all libraries in Electric */				private static int libNumber = 0;
 	/** the current library in Electric */					private static Library curLib = null;
 
 	// ----------------- private and protected methods --------------------
@@ -154,6 +155,7 @@ public class Library extends ElectricObject
 	 */
 	private Library()
 	{
+		setIndex(libNumber++);
 	}
 
 	/**

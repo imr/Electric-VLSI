@@ -1306,7 +1306,8 @@ public class InputBinary extends Input
 					descript1 = readBigInteger();
 				}
 			}
-			TextDescriptor descript = new TextDescriptor(descript0, descript1);
+			TextDescriptor descript = new TextDescriptor(null, descript0, descript1);
+			pp.setTextDescriptor(descript);
 
 			// ignore the "seen" bits (versions 8 and older)
 			if (magic > MAGIC9) readBigInteger();
@@ -1654,7 +1655,7 @@ public class InputBinary extends Input
 				descript1 = readBigInteger();
 			}
 		}
-		TextDescriptor descript = new TextDescriptor(descript0, descript1);
+		TextDescriptor descript = new TextDescriptor(null, descript0, descript1);
 		ni.setProtoTextDescriptor(descript);
 
 		// read the nodeinst name (versions 1, 2, or 3 only)
@@ -1955,7 +1956,7 @@ public class InputBinary extends Input
 					(obj instanceof ArcInst && realName[key].equals(ArcInst.VAR_ARC_NAME)))
 				{
 					Geometric geom = (Geometric)obj;
-					geom.setNameTextDescriptor(new TextDescriptor(descript0, descript1));
+					geom.setNameTextDescriptor(new TextDescriptor(null, descript0, descript1));
 					Name name = makeGeomName(geom, newAddr, newtype);
 					if (obj instanceof NodeInst)
 						nodeNameList[index] = name;
@@ -1971,7 +1972,7 @@ public class InputBinary extends Input
 			{
 				Variable var = obj.setVar(realName[key], newAddr);
 				if (var == null) return(-1);
-				var.setDescriptor(new TextDescriptor(descript0, descript1));
+				var.setDescriptor(new TextDescriptor(null, descript0, descript1));
 				var.lowLevelSetFlags(newtype);
 
 				// handle updating of technology caches

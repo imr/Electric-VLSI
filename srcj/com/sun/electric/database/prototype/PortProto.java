@@ -27,6 +27,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.TextDescriptorOwner;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.technology.PrimitivePort;
 
@@ -56,7 +57,7 @@ import java.util.Collections;
  * at a higher level in the schematic or layout hierarchy.
  * The PortProto also has a parent cell, characteristics, and more.
  */
-public abstract class PortProto extends ElectricObject
+public abstract class PortProto extends ElectricObject implements TextDescriptorOwner
 {
 	/** angle of this port from node center */			private static final int PORTANGLE =               0777;
 	/** right shift of PORTANGLE field */				private static final int PORTANGLESH =                0;
@@ -211,7 +212,6 @@ public abstract class PortProto extends ElectricObject
 	/** Internal flag bits of this PortProto. */				protected int userBits;
 	/** The parent NodeProto of this PortProto. */				protected NodeProto parent;
 	/** The text descriptor of this PortProto. */				private TextDescriptor descriptor;
-	/** Index of this PortProto in NodeProto ports */			private int index;
 	/** A temporary integer value of this PortProto. */			private int tempInt;
 	/** The temporary Object. */								private Object tempObj;
 
@@ -227,7 +227,7 @@ public abstract class PortProto extends ElectricObject
 	{
 		this.parent = null;
 		this.userBits = 0;
-		this.descriptor = TextDescriptor.newExportDescriptor();
+		this.descriptor = TextDescriptor.newExportDescriptor(this);
 		this.tempObj = null;
 	}
 
@@ -248,6 +248,13 @@ public abstract class PortProto extends ElectricObject
 	{
 		this.protoName = Name.findName(protoName);
 	}
+
+	/**
+	 * Routine to set an index of this PortProto in NodeProto ports.
+	 * It is visible in this package.
+	 * @param index an index of this PortProto in NodeProto ports.
+	 */
+	void setPortIndex(int index) { setIndex(index); }
 
 	/**
 	 * Routine to remove this PortProto from its parent NodeProto.
@@ -300,7 +307,7 @@ public abstract class PortProto extends ElectricObject
 	 * Text Descriptors tell how to display the port name.
 	 * @param descriptor the Text Descriptor of this PortProto.
 	 */
-	public void setTextDescriptor(TextDescriptor descriptor) { this.descriptor = descriptor; }
+	public void setTextDescriptor(TextDescriptor descriptor) { this.descriptor.copy(descriptor); }
 
 	/**
 	 * Routine to return the Characteristic of this PortProto.
@@ -485,18 +492,6 @@ public abstract class PortProto extends ElectricObject
 	 * @param userBits the new "user bits".
 	 */
 	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
-
-	/**
-	 * Routine to set an index of this PortProto in NodeProto ports.
-	 * @param index an index of this PortProto in NodeProto ports.
-	 */
-	public void setIndex(int index) { this.index = index; }
-
-	/**
-	 * Routine to get the index of this PortProto in NodeProto ports.
-	 * @return index of this PortProto in NodeProto ports.
-	 */
-	public int getIndex() { return index; }
 
 	/**
 	 * Routine to set an arbitrary integer in a temporary location on this PortProto.

@@ -309,9 +309,9 @@ public class Schematics extends Technology
 		//**************************************** NODES ****************************************
 		
 		// this text descriptor is used for all text on nodes
-		TextDescriptor tdBig = new TextDescriptor();
+		TextDescriptor tdBig = new TextDescriptor(null);
 		tdBig.setRelSize(2);
-		TextDescriptor tdSmall = new TextDescriptor();
+		TextDescriptor tdSmall = new TextDescriptor(null);
 		tdSmall.setRelSize(1);
 
 		/** wire pin */

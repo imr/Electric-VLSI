@@ -54,9 +54,9 @@
                 <pathelement location="${beanshell}"/>
            </classpath>
             <!-- Pass some args, perhaps: -->
-            <arg value="-myfile"/>
+            <!-- arg value="-myfile"/ -->
             <!-- Will be given as an absolute path: -->
-            <arg file="myfile.txt"/>
+            <!-- arg file="myfile.txt"/ -->
         </java>
     </target>
 

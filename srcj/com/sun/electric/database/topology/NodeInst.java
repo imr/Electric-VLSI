@@ -153,7 +153,7 @@ public class NodeInst extends Geometric implements Nodable
 		this.portMap = new HashMap();
 		this.connections = new ArrayList();
 		this.exports = new ArrayList();
-		this.protoDescriptor = TextDescriptor.newInstanceDescriptor();
+		this.protoDescriptor = TextDescriptor.newInstanceDescriptor(this);
 	}
 
 	/****************************** CREATE, DELETE, MODIFY ******************************/
@@ -744,6 +744,12 @@ public class NodeInst extends Geometric implements Nodable
 	 * @return subinstance.
 	 */
 	public Subinst getSubinst(int i) { return subs[i]; }
+
+	/**
+	 * Routine to set an index of this PortProto in NodeProto ports.
+	 * @param index an index of this PortProto in NodeProto ports.
+	 */
+	public void lowLevelSetIndex(int index) { setIndex(index); }
 
 	/****************************** GRAPHICS ******************************/
 
@@ -1613,7 +1619,7 @@ public class NodeInst extends Geometric implements Nodable
 	 * The Text Descriptor applies to the display of that name.
 	 * @param descriptor the Text Descriptor for this NodeInst.
 	 */
-	public void setProtoTextDescriptor(TextDescriptor descriptor) { this.protoDescriptor = descriptor; }
+	public void setProtoTextDescriptor(TextDescriptor descriptor) { this.protoDescriptor.copy(descriptor); }
 
 	/*
 	 * Routine to write a description of this NodeInst.

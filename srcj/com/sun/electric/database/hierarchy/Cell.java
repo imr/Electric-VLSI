@@ -341,6 +341,7 @@ public class Cell extends NodeProto
 	 *  lock=-1 "locked for changes".
 	 *  lock=n>0 "locked for examination n times"
 	 */                                                             private int lock;
+	/** number of cells in Electric */								private static int cellNumber = 0;
 
 	// ------------------ protected and private methods -----------------------
 
@@ -351,6 +352,7 @@ public class Cell extends NodeProto
 	private Cell()
 	{
 		this.versionGroup = new VersionGroup(this);
+		setIndex(cellNumber++);
 	}
 
 	/**
@@ -2396,7 +2398,7 @@ public class Cell extends NodeProto
 			for (Iterator iit = nu.getInsts(); iit.hasNext();)
 			{
 				NodeInst ni = (NodeInst)iit.next();
-				ni.setIndex(index);
+				ni.lowLevelSetIndex(index);
 				index += np.getNumPorts();
 			}
 			for (Iterator iit = nu.getProxies(); iit.hasNext();)

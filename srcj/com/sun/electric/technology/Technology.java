@@ -476,7 +476,6 @@ public class Technology extends ElectricObject
 	/** name of the technology */						private String techName;
 	/** full description of the technology */			private String techDesc;
 	/** flags for the technology */						private int userBits;
-	/** 0-based index of the technology */				private int techIndex;
 	/** critical dimensions for the technology */		private double scale;
 	/** list of layers in the technology */				private List layers;
 	/** list of primitive nodes in the technology */	private List nodes;
@@ -502,7 +501,7 @@ public class Technology extends ElectricObject
 		this.nodes = new ArrayList();
 		this.arcs = new ArrayList();
 		this.scale = 1.0;
-		this.techIndex = techNumber++;
+		setIndex(techNumber++);
 		userBits = 0;
 
 		// add the technology to the global list
@@ -1905,13 +1904,6 @@ public class Technology extends ElectricObject
 	{
 		if (scale != 0) this.scale = scale;
 	}
-
-	/**
-	 * Returns the 0-based index of this Technology.
-	 * Each Technology has a unique index that can be used for array lookup.
-	 * @return the index of this Technology.
-	 */
-	public int getIndex() { return techIndex; }
 
 	/**
 	 * Routine to determine whether a new technology with the given name would be legal.

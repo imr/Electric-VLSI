@@ -26,23 +26,37 @@ package com.sun.electric.database.network;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Tool;
+
+import java.util.Iterator;
 
 /**
  * This is the Network tool.
  */
 public class Network extends Tool
 {
+
 	// ---------------------- private and protected methods -----------------
 
-	/** the Network tool. */		public static Network tool = new Network();
-	/** the Network tool. */		private boolean debug = false;
+	/** the Network tool. */						public static Network tool = new Network();
+	/** the Network tool. */						private boolean debug = false;
+	/** start of cells info in proto arrays */		private int cellsStart;
+	/** size of proto* arrays */					private int protoNum;
+	/** [i][j] offset of j-th PortProto of i-th NodeProto
+	 * in port maps */	   							private int[][] protoPortBeg;
+	/** [i][j][] port map if j-th NodeProt with i-th set of options
+	 **/											private int[][][] protoPortEquiv;
 
 	/**
 	 * The constructor sets up the Network tool.
@@ -50,7 +64,88 @@ public class Network extends Tool
 	private Network()
 	{
 		super("network");
-		
+		protoPortEquiv = new int[2][][];
+	}
+
+	private void reload()
+	{
+		protoPortBeg = null;
+		protoPortEquiv = null;
+		cellsStart = 0;
+		for (Iterator tit = Technology.getTechnologies(); tit.hasNext(); )
+		{
+			Technology tech = (Technology)tit.next();
+			for (Iterator nit = tech.getNodes(); nit.hasNext(); )
+			{
+				PrimitiveNode pn = (PrimitiveNode)nit.next();
+				cellsStart = Math.max(cellsStart, -pn.getIndex());
+			}
+		}
+		int maxCell = 0;
+		for (Iterator lit = Library.getLibraries(); lit.hasNext(); )
+		{
+			Library lib = (Library)lit.next();
+			for (Iterator cit = lib.getCells(); cit.hasNext(); )
+			{
+				Cell c = (Cell)cit.next();
+				maxCell = Math.max(maxCell, c.getIndex());
+			}
+		}
+		protoNum = cellsStart + maxCell + 1;
+		protoPortBeg = new int[protoNum][];
+		protoPortEquiv[0] = new int[protoNum][];
+		protoPortEquiv[1] = new int[protoNum][];
+
+		for (Iterator tit = Technology.getTechnologies(); tit.hasNext(); )
+		{
+			Technology tech = (Technology)tit.next();
+			for (Iterator nit = tech.getNodes(); nit.hasNext(); )
+			{
+				PrimitiveNode pn = (PrimitiveNode)nit.next();
+				int ind = cellsStart + pn.getIndex();
+				int[] beg = new int[pn.getNumPorts()+1];
+				for (int i = 0; i < beg.length; i++) beg[i] = i;
+				protoPortBeg[ind] = beg;
+				int[] equiv = new int[pn.getNumPorts()];
+				int i = 0;
+				for (Iterator it = pn.getPorts(); it.hasNext(); i++)
+				{
+					PrimitivePort pi = (PrimitivePort)it.next();
+					int j = 0;
+					for (Iterator jt = pn.getPorts(); j < i; j++)
+					{
+						PrimitivePort pj = (PrimitivePort)jt.next();
+						if (pi.getTopology() == pj.getTopology())
+							break;
+					}
+					equiv[i] = j;
+				}
+				protoPortEquiv[0][ind] = equiv;
+				protoPortEquiv[1][ind] = equiv;
+			}
+		}
+		int resInd = cellsStart + Schematics.tech.resistorNode.getIndex();
+		int[] resMap = protoPortEquiv[1][resInd];
+		resMap = new int[resMap.length];
+		for (int i = 0; i < resMap.length; i++) resMap[i] = 0;
+		protoPortEquiv[1][resInd] = resMap;
+		for (Iterator lit = Library.getLibraries(); lit.hasNext(); )
+		{
+			Library lib = (Library)lit.next();
+			for (Iterator cit = lib.getCells(); cit.hasNext(); )
+			{
+				Cell c = (Cell)cit.next();
+				int ind = cellsStart + c.getIndex();
+				int[] beg = new int[c.getNumPorts() + 1];
+				for (int i = 0; i < beg.length; i++) beg[i] = i;
+				protoPortBeg[ind] = beg;
+			}
+		}
+	}
+
+	public int[] getEquivPorts(int optionSet, NodeProto np)
+	{
+		return protoPortEquiv[optionSet][cellsStart + np.getIndex()];
 	}
 
 	public void init()

@@ -282,6 +282,12 @@ public class Export extends PortProto
 
 	/****************************** TEXT ******************************/
 
+	/**
+	 * Routing to check whether changing of this cell allowed or not.
+	 * By default checks whole database change. Overriden in subclasses.
+	 */
+	public void checkChanging() { Cell parent = (Cell)getParent(); if (parent != null) parent.checkChanging(); }
+
 	/*
 	 * Routine to determine the appropriate Cell associated with this ElectricObject.
 	 * @return the appropriate Cell associated with this ElectricObject.

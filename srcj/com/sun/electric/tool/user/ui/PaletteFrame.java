@@ -1044,7 +1044,7 @@ public class PaletteFrame
 				if (var != null)
 				{
 					var.setDisplay();
-					var.setDescriptor(TextDescriptor.newNonLayoutDescriptor());
+					var.setDescriptor(TextDescriptor.newNonLayoutDescriptor(null));
 					Highlight h = Highlight.addText(cell, var, null);
 					h.setGeom(newNi);
 				}

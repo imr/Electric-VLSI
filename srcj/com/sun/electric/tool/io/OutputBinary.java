@@ -231,11 +231,11 @@ public class OutputBinary extends Output
 			{
 				NodeInst ni = (NodeInst)nit.next();
 				findXLibVariables(ni);
-				for(Iterator cit = ni.getConnections(); cit.hasNext(); )
-				{
-					Connection con = (Connection)cit.next();
-					findXLibVariables(con);
-				}
+// 				for(Iterator cit = ni.getConnections(); cit.hasNext(); )
+// 				{
+// 					Connection con = (Connection)cit.next();
+// 					findXLibVariables(con);
+// 				}
 				for(Iterator eit = ni.getExports(); eit.hasNext(); )
 				{
 					Export pp = (Export)eit.next();
