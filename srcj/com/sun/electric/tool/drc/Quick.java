@@ -3545,7 +3545,7 @@ public class Quick
 		}
 
 		// describe the error
-		Cell np1 = geom1.getParent();;
+		Cell np1 = (geom1 != null) ? geom1.getParent() : null;
 		Cell np2 = (geom2 != null) ? geom2.getParent() : null;
 
 		// Message already logged
