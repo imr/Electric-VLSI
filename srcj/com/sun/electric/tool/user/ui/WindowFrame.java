@@ -211,8 +211,8 @@ public class WindowFrame
     {
         WindowContent content = getContent();
 
-        if (content instanceof View3DWindow)
-            ((View3DWindow)content).setCamera(x, y, z);
+//        if (content instanceof View3DWindow)
+//            ((View3DWindow)content).setCamera(x, y, z);
 
 //		if (view3DClass == null) return; // error in class initialization or not available
 //
