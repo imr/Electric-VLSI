@@ -67,6 +67,7 @@ public class Variable
 		public String getName() { return name; }
 	}
 
+	private ElectricObject owner;
 	private Object addr;
 	private Key key;
 	private int flags;
@@ -84,15 +85,28 @@ public class Variable
 
 	/**
 	 * The constructor builds a Variable from the given parameters.
+	 * @param owner the ElectriObject that owns this variable.
 	 * @param addr the object that will be stored in the Variable.
 	 * @param descriptor a TextDescriptor to control how the Variable will be displayed.
 	 * @param key a Key object that identifies this Variable.
 	 */
-	public Variable(Object addr, TextDescriptor descriptor, Key key)
+	Variable(ElectricObject owner, Object addr, TextDescriptor descriptor, Key key)
 	{
+		this.owner = owner;
 		this.addr = addr;
 		this.descriptor = descriptor;
 		this.key = key;
+	}
+    
+	/**
+	 * Clear variable field to catch improper reference of removed variable.
+	 */
+	void kill()
+	{
+		owner = null;
+		addr = null;
+		descriptor = null;
+		key = null;
 	}
     
     /**
@@ -112,6 +126,17 @@ public class Variable
      * @return the object stored in this Variable.
      */
     public Object getObject() { return addr; }
+    
+    /**
+     * Set the actual object stored in this Variable.
+	 * @param the object to be stored in this variable .
+     */
+    void setObject(Object addr)
+	{
+		// owner.checkChanging(); this is not necessary,
+		// because this method can be called only from this package
+		this.addr = addr;
+	}
     
     /** 
      * Treat the stored Object as an array of Objects and
@@ -338,7 +363,7 @@ public class Variable
 	 * The TextDescriptor gives information for displaying the Variable.
 	 * @param descriptor the new TextDescriptor on this Variable.
 	 */
-	public void setDescriptor(TextDescriptor descriptor) { this.descriptor = descriptor; }
+	public void setDescriptor(TextDescriptor descriptor) { owner.checkChanging(); this.descriptor = descriptor; }
 
 	/**
 	 * Low-level routine to get the type bits.
@@ -360,19 +385,41 @@ public class Variable
 	 * This should not normally be called by any other part of the system.
 	 * @param flags the new "type bits".
 	 */
-	public void lowLevelSetFlags(int flags) { this.flags = flags; }
+	public void lowLevelSetFlags(int flags)
+	{
+		owner.checkChanging();
+		boolean oldDisplay = (this.flags & VDISPLAY) != 0;
+		boolean newDisplay = (flags & VDISPLAY) != 0;
+		this.flags = flags;
+		if (oldDisplay != newDisplay)
+			owner.updateDisplayable(this);
+	}
 
 	/**
 	 * Routine to set this Variable to be displayable.
 	 * Displayable Variables are shown with the object.
 	 */
-	public void setDisplay() { flags |= VDISPLAY; }
+	public void setDisplay()
+	{
+		owner.checkChanging();
+		boolean old = (flags & VDISPLAY) != 0;
+		flags |= VDISPLAY;
+		if (!old)
+			owner.updateDisplayable(this);
+	}
 
 	/**
 	 * Routine to set this Variable to be not displayable.
 	 * Displayable Variables are shown with the object.
 	 */
-	public void clearDisplay() { flags &= ~VDISPLAY; }
+	public void clearDisplay()
+	{
+		owner.checkChanging();
+		boolean old = (flags & VDISPLAY) != 0;
+		flags &= ~VDISPLAY;
+		if (old)
+			owner.updateDisplayable(this);
+	}
 
 	/**
 	 * Routine to return true if this Variable is displayable.
@@ -384,7 +431,7 @@ public class Variable
 	 * Routine to set this Variable to be Java.
 	 * Java Variables contain Java code that is evaluated in order to produce a value.
 	 */
-	public void setJava() { flags = (flags & ~(VCODE1|VCODE2)) | VJAVA; }
+	public void setJava() { owner.checkChanging(); flags = (flags & ~(VCODE1|VCODE2)) | VJAVA; }
 
 	/**
 	 * Routine to return true if this Variable is Java.
@@ -399,7 +446,7 @@ public class Variable
 	 * Although the C version of Electric had a Lisp interpreter in it, the Java version
 	 * does not, so this facility is not implemented.
 	 */
-	public void setLisp() { flags = (flags & ~(VCODE1|VCODE2)) | VLISP; }
+	public void setLisp() { owner.checkChanging(); flags = (flags & ~(VCODE1|VCODE2)) | VLISP; }
 
 	/**
 	 * Routine to return true if this Variable is Lisp.
@@ -416,7 +463,7 @@ public class Variable
 	 * Although the C version of Electric had a TCL interpreter in it, the Java version
 	 * does not, so this facility is not implemented.
 	 */
-	public void setTCL() { flags = (flags & ~(VCODE1|VCODE2)) | VTCL; }
+	public void setTCL() { owner.checkChanging(); flags = (flags & ~(VCODE1|VCODE2)) | VTCL; }
 
 	/**
 	 * Routine to return true if this Variable is TCL.
@@ -436,19 +483,19 @@ public class Variable
 	/**
 	 * Routine to set this Variable to be not-code.
 	 */
-	public void clearCode() { flags &= ~(VCODE1|VCODE2); }
+	public void clearCode() { owner.checkChanging(); flags &= ~(VCODE1|VCODE2); }
 
 	/**
 	 * Routine to set this Variable to be not-saved.
 	 * Variables that are saved are written to disk when libraries are saved.
 	 */
-	public void setDontSave() { flags |= VDONTSAVE; }
+	public void setDontSave() { owner.checkChanging(); flags |= VDONTSAVE; }
 
 	/**
 	 * Routine to set this Variable to be saved.
 	 * Variables that are saved are written to disk when libraries are saved.
 	 */
-	public void clearDontSave() { flags &= ~VDONTSAVE; }
+	public void clearDontSave() { owner.checkChanging(); flags &= ~VDONTSAVE; }
 
 	/**
 	 * Routine to return true if this Variable is to be saved.
@@ -461,13 +508,13 @@ public class Variable
 	 * Routine to set this Variable to be not-settable.
 	 * Only Variables that are settable can have their value changed.
 	 */
-	public void setCantSet() { flags |= VCANTSET; }
+	public void setCantSet() { owner.checkChanging(); flags |= VCANTSET; }
 
 	/**
 	 * Routine to set this Variable to be settable.
 	 * Only Variables that are settable can have their value changed.
 	 */
-	public void clearCantSet() { flags &= ~VCANTSET; }
+	public void clearCantSet() { owner.checkChanging(); flags &= ~VCANTSET; }
 
 	/**
 	 * Routine to return true if this Variable is settable.

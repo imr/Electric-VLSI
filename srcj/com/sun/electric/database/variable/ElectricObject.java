@@ -211,8 +211,15 @@ public class ElectricObject
 		{
 			vars = new HashMap();
 		}
-		Variable v = new Variable(value, TextDescriptor.newNodeArcDescriptor(), key);
-		vars.put(name, v);
+		Variable v = (Variable) vars.get(name);
+		if (v == null)
+		{
+			v = new Variable(this, value, TextDescriptor.newNodeArcDescriptor(), key);
+			vars.put(name, v);
+		} else
+		{
+			v.setObject(value);
+		}
 		return v;
 	}
 
@@ -242,8 +249,20 @@ public class ElectricObject
 	{
 		checkChanging();
 		if (vars == null) return;
-		vars.remove(name);
+		Variable v = getVar(name);
+		if (v != null)
+		{
+			v.kill();
+			vars.remove(name);
+		}
 	}
+
+	/**
+	 * Routine to signal that displayability of variable changed.
+	 * Used to update Node/Arc names after changeing NODE_NAME/ARC_NAME variables.
+	 * @param var the Variable.
+	 */
+	protected void updateDisplayable(Variable var) {}
 
 	/**
 	 * Routine to copy all variables from another ElectricObject to this ElectricObject.
