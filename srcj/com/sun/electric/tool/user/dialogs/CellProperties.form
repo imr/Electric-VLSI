@@ -4,6 +4,8 @@
   <NonVisualComponents>
     <Component class="javax.swing.ButtonGroup" name="expansion">
     </Component>
+    <Component class="javax.swing.ButtonGroup" name="frameOrientation">
+    </Component>
   </NonVisualComponents>
   <Properties>
     <Property name="title" type="java.lang.String" value="Cell Properties"/>
@@ -355,6 +357,9 @@
         <Component class="javax.swing.JRadioButton" name="frameLandscape">
           <Properties>
             <Property name="text" type="java.lang.String" value="Landscape"/>
+            <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
+              <ComponentRef name="frameOrientation"/>
+            </Property>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="frameLandscapeActionPerformed"/>
@@ -368,6 +373,9 @@
         <Component class="javax.swing.JRadioButton" name="framePortrait">
           <Properties>
             <Property name="text" type="java.lang.String" value="Portrait"/>
+            <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
+              <ComponentRef name="frameOrientation"/>
+            </Property>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="framePortraitActionPerformed"/>

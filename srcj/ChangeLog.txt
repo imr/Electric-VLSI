@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+IMP: (9/23/04, SMR) PostScript output includes cell frames.
+
 ************************* Version 8.01x: *********************************
 
 FIX: (9/23/04, GVG) ERC fix to properly detect polygons with multiple loops inside. This error could be seen in

@@ -59,6 +59,16 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.font.FontRenderContext;
+import java.awt.font.GlyphVector;
+import java.awt.font.LineMetrics;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -1179,6 +1189,321 @@ public class Cell extends NodeProto implements Comparable
 			if (ni.getProto() == Generic.tech.cellCenterNode) return true;
 		}
 		return false;
+	}
+
+	/**
+	 * Class for creating a description of a frame around a schematic cell.
+	 */
+	public static class FrameDescription
+	{
+		private static final double FRAMESCALE = 18.0;
+		private static final double HASCHXSIZE = ( 8.5  * FRAMESCALE);
+		private static final double HASCHYSIZE = ( 5.5  * FRAMESCALE);
+		private static final double ASCHXSIZE  = (11.0  * FRAMESCALE);
+		private static final double ASCHYSIZE  = ( 8.5  * FRAMESCALE);
+		private static final double BSCHXSIZE  = (17.0  * FRAMESCALE);
+		private static final double BSCHYSIZE  = (11.0  * FRAMESCALE);
+		private static final double CSCHXSIZE  = (24.0  * FRAMESCALE);
+		private static final double CSCHYSIZE  = (17.0  * FRAMESCALE);
+		private static final double DSCHXSIZE  = (36.0  * FRAMESCALE);
+		private static final double DSCHYSIZE  = (24.0  * FRAMESCALE);
+		private static final double ESCHXSIZE  = (48.0  * FRAMESCALE);
+		private static final double ESCHYSIZE  = (36.0  * FRAMESCALE);
+		private static final double FRAMEWID   = ( 0.15 * FRAMESCALE);
+		private static final double XLOGOBOX   = ( 2.0  * FRAMESCALE);
+		private static final double YLOGOBOX   = ( 1.0  * FRAMESCALE);
+
+		private Cell cell;
+		private List lineFromEnd;
+		private List lineToEnd;
+		private List textPoint;
+		private List textSize;
+		private List textBox;
+		private List textMessage;
+
+		/**
+		 * Constructor for cell frame descriptions.
+		 * @param cell the Cell that is having a frame drawn.
+		 */
+		public FrameDescription(Cell cell)
+		{
+			this.cell = cell;
+			lineFromEnd = new ArrayList();
+			lineToEnd = new ArrayList();
+			textPoint = new ArrayList();
+			textSize = new ArrayList();
+			textBox = new ArrayList();
+			textMessage = new ArrayList();
+			loadFrame();
+		}
+
+		/**
+		 * Method to initialize the drawing of a frame.
+		 * This method is overridden by subclasses that know how to do the function.
+		 */
+		public void renderInit() {}
+
+		/**
+		 * Method to draw a line in a frame.
+		 * This method is overridden by subclasses that know how to do the function.
+		 * @param from the starting point of the line (in database units).
+		 * @param to the ending point of the line (in database units).
+		 */
+		public void showFrameLine(Point2D from, Point2D to) {}
+
+		/**
+		 * Method to draw text in a frame.
+		 * This method is overridden by subclasses that know how to do the function.
+		 * @param ctr the anchor point of the text.
+		 * @param size the size of the text (in database units).
+		 * @param maxWid the maximum width of the text (ignored if zero).
+		 * @param maxHei the maximum height of the text (ignored if zero).
+		 * @param string the text to be displayed.
+		 */
+		public void showFrameText(Point2D ctr, double size, double maxWid, double maxHei, String string) {}
+
+		/**
+		 * Method called to render the frame information.
+		 * It makes calls to "renderInit()", "showFrameLine()", and "showFrameText()".
+		 */
+		public void renderFrame()
+		{
+			for(int i=0; i<lineFromEnd.size(); i++)
+			{
+				Point2D from = (Point2D)lineFromEnd.get(i);
+				Point2D to = (Point2D)lineToEnd.get(i);
+				showFrameLine(from, to);
+			}
+			for(int i=0; i<textPoint.size(); i++)
+			{
+				Point2D at = (Point2D)textPoint.get(i);
+				double size = ((Double)textSize.get(i)).doubleValue();
+				Point2D box = (Point2D)textBox.get(i);
+				double width = box.getX();
+				double height = box.getY();
+				String msg = (String)textMessage.get(i);
+				showFrameText(at, size, width, height, msg);
+			}
+		}
+
+		/**
+		 * Method to determine the size of the schematic frame in the current Cell.
+		 * @param d a Dimension in which the size (database units) will be placed.
+		 * @return 0: there should be a frame whose size is absolute;
+		 * 1: there should be a frame but it combines with other stuff in the cell;
+		 * 2: there is no frame.
+		 */
+		public static int getCellFrameInfo(Cell cell, Dimension d)
+		{
+			Variable var = cell.getVar(User.FRAME_SIZE, String.class);
+			if (var == null) return 2;
+			String frameInfo = (String)var.getObject();
+			if (frameInfo.length() == 0) return 2;
+			int retval = 0;
+			char chr = frameInfo.charAt(0);
+			double wid = 0, hei = 0;
+			if (chr == 'x')
+			{
+				wid = XLOGOBOX + FRAMEWID;   hei = YLOGOBOX + FRAMEWID;
+				retval = 1;
+			} else
+			{
+				switch (chr)
+				{
+					case 'h': wid = HASCHXSIZE;  hei = HASCHYSIZE;  break;
+					case 'a': wid = ASCHXSIZE;   hei = ASCHYSIZE;   break;
+					case 'b': wid = BSCHXSIZE;   hei = BSCHYSIZE;   break;
+					case 'c': wid = CSCHXSIZE;   hei = CSCHYSIZE;   break;
+					case 'd': wid = DSCHXSIZE;   hei = DSCHYSIZE;   break;
+					case 'e': wid = ESCHXSIZE;   hei = ESCHYSIZE;   break;
+				}
+			}
+			if (frameInfo.indexOf("v") >= 0)
+			{
+				d.setSize(hei, wid);
+			} else
+			{
+				d.setSize(wid, hei);
+			}
+			return retval;
+		}
+
+		private void loadFrame()
+		{
+			Dimension d = new Dimension();
+			int frameFactor = getCellFrameInfo(cell, d);
+			if (frameFactor == 2) return;
+
+			Variable var = cell.getVar(User.FRAME_SIZE, String.class);
+			if (var == null) return;
+			String frameInfo = (String)var.getObject();
+			double schXSize = d.getWidth();
+			double schYSize = d.getHeight();
+
+			boolean drawTitleBox = true;
+			int xSections = 8;
+			int ySections = 4;
+			if (frameFactor == 1)
+			{
+				xSections = ySections = 0;
+			} else
+			{
+				if (frameInfo.indexOf("v") >= 0)
+				{
+					xSections = 4;
+					ySections = 8;
+				}
+				if (frameInfo.indexOf("n") >= 0) drawTitleBox = false;
+			}
+
+			double xLogoBox = XLOGOBOX;
+			double yLogoBox = YLOGOBOX;
+			double frameWid = FRAMEWID;
+
+			// draw the frame
+			if (xSections > 0)
+			{
+				double xSecSize = (schXSize - frameWid*2) / xSections;
+				double ySecSize = (schYSize - frameWid*2) / ySections;
+
+				// draw the outer frame
+				Point2D point0 = new Point2D.Double(-schXSize/2, -schYSize/2);
+				Point2D point1 = new Point2D.Double(-schXSize/2,  schYSize/2);
+				Point2D point2 = new Point2D.Double( schXSize/2,  schYSize/2);
+				Point2D point3 = new Point2D.Double( schXSize/2, -schYSize/2);
+				addLine(point0, point1);
+				addLine(point1, point2);
+				addLine(point2, point3);
+				addLine(point3, point0);
+
+				// draw the inner frame
+				point0 = new Point2D.Double(-schXSize/2 + frameWid, -schYSize/2 + frameWid);
+				point1 = new Point2D.Double(-schXSize/2 + frameWid,  schYSize/2 - frameWid);
+				point2 = new Point2D.Double( schXSize/2 - frameWid,  schYSize/2 - frameWid);
+				point3 = new Point2D.Double( schXSize/2 - frameWid, -schYSize/2 + frameWid);
+				addLine(point0, point1);
+				addLine(point1, point2);
+				addLine(point2, point3);
+				addLine(point3, point0);
+
+				// tick marks along the top and bottom sides
+				for(int i=0; i<xSections; i++)
+				{
+					double x = i * xSecSize - (schXSize/2 - frameWid);
+					if (i > 0)
+					{
+						point0 = new Point2D.Double(x, schYSize/2 - frameWid);
+						point1 = new Point2D.Double(x, schYSize/2 - frameWid/2);
+						addLine(point0, point1);
+						point0 = new Point2D.Double(x, -schYSize/2 + frameWid);
+						point1 = new Point2D.Double(x, -schYSize/2 + frameWid/2);
+						addLine(point0, point1);
+					}
+
+					char chr = (char)('1' + xSections - i - 1);
+					point0 = new Point2D.Double(x + xSecSize/2, schYSize/2 - frameWid/2);
+					addText(point0, frameWid, 0, 0, String.valueOf(chr));
+
+					point0 = new Point2D.Double(x + xSecSize/2, -schYSize/2 + frameWid/2);
+					addText(point0, frameWid, 0, 0, String.valueOf(chr));
+				}
+
+				// tick marks along the left and right sides
+				for(int i=0; i<ySections; i++)
+				{
+					double y = i * ySecSize - (schYSize/2 - frameWid);
+					if (i > 0)
+					{
+						point0 = new Point2D.Double(schXSize/2 - frameWid, y);
+						point1 = new Point2D.Double(schXSize/2 - frameWid/2, y);
+						addLine(point0, point1);
+						point0 = new Point2D.Double(-schXSize/2 + frameWid, y);
+						point1 = new Point2D.Double(-schXSize/2 + frameWid/2, y);
+						addLine(point0, point1);
+					}
+					char chr = (char)('A' + i);
+					point0 = new Point2D.Double(schXSize/2 - frameWid/2, y + ySecSize/2);
+					addText(point0, frameWid, 0, 0, String.valueOf(chr));
+
+					point0 = new Point2D.Double(-schXSize/2 + frameWid/2, y + ySecSize/2);
+					addText(point0, frameWid, 0, 0, String.valueOf(chr));
+				}
+			}
+			if (drawTitleBox)
+			{
+				Point2D point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox, -schYSize/2 + frameWid + yLogoBox);
+				Point2D point1 = new Point2D.Double(schXSize/2 - frameWid, -schYSize/2 + frameWid + yLogoBox);
+				Point2D point2 = new Point2D.Double(schXSize/2 - frameWid, -schYSize/2 + frameWid);
+				Point2D point3 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox, -schYSize/2 + frameWid);
+				addLine(point0, point1);
+				addLine(point1, point2);
+				addLine(point2, point3);
+				addLine(point3, point0);
+		
+				point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox, -schYSize/2 + frameWid + yLogoBox*2/15);
+				point1 = new Point2D.Double(schXSize/2 - frameWid,            -schYSize/2 + frameWid + yLogoBox*2/15);
+				addLine(point0, point1);
+
+				point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox, -schYSize/2 + frameWid + yLogoBox*4/15);
+				point1 = new Point2D.Double(schXSize/2 - frameWid,            -schYSize/2 + frameWid + yLogoBox*4/15);
+				addLine(point0, point1);
+
+				point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox, -schYSize/2 + frameWid + yLogoBox*6/15);
+				point1 = new Point2D.Double(schXSize/2 - frameWid,            -schYSize/2 + frameWid + yLogoBox*6/15);
+				addLine(point0, point1);
+
+				point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox, -schYSize/2 + frameWid + yLogoBox*9/15);
+				point1 = new Point2D.Double(schXSize/2 - frameWid,            -schYSize/2 + frameWid + yLogoBox*9/15);
+				addLine(point0, point1);
+
+				point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox, -schYSize/2 + frameWid + yLogoBox*12/15);
+				point1 = new Point2D.Double(schXSize/2 - frameWid,            -schYSize/2 + frameWid + yLogoBox*12/15);
+				addLine(point0, point1);
+
+				point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*13.5/15);
+				addText(point0, yLogoBox*2/15, xLogoBox, yLogoBox*3/15, "Name: " + cell.describe());
+
+				String projectName = User.getFrameProjectName();
+				Variable pVar = cell.getLibrary().getVar(User.FRAME_PROJECT_NAME, String.class);
+				if (pVar != null) projectName = (String)pVar.getObject();
+				point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*10.5/15);
+				addText(point0, yLogoBox*2/15, xLogoBox, yLogoBox*3/15, projectName);
+
+				String designerName = User.getFrameDesignerName();
+				Variable dVar = cell.getLibrary().getVar(User.FRAME_DESIGNER_NAME, String.class);
+				if (dVar != null) designerName = (String)dVar.getObject();
+				dVar = cell.getVar(User.FRAME_DESIGNER_NAME, String.class);
+				if (dVar != null) designerName = (String)dVar.getObject();
+				point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*7.5/15);
+				addText(point0, yLogoBox*2/15, xLogoBox, yLogoBox*3/15, designerName);
+
+				String companyName = User.getFrameCompanyName();
+				Variable cVar = cell.getLibrary().getVar(User.FRAME_COMPANY_NAME, String.class);
+				if (cVar != null) companyName = (String)cVar.getObject();
+				point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*5/15);
+				addText(point0, yLogoBox*2/15, xLogoBox, yLogoBox*2/15, companyName);
+
+				point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*3/15);
+				addText(point0, yLogoBox*2/15, xLogoBox, yLogoBox*2/15, "Created: " + TextUtils.formatDate(cell.getCreationDate()));
+
+				point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*1/15);
+				addText(point0, yLogoBox*2/15, xLogoBox, yLogoBox*2/15, "Revised: " + TextUtils.formatDate(cell.getRevisionDate()));
+			}
+		}
+
+		private void addLine(Point2D from, Point2D to)
+		{
+			lineFromEnd.add(from);
+			lineToEnd.add(to);
+		}
+
+		private void addText(Point2D at, double size, double width, double height, String msg)
+		{
+			textPoint.add(at);
+			textSize.add(new Double(size));
+			textBox.add(new Point2D.Double(width, height));
+			textMessage.add(msg);
+		}
 	}
 
 	/****************************** NODES ******************************/

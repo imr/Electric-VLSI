@@ -49,6 +49,7 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
+import java.awt.Dimension;
 import java.awt.geom.Rectangle2D;
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
@@ -487,6 +488,10 @@ public class Output
 	public Rectangle2D getAreaToPrint(Cell cell, boolean reduce)
 	{
 		Rectangle2D bounds = cell.getBounds();
+		Dimension d = new Dimension();
+		int frameFactor = Cell.FrameDescription.getCellFrameInfo(cell, d);
+		Rectangle2D frameBounds = new Rectangle2D.Double(-d.getWidth()/2, -d.getHeight()/2, d.getWidth(), d.getHeight());
+		if (frameFactor == 0) bounds = frameBounds;
 
 		// extend it and make it square
 		if (reduce)

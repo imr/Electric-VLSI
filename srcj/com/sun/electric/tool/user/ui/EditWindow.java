@@ -995,290 +995,104 @@ public class EditWindow extends JPanel
 
 	// ************************************* CELL FRAME *************************************
 
-	private static final double FRAMESCALE = 18.0;
-	private static final double HASCHXSIZE = ( 8.5  * FRAMESCALE);
-	private static final double HASCHYSIZE = ( 5.5  * FRAMESCALE);
-	private static final double ASCHXSIZE  = (11.0  * FRAMESCALE);
-	private static final double ASCHYSIZE  = ( 8.5  * FRAMESCALE);
-	private static final double BSCHXSIZE  = (17.0  * FRAMESCALE);
-	private static final double BSCHYSIZE  = (11.0  * FRAMESCALE);
-	private static final double CSCHXSIZE  = (24.0  * FRAMESCALE);
-	private static final double CSCHYSIZE  = (17.0  * FRAMESCALE);
-	private static final double DSCHXSIZE  = (36.0  * FRAMESCALE);
-	private static final double DSCHYSIZE  = (24.0  * FRAMESCALE);
-	private static final double ESCHXSIZE  = (48.0  * FRAMESCALE);
-	private static final double ESCHYSIZE  = (36.0  * FRAMESCALE);
-	private static final double FRAMEWID   = ( 0.15 * FRAMESCALE);
-	private static final double XLOGOBOX   = ( 2.0  * FRAMESCALE);
-	private static final double YLOGOBOX   = ( 1.0  * FRAMESCALE);
-
 	/**
-	 * Method to determine the size of the schematic frame in the current Cell.
-	 * @param d a Dimension in which the size (database units) will be placed.
-	 * @return 0: there should be a frame whose size is absolute;
-	 * 1: there should be a frame but it combines with other stuff in the cell;
-	 * 2: there is no frame.
+	 * Method to render the cell frame directly to the Graphics.
 	 */
-	public int getCellFrameInfo(Dimension d)
-	{
-		Variable var = cell.getVar(User.FRAME_SIZE, String.class);
-		if (var == null) return 2;
-		String frameInfo = (String)var.getObject();
-		if (frameInfo.length() == 0) return 2;
-		int retval = 0;
-		char chr = frameInfo.charAt(0);
-		double wid = 0, hei = 0;
-		if (chr == 'x')
-		{
-			wid = XLOGOBOX + FRAMEWID;   hei = YLOGOBOX + FRAMEWID;
-			retval = 1;
-		} else
-		{
-			switch (chr)
-			{
-				case 'h': wid = HASCHXSIZE;  hei = HASCHYSIZE;  break;
-				case 'a': wid = ASCHXSIZE;   hei = ASCHYSIZE;   break;
-				case 'b': wid = BSCHXSIZE;   hei = BSCHYSIZE;   break;
-				case 'c': wid = CSCHXSIZE;   hei = CSCHYSIZE;   break;
-				case 'd': wid = DSCHXSIZE;   hei = DSCHYSIZE;   break;
-				case 'e': wid = ESCHXSIZE;   hei = ESCHYSIZE;   break;
-			}
-		}
-		if (frameInfo.indexOf("v") >= 0)
-		{
-			d.setSize(hei, wid);
-		} else
-		{
-			d.setSize(wid, hei);
-		}
-		return retval;
-	}
-
 	private void drawCellFrame(Graphics g)
 	{
-		Dimension d = new Dimension();
-		int frameFactor = getCellFrameInfo(d);
-		if (frameFactor == 2) return;
-
-		Variable var = cell.getVar(User.FRAME_SIZE, String.class);
-		if (var == null) return;
-		String frameInfo = (String)var.getObject();
-		double schXSize = d.getWidth();
-		double schYSize = d.getHeight();
-
-		boolean drawTitleBox = true;
-		int xSections = 8;
-		int ySections = 4;
-		if (frameFactor == 1)
-		{
-			xSections = ySections = 0;
-		} else
-		{
-			if (frameInfo.indexOf("v") >= 0)
-			{
-				xSections = 4;
-				ySections = 8;
-			}
-			if (frameInfo.indexOf("n") >= 0) drawTitleBox = false;
-		}
-
-		double xLogoBox = XLOGOBOX;
-		double yLogoBox = YLOGOBOX;
-		double frameWid = FRAMEWID;
-
-		// draw the frame
-		g.setColor(Color.BLACK);
-		if (xSections > 0)
-		{
-			double xSecSize = (schXSize - frameWid*2) / xSections;
-			double ySecSize = (schYSize - frameWid*2) / ySections;
-
-			// draw the outer frame
-			Point2D point0 = new Point2D.Double(-schXSize/2, -schYSize/2);
-			Point2D point1 = new Point2D.Double(-schXSize/2,  schYSize/2);
-			Point2D point2 = new Point2D.Double( schXSize/2,  schYSize/2);
-			Point2D point3 = new Point2D.Double( schXSize/2, -schYSize/2);
-			showFrameLine(g, point0, point1);
-			showFrameLine(g, point1, point2);
-			showFrameLine(g, point2, point3);
-			showFrameLine(g, point3, point0);
-
-			// draw the inner frame
-			point0 = new Point2D.Double(-schXSize/2 + frameWid, -schYSize/2 + frameWid);
-			point1 = new Point2D.Double(-schXSize/2 + frameWid,  schYSize/2 - frameWid);
-			point2 = new Point2D.Double( schXSize/2 - frameWid,  schYSize/2 - frameWid);
-			point3 = new Point2D.Double( schXSize/2 - frameWid, -schYSize/2 + frameWid);
-			showFrameLine(g, point0, point1);
-			showFrameLine(g, point1, point2);
-			showFrameLine(g, point2, point3);
-			showFrameLine(g, point3, point0);
-
-			Point2D textSize = deltaDatabaseToScreen(frameWid, frameWid);
-			int height = (int)Math.abs(textSize.getY()) - 2;
-
-			// tick marks along the top and bottom sides
-			for(int i=0; i<xSections; i++)
-			{
-				double x = i * xSecSize - (schXSize/2 - frameWid);
-				if (i > 0)
-				{
-					point0 = new Point2D.Double(x, schYSize/2 - frameWid);
-					point1 = new Point2D.Double(x, schYSize/2 - frameWid/2);
-					showFrameLine(g, point0, point1);
-					point0 = new Point2D.Double(x, -schYSize/2 + frameWid);
-					point1 = new Point2D.Double(x, -schYSize/2 + frameWid/2);
-					showFrameLine(g, point0, point1);
-				}
-
-				char chr = (char)('1' + xSections - i - 1);
-				point0 = new Point2D.Double(x + xSecSize/2, schYSize/2 - frameWid/2);
-				showFrameText(g, point0, height, 0, 0, String.valueOf(chr));
-
-				point0 = new Point2D.Double(x + xSecSize/2, -schYSize/2 + frameWid/2);
-				showFrameText(g, point0, height, 0, 0, String.valueOf(chr));
-			}
-
-			// tick marks along the left and right sides
-			for(int i=0; i<ySections; i++)
-			{
-				double y = i * ySecSize - (schYSize/2 - frameWid);
-				if (i > 0)
-				{
-					point0 = new Point2D.Double(schXSize/2 - frameWid, y);
-					point1 = new Point2D.Double(schXSize/2 - frameWid/2, y);
-					showFrameLine(g, point0, point1);
-					point0 = new Point2D.Double(-schXSize/2 + frameWid, y);
-					point1 = new Point2D.Double(-schXSize/2 + frameWid/2, y);
-					showFrameLine(g, point0, point1);
-				}
-				char chr = (char)('A' + i);
-				point0 = new Point2D.Double(schXSize/2 - frameWid/2, y + ySecSize/2);
-				showFrameText(g, point0, height, 0, 0, String.valueOf(chr));
-
-				point0 = new Point2D.Double(-schXSize/2 + frameWid/2, y + ySecSize/2);
-				showFrameText(g, point0, height, 0, 0, String.valueOf(chr));
-			}
-		}
-		if (drawTitleBox)
-		{
-			Point2D textSize = deltaDatabaseToScreen(yLogoBox*2/15, yLogoBox*2/15);
-			int height = (int)Math.abs(textSize.getY());
-
-			Point2D point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox, -schYSize/2 + frameWid + yLogoBox);
-			Point2D point1 = new Point2D.Double(schXSize/2 - frameWid, -schYSize/2 + frameWid + yLogoBox);
-			Point2D point2 = new Point2D.Double(schXSize/2 - frameWid, -schYSize/2 + frameWid);
-			Point2D point3 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox, -schYSize/2 + frameWid);
-			showFrameLine(g, point0, point1);
-			showFrameLine(g, point1, point2);
-			showFrameLine(g, point2, point3);
-			showFrameLine(g, point3, point0);
-	
-			point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox, -schYSize/2 + frameWid + yLogoBox*2/15);
-			point1 = new Point2D.Double(schXSize/2 - frameWid,            -schYSize/2 + frameWid + yLogoBox*2/15);
-			showFrameLine(g, point0, point1);
-
-			point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox, -schYSize/2 + frameWid + yLogoBox*4/15);
-			point1 = new Point2D.Double(schXSize/2 - frameWid,            -schYSize/2 + frameWid + yLogoBox*4/15);
-			showFrameLine(g, point0, point1);
-
-			point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox, -schYSize/2 + frameWid + yLogoBox*6/15);
-			point1 = new Point2D.Double(schXSize/2 - frameWid,            -schYSize/2 + frameWid + yLogoBox*6/15);
-			showFrameLine(g, point0, point1);
-
-			point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox, -schYSize/2 + frameWid + yLogoBox*9/15);
-			point1 = new Point2D.Double(schXSize/2 - frameWid,            -schYSize/2 + frameWid + yLogoBox*9/15);
-			showFrameLine(g, point0, point1);
-
-			point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox, -schYSize/2 + frameWid + yLogoBox*12/15);
-			point1 = new Point2D.Double(schXSize/2 - frameWid,            -schYSize/2 + frameWid + yLogoBox*12/15);
-			showFrameLine(g, point0, point1);
-
-			point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*13.5/15);
-			showFrameText(g, point0, height, xLogoBox, yLogoBox*3/15, "Name: " + cell.describe());
-
-			String projectName = User.getFrameProjectName();
-			Variable pVar = cell.getLibrary().getVar(User.FRAME_PROJECT_NAME, String.class);
-			if (pVar != null) projectName = (String)pVar.getObject();
-			point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*10.5/15);
-			showFrameText(g, point0, height, xLogoBox, yLogoBox*3/15, projectName);
-
-			String designerName = User.getFrameDesignerName();
-			Variable dVar = cell.getLibrary().getVar(User.FRAME_DESIGNER_NAME, String.class);
-			if (dVar != null) designerName = (String)dVar.getObject();
-			dVar = cell.getVar(User.FRAME_DESIGNER_NAME, String.class);
-			if (dVar != null) designerName = (String)dVar.getObject();
-			point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*7.5/15);
-			showFrameText(g, point0, height, xLogoBox, yLogoBox*3/15, designerName);
-
-			String companyName = User.getFrameCompanyName();
-			Variable cVar = cell.getLibrary().getVar(User.FRAME_COMPANY_NAME, String.class);
-			if (cVar != null) companyName = (String)cVar.getObject();
-			point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*5/15);
-			showFrameText(g, point0, height, xLogoBox, yLogoBox*2/15, companyName);
-
-			point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*3/15);
-			showFrameText(g, point0, height, xLogoBox, yLogoBox*2/15, "Created: " + TextUtils.formatDate(cell.getCreationDate()));
-
-			point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*1/15);
-			showFrameText(g, point0, height, xLogoBox, yLogoBox*2/15, "Revised: " + TextUtils.formatDate(cell.getRevisionDate()));
-		}
+		DisplayedFrame df = new DisplayedFrame(cell, g, this);
+		df.renderFrame();
 	}
 
 	/**
-	 * Method to draw a line directly to the screen.
-	 * This is used when drawing the frame around a cell.
-	 * @param g the Graphics context in which to draw.
-	 * @param from the starting point of the line.
-	 * @param to the ending point of the line.
+	 * Class for rendering a cell frame.
+	 * Extends Cell.FrameDescription and provides hooks for drawing to a Graphics.
 	 */
-	private void showFrameLine(Graphics g, Point2D from, Point2D to)
+	public static class DisplayedFrame extends Cell.FrameDescription
 	{
-		Point f = databaseToScreen(from);
-		Point t = databaseToScreen(to);
-		g.drawLine(f.x, f.y, t.x, t.y);
-	}
+		private Graphics g;
+		private EditWindow wnd;
 
-	/**
-	 * Method to draw text directly to the screen.
-	 * This is used when drawing the frame around a cell.
-	 * @param g the Graphics context in which to draw.
-	 * @param ctr the center point of the text.
-	 * @param initialHeight the text height to use (may get scaled down to fit).
-	 * @param maxWid the maximum width of the text (in database units).
-	 * @param maxHei the maximum height of the text (in database units).
-	 * @param string the text to draw.
-	 */
-	private void showFrameText(Graphics g, Point2D ctr, int initialHeight, double maxWid, double maxHei, String string)
-	{
-		Font font = new Font(User.getDefaultFont(), Font.PLAIN, initialHeight);
-		g.setFont(font);
-
-		FontRenderContext frc = new FontRenderContext(null, true, true);
-		GlyphVector gv = font.createGlyphVector(frc, string);
-		LineMetrics lm = font.getLineMetrics(string, frc);
-		Rectangle rect = gv.getOutline(0, (float)(lm.getAscent()-lm.getLeading())).getBounds();
-		double width = rect.width;
-		double height = lm.getHeight();
-		Point2D databaseSize = deltaScreenToDatabase((int)width, (int)height);
-		double dbWidth = Math.abs(databaseSize.getX());
-		double dbHeight = Math.abs(databaseSize.getY());
-		if (maxWid > 0 && maxHei > 0 && (dbWidth > maxWid || dbHeight > maxHei))
+		/**
+		 * Constructor for cell frame rendering.
+		 * @param cell the Cell that is having a frame drawn.
+		 * @param g the Graphics to which to draw the frame.
+		 * @param wnd the EditWindow in which this is being drawn.
+		 */
+		public DisplayedFrame(Cell cell, Graphics g, EditWindow wnd)
 		{
-			double scale = Math.min(maxWid / dbWidth, maxHei / dbHeight);
-			font = new Font(User.getDefaultFont(), Font.PLAIN, (int)(initialHeight*scale));
-			if (font != null)
-			{
-				gv = font.createGlyphVector(frc, string);
-				lm = font.getLineMetrics(string, frc);
-				rect = gv.getOutline(0, (float)(lm.getAscent()-lm.getLeading())).getBounds();
-				width = rect.width;
-				height = lm.getHeight();
-			}
+			super(cell);
+			this.g = g;
+			this.wnd = wnd;
 		}
 
-		Graphics2D g2 = (Graphics2D)g;
-		Point p = databaseToScreen(ctr);
-		g2.drawGlyphVector(gv, (float)(p.x - width/2), (float)(p.y + height/2 - lm.getDescent()));
+		/**
+		 * Method to initialize the drawing of a frame.
+		 */
+		public void renderInit()
+		{
+			g.setColor(Color.BLACK);
+		}
+
+		/**
+		 * Method to draw a line in a frame.
+		 * @param from the starting point of the line (in database units).
+		 * @param to the ending point of the line (in database units).
+		 */
+		public void showFrameLine(Point2D from, Point2D to)
+		{
+			Point f = wnd.databaseToScreen(from);
+			Point t = wnd.databaseToScreen(to);
+			g.drawLine(f.x, f.y, t.x, t.y);
+		}
+
+		/**
+		 * Method to draw text in a frame.
+		 * @param ctr the anchor point of the text.
+		 * @param size the size of the text (in database units).
+		 * @param maxWid the maximum width of the text (ignored if zero).
+		 * @param maxHei the maximum height of the text (ignored if zero).
+		 * @param string the text to be displayed.
+		 */
+		public void showFrameText(Point2D ctr, double size, double maxWid, double maxHei, String string)
+		{
+			// convert text size to screen points
+			Point2D sizeVector = wnd.deltaDatabaseToScreen(size, size);
+			int initialHeight = (int)Math.abs(sizeVector.getY());
+
+			// get the font
+			Font font = new Font(User.getDefaultFont(), Font.PLAIN, initialHeight);
+			g.setFont(font);
+			FontRenderContext frc = new FontRenderContext(null, true, true);
+
+			// convert the message to glyphs
+			GlyphVector gv = font.createGlyphVector(frc, string);
+			LineMetrics lm = font.getLineMetrics(string, frc);
+			Rectangle rect = gv.getOutline(0, (float)(lm.getAscent()-lm.getLeading())).getBounds();
+			double width = rect.width;
+			double height = lm.getHeight();
+			Point2D databaseSize = wnd.deltaScreenToDatabase((int)width, (int)height);
+			double dbWidth = Math.abs(databaseSize.getX());
+			double dbHeight = Math.abs(databaseSize.getY());
+			if (maxWid > 0 && maxHei > 0 && (dbWidth > maxWid || dbHeight > maxHei))
+			{
+				double scale = Math.min(maxWid / dbWidth, maxHei / dbHeight);
+				font = new Font(User.getDefaultFont(), Font.PLAIN, (int)(initialHeight*scale));
+				if (font != null)
+				{
+					gv = font.createGlyphVector(frc, string);
+					lm = font.getLineMetrics(string, frc);
+					rect = gv.getOutline(0, (float)(lm.getAscent()-lm.getLeading())).getBounds();
+					width = rect.width;
+					height = lm.getHeight();
+				}
+			}
+
+			// render the text
+			Graphics2D g2 = (Graphics2D)g;
+			Point p = wnd.databaseToScreen(ctr);
+			g2.drawGlyphVector(gv, (float)(p.x - width/2), (float)(p.y + height/2 - lm.getDescent()));
+		}
 	}
 
 	// ************************************* GRID *************************************
@@ -2151,7 +1965,7 @@ public class EditWindow extends JPanel
 			{
 				Rectangle2D cellBounds = cell.getBounds();
 				Dimension d = new Dimension();
-				int frameFactor = getCellFrameInfo(d);
+				int frameFactor = Cell.FrameDescription.getCellFrameInfo(cell, d);
 				Rectangle2D frameBounds = new Rectangle2D.Double(-d.getWidth()/2, -d.getHeight()/2, d.getWidth(), d.getHeight());
 				if (frameFactor == 0)
 				{

@@ -461,6 +461,17 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			// begin the drag
 			dragSource.startDrag(e, DragSource.DefaultLinkDrop, transferable, this);
 		}
+
+		// TODO: enable this code to do dragging of cell names
+//		if (selectedNode.getUserObject() instanceof Cell)
+//		{
+//			// Get the Transferable Object
+//			Cell cell = (Cell)selectedNode.getUserObject();
+//			Transferable transferable = new StringSelection(cell.describe());
+//
+//			// begin the drag
+//			dragSource.startDrag(e, DragSource.DefaultLinkDrop, transferable, this);
+//		}
 	}
 
 	public void dragEnter(DragSourceDragEvent e) {}

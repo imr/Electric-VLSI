@@ -345,6 +345,7 @@ public class CellProperties extends EDialog
         java.awt.GridBagConstraints gridBagConstraints;
 
         expansion = new javax.swing.ButtonGroup();
+        frameOrientation = new javax.swing.ButtonGroup();
         cancel = new javax.swing.JButton();
         ok = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
@@ -754,6 +755,7 @@ public class CellProperties extends EDialog
         jPanel1.add(frameSize, gridBagConstraints);
 
         frameLandscape.setText("Landscape");
+        frameOrientation.add(frameLandscape);
         frameLandscape.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -770,6 +772,7 @@ public class CellProperties extends EDialog
         jPanel1.add(frameLandscape, gridBagConstraints);
 
         framePortrait.setText("Portrait");
+        frameOrientation.add(framePortrait);
         framePortrait.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -1097,6 +1100,7 @@ public class CellProperties extends EDialog
     private javax.swing.ButtonGroup expansion;
     private javax.swing.JTextField frameDesigner;
     private javax.swing.JRadioButton frameLandscape;
+    private javax.swing.ButtonGroup frameOrientation;
     private javax.swing.JRadioButton framePortrait;
     private javax.swing.JComboBox frameSize;
     private javax.swing.JCheckBox frameTitleBox;

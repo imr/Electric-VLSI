@@ -46,8 +46,17 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.EditWindow.DisplayedFrame;
 
 import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.font.FontRenderContext;
+import java.awt.font.GlyphVector;
+import java.awt.font.LineMetrics;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -120,7 +129,6 @@ public class PostScript extends Output
 		if (!error)
 		{
 			System.out.println(filePath + " written");
-			if (cell != null) IOTool.setPrintEPSSavedDate(cell, new Date());
 		}
 		return error;
 	}
@@ -426,17 +434,8 @@ public class PostScript extends Output
 		}
 
 		// draw frame if it is there
-//		j = framepolys(np);
-//		if (j != 0)
-//		{
-//			(void)needstaticpolygon(&poly, 4, io_tool->cluster);
-//			currentLayer = -1;
-//			for(i=0; i<j; i++)
-//			{
-//				framepoly(i, poly, np);
-//				(void)psPoly(poly, el_curwindowpart);
-//			}
-//		}
+		PostScriptFrame pf = new PostScriptFrame(cell, this);
+		pf.renderFrame();
 
 		// put out dates if requested
 		if (plotDates)
@@ -457,6 +456,66 @@ public class PostScript extends Output
 
 		printWriter.print("showpage\n");
 		printWriter.print("%%%%Trailer\n");
+	}
+
+	/**
+	 * Class for rendering a cell frame to the PostScript.
+	 * Extends Cell.FrameDescription and provides hooks for drawing to a Graphics.
+	 */
+	public static class PostScriptFrame extends Cell.FrameDescription
+	{
+		private PostScript writer;
+
+		/**
+		 * Constructor for cell frame rendering.
+		 * @param cell the Cell that is having a frame drawn.
+		 * @param g the Graphics to which to draw the frame.
+		 * @param wnd the EditWindow in which this is being drawn.
+		 */
+		public PostScriptFrame(Cell cell, PostScript writer)
+		{
+			super(cell);
+			this.writer = writer;
+		}
+
+		/**
+		 * Method to draw a line in a frame.
+		 * @param from the starting point of the line (in database units).
+		 * @param to the ending point of the line (in database units).
+		 */
+		public void showFrameLine(Point2D from, Point2D to)
+		{
+			writer.psLine(from, to, 0);
+		}
+
+		/**
+		 * Method to draw text in a frame.
+		 * @param ctr the anchor point of the text.
+		 * @param size the size of the text (in database units).
+		 * @param maxWid the maximum width of the text (ignored if zero).
+		 * @param maxHei the maximum height of the text (ignored if zero).
+		 * @param string the text to be displayed.
+		 */
+		public void showFrameText(Point2D ctr, double size, double maxWid, double maxHei, String string)
+		{
+			Poly poly = null;
+			if (maxWid > 0 && maxHei > 0)
+			{
+				poly = new Poly(ctr.getX(), ctr.getY(), maxWid, maxHei);
+				poly.setStyle(Poly.Type.TEXTBOX);
+			} else
+			{
+				Point2D [] points = new Point2D[1];
+				points[0] = ctr;
+				poly = new Poly(points);
+				poly.setStyle(Poly.Type.TEXTCENT);
+			}
+			poly.setString(string);
+			TextDescriptor td = TextDescriptor.getNodeTextDescriptor(null);
+			td.setRelSize(size * 0.75);
+			poly.setTextDescriptor(td);
+			writer.psText(poly, Technology.getCurrent());
+		}
 	}
 
 	/****************************** TRAVERSING THE HIERARCHY ******************************/
@@ -511,14 +570,14 @@ public class PostScript extends Output
 			} else
 			{
 				// a cell
+				Cell subCell = (Cell)np;
 				AffineTransform subTrans = ni.translateOut();
 				subTrans.preConcatenate(subRot);
 				if (!ni.isExpanded())
 				{
-					Rectangle2D bounds = ni.getBounds();
+					Rectangle2D bounds = subCell.getBounds();
 					Poly poly = new Poly(bounds.getCenterX(), bounds.getCenterY(), ni.getXSize(), ni.getYSize());
-					AffineTransform localPureTrans = ni.rotateOutAboutTrueCenter(subTrans);
-					poly.transform(localPureTrans);
+					poly.transform(subTrans);
 					poly.setStyle(Poly.Type.CLOSED);
 					poly.setLayer(blackLayer);
 					psPoly(poly);
@@ -531,7 +590,7 @@ public class PostScript extends Output
 					psPoly(poly);
 				} else
 				{
-					recurseCircuitLevel((Cell)np, subTrans, false);
+					recurseCircuitLevel(subCell, subTrans, false);
 				}
 
 				// draw any displayable variables on the instance
@@ -688,6 +747,11 @@ public class PostScript extends Output
 				}
 				boolean err = writeCellToFile(oCell, VarContext.globalContext, syncFileName);
 				if (err) return true;
+
+				// mark the synchronized date
+				IOTool.setPrintEPSSavedDate(oCell, new Date());
+				// TODO: this is tricky: because the "newVar" modifies the cell, so the date should be set by hand
+
 				numSyncs++;
 			}
 		}
@@ -936,7 +1000,9 @@ public class PostScript extends Output
 		printWriter.print("newpath " + pc.getX() + " " + pc.getY() + " " + radius + " 0 360 arc fill\n");
 	}
 
-	/* draw a polygon */
+	/**
+	 * draw a polygon
+	 */
 	private void psPolygon(Poly poly)
 	{
 		Point2D [] points = poly.getPoints();
@@ -1561,7 +1627,7 @@ public class PostScript extends Output
 	}
 
 
-	/*
+	/**
 	 * Method to convert the coordinates (x,y) for display.  The coordinates for
 	 * printing are placed back into (x,y) and the PostScript coordinates are placed
 	 * in (psx,psy).
