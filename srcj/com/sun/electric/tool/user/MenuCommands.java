@@ -92,6 +92,7 @@ import com.sun.electric.tool.user.dialogs.ViewControl;
 import com.sun.electric.tool.user.ui.Menu;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.PixelDrawing;
 import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.ExplorerTree;
@@ -102,18 +103,29 @@ import com.sun.electric.tool.user.ui.SizeListener;
 import java.awt.Toolkit;
 import java.awt.Dimension;
 import java.awt.Rectangle;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.print.PrinterJob;
+import java.awt.print.Printable;
+import java.awt.print.PageFormat;
+import java.awt.print.PrinterException;
+import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Comparator;
 import java.util.Collections;
+import javax.print.PrintServiceLookup;
+import javax.print.PrintService;
 import javax.swing.ButtonGroup;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
@@ -193,6 +205,11 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(Output.ExportType.GDS, OpenFile.GDS); } });
 		exportSubMenu.addMenuItem("PostScript", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(Output.ExportType.POSTSCRIPT, OpenFile.POSTSCRIPT); } });
+
+		fileMenu.addSeparator();
+
+		fileMenu.addMenuItem("Print...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { printCommand(); } });
 
 		if (TopLevel.getOperatingSystem() != TopLevel.OS.MACINTOSH)
 		{
@@ -699,7 +716,8 @@ public final class MenuCommands
 		if (fileName != null)
 		{
 			// start a job to do the input
-			ReadBinaryLibrary job = new ReadBinaryLibrary(fileName);
+			URL fileURL = TextUtils.makeURLToFile(fileName);
+			ReadBinaryLibrary job = new ReadBinaryLibrary(fileURL);
 		}
 	}
 
@@ -709,18 +727,18 @@ public final class MenuCommands
 	 */
 	public static class ReadBinaryLibrary extends Job
 	{
-		String fileName;
+		URL fileURL;
 
-		public ReadBinaryLibrary(String fileName)
+		public ReadBinaryLibrary(URL fileURL)
 		{
 			super("Read Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.fileName = fileName;
+			this.fileURL = fileURL;
 			this.startJob();
 		}
 
 		public void doIt()
 		{
-			Library lib = Input.readLibrary(fileName, Input.ImportType.BINARY);
+			Library lib = Input.readLibrary(fileURL, Input.ImportType.BINARY);
 			Undo.noUndoAllowed();
 			if (lib == null) return;
 			lib.setCurrent();
@@ -751,7 +769,8 @@ public final class MenuCommands
 		if (fileName != null)
 		{
 			// start a job to do the input
-			ReadTextLibrary job = new ReadTextLibrary(fileName);
+			URL fileURL = TextUtils.makeURLToFile(fileName);
+			ReadTextLibrary job = new ReadTextLibrary(fileURL);
 		}
 	}
 
@@ -761,17 +780,17 @@ public final class MenuCommands
 	 */
 	protected static class ReadTextLibrary extends Job
 	{
-		String fileName;
-		protected ReadTextLibrary(String fileName)
+		URL fileURL;
+		protected ReadTextLibrary(URL fileURL)
 		{
 			super("Read Text Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.fileName = fileName;
+			this.fileURL = fileURL;
 			this.startJob();
 		}
 
 		public void doIt()
 		{
-			Library lib = Input.readLibrary(fileName, Input.ImportType.TEXT);
+			Library lib = Input.readLibrary(fileURL, Input.ImportType.TEXT);
 			Undo.noUndoAllowed();
 			if (lib == null) return;
 			lib.setCurrent();
@@ -917,7 +936,113 @@ public final class MenuCommands
 		}
 		
 	}
-		
+
+	/**
+	 * This method implements the command to print the current window.
+	 */
+	public static void printCommand()
+	{
+		Cell printCell = Library.needCurCell();
+		if (printCell == null) return;
+
+		PrinterJob pj = PrinterJob.getPrinterJob();
+		pj.setJobName("Cell "+printCell.describe());
+		ElectricPrinter ep = new ElectricPrinter();
+		ep.setPrintCell(printCell);
+		pj.setPrintable(ep);
+
+		// see if a default printer should be mentioned
+		String pName = Output.getPrinterName();
+		PrintService [] printers = PrintServiceLookup.lookupPrintServices(null, null);
+		PrintService printerToUse = null;
+		for(int i=0; i<printers.length; i++)
+		{
+			if (pName.equals(printers[i].getName()))
+			{
+				printerToUse = printers[i];
+				break;
+			}
+		}
+		if (printerToUse != null)
+		{
+			try
+			{
+				pj.setPrintService(printerToUse);
+			} catch (PrinterException e)
+			{
+			}
+		}
+
+		if (pj.printDialog())
+		{
+			printerToUse = pj.getPrintService();
+			if (printerToUse != null)
+				Output.setPrinterName(printerToUse.getName());
+			PrintJob job = new PrintJob(printCell, pj);
+		}
+	}
+
+	/**
+	 * Class to print a cell in a new thread.
+	 */
+	protected static class PrintJob extends Job
+	{
+		Cell cell;
+		PrinterJob pj;
+
+		public PrintJob(Cell cell, PrinterJob pj)
+		{
+			super("Print "+cell.describe(), User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+			this.cell = cell;
+			this.pj = pj;
+			this.startJob();
+		}
+
+		public void doIt() 
+		{
+			try {
+				pj.print();
+			} catch (PrinterException pe)
+			{
+				System.out.println("Print aborted.");
+			}
+		}
+	}
+
+	static class ElectricPrinter implements Printable
+	{
+		private Cell printCell;
+		private Image img = null;
+
+		public void setPrintCell(Cell printCell) { this.printCell = printCell; }
+
+		public int print(Graphics g, PageFormat pageFormat, int page)
+			throws java.awt.print.PrinterException
+		{
+			if (page != 0) return Printable.NO_SUCH_PAGE;
+
+			// create an EditWindow for rendering this cell
+			if (img == null)
+			{
+				EditWindow w = EditWindow.CreateElectricDoc(null, null);
+				int iw = (int)pageFormat.getImageableWidth();
+				int ih = (int)pageFormat.getImageableHeight();
+				w.setScreenSize(new Dimension(iw, ih));
+				w.setCell(printCell, VarContext.globalContext);
+				PixelDrawing offscreen = w.getOffscreen();
+				offscreen.setBackgroundColor(Color.WHITE);
+				offscreen.drawImage();
+				img = offscreen.getImage();
+			}
+
+			// copy the image to the page
+			int ix = (int)pageFormat.getImageableX();
+			int iy = (int)pageFormat.getImageableY();
+			g.drawImage(img, ix, iy, null);
+			return Printable.PAGE_EXISTS;
+		}
+	}
+
 	/**
 	 * This method implements the command to quit Electric.
 	 */
@@ -2316,7 +2441,8 @@ public final class MenuCommands
 	}
 	
 	public static void openP4libCommand() {
-		ReadBinaryLibrary job = new ReadBinaryLibrary("/export/gainsley/soesrc_java/test/purpleFour.elib");
+		URL url = TextUtils.makeURLToFile("/export/gainsley/soesrc_java/test/purpleFour.elib");
+		ReadBinaryLibrary job = new ReadBinaryLibrary(url);
 //		OpenBinLibraryThread oThread = new OpenBinLibraryThread("/export/gainsley/soesrc_java/test/purpleFour.elib");
 //		oThread.start();
 	}

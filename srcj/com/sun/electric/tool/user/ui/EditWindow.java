@@ -795,7 +795,11 @@ public class EditWindow extends JPanel
 			{
 				Rectangle2D cellBounds = cell.getBounds();
 				if (cellBounds.getWidth() == 0 && cellBounds.getHeight() == 0)
-					cellBounds = new Rectangle2D.Double(0, 0, 60, 60);
+				{
+					int defaultCellSize = 60;
+					cellBounds = new Rectangle2D.Double(cellBounds.getCenterX()-defaultCellSize/2,
+						cellBounds.getCenterY()-defaultCellSize/2, defaultCellSize, defaultCellSize);
+				}
 				focusScreen(cellBounds);
 				return;
 			}

@@ -26,6 +26,7 @@ package com.sun.electric;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
@@ -38,6 +39,7 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -128,7 +130,8 @@ public final class Main
                 continue;
             }
             System.out.println("Opening library "+arg);
-    		MenuCommands.ReadBinaryLibrary job = new MenuCommands.ReadBinaryLibrary(arg);
+			URL url = TextUtils.makeURLToFile(arg);
+    		MenuCommands.ReadBinaryLibrary job = new MenuCommands.ReadBinaryLibrary(url);
             openedALib = true;
         }
         return openedALib;

@@ -44,11 +44,13 @@ import com.sun.electric.tool.user.MenuCommands;
 
 import java.awt.geom.Point2D;
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.FileNotFoundException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -66,7 +68,7 @@ public class Input extends IOTool
 	
 	/** Name of the file being input. */					protected String filePath;
 	/** The Library being input. */							protected Library lib;
-	/** The raw input stream. */							protected FileInputStream fileInputStream;
+	/** The raw input stream. */							protected InputStream inputStream;
 	/** The binary input stream. */							protected DataInputStream dataInputStream;
 	/** The length of the file. */							protected long fileLength;
 	/** The progress during input. */						protected static Progress progress = null;
@@ -116,23 +118,26 @@ public class Input extends IOTool
 
 	/**
 	 * Method to read a Library from disk.
-	 * @param fileName the path to the disk file.
+	 * @param fileURL the URL to the disk file.
 	 * @param type the type of library file (BINARY .elib, CIF, GDS, etc.)
 	 * @return the read Library, or null if an error occurred.
 	 */
-	public static Library readLibrary(String fileName, ImportType type)
+	public static Library readLibrary(URL fileURL, ImportType type)
 	{
+		if (fileURL == null) return null;
 		long startTime = System.currentTimeMillis();
-        InputLibDirs.readLibDirs();
+		InputLibDirs.readLibDirs();
 		//Undo.noUndoAllowed();
 		InputLibrary.initializeLibraryInput();
 		Undo.changesQuiet(true);
 
 		// show progress
+		String fileName = fileURL.getFile();
 		progress = new Progress("Reading library " + fileName + "...");
 		progress.setProgress(0);
 
-		Library lib = readALibrary(fileName, null, type);
+		InputStream stream = TextUtils.getURLStream(fileURL);
+		Library lib = readALibrary(fileURL, stream, null, type);
 		if (InputLibrary.VERBOSE)
 			System.out.println("Done reading data for all libraries");
 
@@ -155,8 +160,9 @@ public class Input extends IOTool
 	}
 
 	/**
-	 * Method to read a single disk file.
-	 * @param fileName the path to the disk file.
+	 * Method to read a single library file.
+	 * @param fileURL the URL to the file.
+	 * @param stream the InputStream to the data.
 	 * @param lib the Library to read.
 	 * If the "lib" is null, this is an entry-level library read, and one is created.
 	 * If "lib" is not null, this is a recursive read caused by a cross-library
@@ -164,10 +170,13 @@ public class Input extends IOTool
 	 * @param type the type of library file (BINARY .elib, CIF, GDS, etc.)
 	 * @return the read Library, or null if an error occurred.
 	 */
-	protected static Library readALibrary(String fileName, Library lib, ImportType type)
+	protected static Library readALibrary(URL fileURL, InputStream stream, Library lib, ImportType type)
 	{
-		// break file name into library name and path; determine whether this is top-level
+		// get the library file name and path
+		String fileName = fileURL.getFile();
 		Library.Name n = Library.Name.newInstance(fileName);
+
+		// determine whether this is top-level
 		boolean topLevel = false;
 		if (lib == null)
 		{
@@ -189,19 +198,20 @@ public class Input extends IOTool
 			return null;
 		}
 
-		// RKao: Test for file existence BEFORE we create a new Library
+		// get information about the file
 		in.filePath = fileName;
-		File file = new File(fileName);
-		in.fileLength = file.length(); 
+		in.inputStream = stream;
+		URLConnection urlCon = null;
 		try
 		{
-			in.fileInputStream = new FileInputStream(file);
-		} catch (FileNotFoundException e)
+			urlCon = fileURL.openConnection();
+		} catch (IOException e)
 		{
 			System.out.println("Could not find file: " + fileName);
 			if (topLevel) mainLibDirectory = null;
 			return null;
 		}
+		in.fileLength = urlCon.getContentLength();
 
 		if (lib == null)
 		{
@@ -220,14 +230,14 @@ public class Input extends IOTool
 		in.lib = lib;
 
 		BufferedInputStream bufStrm =
-		    new BufferedInputStream(in.fileInputStream, READ_BUFFER_SIZE);
+			new BufferedInputStream(in.inputStream, READ_BUFFER_SIZE);
 		in.dataInputStream = new DataInputStream(bufStrm);
 
 		// read the library
 		boolean error = in.readInputLibrary();
 		try
 		{
-			in.fileInputStream.close();
+			in.inputStream.close();
 		} catch (IOException e)
 		{
 			System.out.println("Error closing " + fileName);

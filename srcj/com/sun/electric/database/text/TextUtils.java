@@ -23,6 +23,12 @@
  */
 package com.sun.electric.database.text;
 
+import java.io.File;
+import java.io.InputStream;
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
+
 /**
  * This class is a collection of text utilities.
  */
@@ -233,31 +239,31 @@ public class TextUtils
 
 		return false;
 	}
-    
-    /** Get a string representing elapsed time.
-     * format: days : hours : minutes : seconds */
-    public static String getElapsedTime(long milliseconds)
+
+	/** Get a string representing elapsed time.
+	 * format: days : hours : minutes : seconds */
+	public static String getElapsedTime(long milliseconds)
 	{
 		if (milliseconds < 60000)
 		{
 			// less than a minute: show fractions of a second
 			return (milliseconds / 1000.0) + " secs";
 		}
-        StringBuffer buf = new StringBuffer();
+		StringBuffer buf = new StringBuffer();
 		int seconds = (int)milliseconds/1000;
 		if (seconds < 0) seconds = 0;
 		int days = seconds/86400;
-		if (days > 0) buf.append(days + " days : ");
+		if (days > 0) buf.append(days + " days, ");
 		seconds = seconds - (days*86400);
 		int hours = seconds/3600;
-		if (hours > 0) buf.append(hours + " hrs : ");
+		if (hours > 0) buf.append(hours + " hrs, ");
 		seconds = seconds - (hours*3600);
 		int minutes = seconds/60;
-		if (minutes > 0) buf.append(minutes + " mins : ");
+		if (minutes > 0) buf.append(minutes + " mins, ");
 		seconds = seconds - (minutes*60);
 		buf.append(seconds + " secs");
-        return buf.toString();
-    }
+		return buf.toString();
+	}
 
 	/**
 	 * Method to print a very long string.
@@ -316,4 +322,30 @@ public class TextUtils
 		return len1 - len2;
 	}
 
+	public static URL makeURLToFile(String fileName)
+	{
+		File file = new File(fileName);
+		try
+		{
+			return file.toURL();
+//			URL url = new URL("file://" + fileName);
+//			return url;
+		} catch (java.net.MalformedURLException e)
+		{
+			System.out.println("Cannot find file " + fileName);
+		}
+		return null;
+	}
+
+	public static InputStream getURLStream(URL url)
+	{
+		if (url != null)
+		{
+			try
+			{
+				return url.openStream();
+			} catch (IOException e) {}
+		}
+		return null;
+	}
 }

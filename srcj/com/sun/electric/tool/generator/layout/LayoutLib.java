@@ -24,10 +24,12 @@
 package com.sun.electric.tool.generator.layout;
 
 import java.awt.geom.*;
+import java.net.URL;
 import java.util.*;
 
 import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.database.prototype.*;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.*;
 import com.sun.electric.technology.*;
 import com.sun.electric.tool.io.*;
@@ -95,7 +97,8 @@ public class LayoutLib {
 	public static Library openLibForRead(String libName, String libFileName) {
 		Library lib = Library.findLibrary(libName);
 		if (lib==null) {
-			lib = Input.readLibrary(libFileName, Input.ImportType.BINARY);
+			URL libFileURL = TextUtils.makeURLToFile(libFileName);
+			lib = Input.readLibrary(libFileURL, Input.ImportType.BINARY);
 		}
 		error(lib==null, "can't open Library for reading: "+libFileName);
 		return lib;
@@ -117,7 +120,8 @@ public class LayoutLib {
 		if (lib!=null)  return lib;
 
 		// open a Library file if it exists
-		lib = Input.readLibrary(libFileName, Input.ImportType.BINARY);
+		URL libFileURL = TextUtils.makeURLToFile(libFileName);
+		lib = Input.readLibrary(libFileURL, Input.ImportType.BINARY);
 		if (lib!=null)  return lib;
 		
 		// create a new Library

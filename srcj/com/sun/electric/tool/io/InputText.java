@@ -164,7 +164,7 @@ public class InputText extends InputLibrary
 	private boolean readTheLibrary()
 		throws IOException
 	{
-		InputStreamReader is = new InputStreamReader(fileInputStream);
+		InputStreamReader is = new InputStreamReader(inputStream);
 		lineReader = new LineNumberReader(is);
 
 		lib.erase();
@@ -355,8 +355,11 @@ public class InputText extends InputLibrary
 	/**
 	 * Method to recursively create the contents of each cell in the library.
 	 */
-	protected void realizeCellsRecursively(Cell cell, FlagSet markCellForNodes)
+	protected void realizeCellsRecursively(Cell cell, FlagSet markCellForNodes, String scaledCellName, double scale)
 	{
+		// cannot do scaling yet
+		if (scaledCellName != null) return;
+
 		// recursively scan the nodes to the bottom and only proceed when everything below is built
 		int cellIndex = cell.getTempInt();
 		InputLibrary.NodeInstList nil = nodeInstList[cellIndex];

@@ -76,6 +76,7 @@ import java.awt.event.KeyEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
+import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
@@ -146,7 +147,7 @@ public class PaletteFrame
 			selector.addItem(tech.getTechName());
 		}
 		selector.setSelectedItem(Technology.getCurrent().getTechName());
-        selector.addActionListener(new TechnologyPopupActionListener(palette));
+		selector.addActionListener(new TechnologyPopupActionListener(palette));
 
 		if (TopLevel.isMDIMode())
 		{
@@ -565,8 +566,8 @@ public class PaletteFrame
 					if (spiceLib == null)
 					{
 						// must read the Spice library from disk
-						String fileName = LibFile.getLibFile(currentSpiceLib + ".txt");
-						ReadSpiceLibrary job = new ReadSpiceLibrary(fileName, cellMenu, panel, e.getX(), e.getY());
+						URL fileURL = LibFile.getLibFile(currentSpiceLib + ".txt");
+						ReadSpiceLibrary job = new ReadSpiceLibrary(fileURL, cellMenu, panel, e.getX(), e.getY());
 					} else
 					{
 						for(Iterator it = spiceLib.getCells(); it.hasNext(); )
@@ -600,14 +601,14 @@ public class PaletteFrame
 		 */
 		protected static class ReadSpiceLibrary extends Job
 		{
-			String fileName;
+			URL fileURL;
 			JPopupMenu cellMenu;
 			PalettePanel panel;
 			int x, y;
-			protected ReadSpiceLibrary(String fileName, JPopupMenu cellMenu, PalettePanel panel, int x, int y)
+			protected ReadSpiceLibrary(URL fileURL, JPopupMenu cellMenu, PalettePanel panel, int x, int y)
 			{
 				super("Read Spice Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-				this.fileName = fileName;
+				this.fileURL = fileURL;
 				this.cellMenu = cellMenu;
 				this.panel = panel;
 				this.x = x;
@@ -617,7 +618,7 @@ public class PaletteFrame
 
 			public void doIt()
 			{
-				Library lib = Input.readLibrary(fileName, Input.ImportType.TEXT);
+				Library lib = Input.readLibrary(fileURL, Input.ImportType.TEXT);
 				Undo.noUndoAllowed();
 				if (lib == null) return;
 				for(Iterator it = lib.getCells(); it.hasNext(); )

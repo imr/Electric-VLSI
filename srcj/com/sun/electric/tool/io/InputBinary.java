@@ -33,6 +33,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
@@ -60,7 +61,9 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.File;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.HashMap;
@@ -139,18 +142,19 @@ public class InputBinary extends InputLibrary
 	/** list of the width of the ArcInsts in the library */					private int [] arcWidthList;
 	/** list of the head X of the ArcInsts in the library */				private int [] arcHeadXPosList;
 	/** list of the head Y of the ArcInsts in the library */				private int [] arcHeadYPosList;
-	/** list of the head node of the ArcInsts in the library */				private NodeInst [] arcHeadNodeList;
+	/** list of the head node of the ArcInsts in the library */				private int [] arcHeadNodeList;
 	/** list of the head port of the ArcInsts in the library */				private Object [] arcHeadPortList;
 	/** list of the tail X of the ArcInsts in the library */				private int [] arcTailXPosList;
 	/** list of the tail Y of the ArcInsts in the library */				private int [] arcTailYPosList;
-	/** list of the tail node of the ArcInsts in the library */				private NodeInst [] arcTailNodeList;
+	/** list of the tail node of the ArcInsts in the library */				private int [] arcTailNodeList;
 	/** list of the tail port of the ArcInsts in the library */				private Object [] arcTailPortList;
+	/** list of the user flags on the ArcInsts in the library */			private int [] arcUserBits;
 
 	// the Exports in the library
 	/** the number of Exports in the library */								private int portProtoCount;
 	/** counter for Exports in the library */								private int portProtoIndex;
 	/** list of all Exports in the library */								private Object [] portProtoList;
-	/** list of NodeInsts that are origins of Exports in the library */		private NodeInst [] portProtoSubNodeList;
+	/** list of NodeInsts that are origins of Exports in the library */		private int [] portProtoSubNodeList;
 	/** list of PortProtos that are origins of Exports in the library */	private Object [] portProtoSubPortList;
 	/** list of Export names in the library */								private String [] portProtoNameList;
 	/** list of Export userbits in the library */							private int [] portProtoUserbits;
@@ -235,6 +239,7 @@ public class InputBinary extends InputLibrary
 			cellCount = nodeProtoCount;
 		}
 		curCell = readBigInteger();
+		numScaledCells = 0;
 
 		// get the Electric version (version 8 and later)
 		String versionString;
@@ -376,6 +381,7 @@ public class InputBinary extends InputLibrary
 		nodeInstList.highY = new int[nodeCount];
 		nodeInstList.rotation = new short[nodeCount];
 		nodeInstList.transpose = new int[nodeCount];
+		nodeInstList.userBits = new int[nodeCount];
 
 		// allocate pointers for the ArcInsts
 		arcList = new ArcInst[arcCount];
@@ -384,24 +390,26 @@ public class InputBinary extends InputLibrary
 		arcWidthList = new int[arcCount];
 		arcHeadXPosList = new int[arcCount];
 		arcHeadYPosList = new int[arcCount];
-		arcHeadNodeList = new NodeInst[arcCount];
+		arcHeadNodeList = new int[arcCount];
 		arcHeadPortList = new Object[arcCount];
 		arcTailXPosList = new int[arcCount];
 		arcTailYPosList = new int[arcCount];
-		arcTailNodeList = new NodeInst[arcCount];
+		arcTailNodeList = new int[arcCount];
 		arcTailPortList = new Object[arcCount];
+		arcUserBits = new int[arcCount];
 		for(int i = 0; i < arcCount; i++)
 		{
-			arcHeadNodeList[i] = null;
+			arcHeadNodeList[i] = -1;
 			arcHeadPortList[i] = null;
-			arcTailNodeList[i] = null;
+			arcTailNodeList[i] = -1;
 			arcTailPortList[i] = null;
 			arcNameList[i] = null;
+			arcUserBits[i] = 0;
 		}
 
 		// allocate pointers for the Exports
 		portProtoList = new Object[portProtoCount];
-		portProtoSubNodeList = new NodeInst[portProtoCount];
+		portProtoSubNodeList = new int[portProtoCount];
 		portProtoSubPortList = new Object[portProtoCount];
 		portProtoNameList = new String[portProtoCount];
 		portProtoUserbits = new int[portProtoCount];
@@ -1011,10 +1019,11 @@ public class InputBinary extends InputLibrary
 	/**
 	 * Method to recursively create the contents of each cell in the library.
 	 */
-	protected void realizeCellsRecursively(Cell cell, FlagSet recursiveSetupFlag)
+	protected void realizeCellsRecursively(Cell cell, FlagSet recursiveSetupFlag, String scaledCellName, double scale)
 	{
 		// get informatino about this cell
 		int cellIndex = cell.getTempInt();
+		if (cellIndex+1 >= firstNodeIndex.length) return;
 		int startNode = firstNodeIndex[cellIndex];
 		int endNode = firstNodeIndex[cellIndex+1];
 
@@ -1036,7 +1045,7 @@ public class InputBinary extends InputLibrary
 				if (!subCell.isBit(recursiveSetupFlag))
 				{
 					InputLibrary reader = getReaderForLib(subCell.getLibrary());
-					reader.realizeCellsRecursively(subCell, recursiveSetupFlag);
+					reader.realizeCellsRecursively(subCell, recursiveSetupFlag, null, 0);
 				}
 
 				int startPort = firstPortIndex[cI];
@@ -1066,18 +1075,51 @@ public class InputBinary extends InputLibrary
 
 		// report progress
 		if (InputLibrary.VERBOSE)
-			System.out.println("Binary: Doing contents of cell " + cell.describe() + " in library " + lib.getLibName());
+		{
+			if (scaledCellName == null)
+			{
+				System.out.println("Binary: Doing contents of cell " + cell.describe() + " in library " + lib.getLibName());
+			} else
+			{
+				System.out.println("Binary: Scaling (by " + scale + ") contents of cell " + cell.describe() + " in library " + lib.getLibName());
+			}
+		}
 		cellsConstructed++;
 		progress.setProgress(cellsConstructed * 100 / totalCells);
 
-		// finish initializing the NodeInsts in the cell: start with the cell-center
 		double lambda = cellLambda[cellIndex];
+		NodeInst [] oldNodes = null;
+
+		// if scaling, actually construct the cell
+		if (scaledCellName != null)
+		{
+			Cell oldCell = cell;
+			cell = Cell.lowLevelAllocate(cell.getLibrary());
+			cell.lowLevelPopulate(scaledCellName);
+			cell.lowLevelLink();
+			cell.setTempInt(cellIndex);
+			cell.setBit(recursiveSetupFlag);
+			cell.joinGroup(oldCell);
+			numScaledCells++;
+
+			lambda /= scale;
+			oldNodes = new NodeInst[endNode - startNode];
+			int j = 0;
+			for(int i=startNode; i<endNode; i++)
+			{
+				oldNodes[j] = nodeInstList.theNode[i];
+				nodeInstList.theNode[i] = NodeInst.lowLevelAllocate();
+				j++;
+			}
+		} else scale = 1;
+
+		// finish initializing the NodeInsts in the cell: start with the cell-center
 		int xoff = 0, yoff = 0;
 		for(int i=startNode; i<endNode; i++)
 		{
 			if (nodeInstList.protoType[i] == Generic.tech.cellCenterNode)
 			{
-				realizeNode(i, xoff, yoff, lambda, cell);
+				realizeNode(i, xoff, yoff, lambda, cell, recursiveSetupFlag);
 				xoff = (nodeInstList.lowX[i] + nodeInstList.highX[i]) / 2;
 				yoff = (nodeInstList.lowY[i] + nodeInstList.highY[i]) / 2;
 				break;
@@ -1090,14 +1132,24 @@ public class InputBinary extends InputLibrary
 		for(int i=startNode; i<endNode; i++)
 		{
 			if (nodeInstList.protoType[i] != Generic.tech.cellCenterNode)
-				realizeNode(i, xoff, yoff, lambda, cell);
+			{
+				realizeNode(i, xoff, yoff, lambda, cell, recursiveSetupFlag);
+			}
 		}
 
 		// do the exports now
-		realizeExports(cell, cellIndex);
+		realizeExports(cell, cellIndex, scaledCellName, scale);
 
 		// do the arcs now
-		realizeArcs(cell, cellIndex);
+		realizeArcs(cell, cellIndex, scaledCellName, scale);
+
+		// restore the node pointers if this was a scaled cell construction
+		if (scaledCellName != null)
+		{
+			int j = 0;
+			for(int i=startNode; i<endNode; i++)
+				nodeInstList.theNode[i] = oldNodes[j++];
+		}
 	}
 
 	protected boolean spreadLambda(Cell cell, int cellIndex)
@@ -1140,15 +1192,38 @@ public class InputBinary extends InputLibrary
 		return lambda;
 	}
 
-	private void realizeExports(Cell cell, int cellIndex)
+	private void realizeExports(Cell cell, int cellIndex, String scaledCellName, double scale)
 	{
 		// finish initializing the Exports in the cell
 		int startPort = firstPortIndex[cellIndex];
 		int endPort = startPort + portCounts[cellIndex];
 		for(int i=startPort; i<endPort; i++)
 		{
+//			if (portProtoList[i] instanceof Cell)
+//			{
+//				Cell otherCell = (Cell)portProtoList[i];
+//				Export pp = otherCell.findExport(portProtoNameList[i]);
+//				if (pp != null) portProtoList[i] = pp;
+//			}
+			if (!(portProtoList[i] instanceof Export))
+			{
+				System.out.println("Cell "+cell.describe() + ": export " + portProtoNameList[i] + " is unresolved");
+				continue;
+			}
 			Export pp = (Export)portProtoList[i];
-			NodeInst subNodeInst = portProtoSubNodeList[i];
+			if (scaledCellName != null)
+			{
+				String oldName = pp.getProtoName();
+				pp = Export.lowLevelAllocate();
+				pp.lowLevelName(cell, oldName);
+			}
+			int nodeIndex = portProtoSubNodeList[i];
+			if (nodeIndex < 0)
+			{
+				System.out.println("Cell " + cell.describe() + ": cannot find the node on which export " + pp.getProtoName() + " resides");
+				continue;
+			}
+			NodeInst subNodeInst = nodeInstList.theNode[nodeIndex];
 			if (portProtoSubPortList[i] instanceof Integer)
 			{
 				// this was an external reference that couldn't be resolved yet.  Do it now
@@ -1238,9 +1313,9 @@ public class InputBinary extends InputLibrary
 	/**
 	 * Method to create the ArcInsts in a given cell and it's index in the global lists.
 	 */
-	private void realizeArcs(Cell cell, int cellIndex)
+	private void realizeArcs(Cell cell, int cellIndex, String scaledCellName, double scale)
 	{
-		double lambda = cellLambda[cellIndex];
+		double lambda = cellLambda[cellIndex] / scale;
 		int xoff = cellXOff[cellIndex];
 		int yoff = cellYOff[cellIndex];
 		boolean arcInfoError = false;
@@ -1249,6 +1324,9 @@ public class InputBinary extends InputLibrary
 		for(int i=startArc; i<endArc; i++)
 		{
 			ArcInst ai = arcList[i];
+			if (scaledCellName != null)
+				ai = ArcInst.lowLevelAllocate();
+
 			ArcProto ap = arcTypeList[i];
 			Name name = arcNameList[i];
 			double width = arcWidthList[i] / lambda;
@@ -1256,7 +1334,12 @@ public class InputBinary extends InputLibrary
 			double headY = (arcHeadYPosList[i] - yoff) / lambda;
 			double tailX = (arcTailXPosList[i] - xoff) / lambda;
 			double tailY = (arcTailYPosList[i] - yoff) / lambda;
-			NodeInst headNode = arcHeadNodeList[i];
+			if (arcHeadNodeList[i] < 0)
+			{
+				System.out.println("ERROR: head of arc " + ap.describe() + " not known");
+				continue;
+			}
+			NodeInst headNode = nodeInstList.theNode[arcHeadNodeList[i]];
 			Object headPort = arcHeadPortList[i];
 			int headPortIntValue = -1;
 			if (headPort instanceof Integer)
@@ -1265,7 +1348,12 @@ public class InputBinary extends InputLibrary
 				headPortIntValue = ((Integer)headPort).intValue();
 				headPort = convertPortProto(headPortIntValue);
 			}
-			NodeInst tailNode = arcTailNodeList[i];
+			if (arcTailNodeList[i] < 0)
+			{
+				System.out.println("ERROR: tail of arc " + ap.describe() + " not known");
+				continue;
+			}
+			NodeInst tailNode = nodeInstList.theNode[arcTailNodeList[i]];
 			Object tailPort = arcTailPortList[i];
 			int tailPortIntValue = -1;
 			if (tailPort instanceof Integer)
@@ -1296,6 +1384,7 @@ public class InputBinary extends InputLibrary
 					" because ends are unknown");
 				continue;
 			}
+			ai.lowLevelSetUserbits(arcUserBits[i]);
 			int defAngle = ai.lowLevelGetArcAngle() * 10;
 			ai.lowLevelPopulate(ap, width, tailPortInst, new Point2D.Double(tailX, tailY), headPortInst, new Point2D.Double(headX, headY), defAngle);
 			if (name != null) ai.setNameKey(name);
@@ -1306,7 +1395,7 @@ public class InputBinary extends InputLibrary
 	/**
 	 * Method to build a NodeInst.
 	 */
-	private void realizeNode(int i, int xoff, int yoff, double lambda, Cell cell)
+	private void realizeNode(int i, int xoff, int yoff, double lambda, Cell cell, FlagSet recursiveSetupFlag)
 	{
 		NodeInst ni = nodeInstList.theNode[i];
 		NodeProto np = nodeInstList.protoType[i];
@@ -1320,15 +1409,51 @@ public class InputBinary extends InputLibrary
 		double height = (highY - lowY) / lambda;
 		if (np instanceof Cell)
 		{
-			Rectangle2D bounds = ((Cell)np).getBounds();
+			Cell subCell = (Cell)np;
+			Rectangle2D bounds = subCell.getBounds();
 			if (bounds.getWidth() != width || bounds.getHeight() != height)
 			{
 				if (Math.abs(bounds.getWidth() - width) > 0.5 ||
 					Math.abs(bounds.getHeight() - height) > 0.5)
 				{
-					System.out.println("Adjusting size of " + ((Cell)np).describe() +
-						" (cell is " + bounds.getWidth() + "x" + bounds.getHeight() +
-						" but instance is " + width + "x" + height + ")");
+					// see if uniform scaling can be done
+					double scaleX = width / bounds.getWidth();
+					double scaleY = height / bounds.getHeight();
+					if (scaleX == scaleY)
+					{
+						// uniform scaling: probably due to old lambda inconsistencies
+						String scaledCellName = subCell.getProtoName() + "-SCALED-BY-" + scaleX +
+							"{" + subCell.getView().getAbbreviation() + "}";
+						Cell scaledCell = subCell.getLibrary().findNodeProto(scaledCellName);
+						if (scaledCell == null)
+						{
+							// create a scaled version of the cell
+							InputLibrary reader = this;
+							if (subCell.getLibrary() != lib)
+							{
+								reader = getReaderForLib(subCell.getLibrary());
+							}
+							reader.realizeCellsRecursively(subCell, recursiveSetupFlag, scaledCellName, scaleX);
+							scaledCell = subCell.getLibrary().findNodeProto(scaledCellName);
+							if (scaledCell == null)
+							{
+								System.out.println("Error scaling cell " + subCell.describe() + " by " + scaleX);
+							}
+						}
+						if (scaledCell != null)
+						{
+							bounds = scaledCell.getBounds();
+							np = scaledCell;
+						}
+					}
+
+					if (Math.abs(bounds.getWidth() - width) > 0.5 ||
+						Math.abs(bounds.getHeight() - height) > 0.5)
+					{
+						System.out.println("Cell " + cell.describe() + ": adjusting size of instance of " + subCell.describe() +
+							" (cell is " + bounds.getWidth() + "x" + bounds.getHeight() +
+							" but instance is " + width + "x" + height + ")");
+					}
 				}
 				width = bounds.getWidth();
 				height = bounds.getHeight();
@@ -1374,6 +1499,7 @@ public class InputBinary extends InputLibrary
 			trans.transform(shift, shift);
 			center.setLocation(center.getX() + shift.getX(), center.getY() + shift.getY());
 		}
+		ni.lowLevelSetUserbits(nodeInstList.userBits[i]);
 		ni.lowLevelPopulate(np, center, width, height, rotation, cell);
 		if (name != null) ni.setNameKey(name);
 		ni.lowLevelLink();
@@ -1515,10 +1641,10 @@ public class InputBinary extends InputLibrary
 			Export pp = (Export)portProtoList[portProtoIndex];
 
 			// read the sub-NodeInst for this Export
-			portProtoSubNodeList[portProtoIndex] = null;
+			portProtoSubNodeList[portProtoIndex] = -1;
 			int whichNode = readBigInteger();
 			if (whichNode >= 0 && whichNode < nodeCount)
-				portProtoSubNodeList[portProtoIndex] = nodeInstList.theNode[whichNode];
+				portProtoSubNodeList[portProtoIndex] = whichNode;
 
 			// read the sub-PortProto on the sub-NodeInst
 			portProtoSubPortList[portProtoIndex] = null;
@@ -1535,7 +1661,7 @@ public class InputBinary extends InputLibrary
 			portProtoNameList[portProtoIndex] = exportName;
 			if (pp.lowLevelName(cell, exportName)) return true;
 
-			if (portProtoSubNodeList[portProtoIndex] == null)
+			if (portProtoSubNodeList[portProtoIndex] == -1)
 			{
 				System.out.println("Error: Export '" + exportName + "' of cell " + theProtoName +
 					" cannot be read properly");
@@ -1693,38 +1819,40 @@ public class InputBinary extends InputLibrary
 		if (elib == null)
 		{
 			// library does not exist: see if file is in the same directory as the main file
-			String externalFile = mainLibDirectory + libFileName;
-			File testFile = new File(externalFile);
-			if (!testFile.exists())
+			URL externalURL = TextUtils.makeURLToFile(mainLibDirectory + libFileName);
+			InputStream externalStream = TextUtils.getURLStream(externalURL);
+			if (externalStream == null)
 			{
-                // try secondary library file locations
-                for (Iterator libIt = InputLibDirs.getLibDirs(); libIt.hasNext(); )
-                {
-                    externalFile = (String)libIt.next() + File.separator + libFileName;
-                    testFile = new File(externalFile);
-                    if (testFile.exists()) break;
-                }
-                if (!testFile.exists())
-                {
-                    // try the exact path specified in the reference
-                    externalFile = libFile.getPath();
-                    testFile = libFile;
-                    if (!testFile.exists())
-                    {
-                        // try the Electric library area
-                        externalFile = LibFile.getLibFile(libFileName);
-                    }
-                }
+				// try secondary library file locations
+				for (Iterator libIt = InputLibDirs.getLibDirs(); libIt.hasNext(); )
+				{
+					externalURL = TextUtils.makeURLToFile((String)libIt.next() + File.separator + libFileName);
+					externalStream = TextUtils.getURLStream(externalURL);
+					if (externalStream != null) break;
+				}
+				if (externalStream == null)
+				{
+					// try the exact path specified in the reference
+					externalURL = TextUtils.makeURLToFile(libFile.getPath());
+					externalStream = TextUtils.getURLStream(externalURL);
+					if (externalStream == null)
+					{
+						// try the Electric library area
+						externalURL = LibFile.getLibFile(libFileName);
+						externalStream = TextUtils.getURLStream(externalURL);
+					}
+				}
 			}
-			if (externalFile == null)
+			if (externalStream == null)
 			{
 				System.out.println("CANNOT FIND referenced library " + libFile.getPath());
 				String description = "Reference library '" + libFileName + "'";
 				String pt = OpenFile.chooseInputFile(OpenFile.ELIB, description);
-				if (pt != null) externalFile = pt;
+				if (pt != null) externalURL = TextUtils.makeURLToFile(pt);
 			}
-			if (externalFile != null)
+			if (externalStream != null)
 			{
+				String externalFile = externalURL.getFile();
 				System.out.println("Reading referenced library " + externalFile);
 				elib = Library.newInstance(libName, externalFile);
 			} else
@@ -1742,7 +1870,7 @@ public class InputBinary extends InputLibrary
 				progress.setNote("Reading referenced library " + libName + "...");
 			}
 
-			elib = readALibrary(externalFile, elib, importType);
+			elib = readALibrary(externalURL, externalStream, elib, importType);
 //			if (failed) elib->userbits |= UNWANTEDLIB; else
 //			{
 //				// queue this library for announcement through change control
@@ -1976,7 +2104,7 @@ public class InputBinary extends InputLibrary
 			if (toolBCount >= 1) userBits = readBigInteger();
 			for(int i=1; i<toolBCount; i++) readBigInteger();
 		}
-		ni.lowLevelSetUserbits(userBits);
+		nodeInstList.userBits[nodeIndex] = userBits;
 
 		// read variable information
 		if (readVariables(ni, nodeIndex) < 0) return true;
@@ -2022,14 +2150,14 @@ public class InputBinary extends InputLibrary
 		arcHeadYPosList[arcIndex] = readBigInteger();
 		int nodeIndex = readBigInteger();
 		if (nodeIndex >= 0 && nodeIndex < nodeCount)
-			arcHeadNodeList[arcIndex] = nodeInstList.theNode[nodeIndex];
+			arcHeadNodeList[arcIndex] = nodeIndex;
 
 		// read the tail information
 		arcTailXPosList[arcIndex] = readBigInteger();
 		arcTailYPosList[arcIndex] = readBigInteger();
 		nodeIndex = readBigInteger();
 		if (nodeIndex >= 0 && nodeIndex < nodeCount)
-			arcTailNodeList[arcIndex] = nodeInstList.theNode[nodeIndex];
+			arcTailNodeList[arcIndex] = nodeIndex;
 
 		// ignore the geometry index (versions 4 or older)
 		if (magic > MAGIC5) readBigInteger();
@@ -2052,7 +2180,7 @@ public class InputBinary extends InputLibrary
 			if (toolBCount >= 1) userBits = readBigInteger();
 			for(int i=1; i<toolBCount; i++) readBigInteger();
 		}
-		ai.lowLevelSetUserbits(userBits);
+		arcUserBits[arcIndex] = userBits;
 
 		// read variable information
 		if (readVariables(ai, arcIndex) < 0) return true;

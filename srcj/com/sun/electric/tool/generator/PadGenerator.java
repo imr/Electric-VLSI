@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -48,9 +49,11 @@ import com.sun.electric.lib.LibFile;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
+import java.io.InputStream;
 import java.io.FileReader;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.net.URL;
 import java.util.StringTokenizer;
 import java.util.Iterator;
 import java.util.List;
@@ -142,18 +145,23 @@ public class PadGenerator
 										{
 											// library does not exist: see if file can be found locally
 											String externalFile = keyWord;
-											File testFile = new File(externalFile);
-											if (!testFile.exists())
+											URL fileURL = TextUtils.makeURLToFile(externalFile);
+											if (TextUtils.getURLStream(fileURL) == null)
 											{
 												// try the Electric library area
-												externalFile = LibFile.getLibFile(keyWord);
+												fileURL = LibFile.getLibFile(keyWord);
+												if (TextUtils.getURLStream(fileURL) == null)
+												{
+													System.out.println("Cannot find cell library " + externalFile);
+													return;
+												}
 											}
 
 											Input.ImportType style = Input.ImportType.BINARY;
 											if (n.getExtension().equals("txt")) style = Input.ImportType.TEXT;
 											Library saveLib = Library.getCurrent();
 											cellLib = Library.newInstance(n.getName(), externalFile);
-											cellLib = Input.readLibrary(externalFile, style);
+											cellLib = Input.readLibrary(fileURL, style);
 											if (cellLib == null)
 											{
 												System.out.println("Line " + lineno + ": cannot read library " + keyWord);
@@ -557,7 +565,7 @@ public class PadGenerator
 
 	public void ArrayFromFile()
 	{
-        String fileName = OpenFile.chooseInputFile(OpenFile.ARR, null);
+		String fileName = OpenFile.chooseInputFile(OpenFile.ARR, null);
 		if (fileName == null)
 		{
 			System.out.println("File not found");

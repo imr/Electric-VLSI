@@ -248,6 +248,16 @@ public class PixelDrawing
 	}
 
 	/**
+	 * Method to set the background color.
+	 * Must be called before "drawImage()".
+	 * @param bg the background color to use.
+	 */
+	public void setBackgroundColor(Color bg)
+	{
+		backgroundColor = bg.getRGB();
+	}
+
+	/**
 	 * Method for obtaining the rendered image after "drawImage" has finished.
 	 * @return an Image for this edit window.
 	 */
@@ -440,8 +450,6 @@ public class PixelDrawing
 		for(int i=0; i<numLayerBitMaps; i++) layerBitMaps[i] = null;
 		numLayerBitMapsCreated = 0;
 		colorMap = curTech.getColorMap();
-		backgroundColor = colorMap[0].getRGB();
-		backgroundValue = backgroundColor | 0xFF000000;
 	}
 
 	// ************************************* HIERARCHY TRAVERSAL *************************************
@@ -736,7 +744,7 @@ public class PixelDrawing
 			Layer layer = (Layer)it.next();
 			if (layer == null) continue;
 			int layerNum = -1;
-			Color col = Color.BLACK;
+			int col = 0;
 			EGraphics graphics = layer.getGraphics();
 			if (graphics != null)
 			{
@@ -750,7 +758,7 @@ public class PixelDrawing
 					}
 				}
 				layerNum = graphics.getTransparentLayer() - 1;
-				col = graphics.getColor();
+				col = graphics.getColor().getRGB();
 			}
 			if (layerNum >= numLayerBitMaps) continue;
 			byte [][] layerBitMap = getLayerBitMap(layerNum);
@@ -758,7 +766,7 @@ public class PixelDrawing
 			// set the bit
 			if (layerBitMap == null)
 			{
-				opaqueData[y * sz.width + x] = col.getRGB();
+				opaqueData[y * sz.width + x] = col;
 			} else
 			{
 				layerBitMap[y][x>>3] |= (1 << (x&7));
@@ -928,6 +936,7 @@ public class PixelDrawing
 	private void copyBits(EditWindow renderedCell, Rectangle screenBounds)
 	{
 		PixelDrawing srcOffscreen = renderedCell.getOffscreen();
+		if (srcOffscreen == null) return;
 //		if (srcOffscreen.layerBitMaps == null)
 //		{
 //			System.out.println("Null bitmaps, at "+screenBounds);
@@ -1188,11 +1197,11 @@ public class PixelDrawing
 	private void drawBox(int lX, int hX, int lY, int hY, byte [][] layerBitMap, EGraphics desc)
 	{
 		// get color and pattern information
-		Color col = Color.BLACK;
+		int col = 0;
 		int [] pattern = null;
 		if (desc != null)
 		{
-			col = desc.getColor();
+			col = desc.getColor().getRGB();
 			if (desc.isPatternedOnDisplay())
 				pattern = desc.getPattern();
 		}
@@ -1204,12 +1213,11 @@ public class PixelDrawing
 			if (layerBitMap == null)
 			{
 				// solid fill in opaque area
-				int colorValue = col.getRGB();
 				for(int y=lY; y<=hY; y++)
 				{
 					int baseIndex = y * sz.width + lX;
 					for(int x=lX; x<=hX; x++)
-						opaqueData[baseIndex++] = colorValue;
+						opaqueData[baseIndex++] = col;
 				}
 			} else
 			{
@@ -1227,7 +1235,6 @@ public class PixelDrawing
 			if (layerBitMap == null)
 			{
 				// patterned fill in opaque area
-				int colorValue = col.getRGB();
 				for(int y=lY; y<=hY; y++)
 				{
 					// setup pattern for this row
@@ -1238,7 +1245,7 @@ public class PixelDrawing
 					for(int x=lX; x<=hX; x++)
 					{
 						if ((pat & (0x8000 >> (x&15))) != 0)
-							opaqueData[baseIndex + x] = colorValue;
+							opaqueData[baseIndex + x] = col;
 					}
 				}
 			} else
@@ -1293,11 +1300,11 @@ public class PixelDrawing
 	private void drawSolidLine(int x1, int y1, int x2, int y2, byte [][] layerBitMap, EGraphics desc)
 	{
 		// get color and pattern information
-		Color col = Color.BLACK;
+		int col = 0;
 		int [] pattern = null;
 		if (desc != null)
 		{
-			col = desc.getColor();
+			col = desc.getColor().getRGB();
 			if (desc.isPatternedOnDisplay())
 				pattern = desc.getPattern();
 		}
@@ -1320,7 +1327,7 @@ public class PixelDrawing
 				x = x1;   y = y1;   xend = x2;   yend = y2;
 			}
 			if (yend < y) yincr = -1; else yincr = 1;
-			if (layerBitMap == null) opaqueData[y * sz.width + x] = col.getRGB(); else
+			if (layerBitMap == null) opaqueData[y * sz.width + x] = col; else
 				layerBitMap[y][x>>3] |= (1 << (x&7));
 
 			// draw line that increments along X
@@ -1331,7 +1338,7 @@ public class PixelDrawing
 				{
 					y += yincr;   d += incr2;
 				}
-				if (layerBitMap == null) opaqueData[y * sz.width + x] = col.getRGB(); else
+				if (layerBitMap == null) opaqueData[y * sz.width + x] = col; else
 					layerBitMap[y][x>>3] |= (1 << (x&7));
 			}
 		} else
@@ -1349,7 +1356,7 @@ public class PixelDrawing
 				x = x1;   y = y1;   xend = x2;   yend = y2;
 			}
 			if (xend < x) xincr = -1; else xincr = 1;
-			if (layerBitMap == null) opaqueData[y * sz.width + x] = col.getRGB(); else
+			if (layerBitMap == null) opaqueData[y * sz.width + x] = col; else
 				layerBitMap[y][x>>3] |= (1 << (x&7));
 
 			// draw line that increments along X
@@ -1360,7 +1367,7 @@ public class PixelDrawing
 				{
 					x += xincr;   d += incr2;
 				}
-				if (layerBitMap == null) opaqueData[y * sz.width + x] = col.getRGB(); else
+				if (layerBitMap == null) opaqueData[y * sz.width + x] = col; else
 					layerBitMap[y][x>>3] |= (1 << (x&7));
 			}
 		}
@@ -1369,8 +1376,8 @@ public class PixelDrawing
 	private void drawPatLine(int x1, int y1, int x2, int y2, byte [][] layerBitMap, EGraphics desc, int pattern)
 	{
 		// get color and pattern information
-		Color col = Color.BLACK;
-		if (desc != null) col = desc.getColor();
+		int col = 0;
+		if (desc != null) col = desc.getColor().getRGB();
 
 		// initialize counter for line style
 		int i = 0;
@@ -1393,7 +1400,7 @@ public class PixelDrawing
 				x = x1;   y = y1;   xend = x2;   yend = y2;
 			}
 			if (yend < y) yincr = -1; else yincr = 1;
-			if (layerBitMap == null) opaqueData[y * sz.width + x] = col.getRGB(); else
+			if (layerBitMap == null) opaqueData[y * sz.width + x] = col; else
 				layerBitMap[y][x>>3] |= (1 << (x&7));
 
 			// draw line that increments along X
@@ -1406,7 +1413,7 @@ public class PixelDrawing
 				}
 				if (i == 7) i = 0; else i++;
 				if ((pattern & (1 << i)) == 0) continue;
-				if (layerBitMap == null) opaqueData[y * sz.width + x] = col.getRGB(); else
+				if (layerBitMap == null) opaqueData[y * sz.width + x] = col; else
 					layerBitMap[y][x>>3] |= (1 << (x&7));
 			}
 		} else
@@ -1424,7 +1431,7 @@ public class PixelDrawing
 				x = x1;   y = y1;   xend = x2;   yend = y2;
 			}
 			if (xend < x) xincr = -1; else xincr = 1;
-			if (layerBitMap == null) opaqueData[y * sz.width + x] = col.getRGB(); else
+			if (layerBitMap == null) opaqueData[y * sz.width + x] = col; else
 				layerBitMap[y][x>>3] |= (1 << (x&7));
 
 			// draw line that increments along X
@@ -1437,7 +1444,7 @@ public class PixelDrawing
 				}
 				if (i == 7) i = 0; else i++;
 				if ((pattern & (1 << i)) == 0) continue;
-				if (layerBitMap == null) opaqueData[y * sz.width + x] = col.getRGB(); else
+				if (layerBitMap == null) opaqueData[y * sz.width + x] = col; else
 					layerBitMap[y][x>>3] |= (1 << (x&7));
 			}
 		}
@@ -1446,8 +1453,8 @@ public class PixelDrawing
 	private void drawThickLine(int x1, int y1, int x2, int y2, byte [][] layerBitMap, EGraphics desc)
 	{
 		// get color and pattern information
-		Color col = Color.BLACK;
-		if (desc != null) col = desc.getColor();
+		int col = 0;
+		if (desc != null) col = desc.getColor().getRGB();
 
 		// initialize the Bresenham algorithm
 		int dx = Math.abs(x2-x1);
@@ -1519,11 +1526,11 @@ public class PixelDrawing
 	private void drawPolygon(Point [] points, byte [][] layerBitMap, EGraphics desc)
 	{
 		// get color and pattern information
-		Color col = Color.BLACK;
+		int col = 0;
 		int [] pattern = null;
 		if (desc != null)
 		{
-			col = desc.getColor();
+			col = desc.getColor().getRGB();
 			if (desc.isPatternedOnDisplay())
 				pattern = desc.getPattern();
 		}
@@ -1664,7 +1671,7 @@ public class PixelDrawing
 								for(int x=j; x<=k; x++)
 								{
 									if ((pat & (1 << (15-(x&15)))) != 0)
-										opaqueData[baseIndex + x] = col.getRGB();
+										opaqueData[baseIndex + x] = col;
 								}
 							} else
 							{
@@ -1683,7 +1690,7 @@ public class PixelDrawing
 							int baseIndex = ycur * sz.width;
 							for(int x=j; x<=k; x++)
 							{
-								opaqueData[baseIndex + x] = col.getRGB();
+								opaqueData[baseIndex + x] = col;
 							}
 						} else
 						{
@@ -1728,8 +1735,8 @@ public class PixelDrawing
 		if (len == 0) return;
 
 		// get parameters
-		Color col = Color.BLACK;
-		if (desc != null) col = desc.getColor();
+		int col = 0;
+		if (desc != null) col = desc.getColor().getRGB();
 
 		// get text description
 		int size = 14;
@@ -1796,7 +1803,7 @@ public class PixelDrawing
 					{
 						int trueX = atX + x;
 						if (samples[samp++] == 0) continue;
-						if (layerBitMap == null) opaqueData[baseIndex + trueX] = col.getRGB();  else
+						if (layerBitMap == null) opaqueData[baseIndex + trueX] = col;  else
 							row[trueX>>3] |= (1 << (trueX&7));
 					}
 				}
@@ -1819,7 +1826,7 @@ public class PixelDrawing
 					{
 						int trueX = atX + x;
 						if (samples[x * rasWidth + (rasWidth-y-1)] == 0) continue;
-						if (layerBitMap == null) opaqueData[baseIndex + trueX] = col.getRGB();  else
+						if (layerBitMap == null) opaqueData[baseIndex + trueX] = col;  else
 							row[trueX>>3] |= (1 << (trueX&7));
 					}
 				}
@@ -1845,7 +1852,7 @@ public class PixelDrawing
 					{
 						int trueX = atX + x;
 						if (samples[(rasHeight-y-1) * rasWidth + (rasWidth-x-1)] == 0) continue;
-						if (layerBitMap == null) opaqueData[baseIndex + trueX] = col.getRGB();  else
+						if (layerBitMap == null) opaqueData[baseIndex + trueX] = col;  else
 							row[trueX>>3] |= (1 << (trueX&7));
 					}
 				}
@@ -1868,7 +1875,7 @@ public class PixelDrawing
 					{
 						int trueX = atX + x;
 						if (samples[(rasHeight-x-1) * rasWidth + y] == 0) continue;
-						if (layerBitMap == null) opaqueData[baseIndex + trueX] = col.getRGB();  else
+						if (layerBitMap == null) opaqueData[baseIndex + trueX] = col;  else
 							row[trueX>>3] |= (1 << (trueX&7));
 					}
 				}
@@ -2034,8 +2041,8 @@ public class PixelDrawing
 	{
 		// get parameters
 		int radius = (int)center.distance(edge);
-		Color col = Color.BLACK;
-		if (desc != null) col = desc.getColor();
+		int col = 0;
+		if (desc != null) col = desc.getColor().getRGB();
 
 		// set redraw area
 		int left = center.x - radius;
@@ -2053,20 +2060,20 @@ public class PixelDrawing
 				if (layerBitMap == null)
 				{
 					int baseIndex = (center.y + y) * sz.width;
-					opaqueData[baseIndex + (center.x+x)] = col.getRGB();
-					opaqueData[baseIndex + (center.x-x)] = col.getRGB();
+					opaqueData[baseIndex + (center.x+x)] = col;
+					opaqueData[baseIndex + (center.x-x)] = col;
 
 					baseIndex = (center.y - y) * sz.width;
-					opaqueData[baseIndex + (center.x+x)] = col.getRGB();
-					opaqueData[baseIndex + (center.x-x)] = col.getRGB();
+					opaqueData[baseIndex + (center.x+x)] = col;
+					opaqueData[baseIndex + (center.x-x)] = col;
 
 					baseIndex = (center.y + x) * sz.width;
-					opaqueData[baseIndex + (center.x+y)] = col.getRGB();
-					opaqueData[baseIndex + (center.x-y)] = col.getRGB();
+					opaqueData[baseIndex + (center.x+y)] = col;
+					opaqueData[baseIndex + (center.x-y)] = col;
 
 					baseIndex = (center.y - x) * sz.width;
-					opaqueData[baseIndex + (center.x+y)] = col.getRGB();
-					opaqueData[baseIndex + (center.x-y)] = col.getRGB();
+					opaqueData[baseIndex + (center.x+y)] = col;
+					opaqueData[baseIndex + (center.x-y)] = col;
 				} else
 				{
 					byte [] row = layerBitMap[center.y + y];
@@ -2151,6 +2158,13 @@ public class PixelDrawing
 			}
 		}
 	}
+//		if (layerBitMap == null)
+//		{
+//			opaqueData[y * sz.width + x] = col.getRGB();
+//		} else
+//		{
+//			layerBitMap[y][x>>3] |= (1 << (x&7));
+//		}
 
 	/*
 	 * Method to draw a thick circle on the off-screen buffer
@@ -2159,148 +2173,63 @@ public class PixelDrawing
 	{
 		// get parameters
 		int radius = (int)center.distance(edge);
-		Color col = Color.BLACK;
-		if (desc != null) col = desc.getColor();
-
-		// set redraw area
-		int left = center.x - radius;
-		int right = center.x + radius + 1;
-		int top = center.y - radius;
-		int bottom = center.y + radius + 1;
+		int col = 0;
+		if (desc != null) col = desc.getColor().getRGB();
 
 		int x = 0;   int y = radius;
 		int d = 3 - 2 * radius;
-//		if (left >= 0 && right < maxx && top >= 0 && bottom < maxy)
-//		{
-//			// no clip version is faster
-//			while (x <= y)
-//			{
-//				// draw basic circle
-//				thisrow1 = wf->rowstart[aty + y];
-//				thisrow2 = wf->rowstart[aty - y];
-//				thisrow3 = wf->rowstart[aty + x];
-//				thisrow4 = wf->rowstart[aty - x];
-//				thisrow1[atx + x] = (UCHAR1)((thisrow1[atx + x] & mask) | col);
-//				thisrow1[atx - x] = (UCHAR1)((thisrow1[atx - x] & mask) | col);
-//
-//				thisrow2[atx + x] = (UCHAR1)((thisrow2[atx + x] & mask) | col);
-//				thisrow2[atx - x] = (UCHAR1)((thisrow2[atx - x] & mask) | col);
-//
-//				thisrow3[atx + y] = (UCHAR1)((thisrow3[atx + y] & mask) | col);
-//				thisrow3[atx - y] = (UCHAR1)((thisrow3[atx - y] & mask) | col);
-//
-//				thisrow4[atx + y] = (UCHAR1)((thisrow4[atx + y] & mask) | col);
-//				thisrow4[atx - y] = (UCHAR1)((thisrow4[atx - y] & mask) | col);
-//
-//				// draw 1 pixel around it to make it thick
-//				thisrow1m = wf->rowstart[aty + y - 1];
-//				thisrow2m = wf->rowstart[aty - y - 1];
-//				thisrow3m = wf->rowstart[aty + x - 1];
-//				thisrow4m = wf->rowstart[aty - x - 1];
-//				thisrow1p = wf->rowstart[aty + y + 1];
-//				thisrow2p = wf->rowstart[aty - y + 1];
-//				thisrow3p = wf->rowstart[aty + x + 1];
-//				thisrow4p = wf->rowstart[aty - x + 1];
-//
-//				thisrow1[atx + x + 1] = (UCHAR1)((thisrow1[atx + x + 1] & mask) | col);
-//				thisrow1[atx + x - 1] = (UCHAR1)((thisrow1[atx + x - 1] & mask) | col);
-//				thisrow1[atx - x + 1] = (UCHAR1)((thisrow1[atx - x + 1] & mask) | col);
-//				thisrow1[atx - x - 1] = (UCHAR1)((thisrow1[atx - x - 1] & mask) | col);
-//				thisrow1m[atx + x] = (UCHAR1)((thisrow1m[atx + x] & mask) | col);
-//				thisrow1m[atx - x] = (UCHAR1)((thisrow1m[atx - x] & mask) | col);
-//				thisrow1p[atx + x] = (UCHAR1)((thisrow1p[atx + x] & mask) | col);
-//				thisrow1p[atx - x] = (UCHAR1)((thisrow1p[atx - x] & mask) | col);
-//
-//				thisrow2[atx + x + 1] = (UCHAR1)((thisrow2[atx + x + 1] & mask) | col);
-//				thisrow2[atx + x - 1] = (UCHAR1)((thisrow2[atx + x - 1] & mask) | col);
-//				thisrow2[atx - x + 1] = (UCHAR1)((thisrow2[atx - x + 1] & mask) | col);
-//				thisrow2[atx - x - 1] = (UCHAR1)((thisrow2[atx - x - 1] & mask) | col);
-//				thisrow2m[atx + x] = (UCHAR1)((thisrow2m[atx + x] & mask) | col);
-//				thisrow2m[atx - x] = (UCHAR1)((thisrow2m[atx - x] & mask) | col);
-//				thisrow2p[atx + x] = (UCHAR1)((thisrow2p[atx + x] & mask) | col);
-//				thisrow2p[atx - x] = (UCHAR1)((thisrow2p[atx - x] & mask) | col);
-//
-//				thisrow3[atx + y + 1] = (UCHAR1)((thisrow3[atx + y + 1] & mask) | col);
-//				thisrow3[atx + y - 1] = (UCHAR1)((thisrow3[atx + y - 1] & mask) | col);
-//				thisrow3[atx - y + 1] = (UCHAR1)((thisrow3[atx - y + 1] & mask) | col);
-//				thisrow3[atx - y - 1] = (UCHAR1)((thisrow3[atx - y - 1] & mask) | col);
-//				thisrow3m[atx + y] = (UCHAR1)((thisrow3m[atx + y] & mask) | col);
-//				thisrow3m[atx - y] = (UCHAR1)((thisrow3m[atx - y] & mask) | col);
-//				thisrow3p[atx + y] = (UCHAR1)((thisrow3p[atx + y] & mask) | col);
-//				thisrow3p[atx - y] = (UCHAR1)((thisrow3p[atx - y] & mask) | col);
-//
-//				thisrow4[atx + y + 1] = (UCHAR1)((thisrow4[atx + y + 1] & mask) | col);
-//				thisrow4[atx + y - 1] = (UCHAR1)((thisrow4[atx + y - 1] & mask) | col);
-//				thisrow4[atx - y + 1] = (UCHAR1)((thisrow4[atx - y + 1] & mask) | col);
-//				thisrow4[atx - y - 1] = (UCHAR1)((thisrow4[atx - y - 1] & mask) | col);
-//				thisrow4m[atx + y] = (UCHAR1)((thisrow4m[atx + y] & mask) | col);
-//				thisrow4m[atx - y] = (UCHAR1)((thisrow4m[atx - y] & mask) | col);
-//				thisrow4p[atx + y] = (UCHAR1)((thisrow4p[atx + y] & mask) | col);
-//				thisrow4p[atx - y] = (UCHAR1)((thisrow4p[atx - y] & mask) | col);
-//
-//				if (d < 0) d += 4*x + 6; else
-//				{
-//					d += 4 * (x-y) + 10;
-//					y--;
-//				}
-//				x++;
-//			}
-//		} else
+		while (x <= y)
 		{
-			// clip version
-			while (x <= y)
+			int thisy = center.y + y;
+			if (thisy >= 0 && thisy < sz.height)
 			{
-				int thisy = center.y + y;
-				if (thisy >= 0 && thisy < sz.height)
-				{
-					int thisx = center.x + x;
-					if (thisx >= 0 && thisx < sz.width)
-						drawThickPoint(thisx, thisy, layerBitMap, col);
-					thisx = center.x - x;
-					if (thisx >= 0 && thisx < sz.width)
-						drawThickPoint(thisx, thisy, layerBitMap, col);
-				}
-
-				thisy = center.y - y;
-				if (thisy >= 0 && thisy < sz.height)
-				{
-					int thisx = center.x + x;
-					if (thisx >= 0 && thisx < sz.width)
-						drawThickPoint(thisx, thisy, layerBitMap, col);
-					thisx = center.x - x;
-					if (thisx >= 0 && thisx < sz.width)
-						drawThickPoint(thisx, thisy, layerBitMap, col);
-				}
-
-				thisy = center.y + x;
-				if (thisy >= 0 && thisy < sz.height)
-				{
-					int thisx = center.x + y;
-					if (thisx >= 0 && thisx < sz.width)
-						drawThickPoint(thisx, thisy, layerBitMap, col);
-					thisx = center.x - y;
-					if (thisx >= 0 && thisx < sz.width)
-						drawThickPoint(thisx, thisy, layerBitMap, col);
-				}
-
-				thisy = center.y - x;
-				if (thisy >= 0 && thisy < sz.height)
-				{
-					int thisx = center.x + y;
-					if (thisx >= 0 && thisx < sz.width)
-						drawThickPoint(thisx, thisy, layerBitMap, col);
-					thisx = center.x - y;
-					if (thisx >= 0 && thisx < sz.width)
-						drawThickPoint(thisx, thisy, layerBitMap, col);
-				}
-
-				if (d < 0) d += 4*x + 6; else
-				{
-					d += 4 * (x-y) + 10;
-					y--;
-				}
-				x++;
+				int thisx = center.x + x;
+				if (thisx >= 0 && thisx < sz.width)
+					drawThickPoint(thisx, thisy, layerBitMap, col);
+				thisx = center.x - x;
+				if (thisx >= 0 && thisx < sz.width)
+					drawThickPoint(thisx, thisy, layerBitMap, col);
 			}
+
+			thisy = center.y - y;
+			if (thisy >= 0 && thisy < sz.height)
+			{
+				int thisx = center.x + x;
+				if (thisx >= 0 && thisx < sz.width)
+					drawThickPoint(thisx, thisy, layerBitMap, col);
+				thisx = center.x - x;
+				if (thisx >= 0 && thisx < sz.width)
+					drawThickPoint(thisx, thisy, layerBitMap, col);
+			}
+
+			thisy = center.y + x;
+			if (thisy >= 0 && thisy < sz.height)
+			{
+				int thisx = center.x + y;
+				if (thisx >= 0 && thisx < sz.width)
+					drawThickPoint(thisx, thisy, layerBitMap, col);
+				thisx = center.x - y;
+				if (thisx >= 0 && thisx < sz.width)
+					drawThickPoint(thisx, thisy, layerBitMap, col);
+			}
+
+			thisy = center.y - x;
+			if (thisy >= 0 && thisy < sz.height)
+			{
+				int thisx = center.x + y;
+				if (thisx >= 0 && thisx < sz.width)
+					drawThickPoint(thisx, thisy, layerBitMap, col);
+				thisx = center.x - y;
+				if (thisx >= 0 && thisx < sz.width)
+					drawThickPoint(thisx, thisy, layerBitMap, col);
+			}
+
+			if (d < 0) d += 4*x + 6; else
+			{
+				d += 4 * (x-y) + 10;
+				y--;
+			}
+			x++;
 		}
 	}
 
@@ -2309,7 +2238,7 @@ public class PixelDrawing
 	/*
 	 * Method to draw a scan line of the filled-in circle of radius "radius"
 	 */
-	private void drawDiscRow(int thisy, int startx, int endx, byte [][] layerBitMap, Color col, int [] pattern)
+	private void drawDiscRow(int thisy, int startx, int endx, byte [][] layerBitMap, int col, int [] pattern)
 	{
 		if (thisy < 0 || thisy >= sz.height) return;
 		if (startx < 0) startx = 0;
@@ -2325,7 +2254,7 @@ public class PixelDrawing
 					for(int x=startx; x<=endx; x++)
 					{
 						if ((pat & (1 << (15-(x&15)))) != 0)
-							opaqueData[baseIndex + x] = col.getRGB();
+							opaqueData[baseIndex + x] = col;
 					}
 				} else
 				{
@@ -2344,7 +2273,7 @@ public class PixelDrawing
 				int baseIndex = thisy * sz.width;
 				for(int x=startx; x<=endx; x++)
 				{
-					opaqueData[baseIndex + x] = col.getRGB();
+					opaqueData[baseIndex + x] = col;
 				}
 			} else
 			{
@@ -2364,11 +2293,11 @@ public class PixelDrawing
 	{
 		// get parameters
 		int radius = (int)center.distance(edge);
-		Color col = Color.BLACK;
+		int col = 0;
 		int [] pattern = null;
 		if (desc != null)
 		{
-			col = desc.getColor();
+			col = desc.getColor().getRGB();
 			if (desc.isPatternedOnDisplay())
 				pattern = desc.getPattern();
 		}
@@ -2416,7 +2345,7 @@ public class PixelDrawing
 	private boolean [] arcOctTable = new boolean[9];
 	private Point      arcCenter;
 	private int        arcRadius;
-	private Color      arcCol;
+	private int        arcCol;
 	private byte [][]  arcLayerBitMap;
 	private boolean    arcThick;
 
@@ -2565,8 +2494,8 @@ public class PixelDrawing
 
 		// get parameters
 		arcLayerBitMap = layerBitMap;
-		arcCol = Color.BLACK;
-		if (desc != null) arcCol = desc.getColor();
+		arcCol = 0;
+		if (desc != null) arcCol = desc.getColor().getRGB();
 
 		arcCenter = center;
 		int pa_x = p2.x - arcCenter.x;
@@ -2641,30 +2570,30 @@ public class PixelDrawing
 
 	// ************************************* RENDERING SUPPORT *************************************
 
-	private void drawPoint(int x, int y, byte [][] layerBitMap, Color col)
+	private void drawPoint(int x, int y, byte [][] layerBitMap, int col)
 	{
 		if (layerBitMap == null)
 		{
-			opaqueData[y * sz.width + x] = col.getRGB();
+			opaqueData[y * sz.width + x] = col;
 		} else
 		{
 			layerBitMap[y][x>>3] |= (1 << (x&7));
 		}
 	}
 
-	private void drawThickPoint(int x, int y, byte [][] layerBitMap, Color col)
+	private void drawThickPoint(int x, int y, byte [][] layerBitMap, int col)
 	{
 		if (layerBitMap == null)
 		{
-			opaqueData[y * sz.width + x] = col.getRGB();
+			opaqueData[y * sz.width + x] = col;
 			if (x > 0)
-				opaqueData[y * sz.width + (x-1)] = col.getRGB();
+				opaqueData[y * sz.width + (x-1)] = col;
 			if (x < sz.width-1)
-				opaqueData[y * sz.width + (x+1)] = col.getRGB();
+				opaqueData[y * sz.width + (x+1)] = col;
 			if (y > 0)
-				opaqueData[(y-1) * sz.width + (x+1)] = col.getRGB();
+				opaqueData[(y-1) * sz.width + (x+1)] = col;
 			if (y < sz.height-1)
-				opaqueData[(y+1) * sz.width + (x+1)] = col.getRGB();
+				opaqueData[(y+1) * sz.width + (x+1)] = col;
 		} else
 		{
 			layerBitMap[y][x>>3] |= (1 << (x&7));

@@ -48,13 +48,10 @@ public class LibFile
 	 * These files are typically readable dumps of essential files used by everyone.
 	 * @return the file path.
 	 */
-	public static String getLibFile(String fileName)
+	public static URL getLibFile(String fileName)
 	{
 		URL url = theOne.getClass().getResource(fileName);
-		if (url == null) return null;
-		// should do url.getInputStream() to open it directly
-		String file = url.getFile();
-		return file;
+		return url;
 	}
 
 	/**

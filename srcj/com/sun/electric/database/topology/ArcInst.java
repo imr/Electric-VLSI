@@ -986,6 +986,7 @@ public class ArcInst extends Geometric
 				System.out.println("Cell " + parent.describe() + ", arc " + describe() +
 					": head not in port, is at (" + headPt.getX() + "," + headPt.getY() + ") but port center is (" +
 					poly.getCenterX() + "," + poly.getCenterY() + ")");
+				getHead().setLocation(new Point2D.Double(poly.getCenterX(), poly.getCenterY()));
 				errorCount++;
 			}
 		}
@@ -1000,6 +1001,7 @@ public class ArcInst extends Geometric
 				System.out.println("Cell " + parent.describe() + ", arc " + describe() +
 					": tail not in port, is at (" + tailPt.getX() + "," + tailPt.getY() + ") but port center is (" +
 					poly.getCenterX() + "," + poly.getCenterY() + ")");
+				getTail().setLocation(new Point2D.Double(poly.getCenterX(), poly.getCenterY()));
 				errorCount++;
 			}
 		}
@@ -1009,6 +1011,7 @@ public class ArcInst extends Geometric
 		{
 			System.out.println("Cell " + parent.describe() + ", arc " + describe() +
 				": has negative width (" + getWidth() + ")");
+			width = Math.abs(width);
 			errorCount++;
 		}
 		return errorCount;

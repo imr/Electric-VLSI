@@ -43,6 +43,8 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.util.Iterator;
+import javax.print.PrintServiceLookup;
+import javax.print.PrintService;
 import javax.swing.JComboBox;
 import javax.swing.JList;
 import javax.swing.JTextArea;
@@ -640,6 +642,7 @@ public class IOOptions extends javax.swing.JDialog
 	private Cell initialCell;
 	private double initialEPSScale;
 	private String initialEPSSyncFile;
+	private String initialPrinter;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -657,6 +660,14 @@ public class IOOptions extends javax.swing.JDialog
 
 		initialPrintDate = OutputPostScript.isPlotDate();
 		printPlotDateInCorner.setSelected(initialPrintDate);
+
+		// get list of printers
+		initialPrinter = Output.getPrinterName();
+		PrintService [] printers = PrintServiceLookup.lookupPrintServices(null, null);
+		PrintService printerToUse = null;
+		for(int i=0; i<printers.length; i++)
+			printDefaultPrinter.addItem(printers[i].getName());
+		printDefaultPrinter.setSelectedItem(initialPrinter);
 
 		initialPrintEncapsulated = OutputPostScript.isEncapsulated();
 		printEncapsulated.setSelected(initialPrintEncapsulated);
@@ -710,7 +721,6 @@ public class IOOptions extends javax.swing.JDialog
 		printEPSScale.setText(Double.toString(initialEPSScale));
 
 		// not yet:
-		printDefaultPrinter.setEnabled(false);
 		printResolution.setEditable(false);
 		printHPGL1.setEnabled(false);
 		printHPGL2.setEnabled(false);
@@ -741,6 +751,12 @@ public class IOOptions extends javax.swing.JDialog
 		boolean plotDate = printPlotDateInCorner.isSelected();
 		if (plotDate != initialPrintDate)
 			OutputPostScript.setPlotDate(plotDate);
+
+		String printer = (String)printDefaultPrinter.getSelectedItem();
+		if (!printer.equals(initialPrinter))
+		{
+			Output.setPrinterName(printer);
+		}
 
 		boolean encapsulated = printEncapsulated.isSelected();
 		if (encapsulated != initialPrintEncapsulated)

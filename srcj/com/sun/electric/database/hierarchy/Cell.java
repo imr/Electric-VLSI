@@ -412,6 +412,20 @@ public class Cell extends NodeProto
 	}
 
 	/**
+	 * Method to move this Cell to the group of another Cell.
+	 * @param otherCell the other cell whose group this Cell should join.
+	 */
+	public void joinGroup(Cell otherCell)
+	{
+		// stop if already that way
+		if (otherCell.cellGroup == cellGroup) return;
+
+		cellGroup.remove(this);
+		cellGroup = otherCell.cellGroup;
+		cellGroup.add(this);
+	}
+
+	/**
 	 * Method to copy a Cell to any Library.
 	 * @param fromCell the Cell to copy.
 	 * @param toLib the Library to copy it to.

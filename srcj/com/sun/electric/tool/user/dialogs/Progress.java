@@ -109,6 +109,8 @@ public class Progress
 	 */
 	public void setProgress(int progress)
 	{
+		if (progress < 0) progress = 0;
+		if (progress > 100) progress = 100;
 		progressBar.setValue(progress);
 	}
 

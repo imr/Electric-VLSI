@@ -62,6 +62,7 @@ public class InputLibrary extends Input
 	/** lambda value for each cell of the library */						protected double [] cellLambda;
 	/** total number of cells in all read libraries */						protected static int totalCells;
 	/** number of cells constructed so far. */								protected static int cellsConstructed;
+	/** the number of scaled Cells that got created */						protected int numScaledCells;
 
 	static class NodeInstList
 	{
@@ -74,6 +75,7 @@ public class InputLibrary extends Input
 		protected int []       highY;
 		protected short []     rotation;
 		protected int []       transpose;
+		protected int []       userBits;
 	};
 
 	/** collection of libraries and their input objects. */					private static HashMap libsBeingRead;
@@ -114,7 +116,7 @@ public class InputLibrary extends Input
 				reader = getReaderForLib(otherCell.getLibrary());
 
 			// subcell: make sure that cell is setup
-			reader.realizeCellsRecursively(otherCell, markCellForNodes);
+			reader.realizeCellsRecursively(otherCell, markCellForNodes, null, 0);
 		}
 		cell.setBit(markCellForNodes);
 	}
@@ -182,10 +184,26 @@ public class InputLibrary extends Input
 			{
 				Cell cell = reader.nodeProtoList[cellIndex];
 				if (cell.isBit(markCellForNodes)) continue;
-				reader.realizeCellsRecursively(cell, markCellForNodes);
+				reader.realizeCellsRecursively(cell, markCellForNodes, null, 0);
 			}
 		}
 		markCellForNodes.freeFlagSet();
+
+		// tell which libraries had extra "scaled" cells added
+		boolean first = true;
+		for(Iterator it = libsBeingRead.values().iterator(); it.hasNext(); )
+		{
+			InputLibrary reader = (InputLibrary)it.next();
+			if (reader.numScaledCells != 0)
+			{
+				if (first)
+				{
+					System.out.println("WARNING: to accomodate scaling inconsistencies, created scaled cells in these libraries");
+					first = false;
+				}
+				System.out.println("   Created " + reader.numScaledCells + " scaled cells in library " + reader.lib.getLibName());
+			}
+		}
 	}
 
 	protected InputLibrary getReaderForLib(Library lib) { return (InputLibrary)libsBeingRead.get(lib); }
@@ -199,7 +217,7 @@ public class InputLibrary extends Input
 	/**
 	 * Method to recursively create the contents of each cell in the library.
 	 */
-	protected void realizeCellsRecursively(Cell cell, FlagSet recursiveSetupFlag)
+	protected void realizeCellsRecursively(Cell cell, FlagSet recursiveSetupFlag, String scaledCellName, double scale)
 	{
 	}
 

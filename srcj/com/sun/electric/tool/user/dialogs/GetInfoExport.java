@@ -42,6 +42,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.dialogs.Attributes;
+import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Font;
@@ -218,16 +219,27 @@ public class GetInfoExport extends javax.swing.JDialog
 		pointsButton.setEnabled(true);
 		unitsButton.setEnabled(true);
 		initialSize = td.getSize();
+		EditWindow wnd = EditWindow.getCurrent();
 		if (initialSize.isAbsolute())
 		{
 			pointsButton.setSelected(true);
-			unitsSize.setText("");
 			pointsSize.setText(Double.toString(initialSize.getSize()));
+			unitsSize.setText("");
+			if (wnd != null)
+			{
+				double unitSize = wnd.getTextUnitSize((int)initialSize.getSize());
+				unitsSize.setText(Double.toString(unitSize));
+			}
 		} else
 		{
 			unitsButton.setSelected(true);
-			pointsSize.setText("");
 			unitsSize.setText(Double.toString(initialSize.getSize()));
+			pointsSize.setText("");
+			if (wnd != null)
+			{
+				int pointSize = wnd.getTextPointSize(initialSize.getSize());
+				pointsSize.setText(Integer.toString(pointSize));
+			}
 		}
 
 		font.setEnabled(true);

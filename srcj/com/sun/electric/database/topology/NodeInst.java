@@ -877,83 +877,83 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	void redoGeometric()
 	{
+		// if zero size, set the bounds directly
 		if (sX == 0 && sY == 0)
 		{
 			visBounds.setRect(getGrabCenterX(), getGrabCenterY(), 0, 0);
-		} else
-		{
-			// special case for arcs of circles
-			if (protoType == Artwork.tech.circleNode || protoType == Artwork.tech.thickCircleNode)
-			{
-				// see if there this circle is only a partial one */
-				double [] angles = getArcDegrees();
-				if (angles[0] != 0.0 || angles[1] != 0.0)
-				{
-					Point2D [] pointList = Artwork.fillEllipse(getGrabCenter(), Math.abs(sX), Math.abs(sY), angles[0], angles[1]);
-					Poly poly = new Poly(pointList);
-					poly.setStyle(Poly.Type.OPENED);
-					poly.transform(rotateOut());
-					visBounds.setRect(poly.getBounds2D());
-					return;
-				}
-			}
-
-			// special case for pins that become steiner points
-			if (protoType.isWipeOn1or2() && getNumExports() == 0)
-			{
-				if (pinUseCount())
-				{
-					visBounds.setRect(getGrabCenterX(), getGrabCenterY(), 0, 0);
-					return;
-				}
-			}
-
-			// special case for polygonally-defined nodes: compute precise geometry */
-			if (protoType.isHoldsOutline())
-			{
-				Point2D [] outline = getTrace();
-				if (outline != null)
-				{
-					Point2D [] pointList = new Point2D.Double[outline.length];
-					for(int i=0; i<outline.length; i++)
-					{
-						pointList[i] = new Point2D.Double(getGrabCenterX() + outline[i].getX(),
-							getGrabCenterY() + outline[i].getY());
-					}
-					Poly poly = new Poly(pointList);
-					poly.setStyle(Poly.Type.OPENED);
-					poly.transform(rotateOut());
-					visBounds.setRect(poly.getBounds2D());
-					return;
-				}
-			}
-
-			// convert the center, rotation, and size into a bounds
-			double cX = center.getX(), cY = center.getY();
-			Poly poly = null;
-			if (protoType instanceof Cell)
-			{
-				// offset by distance from cell-center to the true center
-				Cell subCell = (Cell)protoType;
-				Rectangle2D bounds = subCell.getBounds();
-				Point2D shift = new Point2D.Double(-bounds.getCenterX(), -bounds.getCenterY());
-				AffineTransform trans = pureRotate(angle, sX < 0, sY < 0);
-				trans.transform(shift, shift);
-				cX -= shift.getX();
-				cY -= shift.getY();
-				poly = new Poly(cX, cY, Math.abs(sX), Math.abs(sY));
-				trans = rotateAbout(angle, cX, cY, sX, sY);
-				poly.transform(trans);
-			} else
-			{
-				poly = new Poly(cX, cY, sX, sY);
-				AffineTransform trans = rotateOut();
-				poly.transform(trans);
-			}
-
-			// return its bounds
-			visBounds.setRect(poly.getBounds2D());
+			return;
 		}
+
+		// handle cell bounds
+		if (protoType instanceof Cell)
+		{
+			// offset by distance from cell-center to the true center
+			Cell subCell = (Cell)protoType;
+			Rectangle2D bounds = subCell.getBounds();
+			Point2D shift = new Point2D.Double(-bounds.getCenterX(), -bounds.getCenterY());
+			AffineTransform trans = pureRotate(angle, sX < 0, sY < 0);
+			trans.transform(shift, shift);
+			double cX = center.getX(), cY = center.getY();
+			cX -= shift.getX();
+			cY -= shift.getY();
+			Poly poly = new Poly(cX, cY, Math.abs(sX), Math.abs(sY));
+			trans = rotateAbout(angle, cX, cY, sX, sY);
+			poly.transform(trans);
+			visBounds.setRect(poly.getBounds2D());
+			return;
+		}
+
+		// special case for arcs of circles
+		if (protoType == Artwork.tech.circleNode || protoType == Artwork.tech.thickCircleNode)
+		{
+			// see if there this circle is only a partial one
+			double [] angles = getArcDegrees();
+			if (angles[0] != 0.0 || angles[1] != 0.0)
+			{
+				Point2D [] pointList = Artwork.fillEllipse(getGrabCenter(), Math.abs(sX), Math.abs(sY), angles[0], angles[1]);
+				Poly poly = new Poly(pointList);
+				poly.setStyle(Poly.Type.OPENED);
+				poly.transform(rotateOut());
+				visBounds.setRect(poly.getBounds2D());
+				return;
+			}
+		}
+
+		// special case for pins that become steiner points
+		if (protoType.isWipeOn1or2() && getNumExports() == 0)
+		{
+			if (pinUseCount())
+			{
+				visBounds.setRect(getGrabCenterX(), getGrabCenterY(), 0, 0);
+				return;
+			}
+		}
+
+		// special case for polygonally-defined nodes: compute precise geometry
+		if (protoType.isHoldsOutline())
+		{
+			Point2D [] outline = getTrace();
+			if (outline != null)
+			{
+				Point2D [] pointList = new Point2D.Double[outline.length];
+				for(int i=0; i<outline.length; i++)
+				{
+					pointList[i] = new Point2D.Double(getGrabCenterX() + outline[i].getX(),
+						getGrabCenterY() + outline[i].getY());
+				}
+				Poly poly = new Poly(pointList);
+				poly.setStyle(Poly.Type.OPENED);
+				poly.transform(rotateOut());
+				visBounds.setRect(poly.getBounds2D());
+				return;
+			}
+		}
+
+		// normal bounds computation
+		Poly poly = new Poly(center.getX(), center.getY(), sX, sY);
+		AffineTransform trans = rotateOut();
+		poly.transform(trans);
+		visBounds.setRect(poly.getBounds2D());
 	}
 
 	/**
@@ -2132,8 +2132,7 @@ public class NodeInst extends Geometric implements Nodable
 			if (bounds.getWidth() != getXSize() ||
 				bounds.getHeight() != getYSize())
 			{
-				System.out.println("Library " + parent.getLibrary().getLibName() +
-				", cell " + parent.describe() + ", node " + describe() +
+				System.out.println("Cell " + parent.describe() + ", node " + describe() +
 				" is " + getXSize() + "x" + getYSize() + ", but prototype is " + bounds.getWidth() +
 				" x " + bounds.getHeight());
 				errorCount++;
@@ -2141,8 +2140,7 @@ public class NodeInst extends Geometric implements Nodable
 		}
 		if (portInsts.size() != protoType.getNumPorts())
 		{
-			System.out.println("Library " + parent.getLibrary().getLibName() +
-				", cell " + parent.describe() + ", node " + describe() +
+			System.out.println("Cell " + parent.describe() + ", node " + describe() +
 				" has number of PortInsts " + portInsts.size() + " , but prototype " + protoType +
 				" has " + protoType.getNumPorts() + " ports");
 			return 1;
@@ -2154,8 +2152,7 @@ public class NodeInst extends Geometric implements Nodable
 			PortInst pi = (PortInst)portInsts.get(i);
 			if (pp.getPortIndex() != i || pi.getPortProto() != pp)
 			{
- 				System.out.println("Library " + parent.getLibrary().getLibName() +
- 					", cell " + parent.describe() + ", node " + describe() +
+ 				System.out.println("Cell " + parent.describe() + ", node " + describe() +
  					" has mismatches between PortInsts and PortProtos (" + pp.getProtoName() + ")");
 				errorCount++;
 			}
