@@ -443,6 +443,38 @@ public class nMOS extends Technology
 		PP_lay.setDefaultParasitics(0, 0, 0);		// Pseudo-Polysilicon
 		PD_lay.setDefaultParasitics(0, 0, 0);		// Pseudo-Diffusion
 		setDefaultParasitics(50, 50);
+		String [] headerLevel1 =
+		{
+			"*NMOS 4UM PROCESS",
+			".OPTIONS DEFL=4UM DEFW=4UM DEFAS=80PM^2 DEFAD=80PM^2",
+			".MODEL N NMOS LEVEL=1 VTO=1.1 KP=33UA/V^2 TOX=68NM GAMMA=.41",
+			"+             LAMBDA=0.05 CGSO=0.18NF/M CGDO=0.18NF/M LD=0.4UM",
+			"+             JS=.2A/M^2 CJ=.11MF/M^2",
+			".MODEL D NMOS LEVEL=1 VTO=-3.4 KP=31UA/V^2 TOX=68NM GAMMA=.44",
+			"+             LAMBDA=0.05 CGSO=0.18NF/M CGDO=0.18NF/M LD=0.4UM",
+			"+             JS=.2A/M^2 CJ=.11MF/M^2",
+			".MODEL DIFFCAP D CJO=.11MF/M^2"
+		};
+		setSpiceHeaderLevel1(headerLevel1);
+		String [] headerLevel3 =
+		{
+			"*NMOS 4UM PROCESS",
+			".OPTIONS DEFL=4UM DEFW=4UM DEFAS=80PM^2 DEFAD=80PM^2",
+			"* RSH SET TO ZERO (MOSIS: RSH = 12)",
+			".MODEL N NMOS LEVEL=3 VTO=0.849 LD=0.17U KP=2.98E-5 GAMMA=0.552",
+			"+PHI=0.6 TOX=0.601E-7 NSUB=2.11E15 NSS=0 NFS=8.89E11 TPG=1 XJ=7.73E-7",
+			"+UO=400 UEXP=1E-3 UCRIT=1.74E5 VMAX=1E5 NEFF=1E-2 DELTA=1.19",
+			"+THETA=9.24E-3 ETA=0.77 KAPPA=3.25 RSH=0 CGSO=1.6E-10 CGDO=1.6E-10",
+			"+CGBO=1.7E-10 CJ=1.1E-4 MJ=0.5 CJSW=1E-9",
+			".MODEL D NMOS LEVEL=3 VTO=-3.07 LD=0.219U KP=2.76E-5 GAMMA=0.315",
+			"+PHI=0.6 TOX=0.601E-7 NSUB=8.76E14 NSS=0 NFS=4.31E12 TPG=1 XJ=0.421U",
+			"+UO=650 UEXP=1E-3 UCRIT=8.05E5 VMAX=1.96E5 NEFF=1E-2 DELTA=2.41",
+			"+THETA=0 ETA=2.0 KAPPA=0.411 RSH=0 CGSO=1.6E-10 CGDO=1.6E-10",
+			"+CGBO=1.7E-10 CJ=1.1E-4 MJ=0.5 CJSW=1E-9",
+			"*MOSIS IS NOT RESPONSIBLE FOR THE FOLLOWING DIOD DATA",
+			".MODEL DIFFCAP D CJO=.11MF/m^2"
+		};
+		setSpiceHeaderLevel3(headerLevel3);
 
 		//******************** ARCS ********************
 

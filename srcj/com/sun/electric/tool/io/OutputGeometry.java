@@ -153,10 +153,10 @@ public abstract class OutputGeometry extends Output
 
         public Visitor(OutputGeometry outGeom, int maxHierDepth)
         {
-            this.outGeom = outGeom;
-            this.maxHierDepth = maxHierDepth;
+			this.outGeom = outGeom;
+			this.maxHierDepth = maxHierDepth;
 			this.outGeomStack = new CellGeom[maxHierDepth+1];
-            curHierDepth = 0;
+			curHierDepth = 0;
         }
 
         public boolean enterCell(HierarchyEnumerator.CellInfo info) 

@@ -120,6 +120,15 @@ public abstract class OutputTopology extends Output
 	/** Abstract method to convert a cell name to one that is safe for this format */
 	protected abstract String getSafeCellName(String name);
 
+	/** Abstract method to return the proper name of Power */
+	protected abstract String getPowerName();
+
+	/** Abstract method to return the proper name of Ground */
+	protected abstract String getGroundName();
+
+	/** Abstract method to return the proper name of a Global signal */
+	protected abstract String getGlobalName(Global glob);
+
 	/**
 	 * Method to tell whether the topological analysis should mangle cell names that are parameterized.
 	 */
@@ -209,6 +218,7 @@ public abstract class OutputTopology extends Output
 	static class CellSignal
 	{
 		/** name to use for this network. */		private String name;
+		/** JNetwork for this signal. */			private JNetwork net;
 		/** CellAggregate that this is part of. */	private CellAggregateSignal aggregateSignal;
 		/** export that this is part of. */			private Export pp;
 		/** true if part of a descending bus */		private boolean descending;
@@ -217,6 +227,7 @@ public abstract class OutputTopology extends Output
 		/** true if from a global signal */			private Global globalSignal;
 
 		protected String getName() { return name; }
+		protected JNetwork getNetwork() { return net; }
 		protected Export getExport() { return pp; }
 		protected CellAggregateSignal getAggregateSignal() { return aggregateSignal; }
 		protected boolean isDescending() { return descending; }
@@ -245,6 +256,17 @@ public abstract class OutputTopology extends Output
 		protected int getHighIndex() { return high; }
 		protected int getFlags() { return flags; }
 		protected void setFlags(int flags) { this.flags = flags; }
+		protected boolean isGlobal()
+		{
+			int numGlobal = 0;
+			for(int i=0; i<signals.length; i++)
+			{
+				CellSignal cs = signals[i];
+				if (cs.isGlobal()) numGlobal++;
+			}
+			if (numGlobal > 0 && numGlobal == signals.length) return true;
+			return false;
+		}
 	}
 
 	static class CellNetInfo
@@ -257,7 +279,7 @@ public abstract class OutputTopology extends Output
 		private Netlist netList;
 
 		protected CellSignal getCellSignal(JNetwork net) { return (CellSignal)cellSignals.get(net); }
-//		protected Iterator getCellSignals() { return cellSignals.values().iterator(); }
+		protected Iterator getCellSignals() { return cellSignals.values().iterator(); }
 		protected Iterator getCellAggregateSignals() { return cellAggretateSignals.iterator(); }
 		protected String getParameterizedName() { return paramName; }
 		protected JNetwork getPowerNet() { return pwrNet; }
@@ -307,6 +329,7 @@ public abstract class OutputTopology extends Output
 			cs.descending = !Network.isBusAscending();
 			cs.power = false;
 			cs.ground = false;
+			cs.net = net;
 
 			// see if it is global
 			int netIndex = net.getNetIndex();
@@ -320,7 +343,7 @@ public abstract class OutputTopology extends Output
 			// name the signal
 			if (cs.globalSignal != null)
 			{
-				cs.name = cs.globalSignal.getName();
+				cs.name = getGlobalName(cs.globalSignal);
 			} else
 			{
 				if (net.hasNames()) cs.name = (String)net.getNames().next(); else
@@ -474,11 +497,13 @@ public abstract class OutputTopology extends Output
 		if (cni.pwrNet != null)
 		{
 			CellSignal cs = (CellSignal)cni.cellSignals.get(cni.pwrNet);
+			cs.name = getPowerName();
 			cs.power = true;
 		}
 		if (cni.gndNet != null)
 		{
 			CellSignal cs = (CellSignal)cni.cellSignals.get(cni.gndNet);
+			cs.name = getGroundName();
 			cs.ground = true;
 		}
 

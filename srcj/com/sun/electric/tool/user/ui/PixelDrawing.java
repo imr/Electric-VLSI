@@ -56,6 +56,7 @@ import java.awt.Graphics2D;
 import java.awt.Dimension;
 import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
+import java.awt.font.LineMetrics;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
@@ -2110,24 +2111,28 @@ public class PixelDrawing
 		// convert the text to a GlyphVector
 		FontRenderContext frc = new FontRenderContext(null, true, false);
 		GlyphVector gv = theFont.createGlyphVector(frc, msg);
-		java.awt.font.LineMetrics lm = theFont.getLineMetrics(msg, frc);
+		LineMetrics lm = theFont.getLineMetrics(msg, frc);
 
 		// allocate space for the rendered text
 		Rectangle rect = gv.getPixelBounds(frc, 0, (float)(lm.getAscent()-lm.getLeading()));
+		int width = rect.width;
+
+		// ugly hack for the Mac: why do we need more room?
+//		if (TopLevel.getOperatingSystem() == TopLevel.OS.MACINTOSH) width += rect.width/5;
+
 		int height = (int)(lm.getHeight()+0.5);
-		if (rect.width <= 0 || height <= 0) return null;
+		if (width <= 0 || height <= 0) return null;
 
 		// if text is to be "boxed", make sure it fits
 		if (boxedWidth > 0 && boxedHeight > 0)
 		{
-			if (rect.width > boxedWidth || height > boxedHeight)
+			if (width > boxedWidth || height > boxedHeight)
 			{
-				double scale = Math.min((double)boxedWidth / rect.width, (double)boxedHeight / height);
+				double scale = Math.min((double)boxedWidth / width, (double)boxedHeight / height);
 				theFont = new Font(font, fontStyle, (int)(tSize*scale));
 				if (theFont != null)
 				{
 					// convert the text to a GlyphVector
-					frc = new FontRenderContext(null, true, false);
 					gv = theFont.createGlyphVector(frc, msg);
 					lm = theFont.getLineMetrics(msg, frc);
 					rect = gv.getPixelBounds(frc, 0, 0);
@@ -2137,7 +2142,7 @@ public class PixelDrawing
 			}
 		}
 		if (underline) height++;
-		BufferedImage textImage = new BufferedImage(rect.width, height, BufferedImage.TYPE_BYTE_GRAY);
+		BufferedImage textImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
 
 		// now render it
 		Graphics2D g2 = (Graphics2D)textImage.getGraphics();
@@ -2146,7 +2151,7 @@ public class PixelDrawing
 		g2.drawGlyphVector(gv, (float)-rect.x, (float)(lm.getAscent()-lm.getLeading()));
 		if (underline)
 		{
-			g2.drawLine(0, height-1, rect.width, height-1);
+			g2.drawLine(0, height-1, width, height-1);
 		}
 
 		// return the bits

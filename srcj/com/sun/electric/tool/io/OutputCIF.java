@@ -397,7 +397,7 @@ public class OutputCIF extends OutputGeometry
 
 	/****************************** CIF OUTPUT PREFERENCES ******************************/
 
-	private static Pref cacheMimicsDisplay = IOTool.tool.makeBooleanPref("CIFMimicsDisplay", false);
+	private static Pref cacheMimicsDisplay = Pref.makeBooleanPref("CIFMimicsDisplay", IOTool.tool.prefs, false);
 	/**
 	 * Method to tell whether CIF Output mimics the display.
 	 * To mimic the display, unexpanded cell instances are described as black boxes,
@@ -414,7 +414,7 @@ public class OutputCIF extends OutputGeometry
 	 */
 	public static void setMimicsDisplay(boolean on) { cacheMimicsDisplay.setBoolean(on); }
 
-	private static Pref cacheMergesBoxes = IOTool.tool.makeBooleanPref("CIFMergesBoxes", false);
+	private static Pref cacheMergesBoxes = Pref.makeBooleanPref("CIFMergesBoxes", IOTool.tool.prefs, false);
 	/**
 	 * Method to tell whether CIF Output merges boxes into complex polygons.
 	 * This takes more time but produces a smaller output file.
@@ -429,7 +429,7 @@ public class OutputCIF extends OutputGeometry
 	 */
 	public static void setMergesBoxes(boolean on) { cacheMergesBoxes.setBoolean(on); }
 
-	private static Pref cacheInstantiatesTopLevel = IOTool.tool.makeBooleanPref("CIFInstantiatesTopLevel", true);
+	private static Pref cacheInstantiatesTopLevel = Pref.makeBooleanPref("CIFInstantiatesTopLevel", IOTool.tool.prefs, true);
 	/**
 	 * Method to tell whether CIF Output instantiates the top-level.
 	 * When this happens, a CIF "call" to the top cell is emitted.
@@ -444,7 +444,7 @@ public class OutputCIF extends OutputGeometry
 	 */
 	public static void setInstantiatesTopLevel(boolean on) { cacheInstantiatesTopLevel.setBoolean(on); }
 
-	private static Pref cacheCheckResolution = IOTool.tool.makeBooleanPref("CIFCheckResolution", false);
+	private static Pref cacheCheckResolution = Pref.makeBooleanPref("CIFCheckResolution", IOTool.tool.prefs, false);
 	/**
 	 * Method to tell whether to report CIF resolution errors.
 	 * The default is "false".
@@ -457,7 +457,7 @@ public class OutputCIF extends OutputGeometry
 	 */
 	public static void setCheckResolution(boolean c) { cacheCheckResolution.setBoolean(c); }
 
-	private static Pref cacheResolution = IOTool.tool.makeDoublePref("CIFResolution", 0);
+	private static Pref cacheResolution = Pref.makeDoublePref("CIFResolution", IOTool.tool.prefs, 0);
 	/**
 	 * Method to tell the minimum CIF Output resolution.
 	 * This is the smallest feature size that can be safely generated.

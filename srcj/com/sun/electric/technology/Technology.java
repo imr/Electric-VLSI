@@ -1942,6 +1942,8 @@ public class Technology extends ElectricObject
 
 	/****************************** PARASITICS ******************************/
 
+	protected static Preferences getTechnologyPreferences() { return prefs; }
+
 	/**
 	 * Returns the minimum resistance of this Technology.
 	 * @return the minimum resistance of this Technology.
@@ -1955,10 +1957,11 @@ public class Technology extends ElectricObject
 	public void setMinResistance(double minResistance)
 	{
 		this.minResistance = minResistance;
-		prefs.putDouble("MinResistance_" + techName, minResistance);
+		Preferences p = getTechnologyPreferences();
+		p.putDouble("MinResistance_" + techName, minResistance);
 		try
 		{
-	        prefs.flush();
+	        p.flush();
 		} catch (BackingStoreException e)
 		{
 			System.out.println("Failed to save minimum resistance option for technology " + techName);
@@ -1978,10 +1981,11 @@ public class Technology extends ElectricObject
 	public void setMinCapacitance(double minCapacitance)
 	{
 		this.minCapacitance = minCapacitance;
-		prefs.putDouble("MinCapacitance_" + techName, minCapacitance);
+		Preferences p = getTechnologyPreferences();
+		p.putDouble("MinCapacitance_" + techName, minCapacitance);
 		try
 		{
-	        prefs.flush();
+	        p.flush();
 		} catch (BackingStoreException e)
 		{
 			System.out.println("Failed to save minimum capacitance option for technology " + techName);
@@ -2010,35 +2014,58 @@ public class Technology extends ElectricObject
 		if (parasiticOverridesGathered) return;
 		parasiticOverridesGathered = true;
 
-		Preferences prefs = Preferences.userNodeForPackage(getClass());
-		minResistance = prefs.getDouble("MinResistance_" + techName, minResistance);
-		minCapacitance = prefs.getDouble("MinCapacitance_" + techName, minCapacitance);
+		Preferences p = getTechnologyPreferences();
+		minResistance = p.getDouble("MinResistance_" + techName, minResistance);
+		minCapacitance = p.getDouble("MinCapacitance_" + techName, minCapacitance);
 
 		for(Iterator it = getLayers(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
-			double resistance = prefs.getDouble("LayerResistance_" + techName + "_" + layer.getName(), layer.getResistance());
-			double capacitance = prefs.getDouble("LayerCapacitance_" + techName + "_" + layer.getName(), layer.getCapacitance());
-			double edgeCapacitance = prefs.getDouble("LayerEdgeCapacitance_" + techName + "_" + layer.getName(), layer.getEdgeCapacitance());
+			double resistance = p.getDouble("LayerResistance_" + techName + "_" + layer.getName(), layer.getResistance());
+			double capacitance = p.getDouble("LayerCapacitance_" + techName + "_" + layer.getName(), layer.getCapacitance());
+			double edgeCapacitance = p.getDouble("LayerEdgeCapacitance_" + techName + "_" + layer.getName(), layer.getEdgeCapacitance());
 			layer.setDefaultParasitics(resistance, capacitance, edgeCapacitance);
 		}
 	}
 
-//	private static Pref cacheNumberOfThreads = DRC.tool.makeIntPref("NumberOfThreads", 2);
 	/**
 	 * Method to return the level-1 header cards for SPICE in this Technology.
 	 * The default is [""].
 	 * @return the level-1 header cards for SPICE in this Technology.
 	 */
 	public String [] getSpiceHeaderLevel1() { return spiceHeaderLevel1; }
+
 	/**
 	 * Method to set the level-1 header cards for SPICE in this Technology.
 	 * @param lines the level-1 header cards for SPICE in this Technology.
 	 */
 	public void setSpiceHeaderLevel1(String [] lines) { spiceHeaderLevel1 = lines; }
-//	/** Spice header cards, level 1. */					private String [] spiceHeaderLevel1;
-//	/** Spice header cards, level 2. */					private String [] spiceHeaderLevel2;
-//	/** Spice header cards, level 3. */					private String [] spiceHeaderLevel3;
+
+	/**
+	 * Method to return the level-2 header cards for SPICE in this Technology.
+	 * The default is [""].
+	 * @return the level-2 header cards for SPICE in this Technology.
+	 */
+	public String [] getSpiceHeaderLevel2() { return spiceHeaderLevel2; }
+
+	/**
+	 * Method to set the level-2 header cards for SPICE in this Technology.
+	 * @param lines the level-2 header cards for SPICE in this Technology.
+	 */
+	public void setSpiceHeaderLevel2(String [] lines) { spiceHeaderLevel2 = lines; }
+
+	/**
+	 * Method to return the level-3 header cards for SPICE in this Technology.
+	 * The default is [""].
+	 * @return the level-3 header cards for SPICE in this Technology.
+	 */
+	public String [] getSpiceHeaderLevel3() { return spiceHeaderLevel3; }
+
+	/**
+	 * Method to set the level-3 header cards for SPICE in this Technology.
+	 * @param lines the level-3 header cards for SPICE in this Technology.
+	 */
+	public void setSpiceHeaderLevel3(String [] lines) { spiceHeaderLevel3 = lines; }
 
 	/****************************** MISCELANEOUS ******************************/
 

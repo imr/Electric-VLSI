@@ -184,7 +184,7 @@ public class User extends Listener
 
 	/****************************** ICON GENERATION PREFERENCES ******************************/
 
-	private static Pref cacheIconGenDrawLeads = User.tool.makeBooleanPref("IconGenDrawLeads", true);
+	private static Pref cacheIconGenDrawLeads = Pref.makeBooleanPref("IconGenDrawLeads", User.tool.prefs, true);
 	/**
 	 * Method to tell whether generated icons should have leads drawn.
 	 * The default is "true".
@@ -197,7 +197,7 @@ public class User extends Listener
 	 */
 	public static void setIconGenDrawLeads(boolean on) { cacheIconGenDrawLeads.setBoolean(on); }
 
-	private static Pref cacheIconGenDrawBody = User.tool.makeBooleanPref("IconGenDrawBody", true);
+	private static Pref cacheIconGenDrawBody = Pref.makeBooleanPref("IconGenDrawBody", User.tool.prefs, true);
 	/**
 	 * Method to tell whether generated icons should have a body drawn.
 	 * The body is just a rectangle.
@@ -212,7 +212,7 @@ public class User extends Listener
 	 */
 	public static void setIconGenDrawBody(boolean on) { cacheIconGenDrawBody.setBoolean(on); }
 
-	private static Pref cacheIconGenReverseExportOrder = User.tool.makeBooleanPref("IconGenReverseExportOrder", false);
+	private static Pref cacheIconGenReverseExportOrder = Pref.makeBooleanPref("IconGenReverseExportOrder", User.tool.prefs, false);
 	/**
 	 * Method to tell whether generated icons should reverse the order of exports.
 	 * Normally, exports are drawn top-to-bottom alphabetically.
@@ -227,7 +227,7 @@ public class User extends Listener
 	 */
 	public static void setIconGenReverseExportOrder(boolean on) { cacheIconGenReverseExportOrder.setBoolean(on); }
 
-	private static Pref cacheIconGenInputSide = User.tool.makeIntPref("IconGenInputSide", 0);
+	private static Pref cacheIconGenInputSide = Pref.makeIntPref("IconGenInputSide", User.tool.prefs, 0);
 	/**
 	 * Method to tell where Input ports should go on generated icons.
 	 * @return information about where Input ports should go on generated icons.
@@ -241,7 +241,7 @@ public class User extends Listener
 	 */
 	public static void setIconGenInputSide(int side) { cacheIconGenInputSide.setInt(side); }
 
-	private static Pref cacheIconGenOutputSide = User.tool.makeIntPref("IconGenOutputSide", 1);
+	private static Pref cacheIconGenOutputSide = Pref.makeIntPref("IconGenOutputSide", User.tool.prefs, 1);
 	/**
 	 * Method to tell where Output ports should go on generated icons.
 	 * @return information about where Output ports should go on generated icons.
@@ -255,7 +255,7 @@ public class User extends Listener
 	 */
 	public static void setIconGenOutputSide(int side) { cacheIconGenOutputSide.setInt(side); }
 
-	private static Pref cacheIconGenBidirSide = User.tool.makeIntPref("IconGenBidirSide", 2);
+	private static Pref cacheIconGenBidirSide = Pref.makeIntPref("IconGenBidirSide", User.tool.prefs, 2);
 	/**
 	 * Method to tell where Bidirectional ports should go on generated icons.
 	 * @return information about where Bidirectional ports should go on generated icons.
@@ -269,7 +269,7 @@ public class User extends Listener
 	 */
 	public static void setIconGenBidirSide(int side) { cacheIconGenBidirSide.setInt(side); }
 
-	private static Pref cacheIconGenPowerSide = User.tool.makeIntPref("IconGenPowerSide", 3);
+	private static Pref cacheIconGenPowerSide = Pref.makeIntPref("IconGenPowerSide", User.tool.prefs, 3);
 	/**
 	 * Method to tell where Power ports should go on generated icons.
 	 * @return information about where Power ports should go on generated icons.
@@ -283,7 +283,7 @@ public class User extends Listener
 	 */
 	public static void setIconGenPowerSide(int side) { cacheIconGenPowerSide.setInt(side); }
 
-	private static Pref cacheIconGenGroundSide = User.tool.makeIntPref("IconGenGroundSide", 3);
+	private static Pref cacheIconGenGroundSide = Pref.makeIntPref("IconGenGroundSide", User.tool.prefs, 3);
 	/**
 	 * Method to tell where Ground ports should go on generated icons.
 	 * @return information about where Ground ports should go on generated icons.
@@ -297,7 +297,7 @@ public class User extends Listener
 	 */
 	public static void setIconGenGroundSide(int side) { cacheIconGenGroundSide.setInt(side); }
 
-	private static Pref cacheIconGenClockSide = User.tool.makeIntPref("IconGenClockSide", 0);
+	private static Pref cacheIconGenClockSide = Pref.makeIntPref("IconGenClockSide", User.tool.prefs, 0);
 	/**
 	 * Method to tell where Clock ports should go on generated icons.
 	 * @return information about where Clock ports should go on generated icons.
@@ -311,7 +311,7 @@ public class User extends Listener
 	 */
 	public static void setIconGenClockSide(int side) { cacheIconGenClockSide.setInt(side); }
 
-	private static Pref cacheIconGenExportLocation = User.tool.makeIntPref("IconGenExportLocation", 1);
+	private static Pref cacheIconGenExportLocation = Pref.makeIntPref("IconGenExportLocation", User.tool.prefs, 1);
 	/**
 	 * Method to tell where exports should appear along the leads in generated icons.
 	 * @return information about where exports should appear along the leads in generated icons.
@@ -325,7 +325,7 @@ public class User extends Listener
 	 */
 	public static void setIconGenExportLocation(int loc) { cacheIconGenExportLocation.setInt(loc); }
 
-	private static Pref cacheIconGenExportStyle = User.tool.makeIntPref("IconGenExportStyle", 0);
+	private static Pref cacheIconGenExportStyle = Pref.makeIntPref("IconGenExportStyle", User.tool.prefs, 0);
 	/**
 	 * Method to tell how the text should appear in generated icons.
 	 * @return information about how the text should appear in generated icons.
@@ -343,7 +343,7 @@ public class User extends Listener
 	 */
 	public static void setIconGenExportStyle(int style) { cacheIconGenExportStyle.setInt(style); }
 
-	private static Pref cacheIconGenExportTech = User.tool.makeIntPref("IconGenExportTech", 0);
+	private static Pref cacheIconGenExportTech = Pref.makeIntPref("IconGenExportTech", User.tool.prefs, 0);
 	/**
 	 * Method to tell how exports should be constructed in generated icons.
 	 * @return information about how exports should be constructed in generated icons.
@@ -359,7 +359,7 @@ public class User extends Listener
 	 */
 	public static void setIconGenExportTech(int t) { cacheIconGenExportTech.setInt(t); }
 
-	private static Pref cacheIconGenInstanceLocation = User.tool.makeIntPref("IconGenInstanceLocation", 0);
+	private static Pref cacheIconGenInstanceLocation = Pref.makeIntPref("IconGenInstanceLocation", User.tool.prefs, 0);
 	/**
 	 * Method to tell where to place an instance of the generated icons in the original schematic.
 	 * @return information about where to place an instance of the generated icons in the original schematic
@@ -379,7 +379,7 @@ public class User extends Listener
 	 */
 	public static void setIconGenInstanceLocation(int loc) { cacheIconGenInstanceLocation.setInt(loc); }
 
-	private static Pref cacheIconGenLeadLength = User.tool.makeDoublePref("IconGenLeadLength", 2.0f);
+	private static Pref cacheIconGenLeadLength = Pref.makeDoublePref("IconGenLeadLength", User.tool.prefs, 2.0f);
 	/**
 	 * Method to tell how long to make leads in generated icons.
 	 * @return information about how long to make leads in generated icons (the default is 2).
@@ -391,7 +391,7 @@ public class User extends Listener
 	 */
 	public static void setIconGenLeadLength(double len) { cacheIconGenLeadLength.setDouble(len); }
 
-	private static Pref cacheIconGenLeadSpacing = User.tool.makeDoublePref("IconGenLeadSpacing", 2.0f);
+	private static Pref cacheIconGenLeadSpacing = Pref.makeDoublePref("IconGenLeadSpacing", User.tool.prefs, 2.0f);
 	/**
 	 * Method to tell how far apart to space leads in generated icons.
 	 * @return information about how far apart to space leads in generated icons (the default is 2).
@@ -405,7 +405,7 @@ public class User extends Listener
 
 	/****************************** PORT AND EXPORT PREFERENCES ******************************/
 
-	private static Pref cachePortDisplayLevel = User.tool.makeIntPref("PortDisplayLevel", 0);
+	private static Pref cachePortDisplayLevel = Pref.makeIntPref("PortDisplayLevel", User.tool.prefs, 0);
 	/**
 	 * Method to tell how to display ports.
 	 * @return how to display ports.
@@ -423,7 +423,7 @@ public class User extends Listener
 	 */
 	public static void setPortDisplayLevels(int level) { cachePortDisplayLevel.setInt(level); }
 
-	private static Pref cacheExportDisplayLevel = User.tool.makeIntPref("ExportDisplayLevel", 0);
+	private static Pref cacheExportDisplayLevel = Pref.makeIntPref("ExportDisplayLevel", User.tool.prefs, 0);
 	/**
 	 * Method to tell how to display exports.
 	 * @return how to display exports.
@@ -441,7 +441,7 @@ public class User extends Listener
 	 */
 	public static void setExportDisplayLevels(int level) { cacheExportDisplayLevel.setInt(level); }
 
-	private static Pref cacheMoveNodeWithExport = User.tool.makeBooleanPref("MoveNodeWithExport", false);
+	private static Pref cacheMoveNodeWithExport = Pref.makeBooleanPref("MoveNodeWithExport", User.tool.prefs, false);
 	/**
 	 * Method to tell whether to move a node when its export name moves.
 	 * The default is "false", which means that the export text can move independently.
@@ -456,7 +456,7 @@ public class User extends Listener
 
 	/****************************** SELECTION PREFERENCES ******************************/
 
-	private static Pref cacheEasySelectionOfCellInstances = User.tool.makeBooleanPref("EasySelectionOfCellInstances", true);
+	private static Pref cacheEasySelectionOfCellInstances = Pref.makeBooleanPref("EasySelectionOfCellInstances", User.tool.prefs, true);
 	/**
 	 * Method to tell whether cell instances are all be easy-to-select.
 	 * The default is "true".
@@ -469,7 +469,7 @@ public class User extends Listener
 	 */
 	public static void setEasySelectionOfCellInstances(boolean on) { cacheEasySelectionOfCellInstances.setBoolean(on); }
 
-	private static Pref cacheEasySelectionOfAnnotationText = User.tool.makeBooleanPref("EasySelectionOfAnnotationText", true);
+	private static Pref cacheEasySelectionOfAnnotationText = Pref.makeBooleanPref("EasySelectionOfAnnotationText", User.tool.prefs, true);
 	/**
 	 * Method to tell whether annotation text is easy-to-select.
 	 * The default is "true".
@@ -482,7 +482,7 @@ public class User extends Listener
 	 */
 	public static void setEasySelectionOfAnnotationText(boolean on) { cacheEasySelectionOfAnnotationText.setBoolean(on); }
 
-	private static Pref cacheDraggingMustEncloseObjects = User.tool.makeBooleanPref("DraggingMustEncloseObjects", false);
+	private static Pref cacheDraggingMustEncloseObjects = Pref.makeBooleanPref("DraggingMustEncloseObjects", User.tool.prefs, false);
 	/**
 	 * Method to tell whether dragging a selection rectangle must completely encose objects in order to select them.
 	 * The default is "false", which means that the selection rectangle need only touch an object in order to select it.
@@ -497,7 +497,7 @@ public class User extends Listener
 
 	/****************************** GRID AND ALIGNMENT PREFERENCES ******************************/
 
-	private static Pref cacheDefGridXSpacing = User.tool.makeDoublePref("DefGridXSpacing", 1);
+	private static Pref cacheDefGridXSpacing = Pref.makeDoublePref("DefGridXSpacing", User.tool.prefs, 1);
 	/**
 	 * Method to return the default spacing of grid dots in the X direction.
 	 * The default is 1.
@@ -510,7 +510,7 @@ public class User extends Listener
 	 */
 	public static void setDefGridXSpacing(double dist) { cacheDefGridXSpacing.setDouble(dist); }
 
-	private static Pref cacheDefGridYSpacing = User.tool.makeDoublePref("DefGridYSpacing", 1);
+	private static Pref cacheDefGridYSpacing = Pref.makeDoublePref("DefGridYSpacing", User.tool.prefs, 1);
 	/**
 	 * Method to return the default spacing of grid dots in the Y direction.
 	 * The default is 1.
@@ -523,7 +523,7 @@ public class User extends Listener
 	 */
 	public static void setDefGridYSpacing(double dist) { cacheDefGridYSpacing.setDouble(dist); }
 
-	private static Pref cacheDefGridXBoldFrequency = User.tool.makeIntPref("DefGridXBoldFrequency", 10);
+	private static Pref cacheDefGridXBoldFrequency = Pref.makeIntPref("DefGridXBoldFrequency", User.tool.prefs, 10);
 	/**
 	 * Method to return the default frequency of bold grid dots in the X direction.
 	 * The default is 10.
@@ -536,7 +536,7 @@ public class User extends Listener
 	 */
 	public static void setDefGridXBoldFrequency(int dist) { cacheDefGridXBoldFrequency.setInt(dist); }
 
-	private static Pref cacheDefGridYBoldFrequency = User.tool.makeIntPref("DefGridYBoldFrequency", 10);
+	private static Pref cacheDefGridYBoldFrequency = Pref.makeIntPref("DefGridYBoldFrequency", User.tool.prefs, 10);
 	/**
 	 * Method to return the default frequency of bold grid dots in the Y direction.
 	 * The default is 10.
@@ -549,7 +549,7 @@ public class User extends Listener
 	 */
 	public static void setDefGridYBoldFrequency(int dist) { cacheDefGridYBoldFrequency.setInt(dist); }
 
-	private static Pref cacheShowCursorCoordinates = User.tool.makeBooleanPref("ShowCursorCoordinates", false);
+	private static Pref cacheShowCursorCoordinates = Pref.makeBooleanPref("ShowCursorCoordinates", User.tool.prefs, false);
 	/**
 	 * Method to tell whether to show the cursor coordinates as they move in the edit window.
 	 * The default is "false".
@@ -562,7 +562,7 @@ public class User extends Listener
 	 */
 	public static void setShowCursorCoordinates(boolean on) { cacheShowCursorCoordinates.setBoolean(on); }
 
-	private static Pref cacheAlignmentToGrid = User.tool.makeDoublePref("AlignmentToGrid", 1);
+	private static Pref cacheAlignmentToGrid = Pref.makeDoublePref("AlignmentToGrid", User.tool.prefs, 1);
 	/**
 	 * Method to return the default alignment of objects to the grid.
 	 * The default is 1, meaning that placement and movement should land on whole grid units.
@@ -575,7 +575,7 @@ public class User extends Listener
 	 */
 	public static void setAlignmentToGrid(double dist) { cacheAlignmentToGrid.setDouble(dist); }
 
-	private static Pref cacheEdgeAlignmentToGrid = User.tool.makeDoublePref("EdgeAlignmentToGrid", 0);
+	private static Pref cacheEdgeAlignmentToGrid = Pref.makeDoublePref("EdgeAlignmentToGrid", User.tool.prefs, 0);
 	/**
 	 * Method to return the default alignment of object edges to the grid.
 	 * The default is 0, meaning that no alignment is to be done.
@@ -590,7 +590,7 @@ public class User extends Listener
 
 	/****************************** TEXT PREFERENCES ******************************/
 
-	private static Pref cacheTextVisibilityNode = User.tool.makeBooleanPref("TextVisibilityNode", true);
+	private static Pref cacheTextVisibilityNode = Pref.makeBooleanPref("TextVisibilityNode", User.tool.prefs, true);
 	/**
 	 * Method to tell whether to draw text that resides on nodes.
 	 * This text includes the node name and any parameters or attributes on it.
@@ -605,7 +605,7 @@ public class User extends Listener
 	 */
 	public static void setTextVisibilityOnNode(boolean on) { cacheTextVisibilityNode.setBoolean(on); }
 
-	private static Pref cacheTextVisibilityArc = User.tool.makeBooleanPref("TextVisibilityArc", true);
+	private static Pref cacheTextVisibilityArc = Pref.makeBooleanPref("TextVisibilityArc", User.tool.prefs, true);
 	/**
 	 * Method to tell whether to draw text that resides on arcs.
 	 * This text includes the arc name and any parameters or attributes on it.
@@ -620,7 +620,7 @@ public class User extends Listener
 	 */
 	public static void setTextVisibilityOnArc(boolean on) { cacheTextVisibilityArc.setBoolean(on); }
 
-	private static Pref cacheTextVisibilityPort = User.tool.makeBooleanPref("TextVisibilityPort", true);
+	private static Pref cacheTextVisibilityPort = Pref.makeBooleanPref("TextVisibilityPort", User.tool.prefs, true);
 	/**
 	 * Method to tell whether to draw text that resides on ports.
 	 * This text includes the port name and any parameters or attributes on it.
@@ -635,7 +635,7 @@ public class User extends Listener
 	 */
 	public static void setTextVisibilityOnPort(boolean on) { cacheTextVisibilityPort.setBoolean(on); }
 
-	private static Pref cacheTextVisibilityExport = User.tool.makeBooleanPref("TextVisibilityExport", true);
+	private static Pref cacheTextVisibilityExport = Pref.makeBooleanPref("TextVisibilityExport", User.tool.prefs, true);
 	/**
 	 * Method to tell whether to draw text that resides on exports.
 	 * This text includes the export name and any parameters or attributes on it.
@@ -650,7 +650,7 @@ public class User extends Listener
 	 */
 	public static void setTextVisibilityOnExport(boolean on) { cacheTextVisibilityExport.setBoolean(on); }
 
-	private static Pref cacheTextVisibilityAnnotation = User.tool.makeBooleanPref("TextVisibilityAnnotation", true);
+	private static Pref cacheTextVisibilityAnnotation = Pref.makeBooleanPref("TextVisibilityAnnotation", User.tool.prefs, true);
 	/**
 	 * Method to tell whether to draw text annotation text.
 	 * Annotation text is not attached to any node or arc, but appears to move freely about the cell.
@@ -667,7 +667,7 @@ public class User extends Listener
 	 */
 	public static void setTextVisibilityOnAnnotation(boolean on) { cacheTextVisibilityAnnotation.setBoolean(on); }
 
-	private static Pref cacheTextVisibilityInstance = User.tool.makeBooleanPref("TextVisibilityInstance", true);
+	private static Pref cacheTextVisibilityInstance = Pref.makeBooleanPref("TextVisibilityInstance", User.tool.prefs, true);
 	/**
 	 * Method to tell whether to draw the name of on cell instances.
 	 * The default is "true".
@@ -680,7 +680,7 @@ public class User extends Listener
 	 */
 	public static void setTextVisibilityOnInstance(boolean on) { cacheTextVisibilityInstance.setBoolean(on); }
 
-	private static Pref cacheTextVisibilityCell = User.tool.makeBooleanPref("TextVisibilityCell", true);
+	private static Pref cacheTextVisibilityCell = Pref.makeBooleanPref("TextVisibilityCell", User.tool.prefs, true);
 	/**
 	 * Method to tell whether to draw text that resides on the cell.
 	 * This includes the current cell's parameters or attributes (for example, spice templates).
@@ -697,7 +697,7 @@ public class User extends Listener
 
 	/****************************** MISCELLANEOUS PREFERENCES ******************************/
 
-	private static Pref cacheSchematicTechnology = User.tool.makeStringPref("SchematicTechnology", "");
+	private static Pref cacheSchematicTechnology = Pref.makeStringPref("SchematicTechnology", User.tool.prefs, "");
 	/**
 	 * Method to the technology to use when schematics are found.
 	 * This is important in Spice deck generation (for example) because the Spice primitives may
@@ -716,7 +716,7 @@ public class User extends Listener
 	 */
 	public static void setSchematicTechnology(String t) { cacheSchematicTechnology.setString(t); }
 
-	private static Pref cacheWorkingDirectory = User.tool.makeStringPref("WorkingDirectory", java.lang.System.getProperty("user.dir"));
+	private static Pref cacheWorkingDirectory = Pref.makeStringPref("WorkingDirectory", User.tool.prefs, java.lang.System.getProperty("user.dir"));
 	/**
 	 * Method to get the path of the current working directory.
 	 * The default is the Java "user directory".
@@ -729,7 +729,7 @@ public class User extends Listener
 	 */
 	public static void setWorkingDirectory(String dir) { cacheWorkingDirectory.setString(dir); }
 
-	private static Pref cacheBeepAfterLongJobs = User.tool.makeBooleanPref("BeepAfterLongJobs", false);
+	private static Pref cacheBeepAfterLongJobs = Pref.makeBooleanPref("BeepAfterLongJobs", User.tool.prefs, false);
 	/**
 	 * Method to tell whether to beep after long jobs.
 	 * Any task longer than 1 minute is considered a "long job".
@@ -744,7 +744,7 @@ public class User extends Listener
 	 */
 	public static void setBeepAfterLongJobs(boolean on) { cacheBeepAfterLongJobs.setBoolean(on); }
 
-	private static Pref cachePlayClickSoundsWhenCreatingArcs = User.tool.makeBooleanPref("PlayClickSoundsWhenCreatingArcs", true);
+	private static Pref cachePlayClickSoundsWhenCreatingArcs = Pref.makeBooleanPref("PlayClickSoundsWhenCreatingArcs", User.tool.prefs, true);
 	/**
 	 * Method to tell whether to play a "click" sound when an arc is created.
 	 * The default is "true".
@@ -757,7 +757,7 @@ public class User extends Listener
 	 */
 	public static void setPlayClickSoundsWhenCreatingArcs(boolean on) { cachePlayClickSoundsWhenCreatingArcs.setBoolean(on); }
 
-	private static Pref cacheIncludeDateAndVersionInOutput = User.tool.makeBooleanPref("IncludeDateAndVersionInOutput", true);
+	private static Pref cacheIncludeDateAndVersionInOutput = Pref.makeBooleanPref("IncludeDateAndVersionInOutput", User.tool.prefs, true);
 	/**
 	 * Method to tell whether to include the date and Electric version in output files.
 	 * The default is "true".
@@ -770,7 +770,7 @@ public class User extends Listener
 	 */
 	public static void setIncludeDateAndVersionInOutput(boolean on) { cacheIncludeDateAndVersionInOutput.setBoolean(on); }
 
-	private static Pref cacheErrorLimit = User.tool.makeIntPref("ErrorLimit", 0);
+	private static Pref cacheErrorLimit = Pref.makeIntPref("ErrorLimit", User.tool.prefs, 0);
 	/**
 	 * Method to tell the maximum number of errors to log.
 	 * The default is 0, which means that there is no limit.
@@ -784,7 +784,20 @@ public class User extends Listener
 	 */
 	public static void setErrorLimit(int limit) { cacheErrorLimit.setInt(limit); }
 
-	private static Pref cacheAutoTechnologySwitch = User.tool.makeBooleanPref("AutoTechnologySwitch", true);
+	private static Pref cacheMemorySize = Pref.makeIntPref("MemorySize", User.tool.prefs, 500);
+	/**
+	 * Method to tell the maximum memory to use for Electric.
+	 * The default is 500.
+	 * @return the maximum memory to use for Electric (in megabytes).
+	 */
+	public static int getMemorySize() { return cacheMemorySize.getInt(); }
+	/**
+	 * Method to set the maximum memory to use for Electric.
+	 * @param limit maximum memory to use for Electric (in megabytes).
+	 */
+	public static void setMemorySize(int limit) { cacheMemorySize.setInt(limit); }
+
+	private static Pref cacheAutoTechnologySwitch = Pref.makeBooleanPref("AutoTechnologySwitch", User.tool.prefs, true);
 	/**
 	 * Method to tell whether to switch technologies automatically when changing the current Cell.
 	 * Switching technologies means that the component menu updates to the new primitive set.
@@ -799,7 +812,7 @@ public class User extends Listener
 	 */
 	public static void setAutoTechnologySwitch(boolean on) { cacheAutoTechnologySwitch.setBoolean(on); }
 
-	private static Pref cachePlaceCellCenter = User.tool.makeBooleanPref("PlaceCellCenter", true);
+	private static Pref cachePlaceCellCenter = Pref.makeBooleanPref("PlaceCellCenter", User.tool.prefs, true);
 	/**
 	 * Method to tell whether to place a Cell-Center primitive in every newly created Cell.
 	 * The default is "true".
@@ -812,7 +825,7 @@ public class User extends Listener
 	 */
 	public static void setPlaceCellCenter(boolean on) { cachePlaceCellCenter.setBoolean(on); }
 
-	private static Pref cacheCheckCellDates = User.tool.makeBooleanPref("CheckCellDates", false);
+	private static Pref cacheCheckCellDates = Pref.makeBooleanPref("CheckCellDates", User.tool.prefs, false);
 	/**
 	 * Method to tell whether to check Cell dates when placing instances.
 	 * This is not currently implemented.
@@ -827,7 +840,7 @@ public class User extends Listener
 	 */
 	public static void setCheckCellDates(boolean on) { cacheCheckCellDates.setBoolean(on); }
 
-	private static Pref cacheDisallowModificationLockedPrims = User.tool.makeBooleanPref("DisallowModificationLockedPrims", false);
+	private static Pref cacheDisallowModificationLockedPrims = Pref.makeBooleanPref("DisallowModificationLockedPrims", User.tool.prefs, false);
 	/**
 	 * Method to tell whether locked primitives can be modified.
 	 * Locked primitives occur in array-technologies such as FPGA.
@@ -841,7 +854,7 @@ public class User extends Listener
 	 */
 	public static void setDisallowModificationLockedPrims(boolean on) { cacheDisallowModificationLockedPrims.setBoolean(on); }
 
-	private static Pref cacheMoveAfterDuplicate = User.tool.makeBooleanPref("MoveAfterDuplicate", true);
+	private static Pref cacheMoveAfterDuplicate = Pref.makeBooleanPref("MoveAfterDuplicate", User.tool.prefs, true);
 	/**
 	 * Method to tell whether to move objects after duplicating them.
 	 * The default is "true".
@@ -854,7 +867,7 @@ public class User extends Listener
 	 */
 	public static void setMoveAfterDuplicate(boolean on) { cacheMoveAfterDuplicate.setBoolean(on); }
 
-	private static Pref cacheDupCopiesExports = User.tool.makeBooleanPref("DupCopiesExports", false);
+	private static Pref cacheDupCopiesExports = Pref.makeBooleanPref("DupCopiesExports", User.tool.prefs, false);
 	/**
 	 * Method to tell whether Duplicate/Paste/Array of NodeInst copies exports.
 	 * The default is "false".
@@ -867,7 +880,7 @@ public class User extends Listener
 	 */
 	public static void setDupCopiesExports(boolean on) { cacheDupCopiesExports.setBoolean(on); }
 
-	private static Pref cacheNewNodeRotation = User.tool.makeIntPref("NewNodeRotation", 0);
+	private static Pref cacheNewNodeRotation = Pref.makeIntPref("NewNodeRotation", User.tool.prefs, 0);
 	/**
 	 * Method to return the default rotation of all new nodes.
 	 * The default is 0.
@@ -880,7 +893,7 @@ public class User extends Listener
 	 */
 	public static void setNewNodeRotation(int rot) { cacheNewNodeRotation.setInt(rot); }
 
-	private static Pref cacheNewNodeMirrorX = User.tool.makeBooleanPref("NewNodeMirrorX", false);
+	private static Pref cacheNewNodeMirrorX = Pref.makeBooleanPref("NewNodeMirrorX", User.tool.prefs, false);
 	/**
 	 * Method to tell whether new nodes are mirrored in X.
 	 * The default is "false".

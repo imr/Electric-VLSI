@@ -19,8 +19,8 @@
         </javac>
     </target>
 
-        <target depends="init,compile" name="run">
-        <java classname="com.sun.electric.Main" failonerror="true" fork="true" maxmemory="1024m">
+    <target depends="init,compile" name="run">
+        <java classname="com.sun.electric.Launcher" failonerror="true" fork="true">
             <classpath>
                 <pathelement location="."/>
                 <pathelement location="${beanshell}"/>
@@ -38,7 +38,7 @@
         <!-- 1. Create electric.mf manifest. -->
         <!-- 2. Put in it two lines: -->
         <!-- Manifest-Version: 1.0 -->
-        <!-- Main-Class: com.sun.electric.Main -->
+        <!-- Main-Class: com.sun.electric.Launcher -->
         <!-- 3. Pass to <jar>: manifest="electric.mf" -->
         <unjar src="${beanshell}" dest="."/> 
         <unjar src="${AppleJava}" dest="."/> 
@@ -79,7 +79,7 @@
     </target>
 
     <target depends="init,jar" description="Run Jar file" name="testJar">
-        <java classname="com.sun.electric.Main" failonerror="true" fork="true" maxmemory="1024m">
+        <java classname="com.sun.electric.Launcher" failonerror="true" fork="true">
             <classpath>
                 <pathelement location="."/>
                 <pathelement location="${beanshell}"/>

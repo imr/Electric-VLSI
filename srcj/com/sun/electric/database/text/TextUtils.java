@@ -23,9 +23,12 @@
  */
 package com.sun.electric.database.text;
 
+import com.sun.electric.database.variable.TextDescriptor;
+
 import java.io.File;
 import java.io.InputStream;
 import java.io.IOException;
+import java.text.NumberFormat;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -153,6 +156,22 @@ public class TextUtils
 		return(num * sign);
 	}
 
+	private static NumberFormat numberFormat = null;
+
+	/**
+	 * Method to convert a double to a string, with a guaranteed number of digits to the right of the decimal point.
+	 * @param v the double value to format.
+	 * @param numFractions the number of digits to the right of the decimal point.
+	 * @return the string representation of the number.
+	 */
+	public static String formatDouble(double v, int numFractions)
+	{
+		if (numberFormat == null) numberFormat = NumberFormat.getInstance();
+		numberFormat.setMaximumFractionDigits(numFractions);
+		numberFormat.setMinimumFractionDigits(numFractions);
+		return numberFormat.format(v);
+	}
+
 	/**
 	 * Method to convert an integer to a string that is left-padded with spaces
 	 * @param value the integer value.
@@ -263,6 +282,75 @@ public class TextUtils
 		seconds = seconds - (minutes*60);
 		buf.append(seconds + " secs");
 		return buf.toString();
+	}
+
+	/**
+	 * Unit is a typesafe enum class that describes a unit scale (metric factors of 10).
+	 */
+	public static class UnitScale
+	{
+		private final String name;
+
+		private UnitScale(String name) { this.name = name; }
+
+		/**
+		 * Returns a printable version of this Unit.
+		 * @return a printable version of this Unit.
+		 */
+		public String toString() { return name; }
+
+		/** Describes no units. */				public static final UnitScale GIGA =  new UnitScale("giga:  x 1000000000");
+		/** Describes resistance units. */		public static final UnitScale MEGA =  new UnitScale("mega:  x 1000000");
+		/** Describes capacitance units. */		public static final UnitScale KILO =  new UnitScale("kilo:  x 1000");
+		/** Describes inductance units. */		public static final UnitScale NONE =  new UnitScale("-:     x 1");
+		/** Describes current units. */			public static final UnitScale MILLI = new UnitScale("milli: / 1000");
+		/** Describes voltage units. */			public static final UnitScale MICRO = new UnitScale("micro: / 1000000");
+		/** Describes distance units. */		public static final UnitScale NANO =  new UnitScale("nano:  / 1000000000");
+		/** Describes time units. */			public static final UnitScale PICO =  new UnitScale("pico:  / 1000000000000");
+		/** Describes time units. */			public static final UnitScale FEMTO = new UnitScale("femto: / 1000000000000000");
+	}
+
+	/**
+	 * Method to express "value" as a string in "unittype" electrical units.
+	 * The scale of the units is in "unitscale".
+	 */
+	public static String displayedUnits(double value, TextDescriptor.Unit unitType, UnitScale unitScale)
+	{
+		String postFix = "";
+		if (unitScale == UnitScale.GIGA)
+		{
+			value /= 1000000000.0f;
+			postFix = "g";
+		} else if (unitScale == UnitScale.MEGA)
+		{
+			value /= 1000000.0f;
+			postFix = "meg";		/* SPICE wants "x" */
+		} else if (unitScale == UnitScale.KILO)
+		{
+			value /= 1000.0f;
+			postFix = "k";
+		} else if (unitScale == UnitScale.MILLI)
+		{
+			value *= 1000.0f;
+			postFix = "m";
+		} else if (unitScale == UnitScale.MICRO)
+		{
+			value *= 1000000.0f;
+			postFix = "u";
+		} else if (unitScale == UnitScale.NANO)
+		{
+			value *= 1000000000.0f;
+			postFix = "n";
+		} else if (unitScale == UnitScale.PICO)
+		{
+			value *= 1000000000000.0f;
+			postFix = "p";
+		} else if (unitScale == UnitScale.FEMTO)
+		{
+			value *= 1000000000000000.0f;
+			postFix = "f";
+		}
+		return value + postFix;
 	}
 
 	/**

@@ -1550,6 +1550,44 @@ public class MoCMOS extends Technology
 		padFrame_lay.setDefaultParasitics(0, 0, 0);				// Pad-Frame
 
 		setDefaultParasitics(50, 0.04);
+		String [] headerLevel1 =
+		{
+			"*CMOS/BULK-NWELL (PRELIMINARY PARAMETERS)",
+			".OPTIONS NOMOD DEFL=3UM DEFW=3UM DEFAD=70P DEFAS=70P LIMPTS=1000",
+			"+ITL5=0 RELTOL=0.01 ABSTOL=500PA VNTOL=500UV LVLTIM=2",
+			"+LVLCOD=1",
+			".MODEL N NMOS LEVEL=1",
+			"+KP=60E-6 VTO=0.7 GAMMA=0.3 LAMBDA=0.05 PHI=0.6",
+			"+LD=0.4E-6 TOX=40E-9 CGSO=2.0E-10 CGDO=2.0E-10 CJ=.2MF/M^2",
+			".MODEL P PMOS LEVEL=1",
+			"+KP=20E-6 VTO=0.7 GAMMA=0.4 LAMBDA=0.05 PHI=0.6",
+			"+LD=0.6E-6 TOX=40E-9 CGSO=3.0E-10 CGDO=3.0E-10 CJ=.2MF/M^2",
+			".MODEL DIFFCAP D CJO=.2MF/M^2"
+		};
+		setSpiceHeaderLevel1(headerLevel1);
+		String [] headerLevel2 =
+		{
+			"* MOSIS 3u CMOS PARAMS",
+			".OPTIONS NOMOD DEFL=2UM DEFW=6UM DEFAD=100P DEFAS=100P",
+			"+LIMPTS=1000 ITL5=0 ABSTOL=500PA VNTOL=500UV",
+			"* Note that ITL5=0 sets ITL5 to infinity",
+			".MODEL N NMOS LEVEL=2 LD=0.3943U TOX=502E-10",
+			"+NSUB=1.22416E+16 VTO=0.756 KP=4.224E-05 GAMMA=0.9241",
+			"+PHI=0.6 UO=623.661 UEXP=8.328627E-02 UCRIT=54015.0",
+			"+DELTA=5.218409E-03 VMAX=50072.2 XJ=0.4U LAMBDA=2.975321E-02",
+			"+NFS=4.909947E+12 NEFF=1.001E-02 NSS=0.0 TPG=1.0",
+			"+RSH=20.37 CGDO=3.1E-10 CGSO=3.1E-10",
+			"+CJ=3.205E-04 MJ=0.4579 CJSW=4.62E-10 MJSW=0.2955 PB=0.7",
+			".MODEL P PMOS LEVEL=2 LD=0.2875U TOX=502E-10",
+			"+NSUB=1.715148E+15 VTO=-0.7045 KP=1.686E-05 GAMMA=0.3459",
+			"+PHI=0.6 UO=248.933 UEXP=1.02652 UCRIT=182055.0",
+			"+DELTA=1.0E-06 VMAX=100000.0 XJ=0.4U LAMBDA=1.25919E-02",
+			"+NFS=1.0E+12 NEFF=1.001E-02 NSS=0.0 TPG=-1.0",
+			"+RSH=79.10 CGDO=2.89E-10 CGSO=2.89E-10",
+			"+CJ=1.319E-04 MJ=0.4125 CJSW=3.421E-10 MJSW=0.198 PB=0.66",
+			".TEMP 25.0"
+		};
+		setSpiceHeaderLevel2(headerLevel2);
 
 		//**************************************** ARCS ****************************************
 
@@ -2680,102 +2718,6 @@ public class MoCMOS extends Technology
 		silicideBlockNode_node.setHoldsOutline();
 		silicideBlockNode_node.setSpecialType(PrimitiveNode.POLYGONAL);
 	}
-
-	/******************** SIMULATION VARIABLES ********************/
-
-//	/* for SPICE simulation */
-//	#define MIN_RESIST	50.0f		/* minimum resistance consider */
-//	#define MIN_CAPAC	 0.04f		/* minimum capacitance consider */
-//	static float sim_spice_resistance[MAXLAYERS] = {  /* per square micron */
-//		0.06f, 0.06f, 0.06f,				/* metal 1/2/3 */
-//		0.03f, 0.03f, 0.03f,				/* metal 4/5/6 */
-//		2.5f, 50.0f,						/* poly 1/2 */
-//		2.5f, 3.0f,							/* P/N active */
-//		0.0, 0.0,							/* P/N select */
-//		0.0, 0.0,							/* P/N well */
-//		2.2f, 2.5f,							/* poly/act cut */
-//		1.0f, 0.9f, 0.8f, 0.8f, 0.8f,		/* via 1/2/3/4/5 */
-//		0.0,								/* overglass */
-//		2.5f,								/* transistor poly */
-//		0.0,								/* poly cap */
-//		0.0,								/* P active well */
-//		0.0, 0.0, 0.0, 0.0, 0.0, 0.0,		/* pseudo metal 1/2/3/4/5/6 */
-//		0.0, 0.0,							/* pseudo poly 1/2 */
-//		0.0, 0.0,							/* pseudo P/N active */
-//		0.0, 0.0,							/* pseudo P/N select */
-//		0.0, 0.0,							/* pseudo P/N well */
-//		0.0};								/* pad frame */
-//	static float sim_spice_capacitance[MAXLAYERS] = { /* per square micron */
-//		0.07f, 0.04f, 0.04f,				/* metal 1/2/3 */
-//		0.04f, 0.04f, 0.04f,				/* metal 4/5/6 */
-//		0.09f, 1.0f,						/* poly 1/2 */
-//		0.9f, 0.9f,							/* P/N active */
-//		0.0, 0.0,							/* P/N select */
-//		0.0, 0.0,							/* P/N well */
-//		0.0, 0.0,							/* poly/act cut */
-//		0.0, 0.0, 0.0, 0.0, 0.0,			/* via 1/2/3/4/5 */
-//		0.0,								/* overglass */
-//		0.09f,								/* transistor poly */
-//		0.0,								/* poly cap */
-//		0.0,								/* P active well */
-//		0.0, 0.0, 0.0, 0.0, 0.0, 0.0,		/* pseudo metal 1/2/3/4/5/6 */
-//		0.0, 0.0,							/* pseudo poly 1/2 */
-//		0.0, 0.0,							/* pseudo P/N active */
-//		0.0, 0.0,							/* pseudo P/N select */
-//		0.0, 0.0,							/* pseudo P/N well */
-//		0.0};								/* pad frame */
-	private static String [] sim_spice_header_level1 =
-	{
-		"*CMOS/BULK-NWELL (PRELIMINARY PARAMETERS)",
-		".OPTIONS NOMOD DEFL=3UM DEFW=3UM DEFAD=70P DEFAS=70P LIMPTS=1000",
-		"+ITL5=0 RELTOL=0.01 ABSTOL=500PA VNTOL=500UV LVLTIM=2",
-		"+LVLCOD=1",
-		".MODEL N NMOS LEVEL=1",
-		"+KP=60E-6 VTO=0.7 GAMMA=0.3 LAMBDA=0.05 PHI=0.6",
-		"+LD=0.4E-6 TOX=40E-9 CGSO=2.0E-10 CGDO=2.0E-10 CJ=.2MF/M^2",
-		".MODEL P PMOS LEVEL=1",
-		"+KP=20E-6 VTO=0.7 GAMMA=0.4 LAMBDA=0.05 PHI=0.6",
-		"+LD=0.6E-6 TOX=40E-9 CGSO=3.0E-10 CGDO=3.0E-10 CJ=.2MF/M^2",
-		".MODEL DIFFCAP D CJO=.2MF/M^2"
-	};
-	private static String [] sim_spice_header_level2 =
-	{
-		"* MOSIS 3u CMOS PARAMS",
-		".OPTIONS NOMOD DEFL=2UM DEFW=6UM DEFAD=100P DEFAS=100P",
-		"+LIMPTS=1000 ITL5=0 ABSTOL=500PA VNTOL=500UV",
-		"* Note that ITL5=0 sets ITL5 to infinity",
-		".MODEL N NMOS LEVEL=2 LD=0.3943U TOX=502E-10",
-		"+NSUB=1.22416E+16 VTO=0.756 KP=4.224E-05 GAMMA=0.9241",
-		"+PHI=0.6 UO=623.661 UEXP=8.328627E-02 UCRIT=54015.0",
-		"+DELTA=5.218409E-03 VMAX=50072.2 XJ=0.4U LAMBDA=2.975321E-02",
-		"+NFS=4.909947E+12 NEFF=1.001E-02 NSS=0.0 TPG=1.0",
-		"+RSH=20.37 CGDO=3.1E-10 CGSO=3.1E-10",
-		"+CJ=3.205E-04 MJ=0.4579 CJSW=4.62E-10 MJSW=0.2955 PB=0.7",
-		".MODEL P PMOS LEVEL=2 LD=0.2875U TOX=502E-10",
-		"+NSUB=1.715148E+15 VTO=-0.7045 KP=1.686E-05 GAMMA=0.3459",
-		"+PHI=0.6 UO=248.933 UEXP=1.02652 UCRIT=182055.0",
-		"+DELTA=1.0E-06 VMAX=100000.0 XJ=0.4U LAMBDA=1.25919E-02",
-		"+NFS=1.0E+12 NEFF=1.001E-02 NSS=0.0 TPG=-1.0",
-		"+RSH=79.10 CGDO=2.89E-10 CGSO=2.89E-10",
-		"+CJ=1.319E-04 MJ=0.4125 CJSW=3.421E-10 MJSW=0.198 PB=0.66",
-		".TEMP 25.0"
-	};
-
-//	TECH_VARIABLES variables[] =
-//	{
-//		// set information for the SIM tool (SPICE)
-//		{"SIM_spice_min_resistance"), 0, MIN_RESIST, VFLOAT|VDONTSAVE},
-//		{"SIM_spice_min_capacitance"), 0, MIN_CAPAC, VFLOAT|VDONTSAVE},
-//		{"SIM_spice_resistance"), (CHAR *)sim_spice_resistance, 0.0,
-//			VFLOAT|VISARRAY|(MAXLAYERS<<VLENGTHSH)|VDONTSAVE},
-//		{"SIM_spice_capacitance"), (CHAR *)sim_spice_capacitance, 0.0,
-//			VFLOAT|VISARRAY|(MAXLAYERS<<VLENGTHSH)|VDONTSAVE},
-//		{"SIM_spice_header_level1"), (CHAR *)sim_spice_header_level1, 0.0,
-//			VSTRING|VDONTSAVE|VISARRAY},
-//		{"SIM_spice_header_level2"), (CHAR *)sim_spice_header_level2, 0.0,
-//			VSTRING|VDONTSAVE|VISARRAY},
-//		{NULL, NULL, 0.0, 0}
-//	};
 
 	/******************** TECHNOLOGY INTERFACE METHODS ********************/
 

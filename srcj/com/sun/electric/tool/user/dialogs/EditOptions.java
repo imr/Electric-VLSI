@@ -116,6 +116,7 @@ public class EditOptions extends javax.swing.JDialog
 	private boolean initialClickSounds;
 	private boolean initialIncludeDateAndVersion;
 	private int initialErrorLimit;
+	private long initialMaxMem;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -138,6 +139,12 @@ public class EditOptions extends javax.swing.JDialog
 		generalExpandableDialogsFull.setEnabled(false);
 		generalShowFileDialog.setEnabled(false);
 		generalMotionHysteresis.setEditable(false);
+
+		java.lang.Runtime runtime = java.lang.Runtime.getRuntime();
+		long maxMemLimit = runtime.maxMemory() / 1024 / 1024;
+		generalMemoryUsage.setText("Current memory usage: " + Long.toString(maxMemLimit) + " megabytes");
+		initialMaxMem = User.getMemorySize();
+		generalMaxMem.setText(Long.toString(initialMaxMem));
 	}
 
 	/**
@@ -161,6 +168,10 @@ public class EditOptions extends javax.swing.JDialog
 		int curentErrorLimit = TextUtils.atoi(generalErrorLimit.getText());
 		if (curentErrorLimit != initialErrorLimit)
 			User.setErrorLimit(curentErrorLimit);
+
+		int currentMaxMem = TextUtils.atoi(generalMaxMem.getText());
+		if (currentMaxMem != initialMaxMem)
+			User.setMemorySize(currentMaxMem);
 	}
 
 	//******************************** NEW NODES ********************************
@@ -1158,16 +1169,19 @@ public class EditOptions extends javax.swing.JDialog
 	private int initialTechRules;
 	private int initialTechNumMetalLayers;
 	private int initialTechNumPolyLayers;
+	private String initialSchematicTechnology;
 	private boolean initialTechNoStackedVias;
 	private boolean initialTechAlternateContactRules;
 	private boolean initialTechSpecialTransistors;
 	private boolean initialTechStickFigures;
+
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Technology tab.
 	 */
 	private void initTechnology()
 	{
+		// MOCMOS
 		initialTechRules = MoCMOS.tech.getRuleSet();
 		if (initialTechRules == 0) techMOCMOSSCMOSRules.setSelected(true); else
 			if (initialTechRules == 1) techMOCMOSSubmicronRules.setSelected(true); else
@@ -1197,14 +1211,16 @@ public class EditOptions extends javax.swing.JDialog
 		if (initialTechStickFigures) techMOCMOSStickFigures.setSelected(true); else
 			techMOCMOSFullGeom.setSelected(true);
 
-//		initialSchematicTechnology = 
-//		for(Iterator it = Technology.getTechnologiesSortedByName().iterator(); it.hasNext(); )
-//		{
-//			Technology tech = (Technology)it.next();
-//			technologyPopup.addItem(tech.getTechName());
-//		}
-//		technologyPopup.setSelectedItem(spicePartsLibraryInitial);
+		// Schematics
+		initialSchematicTechnology = User.getSchematicTechnology();
+		for(Iterator it = Technology.getTechnologiesSortedByName().iterator(); it.hasNext(); )
+		{
+			Technology tech = (Technology)it.next();
+			technologyPopup.addItem(tech.getTechName());
+		}
+		technologyPopup.setSelectedItem(initialSchematicTechnology);
 
+		// not yet
 		techMOCMOSFullGeom.setEnabled(false);
 		techMOCMOSStickFigures.setEnabled(false);
 		techArtworkArrowsFilled.setEnabled(false);
@@ -1239,6 +1255,7 @@ public class EditOptions extends javax.swing.JDialog
 			boolean redrawPalette = false;
 			boolean redrawWindows = false;
 
+			// MOCMOS
 			int currentNumMetals = dialog.techMOCMOSMetalLayers.getSelectedIndex() + 2;
 			if (currentNumMetals != dialog.initialTechNumMetalLayers)
 			{
@@ -1288,6 +1305,12 @@ public class EditOptions extends javax.swing.JDialog
 				redrawPalette = redrawWindows = true;
 			}
 
+			// Schematics
+			String currentTech = (String)dialog.technologyPopup.getSelectedItem();
+			if (!currentTech.equals(dialog.initialSchematicTechnology))
+				User.setSchematicTechnology(currentTech);
+
+			// update the display
 			if (redrawPalette)
 			{
 				TopLevel.getPaletteFrame().loadForTechnology();
@@ -1332,6 +1355,12 @@ public class EditOptions extends javax.swing.JDialog
         generalMotionHysteresis = new javax.swing.JTextField();
         jLabel51 = new javax.swing.JLabel();
         jLabel53 = new javax.swing.JLabel();
+        jPanel11 = new javax.swing.JPanel();
+        jLabel60 = new javax.swing.JLabel();
+        generalMaxMem = new javax.swing.JTextField();
+        jLabel61 = new javax.swing.JLabel();
+        generalMemoryUsage = new javax.swing.JLabel();
+        jLabel62 = new javax.swing.JLabel();
         newNode = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
@@ -1659,6 +1688,58 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         general.add(jLabel53, gridBagConstraints);
+
+        jPanel11.setLayout(new java.awt.GridBagLayout());
+
+        jPanel11.setBorder(new javax.swing.border.TitledBorder("Memory"));
+        jLabel60.setText("Maximum memory:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel11.add(jLabel60, gridBagConstraints);
+
+        generalMaxMem.setColumns(6);
+        generalMaxMem.setText(" ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel11.add(generalMaxMem, gridBagConstraints);
+
+        jLabel61.setText("megabytes");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel11.add(jLabel61, gridBagConstraints);
+
+        generalMemoryUsage.setText("Current memory usage:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel11.add(generalMemoryUsage, gridBagConstraints);
+
+        jLabel62.setText("Changes to memory take effect when Electric is next run");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel11.add(jLabel62, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        general.add(jPanel11, gridBagConstraints);
 
         tabPane.addTab("General", general);
 
@@ -3468,23 +3549,22 @@ public class EditOptions extends javax.swing.JDialog
         jLabel59.setText("Use scale values from this technology:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel10.add(jLabel59, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel10.add(technologyPopup, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
         technology.add(jPanel10, gridBagConstraints);
 
         tabPane.addTab("Technology", technology);
@@ -3494,6 +3574,8 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
         getContentPane().add(tabPane, gridBagConstraints);
 
         cancel.setText("Cancel");
@@ -3597,6 +3679,8 @@ public class EditOptions extends javax.swing.JDialog
     private javax.swing.JTextField generalErrorLimit;
     private javax.swing.JCheckBox generalExpandableDialogsFull;
     private javax.swing.JCheckBox generalIncludeDateAndVersion;
+    private javax.swing.JTextField generalMaxMem;
+    private javax.swing.JLabel generalMemoryUsage;
     private javax.swing.JTextField generalMotionHysteresis;
     private javax.swing.JCheckBox generalPlayClickSounds;
     private javax.swing.JCheckBox generalShowFileDialog;
@@ -3685,11 +3769,15 @@ public class EditOptions extends javax.swing.JDialog
     private javax.swing.JLabel jLabel58;
     private javax.swing.JLabel jLabel59;
     private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel60;
+    private javax.swing.JLabel jLabel61;
+    private javax.swing.JLabel jLabel62;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel10;
+    private javax.swing.JPanel jPanel11;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;

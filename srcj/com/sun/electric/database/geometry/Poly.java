@@ -1542,7 +1542,7 @@ public class Poly implements Shape
 	 * @return the area of the polygon defined by these points.
 	 * The calculation may return a negative value if the points are counter-clockwise.
 	 */
-	public double areaPoints(Point2D [] points)
+	public static double areaPoints(Point2D [] points)
 	{
 		double area = 0.0;
 		double x0 = points[0].getX();

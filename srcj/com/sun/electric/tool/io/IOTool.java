@@ -180,7 +180,7 @@ public class IOTool extends Tool
 
 	/****************************** INPUT / OUTPUT PREFERENCES ******************************/
 
-	private static Pref cacheBackupRedundancy = IOTool.tool.makeIntPref("int", 0);
+	private static Pref cacheBackupRedundancy = Pref.makeIntPref("OutputBackupRedundancy", IOTool.tool.prefs, 0);
 	/**
 	 * Method to tell what kind of redundancy to apply when writing library files.
 	 * The value is:

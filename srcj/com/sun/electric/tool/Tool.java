@@ -37,6 +37,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.drc.DRC;
+import com.sun.electric.tool.erc.ERC;
 import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.simulation.Simulation;
@@ -118,6 +119,7 @@ public class Tool extends ElectricObject
         Simulation.tool.init();
         Routing.tool.init();
         DRC.tool.init();
+        ERC.tool.init();
 	}
 
 	/**
@@ -176,31 +178,6 @@ public class Tool extends ElectricObject
 	 * @return the index of this Tool.
 	 */
 	public int getIndex() { return toolIndex; }
-
-	/****************************** FOR PREFERENCES ******************************/
-
-    /**
-     * Method to return Preferences object
-     * @return Preferences object
-     */
-    public Preferences getPrefs() { return prefs; }
-
-	public Pref makeBooleanPref(String name, boolean factory)
-	{
-		return Pref.makeBooleanPref(name, prefs, factory);
-	}
-	public Pref makeIntPref(String name, int factory)
-	{
-		return Pref.makeIntPref(name, prefs, factory);
-	}
-	public Pref makeDoublePref(String name, double factory)
-	{
-		return Pref.makeDoublePref(name, prefs, factory);
-	}
-	public Pref makeStringPref(String name, String factory)
-	{
-		return Pref.makeStringPref(name, prefs, factory);
-	}
 
 	/**
 	 * Method to set this Tool to be on.

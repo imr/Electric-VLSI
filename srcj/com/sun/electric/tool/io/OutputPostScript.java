@@ -1542,7 +1542,7 @@ public class OutputPostScript extends Output
 
 	/****************************** POSTSCRIPT OUTPUT PREFERENCES ******************************/
 
-	private static Pref cacheEncapsulated = IOTool.tool.makeBooleanPref("PostScriptEncapsulated", false);
+	private static Pref cacheEncapsulated = Pref.makeBooleanPref("PostScriptEncapsulated", IOTool.tool.prefs, false);
 	/**
 	 * Method to tell whether PostScript Output is Encapsulated.
 	 * Encapsulated PostScript can be inserted into other documents.
@@ -1557,7 +1557,7 @@ public class OutputPostScript extends Output
 	 */
 	public static void setEncapsulated(boolean on) { cacheEncapsulated.setBoolean(on); }
 
-	private static Pref cacheForPlotter = IOTool.tool.makeBooleanPref("PostScriptForPlotter", false);
+	private static Pref cacheForPlotter = Pref.makeBooleanPref("PostScriptForPlotter", IOTool.tool.prefs, false);
 	/**
 	 * Method to tell whether PostScript Output is for a plotter.
 	 * Plotters have width, but no height, since they are continuous feed.
@@ -1572,7 +1572,7 @@ public class OutputPostScript extends Output
 	 */
 	public static void setForPlotter(boolean on) { cacheForPlotter.setBoolean(on); }
 
-	private static Pref cacheWidth = IOTool.tool.makeDoublePref("PostScriptWidth", 8.5);
+	private static Pref cacheWidth = Pref.makeDoublePref("PostScriptWidth", IOTool.tool.prefs, 8.5);
 	/**
 	 * Method to tell the width of PostScript Output.
 	 * The width is in inches.
@@ -1587,7 +1587,7 @@ public class OutputPostScript extends Output
 	 */
 	public static void setWidth(double wid) { cacheWidth.setDouble(wid); }
 
-	private static Pref cacheHeight = IOTool.tool.makeDoublePref("PostScriptHeight", 11);
+	private static Pref cacheHeight = Pref.makeDoublePref("PostScriptHeight", IOTool.tool.prefs, 11);
 	/**
 	 * Method to tell the height of PostScript Output.
 	 * The height is in inches, and only applies if printing (not plotting).
@@ -1602,7 +1602,7 @@ public class OutputPostScript extends Output
 	 */
 	public static void setHeight(double hei) { cacheHeight.setDouble(hei); }
 
-	private static Pref cacheMargin = IOTool.tool.makeDoublePref("PostScriptMargin", 0.75);
+	private static Pref cacheMargin = Pref.makeDoublePref("PostScriptMargin", IOTool.tool.prefs, 0.75);
 	/**
 	 * Method to tell the margin of PostScript Output.
 	 * The margin is in inches and insets from all sides.
@@ -1617,7 +1617,7 @@ public class OutputPostScript extends Output
 	 */
 	public static void setMargin(double mar) { cacheMargin.setDouble(mar); }
 
-	private static Pref cacheRotation = IOTool.tool.makeIntPref("PostScriptRotation", 0);
+	private static Pref cacheRotation = Pref.makeIntPref("PostScriptRotation", IOTool.tool.prefs, 0);
 	/**
 	 * Method to tell the rotation of PostScript Output.
 	 * The plot can be normal or rotated 90 degrees to better fit the paper.
@@ -1637,7 +1637,7 @@ public class OutputPostScript extends Output
 	 */
 	public static void setRotation(int rot) { cacheRotation.setInt(rot); }
 
-	private static Pref cacheColorMethod = IOTool.tool.makeIntPref("PostScriptColorMethod", 0);
+	private static Pref cacheColorMethod = Pref.makeIntPref("PostScriptColorMethod", IOTool.tool.prefs, 0);
 	/**
 	 * Method to tell the color method of PostScript Output.
 	 * @return the color method of PostScript Output:

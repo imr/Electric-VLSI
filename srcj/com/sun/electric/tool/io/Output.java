@@ -517,7 +517,7 @@ public class Output extends IOTool
 
 	/****************************** GENERAL OUTPUT PREFERENCES ******************************/
 
-	private static Pref cacheUseCopyrightMessage = IOTool.tool.makeBooleanPref("UseCopyrightMessage", false);
+	private static Pref cacheUseCopyrightMessage = Pref.makeBooleanPref("UseCopyrightMessage", IOTool.tool.prefs, false);
 	/**
 	 * Method to tell whether to add the copyright message to output decks.
 	 * The default is "false".
@@ -530,7 +530,7 @@ public class Output extends IOTool
 	 */
 	public static void setUseCopyrightMessage(boolean u) { cacheUseCopyrightMessage.setBoolean(u); }
 
-	private static Pref cacheCopyrightMessage = IOTool.tool.makeStringPref("CopyrightMessage", "");
+	private static Pref cacheCopyrightMessage = Pref.makeStringPref("CopyrightMessage", IOTool.tool.prefs, "");
 	/**
 	 * Method to tell the copyright message that will be added to output decks.
 	 * The default is "".
@@ -543,7 +543,7 @@ public class Output extends IOTool
 	 */
 	public static void setCopyrightMessage(String m) { cacheCopyrightMessage.setString(m); }
 
-	private static Pref cachePlotArea = IOTool.tool.makeIntPref("PlotArea", 0);
+	private static Pref cachePlotArea = Pref.makeIntPref("PlotArea", IOTool.tool.prefs, 0);
 	/**
 	 * Method to tell the area of the screen to plot for printing/PostScript/HPGL.
 	 * @return the area of the screen to plot for printing/PostScript/HPGL:
@@ -561,7 +561,7 @@ public class Output extends IOTool
 	 */
 	public static void setPlotArea(int pa) { cachePlotArea.setInt(pa); }
 
-	private static Pref cachePlotDate = IOTool.tool.makeBooleanPref("PlotDate", false);
+	private static Pref cachePlotDate = Pref.makeBooleanPref("PlotDate", IOTool.tool.prefs, false);
 	/**
 	 * Method to tell whether to plot the date in PostScript/HPGL output.
 	 * The default is "false".
@@ -580,7 +580,7 @@ public class Output extends IOTool
 	{
 		if (cachePrinterName == null)
 		{
-			cachePrinterName = IOTool.tool.makeStringPref("PrinterName",
+			cachePrinterName = Pref.makeStringPref("PrinterName", IOTool.tool.prefs,
 				PrintServiceLookup.lookupDefaultPrintService().getName());
 		}
 		return cachePrinterName;

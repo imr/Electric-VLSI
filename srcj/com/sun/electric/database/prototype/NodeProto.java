@@ -102,6 +102,20 @@ public abstract class NodeProto extends ElectricObject
 		public Name getBasename() { return basename; }
 
 		/**
+		 * Returns a base name of this Function for autonaming.
+		 * @return a base name of this Function for autonaming.
+		 */
+		public boolean isTransistor()
+		{
+			if (this == TRANMOS || this == TRAPMOS || this == TRADMOS ||
+				this == TRA4NMOS || this == TRA4PMOS || this == TRA4DMOS ||
+				this == TRANPN || this == TRAPNP || this == TRANJFET || this == TRAPJFET || this == TRAEMES || this == TRADMES ||
+				this == TRA4NPN || this == TRA4PNP || this == TRA4NJFET || this == TRA4PJFET || this == TRA4EMES || this == TRA4DMES ||
+				this == TRANSREF || this == TRANS || this == TRANS4) return true;
+			return false;
+		}
+
+		/**
 		 * Returns a printable version of this Function.
 		 * @return a printable version of this Function.
 		 */

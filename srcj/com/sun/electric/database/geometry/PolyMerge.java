@@ -27,6 +27,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.technology.Layer;
 
 import java.awt.Rectangle;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -109,8 +110,22 @@ public class PolyMerge
 	 * Method to add merge object "addmerge" to the merged collection "merge", transforming
 	 * it by "trans".
 	 */
-	public void addMerge(PolyMerge other)
+	public void addMerge(PolyMerge other, AffineTransform trans)
 	{
+		for(Iterator it = other.allLayers.keySet().iterator(); it.hasNext(); )
+		{
+			Layer subLayer = (Layer)it.next();
+			Area subArea = (Area)other.allLayers.get(subLayer);
+
+			Area area = (Area)allLayers.get(subLayer);
+			if (area == null)
+			{
+				area = new Area();
+				allLayers.put(subLayer, area);
+			}
+			Area newArea = subArea.createTransformedArea(trans);
+			area.add(newArea);
+		}
 	}
 
 	public Iterator getLayersUsed()
@@ -119,31 +134,39 @@ public class PolyMerge
 	}
 
 	/*
-	 * Method to report all of the merged polygons in "vmerge" through
-	 * the callback routine "writepolygon()".  The routine is given 5 parameters for
-	 * each merged polygon:
-	 *   (1) the layer
-	 *   (2) the technology
-	 *   (3) the X coordinates
-	 *   (4) the Y coordinates
-	 *   (5) the number of coordinates
+	 * Method to return a merged Poly for a given layer.
+	 * THIS CANNOT BE RIGHT, BECAUSE THERE MAY BE MULTIPLE POLYGONS.
 	 */
-	public List getMergedPoints(Layer layer)
+	public Poly getMergedPoints(Layer layer)
 	{
 		Area area = (Area)allLayers.get(layer);
 		if (area == null) return null;
 		double [] coords = new double[6];
 		List pointList = new ArrayList();
-		for(PathIterator pIt = area.getPathIterator(null); pIt.isDone(); )
+		Point2D lastMoveTo = null;
+		for(PathIterator pIt = area.getPathIterator(null); !pIt.isDone(); )
 		{
 			int type = pIt.currentSegment(coords);
+			if (type == PathIterator.SEG_CLOSE)
+			{
+				if (lastMoveTo != null) pointList.add(lastMoveTo);
+				break;
+			}
 			if (type == PathIterator.SEG_MOVETO || type == PathIterator.SEG_LINETO)
 			{
 				Point2D pt = new Point2D.Double(coords[0], coords[1]);
 				pointList.add(pt);
+				if (type == PathIterator.SEG_MOVETO) lastMoveTo = pt;
 			}
+			pIt.next();
 		}
-		return pointList;
+		Point2D [] points = new Point2D[pointList.size()];
+		int i = 0;
+		for(Iterator it = pointList.iterator(); it.hasNext(); )
+			points[i++] = (Point2D)it.next();
+		Poly poly = new Poly(points);
+		poly.setLayer(layer);
+		return poly;
 	}
 
 	/*

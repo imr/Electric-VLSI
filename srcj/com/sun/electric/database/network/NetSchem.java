@@ -185,6 +185,28 @@ class NetSchem extends NetCell {
 		}
 
 		/**
+		 * Method to return the Variable on this Nodable with a given name.
+		 * @param name the name of the Variable.
+		 * @return the Variable with that name, or null if there is no such Variable.
+		 */
+		public Variable getVar(Variable.Key key) {
+			if (shared == null)
+				return nodeInst.getVar(key);
+			Variable var = null;
+			for (int i = 0; i < shared.length; i++) {
+				Variable v = shared[i].nodeInst.getVar(key);
+				if (v == null) continue;
+				if (var == null) {
+					var = v;
+				} else if (!v.getObject().equals(var.getObject())) {
+					System.out.println("Network: Cell " + cell.describe() + " has multipart icon <" + getName() +
+						"> with ambigouos definition of variable " + key.getName());
+				}
+			}
+			return var;
+		}
+
+		/**
 		 * Method to return an iterator over all Variables on this Nodable.
 		 * @return an iterator over all Variables on this Nodable.
 		 */

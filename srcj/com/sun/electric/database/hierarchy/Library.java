@@ -588,6 +588,13 @@ public class Library extends ElectricObject
 		this.libFile = libFile;
 	}
 
+	public String getLibPath()
+	{
+		int pathSep = libFile.lastIndexOf(File.pathSeparatorChar);
+		if (pathSep < 0) return "";
+		return libFile.substring(0, pathSep+1);
+	}
+
 	/**
 	 * Returns a printable version of this Library.
 	 * @return a printable version of this Library.

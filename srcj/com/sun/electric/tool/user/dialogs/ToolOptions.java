@@ -38,6 +38,7 @@ import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.drc.DRC;
+import com.sun.electric.tool.erc.ERC;
 import com.sun.electric.tool.io.OutputVerilog;
 import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.routing.Routing;
@@ -1369,21 +1370,42 @@ public class ToolOptions extends javax.swing.JDialog
 
 	//******************************** WELL CHECK ********************************
 
+	private int initialWellCheckPWellRule;
+	private boolean initialWellCheckPWellConnectToGround;
+	private int initialWellCheckNWellRule;
+	private boolean initialWellCheckNWellConnectToPower;
+	private boolean initialWellCheckFindFarthest;
+
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Well Check tab.
 	 */
 	private void initWellCheck()
 	{
-		wellPMustHaveAllContacts.setEnabled(false);
-		wellPMustHave1Contact.setEnabled(false);
-		wellPNoContactCheck.setEnabled(false);
-		wellNMustHaveAllContacts.setEnabled(false);
-		wellNMustHave1Contact.setEnabled(false);
-		wellNNoContactCheck.setEnabled(false);
-		wellPMustConnectGround.setEnabled(false);
-		wellNMustConnectPower.setEnabled(false);
-		wellFindFarthestDistance.setEnabled(false);
+		initialWellCheckPWellRule = ERC.getPWellCheck();
+		switch (initialWellCheckPWellRule)
+		{
+			case 0: wellPMustHaveAllContacts.setSelected(true);   break;
+			case 1: wellPMustHave1Contact.setSelected(true);      break;
+			case 2: wellPNoContactCheck.setSelected(true);        break;
+		}
+
+		initialWellCheckPWellConnectToGround = ERC.isMustConnectPWellToGround();
+		wellPMustConnectGround.setSelected(initialWellCheckPWellConnectToGround);
+
+		initialWellCheckNWellRule = ERC.getNWellCheck();
+		switch (initialWellCheckNWellRule)
+		{
+			case 0: wellNMustHaveAllContacts.setSelected(true);   break;
+			case 1: wellNMustHave1Contact.setSelected(true);      break;
+			case 2: wellNNoContactCheck.setSelected(true);        break;
+		}
+
+		initialWellCheckNWellConnectToPower = ERC.isMustConnectNWellToPower();
+		wellNMustConnectPower.setSelected(initialWellCheckNWellConnectToPower);
+
+		initialWellCheckFindFarthest = ERC.isFindWorstCaseWell();
+		wellFindFarthestDistance.setSelected(initialWellCheckFindFarthest);
 	}
 
 	/**
@@ -1392,6 +1414,29 @@ public class ToolOptions extends javax.swing.JDialog
 	 */
 	private void termWellCheck()
 	{
+		int currentPWellRule = 0;
+		if (wellPMustHave1Contact.isSelected()) currentPWellRule = 1; else
+			if (wellPNoContactCheck.isSelected()) currentPWellRule = 2;
+		if (currentPWellRule != initialWellCheckPWellRule)
+			ERC.setPWellCheck(currentPWellRule);
+
+		boolean currentPWellGroundCheck = wellPMustConnectGround.isSelected();
+		if (currentPWellGroundCheck != initialWellCheckPWellConnectToGround)
+			ERC.setMustConnectPWellToGround(currentPWellGroundCheck);
+
+		int currentNWellRule = 0;
+		if (wellNMustHave1Contact.isSelected()) currentNWellRule = 1; else
+			if (wellNNoContactCheck.isSelected()) currentNWellRule = 2;
+		if (currentNWellRule != initialWellCheckNWellRule)
+			ERC.setNWellCheck(currentNWellRule);
+
+		boolean currentNWellPowerCheck = wellNMustConnectPower.isSelected();
+		if (currentNWellPowerCheck != initialWellCheckNWellConnectToPower)
+			ERC.setMustConnectNWellToPower(currentNWellPowerCheck);
+
+		boolean currentFarCheck = wellFindFarthestDistance.isSelected();
+		if (currentFarCheck != initialWellCheckFindFarthest)
+			ERC.setFindWorstCaseWell(currentFarCheck);
 	}
 
 	//******************************** ANTENNA RULES ********************************
@@ -1576,7 +1621,7 @@ public class ToolOptions extends javax.swing.JDialog
 		for(Iterator it = curTech.getArcs(); it.hasNext(); )
 		{
 			ArcProto arc = (ArcProto)it.next();
-			leArcOptions.put(arc, Option.newDoubleOption(LETool.tool.getPrefs().getDouble(arc.toString(), 0.0)));
+			leArcOptions.put(arc, Option.newDoubleOption(LETool.tool.prefs.getDouble(arc.toString(), 0.0)));
 		}
 		leArcListModel = new DefaultListModel();
 		leArcList = new JList(leArcListModel);
@@ -1642,7 +1687,7 @@ public class ToolOptions extends javax.swing.JDialog
 			ArcProto arc = (ArcProto)it.next();
 			Option option = (Option)leArcOptions.get(arc);
 			if (option != null && option.isChanged())
-                LETool.tool.getPrefs().putDouble(arc.toString(), option.getDoubleValue());
+                LETool.tool.prefs.putDouble(arc.toString(), option.getDoubleValue());
 		}
 	}
 
@@ -1870,6 +1915,8 @@ public class ToolOptions extends javax.swing.JDialog
         verilogModel = new javax.swing.ButtonGroup();
         drLayerOrNode = new javax.swing.ButtonGroup();
         routStitcher = new javax.swing.ButtonGroup();
+        wellCheckPWell = new javax.swing.ButtonGroup();
+        wellCheckNWell = new javax.swing.ButtonGroup();
         tabPane = new javax.swing.JTabbedPane();
         drc = new javax.swing.JPanel();
         jPanel3 = new javax.swing.JPanel();
@@ -2704,6 +2751,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
         spice.add(spice1, gridBagConstraints);
 
         spice2.setLayout(new java.awt.GridBagLayout());
@@ -2748,6 +2796,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
         spice.add(spice2, gridBagConstraints);
 
         spice3.setLayout(new java.awt.GridBagLayout());
@@ -2772,6 +2821,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
         spice.add(spice3, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -2893,6 +2943,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 0.5;
         spice.add(spice4, gridBagConstraints);
 
@@ -3023,6 +3074,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 6;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
         spice.add(spice5, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -3090,6 +3142,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 8;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 0.5;
         spice.add(spice6, gridBagConstraints);
 
@@ -3379,6 +3432,7 @@ public class ToolOptions extends javax.swing.JDialog
         wellCheck.add(jLabel65, gridBagConstraints);
 
         wellPMustHaveAllContacts.setText("Must have contact in every area");
+        wellCheckPWell.add(wellPMustHaveAllContacts);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -3387,6 +3441,7 @@ public class ToolOptions extends javax.swing.JDialog
         wellCheck.add(wellPMustHaveAllContacts, gridBagConstraints);
 
         wellPMustHave1Contact.setText("Must have at least 1 contact");
+        wellCheckPWell.add(wellPMustHave1Contact);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
@@ -3395,6 +3450,7 @@ public class ToolOptions extends javax.swing.JDialog
         wellCheck.add(wellPMustHave1Contact, gridBagConstraints);
 
         wellPNoContactCheck.setText("Do not check for contacts");
+        wellCheckPWell.add(wellPNoContactCheck);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
@@ -3403,6 +3459,7 @@ public class ToolOptions extends javax.swing.JDialog
         wellCheck.add(wellPNoContactCheck, gridBagConstraints);
 
         wellNMustHaveAllContacts.setText("Must have contact in every area");
+        wellCheckNWell.add(wellNMustHaveAllContacts);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
@@ -3411,6 +3468,7 @@ public class ToolOptions extends javax.swing.JDialog
         wellCheck.add(wellNMustHaveAllContacts, gridBagConstraints);
 
         wellNMustHave1Contact.setText("Must have at least 1 contact");
+        wellCheckNWell.add(wellNMustHave1Contact);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
@@ -3419,6 +3477,7 @@ public class ToolOptions extends javax.swing.JDialog
         wellCheck.add(wellNMustHave1Contact, gridBagConstraints);
 
         wellNNoContactCheck.setText("Do not check for contacts");
+        wellCheckNWell.add(wellNNoContactCheck);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
@@ -4247,6 +4306,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
         routing.add(jPanel7, gridBagConstraints);
 
         jPanel8.setLayout(new java.awt.GridBagLayout());
@@ -4312,6 +4372,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
         routing.add(jPanel8, gridBagConstraints);
 
         tabPane.addTab("Routing", routing);
@@ -4683,6 +4744,8 @@ public class ToolOptions extends javax.swing.JDialog
     private javax.swing.JPanel verilog;
     private javax.swing.ButtonGroup verilogModel;
     private javax.swing.JPanel wellCheck;
+    private javax.swing.ButtonGroup wellCheckNWell;
+    private javax.swing.ButtonGroup wellCheckPWell;
     private javax.swing.JCheckBox wellFindFarthestDistance;
     private javax.swing.JCheckBox wellNMustConnectPower;
     private javax.swing.JRadioButton wellNMustHave1Contact;

@@ -228,7 +228,7 @@ public class LETool extends Tool {
     private static double DEFAULT_DIFFALPHA    = 0.7;
     private static double DEFAULT_KEEPERRATIO  = 0.1;
 
-	private static Pref cacheUseLocalSettings = LETool.tool.makeBooleanPref("UseLocalSettings", true);
+	private static Pref cacheUseLocalSettings = Pref.makeBooleanPref("UseLocalSettings", LETool.tool.prefs, true);
 	/**
 	 * Method to tell whether to use local settings for Logical Effort.
 	 * The default is true.
@@ -241,7 +241,7 @@ public class LETool extends Tool {
 	 */
 	public static void setUseLocalSettings(boolean on) { cacheUseLocalSettings.setBoolean(on); }
 
-	private static Pref cacheHighlightComponents = LETool.tool.makeBooleanPref("HighlightComponents", false);
+	private static Pref cacheHighlightComponents = Pref.makeBooleanPref("HighlightComponents", LETool.tool.prefs, false);
 	/**
 	 * Method to tell whether to highlight components in Logical Effort.
 	 * The default is false.
@@ -254,7 +254,7 @@ public class LETool extends Tool {
 	 */
 	public static void setHighlightComponents(boolean on) { cacheHighlightComponents.setBoolean(on); }
 
-	private static Pref cacheShowIntermediateCapacitances = LETool.tool.makeBooleanPref("ShowIntermediateCapacitances", false);
+	private static Pref cacheShowIntermediateCapacitances = Pref.makeBooleanPref("ShowIntermediateCapacitances", LETool.tool.prefs, false);
 	/**
 	 * Method to tell whether to highlight intermediate capacitances in Logical Effort.
 	 * The default is false.
@@ -267,7 +267,7 @@ public class LETool extends Tool {
 	 */
 	public static void setShowIntermediateCapacitances(boolean on) { cacheShowIntermediateCapacitances.setBoolean(on); }
 
-	private static Pref cacheGlobalFanout = LETool.tool.makeDoublePref("GlobalFanout", DEFAULT_GLOBALFANOUT);
+	private static Pref cacheGlobalFanout = Pref.makeDoublePref("GlobalFanout", LETool.tool.prefs, DEFAULT_GLOBALFANOUT);
 	/**
 	 * Method to get the Global Fanout for Logical Effort.
 	 * The default is DEFAULT_GLOBALFANOUT.
@@ -280,7 +280,7 @@ public class LETool extends Tool {
 	 */
 	public static void setGlobalFanout(double fo) { cacheGlobalFanout.setDouble(fo); }
 
-	private static Pref cacheConvergenceEpsilon = LETool.tool.makeDoublePref("Epsilon", DEFAULT_EPSILON);
+	private static Pref cacheConvergenceEpsilon = Pref.makeDoublePref("Epsilon", LETool.tool.prefs, DEFAULT_EPSILON);
 	/**
 	 * Method to get the Convergence Epsilon value for Logical Effort.
 	 * The default is DEFAULT_EPSILON.
@@ -293,7 +293,7 @@ public class LETool extends Tool {
 	 */
 	public static void setConvergenceEpsilon(double ep) { cacheConvergenceEpsilon.setDouble(ep); }
 
-	private static Pref cacheMaxIterations = LETool.tool.makeIntPref("MaxIterations", DEFAULT_MAXITER);
+	private static Pref cacheMaxIterations = Pref.makeIntPref("MaxIterations", LETool.tool.prefs, DEFAULT_MAXITER);
 	/**
 	 * Method to get the maximum number of iterations for Logical Effort.
 	 * The default is DEFAULT_MAXITER.
@@ -306,7 +306,7 @@ public class LETool extends Tool {
 	 */
 	public static void setMaxIterations(int it) { cacheMaxIterations.setInt(it); }
 
-	private static Pref cacheGateCapacitance = LETool.tool.makeDoublePref("GateCapfFPerLambda", DEFAULT_GATECAP);
+	private static Pref cacheGateCapacitance = Pref.makeDoublePref("GateCapfFPerLambda", LETool.tool.prefs, DEFAULT_GATECAP);
 	/**
 	 * Method to get the Gate Capacitance for Logical Effort.
 	 * The default is DEFAULT_GATECAP.
@@ -319,7 +319,7 @@ public class LETool extends Tool {
 	 */
 	public static void setGateCapacitance(double gc) { cacheGateCapacitance.setDouble(gc); }
 
-	private static Pref cacheWireRatio = LETool.tool.makeDoublePref("WireRatio", DEFAULT_WIRERATIO);
+	private static Pref cacheWireRatio = Pref.makeDoublePref("WireRatio", LETool.tool.prefs, DEFAULT_WIRERATIO);
 	/**
 	 * Method to get the wire capacitance ratio for Logical Effort.
 	 * The default is DEFAULT_WIRERATIO.
@@ -332,7 +332,7 @@ public class LETool extends Tool {
 	 */
 	public static void setWireRatio(double wr) { cacheWireRatio.setDouble(wr); }
 
-	private static Pref cacheDiffAlpha = LETool.tool.makeDoublePref("DiffusionAlpha", DEFAULT_DIFFALPHA);
+	private static Pref cacheDiffAlpha = Pref.makeDoublePref("DiffusionAlpha", LETool.tool.prefs, DEFAULT_DIFFALPHA);
 	/**
 	 * Method to get the diffusion to gate capacitance ratio for Logical Effort.
 	 * The default is DEFAULT_DIFFALPHA.
@@ -345,7 +345,7 @@ public class LETool extends Tool {
 	 */
 	public static void setDiffAlpha(double da) { cacheDiffAlpha.setDouble(da); }
 
-	private static Pref cacheKeeperRatio = LETool.tool.makeDoublePref("KeeperRatio", DEFAULT_KEEPERRATIO);
+	private static Pref cacheKeeperRatio = Pref.makeDoublePref("KeeperRatio", LETool.tool.prefs, DEFAULT_KEEPERRATIO);
 	/**
 	 * Method to get the keeper size ratio for Logical Effort.
 	 * The default is DEFAULT_KEEPERRATIO.

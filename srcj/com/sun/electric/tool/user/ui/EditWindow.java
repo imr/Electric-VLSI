@@ -969,6 +969,7 @@ public class EditWindow extends JPanel
 	{
         try {
             Nodable ni = cellVarContext.getNodable();
+			if (ni == null) return;
             Cell parent = ni.getParent();
             VarContext context = cellVarContext.pop();
             // see if this was in history, if so, restore offset and scale

@@ -87,6 +87,13 @@ public interface Nodable
 	public Variable getVar(String name);
 
 	/**
+	 * Method to return the Variable on this Nodable with a given name.
+	 * @param name the name of the Variable.
+	 * @return the Variable with that name, or null if there is no such Variable.
+	 */
+	public Variable getVar(Variable.Key key);
+
+	/**
 	 * Method to return an iterator over all Variables on this Nodable.
 	 * @return an iterator over all Variables on this Nodable.
 	 */

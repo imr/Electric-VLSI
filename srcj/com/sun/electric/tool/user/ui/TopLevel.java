@@ -147,7 +147,7 @@ public class TopLevel extends JFrame
 		palette = PaletteFrame.newInstance();
     }
 
-	private static Pref cacheWindowLoc = User.tool.makeStringPref("WindowLocation", "");
+	private static Pref cacheWindowLoc = Pref.makeStringPref("WindowLocation", User.tool.prefs, "");
 
 	/**
 	 * Method to initialize the window system.
