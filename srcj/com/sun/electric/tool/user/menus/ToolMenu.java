@@ -542,6 +542,8 @@ public class ToolMenu {
 		Set nets = highlighter.getHighlightedNetworks();
 		//highlighter.clear();
 		highlighter.showNetworks(nets, cell.getUserNetlist(), cell);
+        // 3D display if available
+        WindowFrame.show3DHighlight(wnd);
 		highlighter.finished();
 	}
 

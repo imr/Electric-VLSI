@@ -167,16 +167,12 @@ public class WindowFrame
 	}
 
 	/**
-	 * Method to create a new 3D view window on the screen for the given cell
-	 * @param cell the cell to display.
-	 */
-	/**
 	 * Method to access 3D view and highligh elements if view is available
 	 * @param view2D
 	 */
 	public static void show3DHighlight(WindowContent view2D)
 	{
-		if (view3DClass == null) return; // error in class initialization
+		if (view3DClass == null) return; // error in class initialization or not available
 
 		try
 		{

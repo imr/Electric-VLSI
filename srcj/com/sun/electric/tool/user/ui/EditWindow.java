@@ -684,7 +684,6 @@ public class EditWindow extends JPanel
 	                    //long start = System.currentTimeMillis();
 	                    mouseOverHighlighter.showHighlights(this, g);
 	                    highlighter.showHighlights(this, g);
-	                    //WindowFrame.show3DHighlight(this);
 	                    //long end = System.currentTimeMillis();
 	                    //System.out.println("drawing highlights took "+TextUtils.getElapsedTime(end-start));
 	                    Job.releaseExamineLock();
@@ -711,7 +710,6 @@ public class EditWindow extends JPanel
                     //long start = System.currentTimeMillis();
                     mouseOverHighlighter.showHighlights(this, g);
                     highlighter.showHighlights(this, g);
-                    //WindowFrame.show3DHighlight(this);
                     //long end = System.currentTimeMillis();
                     //System.out.println("drawing highlights took "+TextUtils.getElapsedTime(end-start));
                 } catch (Exception e) {

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ap: *********************************
 
+IMP/MAN: (11/15/04, GVG) Network tool connected to 3D View
+
 IMP/MAN: (11/15/04, GVG) Ability to save ErrorLogger for debugging purposes.
 
 ************************* Version 8.01ao: *********************************
