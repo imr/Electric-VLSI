@@ -41,11 +41,7 @@ import java.awt.geom.Area;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * The Poly class describes an extended set of points
@@ -1115,8 +1111,8 @@ public class PolyBase implements Shape
 	/**
 	 * Method to tell whether a rectangle is inside of this Poly.
 	 * This method is a requirement of the Shape implementation.
-	 * @param x the X corner of the rectangle.
-	 * @param y the Y corner of the rectangle.
+	 * @param lX the X corner of the rectangle.
+	 * @param lY the Y corner of the rectangle.
 	 * @param w the width of the rectangle.
 	 * @param h the height of the rectangle.
 	 * @return true if the rectangle is inside the Poly.
@@ -1510,6 +1506,19 @@ public class PolyBase implements Shape
 			point.setLocation(DBMath.round(point.getX()), DBMath.round(point.getY()));
 		}
 	}
+
+    /**
+     * Method to retrieve all loops that are part of this PolyBase
+     * sorted by area
+     * @return
+     */
+    public List getSortedLoops()
+    {
+        Collection set = getPointsInArea(new Area(this), layer, true, false, null);
+        List list = new ArrayList(set);
+        Collections.sort(list);
+        return (list);
+    }
 
     /**
      * Static method to get PolyBase elements associated to an Area

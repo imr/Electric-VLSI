@@ -135,9 +135,9 @@ public class ToolMenu {
 		MenuBar.Menu drcSubMenu = new MenuBar.Menu("DRC", 'D');
 		toolMenu.add(drcSubMenu);
 		drcSubMenu.addMenuItem("Check Hierarchically", KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(false); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(false, GeometryHandler.ALGO_QTREE); }});
 		drcSubMenu.addMenuItem("Check Selection Area Hierarchically", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(true); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(true, GeometryHandler.ALGO_QTREE); }});
 
 		//------------------- Simulation (IRSIM)
 

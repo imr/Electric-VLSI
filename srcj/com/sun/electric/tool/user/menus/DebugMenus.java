@@ -55,6 +55,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.extract.LayerCoverageJob;
 import com.sun.electric.tool.erc.ERCWellCheck;
@@ -170,6 +171,10 @@ public class DebugMenus {
 
         MenuBar.Menu gildaMenu = new MenuBar.Menu("Gilda", 'G');
         menuBar.add(gildaMenu);
+        gildaMenu.addMenuItem("DRC QTree", null,
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {DRC.checkHierarchically(false, GeometryHandler.ALGO_QTREE);}});
+        gildaMenu.addMenuItem("DRC Sweep", null,
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {DRC.checkHierarchically(false, GeometryHandler.ALGO_SWEEP);}});
         gildaMenu.addMenuItem("Test Bash", null,
                         new ActionListener() { public void actionPerformed(ActionEvent e) {testBash();}});
         gildaMenu.addMenuItem("3D View", null,

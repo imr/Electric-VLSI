@@ -24,12 +24,7 @@
 package com.sun.electric.tool.drc;
 
 import com.sun.electric.Main;
-import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.geometry.GeometryHandler;
-import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.PolyBase;
-import com.sun.electric.database.geometry.PolyQTree;
+import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -2272,9 +2267,17 @@ public class Quick
 
 		for(Iterator pIt = set.iterator(); pIt.hasNext(); )
 		{
-			PolyQTree.PolyNode pn = (PolyQTree.PolyNode)pIt.next();
-			if (pn == null) throw new Error("wrong condition in Quick.checkMinArea()");
-			List list = pn.getSortedLoops();
+            Object obj = pIt.next();
+//			PolyQTree.PolyNode pn = (PolyQTree.PolyNode)pIt.next();
+			if (obj == null) throw new Error("wrong condition in Quick.checkMinArea()");
+
+			List list = null;
+
+            if (job.mergeMode == GeometryHandler.ALGO_QTREE)
+                list = ((PolyQTree.PolyNode)obj).getSortedLoops();
+            else
+                list = ((PolyBase)obj).getSortedLoops();
+
 			// Order depends on area comparison done. First element is the smallest.
 			// and depending on # polygons it could be minArea or encloseArea
 			DRCRules.DRCRule evenRule = (list.size()%2==0) ? encloseAreaRule : minAreaRule;
@@ -2283,8 +2286,14 @@ public class Quick
 			// polyArray.length = Maximum number of distintic loops
 			for (int i = 0; i < list.size(); i++)
 			{
-				PolyQTree.PolyNode simplePn = (PolyQTree.PolyNode)list.get(i);
-				double area = simplePn.getArea();
+                Object listObj = list.get(i);
+				//PolyQTree.PolyNode simplePn = (PolyQTree.PolyNode)list.get(i);
+				double area = 0;
+
+                if (job.mergeMode == GeometryHandler.ALGO_QTREE)
+                    area = ((PolyQTree.PolyNode)listObj).getArea();
+                else
+                    area = ((PolyBase)listObj).getArea();
 				DRCRules.DRCRule minRule = (i%2 == 0) ? evenRule : oddRule;
 
 				if (minRule == null) continue;
@@ -2294,13 +2303,38 @@ public class Quick
 
 				errorFound++;
 				int errorType = (minRule == minAreaRule) ? MINAREAERROR : ENCLOSEDAREAERROR;
+                PolyBase simplePn = ((job.mergeMode == GeometryHandler.ALGO_QTREE))
+                        ? new PolyBase(((PolyQTree.PolyNode)listObj).getPoints(true))
+                        : (PolyBase)listObj;
+
 				reportError(errorType, null, cell, minRule.value, area, minRule.rule,
-						new Poly(simplePn.getPoints(true)), null /*ni*/, layer, null, null, null);
+						simplePn, null /*ni*/, layer, null, null, null);
 			}
 		}
 		return errorFound;
 
 	}
+
+
+    /**
+     * Method to create appropiate GeometryHandler depending on the mode
+     * @param mode
+     * @param cell
+     * @return
+     */
+    private static GeometryHandler newMergeTree(int mode, Cell cell)
+    {
+        switch(mode)
+        {
+            case GeometryHandler.ALGO_SWEEP:
+                return new PolySweepMerge();
+            case GeometryHandler.ALGO_QTREE:
+                return new PolyQTree(cell.getBounds());
+            case GeometryHandler.ALGO_MERGE:
+                return new PolyMerge();
+        }
+        return (null);
+    }
 
 	/**
 	 * Method to ensure that polygon "poly" on layer "layer" from object "geom" in
@@ -2317,7 +2351,7 @@ public class Quick
 			return 0;
 
 		// Select/well regions
-		GeometryHandler	selectMerge = new PolyQTree(cell.getBounds());
+		GeometryHandler	selectMerge = newMergeTree(job.mergeMode, cell); //new PolyQTree(cell.getBounds());
 		HashMap notExportedNodes = new HashMap();
 		HashMap checkedNodes = new HashMap();
 
@@ -2325,9 +2359,14 @@ public class Quick
 		for(Iterator netIt = cp.netlist.getNetworks(); netIt.hasNext(); )
 		{
 			Network net = (Network)netIt.next();
-			QuickAreaEnumerator quickArea = new QuickAreaEnumerator(net, selectMerge, notExportedNodes, checkedNodes);
+			QuickAreaEnumerator quickArea = new QuickAreaEnumerator(net, selectMerge, notExportedNodes, checkedNodes,
+                    job.mergeMode);
 			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, cp.netlist, quickArea);
 
+            if (job.mergeMode == GeometryHandler.ALGO_SWEEP)
+            {
+                ((PolySweepMerge)quickArea.mainMerge).postProcess();
+            }
 			// Job aborted
 			if (job != null && job.checkAbort()) return 0;
 
@@ -2339,7 +2378,7 @@ public class Quick
 		}
 
 		// Checking nodes not exported down in the hierarchy. Probably good enought not to collect networks first
-		QuickAreaEnumerator quickArea = new QuickAreaEnumerator(notExportedNodes, checkedNodes);
+		QuickAreaEnumerator quickArea = new QuickAreaEnumerator(notExportedNodes, checkedNodes, job.mergeMode);
 		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, cp.netlist, quickArea);
 		// Non exported nodes
 //		for(Iterator it = quickArea.mainMerge.getKeyIterator(); it.hasNext(); )
@@ -2348,6 +2387,10 @@ public class Quick
 //			boolean localError = checkMinAreaLayer(quickArea.mainMerge, cell, layer);
 //			if (!errorFound) errorFound = localError;
 //		}
+            if (job.mergeMode == GeometryHandler.ALGO_SWEEP)
+            {
+                ((PolySweepMerge)selectMerge).postProcess();
+            }
 
 		// Special cases for select areas. You can't evaluate based on networks
 		for(Iterator it = selectMerge.getKeyIterator(); it.hasNext(); )
@@ -3690,20 +3733,23 @@ public class Quick
 		private Layer polyLayer;
 		private HashMap notExportedNodes;
 		private HashMap checkedNodes;
+        private int mode; // geometrical merge algorithm
 
 		public QuickAreaEnumerator(Network jNet, GeometryHandler selectMerge, HashMap notExportedNodes,
-		                           HashMap checkedNodes)
+		                           HashMap checkedNodes, int mode)
 		{
 			this.jNet = jNet;
 			this.otherTypeMerge = selectMerge;
 			this.notExportedNodes = notExportedNodes;
 			this.checkedNodes = checkedNodes;
+            this.mode = mode;
 		}
 
-		public QuickAreaEnumerator(HashMap notExportedNodes, HashMap checkedNodes)
+		public QuickAreaEnumerator(HashMap notExportedNodes, HashMap checkedNodes, int mode)
 		{
 			this.notExportedNodes = notExportedNodes;
 			this.checkedNodes = checkedNodes;
+            this.mode = mode;
 		}
 
 		/**
@@ -3728,7 +3774,10 @@ public class Quick
 			if (job != null && job.checkAbort()) return false;
 
 			if (mainMerge == null)
-				mainMerge = new PolyQTree(info.getCell().getBounds());
+            {
+				//mainMerge = new PolyQTree(info.getCell().getBounds());
+                mainMerge = newMergeTree(mode, info.getCell());
+            }
             AffineTransform rTrans = info.getTransformToRoot();
 
 			// Check Arcs too if network is not null
@@ -3774,10 +3823,12 @@ public class Quick
 							layer = polyLayer;
 						}
 						poly.transform(rTrans);
-						if (layer.getFunction().isMetal() || layer.getFunction().isPoly())
-							mainMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
-						else
-							otherTypeMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
+
+                        addElement(poly, layer, false);
+//						if (layer.getFunction().isMetal() || layer.getFunction().isPoly())
+//							mainMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
+//						else
+//							otherTypeMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
 					}
 				}
 			}
@@ -3786,7 +3837,14 @@ public class Quick
 
 		/**
 		 */
-		public void exitCell(HierarchyEnumerator.CellInfo info) {}
+		public void exitCell(HierarchyEnumerator.CellInfo info)
+        {
+//            if (mode == GeometryHandler.ALGO_SWEEP)
+//            {
+//                ((PolySweepMerge)mainMerge).postProcess();
+//                ((PolySweepMerge)otherTypeMerge).postProcess();
+//            }
+        }
 
 		/**
 		 */
@@ -3891,14 +3949,34 @@ public class Quick
 				}
 				poly.roundPoints(); // Trying to avoid mismatches while joining areas.
 				poly.transform(trans);
-				// otherTypeMerge is null if nonExported nodes are analyzed
-				if (otherTypeMerge == null || layer.getFunction().isMetal() || layer.getFunction().isPoly())
-					mainMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
-				else
-					otherTypeMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
+                addElement(poly, layer, true);
+//				// otherTypeMerge is null if nonExported nodes are analyzed
+//				if (otherTypeMerge == null || layer.getFunction().isMetal() || layer.getFunction().isPoly())
+//					mainMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
+//				else
+//					otherTypeMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
 			}
 
             return true;
 		}
+
+        private void addElement(Poly poly, Layer layer, boolean isNode)
+        {
+            Object obj = null;
+            if (mode == GeometryHandler.ALGO_QTREE)
+                obj = new PolyQTree.PolyNode(poly.getBounds2D());
+            else
+                obj = poly;
+            // otherTypeMerge is null if nonExported nodes are analyzed
+            if ((isNode && otherTypeMerge == null) || layer.getFunction().isMetal() || layer.getFunction().isPoly())
+                mainMerge.add(layer, obj, false);
+            else
+                otherTypeMerge.add(layer, obj, false);
+
+//						if (layer.getFunction().isMetal() || layer.getFunction().isPoly())
+//							mainMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
+//						else
+//							otherTypeMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
+        }
     }
 }

@@ -24,6 +24,7 @@
 package com.sun.electric.tool.drc;
 
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
@@ -139,7 +140,7 @@ public class DRC extends Listener
 		}
 	}
 
-	private static void doIncrementalDRCTask()
+	private static void doIncrementalDRCTask(int mode)
 	{
 		if (!isIncrementalDRCOn()) return;
 		if (incrementalRunning) return;
@@ -177,7 +178,7 @@ public class DRC extends Listener
 			int i = 0;
 			for(Iterator it = cellSet.iterator(); it.hasNext(); )
 				objectsToCheck[i++] = (Geometric)it.next();
-			CheckLayoutIncrementally job = new CheckLayoutIncrementally(cellToCheck, objectsToCheck);
+			CheckLayoutIncrementally job = new CheckLayoutIncrementally(cellToCheck, objectsToCheck, mode);
 		}
 	}
 
@@ -186,7 +187,7 @@ public class DRC extends Listener
 	 */
 	public void endBatch()
 	{
-		doIncrementalDRCTask();
+		doIncrementalDRCTask(GeometryHandler.ALGO_SWEEP);
 	}
 
 	/**
@@ -262,7 +263,7 @@ public class DRC extends Listener
 	 * Method to check the current cell hierarchically or
 	 * the selected area of the current cell hierarchically if areaCheck is true
 	 */
-	public static void checkHierarchically(boolean areaCheck)
+	public static void checkHierarchically(boolean areaCheck, int mode)
 	{
 		Cell curCell = null;
 		Rectangle2D bounds = null;
@@ -285,18 +286,21 @@ public class DRC extends Listener
 		} else
 		{
 			// hierarchical check of layout
-			CheckLayoutHierarchically job = new CheckLayoutHierarchically(curCell, bounds);
+			CheckLayoutHierarchically job = new CheckLayoutHierarchically(curCell, bounds, mode);
 		}
 	}
 
 	public static class CheckDRCLayoutJob extends Job
 	{
 		Cell cell;
+        int mergeMode; // for merging algorithm
 
-		protected CheckDRCLayoutJob(String title, Cell cell, Listener tool, Priority priority)
+		protected CheckDRCLayoutJob(String title, Cell cell, Listener tool, Priority priority,
+                                    int mode)
 		{
 			super(title, tool, Job.Type.EXAMINE, null, null, priority);
 			this.cell = cell;
+            this.mergeMode = mode;
 
 		}
 		// never used
@@ -312,9 +316,9 @@ public class DRC extends Listener
          * @param cell
          * @param bounds
          */
-		protected CheckLayoutHierarchically(Cell cell, Rectangle2D bounds)
+		protected CheckLayoutHierarchically(Cell cell, Rectangle2D bounds, int mode)
 		{
-			super("Design-Rule Check", cell, tool, Job.Priority.USER);
+			super("Design-Rule Check", cell, tool, Job.Priority.USER, mode);
 			this.bounds = bounds;
 			startJob();
 		}
@@ -338,11 +342,13 @@ public class DRC extends Listener
 	private static class CheckLayoutIncrementally extends CheckDRCLayoutJob
 	{
 		Geometric [] objectsToCheck;
+        int mode;
 
-		protected CheckLayoutIncrementally(Cell cell, Geometric [] objectsToCheck)
+		protected CheckLayoutIncrementally(Cell cell, Geometric [] objectsToCheck, int mode)
 		{
-			super("DRC in cell " + cell.describe(), cell, tool, Job.Priority.ANALYSIS);
+			super("DRC in cell " + cell.describe(), cell, tool, Job.Priority.ANALYSIS, mode);
 			this.objectsToCheck = objectsToCheck;
+            this.mode = mode;
 			startJob();
 		}
 
@@ -355,7 +361,7 @@ public class DRC extends Listener
 				System.out.println("Incremental DRC found " + errorsFound + " errors/warnings in cell "+ cell.describe());
 			}
 			incrementalRunning = false;
-			doIncrementalDRCTask();
+			doIncrementalDRCTask(mode);
 			return true;
 		}
 	}
