@@ -388,6 +388,7 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
         // create new leGate instance
         VarContext vc = info.getContext().push(ni);                   // to create unique flat name
         Instance inst = addInstance(vc.getInstPath("."), type, localsu, leX, pins, ni);
+        inst.setContext(info.getContext());
 
         // set instance parameters for sizeable gates
         if (type == Instance.Type.LEGATE) {
