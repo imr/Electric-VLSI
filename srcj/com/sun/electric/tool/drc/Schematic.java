@@ -555,6 +555,17 @@ public class Schematic
 					}
 					if (!connected)
 					{
+						// if the arcs connect at a WireCon, they are connected
+						NodeInst headNi = ai.getHead().getPortInst().getNodeInst();
+						NodeInst tailNi = ai.getTail().getPortInst().getNodeInst();
+						if (headNi.getProto() != Schematics.tech.wireConNode) headNi = null;
+						if (tailNi.getProto() != Schematics.tech.wireConNode) tailNi = null;
+						NodeInst oHeadNi = oAi.getHead().getPortInst().getNodeInst();
+						NodeInst oTailNi = oAi.getTail().getPortInst().getNodeInst();
+						if (headNi == oHeadNi || headNi == oTailNi || tailNi == oHeadNi || tailNi == oTailNi) connected = true;
+					}
+					if (!connected)
+					{
 						if (checkPoly(geom, poly, oGeom, oGeom, DBMath.MATID, true))
 						{
 							return true;
