@@ -111,6 +111,7 @@ public class ClickZoomWireListener
         public static final Mode selectBox = new Mode("selectBox"); // box for selection
         public static final Mode wiringConnect = new Mode("wiring"); // drawing a wire between two objects
         public static final Mode wiringFind = new Mode("wiringFind"); // drawing wire with unknown end point
+        public static final Mode wiringToSpace = new Mode("wiringToSpace"); // only draw wire to space, not objects
         public static final Mode stickyWiring = new Mode("stickyWiring"); // sticky mode wiring
     }
 
@@ -532,6 +533,11 @@ public class ClickZoomWireListener
 	                EditWindow.gridAlign(dbMouse);
 	                router.highlightRoute(wnd, startObj, endObj, dbMouse);
 	            }
+                if (modeRight == Mode.wiringToSpace) {
+                    // wire only to point in space
+                    EditWindow.gridAlign(dbMouse);
+                    router.highlightRoute(wnd, startObj, null, dbMouse);
+                }
 	        }
 	
 	        // ===== Left mouse drags =====
@@ -671,7 +677,13 @@ public class ClickZoomWireListener
 	            if (modeRight == Mode.wiringConnect) {
 	                EditWindow.gridAlign(dbMouse);
 	                router.makeRoute(wnd, startObj, endObj, dbMouse);
+                    wiringTarget = null;
 	            }
+                if (modeRight == Mode.wiringToSpace) {
+                    EditWindow.gridAlign(dbMouse);
+                    router.makeRoute(wnd, startObj, null, dbMouse);
+                    wiringTarget = null;
+                }
 	            modeRight = Mode.none;
 	        }
 	
@@ -873,9 +885,6 @@ public class ClickZoomWireListener
 					}
 				}
 			} */
-			if (chr == KeyEvent.VK_SPACE) {
-				switchWiringTarget();
-			}
 		}
     }
 
@@ -936,10 +945,16 @@ public class ClickZoomWireListener
         EditWindow wnd = EditWindow.getCurrent();
         if (wnd == null) return;
 
+        // if in mode wiringToSpace, switch out of it, and drop to next
+        // block to find new wiring target
+        if (modeRight == Mode.wiringToSpace) {
+            modeRight = Mode.wiringFind;
+        }
+
         // this command only valid if in wiring mode
         if (modeRight == Mode.wiringFind || modeRight == Mode.stickyWiring) {
             // can only switch if something under the mouse to wire to
-            if (endObj != null) {
+            //if (endObj != null) {
                 Point2D dbMouse = new Point2D.Double(lastdbMouseX,  lastdbMouseY);
                 Rectangle2D bounds = new Rectangle2D.Double(lastdbMouseX, lastdbMouseY, 0, 0);
                 List targets = Highlight.findAllInArea(wnd.getCell(), false, false, true, false, specialSelect, false, bounds, wnd);
@@ -951,8 +966,12 @@ public class ClickZoomWireListener
                     if (((Highlight)it.next()).getElectricObject() == wiringTarget) {
                         found = true;
                         // get next object
-                        if (!it.hasNext())
-                            it = targets.iterator();         // last element, point to head
+                        if (!it.hasNext()) {
+                            // this is the last target in list, switch to wiringToSpace mode
+                            modeRight = Mode.wiringToSpace;
+                            wiringTarget = null;
+                            break;
+                        }
                         wiringTarget = ((Highlight)it.next()).getElectricObject();
                         break;
                     }
@@ -963,14 +982,25 @@ public class ClickZoomWireListener
                     if (it.hasNext()) wiringTarget = ((Highlight)it.next()).getElectricObject();
                     else wiringTarget = null;
                 }
+                // special case: switching modes to wire to space
+                if (modeRight == Mode.wiringToSpace) {
+                    endObj = null;
+                    System.out.println("Switching to 'ignore all wiring targets'");
+                    router.highlightRoute(wnd, startObj, null, dbMouse);
+                    return;
+                }
                 // if same target, do nothing
                 if (endObj == wiringTarget)
                     return;
                 // draw new route to target
                 endObj = wiringTarget;
-                System.out.println("Switching to wiring target "+wiringTarget);
+                if (wiringTarget == null) {
+                    System.out.println("Switching to wiring target 'none'");
+                } else {
+                    System.out.println("Switching to wiring target '"+wiringTarget+"'");
+                }
                 router.highlightRoute(wnd, startObj, wiringTarget, dbMouse);
-            }
+            //}
             // nothing under mouse to route to/switch between, return
         }
     }

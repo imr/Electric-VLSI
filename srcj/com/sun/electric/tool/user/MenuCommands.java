@@ -910,11 +910,11 @@ public final class MenuCommands
 
 	public static void closeLibraryCommand(Library lib)
 	{
-		int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), "Are you sure you want to delete library " + lib.getLibName() + "?");
+		int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), "Are you sure you want to close library " + lib.getLibName() + "?");
 		if (response != JOptionPane.YES_OPTION) return;
 		String libName = lib.getLibName();
 		if (lib.kill())
-			System.out.println("Library " + libName + " deleted");
+			System.out.println("Library " + libName + " closed");
 		WindowFrame.wantToRedoLibraryTree();
 		EditWindow.repaintAll();
 	}
