@@ -28,6 +28,9 @@ import com.sun.electric.database.geometry.EPoint;
 /**
  * Immutable class ImmutableNodeInst represents a node instance.
  * It contains the id of prototype cell, the name, the anchor point.
+ * 
+ * @promise "requiresColor DBChanger;" for with*(**) | newInstance(**)
+ * @promise "requiresColor (DBChanger | DBExaminer | AWT);" for check()
  */
 public class ImmutableNodeInst
 {

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="com.sun.electric.database.constraint">
+	<promise keyword="promise" contents="&quot;colorNotRelevant&quot; for add*Listener(**) | remove*Listener(**)"/>
+	<promise keyword="promise" contents="&quot;requiresColor DBChanger;&quot; for setTempRigid(ArcInst,boolean)"/>
+</package>

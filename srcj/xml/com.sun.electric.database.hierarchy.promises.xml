@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="com.sun.electric.database.hierarchy">
+	<promise keyword="promise" contents="&quot;colorNotRelevant&quot; for add*Listener(**) | remove*Listener(**)"/>
+	<promise keyword="promise" contents="&quot;requiresColor (DBExaminer | DBChanger);&quot; for get*(**) | is*(**) | find*(**)"/>
+	<promise keyword="promise" contents="&quot;requiresColor DBChanger;&quot; for set*(**) | kill*(**) | clear*(**) | add*(**) | erase*(**)"/>
+	<promise keyword="promise" contents="&quot;requiresColor (DBExaminer | DBChanger);&quot; for alreadyCellCenter(**) | checkCellDates(**) | compare(**)"/>
+	<promise keyword="promise" contents="&quot;requiresColor DBChanger;&quot; for lowLevel*(**) &amp; (!(lowLevelGetUserBits(**)))"/>
+	<promise keyword="promise" contents="&quot;requiresColor (DBExaminer | DBChanger);&quot; for lowLevelGetUserBits(**)"/>
+</package>

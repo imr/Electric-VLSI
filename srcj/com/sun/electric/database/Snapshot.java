@@ -32,6 +32,9 @@ import java.util.HashSet;
  * Immutable class Snapshot represents a snapshot of Electric database.
  * It contains cells indexed by cellId.
  * Cells must have unique names. Node in cells must have valid protoIds.
+ * 
+ * @promise "requiresColor DBChanger;" for with*(**) | newInstance(**)
+ * @promise "requiresColor (DBChanger | DBExaminer | AWT);" for maxCellID() | get*(**) | find*(**) | check()
  */
 public class Snapshot
 {

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<!ELEMENT package (promise*, class*)>
+<!ATTLIST package
+	name 	CDATA	#REQUIRED
+>
+
+<!ELEMENT class (promise*, classinit?, (constructor | field | method | class)*)>
+<!ATTLIST class
+    name    CDATA    #REQUIRED
+	
+>
+
+<!ELEMENT classinit (promise*)>
+
+<!ELEMENT constructor (promise*, receiver?, parameter*)>
+<!ATTLIST constructor
+    params  CDATA    ""
+>
+
+<!ELEMENT field (promise*)>
+<!ATTLIST field
+    names   CDATA    #REQUIRED
+>
+
+<!ELEMENT method (promise*, receiver?, retval?, parameter*)>
+<!ATTLIST method
+	name    CDATA    #REQUIRED
+	params  CDATA    ""
+>
+
+<!ELEMENT parameter (promise*)>
+<!ATTLIST parameter
+	index  CDATA    #REQUIRED
+	type   CDATA    ""
+>
+
+<!ELEMENT receiver (promise*)>
+<!ELEMENT retval (promise*)>
+
+<!ELEMENT promise EMPTY>
+<!ATTLIST promise
+	keyword  CDATA    #REQUIRED
+	contents CDATA    ""
+>
+

@@ -32,6 +32,9 @@ import java.util.HashSet;
  * Immutable class ImmutableCell represents a cell.
  * It contains the name and node instances index by nodeId.
  * Node instances must have unique names.
+ * 
+ * @promise "requiresColor DBChanger;" for with*(**) | newInstance(**)
+ * @promise "requiresColor (DBChanger | DBExaminer | AWT);" for maxNodeId() | get*(**) | find*(**) | check()
  */
 public class ImmutableCell
 {

@@ -1539,7 +1539,11 @@ P 704883 0 0 0
 			print(s);
 		}
 		
-		public void run() {
+		/** (non-Javadoc)
+		 * @see java.lang.Runnable#run()
+		 * @requiresColor (!AWT & !DBExaminer);
+		 */
+		public void run() {//@grant DBChanger
 			Cell_ cell = Cell_.newInstance("c0");
 			show();
 			Cell_ cell1 = Cell_.newInstance("c1");
