@@ -60,6 +60,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 
 /**
@@ -76,6 +78,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
     private ArcInst selectedArc;
     private Export selectedExport;
     private PortInst selectedPort;
+    private Variable selectedVar;
     private JRadioButton currentButton;
 
     private String initialName;
@@ -86,6 +89,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 
     private VariableCellRenderer cellRenderer;
     private EditWindow wnd;
+    private boolean loading = false;
 
     /**
      * Method to show the Attributes dialog.
@@ -101,7 +105,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
                 theDialog = new Attributes(null, false);
             }
         }
-        theDialog.loadAttributesInfo();
+        theDialog.loadAttributesInfo(false);
         if (!theDialog.isVisible()) theDialog.pack();
 		theDialog.setVisible(true);
    }
@@ -112,7 +116,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
     public void highlightChanged(Highlighter which)
     {
         if (!isVisible()) return;
-        loadAttributesInfo();
+        loadAttributesInfo(false);
     }
 
     /**
@@ -122,7 +126,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
      */
     public void highlighterLostFocus(Highlighter highlighterGainedFocus) {
         if (!isVisible()) return;
-        loadAttributesInfo();        
+        loadAttributesInfo(false);        
     }
 
     /**
@@ -143,7 +147,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         }
         if (reload) {
             // update dialog
-            loadAttributesInfo();
+            loadAttributesInfo(true);
         }
     }
     public void databaseChanged(Undo.Change change) {}
@@ -198,7 +202,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         currentPort.setEnabled(false);
 
         java.awt.GridBagConstraints gridBagConstraints;
-        attrPanel = new TextAttributesPanel();
+        attrPanel = new TextAttributesPanel(true);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
@@ -206,7 +210,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         getContentPane().add(attrPanel, gridBagConstraints);
 
-        textPanel = new TextInfoPanel();
+        textPanel = new TextInfoPanel(true);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
@@ -215,11 +219,47 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         getContentPane().add(textPanel, gridBagConstraints);
         pack();
 
-        loadAttributesInfo();
-		finishInitialization();
+        loadAttributesInfo(false);
+
+        value.getDocument().addDocumentListener(new TextInfoDocumentListener(this));
+
+        finishInitialization();
     }
 
-	protected void escapePressed() { ok(null); }
+	protected void escapePressed() { done(null); }
+
+	/**
+	 * Class to handle special changes to changes to a Attributes edit fields.
+	 */
+	private static class TextInfoDocumentListener implements DocumentListener
+	{
+		Attributes dialog;
+
+		TextInfoDocumentListener(Attributes dialog) { this.dialog = dialog; }
+
+		public void changedUpdate(DocumentEvent e) { dialog.fieldChanged(); }
+		public void insertUpdate(DocumentEvent e) { dialog.fieldChanged(); }
+		public void removeUpdate(DocumentEvent e) { dialog.fieldChanged(); }
+	}
+
+	private void fieldChanged()
+	{
+		if (loading) return;
+
+        Variable var = getSelectedVariable();
+        if (var == null) return;
+
+        String varName = var.getKey().getName();
+
+        // see if value changed
+        String varValue = value.getText().trim();
+        if (!varValue.equals(initialValue))
+        {
+            // generate Job to update value
+            ChangeAttribute job = new ChangeAttribute(varName, selectedObject, getVariableObject(varValue));
+            initialValue = varValue;
+        }
+	}
 
     /**
      * Set whether Attributes dialog shows attributes only
@@ -257,88 +297,93 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
     /**
      * Method to reload the entire dialog from the current highlighting.
      */
-    private void loadAttributesInfo()
+    private void loadAttributesInfo(boolean keepObj)
     {
-        // determine what attributes can be set
-        selectedObject = null;
-        selectedCell = null;
-        selectedNode = null;
-        selectedArc = null;
-        selectedExport = null;
-        selectedPort = null;
-        Variable selectedVar = null;
+    	loading = true;
 
-        currentButton = currentCell;
-
-        // update current window
-        EditWindow curWnd = EditWindow.getCurrent();
-        if ((wnd != curWnd) && (curWnd != null)) {
-            if (wnd != null) wnd.getHighlighter().removeHighlightListener(this);
-            curWnd.getHighlighter().addHighlightListener(this);
-            wnd = curWnd;
-        }
-
-        selectedCell = WindowFrame.needCurCell();   selectedObject = selectedCell;
-        if (curWnd == null) selectedCell = null;
-
-        if (selectedCell != null)
-        {
-            if (wnd.getHighlighter().getNumHighlights() == 1)
-            {
-                Highlight high = (Highlight)wnd.getHighlighter().getHighlights().iterator().next();
-                ElectricObject eobj = high.getElectricObject();
-                selectedVar = high.getVar();
-                if (high.getType() == Highlight.Type.EOBJ)
-                {
-                    if (eobj instanceof ArcInst)
-                    {
-                        selectedArc = (ArcInst)eobj;   selectedObject = selectedArc;   currentButton = currentArc;
-                    } else if (eobj instanceof NodeInst)
-                    {
-                        selectedNode = (NodeInst)eobj;   selectedObject = selectedNode;   currentButton = currentNode;
-                    } else if (eobj instanceof PortInst)
-                    {
-                        PortInst pi = (PortInst)eobj;
-                        selectedNode = (NodeInst)pi.getNodeInst();   selectedObject = selectedNode;   currentButton = currentNode;
-                        selectedPort = pi;
-                    }
-                } else if (high.getType() == Highlight.Type.TEXT)
-                {
-                    if (selectedVar != null)
-                    {
-                        if (eobj instanceof NodeInst)
-                        {
-                            selectedNode = (NodeInst)eobj;   selectedObject = selectedNode;   currentButton = currentNode;
-                        } else if (eobj instanceof ArcInst)
-                        {
-                            selectedArc = (ArcInst)eobj;   selectedObject = selectedArc;   currentButton = currentArc;
-                        } else if (eobj instanceof PortInst)
-                        {
-                            selectedPort = (PortInst)eobj;   selectedObject = selectedPort;   currentButton = currentPort;
-                            selectedNode = selectedPort.getNodeInst();
-                        } else if (eobj instanceof Export)
-                        {
-                            selectedExport = (Export)eobj;   selectedObject = selectedExport;   currentButton = currentExport;
-                        }
-                    } else if (high.getName() != null)
-                    {
-                        // node or arc name
-                        if (eobj instanceof NodeInst)
-                        {
-                            // node name
-                            selectedNode = (NodeInst)eobj;   selectedObject = selectedNode;   currentButton = currentNode;
-                        } else if (eobj instanceof ArcInst)
-                        {
-                            // arc variable
-                            selectedArc = (ArcInst)eobj;   selectedObject = selectedArc;   currentButton = currentArc;
-                        }
-                    } else if (eobj instanceof Export)
-                    {
-                        selectedExport = (Export)eobj;   selectedObject = selectedExport;   currentButton = currentExport;
-                    }
-                }
-            }
-        }
+    	if (!keepObj)
+    	{
+	        // determine what attributes can be set
+	        selectedObject = null;
+	        selectedCell = null;
+	        selectedNode = null;
+	        selectedArc = null;
+	        selectedExport = null;
+	        selectedPort = null;
+	        selectedVar = null;
+	
+	        currentButton = currentCell;
+	
+	        // update current window
+	        EditWindow curWnd = EditWindow.getCurrent();
+	        if ((wnd != curWnd) && (curWnd != null)) {
+	            if (wnd != null) wnd.getHighlighter().removeHighlightListener(this);
+	            curWnd.getHighlighter().addHighlightListener(this);
+	            wnd = curWnd;
+	        }
+	
+	        selectedCell = WindowFrame.needCurCell();   selectedObject = selectedCell;
+	        if (curWnd == null) selectedCell = null;
+	
+	        if (selectedCell != null)
+	        {
+	            if (wnd.getHighlighter().getNumHighlights() == 1)
+	            {
+	                Highlight high = (Highlight)wnd.getHighlighter().getHighlights().iterator().next();
+	                ElectricObject eobj = high.getElectricObject();
+	                selectedVar = high.getVar();
+	                if (high.getType() == Highlight.Type.EOBJ)
+	                {
+	                    if (eobj instanceof ArcInst)
+	                    {
+	                        selectedArc = (ArcInst)eobj;   selectedObject = selectedArc;   currentButton = currentArc;
+	                    } else if (eobj instanceof NodeInst)
+	                    {
+	                        selectedNode = (NodeInst)eobj;   selectedObject = selectedNode;   currentButton = currentNode;
+	                    } else if (eobj instanceof PortInst)
+	                    {
+	                        PortInst pi = (PortInst)eobj;
+	                        selectedNode = (NodeInst)pi.getNodeInst();   selectedObject = selectedNode;   currentButton = currentNode;
+	                        selectedPort = pi;
+	                    }
+	                } else if (high.getType() == Highlight.Type.TEXT)
+	                {
+	                    if (selectedVar != null)
+	                    {
+	                        if (eobj instanceof NodeInst)
+	                        {
+	                            selectedNode = (NodeInst)eobj;   selectedObject = selectedNode;   currentButton = currentNode;
+	                        } else if (eobj instanceof ArcInst)
+	                        {
+	                            selectedArc = (ArcInst)eobj;   selectedObject = selectedArc;   currentButton = currentArc;
+	                        } else if (eobj instanceof PortInst)
+	                        {
+	                            selectedPort = (PortInst)eobj;   selectedObject = selectedPort;   currentButton = currentPort;
+	                            selectedNode = selectedPort.getNodeInst();
+	                        } else if (eobj instanceof Export)
+	                        {
+	                            selectedExport = (Export)eobj;   selectedObject = selectedExport;   currentButton = currentExport;
+	                        }
+	                    } else if (high.getName() != null)
+	                    {
+	                        // node or arc name
+	                        if (eobj instanceof NodeInst)
+	                        {
+	                            // node name
+	                            selectedNode = (NodeInst)eobj;   selectedObject = selectedNode;   currentButton = currentNode;
+	                        } else if (eobj instanceof ArcInst)
+	                        {
+	                            // arc variable
+	                            selectedArc = (ArcInst)eobj;   selectedObject = selectedArc;   currentButton = currentArc;
+	                        }
+	                    } else if (eobj instanceof Export)
+	                    {
+	                        selectedExport = (Export)eobj;   selectedObject = selectedExport;   currentButton = currentExport;
+	                    }
+	                }
+	            }
+	        }
+    	}
 
         // show initial values in the dialog
         if (selectedCell == null)
@@ -359,10 +404,10 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
             evaluation.setText("");
             deleteButton.setEnabled(false);
             newButton.setEnabled(false);
-            updateButton.setEnabled(false);
             renameButton.setEnabled(false);
             textPanel.setTextDescriptor(null, null);
             attrPanel.setVariable(null, null);
+        	loading = false;
             return;
         }
 
@@ -388,7 +433,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
             showSelectedAttribute(selectedVar);
         else
             checkName();
-
+    	loading = false;
     }
 
     private void checkName() {
@@ -397,7 +442,6 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 
         // can't create new variable of empty, no vars can be empty text
         if (varName.equals("")) {
-            updateButton.setEnabled(false);
             newButton.setEnabled(false);
             deleteButton.setEnabled(false);
             renameButton.setEnabled(false);
@@ -417,7 +461,6 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         } else {
             // no such var, remove selection and enable new buttons
             newButton.setEnabled(true);
-            updateButton.setEnabled(false);
             renameButton.setEnabled(false);
             deleteButton.setEnabled(false);
             list.clearSelection();
@@ -525,7 +568,6 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 
         // disable create button because var name already exists, enable selected: buttons
         newButton.setEnabled(false);
-        updateButton.setEnabled(true);
         renameButton.setEnabled(true);
         deleteButton.setEnabled(true);
     }
@@ -723,13 +765,13 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
      * WARNING: Do NOT modify this code. The content of this method is
      * always regenerated by the Form Editor.
      */
-    private void initComponents() {//GEN-BEGIN:initComponents
+    private void initComponents()//GEN-BEGIN:initComponents
+    {
         java.awt.GridBagConstraints gridBagConstraints;
 
         which = new javax.swing.ButtonGroup();
         corner = new javax.swing.ButtonGroup();
         size = new javax.swing.ButtonGroup();
-        ok = new javax.swing.JButton();
         currentCell = new javax.swing.JRadioButton();
         currentNode = new javax.swing.JRadioButton();
         currentExport = new javax.swing.JRadioButton();
@@ -737,6 +779,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         currentArc = new javax.swing.JRadioButton();
         jSeparator1 = new javax.swing.JSeparator();
         jLabel1 = new javax.swing.JLabel();
+        cellName = new javax.swing.JLabel();
         body = new javax.swing.JPanel();
         jLabel10 = new javax.swing.JLabel();
         listPane = new javax.swing.JScrollPane();
@@ -748,36 +791,21 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         evalLabel = new javax.swing.JLabel();
         jPanel1 = new javax.swing.JPanel();
         newButton = new javax.swing.JButton();
-        jLabel3 = new javax.swing.JLabel();
-        updateButton = new javax.swing.JButton();
         deleteButton = new javax.swing.JButton();
         renameButton = new javax.swing.JButton();
-        cellName = new javax.swing.JLabel();
+        done = new javax.swing.JButton();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
         setTitle("Edit Attributes");
         setName("");
-        addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowClosing(java.awt.event.WindowEvent evt) {
+        addWindowListener(new java.awt.event.WindowAdapter()
+        {
+            public void windowClosing(java.awt.event.WindowEvent evt)
+            {
                 closeDialog(evt);
             }
         });
-
-        ok.setText("Done");
-        ok.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                ok(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 0.3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(ok, gridBagConstraints);
 
         currentCell.setText("On Current Cell:");
         which.add(currentCell);
@@ -829,6 +857,15 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(jLabel1, gridBagConstraints);
 
+        cellName.setText("clock{sch}");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        getContentPane().add(cellName, gridBagConstraints);
+
         body.setLayout(new java.awt.GridBagLayout());
 
         jLabel10.setText("Attributes:");
@@ -859,9 +896,11 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         body.add(jLabel2, gridBagConstraints);
 
-        name.setText("");
-        name.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyReleased(java.awt.event.KeyEvent evt) {
+        name.setText(" ");
+        name.addKeyListener(new java.awt.event.KeyAdapter()
+        {
+            public void keyReleased(java.awt.event.KeyEvent evt)
+            {
                 nameKeyReleased(evt);
             }
         });
@@ -881,7 +920,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         body.add(jLabel11, gridBagConstraints);
 
-        value.setText("");
+        value.setText(" ");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 4;
@@ -909,8 +948,10 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         jPanel1.setLayout(new java.awt.GridBagLayout());
 
         newButton.setText("Create New");
-        newButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        newButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 newButtonActionPerformed(evt);
             }
         });
@@ -918,54 +959,54 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 8, 4, 8);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(newButton, gridBagConstraints);
 
-        jLabel3.setText("Selected:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 12, 4, 4);
-        jPanel1.add(jLabel3, gridBagConstraints);
-
-        updateButton.setText("Update");
-        updateButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                updateButtonActionPerformed(evt);
+        deleteButton.setText("Delete");
+        deleteButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                deleteButtonActionPerformed(evt);
             }
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 8, 4, 8);
-        jPanel1.add(updateButton, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(deleteButton, gridBagConstraints);
 
-        deleteButton.setText("Delete");
-        deleteButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                deleteButtonActionPerformed(evt);
+        renameButton.setText("Rename...");
+        renameButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                renameButtonActionPerformed(evt);
             }
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 8, 4, 8);
-        jPanel1.add(deleteButton, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(renameButton, gridBagConstraints);
 
-        renameButton.setText("Rename");
-        renameButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                renameButtonActionPerformed(evt);
+        done.setText("Done");
+        done.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                done(evt);
             }
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel1.add(renameButton, gridBagConstraints);
+        jPanel1.add(done, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -983,26 +1024,18 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         gridBagConstraints.weighty = 1.0;
         getContentPane().add(body, gridBagConstraints);
 
-        cellName.setText("clock{sch}");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        getContentPane().add(cellName, gridBagConstraints);
-
         pack();
     }//GEN-END:initComponents
 
     private void renameButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_renameButtonActionPerformed
-        Object ret = JOptionPane.showInputDialog(this, "New name for "+name.getText(),
-                "Rename Attribute", JOptionPane.QUESTION_MESSAGE, null, null, name.getText());
-        String newName = (String)ret;
+    	String newName = (String)JOptionPane.showInputDialog(this, "New name for " + name.getText(),
+            "Rename Attribute", JOptionPane.QUESTION_MESSAGE, null, null, name.getText());
+        if (newName == null) return;
         newName = newName.trim();
-        if (newName.equals("")) {
+        if (newName.equals(""))
+        {
             JOptionPane.showMessageDialog(this, "Attribute name must not be empty",
-                    "Invalid Input", JOptionPane.ERROR_MESSAGE);
+                "Invalid Input", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
@@ -1035,9 +1068,10 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         checkName();
     }//GEN-LAST:event_nameKeyReleased
 
-    private void ok(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ok
+	private void done(java.awt.event.ActionEvent evt)//GEN-FIRST:event_done
+	{//GEN-HEADEREND:event_done
         closeDialog(null);
-    }//GEN-LAST:event_ok
+	}//GEN-LAST:event_done
 
     private void newButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newButtonActionPerformed
 
@@ -1079,31 +1113,6 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         DeleteAttribute job = new DeleteAttribute(getSelectedVariable(), selectedObject);
     }//GEN-LAST:event_deleteButtonActionPerformed
 
-    private void updateButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateButtonActionPerformed
-
-        boolean changed = false;
-
-        // Name will be correct, or update button will be disabled
-        Variable selectedVar = getSelectedVariable();
-        if (selectedVar == null) return;
-
-        String varName = selectedVar.getKey().getName();
-
-        // see if value changed
-        String varValue = value.getText().trim();
-        if (!varValue.equals(initialValue)) changed = true;
-
-        if (changed) {
-            // generate Job to update value
-            ChangeAttribute job = new ChangeAttribute(varName, selectedObject, getVariableObject(varValue));
-            initialValue = varValue;
-        }
-        // update text options and attribute options (will check for changes)
-        textPanel.applyChanges();
-        attrPanel.applyChanges();
-
-    }//GEN-LAST:event_updateButtonActionPerformed
-
     /** Closes the dialog */
     private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
     {
@@ -1120,22 +1129,20 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
     private javax.swing.JRadioButton currentNode;
     private javax.swing.JRadioButton currentPort;
     private javax.swing.JButton deleteButton;
+    private javax.swing.JButton done;
     private javax.swing.JLabel evalLabel;
     private javax.swing.JLabel evaluation;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JScrollPane listPane;
     private javax.swing.JTextField name;
     private javax.swing.JButton newButton;
-    private javax.swing.JButton ok;
     private javax.swing.JButton renameButton;
     private javax.swing.ButtonGroup size;
-    private javax.swing.JButton updateButton;
     private javax.swing.JTextField value;
     private javax.swing.ButtonGroup which;
     // End of variables declaration//GEN-END:variables

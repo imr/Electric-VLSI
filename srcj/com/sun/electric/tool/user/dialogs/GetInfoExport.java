@@ -234,7 +234,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 		}
 
         // add textPanel
-        textPanel = new TextInfoPanel();
+        textPanel = new TextInfoPanel(false);
         java.awt.GridBagConstraints gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;

@@ -91,9 +91,8 @@ public class Connectivity
 	private Technology tech;
 	private HashMap layerForFunction;
 	private Layer polyLayer;
-	private Layer pseudoPolyLayer;
-	private Layer nActiveLayer;
-	private Layer pActiveLayer;
+	private Layer tempLayer1, tempLayer2;
+	private Layer activeLayer;
 
 	/**
 	 * Method to examine the current cell and extract it's connectivity in a new one.
@@ -136,19 +135,19 @@ public class Connectivity
 
 		// find important layers
 		polyLayer = null;
-		pseudoPolyLayer = null;
-		nActiveLayer = null;
-		pActiveLayer = null;
+		tempLayer1 = tempLayer2 = null;
+		activeLayer = null;
 		for(Iterator it = tech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			Layer.Function fun = layer.getFunction();
 			if (polyLayer == null && fun == Layer.Function.POLY1) polyLayer = layer;
-			if (fun == Layer.Function.POLY1 && (layer.getFunctionExtras()&Layer.Function.PSEUDO) != 0) pseudoPolyLayer = layer;
-			if (nActiveLayer == null && fun == Layer.Function.DIFFN) nActiveLayer = layer;
-			if (pActiveLayer == null && fun == Layer.Function.DIFFP) pActiveLayer = layer;
+			if (fun == Layer.Function.POLY1 && (layer.getFunctionExtras()&Layer.Function.PSEUDO) != 0) tempLayer1 = layer;
+			if (fun == Layer.Function.METAL1 && (layer.getFunctionExtras()&Layer.Function.PSEUDO) != 0) tempLayer2 = layer;
+			if (activeLayer == null && fun.isDiff()) activeLayer = layer;
 		}
 		polyLayer = polyLayer.getNonPseudoLayer();
+		activeLayer = activeLayer.getNonPseudoLayer();
 
 		// build the mapping from any layer to the proper ones for the geometric database
 		layerForFunction = new HashMap();
@@ -156,6 +155,8 @@ public class Connectivity
 		{
 			Layer layer = (Layer)it.next();
 			Layer.Function fun = layer.getFunction();
+			if (fun == Layer.Function.DIFFP || fun == Layer.Function.DIFFN)
+				fun = Layer.Function.DIFF;
 			if (layerForFunction.get(fun) == null)
 				layerForFunction.put(fun, layer);
 		}
@@ -840,15 +841,14 @@ public class Connectivity
 		cl.end.setLocation(newEndBX, newEndBY);
 		return true;
 	}
-	/********************************************** VIA EXTRACTION **********************************************/
+	/********************************************** VIA/CONTACT EXTRACTION **********************************************/
 
 	private static class PossibleVia
 	{
 		PrimitiveNode pNp;
 		double minWidth, minHeight;
 		Layer [] layers;
-		double [] xShrink;
-		double [] yShrink;
+		double [] shrink;
 
 		PossibleVia(PrimitiveNode pNp) { this.pNp = pNp; }
 	}
@@ -871,43 +871,163 @@ public class Connectivity
 
 			// look at all of the pieces of this layer
 			List polyList = merge.getMergedPoints(layer, true);
-			for(Iterator pIt = polyList.iterator(); pIt.hasNext(); )
+			while (polyList.size() > 0)
 			{
-				PolyBase poly = (PolyBase)pIt.next();
+				PolyBase poly = (PolyBase)polyList.get(0);
 				double centerX = poly.getCenterX();
 				double centerY = poly.getCenterY();
+//System.out.println("Consider contact "+layer.getName()+" at ("+centerX+","+centerY+")");
 
 				// now look through the list to see if anything matches
 				for(Iterator it = possibleVias.iterator(); it.hasNext(); )
 				{
 					PossibleVia pv = (PossibleVia)it.next();
 					PrimitiveNode pNp = pv.pNp;
-
+//System.out.println("  Could it be "+pNp.getName());
 					// check that the cut/via is the right size
 
-					// check all other layers
-					boolean gotMinimum = true;
-					for(int i=0; i<pv.layers.length; i++)
+					// determine the range of shrinkage values for the layers in the contact
+					double largestShrink = pv.shrink[0];
+					double smallestShrink = pv.shrink[0];
+					for(int i=1; i<pv.layers.length; i++)
 					{
-						Layer nLayer = pv.layers[i];
-						double minLayWid = pv.minWidth - pv.xShrink[i];
-						double minLayHei = pv.minHeight - pv.yShrink[i];
-						Rectangle2D rect = new Rectangle2D.Double(centerX - minLayWid/2, centerY - minLayHei/2, minLayWid, minLayHei);
-						boolean foundLayer = false;
-						if (originalMerge.contains(nLayer, rect)) foundLayer = true;
-						if (!foundLayer)
+						if (pv.shrink[i] > largestShrink) largestShrink = pv.shrink[i];
+						if (pv.shrink[i] < smallestShrink) smallestShrink = pv.shrink[i];
+					}
+
+					// merge all other layers and see how big the contact can be
+					originalMerge.insetLayer(pv.layers[0], tempLayer1, (largestShrink-pv.shrink[0])/2);
+//System.out.println("    Inset layer "+pv.layers[0].getName()+" by "+((largestShrink-pv.shrink[0])/2));
+					for(int i=1; i<pv.layers.length; i++)
+					{
+//List xx = originalMerge.getMergedPoints(pv.layers[i], true);
+//System.out.println("    Inset layer "+pv.layers[i].getName()+" by "+((largestShrink-pv.shrink[i])/2)+" is "+xx);
+						originalMerge.insetLayer(pv.layers[i], tempLayer2, (largestShrink-pv.shrink[i])/2);
+						originalMerge.intersectLayers(tempLayer1, tempLayer2, tempLayer1);
+					}
+					List contactArea = originalMerge.getMergedPoints(tempLayer1, true);
+//if (contactArea == null) System.out.println("  Cannot be "+pNp.getName());
+					if (contactArea == null) continue;
+					Rectangle2D largest = findLargestRectangle(contactArea, centerX, centerY, pv.minWidth-largestShrink, pv.minHeight-largestShrink);
+					if (largest == null) continue;
+//System.out.println("  Contact is surrounded by area from "+largest.getMinX()+"<=X<="+largest.getMaxX()+" and "+largest.getMinY()+"<=Y<="+largest.getMaxY());
+					centerX = largest.getCenterX();
+					centerY = largest.getCenterY();
+					double desiredWidth = largest.getWidth() + largestShrink;
+					double desiredHeight = largest.getHeight() + largestShrink;
+
+					// check all other layers
+					for(;;)
+					{
+						boolean gotMinimum = true;
+						for(int i=0; i<pv.layers.length; i++)
 						{
-							gotMinimum = false;
+							Layer nLayer = pv.layers[i];
+							double minLayWid = desiredWidth - pv.shrink[i];
+							double minLayHei = desiredHeight - pv.shrink[i];
+							Rectangle2D rect = new Rectangle2D.Double(centerX - minLayWid/2, centerY - minLayHei/2, minLayWid, minLayHei);
+							boolean foundLayer = false;
+							if (originalMerge.contains(nLayer, rect)) foundLayer = true;
+//System.out.println("    So, is there layer "+nLayer.getName()+" in area "+rect.getMinX()+"<=X<="+rect.getMaxX()+" and "+rect.getMinY()+"<=Y<="+rect.getMaxY()+" answer="+foundLayer);
+							if (!foundLayer)
+							{
+//System.out.println("      That layer is:" +describeLayer(originalMerge, nLayer));
+								gotMinimum = false;
+								break;
+							}
+						}
+						if (gotMinimum)
+						{
+							realizeNode(pNp, centerX, centerY, desiredWidth, desiredHeight, 0);
+//System.out.println("  Is part of "+pNp.getName()+" contact which is "+desiredWidth+"x"+desiredHeight+" at ("+centerX+","+centerY+")");
+							// remove other cuts in this area
+							for(int o=1; o<polyList.size(); o++)
+							{
+								PolyBase oPoly = (PolyBase)polyList.get(o);
+								double x = oPoly.getCenterX();
+								double y = oPoly.getCenterY();
+								if (largest.contains(x, y))
+								{
+//System.out.println("    and also includes cut at ("+x+","+y+")");
+									polyList.remove(oPoly);
+									o--;
+								}
+							}
 							break;
 						}
+						desiredHeight--;
+						desiredWidth--;
+						if (desiredHeight < pv.minHeight || desiredWidth < pv.minWidth) break;
 					}
-					if (gotMinimum)
+				}
+				polyList.remove(poly);
+			}
+		}
+	}
+
+	private Rectangle2D findLargestRectangle(List contactArea, double centerX, double centerY, double minWidth, double minHeight)
+	{
+		double closestTop = Double.MAX_VALUE;
+		double closestBottom = Double.MAX_VALUE;
+		double closestLeft = Double.MAX_VALUE;
+		double closestRight = Double.MAX_VALUE;
+		for(Iterator it = contactArea.iterator(); it.hasNext(); )
+		{
+			PolyBase poly = (PolyBase)it.next();
+			if (!poly.contains(centerX, centerY)) continue;
+
+			// this is the part that contains the point: gather bounds
+			Point2D [] points = poly.getPoints();
+			for(int i=0; i<points.length; i++)
+			{
+				int last = i - 1;
+				if (last < 0) last = points.length - 1;
+				Point2D lastPt = points[last];
+				Point2D thisPt = points[i];
+				if (lastPt.getX() == thisPt.getX())
+				{
+					// vertical line: check left and right bounds
+					double lowY = Math.min(thisPt.getY(), lastPt.getY());
+					double highY = Math.max(thisPt.getY(), lastPt.getY());
+					if (lowY >= centerY + minHeight/2) continue;
+					if (highY <= centerY - minHeight/2) continue;
+					double dist = lastPt.getX() - centerX;
+					if (dist > 0)
 					{
-						realizeNode(pNp, centerX, centerY, pv.minWidth, pv.minHeight, 0);
+						// see if this is a new right edge
+						if (dist < closestRight) closestRight = dist;
+					} else
+					{
+						// see if this is a new right edge
+						if (-dist < closestLeft) closestLeft = -dist;
+					}
+				}
+				if (lastPt.getY() == thisPt.getY())
+				{
+					// horizontal line: check top and bottom bounds
+					double lowX = Math.min(thisPt.getX(), lastPt.getX());
+					double highX = Math.max(thisPt.getX(), lastPt.getX());
+					if (lowX >= centerX + minWidth/2) continue;
+					if (highX <= centerX - minWidth/2) continue;
+					double dist = lastPt.getY() - centerY;
+					if (dist > 0)
+					{
+						// see if this is a new top edge
+						if (dist < closestTop) closestTop = dist;
+					} else
+					{
+						// see if this is a new bottom edge
+						if (-dist < closestBottom) closestBottom = -dist;
 					}
 				}
 			}
+			if (closestTop == Double.MAX_VALUE || closestBottom == Double.MAX_VALUE ||
+				closestLeft == Double.MAX_VALUE || closestRight == Double.MAX_VALUE) return null;
+			Rectangle2D largest = new Rectangle2D.Double(centerX-closestLeft, centerY-closestBottom,
+				closestLeft+closestRight, closestBottom+closestTop);
+			if (poly.contains(largest)) return largest;
 		}
+		return null;
 	}
 
 	/**
@@ -922,14 +1042,14 @@ public class Connectivity
 		{
 			PrimitiveNode pNp = (PrimitiveNode)nIt.next();
 			PrimitiveNode.Function fun = pNp.getFunction();
-			if (fun != PrimitiveNode.Function.CONTACT) continue;
+			if (fun != PrimitiveNode.Function.CONTACT && fun != PrimitiveNode.Function.WELL &&
+				fun != PrimitiveNode.Function.SUBSTRATE) continue;
 
 			// create a PossibleVia object to test for them
 			PossibleVia pv = new PossibleVia(pNp);
 			Technology.NodeLayer [] nLayers = pNp.getLayers();
 			pv.layers = new Layer[nLayers.length-1];
-			pv.xShrink = new double[nLayers.length-1];
-			pv.yShrink = new double[nLayers.length-1];
+			pv.shrink = new double[nLayers.length-1];
 			pv.minWidth = pNp.getDefWidth();
 			pv.minHeight = pNp.getDefHeight();
 
@@ -976,10 +1096,8 @@ public class Connectivity
 
 					// create the PossibleVia to describe the geometry
 					if (fill >= nLayers.length-1) break;
-
-					pv.layers[fill] = nLay.getLayer();
-					pv.xShrink[fill] = nLay.getLeftEdge().getAdder() * 2;
-					pv.yShrink[fill] = nLay.getBottomEdge().getAdder() * 2;
+					pv.layers[fill] = geometricLayer(nLay.getLayer());
+					pv.shrink[fill] = Math.max(nLay.getLeftEdge().getAdder(), nLay.getBottomEdge().getAdder()) * 2;
 					fill++;
 				}
 			}
@@ -1003,7 +1121,7 @@ public class Connectivity
 	private void extractTransistors()
 	{
 		// must have a poly layer
-		if (polyLayer == null || pseudoPolyLayer == null) return;
+		if (polyLayer == null || tempLayer1 == null) return;
 
 		// find the transistors to create
 		PrimitiveNode pTransistor = null, nTransistor = null;
@@ -1013,24 +1131,30 @@ public class Connectivity
 			if (pTransistor == null && pNp.getFunction() == PrimitiveNode.Function.TRAPMOS) pTransistor = pNp;
 			if (nTransistor == null && pNp.getFunction() == PrimitiveNode.Function.TRANMOS) nTransistor = pNp;
 		}
-		if (nActiveLayer != null && nTransistor != null)
+		if (nTransistor != null)
 		{
-			nActiveLayer = nActiveLayer.getNonPseudoLayer();
-			findTransistors(polyLayer, nActiveLayer, pseudoPolyLayer, nTransistor);
+			findTransistors(nTransistor);
 		}
-		if (pActiveLayer != null && pTransistor != null)
+		if (pTransistor != null)
 		{
-			pActiveLayer = pActiveLayer.getNonPseudoLayer();
-			findTransistors(polyLayer, pActiveLayer, pseudoPolyLayer, pTransistor);
+			findTransistors(pTransistor);
 		}
 	}
 
-	private void findTransistors(Layer polyLayer, Layer activeLayer, Layer pseudoPolyLayer, PrimitiveNode transistor)
+	private void findTransistors(PrimitiveNode transistor)
 	{
-		merge.intersectLayers(polyLayer, activeLayer, pseudoPolyLayer);
+		originalMerge.intersectLayers(polyLayer, activeLayer, tempLayer1);
+		Technology.NodeLayer [] layers = transistor.getLayers();
+		for(int i=0; i<layers.length; i++)
+		{
+			Technology.NodeLayer lay = layers[i];
+			Layer layer = geometricLayer(lay.getLayer());
+			if (layer == polyLayer || layer == activeLayer) continue;
+			originalMerge.intersectLayers(layer, tempLayer1, tempLayer1);
+		}
 
 		// look at all of the pieces of this layer
-		List polyList = merge.getMergedPoints(pseudoPolyLayer, true);
+		List polyList = originalMerge.getMergedPoints(tempLayer1, true);
 		if (polyList == null) return;
 		for(Iterator pIt = polyList.iterator(); pIt.hasNext(); )
 		{
@@ -1066,7 +1190,7 @@ public class Connectivity
 				realizeNode(transistor, poly.getCenterX(), poly.getCenterY(), width, height, angle);
 			}
 		}
-		merge.deleteLayer(pseudoPolyLayer);
+		originalMerge.deleteLayer(tempLayer1);
 	}
 
 	/********************************************** MISCELLANEOUS EXTRACTION HELPERS **********************************************/
@@ -1194,6 +1318,10 @@ public class Connectivity
 			Layer polyLayer = (Layer)layerForFunction.get(Layer.Function.POLY1);
 			if (polyLayer != null) return polyLayer;
 		}
+
+		// all active is one layer
+		if (fun == Layer.Function.DIFFP || fun == Layer.Function.DIFFN)
+			fun = Layer.Function.DIFF;
 
 		// ensure the first one for the given function
 		Layer properLayer = (Layer)layerForFunction.get(fun);

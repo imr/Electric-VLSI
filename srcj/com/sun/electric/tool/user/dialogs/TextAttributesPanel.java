@@ -37,10 +37,12 @@ import java.util.Iterator;
  * A Panel to display Code, Units, ShowStyle, and isParameter/isInherits
  * information about a Variable (or TextDescriptor, if passed Variable is null).
  */
-public class TextAttributesPanel extends javax.swing.JPanel {
-
+public class TextAttributesPanel extends javax.swing.JPanel
+{
     private static final String displaynone = "None";
 
+	private boolean updateChangesInstantly;
+	private boolean loading = false;
     private Variable var;
     private TextDescriptor td;
     private String varName;
@@ -54,7 +56,9 @@ public class TextAttributesPanel extends javax.swing.JPanel {
      * Create a Panel for editing attribute specific
      * text options of a Variable
      */
-    public TextAttributesPanel() {
+    public TextAttributesPanel(boolean updateChangesInstantly)
+    {
+    	this.updateChangesInstantly = updateChangesInstantly;
         initComponents();
 
         // add variable code types
@@ -84,7 +88,28 @@ public class TextAttributesPanel extends javax.swing.JPanel {
 
         // dialog is disabled by default
         setVariable(null, null);
+
+        // listeners
+        code.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt) { fieldChanged(); }
+        });
+        units.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt) { fieldChanged(); }
+        });
+        show.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt) { fieldChanged(); }
+        });
     }
+
+	private void fieldChanged()
+	{
+		if (!updateChangesInstantly) return;
+		if (loading) return;
+		applyChanges();
+	}
 
     /**
      * Set the Variable that can be edited through this Panel.
@@ -95,6 +120,8 @@ public class TextAttributesPanel extends javax.swing.JPanel {
      * @param owner the owner of the variable
      */
     public synchronized void setVariable(String varName, ElectricObject owner) {
+
+        loading = true;
 
         // do not allow empty var names
         if (varName != null) {
@@ -149,6 +176,8 @@ public class TextAttributesPanel extends javax.swing.JPanel {
             populateShowComboBox(false);
             show.setSelectedItem(initialDispPos);
         }
+
+        loading = false;
     }
 
     /**

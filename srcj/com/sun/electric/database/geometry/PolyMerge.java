@@ -183,6 +183,49 @@ public class PolyMerge
 	}
 
 	/**
+	 * Method to inset one layer by a given amount and create a second layer.
+	 * @param source the Layer to inset.
+	 * @param dest the destination layer to place the inset geometry.
+	 * @param amount the distance to inset the layer.
+	 */
+	public void insetLayer(Layer source, Layer dest, double amount)
+	{
+		Area sourceArea = (Area)allLayers.get(source);
+		if (sourceArea == null) allLayers.remove(dest); else
+		{
+			allLayers.put(dest, sourceArea.clone());
+			if (amount == 0) return;
+			List orig = getAreaPoints(sourceArea, source, true);
+			Point2D [] subtractPoints = new Point2D[4];
+			for(Iterator it = orig.iterator(); it.hasNext(); )
+			{
+				PolyBase poly = (PolyBase)it.next();
+				Point2D [] points = poly.getPoints();
+				for(int i=0; i<points.length; i++)
+				{
+					int last = i-1;
+					if (last < 0) last = points.length-1;
+					Point2D lastPt = points[last];
+					Point2D thisPt = points[i];
+					if (DBMath.pointsClose(lastPt, thisPt)) continue;
+					int angle = DBMath.figureAngle(lastPt, thisPt);
+					int perpAngle = (angle + 2700) % 3600;
+					double offsetX = DBMath.cos(perpAngle) * amount;
+					double offsetY = DBMath.sin(perpAngle) * amount;
+					Point2D insetLastPt = new Point2D.Double(lastPt.getX() + offsetX, lastPt.getY() + offsetY);
+					Point2D insetThisPt = new Point2D.Double(thisPt.getX() + offsetX, thisPt.getY() + offsetY);
+					subtractPoints[0] = lastPt;
+					subtractPoints[1] = thisPt;
+					subtractPoints[2] = insetThisPt;
+					subtractPoints[3] = insetLastPt;
+					PolyBase subtractPoly = new PolyBase(subtractPoints);
+					subPolygon(dest, subtractPoly);
+				}
+			}
+		}
+	}
+
+	/**
 	 * Method to delete all geometry on a given layer.
 	 * @param layer the Layer to clear in this merge.
 	 */

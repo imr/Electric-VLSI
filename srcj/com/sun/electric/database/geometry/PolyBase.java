@@ -336,7 +336,7 @@ public class PolyBase implements Shape
 			{
 				Point2D thisPoint = points[i];
 				//if (pt.equals(thisPoint)) return true;
-                if (DBMath.pointsClose(pt, lastPoint)) return true;
+                if (DBMath.pointsClose(pt, thisPoint)) return true;
 				int thisp = DBMath.figureAngle(pt, thisPoint);
 				int tang = lastp - thisp;
 				if (tang < -1800) tang += 3600;

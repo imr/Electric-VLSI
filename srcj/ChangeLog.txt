@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02c: *********************************
 
+IMP/MAN: (01/18/05, SMR) Removed "Update" button from "Attributes" dialog, have only "Done".
+     All actions happen instantantly (Bug #78).
+
+IMP/MAN: (01/18/05, SMR) "Props." button in "Arc Preferences" dialog by name field lets name info be edited (Bug #149).
+
 BUG: (01/18/05, DN) "ElectricObject.isLinked()" can return true for objects of deleted cell.
 FIX: Reimplement "isLinked()" so that it became the same as former "isActuallyLinked()".
 

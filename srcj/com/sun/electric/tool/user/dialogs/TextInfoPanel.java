@@ -47,6 +47,9 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.Iterator;
 
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+
 
 /**
  * A Panel to display and edit Text Display options for a Variable.
@@ -54,6 +57,8 @@ import java.util.Iterator;
  */
 public class TextInfoPanel extends javax.swing.JPanel
 {
+	private boolean updateChangesInstantly;
+	private boolean loading = false;
     private TextDescriptor.Position initialPos;
     private TextDescriptor.Size initialSize;
     private TextDescriptor.Rotation initialRotation;
@@ -73,8 +78,9 @@ public class TextInfoPanel extends javax.swing.JPanel
      * Create a new TextInfoPanel that can be used to edit
      * the Text Display options of a Variable.
      */
-    public TextInfoPanel()
+    public TextInfoPanel(boolean updateChangesInstantly)
     {
+    	this.updateChangesInstantly = updateChangesInstantly;
         initComponents();
 
         font.addItem("DEFAULT FONT");
@@ -133,6 +139,54 @@ public class TextInfoPanel extends javax.swing.JPanel
         initialColorIndex = 0;
 
         setTextDescriptor(null, null);
+
+        // listeners
+        unitsSize.getDocument().addDocumentListener(new TextInfoDocumentListener(this));
+        pointsSize.getDocument().addDocumentListener(new TextInfoDocumentListener(this));
+        xOffset.getDocument().addDocumentListener(new TextInfoDocumentListener(this));
+        yOffset.getDocument().addDocumentListener(new TextInfoDocumentListener(this));
+        boxedWidth.getDocument().addDocumentListener(new TextInfoDocumentListener(this));
+        boxedHeight.getDocument().addDocumentListener(new TextInfoDocumentListener(this));
+        unitsButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt) { fieldChanged(); }
+        });
+        pointsButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt) { fieldChanged(); }
+        });
+        italic.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt) { fieldChanged(); }
+        });
+        bold.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt) { fieldChanged(); }
+        });
+        underline.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt) { fieldChanged(); }
+        });
+        invisibleOutsideCell.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt) { fieldChanged(); }
+        });
+        rotation.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt) { fieldChanged(); }
+        });
+        textAnchor.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt) { fieldChanged(); }
+        });
+        font.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt) { fieldChanged(); }
+        });
+        textColorComboBox.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt) { fieldChanged(); }
+        });
     }
 
     /**
@@ -184,6 +238,8 @@ public class TextInfoPanel extends javax.swing.JPanel
         // use current panel settings.
 		td = owner.getTextDescriptor(varName);
         if (td == null) return;
+
+        loading = true;
 
         NodeInst ni = null;
         // use location of owner if it is a generic invisible pin, because
@@ -330,10 +386,33 @@ public class TextInfoPanel extends javax.swing.JPanel
         textColorComboBox.setSelectedIndex(colorComboIndex);
 
         // report the global text scale
-        globalTextScale.setText("Scaled by " + TextUtils.formatDouble(User.getGlobalTextScale()) + "%");
+        globalTextScale.setText("Scaled by " + TextUtils.formatDouble(User.getGlobalTextScale()*100) + "%");
+
+        loading = false;
     }
 
-    /**
+	/**
+	 * Class to handle special changes to changes to a Text Info Panel edit fields.
+	 */
+	private static class TextInfoDocumentListener implements DocumentListener
+	{
+		TextInfoPanel dialog;
+
+		TextInfoDocumentListener(TextInfoPanel dialog) { this.dialog = dialog; }
+
+		public void changedUpdate(DocumentEvent e) { dialog.fieldChanged(); }
+		public void insertUpdate(DocumentEvent e) { dialog.fieldChanged(); }
+		public void removeUpdate(DocumentEvent e) { dialog.fieldChanged(); }
+	}
+
+	private void fieldChanged()
+	{
+		if (!updateChangesInstantly) return;
+		if (loading) return;
+		applyChanges();
+	}
+
+	/**
      * Apply any changes the user made to the Text options.
      * @return true if any changes made to database, false if no changes made.
      */

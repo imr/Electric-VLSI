@@ -28,6 +28,7 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -421,6 +422,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
         jLabel17 = new javax.swing.JLabel();
         tailLoc = new javax.swing.JLabel();
         tailSee = new javax.swing.JButton();
+        nameProperties = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         rigid = new javax.swing.JCheckBox();
         reverseEnds = new javax.swing.JCheckBox();
@@ -502,11 +504,11 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(name, gridBagConstraints);
 
         jLabel6.setText("Width:");
@@ -605,8 +607,8 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
         jPanel1.add(headLoc, gridBagConstraints);
 
         headSee.setText("See");
-        headSee.setMinimumSize(new java.awt.Dimension(56, 20));
-        headSee.setPreferredSize(new java.awt.Dimension(56, 20));
+        headSee.setMinimumSize(new java.awt.Dimension(56, 26));
+        headSee.setPreferredSize(new java.awt.Dimension(56, 26));
         headSee.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -659,8 +661,8 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
         jPanel1.add(tailLoc, gridBagConstraints);
 
         tailSee.setText("See");
-        tailSee.setMinimumSize(new java.awt.Dimension(56, 20));
-        tailSee.setPreferredSize(new java.awt.Dimension(56, 20));
+        tailSee.setMinimumSize(new java.awt.Dimension(56, 26));
+        tailSee.setPreferredSize(new java.awt.Dimension(56, 26));
         tailSee.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -675,6 +677,23 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(tailSee, gridBagConstraints);
+
+        nameProperties.setText("Props.");
+        nameProperties.setMinimumSize(new java.awt.Dimension(71, 20));
+        nameProperties.setPreferredSize(new java.awt.Dimension(71, 20));
+        nameProperties.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                namePropertiesActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(nameProperties, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
@@ -885,6 +904,22 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 
         pack();
     }//GEN-END:initComponents
+
+	private void namePropertiesActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_namePropertiesActionPerformed
+	{//GEN-HEADEREND:event_namePropertiesActionPerformed
+		if (shownArc == null) return;
+		ArcInst ai = shownArc;
+		Name arcName = ai.getNameKey();
+        if (!arcName.isTempname() && wnd != null)
+        {
+            Highlighter highlighter = wnd.getHighlighter();
+            highlighter.clear();
+            highlighter.addText(ai, ai.getParent(), null, arcName);
+            highlighter.addElectricObject(ai, ai.getParent());
+            highlighter.finished();
+            GetInfoText.showDialog();
+        }
+	}//GEN-LAST:event_namePropertiesActionPerformed
 
 	private void attributesActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_attributesActionPerformed
 	{//GEN-HEADEREND:event_attributesActionPerformed
@@ -1126,6 +1161,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
     private javax.swing.JPanel jPanel4;
     private javax.swing.JButton moreLess;
     private javax.swing.JTextField name;
+    private javax.swing.JButton nameProperties;
     private javax.swing.JLabel network;
     private javax.swing.JButton ok;
     private javax.swing.JCheckBox reverseEnds;

@@ -663,8 +663,8 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
         apply = new javax.swing.JButton();
         evaluation = new javax.swing.JLabel();
         theText = new javax.swing.JTextField();
-        textPanel = new TextInfoPanel();
-        attrPanel = new TextAttributesPanel();
+        textPanel = new TextInfoPanel(false);
+        attrPanel = new TextAttributesPanel(false);
         buttonsPanel = new javax.swing.JPanel();
         multiLine = new javax.swing.JCheckBox();
 
