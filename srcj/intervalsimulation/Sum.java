@@ -6,14 +6,17 @@ import java.math.MathContext;
 
 class Sum {
 
+    private static final double ULP = 0x1.0p-52;
+    private static final double MIN_NORMAL = Double.MIN_VALUE*0x1.0p52;
+
     private static Random rand = new Random(1234567);
     private static double mean = 0.0;
     private static final int n = 1000000;
     private static double[] v = new double[n];
     private static double bsh, bsl;
-    private static final double powK = 0x1.0p140;
 
     private static void bsum() {
+	double powK = 0x1.0p140;
 	BigDecimal s = BigDecimal.ZERO;
 	for (int i = 0; i < v.length; i++)
 	    s = s.add(new BigDecimal(Math.rint(v[i]*powK)));
@@ -83,8 +86,8 @@ class Sum {
 	}
 
 	void add(double v) {
+	    norm = (v >= 0 ? norm + v : norm - v);
 	    sh += v;
-	    norm += (sh >= 0 ? sh : -sh);
 	    n++;
 	}
 
@@ -95,11 +98,13 @@ class Sum {
 	}
 
 	double errInf() {
-	    return - norm*(1.0 + n*0x1.0p-53)*0x1.0p-53;
+	    double k = ULP/2*(n-1);
+	    return - norm*k;
 	}
 
 	double errSup() {
-	    return + norm*(1.0 + n*0x1.0p-53)*0x1.0p-53;
+	    double k = ULP/2*(n-1);
+	    return + norm*k;
 	}
     }
 
@@ -110,7 +115,36 @@ class Sum {
 	}
 
 	void add(double v) {
-	    norm += (v >= 0 ? v : -v);
+	    sh += v;
+	    norm = (sh >= 0 ? norm + sh : norm - sh);
+	    n++;
+	}
+
+	double sum(double[] v) {
+	    for (int i = 0; i < v.length; i++)
+		add(v[i]);
+	    return sum();
+	}
+
+	double errInf() {
+	    double k = (ULP/2)*(1.0 + ((n-1)/2)*ULP);
+	    return - norm*k;
+	}
+
+	double errSup() {
+	    double k = (ULP/2)*(1.0 + ((n-1)/2)*ULP);
+	    return + norm*k;
+	}
+    }
+
+    static class Add2 extends Accumulator {
+
+	Add2() {
+	    super("add2");
+	}
+
+	void add(double v) {
+	    norm = (v >= 0 ? norm + v : norm - v);
 	    double x = sh + v;
 	    sl += (sh - x) + v;
 	    sh = x;
@@ -124,18 +158,22 @@ class Sum {
 	}
 
 	double errInf() {
-	    return sl - norm*(1.0 + n*0x1.0p-53)*0x1.0p-53;
+	    long nn = -6 + n*(3 + (long)n);
+	    double k = (ULP/2)*(1.0 + nn*ULP/4)*(1.0 + ULP);
+	    return sl - norm*k;
 	}
 
 	double errSup() {
-	    return sl + norm*(1.0 + n*0x1.0p-53)*0x1.0p-53;
+	    long nn = -6 + n*(3 + (long)n);
+	    double k = (ULP/2)*(1.0 + nn*ULP/4)*(1.0 + ULP);
+	    return sl + norm*k;
 	}
     }
 
-    static class Add2 extends Accumulator {
+    static class Add3 extends Accumulator {
 
-	Add2() {
-	    super("add2");
+	Add3() {
+	    super("add3");
 	}
 
 	void add(double v) {
@@ -164,11 +202,11 @@ class Sum {
 	}
 
 	double errInf() {
-	    return sl - norm*(1.0 + n*0x1.0p-53)*0x1.0p-53;
+	    return -Interval.addUp(-sl, norm*(ULP/2*(1.0 + ((n-1)/2)*(ULP/2))));
 	}
 
 	double errSup() {
-	    return sl + norm*(1.0 + n*0x1.0p-53)*0x1.0p-53;
+	    return Interval.addUp(sl, norm*(ULP/2*(1.0 + ((n-1)/2)*(ULP/2))));
 	}
     }
 
@@ -212,7 +250,7 @@ class Sum {
 	errSup = s.errSup();
     }
 
-    private void dsum() {
+    private void sum1() {
 	Add1 s = new Add1();
 	val = s.sum(v);
 	vall = s.suml();
@@ -222,6 +260,14 @@ class Sum {
 
     private void dsum2() {
 	Add2 s = new Add2();
+	val = s.sum(v);
+	vall = s.suml();
+	errInf = s.errInf();
+	errSup = s.errSup();
+    }
+
+    private void dsum3() {
+	Add3 s = new Add3();
 	val = s.sum(v);
 	vall = s.suml();
 	errInf = s.errInf();
@@ -277,8 +323,9 @@ class Sum {
 	for (int i = 0; i < 10; i++) {
 	    s.sum();
 	    s.sum0();
-	    s.dsum();
+	    s.sum1();
 	    s.dsum2();
+	    s.dsum3();
 	    s.msum();
 	    s.nsum();
 	}
@@ -298,15 +345,21 @@ class Sum {
 
 	long startTime2b = System.currentTimeMillis();
 	for (int i = 0; i < 100; i++)
-	    s.dsum();
+	    s.sum1();
 	long endTime2b = System.currentTimeMillis();
-	System.out.println("**** dsum took " + (endTime2b-startTime2b) + " mSec =" + s);
+	System.out.println("**** sum1 took " + (endTime2b-startTime2b) + " mSec =" + s);
 
 	long startTime2c = System.currentTimeMillis();
 	for (int i = 0; i < 100; i++)
 	    s.dsum2();
 	long endTime2c = System.currentTimeMillis();
 	System.out.println("**** dsum2 took " + (endTime2c-startTime2c) + " mSec =" + s);
+
+	long startTime2d = System.currentTimeMillis();
+	for (int i = 0; i < 100; i++)
+	    s.dsum3();
+	long endTime2d = System.currentTimeMillis();
+	System.out.println("**** dsum3 took " + (endTime2d-startTime2d) + " mSec =" + s);
 
 	long startTime3 = System.currentTimeMillis();
 	for (int i = 0; i < 100; i++)
