@@ -32,6 +32,7 @@ import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.topology.*;
 import com.sun.electric.database.prototype.*;
 import com.sun.electric.database.variable.*;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ui.MessagesWindow;
@@ -478,6 +479,9 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
         //Font oldFont = msgs.getFont();
         //msgs.setFont(new Font("Courier", Font.BOLD, oldFont.getSize()));
 
+        // print netlister info
+        System.out.println("Netlister: Gate Cap="+gateCap+", Alpha="+alpha);
+
         // print instance info
         inst.print();
 
@@ -485,40 +489,45 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
         Pin out = (Pin)inst.getOutputPins().get(0);
         Net net = out.getNet();
 
-        ArrayList gatesDriven = new ArrayList();
-        ArrayList loadsDriven = new ArrayList();
-        ArrayList wiresDriven = new ArrayList();
-        ArrayList gatesFighting = new ArrayList();
+        ArrayList gatesDrivenPins = new ArrayList();
+        ArrayList loadsDrivenPins = new ArrayList();
+        ArrayList wiresDrivenPins = new ArrayList();
+        ArrayList gatesFightingPins = new ArrayList();
 
         for (Iterator it = net.getAllPins().iterator(); it.hasNext(); ) {
             Pin pin = (Pin)it.next();
             Instance in = pin.getInstance();
             if (pin.getDir() == Pin.Dir.INPUT) {
-                if (in.isGate()) gatesDriven.add(in);
+                if (in.isGate()) gatesDrivenPins.add(pin);
                 //if (in.getType() == Instance.Type.STATICGATE) staticGatesDriven.add(in);
-                if (in.getType() == Instance.Type.LOAD) loadsDriven.add(in);
-                if (in.getType() == Instance.Type.WIRE) wiresDriven.add(in);
+                if (in.getType() == Instance.Type.LOAD) loadsDrivenPins.add(pin);
+                if (in.getType() == Instance.Type.WIRE) wiresDrivenPins.add(pin);
             }
             if (pin.getDir() == Pin.Dir.OUTPUT) {
-                if (in.isGate()) gatesFighting.add(in);
+                if (in.isGate()) gatesFightingPins.add(pin);
             }
         }
-        System.out.println("  -------------------- Gates Driven ("+gatesDriven.size()+") --------------------");
-        for (Iterator it = gatesDriven.iterator(); it.hasNext(); ) {
-            Instance in = (Instance)it.next(); in.printShortInfo();
+        System.out.println("Note: Load = Size * LE * M");
+        System.out.println("Note: Load = Size * LE * M * Alpha, for Gates Fighting");
+
+        float totalLoad = 0f;
+        System.out.println("  -------------------- Gates Driven ("+gatesDrivenPins.size()+") --------------------");
+        for (Iterator it = gatesDrivenPins.iterator(); it.hasNext(); ) {
+            Pin pin = (Pin)it.next(); totalLoad += pin.getInstance().printLoadInfo(pin, alpha);
         }
-        System.out.println("  -------------------- Loads Driven ("+loadsDriven.size()+") --------------------");
-        for (Iterator it = loadsDriven.iterator(); it.hasNext(); ) {
-            Instance in = (Instance)it.next(); in.printShortInfo();
+        System.out.println("  -------------------- Loads Driven ("+loadsDrivenPins.size()+") --------------------");
+        for (Iterator it = loadsDrivenPins.iterator(); it.hasNext(); ) {
+            Pin pin = (Pin)it.next(); totalLoad += pin.getInstance().printLoadInfo(pin, alpha);
         }
-        System.out.println("  -------------------- Wires Driven ("+wiresDriven.size()+") --------------------");
-        for (Iterator it = wiresDriven.iterator(); it.hasNext(); ) {
-            Instance in = (Instance)it.next(); in.printShortInfo();
+        System.out.println("  -------------------- Wires Driven ("+wiresDrivenPins.size()+") --------------------");
+        for (Iterator it = wiresDrivenPins.iterator(); it.hasNext(); ) {
+            Pin pin = (Pin)it.next(); totalLoad += pin.getInstance().printLoadInfo(pin, alpha);
         }
-        System.out.println("  -------------------- Gates Fighting ("+gatesFighting.size()+") --------------------");
-        for (Iterator it = gatesFighting.iterator(); it.hasNext(); ) {
-            Instance in = (Instance)it.next(); in.printShortInfo();
+        System.out.println("  -------------------- Gates Fighting ("+gatesFightingPins.size()+") --------------------");
+        for (Iterator it = gatesFightingPins.iterator(); it.hasNext(); ) {
+            Pin pin = (Pin)it.next(); totalLoad += pin.getInstance().printLoadInfo(pin, alpha);
         }
+        System.out.println("*** Total Load: "+TextUtils.formatDouble(totalLoad, 2));
 
         //msgs.setFont(oldFont);
         return true;

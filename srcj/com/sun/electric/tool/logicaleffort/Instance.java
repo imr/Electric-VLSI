@@ -174,11 +174,11 @@ public class Instance {
 
     protected void print() {
         System.out.println(type.toString()+": "+name);
-        System.out.println("    Size           = "+leX);
-        System.out.println("    Step-up        = "+leSU);
-        System.out.println("    Level          = "+level);
-        System.out.println("    Parallel Group = "+parallelGroup);
-        System.out.println("    M Factor       = "+mfactor);
+        System.out.println("    Size    \t= "+leX);
+        System.out.println("    Step-up \t= "+leSU);
+        System.out.println("    Level   \t= "+level);
+        System.out.println("    Parallel Group\t= "+parallelGroup);
+        System.out.println("    M Factor\t= "+mfactor);
     }
 
     protected void printShortInfo() {
@@ -187,6 +187,26 @@ public class Instance {
                     TextUtils.formatDouble(mfactor, 1)+"), "+name);
         else
             System.out.println(type.toString()+": Size="+TextUtils.formatDouble(leX, 2)+", "+name);
+    }
+
+    protected float printLoadInfo(Pin pin, float alpha) {
+        StringBuffer buf = new StringBuffer();
+        buf.append(type.toString());
+        buf.append("\t"+name);
+        buf.append("\tSize="+TextUtils.formatDouble(leX*mfactor, 2));
+        buf.append("\tLE="+TextUtils.formatDouble(pin.getLE(), 2));
+        buf.append("\tM="+TextUtils.formatDouble(mfactor, 2));
+        float load;
+        if (pin.getDir() == Pin.Dir.OUTPUT) {
+            load = (float)(leX*pin.getLE()*mfactor*alpha);
+            buf.append("\tAlpha="+alpha);
+            buf.append("\tLoad="+TextUtils.formatDouble(load, 2));
+        } else {
+            load = (float)(leX*pin.getLE()*mfactor);
+            buf.append("\tLoad="+TextUtils.formatDouble(load, 2));
+        }
+        System.out.println(buf.toString());
+        return load;
     }
 
 }

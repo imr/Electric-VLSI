@@ -225,7 +225,12 @@ public class LESizer {
                         }
 
                         // For now, split effort equally amongst all drivers
-                        newX = totalcap / instance.getLeSU() / drivers.size();
+                        // Group 0 drives individually
+                        if (instance.getParallelGroup() <= 0)
+                            newX = totalcap / instance.getLeSU();
+                        else {
+                            newX = totalcap / instance.getLeSU() / drivers.size();
+                        }
                         // also take into account mfactor of driver
                         newX = newX / (float)instance.getMfactor();
                     }
