@@ -236,7 +236,7 @@ public class ToolMenu {
 		MenuBar.Menu ercSubMenu = new MenuBar.Menu("ERC", 'E');
 		toolMenu.add(ercSubMenu);
 		ercSubMenu.addMenuItem("Check Wells", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(GeometryHandler.ALGO_MERGE); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(GeometryHandler.ALGO_SWEEP); } });
 		ercSubMenu.addMenuItem("Antenna Check", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { new ERCAntenna(); } });
 
@@ -269,7 +269,7 @@ public class ToolMenu {
 		networkSubMenu.addMenuItem("List Exports below Network", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { listExportsBelowNetworkCommand(); } });
 		networkSubMenu.addMenuItem("List Geometry on Network", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { listGeometryOnNetworkCommand(GeometryHandler.ALGO_QTREE); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { listGeometryOnNetworkCommand(GeometryHandler.ALGO_SWEEP); } });
         networkSubMenu.addMenuItem("List Total Wire Lengths on All Networks", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { listGeomsAllNetworksCommand(); }});
 
@@ -352,7 +352,7 @@ public class ToolMenu {
 		MenuBar.Menu generationSubMenu = new MenuBar.Menu("Generation", 'G');
 		toolMenu.add(generationSubMenu);
 		generationSubMenu.addMenuItem("Coverage Implants Generator", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) {layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, GeometryHandler.ALGO_QTREE, false);}});
+			new ActionListener() { public void actionPerformed(ActionEvent e) {layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, GeometryHandler.ALGO_SWEEP, false);}});
 		generationSubMenu.addMenuItem("Pad Frame Generator", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
 		generationSubMenu.addMenuItem("ROM Generator...", null,
