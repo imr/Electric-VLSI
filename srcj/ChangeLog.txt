@@ -2,7 +2,15 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.01p: *********************************
+
+
 ************************* Version 8.01o: *********************************
+
+BUG: (9/15/04, JKG) Fixed changing transistor sizes/mirror etc from GetInfo dialog
+
+IMP/MAN: (9/15/04, JKG) Add Tool -> Logical Effort -> Clear LE Sizes on node
+     to delete LE sizes on a node.
 
 IMP: (9/15/04, SMR) "Change" dialog always goes to currently selected cell, even
      if it is in a different library.
