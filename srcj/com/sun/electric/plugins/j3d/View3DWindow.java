@@ -1024,36 +1024,8 @@ public class View3DWindow extends JPanel
 			View3DWindow wnd = (View3DWindow)content;
 			View view = wnd.u.getViewer().getView();
 			view.setSceneAntialiasingEnable(value.booleanValue());
-			//wnd.print();
 		}
 	}
-
-	private void print()
-    {
-        // Create the off-screen Canvas3D object
-	    OffScreenCanvas3D offScreenCanvas3D = new OffScreenCanvas3D(SimpleUniverse.getPreferredConfiguration(), true);
-        // Set the off-screen size based on a scale factor times the
-	    // on-screen size
-	    Screen3D sOn = canvas.getScreen3D();
-	    Screen3D sOff = offScreenCanvas3D.getScreen3D();
-	    Dimension dim = sOn.getSize();
-	    dim.width *= ImagePrinter.OFF_SCREEN_SCALE;
-	    dim.height *= ImagePrinter.OFF_SCREEN_SCALE;
-	    sOff.setSize(dim);
-	    sOff.setPhysicalScreenWidth(sOn.getPhysicalScreenWidth() * ImagePrinter.OFF_SCREEN_SCALE);
-	    sOff.setPhysicalScreenHeight(sOn.getPhysicalScreenHeight() * ImagePrinter.OFF_SCREEN_SCALE);
-
-	    // attach the offscreen canvas to the view
-	    u.getViewer().getView().addCanvas3D(offScreenCanvas3D);
-        BufferedImage bImage = new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB);
-        ImageComponent2D buffer = new ImageComponent2D(ImageComponent.FORMAT_RGBA, bImage);
-
-	    offScreenCanvas3D.setOffScreenBuffer(buffer);
-	    offScreenCanvas3D.renderOffScreenBuffer();
-	    offScreenCanvas3D.waitForOffScreenRendering();
-	    bImage = offScreenCanvas3D.getOffScreenBuffer().getImage();
-        new ImagePrinter(bImage).print();
-    }
 
 	/**
 	 * Method to print window using offscreen canvas
@@ -1063,6 +1035,7 @@ public class View3DWindow extends JPanel
 	public BufferedImage getOffScreenImage(ElectricPrinter ep)
     {
 		BufferedImage bImage = ep.getBufferedImage();
+        int OFF_SCREEN_SCALE = 3;
 
 		// might have problems if visibility of some layers is switched off
 		if (bImage == null)
@@ -1074,11 +1047,11 @@ public class View3DWindow extends JPanel
 			Screen3D sOn = canvas.getScreen3D();
 			Screen3D sOff = offScreenCanvas3D.getScreen3D();
 			Dimension dim = sOn.getSize();
-			dim.width *= ImagePrinter.OFF_SCREEN_SCALE;
-			dim.height *= ImagePrinter.OFF_SCREEN_SCALE;
+			dim.width *= OFF_SCREEN_SCALE;
+			dim.height *= OFF_SCREEN_SCALE;
 			sOff.setSize(dim);
-			sOff.setPhysicalScreenWidth(sOn.getPhysicalScreenWidth() * ImagePrinter.OFF_SCREEN_SCALE);
-			sOff.setPhysicalScreenHeight(sOn.getPhysicalScreenHeight() * ImagePrinter.OFF_SCREEN_SCALE);
+			sOff.setPhysicalScreenWidth(sOn.getPhysicalScreenWidth() * OFF_SCREEN_SCALE);
+			sOff.setPhysicalScreenHeight(sOn.getPhysicalScreenHeight() * OFF_SCREEN_SCALE);
 
 			// attach the offscreen canvas to the view
 			u.getViewer().getView().addCanvas3D(offScreenCanvas3D);
@@ -1516,7 +1489,6 @@ public class View3DWindow extends JPanel
 		 */
 		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
 		{
-			Cell cell = info.getCell();
 			NodeInst ni = no.getNodeInst();
 			AffineTransform trans = ni.rotateOut();
 			AffineTransform root = info.getTransformToRoot();
@@ -1530,64 +1502,9 @@ public class View3DWindow extends JPanel
 		}
     }
 
-    //*** To print 3D canvas
-    private class ImagePrinter implements Printable, ImageObserver {
-        BufferedImage bImage;
-        private static final int OFF_SCREEN_SCALE = 3;
-
-        public int print(Graphics g, PageFormat pf, int pi) throws PrinterException
-        {
-            if (pi >= 1) {
-                return Printable.NO_SUCH_PAGE;
-            }
-
-            Graphics2D g2d = (Graphics2D)g;
-            AffineTransform t2d = new AffineTransform();
-            t2d.translate(pf.getImageableX(), pf.getImageableY());
-            double xscale  = pf.getImageableWidth() / (double)bImage.getWidth();
-            double yscale  = pf.getImageableHeight() / (double)bImage.getHeight();
-            double scale = Math.min(xscale, yscale);
-            t2d.scale(scale, scale);
-            try {
-                g2d.drawImage(bImage,t2d, this);
-            }
-            catch (Exception ex) {
-                ex.printStackTrace();
-                return Printable.NO_SUCH_PAGE;
-            }
-            return Printable.PAGE_EXISTS;
-        }
-
-        void print() {
-            PrinterJob printJob = PrinterJob.getPrinterJob();
-            PageFormat pageFormat = printJob.defaultPage();
-            pageFormat.setOrientation(PageFormat.LANDSCAPE);
-            pageFormat = printJob.validatePage(pageFormat);
-            printJob.setPrintable(this, pageFormat);
-            if (printJob.printDialog()) {
-                try {
-                    printJob.print();
-                }
-                catch (PrinterException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        }
-
-        public boolean imageUpdate(Image img,
-                       int infoflags,
-                       int x,
-                       int y,
-                       int width,
-                       int height) {
-            return false;
-        }
-
-        ImagePrinter(BufferedImage bImage) {
-            this.bImage = bImage;
-        }
-    }
-
+    /**
+     * Class to create offscreen from canvas 3D
+     */
     private class OffScreenCanvas3D extends Canvas3D {
         OffScreenCanvas3D(GraphicsConfiguration graphicsConfiguration,
                   boolean offScreen) {
