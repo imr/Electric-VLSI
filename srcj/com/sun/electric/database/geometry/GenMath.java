@@ -196,15 +196,16 @@ public class GenMath
      */
     public static int figureAngle(Point2D end1, Point2D end2)
     {
-        double dx = end2.getX()-end1.getX();
-        double dy = end2.getY()-end1.getY();
-        if (dx == 0.0 && dy == 0.0)
-        {
-            System.out.println("Warning: domain violation while figuring angle");
-            return 0;
-        }
-        double angle = Math.atan2(dy, dx);
-        if (angle < 0) angle += Math.PI*2;
+//        double dx = end2.getX()-end1.getX();
+//        double dy = end2.getY()-end1.getY();
+//        if (dx == 0.0 && dy == 0.0)
+//        {
+//            System.out.println("Warning: domain violation while figuring angle");
+//            return 0;
+//        }
+//        double angle = Math.atan2(dy, dx);
+//        if (angle < 0) angle += Math.PI*2;
+        double angle = figureAngleRadians(end1, end2);
         int iAngle = (int)(angle * 1800.0 / Math.PI);
         return iAngle;
     }

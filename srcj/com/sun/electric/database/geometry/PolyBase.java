@@ -32,6 +32,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.Main;
 
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -327,7 +328,7 @@ public class PolyBase implements Shape
 			}
 
 			// general polygon containment by summing angles to vertices
-			double ang = 0;
+			double ang = 0, angd = 0;
 			Point2D lastPoint = points[points.length-1];
             //if (pt.equals(lastPoint)) return true;
             if (DBMath.pointsClose(pt, lastPoint)) return true;
@@ -337,15 +338,25 @@ public class PolyBase implements Shape
 				Point2D thisPoint = points[i];
 				//if (pt.equals(thisPoint)) return true;
                 if (DBMath.pointsClose(pt, thisPoint)) return true;
+                // Checking if point is along polygon edge
+                if (DBMath.isOnLine(thisPoint, lastPoint, pt))
+                    return true;
 				int thisp = DBMath.figureAngle(pt, thisPoint);
 				int tang = lastp - thisp;
-				if (tang < -1800) tang += 3600;
-				if (tang > 1800) tang -= 3600;
+				if (tang < -1800)
+                    tang += 3600;
+				if (tang > 1800)
+                    tang -= 3600;
 				ang += tang;
 				lastp = thisp;
+                lastPoint = thisPoint;
 			}
-			if (Math.abs(ang) <= points.length) return false;
-			return true;
+            ang = Math.abs(ang);
+            //boolean completeCircle = ang == 0 || ang == 3600;
+            boolean oldCalculation = (!(ang <= points.length));
+            return (oldCalculation);
+			//if (Math.abs(ang) <= points.length) return false;
+			//return true;
 		}
 
 		if (style == Poly.Type.CROSS || style == Poly.Type.BIGCROSS)

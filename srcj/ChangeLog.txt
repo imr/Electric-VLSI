@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02e: *********************************
 
+BUG: (01/25/05, GVG) PolyBase.isInside not working properly for non-convex mahnattan polygons. Angle-based algorithm
+tends to cancel out angles for concave corners.
+FIX: (for now) for wiring check if point is along polygon edges. More stable solution is to change algorithm for an intersection-based
+one.
+
 BUG: (01/25/05, SMR) Spice output allows names that start with a digit (but Spice doesn't) (Bug #169).
 FIX: In Spice.getSafeNetName(), insert an "_" before names that start with a digit.
 
@@ -114,7 +119,7 @@ IMP/MAN: (01/13/05, JKG) Added option on Skill preferences tab to truncate cell 
 
 IMP: (01/13/05, JKG) Topology: "getSafeNetName" now properly applied to non-aggregating netlisters
 
-IMP/MAN: (01/12/05, SMR) First implementation of node extractor.
+IMP: (01/12/05, SMR) First implementation of node extractor.
 
 BUG: (01/13/05, DN) Rename arc/nodes and undo can spoil database invariants (Bug #157).
 FIX: In "NodeInst.lowLevelSetNameKey" and ArcInst.lowLevelSetNameKey remove "isUsernamed()".
