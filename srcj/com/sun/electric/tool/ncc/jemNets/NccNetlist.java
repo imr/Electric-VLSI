@@ -64,7 +64,8 @@ public class NccNetlist {
 	private final Cell rootCell;
 	private final VarContext rootContext;
 	private ArrayList wires, parts, ports;
-	private boolean exportAssertionsOK;
+	private boolean exportAssertionFailures;
+	private boolean exportGlobalConflicts;
 
 	// ---------------------------- public methods ---------------------------
 	public NccNetlist(Cell root, VarContext context, Netlist netlist, 
@@ -74,20 +75,28 @@ public class NccNetlist {
 		rootCell = root; 
 		rootContext = context;
 
-		Visitor v = new Visitor(globals, hierInfo, blackBox, context);
-		HierarchyEnumerator.enumerateCell(root, context, netlist, v, true);
-		wires = v.getWireList();
-		parts = v.getPartList();
-		ports = v.getPortList();
-		exportAssertionsOK = v.exportAssertionsOK();
+		try {
+			Visitor v = new Visitor(globals, hierInfo, blackBox, context);
+			HierarchyEnumerator.enumerateCell(root, context, netlist, v, true);
+			wires = v.getWireList();
+			parts = v.getPartList();
+			ports = v.getPortList();
+			exportAssertionFailures = v.exportAssertionFailures();
+		} catch (ExportGlobalConflict e) {
+			exportGlobalConflicts = true;
+		}
 	}
 	public ArrayList getWireArray() {return wires;}
 	public ArrayList getPartArray() {return parts;}
 	public ArrayList getPortArray() {return ports;}
-	public boolean exportAssertionsOK() {return exportAssertionsOK;}
+	public boolean netlistErrors() {
+		return exportAssertionFailures || exportGlobalConflicts;
+	}
 	public Cell getRootCell() {return rootCell;}
 	public VarContext getRootContext() {return rootContext;}
 }
+
+class ExportGlobalConflict extends RuntimeException {}
 
 /** map from netID to NCC Wire */
 class Wires {
@@ -145,15 +154,68 @@ class NccCellInfo extends CellInfo {
 	// instance is going to regenerate annotations for it's parent.
 	private boolean gotAnnotations = false;
 	private NccCellAnnotations annotations;
+	
+	// ----------------------------- public methods ---------------------------
+	public NccCellInfo(NccGlobals globals) {this.globals=globals;}
+
 	public NccCellAnnotations getAnnotations() {
 		if (!gotAnnotations) 
 			annotations = NccCellAnnotations.getAnnotations(getCell());
 		gotAnnotations = true;
 		return annotations;
 	}
-	
-	// ----------------------------- public methods ---------------------------
-	public NccCellInfo(NccGlobals globals) {this.globals=globals;}
+	// Subtle:  Suppose a schematic network has an export on it named "gnd"
+	// and suppose it is also attached to a global signal "gnd". Then we may
+	// create two "Ports" for the network, one for the global and one for the
+	// export. The problem is both these ports have the same name: "gnd". This
+	// violates the invariant that no two Ports may have the same name. I 
+	// believe it's better to preserve the invariant by discarding the global 
+	// "gnd" if there is already an Export named "gnd".
+	public Iterator getExportsAndGlobals() {
+		HashMap nameToExport = new HashMap();
+		// first collect all exports
+		for (Iterator it=getCell().getPorts(); it.hasNext();) {
+			Export e = (Export) it.next();
+			int[] expNetIDs = getExportNetIDs(e);
+			for (int i=0; i<expNetIDs.length; i++) {
+				String nm = e.getNameKey().subname(i).toString();
+				ExportGlobal eg = 
+					new ExportGlobal(nm,
+						             expNetIDs[i],
+						             e.getCharacteristic());
+				nameToExport.put(nm, eg);
+			}
+		}
+		List expGlob = new ArrayList();
+		expGlob.addAll(nameToExport.values());
+
+		// next collect all the globals
+		Global.Set globNets = getNetlist().getGlobals();
+		for (int i=0; i<globNets.size(); i++) {
+			Global g = globNets.get(i);
+			String nm = g.getName();
+			int netID = getNetID(getNetlist().getNetwork(g));
+			PortCharacteristic type = globNets.getCharacteristic(g); 
+			ExportGlobal eg = (ExportGlobal) nameToExport.get(nm);
+			if (eg!=null) {
+				// Name collision between an export and a global signal. 
+				// Discard the global.
+				if (eg.netID!=netID || eg.type!=type) {
+					System.out.println(
+					    "  Error! Cell: "+getCell().libDescribe()+
+						" has both an Export and a global signal "+
+					    "named: "+nm+" but their networks or "+
+					    "Characteristics differ");
+					throw new ExportGlobalConflict();
+					//LayoutLib.error(true, "schematics need repair");
+				}
+			} else {
+				eg = new ExportGlobal(nm, netID, type);
+				expGlob.add(eg);
+			}
+		}
+		return expGlob.iterator();
+	}
 }
 
 /** Information from either an Export or a Global signal */
@@ -166,78 +228,80 @@ class ExportGlobal {
 	}
 }
 
+
+
 /** Iterate over a Cell's Exports and global signals. This is useful because
  * NCC creates a Port for each of them. 
  * <p>TODO: RK This was a stupid idea. The next time this has a bug delete it and 
  * replace it with a straightforward loop that returns a list!!! */
-class ExportGlobalIter {
-	private final int CHECK_EXPORT = 0;
-	private final int INIT_GLOBAL = 1;
-	private final int CHECK_BIT_IN_BUS = 2;
-	private final int CHECK_GLOBAL = 3;
-	private final int DONE = 4;
-	private CellInfo info;
-	private Iterator expIt;
-	private Export export;
-	private int[] expNetIDs;
-	private int bitInBus;
-	private Global.Set globals;
-	private int globNdx;
-	private int state = CHECK_EXPORT;
-	private ExportGlobal current;
-	
-	private void advance() {
-		switch (state) {
-		  case CHECK_EXPORT:
-			if (!expIt.hasNext()) {
-				state=INIT_GLOBAL;  advance();  break;
-			}
-			export = (Export) expIt.next();
-			expNetIDs = info.getExportNetIDs(export);
-			bitInBus = 0;
-		  case CHECK_BIT_IN_BUS:
-			if (bitInBus>=expNetIDs.length) {
-				state=CHECK_EXPORT;  advance();  break;
-			}
-			Name nameKey = export.getNameKey();
-			current = new ExportGlobal(nameKey.subname(bitInBus).toString(),
-									   expNetIDs[bitInBus],
-									   export.getCharacteristic());
-			bitInBus++;
-			state=CHECK_BIT_IN_BUS;  break;
-		  case INIT_GLOBAL:
-			globals = info.getNetlist().getGlobals();
-			globNdx = 0;
-		  case CHECK_GLOBAL:
-			if (globNdx>=globals.size()) {
-				state=DONE;  break;
-			}
-			Global global = globals.get(globNdx);
-			Network net = info.getNetlist().getNetwork(global);
-			current = new ExportGlobal(global.getName(),
-									   info.getNetID(net),
-									   globals.getCharacteristic(global));
-			globNdx++;
-			state=CHECK_GLOBAL;  break;
-		  case DONE:
-		  	state=DONE;  break;
-		  default:
-		  	LayoutLib.error(true, "no such state!");
-		}
-	}
-	public ExportGlobalIter(CellInfo info) {
-		this.info = info;
-		expIt = info.getCell().getPorts();
-		advance();
-	}
-	public boolean hasNext() {return state!=DONE;}
-	public ExportGlobal next() {
-		LayoutLib.error(state==DONE, "next() called when DONE");
-		ExportGlobal e = current;
-		advance();
-		return e;
-	}
-}
+//class ExportGlobalIter {
+//	private final int CHECK_EXPORT = 0;
+//	private final int INIT_GLOBAL = 1;
+//	private final int CHECK_BIT_IN_BUS = 2;
+//	private final int CHECK_GLOBAL = 3;
+//	private final int DONE = 4;
+//	private CellInfo info;
+//	private Iterator expIt;
+//	private Export export;
+//	private int[] expNetIDs;
+//	private int bitInBus;
+//	private Global.Set globals;
+//	private int globNdx;
+//	private int state = CHECK_EXPORT;
+//	private ExportGlobal current;
+//	
+//	private void advance() {
+//		switch (state) {
+//		  case CHECK_EXPORT:
+//			if (!expIt.hasNext()) {
+//				state=INIT_GLOBAL;  advance();  break;
+//			}
+//			export = (Export) expIt.next();
+//			expNetIDs = info.getExportNetIDs(export);
+//			bitInBus = 0;
+//		  case CHECK_BIT_IN_BUS:
+//			if (bitInBus>=expNetIDs.length) {
+//				state=CHECK_EXPORT;  advance();  break;
+//			}
+//			Name nameKey = export.getNameKey();
+//			current = new ExportGlobal(nameKey.subname(bitInBus).toString(),
+//									   expNetIDs[bitInBus],
+//									   export.getCharacteristic());
+//			bitInBus++;
+//			state=CHECK_BIT_IN_BUS;  break;
+//		  case INIT_GLOBAL:
+//			globals = info.getNetlist().getGlobals();
+//			globNdx = 0;
+//		  case CHECK_GLOBAL:
+//			if (globNdx>=globals.size()) {
+//				state=DONE;  break;
+//			}
+//			Global global = globals.get(globNdx);
+//			Network net = info.getNetlist().getNetwork(global);
+//			current = new ExportGlobal(global.getName(),
+//									   info.getNetID(net),
+//									   globals.getCharacteristic(global));
+//			globNdx++;
+//			state=CHECK_GLOBAL;  break;
+//		  case DONE:
+//		  	state=DONE;  break;
+//		  default:
+//		  	LayoutLib.error(true, "no such state!");
+//		}
+//	}
+//	public ExportGlobalIter(CellInfo info) {
+//		this.info = info;
+//		expIt = info.getCell().getPorts();
+//		advance();
+//	}
+//	public boolean hasNext() {return state!=DONE;}
+//	public ExportGlobal next() {
+//		LayoutLib.error(state==DONE, "next() called when DONE");
+//		ExportGlobal e = current;
+//		advance();
+//		return e;
+//	}
+//}
 
 class Visitor extends HierarchyEnumerator.Visitor {
 	// --------------------------- private data -------------------------------
@@ -248,7 +312,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	 * This is VERY annoying to the user. Save the path prefix here so I can
 	 * remove it whenever I build Parts or Wires. */
 	private final String pathPrefix;
-	private boolean exportAssertionsOK = true;
+	private boolean exportAssertionFailures = false;
 	private int depth = 0;
 
 	/** map from netID to Wire */	 
@@ -270,9 +334,9 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		return sp.toString();
 	}
 	private void addMatchingNetIDs(List netIDs, NamePattern pattern, 
-	                               CellInfo rootInfo) {
-		for (ExportGlobalIter it=new ExportGlobalIter(rootInfo); it.hasNext();) {
-			ExportGlobal eg = it.next();
+	                               NccCellInfo rootInfo) {
+		for (Iterator it=rootInfo.getExportsAndGlobals(); it.hasNext();) {
+			ExportGlobal eg = (ExportGlobal) it.next();
 			if (pattern.matches(eg.name)) netIDs.add(new Integer(eg.netID));			 								
 		}
 	}
@@ -300,10 +364,10 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		wires = new Wires(mergedNetIDs, rootInfo, pathPrefix);
 	}
 	
-	private void createPortsFromExports(CellInfo rootInfo){
+	private void createPortsFromExports(NccCellInfo rootInfo) {
 		HashSet portSet = new HashSet();
-		for (ExportGlobalIter it=new ExportGlobalIter(rootInfo); it.hasNext();) {
-			ExportGlobal eg = it.next();
+		for (Iterator it=rootInfo.getExportsAndGlobals(); it.hasNext();) {
+			ExportGlobal eg = (ExportGlobal) it.next();
 			Wire wire = wires.get(eg.netID, rootInfo);
 			portSet.add(wire.addExport(eg.name, eg.type));
 		}
@@ -397,8 +461,8 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	}
 	private void matchExports(HashMap wireToExports, NamePattern pattern,
 							  NccCellInfo info) {
-		for (ExportGlobalIter it=new ExportGlobalIter(info); it.hasNext();) {
-			ExportGlobal eg = it.next();
+		for (Iterator it=info.getExportsAndGlobals(); it.hasNext();) {
+			ExportGlobal eg = (ExportGlobal) it.next();
 			if (!pattern.matches(eg.name)) continue;
 			Wire wire = wires.get(eg.netID, info);
 			HashSet exports = (HashSet) wireToExports.get(wire);
@@ -409,31 +473,30 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			exports.add(eg.name);
 		}
 	}
-	private boolean exportAssertionOK(List patterns, NccCellInfo info) {
+	private boolean exportAssertionFailure(List patterns, NccCellInfo info) {
 		// map from Wire to Set of Export Names
 		HashMap wireToExports = new HashMap();
 		for (Iterator it=patterns.iterator(); it.hasNext();) {
 			matchExports(wireToExports, (NamePattern) it.next(), info);
 		}
-		if (wireToExports.size()<=1) return true;
+		if (wireToExports.size()<=1) return false;
 		printExportAssertionFailure(wireToExports, info);
-		return false;
+		return true;
 	}
-	private boolean exportAssertionsOK(NccCellInfo info) {
+	private boolean exportAssertionFailures(NccCellInfo info) {
 		NccCellAnnotations ann = info.getAnnotations();
-		if (ann==null) return true;
-		boolean ok = true;
+		if (ann==null) return false;
 		for (Iterator it=ann.getExportsConnected(); it.hasNext();)
-			ok &= exportAssertionOK((List)it.next(), info);
-		return ok;	                                      	
+			if (exportAssertionFailure((List)it.next(), info)) return true;
+		return false;	                                      	
 	}
 	
 	private void doSubcircuit(SubcircuitInfo subcktInfo, NccCellInfo info) {
 		Cell cell = info.getCell();
 		Wire[] pins = new Wire[subcktInfo.numPorts()];
 
-		for (ExportGlobalIter it=new ExportGlobalIter(info); it.hasNext();) {
-			ExportGlobal eg = it.next();
+		for (Iterator it=info.getExportsAndGlobals(); it.hasNext();) {
+			ExportGlobal eg = (ExportGlobal) it.next();
 			Wire wire = wires.get(eg.netID, info);
 			int pinNdx = subcktInfo.getPortIndex(eg.name);
 			addToPins(pins, pinNdx, wire);
@@ -481,8 +544,8 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			// We need to test exportsConnectedByParent assertions here
 			// because if assertions fail then doSubcircuit will attempt
 			// to connect multiple wires to the same port.
-			boolean exportAssertOK = exportAssertionsOK(info);
-			exportAssertionsOK &= exportAssertOK;
+			boolean exportAssertFail = exportAssertionFailures(info);
+			exportAssertionFailures |= exportAssertFail;
 			// Subtle! Suppose mux21{sch}, mux21{lay}, and mux21_r{lay} are in 
 			// the same (simulated) CellGroup. Then we will first compare 
 			// mux21{sch} with mux21{lay}, and then with mux21_r{lay}. For the 
@@ -493,7 +556,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			if (!parentSaysFlattenMe(info) &&
 			    hierarchicalCompareInfo!=null && 
 				hierarchicalCompareInfo.treatAsPrimitive(cell) &&
-				exportAssertOK) {
+				!exportAssertFail) {
 				SubcircuitInfo subcktInfo = 
 					hierarchicalCompareInfo.getSubcircuitInfo(cell);
 				doSubcircuit(subcktInfo, info);
@@ -529,7 +592,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	public ArrayList getPortList() {return ports;}
 	/** Do all subcircuits we instantiate have valid exportsConnectedByParent 
 	 * assertions? If not then this netlist isn't valid. */
-	public boolean exportAssertionsOK() {return exportAssertionsOK;}
+	public boolean exportAssertionFailures() {return exportAssertionFailures;}
 	
 	public Visitor(NccGlobals globals, 
 	               HierarchyInfo hierarchicalCompareInfo,

@@ -160,13 +160,13 @@ public class NccEngine {
 			return new NccResult(exportsOK, topologyOK, sizesOK);
 		}
 	}
-	private boolean exportAssertionsOK(List nccNets) {
-		boolean exportAssertionsOK = true;
+	private boolean netlistErrors(List nccNets) {
+		boolean netlistErrors = false;
 		for (Iterator it=nccNets.iterator(); it.hasNext();) {
 			NccNetlist nets = (NccNetlist) it.next();
-			exportAssertionsOK &= nets.exportAssertionsOK();
+			netlistErrors |= nets.netlistErrors();
 		}
-		return exportAssertionsOK;
+		return netlistErrors;
 	}
 	private NccResult areEquivalent(List cells, List contexts, 
 					  		        List netlists, HierarchyInfo hierInfo,
@@ -185,15 +185,15 @@ public class NccEngine {
 		Date after = new Date();
 		globals.status1("  NCC net list construction took "+NccUtils.hourMinSec(before, after)+".");
 
-		/** If export assertions aren't OK then some netlist is invalid */
-		if (!exportAssertionsOK(nccNetlists)) {
+		/** If some netlist is invalid then the comparison fails */
+		if (netlistErrors(nccNetlists)) {
 			return new NccResult(false, false, true);
 		}
 
 		globals.setInitialNetlists(nccNetlists);
 
 		NccResult result = designsMatch(hierInfo, false);
-NccUtils.hang("NCC completed");
+
 		globals.status2("****************************************"+					  		
 		                "****************************************");
 		return result;		              					  				
