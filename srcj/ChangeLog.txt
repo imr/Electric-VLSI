@@ -1,7 +1,13 @@
 			Java Electric change log
 
+************************* Version 8.01j: *********************************
+
 
 ************************* Version 8.01i: *********************************
+
+IMP/MAN: (8/19/04, JKG) new command line options: -mdi (force MDI mode) and
+    -sdi (force SDI mode). -m no longer works.
+
 BUG: In DRC, wrong condition for wide wire rule (<= instead of <)
 FIX: Change <= by <
 
