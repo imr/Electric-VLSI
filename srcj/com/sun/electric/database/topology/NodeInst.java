@@ -97,8 +97,10 @@ public class NodeInst extends Geometric
 		this.descriptor = new TextDescriptor();
 	}
 
-	/** recalculate the transform on this arc to get the endpoints
-	 * where they should be. */
+	/**
+	 * Recalculate the transform on this arc to get the endpoints
+	 * where they should be.
+	 */
 	void updateGeometric()
 	{
 		updateGeometricBounds();
@@ -144,7 +146,10 @@ public class NodeInst extends Geometric
 		this.cX = center.x + refPoint.getX();   this.cY = center.y + refPoint.getY();
 		this.sX = width;   this.sY = height;
 		this.angle = angle;
+
+		// fill in the geometry
 		updateGeometric();
+		linkGeom(parent);
 		return false;
 	}
 

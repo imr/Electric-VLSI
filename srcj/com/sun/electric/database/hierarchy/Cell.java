@@ -607,7 +607,7 @@ public class Cell extends NodeProto
 	}
 
 	/** Get the Electric bounds.  This excludes invisible widths. */
-	public Rectangle2D getBounds()
+	public Rectangle2D.Double getBounds()
 	{
 		if (boundsDirty)
 		{
@@ -642,19 +642,17 @@ public class Cell extends NodeProto
 			elecBounds.y = cellLowY;
 			elecBounds.height = cellHighY - cellLowY;
 			boundsDirty = false;
+System.out.println("Recomputing bounds of cell " + protoName);
 		}
+System.out.println("Bounds of cell " + protoName + " is " + elecBounds.width + " x " + elecBounds.height);
 
-		return new Rectangle2D.Double(
-			elecBounds.x,
-			elecBounds.y,
-			elecBounds.width,
-			elecBounds.height);
+		return elecBounds;
 	}
 
 	/** Routine to get the width of this Cell. */
-	public double getDefWidth() { return elecBounds.width; }
+	public double getDefWidth() { return getBounds().width; }
 	/** Routine to get the height of this Cell. */
-	public double getDefHeight() { return elecBounds.height; }
+	public double getDefHeight() { return getBounds().height; }
 
 	/** Routine to get the low-X offset of this Cell (always zero for cells). */
 	public double getLowXOffset() { return 0; }

@@ -99,6 +99,11 @@ public class UIEditFrame extends JInternalFrame
 		System.out.println("Closed");
 	}
 
+	public void setTimeTracking(boolean trackTime)
+	{
+		wnd.setTimeTracking(trackTime);
+	}
+
 	public void redraw()
 	{
 		wnd.redraw();

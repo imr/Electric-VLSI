@@ -1404,6 +1404,17 @@ public class InputBinary extends Input
 		// see if this library is already read in
 		String libFileName = libFile.getName();
 		String libFilePath = libFile.getParent();
+		
+		// special case if the library path came from a different computer system and still has separators
+		int backSlashPos = libFileName.lastIndexOf('\\');
+		int colonPos = libFileName.lastIndexOf(':');
+		int slashPos = libFileName.lastIndexOf('/');
+		int charPos = Math.max(backSlashPos, Math.max(colonPos, slashPos));
+		if (charPos >= 0)
+		{
+			libFileName = libFileName.substring(charPos+1);
+			libFilePath = "";
+		}
 		ImportType importType = ImportType.BINARY;
 		String libName = libFileName;
 		if (libName.endsWith(".elib"))

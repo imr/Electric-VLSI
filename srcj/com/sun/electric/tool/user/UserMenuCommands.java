@@ -131,11 +131,8 @@ public final class UserMenuCommands
 		}
 		if (lastFrame != null)
 		{
-			long startTime = System.currentTimeMillis();
+			lastFrame.setTimeTracking(true);
 			lastFrame.redraw();
-			long endTime = System.currentTimeMillis();
-			float finalTime = (endTime - startTime) / 1000F;
-			System.out.println("Took " + finalTime + " seconds to redisplay");
 		}
 	}
 

@@ -67,6 +67,18 @@ public class UITreeView extends JTree
 		return tree;
 	}
 
+	public String convertValueToText(Object value, boolean selected, boolean expanded, boolean leaf,
+		int row, boolean hasFocus)
+	{
+		Object nodeInfo = ((DefaultMutableTreeNode)value).getUserObject();
+		if (nodeInfo instanceof Cell)
+		{
+			Cell cell = (Cell)nodeInfo;
+			return cell.noLibDescribe();
+		}
+		return nodeInfo.toString();
+	}
+
 	// if need custom image to show tree
 	public void addTreeBranchImage(ImageIcon icon)
 	{

@@ -217,6 +217,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		
 		// fill in the geometry
 		updateGeometric();
+		linkGeom(parent);
 
 		return false;
 	}

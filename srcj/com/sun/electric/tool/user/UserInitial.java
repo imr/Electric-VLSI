@@ -194,9 +194,9 @@ public final class UserInitial
 		System.out.println("Created cell " + bigCell.describe());
 
 		// show some stuff
-		instance1Node.getInfo();
-		instance2Node.getInfo();
-		instanceArc.getInfo();
+//		instance1Node.getInfo();
+//		instance2Node.getInfo();
+//		instanceArc.getInfo();
 
 		// display some cells
 		UIEditFrame window1 = UIEditFrame.CreateEditWindow(myCell);

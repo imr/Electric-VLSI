@@ -64,6 +64,7 @@ public class UIEdit extends JPanel
 	/** the cell that is in the window */					private Cell cell;
 	/** the offscreen image of the window */				private Image img = null;
 	/** true if the window needs to be rerendered */		private boolean needsUpdate = false;
+	/** true to track the time for redraw */				private boolean trackTime = false;
 
 	/** an identity transformation */						private static final AffineTransform IDENTITY = new AffineTransform();
 	/** the offset of each new window on the screen */		private static int windowOffset = 0;
@@ -104,6 +105,11 @@ public class UIEdit extends JPanel
 		repaint();
 	}
 
+	public void setTimeTracking(boolean trackTime)
+	{
+		this.trackTime = trackTime;
+	}
+
 	/**
 	 * Routine to set the cell that is shown in the window to "cell".
 	 */
@@ -130,8 +136,20 @@ public class UIEdit extends JPanel
 		g2.scale(scale, -scale);
 		g2.translate(-offx, -offy);
 
-		// draw all arcs
+		// if tracking time, start the clock
+		long startTime = 0;
+		if (trackTime) startTime = System.currentTimeMillis();
+
+		// draw everything
 		drawCell(g2, cell, IDENTITY, true);
+
+		// if tracking time, report the time
+		if (trackTime)
+		{
+			long endTime = System.currentTimeMillis();
+			float finalTime = (endTime - startTime) / 1000F;
+			System.out.println("Took " + finalTime + " seconds to redisplay");
+		}
 	}
 
 	/**
