@@ -506,7 +506,7 @@ public class FillGen extends EDialog {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        new FillGen(new javax.swing.JFrame(), true).show();
+        new FillGen(new javax.swing.JFrame(), true).setVisible(true);
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

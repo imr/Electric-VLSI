@@ -288,7 +288,7 @@ public class WindowFrame
 		} else
 		{
 			jf.getContentPane().add(js);
-			if (!Main.BATCHMODE) jf.show();
+			if (!Main.BATCHMODE) jf.setVisible(true);
 		}
 	}
 
@@ -319,7 +319,7 @@ public class WindowFrame
 			// add tool bar as listener so it can find out state of cell history in EditWindow
 			content.getPanel().addPropertyChangeListener(EditWindow.propGoBackEnabled, ((TopLevel)jf).getToolBar());
 			content.getPanel().addPropertyChangeListener(EditWindow.propGoForwardEnabled, ((TopLevel)jf).getToolBar());
-			if (!Main.BATCHMODE) jf.show();
+			if (!Main.BATCHMODE) jf.setVisible(true);
 		}
 	}
 
@@ -391,7 +391,7 @@ public class WindowFrame
 	public void moveEditWindow(GraphicsConfiguration gc) {
 
 		if (TopLevel.isMDIMode()) return;           // only valid in SDI mode
-		jf.hide();                                  // hide old Frame
+		jf.setVisible(false);                       // hide old Frame
 		//jf.getFocusOwner().setFocusable(false);
 		//System.out.println("Set unfocasable: "+jf.getFocusOwner());
 		depopulateJFrame();                         // remove all components from old Frame

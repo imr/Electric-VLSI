@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01aw: *********************************
 
+IMP: (12/17/04, GVG) Fixed compilation warnings on Java-1.5.
+
 IMP: (12/16/04, GVG) Minor changes due to manul preparation.
 
 BUG: (12/16/04, SMR) Going "Down Hierarchy" after a "Down Hierarchy In Place" remains

@@ -269,7 +269,7 @@ public class ExecDialog extends EDialog implements Exec.FinishedListener {
         if (exec != null) {
             // need to remove self as listener, otherwise will get call back via processFinished()
             exec.removeFinishedListener(this);
-            exec.destroy();
+            exec.destroyProcess();
         }
         dispose();
     }//GEN-LAST:event_closeDialog

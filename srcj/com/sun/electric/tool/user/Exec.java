@@ -284,7 +284,7 @@ public class Exec extends Thread {
     /**
      * End this process, if it is running. Otherwise, does nothing
      */
-    public synchronized void destroy() {
+    public synchronized void destroyProcess() {
         if (p != null) {
             p.destroy();
         }

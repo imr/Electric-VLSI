@@ -143,7 +143,7 @@ public class MessagesWindow
 		} else
 		{
 			((JFrame)jf).pack();
-			if (!Main.BATCHMODE) ((JFrame)jf).show();
+			if (!Main.BATCHMODE) ((JFrame)jf).setVisible(true);
 		}
 
 		System.setOut(new java.io.PrintStream(this));

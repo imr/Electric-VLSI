@@ -145,7 +145,7 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 			//((JInternalFrame)palette.container).moveToFront();
 		} else
 		{
-			if (!Main.BATCHMODE) ((JFrame)palette.container).show();
+			if (!Main.BATCHMODE) ((JFrame)palette.container).setVisible(true);
 		}
 
         Undo.addDatabaseChangeListener(palette);

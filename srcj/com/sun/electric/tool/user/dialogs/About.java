@@ -56,7 +56,7 @@ public class About extends EDialog
 		{
 			new CastOfThousands("Robert Bosnyak", 			"Pads library"),
 			new CastOfThousands("Jonathan Gainsley", 		"User interface, spice, logical effort, and more"),
-			new CastOfThousands("Gilda Garretón", 			"DRC, ERC, parasitics, 3D"),
+			new CastOfThousands("Gilda Garret\u00F3n", 		"DRC, ERC, parasitics, 3D"),
 			new CastOfThousands("David Harris", 			"ROM generator, Color printing"),
 			new CastOfThousands("Jason Imada", 				"ROM generator"),
 			new CastOfThousands("Russell Kao",				"NCC, generators, hierarchy enumeration"),
@@ -75,7 +75,7 @@ public class About extends EDialog
 			new CastOfThousands("Jonathan Gainsley", 		"User interface, logical effort"),
 			new CastOfThousands("Peter Gallant", 			"ALS simulator"),
 			new CastOfThousands("R. Brian Gardiner", 		"Electric lifeline"),
-			new CastOfThousands("Gilda Garretón", 			"Geometry, parasitics, 3D"),
+			new CastOfThousands("Gilda Garret\u00F3n", 		"Geometry, parasitics, 3D"),
 			new CastOfThousands("T. J. Goodman", 			"Texsim output"),
 			new CastOfThousands("Gerrit Groenewold", 		"SPICE parts"),
 			new CastOfThousands("David Groulx", 		    "Node extraction"),

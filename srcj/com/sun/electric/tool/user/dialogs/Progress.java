@@ -89,7 +89,7 @@ public class Progress
 		} else
 		{
 			jf.getContentPane().add(panel);
-			if (!Main.BATCHMODE) jf.show();
+			if (!Main.BATCHMODE) jf.setVisible(true);
 		}
 	}
 

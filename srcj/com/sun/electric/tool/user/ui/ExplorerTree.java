@@ -1207,7 +1207,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		{
 			JFrame jf = TopLevel.getCurrentJFrame();
 			NewCell dialog = new NewCell(jf, true);
-			if (!Main.BATCHMODE) dialog.show();
+			if (!Main.BATCHMODE) dialog.setVisible(true);
 		}
 
 		private void setSweepAction(boolean include)
@@ -1293,7 +1293,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
             Cell cell = (Cell)currentSelectedObject;
             if (cell == null) return;
             ChangeCellGroup dialog = new ChangeCellGroup(TopLevel.getCurrentJFrame(), true, cell, cell.getLibrary());
-            if (!Main.BATCHMODE) dialog.show();
+            if (!Main.BATCHMODE) dialog.setVisible(true);
         }
 
         private void makeNewSchematicPage()

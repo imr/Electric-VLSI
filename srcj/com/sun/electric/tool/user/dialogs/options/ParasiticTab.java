@@ -105,7 +105,7 @@ public class ParasiticTab extends PreferencePanel {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        new ParasiticTab(new javax.swing.JFrame(), true).show();
+        new ParasiticTab(new javax.swing.JFrame(), true).setVisible(true);
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
