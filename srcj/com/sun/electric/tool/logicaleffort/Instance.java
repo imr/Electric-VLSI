@@ -69,6 +69,7 @@ public class Instance {
         /** NotSizeable */  protected static final Type WIRE = new Type("Wire");
         /** LeGate */       protected static final Type LEGATE = new Type("LE Gate");
         /** LeKeeper */     protected static final Type LEKEEPER = new Type("LE Keeper");
+        /** NotSizeable */  protected static final Type CAPACITOR = new Type("Capacitor");
     }
     
     /** Creates a new instance of Instance */

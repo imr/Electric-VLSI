@@ -57,16 +57,8 @@ import java.util.List;
  * @author  gainsley
  */
 public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetlister {
-    
-    // ALL GATES SAME DELAY
-    /** global step-up */                       private float su;
-    /** wire to gate cap ratio */               private float wireRatio;
-    /** convergence criteron */                 private float epsilon;
-    /** max number of iterations */             private int maxIterations;
-    /** gate cap, in fF/lambda */               private float gateCap;
-    /** ratio of diffusion to gate cap */       private float alpha;
-    /** ratio of keeper to driver size */       private float keeperRatio;
 
+    /** Netlister constants */                  protected NetlisterConstants constants;
     /** Map of Cells to CachedCells */          private Map cellMap;
     /** Map of globalID's to LENetworks */      private Map globalNetworks;
     /** List of sizeable unique LENodables */   private List sizableLENodables;
@@ -83,17 +75,32 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
     private static final boolean DEBUG = false;
     private static final boolean DISABLE_CACHING = false;
 
+    public static final Variable.Key ATTR_M = ElectricObject.newKey("ATTR_M");
+    public static final Variable.Key ATTR_su = ElectricObject.newKey("ATTR_su");
+    public static final Variable.Key ATTR_le = ElectricObject.newKey("ATTR_le");
+
+    protected static class NetlisterConstants {
+        /** global step-up */                       protected float su;
+        /** wire to gate cap ratio */               protected float wireRatio;
+        /** convergence criteron */                 protected float epsilon;
+        /** max number of iterations */             protected int maxIterations;
+        /** gate cap, in fF/lambda */               protected float gateCap;
+        /** ratio of diffusion to gate cap */       protected float alpha;
+        /** ratio of keeper to driver size */       protected float keeperRatio;
+    }
+
     /** Creates a new instance of LENetlister */
     public LENetlister2(Job job) {
         // get preferences for this package
         Tool leTool = Tool.findTool("logical effort");
-        su = (float)LETool.getGlobalFanout();
-        epsilon = (float)LETool.getConvergenceEpsilon();
-        maxIterations = LETool.getMaxIterations();
-        gateCap = (float)LETool.getGateCapacitance();
-        wireRatio = (float)LETool.getWireRatio();
-        alpha = (float)LETool.getDiffAlpha();
-        keeperRatio = (float)LETool.getKeeperRatio();
+        constants = new NetlisterConstants();
+        constants.su = (float)LETool.getGlobalFanout();
+        constants.epsilon = (float)LETool.getConvergenceEpsilon();
+        constants.maxIterations = LETool.getMaxIterations();
+        constants.gateCap = (float)LETool.getGateCapacitance();
+        constants.wireRatio = (float)LETool.getWireRatio();
+        constants.alpha = (float)LETool.getDiffAlpha();
+        constants.keeperRatio = (float)LETool.getKeeperRatio();
         
         this.job = job;
         this.cellMap = new HashMap();
@@ -142,7 +149,7 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
         boolean verbose = false;
         // create a new sizer
         sizer = new LESizer2(algorithm, this, job, errorLogger);
-        boolean success = sizer.optimizeLoops(epsilon, maxIterations, verbose, alpha, keeperRatio);
+        boolean success = sizer.optimizeLoops(constants.epsilon, constants.maxIterations, verbose, constants.alpha, constants.keeperRatio);
         //out.println("---------After optimization:------------");
         //lesizer.printDesign();
         // get rid of the sizer
@@ -188,22 +195,22 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
     /** NodeInst should be an LESettings instance */
     private void useLESettings(NodeInst ni, VarContext context) {
         Variable var;
-        if ((var = ni.getVar("ATTR_su")) != null) su = VarContext.objectToFloat(context.evalVar(var), su);
-        if ((var = ni.getVar("ATTR_wire_ratio")) != null) wireRatio = VarContext.objectToFloat(context.evalVar(var), wireRatio);
-        if ((var = ni.getVar("ATTR_epsilon")) != null) epsilon = VarContext.objectToFloat(context.evalVar(var), epsilon);
-        if ((var = ni.getVar("ATTR_max_iter")) != null) maxIterations = VarContext.objectToInt(context.evalVar(var), maxIterations);
-        if ((var = ni.getVar("ATTR_gate_cap")) != null) gateCap = VarContext.objectToFloat(context.evalVar(var), gateCap);
-        if ((var = ni.getVar("ATTR_alpha")) != null) alpha = VarContext.objectToFloat(context.evalVar(var), alpha);
-        if ((var = ni.getVar("ATTR_keeper_ratio")) != null) keeperRatio = VarContext.objectToFloat(context.evalVar(var), keeperRatio);
+        if ((var = ni.getVar("ATTR_su")) != null) constants.su = VarContext.objectToFloat(context.evalVar(var), constants.su);
+        if ((var = ni.getVar("ATTR_wire_ratio")) != null) constants.wireRatio = VarContext.objectToFloat(context.evalVar(var), constants.wireRatio);
+        if ((var = ni.getVar("ATTR_epsilon")) != null) constants.epsilon = VarContext.objectToFloat(context.evalVar(var), constants.epsilon);
+        if ((var = ni.getVar("ATTR_max_iter")) != null) constants.maxIterations = VarContext.objectToInt(context.evalVar(var), constants.maxIterations);
+        if ((var = ni.getVar("ATTR_gate_cap")) != null) constants.gateCap = VarContext.objectToFloat(context.evalVar(var), constants.gateCap);
+        if ((var = ni.getVar("ATTR_alpha")) != null) constants.alpha = VarContext.objectToFloat(context.evalVar(var), constants.alpha);
+        if ((var = ni.getVar("ATTR_keeper_ratio")) != null) constants.keeperRatio = VarContext.objectToFloat(context.evalVar(var), constants.keeperRatio);
     }
 
     protected Iterator getSizeableNodables() { return sizableLENodables.iterator(); }
 
-    protected float getGlobalSU() { return su; }
+    protected float getGlobalSU() { return constants.su; }
 
     protected LESizer2 getSizer() { return sizer; }
 
-    protected float getKeeperRatio() { return keeperRatio; }
+    protected float getKeeperRatio() { return constants.keeperRatio; }
 
     private LENetwork getNetwork(int globalID, HierarchyEnumerator.CellInfo info) {
         LENetwork net = (LENetwork)globalNetworks.get(new Integer(globalID));
@@ -259,7 +266,7 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
                     Cell parent = info.getParentInfo().getCell();
                     CachedCell parentCached = (CachedCell)netlister.cellMap.get(parent);
                     Nodable no = info.getParentInst();
-                    parentCached.add(no, (LECellInfo)info.getParentInfo(), cachedCell, (LECellInfo)info, netlister.wireRatio);
+                    parentCached.add(no, (LECellInfo)info.getParentInfo(), cachedCell, (LECellInfo)info, netlister.constants);
                 }
             }
             return false;
@@ -288,7 +295,7 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
                 Cell parent = info.getParentInfo().getCell();
                 CachedCell parentCached = (CachedCell)netlister.cellMap.get(parent);
                 Nodable no = info.getParentInst();
-                parentCached.add(no, (LECellInfo)info.getParentInfo(), cachedCell, (LECellInfo)info, netlister.wireRatio);
+                parentCached.add(no, (LECellInfo)info.getParentInfo(), cachedCell, (LECellInfo)info, netlister.constants);
             }
         }
 
@@ -299,7 +306,7 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
                 Map.Entry entry = (Map.Entry)it.next();
                 Cell cell = (Cell)entry.getKey();
                 CachedCell cachedCell = (CachedCell)entry.getValue();
-                if (cachedCell.isContextFree(netlister.wireRatio)) {
+                if (cachedCell.isContextFree(netlister.constants)) {
                     cachedMap.put(cell, cachedCell);
                 }
             }
@@ -376,10 +383,10 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
                 int globalID = info.getNetID(outJNet);
                 outputNet = getNetwork(globalID, info);
             }
-            float localsu = su;
+            float localsu = constants.su;
             if (leinfo.getSU() != -1f) localsu = leinfo.getSU();
             LENodable uniqueLeno = def.createUniqueInstance(info.getContext(), outputNet,
-                    leinfo.getMFactor(), localsu, wireRatio);
+                    leinfo.getMFactor(), localsu, constants);
             if (uniqueLeno.isLeGate())
                 sizableLENodables.add(uniqueLeno);
             allLENodables.add(uniqueLeno);
@@ -431,7 +438,7 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
             if (ni == null) return;
 
             // get mfactor from instance we pushed into
-            Variable mvar = ni.getVar("ATTR_M");
+            Variable mvar = ni.getVar(ATTR_M);
             if (mvar != null) {
                 Object mval = getContext().evalVar(mvar, null);
                 if (mval != null)
@@ -439,7 +446,7 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
             }
 
             // get su from instance we pushed into
-            Variable suvar = ni.getVar("ATTR_su");
+            Variable suvar = ni.getVar(ATTR_su);
             if (suvar != null) {
                 float su = VarContext.objectToFloat(getContext().evalVar(suvar, null), -1f);
                 if (su != -1f) cellsu = su;
@@ -483,6 +490,9 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
         else if ((ni.getProto() != null) && (ni.getProto().getFunction().isTransistor())) {
             return LENodable.Type.TRANSISTOR;
         }
+        else if ((ni.getProto() != null) && (ni.getProto().getFunction() == NodeProto.Function.CAPAC)) {
+            return LENodable.Type.CAPACITOR;
+        }
         return null;
     }
 
@@ -499,14 +509,16 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
 
         if (DEBUG) System.out.println("------------------------------------");
 
-        // Build an LENodable.
-        LENodable lenodable = new LENodable(ni, type, ni.getParameter("ATTR_M"), ni.getParameter("ATTR_su"), ni.getParameter("ATTR_LEPARALLGRP"));
+        // Build an LENodable. M can be variable or parameter
+        Variable mVar = ni.getVar(ATTR_M);
+        if (mVar == null) mVar = ni.getParameter("ATTR_M");
+        LENodable lenodable = new LENodable(ni, type, mVar, ni.getParameter("ATTR_su"), ni.getParameter("ATTR_LEPARALLGRP"));
         JNetwork outputJNet = null;
 
 		Netlist netlist = info.getNetlist();
 		for (Iterator ppIt = ni.getProto().getPorts(); ppIt.hasNext();) {
 			PortProto pp = (PortProto)ppIt.next();
-            var = pp.getVar("ATTR_le");
+            var = pp.getVar(ATTR_le);
             // Note: default 'le' value should be one
             float le = 1.0f;
             if (var != null) le = VarContext.objectToFloat(info.getContext().evalVar(var), (float)1.0);
@@ -534,53 +546,6 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
         }
 
         return lenodable;
-    }
-
-    /**
-     * Get the leX size for the given LENodable
-     * @param type the lenodable type
-     * @param ni the nodable
-     * @param info the current info
-     * @return the leX size
-     */
-    private float getLeX(LENodable.Type type, Nodable ni, HierarchyEnumerator.CellInfo info) {
-        float leX = (float)0.0;
-
-        Variable var = null;
-        if (type == LENodable.Type.WIRE) {
-            // Note that if inst is an LEWIRE, it will have no 'le' attributes.
-            // we therefore assign pins to have default 'le' values of one.
-            // This creates an instance which has Type LEWIRE, but has
-            // boolean leGate set to false; it will not be sized
-            var = ni.getVar("ATTR_L");
-            float len = VarContext.objectToFloat(info.getContext().evalVar(var), 0.0f);
-            var = ni.getVar("ATTR_width");
-            float width = VarContext.objectToFloat(info.getContext().evalVar(var), 3.0f);
-            leX = (float)(0.95f*len + 0.05f*len*(width/3.0f))*wireRatio;  // equivalent lambda of gate
-            leX = leX/9.0f;                         // drive strength X=1 is 9 lambda of gate
-        }
-        else if (type == LENodable.Type.TRANSISTOR) {
-            var = ni.getVar("ATTR_width");
-            if (var == null) {
-                System.out.println("Error: transistor "+ni+" has no width in Cell "+info.getCell());
-                ErrorLogger.ErrorLog log = errorLogger.logError("Error: transistor "+ni+" has no width in Cell "+info.getCell(), info.getCell(), 0);
-                log.addGeom(ni.getNodeInst(), true, info.getCell(), info.getContext());
-                return 0;
-            }
-            float width = VarContext.objectToFloat(info.getContext().evalVar(var), (float)3.0);
-            var = ni.getVar("ATTR_length");
-            if (var == null) {
-                System.out.println("Error: transistor "+ni+" has no length in Cell "+info.getCell());
-                ErrorLogger.ErrorLog log = errorLogger.logError("Error: transistor "+ni+" has no length in Cell "+info.getCell(), info.getCell(), 0);
-                log.addGeom(ni.getNodeInst(), true, info.getCell(), info.getContext());
-                return 0;
-            }
-            float length = VarContext.objectToFloat(info.getContext().evalVar(var), (float)2.0);
-            // not exactly correct because assumes all cap is area cap, which it isn't
-            leX = (float)(width*length/2.0f);
-            leX = leX/9.0f;
-        }
-        return leX;
     }
 
     // =============================== Statistics ==================================
@@ -625,7 +590,7 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
         if (leno == null) return false;
 
         // print netlister info
-        System.out.println("Netlister: Gate Cap="+gateCap+", Alpha="+alpha);
+        System.out.println("Netlister: Gate Cap="+constants.gateCap+", Alpha="+constants.alpha);
 
         // print instance info
         leno.print();
@@ -645,6 +610,7 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
                 if (loopLeno.isGate()) gatesDrivenPins.add(pin);
                 if (loopLeno.getType() == LENodable.Type.LOAD) loadsDrivenPins.add(pin);
                 if (loopLeno.getType() == LENodable.Type.TRANSISTOR) loadsDrivenPins.add(pin);
+                if (loopLeno.getType() == LENodable.Type.CAPACITOR) loadsDrivenPins.add(pin);
                 if (loopLeno.getType() == LENodable.Type.WIRE) wiresDrivenPins.add(pin);
             }
             if (pin.getDir() == LEPin.Dir.OUTPUT) {
@@ -657,19 +623,19 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
         float totalLoad = 0f;
         System.out.println("  -------------------- Gates Driven ("+gatesDrivenPins.size()+") --------------------");
         for (Iterator it = gatesDrivenPins.iterator(); it.hasNext(); ) {
-            LEPin pin = (LEPin)it.next(); totalLoad += pin.getInstance().printLoadInfo(pin, alpha);
+            LEPin pin = (LEPin)it.next(); totalLoad += pin.getInstance().printLoadInfo(pin, constants.alpha);
         }
         System.out.println("  -------------------- Loads Driven ("+loadsDrivenPins.size()+") --------------------");
         for (Iterator it = loadsDrivenPins.iterator(); it.hasNext(); ) {
-            LEPin pin = (LEPin)it.next(); totalLoad += pin.getInstance().printLoadInfo(pin, alpha);
+            LEPin pin = (LEPin)it.next(); totalLoad += pin.getInstance().printLoadInfo(pin, constants.alpha);
         }
         System.out.println("  -------------------- Wires Driven ("+wiresDrivenPins.size()+") --------------------");
         for (Iterator it = wiresDrivenPins.iterator(); it.hasNext(); ) {
-            LEPin pin = (LEPin)it.next(); totalLoad += pin.getInstance().printLoadInfo(pin, alpha);
+            LEPin pin = (LEPin)it.next(); totalLoad += pin.getInstance().printLoadInfo(pin, constants.alpha);
         }
         System.out.println("  -------------------- Gates Fighting ("+gatesFightingPins.size()+") --------------------");
         for (Iterator it = gatesFightingPins.iterator(); it.hasNext(); ) {
-            LEPin pin = (LEPin)it.next(); totalLoad += pin.getInstance().printLoadInfo(pin, alpha);
+            LEPin pin = (LEPin)it.next(); totalLoad += pin.getInstance().printLoadInfo(pin, constants.alpha);
         }
         System.out.println("*** Total Load: "+TextUtils.formatDouble(totalLoad, 2));
         //msgs.setFont(oldFont);

@@ -114,6 +114,7 @@ public class LESizer2 {
 
                 // find all drivers in same group, of same type (LEGATE or LEKEEPER)
                 List drivers = new ArrayList();
+                List arrayedDrivers = new ArrayList();
                 for (Iterator it = outputNet.getAllPins().iterator(); it.hasNext(); ) {
                     LEPin pin = (LEPin)it.next();
                     // only interested in drivers
@@ -135,6 +136,11 @@ public class LESizer2 {
                                 }
                             }
                         }
+                    }
+                    if ((loopLeno.getNodable().getNodeInst() == leno.getNodable().getNodeInst()) &&
+                        (loopLeno.context == leno.context)) {
+                        // this must be an arrayed driver: not this also adds current instance at some point as well
+                        arrayedDrivers.add(loopLeno);
                     }
                 }
 
@@ -241,7 +247,7 @@ public class LESizer2 {
                     // For now, split effort equally amongst all drivers
                     // Group 0 drives individually
                     if (leno.parallelGroup <= 0)
-                        newX = totalcap / leno.su;
+                        newX = totalcap / leno.su / arrayedDrivers.size();
                     else {
                         newX = totalcap / leno.su / drivers.size();
                     }

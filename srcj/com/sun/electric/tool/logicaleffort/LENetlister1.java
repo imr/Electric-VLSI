@@ -39,6 +39,7 @@ import com.sun.electric.tool.user.ui.MessagesWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.technologies.Schematics;
 
 import java.awt.geom.AffineTransform;
 import java.awt.*;
@@ -342,6 +343,18 @@ public class LENetlister1 extends HierarchyEnumerator.Visitor implements LENetli
             leX = leX/9.0f;
             primitiveTransistor = true;
         }
+        else if ((ni.getProto() != null) && (ni.getProto().getFunction() == NodeProto.Function.CAPAC)) {
+            type = Instance.Type.CAPACITOR;
+            var = ni.getVar(Schematics.SCHEM_CAPACITANCE);
+            if (var == null) {
+                System.out.println("Error: capacitor "+ni+" has no capacitance in Cell "+ni.getParent());
+                //ErrorLogger.ErrorLog log = errorLogger.logError("Error: capacitor "+no+" has no capacitance in Cell "+info.getCell(), info.getCell(), 0);
+                //log.addGeom(ni.getNodeInst(), true, no.getParent(), context);
+                return false;
+            }
+            float cap = VarContext.objectToFloat(info.getContext().evalVar(var), (float)0.0);
+            leX = (float)(cap/gateCap/1e-15/9.0f);
+        }
         else if (ni.getVar("ATTR_LESETTINGS") != null)
             return false;
 
@@ -556,6 +569,7 @@ public class LENetlister1 extends HierarchyEnumerator.Visitor implements LENetli
                 if (in.isGate()) gatesDrivenPins.add(pin);
                 //if (in.getType() == Instance.Type.STATICGATE) staticGatesDriven.add(in);
                 if (in.getType() == Instance.Type.LOAD) loadsDrivenPins.add(pin);
+                if (in.getType() == Instance.Type.CAPACITOR) loadsDrivenPins.add(pin);
                 if (in.getType() == Instance.Type.WIRE) wiresDrivenPins.add(pin);
             }
             if (pin.getDir() == Pin.Dir.OUTPUT) {

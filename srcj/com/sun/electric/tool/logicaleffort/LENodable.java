@@ -119,8 +119,8 @@ public class LENodable {
      * @param mfactor the parent's mfactor
      * @param su the parent's step-up
      */
-    protected boolean setOnlyContext(VarContext context, LENetwork outputNetwork, float mfactor, float su, float wireRatio) {
-        boolean evalOk = instantiate(this, context, outputNetwork, mfactor, su, wireRatio);
+    protected boolean setOnlyContext(VarContext context, LENetwork outputNetwork, float mfactor, float su, LENetlister2.NetlisterConstants constants) {
+        boolean evalOk = instantiate(this, context, outputNetwork, mfactor, su, constants);
         //print();
         return evalOk;
     }
@@ -133,14 +133,14 @@ public class LENodable {
      * @param mfactor the parent's mfactor
      * @param su the parent's step-up
      */
-    protected LENodable createUniqueInstance(VarContext context, LENetwork outputNetwork, float mfactor, float su, float wireRatio) {
+    protected LENodable createUniqueInstance(VarContext context, LENetwork outputNetwork, float mfactor, float su, LENetlister2.NetlisterConstants constants) {
         LENodable instance = new LENodable(no, type, mfactorVar, suVar, parallelGroupVar);
         // copy pins
         for (Iterator it = pins.iterator(); it.hasNext(); ) {
             LEPin pin = (LEPin)it.next();
             instance.addPort(pin.getName(), pin.getDir(), pin.getLE(), pin.getJNetwork());
         }
-        instantiate(instance, context, outputNetwork, mfactor, su, wireRatio);
+        instantiate(instance, context, outputNetwork, mfactor, su, constants);
         return instance;
     }
 
@@ -153,12 +153,12 @@ public class LENodable {
      * @param mfactor the parent's mfactor
      * @param su the parent's step-up
      */
-    private boolean instantiate(LENodable instance, VarContext context, LENetwork outputNetwork, float mfactor, float su, float wireRatio) {
+    private boolean instantiate(LENodable instance, VarContext context, LENetwork outputNetwork, float mfactor, float su, LENetlister2.NetlisterConstants constants) {
         instance.outputNetwork = outputNetwork;
         boolean evalOk = true;
 
         // default values
-        instance.leX = getLeX(context, wireRatio);
+        instance.leX = getLeX(context, constants);
         if (instance.leX == -1f) evalOk = false;
         instance.mfactor = mfactor;
         instance.su = su;
@@ -193,7 +193,7 @@ public class LENodable {
      * @param context the VarContext
      * @return the leX size, or -1 if eval failed
      */
-    private float getLeX(VarContext context, float wireRatio) {
+    private float getLeX(VarContext context, LENetlister2.NetlisterConstants constants) {
         float leX = (float)0.0;
 
         Variable var = null;
@@ -213,7 +213,7 @@ public class LENodable {
             if (retVal == null) return -1f;
             float width = VarContext.objectToFloat(retVal, 3.0f);
 
-            leX = (float)(0.95f*len + 0.05f*len*(width/3.0f))*wireRatio;  // equivalent lambda of gate
+            leX = (float)(0.95f*len + 0.05f*len*(width/3.0f))*constants.wireRatio;  // equivalent lambda of gate
             leX = leX/9.0f;                         // drive strength X=1 is 9 lambda of gate
         }
         else if (type == LENodable.Type.TRANSISTOR) {
@@ -242,6 +242,19 @@ public class LENodable {
             leX = (float)(width*length/2.0f);
             leX = leX/9.0f;
         }
+        else if (type == Type.CAPACITOR) {
+            var = no.getVar(Schematics.SCHEM_CAPACITANCE);
+            if (var == null) {
+                System.out.println("Error: capacitor "+no+" has no capacitance in Cell "+no.getParent());
+                //ErrorLogger.ErrorLog log = errorLogger.logError("Error: capacitor "+no+" has no capacitance in Cell "+info.getCell(), info.getCell(), 0);
+                //log.addGeom(ni.getNodeInst(), true, no.getParent(), context);
+                return -1f;
+            }
+            retVal = context.evalVar(var);
+            if (retVal == null) return -1f;
+            float cap = VarContext.objectToFloat(retVal, (float)0.0);
+            leX = (float)(cap/constants.gateCap/1e-15/9.0f);
+        }
         return leX;
     }
 
@@ -264,7 +277,7 @@ public class LENodable {
         StringBuffer buf = new StringBuffer();
         buf.append(getType().toString());
         buf.append("\t"+getName());
-        buf.append("\tSize="+TextUtils.formatDouble(leX*mfactor, 2));
+        buf.append("\tSize="+TextUtils.formatDouble(leX, 2));
         buf.append("\tLE="+TextUtils.formatDouble(pin.getLE(), 2));
         buf.append("\tM="+TextUtils.formatDouble(mfactor, 2));
         float load;

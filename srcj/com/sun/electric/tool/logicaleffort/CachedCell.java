@@ -95,7 +95,7 @@ public class CachedCell {
      * @param subCellInfo the subcell CellInfo
      */
     protected void add(Nodable no, LENetlister2.LECellInfo info,
-                       CachedCell subCell, LENetlister2.LECellInfo subCellInfo, float wireRatio) {
+                       CachedCell subCell, LENetlister2.LECellInfo subCellInfo, LENetlister2.NetlisterConstants constants) {
         CellNodable ceno = new CellNodable();
         ceno.no = no;
         ceno.subCell = subCell;
@@ -106,7 +106,7 @@ public class CachedCell {
             // don't bother caching cells with sizeable gates, they get tossed out later
             return;
         }
-        if (!subCell.isContextFree(wireRatio)) {
+        if (!subCell.isContextFree(constants)) {
             // if the subcell in not context free, make a copy of it in this cell with
             // the context. This cell can be instantiated in some other cell and eventually
             // become context free, however then all the instances are tied to that context.
@@ -145,24 +145,24 @@ public class CachedCell {
         }
     }
 
-    protected boolean isContextFree(float wireRatio) {
+    protected boolean isContextFree(LENetlister2.NetlisterConstants constants) {
         if (contextFree == null) {
             // this cell has not yet been evaluated, do it now
             if (isContainsSizableGates()) {
                 contextFree = new Boolean(false);
             } else {
-                boolean cf = isContextFreeRecurse(VarContext.globalContext, 1f, wireRatio);
+                boolean cf = isContextFreeRecurse(VarContext.globalContext, 1f, constants);
                 contextFree = new Boolean(cf);
             }
         }
         return contextFree.booleanValue();
     }
 
-    private boolean isContextFreeRecurse(VarContext context, float mfactor, float wireRatio) {
+    private boolean isContextFreeRecurse(VarContext context, float mfactor, LENetlister2.NetlisterConstants constants) {
         // check LENodables
         for (Iterator it = lenodables.values().iterator(); it.hasNext(); ) {
             LENodable leno = (LENodable)it.next();
-            if (!leno.setOnlyContext(context, null, mfactor, 0, wireRatio)) return false;
+            if (!leno.setOnlyContext(context, null, mfactor, 0, constants)) return false;
         }
         // check cached cell instances
         for (Iterator it = cellnodables.entrySet().iterator(); it.hasNext(); ) {
@@ -176,7 +176,7 @@ public class CachedCell {
                 if (retVal == null) return false;
                 subCellMFactor *= VarContext.objectToFloat(retVal, 1);
             }
-            if (!ceno.subCell.isContextFreeRecurse(context.push(no), subCellMFactor, wireRatio))
+            if (!ceno.subCell.isContextFreeRecurse(context.push(no), subCellMFactor, constants))
                 return false;
         }
         return true;
