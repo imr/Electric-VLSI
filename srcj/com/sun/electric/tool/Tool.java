@@ -57,8 +57,8 @@ public class Tool implements Comparable
 	private int toolIndex;
 
 	// the static list of all tools
-	private static LinkedHashMap tools = new LinkedHashMap();
-//	private static TreeMap tools = new TreeMap();
+//	private static LinkedHashMap tools = new LinkedHashMap();
+	private static TreeMap tools = new TreeMap();
 	private static List listeners = new ArrayList();
 	private static int toolNumber = 0;
 
