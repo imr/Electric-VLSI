@@ -53,6 +53,7 @@ import com.sun.electric.tool.logicaleffort.LETool;
 //import com.sun.electric.tool.ncc.factory.NetFactory;
 
 import java.util.Iterator;
+import java.util.ArrayList;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
@@ -749,7 +750,15 @@ public final class UserMenuCommands
 			}
 		} else
 		{
-			Cell.rebuildAllNetworks(null);
+			ArrayList connectedPorts = new ArrayList();
+			/*
+			ArrayList pair = new ArrayList();
+			NodeProto diode = NodeProto.findNodeProto("schematic:Diode");
+			pair.add(diode.findPortProto("a"));
+			pair.add(diode.findPortProto("b"));
+			connectedPorts.add(pair);
+			*/
+			Cell.rebuildAllNetworks(connectedPorts);
 		}
 		long endTime = System.currentTimeMillis();
 		float finalTime = (endTime - startTime) / 1000F;

@@ -334,7 +334,7 @@ public abstract class PortProto extends ElectricObject implements Networkable
 	 * It is only used on PrimitivePorts, and is set during Technology creation.
 	 * @return the topology of this PortProto.
 	 */
-	public int getTopology(int topologyIndex)
+	public int getTopology()
 	{
 		return (userBits & PORTNET) >> PORTNETSH;
 	}

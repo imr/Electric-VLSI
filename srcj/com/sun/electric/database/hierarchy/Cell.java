@@ -40,6 +40,7 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -1975,6 +1976,7 @@ public class Cell extends NodeProto
 		{
 			NodeUsage nu = (NodeUsage) uit.next();
 			if (nu.isIconOfParent()) continue;
+			if (nu.getProto().getFunction() == NodeProto.Function.ART) continue;
 
 			NodeProto np = nu.getProto();
 			np.numeratePorts();
@@ -2049,6 +2051,7 @@ public class Cell extends NodeProto
 		{
 			NodeInst ni = (NodeInst) nit.next();
 			if (ni.isIconOfParent()) continue;
+			if (ni.getProto().getFunction() == NodeProto.Function.ART) continue;
 
 			for (Iterator pit = ni.getPortInsts(); pit.hasNext();)
 			{
@@ -2107,6 +2110,28 @@ public class Cell extends NodeProto
 		{
 			addNetwork((JNetwork) it.next());
 		}
+		/*
+		// debug info
+		System.out.println("BuildNetworkList "+this);
+		int i = 0;
+		for (Iterator nit = getNetworks(); nit.hasNext(); )
+		{
+			JNetwork network = (JNetwork)nit.next();
+			String s = "";
+			for (Iterator sit = network.getNames(); sit.hasNext(); )
+			{
+				String n = (String)sit.next();
+				s += "/"+ n;
+			}
+ 			for (Iterator pit = network.getPorts(); pit.hasNext(); )
+ 			{
+ 				PortInst pi = (PortInst)pit.next();
+ 				s += "|"+pi.getNodeInst().getProto()+"&"+pi.getPortProto().getProtoName();
+ 			}
+			System.out.println("    "+i+"    "+s);
+			i++;
+		}
+		*/
 	}
 
 	private void redoNetworks(HashMap equivPorts)

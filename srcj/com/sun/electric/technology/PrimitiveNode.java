@@ -26,6 +26,8 @@ package com.sun.electric.technology;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.technology.Technology;
 
+import java.util.Iterator;
+
 /**
  * A PrimitiveNode represents information about a NodeProto that lives in a
  * Technology.  It has a name, and several functions that describe how
@@ -76,9 +78,8 @@ public class PrimitiveNode extends NodeProto
 	 * Assume that each PortProto.getTempInt() contains sequential index of
      * port in this NodeProto.
 	 */
-	protected void connectEquivPorts(int[] newEquivPorrs)
+	protected void connectEquivPorts(int[] newEquivPorts)
 	{
-		/* Commented, hbecause getTopology() is not set properly now
 		int i = 0;
 		for (Iterator it = getPorts(); it.hasNext(); i++)
 		{
@@ -94,7 +95,6 @@ public class PrimitiveNode extends NodeProto
 				}
 			}
 		}
-		*/
 	}
 
 	// ------------------------- public methods -------------------------------
