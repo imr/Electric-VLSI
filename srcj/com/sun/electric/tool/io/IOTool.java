@@ -82,7 +82,7 @@ public class IOTool extends Tool
 				}
 				name = Name.findName(newS);
 			}
-		} //else if (!name.isTempname()) return null;
+		} else if (!name.isTempname()) return null;
 		return name;
 	}
 

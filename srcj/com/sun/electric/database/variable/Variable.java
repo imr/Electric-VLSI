@@ -34,6 +34,7 @@ import com.sun.electric.technology.technologies.Generic;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.FieldPosition;
+import java.util.Locale;
 
 /**
  * The Variable class defines a single attribute-value pair that can be attached to any ElectricObject.
@@ -321,7 +322,7 @@ public class Variable
 		return name;
 	}
 
-    private static NumberFormat numberFormat = NumberFormat.getInstance();
+    private static NumberFormat numberFormat = NumberFormat.getInstance(Locale.US);
 
     /** Truncate a Number to something sensible that can be printed */
     public static Number format(Number num, int numFractions) {
