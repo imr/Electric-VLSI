@@ -910,11 +910,8 @@ public class View3DWindow extends JPanel
         Transform3D currXform = new Transform3D();
 
         for (Iterator it = cell.getNodes(); it.hasNext();)
-        //for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext();)
         {
-            //Highlight h = (Highlight)it.next();
             NodeInst ni = (NodeInst)it.next();
-			//Shape3D obj = (Shape3D)h.getObject();
             Variable var = (Variable)ni.getVar("3D_NODE_DEMO");
             if (var == null) continue;
             List list = (List)electricObjectMap.get(ni);
