@@ -1114,15 +1114,19 @@ public class Technology extends ElectricObject
      * Method to set the size of a transistor NodeInst in this Technology.
      * You should be calling NodeInst.setTransistorSize instead of this.
      * @param ni the NodeInst
-     * @param width the new width
-     * @param length the new length
+     * @param width the new width (positive values only)
+     * @param length the new length (positive values only)
      */
     public void setTransistorSize(NodeInst ni, double width, double length)
     {
         SizeOffset so = ni.getSizeOffset();
         double oldWidth = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
         double oldLength = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
-        ni.modifyInstance(0, 0, width - oldWidth, length - oldLength, 0);
+        double dW = width - oldWidth;
+        double dL = length - oldLength;
+        if (ni.getXSizeWithMirror() < 0) dW = -dW;
+        if (ni.getYSizeWithMirror() < 0) dL = -dL;
+        ni.modifyInstance(0, 0, dW, dL, 0);
     }
 
     /**

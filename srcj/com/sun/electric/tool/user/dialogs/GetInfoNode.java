@@ -374,7 +374,6 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         // special case for transistors
         TransistorSize transSize = ni.getTransistorSize(null);
         if (transSize != null) {
-            swapXY = false;
             xsizeLabel.setText("Width:");
             ysizeLabel.setText("Length:");
             double width = transSize.getDoubleWidth();
@@ -1084,19 +1083,31 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
                 } else
                 {
                     // this is a layout transistor
-                    if (!DBMath.doublesEqual(Math.abs(currentXSize), Math.abs(initXSize)) ||
-                        !DBMath.doublesEqual(Math.abs(currentYSize), Math.abs(initYSize)))
+                    double initialWidth = ni.getTransistorSize(null).getDoubleWidth();
+                    double initialLength = ni.getTransistorSize(null).getDoubleLength();
+                    double width = TextUtils.atof(dialog.xSize.getText(), new Double(initialWidth));
+                    double length = TextUtils.atof(dialog.ySize.getText(), new Double(initialLength));
+                    if (!DBMath.doublesEqual(width, initialWidth) ||
+                        !DBMath.doublesEqual(length, initialLength))
                     {
                         // set transistor size
-                        ni.setTransistorSize(Math.abs(currentXSize) - so.getLowXOffset() - so.getHighXOffset(),
-							Math.abs(currentYSize) - so.getLowYOffset() - so.getHighYOffset());
+                        ni.setTransistorSize(width, length);
                     }
                 }
-                // ignore size change (values), but retain mirroring change (sign)
-                if (initXSize < 0) initXSize = -Math.abs(currentXSize);
-                else initXSize = Math.abs(currentXSize);
-                if (initYSize < 0) initYSize = -Math.abs(currentYSize);
-                else initYSize = Math.abs(currentYSize);
+                // ignore size change, but retain mirroring change (sign)
+                currentXSize = initXSize = ni.getXSize();
+                currentYSize = initYSize = ni.getYSize();
+                if (dialog.swapXY) {
+                    if (dialog.mirrorX.isSelected()) currentYSize = -currentYSize;
+                    if (dialog.mirrorY.isSelected()) currentXSize = -currentXSize;
+                    if (dialog.initialMirrorX) initYSize = -initYSize;
+                    if (dialog.initialMirrorY) initXSize = -initXSize;
+                } else {
+                    if (dialog.mirrorX.isSelected()) currentXSize = -currentXSize;
+                    if (dialog.mirrorY.isSelected()) currentYSize = -currentYSize;
+                    if (dialog.initialMirrorX) initXSize = -initXSize;
+                    if (dialog.initialMirrorY) initYSize = -initYSize;
+                }
             }
 
 			int currentRotation = (int)(TextUtils.atof(dialog.rotation.getText(), new Double(dialog.initialRotation)) * 10);
