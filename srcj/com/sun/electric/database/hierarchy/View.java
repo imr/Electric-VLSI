@@ -50,10 +50,10 @@ public class View extends ElectricObject
 	/** view is one of multiple pages  */					private final static int MULTIPAGEVIEW  = 02;	
 	/** view is statically defined and cannot be deleted */ private final static int PERMANENTVIEW  = 04;	
 
-	/** the full name of the view */						private String fullName;
-	/** the abbreviation of the view */						private String abbreviation;
-	/** ordering for this view */							private int order;
-	/** flag bits for the view */							private int type;
+	/** the full name of the view */						private final String fullName;
+	/** the abbreviation of the view */						private final String abbreviation;
+	/** ordering for this view */							private final int order;
+	/** flag bits for the view */							private final int type;
 
 	/** a list of all views in existence */					private static List views = new ArrayList();
 	/** a list of views by short and long names */			private static HashMap viewNames = new HashMap();
@@ -179,7 +179,7 @@ public class View extends ElectricObject
 		// make sure this can be done now
 		Job.checkChanging();
 
-		View view = makeInstance(fullName, abbreviation, 0, overallOrder++);
+		View view = makeInstance(fullName, abbreviation, 0, getNextOrder());
 
 		// handle change control, constraint, and broadcast
 		Undo.newObject(view);
@@ -199,7 +199,7 @@ public class View extends ElectricObject
 		// make sure this can be done now
 		Job.checkChanging();
 
-		View view = makeInstance(fullName, abbreviation, TEXTVIEW, overallOrder++);
+		View view = makeInstance(fullName, abbreviation, TEXTVIEW, getNextOrder());
 
 		// handle change control, constraint, and broadcast
 		Undo.newObject(view);
@@ -216,7 +216,7 @@ public class View extends ElectricObject
 		// make sure this can be done now
 		Job.checkChanging();
 
-		View view = makeInstance("schematic-page-" + page, "p" + page, MULTIPAGEVIEW, overallOrder++);
+		View view = makeInstance("schematic-page-" + page, "p" + page, MULTIPAGEVIEW, getNextOrder());
 
 		// handle change control, constraint, and broadcast
 		Undo.newObject(view);
@@ -254,9 +254,11 @@ public class View extends ElectricObject
 		Undo.killObject(this);
 
 		// delete this view
-		viewNames.remove(fullName);
-		viewNames.remove(abbreviation);
-		views.remove(this);
+        synchronized(View.class) {
+            viewNames.remove(fullName);
+            viewNames.remove(abbreviation);
+            views.remove(this);
+        }
 	}
 
 	/****************************** IMPLEMENTATION ******************************/
@@ -264,8 +266,12 @@ public class View extends ElectricObject
 	/**
 	 * This constructor is never called.  Use the factory "makeInstance" instead.
 	 */
-	private View()
+	private View(String fullName, String abbr, int type, int order)
 	{
+        this.fullName = fullName;
+        this.abbreviation = abbr;
+        this.type = type;
+        this.order = order;
 	}
 
 	private static View makeInstance(String fullName, String abbreviation, int type, int order)
@@ -286,18 +292,22 @@ public class View extends ElectricObject
 			type |= View.MULTIPAGEVIEW;
 
 		// create the view
-		View v = new View();
-		v.fullName = fullName;
-		v.abbreviation = abbreviation;
-		v.type = type;
-		v.order = order;
+		View v = new View(fullName, abbreviation, type, order);
 
 		// enter both the full and short names into the hash table
-		viewNames.put(fullName, v);
-		viewNames.put(abbreviation, v);
-		views.add(v);
+        synchronized(View.class) {
+            viewNames.put(fullName, v);
+            viewNames.put(abbreviation, v);
+            views.add(v);
+        }
 		return v;
 	}
+
+    private static int getNextOrder() {
+        synchronized(View.class) {
+            return overallOrder++;
+        }
+    }
 
 	/****************************** INFORMATION ******************************/
 
