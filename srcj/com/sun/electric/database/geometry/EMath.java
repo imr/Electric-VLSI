@@ -43,7 +43,7 @@ public class EMath
 		if (dx == 0.0 && dy == 0.0)
 		{
 			System.out.println("Warning: domain violation while figuring angle");
-			return(0);
+			return 0;
 		}
 		double angle = Math.atan2(dy, dx);
 		if (angle < 0) angle += Math.PI*2;
@@ -218,6 +218,18 @@ public class EMath
 	{
 		if (Math.abs(a-b) <= DBL_EPSILON) return true;
 		return false;
+	}
+	
+	/**
+	 * Routine to round floating-point values to sensible quantities.
+	 * Rounds these numbers to the nearest thousandth.
+	 * @param a the value to round.
+	 * @return the rounded value.
+	 */
+	public static double smooth(double a)
+	{
+		long i = Math.round(a * 1000.0);
+		return i / 1000.0;
 	}
 	
 	private static final double [] sineTable = {

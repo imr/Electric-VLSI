@@ -247,10 +247,10 @@ public class Poly implements Shape
 		double halfWidth = width / 2;
 		double halfHeight = height / 2;
 		this.points = new Point2D.Double[] {
-			new Point2D.Double(cX-halfWidth, cY-halfHeight),
-			new Point2D.Double(cX+halfWidth, cY-halfHeight),
-			new Point2D.Double(cX+halfWidth, cY+halfHeight),
-			new Point2D.Double(cX-halfWidth, cY+halfHeight)};
+			new Point2D.Double(EMath.smooth(cX-halfWidth), EMath.smooth(cY-halfHeight)),
+			new Point2D.Double(EMath.smooth(cX+halfWidth), EMath.smooth(cY-halfHeight)),
+			new Point2D.Double(EMath.smooth(cX+halfWidth), EMath.smooth(cY+halfHeight)),
+			new Point2D.Double(EMath.smooth(cX-halfWidth), EMath.smooth(cY+halfHeight))};
 		layer = null;
 		style = null;
 		bounds = null;
@@ -338,6 +338,10 @@ public class Poly implements Shape
 		}
 		af.transform(points, 0, points, 0, points.length);
 //		af.transform(points, points);
+
+		// smooth the results
+		for(int i=0; i<points.length; i++)
+			points[i].setLocation(EMath.smooth(points[i].getX()), EMath.smooth(points[i].getY()));
 		bounds = null;
 	}
 
@@ -381,7 +385,7 @@ public class Poly implements Shape
 			{
 				sY = points[0].getY() - points[1].getY();
 			}
-			return new Rectangle2D.Double(cX, cY, sX, sY);
+			return new Rectangle2D.Double(EMath.smooth(cX), EMath.smooth(cY), EMath.smooth(sX), EMath.smooth(sY));
 		}
 		if (points[0].getX() == points[3].getX() && points[1].getX() == points[2].getX() &&
 			points[0].getY() == points[1].getY() && points[2].getY() == points[3].getY())
@@ -403,7 +407,7 @@ public class Poly implements Shape
 			{
 				sY = points[0].getY() - points[2].getY();
 			}
-			return new Rectangle2D.Double(cX, cY, sX, sY);
+			return new Rectangle2D.Double(EMath.smooth(cX), EMath.smooth(cY), EMath.smooth(sX), EMath.smooth(sY));
 		}
 		return null;
 	}
@@ -607,7 +611,7 @@ public class Poly implements Shape
 	public double getCenterX()
 	{
 		Rectangle2D b = getBounds2D();
-		return b.getCenterX();
+		return EMath.smooth(b.getCenterX());
 	}
 
 	/**
@@ -617,7 +621,7 @@ public class Poly implements Shape
 	public double getCenterY()
 	{
 		Rectangle2D b = getBounds2D();
-		return b.getCenterY();
+		return EMath.smooth(b.getCenterY());
 	}
 
 	/**
@@ -662,6 +666,8 @@ public class Poly implements Shape
 			if (i == 0) bounds.setRect(points[0].getX(), points[0].getY(), 0, 0); else
 				bounds.add(points[i]);
 		}
+		bounds.setRect(EMath.smooth(bounds.getMinX()), EMath.smooth(bounds.getMinY()),
+			EMath.smooth(bounds.getWidth()), EMath.smooth(bounds.getHeight()));
 	}
 
 	class PolyPathIterator implements PathIterator

@@ -23,10 +23,12 @@
  */
 package com.sun.electric.database.topology;
 
+import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.variable.Variable;
@@ -112,16 +114,24 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		Point2D.Double p2 = tail.getLocation();
 		double dx = p2.x - p1.x;
 		double dy = p2.y - p1.y;
-		double len = Math.sqrt(dx * dx + dy * dy);
+		this.sX = Math.sqrt(dx * dx + dy * dy);
 		this.sY = arcWidth;
-		this.sX = len;
-		this.cX = (p1.x + p2.x) / 2;
-		this.cY = (p1.y + p2.y) / 2;
-		this.angle = (int)(Math.atan2(dy, dx) * 1800.0 / Math.PI);
+		this.cX = EMath.smooth((p1.x + p2.x) / 2);
+		this.cY = EMath.smooth((p1.y + p2.y) / 2);
+		if (p1.equals(p2)) this.angle = 0; else
+			this.angle = EMath.figureAngle(p1, p2);
 
 		// compute the bounds
-		Poly poly = makePoly(len, arcWidth, Poly.Type.FILLED);
+		Poly poly = makePoly(this.sX, arcWidth, Poly.Type.FILLED);
 		visBounds.setRect(poly.getBounds2DDouble());
+//if (parent.getProtoName().equalsIgnoreCase("aa_qFour_padframe") && parent.getView() == View.SCHEMATIC)
+//{
+//	System.out.println("Arc " + describe() + " in cell " + parent.describe() + " angle " + this.angle + " bounds " + visBounds);
+//	for(int i=0; i<poly.getPoints().length; i++)
+//	{
+//		System.out.println("   "+poly.getPoints()[i]);
+//	}
+//}
 	}
 
 	/**
@@ -663,12 +673,12 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		if (dHeadX != 0 || dHeadY != 0)
 		{
 			Point2D.Double pt = head.getLocation();
-			head.setLocation(new Point2D.Double(dHeadX+pt.getX(), pt.getY()+dHeadY));
+			head.setLocation(new Point2D.Double(EMath.smooth(dHeadX+pt.getX()), EMath.smooth(pt.getY()+dHeadY)));
 		}
 		if (dTailX != 0 || dTailY != 0)
 		{
 			Point2D.Double pt = tail.getLocation();
-			tail.setLocation(new Point2D.Double(dTailX+pt.getX(), pt.getY()+dTailY));
+			tail.setLocation(new Point2D.Double(EMath.smooth(dTailX+pt.getX()), EMath.smooth(pt.getY()+dTailY)));
 		}
 		updateGeometric();
 
@@ -767,12 +777,11 @@ public class ArcInst extends Geometric /*implements Networkable*/
 				double temp = y1;   y1 = y2;   y2 = temp;
 				temp = e1;   e1 = e2;   e2 = temp;
 			}
-			Poly poly = new Poly(new Point2D.Double[] {
-				new Point2D.Double(x1 - w2, y1 - e1),
-				new Point2D.Double(x1 + w2, y1 - e1),
-				new Point2D.Double(x2 + w2, y2 + e2),
-				new Point2D.Double(x2 - w2, y2 + e2)});
-			return poly;
+			return new Poly(new Point2D.Double[] {
+				new Point2D.Double(EMath.smooth(x1 - w2), EMath.smooth(y1 - e1)),
+				new Point2D.Double(EMath.smooth(x1 + w2), EMath.smooth(y1 - e1)),
+				new Point2D.Double(EMath.smooth(x2 + w2), EMath.smooth(y2 + e2)),
+				new Point2D.Double(EMath.smooth(x2 - w2), EMath.smooth(y2 + e2))});
 		}
 		if (angle == 0 || angle == 1800)
 		{
@@ -781,12 +790,11 @@ public class ArcInst extends Geometric /*implements Networkable*/
 				double temp = x1;   x1 = x2;   x2 = temp;
 				temp = e1;   e1 = e2;   e2 = temp;
 			}
-			Poly poly = new Poly(new Point2D.Double[] {
-				new Point2D.Double(x1 - e1, y1 - w2),
-				new Point2D.Double(x1 - e1, y1 + w2),
-				new Point2D.Double(x2 + e2, y2 + w2),
-				new Point2D.Double(x2 + e2, y2 - w2)});
-			return poly;
+			return new Poly(new Point2D.Double[] {
+				new Point2D.Double(EMath.smooth(x1 - e1), EMath.smooth(y1 - w2)),
+				new Point2D.Double(EMath.smooth(x1 - e1), EMath.smooth(y1 + w2)),
+				new Point2D.Double(EMath.smooth(x2 + e2), EMath.smooth(y2 + w2)),
+				new Point2D.Double(EMath.smooth(x2 + e2), EMath.smooth(y2 - w2))});
 		}
 
 		/* nonmanhattan arcs cannot have zero length so re-compute it */
@@ -814,12 +822,11 @@ public class ArcInst extends Geometric /*implements Networkable*/
 			xextra = w2 * (x2-x1) / len;
 			yextra = w2 * (y2-y1) / len;
 		}
-		Poly poly = new Poly(new Point2D.Double[] {
-			new Point2D.Double(yextra + xe1, ye1 - xextra),
-			new Point2D.Double(xe1 - yextra, xextra + ye1),
-			new Point2D.Double(xe2 - yextra, xextra + ye2),
-			new Point2D.Double(yextra + xe2, ye2 - xextra)});
-		return poly;
+		return new Poly(new Point2D.Double[] {
+			new Point2D.Double(EMath.smooth(yextra + xe1), EMath.smooth(ye1 - xextra)),
+			new Point2D.Double(EMath.smooth(xe1 - yextra), EMath.smooth(xextra + ye1)),
+			new Point2D.Double(EMath.smooth(xe2 - yextra), EMath.smooth(xextra + ye2)),
+			new Point2D.Double(EMath.smooth(yextra + xe2), EMath.smooth(ye2 - xextra))});
 	}
 
 	/**

@@ -23,13 +23,60 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.tool.user.ui.UIFileFilter;
-
-import javax.swing.*;
 import java.io.File;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import javax.swing.filechooser.FileFilter;
 
 public class UIDialogOpenFile extends JFileChooser
 {
+	static class EFileFilter extends FileFilter
+	{
+		String desc;
+		List extensions;
+
+		/** Creates a new instance of EFileFilter */
+		public EFileFilter()
+		{
+			extensions = new ArrayList();
+		}
+
+		public boolean accept(java.io.File f)
+		{
+			if (f == null) return false;
+			if (f.isDirectory()) return true;
+			String filename = f.getName();
+			int i = filename.lastIndexOf('.');
+			if (i < 0) return false;
+			String thisExtension = filename.substring(i+1);
+			if (thisExtension == null) return false;
+			for(Iterator it = extensions.iterator(); it.hasNext(); )
+			{
+				String extension = (String)it.next();
+				if (extension.equalsIgnoreCase(thisExtension)) return true;
+			}
+			return false;
+		}
+
+		public void addExtension(String extension)
+		{
+			extensions.add(extension);
+		}
+
+		public String getDescription()
+		{
+			return desc;
+		}
+
+		public void setDescription(String desc)
+		{
+			this.desc = desc;
+		}
+	}
+
 	/** The file extension associated with this dialog */			private String extension;
 	/** The description of files associated with this dialog */		private String description;
 	/** True if this is a file save dialog */						private boolean saveDialog;
@@ -61,7 +108,7 @@ public class UIDialogOpenFile extends JFileChooser
 			setDialogTitle(newDescription);
 		if (extension != null)
 		{
-			UIFileFilter filter = new UIFileFilter();
+			EFileFilter filter = new EFileFilter();
 			filter.addExtension(extension);
 			filter.setDescription(description);
 			setFileFilter(filter);
@@ -82,7 +129,7 @@ public class UIDialogOpenFile extends JFileChooser
 	{
 		saveDialog = true;
 		setDialogTitle("Write " + description);
-		UIFileFilter filter = new UIFileFilter();
+		EFileFilter filter = new EFileFilter();
 		if (extension != null) filter.addExtension(extension);
 		filter.setDescription(description);
 		setFileFilter(filter);

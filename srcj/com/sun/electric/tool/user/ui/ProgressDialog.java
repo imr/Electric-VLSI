@@ -77,7 +77,6 @@ public class ProgressDialog extends JInternalFrame
 	public void close()
 	{
 		JDesktopPane desktop = UITopLevel.getDesktop();
-		desktop.remove(this); 
 		dispose();
 	}
 

@@ -23,13 +23,14 @@
  */
 package com.sun.electric.database.hierarchy;
 
+import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.network.JNetwork;
-import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
@@ -519,10 +520,10 @@ public class Cell extends NodeProto
 				if (lowy < cellLowY) cellLowY = lowy;
 				if (highy > cellHighY) cellHighY = highy;
 			}
-			elecBounds.x = cellLowX;
-			elecBounds.width = cellHighX - cellLowX;
-			elecBounds.y = cellLowY;
-			elecBounds.height = cellHighY - cellLowY;
+			elecBounds.x = EMath.smooth(cellLowX);
+			elecBounds.width = EMath.smooth(cellHighX - cellLowX);
+			elecBounds.y = EMath.smooth(cellLowY);
+			elecBounds.height = EMath.smooth(cellHighY - cellLowY);
 			boundsDirty = false;
 		}
 
