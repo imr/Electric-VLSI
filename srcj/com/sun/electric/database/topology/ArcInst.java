@@ -129,12 +129,11 @@ public class ArcInst extends Geometric
 	 * @param width the width of the new ArcInst.  The width must be > 0.
 	 * @param head the head end PortInst.
 	 * @param tail the tail end PortInst.
-	 * @param name the name of the new ArcInst
 	 * @return the newly created ArcInst, or null if there is an error.
 	 */
-	public static ArcInst makeInstance(ArcProto type, double width, PortInst head, PortInst tail, String name)
+	public static ArcInst makeInstance(ArcProto type, double width, PortInst head, PortInst tail)
 	{
-		ArcInst ai = newInstance(type, width, head, tail, name);
+		ArcInst ai = newInstance(type, width, head, tail);
 		if (ai != null)
 		{
 			ai.setDefaultConstraints();
@@ -148,16 +147,16 @@ public class ArcInst extends Geometric
 	 * @param type the prototype of the new ArcInst.
 	 * @param width the width of the new ArcInst.  The width must be > 0.
 	 * @param head the head end PortInst.
-	 * @param headPt the coordinate of the head end PortInst.
 	 * @param tail the tail end PortInst.
+	 * @param headPt the coordinate of the head end PortInst.
 	 * @param tailPt the coordinate of the tail end PortInst.
 	 * @param name the name of the new ArcInst
 	 * @return the newly created ArcInst, or null if there is an error.
 	 */
-	public static ArcInst makeInstance(ArcProto type, double width,
-		PortInst head, Point2D headPt, PortInst tail, Point2D tailPt, String name)
+	public static ArcInst makeInstance(ArcProto type, double width, PortInst head, PortInst tail,
+	                                   Point2D headPt, Point2D tailPt, String name)
 	{
-		ArcInst ai = newInstance(type, width, head, headPt, tail, tailPt, name, 0);
+		ArcInst ai = newInstance(type, width, head, tail, headPt, tailPt, name, 0);
 		if (ai != null)
 		{
 			ai.setDefaultConstraints();
@@ -209,12 +208,11 @@ public class ArcInst extends Geometric
 	 * @param width the width of the new ArcInst.  The width must be > 0.
 	 * @param head the head end PortInst.
 	 * @param tail the tail end PortInst.
-	 * @param name the name of the new ArcInst
 	 * @return the newly created ArcInst, or null if there is an error.
 	 */
-	public static ArcInst newInstance(ArcProto type, double width, PortInst head, PortInst tail, String name)
+	public static ArcInst newInstance(ArcProto type, double width, PortInst head, PortInst tail)
 	{
-		return newInstance(type, width, head, null, tail, null, name, 0);
+		return newInstance(type, width, head, tail, null, null, null, 0);
 	}
 
 	/**
@@ -223,15 +221,15 @@ public class ArcInst extends Geometric
 	 * @param type the prototype of the new ArcInst.
 	 * @param width the width of the new ArcInst.  The width must be > 0.
 	 * @param head the head end PortInst.
-	 * @param headPt the coordinate of the head end PortInst.
 	 * @param tail the tail end PortInst.
+	 * @param headPt the coordinate of the head end PortInst.
 	 * @param tailPt the coordinate of the tail end PortInst.
 	 * @param name the name of the new ArcInst
 	 * @param defAngle default angle in case port points coincide
      * @return the newly created ArcInst, or null if there is an error.
 	 */
-	public static ArcInst newInstance(ArcProto type, double width,
-                                      PortInst head, Point2D headPt, PortInst tail, Point2D tailPt, String name, int defAngle)
+	public static ArcInst newInstance(ArcProto type, double width, PortInst head, PortInst tail,
+	                                  Point2D headPt, Point2D tailPt, String name, int defAngle)
 	{
         // if points are null, create them as would newInstance
         if (headPt == null) {
@@ -331,7 +329,7 @@ public class ArcInst extends Geometric
 		double newwid = getWidth() - getProto().getWidthOffset() + ap.getWidthOffset();
 
 		// first create the new nodeinst in place
-		ArcInst newar = ArcInst.newInstance(ap, newwid, piH, head.getLocation(), piT, tail.getLocation(), null, 0);
+		ArcInst newar = ArcInst.newInstance(ap, newwid, piH, piT, head.getLocation(), tail.getLocation(), null, 0);
 		if (newar == null)
 		{
 			System.out.println("Cannot replace arc " + describe() + " with one of type " + ap.getName() +

@@ -511,11 +511,11 @@ public class JELIB extends LibraryFiles
 				{
 					Input.errorLogger.logError(filePath + ", line " + (cc.lineNumber + line) +
 						", Warning: cannot find information about external cell " + pieces.get(0), cell, -1);
-					NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(0,0), wid, hei, 0, (Cell)np, null, 0);
+					NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(0,0), wid, hei, (Cell)np);
 				} else
 				{
 					NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(bounds.getCenterX(), bounds.getCenterY()),
-						bounds.getWidth(), bounds.getHeight(), 0, (Cell)np, null, 0);
+						bounds.getWidth(), bounds.getHeight(), (Cell)np);
 				}
 
 				// mark this as a dummy cell
@@ -569,7 +569,7 @@ public class JELIB extends LibraryFiles
 			}
 
 			// create the node
-			NodeInst ni = NodeInst.newInstance(np, new Point2D.Double(x, y), wid, hei, angle, cell, nodeName, techSpecific);
+			NodeInst ni = NodeInst.newInstance(np, new Point2D.Double(x, y), wid, hei, cell, angle, nodeName, techSpecific);
 			if (ni == null)
 			{
 				Input.errorLogger.logError(filePath + ", line " + (cc.lineNumber + line) +
@@ -723,8 +723,8 @@ public class JELIB extends LibraryFiles
 				}
 			}
 
-			ArcInst ai = ArcInst.newInstance(ap, wid, headPI, new Point2D.Double(headX, headY),
-				tailPI, new Point2D.Double(tailX, tailY), arcName, angle);
+			ArcInst ai = ArcInst.newInstance(ap, wid, headPI, tailPI, new Point2D.Double(headX, headY),
+			        new Point2D.Double(tailX, tailY), arcName, angle);
 			if (ai == null)
 			{
 				Input.errorLogger.logError(filePath + ", line " + (cc.lineNumber + line) +
@@ -801,7 +801,7 @@ public class JELIB extends LibraryFiles
 		if (var == null)
 		{
 			// not a dummy cell: create a pin at the top level
-			NodeInst portNI = NodeInst.newInstance(Generic.tech.universalPinNode, headPt, 0, 0, 0, cell, null, 0);
+			NodeInst portNI = NodeInst.newInstance(Generic.tech.universalPinNode, headPt, 0, 0, cell);
 			if (portNI == null)
 			{
 				Input.errorLogger.logError(filePath + ", line " + lineNumber +
@@ -820,7 +820,7 @@ public class JELIB extends LibraryFiles
 		unRot.transform(headPt, headPt);
 		AffineTransform unTrans = ni.translateIn();
 		unTrans.transform(headPt, headPt);
-		NodeInst portNI = NodeInst.newInstance(Generic.tech.universalPinNode, headPt, 0, 0, 0, subCell, null, 0);
+		NodeInst portNI = NodeInst.newInstance(Generic.tech.universalPinNode, headPt, 0, 0, subCell);
 		if (portNI == null)
 		{
 			Input.errorLogger.logError(filePath + ", line " + lineNumber +

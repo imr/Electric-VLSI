@@ -484,7 +484,7 @@ public class Array extends EDialog
 					}
 					xPos += xOff;   yPos += yOff;
 					NodeInst newNi = NodeInst.makeInstance(ni.getProto(),
-						new Point2D.Double(xPos, yPos), sx, sy, ro, cell, null, 0);
+						new Point2D.Double(xPos, yPos), sx, sy, cell, ro, null, 0);
 					if (newNi == null) continue;
 					newNi.setProtoTextDescriptor(ni.getProtoTextDescriptor());
 					newNi.setNameTextDescriptor(ni.getNameTextDescriptor());
@@ -549,7 +549,7 @@ public class Array extends EDialog
 					PortInst pi0 = ni0.findPortInstFromProto(ai.getHead().getPortInst().getPortProto());
 					PortInst pi1 = ni1.findPortInstFromProto(ai.getTail().getPortInst().getPortProto());
 					ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), pi0,
-						new Point2D.Double(cX0+xOff0, cY0+yOff0), pi1, new Point2D.Double(cX1+xOff1, cY1+yOff1), null);
+					        pi1, new Point2D.Double(cX0+xOff0, cY0+yOff0), new Point2D.Double(cX1+xOff1, cY1+yOff1), null);
 					if (newAi == null) continue;
 					newAi.copyPropertiesFrom(ai);
 

@@ -271,7 +271,7 @@ public class CircuitChanges
 				{
 					// no port on the cell: create one
 					Cell subCell = (Cell)theNi.getProto();
-					NodeInst subni = NodeInst.makeInstance(Generic.tech.universalPinNode, new Point2D.Double(0,0), 0, 0, 0, subCell, null, 0);
+					NodeInst subni = NodeInst.makeInstance(Generic.tech.universalPinNode, new Point2D.Double(0,0), 0, 0, subCell);
 					if (subni == null) break;
 					Export thepp = Export.newInstance(subCell, subni.getOnlyPortInst(), "temp");
 					if (thepp == null) break;
@@ -282,7 +282,7 @@ public class CircuitChanges
 				PortInst thepi = theNi.getPortInst(0);
 				if (ni.getNumPortInsts() != 0)
 				{
-					ArcInst ai = ArcInst.makeInstance(Generic.tech.invisible_arc, 0, ni.getPortInst(0), thepi, null);
+					ArcInst ai = ArcInst.makeInstance(Generic.tech.invisible_arc, 0, ni.getPortInst(0), thepi);
 					if (ai == null) break;
 					ai.setRigid(true);
 					aiList.add(ai);
@@ -1134,17 +1134,17 @@ public class CircuitChanges
 				for(int i=0; i<busWidth; i++)
 				{
 					// make the wire pin
-					NodeInst niw = NodeInst.makeInstance(Schematics.tech.wirePinNode, new Point2D.Double(lowX, lowY), sxw, syw, 0, ai.getParent(), null, 0);
+					NodeInst niw = NodeInst.makeInstance(Schematics.tech.wirePinNode, new Point2D.Double(lowX, lowY), sxw, syw, ai.getParent());
 					if (niw == null) break;
 
 					// make the bus pin
-					NodeInst nib = NodeInst.makeInstance(Schematics.tech.busPinNode, new Point2D.Double(lowXBus, lowYBus), sxb, syb, 0, ai.getParent(), null, 0);
+					NodeInst nib = NodeInst.makeInstance(Schematics.tech.busPinNode, new Point2D.Double(lowXBus, lowYBus), sxb, syb, ai.getParent());
 					if (nib == null) break;
 
 					// wire them
 					PortInst head = niw.getOnlyPortInst();
 					PortInst tail = nib.getOnlyPortInst();
-					ArcInst aiw = ArcInst.makeInstance(apW, apW.getDefaultWidth(), head, tail, null);
+					ArcInst aiw = ArcInst.makeInstance(apW, apW.getDefaultWidth(), head, tail);
 					if (aiw == null) break;
 					aiw.setName(localStrings[i]);
 
@@ -1152,11 +1152,11 @@ public class CircuitChanges
 					if (i == 0)
 					{
 						PortInst first = ai.getConnection(lowEnd).getPortInst();
-						aiw = ArcInst.makeInstance(apB, apB.getDefaultWidth(), first, tail, null);
+						aiw = ArcInst.makeInstance(apB, apB.getDefaultWidth(), first, tail);
 					} else
 					{
 						PortInst first = niBLast.getOnlyPortInst();
-						aiw = ArcInst.makeInstance(apB, apB.getDefaultWidth(), first, tail, null);
+						aiw = ArcInst.makeInstance(apB, apB.getDefaultWidth(), first, tail);
 					}
 					if (aiw == null) break;
 
@@ -1169,7 +1169,7 @@ public class CircuitChanges
 				// wire up the last segment
 				PortInst head = niBLast.getOnlyPortInst();
 				PortInst tail = ai.getConnection(1-lowEnd).getPortInst();
-				ArcInst aiw = ArcInst.makeInstance(apB, apB.getDefaultWidth(), head, tail, null);
+				ArcInst aiw = ArcInst.makeInstance(apB, apB.getDefaultWidth(), head, tail);
 				if (aiw == null) return false;
 				aiw.setName(netName);
 
@@ -1414,7 +1414,7 @@ public class CircuitChanges
 				{
 					// create a pin at this point
 					PrimitiveNode pin = ((PrimitiveArc)ai.getProto()).findPinProto();
-					NodeInst ni = NodeInst.makeInstance(pin, tailPtAdj, pin.getDefWidth(), pin.getDefHeight(), 0, cell, null, 0);
+					NodeInst ni = NodeInst.makeInstance(pin, tailPtAdj, pin.getDefWidth(), pin.getDefHeight(), cell);
 					if (ni == null)
 					{
 						System.out.println("Error creating pin for shortening of arc "+ai.describe());
@@ -1422,8 +1422,8 @@ public class CircuitChanges
 					}
 
 					ArcInst ai1 = ArcInst.makeInstance(ai.getProto(), ai.getWidth(),
-						ai.getTail().getPortInst(), ai.getTail().getLocation(),
-						ni.getOnlyPortInst(), tailPtAdj, newName);
+						ai.getTail().getPortInst(), ni.getOnlyPortInst(), ai.getTail().getLocation(),
+					        tailPtAdj, newName);
 					if (ai1 == null)
 					{
 						System.out.println("Error shortening arc "+ai.describe());
@@ -1436,15 +1436,15 @@ public class CircuitChanges
 				{
 					// create a pin at this point
 					PrimitiveNode pin = ((PrimitiveArc)ai.getProto()).findPinProto();
-					NodeInst ni = NodeInst.makeInstance(pin, headPtAdj, pin.getDefWidth(), pin.getDefHeight(), 0, cell, null, 0);
+					NodeInst ni = NodeInst.makeInstance(pin, headPtAdj, pin.getDefWidth(), pin.getDefHeight(), cell);
 					if (ni == null)
 					{
 						System.out.println("Error creating pin for shortening of arc "+ai.describe());
 						continue;
 					}
 
-					ArcInst ai1 = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), ni.getOnlyPortInst(), headPtAdj,
-						ai.getHead().getPortInst(), ai.getHead().getLocation(), newName);
+					ArcInst ai1 = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), ni.getOnlyPortInst(), ai.getHead().getPortInst(), headPtAdj,
+					        ai.getHead().getLocation(), newName);
 					if (ai1 == null)
 					{
 						System.out.println("Error shortening arc "+ai.describe());
@@ -2122,7 +2122,7 @@ public class CircuitChanges
 
 			// write the header message
 			double xsc = maxWidth * xScale / 2;
-			NodeInst titleNi = NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(xsc, yScale), 0, 0, 0, graphCell, null, 0);
+			NodeInst titleNi = NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(xsc, yScale), 0, 0, graphCell);
 			if (titleNi == null) return false;
 			StringBuffer infstr = new StringBuffer();
 			if (top != null)
@@ -2152,7 +2152,7 @@ public class CircuitChanges
 					if (cgn.depth == -1) continue;
 
 					double x = cgn.x;   double y = cgn.y;
-					NodeInst ni = NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(x, y), 0, 0, 0, graphCell, null, 0);
+					NodeInst ni = NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(x, y), 0, 0, graphCell);
 					if (ni == null) return false;
 					cgn.pin = ni;
 
@@ -2181,7 +2181,7 @@ public class CircuitChanges
 
 					PortInst firstPi = cgn.pin.getOnlyPortInst();
 					PortInst secondPi = cgn.main.pin.getOnlyPortInst();
-					ArcInst ai = ArcInst.makeInstance(Artwork.tech.solidArc, 0, firstPi, firstPi, null);
+					ArcInst ai = ArcInst.makeInstance(Artwork.tech.solidArc, 0, firstPi, firstPi);
 					if (ai == null) return false;
 					ai.setRigid(true);
 
@@ -2228,7 +2228,7 @@ public class CircuitChanges
 						if (trueSubCgn.depth == -1) continue;
 						PortInst toppinPi = trueCgn.pin.getOnlyPortInst();
 						PortInst niBotPi = trueSubCgn.pin.getOnlyPortInst();
-						ArcInst ai = ArcInst.makeInstance(Artwork.tech.solidArc, Artwork.tech.solidArc.getDefaultWidth(), toppinPi, niBotPi, null);
+						ArcInst ai = ArcInst.makeInstance(Artwork.tech.solidArc, Artwork.tech.solidArc.getDefaultWidth(), toppinPi, niBotPi);
 						if (ai == null) return false;
                         ai.setRigid(false);
                         ai.setFixedAngle(false);
@@ -2349,7 +2349,7 @@ public class CircuitChanges
 				Name oldName = ni.getNameKey();
 				if (!oldName.isTempname()) name = oldName.toString();
 				NodeInst newNi = NodeInst.makeInstance(ni.getProto(), new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY()),
-					ni.getXSize(), ni.getYSize(), ni.getAngle(), cell, name, 0);
+					ni.getXSize(), ni.getYSize(), cell, ni.getAngle(), name, 0);
 				if (newNi == null) return false;
 				newNodes.put(ni, newNi);
 				newNi.lowLevelSetUserbits(ni.lowLevelGetUserbits());
@@ -2386,8 +2386,8 @@ public class CircuitChanges
 				String name = null;
 				Name oldName = ai.getNameKey();
 				if (!oldName.isTempname()) name = oldName.toString();
-				ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), piHead, ai.getHead().getLocation(),
-					piTail, ai.getTail().getLocation(), name);
+				ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), piHead, piTail, ai.getHead().getLocation(),
+				        ai.getTail().getLocation(), name);
 				if (newAi == null) return false;
 				newAi.copyPropertiesFrom(ai);
 			}
@@ -2486,7 +2486,7 @@ public class CircuitChanges
 			String name = null;
 			if (ni.isUsernamed())
 				name = ElectricObject.uniqueObjectName(ni.getName(), cell, NodeInst.class);
-			NodeInst newNi = NodeInst.makeInstance(np, pt, xSize, ySize, newAngle, cell, name, 0);
+			NodeInst newNi = NodeInst.makeInstance(np, pt, xSize, ySize, cell, newAngle, name, 0);
 			if (newNi == null) return;
 			newNodes.put(ni, newNi);
 			newNi.setNameTextDescriptor(ni.getNameTextDescriptor());
@@ -2536,7 +2536,7 @@ public class CircuitChanges
 			String name = null;
 			if (ai.isUsernamed())
 				name = ElectricObject.uniqueObjectName(ai.getName(), cell, ArcInst.class);
-			ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), piHead, ptHead, piTail, ptTail, name);
+			ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), piHead, piTail, ptHead, ptTail, name);
 			if (newAi == null) return;
 			newAi.copyPropertiesFrom(ai);
 		}
@@ -2573,7 +2573,7 @@ public class CircuitChanges
 			if (pis[0] == null || pis[1] == null) continue;
 
 			ai.kill();
-			ArcInst newAi = ArcInst.makeInstance(ap, wid, pis[0], pts[0], pis[1], pts[1], name);
+			ArcInst newAi = ArcInst.makeInstance(ap, wid, pis[0], pis[1], pts[0], pts[1], name);
 			if (newAi == null) return;
             newAi.copyPropertiesFrom(ai);
 		}
@@ -3441,7 +3441,7 @@ public class CircuitChanges
 				Point2D center = new Point2D.Double(bottomNi.getAnchorCenterX(), bottomNi.getAnchorCenterY());
 				subRot.transform(center, center);
 				NodeInst newNi = NodeInst.makeInstance(bottomNi.getProto(), center, bottomNi.getXSize(), bottomNi.getYSize(),
-					newAng, skeletonCell, null, 0);
+				        skeletonCell, newAng, null, 0);
 				if (newNi == null)
 				{
 					System.out.println("Cannot create node in this cell");
@@ -3477,7 +3477,7 @@ public class CircuitChanges
 					Export newPp = (Export)newPortMap.get(pp);
 					Export newOPp = (Export)newPortMap.get(oPp);
 					if (newPp == null || newOPp == null) continue;
-					ArcInst newAI = ArcInst.makeInstance(univ, univ.getDefaultWidth(), newPp.getOriginalPort(), newOPp.getOriginalPort(), null);
+					ArcInst newAI = ArcInst.makeInstance(univ, univ.getDefaultWidth(), newPp.getOriginalPort(), newOPp.getOriginalPort());
 					if (newAI == null)
 					{
 						System.out.println("Could not create connecting arc");
@@ -3494,7 +3494,7 @@ public class CircuitChanges
 				NodeProto np = ni.getProto();
 				if (np != Generic.tech.cellCenterNode && np != Generic.tech.essentialBoundsNode) continue;
 				NodeInst newNi = NodeInst.makeInstance(np, ni.getAnchorCenter(),
-					ni.getXSizeWithMirror(), ni.getYSizeWithMirror(), ni.getAngle(), skeletonCell, null, 0);
+					ni.getXSizeWithMirror(), ni.getYSizeWithMirror(), skeletonCell, ni.getAngle(), null, 0);
 				if (newNi == null)
 				{
 					System.out.println("Cannot create node in this cell");
@@ -3507,8 +3507,7 @@ public class CircuitChanges
 			// place an outline around the skeleton
 			Rectangle2D bounds = curCell.getBounds();
 			NodeInst boundNi = NodeInst.makeInstance(Generic.tech.invisiblePinNode,
-				new Point2D.Double(bounds.getCenterX(), bounds.getCenterY()), bounds.getWidth(),
-					bounds.getHeight(), 0, skeletonCell, null, 0);
+				new Point2D.Double(bounds.getCenterX(), bounds.getCenterY()), bounds.getWidth(), bounds.getHeight(), skeletonCell);
 			if (boundNi == null)
 			{
 				System.out.println("Cannot create boundary node");
@@ -3613,7 +3612,7 @@ public class CircuitChanges
 			NodeInst bbNi = null;
 			if (User.isIconGenDrawBody())
 			{
-                bbNi = NodeInst.newInstance(Artwork.tech.boxNode, new Point2D.Double(0,0), xSize, ySize, 0, iconCell, null, 0);
+                bbNi = NodeInst.newInstance(Artwork.tech.boxNode, new Point2D.Double(0,0), xSize, ySize, iconCell);
 				if (bbNi == null) return false;
 				bbNi.newVar(Artwork.ART_COLOR, new Integer(EGraphics.RED));
 
@@ -3675,7 +3674,7 @@ public class CircuitChanges
 				User.isPlaceCellCenter() &&
 				total <= 1)
 			{
-				NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(0,0), xSize, ySize, 0, iconCell, null, 0);
+				NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(0,0), xSize, ySize, iconCell);
 			}
 
 			// place an icon in the schematic
@@ -3703,7 +3702,7 @@ public class CircuitChanges
 			EditWindow.gridAlign(iconPos);
 			double px = iconCell.getBounds().getWidth();
 			double py = iconCell.getBounds().getHeight();
-			NodeInst ni = NodeInst.makeInstance(iconCell, iconPos, px, py, 0, curCell, null, 0);
+			NodeInst ni = NodeInst.makeInstance(iconCell, iconPos, px, py, curCell);
 			if (ni != null)
 			{
 //				ni.setExpanded();
@@ -3778,7 +3777,7 @@ public class CircuitChanges
 		}
 
 		// make the pin with the port
-		NodeInst pinNi = NodeInst.newInstance(pinType, new Point2D.Double(xPos, yPos), pinSizeX, pinSizeY, 0, np, null, 0);
+		NodeInst pinNi = NodeInst.newInstance(pinType, new Point2D.Double(xPos, yPos), pinSizeX, pinSizeY, np);
 		if (pinNi == null) return false;
 
 		// export the port that should be on this pin
@@ -3841,14 +3840,14 @@ public class CircuitChanges
 				pinType = Generic.tech.invisiblePinNode;
 			double wid = pinType.getDefWidth();
 			double hei = pinType.getDefHeight();
-			NodeInst ni = NodeInst.newInstance(pinType, new Point2D.Double(xBBPos, yBBPos), wid, hei, 0, np, null, 0);
+			NodeInst ni = NodeInst.newInstance(pinType, new Point2D.Double(xBBPos, yBBPos), wid, hei, np);
 			if (ni != null)
 			{
 				PortInst head = ni.getOnlyPortInst();
 				PortInst tail = pinNi.getOnlyPortInst();
 				ArcInst ai = ArcInst.makeInstance(wireType, wireType.getDefaultWidth(),
-					head, new Point2D.Double(xBBPos, yBBPos),
-					tail, new Point2D.Double(xPos, yPos), null);
+					head, tail, new Point2D.Double(xBBPos, yBBPos),
+				        new Point2D.Double(xPos, yPos), null);
 				if (ai != null && wireType == Schematics.tech.bus_arc)
                     ai.setExtended(false);
 			}
@@ -4645,7 +4644,7 @@ public class CircuitChanges
             {
                 ReconnectedArc ra = (ReconnectedArc)it.next();
                 if (!ra.reconPi[0].getNodeInst().isLinked() || !ra.reconPi[1].getNodeInst().isLinked()) continue;
-                ArcInst newAi = ArcInst.makeInstance(ra.ap, ra.wid, ra.reconPi[0], ra.recon[0], ra.reconPi[1], ra.recon[1], null);
+                ArcInst newAi = ArcInst.makeInstance(ra.ap, ra.wid, ra.reconPi[0], ra.reconPi[1], ra.recon[0], ra.recon[1], null);
                 if (newAi == null) continue;
                 if (ra.directional) newAi.setDirectional(true);
                 if (ra.ignoreHead) newAi.setSkipHead(true);

@@ -213,7 +213,7 @@ public class ViewChanges
 	private static NodeInst us_tran_logmakenode(NodeProto prim, NodeInst orig, double wid, double hei, int angle, int techSpecific, Cell newCell)
 	{
 		Point2D newLoc = new Point2D.Double(orig.getAnchorCenterX(), orig.getAnchorCenterY());
-		NodeInst newNI = NodeInst.makeInstance(prim, newLoc, wid, hei, angle, newCell, null, techSpecific);
+		NodeInst newNI = NodeInst.makeInstance(prim, newLoc, wid, hei, newCell, angle, null, techSpecific);
 		return newNI;
 	}
 
@@ -236,7 +236,7 @@ public class ViewChanges
 			if (schemHeadPI == null || schemTailPI == null) continue;
 
 			// create the new arc
-			ArcInst schemAI = ArcInst.makeInstance(Schematics.tech.wire_arc, 0, schemHeadPI, schemTailPI, mosAI.getName());
+			ArcInst schemAI = ArcInst.makeInstance(Schematics.tech.wire_arc, 0, schemHeadPI, schemTailPI, null, null, mosAI.getName());
 			if (schemAI == null) continue;
 			schemAI.setFixedAngle(false);
 			schemAI.setRigid(false);

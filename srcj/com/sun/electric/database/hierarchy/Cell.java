@@ -362,7 +362,7 @@ public class Cell extends NodeProto implements Comparable
 		{
 			NodeProto cellCenterProto = Generic.tech.cellCenterNode;
 			NodeInst cellCenter = NodeInst.newInstance(cellCenterProto, new Point2D.Double(0, 0),
-				cellCenterProto.getDefWidth(), cellCenterProto.getDefHeight(), 0, cell, null, 0);
+				cellCenterProto.getDefWidth(), cellCenterProto.getDefHeight(), cell);
             if (cellCenter != null)
             {
                 cellCenter.setVisInside();
@@ -521,7 +521,7 @@ public class Cell extends NodeProto implements Comparable
 			double scaleX = ni.getXSize();   if (ni.isXMirrored()) scaleX = -scaleX;
 			double scaleY = ni.getYSize();   if (ni.isYMirrored()) scaleY = -scaleY;
 			NodeInst toNi = NodeInst.newInstance(lnt, new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY()),
-				scaleX, scaleY, ni.getAngle(), newCell, ni.getName(), 0);
+				scaleX, scaleY, newCell, ni.getAngle(), ni.getName(), 0);
 			if (toNi == null) return null;
 
 			// save the new nodeinst address in the old nodeinst
@@ -584,8 +584,8 @@ public class Cell extends NodeProto implements Comparable
 			if (opi[0] == null || opi[1] == null) return null;
 
 			// create the arcinst
-			ArcInst toAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), opi[0], ai.getHead().getLocation(), opi[1],
-                    ai.getTail().getLocation(), ai.getName(), ai.getAngle());
+			ArcInst toAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), opi[0], opi[1], ai.getHead().getLocation(),
+			        ai.getTail().getLocation(), ai.getName(), ai.getAngle());
 			if (toAi == null) return null;
 
 			// copy arcinst variables

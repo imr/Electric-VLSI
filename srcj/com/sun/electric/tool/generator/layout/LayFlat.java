@@ -69,8 +69,8 @@ class Flattener extends HierarchyEnumerator.Visitor {
 			//System.out.println("Old ArcInst: "+ai+" width: "+ai.getWidth());
 			ArcInst ai2 = 
 				ArcInst.newInstance(ai.getProto(), ai.getWidth(),
-					                pi0, p0,
-									pi1, p1, null, 0);
+					                pi0, pi1, p0,
+				        p1, null, 0);
 			if (ai.isExtended()) ai2.setExtended(true);
 		}
 	}
@@ -157,8 +157,7 @@ class Flattener extends HierarchyEnumerator.Visitor {
 				AffineTransform at = info.getPositionInRoot(ni);
 				//System.out.println("NodeInst: "+ni+" xform: "+at);
 				NodeInst ni2 =
-					NodeInst.newInstance(np, new Point2D.Double(0, 0),
-						                 1, 1, 0, flatCell, null, 0);
+					NodeInst.newInstance(np, new Point2D.Double(0, 0), 1, 1, flatCell);
 //				ni2.setPositionFromTransform(at);
 				for (Iterator it = ni.getPortInsts(); it.hasNext();) {
 					PortInst pi = (PortInst) it.next();
@@ -262,13 +261,11 @@ public class LayFlat extends Job {
 			"scratch", 
 		    getHomeDir()+"work/async/scratch.elib");
 		Cell lowCell = Cell.newInstance(scratch, "lowCell{lay}");
-		NodeInst.newInstance(Tech.m1m2, new Point2D.Double(1,2),
-							 5, 9, 0, lowCell, null, 0);
+		NodeInst.newInstance(Tech.m1m2, new Point2D.Double(1,2), 5, 9, lowCell);
 		Cell hiCell = Cell.newInstance(scratch, "hiCell{lay}");
 		Rectangle2D b = lowCell.getBounds();
 		NodeInst lowInst = 
-		NodeInst.newInstance(lowCell, new Point2D.Double(0,0),
-							 b.getWidth(), b.getHeight(), 0, hiCell, null, 0);
+		NodeInst.newInstance(lowCell, new Point2D.Double(0,0), b.getWidth(), b.getHeight(), hiCell);
 		System.out.println(lowInst.getAnchorCenter());
 		
 //		WindowFrame window1 = WindowFrame.createEditWindow(flatCell);

@@ -852,7 +852,7 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 				}
 			}
 
-			NodeInst newNi = NodeInst.makeInstance(np, where, width, height, defAngle, cell, null, techBits);
+			NodeInst newNi = NodeInst.makeInstance(np, where, width, height, cell, defAngle, null, techBits);
 			if (newNi == null) return false;
 			if (np == Generic.tech.cellCenterNode || np == Generic.tech.essentialBoundsNode)
 				newNi.setHardSelect();

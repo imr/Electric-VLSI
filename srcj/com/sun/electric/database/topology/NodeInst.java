@@ -146,23 +146,40 @@ public class NodeInst extends Geometric implements Nodable
 	/****************************** CREATE, DELETE, MODIFY ******************************/
 
 	/**
-	 * Method to create a NodeInst and do extra things necessary for it.
+	 * Short form method to create a NodeInst and do extra things necessary for it. Angle, name
+	 * and techBits are set to defaults.
 	 * @param protoType the NodeProto of which this is an instance.
 	 * @param center the center location of this NodeInst.
 	 * @param width the width of this NodeInst.
 	 * If negative, flip the X coordinate (or flip ABOUT the Y axis).
 	 * @param height the height of this NodeInst.
 	 * If negative, flip the Y coordinate (or flip ABOUT the X axis).
-	 * @param angle the angle of this NodeInst (in tenth-degrees).
 	 * @param parent the Cell in which this NodeInst will reside.
+     * @return the newly created NodeInst, or null on error.
+	 */
+	public static NodeInst makeInstance(NodeProto protoType, Point2D center, double width, double height, Cell parent)
+	{
+		return (makeInstance(protoType, center, width, height, parent, 0, null, 0));
+	}
+
+	/**
+	 * Long form method to create a NodeInst and do extra things necessary for it.
+	 * @param protoType the NodeProto of which this is an instance.
+	 * @param center the center location of this NodeInst.
+	 * @param width the width of this NodeInst.
+	 * If negative, flip the X coordinate (or flip ABOUT the Y axis).
+	 * @param height the height of this NodeInst.
+	 * If negative, flip the Y coordinate (or flip ABOUT the X axis).
+	 * @param parent the Cell in which this NodeInst will reside.
+	 * @param angle the angle of this NodeInst (in tenth-degrees).
 	 * @param name name of new NodeInst
 	 * @param techBits bits associated to different technologies
      * @return the newly created NodeInst, or null on error.
 	 */
 	public static NodeInst makeInstance(NodeProto protoType, Point2D center, double width, double height,
-                                        int angle, Cell parent, String name, int techBits)
+	                                    Cell parent, int angle, String name, int techBits)
 	{
-		NodeInst ni = newInstance(protoType, center, width, height, angle, parent, name, techBits);
+		NodeInst ni = newInstance(protoType, center, width, height, parent, angle, name, techBits);
 		if (ni != null)
 		{
 			// set default information from the prototype
@@ -195,21 +212,38 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Method to create a NodeInst.
+	 * Short form method to create a NodeInst. Angle, name
+	 * and techBits are set to defaults.
 	 * @param protoType the NodeProto of which this is an instance.
 	 * @param center the center location of this NodeInst.
 	 * @param width the width of this NodeInst.
 	 * If negative, flip the X coordinate (or flip ABOUT the Y axis).
 	 * @param height the height of this NodeInst.
 	 * If negative, flip the Y coordinate (or flip ABOUT the X axis).
-	 * @param angle the angle of this NodeInst (in tenth-degrees).
 	 * @param parent the Cell in which this NodeInst will reside.
+     * @return the newly created NodeInst, or null on error.
+	 */
+	public static NodeInst newInstance(NodeProto protoType, Point2D center, double width, double height, Cell parent)
+	{
+		return (newInstance(protoType, center, width, height, parent, 0, null, 0));
+	}
+
+	/**
+	 * Long form method to create a NodeInst.
+	 * @param protoType the NodeProto of which this is an instance.
+	 * @param center the center location of this NodeInst.
+	 * @param width the width of this NodeInst.
+	 * If negative, flip the X coordinate (or flip ABOUT the Y axis).
+	 * @param height the height of this NodeInst.
+	 * If negative, flip the Y coordinate (or flip ABOUT the X axis).
+	 * @param parent the Cell in which this NodeInst will reside.
+	 * @param angle the angle of this NodeInst (in tenth-degrees).
 	 * @param name name of new NodeInst
 	 * @param techBits bits associated to different technologies
      * @return the newly created NodeInst, or null on error.
 	 */
 	public static NodeInst newInstance(NodeProto protoType, Point2D center, double width, double height,
-                                       int angle, Cell parent, String name, int techBits)
+	                                   Cell parent, int angle, String name, int techBits)
 	{
         if (parent == null) return null;
         
@@ -407,7 +441,7 @@ public class NodeInst extends Geometric implements Nodable
         // see if nodeinst is mirrored
         if (getXSizeWithMirror() < 0) newXS *= -1;
         if (getYSizeWithMirror() < 0) newYS *= -1;
-		NodeInst newNi = NodeInst.newInstance(np, oldCenter, newXS, newYS, getAngle(), getParent(), null, 0);
+		NodeInst newNi = NodeInst.newInstance(np, oldCenter, newXS, newYS, getParent(), getAngle(), null, 0);
 		if (newNi == null) return null;
 
 		// draw new node expanded if appropriate
@@ -573,16 +607,16 @@ public class NodeInst extends Geometric implements Nodable
 				NodeProto pinNp = ((PrimitiveArc)ai.getProto()).findOverridablePinProto();
 				double psx = pinNp.getDefWidth();
 				double psy = pinNp.getDefHeight();
-				NodeInst pinNi = NodeInst.newInstance(pinNp, new Point2D.Double(cX, cY), psx, psy, 0, getParent(), null, 0);
+				NodeInst pinNi = NodeInst.newInstance(pinNp, new Point2D.Double(cX, cY), psx, psy, getParent());
 				PortInst pinPi = pinNi.getOnlyPortInst();
-				newAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), newPortInst[0], newPoint[0],
-					pinPi, new Point2D.Double(cX, cY), null, 0);
+				newAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), newPortInst[0], pinPi, newPoint[0],
+				        new Point2D.Double(cX, cY), null, 0);
 				if (newAi == null) return null;
 				newAi.lowLevelSetUserbits(ai.lowLevelGetUserbits());
 				newAi.getHead().setNegated(ai.getHead().isNegated());
 
-				ArcInst newAi2 = ArcInst.newInstance(ai.getProto(), ai.getWidth(), pinPi, new Point2D.Double(cX, cY),
-					newPortInst[1], newPoint[1], null, 0);
+				ArcInst newAi2 = ArcInst.newInstance(ai.getProto(), ai.getWidth(), pinPi, newPortInst[1], new Point2D.Double(cX, cY),
+				        newPoint[1], null, 0);
 				if (newAi2 == null) return null;
 				newAi2.lowLevelSetUserbits(ai.lowLevelGetUserbits());
 				newAi2.getTail().setNegated(ai.getTail().isNegated());
@@ -593,7 +627,7 @@ public class NodeInst extends Geometric implements Nodable
 			} else
 			{
 				// replace the arc with another arc
-				newAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), newPortInst[0], newPoint[0], newPortInst[1], newPoint[1], null, 0);
+				newAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), newPortInst[0], newPortInst[1], newPoint[0], newPoint[1], null, 0);
 				if (newAi == null)
 				{
 					newNi.kill();

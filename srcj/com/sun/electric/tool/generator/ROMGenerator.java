@@ -4307,7 +4307,7 @@ public class ROMGenerator
 			height = -height;
 			rot = (rot + 900) % 3600;
 		}
-		NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, cY), width, height, rot, parent, null, 0);
+		NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, cY), width, height, parent, rot, null, 0);
 		return ni;
 	}
 
@@ -4329,7 +4329,7 @@ public class ROMGenerator
 	{
 		PortInst head = hNI.findPortInstFromProto(hPP);
 		PortInst tail = tNI.findPortInstFromProto(tPP);
-		ArcInst ai = ArcInst.makeInstance(ap, wid, head, new Point2D.Double(hX, hY), tail, new Point2D.Double(tX, tY), null);
+		ArcInst ai = ArcInst.makeInstance(ap, wid, head, tail, new Point2D.Double(hX, hY), new Point2D.Double(tX, tY), null);
 	}
 
 	/**

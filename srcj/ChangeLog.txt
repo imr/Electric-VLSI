@@ -3,6 +3,9 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01w: *********************************
+IMP: (9/22/04, GVG) Refactoring NodeInst/ArcInst makeInstance/newInstance methods. From now on, short/long definitions
+are available
+
 IMP: (9/22/04, GVG) CrossLib dialog and scrollbars. Added syncronizer to keep 3 scrollbars aligned.
 
 IMP (9/21/04, RK) Performance tuning flat NCC algorithm. I replaced StratFrontier with LeafEquivRecord which is much more efficient. Flat NCC of top cell of qFourP2 without size checking has dropped from 16 minutes to 2.8 minutes. With size checking has dropped from 22 minutes to 8 minutes.

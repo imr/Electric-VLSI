@@ -1751,7 +1751,7 @@ public class ELIB extends LibraryFiles
                 expected = trans.transform(expected, expected);
                 Point2D center = new Point2D.Double(expected.getX() - anchorX, expected.getY() - anchorY);
                 PrimitiveNode pn = Generic.tech.universalPinNode;
-                NodeInst ni = NodeInst.newInstance(pn, center, 0, 0, 0, c, "", 0);
+                NodeInst ni = NodeInst.newInstance(pn, center, 0, 0, c, 0, "", 0);
                 Export ex = Export.newInstance(c, ni.getOnlyPortInst(), portname);
                 if (ex != null) {
                     return node.findPortInst(portname);
@@ -1767,8 +1767,7 @@ public class ELIB extends LibraryFiles
         error.addGeom(ai, true, cell, null);
 
         PrimitiveNode pn = ((PrimitiveArc)ap).findOverridablePinProto();
-        node = NodeInst.newInstance(pn, new Point2D.Double(x, y), pn.getDefWidth(),
-            pn.getDefHeight(), 0, cell, null, 0);
+        node = NodeInst.newInstance(pn, new Point2D.Double(x, y), pn.getDefWidth(), pn.getDefHeight(), cell);
         error.addGeom(node, true, cell, null);
         return node.getOnlyPortInst();
     }
@@ -2168,7 +2167,7 @@ public class ELIB extends LibraryFiles
             double width = (highX - lowX) / lambda;
             double height = (highY - lowY) / lambda;
             Point2D center = new Point2D.Double(cX / lambda, cY / lambda);
-            NodeInst.newInstance(Generic.tech.drcNode, center, width, height, 0, c, null, 0);
+            NodeInst.newInstance(Generic.tech.drcNode, center, width, height, c);
             //PrimitiveNode cellCenter = Generic.tech.cellCenterNode;
             //NodeInst.newInstance(cellCenter, new Point2D.Double(0,0), cellCenter.getDefWidth(),
             //        cellCenter.getDefHeight(), 0, c, null);

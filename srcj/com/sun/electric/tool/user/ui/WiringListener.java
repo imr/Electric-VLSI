@@ -345,7 +345,7 @@ public class WiringListener
 				{
 					// create the nodeInst
 					NodeInst newNi = NodeInst.makeInstance(wp.getNodeType(), wp.getNodeLocation(),
-						wp.getNodeWidth(), wp.getNodeHeight(), 0, cell, null, 0);
+						wp.getNodeWidth(), wp.getNodeHeight(), cell);
 					if (newNi == null) return null;
 					added.add(newNi);
 					nodesCreated++;
@@ -374,7 +374,7 @@ public class WiringListener
 				}
 				Point2D headLoc = wp.getArcHeadLocation();
 				Point2D tailLoc = wp.getArcTailLocation();
-				ArcInst newAi = ArcInst.makeInstance(ap, wp.getArcWidth(), headPi, headLoc, tailPi, tailLoc, null);
+				ArcInst newAi = ArcInst.makeInstance(ap, wp.getArcWidth(), headPi, tailPi, headLoc, tailLoc, null);
 				if (newAi == null) return null;
 				arcsCreated++;
 				added.add(newAi);

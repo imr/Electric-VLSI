@@ -590,7 +590,7 @@ public class RouteElementPort extends RouteElement {
 
             double heightso = height + so.getLowYOffset() + so.getHighYOffset();
 
-            nodeInst = NodeInst.makeInstance(np, location, widthso, heightso, 0, getCell(), null, 0);
+            nodeInst = NodeInst.makeInstance(np, location, widthso, heightso, getCell());
 
             if (nodeInst == null) return null;
 

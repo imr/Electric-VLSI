@@ -940,7 +940,7 @@ public class Change extends EDialog implements HighlightListener
 			{
 				NodeInst ni = (NodeInst)it.next();
 
-				NodeInst newNi = NodeInst.makeInstance(pin, ni.getAnchorCenter(), xS, yS, 0, cell, null, 0);
+				NodeInst newNi = NodeInst.makeInstance(pin, ni.getAnchorCenter(), xS, yS, cell);
 				if (newNi == null) return;
 				newNi.clearBit(marked);
 				ni.setTempObj(newNi);
@@ -984,8 +984,8 @@ public class Change extends EDialog implements HighlightListener
 
 				double wid = ap.getDefaultWidth();
 				if (ai.getWidth() > wid) wid = ai.getWidth();
-				ArcInst newAi = ArcInst.makeInstance(ap, wid, pi0, ai.getHead().getLocation(),
-					pi1, ai.getTail().getLocation(), null);
+				ArcInst newAi = ArcInst.makeInstance(ap, wid, pi0, pi1, ai.getHead().getLocation(),
+				        ai.getTail().getLocation(), null);
 				if (newAi == null) return;
 				newAi.copyPropertiesFrom(ai);
 				newAi.clearBit(marked);
@@ -1047,13 +1047,13 @@ public class Change extends EDialog implements HighlightListener
 			{
 				double xS = contactStack[i].getDefWidth();
 				double yS = contactStack[i].getDefHeight();
-				NodeInst newNi = NodeInst.makeInstance(contactStack[i], center, xS, yS, 0, cell, null, 0);
+				NodeInst newNi = NodeInst.makeInstance(contactStack[i], center, xS, yS, cell);
 				if (newNi == null) return null;
 				PortInst thisPi = newNi.findPortInstFromProto(contactStack[i].getPort(0));
 
 				ArcProto typ = contactStackArc[i];
 				double wid = typ.getDefaultWidth();
-				ArcInst newAi = ArcInst.makeInstance(typ, wid, thisPi, retPi, null);
+				ArcInst newAi = ArcInst.makeInstance(typ, wid, thisPi, retPi);
 				retPi = thisPi;
 				if (newAi == null) return null;
 			}

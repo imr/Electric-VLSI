@@ -1110,15 +1110,13 @@ public class EditMenu {
                 ArcProto ap = ai.getProto();
                 NodeProto np = ((PrimitiveArc)ap).findPinProto();
                 if (np == null) return false;
-                NodeInst ni = NodeInst.makeInstance(np, insert, np.getDefWidth(), np.getDefHeight(),
-                    0, ai.getParent(), null, 0);
+                NodeInst ni = NodeInst.makeInstance(np, insert, np.getDefWidth(), np.getDefHeight(), ai.getParent());
                 if (ni == null)
                 {
                     System.out.println("Cannot create pin " + np.describe());
                     return false;
                 }
-                NodeInst ni2 = NodeInst.makeInstance(np, insert, np.getDefWidth(), np.getDefHeight(),
-                    0, ai.getParent(), null, 0);
+                NodeInst ni2 = NodeInst.makeInstance(np, insert, np.getDefWidth(), np.getDefHeight(), ai.getParent());
                 if (ni2 == null)
                 {
                     System.out.println("Cannot create pin " + np.describe());
@@ -1166,10 +1164,10 @@ public class EditMenu {
                 int angle = (ai.getAngle() + 900) % 3600;
 
                 // create the new arcs
-                ArcInst newAi1 = ArcInst.makeInstance(ap, width, headPort, headPt, pi, insert, null);
+                ArcInst newAi1 = ArcInst.makeInstance(ap, width, headPort, pi, headPt, insert, null);
                 if (headNegated) newAi1.getHead().setNegated(true);
-                ArcInst newAi2 = ArcInst.makeInstance(ap, width, pi, insert, pi2, insert, null);
-                ArcInst newAi3 = ArcInst.makeInstance(ap, width, pi2, insert, tailPort, tailPt, null);
+                ArcInst newAi2 = ArcInst.makeInstance(ap, width, pi, pi2, insert, insert, null);
+                ArcInst newAi3 = ArcInst.makeInstance(ap, width, pi2, tailPort, insert, tailPt, null);
                 if (tailNegated) newAi3.getTail().setNegated(true);
 				newAi1.setNameTextDescriptor(ai.getNameTextDescriptor());
 				newAi3.setNameTextDescriptor(ai.getNameTextDescriptor());
