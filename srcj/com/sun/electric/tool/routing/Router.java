@@ -25,6 +25,7 @@ package com.sun.electric.tool.routing;
 
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.Job;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -138,6 +139,14 @@ public abstract class Router {
 
         /** Implemented doIt() method to perform Job */
         public boolean doIt() {
+
+            // check if we can edit this cell
+            if (CircuitChanges.cantEdit(cell, null, true)) {
+                Highlight.clear();
+                Highlight.finished();
+                return false;
+            }
+
             int arcsCreated = 0;
             int nodesCreated = 0;
             // pass 1: build all newNodes
