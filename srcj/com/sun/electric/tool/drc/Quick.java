@@ -1005,8 +1005,9 @@ public class Quick
 		Netlist netlist = getCheckProto(cell).netlist;
         Rectangle2D subBound = new Rectangle2D.Double(); //Sept 30
 
+		// These nodes won't generate any DRC errors. Most of them are pins
 		if (geom instanceof NodeInst && isSpecialNode(((NodeInst)geom).getProto()))
-			System.out.println("When do I see this case");
+			return false;
 
 		// Sept04 changes: bounds by rBound
 		for(Iterator it = cell.searchIterator(bounds); it.hasNext(); )
