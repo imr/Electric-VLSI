@@ -2,6 +2,11 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.01an: *********************************
+
+BUG: (11/11/04, GVG) List Geometry on Network: fast algorithm in PolyQTree not working correctly while splitting the tree. 
+Fix: put back the slow code
+
 ************************* Version 8.01am: *********************************
 
 BUG: (11/11/04, SMR) Arraying crashes.

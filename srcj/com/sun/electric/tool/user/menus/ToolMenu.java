@@ -1078,7 +1078,8 @@ public class ToolMenu {
 							}
 							map.put(pnode, pnode.clone());
 						}
-                        tree.add(layer, pnode, function==NETWORK);  // tmp fix
+	                    //if (layer.getName().equals("Metal-1"))
+                        tree.add(layer, pnode, false/*function==NETWORK*/);  // tmp fix
                     }
                 }
 
@@ -1163,7 +1164,8 @@ public class ToolMenu {
 								}
 		                        map.put(pnode, pnode.clone());
 	                        }
-                            tree.add(layer, pnode, function==NETWORK);
+	                        //if (layer.getName().equals("Metal-1"))
+                            tree.add(layer, pnode, false/*function==NETWORK*/);
                         }
                     }
                 }
