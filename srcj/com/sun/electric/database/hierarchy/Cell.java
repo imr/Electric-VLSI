@@ -43,6 +43,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -297,7 +298,7 @@ public class Cell extends NodeProto
 	 */
 	public static Cell lowLevelAllocate(Library lib)
 	{
-		Undo.checkChanging();
+		Job.checkChanging();
 		Cell c = new Cell();
 		c.nodes = new ArrayList();
 		c.usagesIn = new HashMap();
@@ -433,7 +434,7 @@ public class Cell extends NodeProto
 	 */
 	public static Cell newInstance(Library lib, String name)
 	{
-		Undo.checkChanging();
+		Job.checkChanging();
 		Cell cell = lowLevelAllocate(lib);
 		if (cell.lowLevelPopulate(name)) return null;
 		if (cell.lowLevelLink()) return null;
@@ -656,15 +657,15 @@ public class Cell extends NodeProto
 	 */
 	public void checkChanging()
 	{
-		if (Undo.getChangingThread() != Thread.currentThread())
+		if (Job.getChangingThread() != Thread.currentThread())
 		{
-			if (Undo.getChangingThread() == null)
+			if (Job.getChangingThread() == null)
 				System.out.println(this+" is changing without Undo.startChanges() lock");
 			else
-				System.out.println(this+" is changing by another thread");
+				System.out.println(this+" is changing by another thread "+Job.getChangingThread());
 			//throw new IllegalStateException("Cell.checkChanging()");
 		}
-		Cell rootCell = Undo.getChangingCell();
+		Cell rootCell = Job.getChangingCell();
 		if (lock != -1 && rootCell != null)
 		{
 			System.out.println("Change to cell "+rootCell.describe()+" affects cell "+describe()+" which is not above it in the hierarchy");

@@ -32,6 +32,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.util.ArrayList;
@@ -543,7 +544,7 @@ public class ElectricObject
 		if (cell != null)
 			cell.checkChanging();
 		else
-			Undo.checkChanging();
+			Job.checkChanging();
 	}
 
 

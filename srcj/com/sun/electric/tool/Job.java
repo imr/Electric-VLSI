@@ -9,6 +9,7 @@ package com.sun.electric.tool;
 
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 
 import java.lang.Thread;
@@ -54,7 +55,7 @@ import java.awt.Point;
  *
  * @author  gainsley
  */
-public abstract class Job extends Thread implements ActionListener {
+public abstract class Job implements ActionListener, Runnable {
 
 	/**
 	 * Type is a typesafe enum class that describes the type of job (CHANGE or EXAMINE).
@@ -72,6 +73,7 @@ public abstract class Job extends Thread implements ActionListener {
 		public String toString() { return name; }
 
 		/** Describes a database change. */			public static final Type CHANGE  = new Type("change");
+		/** Describes a database undo/redo. */		public static final Type UNDO    = new Type("undo");
 		/** Describes a database examination. */	public static final Type EXAMINE = new Type("examine");
 	}
 
@@ -103,14 +105,107 @@ public abstract class Job extends Thread implements ActionListener {
 		/** Lowest priority: analysis. */				public static final Priority ANALYSIS     = new Priority("analysis", 4);
 	}
 
+	/**
+	 * Thread which execute all database change Jobs.
+	 */
+	private static class DatabaseChangesThread extends Thread
+	{
+		DatabaseChangesThread() {
+			super("Database");
+			start();
+		}
+
+		public void run()
+		{
+			for (;;)
+			{
+				Job job = waitChangeJob();
+				job.run();
+			}
+		}
+
+		private synchronized Job waitChangeJob() {
+			for (;;)
+			{
+				if (numStarted < allJobs.size())
+				{
+					Job job = (Job)allJobs.get(numStarted);
+					if (job.jobType == Type.EXAMINE)
+					{
+						job.started = true;
+						numStarted++;
+						numExamine++;
+						Thread t = new Thread(job, job.jobName);
+						t.start();
+						continue;
+					}
+					// job.jobType == Type.CHANGE || jobType == Type.REDO
+					if (numExamine == 0)
+					{
+						job.started = true;
+						numStarted++;
+						if (job.upCell != null) job.upCell.setChangeLock();
+						return job;
+					}
+				}
+				try {
+					wait();
+				} catch (InterruptedException e) {}
+			}
+		}
+    
+		/** Add job to list of jobs */
+		private synchronized void addJob(Job j) { 
+			if (numStarted == allJobs.size())
+				notify();
+			allJobs.add(j);
+			explorerTree.add(j.myNode);
+			WindowFrame.explorerTreeChanged();
+		}
+
+		/** Remove job from list of jobs */
+		private synchronized void removeJob(Job j) { 
+			int index = allJobs.indexOf(j);
+			if (index != -1) {
+				allJobs.remove(index);
+				if (index == numStarted)
+					notify();
+				if (index < numStarted) numStarted--;
+			}
+			explorerTree.remove(j.myNode);
+			WindowFrame.explorerTreeChanged();        
+		}
+
+		/** Build Job explorer tree */
+		public synchronized DefaultMutableTreeNode getExplorerTree() {
+			explorerTree.removeAllChildren();
+			for (Iterator it = allJobs.iterator(); it.hasNext();) {
+				DefaultMutableTreeNode node = new DefaultMutableTreeNode((Job)it.next());
+				explorerTree.add(node);
+			}
+			return explorerTree;
+		}
+    
+		private synchronized void endExamine(Job j) {
+			numExamine--;
+			if (numExamine == 0)
+				notify();
+		}
+	}
+
 	// Job Management
     /** all jobs */                             private static ArrayList allJobs = new ArrayList();
+	/** number of started jobs */               private static int numStarted = 0;
+	/** number of examine jobs */               private static int numExamine = 0;
+	/** database changes thread */              private static DatabaseChangesThread databaseChangesThread = new DatabaseChangesThread();
+	/** changing job */                         private static Job changingJob;
     /** job tree */                             private static DefaultMutableTreeNode explorerTree = new DefaultMutableTreeNode("JOBS");
     /** my tree node */                         private DefaultMutableTreeNode myNode;
     
     // Job Status
     /** job start time */                       protected long startTime;
     /** job end time */                         protected long endTime;
+    /** was job started? */                     private boolean started;
     /** is job finished? */                     private boolean finished;
     /** thread aborted? */                      private boolean aborted;
     /** schedule thread to abort */             private boolean scheduledToAbort;
@@ -136,8 +231,7 @@ public abstract class Job extends Thread implements ActionListener {
 	 * @param priority the priority of this Job.
 	 */
     public Job(String jobName, Tool tool, Type jobType, Cell upCell, Cell downCell, Priority priority) {
-        super(jobName);
-
+		if (downCell != null) upCell = null; // downCell not implemented. Lock whole database
 		this.jobName = jobName;
 		this.tool = tool;
 		this.jobType = jobType;
@@ -145,13 +239,14 @@ public abstract class Job extends Thread implements ActionListener {
 		this.upCell = upCell;
 		this.downCell = downCell;
         startTime = endTime = 0;
-        finished = aborted = scheduledToAbort = false;
+        started = finished = aborted = scheduledToAbort = false;
         myNode = new DefaultMutableTreeNode(this);
         
-        Job.addJob(this);
+        databaseChangesThread.addJob(this);
 
 		// should figure out when to start the job properly...for now, just start it
-		start();
+		//Thread t = new Thread(this, jobName);
+		//t.start();
     }
 	//--------------------------ABSTRACT METHODS--------------------------
     
@@ -172,32 +267,26 @@ public abstract class Job extends Thread implements ActionListener {
         
     }
 
-    /** Add job to list of jobs */
-    private static synchronized void addJob(Job j) { 
-        allJobs.add(j); 
-        explorerTree.add(j.myNode);
-        WindowFrame.explorerTreeChanged();
-    }
-
-	/** Remove job from list of jobs */
-    private static synchronized void removeJob(Job j) { 
-        if (allJobs.indexOf(j) != -1) {
-            allJobs.remove(allJobs.indexOf(j));
-        }
-        explorerTree.remove(j.myNode);
-        WindowFrame.explorerTreeChanged();        
-    }
-    
-    
     //--------------------------PUBLIC JOB METHODS--------------------------
 
     /** Run gets called after the calling thread calls our start method */
     public void run() {
         startTime = System.currentTimeMillis();
 
-		if (jobType == Type.CHANGE) Undo.startChanges(tool, jobName, upCell);
-		doIt();
-		if (jobType == Type.CHANGE) Undo.endChanges();
+		try {
+			if (jobType == Type.CHANGE)	Undo.startChanges(tool, jobName, upCell);
+			if (jobType != Type.EXAMINE) changingJob = this;
+			doIt();
+			if (jobType == Type.CHANGE)	Undo.endChanges();
+		} finally {
+			if (jobType == Type.EXAMINE)
+			{
+				databaseChangesThread.endExamine(this);
+			} else {
+				changingJob = null;
+				Library.clearChangeLocks();
+			}
+		}
 
 		finished = true;                        // is this redundant with Thread.isAlive()?
         endTime = System.currentTimeMillis();
@@ -225,7 +314,7 @@ public abstract class Job extends Thread implements ActionListener {
     /** Tell thread to abort. Extending class should check
      * abort when/where applicable
      */
-    public synchronized void abort() { 
+    public void abort() { 
         if (aborted) { 
             System.out.println("Job already aborted: "+getStatus());
             return;
@@ -246,6 +335,7 @@ public abstract class Job extends Thread implements ActionListener {
     
     /** get status */
     public String getStatus() {
+		if (!started) return "waiting";
         if (finished) return "done";
         if (aborted) return "aborted";
         if (scheduledToAbort) return "scheduled to abort";
@@ -253,19 +343,45 @@ public abstract class Job extends Thread implements ActionListener {
         return getProgress();
     }
     
+	/**
+	 * Returns thread which activated current changes or null if no changes.
+	 * @return thread which activated current changes or null if no changes.
+	 */
+	public static Thread getChangingThread() { return changingJob != null ? databaseChangesThread : null; }
+
+	/**
+	 * Returns cell which is root of up-tree of current changes or null, if no changes or whole database changes.
+	 * @return cell which is root of up-tree of current changes or null, if no changes or whole database changes.
+	 */
+	public static Cell getChangingCell() { return changingJob != null ? changingJob.upCell : null; }
+
+	/**
+	 * Routing to check whether changing of whole database allowed or not.
+	 */
+	public static void checkChanging()
+	{
+		if (changingJob == null)
+		{
+			System.out.println("Database is changing out if change job");
+			//throw new IllegalStateException("Job.checkChanging()");
+		} else if (Thread.currentThread() != databaseChangesThread)
+		{
+			System.out.println("Database is changing by other thread");
+			//throw new IllegalStateException("Job.checkChanging()");
+		} else if (changingJob.upCell != null)
+		{
+			System.out.println("Database is changing which only up-tree of "+changingJob.upCell+" is locked");
+			//throw new IllegalStateException("Undo.checkChanging()");
+		}
+	}
+
+	//-------------------------------JOB UI--------------------------------
     
-    //-------------------------------JOB UI--------------------------------
-    
-    public String toString() { return getName()+" ("+getStatus()+")"; }
+    public String toString() { return jobName+" ("+getStatus()+")"; }
         
     /** Build Job explorer tree */
     public static DefaultMutableTreeNode getExplorerTree() {
-        explorerTree.removeAllChildren();
-        for (Iterator it = allJobs.iterator(); it.hasNext();) {
-            DefaultMutableTreeNode node = new DefaultMutableTreeNode((Job)it.next());
-            explorerTree.add(node);
-        }
-        return explorerTree;
+		return databaseChangesThread.getExplorerTree();
     }
     
     /** popup menu when user right-clicks on job in explorer tree */
@@ -292,7 +408,7 @@ public abstract class Job extends Thread implements ActionListener {
                 System.out.println("Cannot delete running jobs.  Wait till finished or abort");
                 return;
             }
-            Job.removeJob(this);
+            databaseChangesThread.removeJob(this);
         }
     }
                 

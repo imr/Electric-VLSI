@@ -106,9 +106,9 @@ public final class UserMenuCommands
 		Menu editMenu = Menu.createMenu("Edit", 'E');
 		menuBar.add(editMenu);
 		editMenu.addMenuItem("Undo", KeyStroke.getKeyStroke('Z', InputEvent.CTRL_MASK),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { undoCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { new UndoCommand(); } });
 		editMenu.addMenuItem("Redo", KeyStroke.getKeyStroke('Y', InputEvent.CTRL_MASK),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { redoCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { new RedoCommand(); } });
 		editMenu.addMenuItem("Show Undo List", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); } });
 		editMenu.addSeparator();
@@ -363,21 +363,37 @@ public final class UserMenuCommands
 	// ---------------------- THE EDIT MENU -----------------
 
 	/**
-	 * This routine implements the command to undo the last change.
+	 * This class implement the command to undo the last change.
 	 */
-	public static void undoCommand()
+	protected static class UndoCommand extends Job
 	{
-		if (!Undo.undoABatch())
-			System.out.println("Undo failed!");
+		protected UndoCommand()
+		{
+			super("Undo", User.tool, Job.Type.UNDO, Undo.upCell(false), null, Job.Priority.USER);
+		}
+
+		public void doIt()
+		{
+			if (!Undo.undoABatch())
+				System.out.println("Undo failed!");
+		}
 	}
 
 	/**
-	 * This routine implements the command to redo the last change.
+	 * This class implement the command to undo the last change.
 	 */
-	public static void redoCommand()
+	protected static class RedoCommand extends Job
 	{
-		if (!Undo.redoABatch())
-			System.out.println("Redo failed!");
+		protected RedoCommand()
+		{
+			super("Redo", User.tool, Job.Type.UNDO, Undo.upCell(true), null, Job.Priority.USER);
+		}
+
+		public void doIt()
+		{
+			if (!Undo.redoABatch())
+				System.out.println("Redo failed!");
+		}
 	}
 
 	/**

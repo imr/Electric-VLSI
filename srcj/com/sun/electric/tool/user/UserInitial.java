@@ -59,9 +59,7 @@ public final class UserInitial
 		TopLevel.Initialize();
 	
 		// initialize all of the technologies
-		Undo.startChanges(User.tool, "Init technologies");
-		Technology.initAllTechnologies();
-		Undo.endChanges();
+		new InitTechnologies();
 
 		// initialize all of the tools
 		Tool.initAllTools();
@@ -76,9 +74,22 @@ public final class UserInitial
 
 		// test code to make and show something
 		MakeFakeCircuitry job = new MakeFakeCircuitry();
+	}
 
-		// disallow undo
-		Undo.noUndoAllowed();
+	/**
+	 * Class to init all technologies.
+	 */
+	protected static class InitTechnologies extends Job
+	{
+		protected InitTechnologies()
+		{
+			super("Init technologies", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+		}
+
+		public void doIt()
+		{
+			Technology.initAllTechnologies();
+		}
 	}
 
 	/**
@@ -340,6 +351,10 @@ public final class UserInitial
 				}
 			}
 			System.out.println("Created cell " + bigCell.describe());
+
+
+			// disallow undo
+			Undo.noUndoAllowed();
 
 			// show some stuff
 //			instance1Node.getInfo();

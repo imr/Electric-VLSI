@@ -110,7 +110,7 @@ public class LETool extends Tool {
             try {
                 boolean donesleeping = false;
                 while(!donesleeping) {
-                    sleep(5000);
+                    Thread.sleep(5000);
                     donesleeping = true;
                 }
             } catch (InterruptedException e) {}
@@ -128,7 +128,7 @@ public class LETool extends Tool {
             try {
                 boolean donesleeping = false;
                 while(!donesleeping) {
-                    sleep(5000);
+                    Thread.sleep(5000);
                     donesleeping = true;
                 }
             } catch (InterruptedException e) {}
