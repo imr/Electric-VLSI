@@ -3,7 +3,6 @@ package com.sun.electric.plugins.j3d.utils;
 import com.sun.image.codec.jpeg.JPEGEncodeParam;
 import com.sun.image.codec.jpeg.JPEGCodec;
 import com.sun.image.codec.jpeg.JPEGImageEncoder;
-import com.sun.electric.plugins.jmf.ImageToMovie;
 import com.sun.electric.tool.user.Resources;
 
 import java.awt.*;
