@@ -454,6 +454,19 @@ public class ErrorLogger implements ActionListener {
         }
     }
 
+    /**
+     * Removes all errors associated with Cell cell.
+     * @param cell the cell for which errors will be removed
+     */
+    public synchronized void clearErrors(Cell cell) {
+        ArrayList trimmedErrors = new ArrayList();
+        for (Iterator it = allErrors.iterator(); it.hasNext(); ) {
+            ErrorLog log = (ErrorLog)it.next();
+            if (log.cell != cell) trimmedErrors.add(log);
+        }
+        allErrors = trimmedErrors;
+    }
+
     /** Delete this logger */
     public synchronized void delete() {
 
