@@ -390,8 +390,10 @@ public class CellBrowser extends EDialog {
             extrasPanel.add(newCellNameLabel, gridBagConstraints);
 
             newCellName = new JTextField();
-            String nameOnly = lastSelectedCell.replaceAll("\\{.*?\\}", "");
-            if (lastSelectedCell != null) newCellName.setText(nameOnly);
+            if (lastSelectedCell != null) {
+                String nameOnly = lastSelectedCell.replaceAll("\\{.*?\\}", "");
+                newCellName.setText(nameOnly);
+            }
             gridBagConstraints.gridx = 1;
             gridBagConstraints.gridy = 0;
             gridBagConstraints.gridwidth = 1;
