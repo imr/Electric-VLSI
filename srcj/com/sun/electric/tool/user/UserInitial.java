@@ -72,12 +72,21 @@ public final class UserInitial
 		steveMenu.addMenuItem("Full Display", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.fullDisplayCommand(); } });
 
+		// setup Russell's test menu
+		UIMenu russMenu = UIMenu.CreateUIMenu("Russell");
+		russMenu.addMenuItem("ivanFlat", KeyStroke.getKeyStroke('T', InputEvent.CTRL_MASK),
+			new com.sun.electric.rkao.IvanFlat());
+		/*russMenu.addMenuItem("Full Display", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.fullDisplayCommand(); } });
+		*/
+
 		// create the menu bar
 		// should set com.apple.macos.useScreenMenuBar to TRUE (see http://developer.apple.com/documentation/Java/Conceptual/Java131Development/value_add/chapter_6_section_4.html)
 		// so, use -Dcom.apple.macos.useScreenMenuBar=true
 		JMenuBar menuBar = new JMenuBar();
 		menuBar.add(fileMenu);
 		menuBar.add(steveMenu);
+		menuBar.add(russMenu);
 		UITopLevel.setMenuBar(menuBar);
 
 		// initialize all of the technologies

@@ -153,4 +153,28 @@ public class VarContext
 	{
 		return ni;
 	}
+	
+	/** Return the concatonation of all instances names left to right
+	 * from the root to the leaf. Begin with the string with a separator
+	 * and place a separator between adjacent instance names.
+	 * @param sep the separator string.
+	 * <p> Is this too application specific? RKao */
+	public String getInstPath(String sep) 
+	{
+	  if (this==globalContext) return sep;
+
+	  String prefix = pop()==globalContext ? "" : pop().getInstPath(sep);
+
+	  NodeInst ni = getNodeInst();
+	  if (ni==null) {
+	  	System.out.println("VarContext.getInstPath: context with null NodeInst?");
+	  }
+	  String me = ni.getName();
+	  if (me==null) {
+		System.out.println("VarContext.getInstPath: NodeInst in VarContext with no name!!!");
+	  }
+
+	  return prefix + sep + me;
+	}
+
 }

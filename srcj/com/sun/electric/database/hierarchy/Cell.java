@@ -1030,271 +1030,280 @@ public class Cell extends NodeProto
 	 * an ArrayList are treated as if they are connected.  All of the
 	 * PortProtos in a single ArrayList must belong to the same
 	 * NodeProto. */
-//	public void rebuildNetworks(ArrayList connectedPorts)
-//	{
-//		if (connectedPorts == null)
-//		{
-//			connectedPorts = new ArrayList();
-//		}
-//		HashMap connPorts = buildConnPortsTable(connectedPorts);
-//		currentTime++;
-//		redoNetworks(connPorts);
-//	}
+	public void rebuildNetworks(ArrayList connectedPorts)
+	{
+		if (connectedPorts == null)
+		{
+			connectedPorts = new ArrayList();
+		}
+		HashMap connPorts = buildConnPortsTable(connectedPorts);
+		currentTime++;
+		redoNetworks(connPorts);
+	}
 
-//	private HashMap buildConnPortsTable(ArrayList connPortsLists)
-//	{
-//		HashMap connPorts = new HashMap();
-//		if (connPortsLists == null)
-//			return connPorts;
-//
-//		// iterate over all lists
-//		for (int i = 0; i < connPortsLists.size(); i++)
-//		{
-//			ArrayList connPortsList = (ArrayList) connPortsLists.get(i);
-//
-//			// all these PortProtos are shorted together
-//			JNetwork dummyNet = new JNetwork(null);
-//			NodeProto parent = null;
-//			for (int j = 0; j < connPortsList.size(); j++)
-//			{
-//				PortProto pp = (PortProto) connPortsList.get(j);
-//
-//				// make sure all connected ports have the same parent
-//				if (j == 0)
-//					parent = pp.getParent();
-//				if (pp.getParent() != parent)
-//				{
-//					System.out.println("PortProtos in the same connected" + " list must belong to same NodeProto");
-//					return null;
-//				}
-//
-//				// make sure it's not already present
-//				if (connPorts.containsKey(pp))
-//				{
-//					System.out.println("PortProto occurs more than once in the connected Ports lists");
-//					return null;
-//				}
-//
-//				connPorts.put(pp, dummyNet);
-//			}
-//		}
-//		return connPorts;
-//	}
+	private HashMap buildConnPortsTable(ArrayList connPortsLists)
+	{
+		HashMap connPorts = new HashMap();
+		if (connPortsLists == null)
+			return connPorts;
 
-//	private void redoDescendents(HashMap equivPorts)
-//	{
-//		for (int i = 0; i < nodes.size(); i++)
-//		{
-//			NodeInst ni = (NodeInst) nodes.get(i);
-//			NodeProto np = ni.getProto();
-//
-//			if (np instanceof Cell)
-//			{
-//				if (ni.isIconOfParent())
-//					continue;
-//
-//				// If Cell is an Icon View then redo the Schematic
-//				// View. Otherwise redo the Cell.
-//				Cell equivCell = (Cell) np.getEquivalent();
-//
-//				// if an icon has no corresponding schematic then equivCell==null
-//				if (equivCell != null)
-//					equivCell.redoNetworks(equivPorts);
-//			}
-//		}
-//	}
+		// iterate over all lists
+		for (int i = 0; i < connPortsLists.size(); i++)
+		{
+			ArrayList connPortsList = (ArrayList) connPortsLists.get(i);
 
-//	private void placeEachPortInstOnItsOwnNet()
-//	{
-//		for (int i = 0; i < nodes.size(); i++)
-//		{
-//			NodeInst ni = (NodeInst) nodes.get(i);
-//			for (Iterator it = ni.getPortInsts(); it.hasNext();)
-//			{
-//				PortInst pi = (PortInst) it.next();
-//				JNetwork net = new JNetwork(this);
-//				net.addPortInst(pi);
-//			}
-//		}
-//	}
+			// all these PortProtos are shorted together
+			JNetwork dummyNet = new JNetwork(null);
+			NodeProto parent = null;
+			for (int j = 0; j < connPortsList.size(); j++)
+			{
+				PortProto pp = (PortProto) connPortsList.get(j);
 
-//	private void mergeNetsConnectedByArcs()
-//	{
-//		for (int i = 0; i < arcs.size(); i++)
-//		{
-//			ArcInst ai = (ArcInst) arcs.get(i);
-//			JNetwork n0 = ai.getConnection(false).getPortInst().getNetwork();
-//			JNetwork n1 = ai.getConnection(true).getPortInst().getNetwork();
-//
-//			JNetwork merged = JNetwork.merge(n0, n1);
-//			merged.addName(ai.getName());
-//		}
-//	}
+				// make sure all connected ports have the same parent
+				if (j == 0)
+					parent = pp.getParent();
+				if (pp.getParent() != parent)
+				{
+					System.out.println("PortProtos in the same connected" + " list must belong to same NodeProto");
+					return null;
+				}
 
-//	private void addExportNamesToNets()
-//	{
-//		for (Iterator it = getPorts(); it.hasNext();)
-//		{
-//			Export e = (Export) it.next();
-//			String expNm = e.getProtoName();
-//			if (expNm == null)
-//			{
-//				System.out.println("Cell.addExportNamesToNet: Export with no name!");
-//				return;
-//			}
-//			e.getNetwork().addName(expNm);
-//		}
-//	}
+				// make sure it's not already present
+				if (connPorts.containsKey(pp))
+				{
+					System.out.println("PortProto occurs more than once in the connected Ports lists");
+					return null;
+				}
 
-//	private void mergeNetsConnectedByNodeProtoSubnets()
-//	{
-//		for (int i = 0; i < nodes.size(); i++)
-//		{
-//			NodeInst ni = (NodeInst) nodes.get(i);
-//
-//			if (ni.isIconOfParent())
-//				continue;
-//
-//			HashMap netToPort = new HashMap(); // subNet -> PortInst
-//			for (Iterator it = ni.getPortInsts(); it.hasNext();)
-//			{
-//				PortInst piNew = (PortInst) it.next();
-//				JNetwork subNet =
-//					piNew.getPortProto().getEquivalent().getNetwork();
-//
-//				if (subNet == null && ni.getProto() instanceof Cell)
-//				{
-//					System.out.println("Cell.mergeNets... : no subNet on Cell: "
-//						+ ni.getProto().getProtoName()
-//						+ " port: "
-//						+ piNew.getPortProto());
-//					return;
-//				}
-//
-//				if (subNet != null)
-//				{
-//					PortInst piOld = (PortInst) netToPort.get(subNet);
-//					if (piOld != null)
-//					{
-//						JNetwork.merge(piOld.getNetwork(), piNew.getNetwork());
-//					} else
-//					{
-//						netToPort.put(subNet, piNew);
-//					}
-//				}
-//			}
-//		}
-//	}
+				connPorts.put(pp, dummyNet);
+			}
+		}
+		return connPorts;
+	}
 
-//	private void mergeNetsConnectedByUserEquivPorts(HashMap equivPorts)
-//	{
-//		for (int i = 0; i < nodes.size(); i++)
-//		{
-//			NodeInst ni = (NodeInst) nodes.get(i);
-//
-//			if (ni.isIconOfParent())
-//				continue;
-//
-//			HashMap listToPort = new HashMap(); // equivList -> PortInst
-//			for (Iterator it = ni.getPortInsts(); it.hasNext();)
-//			{
-//				PortInst piNew = (PortInst) it.next();
-//				Object equivList =
-//					equivPorts.get(piNew.getPortProto().getEquivalent());
-//				if (equivList != null)
-//				{
-//					PortInst piOld = (PortInst) listToPort.get(equivList);
-//					if (piOld != null)
-//					{
-//						JNetwork.merge(piOld.getNetwork(), piNew.getNetwork());
-//					} else
-//					{
-//						listToPort.put(equivList, piNew);
-//					}
-//				}
-//			}
-//		}
-//	}
+	private void redoDescendents(HashMap equivPorts)
+	{
+		for (int i = 0; i < nodes.size(); i++)
+		{
+			NodeInst ni = (NodeInst) nodes.get(i);
+			NodeProto np = ni.getProto();
 
-//	private HashSet getNetsFromPortInsts()
-//	{
-//		HashSet nets = new HashSet();
-//		for (Iterator nit = getNodes(); nit.hasNext();)
-//		{
-//			NodeInst ni = (NodeInst) nit.next();
-//			for (Iterator pit = ni.getPortInsts(); pit.hasNext();)
-//			{
-//				PortInst pi = (PortInst) pit.next();
-//				nets.add(pi.getNetwork());
-//			}
-//		}
-//		return nets;
-//	}
+			if (np instanceof Cell)
+			{
+				if (ni.isIconOfParent())
+					continue;
+
+				// If Cell is an Icon View then redo the Schematic
+				// View. Otherwise redo the Cell.
+				Cell equivCell = ((Cell)np).getEquivalent();
+
+				// if an icon has no corresponding schematic then equivCell==null
+				if (equivCell != null)
+					equivCell.redoNetworks(equivPorts);
+			}
+		}
+	}
+
+	private void placeEachPortInstOnItsOwnNet()
+	{
+		for (int i = 0; i < nodes.size(); i++)
+		{
+			NodeInst ni = (NodeInst) nodes.get(i);
+			for (Iterator it = ni.getPortInsts(); it.hasNext();)
+			{
+				PortInst pi = (PortInst) it.next();
+				JNetwork net = new JNetwork(this);
+				net.addPortInst(pi);
+			}
+		}
+	}
+
+	private void mergeNetsConnectedByArcs()
+	{
+		for (int i = 0; i < arcs.size(); i++)
+		{
+			ArcInst ai = (ArcInst) arcs.get(i);
+			JNetwork n0 = ai.getConnection(false).getPortInst().getNetwork();
+			JNetwork n1 = ai.getConnection(true).getPortInst().getNetwork();
+
+			JNetwork merged = JNetwork.merge(n0, n1);
+			merged.addName(ai.getName());
+		}
+	}
+
+	private void addExportNamesToNets()
+	{
+		for (Iterator it = getPorts(); it.hasNext();)
+		{
+			Export e = (Export) it.next();
+			String expNm = e.getProtoName();
+			if (expNm == null)
+			{
+				System.out.println("Cell.addExportNamesToNet: Export with no name!");
+				return;
+			}
+			e.getNetwork().addName(expNm);
+		}
+	}
+
+	private PortProto getEquivPortProto(PortProto pp) {
+		NodeProto np = pp.getParent();
+		if (np instanceof Cell) {
+			String nm = pp.getProtoName();
+			return ((Cell)np).getEquivalent().findPortProto(nm);
+		} else {
+			return pp;
+		}
+	}
+	private void mergeNetsConnectedByNodeProtoSubnets()
+	{
+		for (int i = 0; i < nodes.size(); i++)
+		{
+			NodeInst ni = (NodeInst) nodes.get(i);
+
+			if (ni.isIconOfParent())
+				continue;
+
+			HashMap netToPort = new HashMap(); // subNet -> PortInst
+			for (Iterator it = ni.getPortInsts(); it.hasNext();)
+			{
+				PortInst piNew = (PortInst) it.next();
+				JNetwork subNet =
+					getEquivPortProto(piNew.getPortProto()).getNetwork();
+
+				if (subNet == null && ni.getProto() instanceof Cell)
+				{
+					System.out.println("Cell.mergeNets... : no subNet on Cell: "
+						+ ni.getProto().getProtoName()
+						+ " port: "
+						+ piNew.getPortProto());
+					return;
+				}
+
+				if (subNet != null)
+				{
+					PortInst piOld = (PortInst) netToPort.get(subNet);
+					if (piOld != null)
+					{
+						JNetwork.merge(piOld.getNetwork(), piNew.getNetwork());
+					} else
+					{
+						netToPort.put(subNet, piNew);
+					}
+				}
+			}
+		}
+	}
+
+	private void mergeNetsConnectedByUserEquivPorts(HashMap equivPorts)
+	{
+		for (int i = 0; i < nodes.size(); i++)
+		{
+			NodeInst ni = (NodeInst) nodes.get(i);
+
+			if (ni.isIconOfParent())
+				continue;
+
+			HashMap listToPort = new HashMap(); // equivList -> PortInst
+			for (Iterator it = ni.getPortInsts(); it.hasNext();)
+			{
+				PortInst piNew = (PortInst) it.next();
+				Object equivList =
+					equivPorts.get(getEquivPortProto(piNew.getPortProto()));
+				if (equivList != null)
+				{
+					PortInst piOld = (PortInst) listToPort.get(equivList);
+					if (piOld != null)
+					{
+						JNetwork.merge(piOld.getNetwork(), piNew.getNetwork());
+					} else
+					{
+						listToPort.put(equivList, piNew);
+					}
+				}
+			}
+		}
+	}
+
+	private HashSet getNetsFromPortInsts()
+	{
+		HashSet nets = new HashSet();
+		for (Iterator nit = getNodes(); nit.hasNext();)
+		{
+			NodeInst ni = (NodeInst) nit.next();
+			for (Iterator pit = ni.getPortInsts(); pit.hasNext();)
+			{
+				PortInst pi = (PortInst) pit.next();
+				nets.add(pi.getNetwork());
+			}
+		}
+		return nets;
+	}
 
 	// Find all nets (including this net!) connected by name.  Each net
 	// will occur exactly once in set;
-//	private HashSet findSameNameNets(JNetwork net, HashMap nmTab)
-//	{
-//		HashSet conNets = new HashSet();
-//		conNets.add(net);
-//		for (Iterator it = net.getNames(); it.hasNext();)
-//		{
-//			String nm = (String) it.next();
-//			JNetwork oldNet = (JNetwork) nmTab.get(nm);
-//			if (oldNet != null)
-//				conNets.add(oldNet);
-//		}
-//		return conNets;
-//	}
+	private HashSet findSameNameNets(JNetwork net, HashMap nmTab)
+	{
+		HashSet conNets = new HashSet();
+		conNets.add(net);
+		for (Iterator it = net.getNames(); it.hasNext();)
+		{
+			String nm = (String) it.next();
+			JNetwork oldNet = (JNetwork) nmTab.get(nm);
+			if (oldNet != null)
+				conNets.add(oldNet);
+		}
+		return conNets;
+	}
 
 	// Merge all JNetworks with the same name into one big net.
 	// Warning: this doesn't handle busses correctly because we don't
 	// properly forward JNetworks pointed to by other JNetworks.
-//	private void mergeSameNameNets()
-//	{
-//		HashSet nets = getNetsFromPortInsts();
-//		HashMap nmTab = new HashMap();
-//
-//		for (Iterator netIt = nets.iterator(); netIt.hasNext();)
-//		{
-//			JNetwork net = (JNetwork) netIt.next();
-//
-//			JNetwork merged = JNetwork.merge(findSameNameNets(net, nmTab));
-//
-//			// Net has gained names from merged nets. Update name table with
-//			// all names at once.  Name table invariant: if one of a net's
-//			// names point to the net then all of the net's names points to
-//			// the net.
-//			for (Iterator nmIt = merged.getNames(); nmIt.hasNext();)
-//			{
-//				nmTab.put((String) nmIt.next(), merged);
-//			}
-//		}
-//	}
+	private void mergeSameNameNets()
+	{
+		HashSet nets = getNetsFromPortInsts();
+		HashMap nmTab = new HashMap();
 
-//	private void buildNetworkList()
-//	{
-//		removeAllNetworks();
-//		for (Iterator it = getNetsFromPortInsts().iterator(); it.hasNext();)
-//		{
-//			addNetwork((JNetwork) it.next());
-//		}
-//	}
+		for (Iterator netIt = nets.iterator(); netIt.hasNext();)
+		{
+			JNetwork net = (JNetwork) netIt.next();
 
-//	private void redoNetworks(HashMap equivPorts)
-//	{
-//		if (timeStamp == currentTime)
-//			return;
-//		timeStamp = currentTime;
-//
-//		redoDescendents(equivPorts);
-//		placeEachPortInstOnItsOwnNet();
-//		mergeNetsConnectedByArcs();
-//		mergeNetsConnectedByNodeProtoSubnets();
-//		mergeNetsConnectedByUserEquivPorts(equivPorts);
-//		addExportNamesToNets();
-//		mergeSameNameNets();
-//		buildNetworkList();
-//	}
+			JNetwork merged = JNetwork.merge(findSameNameNets(net, nmTab));
+
+			// Net has gained names from merged nets. Update name table with
+			// all names at once.  Name table invariant: if one of a net's
+			// names point to the net then all of the net's names points to
+			// the net.
+			for (Iterator nmIt = merged.getNames(); nmIt.hasNext();)
+			{
+				nmTab.put((String) nmIt.next(), merged);
+			}
+		}
+	}
+
+	private void buildNetworkList()
+	{
+		removeAllNetworks();
+		for (Iterator it = getNetsFromPortInsts().iterator(); it.hasNext();)
+		{
+			addNetwork((JNetwork) it.next());
+		}
+	}
+
+	private void redoNetworks(HashMap equivPorts)
+	{
+		if (timeStamp == currentTime)
+			return;
+		timeStamp = currentTime;
+
+		redoDescendents(equivPorts);
+		placeEachPortInstOnItsOwnNet();
+		mergeNetsConnectedByArcs();
+		mergeNetsConnectedByNodeProtoSubnets();
+		mergeNetsConnectedByUserEquivPorts(equivPorts);
+		addExportNamesToNets();
+		mergeSameNameNets();
+		buildNetworkList();
+	}
 
 }
