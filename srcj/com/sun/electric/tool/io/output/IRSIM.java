@@ -304,8 +304,8 @@ public class IRSIM extends Output
 
 			// no parasitics yet
             // Only diffusion layers are required for source and drain
-            Poly [] implList = info.getCell().getTechnology().getShapeOfNode(ni, null, true, false, diffLayers);
-            if (implList.length != 2)
+            Poly [] diffList = info.getCell().getTechnology().getShapeOfNode(ni, null, true, false, diffLayers);
+            if (diffList.length != 2)
             {
                 System.out.println("ERROR, wrong number of diffusion layers in " + ni + ", cell " + iinfo.getCell());
                 return false;
@@ -313,7 +313,7 @@ public class IRSIM extends Output
 
             // Drain and source regions are identical -> get value for only one and copy the second for now
 
-            Poly poly = implList[0];
+            Poly poly = diffList[0];
             double area = Math.abs(poly.getArea());
             double perim = poly.getPerimeter();
             ci.sourceArea = area;
