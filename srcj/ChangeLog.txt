@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02j: *********************************
 
+IMP: (03/21/05, RK) NCC: Improve the error message that's printed when one Wire matches several wires by Export names.
+
 IMP: (03/18/05, GVG) Changes in ParasiticsTool to handle IRSIM deck generation. It generates
 so far information for transistors and capacitances.
 

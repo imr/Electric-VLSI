@@ -31,14 +31,12 @@ mismatches.
 <h3> Size Checking Section </h3>
 
 The "Size Checking" section controls the checking of transistor widths
-and lengths. If you enable size checking and your schematics include 
-automatically sized transistors then you must also enable flat
-comparison.
+and lengths.
 <p>
 NCC does the following when size checking is enabled. After each
 topological comparison, NCC checks if it found any topological
-mismatches. If NCC found no mismatches then NCC checks for each pair
-of matching transistors, the widths and lengths are approximately
+mismatches. If NCC found no mismatches then NCC checks, for each pair
+of matching transistors, that the widths and lengths are approximately
 equal.
 </p>
 <p>
@@ -48,6 +46,13 @@ NCC reports a size mismatch. The "Relative size tolerance" box
 specifies the difference in percentage. The "Absolute size tolerance"
 box specifies the difference in units.  NCC reports a size mismatch
 when both tolerances are exceeded.
+<p>
+If you enable "Size Checking" and "Hierarchical Comparison"
+simultaneously then NCC restricts which Cells it treats
+hierarchically to ensure a correct answer in the presence of
+automatically sized transistors. For this case it compares a pair of Cells
+hierarchically if and only if each Cell is instantiated exactly once.
+</p>
 
 <h3> Checking All Cells Section </h3>
 

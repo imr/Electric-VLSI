@@ -91,21 +91,6 @@ public class ExportChecker {
 	 * suggest possible repairs to the design. */ 
 	private NoPortNameMatches noPortNameMatches = new NoPortNameMatches();
 
-	// This method was a bad idea because if all Cells being compared have
-	// no ports then no Circuits exist and this method can't return a 
-	// reasonable value. If I return null then I have to null test in
-	// lots of places
-//	private Circuit[] getCircuitsHoldingPorts() {
-//		EquivRecord ports = globals.getPorts();
-//		globals.error(!ports.isLeaf(), "globals ports must hold circuits");
-//
-//		int numCkts = globals.getNumNetlistsBeingCompared();
-//		Circuit[] portCkts = new Circuit[numCkts];
-//		int i = 0;
-//		for (Iterator it=ports.getCircuits(); it.hasNext(); i++) 
-//			portCkts[i] = (Circuit) it.next();
-//		return portCkts;		
-//	}
 	private Port[][] getPortsForEachCell() {
 		int numCells = globals.getNumNetlistsBeingCompared();
 		Port[][] portsPerCell = new Port[numCells][];
@@ -142,16 +127,18 @@ public class ExportChecker {
 	}
 	private void prln(String s) {System.out.println(s);}
 	private void pr(String s) {System.out.print(s);}
+
 	private void printOneToManyError(String design1, String exports1,
-								     String design2, String exports2a,
-								     String exports2b) {
+								     String design2, Set exports2) {
 		prln("  A single network in: "+design1+" has Exports with names that "+
 			 "match multiple Exports in: "+design2);
 		prln("  However, the "+design2+
 		     " Exports are attached to more than one network.");
-		prln("    The "+design1+" Exports are: "+exports1);
-		prln("    The 1st set of "+design2+" Exports are: "+exports2a);
-		prln("    The 2nd set of "+design2+" Exports are: "+exports2b);
+		prln("    The "+design1+" Exports: "+exports1);
+		for (Iterator it=exports2.iterator(); it.hasNext();) {
+			Port p2 = (Port) it.next();
+			prln("      matches the "+design2+" Exports: "+p2.exportNamesString());
+		}
 	}
 	/** For each port, p1, in Circuit ckt1 make sure there is exactly one port 
 	 * circuit ckt2 that shares any of p1's export names. Return a map from 
@@ -165,32 +152,26 @@ public class ExportChecker {
 		Port[] ckt1Ports = portsPerCell[ckt1];
 		for (int portNdx=0; portNdx<ckt1Ports.length; portNdx++) {
 			Port p1 = ckt1Ports[portNdx];
-			Port p2 = null;
+			Set p2ports = new HashSet();
 			for (Iterator itN=p1.getExportNames(); itN.hasNext();) {
 				String exportNm1 = (String) itN.next();
 				Port p = (Port) exportName2ToPort2.get(exportNm1);
-				if (p==null) {
-					// do nothing
-				} else if (p2==null) {
-					p2 = p;
-				} else if (p!=p2) {
-					printOneToManyError(designNames[ckt1], 
-										p1.exportNamesString(),
-					                    designNames[ckt2], 
-					                    p.exportNamesString(),
-					                    p2.exportNamesString());
-					match = false;
-				}
-			}
-			if (p2==null) {
+				if (p!=null)  p2ports.add(p);
+		    }
+
+			if (p2ports.size()==0) {
 				prln("  In "+designNames[ckt1]+
 				     " the network with Exports: "+p1.exportNamesString()+
 					 "    matches no Export with the same name in: "+
 				     designNames[ckt2]);
 				noPortNameMatches.add(p1, ckt1, ckt2);
 				match = false;
+			} else if (p2ports.size()==1){
+				p1ToP2.put(p1, (Port)p2ports.iterator().next());
 			} else {
-				p1ToP2.put(p1, p2);
+				printOneToManyError(designNames[ckt1], p1.exportNamesString(),
+						            designNames[ckt2], p2ports);
+				match = false;
 			}
 		}
 		return match;
@@ -343,43 +324,6 @@ public class ExportChecker {
 		if (printedHeader) prln("");
     }
 
-    // does the wrong thing	
-//	private void warnIfAnyPortHasMoreThanOneExportType () {
-//		int numCkts = globals.getNumNetlistsBeingCompared();
-//		String[] rootCellNames = globals.getRootCellNames();
-//		Circuit[] portCkts = getCircuitsHoldingPorts();
-//		for (int i=0; i<numCkts; i++) {
-//			String rootCellName = rootCellNames[i];
-//			Circuit portCkt = portCkts[i];
-//			for (Iterator it=portCkt.getNetObjs(); it.hasNext();) {
-//				Port p = (Port) it.next();
-//				p.warnIfExportTypesDiffer(rootCellName);
-//			}
-//		}
-//	}
-// does the wrong thing
-//	private void warnIfExportsWithMatchingNamesHaveDifferentTypes() {
-//		String[] rootCellNames = globals.getRootCellNames();
-//		for (int i=1; i<equivPortMaps.length; i++) {
-//			HashMap portToPort = equivPortMaps[i];
-//			for (Iterator it=portToPort.keySet().iterator(); it.hasNext();) {
-//				Port p0 = (Port) it.next();
-//				Port pn = (Port) portToPort.get(p0);
-//				// skip Ports that the user wants us to rename
-//				if (p0.getToBeRenamed() || pn.getToBeRenamed()) continue;
-//				if (p0.getType()!=pn.getType()) {
-//					pr("  Exports that match by name don't have the same Characteristic\n"+
-//					   "    Cell1: "+rootCellNames[0]+"\n"+
-//					   "    Exports1: "+p0.exportNamesString()+"\n"+
-//					   "    Characteristic1: "+p0.getType().toString()+"\n"+
-//					   "    Cell2: "+rootCellNames[i]+"\n"+
-//					   "    Exports2: "+pn.exportNamesString()+"\n"+
-//					   "    Characteristic2: "+pn.getType().toString()+"\n");
-//				}
-//			}
-//		}
-//	}
-
 	// -------------------------- public methods ------------------------------    
 
 	public ExportChecker(NccGlobals globals) {this.globals=globals;}
@@ -407,11 +351,6 @@ public class ExportChecker {
 		}
 		return match;
 	}
-// does the wrong thing	
-//	public void printExportTypeWarnings() {
-//		warnIfAnyPortHasMoreThanOneExportType();
-//		warnIfExportsWithMatchingNamesHaveDifferentTypes();
-//	}
 
 	/** Gather information that will allow hierarchical netlist comparison 
 	 * at higher level to treat me as a subcircuit. */	
