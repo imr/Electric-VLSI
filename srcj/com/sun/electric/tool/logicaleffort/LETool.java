@@ -97,7 +97,8 @@ public class LETool extends Tool {
         if (!(info instanceof Nodable))
             throw new VarContext.EvalException("getdrive(): Not enough hierarchy");
         VarContext context = EvalJavaBsh.evalJavaBsh.getCurrentContext();
-        if (context == null) throw new VarContext.EvalException("getdrive(): null VarContext");
+        if (context == null)
+            throw new VarContext.EvalException("getdrive(): null VarContext");
         Nodable ni = (Nodable)info;
 
         // Try to find drive strength
@@ -107,9 +108,11 @@ public class LETool extends Tool {
             var = getLEDRIVE_old(ni, context);
         }
         //if (var == null) return "No variable "+ledrive;
-        if (var == null) throw new VarContext.EvalException("getdrive(): no size");
+        if (var == null)
+            throw new VarContext.EvalException("getdrive(): no size");
         Object val = var.getObject();
-        if (val == null) throw new VarContext.EvalException("getdrive(): size null");
+        if (val == null)
+            throw new VarContext.EvalException("getdrive(): size null");
         return val;
     }
 
@@ -125,7 +128,8 @@ public class LETool extends Tool {
         Object info = EvalJavaBsh.evalJavaBsh.getCurrentInfo();
         if (!(info instanceof Nodable)) throw new VarContext.EvalException("subdrive(): Not enough hierarchy information");
         Nodable no = (Nodable)info;                                 // this inst has LE.subdrive(...) on it
-        if (no == null) throw new VarContext.EvalException("subdrive(): Not enough hierarchy");
+        if (no == null)
+            throw new VarContext.EvalException("subdrive(): Not enough hierarchy");
 
         if (no instanceof NodeInst) {
             // networks have not been evaluated, calling no.getProto()
@@ -133,18 +137,23 @@ public class LETool extends Tool {
             // We need to re-evaluate networks to get equivalent schematic cell
             NodeInst ni = (NodeInst)no;
             Cell parent = no.getParent();                               // Cell in which inst which has LE.subdrive is
-            if (parent == null) throw new VarContext.EvalException("subdrive(): null parent");
+            if (parent == null)
+                throw new VarContext.EvalException("subdrive(): null parent");
 			int arrayIndex = 0;                                         // just use first index
             no = Netlist.getNodableFor(ni, arrayIndex);
-            if (no == null) throw new VarContext.EvalException("subdrive(): can't get equivalent schematic");
+            if (no == null)
+                throw new VarContext.EvalException("subdrive(): can't get equivalent schematic");
         }
 
         VarContext context = EvalJavaBsh.evalJavaBsh.getCurrentContext();  // get current context
-        if (context == null) throw new VarContext.EvalException("subdrive(): null context");
+        if (context == null)
+            throw new VarContext.EvalException("subdrive(): null context");
 
         NodeProto np = no.getProto();                               // get contents of instance
-        if (np == null) throw new VarContext.EvalException("subdrive(): null nodeProto");
-        if (!(np instanceof Cell)) throw new VarContext.EvalException("subdrive(): NodeProto not a Cell");
+        if (np == null)
+            throw new VarContext.EvalException("subdrive(): null nodeProto");
+        if (!(np instanceof Cell))
+            throw new VarContext.EvalException("subdrive(): NodeProto not a Cell");
         Cell cell = (Cell)np;
 
         NodeInst ni = cell.findNode(nodeName);                      // find nodeinst that has variable on it
@@ -158,7 +167,8 @@ public class LETool extends Tool {
         Variable var = ni.getVar(parName);                          // find variable on nodeinst
         if (var == null) var = ni.getVar("ATTR_"+parName);          // maybe it's an attribute
         //if (var == null) return "subdrive(): no variable of name "+parName.replaceFirst("ATTR_", "");
-        if (var == null) throw new VarContext.EvalException(parName.replaceFirst("ATTR_", "")+" not found");
+        if (var == null)
+            throw new VarContext.EvalException(parName.replaceFirst("ATTR_", "")+" not found");
         return context.push(no).evalVarRecurse(var, ni);                       // evaluate variable and return it
     }
 
