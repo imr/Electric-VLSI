@@ -1844,6 +1844,7 @@ public class MoCMOS extends Technology
 		activePin_node.setFunction(PrimitiveNode.Function.PIN);
 		activePin_node.setArcsWipe();
 		activePin_node.setArcsShrink();
+        activePin_node.setNotUsed();
 
 		/** metal-1-P-active-contact */
 		metal1PActiveContact_node = PrimitiveNode.newInstance("Metal-1-P-Active-Con", this, 17.0, 17.0, new SizeOffset(6, 6, 6, 6),
