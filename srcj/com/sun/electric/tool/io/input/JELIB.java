@@ -465,8 +465,8 @@ public class JELIB extends LibraryFiles
 			{
 				if (groupOfName != group)
 				{
-					Input.errorLogger.logError(filePath + ", Library has multiple cells named " +
-						lowerCaseName + " that are not in the same group", null, -1);
+					Input.errorLogger.logError(filePath + ", Library has multiple cells named '" +
+						lowerCaseName + "' that are not in the same group", null, -1);
 				}
 			}
 		}
