@@ -1205,7 +1205,7 @@ public class CompileVHDL
 
 	/**
 	 * Method to get address in the keyword table.
-	 * @param tstring string to lookup.
+	 * @param tString string to lookup.
 	 * @return entry in keywords table if keyword, else null.
 	 */
 	public static VKeyword isKeyword(String tString)

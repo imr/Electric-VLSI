@@ -1632,7 +1632,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 
 	/**
 	 * Method to add a new NodeInst to the cell.
-	 * @param ai the NodeInst to be included in the cell.
+	 * @param ni the NodeInst to be included in the cell.
 	 * @return unique diplicate index for this node.
 	 */
 	public int addNode(NodeInst ni)
@@ -1678,7 +1678,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 
 	/**
 	 * Method to add a new NodeInst to the name index of this cell.
-	 * @param ai the NodeInst to be included tp the name index in the cell.
+	 * @param ni the NodeInst to be included tp the name index in the cell.
 	 * @return unique diplicate index for this node.
 	 */
 	public int addNodeName(NodeInst ni)
