@@ -65,6 +65,9 @@ import java.awt.geom.Rectangle2D;
  */
 public class ArcInst extends Geometric /*implements Networkable*/
 {
+	/** The index of the head of this ArcInst. */		public static final int HEADEND = 0;
+	/** The index of the tail of this ArcInst. */		public static final int TAILEND = 1;
+
 	// -------------------------- private data ----------------------------------
 
 	/** fixed-length arc */								private static final int FIXED =                     01;
@@ -95,7 +98,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 
 	/** width of this arc instance */					private double arcWidth;
 	/** prototype of this arc instance */				private ArcProto protoType;
-	/** end connections of this arc instance */			private Connection head, tail;
+	/** end connections of this arc instance */			private Connection [] ends;
 
 	/**
 	 * The constructor is never called.  Use the factory "newInstance" instead.
@@ -113,6 +116,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	public static ArcInst lowLevelAllocate()
 	{
 		ArcInst ai = new ArcInst();
+		ai.ends = new Connection[2];
 		return ai;
 	}
 
@@ -127,7 +131,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 * @return true on error.
 	 */
 	public boolean lowLevelPopulate(ArcProto protoType, double arcWidth,
-		PortInst headPort, Point2D.Double headPt, PortInst tailPort, Point2D.Double tailPt)
+		PortInst headPort, Point2D headPt, PortInst tailPort, Point2D tailPt)
 	{
 		// initialize this object
 		this.protoType = protoType;
@@ -163,8 +167,8 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		}
 
 		// create node/arc connections and place them properly
-		head = new Connection(this, headPort, headPt);
-		tail = new Connection(this, tailPort, tailPt);
+		ends[HEADEND] = new Connection(this, headPort, headPt);
+		ends[TAILEND] = new Connection(this, tailPort, tailPt);
 		
 		// fill in the geometry
 		updateGeometric();
@@ -179,8 +183,8 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	public boolean lowLevelLink()
 	{
 		// attach this arc to the two nodes it connects
-		head.getPortInst().getNodeInst().addConnection(head);
-		tail.getPortInst().getNodeInst().addConnection(tail);
+		ends[HEADEND].getPortInst().getNodeInst().addConnection(ends[HEADEND]);
+		ends[TAILEND].getPortInst().getNodeInst().addConnection(ends[TAILEND]);
 
 		// add this arc to the cell
 		linkGeom(parent);
@@ -194,8 +198,8 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	public void lowLevelUnlink()
 	{
 		// remove this arc from the two nodes it connects
-		head.getPortInst().getNodeInst().removeConnection(head);
-		tail.getPortInst().getNodeInst().removeConnection(tail);
+		ends[HEADEND].getPortInst().getNodeInst().removeConnection(ends[HEADEND]);
+		ends[TAILEND].getPortInst().getNodeInst().removeConnection(ends[TAILEND]);
 
 		// add this arc to the cell
 		unLinkGeom(parent);
@@ -219,13 +223,13 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		arcWidth = EMath.smooth(arcWidth + dWidth);
 		if (dHeadX != 0 || dHeadY != 0)
 		{
-			Point2D.Double pt = head.getLocation();
-			head.setLocation(new Point2D.Double(EMath.smooth(dHeadX+pt.getX()), EMath.smooth(pt.getY()+dHeadY)));
+			Point2D pt = ends[HEADEND].getLocation();
+			ends[HEADEND].setLocation(new Point2D.Double(EMath.smooth(dHeadX+pt.getX()), EMath.smooth(pt.getY()+dHeadY)));
 		}
 		if (dTailX != 0 || dTailY != 0)
 		{
-			Point2D.Double pt = tail.getLocation();
-			tail.setLocation(new Point2D.Double(EMath.smooth(dTailX+pt.getX()), EMath.smooth(pt.getY()+dTailY)));
+			Point2D pt = ends[TAILEND].getLocation();
+			ends[TAILEND].setLocation(new Point2D.Double(EMath.smooth(dTailX+pt.getX()), EMath.smooth(pt.getY()+dTailY)));
 		}
 		updateGeometric();
 
@@ -265,7 +269,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 * @return the newly created ArcInst, or null if there is an error.
 	 */
 	public static ArcInst newInstance(ArcProto type, double width,
-		PortInst head, Point2D.Double headPt, PortInst tail, Point2D.Double tailPt)
+		PortInst head, Point2D headPt, PortInst tail, Point2D tailPt)
 	{
 		ArcInst ai = lowLevelAllocate();
 		if (ai.lowLevelPopulate(type, width, head, headPt, tail, tailPt)) return null;
@@ -328,10 +332,10 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	public void modify(double dWidth, double dHeadX, double dHeadY, double dTailX, double dTailY)
 	{
 		// save old arc state
-		double oldxA = head.getLocation().getX();
-		double oldyA = head.getLocation().getY();
-		double oldxB = tail.getLocation().getX();
-		double oldyB = tail.getLocation().getY();
+		double oldxA = ends[HEADEND].getLocation().getX();
+		double oldyA = ends[HEADEND].getLocation().getY();
+		double oldxB = ends[TAILEND].getLocation().getX();
+		double oldyB = ends[TAILEND].getLocation().getY();
 		double oldWidth = getWidth();
 
 		// change the arc
@@ -344,6 +348,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 			change.setDoubles(oldxA, oldyA, oldxB, oldyB, oldWidth);
 			setChange(change);
 		}
+		parent.setDirty();
 	}
 
 	/**
@@ -711,20 +716,29 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 */
 	public Connection getConnection(boolean onHead)
 	{
-		return onHead ? head : tail;
+		return onHead ? ends[HEADEND] : ends[TAILEND];
+	}
+
+	/**
+	 * Routine to return the connection at an end of this ArcInst.
+	 * @param index 0 for the head of this ArcInst, 1 for the tail.
+	 */
+	public Connection getConnection(int index)
+	{
+		return ends[index];
 	}
 
 	/**
 	 * Routine to return the Connection on the head end of this ArcInst.
 	 * @return the Connection on the head end of this ArcInst.
 	 */
-	public Connection getHead() { return head; }
+	public Connection getHead() { return ends[HEADEND]; }
 
 	/**
 	 * Routine to return the Connection on the tail end of this ArcInst.
 	 * @return the Connection on the tail end of this ArcInst.
 	 */
-	public Connection getTail() { return tail; }
+	public Connection getTail() { return ends[TAILEND]; }
 
 	/**
 	 * Routine to tell whether a connection on this ArcInst contains a point.
@@ -732,7 +746,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 * @param pt the point in question.
 	 * @return true if the point is inside of the port.
 	 */
-	public boolean stillInPort(Connection con, Point2D.Double pt)
+	public boolean stillInPort(Connection con, Point2D pt)
 	{
 		// determine the area of the nodeinst
 		PortInst pi = con.getPortInst();
@@ -750,12 +764,12 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	public void getInfo()
 	{
 		System.out.println("-------------- ARC INSTANCE " + describe() + ": --------------");
-		Point2D loc = head.getLocation();
-		System.out.println(" Head on " + head.getPortInst().getNodeInst().describe() +
+		Point2D loc = ends[HEADEND].getLocation();
+		System.out.println(" Head on " + ends[HEADEND].getPortInst().getNodeInst().describe() +
 			" at (" + loc.getX() + "," + loc.getY() + ")");
 
-		loc = tail.getLocation();
-		System.out.println(" Tail on " + tail.getPortInst().getNodeInst().describe() +
+		loc = ends[TAILEND].getLocation();
+		System.out.println(" Tail on " + ends[TAILEND].getPortInst().getNodeInst().describe() +
 			" at (" + loc.getX() + "," + loc.getY() + ")");
 		System.out.println(" Center: (" + cX + "," + cY + "), width: " + getXSize() + ", length:" + getYSize() + ", angle " + angle/10.0);
 		super.getInfo();
@@ -771,8 +785,8 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 */
 	public Poly makePoly(double length, double width, Poly.Type style)
 	{
-		Point2D.Double end1 = head.getLocation();
-		Point2D.Double end2 = tail.getLocation();
+		Point2D end1 = ends[HEADEND].getLocation();
+		Point2D end2 = ends[TAILEND].getLocation();
 
 		// zero-width polygons are simply lines
 		if (width == 0)
@@ -804,8 +818,8 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		return poly;
 	}
 
-	private Poly makeEndPointPoly(double len, double wid, int angle, Point2D.Double end1, double e1,
-		Point2D.Double end2, double e2)
+	private Poly makeEndPointPoly(double len, double wid, int angle, Point2D end1, double e1,
+		Point2D end2, double e2)
 	{
 		double w2 = wid / 2;
 		double x1 = end1.getX();   double y1 = end1.getY();
@@ -899,20 +913,20 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 */
 	void updateGeometric()
 	{
-		Point2D.Double p1 = head.getLocation();
-		Point2D.Double p2 = tail.getLocation();
-		double dx = p2.x - p1.x;
-		double dy = p2.y - p1.y;
+		Point2D p1 = ends[HEADEND].getLocation();
+		Point2D p2 = ends[TAILEND].getLocation();
+		double dx = p2.getX() - p1.getX();
+		double dy = p2.getY() - p1.getY();
 		this.sX = Math.sqrt(dx * dx + dy * dy);
 		this.sY = arcWidth;
-		this.cX = EMath.smooth((p1.x + p2.x) / 2);
-		this.cY = EMath.smooth((p1.y + p2.y) / 2);
+		this.cX = EMath.smooth((p1.getX() + p2.getX()) / 2);
+		this.cY = EMath.smooth((p1.getY() + p2.getY()) / 2);
 		if (p1.equals(p2)) this.angle = 0; else
 			this.angle = EMath.figureAngle(p1, p2);
 
 		// compute the bounds
 		Poly poly = makePoly(this.sX, arcWidth, Poly.Type.FILLED);
-		visBounds.setRect(poly.getBounds2DDouble());
+		visBounds.setRect(poly.getBounds2D());
 	}
 
 
@@ -924,13 +938,13 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	void removeConnection(Connection c, boolean onHead)
 	{
 		/* safety check */
-		if ((onHead ? head : tail) != c)
+		if ((onHead ? ends[HEADEND] : ends[TAILEND]) != c)
 		{
 			System.out.println("Tried to remove the wrong connection from a wire end: "
 				+ c + " on " + this);
 		}
-		if (onHead) head = null; else
-			tail = null;
+		if (onHead) ends[HEADEND] = null; else
+			ends[TAILEND] = null;
 	}
 
 }

@@ -51,7 +51,7 @@ public interface Change
 
 	void modifyNodeInst(NodeInst ni, double oCX, double oCY, double oSX, double oSY, int oRot);
 	void modifyNodeInsts(NodeInst [] nis, double [] oCX, double [] oCY, double [] oSX, double [] oSY, int [] oRot);
-	void modifyArcInst(ArcInst ai, double oHX, double oHY, double oTX, double oTY, int oWid, double oLen);
+	void modifyArcInst(ArcInst ai, double oHX, double oHY, double oTX, double oTY, double oWid);
 	void modifyExport(Export pp);
 	void modifyCell(Cell cell);
 	void modifyTextDescript(ElectricObject obj, int key, Object oldValue);

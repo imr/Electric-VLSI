@@ -406,13 +406,13 @@ public class Clipboard
 		// figure out lower-left corner of this collection of objects
 		Iterator nit = theNodes.iterator();
 		NodeInst niFirst = (NodeInst)nit.next();
-		Point2D.Double corner = niFirst.getLowLeft();
+		Point2D corner = niFirst.getLowLeft();
 		for(; nit.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)nit.next();
-			Point2D.Double pt = ni.getLowLeft();
-			if (pt.getX() < corner.getY()) corner.x = pt.getX();
-			if (pt.getY() < corner.getY()) corner.y = pt.getY();
+			Point2D pt = ni.getLowLeft();
+			if (pt.getX() < corner.getY()) corner.setLocation(pt.getX(), corner.getY());
+			if (pt.getY() < corner.getY()) corner.setLocation(corner.getX(), pt.getY());
 		}
 		for(Iterator it = list.iterator(); it.hasNext(); )
 		{
@@ -422,9 +422,9 @@ public class Clipboard
 
 			double wid = ai.getWidth() - ai.getProto().getWidthOffset();
 			Poly poly = ai.makePoly(ai.getXSize(), wid, Poly.Type.FILLED);
-			Rectangle2D.Double bounds = poly.getBounds2DDouble();
-			if (bounds.getMinX() < corner.getY()) corner.x = bounds.getMinX();
-			if (bounds.getMinY() < corner.getY()) corner.y = bounds.getMinY();
+			Rectangle2D bounds = poly.getBounds2D();
+			if (bounds.getMinX() < corner.getY()) corner.setLocation(bounds.getMinX(), corner.getY());
+			if (bounds.getMinY() < corner.getY()) corner.setLocation(corner.getX(), bounds.getMinY());
 		}
 
 		// adjust this corner so that, after grid alignment, objects are in the same location
@@ -595,7 +595,7 @@ public class Clipboard
 					for(int i=0; i<polys.length; i++)
 					{
 						Poly poly = polys[i];
-						Highlight h = Highlight.addText(tocell, poly.getBounds2DDouble(), poly.getStyle(), poly.getVariable());
+						Highlight h = Highlight.addText(tocell, poly.getBounds2D(), poly.getStyle(), poly.getVariable());
 					}
 					continue;
 				}

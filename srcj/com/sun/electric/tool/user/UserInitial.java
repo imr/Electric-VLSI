@@ -107,35 +107,45 @@ public final class UserInitial
 		NodeInst metal12Via = NodeInst.newInstance(m1m2Proto, new Point2D.Double(-20.0, 20.0), m1m2Proto.getDefWidth(), m1m2Proto.getDefHeight(), 0, myCell);
 		NodeInst contactNode = NodeInst.newInstance(m1PolyConProto, new Point2D.Double(20.0, 20.0), m1PolyConProto.getDefWidth(), m1PolyConProto.getDefHeight(), 0, myCell);
 		NodeInst metal2Pin = NodeInst.newInstance(m2PinProto, new Point2D.Double(-20.0, 10.0), m2PinProto.getDefWidth(), m2PinProto.getDefHeight(), 0, myCell);
-		NodeInst poly1Pin = NodeInst.newInstance(p1PinProto, new Point2D.Double(20.0, -20.0), p1PinProto.getDefWidth(), p1PinProto.getDefHeight(), 0, myCell);
+		NodeInst poly1PinA = NodeInst.newInstance(p1PinProto, new Point2D.Double(20.0, -20.0), p1PinProto.getDefWidth(), p1PinProto.getDefHeight(), 0, myCell);
+		NodeInst poly1PinB = NodeInst.newInstance(p1PinProto, new Point2D.Double(20.0, -10.0), p1PinProto.getDefWidth(), p1PinProto.getDefHeight(), 0, myCell);
 		NodeInst transistor = NodeInst.newInstance(pTransProto, new Point2D.Double(0.0, -20.0), pTransProto.getDefWidth(), pTransProto.getDefHeight(), 0, myCell);
-		NodeInst rotTrans = NodeInst.newInstance(nTransProto, new Point2D.Double(0.0, 0.0), nTransProto.getDefWidth(), nTransProto.getDefHeight(), 450, myCell);
-		if (metal12Via == null || contactNode == null || metal2Pin == null || poly1Pin == null || transistor == null || rotTrans == null) return;
+		NodeInst rotTrans = NodeInst.newInstance(nTransProto, new Point2D.Double(0.0, 10.0), nTransProto.getDefWidth(), nTransProto.getDefHeight(), 3150, myCell);
+		if (metal12Via == null || contactNode == null || metal2Pin == null || poly1PinA == null ||
+			poly1PinB == null || transistor == null || rotTrans == null) return;
 		rotTrans.setName("rotated");
 
 		// make arcs to connect them
 		PortInst m1m2Port = metal12Via.getOnlyPortInst();
 		PortInst contactPort = contactNode.getOnlyPortInst();
 		PortInst m2Port = metal2Pin.getOnlyPortInst();
-		PortInst p1Port = poly1Pin.getOnlyPortInst();
-		PortInst transRPort = transistor.findPortInst("p-trans-poly-right");
+		PortInst p1PortA = poly1PinA.getOnlyPortInst();
+		PortInst p1PortB = poly1PinB.getOnlyPortInst();
+		PortInst transPortR = transistor.findPortInst("p-trans-poly-right");
+		PortInst transRPortR = rotTrans.findPortInst("n-trans-poly-right");
 		ArcInst metal2Arc = ArcInst.newInstance(m2Proto, m2Proto.getWidth(), m2Port, m1m2Port);
 		if (metal2Arc == null) return;
-		metal2Arc.setFixedAngle();
+		metal2Arc.setRigid();
 		ArcInst metal1Arc = ArcInst.newInstance(m1Proto, m1Proto.getWidth(), contactPort, m1m2Port);
 		if (metal1Arc == null) return;
 		metal1Arc.setFixedAngle();
-		ArcInst polyArc = ArcInst.newInstance(p1Proto, p1Proto.getWidth(), contactPort, p1Port);
-		if (polyArc == null) return;
-		polyArc.setFixedAngle();
-		ArcInst polyArc2 = ArcInst.newInstance(p1Proto, p1Proto.getWidth(), transRPort, p1Port);
+		ArcInst polyArc1 = ArcInst.newInstance(p1Proto, p1Proto.getWidth(), contactPort, p1PortB);
+		if (polyArc1 == null) return;
+		polyArc1.setFixedAngle();
+		ArcInst polyArc3 = ArcInst.newInstance(p1Proto, p1Proto.getWidth(), p1PortB, p1PortA);
+		if (polyArc3 == null) return;
+		polyArc3.setFixedAngle();
+		ArcInst polyArc2 = ArcInst.newInstance(p1Proto, p1Proto.getWidth(), transPortR, p1PortA);
 		if (polyArc2 == null) return;
 		polyArc2.setFixedAngle();
+		ArcInst polyArc4 = ArcInst.newInstance(p1Proto, p1Proto.getWidth(), transRPortR, p1PortB);
+		if (polyArc4 == null) return;
+		polyArc4.setFixedAngle();
 
 		// export the two pins
 		Export m1Export = Export.newInstance(myCell, m1m2Port, "in");
 		m1Export.setCharacteristic(PortProto.Characteristic.IN);
-		Export p1Export = Export.newInstance(myCell, p1Port, "out");
+		Export p1Export = Export.newInstance(myCell, p1PortA, "out");
 		p1Export.setCharacteristic(PortProto.Characteristic.OUT);
 		System.out.println("Created cell " + myCell.describe());
 		Undo.endChanges();

@@ -788,12 +788,6 @@ public class Technology extends ElectricObject
 		NodeProto prototype = ni.getProto();
 		if (!(prototype instanceof PrimitiveNode)) return null;
 
-		// see if the node is "wiped" (not drawn)
-		if (ni.isWiped()) return null;
-		if (prototype.isWipeOn1or2())
-		{
-			if (ni.pinUseCount()) return null;
-		}
 		PrimitiveNode np = (PrimitiveNode)prototype;
 		Technology.NodeLayer [] primLayers = np.getLayers();
 		return getShapeOfNode(ni, wnd, primLayers);
@@ -830,7 +824,7 @@ public class Technology extends ElectricObject
 				if (wnd != null) numPolys += ni.numDisplayableVariables(true);
 				Poly [] polys = new Poly[numPolys];
 				int numPoints = outline.length / 2;
-				Point2D.Double [] pointList = new Point2D.Double[numPoints];
+				Point2D [] pointList = new Point2D.Double[numPoints];
 				for(int i=0; i<numPoints; i++)
 				{
 					pointList[i] = new Point2D.Double(ni.getCenterX() + outline[i*2].floatValue(),
@@ -846,8 +840,15 @@ public class Technology extends ElectricObject
 			}
 		}
 
-		// if a MultiCut contact, determine the number of extra cuts
+		// determine the number of polygons (considering that it may be "wiped")
 		int numBasicLayers = primLayers.length;
+		if (ni.isWiped()) numBasicLayers = 0;
+		if (np.isWipeOn1or2())
+		{
+			if (ni.pinUseCount()) numBasicLayers = 0;
+		}
+
+		// if a MultiCut contact, determine the number of extra cuts
 		int numExtraCuts = 0;
 		MultiCutData mcd = null;
 		SerpentineTrans std = null;
@@ -889,7 +890,7 @@ public class Technology extends ElectricObject
 			} else if (representation == Technology.NodeLayer.POINTS)
 			{
 				TechPoint [] points = primLayer.getPoints();
-				Point2D.Double [] pointList = new Point2D.Double[points.length];
+				Point2D [] pointList = new Point2D.Double[points.length];
 				for(int j=0; j<points.length; j++)
 				{
 					EdgeH xFactor = points[j].getX();
@@ -987,7 +988,7 @@ public class Technology extends ElectricObject
 			double cutLY = so.getLowYOffset();
 			double cutHY = so.getHighYOffset();
 
-			Rectangle2D.Double bounds = ni.getBounds();
+			Rectangle2D bounds = ni.getBounds();
 			double lx = bounds.getMinX() + cutLX;
 			double hx = bounds.getMaxX() - cutHX;
 			double ly = bounds.getMinY() + cutLY;
@@ -1084,7 +1085,7 @@ public class Technology extends ElectricObject
 		/** the number of segments in this serpentine transistor */				int numSegments;
 		/** the extra gate width of this serpentine transistor */				double extraScale;
 		/** the node layers that make up this serpentine transistor */			Technology.NodeLayer [] primLayers;
-		/** the gate coordinates for this serpentine transistor */				Point2D.Double [] points;
+		/** the gate coordinates for this serpentine transistor */				Point2D [] points;
 
 		/**
 		 * Constructor throws initialize for a serpentine transistor.
@@ -1160,8 +1161,8 @@ public class Technology extends ElectricObject
 			double xoff = ni.getCenterX();
 			double yoff = ni.getCenterY();
 			int thissg = segment;   int next = segment+1;
-			Point2D.Double thisPt = points[thissg];
-			Point2D.Double nextPt = points[next];
+			Point2D thisPt = points[thissg];
+			Point2D nextPt = points[next];
 			int angle = EMath.figureAngle(thisPt, nextPt);
 
 			// push the points at the ends of the transistor
@@ -1181,20 +1182,20 @@ public class Technology extends ElectricObject
 			int ang = angle+LEFTANGLE;
 			double sin = EMath.sin(ang) * lwid;
 			double cos = EMath.cos(ang) * lwid;
-			Point2D.Double thisL = EMath.addPoints(thisPt, cos, sin);
-			Point2D.Double nextL = EMath.addPoints(nextPt, cos, sin);
+			Point2D thisL = EMath.addPoints(thisPt, cos, sin);
+			Point2D nextL = EMath.addPoints(nextPt, cos, sin);
 
 			// compute endpoints of line parallel to and right of center line
 			ang = angle+RIGHTANGLE;
 			sin = EMath.sin(ang) * rwid;
 			cos = EMath.cos(ang) * rwid;
-			Point2D.Double thisR = EMath.addPoints(thisPt, cos, sin);
-			Point2D.Double nextR = EMath.addPoints(nextPt, cos, sin);
+			Point2D thisR = EMath.addPoints(thisPt, cos, sin);
+			Point2D nextR = EMath.addPoints(nextPt, cos, sin);
 
 			// determine proper intersection of this and the previous segment
 			if (thissg != 0)
 			{
-				Point2D.Double otherPt = points[thissg-1];
+				Point2D otherPt = points[thissg-1];
 				int otherang = EMath.figureAngle(otherPt, thisPt);
 				if (otherang != angle)
 				{
@@ -1210,21 +1211,21 @@ public class Technology extends ElectricObject
 			// determine proper intersection of this and the next segment
 			if (next != numSegments)
 			{
-				Point2D.Double otherPt = points[next+1];
+				Point2D otherPt = points[next+1];
 				int otherang = EMath.figureAngle(nextPt, otherPt);
 				if (otherang != angle)
 				{
 					ang = otherang + LEFTANGLE;
-					Point2D.Double newPtL = EMath.addPoints(nextPt, EMath.cos(ang)*lwid, EMath.sin(ang)*lwid);
+					Point2D newPtL = EMath.addPoints(nextPt, EMath.cos(ang)*lwid, EMath.sin(ang)*lwid);
 					nextL = EMath.intersect(newPtL, otherang, nextL,angle);
 					ang = otherang + RIGHTANGLE;
-					Point2D.Double newPtR = EMath.addPoints(nextPt, EMath.cos(ang)*rwid, EMath.sin(ang)*rwid);
+					Point2D newPtR = EMath.addPoints(nextPt, EMath.cos(ang)*rwid, EMath.sin(ang)*rwid);
 					nextR = EMath.intersect(newPtR, otherang, nextR,angle);
 				}
 			}
 
 			// fill the polygon
-			Point2D.Double [] points = new Point2D.Double[4];
+			Point2D [] points = new Point2D.Double[4];
 			points[0] = EMath.addPoints(thisL, xoff, yoff);
 			points[1] = EMath.addPoints(thisR, xoff, yoff);
 			points[2] = EMath.addPoints(nextR, xoff, yoff);
@@ -1455,8 +1456,8 @@ public class Technology extends ElectricObject
 		// add an arrow to the arc description
 		if (addArrow)
 		{
-			Point2D.Double headLoc = ai.getHead().getLocation();
-			Point2D.Double tailLoc = ai.getTail().getLocation();
+			Point2D headLoc = ai.getHead().getLocation();
+			Point2D tailLoc = ai.getTail().getLocation();
 			double headX = headLoc.getX();   double headY = headLoc.getY();
 			double tailX = tailLoc.getX();   double tailY = tailLoc.getY();
 			double angle = ai.getAngle();
@@ -1468,7 +1469,7 @@ public class Technology extends ElectricObject
 			}
 			int numPoints = 6;
 			if (ai.isSkipHead()) numPoints = 2;
-			Point2D.Double [] points = new Point2D.Double[numPoints];
+			Point2D [] points = new Point2D.Double[numPoints];
 			points[0] = new Point2D.Double(headX, headY);
 			points[1] = new Point2D.Double(tailX, tailY);
 			if (!ai.isSkipHead())
@@ -1522,7 +1523,7 @@ public class Technology extends ElectricObject
 					double cX = ni.getCenterX();
 					double cY = ni.getCenterY();
 					int numPoints = outline.length / 2;
-					Point2D.Double [] pointList = new Point2D.Double[numPoints];
+					Point2D [] pointList = new Point2D.Double[numPoints];
 					for(int i=0; i<numPoints; i++)
 					{
 						pointList[i] = new Point2D.Double(cX + outline[i*2].floatValue(), cY + outline[i*2+1].floatValue());

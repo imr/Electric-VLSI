@@ -131,11 +131,11 @@ public class NodeInst extends Geometric
 				double [] angles = getArcDegrees();
 				if (angles[0] != 0.0 || angles[1] != 0.0)
 				{
-					Point2D.Double [] pointList = Artwork.fillEllipse(cX, cY, Math.abs(sX), Math.abs(sY), angles[0], angles[1]);
+					Point2D [] pointList = Artwork.fillEllipse(cX, cY, Math.abs(sX), Math.abs(sY), angles[0], angles[1]);
 					Poly poly = new Poly(pointList);
 					poly.setStyle(Poly.Type.OPENED);
 					poly.transform(rotateOut());
-					visBounds.setRect(poly.getBounds2DDouble());
+					visBounds.setRect(poly.getBounds2D());
 					return;
 				}
 			}
@@ -157,7 +157,7 @@ public class NodeInst extends Geometric
 				if (outline != null)
 				{
 					int numPoints = outline.length / 2;
-					Point2D.Double [] pointList = new Point2D.Double[numPoints];
+					Point2D [] pointList = new Point2D.Double[numPoints];
 					for(int i=0; i<numPoints; i++)
 					{
 						pointList[i] = new Point2D.Double(cX + outline[i*2].floatValue(), cY + outline[i*2+1].floatValue());
@@ -165,7 +165,7 @@ public class NodeInst extends Geometric
 					Poly poly = new Poly(pointList);
 					poly.setStyle(Poly.Type.OPENED);
 					poly.transform(rotateOut());
-					visBounds.setRect(poly.getBounds2DDouble());
+					visBounds.setRect(poly.getBounds2D());
 					return;
 				}
 			}
@@ -184,7 +184,7 @@ public class NodeInst extends Geometric
 			poly.transform(translate);
 
 			// return its bounds
-			visBounds.setRect(poly.getBounds2DDouble());
+			visBounds.setRect(poly.getBounds2D());
 		}
 	}
 
@@ -211,7 +211,7 @@ public class NodeInst extends Geometric
 	 * @param parent the Cell in which this NodeInst will reside.
 	 * @return true on error.
 	 */
-	public boolean lowLevelPopulate(NodeProto protoType, Point2D.Double center, double width, double height, int angle,
+	public boolean lowLevelPopulate(NodeProto protoType, Point2D center, double width, double height, int angle,
 		Cell parent)
 	{
 		setParent(parent);
@@ -233,7 +233,7 @@ public class NodeInst extends Geometric
 			pi.setIndex(i++);
 		}
 
-		this.cX = center.x;   this.cY = center.y;
+		this.cX = center.getX();   this.cY = center.getY();
 		this.sX = width;   this.sY = height;
 		this.angle = angle;
 
@@ -277,7 +277,7 @@ public class NodeInst extends Geometric
 	 * @param parent the Cell in which this NodeInst will reside.
 	 * @return the newly created NodeInst, or null on error.
 	 */
-	public static NodeInst newInstance(NodeProto protoType, Point2D.Double center, double width, double height,
+	public static NodeInst newInstance(NodeProto protoType, Point2D center, double width, double height,
 		int angle, Cell parent)
 	{
 		if (protoType instanceof Cell)
@@ -373,13 +373,13 @@ public class NodeInst extends Geometric
 				Connection con = (Connection)it.next();
 				if (con.getPortInst().getNodeInst() == this)
 				{
-					Point2D.Double oldLocation = con.getLocation();
+					Point2D oldLocation = con.getLocation();
 					if (con.isHeadEnd()) con.getArc().modify(0, dX, dY, 0, 0); else
 						con.getArc().modify(0, 0, 0, dX, dY);
 				}
 			}
-			parent.setDirty();
 		}
+		parent.setDirty();
 
 		// if the cell-center changed, notify the cell and fix lots of stuff
 		if (protoType instanceof PrimitiveNode && protoType == Generic.tech.cellCenter_node)
@@ -804,7 +804,7 @@ public class NodeInst extends Geometric
 			double offY = (double)td.getYOff() / 4;
 			TextDescriptor.Position pos = td.getPos();
 			Poly.Type style = pos.getPolyType();
-			Point2D.Double [] pointList = new Point2D.Double[1];
+			Point2D [] pointList = new Point2D.Double[1];
 			pointList[0] = new Point2D.Double(cX+offX, cY+offY);
 			polys[start] = new Poly(pointList);
 			polys[start].setStyle(style);
@@ -822,7 +822,7 @@ public class NodeInst extends Geometric
 
 			// add in variables on the exports
 			Poly poly = getShapeOfPort(pp.getOriginalPort().getPortProto());
-			int numadded = pp.addDisplayableVariables(poly.getBounds2DDouble(), polys, start, wnd, false);
+			int numadded = pp.addDisplayableVariables(poly.getBounds2D(), polys, start, wnd, false);
 			for(int i=0; i<numadded; i++)
 				polys[start+i].setPort(pp);
 			start += numadded;
@@ -1028,7 +1028,7 @@ public class NodeInst extends Geometric
 	 * coordinate is that of the lower-left valid part, as placed in the database.
 	 * @return a Point with the location of this NodeInst's lower-left corner.
 	 */
-	public Point2D.Double getLowLeft()
+	public Point2D getLowLeft()
 	{
 		SizeOffset so = getProto().getSizeOffset();
 
@@ -1044,7 +1044,7 @@ public class NodeInst extends Geometric
 			AffineTransform trans = this.rotateOut();
 			poly.transform(trans);
 		}
-		Rectangle2D.Double bounds = poly.getBounds2DDouble();
+		Rectangle2D bounds = poly.getBounds2D();
 		return new Point2D.Double(bounds.getMinX(), bounds.getMinY());
 	}
 
@@ -1125,7 +1125,7 @@ public class NodeInst extends Geometric
 	 * Routine to return a Poly that describes the location of a port on this NodeInst.
 	 * @param thePort the port on this NodeInst.
 	 * @return a Poly that describes the location of the Export.
-	 * The Poly is not transformed for any rotation on this NodeInst.
+	 * The Poly is transformed to account for rotation on this NodeInst.
 	 */
 	public Poly getShapeOfPort(PortProto thePort)
 	{
@@ -1133,7 +1133,7 @@ public class NodeInst extends Geometric
 		PortProto pp = thePort;
 
 		/* look down to the bottom level node/port */
-		AffineTransform trans = new AffineTransform();
+		AffineTransform trans = ni.rotateOut();
 		while (ni.getProto() instanceof Cell)
 		{
 			trans = ni.translateOut(trans);
@@ -1462,8 +1462,8 @@ public class NodeInst extends Geometric
 
 //	private int arcOrientation(ArcInst ai)
 //	{
-//		Point2D.Double p0 = ai.getConnection(false).getLocation();
-//		Point2D.Double p1 = ai.getConnection(true).getLocation();
+//		Point2D p0 = ai.getConnection(false).getLocation();
+//		Point2D p1 = ai.getConnection(true).getLocation();
 //		return orientation(p0.getX(), p0.getY(), p1.getX(), p1.getY());
 //	}
 

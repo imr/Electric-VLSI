@@ -1123,7 +1123,7 @@ public class InputBinary extends Input
 		double highY = nodeHighYList[i]-yoff;
 		boolean transpose = nodeTransposeList[i];
 		int rotation = nodeRotationList[i];
-		Point2D.Double center = new Point2D.Double(((lowX + highX) / 2) / lambda, ((lowY + highY) / 2) / lambda);
+		Point2D center = new Point2D.Double(((lowX + highX) / 2) / lambda, ((lowY + highY) / 2) / lambda);
 		double width = (highX - lowX) / lambda;
 		double height = (highY - lowY) / lambda;
 		if (transpose)
@@ -1490,7 +1490,7 @@ public class InputBinary extends Input
 		// if cell found, check that size is unchanged
 		if (c != null)
 		{
-			Rectangle2D.Double bounds = c.getBounds();
+			Rectangle2D bounds = c.getBounds();
 			double lambda = 1;
 			Technology cellTech = Technology.whatTechnology(c);
 			if (cellTech != null) lambda = techScale[cellTech.getIndex()];
@@ -1564,7 +1564,7 @@ public class InputBinary extends Input
 			int cY = (lowY + highY) / 2;
 			double width = (highX - lowX) / lambda;
 			double height = (highY - lowY) / lambda;
-			Point2D.Double center = new Point2D.Double(cX / lambda, cY / lambda);
+			Point2D center = new Point2D.Double(cX / lambda, cY / lambda);
 			NodeInst.newInstance(Generic.tech.drc_node, center, width, height, 0, c);
 			fakeNodeInst = NodeInst.newInstance(Generic.tech.universalPin_node, center, width, height, 0, c);
 

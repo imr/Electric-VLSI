@@ -1527,8 +1527,8 @@ public class Schematics extends Technology
 			return super.getShapeOfArc(ai, wnd);
 
 		// draw a negated Wire arc
-		Point2D.Double headLoc = ai.getHead().getLocation();
-		Point2D.Double tailLoc = ai.getTail().getLocation();
+		Point2D headLoc = ai.getHead().getLocation();
+		Point2D tailLoc = ai.getTail().getLocation();
 		double headX = headLoc.getX();   double headY = headLoc.getY();
 		double tailX = tailLoc.getX();   double tailY = tailLoc.getY();
 		int angle = ai.getAngle();
@@ -1536,7 +1536,7 @@ public class Schematics extends Technology
 		double cosDist = EMath.cos(angle) * bubbleSize;
 		double sinDist = EMath.sin(angle) * bubbleSize;
 		double bubbleX, bubbleY;
-		Point2D.Double bubbleEdge;
+		Point2D bubbleEdge;
 		if (ai.isReverseEnds())
 		{
 			bubbleX = headX + cosDist/2;
@@ -1554,11 +1554,11 @@ public class Schematics extends Technology
 		}
 
 		Poly [] polys = new Poly[2];
-		Point2D.Double newHead = new Point2D.Double(headX, headY);
-		Point2D.Double newTail = new Point2D.Double(tailX, tailY);
-		Point2D.Double newBubble = new Point2D.Double(bubbleX, bubbleY);
+		Point2D newHead = new Point2D.Double(headX, headY);
+		Point2D newTail = new Point2D.Double(tailX, tailY);
+		Point2D newBubble = new Point2D.Double(bubbleX, bubbleY);
 
-		Point2D.Double [] points = new Point2D.Double[2];
+		Point2D [] points = new Point2D.Double[2];
 		points[0] = newHead;
 		points[1] = newTail;
 		polys[0] = new Poly(points);

@@ -46,7 +46,6 @@ public class WindowFrame extends JInternalFrame
 {
 	/** the edit window part */							private EditWindow wnd;
 	/** the tree view part */							private TreeView tree;
-    /** root of explorer tree */                        private static DefaultMutableTreeNode root = new DefaultMutableTreeNode("EXPLORER");
 	/** the offset of each new windows from the last */	private static int windowOffset = 0;
 	/** the list of all windows on the screen */		private static List windowList = new ArrayList();
 
@@ -65,14 +64,11 @@ public class WindowFrame extends JInternalFrame
 		wnd = EditWindow.CreateElectricDoc(cell);
 
 		// the left half: a cell explorer tree in a scroll pane
-        // new
-        root.add(Library.getExplorerTree());
-        root.add(Job.getExplorerTree());
-        tree = TreeView.CreateTreeView(root, wnd);
-        tree.setShowsRootHandles(true);
-        explorerTreeChanged();
-		// old
-        //tree = TreeView.CreateTreeView(Library.getExplorerTree(), wnd);
+		DefaultMutableTreeNode root = new DefaultMutableTreeNode("EXPLORER");
+		root.add(Library.getExplorerTree());
+		root.add(Job.getExplorerTree());
+		tree = TreeView.CreateTreeView(root, wnd);
+		explorerTreeChanged();
 		JScrollPane scrolledTree = new JScrollPane(tree);
 
 		// put them together into the frame

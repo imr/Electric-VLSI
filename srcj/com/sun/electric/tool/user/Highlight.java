@@ -124,8 +124,8 @@ public class Highlight
 	/** The highlighted port (only for NodeInst). */			private PortProto port;
 	/** The highlighted outline point (only for NodeInst). */	private int point;
 	/** The highlighted variable. */							private Variable var;
-	/** The highlighted area. */								private Rectangle2D.Double bounds;
-	/** The highlighted line. */								private Point2D.Double pt1, pt2;
+	/** The highlighted area. */								private Rectangle2D bounds;
+	/** The highlighted line. */								private Point2D pt1, pt2;
 	/** The style of highlighted text. */						private Poly.Type textStyle;
 
 	/** Screen offset for display of highlighting. */			private static int highOffX, highOffY;
@@ -168,7 +168,7 @@ public class Highlight
 	 * @param var the Variable associated with the text (text is then a visual of that variable).
 	 * @return the newly created Highlight object.
 	 */
-	public static Highlight addText(Cell cell, Rectangle2D.Double area, Poly.Type textStyle, Variable var)
+	public static Highlight addText(Cell cell, Rectangle2D area, Poly.Type textStyle, Variable var)
 	{
 		Highlight h = new Highlight(Type.TEXT);
 		h.bounds = new Rectangle2D.Double();
@@ -187,7 +187,7 @@ public class Highlight
 	 * @param cell the Cell in which this area resides.
 	 * @return the newly created Highlight object.
 	 */
-	public static Highlight addArea(Rectangle2D.Double area, Cell cell)
+	public static Highlight addArea(Rectangle2D area, Cell cell)
 	{
 		Highlight h = new Highlight(Type.BBOX);
 		h.bounds = new Rectangle2D.Double();
@@ -257,14 +257,14 @@ public class Highlight
 	 * Bounds are used for area definitions and also for text.
 	 * @param bounds the bounds to show with this Highlight (must be a NodeInst highlight).
 	 */
-	public void setBounds(Rectangle2D.Double bounds) { this.bounds = bounds; }
+	public void setBounds(Rectangle2D bounds) { this.bounds = bounds; }
 
 	/**
 	 * Routine to return the bounds associated with this Highlight object.
 	 * Bounds are used for area definitions and also for text.
 	 * @return the bounds associated with this Highlight object.
 	 */
-	public Rectangle2D.Double getBounds() { return bounds; }
+	public Rectangle2D getBounds() { return bounds; }
 
 	/**
 	 * Routine to set an text style to be displayed with this Highlight.
@@ -413,7 +413,7 @@ public class Highlight
 	public static void selectArea(EditWindow wnd, double minSelX, double maxSelX, double minSelY, double maxSelY, boolean findSpecial)
 	{
 		clear();
-		Rectangle2D.Double searchArea = new Rectangle2D.Double(minSelX, minSelY, maxSelX - minSelX, maxSelY - minSelY);
+		Rectangle2D searchArea = new Rectangle2D.Double(minSelX, minSelY, maxSelX - minSelX, maxSelY - minSelY);
 
 		List underCursor = findAllInArea(wnd.getCell(), false, false, false, findSpecial, searchArea, wnd);
 		for(Iterator it = underCursor.iterator(); it.hasNext(); )
@@ -435,12 +435,12 @@ public class Highlight
 		int numHighlights = getNumHighlights();
 		if (numHighlights == 0) return false;
 
-		Point2D.Double slop = wnd.deltaScreenToDatabase(EXACTSELECTDISTANCE*2, EXACTSELECTDISTANCE*2);
+		Point2D slop = wnd.deltaScreenToDatabase(EXACTSELECTDISTANCE*2, EXACTSELECTDISTANCE*2);
 		double directHitDist = slop.getX();
 		double slopWidth = Math.abs(slop.getX());
 		double slopHeight = Math.abs(slop.getY());
-		Point2D.Double start = wnd.screenToDatabase((int)x, (int)y);
-		Rectangle2D.Double searchArea = new Rectangle2D.Double(start.getX()-slopWidth/2, start.getY()-slopHeight/2, slopWidth, slopHeight);
+		Point2D start = wnd.screenToDatabase((int)x, (int)y);
+		Rectangle2D searchArea = new Rectangle2D.Double(start.getX()-slopWidth/2, start.getY()-slopHeight/2, slopWidth, slopHeight);
 		Geometric.Search sea = new Geometric.Search(searchArea, wnd.getCell());
 		for(;;)
 		{
@@ -474,7 +474,7 @@ public class Highlight
 		g.setColor(Color.white);
 		if (type == Type.BBOX)
 		{
-			Point2D.Double [] points = new Point2D.Double[5];
+			Point2D [] points = new Point2D.Double[5];
 			points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
 			points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
 			points[2] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
@@ -492,8 +492,8 @@ public class Highlight
 		if (type == Type.TEXT)
 		{
 			Poly.Type style = getTextStyle();
-			Rectangle2D.Double bounds = getBounds();
-			Point2D.Double [] points = new Point2D.Double[2];
+			Rectangle2D bounds = getBounds();
+			Point2D [] points = new Point2D.Double[2];
 			if (style == Poly.Type.TEXTCENT)
 			{
 				points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
@@ -633,7 +633,7 @@ public class Highlight
 //				if (outline != null)
 //				{
 //					int numPoints = outline.length / 2;
-//					Point2D.Double [] pointList = new Point2D.Double[numPoints];
+//					Point2D [] pointList = new Point2D.Double[numPoints];
 //					for(int i=0; i<numPoints; i++)
 //					{
 //						pointList[i] = new Point2D.Double(ni.getCenterX() + outline[i*2].floatValue(),
@@ -676,6 +676,7 @@ public class Highlight
 			Poly poly = ni.getShapeOfPort(pp);
 			boolean opened = true;
 			if (poly.getStyle() == Poly.Type.FILLED || poly.getStyle() == Poly.Type.CLOSED) opened = false;
+			poly.transform(trans);
 			drawOutlineFromPoints(wnd, g,  poly.getPoints(), highOffX, highOffY, opened);
 		}
 	}
@@ -692,7 +693,7 @@ public class Highlight
 	 * The name of an unexpanded cell instance is always hard-to-select.
 	 * Other objects are set this way by the user (although the cell-center is usually set this way).
 	 */
-	public static void findObject(Point2D.Double pt, EditWindow wnd, boolean exclusively,
+	public static void findObject(Point2D pt, EditWindow wnd, boolean exclusively,
 		boolean another, boolean findPort, boolean findSpecial)
 	{
 		// initialize
@@ -701,7 +702,7 @@ public class Highlight
 		
 		// search the relevant objects in the circuit
 		Cell cell = wnd.getCell();
-		Rectangle2D.Double bounds = new Rectangle2D.Double(pt.getX(), pt.getY(), 0, 0);
+		Rectangle2D bounds = new Rectangle2D.Double(pt.getX(), pt.getY(), 0, 0);
 		List underCursor = findAllInArea(cell, exclusively, another, findPort, findSpecial, bounds, wnd);
 
 		// if nothing under the cursor, stop now
@@ -768,7 +769,7 @@ public class Highlight
 	 * The list is ordered by importance, so the deault action is to select the first entry.
 	 */
 	private static List findAllInArea(Cell cell, boolean exclusively, boolean another, boolean findPort,
-		 boolean findSpecial, Rectangle2D.Double bounds, EditWindow wnd)
+		 boolean findSpecial, Rectangle2D bounds, EditWindow wnd)
 	{
 		// make a list of things under the cursor
 		List list = new ArrayList();
@@ -777,7 +778,7 @@ public class Highlight
 		double directHitDist = 0;
 		if (wnd != null)
 		{
-			Point2D.Double extra = wnd.deltaScreenToDatabase(EXACTSELECTDISTANCE, EXACTSELECTDISTANCE);
+			Point2D extra = wnd.deltaScreenToDatabase(EXACTSELECTDISTANCE, EXACTSELECTDISTANCE);
 			directHitDist = extra.getX();
 		}
 
@@ -797,7 +798,7 @@ public class Highlight
 					Highlight h = new Highlight(Type.TEXT);
 					h.setCell(cell);
 					h.setTextStyle(poly.getStyle());
-					h.setBounds(poly.getBounds2DDouble());
+					h.setBounds(poly.getBounds2D());
 					h.setVar(poly.getVariable());
 					list.add(h);
 				}
@@ -820,7 +821,7 @@ public class Highlight
 					Highlight h = new Highlight(Type.TEXT);
 					h.setCell(cell);
 					h.setTextStyle(poly.getStyle());
-					h.setBounds(poly.getBounds2DDouble());
+					h.setBounds(poly.getBounds2D());
 					h.setVar(poly.getVariable());
 					h.setPort(poly.getPort());
 					h.setGeom(ni);
@@ -843,7 +844,7 @@ public class Highlight
 					Highlight h = new Highlight(Type.TEXT);
 					h.setCell(cell);
 					h.setTextStyle(poly.getStyle());
-					h.setBounds(poly.getBounds2DDouble());
+					h.setBounds(poly.getBounds2D());
 					h.setVar(poly.getVariable());
 					h.setPort(poly.getPort());
 					h.setGeom(ai);
@@ -853,7 +854,7 @@ public class Highlight
 		}
 
 		// determine proper area to search
-		Rectangle2D.Double searchArea = new Rectangle2D.Double(bounds.getMinX() - directHitDist,
+		Rectangle2D searchArea = new Rectangle2D.Double(bounds.getMinX() - directHitDist,
 			bounds.getMinY() - directHitDist, bounds.getWidth()+directHitDist*2, bounds.getHeight()+directHitDist*2);
 
 		// now do 3 phases of examination: cells, arcs, then primitive nodes
@@ -905,7 +906,7 @@ public class Highlight
 	 * @param directHitDist the slop area to forgive when searching (a few pixels in screen space, transformed to database units).
 	 * @return a Highlight that defines the object, or null if the point is not over any part of this object.
 	 */
-	private static Highlight checkOutObject(Geometric geom, boolean findPort, boolean findSpecial, Rectangle2D.Double bounds,
+	private static Highlight checkOutObject(Geometric geom, boolean findPort, boolean findSpecial, Rectangle2D bounds,
 		EditWindow wnd, double directHitDist)
 	{
 		if (geom instanceof NodeInst)
@@ -984,7 +985,7 @@ public class Highlight
 	 * @return the distance from the bounds to the NodeInst.
 	 * Negative values are direct hits.
 	 */
-	private static double distToNode(Rectangle2D.Double bounds, NodeInst ni, EditWindow wnd)
+	private static double distToNode(Rectangle2D bounds, NodeInst ni, EditWindow wnd)
 	{
 		AffineTransform trans = ni.rotateOut();
 
@@ -1031,7 +1032,7 @@ public class Highlight
 
 		// get the bounds of the node in a polygon
 		SizeOffset so = ni.getProto().getSizeOffset();
-		Rectangle2D.Double niBounds = ni.getBounds();
+		Rectangle2D niBounds = ni.getBounds();
 		double lX = niBounds.getMinX() + so.getLowXOffset();
 		double hX = niBounds.getMaxX() + so.getHighXOffset();
 		double lY = niBounds.getMinY() + so.getLowYOffset();
@@ -1051,7 +1052,7 @@ public class Highlight
 	 * @return the distance from the bounds to the ArcInst.
 	 * Negative values are direct hits or intersections.
 	 */
-	private static double distToArc(Rectangle2D.Double bounds, ArcInst ai, EditWindow wnd)
+	private static double distToArc(Rectangle2D bounds, ArcInst ai, EditWindow wnd)
 	{
 		ArcProto ap = ai.getProto();
 
@@ -1088,7 +1089,7 @@ public class Highlight
 	 * @param opened true if the points are drawn "opened".
 	 * False to close the polygon.
 	 */
-	private static void drawOutlineFromPoints(EditWindow wnd, Graphics g, Point2D.Double [] points, int offX, int offY, boolean opened)
+	private static void drawOutlineFromPoints(EditWindow wnd, Graphics g, Point2D [] points, int offX, int offY, boolean opened)
 	{
 		boolean onePoint = true;
 		Point firstP = wnd.databaseToScreen(points[0].getX(), points[0].getY());

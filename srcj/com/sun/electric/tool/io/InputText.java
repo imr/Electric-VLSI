@@ -441,7 +441,7 @@ public class InputText extends Input
 				int highY = nil.nodeInstHighY[j];
 				xoff = (lowX + highX) / 2;
 				yoff = (lowY + highY) / 2;
-				Point2D.Double center = new Point2D.Double(xoff / lambda, yoff / lambda);
+				Point2D center = new Point2D.Double(xoff / lambda, yoff / lambda);
 				double width = (highX - lowX) / lambda;
 				double height = (highY - lowY) / lambda;
 				if (nil.nodeInstTranspose[j]) width = -width;
@@ -463,7 +463,7 @@ public class InputText extends Input
 			int highY = nil.nodeInstHighY[j];
 			int cX = (lowX + highX) / 2;
 			int cY = (lowY + highY) / 2;
-			Point2D.Double center = new Point2D.Double((double)(cX-xoff) / lambda, (double)(cY-yoff) / lambda);
+			Point2D center = new Point2D.Double((double)(cX-xoff) / lambda, (double)(cY-yoff) / lambda);
 			double width = (highX - lowX) / lambda;
 			double height = (highY - lowY) / lambda;
 			if (nil.nodeInstTranspose[j]) width = -width;

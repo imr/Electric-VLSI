@@ -179,7 +179,7 @@ public class ElectricObject
 			{
 				int index = start + numAddedVariables;
 				numAddedVariables++;
-				Point2D.Double [] pointList = new Point2D.Double[1];
+				Point2D [] pointList = new Point2D.Double[1];
 				pointList[0] = new Point2D.Double(cX+offX, cY+offY);
 				polys[index] = new Poly(pointList);
 				polys[index].setStyle(style);

@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user;
 
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -36,7 +37,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.variable.FlagSet;
-//import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.user.Highlight;
 
 import java.util.Iterator;
@@ -49,10 +50,8 @@ import java.awt.geom.Point2D;
  */
 public class CircuitChanges
 {
-	// constructor
-	CircuitChanges()
-	{
-	}
+	// constructor, never used
+	CircuitChanges() {}
 
 	/**
 	 * Routine to delete all selected objects.
@@ -61,7 +60,6 @@ public class CircuitChanges
 	{
 		if (Highlight.getNumHighlights() == 0) return;
 		List deleteList = new ArrayList();
-//		Geometric [] deleteList = new Geometric[Highlight.getNumHighlights()];
 		int i = 0;
 		Cell cell = null;
 		boolean warned = false;
@@ -112,72 +110,99 @@ public class CircuitChanges
 			return;
 		}
 
-//		// special case if moving diagonal fixed-angle arcs connected to single manhattan arcs
-//		for(i=0; list[i] != NOGEOM; i++)
-//		{
-//			if (list[i]->entryisnode) break;
-//			ai = list[i]->entryaddr.ai;
-//			if (ai->end[0].xpos == ai->end[1].xpos ||
-//				ai->end[0].ypos == ai->end[1].ypos) break;
-//			if ((ai->userbits&FIXANG) == 0) break;
-//			if ((ai->userbits&FIXED) != 0) break;
-//			for(j=0; j<2; j++)
-//			{
-//				ni = ai->end[j].nodeinst;
-//				oai = NOARCINST;
-//				for(pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//				{
-//					if (pi->conarcinst == ai) continue;
-//					if (oai == NOARCINST) oai = pi->conarcinst; else
-//						oai = NOARCINST;
-//				}
-//				if (oai == NOARCINST) break;
-//				if (oai->end[0].xpos != oai->end[1].xpos &&
-//					oai->end[0].ypos != oai->end[1].ypos) break;
-//			}
-//			if (j < 2) break;
-//		}
-//		if (list[i] == NOGEOM)
-//		{
-//			// meets the test: make the special move to slide other orthogonal arcs
-//			for(i=0; list[i] != NOGEOM; i++)
-//			{
-//				ai = list[i]->entryaddr.ai;
-//				deltax[0] = deltay[0] = deltax[1] = deltay[1] = 0;
-//				arcangle = ((ai->userbits&AANGLE)>>AANGLESH) * 10;
-//				for(j=0; j<2; j++)
-//				{
-//					ni = ai->end[j].nodeinst;
-//					nilist[j] = ni;
-//					oai = NOARCINST;
-//					for(pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//						if (pi->conarcinst != ai) break;
-//					oai = pi->conarcinst;
-//					if (oai == NOARCINST) break;
-//					if (oai->end[0].xpos == oai->end[1].xpos)
-//					{
-//						intersect(oai->end[0].xpos, oai->end[0].ypos, 900,
-//							ai->end[0].xpos+dx, ai->end[0].ypos+dy, arcangle, &ix, &iy);
-//						deltax[j] = ix - ai->end[j].xpos;
-//						deltay[j] = iy - ai->end[j].ypos;
-//					} else if (oai->end[0].ypos == oai->end[1].ypos)
-//					{
-//						intersect(oai->end[0].xpos, oai->end[0].ypos, 0,
-//							ai->end[0].xpos+dx, ai->end[0].ypos+dy, arcangle, &ix, &iy);
-//						deltax[j] = ix - ai->end[j].xpos;
-//						deltay[j] = iy - ai->end[j].ypos;
-//					}
-//				}
-//				if (j < 2) continue;
-//				startobjectchange((INTBIG)nilist[0], VNODEINST);
-//				startobjectchange((INTBIG)nilist[1], VNODEINST);
-//				deltadummy[0] = deltadummy[1] = 0;
-//				modifynodeinsts(2, nilist, deltax, deltay, deltax, deltay, deltadummy, deltadummy);
-//				endobjectchange((INTBIG)nilist[0], VNODEINST);
-//				endobjectchange((INTBIG)nilist[1], VNODEINST);
-//			}
-//			return;
-//		}
+		// special case if moving diagonal fixed-angle arcs connected to single manhattan arcs
+		boolean found = true;
+		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+		{
+			Highlight h = (Highlight)it.next();
+			if (h.getType() != Highlight.Type.GEOM) continue;
+			Geometric geom = h.getGeom();
+			if (geom instanceof ArcInst)
+			{
+				ArcInst ai = (ArcInst)geom;
+				if (ai.getHead().getLocation().getX() == ai.getTail().getLocation().getX() ||
+					ai.getHead().getLocation().getY() == ai.getTail().getLocation().getY()) { found = false;   break; }
+				if (!ai.isFixedAngle()) { found = false;   break; }
+				if (ai.isRigid()) { found = false;   break; }
+				int j;
+				for(j=0; j<2; j++)
+				{
+					NodeInst ni = ai.getConnection(j).getPortInst().getNodeInst();
+					ArcInst oai = null;
+					for(Iterator pIt = ni.getConnections(); pIt.hasNext(); )
+					{
+						Connection con = (Connection)pIt.next();
+						if (con.getArc() == ai) continue;
+						if (oai == null) oai = con.getArc(); else
+						{
+							oai = null;
+							break;
+						}
+					}
+					if (oai == null) break;
+					if (oai.getHead().getLocation().getX() != oai.getTail().getLocation().getX() &&
+						oai.getHead().getLocation().getY() != oai.getTail().getLocation().getY()) break;
+				}
+				if (j < 2) { found = false;   break; }
+			}
+		}
+		if (found)
+		{
+			// meets the test: make the special move to slide other orthogonal arcs
+			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+			{
+				Highlight h = (Highlight)it.next();
+				if (h.getType() != Highlight.Type.GEOM) continue;
+				Geometric geom = h.getGeom();
+				if (!(geom instanceof ArcInst)) continue;
+				ArcInst ai = (ArcInst)geom;
+
+				double [] deltaXs = new double[2];
+				double [] deltaYs = new double[2];
+				double [] deltaNulls = new double[2];
+				int [] deltaRots = new int[2];
+				NodeInst [] niList = new NodeInst[2];
+				deltaNulls[0] = deltaNulls[1] = 0;
+				deltaXs[0] = deltaYs[0] = deltaXs[1] = deltaYs[1] = 0;
+				int arcangle = ai.getAngle();
+				int j;
+				for(j=0; j<2; j++)
+				{
+					NodeInst ni = ai.getConnection(j).getPortInst().getNodeInst();
+					niList[j] = ni;
+					ArcInst oai = null;
+					for(Iterator pIt = ni.getConnections(); pIt.hasNext(); )
+					{
+						Connection con = (Connection)pIt.next();
+						if (con.getArc() != ai) { oai = con.getArc();   break; }
+					}
+					if (oai == null) break;
+					if (EMath.doublesEqual(oai.getHead().getLocation().getX(), oai.getTail().getLocation().getX()))
+					{
+						Point2D iPt = EMath.intersect(oai.getHead().getLocation(), 900,
+							new Point2D.Double(ai.getHead().getLocation().getX()+dx, ai.getHead().getLocation().getY()+dy), arcangle);
+						deltaXs[j] = iPt.getX() - ai.getConnection(j).getLocation().getX();
+						deltaYs[j] = iPt.getY() - ai.getConnection(j).getLocation().getY();
+					} else if (EMath.doublesEqual(oai.getHead().getLocation().getY(), oai.getTail().getLocation().getY()))
+					{
+						Point2D iPt = EMath.intersect(oai.getHead().getLocation(), 0,
+							new Point2D.Double(ai.getHead().getLocation().getX()+dx, ai.getHead().getLocation().getY()+dy), arcangle);
+						deltaXs[j] = iPt.getX() - ai.getConnection(j).getLocation().getX();
+						deltaYs[j] = iPt.getY() - ai.getConnection(j).getLocation().getY();
+					}
+				}
+				if (j < 2) continue;
+				Undo.startChanges(User.tool, "Move");
+				niList[0].startChange();
+				niList[1].startChange();
+				deltaRots[0] = deltaRots[1] = 0;
+				NodeInst.modifyInstances(niList, deltaXs, deltaYs, deltaNulls, deltaNulls, deltaRots);
+				niList[0].endChange();
+				niList[1].endChange();
+				Undo.endChanges();
+			}
+			return;
+		}
 
 		// special case if moving only arcs and they slide
 		boolean onlySlidable = true;
@@ -194,8 +219,8 @@ public class CircuitChanges
 				{
 					Connection head = ai.getHead();
 					Connection tail = ai.getTail();
-					Point2D.Double newHead = new Point2D.Double(head.getLocation().getX()+dx, head.getLocation().getY()+dy);
-					Point2D.Double newTail = new Point2D.Double(tail.getLocation().getX()+dx, tail.getLocation().getY()+dy);
+					Point2D newHead = new Point2D.Double(head.getLocation().getX()+dx, head.getLocation().getY()+dy);
+					Point2D newTail = new Point2D.Double(tail.getLocation().getX()+dx, tail.getLocation().getY()+dy);
 					if (ai.stillInPort(head, newHead) && ai.stillInPort(tail, newTail)) continue;
 				}
 			}
@@ -221,7 +246,12 @@ public class CircuitChanges
 			return;
 		}
 
-		// remember the location of every arc
+		// remember the location of every node and arc
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			ni.setTempObj(new Point2D.Double(ni.getCenterX(), ni.getCenterY()));
+		}
 		for(Iterator it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
@@ -237,40 +267,55 @@ public class CircuitChanges
 			if (geom instanceof NodeInst) numNodes++;
 		}
 
-		// look at all nodes and move them appropriately
-		NodeInst [] nis = new NodeInst[total];
-		double [] dX = new double[total];
-		double [] dY = new double[total];
-		double [] dSize = new double[total];
-		int [] dRot = new int[total];
-		boolean [] dTrn = new boolean[total];
-		numNodes = 0;
+		// make all ArcInsts temporarily rigid
 		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 		{
 			Highlight h = (Highlight)it.next();
 			if (h.getType() != Highlight.Type.GEOM) continue;
 			Geometric geom = h.getGeom();
-			if (geom instanceof ArcInst) continue;
-			NodeInst ni = (NodeInst)geom;
-			nis[numNodes] = ni;
-			dX[numNodes] = dx;
-			dY[numNodes] = dy;
-			dSize[numNodes] = 0;
-			dRot[numNodes] = 0;
-			dTrn[numNodes] = false;
-			numNodes++;
+			if (geom instanceof ArcInst)
+			{
+				ArcInst ai = (ArcInst)geom;
+				Layout.setTempRigid(ai, true);
+			}
 		}
-//		for(j=0; list[j] != NOGEOM; j++)
-//			if (!list[j]->entryisnode)
-//				(void)(*el_curconstraint->setobject)((INTBIG)list[j]->entryaddr.ai,
-//					VARCINST, CHANGETYPETEMPRIGID, 0);
+
+		// start this change
 		Undo.startChanges(User.tool, "Move");
-		for(int i=0; i<numNodes; i++)
-			nis[i].startChange();
-		NodeInst.modifyInstances(nis, dX, dY, dSize, dSize, dRot);
-		for(int i=0; i<numNodes; i++)
-			nis[i].endChange();
-		Undo.endChanges();
+
+		// look at all nodes and move them appropriately
+		if (numNodes > 0)
+		{
+			NodeInst [] nis = new NodeInst[numNodes];
+			double [] dX = new double[numNodes];
+			double [] dY = new double[numNodes];
+			double [] dSize = new double[numNodes];
+			int [] dRot = new int[numNodes];
+			boolean [] dTrn = new boolean[numNodes];
+			numNodes = 0;
+			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+			{
+				Highlight h = (Highlight)it.next();
+				if (h.getType() != Highlight.Type.GEOM) continue;
+				Geometric geom = h.getGeom();
+				if (geom instanceof NodeInst)
+				{
+					NodeInst ni = (NodeInst)geom;
+					nis[numNodes] = ni;
+					dX[numNodes] = dx;
+					dY[numNodes] = dy;
+					dSize[numNodes] = 0;
+					dRot[numNodes] = 0;
+					dTrn[numNodes] = false;
+					numNodes++;
+				}
+			}
+			for(int i=0; i<numNodes; i++)
+				nis[i].startChange();
+			NodeInst.modifyInstances(nis, dX, dY, dSize, dSize, dRot);
+			for(int i=0; i<numNodes; i++)
+				nis[i].endChange();
+		}
 
 		// look at all arcs and move them appropriately
 		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
@@ -280,56 +325,70 @@ public class CircuitChanges
 			Geometric geom = h.getGeom();
 			if (geom instanceof NodeInst) continue;
 			ArcInst ai = (ArcInst)geom;
-//			if (ai->temp1 != (ai->end[0].xpos + ai->end[1].xpos) / 2 ||
-//				ai->temp2 != (ai->end[0].ypos + ai->end[1].ypos) / 2) continue;
-//
-//			// see if the arc moves in its ports
-//			if ((ai->userbits&(FIXED|CANTSLIDE)) != 0) e[0] = e[1] = 0; else
-//			{
-//				e[0] = db_stillinport(ai, 0, ai->end[0].xpos+dx, ai->end[0].ypos+dy);
-//				e[1] = db_stillinport(ai, 1, ai->end[1].xpos+dx, ai->end[1].ypos+dy);
-//			}
-//
-//			// if both ends slide in their port, move the arc
-//			if (e[0] != 0 && e[1] != 0)
-//			{
-//				startobjectchange((INTBIG)ai, VARCINST);
-//				(void)modifyarcinst(ai, 0, dx, dy, dx, dy);
-//				endobjectchange((INTBIG)ai, VARCINST);
-//				continue;
-//			}
-//
-//			// if neither end can slide in its port, move the nodes
-//			if (e[0] == 0 && e[1] == 0)
-//			{
-//				for(k=0; k<2; k++)
-//				{
-//					ni = ai->end[k].nodeinst;
-//					if (ni->lowx != ni->temp1 || ni->lowy != ni->temp2) continue;
-//
-//					// fix all arcs that aren't sliding
-//					for(j=0; list[j] != NOGEOM; j++)
-//					{
-//						if (list[j]->entryisnode) continue;
-//						oai = list[j]->entryaddr.ai;
-//						if (oai->temp1 != (oai->end[0].xpos + oai->end[1].xpos) / 2 ||
-//							oai->temp2 != (oai->end[0].ypos + oai->end[1].ypos) / 2) continue;
-//						if (db_stillinport(oai, 0, ai->end[0].xpos+dx, ai->end[0].ypos+dy) ||
-//							db_stillinport(oai, 1, ai->end[1].xpos+dx, ai->end[1].ypos+dy))
-//								continue;
-//						(void)(*el_curconstraint->setobject)((INTBIG)oai,
-//							VARCINST, CHANGETYPETEMPRIGID, 0);
-//					}
-//					startobjectchange((INTBIG)ni, VNODEINST);
-//					modifynodeinst(ni, dx-(ni->lowx-ni->temp1), dy-(ni->lowy-ni->temp2),
-//						dx-(ni->lowx-ni->temp1), dy-(ni->lowy-ni->temp2), 0, 0);
-//					endobjectchange((INTBIG)ni, VNODEINST);
-//				}
-//				continue;
-//			}
-//
+			Point2D pt = (Point2D)ai.getTempObj();
+			if (pt.getX() != ai.getCenterX() ||
+				pt.getY() != ai.getCenterY()) continue;
+
+			// see if the arc moves in its ports
+			boolean headInPort = false, tailInPort = false;
+			if (!ai.isRigid() && ai.isSlidable())
+			{
+				headInPort = ai.stillInPort(ai.getHead(),
+					new Point2D.Double(ai.getHead().getLocation().getX()+dx, ai.getHead().getLocation().getY()+dy));
+				tailInPort = ai.stillInPort(ai.getTail(),
+					new Point2D.Double(ai.getTail().getLocation().getX()+dx, ai.getTail().getLocation().getY()+dy));
+			}
+
+			// if both ends slide in their port, move the arc
+			if (headInPort && tailInPort)
+			{
+				ai.startChange();
+				ai.modify(0, dx, dy, dx, dy);
+				ai.endChange();
+				continue;
+			}
+
+			// if neither end can slide in its port, move the nodes
+			if (!headInPort && !tailInPort)
+			{
+//System.out.println("Moving arc: both ends must move");
+				for(int k=0; k<2; k++)
+				{
+					NodeInst ni;
+					if (k == 0) ni = ai.getHead().getPortInst().getNodeInst(); else
+						ni = ai.getTail().getPortInst().getNodeInst();
+					Point2D nPt = (Point2D)ni.getTempObj();
+					if (ni.getCenterX() != nPt.getX() || ni.getCenterY() != nPt.getY()) continue;
+
+					// fix all arcs that aren't sliding
+					for(Iterator oIt = Highlight.getHighlights(); oIt.hasNext(); )
+					{
+						Highlight oH = (Highlight)oIt.next();
+						if (oH.getType() != Highlight.Type.GEOM) continue;
+						Geometric oGeom = oH.getGeom();
+						if (oGeom instanceof ArcInst)
+						{
+							ArcInst oai = (ArcInst)oGeom;
+							Point2D aPt = (Point2D)oai.getTempObj();
+							if (aPt.getX() != oai.getCenterX() ||
+								aPt.getY() != oai.getCenterY()) continue;
+							if (oai.stillInPort(oai.getHead(),
+									new Point2D.Double(ai.getHead().getLocation().getX()+dx, ai.getHead().getLocation().getY()+dy)) ||
+								oai.stillInPort(oai.getTail(),
+									new Point2D.Double(ai.getTail().getLocation().getX()+dx, ai.getTail().getLocation().getY()+dy)))
+										continue;
+							Layout.setTempRigid(oai, true);
+						}
+					}
+					ni.startChange();
+					ni.modifyInstance(dx - (ni.getCenterX() - nPt.getX()), dy - (ni.getCenterY() - nPt.getY()), 0, 0, 0);
+					ni.endChange();
+				}
+				continue;
+			}
+
 //			// only one end is slidable: move other node and the arc
-//			for(k=0; k<2; k++)
+//			for(int k=0; k<2; k++)
 //			{
 //				if (e[k] != 0) continue;
 //				ni = ai->end[k].nodeinst;
@@ -361,8 +420,14 @@ public class CircuitChanges
 //				}
 //			}
 		}
+		Undo.endChanges();
 
-		// clear the object on the arcs
+		// remove coordinate objects on nodes and arcs
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			ni.setTempObj(null);
+		}
 		for(Iterator it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
@@ -398,26 +463,30 @@ public class CircuitChanges
 		for(Iterator it=list.iterator(); it.hasNext(); )
 		{
 			Geometric geom = (Geometric)it.next();
-			if (geom instanceof ArcInst) continue;
-			NodeInst ni = (NodeInst)geom;
-			if (ni.getFlagValue(deleteFlag) != 0)
-				ni.setFlagValue(deleteFlag, 2);
+			if (geom instanceof NodeInst)
+			{
+				NodeInst ni = (NodeInst)geom;
+				if (ni.getFlagValue(deleteFlag) != 0)
+					ni.setFlagValue(deleteFlag, 2);
+			}
 		}
 
 		// also mark all nodes on the other end of arcs connected to erased nodes
 		for(Iterator it=list.iterator(); it.hasNext(); )
 		{
 			Geometric geom = (Geometric)it.next();
-			if (geom instanceof ArcInst) continue;
-			NodeInst ni = (NodeInst)geom;
-			for(Iterator sit = ni.getConnections(); sit.hasNext(); )
+			if (geom instanceof NodeInst)
 			{
-				Connection con = (Connection)sit.next();
-				ArcInst ai = con.getArc();
-				Connection otherEnd = ai.getHead();
-				if (ai.getHead() == con) otherEnd = ai.getTail();
-				if (otherEnd.getPortInst().getNodeInst().getFlagValue(deleteFlag) == 0)
-					otherEnd.getPortInst().getNodeInst().setFlagValue(deleteFlag, 1);
+				NodeInst ni = (NodeInst)geom;
+				for(Iterator sit = ni.getConnections(); sit.hasNext(); )
+				{
+					Connection con = (Connection)sit.next();
+					ArcInst ai = con.getArc();
+					Connection otherEnd = ai.getHead();
+					if (ai.getHead() == con) otherEnd = ai.getTail();
+					if (otherEnd.getPortInst().getNodeInst().getFlagValue(deleteFlag) == 0)
+						otherEnd.getPortInst().getNodeInst().setFlagValue(deleteFlag, 1);
+				}
 			}
 		}
 
@@ -425,34 +494,38 @@ public class CircuitChanges
 		for(Iterator it=list.iterator(); it.hasNext(); )
 		{
 			Geometric geom = (Geometric)it.next();
-			if (geom instanceof NodeInst) continue;
-			ArcInst ai = (ArcInst)geom;
+			if (geom instanceof ArcInst)
+			{
+				ArcInst ai = (ArcInst)geom;
 
-			// see if nodes need to be undrawn to account for "Steiner Point" changes
-			NodeInst niH = ai.getHead().getPortInst().getNodeInst();
-			NodeInst niT = ai.getTail().getPortInst().getNodeInst();
-			if (niH.getFlagValue(deleteFlag) == 1 && niH.getProto().isWipeOn1or2())
-				niH.startChange();
-			if (niT.getFlagValue(deleteFlag) == 1 && niT.getProto().isWipeOn1or2())
-				niT.startChange();
+				// see if nodes need to be undrawn to account for "Steiner Point" changes
+				NodeInst niH = ai.getHead().getPortInst().getNodeInst();
+				NodeInst niT = ai.getTail().getPortInst().getNodeInst();
+				if (niH.getFlagValue(deleteFlag) == 1 && niH.getProto().isWipeOn1or2())
+					niH.startChange();
+				if (niT.getFlagValue(deleteFlag) == 1 && niT.getProto().isWipeOn1or2())
+					niT.startChange();
 
-			ai.startChange();
-			ai.kill();
+				ai.startChange();
+				ai.kill();
 
-			// see if nodes need to be redrawn to account for "Steiner Point" changes
-			if (niH.getFlagValue(deleteFlag) == 1 && niH.getProto().isWipeOn1or2())
-				niH.endChange();
-			if (niT.getFlagValue(deleteFlag) == 1 && niT.getProto().isWipeOn1or2())
-				niT.endChange();
+				// see if nodes need to be redrawn to account for "Steiner Point" changes
+				if (niH.getFlagValue(deleteFlag) == 1 && niH.getProto().isWipeOn1or2())
+					niH.endChange();
+				if (niT.getFlagValue(deleteFlag) == 1 && niT.getProto().isWipeOn1or2())
+					niT.endChange();
+			}
 		}
 
 		// next kill all of the nodes
 		for(Iterator it=list.iterator(); it.hasNext(); )
 		{
 			Geometric geom = (Geometric)it.next();
-			if (geom instanceof ArcInst) continue;
-			NodeInst ni = (NodeInst)geom;
-			eraseNodeInst(ni);
+			if (geom instanceof NodeInst)
+			{
+				NodeInst ni = (NodeInst)geom;
+				eraseNodeInst(ni);
+			}
 		}
 
 		// kill all pin nodes that touched an arc and no longer do
@@ -461,10 +534,12 @@ public class CircuitChanges
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getFlagValue(deleteFlag) == 0) continue;
-			if (ni.getProto() instanceof Cell) continue;
-			if (ni.getProto().getFunction() != NodeProto.Function.PIN) continue;
-			if (ni.getNumConnections() != 0 || ni.getNumExports() != 0) continue;
-			nodesToDelete.add(ni);
+			if (ni.getProto() instanceof PrimitiveNode)
+			{
+				if (ni.getProto().getFunction() != NodeProto.Function.PIN) continue;
+				if (ni.getNumConnections() != 0 || ni.getNumExports() != 0) continue;
+				nodesToDelete.add(ni);
+			}
 		}
 		for(Iterator it = nodesToDelete.iterator(); it.hasNext(); )
 		{
@@ -477,10 +552,12 @@ public class CircuitChanges
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getFlagValue(deleteFlag) == 0) continue;
-			if (ni.getProto() instanceof Cell) continue;
-			if (ni.getProto().getFunction() != NodeProto.Function.PIN) continue;
-			if (ni.getNumExports() != 0) continue;
-//			erasePassThru(ni, FALSE, &ai);
+			if (ni.getProto() instanceof PrimitiveNode)
+			{
+				if (ni.getProto().getFunction() != NodeProto.Function.PIN) continue;
+				if (ni.getNumExports() != 0) continue;
+//				erasePassThru(ni, FALSE, &ai);
+			}
 		}
 
 		deleteFlag.freeFlagSet();

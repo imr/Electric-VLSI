@@ -527,7 +527,7 @@ public class EditWindow extends JPanel
 			{
 				Export e = (Export) it.next();
 				Poly poly = e.getNamePoly();
-				Rectangle2D.Double rect = (Rectangle2D.Double)poly.getBounds2DDouble().clone();
+				Rectangle2D rect = (Rectangle2D)poly.getBounds2D().clone();
 				poly.transform(localTrans);
 				TextDescriptor descript = poly.getTextDescriptor();
 				drawText(g2, poly.getCenterX(), poly.getCenterX(), poly.getCenterY(), poly.getCenterY(), Poly.Type.TEXTCENT, descript, e.getProtoName(),
@@ -620,7 +620,7 @@ public class EditWindow extends JPanel
 				double hY = lY;
 				if (style == Poly.Type.TEXTBOX)
 				{
-					Rectangle2D.Double bounds = poly.getBounds2DDouble();
+					Rectangle2D bounds = poly.getBounds2D();
 					lX = bounds.getMinX();   hX = bounds.getMaxX();
 					lY = bounds.getMinY();   hY = bounds.getMaxY();
 				}
@@ -635,7 +635,7 @@ public class EditWindow extends JPanel
 				AffineTransform saveAT = g2.getTransform();
 				double scale = 100;
 				g2.scale(1/scale, 1/scale);
-				Point2D.Double [] points = poly.getPoints();
+				Point2D [] points = poly.getPoints();
 				int ctrX = (int)(points[0].getX() * scale);
 				int ctrY = (int)(points[0].getY() * scale);
 				int startX = (int)(points[1].getX() * scale);
@@ -930,9 +930,9 @@ public class EditWindow extends JPanel
 		int xspacing = 10, yspacing = 10;
 
 		/* object space extent */
-		Point2D.Double low = screenToDatabase(0, 0);
+		Point2D low = screenToDatabase(0, 0);
 		double x4 = low.getX();  double y4 = low.getY();
-		Point2D.Double high = screenToDatabase(sz.width, sz.height);
+		Point2D high = screenToDatabase(sz.width, sz.height);
 		double x5 = high.getX();  double y5 = high.getY();
 
 		/* initial grid location */
@@ -997,7 +997,7 @@ public class EditWindow extends JPanel
 	private int oldx, oldy;
 	private ToolBar.CursorMode mode;
 
-	public Point2D.Double screenToDatabase(int screenX, int screenY)
+	public Point2D screenToDatabase(int screenX, int screenY)
 	{
 		double dbX = (screenX - sz.width/2) / scale + offx;
 		double dbY = (sz.height/2 - screenY) / scale + offy;
@@ -1011,7 +1011,7 @@ public class EditWindow extends JPanel
 		return new Point(screenX, screenY);
 	}
 
-	public Point2D.Double deltaScreenToDatabase(int screenDX, int screenDY)
+	public Point2D deltaScreenToDatabase(int screenDX, int screenDY)
 	{
 		double dbDX = screenDX / scale;
 		double dbDY = (-screenDY) / scale;
@@ -1068,7 +1068,7 @@ public class EditWindow extends JPanel
 				}
 
 				// standard selection: drag out a selection box
-				Point2D.Double pt = screenToDatabase(oldx, oldy);
+				Point2D pt = screenToDatabase(oldx, oldy);
 				Highlight.findObject(pt, this, false, another, true, special);
 				if (Highlight.getNumHighlights() == 0)
 				{
@@ -1091,8 +1091,8 @@ public class EditWindow extends JPanel
 		// handle dragging out a selection rectangle
 		if (doingAreaDrag)
 		{
-			Point2D.Double start = screenToDatabase((int)startDrag.getX(), (int)startDrag.getY());
-			Point2D.Double end = screenToDatabase((int)endDrag.getX(), (int)endDrag.getY());
+			Point2D start = screenToDatabase((int)startDrag.getX(), (int)startDrag.getY());
+			Point2D end = screenToDatabase((int)endDrag.getX(), (int)endDrag.getY());
 			double minSelX = Math.min(start.getX(), end.getX());
 			double maxSelX = Math.max(start.getX(), end.getX());
 			double minSelY = Math.min(start.getY(), end.getY());
@@ -1115,7 +1115,7 @@ public class EditWindow extends JPanel
 			doingMotionDrag = false;
 			int newX = evt.getX();
 			int newY = evt.getY();
-			Point2D.Double delta = deltaScreenToDatabase(newX - oldx, newY - oldy);
+			Point2D delta = deltaScreenToDatabase(newX - oldx, newY - oldy);
 			gridAlign(delta, 1);
 			Highlight.setHighlightOffset(0, 0);
 			CircuitChanges.manyMove(delta.getX(), delta.getY());
@@ -1128,7 +1128,7 @@ public class EditWindow extends JPanel
 	 * @param pt the point to be snapped.
 	 * @param alignment the size of the snap grid (1 to round to whole numbers)
 	 */
-	public static void gridAlign(Point2D.Double pt, double alignment)
+	public static void gridAlign(Point2D pt, double alignment)
 	{
 		long x = Math.round(pt.getX() / alignment);
 		long y = Math.round(pt.getY() / alignment);

@@ -58,7 +58,7 @@ public class Geometric extends ElectricObject
 		/** index stack of search */			private int [] position;
 		/** lower-left corner of search area */	private double lX, lY;
 		/** size of search area */				private double sX, sY;
-		/** desired search bounds */			private Rectangle2D.Double searchBounds;
+		/** desired search bounds */			private Rectangle2D searchBounds;
 
 		/**
 		 * The constructor starts a search in a specified bounds of a Cell.
@@ -66,7 +66,7 @@ public class Geometric extends ElectricObject
 		 * All objects that touch this bound will be returned.
 		 * @param cell the Cell in which to search.
 		 */
-		public Search(Rectangle2D.Double bounds, Cell cell)
+		public Search(Rectangle2D bounds, Cell cell)
 		{
 			this.depth = 0;
 			this.rtn = new RTNode[MAXDEPTH];
@@ -92,7 +92,7 @@ public class Geometric extends ElectricObject
 				int i = position[depth]++;
 				if (i < rtnode.getTotal())
 				{
-					Rectangle2D.Double nodeBounds = rtnode.getBBox(i);
+					Rectangle2D nodeBounds = rtnode.getBBox(i);
 					if (nodeBounds.getMaxX() < searchBounds.getMinX()) continue;
 					if (nodeBounds.getMinX() > searchBounds.getMaxX()) continue;
 					if (nodeBounds.getMaxY() < searchBounds.getMinY()) continue;
@@ -135,7 +135,7 @@ public class Geometric extends ElectricObject
 	 */
 	public static class RTNode
 	{
-		/** bounds of this node and its children */	private Rectangle2D.Double bounds;
+		/** bounds of this node and its children */	private Rectangle2D bounds;
 		/** number of children */					private int total;
 		/** children */								private Object [] pointers;
 		/** nonzero if children are terminal */		private boolean flag;
@@ -168,11 +168,11 @@ public class Geometric extends ElectricObject
 		private void setFlag(boolean flag) { this.flag = flag; }
 
 		/** Routine to get the bounds of this RTNode. */
-		private Rectangle2D.Double getBounds() { return bounds; }
+		private Rectangle2D getBounds() { return bounds; }
 		/** Routine to set the bounds of this RTNode. */
-		private void setBounds(Rectangle2D.Double bounds) { this.bounds.setRect(bounds); }
+		private void setBounds(Rectangle2D bounds) { this.bounds.setRect(bounds); }
 		/** Routine to extend the bounds of this RTNode by "bounds". */
-		private void unionBounds(Rectangle2D.Double bounds) { Rectangle2D.Double.union(this.bounds, bounds, this.bounds); }
+		private void unionBounds(Rectangle2D bounds) { Rectangle2D.union(this.bounds, bounds, this.bounds); }
 
 		/**
 		 * Routine to create the top-level R-Tree structure for a new Cell.
@@ -213,7 +213,7 @@ public class Geometric extends ElectricObject
 					for(int i=0; i<indent+3; i++) line += " ";
 					Geometric child = (Geometric)getChild(j);
 					child.setTempInt(branchCount);
-					Rectangle2D.Double childBounds = child.getBounds();
+					Rectangle2D childBounds = child.getBounds();
 					line += "Child X(" + childBounds.getMinX() + "-" + childBounds.getMaxX() + ") Y(" +
 						childBounds.getMinY() + "-" + childBounds.getMaxY() + ") is " + child.describe();
 					System.out.println(line);
@@ -226,7 +226,7 @@ public class Geometric extends ElectricObject
 
 		public void checkRTree(int level, Cell cell)
 		{
-			Rectangle2D.Double localBounds = new Rectangle2D.Double();
+			Rectangle2D localBounds = new Rectangle2D.Double();
 			if (total == 0)
 			{
 				localBounds.setRect(0, 0, 0, 0);
@@ -234,7 +234,7 @@ public class Geometric extends ElectricObject
 			{
 				localBounds.setRect(getBBox(0));
 				for(int i=1; i<total; i++)
-					Rectangle2D.Double.union(localBounds, getBBox(i), localBounds);
+					Rectangle2D.union(localBounds, getBBox(i), localBounds);
 			}
 			if (!localBounds.equals(bounds))
 			{
@@ -261,7 +261,7 @@ public class Geometric extends ElectricObject
 		/**
 		 * Routine to get the bounding box of child "child" of this R-tree node.
 		 */
-		private Rectangle2D.Double getBBox(int child)
+		private Rectangle2D getBBox(int child)
 		{
 			if (flag)
 			{
@@ -307,7 +307,7 @@ public class Geometric extends ElectricObject
 					temp.setChild(i, getChild(i));
 
 				// find the element farthest from new object
-				Rectangle2D.Double bounds;
+				Rectangle2D bounds;
 				if (rtnInsert instanceof Geometric)
 				{
 					Geometric geom = (Geometric)rtnInsert;
@@ -317,12 +317,12 @@ public class Geometric extends ElectricObject
 					RTNode subrtn = (RTNode)rtnInsert;
 					bounds = subrtn.getBounds();
 				}
-				Point2D.Double thisCenter = new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
+				Point2D thisCenter = new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
 				double newDist = 0;
 				int newN = 0;
 				for(int i=0; i<temp.getTotal(); i++)
 				{
-					Rectangle2D.Double thisv = temp.getBBox(i);
+					Rectangle2D thisv = temp.getBBox(i);
 					double dist = thisCenter.distance(thisv.getCenterX(), thisv.getCenterY());
 					if (dist >= newDist)
 					{
@@ -339,7 +339,7 @@ public class Geometric extends ElectricObject
 				for(int i=0; i<temp.getTotal(); i++)
 				{
 					if (i == newN) continue;
-					Rectangle2D.Double thisv = temp.getBBox(i);
+					Rectangle2D thisv = temp.getBBox(i);
 					double dist = thisCenter.distance(thisv.getCenterX(), thisv.getCenterY());
 					if (dist >= oldDist)
 					{
@@ -359,7 +359,7 @@ public class Geometric extends ElectricObject
 				newrtn.setChild(0, obj);
 				newrtn.setTotal(1);
 				if (!newrtn.getFlag()) ((RTNode)obj).setParent(newrtn);
-				Rectangle2D.Double newBounds = newrtn.getBBox(0);
+				Rectangle2D newBounds = newrtn.getBBox(0);
 				newrtn.setBounds(newBounds);
 				double newArea = newBounds.getWidth() * newBounds.getHeight();
 
@@ -370,7 +370,7 @@ public class Geometric extends ElectricObject
 				for(int i=1; i<getTotal(); i++) setChild(i, null);
 				setTotal(1);
 				if (!getFlag()) ((RTNode)obj).setParent(this);
-				Rectangle2D.Double oldBounds = getBBox(0);
+				Rectangle2D oldBounds = getBBox(0);
 				setBounds(oldBounds);
 				double oldArea = oldBounds.getWidth() * oldBounds.getHeight();
 
@@ -386,10 +386,10 @@ public class Geometric extends ElectricObject
 						if (obj == null) continue;
 						bounds = temp.getBBox(i);
 
-						Rectangle2D.Double newUnion = new Rectangle2D.Double();
-						Rectangle2D.Double oldUnion = new Rectangle2D.Double();
-						Rectangle2D.Double.union(newBounds, bounds, newUnion);
-						Rectangle2D.Double.union(oldBounds, bounds, oldUnion);
+						Rectangle2D newUnion = new Rectangle2D.Double();
+						Rectangle2D oldUnion = new Rectangle2D.Double();
+						Rectangle2D.union(newBounds, bounds, newUnion);
+						Rectangle2D.union(oldBounds, bounds, oldUnion);
 						double newAreaPlus = newUnion.getWidth() * newUnion.getHeight();
 						double oldAreaPlus = oldUnion.getWidth() * oldUnion.getHeight();
 
@@ -422,8 +422,8 @@ public class Geometric extends ElectricObject
 							if (obj == null) continue;
 							bounds = temp.getBBox(i);
 
-							Rectangle2D.Double oldUnion = new Rectangle2D.Double();
-							Rectangle2D.Double.union(oldBounds, bounds, oldUnion);
+							Rectangle2D oldUnion = new Rectangle2D.Double();
+							Rectangle2D.union(oldBounds, bounds, oldUnion);
 							double oldAreaPlus = oldUnion.getWidth() * oldUnion.getHeight();
 
 							// remember the child that expands the old node the least
@@ -501,7 +501,7 @@ public class Geometric extends ElectricObject
 			setTotal(curPos+1);
 
 			// compute the new bounds
-			Rectangle2D.Double bounds = getBBox(curPos);
+			Rectangle2D bounds = getBBox(curPos);
 			if (getTotal() == 1 && getParent() == null)
 			{
 				// special case when adding the first node in a cell
@@ -628,11 +628,11 @@ public class Geometric extends ElectricObject
 			}
 
 			// recurse on all sub-nodes that would contain this geometry module
-			Rectangle2D.Double geomBounds = geom.getBounds();
+			Rectangle2D geomBounds = geom.getBounds();
 			for(int i=0; i<getTotal(); i++)
 			{
 				// get bounds and area of sub-node
-				Rectangle2D.Double bounds = getBBox(i);
+				Rectangle2D bounds = getBBox(i);
 
 				if (bounds.getMaxX() < geomBounds.getMinX()) continue;
 				if (bounds.getMinX() > geomBounds.getMaxX()) continue;
@@ -699,12 +699,12 @@ public class Geometric extends ElectricObject
 			{
 				// get bounds and area of sub-node
 				RTNode subrtn = (RTNode)rtn.getChild(i);
-				Rectangle2D.Double bounds = subrtn.getBounds();
+				Rectangle2D bounds = subrtn.getBounds();
 				double area = bounds.getWidth() * bounds.getHeight();
 
 				// get area of sub-node with new element
-				Rectangle2D.Double newUnion = new Rectangle2D.Double();
-				Rectangle2D.Double.union(visBounds, bounds, newUnion);
+				Rectangle2D newUnion = new Rectangle2D.Double();
+				Rectangle2D.union(visBounds, bounds, newUnion);
 				double newArea = newUnion.getWidth() * newUnion.getHeight();
 
 				// accumulate the least expansion
@@ -765,7 +765,7 @@ public class Geometric extends ElectricObject
 	// --                                       --
 
 	/** Cell containing this Geometric object */			protected Cell parent;
-	/** bounds after transformation */						protected Rectangle2D.Double visBounds;
+	/** bounds after transformation */						protected Rectangle2D visBounds;
 	/** center coordinate of this geometric */				protected double cX, cY;
 	/** size of this geometric */							protected double sX, sY;
 	/** angle of this geometric (in tenth-degrees). */		protected int angle;
@@ -825,7 +825,7 @@ public class Geometric extends ElectricObject
 	 * Routine to return the center point of this Geometric object.
 	 * @return the center point of this Geometric object.
 	 */
-	Point2D.Double getCenter()
+	Point2D getCenter()
 	{
 		return new Point2D.Double(cX, cY);
 	}
@@ -866,7 +866,7 @@ public class Geometric extends ElectricObject
 	 * Routine to return the bounds of this Geometric.
 	 * @return the bounds of this Geometric.
 	 */
-	public Rectangle2D.Double getBounds() { return visBounds; }
+	public Rectangle2D getBounds() { return visBounds; }
 
 	/**
 	 * Low-level routine to get the user bits.

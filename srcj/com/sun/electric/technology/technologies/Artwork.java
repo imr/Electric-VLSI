@@ -426,7 +426,7 @@ public class Artwork extends Technology
 			if (ni.getXSize() != ni.getYSize())
 			{
 				// handle ellipses
-				Point2D.Double [] pointList = fillEllipse(ni.getCenterX(), ni.getCenterY(), ni.getXSize(), ni.getYSize(),
+				Point2D [] pointList = fillEllipse(ni.getCenterX(), ni.getCenterY(), ni.getXSize(), ni.getYSize(),
 					angles[0], angles[1]);
 				Poly [] polys = new Poly[1];
 				polys[0] = new Poly(pointList);
@@ -443,7 +443,7 @@ public class Artwork extends Technology
 			{
 				// fill an arc of a circle here
 				Poly [] polys = new Poly[1];
-				Point2D.Double [] pointList = new Point2D.Double[3];
+				Point2D [] pointList = new Point2D.Double[3];
 				double cX = ni.getCenterX();
 				double cY = ni.getCenterY();
 				double dist = ni.getXSize() / 2;
@@ -465,7 +465,7 @@ public class Artwork extends Technology
 			{
 				double cX = ni.getCenterX();
 				double cY = ni.getCenterY();
-				Point2D.Double [] pointList = fillSpline(cX, cY, tracePoints);
+				Point2D [] pointList = fillSpline(cX, cY, tracePoints);
 				Poly [] polys = new Poly[1];
 				polys[0] = new Poly(pointList);
 				polys[0].setStyle(Poly.Type.OPENED);
@@ -511,7 +511,7 @@ public class Artwork extends Technology
 	}
 
 	/**
-	 * Routine to return an array of Point2D.Double that describe an ellipse.
+	 * Routine to return an array of Point2D that describe an ellipse.
 	 * @param cX the center X coordinate of the ellipse.
 	 * @param cY the center Y coordinate of the ellipse.
 	 * @param sX the X size of the ellipse.
@@ -521,7 +521,7 @@ public class Artwork extends Technology
 	 * If both startoffset and endangle are zero, draw the full ellipse.
 	 * @return an array of points that describes the ellipse.
 	 */
-	public static Point2D.Double [] fillEllipse(double cX, double cY, double sX, double sY, double startoffset, double endangle)
+	public static Point2D [] fillEllipse(double cX, double cY, double sX, double sY, double startoffset, double endangle)
 	{
 		// ensure that the polygon can hold the vectors
 		boolean closed = true;
@@ -537,7 +537,7 @@ public class Artwork extends Technology
 		int pts = (int)(endangle * ELLIPSEPOINTS / (Math.PI * 2.0));
 		if (closed) pts++;
 
-		Point2D.Double [] points = new Point2D.Double[pts];
+		Point2D [] points = new Point2D.Double[pts];
 
 		// compute the length of the semi-major and semi-minor axes
 		double a = sX / 2;
@@ -602,12 +602,12 @@ public class Artwork extends Technology
 	 * @param tracePoints the array of control point values, alternating X/Y/X/Y.
 	 * @return an array of points that describes the spline.
 	 */
-	private Point2D.Double [] fillSpline(double cX, double cY, Float [] tracePoints)
+	private Point2D [] fillSpline(double cX, double cY, Float [] tracePoints)
 	{
 		int steps = SPLINEGRAIN;
 		int count = tracePoints.length / 2;
 		int outPoints = (count - 1) * steps + 1;
-		Point2D.Double [] points = new Point2D.Double[outPoints];
+		Point2D [] points = new Point2D.Double[outPoints];
 		int out = 0;
 
 		double splineStep = 1.0 / (double)steps;

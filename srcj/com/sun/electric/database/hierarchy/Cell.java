@@ -194,7 +194,7 @@ public class Cell extends NodeProto
 	/** A list of ArcInsts in this Cell. */							private List arcs;
 	/** The current timestamp value. */								private static int currentTime = 0;
 	/** The timestamp of last network renumbering of this Cell */	private int networksTime;
-	/** The bounds of the Cell. */									private Rectangle2D.Double elecBounds;
+	/** The bounds of the Cell. */									private Rectangle2D elecBounds;
 	/** Whether the bounds need to be recomputed. */				private boolean boundsDirty;
 	/** Whether the bounds have anything in them. */				private boolean boundsEmpty;
 	/** The geometric data structure. */							private Geometric.RTNode rTree;
@@ -703,9 +703,9 @@ public class Cell extends NodeProto
 
 	/**
 	 * Routine to return the bounds of this Cell.
-	 * @return a Rectangle2D.Double with the bounds of this cell's contents
+	 * @return a Rectangle2D with the bounds of this cell's contents
 	 */
-	public Rectangle2D.Double getBounds()
+	public Rectangle2D getBounds()
 	{
 		if (boundsDirty)
 		{
@@ -749,10 +749,8 @@ public class Cell extends NodeProto
 				if (lowy < cellLowY) cellLowY = lowy;
 				if (highy > cellHighY) cellHighY = highy;
 			}
-			elecBounds.x = EMath.smooth(cellLowX);
-			elecBounds.width = EMath.smooth(cellHighX - cellLowX);
-			elecBounds.y = EMath.smooth(cellLowY);
-			elecBounds.height = EMath.smooth(cellHighY - cellLowY);
+			elecBounds.setRect(EMath.smooth(cellLowX), EMath.smooth(cellLowY),
+				EMath.smooth(cellHighX - cellLowX), EMath.smooth(cellHighY - cellLowY));
 			boundsDirty = false;
 		}
 
@@ -763,13 +761,13 @@ public class Cell extends NodeProto
 	 * Routine to get the width of this Cell.
 	 * @return the width of this Cell.
 	 */
-	public double getDefWidth() { return getBounds().width; }
+	public double getDefWidth() { return getBounds().getWidth(); }
 
 	/**
 	 * Routine to the height of this Cell.
 	 * @return the height of this Cell.
 	 */
-	public double getDefHeight() { return getBounds().height; }
+	public double getDefHeight() { return getBounds().getHeight(); }
 
 	/**
 	 * Routine to size offset of this Cell.
@@ -811,7 +809,7 @@ public class Cell extends NodeProto
 	 * @return the bounding area of the essential bounds.
 	 * Returns null if an essential bounds cannot be determined.
 	 */
-	Rectangle2D.Double findEssentialBounds()
+	Rectangle2D findEssentialBounds()
 	{
 		if (essenBounds.size() < 2)
 			return null;

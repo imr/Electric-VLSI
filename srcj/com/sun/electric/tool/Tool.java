@@ -276,7 +276,7 @@ public class Tool extends ElectricObject implements Change
 
 	public void modifyNodeInst(NodeInst ni, double oCX, double oCY, double oSX, double oSY, int oRot) {}
 	public void modifyNodeInsts(NodeInst [] nis, double [] oCX, double [] oCY, double [] oSX, double [] oSY, int [] oRot) {}
-	public void modifyArcInst(ArcInst ai, double oHX, double oHY, double oTX, double oTY, int oWid, double oLen) {}
+	public void modifyArcInst(ArcInst ai, double oHX, double oHY, double oTX, double oTY, double oWid) {}
 	public void modifyExport(Export pp) {}
 	public void modifyCell(Cell cell) {}
 	public void modifyTextDescript(ElectricObject obj, int key, Object oldValue) {}

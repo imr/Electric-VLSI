@@ -41,7 +41,7 @@ public class Connection extends ElectricObject
 
 	/** the arc on one side of this connection */	private ArcInst arc;
 	/** the PortInst on the connected node */		private PortInst portInst;
-	/** the location of this connection */			private Point2D.Double location;
+	/** the location of this connection */			private Point2D location;
 
 	/**
 	 * The constructor creates a new Connection from the given values.
@@ -49,11 +49,11 @@ public class Connection extends ElectricObject
 	 * @param portInst the PortInst on a NodeInst that makes a Connection.
 	 * @param pt the coordinate on the NodeInst.
 	 */
-	protected Connection(ArcInst arc, PortInst portInst, Point2D.Double pt)
+	protected Connection(ArcInst arc, PortInst portInst, Point2D pt)
 	{
 		this.arc = arc;
 		this.portInst = portInst;
-		this.location = (Point2D.Double)pt.clone();
+		this.location = (Point2D)pt.clone();
 	}
 
 	// --------------------------- public methods --------------------------
@@ -74,13 +74,13 @@ public class Connection extends ElectricObject
 	 * Routine to return the location on this Connection.
 	 * @return the location on this Connection.
 	 */
-	public Point2D.Double getLocation() { return location; }
+	public Point2D getLocation() { return location; }
 
 	/**
 	 * Routine to set the location on this Connection.
 	 * @param pt the location on this Connection.
 	 */
-	public void setLocation(Point2D.Double pt) { location.setLocation(pt.getX(), pt.getY()); }
+	public void setLocation(Point2D pt) { location.setLocation(pt.getX(), pt.getY()); }
 
 	/**
 	 * Routine to determine whether this Connection is on the head end of the ArcInst.

@@ -37,7 +37,7 @@ public class EMath
 	 * @param end2 the second point.
 	 * @return the angle between the points (in tenth-degrees).
 	 */
-	public static int figureAngle(Point2D.Double end1, Point2D.Double end2)
+	public static int figureAngle(Point2D end1, Point2D end2)
 	{
 		double dx = end2.getX()-end1.getX();
 		double dy = end2.getY()-end1.getY();
@@ -59,7 +59,7 @@ public class EMath
 	 * @param dy the T component of the second point
 	 * @return the sum of two points.
 	 */
-	public static Point2D.Double addPoints(Point2D.Double p, double dx, double dy)
+	public static Point2D addPoints(Point2D p, double dx, double dy)
 	{
 		return new Point2D.Double(p.getX()+dx, p.getY()+dy);
 	}
@@ -199,7 +199,7 @@ public class EMath
 	 * @param pt the point in question.
 	 * @return true if the point is on the line segment.
 	 */
-	public static boolean isOnLine(Point2D.Double end1, Point2D.Double end2, Point2D.Double pt)
+	public static boolean isOnLine(Point2D end1, Point2D end2, Point2D pt)
 	{
 		// trivial rejection if point not in the bounding box of the line
 		if (pt.getX() < Math.min(end1.getX(), end2.getX())) return false;
@@ -232,10 +232,10 @@ public class EMath
 	 * @return a point on the line segment that is closest to "pt".
 	 * The point is guaranteed to be between the two points that define the segment.
 	 */
-	public static Point2D.Double closestPointToSegment(Point2D.Double p1, Point2D.Double p2, Point2D.Double pt)
+	public static Point2D closestPointToSegment(Point2D p1, Point2D p2, Point2D pt)
 	{
 		// find closest point on line
-		Point2D.Double pi = closestPointToLine(pt, p2, pt);
+		Point2D pi = closestPointToLine(pt, p2, pt);
 
 		// see if that intersection point is actually on the segment
 		if (pi.getX() >= Math.min(p1.getX(), p2.getX()) &&
@@ -262,7 +262,7 @@ public class EMath
 	 * @return a point on the line that is closest to "pt".
 	 * The point is not guaranteed to be between the two points that define the line.
 	 */
-	public static Point2D.Double closestPointToLine(Point2D.Double p1, Point2D.Double p2, Point2D.Double pt)
+	public static Point2D closestPointToLine(Point2D p1, Point2D p2, Point2D pt)
 	{
 		// special case for horizontal line
 		if (p1.getY() == p2.getY())
@@ -293,7 +293,7 @@ public class EMath
 	 * routine to compute the distance between point (x,y) and the line that runs
 	 * from (x1,y1) to (x2,y2).
 	 */
-	public static double distToLine(Point2D.Double l1, Point2D.Double l2, Point2D.Double pt)
+	public static double distToLine(Point2D l1, Point2D l2, Point2D pt)
 	{
 		// get point on line from (x1,y1) to (x2,y2) close to (x,y)
 		double x1 = l1.getX();   double y1 = l1.getY();
@@ -303,7 +303,7 @@ public class EMath
 			return pt.distance(l1);
 		}
 		int ang = figureAngle(l1, l2);
-		Point2D.Double iPt = intersect(l1, ang, pt, ang+900);
+		Point2D iPt = intersect(l1, ang, pt, ang+900);
 		double iX = iPt.getX();
 		double iY = iPt.getY();
 		if (doublesEqual(x1, x2)) iX = x1;
@@ -334,7 +334,7 @@ public class EMath
 	 * @param bounds the bounds being tested.
 	 * @return true if the point is in the bounds.
 	 */
-	public static boolean pointInRect(Point2D.Double pt, Rectangle2D.Double bounds)
+	public static boolean pointInRect(Point2D pt, Rectangle2D bounds)
 	{
 		if (pt.getX() < bounds.getMinX()) return false;
 		if (pt.getX() > bounds.getMaxX()) return false;
@@ -352,7 +352,7 @@ public class EMath
 	 * @return a point that is the intersection of the lines.
 	 * Returns null if there is no intersection point.
 	 */
-	public static Point2D.Double intersect(Point2D.Double p1, int ang1, Point2D.Double p2, int ang2)
+	public static Point2D intersect(Point2D p1, int ang1, Point2D p2, int ang2)
 	{
 		/* cannot handle lines if they are at the same angle */
 		while (ang1 < 0) ang1 += 3600;

@@ -183,56 +183,23 @@ public class Layout extends Constraint
 //		}
 	}
 
-	/*
-	 * set layout constraints on arc instance "ai" according to "changetype".
-	 * the routine returns true if the arc change is not successful (or already
-	 * done)
+	/**
+	 * Routine to set temporary rigidity on an ArcInst.
+	 * @param ai the ArcInst to make temporarily rigid/not-rigid.
+	 * @param tempRigid true to make the ArcInst temporarily rigid;
+	 * false to make it temporarily not-rigid.
 	 */
-	boolean cla_layconsetobject(int addr, int type, int changetype, int changedata)
+	public static void setTempRigid(ArcInst ai, boolean tempRigid)
 	{
-//		if ((type&VTYPE) != VARCINST) return(TRUE);
-//		ai = (ARCINST *)addr;
-//		if (ai == NOARCINST) return(TRUE);
-//		switch (changetype)
-//		{
-//			case CHANGETYPERIGID:				// arc rigid
-//				if ((ai->userbits & FIXED) != 0) return(TRUE);
-//				(void)setval((int)ai, VARCINST, x_("userbits"), ai->userbits|FIXED, VINTEGER);
-//				break;
-//			case CHANGETYPEUNRIGID:				// arc un-rigid
-//				if ((ai->userbits & FIXED) == 0) return(TRUE);
-//				(void)setval((int)ai, VARCINST, x_("userbits"), ai->userbits & ~FIXED, VINTEGER);
-//				break;
-//			case CHANGETYPEFIXEDANGLE:			// arc fixed-angle
-//				if ((ai->userbits & FIXANG) != 0) return(TRUE);
-//				(void)setval((int)ai, VARCINST, x_("userbits"), ai->userbits|FIXANG, VINTEGER);
-//				break;
-//			case CHANGETYPENOTFIXEDANGLE:		// arc not fixed-angle
-//				if ((ai->userbits & FIXANG) == 0) return(TRUE);
-//				(void)setval((int)ai, VARCINST, x_("userbits"), ai->userbits & ~FIXANG, VINTEGER);
-//				break;
-//			case CHANGETYPESLIDABLE:			// arc slidable
-//				if ((ai->userbits & CANTSLIDE) == 0) return(TRUE);
-//				(void)setval((int)ai, VARCINST, x_("userbits"), ai->userbits & ~CANTSLIDE, VINTEGER);
-//				break;
-//			case CHANGETYPENOTSLIDABLE:			// arc nonslidable
-//				if ((ai->userbits & CANTSLIDE) != 0) return(TRUE);
-//				(void)setval((int)ai, VARCINST, x_("userbits"), ai->userbits|CANTSLIDE, VINTEGER);
-//				break;
-//			case CHANGETYPETEMPRIGID:			// arc temporarily rigid
-//				if (ai.getChangeClock() == changeClock + 2) return(TRUE);
-//				ai.getChangeClock() = changeClock + 2;
-//				break;
-//			case CHANGETYPETEMPUNRIGID:			// arc temporarily un-rigid
-//				if (ai.getChangeClock() == changeClock + 3) return(TRUE);
-//				ai.getChangeClock() = changeClock + 3;
-//				break;
-//			case CHANGETYPEREMOVETEMP:			// remove temporarily state
-//				if (ai.getChangeClock() != changeClock + 3 && ai.getChangeClock() != changeClock + 2) return(TRUE);
-//				ai.getChangeClock() = changeClock - 3;
-//				break;
-//		}
-		return false;
+		if (tempRigid)
+		{
+			if (ai.getChangeClock() == changeClock + 2) return;
+			ai.setChangeClock(changeClock + 2);
+		} else
+		{
+			if (ai.getChangeClock() == changeClock + 3) return;
+			ai.setChangeClock(changeClock + 3);
+		}
 	}
 
 	public void modifyNodeInst(NodeInst ni, double dCX, double dCY, double dSX, double dSY, int dRot)
@@ -395,12 +362,12 @@ public class Layout extends Constraint
 
 			// determine the new ends of the arcinst
 			adjustMatrix(ni, ai.getHead().getPortInst().getPortProto(), trans);
-			Point2D.Double newHead = new Point2D.Double();
-			Point2D.Double src = new Point2D.Double(ai.getHead().getLocation().getX()-ox, ai.getHead().getLocation().getY()-oy);
+			Point2D newHead = new Point2D.Double();
+			Point2D src = new Point2D.Double(ai.getHead().getLocation().getX()-ox, ai.getHead().getLocation().getY()-oy);
 			trans.transform(src, newHead);
 
 			adjustMatrix(ni, ai.getTail().getPortInst().getPortProto(), trans);
-			Point2D.Double newTail = new Point2D.Double();
+			Point2D newTail = new Point2D.Double();
 			src.setLocation(ai.getTail().getLocation().getX()-ox, ai.getTail().getLocation().getY()-oy);
 			trans.transform(src, newTail);
 
@@ -437,6 +404,7 @@ public class Layout extends Constraint
 			// include in the list to be considered here
 			rigidArcs.add(ai);
 		}
+		if (rigidArcs.size() == 0) return false;
 
 		// if simple rotation on transposed nodeinst, reverse rotation
 		int nextAngle = dAngle;
@@ -473,7 +441,7 @@ public class Layout extends Constraint
 
 			Undo.Change change = ni.getChange();
 			double ox = 0, oy = 0;
-			if (change.getType() != Undo.Type.NODEINSTNEW)
+			if (change != null && change.getType() != Undo.Type.NODEINSTNEW)
 			{
 				ox = change.getA1();
 				oy = change.getA2();
@@ -481,12 +449,12 @@ public class Layout extends Constraint
 			}
 
 			// create the two points that will be the new ends of this arc
-			Point2D.Double [] newPts = new Point2D.Double[2];
+			Point2D [] newPts = new Point2D.Double[2];
 			newPts[0] = new Point2D.Double();
 			newPts[1] = new Point2D.Double();
 
 			// figure out the new location of this arcinst connection
-			Point2D.Double src = new Point2D.Double(thisEnd.getLocation().getX()-ox, thisEnd.getLocation().getY()-oy);
+			Point2D src = new Point2D.Double(thisEnd.getLocation().getX()-ox, thisEnd.getLocation().getY()-oy);
 			trans.transform(src, newPts[thisEndIndex]);
 
 			NodeInst ono = thatEnd.getPortInst().getNodeInst();
@@ -515,20 +483,19 @@ public class Layout extends Constraint
 			if (!locked)
 			{
 				// compute port motion within the other nodeinst (is this right? !!!)
-				Point2D.Double onoPt = oldPortPosition(ono, opt);
-//				oldPortPosition(ono, opt, &onox, &onoy);
+				Point2D onoPt = oldPortPosition(ono, opt);
 				Poly oPoly = thatEnd.getPortInst().getPoly();
 				double dx = oPoly.getCenterX();   double dy = oPoly.getCenterY();
 				double othX = dx - onoPt.getX();
 				double othY = dy - onoPt.getY();
 
 				// figure out the new location of the other nodeinst
-				src.setLocation(ono.getCenterX(), ono.getCenterY());
-				Point2D.Double ptD = new Point2D.Double();
+				src.setLocation(ono.getCenterX()-ox, ono.getCenterY()-oy);
+				Point2D ptD = new Point2D.Double();
 				trans.transform(src, ptD);
 				dx = ptD.getX();   dy = ptD.getY();
-				dx = dx - onoPt.getX() - othX;
-				dy = dy - onoPt.getY() - othY;
+				dx = dx - ono.getCenterX() - othX;
+				dy = dy - ono.getCenterY() - othY;
 
 				// move the other nodeinst
 				nextAngle = dAngle;
@@ -600,6 +567,7 @@ public class Layout extends Constraint
 			// include in the list to be considered here
 			flexArcs.add(ai);
 		}
+		if (flexArcs.size() == 0) return false;
 
 		// if simple rotation on transposed nodeinst, reverse rotation
 		int nextAngle = dAngle;
@@ -647,33 +615,43 @@ public class Layout extends Constraint
 			}
 
 			// create the two points that will be the new ends of this arc
-			Point2D.Double [] newPts = new Point2D.Double[2];
+			Point2D [] newPts = new Point2D.Double[2];
 			newPts[0] = new Point2D.Double();
 			newPts[1] = new Point2D.Double();
 
 			// figure out the new location of this arcinst connection
-			Point2D.Double src = new Point2D.Double(thisEnd.getLocation().getX()-ox, thisEnd.getLocation().getY()-oy);
+			Point2D src = new Point2D.Double(thisEnd.getLocation().getX()-ox, thisEnd.getLocation().getY()-oy);
 			trans.transform(src, newPts[thisEndIndex]);
 
 			// make sure the arc end is still in the port
 			Poly poly = thisEnd.getPortInst().getPoly();
 			if (poly.isInside(newPts[thisEndIndex]))
 			{
-				Rectangle2D.Double bbox = poly.getBox();
+				Rectangle2D bbox = poly.getBox();
 				if (newPts[thisEndIndex].getY() >= bbox.getMinY() && newPts[thisEndIndex].getY() <= bbox.getMaxY())
 				{
 					// extend arc horizontally to fit in port
-					if (newPts[thisEndIndex].getX() < bbox.getMinX()) newPts[thisEndIndex].x = bbox.getMinX(); else
-						if (newPts[thisEndIndex].getX() > bbox.getMaxX()) newPts[thisEndIndex].x = bbox.getMaxX();
+					if (newPts[thisEndIndex].getX() < bbox.getMinX())
+					{
+						newPts[thisEndIndex].setLocation(bbox.getMinX(), newPts[thisEndIndex].getY());
+					} else if (newPts[thisEndIndex].getX() > bbox.getMaxX())
+					{
+						newPts[thisEndIndex].setLocation(bbox.getMaxX(), newPts[thisEndIndex].getY());
+					}
 				} else if (newPts[thisEndIndex].getX() >= bbox.getMinX() && newPts[thisEndIndex].getX() <= bbox.getMaxX())
 				{
 					// extend arc vertically to fit in port
-					if (newPts[thisEndIndex].getY() < bbox.getMinY()) newPts[thisEndIndex].y = bbox.getMinY(); else
-						if (newPts[thisEndIndex].getY() > bbox.getMaxY()) newPts[thisEndIndex].y = bbox.getMaxY();
+					if (newPts[thisEndIndex].getY() < bbox.getMinY())
+					{
+						newPts[thisEndIndex].setLocation(newPts[thisEndIndex].getX(), bbox.getMinY());
+					} else if (newPts[thisEndIndex].getY() > bbox.getMaxY())
+					{
+						newPts[thisEndIndex].setLocation(newPts[thisEndIndex].getX(), bbox.getMaxY());
+					}
 				} else
 				{
 					// extend arc arbitrarily to fit in port
-					Point2D.Double pt = poly.closestPoint(newPts[thisEndIndex]);
+					Point2D pt = poly.closestPoint(newPts[thisEndIndex]);
 					newPts[thisEndIndex].setLocation(pt);
 				}
 			}
@@ -715,7 +693,7 @@ public class Layout extends Constraint
 						if (dx == odx) dx = odx = 0;
 
 						// move horizontal, shrink vertical
-						newPts[thatEndIndex].x += dx-odx;
+						newPts[thatEndIndex].setLocation(newPts[thatEndIndex].getX() + dx-odx, newPts[thatEndIndex].getY());
 
 						// see if next nodeinst need not be moved
 						if (!EMath.doublesEqual(dx, odx) && ai.isSlidable() && ai.stillInPort(thatEnd, newPts[thatEndIndex]))
@@ -741,7 +719,7 @@ public class Layout extends Constraint
 					if (EMath.doublesEqual(dy, ody)) dy = ody = 0;
 
 					// shrink horizontal, move vertical
-					newPts[thatEndIndex].y += dy-ody;
+					newPts[thatEndIndex].setLocation(newPts[thatEndIndex].getX(), newPts[thatEndIndex].getY() + dy-ody);
 
 					// see if next nodeinst need not be moved
 					if (!EMath.doublesEqual(dy, ody) && ai.isSlidable() &&
@@ -804,7 +782,7 @@ public class Layout extends Constraint
 	 * @param newPts an array of 2 points that defines the coordinates of the two ends (0: head, 1: tail).
 	 */
 	private static void nonOrthogFixAng(ArcInst ai, Connection thisEnd, int thisEndIndex, Connection thatEnd, int thatEndIndex,
-		NodeInst ono, Point2D.Double [] newPts)
+		NodeInst ono, Point2D [] newPts)
 	{
 		// look for longest other arc on "ono" to determine proper end position
 		double bestDist = Double.MIN_VALUE;
@@ -822,18 +800,20 @@ public class Layout extends Constraint
 		// if no other arcs, allow that end to move the same as this end
 		if (bestAI == null)
 		{
-			newPts[thatEndIndex].x += newPts[thisEndIndex].getX() - thisEnd.getLocation().getX();
-			newPts[thatEndIndex].y += newPts[thisEndIndex].getY() - thisEnd.getLocation().getY();
+			newPts[thatEndIndex].setLocation(
+				newPts[thatEndIndex].getX() + newPts[thisEndIndex].getX() - thisEnd.getLocation().getX(),
+				newPts[thatEndIndex].getY() + newPts[thisEndIndex].getY() - thisEnd.getLocation().getY());
 			return;
 		}
 
 		// compute intersection of arc "bestai" with new moved arc "ai"
-		Point2D.Double inter = EMath.intersect(newPts[thisEndIndex], ai.getAngle(),
+		Point2D inter = EMath.intersect(newPts[thisEndIndex], ai.getAngle(),
 			bestAI.getHead().getLocation(), bestAI.getAngle());
 		if (inter == null)
 		{
-			newPts[thatEndIndex].x += newPts[thisEndIndex].getX() - thisEnd.getLocation().getX();
-			newPts[thatEndIndex].y += newPts[thisEndIndex].getY() - thisEnd.getLocation().getY();
+			newPts[thatEndIndex].setLocation(
+				newPts[thatEndIndex].getX() + newPts[thisEndIndex].getX() - thisEnd.getLocation().getX(),
+				newPts[thatEndIndex].getY() + newPts[thisEndIndex].getY() - thisEnd.getLocation().getY());
 			return;
 		}
 		newPts[thatEndIndex].setLocation(inter);
@@ -849,10 +829,10 @@ public class Layout extends Constraint
 	{
 		// if nothing is outside port, quit
 		Connection head = ai.getHead();
-		Point2D.Double headPoint = head.getLocation();
+		Point2D headPoint = head.getLocation();
 		boolean inside0 = ai.stillInPort(head, headPoint);
 		Connection tail = ai.getHead();
-		Point2D.Double tailPoint = tail.getLocation();
+		Point2D tailPoint = tail.getLocation();
 		boolean inside1 = ai.stillInPort(tail, tailPoint);
 		if (inside0 && inside1) return;
 
@@ -870,8 +850,8 @@ public class Layout extends Constraint
 		}
 
 		// get bounding boxes of polygons
-		Rectangle2D.Double headBounds = headPoly.getBounds2DDouble();
-		Rectangle2D.Double tailBounds = tailPoly.getBounds2DDouble();
+		Rectangle2D headBounds = headPoly.getBounds2D();
+		Rectangle2D tailBounds = tailPoly.getBounds2D();
 		double lx0 = headBounds.getMinX();   double hx0 = headBounds.getMaxX();
 		double ly0 = headBounds.getMinY();   double hy0 = headBounds.getMaxY();
 		double lx1 = tailBounds.getMinX();   double hx1 = tailBounds.getMaxX();
@@ -884,8 +864,8 @@ public class Layout extends Constraint
 			double tx = (Math.max(lx0,lx1) + Math.min(hx0,hx1)) / 2;
 			double fx = tx;
 			double fy = (ly0+hy0) / 2;   double ty = (ly1+hy1) / 2;
-			Point2D.Double fPt = headPoly.closestPoint(new Point2D.Double(fx, fy));
-			Point2D.Double tPt = tailPoly.closestPoint(new Point2D.Double(tx, ty));
+			Point2D fPt = headPoly.closestPoint(new Point2D.Double(fx, fy));
+			Point2D tPt = tailPoly.closestPoint(new Point2D.Double(tx, ty));
 			doMoveArcInst(ai, fPt, tPt, arctyp);
 			return;
 		}
@@ -895,8 +875,8 @@ public class Layout extends Constraint
 			double ty = (Math.max(ly0,ly1) + Math.min(hy0,hy1)) / 2;
 			double fy = ty;
 			double fx = (lx0+hx0) / 2;   double tx = (lx1+hx1) / 2;
-			Point2D.Double fPt = headPoly.closestPoint(new Point2D.Double(fx, fy));
-			Point2D.Double tPt = tailPoly.closestPoint(new Point2D.Double(tx, ty));
+			Point2D fPt = headPoly.closestPoint(new Point2D.Double(fx, fy));
+			Point2D tPt = tailPoly.closestPoint(new Point2D.Double(tx, ty));
 			doMoveArcInst(ai, fPt, tPt, arctyp);
 			return;
 		}
@@ -914,14 +894,14 @@ public class Layout extends Constraint
 	 * @param tailPt the new coordinates of the tail of the ArcInst.
 	 * @param arctyp the nature of the arc: 0 for rigid, 1 for flexible.
 	 */
-	private static void updateArc(ArcInst ai, Point2D.Double headPt, Point2D.Double tailPt, int arctyp)
+	private static void updateArc(ArcInst ai, Point2D headPt, Point2D tailPt, int arctyp)
 	{
 		// start changes on this arc
 		Undo.newChange(ai, Undo.Type.OBJECTSTART);
 
 		// set the proper arcinst position
-		Point2D.Double oldHeadPt = ai.getHead().getLocation();
-		Point2D.Double oldTailPt = ai.getTail().getLocation();
+		Point2D oldHeadPt = ai.getHead().getLocation();
+		Point2D oldTailPt = ai.getTail().getLocation();
 		double oldHeadX = oldHeadPt.getX();   double oldHeadY = oldHeadPt.getY();
 		double oldTailX = oldTailPt.getX();   double oldTailY = oldTailPt.getY();
 //System.out.println("modify arc "+ai.describe()+" was ("+oldHeadX+","+oldHeadY+")-("+oldTailPt.getX()+","+oldTailPt.getY()+
@@ -949,7 +929,7 @@ public class Layout extends Constraint
 	 * @param tailPt the new coordinates of the tail of the ArcInst.
 	 * @param arctyp the nature of the arc: 0 for rigid, 1 for flexible.
 	 */
-	private static void doMoveArcInst(ArcInst ai, Point2D.Double headPt, Point2D.Double tailPt, int arctyp)
+	private static void doMoveArcInst(ArcInst ai, Point2D headPt, Point2D tailPt, int arctyp)
 	{
 		// check for null arcinst motion
 		Connection head = ai.getHead();
@@ -1014,12 +994,12 @@ public class Layout extends Constraint
 		Iterator it = np.getPorts();
 		PortProto pp = (PortProto)it.next();
 		PortInst no1pi = no1.getOnlyPortInst();
-		Rectangle2D.Double no1Bounds = no1pi.getPoly().getBounds2DDouble();
-		Point2D.Double no1Pt = new Point2D.Double(no1Bounds.getCenterX(), no1Bounds.getCenterY());
+		Rectangle2D no1Bounds = no1pi.getPoly().getBounds2D();
+		Point2D no1Pt = new Point2D.Double(no1Bounds.getCenterX(), no1Bounds.getCenterY());
 
 		PortInst no2pi = no2.getOnlyPortInst();
-		Rectangle2D.Double no2Bounds = no2pi.getPoly().getBounds2DDouble();
-		Point2D.Double no2Pt = new Point2D.Double(no2Bounds.getCenterX(), no2Bounds.getCenterY());
+		Rectangle2D no2Bounds = no2pi.getPoly().getBounds2D();
+		Point2D no2Pt = new Point2D.Double(no2Bounds.getCenterX(), no2Bounds.getCenterY());
 
 		ArcInst ar1 = ArcInst.newInstance(ap, wid, fpi, head.getLocation(), no2pi, no2Pt);
 		ar1.copyStateBits(ai);
@@ -1032,7 +1012,7 @@ public class Layout extends Constraint
 			System.out.println("Problem creating jog arcs");
 			return;
 		}
-//		(void)copyvars((INTBIG)ai, VARCINST, (INTBIG)ar2, VARCINST, FALSE);
+		ar2.copyVars(ai, false);
 		Undo.newChange(ar1, Undo.Type.OBJECTEND);
 		Undo.newChange(ar2, Undo.Type.OBJECTEND);
 		Undo.newChange(ar3, Undo.Type.OBJECTEND);
@@ -1080,10 +1060,10 @@ public class Layout extends Constraint
 		double m02 = ni.getCenterX();
 		double m12 = ni.getCenterY();
 		Undo.Change change = ni.getChange();
-		if (change.getA3() < 0 || change.getA4() < 0 || change.getA5() != 0)
+		if (change.getA3() == ni.getXSize() && change.getA4() == ni.getYSize() && change.getI1() == ni.getAngle())
 		{
 			// nodeinst did not rotate: adjust for port motion
-			Point2D.Double ono = oldPortPosition(ni, pp);
+			Point2D ono = oldPortPosition(ni, pp);
 			Poly curPoly = ni.getShapeOfPort(pp);
 			double dx = curPoly.getCenterX();
 			double dy = curPoly.getCenterY();
@@ -1100,7 +1080,7 @@ public class Layout extends Constraint
 	 * is the "old" position, as determined by any changes that may have occured
 	 * to the nodeinst (and any sub-nodes).
 	 */
-	private static Point2D.Double oldPortPosition(NodeInst ni, PortProto pp)
+	private static Point2D oldPortPosition(NodeInst ni, PortProto pp)
 	{
 		// descend to the primitive node
 		AffineTransform subrot = makeOldRot(ni);
@@ -1144,7 +1124,7 @@ public class Layout extends Constraint
 		}
 		PrimitiveNode np = (PrimitiveNode)bottomNi.getProto();
 		Technology tech = np.getTechnology();
-		Poly poly = tech.getShapeOfPort(ni, (PrimitivePort)bottomPP);
+		Poly poly = tech.getShapeOfPort(bottomNi, (PrimitivePort)bottomPP);
 		poly.transform(subrot);
 		double x = poly.getCenterX();
 		double y = poly.getCenterY();
@@ -1178,7 +1158,7 @@ public class Layout extends Constraint
 		// get current values
 		Cell np = (Cell)ni.getProto();
 		double cX = ni.getCenterX();   double cY = ni.getCenterY();
-		Rectangle2D.Double cellBounds = np.getBounds();
+		Rectangle2D cellBounds = np.getBounds();
 		double pCX = cellBounds.getCenterX();   double pCY = cellBounds.getCenterY();
 
 		// set to previous values if they changed

@@ -37,6 +37,7 @@ import com.sun.electric.tool.Tool;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
+import java.awt.geom.Point2D;
 
 /**
  * This interface defines changes that are made to the database.
@@ -158,28 +159,32 @@ public class Undo
 				}
 			} else if (type == Type.NODEINSTMOD)
 			{
-//				for(Iterator it = Tool.getTools(); it.hasNext(); )
-//				{
-//					Tool tool = (Tool)it.next();
-//					if (tool.isOn()) tool.modifyNodeInst(obj, a1, a2, a3, a4, a5. a6 != 0);
-//				}
+				for(Iterator it = Tool.getTools(); it.hasNext(); )
+				{
+					Tool tool = (Tool)it.next();
+					if (tool.isOn()) tool.modifyNodeInst((NodeInst)obj, a1, a2, a3, a4, i1);
+				}
 			} else if (type == Type.ARCINSTMOD)
 			{
-//				for(i=0; i<el_maxtools; i++)
-//					if ((el_tools[i].toolstate & TOOLON) != 0 && el_tools[i].modifyarcinst != 0)
-//						(*el_tools[i].modifyarcinst)((ARCINST *)c->entryaddr, c->p1, c->p2,
-//							c->p3, c->p4, c->p5, c->p6);
+				for(Iterator it = Tool.getTools(); it.hasNext(); )
+				{
+					Tool tool = (Tool)it.next();
+					if (tool.isOn()) tool.modifyArcInst((ArcInst)obj, a1, a2, a3, a4, a5);
+				}
 			} else if (type == Type.EXPORTMOD)
 			{
-//				for(i=0; i<el_maxtools; i++)
-//					if ((el_tools[i].toolstate & TOOLON) != 0 && el_tools[i].modifyportproto != 0)
-//						(*el_tools[i].modifyportproto)((PORTPROTO *)c->entryaddr, (NODEINST *)c->p1,
-//							(PORTPROTO *)c->p2);
+				for(Iterator it = Tool.getTools(); it.hasNext(); )
+				{
+					Tool tool = (Tool)it.next();
+//					if (tool.isOn()) (*el_tools[i].modifyportproto)((PORTPROTO *)c->entryaddr, (NODEINST *)c->p1, (PORTPROTO *)c->p2);
+				}
 			} else if (type == Type.CELLMOD)
 			{
-//				for(i=0; i<el_maxtools; i++)
-//					if ((el_tools[i].toolstate & TOOLON) != 0 && el_tools[i].modifynodeproto != 0)
-//						(*el_tools[i].modifynodeproto)((NODEPROTO *)c->entryaddr);
+				for(Iterator it = Tool.getTools(); it.hasNext(); )
+				{
+					Tool tool = (Tool)it.next();
+//					if (tool.isOn()) (*el_tools[i].modifynodeproto)((NODEPROTO *)c->entryaddr);
+				}
 			} else if (type == Type.OBJECTSTART)
 			{
 				for(Iterator it = Tool.getTools(); it.hasNext(); )
@@ -196,38 +201,50 @@ public class Undo
 				}
 			} else if (type == Type.VARIABLENEW)
 			{
-//				for(i=0; i<el_maxtools; i++)
-//					if ((el_tools[i].toolstate & TOOLON) != 0 && el_tools[i].newvariable != 0)
-//						(*el_tools[i].newvariable)(c->entryaddr, c->p1, c->p2, c->p3);
+				for(Iterator it = Tool.getTools(); it.hasNext(); )
+				{
+					Tool tool = (Tool)it.next();
+//					if (tool.isOn()) (*el_tools[i].newvariable)(c->entryaddr, c->p1, c->p2, c->p3);
+				}
 			} else if (type == Type.VARIABLEKILL)
 			{
 //				descript[0] = c->p5;
 //				descript[1] = c->p6;
-//				for(i=0; i<el_maxtools; i++)
-//					if ((el_tools[i].toolstate & TOOLON) != 0 && el_tools[i].killvariable != 0)
-//						(*el_tools[i].killvariable)(c->entryaddr, c->p1, c->p2, c->p3, c->p4, descript);
+				for(Iterator it = Tool.getTools(); it.hasNext(); )
+				{
+					Tool tool = (Tool)it.next();
+//					if (tool.isOn()) (*el_tools[i].killvariable)(c->entryaddr, c->p1, c->p2, c->p3, c->p4, descript);
+				}
 			} else if (type == Type.VARIABLEMOD)
 			{
-//				for(i=0; i<el_maxtools; i++)
-//					if ((el_tools[i].toolstate & TOOLON) != 0 && el_tools[i].modifyvariable != 0)
-//						(*el_tools[i].modifyvariable)(c->entryaddr, c->p1, c->p2, c->p3, c->p4, c->p5);
+				for(Iterator it = Tool.getTools(); it.hasNext(); )
+				{
+					Tool tool = (Tool)it.next();
+//					if (tool.isOn()) (*el_tools[i].modifyvariable)(c->entryaddr, c->p1, c->p2, c->p3, c->p4, c->p5);
+				}
 			} else if (type == Type.VARIABLEINSERT)
 			{
-//				for(i=0; i<el_maxtools; i++)
-//					if ((el_tools[i].toolstate & TOOLON) != 0 && el_tools[i].insertvariable != 0)
-//						(*el_tools[i].insertvariable)(c->entryaddr, c->p1, c->p2, c->p3, c->p4);
+				for(Iterator it = Tool.getTools(); it.hasNext(); )
+				{
+					Tool tool = (Tool)it.next();
+//					if (tool.isOn()) (*el_tools[i].insertvariable)(c->entryaddr, c->p1, c->p2, c->p3, c->p4);
+				}
 			} else if (type == Type.VARIABLEDELETE)
 			{
-//				for(i=0; i<el_maxtools; i++)
-//					if ((el_tools[i].toolstate & TOOLON) != 0 && el_tools[i].deletevariable != 0)
-//						(*el_tools[i].deletevariable)(c->entryaddr, c->p1, c->p2, c->p3, c->p4, c->p5);
+				for(Iterator it = Tool.getTools(); it.hasNext(); )
+				{
+					Tool tool = (Tool)it.next();
+//					if (tool.isOn()) (*el_tools[i].deletevariable)(c->entryaddr, c->p1, c->p2, c->p3, c->p4, c->p5);
+				}
 			} else if (type == Type.DESCRIPTORMOD)
 			{
 //				descript[0] = c->p4;
 //				descript[1] = c->p5;
-//				for(i=0; i<el_maxtools; i++)
-//					if ((el_tools[i].toolstate & TOOLON) != 0 && el_tools[i].modifydescript != 0)
-//						(*el_tools[i].modifydescript)(c->entryaddr, c->p1, c->p2, descript);
+				for(Iterator it = Tool.getTools(); it.hasNext(); )
+				{
+					Tool tool = (Tool)it.next();
+//					if (tool.isOn()) (*el_tools[i].modifydescript)(c->entryaddr, c->p1, c->p2, descript);
+				}
 			}
 			broadcasting = null;
 		}
@@ -256,14 +273,21 @@ public class Undo
 			}
 			if (type == Type.NODEINSTMOD)
 			{
+				// get information about the node as it is now
 				NodeInst ni = (NodeInst)obj;
-//				oldval = ni->lowx;       ni->lowx = c->p1;       c->p1 = oldval;
-//				oldval = ni->lowy;       ni->lowy = c->p2;       c->p2 = oldval;
-//				oldval = ni->highx;      ni->highx = c->p3;      c->p3 = oldval;
-//				oldval = ni->highy;      ni->highy = c->p4;      c->p4 = oldval;
-//				oldshort = ni->rotation;   ni->rotation = (INTSML)c->p5;   c->p5 = oldshort;
-//				oldshort = ni->transpose;  ni->transpose = (INTSML)c->p6;  c->p6 = oldshort;
-				// need to call "updategeom()"
+				double oldCX = ni.getCenterX();
+				double oldCY = ni.getCenterY();
+				double oldSX = ni.getXSize();
+				double oldSY = ni.getYSize();
+				int oldRot = ni.getAngle();
+
+				// change the node information
+				ni.adjustInstance(a1 - oldCX, a2 - oldCY, a3 - oldSX, a4 - oldSY, i1 - oldRot);
+
+				// update the change to its reversed state
+				a1 = oldCX;   a2 = oldCY;
+				a3 = oldSX;   a4 = oldSY;
+				i1 = oldRot;
 				return;
 			}
 			if (type == Type.ARCINSTNEW)
@@ -282,16 +306,21 @@ public class Undo
 			}
 			if (type == Type.ARCINSTMOD)
 			{
+				// get information about the arc as it is now
 				ArcInst ai = (ArcInst)obj;
-//				oldval = ai->end[0].xpos;  ai->end[0].xpos = c->p1;   c->p1 = oldval;
-//				oldval = ai->end[0].ypos;  ai->end[0].ypos = c->p2;   c->p2 = oldval;
-//				oldval = ai->end[1].xpos;  ai->end[1].xpos = c->p3;   c->p3 = oldval;
-//				oldval = ai->end[1].ypos;  ai->end[1].ypos = c->p4;   c->p4 = oldval;
-//				oldval = ai->width;        ai->width = c->p5;         c->p5 = oldval;
-//				oldval = ai->length;       ai->length = c->p6;        c->p6 = oldval;
-//				determineangle(ai);
-//				(void)setshrinkvalue(ai, TRUE);
-				// need to call "updategeom()"
+				Point2D oldHeadPt = new Point2D.Double();
+				oldHeadPt.setLocation(ai.getHead().getLocation());
+				Point2D oldTailPt = new Point2D.Double();
+				oldTailPt.setLocation(ai.getTail().getLocation());
+				double oldWid = ai.getWidth();
+
+				// change the arc information
+				ai.lowLevelMove(a5 - oldWid, a1-oldHeadPt.getX(), a2-oldHeadPt.getY(), a3-oldTailPt.getX(), a4-oldTailPt.getY());
+
+				// update the change to its reversed state
+				a1 = oldHeadPt.getX();   a2 = oldHeadPt.getY();
+				a3 = oldTailPt.getX();   a4 = oldTailPt.getY();
+				a5 = oldWid;
 				return;
 			}
 			if (type == Type.EXPORTNEW)
