@@ -10,7 +10,7 @@ FIX: DBMath.isGreater() function added to consolidate comparison and rouding ope
 IMP: (10/18/04, GVG) Parasitic tab skeleton in Preferences. Corresponding html/png files were added for manual. All
 tools-related figures were redone.
 
-IMP: (10/18/04, GVG) New look@feel of WellCheck dialog (documentation changed).
+IMP: (10/18/04, GVG) New look&feel of WellCheck dialog (documentation changed).
 3DView: Ability to turn on/off antialiasing without closing 3D window.
 Changes in diffuse, specular and ambient colors. Parasitic: arc cropping added.
 Code optimization in DBMath.round and DBMath.pointInRect. Code cleaning in Constraint.Layout.
