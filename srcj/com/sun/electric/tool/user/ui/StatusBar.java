@@ -367,10 +367,15 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
             } else if (eObj instanceof ArcInst)
             {
                 theArc = (ArcInst)eObj;
-                Netlist netlist = theArc.getParent().getUserNetlist();
-                JNetwork net = netlist.getNetwork(theArc, 0);
-	            String netMsg = (net != null) ? "NETWORK: "+net.describe()+ ", " : "";
-                return(netMsg + "ARC: " + theArc.describe());
+                // TODO: remove try/catch when Netlist is thread safe
+                try {
+                    Netlist netlist = theArc.getParent().getUserNetlist();
+                    JNetwork net = netlist.getNetwork(theArc, 0);
+                    String netMsg = (net != null) ? "NETWORK: "+net.describe()+ ", " : "";
+                    return(netMsg + "ARC: " + theArc.describe());
+                } catch (Exception e) {
+                    return("netlist exception! try again");
+                }
             }
         } else if (h.getType() == Highlight.Type.TEXT)
         {
