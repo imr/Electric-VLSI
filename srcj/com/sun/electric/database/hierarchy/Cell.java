@@ -717,10 +717,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 
 	/**
 	 * Method to rename this Cell.
-	 * @param newName the new name of this cell.
+	 * @param cellName the new name of this cell.
 	 */
 	private void rename(CellName cellName)
 	{
+        if (cellName == null) return; // error generating thd new name
 		if (cellName.equals(this.cellName)) return;
 		checkChanging();
 		if (!isLinked())
