@@ -2830,7 +2830,7 @@ public class Quick
                     boolean foundAll = allPointsContainedInLayer(geom, cell, ruleBnd, points, founds);
                     if (!foundAll)
                     {
-                         reportError(POLYSELECTERROR, "No enough surround, ", cell, minOverlapRule.value, -1, minOverlapRule.rule,
+                         reportError(POLYSELECTERROR, "No enough surround, ", geom.getParent(), minOverlapRule.value, -1, minOverlapRule.rule,
                                  distPoly, geom, layer, null, null, null);
                     }
 				}
