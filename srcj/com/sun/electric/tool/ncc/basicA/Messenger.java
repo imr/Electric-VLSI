@@ -4,7 +4,7 @@
  *
  * File: Messenger.java
  *
- * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ * Copyright (c) 2003 Sun Microsystems and Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,20 +25,18 @@
 /**
  * Messenger prints to System.out. It also prints to a log file if one
  * has been set.
- *
- * TODO: I need to figure out what to
- * do to make this thread safe.
  */
 package com.sun.electric.tool.ncc.basicA;
+
+import com.sun.electric.tool.generator.layout.LayoutLib;
 
 import java.io.*;
 import java.util.Date;
 
-public class Messenger{
-	private static PrintStream logStrm;
+public class Messenger {
+	private PrintStream logStrm;
 	
-	/** Specify a log file. */
-	public static void setLogFile(String logFileName){
+	public Messenger(String logFileName){
 		File f = new File(logFileName);
 		System.out.println("Log file: "+f.getAbsolutePath());
 		FileOutputStream fileStrm=null;
@@ -54,41 +52,28 @@ public class Messenger{
 		logStrm.println(logFileName+" file started "+d);
 	}
 	/** print without trailing newline */
-	public static void say(String s){
+	public void print(String s){
 		System.out.print(s);
 		if (logStrm!=null) logStrm.print(s);
 	}
-	
 	/** print with trailing newline */
-	public static void line(String s){
+	public void println(String s){
 		System.out.println(s);
 		if (logStrm!=null) logStrm.println(s);
 	}
-	
 	/** print newline */
-	public static void freshLine(){
+	public void println(){
 		System.out.println();
-		logStrm.println("");
+		if (logStrm!=null) logStrm.println("");
 	}
-
-	/** print, dump stack, and halt */
-    public static void error(String s){
-    	String msg = "Error: "+s;
-    	RuntimeException e = new RuntimeException(msg);
-    	
-    	// send stack dump to Electric console
-		e.printStackTrace(System.out);
-		
-		// send stack dump to debugger console
-		e.printStackTrace();
-		
-		// send stack dump to log file
-		if (logStrm!=null) e.printStackTrace(logStrm);
-		
-		// flush all printout before we stop
+	public void flush() {
 		System.out.flush();
 		if (logStrm!=null) logStrm.flush();
-		throw e;
+	}
+	/** print, dump stack, and halt */
+    public void error(boolean pred, String msg){
+		flush();
+    	LayoutLib.error(pred, msg);
     }
 	
 }

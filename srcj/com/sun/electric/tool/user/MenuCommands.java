@@ -671,7 +671,7 @@ public final class MenuCommands
 		});
 		russMenu.addMenuItem("Jemini", null, new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				new com.sun.electric.tool.ncc.jemini_2();
+				new com.sun.electric.tool.ncc.NccJob();
 			}
 		});
 		russMenu.addMenuItem("Random Test", null, new ActionListener() {

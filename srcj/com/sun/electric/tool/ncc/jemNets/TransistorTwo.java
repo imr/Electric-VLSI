@@ -31,7 +31,6 @@
  * TransistorTwo.
 */
 package com.sun.electric.tool.ncc.jemNets;
-import com.sun.electric.tool.ncc.basicA.Name;
 import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.ncc.jemNets.Part;
 import com.sun.electric.tool.ncc.jemNets.Wire;
@@ -42,16 +41,12 @@ import java.util.Iterator;
 
 public class TransistorTwo extends Transistor{
     // ---------- private data -------------
-    private static final int NUM_CON= 4;
     //these coeficients apply for symmetric case only
     private static final int TERM_COEFS[] = {7, 13, 13, 7};
 
-    private boolean symmetric= false;
-    /** width of transistors parallel merged into me without flipping gates */ 
-    private double unflipWidth;  
 	/** width of transistors parallel merged into me after flipping gates */
-	private double flipWidth; 
-    public boolean isSymmetric(){return symmetric;}
+	private double flipWidth;
+	private boolean symmetric; 
 
     private void flip(){
         Wire w= pins[0];
@@ -63,28 +58,16 @@ public class TransistorTwo extends Transistor{
     }
 
     // ---------- private methods ----------
-    protected TransistorTwo(JemCircuit parent, Name n, 
-    						Transistor.Type type, double length, double width,
-    						Wire source, Wire gateA, Wire gateB, Wire drain){
-		super(n, NUM_CON);
-		error(parent==null, "no parent?");
-		parent.adopt(this);
-
-		pins[0] = source;
-		pins[1] = gateA;
-		pins[2] = gateB;
-		pins[3] = drain;
-		source.add(this);
-		gateA.add(this);
-		gateB.add(this);
-		drain.add(this);
-		
-		myType = type;
-		myWidth = width;
-		unflipWidth = width;
+    private TransistorTwo(String name, 
+    					  Type type, double width, double length,
+    					  Wire src, Wire gateA, Wire gateB, Wire drn){
+		super(type, name, width, length, 
+		      new Wire[] {src, gateA, gateB, drn});
     }
 
     // ---------- public methods ----------
+
+	public boolean isSymmetric() {return symmetric;}
 
 	/** 
 	 * Merge two TransistorOnes into a TransistorTwo.  
@@ -107,15 +90,18 @@ public class TransistorTwo extends Transistor{
 		error(ta==tb, "part should only occur once on wire");
 		error(ta.getParent()!=tb.getParent(), "mismatched parents?");
 		if( ! ta.isLike(tb))  return false;
-		if(ta.myWidth!=tb.myWidth)  return false;
+		if(ta.width!=tb.width)  return false;
 		
 		// it's a match - make the new one
         if (ta.pins[2]!=w)  ta.flip();
         if (tb.pins[0]!=w)  tb.flip();
 		error(ta.pins[2]!=w || tb.pins[0]!=w, "building TransistorTwo");
-		new TransistorTwo((JemCircuit)tb.getParent(), tb.getTheName(),
-		 				  ta.myType, ta.myLength, ta.myWidth, 
-						  ta.pins[0], ta.pins[1], tb.pins[1], tb.pins[2]);
+		TransistorTwo t2 = new TransistorTwo(tb.getName(), ta.getType(), 
+											 ta.getWidth(), ta.getLength(), 
+						  					 ta.pins[0], ta.pins[1], 
+						  					 tb.pins[1], tb.pins[2]);
+		JemCircuit parent = (JemCircuit) tb.getParent();
+		parent.adopt(t2);						  
 		ta.deleteMe();
 		tb.deleteMe();
 		error(w.numParts()!=0, "wire not empty?");
@@ -142,59 +128,57 @@ public class TransistorTwo extends Transistor{
     	return pins[0]==pins[3] && pins[1]==pins[2];
     }
 
-    //merge into this transistor
+    /**
+     * Attempt to merge this part with p. If merge has been done then destroy
+     * p.
+     * @return true if merged
+     */
     public boolean parallelMerge(Part p){
         if(!(p instanceof TransistorTwo)) return false;
         TransistorTwo t= (TransistorTwo)p;
-        if(this == t)return false; //same transistor
-		//its the same class but a different individual
-		if( ! this.isLike(t))return false; //wrong type transistor
+        error(this==t, "Transistor2 merging with itself");
 
-		// myMessenger.line("Comparing " + nameString() +
-		//    " to " + t.nameString());
+		if (!isLike(t)) return false; //wrong type transistor
 
+		error(t.isSymmetric(), "this algorithm can't merge two symmetrics");
 		if (pins[0]!=t.pins[0])  t.flip();
 		if (pins[0]!=t.pins[0] || pins[3]!=t.pins[3]) return false;
 
 		// check gates
 		if(pins[1]==t.pins[1] && pins[2]==t.pins[2]){
 			// if gates match without swapping then don't change symmetric
-			unflipWidth += t.myWidth;
+			width += t.width;
 		} else if(pins[1]==t.pins[2] && pins[2]==t.pins[1]){
 			// if gates match after swapping then set symmetric
-			flipWidth += t.myWidth;
-			symmetric= true;
-		}else{
+			symmetric = true;
+			flipWidth += t.width;
+		} else {
 			return false;
 		}
 
 		//OK to merge topologically
-		//what remains can merge
-		//		myMessenger.line("Merging " + nameString() +
-		//		" and " + t.nameString());
-		myWidth += t.myWidth;
 		t.deleteMe();
 		return true; //return true if merged
     }
 
     public void checkMe(JemCircuit parent) {
-    	if (symmetric && (flipWidth!=unflipWidth)) {
+    	if (isSymmetric() && (flipWidth!=width)) {
 			// Aborting is too severe. However, leave this for now.
     		error(true,
 				  "symmetric TransistorTwo: two parts don't have same width: "+
-				  flipWidth+" "+unflipWidth);
+				  flipWidth+" "+width);
     	}
     	super.checkMe(parent);
     }
 
     //over ride the hash computation
     public Integer computeHashCode(){
-		if(symmetric)return super.computeHashCode();
+		if (isSymmetric()) return super.computeHashCode();
 		//the function is symmetric: ABCD = DCBA
 		//but not symmetric in gates: ABCD != ACBD
-		int[] xx= new int[NUM_CON];
+		int[] xx= new int[pins.length];
 		//get the wire values
-		for(int i=0; i<pins.length; i++){
+		for (int i=0; i<pins.length; i++){
 			xx[i]= pins[i].getCode() * TERM_COEFS[i];
 		}
 		int sum= (xx[0] + xx[1]) * (xx[2] + xx[3]);
@@ -204,16 +188,16 @@ public class TransistorTwo extends Transistor{
     // ---------- printing methods ----------
 
     public String nameString(){
-		String t= symmetric?"(Sym)":"(Asym)";
+		String t= isSymmetric() ? "(Sym)" : "(Asym)";
 		String s= super.nameString();
-		return (s + "TransTwo" + t + " " + getStringName());
+		return s + "TransTwo" + t + " " + getName();
     }
 
     public String connectionString(int n){
-        String s = pins[0].getStringName();
-        String gs= pins[1].getStringName();
-        String gd= pins[2].getStringName();
-        String d = pins[3].getStringName();
+        String s = pins[0].getName();
+        String gs= pins[1].getName();
+        String gd= pins[2].getName();
+        String d = pins[3].getName();
 		return ("S=" + s + " Gs=" + gs + " Gd=" + gd + " D=" + d);
     }
 

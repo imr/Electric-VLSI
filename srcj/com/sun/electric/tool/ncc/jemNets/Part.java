@@ -33,7 +33,7 @@
 */
 
 package com.sun.electric.tool.ncc.jemNets;
-import com.sun.electric.tool.ncc.basicA.Name;
+import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.ncc.trees.NetObject;
 import com.sun.electric.tool.ncc.trees.JemCircuit;
@@ -45,29 +45,28 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Arrays;
+import java.util.HashSet;
 
 public abstract class Part extends NetObject {
     // ---------- private data -------------
-    protected Wire[] pins;
-	public Iterator getConnected() {return Arrays.asList(pins).iterator();}
+    protected final Wire[] pins;
 
-    /** the count of all Parts ever made */	private static int partCount= 0;
-    
     // ---------- private methods ----------
 
 	/** 
-	 * Here is the constructor for Parts
-	 * @param n the Name for this Parts
-	 * @param numPins how many terminals this Parts has
+	 * @param name the name of this Part
+	 * @param pins terminals of this Part
 	 */
-    protected Part(Name n, int numPins){
-		super(n); //sets the name and content size
-		pins = new Wire[numPins];
-		partCount++;
+    protected Part(String name, Wire[] pins){
+		super(name);
+		this.pins = pins;
+		for (int i=0; i<pins.length; i++)  pins[i].add(this);
     }
 
     // ---------- public methods ----------
     
+	public Iterator getConnected() {return Arrays.asList(pins).iterator();}
+
     public Type getNetObjType() {return Type.PART;}
 
 	/**
@@ -76,12 +75,6 @@ public abstract class Part extends NetObject {
 	 * @return a String describing the Part's numeric values.
 	 */
 	public abstract String valueString();
-
-	/** 
-	 * Here is the accessor for the part count
-	 * @return an int indicating how many parts have ever been made
-	 */
-	public static int getPartCount(){return partCount;}
 
 	/** 
 	 * Here is the accessor for the number of terminals on this Part
@@ -185,12 +178,6 @@ public abstract class Part extends NetObject {
 	 */
     public abstract boolean touchesAtGate(Wire w);
 
-/*	public int compareOnWire(Part p, Wire w){
-		int hisNum= p.touchesAtGate(w)? 1 : 0;
-		int myNum= touchesAtGate(w)? 1 : 0;
-		return myNum - hisNum;
-	} //end of compareOnWire
-*/
 	/** 
 	 * isThisGate returns true if the terminal number is a gate.
 	 * @param x the terminal number to test
@@ -299,14 +286,26 @@ public abstract class Part extends NetObject {
     }
 	
 	/** 
+	 * Get the number of distinct Wires this part is connected to.
+	 * For example, if all pins are connected to the same Wire then return 1.
+	 * This method is only used for sanity checking by JemStratCount.
+	 * @return the number of distinct Wires to which this Part is connected 
+	 */
+	public int getNumWiresConnected() {
+		HashSet wires = new HashSet();
+		for (int i=0; i<pins.length; i++)  wires.add(pins[i]);
+		return wires.size();
+	}
+	
+	/** 
 	 * printMe prints out this NetObject
 	 * @param maxCon an integer length limit to the printout
 	 */
-	public void printMe(int maxCon){
+	public void printMe(int maxCon, Messenger messenger){
 		String n= nameString();
 		String s= valueString();
 		String c= connectionString(maxCon);
-		Messenger.line(n + " " + s + " " + c);
+		messenger.println(n + " " + s + " " + c);
 	}
 	
 }

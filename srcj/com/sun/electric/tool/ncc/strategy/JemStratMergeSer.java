@@ -31,13 +31,13 @@
  * to merge the transistors that it links.
  */
 package com.sun.electric.tool.ncc.strategy;
+import com.sun.electric.tool.ncc.*;
 import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.ncc.jemNets.*;
 import com.sun.electric.tool.ncc.jemNets.TransistorOne;
 import com.sun.electric.tool.ncc.jemNets.TransistorTwo;
 import com.sun.electric.tool.ncc.trees.*;
 import com.sun.electric.tool.ncc.lists.*;
-import com.sun.electric.tool.ncc.strategy.JemSets;
 
 //import java.util.Collection;
 import java.util.Iterator;
@@ -52,16 +52,16 @@ public class JemStratMergeSer extends JemStrat {
 
     private static final int NUM_CODES= 1;
 
-    private JemStratMergeSer(){}
+    private JemStratMergeSer(NccGlobals globals) {super(globals);}
 
 	// ---------- to do the job -------------
 
-	public static boolean doYourJob(JemSets jss){
-		JemEquivRecord noGates= (JemEquivRecord)jss.noGates;
+	public static boolean doYourJob(NccGlobals globals){
+		JemEquivRecord noGates= globals.getWiresWithoutGates();
 		if(noGates == null) return false;
-		JemEquivRecord pt= (JemEquivRecord)jss.parts;
+		JemEquivRecord pt= globals.getParts();
 		int nmPartsBefore = pt.maxSize();
-		JemStratMergeSer ms = new JemStratMergeSer();
+		JemStratMergeSer ms = new JemStratMergeSer(globals);
 		ms.preamble(noGates);
 		ms.doFor(noGates);
 		ms.summary();
@@ -69,7 +69,7 @@ public class JemStratMergeSer extends JemStrat {
 	}
 	
     //do something before starting
-    private void preamble(JemRecord j){
+    private void preamble(JemEquivRecord j){
 		startTime("JemStratMergeSer" , j.nameString());
     }
 
@@ -79,12 +79,12 @@ public class JemStratMergeSer extends JemStrat {
     		Wire w = (Wire) toBeDeleted.get(i); 
     		w.killMe();
     	}
-		Messenger.line("JemStratMergeSer formed " +
+		globals.println("JemStratMergeSer formed " +
 					  toBeDeleted.size() + " TransTwo, processing " +
 					  numWires + " Wires = " +
 					  numShort + " two-diff Wires, of which " +
 					  numLeft + " remain.");
-		elapsedTime(numWires);
+		elapsedTime();
     }
 
     //------------- for NetObject ------------
@@ -98,6 +98,12 @@ public class JemStratMergeSer extends JemStrat {
 		//does it have exactly two diffusions?
 		numWires++;
 
+		// make sure there are no ports on this
+		if (n.getPorts().hasNext())  return CODE_NO_CHANGE;
+		
+		// wires declared GLOBAL in Electric aren't internal nodes of MOS stacks
+		if (n.isGlobal()) return CODE_NO_CHANGE;
+		
 		int count= 0;
 		for(Iterator it=n.getParts(); it.hasNext();){
 			Part p= (Part)it.next();
@@ -112,7 +118,7 @@ public class JemStratMergeSer extends JemStrat {
 		numShort++;
 		if(TransistorTwo.joinOnWire(n)){
 			toBeDeleted.add(n);
-			return CODE_NO_CHANGE; //drop this wire
+			return CODE_NO_CHANGE;
 		}
 		numLeft++;
 		return CODE_NO_CHANGE;

@@ -35,21 +35,21 @@ import java.util.Collection;
  * Other JemTree classes are fussy about what they will hold
  * JemCollection is used to collect bad things in JemStratCheck
  */
-public class JemCollection{
-    private static final Collection empty= new ArrayList(0);
-	private Collection content;
-
-    public JemCollection(){content= new ArrayList(5);}
-	    
-    //to meet the interface requirements
-    public String nameString(){return "JemCollection";}
-
-    public int getCode(){return 0;}
-    
-    public void clear(){content= null;}
-
-	public int size(){return content.size();}
-	public void add(Object oo){content.add(oo);}
-	public Iterator iterator(){return content.iterator();}
-	    
-} //end of JemCollection
+//public class JemCollection{
+//    private static final Collection empty= new ArrayList(0);
+//	private Collection content;
+//
+//    public JemCollection(){content= new ArrayList(5);}
+//	    
+//    //to meet the interface requirements
+//    public String nameString(){return "JemCollection";}
+//
+//    public int getCode(){return 0;}
+//    
+//    public void clear(){content= null;}
+//
+//	public int size(){return content.size();}
+//	public void add(Object oo){content.add(oo);}
+//	public Iterator iterator(){return content.iterator();}
+//	    
+//} //end of JemCollection

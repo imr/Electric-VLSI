@@ -24,7 +24,6 @@
 //	Updated 16 October 2003 to use JemTree interface
 
 package com.sun.electric.tool.ncc.jemNets;
-import com.sun.electric.tool.ncc.basicA.Name;
 import com.sun.electric.tool.ncc.basicA.Messenger;
 // import com.sun.electric.tool.ncc.jemNets.Part;
 // import com.sun.electric.tool.ncc.jemNets.Wire;
@@ -36,12 +35,9 @@ import java.util.List;
 public class TransistorOne extends Transistor {
 
     // ---------- private data -------------
-    private static final int NUM_CON= 3;
     private static final int TERM_COEFFS[] = {47,13,47};
 
     // ---------- private methods ----------
-    protected TransistorOne(Name n){super(n, NUM_CON);}
-
     public void flip(){
         Wire w= pins[0];
 		pins[0] = pins[2];
@@ -50,19 +46,10 @@ public class TransistorOne extends Transistor {
 
     // ---------- public methods ----------
 
-    public static TransistorOne nPlease(JemCircuit cc, Name n){
-		TransistorOne t= new TransistorOne(n);
-		cc.adopt(t);
-		t.myType= Transistor.Ntype;
-		return t;
-    }
-
-    public static TransistorOne pPlease(JemCircuit cc, Name n){
-		TransistorOne t= new TransistorOne(n);
-		cc.adopt(t);
-		t.myType= Transistor.Ptype;
-		return t;
-    }
+	public TransistorOne(Type type, String name, double width, double length,
+						 Wire src, Wire gate, Wire drn){
+		super(type, name, width, length, new Wire[] {src, gate, drn});
+	}
 
     // ---------- abstract commitment ----------
 
@@ -70,15 +57,6 @@ public class TransistorOne extends Transistor {
     public int[] getTermCoefs(){return TERM_COEFFS;} //the terminal coeficients
 
     // ---------- public methods ----------
-
-    public void connect(Wire source, Wire gate, Wire drain){
-        pins[0] = source;
-        pins[1] = gate;
-        pins[2] = drain;
-        source.add(this);
-		gate.add(this);
-		drain.add(this);
-    }
 
     public boolean touchesAtGate(Wire w){return w==pins[1];}
 
@@ -102,7 +80,7 @@ public class TransistorOne extends Transistor {
 		if(pins[0]!=t.pins[0])  t.flip();
 		if(pins[0]!=t.pins[0] || pins[2]!=t.pins[2])return false;
 		
-		myWidth += t.myWidth;
+		width += t.width;
 		t.deleteMe();
 		return true;		    	
     }
@@ -111,13 +89,13 @@ public class TransistorOne extends Transistor {
 
     public String nameString(){
         String s= super.nameString();
-        return (s + "TransOne " + getStringName());
+        return (s + "TransOne " + getName());
     }
 
     public String connectionString(int n){
-        String s= pins[0].getStringName();
-        String g= pins[1].getStringName();
-        String d= pins[2].getStringName();
+        String s= pins[0].getName();
+        String g= pins[1].getName();
+        String d= pins[2].getName();
         return ("S=" + s + " G=" + g + " D=" + d);
     }
 

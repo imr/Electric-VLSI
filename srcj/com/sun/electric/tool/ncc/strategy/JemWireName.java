@@ -26,6 +26,7 @@
  *  Splits Wire JemCircuit according to matching names
  */
 package com.sun.electric.tool.ncc.strategy;
+import com.sun.electric.tool.ncc.*;
 import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.ncc.jemNets.*;
 import com.sun.electric.tool.ncc.trees.*;
@@ -52,53 +53,52 @@ public class JemWireName extends JemStrat {
 	private Map theMap;
 	private boolean doneOne;
 	
-	private JemWireName(){}
+	private JemWireName(NccGlobals globals) {super(globals);}
 	
-	public static JemEquivList doYourJob(JemSets jss){
-        JemEquivList frontier= JemStratFrontier.doYourJob(jss.wires);
-		return doYourJob(frontier);
-	}
-
-	private static JemEquivList doYourJob(JemRecordList l) {
-		JemWireName wn = new JemWireName();
-		wn.preamble(l);
-		JemEquivList el = wn.doFor(l);
+	public static JemLeafList doYourJob(NccGlobals globals) {
+		// if no Wires suppress all JemWireName messages
+		if (globals.getWires()==null) return new JemLeafList(); 
+		
+		JemWireName wn = new JemWireName(globals);
+		wn.preamble();
+        JemLeafList front = JemStratFrontier.doYourJob(globals.getWires(), globals);
+		JemLeafList el = wn.doFor(front);
 		wn.summary(el);
 		return el;
 	}
 		
 	//do something before starting
-	private void preamble(JemRecordList j){
-		startTime("JemWireName", " a list of "+j.size());
+	private void preamble() {
+		startTime("JemWireName", "all active Wires");
 	}
 	
 	//summarize at the end
-	private void summary(JemEquivList offspring){
+	private void summary(JemLeafList offspring){
 		//JemRecordList out= JemEquivRecord.tryToRetire(cc);
-		Messenger.line("JemWireName processed " +
+		globals.println("JemWireName processed " +
 							numWiresProcessed + " Wires from " +
 							numEquivProcessed + " JemEquivRecords");
-		Messenger.line(offspringStats(offspring));
+		globals.println(offspringStats(offspring));
 
-		Messenger.line(offspring.sizeInfoString());
-		elapsedTime(numWiresProcessed);
+		globals.println(offspring.sizeInfoString());
+		elapsedTime();
 	}
 	
 	/** 
 	 * printTheMap is a debug routine that exhibits the map.
 	 * @param the Map to exhibit
 	 */
-	private static void printTheMap(Map m){
-		Messenger.line("printing an EquivRecord map of size= " + m.size());
+	private void printTheMap(Map m){
+		globals.println("  printing an EquivRecord map of size= " + m.size());
 		if(m.size() == 0)return;
 		for (Iterator it=m.keySet().iterator(); it.hasNext();) {
 			Wire w= (Wire)it.next();
 			Object oo= m.get(w);
 			if(oo == null){
-				Messenger.line(w.nameString() + " maps to null");
+				globals.println(" "+w.nameString() + " maps to null");
 			} else {
 				Integer i= (Integer)oo;
-				Messenger.line(w.nameString() + " maps to " + i.intValue());
+				globals.println(" "+w.nameString() + " maps to " + i.intValue());
 			}
 		}
 	}
@@ -149,31 +149,30 @@ public class JemWireName extends JemStrat {
 
 	// ---------- for JemRecordList -------------
 	
-    public JemEquivList doFor(JemRecordList g){
-		JemEquivList gg= (JemEquivList)g;
+    public JemLeafList doFor(JemRecordList g){
+		JemLeafList gg= (JemLeafList)g;
 		gg.sortByIncreasingSize();
 		return super.doFor(gg);
     }
 	
-	// ---------- for JemRecord -------------
+	// ---------- for JemEquivRecord -------------
 	
-    public JemEquivList doFor(JemRecord g){
-		JemEquivList out;
-		if(g instanceof JemHistoryRecord){
-			out = super.doFor(g);
-		} else {
-			error(!(g instanceof JemEquivRecord), "unrecognized JemRecord");
+    public JemLeafList doFor(JemEquivRecord g){
+		JemLeafList out;
+		if(g.isLeaf()){
 			JemEquivRecord er= (JemEquivRecord)g;
-			if (doneOne) return new JemEquivList();
+			if (doneOne) return new JemLeafList();
 			numEquivProcessed++;
 			theMap = getWireExportMap(er);
-			if (theMap.size()==0) return new JemEquivList();
+			if (theMap.size()==0) return new JemLeafList();
 			doneOne = true; 
 			
 			out = super.doFor(g);
-			Messenger.line("processed "+g.nameString()+
+			globals.println(" processed "+g.nameString()+
 								" with map size= "+theMap.size()+" yields " 
-							    +out.size()+" offspring ");
+								+out.size()+" offspring ");
+		} else {
+			out = super.doFor(g);
 		}
 		return out;
     }

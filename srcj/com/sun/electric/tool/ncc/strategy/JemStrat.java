@@ -30,6 +30,7 @@ import com.sun.electric.tool.ncc.jemNets.*;
 import com.sun.electric.tool.ncc.trees.*;
 import com.sun.electric.tool.ncc.lists.*;
 import com.sun.electric.tool.ncc.basicA.Messenger;
+import com.sun.electric.tool.ncc.NccGlobals;
 
 import java.util.Iterator;
 import java.util.Date;
@@ -39,9 +40,6 @@ import java.util.HashMap;
  * JemStrat is the superclass for all strategies.
  * The JemStrat strategy classes implement a doFor method for each
  * level of the JemTree hierarchy: 
- *     JemEquivList doFor(JemRecordList)
- *     JemEquivList doFor(JemRecord)
- *     JemCircuitMap doFor(JemCircuit)
  *     Integer doFor(NetObject)
  * Each of these does a call-back to the apply(JemStrat) method of its class
  *    which actually computes the appropriate answer, perhaps by doFor calls,
@@ -54,14 +52,11 @@ import java.util.HashMap;
  */
 public abstract class JemStrat {
 	// --------------- local variables -------------------
-	
     protected int depth; //depth in the tree
     protected int getDepth(){return depth;}
-	
+	public NccGlobals globals;	
     private Date theStartDate= null;
 	
-    private static int passNumber= 1; //an index of strategy steps
-
 	public static final Integer CODE_ERROR = null;
     public static final Integer CODE_NO_CHANGE = new Integer(0);
 	
@@ -70,33 +65,32 @@ public abstract class JemStrat {
      * @param pred true if error occurs
      * @param msg message to print if error occurs
      */
-    public static void error(boolean pred, String msg) {
-    	if (pred) Messenger.error(msg);
-    }
+    public void error(boolean pred, String msg) {globals.error(pred, msg);}
 	
-    protected JemStrat(){}
+    protected JemStrat(NccGlobals globals) {this.globals=globals;}
 
 	/** 
-	 * Method doFor(JemRecordList) processes a list of JemRecords.
-	 * @param r a JemRecordList of JemRecords to process
-	 * @return a JemEquivList of the new frontier JemEquivRecords
+	 * Method doFor(JemRecordList) processes a list of leaf and internal
+	 * records.
+	 * @param r a JemRecordList of JemEquivRecords to process
+	 * @return a JemLeafList of the new leaf JemEquivRecords
 	 */
-    public JemEquivList doFor(JemRecordList r){
+    public JemLeafList doFor(JemRecordList r){
 		depth++;
-		JemEquivList out= r.apply(this);
+		JemLeafList out = r.apply(this);
 		depth--;
         return out;
     }
 	
 	
 	/** 
-	 * Method doFor(JemRecord) processes a single JemRecord.
+	 * Method doFor(JemEquivRecord) processes a single JemEquivRecord.
 	 * @param rr the JemRecords to process
-	 * @return a JemEquivList of the new frontier JemEquivRecords
+	 * @return a JemLeafList of the new leaf JemEquivRecords
 	 */	
-    public JemEquivList doFor(JemRecord rr){
+    public JemLeafList doFor(JemEquivRecord rr){
 		depth++;
-		JemEquivList out= rr.apply(this);
+		JemLeafList out = rr.apply(this);
 		depth--;
         return out;
     }
@@ -120,40 +114,28 @@ public abstract class JemStrat {
 
     /** 
 	 * doFor(NetObject) tests the NetObject to decide its catagory.
-	 * @param n The NetObject to catagorize
-	 * @return an Integer for the choice, or null to drop this NetObject.
+	 * The default method generates no offspring.
+	 * @param n the NetObject to catagorize
+	 * @return an Integer for the choice.
 	 */
-    public abstract Integer doFor(NetObject n);
+    public Integer doFor(NetObject n) {return CODE_NO_CHANGE;}
 
 	//comments on the "code"th offspring of g
-	protected JemEquivRecord pickAnOffspring(Integer code, JemEquivList g,
-											 String ss){
-		int value= code.intValue();
+	JemEquivRecord pickAnOffspring(Integer code, JemLeafList g, String label) {
+		int value = code.intValue();
 		for(Iterator it=g.iterator(); it.hasNext();){
-			JemEquivRecord ch= (JemEquivRecord)it.next();
-			if(ch.getValue() == value){
-				Messenger.line(ch.nameString() + " of "
-									+ ch.maxSize() + " " + ss);
-				return ch;
+			JemEquivRecord er = (JemEquivRecord)it.next();
+			if(er.getValue()==value){
+				globals.println(label+": "+ er.nameString());
+				return er;
 			}
 		}
 		//falls out if not found
-		Messenger.line("without " + ss);
+		globals.println(label+": none");
 		return null;
 	}
 
-	/**
-	 * Get the parent of the 0th JemEquivRecord
-	 * @param el list of JemEquivRecords
-	 * @return parent of 0th JemEquivRecord or null if el is empty
-	 */
-	protected JemRecord getOffspringParent(JemEquivList el){
-		if (el.size()==0) return null;
-		JemEquivRecord er = (JemEquivRecord) el.get(0);
-		return (JemRecord) er.getParent();
-	}
-	
-	protected String offspringStats(JemEquivList el) {
+	protected String offspringStats(JemLeafList el) {
 		int retired=0, mismatched=0, active=0;
 		for (Iterator it=el.iterator(); it.hasNext();) {
 			JemEquivRecord er = (JemEquivRecord) it.next();
@@ -161,40 +143,29 @@ public abstract class JemStrat {
 			else if (er.isRetired())  retired++;
 			else active++;
 		}
-		return " yielding "+mismatched+" mismatched "+retired+" retired "+
-		       active+" active JemEquivRecords";
+		String msg = "  offspring counts: #retired="+retired+
+			         " #mismatched="+mismatched+" #active="+active;
+		if (mismatched!=0) {
+			globals.println(msg);
+			JemStratPrint.doYourJob(globals.getRoot(), globals);
+			//JemStratDebug.doYourJob(globals);
+			globals.error("mismatched!");
+			return null;		        				}
+		return msg;
 	}
 	
     protected void startTime(String strat, String target){
         theStartDate= new Date();
-        passNumber++;
-        String sn;
-        sn= passNumber + " ";
-        String sss= sn + strat + " doing " + target;
-        Messenger.line(sss);
+        globals.println((globals.passNumber++)+" "+
+					   strat + " doing " + target);
     }
 
     protected long elapsedTime(){
         Date d= new Date();
         long time= d.getTime() - theStartDate.getTime();
-        Messenger.line(" took " + time + " miliseconds");
-        Messenger.freshLine();
+        globals.println(" took " + time + " miliseconds");
+        globals.println();
         return time;
     }
-
-    protected long elapsedTime(int actions){
-        Date d= new Date();
-        long time= d.getTime() - theStartDate.getTime();
-        float average= 0;
-        if(actions > 0)average= (float)time * 1000 / (float)actions;
-        Messenger.say(" took " +
-                        time + " miliseconds to do " +
-                        actions + " actions: average action time is ");
-        if(actions > 0) Messenger.line(average + " microseconds");
-        else Messenger.line("uncertain");
-        Messenger.freshLine();
-        return time;
-    }
-
 
 }

@@ -1,0 +1,140 @@
+/* -*- tab-width: 4 -*-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: jemini_2.java
+ *
+ * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+*/
+
+package com.sun.electric.tool.ncc;
+
+import java.util.*;
+
+import com.sun.electric.database.hierarchy.*;
+import com.sun.electric.database.prototype.*;
+import com.sun.electric.database.topology.*;
+import com.sun.electric.database.network.Netlist;
+import com.sun.electric.technology.*;
+import com.sun.electric.tool.io.*;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.database.hierarchy.View;
+
+import com.sun.electric.tool.ncc.basicA.Messenger;
+import com.sun.electric.tool.generator.layout.LayoutLib;
+
+public class NccJob extends Job {
+	private Messenger messenger;
+	
+	private String fullName(Cell cell) {
+		String name = cell.getProtoName();
+		int ver = cell.getVersion();
+		name += ";"+ver;
+		View view = cell.getView();
+		name += "{"+view.getAbbreviation()+"}";
+		return name;
+	}
+	
+	private void compareCellToSelf(Cell cell) {
+		messenger.println("SelfComparison of: "+fullName(cell));
+		NccOptions options = new NccOptions();
+		options.messenger = messenger;
+		options.checkSizes = false;
+
+		List cells = new ArrayList();
+		cells.add(cell);  cells.add(cell);
+		List contexts = new ArrayList();
+		contexts.add(null);  contexts.add(null);
+		List netlists = new ArrayList();
+		Netlist netlist = cell.getNetlist(true);
+		netlists.add(netlist);  netlists.add(netlist);
+
+		boolean matched = NccEngine.compare(cells, contexts, netlists, options);
+		messenger.println("Ncc "+(matched ? "succeeds" : "fails"));
+		messenger.error(!matched, "Ncc fails");
+	}
+	
+	private void doOneCell(String testDir) {
+//		Library lib = 
+//			LayoutLib.openLibForRead("qFourP1", testDir+"qFourP1.elib");
+//		Cell cell = lib.findNodeProto("expTail{lay}");
+		Library lib = 
+			LayoutLib.openLibForRead("gasp", testDir+"gasp.elib");
+		Cell cell = lib.findNodeProto("gaspRowC{sch}");
+		compareCellToSelf(cell);
+	}
+	
+	
+	private void doLib(String testDir, String libName) {
+		Library lib = LayoutLib.openLibForRead(libName, 
+											   testDir+libName+".elib");
+		for (Iterator it=lib.getCells(); it.hasNext();) {
+			Cell cell = (Cell) it.next();
+			View view = cell.getView();
+			if (view==View.ICON)  continue;
+			// galleries
+			if (cell.getProtoName().equals("gallery"))  continue;
+			if (cell.getProtoName().equals("halfKeepIndex"))  continue;
+			if (cell.getProtoName().equals("aScanIndex"))  continue;
+			if (cell.getProtoName().equals("aScanIndexB"))  continue;
+			
+			// paralleled gates need random matching
+			// These were eliminated by the Cell based parallel merging
+//			if (cell.getProtoName().equals("gaspRowC"))  continue;
+//			if (cell.getProtoName().equals("gaspRing1"))  continue;
+//			if (cell.getProtoName().equals("gaspRowD"))  continue;
+			
+			compareCellToSelf(cell);									
+		}
+	}
+	
+    public void doIt() {
+		System.out.println("Ncc starting");
+		
+		String homeDir;
+		if (!LayoutLib.osIsWindows()) {
+			homeDir = "/home/rkao/";
+		} else {
+			homeDir = "x:/";
+		}
+		String testDir = homeDir+"ivanTest/qFourP1/electric-final/";
+		messenger = new Messenger(testDir+"jeminiLog.txt");
+		
+		//doOneCell(testDir);		
+		//doLib(testDir, "purple");		
+		//doLib(testDir, "inv");		
+		//doLib(testDir, "invDrive");		
+		//doLib(testDir, "psDrive");
+		//doLib(testDir, "srNand");
+		//doLib(testDir, "gasp");
+		//doLib(testDir, "senseAmp");
+		//doLib(testDir, "scanChainFour");
+		//doLib(testDir, "latches");
+		//doLib(testDir, "gasP_COR");
+		doLib(testDir, "rings");
+		
+    }
+
+	// ------------------------- public method --------------------------------
+	public NccJob(){
+		super("Run Jemini", User.tool, Job.Type.CHANGE, 
+			  null, null, Job.Priority.ANALYSIS);
+		startJob();
+	}
+}

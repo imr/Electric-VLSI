@@ -25,7 +25,8 @@
 //revised for jemTree interface 16 October 03
 
 package com.sun.electric.tool.ncc.trees;
-import com.sun.electric.tool.ncc.basicA.Name;
+import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.basicA.Messenger;
 
 import java.util.List;
@@ -50,7 +51,7 @@ public abstract class NetObject {
 	}
 
     // ---------- private data -------------
-    private Name myName;
+    private String myName;
     private JemCircuit myParent;
 	
     /** 
@@ -76,10 +77,10 @@ public abstract class NetObject {
 
     // ---------- protected methods ----------
 
-    protected NetObject(Name n){myName= n;}
+    protected NetObject(String name){myName=name;}
 
     public static void error(boolean pred, String msg) {
-    	if (pred) Messenger.error(msg);
+    	LayoutLib.error(pred, msg);
     }
 
     /** 
@@ -89,8 +90,7 @@ public abstract class NetObject {
 	
     // ---------- public methods ----------
 
-    public Name getTheName(){return myName;} //name alone
-    public String getStringName(){return myName.toString();} //name alone
+    public String getName(){return myName;} //name alone
 
     /** 
 	 * getCode returns an integer hash code for this NetObject.
@@ -115,7 +115,7 @@ public abstract class NetObject {
         return (nameString() + ": " + connectionString(6));
     }
 
-    public abstract void printMe(int i); //i is the size limit
+    public abstract void printMe(int i, Messenger messenger); //i is the size limit
 
 }
 

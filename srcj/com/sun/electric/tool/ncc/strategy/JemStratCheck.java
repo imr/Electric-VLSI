@@ -23,6 +23,7 @@
 */
 
 package com.sun.electric.tool.ncc.strategy;
+import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.jemNets.*;
 import com.sun.electric.tool.ncc.trees.*;
 import com.sun.electric.tool.ncc.lists.*;
@@ -33,15 +34,16 @@ import java.util.HashMap;
 public class JemStratCheck extends JemStrat {
 
     //these are variables that pass between levels of the tree
-    private JemRecord recordParent;
+    private JemEquivRecord recordParent;
     private JemCircuit circuitParent;
 
-    private JemStratCheck(){}
+    private JemStratCheck(NccGlobals globals) {super(globals);}
 
-	public static JemEquivList doYourJob(JemRecord j) {
-		JemStratCheck jsc = new JemStratCheck();
+	public static JemLeafList doYourJob(JemEquivRecord j, 
+									     NccGlobals globals) {
+		JemStratCheck jsc = new JemStratCheck(globals);
 		jsc.preamble(j);
-		JemEquivList el = jsc.doFor(j);    	
+		JemLeafList el = jsc.doFor(j);    	
 		jsc.summary(j);
 		return el;
 	}
@@ -49,22 +51,22 @@ public class JemStratCheck extends JemStrat {
     // ---------- the tree walking code ---------
 
     //do something before starting
-    private void preamble(JemRecord j){
-		startTime("JemStratCheck", j.nameString());
+    private void preamble(JemEquivRecord j){
+//		startTime("JemStratCheck", j.nameString());
     }
 
     //summarize at the end
-    private void summary(JemRecord x){
-        elapsedTime();
+    private void summary(JemEquivRecord x){
+//        elapsedTime();
     }
 
-    // ---------- for JemRecord -------------
+    // ---------- for JemEquivRecord -------------
 
-    public JemEquivList doFor(JemRecord j){
+    public JemLeafList doFor(JemEquivRecord j){
     	j.checkMe(recordParent);
-        JemRecord oldParent= recordParent; //save the old one
+        JemEquivRecord oldParent= recordParent; //save the old one
         recordParent= j;
-		JemEquivList el= super.doFor(j);
+		JemLeafList el= super.doFor(j);
         recordParent= oldParent;
         return el;
     }

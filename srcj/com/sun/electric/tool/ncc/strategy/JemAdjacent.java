@@ -23,10 +23,11 @@
 */
 
 /**
- * JemAdjacent returns a list of the JemEquivRecords adjacent to the
+ * JemAdjacent returns a list of the leaf JemEquivRecords adjacent to the
  * input list or record
  */
 package com.sun.electric.tool.ncc.strategy;
+import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.ncc.lists.*;
 import com.sun.electric.tool.ncc.trees.*;
@@ -40,42 +41,44 @@ public class JemAdjacent extends JemStrat {
 	private int numAdjacentUnique;
 	private Set adjacent = new HashSet();
 
-	private JemAdjacent(){}
+	private JemAdjacent(NccGlobals globals) {super(globals);}
 	
-	public static JemEquivList doYourJob(JemRecordList l) {
-		JemAdjacent ja = new JemAdjacent();
+	public static JemLeafList doYourJob(JemRecordList l, 
+									     NccGlobals globals) {
+		JemAdjacent ja = new JemAdjacent(globals);
 		return ja.doFor(l);
 	}
 	
 	//do something before starting
 	private void preamble(JemRecordList j){
-		startTime("JemAdjacent", "a list of " + j.size());
+//		startTime("JemAdjacent", "a list of " + j.size());
 	}
 	
     //summarize at the end
-    private JemEquivList summary(){
-		JemEquivList offspring = new JemEquivList();
+    private JemLeafList summary(){
+		JemLeafList offspring = new JemLeafList();
 		for (Iterator it=adjacent.iterator(); it.hasNext();) {
 			offspring.add((JemEquivRecord)it.next());
 		}
 
-		Messenger.line("JemAdjacent done - processed " +
-							numEquivProcessed + " JemEquivRecords");
-		Messenger.line(offspringStats(offspring));
+//		globals.println("JemAdjacent done - processed " +
+//							numEquivProcessed + " JemEquivRecords");
 
-		elapsedTime(numEquivProcessed);
-		return offspring.selectActive();
+		globals.println(" JemAdjacent"+offspringStats(offspring));
+
+//		elapsedTime();
+		return offspring.selectActive(globals);
     }
 	
 	// ---------- for JemRecordList -------------
 	
-    public JemEquivList doFor(JemRecordList g){
+    public JemLeafList doFor(JemRecordList g){
 		preamble(g);
 		super.doFor(g);
         return summary();
     }
 	
-	// ---------- for JemRecord -------------
+	// ---------- for JemEquivRecord -------------
 	
 	/** 
 	 * add JemEquivRecords that are adjacent to the contents of er. A
@@ -100,24 +103,17 @@ public class JemAdjacent extends JemStrat {
 	}
 	
 	/** The real output of this method is what it adds to adjacent */
-    public JemEquivList doFor(JemRecord g){
-		if(g instanceof JemHistoryRecord){
-			Messenger.line("processing " + g.nameString());
-			super.doFor(g);
-		} else {
-			error(!(g instanceof JemEquivRecord), "unrecognized JemRecord");
+    public JemLeafList doFor(JemEquivRecord g){
+		if(g.isLeaf()){
 			numEquivProcessed++;
-			JemEquivRecord er= (JemEquivRecord)g;
-			addAdjacentEquivRecs(er);
+			addAdjacentEquivRecs(g);
 //			String s= ("processed " + g.nameString());
-//			Messenger.line(s + " to find " + out.size() + " adjacent");
+//			globals.println(s + " to find " + out.size() + " adjacent");
+		} else {
+			globals.println("processing " + g.nameString());
+			super.doFor(g);
 		}
-		return new JemEquivList(); // return value is ignored
+		return new JemLeafList(); // return value is ignored
 	}
 	
-	//------------- for NetObject ------------
-	public Integer doFor(NetObject n){
-		error(true, "JemAdjacent should never call doFor(NetObject)");
-		return CODE_ERROR;
-	}
 }

@@ -25,8 +25,7 @@
 
 package com.sun.electric.tool.ncc.jemNets;
 import com.sun.electric.tool.ncc.basicA.Messenger;
-import com.sun.electric.tool.ncc.basicA.Name;
-import com.sun.electric.tool.ncc.trees.JemEquivRecord;
+import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.trees.JemCircuit;
 import com.sun.electric.tool.ncc.trees.NetObject;
 
@@ -40,59 +39,34 @@ import java.util.Iterator;
 
 public class Port extends NetObject {
     // ---------- private data -------------
-    private static final int NUM_CON= 1;
-    private static final int termCoefs[] = {47};
-    private static int portCount= 0; //the count of all Ports made
 	private Wire wire;    
     
-    // ---------- private methods ----------
-    private Port(Name n){
-		super(n);
-		portCount++;
-    }
-    
     // ---------- public methods ----------
-    
-    public static Port please(Name n){
-        return new Port(n);
-    }
-
-    public static Port please(JemCircuit cc, Name n){
-        Port p= new Port(n);
-	 	cc.adopt(p);
-        return p;
-    }
-    
-    public Type getNetObjType() {return Type.PORT;}
-
-	public Iterator getConnected() {
-		ArrayList l = new ArrayList();
-		return l.iterator();
+	public Port(String name, Wire w) {
+		super(name);  
+		wire = w;
+		wire.add(this);
 	}
 
-	public boolean isThisGate(int x){return false;}
-	
+    public Type getNetObjType() {return Type.PORT;}
+
+	public Iterator getConnected() {return (new ArrayList()).iterator();}
+
     // ---------- abstract commitment ----------
     public int size(){return 1;}
-    public int getNumCon(){return NUM_CON;}
-    public int[] getTermCoefs(){return termCoefs;} //the terminal coeficients
 
     public void connect(Wire w){
         wire = w;
-		w.add(this);
+		wire.add(this);
     }
 
 	public Wire getMyWire(){return wire;}
 
     public String nameString(){
-        return ("Port " + getStringName());
+        return ("Port " + getName());
     }
 
-    public String connectionString(int n){
-        String s= "is unconnected";
-        if(wire!=null)  s = wire.getStringName();
-        return ("is on " + s);
-    }
+    public String connectionString(int n){return "is on Wire: "+wire.getName();}
 
 	public void checkMe(JemCircuit parent){
 		error(parent!=getParent(), "wrong parent");
@@ -102,11 +76,10 @@ public class Port extends NetObject {
 			  wire.nameString());
 	}
 
-	public void printMe(int maxCon){
+	public void printMe(int maxCon, Messenger messenger){
 		String n= nameString();
 		String c= connectionString(maxCon);
-		Messenger.line(n + " " + c);
+		messenger.println(n + " " + c);
 	}
-	
 }
 

@@ -28,13 +28,15 @@
  * right lists.
  */
 package com.sun.electric.tool.ncc.strategy;
-import com.sun.electric.tool.ncc.trees.JemRecord;
-import com.sun.electric.tool.ncc.trees.JemHistoryRecord;
+
+import com.sun.electric.tool.ncc.*;
+import com.sun.electric.tool.ncc.NccEngine;
+import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.trees.JemEquivRecord;
 import com.sun.electric.tool.ncc.trees.JemCircuit;
 import com.sun.electric.tool.ncc.trees.NetObject;
 import com.sun.electric.tool.ncc.lists.JemRecordList;
-import com.sun.electric.tool.ncc.lists.JemEquivList;
+import com.sun.electric.tool.ncc.lists.JemLeafList;
 import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.ncc.jemNets.Part;
 import com.sun.electric.tool.ncc.jemNets.Wire;
@@ -42,56 +44,27 @@ import com.sun.electric.tool.ncc.jemNets.Wire;
 import java.util.Iterator;
 
 public class JemStratVariable {
-	JemSets myJemSets;
+	NccGlobals globals;
 
-	private static void error(boolean pred, String msg) {
-		if (pred) Messenger.error(msg);
-	}
+	private void error(boolean pred, String msg) {globals.error(msg);}
 
-    private JemStratVariable(JemSets js){myJemSets= js;}
-
-	public static void doYourJob(JemSets js) {
-		JemStratVariable jsv = new JemStratVariable(js);
-		jsv.doAllProcess();
-	}
-
-	private void doAllProcess(){
-        Messenger.line("----- starting doAllProcess");
-
-		while (true) {
-			JemEquivList partOffspring = hashFrontierParts(myJemSets);
-			chaseRetired(partOffspring);
-		
-			JemEquivList wireOffspring = hashFrontierWires(myJemSets);
-			chaseRetired(wireOffspring);
-			if (partOffspring.size()==0 && wireOffspring.size()==0) break;
-		}
-		
-		while (true) {
-			JemStratCount.doYourJob(myJemSets.starter);
-			JemEquivList offspring = JemWireName.doYourJob(myJemSets);
-			if (offspring.size()==0) break;
-			chaseRetired(offspring);
-		}
-
-        Messenger.line("----- done doAllProcess");
-	}
-
-	private JemEquivList hashFrontierParts(JemSets in){
-		Messenger.line("----- hash all Parts on frontier");
-		JemEquivList frontier = JemStratFrontier.doYourJob(in.parts);
-		JemEquivList offspring = JemHashPartAll.doYourJob(frontier);
+	private JemLeafList hashFrontierParts(){
+		if (globals.getParts()==null)  return new JemLeafList();
+		globals.println("----- hash all Parts on frontier");
+		JemLeafList frontier = JemStratFrontier.doYourJob(globals.getParts(), globals);
+		JemLeafList offspring = JemHashParts.doYourJob(frontier, globals);
 		return offspring;
 	}
 	
-	private JemEquivList hashFrontierWires(JemSets in){
-		Messenger.line("----- hash all Wires on frontier");
-		JemEquivList frontier = JemStratFrontier.doYourJob(in.wires);
-		JemEquivList offspring = JemHashWireAll.doYourJob(frontier);
+	private JemLeafList hashFrontierWires(){
+		if (globals.getParts()==null)  return new JemLeafList();
+		globals.println("----- hash all Wires on frontier");
+		JemLeafList frontier = JemStratFrontier.doYourJob(globals.getWires(), globals);
+		JemLeafList offspring = JemHashWires.doYourJob(frontier, globals);
 		return offspring;
 	}
 	
-	private boolean isPartsList(JemEquivList el) {
+	private boolean isPartsList(JemLeafList el) {
 		JemEquivRecord er = (JemEquivRecord) el.get(0);
 		return er.getNetObjType()==NetObject.Type.PART;
 	}
@@ -104,23 +77,26 @@ public class JemStratVariable {
 	 * divided JemEquivRecords.
 	 * @param newDivided newly divided JemEquivRecords
 	 */
-	private void chaseRetired(JemEquivList newDivided) {
-		Messenger.line("------ starting chaseRetired");
+	private void chaseRetired(JemLeafList newDivided) {
+		// if nothing divided then suppress chaseRetired messages
+		if (newDivided.size()==0) return;
+		
+		globals.println("------ starting chaseRetired");
 		int i=0;
 		while (true) {
-			Messenger.line("------ chaseRetired pass: " + i++);
+			globals.println("------ chaseRetired pass: " + i++);
 			if (newDivided.size()==0) break;
-			JemEquivList newRetired = newDivided.selectRetired();
+			JemLeafList newRetired = newDivided.selectRetired(globals);
 			if (newRetired.size()==0) break;
-			JemEquivList adjacent = JemAdjacent.doYourJob(newRetired);
+			JemLeafList adjacent = JemAdjacent.doYourJob(newRetired, globals);
 			if (adjacent.size()==0)  break;
 			boolean doParts = isPartsList(adjacent);
-			newDivided = doParts ? JemHashPartAll.doYourJob(adjacent) :
-								   JemHashWireAll.doYourJob(adjacent);
+			newDivided = doParts ? JemHashParts.doYourJob(adjacent, globals) :
+								   JemHashWires.doYourJob(adjacent, globals);
 		}
-		Messenger.line("------ done  chaseRetired after "+i+" passes");
+		globals.println("------ done  chaseRetired after "+i+" passes");
 		//		JemStratCheck.doYourJob(myJemSets.starter);
-		Messenger.freshLine();
+		globals.println();
 	}
 	
 	/**
@@ -130,22 +106,53 @@ public class JemStratVariable {
 	 * yields no newly divided JemEquivRecords.
 	 * @param newDivided newly divided JemEquivRecords
 	 */
-	private void chaseDivided(JemEquivList newDivided) {
-		Messenger.line("------ starting chaseDivided");
+	private void chaseDivided(JemLeafList newDivided) {
+		// if nothing divided then suppress chaseDivided messages
+		if (newDivided.size()==0) return;
+
+		globals.println("------ starting chaseDivided");
 		int i=0;
 		while (true) {
-			Messenger.line("------ chaseDivided pass: " + i++);
+			globals.println("------ chaseDivided pass: " + i++);
 			if (newDivided.size()==0) break;
-			JemEquivList adjacent = JemAdjacent.doYourJob(newDivided);
+			JemLeafList adjacent = JemAdjacent.doYourJob(newDivided, globals);
 			if (adjacent.size()==0)  break;
 			boolean doParts = isPartsList(adjacent);
-			newDivided = doParts ? JemHashPartAll.doYourJob(adjacent) :
-								   JemHashWireAll.doYourJob(adjacent);
+			newDivided = doParts ? JemHashParts.doYourJob(adjacent, globals) :
+								   JemHashWires.doYourJob(adjacent, globals);
 		}
-		Messenger.line("------ done  chaseDivided after "+i+" passes");
+		globals.println("------ done  chaseDivided after "+i+" passes");
 		//		JemStratCheck.doYourJob(myJemSets.starter);
-		Messenger.freshLine();
+		globals.println();
 	}
 	
+	// contructor does all the work
+	private JemStratVariable(NccGlobals globals){
+		this.globals = globals;
 
+		globals.println("----- starting JemStratVariable");
+
+		while (true) {
+			JemLeafList partOffspring = hashFrontierParts();
+			chaseRetired(partOffspring);
+		
+			JemLeafList wireOffspring = hashFrontierWires();
+			chaseRetired(wireOffspring);
+			if (partOffspring.size()==0 && wireOffspring.size()==0) break;
+		}
+		
+		while (true) {
+			JemStratCount.doYourJob(globals.getRoot(), globals);
+			JemLeafList offspring = JemWireName.doYourJob(globals);
+			if (offspring.size()==0) break;
+			chaseRetired(offspring);
+		}
+
+		globals.println("----- done JemStratVariable");
+	}
+
+	// ------------------------ public methods --------------------------------
+	public static void doYourJob(NccGlobals globals) {
+		new JemStratVariable(globals);
+	}
 }

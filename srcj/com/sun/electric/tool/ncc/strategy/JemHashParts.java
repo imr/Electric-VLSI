@@ -24,50 +24,50 @@
 // JemHashPartAll hashes Parts by all Wires.
 
 package com.sun.electric.tool.ncc.strategy;
+import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.ncc.jemNets.*;
 import com.sun.electric.tool.ncc.trees.*;
 import com.sun.electric.tool.ncc.lists.*;
 
-public class JemHashPartAll extends JemStrat {
+public class JemHashParts extends JemStrat {
 	private int numPartsProcessed;
 	private int numEquivProcessed;
 
-    private JemHashPartAll(){}
+    private JemHashParts(NccGlobals globals){super(globals);}
 	
-	public static JemEquivList doYourJob(JemRecordList l){
-		JemHashPartAll jhpa = new JemHashPartAll();
-		jhpa.preamble(l);
-		JemEquivList offspring= jhpa.doFor(l);
+	public static JemLeafList doYourJob(JemRecordList l,
+	                                     NccGlobals globals){
+		JemHashParts jhpa = new JemHashParts(globals);
+
+		// If no Parts suppress all JemHashParts messages
+		if (l.size()==0) return new JemLeafList();
+
+		jhpa.preamble(l.size());
+		JemLeafList offspring= jhpa.doFor(l);
 		jhpa.summary(offspring);
 		return offspring;
 	}
 	
     //do something before starting
-    private void preamble(JemRecordList j){
-		startTime("JemHashPartAll", "a list of size: "+j.size());
+    private void preamble(int nbParts){
+		startTime("JemHashParts", nbParts+" Parts");
     }
 	
-	//do something before starting
-    private void preamble(JemRecord j){
-		startTime("JemHashPartAll", j.nameString());
-    }
-
     //summarize at the end
-    private void summary(JemEquivList offspring){
-		//JemEquivList cc= JemEquivRecord.tryToRetire(offsp);
-		Messenger.line("JemHashPartAll processed " +
-							numPartsProcessed + " Parts from " +
-							numEquivProcessed + " JemEquivRecords");
-		Messenger.line(offspringStats(offspring));
-		Messenger.line(offspring.sizeInfoString());
-		elapsedTime(numPartsProcessed);
+    private void summary(JemLeafList offspring){
+		globals.println(" processed " +
+					   numPartsProcessed + " Parts from " +
+					   numEquivProcessed + " leaf Records");
+		globals.println(offspringStats(offspring));
+		globals.println(offspring.sizeInfoString());
+		elapsedTime();
     }
 	
-	// ---------- for JemRecord -------------
+	// ---------- for JemEquivRecord -------------
 	
-    public JemEquivList doFor(JemRecord g){
-		if (g instanceof JemEquivRecord)  numEquivProcessed++;
+    public JemLeafList doFor(JemEquivRecord g){
+		if (g.isLeaf())  numEquivProcessed++;
 		return super.doFor(g);
     }
 	

@@ -24,12 +24,13 @@
 
 /* 
  * JemStratWireSplit divides wires into those with gates and those
- * without gates doYourJob(JemSets) uses wires as the seed and leaves
+ * without gates doYourJob(NccGlobals) uses wires as the seed and leaves
  * the two classes in locations called "wiresWithGates" and
  * "wiresWithoutGates".  it also fixes up the "wires" location to be
  * the new JemHistoryRecord.
  */
 package com.sun.electric.tool.ncc.strategy;
+import com.sun.electric.tool.ncc.*;
 import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.ncc.trees.*;
 import com.sun.electric.tool.ncc.lists.*;
@@ -38,7 +39,6 @@ import com.sun.electric.tool.ncc.jemNets.*;
 import java.util.Iterator;
 
 public class JemStratWireSplit extends JemStrat {
-
 	private int numWithGates;
 	private int numNoGates;
 
@@ -46,54 +46,53 @@ public class JemStratWireSplit extends JemStrat {
 	protected static final Integer CODE_NO_GATES= new Integer(0);
 	protected static final Integer CODE_WITH_GATES= new Integer(1);
 
-    private JemStratWireSplit(){}
+    private JemStratWireSplit(NccGlobals globals) {super(globals);}
 
     // ---------- to do the job -------------
 
-	public static JemRecord doYourJob(JemSets jss){
-		JemStratWireSplit jsws = new JemStratWireSplit();
-		return jsws.doYourJob2(jss);
+	public static void doYourJob(NccGlobals globals){
+		JemStratWireSplit jsws = new JemStratWireSplit(globals);
+		jsws.doYourJob2();
 	}
 
-	private JemRecord doYourJob2(JemSets jss){
-        JemEquivRecord ss= (JemEquivRecord) jss.wires;
+	private void doYourJob2(){
+        JemEquivRecord wires = globals.getWires();
 
-		preamble(ss);
-		JemEquivList offspring= doFor(ss);
+		preamble(wires);
+		JemLeafList offspring= doFor(wires);
 		summary(offspring);
-
-        Messenger.line("Jemini proceeds with these maximum counts: ");
-
-		jss.wires = getOffspringParent(offspring);
-		jss.noGates= pickAnOffspring(CODE_NO_GATES, offspring, 
-									 "Wires without gates and");
-        jss.withGates= pickAnOffspring(CODE_WITH_GATES, offspring, 
-									   "Wires with gates");
-
-		Messenger.line("JemStratWireSplit: ");
-		Messenger.line(offspringStats(offspring));
-		Messenger.freshLine();
-
-		for(Iterator it=offspring.iterator(); it.hasNext();){
-			JemEquivRecord er= (JemEquivRecord) it.next();
-			error(er.getParent() != jss.wires, "got problem");
-		}
-        return jss.wires;
 	}
 
 	//do something before starting
-    private void preamble(JemRecord j){
+    private void preamble(JemEquivRecord j){
         startTime("JemStratWireSplit" , j.nameString());
     }
 
 	//summarize at the end
-    private void summary(JemEquivList cc){
-        Messenger.line("JemStratWireSplit separated " +
-                            numNoGates + " Wires without gates and " +
-                            numWithGates + " Wires with gates into " +
-                            NUM_CODES + " distinct hash groups");
-        Messenger.line(cc.sizeInfoString());
-        elapsedTime(numNoGates + numWithGates);
+    private void summary(JemLeafList offspring){
+        globals.println(" JemStratWireSplit found " +
+                       numNoGates + " Wires without gates and " +
+                       numWithGates + " Wires with gates");
+        globals.println(offspring.sizeInfoString());
+		globals.println(" JemStratWireSplit offspring: ");
+
+		JemEquivRecord withGates=null, noGates=null;
+		if (offspring.size()==0) {
+			// special case. If all wires have gates or if all wires have 
+			// no gates then we don't split the EquivRec
+			error(numWithGates!=0 && numNoGates!=0, "can't happen");
+			if (numWithGates!=0) withGates = globals.getWires();
+			if (numNoGates!=0) noGates = globals.getWires();
+		} else {
+			noGates = pickAnOffspring(CODE_NO_GATES, offspring, 
+											  "  Wires without gates");
+			withGates = pickAnOffspring(CODE_WITH_GATES, offspring, 
+											  "  Wires with gates");
+		}
+		globals.setWithWithoutGates(withGates, noGates);
+
+		globals.println(offspringStats(offspring));
+        elapsedTime();
     }
 
     //------------- for NetObject ------------

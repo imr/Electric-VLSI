@@ -24,19 +24,16 @@
 //	Updated 4 October 2003
 
 package com.sun.electric.tool.ncc.jemNets;
-import com.sun.electric.tool.ncc.basicA.Name;
 import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.ncc.jemNets.Part;
 import com.sun.electric.tool.ncc.jemNets.Wire;
 
-public class Resistor extends Part{
+public class Resistor extends Part {
     // ---------- private data -------------
-    private static final int NUM_CON= 2;
     private static final int TERM_COEFFS[] = {17,17}; //resistors are symmetric
-    private float myValue= 0; //resistance
+    private float resistance;
 
     // ---------- private methods ----------
-    private Resistor(Name n){super(n, NUM_CON);}
 
     private void flip(){
         Wire w = pins[0];
@@ -45,26 +42,23 @@ public class Resistor extends Part{
     }
 
     // ---------- public methods ----------
-
-    public static Resistor please() {return new Resistor(null);}
-
-    public static Resistor please(Name n){return new Resistor(n);}
-
+	public Resistor(String name, double resist, Wire w1, Wire w2) {
+		super(name, new Wire[]{w1, w2});
+		resistance = (float) resist;
+	}
 
     // ---------- abstract commitment ----------
 
 	public boolean isThisGate(int x){return false;}
-    public int getNumCon(){return NUM_CON;}
-    public int[] getTermCoefs(){return TERM_COEFFS;} //the terminal coeficients
+    public int[] getTermCoefs(){return TERM_COEFFS;}
 	public String valueString(){
-		String sz= "R= " + myValue;
+		String sz= "R= " + resistance;
 		return sz;
-	} // end of valueString
+	}
 	
     // ---------- public methods ----------
 
-    public float getValue(){return myValue;}
-    public void setValue(float v){myValue= v;}
+    public float resistance(){return resistance;}
 
 	/** A method to test if this Part touches a Wire with a gate connection.
 	 * @param w the Wire to test
@@ -90,10 +84,10 @@ public class Resistor extends Part{
 
         //OK to merge
         float ff= 0;
-        float pp= r.getValue();
-        float mm= getValue();
+        float pp= r.resistance();
+        float mm= resistance();
         if(pp != 0 && mm != 0)ff= (ff * mm)/(ff + mm);
-        myValue= ff;
+        resistance= ff;
         r.deleteMe();
         return true; //return true if merged
     }
@@ -102,12 +96,12 @@ public class Resistor extends Part{
     // ---------- printing methods ----------
 
     public String nameString(){
-		return ("Resistor " + getStringName());
+		return ("Resistor " + getName());
     }
 
     public String connectionString(int n){
-		String s = pins[0].getStringName();
-		String e = pins[1].getStringName();
+		String s = pins[0].getName();
+		String e = pins[1].getName();
 		return ("S= " + s + " E= " + e);
     }
 

@@ -1,0 +1,158 @@
+/* -*- tab-width: 4 -*-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: NccGlobals.java
+ *
+ * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+*/
+
+/* 
+ * NccGlobals holds all the global state for an Ncc run.  All class
+ * members that were previously static have been moved to this
+ * class. This allows an Ncc run to be completely thread safe.
+ */
+package com.sun.electric.tool.ncc;
+import com.sun.electric.tool.generator.layout.LayoutLib; 
+import com.sun.electric.tool.ncc.jemNets.NccNetlist;
+import com.sun.electric.tool.ncc.trees.JemCircuit;
+import com.sun.electric.tool.ncc.trees.JemEquivRecord;
+import com.sun.electric.tool.ncc.lists.JemRecordList;
+import com.sun.electric.tool.ncc.basicA.Messenger;
+import com.sun.electric.tool.ncc.strategy.JemStrat;
+import com.sun.electric.tool.ncc.strategy.JemStratCount;
+import com.sun.electric.tool.ncc.strategy.JemStratCheck;
+
+import java.util.*;
+
+/**
+ * Generate non-recurring random integers
+ */
+class NccRandom {
+	private Random randGen = new Random(204);
+	private HashSet randoms = new HashSet();
+
+	public int next() {
+		while (true) {
+			Integer r = new Integer(randGen.nextInt());
+			if (!randoms.contains(r)) {
+				randoms.add(r);
+				return r.intValue();
+			}
+		}
+	}
+}
+
+public class NccGlobals {
+	// ---------------------------- private data ------------------------------
+	private static final int CODE_PART= 0;
+	private static final int CODE_WIRE= 1;
+	private static final int CODE_PORT= 2;
+	private NccRandom randGen = new NccRandom();
+	/** all options controlling an Ncc run */ private final NccOptions options;
+	/** printing object */                    private final Messenger messenger;
+
+    /** root of the JemEquivRecord tree */    private JemEquivRecord root;
+    /** subtree holding parts */              private JemEquivRecord parts;
+    /** subtree holding wires */              private JemEquivRecord wires;
+    /** subtree holding ports */              private JemEquivRecord ports;
+	/** subtree holding wires without gates */private JemEquivRecord withoutGates;
+	/** subtree holding wires with gates */   private JemEquivRecord withGates;
+	/** pass number shared by strategies */   public int passNumber;
+	
+	private List getNetObjs(int code, NccNetlist nets) {
+		switch (code) {
+		  case CODE_PART:  return nets.getPartArray();
+		  case CODE_WIRE:  return nets.getWireArray(); 
+		  case CODE_PORT:  return nets.getPortArray();
+		}
+		messenger.error(true, "invalid code");
+		return null;
+	}
+	
+	// ----------------------------- private methods --------------------------
+	private JemEquivRecord buildEquivRec(int code, List nccNets) {
+		boolean atLeastOneNetObj = false;
+		List ckts = new ArrayList();
+		for (Iterator it=nccNets.iterator(); it.hasNext();) {
+			NccNetlist nets = (NccNetlist) it.next();
+			List netObjs = getNetObjs(code, nets);
+			if (netObjs.size()!=0)  atLeastOneNetObj = true;
+			ckts.add(JemCircuit.please(netObjs));
+		}
+		if (!atLeastOneNetObj) return null;
+		return JemEquivRecord.newLeafRecord(code, ckts, this);
+	}
+	
+	// ----------------------------- public methods --------------------------
+	/**
+	 * The constructor initializes global root, parts, wires, and ports from 
+	 * net lists. 
+	 * @param list of NccNetlists, one per Cell to be compared
+	 * @param options 
+	 */
+	public NccGlobals(NccOptions options, Messenger messenger) {
+		this.options = options;
+		this.messenger = messenger;
+	}
+	public void setInitialNetlists(List nccNets) {
+		parts = buildEquivRec(CODE_PART, nccNets);
+		wires = buildEquivRec(CODE_WIRE, nccNets);
+		ports = buildEquivRec(CODE_PORT, nccNets);
+
+		List el = new ArrayList();
+		if (parts!=null) el.add(parts);
+		if (wires!=null) el.add(wires);
+		if (ports!=null) el.add(ports);
+
+		root = JemEquivRecord.newRootRecord(el);
+	}
+	public void setWithWithoutGates(JemEquivRecord withGates, 
+								 	JemEquivRecord withoutGates) {
+		this.withGates=withGates;  this.withoutGates=withoutGates;
+	}
+
+	/** Tricky: when each TransistorTwo is created a wire is
+	 * deleted. This may leave the JemEquivRecord: withoutGates with
+	 * empty JemCircuits. This is an invalid state.  Set withoutGates
+	 * to null if the referenced JemEquivRecord is invalid. */
+	public void deleteEmptyWires() {
+		if (withoutGates.maxSize()==0)  withoutGates = null;
+	}
+	public JemEquivRecord getRoot() {return root;}
+	public JemEquivRecord getParts() {return parts;}
+	public JemEquivRecord getWires() {return wires;}
+	public JemEquivRecord getPorts() {return ports;}
+	public JemEquivRecord getWiresWithoutGates() {return withoutGates;}
+	public JemEquivRecord getWiresWithGates() {return withGates;}
+	
+	public void println(String msg) {messenger.println(msg);}
+	public void println() {messenger.println();}
+	public void print(String msg) {messenger.print(msg);}
+	public void flush() {messenger.flush();}
+	public void error(boolean pred, String msg) {
+		messenger.error(pred, msg);
+	}
+	public void error(String msg) {messenger.error(true, msg);}
+	
+	public NccOptions getOptions() {return options;}
+	
+	/** Generate non-recurring pseudo-random integers */
+	public int getRandom() {return randGen.next();}
+	public Messenger getMessenger() {return messenger;}
+}

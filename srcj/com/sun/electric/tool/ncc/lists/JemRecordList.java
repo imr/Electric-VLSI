@@ -22,35 +22,39 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.lists;
-import com.sun.electric.tool.ncc.trees.JemRecord;
+import com.sun.electric.tool.ncc.trees.JemEquivRecord;
 import com.sun.electric.tool.ncc.strategy.JemStrat;
 import com.sun.electric.tool.ncc.basicA.Messenger;
+import com.sun.electric.tool.generator.layout.LayoutLib;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
 
-public class JemRecordList extends JemList {
+public class JemRecordList {
+	protected List content = new ArrayList(); 
+	protected void error(boolean pred, String msg) {
+		LayoutLib.error(pred, msg);
+	}
 
-	public JemRecordList(){}
+	public JemRecordList() {}
+	public JemEquivRecord get(int ndx) {return (JemEquivRecord) content.get(ndx);}
+	public void add(Object x) {content.add(x);}
+	public void addAll(JemRecordList x) {content.addAll(x.content);}
+	public Iterator iterator(){return content.iterator();}
+	public void clear(){content.clear();}
+	public int size(){return content.size();}
 
-	protected boolean classOK(Object x){
-		return (x instanceof JemRecord);
-	} //end of classOK
-
-	protected void reportClassError(){
-		Messenger.error("JemRecordList can add only JemRecords");
-	}// end of reportClassError
-	
-	public JemEquivList apply(JemStrat s){
-		JemEquivList out= new JemEquivList();
-		Iterator it= iterator();
-		while(it.hasNext()){
-			JemRecord jr= (JemRecord)it.next();
-			JemEquivList xx= s.doFor(jr);
+	public JemLeafList apply(JemStrat s){
+		JemLeafList out= new JemLeafList();
+		for (Iterator it=content.iterator(); it.hasNext();){
+			JemEquivRecord jr= (JemEquivRecord)it.next();
+			JemLeafList xx= s.doFor(jr);
 			out.addAll(xx);
-		} //end of while
+		}
 		return out;
-	} //end of apply
+	}
 
-	//public JemRecord getFirstRecord(){return (JemRecord)getFirst();}
-
-} //end of JemRecordList
+}

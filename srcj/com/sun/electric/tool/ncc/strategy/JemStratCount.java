@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.TreeMap;
 import java.util.Iterator;
 
+import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.ncc.trees.*;
 import com.sun.electric.tool.ncc.lists.*;
@@ -41,10 +42,9 @@ import com.sun.electric.tool.ncc.jemNets.*;
  * the model for other JemStratNone classes.
 */
 public class JemStratCount extends JemStrat {
-	/**
-	 * Object to maintain a statistical datum (an int) for each type of
-	 * NetObject.
-	 */
+	// ------------------------------ types -----------------------------------
+	/** Object to maintain a statistical datum (an int) for each type of
+	 * NetObject. */
 	private static class NetObjStats {
 		private static final int NUM_TYPES = 3;
 		int[] data = new int[NUM_TYPES];
@@ -70,7 +70,7 @@ public class JemStratCount extends JemStrat {
 		}
 	}
 	
-	private static class SizeHistogram {
+	private class SizeHistogram {
 		TreeMap sizeToStats = new TreeMap();
 		void incr(NetObject.Type type, int size) {
 			Integer sz = new Integer(size);
@@ -82,12 +82,12 @@ public class JemStratCount extends JemStrat {
 			stats.incr(type, 1);
 		}
 		void print() {
-			Messenger.line(
+			globals.println(
 				spaces(INDENT_WIDTH)+
-				leftJustifyInField("EquivRec size", LABEL_WIDTH)+
-				rightJustifyInField("#_Part_EqRecs", FIELD_WIDTH)+
-				rightJustifyInField("#_Wire_EqRecs", FIELD_WIDTH)+
-				rightJustifyInField("#_Port_EqRecs", FIELD_WIDTH));
+				leftJustifyInField("LeafRec size", LABEL_WIDTH)+
+				rightJustifyInField("#Part_Recs", FIELD_WIDTH)+
+				rightJustifyInField("#Wire_Recs", FIELD_WIDTH)+
+				rightJustifyInField("#Port_Recs", FIELD_WIDTH));
 			for (Iterator it=sizeToStats.keySet().iterator(); it.hasNext();) {
 				Integer key = (Integer) it.next();
 				NetObjStats stats = (NetObjStats) sizeToStats.get(key);
@@ -96,29 +96,30 @@ public class JemStratCount extends JemStrat {
 			}
 		}
 	}
+
+	// -------------------------- private data --------------------------------
 	private static final int INDENT_WIDTH = 4;
 	private static final int LABEL_WIDTH = 30;
 	private static final int FIELD_WIDTH = 15; 
 
     private int maxDepth; //depth in the tree
-    private int numHistoryRecs;
+    private int numInternalRecs;
 	private NetObjStats numMismatchedNetObjs = new NetObjStats(0);
 	private NetObjStats numRetiredNetObjs = new NetObjStats(0);
 	private NetObjStats numActiveNetObjs = new NetObjStats(0);
-	private NetObjStats numMismatchedEquivRecs = new NetObjStats(0);
-	private NetObjStats numRetiredEquivRecs = new NetObjStats(0);
-	private NetObjStats numActiveEquivRecs = new NetObjStats(0);
+	private NetObjStats numMismatchedLeafRecs = new NetObjStats(0);
+	private NetObjStats numRetiredLeafRecs = new NetObjStats(0);
+	private NetObjStats numActiveLeafRecs = new NetObjStats(0);
 	private int numCircuits;
     private int totalEqGrpSize;
     private int numberOfWireConnections;
     private long numberOfWireConnectionsSquared;
     private int numberOfPartConnections;
-	private int totalWorkDone;
 	private String workingOnString;
 	private NetObject.Type netObjType;
 	private SizeHistogram sizeHistogram = new SizeHistogram();
 
-    private JemStratCount() {}
+    private JemStratCount(NccGlobals globals) {super(globals);}
     
     private static String spaces(int num) {
     	StringBuffer b = new StringBuffer();
@@ -132,19 +133,19 @@ public class JemStratCount extends JemStrat {
     private static String leftJustifyInField(String s, int fieldWidth) {
 		return s + spaces(fieldWidth - s.length());
     }
-	private static void printLine(String label, NetObjStats stats) {
-		Messenger.line(spaces(INDENT_WIDTH) +
+	private void printLine(String label, NetObjStats stats) {
+		globals.println(spaces(INDENT_WIDTH) +
 					   leftJustifyInField(label, LABEL_WIDTH) +
 					   stats.toString());
 	}
-    private static void printLine(String label, int data) {
-    	Messenger.line(spaces(INDENT_WIDTH) +
+    private void printLine(String label, int data) {
+    	globals.println(spaces(INDENT_WIDTH) +
     				   leftJustifyInField(label, LABEL_WIDTH) +
     				   rightJustifyInField(String.valueOf(data), FIELD_WIDTH));
     }
-	private static void printLine(String label, double data) {
+	private void printLine(String label, double data) {
 		data = Math.rint(data * 10)/10;
-		Messenger.line(spaces(INDENT_WIDTH) +
+		globals.println(spaces(INDENT_WIDTH) +
 					   leftJustifyInField(label, LABEL_WIDTH) +
 					   rightJustifyInField(String.valueOf(data), FIELD_WIDTH));
 	}
@@ -152,7 +153,7 @@ public class JemStratCount extends JemStrat {
     // ---------- the tree walking code ---------
 
     //Get setup to start, initializing the counters.
-    private void preamble(JemRecord j){
+    private void preamble(JemEquivRecord j){
 		workingOnString= j.nameString();
 		startTime("JemStratCount", workingOnString);
 	}
@@ -166,53 +167,51 @@ public class JemStratCount extends JemStrat {
     //Print the results when finished.
     private void summary(){
     	// print a label
-    	Messenger.line(
+    	globals.println(
     		spaces(INDENT_WIDTH + LABEL_WIDTH) + 
 		   	rightJustifyInField("Parts", FIELD_WIDTH) +
 		   	rightJustifyInField("Wires", FIELD_WIDTH) +
 		   	rightJustifyInField("Ports", FIELD_WIDTH));
-		printLine("# mismatched EquivRecs", numMismatchedEquivRecs);
-		printLine("# retired EquivRecs", numRetiredEquivRecs);
-		printLine("# active EquivRecs", numActiveEquivRecs);
+		printLine("# mismatched EquivRecs", numMismatchedLeafRecs);
+		printLine("# retired EquivRecs", numRetiredLeafRecs);
+		printLine("# active EquivRecs", numActiveLeafRecs);
 		printLine("# mismatched NetObjs", numMismatchedNetObjs);
 		printLine("# retired NetObjs", numRetiredNetObjs);
 		printLine("# active NetObjs", numActiveNetObjs);
 
-    	int numEquivRecs = numMismatchedEquivRecs.getSumForAllTypes() +
-    					   numRetiredEquivRecs.getSumForAllTypes() +
-    					   numActiveEquivRecs.getSumForAllTypes();
-		Messenger.line("");
+    	int numEquivRecs = numMismatchedLeafRecs.getSumForAllTypes() +
+    					   numRetiredLeafRecs.getSumForAllTypes() +
+    					   numActiveLeafRecs.getSumForAllTypes();
+		globals.println("");
 		sizeHistogram.print();
 		
-		Messenger.line("");
-		printLine("# JemHistoryRecords", numHistoryRecs);
+		globals.println("");
+		printLine("# JemHistoryRecords", numInternalRecs);
 		printLine("# JemCircuits", numCircuits);
-		printLine("work done", totalWorkDone);
 		printLine("max depth", maxDepth);
 
         float average= (float)totalEqGrpSize/(float)numEquivRecs;
 		printLine("average size EquivRec", average);
-        printLine("# Wire pins", numberOfWireConnections);
-		printLine("# Part pins", numberOfPartConnections);
-		int diffPins = numberOfPartConnections - numberOfWireConnections;
+        printLine("# pins", numberOfWireConnections);
 
+		// # Wire pins must = # Part pins unless we're checking just the Wire 
+		// sub-tree or just the Part sub-tree.
+		int diffPins = numberOfPartConnections - numberOfWireConnections;
 		int numWires =  numMismatchedNetObjs.get(NetObject.Type.WIRE) + 
 						numRetiredNetObjs.get(NetObject.Type.WIRE) +
 						numActiveNetObjs.get(NetObject.Type.WIRE); 
 		int numParts =  numMismatchedNetObjs.get(NetObject.Type.PART) + 
 						numRetiredNetObjs.get(NetObject.Type.PART) +
 						numActiveNetObjs.get(NetObject.Type.PART); 
-
 		error(numWires!=0 && numParts!=0 && diffPins!=0, 
-			  "#wirePins != #partPins");
+			  "#wirePins != #partPins: "+
+			  numberOfWireConnections+" != "+numberOfPartConnections);
 		
         average= (float)numberOfWireConnections/(float)numWires;
         double rms= (float)numberOfWireConnectionsSquared/(float)numWires;
         rms= Math.sqrt(rms);
         printLine("average wire pins", average);
         printLine("rms wire pins", rms);
-        average= (float)totalWorkDone/(float)numHistoryRecs;
-        printLine("average actions per offspring", average);
         elapsedTime();
     }
 
@@ -223,12 +222,11 @@ public class JemStratCount extends JemStrat {
 	 * It counts whatever it finds.
 	 * @return null.
 	 */
-    public JemEquivList doFor(JemRecord j){
-    	if (j instanceof JemHistoryRecord) {
-			numHistoryRecs++; 
+    public JemLeafList doFor(JemEquivRecord j){
+    	if (j.isLeaf()) {
+			doJemEquiv((JemEquivRecord)j);
 	    } else {
-	    	error(!(j instanceof JemEquivRecord), "unrecognized JemRecord");
-	    	doJemEquiv((JemEquivRecord)j);
+			numInternalRecs++; 
 	    }
 		return super.doFor(j);
     }
@@ -240,19 +238,18 @@ public class JemStratCount extends JemStrat {
 		netObjType = er.getNetObjType();
 		int numNetObjs = er.numNetObjs();
 		if (er.isMismatched()) {
-			numMismatchedEquivRecs.incr(netObjType, 1);
+			numMismatchedLeafRecs.incr(netObjType, 1);
 			numMismatchedNetObjs.incr(netObjType, numNetObjs);
 			numMismatchedNetObjs.incr(netObjType, numNetObjs);
 		} else if (er.isRetired()) {
-			numRetiredEquivRecs.incr(netObjType, 1);
+			numRetiredLeafRecs.incr(netObjType, 1);
 			numRetiredNetObjs.incr(netObjType, numNetObjs);
 		} else {
-			numActiveEquivRecs.incr(netObjType, 1);
+			numActiveLeafRecs.incr(netObjType, 1);
 			numActiveNetObjs.incr(netObjType, numNetObjs);
 			sizeHistogram.incr(netObjType, erSize);
 		}
 		numCircuits += er.numCircuits();
-		totalWorkDone += er.getWorkDone();
 	}
 	
     /** 
@@ -263,9 +260,7 @@ public class JemStratCount extends JemStrat {
 	 * @return null.
 	 */
     public Integer doFor(NetObject n){
-    	error(n.getNetObjType()!=netObjType, 
-			  "don't call JemStratCount before each JemEquivRecord holds "+
-			  "only one NetObjType");
+    	error(n.getNetObjType()!=netObjType, "mixed type leaf record");
         maxDepth = Math.max(maxDepth, getDepth());
         if(n instanceof Wire){
         	doFor((Wire)n); 
@@ -289,8 +284,7 @@ public class JemStratCount extends JemStrat {
     // ---------- for Part -------------
 
     private void doFor(Part p){
-        int n= p.numPins();
-        numberOfPartConnections += n;
+        numberOfPartConnections += p.getNumWiresConnected();
     }
     
 	/**
@@ -298,22 +292,24 @@ public class JemStratCount extends JemStrat {
 	 * @param j root of the tree 
 	 * @return an empty list
 	 */
-	public static JemEquivList doYourJob(JemRecord j) {
-		JemStratCount jsc = new JemStratCount();
+	public static JemLeafList doYourJob(JemEquivRecord j,
+										 NccGlobals globals) {
+		JemStratCount jsc = new JemStratCount(globals);
 		jsc.preamble(j);
-		JemEquivList el = jsc.doFor(j);
+		JemLeafList el = jsc.doFor(j);
 		jsc.summary();
 		return el;
 	}
     
-	public static JemEquivList doYourJob(JemRecordList g){
-		JemStratCount jsc = new JemStratCount();
+	public static JemLeafList doYourJob(JemRecordList g,
+										 NccGlobals globals){
+		JemStratCount jsc = new JemStratCount(globals);
 		jsc.preamble(g);
 		if (g.size()!=0) {
 			jsc.doFor(g);
 			jsc.summary();
 		}
-		return new JemEquivList();
+		return new JemLeafList();
 	}
 
 }

@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.strategy;
+import com.sun.electric.tool.ncc.*;
 import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.ncc.jemNets.*;
 import com.sun.electric.tool.ncc.jemNets.Transistor;
@@ -30,7 +31,6 @@ import com.sun.electric.tool.ncc.jemNets.TransistorOne;
 import com.sun.electric.tool.ncc.jemNets.TransistorTwo;
 import com.sun.electric.tool.ncc.trees.*;
 import com.sun.electric.tool.ncc.lists.*;
-import com.sun.electric.tool.ncc.strategy.JemSets;
 
 import java.util.List;
 import java.util.Collection;
@@ -53,37 +53,37 @@ public class JemStratMergePar extends JemStrat {
     private int numTransTwoDone= 0;
     private int numCapDone= 0;
 
-    private JemStratMergePar(){}
+    private JemStratMergePar(NccGlobals globals) {super(globals);}
 
 	// ---------- to do the job -------------
 
-	public static boolean doYourJob(JemSets jss){
-		JemStratMergePar jsmp = new JemStratMergePar();
-		return jsmp.doYourJob2(jss);
+	public static boolean doYourJob(NccGlobals globals){
+		JemStratMergePar jsmp = new JemStratMergePar(globals);
+		return jsmp.doYourJob2(globals);
 	}
-	private boolean doYourJob2(JemSets jss){
-		JemEquivRecord pt= (JemEquivRecord)jss.parts;
+	private boolean doYourJob2(NccGlobals globals){
+		JemEquivRecord pt = globals.getParts();
         int befSz= pt.maxSize();
-		preamble(jss.withGates);
-		doFor(jss.withGates);
+		preamble(globals.getWiresWithGates());
+		doFor(globals.getWiresWithGates());
 		summary();
 		return pt.maxSize() < befSz;
 	}
 	
     //do something before starting
-    private void preamble(JemRecord j){
+    private void preamble(JemEquivRecord j){
 		startTime("JemStratMergePar" , j.nameString());
     }
 
     //do at the end
     private void summary(){
-		Messenger.line("Parallel merged " +
+		globals.println(" Parallel merged " +
 					  numTransOneDone + " TransOne and " +
 					  numTransTwoDone + " TransTwo of " +
 					  numTransCandidates + " candidates and " +
 					  numCapDone + " Capacitors of " +
 					  numCapCandidates + " candidates");
-		elapsedTime(numTransOneDone + numTransTwoDone + numCapDone);
+		elapsedTime();
     }
 
 	//------------- for NetObject ------------

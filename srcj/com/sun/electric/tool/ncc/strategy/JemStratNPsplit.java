@@ -24,13 +24,13 @@
 
 /** JemStratNPsplit divides N-transistors, P-transistors and Ports: */
 package com.sun.electric.tool.ncc.strategy;
+import com.sun.electric.tool.ncc.*;
 import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.ncc.trees.*;
 import com.sun.electric.tool.ncc.lists.*;
 import com.sun.electric.tool.ncc.jemNets.*;
 import com.sun.electric.tool.ncc.jemNets.Port;
 import com.sun.electric.tool.ncc.jemNets.Transistor;
-import com.sun.electric.tool.ncc.strategy.JemSets;
 
 //import java.util.Collection;
 import java.util.Iterator;
@@ -45,48 +45,28 @@ public class JemStratNPsplit extends JemStrat {
     protected static final Integer CODE_N_TYPE= new Integer(1);
     protected static final Integer CODE_NOT_TRANSISTOR= new Integer(2);
 
-    private JemStratNPsplit(){}
+    private JemStratNPsplit(NccGlobals globals) {super(globals);}
 
-	// ---------- to do the job -------------
-
-	public static JemRecord doYourJob(JemSets jss) {
-		JemStratNPsplit nps = new JemStratNPsplit();
-		return nps.doYourJob2(jss);
-	}
-
-	public JemRecord doYourJob2(JemSets jss){
-		JemEquivRecord ss= (JemEquivRecord)jss.parts;
-		preamble(ss);
-        JemEquivList offspring= doFor(ss);
-        summary(offspring);
-
-		jss.parts = getOffspringParent(offspring);
-
-        Messenger.line("Jemini proceeds with these maximum counts: ");
-		pickAnOffspring(CODE_P_TYPE, offspring, "N-type and");
-        pickAnOffspring(CODE_N_TYPE, offspring, "N-type and");
-        pickAnOffspring(CODE_NOT_TRANSISTOR, offspring, "Other Parts");
-
-		Messenger.line(offspringStats(offspring));
-        Messenger.freshLine();
-        return jss.parts;
-	}
-	
     //do something before starting
-    private void preamble(JemRecord j){
+    private void preamble(JemEquivRecord j){
 		startTime("JemStratNPsplit" , j.nameString());
     }
 
     //summarize at the end
-    private void summary(JemEquivList cc){
-        Messenger.line("JemStratPWsplit separated " +
-							numPtype + " P-type and " +
-							numNtype + " N-type into " +
-                            numOther + " Other Parts into " +
-                            NUM_CODES + " distinct hash groups");
-        //	+ numPorts + " Ports.");
-        Messenger.line(cc.sizeInfoString());
-        elapsedTime(numPtype + numNtype + numOther);
+    private void summary(JemLeafList offspring){
+        globals.println(" JemStratNPsplit found " +
+							numPtype + " P-type, and " +
+							numNtype + " N-type, and " +
+                            numOther + " Other Parts");
+        globals.println(offspring.sizeInfoString());
+
+		globals.println(" JemStratNPsplit offspring: ");
+		pickAnOffspring(CODE_P_TYPE, offspring, "  P-type");
+		pickAnOffspring(CODE_N_TYPE, offspring, "  N-type");
+		pickAnOffspring(CODE_NOT_TRANSISTOR, offspring, "  Other Parts");
+
+		globals.println(offspringStats(offspring));
+        elapsedTime();
 	}
 
 	//------------- for NetObject ------------
@@ -108,4 +88,22 @@ public class JemStratNPsplit extends JemStrat {
 		return CODE_NOT_TRANSISTOR;
     }
 
+	// ---------- to do the job -------------
+
+	public static void doYourJob(NccGlobals globals) {
+		JemStratNPsplit nps = new JemStratNPsplit(globals);
+		nps.doYourJob2(globals);
+	}
+
+	public void doYourJob2(NccGlobals globals){
+		JemEquivRecord parts = globals.getParts();
+
+		if (parts==null) return; // No cell has Parts
+
+		preamble(parts);
+		JemLeafList offspring= doFor(parts);
+		summary(offspring);
+
+	}
+	
 }

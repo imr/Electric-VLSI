@@ -22,54 +22,46 @@
  * Boston, Mass 02111-1307, USA.
 */
 // updated to new view of trees, 16 Jan 2004
-
-// takes the place of SymmetryGroup with circuits
+// Annotated by Ivan Sutherland, 30 January 2004
 
 package com.sun.electric.tool.ncc.trees;
-import com.sun.electric.tool.ncc.strategy.JemStrat;
+import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.lists.*;
+import com.sun.electric.tool.ncc.strategy.JemStrat;
+import com.sun.electric.tool.ncc.trees.NetObject.Type;
 import com.sun.electric.tool.ncc.basicA.Messenger;
-import com.sun.electric.tool.ncc.jemNets.Wire;
 
-import java.util.Random;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
 
 /** 
- * JemEquivRecords hold groups of circuits whose NetObjects are still
- * equivalent.  JemEquivRecords are the leaf nodes of the JemRecord
- * Tree.  Each JemEquivRecord holds a few JemCircuits, typically two,
- * that are to be compared.  The parent of a JemEquivRecord is a
- * JemHistoryRecord.  JemEquivRecords may be listed in JemEquivLists.
- * The JemEquivRecord class was formerly called "SymmetryGroup".
-*/
-public class JemEquivRecord extends JemRecord{
-	private List circuits = new ArrayList(); 
-	
-	/** ourRandom is a random number generator for assigning random
-	 * codes to JemEquivRecords as they are constructed.  */
-    private static Random ourRandom= new Random(204);
-    private static HashSet randoms = new HashSet();
+ * Leaf JemEquivRecords hold JemCircuits. Internal JemEquivRecords hold offspring.
+ * Every JemEquivRecord is assigned a pseudo random code at birth which it 
+ * retains for life.
+ */
+public class JemEquivRecord {
+	/** points toward root */ 	             private JemEquivRecord parent;
+	/** the fixed random code */             private int randCode;
+	/** int that distinguished this Record */private int value;
 
-	/** Here is the constructor */
-    private JemEquivRecord(int key){
-        Integer nc;
-		// I've seen different nextInt() calls return the same value
-		// Don't allow two JemEquivRecords to have the same nominal code.
-        do {
-			nominalCode = ourRandom.nextInt();
-			nc = new Integer(nominalCode);
-        } while(randoms.contains(nc));
-        
-        randoms.add(nc);
-        value = key;
-    }
+	// At any given time only one of this lists is non-null
+	private JemRecordList offspring;
+	private List circuits;
 
+	private static void error(boolean pred, String msg) {
+		LayoutLib.error(pred, msg);
+	}
+
+	/**
+	 * For a leaf record, apply strategy to build one Map for each JemCircuit
+	 * @param js
+	 * @return list of Maps
+	 */
 	private ArrayList getOneMapPerCircuit(JemStrat js) {
 		ArrayList mapPerCkt = new ArrayList();
 		for (Iterator it=getCircuits(); it.hasNext();) {
@@ -93,8 +85,9 @@ public class JemEquivRecord extends JemRecord{
 		}
 		return keys;    	
 	}
+
 	/**
-	 * Create a JemEquivRec for all the JemCircuits corresponding to a
+	 * Create a leaf record for all the JemCircuits corresponding to a
 	 * given key. If a map has a list of NetObjects for the given key
 	 * then create a JemCircuit containing those NetObjects.
 	 * Otherwise, add an empty JemCircuit to the JemEquivRec.
@@ -103,44 +96,100 @@ public class JemEquivRecord extends JemRecord{
 	 * @param key check each map for a List of NetObjects at this key 
 	 * @return a JemEquivRec
 	 */
-	private JemEquivRecord makeEquivRecForKey(ArrayList mapPerCkt,
-											  Integer key) {
-		JemEquivRecord er = JemEquivRecord.please(key.intValue());
+	private JemEquivRecord makeEquivRecForKey(ArrayList mapPerCkt, Integer key, NccGlobals globals) {
+		List ckts = new ArrayList();
 		for (Iterator it=mapPerCkt.iterator(); it.hasNext();) {
 			HashMap map = (HashMap) it.next();
 			ArrayList netObjs = (ArrayList) map.get(key);
 			if (netObjs==null)  netObjs = new ArrayList();
-			JemCircuit ckt = JemCircuit.please(netObjs);
-			er.addCircuit(ckt); 
+			ckts.add(JemCircuit.please(netObjs));
 		}
-		return er;												 	
+		return JemEquivRecord.newLeafRecord(key.intValue(), ckts, globals);												 	
 	}
 
-	/** Here is a factory method for the JemEquivRecord class.
-	 * @return a fresh JemEquivRecord */
-    public static JemEquivRecord please(int key){
-    	return new JemEquivRecord(key);
+	/** constructor*/
+	private JemEquivRecord(){}
+	
+	private void addOffspring(JemEquivRecord r) {
+		offspring.add(r);
+		r.setParent(this);
+	}
+
+	private JemLeafList applyToLeaf(JemStrat js) {
+		ArrayList mapPerCkt = getOneMapPerCircuit(js);
+		
+		Set keys = getKeysFromAllMaps(mapPerCkt);
+		
+		error(keys.size()==0, "must have at least one key");
+		
+		// If everything maps to one hash code then no offspring
+		if (keys.size()==1) return new JemLeafList();
+		
+		// Change this record from leaf to internal
+		circuits = null;
+		offspring = new JemRecordList();
+		
+		for (Iterator it=keys.iterator(); it.hasNext();) {
+			Integer key = (Integer) it.next();
+			JemEquivRecord er = makeEquivRecForKey(mapPerCkt, key, js.globals); 
+			addOffspring(er);
+		}
+		
+
+		JemLeafList el = new JemLeafList();
+		el.addAll(offspring);
+		return el;
+	}
+
+	private JemLeafList applyToInternal(JemStrat js) {
+		JemLeafList offspring = new JemLeafList();
+		for (Iterator it=getOffspring(); it.hasNext();) {
+			JemEquivRecord jr= (JemEquivRecord) it.next();
+			offspring.addAll(js.doFor(jr));
+		}
+		return offspring;
+	}
+
+	// --------------------------- public methods -----------------------------
+	/** @return internal JemEquivRecord that contains me */
+	public JemEquivRecord getParent() {return parent;}
+
+	/** 
+	 * getCode returns the fixed hash code for this object.
+	 * @return the int fixed hash code for this object.
+	 */
+	public int getCode(){return randCode;}
+
+    public void checkMe(JemEquivRecord parent) {
+    	error(getParent()!=parent, "wrong parent");
+    	error(!(offspring==null ^ circuits==null), "bad lists");
     }
 
-	//left over abstract methods
-
-   	/**
-	 * nameString returns a String of type and name for this JemEquivRecord.
-	 * @return a String identifying this JemTree object.
+	/** 
+	 * set the parent
+	 * @param x the JemParent proposed
 	 */
-    public String nameString(){return "JemEquivRecord " + getCode();}
+	public void setParent(JemEquivRecord x) {parent=x;}
+	
+	/** 
+	 * get the value that a strategy used to distinguish
+	 * this JemEquivRecord.
+	 * @return the int value that distinguished this JemEquivRecord
+	 */
+	public int getValue(){return value;}
 
 	public Iterator getCircuits() {return circuits.iterator();}
+
 	public int numCircuits() {return circuits.size();}
+
 	public void addCircuit(JemCircuit c) {
 		circuits.add(c);
 		c.setParent(this);
 	}
 
 	/**
-	 * say whether this JemEquivRecord contains Parts, Wires, or Ports.
-	 * Assumes that JemEquivRecord only holds one kind of NetObject. The
-	 * assumption is true after JemStratPartWirePort has run.
+	 * say whether this leaf record contains Parts, Wires, or Ports.
+	 * A leaf record can only hold one kind of NetObject. 
 	 * @return PART, WIRE, or PORT
 	 */
 	public NetObject.Type getNetObjType() {
@@ -152,12 +201,12 @@ public class JemEquivRecord extends JemRecord{
 				return no.getNetObjType();
 			}
 		}
-		error(true, "no NetObjects in a JemEquivRecord?");
+		error(true, "no NetObjects in a leaf JemEquivRecord?");
 		return null; 
 	}
-	
+
 	/**
-	 * Get total number of NetObjects in all Circuits
+	 * Get total number of NetObjects in all Circuits of a leaf record
 	 * @return number of NetObjects
 	 */
 	public int numNetObjs() {
@@ -170,127 +219,162 @@ public class JemEquivRecord extends JemRecord{
 	}
 
 	/** 
-	 * The apply method applies a JemStrat to this JemEquivRecord,
-	 * returning a list, possibly empty, of offspring.
-	 * @param js the strategy to apply
-	 * @return the JemEquivList of offspring
+	 * generates a String indicating the size of the
+	 * JemCircuits in this leaf record
+	 * @return the String 
 	 */
-	public JemEquivList apply(JemStrat js) {
-		ArrayList mapPerCkt = getOneMapPerCircuit(js);
-		
-		Set keys = getKeysFromAllMaps(mapPerCkt);
-		
-		error(keys.size()==0, "must have at least one key");
-		
-		// If everything maps to one hash code then no offspring
-		if (keys.size()==1) return new JemEquivList();
-		
-		JemEquivList offspring = new JemEquivList();
-		for (Iterator it=keys.iterator(); it.hasNext();) {
-			Integer key = (Integer) it.next();
-			JemEquivRecord er = makeEquivRecForKey(mapPerCkt, key); 
-			offspring.add(er);
-		}
-		JemHistoryRecord.please(this, offspring);
-		
-		return offspring;
+	public String sizeString() {
+	    if(numCircuits() == 0) return "0";
+	    String s= "";
+	    for (Iterator it=getCircuits(); it.hasNext();) {
+	        JemCircuit jc= (JemCircuit) it.next();
+	        s= s + " " + jc.numNetObjs() ;
+	    }
+	    return s;
 	}
-	
-	/** 
-	 * sizeString generates a String indicating the size of the
-	 * JemCircuits in this JemEquivRecord
-	 * @return a String indicative of the size of this JemEquivRecord's 
-	 * JemCircuits
-	 */
-    public String sizeString(){
-        if(numCircuits() == 0) return "0";
-        String s= "";
-        for (Iterator it=getCircuits(); it.hasNext();) {
-            JemCircuit jc= (JemCircuit) it.next();
-            s= s + " " + jc.numNetObjs() ;
-        }
-        return s;
-    }
-	
+
 	/** 
 	 * maxSizeDiff computes the difference in the number of
-	 * NetObjects in the JemCircuits of this JemEquivRecord.
+	 * NetObjects in the JemCircuits of this leaf record.
 	 * @return an int with the difference, zero is good
 	 */
-    public int maxSizeDiff(){
-        int out= 0;
-        int max= maxSize();
-        for (Iterator it=getCircuits(); it.hasNext();) {
-            JemCircuit j= (JemCircuit) it.next();
-            int diff= max-j.numNetObjs();
-            if(diff > out)out= diff;
-        }
-        return out;
-    }
+	public int maxSizeDiff() {
+	    int out= 0;
+	    int max= maxSize();
+	    for (Iterator it=getCircuits(); it.hasNext();) {
+	        JemCircuit j= (JemCircuit) it.next();
+	        int diff= max-j.numNetObjs();
+	        if(diff > out)out= diff;
+	    }
+	    return out;
+	}
 
 	/** 
 	 * maxSize returns the number of NetObjects in the most populous
 	 * JemCircuit.
 	 * @return an int with the maximum size of any JemCircuit in this
-	 * JemEquivRecord
+	 * leaf record
 	 */
-	public int maxSize(){
-        int out= 0;
-        for (Iterator it=getCircuits(); it.hasNext();) {
-            JemCircuit j= (JemCircuit)it.next();;
-            out = Math.max(out, j.numNetObjs());
-        }
-        return out;
-    }
+	public int maxSize() {
+	    int out= 0;
+	    for (Iterator it=getCircuits(); it.hasNext();) {
+	        JemCircuit j= (JemCircuit)it.next();;
+	        out = Math.max(out, j.numNetObjs());
+	    }
+	    return out;
+	}
 
 	/** 
-	 * isActive indicates that this JemEquivRecord is neither retired
+	 * isActive indicates that this leaf record is neither retired
 	 * nor mismatched.
-	 * @return true if this JemEquivRecord is still in play, false otherwise
+	 * @return true if this leaf record is still in play, false otherwise
 	 */
-	public boolean isActive(){
-        error(numCircuits()==0, "JemEquivRecord with no circuits?");
-        for (Iterator it=getCircuits(); it.hasNext();) {
-            JemCircuit c = (JemCircuit) it.next();
-            if (c.numNetObjs()==0) return false; // mismatched
-            if (c.numNetObjs()>1)  return true;  // live
-        }
-        return false;
-    }
+	public boolean isActive() {
+	    error(numCircuits()==0, "leaf record with no circuits?");
+	    for (Iterator it=getCircuits(); it.hasNext();) {
+	        JemCircuit c = (JemCircuit) it.next();
+	        if (c.numNetObjs()==0) return false; // mismatched
+	        if (c.numNetObjs()>1)  return true;  // live
+	    }
+	    return false;
+	}
 
 	/** 
-	 * canRetire indicates whether this JemEquivRecord can or has
-	 * retired.
-	 * @return true if this JemEquivRecord can or has retired
+	 * canRetire indicates whether this leaf record is retired
+	 * @return true if retired
 	 */
-    public boolean isRetired(){
+	public boolean isRetired() {
 		for (Iterator it=getCircuits(); it.hasNext();) {
 			JemCircuit c = (JemCircuit) it.next();
 			if (c.numNetObjs()!=1) return false;
 		}
 		return true;
-    }
+	}
 
 	/** 
 	 * isMismatched indicates whether some JemCircuits in this
-	 * JemEquivRecord differ in population.
+	 * leaf record differ in population.
 	 * @return true if the circuits differ in population, false
 	 * otherwise
 	 */
-    public boolean isMismatched(){
-        for (Iterator it=getCircuits(); it.hasNext();) {
-            JemCircuit c = (JemCircuit) it.next();
-            if (c.numNetObjs()==0) return true;
-        }
-        return false;
-    }
+	public boolean isMismatched() {
+	    for (Iterator it=getCircuits(); it.hasNext();) {
+	        JemCircuit c = (JemCircuit) it.next();
+	        if (c.numNetObjs()==0) return true;
+	    }
+	    return false;
+	}
+
+	/** get offspring of internal record */
+	public Iterator getOffspring() {return offspring.iterator();}
+
+	public int numOffspring() {return offspring.size();}
 
 	/** 
-	 * printMe prints this JemEquivRecord on a given Messenger.
+	 * The apply method applies a JemStrat to this leaf JemEquivRecord.  If the 
+	 * divides this Record then this leaf record becomes an internal record.
+	 * @param js the JemStrat to apply
+	 * @return a JemLeafList of the resulting offspring
 	 */
-	public void printMe(){
-		Messenger.line(nameString() + " value= " + value +
-				" maxSize= " + maxSize());
+	public JemLeafList apply(JemStrat js) {
+		return isLeaf() ? applyToLeaf(js) : applyToInternal(js);
+	}
+
+	/**
+	 * nameString returns a String of type and name for this JemParent.
+ 	 * @return a String identifying this JemTree object.
+ 	 */
+	public String nameString() {
+		String name = "";
+		name += isLeaf() ? "Leaf" : "Internal";
+		name += " Record randCode="+randCode+" value="+value;
+		name += isLeaf() ? (
+			" maxSize="+maxSize()
+		) : (
+			" #offspring="+numOffspring()
+		);
+		return name;
+	}
+
+	public boolean isLeaf() {return offspring==null;} 
+
+	/** 
+	 * printMe prints this JemEquivRecord
+	 */
+	public void printMe(NccGlobals globals) {globals.print(toString());}
+
+	/**
+	 * Construct a leaf JemEquivRecord that holds circuits
+	 * @param ckts JemCircuits belonging to Equivalence Record
+	 * @param globals used for generating random numbers
+	 * @return the new JemEquivRecord
+	 */
+	public static JemEquivRecord newLeafRecord(int key, List ckts, NccGlobals globals) {
+		JemEquivRecord r = new JemEquivRecord();
+		r.circuits = new ArrayList();
+		r.value = key;
+		r.randCode = globals.getRandom();
+		for (Iterator it=ckts.iterator(); it.hasNext();) {
+			r.addCircuit((JemCircuit)it.next());
+		}
+		error(r.maxSize()==0, 
+			  "invalid leaf JemEquivRecord: all JemCircuits are empty");
+		return r;
+	}
+	/**
+	 * Construct an internal JemEquivRecord that will serve as the root of the 
+	 * JemEquivRecord tree
+	 * @param offspring 
+	 * @return the new JemEquivRecord or null if there are no offspring
+	 */
+	public static JemEquivRecord newRootRecord(List offspring) {
+		if (offspring.size()==0) return null;
+		JemEquivRecord r = new JemEquivRecord();
+		r.offspring = new JemRecordList();
+		for (Iterator it=offspring.iterator(); it.hasNext();) {
+			r.addOffspring((JemEquivRecord) it.next());
+		}
+		return r;		
 	}
 
 }

@@ -26,6 +26,8 @@
 // Updated 2 November to eliminate JemCircuitPlain and JemCircuitMap
 
 package com.sun.electric.tool.ncc.trees;
+import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.strategy.JemStrat;
 import com.sun.electric.tool.ncc.jemNets.Wire;
 import com.sun.electric.tool.ncc.jemNets.Port;
@@ -46,11 +48,10 @@ public class JemCircuit {
 
     private JemCircuit(){}
 
-    public static JemCircuit please(){return new JemCircuit();}
-	public static JemCircuit please(ArrayList netObjs){
+	public static JemCircuit please(List netObjs){
 		JemCircuit ckt = new JemCircuit();
-		for (int i=0; i<netObjs.size(); i++) {
-			ckt.adopt((NetObject)netObjs.get(i));
+		for (Iterator it=netObjs.iterator(); it.hasNext();) {
+			ckt.adopt((NetObject)it.next());
 		}
 		return ckt;
 	}
@@ -64,7 +65,7 @@ public class JemCircuit {
     public void remove(NetObject n) {content.remove(n);}
 
 	public static void error(boolean pred, String msg) {
-		if (pred) Messenger.error(msg);
+		LayoutLib.error(pred, msg);
 	}
 	public void checkMe(JemEquivRecord parent) {
 		error(getParent()!=parent, "wrong parent"); 
@@ -80,10 +81,9 @@ public class JemCircuit {
 			NetObject n= (NetObject)it.next();
 			error(!(n instanceof Wire), "getExportMap expects only Wires");
 			Wire w= (Wire)n;
-			List ports= w.getPortList();
-			for (Iterator pi=ports.iterator(); pi.hasNext();) {
+			for (Iterator pi=w.getPorts(); pi.hasNext();) {
 				Port pp= (Port)pi.next();
-				String exportNm = pp.getStringName();
+				String exportNm = pp.getName();
 				error(out.containsKey(exportNm),
 					  "different wires have the same export name?");
 				out.put(exportNm, w);
@@ -121,24 +121,24 @@ public class JemCircuit {
 		return codeToNetObjs;
 	}
 	
-	public static void printTheMap(Map m){
-		Messenger.line("printing a Circuit map of size= " + m.size());
+	public static void printTheMap(Map m, NccGlobals globals){
+		globals.println("printing a Circuit map of size= " + m.size());
 		if(m.size() == 0)return;
 		Iterator it= m.keySet().iterator();
 		while(it.hasNext()){
 			String s= (String)it.next();
 			Object oo= m.get(s);
 			if(oo == null){
-				Messenger.line(s + " maps to null");
+				globals.println(s + " maps to null");
 			} else {
 				Wire w= (Wire)oo;
-				Messenger.line(s + " maps to " + w.nameString());
+				globals.println(s + " maps to " + w.nameString());
 			}
 		}
 	}
 	
-	public void printMe(){
-		Messenger.line(nameString() + 		
+	public void printMe(NccGlobals globals){
+		globals.println(nameString() + 		
 				" and code " + getCode() +
 				" size= " + numNetObjs());
 	}

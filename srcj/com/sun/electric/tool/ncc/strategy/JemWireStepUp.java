@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.strategy;
+import com.sun.electric.tool.ncc.*;
 import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.ncc.jemNets.*;
 import com.sun.electric.tool.ncc.trees.*;
@@ -33,40 +34,38 @@ public class JemWireStepUp extends JemStrat {
 	int numWiresProcessed;
 	int numEquivProcessed;
 
-	private JemWireStepUp(){}
+	private JemWireStepUp(NccGlobals globals) {super(globals);}
 
-	public static JemEquivList doYourJob(JemSets jss){
-		JemEquivList frontier= JemStratFrontier.doYourJob(jss.wires);
-		JemWireStepUp ws = new JemWireStepUp();
-		ws.preamble(frontier);
-		JemEquivList offspring= ws.doFor(frontier);
+	public static void doYourJob(NccGlobals globals){
+		JemWireStepUp ws = new JemWireStepUp(globals);
+		ws.preamble();
+		JemLeafList front = JemStratFrontier.doYourJob(globals.getWires(), globals);
+		JemLeafList offspring= ws.doFor(front);
 		ws.summary(offspring);
-		return offspring;
 	}
 
 	//do something before starting
-	private void preamble(JemRecordList j){
-		startTime("JemWireStepUp", " JemEquivList of size: "+j.size());
+	private void preamble(){
+		startTime("JemWireStepUp", "all active Wires");
 	}
 
     //summarize at the end
-    private void summary(JemEquivList offspring){
-		Messenger.line("JemWireStepUp done - processed " +
+    private void summary(JemLeafList offspring){
+		globals.println(" processed " +
 							numWiresProcessed + " Wires from " +
-							numEquivProcessed + " JemEquivRecords");
-		Messenger.line(offspringStats(offspring));
-		elapsedTime(numWiresProcessed);
+							numEquivProcessed + " Leaf Records");
+		globals.println(offspringStats(offspring));
+		elapsedTime();
     }
 
-	// ---------- for JemRecord -------------
+	// ---------- for JemEquivRecord -------------
 	
-    public JemEquivList doFor(JemRecord g){
-		JemEquivList out= new JemEquivList();
-		if(g instanceof JemHistoryRecord){
+    public JemLeafList doFor(JemEquivRecord g){
+		JemLeafList out= new JemLeafList();
+		if(g.isLeaf()){
+			numEquivProcessed++;
 			out.addAll(super.doFor(g));
 		} else {
-			error(!(g instanceof JemEquivRecord), "unrecognized JemRecord");
-			numEquivProcessed++;
 			out.addAll(super.doFor(g));
 		}
 		return out;

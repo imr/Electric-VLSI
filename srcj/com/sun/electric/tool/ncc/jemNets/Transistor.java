@@ -24,7 +24,6 @@
 //	Updated 16 October 2003 to use JemTree interface
 
 package com.sun.electric.tool.ncc.jemNets;
-import com.sun.electric.tool.ncc.basicA.Name;
 import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.ncc.jemNets.Part;
 import com.sun.electric.tool.ncc.jemNets.Wire;
@@ -33,31 +32,28 @@ import com.sun.electric.tool.ncc.jemNets.Wire;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class Transistor extends Part{
-    
+public abstract class Transistor extends Part {
     // ---------- private data -------------
-    protected double myWidth;
-    protected double myLength;
-    protected Type myType;
+    protected double width;
+    private final double length;
+    private final Type type;
     
     // ---------- private methods ----------
-    protected Transistor(Name n, int numCon){
-		super(n, numCon);
+    protected Transistor(Type np, String name, double width, double length,
+					     Wire[] pins) {
+		super(name, pins);
+		type = np;
+		this.width = width;
+		this.length = length;
     }
 
     // ---------- public methods ----------
+    Type getType() {return type;}
+    double getLength() {return length;}
+    double getWidth() {return width;}
     
-    public boolean isNtype(){return (myType== Ntype);}
-    public boolean isPtype(){return (myType== Ptype);}
-	public void setWidthLength(double w, double l){
-		myWidth= w;
-		myLength= l;
-	}
-
-	public void setType(boolean n){
-		if(n)myType= Ntype;
-		else myType= Ptype;
-    }
+    public boolean isNtype(){return (type== NTYPE);}
+    public boolean isPtype(){return (type== PTYPE);}
 
     // ---------- abstract commitment ----------
 
@@ -77,27 +73,26 @@ public abstract class Transistor extends Part{
 	 * @return true if type and gate length match
 	 */
 	public boolean isLike(Transistor t){
-		return myType==t.myType && myLength==t.myLength;
+		return type==t.type && length==t.length;
     }
 	
     // ---------- printing methods ----------
 
 	public String nameString(){
-		return myType!=null ? myType.name : "";
+		return type!=null ? type.name : "";
     }
 	
 	public String valueString(){
-		return "W= " + myWidth + " L= " + myLength;
+		return "W= " + width + " L= " + length;
 	}
 
     public abstract String connectionString(int n);
 
-    protected static class Type{
+	protected static class Type {
 		private String name;
 		private Type(String s){name=s;}
-    }
+	}
 	
-	protected static final Type Ntype= new Type("N-");
-    protected static final Type Ptype= new Type("P-");
-
+	protected static final Type NTYPE= new Type("N-");
+	protected static final Type PTYPE= new Type("P-");
 }

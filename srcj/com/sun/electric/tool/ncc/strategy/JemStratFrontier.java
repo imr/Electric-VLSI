@@ -28,79 +28,65 @@ package com.sun.electric.tool.ncc.strategy;
 
 import java.util.HashMap;
 
+import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.ncc.jemNets.*;
 import com.sun.electric.tool.ncc.trees.*;
 import com.sun.electric.tool.ncc.lists.*;
 
 public class JemStratFrontier extends JemStrat {
-	int numHistoryRecords;
+	private int numHistoryRecords;
 
-    private JemStratFrontier(){}
+    private JemStratFrontier(NccGlobals globals) {super(globals);}
 
     // ---------- the tree walking code ---------
 
-    //do something before starting
     private void preamble(){
-		startTime("JemStratFrontier", "starting on a JemEquivList");
+//		startTime("JemStratFrontier", "JemLeafList");
     }
 	
-    //do something before starting
-    private void preamble(JemRecord j){
-		startTime("JemStratFrontier", j.nameString());
+    private void preamble(JemEquivRecord j){
+//		startTime("JemStratFrontier", j.nameString());
     }
 	
     //summarize at the end
-    private void summary(JemEquivList x){
-        Messenger.say("JemStratFrontier done - used ");
-        Messenger.line(numHistoryRecords + " HistoryRecords");
-		Messenger.line(offspringStats(x));
-        elapsedTime();
+    private void summary(JemLeafList x){
+//        globals.println(" JemStratFrontier done - used ");
+//        globals.println(numHistoryRecords + " HistoryRecords");
+		globals.println(" JemStratFrontier ");
+		globals.println(offspringStats(x));
+//        elapsedTime();
     }
 
-	public static JemEquivList doYourJob(JemRecordList r) {
-		JemStratFrontier jsf = new JemStratFrontier();
+	public static JemLeafList doYourJob(JemRecordList r,
+										NccGlobals globals) {
+		JemStratFrontier jsf = new JemStratFrontier(globals);
         jsf.preamble();
-		JemEquivList el= jsf.doFor(r);
+		JemLeafList el= jsf.doFor(r);
 		jsf.summary(el);
         return el;
     }
     
-    public static JemEquivList doYourJob(JemRecord r) {
-    	JemStratFrontier jsf = new JemStratFrontier();
+    public static JemLeafList doYourJob(JemEquivRecord r,
+    									 NccGlobals globals) {
+    	JemStratFrontier jsf = new JemStratFrontier(globals);
     	jsf.preamble(r);
-    	JemEquivList el = jsf.doFor(r);
+    	JemLeafList el = jsf.doFor(r);
     	jsf.summary(el);
     	return el;
     }
 	
-    // ---------- for JemRecord -------------
+    // ---------- for JemEquivRecord -------------
 
-    public JemEquivList doFor(JemRecord j){
-		JemEquivList frontier = new JemEquivList();
-		if(j instanceof JemHistoryRecord){
-			numHistoryRecords++;
-			frontier = super.doFor(j);
-		} else {
-			error(!(j instanceof JemEquivRecord), "unrecognized JemRecord");
+    public JemLeafList doFor(JemEquivRecord j){
+		JemLeafList frontier = new JemLeafList();
+		if(j.isLeaf()){
 			JemEquivRecord er= (JemEquivRecord)j;
 			if (!er.isRetired())  frontier.add(j);
+		} else {
+			numHistoryRecords++;
+			frontier = super.doFor(j);
 		}
 		return frontier;
     }
-
-    // ---------- for JemCircuit -------------
-
-    public HashMap doFor(JemCircuit j){
-    	error(true, "shouldn't call doFor(JemCircuit)");
-		return null;
-    }
-
-    // ---------- for NetObject -------------
-
-    public Integer doFor(NetObject n){
-    	error(true, "shouldn't call doFor(NetObject)");
-        return CODE_ERROR;
-    }
-
 }

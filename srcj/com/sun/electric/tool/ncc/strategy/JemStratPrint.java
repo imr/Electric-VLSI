@@ -23,6 +23,7 @@
 */
 package com.sun.electric.tool.ncc.strategy;
 import com.sun.electric.tool.ncc.basicA.Messenger;
+import com.sun.electric.tool.ncc.*;
 import com.sun.electric.tool.ncc.trees.*;
 import com.sun.electric.tool.ncc.lists.*;
 import com.sun.electric.tool.ncc.jemNets.Part;
@@ -41,32 +42,33 @@ public class JemStratPrint extends JemStrat {
     // ---------- private data -------------
 
     // these integers set limits to the amount of output printing
-    private static final int MAX_LINES= 2; //max number Parts or Wires to print
+    private static final int MAX_LINES= 4; //max number Parts or Wires to print
     private static final int MAX_PINS=3; //max number Pins printed for Wires
 
     public String nameString(){return "JemStratPrint";}
 
-    private JemStratPrint(){}
+    private JemStratPrint(NccGlobals globals) {super(globals);}
 
-	public static JemEquivList doYourJob(JemRecord j){
-		JemStratPrint jsp = new JemStratPrint();
+	public static JemLeafList doYourJob(JemEquivRecord j,
+	                                     NccGlobals globals){
+		JemStratPrint jsp = new JemStratPrint(globals);
 		jsp.preamble(j);
-		JemEquivList el= jsp.doFor(j); //prints content and offspring if any
+		JemLeafList el= jsp.doFor(j); //prints content and offspring if any
 		jsp.summary();
 		return el;
 	}
 
     // ---------- the tree walking code ---------
-    private void preamble(JemRecord j){
+    private void preamble(JemEquivRecord j){
     	startTime("JemStratPrint", j.nameString());
     }
 
 	private void summary(){elapsedTime();}
 
-	// ---------- for JemRecord -------------
-	public JemEquivList doFor(JemRecord j){
-		Messenger.say("**  Depth= " + getDepth() + " ");
-		j.printMe();
+	// ---------- for JemEquivRecord -------------
+	public JemLeafList doFor(JemEquivRecord j){
+		globals.print("**  Depth= " + getDepth() + " ");
+		j.printMe(globals);
 		return super.doFor(j);
 	}
 
@@ -74,19 +76,19 @@ public class JemStratPrint extends JemStrat {
 
 	// has extra stuff to limit the amount of printing
 	public HashMap doFor(JemCircuit j){
-		Messenger.say("**  Depth= " + getDepth() +
+		globals.print("**  Depth= " + getDepth() +
 					 " " + j.nameString() +
 					 " of " + j.numNetObjs() +
 					 " and code " + j.getCode());
 
-		Messenger.line(j.numNetObjs()<MAX_LINES ? "" : " starts with");
+		globals.println(j.numNetObjs()<MAX_LINES ? "" : " starts with");
 
 		int count= 0;
 		HashMap codeToNetObjs = new HashMap();
 		for (Iterator it=j.getNetObjs(); it.hasNext();) {
 			NetObject n= (NetObject) it.next();
 			codeToNetObjs.put(CODE_NO_CHANGE, n);
-			if (count<MAX_LINES) n.printMe(MAX_PINS);
+			if (count<MAX_LINES) n.printMe(MAX_PINS, globals.getMessenger());
 			count++;
 		}
 		return codeToNetObjs;

@@ -23,6 +23,7 @@
 */
 
 package com.sun.electric.tool.ncc.strategy;
+import com.sun.electric.tool.ncc.*;
 import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.ncc.jemNets.*;
 import com.sun.electric.tool.ncc.trees.*;
@@ -34,35 +35,34 @@ public class JemWirePopularity extends JemStrat {
 	int numWiresProcessed;
 	int numEquivProcessed;
 
-	private JemWirePopularity(){}
+	private JemWirePopularity(NccGlobals globals) {super(globals);}
 
-	public static JemEquivList doYourJob(JemSets jss){
-		JemEquivList frontier= JemStratFrontier.doYourJob(jss.wires);
-		JemWirePopularity wp = new JemWirePopularity();
-		wp.preamble(frontier);
-		JemEquivList offspring= wp.doFor(frontier);
+	public static void doYourJob(NccGlobals globals) {
+		JemWirePopularity wp = new JemWirePopularity(globals);
+		wp.preamble();
+		JemLeafList front = JemStratFrontier.doYourJob(globals.getWires(), globals);
+		JemLeafList offspring = wp.doFor(front);
 		wp.summary(offspring);
-		return offspring;
 	}
 
 	//do something before starting
-	private void preamble(JemEquivList el){
-		startTime("JemWirePopularity", " JemEquivList of size: "+el.size());
+	private void preamble() {
+		startTime("JemWirePopularity", "all active Wires");
 	}
 
     //summarize at the end
-    private void summary(JemEquivList offspring){
-		Messenger.line("JemWirePopularity done - examined " +
+    private void summary(JemLeafList offspring){
+		globals.println(" examined " +
 							numWiresProcessed + " Wires from " +
-							numEquivProcessed + " JemEquivRecords");
-		Messenger.line(offspringStats(offspring));
-        elapsedTime(numWiresProcessed);
+							numEquivProcessed + " Leaf Records");
+		globals.println(offspringStats(offspring));
+        elapsedTime();
     }
 
-    // ---------- for JemRecord -------------
+    // ---------- for JemEquivRecord -------------
 	
-    public JemEquivList doFor(JemRecord g){
-		if (g instanceof JemEquivRecord)  numEquivProcessed++;  
+    public JemLeafList doFor(JemEquivRecord g){
+		if (g.isLeaf())  numEquivProcessed++;  
 		return super.doFor(g);
 	}
 
