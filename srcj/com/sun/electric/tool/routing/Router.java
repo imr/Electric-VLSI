@@ -157,7 +157,7 @@ public abstract class Router {
                 System.out.println(nodesCreated+" nodes created");
         }
 
-        if (highlightRouteEnd) {
+        if (highlightRouteEnd && (highlighter != null)) {
             RouteElementPort finalRE = route.getEnd();
             if (finalRE != null) {
                 highlighter.clear();
