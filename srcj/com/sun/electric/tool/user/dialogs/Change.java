@@ -59,11 +59,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.swing.DefaultListModel;
-import javax.swing.JList;
-import javax.swing.JFrame;
-import javax.swing.JRadioButton;
-import javax.swing.ListSelectionModel;
+import javax.swing.*;
 
 /**
  * Class to handle the "Change" dialog.
@@ -453,7 +449,8 @@ public class Change extends EDialog implements HighlightListener
 			}
 			changeList.setSelectedIndex(0);
  		}
-		centerSelection(changeList);
+		SwingUtilities.invokeLater(new Runnable() {
+            public void run() { centerSelection(changeList); }});
 	}
 
 	private void doTheChange()
