@@ -589,7 +589,11 @@ public class ERCWellCheck
 						Layer layer = poly.getLayer();
 						// Only interested in well/select
 						if (!isERCLayerRelated(layer)) continue;
-						if (getWellLayerType(layer) == ERCPSEUDO) continue;
+//						if (getWellLayerType(layer) == ERCPSEUDO)
+//						{
+//							System.out.println("When happens?");
+//							continue;
+//						}
 						Object newElem = poly;
 
 						if (check.newAlgorithm)
@@ -622,7 +626,7 @@ public class ERCWellCheck
         public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
         {
 	        // Checking if job is scheduled for abort or already aborted
-	        if (check.job!= null && check.job.checkForAbort()) return (false);
+	        //if (check.job!= null && check.job.checkForAbort()) return (false);
 
 			// merge everything
 	        Cell cell = info.getCell();
@@ -647,7 +651,7 @@ public class ERCWellCheck
 					{
 						Poly poly = nodeInstPolyList[i];
 						Layer layer = poly.getLayer();
-						int layerType = getWellLayerType(layer);
+						//int layerType = getWellLayerType(layer);
 						// Only interested in well/select regions
 						if (!isERCLayerRelated(layer)) continue;
 						poly.transform(trans);
