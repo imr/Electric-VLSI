@@ -493,7 +493,7 @@ public class View3DWindow extends JPanel
 				System.arraycopy(topList.toArray(), 0, pts, 0, listLen);
 				System.arraycopy(bottomList.toArray(), 0, pts, listLen, listLen);
 				int numFaces = listLen + 2; // contour + top + bottom
-				int[] indices = new int[numFaces*4];
+				int[] indices = new int[listLen*6];
 				int[] stripCounts = new int[numFaces];
                 int[] contourCount = new int[numFaces];
 				Arrays.fill(contourCount, 1);
@@ -520,15 +520,7 @@ public class View3DWindow extends JPanel
 
 				GeometryInfo gi = new GeometryInfo(GeometryInfo.POLYGON_ARRAY);
 				gi.setCoordinates(pts);
-
-        int[] indices1 = {0, 3, 2, 1, /* bottom z */
-                         0, 4, 7, 3, /* back y */
-                         0, 1, 5, 4, /* back x */
-                         3, 7, 6, 2, /* front x */
-                         2, 6, 5, 1, /* front y */
-                         4, 5, 6, 7}; /* top z */
-
-				gi.setCoordinateIndices(indices1);
+				gi.setCoordinateIndices(indices);
 				gi.setStripCounts(stripCounts);
 				gi.setContourCounts(contourCount);
 				NormalGenerator ng = new NormalGenerator();
