@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: LayerVisibility.java
+ * File: LayerTab.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.user.dialogs;
+package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.technology.Layer;
@@ -33,12 +33,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.PixelDrawing;
 
-import java.awt.GridBagConstraints;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import javax.swing.event.ChangeEvent;
 import java.awt.event.MouseAdapter;
-import javax.swing.event.ChangeEvent;
 import java.awt.event.MouseEvent;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -47,58 +42,31 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.DefaultListModel;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
+import javax.swing.JFrame;
 import javax.swing.JList;
-import javax.swing.JPanel;
 import javax.swing.ListSelectionModel;
 
 
 /**
- * Class to handle the "Layer Visibility" dialog.
+ * Class to handle the "Layers tab" of a window.
  */
-public class LayerVisibility extends EDialog
+public class LayerTab extends JFrame
 {
 	private JList layerList;
 	private DefaultListModel layerListModel;
 	private HashMap visibility;
 	private HashMap highlighted;
 	private List layersInList;
-	private boolean initialTextOnNode;
-	private boolean initialTextOnArc;
-	private boolean initialTextOnPort;
-	private boolean initialTextOnExport;
-	private boolean initialTextOnAnnotation;
-	private boolean initialTextOnInstance;
-	private boolean initialTextOnCell;
-	private boolean showHighlighted;
+	private boolean loading;
 
 	// 3D view. Static values to avoid unnecessary calls
 	private static final Class view3DClass = Resources.get3DMainClass();
 	private static Method setVisibilityMethod = null;
 
-	/** Creates new form Layer Visibility */
-	public LayerVisibility(java.awt.Frame parent, boolean modal)
+	/** Creates new panel for Layers */
+	public LayerTab()
 	{
-		super(parent, modal);
 		initComponents();
-
-		// initialize text visibility checkboxes
-		initialTextOnNode = User.isTextVisibilityOnNode();
-		nodeText.setSelected(initialTextOnNode);
-		initialTextOnArc = User.isTextVisibilityOnArc();
-		arcText.setSelected(initialTextOnArc);
-		initialTextOnPort = User.isTextVisibilityOnPort();
-		portText.setSelected(initialTextOnPort);
-		initialTextOnExport = User.isTextVisibilityOnExport();
-		exportText.setSelected(initialTextOnExport);
-		initialTextOnAnnotation = User.isTextVisibilityOnAnnotation();
-		annotationText.setSelected(initialTextOnAnnotation);
-		initialTextOnInstance = User.isTextVisibilityOnInstance();
-		instanceNames.setSelected(initialTextOnInstance);
-		initialTextOnCell = User.isTextVisibilityOnCell();
-		cellText.setSelected(initialTextOnCell);
 
 		// build the change list
 		layerListModel = new DefaultListModel();
@@ -109,6 +77,58 @@ public class LayerVisibility extends EDialog
 		{
 			public void mouseClicked(MouseEvent e) { apply(e); }
 		});
+		nodeText.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt) { update(); }
+        });
+		arcText.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt) { update(); }
+        });
+		portText.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt) { update(); }
+        });
+		exportText.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt) { update(); }
+        });
+		annotationText.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt) { update(); }
+        });
+		instanceNames.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt) { update(); }
+        });
+		cellText.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt) { update(); }
+        });
+
+		// make a popup of Technologies
+		loading = true;
+		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		{
+			Technology tech = (Technology)it.next();
+			technology.addItem(tech.getTechName());
+		}
+		technology.setSelectedItem(Technology.getCurrent().getTechName());
+		loading = false;
+
+		reload();
+	}
+
+	public void reload()
+	{
+		// initialize text visibility checkboxes
+		nodeText.setSelected(User.isTextVisibilityOnNode());
+		arcText.setSelected(User.isTextVisibilityOnArc());
+		portText.setSelected(User.isTextVisibilityOnPort());
+		exportText.setSelected(User.isTextVisibilityOnExport());
+		annotationText.setSelected(User.isTextVisibilityOnAnnotation());
+		instanceNames.setSelected(User.isTextVisibilityOnInstance());
+		cellText.setSelected(User.isTextVisibilityOnCell());
 
 		// cache dimming
 		boolean noDimming = true;
@@ -138,20 +158,12 @@ public class LayerVisibility extends EDialog
 			}
 		}
 
-		// make a popup of Technologies
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
-		{
-			Technology tech = (Technology)it.next();
-			technology.addItem(tech.getTechName());
-		}
-		technology.setSelectedItem(Technology.getCurrent().getTechName());
-
 		showLayersForTechnology();
-		finishInitialization();
 	}
 
 	private void showLayersForTechnology()
 	{
+		if (loading) return;
 		String techName = (String)technology.getSelectedItem();
 		Technology tech = Technology.findTechnology(techName);
 
@@ -221,15 +233,14 @@ public class LayerVisibility extends EDialog
 	}
 
 	/**
-	 * Method to make all layers visible or invisible.
-	 * @param on true to make all layers visible.
+	 * Method to select all layers.
 	 */
-	private void setAllVisibility(boolean on)
+	private void selectAll()
 	{
-		for(int i=0; i<layerListModel.size(); i++)
-		{
-			setVisibility(i, on);
-		}
+		int len = layerListModel.size();
+		int [] indices = new int[len];
+		for(int i=0; i<len; i++) indices[i] = i;
+		layerList.setSelectedIndices(indices);
 	}
 
 	/**
@@ -279,6 +290,9 @@ public class LayerVisibility extends EDialog
 
 		// update the list
 		layerListModel.set(i, lineName(layer));
+
+		// update the display
+		update();
 	}
 
 	/**
@@ -309,13 +323,15 @@ public class LayerVisibility extends EDialog
 
 		// update the list
 		layerListModel.set(i, lineName(layer));
+
+		// update the display
+		update();
 	}
 
-	protected void escapePressed() { cancelActionPerformed(null); }
-
-	private void termDialog()
+	private void update()
 	{
 		// see if anything was highlighted
+		boolean changed = false;
 		boolean anyHighlighted = false;
 		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
@@ -340,6 +356,7 @@ public class LayerVisibility extends EDialog
                 {
 	                if (layer.isVisible() != layerVis.booleanValue())
 	                {
+                		changed = true;
 	                	layer.setVisible(layerVis.booleanValue());
 
 						// 3D appearance if available
@@ -362,18 +379,15 @@ public class LayerVisibility extends EDialog
                 {
                 	boolean newState = false;
                 	if (anyHighlighted && !layerHighlighted.booleanValue()) newState = true;
-                	if (newState != layer.isDimmed()) layer.setDimmed(newState);
+                	if (newState != layer.isDimmed())
+                	{
+                		layer.setDimmed(newState);
+                		changed = true;
+                	}
                 }
 			}
 		}
 
-//System.out.print("Dim layers in "+Technology.getCurrent().getTechName()+":");
-//for(Iterator it = Technology.getCurrent().getLayers(); it.hasNext(); )
-//{
-// Layer l = (Layer)it.next();
-// if (l.isDimmed()) System.out.print(" "+l.getName());
-//}
-//System.out.println();
 		// recompute visibility of primitive nodes and arcs
 		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
@@ -406,35 +420,67 @@ public class LayerVisibility extends EDialog
 		}
 
 		boolean currentTextOnNode = nodeText.isSelected();
-		if (currentTextOnNode != initialTextOnNode)
-			User.setTextVisibilityOnNode(initialTextOnNode = currentTextOnNode);
+		if (currentTextOnNode != User.isTextVisibilityOnNode())
+		{
+    		changed = true;
+			User.setTextVisibilityOnNode(currentTextOnNode);
+		}
 
 		boolean currentTextOnArc = arcText.isSelected();
-		if (currentTextOnArc != initialTextOnArc)
-			User.setTextVisibilityOnArc(initialTextOnArc = currentTextOnArc);
+		if (currentTextOnArc != User.isTextVisibilityOnArc())
+		{
+    		changed = true;
+			User.setTextVisibilityOnArc(currentTextOnArc);
+		}
 
 		boolean currentTextOnPort = portText.isSelected();
-		if (currentTextOnPort != initialTextOnPort)
-			User.setTextVisibilityOnPort(initialTextOnPort = currentTextOnPort);
+		if (currentTextOnPort != User.isTextVisibilityOnPort())
+		{
+    		changed = true;
+			User.setTextVisibilityOnPort(currentTextOnPort);
+		}
 
 		boolean currentTextOnExport = exportText.isSelected();
-		if (currentTextOnExport != initialTextOnExport)
-			User.setTextVisibilityOnExport(initialTextOnExport = currentTextOnExport);
+		if (currentTextOnExport != User.isTextVisibilityOnExport())
+		{
+    		changed = true;
+			User.setTextVisibilityOnExport(currentTextOnExport);
+		}
 
 		boolean currentTextOnAnnotation = annotationText.isSelected();
-		if (currentTextOnAnnotation != initialTextOnAnnotation)
-			User.setTextVisibilityOnAnnotation(initialTextOnAnnotation = currentTextOnAnnotation);
+		if (currentTextOnAnnotation != User.isTextVisibilityOnAnnotation())
+		{
+    		changed = true;
+			User.setTextVisibilityOnAnnotation(currentTextOnAnnotation);
+		}
 
 		boolean currentTextOnInstance = instanceNames.isSelected();
-		if (currentTextOnInstance != initialTextOnInstance)
-			User.setTextVisibilityOnInstance(initialTextOnInstance = currentTextOnInstance);
+		if (currentTextOnInstance != User.isTextVisibilityOnInstance())
+		{
+    		changed = true;
+			User.setTextVisibilityOnInstance(currentTextOnInstance);
+		}
 
 		boolean currentTextOnCell = cellText.isSelected();
-		if (currentTextOnCell != initialTextOnCell)
-			User.setTextVisibilityOnCell(initialTextOnCell = currentTextOnCell);
+		if (currentTextOnCell != User.isTextVisibilityOnCell())
+		{
+    		changed = true;
+			User.setTextVisibilityOnCell(currentTextOnCell);
+		}
 
-		PixelDrawing.clearSubCellCache();
-		EditWindow.repaintAllContents();
+		if (changed)
+		{
+			PixelDrawing.clearSubCellCache();
+			EditWindow.repaintAllContents();
+
+			// make sure all other visibility panels are in sync
+			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+			{
+				WindowFrame wf = (WindowFrame)it.next();
+				LayerTab lt = wf.getLayersTab();
+				if (lt != this) lt.reload();
+			}
+		}
 	}
 
 	/** This method is called from within the constructor to
@@ -446,30 +492,22 @@ public class LayerVisibility extends EDialog
     {
         java.awt.GridBagConstraints gridBagConstraints;
 
-        apply = new javax.swing.JButton();
-        ok = new javax.swing.JButton();
         layerPane = new javax.swing.JScrollPane();
         technology = new javax.swing.JComboBox();
-        jLabel1 = new javax.swing.JLabel();
-        nodeText = new javax.swing.JCheckBox();
-        arcText = new javax.swing.JCheckBox();
-        portText = new javax.swing.JCheckBox();
-        exportText = new javax.swing.JCheckBox();
-        annotationText = new javax.swing.JCheckBox();
-        instanceNames = new javax.swing.JCheckBox();
-        cellText = new javax.swing.JCheckBox();
-        allVisible = new javax.swing.JButton();
-        allInvisible = new javax.swing.JButton();
-        jLabel3 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
-        cancel = new javax.swing.JButton();
+        selectAll = new javax.swing.JButton();
         makeVisible = new javax.swing.JButton();
         makeInvisible = new javax.swing.JButton();
-        jSeparator1 = new javax.swing.JSeparator();
-        jSeparator2 = new javax.swing.JSeparator();
-        toggleHighlight = new javax.swing.JButton();
+        jPanel1 = new javax.swing.JPanel();
         unhighlightAll = new javax.swing.JButton();
-        jSeparator3 = new javax.swing.JSeparator();
+        toggleHighlight = new javax.swing.JButton();
+        jPanel2 = new javax.swing.JPanel();
+        cellText = new javax.swing.JCheckBox();
+        arcText = new javax.swing.JCheckBox();
+        annotationText = new javax.swing.JCheckBox();
+        instanceNames = new javax.swing.JCheckBox();
+        exportText = new javax.swing.JCheckBox();
+        portText = new javax.swing.JCheckBox();
+        nodeText = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -483,46 +521,11 @@ public class LayerVisibility extends EDialog
             }
         });
 
-        apply.setText("Apply");
-        apply.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                apply(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 22;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.weightx = 0.5;
-        getContentPane().add(apply, gridBagConstraints);
-
-        ok.setText("OK");
-        ok.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                ok(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 21;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.weightx = 0.5;
-        getContentPane().add(ok, gridBagConstraints);
-
         layerPane.setMinimumSize(new java.awt.Dimension(100, 300));
         layerPane.setPreferredSize(new java.awt.Dimension(100, 300));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.gridheight = 8;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
@@ -538,137 +541,26 @@ public class LayerVisibility extends EDialog
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(technology, gridBagConstraints);
 
-        jLabel1.setText("Technology:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(jLabel1, gridBagConstraints);
-
-        nodeText.setText("Node text");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 16;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        getContentPane().add(nodeText, gridBagConstraints);
-
-        arcText.setText("Arc text");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 17;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        getContentPane().add(arcText, gridBagConstraints);
-
-        portText.setText("Port text");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 18;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        getContentPane().add(portText, gridBagConstraints);
-
-        exportText.setText("Export text");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 18;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        getContentPane().add(exportText, gridBagConstraints);
-
-        annotationText.setText("Annotation text");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 17;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        getContentPane().add(annotationText, gridBagConstraints);
-
-        instanceNames.setText("Instance names");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 16;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        getContentPane().add(instanceNames, gridBagConstraints);
-
-        cellText.setText("Cell text");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 19;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        getContentPane().add(cellText, gridBagConstraints);
-
-        allVisible.setText("All Visible");
-        allVisible.addActionListener(new java.awt.event.ActionListener()
+        selectAll.setText("Select All");
+        selectAll.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                allVisibleActionPerformed(evt);
+                selectAllActionPerformed(evt);
             }
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 10;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(allVisible, gridBagConstraints);
-
-        allInvisible.setText("All Invisible");
-        allInvisible.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                allInvisibleActionPerformed(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 11;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(allInvisible, gridBagConstraints);
-
-        jLabel3.setText("Cheked layers are visibile; double-click to toggle.");
-        gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 9;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
-        getContentPane().add(jLabel3, gridBagConstraints);
-
-        jLabel4.setText("Text visibility options:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 15;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(jLabel4, gridBagConstraints);
-
-        cancel.setText("Cancel");
-        cancel.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                cancelActionPerformed(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 21;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(cancel, gridBagConstraints);
+        getContentPane().add(selectAll, gridBagConstraints);
 
         makeVisible.setText("Make Visible");
         makeVisible.addActionListener(new java.awt.event.ActionListener()
@@ -681,7 +573,8 @@ public class LayerVisibility extends EDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(makeVisible, gridBagConstraints);
 
         makeInvisible.setText("Make Invisible");
@@ -695,40 +588,14 @@ public class LayerVisibility extends EDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 11;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(makeInvisible, gridBagConstraints);
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 14;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(jSeparator1, gridBagConstraints);
+        jPanel1.setLayout(new java.awt.GridBagLayout());
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 20;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(jSeparator2, gridBagConstraints);
-
-        toggleHighlight.setText("Toggle Highlight");
-        toggleHighlight.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                toggleHighlightActionPerformed(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 13;
-        getContentPane().add(toggleHighlight, gridBagConstraints);
-
-        unhighlightAll.setText("Unhighlight All");
+        jPanel1.setBorder(new javax.swing.border.TitledBorder("Highlighting"));
+        unhighlightAll.setText("Clear");
         unhighlightAll.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -739,17 +606,90 @@ public class LayerVisibility extends EDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 13;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(unhighlightAll, gridBagConstraints);
+        jPanel1.add(unhighlightAll, gridBagConstraints);
+
+        toggleHighlight.setText("Toggle");
+        toggleHighlight.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                toggleHighlightActionPerformed(evt);
+            }
+        });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 12;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(jSeparator3, gridBagConstraints);
+        jPanel1.add(toggleHighlight, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        getContentPane().add(jPanel1, gridBagConstraints);
+
+        jPanel2.setLayout(new java.awt.GridBagLayout());
+
+        jPanel2.setBorder(new javax.swing.border.TitledBorder("Text Visibility"));
+        cellText.setText("Cell text");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel2.add(cellText, gridBagConstraints);
+
+        arcText.setText("Arc text");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel2.add(arcText, gridBagConstraints);
+
+        annotationText.setText("Annotation text");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel2.add(annotationText, gridBagConstraints);
+
+        instanceNames.setText("Instance names");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel2.add(instanceNames, gridBagConstraints);
+
+        exportText.setText("Export text");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel2.add(exportText, gridBagConstraints);
+
+        portText.setText("Port text");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel2.add(portText, gridBagConstraints);
+
+        nodeText.setText("Node text");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 0, 0, 0);
+        jPanel2.add(nodeText, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        getContentPane().add(jPanel2, gridBagConstraints);
 
         pack();
     }//GEN-END:initComponents
@@ -774,36 +714,15 @@ public class LayerVisibility extends EDialog
 		setVisibility(true);
 	}//GEN-LAST:event_makeVisibleActionPerformed
 
-	private void cancelActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cancelActionPerformed
-	{//GEN-HEADEREND:event_cancelActionPerformed
-		closeDialog(null);
-	}//GEN-LAST:event_cancelActionPerformed
-
-	private void allVisibleActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_allVisibleActionPerformed
-	{//GEN-HEADEREND:event_allVisibleActionPerformed
-		setAllVisibility(true);
-	}//GEN-LAST:event_allVisibleActionPerformed
-
-	private void allInvisibleActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_allInvisibleActionPerformed
-	{//GEN-HEADEREND:event_allInvisibleActionPerformed
-		setAllVisibility(false);
-	}//GEN-LAST:event_allInvisibleActionPerformed
+	private void selectAllActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_selectAllActionPerformed
+	{//GEN-HEADEREND:event_selectAllActionPerformed
+		selectAll();
+	}//GEN-LAST:event_selectAllActionPerformed
 
 	private void technologyActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_technologyActionPerformed
 	{//GEN-HEADEREND:event_technologyActionPerformed
 		showLayersForTechnology();
 	}//GEN-LAST:event_technologyActionPerformed
-
-	private void apply(java.awt.event.ActionEvent evt)//GEN-FIRST:event_apply
-	{//GEN-HEADEREND:event_apply
-		termDialog();
-	}//GEN-LAST:event_apply
-
-	private void ok(java.awt.event.ActionEvent evt)//GEN-FIRST:event_ok
-	{//GEN-HEADEREND:event_ok
-		termDialog();
-		closeDialog(null);
-	}//GEN-LAST:event_ok
 
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
@@ -813,27 +732,19 @@ public class LayerVisibility extends EDialog
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton allInvisible;
-    private javax.swing.JButton allVisible;
     private javax.swing.JCheckBox annotationText;
-    private javax.swing.JButton apply;
     private javax.swing.JCheckBox arcText;
-    private javax.swing.JButton cancel;
     private javax.swing.JCheckBox cellText;
     private javax.swing.JCheckBox exportText;
     private javax.swing.JCheckBox instanceNames;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JSeparator jSeparator1;
-    private javax.swing.JSeparator jSeparator2;
-    private javax.swing.JSeparator jSeparator3;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane layerPane;
     private javax.swing.JButton makeInvisible;
     private javax.swing.JButton makeVisible;
     private javax.swing.JCheckBox nodeText;
-    private javax.swing.JButton ok;
     private javax.swing.JCheckBox portText;
+    private javax.swing.JButton selectAll;
     private javax.swing.JComboBox technology;
     private javax.swing.JButton toggleHighlight;
     private javax.swing.JButton unhighlightAll;

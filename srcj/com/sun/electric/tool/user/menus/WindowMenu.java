@@ -42,7 +42,7 @@ import javax.swing.KeyStroke;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.dialogs.LayerVisibility;
+import com.sun.electric.tool.user.ui.LayerTab;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.MessagesWindow;
@@ -143,8 +143,8 @@ public class WindowMenu {
 
         windowMenu.addSeparator();
 
-        windowMenu.addMenuItem("Layer Visibility...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { layerVisibilityCommand(); } });
+//        windowMenu.addMenuItem("Layer Visibility...", null,
+//            new ActionListener() { public void actionPerformed(ActionEvent e) { layerVisibilityCommand(); } });
         MenuBar.Menu colorSubMenu = new MenuBar.Menu("Color Schemes");
         windowMenu.add(colorSubMenu);
         colorSubMenu.addMenuItem("Restore Default Colors", null,
@@ -505,14 +505,14 @@ public class WindowMenu {
     	}
     }
 
-    /**
-     * This method implements the command to control Layer visibility.
-     */
-    public static void layerVisibilityCommand()
-    {
-		LayerVisibility dialog = new LayerVisibility(TopLevel.getCurrentJFrame(), false);
-		dialog.setVisible(true);
-    }
+//    /**
+//     * This method implements the command to control Layer visibility.
+//     */
+//    public static void layerVisibilityCommand()
+//    {
+//		LayerVisibility dialog = new LayerVisibility(TopLevel.getCurrentJFrame(), false);
+//		dialog.setVisible(true);
+//    }
 
     /**
      * This method implements the command to set default colors.

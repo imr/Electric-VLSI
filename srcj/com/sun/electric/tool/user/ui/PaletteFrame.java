@@ -290,7 +290,7 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 			if (User.isAutoTechnologySwitch())
 			{
 				tech.setCurrent();
-				wf.getPalette().techSelector.setSelectedItem(tech.getTechName());
+				wf.getPaletteTab().techSelector.setSelectedItem(tech.getTechName());
 			}
 		}
 	}

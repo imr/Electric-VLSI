@@ -117,7 +117,7 @@ public class User extends Listener
 	{
 		currentArcProto = ap;
 		WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
-		if (wf != null) wf.getPalette().arcProtoChanged();
+		if (wf != null) wf.getPaletteTab().arcProtoChanged();
 	}
 
 	/**
@@ -1204,6 +1204,21 @@ public class User extends Listener
 	 * @param on true if the system should beep after long jobs.
 	 */
 	public static void setBeepAfterLongJobs(boolean on) { cacheBeepAfterLongJobs.setBoolean(on); }
+
+	private static Pref cacheDefaultWindowTab = Pref.makeIntPref("DefaultWindowTab", User.tool.prefs, 0);
+	/**
+	 * Method to tell the default tab to show.
+	 * Choices are: 0=components   1=explorer   2=layers.
+	 * The default is "0" (components).
+	 * @return the default tab to show.
+	 */
+	public static int getDefaultWindowTab() { return cacheDefaultWindowTab.getInt(); }
+	/**
+	 * Method to set the default tab to show.
+	 * Choices are: 0=components   1=explorer   2=layers.
+	 * @param t the default tab to show.
+	 */
+	public static void setDefaultWindowTab(int t) { cacheDefaultWindowTab.setInt(t); }
 
     /**************************** 3D Display Preferences **************************************/
 	private static Pref cache3DPerspective = Pref.makeBooleanPref("Perspective3D", User.tool.prefs, true);

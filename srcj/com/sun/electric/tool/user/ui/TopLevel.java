@@ -107,7 +107,6 @@ public class TopLevel extends JFrame
 	/** The WindowFrame associated with this (if SDI). */	private WindowFrame wf = null;
 	/** The size of the screen. */							private static Dimension scrnSize;
 	/** The current operating system. */					private static OS os;
-//	/** The palette object. */								private static PaletteFrame palette;
 	/** The messages window. */								private static MessagesWindow messages;
 	/** The cursor being displayed. */						private static Cursor cursor;
     /** If the busy cursor is overriding the normal cursor */ private static boolean busyCursorOn = false;
@@ -181,10 +180,8 @@ public class TopLevel extends JFrame
 	 */
 	public static void InitializeWindows()
 	{
-		// initialize the messages window and palette
+		// initialize the messages window
         messages = new MessagesWindow();
-//        palette = PaletteFrame.newInstance();
-//        palette.loadForTechnology();
         WindowFrame.createEditWindow(null);
     }
 
@@ -304,18 +301,6 @@ public class TopLevel extends JFrame
 	public static boolean isMDIMode() { return (mode == Mode.MDI); }
 
 	/**
-	 * Method to return component palette window.
-	 * The component palette is the vertical toolbar on the left side.
-	 * @return the component palette window.
-	 */
-	public static PaletteFrame getPaletteFrameX()
-	{
-		WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
-		if (wf == null) return null;
-		return wf.getPalette();
-	}
-
-	/**
 	 * Method to return messages window.
 	 * The messages window runs along the bottom.
 	 * @return the messages window.
@@ -395,7 +380,6 @@ public class TopLevel extends JFrame
             JFrame jf = TopLevel.getCurrentJFrame();
             jf.setCursor(cursor);
         }
-//        if (palette != null) palette.setCursor(cursor);
         for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
         {
             WindowFrame wf = (WindowFrame)it.next();

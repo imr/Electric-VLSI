@@ -35,11 +35,13 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.menus.FileMenu;
+import com.sun.electric.tool.user.ui.LayerTab;
 
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -80,8 +82,9 @@ public class WindowFrame
     /** the top-level frame (if SDI). */				private TopLevel jf = null;
     /** the internalframe listener */                   private InternalWindowsEvents internalWindowsEvents;
     /** the window event listener */                    private WindowsEvents windowsEvents;
-	/** the tree view part */							public ExplorerTree tree;
-	/** the component part */							public PaletteFrame palette;
+	/** the explorer tab */								private ExplorerTree explorerTab;
+	/** the component tab */							private PaletteFrame paletteTab;
+	/** the layers tab */								private LayerTab layersTab;
 	/** the explorer part of a frame. */				public DefaultMutableTreeNode rootNode;
 	/** the library explorer part. */					public DefaultMutableTreeNode libraryExplorerNode;
 	/** the job explorer part. */						public DefaultMutableTreeNode jobExplorerNode;
@@ -245,16 +248,28 @@ public class WindowFrame
 		rootNode = new DefaultMutableTreeNode("Explorer");
 		content.loadExplorerTree(rootNode);
 		treeModel = new DefaultTreeModel(rootNode);
-		tree = ExplorerTree.CreateExplorerTree(rootNode, treeModel);
-		JScrollPane scrolledTree = new JScrollPane(tree);
+		explorerTab = ExplorerTree.CreateExplorerTree(rootNode, treeModel);
+		JScrollPane scrolledTree = new JScrollPane(explorerTab);
 
 		// make a tabbed list of panes on the left
 		JTabbedPane tp = new JTabbedPane();
-		palette = PaletteFrame.newInstance();
+		paletteTab = PaletteFrame.newInstance();
 		loadComponentMenuForTechnology();
-		tp.add("Components", palette.getTechPalette());
+		tp.add("Components", paletteTab.getTechPalette());
 
 		tp.add("Explorer", scrolledTree);
+		layersTab = new LayerTab();
+		tp.add("Layers", layersTab.getContentPane());
+
+		tp.setSelectedIndex(User.getDefaultWindowTab());
+		tp.addChangeListener(new javax.swing.event.ChangeListener()
+        {
+            public void stateChanged(javax.swing.event.ChangeEvent evt)
+            {
+            	JTabbedPane tp = (JTabbedPane)evt.getSource();
+            	User.setDefaultWindowTab(tp.getSelectedIndex());
+            }
+        });
 
 		// put them together into the split pane
 		js = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
@@ -312,7 +327,7 @@ public class WindowFrame
 		}
 
 		//Technology tech = Technology.findTechnology(User.getDefaultTechnology());
-        getPalette().loadForTechnology(tech);
+		paletteTab.loadForTechnology(tech);
 	}
 
 	public void addJS(JComponent js, int width, int height, int lowX, int lowY)
@@ -554,7 +569,7 @@ public class WindowFrame
 		rootNode.add(jobExplorerNode);
 		rootNode.add(errorExplorerNode);
 
-		tree.treeDidChange();
+		explorerTab.treeDidChange();
 		treeModel.reload();
 		recursivelyCache(expanded, new TreePath(rootNode), false);
 	}
@@ -568,10 +583,10 @@ public class WindowFrame
 
 		if (cache)
 		{
-			if (tree.isExpanded(path)) expanded.put(obj, obj);
+			if (explorerTab.isExpanded(path)) expanded.put(obj, obj);
 		} else
 		{
-			if (expanded.get(obj) != null) tree.expandPath(path);
+			if (expanded.get(obj) != null) explorerTab.expandPath(path);
 		}
 
 		// now recurse
@@ -659,13 +674,7 @@ public class WindowFrame
 		if (wf == null) return null;
 		return wf.getContent().getCell();
 	}
-
-	/**
-	 * Method to return the component palette associated with this WindowFrame.
-	 * @return the component palette associated with this WindowFrame.
-	 */
-	public PaletteFrame getPalette() { return palette; }
-
+	
 	/**
 	 * Method to insist on a current Cell.
 	 * Prints an error message if there is no current Cell.
@@ -853,11 +862,23 @@ public class WindowFrame
 	 */
 	public JTextArea getTextEditWindow() { return textWnd; }
 
+//	/**
+//	 * Method to return the Explorer tab associated with this WindowFrame.
+//	 * @return the Explorer tab associated with this WindowFrame.
+//	 */
+//	public ExplorerTree getExplorerTab() { return explorerTab; }
+
 	/**
-	 * Method to return the ExplorerTree associated with this frame.
-	 * @return the ExplorerTree associated with this frame.
+	 * Method to return the component palette associated with this WindowFrame.
+	 * @return the component palette associated with this WindowFrame.
 	 */
-	public ExplorerTree getExplorerTree() { return tree; }
+	public PaletteFrame getPaletteTab() { return paletteTab; }
+
+	/**
+	 * Method to return the layer visibility tab associated with this WindowFrame.
+	 * @return the layer visibility tab associated with this WindowFrame.
+	 */
+	public LayerTab getLayersTab() { return layersTab; }
 
 	/**
 	 * Method to return the TopLevel associated with this WindowFrame.

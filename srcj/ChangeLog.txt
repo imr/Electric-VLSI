@@ -4,7 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02c: *********************************
 
-IMP: (01/21/05, SMR) Combined the Component menu into the Explorer panel (Bug #35, #67)
+IMP/MAN: (01/21/05, SMR) Combined the Component menu into the Explorer panel,
+     Also added the "Layer Visibility" dialog there (Bug #35, #67)
 
 BUG: (01/21/05, SMR) Exports don't display when editing "down hierarchy in place" (Bug #164)
 FIX: In PixelDrawing.java, must keep track of top-level window and draw exports properly.
