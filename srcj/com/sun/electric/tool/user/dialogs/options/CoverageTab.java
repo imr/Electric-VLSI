@@ -59,7 +59,7 @@ public class CoverageTab extends PreferencePanel
 
 	public JPanel getPanel() { return layerCoverage; }
 
-	public String getName() { return "Coverage Area"; }
+	public String getName() { return "Coverage"; }
 
 	private boolean layerDataChanging = false;
     private HashMap layerAreaMap;
