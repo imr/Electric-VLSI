@@ -56,13 +56,14 @@ import java.util.Iterator;
 public class Schematic
 {
 	private static FlagSet cellsCheckedBit;
-    private static ErrorLogger errorLogger;
+    private static ErrorLogger errorLogger = null;
 
 	public static void doCheck(Cell cell)
 	{
 		cellsCheckedBit = NodeProto.getFlagSet(1);
 		cellsCheckedBit.clearOnAllCells();
 
+        if (errorLogger != null) errorLogger.delete();
 		errorLogger = ErrorLogger.newInstance("Schematic DRC");
 		checkSchematicCellRecursively(cell);
 		errorLogger.termLogging(true);
