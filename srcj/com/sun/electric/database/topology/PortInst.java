@@ -90,21 +90,69 @@ public class PortInst extends ElectricObject
 	 */
 	public final int getPortIndex() { return portProto.getPortIndex(); }
 
-    /**
-     * Get iterator of all Connections
-     * that connect to this PortInst
-     * @return an iterator over associated Connections
-     */
-    public Iterator getConnections() {
-        List connections = new ArrayList();
-        // get connections on NodeInst
-        for (Iterator it = nodeInst.getConnections(); it.hasNext(); ) {
-            Connection c = (Connection)it.next();
-            if (c.getPortInst() == this)
-                connections.add(c);
-        }
-        return connections.iterator();
-    }
+	/**
+	 * Get iterator of all Connections
+	 * that connect to this PortInst
+	 * @return an iterator over associated Connections
+	 */
+	public Iterator getConnections() {
+		List connections = new ArrayList();
+		// get connections on NodeInst
+		for (Iterator it = nodeInst.getConnections(); it.hasNext(); ) {
+			Connection c = (Connection)it.next();
+			if (c.getPortInst() == this)
+				connections.add(c);
+		}
+		return connections.iterator();
+	}
+
+	/**
+	 * Get iterator of all Exports
+	 * that connect to this PortInst
+	 * @return an iterator over associated Exports
+	 */
+	public Iterator getExports() {
+		List exports = new ArrayList();
+		// get exports on NodeInst
+		for (Iterator it = nodeInst.getExports(); it.hasNext(); ) {
+			Export e = (Export)it.next();
+			if (e.getOriginalPort() == this)
+				exports.add(e);
+		}
+		return exports.iterator();
+	}
+
+	/**
+	 * Method to prepare this PortInst to deletion.
+	 * All variables are deleted.
+	 * All connected arcs and exports are killed.
+	 */
+	public void disconnect()
+	{
+		for (Iterator it = getVariables(); it.hasNext(); )
+		{
+			Variable var = (Variable)it.next();
+			delVar(var.getKey());
+		}
+		assert getNumVariables() == 0;
+		
+		// kill the arcs attached to the connections to this port instance.
+		// This will also remove the connections themselves
+		for (Iterator it = getConnections(); it.hasNext(); )
+		{
+			Connection con = (Connection)it.next();
+			ArcInst ai = con.getArc();
+			// arcs that connect from a port to itself will cause the number of connections to shrink more quickly
+			if (ai.isLinked()) ai.kill();
+		}
+
+		// remove connected exports
+		for (Iterator it = getExports(); it.hasNext(); )
+		{
+			Export export = (Export)it.next();
+			export.kill();
+		}
+	}
 
 	/**
 	 ** Method to return the equivalent PortProto of this PortInst's PortProto.

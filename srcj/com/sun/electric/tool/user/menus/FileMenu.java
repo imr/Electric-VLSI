@@ -644,7 +644,7 @@ public class FileMenu {
     }
 
     public static void saveAllLibrariesInFormatCommand() {
-        Object[] formats = {FileType.ELIB, FileType.JELIB, FileType.READABLEDUMP};
+        Object[] formats = {FileType.JELIB, FileType.ELIB, FileType.READABLEDUMP};
         Object format = JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(),
                 "Output file format for all libraries:", "Save All Libraries In Format...",
                 JOptionPane.PLAIN_MESSAGE,

@@ -1555,7 +1555,7 @@ public class ELIB extends LibraryFiles
 			if ((bounds.getWidth() != width || bounds.getHeight() != height)
 				&& reader != null && reader.canScale())
 			{
-				System.out.println(cell + " has " + subCell + " " + name + " " + bounds.getWidth() + "x" + bounds.getHeight() + " " + width + "x" + height);
+				// System.out.println(cell + " has " + subCell + " " + name + " " + bounds.getWidth() + "x" + bounds.getHeight() + " " + width + "x" + height);
 				if (cell.isSchematic() && subCell.isIcon() &&
 					(Math.abs(bounds.getWidth() - width) > 0.5 ||
 					 Math.abs(bounds.getHeight() - height) > 0.5))

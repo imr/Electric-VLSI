@@ -80,9 +80,9 @@ public class FileType {
 	/** Describes Verilog output. */		public static final FileType VERILOGOUT   = new FileType("VerilogOutput", new String[] {"dump"}, "Verilog VCD Dump (vcd)");
 	/** Describes Xml files. */				public static final FileType XML          = new FileType("XML", new String[] {"xml"}, "XML File (xml)");
 
-	/** Describes default file format.*/	public static final FileType DEFAULTLIB   = ELIB;
+	/** Describes default file format.*/	public static final FileType DEFAULTLIB   = JELIB;
 
-	/** Valid Library formats */            public static final FileType libraryTypes[] = {ELIB, JELIB};
+	/** Valid Library formats */            public static final FileType libraryTypes[] = {JELIB, ELIB};
 	private static String [] libraryTypesExt;
 	private static String libraryTypesExtReadable;
 	static {

@@ -2002,24 +2002,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	{
 		int portIndex = pp.getPortIndex();
 		PortInst pi = portInsts[portIndex];
-
-		// kill the arcs attached to the connections to this port instance.
-		// This will also remove the connections themselves
-		for (int i = connections.size() - 1; i >= 0; i--)
-		{
-			// arcs that connect from a port to itself will cause the number of connections to shrink more quickly
-			if (i >= connections.size()) continue;
-			Connection con = (Connection)connections.get(i);
-			if (con.getPortInst() == pi) con.getArc().kill();
-		}
-
-		// remove connected exports
-		for (int i = exports.length - 1; i >= 0; i--)
-		{
-			Export export = exports[i];
-			if (export.getOriginalPort() == pi) export.kill();
-		}
-
 		PortInst[] newPortInsts = portInsts.length > 1 ? new PortInst[portInsts.length - 1] : NULL_PORT_INST_ARRAY;
 		System.arraycopy(portInsts, 0, newPortInsts, 0, portIndex);
 		System.arraycopy(portInsts, portIndex + 1, newPortInsts, portIndex, newPortInsts.length - portIndex);

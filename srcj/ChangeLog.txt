@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02f: *********************************
 
+IMP/MAN: (01/29/05, DN) JELIB is the default library format.
+
+BUG: (01/29/05, DN) Deleting exports invalidates database invariants (Bug #181).
+FIX: In "Export.kill()" disconnect all PortInsts of this Export before deletion.
+
 ************************* Version 8.02e: *********************************
 
 IMP/MAN: (01/28/05, GVG) Adding exhaustive checking option in DRC (mostly for regression purposes)

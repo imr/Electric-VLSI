@@ -24,6 +24,7 @@
 
 package com.sun.electric.tool.user.menus;
 
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.geometry.PolyMerge;
@@ -78,6 +79,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Random;
 import java.util.TreeSet;
@@ -1163,12 +1165,22 @@ public class DebugMenus {
 	private static int[] objs;
 	private static int[] vobjs;
 	private static int[] vcnt;
+	private static int subCells;
+	private static int namedArcs;
+	private static int namedNodes;
+	private static int numPoints;
+	private static HashSet points;
 
 	private static void varStatistics()
 	{
 		objs = new int[96];
 		vobjs = new int[96];
 		vcnt = new int[96];
+		points = new HashSet();
+		subCells = 0;
+		namedArcs = 0;
+		namedNodes = 0;
+		numPoints = 0;
 		
 		TreeSet nodeNames = new TreeSet();
 		TreeSet arcNames = new TreeSet();
@@ -1189,9 +1201,12 @@ public class DebugMenus {
 				{
 					NodeInst ni = (NodeInst)nIt.next();
 					countVars('N', ni);
-					if (cellNodes.contains(ni.getName()))
-						System.out.println(cell + " has duplicate node " + ni.getName());
+					if (ni.getProto() instanceof Cell) subCells++;
+					if (ni.isUsernamed()) namedNodes++;
+// 					if (cellNodes.contains(ni.getName()))
+// 						System.out.println(cell + " has duplicate node " + ni.getName());
 					cellNodes.add(ni.getName());
+					countPoint(ni.getAnchorCenter());
 					
 					for (Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
 					{
@@ -1204,9 +1219,12 @@ public class DebugMenus {
 				{
 					ArcInst ai = (ArcInst)aIt.next();
 					countVars('A', ai);
-					if (cellArcs.contains(ai.getName()))
-						System.out.println(cell + " has duplicate arc " + ai.getName());
+					if (ai.isUsernamed()) namedArcs++;
+// 					if (cellArcs.contains(ai.getName()))
+// 						System.out.println(cell + " has duplicate arc " + ai.getName());
 					cellArcs.add(ai.getName());
+					countPoint(ai.getHead().getLocation());
+					countPoint(ai.getTail().getLocation());
 				}
 
 				for (Iterator eIt = cell.getPorts(); eIt.hasNext(); )
@@ -1229,8 +1247,29 @@ public class DebugMenus {
 			c += vcnt[i];
 		}
 		System.out.println(o + " " + v + " " + c);
-		System.out.println(nodeNames.size() + " nodes");
-		System.out.println(arcNames.size() + " arcs");
+		System.out.println(subCells + " subcells");
+		System.out.println(namedNodes + " named nodes " + nodeNames.size());
+		System.out.println(namedArcs + " named arcs " + arcNames.size());
+		System.out.println(numPoints + " points " + points.size());
+		HashSet doubles = new HashSet();
+		for (Iterator it = points.iterator(); it.hasNext(); )
+		{
+			Point2D point = (Point2D)it.next();
+			doubles.add(new Double(point.getX()));
+			doubles.add(new Double(point.getY()));
+		}
+		int whole = 0;
+		int quarter = 0;
+		for (Iterator it = doubles.iterator(); it.hasNext(); )
+		{
+			double d = ((Double)it.next()).doubleValue();
+			double rd = Math.rint(d);
+			if (d == Math.rint(d))
+				whole++;
+			else if (d*4 == Math.rint(d*4))
+				quarter++;
+		}
+		System.out.println(doubles.size() + " doubles " + whole + " whole " + quarter + " quarter");
 /*
 loco
 A 192665 1657 1657
@@ -1240,8 +1279,12 @@ H 43 42 47
 N 113337 4713 22715
 P 392542 0 0
 738458 8473 28211
-12604 nodes
-10925 arcs
+16916 subcells
+468 named nodes 12604
+1496 named arcs 10925
+499519 points 136298
+14542 doubles
+
 qFour
 A 336551 2504 2504
 C 3370 3161 4898
@@ -1250,6 +1293,11 @@ H 49 47 51
 N 188496 8490 32189
 P 704883 0 0
 1345947 14511 40049
+25997 subcells
+910 named nodes 19655
+5527 named arcs 10363
+862879 points 230599
+18702 doubles
 */
 	}
 
@@ -1261,6 +1309,30 @@ P 704883 0 0
 		if (numVars == 0) return;
 		vobjs[c]++;
 		vcnt[c] += numVars;
+		for (Iterator it = eObj.getVariables(); it.hasNext(); )
+		{
+			Variable var = (Variable)it.next();
+			Object value = var.getObject();
+			if (value instanceof Point2D)
+			{
+				countPoint((Point2D)value);
+			} else if (value instanceof Point2D[])
+			{
+				Point2D[] points = (Point2D[])value;
+				for (int i = 0; i < points.length; i++)
+					countPoint(points[i]);
+			}
+		}
 	}
 
+	private static void countPoint(Point2D point)
+	{
+		double x = DBMath.round(point.getX());
+		if (x == 0) x = 0;
+		double y = DBMath.round(point.getY());
+		if (x == 0) x = 0;
+		point = new Point2D.Double(x, y);
+		numPoints++;
+		points.add(point);
+	}
 }

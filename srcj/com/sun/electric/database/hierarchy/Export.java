@@ -241,6 +241,15 @@ public class Export extends ElectricObject implements PortProto, Comparable
 			return;
 		}
 		checkChanging();
+
+		// disconnect arcs end exports from PortInsts of this Export
+		for(Iterator it = parent.getInstancesOf(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			PortInst pi = ni.findPortInstFromProto(this);
+			pi.disconnect();
+		}
+		
 		Collection oldPortInsts = lowLevelUnlink();
 
 		// handle change control, constraint, and broadcast

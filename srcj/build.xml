@@ -32,7 +32,7 @@
     </target>
 
     <target name="runMain" depends="init,compile" description="Run the Main class">
-        <java classname="com.sun.electric.Main" failonerror="true" fork="true" maxmemory="512m">
+        <java classname="com.sun.electric.Main" failonerror="true" fork="true" maxmemory="1024m">
 	    <jvmarg value="-enableassertions"/>
             <classpath>
                 <pathelement location="."/>
