@@ -1001,7 +1001,13 @@ public class Clipboard
 
 		public void mouseReleased(MouseEvent evt)
 		{
+            boolean ctrl = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
             Point2D mouseDB = wnd.screenToDatabase((int)evt.getX(), (int)evt.getY());
+
+            // if user holds control, only move orthogonally
+            if (ctrl) {
+                mouseDB = ClickZoomWireListener.convertToOrthogonal(new Point2D.Double(origX, origY), mouseDB);
+            }
             EditWindow.gridAlign(mouseDB);
             oX = mouseDB.getX();
             oY = mouseDB.getY();
