@@ -38,11 +38,7 @@ import java.awt.event.ActionEvent;
 import java.awt.*;
 
 /**
- * Created by IntelliJ IDEA.
- * User: gainsley
- * Date: Jun 23, 2004
- * Time: 11:42:23 AM
- * To change this template use File | Settings | File Templates.
+ * Class to handle the commands in the "View" pulldown menu.
  */
 public class ViewMenu {
 

@@ -38,11 +38,7 @@ import java.util.EventListener;
 import java.util.Iterator;
 
 /**
- * Created by IntelliJ IDEA.
- * User: gainsley
- * Date: Jun 23, 2004
- * Time: 11:43:28 AM
- * To change this template use File | Settings | File Templates.
+ * Class to handle the commands in the "Window" pulldown menu.
  */
 public class WindowMenu {
 

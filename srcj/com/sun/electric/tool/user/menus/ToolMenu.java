@@ -74,11 +74,7 @@ import java.awt.geom.Point2D;
 import java.util.*;
 
 /**
- * Created by IntelliJ IDEA.
- * User: gainsley
- * Date: Jun 23, 2004
- * Time: 11:44:43 AM
- * To change this template use File | Settings | File Templates.
+ * Class to handle the commands in the "Tool" pulldown menu.
  */
 public class ToolMenu {
 

@@ -16,11 +16,7 @@ import java.util.Iterator;
 import java.awt.*;
 
 /**
- * Created by IntelliJ IDEA.
- * User: gainsley
- * Date: Jun 24, 2004
- * Time: 11:22:23 AM
- * To change this template use File | Settings | File Templates.
+ * Class to define the Attributes panel in other dialogs.
  */
 public class AttributesTable extends JTable {
 

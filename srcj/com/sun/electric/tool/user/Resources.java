@@ -26,13 +26,8 @@ package com.sun.electric.tool.user;
 import javax.swing.ImageIcon;
 
 /**
- * Created by IntelliJ IDEA.
- * User: Gilda
- * Date: Jul 2, 2004
- * Time: 11:25:38 AM
- * To change this template use File | Settings | File Templates.
+ * public class to handle resources like icons/images.
  */
-/** public class to handle resources like icons/images */
 public class Resources {
 	private static final String resourceLocation = "resources/";
 

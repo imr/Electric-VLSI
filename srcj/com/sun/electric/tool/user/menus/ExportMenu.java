@@ -32,11 +32,7 @@ import java.awt.event.ActionEvent;
 import java.awt.*;
 
 /**
- * Created by IntelliJ IDEA.
- * User: gainsley
- * Date: Jun 23, 2004
- * Time: 11:41:02 AM
- * To change this template use File | Settings | File Templates.
+ * Class to handle the commands in the "Export" pulldown menu.
  */
 public class ExportMenu {
 

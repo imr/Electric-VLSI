@@ -213,8 +213,8 @@ public class EditWindow extends JPanel
 	// the MouseListener events
 	public void mousePressed(MouseEvent evt)
 	{
+		MessagesWindow.userCommandIssued();
 		lastXPosition = evt.getX();   lastYPosition = evt.getY();
-
 		EditWindow wnd = (EditWindow)evt.getSource();
 		WindowFrame.setCurrentWindowFrame(wnd.wf);
 
@@ -277,7 +277,11 @@ public class EditWindow extends JPanel
 	public void mouseWheelMoved(MouseWheelEvent evt) { WindowFrame.curMouseWheelListener.mouseWheelMoved(evt); }
 
 	// the KeyListener events
-	public void keyPressed(KeyEvent evt) { WindowFrame.curKeyListener.keyPressed(evt); }
+	public void keyPressed(KeyEvent evt)
+	{
+		MessagesWindow.userCommandIssued();
+		WindowFrame.curKeyListener.keyPressed(evt);
+	}
 
 	public void keyReleased(KeyEvent evt) { WindowFrame.curKeyListener.keyReleased(evt); }
 

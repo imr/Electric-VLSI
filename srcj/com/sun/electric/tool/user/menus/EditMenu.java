@@ -52,11 +52,7 @@ import java.awt.event.*;
 import java.util.*;
 
 /**
- * Created by IntelliJ IDEA.
- * User: gainsley
- * Date: Jun 23, 2004
- * Time: 11:38:02 AM
- * To change this template use File | Settings | File Templates.
+ * Class to handle the commands in the "Edit" pulldown menu.
  */
 public class EditMenu {
 
@@ -334,6 +330,11 @@ public class EditMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showNextErrorCommand(); }});
 		selListSubMenu.addMenuItem("Show Previous Error", KeyStroke.getKeyStroke('<'),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showPrevErrorCommand(); }});
+		selListSubMenu.addSeparator();
+		selListSubMenu.addMenuItem("Add to Waveform in New Panel", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { addToWaveformNewCommand(); }});
+		selListSubMenu.addMenuItem("Add to Waveform in Current Panel", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { addToWaveformCurrentCommand(); }});
 
     }
 
@@ -788,6 +789,24 @@ public class EditMenu {
 	{
 		String msg = ErrorLogger.reportPrevError();
 		System.out.println(msg);
+	}
+
+	/**
+	 * This method implements the command to add the currently selected network
+	 * to the waveform window, in a new panel.
+	 */
+	public static void addToWaveformNewCommand()
+	{
+		System.out.println("NOT YET");
+	}
+
+	/**
+	 * This method implements the command to add the currently selected network
+	 * to the waveform window, overlaid on top of the current panel.
+	 */
+	public static void addToWaveformCurrentCommand()
+	{
+		System.out.println("NOT YET");
 	}
 
     /**

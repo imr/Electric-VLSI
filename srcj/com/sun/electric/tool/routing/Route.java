@@ -28,14 +28,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * Created by IntelliJ IDEA.
- * User: gainsley
- * Date: Jun 9, 2004
- * Time: 12:30:06 PM
- * <p>
  * Specifies a route to be created.  Note that the order if items
  * in a route is meaningless.  The only thing that specifies order is the
  * start and end of the route.
+ * <p>
+ * Author: gainsley
  */
 
 public class Route extends ArrayList {

@@ -52,11 +52,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
 /**
- * Created by IntelliJ IDEA.
- * User: gainsley
- * Date: Jun 23, 2004
- * Time: 11:45:35 AM
- * To change this template use File | Settings | File Templates.
+ * Class to handle the commands in the "Help" pulldown menu.
  */
 public class HelpMenu {
 

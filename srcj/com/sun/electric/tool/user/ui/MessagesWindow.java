@@ -139,6 +139,19 @@ public class MessagesWindow
 		info.setText("");
 	}
 
+	private static boolean newCommand = true;
+	private static int commandNumber = 1;
+
+	/**
+	 * Method to report that the user issued a new command (click, keystroke, pulldown menu).
+	 * The messages window separates output by command so that each command's results
+	 * can be distinguished from others.
+	 */
+	public static void userCommandIssued()
+	{
+		newCommand = true;
+	}
+
 	/**
 	 * Method to start saving the messages window.
 	 */
@@ -175,6 +188,11 @@ public class MessagesWindow
 	protected void appendString(String str)
 	{
         if (str.equals("")) return;
+        if (newCommand)
+		{
+			newCommand = false;
+			str = "=================================" + (commandNumber++) + "=================================\n" + str;
+		}
 		synchronized (buffer)
 		{
 			if (printWriter != null)

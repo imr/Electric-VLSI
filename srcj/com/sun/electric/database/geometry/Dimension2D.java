@@ -4,7 +4,7 @@
  *
  * File: Dimension2D.java
  *
- * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,11 +25,7 @@
 package com.sun.electric.database.geometry;
 
 /**
- * Created by IntelliJ IDEA.
- * User: gainsley
- * Date: Jun 9, 2004
- * Time: 2:26:09 PM
- * To change this template use File | Settings | File Templates.
+ * Class to define a Double-precision Dimension object.
  */
 public abstract class Dimension2D extends java.awt.geom.Dimension2D {
 

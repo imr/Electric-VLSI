@@ -63,11 +63,7 @@ import java.util.*;
 import java.io.File;
 
 /**
- * Created by IntelliJ IDEA.
- * User: gainsley
- * Date: Jun 23, 2004
- * Time: 11:46:44 AM
- * To change this template use File | Settings | File Templates.
+ * Class to handle the commands in the debugging pulldown menus.
  */
 public class DebugMenus {
 

@@ -46,11 +46,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
- * Created by IntelliJ IDEA.
- * User: gainsley
- * Date: Mar 1, 2004
- * Time: 12:55:36 PM
- *
  * A Route describes a new connection to be made.
  * A Route consists of RouteElements, which in
  * one sense are either nodes are arcs.  However,
@@ -59,6 +54,8 @@ import java.util.Iterator;
  * Arc/node delete happens when an existing arc is replaced
  * by two or more new arcs, or when an existing route
  * needs to be uprooted in order to make room for new routes.
+ * 
+ * Author: gainsley
  */
 
 public class RouteElement {

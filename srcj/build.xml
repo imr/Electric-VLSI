@@ -108,6 +108,7 @@
             <exclude name="Hack_stack.txt"/>
             <exclude name="com/sun/electric/plugins/tsmc90/TSMC90.*"/>
 	        <exclude name="com/sun/electric/plugins/j3d/*.*"/>
+	        <exclude name="com/sun/electric/tool/simulation/interval/*.*"/>
             <exclude name="**/*.java"/>
             <exclude name="**/*.form"/>
         </jar>

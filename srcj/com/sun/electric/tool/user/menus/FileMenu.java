@@ -57,11 +57,7 @@ import java.util.*;
 import java.io.File;
 
 /**
- * Created by IntelliJ IDEA.
- * User: gainsley
- * Date: Jun 23, 2004
- * Time: 11:36:12 AM
- * To change this template use File | Settings | File Templates.
+ * Class to handle the commands in the "File" pulldown menu.
  */
 public class FileMenu {
 

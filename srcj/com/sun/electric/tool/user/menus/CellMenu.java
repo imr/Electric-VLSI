@@ -37,11 +37,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
 /**
- * Created by IntelliJ IDEA.
- * User: gainsley
- * Date: Jun 23, 2004
- * Time: 11:40:04 AM
- * To change this template use File | Settings | File Templates.
+ * Class to handle the commands in the "Cell" pulldown menu.
  */
 public class CellMenu {
 
