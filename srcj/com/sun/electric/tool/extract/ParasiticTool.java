@@ -96,7 +96,7 @@ public class ParasiticTool extends Tool{
     private static class ParasiticVisitor extends HierarchyEnumerator.Visitor
 	{
 		private HashMap netMap;
-        private Netlist netList;
+        //private Netlist netList;
         private List transAndRCList = new ArrayList();
         private ParasiticGenerator tool;
         private VarContext context;
@@ -118,7 +118,7 @@ public class ParasiticTool extends Tool{
 
 		public ParasiticVisitor(ParasiticGenerator tool, Netlist netList, VarContext context)
 		{
-            this.netList = netList;
+            //this.netList = netList;
             this.tool = tool;
             netMap = new HashMap(netList.getNumNetworks());
             this.context = context;
@@ -168,7 +168,7 @@ public class ParasiticTool extends Tool{
                 // don't count non-electrical arcs
                 if (ai.getProto().getFunction() == ArcProto.Function.NONELEC) continue;
 
-                Network net = netList.getNetwork(ai, 0);
+                Network net = info.getNetlist().getNetwork(ai, 0); // netList.getNetwork(ai, 0);
                 if (net == null)
                     continue;
 
@@ -244,9 +244,7 @@ public class ParasiticTool extends Tool{
                 // make sure this layer connects electrically to the desired port
                 PortProto pp = poly.getPort();
                 if (pp == null) continue;
-                Network net = netList.getNetwork(ni, pp, 0);
-                if (net == null)
-                    continue;
+                Network net = info.getNetlist().getNetwork(ni, pp, 0); // netList.getNetwork(ni, pp, 0);
 
                 // don't bother with layers without capacity
                 Layer layer = poly.getLayer();
