@@ -1,22 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Written to assume that classpath is rooted in the current directory. -->
-<!-- So this should be OK if you make this script in the root of a filesystem. -->
-<!-- If not, you may prefer to adjust the basedir, or move some directories around. -->
-<!-- The idea is that both Ant and NetBeans have to know what the package root is -->
-<!-- for the classes in your application. -->
 <project basedir="." default="all" name="electric">
-
-    <!-- Don't worry if you don't know the Ant syntax completely or need help on some tasks! -->
-    <!-- The standard Ant documentation can be downloaded from AutoUpdate and -->
-    <!-- and then you can access the help in menu Help | Help Sets | Ant 1.5.1 Manual. -->
 
     <target name="init">
         <!-- You can set up any variables you want used throughout the script here. -->
-        <property name="hello" value="world"/>
-        <!-- To use e.g. Jikes, uncomment this line. -->
-        <!-- (Or make the same change in Tools | Options | Ant Settings | Properties.) -->
-        <!-- <property name="build.compiler" value="jikes"/> -->
-        <!-- You might like to set up some overridable paths, etc.: -->
         <property name="beanshell" value="../lib/java/bsh-1.2b3.jar"/>
     </target>
 
@@ -28,19 +14,19 @@
             <!-- To add something to the classpath: -->
             <classpath><pathelement location="${beanshell}"/></classpath>
             <!-- To exclude some files: -->
-            <!-- <exclude name="com/foo/SomeFile.java"/><exclude name="com/foo/somepackage/"/> -->
             <exclude name="intervalsimulation/"/>
         </javac>
     </target>
 
     <target depends="init,compile" name="jar">
         <!-- To make a standalone app: -->
-        <!-- 1. Create a myapp.mf manifest somewhere. -->
+        <!-- 1. Created electric.mf manifest. -->
         <!-- 2. Put in it two lines: -->
         <!-- Manifest-Version: 1.0 -->
         <!-- Main-Class: com.sun.electric.user.Electric -->
-        <!-- 3. Pass to <jar>: manifest="myapp.mf" -->
-        <jar basedir="." compress="true" jarfile="electric.jar">
+        <!-- 3. Pass to <jar>: manifest="electric.mf" -->
+        <exec executable="jar"><arg line="xf ${beanshell}"></arg></exec>
+        <jar basedir="." compress="true" jarfile="electric.jar" manifest="electric.mf">
             <exclude name="**/*.java"/>
             <exclude name="**/*.form"/>
             <exclude name="**/.nbattrs"/>
@@ -48,10 +34,10 @@
             <exclude name="electric.jar"/>
             <exclude name="apidoc"/>
             <exclude name="intervalsimulation/"/>
-            <exclude name="electric.xml"/>
+            <exclude name="build.xml"/>
             <exclude name="Hack_stack.txt"/>
-            <exclude name="Makefile"/>
         </jar>
+        <delete dir="bsh"></delete>
     </target>
 
     <target depends="init,jar" description="Build everything." name="all">
