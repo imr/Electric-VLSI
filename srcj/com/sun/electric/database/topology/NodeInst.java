@@ -59,29 +59,14 @@ public class NodeInst extends Geometric
 	/** List of Exports belonging to this node instance */	private List exports;
 
 	// --------------------- private and protected methods ---------------------
-	private NodeInst(NodeProto prototype, Point2D.Double center, double width, double height, double angle, Cell parent)
+	private NodeInst()
 	{
-		// initialize parent class (Geometric)
-		Point2D refPoint = parent.getReferencePoint();
-		this.cX = center.x + refPoint.getX();   this.cY = center.y + refPoint.getY();
-		this.sX = width;   this.sY = height;
-		this.angle = angle;
-		this.cos = Math.cos(angle);
-		this.sin = Math.sin(angle);
-		updateGeometric();
-		setParent(parent);
-
 		// initialize this object
-		this.prototype = prototype;
 		this.userBits = 0;
 		this.textbits = 0;
 		portMap = new HashMap();
 		connections = new ArrayList();
 		exports = new ArrayList();
-
-		// add to linked lists
-		prototype.addInstance(this);
-		parent.addNode(this);
 	}
 
 	/** recalculate the transform on this arc to get the endpoints
@@ -91,63 +76,68 @@ public class NodeInst extends Geometric
 		updateGeometricBounds();
 	}
 
-	/** Make a new instance of this NodeProto.
-	 *
-	 * <p> Jose positions the NodeInst by performing the following 2D
-	 * transformations, in order, on the NodeProto: <br>
-	 *
-	 * 1) scaling by scaleX and scaleY <br>
-	 * 2) rotating counter-clockwise by angle <br>
-	 * 3) translating by x and y. <br>
-	 *
-	 * <p> All scaling and rotation is performed about the NodeProto's
-	 * Reference-Point. After the 2D transformations, the NodeProto's
-	 * Reference-Point ends up at (x, y) with respect to the
-	 * Reference-Point of the parent.
-	 * 
-	 * <p> The Reference-Point for PrimitiveNodes is always at (0,
-	 * 0). The reference point for a Cell is (0, 0) unless it contain
-	 * an instance of the Cell-Center PrimitiveNode in which case the
-	 * location of the Cell-Center instance determines the Cell's
-	 * Reference-Point.
-	 * @param scaleX the horizontal scale factor. If negative then Jose
-	 * mirrors about the y axis.  If this is a Cell then scaleX must be
-	 * 1 or -1.
-	 * @param scaleY the vertical scale factor. If negative then Jose
-	 * mirrors about the x axis. If this is a Cell then scaleY must be
-	 * 1 or -1.
-	 * @param x the horizontal coordinate of the origin of the
-	 * NodeInst.
-	 * @param y the vertical coordinate of the origin of the
-	 * NodeInst.
-	 * @param angle the rotation of the NodeInst. This is in units of
-	 * degrees.
-	 * @param parent the Cell to contain the new instance.
-	 * @return the instance created
+	/**
+	 * Low-level access routine to create a NodeInst.
 	 */
-	public static NodeInst newInstance(NodeProto type, Point2D.Double center, double width, double height,
+	public static NodeInst lowLevelAllocate()
+	{
+		NodeInst ni = new NodeInst();
+		return ni;
+	}
+
+	/**
+	 * Low-level routine to fill-in the NodeInst information.
+	 * Returns true on error.
+	 */
+	public boolean lowLevelPopulate(NodeProto prototype, Point2D.Double center, double width, double height,
 		double angle, Cell parent)
 	{
-//		if (this instanceof Cell)
-//			 ((Cell) this).updateBounds();
-
-		NodeInst ni = new NodeInst(type, center, width, height, angle, parent);
-		
 		// create all of the portInsts on this node inst
-		for (Iterator it = type.getPorts(); it.hasNext();)
+		for (Iterator it = prototype.getPorts(); it.hasNext();)
 		{
 			PortProto pp = (PortProto) it.next();
-			PortInst pi = PortInst.newInstance(pp, ni);
-			ni.portMap.put(pp.getProtoName(), pi);
+			PortInst pi = PortInst.newInstance(pp, this);
+			portMap.put(pp.getProtoName(), pi);
 		}
 		
 		// enumerate the port instances
 		int i = 0;
-		for(Iterator it = ni.getPortInsts(); it.hasNext();)
+		for(Iterator it = getPortInsts(); it.hasNext();)
 		{
 			PortInst pi = (PortInst) it.next();
 			pi.setIndex(i++);
 		}
+
+		setParent(parent);
+		this.prototype = prototype;
+		Point2D refPoint = parent.getReferencePoint();
+		this.cX = center.x + refPoint.getX();   this.cY = center.y + refPoint.getY();
+		this.sX = width;   this.sY = height;
+		this.angle = angle;
+		this.cos = Math.cos(angle);
+		this.sin = Math.sin(angle);
+		updateGeometric();
+		return false;
+	}
+
+	/**
+	 * Low-level access routine to link the NodeInst into its Cell.
+	 * Returns true on error.
+	 */
+	public boolean lowLevelLink()
+	{
+		// add to linked lists
+		prototype.addInstance(this);
+		parent.addNode(this);
+		return false;
+	}
+
+	public static NodeInst newInstance(NodeProto type, Point2D.Double center, double width, double height,
+		double angle, Cell parent)
+	{
+		NodeInst ni = lowLevelAllocate();
+		if (ni.lowLevelPopulate(type, center, width, height, angle, parent)) return null;
+		if (ni.lowLevelLink()) return null;
 		return ni;
 	}
 

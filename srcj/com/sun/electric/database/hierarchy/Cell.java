@@ -90,18 +90,15 @@ public class Cell extends NodeProto
 
 	// ------------------ protected and private methods -----------------------
 
-	private Cell(Library cellLib, String name, int cellVersion, View cellView)
+	private Cell(Library cellLib)
 	{
 		nodes = new ArrayList();
 		arcs = new ArrayList();
 		cellGroup = new CellGroup(this);
 		versionGroup = new VersionGroup(this);
 		timeStamp = -1; // initial time is in the past
-		protoName = name;
 		tech = null;
 		lib = cellLib;
-		view = cellView;
-		version = cellVersion;
 		referencePointCoord = new Point2D.Double(0, 0);
 		creationDate = new Date();
 		revisionDate = new Date();
@@ -109,30 +106,34 @@ public class Cell extends NodeProto
 		elecBounds = new Rectangle2D.Double();
 		boundsEmpty = true;
 		boundsDirty = false;
-
-		// add ourselves to the library
-		lib.addCell(this);
-
-		// add to cell group
-//		cellGroup.merge(nxtCellGrp);
 	}
 
 	/**
-	 * Create a new Cell in library "lib" named "name".
-	 * The name should be something like "foo;2{sch}".
+	 * Low-level access routine to create a cell in library "lib".
 	 */
-	public static Cell newInstance(Library lib, String name)
+	public static Cell lowLevelAllocate(Library lib)
+	{
+		Cell c = new Cell(lib);
+		return c;
+	}
+
+	/**
+	 * Low-level access routine to fill-in the cell name.
+	 * Returns true on error.
+	 */
+	public boolean lowLevelPopulate(String name)
 	{
 		// see if this cell already exists
+		Library lib = getLibrary();
 		Cell existingCell = lib.findNodeProto(name);
 		if (existingCell != null)
 		{
 			System.out.println("Cannot create cell " + name + " in library " + lib.getLibName() + " ...already exists");
-			return(null);
+			return true;
 		}
 
 		CellName n = CellName.parseName(name);
-		if (n == null) return null;
+		if (n == null) return true;
 		int version = n.getVersion();
 
 		// make sure this version isn't in use
@@ -145,7 +146,7 @@ public class Cell extends NodeProto
 					version == c.getVersion())
 				{
 					System.out.println("Already a cell with this version");
-					return null;
+					return true;
 				}
 			}
 		} else
@@ -160,9 +161,39 @@ public class Cell extends NodeProto
 						version = c.getVersion() + 1;
 			}
 		}
+		
+		// fill-in the fields
+		this.protoName = n.getName();
+		this.view = n.getView();
+		this.version = version;
+		return false;
+	}
 
-		Cell c = new Cell(lib, n.getName(), version, n.getView());
-		return c;
+	/**
+	 * Low-level access routine to link a cell into its library.
+	 * Returns true on error.
+	 */
+	public boolean lowLevelLink()
+	{
+		// add ourselves to the library
+		Library lib = getLibrary();
+		lib.addCell(this);
+
+		// add to cell group
+//		cellGroup.merge(nxtCellGrp);
+		return false;
+	}
+
+	/**
+	 * Create a new Cell in library "lib" named "name".
+	 * The name should be something like "foo;2{sch}".
+	 */
+	public static Cell newInstance(Library lib, String name)
+	{
+		Cell theCell = lowLevelAllocate(lib);
+		if (theCell.lowLevelPopulate(name)) return null;
+		if (theCell.lowLevelLink()) return null;
+		return theCell;
 	}
 
 	public void remove()

@@ -10,6 +10,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.technology.Technology;
 
 import java.io.*;
@@ -39,27 +40,29 @@ public class BinaryIn extends Input
 	/** the index of the current cell */									private int curCell;
 	/** true to convert all text descriptor values */						private boolean convertTextDescriptors;
 	/** true to require text descriptor values */							private boolean alwaysTextDescriptors;
-	/** list of all XXXX in the library */									private NodeInst [] nodeList;
-	/** list of all XXXX in the library */									private int [] nodeCounts;
-	/** list of all XXXX in the library */									private NodeProto [] nodeProtoList;
-	/** list of all XXXX in the library */									private PortProto [] portProtoList;
-	/** list of all XXXX in the library */									private int [] portCount;
-	/** list of all XXXX in the library */									private PortProto [] portpProtoList;
-	/** list of all XXXX in the library */									private String [] portpProtoError;
-//	/** list of all XXXX in the library */									private Export [] portExpInstList;
-//	/** list of all XXXX in the library */									private Connection [] portArcInstList;
-	/** list of all XXXX in the library */									private ArcInst [] arcList;
-	/** list of all XXXX in the library */									private int [] arcCounts;
-	/** list of all XXXX in the library */									private NodeProto [] nodePrimProtoList;
-	/** list of all XXXX in the library */									private int [] nodePrimProtoTech;
-	/** list of all XXXX in the library */									private boolean [] nodePrimProtoError;
-	/** list of all XXXX in the library */									private String [] nodePrimProtoOrig;
-	/** list of all XXXX in the library */									private ArcProto [] arcProtoList;
-	/** list of all XXXX in the library */									private String [] arcProtoError;
-	/** list of all XXXX in the library */									private Technology [] techList;
-	/** list of all XXXX in the library */									private String [] techError;
-	/** list of all XXXX in the library */									private int [] toolList;
-	/** list of all XXXX in the library */									private String [] toolError;
+	/** list of all NodeInsts in the library */								private NodeInst [] nodeList;
+	/** list of number of NodeInsts in each Cell of the library */			private int [] nodeCounts;
+	/** list of all Cells in the library */									private Cell [] nodeProtoList;
+	/** list of all PortProtos in the library */							private PortProto [] portProtoList;
+	/** list of all Ports in each Cell of the library */					private int [] portCounts;
+	/** list of all Primitive PortProtos in the library */					private PortProto [] portpProtoList;
+	/** list of all Primitive-PortProto-related errors in the library */	private String [] portpProtoError;
+	/** list of all ArcInsts in the library */								private ArcInst [] arcList;
+	/** list of number of ArcInsts in each Cell of the library */			private int [] arcCounts;
+	/** list of all Primitive NodeProtos in the library */					private NodeProto [] nodePrimProtoList;
+	/** list of all NodeProto technologies in the library */				private int [] nodePrimProtoTech;
+	/** list of the primitive-NodeProto-related errors in the library */	private boolean [] nodePrimProtoError;
+	/** list of the original primitive NodeProtos in the library */			private String [] nodePrimProtoOrig;
+	/** list of all ArcProtos in the library */								private ArcProto [] arcProtoList;
+	/** list of all ArcProto-related errors in the library */				private String [] arcProtoError;
+	/** list of all Technologies in the library */							private Technology [] techList;
+	/** list of all technology-related errors in the library */				private String [] techError;
+	/** list of all tools in the library */									private int [] toolList;
+	/** list of all tool-related errors in the library */					private String [] toolError;
+	/** list of all XXXXX in the library */									private boolean [] geomType;
+	/** list of all XXXXX in the library */									private int [] geomMoreUp;
+	/** list of all former cells in the library */							private FakeCell [] fakeCellList;
+
 
 	// ---------------------- private and protected methods -----------------
 	/** current magic number: version 12 */		private static final int MAGIC12=              -1595;
@@ -81,7 +84,7 @@ public class BinaryIn extends Input
 
 	// ----------------------- public methods -------------------------------
 
-	public Library ReadLib()
+	public boolean ReadLib()
 	{
 		try
 		{
@@ -89,14 +92,13 @@ public class BinaryIn extends Input
 		} catch (IOException e)
 		{
 			System.out.println("End of file reached while reading " + filePath);
-			return null;
+			return true;
 		}
 	}
 	
-	private Library readTheLibrary() throws IOException
+	private boolean readTheLibrary()
+		throws IOException
 	{
-		Library returnLib = null;
-
 		// initialize
 		clippedIntegers = 0;
 		byteCount = 0;
@@ -118,7 +120,7 @@ public class BinaryIn extends Input
 				magic != MAGIC9 && magic != MAGIC10 && magic != MAGIC11 && magic != MAGIC12)
 			{
 				System.out.println("Bad file format: does not start with proper magic number");
-				return null;
+				return true;
 			}
 			bytesSwapped = true;
 		}
@@ -229,7 +231,7 @@ public class BinaryIn extends Input
 				if (v == null)
 				{
 					v = View.makeInstance(viewName, viewShortName, 0);
-					if (v == null) return null;
+					if (v == null) return true;
 				}
 				v.setTemp1(i + 1);
 			}
@@ -252,9 +254,9 @@ public class BinaryIn extends Input
 		// allocate pointers
 		nodeList = new NodeInst[nodeCount];
 		nodeCounts = new int[nodeProtoCount];
-		nodeProtoList = new NodeProto [nodeProtoCount];
+		nodeProtoList = new Cell [nodeProtoCount];
 		portProtoList = new PortProto [portProtoCount];
-		portCount = new int[nodeProtoCount];
+		portCounts = new int[nodeProtoCount];
 		portpProtoList = new PortProto[primPortProtoCount];
 		portpProtoError = new String[primPortProtoCount];
 		Export [] portExpInstList = new Export[portProtoCount];
@@ -272,7 +274,133 @@ public class BinaryIn extends Input
 		toolList = new int[toolCount];
 		toolError = new String[toolCount];
 
-		return returnLib;
+		// versions 9 to 11 allocate fake-cell pointers
+		if (magic <= MAGIC9 && magic >= MAGIC11)
+		{
+			fakeCellList = new FakeCell[cellCount];
+		}
+
+		// versions 4 and earlier allocate geometric pointers
+		if (magic > MAGIC5)
+		{
+			geomType = new boolean [geomCount];
+			geomMoreUp = new int [geomCount];
+		}
+
+		// get number of arcinsts and nodeinsts in each cell
+		if (magic != MAGIC1)
+		{
+			// versions 2 and later find this in the file
+			int nodeInstPos = 0, arcInstPos = 0, portProtoPos = 0;
+			for(int i=0; i<nodeProtoCount; i++)
+			{
+				arcCounts[i] = readBigInteger();
+				nodeCounts[i] = readBigInteger();
+				portCounts[i] = readBigInteger();
+				if (arcCounts[i] >= 0 || nodeCounts[i] >= 0)
+				{
+					arcInstPos += arcCounts[i];
+					nodeInstPos += nodeCounts[i];
+				}
+				portProtoPos += portCounts[i];
+			}
+
+			// verify that the number of node instances is equal to the total in the file
+			if (nodeInstPos != nodeCount)
+			{
+				System.out.println("Error: cells have " + nodeInstPos + " nodes but library has " + nodeCount);
+				return true;
+			}
+			if (arcInstPos != arcCount)
+			{
+				System.out.println("Error: cells have " + arcInstPos + " arcs but library has " + arcCount);
+				return true;
+			}
+			if (portProtoPos != portProtoCount)
+			{
+				System.out.println("Error: cells have " + portProtoPos + " ports but library has " + portProtoCount);
+				return true;
+			}
+		} else
+		{
+			// version 1 computes this information
+			arcCounts[0] = arcCount;
+			nodeCounts[0] = nodeCount;
+			portCounts[0] = portProtoCount;
+			for(int i=1; i<nodeProtoCount; i++)
+				arcCounts[i] = nodeCounts[i] = portCounts[i] = 0;
+		}
+
+		// allocate all cells in the library
+		// versions 9 to 11 allocate fakecells now
+		if (magic <= MAGIC9 && magic >= MAGIC11)
+		{
+			for(int i=0; i<cellCount; i++)
+				fakeCellList[i] = new FakeCell();
+		}
+
+		// allocate all cells in the library
+		for(int i=0; i<nodeProtoCount; i++)
+		{
+			if (arcCounts[i] < 0 && nodeCounts[i] < 0)
+			{
+				// this cell is from an external library
+				nodeProtoList[i] = null;
+			} else
+			{
+				nodeProtoList[i] = Cell.lowLevelAllocate(lib);
+				if (nodeProtoList[i] == null) return true;
+			}
+		}
+
+		
+
+		
+		// allocate the nodes, arcs, and ports in each cell
+		int nodeinstpos = 0, arcinstpos = 0, portprotopos = 0;
+		for(int i=0; i<nodeProtoCount; i++)
+		{
+			Cell np = nodeProtoList[i];
+			if (np == null)
+			{
+				// for external references, clear the port proto list */
+				for(int j=0; j<portCounts[i]; j++)
+					portProtoList[portprotopos+j] = null;
+				portprotopos += portCounts[i];
+				continue;
+			}
+
+			// allocate node instances in this cell
+			for(int j=0; j<nodeCounts[i]; j++)
+			{
+				nodeList[nodeinstpos+j] = NodeInst.lowLevelAllocate();
+				if (nodeList[nodeinstpos+j] == null) return true;
+			}
+			nodeinstpos += nodeCounts[i];
+
+			// allocate port prototypes in this cell
+			for(int j=0; j<portCounts[i]; j++)
+			{
+				int thisone = j + portprotopos;
+//				portProtoList[thisone] = allocportproto(lib->cluster);
+//				portExpInstList[thisone] = allocportexpinst(lib->cluster);
+//				portProtoList[thisone]->subportexpinst = portExpInstList[thisone];
+			}
+			portprotopos += portCounts[i];
+
+			// allocate arc instances and port arc instances in this cell
+			for(int j=0; j<arcCounts[i]; j++)
+			{
+				arcList[arcinstpos+j] = ArcInst.lowLevelAllocate();
+			}
+			for(int j=0; j<arcCounts[i]*2; j++)
+			{
+//				portArcInstList[arcinstpos*2+j] = allocportarcinst(lib->cluster);
+			}
+			arcinstpos += arcCounts[i];
+		}
+
+		return true;
 	}
 
 	byte readByte()

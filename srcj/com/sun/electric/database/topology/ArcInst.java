@@ -54,14 +54,8 @@ public class ArcInst extends Geometric /*implements Networkable*/
 
 	// -------------------- private and protected methods ------------------------
 	
-	private ArcInst(ArcProto protoType, double arcWidth, Cell parent)
+	private ArcInst()
 	{
-		// initialize parent class (Geometric)
-		this.parent = parent;
-
-		// initialize this object
-		this.protoType = protoType;
-		this.arcWidth = arcWidth;
 		this.userBits = 0;
 	}
 
@@ -134,6 +128,74 @@ public class ArcInst extends Geometric /*implements Networkable*/
 
 	// -------------------------- public methods -----------------------------
 
+	/**
+	 * Low-level access routine to create a ArcInst.
+	 */
+	public static ArcInst lowLevelAllocate()
+	{
+		ArcInst ai = new ArcInst();
+		return ai;
+	}
+
+	/**
+	 * Low-level routine to fill-in the ArcInst information.
+	 * Returns true on error.
+	 */
+	public boolean lowLevelPopulate(ArcProto protoType, double arcWidth,
+		PortInst a, double aX, double aY, PortInst b, double bX, double bY)
+	{
+		// initialize this object
+		this.protoType = protoType;
+
+		if (arcWidth <= 0)
+			arcWidth = protoType.getWidth();
+		this.arcWidth = arcWidth;
+
+		Cell parent = a.getNodeInst().getParent();
+		if (parent != b.getNodeInst().getParent())
+		{
+			System.out.println("ArcProto.newInst: the 2 PortInsts are in different Cells!");
+			return true;
+		}
+		this.parent = parent;
+
+		// make sure the arc can connect to these ports
+		PortProto pa = a.getPortProto();
+		PrimitivePort ppa = (PrimitivePort)(pa.getBasePort());
+		if (!ppa.connectsTo(protoType))
+		{
+			System.out.println("Cannot create arc: type " + protoType.describe() + " cannot connect to port " + pa.getProtoName());
+			return true;
+		}
+		PortProto pb = b.getPortProto();
+		PrimitivePort ppb = (PrimitivePort)(pb.getBasePort());
+		if (!ppb.connectsTo(protoType))
+		{
+			System.out.println("Cannot create arc: type " + protoType.describe() + " cannot connect to port " + pb.getProtoName());
+			return true;
+		}
+
+		// create node/arc connections and place them properly
+		head = new Connection(this, a, aX, aY);
+		tail = new Connection(this, b, bX, bY);
+		
+		// fill in the geometry
+		updateGeometric();
+
+		return false;
+	}
+
+	/**
+	 * Low-level access routine to link the ArcInst into its Cell.
+	 * Returns true on error.
+	 */
+	public boolean lowLevelLink()
+	{
+		Cell parent = getParent();
+		parent.addArc(this);
+		return false;
+	}
+
 	/** Create a new ArcInst connecting two PortInsts.
 	 *
 	 * <p> Arcs are connected to the <i>center</i> of the PortInsts. If
@@ -166,58 +228,9 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	public static ArcInst newInstance(ArcProto type, double arcWidth,
 		PortInst a, double aX, double aY, PortInst b, double bX, double bY)
 	{
-		if (arcWidth <= 0)
-			arcWidth = type.getWidth();
-
-		Cell parent = a.getNodeInst().getParent();
-		if (parent != b.getNodeInst().getParent())
-		{
-			System.out.println("ArcProto.newInst: the 2 PortInsts are in different Cells!");
-			return null;
-		}
-
-		// make sure the arc can connect to these ports
-		PortProto pa = a.getPortProto();
-		PrimitivePort ppa = (PrimitivePort)(pa.getBasePort());
-		if (!ppa.connectsTo(type))
-		{
-			System.out.println("Cannot create arc: type " + type.describe() + " cannot connect to port " + pa.getProtoName());
-			return null;
-		}
-		PortProto pb = b.getPortProto();
-		PrimitivePort ppb = (PrimitivePort)(pb.getBasePort());
-		if (!ppb.connectsTo(type))
-		{
-			System.out.println("Cannot create arc: type " + type.describe() + " cannot connect to port " + pb.getProtoName());
-			return null;
-		}
-
-		// create the arc instance
-		ArcInst ai = new ArcInst(type, arcWidth, parent);
-		if (ai == null)
-		{
-			System.out.println("couldn't create arc:\n"
-				+ "-------------following dimensions are Cell-Center relative---------\n"
-				+ " NodeInst   A: " + a.getNodeInst() + "\n"
-				+ " PortProto  A: " + a.getPortProto() + "\n"
-				+ " PortBounds A: " + a.getBounds() + "\n"
-				+ " NodeInst   B: " + b.getNodeInst() + "\n"
-				+ " PortProto  B: " + b.getPortProto() + "\n"
-				+ " PortBounds B: " + b.getBounds() + "\n"
-				+ "---------------------following dimensions are absolute-------------\n"
-				+ " (ax, ay): (" + aX + "," + aY + ")\n"
-				+ " (bx, by): (" + bX + "," + bY + ")\n");
-			return null;
-		}
-
-		// create node/arc connections and place them properly
-		ai.head = new Connection(ai, a, aX, aY);
-		ai.tail = new Connection(ai, b, bX, bY);
-		
-		// fill in the geometry
-		ai.updateGeometric();
-		parent.addArc(ai);
-
+		ArcInst ai = lowLevelAllocate();
+		if (ai.lowLevelPopulate(type, arcWidth, a, aX, aY, b, bX, bY)) return null;
+		if (ai.lowLevelLink()) return null;
 		return ai;
 	}
 

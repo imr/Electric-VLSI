@@ -1,12 +1,14 @@
 package com.sun.electric.tool.io;
 
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.prototype.NodeProto;
 
 import java.io.*;
 
 public class Input
 {
 	String filePath;
+	Library lib;
 	FileInputStream fileInputStream;
 
 	/**
@@ -29,6 +31,12 @@ public class Input
 		/** GDS input */			public static final ImportType GDS=      new ImportType("GDS");
 	}
 
+	public static class FakeCell
+	{
+		String cellName;
+		NodeProto firstInCell;
+	}
+
 	// ------------------------- private data ----------------------------
 
 	// ---------------------- private and protected methods -----------------
@@ -39,7 +47,7 @@ public class Input
 
 	// ----------------------- public methods -------------------------------
 
-	public Library ReadLib() { return null; }
+	public boolean ReadLib() { return true; }
 
 	public static Library ReadLibrary(String fileName, ImportType type)
 	{
@@ -52,6 +60,7 @@ public class Input
 			return null;
 		}
 		in.filePath = fileName;
+		Library lib = Library. newInstance(fileName, fileName);
 		try
 		{
 			in.fileInputStream = new FileInputStream(fileName);
@@ -60,6 +69,11 @@ public class Input
 			System.out.println("Could not find file " + fileName);
 			return null;
 		}
-		return in.ReadLib();
+		if (in.ReadLib())
+		{
+			System.out.println("Error reading library");
+			return null;
+		}
+		return lib;
 	}
 }
