@@ -236,7 +236,6 @@ public class Maze
 		Highlighter hi = wf.getContent().getHighlighter();
 		if (hi == null) return;
 
-//		netList = cell.getUserNetlist();
 		netList = cell.acquireUserNetlist();
 		if (netList == null)
 		{
@@ -272,10 +271,12 @@ public class Maze
 		for(Iterator it = arcsToRoute.iterator(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
-//			netList = cell.getUserNetlist();
-			Network net = netList.getNetwork(ai, 0);
 
-			// see if there are unrouted
+			// reacquire the netlist for the current configuration
+			netList = cell.acquireUserNetlist();
+
+			// route the unrouted arc
+			Network net = netList.getNetwork(ai, 0);
 			if (routeNet(net, hi)) continue;
 		}
 	}

@@ -85,16 +85,55 @@ public class Compaction extends Listener
 	{
 	}
 
+	/****************************** COMPACTION CONTROL ******************************/
+
 	/**
-	 * Method to mimic the currently selected ArcInst.
+	 * Method to compact the current cell.
 	 */
 	public static void compactNow()
 	{
 		Cell cell = WindowFrame.getCurrentCell();
 		if (cell == null) return;
 
-		// do the compaction, starting horizontally
-		CompactCell job = new CompactCell(cell, true, CompactCell.HORIZONTAL);
+		// do the compaction in a job
+		CompactCellJob job = new CompactCellJob(cell, true, CompactCell.HORIZONTAL);
+	}
+
+	/**
+	 * Class to compact a cell in a Job.
+	 */
+	private static class CompactCellJob extends Job
+	{
+		private Cell cell;
+		private boolean lastTime;
+		private CompactCell.Axis curAxis;
+
+		private CompactCellJob(Cell cell, boolean lastTime, CompactCell.Axis curAxis)
+		{
+			super("Compact Cell", Compaction.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cell = cell;
+			this.lastTime = lastTime;
+			this.curAxis = curAxis;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			// make the compaction object for the cell
+			CompactCell cc = new CompactCell(cell);
+
+			// alternate vertical then horizontal compaction
+			boolean change = cc.compactOneDirection(curAxis);
+			if (lastTime || change)
+			{
+				curAxis = (curAxis == CompactCell.HORIZONTAL) ? CompactCell.VERTICAL : CompactCell.HORIZONTAL;
+				CompactCellJob job = new CompactCellJob(cell, change, curAxis);
+			} else
+			{
+				System.out.println("Compaction complete");
+			}
+			return true;
+		}
 	}
 
 	/****************************** OPTIONS ******************************/
@@ -112,12 +151,12 @@ public class Compaction extends Listener
 	 */
 	public static void setAllowsSpreading(boolean on) { cacheAllowSpreading.setBoolean(on); }
 
-	/****************************** COMPACTION CONTROL ******************************/
+	/****************************** COMPACTION ******************************/
 
 	/**
 	 * Class to compact a cell.
 	 */
-	private static class CompactCell extends Job
+	private static class CompactCell
 	{
 		private static final double DEFAULT_VAL = -99999999;
 
@@ -157,41 +196,12 @@ public class Compaction extends Listener
 		/** lowest edge of current line */						private double  lowBound;
 		/** counter for unique network numbers */				private int     flatIndex;
 		/** used for numbering lines (debugging only) */		private int     lineIndex = 0;
-		/** result of last compaction (in orthogonal dir) */	private boolean lastTime;
 		/** current axis of compaction */						private Axis    curAxis;
 		/** cell being compacted */								private Cell    cell;
 
-		private CompactCell(Cell cell, boolean lastTime, Axis curAxis)
+		private CompactCell(Cell cell)
 		{
-			super("Compact Cell", Compaction.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
-			this.lastTime = lastTime;
-			this.curAxis = curAxis;
-			startJob();
-		}
-
-		public boolean doIt()
-		{
-//			// special handling for technology-edit cells
-//			if (el_curwindowpart != null && cell != null &&
-//				(el_curwindowpart->state&WINDOWMODE) == WINDOWTECEDMODE)
-//			{
-//				// special compaction of a technology edit cell can be done by the tec-editor
-//				arg[0] = "compact-current-cell";
-//				us_tecedentry(1, arg);
-//				return;
-//			}
-
-			// alternate vertical then horizontal compaction
-			boolean change = compactOneDirection(cell);
-			if (!change && !lastTime)
-			{
-				System.out.println("Compaction complete");
-			} else
-			{
-				CompactCell job = new CompactCell(cell, change, curAxis == HORIZONTAL ? VERTICAL : HORIZONTAL);
-			}
-			return true;
 		}
 
 		/**
@@ -199,8 +209,10 @@ public class Compaction extends Listener
 		 * compaction (if "axis" is HORIZONTAL) to cell "np".  Displays state if
 		 * "verbose" is nonzero.  Returns true if a change was made.
 		 */
-		private boolean compactOneDirection(Cell cell)
+		private boolean compactOneDirection(Axis curAxis)
 		{
+			this.curAxis = curAxis;
+
 			// determine maximum drc surround for entire technology
 			maxBoundary = DRC.getWorstSpacingDistance(Technology.getCurrent());
 

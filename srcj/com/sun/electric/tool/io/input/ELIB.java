@@ -1507,7 +1507,6 @@ public class ELIB extends LibraryFiles
 					" because ends are unknown");
 				continue;
 			}
-			ELIBConstants.applyELIBArcBits(ai, arcUserBits[i]);
 			int defAngle = ai.lowLevelGetArcAngle() * 10;
 			if (ai.lowLevelPopulate(ap, width, headPortInst, new EPoint(headX, headY), tailPortInst, new EPoint(tailX, tailY), defAngle, name, -1))
 			{
@@ -1516,6 +1515,7 @@ public class ELIB extends LibraryFiles
 				Input.errorLogger.logError(msg, cell, 1);
 				continue;
 			}
+			ELIBConstants.applyELIBArcBits(ai, arcUserBits[i]);
 //			ai.lowLevelPopulate(ap, width, tailPortInst, new Point2D.Double(tailX, tailY), headPortInst, new Point2D.Double(headX, headY), defAngle, name, -1);
 			ai.lowLevelLink();
 		}
