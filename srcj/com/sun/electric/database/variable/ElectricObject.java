@@ -121,6 +121,7 @@ public class ElectricObject
 	 */
 	public Variable getVar(Variable.Key key, Class type)
 	{
+        checkExamine();
         if (key == null) return null;
 		if (vars == null) return null;
 		Variable var = (Variable)vars.get(key);
@@ -204,6 +205,7 @@ public class ElectricObject
      * @return the object that holds the default variables and values.
      */
     public ElectricObject getVarDefaultOwner() {
+        checkExamine();
         return this;
     }
 
@@ -214,6 +216,7 @@ public class ElectricObject
 	 */
 	public int numPersistentVariables()
 	{
+        checkExamine();
 		if (vars == null) return 0;
 
 		int numVars = 0;
@@ -234,6 +237,7 @@ public class ElectricObject
 	 */
 	public int numDisplayableVariables(boolean multipleStrings)
 	{
+        checkExamine();
 		if (vars == null) return 0;
 
 		int numVars = 0;
@@ -269,6 +273,7 @@ public class ElectricObject
 	 */
 	public int addDisplayableVariables(Rectangle2D rect, Poly [] polys, int start, EditWindow wnd, boolean multipleStrings)
 	{
+        checkExamine();
 		int numAddedVariables = 0;
 		if (vars == null) return numAddedVariables;
 
@@ -303,6 +308,7 @@ public class ElectricObject
 	 */
 	public Poly computeTextPoly(EditWindow wnd, Variable var, Name name)
 	{
+        checkExamine();
 		Poly poly = null;
 		if (var != null)
 		{
@@ -507,7 +513,7 @@ public class ElectricObject
 		if (oldVar != null)
 		{
 			lowLevelUnlinkVar(oldVar);
-			if (!isDummyObject())
+			if (isDatabaseObject())
 				Undo.killVariable(this, oldVar);
 		}
 		TextDescriptor td = null;
@@ -518,7 +524,7 @@ public class ElectricObject
 						td = TextDescriptor.getAnnotationTextDescriptor(this);
 		Variable v = new Variable(this, value, td, key);
 		lowLevelLinkVar(v);
-		if (!isDummyObject())
+		if (isDatabaseObject())
 			Undo.newVariable(this, v);
 		return v;
 	}
@@ -610,7 +616,7 @@ public class ElectricObject
 		Variable v = getVar(key);
 		if (v == null) return;
 		lowLevelUnlinkVar(v);
-		if (!isDummyObject())
+		if (isDatabaseObject())
 			Undo.killVariable(this, v);
 	}
 
@@ -667,7 +673,7 @@ public class ElectricObject
 			Object[] arr = (Object[])addr;
 			Object oldVal = arr[index];
 			arr[index] = value;
-			if (!isDummyObject())
+			if (isDatabaseObject())
 				Undo.modifyVariable(this, v, index, oldVal);
 		}
 		lowLevelModVar(v);
@@ -688,7 +694,7 @@ public class ElectricObject
 		if (addr instanceof Object[])
 		{
 			v.lowLevelInsert(index, value);
-			if (!isDummyObject())
+			if (isDatabaseObject())
 				Undo.insertVariable(this, v, index);
 		}
 		lowLevelModVar(v);
@@ -709,7 +715,7 @@ public class ElectricObject
 		{
 			Object oldVal = ((Object[])addr)[index];
 			v.lowLevelDelete(index);
-			if (!isDummyObject())
+			if (isDatabaseObject())
 				Undo.deleteVariable(this, v, index, oldVal);
 		}
 		lowLevelModVar(v);
@@ -955,6 +961,7 @@ public class ElectricObject
 	 */
 	public Iterator getVariables()
 	{
+        checkExamine();
 		if (vars == null)
 			return (new ArrayList()).iterator();
 		return (new ArrayList(vars.values())).iterator();
@@ -966,6 +973,7 @@ public class ElectricObject
 	 */
 	public int getNumVariables()
 	{
+        checkExamine();
 		if (vars == null) return 0;
 		return vars.entrySet().size();
 	}
@@ -974,7 +982,7 @@ public class ElectricObject
 	 * Method to return an Iterator over all Variable keys.
 	 * @return an Iterator over all Variable keys.
 	 */
-	public static Iterator getVariableKeys()
+	public static synchronized Iterator getVariableKeys()
 	{
 		return varKeys.values().iterator();
 	}
@@ -983,7 +991,7 @@ public class ElectricObject
 	 * Method to return the total number of different Variable names on all ElectricObjects.
 	 * @return the total number of different Variable names on all ElectricObjects.
 	 */
-	public static int getNumVariableKeys()
+	public static synchronized int getNumVariableKeys()
 	{
 		return varKeys.keySet().size();
 	}
@@ -992,21 +1000,30 @@ public class ElectricObject
 	 * Routing to check whether changing of this cell allowed or not.
 	 * By default checks whole database change. Overriden in subclasses.
 	 */
-	public void checkChanging() { Job.checkChanging(); }
+	public void checkChanging() {
+        if (!isDatabaseObject()) return;
+        Job.checkChanging();
+    }
+
+    public void checkExamine() {
+        if (!isDatabaseObject()) return;
+        Job.checkExamine();
+    }
 
 	/**
 	 * Method which indicates that this object is in database.
 	 * Some objects are not in database, for example Geometrics in PaletteFrame.
-	 * @return true if this object is in database.
+	 * @return true if this object is in database, false if it is not a database object,
+     * or if it is a dummy database object (considered not to be in the database).
 	 */
-	protected boolean isDummyObject() { return false; }
+	protected boolean isDatabaseObject() { return true; }
 
 	/**
 	 * Method to return the Key object for a given Variable name.
 	 * Variable Key objects are caches of the actual string name of the Variable.
 	 * @return the Key object for a given Variable name.
 	 */
-	private static Variable.Key findKey(String name)
+	private static synchronized Variable.Key findKey(String name)
 	{
 		Variable.Key key = (Variable.Key)varKeys.get(name);
 		if (key == null)
@@ -1024,7 +1041,7 @@ public class ElectricObject
 	 * @param name given Variable name.
 	 * @return the Key object for a given Variable name.
 	 */
-	public static Variable.Key newKey(String name)
+	public static synchronized Variable.Key newKey(String name)
 	{
 		Variable.Key key = findKey(name);
 		if (key != null) return key;
@@ -1047,6 +1064,7 @@ public class ElectricObject
 	 */
 	public void getInfo()
 	{
+        checkExamine();
 		if (vars == null) return;
 		boolean firstvar = true;
 		for(Iterator it = vars.keySet().iterator(); it.hasNext() ;)

@@ -95,6 +95,7 @@ public class TopLevel extends JFrame
 	/** The palette object. */								private static PaletteFrame palette;
 	/** The messages window. */								private static MessagesWindow messages;
 	/** The cursor being displayed. */						private static Cursor cursor;
+    /** If the busy cursor is overriding the normal cursor */ private static boolean busyCursorOn = false;
 
     /** The menu bar */                                     private MenuBar menuBar;
     /** The tool bar */                                     private ToolBar toolBar;
@@ -341,9 +342,14 @@ public class TopLevel extends JFrame
 
 	public static Cursor getCurrentCursor() { return cursor; }
 
-	public static void setCurrentCursor(Cursor cursor)
+	public static synchronized void setCurrentCursor(Cursor cursor)
 	{
         TopLevel.cursor = cursor;
+        setCurrentCursorPrivate(cursor);
+    }
+
+    private static synchronized void setCurrentCursorPrivate(Cursor cursor)
+    {
         if (mode == Mode.MDI) {
             JFrame jf = TopLevel.getCurrentJFrame();
             jf.setCursor(cursor);
@@ -353,8 +359,25 @@ public class TopLevel extends JFrame
         {
             WindowFrame wf = (WindowFrame)it.next();
             wf.setCursor(cursor);
-        }        
+        }
 	}
+
+    /**
+     * The busy cursor overrides any other cursor.
+     * Call clearBusyCursor to reset to last set cursor
+     */
+    public static synchronized void setBusyCursor(boolean on) {
+        if (on) {
+            if (!busyCursorOn)
+                setCurrentCursorPrivate(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+            busyCursorOn = true;
+        } else {
+            // if the current cursor is a busy cursor, set it to the last normal cursor
+            if (busyCursorOn)
+                setCurrentCursorPrivate(getCurrentCursor());
+            busyCursorOn = false;
+        }
+    }
 
 	/**
 	 * Method to return the current JFrame on the screen.

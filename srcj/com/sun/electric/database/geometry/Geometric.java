@@ -866,7 +866,7 @@ public abstract class Geometric extends ElectricObject
 	 * Some objects are not in database, for example Geometrics in PaletteFrame.
 	 * @return true if this object is in database.
 	 */
-	protected boolean isDummyObject() { return parent == null; }
+	protected boolean isDatabaseObject() { return parent != null; }
 
 	/**
 	 * Method to write a description of this Geometric.

@@ -64,6 +64,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 	private boolean initialSkipHead, initialSkipTail, initialReverseEnds;
     private String initialColor;
     private EditWindow wnd;
+    /** true if need to reload info due to failure to get Examine lock on DB */ private boolean needReload = false;
 
 	/**
 	 * Method to show the Arc Get-Info dialog.
@@ -110,6 +111,14 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
         if (!isVisible()) return;
 
+        // check if we need to reload because we couldn't
+        // load before because a Change Job was running
+        if (needReload) {
+            needReload = false;
+            loadInfo();
+            return;
+        }
+
         // check if we care about the changes
         boolean reload = false;
         for (Iterator it = batch.getChanges(); it.hasNext(); ) {
@@ -154,6 +163,8 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 
 	protected void loadInfo()
 	{
+        Job.checkSwingThread();
+
         // update current window
         EditWindow curWnd = EditWindow.getCurrent();
         if ((wnd != curWnd) && (curWnd != null)) {
@@ -192,75 +203,89 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 			return;
 		}
 
-        focusClearOnTextField(name);
-
-		// enable it
-		name.setEditable(true);
-		width.setEditable(true);
-		easyToSelect.setEnabled(true);
-		rigid.setEnabled(true);
-		fixedAngle.setEnabled(true);
-		slidable.setEnabled(true);
-		directional.setEnabled(true);
-		endsExtend.setEnabled(true);
-		skipHead.setEnabled(true);
-		skipTail.setEnabled(true);
-		reverseEnds.setEnabled(true);
-		headSee.setEnabled(true);
-		tailSee.setEnabled(true);
-		apply.setEnabled(true);
-        arcColorComboBox.setEnabled(false);
-
-		// get initial values
-		initialName = ai.getName();
-		initialWidth = ai.getWidth();
-		initialEasyToSelect = !ai.isHardSelect();
-		initialRigid = ai.isRigid();
-		initialFixedAngle = ai.isFixedAngle();
-		initialSlidable = ai.isSlidable();
-		initialDirectional = ai.isDirectional();
-		initialEndsExtend = ai.isExtended();
-		initialSkipHead = ai.isSkipHead();
-		initialSkipTail = ai.isSkipTail();
-		initialReverseEnds = ai.isReverseEnds();
-
-		// load the dialog
-		type.setText(ai.getProto().describe());
-		Netlist netlist = ai.getParent().getUserNetlist();
-		int busWidth = netlist.getBusWidth(ai);
-		String netName = netlist.getNetworkName(ai);
-		network.setText(netName);
-		name.setText(initialName);
-		width.setText(TextUtils.formatDouble(initialWidth - ai.getProto().getWidthOffset()));
-		busSize.setText(Integer.toString(busWidth));
-		angle.setText(TextUtils.formatDouble(ai.getAngle() / 10.0));
-		easyToSelect.setSelected(initialEasyToSelect);
-		headNode.setText(ai.getHead().getPortInst().getNodeInst().describe());
-		Point2D headPt = ai.getHead().getLocation();
-		headLoc.setText("(" + headPt.getX() + "," + headPt.getY() + ")");
-		tailNode.setText(ai.getTail().getPortInst().getNodeInst().describe());
-		Point2D tailPt = ai.getTail().getLocation();
-		tailLoc.setText("(" + tailPt.getX() + "," + tailPt.getY() + ")");
-		rigid.setSelected(initialRigid);
-		fixedAngle.setSelected(initialFixedAngle);
-		slidable.setSelected(initialSlidable);
-		directional.setSelected(initialDirectional);
-		endsExtend.setSelected(initialEndsExtend);
-		skipHead.setSelected(initialSkipHead);
-		skipTail.setSelected(initialSkipTail);
-		reverseEnds.setSelected(initialReverseEnds);
-
-        // arc color
-        initialColor = "";
-        Variable var = ai.getVar(Artwork.ART_COLOR);
-        if (var != null) {
-            Integer integer = (Integer)var.getObject();
-            String color = EGraphics.getColorIndexName(integer.intValue());
-            initialColor = color;
+        // try to get Examine lock. If fails, set needReload to true to
+        // call loadInfo again when database is done changing
+        if (!Job.acquireExamineLock(false)) {
+            needReload = true;
+            disableDialog();
+            return;
         }
-        arcColorComboBox.setSelectedItem(initialColor);
-        if (ai.getProto().getTechnology() == Artwork.tech) {
-            arcColorComboBox.setEnabled(true);
+        // else: lock acquired
+        try {
+            focusClearOnTextField(name);
+
+            // enable it
+            name.setEditable(true);
+            width.setEditable(true);
+            easyToSelect.setEnabled(true);
+            rigid.setEnabled(true);
+            fixedAngle.setEnabled(true);
+            slidable.setEnabled(true);
+            directional.setEnabled(true);
+            endsExtend.setEnabled(true);
+            skipHead.setEnabled(true);
+            skipTail.setEnabled(true);
+            reverseEnds.setEnabled(true);
+            headSee.setEnabled(true);
+            tailSee.setEnabled(true);
+            apply.setEnabled(true);
+            arcColorComboBox.setEnabled(false);
+
+            // get initial values
+            initialName = ai.getName();
+            initialWidth = ai.getWidth();
+            initialEasyToSelect = !ai.isHardSelect();
+            initialRigid = ai.isRigid();
+            initialFixedAngle = ai.isFixedAngle();
+            initialSlidable = ai.isSlidable();
+            initialDirectional = ai.isDirectional();
+            initialEndsExtend = ai.isExtended();
+            initialSkipHead = ai.isSkipHead();
+            initialSkipTail = ai.isSkipTail();
+            initialReverseEnds = ai.isReverseEnds();
+
+            // load the dialog
+            type.setText(ai.getProto().describe());
+            Netlist netlist = ai.getParent().getUserNetlist();
+            int busWidth = netlist.getBusWidth(ai);
+            String netName = netlist.getNetworkName(ai);
+            network.setText(netName);
+            name.setText(initialName);
+            width.setText(TextUtils.formatDouble(initialWidth - ai.getProto().getWidthOffset()));
+            busSize.setText(Integer.toString(busWidth));
+            angle.setText(TextUtils.formatDouble(ai.getAngle() / 10.0));
+            easyToSelect.setSelected(initialEasyToSelect);
+            headNode.setText(ai.getHead().getPortInst().getNodeInst().describe());
+            Point2D headPt = ai.getHead().getLocation();
+            headLoc.setText("(" + headPt.getX() + "," + headPt.getY() + ")");
+            tailNode.setText(ai.getTail().getPortInst().getNodeInst().describe());
+            Point2D tailPt = ai.getTail().getLocation();
+            tailLoc.setText("(" + tailPt.getX() + "," + tailPt.getY() + ")");
+            rigid.setSelected(initialRigid);
+            fixedAngle.setSelected(initialFixedAngle);
+            slidable.setSelected(initialSlidable);
+            directional.setSelected(initialDirectional);
+            endsExtend.setSelected(initialEndsExtend);
+            skipHead.setSelected(initialSkipHead);
+            skipTail.setSelected(initialSkipTail);
+            reverseEnds.setSelected(initialReverseEnds);
+
+            // arc color
+            initialColor = "";
+            Variable var = ai.getVar(Artwork.ART_COLOR);
+            if (var != null) {
+                Integer integer = (Integer)var.getObject();
+                String color = EGraphics.getColorIndexName(integer.intValue());
+                initialColor = color;
+            }
+            arcColorComboBox.setSelectedItem(initialColor);
+            if (ai.getProto().getTechnology() == Artwork.tech) {
+                arcColorComboBox.setEnabled(true);
+            }
+            Job.releaseExamineLock();
+        } catch (Error e) {
+            Job.releaseExamineLock();
+            throw e;
         }
 
 		shownArc = ai;

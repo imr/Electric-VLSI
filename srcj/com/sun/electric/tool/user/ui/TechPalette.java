@@ -45,12 +45,14 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.menus.CellMenu;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.SwingExamineTask;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.lib.LibFile;
 
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.awt.geom.Point2D;
 import java.awt.geom.AffineTransform;
 import java.util.List;
@@ -66,15 +68,16 @@ import java.net.URL;
  * To change this template use File | Settings | File Templates.
  */
 public class TechPalette extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener,
-        KeyListener, PaletteFrame.PlaceNodeEventListener {
+        KeyListener, PaletteFrame.PlaceNodeEventListener, ComponentListener {
 
     /** the number of palette entries. */				private int menuX = -1, menuY = -1;
     /** the size of a palette entry. */					private int entrySize;
     /** the list of objects in the palette. */			private List inPalette = new ArrayList();
     /** the currently selected Node object. */			private Object highlightedNode;
-    /** the current canvas */                           private EditWindow wnd;
 	/** to collect all types of P transistors */        private List pTransistorList = new ArrayList();
     /** to collect all types of N transistors */        private List nTransistorList = new ArrayList();
+    /** cached palette image */                         private Image paletteImage;
+    /** if the palette image needs to be redrawn */     private boolean paletteImageStale;
 
     TechPalette()
     {
@@ -82,6 +85,9 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         addMouseListener(this);
         addMouseMotionListener(this);
         addMouseWheelListener(this);
+        addComponentListener(this);
+        paletteImage = null;
+        paletteImageStale = true;
     }
 
     /**
@@ -224,6 +230,8 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         size.setSize(entrySize*menuX+1, entrySize*menuY+1);
         User.tool.setCurrentArcProto((ArcProto)tech.getArcs().next());
         //repaint();
+        synchronized(this) { paletteImageStale = true; }
+
         return size;
     }
 
@@ -643,6 +651,13 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
     public void mouseWheelMoved(MouseWheelEvent e) {}
 
+    public void componentHidden(ComponentEvent e) {}
+    public void componentMoved(ComponentEvent e) {}
+    public void componentShown(ComponentEvent e) {}
+    public void componentResized(ComponentEvent e) {
+        synchronized(this) { paletteImageStale = true; }
+    }
+
     public void paint(Graphics g)
     {
         // stop now if not initialized
@@ -652,205 +667,271 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         Dimension size = getSize();
         int wid = (int)size.getWidth();
         int hei = (int)size.getHeight();
-        g.clearRect(0, 0, wid, hei);
         entrySize = Math.min(wid / menuX - 1, hei / menuY - 1);
 
-        // create an EditWindow for rendering nodes and arcs
-        if (wnd != null) wnd.finished();
-        wnd = EditWindow.CreateElectricDoc(null, null);
-        Undo.removeDatabaseChangeListener(wnd.getHighlighter());
-        wnd.setScreenSize(new Dimension(entrySize, entrySize));
+        synchronized(this) {
+            if (paletteImageStale || paletteImage == null) {
+                PaintPalette task = new PaintPalette(menuX, menuY, entrySize, inPalette, this, size);
+                if (!task.runImmediately()) {
+                    Job.invokeExamineLater(task, PaintPalette.class);
+                    // draw old palette image for the time being
+                    if (paletteImage != null) g.drawImage(paletteImage, 0, 0, this);
+                    return;
+                }
+            }
+            // draw current palette image
+            g.drawImage(paletteImage, 0, 0, this);
+        }
 
-        // draw the menu entries
-        for(int x=0; x<menuX; x++)
-        {
-            for(int y=0; y<menuY; y++)
-            {
-                // render the entry into an Image
-                int index = x * menuY + y;
-                if (index >= inPalette.size()) continue;
-                Object toDraw = inPalette.get(index);
-                Image img = drawMenuEntry(wnd, toDraw);
-
+        // highlight node that user selected
+        if (highlightedNode != null) {
+            // draw highlights around cell with highlighted node
+            int index = inPalette.indexOf(highlightedNode);
+            if (index >= 0) {
                 // put the Image in the proper place
+                int x = (int)(index/menuY);
+                int y = index % menuY;
                 int imgX = x * (entrySize+1)+1;
                 int imgY = (menuY-y-1) * (entrySize+1)+1;
-
-	            // Draw at the end
-                if (img != null)
-                {
-                    g.drawImage(img, imgX, imgY, this);
-                }
-
-                // highlight if an arc or node
-                if (toDraw instanceof PrimitiveArc)
-                {
-                    g.setColor(Color.RED);
-                    g.drawRect(imgX, imgY, entrySize-1, entrySize-1);
-                    if (toDraw == User.tool.getCurrentArcProto())
-                    {
-                        g.drawRect(imgX+1, imgY+1, entrySize-3, entrySize-3);
-                        g.drawRect(imgX+2, imgY+2, entrySize-5, entrySize-5);
-                    }
-                }
-                if (toDraw instanceof NodeProto || toDraw instanceof NodeInst)
-                {
-                    boolean drawArrow = false;
-                    if (toDraw == Schematics.tech.diodeNode || toDraw == Schematics.tech.capacitorNode ||
-                        toDraw == Schematics.tech.flipflopNode) drawArrow = true;
-                    if (toDraw instanceof NodeInst)
-                    {
-                        NodeInst ni = (NodeInst)toDraw;
-                        if (ni.getFunction() == NodeProto.Function.TRAPNP ||
-                            ni.getFunction() == NodeProto.Function.TRA4PNP)
-	                        drawArrow = true;
-                    }
-
-					if (toDraw instanceof PrimitiveNode)
-					{
-						PrimitiveNode np = (PrimitiveNode)toDraw;
-						   // Don't draw them
-						/*
-						if (np.getSpecialType() == PrimitiveNode.SPECIALTRANS)
-							continue;
-							*/
-					}
-	                // Searching for transistor type...
-	                if (!drawArrow)
-	                    drawArrow = ((nTransistorList.size() > 1 && nTransistorList.contains(toDraw)) ||
-	                        (pTransistorList.size() > 1 && pTransistorList.contains(toDraw)));
-
-                    g.setColor(Color.BLUE);
-                    g.drawRect(imgX, imgY, entrySize-1, entrySize-1);
-                    if (toDraw == highlightedNode)
-                    {
-                        g.drawRect(imgX+1, imgY+1, entrySize-3, entrySize-3);
-                        g.drawRect(imgX+2, imgY+2, entrySize-5, entrySize-5);
-                    }
-
-                    if (drawArrow) drawArrow(g, x, y);
-                }
-                if (toDraw instanceof String)
-                {
-                    String str = (String)toDraw;
-                    g.setColor(new Color(User.getColorBackground()));
-                    g.fillRect(imgX, imgY, entrySize, entrySize);
-                    g.setColor(new Color(User.getColorText()));
-                    g.setFont(new Font("Helvetica", Font.PLAIN, 20));
-                    FontMetrics fm = g.getFontMetrics();
-                    int strWid = fm.stringWidth(str);
-                    int strHeight = fm.getMaxAscent() + fm.getMaxDescent();
-                    int xpos = imgX+entrySize/2 - strWid/2;
-                    int ypos = imgY+entrySize/2 + strHeight/2 - fm.getMaxDescent();
-                    g.drawString(str, xpos, ypos);
-                    if (str.equals("Cell") || str.equals("Spice") || str.equals("Misc.") || str.equals("Pure"))
-                        drawArrow(g, x, y);
-                }
+                g.setColor(Color.BLUE);
+                g.drawRect(imgX+1, imgY+1, entrySize-3, entrySize-3);
+                g.drawRect(imgX+2, imgY+2, entrySize-5, entrySize-5);
             }
         }
 
-        // show dividing lines
-        g.setColor(Color.BLACK);
-        for(int i=0; i<=menuX; i++)
-        {
-            int xPos = (entrySize+1) * i;
-            g.drawLine(xPos, 0, xPos, menuY*(entrySize+1));
-        }
-        for(int i=0; i<=menuY; i++)
-        {
-            int yPos = (entrySize+1) * i;
-            g.drawLine(0, yPos, menuX*(entrySize+1), yPos);
+        // highlight current arc
+        int index = inPalette.indexOf(User.tool.getCurrentArcProto());
+        if (index >= 0) {
+            int x = (int)(index/menuY);
+            int y = index % menuY;
+            int imgX = x * (entrySize+1)+1;
+            int imgY = (menuY-y-1) * (entrySize+1)+1;
+            g.setColor(Color.RED);
+            g.drawRect(imgX+1, imgY+1, entrySize-3, entrySize-3);
+            g.drawRect(imgX+2, imgY+2, entrySize-5, entrySize-5);
         }
     }
 
-    private void drawArrow(Graphics g, int x, int y)
-    {
-        int imgX = x * (entrySize+1)+1;
-        int imgY = (menuY-y-1) * (entrySize+1)+1;
-        int [] arrowX = new int[3];
-        int [] arrowY = new int[3];
-        arrowX[0] = imgX-2 + entrySize*7/8;
-        arrowY[0] = imgY-2 + entrySize;
-        arrowX[1] = imgX-2 + entrySize;
-        arrowY[1] = imgY-2 + entrySize*7/8;
-        arrowX[2] = imgX-2 + entrySize*7/8;
-        arrowY[2] = imgY-2 + entrySize*3/4;
-        g.setColor(Color.BLACK);
-        g.fillPolygon(arrowX, arrowY, 3);
-    }
+    private static class PaintPalette extends SwingExamineTask {
+        private int menuX;
+        private int menuY;
+        private int entrySize;
+        private List inPalette;
+        private TechPalette palette;
+        private Dimension size;
+        private Image image;
 
-    Image drawNodeInMenu(EditWindow wnd, NodeInst ni)
-    {
-        // determine scale for rendering
-        NodeProto np = ni.getProto();
-        double largest = 0;
-        NodeProto.Function groupFunction = np.getGroupFunction();
-        for(Iterator it = np.getTechnology().getNodes(); it.hasNext(); )
-        {
-            PrimitiveNode otherNp = (PrimitiveNode)it.next();
-            if (otherNp.getGroupFunction() != groupFunction) continue;
-            if (otherNp.getDefHeight() > largest) largest = otherNp.getDefHeight();
-            if (otherNp.getDefWidth() > largest) largest = otherNp.getDefWidth();
+        private PaintPalette(int menuX, int menuY, int entrySize, List inPalette, TechPalette palette, Dimension size) {
+            this.menuX = menuX;
+            this.menuY = menuY;
+            this.entrySize = entrySize;
+            this.inPalette = inPalette;
+            this.palette = palette;
+            this.size = size;
+            image = new BufferedImage((int)size.getWidth(), (int)size.getHeight(), BufferedImage.TYPE_INT_RGB);
         }
 
-        // for pins, make them the same scale as the arcs
-        if (groupFunction == NodeProto.Function.PIN)
-        {
-            largest = 0;
-            for(Iterator it = np.getTechnology().getArcs(); it.hasNext(); )
+        protected boolean doIt(boolean immediate) {
+            // draw the menu entries
+            // create an EditWindow for rendering nodes and arcs
+            // ?if (wnd != null) wnd.finished();
+            EditWindow wnd = EditWindow.CreateElectricDoc(null, null);
+            Undo.removeDatabaseChangeListener(wnd.getHighlighter());
+            wnd.setScreenSize(new Dimension(entrySize, entrySize));
+
+            Graphics2D g = (Graphics2D)image.getGraphics();
+            g.setBackground(palette.getBackground());
+            int wid = (int)size.getWidth();
+            int hei = (int)size.getHeight();
+            g.clearRect(0, 0, wid, hei);
+
+            for(int x=0; x<menuX; x++)
             {
-                PrimitiveArc otherAp = (PrimitiveArc)it.next();
-                double wid = otherAp.getDefaultWidth();
-                if (wid+8 > largest) largest = wid+8;
+                for(int y=0; y<menuY; y++)
+                {
+                    // render the entry into an Image
+                    int index = x * menuY + y;
+                    if (index >= inPalette.size()) continue;
+                    Object toDraw = inPalette.get(index);
+                    Image img = drawMenuEntry(wnd, toDraw);
+
+                    // put the Image in the proper place
+                    int imgX = x * (entrySize+1)+1;
+                    int imgY = (menuY-y-1) * (entrySize+1)+1;
+
+                    // Draw at the end
+                    if (img != null)
+                    {
+                        g.drawImage(img, imgX, imgY, null);
+                    }
+
+                    // highlight if an arc or node
+                    if (toDraw instanceof PrimitiveArc)
+                    {
+                        g.setColor(Color.RED);
+                        g.drawRect(imgX, imgY, entrySize-1, entrySize-1);
+                    }
+                    if (toDraw instanceof NodeProto || toDraw instanceof NodeInst)
+                    {
+                        boolean drawArrow = false;
+                        if (toDraw == Schematics.tech.diodeNode || toDraw == Schematics.tech.capacitorNode ||
+                            toDraw == Schematics.tech.flipflopNode) drawArrow = true;
+                        if (toDraw instanceof NodeInst)
+                        {
+                            NodeInst ni = (NodeInst)toDraw;
+                            if (ni.getFunction() == NodeProto.Function.TRAPNP ||
+                                ni.getFunction() == NodeProto.Function.TRA4PNP)
+                                drawArrow = true;
+                        }
+
+                        if (toDraw instanceof PrimitiveNode)
+                        {
+                            PrimitiveNode np = (PrimitiveNode)toDraw;
+                               // Don't draw them
+                            /*
+                            if (np.getSpecialType() == PrimitiveNode.SPECIALTRANS)
+                                continue;
+                                */
+                        }
+                        // Searching for transistor type...
+                        if (!drawArrow)
+                            drawArrow = ((palette.nTransistorList.size() > 1 && palette.nTransistorList.contains(toDraw)) ||
+                                (palette.pTransistorList.size() > 1 && palette.pTransistorList.contains(toDraw)));
+
+                        g.setColor(Color.BLUE);
+                        g.drawRect(imgX, imgY, entrySize-1, entrySize-1);
+
+                        if (drawArrow) drawArrow(g, x, y);
+                    }
+                    if (toDraw instanceof String)
+                    {
+                        String str = (String)toDraw;
+                        g.setColor(new Color(User.getColorBackground()));
+                        g.fillRect(imgX, imgY, entrySize, entrySize);
+                        g.setColor(new Color(User.getColorText()));
+                        g.setFont(new Font("Helvetica", Font.PLAIN, 20));
+                        FontMetrics fm = g.getFontMetrics();
+                        int strWid = fm.stringWidth(str);
+                        int strHeight = fm.getMaxAscent() + fm.getMaxDescent();
+                        int xpos = imgX+entrySize/2 - strWid/2;
+                        int ypos = imgY+entrySize/2 + strHeight/2 - fm.getMaxDescent();
+                        g.drawString(str, xpos, ypos);
+                        if (str.equals("Cell") || str.equals("Spice") || str.equals("Misc.") || str.equals("Pure"))
+                            drawArrow(g, x, y);
+                    }
+                }
             }
+
+            // show dividing lines
+            g.setColor(Color.BLACK);
+            for(int i=0; i<=menuX; i++)
+            {
+                int xPos = (entrySize+1) * i;
+                g.drawLine(xPos, 0, xPos, menuY*(entrySize+1));
+            }
+            for(int i=0; i<=menuY; i++)
+            {
+                int yPos = (entrySize+1) * i;
+                g.drawLine(0, yPos, menuX*(entrySize+1), yPos);
+            }
+            wnd.finished();
+            synchronized(palette) {
+                palette.paletteImage = image;
+                palette.paletteImageStale = false;
+            }
+            if (!immediate) palette.repaint();
+            return true;
         }
 
-        // render it
-        double scalex = entrySize/largest * 0.8;
-        double scaley = entrySize/largest * 0.8;
-        double scale = Math.min(scalex, scaley);
-        return wnd.renderNode(ni, scale);
-    }
-
-    private final static double menuArcLength = 8;
-
-    Image drawMenuEntry(EditWindow wnd, Object entry)
-    {
-        // setup graphics for rendering (start at bottom and work up)
-        if (entry instanceof NodeInst)
+        private void drawArrow(Graphics g, int x, int y)
         {
-            NodeInst ni = (NodeInst)entry;
-            return drawNodeInMenu(wnd, ni);
+            int imgX = x * (entrySize+1)+1;
+            int imgY = (menuY-y-1) * (entrySize+1)+1;
+            int [] arrowX = new int[3];
+            int [] arrowY = new int[3];
+            arrowX[0] = imgX-2 + entrySize*7/8;
+            arrowY[0] = imgY-2 + entrySize;
+            arrowX[1] = imgX-2 + entrySize;
+            arrowY[1] = imgY-2 + entrySize*7/8;
+            arrowX[2] = imgX-2 + entrySize*7/8;
+            arrowY[2] = imgY-2 + entrySize*3/4;
+            g.setColor(Color.BLACK);
+            g.fillPolygon(arrowX, arrowY, 3);
         }
-        if (entry instanceof NodeProto)
-        {
-            // rendering a node: create the temporary node
-            NodeProto np = (NodeProto)entry;
-            NodeInst ni = NodeInst.makeDummyInstance(np);
-            return drawNodeInMenu(wnd, ni);
-        }
-        if (entry instanceof PrimitiveArc)
-        {
-            // rendering an arc: create the temporary arc
-            PrimitiveArc ap = (PrimitiveArc)entry;
-            ArcInst ai = ArcInst.makeDummyInstance(ap, menuArcLength);
 
+        Image drawNodeInMenu(EditWindow wnd, NodeInst ni)
+        {
             // determine scale for rendering
+            NodeProto np = ni.getProto();
             double largest = 0;
-            for(Iterator it = ap.getTechnology().getArcs(); it.hasNext(); )
+            NodeProto.Function groupFunction = np.getGroupFunction();
+            for(Iterator it = np.getTechnology().getNodes(); it.hasNext(); )
             {
-                PrimitiveArc otherAp = (PrimitiveArc)it.next();
-                double wid = otherAp.getDefaultWidth();
-                if (wid+menuArcLength > largest) largest = wid+menuArcLength;
+                PrimitiveNode otherNp = (PrimitiveNode)it.next();
+                if (otherNp.getGroupFunction() != groupFunction) continue;
+                if (otherNp.getDefHeight() > largest) largest = otherNp.getDefHeight();
+                if (otherNp.getDefWidth() > largest) largest = otherNp.getDefWidth();
             }
 
-            // render the arc
+            // for pins, make them the same scale as the arcs
+            if (groupFunction == NodeProto.Function.PIN)
+            {
+                largest = 0;
+                for(Iterator it = np.getTechnology().getArcs(); it.hasNext(); )
+                {
+                    PrimitiveArc otherAp = (PrimitiveArc)it.next();
+                    double wid = otherAp.getDefaultWidth();
+                    if (wid+8 > largest) largest = wid+8;
+                }
+            }
+
+            // render it
             double scalex = entrySize/largest * 0.8;
             double scaley = entrySize/largest * 0.8;
             double scale = Math.min(scalex, scaley);
-            return wnd.renderArc(ai, scale);
+            return wnd.renderNode(ni, scale);
         }
-        return null;
+
+        private final static double menuArcLength = 8;
+
+        Image drawMenuEntry(EditWindow wnd, Object entry)
+        {
+            // setup graphics for rendering (start at bottom and work up)
+            if (entry instanceof NodeInst)
+            {
+                NodeInst ni = (NodeInst)entry;
+                return drawNodeInMenu(wnd, ni);
+            }
+            if (entry instanceof NodeProto)
+            {
+                // rendering a node: create the temporary node
+                NodeProto np = (NodeProto)entry;
+                NodeInst ni = NodeInst.makeDummyInstance(np);
+                return drawNodeInMenu(wnd, ni);
+            }
+            if (entry instanceof PrimitiveArc)
+            {
+                // rendering an arc: create the temporary arc
+                PrimitiveArc ap = (PrimitiveArc)entry;
+                ArcInst ai = ArcInst.makeDummyInstance(ap, menuArcLength);
+
+                // determine scale for rendering
+                double largest = 0;
+                for(Iterator it = ap.getTechnology().getArcs(); it.hasNext(); )
+                {
+                    PrimitiveArc otherAp = (PrimitiveArc)it.next();
+                    double wid = otherAp.getDefaultWidth();
+                    if (wid+menuArcLength > largest) largest = wid+menuArcLength;
+                }
+
+                // render the arc
+                double scalex = entrySize/largest * 0.8;
+                double scaley = entrySize/largest * 0.8;
+                double scale = Math.min(scalex, scaley);
+                return wnd.renderArc(ai, scale);
+            }
+            return null;
+        }
     }
 
 }

@@ -141,10 +141,9 @@ public abstract class Job implements ActionListener, Runnable {
 			{
 				Job job = waitChangeJob();
 
-                Cursor oldCursor = TopLevel.getCurrentCursor();
-                TopLevel.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+                SwingUtilities.invokeLater(new Runnable() { public void run() { TopLevel.setBusyCursor(true); }});
                 job.run();
-                TopLevel.setCurrentCursor(oldCursor);
+                SwingUtilities.invokeLater(new Runnable() { public void run() { TopLevel.setBusyCursor(false); }});
 			}
 		}
 
@@ -395,10 +394,9 @@ public abstract class Job implements ActionListener, Runnable {
 
         if (Main.NOTHREADING) {
             // turn off threading if needed for debugging
-            Cursor oldCursor = TopLevel.getCurrentCursor();
-            TopLevel.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+            TopLevel.setBusyCursor(true);
             run();
-            TopLevel.setCurrentCursor(oldCursor);
+            TopLevel.setBusyCursor(false);
         } else {
             databaseChangesThread.addJob(this);
         }
@@ -604,6 +602,8 @@ public abstract class Job implements ActionListener, Runnable {
      * return immediately with a return value that denotes if a lock was acquired.
      * @return true if lock acquired, false otherwise. If block is true,
      * the return value is always true.
+     * @see #releaseExamineLock()
+     * @see #invokeExamineLater(Runnable, Object)
      */
     public static synchronized boolean acquireExamineLock(boolean block) {
         Thread thread = Thread.currentThread();
@@ -627,6 +627,8 @@ public abstract class Job implements ActionListener, Runnable {
      * Release the lock to examine the database.  The lock is the lock
      * associated with the current thread.  This should only be called if a
      * lock was acquired for the current thread.
+     * @see #acquireExamineLock(boolean)
+     * @see #invokeExamineLater(Runnable, Object) 
      */
     public static synchronized void releaseExamineLock() {
         Job dummy = databaseChangesThread.getJob(Thread.currentThread());
@@ -652,6 +654,9 @@ public abstract class Job implements ActionListener, Runnable {
      */
     public static synchronized boolean hasExamineLock() {
         Thread thread = Thread.currentThread();
+        // change job is a valid examine job
+        if (thread == databaseChangesThread) return true;
+        // check for any examine jobs
         Job job = databaseChangesThread.getJob(thread);
         if (job != null) {
             return true;
@@ -659,13 +664,81 @@ public abstract class Job implements ActionListener, Runnable {
         return false;
     }
 
+    /**
+     * A common pattern is that the GUI needs to examine the database, but does not
+     * want to wait if it cannot immediately get an Examine lock via acquireExamineLock.
+     * In this case the GUI can call invokeExamineLater to have the specified SwingExamineTask
+     * run in the context of the swing thread where it will be *guaranteed* that it will
+     * be able to acquire an Examine Lock via acquireExamineLock().
+     * <p>
+     * This method basically reserves a slot in the Job queue with an Examine Job,
+     * calls the runnable with SwingUtilities.invokeAndWait when the Job starts, and
+     * ends the Job only after the runnable finishes.
+     * @param task the Runnable to run in the swing thread. A call to
+     * Job.acquireExamineLock from within run() is guaranteed to return true.
+     * @param singularKey if not null, this specifies a key by which
+     * subsequent calls to this method using the same key will be consolidated into
+     * one invocation instead of many.  Only calls that have not already resulted in a
+     * call back to the runnable will be ignored.  Only the last runnable will be used.
+     * @see SwingExamineTask  for a common pattern using this method
+     * @see #acquireExamineLock(boolean)
+     * @see #releaseExamineLock()
+     */
+    public static void invokeExamineLater(Runnable task, Object singularKey) {
+        if (singularKey != null) {
+            SwingExamineJob priorJob = SwingExamineJob.getWaitingJobFor(singularKey);
+            if (priorJob != null)
+                priorJob.abort();
+        }
+        SwingExamineJob job = new SwingExamineJob(task, singularKey);
+        job.startJob(false, true);
+    }
+
+    private static class SwingExamineJob extends Job {
+        /** Map of Runnables to waiting Jobs */         private static Map waitingJobs = new HashMap();
+        /** The runnable to run in the Swing thread */  private Runnable task;
+        /** the singular key */                         private Object singularKey;
+
+        private SwingExamineJob(Runnable task, Object singularKey) {
+            super("ReserveExamineSlot", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+            this.task = task;
+            this.singularKey = singularKey;
+            synchronized(waitingJobs) {
+                if (singularKey != null)
+                    waitingJobs.put(singularKey, this);
+            }
+        }
+
+        public boolean doIt() {
+            synchronized(waitingJobs) {
+                if (singularKey != null)
+                    waitingJobs.remove(singularKey);
+            }
+            try {
+                SwingUtilities.invokeAndWait(task);
+            } catch (InterruptedException e) {
+            } catch (java.lang.reflect.InvocationTargetException ee) {
+            }
+            return true;
+        }
+
+        private static SwingExamineJob getWaitingJobFor(Object singularKey) {
+            if (singularKey == null) return null;
+            synchronized(waitingJobs) {
+                return (SwingExamineJob)waitingJobs.get(singularKey);
+            }
+        }
+    }
+
+
     public static void checkExamine() {
         if (!Main.getDebug()) return;
         if (Main.NOTHREADING) return;
         if (!hasExamineLock()) {
-            //String msg = "Database is being examined without an Examine Job or Examine Lock";
-            //System.out.println(msg);
-            //ActivityLogger.logMessage(msg);
+            String msg = "Database is being examined without an Examine Job or Examine Lock";
+            System.out.println(msg);
+            Error e = new Error(msg);
+            throw e;
         }
     }
 
@@ -700,21 +773,25 @@ public abstract class Job implements ActionListener, Runnable {
 		{
 			String msg = "Database is changing but no change job is running";
             System.out.println(msg);
-            ActivityLogger.logMessage(msg);
+            Error e = new Error(msg);
+            throw e;
 			//throw new IllegalStateException("Job.checkChanging()");
 		} else if (Thread.currentThread() != databaseChangesThread)
 		{
 			String msg = "Database is changing by other thread";
             System.out.println(msg);
-            ActivityLogger.logMessage(msg);
+            Error e = new Error(msg);
+            throw e;
 			//throw new IllegalStateException("Job.checkChanging()");
-		} else if (changingJob.upCell != null)
+		}
+/*       else if (changingJob.upCell != null)
 		{
 			String msg = "Database is changing which only up-tree of "+changingJob.upCell+" is locked";
             System.out.println(msg);
-            ActivityLogger.logMessage(msg);
+            Error e = new Error(msg);
+            throw e;
 			//throw new IllegalStateException("Undo.checkChanging()");
-		}
+		}*/
 	}
 
     /**

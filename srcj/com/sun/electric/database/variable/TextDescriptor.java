@@ -918,7 +918,7 @@ public class TextDescriptor
 	 */
 	private void checkChanging()
 	{
-		if (owner == null || owner.isDummyObject()) return;
+		if (owner == null || !owner.isDatabaseObject()) return;
 		owner.checkChanging();
 
 		// handle change control, constraint, and broadcast

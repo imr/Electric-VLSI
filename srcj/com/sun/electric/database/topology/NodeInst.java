@@ -727,7 +727,7 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public boolean lowLevelLink()
 	{
-		if (isDummyObject()) {
+        if (!isDatabaseObject()) {
 			System.out.println("NodeInst can't be linked because it is a dummy object");
 			return true;
 		}
