@@ -112,6 +112,7 @@ public class EditWindow extends JPanel
 	/** lower left corner of popup cloud */                 private Point2D popupCloudPoint;
 
     /** Highlighter for this window */                      private Highlighter highlighter;
+    /** Mouse-over Highlighter for this window */           private Highlighter mouseOverHighlighter;
 
 	/** list of windows to redraw (gets synchronized) */	private static List redrawThese = new ArrayList();
 	/** true if rendering a window now (synchronized) */	private static EditWindow runningNow = null;
@@ -178,8 +179,10 @@ public class EditWindow extends JPanel
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		addMouseWheelListener(this);
-        highlighter = new Highlighter();
+        highlighter = new Highlighter(Highlighter.SELECT_HIGHLIGHTER);
         highlighter.addHighlightListener(this);
+        mouseOverHighlighter = new Highlighter(Highlighter.MOUSEOVER_HIGHLIGHTER);
+        mouseOverHighlighter.addHighlightListener(this);
         Undo.addDatabaseChangeListener(this);
 		if (wf != null) setCell(cell, VarContext.globalContext);
 	}
@@ -372,6 +375,12 @@ public class EditWindow extends JPanel
      */
     public Highlighter getHighlighter() { return highlighter; }
 
+    /**
+     * Get the mouse over highlighter for this EditWindow
+     * @return the mouse over highlighter
+     */
+    public Highlighter getMouseOverHighlighter() { return mouseOverHighlighter; }
+
 	/**
 	 * Method to return the WindowFrame in which this EditWindow resides.
 	 * @return the WindowFrame in which this EditWindow resides.
@@ -409,6 +418,8 @@ public class EditWindow extends JPanel
 		//curLib.setCurCell(cell);
 		highlighter.clear();
 		highlighter.finished();
+        mouseOverHighlighter.clear();
+        mouseOverHighlighter.finished();
 
 		setWindowTitle();
 		if (wf != null)
@@ -505,8 +516,10 @@ public class EditWindow extends JPanel
 		removeMouseMotionListener(this);
 		removeMouseWheelListener(this);
         highlighter.removeHighlightListener(this);
+        mouseOverHighlighter.removeHighlightListener(this);
         Undo.removeDatabaseChangeListener(this);
         highlighter.delete();
+        mouseOverHighlighter.delete();
 	}
 
 	// ************************************* SCROLLING *************************************
@@ -595,6 +608,7 @@ public class EditWindow extends JPanel
 
 			// add in highlighting
             long start = System.currentTimeMillis();
+            mouseOverHighlighter.showHighlights(this, g);
             highlighter.showHighlights(this, g);
             long end = System.currentTimeMillis();
             //System.out.println("drawing highlights took "+TextUtils.getElapsedTime(end-start));

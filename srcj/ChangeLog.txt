@@ -2,6 +2,9 @@
 
 ************************* Version 8.01j: *********************************
 
+IMP: (8/22/04, JKG) Added mouse-over highlighter. To disable if necessary, set
+    ClickZoomWireListener.useMouseOverHighlighter to false. 
+
 BUG: (8/22/04, JKG) From Justin: double clicking in library explorer
     changes cell in another window
 FIX: Current window frame was not strictly deterministic

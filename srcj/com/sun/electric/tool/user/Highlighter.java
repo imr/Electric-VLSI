@@ -78,12 +78,18 @@ public class Highlighter implements DatabaseChangeListener {
     /** List of HighlightListeners */                           private List highlightListeners;
     /** last object selected before last clear() */             private Highlight lastHighlightListEndObj;
     /** what was the last level of "showNetwork" */             private int showNetworkLevel;
+    /** the type of highlighter */                              private int type;
+
+    /** the selection highlighter type */       public static final int SELECT_HIGHLIGHTER = 0;
+    /** the mouse over highlighter type */      public static final int MOUSEOVER_HIGHLIGHTER = 1;
+
     private static final int EXACTSELECTDISTANCE = 5;
 
     /**
      * Create a new Highlighter object
+     * @param type
      */
-    public Highlighter() {
+    public Highlighter(int type) {
         highOffX = highOffY = 0;
         highlightList = new ArrayList();
         highlightStack = new ArrayList();
@@ -93,6 +99,7 @@ public class Highlighter implements DatabaseChangeListener {
         if (currentHighlighter == null) currentHighlighter = this;
         lastHighlightListEndObj = null;
         showNetworkLevel = 0;
+        this.type = type;
     }
 
     /**
@@ -389,6 +396,19 @@ public class Highlighter implements DatabaseChangeListener {
     }
 
     /**
+     * Inherits the last selected object from the specified highlighter.
+     * This is a hack, don't use it.
+     * @param highlighter
+     */
+    public void inheritState(Highlighter highlighter) {
+        lastHighlightListEndObj = highlighter.lastHighlightListEndObj;
+        setHighlightList(highlighter.getHighlights());
+        // don't inherit offset, messes up mouse over highlighter
+        //highOffX = highlighter.highOffX;
+        //highOffY = highlighter.highOffY;
+    }
+
+    /**
      * Shows highlights for the current EditWindow
      * @param wnd
      * @param g
@@ -400,8 +420,11 @@ public class Highlighter implements DatabaseChangeListener {
             Highlight h = (Highlight)it.next();
 
             // only show highlights for the current cell
-            if (h.getCell() == wnd.getCell())
-                h.showHighlight(wnd, g, highOffX, highOffY, (num == 1));
+            if (h.getCell() == wnd.getCell()) {
+                Color color = new Color(User.getColorHighlight());
+                if (type == MOUSEOVER_HIGHLIGHTER) color = new Color(51, 255, 255);
+                h.showHighlight(wnd, g, highOffX, highOffY, (num == 1), color);
+            }
         }
     }
 

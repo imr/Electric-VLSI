@@ -70,6 +70,7 @@ public class ClickZoomWireListener
     private static long zoomInDelayMillis; /* zoom in delay in milliseconds */
 
     private static final boolean debug = false; /* for debugging */
+    private static final boolean useMouseOverHighlighter = true;
 
     public static ClickZoomWireListener theOne = new ClickZoomWireListener();
 
@@ -80,6 +81,7 @@ public class ClickZoomWireListener
     private Mode modeRight = Mode.none;         /* right mouse button context mode */
     private boolean specialSelect = false;      /* if hard-to-select objects are to be selected */
     private boolean invertSelection = false;    /* if invert selection */
+    private boolean another;
     //private List underCursor = null;            /* objects in popupmenu */
     //private String lastPopupMenu = null;        /* last used popupmenu */
     private long leftMousePressedTimeStamp;     /* log of last left mouse pressed time */
@@ -435,6 +437,7 @@ public class ClickZoomWireListener
                         moveDelta = null;
 	                    modeLeft = Mode.move;
 	                }
+                    mouseOver(dbClick, wnd);
 	            }
 	            return;
 	        }
@@ -814,11 +817,10 @@ public class ClickZoomWireListener
             Cell cell = wnd.getCell();
 			if (cell == null) return;
 
-			boolean another = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
 			specialSelect = ToolBar.getSelectSpecial();
+            Point2D dbMouse = wnd.screenToDatabase(mouseX, mouseY);
 
 			if (modeLeft == Mode.stickyMove) {
-				Point2D dbMouse = wnd.screenToDatabase(mouseX, mouseY);
 				if (another)
 					dbMouse = convertToOrthogonal(new Point2D.Double(dbMoveStartX, dbMoveStartY), dbMouse);
 				Point2D dbDelta = new Point((int)dbMouse.getX() - dbMoveStartX, (int)dbMouse.getY() - dbMoveStartY);
@@ -827,9 +829,42 @@ public class ClickZoomWireListener
 				highlighter.setHighlightOffset((int)screenDelta.getX(), (int)screenDelta.getY());
 				wnd.repaint();
 			}
+
+            mouseOver(dbMouse, wnd);
         }
     }
 
+    /**
+     * Draw a mouse over highlight
+     * @param dbMouse
+     * @param wnd
+     */
+    private void mouseOver(Point2D dbMouse, EditWindow wnd) {
+        if (!useMouseOverHighlighter) return;
+
+        Highlighter highlighter = wnd.getHighlighter();
+        Highlighter mouseOverHighlighter = wnd.getMouseOverHighlighter();
+
+        // draw mouse over highlight
+        mouseOverHighlighter.clear();
+        mouseOverHighlighter.inheritState(highlighter);
+
+        Point2D screenMouse = wnd.databaseToScreen(dbMouse);
+        if (!another && !invertSelection && mouseOverHighlighter.overHighlighted(wnd,
+                (int)screenMouse.getX(), (int)screenMouse.getY())) {
+            // maintain current selection
+            mouseOverHighlighter.finished();
+        } else {
+            // find something that would get selected
+            mouseOverHighlighter.findObject(dbMouse, wnd, false, another, invertSelection, true, false, specialSelect, true);
+            // change highlight colors to mouse over color
+            for (Iterator it = mouseOverHighlighter.getHighlights().iterator(); it.hasNext(); ) {
+                Highlight h = (Highlight)it.next();
+            }
+            // findObject calls finish()
+        }
+    }
+    
     public void mouseClicked(MouseEvent e) {
         //To change body of implemented methods use File | Settings | File Templates.
     }
@@ -893,8 +928,9 @@ public class ClickZoomWireListener
 			Cell cell = wnd.getCell();
 			if (cell == null) return;
 
+            boolean redrawMouseOver = false;
 			// move stuff around
-			else if (chr == KeyEvent.VK_LEFT) {
+			if (chr == KeyEvent.VK_LEFT) {
 				moveSelected(-1, 0, evt.isShiftDown(), evt.isControlDown());
 			} else if (chr == KeyEvent.VK_RIGHT) {
 				moveSelected(1, 0, evt.isShiftDown(), evt.isControlDown());
@@ -914,7 +950,16 @@ public class ClickZoomWireListener
 				wnd.repaint();
 			}
             else if (chr == KeyEvent.VK_CONTROL) {
+                if (!another) redrawMouseOver = true;
+                another = true;
+            }
+            else if (chr == KeyEvent.VK_SHIFT) {
+                if (!invertSelection) redrawMouseOver = true;
+                invertSelection = true;
+            }
 
+            if (redrawMouseOver) {
+                mouseOver(wnd.screenToDatabase(mouseX, mouseY), wnd);
             }
 			// wiring popup cloud selection
 			/*
@@ -942,8 +987,19 @@ public class ClickZoomWireListener
 			EditWindow wnd = (EditWindow)evt.getSource();
 			Cell cell = wnd.getCell();
 			if (cell == null) return;
-            if (chr == KeyEvent.VK_CONTROL) {
 
+            boolean redrawMouseOver = false;
+            if (chr == KeyEvent.VK_CONTROL) {
+                if (another) redrawMouseOver = true;
+                another = false;
+            }
+            else if (chr == KeyEvent.VK_SHIFT) {
+                if (invertSelection) redrawMouseOver = true;
+                invertSelection = false;
+            }
+
+            if (redrawMouseOver) {
+                mouseOver(wnd.screenToDatabase(mouseX, mouseY), wnd);
             }
         }
     }

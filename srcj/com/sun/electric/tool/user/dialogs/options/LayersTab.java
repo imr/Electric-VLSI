@@ -53,7 +53,7 @@ public class LayersTab extends PreferencePanel
 
 	public String getName() { return "Layers"; }
 
-	static HashMap layerMap;
+	static HashMap layerMap = new HashMap();
 	private ColorPatternPanel colorPatternPanel;
 
 	/**
@@ -62,7 +62,6 @@ public class LayersTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		layerMap = new HashMap();
 		layerTechName.setText("For " + curTech.getTechName() + " layer:");
 		for(Iterator it = curTech.getLayers(); it.hasNext(); )
 		{

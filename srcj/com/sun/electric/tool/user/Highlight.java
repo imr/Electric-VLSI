@@ -394,11 +394,11 @@ public class Highlight
 	 * @param wnd the window in which to draw this highlight.
 	 * @param g the Graphics associated with the window.
 	 */
-	public void showHighlight(EditWindow wnd, Graphics g, int highOffX, int highOffY, boolean showArcConstraints)
+	public void showHighlight(EditWindow wnd, Graphics g, int highOffX, int highOffY, boolean showArcConstraints, Color mainColor)
 	{
         if (!isValid()) return;
 
-		g.setColor(new Color(User.getColorHighlight()));
+		g.setColor(mainColor);
 		if (type == Type.BBOX)
 		{
 			Point2D [] points = new Point2D.Double[5];
@@ -667,7 +667,7 @@ public class Highlight
 			// draw the selected port
 			if (pp != null)
 			{
-				g.setColor(new Color(User.getColorPortHighlight()));
+				g.setColor(mainColor);
 				Poly poly = ni.getShapeOfPort(pp);
 				boolean opened = true;
 				if (poly.getStyle() == Poly.Type.FILLED || poly.getStyle() == Poly.Type.CLOSED) opened = false;
@@ -689,7 +689,7 @@ public class Highlight
 				{
 					drawOutlineFromPoints(wnd, g, poly.getPoints(), offX, offY, opened, null);
 				}
-				g.setColor(new Color(User.getColorHighlight()));
+				g.setColor(mainColor);
 
                 // show name of port
                 if (!(np instanceof PrimitiveNode) && (g instanceof Graphics2D))

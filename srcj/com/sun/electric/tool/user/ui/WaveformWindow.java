@@ -1982,7 +1982,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		wavePanels = new ArrayList();
 		this.timeLocked = true;
 
-        highlighter = new Highlighter();
+        highlighter = new Highlighter(Highlighter.SELECT_HIGHLIGHTER);
 		highlighter.addHighlightListener(this);
 
 		// the total panel in the waveform window
