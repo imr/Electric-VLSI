@@ -585,11 +585,8 @@ public class EditWindow extends JPanel
 	public void paint(Graphics g)
 	{
 		// to enable keys to be received
-        // placed requestFocus in mousePressed() - JKG
-		/*
 		if (cell != null && cell == WindowFrame.getCurrentCell())
 			requestFocus();
-			*/
 
 		// redo the explorer tree if it changed
 		//wf.redoExplorerTreeIfRequested();
