@@ -99,6 +99,8 @@ public class J3DDemoDialog extends EDialog
         close = new javax.swing.JButton();
         demo = new javax.swing.JButton();
         enter = new javax.swing.JButton();
+        read = new javax.swing.JButton();
+        save = new javax.swing.JButton();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -141,6 +143,8 @@ public class J3DDemoDialog extends EDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(close, gridBagConstraints);
 
@@ -152,8 +156,8 @@ public class J3DDemoDialog extends EDialog
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(demo, gridBagConstraints);
 
@@ -165,13 +169,49 @@ public class J3DDemoDialog extends EDialog
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(enter, gridBagConstraints);
 
+        read.setText("Read Demo");
+        read.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                readActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(read, gridBagConstraints);
+
+        save.setText("Save Demo");
+        save.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(save, gridBagConstraints);
+
         pack();
     }//GEN-END:initComponents
+
+    private void saveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveActionPerformed
+        String fileName = OpenFile.chooseOutputFile(FileType.J3D, "Save 3D Demo File", "demo.j3d");
+        view3D.saveDemo(knots, fileName);
+    }//GEN-LAST:event_saveActionPerformed
+
+    private void readActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_readActionPerformed
+        String fileName = OpenFile.chooseInputFile(FileType.J3D, "Read 3D Demo Frames");
+        knots = view3D.readDemo(fileName);
+    }//GEN-LAST:event_readActionPerformed
 
     private void enterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_enterActionPerformed
         knots.add(view3D.addFrame());
@@ -185,8 +225,6 @@ public class J3DDemoDialog extends EDialog
                 demo.setText("Stop Demo");
         } else {
             demo.setText("Start Demo");
-            String fileName = OpenFile.chooseOutputFile(FileType.TEXT, "Save 3D Demo File", "demo.j3d");
-            J3DUtils.saveKnots(knots, fileName);
             view3D.removeInterpolator(interMap);
             interMap.clear();
         }
@@ -213,6 +251,8 @@ public class J3DDemoDialog extends EDialog
     private javax.swing.JButton close;
     private javax.swing.JButton demo;
     private javax.swing.JButton enter;
+    private javax.swing.JButton read;
+    private javax.swing.JButton save;
     private javax.swing.JSlider slider;
     // End of variables declaration//GEN-END:variables
 

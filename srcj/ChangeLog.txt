@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02i: *********************************
 
+IMP/MAN: (03/04/05, GVG) First version of fly-through demo for 3D view. Ability to save/read demos
+using serialization. "J3D" as new file type for demo files.
+
 BUG: (03/04/05, DN) Library write crashes (Bug #216)
 FIX: In "output.ELIB" "output.JELIB" "output.ReadableDump" write name
 of external library in case it has not file name yet.
@@ -11,8 +14,6 @@ of external library in case it has not file name yet.
 BUG: (03/04/05, DN) Network tool didn't renumber after change of name in global primitive.
 FIX: In "NetworkTool.newVariable" "NetworkTool.killVariable" put "setNetworksDirty".
 
-
-IMP/MAN: 
 IMP/MAN: (03/02/05, GVG) Adding observable-observer pattern to notify changes in light color and direction
 
 BUG: (03/02/05, SMR) Transparent color changes are not restored from saved preferences (Bug #213)

@@ -51,6 +51,7 @@ import com.sun.electric.tool.user.ui.*;
 import com.sun.electric.plugins.j3d.utils.J3DUtils;
 import com.sun.electric.plugins.j3d.utils.J3DAlpha;
 import com.sun.electric.plugins.j3d.utils.J3DAppearance;
+import com.sun.electric.plugins.j3d.utils.J3DSerialization;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -73,6 +74,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
 import java.util.*;
+import java.io.*;
 
 import com.sun.j3d.utils.behaviors.mouse.*;
 import com.sun.j3d.utils.behaviors.interpolators.KBKeyFrame;
@@ -1530,5 +1532,56 @@ public class View3DWindow extends JPanel
         tmpTrans.get(rot);
 
         return(new J3DUtils.ThreeDDemoKnot(1, new Vector3f(tmpVec), rot));
+    }
+
+
+    /**
+     * Method to read in demo knots from disk using serialization
+     * @param filename
+     * @return
+     */
+    public List readDemo(String filename)
+    {
+        if (filename == null) return null;
+
+        List list = null;
+        try
+        {
+            FileInputStream inputStream = new FileInputStream(filename);
+            ObjectInputStream in = new ObjectInputStream(inputStream);
+            J3DSerialization serial = (J3DSerialization)in.readObject();
+            list = serial.list;
+            objTrans.getTransform(tmpTrans);
+            Transform3D trans = new Transform3D(serial.matrix);
+            objTrans.setTransform(trans);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    /**
+     * Method to store demo knots in disk using serialization
+     * @param knotList
+     * @param filename
+     */
+    public void saveDemo(List knotList, String filename)
+    {
+        if (filename == null || knotList == null) return;
+
+        try
+        {
+            FileOutputStream outputStream = new FileOutputStream(filename);
+            ObjectOutputStream out = new ObjectOutputStream(outputStream);
+            objTrans.getTransform(tmpTrans);
+            J3DSerialization serial = new J3DSerialization(knotList, tmpTrans);
+            out.writeObject(serial);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 }

@@ -40,8 +40,7 @@ import java.awt.geom.PathIterator;
 import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.List;
-import java.io.Serializable;
-import java.io.FileOutputStream;
+import java.io.*;
 
 /**
  * Utility class for 3D module
@@ -629,8 +628,13 @@ public final class J3DUtils
     /*******************************************************************************************************
      *                      DEMO SECTION
      *******************************************************************************************************/
+    /**
+     * This class is @serial
+     */
     public static class ThreeDDemoKnot implements Serializable
     {
+        private static final long serialVersionUID = -7059885190094183408L;
+
         float xValue;
         float yValue;
         float zValue;
@@ -667,25 +671,6 @@ public final class J3DUtils
             this.scale = (float)scale;
             this.translation = trans;
             this.rotation = rot;
-        }
-    }
-
-    public static void saveKnots(List knotList, String filename)
-    {
-        if (filename == null || knotList == null) return;
-
-        try
-        {
-        FileOutputStream outputStream = new FileOutputStream(filename);
-
-        for(int i = 0; i < knotList.size(); i++)
-        {
-
-        }
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
         }
     }
 
@@ -809,4 +794,6 @@ public final class J3DUtils
         // No-op since we always wait for off-screen rendering to complete
         }
     }
+
+
 }
