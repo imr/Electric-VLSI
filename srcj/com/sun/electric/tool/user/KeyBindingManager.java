@@ -220,13 +220,17 @@ public class KeyBindingManager implements KeyEventPostProcessor {
      */
     public synchronized boolean processKeyEvent(KeyEvent e) {
 
+        //System.out.println("got event (consumed="+e.isConsumed()+")"+e);
+
         // only look at key pressed events
         if (e.getID() != KeyEvent.KEY_PRESSED) return false;
         // ignore modifier only events (CTRL, SHIFT etc just by themselves)
-        if (e.getKeyChar() == KeyEvent.CHAR_UNDEFINED) return false;
+        if (e.getKeyCode() == KeyEvent.VK_CONTROL) return false;
+        if (e.getKeyCode() == KeyEvent.VK_SHIFT) return false;
+        if (e.getKeyCode() == KeyEvent.VK_ALT) return false;
+        if (e.getKeyCode() == KeyEvent.VK_META) return false;
 
         //System.out.println("last Prefix key is "+lastPrefix);
-        //System.out.println("got event (consumed="+e.isConsumed()+")"+e);
         // ignore if consumed
         if (e.isConsumed()) {
             lastPrefix = null;              // someone did something with it, null prefix key
@@ -600,7 +604,8 @@ public class KeyBindingManager implements KeyEventPostProcessor {
      */
     private synchronized KeyBindings addKeyBinding(String actionDesc, KeyStrokePair pair) {
         if (pair == null) return null;
-        //System.out.println("Adding binding for "+actionDesc+": "+pair.toString());
+
+        System.out.println("Adding binding for "+actionDesc+": "+pair.toString());
         KeyStroke prefixStroke = pair.getPrefixStroke();
         KeyStroke stroke = pair.getStroke();
 
