@@ -58,7 +58,7 @@ import com.sun.electric.technology.PrimitiveArc;
  * Create a library called fillCells. 
  */
 public class FillLibGen extends Job {
-	public void doIt() {
+	public boolean doIt() {
 		System.out.println("Begin FillCell");
 		
 		// these constants make the following code more compact
@@ -118,6 +118,7 @@ public class FillLibGen extends Job {
 		fg.makeGallery();
 		
 		System.out.println("Done FillCell");
+		return true;
 	}
 	
 	public FillLibGen() {
