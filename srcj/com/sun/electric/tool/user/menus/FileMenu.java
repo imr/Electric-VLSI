@@ -138,6 +138,8 @@ public class FileMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.ELIB, true, false); } });
 		exportSubMenu.addMenuItem("ELIB (Version 7)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.ELIB, false, false); } });
+        exportSubMenu.addMenuItem("ELIB (Version 7) All Libraries", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { saveAllLibrariesCommand(OpenFile.Type.ELIB, false, false); } });
 		exportSubMenu.addMenuItem("Readable Dump...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.READABLEDUMP, false, false); } });
 
@@ -529,12 +531,17 @@ public class FileMenu {
      */
     public static void saveAllLibrariesCommand()
     {
+        saveAllLibrariesCommand(OpenFile.Type.DEFAULTLIB, false, true);
+    }
+
+    public static void saveAllLibrariesCommand(OpenFile.Type type, boolean compatibleWith6, boolean forceToType)
+    {
         for(Iterator it = Library.getLibraries(); it.hasNext(); )
         {
             Library lib = (Library)it.next();
             if (lib.isHidden()) continue;
             if (!lib.isChangedMajor() && !lib.isChangedMinor()) continue;
-            if (!saveLibraryCommand(lib, OpenFile.Type.DEFAULTLIB, false, true)) break;
+            if (!saveLibraryCommand(lib, type, compatibleWith6, forceToType)) break;
         }
     }
 
