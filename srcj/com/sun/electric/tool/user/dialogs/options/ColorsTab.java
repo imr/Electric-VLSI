@@ -154,6 +154,11 @@ public class ColorsTab extends PreferencePanel
 		colorLayerModel.addElement(name);
 		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
 
+        color = User.getColorMouseOverHighlight();
+        name = "Special: MOUSE-OVER HIGHLIGHT";
+        colorLayerModel.addElement(name);
+        transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
+
 		color = User.getColorPortHighlight();
 		name = "Special: PORT HIGHLIGHT";
 		colorLayerModel.addElement(name);
@@ -286,6 +291,13 @@ public class ColorsTab extends PreferencePanel
 						User.setColorHighlight(color.intValue());
 						colorChanged = true;
 					}
+                } else if (layerName.equals("Special: MOUSE-OVER HIGHLIGHT"))
+                {
+                    if (color.intValue() != User.getColorHighlight())
+                    {
+                        User.setColorMouseOverHighlight(color.intValue());
+                        colorChanged = true;
+                    }
 				} else if (layerName.equals("Special: PORT HIGHLIGHT"))
 				{
 					if (color.intValue() != User.getColorPortHighlight())

@@ -846,8 +846,7 @@ public class ClickZoomWireListener
         Highlighter mouseOverHighlighter = wnd.getMouseOverHighlighter();
 
         // draw mouse over highlight
-        mouseOverHighlighter.clear();
-        mouseOverHighlighter.inheritState(highlighter);
+        mouseOverHighlighter.copyState(highlighter);
 
         Point2D screenMouse = wnd.databaseToScreen(dbMouse);
         if (!another && !invertSelection && mouseOverHighlighter.overHighlighted(wnd,
@@ -857,10 +856,6 @@ public class ClickZoomWireListener
         } else {
             // find something that would get selected
             mouseOverHighlighter.findObject(dbMouse, wnd, false, another, invertSelection, true, false, specialSelect, true);
-            // change highlight colors to mouse over color
-            for (Iterator it = mouseOverHighlighter.getHighlights().iterator(); it.hasNext(); ) {
-                Highlight h = (Highlight)it.next();
-            }
             // findObject calls finish()
         }
     }

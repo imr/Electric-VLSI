@@ -351,7 +351,7 @@ public class ToolMenu {
 
         Set nets = highlighter.getHighlightedNetworks();
         //highlighter.clear();
-        highlighter.showNetworks(nets, cell);
+        highlighter.showNetworks(nets, cell.getUserNetlist(), cell);
         highlighter.finished();
     }
 

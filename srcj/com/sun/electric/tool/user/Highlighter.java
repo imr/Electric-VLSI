@@ -265,13 +265,13 @@ public class Highlighter implements DatabaseChangeListener {
      * @param nets list of JNetworks in current cell to show
      * @param cell the cell in which to create the highlights
      */
-    public void showNetworks(Set nets, Cell cell) {
+    public void showNetworks(Set nets, Netlist netlist, Cell cell) {
         if (showNetworkLevel == 0) clear();
         int count = 0;
         for (Iterator netIt = nets.iterator(); netIt.hasNext(); ) {
             JNetwork net = (JNetwork)netIt.next();
             if (showNetworkLevel == 0) System.out.println("Highlighting network "+net.describe());
-            List highlights = NetworkHighlighter.getHighlights(cell, cell.getNetlist(true), net,
+            List highlights = NetworkHighlighter.getHighlights(cell, netlist, net,
                     showNetworkLevel, showNetworkLevel);
             for (Iterator it = highlights.iterator(); it.hasNext(); ) {
                 Highlight h = (Highlight)it.next();
@@ -359,7 +359,8 @@ public class Highlighter implements DatabaseChangeListener {
 				}
 			}
 		}
-		if (foundArcProto != null && !mixedArc) User.tool.setCurrentArcProto(foundArcProto);
+        if (type == SELECT_HIGHLIGHTER)
+		    if (foundArcProto != null && !mixedArc) User.tool.setCurrentArcProto(foundArcProto);
 
         // notify all listeners that highlights have changed (changes committed).
         fireHighlightChanged();
@@ -400,9 +401,14 @@ public class Highlighter implements DatabaseChangeListener {
      * This is a hack, don't use it.
      * @param highlighter
      */
-    public void inheritState(Highlighter highlighter) {
+    public void copyState(Highlighter highlighter) {
+        clear();
         lastHighlightListEndObj = highlighter.lastHighlightListEndObj;
-        setHighlightList(highlighter.getHighlights());
+        for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext(); ) {
+            Highlight h = (Highlight)it.next();
+            Highlight copy = (Highlight)h.clone();
+            addHighlight(copy);
+        }
         // don't inherit offset, messes up mouse over highlighter
         //highOffX = highlighter.highOffX;
         //highOffY = highlighter.highOffY;
@@ -422,7 +428,10 @@ public class Highlighter implements DatabaseChangeListener {
             // only show highlights for the current cell
             if (h.getCell() == wnd.getCell()) {
                 Color color = new Color(User.getColorHighlight());
-                if (type == MOUSEOVER_HIGHLIGHTER) color = new Color(51, 255, 255);
+                if (type == MOUSEOVER_HIGHLIGHTER) {
+                    color = new Color(51, 255, 255);
+                    h.setHighlightConnected(false);
+                }
                 h.showHighlight(wnd, g, highOffX, highOffY, (num == 1), color);
             }
         }
@@ -1034,7 +1043,7 @@ public class Highlighter implements DatabaseChangeListener {
 							{
 								alreadyHighlighted.setElectricObject(got.getElectricObject());
 								alreadyHighlighted.setPoint(got.getPoint());
-								wnd.repaintContents(null);
+								//wnd.repaintContents(null);
 							}
 							break;
 						}

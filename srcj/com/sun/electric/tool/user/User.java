@@ -850,6 +850,19 @@ public class User extends Listener
 	 */
 	public static void setColorHighlight(int c) { cacheColorHighlight.setInt(c); }
 
+    private static Pref cacheColorMouseOverHighlight = Pref.makeIntPref("ColorMouseOverHighlight", User.tool.prefs, (new Color(51,255,255)).getRGB());
+    /**
+     * Method to get the color of the highlight on the display.
+     * The default is "white".
+     * @return the color of the highlight on the display.
+     */
+    public static int getColorMouseOverHighlight() { return cacheColorMouseOverHighlight.getInt(); }
+    /**
+     * Method to set the color of the highlight on the display.
+     * @param c the color of the highlight on the display.
+     */
+    public static void setColorMouseOverHighlight(int c) { cacheColorMouseOverHighlight.setInt(c); }
+
 	private static Pref cacheColorPortHighlight = Pref.makeIntPref("ColorPortHighlight", User.tool.prefs, Color.YELLOW.getRGB());
 	/**
 	 * Method to get the color of the port highlight on the display.

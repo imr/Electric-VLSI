@@ -364,6 +364,26 @@ public class Highlight
     }
 
     /**
+     * Clone this highlight object.  All fields are copied to
+     * new returned object.
+     * @return a copy of this Highlight object
+     */
+    protected Object clone() {
+        Highlight h = new Highlight(type, eobj, cell);
+        h.point = point;
+        h.var = var;
+        h.name = name;
+        h.bounds = bounds;
+        h.pt1 = pt1;
+        h.pt2 = pt2;
+        h.msg = msg;
+        h.polygon = polygon;
+        h.color = color;
+        h.highlightConnected = highlightConnected;
+        return h;
+    }
+
+    /**
 	 * Method to tell whether this Highlight is text that stays with its node.
 	 * The two possibilities are (1) text on invisible pins
 	 * (2) export names, when the option to move exports with their labels is requested.
@@ -749,6 +769,7 @@ public class Highlight
                     }
 
                     // draw dots in all connected nodes
+                    g2.setStroke(solidLine);
                     for(Iterator it = cell.getNodes(); it.hasNext(); )
                     {
                         NodeInst oNi = (NodeInst)it.next();
@@ -770,7 +791,8 @@ public class Highlight
                             {
                                 Point c1 = wnd.databaseToScreen(arcEnd);
                                 Point c2 = wnd.databaseToScreen(nodeCenter);
-                                g2.setStroke(dottedLine);
+                                //g2.setStroke(dottedLine);
+                                //if (c1.distance(c2) < 15) g2.setStroke(solidLine);
                                 drawLine(g, wnd, c1.x, c1.y, c2.x, c2.y);
                             }
                         }
