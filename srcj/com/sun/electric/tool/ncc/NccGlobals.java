@@ -122,9 +122,7 @@ public class NccGlobals {
 		List el = new ArrayList();
 		if (parts!=null) el.add(parts); 
 		if (wires!=null) el.add(wires); 
-
 		if (ports!=null) el.add(ports);
-
 		root = EquivRecord.newRootRecord(el);
 		
 		rootCells = new Cell[nccNets.size()];
