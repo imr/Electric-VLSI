@@ -91,9 +91,6 @@ public final class MenuCommands
         ToolMenu.addToolMenu(menuBar);
 		MenuBar.Menu helpMenu = HelpMenu.addHelpMenu(menuBar);
 
-		if (Main.getDebug())
-	        DebugMenus.addDebugMenus(menuBar, helpMenu);
-
         Class plugin3D = Resources.get3DClass("J3DMenu");
         if (plugin3D != null)
         {
@@ -107,6 +104,9 @@ public final class MenuCommands
                 ActivityLogger.logException(e);
             }
         }
+
+		if (Main.getDebug())
+	        DebugMenus.addDebugMenus(menuBar, helpMenu);
 
         /********************************* Hidden Menus *******************************/
 

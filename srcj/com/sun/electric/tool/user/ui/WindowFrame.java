@@ -105,9 +105,8 @@ public class WindowFrame
 
 
 	/** Main class for 3D plugin */	                    private static final Class view3DClass = Resources.get3DMainClass();
-    /** Constructor of main 3D class */                 private static Constructor constructor3DClass = null;
-    /** Show 3D highlight method */                     private static Method showMethod3DClass = null;
-	/** # of nodes to consider scene graph big */       private static final int MAX3DVIEWNODES = 5000;
+    /** Create 3D view method */                        private static Method create3DMethod = null;
+    /** Show 3D highlight method */                     private static Method show3DMethod = null;
 
 
 	//******************************** CONSTRUCTION ********************************
@@ -153,37 +152,14 @@ public class WindowFrame
      *          3D Stuff                                                         *
      *****************************************************************************/
 
-    public static Class get3DMainClass() { return view3DClass; }
-
 	/**
 	 * Method to create a new 3D view window on the screen for the given cell
 	 * @param cell the cell to display.
-	 * @return the WindowFrame that shows the Cell.
+	 * @param transPerNode
+     * @return the WindowFrame that shows the Cell.
 	 */
-	public static WindowFrame create3DViewtWindow(Cell cell, WindowContent view2D)
+	public static WindowFrame create3DViewtWindow(Cell cell, WindowContent view2D, boolean transPerNode)
 	{
-		int number = cell.getNumNodes() + cell.getNumArcs();
-		if (number < MAX3DVIEWNODES)
-		{
-			for (int i = 0; i < cell.getNumNodes(); i++)
-			{
-				NodeInst node = cell.getNode(i);
-				if (node.getProto() instanceof Cell && node.isExpanded())
-				{
-					Cell np = (Cell)node.getProto();
-					number += (np.getNumArcs() + np.getNumNodes());
-				}
-			}
-		}
-
-		if (number >= MAX3DVIEWNODES)
-		{
-			int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
-				"The graph scene contains " + number + " nodes, are you sure you want to open 3D view of " + cell.describe() + "?",
-			        "Warning", JOptionPane.OK_CANCEL_OPTION);
-			if (response == JOptionPane.CANCEL_OPTION) return null;
-		}
-
 		WindowFrame frame = new WindowFrame();
 
 		if (view3DClass == null)
@@ -194,10 +170,12 @@ public class WindowFrame
 
 		try
 		{
-			if (constructor3DClass == null)
-				constructor3DClass = view3DClass.getDeclaredConstructor(new Class[] {Cell.class, WindowFrame.class, WindowContent.class}) ;
-			Object vWnd = constructor3DClass.newInstance(new Object[] {cell, frame, view2D});
+            if (create3DMethod == null) create3DMethod = view3DClass.getDeclaredMethod("create3DWindow", new Class[] {Cell.class, WindowFrame.class,
+                                                                                    WindowContent.class, Boolean.class}) ;
+            Object vWnd = create3DMethod.invoke(view3DClass, new Object[] {cell, frame, view2D, new Boolean(transPerNode)});
 
+            // null if max number of nodes is exceeded.
+            if (vWnd == null) return null;
 			frame.buildWindowStructure((WindowContent)vWnd, cell, null);
 			setCurrentWindowFrame(frame);
 			frame.populateJFrame();
@@ -219,9 +197,9 @@ public class WindowFrame
 
 		try
 		{
-			if (showMethod3DClass == null)
-				showMethod3DClass = view3DClass.getDeclaredMethod("show3DHighlight", new Class[] {WindowContent.class});
-			showMethod3DClass.invoke(view3DClass, new Object[]{view2D});
+			if (show3DMethod == null)
+				show3DMethod = view3DClass.getDeclaredMethod("show3DHighlight", new Class[] {WindowContent.class});
+			show3DMethod.invoke(view3DClass, new Object[]{view2D});
 		} catch (Exception e) {
             System.out.println("Cannot call 3D plugin method: " + e.getMessage());
             ActivityLogger.logException(e);

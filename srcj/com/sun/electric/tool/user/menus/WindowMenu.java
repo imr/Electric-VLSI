@@ -169,17 +169,18 @@ public class WindowMenu {
 
         /** 3D view */
 	    windowMenu.addMenuItem("3D Display", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) { create3DViewCommand(); } });
+                new ActionListener() { public void actionPerformed(ActionEvent e) { create3DViewCommand(false); } });
     }
    
 	/**
 	 * This method creates 3D view of current cell
-	 */
-	public static void create3DViewCommand()
+     * @param transPerNode
+     */
+	public static void create3DViewCommand(boolean transPerNode)
     {
 	    Cell curCell = WindowFrame.needCurCell();
 	    if (curCell == null) return;
-	    WindowFrame.create3DViewtWindow(curCell, WindowFrame.getCurrentWindowFrame(false).getContent());
+	    WindowFrame.create3DViewtWindow(curCell, WindowFrame.getCurrentWindowFrame(false).getContent(), transPerNode);
     }
 
     public static void fullDisplay()
