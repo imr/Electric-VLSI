@@ -4,7 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02j: *********************************
 
-IMP: (03/21/05, GVG) Improvements in lights, transparency/Z buffer handling after discussion with Java3D team.
+BUG: (03/31/05, GVG) Class exception while dragging cells from ExplorerTree into EditWindow on Mac (Bug #235)
+FIX: DataFlavor constructor changed. Now using DataFlavor(MyClass.class, String)
+
+BUG: (03/31/05, GVG) Exception in Explorer while dragging on whitespace on Mac OS X (Bug #232)
+FIX: add image to DragSource.startDrag (only for Mac)
+
+IMP: (03/31/05, GVG) Improvements in lights, transparency/Z buffer handling after discussion with Java3D team.
 
 BUG: (03/31/05, GVG) Cell expansion with several sublevels was not working.
 FIX: Using rotateOutAboutTrueCenter instead of rotateOut

@@ -569,7 +569,7 @@ public class EditWindow extends JPanel
 		NodeProtoDataFlavor(Object obj)
 			throws ClassNotFoundException
 		{
-			super("electric/instance");
+			super(NodeProto.class, "electric/instance");
 			this.obj = obj;
 		}
 

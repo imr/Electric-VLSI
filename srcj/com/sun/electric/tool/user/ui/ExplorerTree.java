@@ -45,8 +45,8 @@ import com.sun.electric.tool.user.dialogs.NewCell;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.CellMenu;
 
-import java.awt.Component;
-import java.awt.Dimension;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -488,7 +488,14 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			EditWindow.NodeProtoTransferable transferable = new EditWindow.NodeProtoTransferable(cell);
 
 			// begin the drag
-			dragSource.startDrag(e, DragSource.DefaultLinkDrop, transferable, this);
+            if (TopLevel.getOperatingSystem() == TopLevel.OS.MACINTOSH)
+            {
+                // OS X has problems creating DefaultDragImage
+                Image img = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
+			    dragSource.startDrag(e, DragSource.DefaultLinkDrop, img, new Point(0,0), transferable, this);
+            }
+            else
+			    dragSource.startDrag(e, DragSource.DefaultLinkDrop, transferable, this);
 		}
 	}
 
