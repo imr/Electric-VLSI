@@ -66,6 +66,8 @@ import java.awt.image.DataBufferInt;
 import java.awt.image.DataBufferByte;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
 
 
 /**
@@ -115,9 +117,9 @@ import java.util.Iterator;
  * <P>
  * There are a number of efficiencies implemented here.
  * <UL>
- * <LI><B>This offscreen technique is being used</B>.
+ * <LI><B>Setting bits directly into the offscreen memory</B>.
  * Although Java's Swing package has a rendering model, it was found to be 3 times slower than
- * using this offscreen method, without any other optimizations.</LI>
+ * setting bits directly inot the offscreen memory.</LI>
  * <LI><B>Tiny nodes and arcs are approximated</B>.
  * When a node or arc will be only 1 or 2 pixels in size on the screen, it is not necessary
  * to actually compute the edges of all of its parts.  Instead, a single pixel of color is placed.
@@ -148,11 +150,16 @@ import java.util.Iterator;
  *   <LI>If an instance only appears once, it is not cached.  This requires a preprocessing step to scan
  *   the hierarchy and count the number of times that a particular cell-transformation is used.  During
  *   rendering, if the count is only 1, it is not cached.</LI>
- *   <LI>Texture patterns don't line-up.  When determining how to align a texture pattern, it is easy
- *   to use the absolute screen coordinates to index the pattern map.  Any two adjoining objects that use
- *   the same pattern will have their patterns line-up smoothly.  However, when caching cell instances,
- *   it is not possible to know where the contents will be placed on the screen, and so the texture patterns
- *   rendered into the cache cannot be aligned globally.  This is an unsolved problem.</LI>
+ *   <LI>Texture patterns don't line-up.  When drawing texture pattern to the final buffer, it is easy
+ *   to use the screen coordinates to index the pattern map, causeing all of them to line-up.
+ *   Any two adjoining objects that use the same pattern will have their patterns line-up smoothly.
+ *   However, when caching cell instances, it is not possible to know where the contents will be placed
+ *   on the screen, and so the texture patterns rendered into the cache cannot be aligned globally.
+ *   To solve this, there are additional bitmaps created for every Patterned-Opaque-Layer (POL).
+ *   When rendering on a layer that is patterned and opaque, the bitmap is dynamically allocated
+ *   and filled (all bits are filled on the bitmap, not just those in the pattern).
+ *   When combining lower-level cell images with higher-level ones, these POLs are copied, too.
+ *   When compositing at the top level, however, the POLs are converted back to patterns, and they now line-up.</LI>
  *   </UL>
  * </UL>
  * 
@@ -169,7 +176,7 @@ public class PixelDrawing
 	}
 
 	// statistics stuff
-//	private static final boolean TAKE_STATS = false;
+	private static final boolean TAKE_STATS = false;
 	private static int tinyCells, tinyPrims, totalCells, totalPrims, tinyArcs, totalArcs, offscreensCreated, offscreensUsed;
 
 	/**
@@ -203,6 +210,15 @@ public class PixelDrawing
 	/** the number of bytes per row in offscreen maps */	private int numBytesPerRow;
 	/** the number of offscreen transparent maps made */	private int numLayerBitMapsCreated;
 	/** the technology of the window */						private Technology curTech;
+
+	// the patterned opaque bitmaps
+	static class PatternedOpaqueLayer
+	{
+		byte [][] bitMap;
+		byte [] compositeRow;
+	}
+	/** the map from layers to Patterned Opaque bitmaps */	private HashMap patternedOpaqueLayers;
+	/** the top-level window being rendered */				private boolean renderedWindow;
 
 	/** whether to occasionally update the display. */		private boolean periodicRefresh;
 	/** keeps track of when to update the display. */		private int objectCount;
@@ -238,6 +254,8 @@ public class PixelDrawing
 		numBytesPerRow = (sz.width + 7) / 8;
 		backgroundColor = User.getColorBackground() & 0xFFFFFF;
 		backgroundValue = backgroundColor | 0xFF000000;
+		patternedOpaqueLayers = new HashMap();
+		renderedWindow = true;
 
 		curTech = null;
 		initForTechnology();
@@ -313,7 +331,7 @@ public class PixelDrawing
 //		if (TAKE_STATS)
 //		{
 //			long endTime = System.currentTimeMillis();
-//			System.out.println("Took "+TextUtils.getElapsedTime(endTime-startTime));
+//			System.out.println("Took "+com.sun.electric.database.text.TextUtils.getElapsedTime(endTime-startTime));
 //			System.out.println("   "+tinyCells+" out of "+totalCells+" cells are tiny; "+tinyPrims+" out of "+totalPrims+
 //				" primitives are tiny; "+tinyArcs+" out of "+totalArcs+" arcs are tiny");
 //			int numExpandedCells = 0;
@@ -334,9 +352,6 @@ public class PixelDrawing
 //				System.out.println("   Remaining "+offscreensCreated+" cell caches were used an average of "+
 //					((double)offscreensUsed/offscreensCreated)+" times");
 //		}
-
-		// stop accumulating expanded cell images
-//		expandedCells = null;
 	}
 
 	// ************************************* INTERMEDIATE CONTROL LEVEL *************************************
@@ -356,6 +371,19 @@ public class PixelDrawing
 		{
 			byte [][] layerBitMap = layerBitMaps[i];
 			if (layerBitMap == null) continue;
+			for(int y=0; y<sz.height; y++)
+			{
+				byte [] row = layerBitMap[y];
+				for(int x=0; x<numBytesPerRow; x++)
+					row[x] = 0;
+			}
+		}
+
+		// erase the patterned opaque layer bitmaps
+		for(Iterator it = patternedOpaqueLayers.entrySet().iterator(); it.hasNext(); )
+		{
+			PatternedOpaqueLayer pol = (PatternedOpaqueLayer)it.next();
+			byte [][] layerBitMap = pol.bitMap;
 			for(int y=0; y<sz.height; y++)
 			{
 				byte [] row = layerBitMap[y];
@@ -866,6 +894,7 @@ public class PixelDrawing
 			renderedCell.setOffset(cellCtr);
 
 			// render the contents of the expanded cell into its own offscreen cache
+			renderedCell.getOffscreen().renderedWindow = false;
 			renderedCell.getOffscreen().drawCell(subCell, subTrans, true);
 			offscreensCreated++;
 		}
@@ -976,6 +1005,8 @@ public class PixelDrawing
 //			return;
 //		}
 		Dimension dim = srcOffscreen.sz;
+
+		// copy the opaque and transparent layers
 		for(int srcY=0; srcY<dim.height; srcY++)
 		{
 			int destY = srcY + screenBounds.y;
@@ -1000,6 +1031,76 @@ public class PixelDrawing
 					byte [] destRow = destLayerBitMap[destY];
 					if ((srcRow[srcX>>3] & (1<<(srcX&7))) != 0)
 						destRow[destX>>3] |= (1 << (destX&7));
+				}
+			}
+		}
+
+		// copy the patterned opaque layers
+		for(Iterator it = srcOffscreen.patternedOpaqueLayers.keySet().iterator(); it.hasNext(); )
+		{
+			Layer layer = (Layer)it.next();
+			PatternedOpaqueLayer polSrc = (PatternedOpaqueLayer)srcOffscreen.patternedOpaqueLayers.get(layer);
+			byte [][] srcLayerBitMap = polSrc.bitMap;
+			if (srcLayerBitMap == null) continue;
+
+			if (renderedWindow)
+			{
+				// this is the top-level of display: convert patterned opaque to patterns
+				EGraphics desc = layer.getGraphics();
+				int col = desc.getColor().getRGB() & 0xFFFFFF;
+				int [] pattern = desc.getPattern();
+
+				// setup pattern for this row
+				for(int srcY=0; srcY<dim.height; srcY++)
+				{
+					int destY = srcY + screenBounds.y;
+					if (destY < 0 || destY >= sz.height) continue;
+					int destBase = destY * sz.width;
+					int pat = pattern[destY&15];
+					if (pat == 0) continue;
+					byte [] srcRow = srcLayerBitMap[srcY];
+					for(int srcX=0; srcX<dim.width; srcX++)
+					{
+						int destX = srcX + screenBounds.x;
+						if (destX < 0 || destX >= sz.width) continue;
+						if ((srcRow[srcX>>3] & (1<<(srcX&7))) != 0)
+						{
+							if ((pat & (0x8000 >> (destX&15))) != 0)
+								opaqueData[destBase + destX] = col;
+						}
+					}
+				}
+			} else
+			{
+				// a lower level being copied to a low level: just copy the patterned opaque layers
+				PatternedOpaqueLayer polDest = (PatternedOpaqueLayer)patternedOpaqueLayers.get(layer);
+				if (polDest == null)
+				{
+					polDest = new PatternedOpaqueLayer();
+					polDest.bitMap = new byte[sz.height][];
+					for(int y=0; y<sz.height; y++)
+					{
+						byte [] row = new byte[numBytesPerRow];
+						for(int x=0; x<numBytesPerRow; x++) row[x] = 0;
+						polDest.bitMap[y] = row;
+					}
+					patternedOpaqueLayers.put(layer, polDest);
+				}
+				byte [][] destLayerBitMap = polDest.bitMap;
+				for(int srcY=0; srcY<dim.height; srcY++)
+				{
+					int destY = srcY + screenBounds.y;
+					if (destY < 0 || destY >= sz.height) continue;
+					int destBase = destY * sz.width;
+					byte [] srcRow = srcLayerBitMap[srcY];
+					byte [] destRow = destLayerBitMap[destY];
+					for(int srcX=0; srcX<dim.width; srcX++)
+					{
+						int destX = srcX + screenBounds.x;
+						if (destX < 0 || destX >= sz.width) continue;
+						if ((srcRow[srcX>>3] & (1<<(srcX&7))) != 0)
+							destRow[destX>>3] |= (1 << (destX&7));
+					}
 				}
 			}
 		}
@@ -1084,9 +1185,42 @@ public class PixelDrawing
 		if (graphics != null) layerNum = graphics.getTransparentLayer() - 1;
 		if (layerNum >= numLayerBitMaps) return;
 		byte [][] layerBitMap = getLayerBitMap(layerNum);
+		Poly.Type style = poly.getStyle();
+
+		// only do this for lower-level (cached cells)
+		if (!renderedWindow)
+		{
+			// for fills, handle patterned opaque layers specially
+			if (style == Poly.Type.FILLED || style == Poly.Type.DISC)
+			{
+				// see if it is opaque
+				if (layerBitMap == null)
+				{
+					// see if it is patterned
+					if (graphics.isPatternedOnDisplay())
+					{
+						Layer layer = poly.getLayer();
+						PatternedOpaqueLayer pol = (PatternedOpaqueLayer)patternedOpaqueLayers.get(layer);
+						if (pol == null)
+						{
+							pol = new PatternedOpaqueLayer();
+							pol.bitMap = new byte[sz.height][];
+							for(int y=0; y<sz.height; y++)
+							{
+								byte [] row = new byte[numBytesPerRow];
+								for(int x=0; x<numBytesPerRow; x++) row[x] = 0;
+								pol.bitMap[y] = row;
+							}
+							patternedOpaqueLayers.put(layer, pol);
+						}
+						layerBitMap = pol.bitMap;
+						graphics = null;
+					}
+				}
+			}
+		}
 
 		// now draw it
-		Poly.Type style = poly.getStyle();
 		Point2D [] points = poly.getPoints();
 		if (style == Poly.Type.FILLED)
 		{
@@ -1224,7 +1358,7 @@ public class PixelDrawing
 
 	// ************************************* BOX DRAWING *************************************
 
-	/*
+	/**
 	 * Method to draw a box on the off-screen buffer.
 	 */
 	private void drawBox(int lX, int hX, int lY, int hY, byte [][] layerBitMap, EGraphics desc)
@@ -1238,6 +1372,7 @@ public class PixelDrawing
 			if (desc.isPatternedOnDisplay())
 				pattern = desc.getPattern();
 		}
+
 		// different code for patterned and solid
 		if (pattern == null)
 		{
@@ -1302,7 +1437,7 @@ public class PixelDrawing
 
 	// ************************************* LINE DRAWING *************************************
 
-	/*
+	/**
 	 * Method to draw a line on the off-screen buffer.
 	 */
 	private void drawLine(Point pt1, Point pt2, byte [][] layerBitMap, EGraphics desc, int texture)
@@ -1552,7 +1687,7 @@ public class PixelDrawing
 
 	// ************************************* POLYGON DRAWING *************************************
 
-	/*
+	/**
 	 * Method to draw a polygon on the off-screen buffer.
 	 */
 	private void drawPolygon(Point [] points, byte [][] layerBitMap, EGraphics desc)
@@ -1757,7 +1892,7 @@ public class PixelDrawing
 
 	// ************************************* TEXT DRAWING *************************************
 
-	/*
+	/**
 	 * Method to draw a text on the off-screen buffer
 	 */
 	private void drawText(Rectangle rect, Poly.Type style, TextDescriptor descript, String s, byte [][] layerBitMap, EGraphics desc)
@@ -2147,7 +2282,7 @@ public class PixelDrawing
 			}
 		}
 		if (underline) height++;
-if (width * height == 0) System.out.println("In PixelDrawing.renderText(), width="+width+" height="+height);
+//if (width * height == 0) System.out.println("In PixelDrawing.renderText(), width="+width+" height="+height);
 		BufferedImage textImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
 
 		// now render it
@@ -2167,7 +2302,7 @@ if (width * height == 0) System.out.println("In PixelDrawing.renderText(), width
 
 	// ************************************* CIRCLE DRAWING *************************************
 
-	/*
+	/**
 	 * Method to draw a circle on the off-screen buffer
 	 */
 	private void drawCircle(Point center, Point edge, byte [][] layerBitMap, EGraphics desc)
@@ -2292,7 +2427,7 @@ if (width * height == 0) System.out.println("In PixelDrawing.renderText(), width
 		}
 	}
 
-	/*
+	/**
 	 * Method to draw a thick circle on the off-screen buffer
 	 */
 	private void drawThickCircle(Point center, Point edge, byte [][] layerBitMap, EGraphics desc)
@@ -2361,7 +2496,7 @@ if (width * height == 0) System.out.println("In PixelDrawing.renderText(), width
 
 	// ************************************* DISC DRAWING *************************************
 
-	/*
+	/**
 	 * Method to draw a scan line of the filled-in circle of radius "radius"
 	 */
 	private void drawDiscRow(int thisy, int startx, int endx, byte [][] layerBitMap, int col, int [] pattern)
@@ -2412,7 +2547,7 @@ if (width * height == 0) System.out.println("In PixelDrawing.renderText(), width
 		}
 	}
 
-	/*
+	/**
 	 * Method to draw a filled-in circle of radius "radius" on the off-screen buffer
 	 */
 	private void drawDisc(Point center, Point edge, byte [][] layerBitMap, EGraphics desc)
@@ -2609,7 +2744,7 @@ if (width * height == 0) System.out.println("In PixelDrawing.renderText(), width
 		arcOutXform(pt1.x, pt1.y);
 	}
 
-	/*
+	/**
 	 * draws an arc centered at (centerx, centery), clockwise,
 	 * passing by (x1,y1) and (x2,y2)
 	 */
@@ -2742,7 +2877,7 @@ if (width * height == 0) System.out.println("In PixelDrawing.renderText(), width
 	private static final int BOTTOM = 4;
 	private static final int TOP    = 8;
 
-	/*
+	/**
 	 * Method to clip a line from (fx,fy) to (tx,ty) in the rectangle lx <= X <= hx and ly <= Y <= hy.
 	 * Returns true if the line is not visible.
 	 */
@@ -2877,7 +3012,7 @@ if (width * height == 0) System.out.println("In PixelDrawing.renderText(), width
 		return retArr;
 	}
 
-	/*
+	/**
 	 * Method to clip polygon "in" against line "edge" (1:left, 2:right,
 	 * 4:bottom, 8:top) and place clipped result in "out".
 	 */
@@ -2913,7 +3048,7 @@ if (width * height == 0) System.out.println("In PixelDrawing.renderText(), width
 		return outcount;
 	}
 
-	/*
+	/**
 	 * Method to do clipping on the vector from (x1,y1) to (x2,y2).
 	 * If the vector is completely invisible, true is returned.
 	 */

@@ -2,6 +2,8 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (6/8/04, SMR) Improved "PixelDrawing.java" to align stipple patterns correctly.
+
 IMP: (6/8/04, SMR) Implemented Windows / Messages Window menu with "Save Messages" and "Clear".
 
 IMP: (6/8/04, SMR) Implemented Tools / Routing command "Mimic-Selected".

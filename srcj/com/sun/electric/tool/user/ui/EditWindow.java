@@ -121,7 +121,7 @@ public class EditWindow extends JPanel
 	/** lower left corner of popup cloud */                 private Point2D popupCloudPoint;
 
 	/** list of windows to redraw (gets synchronized) */	private static List redrawThese = new ArrayList();
-	/** true if rendering a window now (synchronized) */	private static boolean runningNow = false;
+	/** true if rendering a window now (synchronized) */	private static EditWindow runningNow = null;
 
 	private static final int SCROLLBARRESOLUTION = 200;
 
@@ -527,6 +527,7 @@ public class EditWindow extends JPanel
 
 			// add in drag area
 			if (doingAreaDrag) showDragBox(g);
+
 			// add in popup cloud
 			if (showPopupCloud) drawPopupCloud((Graphics2D)g);
 		}
@@ -580,13 +581,13 @@ public class EditWindow extends JPanel
 		// do the redraw in a separate thread
 		synchronized(redrawThese)
 		{
-			if (runningNow)
+			if (runningNow != null)
 			{
-				if (!redrawThese.contains(this))
+				if (runningNow != this && !redrawThese.contains(this))
 					redrawThese.add(this);
 				return;
 			}
-			runningNow = true;
+			runningNow = this;
 		}
 		RenderJob renderJob = new RenderJob(this, offscreen);
 	}
@@ -617,12 +618,12 @@ public class EditWindow extends JPanel
 			{
 				if (redrawThese.size() > 0)
 				{
-					EditWindow nextWnd = (EditWindow)redrawThese.get(0);
+					runningNow = (EditWindow)redrawThese.get(0);
 					redrawThese.remove(0);
-					RenderJob nextJob = new RenderJob(nextWnd, nextWnd.getOffscreen());
+					RenderJob nextJob = new RenderJob(runningNow, runningNow.getOffscreen());
 					return;
 				}
-				runningNow = false;
+				runningNow = null;
 			}
 			wnd.repaint();
 		}
@@ -1026,61 +1027,60 @@ public class EditWindow extends JPanel
 	 */
 	private void drawGrid(Graphics g)
 	{
-		/* grid spacing */
-		int x0 = (int)gridXSpacing;
-		int y0 = (int)gridYSpacing;
-		if (x0 == 0 || y0 == 0)
-		{
-			System.out.println("Warning: grid space too small. Please set to 1.");
-			return;
-		}
+		// grid spacing
+		if (gridXSpacing == 0 || gridYSpacing == 0) return;
+		double spacingX = gridXSpacing;
+		double spacingY = gridYSpacing;
+		double boldSpacingX = spacingX * User.getDefGridXBoldFrequency();
+		double boldSpacingY = spacingY * User.getDefGridYBoldFrequency();
+		double boldSpacingThreshX = spacingX / 4;
+		double boldSpacingThreshY = spacingY / 4;
 
-		// bold dot spacing
-		int xspacing = User.getDefGridXBoldFrequency();
-		int yspacing = User.getDefGridYBoldFrequency();
-
-		/* object space extent */
+		// screen extent
 		Rectangle2D displayable = displayableBounds();
-		double x4 = displayable.getMinX();  double y4 = displayable.getMaxY();
-		double x5 = displayable.getMaxX();  double y5 = displayable.getMinY();
+		double lX = displayable.getMinX();  double lY = displayable.getMaxY();
+		double hX = displayable.getMaxX();  double hY = displayable.getMinY();
+		double scaleX = sz.width / (hX - lX);
+		double scaleY = sz.height / (lY - hY);
 
-		/* initial grid location */
-		int x1 = ((int)x4) / x0 * x0;
-		int y1 = ((int)y4) / y0 * y0;
+		// initial grid location
+		double x1 = EMath.toNearest(lX, spacingX);
+		double y1 = EMath.toNearest(lY, spacingY);
 
-		int xnum = sz.width;
-		double xden = x5 - x4;
-		int ynum = sz.height;
-		double yden = y5 - y4;
-		int x10 = x0*xspacing;
-		int y10 = y0*yspacing;
-		int y1base = y1 - (y1 / y0 * y0);
-		int x1base = x1 - (x1 / x0 * x0);
-
-		/* adjust grid placement according to scale */
-		boolean fatdots = false;
-		if (x0 * xnum / xden < 5 || y0 * ynum / (-yden) < 5)
+		// adjust grid placement according to scale
+		boolean allBoldDots = false;
+		if (spacingX * scaleX < 5 || spacingY * scaleY < 5)
 		{
-			x1 = x1base - (x1base - x1) / x10 * x10;   x0 = x10;
-			y1 = y1base - (y1base - y1) / y10 * y10;   y0 = y10;
-			if (x0 * xnum / xden < 10 || y0 * ynum / (-yden) < 10) return;
-		} else if (x0 * xnum / xden > 75 && y0 * ynum / (-yden) > 75)
+			// normal grid is too fine: only show the "bold dots"
+			x1 = EMath.toNearest(x1, boldSpacingX);   spacingX = boldSpacingX;
+			y1 = EMath.toNearest(y1, boldSpacingY);   spacingY = boldSpacingY;
+
+			// if even the bold dots are too close, don't draw a grid
+			if (spacingX * scaleX < 10 || spacingY * scaleY < 10) return;
+		} else if (spacingX * scaleX > 75 && spacingY * scaleY > 75)
 		{
-			fatdots = true;
+			// if zoomed-out far enough, show all bold dots
+			allBoldDots = true;
 		}
 
-		/* draw the grid to the offscreen buffer */
+		// draw the grid
 		g.setColor(new Color(User.getColorGrid()));
-		for(int i = y1; i > y5; i -= y0)
+		for(double i = y1; i > hY; i -= spacingY)
 		{
-			int y = (int)((i-y4) * ynum / yden);
+			int y = (int)((lY - i) * scaleY);
 			if (y < 0 || y > sz.height) continue;
-			int y10mod = (i-y1base) % y10;
-			for(int j = x1; j < x5; j += x0)
+			double boldValueY = i;
+			if (i < 0) boldValueY -= boldSpacingThreshY/2; else
+				boldValueY += boldSpacingThreshY/2;
+			boolean everyTenY = Math.abs(boldValueY) % boldSpacingY < boldSpacingThreshY;
+			for(double j = x1; j < hX; j += spacingX)
 			{
-				int x = (int)((j-x4) * xnum / xden);
-				boolean everyTen = ((j-x1base)%x10) == 0 && y10mod == 0;
-				if (fatdots && everyTen)
+				int x = (int)((j-lX) * scaleX);
+				double boldValueX = j;
+				if (j < 0) boldValueX -= boldSpacingThreshX/2; else
+					boldValueX += boldSpacingThreshX/2;
+				boolean everyTenX = Math.abs(boldValueX) % boldSpacingX < boldSpacingThreshX;
+				if (allBoldDots && everyTenX && everyTenY)
 				{
 					g.fillRect(x-2,y, 5, 1);
 					g.fillRect(x,y-2, 1, 5);
@@ -1088,8 +1088,8 @@ public class EditWindow extends JPanel
 					continue;
 				}
 
-				/* special case every 10 grid points in each direction */
-				if (fatdots || everyTen)
+				// special case every 10 grid points in each direction
+				if (allBoldDots || (everyTenX && everyTenY))
 				{
 					g.fillRect(x-1,y, 3, 1);
 					g.fillRect(x,y-1, 1, 3);

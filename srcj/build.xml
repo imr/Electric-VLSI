@@ -42,6 +42,7 @@
         <copy file="packaging/electric.mf" tofile="electric${version}.mf"/>
         <jar basedir="." compress="true" jarfile="electric${version}.jar" manifest="electric${version}.mf">
             <exclude name="apidoc/"/>
+            <exclude name="bin/"/>
             <exclude name="intervalsimulation/"/>
             <exclude name="packaging/"/>
             <exclude name="build.xml"/>
@@ -69,6 +70,7 @@
         <copy file="packaging/electric.mf" tofile="electric${version}.mf"/>
         <jar basedir="." compress="true" jarfile="electric${version}.jar" manifest="packaging/electric${version}.mf">
             <exclude name="apidoc/"/>
+            <exclude name="bin/"/>
             <exclude name="intervalsimulation/"/>
             <exclude name="packaging/"/>
             <exclude name="electric${version}.jar"/>
@@ -93,6 +95,7 @@
         <copy file="packaging/electric.mf" tofile="electric${version}.mf"/>
         <jar basedir="." compress="true" jarfile="electric${version}.jar" manifest="packaging/electric${version}.mf">
             <exclude name="apidoc/"/>
+            <exclude name="bin/"/>
             <exclude name="intervalsimulation/"/>
             <exclude name="packaging/"/>
             <exclude name="electric${version}.jar"/>

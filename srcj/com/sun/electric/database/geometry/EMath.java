@@ -476,6 +476,22 @@ public class EMath
 	/** smallest such that 1.0+DBL_EPSILON != 1.0 */	private static double DBL_EPSILON = 2.2204460492503131e-016;
 
 	/**
+	 * Method to round a value to the nearest increment.
+	 * @param a the value to round.
+	 * @param nearest the increment to which it should be rounded.
+	 * @return the value, rounded to the nearest increment.
+	 * For example:<BR>
+	 * toNearest(10.3, 1.0) = 10.0<BR>
+	 * toNearest(10.3, 0.1) = 10.3<BR>
+	 * toNearest(10.3, 0.5) = 10.5
+	 */
+	public static double toNearest(double a, double nearest)
+	{
+		long v = Math.round(a / nearest);
+		return v * nearest;
+	}
+
+	/**
 	 * Method to compare two double-precision numbers within an acceptable epsilon.
 	 * @param a the first number.
 	 * @param b the second number.
