@@ -38,6 +38,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.ErrorLog;
 
 import java.io.InputStream;
 import java.io.File;
@@ -97,8 +98,12 @@ public class LibraryFiles extends Input
 		libsBeingRead.put(lib, this);
 		scaledCells = new ArrayList();
 		skewedCells = new ArrayList();
+        ErrorLog.initLogging("Library Read");
 
-		return readLib();
+		boolean ret = readLib();
+
+        ErrorLog.termLogging(true);
+        return ret;
 	}
 
 	protected void scanNodesForRecursion(Cell cell, FlagSet markCellForNodes, NodeProto [] nil, int start, int end)

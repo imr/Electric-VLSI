@@ -25,6 +25,7 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.hierarchy.Export;
@@ -54,6 +55,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.user.ErrorLog;
 import com.sun.electric.tool.io.ELIBConstants;
 
 import java.awt.geom.Point2D;
@@ -1577,6 +1579,44 @@ public class ELIB extends LibraryFiles
 		}
 		return false;
 	}
+
+    // node is node we expect to have port 'portname' at location x,y.
+    protected PortInst getArcEnd(ArcInst ai, NodeInst node, String portname, double x, double y, Cell cell)
+    {
+        PortInst pi = node.findPortInst(portname);
+        String whatHappenedToPort = " ?";
+
+        if (pi != null) {
+            // check to make sure location is correct
+            Poly portLocation = pi.getPoly();
+            if (portLocation.contains(x, y)) {
+                return pi;
+            }
+            whatHappenedToPort = " moved";
+            pi = null;
+        } else {
+            // name not found, see if any ports exist at location
+            for (Iterator it = node.getPortInsts(); it.hasNext(); ) {
+                pi = (PortInst)it.next();
+                Poly portLocation = pi.getPoly();
+                if (portLocation.contains(x, y)) {
+                    // connect to this port
+                    ErrorLog.logError("Port "+portname+" on "+node.describe()+" not found, connecting to port "+
+                            pi.getPortProto().getName()+" at the same location", cell, 0);
+                    return pi;
+                }
+                pi = null;
+            }
+            whatHappenedToPort = " missing";
+        }
+
+        // create pin as new end point of arc
+        ErrorLog.logError("Port "+portname+" on "+node.describe()+whatHappenedToPort+", leaving arc disconnected", cell, 0);
+        PrimitiveNode pn = ((PrimitiveArc)ai.getProto()).findOverridablePinProto();
+        node = NodeInst.newInstance(pn, new Point2D.Double(x, y), pn.getDefWidth(),
+            pn.getDefHeight(), 0, cell, null);
+        return node.getOnlyPortInst();
+    }
 
 	// --------------------------------- HIGH-LEVEL OBJECTS ---------------------------------
 
