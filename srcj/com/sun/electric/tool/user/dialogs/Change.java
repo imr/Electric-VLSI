@@ -309,24 +309,19 @@ public class Change extends EDialog implements HighlightListener
 			changeNodesWithArcs.setSelected(nodesAndArcs);
 		}
 
-		if (geomToChange instanceof NodeInst)
-		{
-			NodeInst ni = (NodeInst)geomToChange;
-            // if true, this will reload dialog
-            if (ni.getProto() instanceof Cell)
-                librariesPopup.setSelectedItem(((Cell)ni.getProto()).getLibrary().getName());
-            else
-                reload(true);
-        } else
-            reload(true);
+		reload(true);
 	}
+
+	private boolean dontReload = false;
 
 	/**
 	 * Method called when dialog controls have changed.
 	 * Makes sure the displayed lists and options are correct.
 	 */
-	private void reload(boolean showHighlighted)
+	private void reload(boolean canSwitchLibraries)
 	{
+		if (dontReload) return;
+
 		changeListModel.clear();
 		changeNodeProtoList.clear();
 		if (geomsToChange.size() == 0) return;
@@ -338,6 +333,15 @@ public class Change extends EDialog implements HighlightListener
 			if (showCells.isSelected())
 			{
 				// cell: only list other cells as replacements
+				if (ni.getProto() instanceof Cell && canSwitchLibraries)
+				{
+					Cell parent = (Cell)ni.getProto();
+					Library lib = parent.getLibrary();
+					dontReload = true;
+					librariesPopup.setSelectedItem(lib.getName());
+					dontReload = false;
+				}
+
 				String libName = (String)librariesPopup.getSelectedItem();
 				Library lib = Library.findLibrary(libName);
 				List cells = lib.getCellsSortedByName();

@@ -4,6 +4,17 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01q: *********************************
 
+BUG: (9/16/04, SMR) Arcs that run from a node to itself are not constrained right.
+FIX: Disallow such arcs from moving more than once.
+
+BUG: (9/16/04, SMR) Verilog output gets descending busses wrong.
+FIX: In Verilog.writeCellTopology(), must load descending busses backwards.
+
+IMP: (9/16/04, SMR) Serpentine transistor width is better supported.
+
+BUG: (9/16/04, SMR) "Change" dialog cannot switch libraries.
+FIX: Allow automatic library switching only when new objects are selected.
+
 ************************* Version 8.01p: *********************************
 
 BUG: (9/16/04, JKG) Fix to change dialog: library pull-down menu was useless.
@@ -22,7 +33,7 @@ IMP: (9/15/04, GVG) Check box in DRC Tab to disable area checking.
 IMP: (9/15/04, GVG) Improvement in List Geometry on Network
 
 IMP/MAN: (9/15/04, GVG) Adding option to disconnect DRC area checking. Manual
-updated on 9/16/04
+     updated on 9/16/04
 
 ************************* Version 8.01o: *********************************
 

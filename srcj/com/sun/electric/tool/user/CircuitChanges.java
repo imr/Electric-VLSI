@@ -4176,7 +4176,7 @@ public class CircuitChanges
 				ai.setTempObj(new Point2D.Double(ai.getTrueCenterX(), ai.getTrueCenterY()));
 			}
 
-			int numNodes = 0;
+			// mark all nodes that want to move
 			for(Iterator it = highlighted.iterator(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
@@ -4186,24 +4186,34 @@ public class CircuitChanges
 				if (eobj instanceof NodeInst)
 				{
 					NodeInst ni = (NodeInst)eobj;
-					if (!ni.isBit(flag)) numNodes++;
 					ni.setBit(flag);
-
-					// make sure moving the node is allowed
-					int errorCode = cantEdit(cell, ni, true);
-					if (errorCode < 0) return false;
-					if (errorCode > 0) continue;
 				} else if (eobj instanceof ArcInst)
 				{
 					ArcInst ai = (ArcInst)eobj;
 					NodeInst ni1 = ai.getHead().getPortInst().getNodeInst();
 					NodeInst ni2 = ai.getTail().getPortInst().getNodeInst();
-					if (!ni1.isBit(flag)) numNodes++;
-					if (!ni2.isBit(flag)) numNodes++;
 					ni1.setBit(flag);
 					ni2.setBit(flag);
 					Layout.setTempRigid(ai, true);
 				}
+			}
+
+			// count the number of nodes that will move
+			int numNodes = 0;
+			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				if (!ni.isBit(flag)) continue;
+
+				// make sure moving the node is allowed
+				int errorCode = cantEdit(cell, ni, true);
+				if (errorCode < 0) return false;
+				if (errorCode > 0)
+				{
+					ni.clearBit(flag);
+					continue;
+				}
+				numNodes++;
 			}
 
 			// look at all nodes and move them appropriately

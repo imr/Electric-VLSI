@@ -1104,24 +1104,19 @@ public class Technology extends ElectricObject
 		SizeOffset so = ni.getSizeOffset();
 		double width = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
 		double height = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
-		//Dimension2D dim = new Dimension2D.Double(width, height);
-		//return dim;
-        PrimitiveNode np = (PrimitiveNode)ni.getProto();
-        int specialType = np.getSpecialType();
-        if (specialType == PrimitiveNode.SERPTRANS) {
-            // get transistor width from distance of trace
-            Variable trace = ni.getVar("trace");
-            if (trace != null) {
-                width = 0;
-                Point2D [] tracePts = (Point2D [])trace.getObject();
-                for (int i = 1; i<tracePts.length; i++) {
-                    Point2D p1 = tracePts[i-1];
-                    Point2D p2 = tracePts[i];
-                    width += p1.distance(p2);
-                }
-                height = 2;
-            }
-        }
+
+		// override if there is serpentine information
+		Point2D [] trace = ni.getTrace();
+		if (trace != null)
+		{
+			width = 0;
+			for(int i=1; i<trace.length; i++)
+				width += trace[i-1].distance(trace[1]);
+			height = 2;
+			double serpentineLength = ni.getSerpentineTransistorLength();
+			if (serpentineLength > 0) height = serpentineLength;
+		}
+
 		TransistorSize size = new TransistorSize(new Double(width), new Double(height));
 		return size;
 	}
@@ -1684,6 +1679,7 @@ public class Technology extends ElectricObject
 		/** the extra gate width of this serpentine transistor */				private double extraScale;
 		/** the node layers that make up this serpentine transistor */			private Technology.NodeLayer [] primLayers;
 		/** the gate coordinates for this serpentine transistor */				private Point2D [] points;
+		/** the defining values for this serpentine transistor */				private double [] specialValues;
 
 		/**
 		 * Constructor throws initialize for a serpentine transistor.
@@ -1692,6 +1688,7 @@ public class Technology extends ElectricObject
 		public SerpentineTrans(NodeInst ni)
 		{
 			theNode = ni;
+
 			layersTotal = 0;
 			points = ni.getTrace();
 			if (points != null)
@@ -1701,18 +1698,15 @@ public class Technology extends ElectricObject
 			if (points != null)
 			{
 				theProto = (PrimitiveNode)ni.getProto();
+				specialValues = theProto.getSpecialValues();
 				primLayers = theProto.getLayers();
 				int count = primLayers.length;
 				numSegments = points.length - 1;
 				layersTotal = count * numSegments;
 
 				extraScale = 0;
-				Variable varw = ni.getVar("transistor_width", Integer.class);
-				if (varw != null)
-				{
-					Object obj = varw.getObject();
-					extraScale = ((Integer)obj).intValue() / 120 / 2;
-				}
+				double length = ni.getSerpentineTransistorLength();
+				if (length > 0) extraScale = (length - specialValues[3]) / 2;
 			}
 		}
 
@@ -1869,7 +1863,6 @@ public class Technology extends ElectricObject
 		 */
 		private Poly fillTransPort(PortProto pp)
 		{
-			double [] specialValues = theProto.getSpecialValues();
 			double diffInset = specialValues[1];
 			double diffExtend = specialValues[2];
 			double defWid = specialValues[3] + extraScale;

@@ -668,8 +668,12 @@ public final class ExportChanges
             String protoName = pi.getPortProto().getName();
 
             // or use export name if there is a reference export
-			Export refExport = (Export)originalExports.get(pi);
-            if (refExport != null) protoName = refExport.getName();
+            Export refExport = null;
+            if (originalExports != null)
+            {
+				refExport = (Export)originalExports.get(pi);
+	            if (refExport != null) protoName = refExport.getName();
+            }
 
             // get unique name here so Export.newInstance doesn't print message
             protoName = ElectricObject.uniqueObjectName(protoName, cell, PortProto.class);

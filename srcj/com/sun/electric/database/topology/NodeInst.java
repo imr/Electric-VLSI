@@ -34,6 +34,7 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
@@ -68,8 +69,9 @@ import java.util.List;
  */
 public class NodeInst extends Geometric implements Nodable
 {
-	/** key of obsolete Varible holding instance name. */	public static final Variable.Key NODE_NAME = ElectricObject.newKey("NODE_name");
-	/** key of Varible holding outline information. */		public static final Variable.Key TRACE = ElectricObject.newKey("trace");
+	/** key of obsolete Varible holding instance name. */		public static final Variable.Key NODE_NAME = ElectricObject.newKey("NODE_name");
+	/** key of Varible holding outline information. */			public static final Variable.Key TRACE = ElectricObject.newKey("trace");
+	/** key of Varible holding serpentine transistor length. */	private static final Variable.Key TRANSISTOR_LENGTH_KEY = ElectricObject.newKey("transistor_width");
 
 	// -------------------------- constants --------------------------------
 //	/** node is not in use */								private static final int DEADN =                     01;
@@ -2256,6 +2258,27 @@ public class NodeInst extends Geometric implements Nodable
         Job.checkChanging();
         Schematics.tech.setTransistorSize(this, width, length);
     }
+
+	public double getSerpentineTransistorLength()
+	{
+		Variable var = getVar(TRANSISTOR_LENGTH_KEY);
+		if (var == null) return -1;
+		Object obj = var.getObject();
+		if (obj instanceof Integer)
+		{
+			// C Electric stored this as a "fraction", scaled by 120
+			return ((Integer)obj).intValue() / 120;
+		}
+		if (obj instanceof Double)
+		{
+			return ((Double)obj).doubleValue();
+		}
+		if (obj instanceof String)
+		{
+			return TextUtils.atof((String)obj);
+		}
+		return -1;
+	}
 
     /**
      * Method to return a gate PortInst for this transistor NodeInst.

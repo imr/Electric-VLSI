@@ -579,7 +579,8 @@ public class Verilog extends Topology
 							for(int j=low; j<=high; j++)
 							{
 								JNetwork net = netList.getNetwork(no, cas.getExport(), j-low);
-								outerSignalList[j-low] = cni.getCellSignal(net);
+								if (cas.isDescending()) outerSignalList[total-1-(j-low)] = cni.getCellSignal(net); else
+									outerSignalList[j-low] = cni.getCellSignal(net);
 							}
 							writeBus(outerSignalList, low, high, cas.isDescending(),
 								cas.getName(), cni.getPowerNet(), cni.getGroundNet(), infstr);
@@ -805,7 +806,9 @@ public class Verilog extends Topology
 							if (lastnetname.charAt(li) == '[') break;
 						}
 						if (lastnetname.charAt(li) != '[' || thisnetname.charAt(li) != '[') break;
-						if (TextUtils.atoi(thisnetname.substring(li+1)) != TextUtils.atoi(lastnetname.substring(li+1)) + 1) break;
+						int thisIndex = TextUtils.atoi(thisnetname.substring(li+1));
+						int lastIndex = TextUtils.atoi(lastnetname.substring(li+1));
+						if (thisIndex != lastIndex + 1) break;
 					}
 					lastnetname = thisnetname;
 				}

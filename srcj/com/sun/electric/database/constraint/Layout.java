@@ -426,6 +426,14 @@ public class Layout extends Constraints
 			ArcInst ai = (ArcInst)it.next();
 			if (deletedArcs.contains(ai)) continue;
 
+			// if arcinst has already been changed check its connectivity
+			if (ai.getChangeClock() == changeClock)
+			{
+				if (DEBUG) System.out.println("    Arc already changed");
+				ensureArcInst(ai, 0);
+				continue;
+			}
+
 			// prepare transformation matrix
 			AffineTransform trans = NodeInst.pureRotate(dAngle, flipX, flipY);
 
@@ -1008,6 +1016,9 @@ public class Layout extends Constraints
 		double oldHeadX = oldHeadPt.getX();   double oldHeadY = oldHeadPt.getY();
 		double oldTailX = oldTailPt.getX();   double oldTailY = oldTailPt.getY();
 		ai.lowLevelModify(0, headPt.getX() - oldHeadX, headPt.getY() - oldHeadY, tailPt.getX() - oldTailX, tailPt.getY() - oldTailY);
+		if (DEBUG) System.out.println("Arc " + ai.describe() + " now runs from ("+
+			ai.getTail().getLocation().getX()+","+ai.getTail().getLocation().getY()+") to ("+
+			ai.getHead().getLocation().getX()+","+ai.getHead().getLocation().getY()+")");
 
 		// if the arc hasn't changed yet, record this change
 		if (ai.getChange() == null)
@@ -1135,7 +1146,7 @@ public class Layout extends Constraints
 		if (oldName != null) ar2.setName(oldName);
 	}
 
-	/*
+	/**
 	 * Method to adjust the transformation matrix "trans" by placing translation
 	 * information for nodeinst "ni", port "pp".
 	 *
@@ -1182,7 +1193,7 @@ public class Layout extends Constraints
 		trans.setTransform(m00, m10, m01, m11, m02, m12);
 	}
 
-	/*
+	/**
 	 * Method to compute the position of portproto "pp" on nodeinst "ni" and
 	 * place the center of the area in the parameters "x" and "y".  The position
 	 * is the "old" position, as determined by any changes that may have occured
@@ -1284,7 +1295,7 @@ public class Layout extends Constraints
 	FlagSet markNode;
 	FlagSet touchNode;
 
-	/*
+	/**
 	 * Method to re-compute the bounds of the cell "cell" (because an object
 	 * has been added or removed from it) and store these bounds in the nominal
 	 * size and the size of each instantiation of the cell.  It is also necessary
