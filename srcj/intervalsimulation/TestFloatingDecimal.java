@@ -1,6 +1,8 @@
 import com.sun.electric.tool.simulation.interval.FloatingDecimal;
+import com.sun.electric.tool.simulation.interval.DirectedFloatingDecimal;
 import java.lang.Math;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 
 class TestFloatingDecimal {
     String s;
@@ -256,12 +258,19 @@ class TestFloatingDecimal {
     }
 
     static void calc() {
+	BigInteger t = BigInteger.ONE.shiftLeft(0x7fffffff);
+	t.setBit(0);
+	t.toByteArray();
+	System.out.println("t.bitLenghth()=" + t.bitLength());
 	BigDecimal v = (new BigDecimal(0x1.0p-126));//.add(new BigDecimal(Math.ulp(Float.MAX_VALUE)/2));
 	String s = v.toString();
 	System.out.println("v="+s+" Lentgh="+s.length());
     }
 
     public static void main(String[] args) {
+	boolean performanceTest = false;
+
+	//calc();
 	String ss[] = {
 	    "0",
 	    "-0",
@@ -349,9 +358,11 @@ class TestFloatingDecimal {
 	    String s = ss[i];
 	    new TestFloatingDecimal(s);
 	}
-	for (int i = 0; i < ss.length; i++) {
-	    String s = ss[i];
-	    perform(s);
+	if (performanceTest) {
+	    for (int i = 0; i < ss.length; i++) {
+		String s = ss[i];
+		perform(s);
+	    }
 	}
     }
 

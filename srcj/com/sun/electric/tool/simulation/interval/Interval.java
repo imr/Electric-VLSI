@@ -1388,6 +1388,17 @@ public class Interval
 		return this;
 	}
 
+	/**
+	 * Return string representation.
+	 */
+
+	public String toString() {
+		final int precision = 16;
+		if (isEmpty())
+			return "[Empty]";
+		return "[" + DirectedFloatingDecimal.toStringInf(inf, precision) + "," + DirectedFloatingDecimal.toStringSup(sup, precision) + "]";
+	}
+
 	// -----------------------------------------------------------------------
 	// predecessor and successor of a number
 	// -----------------------------------------------------------------------

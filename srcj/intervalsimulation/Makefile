@@ -51,8 +51,11 @@ sum: Sum.class
 inflated: InflatedLinearMap.class
 	java -server -classpath $(JARLOC):. InflatedLinearMap
 
+floating: Floating.class
+	java -classpath $(JARLOC):. Floating
+
 floats: TestFloatingDecimal.class
-	java -server -enableassertions -classpath $(JARLOC):. TestFloatingDecimal
+	java -server -Xmx600m -enableassertions -classpath $(JARLOC):. TestFloatingDecimal
 
 floatp: TestFloatingDecimal.class
 	java -server -XX:+PrintCompilation -classpath $(JARLOC):. TestFloatingDecimal
