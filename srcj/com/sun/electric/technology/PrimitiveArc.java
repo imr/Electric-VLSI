@@ -28,6 +28,7 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.technologies.Generic;
 
 import java.util.Iterator;
 import java.util.HashMap;
@@ -261,5 +262,24 @@ public class PrimitiveArc extends ArcProto implements Comparable
 	public String toString()
 	{
 		return "PrimitiveArc " + describe();
+	}
+
+    /**
+	 * Method to get MinZ and MaxZ of this PrimitiveArc
+	 * @param array array[0] is minZ and array[1] is max
+	 */
+	public void getZValues(double [] array)
+	{
+		for(int j=0; j<layers.length; j++)
+		{
+			Layer layer = layers[j].getLayer();
+
+			double distance = layer.getDistance();
+			double thickness = layer.getThickness();
+			double z = distance + thickness;
+
+			array[0] = (array[0] > distance) ? distance : array[0];
+			array[1] = (array[1] < z) ? z : array[1];
+		}
 	}
 }

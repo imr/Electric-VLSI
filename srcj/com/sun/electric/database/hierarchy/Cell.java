@@ -32,6 +32,7 @@ import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
@@ -47,6 +48,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
@@ -4029,6 +4031,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 				np.getZValues(array);
 			}
 		}
+        for (int i = 0; i < arcs.size(); i++)
+        {
+            ArcInst ai = (ArcInst)arcs.get(i);
+            PrimitiveArc ap = (PrimitiveArc)ai.getProto();
+            ap.getZValues(array);
+        }
 	}
 
 	public boolean findReferenceInCell(Library elib, Set set)

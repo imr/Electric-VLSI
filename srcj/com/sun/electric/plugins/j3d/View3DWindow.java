@@ -608,9 +608,11 @@ public class View3DWindow extends JPanel
 			cell.getZValues(values);
 			values[0] *= scale3D;
 			values[1] *= scale3D;
-			Poly pol = new Poly(rect);			list = new ArrayList(1);
+			Poly pol = new Poly(rect);
+            list = new ArrayList(1);
 
-			pol.transform(transform);
+            if (transform.getType() != AffineTransform.TYPE_IDENTITY)
+			    pol.transform(transform);
 			rect = pol.getBounds2D();
 			list.add(J3DUtils.addPolyhedron(rect, values[0], values[1] - values[0], J3DAppearance.cellApp, objTrans));
 		}
@@ -1243,7 +1245,7 @@ public class View3DWindow extends JPanel
 		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
 		{
 			NodeInst ni = no.getNodeInst();
-			AffineTransform trans = ni.rotateOut();
+			AffineTransform trans = ni.rotateOutAboutTrueCenter();
 			AffineTransform root = info.getTransformToRoot();
 			if (root.getType() != AffineTransform.TYPE_IDENTITY)
 				trans.preConcatenate(root);

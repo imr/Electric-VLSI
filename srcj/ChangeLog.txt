@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02j: *********************************
 
+BUG: (03/31/05, GVG) Cell expansion with several sublevels was not working.
+FIX: Using rotateOutAboutTrueCenter instead of rotateOut
+
 BUG: (03/31/05, GVG) Exception in output.JELIB if var == null and we are testing var.isParam();
 FIX: var != null added
 
