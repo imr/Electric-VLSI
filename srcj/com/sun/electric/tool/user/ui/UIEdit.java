@@ -208,11 +208,10 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 		Library curLib = Library.getCurrent();
 		curLib.setCurCell(cell);
 		Highlight.clearHighlighting();
-        if (lastPushed != null) Highlight.addHighlighting(lastPushed);
 		fillScreen();
 		redraw();
 	}
-    
+  
     public void fillScreen() {
         if (cell == null) return;
         sz = getSize();
@@ -227,8 +226,6 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
     
     // ************************************* HIERARCHY TRAVERSAL *************************************
 
-    private Geometric lastPushed = null;                   // last nodeinst pushed into
-        
     /**
      * Get the window's VarContext
      * @return the current VarContext
@@ -265,7 +262,6 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
         // special case: if cell is icon of current cell, descend into icon
         if (this.cell == schCell) schCell = cell;
         if (schCell == null) return;                // nothing to descend into
-        lastPushed = geom;
         setCell(schCell, cellVarContext.push(ni));
     }
        
@@ -278,6 +274,8 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
             Cell parent = ni.getParent();
             VarContext context = cellVarContext.pop();
             setCell(parent, context);
+            Highlight.addHighlighting((Geometric)ni);
+            needsUpdate = true;
         } catch (NullPointerException e) {
             // no parent - if icon, go to sch view
             // - otherwise, ask user where to go if necessary

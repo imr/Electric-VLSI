@@ -41,6 +41,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;

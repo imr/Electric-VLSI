@@ -68,7 +68,7 @@ public class UIEditFrame extends JInternalFrame
 		JSplitPane js = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 		js.setRightComponent(wnd);
 		js.setLeftComponent(scrolledTree);
-		js.setDividerLocation(150);
+		js.setDividerLocation(180);
 		this.getContentPane().add(js);
 		show();
 		addInternalFrameListener(
