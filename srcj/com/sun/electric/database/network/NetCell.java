@@ -435,7 +435,7 @@ class NetCell
 				PortInst pi = ni.getPortInst(j);
 				int piOffset = getPortInstOffset(pi);
 				if (ni.isIconOfParent() ||
-					np.getFunction() == NodeProto.Function.ART ||
+					np.getFunction() == NodeProto.Function.ART && np != Generic.tech.simProbeNode ||
 					np == Artwork.tech.pinNode ||
 					np == Generic.tech.invisiblePinNode) {
 					if (drawns[piOffset] >= 0 && !cell.isIcon()) {
