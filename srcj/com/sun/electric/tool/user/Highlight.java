@@ -367,6 +367,14 @@ public class Highlight
 		}
 	}
 
+    /**
+     * Removes a Highlight object from the current set of highlights.
+     * @param h the Highlight to remove
+     */
+    public static synchronized void remove(Highlight h) {
+        highlightList.remove(h);
+    }
+
 	/**
 	 * Method to return the type of this Highlight (EOBJ, TEXT, BBOX, LINE, or MESSAGE).
 	 * @return the type of this Highlight.

@@ -87,6 +87,7 @@ public class ClickZoomWireListener
     private ElectricObject endObj;              /* object routing to */
 
     private int mouseX, mouseY;                 /* last known location of mouse */
+    private Highlight moveDelta;                /* highlight to display move delta */
 
     private EventListener oldListener;          /* used when swtiching back to old listener */
 
@@ -385,6 +386,7 @@ public class ClickZoomWireListener
 	                // over something, user may want to move objects
 	                dbMoveStartX = (int)dbClick.getX();
 	                dbMoveStartY = (int)dbClick.getY();
+                    moveDelta = null;
 	                modeLeft = Mode.move;
 	            } else {
 	                // findObject handles cycling through objects (another)
@@ -401,6 +403,7 @@ public class ClickZoomWireListener
 	                    // over something, user may want to move objects
 	                    dbMoveStartX = (int)dbClick.getX();
 	                    dbMoveStartY = (int)dbClick.getY();
+                        moveDelta = null;
 	                    modeLeft = Mode.move;
 	                }
 	            }
@@ -555,9 +558,6 @@ public class ClickZoomWireListener
 	            }
 	            if (modeLeft == Mode.move || modeLeft == Mode.stickyMove) {
 	                // moving objects
-	                // ignore moving objects drag if not after specified delay
-	                // this prevents accidental movements on user clicks
-	                //if ((currentTime - leftMousePressedTimeStamp) < dragDelayMillis) return;
 	                // if CTRL held, can only move orthogonally
 	                if (another)
 	                    dbMouse = convertToOrthogonal(new Point2D.Double(dbMoveStartX, dbMoveStartY), dbMouse);
@@ -566,6 +566,11 @@ public class ClickZoomWireListener
 	                EditWindow.gridAlign(dbDelta);              // align to grid
 	                Point2D screenDelta = wnd.deltaDatabaseToScreen((int)dbDelta.getX(), (int)dbDelta.getY());
 	                Highlight.setHighlightOffset((int)screenDelta.getX(), (int)screenDelta.getY());
+                    // display amount to be moved in center of screen
+                    Point2D center = new Point((int)(-screenDelta.getX() + wnd.getOffset().getX()),
+                                               (int)(-screenDelta.getY() + wnd.getOffset().getY()));
+                    if (moveDelta != null) Highlight.remove(moveDelta);
+                    moveDelta = Highlight.addMessage(cell, "("+(int)dbDelta.getX()+","+(int)dbDelta.getY()+")", new Point(0,0));
 	                wnd.repaint();
 	            }
 	        }
@@ -702,6 +707,7 @@ public class ClickZoomWireListener
 	                if ((curTime - leftMousePressedTimeStamp) < cancelMoveDelayMillis) {
 	                    Highlight.setHighlightOffset(0, 0);
 	                    modeLeft = Mode.none;
+                        if (moveDelta != null) Highlight.remove(moveDelta);                        
 	                    wnd.repaint();
 	                    return;
 	                }
@@ -745,6 +751,7 @@ public class ClickZoomWireListener
 	                        dbMouse = convertToOrthogonal(new Point2D.Double(dbMoveStartX, dbMoveStartY), dbMouse);
 	                    Point2D dbDelta = new Point((int)dbMouse.getX() - dbMoveStartX, (int)dbMouse.getY() - dbMoveStartY);
 	                    EditWindow.gridAlign(dbDelta);
+                        if (moveDelta != null) Highlight.remove(moveDelta);
 	                    if (dbDelta.getX() != 0 || dbDelta.getY() != 0) {
 	                        Highlight.setHighlightOffset(0, 0);
 	                        CircuitChanges.manyMove(dbDelta.getX(), dbDelta.getY());
