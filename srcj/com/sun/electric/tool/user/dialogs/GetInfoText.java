@@ -46,12 +46,15 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyListener;
+import java.awt.event.KeyEvent;
 import java.util.Iterator;
+import java.util.ArrayList;
 import javax.swing.JFrame;
 
 /**
-* Class to handle the "Text Get-Info" dialog.
-*/
+ * Class to handle the "Text Get-Info" dialog.
+ */
 public class GetInfoText extends EDialog {
     private static GetInfoText theDialog = null;
     private Highlight shownText;
@@ -65,107 +68,132 @@ public class GetInfoText extends EDialog {
      * Method to show the Text Get-Info dialog.
      */
     public static void showDialog() {
-       if (theDialog == null) {
-           if (TopLevel.isMDIMode()) {
-               JFrame jf = TopLevel.getCurrentJFrame();
-               theDialog = new GetInfoText(jf, false);
-           } else {
-               theDialog = new GetInfoText(null, false);
-           }
-       }
-       theDialog.show();
+        if (theDialog == null) {
+            if (TopLevel.isMDIMode()) {
+                JFrame jf = TopLevel.getCurrentJFrame();
+                theDialog = new GetInfoText(jf, false);
+            } else {
+                theDialog = new GetInfoText(null, false);
+            }
+        }
+        theDialog.loadTextInfo();
+        theDialog.show();
     }
 
-   /**
-    * Method to reload the Text Get-Info dialog from the current highlighting.
-    */
-   public static void load() {
-       if (theDialog == null) return;
-       theDialog.loadTextInfo();
-   }
+    /**
+     * Method to reload the Text Get-Info dialog from the current highlighting.
+     */
+    public static void load() {
+        if (theDialog == null) return;
+        if (!theDialog.isVisible()) return;
+        theDialog.loadTextInfo();
+    }
 
-   private void loadTextInfo() {
-       // must have a single text selected
-       Highlight textHighlight = null;
-       int textCount = 0;
-       for (Iterator it = Highlight.getHighlights(); it.hasNext();) {
-           Highlight h = (Highlight) it.next();
-           if (h.getType() != Highlight.Type.TEXT) continue;
+    private void loadTextInfo() {
+        // must have a single text selected
+        Highlight textHighlight = null;
+        int textCount = 0;
+        for (Iterator it = Highlight.getHighlights(); it.hasNext();) {
+            Highlight h = (Highlight) it.next();
+            if (h.getType() != Highlight.Type.TEXT) continue;
             // ignore export text
-           if (h.getVar() == null && h.getElectricObject() instanceof Export) continue;
-           textHighlight = h;
-           textCount++;
-       }
+            if (h.getVar() == null && h.getElectricObject() instanceof Export) continue;
+            textHighlight = h;
+            textCount++;
+        }
         if (textCount > 1) textHighlight = null;
-       boolean enabled = (textHighlight == null) ? false : true;
-       // enable or disable everything
-       for (int i = 0; i < getComponentCount(); i++) {
-           Component c = getComponent(i);
-           c.setEnabled(enabled);
-       }
+        boolean enabled = (textHighlight == null) ? false : true;
+        // enable or disable everything
+        for (int i = 0; i < getComponentCount(); i++) {
+            Component c = getComponent(i);
+            c.setEnabled(enabled);
+        }
         if (!enabled) {
-           header.setText("No Text Selected");
-           evaluation.setText("");
-           theText.setText("");
-           shownText = null;
-           textPanel.setTextDescriptor(null, null, null);
-           attrPanel.setVariable(null, null, null, null);
-           return;
-       }
+            header.setText("No Text Selected");
+            evaluation.setText("");
+            theText.setText("");
+            theText.setEnabled(false);
+            shownText = null;
+            textPanel.setTextDescriptor(null, null, null);
+            attrPanel.setVariable(null, null, null, null);
+            return;
+        }
         String description = "Unknown text";
-       initialText = "";
-       td = null;
-       owner = textHighlight.getElectricObject();
-       NodeInst ni = null;
-       if (owner instanceof NodeInst) ni = (NodeInst) owner;
-       var = textHighlight.getVar();
-       if (var != null) {
+        initialText = "";
+        td = null;
+        owner = textHighlight.getElectricObject();
+        NodeInst ni = null;
+        if (owner instanceof NodeInst) ni = (NodeInst) owner;
+        var = textHighlight.getVar();
+        if (var != null) {
             td = var.getTextDescriptor();
-           Object obj = var.getObject();
-           if (obj instanceof Object[]) {
-               // unwind the array elements by hand
-               Object[] theArray = (Object[]) obj;
-               initialText = "";
-               for (int i = 0; i < theArray.length; i++) {
-                   if (i != 0) initialText += "\n";
-                   initialText += theArray[i];
-               }
-           } else {
-               initialText = var.getPureValue(-1, -1);
-           }
-           description = var.getFullDescription(owner);
-       } else {
+            Object obj = var.getObject();
+            if (obj instanceof Object[]) {
+                // unwind the array elements by hand
+                Object[] theArray = (Object[]) obj;
+                initialText = "";
+                for (int i = 0; i < theArray.length; i++) {
+                    if (i != 0) initialText += "\n";
+                    initialText += theArray[i];
+                }
+            } else {
+                initialText = var.getPureValue(-1, -1);
+            }
+            description = var.getFullDescription(owner);
+        } else {
             if (textHighlight.getName() != null) {
-               if (owner instanceof Geometric) {
-                   Geometric geom = (Geometric) owner;
-                   td = geom.getNameTextDescriptor();
-                   if (geom instanceof NodeInst) {
-                       description = "Name of node " + ((NodeInst) geom).getProto().describe();
-                   } else {
-                       description = "Name of arc " + ((ArcInst) geom).getProto().describe();
-                   }
-                   initialText = geom.getName();
-               }
-           } else if (owner instanceof NodeInst) {
+                if (owner instanceof Geometric) {
+                    Geometric geom = (Geometric) owner;
+                    td = geom.getNameTextDescriptor();
+                    if (geom instanceof NodeInst) {
+                        description = "Name of node " + ((NodeInst) geom).getProto().describe();
+                    } else {
+                        description = "Name of arc " + ((ArcInst) geom).getProto().describe();
+                    }
+                    initialText = geom.getName();
+                }
+            } else if (owner instanceof NodeInst) {
                 description = "Name of cell instance " + ni.describe();
-               td = ni.getProtoTextDescriptor();
-               initialText = ni.getProto().describe();
-           }
-       }
-        header.setText(description);
-       theText.setText(initialText);
-       theText.setEditable(true);
-        // if the var is code, evaluate it
-       evaluation.setText("");
-       if (var != null) {
-           if (var.isCode()) {
-               evaluation.setText("Evaluation: " + var.describe(-1, -1));
-           }
-       }
-        // set the text edit panel
-       textPanel.setTextDescriptor(td, null, owner);
-       attrPanel.setVariable(var, td, null, owner);
+                td = ni.getProtoTextDescriptor();
+                initialText = ni.getProto().describe();
+            }
+        }
         shownText = textHighlight;
+        header.setText(description);
+        System.out.println("Setting initial text: "+initialText);
+        theText.setText(initialText);
+        theText.setEditable(true);
+        // if multiline text, make it a TextArea, otherwise it's a TextField
+        if (initialText.indexOf('\n') != -1) {
+            // if this is the name of an object it should not be multiline
+            if (var == null && shownText != null && shownText.getName() != null) {
+                multiLine.setEnabled(false);
+                multiLine.setSelected(false);
+            } else {
+                multiLine.setEnabled(true);
+                multiLine.setSelected(true);
+            }
+        } else {
+            // if this is the name of an object it should not be multiline
+            if (var == null && shownText != null && shownText.getName() != null) {
+                multiLine.setEnabled(false);
+            } else {
+                multiLine.setEnabled(true);
+            }
+            multiLine.setSelected(false);
+        }
+        theText.setText(initialText);
+        changeTextComponent(multiLine.isSelected());
+        // if the var is code, evaluate it
+        evaluation.setText("");
+        if (var != null) {
+            if (var.isCode()) {
+                evaluation.setText("Evaluation: " + var.describe(-1, -1));
+            }
+        }
+        // set the text edit panel
+        textPanel.setTextDescriptor(td, null, owner);
+        attrPanel.setVariable(var, td, null, owner);
     }
 
     /**
@@ -176,7 +204,7 @@ public class GetInfoText extends EDialog {
         initComponents();
         getRootPane().setDefaultButton(ok);
 
-       loadTextInfo();
+        loadTextInfo();
     }
 
     protected static class ChangeText extends Job {
@@ -185,7 +213,7 @@ public class GetInfoText extends EDialog {
         ElectricObject owner;
         String[] newText;
 
-       protected ChangeText(Variable var, Name name, ElectricObject owner, String[] newText) {
+        protected ChangeText(Variable var, Name name, ElectricObject owner, String[] newText) {
             super("Modify Text", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.var = var;
             this.name = name;
@@ -194,7 +222,7 @@ public class GetInfoText extends EDialog {
             startJob();
         }
 
-       public boolean doIt() {
+        public boolean doIt() {
             if (var != null) {
                 Variable newVar = null;
                 if (newText.length > 1) {
@@ -212,8 +240,8 @@ public class GetInfoText extends EDialog {
                 }
             }
             GetInfoText.load();
-		return true;
-       }
+            return true;
+        }
     }
 
     /**
@@ -223,14 +251,14 @@ public class GetInfoText extends EDialog {
      * <p/>
      * occur after the queued changes
      */
-     private static class UpdateDialog extends Job {
+    private static class UpdateDialog extends Job {
         private UpdateDialog() {
             super("Update Attributes Dialog", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
             startJob();
         }
         public boolean doIt() {
             GetInfoText.load();
-			return true;
+            return true;
         }
     }
 
@@ -239,22 +267,23 @@ public class GetInfoText extends EDialog {
      * <p/>
      * initialize the form.
      */
-     private void initComponents() {
+    private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
-       cancel = new javax.swing.JButton();
+        cancel = new javax.swing.JButton();
         ok = new javax.swing.JButton();
         header = new javax.swing.JLabel();
         apply = new javax.swing.JButton();
         evaluation = new javax.swing.JLabel();
-        theText = new javax.swing.JTextArea();
+        theText = new javax.swing.JTextField();
         textPanel = new TextInfoPanel();
         attrPanel = new TextAttributesPanel();
         buttonsPanel = new javax.swing.JPanel();
+        multiLine = new javax.swing.JCheckBox();
 
-       getContentPane().setLayout(new java.awt.GridBagLayout());
+        getContentPane().setLayout(new java.awt.GridBagLayout());
 
-       setTitle("Text Properties");
+        setTitle("Text Properties");
         setName("");
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
@@ -262,27 +291,35 @@ public class GetInfoText extends EDialog {
             }
         });
 
-       header.setText(" ");
+        header.setText("");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(header, gridBagConstraints);
 
-       gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(theText, gridBagConstraints);
+        changeTextComponent(true);
 
-       evaluation.setText(" ");
+        multiLine.setText("Multi-Line Text");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        getContentPane().add(multiLine, gridBagConstraints);
+        multiLine.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent e) {
+                multiLineStateChanged();
+            }
+        });
+
+        evaluation.setText("");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
@@ -291,7 +328,7 @@ public class GetInfoText extends EDialog {
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         getContentPane().add(evaluation, gridBagConstraints);
 
-       gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 3;
@@ -299,7 +336,7 @@ public class GetInfoText extends EDialog {
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         getContentPane().add(textPanel, gridBagConstraints);
 
-       gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 3;
@@ -307,7 +344,7 @@ public class GetInfoText extends EDialog {
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         getContentPane().add(attrPanel, gridBagConstraints);
 
-       cancel.setText("Cancel");
+        cancel.setText("Cancel");
         cancel.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 cancelActionPerformed(evt);
@@ -321,14 +358,14 @@ public class GetInfoText extends EDialog {
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(cancel, gridBagConstraints);
 
-       apply.setText("Apply");
+        apply.setText("Apply");
         apply.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 applyActionPerformed(evt);
             }
         });
 
-       gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.weightx = 0.1;
@@ -336,14 +373,14 @@ public class GetInfoText extends EDialog {
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(apply, gridBagConstraints);
 
-       ok.setText("OK");
+        ok.setText("OK");
         ok.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 okActionPerformed(evt);
             }
         });
 
-       gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.weightx = 0.1;
@@ -352,17 +389,103 @@ public class GetInfoText extends EDialog {
         getContentPane().add(ok, gridBagConstraints);
 /*
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.gridwidth = 1;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        getContentPane().add(buttonsPanel, gridBagConstraints);
+gridBagConstraints = new java.awt.GridBagConstraints();
+gridBagConstraints.gridx = 0;
+gridBagConstraints.gridy = 5;
+gridBagConstraints.gridwidth = 1;
+gridBagConstraints.weightx = 1.0;
+gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+getContentPane().add(buttonsPanel, gridBagConstraints);
 */
 
         pack();
+    }
+
+    private void multiLineStateChanged() {
+        // set text box type
+        changeTextComponent(multiLine.isSelected());
+    }
+
+    private void changeTextComponent(boolean multipleLines) {
+
+        String currentText = theText.getText();
+
+        System.out.println("ChangeTextComponent old text: "+currentText);
+        getContentPane().remove(theText);
+
+        if (currentText == null) currentText = "";
+
+        if (multipleLines) {
+            // multiline text, change to text area
+            theText = new javax.swing.JTextArea();
+            String[] text = currentText.split("\\n");
+            int size = 2;
+            if (text.length > size) size = text.length;
+            ((javax.swing.JTextArea)theText).setRows(size);
+
+            // add listener to increase the number of rows if needed
+            theText.addKeyListener(new KeyListener() {
+                public void keyPressed(KeyEvent e) {}
+                public void keyTyped(KeyEvent e) {}
+                public void keyReleased(KeyEvent e) {
+                    javax.swing.JTextArea area = (javax.swing.JTextArea)theText;
+                    area.setRows(area.getLineCount());
+                    pack();
+                }
+            });
+
+        } else {
+            theText = new javax.swing.JTextField();
+            if (currentText.matches(".*?\\n.*")) {
+                currentText = currentText.substring(0, currentText.indexOf('\n'));
+            }
+        }
+        System.out.println("ChangeTextComponent new text: "+currentText);
+        theText.setText(currentText);
+
+        java.awt.GridBagConstraints gridBagConstraints;
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(theText, gridBagConstraints);
+
+        pack();
+    }
+
+    private String getDelimtedText(javax.swing.text.JTextComponent c) {
+        String currentText = c.getText();
+
+        // getText from JTextArea returns one line. I want the
+        // new line characters to be in there.
+        if (c instanceof javax.swing.JTextArea) {
+            javax.swing.JTextArea area = (javax.swing.JTextArea)c;
+
+            StringBuffer text = new StringBuffer();
+            boolean first = true;
+            for (int i = 0; i < area.getLineCount(); i++) {
+                try {
+                    if (!first) {
+                        text.append("\n");
+                    }
+                    int startPos = area.getLineStartOffset(i);
+                    int endPos = area.getLineEndOffset(i);
+                    text.append(currentText.substring(startPos, endPos));
+                    System.out.println("Line "+i+" is: "+currentText.substring(startPos, endPos));
+                    first = false;
+                } catch (javax.swing.text.BadLocationException e) {
+                    e.printStackTrace(System.out);
+                }
+            }
+            currentText = text.toString();
+        }
+
+        return currentText;
     }
 
     private void applyActionPerformed(ActionEvent evt) {
@@ -375,33 +498,34 @@ public class GetInfoText extends EDialog {
         boolean changed = false;
 
         // see if text changed
-        String currentText = theText.getText();
+        String currentText = getDelimtedText(theText);
         if (!currentText.equals(initialText)) changed = true;
 
         if (changed) {
-            // split text into lines
-	        // Should skip empty lines
-            String[] textArray = new String[theText.getLineCount()];
-            for (int i = 0; i < theText.getLineCount(); i++) {
-                try {
-                    int startPos = theText.getLineStartOffset(i);
-                    int endPos = theText.getLineEndOffset(i);
-                    if (currentText.charAt(endPos - 1) == '\n') endPos--;
-	                if (endPos < startPos) continue; // empty line, just return character
-                    textArray[i] = currentText.substring(startPos, endPos);
-                } catch (javax.swing.text.BadLocationException e) {
-                    e.printStackTrace(System.out);
-                }
+
+            String[] textArray = currentText.split("\\n");
+            ArrayList textList = new ArrayList();
+            for (int i=0; i<textArray.length; i++) {
+                String str = textArray[i];
+                str = str.trim();
+                if (str.equals("")) continue;
+                textList.add(str);
             }
 
-           if (textArray.length > 0) {
+            textArray = new String[textList.size()];
+            for (int i=0; i<textList.size(); i++) {
+                String str = (String)textList.get(i);
+                textArray[i] = str;
+            }
+
+            if (textArray.length > 0) {
                 // generate job to change text
                 ChangeText job = new ChangeText(var, shownText.getName(), owner, textArray);
                 initialText = currentText;
             }
         }
         // update dialog
-        UpdateDialog job2 = new UpdateDialog();
+        //UpdateDialog job2 = new UpdateDialog();
 
     }
 
@@ -428,8 +552,9 @@ public class GetInfoText extends EDialog {
     private javax.swing.JLabel evaluation;
     private javax.swing.JLabel header;
     private javax.swing.JButton ok;
-    private javax.swing.JTextArea theText;
+    private javax.swing.text.JTextComponent theText;
     private javax.swing.JPanel buttonsPanel;
     private TextInfoPanel textPanel;
     private TextAttributesPanel attrPanel;
+    private javax.swing.JCheckBox multiLine;
 }
