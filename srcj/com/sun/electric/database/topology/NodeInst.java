@@ -2430,5 +2430,23 @@ public class NodeInst extends Geometric implements Nodable
 		double maxY = Math.max(ll.getY(), ur.getY());
 		return new Rectangle2D.Double(minX, minY, maxX-minX, maxY-minY);
 	}
-    
+
+    public boolean myEquals(Object obj)
+	{
+		if (this == obj) return (true);
+
+		// Consider already obj==null
+		if (!(obj instanceof NodeInst)) return (false);
+
+        NodeInst no = (NodeInst)obj;
+        if (getFunction() != no.getFunction()) return (false);
+
+        NodeProto noProtoType = no.getProto();
+        NodeProto protoType = getProto();
+
+        if (protoType != noProtoType) return (false);
+        if (protoType.getTechnology() != noProtoType.getTechnology()) return (false);
+
+        return (true);
+    }
 }

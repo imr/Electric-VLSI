@@ -49,18 +49,7 @@ import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ErrorLog;
 import com.sun.electric.tool.user.HighlightListener;
 
-import java.awt.Dimension;
-import java.awt.Image;
-import java.awt.Point;
-import java.awt.Font;
-import java.awt.BasicStroke;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Color;
-import java.awt.Toolkit;
-import java.awt.Rectangle;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
+import java.awt.*;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseWheelListener;
@@ -87,6 +76,8 @@ import javax.swing.JScrollBar;
 import javax.swing.JPopupMenu;
 import javax.swing.JMenuItem;
 import javax.swing.tree.DefaultMutableTreeNode;
+
+//import com.sun.j3d.utils.universe.*;
 
 /**
  * This class defines an editing window for displaying circuitry.
@@ -179,6 +170,9 @@ public class EditWindow extends JPanel
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.weightx = gbc.weighty = 1;
 		overall.add(this, gbc);
+
+        // Gilda 3D
+        //GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
 
 		//setAutoscrolls(true);
         // add listeners --> BE SURE to remove listeners in finished()

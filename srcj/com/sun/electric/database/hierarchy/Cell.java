@@ -2459,7 +2459,7 @@ public class Cell extends NodeProto implements Comparable
 	/** Use to compare cells in Cross Library Chech
 	 *
 	 */
-	public boolean equals(Object obj)
+	public boolean myEquals(Object obj)
 	{
 		if (this == obj) return (true);
 
@@ -2467,8 +2467,92 @@ public class Cell extends NodeProto implements Comparable
 		if (!(obj instanceof Cell)) return (false);
 
 		Cell toCompare = (Cell)obj;
-        Date toCompareDate = toCompare.getRevisionDate();
 
+        // Checking if they have same amount of children
+        if (getNumNodes() != toCompare.getNumNodes() ||
+                getNumArcs() != toCompare.getNumArcs() ||
+                getNumPorts() != toCompare.getNumPorts())
+            return (false);
+
+        // Traversing nodes
+        for (Iterator it = getNodes(); it.hasNext(); )
+        {
+            boolean found = false;
+            NodeInst node = (NodeInst)it .next();
+
+            for (Iterator i = toCompare.getNodes(); i.hasNext();)
+            {
+                NodeInst n = (NodeInst)i .next();
+
+                if (node.myEquals(n)) 
+                {
+                    found = true;
+                    break;
+                }
+            }
+            // No correspoding NodeInst found
+            if (!found) return (false);
+        }
+
+        /**
+////	/* make sure the nodes are the same */
+////	lambda1 = lambdaofcell(np1);
+//	lambda2 = lambdaofcell(np2);
+//	for(ni2 = np2->firstnodeinst; ni2 != NONODEINST; ni2 = ni2->nextnodeinst)
+//		ni2->temp1 = 0;
+//	for(ni1 = np1->firstnodeinst; ni1 != NONODEINST; ni1 = ni1->nextnodeinst)
+//	{
+//		/* find the node in the other cell */
+//		ni1->temp1 = 0;
+//		cx = (ni1->lowx + ni1->highx) / 2;
+//		cy = (ni1->lowy + ni1->highy) / 2;
+//		sea = initsearch(cx, cx, cy, cy, np2);
+//		for(;;)
+//		{
+//			geom = nextobject(sea);
+//			if (geom == NOGEOM) break;
+//			if (!geom->entryisnode) continue;
+//			ni2 = geom->entryaddr.ni;
+//			if (ni1->lowx != ni2->lowx || ni1->highx != ni2->highx ||
+//				ni1->lowy != ni2->lowy || ni1->highy != ni2->highy) continue;
+//			if (ni1->rotation != ni2->rotation || ni1->transpose != ni2->transpose) continue;
+//			if (ni1->proto->primindex != ni2->proto->primindex) continue;
+//			if (ni1->proto->primindex != 0)
+//			{
+//				/* make sure the two primitives are the same */
+//				if (ni1->proto != ni2->proto) continue;
+//			} else
+//			{
+//				/* make sure the two cells are the same */
+//				if (namesame(ni1->proto->protoname, ni2->proto->protoname) != 0)
+//					continue;
+//				if (ni1->proto->cellview != ni2->proto->cellview) continue;
+//			}
+//
+//			/* the nodes match */
+//			ni1->temp1 = (INTBIG)ni2;
+//			ni2->temp1 = (INTBIG)ni1;
+//			termsearch(sea);
+//			break;
+//		}
+//		if (ni1->temp1 == 0)
+//		{
+//			if (explain > 0)
+//				ttyputmsg(_("No equivalent to node %s at (%s,%s) in cell %s"),
+//					describenodeinst(ni1), latoa((ni1->lowx+ni1->highx)/2, lambda1),
+//						latoa((ni1->lowy+ni1->highy)/2, lambda1), describenodeproto(np1));
+//			return(FALSE);
+//		}
+//	}
+//	for(ni2 = np2->firstnodeinst; ni2 != NONODEINST; ni2 = ni2->nextnodeinst)
+//	{
+//		if (ni2->temp1 != 0) continue;
+//		if (explain > 0)
+//			ttyputmsg(_("No equivalent to node %s at (%s,%s) in cell %s"),
+//				describenodeinst(ni2), latoa((ni2->lowx+ni2->highx)/2, lambda2),
+//					latoa((ni2->lowy+ni2->highy)/2, lambda2), describenodeproto(np2));
+//		return(FALSE);
+//	}
 		return (false);
 	}
 

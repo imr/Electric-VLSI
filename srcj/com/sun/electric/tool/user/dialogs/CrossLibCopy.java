@@ -272,7 +272,7 @@ public class CrossLibCopy extends EDialog
 		}
 		public boolean doIt()
 		{
-			boolean sameC = leftC.equals(rightC);
+			boolean sameC = (leftC != null && leftC.equals(rightC));
 
 			System.out.println("Cell left and right are " + leftC.compareTo(rightC) + " equal?" + sameC);
 			return (true);
@@ -600,7 +600,7 @@ public class CrossLibCopy extends EDialog
 
 	private void examineContentsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_examineContentsActionPerformed
 	{//GEN-HEADEREND:event_examineContentsActionPerformed
-		System.out.println("This button doesn't work yet");
+		System.out.println("Under construction....");
 		String cellLeft = (String)listLeft.getSelectedValue();
 		String cellRight = (String)listRight.getSelectedValue();
 

@@ -1034,7 +1034,6 @@ public final class MenuCommands
 			gildaMenu.addMenuItem("Merge Polyons", null,
 					new ActionListener() { public void actionPerformed(ActionEvent e) {layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.MERGE, true);}});
 			gildaMenu.addMenuItem("Covering Implants", null,
-					//new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(true, false);}});
 			        new ActionListener() { public void actionPerformed(ActionEvent e) {layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, true);}});
 			gildaMenu.addMenuItem("Covering Implants Old", null,
 					new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(false, false);}});
@@ -1837,8 +1836,6 @@ public final class MenuCommands
 			public boolean enterCell(HierarchyEnumerator.CellInfo info)
 			{
 				Cell curCell = info.getCell();
-
-				//System.out.println("Cell enter " + curCell.getProtoName());
 
 				// Traversing arcs
 				for (Iterator it = curCell.getArcs(); it.hasNext(); )
