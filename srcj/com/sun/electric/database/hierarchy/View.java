@@ -54,7 +54,6 @@ public class View extends ElectricObject
 	/** the abbreviation of the view */						private String abbreviation;
 	/** ordering for this view */							private int order;
 	/** flag bits for the view */							private int type;
-	/** temporary integer for the view */					private int tempInt;
 	/** a list of all views in existence */					private static List views = new ArrayList();
 	/** a list of views by short and long names */			private static HashMap viewNames = new HashMap();
 
@@ -313,18 +312,6 @@ public class View extends ElectricObject
 	 * @return the ordering this View.
 	 */
 	public int getOrder() { return order; }
-
-	/**
-	 * Method to set an arbitrary integer in a temporary location on this View.
-	 * @param tempInt the integer to be set on this View.
-	 */
-	public void setTempInt(int tempInt) { this.tempInt = tempInt; }
-
-	/**
-	 * Method to get the temporary integer on this View.
-	 * @return the temporary integer on this View.
-	 */
-	public int getTempInt() { return tempInt; }
 
 	/**
 	 * Method to return true if this View is Text-only.

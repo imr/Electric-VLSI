@@ -69,7 +69,7 @@ public class Array extends EDialog
 	private static boolean lastXFlip = false, lastYFlip = false;
 	private static boolean lastXStagger = false, lastYStagger = false;
 	private static boolean lastXCenter = false, lastYCenter = false;
-	private static boolean lastLinearDiagonal = false, lastAddNames = false, lastDRCGood = false;
+	private static boolean lastLinearDiagonal = false, lastAddNames = false, lastDRCGood = false, lastTranspose = false;
 	private static int lastSpacingType = SPACING_EDGE;
 	/** amount when spacing by edge overlap */				private double spacingOverX, spacingOverY;
 	/** amount when spacing by centerline distance */		private double spacingCenterlineX, spacingCenterlineY;
@@ -123,6 +123,7 @@ public class Array extends EDialog
 		linearDiagonalArray.setSelected(lastLinearDiagonal);
 		generateArrayIndices.setSelected(lastAddNames);
 		onlyDRCCorrect.setSelected(lastDRCGood);
+		transposePlacement.setSelected(lastTranspose);
 
 		// see if a cell was selected which has a characteristic distance
 		spacingCharacteristicX = spacingCharacteristicY = 0;
@@ -316,6 +317,7 @@ public class Array extends EDialog
 		lastLinearDiagonal = linearDiagonalArray.isSelected();
 		lastAddNames = generateArrayIndices.isSelected();
 		lastDRCGood = onlyDRCCorrect.isSelected();
+		lastTranspose = transposePlacement.isSelected();
 	}
 
 	private void makeArray()
@@ -408,8 +410,16 @@ public class Array extends EDialog
 
 			// create the array
 			int originalX = 0, originalY = 0;
-			for(int y=0; y<lastYRepeat; y++) for(int x=0; x<lastXRepeat; x++)
+			int total = lastYRepeat * lastXRepeat;
+			for(int index = 0; index < total; index++)
 			{
+				int x = index % lastXRepeat;
+				int y = index / lastXRepeat;
+				if (lastTranspose)
+				{
+					y = index % lastYRepeat;
+					x = index / lastYRepeat;
+				}
 				int xIndex = x;
 				int yIndex = y;
 				if (lastXCenter) xIndex = x - (lastXRepeat-1)/2;
@@ -625,6 +635,7 @@ public class Array extends EDialog
         linearDiagonalArray = new javax.swing.JCheckBox();
         generateArrayIndices = new javax.swing.JCheckBox();
         onlyDRCCorrect = new javax.swing.JCheckBox();
+        transposePlacement = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -865,9 +876,18 @@ public class Array extends EDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 13;
         gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         getContentPane().add(onlyDRCCorrect, gridBagConstraints);
+
+        transposePlacement.setText("Transpose placement ordering");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 14;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        getContentPane().add(transposePlacement, gridBagConstraints);
 
         pack();
     }//GEN-END:initComponents
@@ -912,6 +932,7 @@ public class Array extends EDialog
     private javax.swing.ButtonGroup spacing;
     private javax.swing.JCheckBox staggerAlternateColumns;
     private javax.swing.JCheckBox staggerAlternateRows;
+    private javax.swing.JCheckBox transposePlacement;
     private javax.swing.JLabel xOverlapLabel;
     private javax.swing.JTextField xRepeat;
     private javax.swing.JTextField xSpacing;

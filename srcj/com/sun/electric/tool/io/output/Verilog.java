@@ -46,7 +46,6 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
 
-import java.text.SimpleDateFormat;
 import java.util.Iterator;
 import java.util.Date;
 
@@ -94,10 +93,9 @@ public class Verilog extends Topology
 		emitCopyright("/* ", " */");
 		if (User.isIncludeDateAndVersionInOutput())
 		{
-			SimpleDateFormat sdf = new SimpleDateFormat("EEE MMMM dd, yyyy HH:mm:ss");
-			printWriter.print("/* Created on " + sdf.format(topCell.getCreationDate()) + " */\n");
-			printWriter.print("/* Last revised on " + sdf.format(topCell.getRevisionDate()) + " */\n");
-			printWriter.print("/* Written on " + sdf.format(new Date()) +
+			printWriter.print("/* Created on " + TextUtils.formatDate(topCell.getCreationDate()) + " */\n");
+			printWriter.print("/* Last revised on " + TextUtils.formatDate(topCell.getRevisionDate()) + " */\n");
+			printWriter.print("/* Written on " + TextUtils.formatDate(new Date()) +
 				" by Electric VLSI Design System, version " + Version.getVersion() + " */\n");
 		} else
 		{

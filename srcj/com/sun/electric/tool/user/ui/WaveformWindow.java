@@ -1987,7 +1987,10 @@ public class WaveformWindow implements WindowContent
 		}
 	}
 
-	public void requestRepaint()
+
+	public void fullRepaint() { repaint(); }
+
+	public void repaint()
 	{
 		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
 		{

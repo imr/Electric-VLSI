@@ -184,15 +184,8 @@ public class Input extends IOTool
 			{
 				// library already exists, prompt for save
 				if (MenuCommands.preventLoss(lib, 2)) return null;
+				WindowFrame.removeLibraryReferences(lib);
 				lib.erase();
-				for (Iterator it = WindowFrame.getWindows(); it.hasNext(); )
-				{
-					WindowFrame wf = (WindowFrame)it.next();
-					WindowContent content = wf.getContent();
-					Cell cell = content.getCell();
-					if (cell != null && cell.getLibrary() == lib)
-						content.setCell(null, null);
-				}
 			} else
 			{
 				lib = Library.newInstance(libName, fileURL);

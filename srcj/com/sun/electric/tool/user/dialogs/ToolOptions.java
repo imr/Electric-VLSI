@@ -993,6 +993,7 @@ public class ToolOptions extends EDialog
 	 */
 	private void spiceCellListClick()
 	{
+		if (spiceCellListModel.size() == 0) return;
 		String cellName = (String)spiceCellList.getSelectedValue();
 		Cell cell = curLib.findNodeProto(cellName);
 		if (cell != null)
@@ -1530,15 +1531,93 @@ public class ToolOptions extends EDialog
 
 	//******************************** ANTENNA RULES ********************************
 
+	private JList antennaArcList;
+	private DefaultListModel antennaArcListModel;
+	private HashMap antennaOptions;
+	private boolean antennaRatioChanging = false;
+
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Antenna Rules tab.
 	 */
 	private void initAntennaRules()
 	{
-		antTechnology.setEnabled(false);
-		antArcList.setEnabled(false);
-		antMaxRatio.setEditable(false);
+		antennaArcListModel = new DefaultListModel();
+		antennaArcList = new JList(antennaArcListModel);
+		antennaArcList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		antArcList.setViewportView(antennaArcList);
+		antennaArcList.addMouseListener(new MouseAdapter()
+		{
+			public void mouseClicked(MouseEvent evt) { antennaArcListClick(); }
+		});
+		antMaxRatio.getDocument().addDocumentListener(new AntennaRatioDocumentListener(this));
+
+		antTechnology.setText(Technology.getCurrent().getTechName());
+		antennaOptions = new HashMap();
+		for(Iterator it = Technology.getCurrent().getArcs(); it.hasNext(); )
+		{
+			ArcProto ap = (ArcProto)it.next();
+			ArcProto.Function fun = ap.getFunction();
+			if (!fun.isMetal() && fun != ArcProto.Function.POLY1) continue;
+			double ratio = ap.getAntennaRatio();
+			Option option = Option.newDoubleOption(ratio);
+			antennaOptions.put(ap, option);
+			antennaArcListModel.addElement(ap.describe() + " (" + ratio + ")");
+		}
+		antennaArcList.setSelectedIndex(0);
+		antennaArcListClick();
+	}
+
+	private void antennaArcListClick()
+	{
+		String arcName = (String)antennaArcList.getSelectedValue();
+		int spacePos = arcName.indexOf(' ');
+		if (spacePos >= 0) arcName = arcName.substring(0, spacePos);
+		ArcProto ap = Technology.getCurrent().findArcProto(arcName);
+		if (ap != null)
+		{
+			Option option = (Option)antennaOptions.get(ap);
+			if (option == null) return;
+			double curRatio = option.getDoubleValue();
+			String modelFile = option.getStringValue();
+			antennaRatioChanging = true;
+			antMaxRatio.setText(Double.toString(curRatio));
+			antennaRatioChanging = false;
+		}
+	}
+
+	private void antennaValueChanged()
+	{
+		if (antennaRatioChanging) return;
+		String arcName = (String)antennaArcList.getSelectedValue();
+		int spacePos = arcName.indexOf(' ');
+		if (spacePos >= 0) arcName = arcName.substring(0, spacePos);
+		ArcProto ap = Technology.getCurrent().findArcProto(arcName);
+		if (ap == null) return;
+		Option option = (Option)antennaOptions.get(ap);
+		if (option == null) return;
+		double ratio = TextUtils.atof(antMaxRatio.getText());
+		option.setDoubleValue(ratio);
+
+		int lineNo = antennaArcList.getSelectedIndex();
+		antennaArcListModel.setElementAt(ap.describe() + " (" + ratio + ")", lineNo);
+	}
+
+	/**
+	 * Class to handle changes to the antenna ratio field.
+	 */
+	private static class AntennaRatioDocumentListener implements DocumentListener
+	{
+		ToolOptions dialog;
+
+		AntennaRatioDocumentListener(ToolOptions dialog)
+		{
+			this.dialog = dialog;
+		}
+
+		public void changedUpdate(DocumentEvent e) { dialog.antennaValueChanged(); }
+		public void insertUpdate(DocumentEvent e) { dialog.antennaValueChanged(); }
+		public void removeUpdate(DocumentEvent e) { dialog.antennaValueChanged(); }
 	}
 
 	/**
@@ -1547,6 +1626,13 @@ public class ToolOptions extends EDialog
 	 */
 	private void termAntennaRules()
 	{
+		for(Iterator it = antennaOptions.keySet().iterator(); it.hasNext(); )
+		{
+			ArcProto ap = (ArcProto)it.next();
+			Option option = (Option)antennaOptions.get(ap);
+			if (option.isChanged())
+				ap.setAntennaRatio(option.getDoubleValue());
+		}
 	}
 
 	//******************************** NETWORK ********************************

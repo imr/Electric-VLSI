@@ -53,7 +53,6 @@ import java.awt.Dimension;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.io.File;
-import java.text.SimpleDateFormat;
 import java.util.Iterator;
 import java.util.List;
 import java.util.HashMap;
@@ -1027,10 +1026,9 @@ public class Spice extends Topology
 		emitCopyright("*** ", "");
 		if (User.isIncludeDateAndVersionInOutput())
 		{
-			SimpleDateFormat sdf = new SimpleDateFormat("EEE MMMM dd, yyyy HH:mm:ss");
-			multiLinePrint(true, "*** Created on " + sdf.format(topCell.getCreationDate()) + "\n");
-			multiLinePrint(true, "*** Last revised on " + sdf.format(topCell.getRevisionDate()) + "\n");
-			multiLinePrint(true, "*** Written on " + sdf.format(new Date()) +
+			multiLinePrint(true, "*** Created on " + TextUtils.formatDate(topCell.getCreationDate()) + "\n");
+			multiLinePrint(true, "*** Last revised on " + TextUtils.formatDate(topCell.getRevisionDate()) + "\n");
+			multiLinePrint(true, "*** Written on " + TextUtils.formatDate(new Date()) +
 				" by Electric VLSI Design System, version " + Version.getVersion() + "\n");
 		} else
 		{

@@ -2179,11 +2179,37 @@ public class NodeInst extends Geometric implements Nodable
 				bounds.getHeight() != getYSize())
 			{
 				System.out.println("Cell " + parent.describe() + ", node " + describe() +
-				" is " + getXSize() + "x" + getYSize() + ", but prototype is " + bounds.getWidth() +
-				" x " + bounds.getHeight() + " ****REPAIRED****");
+					" is " + getXSize() + "x" + getYSize() + ", but prototype is " + bounds.getWidth() +
+					" x " + bounds.getHeight() + " ****REPAIRED****");
 				sX = bounds.getWidth() * (isMirroredAboutYAxis() ? -1 : 1);
 				sY = bounds.getHeight() * (isMirroredAboutXAxis() ? -1 : 1);
 				errorCount++;
+			}
+		} else
+		{
+			Point2D [] points = getTrace();
+			if (points != null)
+			{
+				double lX = points[0].getX();
+				double hX = lX;
+				double lY = points[0].getY();
+				double hY = lY;
+				for(int i=1; i<points.length; i++)
+				{
+					if (points[i].getX() < lX) lX = points[i].getX();
+					if (points[i].getX() > hX) hX = points[i].getX();
+					if (points[i].getY() < lY) lY = points[i].getY();
+					if (points[i].getY() > hY) hY = points[i].getY();
+				}
+				if (hX-lX != getXSize() || hY-lY != getYSize())
+				{
+					System.out.println("Cell " + parent.describe() + ", node " + describe() +
+						" is " + getXSize() + "x" + getYSize() +
+						" but has outline of size " + (hX-lX) + "x" + (hY-lY) +
+						" (REPAIRED)");
+					sX = (hX-lX) * getXSize() / getXSizeWithMirror();
+					sY = (hY-lY) * getYSize() / getYSizeWithMirror();
+				}
 			}
 		}
 		if (portInsts.size() != protoType.getNumPorts())

@@ -78,7 +78,6 @@ public class ELIB extends LibraryFiles
 {
 	// ------------------------- private data ----------------------------
 	/** the magic number in the library file */								private int magic;
-	/** the Electric version in the library file */							private Version version;
 
 	// characteristics of the file
 	/** true if bytes are swapped on disk */								private boolean bytesSwapped;
@@ -231,12 +230,15 @@ public class ELIB extends LibraryFiles
 		if (magic <= ELIBConstants.MAGIC8) versionString = readString(); else
 			versionString = "3.35";
 		version = Version.parseVersion(versionString);
+		emajor = version.getMajor();
+		eminor = version.getMinor();
+		edetail = version.getDetail();
 
 		// for versions before 6.03q, convert MOSIS CMOS technology names
 		convertMosisCmosTechnologies = false;
-		if (version.getMajor() < 6 ||
-			(version.getMajor() == 6 && version.getMinor() < 3) ||
-			(version.getMajor() == 6 && version.getMinor() == 3 && version.getDetail() < 17))
+		if (emajor < 6 ||
+			(emajor == 6 && eminor < 3) ||
+			(emajor == 6 && eminor == 3 && edetail < 17))
 		{
 //			if ((asktech(mocmossub_tech, x_("get-state"))&MOCMOSSUBNOCONV) == 0)
 				convertMosisCmosTechnologies = true;
@@ -244,18 +246,18 @@ public class ELIB extends LibraryFiles
 
 		// for versions before 6.04c, convert text descriptor values
 		convertTextDescriptors = false;
-		if (version.getMajor() < 6 ||
-			(version.getMajor() == 6 && version.getMinor() < 4) ||
-			(version.getMajor() == 6 && version.getMinor() == 4 && version.getDetail() < 3))
+		if (emajor < 6 ||
+			(emajor == 6 && eminor < 4) ||
+			(emajor == 6 && eminor == 4 && edetail < 3))
 		{
 			convertTextDescriptors = true;
 		}
 
 		// for versions 6.05x and later, always have text descriptor values
 		alwaysTextDescriptors = true;
-		if (version.getMajor() < 6 ||
-			(version.getMajor() == 6 && version.getMinor() < 5) ||
-			(version.getMajor() == 6 && version.getMinor() == 5 && version.getDetail() < 24))
+		if (emajor < 6 ||
+			(emajor == 6 && eminor < 5) ||
+			(emajor == 6 && eminor == 5 && edetail < 24))
 		{
 			alwaysTextDescriptors = false;
 		}
@@ -289,18 +291,7 @@ public class ELIB extends LibraryFiles
 				if (view == null)
 				{
 					// special conversion from old view names
-					if (version.getMajor() < 7 ||
-						(version.getMajor() == 7 && version.getMinor() < 1))
-					{
-						if (viewName.equals("compensated")) view = View.LAYOUTCOMP; else
-						if (viewName.equals("skeleton")) view = View.LAYOUTSKEL; else
-						if (viewName.equals("simulation-snapshot")) view = View.DOCWAVE; else
-						if (viewName.equals("netlist-netlisp-format")) view = View.NETLISTNETLISP; else
-						if (viewName.equals("netlist-rsim-format")) view = View.NETLISTRSIM; else
-						if (viewName.equals("netlist-silos-format")) view = View.NETLISTSILOS; else
-						if (viewName.equals("netlist-quisc-format")) view = View.NETLISTQUISC; else
-						if (viewName.equals("netlist-als-format")) view = View.NETLISTALS;
-					}
+					view = findOldViewName(viewName);
 					if (view == null)
 					{
 						view = View.newInstance(viewName, viewShortName);
@@ -737,7 +728,7 @@ public class ELIB extends LibraryFiles
 			Technology tech = techList[i];
 
 			// for Electric version 4 or earlier, scale lambda by 20
-			if (version.getMajor() <= 4) lambda *= 20;
+			if (emajor <= 4) lambda *= 20;
 
 			int index = tech.getIndex();
 			techScale[index] = lambda;
@@ -1533,7 +1524,7 @@ public class ELIB extends LibraryFiles
 		}
 
 		int rotation = nodeInstList.rotation[i];
-		if (version.getMajor() > 7 || (version.getMajor() == 7 && version.getMinor() >= 1))
+		if (emajor > 7 || (emajor == 7 && eminor >= 1))
 		{
 			// new version: allow mirror bits
 			if ((nodeInstList.transpose[i]&1) != 0)

@@ -91,6 +91,9 @@ public class TextWindow
 	 */
 	public TextWindow(Cell cell, WindowFrame wf)
 	{
+		this.wf = wf;
+		this.finishing = false;
+
 		textArea = new JTextArea();
 		scrollPane = new JScrollPane(textArea);
 		overall = new JPanel();
@@ -98,8 +101,6 @@ public class TextWindow
 		overall.add(scrollPane, BorderLayout.CENTER);
 
 		setCell(cell, VarContext.globalContext);
-		this.wf = wf;
-		finishing = false;
 
 		TextWindowDocumentListener twDocumentListener = new TextWindowDocumentListener(this);
 		textArea.getDocument().addDocumentListener(twDocumentListener);
@@ -216,13 +217,13 @@ public class TextWindow
 		}
 	}
 
+
 	/**
 	 * Method to set the window title.
 	 */
 	public void setWindowTitle()
 	{
 		if (wf == null) return;
-
 		if (cell == null)
 		{
 			wf.setTitle("***NONE***");
@@ -250,6 +251,7 @@ public class TextWindow
 		String [] lines = cell.getTextViewContents();
 		if (lines == null) return;
 		textArea.setText(makeOneString(lines));
+		setWindowTitle();
 	}
 
 	/**
@@ -472,7 +474,9 @@ public class TextWindow
 	{
 	}
 
-	public void requestRepaint() {  }
+	public void repaint() {}
+
+	public void fullRepaint() {}
 
 	/** Returns true if we can go back in history list, false otherwise */
 	public boolean cellHistoryCanGoBack() { return false; }

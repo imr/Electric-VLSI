@@ -43,7 +43,6 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.FileNotFoundException;
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
@@ -139,7 +138,6 @@ public class CellLists extends EDialog
 		if (maxlen < 0) line += "\t"; else line += "   ";
 
 		/* add the creation date */
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		Date creationDate = cell.getCreationDate();
 		if (creationDate == null)
 		{
@@ -147,7 +145,7 @@ public class CellLists extends EDialog
 				line += "     UNRECORDED     ";
 		} else
 		{
-			line += sdf.format(creationDate);
+			line += TextUtils.formatDate(creationDate);
 		}
 		if (maxlen < 0) line += "\t"; else line += "   ";
 
@@ -159,7 +157,7 @@ public class CellLists extends EDialog
 				line += "     UNRECORDED     ";
 		} else
 		{
-			line += sdf.format(revisionDate);
+			line += TextUtils.formatDate(revisionDate);
 		}
 		if (maxlen < 0) line += "\t"; else line += "   ";
 

@@ -29,7 +29,9 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.IOException;
 import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
 import java.net.URL;
+import java.util.Date;
 
 /**
  * This class is a collection of text utilities.
@@ -198,6 +200,18 @@ public class TextUtils
 		numberFormatSpecific.setMaximumFractionDigits(numFractions);
 		numberFormatSpecific.setMinimumFractionDigits(numFractions);
 		return numberFormatSpecific.format(v);
+	}
+
+	private static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE MMMM dd, yyyy HH:mm:ss");
+
+	/**
+	 * Method to convert a Date to a String.
+	 * @param date the date to format.
+	 * @return the string representation of the date.
+	 */
+	public static String formatDate(Date date)
+	{
+		return simpleDateFormat.format(date);
 	}
 
 	/**

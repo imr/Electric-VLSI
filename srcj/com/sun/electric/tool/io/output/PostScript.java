@@ -33,6 +33,7 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.text.Version;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.Variable;
@@ -50,7 +51,6 @@ import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.HashMap;
@@ -288,9 +288,8 @@ public class PostScript extends Output
 		if (User.isIncludeDateAndVersionInOutput())
 		{
 			printWriter.print("%%%%Creator: Electric VLSI Design System version " + Version.getVersion() + "\n");
-			SimpleDateFormat sdf = new SimpleDateFormat("EEE MMMM dd, yyyy HH:mm:ss");
 			Date now = new Date();
-			printWriter.print("%%%%CreationDate: " + sdf.format(now) + "\n");
+			printWriter.print("%%%%CreationDate: " + TextUtils.formatDate(now) + "\n");
 		} else
 		{
 			printWriter.print("%%%%Creator: Electric VLSI Design System\n");
@@ -491,13 +490,12 @@ public class PostScript extends Output
 			writePSString("Cell: " + cell.describe());
 			printWriter.print(" " + (int)(CORNERDATESIZE * PSSCALE) + " Botleftstring\n");
 
-			SimpleDateFormat sdf = new SimpleDateFormat("EEE MMMM dd, yyyy HH:mm:ss");
 			printWriter.print("0 " + (int)(CORNERDATESIZE * PSSCALE) + " ");
-			writePSString("Created: " + sdf.format(cell.getCreationDate()));
+			writePSString("Created: " + TextUtils.formatDate(cell.getCreationDate()));
 			printWriter.print(" " + (int)(CORNERDATESIZE * PSSCALE) + " Botleftstring\n");
 
 			printWriter.print("0 0 ");
-			writePSString("Revised: " + sdf.format(cell.getRevisionDate()));
+			writePSString("Revised: " + TextUtils.formatDate(cell.getRevisionDate()));
 			printWriter.print(" " + (int)(CORNERDATESIZE * PSSCALE) + " Botleftstring\n");
 		}
 

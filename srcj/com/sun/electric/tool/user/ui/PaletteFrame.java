@@ -50,6 +50,7 @@ import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.dialogs.LayoutText;
 import com.sun.electric.tool.user.dialogs.CellBrowser;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.dialogs.AnnularRing;
 
 import java.awt.Dimension;
 import java.awt.Image;
@@ -536,6 +537,9 @@ public class PaletteFrame
 					specialMenu.add(menuItem);
 					menuItem = new JMenuItem("Layout Text...");
 					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeLayoutTextCommand(); } });
+					specialMenu.add(menuItem);
+					menuItem = new JMenuItem("Annular Ring...");
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { AnnularRing.showAnnularRingDialog(); } });
 					specialMenu.add(menuItem);
 
 					specialMenu.addSeparator();

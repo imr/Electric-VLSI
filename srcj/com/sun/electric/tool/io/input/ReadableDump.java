@@ -24,33 +24,33 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
 
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.AffineTransform;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -84,7 +84,6 @@ public class ReadableDump extends LibraryFiles
 	};
 
 	/** The current position in the file. */						private int filePosition;
-	/** The version of Electric that made the file. */				private int emajor, eminor, edetail;
 	/** The state of reading the file. */							private int textLevel;
 	/** A counter for reading multiple Tools, Technologies, etc. */	private int bitCount;
 	/** The current Cell in the Library. */							private int mainCell;
@@ -689,13 +688,11 @@ public class ReadableDump extends LibraryFiles
 	 */
 	private void io_versn()
 	{
-		String version = keyWord;
-
 		// for versions before 6.03q, convert MOSIS CMOS technology names
-		Version versionStruct = Version.parseVersion(version);
-		emajor = versionStruct.getMajor();
-		eminor = versionStruct.getMinor();
-		edetail = versionStruct.getDetail();
+		version = Version.parseVersion(keyWord);
+		emajor = version.getMajor();
+		eminor = version.getMinor();
+		edetail = version.getDetail();
 		convertMosisCMOSTechnologies = false;
 //		if (emajor < 6 ||
 //			(emajor == 6 && eminor < 3) ||
@@ -846,13 +843,18 @@ public class ReadableDump extends LibraryFiles
 		View v = View.findView(fullName);
 		if (v == null)
 		{
+			v = findOldViewName(fullName);
+			if (v != null) abbrev = v.getAbbreviation();
+		}
+		if (v == null)
+		{
 			v = View.newInstance(fullName, abbrev);
 		} else
 		{
 			if (!v.getAbbreviation().equals(abbrev))
 			{
-				System.out.println("Error on line "+lineReader.getLineNumber()+": view "+fullName+" has abbreviation '"+abbrev+
-					"' which does not match the existing abbreviation '"+v.getAbbreviation()+"'");
+				System.out.println("Error on line " + lineReader.getLineNumber() + ": view " + fullName + " has abbreviation '" + abbrev +
+					"' which does not match the existing abbreviation '" + v.getAbbreviation() + "'");
 				return;
 			}
 		}

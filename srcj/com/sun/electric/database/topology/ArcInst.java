@@ -875,7 +875,7 @@ public class ArcInst extends Geometric
 	}
 
 	/**
-	 * Method to tell whether a connection on this ArcInst contains a point.
+	 * Method to tell whether a connection on this ArcInst contains a port location.
 	 * @param con the connection on this ArcInst.
 	 * @param pt the point in question.
 	 * @return true if the point is inside of the port.

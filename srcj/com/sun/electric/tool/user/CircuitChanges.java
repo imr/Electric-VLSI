@@ -45,6 +45,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.*;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitivePort;
@@ -132,7 +133,7 @@ public class CircuitChanges
 		RotateSelected job = new RotateSelected(cell, 0, true, horizontally);
 	}
 	
-	protected static class RotateSelected extends Job
+	private static class RotateSelected extends Job
 	{
 		private Cell cell;
 		private int amount;
@@ -337,6 +338,204 @@ public class CircuitChanges
 	/****************************** NODE ALIGNMENT ******************************/
 
 	/**
+	 * Method to align the selected objects to the grid.
+	 */
+	public static void alignToGrid()
+	{
+		AlignObjects job = new AlignObjects();
+	}
+
+	/**
+	 * This class implement the command to delete unused old versions of cells.
+	 */
+	private static class AlignObjects extends Job
+	{
+		protected AlignObjects()
+		{
+			super("Align Objects", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			startJob();
+		}
+
+		public void doIt()
+		{
+			List list = Highlight.getHighlighted(true, true);
+			if (list.size() == 0)
+			{
+				System.out.println("Must select something before aligning it to the grid");
+				return;
+			}
+			double alignment_ratio = User.getAlignmentToGrid();
+			if (alignment_ratio <= 0)
+			{
+				System.out.println("No alignment given: set Alignment Options first");
+				return;
+			}
+
+			// first adjust the nodes
+			int adjustedNodes = 0;
+			for(Iterator it = list.iterator(); it.hasNext(); )
+			{
+				Geometric geom = (Geometric)it.next();
+				if (!(geom instanceof NodeInst)) continue;
+				NodeInst ni = (NodeInst)geom;
+	
+				// ignore pins
+				if (ni.getFunction() == NodeProto.Function.PIN) continue;
+				Point2D center = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
+				EditWindow.gridAlign(center);
+				double bodyXOffset = center.getX() - ni.getAnchorCenterX();
+				double bodyYOffset = center.getY() - ni.getAnchorCenterY();
+	
+				double portXOffset = bodyXOffset;
+				double portYOffset = bodyYOffset;
+				boolean mixedportpos = false;
+				boolean firstPort = true;
+				for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
+				{
+					PortInst pi = (PortInst)pIt.next();
+					Poly poly = pi.getPoly();
+					Point2D portCenter = new Point2D.Double(poly.getCenterX(), poly.getCenterY());
+					EditWindow.gridAlign(portCenter);
+					double pXO = portCenter.getX() - poly.getCenterX();
+					double pYO = portCenter.getY() - poly.getCenterY();
+					if (firstPort)
+					{
+						firstPort = false;
+						portXOffset = pXO;   portYOffset = pYO;
+					} else
+					{
+						if (portXOffset != pXO || portYOffset != pYO) mixedportpos = true;
+					}
+				}
+				if (!mixedportpos)
+				{
+					bodyXOffset = portXOffset;   bodyYOffset = portYOffset;
+				}
+	
+				// if a primitive has an offset, see if the node edges are aligned
+				if (bodyXOffset != 0 || bodyYOffset != 0)
+				{
+					if (ni.getProto() instanceof PrimitiveNode)
+					{
+						AffineTransform transr = ni.rotateOut();
+						Technology tech = ni.getProto().getTechnology();
+						Poly [] polyList = tech.getShapeOfNode(ni);
+						for(int j=0; j<polyList.length; j++)
+						{
+							Poly poly = polyList[j];
+							poly.transform(transr);
+							Rectangle2D bounds = poly.getBox();
+							if (bounds == null) continue;
+							Point2D polyPoint1 = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+							Point2D polyPoint2 = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+							EditWindow.gridAlign(polyPoint1);
+							EditWindow.gridAlign(polyPoint2);
+							if (polyPoint1.getX() == bounds.getMinX() &&
+								polyPoint2.getX() == bounds.getMaxX()) bodyXOffset = 0;
+							if (polyPoint1.getY() == bounds.getMinY() &&
+								polyPoint2.getY() == bounds.getMaxY()) bodyYOffset = 0;
+							if (bodyXOffset == 0 && bodyYOffset == 0) break;
+						}
+					}
+				}
+	
+				// move the node
+				if (bodyXOffset != 0 || bodyYOffset != 0)
+				{
+					// turn off all constraints on arcs
+					HashMap constraints = new HashMap();
+					for(Iterator aIt = ni.getConnections(); aIt.hasNext(); )
+					{
+						Connection con = (Connection)aIt.next();
+						ArcInst ai = con.getArc();
+						int constr = 0;
+						if (ai.isRigid()) constr |= 1;
+						if (ai.isFixedAngle()) constr |= 2;
+						constraints.put(ai, new Integer(constr));
+						ai.clearRigid();
+						ai.clearFixedAngle();
+					}
+					ni.modifyInstance(bodyXOffset, bodyYOffset, 0, 0, 0);
+					adjustedNodes++;
+	
+					// restore arc constraints
+					for(Iterator aIt = ni.getConnections(); aIt.hasNext(); )
+					{
+						Connection con = (Connection)aIt.next();
+						ArcInst ai = con.getArc();
+						Integer constr = (Integer)constraints.get(ai);
+						if (constr == null) continue;
+						if ((constr.intValue() & 1) != 0) ai.setRigid();
+						if ((constr.intValue() & 2) != 0) ai.setFixedAngle();
+					}
+				}
+			}
+	
+			// now adjust the arcs
+			int adjustedArcs = 0;
+			for(Iterator it = list.iterator(); it.hasNext(); )
+			{
+				Geometric geom = (Geometric)it.next();
+				if (!(geom instanceof ArcInst)) continue;
+				ArcInst ai = (ArcInst)geom;
+	
+				Point2D origHead = ai.getHead().getLocation();
+				Point2D origTail = ai.getTail().getLocation();
+				Point2D arcHead = new Point2D.Double(origHead.getX(), origHead.getY());
+				Point2D arcTail = new Point2D.Double(origTail.getX(), origTail.getY());
+				EditWindow.gridAlign(arcHead);
+				EditWindow.gridAlign(arcTail);
+	
+				double headXOff = arcHead.getX() - origHead.getX();
+				double headYOff = arcHead.getY() - origHead.getY();
+				double tailXOff = arcTail.getX() - origTail.getX();
+				double tailYOff = arcTail.getY() - origTail.getY();
+				if (headXOff == 0 && tailXOff == 0 && headYOff == 0 && tailYOff == 0) continue;
+
+				if (!ai.stillInPort(ai.getHead(), arcHead, false))
+				{
+					if (!ai.stillInPort(ai.getHead(), origHead, false)) continue;
+					headXOff = headYOff = 0;
+				}
+				if (!ai.stillInPort(ai.getTail(), arcTail, false))
+				{
+					if (!ai.stillInPort(ai.getTail(), origTail, false)) continue;
+					tailXOff = tailYOff = 0;
+				}
+	
+				// make sure an arc does not change angle
+				int ang = ai.getAngle();
+				if (ang == 0 || ang == 1800)
+				{
+					// horizontal arc: both DY values must be the same
+					if (headYOff != tailYOff) headYOff = tailYOff = 0;
+				} else if (ang == 900 || ang == 2700)
+				{
+					// vertical arc: both DX values must be the same
+					if (headXOff != tailXOff) headXOff = tailXOff = 0;
+				}
+				if (headXOff != 0 || tailXOff != 0 || headYOff != 0 || tailYOff != 0)
+				{
+					int constr = 0;
+					if (ai.isRigid()) constr |= 1;
+					if (ai.isFixedAngle()) constr |= 2;
+					ai.clearRigid();
+					ai.clearFixedAngle();
+	
+					ai.modify(0, headXOff, headYOff, tailXOff, tailYOff);
+					adjustedArcs++;
+					if ((constr & 1) != 0) ai.setRigid();
+					if ((constr & 2) != 0) ai.setFixedAngle();
+				}
+			}
+	
+			// show results
+			if (adjustedNodes == 0 && adjustedArcs == 0) System.out.println("No adjustments necessary"); else
+				System.out.println("Adjusted " + adjustedNodes + " nodes and " + adjustedArcs + " arcs");
+		}
+	}
+
+	/**
 	 * Method to align the selected nodes.
 	 * @param horizontal true to align them horizontally; false for vertically.
 	 * @param direction if horizontal is true, meaning is 0 for left, 1 for right, 2 for center.
@@ -456,7 +655,7 @@ public class CircuitChanges
 		AlignNodes job = new AlignNodes(nis, dCX, dCY, dSX, dSY, dRot);
 	}
 
-	protected static class AlignNodes extends Job
+	private static class AlignNodes extends Job
 	{
 		NodeInst [] nis;
 		double [] dCX;
@@ -1090,7 +1289,7 @@ public class CircuitChanges
         DeleteSelected job = new DeleteSelected();
 	}
 
-	protected static class DeleteSelected extends Job
+	private static class DeleteSelected extends Job
 	{
 		protected DeleteSelected()
 		{
@@ -1101,7 +1300,7 @@ public class CircuitChanges
 		public void doIt()
 		{
 			if (Highlight.getNumHighlights() == 0) return;
-			List highlightedText = Highlight.getHighlightedText();
+			List highlightedText = Highlight.getHighlightedText(true);
 			List deleteList = new ArrayList();
 			Cell cell = null;
 			Geometric oneGeom = null;
@@ -1422,7 +1621,7 @@ public class CircuitChanges
 	/**
 	 * Class to delete a cell in a new thread.
 	 */
-	protected static class DeleteCell extends Job
+	private static class DeleteCell extends Job
 	{
 		Cell cell;
 
@@ -1499,7 +1698,7 @@ public class CircuitChanges
 	/**
 	 * Class to rename a cell in a new thread.
 	 */
-	protected static class RenameCell extends Job
+	private static class RenameCell extends Job
 	{
 		Cell cell;
 		String newName;
@@ -1528,7 +1727,7 @@ public class CircuitChanges
 	/**
 	 * This class implement the command to delete unused old versions of cells.
 	 */
-	protected static class DeleteUnusedOldCells extends Job
+	private static class DeleteUnusedOldCells extends Job
 	{
 		protected DeleteUnusedOldCells()
 		{
@@ -1687,7 +1886,7 @@ public class CircuitChanges
 	/**
 	 * This class implement the command to delete unused old versions of cells.
 	 */
-	protected static class ExtractCellInstances extends Job
+	private static class ExtractCellInstances extends Job
 	{
 		protected ExtractCellInstances()
 		{
@@ -2510,7 +2709,7 @@ public class CircuitChanges
 	/**
 	 * Class to change a cell's view in a new thread.
 	 */
-	protected static class ChangeCellView extends Job
+	private static class ChangeCellView extends Job
 	{
 		Cell cell;
 		View newView;
@@ -2549,7 +2748,7 @@ public class CircuitChanges
 	/**
 	 * This class implement the command to make a new version of a cell.
 	 */
-	protected static class NewCellVersion extends Job
+	private static class NewCellVersion extends Job
 	{
 		Cell cell;
 
@@ -2585,7 +2784,7 @@ public class CircuitChanges
         MakeIconView job = new MakeIconView();
 	}
 
-	protected static class MakeIconView extends Job
+	private static class MakeIconView extends Job
 	{
 		private static boolean reverseIconExportOrder;
 
@@ -2942,7 +3141,7 @@ public class CircuitChanges
 	/**
 	 * This class implement the command to duplicate a cell.
 	 */
-	protected static class DuplicateCell extends Job
+	private static class DuplicateCell extends Job
 	{
 		Cell cell;
 		String newName;
@@ -2984,7 +3183,7 @@ public class CircuitChanges
         ManyMove job = new ManyMove(dX, dY);
 	}
 
-	protected static class ManyMove extends Job
+	private static class ManyMove extends Job
 	{
 		double dX, dY;
         static final boolean verbose = false;
@@ -3001,7 +3200,7 @@ public class CircuitChanges
 			// get information about what is highlighted
 			int total = Highlight.getNumHighlights();
 			if (total <= 0) return;
-			List highlightedText = Highlight.getHighlightedText();
+			List highlightedText = Highlight.getHighlightedText(true);
 			Iterator oit = Highlight.getHighlights();
 			Highlight firstH = (Highlight)oit.next();
 			ElectricObject firstEObj = firstH.getElectricObject();

@@ -23,6 +23,11 @@
  */
 package com.sun.electric.database.variable;
 
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
+
+import java.util.Iterator;
+
 /**
  * The FlagSet class is used to allocate "marking" bits in other objects.
  * <P>
@@ -100,6 +105,22 @@ public class FlagSet
 		generator.flagBitsUsed |= fs.mask;
 		fs.generator = generator;
 		return fs;
+	}
+
+	/**
+	 * Method to clear this FlagSet bit on all Cells in the system.
+	 */
+	public void clearOnAllCells()
+	{
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			{
+				Cell cell = (Cell)cIt.next();
+				cell.clearBit(this);
+			}
+		}
 	}
 
 	/**

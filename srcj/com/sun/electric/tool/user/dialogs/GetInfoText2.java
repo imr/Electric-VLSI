@@ -2,7 +2,7 @@
 *
 * Electric(tm) VLSI Design System
 *
-* File: GetInfoText.java
+* File: GetInfoText2.java
 *
 * Copyright (c) 2003 Sun Microsystems and Static Free Software
 *

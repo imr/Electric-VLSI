@@ -59,6 +59,7 @@ import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.erc.ERCWellCheck;
+import com.sun.electric.tool.erc.ERCAntenna;
 import com.sun.electric.tool.generator.PadGenerator;
 import com.sun.electric.tool.generator.layout.Loco;
 import com.sun.electric.tool.io.input.Input;
@@ -291,6 +292,8 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Spread.showSpreadDialog(); }});
 		moveSubMenu.addMenuItem("Move Objects By...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { MoveBy.showMoveByDialog(); }});
+		moveSubMenu.addMenuItem("Align to Grid", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.alignToGrid(); }});
 		moveSubMenu.addSeparator();
 		moveSubMenu.addMenuItem("Align Horizontally to Left", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.alignNodes(true, 0); }});
@@ -405,6 +408,8 @@ public final class MenuCommands
 		editMenu.add(textSubMenu);
 		textSubMenu.addMenuItem("Find Text...", KeyStroke.getKeyStroke('L', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FindText.findTextDialog(); }});
+		textSubMenu.addMenuItem("Change Text Size...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ChangeText.changeTextDialog(); }});
 		textSubMenu.addMenuItem("Read Text Cell...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { TextWindow.readTextCell(); }});
 		textSubMenu.addMenuItem("Save Text Cell...", null,
@@ -438,6 +443,11 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectHardCommand(); }});
 		selListSubMenu.addMenuItem("Select Nothing", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectNothingCommand(); }});
+		selListSubMenu.addSeparator();
+		selListSubMenu.addMenuItem("Select Object...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { SelectObject.selectObjectDialog(); }});
+		selListSubMenu.addMenuItem("Deselect All Arcs", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { deselectAllArcsCommand(); }});
 		selListSubMenu.addSeparator();
 		selListSubMenu.addMenuItem("Make Selected Easy", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectMakeEasyCommand(); }});
@@ -735,6 +745,8 @@ public final class MenuCommands
 		toolMenu.add(ercSubMenu);
 		ercSubMenu.addMenuItem("Check Wells", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(true); } });
+		ercSubMenu.addMenuItem("Antenna Check", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { new ERCAntenna(); } });
 
 		Menu networkSubMenu = new Menu("Network", 'N');
 		toolMenu.add(networkSubMenu);
@@ -1045,6 +1057,7 @@ public final class MenuCommands
 		int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), "Are you sure you want to close library " + lib.getLibName() + "?");
 		if (response != JOptionPane.YES_OPTION) return;
 		String libName = lib.getLibName();
+		WindowFrame.removeLibraryReferences(lib);
 		if (lib.kill())
 			System.out.println("Library " + libName + " closed");
 		WindowFrame.wantToRedoLibraryTree();
@@ -1077,12 +1090,8 @@ public final class MenuCommands
 					fileName = fileName.substring(0, dotPos) + ".elib";
 				}
 			}
-
-			URL libURL = TextUtils.makeURLToFile(fileName);
-			lib.setLibFile(libURL);
-			lib.setLibName(TextUtils.getFileNameWithoutExtension(libURL));
 		}
-		SaveLibrary job = new SaveLibrary(lib);
+		SaveLibrary job = new SaveLibrary(lib, fileName);
         return true;
 	}
 
@@ -1094,16 +1103,26 @@ public final class MenuCommands
 	public static class SaveLibrary extends Job
 	{
 		Library lib;
+		String newName;
 
-		public SaveLibrary(Library lib)
+		public SaveLibrary(Library lib, String newName)
 		{
 			super("Write Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.lib = lib;
+			this.newName = newName;
 			startJob();
 		}
 
 		public void doIt()
 		{
+			// rename the library if requested
+			if (newName != null)
+			{
+				URL libURL = TextUtils.makeURLToFile(newName);
+				lib.setLibFile(libURL);
+				lib.setLibName(TextUtils.getFileNameWithoutExtension(libURL));
+			}
+
 			boolean error = Output.writeLibrary(lib, OpenFile.Type.ELIB);
 			if (error)
 			{
@@ -1837,6 +1856,26 @@ public final class MenuCommands
 	}
 
 	/**
+	 * This method implements the command to deselect all selected arcs.
+	 */
+	public static void deselectAllArcsCommand()
+	{
+		List newHighList = new ArrayList();
+		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+		{
+			Highlight h = (Highlight)it.next();
+			if (h.getType() == Highlight.Type.EOBJ || h.getType() == Highlight.Type.TEXT)
+			{
+				if (h.getElectricObject() instanceof ArcInst) continue;
+			}
+			newHighList.add(h);
+		}
+		Highlight.clear();
+		Highlight.setHighlightList(newHighList);
+		Highlight.finished();
+	}
+
+	/**
 	 * This method implements the command to make all selected objects be easy-to-select.
 	 */
 	public static void selectMakeEasyCommand()
@@ -2444,21 +2483,7 @@ public final class MenuCommands
 		{
 			JNetwork net = (JNetwork)it.next();
 			Cell cell = net.getParent();
-			Netlist netlist = cell.getUserNetlist();
-			for(Iterator aIt = cell.getArcs(); aIt.hasNext(); )
-			{
-				ArcInst ai = (ArcInst)aIt.next();
-				int width = netlist.getBusWidth(ai);
-				for(int i=0; i<width; i++)
-				{
-					JNetwork oNet = netlist.getNetwork(ai, i);
-					if (oNet == net)
-					{
-						Highlight.addElectricObject(ai, cell);
-						break;
-					}
-				}
-			}
+			Highlight.addNetwork(net, cell);
 		}
 		Highlight.finished();
 	}

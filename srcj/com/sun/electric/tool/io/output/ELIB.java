@@ -68,6 +68,7 @@ public class ELIB extends Output
 	/** cell flag for finding external cell refernces */		private FlagSet externalRefFlag;
 
 	/** all of the names used in variables */					private static HashMap varNames;
+	/** all of the views and their integer values. */			private HashMap viewMap;
 
 	ELIB()
 	{
@@ -310,39 +311,36 @@ public class ELIB extends Output
 		writeString(Version.getVersion());
 
 		// number the views and write nonstandard ones
-		for(Iterator it = View.getViews(); it.hasNext(); )
-		{
-			View view = (View)it.next();
-			view.setTempInt(0);
-		}
-		View.UNKNOWN.setTempInt(-1);
-		View.LAYOUT.setTempInt(-2);
-		View.SCHEMATIC.setTempInt(-3);
-		View.ICON.setTempInt(-4);
-		View.DOCWAVE.setTempInt(-5);			// unknown in C
-		View.LAYOUTSKEL.setTempInt(-6);			// unknown in C
-		View.VHDL.setTempInt(-7);
-		View.NETLIST.setTempInt(-8);
-		View.DOC.setTempInt(-9);
-		View.NETLISTNETLISP.setTempInt(-10);	// unknown in C
-		View.NETLISTALS.setTempInt(-11);		// unknown in C
-		View.NETLISTQUISC.setTempInt(-12);		// unknown in C
-		View.NETLISTRSIM.setTempInt(-13);		// unknown in C
-		View.NETLISTSILOS.setTempInt(-14);		// unknown in C
-		View.VERILOG.setTempInt(-15);
-//		View.LAYOUTCOMP.setTempInt(-16);
+		viewMap = new HashMap();
+		viewMap.put(View.UNKNOWN, new Integer(-1));
+		viewMap.put(View.LAYOUT, new Integer(-2));
+		viewMap.put(View.SCHEMATIC, new Integer(-3));
+		viewMap.put(View.ICON, new Integer(-4));
+		viewMap.put(View.DOCWAVE, new Integer(-5));				// unknown in C
+		viewMap.put(View.LAYOUTSKEL, new Integer(-6));			// unknown in C
+		viewMap.put(View.VHDL, new Integer(-7));
+		viewMap.put(View.NETLIST, new Integer(-8));
+		viewMap.put(View.DOC, new Integer(-9));
+		viewMap.put(View.NETLISTNETLISP, new Integer(-10));		// unknown in C
+		viewMap.put(View.NETLISTALS, new Integer(-11));			// unknown in C
+		viewMap.put(View.NETLISTQUISC, new Integer(-12));		// unknown in C
+		viewMap.put(View.NETLISTRSIM, new Integer(-13));		// unknown in C
+		viewMap.put(View.NETLISTSILOS, new Integer(-14));		// unknown in C
+		viewMap.put(View.VERILOG, new Integer(-15));
+		List viewsToSave = new ArrayList();
 		int i = 1;
 		for(Iterator it = View.getViews(); it.hasNext(); )
 		{
 			View view = (View)it.next();
-			if (view.getTempInt() == 0) view.setTempInt(i++);
+			Integer found = (Integer)viewMap.get(view);
+			if (found != null) continue;
+			viewMap.put(view, new Integer(i++));
+			viewsToSave.add(view);
 		}
-		i--;
-		writeBigInteger(i);
-		for(Iterator it = View.getViews(); it.hasNext(); )
+		writeBigInteger(viewsToSave.size());
+		for(Iterator it = viewsToSave.iterator(); it.hasNext(); )
 		{
 			View view = (View)it.next();
-			if (view.getTempInt() < 0) continue;
 			writeString(view.getFullName());
 			writeString(view.getAbbreviation());
 		}
@@ -522,7 +520,8 @@ public class ELIB extends Output
 		for(Iterator it = View.getViews(); it.hasNext(); )
 		{
 			View view = (View)it.next();
-			writeBigInteger(view.getTempInt());
+			Integer viewIndex = (Integer)viewMap.get(view);
+			writeBigInteger(viewIndex.intValue());
 			writeVariables(view, 0);
 		}
 
@@ -623,7 +622,9 @@ public class ELIB extends Output
 		// write the "next in continuation" pointer
 		int nextCont = -1;
 		writeBigInteger(nextCont);
-		writeBigInteger(cell.getView().getTempInt());
+		Integer viewIndex = (Integer)viewMap.get(cell.getView());
+		if (viewIndex == null) viewIndex = new Integer(0);
+		writeBigInteger(viewIndex.intValue());
 		writeBigInteger(cell.getVersion());
 		writeBigInteger((int)ELIBConstants.dateToSeconds(cell.getCreationDate()));
 		writeBigInteger((int)ELIBConstants.dateToSeconds(cell.getRevisionDate()));

@@ -52,6 +52,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.user.ErrorLog;
@@ -123,7 +124,7 @@ public class WindowFrame
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			wf.wantToRedoLibraryTree = true;
-			wf.getContent().requestRepaint();
+			wf.getContent().repaint();
 		}
 	}
 
@@ -133,7 +134,7 @@ public class WindowFrame
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			wf.wantToRedoJobTree = true;
-			wf.getContent().requestRepaint();
+			wf.getContent().repaint();
 		}
 	}
 
@@ -143,7 +144,7 @@ public class WindowFrame
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			wf.wantToRedoErrorTree = true;
-			wf.getContent().requestRepaint();
+			wf.getContent().repaint();
 		}
 	}
 
@@ -463,6 +464,19 @@ public class WindowFrame
 			System.out.println("There is no current cell for this operation");
 		}
 		return curCell;
+	}
+
+	public static void removeLibraryReferences(Library lib)
+	{
+		for (Iterator it = getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			WindowContent content = wf.getContent();
+			Cell cell = content.getCell();
+			if (cell != null && cell.getLibrary() == lib)
+				content.setCell(null, null);
+			content.fullRepaint();
+		}
 	}
 
 	/**

@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.text.Version;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.variable.VarContext;
@@ -40,7 +41,6 @@ import com.sun.electric.tool.user.ErrorLog;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Set;
 import java.util.HashMap;
@@ -110,9 +110,8 @@ public class CIF extends Geometry
 		if (User.isIncludeDateAndVersionInOutput())
 		{
 			writeLine("( Electric VLSI Design System, version " + Version.getVersion() + " );");
-			SimpleDateFormat sdf = new SimpleDateFormat("EEE MMMM dd, yyyy HH:mm:ss");
 			Date now = new Date();
-			writeLine("( written on " + sdf.format(now) + " );");
+			writeLine("( written on " + TextUtils.formatDate(now) + " );");
 		} else
 		{
 			writeLine("( Electric VLSI Design System );");

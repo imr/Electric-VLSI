@@ -28,6 +28,8 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.tool.erc.ERC;
+import com.sun.electric.tool.erc.ERCAntenna;
 import com.sun.electric.tool.user.User;
 
 import java.util.HashMap;
@@ -54,59 +56,102 @@ public abstract class ArcProto extends ElectricObject
 	public static class Function
 	{
 		private final String name;
+		private final int level;
 
-		private Function(String name) { this.name = name; }
+		private Function(String name, int level) { this.name = name;   this.level = level; }
 
 		public String toString() { return name; }
 
 		/** Describes an arc with unknown type. */
-		public static final Function UNKNOWN = new Function("unknown");
+		public static final Function UNKNOWN = new Function("unknown", 0);
 		/** Describes an arc on Metal layer 1. */
-		public static final Function METAL1 = new Function("metal-1");
+		public static final Function METAL1 = new Function("metal-1", 1);
 		/** Describes an arc on Metal layer 2. */
-		public static final Function METAL2 = new Function("metal-2");
+		public static final Function METAL2 = new Function("metal-2", 2);
 		/** Describes an arc on Metal layer 3. */
-		public static final Function METAL3 = new Function("metal-3");
+		public static final Function METAL3 = new Function("metal-3", 3);
 		/** Describes an arc on Metal layer 4. */
-		public static final Function METAL4 = new Function("metal-4");
+		public static final Function METAL4 = new Function("metal-4", 4);
 		/** Describes an arc on Metal layer 5. */
-		public static final Function METAL5 = new Function("metal-5");
+		public static final Function METAL5 = new Function("metal-5", 5);
 		/** Describes an arc on Metal layer 6. */
-		public static final Function METAL6 = new Function("metal-6");
+		public static final Function METAL6 = new Function("metal-6", 6);
 		/** Describes an arc on Metal layer 7. */
-		public static final Function METAL7 = new Function("metal-7");
+		public static final Function METAL7 = new Function("metal-7", 7);
 		/** Describes an arc on Metal layer 8. */
-		public static final Function METAL8 = new Function("metal-8");
+		public static final Function METAL8 = new Function("metal-8", 8);
 		/** Describes an arc on Metal layer 9. */
-		public static final Function METAL9 = new Function("metal-9");
+		public static final Function METAL9 = new Function("metal-9", 9);
 		/** Describes an arc on Metal layer 10. */
-		public static final Function METAL10 = new Function("metal-10");
+		public static final Function METAL10 = new Function("metal-10", 10);
 		/** Describes an arc on Metal layer 11. */
-		public static final Function METAL11 = new Function("metal-11");
+		public static final Function METAL11 = new Function("metal-11", 11);
 		/** Describes an arc on Metal layer 12. */
-		public static final Function METAL12 = new Function("metal-12");
+		public static final Function METAL12 = new Function("metal-12", 12);
 		/** Describes an arc on Polysilicon layer 1. */
-		public static final Function POLY1 = new Function("polysilicon-1");
+		public static final Function POLY1 = new Function("polysilicon-1", 1);
 		/** Describes an arc on Polysilicon layer 2. */
-		public static final Function POLY2 = new Function("polysilicon-2");
+		public static final Function POLY2 = new Function("polysilicon-2", 2);
 		/** Describes an arc on Polysilicon layer 3. */
-		public static final Function POLY3 = new Function("polysilicon-3");
+		public static final Function POLY3 = new Function("polysilicon-3", 3);
 		/** Describes an arc on the Diffusion layer. */
-		public static final Function DIFF = new Function("diffusion");
+		public static final Function DIFF = new Function("diffusion", 0);
 		/** Describes an arc on the P-Diffusion layer. */
-		public static final Function DIFFP = new Function("p-diffusion");
+		public static final Function DIFFP = new Function("p-diffusion", 0);
 		/** Describes an arc on the N-Diffusion layer. */
-		public static final Function DIFFN = new Function("n-diffusion");
+		public static final Function DIFFN = new Function("n-diffusion", 0);
 		/** Describes an arc on the Substrate-Diffusion layer. */
-		public static final Function DIFFS = new Function("substrate-diffusion");
+		public static final Function DIFFS = new Function("substrate-diffusion", 0);
 		/** Describes an arc on the Well-Diffusion layer. */
-		public static final Function DIFFW = new Function("well-diffusion");
+		public static final Function DIFFW = new Function("well-diffusion", 0);
 		/** Describes a bus arc. */
-		public static final Function BUS = new Function("bus");
+		public static final Function BUS = new Function("bus", 0);
 		/** Describes an arc that is unrouted (to be replaced by routers). */
-		public static final Function UNROUTED = new Function("unrouted");
+		public static final Function UNROUTED = new Function("unrouted", 0);
 		/** Describes an arc that is non-electrical (does not make a circuit connection). */
-		public static final Function NONELEC = new Function("nonelectrical");
+		public static final Function NONELEC = new Function("nonelectrical", 0);
+
+		/**
+		 * Method to get the level of this ArcProto.Function.
+		 * The level applies to metal and polysilicon functions, and gives the layer number
+		 * (i.e. Metal-2 is level 2).
+		 * @return the level of this ArcProto.Function.
+		 */
+		public int getLevel() { return level; }
+
+		/**
+		 * Method to tell whether this ArcProto.Function is metal.
+		 * @return true if this ArcProto.Function is metal.
+		 */
+		public boolean isMetal()
+		{
+			if (this == METAL1 || this == METAL2 || this == METAL3 ||
+				this == METAL4 || this == METAL5 || this == METAL6 || 
+				this == METAL7 || this == METAL8 || this == METAL9 || 
+				this == METAL10 || this == METAL11 || this == METAL12) return true;
+			return false;
+		}
+
+		/**
+		 * Method to tell whether this ArcProto.Function is polysilicon.
+		 * @return true if this ArcProto.Function is polysilicon.
+		 */
+		public boolean isPoly()
+		{
+			if (this == POLY1 || this == POLY2 || this == POLY3) return true;
+			return false;
+		}
+
+		/**
+		 * Method to tell whether this ArcProto.Function is diffusion.
+		 * @return true if this ArcProto.Function is diffusion.
+		 */
+		public boolean isDiffusion()
+		{
+			if (this == DIFF || this == DIFFP || this == DIFFN ||
+				this == DIFFS || this == DIFFW) return true;
+			return false;
+		}
 	}
 
 	// ----------------------- private data -------------------------------
@@ -129,6 +174,7 @@ public abstract class ArcProto extends ElectricObject
 	/** Pref map for arc end extension. */						private static HashMap defaultExtendedPrefs = new HashMap();
 	/** Pref map for arc negation. */							private static HashMap defaultNegatedPrefs = new HashMap();
 	/** Pref map for arc directionality. */						private static HashMap defaultDirectionalPrefs = new HashMap();
+	/** Pref map for arc antenna ratio. */						private static HashMap defaultAntennaRatioPrefs = new HashMap();
 
 	// the meaning of the "userBits" field:
 //	/** these arcs are fixed-length */					private static final int WANTFIX =            01;
@@ -245,6 +291,33 @@ public abstract class ArcProto extends ElectricObject
 	{
 		return getDefaultWidth() - widthOffset;
 	}
+
+	private Pref getArcProtoAntennaPref()
+	{
+		Pref pref = (Pref)defaultAntennaRatioPrefs.get(this);
+		if (pref == null)
+		{
+			double factory = ERCAntenna.DEFPOLYRATIO;
+			if (function.isMetal()) factory = ERCAntenna.DEFMETALRATIO;
+			pref = Pref.makeDoublePref("DefaultAntennaRatioFor" + protoName + "IN" + tech.getTechName(), ERC.tool.prefs, factory);
+			defaultAntennaRatioPrefs.put(this, pref);
+		}
+		return pref;
+	}
+
+	/**
+	 * Method to set the antenna ratio of this ArcProto.
+	 * Antenna ratios are used in antenna checks that make sure the ratio of the area of a layer is correct.
+	 * @param ratio the antenna ratio of this ArcProto.
+	 */
+	public void setAntennaRatio(double ratio) { getArcProtoAntennaPref().setDouble(ratio); }
+
+	/**
+	 * Method to tell the antenna ratio of this ArcProto.
+	 * Antenna ratios are used in antenna checks that make sure the ratio of the area of a layer is correct.
+	 * @return the antenna ratio of this ArcProto.
+	 */
+	public double getAntennaRatio() { return getArcProtoAntennaPref().getDouble(); }
 
 	private Pref getArcProtoBitPref(String what, HashMap map, boolean factory)
 	{

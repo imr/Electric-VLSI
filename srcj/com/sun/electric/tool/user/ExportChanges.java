@@ -562,7 +562,7 @@ public final class ExportChanges
 		if (CircuitChanges.cantEdit(cell, null, true)) return;
 
 		List exportsToDelete = new ArrayList();
-		List highs = Highlight.getHighlightedText();
+		List highs = Highlight.getHighlightedText(true);
 		for(Iterator it = highs.iterator(); it.hasNext(); )
 		{
 			Highlight h = (Highlight)it.next();

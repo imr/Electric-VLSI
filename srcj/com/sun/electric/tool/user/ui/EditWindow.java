@@ -76,7 +76,6 @@ import java.awt.font.LineMetrics;
 import java.awt.font.GlyphVector;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -334,7 +333,7 @@ public class EditWindow
 
 	public void repaint() { dispArea.repaint(); }
 
-	public void requestRepaint() { dispArea.repaint(); }
+	public void fullRepaint() { repaintContents(); }
 	
 	public JPanel getPanel() { return overall; }
 
@@ -449,25 +448,6 @@ public class EditWindow
     }
 
 	/**
-	 * Method to set the window title.
-	 */
-	public void setWindowTitle()
-	{
-		if (wf == null) return;
-
-		if (cell == null)
-		{
-			wf.setTitle("***NONE***");
-			return;
-		}
-
-		String title = cell.describe();
-		if (cell.getLibrary() != Library.getCurrent())
-			title += " - Current library: " + Library.getCurrent().getLibName();
-		wf.setTitle(title);
-	}
-
-	/**
      * Method to set the cell that is shown in the window to "cell".
      */
 	private void setCell(Cell cell, VarContext context, boolean addToHistory)
@@ -483,9 +463,9 @@ public class EditWindow
 		Highlight.clear();
 		Highlight.finished();
 
+		setWindowTitle();
 		if (wf != null)
 		{
-			setWindowTitle();
 			if (cell != null)
 			{
 				if (wf == WindowFrame.getCurrentWindowFrame())
@@ -496,13 +476,30 @@ public class EditWindow
 			}
 		}
 		fillScreen();
-        //repaintContents();
 
         if (addToHistory) {
             addToHistory(cell, context);
         }
 
 		if (cell != null && User.isCheckCellDates()) cell.checkCellDates();
+	}
+
+	/**
+	 * Method to set the window title.
+	 */
+	public void setWindowTitle()
+	{
+		if (wf == null) return;
+		if (cell == null)
+		{
+			wf.setTitle("***NONE***");
+			return;
+		}
+
+		String title = cell.describe();
+		if (cell.getLibrary() != Library.getCurrent())
+			title += " - Current library: " + Library.getCurrent().getLibName();
+		wf.setTitle(title);
 	}
 
 	/**
@@ -910,12 +907,11 @@ public class EditWindow
 			point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*5/15);
 			showFrameText(g, point0, height, xLogoBox, yLogoBox*2/15, companyName);
 
-			SimpleDateFormat sdf = new SimpleDateFormat("EEE MMMM dd, yyyy HH:mm:ss");
 			point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*3/15);
-			showFrameText(g, point0, height, xLogoBox, yLogoBox*2/15, "Created: " + sdf.format(cell.getCreationDate()));
+			showFrameText(g, point0, height, xLogoBox, yLogoBox*2/15, "Created: " + TextUtils.formatDate(cell.getCreationDate()));
 
 			point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*1/15);
-			showFrameText(g, point0, height, xLogoBox, yLogoBox*2/15, "Revised: " + sdf.format(cell.getRevisionDate()));
+			showFrameText(g, point0, height, xLogoBox, yLogoBox*2/15, "Revised: " + TextUtils.formatDate(cell.getRevisionDate()));
 		}
 	}
 

@@ -25,8 +25,10 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.technology.PrimitiveNode;
@@ -51,6 +53,8 @@ public class LibraryFiles extends Input
 	/** number of cells constructed so far. */								protected static int cellsConstructed;
 	/** a List of scaled Cells that got created */							protected List scaledCells;
 	/** a List of wrong-size Cells that got created */						protected List skewedCells;
+	/** The Electric version in the library file. */						protected int emajor, eminor, edetail;
+	/** the Electric version in the library file. */						protected Version version;
 
 	protected static class NodeInstList
 	{
@@ -119,6 +123,27 @@ public class LibraryFiles extends Input
 	 * @return true on error.
 	 */
 	protected boolean readLib() { return true; }
+
+	/**
+	 * Method to find the View to use for an old View name.
+	 * @param viewName the old View name.
+	 * @return the View to use (null if not found).
+	 */
+	protected View findOldViewName(String viewName)
+	{
+		if (version.getMajor() < 8)
+		{
+			if (viewName.equals("compensated")) return View.LAYOUTCOMP;
+			if (viewName.equals("skeleton")) return View.LAYOUTSKEL;
+			if (viewName.equals("simulation-snapshot")) return View.DOCWAVE;
+			if (viewName.equals("netlist-netlisp-format")) return View.NETLISTNETLISP;
+			if (viewName.equals("netlist-rsim-format")) return View.NETLISTRSIM;
+			if (viewName.equals("netlist-silos-format")) return View.NETLISTSILOS;
+			if (viewName.equals("netlist-quisc-format")) return View.NETLISTQUISC;
+			if (viewName.equals("netlist-als-format")) return View.NETLISTALS;
+		}
+		return null;
+	}
 
 	public static void cleanupLibraryInput()
 	{

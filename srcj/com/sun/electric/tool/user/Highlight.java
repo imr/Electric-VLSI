@@ -314,6 +314,49 @@ public class Highlight
 	}
 
 	/**
+	 * Method to add a network to the list of highlighted objects.
+	 * Many arcs may be highlighted as a result.
+	 * @param net the network to highlight.
+	 * @param cell the Cell in which this line resides.
+	 */
+	public static void addNetwork(JNetwork net, Cell cell)
+	{
+		Netlist netlist = cell.getUserNetlist();
+
+		// show all arcs on the network
+		for(Iterator aIt = cell.getArcs(); aIt.hasNext(); )
+		{
+			ArcInst ai = (ArcInst)aIt.next();
+			int width = netlist.getBusWidth(ai);
+			for(int i=0; i<width; i++)
+			{
+				JNetwork oNet = netlist.getNetwork(ai, i);
+				if (oNet == net)
+				{
+					Highlight.addElectricObject(ai, cell);
+					break;
+				}
+			}
+		}
+
+		// show all exports on the network
+		for(Iterator pIt = cell.getPorts(); pIt.hasNext(); )
+		{
+			Export pp = (Export)pIt.next();
+			int width = netlist.getBusWidth(pp);
+			for(int i=0; i<width; i++)
+			{
+				JNetwork oNet = netlist.getNetwork(pp, i);
+				if (oNet == net)
+				{
+					Highlight.addText(pp, cell, null, null);
+					break;
+				}
+			}
+		}
+	}
+
+	/**
 	 * Method to return the type of this Highlight (EOBJ, TEXT, BBOX, LINE, or MESSAGE).
 	 * @return the type of this Highlight.
 	 */
@@ -583,9 +626,13 @@ public class Highlight
 
 	/**
 	 * Method to return a List of all highlighted text.
+	 * @param unique true to request that the text objects be unique,
+	 * and not attached to another object that is highlighted.
+	 * For example, if a node and an export on that node are selected,
+	 * the export text will not be included if "unique" is true.
 	 * @return a list with the Highlight objects that point to text.
 	 */
-	public static List getHighlightedText()
+	public static List getHighlightedText(boolean unique)
 	{
 		// now place the objects in the list
 		List highlightedText = new ArrayList();
@@ -598,50 +645,53 @@ public class Highlight
 				if (highlightedText.contains(h)) continue;
 
 				// if this text is on a selected object, don't include the text
-				ElectricObject eobj = h.getElectricObject();
-				ElectricObject onObj = null;
-				if (h.getVar() != null)
+				if (unique)
 				{
-					if (eobj instanceof Export)
-					{
-						onObj = ((Export)eobj).getOriginalPort().getNodeInst();
-					} else if (eobj instanceof PortInst)
-					{
-						onObj = ((PortInst)eobj).getNodeInst();
-					} else if (eobj instanceof Geometric)
-					{
-						onObj = eobj;
-					}
-				} else
-				{
-					if (h.getName() != null)
-					{
-						if (eobj instanceof Geometric) onObj = eobj;
-					} else
+					ElectricObject eobj = h.getElectricObject();
+					ElectricObject onObj = null;
+					if (h.getVar() != null)
 					{
 						if (eobj instanceof Export)
 						{
 							onObj = ((Export)eobj).getOriginalPort().getNodeInst();
+						} else if (eobj instanceof PortInst)
+						{
+							onObj = ((PortInst)eobj).getNodeInst();
+						} else if (eobj instanceof Geometric)
+						{
+							onObj = eobj;
+						}
+					} else
+					{
+						if (h.getName() != null)
+						{
+							if (eobj instanceof Geometric) onObj = eobj;
 						} else
 						{
-							if (eobj instanceof NodeInst) onObj = eobj;
+							if (eobj instanceof Export)
+							{
+								onObj = ((Export)eobj).getOriginalPort().getNodeInst();
+							} else
+							{
+								if (eobj instanceof NodeInst) onObj = eobj;
+							}
 						}
 					}
-				}
-
-				// now see if the object is in the list
-				if (eobj != null)
-				{
-					boolean found = false;
-					for(Iterator fIt = getHighlights(); fIt.hasNext(); )
+	
+					// now see if the object is in the list
+					if (eobj != null)
 					{
-						Highlight oH = (Highlight)fIt.next();
-						if (oH.getType() != Type.EOBJ) continue;
-						ElectricObject fobj = oH.getElectricObject();
-						if (fobj instanceof PortInst) fobj = ((PortInst)fobj).getNodeInst();
-						if (fobj == onObj) { found = true;   break; }
+						boolean found = false;
+						for(Iterator fIt = getHighlights(); fIt.hasNext(); )
+						{
+							Highlight oH = (Highlight)fIt.next();
+							if (oH.getType() != Type.EOBJ) continue;
+							ElectricObject fobj = oH.getElectricObject();
+							if (fobj instanceof PortInst) fobj = ((PortInst)fobj).getNodeInst();
+							if (fobj == onObj) { found = true;   break; }
+						}
+						if (found) continue;
 					}
-					if (found) continue;
 				}
 
 				// add this text

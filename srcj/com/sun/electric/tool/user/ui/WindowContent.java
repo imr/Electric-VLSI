@@ -66,7 +66,8 @@ public interface WindowContent
 //	/** set search backwards. */							public static final int FIND_REVERSE = 8;
 
 	public abstract void finished();
-	public abstract void requestRepaint();
+	public abstract void repaint();
+	public abstract void fullRepaint();
 	public abstract void fillScreen();
 	public abstract void zoomOutContents();
 	public abstract void zoomInContents();

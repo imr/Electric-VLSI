@@ -31,6 +31,7 @@ import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Version;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -43,7 +44,6 @@ import com.sun.electric.tool.user.User;
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -93,11 +93,10 @@ public class Maxwell extends Output
 		printWriter.print("# Maxwell netlist for cell " + cell.noLibDescribe() + " from library " + cell.getLibrary().getLibName() + "\n");
 		if (User.isIncludeDateAndVersionInOutput())
 		{
-			SimpleDateFormat sdf = new SimpleDateFormat("EEE MMMM dd, yyyy HH:mm:ss");
-			printWriter.print("# CELL CREATED ON " + sdf.format(cell.getCreationDate()) + "\n");
-			printWriter.print("# LAST REVISED ON " + sdf.format(cell.getRevisionDate()) + "\n");
+			printWriter.print("# CELL CREATED ON " + TextUtils.formatDate(cell.getCreationDate()) + "\n");
+			printWriter.print("# LAST REVISED ON " + TextUtils.formatDate(cell.getRevisionDate()) + "\n");
 			printWriter.print("# Generated automatically by the Electric VLSI Design System, version " + Version.getVersion() + "\n");
-			printWriter.print("# WRITTEN ON " + sdf.format(new Date()) + "\n");
+			printWriter.print("# WRITTEN ON " + TextUtils.formatDate(new Date()) + "\n");
 		} else
 		{
 			printWriter.print("# Generated automatically by the Electric VLSI Design System\n");
