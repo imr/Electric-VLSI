@@ -677,7 +677,7 @@ class NetSchem extends NetCell {
 			}
 			if (oldWidth != newWidth)
 				System.out.println("Network: Schematic cell " + cell.describe() + " has net with conflict width of names <" +
-								   drawnNames[drawn] + "> and <" + name);
+								   drawnNames[drawn] + "> and <" + name + ">");
 		}
 		for (int i = 0; i < numArcs; i++) {
 			int drawn = drawns[arcsOffset + i];

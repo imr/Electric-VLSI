@@ -893,7 +893,8 @@ public abstract class Geometric extends ElectricObject
 		}
 		if (!name.isValid())
 		{
-			System.out.println(parent + ": Invalid name "+name+" wasn't assigned to Geometric :" +	Name.checkName(name.toString()));
+			System.out.println(parent + ": Invalid name "+name+" wasn't assigned to " +
+				(this instanceof NodeInst ? "node" : "arc") + " :" + Name.checkName(name.toString()));
 			return true;
 		}
 		if (name.isTempname() && name.isBus())
@@ -903,7 +904,12 @@ public abstract class Geometric extends ElectricObject
 		}
 		if (name.hasEmptySubnames())
 		{
-			System.out.println(parent + ": Name <"+name+"> with empty subnames wasn't assigned to Geometric");
+			if (name.isBus())
+				System.out.println(parent + ": Name <"+name+"> with empty subnames wasn't assigned to " +
+					(this instanceof NodeInst ? "node" : "arc"));
+			else
+				System.out.println(parent + ": Empty name <"+name+"> wasn't assigned to " +
+					(this instanceof NodeInst ? "node" : "arc"));
 			return true;
 		}
 		if (isLinked() && parent.hasTempName(name))

@@ -461,6 +461,7 @@ public class Name implements Comparable
 		int bracket = -1;
 		boolean wasBrackets = false;
 		int colon = -1;
+		if (ns.length() == 0) flags |= HAS_EMPTIES;
 		for (int i = 0; i < ns.length(); i++)
 		{
 			char c = ns.charAt(i);
