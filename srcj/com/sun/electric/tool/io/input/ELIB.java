@@ -2598,6 +2598,7 @@ public class ELIB extends LibraryFiles
 				}
 			} else
 			{
+                if (Library.FONT_ASSOCIATIONS == varKeys.getKey(key)) newtype = ELIBConstants.VSTRING;
 				newAddr = getInVar(newtype);
 				if (newAddr == null)
 				{
