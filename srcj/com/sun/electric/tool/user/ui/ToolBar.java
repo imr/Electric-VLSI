@@ -366,7 +366,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
             new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.undoCommand(); } });
         toolbar.undoButton.setToolTipText("Undo");
         toolbar.undoButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
-        toolbar.undoButton.setEnabled(false);
+        toolbar.undoButton.setEnabled(Undo.getUndoEnabled());
         toolbar.add(toolbar.undoButton);
 
         // the Redo button
@@ -375,7 +375,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
             new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.redoCommand(); } });
         toolbar.redoButton.setToolTipText("Redo");
         toolbar.redoButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
-        toolbar.redoButton.setEnabled(false);
+        toolbar.redoButton.setEnabled(Undo.getRedoEnabled());
         toolbar.add(toolbar.redoButton);
 
         toolbar.addSeparator();

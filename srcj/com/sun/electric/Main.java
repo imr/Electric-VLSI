@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.variable.EvalJavaBsh;
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
@@ -228,6 +229,8 @@ public final class Main
 
 		public boolean doIt()
 		{
+            Undo.changesQuiet(true);
+
 			// initialize all of the technologies
 			Technology.initAllTechnologies();
 
@@ -238,13 +241,10 @@ public final class Main
 			Layout con = Layout.getConstraint();
 			Constraints.setCurrent(con);
 
+            // do processing of arguments
             if (hasCommandLineOption(argsList, "-NOMINMEM")) {
                 // do nothing, just consume option: handled in Launcher
             }
-			// do processing of arguments
-			if (hasCommandLineOption(argsList, "-m")) {
-				// set multiheaded option here
-			}
             if (hasCommandLineOption(argsList, "-debug")) {
                 DEBUG = true;
             }
@@ -264,6 +264,8 @@ public final class Main
                 HelpViewer tip = new HelpViewer(TopLevel.getCurrentJFrame(), false, "Mouse Interface");
                 tip.setVisible(true);
             }
+
+            Undo.changesQuiet(false);
             return true;
 		}
 	}

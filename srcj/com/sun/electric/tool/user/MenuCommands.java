@@ -263,12 +263,12 @@ public final class MenuCommands
 		MenuItem undo = editMenu.addMenuItem("Undo", KeyStroke.getKeyStroke('Z', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { undoCommand(); } });
         Undo.addPropertyChangeListener(new MenuEnabler(undo, Undo.propUndoEnabled));
-        undo.setEnabled(false);
+        undo.setEnabled(Undo.getUndoEnabled());
         // TODO: figure out how to remove this property change listener for correct garbage collection
 		MenuItem redo = editMenu.addMenuItem("Redo", KeyStroke.getKeyStroke('Y', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { redoCommand(); } });
         Undo.addPropertyChangeListener(new MenuEnabler(redo, Undo.propRedoEnabled));
-        redo.setEnabled(false);
+        redo.setEnabled(Undo.getRedoEnabled());
         // TODO: figure out how to remove this property change listener for correct garbage collection
 
 		editMenu.addSeparator();

@@ -1037,6 +1037,14 @@ public class Undo
 		// if no changes were recorded, stop
 		if (currentBatch == null) return;
 
+        // if no changes were recorded, stop
+        if (currentBatch.changes.size() == 0) {
+            // remove from doneList
+            doneList.remove(currentBatch);
+            overallBatchNumber--;
+            if (doneList.size() == 0) setUndoEnabled(false);
+        }
+
 		// changes made: apply final constraints to this batch of changes
 		Constraints.getCurrent().endBatch();
 
@@ -1097,19 +1105,23 @@ public class Undo
         }
     }
 
-    private static void setUndoEnabled(boolean enabled) {
+    private static synchronized void setUndoEnabled(boolean enabled) {
         if (enabled != undoEnabled) {
             firePropertyChange(propUndoEnabled, undoEnabled, enabled);
             undoEnabled = enabled;
         }
     }
 
-    private static void setRedoEnabled(boolean enabled) {
+    private static synchronized void setRedoEnabled(boolean enabled) {
         if (enabled != redoEnabled) {
             firePropertyChange(propRedoEnabled, redoEnabled, enabled);
             redoEnabled = enabled;
         }
     }
+
+    public static synchronized boolean getUndoEnabled() { return undoEnabled; }
+
+    public static synchronized boolean getRedoEnabled() { return redoEnabled; }
 
 	/**
 	 * Method to record and broadcast a change.
