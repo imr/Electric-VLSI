@@ -120,6 +120,7 @@ public class TopLevel extends JFrame
 		if (isMDIMode())
 		{
 			addWindowListener(new WindowsEvents());
+            setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 			addComponentListener(new ReshapeComponentAdapter());
  		} else
 		{
@@ -384,7 +385,9 @@ public class TopLevel extends JFrame
 	{
 		WindowsEvents() { super(); }
 
-		public void windowClosing(WindowEvent evt) { MenuCommands.quitCommand(); }
+		public void windowClosing(WindowEvent evt) {
+            MenuCommands.quitCommand();
+        }
 	}
 
     /**
@@ -398,9 +401,16 @@ public class TopLevel extends JFrame
      * @see    #setDefaultCloseOperation
      * @see    java.awt.Window#processWindowEvent
      */
+    /*
     protected void processWindowEvent(WindowEvent e) {
-        if (e.getID() != WindowEvent.WINDOW_CLOSING ||
-                MenuCommands.quitCommand())
-            super.processWindowEvent(e);
-    }
+        // Check for close in SDI mode
+        if (!isMDIMode()) {
+            if (e.getID() != WindowEvent.WINDOW_CLOSING ||
+                    MenuCommands.quitCommand())
+                super.processWindowEvent(e);
+        } else {
+            // MDI Mode: let WindowFrame handle it, because
+            // each TopLevel is associated with a WindowFrame
+        }
+    }*/
 }
