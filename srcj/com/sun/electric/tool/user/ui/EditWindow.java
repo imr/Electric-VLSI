@@ -80,11 +80,7 @@ import java.awt.font.GlyphVector;
 import java.awt.font.LineMetrics;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -617,10 +613,19 @@ public class EditWindow extends JPanel
 			showCrossProbeLevels(g);
 
 			// add in highlighting
-            long start = System.currentTimeMillis();
-            mouseOverHighlighter.showHighlights(this, g);
-            highlighter.showHighlights(this, g);
-            long end = System.currentTimeMillis();
+            // TODO: remove try/catch when Netlist is thread safe
+            try {
+                long start = System.currentTimeMillis();
+                mouseOverHighlighter.showHighlights(this, g);
+                highlighter.showHighlights(this, g);
+                long end = System.currentTimeMillis();
+            } catch (Exception e) {
+                TimerTask redrawTask = new TimerTask() {
+                    public void run() { repaint(); }
+                };
+                Timer timer = new Timer();
+                timer.schedule(redrawTask, 1000);
+            }
             //System.out.println("drawing highlights took "+TextUtils.getElapsedTime(end-start));
 
 			// add in drag area
