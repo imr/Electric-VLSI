@@ -109,6 +109,12 @@ public final class MenuCommands
                 new ActionListener() { public void actionPerformed(ActionEvent e) { ClickZoomWireListener.theOne.wireTo(5); }});
         wiringShortcuts.addMenuItem("Wire to M6", KeyStroke.getKeyStroke(KeyEvent.VK_6, 0),
                 new ActionListener() { public void actionPerformed(ActionEvent e) { ClickZoomWireListener.theOne.wireTo(6); }});
+        wiringShortcuts.addMenuItem("Wire to M7", KeyStroke.getKeyStroke(KeyEvent.VK_7, 0),
+                new ActionListener() { public void actionPerformed(ActionEvent e) { ClickZoomWireListener.theOne.wireTo(7); }});
+        wiringShortcuts.addMenuItem("Wire to M8", KeyStroke.getKeyStroke(KeyEvent.VK_8, 0),
+                new ActionListener() { public void actionPerformed(ActionEvent e) { ClickZoomWireListener.theOne.wireTo(8); }});
+        wiringShortcuts.addMenuItem("Wire to M9", KeyStroke.getKeyStroke(KeyEvent.VK_9, 0),
+                new ActionListener() { public void actionPerformed(ActionEvent e) { ClickZoomWireListener.theOne.wireTo(9); }});
         wiringShortcuts.addMenuItem("Switch Wiring Target", KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0),
                 new ActionListener() { public void actionPerformed(ActionEvent e) { ClickZoomWireListener.theOne.switchWiringTarget(); }});
 
