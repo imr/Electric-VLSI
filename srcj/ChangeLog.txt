@@ -2,6 +2,8 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (7/8/04, SMR) Implemented auto-growth of schematic gates that take any number of inputs.
+
 IMP: (7/7/04, SMR) Implemented reading of SmartSpice output.
 
 IMP: (7/6/04, SMR) Implemented drag-and-drop to rearrange signals/panels in the waveform window.

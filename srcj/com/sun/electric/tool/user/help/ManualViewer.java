@@ -92,7 +92,8 @@ public class ManualViewer extends EDialog
 	private JTree optionTree;
 	private DefaultMutableTreeNode rootNode;
 	private List pageSequence;
-	private static int currentIndex = 0;
+	private int currentIndex;
+	private static int lastPageVisited = 0;
 
     /**
      * Create a new user's manual dialog.
@@ -114,6 +115,7 @@ public class ManualViewer extends EDialog
 		boolean newAtLevel = false;
 		String chapterName = null;
 		int chapterNumber = 0;
+		currentIndex = lastPageVisited;
 		for(;;)
 		{
 			String line = getLine(is);
@@ -197,6 +199,7 @@ public class ManualViewer extends EDialog
     private void loadPage(int index)
 	{
 		currentIndex = index;
+		lastPageVisited = index;
 		PageInfo pi = (PageInfo)pageSequence.get(index);
 		InputStream stream = TextUtils.getURLStream(pi.url, null);
 		InputStreamReader is = new InputStreamReader(stream);
@@ -400,7 +403,7 @@ public class ManualViewer extends EDialog
 
 		private EditHTML(java.awt.Frame parent, URL file, ManualViewer world)
 		{
-			super(parent, true);
+			super(parent, false);
 			this.file = file;
 			this.world = world;
 			getContentPane().setLayout(new GridBagLayout());
@@ -481,7 +484,7 @@ public class ManualViewer extends EDialog
 
 			setVisible(false);
 			dispose();
-			world.loadPage(currentIndex);
+			world.loadPage(world.currentIndex);
 		}
 	}
 	private static class Hyperactive implements HyperlinkListener

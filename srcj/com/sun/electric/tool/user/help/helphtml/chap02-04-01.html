@@ -1,24 +1,26 @@
 <!-- HEADER 2-4-1: Movement -->
 
 Components can be moved by clicking on them with the
-<I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:left  Windows:left  Mac:click">selection</A></I> button and then dragging them around while keeping the button pressed.
+<I><A HREF="chap01-08.html#chap01-08">left</A></I> button and then dragging them around while keeping the button pressed.
 During the drag, the new location of the components will be shown (as well as the amount of motion),
 and once the button is released the circuitry will be moved.
 <P>
 Another way to move objects is to use the arrow keys.
 When a node or arc is selected, each press of an arrow key moves that object by one grid unit.
-If the shift key or the menu key is held (the menu key is Command on Macs,
-Control on Windows and UNIX), then the arrow keys move the object by a block of grid units.
-A block of grid units is defined in the <B>Grid Options</B> dialog to be the distance between bold dots in the grid,
-initially 10.
-If you hold both the shift key and the menu key,
+If the shift key or the control key is held, then the arrow keys move the object by a block of grid units.
+A block of grid units is defined in the <B>Preferences...</B> dialog ("Grid" tab of the "Display" section)
+to be the frequency of bold dots in the grid,
+ initially 10.
+If you hold both the shift key and the control key,
 then the distance moved will be a block squared (i.e. initially 100).
 <P>
-The distance that the arrow keys move is also affected by the subcommands of the <B>Move</B> command of the <B>Edit</B> menu.
-The <B>Quarter Arrow Key Motion</B> command causes the amount to be quartered (so unshifted arrow keys will move by a quarter lambda).
-The <B>Half Arrow Key Motion</B> command causes the amount to be halved (so unshifted arrow keys will move by a half lambda).
-The <B>Full Arrow Key Motion</B> command causes the amount to be full (so unshifted arrow keys will move by lambda).
-Note that these menu items are attached to the "q", "h", and "f" keys.
+<TABLE><TR><TD>
+The distance that the arrow keys move is also affected by the <B>Movement</B> subcommands of the <B>Modes</B> command of the <B>Edit</B> menu.
+The <B>Quarter</B> command causes the amount to be quartered (so unshifted arrow keys will move by a quarter lambda).
+The <B>Half</B> command causes the amount to be halved (so unshifted arrow keys will move by a half lambda).
+The <B>Full</B> command causes the amount to be full (so unshifted arrow keys will move by lambda).
+Note that these menu items are attached to the "q", "h", and "f" keys and are also in the tool bar.
+</TD><TD><CENTER><IMG SRC="fig02-18.gif" ALT="Figure 2.18"></CENTER></TD></TR></TABLE>
 <P>
 To move objects along only one line (just horizontally or vertically but not both),
 hold the Control key down during motion.
@@ -30,6 +32,6 @@ When arcs are moved by a large amount, they cause the connecting nodes to move w
 However, for small arc motion, the arc may shift within its ports.
 This can only happen if the port has nonzero area and if the arc has the <I>slidable</I> constraint
 (shown with the letter "S" when highlighted).
-These constraints are discussed in greater detail in <A HREF="chap05-02.html#chap05-02">Section 5-2</A>.
+These constraints are discussed in greater detail in <A HREF="chap05-02-02.html#chap05-02-02">Section 5-2-2</A>.
 
 <!-- TRAILER -->

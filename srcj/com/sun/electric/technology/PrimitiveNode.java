@@ -26,6 +26,7 @@ package com.sun.electric.technology;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
 
+import java.awt.Dimension;
 import java.util.Iterator;
 import java.util.HashMap;
 import java.util.NoSuchElementException;
@@ -54,6 +55,7 @@ public class PrimitiveNode extends NodeProto
 	/** minimum width and height */					private double minWidth, minHeight;
 	/** minimum width and height rule */			private String minSizeRule;
 	/** offset from database to user */				private SizeOffset offset;
+	/** amount to automatically grow to fit arcs */	private Dimension autoGrowth;
 
 	/** counter for enumerating primitive nodes */	private static int primNodeNumber = 0;
 	/** Pref map for node width. */					private static HashMap defaultWidthPrefs = new HashMap();
@@ -79,6 +81,7 @@ public class PrimitiveNode extends NodeProto
 		setFactoryDefSize(defWidth, defHeight);
 		if (offset == null) offset = new SizeOffset(0,0,0,0);
 		this.offset = offset;
+		this.autoGrowth = null;
 		this.minWidth = this.minHeight = -1;
 		this.minSizeRule = "";
 		primNodeIndex = primNodeNumber++;
@@ -317,6 +320,28 @@ public class PrimitiveNode extends NodeProto
 	 * @param offset the size offset of this PrimitiveNode.
 	 */
 	public void setSizeOffset(SizeOffset offset) { this.offset = offset; }
+
+	/**
+	 * Method to set the auto-growth factor on this PrimitiveNode.
+	 * The auto-growth factor is the amount to exand the node when new arcs
+	 * want to connect to an expandable port and there is no room for the arcs.
+	 * The only nodes that have auto-growth factors are the AND, OR, XOR, SWITCH, and MUX
+	 * nodes of the Schematics technology.
+	 * These nodes have ports that can accomodate any number of arcs.
+	 * @param autoGrowth the amount to grow this PrimitiveNode when arcs don't fit.
+	 */
+	public void setAutoGrowth(double dX, double dY) { autoGrowth = new Dimension();   autoGrowth.setSize(dX, dY); }
+
+	/**
+	 * Method to get the auto-growth factor for this PrimitiveNode.
+	 * The auto-growth factor is the amount to exand the node when new arcs
+	 * want to connect to an expandable port and there is no room for the arcs.
+	 * The only nodes that have auto-growth factors are the AND, OR, XOR, SWITCH, and MUX
+	 * nodes of the Schematics technology.
+	 * These nodes have ports that can accomodate any number of arcs.
+	 * @return the amount to grow this PrimitiveNode when arcs don't fit.
+	 */
+	public Dimension getAutoGrowth() { return autoGrowth; }
 
 	/**
 	 * Method to return the Technology of this PrimitiveNode.

@@ -3,16 +3,14 @@
 In a busy circuit, many objects may overlap, causing confusion when selecting.
 To simplify selection, objects can be marked so that they are no longer <I>easy-to-select</I>,
 which means that standard selection does not work on them.
-When objects are not easy-to-select,
-they require the use of the
-<I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:meta-left  Windows:alt-left  Mac:opt-click">special select</A></I> button in order to find them
-(typically the same as the <I>selection</I> button but with the Alt/Meta/Option key held).
-Toggling selection of objects that are not easy-to-select requires the use of the
-<I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:shift-meta-left  Windows:shift-alt-left  Mac:shift-opt-click">toggle special select</A></I> button.
-Cycling through multiple objects that are not easy-to-select requires the use of the
-<I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:ctrl-meta-left  Windows:ctrl-alt-left  Mac:ctrl-opt-click">special select another</A></I> button.
-Finally, toggling and cycling through objects that are not easy-to-select is done with the
-<I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:shift-ctrl-meta-left  Windows:shift-ctrl-alt-left  Mac:shift-ctrl-opt-click">toggle special select another</A></I> button.
+<TABLE><TR><TD>
+To select hard-to-select objects,
+use the 
+they require the use of the <B>Special Select</B> subcommand of the <B>Select</B> subcommand of the <B>Modes</B> command of the
+<B>Edit</B> menu.
+You can also click on the "Special Select" tool bar button to enable "special selection".
+</TD><TD><CENTER><IMG SRC="fig02-16.gif" ALT="Figure 2.16"></CENTER></TD></TR></TABLE>
+
 <P>
 Ease of selection extends to more than just nodes and arcs.
 There are four "classes" of objects that can be selected:
@@ -23,15 +21,16 @@ There are four "classes" of objects that can be selected:
 <LI>Special objects (the text of a cell instance's name)
 </UL>
 By default, the first three classes are easy-to-select, and special objects are hard-to-select.
-If you uncheck "Easy selection of cell instances" in the <B>Selection Options...</B> dialog,
+If you uncheck "Easy selection of cell instances" in the selection preferences dialog,
 then cell instances become hard-to-select.
-If you uncheck "Easy selection of annotation text" in the <B>Selection Options...</B> dialog,
+If you uncheck "Easy selection of annotation text" in the selection preferences dialog,
 then annotation text becomes hard-to-select.
 <P>
 Although all nodes and arcs are typically easy-to-select,
-you can control them individually by unchecking the "Easy to Select" field in their info dialog
-(use the <B>Get Info</B> command of the <B>Info</B> menu).
-If multiple objects are selected, the <B>Get Info</B> dialog has a popup in the lower-right for changing their selection difficulty.
+you can control them individually by unchecking the "Easy to Select" field in their properties dialog
+(use the <B>Object Properties...</B> subcommand of the <B>Properties</B> command of the <B>Edit</B> menu).
+If multiple objects are selected, the <B>Object Properties...</B> dialog has a popup in the lower-right for changing their selection difficulty.
+<P>
 Special commands exist in the <B>Selection</B> menu for dealing with easy-to-select nodes and arcs.
 You can select all of the easy-to-select objects in the current cell with the <B>Select All Easy</B> command.
 Similarly, you can select those that are not easy-to-select with the <B>Select All Hard</B> command.

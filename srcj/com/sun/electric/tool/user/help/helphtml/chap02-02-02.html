@@ -1,23 +1,20 @@
 <!-- HEADER 2-2-2: Arc Creation -->
 
 As the introductory example showed, arcs are created by clicking the
-<I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:right  Windows:right  Mac:cmd-click">creation</A></I> button.
+<I><A HREF="chap01-08.html#chap01-08">right</A></I> button.
 This can actually function in two different ways, depending on what is highlighted.
 <P>
 If one node is highlighted, <I>segment wiring</I> is done,
 in which an arc is drawn from the highlighted node to the location of the cursor.
 If there is nothing at that location, a pin is created, and it is left highlighted.
-Using the <I>creation</I> button again runs an arc from the pin to another location.
-By clicking and holding the <I>creation</I> button,
+Using the <I>right</I> button again runs an arc from the pin to another location.
+By clicking and holding the <I>right</I> button,
 you can see the path that the new arc will follow.
 <P>
 If the cursor is over another object when this command is issued,
 the new wire attaches to that object.
-To disable this "attach" feature of segment drawing,
-use the <I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:shift-right  Windows:shift-right  Mac:shift-cmd-click">wire</A></I> button instead of the
-<I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:right  Windows:right  Mac:cmd-click">creation</A></I> button.
 <P>
-In general, all wiring operations should be done by clicking and <U>holding</U> the <I>creation</I> button,
+In general, all wiring operations should be done by clicking and <U>holding</U> the <I>right</I> button,
 then moving the cursor until the intended wiring is shown,
 and finally releasing.
 This is recommended because wiring is quite complex and can follow many different paths.
@@ -25,12 +22,12 @@ This is recommended because wiring is quite complex and can follow many differen
 The other way that the creation button can operate is <I>two-point wiring</I>,
 in which two nodes are highlighted and one or more arcs are created to connect them.
 Highlighting of these two nodes is done by clicking the
-<I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:left  Windows:left  Mac:click">selection</A></I> button over the first one,
-and then using the <I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:shift-left  Windows:shift-left  Mac:shift-click">toggle select</A></I> button on the second.
+<I><A HREF="chap01-08.html#chap01-08">left</A></I> button over the first one,
+and then using the <I><A HREF="chap01-08.html#chap01-08">shift-left</A></I> button on the second.
 Note that if the second node is obscured by other objects, you can cycle through the objects under the cursor with the
-<I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:shift-ctrl-left  Windows:shift-ctrl-left  Mac:shift-ctrl-click">toggle select another</A></I> button.
+<I><A HREF="chap01-08.html#chap01-08">control-shift-left</A></I> button.
 Once the two nodes are highlighted,
-use the <I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:right  Windows:right  Mac:cmd-click">creation</A></I> button to wire them together.
+use the <I><A HREF="chap01-08.html#chap01-08">right</A></I> button to wire them together.
 Note that the highlighted ports on the selected nodes are important:
 arcs will run between them, so they must be compatible in their wiring capabilities.
 <P>
@@ -39,7 +36,7 @@ Two-point wire creation first attempts to run a single arc.
 Generally, this can happen only if the ports are lined up accurately.
 Failing single arc placement,
 an attempt is made to connect with two or three arcs and intermediate nodes.
-The determination of arc location depends upon the position of the cursor when the creation button is clicked.
+The determination of arc location depends upon the position of the cursor when the right button is clicked.
 If the cursor is inside of the area defined by the two components,
 the connection will make a "Z" bend through the cursor.
 If the cursor is to one side of the components,
@@ -64,7 +61,7 @@ it is split and a new node is created to make a "T" connection.
 <P>
 Whenever an arc is created, the system makes a clicking sound.
 The sound is a single click for one arc, a double-click for two arcs, and a triple-click for three or more arcs.
-To disable this sound, use the <B>General Options...</B> subcommand of the <B>User Interface</B>
-command of the <B>Info</B> menu and uncheck "Click sounds when arcs are created".
+To disable this sound, use the <B>Preferences...</B> command of the <B>File</B> menu,
+select the "New Arcs" tab in the "General" section, and uncheck "Play click sounds when arcs are created".
 
 <!-- TRAILER -->

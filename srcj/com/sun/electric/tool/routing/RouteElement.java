@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.routing;
 
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -568,6 +569,42 @@ public class RouteElement {
             PortInst tailPi = tailRE.getConnectingPort();
             Point2D headPoint = headRE.getConnPoint();
             Point2D tailPoint = tailRE.getConnPoint();
+
+			// special case when routing to expandable gate (and, or, mux, etc.)
+			Poly headPoly = headPi.getPoly();
+			if (!headPoly.isInside(headPoint))
+			{
+				NodeInst headNi = headPi.getNodeInst();
+				NodeProto np = headNi.getProto();
+				if (np instanceof PrimitiveNode)
+				{
+					PrimitiveNode pNp = (PrimitiveNode)np;
+					Dimension autoGrowth = pNp.getAutoGrowth();
+					if (autoGrowth != null)
+					{
+						// grow the node to allow expandable port to fit
+						headNi.modifyInstance(0, 0, autoGrowth.getWidth(), autoGrowth.getHeight(), 0);
+					}
+				} 
+			}
+			Poly tailPoly = tailPi.getPoly();
+			if (!tailPoly.isInside(tailPoint))
+			{
+				NodeInst tailNi = tailPi.getNodeInst();
+				NodeProto np = tailNi.getProto();
+				if (np instanceof PrimitiveNode)
+				{
+					PrimitiveNode pNp = (PrimitiveNode)np;
+					Dimension autoGrowth = pNp.getAutoGrowth();
+					if (autoGrowth != null)
+					{
+						// grow the node to allow expandable port to fit
+						tailNi.modifyInstance(0, 0, autoGrowth.getWidth(), autoGrowth.getHeight(), 0);
+					}
+				} 
+			}
+
+			// now run the arc
             ArcInst newAi = ArcInst.makeInstance(ap, arcWidth, headPi, headPoint, tailPi, tailPoint, arcName);
             if (arcAngle != 0)
                 newAi.setAngle(arcAngle);

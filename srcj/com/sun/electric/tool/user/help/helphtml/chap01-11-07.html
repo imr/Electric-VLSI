@@ -2,10 +2,12 @@
 
 Electric supports hierarchy by allowing you to create icons for a schematic and place them in another cell.
 Before creating an icon, all connection points to the schematic should be defined.
+<P>
 <TABLE><TR>
 <TD><CENTER><IMG SRC="fig01-22.png" ALT="Figure 1.22"></CENTER></TD><TD>
-Before creating an icon, there must be connection sites, or <I>exports</I> on the schematic.
-Select the output port of the Buffer node and issue the <B>Create Export...</B> command from the <B>Export</B> menu.
+To define connection points for a schematic, you must create <I>exports</I> on the schematic.
+To see an example of this, select the output port of the Buffer node and issue the
+<B>Create Export...</B> command from the <B>Export</B> menu.
 You will be prompted for an export name and its characteristics
 (the characteristics can be ignored for now).
 </TD></TR></TABLE>
@@ -24,17 +26,16 @@ The result will look like this.
 </TD></TR></TABLE>
 <P>
 <TABLE><TR><TD>
-Now create a new cell with the <B>Edit Cell...</B> command of the <B>Cells</B> menu.
-Click on the "New Cell" button at the bottom,
-and make sure the "Make new window for cell" option is checked in the dialog.
-Then type the new cell name ("Higher" is used in the example here) and set its view.
+Now create a new cell with the <B>New Cell...</B> command of the <B>Cells</B> menu.
+Type the new cell name ("Higher" is used in the example here) and make sure its view is "schematic".
 </TD><TD><CENTER><IMG SRC="fig01-25.png" ALT="Figure 1.25"></CENTER></TD></TR></TABLE>
 <P>
 A new (empty) cell will appear in a separate window.
 Try creating a few simple nodes in this new window (place a gate or two).
 <TABLE><TR>
 <TD><CENTER><IMG SRC="fig01-10.png" ALT="Figure 1.9"></CENTER></TD><TD>
-Now place an instance of the other cell by using the <B>New Cell Instance...</B> command from the <B>Edit</B> menu.
+Now place an instance of the other cell by using the <B>Place Cell Instance...</B> command from the <B>Cell</B> menu.
+You can also click the "Cell" entry in the component menu.
 You will be given a list of cells to create:
 select the one that is in the OTHER window (the one called "MyCircuit{ic}" in this example).
 Then click in the newer cell to create the instance.

@@ -1,21 +1,59 @@
 <!-- HEADER 2-2-1: Node Creation -->
 
-Node creation is done by selecting a node from the component menu on the left,
-or by using one of the <B>New</B> commands of the <B>Edit</B> menu (<B>New Cell Instance</B>,
-<B>New Analog Part</B>, <B>New Spice Part</B>,
-<B>New Pure Layer Node</B>, <B>New Special Object</B>).
-These commands then wait for a click in the editing window to place the component.
-The location of the cursor is aligned to the nearest grid unit,
-and this adjustment can be controlled with the <B>Alignment Options...</B> command of the <B>Windows</B> menu.
+Node creation is done by selecting a node from the component menu on the left.
+The nodes are outlined in blue.
+After clicking on one of these nodes, click in the edit window to place the node.
 <P>
-When placing a node, the cursor points to the <I>grab point</I> of the newly created node.
-By default, this is the center (for primitives) or the lower-left corner (for cell instances).
-Primitive nodes can use the lower-left corner as the grab-point by unchecking the
-"Center-based primitives" checkbox in the <B>Selection Options...</B> subcommand of the <B>Selection</B> command of the <B>Edit</B> menu.
-When this is unchecked, the <B>Get Info</B> dialog shows the node's lower-left position,
-rather than its center.
+The location of the cursor is aligned to the nearest grid unit.
+This adjustment can be controlled with the <B>Preferences...</B> command of the <B>File</B> menu,
+in the "Grid" tab of the "Display" section.
 <P>
-Cell instances can change their grab-point by placing a Cell-Center node inside of their layout
+When placing a node, the cursor points to the <I>anchor point</I> of the newly created node.
+This is the center (for primitives) or the location of the cell-center (for cell instances).
+Cell instances can change their anchor point by moving the Cell-Center node inside of their layout
 (see <A HREF="chap03-03.html#chap03-03">Section 3-3</A>).
+<P>
+Besides basic components, there are special entries in the component menu for creation of additional nodes:
+<UL>
+<LI>The "Cell" button displays a list of cell instances that can be created
+(see <A HREF="chap03-03.html#chap03-03">Section 3-3</A>).</LI>
+<LI>The "Pure" button (only available in layout technologies) lets you place pure-layer nodes
+(see <A HREF="chap06-10-01.html#chap06-10-01">Section 6-10-1</A>).</LI>
+<LI>The "Spice" button (only available in schematics) lets you place spice primitives
+(see <A HREF="chap08-04-04.html#chap08-04-04">Section 8-4-4</A>).</LI>
+<LI>The "Misc" button has a collection of special objects that can be created.</LI>
+</UL>
+<TABLE><TR><TD><CENTER><IMG SRC="fig02-17.gif" ALT="Figure 2.17"></CENTER></TD><TD>
+These objects can be created with the "Misc" button:
+<UL>
+<LI><B>Cell Instance</B> brings up a dialog to select an instance to place
+(see <A HREF="chap03-03.html#chap03-03">Section 3-3</A>).</LI>
+<LI><B>Annotation Text</B> places a node that contains only text
+(see <A HREF="chap06-08-01.html#chap06-08-01">Section 6-8-1</A>).</LI>
+<LI><B>Layout Text...</B> brings up a dialog to create text from layout nodes
+(see <A HREF="chap06-10-03.html#chap06-10-03">Section 6-10-3</A>).</LI>
+<LI><B>Annular Ring...</B> brings up a dialog to create circular shapes
+(see <A HREF="chap06-10-03.html#chap06-10-03">Section 6-10-3</A>).</LI>
+<LI><B>Cell Center</B> places a node that defines the origin of the cell
+(see <A HREF="chap03-03.html#chap03-03">Section 3-3</A>).</LI>
+<LI><B>Essential Bounds</B> places a node that defines the corners of the cell's essential bounds
+(see <A HREF="chap07-06-02.html#chap07-06-02">Section 7-6-2</A>).</LI>
+<LI><B>Spice Code</B> places a text-only node that will be inserted into Spice decks
+(see <A HREF="chap08-04-03.html#chap08-04-03">Section 8-4-3</A>).</LI>
+<LI><B>Verilog Code</B> places a text-only node that will be inserted into the code area of Verilog decks
+(see <A HREF="chap08-04-02.html#chap08-04-02">Section 8-4-2</A>).</LI>
+<LI><B>Verilog Declaration</B> places a text-only node that will be inserted into the declaration area of Verilog decks
+(see <A HREF="chap08-04-02.html#chap08-04-02">Section 8-4-2</A>).</LI>
+<LI><B>Simulation Probe</B> places a node that can be used to display simulation results.</LI>
+<LI><B>DRC Exclusion</B> places a node that covers DRC errors and causes them to be ignored
+(see <A HREF="chap08-02-02.html#chap08-02-02">Section 8-2-2</A>).</LI>
+<LI><B>Invisible Pin</B> places an invisible-pin node
+(see <A HREF="chap07-06-02.html#chap07-06-02">Section 7-6-2</A>).</LI>
+<LI><B>Universal Pin</B> places an universal-pin node
+(see <A HREF="chap07-06-02.html#chap07-06-02">Section 7-6-2</A>).</LI>
+<LI><B>Unrouted Pin</B> places an unrouted-pin node
+(see <A HREF="chap07-06-02.html#chap07-06-02">Section 7-6-2</A>).</LI>
+</UL>
+</TD></TR></TABLE>
 
 <!-- TRAILER -->

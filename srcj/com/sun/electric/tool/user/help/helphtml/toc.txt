@@ -3,6 +3,8 @@ Table of Contents                    =index
 
 Introduction
  Welcome                             =chap01-01
+ Setup and Requirements              =chap01-02
+ Plug-Ins                            =chap01-03
  Fundamental Concepts                =chap01-06
  The Display                         =chap01-07
  The Mouse                           =chap01-08
@@ -21,9 +23,9 @@ Introduction
   Create a Node                      =chap01-11-02
   Highlighting                       =chap01-11-03
   Make an Arc                        =chap01-11-04
-  Constraints                        =chap01-11-05
-  Hierarchy                          =chap01-11-06
-  Exports                            =chap01-11-07
+  Multi-Input gates and Negation     =chap01-11-05
+  Constraints                        =chap01-11-06
+  Hierarchy and Icons                =chap01-11-07
   Final Points                       =chap01-11-08
 
 Basic Editing

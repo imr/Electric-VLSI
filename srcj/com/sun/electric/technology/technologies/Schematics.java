@@ -51,6 +51,7 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 
+import java.awt.geom.Dimension2D;
 import java.awt.geom.Point2D;
 import java.awt.Dimension;
 import java.util.Iterator;
@@ -439,6 +440,7 @@ public class Schematics extends Technology
 		andBottomPort.setNegatable(true);
 		andNode.addPrimitivePorts(new PrimitivePort [] { andInPort, andOutPort, andTopPort, andBottomPort});
 		andNode.setFunction(NodeProto.Function.GATEAND);
+		andNode.setAutoGrowth(0, 4);
 
 		/** general or */
 		orNode = PrimitiveNode.newInstance("Or", this, 10.0, 6.0, new SizeOffset(1, 0.5, 0, 0),
@@ -482,6 +484,7 @@ public class Schematics extends Technology
 		orBottomPort.setNegatable(true);
 		orNode.addPrimitivePorts(new PrimitivePort [] {orInPort, orOutPort, orTopPort, orBottomPort});
 		orNode.setFunction(NodeProto.Function.GATEOR);
+		orNode.setAutoGrowth(0, 4);
 
 		/** general xor */
 		xorNode = PrimitiveNode.newInstance("Xor", this, 10.0, 6.0, new SizeOffset(0, 0.5, 0, 0),
@@ -529,6 +532,7 @@ public class Schematics extends Technology
 		xorBottomPort.setNegatable(true);
 		xorNode.addPrimitivePorts(new PrimitivePort [] {xorInPort, xorOutPort, xorTopPort, xorBottomPort});
 		xorNode.setFunction(NodeProto.Function.GATEXOR);
+		xorNode.setAutoGrowth(0, 4);
 
 		/** general flip flop */
 		Technology.NodeLayer ffBox = new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox());
@@ -740,6 +744,7 @@ public class Schematics extends Technology
 		muxSidePort.setNegatable(true);
 		muxNode.addPrimitivePorts(new PrimitivePort [] {muxInPort, muxSidePort, muxOutPort});
 		muxNode.setFunction(NodeProto.Function.MUX);
+		muxNode.setAutoGrowth(0, 4);
 
 		/** black box */
 		bboxNode = PrimitiveNode.newInstance("Bbox", this, 10.0, 10.0, null,
@@ -790,6 +795,7 @@ public class Schematics extends Technology
 					EdgeH.fromRight(1), EdgeV.makeCenter(), EdgeH.fromRight(1), EdgeV.makeCenter())
 			});
 		switchNode.setFunction(NodeProto.Function.UNKNOWN);
+		switchNode.setAutoGrowth(0, 4);
 
 		/** off page connector */
 		offpageNode = PrimitiveNode.newInstance("Off-Page", this, 2.0, 1.0, null,
@@ -1602,7 +1608,6 @@ public class Schematics extends Technology
 			}
 		} else if (np == switchNode)
 		{
-			extraBlobs = true;
 			int numLayers = 3;
 			if (ni.getYSize() >= 4) numLayers += ((int)ni.getYSize()/2) - 1; 
 			Technology.NodeLayer [] switchLayers = new Technology.NodeLayer[numLayers];
@@ -1791,27 +1796,23 @@ public class Schematics extends Technology
 
 					// cycle through the arc positions
 					total = Math.max(total+2, 3);
-					if (np == this.switchNode)
-						total = (int)(ni.getXSize() / 2);
 					for(int i=0; i<total; i++)
 					{
 						// compute the position along the left edge
-						double yPosition=0, xPosition=0;
-			
-						if (np == this.switchNode)
+						double yPosition = (i+1)/2 * 2;
+						if ((i&1) != 0) yPosition = -yPosition;
+	
+						// compute indentation
+						double xPosition = -4;
+						if (np == switchNode)
 						{
-							yPosition = i * 2 + 1;
 							xPosition = -2;
-						} else
+						} else if (np == muxNode)
 						{
-							yPosition = (i+1)/2 * 2;
-							if ((i&1) != 0) yPosition = -yPosition;
-		
-							// compute indentation (for OR and XOR)
-							xPosition = -4;
-							if (np == muxNode)
-								xPosition = -ni.getXSize() * 4 / 10;
-							if (np == orNode || np == xorNode) switch (i)
+							xPosition = -ni.getXSize() * 4 / 10;
+						} else if (np == orNode || np == xorNode)
+						{
+							switch (i)
 							{
 								case 0: xPosition += 0.75;   break;
 								case 1:
@@ -1846,17 +1847,6 @@ public class Schematics extends Technology
 						}
 					}
 					if (bestDist == Double.MAX_VALUE) System.out.println("Warning: cannot find gate port");
-
-					// make sure the node is large enough
-//					if (bestIndex*lambda*2 >= ni.getYSize())
-//					{
-//						modifynodeinst(ni, 0, -lambda*2, 0, lambda*2, 0, 0);
-//	
-//						// make this gate change visible if it is in a window
-//						for(w = el_topwindowpart; w != NOWINDOWPART; w = w->nextwindowpart)
-//							if (w->curnodeproto == ni->parent) break;
-//						if (w != NOWINDOWPART) (void)asktool(us_tool, x_("flush-changes"));
-//					}
 
 					// set the closest port
 					Point2D [] points = new Point2D[1];

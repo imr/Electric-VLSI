@@ -17,18 +17,20 @@ then the node and two arcs are replaced with a single arc.
 any isolated pins are also erased.
 <P>
 <TABLE><TR><TD>
-(3) If an erased node has an export on it (as in the example below),
+(3) If an erased node has an export on it (as in this example),
 then the export disappears and so do all arcs connected to the port on instances of the current cell
 (for more information on hierarchy, see <A HREF="chap03-01.html#chap03-01">Chapter 3</A>).
 </TD><TD><CENTER><IMG SRC="fig02-06.png" ALT="Figure 2.6"></CENTER></TD></TR></TABLE>
 <P>
 <TABLE><TR><TD><CENTER><IMG SRC="fig03-14.png" ALT="Figure 3.14"></CENTER></TD><TD>
 <!-- NEED 3in -->
-The <B>Erase Geometry</B> command erases all geometry in the highlighted area.
+When an area is selected (instead of objects)
+the <B>Erase</B> command erases all geometry in the highlighted area.
 All arcs that cross into that area will be truncated.
 Thus, this command truly erases geometry, independent of the structure of nodes and arcs.
 Note that the area to be erased is adjusted by the current alignment values
-(see <A HREF="chap04-07.html#chap04-07">Section 4-7</A>).
+(see <A HREF="chap04-07-02.html#chap04-07-02">Section 4-7-2</A>).
+For more on area selection, see <A HREF="chap02-01-03.html#chap02-01-03">Section 2-1-3</A>.
 </TD></TR></TABLE>
 
 <!-- TRAILER -->

@@ -194,7 +194,7 @@ public class EditMenu {
 		arcSubMenu.addSeparator();
 		arcSubMenu.addMenuItem("Toggle Directionality", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcDirectionalCommand(); }});
-		arcSubMenu.addMenuItem("Toggle Ends Extension", null,
+		arcSubMenu.addMenuItem("Toggle End Extension", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcEndsExtendCommand(); }});
 		arcSubMenu.addMenuItem("Reverse", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcReverseCommand(); }});
@@ -249,7 +249,7 @@ public class EditMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.fullArrowDistanceCommand(); } });
 		moveHalf = modeSubMenuMovement.addRadioButton(ToolBar.moveHalfName, false, movementGroup, KeyStroke.getKeyStroke('H', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.halfArrowDistanceCommand(); } });
-		moveQuarter = modeSubMenuMovement.addRadioButton(ToolBar.moveQuarterName, false, movementGroup, null,
+		moveQuarter = modeSubMenuMovement.addRadioButton(ToolBar.moveQuarterName, false, movementGroup, KeyStroke.getKeyStroke('Q', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.quarterArrowDistanceCommand(); } });
 		double ad = ToolBar.getArrowDistance();
 		if (ad == 1.0) moveFull.setSelected(true); else
@@ -301,9 +301,9 @@ public class EditMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectAllCommand(); }});
 		selListSubMenu.addMenuItem("Select All Like This", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectAllLikeThisCommand(); }});
-		selListSubMenu.addMenuItem("Select Easy", null,
+		selListSubMenu.addMenuItem("Select All Easy", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectEasyCommand(); }});
-		selListSubMenu.addMenuItem("Select Hard", null,
+		selListSubMenu.addMenuItem("Select All Hard", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectHardCommand(); }});
 		selListSubMenu.addMenuItem("Select Nothing", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectNothingCommand(); }});

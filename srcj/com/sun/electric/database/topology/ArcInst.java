@@ -136,12 +136,7 @@ public class ArcInst extends Geometric
 		ArcInst ai = newInstance(type, width, head, tail, name);
 		if (ai != null)
 		{
-			// set default information from the prototype
-			if (type.isRigid()) ai.setRigid();
-			if (type.isFixedAngle()) ai.setFixedAngle();
-			if (type.isSlidable()) ai.setSlidable();
-			if (type.isExtended()) ai.setExtended(); else ai.clearExtended();
-			if (type.isDirectional()) ai.setDirectional();
+			ai.setDefaultConstraints();
 		}
 		return ai;
 	}
@@ -164,12 +159,7 @@ public class ArcInst extends Geometric
 		ArcInst ai = newInstance(type, width, head, headPt, tail, tailPt, name);
 		if (ai != null)
 		{
-			// set default information from the prototype
-			if (type.isRigid()) ai.setRigid();
-			if (type.isFixedAngle()) ai.setFixedAngle();
-			if (type.isSlidable()) ai.setSlidable();
-			if (type.isExtended()) ai.setExtended();
-			if (type.isDirectional()) ai.setDirectional();
+			ai.setDefaultConstraints();
 		}
 		return ai;
 	}
@@ -1132,6 +1122,18 @@ public class ArcInst extends Geometric
 	 * @return true if this rigid ArcInst was modified.
 	 */
 	public boolean isRigidModified() { return (userBits & FIXEDMOD) == 0; }
+
+	/**
+	 * Method to set default constraint information on this ArcInst.
+	 */
+	private void setDefaultConstraints()
+	{
+		if (protoType.isRigid()) setRigid(); else clearRigid();
+		if (protoType.isFixedAngle()) setFixedAngle(); else clearFixedAngle();
+		if (protoType.isSlidable()) setSlidable(); else clearSlidable();
+		if (protoType.isExtended()) setExtended(); else clearExtended();
+		if (protoType.isDirectional()) setDirectional(); else clearDirectional();
+	}
 
 	/**
 	 * Low-level method to set the ArcInst angle in the "user bits".
