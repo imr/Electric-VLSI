@@ -4692,47 +4692,54 @@ if (wp.signalButtons != null)
 
 		public boolean doIt()
 		{
-			List signalList = new ArrayList();
-			int total = ww.right.getComponentCount();
-			for(int i=0; i<total; i++)
+			try
 			{
-				JPanel rightPart = (JPanel)ww.right.getComponent(i);
-				for(Iterator it = ww.wavePanels.iterator(); it.hasNext(); )
+				List signalList = new ArrayList();
+				int total = ww.right.getComponentCount();
+				for(int i=0; i<total; i++)
 				{
-					Panel wp = (Panel)it.next();
-					if (wp.rightHalf == rightPart)
+					JPanel rightPart = (JPanel)ww.right.getComponent(i);
+					for(Iterator it = ww.wavePanels.iterator(); it.hasNext(); )
 					{
-						StringBuffer sb = new StringBuffer();
-						boolean first = true;
-						for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
+						Panel wp = (Panel)it.next();
+						if (wp.rightHalf == rightPart)
 						{
-							WaveSignal ws = (WaveSignal)sIt.next();
-							String sigName = ws.sSig.getFullName();
-							if (first) first = false; else
-								sb.append("\t");
-							sb.append(sigName);
+							StringBuffer sb = new StringBuffer();
+							boolean first = true;
+							for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
+							{
+								WaveSignal ws = (WaveSignal)sIt.next();
+								String sigName = ws.sSig.getFullName();
+								if (first) first = false; else
+									sb.append("\t");
+								sb.append(sigName);
+							}
+							if (!first)
+								signalList.add(sb.toString());
+							break;
 						}
-						if (!first)
-							signalList.add(sb.toString());
-						break;
 					}
 				}
-			}
-
-			if (signalList.size() == 0)
-			{
-				if (cell.getVar(WINDOW_SIGNAL_ORDER) != null)
-					cell.delVar(WINDOW_SIGNAL_ORDER);
-			} else
-			{
-				String [] strings = new String[signalList.size()];
-				int i = 0;
-				for(Iterator it = signalList.iterator(); it.hasNext(); )
+	
+				if (signalList.size() == 0)
 				{
-					strings[i] = (String)it.next();
-					i++;
+					if (cell.getVar(WINDOW_SIGNAL_ORDER) != null)
+						cell.delVar(WINDOW_SIGNAL_ORDER);
+				} else
+				{
+					String [] strings = new String[signalList.size()];
+					int i = 0;
+					for(Iterator it = signalList.iterator(); it.hasNext(); )
+					{
+						strings[i] = (String)it.next();
+						i++;
+					}
+					cell.newVar(WINDOW_SIGNAL_ORDER, strings);
 				}
-				cell.newVar(WINDOW_SIGNAL_ORDER, strings);
+			} catch (java.util.ConcurrentModificationException e)
+			{
+				// if saving signals while modifying them, just stop saving for now
+				// because the modifying process will request a new save soon enough
 			}
 			return true;
 		}

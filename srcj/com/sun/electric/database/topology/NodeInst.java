@@ -120,7 +120,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	{
 		NodeProto np = ni.getProto();
 		return (np == Generic.tech.cellCenterNode || np == Generic.tech.drcNode ||
-		        np == Generic.tech.essentialBoundsNode || np.getFunction() == PrimitiveNode.Function.PIN);
+		        np == Generic.tech.essentialBoundsNode || np.getFunction() == PrimitiveNode.Function.PIN ||
+		        np.getFunction() == PrimitiveNode.Function.CONNECT);
 	}
 
 	/**

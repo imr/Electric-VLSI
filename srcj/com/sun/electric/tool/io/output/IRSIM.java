@@ -226,7 +226,7 @@ public class IRSIM extends Output
             // handle resistors and capacitors
 			PrimitiveNode.Function fun = ni.getFunction();
             double rcValue = 0;
-            char type = 'R';
+            char type = 0;
             Network net1 = null, net2 = null;
             String net1Name = null, net2Name = null;
 
@@ -267,6 +267,7 @@ public class IRSIM extends Output
                 }
                 if (thisLayer != null)
                     rcValue = thisLayer.getResistance()/cuts;
+                type = 'R';
             }
 			else if (fun == PrimitiveNode.Function.RESIST || fun == PrimitiveNode.Function.CAPAC ||
 				fun == PrimitiveNode.Function.ECAPAC)
@@ -281,6 +282,11 @@ public class IRSIM extends Output
                 }
                 net1 = netlist.getNetwork(end1);
                 net2 = netlist.getNetwork(end2);
+                if (net1 == null || net2 == null)
+                {
+                    System.out.println("Warning, ignoring unconnected component " + ni + " in cell " + info.getCell());
+                    return null;
+                }
                 net1Name = info.getUniqueNetNameProxy(net1, "/").toString(numRemoveParents);
                 net2Name = info.getUniqueNetNameProxy(net2, "/").toString(numRemoveParents);
 
@@ -306,11 +312,7 @@ public class IRSIM extends Output
                 type = (fun == PrimitiveNode.Function.RESIST) ? 'R' : 'C';
                 rcValue = TextUtils.atof(extra);
             }
-            if (net1 == null || net2 == null)
-            {
-                System.out.println("Warning, ignoring unconnected component " + ni + " in cell " + info.getCell());
-                return null;
-            }
+            if (type == 0) return null;
             Technology tech = info.getCell().getTechnology();
             if ((type == 'R' && rcValue < tech.getMinResistance()) ||
                 (type == 'C' && rcValue < tech.getMinCapacitance()))
