@@ -52,6 +52,7 @@ import java.io.OutputStream;
 import java.lang.InterruptedException;
 import java.util.Iterator;
 import java.util.Stack;
+import java.util.ArrayList;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
@@ -466,17 +467,31 @@ public class LETool extends Tool {
         System.out.println("No existing completed sizing jobs contain info about "+no.getName());
     }
 
+    public static void clearStoredSizes(Nodable no) {
+        ClearStoredSizes job = new ClearStoredSizes(no);
+    }
+
     /**
      * Clears stored "LEDRIVE_" sizes on a Nodable.
      */
-    public void clearStoredSizes(Nodable no) {
-        // delete all vars that start with "LEDRIVE_"
-        for (Iterator it = no.getVariables(); it.hasNext(); ) {
-            Variable var = (Variable)it.next();
-            String name = var.getKey().getName();
-            if (name.startsWith("LEDRIVE_")) {
-                no.delVar(var.getKey());
+    public static class ClearStoredSizes extends Job {
+        private Nodable no;
+        public ClearStoredSizes(Nodable no) {
+            super("Clear LE Sizes", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.no = no;
+            startJob();
+        }
+
+        public boolean doIt() {
+            // delete all vars that start with "LEDRIVE_"
+            for (Iterator it = no.getVariables(); it.hasNext(); ) {
+                Variable var = (Variable)it.next();
+                String name = var.getKey().getName();
+                if (name.startsWith("LEDRIVE_")) {
+                    no.delVar(var.getKey());
+                }
             }
+            return true;
         }
     }
 

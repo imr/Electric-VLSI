@@ -230,6 +230,8 @@ public class ToolMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { optimizeEqualGateDelaysCommand(false); }});
         logEffortSubMenu.addMenuItem("Print Info for Selected Node", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { printLEInfoCommand(); }});
+        logEffortSubMenu.addMenuItem("Clear Sizes on Selected Node", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { clearSizesNodableCommand(); }});
         toolMenu.add(logEffortSubMenu);
 
         //------------------- Routing
@@ -328,6 +330,32 @@ public class ToolMenu {
             }
         }
 
+    }
+
+    public static void clearSizesNodableCommand() {
+        EditWindow wnd = EditWindow.needCurrent();
+        if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
+
+        if (highlighter.getNumHighlights() == 0) {
+            System.out.println("Nothing highlighted");
+            return;
+        }
+        for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext();) {
+            Highlight h = (Highlight)it.next();
+            if (h.getType() != Highlight.Type.EOBJ) continue;
+
+            ElectricObject eobj = h.getElectricObject();
+            if (eobj instanceof PortInst) {
+                PortInst pi = (PortInst)eobj;
+                pi.getInfo();
+                eobj = pi.getNodeInst();
+            }
+            if (eobj instanceof NodeInst) {
+                NodeInst ni = (NodeInst)eobj;
+                LETool.clearStoredSizes(ni);
+            }
+        }
     }
 
     /**
