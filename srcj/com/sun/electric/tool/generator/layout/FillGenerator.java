@@ -23,34 +23,24 @@
  */
 package com.sun.electric.tool.generator.layout;
 
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Properties;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.LinkedList;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.HierarchyEnumerator;
-import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.PrimitiveNode;
 
 // ---------------------------- Fill Cell Globals -----------------------------
 class G {

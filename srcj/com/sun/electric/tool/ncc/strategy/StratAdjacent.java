@@ -22,16 +22,16 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.strategy;
-import com.sun.electric.tool.ncc.NccGlobals;
-import com.sun.electric.tool.ncc.basic.Messenger;
-import com.sun.electric.tool.ncc.lists.*;
-import com.sun.electric.tool.ncc.trees.EquivRecord;
-import com.sun.electric.tool.ncc.trees.Circuit;
-import com.sun.electric.tool.ncc.jemNets.NetObject;
-
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.HashSet;
+
+import com.sun.electric.tool.ncc.NccGlobals;
+import com.sun.electric.tool.ncc.jemNets.NetObject;
+import com.sun.electric.tool.ncc.lists.LeafList;
+import com.sun.electric.tool.ncc.lists.RecordList;
+import com.sun.electric.tool.ncc.trees.Circuit;
+import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 /** StratAdjacent returns a list of the leaf EquivRecords adjacent to the
  * input list or record */

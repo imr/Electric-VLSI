@@ -22,20 +22,14 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.jemNets;
-import com.sun.electric.database.hierarchy.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.tool.ncc.basic.Messenger;
 import com.sun.electric.tool.ncc.trees.Circuit;
-import com.sun.electric.tool.ncc.NccGlobals;
-
-import java.util.Iterator;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Hashtable;
 
 public class Wire extends NetObject{
 	private static final ArrayList DELETED = null;

@@ -23,15 +23,16 @@
 */
 package com.sun.electric.tool.ncc.strategy;
 
-import java.util.HashMap;
-import java.util.TreeMap;
 import java.util.Iterator;
+import java.util.TreeMap;
 
 import com.sun.electric.tool.ncc.NccGlobals;
-import com.sun.electric.tool.ncc.basic.Messenger;
-import com.sun.electric.tool.ncc.trees.*;
-import com.sun.electric.tool.ncc.lists.*;
-import com.sun.electric.tool.ncc.jemNets.*;
+import com.sun.electric.tool.ncc.jemNets.NetObject;
+import com.sun.electric.tool.ncc.jemNets.Part;
+import com.sun.electric.tool.ncc.jemNets.Port;
+import com.sun.electric.tool.ncc.jemNets.Wire;
+import com.sun.electric.tool.ncc.lists.LeafList;
+import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 /**
  * StratCount counts and prints a tree's content. StratCount
@@ -44,15 +45,15 @@ public class StratCount extends Strategy {
 	 * NetObject. */
 	private static class NetObjStats {
 		private static final int NUM_TYPES = 3;
-		int[] data = new int[NUM_TYPES];
+		private int[] data = new int[NUM_TYPES];
 		NetObjStats(int initialVal) {
 			for (int i=0; i<NUM_TYPES; i++)  data[i] = initialVal;
 		}
-		void incr(NetObject.Type type, int delta) {
+		public void incr(NetObject.Type type, int delta) {
 			data[type.ordinal()] += delta;
 		}
-		int get(NetObject.Type type) {return data[type.ordinal()];}
-		int getSumForAllTypes() {
+		public int get(NetObject.Type type) {return data[type.ordinal()];}
+		public int getSumForAllTypes() {
 			int sum = 0;
 			for (int i=0; i<NUM_TYPES; i++)  sum+=data[i];
 			return sum;
@@ -94,6 +95,20 @@ public class StratCount extends Strategy {
 		}
 	}
 
+	public static class Counts {
+		public final int numMatchedPartEquivRecs;
+		public final int numMatchedWireEquivRecs;
+		public final int numMismatchedPartEquivRecs;
+		public final int numMismatchedWireEquivRecs;
+		public Counts(int matchPartER, int matchWireER, 
+					  int mismatchPartER, int mismatchWireER) {
+			numMatchedPartEquivRecs = matchPartER;
+			numMatchedWireEquivRecs = matchWireER;
+			numMismatchedPartEquivRecs = mismatchPartER;
+			numMismatchedWireEquivRecs = mismatchWireER;
+		}
+	}
+
 	// -------------------------- private data --------------------------------
 	private static final int INDENT_WIDTH = 4;
 	private static final int LABEL_WIDTH = 30;
@@ -132,49 +147,42 @@ public class StratCount extends Strategy {
     }
 	private void printLine(String label, NetObjStats stats) {
 		globals.println(spaces(INDENT_WIDTH) +
-					   leftJustifyInField(label, LABEL_WIDTH) +
-					   stats.toString());
+					    leftJustifyInField(label, LABEL_WIDTH) +
+					    stats.toString());
 	}
     private void printLine(String label, int data) {
     	globals.println(spaces(INDENT_WIDTH) +
-    				   leftJustifyInField(label, LABEL_WIDTH) +
-    				   rightJustifyInField(String.valueOf(data), FIELD_WIDTH));
+    				    leftJustifyInField(label, LABEL_WIDTH) +
+    				    rightJustifyInField(String.valueOf(data), FIELD_WIDTH));
     }
 	private void printLine(String label, double data) {
 		data = Math.rint(data * 10)/10;
 		globals.println(spaces(INDENT_WIDTH) +
-					   leftJustifyInField(label, LABEL_WIDTH) +
-					   rightJustifyInField(String.valueOf(data), FIELD_WIDTH));
+					    leftJustifyInField(label, LABEL_WIDTH) +
+					    rightJustifyInField(String.valueOf(data), FIELD_WIDTH));
 	}
 
     // ---------- the tree walking code ---------
 
     //Get setup to start, initializing the counters.
     private void preamble(EquivRecord j){
-		workingOnString= j.nameString();
-		startTime("StratCount", workingOnString);
+		startTime("StratCount", "statistics for entire equivalence class tree");
 	}
 	
-    //Get setup to start, initializing the counters.
-    private void preamble(RecordList j){
-		workingOnString= "a list of " + j.size();
-		startTime("StratCount", workingOnString);
-	}
-	
-    //Print the results when finished.
-    private void summary(){
+    // Print the results when finished.
+    private Counts summary(){
     	// print a label
     	globals.println(
     		spaces(INDENT_WIDTH + LABEL_WIDTH) + 
 		   	rightJustifyInField("Parts", FIELD_WIDTH) +
 		   	rightJustifyInField("Wires", FIELD_WIDTH) +
 		   	rightJustifyInField("Ports", FIELD_WIDTH));
-		printLine("# mismatched EquivRecs", numMismatchedLeafRecs);
-		printLine("# retired EquivRecs", numRetiredLeafRecs);
-		printLine("# active EquivRecs", numActiveLeafRecs);
-		printLine("# mismatched NetObjs", numMismatchedNetObjs);
-		printLine("# retired NetObjs", numRetiredNetObjs);
-		printLine("# active NetObjs", numActiveNetObjs);
+		printLine("# mismatched equiv classes", numMismatchedLeafRecs);
+		printLine("# matched equiv classes", numRetiredLeafRecs);
+		printLine("# active equiv classes", numActiveLeafRecs);
+		printLine("# mismatched net objects", numMismatchedNetObjs);
+		printLine("# matched net objects", numRetiredNetObjs);
+		printLine("# active net objects", numActiveNetObjs);
 
     	int numEquivRecs = numMismatchedLeafRecs.getSumForAllTypes() +
     					   numRetiredLeafRecs.getSumForAllTypes() +
@@ -183,34 +191,38 @@ public class StratCount extends Strategy {
 		sizeHistogram.print();
 		
 		globals.println("");
-		printLine("# InternalRecords", numInternalRecs);
-		printLine("# Circuits", numCircuits);
-		printLine("max depth", maxDepth);
-		if (maxDepth>1000)  System.out.println("max tree depth = "+maxDepth);
+		//printLine("# InternalRecords", numInternalRecs);
+		//printLine("# Circuits", numCircuits);
+		printLine("max tree depth", maxDepth);
+		if (maxDepth>1000)  System.out.println("Tell Russell that max tree depth = "+maxDepth);
 
-        float average= (float)totalEqGrpSize/(float)numEquivRecs;
-		printLine("average size EquivRec", average);
-        printLine("# pins", numberOfWireConnections);
-
-		// # Wire pins must = # Part pins unless we're checking just the Wire 
-		// sub-tree or just the Part sub-tree.
-		int diffPins = numberOfPartConnections - numberOfWireConnections;
-		int numWires =  numMismatchedNetObjs.get(NetObject.Type.WIRE) + 
-						numRetiredNetObjs.get(NetObject.Type.WIRE) +
-						numActiveNetObjs.get(NetObject.Type.WIRE); 
-		int numParts =  numMismatchedNetObjs.get(NetObject.Type.PART) + 
-						numRetiredNetObjs.get(NetObject.Type.PART) +
-						numActiveNetObjs.get(NetObject.Type.PART); 
-		error(numWires!=0 && numParts!=0 && diffPins!=0, 
-			  "#wirePins != #partPins: "+
-			  numberOfWireConnections+" != "+numberOfPartConnections);
-		
-        average= (float)numberOfWireConnections/(float)numWires;
-        double rms= (float)numberOfWireConnectionsSquared/(float)numWires;
-        rms= Math.sqrt(rms);
-        printLine("average wire pins", average);
-        printLine("rms wire pins", rms);
+//        float average= (float)totalEqGrpSize/(float)numEquivRecs;
+//		printLine("average size EquivRec", average);
+//        printLine("# pins", numberOfWireConnections);
+//
+//		// # Wire pins must = # Part pins unless we're checking just the Wire 
+//		// sub-tree or just the Part sub-tree.
+//		int diffPins = numberOfPartConnections - numberOfWireConnections;
+//		int numWires =  numMismatchedNetObjs.get(NetObject.Type.WIRE) + 
+//						numRetiredNetObjs.get(NetObject.Type.WIRE) +
+//						numActiveNetObjs.get(NetObject.Type.WIRE); 
+//		int numParts =  numMismatchedNetObjs.get(NetObject.Type.PART) + 
+//						numRetiredNetObjs.get(NetObject.Type.PART) +
+//						numActiveNetObjs.get(NetObject.Type.PART); 
+//		error(numWires!=0 && numParts!=0 && diffPins!=0, 
+//			  "#wirePins != #partPins: "+
+//			  numberOfWireConnections+" != "+numberOfPartConnections);
+//		
+//        average= (float)numberOfWireConnections/(float)numWires;
+//        double rms= (float)numberOfWireConnectionsSquared/(float)numWires;
+//        rms= Math.sqrt(rms);
+//        printLine("average wire pins", average);
+//        printLine("rms wire pins", rms);
         elapsedTime();
+        return new Counts(numRetiredLeafRecs.get(NetObject.Type.PART),
+        		          numRetiredLeafRecs.get(NetObject.Type.WIRE),
+						  numMismatchedLeafRecs.get(NetObject.Type.PART),
+        		          numMismatchedLeafRecs.get(NetObject.Type.WIRE));
     }
 
 	
@@ -266,8 +278,6 @@ public class StratCount extends Strategy {
        	return CODE_NO_CHANGE;
     }
 
-    // ---------- for Wire -------------
-
     private void doFor(Wire w){
         int n= w.numParts();
         numberOfWireConnections += n;
@@ -275,35 +285,28 @@ public class StratCount extends Strategy {
         numberOfWireConnectionsSquared += nf*nf;
     }
 
-    // ---------- for Part -------------
-
     private void doFor(Part p){
         numberOfPartConnections += p.getNumWiresConnected();
     }
     
-	/**
-	 * Count things in the tree rooted at j.
-	 * @param j root of the tree 
-	 * @return an empty list
-	 */
-	public static LeafList doYourJob(EquivRecord j,
-										 NccGlobals globals) {
+    // ----------------------- intended interface -----------------------------
+	public static Counts doYourJob(NccGlobals globals) {
+		EquivRecord root = globals.getRoot();
 		StratCount jsc = new StratCount(globals);
-		jsc.preamble(j);
-		LeafList el = jsc.doFor(j);
-		jsc.summary();
-		return el;
+		jsc.preamble(root);
+		jsc.doFor(root);
+		return jsc.summary();
 	}
     
-	public static LeafList doYourJob(RecordList g,
-										 NccGlobals globals){
-		StratCount jsc = new StratCount(globals);
-		jsc.preamble(g);
-		if (g.size()!=0) {
-			jsc.doFor(g);
-			jsc.summary();
-		}
-		return new LeafList();
-	}
+//	public static LeafList doYourJob(RecordList g,
+//										 NccGlobals globals){
+//		StratCount jsc = new StratCount(globals);
+//		jsc.preamble(g);
+//		if (g.size()!=0) {
+//			jsc.doFor(g);
+//			jsc.summary();
+//		}
+//		return new LeafList();
+//	}
 
 }

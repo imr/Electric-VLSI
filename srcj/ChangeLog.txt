@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01n: *********************************
 
+IMP/MAN (9/10/04, RK) Allow user to control number of items printed in the error diagnostics.
+
+IMP/MAN (9/10/04, RK) Reworked the NCC commands. The operation is now selected by the NCC preferences pane while the number of windows is selected by the menu.
+
 BUG: (9/10/04, SMR) Arraying arcs doesn't copy their constraining properties.
 FIX: Array code calls "copyPropertiesFrom()".
 

@@ -23,9 +23,10 @@
 */
 package com.sun.electric.tool.ncc.processing;
 
-import com.sun.electric.tool.ncc.*;
-import com.sun.electric.tool.ncc.NccEngine;
+import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.NccOptions;
+import com.sun.electric.tool.ncc.jemNets.NetObject;
+import com.sun.electric.tool.ncc.lists.LeafList;
 import com.sun.electric.tool.ncc.strategy.StratAdjacent;
 import com.sun.electric.tool.ncc.strategy.StratCount;
 import com.sun.electric.tool.ncc.strategy.StratFrontier;
@@ -36,19 +37,6 @@ import com.sun.electric.tool.ncc.strategy.StratRandomMatch;
 import com.sun.electric.tool.ncc.strategy.StratResult;
 import com.sun.electric.tool.ncc.strategy.StratSizes;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
-import com.sun.electric.tool.ncc.trees.Circuit;
-import com.sun.electric.tool.ncc.jemNets.NetObject;
-import com.sun.electric.tool.ncc.lists.RecordList;
-import com.sun.electric.tool.ncc.lists.LeafList;
-import com.sun.electric.tool.ncc.basic.Messenger;
-import com.sun.electric.tool.ncc.basic.NccUtils;
-import com.sun.electric.tool.ncc.jemNets.Part;
-import com.sun.electric.tool.ncc.jemNets.Wire;
-import com.sun.electric.tool.ncc.jemNets.Transistor;
-
-import java.util.Iterator;
-import java.util.List;
-import java.util.ArrayList;
 
 public class HashCodePartitioning {
 	NccGlobals globals;
@@ -153,7 +141,7 @@ public class HashCodePartitioning {
 	private void useExportNames() {
 		globals.println("----- use Export Names");
 		while (true) {
-			StratCount.doYourJob(globals.getRoot(), globals);
+			StratCount.doYourJob(globals);
 			LeafList offspring = StratPortName.doYourJob(globals);
 			if (offspring.size()==0) break;
 			chaseRetired(offspring);
@@ -189,7 +177,7 @@ public class HashCodePartitioning {
 		if (!done()) hashFrontier();
 		if (!done()) useExportNames();
 		NccOptions options = globals.getOptions();
-		StratCount.doYourJob(globals.getRoot(), globals);
+		StratCount.doYourJob(globals);
 		if (!done()) useTransistorSizes();
 		if (!done()) randomMatch();
 		

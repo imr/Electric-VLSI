@@ -22,32 +22,20 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.List;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.hierarchy.HierarchyEnumerator;
-import com.sun.electric.database.network.Netlist;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.ui.WindowContent;
-import com.sun.electric.tool.ncc.basic.NccUtils;
-import com.sun.electric.tool.ncc.basic.CellContext;
-import com.sun.electric.tool.ncc.basic.Messenger;
-import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.ncc.basic.CellContext;
+import com.sun.electric.tool.ncc.basic.NccUtils;
+import com.sun.electric.tool.user.User;
 
 public class NccJob extends Job {
 	private final int numWindows;
-	private final boolean bottomUpFlat;
-	private final boolean hierarchical;
+	private final int operation;
 	
 	private CellContext[] getSchemLayFromCurrentWindow() {
 		CellContext curCellCtxt = NccUtils.getCurrentCellContext();
@@ -125,55 +113,63 @@ public class NccJob extends Job {
 		options.relativeSizeTolerance = NCC.getRelativeSizeTolerance()/100;
 		options.absoluteSizeTolerance = NCC.getAbsoluteSizeTolerance();
 		options.haltAfterFirstMismatch = NCC.getHaltAfterFirstMismatch();
+		options.maxMatchedEquivRecsToPrint = NCC.getMaxMatchedClasses();
+		options.maxMismatchedEquivRecsToPrint = NCC.getMaxMismatchedClasses();
+		options.maxEquivRecMembersToPrint = NCC.getMaxClassMembers();
+		
 		return options;
 	}
 
     public boolean doIt() {
-    	Date before = new Date();
-		System.out.println((hierarchical ? "Hierarchical" : "Flat")+
-                           " NCC starting");
-		NccOptions options = getOptionsFromNccConfigDialog();
 		CellContext[] cellCtxts = getCellsFromWindows(numWindows);
 
 		boolean skipPassed = NCC.getSkipPassed();
+		NccOptions options = getOptionsFromNccConfigDialog();
 
-		NccResult result;
 		if (cellCtxts==null) {
-			result = new NccResult(false, false, false); 
-		} else if (bottomUpFlat || hierarchical) {
-			result = NccBottomUp.compare(cellCtxts[0].cell, cellCtxts[1].cell, 
-			                             hierarchical, skipPassed, options);
+			return false;
+		} else if (operation==NCC.LIST_ANNOTATIONS) {
+			ListNccAnnotations.doYourJob(cellCtxts);
+			return true;
 		} else {
-			result = NccUtils.compareAndPrintStatus(cellCtxts[0], cellCtxts[1], 
-										            null, options);
+			NccResult result;
+	    	Date before = new Date();
+			if (operation==NCC.FLAT_TOP_CELL) {
+				prln("Flat NCC top cell");
+				result = NccUtils.compareAndPrintStatus(cellCtxts[0], cellCtxts[1], 
+			                                            null, options);
+			} else if (operation==NCC.FLAT_EACH_CELL) {
+				prln("Flat NCC every cell in the design");
+				result = NccBottomUp.compare(cellCtxts[0].cell, cellCtxts[1].cell, 
+				                             false, skipPassed, options);
+			} else if (operation==NCC.HIER_EACH_CELL) {
+				prln("Hierarchical NCC every cell in the design");
+				result = NccBottomUp.compare(cellCtxts[0].cell, cellCtxts[1].cell, 
+	                                         true, skipPassed, options);
+			} else {
+				LayoutLib.error(true, "bad operation: "+operation);
+				return false;
+			}
+			System.out.println("Summary for all cells "+result.summary(options.checkSizes));
+			Date after = new Date();
+			System.out.println("NCC command completed in: "+
+			                   NccUtils.hourMinSec(before, after)+".");
+			return result.match();
 		}
-		
-		System.out.println("Summary for all cells "+result.summary(options.checkSizes));
-		Date after = new Date();
-		System.out.println("NCC command completed in: "+
-		                   NccUtils.hourMinSec(before, after)+".");
-		return result.match();
     }
 
 	// ------------------------- public method --------------------------------
 	/**
 	 * @param numWindows may be 1 or 2. 1 means compare the schematic and layout 
 	 * views of the current window. 2 means compare the 2 Cells open in 2 Windows.
-	 * @param bottomUpFlat NCC flat every cell in the hierarchy. bottomUpFlat
-	 * and hierarchy are mutually exclusive.
-	 * @param hierarchical NCC hierarchically every cell in the hierarchy. 
-	 * hierarchical and bottomUpFlat are mutually exclusive.
 	 */
-	public NccJob(int numWindows, boolean bottomUpFlat, boolean hierarchical) {
+	public NccJob(int numWindows) {
 		super("Run NCC", User.tool, Job.Type.CHANGE, null, null, 
 		      Job.Priority.ANALYSIS);
 		LayoutLib.error(numWindows!=1 && numWindows!=2, 
                         "numWindows must be 1 or 2");
-		LayoutLib.error(bottomUpFlat && hierarchical,
-				        "I can't do bottomUpFlat and hierarchical simultaneously");
 		this.numWindows = numWindows;
-		this.bottomUpFlat = bottomUpFlat;
-		this.hierarchical = hierarchical;
+		this.operation = NCC.getOperation();
 		startJob();
 	}
 }

@@ -23,20 +23,31 @@
  */
 package com.sun.electric.tool.generator.layout;
 
-import java.awt.geom.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Properties;
 
-import com.sun.electric.database.hierarchy.*;
-import com.sun.electric.database.prototype.*;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.*;
-import com.sun.electric.technology.*;
-//import com.sun.electric.tool.io.*;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.output.Output;
-import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ActivityLogger;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 
 /**
  * The LayoutLib class provides an assortment of methods that I

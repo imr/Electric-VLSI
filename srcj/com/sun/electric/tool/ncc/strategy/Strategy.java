@@ -26,15 +26,16 @@
 //the iteration is now all in the tree structure
 
 package com.sun.electric.tool.ncc.strategy;
-import com.sun.electric.tool.ncc.jemNets.*;
-import com.sun.electric.tool.ncc.trees.*;
-import com.sun.electric.tool.ncc.lists.*;
-import com.sun.electric.tool.ncc.basic.Messenger;
-import com.sun.electric.tool.ncc.NccGlobals;
-
-import java.util.Iterator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
+
+import com.sun.electric.tool.ncc.NccGlobals;
+import com.sun.electric.tool.ncc.jemNets.NetObject;
+import com.sun.electric.tool.ncc.lists.LeafList;
+import com.sun.electric.tool.ncc.lists.RecordList;
+import com.sun.electric.tool.ncc.trees.Circuit;
+import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 /** 
  * Strategy is the superclass for all strategies.

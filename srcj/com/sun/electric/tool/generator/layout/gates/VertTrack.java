@@ -23,18 +23,13 @@
  */
 package com.sun.electric.tool.generator.layout.gates;
 
-import java.io.*;
-import java.util.*;
-import java.awt.*;
-
-import com.sun.electric.database.hierarchy.*;
-import com.sun.electric.database.network.*;
-import com.sun.electric.database.prototype.*;
-import com.sun.electric.database.topology.*;
-import com.sun.electric.database.variable.*;
-import com.sun.electric.technology.*;
-
-import com.sun.electric.tool.generator.layout.*;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.generator.layout.StdCellParams;
+import com.sun.electric.tool.generator.layout.Tech;
 
 /**
  * This part simply reserves space for one vertical metal1 track to be

@@ -23,19 +23,14 @@
  */
 package com.sun.electric.tool.generator.layout.gates;
 
-import java.io.*;
-import java.util.*;
-import java.awt.*;
-
-//import com.sun.dbmirror.*;
-import com.sun.electric.database.hierarchy.*;
-import com.sun.electric.database.prototype.*;
-import com.sun.electric.database.topology.*;
-import com.sun.electric.database.network.*;
-import com.sun.electric.database.variable.*;
-import com.sun.electric.technology.*;
-
-import com.sun.electric.tool.generator.layout.*;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.generator.layout.StdCellParams;
+import com.sun.electric.tool.generator.layout.Tech;
 
 /** Create a ring in layers p1 and m1 - m5.  This ring is useful for
  * testing DRC correctness of my gate libraries.  I will draw a ring

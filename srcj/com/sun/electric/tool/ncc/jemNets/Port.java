@@ -22,20 +22,16 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.jemNets;
-import com.sun.electric.database.hierarchy.Export;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeSet;
+
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.tool.ncc.basic.Messenger;
-import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.trees.Circuit;
-import com.sun.electric.tool.ncc.jemNets.NetObject;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.HashSet;
-import java.util.TreeSet;
 
 /** An NCC Port holds all the Export names associated with a single NCC
  * Wire. */ 

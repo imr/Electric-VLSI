@@ -22,20 +22,22 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.strategy;
-import com.sun.electric.tool.ncc.*;
-import com.sun.electric.tool.ncc.basic.Messenger;
-import com.sun.electric.tool.ncc.jemNets.*;
-import com.sun.electric.tool.ncc.trees.*;
-import com.sun.electric.tool.ncc.lists.*;
-
-import java.util.Map;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import com.sun.electric.tool.ncc.NccGlobals;
+import com.sun.electric.tool.ncc.jemNets.NetObject;
+import com.sun.electric.tool.ncc.jemNets.Port;
+import com.sun.electric.tool.ncc.jemNets.Wire;
+import com.sun.electric.tool.ncc.lists.LeafList;
+import com.sun.electric.tool.ncc.lists.RecordList;
+import com.sun.electric.tool.ncc.trees.Circuit;
+import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 /**
  * StratPortName sorts all Wire EquivRecords on the frontier by

@@ -26,13 +26,10 @@
 
 package com.sun.electric.tool.ncc.strategy;
 
-import java.util.HashMap;
-
 import com.sun.electric.tool.ncc.NccGlobals;
-import com.sun.electric.tool.ncc.basic.Messenger;
-import com.sun.electric.tool.ncc.jemNets.*;
-import com.sun.electric.tool.ncc.trees.*;
-import com.sun.electric.tool.ncc.lists.*;
+import com.sun.electric.tool.ncc.lists.LeafList;
+import com.sun.electric.tool.ncc.lists.RecordList;
+import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 public class StratFrontier extends Strategy {
     private StratFrontier(NccGlobals globals) {super(globals);}

@@ -23,20 +23,16 @@
 */
 package com.sun.electric.tool.ncc.processing;
 
-import com.sun.electric.tool.ncc.strategy.Strategy;
 import java.util.HashMap;
-import java.util.TreeMap;
-import java.util.Iterator;
-import java.util.List;
+
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.NccOptions;
-import com.sun.electric.tool.ncc.basic.Messenger;
-import com.sun.electric.tool.ncc.lists.LeafList;
-import com.sun.electric.tool.ncc.trees.EquivRecord;
-import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.jemNets.NetObject;
-import com.sun.electric.tool.ncc.jemNets.Part;
-import com.sun.electric.tool.ncc.jemNets.Wire;
+import com.sun.electric.tool.ncc.lists.LeafList;
+import com.sun.electric.tool.ncc.strategy.StratCount;
+import com.sun.electric.tool.ncc.strategy.Strategy;
+import com.sun.electric.tool.ncc.trees.Circuit;
+import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 /** Try to print useful information to explain to the user why
  * the Hash Code Partitioning phase failed. */
@@ -50,29 +46,35 @@ public class ReportHashCodeFailure {
 		private int cktNdx;
 		private int classNum;
 		private String netObjDescr;
+		private int maxMismatches;
+		private void printEquivRecs(String type, EquivRecord partsOrWires, 
+				                    int num) {
+			classNum = 1;
+			netObjDescr = "Part";
+			prln("  "+num+" mismatched "+type+" equivalence classes:");
+			maxMismatches = globals.getOptions().maxMismatchedEquivRecsToPrint;
+			if (num>maxMismatches) {
+				prln("    Too many, I'm only printing "+maxMismatches+".");
+			}
+			doFor(partsOrWires);
+		}
 		// Constructor does everything
-		private StratPrintMismatched(NccGlobals globals) {
+		private StratPrintMismatched(StratCount.Counts counts, 
+				                     NccGlobals globals) {
 			super(globals);
-			int maxMismatched = globals.getOptions().numMismatchedEquivClassesToPrint;
-
-			netObjDescr = "part";
-			classNum = 1;
-			prln("Dumping a maximum of "+maxMismatched+" mismatched part equivalence classes");
-			doFor(globals.getParts());
-
-			netObjDescr = "wire";
-			classNum = 1;
-			prln("Dumping a maximum of "+maxMismatched+" mismatched wire equivalence classes");
-			doFor(globals.getWires());
+			printEquivRecs("Part", globals.getParts(), 
+					       counts.numMismatchedPartEquivRecs);
+			printEquivRecs("Wire", globals.getWires(), 
+					       counts.numMismatchedWireEquivRecs);
 		}
 	
 		// ---------- the tree walking code ---------
 		public LeafList doFor(EquivRecord er) {
-			if (classNum > globals.getOptions().numMismatchedEquivClassesToPrint) {
+			if (classNum > maxMismatches) {
 				// we've already printed too much. Do nothing.
 			} else if (er.isLeaf()) {
 				if (er.isMismatched()) {
-					prln("  Mismatched "+netObjDescr+" equivalence class "+classNum++);
+					prln("    Mismatched "+netObjDescr+" equivalence class "+classNum++);
 					cktNdx = 0;
 					super.doFor(er);
 				}
@@ -83,47 +85,54 @@ public class ReportHashCodeFailure {
 		}
 	
 		public HashMap doFor(Circuit c) {
-			prln("    Cell "+globals.getRootCellNames()[cktNdx]+" has mismatched objects");
+			prln("      Cell "+globals.getRootCellNames()[cktNdx]+
+				 " has "+c.numNetObjs()+" mismatched objects");
 			cktNdx++;
 			return super.doFor(c);
 		}
 
 		public Integer doFor(NetObject n){
-			prln("      "+n.toString());
+			prln("        "+n.toString());
 			return CODE_NO_CHANGE;
 		}
     
-		// -------------------------- public method -------------------------------
-		public static void doYourJob(NccGlobals globals) {
-			new StratPrintMismatched(globals);
+		// ----------------------- intended interface -------------------------
+		public static void doYourJob(StratCount.Counts counts, NccGlobals globals) {
+			new StratPrintMismatched(counts, globals);
 		}
 	}
 
 	private static class StratPrintMatched extends Strategy {
 		private int classNum=1;
 		private String netObjDescr;
-		// Constructor does everything
-		private StratPrintMatched(NccGlobals globals) {
-			super(globals);
-			int maxMatches = globals.getOptions().numMatchedEquivClassesToPrint;
+		private int maxMatches;
+		
+		private void printEquivRecs(String type, EquivRecord partsOrWires, 
+				                    int num) {
 			classNum = 1;
 			netObjDescr = "Part";
-			prln("Dumping a maximum of "+maxMatches+" matched part equivalence classes");
-			doFor(globals.getParts());
-
-			classNum = 1;
-			netObjDescr = "Wire";
-			prln("Dumping a maximum of "+maxMatches+" matched wire equivalence classes");
-			doFor(globals.getWires());
+			prln("  "+num+" matched "+type+" equivalence classes:");
+			maxMatches = globals.getOptions().maxMatchedEquivRecsToPrint;
+			if (num>maxMatches) {
+				prln("    Too many, I'm only printing "+maxMatches+".");
+			}
+			doFor(partsOrWires);
+		}
+		// Constructor does everything
+		private StratPrintMatched(StratCount.Counts counts, NccGlobals globals) {
+			super(globals);
+			printEquivRecs("Part", globals.getParts(), 
+					       counts.numMatchedPartEquivRecs);
+			printEquivRecs("Wire", globals.getWires(), 
+					       counts.numMatchedWireEquivRecs);
 		}
 	
-		// ---------- the tree walking code ---------
 		public LeafList doFor(EquivRecord er) {
-			if (classNum > globals.getOptions().numMatchedEquivClassesToPrint) {
-				// do nothing because we've already printend too much
+			if (classNum > maxMatches) {
+				// do nothing because we've already printed too much
 			} else if (er.isLeaf()) {
 				if (er.isRetired()) {
-					pr("  "+netObjDescr+" match "+(classNum++)+" between: ");
+					pr("    "+netObjDescr+" match "+(classNum++)+" between: ");
 					int numDesigns = globals.getNumNetlistsBeingCompared();
 					for (int i=0; i<numDesigns; i++) {
 						if (i!=0) pr(" and ");
@@ -138,26 +147,34 @@ public class ReportHashCodeFailure {
 			return new LeafList();
 		}
 	
-		public HashMap doFor(Circuit c) {
-			return super.doFor(c);
-		}
+		public HashMap doFor(Circuit c) {return super.doFor(c);}
 
-		public Integer doFor(NetObject n){
+		public Integer doFor(NetObject n) {
 			prln("      "+n.toString());
 			return CODE_NO_CHANGE;
 		}
     
-		// -------------------------- public method -------------------------------
-		public static void doYourJob(NccGlobals globals) {
-			new StratPrintMatched(globals);
+		// ------------------------ intended interface ------------------------
+		public static void doYourJob(StratCount.Counts counts, NccGlobals globals) {
+			new StratPrintMatched(counts, globals);
 		}
+	}
+	// force StratCount to print
+	private StratCount.Counts printCounts() {
+		NccOptions options = globals.getOptions();
+		boolean saveVerbose = options.verbose;
+		options.verbose = true;
+		StratCount.Counts counts = StratCount.doYourJob(globals);
+		options.verbose = saveVerbose;
+		return counts;
 	}
 	/** constructor does it all */
 	private ReportHashCodeFailure(NccGlobals globals) {
 		this.globals = globals;
 		prln("Hash Code Partitioning Failed!!!");
-		StratPrintMismatched.doYourJob(globals);
-		StratPrintMatched.doYourJob(globals);
+		StratCount.Counts counts = printCounts();
+		StratPrintMismatched.doYourJob(counts, globals);
+		StratPrintMatched.doYourJob(counts, globals);
 	}
 
 	public static void reportHashCodeFailure(NccGlobals globals) {

@@ -22,18 +22,16 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.strategy;
-import com.sun.electric.tool.ncc.NccGlobals;
-import com.sun.electric.tool.ncc.basic.Messenger;
-import com.sun.electric.tool.ncc.trees.EquivRecord;
-import com.sun.electric.tool.ncc.jemNets.NetObject;
-import com.sun.electric.tool.ncc.lists.LeafList;
-import com.sun.electric.tool.ncc.jemNets.Part;
-import com.sun.electric.tool.ncc.jemNets.Part;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.Set;
-import java.util.HashSet;
+
+import com.sun.electric.tool.ncc.NccGlobals;
+import com.sun.electric.tool.ncc.jemNets.NetObject;
+import com.sun.electric.tool.ncc.jemNets.Part;
+import com.sun.electric.tool.ncc.lists.LeafList;
+import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 /* StratPartType partitions Part equivalence classes
  * based upon the Part's type. */

@@ -22,16 +22,15 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.strategy;
+import java.util.Iterator;
+
 import com.sun.electric.tool.ncc.NccGlobals;
-import com.sun.electric.tool.ncc.basic.Messenger;
-import com.sun.electric.tool.ncc.processing.*;
-import com.sun.electric.tool.ncc.trees.EquivRecord;
-import com.sun.electric.tool.ncc.lists.LeafList;
+import com.sun.electric.tool.ncc.jemNets.NetObject;
 import com.sun.electric.tool.ncc.jemNets.Part;
 import com.sun.electric.tool.ncc.jemNets.PinType;
 import com.sun.electric.tool.ncc.jemNets.Wire;
-import com.sun.electric.tool.ncc.jemNets.NetObject;
-import java.util.Iterator;
+import com.sun.electric.tool.ncc.lists.LeafList;
+import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 /* StratCountPartPinsOnWires partitions Wire equivalence classes
  * based upon how many part pins of a certain type (for example the number

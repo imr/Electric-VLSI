@@ -23,14 +23,8 @@
  */
 package com.sun.electric.tool.generator.layout.gates;
 
-import com.sun.electric.database.hierarchy.*;
-import com.sun.electric.database.network.*;
-import com.sun.electric.database.prototype.*;
-import com.sun.electric.database.topology.*;
-import com.sun.electric.database.variable.*;
-import com.sun.electric.technology.*;
-
-import com.sun.electric.tool.generator.layout.*;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.tool.generator.layout.StdCellParams;
 
 public class Nand3LTen_sy {
 	public static Cell makePart(double sz, StdCellParams stdCell) {

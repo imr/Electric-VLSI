@@ -25,28 +25,21 @@
 package com.sun.electric.tool.ncc.basic;
 
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 
-import com.sun.electric.database.hierarchy.*;
-import com.sun.electric.database.prototype.*;
-import com.sun.electric.database.topology.*;
-import com.sun.electric.database.network.Netlist;
-import com.sun.electric.technology.*;
-import com.sun.electric.tool.io.*;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.database.variable.VarContext;
-
 import com.sun.electric.tool.ncc.NccEngine;
-import com.sun.electric.tool.ncc.NccJob;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.NccResult;
 import com.sun.electric.tool.ncc.processing.HierarchyInfo;
-import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.WindowContent;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 
 public class NccUtils {

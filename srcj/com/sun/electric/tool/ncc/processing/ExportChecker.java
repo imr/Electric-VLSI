@@ -24,24 +24,21 @@
 
 package com.sun.electric.tool.ncc.processing;
 
-import java.util.HashSet;
-import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
-import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.tool.ncc.basic.Messenger; 
-import com.sun.electric.tool.ncc.basic.NccUtils;
+import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
-import com.sun.electric.tool.ncc.NccGlobals; 
-import com.sun.electric.tool.ncc.NccOptions; 
-import com.sun.electric.tool.ncc.trees.EquivRecord;
-import com.sun.electric.tool.ncc.trees.Circuit;
+import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.jemNets.Port;
 import com.sun.electric.tool.ncc.jemNets.Wire;
-import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.ncc.trees.Circuit;
+import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 
 public class ExportChecker {

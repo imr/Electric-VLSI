@@ -23,19 +23,22 @@
  */
 package com.sun.electric.tool.generator.layout;
 
-import java.io.*;
-import java.util.*;
-import java.awt.*;
-import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 
-import com.sun.electric.database.hierarchy.*;
-import com.sun.electric.database.prototype.*;
-import com.sun.electric.database.topology.*;
-import com.sun.electric.database.network.*;
-import com.sun.electric.database.variable.*;
-import com.sun.electric.technology.*;
-
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.ncc.NccEngine;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.NccResult;

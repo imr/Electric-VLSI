@@ -22,10 +22,11 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.ncc.basic;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.StringTokenizer;
+
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.variable.Variable;

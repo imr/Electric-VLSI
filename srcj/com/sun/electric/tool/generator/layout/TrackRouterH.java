@@ -23,17 +23,12 @@
  */
 package com.sun.electric.tool.generator.layout;
 
-import java.io.*;
-import java.util.*;
-import java.awt.*;
-
-//import com.sun.dbmirror.*;
-
-import com.sun.electric.database.hierarchy.*;
-import com.sun.electric.database.prototype.*;
-import com.sun.electric.database.topology.*;
-import com.sun.electric.database.network.*;
-import com.sun.electric.technology.*;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.technology.PrimitiveArc;
 
 public class TrackRouterH extends TrackRouter {
 	// ---------------------------- public methods ----------------------------

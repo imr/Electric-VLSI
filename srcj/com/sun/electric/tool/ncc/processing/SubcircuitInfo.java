@@ -23,9 +23,10 @@
 */
 package com.sun.electric.tool.ncc.processing;
 
-import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
+
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.basic.Primes;
 import com.sun.electric.tool.ncc.jemNets.Port;

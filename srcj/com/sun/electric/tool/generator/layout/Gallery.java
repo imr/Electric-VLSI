@@ -22,19 +22,19 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.generator.layout;
-import java.io.*;
-import java.util.*;
-import java.awt.geom.*;
+import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.ListIterator;
 
-import com.sun.electric.database.hierarchy.*;
-import com.sun.electric.database.prototype.*;
-import com.sun.electric.database.topology.*;
-import com.sun.electric.database.network.*;
-import com.sun.electric.technology.*;
-
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.generator.layout.gates.*;
-import com.sun.electric.tool.generator.layout.*;
 
 public class Gallery {
 	static final double PAGE_WIDTH = 1000;

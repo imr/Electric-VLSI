@@ -22,39 +22,19 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.ncc;
-import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.Listener;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.ui.WindowFrame;
-
-import java.util.Iterator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Date;
 import java.util.prefs.Preferences;
+
+import com.sun.electric.database.text.Pref;
 
 /**
  * Contains NCC preferences
  */
 public class NCC {
+	public static final int HIER_EACH_CELL = 0;
+	public static final int FLAT_EACH_CELL = 1;
+	public static final int FLAT_TOP_CELL = 2;
+	public static final int LIST_ANNOTATIONS = 3;
+	
 	public static NCC tool = new NCC();
 	// per-package namespace for preferences
 	private Preferences prefs = Preferences.userNodeForPackage(this.getClass());
@@ -96,11 +76,51 @@ public class NCC {
 	}
     
 	private static Pref skipPassed = 
-		Pref.makeBooleanPref("skipPassed", NCC.tool.prefs, false);
+		Pref.makeBooleanPref("SkipPassed", NCC.tool.prefs, false);
 	public static boolean getSkipPassed() {
 		return skipPassed.getBoolean(); 
 	}
 	public static void setSkipPassed(boolean on) { 
 		skipPassed.setBoolean(on); 
 	}
+	
+	private static Pref maxMatchedClasses =
+		Pref.makeIntPref("MaxMatchedClasses", NCC.tool.prefs, 10);
+	public static int getMaxMatchedClasses() {
+		return maxMatchedClasses.getInt();
+	}
+	public static void setMaxMatchedClasses(int i) {
+		maxMatchedClasses.setInt(i);
+	}
+
+	private static Pref maxMismatchedClasses =
+		Pref.makeIntPref("MaxMismatchedClasses", NCC.tool.prefs, 10);
+	public static int getMaxMismatchedClasses() {
+		return maxMismatchedClasses.getInt();
+	}
+	public static void setMaxMismatchedClasses(int i) {
+		maxMismatchedClasses.setInt(i);
+	}
+
+	private static Pref maxClassMembers =
+		Pref.makeIntPref("MaxClassMembers", NCC.tool.prefs, 10);
+	public static int getMaxClassMembers() {
+		return maxClassMembers.getInt();
+	}
+	public static void setMaxClassMembers(int i) {
+		maxClassMembers.setInt(i);
+	}
+
+	private static Pref operation =
+		Pref.makeIntPref("Operation", NCC.tool.prefs, HIER_EACH_CELL);
+	public static int getOperation() {
+		int op = operation.getInt();
+		// guard against corrupted preferences
+		if (op<HIER_EACH_CELL || op>LIST_ANNOTATIONS) return HIER_EACH_CELL; 
+		return op;
+	}
+	public static void setOperation(int i) {
+		operation.setInt(i);
+	}
+
 }

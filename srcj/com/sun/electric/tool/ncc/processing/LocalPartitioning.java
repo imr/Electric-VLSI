@@ -23,26 +23,18 @@
 */
 
 package com.sun.electric.tool.ncc.processing;
-import com.sun.electric.tool.ncc.jemNets.*;
-import com.sun.electric.tool.ncc.processing.*;
-import com.sun.electric.tool.ncc.strategy.StratCheck;
-import com.sun.electric.tool.ncc.strategy.StratCount;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+
+import com.sun.electric.tool.ncc.NccGlobals;
+import com.sun.electric.tool.ncc.jemNets.PinType;
+import com.sun.electric.tool.ncc.lists.LeafList;
 import com.sun.electric.tool.ncc.strategy.StratCountPartPinsOnWires;
 import com.sun.electric.tool.ncc.strategy.StratPartPopularity;
 import com.sun.electric.tool.ncc.strategy.StratPartType;
 import com.sun.electric.tool.ncc.strategy.StratPreanalysisReport;
-import com.sun.electric.tool.ncc.trees.*;
-import com.sun.electric.tool.ncc.lists.LeafList;
-import com.sun.electric.tool.ncc.basic.Messenger;
-import com.sun.electric.tool.ncc.*;
-import com.sun.electric.tool.ncc.NccEngine;
-import com.sun.electric.tool.ncc.NccOptions;
-
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.HashSet;
+import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 /** LocalPartitioning partitions the Part and Wire equivalence classes based
  * on purely local characteristics. In principle, these partitions are

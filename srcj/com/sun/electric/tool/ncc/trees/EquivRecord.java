@@ -25,20 +25,20 @@
 // Annotated by Ivan Sutherland, 30 January 2004
 
 package com.sun.electric.tool.ncc.trees;
-import com.sun.electric.tool.generator.layout.LayoutLib;
-import com.sun.electric.tool.ncc.NccGlobals;
-import com.sun.electric.tool.ncc.lists.*;
-import com.sun.electric.tool.ncc.strategy.Strategy;
-import com.sun.electric.tool.ncc.jemNets.NetObject.Type;
-import com.sun.electric.tool.ncc.jemNets.NetObject;
-import com.sun.electric.tool.ncc.basic.Messenger;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
+
+import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.ncc.NccGlobals;
+import com.sun.electric.tool.ncc.jemNets.NetObject;
+import com.sun.electric.tool.ncc.lists.LeafList;
+import com.sun.electric.tool.ncc.lists.RecordList;
+import com.sun.electric.tool.ncc.strategy.Strategy;
 
 /** 
  * Leaf EquivRecords hold Circuits. Internal EquivRecords hold offspring.

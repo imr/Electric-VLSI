@@ -23,16 +23,7 @@
  */
 package com.sun.electric.tool.generator.layout;
 
-import java.io.*;
-import java.util.*;
-import java.awt.*;
-//import com.sun.dbmirror.*;
-
-import com.sun.electric.database.hierarchy.*;
-import com.sun.electric.database.prototype.*;
-import com.sun.electric.database.topology.*;
-import com.sun.electric.database.network.*;
-import com.sun.electric.technology.*;
+import com.sun.electric.database.hierarchy.Cell;
 
 public class FoldedNmos extends FoldedMos {
 	/** By default the FoldedNmos shifts the diffusion contact to the

@@ -101,11 +101,6 @@ public class DebugMenus {
 
         MenuBar.Menu russMenu = new MenuBar.Menu("Russell", 'R');
         menuBar.add(russMenu);
-		russMenu.addMenuItem("hierarchical NCC schematic and layout views of current cell", null, new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				new com.sun.electric.tool.ncc.NccJob(1, false, true);
-			}
-		});
 		russMenu.addMenuItem("Gate Generator Regression", null,
 							 new ActionListener() {
 			public void actionPerformed(ActionEvent e) {

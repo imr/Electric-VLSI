@@ -23,9 +23,6 @@
  */
 package com.sun.electric.tool.ncc;
 
-import java.io.OutputStream;
-
-import com.sun.electric.tool.ncc.basic.Messenger;
 
 public class NccOptions {
 	/** enable size checking */
@@ -45,9 +42,13 @@ public class NccOptions {
 	
 	/** If hash code partitioning detects a mismatch, how many mismatched 
 	 * Part or Wire Equivalence Classes should I print? */
-	public int numMismatchedEquivClassesToPrint = 1000;
+	public int maxMismatchedEquivRecsToPrint = 100;
 	
 	/** If hash code partitioning detects a mismatch, how many matched
 	 * Part or Wire Equivalence Classes should I print? */
-	public int numMatchedEquivClassesToPrint = 1000;
+	public int maxMatchedEquivRecsToPrint = 100;
+	
+	/** For all diagnostic messages, how many members of an equivalence
+	 * class should I print */ 
+	public int maxEquivRecMembersToPrint = 100;
 }

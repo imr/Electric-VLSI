@@ -24,12 +24,12 @@
 
 package com.sun.electric.tool.ncc.lists;
 
-import com.sun.electric.tool.ncc.NccGlobals;
-import com.sun.electric.tool.ncc.trees.EquivRecord;
-import com.sun.electric.tool.ncc.basic.Messenger;
-import java.util.Iterator;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
+
+import com.sun.electric.tool.ncc.NccGlobals;
+import com.sun.electric.tool.ncc.trees.EquivRecord;
 public class LeafList extends RecordList {
 	private static class SizeCompare implements Comparator {
 		public int compare(Object o1, Object o2){

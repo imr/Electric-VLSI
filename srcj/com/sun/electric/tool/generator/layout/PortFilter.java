@@ -23,14 +23,13 @@
  */
 package com.sun.electric.tool.generator.layout;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
 
-import com.sun.electric.database.hierarchy.*;
-import com.sun.electric.database.network.*;
-import com.sun.electric.database.prototype.*;
-import com.sun.electric.database.topology.*;
-import com.sun.electric.database.variable.*;
-import com.sun.electric.technology.*;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.technology.PrimitiveNode;
 
 /** A PortFilter is useful for removing certain PortInsts from the
  * list of PortInsts on a JNetwork. It is built into Jose because

@@ -22,20 +22,13 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.jemNets;
-import com.sun.electric.database.hierarchy.*;
-import com.sun.electric.tool.ncc.NccGlobals;
-import com.sun.electric.tool.ncc.basic.Messenger;
-import com.sun.electric.tool.ncc.trees.Circuit;
-import com.sun.electric.tool.ncc.strategy.Strategy;
-
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
+
+import com.sun.electric.tool.ncc.basic.Messenger;
+import com.sun.electric.tool.ncc.trees.Circuit;
 
 /** Part is an intermediate abstract sub-class of NetObject.
  * sub-classes of Part include Transistor, Resistor, (Capacitor), but

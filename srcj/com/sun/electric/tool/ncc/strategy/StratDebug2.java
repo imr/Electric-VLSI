@@ -25,15 +25,15 @@
 package com.sun.electric.tool.ncc.strategy;
 
 import java.util.HashMap;
-import java.util.TreeMap;
 import java.util.Iterator;
 import java.util.List;
+
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.NccOptions;
-import com.sun.electric.tool.ncc.basic.Messenger;
-import com.sun.electric.tool.ncc.trees.*;
-import com.sun.electric.tool.ncc.lists.*;
-import com.sun.electric.tool.ncc.jemNets.*;
+import com.sun.electric.tool.ncc.jemNets.NetObject;
+import com.sun.electric.tool.ncc.lists.LeafList;
+import com.sun.electric.tool.ncc.trees.Circuit;
+import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 /**
  * StratDebug performs the debugging function of the day.

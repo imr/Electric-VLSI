@@ -23,17 +23,15 @@
  */
 package com.sun.electric.tool.generator.layout;
 
-import java.io.*;
-import java.util.*;
-import java.awt.*;
-import java.awt.geom.*;
+import java.util.HashMap;
+import java.util.Iterator;
 
-//import com.sun.dbmirror.*;
-
-import com.sun.electric.database.hierarchy.*;
-import com.sun.electric.database.prototype.*;
-import com.sun.electric.database.network.*;
-import com.sun.electric.technology.*;
+import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 
 /** IC Layer information database gives information about various IC
  *  layers */

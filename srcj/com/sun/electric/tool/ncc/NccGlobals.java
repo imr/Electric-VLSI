@@ -28,19 +28,18 @@
  * class. This allows an Ncc run to be completely thread safe.
  */
 package com.sun.electric.tool.ncc;
-import com.sun.electric.tool.generator.layout.LayoutLib; 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
+
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.tool.ncc.basic.Messenger;
+import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.jemNets.NccNetlist;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
-import com.sun.electric.tool.ncc.lists.RecordList;
-import com.sun.electric.tool.ncc.basic.NccUtils;
-import com.sun.electric.tool.ncc.basic.Messenger;
-import com.sun.electric.tool.ncc.strategy.Strategy;
-import com.sun.electric.tool.ncc.strategy.StratCount;
-import com.sun.electric.tool.ncc.strategy.StratCheck;
-import com.sun.electric.database.hierarchy.Cell;
-
-import java.util.*;
 
 /**
  * Generate non-recurring random integers

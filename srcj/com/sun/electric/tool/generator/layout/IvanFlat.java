@@ -23,8 +23,6 @@
  */
 package com.sun.electric.tool.generator.layout;
 
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.Writer;
@@ -33,8 +31,8 @@ import java.util.Iterator;
 import java.util.Properties;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.JNetwork;
@@ -43,8 +41,8 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;

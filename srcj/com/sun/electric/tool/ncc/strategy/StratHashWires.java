@@ -25,10 +25,11 @@
 
 package com.sun.electric.tool.ncc.strategy;
 import com.sun.electric.tool.ncc.NccGlobals;
-import com.sun.electric.tool.ncc.basic.Messenger;
-import com.sun.electric.tool.ncc.jemNets.*;
-import com.sun.electric.tool.ncc.trees.*;
-import com.sun.electric.tool.ncc.lists.*;
+import com.sun.electric.tool.ncc.jemNets.NetObject;
+import com.sun.electric.tool.ncc.jemNets.Wire;
+import com.sun.electric.tool.ncc.lists.LeafList;
+import com.sun.electric.tool.ncc.lists.RecordList;
+import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 public class StratHashWires extends Strategy {
 	private int numWiresProcessed;

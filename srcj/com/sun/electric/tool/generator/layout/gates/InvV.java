@@ -23,14 +23,17 @@
  */
 package com.sun.electric.tool.generator.layout.gates;
 
-import com.sun.electric.database.hierarchy.*;
-import com.sun.electric.database.network.*;
-import com.sun.electric.database.prototype.*;
-import com.sun.electric.database.topology.*;
-import com.sun.electric.database.variable.*;
-import com.sun.electric.technology.*;
-
-import com.sun.electric.tool.generator.layout.*;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.tool.generator.layout.FoldedMos;
+import com.sun.electric.tool.generator.layout.FoldedNmos;
+import com.sun.electric.tool.generator.layout.FoldedPmos;
+import com.sun.electric.tool.generator.layout.FoldsAndWidth;
+import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.generator.layout.StdCellParams;
+import com.sun.electric.tool.generator.layout.Tech;
+import com.sun.electric.tool.generator.layout.TrackRouter;
+import com.sun.electric.tool.generator.layout.TrackRouterH;
 /** Separate control over N and P transistor sizes.  It's not clear if this is really
  *  necessary or desireable. I'm doing this for Justin */
 public class InvV {

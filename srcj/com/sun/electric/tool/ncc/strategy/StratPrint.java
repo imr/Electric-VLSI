@@ -22,16 +22,15 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.strategy;
-import com.sun.electric.tool.ncc.basic.Messenger;
-import com.sun.electric.tool.ncc.*;
-import com.sun.electric.tool.ncc.trees.*;
-import com.sun.electric.tool.ncc.lists.*;
-import com.sun.electric.tool.ncc.jemNets.Part;
-import com.sun.electric.tool.ncc.jemNets.Wire;
-import com.sun.electric.tool.ncc.jemNets.NetObject;
-
-import java.util.Iterator;
 import java.util.HashMap;
+import java.util.Iterator;
+
+import com.sun.electric.tool.ncc.NccGlobals;
+import com.sun.electric.tool.ncc.NccOptions;
+import com.sun.electric.tool.ncc.jemNets.NetObject;
+import com.sun.electric.tool.ncc.lists.LeafList;
+import com.sun.electric.tool.ncc.trees.Circuit;
+import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 /** 
  * StratPrint gives a limited print out of the tree

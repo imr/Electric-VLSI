@@ -22,25 +22,24 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Date;
-import com.sun.electric.database.hierarchy.HierarchyEnumerator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.tool.ncc.basic.NccUtils;
-import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
-import com.sun.electric.tool.ncc.basic.CellContext;
-import com.sun.electric.tool.ncc.processing.HierarchyInfo;
 import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.ncc.basic.CellContext;
+import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
+import com.sun.electric.tool.ncc.basic.NccUtils;
+import com.sun.electric.tool.ncc.processing.HierarchyInfo;
 
 /** Get all Cells in the hierarchy */
 class CellUsage extends HierarchyEnumerator.Visitor {

@@ -24,16 +24,14 @@
 package com.sun.electric.tool.generator.layout;
 
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.Point2D;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
 
-import com.sun.electric.database.hierarchy.*;
-import com.sun.electric.database.prototype.*;
-import com.sun.electric.database.topology.*;
-import com.sun.electric.database.network.*;
-import com.sun.electric.technology.*;
-
-import com.sun.electric.tool.generator.layout.gates.*;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.tool.generator.layout.gates.DrcRing;
 
 public class DrcRings {
 	public static class Filter {

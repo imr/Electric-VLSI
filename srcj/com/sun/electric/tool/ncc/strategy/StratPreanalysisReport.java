@@ -23,20 +23,19 @@
 */
 
 package com.sun.electric.tool.ncc.strategy;
-import com.sun.electric.tool.ncc.*;
-import com.sun.electric.tool.ncc.basic.Messenger;
-import com.sun.electric.tool.ncc.jemNets.*;
-import com.sun.electric.tool.ncc.trees.*;
-import com.sun.electric.tool.ncc.lists.*;
-
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
+
+import com.sun.electric.tool.ncc.NccGlobals;
+import com.sun.electric.tool.ncc.jemNets.NetObject;
+import com.sun.electric.tool.ncc.lists.LeafList;
+import com.sun.electric.tool.ncc.trees.Circuit;
+import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 public class StratPreanalysisReport extends Strategy {
 	private static final NetObject.Type PART = NetObject.Type.PART; 
 	private static final NetObject.Type PORT = NetObject.Type.PORT; 
-	private static final int MAX_PRINT = 500;
 
 	List mismatched = new ArrayList();
 
@@ -54,12 +53,13 @@ public class StratPreanalysisReport extends Strategy {
 		String cktName = globals.getRootCellNames()[cktNdx];
 		int numNetObjs = ckt.numNetObjs();
 		prln("      "+cktName+" has "+numNetObjs+" of these "+t+":");
-		if (ckt.numNetObjs()>MAX_PRINT) {
-			prln("        Too many "+t+"! I'll only print the first "+MAX_PRINT);
+		int maxPrint = globals.getOptions().maxEquivRecMembersToPrint;
+		if (ckt.numNetObjs()>maxPrint) {
+			prln("        Too many "+t+"! I'll only print the first "+maxPrint);
 		}
 		int numPrint = 0;
 		for (Iterator it=ckt.getNetObjs(); it.hasNext(); numPrint++) {
-			if (numPrint>MAX_PRINT)  break;
+			if (numPrint>maxPrint)  break;
 			NetObject o = (NetObject) it.next();
 			prln("        "+o.toString());
 		}

@@ -22,16 +22,13 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.ncc.lists;
-import com.sun.electric.tool.ncc.trees.EquivRecord;
-import com.sun.electric.tool.ncc.strategy.Strategy;
-import com.sun.electric.tool.ncc.basic.Messenger;
-import com.sun.electric.tool.generator.layout.LayoutLib;
-
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
+
+import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.ncc.strategy.Strategy;
+import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 public class RecordList {
 	protected List content = new ArrayList(); 

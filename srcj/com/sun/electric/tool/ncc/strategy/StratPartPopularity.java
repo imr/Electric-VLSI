@@ -22,16 +22,15 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.strategy;
-import com.sun.electric.tool.ncc.NccGlobals;
-import com.sun.electric.tool.ncc.basic.Messenger;
-import com.sun.electric.tool.ncc.trees.EquivRecord;
-import com.sun.electric.tool.ncc.lists.LeafList;
-import com.sun.electric.tool.ncc.jemNets.Part;
-import com.sun.electric.tool.ncc.jemNets.Part;
-import com.sun.electric.tool.ncc.jemNets.NetObject;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.HashMap;
+
+import com.sun.electric.tool.ncc.NccGlobals;
+import com.sun.electric.tool.ncc.jemNets.NetObject;
+import com.sun.electric.tool.ncc.jemNets.Part;
+import com.sun.electric.tool.ncc.lists.LeafList;
+import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 /* StratPartPopularity partitions Part equivalence classes
  * based upon how many unique Wires are connected. */

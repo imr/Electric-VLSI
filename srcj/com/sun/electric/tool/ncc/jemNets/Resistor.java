@@ -22,12 +22,10 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.jemNets;
-import com.sun.electric.database.hierarchy.*;
-import com.sun.electric.tool.ncc.basic.*;
-import com.sun.electric.tool.ncc.basic.Messenger;
-import com.sun.electric.tool.generator.layout.LayoutLib;
-import java.util.Set;
 import java.util.HashSet;
+import java.util.Set;
+
+import com.sun.electric.tool.ncc.basic.Primes;
 
 public class Resistor extends Part {
 	private static class ResistorPinType implements PinType {

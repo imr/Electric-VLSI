@@ -22,22 +22,56 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.generator.layout;
-import java.io.*;
-import java.util.*;
-import java.awt.*;
-import java.awt.geom.Point2D;
+import java.util.HashSet;
 
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.database.variable.*;
-import com.sun.electric.database.hierarchy.*;
-import com.sun.electric.database.prototype.*;
-import com.sun.electric.database.topology.*;
-import com.sun.electric.database.network.*;
-import com.sun.electric.technology.*;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.generator.layout.gates.Inv;
+import com.sun.electric.tool.generator.layout.gates.Inv2i;
+import com.sun.electric.tool.generator.layout.gates.Inv2iKn;
+import com.sun.electric.tool.generator.layout.gates.Inv2iKp;
+import com.sun.electric.tool.generator.layout.gates.InvCLK;
+import com.sun.electric.tool.generator.layout.gates.InvCTLn;
+import com.sun.electric.tool.generator.layout.gates.InvHT;
+import com.sun.electric.tool.generator.layout.gates.InvLT;
+import com.sun.electric.tool.generator.layout.gates.Inv_passgate;
+import com.sun.electric.tool.generator.layout.gates.Nand2;
+import com.sun.electric.tool.generator.layout.gates.Nand2HLT;
+import com.sun.electric.tool.generator.layout.gates.Nand2HLT_sy;
+import com.sun.electric.tool.generator.layout.gates.Nand2LT;
+import com.sun.electric.tool.generator.layout.gates.Nand2LT_sy;
+import com.sun.electric.tool.generator.layout.gates.Nand2PH;
+import com.sun.electric.tool.generator.layout.gates.Nand2PHfk;
+import com.sun.electric.tool.generator.layout.gates.Nand2_sy;
+import com.sun.electric.tool.generator.layout.gates.Nand2en;
+import com.sun.electric.tool.generator.layout.gates.Nand2en_sy;
+import com.sun.electric.tool.generator.layout.gates.Nand3;
+import com.sun.electric.tool.generator.layout.gates.Nand3LT;
+import com.sun.electric.tool.generator.layout.gates.Nand3LT_sy3;
+import com.sun.electric.tool.generator.layout.gates.Nand3MLT;
+import com.sun.electric.tool.generator.layout.gates.Nand3_sy3;
+import com.sun.electric.tool.generator.layout.gates.Nand3en_sy;
+import com.sun.electric.tool.generator.layout.gates.Nand3en_sy3;
+import com.sun.electric.tool.generator.layout.gates.Nms1;
+import com.sun.electric.tool.generator.layout.gates.Nms2;
+import com.sun.electric.tool.generator.layout.gates.Nms2_sy;
+import com.sun.electric.tool.generator.layout.gates.Nms3_sy3;
+import com.sun.electric.tool.generator.layout.gates.Nor2;
+import com.sun.electric.tool.generator.layout.gates.Nor2LT;
+import com.sun.electric.tool.generator.layout.gates.Nor2kresetV;
+import com.sun.electric.tool.generator.layout.gates.Pms1;
+import com.sun.electric.tool.generator.layout.gates.Pms2;
+import com.sun.electric.tool.generator.layout.gates.Pms2_sy;
 import com.sun.electric.tool.user.User;
-
-import com.sun.electric.tool.generator.layout.gates.*;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 /*
  * Regression test for gate generators

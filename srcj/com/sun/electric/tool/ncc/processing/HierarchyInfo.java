@@ -22,11 +22,12 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.processing;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 

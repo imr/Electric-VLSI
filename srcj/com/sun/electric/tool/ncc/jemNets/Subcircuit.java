@@ -22,10 +22,9 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.jemNets;
-import java.util.Set;
 import java.util.HashSet;
+import java.util.Set;
 
-import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.tool.ncc.processing.SubcircuitInfo;
 
 /** A Cell instance that is being treated as a primitive circuit component

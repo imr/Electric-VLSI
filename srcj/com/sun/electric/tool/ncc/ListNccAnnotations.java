@@ -24,24 +24,14 @@
 package com.sun.electric.tool.ncc;
 import java.util.HashSet;
 import java.util.Iterator;
-import com.sun.electric.database.hierarchy.HierarchyEnumerator;
+
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.network.Netlist;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.ui.WindowContent;
-
-import com.sun.electric.tool.ncc.basic.NccUtils;
-import com.sun.electric.tool.ncc.basic.CellContext;
-import com.sun.electric.tool.ncc.basic.Messenger;
-import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.generator.layout.LayoutLib;
-import com.sun.electric.database.variable.Variable;
-
+import com.sun.electric.tool.ncc.basic.CellContext;
+import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
+import com.sun.electric.tool.ncc.basic.NccUtils;
 
 class ScanHierForNccAnnot extends HierarchyEnumerator.Visitor {
 	private HashSet enteredCells = new HashSet();
@@ -79,8 +69,8 @@ class ScanHierForNccAnnot extends HierarchyEnumerator.Visitor {
 	}
 } 
 
-public class ListNccAnnotations extends Job {
-	private void scanHierarchy(Cell cell) {
+public class ListNccAnnotations {
+	private static void scanHierarchy(Cell cell) {
 		System.out.println("Listing NCC annotations for all Cells "+
 						   "in the hierarchy rooted at Cell: "+
 						   NccUtils.fullName(cell));
@@ -88,32 +78,13 @@ public class ListNccAnnotations extends Job {
 		HierarchyEnumerator.enumerateCell(cell, null, null, visitor);
 	}
 
-    public boolean doIt() {
-		CellContext cellCtxt = NccUtils.getCurrentCellContext();
-		if (cellCtxt==null) {
-			System.out.println("Please open the root of the hierarchy for which"+
-                               " you want to list NCC annotations.");
-			return false;
-		} 
-		Cell[] schemLay = NccUtils.findSchematicAndLayout(cellCtxt.cell);
-		if (schemLay!=null) {
-			// List annotations for both schematic and layout
-			scanHierarchy(schemLay[0]);
-			scanHierarchy(schemLay[1]);
-		} else {
-			// List annotations for the current cell only
-			scanHierarchy(cellCtxt.cell);
-		}
-		
-		System.out.println("Done listing NCC annotations");											   
-
-		return true;
-    }
 
 	// ------------------------- public method --------------------------------
-	public ListNccAnnotations() {
-		super("List NCC Annotations", User.tool, Job.Type.CHANGE, 
-			  null, null, Job.Priority.ANALYSIS);
-		startJob();
+	public static void doYourJob(CellContext[] cellCtxts) {
+		LayoutLib.error(cellCtxts.length!=2, "expect 2 CellContexts");
+		scanHierarchy(cellCtxts[0].cell);
+		scanHierarchy(cellCtxts[1].cell);
+
+		System.out.println("Done listing NCC annotations");											   
 	}
 }

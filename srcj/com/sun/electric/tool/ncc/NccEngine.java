@@ -29,37 +29,24 @@
  * engine without becoming involved with how User's options are stored.
  */
 package com.sun.electric.tool.ncc;
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Iterator;
-import java.io.File;
-import java.io.FileOutputStream;
+import java.util.List;
+
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.tool.generator.layout.LayoutLib; 
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.tool.ncc.lists.*;
+import com.sun.electric.tool.ncc.basic.NccUtils;
+import com.sun.electric.tool.ncc.jemNets.NccNetlist;
+import com.sun.electric.tool.ncc.processing.ExportChecker;
+import com.sun.electric.tool.ncc.processing.HashCodePartitioning;
+import com.sun.electric.tool.ncc.processing.HierarchyInfo;
+import com.sun.electric.tool.ncc.processing.LocalPartitioning;
+import com.sun.electric.tool.ncc.processing.ReportHashCodeFailure;
+import com.sun.electric.tool.ncc.processing.SerialParallelMerge;
+import com.sun.electric.tool.ncc.strategy.StratCheckSizes;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
-import com.sun.electric.tool.ncc.jemNets.NccNetlist;
-import com.sun.electric.tool.ncc.jemNets.Port;
-import com.sun.electric.tool.ncc.basic.*;
-import com.sun.electric.tool.ncc.basic.Messenger;
-import com.sun.electric.tool.ncc.processing.ExportChecker;
-import com.sun.electric.tool.ncc.processing.HierarchyInfo;
-import com.sun.electric.tool.ncc.processing.HashCodePartitioning;
-import com.sun.electric.tool.ncc.processing.LocalPartitioning;
-import com.sun.electric.tool.ncc.processing.SubcircuitInfo;
-import com.sun.electric.tool.ncc.processing.SerialParallelMerge;
-import com.sun.electric.tool.ncc.processing.ReportHashCodeFailure;
-import com.sun.electric.tool.ncc.strategy.StratDebug;
-import com.sun.electric.tool.ncc.strategy.StratResult;
-import com.sun.electric.tool.ncc.strategy.StratCount;
-import com.sun.electric.tool.ncc.strategy.StratCheck;
-import com.sun.electric.tool.ncc.strategy.StratCheckSizes;
 
 public class NccEngine {
 	// ------------------------------ private data ----------------------------

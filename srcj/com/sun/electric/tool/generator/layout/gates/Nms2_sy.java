@@ -23,18 +23,16 @@
  */
 package com.sun.electric.tool.generator.layout.gates;
 
-import java.io.*;
-import java.util.*;
-import java.awt.*;
-
-import com.sun.electric.database.hierarchy.*;
-import com.sun.electric.database.network.*;
-import com.sun.electric.database.prototype.*;
-import com.sun.electric.database.topology.*;
-import com.sun.electric.database.variable.*;
-import com.sun.electric.technology.*;
-
-import com.sun.electric.tool.generator.layout.*;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.tool.generator.layout.FoldedMos;
+import com.sun.electric.tool.generator.layout.FoldedNmos;
+import com.sun.electric.tool.generator.layout.FoldsAndWidth;
+import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.generator.layout.StdCellParams;
+import com.sun.electric.tool.generator.layout.Tech;
+import com.sun.electric.tool.generator.layout.TrackRouter;
+import com.sun.electric.tool.generator.layout.TrackRouterH;
 
 public class Nms2_sy {
 	private static final double gY = -4.0;

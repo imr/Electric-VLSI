@@ -25,15 +25,11 @@
 //revised for jemTree interface 16 October 03
 
 package com.sun.electric.tool.ncc.jemNets;
-import com.sun.electric.database.hierarchy.*;
+import java.util.Iterator;
+
 import com.sun.electric.tool.generator.layout.LayoutLib;
-import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.basic.Messenger;
 import com.sun.electric.tool.ncc.trees.Circuit;
-
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
 
 /**  
  * NetObject is the parent class for Parts, Wires, and Ports.  There

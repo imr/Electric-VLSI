@@ -3,32 +3,14 @@
  */
 package com.sun.electric.tool.generator.layout;
 
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
-import java.util.Properties;
-import java.util.Map;
-import java.util.HashMap;
 
-
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Netlist;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.network.JNetwork;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.HierarchyEnumerator;
-import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitiveArc;
 
 public class Test extends Job {
 	private static final double DEF_SIZE = LayoutLib.DEF_SIZE;
