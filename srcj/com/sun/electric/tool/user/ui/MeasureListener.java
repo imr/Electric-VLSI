@@ -27,7 +27,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.Highlight;
 
-import java.awt.*;
+import java.awt.Dimension;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
@@ -37,6 +37,9 @@ import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 public class MeasureListener
 	implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
@@ -44,8 +47,7 @@ public class MeasureListener
 	public static MeasureListener theOne = new MeasureListener();
 	private static double lastMeasuredDistanceX = 0, lastMeasuredDistanceY = 0;
     private static boolean measuring = false;               // true if drawing measure line
-    private static Highlight lastMeasure = null;
-    private static Highlight lastMeasureLine = null;
+    private static List lastHighlights = new ArrayList();
 	private Point2D dbStart;                 // start of measure in database units
 
 	private MeasureListener() {}
@@ -57,11 +59,14 @@ public class MeasureListener
 		return dim;
 	}
 
+    public void reset() {
+        if (measuring) measuring = false;
+    }
+
     private void startMeasure(Point2D dbStart) {
         this.dbStart = dbStart;
         measuring = true;
-        lastMeasure = null;
-        lastMeasureLine = null;
+        lastHighlights.clear();
     }
 
     private void dragOutMeasure(EditWindow wnd, Point2D dbPoint) {
@@ -70,16 +75,27 @@ public class MeasureListener
             //Highlight.clear();
             Point2D start = dbStart;
             Point2D end = dbPoint;
-            if (lastMeasureLine != null) Highlight.remove(lastMeasureLine);
-            lastMeasureLine = Highlight.addLine(start, end, wnd.getCell());
+
+            for (Iterator it = lastHighlights.iterator(); it.hasNext(); ) {
+                Highlight h = (Highlight)it.next();
+                Highlight.remove(h);
+            }
+
+            // show coords at start and end point
+            lastHighlights.add(Highlight.addMessage(wnd.getCell(), "("+start.getX()+
+                    ","+start.getY()+")", start));
+            lastHighlights.add(Highlight.addMessage(wnd.getCell(), "("+end.getX()+
+                    ","+end.getY()+")", end));
+            // add in line
+            lastHighlights.add(Highlight.addLine(start, end, wnd.getCell()));
 
             lastMeasuredDistanceX = Math.abs(start.getX() - end.getX());
             lastMeasuredDistanceY = Math.abs(start.getY() - end.getY());
             Point2D center = new Point2D.Double((start.getX() + end.getX()) / 2, (start.getY() + end.getY()) / 2);
             double dist = start.distance(end);
-            if (lastMeasure != null) Highlight.remove(lastMeasure);
-            lastMeasure = Highlight.addMessage(wnd.getCell(), TextUtils.formatDouble(dist), center);
-
+            String show = TextUtils.formatDouble(dist) + " (dX="+TextUtils.formatDouble(lastMeasuredDistanceX)
+                + " dY=" + TextUtils.formatDouble(lastMeasuredDistanceY)+")";
+            lastHighlights.add(Highlight.addMessage(wnd.getCell(), show, center));
             Highlight.finished();
             wnd.clearDoingAreaDrag();
             wnd.repaint();
@@ -102,6 +118,8 @@ public class MeasureListener
 
     public void mousePressed(MouseEvent evt)
     {
+        boolean ctrl = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
+
         if (evt.getSource() instanceof EditWindow)
         {
             int newX = evt.getX();
@@ -110,6 +128,10 @@ public class MeasureListener
             Point2D dbMouse = wnd.screenToDatabase(newX, newY);
             EditWindow.gridAlign(dbMouse);
             if (isLeftMouse(evt)) {
+                if (measuring && ctrl) {
+                    // orthogonal only
+                    dbMouse = convertToOrthogonal(dbStart, dbMouse);
+                }
                 startMeasure(dbMouse);
             }
             if (isRightMouse(evt)) {
@@ -120,12 +142,17 @@ public class MeasureListener
 
     public void mouseDragged(MouseEvent evt)
     {
+        boolean ctrl = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
+
         if (evt.getSource() instanceof EditWindow)
         {
             int newX = evt.getX();
             int newY = evt.getY();
             EditWindow wnd = (EditWindow)evt.getSource();
             Point2D dbMouse = wnd.screenToDatabase(newX, newY);
+            if (ctrl) {
+                dbMouse = convertToOrthogonal(dbStart, dbMouse);
+            }
             EditWindow.gridAlign(dbMouse);
             dragOutMeasure(wnd, dbMouse);
         }
@@ -191,6 +218,24 @@ public class MeasureListener
                 return true;
         }
         return false;
+    }
+
+    /**
+     * Convert the mousePoint to be orthogonal to the startPoint.
+     * Chooses direction which is orthogonally farther from startPoint
+     * @param startPoint the reference point
+     * @param mousePoint the mouse point
+     * @return a new point orthogonal to startPoint
+     */
+    public static Point2D convertToOrthogonal(Point2D startPoint, Point2D mousePoint) {
+        // move in direction that is farther
+        double xdist, ydist;
+        xdist = Math.abs(mousePoint.getX() - startPoint.getX());
+        ydist = Math.abs(mousePoint.getY() - startPoint.getY());
+        if (ydist > xdist)
+            return new Point2D.Double(startPoint.getX(), mousePoint.getY());
+        else
+            return new Point2D.Double(mousePoint.getX(), startPoint.getY());
     }
 
 }
