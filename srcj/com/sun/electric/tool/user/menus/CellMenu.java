@@ -26,6 +26,8 @@ package com.sun.electric.tool.user.menus;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
@@ -43,6 +45,9 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
@@ -78,7 +83,9 @@ public class CellMenu {
         multiPageSubMenu.addMenuItem("Make Cell Multi-Page", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { makeMultiPageCell(); }});
         multiPageSubMenu.addMenuItem("Create New Page", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { createNewMultiPage(); }});
+                new ActionListener() { public void actionPerformed(ActionEvent e) { createNewMultiPage(); }});
+        multiPageSubMenu.addMenuItem("Delete This Page", null,
+                new ActionListener() { public void actionPerformed(ActionEvent e) { deleteThisMultiPage(); }});
         multiPageSubMenu.addMenuItem("Edit Next Page", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { editNextMultiPage(); }});
         multiPageSubMenu.addMenuItem("Convert old-style Multi-Page Schematics", null,
@@ -234,6 +241,66 @@ public class CellMenu {
 	}
 
     /**
+     * Class to delete a page from a multi-page schematic.
+     */
+    public static class DeleteMultiPageJob extends Job
+	{
+		private Cell cell;
+		private int page;
+
+		public DeleteMultiPageJob(Cell cell, int page)
+		{
+			super("Delete Page from Multi-Page Schematic", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cell = cell;
+			this.page = page;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			// first delete all circuitry on the page
+			double lY = page * Cell.FrameDescription.MULTIPAGESEPARATION - Cell.FrameDescription.MULTIPAGESEPARATION/2;
+			double hY = lY + Cell.FrameDescription.MULTIPAGESEPARATION;
+			List deleteList = new ArrayList();
+			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				if (ni.getAnchorCenterY() > lY && ni.getAnchorCenterY() < hY) deleteList.add(ni);
+			}
+			for(Iterator it = cell.getArcs(); it.hasNext(); )
+			{
+				ArcInst ai = (ArcInst)it.next();
+				double ctrY = ai.getBounds().getCenterY();
+				if (ctrY > lY && ctrY < hY) deleteList.add(ai);
+			}
+			CircuitChanges.eraseObjectsInList(cell, deleteList);
+
+			// now slide circuitry down if this isn't the last page
+			int numPages = cell.getNumMultiPages();
+			if (page+1 < numPages)
+			{
+				CircuitChanges.spreadCircuitry(cell, null, 'u', -Cell.FrameDescription.MULTIPAGESEPARATION, 0, 0, lY, hY);
+			}
+	    	cell.newVar(Cell.MULTIPAGE_COUNT_KEY, new Integer(numPages-1));
+	    	for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+	    	{
+	    		WindowFrame wf = (WindowFrame)it.next();
+	    		if (wf.getContent() instanceof EditWindow)
+	    		{
+	               	EditWindow wnd = (EditWindow)wf.getContent();
+	               	if (wnd.getCell() == cell)
+	               	{
+	               		int wndPage = wnd.getMultiPageNumber();
+	               		if (wndPage+1 >= numPages)
+	               			wnd.setMultiPageNumber(wndPage-1);
+	               	}
+	    		}
+	    	}
+			return true;
+		}
+	}
+
+    /**
      * This method implements the command to create a new page in a multi-page schematic.
      */
     public static void createNewMultiPage()
@@ -250,6 +317,26 @@ public class CellMenu {
     	int numPages = cell.getNumMultiPages();
 		SetMultiPageJob job = new SetMultiPageJob(cell, numPages+1);
     	wnd.setMultiPageNumber(numPages);
+    }
+
+    /**
+     * This method implements the command to delete the current page in a multi-page schematic.
+     */
+    public static void deleteThisMultiPage()
+    {
+    	EditWindow wnd = EditWindow.needCurrent();
+    	if (wnd == null) return;
+    	Cell cell = WindowFrame.needCurCell();
+    	if (cell == null) return;
+    	if (!cell.isMultiPage())
+    	{
+    		System.out.println("This is not a multi-page schematic.  To delete this cell, use 'Cell / Delete Cell'");
+    		return;
+    	}
+    	int curPage = wnd.getMultiPageNumber();
+    	DeleteMultiPageJob job = new DeleteMultiPageJob(cell, curPage);
+    	int numPages = cell.getNumMultiPages();
+    	if (curPage >= numPages) wnd.setMultiPageNumber(numPages-1);
     }
 
     /**

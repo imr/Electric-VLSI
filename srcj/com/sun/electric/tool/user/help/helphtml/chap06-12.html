@@ -2,11 +2,19 @@
 
 <!-- COMMAND File/Check Libraries/Check -->
 <!-- COMMAND File/Check Libraries/Repair -->
+<!-- COMMAND File/Force Quit (and Save) -->
 <!-- COMMAND Tool/Network/Redo Network Numbering -->
 
 Electric uses separate Java threads for all activities.
 Because of this, if the system encounters an error, it aborts the thread but
 the main program continues to run.
+<P>
+If a thread crashes and leaves a Job running, then you will not be able to
+issue other commands, because their Jobs will be queued behind the stuck one
+(see <A HREF="chap04-08.html#chap04-08">section 4-8</A> for more viewing Jobs).
+Even the <B>Quit</B> command is a job, and so it cannot run.
+To solve this problem, use the <B>Force Quit (and Save)</B> command
+(in menu <B>File</B>).
 <P>
 If you suspect that the database is corrupt, use the
  subcommands of the

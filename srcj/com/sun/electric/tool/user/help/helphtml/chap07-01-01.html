@@ -8,42 +8,42 @@ or they can be abstract, for example Schematics and Artwork.
 There are multiple CMOS variations to handle popular design rules such as MOSIS, submicron,
 etc.
 <P>
+Each technology consists of a set of <I>primitive nodes</I> and <I>arcs</I>.
+These, in turn, are constructed from one or more <I>layers</I>.
+Each technology also includes information necessary to do design,
+such as design rules, connectivity rules, simulation information, etc.
+<P>
+The nodes in a technology come in three styles:
+<I>pins</I>, <I>components</I>, and <I>pure-layer nodes</I>.
+The pins are used to join arcs, so there is one pin for every arc in the technology.
+The components are the basic nodes used in design: contacts, transistors, etc.
+Finally, the pure-layer nodes are used for geometric manipulation
+(see <A HREF="chap06-10-01.html#chap06-10-01">Section 6-10-1</A>).
+There is one pure-layer node for every layer in the technology.
+<P>
+The component menu on the left side of the editing window shows arcs at the bottom
+(the menu entries with red borders), pin nodes above that
+(these appear as boxes with a cross inside),
+and components after that
+(the more complex layer combinations).
+The pure-layer nodes are available under the entry labeled "Pure".
+<P>
 Electric has a "sample" library built into it that illustrates many features.
 To access it, use the <B>Load Samples Library</B> command (in menu <B>Help</B>).
 The table below lists the cells in that library which illustrate different technologies:
 <P>
 <CENTER><TABLE BORDER=1>
-<TR><TD><B>Cell</B></TD><TD><B>Technology</B></TD><TD ALIGN=CENTER><B>Description</B></TD></TR>
-<TR><TD>tech-MOSISCMOS</TD><TD>mocmos</TD><TD>MOSIS CMOS rules</TD></TR>
-<TR><TD>tech-nMOS</TD><TD>nmos</TD><TD>n-Channel MOS rules</TD></TR>
-<TR><TD>tech-SchematicsDigital</TD><TD>schematics</TD><TD>Digital schematics layout</TD></TR>
-<TR><TD>tech-SchematicsAnalog</TD><TD>schematics</TD><TD>Analog schematics layout</TD></TR>
-<TR><TD>tech-Artwork</TD><TD>artwork</TD><TD>Graphical design</TD></TR>
+<TR><TD><B>Technology</B></TD><TD ALIGN=CENTER><B>Description</B></TD><TD><B>Sample Cell</B></TD></TR>
+<TR><TD>mocmos</TD><TD>MOSIS CMOS rules</TD><TD>tech-MOSISCMOS{lay}</TD></TR>
+<TR><TD>bipolar</TD><TD>Simple bipolar technology</TD><TD>tech-Bipolar{lay}</TD></TR>
+<TR><TD>schematics</TD><TD>Digital schematics layout</TD><TD>tech-SchematicsDigital{sch}</TD></TR>
+<TR><TD>schematics</TD><TD>Analog schematics layout</TD><TD>tech-SchematicsAnalog{sch}</TD></TR>
+<TR><TD>artwork</TD><TD>Graphical design</TD><TD>tech-Artwork</TD></TR>
+<TR><TD>pcb</TD><TD>Printed Circuit Boards</TD><TD>tech-PCB</TD></TR>
+<TR><TD>nmos</TD><TD>n-Channel MOS rules</TD><TD>tech-nMOS{lay}</TD></TR>
+<TR><TD>rcmos</TD><TD>Round CMOS rules</TD><TD>tech-RoundCMOS{lay}</TD></TR>
+<TR><TD>efido</TD><TD>Digital Filter technology</TD><TD>tech-DigitalFilter</TD></TR>
+<TR><TD>gem</TD><TD>Temporal Logic technology</TD><TD>tech-GEM</TD></TR>
 </TABLE></CENTER>
-<P>
-Electric makes no restrictions about mixing components from different technologies.
-While editing a cell,
-you can switch technologies and start using new components along side the ones from the former technology.
-It is up to the designer to ensure that the resulting circuit is sensible.
-<P>
-Each technology consists of a set of primitive nodes and arcs.
-These, in turn, are constructed from one or more <I>layers</I>.
-Each technology also includes information necessary to do design,
-such as design rules, connectivity rules, simulation attributes, etc.
-<P>
-Within a technology, there are three classes of primitive nodes:
-<I>pins</I>, <I>components</I>, and <I>pure-layer nodes</I>.
-The pins are used to join arcs, so there is one pin for every arc in the technology.
-The components are the basic nodes used in design: contacts, transistors, etc.
-Finally, the pure-layer nodes are used for geometric manipulation,
-so there is one for every layer in the technology.
-<P>
-The component menu on the left side of the editing window contains arcs at the bottom
-(the menu entries with red borders), pin nodes above that
-(these appear as boxes with a cross inside),
-and components after that
-(the more complex layer combinations).
-The pure-layer nodes are available under the entry labeled "Pure"
-(see <A HREF="chap06-10-01.html#chap06-10-01">Section 6-10-1</A>).
 
 <!-- TRAILER -->

@@ -1,0 +1,44 @@
+<!-- HEADER 8-5-3: Mimic Stitching -->
+
+<!-- COMMAND Tool/Routing/Enable Mimic-Stitching -->
+<!-- COMMAND Tool/Routing/Mimic-Stitch Now -->
+<!-- COMMAND Tool/Routing/Mimic Selected -->
+
+One problem with the auto-stitcher is that it may take a different view of the circuit than originally intended.
+In an area where more than two cells meet,
+the auto-stitcher may place many wires in an attempt to connect all touching ports.
+Another problem with the auto-stitcher is that it makes explicit only what is already implicit,
+and so cannot add all necessary wires.
+<P>
+To control the wiring of arrays of cells more directly,
+there is the mimic-stitcher.
+This tool lets the designer place a wire between two cells,
+and then it adds other wires between all other similarly configured cells in the circuit.
+Thus, it mimics your actions.
+<P>
+Specifically, all situations where the same ports on the same type of nodes exist,
+separated by the same distance.
+<P>
+The "Routing" preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Routing" tab)
+has many useful controls for mimic stitching.
+<P>
+<TABLE><TR>
+<TD><CENTER><IMG SRC="fig09-05.png" ALT="Figure 9.5"></CENTER></TD><TD>
+First, you can request that the mimic stitcher also mimic wire deletions.
+Second, you can request that the mimic stitcher relax its restriction about mimicing arcs
+(by allowing the ports to be different, the nodes to be different, or the node sizes to be different).
+You can also ask the mimic stitcher to work interactively,
+which causes it to examine all possible restriction sets,
+offering to route wires with increasingly relaxed acceptance criteria.
+</TD></TR></TABLE>
+<P>
+<P>
+To turn on the mimic-stitcher, use the <B>Enable Mimic-Stitching</B> command
+(in menu <B>Tool / Routing</B>).
+To disable the stitcher, use the command to uncheck it.
+You can also request that the mimic-stitcher run just once
+(mimicing the very last wire that was created or deleted) by using the <B>Mimic-Stitch Now</B> command.
+Finally, you can request that the mimic-stitcher run just once, mimicing the currently selected arc,
+by using the <B>Mimic Selected</B> command.
+
+<!-- TRAILER -->

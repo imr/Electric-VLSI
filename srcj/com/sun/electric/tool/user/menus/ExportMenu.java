@@ -54,11 +54,11 @@ public class ExportMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.reExportAll(); } });
         exportMenu.addMenuItem("Re-Export Selected", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.reExportSelected(false); } });
-        exportMenu.addMenuItem("Re-Export Selected, include wired ports", null,
+        exportMenu.addMenuItem("Re-Export Selected, With Wired Ports", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.reExportSelected(true); } });
         exportMenu.addMenuItem("Re-Export Highlighted Area", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.reExportHighlighted(false); } });
-        exportMenu.addMenuItem("Re-Export Highlighted Area, inc. wired ports", null,
+        exportMenu.addMenuItem("Re-Export Highlighted Area, With Wired Ports", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.reExportHighlighted(true); } });
         exportMenu.addMenuItem("Re-Export Power and Ground", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.reExportPowerAndGround(); } });

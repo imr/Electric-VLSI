@@ -181,13 +181,17 @@ Tools
   Spice                              =chap08-04-04
   Spice Plotting                     =chap08-04-05
   Spice and Verilog Primitives       =chap08-04-06
+  FastHenry                          =chap08-04-07
  Routing
-  Auto Stitching                     =chap08-05-01
-  Mimic Stitching                    =chap08-05-02
+  Introduction to Routing            =chap08-05-01
+  Auto Stitching                     =chap08-05-02
+  Mimic Stitching                    =chap08-05-03
+  Maze Routing                       =chap08-05-04
+  River Routing                      =chap08-05-05
  Network Consistency Checking (NCC)  =chap08-06
  Generation
   Pad Frame Generation               =chap08-07-01
   Other Generators                   =chap08-07-02
  Logical Effort                      =chap08-08
  Parasitic Extraction                =chap08-09
-
+ Compaction                          =chap08-10

@@ -26,7 +26,6 @@ package com.sun.electric.tool.user.dialogs.options;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.erc.ERC;
 
 import java.awt.event.MouseAdapter;
@@ -40,7 +39,6 @@ import javax.swing.JPanel;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-
 
 /**
  * Class to handle the "Antenna Rules" tab of the Preferences dialog.
@@ -61,6 +59,7 @@ public class AntennaRulesTab extends PreferencePanel
 	private DefaultListModel antennaArcListModel;
 	private HashMap antennaOptions;
 	private boolean antennaRatioChanging = false;
+	private boolean empty;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -80,6 +79,7 @@ public class AntennaRulesTab extends PreferencePanel
 
 		antTechnology.setText("'"+curTech.getTechName()+"'");
 		antennaOptions = new HashMap();
+		empty = true;
 		for(Iterator it = curTech.getArcs(); it.hasNext(); )
 		{
 			ArcProto ap = (ArcProto)it.next();
@@ -89,13 +89,18 @@ public class AntennaRulesTab extends PreferencePanel
 			Pref pref = Pref.makeDoublePref(null, null, ratio);
 			antennaOptions.put(ap, pref);
 			antennaArcListModel.addElement(ap.describe() + " (" + ratio + ")");
+			empty = false;
 		}
-		antennaArcList.setSelectedIndex(0);
-		antennaArcListClick();
+		if (!empty)
+		{
+			antennaArcList.setSelectedIndex(0);
+			antennaArcListClick();
+		}
 	}
 
 	private void antennaArcListClick()
 	{
+		if (empty) return;
 		String arcName = (String)antennaArcList.getSelectedValue();
 		int spacePos = arcName.indexOf(' ');
 		if (spacePos >= 0) arcName = arcName.substring(0, spacePos);
@@ -112,6 +117,7 @@ public class AntennaRulesTab extends PreferencePanel
 
 	private void antennaValueChanged()
 	{
+		if (empty) return;
 		if (antennaRatioChanging) return;
 		String arcName = (String)antennaArcList.getSelectedValue();
 		int spacePos = arcName.indexOf(' ');

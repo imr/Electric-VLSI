@@ -24,19 +24,20 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.tool.user.menus.MenuCommands;
-import com.sun.electric.tool.user.*;
-import com.sun.electric.tool.user.menus.MenuCommands;
-import com.sun.electric.tool.user.menus.FileMenu;
-import com.sun.electric.tool.user.menus.EditMenu;
-import com.sun.electric.tool.user.dialogs.PreferencesFrame;
-import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.Resources;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.PreferencesFrame;
+import com.sun.electric.tool.user.menus.EditMenu;
+import com.sun.electric.tool.user.menus.FileMenu;
 
 import java.awt.Component;
 import java.awt.Cursor;
@@ -47,19 +48,19 @@ import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
-import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.Iterator;
+
 import javax.swing.AbstractButton;
-import javax.swing.JToolBar;
-import javax.swing.JButton;
-import javax.swing.ImageIcon;
 import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JInternalFrame;
-import javax.swing.event.InternalFrameListener;
+import javax.swing.JToolBar;
 import javax.swing.event.InternalFrameEvent;
+import javax.swing.event.InternalFrameListener;
 
 
 /**

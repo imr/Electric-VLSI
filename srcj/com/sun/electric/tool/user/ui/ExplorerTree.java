@@ -1322,68 +1322,8 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
         		System.out.println("Cannot delete the last page of a multi-page schematic");
         		return;
         	}
-    		DeleteMultiPageJob job = new DeleteMultiPageJob(cell, mpc.pageNo);
+         	CellMenu.DeleteMultiPageJob job = new CellMenu.DeleteMultiPageJob(cell, mpc.pageNo);
         }
-
-        /**
-         * Class to delete a page from a multi-page schematic.
-         */
-        public static class DeleteMultiPageJob extends Job
-    	{
-    		private Cell cell;
-    		private int page;
-
-    		public DeleteMultiPageJob(Cell cell, int page)
-    		{
-    			super("Delete Page from Multi-Page Schematic", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-    			this.cell = cell;
-    			this.page = page;
-    			startJob();
-    		}
-
-    		public boolean doIt()
-    		{
-    			// first delete all circuitry on the page
-    			double lY = page * Cell.FrameDescription.MULTIPAGESEPARATION - Cell.FrameDescription.MULTIPAGESEPARATION/2;
-    			double hY = lY + Cell.FrameDescription.MULTIPAGESEPARATION;
-    			List deleteList = new ArrayList();
-    			for(Iterator it = cell.getNodes(); it.hasNext(); )
-    			{
-    				NodeInst ni = (NodeInst)it.next();
-    				if (ni.getAnchorCenterY() > lY && ni.getAnchorCenterY() < hY) deleteList.add(ni);
-    			}
-    			for(Iterator it = cell.getArcs(); it.hasNext(); )
-    			{
-    				ArcInst ai = (ArcInst)it.next();
-    				double ctrY = ai.getBounds().getCenterY();
-    				if (ctrY > lY && ctrY < hY) deleteList.add(ai);
-    			}
-    			CircuitChanges.eraseObjectsInList(cell, deleteList);
-
-    			// now slide circuitry down if this isn't the last page
-    			int numPages = cell.getNumMultiPages();
-    			if (page+1 < numPages)
-    			{
-    				CircuitChanges.spreadCircuitry(cell, null, 'u', -Cell.FrameDescription.MULTIPAGESEPARATION, 0, 0, lY, hY);
-    			}
-    	    	cell.newVar(Cell.MULTIPAGE_COUNT_KEY, new Integer(numPages-1));
-    	    	for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
-    	    	{
-    	    		WindowFrame wf = (WindowFrame)it.next();
-    	    		if (wf.getContent() instanceof EditWindow)
-    	    		{
-		               	EditWindow wnd = (EditWindow)wf.getContent();
-		               	if (wnd.getCell() == cell)
-		               	{
-		               		int wndPage = wnd.getMultiPageNumber();
-		               		if (wndPage+1 >= numPages)
-		               			wnd.setMultiPageNumber(wndPage-1);
-		               	}
-    	    		}
-    	    	}
-    			return true;
-    		}
-    	}
 
         private void showAlphabeticallyAction()
 		{

@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01aw: *********************************
 
+IMP: (12/15/04, SMR) Minor changes to GUI to help with documentation: About dialog, New Arc Preferences,
+     outline edit, verilog of and/or gates, multipage schematics, command-line help, Export menu.
+
+BUG: (12/15/04, SMR) "Antenna" preferences crash if current technology has no metal.
+FIX: Check for empty list.
+
 IMP: (12/15/04, RK) NCC: Add Net Equivalence mapping regression. The regression uncovered many bugs.
 
 BUG: (12/15/04, GVG) DRC and new thick active layers: wrong bit detection for thick active layers that make DRC to fail

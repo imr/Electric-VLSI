@@ -57,7 +57,10 @@ public class About extends EDialog
 			new CastOfThousands("Robert Bosnyak", 			"Pads library"),
 			new CastOfThousands("Jonathan Gainsley", 		"User interface, spice, logical effort, and more"),
 			new CastOfThousands("Gilda Garretón", 			"DRC, ERC, parasitics, 3D"),
+			new CastOfThousands("David Harris", 			"ROM generator, Color printing"),
+			new CastOfThousands("Jason Imada", 				"ROM generator"),
 			new CastOfThousands("Russell Kao",				"NCC, generators, hierarchy enumeration"),
+			new CastOfThousands("Frank Lee", 				"ROM generator"),
 			new CastOfThousands("Dmitry Nadezhin", 			"Networks, library I/O, simulation, optimizations, and more"),
 			new CastOfThousands("Ivan Sutherland", 			"Inspiration, NCC"),
 		};

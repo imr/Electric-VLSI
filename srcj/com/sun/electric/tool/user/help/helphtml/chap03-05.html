@@ -1,6 +1,7 @@
 <!-- HEADER 3-5: Moving Up and Down the Hierarchy -->
 
 <!-- COMMAND Cell/Down Hierarchy -->
+<!-- COMMAND Cell/Down Hierarchy In Place -->
 <!-- COMMAND Cell/Up Hierarchy -->
 
 Each editing window in Electric displays a single cell.
@@ -19,10 +20,14 @@ If the icon that is selected is already in its own schematic
 (you can place an icon inside its own schematic for documentation purposes),
 then the <B>Down Hierarchy</B> command takes you to the actual icon so that you can edit it.
 <P>
+If a layout cell is selected, you can use the <B>Down Hierarchy In Place</B> command to
+edit the cell while showing the upper level of the hierarchy.
+The surrounding geometry at the upper level is not editable, and is greyed-out.
+<P>
 The <B>Up Hierarchy</B> command pops you to the next higher cell in the hierarchy.
 If there was an associated <B>Down Hierarchy</B> command,
 then this returns you to the place where you started, up the hierarchy.
-If the <B>Down Hierarchy</B> command was not used,
+If the <B>Down Hierarchy</B> commands were not used,
 Electric attempts to figure out the next higher cell in the hierarchy,
 switching icons for schematics where appropriate.
 If there are multiple possibilities

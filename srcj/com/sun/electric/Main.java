@@ -118,10 +118,13 @@ public final class Main
 		// -help
         if (hasCommandLineOption(argsList, "-help"))
 		{
-	        System.out.println("Usage:");
-	        System.out.println("  'java -jar electric.jar [electric-options]' without plugins");
-	        System.out.println("  'java -classpath electric.jar<delim>{list of plugins} com.sun.electric.Launcher [electric-options]' otherwise, where <delim> is OS-dependant separator");
-            System.out.println("\n\t-mdi: multiple document interface mode");
+	        System.out.println("Usage (without plugins):");
+	        System.out.println("\tjava -jar electric.jar [electric-options]");
+	        System.out.println("Usage (with plugins):");
+	        System.out.println("\tjava -classpath electric.jar<delim>{list of plugins} com.sun.electric.Launcher [electric-options]");
+	        System.out.println("\t\twhere <delim> is OS-dependant separator (colon or semicolon)");
+	        System.out.println("\nOptions:");
+            System.out.println("\t-mdi: multiple document interface mode");
 	        System.out.println("\t-sdi: single document interface mode");
 	        System.out.println("\t-NOMINMEM: ignore minimum memory provided for JVM");
 	        System.out.println("\t-s <script name>: bean shell script to execute");

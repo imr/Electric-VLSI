@@ -61,6 +61,7 @@ import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.user.dialogs.ChangeCurrentLib;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.OutlineListener;
 import com.sun.electric.tool.user.ui.StatusBar;
 import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -1216,6 +1217,9 @@ public class CircuitChanges
 			ww.deleteSelectedSignals();
 			return;
 		}
+
+		// for edit windows doing outline editing, delete the selected point (done by listener)
+        if (WindowFrame.getListener() == OutlineListener.theOne) return;
 
 		if (ToolBar.getSelectMode() == ToolBar.SelectMode.AREA)
 		{

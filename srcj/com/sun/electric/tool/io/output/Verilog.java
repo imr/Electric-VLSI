@@ -46,12 +46,14 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
 
 import java.util.Iterator;
 import java.util.Date;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * This is the Simulation Interface tool.
@@ -191,38 +193,34 @@ public class Verilog extends Topology
             return;
         } */
 
-//		// prepare arcs to store implicit inverters
-//		impinv = 1;
-//		for(ai = np->firstarcinst; ai != NOARCINST; ai = ai->nextarcinst)
-//			ai->temp1 = 0;
-//		for(ai = np->firstarcinst; ai != NOARCINST; ai = ai->nextarcinst)
-//		{
-//			if ((ai->userbits&ISNEGATED) == 0) continue;
-//			if ((ai->userbits&REVERSEEND) == 0)
-//			{
-//				ni = ai->end[0].nodeinst;
-//				pi = ai->end[0].portarcinst;
-//			} else
-//			{
-//				ni = ai->end[1].nodeinst;
-//				pi = ai->end[1].portarcinst;
-//			}
-//			if (ni->proto == sch_bufprim || ni->proto == sch_andprim ||
-//				ni->proto == sch_orprim || ni->proto == sch_xorprim)
-//			{
-//				if (Simulation.getVerilogUseAssign()) continue;
-//				if (estrcmp(pi->proto->protoname, x_("y")) == 0) continue;
-//			}
-//
-//			// must create implicit inverter here
-//			ai->temp1 = impinv;
-//			if (ai->proto != sch_busarc) impinv++; else
-//			{
-//				net = ai->network;
-//				if (net == NONETWORK) impinv++; else
-//					impinv += net->buswidth;
-//			}
-//		}
+		// prepare arcs to store implicit inverters
+		HashMap implicitInverters = new HashMap();
+		int impInvCount = 0;
+		for(Iterator it = cell.getArcs(); it.hasNext(); )
+		{
+			ArcInst ai = (ArcInst)it.next();
+			for(int e=0; e<2; e++)
+			{
+				Connection con = ai.getConnection(e);
+				if (!con.isNegated()) continue;
+				PortInst pi = con.getPortInst();
+				NodeInst ni = con.getPortInst().getNodeInst();
+				if (ni.getProto() == Schematics.tech.bufferNode || ni.getProto() == Schematics.tech.andNode ||
+					ni.getProto() == Schematics.tech.orNode || ni.getProto() == Schematics.tech.xorNode)
+				{
+					if (Simulation.getVerilogUseAssign()) continue;
+					if (pi.getPortProto().getName().equals("y")) continue;
+				}
+
+				// must create implicit inverter here
+				implicitInverters.put(con, new Integer(impInvCount));
+				if (ai.getProto() != Schematics.tech.bus_arc) impInvCount++; else
+				{
+					int wid = cni.getNetList().getBusWidth(ai);
+					impInvCount += wid;
+				}
+			}
+		}
 
 		// gather networks in the cell
 		Netlist netList = getNetlistForCell(cell);
@@ -359,18 +357,17 @@ public class Verilog extends Topology
 		}
 		if (localWires != 0) printWriter.print("\n");
 
-//		// add "wire" declarations for implicit inverters
-//		if (impinv > 1)
-//		{
-//			esnprintf(invsigname, 100, x_("  %s"), wireType);
-//			initDeclaration(invsigname);
-//			for(i=1; i<impinv; i++)
-//			{
-//				esnprintf(impsigname, 100, x_("%s%ld"), IMPLICITINVERTERSIGNAME, i);
-//				addDeclaration(impsigname);
-//			}
-//			termDeclaration();
-//		}
+		// add "wire" declarations for implicit inverters
+		if (impInvCount > 0)
+		{
+			initDeclaration("  " + wireType);
+			for(int i=0; i<impInvCount; i++)
+			{
+				String impsigname = IMPLICITINVERTERSIGNAME + i;
+				addDeclaration(impsigname);
+			}
+			termDeclaration();
+		}
 
 		// add in any user-specified declarations and code
 		first = includeTypedCode(cell, VERILOG_DECLARATION_KEY, "declarations");
@@ -544,7 +541,6 @@ public class Verilog extends Topology
 				{
 					implicitPorts = 1;
 					nodeName = chooseNodeName((NodeInst)no, "buf", "not");
-					nodeName = "buf";
 				}
 			}
 			if (nodeName.length() == 0) continue;
@@ -600,9 +596,10 @@ public class Verilog extends Topology
 					ni = (NodeInst)no;
 					for(int i=0; i<2; i++)
 					{
-						for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
+						for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
 						{
-							PortInst pi = (PortInst)pIt.next();
+							Connection con = (Connection)cIt.next();
+							PortInst pi = con.getPortInst();
 							if (i == 0)
 							{
 								if (!pi.getPortProto().getName().equals("y")) continue;
@@ -612,18 +609,24 @@ public class Verilog extends Topology
 							}
 							if (first) first = false; else
 								infstr.append(", ");
-							Network net = netList.getNetwork(pi);
+							ArcInst ai = con.getArc();
+							Network net = netList.getNetwork(ai, 0);
 							CellSignal cs = cni.getCellSignal(net);
 							if (cs == null) continue;
 							String sigName = cs.getName();
-//							if (i != 0 && pi->conarcinst->temp1 != 0)
-//							{
-//								// this input is negated: write the implicit inverter
-//								String invsigname = IMPLICITINVERTERSIGNAME + (pi->conarcinst->temp1+nindex);
-//								printWriter.print("  inv " + IMPLICITINVERTERNODENAME +
-//									(pi->conarcinst->temp1+nindex) + " (" + invsigname + ", " + sigName + ");\n");
-//								sigName = invsigname;
-//							}
+							boolean negated = false;
+							if (i != 0 && con.isNegated())
+							{
+								// this input is negated: write the implicit inverter
+								Integer invIndex = (Integer)implicitInverters.get(con);
+								if (invIndex != null)
+								{
+									String invSigName = IMPLICITINVERTERSIGNAME + invIndex.intValue();
+									printWriter.print("  inv " + IMPLICITINVERTERNODENAME +
+											invIndex.intValue() + " (" + invSigName + ", " + sigName + ");\n");
+									sigName = invSigName;
+								}
+							}
 							infstr.append(sigName);
 						}
 					}
@@ -689,8 +692,9 @@ public class Verilog extends Topology
 		for(Iterator aIt = ni.getConnections(); aIt.hasNext(); )
 		{
 			Connection con = (Connection)aIt.next();
-			if (con.getPortInst().getPortProto().getName().equals("y") &&
-				con.isNegated()) return negative;
+			if (con.isNegated() &&
+				con.getPortInst().getPortProto().getName().equals("y"))
+					return negative;
 		}
 		return positive;
 	}

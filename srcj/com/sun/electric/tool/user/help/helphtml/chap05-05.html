@@ -1,22 +1,48 @@
 <!-- HEADER 5-5: Default Arc Properties -->
 
-The <B>Object Properties...</B> dialog and all of the commands in the <B>Arc</B> submenu affect existing arcs,
-specifically those currently highlighted.
-To affect future arcs as they are created, use the
-"New Arcs" preferences (in menu <B>File / Preferences...</B>, "General" section, "New Arcs" tab).
+This dialog lets you control the arc creation process.
+It does not affect existing arcs: they have already been created.
+<P>
+The top part of the dialog allows you to set defaults for specific types of arcs
+in the current technology.
+You select the "Arc Type" and then set defaults for it (such as the "Default width").
+<P>
+The "Placement angle" is the granularity for running this type of arc (in degrees).
+A value of 90 lets arcs run at 0, 90, 180, or 270 degrees: manhattan geometry.
+A value of 45 lets it run at any of 8 angles (useful for schematics).
+A value of 0 lets it run at any angle (used in artwork).
+<P>
+The "Pin" is the node that gets used for connecting two of these arcs.
+It is typically a "Pin" node (see <A HREF="chap07-01-01.html#chap07-01-01">Section 7-1-1</A>).
+If changed to a node with geometry (such as a contact node) then these contacts will be placed
+at the bends of this arc.
 <P>
 <TABLE><TR><TD>
-The dialog that appears allows you to set defaults for specific types of arcs.
-The rigid, fixed-angle, and slidable constraints may be controlled with this dialog,
-as can the directional, and end-extension properties.
+The checkboxes in the "Default State" section have these meanings:
+<UL>
+<LI>Rigid - whether the arc is rigid in length and relationship to its nodes
+(see <A HREF="chap05-02-01.html#chap05-02-01">Section 5-2-1</A>).</LI>
+
+<LI>Fixed-angle - whether the arc stays at the same angle when one end moves
+(see <A HREF="chap05-02-01.html#chap05-02-01">Section 5-2-1</A>).</LI>
+
+<LI>Slidable - whether the arc slides around in its node's port
+(see <A HREF="chap05-02-02.html#chap05-02-02">Section 5-2-2</A>).</LI>
+
+<LI>Directional - whether the arc has an arrow drawn on it
+(see <A HREF="chap05-04-01.html#chap05-04-01">Section 5-4-1</A>).</LI>
+
+<LI>Ends extended - whether the arc extends past its endpoint by half its width
+(see <A HREF="chap05-04-03.html#chap05-04-03">Section 5-4-3</A>).</LI>
+</UL>
 </TD><TD><CENTER><IMG SRC="fig05-04.png" ALT="Figure 5.4"></CENTER></TD></TR></TABLE>
 <P>
-
-It is also possible to specify the default width and angle for newly created arcs.
-The angle field is the preferred angle increment in degrees for newly created arcs
-(90 for Manhattan, 45 for Manhattan plus 45-degree angles, and 0 for any angle).
-The "Pin" is the default node to use when joining two of these arcs.
-<P>
-The checkbox at the bottom lets you determine whether or not sounds are played when arcs are created.
+The bottom portion of the dialog has controls for all arcs.
+<UL>
+<LI>"Play 'click' sounds when arcs are created" - plays a sound to confirm arc creation.</LI>
+<LI>"Duplicate/Array/Paste increments arc names" -
+sets whether the name on an arc should be kept unique by auto-incrementing
+after this arc has been duplicated, arrayed, or pasted.</LI>
+</UL>
 
 <!-- TRAILER -->

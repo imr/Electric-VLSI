@@ -2,7 +2,10 @@
 
 <!-- COMMAND Export/Create Export... -->
 <!-- COMMAND Export/Re-Export Everything -->
+<!-- COMMAND Export/Re-Export Selected -->
+<!-- COMMAND Export/Re-Export Selected, With Wired Ports -->
 <!-- COMMAND Export/Re-Export Highlighted Area -->
+<!-- COMMAND Export/Re-Export Highlighted Area, With Wired Ports -->
 <!-- COMMAND Export/Re-Export Power and Ground -->
 <!-- COMMAND Export/Show Ports on Node -->
 
@@ -61,7 +64,11 @@ These ports define the connections for the next level of hierarchy.
 What you want to do is to create exports for all unwired ports on all cell instances.
 To do this, use the <B>Re-Export Everything</B> command (in menu <B>Export</B>),
 which generates unique names as it exports all unwired ports on cell instances.
-To do this same function, but only on the currently highlighted nodes, use <B>Re-Export Highlighted Area</B>.
+To do this same function, but only on the currently highlighted nodes, use <B>Re-Export Selected</B>.
+To do this same function, but inside of the highlighted area, use <B>Re-Export Highlighted Area</B>.
+These two commands can also be run so that wired ports are re-exported, by using the
+<B>Re-Export Selected, With Wired Ports</B> and
+<B>Re-Export Highlighted Area, With Wired Ports</B>
 To do this same function, but only for Power and Ground exports, use <B>Re-Export Power and Ground</B>.
 Note that ports on primitive nodes are not exported with these commands.
 See <A HREF="chap06-04.html#chap06-04">Section 6-4</A> for more about arrays,

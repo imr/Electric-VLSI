@@ -11,21 +11,26 @@ Some cells are textual in nature (VHDL, Verilog, Netlists, or Documentation), an
 When text editing, the standard point-and-click commands apply.
 You can use the <B>Cut</B>, <B>Copy</B>, and <B>Paste</B> commands (in menu <B>Edit</B>).
 <P>
+The contents of a text window can be saved to disk with the <B>Text Cell Contents...</B>
+command (in menu <B>File / Export</B>) to save just the text.
+Use the <B>Text Cell Contents...</B> command (in menu <B>File / Import</B>) to read a file into a text window.
+<P>
 <TABLE><TR><TD><CENTER><IMG SRC="fig04-13.png" ALT="Figure 4.13"></CENTER></TD><TD>
 Searching is done with the <B>Find Text...</B> command (in menu <B>Edit / Text</B>).
 You can find and/or replace text with the appropriate buttons.
-Check boxes allow the search to be case sensitive and to go in the reverse direction.
+Check boxes allow the search to be case sensitive, have regular expressions,
+and to go in the reverse direction.
 In addition, you can jump directly to a specified line number.
 </TD></TR></TABLE>
 <P>
-Note the <B>Find Text...</B> command can also be used to find text in a circuit.
+Interestingly, the <B>Find Text...</B> command can also be used outside of the text edit window.
+If you are editing a layout or schematic, this dialog will search all of the node, arc, export, and other names.
+The checkboxes in the "Objects to Search" area control which of these pieces of text will be considered.
+"Automatically Generated" names are those created for you by the system.
+They can be included in the search but normally are not.
 <P>
 Note that there is no "saving" of text windows because they are editing internal data structures.
 Therefore every change updates the information in Electric
 (but the library must be saved to truly preserve changes).
-<P>
-The contents of a text window can be saved to disk with the <B>Text Cell Contents...</B>
-command (in menu <B>File / Export</B>) to save just the text.
-Use the <B>Text Cell Contents...</B> command (in menu <B>File / Import</B>) to read a file into a text window.
 
 <!-- TRAILER -->

@@ -46,7 +46,7 @@ import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.AffineTransform;
 
-class OutlineListener
+public class OutlineListener
 	implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
 {
 	public static OutlineListener theOne = new OutlineListener();
