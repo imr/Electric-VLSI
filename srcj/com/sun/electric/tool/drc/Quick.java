@@ -2536,8 +2536,8 @@ public class Quick
 
 		return false;
 	}
-
-		/**
+	
+	/**
 	 * Method to examine cell "cell" in the area (lx<=X<=hx, ly<=Y<=hy) for objects
 	 * on layer "layer".  Apply transformation "moreTrans" to the objects.  If polygons are
 	 * found at (xf1,yf1) or (xf2,yf2) or (xf3,yf3) then sets "p1found/p2found/p3found" to 1.
@@ -2652,74 +2652,12 @@ public class Quick
 
 		DRCRules.DRCRule minOverlapRule = DRC.getMinValue(layer, DRCTemplate.POLYSELECT);
 		if (minOverlapRule == null) return false;
-        boolean[] founds = new boolean[4];
+
 		Rectangle2D polyBnd = poly.getBounds2D();
         Area polyArea = new Area(poly);
         boolean found = polyArea.isEmpty();
 
         found = checkThisCellSelectPolysilicon(geom, layer, poly, cell, polyArea, polyBnd, minOverlapRule, found);
-
-//		for(Iterator sIt = cell.searchIterator(polyBnd); !found && sIt.hasNext(); )
-//		{
-//			Geometric g = (Geometric)sIt.next();
-//			if (!(g instanceof NodeInst)) continue;
-//			NodeInst ni = (NodeInst)g;
-//			NodeProto np = ni.getProto();
-//			if (NodeInst.isSpecialNode(ni)) continue; // Nov 4;
-//			if (np instanceof Cell)
-//			{
-//				System.out.println("Skipping this case for now");
-//			}
-//			else
-//			{
-//				Technology tech = np.getTechnology();
-//				Poly [] primPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts);
-//				int tot = primPolyList.length;
-//				for(int j=0; j<tot; j++)
-//				{
-//					Poly nPoly = primPolyList[j];
-//                    if (!nPoly.getLayer().getFunction().isImplant()) continue;
-//
-//                    // Checking if are covered by select is surrounded by minOverlapRule
-//                    Area distPolyArea = (Area)polyArea.clone();
-//                    Area nPolyArea = new Area(nPoly);
-//                    polyArea.subtract(nPolyArea);
-//
-//                    distPolyArea.subtract(polyArea);
-//					if (distPolyArea.isEmpty())
-//						continue;  // no intersection
-//                    Rectangle2D interRect = distPolyArea.getBounds2D();
-//                    Rectangle2D ruleBnd = new Rectangle2D.Double(interRect.getMinX()-minOverlapRule.value,
-//                            interRect.getMinY()-minOverlapRule.value,
-//                            interRect.getWidth() + minOverlapRule.value*2,
-//                            interRect.getHeight() + minOverlapRule.value*2);
-//                    PolyBase extPoly = new PolyBase(ruleBnd);
-//					PolyBase distPoly = new PolyBase(interRect);
-//                    Arrays.fill(founds, false);
-//					// Removing points on original polygon. No very efficient though
-//					Point2D[] points = extPoly.getPoints();
-//					Point2D[] distPoints = distPoly.getPoints();
-//					// Only valid for 4-point polygons!!
-//					if (distPoints.length != points.length)
-//						System.out.println("This case is not valid in Quick.checkSelectOverPolysilicon");
-//					for (int i = 0; i < points.length; i++)
-//					{
-//						// Check if point is corner
-//						found = poly.isPointOnCorner(distPoints[i]);
-//						// Point along edge
-//						if (!found)
-//							founds[i] = true;
-//					}
-//                    boolean foundAll = allPointsContainedInLayer(geom, cell, ruleBnd, points, founds);
-//                    if (!foundAll)
-//                    {
-//                         reportError(POLYSELECTERROR, "No enough surround, ", cell, minOverlapRule.value, -1, minOverlapRule.rule,
-//                            distPoly/*new Poly(distPolyArea.getBounds2D())*/, geom, layer, null, null, null);
-//                    }
-//				}
-//			}
-//			found = polyArea.isEmpty();
-//		}
 
 		// error if the merged area doesn't contain 100% the search area.
 		if (!found)
@@ -2744,6 +2682,7 @@ public class Quick
         for(Iterator sIt = cell.searchIterator(polyBnd); !found && sIt.hasNext(); )
 		{
 			Geometric g = (Geometric)sIt.next();
+	        if (g == geom) continue;
 			if (!(g instanceof NodeInst))
             {
                 if (Main.LOCALDEBUGFLAG)
@@ -2755,7 +2694,15 @@ public class Quick
 			if (NodeInst.isSpecialNode(ni)) continue; // Nov 4;
 			if (np instanceof Cell)
 			{
+				AffineTransform cellDownTrans = ni.transformIn();
+				AffineTransform	cellUpTrans = ni.transformOut();
+				DBMath.transformRect(polyBnd, cellDownTrans);
+				polyArea.transform(cellDownTrans);
+				poly.transform(cellDownTrans);
 				found = checkThisCellSelectPolysilicon(geom, layer, poly, (Cell)np, polyArea, polyBnd, minOverlapRule, found);
+				DBMath.transformRect(polyBnd, cellUpTrans);
+				polyArea.transform(cellUpTrans);
+				poly.transform(cellUpTrans);
 			}
 			else
 			{
@@ -2801,13 +2748,13 @@ public class Quick
                     if (!foundAll)
                     {
                          reportError(POLYSELECTERROR, "No enough surround, ", cell, minOverlapRule.value, -1, minOverlapRule.rule,
-                            distPoly/*new Poly(distPolyArea.getBounds2D())*/, geom, layer, null, null, null);
+                                 distPoly, geom, layer, null, null, null);
                     }
 				}
 			}
 			found = polyArea.isEmpty();
 		}
-        return (false);
+        return (found);
     }
 
     /**
@@ -2830,7 +2777,8 @@ public class Quick
 	        if (NodeInst.isSpecialNode(ni)) continue; // Nov 4;
             if (np instanceof Cell)
             {
-                return (allPointsContainedInLayer(geom, (Cell)np, ruleBnd, points, founds));
+                if (allPointsContainedInLayer(geom, (Cell)np, ruleBnd, points, founds))
+	                return true;
             }
             else
             {

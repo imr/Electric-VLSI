@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01au: *********************************
 
+BUG: (12/8/04, GVG) DRC: polysilicon-select checking not working properly hierarchically (Bug# 66 and #15).
+FIX: work on transformations.
+
 IMP: (12/7/04, RK) NCC regression: added small test case to exercise transistor thresholds, oxide thickness, etc
 
 IMP: (12/7/04, RK) NCC: Handle transistor thresholds, oxide thickness, etc
