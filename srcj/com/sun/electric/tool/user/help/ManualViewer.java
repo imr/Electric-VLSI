@@ -555,10 +555,11 @@ public class ManualViewer extends EDialog
 	}
 
 	/**
-	 * Method to generate a single HTML file with the entire manual.
+	 * Method to generate a 1-page HTML file with the entire manual.
 	 * This is an advanced function that is not available to users.
+	 * The purpose of the single-file HTML is to generate an acrobat file (pdf).
 	 */
-	private void manual()
+	private void manual1Page()
 	{
 		String manualFileName = OpenFile.chooseOutputFile(FileType.HTML, "Manual file", "electric.html");
 		if (manualFileName == null) return;
@@ -572,7 +573,7 @@ public class ManualViewer extends EDialog
 			return;
 		}
 
-		printWriter.println("<HTML><HEAD><TITLE>Using Electric</TITLE></HEAD>");
+		printWriter.println("<HTML><HEAD><TITLE>Using The Electric VLSI Design System</TITLE></HEAD>");
 		printWriter.println("<BODY BGCOLOR=\"#FFFFFF\">");
 		for(int index=0; index < pageSequence.size(); index++)
 		{
@@ -628,33 +629,185 @@ public class ManualViewer extends EDialog
 					}
 					continue;
 				}
-				if (line.equals("<!-- TRAILER -->"))
-				{
-					boolean nextIsNewPage = true;
-					if (pi.level == 2 && nextIndex > 0 && nextPi.level == pi.level && !nextPi.newAtLevel) nextIsNewPage = false;
-					if (nextIsNewPage)
-					{
-//						printWriter.println("<P>");
-//						printWriter.println("<HR>");
-//						printWriter.println("<CENTER><TABLE BORDER=0><TR>");
-//						printWriter.println("<TD><A HREF=\"" + lastFileName + ".html#" + lastFileName +".html\"><IMG SRC=\"iconbackarrow.png\" ALT=\"Prev\" BORDER=0></A></TD>");
-//						printWriter.println("<TD><A HREF=\"" + lastFileName + ".html#" + lastFileName +".html\">Previous</A></TD>");
-//						printWriter.println("<TD>&nbsp;&nbsp;&nbsp;</TD>");
-//						printWriter.println("<TD><A HREF=\"index.html\"><IMG SRC=\"iconcontarrow.png\" ALT=\"Contents\" BORDER=0></A></TD>");
-//						printWriter.println("<TD><A HREF=\"index.html\">Table of Contents</A></TD>");
-//						printWriter.println("<TD>&nbsp;&nbsp;&nbsp;</TD>");
-//						printWriter.println("<TD><A HREF=\"" + nextFileName + ".html#" + nextFileName +".html\">Next</A></TD>");
-//						printWriter.println("<TD><A HREF=\"" + nextFileName + ".html#" + nextFileName +".html\"><IMG SRC=\"iconforearrow.png\" ALT=\"Next\" BORDER=0></A></TD>");
-//						printWriter.println("</TR></TABLE></CENTER>");
-					}
-					continue;
-				}
+				if (line.equals("<!-- TRAILER -->")) continue;
 				printWriter.println(line);
 			}
 		}
 		printWriter.println("</BODY>");
 		printWriter.println("</HTML>");
 		printWriter.close();
+	}
+
+	/**
+	 * Method to generate a multi-page HTML file with the entire manual.
+	 * This is an advanced function that is not available to users.
+	 * The output is a single "index" file, and many chapter files that start with the letter "m"
+	 * (i.e. "mchap01-01.html").
+	 * If you copy the "index.html", all of the "mchap" files, and all of the image files,
+	 * it will be a complete manual.
+	 */
+	private void manualManyPages()
+	{
+		String manualFileName = OpenFile.chooseOutputFile(FileType.HTML, "Manual file", "index.html");
+		if (manualFileName == null) return;
+		PrintWriter printWriter = null;
+		try
+		{
+			printWriter = new PrintWriter(new BufferedWriter(new FileWriter(manualFileName)));
+		} catch (IOException e)
+		{
+			System.out.println("Error creating " + manualFileName);
+			return;
+		}
+		System.out.println("Writing 'index.html' and many files starting with 'mchap'");
+
+		// gather the table of contents by chapter
+		int lastChapterNumber = 0;
+		StringBuffer chapterText = new StringBuffer();
+		List chapters = new ArrayList();
+		StringBuffer afterTOC = new StringBuffer();
+		for(int index=0; index < pageSequence.size(); index++)
+		{
+			PageInfo pi = (PageInfo)pageSequence.get(index);
+			if (pi.chapterNumber <= 0)
+			{
+				InputStream stream = TextUtils.getURLStream(pi.url, null);
+				InputStreamReader is = new InputStreamReader(stream);
+				for(;;)
+				{
+					String line = getLine(is);
+					if (line == null) break;
+					if (line.length() == 0) continue;
+					if (line.startsWith("<!-- HEADER ")) continue;
+					if (line.startsWith("<!-- TRAILER ")) continue;
+					if (line.equals("<HR>")) break;
+					printWriter.println(line);
+				}
+				for(;;)
+				{
+					String line = getLine(is);
+					if (line == null) break;
+					if (line.length() == 0) continue;
+					if (line.startsWith("<!-- HEADER ")) continue;
+					if (line.startsWith("<!-- TRAILER ")) continue;
+					afterTOC.append(line);
+				}
+				try
+				{
+					is.close();
+				} catch (IOException e) {}
+				continue;
+			}
+			if (pi.chapterNumber != lastChapterNumber)
+			{
+				if (lastChapterNumber > 0) chapters.add(chapterText.toString());
+				lastChapterNumber = pi.chapterNumber;
+				chapterText = new StringBuffer();
+				chapterText.append("<B>Chapter " + pi.chapterName.toUpperCase() + "</B><BR>");
+			}
+			chapterText.append("<A HREF=\"m" + pi.fileName + ".html\">" + pi.fullChapterNumber + ": " + pi.title + "</A><BR>");
+		}
+		chapters.add(chapterText.toString());
+
+		// write the table of contents
+		printWriter.println("<CENTER><H1>Table of Contents</H1></CENTER>");
+		printWriter.println("<CENTER><TABLE BORDER=\"1\">");
+		for(int i=0; i<chapters.size(); i += 2)
+		{
+			String leftSide = (String)chapters.get(i);
+			String rightSide = "";
+			if (i+1 < chapters.size()) rightSide = (String)chapters.get(i+1);
+			printWriter.println("<TR><TD VALIGN=TOP>" + leftSide + "</TD>");
+			printWriter.println("<TD VALIGN=TOP>" + rightSide + "</TD></TR>");
+		}
+		printWriter.println("</TABLE></CENTER><HR>");
+
+		printWriter.print(afterTOC.toString());
+		printWriter.println("<CENTER><TABLE BORDER=\"0\"><TR>");
+		printWriter.println("<TD><A HREF=\"mchap01-01.html\">Next</A></TD>");
+		printWriter.println("<TD><A HREF=\"mchap01-01.html\"><IMG SRC=\"iconforearrow.png\" ALT=\"Next\" BORDER=\"0\"></A></TD>");
+		printWriter.println("</TR></TABLE></CENTER>");
+		printWriter.println("</BODY>");
+		printWriter.println("</HTML>");
+		printWriter.close();
+
+		for(int index=0; index < pageSequence.size(); index++)
+		{
+			PageInfo pi = (PageInfo)pageSequence.get(index);
+			if (pi.chapterNumber <= 0) continue;
+			InputStream stream = TextUtils.getURLStream(pi.url, null);
+			InputStreamReader is = new InputStreamReader(stream);
+			String pageFileName = manualFileName;
+			int lastSep = pageFileName.lastIndexOf('\\');
+			if (lastSep >= 0) pageFileName = pageFileName.substring(0, lastSep+1);
+			pageFileName += "m" + pi.fileName + ".html";
+			try
+			{
+				printWriter = new PrintWriter(new BufferedWriter(new FileWriter(pageFileName)));
+			} catch (IOException e)
+			{
+				System.out.println("Error creating " + pageFileName);
+				break;
+			}
+
+			int lastIndex = index - 1;
+			if (lastIndex < 0) lastIndex = pageSequence.size() - 1;
+			PageInfo lastPi = (PageInfo)pageSequence.get(lastIndex);
+			String lastFileName = lastPi.fileName;
+			if (lastFileName.equals("title")) lastFileName = "index"; else lastFileName = "m" + lastFileName;
+			int nextIndex = index + 1;
+			if (nextIndex >= pageSequence.size()) nextIndex = 0;
+			PageInfo nextPi = (PageInfo)pageSequence.get(nextIndex);
+			String nextFileName = nextPi.fileName;
+			if (nextFileName.equals("title")) nextFileName = "index"; else nextFileName = "m" + nextFileName;
+
+			for(;;)
+			{
+				String line = getLine(is);
+				if (line == null) break;
+				if (line.length() == 0) continue;
+				if (line.startsWith("<!-- NEED ")) continue;
+				if (line.startsWith("<!-- HEADER "))
+				{
+					int endPt = line.indexOf("-->");
+					if (endPt < 0)
+					{
+						System.out.println("No end comment on line: "+line);
+						continue;
+					}
+					String pageName = line.substring(12, endPt).trim();
+					printWriter.println("<A NAME=\"" + pi.fileName + "\"></A>");
+					printWriter.println("<CENTER><FONT SIZE=6><B>Chapter " + pi.chapterName + "</B></FONT></CENTER>");
+					printWriter.println("<CENTER><TABLE WIDTH=\"90%\" BORDER=0><TR>");
+					printWriter.println("<TD><CENTER><A HREF=\"" + lastFileName + ".html#" + lastFileName +
+						".html\"><IMG SRC=\"iconplug.png\" ALT=\"plug\" BORDER=0></A></CENTER></TD>");
+					printWriter.println("<TD><CENTER><H2>" + pageName + "</H2></CENTER></TD>");
+					printWriter.println("<TD><CENTER><A HREF=\"" + nextFileName + ".html#" + nextFileName +
+						".html\"><IMG SRC=\"iconplug.png\" ALT=\"plug\" BORDER=0></A></CENTER></TD></TR></TABLE></CENTER>");
+					printWriter.println("<HR>");
+					printWriter.println("<BR>");
+					continue;
+				}
+				if (line.equals("<!-- TRAILER -->"))
+				{
+					printWriter.println("<P>");
+					printWriter.println("<HR>");
+					printWriter.println("<CENTER><TABLE BORDER=0><TR>");
+					printWriter.println("<TD><A HREF=\"" + lastFileName + ".html#" + lastFileName +".html\"><IMG SRC=\"iconbackarrow.png\" ALT=\"Prev\" BORDER=0></A></TD>");
+					printWriter.println("<TD><A HREF=\"" + lastFileName + ".html#" + lastFileName +".html\">Previous</A></TD>");
+					printWriter.println("<TD>&nbsp;&nbsp;&nbsp;</TD>");
+					printWriter.println("<TD><A HREF=\"index.html\"><IMG SRC=\"iconcontarrow.png\" ALT=\"Contents\" BORDER=0></A></TD>");
+					printWriter.println("<TD><A HREF=\"index.html\">Table of Contents</A></TD>");
+					printWriter.println("<TD>&nbsp;&nbsp;&nbsp;</TD>");
+					printWriter.println("<TD><A HREF=\"" + nextFileName + ".html#" + nextFileName +".html\">Next</A></TD>");
+					printWriter.println("<TD><A HREF=\"" + nextFileName + ".html#" + nextFileName +".html\"><IMG SRC=\"iconforearrow.png\" ALT=\"Next\" BORDER=0></A></TD>");
+					printWriter.println("</TR></TABLE></CENTER>");
+					continue;
+				}
+				printWriter.println(line);
+			}
+			printWriter.close();
+		}
 	}
 
 	/**
@@ -845,17 +998,6 @@ public class ManualViewer extends EDialog
 		{
 			public void actionPerformed(ActionEvent evt) { back(); }
 		});
-//		JButton foreButton = new JButton("Forward");
-//		gbc = new GridBagConstraints();
-//		gbc.gridx = 1;      gbc.gridy = 0;
-//		gbc.gridwidth = 1;  gbc.gridheight = 1;
-//		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
-//		gbc.anchor = GridBagConstraints.CENTER;
-//		leftHalf.add(foreButton, gbc);
-//		foreButton.addActionListener(new ActionListener()
-//		{
-//			public void actionPerformed(ActionEvent evt) { next(); }
-//		});
 
 		// Previous and Next buttons
 		JButton prevButton = new JButton("Prev");
@@ -908,7 +1050,7 @@ public class ManualViewer extends EDialog
 		if (Main.getDebug())
 		{
 			// manual and edit buttons at the bottom of the left side
-			JButton manualButton = new JButton("Make Manual");
+			JButton manualButton = new JButton("1-Page Man");
 			gbc = new GridBagConstraints();
 			gbc.gridx = 0;      gbc.gridy = 4;
 			gbc.gridwidth = 1;  gbc.gridheight = 1;
@@ -917,12 +1059,26 @@ public class ManualViewer extends EDialog
 			leftHalf.add(manualButton, gbc);
 			manualButton.addActionListener(new ActionListener()
 			{
-				public void actionPerformed(ActionEvent evt) { manual(); }
+				public void actionPerformed(ActionEvent evt) { manual1Page(); }
 			});
-			JButton editButton = new JButton("Edit Page");
+
+			// manual and edit buttons at the bottom of the left side
+			JButton manualMultiButton = new JButton("Many-Page Man");
 			gbc = new GridBagConstraints();
 			gbc.gridx = 1;      gbc.gridy = 4;
 			gbc.gridwidth = 1;  gbc.gridheight = 1;
+			gbc.insets = new java.awt.Insets(0, 4, 4, 4);
+			gbc.anchor = GridBagConstraints.CENTER;
+			leftHalf.add(manualMultiButton, gbc);
+			manualMultiButton.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { manualManyPages(); }
+			});
+
+			JButton editButton = new JButton("Edit Page");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 0;      gbc.gridy = 5;
+			gbc.gridwidth = 2;  gbc.gridheight = 1;
 			gbc.insets = new java.awt.Insets(0, 4, 4, 4);
 			leftHalf.add(editButton, gbc);
 			editButton.addActionListener(new ActionListener()
