@@ -6,7 +6,7 @@ NOTE: Please place changes under the version that will be released next.
 
 IMP: (11/3/04, GVG) Another algorithm for DRC TSMC90 PP/NP.R.1 rule
 
-IMP/MAN: (11/3/04, GVG) Default technology in preferences. It will be used for setting palette
+IMP/MAN: (11/3/04, GVG) Default technology in preferences. It will be used for setting palette. Manual updated.
 
 BUG: (11/2/04, RK) Repair bugs from partial conversion of gate layout generators to tsmc90
 
@@ -522,7 +522,7 @@ IMP/MAN: (9/14/04, SMR) Added "Eagle", "Pads", and "ECAD" netlist output.
 
 BUG (9/14/04, RK) NCC assertion fails when designs being compared share a cell.
 
-BUG: (9/14/04, RK) NCC doesn't print Cell version number. 
+BUG: (9/14/04, RK) NCC doesn't print Cell version number.
 
 BUG: (9/13/04, SMR) Spice output gets indexed names wrong.
 FIX: In tool.io.output.Spice, do not use aggregated names (an interface option in tool.io.output.Topology).
@@ -643,7 +643,7 @@ IMP: (9/2/04, SMR) Small text is now drawn "greek" and is selectable.
 BUG: (9/2/04, SMR) Port text is not the right size.
 FIX: In PixelDrawing.showCellPorts(), use size from the actual Export.
 
-IMP: (9/2/04, GVG) Better handling of collections of simple polygons and rings for 
+IMP: (9/2/04, GVG) Better handling of collections of simple polygons and rings for
 enclosure area checking.
 
 BUG: (9/2/04, GVG) Clipboard crashes if list in copyListToCell contains Exports
@@ -676,7 +676,7 @@ IMP/MAN: (8/31/04, JKG) "Repeat Last Command" in Edit menu.
 
 IMP: (8/30/04, GVG) New transistors in TSMC90. Changes in TechPalette to select them.
 
-IMP: (8/30/04, RK) Transistor size checking. 
+IMP: (8/30/04, RK) Transistor size checking.
 
 BUG: (8/30/04, SMR) Crashes when the last waveform panel is deleted.
 FIX: Only select a panel if there are any.
@@ -811,7 +811,7 @@ FIX: Determines visible ports before arranging them on the display.
 BUG/MAN: (8/18/04, SMR) "Size" on nodes doesn't work right for mirrored nodes; should not be center-based.
 FIX: Size now works from farthest corner (unless Control is held).
 
-FIX/IMP/MAN: (8/18/04, JKG) copy/paste fixes: default paste by center point, 
+FIX/IMP/MAN: (8/18/04, JKG) copy/paste fixes: default paste by center point,
     can move anchor point, shows delta from copy to paste. Right click menu added when pasting.
 
 IMP (8/18/04, GVG): Extra sizing rules for metals (another level) and area
@@ -849,7 +849,7 @@ FIX: (8/13/04, RK) When NCCing hierarchically and continuing after errors, flatt
 
 IMP/MAN: (8/12/04, JKG) Added preference in General Tab as to how Electric chooses the working dir.
 
-IMP: (8/11/04, JKG) Highlighter now selects from a stack of objects based on last object selected. 
+IMP: (8/11/04, JKG) Highlighter now selects from a stack of objects based on last object selected.
 
 FIX: (8/9/04, GVG): DRC: Missing transformation in hierarchical DRC so neighbor cells were not checked.
 
@@ -876,7 +876,7 @@ IMP: (8/03/04, JKG) GetInfoNode now shows transistor width/length instead of x/y
 
 FIX: (8/2/04, RK) NCC wasn't checking that same named Exports are on the equivalent nets.
 
-IMP/MAN (8/2/04, RK) Added NCC annotation: "notSubcircuit". 
+IMP/MAN (8/2/04, RK) Added NCC annotation: "notSubcircuit".
 
 IMP/MAN: (7/29/04, JKG) Added "Re-export Selected, include wired ports", and
         "Re-export Highlighted Area, inc. wired ports" menu commands.
@@ -1027,7 +1027,7 @@ IMP: (6/24/04, SMR) Waveform window improvements:
 
 IMP: (6/25/04, SMR) Implemented "Help / User's Manual" and began to convert C manual.
 
-IMP: (6/25/04, GVG) First version working of 3D View. 
+IMP: (6/25/04, GVG) First version working of 3D View.
 
 IMP: (6/25/04, RK) Added NCC Local processing step to find user-understandable differences
 
@@ -1115,7 +1115,7 @@ IMP: (6/11/04, SMR) Implemented "Artwork Appearance" dialog for editing Artwork 
 IMP: (6/11/04, GVG) Message in WriteLib if no write access. Unified version of coverage implant, merge polygons and
 layer coverage calculation. New idea for icon of current library selected in ExplorerTree.
 
-IMP: (6/11/04, RK) Move fill generation to a script. Add Essential-Bounds to tiled fill cells. 
+IMP: (6/11/04, RK) Move fill generation to a script. Add Essential-Bounds to tiled fill cells.
 
 IMP: (6/10/04, SMR) Changed the Job.doIt() method to return a success indicator.
 
@@ -1297,7 +1297,7 @@ IMP: (5/21/04, SMR) Added Layer.getPureLayerNode() to obtain the pure-layer node
 
 IMP: (5/21/04, GVG) Coverage Implants functionality in MenuCommands added.
 
-FIX: (5/20/04, JKG) LE.subdrive() fixed. Various EvalJavaBsh code clean-up. Now uses reflection only. 
+FIX: (5/20/04, JKG) LE.subdrive() fixed. Various EvalJavaBsh code clean-up. Now uses reflection only.
 
 IMP: (5/20/04, JKG) New dialogs.
 
