@@ -137,6 +137,12 @@ public class Quick
 	private HashMap networkLists = null;
 	private HashMap minAreaLayerMap = new HashMap();    // For minimum area checking
 	private HashMap enclosedAreaLayerMap = new HashMap();    // For enclosed area checking
+	private Job job; // Reference to running job
+
+	public Quick(Job job)
+	{
+		this.job = job;
+	}
 
 	/*
 	 * The CHECKSTATE object exists for each processor and has global information for that thread.
@@ -219,13 +225,32 @@ public class Quick
 	 * If "count" is nonzero, only check that many instances (in "nodesToCheck") and set the
 	 * entry in "validity" TRUE if it is DRC clean.
 	 * @param bounds if null, check entire cell. If not null, only check area in bounds.
-     * @return the number of errors found
+     * @param drcJob
+	 * @return the number of errors found
 	 */
-	public static int checkDesignRules(Cell cell, int count, Geometric [] geomsToCheck, boolean [] validity, Rectangle2D bounds)
+	public static int checkDesignRules(Cell cell, int count, Geometric[] geomsToCheck, boolean[] validity, Rectangle2D bounds, Job drcJob)
 	{
-		Quick q = new Quick();
+		Quick q = new Quick(drcJob);
 		return q.doCheck(cell, count, geomsToCheck, validity, bounds);
 	}
+
+	/**
+	* Check if we are scheduled to abort. If so, print msg if non null
+	 * and return true.
+	 * @param msg message to print if we are aborted
+	 * @return true on abort, false otherwise
+	 */
+	/*
+	protected boolean checkAbort(String msg) {
+		if (job.getScheduledToAbort()) {
+			if (msg != null) System.out.println("LETool aborted: "+msg);
+			else System.out.println("LETool aborted: no changes made");
+			setAborted();                   // Job has been aborted
+			return true;
+		}
+		return false;
+	}
+	*/
 
     // returns the number of errors found
 	private int doCheck(Cell cell, int count, Geometric [] geomsToCheck, boolean [] validity, Rectangle2D bounds)
@@ -799,42 +824,24 @@ public class Quick
 				NodeProto np = ni.getProto();
 				if (np instanceof Cell)
 				{
+					/*
 					Rectangle2D subBounds = new Rectangle2D.Double();
 					subBounds.setRect(bounds);
 					AffineTransform rTransI = ni.rotateIn();
 					AffineTransform tTransI = ni.translateIn();
 					rTransI.preConcatenate(tTransI);
 					DBMath.transformRect(subBounds, rTransI);
-
-					Rectangle2D subBounds1 = new Rectangle2D.Double();
-					subBounds1.setRect(subBounds);
-					AffineTransform rTransI1 = ni.transformIn();
-					rTransI1.preConcatenate(downTrans);
-					DBMath.transformRect(subBounds1, rTransI1);
-
-					Rectangle2D subBounds2 = new Rectangle2D.Double();
-					subBounds2.setRect(bb);
-					AffineTransform rTransI2 = ni.transformIn();
-					DBMath.transformRect(subBounds2, rTransI2);
+                    */
 
 					AffineTransform subUpTrans = ni.translateOut(ni.rotateOut());
-					//AffineTransform rTrans = ni.rotateOut();
-					//subUpTrans.preConcatenate(rTrans);
 					subUpTrans.preConcatenate(upTrans);
 
-					/*
-					AffineTransform subUpTrans1 = ni.translateOut(ni.rotateOut());
-					subUpTrans1.preConcatenate(upTrans);
-					if (!subUpTrans1.equals(subUpTrans))
-					{
-						System.out.println("Wrong transform?");
-					}
-                    */
 					CheckInst ci = (CheckInst)checkInsts.get(ni);
 					
 					int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
 
 //					if (!dr_quickparalleldrc) downhierarchy(ni, ni->proto, 0);
+					// changes Sept04: subBound by bb
 					checkCellInstContents(bb, ni, //(Cell)np,
 						subUpTrans, localIndex, oNi, topGlobalIndex);
 //					if (!dr_quickparalleldrc) uphierarchy();
@@ -1007,6 +1014,7 @@ public class Quick
 		DBMath.transformRect(rBound, upTrans);
 		Netlist netlist = getCheckProto(cell).netlist;
 
+		// Sept04 changes: bounds by rBound
 		for(Iterator it = cell.searchIterator(rBound); it.hasNext(); )
 		{
 			Geometric nGeom = (Geometric)it.next();
@@ -1031,9 +1039,7 @@ public class Quick
 					int localIndex = cellGlobalIndex * ci.multiplier + ci.localIndex + ci.offset;
 
 					AffineTransform subTrans = ni.translateOut(ni.rotateOut());
-					//AffineTransform rTrans = ni.rotateOut();
-					//subTrans.preConcatenate(rTrans);
-					subTrans.preConcatenate(upTrans);
+					subTrans.preConcatenate(upTrans);        //Sept 15 04
 
 					// compute localIndex
 //					if (!dr_quickparalleldrc) downhierarchy(ni, np, 0);
@@ -1264,7 +1270,7 @@ public class Quick
 			double pdx = Math.max(trueBox2.getMinX()-trueBox1.getMaxX(), trueBox1.getMinX()-trueBox2.getMaxX());
 			double pdy = Math.max(trueBox2.getMinY()-trueBox1.getMaxY(), trueBox1.getMinY()-trueBox2.getMaxY());
 			pd = Math.max(pdx, pdy);
-			if (pdx == 0 && pdy == 0) pd = 0;
+			if (pdx == 0 && pdy == 0) pd = 0; // touching
 			if (maytouch)
 			{
 				// they are electrically connected: see if they touch
@@ -1395,7 +1401,7 @@ public class Quick
 				  System.out.println("ErrorY?");
 				  */
 				if (pdx == 0 && pdy == 0)
-					pd = 0;
+					pd = 0; // they are touching!!
 				else
 				{
 					// They are overlapping if pdx < 0 && pdy < 0
@@ -1518,7 +1524,6 @@ public class Quick
 	 */
 	private void checkTheseGeometrics(Cell cell, int count, Geometric [] geomsToCheck, boolean [] validity)
 	{
-		int globalIndex = 0;
 		CheckProto cp = getCheckProto(cell);
 
 		// loop through all of the objects to be checked
@@ -1678,8 +1683,6 @@ public class Quick
 			DBMath.transformRect(subBounds, tempTrans);
 
 			AffineTransform subTrans = ni.translateOut(ni.rotateOut());
-			//AffineTransform rTrans = ni.rotateOut();
-			//subTrans.preConcatenate(rTrans);
 
 			// see if this polygon has errors in the cell
 			if (badBoxInArea(poly, polyLayer, tech, net, geom, trans, globalIndex,
@@ -3329,7 +3332,7 @@ public class Quick
 					boolean found = poly.contains(thisPoly.getBounds2D());
 
 					if (found) count++;
-					else DRCexclusionMsg += " (DRC Exclusion '" + dex.ni.getName() + "' does not completely contain '" +
+					else DRCexclusionMsg += "\n\t(DRC Exclusion '" + dex.ni.getName() + "' does not completely contain '" +
 						        ((Geometric)geomList.get(i)).describe() + "')";
 				}
 				// At least one DRC exclusion that contains both
@@ -3488,7 +3491,7 @@ public class Quick
 					// No area associated
 					if (minAreaLayerMap.get(layer) == null && enclosedAreaLayerMap.get(layer) == null)
 						continue;
-					netMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()));
+					netMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
 				}
 			}
 			return true;
@@ -3533,7 +3536,7 @@ public class Quick
 					continue;
 
 				poly.transform(trans);
-				netMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()));
+				netMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
 			}
 
             return true;

@@ -102,8 +102,9 @@ public class PolyQTree
 	 * Given a layer, insert the object obj into the qTree associated.
 	 * @param layer Given layer to work with
 	 * @param newObj
+	 * @param fasterAlgorithm
 	 */
-	public void add(Object layer, Object newObj)
+	public void add(Object layer, Object newObj, boolean fasterAlgorithm)
 	{
 		PolyNode obj = (PolyNode)newObj;
 		PolyQNode root = (PolyQNode)layers.get(layer);
@@ -115,16 +116,8 @@ public class PolyQTree
 		};
 		// Only if no other identical element was found, element is inserted
 		Rectangle2D areaBB = obj.getBounds2D();
-		boolean done = root.findAndRemoveObjects(rootBox, obj, areaBB);
-
-		if (!done)
-			done = root.insert(rootBox, obj, areaBB);
-		//@TODO GVG Check this case
-		// Could be comming from big-cross poly!!
-		/*
-		if (!done)
-			System.out.println("Repeated element?");
-			*/
+		if (!root.findAndRemoveObjects(rootBox, obj, areaBB, fasterAlgorithm))
+			root.insert(rootBox, obj, areaBB);
 	}
 
 	/**
@@ -145,7 +138,7 @@ public class PolyQTree
 			{
 				PolyNode geo = (PolyNode)i.next();
 				geo.transform(trans);
-				add(layer, geo);
+				add(layer, geo, false);
 			}
 		}
 	}
@@ -671,9 +664,10 @@ public class PolyQTree
 		 * Removes from tree all objects overlapping with obj. Returns the overlapping region.
 		 * @param box
 		 * @param obj
+		 * @param fasterAlgorithm
 		 * @return
 		 */
-		protected boolean findAndRemoveObjects(Rectangle2D box, PolyNode obj, Rectangle2D areaBB)
+		protected boolean findAndRemoveObjects(Rectangle2D box, PolyNode obj, Rectangle2D areaBB, boolean fasterAlgorithm)
 		{
 			double centerX = box.getCenterX();
             double centerY = box.getCenterY();
@@ -697,7 +691,7 @@ public class PolyQTree
 						// No need of reviewing other quadrants?
 						if (children[i] == null) continue;
 
-						if (children[i].findAndRemoveObjects(bb, obj, areaBB))
+						if (children[i].findAndRemoveObjects(bb, obj, areaBB, fasterAlgorithm))
 							return (true);
 
 						if (children[i].compact())
@@ -716,8 +710,8 @@ public class PolyQTree
 					if (node.equals((Object)obj))
 						return (true);
 
-
-					//if (node.intersects(obj))
+					// @TODO this should be reviewed!!
+					if (!fasterAlgorithm || (fasterAlgorithm && node.intersects(obj)))
 					{
 						obj.add(node);
 						obj.setNotOriginal();
