@@ -100,12 +100,8 @@ public class LibraryFiles extends Input
 		libsBeingRead.put(lib, this);
 		scaledCells = new ArrayList();
 		skewedCells = new ArrayList();
-        ErrorLog.initLogging("Library Read");
 
-		boolean ret = readLib();
-
-        ErrorLog.termLogging(true);
-        return ret;
+		return readLib();
 	}
 
 	protected void scanNodesForRecursion(Cell cell, FlagSet markCellForNodes, NodeProto [] nil, int start, int end)
@@ -271,37 +267,37 @@ public class LibraryFiles extends Input
 					}
 				}
 			}
+            // last option: let user pick library location
 			if (externalStream != null)
 			{
 				System.out.println("Reading referenced library " + externalURL.getFile());
 				elib = Library.newInstance(libName, externalURL);
-			} else
-			{
-				System.out.println("Error: cannot find referenced library " + libFile.getPath());
-				elib = null;
-			}
-			if (elib == null) return null;
-
-			// read the external library
-			String oldNote = progress.getNote();
-			if (progress != null)
-			{
-				progress.setProgress(0);
-				progress.setNote("Reading referenced library " + libName + "...");
 			}
 
-			elib = readALibrary(externalURL, externalStream, elib, importType);
-			// JKG TODO: when referenced library returns null, how to abort cleanly?
-			// GVG TODO: It should at least not allow to continue with reading
-			// Put back elib == null return 06/01/04
-			if (elib == null) return null;
+            if (elib != null) {
+                // read the external library
+                String oldNote = progress.getNote();
+                if (progress != null)
+                {
+                    progress.setProgress(0);
+                    progress.setNote("Reading referenced library " + libName + "...");
+                }
+
+                elib = readALibrary(externalURL, externalStream, elib, importType);
+                progress.setProgress((int)(byteCount * 100 / fileLength));
+                progress.setNote(oldNote);
+            }
+
+            if (elib == null) {
+                System.out.println("Error: cannot find referenced library " + libFile.getPath() +
+                        ", creating DUMMY"+libName+" Library instead");
+                elib = Library.newInstance("DUMMY"+libName, null);
+            }
 //			if (failed) elib->userbits |= UNWANTEDLIB; else
 //			{
 //				// queue this library for announcement through change control
 //				io_queuereadlibraryannouncement(elib);
 //			}
-			progress.setProgress((int)(byteCount * 100 / fileLength));
-			progress.setNote(oldNote);
 		}
 		return elib;
 	}

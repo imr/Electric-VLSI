@@ -1366,8 +1366,10 @@ public class ELIB extends LibraryFiles
 				}
 				continue;
 			}
-			PortInst headPortInst = headNode.findPortInst(((PortProto)headPort).getName());
-			PortInst tailPortInst = tailNode.findPortInst(((PortProto)tailPort).getName());
+            PortInst headPortInst = headNode.findPortInst(((PortProto)headPort).getName());
+            PortInst tailPortInst = tailNode.findPortInst(((PortProto)tailPort).getName());
+            //PortInst headPortInst = getArcEnd(ai, ap, headNode, ((PortProto)headPort).getName(), headX, headY, cell);
+            //PortInst tailPortInst = getArcEnd(ai, ap, tailNode, ((PortProto)tailPort).getName(), tailX, tailY, cell);
 			if (headPortInst == null || tailPortInst == null)
 			{
 				System.out.println("Cannot create arc of type " + ap.getName() + " in cell " + cell.getName() +
@@ -1425,10 +1427,12 @@ public class ELIB extends LibraryFiles
 						"{" + subCell.getView().getAbbreviation() + "}";
 					if (!EMath.doublesClose(scaleX, scaleY))
 					{
+                        // don't scale, most likely the size changed, and this is not a lambda problem
+                        scaledCellName = null;
 						// nonuniform scaling: library inconsistency detected
-						scaledCellName = subCell.getName() + "-SCALED-BY-" + scaleX + "-AND-" + scaleY +
-							"{" + subCell.getView().getAbbreviation() + "}";
-					}
+						//scaledCellName = subCell.getName() + "-SCALED-BY-" + scaleX + "-AND-" + scaleY +
+						//	"{" + subCell.getView().getAbbreviation() + "}";
+					} else {
 					Cell scaledCell = subCell.getLibrary().findNodeProto(scaledCellName);
 					if (scaledCell == null)
 					{
@@ -1510,6 +1514,7 @@ public class ELIB extends LibraryFiles
 							bounds = dummyCell.getBounds();
 						}
 					}
+                    }
 				}
 				width = bounds.getWidth();
 				height = bounds.getHeight();
@@ -1583,10 +1588,10 @@ public class ELIB extends LibraryFiles
 	}
 
     // node is node we expect to have port 'portname' at location x,y.
-    protected PortInst getArcEnd(ArcInst ai, NodeInst node, String portname, double x, double y, Cell cell)
+    protected PortInst getArcEnd(ArcInst ai, ArcProto ap, NodeInst node, String portname, double x, double y, Cell cell)
     {
         PortInst pi = node.findPortInst(portname);
-        String whatHappenedToPort = " ?";
+        String whatHappenedToPort = "?";
 
         if (pi != null) {
             // check to make sure location is correct
@@ -1594,7 +1599,7 @@ public class ELIB extends LibraryFiles
             if (portLocation.contains(x, y)) {
                 return pi;
             }
-            whatHappenedToPort = " moved";
+            whatHappenedToPort = "has moved";
             pi = null;
         } else {
             // name not found, see if any ports exist at location
@@ -1603,20 +1608,28 @@ public class ELIB extends LibraryFiles
                 Poly portLocation = pi.getPoly();
                 if (portLocation.contains(x, y)) {
                     // connect to this port
-                    ErrorLog.logError("Port "+portname+" on "+node.describe()+" not found, connecting to port "+
-                            pi.getPortProto().getName()+" at the same location", cell, 0);
+                    String msg = "Port "+portname+" on "+node.describe()+" not found, connecting to port "+
+                            pi.getPortProto().getName()+" at the same location";
+                    System.out.println("ERROR: "+msg);
+                    ErrorLog error = ErrorLog.logError(msg, cell, 0);
+                    error.addGeom(ai, true, 0, null);
                     return pi;
                 }
                 pi = null;
             }
-            whatHappenedToPort = " missing";
+            whatHappenedToPort = "is missing";
         }
 
         // create pin as new end point of arc
-        ErrorLog.logError("Port "+portname+" on "+node.describe()+whatHappenedToPort+", leaving arc disconnected", cell, 0);
-        PrimitiveNode pn = ((PrimitiveArc)ai.getProto()).findOverridablePinProto();
+        String msg = "Port '"+portname+"' on '"+node.describe()+"' "+whatHappenedToPort+": leaving arc disconnected";
+        System.out.println("ERROR: "+msg);
+        ErrorLog error = ErrorLog.logError(msg, cell, 0);
+        error.addGeom(ai, true, 0, null);
+
+        PrimitiveNode pn = ((PrimitiveArc)ap).findOverridablePinProto();
         node = NodeInst.newInstance(pn, new Point2D.Double(x, y), pn.getDefWidth(),
             pn.getDefHeight(), 0, cell, null);
+        error.addGeom(node, true, 0, null);
         return node.getOnlyPortInst();
     }
 

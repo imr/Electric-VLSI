@@ -38,6 +38,7 @@ import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.dialogs.Progress;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.MenuCommands;
+import com.sun.electric.tool.user.ErrorLog;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.WindowContent;
 
@@ -101,6 +102,8 @@ public class Input extends IOTool
 	{
 		if (fileURL == null) return null;
 		long startTime = System.currentTimeMillis();
+        ErrorLog.initLogging("Library Read");
+
 		LibDirs.readLibDirs();
 		//Undo.noUndoAllowed();
 		LibraryFiles.initializeLibraryInput();
@@ -133,6 +136,9 @@ public class Input extends IOTool
 			System.out.println("Library " + fileURL.getFile() + " read, took " + finalTime + " seconds");
 		}
 		Pref.reconcileMeaningVariables();
+
+        ErrorLog.termLogging(true);
+
 		return lib;
 	}
 
