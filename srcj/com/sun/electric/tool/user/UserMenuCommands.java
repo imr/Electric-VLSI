@@ -95,6 +95,7 @@ import java.awt.event.InputEvent;
 import javax.swing.ButtonGroup;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 import javax.swing.JOptionPane;
 
@@ -103,7 +104,10 @@ import javax.swing.JOptionPane;
  */
 public final class UserMenuCommands
 {
-    
+	public static JMenuItem selectArea, selectObjects;
+	public static JMenuItem moveFull, moveHalf, moveQuarter;
+	public static JMenuItem cursorSelect, cursorWiring, cursorSelectSpecial, cursorPan, cursorZoom;
+
 	// It is never useful for anyone to create an instance of this class
 	private UserMenuCommands() {}
 
@@ -156,8 +160,6 @@ public final class UserMenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { new UndoCommand(); } });
 		editMenu.addMenuItem("Redo", KeyStroke.getKeyStroke('Y', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { new RedoCommand(); } });
-		editMenu.addMenuItem("Show Undo List", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); } });
 
 		editMenu.addSeparator();
 
@@ -202,35 +204,51 @@ public final class UserMenuCommands
         
         Menu modeSubMenu = Menu.createMenu("Modes");
         editMenu.add(modeSubMenu);
-        Menu modeSubMenuEdit = Menu.createMenu("Edit");
+
+		Menu modeSubMenuEdit = Menu.createMenu("Edit");
         modeSubMenu.add(modeSubMenuEdit);
         ButtonGroup editGroup = new ButtonGroup();
-        modeSubMenuEdit.addRadioButton("Select", true, editGroup, KeyStroke.getKeyStroke('M', 0),
+        cursorSelect = modeSubMenuEdit.addRadioButton("Select", true, editGroup, KeyStroke.getKeyStroke('M', 0),
             new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Select"); } });
-        modeSubMenuEdit.addRadioButton("Wiring", false, editGroup, KeyStroke.getKeyStroke('W', 0),
+        cursorWiring = modeSubMenuEdit.addRadioButton("Wiring", false, editGroup, KeyStroke.getKeyStroke('W', 0),
             new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Wiring"); } });
-        modeSubMenuEdit.addRadioButton("Special Select", false, editGroup, null,
+        cursorSelectSpecial = modeSubMenuEdit.addRadioButton("Special Select", false, editGroup, null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Special Select"); } });
-        modeSubMenuEdit.addRadioButton("Pan", false, editGroup, KeyStroke.getKeyStroke('P', 0),
+        cursorPan = modeSubMenuEdit.addRadioButton("Pan", false, editGroup, KeyStroke.getKeyStroke('P', 0),
             new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Pan"); } });
-        modeSubMenuEdit.addRadioButton("Zoom", false, editGroup, KeyStroke.getKeyStroke('Z', 0),
+        cursorZoom = modeSubMenuEdit.addRadioButton("Zoom", false, editGroup, KeyStroke.getKeyStroke('Z', 0),
             new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Zoom"); } });
-        Menu modeSubMenuMovement = Menu.createMenu("Movement");
+		ToolBar.CursorMode cm = ToolBar.getCursorMode();
+		if (cm == ToolBar.CursorMode.SELECT) cursorSelect.setSelected(true); else
+		if (cm == ToolBar.CursorMode.WIRE) cursorWiring.setSelected(true); else
+		if (cm == ToolBar.CursorMode.SELECTSPECIAL) cursorSelectSpecial.setSelected(true); else
+		if (cm == ToolBar.CursorMode.PAN) cursorPan.setSelected(true); else
+			cursorZoom.setSelected(true);
+
+		Menu modeSubMenuMovement = Menu.createMenu("Movement");
         modeSubMenu.add(modeSubMenuMovement);
         ButtonGroup movementGroup = new ButtonGroup();
-        modeSubMenuMovement.addRadioButton("Full", true, movementGroup, KeyStroke.getKeyStroke('F', 0),
+        moveFull = modeSubMenuMovement.addRadioButton("Full", true, movementGroup, KeyStroke.getKeyStroke('F', 0),
             new ActionListener() { public void actionPerformed(ActionEvent e) { setMovementModeCommand("Full"); } });
-        modeSubMenuMovement.addRadioButton("Half", false, movementGroup, KeyStroke.getKeyStroke('H', 0),
+        moveHalf = modeSubMenuMovement.addRadioButton("Half", false, movementGroup, KeyStroke.getKeyStroke('H', 0),
             new ActionListener() { public void actionPerformed(ActionEvent e) { setMovementModeCommand("Half"); } });
-        modeSubMenuMovement.addRadioButton("Quarter", false, movementGroup, KeyStroke.getKeyStroke('Q', 0),
+        moveQuarter = modeSubMenuMovement.addRadioButton("Quarter", false, movementGroup, KeyStroke.getKeyStroke('Q', 0),
             new ActionListener() { public void actionPerformed(ActionEvent e) { setMovementModeCommand("Quarter"); } });
-        Menu modeSubMenuSelect = Menu.createMenu("Select");
+		double ad = ToolBar.getArrowDistance();
+		if (ad == 1.0) moveFull.setSelected(true); else
+		if (ad == 0.5) moveHalf.setSelected(true); else
+			moveQuarter.setSelected(true);
+
+		Menu modeSubMenuSelect = Menu.createMenu("Select");
         modeSubMenu.add(modeSubMenuSelect);
         ButtonGroup selectGroup = new ButtonGroup();
-        modeSubMenuSelect.addRadioButton("Area", true, selectGroup, null,
+        selectArea = modeSubMenuSelect.addRadioButton("Area", true, selectGroup, null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { setSelectModeCommand("Area"); } });
-        modeSubMenuSelect.addRadioButton("Objects", false, selectGroup, null,
+        selectObjects = modeSubMenuSelect.addRadioButton("Objects", false, selectGroup, null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { setSelectModeCommand("Objects"); } });
+		ToolBar.SelectMode sm = ToolBar.getSelectMode();
+		if (sm == ToolBar.SelectMode.AREA) selectArea.setSelected(true); else
+			selectObjects.setSelected(true);
 
 		Menu selListSubMenu = Menu.createMenu("Selection");
 		editMenu.add(selListSubMenu);
@@ -337,6 +355,11 @@ public final class UserMenuCommands
 		viewMenu.addMenuItem("Edit Other View", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { editOtherViewCommand(); } });
 
+		viewMenu.addSeparator();
+
+		viewMenu.addMenuItem("Make Icon View", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.makeIconViewCommand(); } });
+
 		/****************************** THE WINDOW MENU ******************************/
 
 		Menu windowMenu = Menu.createMenu("Window", 'W');
@@ -420,6 +443,8 @@ public final class UserMenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { aboutCommand(); } });
 		helpMenu.addMenuItem("Check and Repair Libraries...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { checkAndRepairCommand(); } });
+		helpMenu.addMenuItem("Show Undo List", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); } });
 		helpMenu.addMenuItem("Make fake circuitry...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeCircuitryCommand(); } });
 
@@ -726,14 +751,6 @@ public final class UserMenuCommands
 	}
 
 	/**
-	 * This routine implements the command to show the undo history.
-	 */
-	public static void showUndoListCommand()
-	{
-		Undo.showHistoryList();
-	}
-
-	/**
 	 * This routine implements the command to cut the highlighted circuitry or text.
 	 */
 	public static void cutCommand()
@@ -950,6 +967,28 @@ public final class UserMenuCommands
 		Attributes.showDialog();
 	}
 
+    public static void setEditModeCommand(String mode)
+    {
+        if (mode.equals("Select")) ToolBar.selectCommand();
+        if (mode.equals("Special Select")) ToolBar.selectSpecialCommand();
+        if (mode.equals("Wiring")) ToolBar.wiringCommand();
+        if (mode.equals("Pan")) ToolBar.panCommand();
+        if (mode.equals("Zoom")) ToolBar.zoomCommand();
+    }
+
+    public static void setMovementModeCommand(String mode)
+    {
+        if (mode.equals("Full")) ToolBar.fullArrowDistanceCommand();
+        if (mode.equals("Half")) ToolBar.halfArrowDistanceCommand();
+        if (mode.equals("Quarter")) ToolBar.quarterArrowDistanceCommand();
+    }
+
+    public static void setSelectModeCommand(String mode)
+    {
+        if (mode.equals("Area")) ToolBar.selectAreaCommand();
+        if (mode.equals("Objects")) ToolBar.selectObjectsCommand();
+    }
+
 	public static void selectAllCommand()
 	{
 		Cell curCell = Library.needCurCell();
@@ -969,34 +1008,10 @@ public final class UserMenuCommands
 		Highlight.finished();
     }
 
-	// ---------------------- THE MODE MENU -----------------
-
-    public static void setEditModeCommand(String mode)
-    {
-        if (mode.equals("Select")) ToolBar.selectCommand();
-        if (mode.equals("Special Select")) ToolBar.selectSpecialCommand();
-        if (mode.equals("Wiring")) ToolBar.wiringCommand();
-        if (mode.equals("Pan")) ToolBar.panCommand();
-        if (mode.equals("Zoom")) ToolBar.zoomCommand();
-    }
-    
-    public static void setMovementModeCommand(String mode)
-    {
-        if (mode.equals("Full")) ToolBar.fullArrowDistanceCommand();
-        if (mode.equals("Half")) ToolBar.halfArrowDistanceCommand();
-        if (mode.equals("Quarter")) ToolBar.quarterArrowDistanceCommand();
-    }
-    
-    public static void setSelectModeCommand(String mode)
-    {
-        if (mode.equals("Area")) ToolBar.selectAreaCommand();
-        if (mode.equals("Objects")) ToolBar.selectObjectsCommand();
-    }
-    
 	// ---------------------- THE CELL MENU -----------------
 
     /** 
-     * This command opens a dialog box to edit a cell.
+     * This command opens a dialog box to edit a Cell.
      */
     public static void newCellCommand()
 	{
@@ -1005,6 +1020,9 @@ public final class UserMenuCommands
 		dialog.show();
     }
 
+	/**
+	 * This routine implements the command to delete the current Cell.
+	 */
     public static void deleteCellCommand()
 	{
 		Cell curCell = Library.needCurCell();
@@ -1087,7 +1105,7 @@ public final class UserMenuCommands
 	public static void expandOneLevelDownCommand()
 	{
 		List list = Highlight.getHighlighted(true, false);
-		ExpandUnExpand job = new ExpandUnExpand(list, false, 1);
+		CircuitChanges.ExpandUnExpand job = new CircuitChanges.ExpandUnExpand(list, false, 1);
 	}
 
 	/**
@@ -1096,7 +1114,7 @@ public final class UserMenuCommands
 	public static void expandFullCommand()
 	{
 		List list = Highlight.getHighlighted(true, false);
-		ExpandUnExpand job = new ExpandUnExpand(list, false, Integer.MAX_VALUE);
+		CircuitChanges.ExpandUnExpand job = new CircuitChanges.ExpandUnExpand(list, false, Integer.MAX_VALUE);
 	}
 
 	/**
@@ -1108,7 +1126,7 @@ public final class UserMenuCommands
 		int levels = EMath.atoi((String)obj);
 
 		List list = Highlight.getHighlighted(true, false);
-		ExpandUnExpand job = new ExpandUnExpand(list, false, levels);
+		CircuitChanges.ExpandUnExpand job = new CircuitChanges.ExpandUnExpand(list, false, levels);
 	}
 
 	/**
@@ -1117,7 +1135,7 @@ public final class UserMenuCommands
 	public static void unexpandOneLevelUpCommand()
 	{
 		List list = Highlight.getHighlighted(true, false);
-		ExpandUnExpand job = new ExpandUnExpand(list, true, 1);
+		CircuitChanges.ExpandUnExpand job = new CircuitChanges.ExpandUnExpand(list, true, 1);
 	}
 
 	/**
@@ -1126,7 +1144,7 @@ public final class UserMenuCommands
 	public static void unexpandFullCommand()
 	{
 		List list = Highlight.getHighlighted(true, false);
-		ExpandUnExpand job = new ExpandUnExpand(list, true, Integer.MAX_VALUE);
+		CircuitChanges.ExpandUnExpand job = new CircuitChanges.ExpandUnExpand(list, true, Integer.MAX_VALUE);
 	}
 
 	/**
@@ -1138,135 +1156,7 @@ public final class UserMenuCommands
 		int levels = EMath.atoi((String)obj);
 
 		List list = Highlight.getHighlighted(true, false);
-		ExpandUnExpand job = new ExpandUnExpand(list, true, levels);
-	}
-
-	private static FlagSet expandFlagBit;
-
-	/**
-	 * Class to read a library in a new thread.
-	 */
-	protected static class ExpandUnExpand extends Job
-	{
-		List list;
-		boolean unExpand;
-		int amount;
-		
-		protected ExpandUnExpand(List list, boolean unExpand, int amount)
-		{
-			super("Change Cell Expansion", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.list = list;
-			this.unExpand = unExpand;
-			this.amount = amount;
-			this.startJob();
-		}
-
-		public void doIt()
-		{
-			expandFlagBit = Geometric.getFlagSet(1);
-			if (unExpand)
-			{
-				for(Iterator it = list.iterator(); it.hasNext(); )
-				{
-					NodeInst ni = (NodeInst)it.next();
-					NodeProto np = ni.getProto();
-					if (!(np instanceof Cell)) continue;
-					{
-						if (ni.isExpanded())
-							setUnExpand(ni, amount);
-					}
-				}
-			}
-			for(Iterator it = list.iterator(); it.hasNext(); )
-			{
-				NodeInst ni = (NodeInst)it.next();
-				if (unExpand) doUnExpand(ni); else
-					doExpand(ni, amount, 0);
-				Undo.redrawObject(ni);
-			}
-		}
-	}
-
-	/**
-	 * routine to recursively expand the cell "ni" by "amount" levels.
-	 * "sofar" is the number of levels that this has already been expanded.
-	 */
-	private static void doExpand(NodeInst ni, int amount, int sofar)
-	{
-		if (!ni.isExpanded())
-		{
-			// expanded the cell
-			ni.setExpanded();
-
-			// if depth limit reached, quit
-			if (++sofar >= amount) return;
-		}
-
-		// explore insides of this one
-		NodeProto np = ni.getProto();
-		if (!(np instanceof Cell)) return;
-		Cell cell = (Cell)np;
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
-		{
-			NodeInst subNi = (NodeInst)it.next();
-			NodeProto subNp = subNi.getProto();
-			if (!(subNp instanceof Cell)) continue;
-			Cell subCell = (Cell)subNp;
-
-			// ignore recursive references (showing icon in contents)
-			if (subNi.isIconOfParent()) continue;
-			doExpand(subNi, amount, sofar);
-		}
-	}
-
-	private static void doUnExpand(NodeInst ni)
-	{
-		if (!ni.isExpanded()) return;
-
-		NodeProto np = ni.getProto();
-		if (!(np instanceof Cell)) return;
-		Cell cell = (Cell)np;
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
-		{
-			NodeInst subNi = (NodeInst)it.next();
-			NodeProto subNp = subNi.getProto();
-			if (!(subNp instanceof Cell)) continue;
-
-			/* ignore recursive references (showing icon in contents) */
-			if (subNi.isIconOfParent()) continue;
-			if (subNi.isExpanded()) doUnExpand(subNi);
-		}
-
-		/* expanded the cell */
-		if (ni.isBit(expandFlagBit))
-		{
-			ni.clearExpanded();
-		}
-	}
-
-	private static int setUnExpand(NodeInst ni, int amount)
-	{
-		ni.clearBit(expandFlagBit);
-		if (!ni.isExpanded()) return(0);
-		NodeProto np = ni.getProto();
-		int depth = 0;
-		if (np instanceof Cell)
-		{
-			Cell cell = (Cell)np;
-			for(Iterator it = cell.getNodes(); it.hasNext(); )
-			{
-				NodeInst subNi = (NodeInst)it.next();
-				NodeProto subNp = subNi.getProto();
-				if (!(subNp instanceof Cell)) continue;
-
-				// ignore recursive references (showing icon in contents)
-				if (subNi.isIconOfParent()) continue;
-				if (subNi.isExpanded())
-					depth = Math.max(depth, setUnExpand(subNi, amount));
-			}
-			if (depth < amount) ni.setBit(expandFlagBit);
-		}
-		return depth+1;
+		CircuitChanges.ExpandUnExpand job = new CircuitChanges.ExpandUnExpand(list, true, levels);
 	}
 
 	// ---------------------- THE EXPORT MENU -----------------
@@ -1281,7 +1171,7 @@ public final class UserMenuCommands
 		dialog.show();
 	}
 
-	// ---------------------- THE EXPORT MENU -----------------
+	// ---------------------- THE VIEW MENU -----------------
 
 	/**
 	 * This routine implements the command to control Views.
@@ -1451,6 +1341,25 @@ public final class UserMenuCommands
         letool.analyzeCell(curEdit.getCell(), curEdit.getVarContext(), curEdit);
     }
 
+	public static void redoNetworkNumberingCommand()
+	{
+		long startTime = System.currentTimeMillis();
+		int ncell = 0;
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			for(Iterator cit = lib.getCells(); cit.hasNext(); )
+			{
+				Cell cell = (Cell)cit.next();
+				ncell++;
+				cell.rebuildNetworks(null, false);
+			}
+		}
+		long endTime = System.currentTimeMillis();
+		float finalTime = (endTime - startTime) / 1000F;
+		System.out.println("**** Renumber networks of "+ncell+" cells took " + finalTime + " seconds");
+	}
+
 	// NCC Tool
 	public static void nccTest1Command()
 	{
@@ -1504,8 +1413,6 @@ public final class UserMenuCommands
 			// start a job to run the script
             EvalJavaBsh.tool.runScript(fileName);
         }
-        
-        
     }
 
     // ---------------------- THE HELP MENU -----------------
@@ -1527,6 +1434,14 @@ public final class UserMenuCommands
 		}
 		if (errorCount > 0) System.out.println("Found " + errorCount + " errors"); else
 			System.out.println("No errors found");
+	}
+
+	/**
+	 * This routine implements the command to show the undo history.
+	 */
+	public static void showUndoListCommand()
+	{
+		Undo.showHistoryList();
 	}
 
 //	public static void showRTreeCommand()
@@ -1795,41 +1710,14 @@ public final class UserMenuCommands
 			}
 			System.out.println("Created cell " + bigCell.describe());
 
-
 			// disallow undo
 			Undo.noUndoAllowed();
-
-			// show some stuff
-//			instance1Node.getInfo();
-//			instance2Node.getInfo();
-//			instanceArc.getInfo();
 
 			// display a cell
 			WindowFrame.createEditWindow(myCell);
 		}
 	}
 
-	// ---------------------- THE DIMA MENU -----------------
-
-	public static void redoNetworkNumberingCommand()
-	{
-		long startTime = System.currentTimeMillis();
-		int ncell = 0;
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
-		{
-			Library lib = (Library)it.next();
-			for(Iterator cit = lib.getCells(); cit.hasNext(); )
-			{
-				Cell cell = (Cell)cit.next();
-				ncell++;
-				cell.rebuildNetworks(null, false);
-			}
-		}
-		long endTime = System.currentTimeMillis();
-		float finalTime = (endTime - startTime) / 1000F;
-		System.out.println("**** Renumber networks of "+ncell+" cells took " + finalTime + " seconds");
-	}
-    
     // ---------------------- THE JON GAINSLEY MENU -----------------
     
     public static void listVarsOnObject(boolean useproto) {

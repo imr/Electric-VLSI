@@ -139,10 +139,11 @@ public class Menu extends JMenu
      * @param accelerator the shortcut key, or null if none specified.
      * @param action the action to be taken when menu is activated.
      */
-    public void addMenuItem(String s, KeyStroke accelerator, ActionListener action)
+    public JMenuItem addMenuItem(String s, KeyStroke accelerator, ActionListener action)
     {
         JMenuItem item = new MenuItem(s);
         addItem(item, accelerator, action);
+		return item;
     }
 
 	/** 
@@ -152,10 +153,11 @@ public class Menu extends JMenu
      * @param accelerator the shortcut key, or null if none specified.
      * @param action the action to be taken when menu is activated.
      */
-    public void addCheckBox(String s, boolean state, KeyStroke accelerator, ActionListener action)
+    public JMenuItem addCheckBox(String s, boolean state, KeyStroke accelerator, ActionListener action)
     {
         JMenuItem item = new CheckBoxMenuItem(s, state);
         addItem(item, accelerator, action);
+		return item;
     }        
 	
 	/** 
@@ -166,11 +168,12 @@ public class Menu extends JMenu
      * @param accelerator the shortcut key, or null if none specified.
      * @param action the action to be taken when menu is activated.
      */
-    public void addRadioButton(String s, boolean selected, ButtonGroup group, KeyStroke accelerator, ActionListener action)
+    public JMenuItem addRadioButton(String s, boolean selected, ButtonGroup group, KeyStroke accelerator, ActionListener action)
     {
         JMenuItem item = new RadioButtonMenuItem(s, selected);
         if (group != null) group.add((JRadioButtonMenuItem)item);
         addItem(item, accelerator, action);
+		return item;
     }
     
     //------------------------------PUBLIC UTILITY METHODS-------------------------------

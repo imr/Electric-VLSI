@@ -761,7 +761,7 @@ public class ArcInst extends Geometric
 	 */
 	public JNetwork getNetwork(int busIndex)
 	{
-		if (proto.getFunction() == ArcProto.Function.NONELEC) return null;
+		if (protoType.getFunction() == ArcProto.Function.NONELEC) return null;
 		return ends[HEADEND].getPortInst().getNetwork();
 	}
 

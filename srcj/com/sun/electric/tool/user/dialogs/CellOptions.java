@@ -151,19 +151,6 @@ public class CellOptions extends javax.swing.JDialog
 		charXSpacing.getDocument().addDocumentListener(new CharSpacingListener(this, true));
 		charYSpacing.getDocument().addDocumentListener(new CharSpacingListener(this, false));
 
-		initialCheckDatesDuringCreation = User.isCheckCellDates();
-		checkDatesDuringCreation.setSelected(initialCheckDatesDuringCreation);
-
-		initialAutoTechnologySwitch = User.isAutoTechnologySwitch();
-		autoSwitchTechnology.setSelected(initialAutoTechnologySwitch);
-
-		initialPlaceCellCenter = User.isPlaceCellCenter();
-		placeCellCenter.setSelected(initialPlaceCellCenter);
-
-		tinyInstancesHashed.setEnabled(false);
-		hashScale.setEditable(false);
-		explorerTextSize.setEditable(false);
-
 		loadCellList();
 	}
 
@@ -295,17 +282,6 @@ public class CellOptions extends javax.swing.JDialog
         jLabel3 = new javax.swing.JLabel();
         charYSpacing = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
-        jSeparator1 = new javax.swing.JSeparator();
-        hashScale = new javax.swing.JTextField();
-        explorerTextSize = new javax.swing.JTextField();
-        checkDatesDuringCreation = new javax.swing.JCheckBox();
-        autoSwitchTechnology = new javax.swing.JCheckBox();
-        placeCellCenter = new javax.swing.JCheckBox();
-        tinyInstancesHashed = new javax.swing.JCheckBox();
-        jLabel6 = new javax.swing.JLabel();
-        jLabel7 = new javax.swing.JLabel();
-        jLabel8 = new javax.swing.JLabel();
-        jLabel5 = new javax.swing.JLabel();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -329,12 +305,11 @@ public class CellOptions extends javax.swing.JDialog
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.gridheight = 2;
-        gridBagConstraints.weightx = 0.5;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.weightx = 0.5;
         getContentPane().add(cancel, gridBagConstraints);
 
         ok.setText("OK");
@@ -348,11 +323,10 @@ public class CellOptions extends javax.swing.JDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 12;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.gridheight = 2;
-        gridBagConstraints.weightx = 0.5;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.weightx = 0.5;
         getContentPane().add(ok, gridBagConstraints);
 
         jLabel1.setText("Library:");
@@ -385,11 +359,11 @@ public class CellOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.gridheight = 7;
+        gridBagConstraints.gridheight = 8;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(cellPane, gridBagConstraints);
 
         disallowModAnyInCell.setText("Disallow modification of anything in this cell");
@@ -672,103 +646,6 @@ public class CellOptions extends javax.swing.JDialog
         gridBagConstraints.gridwidth = 2;
         getContentPane().add(jLabel4, gridBagConstraints);
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.gridwidth = 6;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        getContentPane().add(jSeparator1, gridBagConstraints);
-
-        hashScale.setText(" ");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 14;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(hashScale, gridBagConstraints);
-
-        explorerTextSize.setText(" ");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 15;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(explorerTextSize, gridBagConstraints);
-
-        checkDatesDuringCreation.setText("Check cell dates during creation");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 10;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(checkDatesDuringCreation, gridBagConstraints);
-
-        autoSwitchTechnology.setText("Switch technology to match current cell");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 11;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(autoSwitchTechnology, gridBagConstraints);
-
-        placeCellCenter.setText("Place Cell-Center in new cells");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 12;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(placeCellCenter, gridBagConstraints);
-
-        tinyInstancesHashed.setText("Tiny cell instances hashed out");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 13;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(tinyInstancesHashed, gridBagConstraints);
-
-        jLabel6.setText("Hash cells when scale is more than:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 14;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(jLabel6, gridBagConstraints);
-
-        jLabel7.setText("units per pixel");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 14;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(jLabel7, gridBagConstraints);
-
-        jLabel8.setText("Cell explorer text size:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 15;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(jLabel8, gridBagConstraints);
-
-        jLabel5.setText("For all cells:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 9;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(jLabel5, gridBagConstraints);
-
         pack();
     }//GEN-END:initComponents
 
@@ -1007,18 +884,6 @@ public class CellOptions extends javax.swing.JDialog
 					}
 				}
 			}
-
-			boolean boolNow = dialog.checkDatesDuringCreation.isSelected();
-			if (boolNow != dialog.initialCheckDatesDuringCreation)
-				User.setCheckCellDates(boolNow);
-
-			boolNow = dialog.autoSwitchTechnology.isSelected();
-			if (boolNow != dialog.initialAutoTechnologySwitch)
-				User.setAutoTechnologySwitch(boolNow);
-
-			boolNow = dialog.placeCellCenter.isSelected();
-			if (boolNow != dialog.initialPlaceCellCenter)
-				User.setPlaceCellCenter(boolNow);
 		}
 	}
 
@@ -1030,12 +895,10 @@ public class CellOptions extends javax.swing.JDialog
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JCheckBox autoSwitchTechnology;
     private javax.swing.JButton cancel;
     private javax.swing.JScrollPane cellPane;
     private javax.swing.JTextField charXSpacing;
     private javax.swing.JTextField charYSpacing;
-    private javax.swing.JCheckBox checkDatesDuringCreation;
     private javax.swing.JButton clearDisallowModAnyInCell;
     private javax.swing.JButton clearDisallowModInstInCell;
     private javax.swing.JButton clearPartOfCellLib;
@@ -1044,26 +907,17 @@ public class CellOptions extends javax.swing.JDialog
     private javax.swing.JCheckBox disallowModInstInCell;
     private javax.swing.JRadioButton expandNewInstances;
     private javax.swing.ButtonGroup expansion;
-    private javax.swing.JTextField explorerTextSize;
-    private javax.swing.JTextField hashScale;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
-    private javax.swing.JLabel jLabel8;
-    private javax.swing.JSeparator jSeparator1;
     private javax.swing.JComboBox libraryPopup;
     private javax.swing.JButton ok;
     private javax.swing.JCheckBox partOfCellLib;
-    private javax.swing.JCheckBox placeCellCenter;
     private javax.swing.JButton setDisallowModAnyInCell;
     private javax.swing.JButton setDisallowModInstInCell;
     private javax.swing.JButton setPartOfCellLib;
     private javax.swing.JButton setUseTechEditor;
-    private javax.swing.JCheckBox tinyInstancesHashed;
     private javax.swing.JRadioButton unexpandNewInstances;
     private javax.swing.JCheckBox useTechEditor;
     // End of variables declaration//GEN-END:variables

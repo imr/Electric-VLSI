@@ -25,21 +25,30 @@ package com.sun.electric.tool.user;
 
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.constraint.Layout;
+import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.hierarchy.NodeUsage;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.EMath;
-import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.FlagSet;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -50,7 +59,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Date;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Collections;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
@@ -258,7 +270,7 @@ public class CircuitChanges
 
 	/*
 	 * routine to recursively delete ports at nodeinst "ni" and all arcs connected
-	 * to them anywhere.  If "spt" is not NOPORTPROTO, delete only that portproto
+	 * to them anywhere.  If "spt" is not null, delete only that portproto
 	 * on this nodeinst (and its hierarchically related ports).  Otherwise delete
 	 * all portprotos on this nodeinst.
 	 */
@@ -495,6 +507,359 @@ public class CircuitChanges
 			}
 			EditWindow.redrawAll();
 		}
+	}
+
+	/****************************** MAKE AN ICON FOR A CELL ******************************/
+
+	public static void makeIconViewCommand()
+	{
+        MakeIconView job = new MakeIconView();
+	}
+
+	protected static class MakeIconView extends Job
+	{
+		private static boolean reverseIconExportOrder;
+
+		protected MakeIconView()
+		{
+			super("Make Icon View", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.startJob();
+		}
+
+		public void doIt()
+		{
+			Cell curCell = Library.needCurCell();
+			if (curCell == null) return;
+			Library lib = curCell.getLibrary();
+
+			if (!curCell.isSchematicView())
+			{
+				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+					"The current cell must be a schematic in order to generate an icon",
+					"Icon creation failed", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+
+			// see if the icon already exists and issue a warning if so
+			Cell iconCell = curCell.iconView();
+			if (iconCell != null)
+			{
+				int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+					"Warning: Icon " + iconCell.describe() + " already exists.  Create a new version?");
+				if (response != JOptionPane.YES_OPTION) return;
+			}
+
+			// get icon style controls
+			double leadLength = User.getIconGenLeadLength();
+			double leadSpacing = User.getIconGenLeadSpacing();
+			reverseIconExportOrder = User.isIconGenReverseExportOrder();
+
+			// make a sorted list of exports
+			List exportList = new ArrayList();
+			for(Iterator it = curCell.getPorts(); it.hasNext(); )
+				exportList.add(it.next());
+			Collections.sort(exportList, new ExportSorted());
+
+			// create the new icon cell
+			String iconCellName = curCell.getProtoName() + "{ic}";
+			iconCell = Cell.newInstance(lib, iconCellName);
+			if (iconCell == null)
+			{
+				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Cannot create Icon cell " + iconCellName,
+					"Icon creation failed", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+			iconCell.setWantExpanded();
+
+			// create the Cell Center instance if requested
+			if (User.isPlaceCellCenter())
+			{
+				NodeInst pinNi = NodeInst.newInstance(Generic.tech.cellCenterNode, new Point2D.Double(0,0), 0, 0, 0, iconCell, null);
+				if (pinNi == null) return;
+				pinNi.setHardSelect();
+				pinNi.setVisInside();
+			}
+
+			// determine number of inputs and outputs
+			int leftSide = 0, rightSide = 0, bottomSide = 0, topSide = 0;
+			for(Iterator it = exportList.iterator(); it.hasNext(); )
+			{
+				Export pp = (Export)it.next();
+				if (pp.isBodyOnly()) continue;
+				int index = iconPosition(pp);
+				switch (index)
+				{
+					case 0: pp.setTempInt(leftSide++);    break;
+					case 1: pp.setTempInt(rightSide++);   break;
+					case 2: pp.setTempInt(topSide++);     break;
+					case 3: pp.setTempInt(bottomSide++);  break;
+				}
+			}
+
+			// determine the size of the "black box" core
+			double ySize = Math.max(Math.max(leftSide, rightSide), 5) * leadSpacing;
+			double xSize = Math.max(Math.max(topSide, bottomSide), 3) * leadSpacing;
+
+			// create the "black box"
+			NodeInst bbNi = null;
+			if (User.isIconGenDrawBody())
+			{
+				bbNi = NodeInst.newInstance(Artwork.tech.boxNode, new Point2D.Double(0,0), xSize, ySize, 0, iconCell, null);
+				if (bbNi == null) return;
+				bbNi.newVar(Artwork.ART_COLOR, new Integer(EGraphics.RED));
+
+				// put the original cell name on it
+				Variable var = bbNi.newVar("SCHEM_function", curCell.getProtoName());
+				if (var != null)
+				{
+					var.setDisplay();
+				}
+			}
+
+			// place pins around the Black Box
+			int total = 0;
+			for(Iterator it = exportList.iterator(); it.hasNext(); )
+			{
+				Export pp = (Export)it.next();
+				if (pp.isBodyOnly()) continue;
+
+				// determine location of the port
+				int index = iconPosition(pp);
+				double spacing = leadSpacing;
+				double xPos = 0, yPos = 0;
+				double xBBPos = 0, yBBPos = 0;
+				switch (index)
+				{
+					case 0:		// left side
+						xBBPos = -xSize/2;
+						xPos = xBBPos - leadLength;
+						if (leftSide*2 < rightSide) spacing = leadSpacing * 2;
+						yBBPos = yPos = ySize/2 - ((ySize - (leftSide-1)*spacing) / 2 + pp.getTempInt() * spacing);
+						break;
+					case 1:		// right side
+						xBBPos = xSize/2;
+						xPos = xBBPos + leadLength;
+						if (rightSide*2 < leftSide) spacing = leadSpacing * 2;
+						yBBPos = yPos = ySize/2 - ((ySize - (rightSide-1)*spacing) / 2 + pp.getTempInt() * spacing);
+						break;
+					case 2:		// top
+						if (topSide*2 < bottomSide) spacing = leadSpacing * 2;
+						xBBPos = xPos = xSize/2 - ((xSize - (topSide-1)*spacing) / 2 + pp.getTempInt() * spacing);
+						yBBPos = ySize/2;
+						yPos = yBBPos + leadLength;
+						break;
+					case 3:		// bottom
+						if (bottomSide*2 < topSide) spacing = leadSpacing * 2;
+						xBBPos = xPos = xSize/2 - ((xSize - (bottomSide-1)*spacing) / 2 + pp.getTempInt() * spacing);
+						yBBPos = -ySize/2;
+						yPos = yBBPos - leadLength;
+						break;
+				}
+
+				if (makeIconExport(pp, index, xPos, yPos, xBBPos, yBBPos, iconCell))
+					total++;
+			}
+
+			// if no body, leads, or cell center is drawn, and there is only 1 export, add more
+			if (!User.isIconGenDrawBody() &&
+				!User.isIconGenDrawLeads() &&
+				User.isPlaceCellCenter() &&
+				total <= 1)
+			{
+				NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(0,0), xSize, ySize, 0, iconCell, null);
+			}
+
+			// place an icon in the schematic
+			int exampleLocation = User.getIconGenInstanceLocation();
+			Point2D iconPos = new Point2D.Double(0,0);
+			Rectangle2D cellBounds = curCell.getBounds();
+			switch (exampleLocation)
+			{
+				case 0:		// upper-right
+					iconPos.setLocation(cellBounds.getMaxX(), cellBounds.getMaxY());
+					break;
+				case 1:		// upper-left
+					iconPos.setLocation(cellBounds.getMinX(), cellBounds.getMaxY());
+					break;
+				case 2:		// lower-right
+					iconPos.setLocation(cellBounds.getMaxX(), cellBounds.getMinY());
+					break;
+				case 3:		// lower-left
+					iconPos.setLocation(cellBounds.getMinX(), cellBounds.getMinY());
+					break;
+			}
+			EditWindow.gridAlign(iconPos, 1);
+			double px = iconCell.getBounds().getWidth();
+			double py = iconCell.getBounds().getHeight();
+			NodeInst ni = NodeInst.newInstance(iconCell, iconPos, px, py, 0, curCell, null);
+			if (ni != null)
+			{
+				ni.setExpanded();
+
+				// now inherit parameters that now do exist
+				inheritAttributes(ni);
+
+				Highlight.clear();
+				Highlight.addGeometric(ni);
+				Highlight.finished();
+//				if (lx > el_curwindowpart->screenhx || hx < el_curwindowpart->screenlx ||
+//					ly > el_curwindowpart->screenhy || hy < el_curwindowpart->screenly)
+//				{
+//					newpar[0] = x_("center-highlight");
+//					us_window(1, newpar);
+//				}
+			}
+		}
+
+		static class ExportSorted implements Comparator
+		{
+			public int compare(Object o1, Object o2)
+			{
+				Export e1 = (Export)o1;
+				Export e2 = (Export)o2;
+				String s1 = e1.getProtoName();
+				String s2 = e2.getProtoName();
+				if (reverseIconExportOrder)
+					return s2.compareToIgnoreCase(s1);
+				return s1.compareToIgnoreCase(s2);
+			}
+		}
+	}
+
+	/*
+	 * Helper routine to create an export in icon "np".  The export is from original port "pp",
+	 * is on side "index" (0: left, 1: right, 2: top, 3: bottom), is at (xPos,yPos), and
+	 * connects to the central box at (xBBPos,yBBPos).  Returns TRUE if the export is created.
+	 * It uses icon style "style".
+	 */
+	private static boolean makeIconExport(Export pp, int index,
+		double xPos, double yPos, double xBBPos, double yBBPos, Cell np)
+	{
+		// presume "universal" exports (Generic Invisible Pins)
+		NodeProto pinType = Generic.tech.invisiblePinNode;
+		double pinSizeX = 0, pinSizeY = 0;
+		if (User.getIconGenExportTech() != 0)
+		{
+			// instead, use "schematic" exports (Schematic Bus Pins)
+			pinType = Schematics.tech.busPinNode;
+			pinSizeX = pinType.getDefWidth();
+			pinSizeY = pinType.getDefHeight();
+		}
+
+		// determine the type of wires used for leads
+		PrimitiveArc wireType = Schematics.tech.wire_arc;
+		if (pp.getBasePort().connectsTo(Schematics.tech.bus_arc))
+			wireType = Schematics.tech.bus_arc;
+
+		// if the export is on the body (no leads) then move it in
+		if (!User.isIconGenDrawLeads())
+		{
+			xPos = xBBPos;   yPos = yBBPos;
+		}
+
+		// make the pin with the port
+		NodeInst pinNi = NodeInst.newInstance(pinType, new Point2D.Double(xPos, yPos), pinSizeX, pinSizeY, 0, np, null);
+		if (pinNi == null) return false;
+
+		// export the port that should be on this pin
+		PortInst pi = pinNi.getOnlyPortInst();
+		Export port = Export.newInstance(np, pi, pp.getProtoName());
+		if (port != null)
+		{
+			TextDescriptor td = port.getTextDescriptor();
+			switch (User.getIconGenExportStyle())
+			{
+				case 0:		// Centered
+					td.setPos(TextDescriptor.Position.CENT);
+					break;
+				case 1:		// Inward
+					switch (index)
+					{
+						case 0: td.setPos(TextDescriptor.Position.RIGHT);  break;	// left
+						case 1: td.setPos(TextDescriptor.Position.LEFT);   break;	// right
+						case 2: td.setPos(TextDescriptor.Position.DOWN);   break;	// top
+						case 3: td.setPos(TextDescriptor.Position.UP);     break;	// bottom
+					}
+					break;
+				case 2:		// Outward
+					switch (index)
+					{
+						case 0: td.setPos(TextDescriptor.Position.LEFT);   break;	// left
+						case 1: td.setPos(TextDescriptor.Position.RIGHT);  break;	// right
+						case 2: td.setPos(TextDescriptor.Position.UP);     break;	// top
+						case 3: td.setPos(TextDescriptor.Position.DOWN);   break;	// bottom
+					}
+					break;
+			}
+			double xOffset = 0, yOffset = 0;
+			int loc = User.getIconGenExportLocation();
+			if (!User.isIconGenDrawLeads()) loc = 0;
+			switch (loc)
+			{
+				case 0:		// port on body
+					xOffset = xBBPos - xPos;   yOffset = yBBPos - yPos;
+					break;
+				case 1:		// port on lead end
+					break;
+				case 2:		// port on lead middle
+					xOffset = (xPos+xBBPos) / 2 - xPos;
+					yOffset = (yPos+yBBPos) / 2 - yPos;
+					break;
+			}
+			td.setOff(xOffset, yOffset);
+			if (pp.isAlwaysDrawn()) port.setAlwaysDrawn(); else
+				port.clearAlwaysDrawn();
+			port.setCharacteristic(pp.getCharacteristic());
+			port.copyVars(pp);
+		}
+
+		// add lead if requested
+		if (User.isIconGenDrawLeads())
+		{
+			pinType = wireType.findPinProto();
+			double wid = pinType.getDefWidth();
+			double hei = pinType.getDefHeight();
+			NodeInst ni = NodeInst.newInstance(pinType, new Point2D.Double(xBBPos, yBBPos), wid, hei, 0, np, null);
+			if (ni != null)
+			{
+				PortInst head = ni.getOnlyPortInst();
+				PortInst tail = pinNi.getOnlyPortInst();
+				ArcInst ai = ArcInst.makeInstance(wireType, wireType.getDefaultWidth(),
+					head, new Point2D.Double(xBBPos, yBBPos),
+					tail, new Point2D.Double(xPos, yPos), null);
+			}
+		}
+		return true;
+	}
+
+	/*
+	 * Routine to determine the side of the icon that port "pp" belongs on.
+	 */
+	private static int iconPosition(Export pp)
+	{
+		PortProto.Characteristic character = pp.getCharacteristic();
+
+		// special detection for power and ground ports
+		if (pp.isPower()) character = PortProto.Characteristic.PWR;
+		if (pp.isGround()) character = PortProto.Characteristic.GND;
+
+		// see which side this type of port sits on
+		if (character == PortProto.Characteristic.IN)
+			return User.getIconGenInputSide();
+		if (character == PortProto.Characteristic.OUT)
+			return User.getIconGenOutputSide();
+		if (character == PortProto.Characteristic.BIDIR)
+			return User.getIconGenBidirSide();
+		if (character == PortProto.Characteristic.PWR)
+			return User.getIconGenPowerSide();
+		if (character == PortProto.Characteristic.GND)
+			return User.getIconGenGroundSide();
+		if (character == PortProto.Characteristic.CLK || character == PortProto.Characteristic.C1 ||
+			character == PortProto.Characteristic.C2 || character == PortProto.Characteristic.C3 ||
+			character == PortProto.Characteristic.C4 || character == PortProto.Characteristic.C5 ||
+			character == PortProto.Characteristic.C6)
+				return User.getIconGenClockSide();
+		return User.getIconGenInputSide();
 	}
 
 	/****************************** MAKE A COPY OF A CELL ******************************/
@@ -1286,6 +1651,500 @@ public class CircuitChanges
 			return true;
 		}
 		return false;
+	}
+
+	/****************************** CHANGE CELL EXPANSION ******************************/
+
+	private static FlagSet expandFlagBit;
+
+	/**
+	 * Class to read a library in a new thread.
+	 */
+	protected static class ExpandUnExpand extends Job
+	{
+		List list;
+		boolean unExpand;
+		int amount;
+		
+		protected ExpandUnExpand(List list, boolean unExpand, int amount)
+		{
+			super("Change Cell Expansion", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.list = list;
+			this.unExpand = unExpand;
+			this.amount = amount;
+			this.startJob();
+		}
+
+		public void doIt()
+		{
+			expandFlagBit = Geometric.getFlagSet(1);
+			if (unExpand)
+			{
+				for(Iterator it = list.iterator(); it.hasNext(); )
+				{
+					NodeInst ni = (NodeInst)it.next();
+					NodeProto np = ni.getProto();
+					if (!(np instanceof Cell)) continue;
+					{
+						if (ni.isExpanded())
+							setUnExpand(ni, amount);
+					}
+				}
+			}
+			for(Iterator it = list.iterator(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				if (unExpand) doUnExpand(ni); else
+					doExpand(ni, amount, 0);
+				Undo.redrawObject(ni);
+			}
+		}
+	}
+
+	/**
+	 * routine to recursively expand the cell "ni" by "amount" levels.
+	 * "sofar" is the number of levels that this has already been expanded.
+	 */
+	private static void doExpand(NodeInst ni, int amount, int sofar)
+	{
+		if (!ni.isExpanded())
+		{
+			// expanded the cell
+			ni.setExpanded();
+
+			// if depth limit reached, quit
+			if (++sofar >= amount) return;
+		}
+
+		// explore insides of this one
+		NodeProto np = ni.getProto();
+		if (!(np instanceof Cell)) return;
+		Cell cell = (Cell)np;
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst subNi = (NodeInst)it.next();
+			NodeProto subNp = subNi.getProto();
+			if (!(subNp instanceof Cell)) continue;
+			Cell subCell = (Cell)subNp;
+
+			// ignore recursive references (showing icon in contents)
+			if (subNi.isIconOfParent()) continue;
+			doExpand(subNi, amount, sofar);
+		}
+	}
+
+	private static void doUnExpand(NodeInst ni)
+	{
+		if (!ni.isExpanded()) return;
+
+		NodeProto np = ni.getProto();
+		if (!(np instanceof Cell)) return;
+		Cell cell = (Cell)np;
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst subNi = (NodeInst)it.next();
+			NodeProto subNp = subNi.getProto();
+			if (!(subNp instanceof Cell)) continue;
+
+			/* ignore recursive references (showing icon in contents) */
+			if (subNi.isIconOfParent()) continue;
+			if (subNi.isExpanded()) doUnExpand(subNi);
+		}
+
+		/* expanded the cell */
+		if (ni.isBit(expandFlagBit))
+		{
+			ni.clearExpanded();
+		}
+	}
+
+	private static int setUnExpand(NodeInst ni, int amount)
+	{
+		ni.clearBit(expandFlagBit);
+		if (!ni.isExpanded()) return(0);
+		NodeProto np = ni.getProto();
+		int depth = 0;
+		if (np instanceof Cell)
+		{
+			Cell cell = (Cell)np;
+			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			{
+				NodeInst subNi = (NodeInst)it.next();
+				NodeProto subNp = subNi.getProto();
+				if (!(subNp instanceof Cell)) continue;
+
+				// ignore recursive references (showing icon in contents)
+				if (subNi.isIconOfParent()) continue;
+				if (subNi.isExpanded())
+					depth = Math.max(depth, setUnExpand(subNi, amount));
+			}
+			if (depth < amount) ni.setBit(expandFlagBit);
+		}
+		return depth+1;
+	}
+
+	/****************************** NODE AND ARC REPLACEMENT ******************************/
+
+	static class PossibleVariables
+	{
+		Variable.Key varKey;
+		PrimitiveNode pn;
+
+		private PossibleVariables(String varName, PrimitiveNode pn)
+		{
+			this.varKey = ElectricObject.newKey(varName);
+			this.pn = pn;
+		}
+		public static final PossibleVariables [] list = new PossibleVariables []
+		{
+			new PossibleVariables("ATTR_length",       Schematics.tech.transistorNode),
+			new PossibleVariables("ATTR_length",       Schematics.tech.transistor4Node),
+			new PossibleVariables("ATTR_width",        Schematics.tech.transistorNode),
+			new PossibleVariables("ATTR_width",        Schematics.tech.transistor4Node),
+			new PossibleVariables("ATTR_area",         Schematics.tech.transistorNode),
+			new PossibleVariables("ATTR_area",         Schematics.tech.transistor4Node),
+			new PossibleVariables("SIM_spice_model",   Schematics.tech.sourceNode),
+			new PossibleVariables("SIM_spice_model",   Schematics.tech.transistorNode),
+			new PossibleVariables("SIM_spice_model",   Schematics.tech.transistor4Node),
+			new PossibleVariables("SCHEM_meter_type",  Schematics.tech.meterNode),
+			new PossibleVariables("SCHEM_diode",       Schematics.tech.diodeNode),
+			new PossibleVariables("SCHEM_capacitance", Schematics.tech.capacitorNode),
+			new PossibleVariables("SCHEM_resistance",  Schematics.tech.resistorNode),
+			new PossibleVariables("SCHEM_inductance",  Schematics.tech.inductorNode),
+			new PossibleVariables("SCHEM_function",    Schematics.tech.bboxNode)
+		};
+	}
+
+	/**
+	 * routine to replace node "oldNi" with a new one of type "newNp"
+	 * and return the new node.  Also removes any node-specific variables.
+	 */
+	public static NodeInst replaceNodeInst(NodeInst oldNi, NodeProto newNp, boolean ignorePortNames,
+		boolean allowMissingPorts)
+	{
+		// replace the node
+		NodeInst newNi = oldNi.replace(newNp, ignorePortNames, allowMissingPorts);
+		if (newNi != null)
+		{
+			if (newNp instanceof PrimitiveNode)
+			{
+				// remove variables that make no sense
+				for(int i=0; i<PossibleVariables.list.length; i++)
+				{
+					if (newNi.getProto() == PossibleVariables.list[i].pn) continue;
+					Variable var = newNi.getVar(PossibleVariables.list[i].varKey);
+					if (var != null)
+						newNi.delVar(PossibleVariables.list[i].varKey);
+				}
+			} else
+			{
+				// remove parameters that don't exist on the new object
+				Cell newCell = (Cell)newNp;
+				List varList = new ArrayList();
+				for(Iterator it = newNi.getVariables(); it.hasNext(); )
+					varList.add(it.next());
+				for(Iterator it = varList.iterator(); it.hasNext(); )
+				{
+					Variable var = (Variable)it.next();
+					if (!var.getTextDescriptor().isParam()) continue;
+
+					// see if this parameter exists on the new prototype
+					Cell cNp = newCell.contentsView();
+					if (cNp == null) cNp = newCell;
+					for(Iterator cIt = cNp.getVariables(); it.hasNext(); )
+					{
+						Variable cVar = (Variable)cIt.next();
+						if (var.getKey() != cVar.getKey()) continue;
+						if (cVar.getTextDescriptor().isParam())
+						{
+							newNi.delVar(var.getKey());
+							break;
+						}
+					}
+				}
+			}
+
+			// now inherit parameters that now do exist
+			inheritAttributes(newNi);
+
+			// remove node name if it is not visible
+			//Variable var = newNi.getVar(NodeInst.NODE_NAME, String.class);
+			//if (var != null && !var.isDisplay())
+			//	newNi.delVar(NodeInst.NODE_NAME);
+		}
+		return newNi;
+	}
+
+	/****************************** INHERIT ATTRIBUTES ******************************/
+
+	/**
+	 * Routine to inherit all prototype attributes down to instance "ni".
+	 */
+	public static void inheritAttributes(NodeInst ni)
+	{
+		// ignore primitives
+		NodeProto np = ni.getProto();
+		if (np instanceof PrimitiveNode) return;
+		Cell cell = (Cell)np;
+
+		// first inherit directly from this node's prototype
+		for(Iterator it = cell.getVariables(); it.hasNext(); )
+		{
+			Variable var = (Variable)it.next();
+			if (!var.getTextDescriptor().isInherit()) continue;
+			inheritCellAttribute(var, ni, cell, null);
+		}
+
+		// inherit directly from each port's prototype
+		for(Iterator it = cell.getPorts(); it.hasNext(); )
+		{
+			Export pp = (Export)it.next();
+			inheritExportAttributes(pp, ni, cell);
+		}
+
+		// if this node is an icon, also inherit from the contents prototype
+		Cell cNp = cell.contentsView();
+		if (cNp != null)
+		{
+			// look for an example of the icon in the contents
+			NodeInst icon = null;
+			for(Iterator it = cNp.getNodes(); it.hasNext(); )
+			{
+				icon = (NodeInst)it.next();
+				if (icon.getProto() == cell) break;
+				icon = null;
+			}
+
+			for(Iterator it = cNp.getVariables(); it.hasNext(); )
+			{
+				Variable var = (Variable)it.next();
+				if (!var.getTextDescriptor().isInherit()) continue;
+				inheritCellAttribute(var, ni, cNp, icon);
+			}
+			for(Iterator it = cNp.getPorts(); it.hasNext(); )
+			{
+				Export cpp = (Export)it.next();
+				inheritExportAttributes(cpp, ni, cNp);
+			}
+		}
+
+		// now delete parameters that are not in the prototype
+		if (cNp == null) cNp = cell;
+		boolean found = true;
+		while (found)
+		{
+			found = false;
+			for(Iterator it = ni.getVariables(); it.hasNext(); )
+			{
+				Variable var = (Variable)it.next();
+				if (!var.getTextDescriptor().isParam()) continue;
+				Variable oVar = null;
+				for(Iterator oIt = cNp.getVariables(); oIt.hasNext(); )
+				{
+					oVar = (Variable)oIt.next();
+					if (!oVar.getTextDescriptor().isParam()) continue;
+					if (oVar.getKey() == var.getKey()) break;
+					oVar = null;
+				}
+				if (oVar != null)
+				{
+					ni.delVar(var.getKey());
+					found = true;
+					break;
+				}
+			}
+		}
+	}
+
+	/**
+	 * Routine to add all inheritable export variables from export "pp" on cell "np"
+	 * to instance "ni".
+	 */
+	private static void inheritExportAttributes(PortProto pp, NodeInst ni, Cell np)
+	{
+		for(Iterator it = pp.getVariables(); it.hasNext(); )
+		{
+			Variable var = (Variable)it.next();
+			if (!var.getTextDescriptor().isInherit()) continue;
+
+			Variable.Key attrKey = var.getKey();
+
+			// see if the attribute is already there
+			PortInst pi = ni.findPortInstFromProto(pp);
+			Variable newVar = pi.getVar(attrKey);
+			if (newVar != null) continue;
+
+			// set the attribute
+			newVar = pi.newVar(attrKey, inheritAddress(pp, var));
+			if (newVar != null)
+			{
+				double lambda = 1;
+				TextDescriptor descript = new TextDescriptor(null);
+				var.setDescriptor(descript);
+				double dx = descript.getXOff();
+				double dy = descript.getYOff();
+
+//				saverot = pp->subnodeinst->rotation;
+//				savetrn = pp->subnodeinst->transpose;
+//				pp->subnodeinst->rotation = pp->subnodeinst->transpose = 0;
+//				portposition(pp->subnodeinst, pp->subportproto, &x, &y);
+//				pp->subnodeinst->rotation = saverot;
+//				pp->subnodeinst->transpose = savetrn;
+//				x += dx;   y += dy;
+//				makerot(pp->subnodeinst, trans);
+//				xform(x, y, &x, &y, trans);
+//				maketrans(ni, trans);
+//				xform(x, y, &x, &y, trans);
+//				makerot(ni, trans);
+//				xform(x, y, &x, &y, trans);
+//				x = x - (ni->lowx + ni->highx) / 2;
+//				y = y - (ni->lowy + ni->highy) / 2;
+//				switch (TDGETPOS(descript))
+//				{
+//					case VTPOSCENT:      style = TEXTCENT;      break;
+//					case VTPOSBOXED:     style = TEXTBOX;       break;
+//					case VTPOSUP:        style = TEXTBOT;       break;
+//					case VTPOSDOWN:      style = TEXTTOP;       break;
+//					case VTPOSLEFT:      style = TEXTRIGHT;     break;
+//					case VTPOSRIGHT:     style = TEXTLEFT;      break;
+//					case VTPOSUPLEFT:    style = TEXTBOTRIGHT;  break;
+//					case VTPOSUPRIGHT:   style = TEXTBOTLEFT;   break;
+//					case VTPOSDOWNLEFT:  style = TEXTTOPRIGHT;  break;
+//					case VTPOSDOWNRIGHT: style = TEXTTOPLEFT;   break;
+//				}
+//				makerot(pp->subnodeinst, trans);
+//				style = rotatelabel(style, TDGETROTATION(descript), trans);
+//				switch (style)
+//				{
+//					case TEXTCENT:     TDSETPOS(descript, VTPOSCENT);      break;
+//					case TEXTBOX:      TDSETPOS(descript, VTPOSBOXED);     break;
+//					case TEXTBOT:      TDSETPOS(descript, VTPOSUP);        break;
+//					case TEXTTOP:      TDSETPOS(descript, VTPOSDOWN);      break;
+//					case TEXTRIGHT:    TDSETPOS(descript, VTPOSLEFT);      break;
+//					case TEXTLEFT:     TDSETPOS(descript, VTPOSRIGHT);     break;
+//					case TEXTBOTRIGHT: TDSETPOS(descript, VTPOSUPLEFT);    break;
+//					case TEXTBOTLEFT:  TDSETPOS(descript, VTPOSUPRIGHT);   break;
+//					case TEXTTOPRIGHT: TDSETPOS(descript, VTPOSDOWNLEFT);  break;
+//					case TEXTTOPLEFT:  TDSETPOS(descript, VTPOSDOWNRIGHT); break;
+//				}
+//				x = x * 4 / lambda;
+//				y = y * 4 / lambda;
+//				TDSETOFF(descript, x, y);
+//				TDSETINHERIT(descript, 0);
+//				TDCOPY(newVar->textdescript, descript);
+			}
+		}
+	}
+
+	/*
+	 * Routine to add inheritable variable "var" from cell "np" to instance "ni".
+	 * If "icon" is not NONODEINST, use the position of the variable from it.
+	 */
+	private static void inheritCellAttribute(Variable var, NodeInst ni, Cell np, NodeInst icon)
+	{
+		// see if the attribute is already there
+		Variable.Key key = var.getKey();
+		Variable newVar = ni.getVar(key.getName());
+		if (newVar != null)
+		{
+			// make sure visibility is OK
+			if (!var.getTextDescriptor().isInterior())
+			{
+				// parameter should be visible: make it so
+				if (!newVar.isDisplay())
+				{
+					newVar.setDisplay();
+				}
+			} else
+			{
+				// parameter not normally visible: make it invisible if it has the default value
+				if (newVar.isDisplay())
+				{
+					if (var.describe(-1, -1).equals(newVar.describe(-1, -1)))
+					{
+						newVar.clearDisplay();
+					}
+				}
+			}
+			return;
+		}
+
+		// determine offset of the attribute on the instance
+		Variable posVar = var;
+		if (icon != null)
+		{
+			for(Iterator it = icon.getVariables(); it.hasNext(); )
+			{
+				Variable ivar = (Variable)it.next();
+				if (ivar.getKey() == var.getKey())
+				{
+					posVar = ivar;
+					break;
+				}
+			}
+		}
+
+		double xc = posVar.getTextDescriptor().getXOff();
+		if (posVar == var) xc -= np.getBounds().getCenterX();
+		double yc = posVar.getTextDescriptor().getYOff();
+		if (posVar == var) yc -= np.getBounds().getCenterY();
+
+		// set the attribute
+		newVar = ni.newVar(var.getKey(), inheritAddress(np, posVar));
+		if (newVar != null)
+		{
+			if (var.isDisplay()) newVar.setDisplay(); else newVar.clearDisplay();
+			if (var.getTextDescriptor().isInterior()) newVar.clearDisplay();
+			TextDescriptor newDescript = TextDescriptor.newNodeArcDescriptor(null);
+			newDescript.clearInherit();
+			newDescript.setOff(xc, yc);
+			if (var.getTextDescriptor().isParam())
+			{
+				newDescript.clearInterior();
+				TextDescriptor.DispPos i = newDescript.getDispPart();
+				if (i == TextDescriptor.DispPos.NAMEVALINH || i == TextDescriptor.DispPos.NAMEVALINHALL)
+					newDescript.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
+			}
+			newVar.setDescriptor(newDescript);
+		}
+	}
+
+	/**
+	 * Helper routine to determine the proper value of an inherited Variable.
+	 * Normally, it is simply "var.getObject()", but if it is a string with the "++" or "--"
+	 * sequence in it, then it indicates an auto-increments/decrements of that numeric value.
+	 * The returned object has the "++"/"--" removed, and the original variable is modified.
+	 * @param addr the ElectricObject on which this Variable resides.
+	 * @param var the Variable being examined.
+	 * @return the Object in the Variable.
+	 */
+	private static Object inheritAddress(ElectricObject addr, Variable var)
+	{
+		// if it isn't a string, just return its address
+		Object obj = var.getObject();
+		if (obj instanceof Object[]) return obj;
+		if (!var.isCode() && !(obj instanceof String)) return obj;
+
+		String str = (String)obj;
+		int plusPlusPos = str.indexOf("++");
+		int minusMinusPos = str.indexOf("--");
+		if (plusPlusPos < 0 && minusMinusPos < 0) return obj;
+
+		// construct the proper inherited string and increment the variable
+		int incrPoint = Math.max(plusPlusPos, minusMinusPos);
+		String retVal = str.substring(0, incrPoint) + str.substring(incrPoint+2);
+
+		// increment the variable
+		int i;
+		for(i = incrPoint-1; i>0; i--)
+			if (!Character.isDigit(str.charAt(i))) break;
+		i++;
+		int curVal = EMath.atoi(str.substring(i));
+		if (str.charAt(incrPoint) == '+') curVal++; else curVal--;
+		String newIncrString = str.substring(0, i) + curVal + str.substring(incrPoint+2);
+		addr.newVar(var.getKey(), newIncrString);
+
+		return retVal;
 	}
 
 }

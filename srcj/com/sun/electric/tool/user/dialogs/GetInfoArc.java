@@ -202,7 +202,7 @@ public class GetInfoArc extends javax.swing.JDialog
 		Point2D headPt = ai.getHead().getLocation();
 		headLoc.setText("(" + headPt.getX() + "," + headPt.getY() + ")");
 		tailNode.setText(ai.getTail().getPortInst().getNodeInst().describe());
-		Point2D tailPt = ai.getHead().getLocation();
+		Point2D tailPt = ai.getTail().getLocation();
 		tailLoc.setText("(" + tailPt.getX() + "," + tailPt.getY() + ")");
 		rigid.setSelected(initialRigid);
 		fixedAngle.setSelected(initialFixedAngle);

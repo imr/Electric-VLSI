@@ -485,8 +485,8 @@ public class EMath
 	 */
 	public static double smooth(double a)
 	{
-		long i = Math.round(a * 100.0);
-		return i / 100.0;
+		long i = Math.round(a * 1000.0);
+		return i / 1000.0;
 	}
 	
 	private static final double [] sineTable = {

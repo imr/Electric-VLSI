@@ -491,7 +491,7 @@ public class GetInfoNode extends javax.swing.JDialog
 			for(int i=0; i<colors.length; i++)
 				popup.addItem(EGraphics.getColorName(colors[i]));
 			int index = EGraphics.BLACK;
-			Variable var = ni.getVar("ART_color");
+			Variable var = ni.getVar(Artwork.ART_COLOR);
 			if (var != null) index = ((Integer)var.getObject()).intValue();
 			initialPopupEntry = EGraphics.getColorName(index);
 			popup.setSelectedItem(initialPopupEntry);
@@ -822,7 +822,7 @@ public class GetInfoNode extends javax.swing.JDialog
 				if (!currentColorName.equals(dialog.initialPopupEntry))
 				{
 					int value = EGraphics.findColorIndex(currentColorName);
-					ni.newVar("ART_color", new Integer(value));
+					ni.newVar(Artwork.ART_COLOR, new Integer(value));
 					dialog.initialPopupEntry = currentColorName;
 					changed = true;
 				}

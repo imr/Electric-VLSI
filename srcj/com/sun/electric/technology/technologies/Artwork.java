@@ -50,6 +50,7 @@ public class Artwork extends Technology
 {
 	/** key of Variable holding starting and ending angles. */	public static final Variable.Key ART_DEGREES = ElectricObject.newKey("ART_degrees");
 	/** key of Variable holding message text. */				public static final Variable.Key ART_MESSAGE = ElectricObject.newKey("ART_message");
+	/** key of Variable holding color information */			public static final Variable.Key ART_COLOR = ElectricObject.newKey("ART_color");
 
 	/** the Artwork Technology object. */			public static final Artwork tech = new Artwork();
 
@@ -701,7 +702,7 @@ public class Artwork extends Technology
 	private void getGraphics(ElectricObject obj)
 	{
 		// get the color information
-		Variable var = obj.getVar("ART_color", Integer.class);
+		Variable var = obj.getVar(ART_COLOR, Integer.class);
 		EGraphics graphics = G_lay.getGraphics();
 		if (var == null)
 		{

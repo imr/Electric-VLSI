@@ -626,7 +626,7 @@ public class Layout extends Constraint
 
 			Undo.Change change = ni.getChange();
 			double ox = 0, oy = 0;
-			if (change.getType() == Undo.Type.NODEINSTMOD)
+			if (change != null && change.getType() == Undo.Type.NODEINSTMOD)
 			{
 				ox = change.getA1();
 				oy = change.getA2();
@@ -1267,15 +1267,26 @@ public class Layout extends Constraint
 			for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
-				double sX = ni.getXSize();   if (ni.isXMirrored()) sX = -sX;
-				double sY = ni.getYSize();   if (ni.isYMirrored()) sY = -sY;
-				AffineTransform trans = NodeInst.pureRotate(ni.getAngle(), sX, sY);
-				Point2D off = new Point2D.Double(cellBounds.getCenterX() - oldCellBounds.getCenterX(),
-					cellBounds.getCenterY() - oldCellBounds.getCenterY());
-				trans.transform(off, off);
-				double dSX = EMath.smooth(cellBounds.getWidth() - oldCellBounds.getWidth());
-				double dSY = EMath.smooth(cellBounds.getHeight() - oldCellBounds.getHeight());
-				if (alterNodeInst(ni, EMath.smooth(off.getX()), EMath.smooth(off.getY()), dSX, dSY, 0, true)) forcedLook = true;
+				double sX = ni.getXSize();
+				double sY = ni.getYSize();
+
+				// proceed only if the instance is not the same size as the current cell bounds
+//System.out.println("Instance is "+sX+"x"+sY+", old cell bounds are "+oldCellBounds.getWidth()+"x"+oldCellBounds.getHeight()+" but cell bounds are "+cellBounds.getWidth()+"x"+cellBounds.getHeight());
+//				if (sX != cellBounds.getWidth() || sY != cellBounds.getHeight())
+				{
+//System.out.println("   so updating instance");
+					if (ni.isXMirrored()) sX = -sX;
+					if (ni.isYMirrored()) sY = -sY;
+					AffineTransform trans = NodeInst.pureRotate(ni.getAngle(), sX, sY);
+					Point2D off = new Point2D.Double(cellBounds.getCenterX() - oldCellBounds.getCenterX(),
+						cellBounds.getCenterY() - oldCellBounds.getCenterY());
+					trans.transform(off, off);
+//					double dSX = EMath.smooth(cellBounds.getWidth() - oldCellBounds.getWidth());
+//					double dSY = EMath.smooth(cellBounds.getHeight() - oldCellBounds.getHeight());
+					double dSX = EMath.smooth(cellBounds.getWidth() - ni.getXSize());
+					double dSY = EMath.smooth(cellBounds.getHeight() - ni.getYSize());
+					if (alterNodeInst(ni, EMath.smooth(off.getX()), EMath.smooth(off.getY()), dSX, dSY, 0, true)) forcedLook = true;
+				}
 			}
 			for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
 			{
@@ -1415,16 +1426,25 @@ public class Layout extends Constraint
 				Rectangle2D cellBounds = np.getBounds();
 				double dlx = cellBounds.getMinX() - flx;   double dhx = cellBounds.getMaxX() - fhx;
 				double dly = cellBounds.getMinY() - fly;   double dhy = cellBounds.getMaxY() - fhy;
-				double sX = ni.getXSize();   if (ni.isXMirrored()) sX = -sX;
-				double sY = ni.getYSize();   if (ni.isYMirrored()) sY = -sY;
-				AffineTransform trans = NodeInst.pureRotate(ni.getAngle(), sX, sY);
-				Point2D off = new Point2D.Double(cellBounds.getCenterX() - (flx+fhx)/2,
-					cellBounds.getCenterY() - (fly+fhy)/2);
-				trans.transform(off, off);
-				double dSX = EMath.smooth(cellBounds.getWidth() - (fhx-flx));
-				double dSY = EMath.smooth(cellBounds.getHeight() - (fhy-fly));
-				if (alterNodeInst(ni, EMath.smooth(off.getX()), EMath.smooth(off.getY()), dSX, dSY, 0, true)) forcedLook = true;
-				foundone = true;
+				double sX = ni.getXSize();
+				double sY = ni.getYSize();
+//System.out.println("Complex instance is "+sX+"x"+sY+", old cell bounds are "+(fhx-flx)+"x"+(fhy-fly)+" but cell bounds are "+cellBounds.getWidth()+"x"+cellBounds.getHeight());
+//				if (sX != cellBounds.getWidth() || sY != cellBounds.getHeight())
+				{
+//System.out.println("   so updating instance");
+					if (ni.isXMirrored()) sX = -sX;
+					if (ni.isYMirrored()) sY = -sY;
+					AffineTransform trans = NodeInst.pureRotate(ni.getAngle(), sX, sY);
+					Point2D off = new Point2D.Double(cellBounds.getCenterX() - (flx+fhx)/2,
+						cellBounds.getCenterY() - (fly+fhy)/2);
+					trans.transform(off, off);
+//					double dSX = EMath.smooth(cellBounds.getWidth() - (fhx-flx));
+//					double dSY = EMath.smooth(cellBounds.getHeight() - (fhy-fly));
+					double dSX = EMath.smooth(cellBounds.getWidth() - ni.getXSize());
+					double dSY = EMath.smooth(cellBounds.getHeight() - ni.getYSize());
+					if (alterNodeInst(ni, EMath.smooth(off.getX()), EMath.smooth(off.getY()), dSX, dSY, 0, true)) forcedLook = true;
+					foundone = true;
+				}
 			}
 		}
 

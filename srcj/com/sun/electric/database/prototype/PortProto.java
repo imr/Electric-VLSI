@@ -338,6 +338,43 @@ public abstract class PortProto extends ElectricObject
 	}
 
 	/**
+	 * Routine to determine whether this PortProto is of type Power.
+	 * This is determined by either having the proper Characteristic, or by
+	 * having the proper name (starting with "vdd", "vcc", "pwr", or "power").
+	 * @return true if this PortProto is of type Power.
+	 */
+	public boolean isPower()
+	{
+		Characteristic ch = getCharacteristic();
+		if (ch == Characteristic.PWR) return true;
+		if (ch != Characteristic.UNKNOWN) return false;
+		String name = getProtoName().toLowerCase();
+		if (name.startsWith("vdd")) return true;
+		if (name.startsWith("vcc")) return true;
+		if (name.startsWith("pwr")) return true;
+		if (name.startsWith("power")) return true;
+		return false;
+	}
+
+	/**
+	 * Routine to determine whether this PortProto is of type Ground.
+	 * This is determined by either having the proper Characteristic, or by
+	 * having the proper name (starting with "vss", "gnd", or "ground").
+	 * @return true if this PortProto is of type Ground.
+	 */
+	public boolean isGround()
+	{
+		Characteristic ch = getCharacteristic();
+		if (ch == Characteristic.GND) return true;
+		if (ch != Characteristic.UNKNOWN) return false;
+		String name = getProtoName().toLowerCase();
+		if (name.startsWith("vss")) return true;
+		if (name.startsWith("gnd")) return true;
+		if (name.startsWith("ground")) return true;
+		return false;
+	}
+
+	/**
 	 * Routine to return the angle of this PortProto.
 	 * This is the primary angle that the PortProto faces on the NodeProto.
 	 * It is only used on PrimitivePorts, and is set during Technology creation.

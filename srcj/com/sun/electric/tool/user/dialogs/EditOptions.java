@@ -23,7 +23,9 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.tool.user.User;
 
 import java.util.Iterator;
 import javax.swing.JComboBox;
@@ -65,6 +67,15 @@ public class EditOptions extends javax.swing.JDialog
 
 	//******************************** NEW NODES ********************************
 
+	private boolean initialNewNodesCheckDatesDuringCreation;
+	private boolean initialNewNodesAutoTechnologySwitch;
+	private boolean initialNewNodesPlaceCellCenter;
+	private boolean initialNewNodesDisallowModificationLockedPrims;
+	private boolean initialNewNodesMoveAfterDuplicate;
+	private boolean initialNewNodesDupCopiesExports;
+	private int initialNewNodesRotation;
+	private boolean initialNewNodesMirrorX;
+
 	private void initNewNodes()
 	{
 		nodePrimitive.setEnabled(false);
@@ -73,16 +84,53 @@ public class EditOptions extends javax.swing.JDialog
 		nodeOverrideDefaultOrientation.setEnabled(false);
 		nodePrimitiveRotation.setEditable(false);
 		nodePrimitiveMirror.setEnabled(false);
-		nodeDisallowModificationLockedPrims.setEnabled(false);
-		nodeMoveAfterDuplicate.setEnabled(false);
-		nodeCopyExports.setEnabled(false);
-		nodeInstanceRotation.setEditable(false);
-		nodeInstanceMirror.setEnabled(false);
-		nodeCheckCellDates.setEnabled(false);
-		nodeSwitchTechnology.setEnabled(false);
-		nodePlaceCellCenter.setEnabled(false);
 		nodeTinyCellsHashedOut.setEnabled(false);
 		nodeHashLimit.setEditable(false);
+
+		nodeCheckCellDates.setSelected(initialNewNodesCheckDatesDuringCreation = User.isCheckCellDates());
+		nodeSwitchTechnology.setSelected(initialNewNodesAutoTechnologySwitch = User.isAutoTechnologySwitch());
+		nodePlaceCellCenter.setSelected(initialNewNodesPlaceCellCenter = User.isPlaceCellCenter());
+
+		nodeDisallowModificationLockedPrims.setSelected(initialNewNodesDisallowModificationLockedPrims = User.isDisallowModificationLockedPrims());
+		nodeMoveAfterDuplicate.setSelected(initialNewNodesMoveAfterDuplicate = User.isMoveAfterDuplicate());
+		nodeCopyExports.setSelected(initialNewNodesDupCopiesExports = User.isDupCopiesExports());
+		nodeAllRotation.setText(Integer.toString(initialNewNodesRotation = User.getNewNodeRotation()));
+		nodeAllMirror.setSelected(initialNewNodesMirrorX = User.isDupCopiesExports());
+	}
+
+	private void termNewNodes()
+	{
+		boolean currentCheckCellDates = nodeCheckCellDates.isSelected();
+		if (currentCheckCellDates != initialNewNodesCheckDatesDuringCreation)
+			User.setCheckCellDates(currentCheckCellDates);
+
+		boolean currentSwitchTechnology = nodeSwitchTechnology.isSelected();
+		if (currentSwitchTechnology != initialNewNodesAutoTechnologySwitch)
+			User.setAutoTechnologySwitch(currentSwitchTechnology);
+
+		boolean currentPlaceCellCenters = nodePlaceCellCenter.isSelected();
+		if (currentPlaceCellCenters != initialNewNodesPlaceCellCenter)
+			User.setPlaceCellCenter(currentPlaceCellCenters);
+
+		boolean currentDisallowModificationLockedPrims = nodePlaceCellCenter.isSelected();
+		if (currentDisallowModificationLockedPrims != initialNewNodesDisallowModificationLockedPrims)
+			User.setDisallowModificationLockedPrims(currentDisallowModificationLockedPrims);
+
+		boolean currentMoveAfterDuplicate = nodePlaceCellCenter.isSelected();
+		if (currentMoveAfterDuplicate != initialNewNodesMoveAfterDuplicate)
+			User.setMoveAfterDuplicate(currentMoveAfterDuplicate);
+
+		boolean currentCopyExports = nodePlaceCellCenter.isSelected();
+		if (currentCopyExports != initialNewNodesDupCopiesExports)
+			User.setDupCopiesExports(currentCopyExports);
+
+		int currentAllRotation = EMath.atoi(nodeAllRotation.getText());
+		if (currentAllRotation != initialNewNodesRotation)
+			User.setNewNodeRotation(currentAllRotation);
+
+		boolean currentMirrorX = nodeAllMirror.isSelected();
+		if (currentMirrorX != initialNewNodesMirrorX)
+			User.setDupCopiesExports(currentMirrorX);
 	}
 
 	//******************************** NEW ARCS ********************************
@@ -105,6 +153,10 @@ public class EditOptions extends javax.swing.JDialog
 		arcSetPin.setEnabled(false);
 	}
 
+	private void termNewArcs()
+	{
+	}
+
 	//******************************** SELECTION ********************************
 
 	private void initSelection()
@@ -113,6 +165,10 @@ public class EditOptions extends javax.swing.JDialog
 		selEasyAnnotationText.setEnabled(false);
 		selCenterBasedPrimitives.setEnabled(false);
 		selDraggingEnclosesEntireObject.setEnabled(false);
+	}
+
+	private void termSelection()
+	{
 	}
 
 	//******************************** PORTS ********************************
@@ -126,6 +182,10 @@ public class EditOptions extends javax.swing.JDialog
 		portCrossPort.setEnabled(false);
 		portCrossExport.setEnabled(false);
 		portMoveNode.setEnabled(false);
+	}
+
+	private void termPorts()
+	{
 	}
 
 	//******************************** FRAME ********************************
@@ -146,25 +206,146 @@ public class EditOptions extends javax.swing.JDialog
 		frameLibraryProject.setEditable(false);
 	}
 
+	private void termFrame()
+	{
+	}
+
 	//******************************** ICON ********************************
+
+	private int initialIconInputPos, initialIconOutputPos, initialIconBidirPos;
+	private int initialIconPowerPos, initialIconGroundPos, initialIconClockPos;
+	private int initialIconExportLocation, initialIconExportStyle, initialIconExportTech;
+	private int initialIconInstanceLocation;
+	private boolean initialIconDrawLeads, initialIconDrawBody, initialIconReverseExportOrder;
+	private float initialIconLeadLength, initialIconLeadSpacing;
 
 	private void initIcon()
 	{
-		iconInputPos.setEnabled(false);
-		iconPowerPos.setEnabled(false);
-		iconOutputPos.setEnabled(false);
-		iconGroundPos.setEnabled(false);
-		iconBidirPos.setEnabled(false);
-		iconClockPos.setEnabled(false);
-		iconDrawLeads.setEnabled(false);
-		iconLeadLength.setEditable(false);
-		iconDrawBody.setEnabled(false);
-		iconLeadSpacing.setEditable(false);
-		iconExportPos.setEnabled(false);
-		iconExportStyle.setEnabled(false);
-		iconExportTechnology.setEnabled(false);
-		iconReverseOrder.setEnabled(false);
-		iconInstancePos.setEnabled(false);
+		iconInputPos.addItem("Left Side");
+		iconInputPos.addItem("Right Side");
+		iconInputPos.addItem("Top Side");
+		iconInputPos.addItem("Bottom Side");
+		iconInputPos.setSelectedIndex(initialIconInputPos = User.getIconGenInputSide());
+
+		iconOutputPos.addItem("Left Side");
+		iconOutputPos.addItem("Right Side");
+		iconOutputPos.addItem("Top Side");
+		iconOutputPos.addItem("Bottom Side");
+		iconOutputPos.setSelectedIndex(initialIconOutputPos = User.getIconGenOutputSide());
+
+		iconBidirPos.addItem("Left Side");
+		iconBidirPos.addItem("Right Side");
+		iconBidirPos.addItem("Top Side");
+		iconBidirPos.addItem("Bottom Side");
+		iconBidirPos.setSelectedIndex(initialIconBidirPos = User.getIconGenBidirSide());
+
+		iconPowerPos.addItem("Left Side");
+		iconPowerPos.addItem("Right Side");
+		iconPowerPos.addItem("Top Side");
+		iconPowerPos.addItem("Bottom Side");
+		iconPowerPos.setSelectedIndex(initialIconPowerPos = User.getIconGenPowerSide());
+
+		iconGroundPos.addItem("Left Side");
+		iconGroundPos.addItem("Right Side");
+		iconGroundPos.addItem("Top Side");
+		iconGroundPos.addItem("Bottom Side");
+		iconGroundPos.setSelectedIndex(initialIconGroundPos = User.getIconGenGroundSide());
+
+		iconClockPos.addItem("Left Side");
+		iconClockPos.addItem("Right Side");
+		iconClockPos.addItem("Top Side");
+		iconClockPos.addItem("Bottom Side");
+		iconClockPos.setSelectedIndex(initialIconClockPos = User.getIconGenClockSide());
+
+		iconExportPos.addItem("Body");
+		iconExportPos.addItem("Lead End");
+		iconExportPos.addItem("Lead Middle");
+		iconExportPos.setSelectedIndex(initialIconExportLocation = User.getIconGenExportLocation());
+
+		iconExportStyle.addItem("Centered");
+		iconExportStyle.addItem("Inward");
+		iconExportStyle.addItem("Outward");
+		iconExportStyle.setSelectedIndex(initialIconExportStyle = User.getIconGenExportStyle());
+
+		iconExportTechnology.addItem("Universal");
+		iconExportTechnology.addItem("Schematic");
+		iconExportTechnology.setSelectedIndex(initialIconExportTech = User.getIconGenExportTech());
+
+		iconInstancePos.addItem("Upper-right");
+		iconInstancePos.addItem("Upper-left");
+		iconInstancePos.addItem("Lower-right");
+		iconInstancePos.addItem("Lower-left");
+		iconInstancePos.setSelectedIndex(initialIconInstanceLocation = User.getIconGenInstanceLocation());
+
+		iconDrawLeads.setSelected(initialIconDrawLeads = User.isIconGenDrawLeads());
+		iconDrawBody.setSelected(initialIconDrawBody = User.isIconGenDrawBody());
+		iconReverseOrder.setSelected(initialIconReverseExportOrder = User.isIconGenReverseExportOrder());
+
+		iconLeadLength.setText(Float.toString(initialIconLeadLength = User.getIconGenLeadLength()));
+		iconLeadSpacing.setText(Float.toString(initialIconLeadSpacing = User.getIconGenLeadSpacing()));
+	}
+
+	private void termIcon()
+	{
+		int currentInputPos = iconInputPos.getSelectedIndex();
+		if (currentInputPos != initialIconInputPos)
+			User.setIconGenInputSide(currentInputPos);
+
+		int currentOutputPos = iconOutputPos.getSelectedIndex();
+		if (currentOutputPos != initialIconOutputPos)
+			User.setIconGenOutputSide(currentOutputPos);
+
+		int currentBidirPos = iconBidirPos.getSelectedIndex();
+		if (currentBidirPos != initialIconBidirPos)
+			User.setIconGenBidirSide(currentBidirPos);
+
+		int currentPowerPos = iconPowerPos.getSelectedIndex();
+		if (currentPowerPos != initialIconPowerPos)
+			User.setIconGenPowerSide(currentPowerPos);
+
+		int currentGroundPos = iconGroundPos.getSelectedIndex();
+		if (currentGroundPos != initialIconGroundPos)
+			User.setIconGenGroundSide(currentGroundPos);
+
+		int currentClockPos = iconClockPos.getSelectedIndex();
+		if (currentClockPos != initialIconClockPos)
+			User.setIconGenClockSide(currentClockPos);
+
+		int currentExportPos = iconExportPos.getSelectedIndex();
+		if (currentExportPos != initialIconExportLocation)
+			User.setIconGenExportLocation(currentExportPos);
+
+		int currentExportStyle = iconExportStyle.getSelectedIndex();
+		if (currentExportStyle != initialIconExportStyle)
+			User.setIconGenExportStyle(currentExportStyle);
+
+		int currentExportTechnology = iconExportTechnology.getSelectedIndex();
+		if (currentExportTechnology != initialIconExportTech)
+			User.setIconGenExportTech(currentExportTechnology);
+
+		int currentInstancePos = iconInstancePos.getSelectedIndex();
+		if (currentInstancePos != initialIconInstanceLocation)
+			User.setIconGenInstanceLocation(currentInstancePos);
+
+		boolean currentDrawLeads = iconDrawLeads.isSelected();
+		if (currentDrawLeads != initialIconDrawLeads)
+			User.setIconGenDrawLeads(currentDrawLeads);
+
+		boolean currentDrawBody = iconDrawBody.isSelected();
+		if (currentDrawBody != initialIconDrawBody)
+			User.setIconGenDrawBody(currentDrawBody);
+
+		boolean currentReverseOrder = iconReverseOrder.isSelected();
+		if (currentReverseOrder != initialIconReverseExportOrder)
+			User.setIconGenReverseExportOrder(currentReverseOrder);
+
+		float currentLeadLength = (float)EMath.atof(iconLeadLength.getText());
+		if (currentLeadLength != initialIconLeadLength)
+			User.setIconGenLeadLength(currentLeadLength);
+
+		float currentLeadSpacing = (float)EMath.atof(iconLeadSpacing.getText());
+		if (currentLeadSpacing != initialIconLeadSpacing)
+			User.setIconGenLeadSpacing(currentLeadSpacing);
 	}
 
 	//******************************** GRID ********************************
@@ -180,12 +361,20 @@ public class EditOptions extends javax.swing.JDialog
 		gridAlign.setEnabled(false);
 	}
 
+	private void termGrid()
+	{
+	}
+
 	//******************************** ALIGNMENT ********************************
 
 	private void initAlignment()
 	{
 		alignCursor.setEditable(false);
 		alignEdges.setEditable(false);
+	}
+
+	private void termAlignment()
+	{
 	}
 
 	//******************************** LAYERS ********************************
@@ -195,9 +384,17 @@ public class EditOptions extends javax.swing.JDialog
 		layerName.setEnabled(false);
 	}
 
+	private void termLayers()
+	{
+	}
+
 	//******************************** COLORS ********************************
 
 	private void initColors()
+	{
+	}
+
+	private void termColors()
 	{
 	}
 
@@ -250,9 +447,17 @@ public class EditOptions extends javax.swing.JDialog
 		textSmartHorizontalOutside.setEnabled(false);
 	}
 
+	private void termText()
+	{
+	}
+
 	//******************************** 3D ********************************
 
 	private void init3D()
+	{
+	}
+
+	private void term3D()
 	{
 	}
 
@@ -272,6 +477,10 @@ public class EditOptions extends javax.swing.JDialog
 		techMOCMOSStickFigures.setEnabled(false);
 		techArtworkArrowsFilled.setEnabled(false);
 		techSchematicsNegatingSize.setEditable(false);
+	}
+
+	private void termTechnology()
+	{
 	}
 
 	/** This method is called from within the constructor to
@@ -312,8 +521,8 @@ public class EditOptions extends javax.swing.JDialog
         nodeDisallowModificationLockedPrims = new javax.swing.JCheckBox();
         nodeMoveAfterDuplicate = new javax.swing.JCheckBox();
         nodeCopyExports = new javax.swing.JCheckBox();
-        nodeInstanceRotation = new javax.swing.JTextField();
-        nodeInstanceMirror = new javax.swing.JCheckBox();
+        nodeAllRotation = new javax.swing.JTextField();
+        nodeAllMirror = new javax.swing.JCheckBox();
         nodeCheckCellDates = new javax.swing.JCheckBox();
         nodeSwitchTechnology = new javax.swing.JCheckBox();
         nodePlaceCellCenter = new javax.swing.JCheckBox();
@@ -714,21 +923,21 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(2, 20, 0, 0);
         newNode.add(nodeCopyExports, gridBagConstraints);
 
-        nodeInstanceRotation.setColumns(6);
+        nodeAllRotation.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 14;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        newNode.add(nodeInstanceRotation, gridBagConstraints);
+        newNode.add(nodeAllRotation, gridBagConstraints);
 
-        nodeInstanceMirror.setText("Mirror X");
-        nodeInstanceMirror.addActionListener(new java.awt.event.ActionListener()
+        nodeAllMirror.setText("Mirror X");
+        nodeAllMirror.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                nodeInstanceMirrorActionPerformed(evt);
+                nodeAllMirrorActionPerformed(evt);
             }
         });
 
@@ -737,7 +946,7 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 14;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        newNode.add(nodeInstanceMirror, gridBagConstraints);
+        newNode.add(nodeAllMirror, gridBagConstraints);
 
         nodeCheckCellDates.setText("Check cell dates during creation");
         nodeCheckCellDates.addActionListener(new java.awt.event.ActionListener()
@@ -783,7 +992,7 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
         newNode.add(nodeTinyCellsHashedOut, gridBagConstraints);
 
-        jLabel47.setText("Units per pixel when cells are hashed::");
+        jLabel47.setText("Units per pixel when cells are hashed:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 11;
@@ -1526,8 +1735,8 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(8, 4, 0, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(8, 4, 0, 0);
         grid.add(jLabel34, gridBagConstraints);
 
         gridCurrentHoriz.setColumns(8);
@@ -1536,9 +1745,9 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         grid.add(gridCurrentHoriz, gridBagConstraints);
 
         gridCurrentVert.setColumns(8);
@@ -1547,17 +1756,17 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         grid.add(gridCurrentVert, gridBagConstraints);
 
         jLabel35.setText("Default grid spacing:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(8, 4, 0, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(8, 4, 0, 0);
         grid.add(jLabel35, gridBagConstraints);
 
         gridNewHoriz.setColumns(8);
@@ -1566,9 +1775,9 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         grid.add(gridNewHoriz, gridBagConstraints);
 
         gridNewVert.setColumns(8);
@@ -1577,17 +1786,17 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         grid.add(gridNewVert, gridBagConstraints);
 
         jLabel36.setText("Distance between bold dots:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
-        gridBagConstraints.insets = new java.awt.Insets(8, 4, 8, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(8, 4, 8, 0);
         grid.add(jLabel36, gridBagConstraints);
 
         gridBoldHoriz.setColumns(8);
@@ -1595,9 +1804,9 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         grid.add(gridBoldHoriz, gridBagConstraints);
 
         gridBoldVert.setColumns(8);
@@ -1605,9 +1814,9 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         grid.add(gridBoldVert, gridBagConstraints);
 
         gridAlign.setText("Align grid with circuitry");
@@ -1622,16 +1831,16 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(0, 14, 8, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 14, 8, 0);
         grid.add(jLabel10, gridBagConstraints);
 
         jLabel13.setText("(for new windows)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
-        gridBagConstraints.insets = new java.awt.Insets(0, 14, 8, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 14, 8, 0);
         grid.add(jLabel13, gridBagConstraints);
 
         jTabbedPane1.addTab("Grid", grid);
@@ -1642,8 +1851,8 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         alignment.add(jLabel37, gridBagConstraints);
 
         alignCursor.setColumns(8);
@@ -1668,8 +1877,8 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         alignment.add(jLabel39, gridBagConstraints);
 
         alignEdges.setColumns(8);
@@ -1716,8 +1925,8 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 4;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 0);
         top.add(jLabel41, gridBagConstraints);
 
         textNodes.setText("Nodes");
@@ -1765,8 +1974,8 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 6;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
         top.add(textCellText, gridBagConstraints);
 
         jLabel42.setText("Size");
@@ -1862,8 +2071,8 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         middle.add(textEditor, gridBagConstraints);
 
         textNewVisibleInsideCell.setText("New text visible only inside cell");
@@ -1871,8 +2080,8 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         middle.add(textNewVisibleInsideCell, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -2166,8 +2375,8 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         technology.add(jLabel46, gridBagConstraints);
 
         jLabel49.setText("Metal layers:");
@@ -2284,8 +2493,8 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 11;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 0);
         technology.add(jLabel50, gridBagConstraints);
 
         techArtworkArrowsFilled.setText("Arrows filled");
@@ -2309,8 +2518,8 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 14;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 0);
         technology.add(jLabel51, gridBagConstraints);
 
         jLabel52.setText("Negating Bubble Size:");
@@ -2389,10 +2598,10 @@ public class EditOptions extends javax.swing.JDialog
 		// Add your handling code here:
 	}//GEN-LAST:event_nodePrimitiveActionPerformed
 
-	private void nodeInstanceMirrorActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_nodeInstanceMirrorActionPerformed
-	{//GEN-HEADEREND:event_nodeInstanceMirrorActionPerformed
+	private void nodeAllMirrorActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_nodeAllMirrorActionPerformed
+	{//GEN-HEADEREND:event_nodeAllMirrorActionPerformed
 		// Add your handling code here:
-	}//GEN-LAST:event_nodeInstanceMirrorActionPerformed
+	}//GEN-LAST:event_nodeAllMirrorActionPerformed
 
 	private void nodePrimitiveMirrorActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_nodePrimitiveMirrorActionPerformed
 	{//GEN-HEADEREND:event_nodePrimitiveMirrorActionPerformed
@@ -2421,6 +2630,19 @@ public class EditOptions extends javax.swing.JDialog
 
 	private void okActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_okActionPerformed
 	{//GEN-HEADEREND:event_okActionPerformed
+		termNewNodes();			// terminate the New Nodes Options panel
+		termNewArcs();			// terminate the New Arcs Options panel
+		termSelection();		// terminate the Selection Options panel
+		termPorts();			// terminate the Ports Options panel
+		termFrame();			// terminate the Frame Options panel
+		termIcon();				// terminate the Icon Options panel
+		termGrid();				// terminate the Grid Options panel
+		termAlignment();		// terminate the Alignment Options panel
+		termLayers();			// terminate the Layers Options panel
+		termColors();			// terminate the Colors Options panel
+		termText();				// terminate the Text Options panel
+		term3D();				// terminate the 3D Options panel
+		termTechnology();		// terminate the Technology Options panel
 		closeDialog(null);
 	}//GEN-LAST:event_okActionPerformed
 
@@ -2571,12 +2793,12 @@ public class EditOptions extends javax.swing.JDialog
     private javax.swing.JPanel newArc;
     private javax.swing.ButtonGroup newArcGroup;
     private javax.swing.JPanel newNode;
+    private javax.swing.JCheckBox nodeAllMirror;
+    private javax.swing.JTextField nodeAllRotation;
     private javax.swing.JCheckBox nodeCheckCellDates;
     private javax.swing.JCheckBox nodeCopyExports;
     private javax.swing.JCheckBox nodeDisallowModificationLockedPrims;
     private javax.swing.JTextField nodeHashLimit;
-    private javax.swing.JCheckBox nodeInstanceMirror;
-    private javax.swing.JTextField nodeInstanceRotation;
     private javax.swing.JCheckBox nodeMoveAfterDuplicate;
     private javax.swing.JCheckBox nodeOverrideDefaultOrientation;
     private javax.swing.JCheckBox nodePlaceCellCenter;

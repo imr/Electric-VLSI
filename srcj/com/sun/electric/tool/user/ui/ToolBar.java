@@ -263,6 +263,7 @@ public class ToolBar extends JToolBar
 		TopLevel.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		curMode = CursorMode.SELECT;
 		selectButton.setSelected(true);
+		UserMenuCommands.cursorSelect.setSelected(true);
 	}
 
 	/**
@@ -271,10 +272,11 @@ public class ToolBar extends JToolBar
 	public static void wiringCommand()
 	{
 		EditWindow.setListener(WiringListener.theOne);
-		if (wiringCursor == null) wiringCursor = readCursor("CursorWiring.gif", 8, 24);
+		if (wiringCursor == null) wiringCursor = readCursor("CursorWiring.gif", 8, 8);
 		TopLevel.setCurrentCursor(wiringCursor);
 		curMode = CursorMode.WIRE;
 		wireButton.setSelected(true);
+		UserMenuCommands.cursorWiring.setSelected(true);
 	}
 
 	/**
@@ -287,6 +289,7 @@ public class ToolBar extends JToolBar
 		TopLevel.setCurrentCursor(specialSelectCursor);
 		curMode = CursorMode.SELECTSPECIAL;
 		selectSpecialButton.setSelected(true);
+		UserMenuCommands.cursorSelectSpecial.setSelected(true);
 	}
 
 	/**
@@ -299,6 +302,7 @@ public class ToolBar extends JToolBar
 		TopLevel.setCurrentCursor(panCursor);
 		curMode = CursorMode.PAN;
 		panButton.setSelected(true);
+		UserMenuCommands.cursorPan.setSelected(true);
 	}
 
 	/**
@@ -311,6 +315,7 @@ public class ToolBar extends JToolBar
 		TopLevel.setCurrentCursor(zoomCursor);
 		curMode = CursorMode.ZOOM;
 		zoomButton.setSelected(true);
+		UserMenuCommands.cursorZoom.setSelected(true);
 	}
 
 	/**
@@ -322,17 +327,32 @@ public class ToolBar extends JToolBar
 	/**
 	 * Routine called when the "full arrow distance" button is pressed.
 	 */
-	public static void fullArrowDistanceCommand() { curArrowDistance = ArrowDistance.FULL; }
+	public static void fullArrowDistanceCommand()
+	{
+		curArrowDistance = ArrowDistance.FULL;
+		fullButton.setSelected(true);
+		UserMenuCommands.moveFull.setSelected(true);
+	}
 
 	/**
 	 * Routine called when the "half arrow distance" button is pressed.
 	 */
-	public static void halfArrowDistanceCommand() { curArrowDistance = ArrowDistance.HALF; }
+	public static void halfArrowDistanceCommand()
+	{
+		curArrowDistance = ArrowDistance.HALF;
+		halfButton.setSelected(true);
+		UserMenuCommands.moveHalf.setSelected(true);
+	}
 
 	/**
 	 * Routine called when the "quarter arrow distance" button is pressed.
 	 */
-	public static void quarterArrowDistanceCommand() { curArrowDistance = ArrowDistance.QUARTER; }
+	public static void quarterArrowDistanceCommand()
+	{
+		curArrowDistance = ArrowDistance.QUARTER;
+		quarterButton.setSelected(true);
+		UserMenuCommands.moveQuarter.setSelected(true);
+	}
 
 	/**
 	 * Routine to tell what arrow distance is in effect.
@@ -343,12 +363,22 @@ public class ToolBar extends JToolBar
 	/**
 	 * Routine called when the "select objects" button is pressed.
 	 */
-	public static void selectObjectsCommand() { curSelectMode = SelectMode.OBJECTS; }
+	public static void selectObjectsCommand()
+	{
+		curSelectMode = SelectMode.OBJECTS;
+		objectsButton.setSelected(true);
+		UserMenuCommands.selectObjects.setSelected(true);
+	}
 
 	/**
 	 * Routine called when the "select area" button is pressed.
 	 */
-	public static void selectAreaCommand() { curSelectMode = SelectMode.AREA; }
+	public static void selectAreaCommand()
+	{
+		curSelectMode = SelectMode.AREA;
+		areaButton.setSelected(true);
+		UserMenuCommands.selectArea.setSelected(true);
+	}
 
 	/**
 	 * Routine to tell what selection mode is in effect.
