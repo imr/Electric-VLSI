@@ -28,6 +28,9 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.change.DatabaseChangeListener;
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.PaletteFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -57,7 +60,7 @@ import java.util.regex.Matcher;
  * <p>- What additional JComponents are included
  * <p>- If the Cell List is multi- or single-select.
  */
-public class CellBrowser extends EDialog {
+public class CellBrowser extends EDialog implements DatabaseChangeListener {
 
     private static Preferences prefs = Preferences.userNodeForPackage(CellBrowser.class);
 
@@ -111,7 +114,17 @@ public class CellBrowser extends EDialog {
         initComboBoxes();                       // set up the combo boxes
         initExtras();                           // set up an extra components
         pack();
+
+        Undo.addDatabaseChangeListener(this);
     }
+
+    public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+        if (!isVisible()) return;
+        // would take too long to search for change we care about, just reload it
+        updateCellList();
+    }
+
+    public void databaseChanged(Undo.Change evt) {}
 
 	protected void escapePressed() { cancelActionPerformed(null); }
 
@@ -489,6 +502,7 @@ public class CellBrowser extends EDialog {
             prefs.putBoolean(prefEditInNewWindow, editInNewWindow.isSelected());
         }
         setVisible(false);
+        Undo.removeDatabaseChangeListener(this);
         dispose();
     }//GEN-LAST:event_closeDialog
 
@@ -554,7 +568,7 @@ public class CellBrowser extends EDialog {
 
             CircuitChanges.renameCellInJob(cell, newName);
             lastSelectedCell = newName;
-            setCell(cell);
+            //setCell(cell);
 
         } else if (action == DoAction.duplicateCell) {
             Cell cell = getSelectedCell();
