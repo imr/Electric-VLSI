@@ -969,6 +969,12 @@ public abstract class NodeProto extends ElectricObject
 	public boolean isInTechnologyLibrary() { return (userBits & TECEDITCELL) != 0; }
 
 	/**
+	 * Method to tell if this NodeProto is icon cell which is a part of multi-part icon.
+	 * @return true if this NodeProto is part of multi-part icon.
+	 */
+	public boolean isMultiPartIcon() { return false; }
+
+	/**
 	 * Method to get access to flag bits on this NodeProto.
 	 * Flag bits allow NodeProtos to be marked and examined more conveniently.
 	 * However, multiple competing activities may want to mark the nodes at

@@ -41,9 +41,9 @@ import com.sun.electric.technology.technologies.Schematics;
 
 import java.util.Arrays;
 import java.util.ArrayList;
-// import java.util.HashMap;
+import java.util.HashMap;
 import java.util.Iterator;
-// import java.util.Map;
+import java.util.Map;
 
 /**
  * This is the mirror of group of Icon and Schematic cells in Network tool.
@@ -167,16 +167,51 @@ class NetSchem extends NetCell {
 		}
 	}
 
+	private static class MultiProxy {
+		NodeInst nodeInst;
+		int arrayIndex;
+
+		MultiProxy(NodeInst nodeInst, int arrayIndex) {
+			this.nodeInst = nodeInst;
+			this.arrayIndex = arrayIndex;
+		}
+	}
+
 	private class Proxy implements Nodable {
 		NodeInst nodeInst;
 		int arrayIndex;
 		int nodeOffset;
+		MultiProxy[] shared;
 
 		Proxy(NodeInst nodeInst, int arrayIndex) {
 			this.nodeInst = nodeInst;
 			this.arrayIndex = arrayIndex;
 		}
 	
+		private final boolean isShared() { return shared != null; }
+
+		private boolean hasMulti(Cell iconCell) {
+			if (shared == null)
+				return nodeInst.getProto() == iconCell;
+			for (int i = 0; i < shared.length; i++) {
+				if (shared[i].nodeInst.getProto() == iconCell)
+					return true;
+			}
+			return false;
+		}
+
+		private void addMulti(NodeInst nodeInst, int arrayIndex) {
+			if (shared == null) {
+				shared = new MultiProxy[2];
+				shared[0] = new MultiProxy(this.nodeInst, this.arrayIndex);
+			} else {
+				MultiProxy[] newShared = new MultiProxy[shared.length + 1];
+				for (int i = 0; i < shared.length; i++) newShared[i] = shared[i];
+				shared = newShared;
+			}
+			shared[shared.length - 1] = new MultiProxy(nodeInst, arrayIndex);
+		}
+
 		/**
 		 * Method to return the prototype of this Nodable.
 		 * @return the prototype of this Nodable.
@@ -209,7 +244,22 @@ class NetSchem extends NetCell {
 		 * @param name the name of the Variable.
 		 * @return the Variable with that name, or null if there is no such Variable.
 		 */
-		public Variable getVar(String name) { return nodeInst.getVar(name); }
+		public Variable getVar(String name) {
+			if (shared == null)
+				return nodeInst.getVar(name);
+			Variable var = null;
+			for (int i = 0; i < shared.length; i++) {
+				Variable v = shared[i].nodeInst.getVar(name);
+				if (v == null) continue;
+				if (var == null) {
+					var = v;
+				} else if (!v.getObject().equals(var.getObject())) {
+					System.out.println("Network: Cell " + cell.describe() + " has multipart icon <" + getName() +
+						"> with ambigouos definition of variable " + name);
+				}
+			}
+			return var;
+		}
 
 		/**
 		 * Returns a printable version of this Nodable.
@@ -222,6 +272,7 @@ class NetSchem extends NetCell {
 	/** Node offsets. */											int[] nodeOffsets;
 	/** Node offsets. */											int[] drawnOffsets;
 	/** Node offsets. */											Proxy[] nodeProxies;
+	/** Map from names to proxies. Contains non-temporary names. */	Map name2proxy = new HashMap();
 	/** */															Global.Set globals = Global.Set.empty;
 	/** */															int[] portOffsets = new int[1];
 	/** */															int netNamesOffset;
@@ -286,8 +337,15 @@ class NetSchem extends NetCell {
 			nodables.add(ni);
 		}
 		for (int i = 0; i < nodeProxies.length; i++) {
-			if (nodeProxies[i] != null)
-				nodables.add(nodeProxies[i]);
+			Proxy proxy = nodeProxies[i];
+			if (proxy == null) continue;
+			if (proxy.isShared()) continue;
+			nodables.add(proxy);
+		}
+		for (Iterator it = name2proxy.values().iterator(); it.hasNext();) {
+			Proxy proxy = (Proxy)it.next();
+			if (proxy.isShared())
+				nodables.add(proxy);
 		}
 		return nodables.iterator();
 	}
@@ -314,7 +372,7 @@ class NetSchem extends NetCell {
 			if (proxyOffset >= 0) {
 				int drawn = drawns[ni_pi[nodeIndex] + portProto.getPortIndex()];
 				if (drawn < 0) return -1;
-				if (busIndex < 0 || busIndex >= drawnWidths[drawn]) return 01;
+				if (busIndex < 0 || busIndex >= drawnWidths[drawn]) return -1;
 				return drawnOffsets[drawn] + busIndex;
 			} else {
 				return -1;
@@ -324,7 +382,7 @@ class NetSchem extends NetCell {
 		} else {
 			proxy = (Proxy)no;
 		}
-		if (proxy == null) return 01;
+		if (proxy == null) return -1;
 		int portOffset = NetSchem.getPortOffset(portProto, busIndex);
 		if (portOffset < 0) return -1;
 		return proxy.nodeOffset + portOffset;
@@ -443,20 +501,45 @@ class NetSchem extends NetCell {
 		}
 		if (nodeProxies == null || nodeProxies.length != nodeProxiesOffset)
 			nodeProxies = new Proxy[nodeProxiesOffset];
+		name2proxy.clear();
 		for (int n = 0; n < numNodes; n++) {
 			NodeInst ni = (NodeInst)cell.getNode(n);
 			int proxyOffset = nodeOffsets[n];
 			if (Network.debug) System.out.println(ni+" "+proxyOffset);
 			if (proxyOffset >= 0) continue;
-			NetSchem netSchem = Network.getNetCell((Cell)ni.getProto()).getSchem();
+			Cell iconCell = (Cell)ni.getProto();
+			NetSchem netSchem = Network.getNetCell(iconCell).getSchem();
 			if (ni.isIconOfParent()) netSchem = null;
 			for (int i = 0; i < ni.getNameKey().busWidth(); i++) {
 				Proxy proxy = null;
 				if (netSchem != null) {
-					proxy = new Proxy(ni, i);
-					if (Network.debug) System.out.println(proxy+" "+mapOffset+" "+netSchem.equivPorts.length);
-					proxy.nodeOffset = mapOffset;
-					mapOffset += (netSchem.equivPorts.length - netSchem.globals.size())/*portsSize(ni.getProto())*/;
+					Name name = ni.getNameKey().subname(i);
+					if (!name.isTempname()) {
+						Proxy namedProxy = (Proxy)name2proxy.get(name);
+						if (namedProxy != null) {
+							Cell namedIconCell = (Cell)namedProxy.nodeInst.getProto();
+							if (namedProxy.hasMulti(iconCell)) {
+								System.out.println("Network: Cell " + cell.describe() + " has instances of " + iconCell.describe() +
+									" with same name <" + name + ">");
+							} else if (!iconCell.isMultiPartIcon() || !namedIconCell.isMultiPartIcon() ||
+								Network.getNetCell(namedIconCell).getSchem() != netSchem) {
+								System.out.println("Network: Cell " + cell.describe() + " has instances of " + iconCell.describe() + " and " +
+									namedIconCell.describe() + " with same name <" + name + ">");
+							} else {
+								proxy = namedProxy;
+								proxy.addMulti(ni, i);
+								System.out.println("Info: Cell " + cell.describe() + " has instances of multipart icon " + name);
+							}
+						}
+					}
+					if (proxy == null) {
+						proxy = new Proxy(ni, i);
+						if (!name.isTempname())
+							name2proxy.put(name, proxy);
+						if (Network.debug) System.out.println(proxy+" "+mapOffset+" "+netSchem.equivPorts.length);
+						proxy.nodeOffset = mapOffset;
+						mapOffset += (netSchem.equivPorts.length - netSchem.globals.size());
+					}
 				}
 				nodeProxies[~proxyOffset + i] = proxy;
 			}
