@@ -4,7 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01u: *********************************
 
-IMP: (9/20/04, GVG) Ability to abort ERC jobs
+IMP: (9/20/04, GVG) Ability to abort ERC and DRC jobs
 
 BUG: (9/20/04, GVG) ERC not properly detecting well contacts not connected to ground/power.
 FIX: Iterate over Export in JNetwork and check if isGround() or isPower(). Even if contacts are not

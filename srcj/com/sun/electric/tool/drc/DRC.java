@@ -168,35 +168,6 @@ public class DRC extends Listener
 		}
 	}
 
-	private static class CheckLayoutIncrementally extends Job
-	{
-		Cell cell;
-		Geometric [] objectsToCheck;
-
-		protected CheckLayoutIncrementally(Cell cell, Geometric [] objectsToCheck)
-		{
-			super("DRC in cell " + cell.describe(), tool, Job.Type.EXAMINE, null, null, Job.Priority.ANALYSIS);
-			this.cell = cell;
-			this.objectsToCheck = objectsToCheck;
-			startJob();
-		}
-
-		public boolean doIt()
-		{
-			incrementalRunning = true;
-			long startTime = System.currentTimeMillis();
-			int errorsFound = Quick.checkDesignRules(cell, objectsToCheck.length, objectsToCheck, null, null, this);
-			long endTime = System.currentTimeMillis();
-			if (errorsFound > 0)
-			{
-				System.out.println("Incremental DRC found " + errorsFound + " errors/warnings in cell "+cell.describe());
-			}
-			incrementalRunning = false;
-			doIncrementalDRCTask();
-			return true;
-		}
-	}
-
 	/**
 	 * Method to announce the end of a batch of changes.
 	 */
@@ -305,9 +276,39 @@ public class DRC extends Listener
 		}
 	}
 
-	private static class CheckLayoutHierarchically extends Job
+	public static class CheckDRCLayoutJob extends Job
 	{
 		Cell cell;
+
+		protected CheckDRCLayoutJob(String title, Cell cell, Listener tool, Priority priority)
+		{
+			super(title, tool, Job.Type.EXAMINE, null, null, priority);
+			this.cell = cell;
+
+		}
+		// never used
+		public boolean doIt() { return (false);}
+
+
+		/**
+		* Check if we are scheduled to abort. If so, print msg if non null
+		 * and return true.
+		 * @return true on abort, false otherwise
+		 */
+		protected boolean checkAbort()
+		{
+			boolean scheduledAbort = getScheduledToAbort();
+			if (scheduledAbort)
+			{
+				System.out.println(this);  // should call Job.toString()
+				setAborted();                   // Job has been aborted
+			}
+			return scheduledAbort;
+		}
+	}
+
+	private static class CheckLayoutHierarchically extends CheckDRCLayoutJob
+	{
 		Rectangle2D bounds;
 
         /**
@@ -317,8 +318,7 @@ public class DRC extends Listener
          */
 		protected CheckLayoutHierarchically(Cell cell, Rectangle2D bounds)
 		{
-			super("Design-Rule Check", tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
-			this.cell = cell;
+			super("Design-Rule Check", cell, tool, Job.Priority.USER);
 			this.bounds = bounds;
 			startJob();
 		}
@@ -335,6 +335,33 @@ public class DRC extends Listener
             long endTime = System.currentTimeMillis();
             System.out.println(errorCount + " errors and " + warnCount + " warnings found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
             return true;
+		}
+	}
+
+
+	private static class CheckLayoutIncrementally extends CheckDRCLayoutJob
+	{
+		Geometric [] objectsToCheck;
+
+		protected CheckLayoutIncrementally(Cell cell, Geometric [] objectsToCheck)
+		{
+			super("DRC in cell " + cell.describe(), cell, tool, Job.Priority.ANALYSIS);
+			//this.cell = cell;
+			this.objectsToCheck = objectsToCheck;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			incrementalRunning = true;
+			int errorsFound = Quick.checkDesignRules(cell, objectsToCheck.length, objectsToCheck, null, null, this);
+			if (errorsFound > 0)
+			{
+				System.out.println("Incremental DRC found " + errorsFound + " errors/warnings in cell "+ cell.describe());
+			}
+			incrementalRunning = false;
+			doIncrementalDRCTask();
+			return true;
 		}
 	}
 
