@@ -2274,55 +2274,6 @@ public class FloatingDecimal{
 	}
     }
 
-    public static void perform() {
-	String s = "3.1231431231231892e100";
-	//String s = "3e-100";
-	//String s = "1.23e36";
-	//String s = "1.23e37";
-	//String s = "1.23e-21";
-	//String s = "3.1231431234e100";
-	//String s = "0.3";
-	
-	FloatingDecimal fd = readJavaFormatString(s);
-	for (int i = 0; i < 100000; i++) {
-	    fd.doubleValue();
-	    fd.doubleValue(BigDecimal.ROUND_HALF_EVEN);
-	}
-	System.out.println("Warm");
-	double d = 0;
-
-	long startTime1 = System.currentTimeMillis();
-	for (int i = 0; i < 1000000; i++) {
-	    d = fd.doubleValue();
-	}
-	long endTime1 = System.currentTimeMillis();
-	System.out.println("**** doubleValue() took " + (endTime1-startTime1) + " mSec d=" + d);
-
-	long startTime2 = System.currentTimeMillis();
-	for (int i = 0; i < 1000000; i++) {
-	    d = fd.doubleValue(BigDecimal.ROUND_HALF_EVEN);
-	}
-	long endTime2 = System.currentTimeMillis();
-	System.out.println("**** doubleValue() took " + (endTime2-startTime2) + " mSec d=" + d);
-    }
-
-    public static void main(String[] args) {
-	String ss[] = { "0", "1", "2", "3", "3e100", "0.5", "3.1231431231231892e100", "0.1", "0.2", "0.3", "3e-100"};
-	for (int i = 0; i < ss.length; i++) {
-	    String s = ss[i];
-	    System.out.println("s=" + s);
-	    double d1 = Double.parseDouble(s);
-	    FloatingDecimal fd = readJavaFormatString(s);
-	    double d2 = fd.doubleValue(BigDecimal.ROUND_HALF_EVEN);
-	    System.out.println(Double.toHexString(d1));
-	    System.out.println(Double.toHexString(d2));
-	    if (d1 != d2)
-		System.out.println("DIFFERENT");
-	}
-
-	perform();
-    }
-
     /*
      * All the positive powers of 10 that can be
      * represented exactly in double/float.
