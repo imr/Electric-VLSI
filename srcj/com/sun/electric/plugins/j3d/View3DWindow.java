@@ -42,7 +42,6 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.io.output.PNG;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.HighlightListener;
@@ -81,6 +80,7 @@ import com.sun.j3d.utils.behaviors.interpolators.TCBKeyFrame;
 import com.sun.j3d.utils.picking.PickCanvas;
 import com.sun.j3d.utils.picking.PickResult;
 import com.sun.j3d.utils.picking.PickIntersection;
+import com.sun.j3d.utils.picking.PickTool;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.j3d.utils.universe.Viewer;
 import com.sun.j3d.utils.universe.ViewingPlatform;
@@ -109,6 +109,7 @@ public class View3DWindow extends JPanel
 	private SimpleUniverse u;
 	private J3DCanvas3D canvas;
 	protected TransformGroup objTrans;
+    private BranchGroup scene;
     private BranchGroup axes;
 	private JMouseRotate rotateB;
 	private JMouseZoom zoomB;
@@ -200,7 +201,7 @@ public class View3DWindow extends JPanel
 
 
 		// Create a simple scene and attach it to the virtual universe
-		BranchGroup scene = createSceneGraph(cell, infiniteBounds);
+		scene = createSceneGraph(cell, infiniteBounds);
 
 		// Have Java 3D perform optimizations on this scene graph.
 	    scene.compile();
@@ -399,6 +400,7 @@ public class View3DWindow extends JPanel
         objTrans.setCapability(TransformGroup.ALLOW_CHILDREN_EXTEND);
         objTrans.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
         objTrans.setCapability(TransformGroup.ALLOW_CHILDREN_WRITE);
+        objTrans.setCapability(TransformGroup.ALLOW_BOUNDS_READ);
 		objRoot.addChild(objTrans);
 
 		// Create a simple Shape3D node; add it to the scene graph.
@@ -1607,6 +1609,36 @@ public class View3DWindow extends JPanel
 //		if( point.x < 0 || point.x >= nImageWidth ||
 //			point.y < 0 || point.y >= nImageHeight )
 //			return true;
+
+//        PickTool pickTool = new PickTool(scene);
+//				pickTool.setMode( PickTool.BOUNDS );
+//
+//				BoundingSphere bounds = (BoundingSphere) objTrans.getBounds( );
+//				PickBounds pickBounds = new PickBounds( new BoundingSphere( new Point3d(keyBehavior.positionVector.x,
+//                        keyBehavior.positionVector.y, keyBehavior.positionVector.z), bounds.getRadius( ) ) );
+//				pickTool.setShape( pickBounds, new Point3d(0, 0, 0));
+//				PickResult[] resultArray = pickTool.pickAll( );
+//
+//        System.out.println( "Wold Point " + worldCoord + " local " + keyBehavior.positionVector);
+//
+//        if (resultArray != null)
+//        {
+//        for( int n = 0; n < resultArray.length; n++ )
+//		{
+//			Object userData = resultArray[n].getObject( ).getUserData( );
+//
+//			if ( userData != null && userData instanceof String )
+//			{
+//					System.out.println( "Collision between: " + objTrans.getUserData( ) + " and: " + userData );
+//				// check that we are not colliding with ourselves...
+//				if ( ((String) userData).equals( (String) objTrans.getUserData( ) ) == false )
+//				{
+//					System.out.println( "Collision between: " + objTrans.getUserData( ) + " and: " + userData );
+//					return true;
+//				}
+//			}
+//		}
+//        }
 
         pickCanvas.setShapeLocation((int)point.x, (int)point.y);
         PickResult result = pickCanvas.pickClosest();

@@ -50,6 +50,7 @@ public class J3DKeyBehavior extends Behavior
     //private BranchGroup axes; /* Contains the 3 axes, they should only be rotated */
 	protected Transform3D transform3D;
 	protected WakeupCondition keyCriterion;
+    public Vector3d positionVector = null;
 
 	private double rotateXAmount = Math.PI / 16.0;
 	private double rotateYAmount = Math.PI / 16.0;
@@ -73,6 +74,7 @@ public class J3DKeyBehavior extends Behavior
 		transformGroup = tg;
         //this.axes = axes;
 		transform3D = new Transform3D( );
+        positionVector = new Vector3d();
 	}
 
 	public void initialize( )
@@ -198,9 +200,10 @@ public class J3DKeyBehavior extends Behavior
 		doRotateZ(dir * rotateZAmount * speed);
 	}
 
-	protected void updateTransform( )
+	protected boolean updateTransform( )
 	{
 		transformGroup.setTransform( transform3D );
+        return true;
 	}
 
     /**
@@ -218,14 +221,16 @@ public class J3DKeyBehavior extends Behavior
 //        }
     }
 
-	protected void doRotateY( double radians )
+	protected boolean doRotateY( double radians )
 	{
 		transformGroup.getTransform( transform3D );
 		Transform3D toMove = new Transform3D( );
 		toMove.rotY( radians );
 		transform3D.mul( toMove );
-		updateTransform( );
+        // Need to move in opposite direction to avoid collision
+        boolean noCollision = updateTransform();
         rotateAxes(toMove);
+        return (noCollision);
 	}
 
 	protected void doRotateX( double radians )
@@ -253,6 +258,7 @@ public class J3DKeyBehavior extends Behavior
 		transformGroup.getTransform( transform3D );
 		Transform3D toMove = new Transform3D( );
 		toMove.setTranslation( theMove );
+        positionVector.add (theMove);
 		transform3D.mul( toMove );
 		updateTransform( );
 	}
@@ -291,8 +297,6 @@ public class J3DKeyBehavior extends Behavior
 	{
 		backKey = key;
 	}
-
-
 
 	public void setLeftKey( int key )
 	{
