@@ -275,6 +275,7 @@ public abstract class InteractiveRouter extends Router {
         if (endObj == null) {
             // end object is null, we are routing to a pin. Figure out what arc to use
             ArcProto useArc = getArcToUse(startPort, null);
+            if (useArc == null) return route;
             PrimitiveNode pn = ((PrimitiveArc)useArc).findOverridablePinProto();
             endPort = pn.getPort(0);
         } else {
