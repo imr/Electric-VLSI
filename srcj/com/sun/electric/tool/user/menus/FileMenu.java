@@ -143,6 +143,8 @@ public class FileMenu {
 			fileMenu.addMenuItem("Quit", KeyStroke.getKeyStroke('Q', buckyBit),
 				new ActionListener() { public void actionPerformed(ActionEvent e) { quitCommand(); } });
 		}
+        fileMenu.addMenuItem("Force Quit", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { forceQuit(); } });
 
     }
 
@@ -871,5 +873,14 @@ public class FileMenu {
         return false;
     }
 
-
+    /**
+     * Unsafe way to force Electric to quit
+     */
+    public static void forceQuit() {
+        int i = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), new String [] {"Warning! All unsaved changes will be lost!",
+            "Do you really want to quit?"}, "Force Quit", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+        if (i == JOptionPane.YES_OPTION) {
+            System.exit(1);
+        }
+    }
 }
