@@ -76,7 +76,7 @@ public class EvalJavaBsh extends Tool {
             env.eval("Object PAR(String par) { return evalJavaBsh.PAR(par); }");
             
             // the following is for running scripts
-            env.eval("import com.sun.electric.tool.user.UserMenuCommands;");
+            env.eval("import com.sun.electric.tool.user.MenuCommands;");
             env.eval("import com.sun.electric.database.hierarchy.*;");
             env.eval("import com.sun.electric.database.prototype.*;");
             env.eval("import com.sun.electric.database.topology.*;");

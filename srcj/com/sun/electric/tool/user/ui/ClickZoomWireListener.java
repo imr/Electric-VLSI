@@ -65,7 +65,7 @@ public class ClickZoomWireListener
     private static long cancelMoveDelayMillis; /* cancel move delay in milliseconds */
     private static long zoomInDelayMillis; /* zoom in delay in milliseconds */
 
-    private static final boolean debug = true; /* for debugging */
+    private static final boolean debug = false; /* for debugging */
 
     public static ClickZoomWireListener theOne = new ClickZoomWireListener();
 
@@ -214,7 +214,7 @@ public class ClickZoomWireListener
             }
 
             // new time stamp must occur after checking for sticky move
-            leftMousePressedTimeStamp = currentTime;
+            leftMousePressedTimeStamp = evt.getWhen();
 
             // ----- double-click responses -----
 
@@ -513,7 +513,7 @@ public class ClickZoomWireListener
         if (evt.getButton() == MouseEvent.BUTTON1) {
 
             // ignore move if done within cancelMoveDelayMillis
-            long curTime = System.currentTimeMillis();
+            long curTime = evt.getWhen();
             if (debug) System.out.println("Time diff between click release is: "+(curTime - leftMousePressedTimeStamp));
             if (modeLeft == Mode.move || modeLeft == Mode.stickyMove) {
                 if ((curTime - leftMousePressedTimeStamp) < cancelMoveDelayMillis) {
@@ -716,26 +716,17 @@ public class ClickZoomWireListener
         boolean sideways2 = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
 
         int rotation = evt.getWheelRotation();
-        Point2D wndOffset = wnd.getOffset();
-        Point2D newOffset = wndOffset;
-
-        // factor in multiplier
-        int mult = (int)(80/wnd.getScale());
-        if (mult <= 0) mult = 2;
-        if (wnd.getScale() > 70) mult = 1; // we're really zoomed in
 
         // scroll left right if sideways
         if (sideways || sideways2) {
             // scroll right if roll foward (pos)
             // scroll left if roll back (neg)
-            newOffset = new Point2D.Double(wndOffset.getX() - mult*rotation, wndOffset.getY());
+            ZoomAndPanListener.panX(wnd, rotation);
         } else {
             // scroll up if roll forward (pos)
             // scroll down if roll back (neg)
-            newOffset = new Point2D.Double(wndOffset.getX(), wndOffset.getY() - mult*rotation);
+            ZoomAndPanListener.panY(wnd, rotation);
         }
-        wnd.setOffset(newOffset);
-        wnd.repaintContents();
     }
 
     /** Key pressed event

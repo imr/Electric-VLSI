@@ -32,6 +32,7 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
@@ -83,6 +84,10 @@ public class LETool extends Tool {
         }
    }
 
+    /**
+     * Grabs a logical effort calculated size from the instance
+     * @return
+     */
     public Object getdrive() {
         Object info = EvalJavaBsh.tool.getCurrentInfo();
         if (!(info instanceof Nodable)) return "?";
@@ -95,11 +100,31 @@ public class LETool extends Tool {
         Object val = var.getObject();
         return val;
     }
-        
+
+    /**
+     * Grab a paramter 'parName' from a nodeInst 'nodeName' in a sub cell.
+     * @param nodeName name of the nodeInst
+     * @param parName name of parameter to evaluate
+     * @return
+     */
+    public Object subdrive(String nodeName, String parName) {
+        VarContext context = EvalJavaBsh.tool.getCurrentContext();  // get current context
+        Nodable no = context.getNodable();                          // get instance which has subdrive call on it
+        if (no == null) return "?";
+        NodeProto np = no.getProto();                               // get contents of instance
+        if (!(np instanceof Cell)) return "?";
+        Cell cell = (Cell)np;
+        NodeInst ni = cell.findNode(nodeName);                      // find nodeinst
+        if (ni == null) return "?";
+        Variable var = ni.getVar(parName);                          // find variable on nodeinst
+        if (var == null) return "?";
+        return context.push(no).evalVar(var);                       // evaluate variable and return it
+    }
+
     private static String makeDriveStr(VarContext context) {
         return "LEDRIVE_"+context.getInstPath(".");
     }
-    
+
     /** Analyze Cell called from menu */
     public void analyzeCell(Cell cell, VarContext context, EditWindow wnd) {
         AnalyzeCell acjob = new AnalyzeCell(cell, context, wnd);

@@ -302,6 +302,7 @@ public class EditWindow extends JPanel
 		// do the redraw in the main thread
 //		offscreen.drawImage();
 //		repaint();
+        setScrollPosition();                        // redraw scroll bars
 
 		// do the redraw in a separate thread
 		synchronized(redrawThese)
@@ -727,6 +728,7 @@ public class EditWindow extends JPanel
 		// get the current thumb position
 		JScrollBar right = wf.getRightScrollBar();
 		int yThumbPos = right.getValue();
+        System.out.println("right.getValue() is "+right.getValue());
 
 		// figure out what the thumb position SHOULD be
 		int scrollBarResolution = WindowFrame.getScrollBarResolution();
@@ -746,7 +748,7 @@ public class EditWindow extends JPanel
 	 * Method to update the scrollbars on the sides of the edit window
 	 * so they reflect the true offset of the circuit.
 	 */
-	public void setScrollPosition()
+	private void setScrollPositionOLD()
 	{
 		JScrollBar bottom = wf.getBottomScrollBar();
 		JScrollBar right = wf.getRightScrollBar();
@@ -770,6 +772,83 @@ public class EditWindow extends JPanel
 		}
 	}
 
+    /**
+     * New version of setScrollPosition.  Attempts to provides means of scrolling
+     * out of cell bounds.
+     */
+    public void setScrollPosition()
+    {
+
+        JScrollBar bottom = wf.getBottomScrollBar();
+        JScrollBar right = wf.getRightScrollBar();
+        bottom.setEnabled(cell != null);
+        right.setEnabled(cell != null);
+        if (cell != null)
+        {
+            Rectangle2D cellBounds = cell.getBounds();
+            Rectangle2D viewBounds = displayableBounds();
+
+            // get bounds of cell including what is on-screen
+            Rectangle2D overallBounds = cellBounds.createUnion(viewBounds);
+
+            // adjust scroll bars to reflect new bounds (only if not being adjusted now)
+            // newValue, newThumbSize, newMin, newMax
+            if (!bottom.getValueIsAdjusting()) {
+                bottom.getModel().setRangeProperties(
+                        (int)(offx-0.5*cellBounds.getWidth()),
+                        (int)cellBounds.getWidth(),
+                        (int)(overallBounds.getX() - 0.125*overallBounds.getWidth()),
+                        (int)((overallBounds.getX()+overallBounds.getWidth()) + 0.125*overallBounds.getWidth()),
+                        false);
+                bottom.setEnabled(false);
+                bottom.setUnitIncrement((int)(0.05*cellBounds.getWidth()));
+                bottom.setBlockIncrement((int)(0.25*cellBounds.getWidth()));
+                bottom.setEnabled(true);
+            }
+            if (!right.getValueIsAdjusting()) {
+                right.getModel().setRangeProperties(
+                        (int)(-offy-0.5*cellBounds.getWidth()),
+                        (int)(cellBounds.getHeight()),
+                        (int)(-((overallBounds.getY()+overallBounds.getHeight()) + 0.125*overallBounds.getHeight())),
+                        (int)(-(overallBounds.getY() - 0.125*overallBounds.getHeight())),
+                        false);
+                right.setEnabled(false);
+                right.setUnitIncrement((int)(0.05*cellBounds.getHeight()));
+                right.setBlockIncrement((int)(0.25*cellBounds.getHeight()));
+                right.setEnabled(true);
+            }
+        }
+    }
+
+    public void bottomScrollChanged(int value)
+    {
+        Rectangle2D cellBounds = cell.getBounds();
+        double newoffx = value+0.5*cellBounds.getWidth();           // new offset
+        //double ignoreDelta = 0.03*viewBounds.getWidth();             // ignore delta
+        //double delta = newoffx - offx;
+        //System.out.println("Old offx="+offx+", new offx="+newoffx+", delta="+(newoffx-offx));
+        //System.out.println("will ignore delta offset of "+ignoreDelta);
+        //if (Math.abs(newoffx - offx) < Math.abs(ignoreDelta)) return;
+        Point2D offset = new Point2D.Double(newoffx, offy);
+        setOffset(offset);
+        repaintContents();
+    }
+
+    public void rightScrollChanged(int value)
+    {
+        Rectangle2D cellBounds = cell.getBounds();
+        double newoffy = -(value+0.5*cellBounds.getWidth());
+        // annoying cause +y is down in java
+        //double ignoreDelta = 0.03*viewBounds.getHeight();             // ignore delta
+        //double delta = newoffy - offy;
+        //System.out.println("Old offy="+offy+", new offy="+newoffy+", deltay="+(newoffy-offy));
+        //System.out.println("will ignore delta offset of "+ignoreDelta);
+        //if (Math.abs(newoffy - offy) < Math.abs(ignoreDelta)) return;
+        Point2D offset = new Point2D.Double(offx, newoffy);
+        setOffset(offset);
+        repaintContents();
+    }
+
 	/**
 	 * Method to focus the screen so that an area fills it.
 	 * @param bounds the area to make fill the screen.
@@ -785,6 +864,7 @@ public class EditWindow extends JPanel
 		scale = Math.min(scalex, scaley);
 		offx = bounds.getCenterX();
 		offy = bounds.getCenterY();
+        setScrollPosition();
 		computeDatabaseBounds();
 		repaintContents();
 	}

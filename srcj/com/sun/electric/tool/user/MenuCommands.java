@@ -242,18 +242,19 @@ public final class MenuCommands
 
 		Menu mirrorSubMenu = new Menu("Mirror", 'M');
 		editMenu.add(mirrorSubMenu);
-		mirrorSubMenu.addMenuItem("Horizontally", null,
+		mirrorSubMenu.addMenuItem("Horizontally (flip over X-axis)", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.mirrorObjects(true); }});
-		mirrorSubMenu.addMenuItem("Vertically", null,
+		mirrorSubMenu.addMenuItem("Vertically (flip over Y-axis)", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.mirrorObjects(false); }});
 
-		editMenu.addMenuItem("Size", KeyStroke.getKeyStroke('B', buckyBit),
+		editMenu.addMenuItem("Adjust Size", KeyStroke.getKeyStroke('B', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { SizeListener.sizeObjects(); } });
 
 		editMenu.addSeparator();
 
-		editMenu.addMenuItem("Erase", null,
+		m=editMenu.addMenuItem("Erase", KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.deleteSelected(); } });
+        m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), null);
 
 		editMenu.addSeparator();
 
@@ -509,20 +510,6 @@ public final class MenuCommands
 		Menu windowMenu = new Menu("Window", 'W');
 		menuBar.add(windowMenu);
 
-		m = windowMenu.addMenuItem("Fill Display", KeyStroke.getKeyStroke('9', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.fullDisplay(); } });
-        m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD9, buckyBit), null);
-		m = windowMenu.addMenuItem("Zoom Out", KeyStroke.getKeyStroke('0', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.zoomOutDisplay(); } });
-        m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, buckyBit), null);
-		m = windowMenu.addMenuItem("Zoom In", KeyStroke.getKeyStroke('7', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.zoomInDisplay(); } });
-        m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD7, buckyBit), null);
-		m = windowMenu.addMenuItem("Focus on Highlighted", KeyStroke.getKeyStroke('F', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.focusOnHighlighted(); } });
-
-		windowMenu.addSeparator();
-
 		windowMenu.addMenuItem("Toggle Grid", KeyStroke.getKeyStroke('G', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { toggleGridCommand(); } });
 
@@ -536,17 +523,43 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { tileVerticallyCommand(); }});
 		windowPartitionSubMenu.addMenuItem("Cascade", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { cascadeWindowsCommand(); }});
+        if (!TopLevel.isMDIMode()) {
+            windowMenu.addSeparator();
+            windowMenu.addMenuItem("Move to Other Display", null,
+                new ActionListener() { public void actionPerformed(ActionEvent e) { moveToOtherDisplayCommand(); } });
+        }
 
 		windowMenu.addSeparator();
 
         windowMenu.addMenuItem("Layer Visibility...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { layerVisibilityCommand(); } });
 
-        if (!TopLevel.isMDIMode()) {
-            windowMenu.addSeparator();
-            windowMenu.addMenuItem("Move to Other Display", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) { moveToOtherDisplayCommand(); } });
-        }
+        windowMenu.addSeparator();
+
+        m = windowMenu.addMenuItem("Fill Display", KeyStroke.getKeyStroke('9', buckyBit),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.fullDisplay(); } });
+        m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD9, buckyBit), null);
+        m = windowMenu.addMenuItem("Zoom Out", KeyStroke.getKeyStroke('0', buckyBit),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.zoomOutDisplay(); } });
+        m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, buckyBit), null);
+        m = windowMenu.addMenuItem("Zoom In", KeyStroke.getKeyStroke('7', buckyBit),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.zoomInDisplay(); } });
+        m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD7, buckyBit), null);
+        m = windowMenu.addMenuItem("Focus on Highlighted", KeyStroke.getKeyStroke('F', buckyBit),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.focusOnHighlighted(); } });
+
+        m = windowMenu.addMenuItem("Pan Up", KeyStroke.getKeyStroke('8', buckyBit),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panX(EditWindow.getCurrent(), 4); }});
+        m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD8, buckyBit), null);
+        m = windowMenu.addMenuItem("Pan Down", KeyStroke.getKeyStroke('2', buckyBit),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panX(EditWindow.getCurrent(), 4); }});
+        m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD2, buckyBit), null);
+        m = windowMenu.addMenuItem("Pan Left", KeyStroke.getKeyStroke('4', buckyBit),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panX(EditWindow.getCurrent(), 4); }});
+        m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD4, buckyBit), null);
+        m = windowMenu.addMenuItem("Pan Right", KeyStroke.getKeyStroke('6', buckyBit),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panX(EditWindow.getCurrent(), 4); }});
+        m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD6, buckyBit), null);
 
 		/****************************** THE TOOL MENU ******************************/
 
@@ -715,7 +728,6 @@ public final class MenuCommands
                 new ActionListener() { public void actionPerformed(ActionEvent e) { ClickZoomWireListener.theOne.wireTo(5); }});
         wiringShortcuts.addMenuItem("Wire to M6", KeyStroke.getKeyStroke(KeyEvent.VK_6, 0),
                 new ActionListener() { public void actionPerformed(ActionEvent e) { ClickZoomWireListener.theOne.wireTo(6); }});
-
 
 
 		// return the menu bar

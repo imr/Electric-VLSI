@@ -147,4 +147,53 @@ public class ZoomAndPanListener
         wnd.focusScreen(bounds);
     }
 
+    // --------------------------- Pan Commands -------------------------------
+
+    /**
+     * Pan in X direction.  if ticks is positive, pan right. If ticks is
+     * negative, pan left. A ticks value of 1 is a short pan (10% of screen).
+     * Make ticks a higher value to pan more.
+     * @param wnd the edit window to pan
+     * @param ticks the amount and direction of pan
+     */
+    public static void panX(EditWindow wnd, int ticks) {
+
+        Cell cell = wnd.getCell();
+        if (cell == null) return;
+
+        // heuristic: factor in multiplier
+        int mult = (int)(80/wnd.getScale());
+        if (mult <= 0) mult = 2;
+        if (wnd.getScale() > 70) mult = 1; // we're really zoomed in
+
+        Point2D wndOffset = wnd.getOffset();
+        Point2D newOffset = new Point2D.Double(wndOffset.getX() - mult*ticks, wndOffset.getY());
+        wnd.setOffset(newOffset);
+        wnd.repaintContents();
+    }
+
+    /**
+     * Pan in Y direction.  if ticks is positive, pan up. If ticks is
+     * negative, pan down. A ticks value of 1 is a short pan (10% of screen).
+     * Make ticks a higher value to pan more.
+     * @param wnd the edit window to pan
+     * @param ticks the amount and direction of pan
+     */
+    public static void panY(EditWindow wnd, int ticks) {
+
+        Cell cell = wnd.getCell();
+        if (cell == null) return;
+
+        // heuristic: factor in multiplier
+        int mult = (int)(80/wnd.getScale());
+        if (mult <= 0) mult = 2;
+        if (wnd.getScale() > 70) mult = 1; // we're really zoomed in
+
+        Point2D wndOffset = wnd.getOffset();
+        Point2D newOffset = new Point2D.Double(wndOffset.getX(), wndOffset.getY() - mult*ticks);
+        wnd.setOffset(newOffset);
+        wnd.repaintContents();
+    }
+
+
 }

@@ -264,6 +264,7 @@ public class MessagesWindow
 		// split msg into strings
 		StringTokenizer st = new StringTokenizer(msg);
 		String cmds[] = new String[st.countTokens()];
+        if (cmds.length == 0) return;
 		for (int i = 0; i < cmds.length; i++)
 		{
 			cmds[i] = st.nextToken();

@@ -418,9 +418,9 @@ public class WindowFrame
 			EditWindow wnd = frame.getEditWindow();
 			if (wnd == null) return;
 			if (e.getSource() == frame.getBottomScrollBar())
-				wnd.bottomScrollChanged();
+				wnd.bottomScrollChanged(e.getValue());
 			if (e.getSource() == frame.getRightScrollBar())
-				wnd.rightScrollChanged();
+				wnd.rightScrollChanged(e.getValue());
 		}
 	}
 
