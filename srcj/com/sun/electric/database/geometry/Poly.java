@@ -231,15 +231,7 @@ public class Poly implements Shape
 	 */
 	public Poly(Point2D [] points)
 	{
-		this.style = null;
-		this.points = points;
-		this.layer = null;
-		this.bounds = null;
-		this.string = null;
-		this.name = null;
-		this.descript = null;
-		this.var = null;
-		this.pp = null;
+		initialize(points);
 	}
 
 	/**
@@ -251,14 +243,41 @@ public class Poly implements Shape
 	 */
 	public Poly(double cX, double cY, double width, double height)
 	{
-		this.style = null;
 		double halfWidth = width / 2;
 		double halfHeight = height / 2;
-		this.points = new Point2D.Double[] {
+		Point2D [] points = new Point2D.Double[] {
 			new Point2D.Double(EMath.smooth(cX-halfWidth), EMath.smooth(cY-halfHeight)),
 			new Point2D.Double(EMath.smooth(cX+halfWidth), EMath.smooth(cY-halfHeight)),
 			new Point2D.Double(EMath.smooth(cX+halfWidth), EMath.smooth(cY+halfHeight)),
 			new Point2D.Double(EMath.smooth(cX-halfWidth), EMath.smooth(cY+halfHeight))};
+		initialize(points);
+	}
+
+	/**
+	 * The constructor creates a new Poly that describes a rectangle.
+	 * @param crect the Rectangle2D of the rectangle.
+	 */
+	public Poly(Rectangle2D rect)
+	{
+		double lX = rect.getMinX();
+		double hX = rect.getMaxX();
+		double lY = rect.getMinY();
+		double hY = rect.getMaxY();
+		Point2D [] points = new Point2D.Double[] {
+			new Point2D.Double(lX, lY),
+			new Point2D.Double(hX, lY),
+			new Point2D.Double(hX, hY),
+			new Point2D.Double(lX, hY)};
+		initialize(points);
+	}
+
+	/**
+	 * Method to help initialize this Poly.
+	 */
+	private void initialize(Point2D [] points)
+	{
+		this.style = null;
+		this.points = points;
 		this.layer = null;
 		this.bounds = null;
 		this.string = null;
@@ -998,6 +1017,40 @@ public class Poly implements Shape
 		return otherPt.distance(polyCenter);
 	}
 
+	/*
+	 * Method to return the distance between this Poly and another.
+	 * @param polyOther the other Poly to consider.
+	 * @return the distance between them (returns 0 if they touch or overlap).
+	 */
+	public double separation(Poly polyOther)
+	{
+		// stop now if they touch
+		if (intersects(polyOther)) return 0;
+
+		// look at all points on polygon 1
+		double minPD = 0;
+		for(int i=0; i<points.length; i++)
+		{
+			Point2D c = polyOther.closestPoint(points[i]);
+			double pd = c.distance(points[i]);
+			if (pd <= 0) return 0;
+			if (i == 0) minPD = pd; else
+			{
+				if (pd < minPD) minPD = pd;
+			}
+		}
+
+		// look at all points on polygon 2
+		for(int i=0; i<polyOther.points.length; i++)
+		{
+			Point2D c = closestPoint(polyOther.points[i]);
+			double pd = c.distance(polyOther.points[i]);
+			if (pd <= 0) return 0;
+			if (pd < minPD) minPD = pd;
+		}
+		return minPD;
+	}
+
 	/**
 	 * Method to find the point on this polygon closest to a given point.
 	 * @param pt the given point
@@ -1159,6 +1212,138 @@ public class Poly implements Shape
 	public boolean intersects(Rectangle2D r)
 	{
 		return intersects(r.getX(), r.getY(), r.getWidth(), r.getHeight());
+	}
+
+	/**
+	 * Method to tell whether this Poly intersects another one.
+	 * @param polyOther the other Poly to test.
+	 * @return true if polygons intersect (that is, if any of their lines intersect).
+	 */
+	public boolean intersects(Poly polyOther)
+	{
+		// quit now if bounding boxes don't overlap
+		Rectangle2D thisBounds = getBounds2D();
+		Rectangle2D otherBounds = polyOther.getBounds2D();
+		if (thisBounds.getMaxX() < otherBounds.getMinX() ||
+			otherBounds.getMaxX() < thisBounds.getMinX() ||
+			thisBounds.getMaxY() < otherBounds.getMinY() ||
+			otherBounds.getMaxY() < thisBounds.getMinY()) return false;
+
+		// check each line in this Poly
+		int count = points.length;
+		for(int i=0; i<count; i++)
+		{
+			Point2D p = null;
+			if (i == 0)
+			{
+				if (style == Type.OPENED || style == Type.OPENEDT1 ||
+					style == Type.OPENEDT2 || style == Type.OPENEDT3 ||
+					style == Type.VECTORS) continue;
+				p = points[count-1];
+			} else
+			{
+				p = points[i-1];
+			}
+			Point2D t = points[i];
+			if (style == Type.VECTORS && (i&1) != 0) i++;
+			if (p.getX() == t.getX() && p.getY() == t.getY()) continue;
+
+			// compare this line with the other Poly
+			if (Math.min(p.getX(),t.getX()) > otherBounds.getMaxX() ||
+				Math.max(p.getX(),t.getX()) < otherBounds.getMinX() ||
+				Math.min(p.getY(),t.getY()) > otherBounds.getMaxY() ||
+				Math.max(p.getY(),t.getY()) < otherBounds.getMinY())
+					continue;
+			if (polyOther.db_lineintersect(p, t)) return true;
+		}
+		return false;
+	}
+
+	/*
+	 * routine to return true if the line segment from (px1,py1) to (tx1,ty1)
+	 * intersects any line in polygon "poly"
+	 */
+	private boolean db_lineintersect(Point2D p1, Point2D t1)
+	{
+		int count = points.length;
+		for(int i=0; i<count; i++)
+		{
+			Point2D p2 = null;
+			if (i == 0)
+			{
+				if (style == Type.OPENED || style == Type.OPENEDT1 ||
+					style == Type.OPENEDT2 || style == Type.OPENEDT3 ||
+					style == Type.VECTORS) continue;
+				p2 = points[count-1];
+			} else
+			{
+				p2 = points[i-1];
+			}
+			Point2D t2 = points[i];
+			if (style == Type.VECTORS && (i&1) != 0) i++;
+			if (p2.getX() == t2.getX() && p2.getY() == t2.getY()) continue;
+
+			// special case: this line is vertical
+			if (p2.getX() == t2.getX())
+			{
+				// simple bounds check
+				if (Math.min(p1.getX(),t1.getX()) > p2.getX() || Math.max(p1.getX(),t1.getX()) < p2.getX()) continue;
+
+				if (p1.getX() == t1.getX())
+				{
+					if (Math.min(p1.getY(),t1.getY()) > Math.max(p2.getY(),t2.getY()) ||
+						Math.max(p1.getY(),t1.getY()) < Math.min(p2.getY(),t2.getY())) continue;
+					return true;
+				}
+				if (p1.getY() == t1.getY())
+				{
+					if (Math.min(p2.getY(),t2.getY()) > p1.getY() || Math.max(p2.getY(),t2.getY()) < p1.getY()) continue;
+					return true;
+				}
+				int ang = EMath.figureAngle(p1, t1);
+				Point2D inter = EMath.intersect(p2, 900, p1, ang);
+				if (inter.getX() != p2.getX() || inter.getY() < Math.min(p2.getY(),t2.getY()) || inter.getY() > Math.max(p2.getY(),t2.getY())) continue;
+				return true;
+			}
+
+			// special case: this line is horizontal
+			if (p2.getY() == t2.getY())
+			{
+				// simple bounds check
+				if (Math.min(p1.getY(),t1.getY()) > p2.getY() || Math.max(p1.getY(),t1.getY()) < p2.getY()) continue;
+
+				if (p1.getY() == t1.getY())
+				{
+					if (Math.min(p1.getX(),t1.getX()) > Math.max(p2.getX(),t2.getX()) ||
+						Math.max(p1.getX(),t1.getX()) < Math.min(p2.getX(),t2.getX())) continue;
+					return true;
+				}
+				if (p1.getX() == t1.getX())
+				{
+					if (Math.min(p2.getX(),t2.getX()) > p1.getX() || Math.max(p2.getX(),t2.getX()) < p1.getX()) continue;
+					return true;
+				}
+				int ang = EMath.figureAngle(p1, t1);
+				Point2D inter = EMath.intersect(p2, 0, p1, ang);
+				if (inter.getY() != p2.getY() || inter.getX() < Math.min(p2.getX(),t2.getX()) || inter.getX() > Math.max(p2.getX(),t2.getX())) continue;
+				return true;
+			}
+
+			// simple bounds check
+			if (Math.min(p1.getX(),t1.getX()) > Math.max(p2.getX(),t2.getX()) || Math.max(p1.getX(),t1.getX()) < Math.min(p2.getX(),t2.getX()) ||
+				Math.min(p1.getY(),t1.getY()) > Math.max(p2.getY(),t2.getY()) || Math.max(p1.getY(),t1.getY()) < Math.min(p2.getY(),t2.getY())) continue;
+
+			// general case of line intersection
+			int ang1 = EMath.figureAngle(p1, t1);
+			int ang2 = EMath.figureAngle(p2, p2);
+			Point2D inter = EMath.intersect(p2, ang2, p1, ang1);
+			if (inter.getX() < Math.min(p2.getX(),t2.getX()) || inter.getX() > Math.max(p2.getX(),t2.getX()) ||
+				inter.getY() < Math.min(p2.getY(),t2.getY()) || inter.getY() > Math.max(p2.getY(),t2.getY()) ||
+				inter.getX() < Math.min(p1.getX(),t1.getX()) || inter.getX() > Math.max(p1.getX(),t1.getX()) ||
+				inter.getY() < Math.min(p1.getY(),t1.getY()) || inter.getY() > Math.max(p1.getY(),t1.getY())) continue;
+			return true;
+		}
+		return false;
 	}
 
 	/**

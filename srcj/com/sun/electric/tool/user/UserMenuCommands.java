@@ -56,6 +56,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.Input;
 import com.sun.electric.tool.io.Output;
 import com.sun.electric.tool.user.Clipboard;
+import com.sun.electric.tool.user.ErrorLog;
 import com.sun.electric.tool.user.ui.Menu;
 import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.dialogs.About;
@@ -256,6 +257,10 @@ public final class UserMenuCommands
 		editMenu.add(selListSubMenu);
         selListSubMenu.addMenuItem("Select All", KeyStroke.getKeyStroke('A', InputEvent.CTRL_MASK), 
             new ActionListener() { public void actionPerformed(ActionEvent e) { selectAllCommand(); }});
+        selListSubMenu.addMenuItem("Show Next Error", KeyStroke.getKeyStroke('>'), 
+            new ActionListener() { public void actionPerformed(ActionEvent e) { showNextErrorCommand(); }});
+        selListSubMenu.addMenuItem("Show Previous Error", KeyStroke.getKeyStroke('<'), 
+            new ActionListener() { public void actionPerformed(ActionEvent e) { showPrevErrorCommand(); }});
 
 		/****************************** THE CELL MENU ******************************/
 
@@ -1008,6 +1013,18 @@ public final class UserMenuCommands
 		}
 		Highlight.finished();
     }
+
+	public static void showNextErrorCommand()
+	{
+		String msg = ErrorLog.reportNextError();
+		System.out.println(msg);
+	}
+
+	public static void showPrevErrorCommand()
+	{
+		String msg = ErrorLog.reportPrevError();
+		System.out.println(msg);
+	}
 
 	// ---------------------- THE CELL MENU -----------------
 

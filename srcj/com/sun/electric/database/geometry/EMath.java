@@ -56,6 +56,26 @@ public class EMath
 	}
 
 	/**
+	 * Method to return the angle between two points.
+	 * @param end1 the first point.
+	 * @param end2 the second point.
+	 * @return the angle between the points (in radians).
+	 */
+	public static double figureAngleRadians(Point2D end1, Point2D end2)
+	{
+		double dx = end2.getX() - end1.getX();
+		double dy = end2.getY() - end1.getY();
+		if (dx == 0.0 && dy == 0.0)
+		{
+			System.out.println("Warning: domain violation while figuring angle");
+			return 0;
+		}
+		double ang = Math.atan2(dy, dx);
+		if (ang < 0.0) ang += Math.PI * 2.0;
+		return ang;
+	}
+
+	/**
 	 * Method to return the sum of two points.
 	 * @param p the first point.
 	 * @param dx the X component of the second point
@@ -222,12 +242,12 @@ public class EMath
 	 */
 	public static boolean isANumber(String pp)
 	{
-		/* ignore the minus sign */
+		// ignore the minus sign
 		int i = 0;
 		int len = pp.length();
 		if (i < len && (pp.charAt(i) == '+' || pp.charAt(i) == '-')) i++;
 
-		/* special case for hexadecimal prefix */
+		// special case for hexadecimal prefix
 		boolean xflag = false;
 		if (i < len-1 && pp.charAt(i) == '0' && (pp.charAt(i+1) == 'x' || pp.charAt(i+1) == 'X'))
 		{
@@ -260,7 +280,7 @@ public class EMath
 		if (!founddigits) return false;
 		if (i == len) return true;
 
-		/* handle exponent of floating point numbers */
+		// handle exponent of floating point numbers
 		if (xflag) return false;
 		if (pp.charAt(i) != 'e' && pp.charAt(i) != 'E') return false;
 		i++;
@@ -449,7 +469,7 @@ public class EMath
 			if (corners[i].getY() < lY) lY = corners[i].getY();
 			if (corners[i].getY() > hY) hY = corners[i].getY();
 		}
-		bounds.setRect((lX+hX)/2, (lY+hY)/2, hX-lX, hY-lY);
+		bounds.setRect(lX, lY, hX-lX, hY-lY);
 	}
 
 	/*
@@ -463,14 +483,14 @@ public class EMath
 	 */
 	public static Point2D intersect(Point2D p1, int ang1, Point2D p2, int ang2)
 	{
-		/* cannot handle lines if they are at the same angle */
+		// cannot handle lines if they are at the same angle
 		while (ang1 < 0) ang1 += 3600;
 		if (ang1 >= 3600) ang1 %= 3600;
 		while (ang2 < 0) ang2 += 3600;
 		if (ang2 >= 3600) ang2 %= 3600;
 		if (ang1 == ang2) return null;
 
-		/* also cannot handle lines that are off by 180 degrees */
+		// also cannot handle lines that are off by 180 degrees
 		int amin = ang2, amax = ang1;
 		if (ang1 < ang2)
 		{
@@ -494,7 +514,42 @@ public class EMath
 		return new Point2D.Double((-fb1 * fy - fc1) / fa1, fy);
 	}
 
-	private static double DBL_EPSILON = 2.2204460492503131e-016; /* smallest such that 1.0+DBL_EPSILON != 1.0 */
+	/*
+	 * Method to determine the intersection of two lines and return that point.
+	 * @param p1 a point on the first line.
+	 * @param ang1 the angle of the first line (in radians).
+	 * @param p2 a point on the second line.
+	 * @param ang2 the angle of the second line (in radians).
+	 * @return a point that is the intersection of the lines.
+	 * Returns null if there is no intersection point.
+	 */
+	public static Point2D intersectRadians(Point2D p1, double ang1, Point2D p2, double ang2)
+	{
+		// cannot handle lines if they are at the same angle
+		if (EMath.doublesEqual(ang1, ang2)) return null;
+
+		// also at the same angle if off by 180 degrees
+		double fMin = ang2, fMax = ang2;
+		if (ang1 < ang2) { fMin = ang1; fMax = ang2; }
+		if (EMath.doublesEqual(fMin + Math.PI, fMax)) return null;
+
+		double fa1 = Math.sin(ang1);
+		double fb1 = -Math.cos(ang1);
+		double fc1 = -fa1 * p1.getX() - fb1 * p1.getY();
+		double fa2 = Math.sin(ang2);
+		double fb2 = -Math.cos(ang2);
+		double fc2 = -fa2 * p2.getX() - fb2 * p2.getY();
+		if (Math.abs(fa1) < Math.abs(fa2))
+		{
+			double fswap = fa1;   fa1 = fa2;   fa2 = fswap;
+			fswap = fb1;   fb1 = fb2;   fb2 = fswap;
+			fswap = fc1;   fc1 = fc2;   fc2 = fswap;
+		}
+		double fy = (fa2 * fc1 / fa1 - fc2) / (fb2 - fa2*fb1/fa1);
+		return new Point2D.Double(fy, (-fb1 * fy - fc1) / fa1);
+	}
+
+	/** smallest such that 1.0+DBL_EPSILON != 1.0 */	private static double DBL_EPSILON = 2.2204460492503131e-016;
 
 	/*
 	 * Method to compare two double-precision numbers within an acceptable epsilon.

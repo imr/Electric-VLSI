@@ -478,10 +478,6 @@ public class OutputBinary extends Output
 		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
-			if (tech.getTechName().equalsIgnoreCase("MoCMOS"))
-			{
-				int ww=7;
-			}
 			writeVariables(tech, 0);
 		}
 

@@ -47,6 +47,7 @@ public class PrimitiveNode extends NodeProto
 	// --------------------- private data -----------------------------------
 	
 	/** layers describing this primitive */			private Technology.NodeLayer [] layers;
+	/** electrical layers describing this */		private Technology.NodeLayer [] electricalLayers;
 	/** flag bits */								private int userBits;
 	/** Index of this PrimitiveNode. */				private int primNodeIndex;
 	/** special type of unusual primitives */		private int specialType;
@@ -71,6 +72,7 @@ public class PrimitiveNode extends NodeProto
 		// things in this class
 		this.tech = tech;
 		this.layers = layers;
+		this.electricalLayers = null;
 		this.userBits = 0;
 		specialType = NORMAL;
 //		this.specialValues = new double [] {0,0,0,0,0,0};
@@ -123,6 +125,32 @@ public class PrimitiveNode extends NodeProto
 	 * @return the list of Layers that comprise this PrimitiveNode.
 	 */
 	public Technology.NodeLayer [] getLayers() { return layers; }
+
+	/**
+	 * Method to return the list of electrical Layers that comprise this PrimitiveNode.
+	 * Like the list returned by "getLayers", the results describe this PrimitiveNode,
+	 * but each layer is tied to a specific port on the node.
+	 * If any piece of geometry covers more than one port,
+	 * it must be split for the purposes of an "electrical" description.<BR>
+	 * For example, the MOS transistor has 2 layers: Active and Poly.
+	 * But it has 3 electrical layers: Active, Active, and Poly.
+	 * The active must be split since each half corresponds to a different PrimitivePort on the PrimitiveNode.
+	 * @return the list of electrical Layers that comprise this PrimitiveNode.
+	 */
+	public Technology.NodeLayer [] getElectricalLayers() { return electricalLayers; }
+
+	/**
+	 * Method to set the list of electrical Layers that comprise this PrimitiveNode.
+	 * Like the list returned by "getLayers", the results describe this PrimitiveNode,
+	 * but each layer is tied to a specific port on the node.
+	 * If any piece of geometry covers more than one port,
+	 * it must be split for the purposes of an "electrical" description.<BR>
+	 * For example, the MOS transistor has 2 layers: Active and Poly.
+	 * But it has 3 electrical layers: Active, Active, and Poly.
+	 * The active must be split since each half corresponds to a different PrimitivePort on the PrimitiveNode.
+	 * @param electricalLayers the list of electrical Layers that comprise this PrimitiveNode.
+	 */
+	public void setElectricalLayers(Technology.NodeLayer [] electricalLayers) { this.electricalLayers = electricalLayers; }
 
 	/**
 	 * Method to find the NodeLayer on this PrimitiveNode with a given Layer.

@@ -1241,7 +1241,7 @@ public class Highlight
 		if (areaMustEnclose)
 		{
 			Rectangle2D geomBounds = geom.getBounds();
-			Poly poly = new Poly(geomBounds.getCenterX(), geomBounds.getCenterY(), geomBounds.getWidth(), geomBounds.getHeight());
+			Poly poly = new Poly(geomBounds);
 			if (!poly.isInside(bounds)) return null;
 		}
 

@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.ArcInst;
@@ -509,28 +510,57 @@ public class Technology extends ElectricObject
 	/**
 	 * This is called once, at the start of Electric, to initialize the technologies.
 	 * Because of Java's "lazy evaluation", the only way to force the technology constructors to fire
-	 * and build a proper list of technologies, each class must somehow be referenced.
-	 * So, each technology is listed here.  If a new technology is created, this must be updated.
+	 * and build a proper list of technologies, is to call each class.
+	 * So, each technology is listed here.  If a new technology is created, this must be added to this list.
 	 */
 	public static void initAllTechnologies()
 	{
 		// Because of lazy evaluation, technologies aren't initialized unless they're referenced here
-		Generic.tech.init();		// must be called first
+		Artwork.tech.setup();
+		CMOS.tech.setup();
+		MoCMOS.tech.setup();
+		MoCMOSOld.tech.setup();
+		MoCMOSSub.tech.setup();
+		nMOS.tech.setup();
+		Schematics.tech.setup();
+		Generic.tech.setup();
 
-		// now all of the rest
-		Artwork.tech.init();
-		CMOS.tech.init();
-		MoCMOS.tech.init();
-		MoCMOSOld.tech.init();
-		MoCMOSSub.tech.init();
-		nMOS.tech.init();
-		Schematics.tech.init();
-
-		// the last one is the real current technology
+		// set the current technology
 		MoCMOS.tech.setCurrent();
 
 		// setup the generic technology to handle all connections
 		Generic.tech.makeUnivList();
+	}
+
+	/**
+	 * Method to initialize a technology.
+	 * Calls the technology's specific "init()" method (if any).
+	 * Also sets up mappings from pseudo-layers to real layers.
+	 */
+	protected void setup()
+	{
+		// do any specific intialization
+		init();
+
+		// setup mapping from pseudo-layers to real layers
+		for(Iterator it = this.getLayers(); it.hasNext(); )
+		{
+			Layer layer = (Layer)it.next();
+			int extras = layer.getFunctionExtras();
+			if ((extras & Layer.Function.PSEUDO) == 0) continue;
+			Layer.Function fun = layer.getFunction();
+			for(Iterator oIt = this.getLayers(); oIt.hasNext(); )
+			{
+				Layer oLayer = (Layer)oIt.next();
+				int oExtras = oLayer.getFunctionExtras();
+				Layer.Function oFun = oLayer.getFunction();
+				if (oFun == fun && (oExtras == (extras & ~Layer.Function.PSEUDO)))
+				{
+					layer.setNonPseudoLayer(oLayer);
+					break;
+				}
+			}
+		}
 	}
 
 	/**
@@ -1010,20 +1040,63 @@ public class Technology extends ElectricObject
 
 		PrimitiveNode np = (PrimitiveNode)prototype;
 		Technology.NodeLayer [] primLayers = np.getLayers();
-		return getShapeOfNode(ni, wnd, primLayers);
+		return getShapeOfNode(ni, wnd, false, false, primLayers);
+	}
+
+	/**
+	 * Returns the polygons that describe node "ni".
+	 * @param ni the NodeInst that is being described.
+	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
+	 * @param wnd the window in which this node will be drawn (null if no window scaling should be done).
+	 * @param electrical true to get the "electrical" layers.
+	 * When electrical layers are requested, each layer is tied to a specific port on the node.
+	 * If any piece of geometry covers more than one port,
+	 * it must be split for the purposes of an "electrical" description.
+	 * For example, the MOS transistor has 2 layers: Active and Poly.
+	 * But it has 3 electrical layers: Active, Active, and Poly.
+	 * The active must be split since each half corresponds to a different PrimitivePort on the PrimitiveNode.
+	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
+	 * The minimal set covers all edge contacts, but ignores the inner cuts in large contacts.
+	 * @return an array of Poly objects that describes this NodeInst graphically.
+	 * This array includes displayable variables on the NodeInst.
+	 */
+	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, boolean electrical, boolean reasonable)
+	{
+		NodeProto prototype = ni.getProto();
+		if (!(prototype instanceof PrimitiveNode)) return null;
+
+		PrimitiveNode np = (PrimitiveNode)prototype;
+		Technology.NodeLayer [] primLayers = np.getLayers();
+		if (electrical)
+		{
+			Technology.NodeLayer [] eLayers = np.getElectricalLayers();
+			if (eLayers != null) primLayers = eLayers;
+		}
+		return getShapeOfNode(ni, wnd, electrical, reasonable, primLayers);
 	}
 
 	/**
 	 * Returns the polygons that describe node "ni", given a set of
 	 * NodeLayer objects to use.
 	 * @param ni the NodeInst that is being described.
+	 * @param wnd the window in which this node will be drawn.
+	 * If this is null, no window scaling can be done, so no text is included in the returned results.
+	 * @param electrical true to get the "electrical" layers
+	 * Like the list returned by "getLayers", the results describe this PrimitiveNode,
+	 * but each layer is tied to a specific port on the node.
+	 * If any piece of geometry covers more than one port,
+	 * it must be split for the purposes of an "electrical" description.<BR>
+	 * For example, the MOS transistor has 2 layers: Active and Poly.
+	 * But it has 3 electrical layers: Active, Active, and Poly.
+	 * The active must be split since each half corresponds to a different PrimitivePort on the PrimitiveNode.
+	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
+	 * The minimal set covers all edge contacts, but ignores the inner cuts in large contacts.
 	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
 	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
-	 * @param wnd the window in which this node will be drawn (null if no window scaling should be done).
 	 * @return an array of Poly objects that describes this NodeInst graphically.
-	 * This array includes displayable variables on the NodeInst.
+	 * This array includes displayable variables on the NodeInst (if wnd != null).
 	 */
-	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, Technology.NodeLayer [] primLayers)
+	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers)
 	{
 		// get information about the node
 		double halfWidth = ni.getXSize() / 2;
@@ -1076,7 +1149,8 @@ public class Technology extends ElectricObject
 		if (specialType == PrimitiveNode.MULTICUT)
 		{
 			mcd = new MultiCutData(ni, specialValues);
-			numExtraCuts = mcd.cutsTotal;
+			if (reasonable) numExtraCuts = mcd.cutsReasonable; else
+				numExtraCuts = mcd.cutsTotal;
 			numBasicLayers--;
 		} else if (specialType == PrimitiveNode.SERPTRANS)
 		{
@@ -1136,6 +1210,13 @@ public class Technology extends ElectricObject
 			}
 			polys[i].setStyle(style);
 			polys[i].setLayer(primLayer.getLayer());
+			if (electrical)
+			{
+				int portIndex = primLayer.getPortNum();
+				PortProto port = null;
+				if (portIndex >= 0) port = np.getPort(portIndex);
+				polys[i].setPort(port);
+			}
 		}
 
 		// add in the extra contact cuts
@@ -1170,15 +1251,16 @@ public class Technology extends ElectricObject
 	}
 
 	/**
-	 * Class MultiCutData here.
+	 * Class MultiCutData determines the locations of cuts in a multi-cut contact node.
 	 */
-	private static class MultiCutData
+	public static class MultiCutData
 	{
 		/** the size of each cut */													double cutSizeX, cutSizeY;
 		/** the separation between cuts */											double cutSep;
 		/** the indent of the edge cuts to the node */								double cutIndent;
 		/** the number of cuts in X and Y */										int cutsX, cutsY;
 		/** the total number of cuts */												int cutsTotal;
+		/** the "reasonable" number of cuts (around the outside only) */			int cutsReasonable;
 		/** the X coordinate of the leftmost cut's center */						double cutBaseX;
 		/** the Y coordinate of the topmost cut's center */							double cutBaseY;
 		/** cut position of last top-edge cut (for interior-cut elimination) */		double cutTopEdge;
@@ -1186,7 +1268,7 @@ public class Technology extends ElectricObject
 		/** cut position of last right-edge cut  (for interior-cut elimination) */	double cutRightEdge;
 
 		/**
-		 * Constructor throws initialize for multiple cuts.
+		 * Constructor to initialize for multiple cuts.
 		 * @param ni the NodeInst with multiple cuts.
 		 * @param specialValues the array of special values for the NodeInst.
 		 * The values in "specialValues" are:
@@ -1220,8 +1302,7 @@ public class Technology extends ElectricObject
 			cutsY = (int)((hy-ly)-cutIndent*2+cutSep) / (int)(cutSizeY+cutSep);
 			if (cutsX <= 0) cutsX = 1;
 			if (cutsY <= 0) cutsY = 1;
-			cutsTotal = cutsX * cutsY;
-	//		*reasonable = pl->moscuttotal;
+			cutsReasonable = cutsTotal = cutsX * cutsY;
 			if (cutsTotal != 1)
 			{
 				// prepare for the multiple contact cut locations
@@ -1231,7 +1312,7 @@ public class Technology extends ElectricObject
 					cutSep*(cutsY-1)) / 2 + (cutLY + cutIndent + cutSizeY/2) + bounds.getMinY();
 				if (cutsX > 2 && cutsY > 2)
 				{
-					//*reasonable = cutsX * 2 + (cutsY-2) * 2;
+					cutsReasonable = cutsX * 2 + (cutsY-2) * 2;
 					cutTopEdge = cutsX*2;
 					cutLeftEdge = cutsX*2 + cutsY-2;
 					cutRightEdge = cutsX*2 + (cutsY-2)*2;
@@ -1240,11 +1321,17 @@ public class Technology extends ElectricObject
 		}
 
 		/**
+		 * Method to return the number of cuts in the contact node.
+		 * @return the number of cuts in the contact node.
+		 */
+		public int numCuts() { return cutsTotal; }
+
+		/**
 		 * Method to fill in the contact cuts of a MOS contact when there are
 		 * multiple cuts.  Node is in "ni" and the contact cut number (0 based) is
 		 * in "cut".
 		 */
-		Poly fillCutPoly(NodeInst ni, int cut)
+		private Poly fillCutPoly(NodeInst ni, int cut)
 		{
 			if (cutsX > 2 && cutsY > 2)
 			{

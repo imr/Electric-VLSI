@@ -101,7 +101,7 @@ public class Artwork extends Technology
 				0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff}));
 
 		// The layer functions
-		G_lay.setFunction(Layer.Function.ART);		// Graphics
+		G_lay.setFunction(Layer.Function.ART, Layer.Function.NONELEC);		// Graphics
 
 		// The DXF names
 		G_lay.setDXFLayer("OBJECT");		// Graphics
@@ -417,9 +417,13 @@ public class Artwork extends Technology
 	 * because of the unusual primitives in the Artwork Technology.
 	 * @param ni the NodeInst to describe.
 	 * @param wnd the window in which this node will be drawn.
+	 * @param electrical true to get the "electrical" layers.
+	 * This makes no sense for Artwork primitives.
+	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
+	 * This makes no sense for Artwork primitives.
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd)
+	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, boolean electrical, boolean reasonable)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		getGraphics(ni);
@@ -479,7 +483,7 @@ public class Artwork extends Technology
 				return polys;
 			}
 		}
-		return super.getShapeOfNode(ni, wnd);
+		return super.getShapeOfNode(ni, wnd, electrical, reasonable);
 	}
 
 	/**

@@ -1322,12 +1322,16 @@ public class Schematics extends Technology
 	/**
 	 * Method to return a list of Polys that describe a given NodeInst.
 	 * This method overrides the general one in the Technology object
-	 * because of the unusual primitives in the Artwork Technology.
+	 * because of the unusual primitives in the Schematics Technology.
 	 * @param ni the NodeInst to describe.
 	 * @param wnd the window in which this node will be drawn.
+	 * @param electrical true to get the "electrical" layers.
+	 * This makes no sense for Schematics primitives.
+	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
+	 * This makes no sense for Schematics primitives.
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd)
+	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, boolean electrical, boolean reasonable)
 	{
 		NodeProto prototype = ni.getProto();
 		if (!(prototype instanceof PrimitiveNode)) return null;
@@ -1513,7 +1517,7 @@ public class Schematics extends Technology
 				case TRANEMES:  primLayers = tran4LayersEMES;   break;
 			}
 		}
-		return getShapeOfNode(ni, wnd, primLayers);
+		return getShapeOfNode(ni, wnd, electrical, reasonable, primLayers);
 	}
 
 	/**

@@ -1172,6 +1172,11 @@ public abstract class NodeProto extends ElectricObject
 	 */
 	public final PortProto getPort(int portIndex)
 	{
+//		if (portIndex < 0 || portIndex >= ports.size())
+//		{
+//			System.out.println("Wanted port index " + portIndex + " on node " + protoName);
+//			return (PortProto)ports.get(0);
+//		}
 		return (PortProto)ports.get(portIndex);
 	}
 

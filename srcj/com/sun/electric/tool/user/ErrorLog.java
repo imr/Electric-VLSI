@@ -35,8 +35,11 @@ import com.sun.electric.database.topology.ArcInst;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.Comparator;
 import java.util.Collections;
+import java.awt.geom.Point2D;
 
 public class ErrorLog
 {
@@ -111,6 +114,7 @@ public class ErrorLog
 	private static int trueNumErrors;
 	private static int errorLimit;
 	private static List allErrors = new ArrayList();
+	private static int currentErrorNumber;
 	private static int errorPosition;
 	private static boolean limitExceeded;
 	private static String errorSystem;
@@ -126,12 +130,14 @@ public class ErrorLog
 		trueNumErrors = 0;
 		limitExceeded = false;
 		errorPosition = 0;
+		currentErrorNumber = -1;
 		errorSystem = system;
 		errorLimit = User.getErrorLimit();
 	}
 
 	/**
-	 * Method to create an error message with the text "message" applying to cell "cell".
+	 * Factory method to create an error message and log.
+	 * with the given text "message" applying to cell "cell".
 	 * Returns a pointer to the message (0 on error) which can be used to add highlights.
 	 */
 	public static ErrorLog logError(String message, Cell cell, int sortKey)
@@ -160,6 +166,7 @@ public class ErrorLog
 
 		// add the ErrorLog into the global list
 		allErrors.add(el);
+		currentErrorNumber = allErrors.size()-1;
 
 		return el;
 	}
@@ -212,21 +219,24 @@ public class ErrorLog
 	 */
 	public void addPoly(Poly poly)
 	{
-//		if (isbox(poly, &lx, &hx, &ly, &hy))
+//		Rectangle2D bounds = poly.getBox();
+//		if (bounds != null)
 //		{
-//			(void)addlinetoerror(errorlist, lx, ly, lx, hy);
-//			(void)addlinetoerror(errorlist, lx, hy, hx, hy);
-//			(void)addlinetoerror(errorlist, hx, hy, hx, ly) ;
-//			(void)addlinetoerror(errorlist, hx, ly, lx, ly);;
+//			(void)addlinetoerror(errorlist, bounds.getMinX(), bounds.getMinY(), bounds.getMinX(), bounds.getMaxY());
+//			(void)addlinetoerror(errorlist, bounds.getMinX(), bounds.getMaxY(), bounds.getMaxX(), bounds.getMaxY());
+//			(void)addlinetoerror(errorlist, bounds.getMaxX(), bounds.getMaxY(), bounds.getMaxX(), bounds.getMinY()) ;
+//			(void)addlinetoerror(errorlist, bounds.getMaxX(), bounds.getMinY(), bounds.getMinX(), bounds.getMinY());;
 //		} else
-//		{
-//			for(i=0; i<poly->count; i++)
-//			{
-//				if (i == 0) prev = poly->count-1; else prev = i-1;
-//				(void)addlinetoerror(errorlist, poly->xv[prev], poly->yv[prev],
-//					poly->xv[i], poly->yv[i]);
-//			}
-//		}
+		{
+			Point2D [] points = poly.getPoints();
+			for(int i=0; i<points.length; i++)
+			{
+				int prev = i-1;
+				if (i == 0) prev = points.length-1;
+				addLine(points[prev].getX(), points[prev].getY(),
+					points[i].getX(), points[i].getY());
+			}
+		}
 	}
 
 	/**
@@ -295,66 +305,58 @@ public class ErrorLog
 	/**
 	 * Method to advance to the next error and report it.
 	 */
-//	CHAR *reportnexterror(INTBIG showhigh, GEOM **g1, GEOM **g2)
-//	{
-//		if (db_nexterrorlist != NOERRORLIST)
-//		{
-//			db_curerrorlist = db_nexterrorlist;
-//			db_nexterrorlist = db_curerrorlist->nexterrorlist;
-//			db_preverrorlist = db_curerrorlist->preverrorlist;
-//		} else
-//		{
-//			// at end: go to start of list
-//			db_curerrorlist = db_firsterrorlist;
-//			if (db_curerrorlist == NOERRORLIST) db_nexterrorlist = NOERRORLIST; else
-//				db_nexterrorlist = db_curerrorlist->nexterrorlist;
-//			db_preverrorlist = NOERRORLIST;
-//		}
-//		return(db_reportcurrenterror(showhigh, g1, g2));
-//	}
+	public static String reportNextError()
+	{
+		return reportNextError(true, null);
+	}
+
+	/**
+	 * Method to advance to the next error and report it.
+	 */
+	public static String reportNextError(boolean showhigh, Geometric [] gPair)
+	{
+		if (currentErrorNumber < allErrors.size()-1)
+		{
+			currentErrorNumber++;
+		} else
+		{
+			if (allErrors.size() <= 0) return "no errors";
+			currentErrorNumber = 0;
+		}
+
+		ErrorLog el = (ErrorLog)allErrors.get(currentErrorNumber);
+		return el.db_reportcurrenterror(showhigh, gPair);
+	}
 
 	/**
 	 * Method to back up to the previous error and report it.
 	 */
-//	CHAR *reportpreverror(void)
-//	{
-//		REGISTER ERRORLIST *el;
-//
-//		if (db_preverrorlist != NOERRORLIST)
-//		{
-//			db_curerrorlist = db_preverrorlist;
-//			db_nexterrorlist = db_curerrorlist->nexterrorlist;
-//			db_preverrorlist = db_curerrorlist->preverrorlist;
-//		} else
-//		{
-//			// at start: go to end of list
-//			db_preverrorlist = db_curerrorlist = db_nexterrorlist = NOERRORLIST;
-//			for(el = db_firsterrorlist; el != NOERRORLIST; el = el->nexterrorlist)
-//			{
-//				db_preverrorlist = db_curerrorlist;
-//				db_curerrorlist = el;
-//			}
-//		}
-//		return(db_reportcurrenterror(1, 0, 0));
-//	}
+	public static String reportPrevError()
+	{
+		if (currentErrorNumber > 0)
+		{
+			currentErrorNumber--;
+		} else
+		{
+			if (allErrors.size() <= 0) return "no errors";
+			currentErrorNumber = allErrors.size() - 1;
+		}
+
+		ErrorLog el = (ErrorLog)allErrors.get(currentErrorNumber);
+		return el.db_reportcurrenterror(true, null);
+	}
 
 	/**
-	 * Method to return a list of errors.  On the first call, set "e" to zero.
-	 * Returns the next in the list (zero when done).
+	 * Method to tell the number of logged errors.
+	 * @return the number of "ErrorLog" objects logged.
 	 */
-//	void *getnexterror(void *elv)
-//	{
-//		REGISTER ERRORLIST *el;
-//
-//		if (elv == 0) el = db_firsterrorlist; else
-//		{
-//			el = (ERRORLIST *)elv;
-//			if (el == NOERRORLIST) return(0);
-//			el = el->nexterrorlist;
-//		}
-//		if (el == NOERRORLIST) return(0);
-//		return((void *)el);
-//	}
+	public static int getNumErrors() { return allErrors.size(); }
+
+	/**
+	 * Method to list all logged errors.
+	 * @return an Iterator over all of the "ErrorLog" objects.
+	 */
+	public static Iterator getErrors() { return allErrors.iterator(); }
 
 	/**
 	 * Method to return the number of objects associated with error "e".  Only
@@ -450,128 +452,116 @@ public class ErrorLog
 	 * Highlights associated graphics if "showhigh" is nonzero.  Fills "g1" and "g2"
 	 * with associated geometry modules (if nonzero).
 	 */
-//	#define MAXCELLS 20
+	private String db_reportcurrenterror(boolean showhigh, Geometric [] gPair)
+	{
+		if (allErrors.size() == 0)
+		{
+			return "No " + errorSystem + " errors";
+		}
 
-//	String db_reportcurrenterror(int showhigh, Geometric **g1, Geometric **g2)
-//	{
-//		REGISTER ERRORLIST *el;
-//		REGISTER NODEPROTO *cell;
-//		REGISTER PORTPROTO *pp;
-//		NODEPROTO *celllist[MAXCELLS];
-//		REGISTER INTBIG i, j, consize, numcells, havegeoms, newwindows, count, hierpathcount;
-//		REGISTER NODEINST **hierpath, *ni;
-//		REGISTER ARCINST *ai;
-//		INTBIG lx, hx, ly, hy;
-//		REGISTER ERRORHIGHLIGHT *eh;
-//		REGISTER GEOM *geom1, *geom2;
-//		REGISTER WINDOWPART *w;
-//		WINDOWPART *neww[4];
-//		REGISTER void *infstr;
-//
-//		el = db_curerrorlist;
-//		if (el == NOERRORLIST)
-//		{
-//			infstr = initinfstr();
-//			formatinfstr(infstr, _("No %s errors"), errorSystem);
-//			return(returninfstr(infstr));
-//		}
-//
-//		// turn off highlighting
-//		if (showhigh != 0)
-//		{
-//			(void)asktool(us_tool, x_("clear"));
-//
-//			// validate the cell (it may have been deleted)
-//			cell = el->cell;
-//			if (cell != NONODEPROTO)
-//			{
-//				if (!db_validatecell(cell))
-//				{
-//					infstr = initinfstr();
-//					formatinfstr(infstr, _("%s error %ld of %ld (but cell is deleted): %s"), errorSystem,
-//						el->index, db_numerrors, el->message);
-//					return(returninfstr(infstr));
-//				}
-//			}
-//
-//			// first figure out which cells need to be displayed
-//			numcells = 0;
-//			for(i=0; i<el->numhighlights; i++)
-//			{
-//				eh = el->highlights[i];
+		// if two highlights are requested, find them
+		if (gPair != null)
+		{
+			Geometric geom1 = null, geom2 = null;
+			for(Iterator it = highlights.iterator(); it.hasNext(); )
+			{
+				ErrorHighlight eh = (ErrorHighlight)it.next(); 
+				if (eh.type == ERRORTYPEGEOM)
+				{
+					if (geom1 == null) geom1 = eh.geom; else
+						if (geom2 == null) geom2 = eh.geom;
+				}
+			}
+
+			// return geometry if requested
+			if (geom1 != null) gPair[0] = geom1;
+			if (geom2 != null) gPair[1] = geom2;
+		}
+
+		// show the error
+		if (showhigh)
+		{
+			Highlight.clear();
+
+			// validate the cell (it may have been deleted)
+			if (cell != null)
+			{
+				if (!cell.isLinked())
+				{
+					String msg = errorSystem + " error " + index + " of " + allErrors.size() + " (but cell is deleted): " + message;
+					return msg;
+				}
+			}
+
+			// first figure out which cells need to be displayed
+			Set cells = new TreeSet();
+			for(Iterator it = highlights.iterator(); it.hasNext(); )
+			{
+				ErrorHighlight eh = (ErrorHighlight)it.next();
+				Cell showCell = null;
 //				hierpathcount = 0;
-//				cell = el->cell;
-//				if (eh->showgeom && eh->type == ERRORTYPEGEOM && cell == NONODEPROTO)
-//				{
-//					cell = geomparent(eh->geom);
-//					if (cell != NONODEPROTO && !db_validatecell(cell))
-//						cell = NONODEPROTO;
-//				}
-//				switch (eh->type)
-//				{
-//					case ERRORTYPEGEOM:
-//						if (!eh->showgeom) cell = NONODEPROTO; else
-//							if (cell != NONODEPROTO)
-//						{
-//							// validate the geometry
-//							for(ai = cell->firstarcinst; ai != NOARCINST; ai = ai->nextarcinst)
-//								if (ai->geom == eh->geom) break;
-//							if (ai == NOARCINST)
+				if (eh.showgeom && eh.type == ERRORTYPEGEOM && showCell == null)
+				{
+					showCell = eh.geom.getParent();
+					if (showCell != null && !showCell.isLinked())
+						showCell = null;
+				}
+				switch (eh.type)
+				{
+					case ERRORTYPEGEOM:
+						if (!eh.showgeom) break;
+						if (showCell != null)
+						{
+							// validate the geometry
+							boolean found = false;
+							if (!eh.geom.isLinked())
+							{
+								// geometry pointer is not valid
+								eh.showgeom = false;
+								showCell = null;
+							}
+						} else
+						{
+							showCell = eh.geom.getParent();
+//							if (eh.pathlen > 0)
 //							{
-//								for(ni = cell->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//									if (ni->geom == eh->geom) break;
-//								if (ni == NONODEINST)
-//								{
-//									// geometry pointer is not valid
-//									eh->showgeom = FALSE;
-//									cell = NONODEPROTO;
-//								}
+//								hierpathcount = eh.pathlen;
+//								hierpath = eh.path;
 //							}
-//						}
-//						if (eh->showgeom)
-//						{
-//							cell = geomparent(eh->geom);
-//							if (eh->pathlen > 0)
-//							{
-//								hierpathcount = eh->pathlen;
-//								hierpath = eh->path;
-//							}
-//						}
-//						break;
-//					case ERRORTYPEEXPORT:
-//						if (!eh->showgeom) cell = NONODEPROTO; else
-//							if (cell != NONODEPROTO)
-//						{
-//							// validate the export
+						}
+						break;
+					case ERRORTYPEEXPORT:
+						if (!eh.showgeom) showCell = null; else
+							if (showCell != null)
+						{
+							showCell = (Cell)eh.pp.getParent();
+
+							// validate the export
 //							for(pp = cell->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
-//								if (pp == eh->pp) break;
+//								if (pp == eh.pp) break;
 //							if (pp == NOPORTPROTO)
 //							{
-//								eh->showgeom = FALSE;
-//								cell = NONODEPROTO;
-//							} else cell = eh->pp->parent;
-//						}
-//						break;
-//					case ERRORTYPELINE:
-//					case ERRORTYPEPOINT:
-//						break;
-//				}
-//				if (cell == NONODEPROTO) continue;
-//				for(j=0; j<numcells; j++)
-//					if (celllist[j] == cell) break;
-//				if (j < numcells) continue;
-//				if (numcells >= MAXCELLS) break;
-//				celllist[numcells] = cell;
-//				numcells++;
-//			}
-//
-//			// be sure that all requested cells are shown
-//			newwindows = 0;
-//			for(i=0; i<numcells; i++)
-//			{
-//				// see if the cell is already being displayed
+//								eh.showgeom = FALSE;
+//								cell = null;
+//							}
+						}
+						break;
+					case ERRORTYPELINE:
+					case ERRORTYPEPOINT:
+						break;
+				}
+				if (showCell == null) continue;
+				cells.add(showCell);
+			}
+
+			// be sure that all requested cells are shown
+			int newwindows = 0;
+			for(Iterator it = cells.iterator(); it.hasNext(); )
+			{	
+				// see if the cell is already being displayed
+				Cell showCell = (Cell)it.next();
 //				for(w = el_topwindowpart; w != NOWINDOWPART; w = w->nextwindowpart)
-//					if (w->curnodeproto == celllist[i]) break;
+//					if (w->curnodeproto == showCell) break;
 //				if (w != NOWINDOWPART)
 //				{
 //					// already displayed: mark this cell done
@@ -579,10 +569,10 @@ public class ErrorLog
 //					celllist[i] = NONODEPROTO;
 //					continue;
 //				}
-//
-//				// keep a count of the number of new windows needed
-//				newwindows++;
-//			}
+
+				// keep a count of the number of new windows needed
+				newwindows++;
+			}
 //			while (newwindows > 0)
 //			{
 //				neww[0] = us_wantnewwindow(0);
@@ -616,109 +606,58 @@ public class ErrorLog
 //					if (count >= 4) break;
 //				}
 //			}
-//		}
-//
-//		// first show the geometry associated with this error
-//		geom1 = geom2 = NOGEOM;
-//		havegeoms = 0;
-//		for(i=0; i<el->numhighlights; i++)
-//		{
-//			eh = el->highlights[i];
-//			if (showhigh == 0 || !eh->showgeom) continue;
-//			switch (eh->type)
-//			{
-//				case ERRORTYPEGEOM:
-//					if (geom1 == NOGEOM) geom1 = eh->geom; else
-//						if (geom2 == NOGEOM) geom2 = eh->geom;
-//
-//					// include this geometry module in list to show
-//					if (havegeoms == 0) infstr = initinfstr(); else
-//						addtoinfstr(infstr, '\n');
-//					havegeoms++;
-//					formatinfstr(infstr, x_("CELL=%s FROM=0%lo;-1;0"),
-//						describenodeproto(geomparent(eh->geom)), (INTBIG)eh->geom);
-//					break;
-//				case ERRORTYPEEXPORT:
-//					if (havegeoms == 0) infstr = initinfstr(); else
-//						addtoinfstr(infstr, '\n');
-//					havegeoms++;
-//					formatinfstr(infstr, x_("CELL=%s TEXT=0%lo;0%lo;-"),
-//						describenodeproto(eh->pp->parent), (INTBIG)eh->pp->subnodeinst->geom,
-//							(INTBIG)eh->pp);
-//					break;
-//				case ERRORTYPELINE:
-//				case ERRORTYPEPOINT:
-//					break;
-//			}
-//
-//			// set the hierarchical path
-//			if (eh->type == ERRORTYPEGEOM && eh->showgeom && eh->pathlen > 0)
-//			{
-//				cell = geomparent(eh->geom);
-//				for(w=el_topwindowpart; w != NOWINDOWPART; w = w->nextwindowpart)
-//					if (w->curnodeproto == cell) break;
-//				if (w != NOWINDOWPART)
+
+			// first show the geometry associated with this error
+			for(Iterator it = highlights.iterator(); it.hasNext(); )
+			{
+				ErrorHighlight eh = (ErrorHighlight)it.next(); 
+				switch (eh.type)
+				{
+					case ERRORTYPEGEOM:
+						if (!eh.showgeom) break;
+						Highlight.addElectricObject(eh.geom, cell);
+						break;
+					case ERRORTYPEEXPORT:
+//						Highlight.addElectricObject(eh.pp, cell);
+//						if (havegeoms == 0) infstr = initinfstr(); else
+//							addtoinfstr(infstr, '\n');
+//						havegeoms++;
+//						formatinfstr(infstr, x_("CELL=%s TEXT=0%lo;0%lo;-"),
+//							describenodeproto(eh->pp->parent), (INTBIG)eh->pp->subnodeinst->geom,
+//								(INTBIG)eh->pp);
+						break;
+					case ERRORTYPELINE:
+						Highlight.addLine(new Point2D.Double(eh.x1, eh.y1), new Point2D.Double(eh.x2, eh.y2), cell);
+						break;
+					case ERRORTYPEPOINT:
+						double consize = 5;
+						Highlight.addLine(new Point2D.Double(eh.x1-consize, eh.y1-consize), new Point2D.Double(eh.x2+consize, eh.y2+consize), cell);
+						Highlight.addLine(new Point2D.Double(eh.x1-consize, eh.y1+consize), new Point2D.Double(eh.x2+consize, eh.y2-consize), cell);
+						break;
+				}
+
+//				// set the hierarchical path
+//				if (eh.type == ERRORTYPEGEOM && eh.showgeom && eh.pathlen > 0)
 //				{
-//					for(j=eh->pathlen-1; j>=0; j--)
+//					cell = geomparent(eh.geom);
+//					for(w=el_topwindowpart; w != NOWINDOWPART; w = w->nextwindowpart)
+//						if (w->curnodeproto == cell) break;
+//					if (w != NOWINDOWPART)
 //					{
-//						sethierarchicalparent(cell, eh->path[j], w, 0, 0);
-//						cell = eh->path[j]->parent;
+//						for(int j=eh.pathlen-1; j>=0; j--)
+//						{
+//							sethierarchicalparent(cell, eh.path[j], w, 0, 0);
+//							cell = eh.path[j].getParent();
+//						}
 //					}
 //				}
-//			}
-//		}
-//
-//		if (havegeoms != 0)
-//			(void)asktool(us_tool, x_("show-multiple"), (INTBIG)returninfstr(infstr));
-//
-//		// now show the lines and points associated with this error
-//		for(i=0; i<el->numhighlights; i++)
-//		{
-//			eh = el->highlights[i];
-//			switch (eh->type)
-//			{
-//				case ERRORTYPELINE:
-//					if (showhigh != 0)
-//						(void)asktool(us_tool, x_("show-line"), eh->x1, eh->y1, eh->x2, eh->y2,
-//							el->cell);
-//					break;
-//				case ERRORTYPEPOINT:
-//					if (showhigh != 0)
-//					{
-//						consize = lambdaofcell(el->cell) * 5;
-//						(void)asktool(us_tool, x_("show-line"), eh->x1-consize, eh->y1-consize,
-//							eh->x1+consize, eh->y1+consize, el->cell);
-//						(void)asktool(us_tool, x_("show-line"), eh->x1-consize, eh->y1+consize,
-//							eh->x1+consize, eh->y1-consize, el->cell);
-//					}
-//					break;
-//				case ERRORTYPEGEOM:
-//				case ERRORTYPEEXPORT:
-//					break;
-//			}
-//		}
-//
-//		// return geometry if requested
-//		if (g1 != 0) *g1 = geom1;
-//		if (g2 != 0) *g2 = geom2;
-//
-//		// return the error message
-//		infstr = initinfstr();
-//		formatinfstr(infstr, _("%s error %ld of %ld: %s"), errorSystem,
-//			el->index, db_numerrors, el->message);
-//		return(returninfstr(infstr));
-//	}
+			}
 
-//	BOOLEAN db_validatecell(NODEPROTO *cell)
-//	{
-//		REGISTER LIBRARY *lib;
-//		REGISTER NODEPROTO *np;
-//
-//		for(lib = el_curlib; lib != NOLIBRARY; lib = lib->nextlibrary)
-//		{
-//			for(np = lib->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
-//				if (np == cell) return(TRUE);
-//		}
-//		return(FALSE);
-//	}
+			Highlight.finished();
+		}
+
+		// return the error message
+		String msg = errorSystem + " error " + index + " of " + allErrors.size() + ": " + message;
+		return msg;
+	}
 }

@@ -52,6 +52,7 @@ public class MoCMOS extends Technology
 
 	/** key of Variable for saving technology state. */
 	public static final Variable.Key TECH_STATE = ElectricObject.newKey("TECH_state");
+	private Layer poly1_lay, transistorPoly_lay;
 
 	/** metal-1-pin */							private PrimitiveNode metal1Pin_node;
 	/** metal-2-pin */							private PrimitiveNode metal2Pin_node;
@@ -123,6 +124,10 @@ public class MoCMOS extends Technology
 	// for dynamically modifying the transistor geometry
 	private Technology.NodeLayer pTransistorPolyLayer, nTransistorPolyLayer;
 	private Technology.NodeLayer pTransistorActiveLayer, nTransistorActiveLayer;
+	private Technology.NodeLayer pTransistorActiveTLayer, pTransistorActiveBLayer;
+	private Technology.NodeLayer pTransistorPolyLLayer, pTransistorPolyRLayer, pTransistorPolyCLayer;
+	private Technology.NodeLayer nTransistorActiveTLayer, nTransistorActiveBLayer;
+	private Technology.NodeLayer nTransistorPolyLLayer, nTransistorPolyRLayer, nTransistorPolyCLayer;
 	private Technology.NodeLayer pTransistorWellLayer, nTransistorWellLayer;
 	private Technology.NodeLayer pTransistorSelectLayer, nTransistorSelectLayer;
 
@@ -679,7 +684,7 @@ public class MoCMOS extends Technology
 						0x1111}));//    X   X   X   X
 
 		/** poly layer */
-		Layer poly1_lay = Layer.newInstance(this, "Polysilicon-1",
+		poly1_lay = Layer.newInstance(this, "Polysilicon-1",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 255,155,192,0.5,1,
 			new int[] { 0x1111,   //    X   X   X   X
 						0xFFFF,   // XXXXXXXXXXXXXXXX
@@ -894,7 +899,7 @@ public class MoCMOS extends Technology
 						0x0000}));//                 
 
 		/** poly/trans layer */
-		Layer transistorPoly_lay = Layer.newInstance(this, "Transistor-Poly",
+		transistorPoly_lay = Layer.newInstance(this, "Transistor-Poly",
 			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 255,155,192,0.5,1,
 			new int[] { 0x1111,   //    X   X   X   X
 						0xFFFF,   // XXXXXXXXXXXXXXXX
@@ -1899,9 +1904,24 @@ public class MoCMOS extends Technology
 		pTransistorPolyLayer = new Technology.NodeLayer(transistorPoly_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
 			new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.fromBottom(10)),
 			new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(10))}, 1, 1, 2, 2);
+		pTransistorPolyLLayer = new Technology.NodeLayer(poly1_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.fromBottom(10)),
+			new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromTop(10))}, 1, 1, 2, 2);
+		pTransistorPolyRLayer = new Technology.NodeLayer(poly1_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromBottom(10)),
+			new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(10))}, 1, 1, 2, 2);
+		pTransistorPolyCLayer = new Technology.NodeLayer(transistorPoly_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(10)),
+			new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(10))}, 1, 1, 2, 2);
 		pTransistorActiveLayer = new Technology.NodeLayer(pActive_lay, 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
 			new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(7)),
 			new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(7))}, 4, 4, 0, 0);
+		pTransistorActiveTLayer = new Technology.NodeLayer(pActive_lay, 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromTop(10)),
+			new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(7))}, 4, 4, 0, 0);
+		pTransistorActiveBLayer = new Technology.NodeLayer(pActive_lay, 3, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(7)),
+			new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromBottom(10))}, 4, 4, 0, 0);
 		pTransistorWellLayer = new Technology.NodeLayer(nWell_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
 			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.fromBottom(1)),
 			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.fromTop(1))}, 10, 10, 6, 6);
@@ -1910,6 +1930,8 @@ public class MoCMOS extends Technology
 			new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(5))}, 6, 6, 2, 2);
 		pTransistor_node = PrimitiveNode.newInstance("P-Transistor", this, 15.0, 22.0, new SizeOffset(6, 6, 10, 10),
 			new Technology.NodeLayer [] {pTransistorActiveLayer, pTransistorPolyLayer, pTransistorWellLayer, pTransistorSelectLayer});
+		pTransistor_node.setElectricalLayers(new Technology.NodeLayer [] {pTransistorActiveTLayer, pTransistorActiveBLayer,
+			pTransistorPolyCLayer, pTransistorPolyLLayer, pTransistorPolyRLayer, pTransistorWellLayer, pTransistorSelectLayer});
 		pTransistor_node.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, pTransistor_node, new ArcProto[] {poly1_arc}, "p-trans-poly-left", 180,90, 0, PortProto.Characteristic.UNKNOWN,
@@ -1932,9 +1954,24 @@ public class MoCMOS extends Technology
 		nTransistorPolyLayer = new Technology.NodeLayer(transistorPoly_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
 			new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.fromBottom(10)),
 			new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(10))}, 1, 1, 2, 2);
+		nTransistorPolyLLayer = new Technology.NodeLayer(poly1_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.fromBottom(10)),
+			new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromTop(10))}, 1, 1, 2, 2);
+		nTransistorPolyRLayer = new Technology.NodeLayer(poly1_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromBottom(10)),
+			new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(10))}, 1, 1, 2, 2);
+		nTransistorPolyCLayer = new Technology.NodeLayer(transistorPoly_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(10)),
+			new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(10))}, 1, 1, 2, 2);
 		nTransistorActiveLayer = new Technology.NodeLayer(nActive_lay, 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
 			new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(7)),
 			new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(7))}, 4, 4, 0, 0);
+		nTransistorActiveTLayer = new Technology.NodeLayer(nActive_lay, 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromTop(10)),
+			new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(7))}, 4, 4, 0, 0);
+		nTransistorActiveBLayer = new Technology.NodeLayer(nActive_lay, 3, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(7)),
+			new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromBottom(10))}, 4, 4, 0, 0);
 		nTransistorWellLayer = new Technology.NodeLayer(pWell_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
 			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.fromBottom(1)),
 			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.fromTop(1))}, 10, 10, 6, 6);
@@ -1943,6 +1980,8 @@ public class MoCMOS extends Technology
 			new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(5))}, 6, 6, 2, 2);
 		nTransistor_node = PrimitiveNode.newInstance("N-Transistor", this, 15.0, 22.0, new SizeOffset(6, 6, 10, 10),
 			new Technology.NodeLayer [] {nTransistorActiveLayer, nTransistorPolyLayer, nTransistorWellLayer, nTransistorSelectLayer});
+		nTransistor_node.setElectricalLayers(new Technology.NodeLayer [] {nTransistorActiveTLayer, nTransistorActiveBLayer,
+			nTransistorPolyLLayer, nTransistorPolyRLayer, nTransistorPolyCLayer, nTransistorWellLayer, nTransistorSelectLayer});
 		nTransistor_node.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, nTransistor_node, new ArcProto[] {poly1_arc}, "n-trans-poly-left", 180,90, 0, PortProto.Characteristic.UNKNOWN,
@@ -2704,6 +2743,17 @@ public class MoCMOS extends Technology
 
 		// remember this state
 		newVar(TECH_STATE, new Integer(state));
+	}
+
+	/**
+	 * This method overrides the one in Technology because it knows about equivalence layers for MOCMOS.
+	 */
+	public boolean sameLayer(Layer layer1, Layer layer2)
+	{
+		if (layer1 == layer2) return true;
+		if (layer1 == poly1_lay && layer2 == transistorPoly_lay) return true;
+		if (layer2 == poly1_lay && layer1 == transistorPoly_lay) return true;
+		return false;
 	}
 
 	/**

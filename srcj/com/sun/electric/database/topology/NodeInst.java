@@ -1955,7 +1955,24 @@ public class NodeInst extends Geometric implements Nodable
             return true;
         return false;
     }
-    
+   
+	/*
+	 * Method to tell whether this NodeInst is a field-effect transtor.
+	 * This includes the nMOS, PMOS, and DMOS transistors, as well as the DMES and EMES transistors.
+	 * @return true if this NodeInst is a field-effect transtor.
+	 */
+	public boolean isFET()
+	{
+		NodeProto.Function fun = getFunction();
+		if (fun == NodeProto.Function.TRANMOS || fun == NodeProto.Function.TRA4NMOS ||
+			fun == NodeProto.Function.TRAPMOS || fun == NodeProto.Function.TRA4PMOS ||
+			fun == NodeProto.Function.TRADMOS || fun == NodeProto.Function.TRA4DMOS ||
+			fun == NodeProto.Function.TRADMES || fun == NodeProto.Function.TRA4DMES ||
+			fun == NodeProto.Function.TRAEMES || fun == NodeProto.Function.TRA4EMES)
+				return true;
+		return false;
+	}
+
 	/**
 	 * Method to return the size of this transistor NodeInst.
      * @param context the VarContext in which any evaluations take place,

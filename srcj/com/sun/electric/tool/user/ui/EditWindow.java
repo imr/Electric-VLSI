@@ -405,7 +405,7 @@ public class EditWindow extends JPanel
 			} else
 			{
 				// draw the outline
-				Poly poly = new Poly(ni.getTrueCenterX(), ni.getTrueCenterY(), ni.getXSize(), ni.getYSize());
+				Poly poly = new Poly(ni.getBounds());
 				AffineTransform localPureTrans = ni.rotateOutAboutTrueCenter(trans);
 				poly.transform(localPureTrans);
 				g2.setColor(Color.black);

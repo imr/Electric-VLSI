@@ -1589,6 +1589,12 @@ public class Cell extends NodeProto
 	/****************************** HIERARCHY ******************************/
 
 	/**
+	 * Method to tell whether this Cell is linked into the database or deleted.
+	 * @return true if this Cell is linked into the database.
+	 */
+	public boolean isLinked() { return linked; }
+
+	/**
 	 * Method to recursively determine whether this Cell is a child of a given parent Cell.
 	 * If so, the relationship would be recursive.
 	 * @param parent the parent cell being examined.

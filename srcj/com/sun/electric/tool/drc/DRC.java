@@ -26,6 +26,7 @@ package com.sun.electric.tool.drc;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
@@ -34,6 +35,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.DRCQuick;
+import com.sun.electric.tool.user.ErrorLog;
 
 import java.util.Iterator;
 import java.util.prefs.Preferences;
@@ -132,6 +134,19 @@ public class DRC extends Tool
 		}
 	}
 
+	public static class NodeSizeRule
+	{
+		public double sizeX, sizeY;
+		public String rule;
+
+		NodeSizeRule(double sizeX, double sizeY, String rule)
+		{
+			this.sizeX = sizeX;
+			this.sizeY = sizeY;
+			this.rule = rule;
+		}
+	}
+
 	private Preferences prefs = Preferences.userNodeForPackage(getClass());
 	/** Cached rules for a specific technology. */		private static Rules currentRules = null;
 	/** The Technology whose rules are cached. */		private static Technology currentTechnology = null;
@@ -159,7 +174,28 @@ public class DRC extends Tool
 	{
 		Cell curCell = Library.needCurCell();
 		if (curCell == null) return;
-		DRCQuick.dr_quickcheck(curCell, 0, null, null, false);
+        CheckHierarchically job = new CheckHierarchically(curCell);
+	}
+
+	protected static class CheckHierarchically extends Job
+	{
+		Cell cell;
+
+		protected CheckHierarchically(Cell cell)
+		{
+			super("Design-Rule Check", tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+			this.cell = cell;
+			this.startJob();
+		}
+
+		public void doIt()
+		{
+			long startTime = System.currentTimeMillis();
+			DRCQuick.doCheck(cell, 0, null, null, false);
+			long endTime = System.currentTimeMillis();
+			int errorcount = ErrorLog.numErrors();
+			System.out.println(errorcount + " errors found (took " + Job.getElapsedTime(endTime - startTime) + ")");
+		}
 	}
 
 	/**
@@ -342,6 +378,20 @@ public class DRC extends Tool
 		return new Rule(dist, currentRules.minWidthRules[index]);
 	}
 
+	/**
+	 * Method to get the minimum size rule for a NodeProto.
+	 * @param np the NodeProto to examine.
+	 * @return the minimum size rule for the NodeProto.
+	 * Returns null if there is no minimum size rule.
+	 */
+	public static NodeSizeRule getMinSize(NodeProto np)
+	{
+		if (np instanceof Cell) return null;
+		PrimitiveNode pnp = (PrimitiveNode)np;
+		if (pnp.getMinWidth() < 0 && pnp.getMinHeight() < 0) return null;
+		return new NodeSizeRule(pnp.getMinWidth(), pnp.getMinHeight(), pnp.getMinSizeRule());
+	}
+ 
 	/****************************** SUPPORT FOR DESIGN RULES ******************************/
 
 	/**

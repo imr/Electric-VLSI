@@ -206,12 +206,14 @@ public class Layer
 	private String skillLayer;
 	private double thickness, height;
 	private double resistance, capacitance, edgeCapacitance;
+	private Layer nonPseudoLayer;
 
 	private Layer(String name, Technology tech, EGraphics graphics)
 	{
 		this.name = name;
 		this.tech = tech;
 		this.graphics = graphics;
+		this.nonPseudoLayer = this;
 	}
 
 	/**
@@ -295,6 +297,31 @@ public class Layer
 	 * @return the Function extras of this Layer.
 	 */
 	public int getFunctionExtras() { return functionExtras; }
+
+	/**
+	 * Method to tell whether this layer function is non-electrical.
+	 * Non-electrical layers do not carry any signal (for example, artwork, text).
+	 * @return true if this layer function is non-electrical.
+	 */
+	public boolean isNonElectrical()
+	{
+		return (functionExtras&Function.NONELEC) != 0;
+	}
+
+	/**
+	 * Method to return the non-pseudo layer associated with this pseudo-Layer.
+	 * Pseudo layers are those used in pins, and have no real geometry.
+	 * @return the non-pseudo layer associated with this pseudo-Layer.
+	 * If this layer is already not pseudo, this layer is returned.
+	 */
+	public Layer getNonPseudoLayer() { return nonPseudoLayer; }
+
+	/**
+	 * Method to set the non-pseudo layer associated with this pseudo-Layer.
+	 * Pseudo layers are those used in pins, and have no real geometry.
+	 * @param nonPseudoLayer the non-pseudo layer associated with this pseudo-Layer.
+	 */
+	public void setNonPseudoLayer(Layer nonPseudoLayer) { this.nonPseudoLayer = nonPseudoLayer; }
 
 	/**
 	 * Method to set the 3D height and thickness of this Layer.
