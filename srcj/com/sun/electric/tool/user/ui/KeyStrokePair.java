@@ -111,6 +111,8 @@ public class KeyStrokePair {
     }
 
     public static KeyStroke stringToKeyStroke(String str) {
+        // change NUMPAD-# to NUMPAD#
+        str = str.replaceAll("NumPad\\-", "NUMPAD");
         return KeyStroke.getKeyStroke(str);
     }
 
