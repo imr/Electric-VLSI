@@ -361,20 +361,19 @@ public class PrimitivePort implements PortProto, Comparable
 	}
 
     /**
-     * Compares PrimtivePorts by their PrimitiveNodes and names.
+     * Compares PrimtivePorts by their PrimitiveNodes and definition order.
      * @param obj the other PrimitivePort.
      * @return a comparison between the PrimitivePorts.
      */
 	public int compareTo(Object obj)
 	{
 		PrimitivePort that = (PrimitivePort)obj;
-		if (parent != that.parent)
+		if (this.parent != that.parent)
 		{
-			int cmp = parent.compareTo(that.parent);
+			int cmp = this.parent.compareTo(that.parent);
 			if (cmp != 0) return cmp;
 		}
-		return portIndex - that.portIndex;
-//		return TextUtils.nameSameNumeric(getName(), that.getName());
+		return this.portIndex - that.portIndex;
 	}
 
 	/**

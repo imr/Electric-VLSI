@@ -186,36 +186,40 @@ public class JELIB extends Output
 		}
 
 		// write technology information
+		boolean technologyHeaderPrinted = false;
 		for (Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			if (!externalObjs.contains(tech) && Pref.getMeaningVariables(tech).size() == 0)
 				continue;
-
-			printWriter.println();
-			printWriter.println("# Technology " + tech.getTechName());
+			if (!technologyHeaderPrinted)
+			{
+				printWriter.println();
+				printWriter.println("# Technologies:");
+				technologyHeaderPrinted = true;
+			}
 			printWriter.print("T" + convertString(tech.getTechName()));
 			printlnMeaningPrefs(tech);
 
-			for(Iterator nIt = tech.getNodes(); nIt.hasNext(); )
-			{
-				PrimitiveNode pn = (PrimitiveNode)nIt.next();
-				if (!externalObjs.contains(pn)) continue;
+// 			for(Iterator nIt = tech.getNodes(); nIt.hasNext(); )
+// 			{
+// 				PrimitiveNode pn = (PrimitiveNode)nIt.next();
+// 				if (!externalObjs.contains(pn)) continue;
 
-				printWriter.println("D" + convertString(pn.getName()));
-				for(Iterator pIt = pn.getPorts(); pIt.hasNext(); )
-				{
-					PrimitivePort pp = (PrimitivePort)pIt.next();
-					if (!externalObjs.contains(pp)) continue;
-					printWriter.println("P" + convertString(pp.getName()));
-				}
-			}
-			for(Iterator aIt = tech.getArcs(); aIt.hasNext(); )
-			{
-				ArcProto ap = (ArcProto)aIt.next();
-				if (!externalObjs.contains(ap)) continue;
-				printWriter.println("W" + convertString(ap.getName()));
-			}
+// 				printWriter.println("D" + convertString(pn.getName()));
+// 				for(Iterator pIt = pn.getPorts(); pIt.hasNext(); )
+// 				{
+// 					PrimitivePort pp = (PrimitivePort)pIt.next();
+// 					if (!externalObjs.contains(pp)) continue;
+// 					printWriter.println("P" + convertString(pp.getName()));
+// 				}
+// 			}
+// 			for(Iterator aIt = tech.getArcs(); aIt.hasNext(); )
+// 			{
+// 				ArcProto ap = (ArcProto)aIt.next();
+// 				if (!externalObjs.contains(ap)) continue;
+// 				printWriter.println("W" + convertString(ap.getName()));
+// 			}
 		}
 
 		// write the cells of the database

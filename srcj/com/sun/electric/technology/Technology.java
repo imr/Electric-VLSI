@@ -66,6 +66,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.prefs.Preferences;
@@ -511,8 +512,8 @@ public class Technology implements Comparable
 	/** the color map for this technology */				private Color [] colorMap;
 	/** list of layers in this technology */				private List layers;
 	/** count of layers in this technology */				private int layerIndex = 0;
-	/** list of primitive nodes in this technology */		private TreeMap nodes = new TreeMap();
-	/** list of arcs in this technology */					private TreeMap arcs = new TreeMap();
+	/** list of primitive nodes in this technology */		private LinkedHashMap nodes = new LinkedHashMap();
+	/** list of arcs in this technology */					private LinkedHashMap arcs = new LinkedHashMap();
 	/** list of NodeLayers in this Technology. */			private List nodeLayers;
 	/** minimum resistance in this Technology. */			private double minResistance;
 	/** minimum capacitance in this Technology. */			private double minCapacitance;
@@ -966,6 +967,7 @@ public class Technology implements Comparable
 	public void addArcProto(PrimitiveArc ap)
 	{
 		assert findArcProto(ap.getName()) == null;
+		ap.primArcIndex = arcs.size();
 		arcs.put(ap.getName(), ap);
 	}
 
@@ -1189,10 +1191,13 @@ public class Technology implements Comparable
 	 */
 	public List getNodesSortedByName()
 	{
-		List sortedList = new ArrayList();
+		TreeMap sortedMap = new TreeMap(TextUtils.STRING_NUMBER_ORDER);
 		for(Iterator it = getNodes(); it.hasNext(); )
-			sortedList.add(it.next());
-		return sortedList;
+		{
+			PrimitiveNode pn = (PrimitiveNode)it.next();
+			sortedMap.put(pn.getName(), pn);
+		}
+		return new ArrayList(sortedMap.values());
 	}
 
 	/**

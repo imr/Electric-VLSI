@@ -83,6 +83,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Random;
+import java.util.TreeSet;
 
 /**
  * Class to handle the commands in the debugging pulldown menus.
@@ -1174,6 +1175,9 @@ public class DebugMenus {
 		objs = new int[96];
 		vobjs = new int[96];
 		vcnt = new int[96];
+		
+		TreeSet nodeNames = new TreeSet();
+		TreeSet arcNames = new TreeSet();
 
 		for (Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
 		{
@@ -1184,11 +1188,16 @@ public class DebugMenus {
 			{
 				Cell cell = (Cell)cIt.next();
 				countVars('C', cell);
+				TreeSet cellNodes = new TreeSet();
+				TreeSet cellArcs = new TreeSet();
 
 				for (Iterator nIt = cell.getNodes(); nIt.hasNext(); )
 				{
 					NodeInst ni = (NodeInst)nIt.next();
 					countVars('N', ni);
+					if (cellNodes.contains(ni.getName()))
+						System.out.println(cell + " has duplicate node " + ni.getName());
+					cellNodes.add(ni.getName());
 					
 					for (Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
 					{
@@ -1201,6 +1210,9 @@ public class DebugMenus {
 				{
 					ArcInst ai = (ArcInst)aIt.next();
 					countVars('A', ai);
+					if (cellArcs.contains(ai.getName()))
+						System.out.println(cell + " has duplicate arc " + ai.getName());
+					cellArcs.add(ai.getName());
 				}
 
 				for (Iterator eIt = cell.getPorts(); eIt.hasNext(); )
@@ -1208,6 +1220,8 @@ public class DebugMenus {
 					Export e = (Export)eIt.next();
 					countVars('E', e);
 				}
+				nodeNames.addAll(cellNodes);
+				arcNames.addAll(cellArcs);
 			}
 		}
 
@@ -1221,14 +1235,19 @@ public class DebugMenus {
 			c += vcnt[i];
 		}
 		System.out.println(o + " " + v + " " + c);
+		System.out.println(nodeNames.size() + " nodes");
+		System.out.println(arcNames.size() + " arcs");
 /*
 loco
-A 192701 1657 1657
-C 2109 1875 3512
-E 37780 189 283
-H 44 42 47
-N 113382 4714 22717
-P 392610 0 0
+A 192665 1657 1657
+C 2106 1872 3509
+E 37765 189 283
+H 43 42 47
+N 113337 4713 22715
+P 392542 0 0
+738458 8473 28211
+12604 nodes
+10925 arcs
 qFour
 A 336551 2504 2504
 C 3370 3161 4898

@@ -51,6 +51,7 @@ public class PrimitiveArc extends ArcProto implements Comparable
 
 	/** Layers in this arc */							private Technology.ArcLayer [] layers;
 	/** Full name */									private String fullName;
+	/** Index of this PrimitiveArc. */					int primArcIndex;
 
 	// ----------------- protected and private methods -------------------------
 
@@ -240,19 +241,19 @@ public class PrimitiveArc extends ArcProto implements Comparable
 	public String getFullName() { return fullName; }
 
     /**
-     * Compares PrimtiveArc by their Technologies and names.
+     * Compares PrimtiveArc by their Technologies and definition order.
      * @param obj the other PrimitiveArc.
      * @return a comparison between the PrimitiveArc.
      */
 	public int compareTo(Object obj)
 	{
 		PrimitiveArc that = (PrimitiveArc)obj;
-		if (tech != that.tech)
+		if (this.tech != that.tech)
 		{
-			int cmp = tech.compareTo(that.tech);
+			int cmp = this.tech.compareTo(that.tech);
 			if (cmp != 0) return cmp;
 		}
-		return TextUtils.nameSameNumeric(protoName, that.protoName);
+		return this.primArcIndex - that.primArcIndex;
 	}
 
 	/**

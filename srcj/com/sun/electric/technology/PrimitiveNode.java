@@ -1304,26 +1304,26 @@ public class PrimitiveNode implements NodeProto, Comparable
 	    return (layer.getFunction().isImplant());
 	}
 
-	/**
-	 * Method to get the index of this PrimitiveNode.
-	 * @return the index of this PrimitiveNode.
-	 */
-	public final int getPrimNodeIndex() { return primNodeIndex; }
+// 	/**
+// 	 * Method to get the index of this PrimitiveNode.
+// 	 * @return the index of this PrimitiveNode.
+// 	 */
+// 	public final int getPrimNodeIndex() { return primNodeIndex; }
 
     /**
-     * Compares PrimtiveNodes by their Technologies and names.
+     * Compares PrimtiveNodes by their Technologies and definition order.
      * @param obj the other PrimitiveNode.
      * @return a comparison between the PrimitiveNodes.
      */
 	public int compareTo(Object obj)
 	{
 		PrimitiveNode that = (PrimitiveNode)obj;
-		if (tech != that.tech)
+		if (this.tech != that.tech)
 		{
-			int cmp = tech.compareTo(that.tech);
+			int cmp = this.tech.compareTo(that.tech);
 			if (cmp != 0) return cmp;
 		}
-		return TextUtils.nameSameNumeric(protoName, that.protoName);
+		return this.primNodeIndex - that.primNodeIndex;
 	}
 
 	/**
