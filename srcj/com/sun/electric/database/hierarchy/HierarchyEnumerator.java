@@ -79,7 +79,8 @@ public final class HierarchyEnumerator {
 			this.context = context;
 			this.sep = sep;
 		}
-		abstract String leafName();
+		abstract public String leafName();
+		abstract public Cell leafCell();
 		public VarContext getContext() {return context;}
 		public String toString() {
 			return makePath(context, sep) + leafName();		
@@ -100,15 +101,18 @@ public final class HierarchyEnumerator {
 			super(context, sep);
 			this.net = net;
 		}
+		public Cell leafCell() {return net.getParent();}
         public Network getNet() { return net; }
 	}
 	public static class NodableNameProxy extends NameProxy {
-		private Nodable node;
-		public String leafName() {return node.getName();}
+		private Nodable nodable;
+		public String leafName() {return nodable.getName();}
 		public NodableNameProxy(VarContext context, String sep, Nodable node) {
 			super(context, sep);
-			this.node = node;
+			this.nodable = node;
 		}
+		public Cell leafCell() {return nodable.getParent();}
+		public Nodable getNodable() {return nodable;}
 	}
 	// --------------------- private data ------------------------------
 	private Visitor visitor;

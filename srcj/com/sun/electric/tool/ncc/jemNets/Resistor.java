@@ -65,7 +65,7 @@ public class Resistor extends Part {
 
 	public boolean isThisGate(int x){return false;}
     public int[] getTermCoefs(){return TERM_COEFFS;}
-	public String valueString(){
+	public String valueDescription(){
 		String sz= "R= " + resistance;
 		return sz;
 	}
@@ -119,13 +119,13 @@ public class Resistor extends Part {
 
     public String typeString() {return "Resistor";}
 
-    public String connectionString(int n){
+    public String connectionDescription(int n){
 		String s = pins[0].getName();
 		String e = pins[1].getName();
 		return ("S= " + s + " E= " + e);
     }
     
-    public String connectionString(Wire w) {
+    public String connectionDescription(Wire w) {
     	String s = "";
     	for (int i=0; i<pins.length; i++) {
     		if (pins[i]!=w) continue;

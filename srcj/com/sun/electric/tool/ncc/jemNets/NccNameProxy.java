@@ -25,6 +25,7 @@ package com.sun.electric.tool.ncc.jemNets;
 
 import java.util.Iterator;
 
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NameProxy;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NetNameProxy;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NodableNameProxy;
@@ -51,6 +52,11 @@ public abstract class NccNameProxy {
 	}
 	public boolean nameIsInTopContext() {
 		return nameProxy().getContext()==VarContext.globalContext;
+	}
+	public Cell leafCell() {return nameProxy().leafCell();}
+	public String leafName() {return nameProxy().leafName();}
+	public String cellInstPath() {
+		return nameProxy().getContext().getInstPath("/");
 	}
 
 	public static class PartNameProxy extends NccNameProxy {

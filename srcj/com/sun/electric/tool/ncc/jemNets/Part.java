@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.jemNets;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.ncc.jemNets.NccNameProxy.PartNameProxy;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -91,37 +92,6 @@ public abstract class Part extends NetObject {
 	 */
 	public abstract Integer hashCodeForParallelMerge();
 	
-	/** 
-	 * A method to disconnect a Wire from this Part
-	 * @param w the Wire to disconnect
-	 * @return true if the Wire was disconnected, false if not
-	 * found on this Part
-	 */
-//	public boolean disconnect(Wire w){
-//		boolean found= false;
-//		for(int i=0; i<pins.length; i++){
-//			Wire ww= pins[i];
-//			if(ww == w){
-//				pins[i] = null;
-//				found= true;
-//			}
-//		}
-//		return found;
-//    }
-	
-	/** 
-	 * deleteMe disconnects this Part from its wires and removes it
-	 * from its circuit.  The Part is garbage and gone from any
-	 * further consideration.
-	 */
-//    public void deleteMe(){
-//		for (int i=0; i<pins.length; i++) {
-//			Wire w = pins[i];
-//			w.disconnect(this);
-//		}
-//		Circuit parent= (Circuit)getParent();
-//		parent.remove(this);
-//    }
     /** Mark this Part deleted and release all storage */
     public void setDeleted() {pins=DELETED;}
     public boolean isDeleted() {return pins==DELETED;}
@@ -221,16 +191,23 @@ public abstract class Part extends NetObject {
 		return wires.size();
 	}
 	
-    /** returns the part type followed by the instance name */
-    public String nameString() {return typeString()+" "+getName();}
+    /** @return a String containing the part type, the Cell containing the part, 
+     * and the instance name */
+    public String instanceDescription() {
+    	// Don't print "Cell instance:" in root Cell where there is no path.
+    	String inst = nameProxy.cellInstPath();
+    	String instMsg = inst.equals("") ? "" : (" Cell instance: "+inst); 
+    	return typeString()+" "+nameProxy.leafName()+" in Cell: "+
+		       nameProxy.leafCell().libDescribe()+instMsg;
+    }
     
 	/** Report the numeric values of this Part,
 	 * for example: width, length, resistance.
 	 * @return a String describing the Part's numeric values.*/
-	public abstract String valueString();
+	public abstract String valueDescription();
 
 	/** comma separated list of pins connected to w */
-	public abstract String connectionString(Wire w);
+	public abstract String connectionDescription(Wire w);
 
 }
 

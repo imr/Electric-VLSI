@@ -86,7 +86,7 @@ public class StratPrint extends Strategy {
 		for (Iterator it=j.getNetObjs(); it.hasNext();) {
 			NetObject n= (NetObject) it.next();
 			codeToNetObjs.put(CODE_NO_CHANGE, n);
-			/*if (count<MAX_LINES) */globals.status2(n.toString());
+			/*if (count<MAX_LINES) */globals.status2(n.fullDescription());
 			count++;
 		}
 		return codeToNetObjs;

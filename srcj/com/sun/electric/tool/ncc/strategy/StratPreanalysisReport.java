@@ -61,7 +61,7 @@ public class StratPreanalysisReport extends Strategy {
 		for (Iterator it=ckt.getNetObjs(); it.hasNext(); numPrint++) {
 			if (numPrint>maxPrint)  break;
 			NetObject o = (NetObject) it.next();
-			prln("        "+o.toString());
+			prln("        "+o.fullDescription());
 		}
 	}
 	

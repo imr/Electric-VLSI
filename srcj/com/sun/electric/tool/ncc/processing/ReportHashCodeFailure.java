@@ -92,7 +92,7 @@ public class ReportHashCodeFailure {
 		}
 
 		public Integer doFor(NetObject n){
-			prln("        "+n.toString());
+			prln("        "+n.fullDescription());
 			return CODE_NO_CHANGE;
 		}
     
@@ -150,7 +150,7 @@ public class ReportHashCodeFailure {
 		public HashMap doFor(Circuit c) {return super.doFor(c);}
 
 		public Integer doFor(NetObject n) {
-			prln("      "+n.toString());
+			prln("      "+n.fullDescription());
 			return CODE_NO_CHANGE;
 		}
     

@@ -386,10 +386,10 @@ public class StdCellParams {
 		NodeInst dFill = LayoutLib.newNodeInst(diffNode, thisX-dist/2, mosY, 
 											   dist, diffWid, 0, f);
 		double contY = LayoutLib.roundCenterY(thisPort); // contact is always on grid
-		LayoutLib.newArcInst(diffArc, DEF_SIZE, thisPort, thisX, mosY,
+		LayoutLib.newArcInst(diffArc, DEF_SIZE, thisPort, thisX, contY,
 							 dFill.getOnlyPortInst(), 
 							 LayoutLib.roundCenterX(dFill.getOnlyPortInst()), 
-							 mosY);
+							 contY);
 		addSelAroundDiff(dFill);
 
 		// Never place wide arcs directly onto the FoldedMos

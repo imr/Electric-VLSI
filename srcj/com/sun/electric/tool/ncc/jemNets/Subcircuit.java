@@ -55,7 +55,7 @@ public class Subcircuit extends Part {
 	
 	private String getPortName(int i) {return subcircuitInfo.getPortName(i);}
 	
-	public String valueString() {return "";}
+	public String valueDescription() {return "";}
 	public int[] getTermCoefs() {return termCoeffs;}
 	public boolean parallelMerge(Part p) {return false;}
 	
@@ -91,7 +91,7 @@ public class Subcircuit extends Part {
 		}
 		return types;
 	}
-	public String connectionString(Wire w) {
+	public String connectionDescription(Wire w) {
 		String msg = "";
 		for (int i=0; i<pins.length; i++) {
 			if (pins[i]==w) {
@@ -101,7 +101,7 @@ public class Subcircuit extends Part {
 		}
 		return msg; 
 	}
-	public String connectionString(int maxCon) {
+	public String connectionDescription(int maxCon) {
 		String msg = "";
 		for (int i=0; i<maxCon && i<pins.length; i++) {
 			if (msg.length()!=0) msg += " ";

@@ -79,17 +79,23 @@ public abstract class NetObject {
 	public void setParent(Circuit x){myParent=x;}
 
 	public abstract boolean isDeleted(); 
-
-    public abstract String nameString();
-    public abstract String valueString();
-    public abstract String connectionString(int maxConn);
-
-	public String toString() {
+	
+	/** human readable identification of instance */
+	public abstract String instanceDescription();
+	/** human readable enumeration of sizes and other values */
+    public abstract String valueDescription();
+    /** human readable description of things connected this NetObject */
+    public abstract String connectionDescription(int maxConn);
+    public String toString() {
+    	LayoutLib.error(true, "Please call fullDescription() instead");
+    	return "";
+    }
+	public String fullDescription() {
 		StringBuffer sb = new StringBuffer();
-		sb.append(nameString());
-		String v = valueString();
+		sb.append(instanceDescription());
+		String v = valueDescription();
 		if (!v.equals("")) sb.append(" "+v);
-		String c = connectionString(MAX_CONN);
+		String c = connectionDescription(MAX_CONN);
 		if (!c.equals(" ")) sb.append(" "+c);
 		return sb.toString();
 	}

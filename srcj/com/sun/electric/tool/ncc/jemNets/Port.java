@@ -110,10 +110,10 @@ public class Port extends NetObject {
 
 	public void checkMe(Circuit parent){
 		error(parent!=getParent(), "wrong parent");
-		error(wire==null, nameString() + " has null connection");
+		error(wire==null, instanceDescription() + " has null connection");
 		error(!wire.touches(this),
-			  nameString()+" has inconsistant connection to " + 
-			  wire.nameString());
+			  instanceDescription()+" has inconsistant connection to " + 
+			  wire.instanceDescription());
 	}
 	public String exportNamesString() {
 		StringBuffer sb = new StringBuffer();
@@ -131,8 +131,8 @@ public class Port extends NetObject {
 	public void setToBeRenamed() {toBeRenamed = true;}
 	public boolean getToBeRenamed() {return toBeRenamed;}
 
-	public String nameString() {return "Port "+exportNamesString();}
-	public String valueString() {return "";}
-    public String connectionString(int n){return "is on Wire: "+wire.getName();}
+	public String instanceDescription() {return "Port "+exportNamesString();}
+	public String valueDescription() {return "";}
+    public String connectionDescription(int n){return "is on Wire: "+wire.getName();}
 }
 

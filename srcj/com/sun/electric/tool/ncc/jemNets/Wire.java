@@ -118,15 +118,21 @@ public class Wire extends NetObject{
 	 * @return an int with the number of connections */
     public int numParts(){return parts.size();}
     
-    /** Get an identifying String for NetObject. */
-    public String nameString() {return ("Wire " + getName());}
+    /** @return a String describing Cell containing wire and instance path */
+    public String instanceDescription() {
+    	// Don't print "Cell instance:" in root Cell where there is no path.
+    	String inst = nameProxy.cellInstPath();
+    	String instMsg = inst.equals("") ? "" : (" Cell instance: "+inst); 
+    	return "Wire: "+nameProxy.leafName()+" in Cell: "+
+		       nameProxy.leafCell().libDescribe()+instMsg;
+    }
     
-    public String valueString() {return "";}
+    public String valueDescription() {return "";}
 
     /** Get a String indicating up to N connections for this NetObject.
 	 * @param n the maximum number of connections to list
 	 * @return a String of connections. */
-    public String connectionString(int maxParts){
+    public String connectionDescription(int maxParts){
         if (parts.size()==0) return (" unconnected");
         String s = " connected to";
 		if (numParts()>maxParts)  s+=" "+parts.size() + " parts starting with";
@@ -135,8 +141,8 @@ public class Wire extends NetObject{
 		int i=0;
         for (Iterator it=getParts(); it.hasNext() && i<maxParts; i++){
             Part p = (Part)it.next();
-            String cc = p.nameString();
-            s= s + " (" + cc + " " + p.connectionString(this)+") ";
+            String cc = p.instanceDescription();
+            s += " (" + cc + " Port: " + p.connectionDescription(this)+") ";
         }
         return s;
     }

@@ -94,10 +94,10 @@ public class StratPortName extends Strategy {
 			Wire w= (Wire)it.next();
 			Object oo= m.get(w);
 			if(oo == null){
-				globals.status2(" "+w.nameString() + " maps to null");
+				globals.status2(" "+w.instanceDescription() + " maps to null");
 			} else {
 				Integer i= (Integer)oo;
-				globals.status2(" "+w.nameString() + " maps to " + i.intValue());
+				globals.status2(" "+w.instanceDescription() + " maps to " + i.intValue());
 			}
 		}
 	}

@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ao: *********************************
 
+BUG: (11/14/04, RK) MoCMOS Gate generators were producing CIF resolution errors
+
+IMP: (11/14/04, RK) Improve NCC size mismatch error messages
+
 BUG: (11/13/04, RK) Reduce storage utilization of net equivalence feature
 
 ************************* Version 8.01an: *********************************

@@ -80,7 +80,7 @@ public class StratDebug extends Strategy {
 	 * 
 	 */
     public Integer doFor(NetObject n){
-		globals.status2("  "+n.toString());
+		globals.status2("  "+n.fullDescription());
         return CODE_NO_CHANGE;
     }
     

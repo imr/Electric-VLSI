@@ -330,11 +330,10 @@ public class Transistor extends Part {
 		return t+c+h;
 	}
 
-	public String nameString() {return typeString()+" "+getName();}
-	public String valueString(){
+	public String valueDescription(){
 		return "W=" + NccUtils.round(width,2) + " L=" + NccUtils.round(length, 2);
 	}
-	public String connectionString(int n) {
+	public String connectionDescription(int n) {
 		String msg="";
 		for (int i=0; i<pins.length; i++) {
 			if (i==0) {
@@ -353,7 +352,7 @@ public class Transistor extends Part {
 		return msg;
 	}
 	
-	public String connectionString(Wire w) {
+	public String connectionDescription(Wire w) {
 		String s = "";
 		for (int i=0; i<pins.length; i++) {
 			if (pins[i]!=w)  continue;

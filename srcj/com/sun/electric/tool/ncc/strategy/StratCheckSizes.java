@@ -63,8 +63,8 @@ public class StratCheckSizes extends Strategy {
 				" "+widLen()+"s don't match. "+
 				" relativeError="+NccUtils.round(relErr()*100,1)+"%"+
 				" absoluteError="+NccUtils.round(absErr(),2));
-			aln("      "+wl()+"="+NccUtils.round(min,2)+" for "+minMos.toString());
-			aln("      "+wl()+"="+NccUtils.round(max,2)+" for "+maxMos.toString());
+			aln("      "+wl()+"="+NccUtils.round(min,2)+" for "+minMos.fullDescription());
+			aln("      "+wl()+"="+NccUtils.round(max,2)+" for "+maxMos.fullDescription());
 			return sb.toString();
 		}
 	}
