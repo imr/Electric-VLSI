@@ -156,7 +156,7 @@ public class PolyMerge
 		return allLayers.keySet().iterator();
 	}
 
-	public Collection getObjects(Object layer, boolean modified)
+	public Collection getObjects(Object layer, boolean modified, boolean simple)
 	{
 		return (getMergedPoints((Layer)layer));
 	}

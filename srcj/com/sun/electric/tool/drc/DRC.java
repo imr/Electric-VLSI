@@ -153,7 +153,8 @@ public class DRC extends Listener
 		/** X contact cut surround rule */	public static final int CUTSURX =    18;
 		/** Y contact cut surround rule */	public static final int CUTSURY =    19;
 		/** arc surround rule */			public static final int ASURROUND = 20;
-		/** area rule */			        public static final int AREA = 21;
+		/** minimum area rule */			public static final int AREA = 21;
+		/** enclosed area rule */			public static final int ENCLOSEDAREA = 22;
 
 		public String rule;			/* the name of the rule */
 		public int when;				/* when the rule is used */

@@ -27,6 +27,8 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator;
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
@@ -38,6 +40,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -51,12 +54,7 @@ import com.sun.electric.Main;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Date;
+import java.util.*;
 
 /**
  * This is the "quick" DRC which does full hierarchical examination of the circuit.
@@ -100,6 +98,7 @@ public class Quick
 	private static final int BADLAYERERROR      = 5;
 	private static final int LAYERSURROUNDERROR = 6;
 	private static final int MINAREAERROR       = 7;
+	private static final int ENCLOSEDAREAERROR  = 8;
 
 	/**
 	 * The CheckInst object is associated with every cell instance in the library.
@@ -137,7 +136,8 @@ public class Quick
 	};
 	private HashMap checkProtos = null;
 	private HashMap networkLists = null;
-
+	private HashMap minAreaLayerMap = new HashMap();    // For minimum area checking
+	private HashMap enclosedAreaLayerMap = new HashMap();    // For enclosed area checking
 
 	/*
 	 * The CHECKSTATE object exists for each processor and has global information for that thread.
@@ -254,6 +254,21 @@ public class Quick
 
 		// determine maximum DRC interaction distance
 		worstInteractionDistance = DRC.getWorstSpacingDistance(tech);
+
+	    // determine if min area must be checked (if any layer got valid data)
+	    minAreaLayerMap.clear();
+	    for(Iterator it = tech.getLayers(); it.hasNext(); )
+	    {
+		    Layer layer = (Layer)it.next();
+
+		    // Storing min areas
+			DRC.Rule minAreaRule = DRC.getMinValue(layer, DRC.RuleTemplate.AREA);
+		    if (minAreaRule != null) minAreaLayerMap.put(layer, minAreaRule);
+
+		    // Storing enclosed areas
+		    DRC.Rule enclosedAreaRule = DRC.getMinValue(layer, DRC.RuleTemplate.ENCLOSEDAREA);
+		    if (enclosedAreaRule != null) enclosedAreaLayerMap.put(layer, enclosedAreaRule);
+	    }
 
 		// initialize all cells for hierarchical network numbering
 		checkProtos = new HashMap();
@@ -552,8 +567,16 @@ public class Quick
 		Technology tech = np.getTechnology();
 		AffineTransform trans = ni.rotateOut();
 
+		// Skipping Facet-Center ugly!
+		if (np instanceof PrimitiveNode && np == Generic.tech.cellCenterNode)
+			return false;
+
+		// Check the area first
+		boolean ret = checkMinArea(ni);
+		if (ret && onlyFirstError) return true;
+
 		// get all of the polygons on this node
-		NodeProto.Function fun = ni.getFunction();
+		//NodeProto.Function fun = ni.getFunction();
 		Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts);
 		convertPseudoLayers(ni, nodeInstPolyList);
 		int tot = nodeInstPolyList.length;
@@ -570,7 +593,8 @@ public class Quick
 
 			// determine network for this polygon
 			int netNumber = getDRCNetNumber(netlist, poly.getPort(), ni, globalIndex);
-			boolean ret = badBox(poly, layer, netNumber, tech, ni, trans, cell, globalIndex);
+
+			ret = badBox(poly, layer, netNumber, tech, ni, trans, cell, globalIndex);
 			if (ret)
 			{
 				if (onlyFirstError) return true;
@@ -582,16 +606,10 @@ public class Quick
 				if (onlyFirstError) return true;
 				errorsFound = true;
 			}
-			ret = checkMinArea(ni, layer, poly, tech);
-			if (ret)
-			{
-				if (onlyFirstError) return true;
-				errorsFound = true;
-			}
 			if (tech == layersValidTech && !layersValid[layer.getIndex()])
 			{
-				reportError(BADLAYERERROR, layersValidTech, null, cell, 0, 0, null,
-					poly, ni, layer, -1, null, null, null, -1);
+				reportError(BADLAYERERROR, null, cell, 0, 0, null,
+					poly, ni, layer, null, null, null);
 				if (onlyFirstError) return true;
 				errorsFound = true;
 			}
@@ -631,8 +649,8 @@ public class Quick
 					minSize = sizeRule.sizeY - so.getLowYOffset() - so.getHighYOffset();
 					actual = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
 				}
-				reportError(MINSIZEERROR, tech, null, cell, minSize, actual, sizeRule.rule,
-					null, ni, null, -1, null, null, null, -1);
+				reportError(MINSIZEERROR, null, cell, minSize, actual, sizeRule.rule,
+					null, ni, null, null, null, null);
 			}
 		}
 		return errorsFound;
@@ -677,16 +695,10 @@ public class Quick
 				if (onlyFirstError) return true;
 				errorsFound = true;
 			}
-			ret = checkMinArea(ai, layer, poly, tech);
-			if (ret)
-			{
-				if (onlyFirstError) return true;
-				errorsFound = true;
-			}
 			if (tech == layersValidTech && !layersValid[layerNum])
 			{
-				reportError(BADLAYERERROR, tech, null, ai.getParent(), 0, 0, null,
-					poly, ai, layer, 0, null, null, null, 0);
+				reportError(BADLAYERERROR, null, ai.getParent(), 0, 0, null,
+					poly, ai, layer, null, null, null);
 				if (onlyFirstError) return true;
 				errorsFound = true;
 			}
@@ -938,12 +950,6 @@ public class Quick
 			baseMulti = isMultiCut((NodeInst)geom);
 
 		// search in the area surrounding the box
-		/*
-		bounds.setRect(DBMath.round(bounds.getMinX()-bound),
-		        DBMath.round(bounds.getMinY()-bound),
-		        DBMath.round(bounds.getWidth()+bound*2),
-		        DBMath.round(bounds.getHeight()+bound*2));
-		*/
 		bounds.setRect(bounds.getMinX()-bound, bounds.getMinY()-bound, bounds.getWidth()+bound*2, bounds.getHeight()+bound*2);
 		return badBoxInArea(poly, layer, tech, net, geom, trans, globalIndex,
 			bounds, cell, globalIndex,
@@ -965,8 +971,7 @@ public class Quick
 	 * Returns TRUE if errors are found.
 	 */
 	private boolean badBoxInArea(Poly poly, Layer layer, Technology tech, int net, Geometric geom, AffineTransform trans,
-		int globalIndex,
-		Rectangle2D bounds, Cell cell, int cellGlobalIndex,
+		int globalIndex, Rectangle2D bounds, Cell cell, int cellGlobalIndex,
 		Cell topCell, int topGlobalIndex, AffineTransform topTrans, double minSize, boolean baseMulti,
 		boolean sameInstance)
 	{
@@ -974,7 +979,7 @@ public class Quick
 		rBound.setRect(bounds);
 		DBMath.transformRect(rBound, topTrans);
 		Netlist netlist = getCheckProto(cell).netlist;
-		//int count = 0;
+
 		for(Iterator it = cell.searchIterator(bounds); it.hasNext(); )
 		{
 			Geometric nGeom = (Geometric)it.next();
@@ -1262,9 +1267,9 @@ public class Quick
 									lyb -= minWidth/2;   hyb += minWidth/2;
 									Poly rebuild = new Poly((lxb+hxb)/2, (lyb+hyb)/2, hxb-lxb, hyb-lyb);
 									rebuild.setStyle(Poly.Type.FILLED);
-									reportError(MINWIDTHERROR, tech, null, cell, minWidth,
+									reportError(MINWIDTHERROR, null, cell, minWidth,
 										actual, sizeRule, rebuild,
-											geom1, layer1, -1, null, null, null, -1);
+											geom1, layer1, null, null, null);
 									return true;
 								}
 							} else
@@ -1280,9 +1285,9 @@ public class Quick
 									lxb -= minWidth/2;   hxb += minWidth/2;
 									Poly rebuild = new Poly((lxb+hxb)/2, (lyb+hyb)/2, hxb-lxb, hyb-lyb);
 									rebuild.setStyle(Poly.Type.FILLED);
-									reportError(MINWIDTHERROR, tech, null, cell, minWidth,
+									reportError(MINWIDTHERROR, null, cell, minWidth,
 										actual, sizeRule, rebuild,
-											geom1, layer1, -1, null, null, null, -1);
+											geom1, layer1, null, null, null);
 									return true;
 								}
 							}
@@ -1445,9 +1450,9 @@ public class Quick
 			}
 		}
 
-		reportError(errorType, tech, msg, cell, dist, pd, rule,
-			origPoly1, geom1, layer1, net1,
-			origPoly2, geom2, layer2, net2);
+		reportError(errorType, msg, cell, dist, pd, rule,
+			origPoly1, geom1, layer1,
+		        origPoly2, geom2, layer2);
 		return true;
 	}
 
@@ -1939,8 +1944,8 @@ public class Quick
 			if (lookForLayer(poly, cell, layer, DBMath.MATID, newBounds,
 				right1, right2, right3, pointsFound)) return false;
 
-			reportError(MINWIDTHERROR, tech, null, cell, minWidth, actual, minWidthRule.rule,
-				poly, geom, layer, -1, null, null, null, -1);
+			reportError(MINWIDTHERROR, null, cell, minWidth, actual, minWidthRule.rule,
+				poly, geom, layer, null, null, null);
 			return true;
 		}
 
@@ -1955,8 +1960,8 @@ public class Quick
 		double actual = Math.min(bounds.getWidth(), bounds.getHeight());
 		if (actual < minWidth)
 		{
-			reportError(MINWIDTHERROR, tech, null, cell, minWidth, actual, minWidthRule.rule,
-				poly, geom, layer, -1, null, null, null, -1);
+			reportError(MINWIDTHERROR, null, cell, minWidth, actual, minWidthRule.rule,
+				poly, geom, layer, null, null, null);
 			return true;
 		}
 
@@ -2009,12 +2014,12 @@ public class Quick
 					// look between the points to see if it is minimum width or notch
 					if (poly.isInside(new Point2D.Double((center.getX()+inter.getX())/2, (center.getY()+inter.getY())/2)))
 					{
-						reportError(MINWIDTHERROR, tech, null, cell, minWidth,
-							actual, minWidthRule.rule, poly, geom, layer, -1, null, null, null, -1);
+						reportError(MINWIDTHERROR, null, cell, minWidth,
+							actual, minWidthRule.rule, poly, geom, layer, null, null, null);
 					} else
 					{
-						reportError(NOTCHERROR, tech, null, cell, minWidth,
-							actual, minWidthRule.rule, poly, geom, layer, -1, poly, geom, layer, -1);
+						reportError(NOTCHERROR, null, cell, minWidth,
+							actual, minWidthRule.rule, poly, geom, layer, poly, geom, layer);
 					}
 					return true;
 				}
@@ -2027,25 +2032,73 @@ public class Quick
 	 * Method to ensure that polygon "poly" on layer "layer" from object "geom" in
 	 * technology "tech" meets minimum area rules. Returns true
 	 * if an error is found.
-	 * @param geom
-	 * @param layer
-	 * @param poly
-	 * @param tech
+	 * @param ni
 	 * @return
 	 */
-	private boolean checkMinArea(Geometric geom, Layer layer, Poly poly, Technology tech)
+	private boolean checkMinArea(NodeInst ni)
 	{
-		Cell cell = geom.getParent();
-		DRC.Rule minAreaRule = DRC.getMinValue(layer, DRC.RuleTemplate.AREA);
-		if (minAreaRule == null) return false;
-		double area = Math.abs(poly.getArea());
-		double actual = area - minAreaRule.value;
+		Cell cell = ni.getParent();
+		CheckProto cp = getCheckProto(cell);
+		NodeProto np = ni.getProto();
+		boolean errorFound = false;
 
-		if (actual >= 0) return false;
+		// Nothing to check
+		if (minAreaLayerMap.isEmpty() && enclosedAreaLayerMap.isEmpty())
+			return false;
 
-		reportError(MINAREAERROR, tech, null, cell, minAreaRule.value, area, minAreaRule.rule, poly, geom, layer, -1, null, null, null, -1);
+		if (!(np instanceof PrimitiveNode)) return false;
 
-		return true;
+		PrimitiveNode pNp = (PrimitiveNode)np;
+
+		for(Iterator portIt = ni.getPortInsts(); portIt.hasNext(); )
+		{
+			PortInst pi = (PortInst)portIt.next();
+			JNetwork net = cp.netlist.getNetwork(pi);
+			if (net == null) continue;
+
+			// Get merged areas
+			QuickAreaEnumerator quickArea = new QuickAreaEnumerator(net);
+			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, cp.netlist, quickArea);
+
+			for(Iterator it = pNp.layerIterator(); it.hasNext(); )
+			{
+				Layer layer = (Layer)it.next();
+				DRC.Rule minAreaRule = (DRC.Rule)minAreaLayerMap.get(layer);
+				DRC.Rule encloseAreaRule = (DRC.Rule)enclosedAreaLayerMap.get(layer);
+
+				// Layer doesn't have min area
+				if (minAreaRule == null && encloseAreaRule == null) continue;
+
+				Collection set = quickArea.netMerge.getObjects(layer, false, false);
+
+				for(Iterator pIt = set.iterator(); pIt.hasNext(); )
+				{
+					PolyQTree.PolyNode pn = (PolyQTree.PolyNode)pIt.next();
+					Object[] polyArray = pn.getSimpleObjects().toArray();
+
+					// Looping over simple polygons. Possible problems with disconnected elements
+					for (int i = 0; i < polyArray.length; i++)
+					{
+						PolyQTree.PolyNode simplePn = (PolyQTree.PolyNode)polyArray[i];
+						double area = simplePn.getArea();
+						DRC.Rule minRule = (i%2 == 0) ? minAreaRule : encloseAreaRule;  // Even is enclosed area
+
+						if (minRule == null) continue;
+
+						double actual = area - minRule.value;
+
+						if (actual >= 0) continue;
+
+						errorFound = true;
+						int errorType = (i%2==0) ? MINAREAERROR : ENCLOSEDAREAERROR;
+						reportError(errorType, null, cell, minRule.value, area, minRule.rule,
+								new Poly(simplePn.getPoints()), ni, layer, null, null, null);
+					}
+				}
+			}
+		}
+
+		return errorFound;
 	}
 
 	/**
@@ -3005,10 +3058,10 @@ public class Quick
 	/*********************************** QUICK DRC ERROR REPORTING ***********************************/
 
 	/* Adds details about an error to the error list */
-	private void reportError(int errorType, Technology tech, String msg,
-		Cell cell, double limit, double actual, String rule,
-		Poly poly1, Geometric geom1, Layer layer1, int net1,
-		Poly poly2, Geometric geom2, Layer layer2, int net2)
+	private void reportError(int errorType, String msg,
+	                         Cell cell, double limit, double actual, String rule,
+	                         Poly poly1, Geometric geom1, Layer layer1,
+	                         Poly poly2, Geometric geom2, Layer layer2)
 	{
 		if (errorLogger == null) return;
 //		// if this error is being ignored, don't record it
@@ -3111,6 +3164,10 @@ public class Quick
 					errorMessage += "Minimum area error:";
 					errorMessagePart2 = " LESS THAN " + TextUtils.formatDouble(limit) + " IN AREA (IS " + TextUtils.formatDouble(actual) + ")";
 					break;
+				case ENCLOSEDAREAERROR:
+					errorMessage += "Enclosed area error:";
+					errorMessagePart2 = " LESS THAN " + TextUtils.formatDouble(limit) + " IN AREA (IS " + TextUtils.formatDouble(actual) + ")";
+					break;
 				case MINWIDTHERROR:
 					errorMessage += "Minimum width error:";
 					errorMessagePart2 = ", layer " + layer1.getName();
@@ -3150,4 +3207,92 @@ public class Quick
 		if (geom2 != null) err.addGeom(geom2, showGeom, cell, null);
 	}
 
+	// Extra functions to check area
+	private class QuickAreaEnumerator extends HierarchyEnumerator.Visitor
+    {
+		private JNetwork jNet;
+		private GeometryHandler netMerge;
+        private int netID;
+
+		public QuickAreaEnumerator(JNetwork jnet)
+		{
+			this.jNet = jnet;
+		}
+		public boolean enterCell(HierarchyEnumerator.CellInfo info)
+		{
+			if (netMerge == null)
+				netMerge = new PolyQTree(info.getCell().getBounds());
+
+            netID = info.getNetID(jNet);
+
+			// Check Arcs too
+			for(Iterator it = info.getCell().getArcs(); it.hasNext(); )
+			{
+				ArcInst ai = (ArcInst)it.next();
+				Technology tech = ai.getProto().getTechnology();
+				JNetwork aNet = info.getNetlist().getNetwork(ai, 0);
+
+				if (aNet != jNet) continue; // no same net
+
+				Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
+				int tot = arcInstPolyList.length;
+				for(int i=0; i<tot; i++)
+				{
+					Poly poly = arcInstPolyList[i];
+					Layer layer = poly.getLayer();
+
+					// No area associated
+					if (minAreaLayerMap.get(layer) == null && enclosedAreaLayerMap.get(layer) == null)
+						continue;
+					netMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()));
+				}
+			}
+			return true;
+		}
+		public void exitCell(HierarchyEnumerator.CellInfo info) {}
+		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
+		{
+			NodeInst ni = no.getNodeInst();
+			AffineTransform trans = ni.rotateOut();
+			NodeProto np = ni.getProto();
+
+			// Skipping cells. Flat analysis for now
+			if (!(np instanceof PrimitiveNode)) return (false);
+
+			PrimitiveNode pNp = (PrimitiveNode)np;
+			if (np instanceof PrimitiveNode && np == Generic.tech.cellCenterNode) return (false);
+
+			boolean found = false;
+			for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
+			{
+				PortInst pi = (PortInst)pIt.next();
+				PortProto subPP = pi.getPortProto();
+				JNetwork net = info.getNetlist().getNetwork(ni, subPP, 0);
+				if (net == jNet)
+				{
+					found = true;
+					break;
+				}
+			}
+			if (!found) return (false);
+
+			Technology tech = pNp.getTechnology();
+			Poly [] nodeInstPolyList = tech.getShapeOfNode(ni);
+			int tot = nodeInstPolyList.length;
+			for(int i=0; i<tot; i++)
+			{
+				Poly poly = nodeInstPolyList[i];
+				Layer layer = poly.getLayer();
+
+				// No area associated
+				if (minAreaLayerMap.get(layer) == null && enclosedAreaLayerMap.get(layer) == null)
+					continue;
+
+				poly.transform(trans);
+				netMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()));
+			}
+
+            return true;
+		}
+    }
 }

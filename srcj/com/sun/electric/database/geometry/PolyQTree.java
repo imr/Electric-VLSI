@@ -83,16 +83,17 @@ public class PolyQTree
 	 * Retrieves list of leaf elements in the tree for a given layer
 	 * @param layer Layer under analysis
 	 * @param modified True if only the original elements should not be retrieved
+	 * @param simple True if simple elements should be retrieved
 	 * @return list of leaf elements
 	 */
-	public Collection getObjects(Object layer, boolean modified)
+	public Collection getObjects(Object layer, boolean modified, boolean simple)
 	{
 		Set objSet = new HashSet();
 		PolyQNode root = (PolyQNode)layers.get(layer);
 
 		if (root != null)
 		{
-			root.getLeafObjects(objSet, modified);
+			root.getLeafObjects(objSet, modified, simple);
 		}
 		return (objSet);
 	}
@@ -119,11 +120,11 @@ public class PolyQTree
 		if (!done)
 			done = root.insert(rootBox, obj, areaBB);
 		//@TODO GVG Check this case
+		// Could be comming from big-cross poly!!
 		if (!done)
 			System.out.println("Repeated element?");
 	}
 
-	//public void insert(PolyQTree other, AffineTransform trans)
 	/**
 	 *  Merge two PolyQTree
 	 * @param subMerge
@@ -136,7 +137,7 @@ public class PolyQTree
 		for(Iterator it = other.layers.keySet().iterator(); it.hasNext();)
 		{
 			Object layer = it.next();
-			Set set = (Set)other.getObjects(layer, false);
+			Set set = (Set)other.getObjects(layer, false, false);
 
 			for(Iterator i = set.iterator(); i.hasNext(); )
 			{
@@ -324,6 +325,7 @@ public class PolyQTree
 
 			return (false);
 		}
+
 		/**
 		 * Calculates area
 		 * @return area associated to the node
@@ -376,13 +378,8 @@ public class PolyQTree
 
 		/**
 		 * Overwriting original for Area to consider touching polygons
-		 * @param p
+		 * @param a
 		 * @return
-		 */
-		/**
-		public boolean intersects(Rectangle2D p) {
-	return intersects(p.getX(), p.getY(), p.getWidth(), p.getHeight());
-		}
 		 */
 		public boolean intersects (Area a)
 		{
@@ -417,14 +414,16 @@ public class PolyQTree
 		{
 			original |= 1 << 0;
 		}
-		private Collection getSimpleObjects()
+		public Collection getSimpleObjects()
 		{
 			Set set = new HashSet();
+			/*
 			if (isRectangular())
 			{
 				set.add(this);
 			}
 			else
+			*/
 			{
 				// Possible not connected loops
 				double [] coords = new double[6];
@@ -521,8 +520,9 @@ public class PolyQTree
 		 * duplicate elements (qtree could sort same element in all quadrants
 		 * @param set
 		 * @param modified True if no original elements should be considered
+		 * @param simple True if simple elements should be retrieved
 		 */
-		protected void getLeafObjects(Set set, boolean modified)
+		protected void getLeafObjects(Set set, boolean modified, boolean simple)
 		{
 			if (nodes != null)
 			{
@@ -532,7 +532,7 @@ public class PolyQTree
 					PolyNode node = (PolyNode)it.next();
 					if (!modified || (modified && !node.isOriginal()))
 					{
-						if (node.isOriginal())
+						if (node.isOriginal() || !simple)
 							set.add(node);
 						else
 							set.addAll(node.getSimpleObjects());
@@ -542,7 +542,7 @@ public class PolyQTree
 			if (children == null) return;
 			for (int i = 0; i < PolyQTree.MAX_NUM_CHILDREN; i++)
 			{
-				if (children[i] != null) children[i].getLeafObjects(set, modified);
+				if (children[i] != null) children[i].getLeafObjects(set, modified, simple);
 			}
 
 		}

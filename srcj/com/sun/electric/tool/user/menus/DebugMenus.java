@@ -622,7 +622,7 @@ public class DebugMenus {
 			for(Iterator it = tree.getKeyIterator(); it.hasNext(); )
 			{
 				Layer layer = (Layer)it.next();
-				Collection set = tree.getObjects(layer, true);
+				Collection set = tree.getObjects(layer, true, true);
 
 				// Ready to create new implants.
 				for (Iterator i = set.iterator(); i.hasNext(); )

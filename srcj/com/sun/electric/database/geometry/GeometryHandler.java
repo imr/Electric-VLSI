@@ -26,5 +26,5 @@ public interface GeometryHandler {
 	public Iterator getKeyIterator();
 
 	// To retrieve leave elements from internal structure
-	public Collection getObjects(Object layer, boolean modified);
+	public Collection getObjects(Object layer, boolean modified, boolean simple);
 }

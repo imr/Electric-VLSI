@@ -670,7 +670,7 @@ public class ToolMenu {
 		for (Iterator it = tree.getKeyIterator(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
-			Collection set = tree.getObjects(layer, false);
+			Collection set = tree.getObjects(layer, false, true);
 			double layerArea = 0;
 			double perimeter = 0;
 
@@ -1112,7 +1112,7 @@ public class ToolMenu {
                         for (Iterator it = tree.getKeyIterator(); it.hasNext(); )
                         {
                             Layer layer = (Layer)it.next();
-                            Collection set = tree.getObjects(layer, false);
+                            Collection set = tree.getObjects(layer, false, true);
                             double layerArea = 0;
 
                             // Get all objects and sum the area
@@ -1144,7 +1144,7 @@ public class ToolMenu {
                         for(Iterator it = tree.getKeyIterator(); it.hasNext(); )
                         {
                             Layer layer = (Layer)it.next();
-                            Collection set = tree.getObjects(layer, !isMerge);
+                            Collection set = tree.getObjects(layer, !isMerge, true);
 
                             // Ready to create new implants.
                             for (Iterator i = set.iterator(); i.hasNext(); )
