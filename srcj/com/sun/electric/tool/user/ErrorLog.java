@@ -78,7 +78,8 @@ public class ErrorLog
 	private static final int ERRORTYPEGEOM      = 1;
 	private static final int ERRORTYPEEXPORT    = 2;
 	private static final int ERRORTYPELINE      = 3;
-	private static final int ERRORTYPEPOINT     = 4;
+	private static final int ERRORTYPETHICKLINE = 4;
+	private static final int ERRORTYPEPOINT     = 5;
 
 	static class ErrorHighlight
 	{
@@ -88,6 +89,7 @@ public class ErrorLog
 		boolean     showgeom;
 		double      x1, y1;
 		double      x2, y2;
+		double      cX, cY;
 		int         pathlen;
 		NodeInst [] path;
 
@@ -222,15 +224,25 @@ public class ErrorLog
 	/**
 	 * Method to add polygon "poly" to the error in "errorlist".
 	 */
-	public void addPoly(Poly poly)
+	public void addPoly(Poly poly, boolean thick)
 	{
 		Point2D [] points = poly.getPoints();
+		Point2D center = new Point2D.Double(poly.getCenterX(), poly.getCenterY());
 		for(int i=0; i<points.length; i++)
 		{
 			int prev = i-1;
 			if (i == 0) prev = points.length-1;
-			addLine(points[prev].getX(), points[prev].getY(),
-				points[i].getX(), points[i].getY());
+			ErrorHighlight eh = new ErrorHighlight();
+			if (thick) eh.type = ERRORTYPETHICKLINE; else
+				eh.type = ERRORTYPELINE;
+			eh.x1 = points[prev].getX();
+			eh.y1 = points[prev].getY();
+			eh.x2 = points[i].getX();
+			eh.y2 = points[i].getY();
+			eh.cX = center.getX();
+			eh.cY = center.getY();
+			eh.pathlen = 0;
+			highlights.add(eh);
 		}
 	}
 
@@ -490,6 +502,7 @@ public class ErrorLog
 		if (showhigh)
 		{
 			Highlight.clear();
+
 			// validate the cell (it may have been deleted)
 			if (cell != null)
 			{
@@ -540,6 +553,9 @@ public class ErrorLog
 						break;
 					case ERRORTYPELINE:
 						Highlight.addLine(new Point2D.Double(eh.x1, eh.y1), new Point2D.Double(eh.x2, eh.y2), cell);
+						break;
+					case ERRORTYPETHICKLINE:
+						Highlight.addThickLine(new Point2D.Double(eh.x1, eh.y1), new Point2D.Double(eh.x2, eh.y2), new Point2D.Double(eh.cX, eh.cY), cell);
 						break;
 					case ERRORTYPEPOINT:
 						double consize = 5;

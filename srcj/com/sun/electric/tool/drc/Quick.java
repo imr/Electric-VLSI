@@ -3020,8 +3020,8 @@ public class Quick
 
 		ErrorLog err = ErrorLog.logError(errorMessage, cell, sortLayer);
 		boolean showGeom = true;
-		if (poly1 != null) { showGeom = false;   err.addPoly(poly1); }
-		if (poly2 != null) { showGeom = false;   err.addPoly(poly2); }
+		if (poly1 != null) { showGeom = false;   err.addPoly(poly1, true); }
+		if (poly2 != null) { showGeom = false;   err.addPoly(poly2, true); }
 		err.addGeom(geom1, showGeom, 0, null);
 		if (geom2 != null) err.addGeom(geom2, showGeom, 0, null);
 	}

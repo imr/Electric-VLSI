@@ -1269,18 +1269,12 @@ public class Layout extends Constraints
 				double sX = ni.getXSize();
 				double sY = ni.getYSize();
 
-				// proceed only if the instance is not the same size as the current cell bounds
-//				if (sX != cellBounds.getWidth() || sY != cellBounds.getHeight())
-				{
-					AffineTransform trans = NodeInst.pureRotate(ni.getAngle(), ni.isXMirrored(), ni.isYMirrored());
-					Point2D off = new Point2D.Double(cellBounds.getCenterX() - oldCellBounds.getCenterX(),
-						cellBounds.getCenterY() - oldCellBounds.getCenterY());
-					trans.transform(off, off);
-					double dSX = EMath.smooth(cellBounds.getWidth() - ni.getXSize());
-					double dSY = EMath.smooth(cellBounds.getHeight() - ni.getYSize());
-					if (alterNodeInst(ni, 0, 0, dSX, dSY, 0, true)) forcedLook = true;
-				}
-			}
+				double dSX = EMath.smooth(cellBounds.getWidth() - ni.getXSize());
+				double dSY = EMath.smooth(cellBounds.getHeight() - ni.getYSize());
+				if (ni.isMirroredAboutYAxis()) dSX = -dSX;
+				if (ni.isMirroredAboutXAxis()) dSY = -dSY;
+				if (alterNodeInst(ni, 0, 0, dSX, dSY, 0, true)) forcedLook = true;
+			} 
 			for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
@@ -1421,17 +1415,13 @@ public class Layout extends Constraints
 				double dly = cellBounds.getMinY() - fly;   double dhy = cellBounds.getMaxY() - fhy;
 				double sX = ni.getXSize();
 				double sY = ni.getYSize();
-//				if (sX != cellBounds.getWidth() || sY != cellBounds.getHeight())
-				{
-					AffineTransform trans = NodeInst.pureRotate(ni.getAngle(), ni.isXMirrored(), ni.isYMirrored());
-					Point2D off = new Point2D.Double(cellBounds.getCenterX() - (flx+fhx)/2,
-						cellBounds.getCenterY() - (fly+fhy)/2);
-					trans.transform(off, off);
-					double dSX = EMath.smooth(cellBounds.getWidth() - ni.getXSize());
-					double dSY = EMath.smooth(cellBounds.getHeight() - ni.getYSize());
-					if (alterNodeInst(ni, 0, 0, dSX, dSY, 0, true)) forcedLook = true;
-					foundone = true;
-				}
+
+				double dSX = EMath.smooth(cellBounds.getWidth() - ni.getXSize());
+				double dSY = EMath.smooth(cellBounds.getHeight() - ni.getYSize());
+				if (ni.isMirroredAboutYAxis()) dSX = -dSX;
+				if (ni.isMirroredAboutXAxis()) dSY = -dSY;
+				if (alterNodeInst(ni, 0, 0, dSX, dSY, 0, true)) forcedLook = true;
+				foundone = true;
 			}
 		}
 

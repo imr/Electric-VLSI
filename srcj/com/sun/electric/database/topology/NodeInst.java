@@ -2148,7 +2148,9 @@ public class NodeInst extends Geometric implements Nodable
 			{
 				System.out.println("Cell " + parent.describe() + ", node " + describe() +
 				" is " + getXSize() + "x" + getYSize() + ", but prototype is " + bounds.getWidth() +
-				" x " + bounds.getHeight());
+				" x " + bounds.getHeight() + " ****REPAIRED****");
+				sX = bounds.getWidth() * (isMirroredAboutYAxis() ? -1 : 1);
+				sY = bounds.getHeight() * (isMirroredAboutXAxis() ? -1 : 1);
 				errorCount++;
 			}
 		}

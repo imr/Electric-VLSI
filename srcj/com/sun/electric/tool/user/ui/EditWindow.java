@@ -360,6 +360,18 @@ public class EditWindow extends JPanel
 		Image img = offscreen.getImage();
 		synchronized(img) { g.drawImage(img, 0, 0, this); };
 
+		synchronized(redrawThese)
+		{
+			if (redrawThese.size() > 0)
+			{
+				EditWindow nextWnd = (EditWindow)redrawThese.get(0);
+				redrawThese.remove(0);
+				RenderJob nextJob = new RenderJob(nextWnd, nextWnd.getOffscreen());
+				return;
+			}
+			runningNow = false;
+		}
+
 		// overlay other things if there is a valid cell
 		if (cell != null)
 		{
@@ -379,17 +391,6 @@ public class EditWindow extends JPanel
 			if (doingAreaDrag) showDragBox(g);
             // add in popup cloud
             if (showPopupCloud) drawPopupCloud((Graphics2D)g);
-		}
-		synchronized(redrawThese)
-		{
-			if (redrawThese.size() > 0)
-			{
-				EditWindow nextWnd = (EditWindow)redrawThese.get(0);
-				redrawThese.remove(0);
-				RenderJob nextJob = new RenderJob(nextWnd, nextWnd.getOffscreen());
-				return;
-			}
-			runningNow = false;
 		}
 	}
 

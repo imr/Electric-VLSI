@@ -138,20 +138,20 @@ public class OutputCIF extends OutputGeometry
 			writeLine("C " + cellNumber + ";");
 		writeLine("E");
 
-		// finish up crc stuff
-		if (!crcPrevIsCharSep)
-		{
-			crcChecksum = (crcChecksum << 8) ^ crcTab[((crcChecksum >> 24) ^ ' ') & 0xFF];
-			crcNumChars++;
-		}
-		int bytesread = crcNumChars;
-		while (bytesread > 0)
-		{
-			crcChecksum = (crcChecksum << 8) ^ crcTab[((crcChecksum >> 24) ^ bytesread) & 0xFF];
-			bytesread >>= 8;
-		}
-		crcChecksum = ~crcChecksum & 0xFFFFFFFF;
-		System.out.println("MOSIS CRC: " + EMath.unsignedIntValue(crcChecksum) + " " + crcNumChars);
+//		// finish up crc stuff
+//		if (!crcPrevIsCharSep)
+//		{
+//			crcChecksum = (crcChecksum << 8) ^ crcTab[((crcChecksum >> 24) ^ ' ') & 0xFF];
+//			crcNumChars++;
+//		}
+//		int bytesread = crcNumChars;
+//		while (bytesread > 0)
+//		{
+//			crcChecksum = (crcChecksum << 8) ^ crcTab[((crcChecksum >> 24) ^ bytesread) & 0xFF];
+//			bytesread >>= 8;
+//		}
+//		crcChecksum = ~crcChecksum & 0xFFFFFFFF;
+//		System.out.println("MOSIS CRC: " + EMath.unsignedIntValue(crcChecksum) + " " + crcNumChars);
 	}
 
 	/**
@@ -302,22 +302,21 @@ public class OutputCIF extends OutputGeometry
 		line = line + '\n';
 		printWriter.print(line);
 
-		// crc checksum stuff
-		for (int i=0; i < line.length(); i++)
-		{
-			char c = line.charAt(i);
-			if (c > ' ')
-			{
-				crcChecksum = (crcChecksum << 8) ^ crcTab[((crcChecksum >> 24) ^ c) & 0xFF];
-				crcPrevIsCharSep = false;
-				crcNumChars++;
-			} else if (!crcPrevIsCharSep)
-			{
-				crcChecksum = (crcChecksum << 8) ^ crcTab[((crcChecksum >> 24) ^ ' ') & 0xFF];
-				crcPrevIsCharSep = true;
-				crcNumChars++;
-			}
-		}
+//		// crc checksum stuff
+//		for (int i=0; i < line.length(); i++)
+//		{
+//			char c = line.charAt(i);
+//			if (c > ' ')
+//			{
+//				crcChecksum = (crcChecksum << 8) ^ crcTab[((crcChecksum >> 24) ^ c) & 0xFF];
+//				crcPrevIsCharSep = false;
+//			} else if (!crcPrevIsCharSep)
+//			{
+//				crcChecksum = (crcChecksum << 8) ^ crcTab[((crcChecksum >> 24) ^ ' ') & 0xFF];
+//				crcPrevIsCharSep = true;
+//			}
+//			crcNumChars++;
+//		}
 	}
 
 	/**
@@ -354,7 +353,7 @@ public class OutputCIF extends OutputGeometry
 			{
 				err = ErrorLog.logError("Resolution < " + minAllowedResolution + " on layer " + layer.getName(), cell, layer.getIndex());
 			}
-			err.addPoly(poly);
+			err.addPoly(poly, false);
 		}
 	}
 

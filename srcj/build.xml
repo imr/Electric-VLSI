@@ -40,8 +40,8 @@
         <!-- Manifest-Version: 1.0 -->
         <!-- Main-Class: com.sun.electric.Main -->
         <!-- 3. Pass to <jar>: manifest="electric.mf" -->
-        <exec executable="jar"><arg line="xf ${beanshell}"></arg></exec> 
-        <exec executable="jar"><arg line="xf ${AppleJava}"></arg></exec> 
+        <unjar src="${beanshell}" dest="."/> 
+        <unjar src="${AppleJava}" dest="."/> 
         <delete dir="META-INF"></delete>
         <jar basedir="." compress="true" jarfile="electric.jar" manifest="electric.mf">
             <!--  <arg line="-J-mx500m"></arg>  -->
@@ -61,8 +61,8 @@
     </target>
 
     <target depends="init,compile" description="Make source Jar file" name="jarSource">
-        <exec executable="jar"><arg line="xf ${beanshell}"></arg></exec> 
-        <exec executable="jar"><arg line="xf ${AppleJava}"></arg></exec> 
+        <unjar src="${beanshell}" dest="."/> 
+        <unjar src="${AppleJava}" dest="."/> 
         <delete dir="META-INF"></delete>
         <jar basedir="." compress="true" jarfile="electric.jar" manifest="electric.mf">
             <!--  <arg line="-J-mx500m"></arg>  -->

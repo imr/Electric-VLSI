@@ -658,8 +658,8 @@ public final class MenuCommands
 		helpMenu.addSeparator();
 		helpMenu.addMenuItem("Make fake circuitry...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeCircuitryCommand(); } });
-		helpMenu.addMenuItem("Whit Diffie's design...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { whitDiffieCommand(); } });
+//		helpMenu.addMenuItem("Whit Diffie's design...", null,
+//			new ActionListener() { public void actionPerformed(ActionEvent e) { whitDiffieCommand(); } });
 
 		/****************************** Russell's TEST MENU ******************************/
 
@@ -2063,7 +2063,7 @@ public final class MenuCommands
 	 */
 	public static void layerVisibilityCommand()
 	{
- 		LayerVisibility dialog = new LayerVisibility(TopLevel.getCurrentJFrame(), true);
+ 		LayerVisibility dialog = new LayerVisibility(TopLevel.getCurrentJFrame(), false);
 		dialog.show();
 	}
 
@@ -2580,18 +2580,38 @@ public final class MenuCommands
 				"a0f1k0k1p0", "a1f2k1k2p1", "a2f3k2k3p2", "a3f0f4k0k3k4p3", "a4f0f5k0k4k5p4", "a5f6k5k6p5", "a6f0f7k0k6k7p6", "a7f0k0k7p7",
 				"a0f0k1p0p1", "a1f1k2p1p2", "a2f2k3p2p3", "a3f3k0k4p0p3p4", "a4f4k0k5p0p4p5", "a5f5k6p5p6", "a6f6k0k7p0p6p7", "a7f7k0p0p7",
 				"a0a1f0k0p1", "a1a2f1k1p2", "a2a3f2k2p3", "a0a3a4f3k3p0p4", "a0a4a5f4k4p0p5", "a5a6f5k5p6", "a0a6a7f6k6p0p7", "a0a7f7k7p0",
-				"b1g0g1l0m0", "b2g1g2l1m1", "b3g2g3l2m2", "b0b4g0g3g4l3m3", "b0b5g0g4g5l4m4", "b6g5g6l5m5", "b0b7g0g6g7l6m6", "b0g0g7l7m7",
-				"b0g1l0l1m0", "b1g2l1l2m1", "b2g3l2l3m2", "b3g0g4l0l3l4m3", "b4g0g5l0l4l5m4", "b5g6l5l6m5", "b6g0g7l0l6l7m6", "b7g0l0l7m7",
-				"b0g0l1m0m1", "b1g1l2m1m2", "b2g2l3m2m3", "b3g3l0l4m0m3m4", "b4g4l0l5m0m4m5", "b5g5l6m5m6", "b6g6l0l7m0m6m7", "b7g7l0m0m7",
-				"b0b1g0l0m1", "b1b2g1l1m2", "b2b3g2l2m3", "b0b3b4g3l3m0m4", "b0b4b5g4l4m0m5", "b5b6g5l5m6", "b0b6b7g6l6m0m7", "b0b7g7l7m0",
-				"c1h0h1i0n0", "c2h1h2i1n1", "c3h2h3i2n2", "c0c4h0h3h4i3n3", "c0c5h0h4h5i4n4", "c6h5h6i5n5", "c0c7h0h6h7i6n6", "c0h0h7i7n7",
-				"c0h1i0i1n0", "c1h2i1i2n1", "c2h3i2i3n2", "c3h0h4i0i3i4n3", "c4h0h5i0i4i5n4", "c5h6i5i6n5", "c6h0h7i0i6i7n6", "c7h0i0i7n7",
-				"c0h0i1n0n1", "c1h1i2n1n2", "c2h2i3n2n3", "c3h3i0i4n0n3n4", "c4h4i0i5n0n4n5", "c5h5i6n5n6", "c6h6i0i7n0n6n7", "c7h7i0n0n7",
-				"c0c1h0i0n1", "c1c2h1i1n2", "c2c3h2i2n3", "c0c3c4h3i3n0n4", "c0c4c5h4i4n0n5", "c5c6h5i5n6", "c0c6c7h6i6n0n7", "c0c7h7i7n0",
-				"d1e0e1j0o0", "d2e1e2j1o1", "d3e2e3j2o2", "d0d4e0e3e4j3o3", "d0d5e0e4e5j4o4", "d6e5e6j5o5", "d0d7e0e6e7j6o6", "d0e0e7j7o7",
-				"d0e1j0j1o0", "d1e2j1j2o1", "d2e3j2j3o2", "d3e0e4j0j3j4o3", "d4e0e5j0j4j5o4", "d5e6j5j6o5", "d6e0e7j0j6j7o6", "d7e0j0j7o7",
-				"d0e0j1o0o1", "d1e1j2o1o2", "d2e2j3o2o3", "d3e3j0j4o0o3o4", "d4e4j0j5o0o4o5", "d5e5j6o5o6", "d6e6j0j7o0o6o7", "d7e7j0o0o7",
-				"d0d1e0j0o1", "d1d2e1j1o2", "d2d3e2j2o3", "d0d3d4e3j3o0o4", "d0d4d5e4j4o0o5", "d5d6e5j5o6", "d0d6d7e6j6o0o7", "d0d7e7j7o0"
+
+				"e1j0j1o0d0", "e2j1j2o1d1", "e3j2j3o2d2", "e0e4j0j3j4o3d3", "e0e5j0j4j5o4d4", "e6j5j6o5d5", "e0e7j0j6j7o6d6", "e0j0j7o7d7",
+				"e0j1o0o1d0", "e1j2o1o2d1", "e2j3o2o3d2", "e3j0j4o0o3o4d3", "e4j0j5o0o4o5d4", "e5j6o5o6d5", "e6j0j7o0o6o7d6", "e7j0o0o7d7",
+				"e0j0o1d0d1", "e1j1o2d1d2", "e2j2o3d2d3", "e3j3o0o4d0d3d4", "e4j4o0o5d0d4d5", "e5j5o6d5d6", "e6j6o0o7d0d6d7", "e7j7o0d0d7",
+				"e0e1j0o0d1", "e1e2j1o1d2", "e2e3j2o2d3", "e0e3e4j3o3d0d4", "e0e4e5j4o4d0d5", "e5e6j5o5d6", "e0e6e7j6o6d0d7", "e0e7j7o7d0",
+
+				"i1n0n1c0h0", "i2n1n2c1h1", "i3n2n3c2h2", "i0i4n0n3n4c3h3", "i0i5n0n4n5c4h4", "i6n5n6c5h5", "i0i7n0n6n7c6h6", "i0n0n7c7h7",
+				"i0n1c0c1h0", "i1n2c1c2h1", "i2n3c2c3h2", "i3n0n4c0c3c4h3", "i4n0n5c0c4c5h4", "i5n6c5c6h5", "i6n0n7c0c6c7h6", "i7n0c0c7h7",
+				"i0n0c1h0h1", "i1n1c2h1h2", "i2n2c3h2h3", "i3n3c0c4h0h3h4", "i4n4c0c5h0h4h5", "i5n5c6h5h6", "i6n6c0c7h0h6h7", "i7n7c0h0h7",
+				"i0i1n0c0h1", "i1i2n1c1h2", "i2i3n2c2h3", "i0i3i4n3c3h0h4", "i0i4i5n4c4h0h5", "i5i6n5c5h6", "i0i6i7n6c6h0h7", "i0i7n7c7h0",
+
+				"m1b0b1g0l0", "m2b1b2g1l1", "m3b2b3g2l2", "m0m4b0b3b4g3l3", "m0m5b0b4b5g4l4", "m6b5b6g5l5", "m0m7b0b6b7g6l6", "m0b0b7g7l7",
+				"m0b1g0g1l0", "m1b2g1g2l1", "m2b3g2g3l2", "m3b0b4g0g3g4l3", "m4b0b5g0g4g5l4", "m5b6g5g6l5", "m6b0b7g0g6g7l6", "m7b0g0g7l7",
+				"m0b0g1l0l1", "m1b1g2l1l2", "m2b2g3l2l3", "m3b3g0g4l0l3l4", "m4b4g0g5l0l4l5", "m5b5g6l5l6", "m6b6g0g7l0l6l7", "m7b7g0l0l7",
+				"m0m1b0g0l1", "m1m2b1g1l2", "m2m3b2g2l3", "m0m3m4b3g3l0l4", "m0m4m5b4g4l0l5", "m5m6b5g5l6", "m0m6m7b6g6l0l7", "m0m7b7g7l0"
+
+//				"a1f0f1k0p0", "a2f1f2k1p1", "a3f2f3k2p2", "a0a4f0f3f4k3p3", "a0a5f0f4f5k4p4", "a6f5f6k5p5", "a0a7f0f6f7k6p6", "a0f0f7k7p7",
+//				"a0f1k0k1p0", "a1f2k1k2p1", "a2f3k2k3p2", "a3f0f4k0k3k4p3", "a4f0f5k0k4k5p4", "a5f6k5k6p5", "a6f0f7k0k6k7p6", "a7f0k0k7p7",
+//				"a0f0k1p0p1", "a1f1k2p1p2", "a2f2k3p2p3", "a3f3k0k4p0p3p4", "a4f4k0k5p0p4p5", "a5f5k6p5p6", "a6f6k0k7p0p6p7", "a7f7k0p0p7",
+//				"a0a1f0k0p1", "a1a2f1k1p2", "a2a3f2k2p3", "a0a3a4f3k3p0p4", "a0a4a5f4k4p0p5", "a5a6f5k5p6", "a0a6a7f6k6p0p7", "a0a7f7k7p0",
+//				"b1g0g1l0m0", "b2g1g2l1m1", "b3g2g3l2m2", "b0b4g0g3g4l3m3", "b0b5g0g4g5l4m4", "b6g5g6l5m5", "b0b7g0g6g7l6m6", "b0g0g7l7m7",
+//				"b0g1l0l1m0", "b1g2l1l2m1", "b2g3l2l3m2", "b3g0g4l0l3l4m3", "b4g0g5l0l4l5m4", "b5g6l5l6m5", "b6g0g7l0l6l7m6", "b7g0l0l7m7",
+//				"b0g0l1m0m1", "b1g1l2m1m2", "b2g2l3m2m3", "b3g3l0l4m0m3m4", "b4g4l0l5m0m4m5", "b5g5l6m5m6", "b6g6l0l7m0m6m7", "b7g7l0m0m7",
+//				"b0b1g0l0m1", "b1b2g1l1m2", "b2b3g2l2m3", "b0b3b4g3l3m0m4", "b0b4b5g4l4m0m5", "b5b6g5l5m6", "b0b6b7g6l6m0m7", "b0b7g7l7m0",
+//				"c1h0h1i0n0", "c2h1h2i1n1", "c3h2h3i2n2", "c0c4h0h3h4i3n3", "c0c5h0h4h5i4n4", "c6h5h6i5n5", "c0c7h0h6h7i6n6", "c0h0h7i7n7",
+//				"c0h1i0i1n0", "c1h2i1i2n1", "c2h3i2i3n2", "c3h0h4i0i3i4n3", "c4h0h5i0i4i5n4", "c5h6i5i6n5", "c6h0h7i0i6i7n6", "c7h0i0i7n7",
+//				"c0h0i1n0n1", "c1h1i2n1n2", "c2h2i3n2n3", "c3h3i0i4n0n3n4", "c4h4i0i5n0n4n5", "c5h5i6n5n6", "c6h6i0i7n0n6n7", "c7h7i0n0n7",
+//				"c0c1h0i0n1", "c1c2h1i1n2", "c2c3h2i2n3", "c0c3c4h3i3n0n4", "c0c4c5h4i4n0n5", "c5c6h5i5n6", "c0c6c7h6i6n0n7", "c0c7h7i7n0",
+//				"d1e0e1j0o0", "d2e1e2j1o1", "d3e2e3j2o2", "d0d4e0e3e4j3o3", "d0d5e0e4e5j4o4", "d6e5e6j5o5", "d0d7e0e6e7j6o6", "d0e0e7j7o7",
+//				"d0e1j0j1o0", "d1e2j1j2o1", "d2e3j2j3o2", "d3e0e4j0j3j4o3", "d4e0e5j0j4j5o4", "d5e6j5j6o5", "d6e0e7j0j6j7o6", "d7e0j0j7o7",
+//				"d0e0j1o0o1", "d1e1j2o1o2", "d2e2j3o2o3", "d3e3j0j4o0o3o4", "d4e4j0j5o0o4o5", "d5e5j6o5o6", "d6e6j0j7o0o6o7", "d7e7j0o0o7",
+//				"d0d1e0j0o1", "d1d2e1j1o2", "d2d3e2j2o3", "d0d3d4e3j3o0o4", "d0d4d5e4j4o0o5", "d5d6e5j5o6", "d0d6d7e6j6o0o7", "d0d7e7j7o0"
 			};
 
 			for(int v=0; v<33; v++)

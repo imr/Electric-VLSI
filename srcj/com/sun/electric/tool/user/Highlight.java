@@ -140,6 +140,7 @@ public class Highlight
 		/** Describes highlighted text. */						public static final Type TEXT = new Type("text");
 		/** Describes a highlighted area. */					public static final Type BBOX = new Type("area");
 		/** Describes a highlighted line. */					public static final Type LINE = new Type("line");
+		/** Describes a thick highlighted line. */				public static final Type THICKLINE = new Type("thick line");
 		/** Describes a non-database text. */					public static final Type MESSAGE = new Type("message");
 	}
 
@@ -151,6 +152,7 @@ public class Highlight
 	/** The highlighted Name. */								private Name name;
 	/** The highlighted area. */								private Rectangle2D bounds;
 	/** The highlighted line. */								private Point2D pt1, pt2;
+	/** The center point about which thick lines revolve. */	private Point2D center;
 	/** The highlighted message. */								private String msg;
 
 	/** Screen offset for display of highlighting. */			private static int highOffX, highOffY;
@@ -302,6 +304,25 @@ public class Highlight
 		Highlight h = new Highlight(Type.LINE);
 		h.pt1 = new Point2D.Double(start.getX(), start.getY());
 		h.pt2 = new Point2D.Double(end.getX(), end.getY());
+		h.cell = cell;
+
+		highlightList.add(h);
+		return h;
+	}
+
+	/**
+	 * Method to add a line to the list of highlighted objects.
+	 * @param start the start point of the line to add to the list of highlighted objects.
+	 * @param end the end point of the line to add to the list of highlighted objects.
+	 * @param cell the Cell in which this line resides.
+	 * @return the newly created Highlight object.
+	 */
+	public static Highlight addThickLine(Point2D start, Point2D end, Point2D center, Cell cell)
+	{
+		Highlight h = new Highlight(Type.THICKLINE);
+		h.pt1 = new Point2D.Double(start.getX(), start.getY());
+		h.pt2 = new Point2D.Double(end.getX(), end.getY());
+		h.center = new Point2D.Double(center.getX(), center.getY());
 		h.cell = cell;
 
 		highlightList.add(h);
@@ -608,7 +629,7 @@ public class Highlight
 			} else if (h.getType() == Type.BBOX)
 			{
 				highBounds = h.getBounds();
-			} else if (h.getType() == Type.LINE)
+			} else if (h.getType() == Type.LINE || h.getType() == Type.THICKLINE)
 			{
 				double cX = (h.pt1.getX() + h.pt2.getX()) / 2;
 				double cY = (h.pt1.getY() + h.pt2.getY()) / 2;
@@ -828,7 +849,7 @@ public class Highlight
 			points[2] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
 			points[3] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
 			points[4] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-			drawOutlineFromPoints(wnd, g, points, highOffX, highOffY, false);
+			drawOutlineFromPoints(wnd, g, points, highOffX, highOffY, false, null);
 			return;
 		}
 		if (type == Type.LINE)
@@ -836,7 +857,15 @@ public class Highlight
 			Point2D [] points = new Point2D.Double[2];
 			points[0] = new Point2D.Double(pt1.getX(), pt1.getY());
 			points[1] = new Point2D.Double(pt2.getX(), pt2.getY());
-			drawOutlineFromPoints(wnd, g, points, highOffX, highOffY, false);
+			drawOutlineFromPoints(wnd, g, points, highOffX, highOffY, false, null);
+			return;
+		}
+		if (type == Type.THICKLINE)
+		{
+			Point2D [] points = new Point2D.Double[2];
+			points[0] = new Point2D.Double(pt1.getX(), pt1.getY());
+			points[1] = new Point2D.Double(pt2.getX(), pt2.getY());
+			drawOutlineFromPoints(wnd, g, points, highOffX, highOffY, false, center);
 			return;
 		}
 		if (type == Type.TEXT)
@@ -848,7 +877,7 @@ public class Highlight
 			{
 				linePoints[0] = points[i];
 				linePoints[1] = points[i+1];
-				drawOutlineFromPoints(wnd, g, linePoints, highOffX, highOffY, false);
+				drawOutlineFromPoints(wnd, g, linePoints, highOffX, highOffY, false, null);
 			}
 			return;
 		}
@@ -866,7 +895,7 @@ public class Highlight
 			// construct the polygons that describe the basic arc
 			Poly poly = ai.makePoly(ai.getLength(), ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
 			if (poly == null) return;
-			drawOutlineFromPoints(wnd, g, poly.getPoints(), highOffX, highOffY, false);
+			drawOutlineFromPoints(wnd, g, poly.getPoints(), highOffX, highOffY, false, null);
 
 			if (getNumHighlights() == 1)
 			{
@@ -923,7 +952,7 @@ public class Highlight
 //							pointList[i] = new Point2D.Double(ni.getCenterX() + outline[i*2].floatValue(),
 //								ni.getCenterY() + outline[i*2+1].floatValue());
 //						}
-//						drawOutlineFromPoints(wnd, g, pointList, highOffX, highOffY, false);
+//						drawOutlineFromPoints(wnd, g, pointList, highOffX, highOffY, null);
 //					}
 //				}
 			}
@@ -1046,7 +1075,7 @@ public class Highlight
 				double nodeY = (nodeLowY + nodeHighY) / 2;
 				Poly poly = new Poly(nodeX, nodeY, nodeHighX-nodeLowX, nodeHighY-nodeLowY);
 				poly.transform(trans);
-				drawOutlineFromPoints(wnd, g, poly.getPoints(), offX, offY, false);
+				drawOutlineFromPoints(wnd, g, poly.getPoints(), offX, offY, false, null);
 			}
 
 			// draw the selected port
@@ -1061,17 +1090,17 @@ public class Highlight
 					Point2D [] points = poly.getPoints();
 					double sX = points[0].distance(points[1]) * 2;
 					Point2D [] pts = Artwork.fillEllipse(points[0], sX, sX, 0, 360);
-					drawOutlineFromPoints(wnd, g, pts, offX, offY, opened);
+					drawOutlineFromPoints(wnd, g, pts, offX, offY, opened, null);
 				} else if (poly.getStyle() == Poly.Type.CIRCLEARC)
 				{
 					Point2D [] points = poly.getPoints();
 					double [] angles = ni.getArcDegrees();
 					double sX = points[0].distance(points[1]) * 2;
 					Point2D [] pts = Artwork.fillEllipse(points[0], sX, sX, angles[0], angles[1]);
-					drawOutlineFromPoints(wnd, g, pts, offX, offY, opened);
+					drawOutlineFromPoints(wnd, g, pts, offX, offY, opened, null);
 				} else
 				{
-					drawOutlineFromPoints(wnd, g, poly.getPoints(), offX, offY, opened);
+					drawOutlineFromPoints(wnd, g, poly.getPoints(), offX, offY, opened, null);
 				}
 
 				// handle verbose highlighting of nodes
@@ -1940,7 +1969,7 @@ public class Highlight
 	 * @param opened true if the points are drawn "opened".
 	 * False to close the polygon.
 	 */
-	private static void drawOutlineFromPoints(EditWindow wnd, Graphics g, Point2D [] points, int offX, int offY, boolean opened)
+	private static void drawOutlineFromPoints(EditWindow wnd, Graphics g, Point2D [] points, int offX, int offY, boolean opened, Point2D thickCenter)
 	{
 		boolean onePoint = true;
 		Point firstP = wnd.databaseToScreen(points[0].getX(), points[0].getY());
@@ -1958,19 +1987,37 @@ public class Highlight
 			g.drawLine(firstP.x + offX, firstP.y + offY-CROSSSIZE, firstP.x + offX, firstP.y + offY+CROSSSIZE);
 			return;
 		}
-		for(int i=1; i<points.length; i++)
+
+		// find the center
+		int cX = 0, cY = 0;
+		if (thickCenter != null)
+		{
+			Point lp = wnd.databaseToScreen(thickCenter.getX(), thickCenter.getY());
+			cX = lp.x;
+			cY = lp.y;
+		}
+
+		for(int i=0; i<points.length; i++)
 		{
 			int lastI = i-1;
+			if (lastI < 0)
+			{
+				if (opened) continue;
+				lastI = points.length - 1;
+			}
 			Point lp = wnd.databaseToScreen(points[lastI].getX(), points[lastI].getY());
 			Point p = wnd.databaseToScreen(points[i].getX(), points[i].getY());
-			g.drawLine(lp.x + offX, lp.y + offY, p.x + offX, p.y + offY);
-		}
-		if (!opened)
-		{
-			Point lp = wnd.databaseToScreen(points[0].getX(), points[0].getY());
-			int lastI = points.length-1;
-			Point p = wnd.databaseToScreen(points[lastI].getX(), points[lastI].getY());
-			g.drawLine(lp.x + offX, lp.y + offY, p.x + offX, p.y + offY);
+			int fX = lp.x + offX;   int fY = lp.y + offY;
+			int tX = p.x + offX;    int tY = p.y + offY;
+			g.drawLine(fX, fY, tX, tY);
+			if (thickCenter != null)
+			{
+				if (fX < cX) fX--; else fX++;
+				if (fY < cY) fY--; else fY++;
+				if (tX < cX) tX--; else tX++;
+				if (tY < cY) tY--; else tY++;
+				g.drawLine(fX, fY, tX, tY);
+			}
 		}
 	}
 
@@ -1982,7 +2029,7 @@ public class Highlight
 	private boolean sameThing(Highlight other)
 	{
 		if (type != other.getType()) return false;
-		if (type == Type.BBOX || type == type.LINE) return false;
+		if (type == Type.BBOX || type == type.LINE || type == type.THICKLINE) return false;
 
 		if (type == Type.EOBJ)
 		{

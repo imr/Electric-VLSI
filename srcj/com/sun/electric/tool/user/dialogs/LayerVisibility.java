@@ -174,7 +174,9 @@ public class LayerVisibility extends javax.swing.JDialog
 			Layer layer = (Layer)it.next();
 			layerList.add(layer);
 			Boolean layerVisible = (Boolean)visibility.get(layer);
-			JCheckBox cb = new JCheckBox(layer.getName());
+			String layerName = layer.getName();
+			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) layerName += " (for pins)";
+			JCheckBox cb = new JCheckBox(layerName);
 			cb.setSelected(layerVisible.booleanValue());
 			cb.addMouseListener(new MouseAdapter()
 			{
@@ -191,6 +193,8 @@ public class LayerVisibility extends javax.swing.JDialog
 
 		JCheckBox cb = (JCheckBox)evt.getSource();
 		String name = cb.getText();
+		int spacePos = name.indexOf(' ');
+		if (spacePos >= 0) name = name.substring(0, spacePos);
 		Layer layer = tech.findLayer(name);
 		visibility.put(layer, new Boolean(cb.isSelected()));
 	}
@@ -217,7 +221,7 @@ public class LayerVisibility extends javax.swing.JDialog
         java.awt.GridBagConstraints gridBagConstraints;
 
         apply = new javax.swing.JButton();
-        done = new javax.swing.JButton();
+        ok = new javax.swing.JButton();
         layerPane = new javax.swing.JScrollPane();
         technology = new javax.swing.JComboBox();
         jLabel1 = new javax.swing.JLabel();
@@ -233,6 +237,7 @@ public class LayerVisibility extends javax.swing.JDialog
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
+        cancel = new javax.swing.JButton();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -258,17 +263,17 @@ public class LayerVisibility extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 11;
-        gridBagConstraints.gridheight = 2;
-        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.weightx = 0.5;
         getContentPane().add(apply, gridBagConstraints);
 
-        done.setText("Done");
-        done.addActionListener(new java.awt.event.ActionListener()
+        ok.setText("OK");
+        ok.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                done(evt);
+                ok(evt);
             }
         });
 
@@ -278,7 +283,7 @@ public class LayerVisibility extends javax.swing.JDialog
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.weightx = 0.5;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(done, gridBagConstraints);
+        getContentPane().add(ok, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -318,56 +323,63 @@ public class LayerVisibility extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(nodeText, gridBagConstraints);
 
         arcText.setText("Arc text");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(arcText, gridBagConstraints);
 
         portText.setText("Port text");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(portText, gridBagConstraints);
 
         exportText.setText("Export text");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 5;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(exportText, gridBagConstraints);
 
         annotationText.setText("Annotation text");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 6;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(annotationText, gridBagConstraints);
 
         instanceNames.setText("Instance names");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 7;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(instanceNames, gridBagConstraints);
 
         cellText.setText("Cell text");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 8;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(cellText, gridBagConstraints);
 
         allVisible.setText("All Visible");
@@ -426,12 +438,34 @@ public class LayerVisibility extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(jLabel4, gridBagConstraints);
+
+        cancel.setText("Cancel");
+        cancel.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                cancelActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(cancel, gridBagConstraints);
 
         pack();
     }//GEN-END:initComponents
+
+	private void cancelActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cancelActionPerformed
+	{//GEN-HEADEREND:event_cancelActionPerformed
+		closeDialog(null);
+	}//GEN-LAST:event_cancelActionPerformed
 
 	private void allVisibleActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_allVisibleActionPerformed
 	{//GEN-HEADEREND:event_allVisibleActionPerformed
@@ -453,11 +487,11 @@ public class LayerVisibility extends javax.swing.JDialog
 		termDialog();
 	}//GEN-LAST:event_apply
 
-	private void done(java.awt.event.ActionEvent evt)//GEN-FIRST:event_done
-	{//GEN-HEADEREND:event_done
+	private void ok(java.awt.event.ActionEvent evt)//GEN-FIRST:event_ok
+	{//GEN-HEADEREND:event_ok
 		termDialog();
 		closeDialog(null);
-	}//GEN-LAST:event_done
+	}//GEN-LAST:event_ok
 
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
@@ -472,8 +506,8 @@ public class LayerVisibility extends javax.swing.JDialog
     private javax.swing.JCheckBox annotationText;
     private javax.swing.JButton apply;
     private javax.swing.JCheckBox arcText;
+    private javax.swing.JButton cancel;
     private javax.swing.JCheckBox cellText;
-    private javax.swing.JButton done;
     private javax.swing.JCheckBox exportText;
     private javax.swing.JCheckBox instanceNames;
     private javax.swing.JLabel jLabel1;
@@ -482,6 +516,7 @@ public class LayerVisibility extends javax.swing.JDialog
     private javax.swing.JLabel jLabel4;
     private javax.swing.JScrollPane layerPane;
     private javax.swing.JCheckBox nodeText;
+    private javax.swing.JButton ok;
     private javax.swing.JCheckBox portText;
     private javax.swing.JComboBox technology;
     // End of variables declaration//GEN-END:variables

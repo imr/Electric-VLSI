@@ -170,7 +170,7 @@ public class PixelDrawing
 	}
 
 	// statistics stuff
-	private static final boolean TAKE_STATS = false;
+//	private static final boolean TAKE_STATS = false;
 	private static int tinyCells, tinyPrims, totalCells, totalPrims, tinyArcs, totalArcs, offscreensCreated, offscreensUsed;
 
 	/**
@@ -238,7 +238,7 @@ public class PixelDrawing
 		opaqueData = dbi.getData();
 		total = sz.height * sz.width;
 		numBytesPerRow = (sz.width + 7) / 8;
-		backgroundColor = Color.LIGHT_GRAY.getRGB();
+		backgroundColor = Color.LIGHT_GRAY.getRGB() & 0xFFFFFF;
 		backgroundValue = backgroundColor | 0xFF000000;
 
 		curTech = null;
@@ -255,7 +255,7 @@ public class PixelDrawing
 	 */
 	public void setBackgroundColor(Color bg)
 	{
-		backgroundColor = bg.getRGB();
+		backgroundColor = bg.getRGB() & 0xFFFFFF;
 	}
 
 	/**
@@ -273,11 +273,11 @@ public class PixelDrawing
 	{
 		Cell cell = wnd.getCell();
 		long startTime = 0;
-		if (TAKE_STATS)
-		{
-			startTime = System.currentTimeMillis();
-			tinyCells = tinyPrims = totalCells = totalPrims = tinyArcs = totalArcs = offscreensCreated = offscreensUsed = 0;
-		}
+//		if (TAKE_STATS)
+//		{
+//			startTime = System.currentTimeMillis();
+//			tinyCells = tinyPrims = totalCells = totalPrims = tinyArcs = totalArcs = offscreensCreated = offscreensUsed = 0;
+//		}
 
 		// initialize the cache of expanded cell displays
 		expandedCells = new HashMap();
@@ -310,33 +310,33 @@ public class PixelDrawing
 		// merge transparent image into opaque one
 		synchronized(img) { composite(); };
 
-		if (TAKE_STATS)
-		{
-			long endTime = System.currentTimeMillis();
-			System.out.println("Took "+TextUtils.getElapsedTime(endTime-startTime));
-			System.out.println("   "+tinyCells+" out of "+totalCells+" cells are tiny; "+tinyPrims+" out of "+totalPrims+
-				" primitives are tiny; "+tinyArcs+" out of "+totalArcs+" arcs are tiny");
-			int numExpandedCells = 0;
-			int numCellsExpandedOnce = 0;
-			for(Iterator it = expandedCells.keySet().iterator(); it.hasNext(); )
-			{
-				String c = (String)it.next();
-				ExpandedCellInfo count = (ExpandedCellInfo)expandedCells.get(c);
-				if (count != null)
-				{
-					numExpandedCells++;
-					if (count.instanceCount == 1) numCellsExpandedOnce++;
-				}
-			}
-			System.out.println("   Of "+numExpandedCells+" cell cache possibilities, "+numCellsExpandedOnce+
-				" were used only once and not cached");
-			if (offscreensCreated > 0)
-				System.out.println("   Remaining "+offscreensCreated+" cell caches were used an average of "+
-					((double)offscreensUsed/offscreensCreated)+" times");
-		}
+//		if (TAKE_STATS)
+//		{
+//			long endTime = System.currentTimeMillis();
+//			System.out.println("Took "+TextUtils.getElapsedTime(endTime-startTime));
+//			System.out.println("   "+tinyCells+" out of "+totalCells+" cells are tiny; "+tinyPrims+" out of "+totalPrims+
+//				" primitives are tiny; "+tinyArcs+" out of "+totalArcs+" arcs are tiny");
+//			int numExpandedCells = 0;
+//			int numCellsExpandedOnce = 0;
+//			for(Iterator it = expandedCells.keySet().iterator(); it.hasNext(); )
+//			{
+//				String c = (String)it.next();
+//				ExpandedCellInfo count = (ExpandedCellInfo)expandedCells.get(c);
+//				if (count != null)
+//				{
+//					numExpandedCells++;
+//					if (count.instanceCount == 1) numCellsExpandedOnce++;
+//				}
+//			}
+//			System.out.println("   Of "+numExpandedCells+" cell cache possibilities, "+numCellsExpandedOnce+
+//				" were used only once and not cached");
+//			if (offscreensCreated > 0)
+//				System.out.println("   Remaining "+offscreensCreated+" cell caches were used an average of "+
+//					((double)offscreensUsed/offscreensCreated)+" times");
+//		}
 
 		// stop accumulating expanded cell images
-		expandedCells = null;
+//		expandedCells = null;
 	}
 
 	// ************************************* INTERMEDIATE CONTROL LEVEL *************************************
@@ -400,8 +400,15 @@ public class PixelDrawing
 				{
 					int index = baseIndex + x;
 					int pixelValue = opaqueData[index];
-					if (pixelValue == backgroundValue)
+					
+					// the value of Alpha starts at 0xFF, which means "background"
+					// opaque drawing typically sets it to 0, which means "filled"
+					// Text drawing can antialias by setting the edge values in the range 0-254
+					//    where the lower the value, the more saturated the color (so 0 means all color, 254 means little color)
+					int alpha = (pixelValue >> 24) & 0xFF;
+					if (alpha != 0)
 					{
+						// aggregate the transparent bitplanes at this pixel
 						int bits = 0;
 						int entry = x >> 3;
 						int maskBit = 1 << (x & 7);
@@ -412,30 +419,20 @@ public class PixelDrawing
 							if ((byt & maskBit) != 0) bits |= (1<<i);
 						}
 
+						// determine the transparent color to draw
 						int newColor = backgroundColor;
 						if (bits != 0)
 						{
 							// set a transparent color
-							newColor = colorMap[bits].getRGB();
+							newColor = colorMap[bits].getRGB() & 0xFFFFFF;
+						}
+
+						// if alpha blending, merge with the opaque data
+						if (alpha != 0xFF)
+						{
+							newColor = alphaBlend(pixelValue, newColor, alpha);
 						}
 						opaqueData[index] = newColor;
-					} else
-					{
-						if ((pixelValue&0xFF000000) != 0)
-						{
-							int alpha = (pixelValue >> 24) & 0xFF;
-							int red = (pixelValue >> 16) & 0xFF;
-							int green = (pixelValue >> 8) & 0xFF;
-							int blue = pixelValue & 0xFF;
-							int inverseAlpha = 254 - alpha;
-							int redBack = (backgroundColor >> 16) & 0xFF;
-							int greenBack = (backgroundColor >> 8) & 0xFF;
-							int blueBack = backgroundColor & 0xFF;
-							red = ((red * alpha) + (redBack * inverseAlpha)) / 255;
-							green = ((green * alpha) + (greenBack * inverseAlpha)) / 255;
-							blue = ((blue * alpha) + (blueBack * inverseAlpha)) / 255;
-							opaqueData[index] = (red << 16) | (green << 8) + blue;
-						}
 					}
 				}
 			}
@@ -450,17 +447,7 @@ public class PixelDrawing
 					if ((pixelValue&0xFF000000) != 0)
 					{
 						int alpha = (pixelValue >> 24) & 0xFF;
-						int red = (pixelValue >> 16) & 0xFF;
-						int green = (pixelValue >> 8) & 0xFF;
-						int blue = pixelValue & 0xFF;
-						int inverseAlpha = 254 - alpha;
-						int redBack = (backgroundColor >> 16) & 0xFF;
-						int greenBack = (backgroundColor >> 8) & 0xFF;
-						int blueBack = backgroundColor & 0xFF;
-						red = ((red * alpha) + (redBack * inverseAlpha)) / 255;
-						green = ((green * alpha) + (greenBack * inverseAlpha)) / 255;
-						blue = ((blue * alpha) + (blueBack * inverseAlpha)) / 255;
-						opaqueData[i] = (red << 16) | (green << 8) + blue;
+						opaqueData[i] = alphaBlend(pixelValue, backgroundColor, alpha);
 					}
 				}
 			}
@@ -795,7 +782,7 @@ public class PixelDrawing
 					}
 				}
 				layerNum = graphics.getTransparentLayer() - 1;
-				col = graphics.getColor().getRGB();
+				col = graphics.getColor().getRGB() & 0xFFFFFF;
 			}
 			if (layerNum >= numLayerBitMaps) continue;
 			byte [][] layerBitMap = getLayerBitMap(layerNum);
@@ -1238,11 +1225,10 @@ public class PixelDrawing
 		int [] pattern = null;
 		if (desc != null)
 		{
-			col = desc.getColor().getRGB();
+			col = desc.getColor().getRGB() & 0xFFFFFF;
 			if (desc.isPatternedOnDisplay())
 				pattern = desc.getPattern();
 		}
-
 		// different code for patterned and solid
 		if (pattern == null)
 		{
@@ -1341,7 +1327,7 @@ public class PixelDrawing
 		int [] pattern = null;
 		if (desc != null)
 		{
-			col = desc.getColor().getRGB();
+			col = desc.getColor().getRGB() & 0xFFFFFF;
 			if (desc.isPatternedOnDisplay())
 				pattern = desc.getPattern();
 		}
@@ -1414,7 +1400,7 @@ public class PixelDrawing
 	{
 		// get color and pattern information
 		int col = 0;
-		if (desc != null) col = desc.getColor().getRGB();
+		if (desc != null) col = desc.getColor().getRGB() & 0xFFFFFF;
 
 		// initialize counter for line style
 		int i = 0;
@@ -1491,7 +1477,7 @@ public class PixelDrawing
 	{
 		// get color and pattern information
 		int col = 0;
-		if (desc != null) col = desc.getColor().getRGB();
+		if (desc != null) col = desc.getColor().getRGB() & 0xFFFFFF;
 
 		// initialize the Bresenham algorithm
 		int dx = Math.abs(x2-x1);
@@ -1567,7 +1553,7 @@ public class PixelDrawing
 		int [] pattern = null;
 		if (desc != null)
 		{
-			col = desc.getColor().getRGB();
+			col = desc.getColor().getRGB() & 0xFFFFFF;
 			if (desc.isPatternedOnDisplay())
 				pattern = desc.getPattern();
 		}
@@ -1773,7 +1759,7 @@ public class PixelDrawing
 
 		// get parameters
 		int col = 0;
-		if (desc != null) col = desc.getColor().getRGB();
+		if (desc != null) col = desc.getColor().getRGB() & 0xFFFFFF;
 
 		// get text description
 		int size = 14;
@@ -1839,17 +1825,29 @@ public class PixelDrawing
 					for(int x=sx; x<ex; x++)
 					{
 						int trueX = atX + x;
-						int sampleValue = samples[samp++] & 0xFF;
-						if (sampleValue == 0) continue;
+						int alpha = samples[samp++] & 0xFF;
+						if (alpha == 0) continue;
 						if (layerBitMap == null)
 						{
+							// drawing opaque
+							int fullIndex = baseIndex + trueX;
+							int pixelValue = opaqueData[fullIndex];
+							int oldAlpha = (pixelValue >> 24) & 0xFF;
 							int color = col;
-							if (sampleValue < 255)
-								color = (color & 0xFFFFFF) | (sampleValue << 24);
-							opaqueData[baseIndex + trueX] = color;
+							if (oldAlpha == 0)
+							{
+								// blend with opaque
+								if (alpha != 0xFF) color = alphaBlend(color, pixelValue, alpha);
+							} else if (oldAlpha == 0xFF)
+							{
+								// blend with background
+								if (alpha < 255) color = (color & 0xFFFFFF) | (alpha << 24);
+							}
+							opaqueData[fullIndex] = color;
 						} else
 						{
-							if (sampleValue >= 128) row[trueX>>3] |= (1 << (trueX&7));
+							// draw in a transparent layer
+							if (alpha >= 128) row[trueX>>3] |= (1 << (trueX&7));
 						}
 					}
 				}
@@ -1871,17 +1869,28 @@ public class PixelDrawing
 					for(int x=sx; x<ex; x++)
 					{
 						int trueX = atX + x;
-						int sampleValue = samples[x * rasWidth + (rasWidth-y-1)];
-						if (sampleValue == 0) continue;
+						int alpha = samples[x * rasWidth + (rasWidth-y-1)] & 0xFF;
+						if (alpha == 0) continue;
 						if (layerBitMap == null)
 						{
+							// drawing opaque
+							int fullIndex = baseIndex + trueX;
+							int pixelValue = opaqueData[fullIndex];
+							int oldAlpha = (pixelValue >> 24) & 0xFF;
 							int color = col;
-							if (sampleValue < 255)
-								color = (color & 0xFFFFFF) | (sampleValue << 24);
-							opaqueData[baseIndex + trueX] = color;
+							if (oldAlpha == 0)
+							{
+								// blend with opaque
+								if (alpha != 0xFF) color = alphaBlend(color, pixelValue, alpha);
+							} else if (oldAlpha == 0xFF)
+							{
+								// blend with background
+								if (alpha < 255) color = (color & 0xFFFFFF) | (alpha << 24);
+							}
+							opaqueData[fullIndex] = color;
 						} else
 						{
-							if (sampleValue >= 128) row[trueX>>3] |= (1 << (trueX&7));
+							if (alpha >= 128) row[trueX>>3] |= (1 << (trueX&7));
 						}
 					}
 				}
@@ -1906,17 +1915,28 @@ public class PixelDrawing
 					for(int x=sx; x<ex; x++)
 					{
 						int trueX = atX + x;
-						int sampleValue = samples[(rasHeight-y-1) * rasWidth + (rasWidth-x-1)];
-						if (sampleValue == 0) continue;
+						int alpha = samples[(rasHeight-y-1) * rasWidth + (rasWidth-x-1)] & 0xFF;
+						if (alpha == 0) continue;
 						if (layerBitMap == null)
 						{
+							// drawing opaque
+							int fullIndex = baseIndex + trueX;
+							int pixelValue = opaqueData[fullIndex];
+							int oldAlpha = (pixelValue >> 24) & 0xFF;
 							int color = col;
-							if (sampleValue < 255)
-								color = (color & 0xFFFFFF) | (sampleValue << 24);
-							opaqueData[baseIndex + trueX] = color;
+							if (oldAlpha == 0)
+							{
+								// blend with opaque
+								if (alpha != 0xFF) color = alphaBlend(color, pixelValue, alpha);
+							} else if (oldAlpha == 0xFF)
+							{
+								// blend with background
+								if (alpha < 255) color = (color & 0xFFFFFF) | (alpha << 24);
+							}
+							opaqueData[fullIndex] = color;
 						} else
 						{
-							if (sampleValue >= 128) row[trueX>>3] |= (1 << (trueX&7));
+							if (alpha >= 128) row[trueX>>3] |= (1 << (trueX&7));
 						}
 					}
 				}
@@ -1938,22 +1958,49 @@ public class PixelDrawing
 					for(int x=sx; x<ex; x++)
 					{
 						int trueX = atX + x;
-						int sampleValue = samples[(rasHeight-x-1) * rasWidth + y];
-						if (sampleValue == 0) continue;
+						int alpha = samples[(rasHeight-x-1) * rasWidth + y] & 0xFF;
+						if (alpha == 0) continue;
 						if (layerBitMap == null)
 						{
+							// drawing opaque
+							int fullIndex = baseIndex + trueX;
+							int pixelValue = opaqueData[fullIndex];
+							int oldAlpha = (pixelValue >> 24) & 0xFF;
 							int color = col;
-							if (sampleValue < 255)
-								color = (color & 0xFFFFFF) | (sampleValue << 24);
-							opaqueData[baseIndex + trueX] = color;
+							if (oldAlpha == 0)
+							{
+								// blend with opaque
+								if (alpha != 0xFF) color = alphaBlend(color, pixelValue, alpha);
+							} else if (oldAlpha == 0xFF)
+							{
+								// blend with background
+								if (alpha < 255) color = (color & 0xFFFFFF) | (alpha << 24);
+							}
+							opaqueData[fullIndex] = color;
 						} else
 						{
-							if (sampleValue >= 128) row[trueX>>3] |= (1 << (trueX&7));
+							if (alpha >= 128) row[trueX>>3] |= (1 << (trueX&7));
 						}
 					}
 				}
 				break;
 		}
+	}
+
+	private int alphaBlend(int color, int backgroundColor, int alpha)
+	{
+		int red = (color >> 16) & 0xFF;
+		int green = (color >> 8) & 0xFF;
+		int blue = color & 0xFF;
+		int inverseAlpha = 254 - alpha;
+		int redBack = (backgroundColor >> 16) & 0xFF;
+		int greenBack = (backgroundColor >> 8) & 0xFF;
+		int blueBack = backgroundColor & 0xFF;
+		red = ((red * alpha) + (redBack * inverseAlpha)) / 255;
+		green = ((green * alpha) + (greenBack * inverseAlpha)) / 255;
+		blue = ((blue * alpha) + (blueBack * inverseAlpha)) / 255;
+		color = (red << 16) | (green << 8) + blue;
+		return color;
 	}
 
 	/**
@@ -2116,7 +2163,7 @@ public class PixelDrawing
 		// get parameters
 		int radius = (int)center.distance(edge);
 		int col = 0;
-		if (desc != null) col = desc.getColor().getRGB();
+		if (desc != null) col = desc.getColor().getRGB() & 0xFFFFFF;
 
 		// set redraw area
 		int left = center.x - radius;
@@ -2234,7 +2281,7 @@ public class PixelDrawing
 	}
 //		if (layerBitMap == null)
 //		{
-//			opaqueData[y * sz.width + x] = col.getRGB();
+//			opaqueData[y * sz.width + x] = col.getRGB() & 0xFFFFFF;
 //		} else
 //		{
 //			layerBitMap[y][x>>3] |= (1 << (x&7));
@@ -2248,7 +2295,7 @@ public class PixelDrawing
 		// get parameters
 		int radius = (int)center.distance(edge);
 		int col = 0;
-		if (desc != null) col = desc.getColor().getRGB();
+		if (desc != null) col = desc.getColor().getRGB() & 0xFFFFFF;
 
 		int x = 0;   int y = radius;
 		int d = 3 - 2 * radius;
@@ -2371,7 +2418,7 @@ public class PixelDrawing
 		int [] pattern = null;
 		if (desc != null)
 		{
-			col = desc.getColor().getRGB();
+			col = desc.getColor().getRGB() & 0xFFFFFF;
 			if (desc.isPatternedOnDisplay())
 				pattern = desc.getPattern();
 		}
@@ -2569,7 +2616,7 @@ public class PixelDrawing
 		// get parameters
 		arcLayerBitMap = layerBitMap;
 		arcCol = 0;
-		if (desc != null) arcCol = desc.getColor().getRGB();
+		if (desc != null) arcCol = desc.getColor().getRGB() & 0xFFFFFF;
 
 		arcCenter = center;
 		int pa_x = p2.x - arcCenter.x;

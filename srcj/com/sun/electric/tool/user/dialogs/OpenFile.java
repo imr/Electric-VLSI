@@ -24,8 +24,11 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ui.TopLevel;
 
+import java.awt.FileDialog;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -33,53 +36,8 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
 
-public class OpenFile extends JFileChooser
+public class OpenFile
 {
-	public static class EFileFilter extends FileFilter
-	{
-		/** description of filter */		private String desc;
-		/** list of valid extensions */		private String[] extensions;
-		/** List of all filters */			private static ArrayList allFilters = new ArrayList();
-		
-		/** Creates a new instance of EFileFilter */
-		public EFileFilter(String[] extensions, String desc)
-		{
-			this.extensions = extensions;
-			this.desc = desc;
-			EFileFilter.allFilters.add(this);
-		}
-
-		/** Returns true if file has extension matching any of
-		 * extensions is @param extensions.  Also returns true
-		 * if file is a directory.  Returns false otherwise
-		 */
-		public boolean accept(java.io.File f)
-		{
-			if (f == null) return false;
-			if (f.isDirectory()) return true;
-			String filename = f.getName();
-			int i = filename.lastIndexOf('.');
-			if (i < 0) return false;
-			String thisExtension = filename.substring(i+1);
-			if (thisExtension == null) return false;
-			if (extensions.length == 0) return true;	// special case for ANY
-			for (int j=0; j<extensions.length; j++) 
-			{
-				String extension = extensions[j];
-				if (extension.equalsIgnoreCase(thisExtension)) return true;
-			}
-			return false;
-		}
-
-		public static ArrayList getAllFilters() {  return allFilters; }
-		
-		public String getDescription() { return desc; }
-		
-		public String [] getExtensions() { return extensions; }
-
-		public void setDescription(String desc) { this.desc = desc; }
-	}
-		
 	public static final EFileFilter ANY        = null;					// default to built-in filter "All Files"
 	public static final EFileFilter TEXT       = new EFileFilter(new String[] {"txt"}, "Text File (txt)");
 	public static final EFileFilter ELIB       = new EFileFilter(new String[] {"elib"}, "Library File (elib)");
@@ -91,46 +49,179 @@ public class OpenFile extends JFileChooser
 	public static final EFileFilter ARR        = new EFileFilter(new String[] {"arr"}, "Pad Generator Array File (arr)");
 	public static final EFileFilter POSTSCRIPT = new EFileFilter(new String[] {"ps"}, "PostScript (ps)");
 
-	/** True if this is a file save dialog */						private boolean saveDialog;
-	/** single dialog box...cause it takes so long to pop up */		private static OpenFile dialog = new OpenFile();
-
-	/** Private constructor, use factory methods chooseInputFile or
-	 * chooseOutputFile instead.
+	/**
+	 * Class to filter appropriate files during the open and save dialogs.
 	 */
-	private OpenFile()
+	public static class EFileFilter
 	{
-		// add list of file filters to this dialog
-		for (Iterator it = EFileFilter.getAllFilters().iterator(); it.hasNext(); )
-			addChoosableFileFilter((EFileFilter)it.next());
+		/** description of filter */		private FileFilterSwing swingFilter;
+		/** description of filter */		private FileFilterAWT awtFilter;
+		/** list of valid extensions */		private String[] extensions;
+
+		/** Creates a new instance of EFileFilter */
+		public EFileFilter(String[] extensions, String desc)
+		{
+			this.extensions = extensions;
+			swingFilter = new FileFilterSwing(extensions, desc);
+			awtFilter = new FileFilterAWT(extensions, desc);
+		}
+
+		public String getDescription() { return swingFilter.getDescription(); }
+
+		public String [] getExtensions() { return extensions; }
+
+		FileFilterSwing getSwingFilter() { return swingFilter; }
+
+		FileFilterAWT getAWTFilter() { return awtFilter; }
 	}
-		
+
+	public static class FileFilterSwing extends FileFilter
+	{
+		/** list of valid extensions */		private String[] extensions;
+		/** description of filter */		private String desc;
+
+		/** Creates a new instance of FileFilterSwing */
+		public FileFilterSwing(String[] extensions, String desc)
+		{
+			this.extensions = extensions;
+			this.desc = desc;
+		}
+
+		/** Returns true if file has extension matching any of
+		 * extensions is @param extensions.  Also returns true
+		 * if file is a directory.  Returns false otherwise
+		 */
+		public boolean accept(File f)
+		{
+			if (f == null) return false;
+			if (f.isDirectory()) return true;
+			if (extensions.length == 0) return true;	// special case for ANY
+			String filename = f.getName();
+			int i = filename.lastIndexOf('.');
+			if (i < 0) return false;
+			String thisExtension = filename.substring(i+1);
+			if (thisExtension == null) return false;
+			for (int j=0; j<extensions.length; j++) 
+			{
+				String extension = extensions[j];
+				if (extension.equalsIgnoreCase(thisExtension)) return true;
+			}
+			return false;
+		}
+
+		public String getDescription() { return desc; }
+	}
+
+
+	public static class FileFilterAWT implements FilenameFilter
+	{
+		/** list of valid extensions */		private String[] extensions;
+		/** description of filter */		private String desc;
+
+		/** Creates a new instance of FileFilterAWT */
+		public FileFilterAWT(String[] extensions, String desc)
+		{
+			this.extensions = extensions;
+			this.desc = desc;
+		}
+
+		/** Returns true if file has extension matching any of
+		 * extensions is @param extensions.  Also returns true
+		 * if file is a directory.  Returns false otherwise
+		 */
+		public boolean accept(File f, String filename)
+		{
+			if (extensions.length == 0) return true;	// special case for ANY
+			int i = filename.lastIndexOf('.');
+			if (i < 0) return false;
+			String thisExtension = filename.substring(i+1);
+			if (thisExtension == null) return false;
+			for (int j=0; j<extensions.length; j++) 
+			{
+				String extension = extensions[j];
+				if (extension.equalsIgnoreCase(thisExtension)) return true;
+			}
+			return false;
+		}
+
+		public String getDescription() { return desc; }
+	}
+
+	public static class OpenFileSwing extends JFileChooser
+	{
+		/** True if this is a file save dialog */						private boolean saveDialog;
+
+		/** Private constructor, use factory methods chooseInputFile or
+		 * chooseOutputFile instead.
+		 */
+		private OpenFileSwing() {}
+
+		/**
+		 * Method called when the user clicks "ok" during file choosing.
+		 * Prevents overwriting of existing files.
+		 */
+		public void approveSelection()
+		{
+			File f = getSelectedFile();
+			if (saveDialog)
+			{
+				String filename = f.getName();
+				if (f.exists())
+				{
+					int result = JOptionPane.showConfirmDialog(this, "The file "+filename+" already exists, would you like to overwrite it?",
+						"Overwrite?", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+					if (result != JOptionPane.OK_OPTION) return;
+				}
+			}
+			setSelectedFile(f);
+			User.setWorkingDirectory(getCurrentDirectory().getPath());
+			super.approveSelection();
+		}
+	}
+
 	/**
 	 * Factory method to create a new open dialog box using the default EFileFilter.
 	 * @param filter used to filter file types. Defaults to ANY if null.
 	 * @param title dialog title to use; if null uses "Open 'filetype'".
 	 */
-	public static String chooseInputFile(FileFilter filter, String title)
+	public static String chooseInputFile(EFileFilter filter, String title)
 	{
-		dialog.saveDialog = false;
-
-		if (title != null) dialog.setDialogTitle(title); else
+		if (title == null)
 		{
-			String dialogTitle = "Open file";
-			if (filter != null) dialogTitle = "Open " + filter.getDescription();
-			dialog.setDialogTitle(dialogTitle);
+			title = "Open file";
+			if (filter != null) title = "Open " + filter.getDescription();
 		}
 
-		// note that if filter is null it defaults to the built in filter "All Files"
-		dialog.setFileFilter(filter);
+		boolean useSwing = true;
+		if (TopLevel.getOperatingSystem() == TopLevel.OS.MACINTOSH)
+			useSwing = false;
 
-		dialog.setCurrentDirectory(new File(User.getWorkingDirectory()));
-		int returnVal = dialog.showOpenDialog(null);
-		if (returnVal == JFileChooser.APPROVE_OPTION)
+		if (useSwing)
 		{
-			File file = dialog.getSelectedFile();
-			return file.getPath();
+			OpenFileSwing dialog = new OpenFileSwing();
+			dialog.saveDialog = false;
+			dialog.setDialogTitle(title);
+			dialog.setFileFilter(filter.getSwingFilter());
+			dialog.setCurrentDirectory(new File(User.getWorkingDirectory()));
+			int returnVal = dialog.showOpenDialog(null);
+			if (returnVal == JFileChooser.APPROVE_OPTION)
+			{
+				File file = dialog.getSelectedFile();
+				return file.getPath();
+			}
+			return null;
+		} else
+		{
+			// the AWT way
+			FileDialog dialog = new FileDialog(TopLevel.getCurrentJFrame(), title, FileDialog.LOAD);
+			dialog.setDirectory(User.getWorkingDirectory());
+			dialog.setFilenameFilter(filter.getAWTFilter());
+			dialog.show();
+			String fileName = dialog.getFile();
+			if (fileName == null) return null;
+			User.setWorkingDirectory(dialog.getDirectory());
+			return dialog.getDirectory() + fileName;
 		}
-		return null;
 	}
 	
 
@@ -141,49 +232,45 @@ public class OpenFile extends JFileChooser
 	 * @param title dialog title to use; if null uses "Write 'filetype'".
 	 * @param defaultFile default file name to write.
 	 */
-	public static String chooseOutputFile(FileFilter filter, String title, String defaultFile)
+	public static String chooseOutputFile(EFileFilter filter, String title, String defaultFile)
 	{
-		OpenFile dialog = new OpenFile();
-		dialog.addChoosableFileFilter(filter);
-		
-		dialog.saveDialog = true;
-		
-		if (title == null) dialog.setDialogTitle("Write " + filter.getDescription()); else
-			dialog.setDialogTitle(title);
-		// note that if filter is null it defaults to the built in filter "All Files"
-		dialog.setFileFilter(filter);
-		
-		dialog.setFileFilter(filter);
-		dialog.setSelectedFile(new File(defaultFile));
-		dialog.setCurrentDirectory(new File(User.getWorkingDirectory()));
-		int returnVal = dialog.showSaveDialog(null);
-		if (returnVal == JFileChooser.APPROVE_OPTION)
+		if (title != null)
 		{
-			File file = dialog.getSelectedFile();
-			return file.getPath();
+			if (filter != null) title = "Write " + filter.getDescription(); else
+				title = "Write file";
 		}
-		return null;
-	}
 
-	/**
-	 * Method called when the user clicks "ok" during file choosing.
-	 * Prevents overwriting of existing files.
-	 */
-	public void approveSelection()
-	{
-		File f = getSelectedFile();
-		if (saveDialog)
+		boolean useSwing = true;
+		if (TopLevel.getOperatingSystem() == TopLevel.OS.MACINTOSH)
+			useSwing = false;
+
+		if (useSwing)
 		{
-			String filename = f.getName();
-			if (f.exists())
+			OpenFileSwing dialog = new OpenFileSwing();
+			dialog.saveDialog = true;
+			dialog.setDialogTitle(title);
+			dialog.setFileFilter(filter.getSwingFilter());
+			dialog.addChoosableFileFilter(filter.getSwingFilter());
+			dialog.setCurrentDirectory(new File(User.getWorkingDirectory()));
+			dialog.setSelectedFile(new File(defaultFile));
+			int returnVal = dialog.showSaveDialog(null);
+			if (returnVal == JFileChooser.APPROVE_OPTION)
 			{
-				int result = JOptionPane.showConfirmDialog(this, "The file "+filename+" already exists, would you like to overwrite it?",
-					"Overwrite?", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-				if (result != JOptionPane.OK_OPTION) return;
+				File file = dialog.getSelectedFile();
+				return file.getPath();
 			}
+			return null;
+		} else
+		{
+			// the AWT way
+			FileDialog awtDialog = new FileDialog(TopLevel.getCurrentJFrame(), title, FileDialog.SAVE);
+			awtDialog.setDirectory(User.getWorkingDirectory());
+			awtDialog.setFile(defaultFile);
+			awtDialog.setFilenameFilter(filter.getAWTFilter());
+			awtDialog.show();
+			String fileName = awtDialog.getFile();
+			if (fileName == null) return null;
+			return awtDialog.getDirectory() + fileName;
 		}
-		setSelectedFile(f);
-		User.setWorkingDirectory(getCurrentDirectory().getPath());
-		super.approveSelection();
 	}
 }

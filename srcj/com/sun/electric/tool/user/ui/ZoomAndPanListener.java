@@ -25,8 +25,10 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.database.hierarchy.Cell;
 
+import java.awt.Cursor;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
@@ -41,34 +43,53 @@ public class ZoomAndPanListener
 	implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
 {
 	public static ZoomAndPanListener theOne = new ZoomAndPanListener();
-	private int oldx, oldy;
+	private int startX, startY, lastX, lastY;
 	private ToolBar.CursorMode mode;
 
 	private ZoomAndPanListener() {}
 
 	public void mousePressed(MouseEvent evt)
 	{
-		oldx = evt.getX();
-		oldy = evt.getY();
+		lastX = startX = evt.getX();
+		lastY = startY = evt.getY();
 
 		mode = ToolBar.getCursorMode();
 		if (mode == ToolBar.CursorMode.ZOOM)
 		{
-			if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) != 0) mode = ToolBar.CursorMode.PAN;
+			if ((evt.getModifiers()&MouseEvent.CTRL_MASK) != 0) mode = ToolBar.CursorMode.PAN;
 		} else if (mode == ToolBar.CursorMode.PAN)
 		{
-			if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) != 0) mode = ToolBar.CursorMode.ZOOM;
+			if ((evt.getModifiers()&MouseEvent.CTRL_MASK) != 0) mode = ToolBar.CursorMode.ZOOM;
 		}
+		setProperCursor(evt);
 	}
 
-	public void mouseReleased(MouseEvent evt) {}
 	public void mouseClicked(MouseEvent evt) {}
 	public void mouseEntered(MouseEvent evt) {}
 	public void mouseExited(MouseEvent evt) {}
-	public void mouseMoved(MouseEvent evt) {}
+
+	public void mouseMoved(MouseEvent evt)
+	{
+		setProperCursor(evt);
+	}
+	
+	private void setProperCursor(MouseEvent evt)
+	{
+		if (mode == ToolBar.CursorMode.ZOOM)
+		{
+			if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) != 0)
+			{
+				TopLevel.setCurrentCursor(ToolBar.zoomOutCursor);
+			} else
+			{
+				TopLevel.setCurrentCursor(ToolBar.zoomCursor);
+			}
+		}
+	}
 
 	public void mouseDragged(MouseEvent evt)
 	{
+		setProperCursor(evt);
 		int newX = evt.getX();
 		int newY = evt.getY();
 		EditWindow wnd = (EditWindow)evt.getSource();
@@ -77,17 +98,60 @@ public class ZoomAndPanListener
 		if (mode == ToolBar.CursorMode.ZOOM)
 		{
 			// zooming the window scale
-			wnd.setScale(scale * Math.exp((oldy-newY) / 100.0f));
+			Highlight.clear();
+			Point2D start = wnd.screenToDatabase(startX, startY);
+			Point2D end = wnd.screenToDatabase(newX, newY);
+			double minSelX = Math.min(start.getX(), end.getX());
+			double maxSelX = Math.max(start.getX(), end.getX());
+			double minSelY = Math.min(start.getY(), end.getY());
+			double maxSelY = Math.max(start.getY(), end.getY());
+			Highlight.addArea(new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY), wnd.getCell());
+			Highlight.finished();
+			wnd.clearDoingAreaDrag();
+			wnd.repaint();
 		} else if (mode == ToolBar.CursorMode.PAN)
 		{
 			// panning the window location
 			Point2D pt = wnd.getOffset();
-			wnd.setOffset(new Point2D.Double(pt.getX() - (newX - oldx) / scale,
-				pt.getY() + (newY - oldy) / scale));
+			wnd.setOffset(new Point2D.Double(pt.getX() - (newX - lastX) / scale,
+				pt.getY() + (newY - lastY) / scale));
+			wnd.repaintContents();
 		}
-		oldx = newX;
-		oldy = newY;
-		wnd.repaintContents();
+		lastX = newX;
+		lastY = newY;
+	}
+
+	public void mouseReleased(MouseEvent evt)
+	{
+		setProperCursor(evt);
+		if (mode != ToolBar.CursorMode.ZOOM) return;
+
+		int newX = evt.getX();
+		int newY = evt.getY();
+		EditWindow wnd = (EditWindow)evt.getSource();
+
+		// zooming the window scale
+//			wnd.clearDoingAreaDrag();
+		Highlight.clear();
+		Highlight.finished();
+		Point2D start = wnd.screenToDatabase(startX, startY);
+		Point2D end = wnd.screenToDatabase(newX, newY);
+		double minSelX = Math.min(start.getX(), end.getX());
+		double maxSelX = Math.max(start.getX(), end.getX());
+		double minSelY = Math.min(start.getY(), end.getY());
+		double maxSelY = Math.max(start.getY(), end.getY());
+		if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) != 0)
+		{
+			wnd.setScale(wnd.getScale() * 0.5);
+			Point2D offset = new Point2D.Double((minSelX+maxSelX)/2, (minSelY+maxSelY)/2);
+			wnd.setOffset(offset);
+			wnd.repaintContents();
+			TopLevel.setCurrentCursor(ToolBar.zoomCursor);
+		} else
+		{
+			Rectangle2D bounds = new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY);
+			wnd.focusScreen(bounds);
+		}
 	}
 
 	public void mouseWheelMoved(MouseWheelEvent evt)
