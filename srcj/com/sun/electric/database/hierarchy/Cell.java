@@ -642,9 +642,7 @@ public class Cell extends NodeProto
 			elecBounds.y = cellLowY;
 			elecBounds.height = cellHighY - cellLowY;
 			boundsDirty = false;
-System.out.println("Recomputing bounds of cell " + protoName);
 		}
-System.out.println("Bounds of cell " + protoName + " is " + elecBounds.width + " x " + elecBounds.height);
 
 		return elecBounds;
 	}
