@@ -610,7 +610,7 @@ public class Quick
 			Poly poly = nodeInstPolyList[j];
 			Layer layer = poly.getLayer();
 			if (layer == null) continue;
-			//if (layer.isNonElectrical()) continue; // covered by isSpecialNode
+
 			poly.transform(trans);
 
 			// determine network for this polygon
@@ -635,23 +635,6 @@ public class Quick
 				if (onlyFirstError) return true;
 				errorsFound = true;
 			}
-
-//	#ifdef SURROUNDRULES
-//			// check surround if this layer is from a pure-layer node
-//			if (fun == NPNODE)
-//			{
-//				count = drcsurroundrules(poly->tech, poly->layer, &surlayers, &surdist, &surrules);
-//				for(i=0; i<count; i++)
-//				{
-//					if (dr_quickfindsurround(poly, surlayers[i], surdist[i], cell, state)) continue;
-//					reportError(LAYERSURROUNDERROR, layersValidTech, 0, cell, surdist[i], 0,
-//						surrules[i], poly, ni->geom, poly->layer, NONET,
-//							NOPOLYGON, NOGEOM, surlayers[i], NONET);
-//					if (onlyFirstError) return TRUE;
-//					errorsFound = TRUE;
-//				}
-//			}
-//	#endif
 		}
 
 		// check node for minimum size
@@ -862,7 +845,7 @@ public class Quick
 						Poly poly = primPolyList[j];
 						Layer layer = poly.getLayer();
 						if (layer == null) continue;
-						//if (layer.isNonElectrical()) continue; // covered by isSpecialNode
+
 						poly.transform(rTrans);
 
 						// determine network for this polygon

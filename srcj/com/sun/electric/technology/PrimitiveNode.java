@@ -418,7 +418,6 @@ public class PrimitiveNode implements NodeProto
 	/** Defines a serpentine transistor. */			public static final int SERPTRANS = 1;
 	/** Defines a polygonal transistor. */			public static final int POLYGONAL = 2;
 	/** Defines a multi-cut contact. */				public static final int MULTICUT =  3;
-	/** Defines a special trans or X contact */     public static final int SPECIALNODE =  4;
 
 	/** set if nonmanhattan instances shrink */				private static final int NODESHRINK =           01;
 	/** set if instances can be wiped */					private static final int ARCSWIPE =          01000;
