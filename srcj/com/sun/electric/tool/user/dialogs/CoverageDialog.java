@@ -259,10 +259,7 @@ public class CoverageDialog extends EDialog
 
     private void okActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okActionPerformed
 		//closeDialog(null);
-        Point2D dim = new Point2D.Double(TextUtils.atof(xSize.getText()), TextUtils.atof(ySize.getText()));
-        Point2D delta = new Point2D.Double(TextUtils.atof(xPos.getText()), TextUtils.atof(yPos.getText()));
-
-        LayerCoverageJob.layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_SWEEP,
+        LayerCoverageJob.layerCoverageCommand(null, Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_SWEEP,
                 TextUtils.atof(xSize.getText()), TextUtils.atof(ySize.getText()),
                 TextUtils.atof(xPos.getText()), TextUtils.atof(yPos.getText()));
     }//GEN-LAST:event_okActionPerformed

@@ -201,7 +201,7 @@ public class DebugMenus {
         gildaMenu.addMenuItem("Generate Fake Nodes", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) {genFakeNodes();}});
         gildaMenu.addMenuItem("Bounding box layer coverage", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) {layerCoverage();}});
+                new ActionListener() { public void actionPerformed(ActionEvent e) {testBash();}});
         gildaMenu.addMenuItem("List Layer Coverage", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { LayerCoverageJob.layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_SWEEP); } });
 
@@ -636,7 +636,7 @@ public class DebugMenus {
 			NodeInst instance1Node = NodeInst.newInstance(myCell, new Point2D.Double(0, 0), myWidth, myHeight, higherCell);
 			instance1Node.setExpanded();
 
-			NodeInst instance2Node = NodeInst.newInstance(myCell, new Point2D.Double(myWidth, 0), myWidth, myHeight, higherCell, 900, null, 0);
+			NodeInst instance2Node = NodeInst.newInstance(myCell, new Point2D.Double(myWidth, 0), myWidth, myHeight, higherCell, 0, null, 0);
 			instance2Node.setExpanded();
 
 			NodeInst instance3Node = NodeInst.newInstance(myCell, new Point2D.Double(2*myWidth, 0), myWidth, myHeight, higherCell, 1800, null, 0);
@@ -757,6 +757,38 @@ public class DebugMenus {
     /**
      * Easy way to test bash scripts
      */
+    public static void testBash()
+    {
+        String regressionname = "area";
+        String logname = "output/"+regressionname+Version.getVersion()+".log";
+        boolean[] errorCounts = new boolean[2];
+        double delta = DBMath.getEpsilon()* DBMath.getEpsilon();
+
+        try {
+          TopLevel.getMessagesWindow().save(logname);
+          String techName = "tsmc90";
+          //DebugMenus.makeFakeCircuitryForCoverageCommand(techName, false);
+          Library rootLib = Library.findLibrary("noname");
+          Cell cell = rootLib.findNodeProto("higher{lay}");
+          Rectangle2D bbox = cell.getBounds();
+
+          System.out.println("------RUNNING QTREE MODE -------------");
+          errorCounts[0] = LayerCoverageJob.layerCoverageCommand(cell, Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_QTREE,
+                  bbox.getWidth()/2, bbox.getHeight()/2,bbox.getWidth()/2, bbox.getHeight()/2);
+
+          System.out.println("------RUNNING SWEEP MODE -------------");
+          errorCounts[1] = LayerCoverageJob.layerCoverageCommand(cell, Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_SWEEP,
+                  bbox.getWidth()/2, bbox.getHeight()/2,bbox.getWidth()/2, bbox.getHeight()/2);
+        } catch (Exception e) {
+          System.out.println("exception: "+e);
+          e.printStackTrace();
+          //System.exit(1);
+        }
+
+        System.out.println("Error results : QTREE=" + errorCounts[0] + " SWEEP=" + errorCounts[1]);
+        //System.exit((!errorCounts[0] && !errorCounts[1]) ? 0 : 1);
+    }
+
     public static void genFakeNodes()
     {
         makeFakeCircuitryForCoverageCommand("tsmc90", true);

@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.Main;
+import com.sun.electric.plugins.j3d.View3DWindow;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
@@ -205,6 +206,28 @@ public class WindowFrame
 
 		return frame;
 	}
+
+    public void set3DCamera(Double x, Double y, Double z)
+    {
+        WindowContent content = getContent();
+
+        if (content instanceof View3DWindow)
+            ((View3DWindow)content).setCamera(x, y, z);
+
+//		if (view3DClass == null) return; // error in class initialization or not available
+//
+//		try
+//		{
+//            Method setCamera = null;
+//			if (setCamera == null)
+//				setCamera = view3DClass.getDeclaredMethod("setCamera",
+//                        new Class[] {Double.class, Double.class, Double.class});
+//			setCamera.invoke(view3DClass, new Object[]{x, y, z});
+//		} catch (Exception e) {
+//            System.out.println("Cannot call 3D plugin method: " + e.getMessage());
+//            ActivityLogger.logException(e);
+//        }
+    }
 
 	/**
 	 * Method to access 3D view and highligh elements if view is available

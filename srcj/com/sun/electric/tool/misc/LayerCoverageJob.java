@@ -129,11 +129,13 @@ public class LayerCoverageJob extends Job
      * Method to handle the "List Layer Coverage", "Coverage Implant Generator",  polygons merge
      * except "List Geometry on Network" commands.
      */
-    public static void layerCoverageCommand(Type jobType, int func, int mode, 
+    public static boolean layerCoverageCommand(Cell cell, Type jobType, int func, int mode,
                                             double width, double height, double deltaX, double deltaY)
     {
-        Cell curCell = WindowFrame.needCurCell();
-        if (curCell == null) return;
+        Cell curCell = cell;
+
+        if (curCell == null ) curCell = WindowFrame.needCurCell();
+        if (curCell == null) return false;
 	    EditWindow wnd = EditWindow.needCurrent();
 	    Highlighter highlighter = null;
 	    if ((wnd != null) && (wnd.getCell() == curCell))
@@ -154,6 +156,7 @@ public class LayerCoverageJob extends Job
                 job.doIt();
             }
         }
+        return true;
     }
 
     public static class LayerVisitor extends HierarchyEnumerator.Visitor
@@ -195,7 +198,7 @@ public class LayerCoverageJob extends Job
 			this.originalPolygons = original;
 			this.netSet = netSet;
             this.origBBox = bBox;
-            origBBoxArea = new Area(origBBox);
+            origBBoxArea = (bBox != null) ? new Area(origBBox) : null;
 
             if (t instanceof PolySweepMerge)
                 mode = GeometryHandler.ALGO_SWEEP;
