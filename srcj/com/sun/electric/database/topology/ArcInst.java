@@ -487,6 +487,7 @@ public class ArcInst extends Geometric implements Comparable
 		// update end shrinkage information
 		updateShrinkage(headEnd.getPortInst().getNodeInst());
 		updateShrinkage(tailEnd.getPortInst().getNodeInst());
+		parent.checkInvariants();
 	}
 
 	/**
@@ -945,12 +946,13 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	public void lowLevelSetNameKey(Name name, int duplicate)
 	{
-		if (isLinked() && !isUsernamed())
+		if (isLinked())
 		{
 			parent.removeArc(this);
 			this.name = name;
 			this.duplicate = duplicate;
 			this.duplicate = parent.addArc(this);
+			parent.checkInvariants();
 		} else
 		{
 			this.name = name;
@@ -1146,7 +1148,9 @@ public class ArcInst extends Geometric implements Comparable
 	{
 		assert name != null;
 		assert duplicate >= 0;
-		assert headEnd != null && tailEnd != null;
+
+		assert headEnd.getArc() == this;
+		assert tailEnd.getArc() == this;
 	}
 
 	/**

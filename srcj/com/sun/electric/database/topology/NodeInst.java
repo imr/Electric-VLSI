@@ -788,6 +788,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		// remove this node from the cell
 		parent.removeNode(this);
 		parent.unLinkNode(this);
+		parent.checkInvariants();
         setLinked(false);
 	}
 
@@ -2316,12 +2317,13 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public void lowLevelSetNameKey(Name name, int duplicate)
 	{
-		if (isLinked() && !isUsernamed())
+		if (isLinked())
 		{
 			parent.removeNode(this);
 			this.name = name;
 			this.duplicate = duplicate;
 			this.duplicate = parent.addNode(this);
+			parent.checkInvariants();
 		} else
 		{
 			this.name = name;
@@ -2825,6 +2827,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public void check()
 	{
+		assert name != null;
+		assert duplicate >= 0;
+
 		assert portInsts != null;
 		assert portInsts.length == protoType.getNumPorts();
 		for (int i = 0; i < portInsts.length; i++)

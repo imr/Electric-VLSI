@@ -4,6 +4,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02b: *********************************
 
+BUG: (01/13/05, DN) Rename arc/nodes and undo can spoil database invariants (Bug #157).
+FIX: In "NodeInst.lowLevelSetNameKey" and ArcInst.lowLevelSetNameKey remove "isUsernamed()".
+
+BUG: (01/13/05, DN) Remove export crashes.
+FIX: In "Cell.removeExport()".
+
+BUG: (01/13/05, DN) Ordering Tools by name changed order of Listeners calls.
+FIX: Order tools by definition order.
+
 BUG: (01/12/05, DN) JELIB contains only used exports of external cells.
 FIX: Output all exports of external cells.
 

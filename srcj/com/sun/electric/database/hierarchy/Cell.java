@@ -803,6 +803,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 
 		// success
 		setLinked(true);
+		checkInvariants();
 		return false;
 	}
 
@@ -851,6 +852,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		setCellName(newCellName);
 
 		lowLevelLinkCellName();
+		checkInvariants();
 	}
 
 	private void lowLevelLinkCellName()
@@ -2106,12 +2108,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 
 		Export[] newExports = exports.length > 1 ? new Export[exports.length - 1] : NULL_EXPORT_ARRAY;
 		System.arraycopy(exports, 0, newExports, 0, portIndex);
-		for (int i = portIndex; portIndex < newExports.length; i++)
+		for (int i = portIndex; i < newExports.length; i++)
 		{
 			Export e = exports[i + 1];
 			e.setPortIndex(i);
 			newExports[i] = e;
 		}
+		exports = newExports;
 
 		Collection portInsts = new ArrayList();
 		// remove the PortInst from every instance of this node
@@ -3573,9 +3576,19 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			prevAi = ai;
 		}
 		// now make sure that all nodes reference them
-		for(Iterator it = getNodes(); it.hasNext(); )
+		NodeInst prevNi = null;
+		for(int i = 0; i < nodes.size(); i++)
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = (NodeInst)nodes.get(i);
+			assert ni.getParent() == this;
+			assert ni.getNodeIndex() == i;
+			if (prevNi != null)
+			{
+				int cmp = TextUtils.nameSameNumeric(ni.getName(), prevNi.getName());
+				assert cmp >= 0;
+				if (cmp == 0)
+					assert ni.getDuplicate() > prevNi.getDuplicate();
+			}
 			ni.check();
 			for(Iterator pIt = ni.getConnections(); pIt.hasNext(); )
 			{
@@ -3583,6 +3596,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 				assert connections.contains(con) : ni;
 				connections.remove(con);
 			}
+			prevNi = ni;
 		}
 		// finally check to see if there are any left in the hash table
 		assert connections.isEmpty();
@@ -3597,6 +3611,25 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		// check group pointers
 		assert cellGroup != null;
 		assert cellGroup.containsCell(this);
+	}
+
+	/**
+	 * Method to check invariants in this Cell.
+	 * @return true if invariants are valid
+	 */
+	public boolean checkInvariants()
+	{
+		try
+		{
+			check();
+			return true;
+		} catch (Throwable e)
+		{
+			System.out.println("Exception checking invariants of Cell " + describe());
+			e.printStackTrace();
+			ActivityLogger.logException(e);
+		}
+		return false;
 	}
 
 	/**

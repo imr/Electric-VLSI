@@ -389,6 +389,7 @@ public class Undo
 				ArcInst ai = (ArcInst)obj;
 				ai.lowLevelLink();
 				type = Type.ARCINSTNEW;
+				ai.getParent().checkInvariants();
 				return;
 			}
 			if (type == Type.ARCINSTMOD)
@@ -423,6 +424,7 @@ public class Undo
 				pp.lowLevelLink((Collection)o1);
 				type = Type.EXPORTNEW;
 				o1 = null;
+				((Cell)pp.getParent()).checkInvariants();
 				return;
 			}
 			if (type == Type.EXPORTMOD)
@@ -1429,6 +1431,8 @@ public class Undo
 	public static void newObject(ElectricObject obj)
 	{
 		if (!recordChange()) return;
+		Cell cell = obj.whichCell();
+		if (cell != null) cell.checkInvariants();
 		Type type = Type.OBJECTNEW;
 		if (obj instanceof Cell) type = Type.CELLNEW;
 		else if (obj instanceof NodeInst) type = Type.NODEINSTNEW;
@@ -1664,6 +1668,7 @@ public class Undo
 	 * Quiet changes are not passed to constraint satisfaction, not recorded for Undo and are not broadcast.
 	 */
 	public static void changesQuiet(boolean quiet) {
+		Library.checkInvariants();
 		NetworkTool.changesQuiet(quiet);
         doChangesQuietly = quiet;
         setNextChangeQuiet(quiet);
