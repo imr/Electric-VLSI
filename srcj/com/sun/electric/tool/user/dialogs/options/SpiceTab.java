@@ -39,13 +39,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.*;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import javax.swing.DefaultListModel;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.ListSelectionModel;
+import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
@@ -88,6 +86,12 @@ public class SpiceTab extends PreferencePanel
 	private HashMap spiceLayerCapacitanceOptions;
 	private HashMap spiceLayerEdgeCapacitanceOptions;
 	private HashMap spiceCellModelOptions;
+    private boolean spiceUseRunDirInitial;
+    private String spiceRunDirInitial;
+    private boolean overwriteOutputFileInitial;
+    private String spiceRunProgramInitial;
+    private String spiceRunProgramArgsInitial;
+    private String spiceRunPopupInitial;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -117,13 +121,6 @@ public class SpiceTab extends PreferencePanel
 		spiceOutputFormatPopup.addItem("Raw/Smart");
 		spiceOutputFormatPopup.setSelectedItem(spiceOutputFormatInitial);
 
-		spiceRunPopup.addItem("Don't Run SPICE");
-		spiceRunPopup.addItem("Run SPICE");
-		spiceRunPopup.addItem("Run SPICE Quietly");
-		spiceRunPopup.addItem("Run SPICE, Read Output");
-		spiceRunPopup.addItem("Run SPICE Quietly, Read Output");
-		spiceRunPopup.setEnabled(false);
-
 		spiceUseParasiticsInitial = Simulation.isSpiceUseParasitics();
 		spiceUseParasitics.setSelected(spiceUseParasiticsInitial);
 
@@ -139,13 +136,36 @@ public class SpiceTab extends PreferencePanel
 		spiceWriteTransSizesInLambdaInitial = Simulation.isSpiceWriteTransSizeInLambda();
 		spiceWriteTransSizesInLambda.setSelected(spiceWriteTransSizesInLambdaInitial);
 
-		spiceRunParameters.setEnabled(false);
+        // spice Run options
+        spiceRunDirInitial = Simulation.getSpiceRunDir();
+        useDir.setText(spiceRunDirInitial);
+
+        spiceUseRunDirInitial = Simulation.getSpiceUseRunDir();
+        useDirCheckBox.setSelected(spiceUseRunDirInitial);
+
+        overwriteOutputFileInitial = Simulation.getSpiceOutputOverwrite();
+        overwriteOutputFile.setSelected(overwriteOutputFileInitial);
+
+        spiceRunProgramInitial = Simulation.getSpiceRunProgram();
+        spiceRunProgram.setText(spiceRunProgramInitial);
+
+        spiceRunProgramArgsInitial = Simulation.getSpiceRunProgramArgs();
+        spiceRunProgramArgs.setText(spiceRunProgramArgsInitial);
 
 		spicePartsLibraryInitial = Simulation.getSpicePartsLibrary();
 		String [] libFiles = LibFile.getSpicePartsLibraries();
 		for(int i=0; i<libFiles.length; i++)
 			spicePrimitivesetPopup.addItem(libFiles[i]);
 		spicePrimitivesetPopup.setSelectedItem(spicePartsLibraryInitial);
+
+        String [] runChoices = Simulation.getSpiceRunChoiceValues();
+        for (int i=0; i<runChoices.length; i++) {
+            spiceRunPopup.addItem(runChoices[i]);
+        }
+        spiceRunPopupInitial = Simulation.getSpiceRunChoice();
+        spiceRunPopup.setSelectedItem(spiceRunPopupInitial);
+        if (spiceRunPopup.getSelectedIndex() == 0) setSpiceRunOptionsEnabled(false);
+        else setSpiceRunOptionsEnabled(true);
 
 		// the next section: parasitic values
 		spiceTechnology.setText("For technology " + curTech.getTechName());
@@ -388,6 +408,25 @@ public class SpiceTab extends PreferencePanel
 		booleanNow = spiceUseParasitics.isSelected();
 		if (spiceUseParasiticsInitial != booleanNow) Simulation.setSpiceUseParasitics(booleanNow);
 
+        // spice run options
+        stringNow = (String)spiceRunPopup.getSelectedItem();
+        if (!spiceRunPopupInitial.equals(stringNow)) Simulation.setSpiceRunChoice(stringNow);
+
+        stringNow = useDir.getText();
+        if (!spiceRunDirInitial.equals(stringNow)) Simulation.setSpiceRunDir(stringNow);
+
+        booleanNow = useDirCheckBox.isSelected();
+        if (spiceUseRunDirInitial != booleanNow) Simulation.setSpiceUseRunDir(booleanNow);
+
+        booleanNow = overwriteOutputFile.isSelected();
+        if (overwriteOutputFileInitial != booleanNow) Simulation.setSpiceOutputOverwrite(booleanNow);
+
+        stringNow = spiceRunProgram.getText();
+        if (!spiceRunProgramInitial.equals(stringNow)) Simulation.setSpiceRunProgram(stringNow);
+
+        stringNow = spiceRunProgramArgs.getText();
+        if (!spiceRunProgramArgsInitial.equals(stringNow)) Simulation.setSpiceRunProgramArgs(stringNow);
+
 		// the next section: parasitic values
 		double doubleNow = TextUtils.atof(spiceMinResistance.getText());
 		if (spiceTechMinResistanceInitial != doubleNow) curTech.setMinResistance(doubleNow);
@@ -502,13 +541,36 @@ public class SpiceTab extends PreferencePanel
 		public void removeUpdate(DocumentEvent e) { change(e); }
 	}
 
+    // enable or disable the spice run options
+    private void setSpiceRunOptionsEnabled(boolean enabled) {
+        useDirCheckBox.setEnabled(enabled);
+        overwriteOutputFile.setEnabled(enabled);
+        spiceRunProgram.setEnabled(enabled);
+        spiceRunProgramArgs.setEnabled(enabled);
+        spiceRunHelp.setEnabled(enabled);
+        if (enabled) {
+            spiceRunProgram.setBackground(Color.white);
+            if (!useDirCheckBox.isSelected()) {
+                // if no use dir specified, disable text box
+                useDir.setEnabled(false);
+                useDir.setBackground(spice2.getBackground());
+            } else {
+                useDir.setEnabled(true);
+                useDir.setBackground(Color.white);
+            }
+        } else {
+            spiceRunProgram.setBackground(spice2.getBackground());
+            useDir.setBackground(spice2.getBackground());
+            useDir.setEnabled(false);
+        }
+    }
+
 	/** This method is called from within the constructor to
 	 * initialize the form.
 	 * WARNING: Do NOT modify this code. The content of this method is
 	 * always regenerated by the Form Editor.
 	 */
-    private void initComponents()//GEN-BEGIN:initComponents
-    {
+    private void initComponents() {//GEN-BEGIN:initComponents
         java.awt.GridBagConstraints gridBagConstraints;
 
         spiceHeader = new javax.swing.ButtonGroup();
@@ -529,10 +591,14 @@ public class SpiceTab extends PreferencePanel
         spiceUseCellParameters = new javax.swing.JCheckBox();
         spiceWriteTransSizesInLambda = new javax.swing.JCheckBox();
         spice2 = new javax.swing.JPanel();
-        jLabel21 = new javax.swing.JLabel();
-        spiceRunParameters = new javax.swing.JTextField();
-        jLabel16 = new javax.swing.JLabel();
+        spiceRunProgram = new javax.swing.JTextField();
         jLabel17 = new javax.swing.JLabel();
+        useDirCheckBox = new javax.swing.JCheckBox();
+        useDir = new javax.swing.JTextField();
+        overwriteOutputFile = new javax.swing.JCheckBox();
+        spiceRunHelp = new javax.swing.JButton();
+        jLabel3 = new javax.swing.JLabel();
+        spiceRunProgramArgs = new javax.swing.JTextField();
         spice3 = new javax.swing.JPanel();
         jLabel13 = new javax.swing.JLabel();
         spicePrimitivesetPopup = new javax.swing.JComboBox();
@@ -579,10 +645,8 @@ public class SpiceTab extends PreferencePanel
 
         setTitle("Tool Options");
         setName("");
-        addWindowListener(new java.awt.event.WindowAdapter()
-        {
-            public void windowClosing(java.awt.event.WindowEvent evt)
-            {
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
                 closeDialog(evt);
             }
         });
@@ -613,6 +677,12 @@ public class SpiceTab extends PreferencePanel
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         spice1.add(jLabel10, gridBagConstraints);
+
+        spiceRunPopup.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                spiceRunPopupActionPerformed(evt);
+            }
+        });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -685,41 +755,86 @@ public class SpiceTab extends PreferencePanel
 
         spice2.setLayout(new java.awt.GridBagLayout());
 
+        spice2.setBorder(new javax.swing.border.EtchedBorder());
+        spiceRunProgram.setColumns(8);
+        spiceRunProgram.setMinimumSize(new java.awt.Dimension(100, 20));
+        spiceRunProgram.setPreferredSize(new java.awt.Dimension(92, 20));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 5);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weightx = 0.2;
         gridBagConstraints.weighty = 1.0;
-        spice2.add(jLabel21, gridBagConstraints);
+        spice2.add(spiceRunProgram, gridBagConstraints);
 
-        spiceRunParameters.setMinimumSize(new java.awt.Dimension(100, 20));
-        spiceRunParameters.setPreferredSize(new java.awt.Dimension(100, 20));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        spice2.add(spiceRunParameters, gridBagConstraints);
-
-        jLabel16.setText("Run:");
+        jLabel17.setText("Run Program:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weighty = 0.5;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
-        spice2.add(jLabel16, gridBagConstraints);
-
-        jLabel17.setText("With");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         spice2.add(jLabel17, gridBagConstraints);
+
+        useDirCheckBox.setText("Use Dir:");
+        useDirCheckBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                useDirCheckBoxActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        spice2.add(useDirCheckBox, gridBagConstraints);
+
+        useDir.setColumns(8);
+        useDir.setText("jTextField1");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        spice2.add(useDir, gridBagConstraints);
+
+        overwriteOutputFile.setText("overwrite existing output file (no prompts)");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        spice2.add(overwriteOutputFile, gridBagConstraints);
+
+        spiceRunHelp.setText("help");
+        spiceRunHelp.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                spiceRunHelpActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 5);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        spice2.add(spiceRunHelp, gridBagConstraints);
+
+        jLabel3.setText("with args:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 5);
+        spice2.add(jLabel3, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 5);
+        gridBagConstraints.weightx = 1.0;
+        spice2.add(spiceRunProgramArgs, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1079,6 +1194,36 @@ public class SpiceTab extends PreferencePanel
 
         pack();
     }//GEN-END:initComponents
+
+    private void spiceRunPopupActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_spiceRunPopupActionPerformed
+        if (spiceRunPopup.getSelectedIndex() == 0) {
+            setSpiceRunOptionsEnabled(false);
+        } else
+            setSpiceRunOptionsEnabled(true);
+    }//GEN-LAST:event_spiceRunPopupActionPerformed
+
+    private void spiceRunHelpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_spiceRunHelpActionPerformed
+        String [] message = { "IMPORTANT: This executes a single program with the given args.  It does NOT run a command-line command.",
+                              "For example, 'echo blah > file' will NOT work. Encapsulate it in a script if you want to do such things.",
+                              "-----------------",
+                              "The following variables are available to use (and are also exported as environment variables:",
+                              "   ${WORKING_DIR}:  The current working directory",
+                              "   ${USE_DIR}:  The Use Dir field, if specified (otherwise defaults to WORKING_DIR)",
+                              "   ${FILENAME}:  The output file name (without extension)",
+                              "Example: Program: hspice; Args: ${FILENAME}.spi" };
+        JOptionPane.showMessageDialog(this, message, "Spice Run Help", JOptionPane.INFORMATION_MESSAGE);
+    }//GEN-LAST:event_spiceRunHelpActionPerformed
+
+    private void useDirCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_useDirCheckBoxActionPerformed
+        // enable use dir field
+        boolean b = useDirCheckBox.isSelected();
+        useDir.setEnabled(b);
+        if (b) {
+            useDir.setBackground(Color.white);
+        } else {
+            useDir.setBackground(spice2.getBackground());
+        }
+    }//GEN-LAST:event_useDirCheckBoxActionPerformed
 	
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
@@ -1093,12 +1238,11 @@ public class SpiceTab extends PreferencePanel
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel13;
-    private javax.swing.JLabel jLabel16;
     private javax.swing.JLabel jLabel17;
     private javax.swing.JLabel jLabel18;
     private javax.swing.JLabel jLabel19;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel21;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
@@ -1106,6 +1250,7 @@ public class SpiceTab extends PreferencePanel
     private javax.swing.JSeparator jSeparator2;
     private javax.swing.JSeparator jSeparator3;
     private javax.swing.JSeparator jSeparator4;
+    private javax.swing.JCheckBox overwriteOutputFile;
     private javax.swing.JPanel spice;
     private javax.swing.JPanel spice1;
     private javax.swing.JPanel spice2;
@@ -1138,8 +1283,10 @@ public class SpiceTab extends PreferencePanel
     private javax.swing.JComboBox spiceOutputFormatPopup;
     private javax.swing.JComboBox spicePrimitivesetPopup;
     private javax.swing.JTextField spiceResistance;
-    private javax.swing.JTextField spiceRunParameters;
+    private javax.swing.JButton spiceRunHelp;
     private javax.swing.JComboBox spiceRunPopup;
+    private javax.swing.JTextField spiceRunProgram;
+    private javax.swing.JTextField spiceRunProgramArgs;
     private javax.swing.JLabel spiceTechnology;
     private javax.swing.ButtonGroup spiceTrailer;
     private javax.swing.JTextField spiceTrailerCardExtension;
@@ -1151,6 +1298,8 @@ public class SpiceTab extends PreferencePanel
     private javax.swing.JCheckBox spiceUseNodeNames;
     private javax.swing.JCheckBox spiceUseParasitics;
     private javax.swing.JCheckBox spiceWriteTransSizesInLambda;
+    private javax.swing.JTextField useDir;
+    private javax.swing.JCheckBox useDirCheckBox;
     // End of variables declaration//GEN-END:variables
 	
 }
