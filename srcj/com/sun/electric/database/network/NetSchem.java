@@ -1048,7 +1048,7 @@ class NetSchem extends NetCell {
 			NodeProto np = ni.getProto();
 			if (np instanceof PrimitiveNode) {
 				if (np == Schematics.tech.resistorNode)
-					netlistT.connectMap(drawns[nodeOffset], drawns[nodeOffset + 1]);
+					netlistT.connectMap(drawnOffsets[drawns[nodeOffset]], drawnOffsets[drawns[nodeOffset + 1]]);
 				continue;
 			}
 			NetCell netCell = NetworkTool.getNetCell((Cell)np);
@@ -1059,8 +1059,8 @@ class NetSchem extends NetCell {
 				int di = drawns[nodeOffset + i];
 				int dj = drawns[nodeOffset + j];
 				if (di < 0 || dj < 0) continue;
-				netlistF.connectMap(di, dj);
-				netlistT.connectMap(di, dj);
+				netlistF.connectMap(drawnOffsets[di], drawnOffsets[dj]);
+				netlistT.connectMap(drawnOffsets[di], drawnOffsets[dj]);
 			}
 		}
 		for (int k = 0; k < nodeProxies.length; k++) {
@@ -1161,42 +1161,52 @@ class NetSchem extends NetCell {
 		/*
 		// debug info
 		System.out.println("BuildNetworkList "+cell);
-		int i = 0;
-		for (int l = 0; l < userNetlist.networks.length; l++) {
-			Network network = userNetlist.networks[l];
-			if (network == null) continue;
-			String s = "";
-			for (Iterator sit = network.getNames(); sit.hasNext(); )
-			{
-				String n = (String)sit.next();
-				s += "/"+ n;
+		for (k = 0; k < 2; k++) {
+		    Netlist netlist;
+			if (k == 0) {
+				netlist = netlistF;
+				System.out.println("NetlistF");
+			} else {
+				netlist = netlistT;
+				System.out.println("NetlistT");
 			}
-			System.out.println("    "+i+"    "+s);
-			i++;
-			for (int k = 0; k < globals.size(); k++) {
-				if (userNetlist.nm_net[userNetlist.netMap[k]] != l) continue;
-				System.out.println("\t" + globals.get(k));
-			}
-			int numPorts = cell.getNumPorts();
-			for (int k = 0; k < numPorts; k++) {
-				Export e = (Export) cell.getPort(k);
-				for (int j = 0; j < e.getNameKey().busWidth(); j++) {
-					if (userNetlist.nm_net[userNetlist.netMap[portOffsets[k] + j]] != l) continue;
-					System.out.println("\t" + e + " [" + j + "]");
+			int i = 0;
+			for (int l = 0; l < netlist.networks.length; l++) {
+				Network network = netlist.networks[l];
+				if (network == null) continue;
+				String s = "";
+				for (Iterator sit = network.getNames(); sit.hasNext(); )
+				{
+					String n = (String)sit.next();
+					s += "/"+ n;
 				}
-			}
-			for (int k = 0; k < numDrawns; k++) {
-				for (int j = 0; j < drawnWidths[k]; j++) {
-					int ind = drawnOffsets[k] + j;
-					int netInd = userNetlist.netMap[ind];
-					if (userNetlist.nm_net[userNetlist.netMap[drawnOffsets[k] + j]] != l) continue;
-					System.out.println("\tDrawn " + k + " [" + j + "]");
+				System.out.println("    "+i+"    "+s);
+				i++;
+				for (int k = 0; k < globals.size(); k++) {
+					if (netlist.nm_net[netlist.netMap[k]] != l) continue;
+					System.out.println("\t" + globals.get(k));
 				}
-			}
-			for (Iterator it = netNames.values().iterator(); it.hasNext();) {
-				NetName nn = (NetName)it.next();
-				if (userNetlist.nm_net[userNetlist.netMap[netNamesOffset + nn.index]] != l) continue;
-				System.out.println("\tNetName " + nn.name);
+				int numPorts = cell.getNumPorts();
+				for (int k = 0; k < numPorts; k++) {
+					Export e = (Export) cell.getPort(k);
+					for (int j = 0; j < e.getNameKey().busWidth(); j++) {
+						if (netlist.nm_net[netlist.netMap[portOffsets[k] + j]] != l) continue;
+						System.out.println("\t" + e + " [" + j + "]");
+					}
+				}
+				for (int k = 0; k < numDrawns; k++) {
+					for (int j = 0; j < drawnWidths[k]; j++) {
+						int ind = drawnOffsets[k] + j;
+						int netInd = netlist.netMap[ind];
+						if (netlist.nm_net[netlist.netMap[drawnOffsets[k] + j]] != l) continue;
+						System.out.println("\tDrawn " + k + " [" + j + "]");
+					}
+				}
+				for (Iterator it = netNames.values().iterator(); it.hasNext();) {
+					NetName nn = (NetName)it.next();
+					if (netlist.nm_net[netlist.netMap[netNamesOffset + nn.index]] != l) continue;
+					System.out.println("\tNetName " + nn.name);
+				}
 			}
 		}
 		*/
