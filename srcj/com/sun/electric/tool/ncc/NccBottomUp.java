@@ -243,6 +243,9 @@ public class NccBottomUp {
 															 hierInfo, options); 
 				result.andEquals(r, true);
 				if (r.match())  passed.setPassed(refCC.cell, thisCC.cell);
+				
+				// Halt after first mismatch if that's what user wants
+				if (!r.match() && options.haltAfterFirstMismatch) break;
 			}
 		}
 		if (!hierarchical) hierInfo.purgeCurrentCellGroup();
