@@ -524,7 +524,7 @@ public class Quick
 
 		// if the cell hasn't changed since the last good check, stop now
 
-		if (allSubCellsStillOK)
+		if (!Main.getDebug() && allSubCellsStillOK)
 		{
 			Date lastGoodDate = DRC.getLastDRCDate(cell);
 			if (lastGoodDate != null)
@@ -1011,11 +1011,11 @@ public class Quick
 	{
 		Rectangle2D rBound = new Rectangle2D.Double();
 		rBound.setRect(bounds);
-		DBMath.transformRect(rBound, upTrans);
+		DBMath.transformRect(rBound, upTrans); // Step 1
 		Netlist netlist = getCheckProto(cell).netlist;
 
 		// Sept04 changes: bounds by rBound
-		for(Iterator it = cell.searchIterator(rBound); it.hasNext(); )
+		for(Iterator it = cell.searchIterator(bounds); it.hasNext(); )
 		{
 			Geometric nGeom = (Geometric)it.next();
 			if (sameInstance && (nGeom == geom)) continue;
@@ -1068,6 +1068,7 @@ public class Quick
 					int tot = subPolyList.length;
 					for(int i=0; i<tot; i++)
 						subPolyList[i].transform(rTrans);
+					    /* Step 1 */
 					boolean multi = baseMulti;
 					if (!multi) multi = isMultiCut(ni);
 					for(int j=0; j<tot; j++)
@@ -2482,13 +2483,13 @@ public class Quick
 				}
 			}
 
-					boolean oldR = pointsFound[0] && pointsFound[1] && (pt3 == null || (pt3 != null && pointsFound[2]));
-					for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
-					boolean newR = (j == pointsFound.length);
-					if (newR != oldR)
-						System.out.println("Error in Quit.lookForLayer");
-					if (newR)
-						return true;
+			boolean oldR = pointsFound[0] && pointsFound[1] && (pt3 == null || (pt3 != null && pointsFound[2]));
+			for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
+			boolean newR = (j == pointsFound.length);
+			if (newR != oldR)
+				System.out.println("Error in Quit.lookForLayer");
+			if (newR)
+				return true;
 			/*
 			if (pointsFound[0] && pointsFound[1] && pointsFound[2])
 				return true;
