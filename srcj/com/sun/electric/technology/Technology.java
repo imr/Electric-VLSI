@@ -44,6 +44,7 @@ import com.sun.electric.technology.technologies.CMOS;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.MoCMOSOld;
 import com.sun.electric.technology.technologies.MoCMOSSub;
+import com.sun.electric.tool.user.ui.UIEdit;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -778,10 +779,11 @@ public class Technology extends ElectricObject
 	 * Returns the polygons that describe node "ni".
 	 * @param ni the NodeInst that is being described.
 	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
+	 * @param wnd the window in which this node will be drawn.
 	 * @return an array of Poly objects that describes this NodeInst graphically.
 	 * This array includes displayable variables on the NodeInst.
 	 */
-	public Poly [] getShape(NodeInst ni)
+	public Poly [] getShape(NodeInst ni, UIEdit wnd)
 	{
 		NodeProto prototype = ni.getProto();
 		if (!(prototype instanceof PrimitiveNode)) return null;
@@ -794,7 +796,7 @@ public class Technology extends ElectricObject
 		}
 		PrimitiveNode np = (PrimitiveNode)prototype;
 		Technology.NodeLayer [] primLayers = np.getLayers();
-		return getShape(ni, primLayers);
+		return getShape(ni, wnd, primLayers);
 	}
 
 	/**
@@ -803,10 +805,11 @@ public class Technology extends ElectricObject
 	 * @param ni the NodeInst that is being described.
 	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
 	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
+	 * @param wnd the window in which this node will be drawn.
 	 * @return an array of Poly objects that describes this NodeInst graphically.
 	 * This array includes displayable variables on the NodeInst.
 	 */
-	public Poly [] getShape(NodeInst ni, Technology.NodeLayer [] primLayers)
+	public Poly [] getShape(NodeInst ni, UIEdit wnd, Technology.NodeLayer [] primLayers)
 	{
 		// get information about the node
 		double halfWidth = ni.getXSize() / 2;
@@ -823,7 +826,7 @@ public class Technology extends ElectricObject
 			Float [] outline = ni.getTrace();
 			if (outline != null)
 			{
-				int numPolys = ni.numDisplayableVariables() + 1;
+				int numPolys = ni.numDisplayableVariables(true) + 1;
 				Poly [] polys = new Poly[numPolys];
 				int numPoints = outline.length / 2;
 				Point2D.Double [] pointList = new Point2D.Double[numPoints];
@@ -837,7 +840,7 @@ public class Technology extends ElectricObject
 				polys[0].setStyle(primLayer.getStyle());
 				polys[0].setLayer(primLayer.getLayer());
 				Rectangle2D rect = ni.getBounds();
-				ni.addDisplayableVariables(rect, polys, 1);
+				ni.addDisplayableVariables(rect, polys, 1, wnd, true);
 				return polys;
 			}
 		}
@@ -863,7 +866,7 @@ public class Technology extends ElectricObject
 		}
 
 		// construct the polygon array
-		int numPolys = numBasicLayers + numExtraCuts + ni.numDisplayableVariables();
+		int numPolys = numBasicLayers + numExtraCuts + ni.numDisplayableVariables(true);
 		Poly [] polys = new Poly[numPolys];
 		
 		// add in the basic polygons
@@ -935,7 +938,7 @@ public class Technology extends ElectricObject
 
 		// add in the displayable variables
 		Rectangle2D rect = ni.getBounds();
-		ni.addDisplayableVariables(rect, polys, numBasicLayers+numExtraCuts);
+		ni.addDisplayableVariables(rect, polys, numBasicLayers+numExtraCuts, wnd, true);
 		return polys;
 	}
 
@@ -1414,10 +1417,11 @@ public class Technology extends ElectricObject
 	/**
 	 * Returns the polygons that describe arc "ai".
 	 * @param ai the ArcInst that is being described.
+	 * @param wnd the window in which this arc is being displayed.
 	 * @return an array of Poly objects that describes this ArcInst graphically.
 	 * This array includes displayable variables on the ArcInst.
 	 */
-	public Poly [] getShape(ArcInst ai)
+	public Poly [] getShape(ArcInst ai, UIEdit wnd)
 	{
 		// get information about the arc
 		PrimitiveArc ap = (PrimitiveArc)ai.getProto();
@@ -1427,7 +1431,7 @@ public class Technology extends ElectricObject
 		// see how many polygons describe this arc
 		boolean addArrow = false;
 		if (!tech.isNoDirectionalArcs() && ai.isDirectional()) addArrow = true;
-		int numDisplayable = ai.numDisplayableVariables();
+		int numDisplayable = ai.numDisplayableVariables(true);
 		int maxPolys = primLayers.length + numDisplayable;
 		if (addArrow) maxPolys++;
 		Poly [] polys = new Poly[maxPolys];
@@ -1480,7 +1484,7 @@ public class Technology extends ElectricObject
 		
 		// add in the displayable variables
 		Rectangle2D rect = ai.getBounds();
-		ai.addDisplayableVariables(rect, polys, polyNum);
+		ai.addDisplayableVariables(rect, polys, polyNum, wnd, true);
 
 		return polys;
 	}

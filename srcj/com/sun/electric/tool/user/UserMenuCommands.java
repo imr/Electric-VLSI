@@ -211,6 +211,7 @@ public final class UserMenuCommands
 			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
+				if (h.getType() != Highlight.Type.GEOM) continue;
 				Geometric geom = h.getGeom();
 				geom.getInfo();
 			}
@@ -436,6 +437,7 @@ public final class UserMenuCommands
         }
         for (Iterator it = Highlight.getHighlights(); it.hasNext();) {
             Highlight h = (Highlight)it.next();
+			if (h.getType() != Highlight.Type.GEOM) continue;
             Geometric geom = (Geometric)h.getGeom();
             geom.getInfo();
         }
@@ -450,6 +452,7 @@ public final class UserMenuCommands
         }
         for (Iterator it = Highlight.getHighlights(); it.hasNext();) {
             Highlight h = (Highlight)it.next();
+			if (h.getType() != Highlight.Type.GEOM) continue;
             ElectricObject eobj = (ElectricObject)h.getGeom();
             Iterator itVar = eobj.getVariables();
             while(itVar.hasNext()) {

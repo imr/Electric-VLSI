@@ -41,6 +41,7 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.tool.user.ui.UIEdit;
 
 import java.awt.geom.Point2D;
 import java.util.Iterator;
@@ -1314,9 +1315,10 @@ public class Schematics extends Technology
 	 * This routine overrides the general one in the Technology object
 	 * because of the unusual primitives in the Artwork Technology.
 	 * @param ni the NodeInst to describe.
+	 * @param wnd the window in which this node will be drawn.
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShape(NodeInst ni)
+	public Poly [] getShape(NodeInst ni, UIEdit wnd)
 	{
 		NodeProto prototype = ni.getProto();
 		if (!(prototype instanceof PrimitiveNode)) return null;
@@ -1502,7 +1504,7 @@ public class Schematics extends Technology
 				case TRANEMES:  primLayers = tran4LayersEMES;   break;
 			}
 		}
-		return getShape(ni, primLayers);
+		return getShape(ni, wnd, primLayers);
 	}
 
 	/**
@@ -1510,18 +1512,19 @@ public class Schematics extends Technology
 	 * This routine overrides the general one in the Technology object
 	 * because of the unusual primitives in the Artwork Technology.
 	 * @param ai the ArcInst to describe.
+	 * @param wnd the window in which this arc will be drawn.
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShape(ArcInst ai)
+	public Poly [] getShape(ArcInst ai, UIEdit wnd)
 	{
 		// Bus arcs are handled in a standard way
 		PrimitiveArc ap = (PrimitiveArc)ai.getProto();
 		if (ap == bus_arc)
-			return super.getShape(ai);
+			return super.getShape(ai, wnd);
 
 		// Wire arc: if not negated, handle in a standard way
 		if (!ai.isNegated() || ai.isSkipTail())
-			return super.getShape(ai);
+			return super.getShape(ai, wnd);
 
 		// draw a negated Wire arc
 		Point2D.Double headLoc = ai.getHead().getLocation();

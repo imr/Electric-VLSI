@@ -67,6 +67,7 @@ public class CircuitChanges
 		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 		{
 			Highlight h = (Highlight)it.next();
+			if (h.getType() != Highlight.Type.GEOM) continue;
 			Geometric geom = h.getGeom();
 			if (cell == null) cell = geom.getParent(); else
 			{
@@ -180,6 +181,7 @@ public class CircuitChanges
 		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 		{
 			Highlight h = (Highlight)it.next();
+			if (h.getType() != Highlight.Type.GEOM) continue;
 			Geometric geom = h.getGeom();
 			if (geom instanceof ArcInst)
 			{
@@ -199,6 +201,7 @@ public class CircuitChanges
 			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
+				if (h.getType() != Highlight.Type.GEOM) continue;
 				Geometric geom = h.getGeom();
 				if (geom instanceof ArcInst)
 				{
@@ -222,6 +225,7 @@ public class CircuitChanges
 		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 		{
 			Highlight h = (Highlight)it.next();
+			if (h.getType() != Highlight.Type.GEOM) continue;
 			Geometric geom = h.getGeom();
 			if (geom instanceof NodeInst) numNodes++;
 		}
@@ -237,6 +241,7 @@ public class CircuitChanges
 		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 		{
 			Highlight h = (Highlight)it.next();
+			if (h.getType() != Highlight.Type.GEOM) continue;
 			Geometric geom = h.getGeom();
 			if (geom instanceof ArcInst) continue;
 			NodeInst ni = (NodeInst)geom;
@@ -262,6 +267,7 @@ public class CircuitChanges
 		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 		{
 			Highlight h = (Highlight)it.next();
+			if (h.getType() != Highlight.Type.GEOM) continue;
 			Geometric geom = h.getGeom();
 			if (geom instanceof NodeInst) continue;
 			ArcInst ai = (ArcInst)geom;

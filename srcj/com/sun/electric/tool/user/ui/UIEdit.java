@@ -171,8 +171,8 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 		{
 			Highlight h = (Highlight)it.next();
-			Geometric geom = h.getGeom();
-			if (geom.getParent() != cell) continue;
+			Cell highCell = h.getCell();
+			if (highCell != cell) continue;
 			h.showHighlight(this, g);
 		}
 
@@ -208,6 +208,7 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 		Library curLib = Library.getCurrent();
 		curLib.setCurCell(cell);
 		Highlight.clearHighlighting();
+//        if (lastPushed != null) Highlight.addGeometric(lastPushed);
 		fillScreen();
 		redraw();
 	}
@@ -246,6 +247,10 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
         }
         Iterator it = Highlight.getHighlights();
         Highlight h = (Highlight)it.next();
+		if (h.getType() != Highlight.Type.GEOM) {
+            System.out.println("Must select a node");
+            return;
+        }
         Geometric geom = h.getGeom();
         if (!(geom instanceof NodeInst)) {
             System.out.println("Cannot descend into that object");
@@ -274,7 +279,7 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
             Cell parent = ni.getParent();
             VarContext context = cellVarContext.pop();
             setCell(parent, context);
-            Highlight.addHighlighting((Geometric)ni);
+            Highlight.addGeometric(ni);
             needsUpdate = true;
         } catch (NullPointerException e) {
             // no parent - if icon, go to sch view
@@ -459,10 +464,10 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 				}
 				
 				// show displayable variables on the instance
-				int numPolys = ni.numDisplayableVariables();
+				int numPolys = ni.numDisplayableVariables(true);
 				Poly [] polys = new Poly[numPolys];
 				Rectangle2D rect = ni.getBounds();
-				ni.addDisplayableVariables(rect, polys, 0);
+				ni.addDisplayableVariables(rect, polys, 0, this, true);
 				if (drawPolys(g2, polys, localTrans))
 					System.out.println("... while displaying instance "+ni.describe() + " in cell " + ni.getParent().describe());
 			}
@@ -473,7 +478,7 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 			{
 				PrimitiveNode prim = (PrimitiveNode)np;
 				Technology tech = prim.getTechnology();
-				Poly [] polys = tech.getShape(ni);
+				Poly [] polys = tech.getShape(ni, this);
 				if (drawPolys(g2, polys, localTrans))
 					System.out.println("... while displaying node "+ni.describe() + " in cell " + ni.getParent().describe());
 			}
@@ -502,7 +507,7 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 	{
 		ArcProto ap = ai.getProto();
 		Technology tech = ap.getTechnology();
-		Poly [] polys = tech.getShape(ai);
+		Poly [] polys = tech.getShape(ai, this);
 		if (drawPolys(g2, polys, trans))
 			System.out.println("... while displaying arc "+ai.describe() + " in cell " + ai.getParent().describe());
 	}
@@ -698,7 +703,13 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 		g2.setTransform(saveAT);
 	}
 
-	void drawText(Graphics2D g2, double lX, double hX, double lY, double hY, Poly.Type style, TextDescriptor descript, String text, Color color)
+	/**
+	 * Routine to convert a string and descriptor to a GlyphVector.
+	 * @param text the string to convert.
+	 * @param descript the Text Descriptor, with size, style, etc.
+	 * @return a GlyphVector describing the text.
+	 */
+	public GlyphVector getGlyphs(String text, TextDescriptor descript)
 	{
 		// make a glyph vector for the desired text
 		int size = 14;
@@ -712,7 +723,21 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 		Font font = new Font("SansSerif", fontStyle, size);
 		FontRenderContext frc = new FontRenderContext(null, false, false);
 		GlyphVector gv = font.createGlyphVector(frc, text);
+		return gv;
+	}
 
+	/**
+	 * Routine to return the coordinates of the lower-left corner of text in this window.
+	 * @param gv the GlyphVector describing the text.
+	 * @param style the grab-point information about where the text is anchored.
+	 * @param lX the low X bound of the polygon containing the text.
+	 * @param hX the high X bound of the polygon containing the text.
+	 * @param lY the low Y bound of the polygon containing the text.
+	 * @param hY the high Y bound of the polygon containing the text.
+	 * @return the coordinates of the lower-left corner of the text.
+	 */
+	public Point2D getTextCorner(GlyphVector gv, Poly.Type style, int numLines, double lX, double hX, double lY, double hY)
+	{
 		// adjust to place text in the center
 		Rectangle2D glyphBounds = gv.getVisualBounds();
 		double textScale = 1.0/scale;
@@ -760,6 +785,57 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 			cX -= glyphBounds.getCenterX() * textScale;
 			cY += glyphBounds.getCenterY() * textScale;
 		}
+		return new Point2D.Double(cX, cY);
+	}
+
+	/**
+	 * Routine to return the scaling factor between database and screen for the given text.
+	 * @param gv the GlyphVector describing the text.
+	 * @param style the grab-point information about where the text is anchored.
+	 * @param lX the low X bound of the polygon containing the text.
+	 * @param hX the high X bound of the polygon containing the text.
+	 * @param lY the low Y bound of the polygon containing the text.
+	 * @param hY the high Y bound of the polygon containing the text.
+	 * @return the scale of the text (from database to screen).
+	 */
+	public double getTextScale(GlyphVector gv, Poly.Type style, double lX, double hX, double lY, double hY)
+	{
+		double textScale = 1.0/scale;
+		if (style == Poly.Type.TEXTBOX)
+		{
+			Rectangle2D glyphBounds = gv.getVisualBounds();
+			double textWidth = glyphBounds.getWidth() * textScale;
+			if (textWidth > hX - lX)
+			{
+				// text too big for box: scale it down
+				textScale *= (hX - lX) / textWidth;
+			}
+		}
+		return textScale;
+	}
+
+	/**
+	 * Routine to draw text on the window.
+	 * @param g2 the Graphics object for drawing.
+	 * @param lX the low X bound of the polygon containing the text.
+	 * @param hX the high X bound of the polygon containing the text.
+	 * @param lY the low Y bound of the polygon containing the text.
+	 * @param hY the high Y bound of the polygon containing the text.
+	 * @param style the grab-point information about where the text is anchored.
+	 * @param descript the text descriptor for the text.
+	 * @param text the text to be drawn.
+	 * @param color the color to draw the text.
+	 */
+	void drawText(Graphics2D g2, double lX, double hX, double lY, double hY, Poly.Type style, TextDescriptor descript, String text, Color color)
+	{
+		GlyphVector gv = getGlyphs(text, descript);
+		Rectangle2D glyphBounds = gv.getVisualBounds();
+		Point2D corner = getTextCorner(gv, style, 1, lX, hX, lY, hY);
+		double cX = corner.getX();
+		double cY = corner.getY();
+
+		// determine scaling for the window
+		double textScale = getTextScale(gv, style, lX, hX, lY, hY);
 
 		// draw the text
 		AffineTransform saveAT = g2.getTransform();
@@ -935,9 +1011,14 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 		if ((evt.getModifiers()&MouseEvent.CTRL_MASK) != 0) return;
 
 		// standard selection: drag out a selection box
-		startDrag.setLocation(oldx, oldy);
-		endDrag.setLocation(oldx, oldy);
-		doingAreaDrag = true;
+		Point2D.Double pt = screenToDatabase(oldx, oldy);
+		Highlight.findObject(pt, this, false, false, true, false, false);
+		if (Highlight.getNumHighlights() == 0)
+		{
+			startDrag.setLocation(oldx, oldy);
+			endDrag.setLocation(oldx, oldy);
+			doingAreaDrag = true;
+		}
 		repaint();
 	}
 

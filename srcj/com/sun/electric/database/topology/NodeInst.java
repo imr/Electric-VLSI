@@ -36,6 +36,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.tool.user.ui.UIEdit;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -728,6 +729,24 @@ public class NodeInst extends Geometric
 	 * @param userBits the new "user bits".
 	 */
 	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
+
+	/**
+	 * Routine to return a list of Polys that describes all text on this NodeInst.
+	 * @param hardToSelect is true if considering hard-to-select text.
+	 * @param wnd the window in which the text will be drawn.
+	 * @return an array of Polys that describes the text.
+	 */
+	public Poly [] getAllText(boolean hardToSelect, UIEdit wnd)
+	{
+		int dispVars = numDisplayableVariables(false);
+		int numExports = getNumExports();
+numExports = 0;
+		int totalText = dispVars + numExports;
+		if (totalText == 0) return null;
+		Poly [] polys = new Poly[totalText];
+		addDisplayableVariables(getBounds(), polys, 0, wnd, false);
+		return polys;
+	}
 
 	/**
 	 * Routine to tell whether this NodeInst is transposed.

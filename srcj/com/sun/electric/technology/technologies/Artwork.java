@@ -39,6 +39,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.tool.user.ui.UIEdit;
 
 import java.awt.geom.Point2D;
 
@@ -411,9 +412,10 @@ public class Artwork extends Technology
 	 * This routine overrides the general one in the Technology object
 	 * because of the unusual primitives in the Artwork Technology.
 	 * @param ni the NodeInst to describe.
+	 * @param wnd the window in which this node will be drawn.
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShape(NodeInst ni)
+	public Poly [] getShape(NodeInst ni, UIEdit wnd)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		getGraphics(ni);
@@ -473,7 +475,7 @@ public class Artwork extends Technology
 				return polys;
 			}
 		}
-		return super.getShape(ni);
+		return super.getShape(ni, wnd);
 	}
 
 	/**
@@ -481,12 +483,13 @@ public class Artwork extends Technology
 	 * This routine overrides the general one in the Technology object
 	 * because of the unusual primitives in the Artwork Technology.
 	 * @param ai the ArcInst to describe.
+	 * @param wnd the window in which this arc will be drawn.
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShape(ArcInst ai)
+	public Poly [] getShape(ArcInst ai, UIEdit wnd)
 	{
 		getGraphics(ai);
-		return super.getShape(ai);
+		return super.getShape(ai, wnd);
 	}
 
 	/**

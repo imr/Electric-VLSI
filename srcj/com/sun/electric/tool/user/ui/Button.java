@@ -36,25 +36,25 @@ public class Button extends JButton
 	{
 		super(image);
 		setSize(new Dimension(image.getIconWidth(), image.getIconHeight()));
-		mousehover = false;
-		buttonStyle = STYLE_RAISED;
+		mousehover = true;
+		buttonStyle = STYLE_HOVER;
 	}
 	
 	private Button(String str, ImageIcon image)
 	{
 		super(str, image);
 		setSize(new Dimension(image.getIconWidth(), image.getIconHeight()));
-		mousehover = false;
-		buttonStyle = STYLE_RAISED;
+		mousehover = true;
+		buttonStyle = STYLE_HOVER;
 	}
 	
 	private Button(String str)
 	{
 		super(str);
-		mousehover = false;
-		buttonStyle = STYLE_RAISED;
+		mousehover = true;
+		buttonStyle = STYLE_HOVER;
 	}
-	
+
 	public static Button CreateButton(ImageIcon image)
 	{
 		return new Button(image);
@@ -164,5 +164,3 @@ public class Button extends JButton
 	
 			
 }
-
-

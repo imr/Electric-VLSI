@@ -25,7 +25,9 @@ package com.sun.electric.database.geometry;
 
 import com.sun.electric.technology.Layer;
 import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.tool.user.ui.UIEdit;
 
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -33,6 +35,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.font.GlyphVector;
 
 /**
  * The Poly class describes an extended set of points
@@ -46,59 +49,59 @@ public class Poly implements Shape
 	 */
 	public static class Type
 	{
-		private Type()
-		{
-		}
+		private String name;
 
-		public String toString() { return "Polygon type"; }
+		private Type(String name) { this.name = name; }
+
+		public String toString() { return "Poly.Type "+name; }
 
 		// ************************ polygons ************************
 		/**
 		 * Describes a closed polygon which is filled in.
 		 */
-		public static final Type FILLED = new Type();
+		public static final Type FILLED = new Type("filled");
 		/**
 		 * Describes a closed polygon with only the outline drawn.
 		 */
-		public static final Type CLOSED = new Type();
+		public static final Type CLOSED = new Type("closed");
 		/**
 		 * Describes a closed rectangle with the outline drawn and an "X" drawn through it.
 		 */
-		public static final Type CROSSED = new Type();
+		public static final Type CROSSED = new Type("crossed");
 
 		// ************************ lines ************************
 		/**
 		 * Describes an open outline.
 		 * The last point is not implicitly connected to the first point.
 		 */
-		public static final Type OPENED = new Type();
+		public static final Type OPENED = new Type("opened");
 		/**
 		 * Describes an open outline, drawn with a dotted texture.
 		 * The last point is not implicitly connected to the first point.
 		 */
-		public static final Type OPENEDT1 = new Type();
+		public static final Type OPENEDT1 = new Type("opened-dotted");
 		/**
 		 * Describes an open outline, drawn with a dashed texture. 
 		 * The last point is not implicitly connected to the first point.
 		 */
-		public static final Type OPENEDT2 = new Type();
+		public static final Type OPENEDT2 = new Type("opened-dashed");
 		/**
 		 * Describes an open outline, drawn with thicker lines.
 		 * The last point is not implicitly connected to the first point.
 		 */
-		public static final Type OPENEDT3 = new Type();
+		public static final Type OPENEDT3 = new Type("opened-thick");
 		/**
 		 * Describes an open outline pushed outward by 1 screen pixel.
 		 * The last point is not implicitly connected to the first point.
 		 * This is useful in highlighting objects where the highlight line belongs outside of the highlighted object.
 		 */
-		public static final Type OPENEDO1 = new Type();
+		public static final Type OPENEDO1 = new Type("opened-out1");
 		/**
 		 * Describes a vector endpoint pairs, solid.
 		 * There must be an even number of points in the Poly so that vectors can be drawn from point 0 to 1,
 		 * then from point 2 to 3, etc.
 		 */
-		public static final Type VECTORS = new Type();
+		public static final Type VECTORS = new Type("vectors");
 
 		// ************************ curves ************************
 		/**
@@ -106,88 +109,88 @@ public class Poly implements Shape
 		 * The first point is the center of the circle and the second point is on the edge, thus defining the radius.
 		 * This second point should be on the same horizontal level as the radius point to make radius computation easier.
 		 */
-		public static final Type CIRCLE = new Type();
+		public static final Type CIRCLE = new Type("circle");
 		/**
 		 * Describes a circle, drawn with thick lines (only the outline is drawn).
 		 * The first point is the center of the circle and the second point is on the edge, thus defining the radius.
 		 * This second point should be on the same horizontal level as the radius point to make radius computation easier.
 		 */
-		public static final Type THICKCIRCLE = new Type();
+		public static final Type THICKCIRCLE = new Type("thick-circle");
 		/**
 		 * Describes a filled circle.
 		 * The first point is the center of the circle and the second point is on the edge, thus defining the radius.
 		 * This second point should be on the same horizontal level as the radius point to make radius computation easier.
 		 */
-		public static final Type DISC = new Type();
+		public static final Type DISC = new Type("disc");
 		/**
 		 * Describes an arc of a circle.
 		 * The first point is the center of the circle, the second point is the start of the arc, and
 		 * the third point is the end of the arc.
 		 * The arc will be drawn counter-clockwise from the start point to the end point.
 		 */
-		public static final Type CIRCLEARC = new Type();
+		public static final Type CIRCLEARC = new Type("circle-arc");
 		/**
 		 * Describes an arc of a circle, drawn with thick lines.
 		 * The first point is the center of the circle, the second point is the start of the arc, and
 		 * the third point is the end of the arc.
 		 * The arc will be drawn counter-clockwise from the start point to the end point.
 		 */
-		public static final Type THICKCIRCLEARC = new Type();
+		public static final Type THICKCIRCLEARC = new Type("thick-circle-arc");
 
 		// ************************ text ************************
 		/**
 		 * Describes text that should be centered about the Poly point.
 		 * Only one point need be specified.
 		 */
-		public static final Type TEXTCENT = new Type();
+		public static final Type TEXTCENT = new Type("text-center");
 		/**
 		 * Describes text that should be placed so that the Poly point is at the top-center.
 		 * Only one point need be specified, and the text will be below that point.
 		 */
-		public static final Type TEXTTOP = new Type();
+		public static final Type TEXTTOP = new Type("text-top");
 		/**
 		 * Describes text that should be placed so that the Poly point is at the bottom-center.
 		 * Only one point need be specified, and the text will be above that point.
 		 */
-		public static final Type TEXTBOT = new Type();
+		public static final Type TEXTBOT = new Type("text-bottom");
 		/**
 		 * Describes text that should be placed so that the Poly point is at the left-center.
 		 * Only one point need be specified, and the text will be to the right of that point.
 		 */
-		public static final Type TEXTLEFT = new Type();
+		public static final Type TEXTLEFT = new Type("text-left");
 		/**
 		 * Describes text that should be placed so that the Poly point is at the right-center.
 		 * Only one point need be specified, and the text will be to the left of that point.
 		 */
-		public static final Type TEXTRIGHT = new Type();
+		public static final Type TEXTRIGHT = new Type("text-right");
 		/**
 		 * Describes text that should be placed so that the Poly point is at the upper-left.
 		 * Only one point need be specified, and the text will be to the lower-right of that point.
 		 */
-		public static final Type TEXTTOPLEFT = new Type();
+		public static final Type TEXTTOPLEFT = new Type("text-topleft");
 		/**
 		 * Describes text that should be placed so that the Poly point is at the lower-left.
 		 * Only one point need be specified, and the text will be to the upper-right of that point.
 		 * This is the normal starting point for most text.
 		 */
-		public static final Type TEXTBOTLEFT = new Type();
+		public static final Type TEXTBOTLEFT = new Type("text-botleft");
 		/**
 		 * Describes text that should be placed so that the Poly point is at the upper-right.
 		 * Only one point need be specified, and the text will be to the lower-left of that point.
 		 */
-		public static final Type TEXTTOPRIGHT = new Type();
+		public static final Type TEXTTOPRIGHT = new Type("text-topright");
 		/**
 		 * Describes text that should be placed so that the Poly point is at the lower-right.
 		 * Only one point need be specified, and the text will be to the upper-left of that point.
 		 */
-		public static final Type TEXTBOTRIGHT = new Type();
+		public static final Type TEXTBOTRIGHT = new Type("text-botright");
 		/**
 		 * Describes text that is centered in the Poly and must remain inside.
 		 * If the letters do not fit, a smaller font will be used, and if that still does not work,
 		 * any letters that cannot fit are not written.
 		 * The Poly coordinates must define an area for the text to live in.
 		 */
-		public static final Type TEXTBOX = new Type();
+		public static final Type TEXTBOX = new Type("text-box");
 
 		// ************************ miscellaneous ************************
 		/**
@@ -195,13 +198,13 @@ public class Poly implements Shape
 		 * Typically there will be only one point in this polygon
 		 * but if there are more they are averaged and the cross is drawn in the center.
 		 */
-		public static final Type CROSS = new Type();
+		public static final Type CROSS = new Type("cross");
 		/**
 		 * Describes a big cross, drawn at the specified location.
 		 * Typically there will be only one point in this polygon
 		 * but if there are more they are averaged and the cross is drawn in the center.
 		 */
-		public static final Type BIGCROSS = new Type();
+		public static final Type BIGCROSS = new Type("big-cross");
 	}
 
 	/** the layer (used for graphics) */					private Layer layer;
@@ -210,6 +213,7 @@ public class Poly implements Shape
 	/** the style (outline, text, lines, etc.) */			private Poly.Type style;
 	/** the string (if of type TEXT) */						private String string;
 	/** the text descriptor (if of type TEXT) */			private TextDescriptor descript;
+	/** the variable (if of type TEXT) */					private Variable var;
 	
 
 	/**
@@ -300,6 +304,20 @@ public class Poly implements Shape
 	 * @param descript the Text Descriptor associated with this Poly.
 	 */
 	public void setTextDescriptor(TextDescriptor descript) { this.descript = descript; }
+
+	/**
+	 * Routine to return the Variable associated with this Poly.
+	 * This only applies to text Polys which display a message.
+	 * @return the Variable associated with this Poly.
+	 */
+	public Variable getVariable() { return var; }
+
+	/**
+	 * Routine to set the Variable associated with this Poly.
+	 * This only applies to text Polys which display a message.
+	 * @param descript the Variable associated with this Poly.
+	 */
+	public void setVariable(Variable var) { this.var = var; }
 
 	/**
 	 * Routine to return the points associated with this Poly.
@@ -408,7 +426,12 @@ public class Poly implements Shape
 	 */
 	public boolean isInside(Point2D.Double pt)
 	{
-		if (style == Type.FILLED || style == Type.CLOSED || style == Type.CROSSED || style == Type.TEXTBOX)
+		if (style == Type.FILLED || style == Type.CLOSED || style == Type.CROSSED ||
+			style == Type.TEXTCENT || style == Type.TEXTTOP ||
+			style == Type.TEXTBOT || style == Type.TEXTLEFT ||
+			style == Type.TEXTRIGHT || style == Type.TEXTTOPLEFT ||
+			style == Type.TEXTBOTLEFT || style == Type.TEXTTOPRIGHT ||
+			style == Type.TEXTBOTRIGHT || style == Type.TEXTBOX)
 		{
 			// check rectangular case for containment
 			Rectangle2D.Double bounds = getBox();
@@ -517,6 +540,37 @@ public class Poly implements Shape
 	}
 
 	/**
+	 * Routine to convert text Polys to their precise bounds in a given window.
+	 * @param wnd the window.
+	 */
+	public void setExactTextBounds(UIEdit wnd)
+	{
+		int numLines = 1;
+		if (var != null) numLines = var.getLength();
+
+		Rectangle2D.Double bounds = getBounds2DDouble();
+		double lX = bounds.getMinX();
+		double hX = bounds.getMaxX();
+		double lY = bounds.getMinY();
+		double hY = bounds.getMaxY();
+		GlyphVector gv = wnd.getGlyphs(getString(), getTextDescriptor());
+		Rectangle2D glyphBounds = gv.getVisualBounds();
+		Point2D corner = wnd.getTextCorner(gv, getStyle(), numLines, lX, hX, lY, hY);
+		double cX = corner.getX();
+		double cY = corner.getY();
+
+		double textScale = wnd.getTextScale(gv, getStyle(), lX, hX, lY, hY);
+		double width = glyphBounds.getWidth() * textScale;
+		double height = glyphBounds.getHeight() * textScale * numLines;
+		points = new Point2D.Double[] {
+			new Point2D.Double(cX, cY),
+			new Point2D.Double(cX+width, cY),
+			new Point2D.Double(cX+width, cY+height),
+			new Point2D.Double(cX, cY+height)};
+		this.bounds = null;
+	}
+
+	/**
 	 * Routine to report the distance of a point to this Poly.
 	 * @param pt the point to test for distance to the Poly.
 	 * @return the distance of the point to the Poly.
@@ -532,17 +586,20 @@ public class Poly implements Shape
 		Point2D.Double center = new Point2D.Double(cX, cY);
 
 		// handle single point polygons
-		if (style == Type.CROSS || style == Type.BIGCROSS || points.length == 1)
+		Type localStyle = style;
+		if (localStyle == Type.CROSS || localStyle == Type.BIGCROSS || points.length == 1)
 		{
 			if (cX == pt.getX() && cY == pt.getY()) return(Double.MIN_VALUE);
 			return pt.distance(center);
 		}
 
 		// handle polygons that are filled in
-		if (style == Type.FILLED || style == Type.CROSSED || style == Type.TEXTCENT ||
-			style == Type.TEXTTOP || style == Type.TEXTBOT || style == Type.TEXTLEFT ||
-			style == Type.TEXTRIGHT || style == Type.TEXTTOPLEFT || style == Type.TEXTBOTLEFT ||
-			style == Type.TEXTTOPRIGHT || style == Type.TEXTBOTRIGHT || style == Type.TEXTBOX)
+		if (localStyle == Type.FILLED || localStyle == Type.CROSSED ||
+			localStyle == Type.TEXTCENT || localStyle == Type.TEXTTOP ||
+			localStyle == Type.TEXTBOT || localStyle == Type.TEXTLEFT ||
+			localStyle == Type.TEXTRIGHT || localStyle == Type.TEXTTOPLEFT ||
+			localStyle == Type.TEXTBOTLEFT || localStyle == Type.TEXTTOPRIGHT ||
+			localStyle == Type.TEXTBOTRIGHT || localStyle == Type.TEXTBOX)
 		{
 			// give special returned value if point is a direct hit
 			if (isInside(pt))
@@ -561,15 +618,16 @@ public class Poly implements Shape
 					if (pt.getY() < box.getMinY()) cY = box.getMinY() - pt.getY(); else
 						cY = 0;
 				if (cX == 0 || cY == 0) return cX + cY;
+				center.setLocation(cX, cY);
 				return center.distance(new Point2D.Double(0,0));
 			}
 
 			// point is outside of irregular polygon: fall into to next case
-			style = Type.CLOSED;
+			localStyle = Type.CLOSED;
 		}
 
 		// handle closed outline figures
-		if (style == Type.CLOSED)
+		if (localStyle == Type.CLOSED)
 		{
 			double bestDist = Double.MAX_VALUE;
 			Point2D.Double lastPt = points[points.length-1];
@@ -586,7 +644,9 @@ public class Poly implements Shape
 		}
 
 		// handle opened outline figures
-		if (style == Type.OPENED || style == Type.OPENEDT1 || style == Type.OPENEDT2 || style == Type.OPENEDT3 || style == Type.OPENEDO1)
+		if (localStyle == Type.OPENED || localStyle == Type.OPENEDT1 ||
+			localStyle == Type.OPENEDT2 || localStyle == Type.OPENEDT3 ||
+			localStyle == Type.OPENEDO1)
 		{
 			double bestDist = Double.MAX_VALUE;
 			for(int i=1; i<points.length; i++)
@@ -602,7 +662,7 @@ public class Poly implements Shape
 		}
 
 		// handle outline vector lists
-		if (style == Type.VECTORS)
+		if (localStyle == Type.VECTORS)
 		{
 			double bestDist = Double.MAX_VALUE;
 			for(int i=0; i<points.length; i += 2)
@@ -618,14 +678,14 @@ public class Poly implements Shape
 		}
 
 		// handle circular objects
-		if (style == Type.CIRCLE || style == Type.THICKCIRCLE || style == Type.DISC)
+		if (localStyle == Type.CIRCLE || localStyle == Type.THICKCIRCLE || localStyle == Type.DISC)
 		{
 			double odist = points[0].distance(points[1]);
 			double dist = points[0].distance(pt);
-			if (style == Type.DISC && dist < odist) return dist-Double.MAX_VALUE;
+			if (localStyle == Type.DISC && dist < odist) return dist-Double.MAX_VALUE;
 			return Math.abs(dist-odist);
 		}
-		if (style == Type.CIRCLEARC || style == Type.THICKCIRCLEARC)
+		if (localStyle == Type.CIRCLEARC || localStyle == Type.THICKCIRCLEARC)
 		{
 			// determine closest point to ends of arc
 			double sdist = pt.distance(points[1]);

@@ -75,7 +75,9 @@ public final class UserInitial
 		UIMenu fileMenu = UIMenu.CreateUIMenu("File", 'F');
 		fileMenu.addMenuItem("Open", KeyStroke.getKeyStroke('O', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.openLibraryCommand(); } });
-		fileMenu.addMenuItem("Import Readable Dump", null,
+		UIMenu importSubMenu = UIMenu.CreateUIMenu("Import");
+		fileMenu.add(importSubMenu);
+		importSubMenu.addMenuItem("Readable Dump", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.importLibraryCommand(); } });
 		fileMenu.addMenuItem("Save", KeyStroke.getKeyStroke('S', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.saveLibraryCommand(); } });
@@ -121,6 +123,23 @@ public final class UserInitial
 
 		// setup the Tool menu
 		UIMenu toolMenu = UIMenu.CreateUIMenu("Tool", 'T');
+		UIMenu drcSubMenu = UIMenu.CreateUIMenu("DRC", 'D');
+		UIMenu simulationSubMenu = UIMenu.CreateUIMenu("Simulation", 'S');
+		UIMenu ercSubMenu = UIMenu.CreateUIMenu("ERC", 'E');
+		UIMenu networkSubMenu = UIMenu.CreateUIMenu("Network", 'N');
+		UIMenu logEffortSubMenu = UIMenu.CreateUIMenu("Logical Effort", 'L');
+		UIMenu routingSubMenu = UIMenu.CreateUIMenu("Routing", 'R');
+		UIMenu generationSubMenu = UIMenu.CreateUIMenu("Generation", 'G');
+		UIMenu compactionSubMenu = UIMenu.CreateUIMenu("Compaction", 'C');
+		toolMenu.add(drcSubMenu);
+		toolMenu.add(simulationSubMenu);
+		toolMenu.add(ercSubMenu);
+		toolMenu.add(networkSubMenu);
+		toolMenu.add(logEffortSubMenu);
+		toolMenu.addSeparator();
+		toolMenu.add(routingSubMenu);
+		toolMenu.add(generationSubMenu);
+		toolMenu.add(compactionSubMenu);
 
 		// setup the Help menu
 		UIMenu helpMenu = UIMenu.CreateUIMenu("Help", 'H');
@@ -170,20 +189,16 @@ public final class UserInitial
 		UITopLevel.setMenuBar(menuBar);
 
 		//create button
-		Button openButton = Button.CreateButton(new ImageIcon("com/sun/electric/tool/user/icon11.gif"));
-		//set button border style
-		openButton.setButtonStyle(Button.STYLE_HOVER);
-		//set mouse roll feature on
-		openButton.setMouseHover(true);
+		String libraryDirectory = UITopLevel.getLibDir();
+
+		Button openButton = Button.CreateButton(new ImageIcon(libraryDirectory+"buttonOpen.gif"));
 		openButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.openLibraryCommand(); } });
 		openButton.setToolTipText("Open");
-	
-		Button aButton = Button.CreateButton(new ImageIcon("com/sun/electric/tool/user/icon10.gif"));
-		aButton.setButtonStyle(Button.STYLE_HOVER);
-		aButton.setMouseHover(true);
+
+		Button aButton = Button.CreateButton(new ImageIcon(libraryDirectory+"buttonTest.gif"));
 		aButton.setToolTipText("test");
-		
+
 		//set an area for popup menu to be triggered within a button
 		Insets insets = new Insets(22,22,32,32);
 		JPopupMenu popup = new JPopupMenu();
@@ -199,9 +214,9 @@ public final class UserInitial
 		toolbar.add(openButton);
 		toolbar.add(aButton);
 
-		
 		(UITopLevel.getTopLevel()).getContentPane().add(toolbar, BorderLayout.NORTH);
-		
+
+
 		// initialize all of the technologies
 		Technology.initAllTechnologies();
 

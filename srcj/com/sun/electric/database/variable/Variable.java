@@ -94,8 +94,20 @@ public class Variable
 	}
     
     /**
-     * Get the actual object stored in this Variable
-     * @return the object stored in this Variable
+     * Get the number of entries stored in this Variable.
+	 * For non-arrayed Variables, this is 1.
+     * @return the number of entries stored in this Variable.
+     */
+    public int getLength()
+	{
+		if (addr instanceof Object[])
+			return ((Object [])addr).length;
+		return 1;
+	}
+    
+    /**
+     * Get the actual object stored in this Variable.
+     * @return the object stored in this Variable.
      */
     public Object getObject() { return addr; }
     
@@ -135,7 +147,7 @@ public class Variable
 	 * parameter substitution and should be easy to understand but not hard to
 	 * parse (a combination of the two).
 	 */
-	private String describe(int aindex, int purpose)
+	public String describe(int aindex, int purpose)
 	{
 		TextDescriptor.Units units = descriptor.getUnits();
 		StringBuffer returnVal = new StringBuffer();

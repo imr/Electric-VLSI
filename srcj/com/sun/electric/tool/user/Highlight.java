@@ -38,6 +38,7 @@ import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -46,6 +47,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.UserMenuCommands;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ui.UIEdit;
@@ -71,17 +73,63 @@ import javax.swing.JPanel;
 
 /*
  * Class for highlighting of objects on the display.
+ * <P>
+ * These are the types of highlighting that can occur:
+ * <UL>
+ * <LI>GEOM: a Geometric is selected.  Fills in "geom" and "cell".  Also:
+ *   <UL>
+ *   <LI>If a NodeInst is selected, may fill-in "port" if a port on that node is selected.
+ *   <LI>If a NodeInst is selected, may fill-in "point" if an outline node being edited.
+ *   </UL>
+ * <LI>TEXT: text is selected.  Fills in "cell", "bounds", and "textStyle".  Also:
+ *   <UL>
+ *   <LI>For variable on NodeInst or ArcInst, fills in "var" and "geom".
+ *   <LI>For variable on a Port, fills in "var", "geom", and "port".
+ *   <LI>For Export name, fills in "geom" and "port".
+ *   <LI>For variable on Cell, fills in "var".
+ *   <LI>For a Cell instance name, fills in "geom".
+ *   </UL>
+ * <LI>BBOX: a rectangular area is selected.  Fills in "bounds".
+ * <LI>LINE: a line is selected.  Fills in "pt1" and "pt2"
+ * </UL>
  */
-
 public class Highlight
 {
-	/** The highlighted object. */									Geometric geom;
-	/** The highlighted port (if a NodeInst is highlighted). */		PortProto port;
+	/**
+	 * Type is a typesafe enum class that describes the nature of the highlight.
+	 */
+	public static class Type
+	{
+		private final String name;
 
-	/** Screen offset for display of highlighting. */				private static int highOffX, highOffY;
-	/** the highlighted objects. */									private static List highlightList = new ArrayList();
+		private Type(String name) { this.name = name; }
 
-	private Highlight() {}
+		/**
+		 * Returns a printable version of this Type.
+		 * @return a printable version of this Type.
+		 */
+		public String toString() { return name; }
+
+		/** Describes a highlighted geometric. */				public static final Type GEOM = new Type("geometric");
+		/** Describes highlighted text. */						public static final Type TEXT = new Type("text");
+		/** Describes a highlighted area. */					public static final Type BBOX = new Type("area");
+		/** Describes a highlighted line. */					public static final Type LINE = new Type("line");
+	}
+
+	/** The type of the highlighting. */						private Type type;
+	/** The highlighted object. */								private Geometric geom;
+	/** The Cell containing the selection. */					private Cell cell;
+	/** The highlighted port (only for NodeInst). */			private PortProto port;
+	/** The highlighted outline point (only for NodeInst). */	private int point;
+	/** The highlighted variable. */							private Variable var;
+	/** The highlighted area. */								private Rectangle2D.Double bounds;
+	/** The highlighted line. */								private Point2D.Double pt1, pt2;
+	/** The style of highlighted text. */						private Poly.Type textStyle;
+
+	/** Screen offset for display of highlighting. */			private static int highOffX, highOffY;
+	/** the highlighted objects. */								private static List highlightList = new ArrayList();
+
+	private Highlight(Type type) { this.type = type; }
 
 	/**
 	 * Routine to clear the list of highlighted objects.
@@ -97,15 +145,59 @@ public class Highlight
 	 * @param geom the Geometric to add to the list of highlighted objects.
 	 * @return the newly created Highlight object.
 	 */
-	public static Highlight addHighlighting(Geometric geom)
+	public static Highlight addGeometric(Geometric geom)
 	{
-		Highlight h = new Highlight();
+		Highlight h = new Highlight(Type.GEOM);
 		h.geom = geom;
-		h.port = null;
+		h.cell = geom.getParent();
 
 		highlightList.add(h);
 		return h;
 	}
+
+	private boolean sameThing(Highlight other)
+	{
+		if (type != other.getType()) return false;
+		if (type == Type.BBOX || type == type.LINE) return false;
+		if (geom != other.getGeom()) return false;
+		if (type == Type.TEXT)
+		{
+			if (var != other.getVar()) return false;
+			if (cell != other.getCell()) return false;
+			if (geom != other.getGeom()) return false;
+			if (port != other.getPort()) return false;
+		}
+		return true;
+	}
+	/**
+	 * Routine to return the type of this Highlight (GEOM, TEXT, BBOX, or LINE).
+	 * @return the type of this Highlight.
+	 */
+	public Type getType() { return type; }
+
+	/**
+	 * Routine to return the Geometric associated with this Highlight object.
+	 * @return the Geometric associated with this Highlight object.
+	 */
+	public Geometric getGeom() { return geom; }
+
+	/**
+	 * Routine to set the Geometric associated with this Highlight object.
+	 * @param geom the Geometric associated with this Highlight object.
+	 */
+	private void setGeom(Geometric geom) { this.geom = geom;   this.cell = geom.getParent(); }
+
+	/**
+	 * Routine to return the Cell associated with this Highlight object.
+	 * @return the Cell associated with this Highlight object.
+	 */
+	public Cell getCell() { return cell; }
+
+	/**
+	 * Routine to set the Cell associated with this Highlight object.
+	 * @param cell the Cell associated with this Highlight object.
+	 */
+	private void setCell(Cell cell) { this.cell = cell; }
 
 	/**
 	 * Routine to set a PortProto to be displayed with this Highlight.
@@ -120,10 +212,48 @@ public class Highlight
 	public PortProto getPort() { return port; }
 
 	/**
-	 * Routine to return the Geometric associated with this Highlight object.
-	 * @return the Geometric associated with this Highlight object.
+	 * Routine to set an outline point to be displayed with this Highlight.
+	 * @param point the outline point to show with this Highlight (must be a NodeInst highlight).
 	 */
-	public Geometric getGeom() { return geom; }
+	public void setPoint(int point) { this.point = point; }
+
+	/**
+	 * Routine to return the outline point associated with this Highlight object.
+	 * @return the outline point associated with this Highlight object.
+	 */
+	public int getPoint() { return point; }
+
+	/**
+	 * Routine to set an bounds to be displayed with this Highlight.
+	 * Bounds are used for area definitions and also for text.
+	 * @param point the bounds to show with this Highlight (must be a NodeInst highlight).
+	 */
+	public void setBounds(Rectangle2D.Double bounds) { this.bounds = bounds; }
+
+	/**
+	 * Routine to return the bounds associated with this Highlight object.
+	 * Bounds are used for area definitions and also for text.
+	 * @return the bounds associated with this Highlight object.
+	 */
+	public Rectangle2D.Double getBounds() { return bounds; }
+
+	/**
+	 * Routine to set an text style to be displayed with this Highlight.
+	 * @param point the text style to show with this Highlight (must be a NodeInst highlight).
+	 */
+	public void setTextStyle(Poly.Type textStyle) { this.textStyle = textStyle; }
+
+	/**
+	 * Routine to return the text style associated with this Highlight object.
+	 * @return the text style associated with this Highlight object.
+	 */
+	public Poly.Type getTextStyle() { return textStyle; }
+
+	/**
+	 * Routine to return the Variable associated with this Highlight object.
+	 * @return the Variable associated with this Highlight object.
+	 */
+	public Variable getVar() { return var; }
 
 	/**
 	 * Routine to return the number of highlighted objects.
@@ -150,7 +280,15 @@ public class Highlight
 
 	private static final int EXACTSELECTDISTANCE = 5;
 	private static final double FARTEXTLIMIT = 20;
-	
+
+	/**
+	 * Routine to add everything in an area to the selection.
+	 * @param wnd the window being examined.
+	 * @param minSelX the low X coordinate of the area.
+	 * @param maxSelX the high X coordinate of the area.
+	 * @param minSelY the low Y coordinate of the area.
+	 * @param maxSelY the high Y coordinate of the area.
+	 */
 	public static void selectArea(UIEdit wnd, double minSelX, double maxSelX, double minSelY, double maxSelY)
 	{
 		clearHighlighting();
@@ -163,7 +301,7 @@ public class Highlight
 		{
 			Geometric nextGeom = sea.nextObject();
 			if (nextGeom == null) break;
-			Highlight h = addHighlighting(nextGeom);
+			Highlight h = addGeometric(nextGeom);
 		}
 	}
 
@@ -185,6 +323,7 @@ public class Highlight
 			for(Iterator it = getHighlights(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
+				if (h.getType() != Highlight.Type.GEOM) continue;
 				Geometric highGeom = h.getGeom();
 				if (highGeom == nextGeom) return true;
 			}
@@ -200,6 +339,110 @@ public class Highlight
 	public void showHighlight(UIEdit wnd, Graphics g)
 	{
 		g.setColor(Color.white);
+		if (type == Type.BBOX)
+		{
+			System.out.println("Highlight BBOX");
+			return;
+		}
+		if (type == Type.LINE)
+		{
+			System.out.println("Highlight LINE");
+			return;
+		}
+		if (type == Type.TEXT)
+		{
+			Poly.Type style = getTextStyle();
+			Rectangle2D.Double bounds = getBounds();
+			Point2D.Double [] points = new Point2D.Double[2];
+			if (style == Poly.Type.TEXTCENT)
+			{
+				points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+				points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY);
+				points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+				points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY);
+			} else if (style == Poly.Type.TEXTBOT)
+			{
+				points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+				points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY);
+				points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+				points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY);
+				points[0] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+				points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY);
+			} else if (style == Poly.Type.TEXTTOP)
+			{
+				points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+				points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY);
+				points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+				points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY);
+				points[0] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+				points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY);
+			} else if (style == Poly.Type.TEXTLEFT)
+			{
+				points[0] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+				points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY);
+				points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+				points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY);
+				points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+				points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY);
+			} else if (style == Poly.Type.TEXTRIGHT)
+			{
+				points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+				points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY);
+				points[0] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+				points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY);
+				points[0] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+				points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY);
+			} else if (style == Poly.Type.TEXTTOPLEFT)
+			{
+				points[0] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+				points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY);
+				points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+				points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY);
+			} else if (style == Poly.Type.TEXTBOTLEFT)
+			{
+				points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+				points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY);
+				points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+				points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY);
+			} else if (style == Poly.Type.TEXTTOPRIGHT)
+			{
+				points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+				points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY);
+				points[0] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+				points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY);
+			} else if (style == Poly.Type.TEXTBOTRIGHT)
+			{
+				points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+				points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY);
+				points[0] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+				points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY);
+			}
+			return;
+		}
+
+		// highlight GEOM
 		if (geom instanceof ArcInst)
 		{
 			// get information about the arc
@@ -225,7 +468,7 @@ public class Highlight
 
 			// special case for outline nodes
 			int [] specialValues = pnp.getSpecialValues();
-			if (np.isHoldsOutline())
+			if (np.isHoldsOutline()) 
 			{
 				Float [] outline = ni.getTrace();
 				if (outline != null)
@@ -241,7 +484,7 @@ public class Highlight
 				}
 			}
 		}
-		
+
 		// setup outline of node with standard offset
 		double portLowX = ni.getCenterX() - ni.getXSize()/2 + so.getLowXOffset();
 		double portHighX = ni.getCenterX() + ni.getXSize()/2 - so.getHighXOffset();
@@ -281,34 +524,19 @@ public class Highlight
 	 * is also desired.  If "under" is nonzero, only find objects exactly under the
 	 * desired cursor location.  If "special" is nonzero, special selection rules apply.
 	 */
-	void findObject(Point2D.Double pt, UIEdit win, Highlight curhigh,
-		boolean exclusively, boolean another, boolean findport, boolean under, boolean special)
+	public static void findObject(Point2D.Double pt, UIEdit wnd, boolean exclusively, boolean another, boolean findPort, boolean under, boolean findSpecial)
 	{
 		// initialize
 		double bestdist = Double.MAX_VALUE;
 		boolean looping = false;
 		
-		Highlight best, bestDirect, lastDirect, prevDirect;
-//		best.fromgeom = NOGEOM;             best.status = 0;
-//		bestdirect.fromgeom = NOGEOM;       bestdirect.status = 0;
-//		lastdirect.fromgeom = NOGEOM;       lastdirect.status = 0;
-//		prevdirect.fromgeom = NOGEOM;       prevdirect.status = 0;
-
-		// ignore cells if requested
-		int startphase = 0;
-//		if (!special && (us_useroptions&NOINSTANCESELECT) != 0) startphase = 1;
-
 		// search the relevant objects in the circuit
-		Cell np = win.getCell();
-		for(int phase = startphase; phase < 3; phase++)
-		{
-	//		recursivelySearch(np, exclusively, another, findport,
-	//			under, special, curhigh, best, bestdirect, lastdirect, prevdirect, &looping,
-	//				bestdist, pt, win, phase);
+		Cell cell = wnd.getCell();
+		List underCursor = findAllAtPoint(cell, exclusively, another, findPort,
+			under, findSpecial, pt, wnd);
 //			us_fartextsearch(np, exclusively, another, findport,
 //				under, special, curhigh, &best, &bestdirect, &lastdirect, &prevdirect, &looping,
 //					&bestdist, wantx, wanty, win, phase);
-		}
 
 //		// check for displayable variables on the cell
 //		tot = tech_displayablecellvars(np, win, &tech_oneprocpolyloop);
@@ -360,96 +588,44 @@ public class Highlight
 //			}
 //		}
 
-		// use best direct hit if one exists, otherwise best any-kind-of-hit
-//		if (bestDirect.status != 0)
-//		{
-//			curhigh->status = bestdirect.status;
-//			curhigh->fromgeom = bestdirect.fromgeom;
-//			curhigh->fromvar = bestdirect.fromvar;
-//			curhigh->fromvarnoeval = bestdirect.fromvarnoeval;
-//			curhigh->fromport = bestdirect.fromport;
-//			curhigh->snapx = bestdirect.snapx;
-//			curhigh->snapy = bestdirect.snapy;
-//		} else
-//		{
-//			if (under == 0)
-//			{
-//				curhigh->status = best.status;
-//				curhigh->fromgeom = best.fromgeom;
-//				curhigh->fromvar = best.fromvar;
-//				curhigh->fromvarnoeval = best.fromvarnoeval;
-//				curhigh->fromport = best.fromport;
-//				curhigh->snapx = best.snapx;
-//				curhigh->snapy = best.snapy;
-//			} else
-//			{
-//				curhigh->status = 0;
-//				curhigh->fromgeom = NOGEOM;
-//				curhigh->fromvar = NOVARIABLE;
-//				curhigh->fromvarnoeval = NOVARIABLE;
-//				curhigh->fromport = NOPORTPROTO;
-//				curhigh->frompoint = 0;
-//			}
-//		}
+		// if nothing under the cursor, stop now
+		if (underCursor.size() == 0)
+		{
+			clearHighlighting();
+			return;
+		}
 
-		// see if looping through direct hits
-//		if (looping != 0)
-//		{
-//			// made direct hit on previously selected object: looping through
-//			if (prevdirect.status != 0)
-//			{
-//				curhigh->status = prevdirect.status;
-//				curhigh->fromgeom = prevdirect.fromgeom;
-//				curhigh->fromvar = prevdirect.fromvar;
-//				curhigh->fromvarnoeval = prevdirect.fromvarnoeval;
-//				curhigh->fromport = prevdirect.fromport;
-//				curhigh->snapx = prevdirect.snapx;
-//				curhigh->snapy = prevdirect.snapy;
-//			} else if (lastdirect.status != 0)
-//			{
-//				curhigh->status = lastdirect.status;
-//				curhigh->fromgeom = lastdirect.fromgeom;
-//				curhigh->fromvar = lastdirect.fromvar;
-//				curhigh->fromvarnoeval = lastdirect.fromvarnoeval;
-//				curhigh->fromport = lastdirect.fromport;
-//				curhigh->snapx = lastdirect.snapx;
-//				curhigh->snapy = lastdirect.snapy;
-//			}
-//		}
-//
-//		if (curhigh->fromgeom == NOGEOM) curhigh->cell = np; else
-//			curhigh->cell = geomparent(curhigh->fromgeom);
-//
-//		// quit now if nothing found
-//		if (curhigh->status == 0) return;
-//
+		// multiple objects under the cursor: see if looping through them
+		if (underCursor.size() > 1 && another && highlightList.size() == 1)
+		{
+			Highlight oldHigh = (Highlight)highlightList.get(0);
+			for(int i=0; i<underCursor.size(); i++)
+			{
+				if (oldHigh.sameThing((Highlight)underCursor.get(i)))
+				{
+					// found the same thing: loop
+					clearHighlighting();
+					if (i < underCursor.size()-1)
+					{
+						highlightList.add(underCursor.get(i+1));
+					} else
+					{
+						highlightList.add(underCursor.get(0));
+					}
+					return;
+				}
+			}
+		}
+
+		// just use the first in the list
+		clearHighlighting();
+		highlightList.add(underCursor.get(0));
+
 //		// reevaluate if this is code
 //		if ((curhigh->status&HIGHTYPE) == HIGHTEXT && curhigh->fromvar != NOVARIABLE &&
 //			curhigh->fromvarnoeval != NOVARIABLE &&
 //				curhigh->fromvar != curhigh->fromvarnoeval)
 //					curhigh->fromvar = evalvar(curhigh->fromvarnoeval, 0, 0);
-//
-//		// find the closest port if this is a nodeinst and no port hit directly
-//		if ((curhigh->status&HIGHTYPE) == HIGHFROM && curhigh->fromgeom->entryisnode &&
-//			curhigh->fromport == NOPORTPROTO)
-//		{
-//			ni = curhigh->fromgeom->entryaddr.ni;
-//			for(pp = ni->proto->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
-//			{
-//				shapeportpoly(ni, pp, poly, FALSE);
-//
-//				// get distance of desired point to polygon
-//				dist = polydistance(poly, wantx, wanty);
-//				if (dist < 0)
-//				{
-//					curhigh->fromport = pp;
-//					break;
-//				}
-//				if (curhigh->fromport == NOPORTPROTO) bestdist = dist;
-//				if (dist > bestdist) continue;
-//				bestdist = dist;   curhigh->fromport = pp;
-//			}
-//		}
 	}
 
 	/*
@@ -510,332 +686,220 @@ public class Highlight
 	 * "exclusively", "another", "findport", and "under".  The "phase" value ranges
 	 * from 0 to 2 according to the type of object desired.
 	 */
-//	void recursivelySearch(Cell cell, boolean exclusively, boolean another, boolean findport,
-//		boolean under, boolean findspecial, Highlight curhigh, Highlight best, Highlight bestdirect,
-//		Highlight lastdirect, Highlight prevdirect, INTBIG *looping, INTBIG *bestdist,
-//		Point2D.Double pt, UIEdit wnd, int phase)
-//	{
-//		boolean found = false;
-//		double bestdisttort = 1000.0;		// want biggest number possible
-//		double slop = FARTEXTLIMIT;
-//		Point2D.Double extra = wnd.deltaScreenToDatabase(EXACTSELECTDISTANCE, EXACTSELECTDISTANCE);
-//		double directHitDist = extra.getX();
-//		if (directHitDist > slop) slop = directHitDist;
-//
-//		Rectangle2D.Double searchArea = new Rectangle2D.Double(wantx - slop, wantx + slop,
-//			wanty - slop, wanty + slop);
-//		Geometric.Search sea = new Geometric.Search(searchArea, wnd.getCell());
-//		for(;;)
-//		{
-//			Geometric geom = sea.nextObject();
-//			if (geom == null) break;
-//
-//			// accumulate best R-tree module in case none are direct hits
-//			Rectangle2D.Double bounds = geom.getBounds();
-//			double disttort = Math.abs(pt.getX() - bounds.getCenterX()) + Math.abs(pt.getY() - bounds.getCenterY());
-//			if (disttort < bestdisttort)
-//			{
-//				bestdisttort = disttort;
-//				bestrt = i;
-//			}
-//
-//			// see if this R-tree node is a direct hit
-//			if (!exclusively && !bounds.intersects(searchArea)) continue;
-//			found = true;
-//
-//			switch (phase)
-//			{
-//				case 0:			// only allow complex nodes
-//					if (geom instanceof ArcInst) break;
-//					if (((NodeInst)geom).getProto() instanceof PrimitiveNode) break;
-//					us_checkoutobject(geom, false, exclusively, another, findport, findspecial,
-//						curhigh, best, bestdirect, lastdirect, prevdirect, looping,
-//							bestdist, pt, win);
-//					break;
-//				case 1:			// only allow arcs
-//					if (geom instanceof NodeInst) break;
-//					us_checkoutobject(geom, false, exclusively, another, findport, findspecial,
-//						curhigh, best, bestdirect, lastdirect, prevdirect, looping,
-//							bestdist, pt, win);
-//					break;
-//				case 2:			// only allow primitive nodes
-//					if (geom instanceof NodeInst) break;
-//					if (((NodeInst)geom).getProto() instanceof Cell) break;
-//					us_checkoutobject(geom, false, exclusively, another, findport, findspecial,
-//						curhigh, best, bestdirect, lastdirect, prevdirect, looping,
-//							bestdist, pt, win);
-//					break;
-//			}
-//		}
-//	}
+	private static List findAllAtPoint(Cell cell, boolean exclusively, boolean another, boolean findPort,
+		boolean under, boolean findSpecial, Point2D.Double pt, UIEdit wnd)
+	{
+		// make a list of things under the cursor
+		List list = new ArrayList();
+
+		// determine proper area to search
+		double slop = FARTEXTLIMIT;
+		Point2D.Double extra = wnd.deltaScreenToDatabase(EXACTSELECTDISTANCE, EXACTSELECTDISTANCE);
+		double directHitDist = extra.getX();
+		if (directHitDist > slop) slop = directHitDist;
+		Rectangle2D.Double searchArea = new Rectangle2D.Double(pt.getX() - slop, pt.getY() - slop, slop*2, slop*2);
+
+		// 3 phases of examination: cells, arcs, then primitive nodes
+		for(int phase=0; phase<4; phase++)
+		{
+			// ignore cells if requested
+//			if (phase == 1 && !findSpecial && (us_useroptions&NOINSTANCESELECT) != 0) continue;
+
+			// examine everything in the area
+			Geometric.Search sea = new Geometric.Search(searchArea, wnd.getCell());
+			for(;;)
+			{
+				Geometric geom = sea.nextObject();
+				if (geom == null) break;
+
+				Highlight h;
+				switch (phase)
+				{
+					case 0:
+						// check text
+						Poly [] polys = null;
+						if (geom instanceof NodeInst)
+						{
+							NodeInst ni = (NodeInst)geom;
+							polys = ni.getAllText(findSpecial, wnd);
+						} else
+						{
+							ArcInst ai = (ArcInst)geom;
+							polys = ai.getAllText(findSpecial, wnd);
+						}
+						if (polys == null) break;
+						for(int i=0; i<polys.length; i++)
+						{
+							Poly poly = polys[i];
+							poly.setExactTextBounds(wnd);
+							double dist = poly.polyDistance(pt);
+							if (dist >= directHitDist) continue;
+							h = new Highlight(Type.TEXT);
+							if (h != null)
+							{
+								h.setCell(cell);
+								h.setTextStyle(poly.getStyle());
+								h.setBounds(poly.getBounds2DDouble());
+								list.add(h);
+							}
+						}
+					case 1:			// check Cell instances
+						if (geom instanceof ArcInst) break;
+						if (((NodeInst)geom).getProto() instanceof PrimitiveNode) break;
+						h = checkOutObject(geom, findPort, findSpecial, pt, wnd);
+						if (h != null) list.add(h);
+						break;
+					case 2:			// check arcs
+						if (geom instanceof NodeInst) break;
+						h = checkOutObject(geom, findPort, findSpecial, pt, wnd);
+						if (h != null) list.add(h);
+						break;
+					case 3:			// check primitive nodes
+						if (geom instanceof ArcInst) break;
+						if (((NodeInst)geom).getProto() instanceof Cell) break;
+						h = checkOutObject(geom, findPort, findSpecial, pt, wnd);
+						if (h != null) list.add(h);
+						break;
+				}
+			}
+		}
+		return list;
+	}
 
 	/**
-	 * search helper routine to include object "geom" in the search for the
-	 * closest object to the cursor position at (wantx, wanty) in window "win".
-	 * If "fartext" is nonzero, only look for far-away text on the object.
-	 * If "exclusively" is nonzero, ignore nodes or arcs that are not of the
-	 * current type.  If "another" is nonzero, ignore text objects.  If "findport"
-	 * is nonzero, ports are being selected so cell names should not.  The closest
-	 * object is "*bestdist" away and is described in "best".  The closest direct
-	 * hit is in "bestdirect".  If that direct hit is the same as the last hit
-	 * (kept in "curhigh") then the last direct hit (kept in "lastdirect") is
-	 * moved to the previous direct hit (kept in "prevdirect") and the "looping"
-	 * flag is set.  This indicates that the "prevdirect" object should be used
-	 * (if it exists) and that the "lastdirect" object should be used failing that.
+	 * Routine to determine whether an object is selected.
+	 * @param geom the Geometric being tested for selection.
+	 * @param findPort true if a port should be selected with a NodeInst.
+	 * @param findSpecial true if hard-to-select and other special selection is being done.
+	 * @param pt the cursor location.
+	 * @param wnd the window being examined
+	 * @return a Highlight that defines the object, or null if the point is not over any part of this object.
 	 */
-//	void us_checkoutobject(Geometric geom, boolean fartext, boolean exclusively, boolean another,
-//		boolean findport, boolean findspecial, Highlight curhigh, Highlight best,
-//		Highlight bestdirect, Highlight lastdirect, Highlight prevdirect, INTBIG *looping,
-//		INTBIG *bestdist, Point2D.Double pt, UIEdit win)
-//	{
-//		// compute threshold for direct hits
-//		double directHitDist = muldiv(EXACTSELECTDISTANCE, win->screenhx - win->screenlx, win->usehx - win->uselx);
-//
-//		if (geom instanceof NodeInst)
-//		{
-//			// examine a node object
-//			NodeInst ni = (NodeInst)geom;
-//
-//			// do not "find" hard-to-find nodes if "findspecial" is not set
-//			if (!findspecial && (ni->userbits&HARDSELECTN) != 0) return;
+	private static Highlight checkOutObject(Geometric geom, boolean findPort, boolean findSpecial, Point2D.Double pt, UIEdit wnd)
+	{
+		// compute threshold for direct hits
+		Point2D.Double extra = wnd.deltaScreenToDatabase(EXACTSELECTDISTANCE, EXACTSELECTDISTANCE);
+		double directHitDist = extra.getX();
+
+		if (geom instanceof NodeInst)
+		{
+			// examine a node object
+			NodeInst ni = (NodeInst)geom;
+
+			// do not "find" hard-to-find nodes if "findSpecial" is not set
+			if (!findSpecial && ni.isHardSelect()) return null;
 
 			// do not include primitives that have all layers invisible
 //			if (ni.getProto() instanceof PrimitiveNode && (ni->proto->userbits&NINVISIBLE) != 0) return;
 
-			// skip if being exclusive
-//			if (exclusively && ni->proto != us_curnodeproto) return;
+			// do not "find" Invisible-Pins if they have text or exports
+			if (ni.getProto() == Generic.tech.invisiblePin_node)
+			{
+				if (ni.getNumExports() != 0) return null;
+				if (ni.numDisplayableVariables(false) != 0) return null;
+			}
 
-			// try text on the node (if not searching for "another")
-//			if (!another && !exclusively)
-//			{
-//				us_initnodetext(ni, findspecial, win);
-//				for(;;)
-//				{
-//					if (us_getnodetext(ni, win, poly, &var, &varnoeval, &port)) break;
-//
-//					// get distance of desired point to polygon
-//					dist = polydistance(poly, wantx, wanty);
-//
-//					// direct hit
-//					if (dist < directHitDist)
+			// get the distance to the object
+			double dist = distToObject(pt, geom, wnd);
+
+			// direct hit
+			if (dist < directHitDist)
+			{
+				Highlight h = new Highlight(Type.GEOM);
+				h.setGeom(geom);
+
+				// add the closest port
+				if (findPort)
+				{
+//					for(pp = curhigh->fromport->nextportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
 //					{
-//						if (curhigh->fromgeom == geom && (curhigh->status&HIGHTYPE) == HIGHTEXT &&
-//							curhigh->fromvar == var && curhigh->fromport == port)
+//						shapeportpoly(ni, pp, poly, FALSE);
+//						if (isinside(wantx, wanty, poly))
 //						{
-//							*looping = 1;
-//							prevdirect->status = lastdirect->status;
-//							prevdirect->fromgeom = lastdirect->fromgeom;
-//							prevdirect->fromvar = lastdirect->fromvar;
-//							prevdirect->fromvarnoeval = lastdirect->fromvarnoeval;
-//							prevdirect->fromport = lastdirect->fromport;
-//						}
-//						lastdirect->status = HIGHTEXT;
-//						lastdirect->fromgeom = geom;
-//						lastdirect->fromport = port;
-//						lastdirect->fromvar = var;
-//						lastdirect->fromvarnoeval = varnoeval;
-//						if (dist < *bestdist)
-//						{
-//							bestdirect->status = HIGHTEXT;
-//							bestdirect->fromgeom = geom;
-//							bestdirect->fromvar = var;
-//							bestdirect->fromvarnoeval = varnoeval;
-//							bestdirect->fromport = port;
+//							prevdirect->status = HIGHFROM;
+//							prevdirect->fromgeom = geom;
+//							prevdirect->fromport = pp;
+//							break;
 //						}
 //					}
-//
-//					// see if it is closer than others
-//					if (dist < *bestdist)
-//					{
-//						best->status = HIGHTEXT;
-//						best->fromgeom = geom;
-//						best->fromvar = var;
-//						best->fromvarnoeval = varnoeval;
-//						best->fromport = port;
-//						*bestdist = dist;
-//					}
-//				}
-//			}
-//
-//			if (fartext != 0) return;
-//
-//			// do not "find" Invisible-Pins if they have text or exports
-//			if (ni.getProto() == Generic.tech.invisiblePin_node)
-//			{
-//				if (ni.getNumExports() != 0) return;
-//				if (ni.numDisplayableVariables() != 0) return;
-//			}
-//
-//			// get the distance to the object
-//			double dist = distToObject(pt, geom);
-//
-//			// direct hit
-//			if (dist < directHitDist)
-//			{
-//				if (curhigh->fromgeom == geom && (curhigh->status&HIGHTYPE) != HIGHTEXT)
-//				{
-//					*looping = 1;
-//					prevdirect->status = lastdirect->status;
-//					prevdirect->fromgeom = lastdirect->fromgeom;
-//					prevdirect->fromvar = lastdirect->fromvar;
-//					prevdirect->fromvarnoeval = lastdirect->fromvarnoeval;
-//					prevdirect->fromport = lastdirect->fromport;
-//					prevdirect->snapx = lastdirect->snapx;
-//					prevdirect->snapy = lastdirect->snapy;
-//
-//					// see if there is another port under the cursor
-//					if (curhigh->fromport != NOPORTPROTO)
-//					{
-//						for(pp = curhigh->fromport->nextportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
-//						{
-//							shapeportpoly(ni, pp, poly, FALSE);
-//							if (isinside(wantx, wanty, poly))
-//							{
-//								prevdirect->status = HIGHFROM;
-//								prevdirect->fromgeom = geom;
-//								prevdirect->fromport = pp;
-//								break;
-//							}
-//						}
-//					}
-//				}
-//				lastdirect->status = HIGHFROM;
-//				lastdirect->fromgeom = geom;
-//				lastdirect->fromport = NOPORTPROTO;
-//				us_selectsnap(lastdirect, wantx, wanty);
-//				if (dist < *bestdist)
-//				{
-//					bestdirect->status = HIGHFROM;
-//					bestdirect->fromgeom = geom;
-//					bestdirect->fromport = NOPORTPROTO;
-//					us_selectsnap(bestdirect, wantx, wanty);
-//				}
-//			}
-//
-//			// see if it is closer than others
-//			if (dist < *bestdist)
-//			{
-//				best->status = HIGHFROM;
-//				best->fromgeom = geom;
-//				best->fromport = NOPORTPROTO;
-//				us_selectsnap(best, wantx, wanty);
-//				*bestdist = dist;
-//			}
-//		} else
-//		{
-//			// examine an arc object
-//			ai = geom->entryaddr.ai;
-//
-//			// do not "find" hard-to-find arcs if "findspecial" is not set
-//			if (findspecial == 0 && (ai->userbits&HARDSELECTA) != 0) return;
-//
-//			// do not include arcs that have all layers invisible
+				}
+				return h;
+			}
+		} else
+		{
+			// examine an arc object
+			ArcInst ai = (ArcInst)geom;
+
+			// do not "find" hard-to-find arcs if "findSpecial" is not set
+			if (!findSpecial && ai.isHardSelect()) return null;
+
+			// do not include arcs that have all layers invisible
 //			if ((ai->proto->userbits&AINVISIBLE) != 0) return;
-//
-//			// skip if being exclusive
-//			if (exclusively != 0 && ai->proto != us_curarcproto) return;
-//
-//			// try text on the arc (if not searching for "another")
-//			if (exclusively == 0)
+
+			// try text on the arc (if not searching for "another")
+//			us_initarctext(ai, findspecial, win);
+//			for(;;)
 //			{
-//				us_initarctext(ai, findspecial, win);
-//				for(;;)
+//				if (us_getarctext(ai, win, poly, &var, &varnoeval)) break;
+//
+//				// get distance of desired point to polygon
+//				dist = polydistance(poly, wantx, wanty);
+//
+//				// direct hit
+//				if (dist < directHitDist)
 //				{
-//					if (us_getarctext(ai, win, poly, &var, &varnoeval)) break;
-//
-//					// get distance of desired point to polygon
-//					dist = polydistance(poly, wantx, wanty);
-//
-//					// direct hit
-//					if (dist < directHitDist)
+//					if (curhigh->fromgeom == geom && (curhigh->status&HIGHTYPE) == HIGHTEXT &&
+//						curhigh->fromvar == var)
 //					{
-//						if (curhigh->fromgeom == geom && (curhigh->status&HIGHTYPE) == HIGHTEXT &&
-//							curhigh->fromvar == var)
-//						{
-//							*looping = 1;
-//							prevdirect->status = lastdirect->status;
-//							prevdirect->fromgeom = lastdirect->fromgeom;
-//							prevdirect->fromvar = lastdirect->fromvar;
-//							prevdirect->fromvarnoeval = lastdirect->fromvarnoeval;
-//							prevdirect->fromport = lastdirect->fromport;
-//						}
-//						lastdirect->status = HIGHTEXT;
-//						lastdirect->fromgeom = geom;
-//						lastdirect->fromvar = var;
-//						lastdirect->fromvarnoeval = varnoeval;
-//						lastdirect->fromport = NOPORTPROTO;
-//						if (dist < *bestdist)
-//						{
-//							bestdirect->status = HIGHTEXT;
-//							bestdirect->fromgeom = geom;
-//							bestdirect->fromvar = var;
-//							bestdirect->fromvarnoeval = varnoeval;
-//							us_selectsnap(bestdirect, wantx, wanty);
-//							bestdirect->fromport = NOPORTPROTO;
-//						}
+//						*looping = 1;
+//						prevdirect->status = lastdirect->status;
+//						prevdirect->fromgeom = lastdirect->fromgeom;
+//						prevdirect->fromvar = lastdirect->fromvar;
+//						prevdirect->fromvarnoeval = lastdirect->fromvarnoeval;
+//						prevdirect->fromport = lastdirect->fromport;
 //					}
-//
-//					// see if it is closer than others
+//					lastdirect->status = HIGHTEXT;
+//					lastdirect->fromgeom = geom;
+//					lastdirect->fromvar = var;
+//					lastdirect->fromvarnoeval = varnoeval;
+//					lastdirect->fromport = NOPORTPROTO;
 //					if (dist < *bestdist)
 //					{
-//						best->status = HIGHTEXT;
-//						best->fromgeom = geom;
-//						best->fromvar = var;
-//						best->fromvarnoeval = varnoeval;
-//						best->fromport = NOPORTPROTO;
-//						us_selectsnap(best, wantx, wanty);
-//						*bestdist = dist;
+//						bestdirect->status = HIGHTEXT;
+//						bestdirect->fromgeom = geom;
+//						bestdirect->fromvar = var;
+//						bestdirect->fromvarnoeval = varnoeval;
+//						us_selectsnap(bestdirect, wantx, wanty);
+//						bestdirect->fromport = NOPORTPROTO;
 //					}
 //				}
-//			}
 //
-//			if (fartext != 0) return;
-//
-//			// get distance to arc
-//			dist = distToObject(wantx, wanty, geom);
-//
-//			// direct hit
-//			if (dist < directHitDist)
-//			{
-//				if (curhigh->fromgeom == geom && (curhigh->status&HIGHTYPE) != HIGHTEXT)
-//				{
-//					*looping = 1;
-//					prevdirect->status = lastdirect->status;
-//					prevdirect->fromgeom = lastdirect->fromgeom;
-//					prevdirect->fromvar = lastdirect->fromvar;
-//					prevdirect->fromvarnoeval = lastdirect->fromvarnoeval;
-//					prevdirect->fromport = lastdirect->fromport;
-//					prevdirect->snapx = lastdirect->snapx;
-//					prevdirect->snapy = lastdirect->snapy;
-//				}
-//				lastdirect->status = HIGHFROM;
-//				lastdirect->fromgeom = geom;
-//				lastdirect->fromport = NOPORTPROTO;
-//				us_selectsnap(lastdirect, wantx, wanty);
+//				// see if it is closer than others
 //				if (dist < *bestdist)
 //				{
-//					bestdirect->status = HIGHFROM;
-//					bestdirect->fromgeom = geom;
-//					bestdirect->fromvar = NOVARIABLE;
-//					bestdirect->fromvarnoeval = NOVARIABLE;
-//					bestdirect->fromport = NOPORTPROTO;
-//					us_selectsnap(bestdirect, wantx, wanty);
+//					best->status = HIGHTEXT;
+//					best->fromgeom = geom;
+//					best->fromvar = var;
+//					best->fromvarnoeval = varnoeval;
+//					best->fromport = NOPORTPROTO;
+//					us_selectsnap(best, wantx, wanty);
+//					*bestdist = dist;
 //				}
 //			}
-//
-//			// see if it is closer than others
-//			if (dist < *bestdist)
-//			{
-//				best->status = HIGHFROM;
-//				best->fromgeom = geom;
-//				best->fromvar = NOVARIABLE;
-//				best->fromvarnoeval = NOVARIABLE;
-//				best->fromport = NOPORTPROTO;
-//				us_selectsnap(best, wantx, wanty);
-//				*bestdist = dist;
-//			}
-//		}
-//	}
+
+			// get distance to arc
+			double dist = distToObject(pt, geom, wnd);
+
+			// direct hit
+			if (dist < directHitDist)
+			{
+				Highlight h = new Highlight(Type.GEOM);
+				h.setGeom(geom);
+				return h;
+			}
+		}
+		return null;
+	}
 
 	/**
 	 * Routine to return the distance from a point to a Geometric.
@@ -844,47 +908,53 @@ public class Highlight
 	 * @return the distance from the point to the Geometric.
 	 * Negative values are direct hits.
 	 */
-	double distToObject(Point2D.Double pt, Geometric geom)
+	private static double distToObject(Point2D.Double pt, Geometric geom, UIEdit wnd)
 	{
 		if (geom instanceof NodeInst)
 		{
 			NodeInst ni = (NodeInst)geom;
 			AffineTransform trans = ni.rotateOut();
 
-			// special case for MOS transistors: examine the gate/active tabs
-			NodeProto.Function fun = ni.getProto().getFunction();
-			if (fun == NodeProto.Function.TRANMOS || fun == NodeProto.Function.TRAPMOS || fun == NodeProto.Function.TRADMOS)
+			NodeProto np = ni.getProto();
+			if (np instanceof PrimitiveNode)
 			{
-				Technology tech = ni.getProto().getTechnology();
-				Poly [] polys = tech.getShape(ni);
-				double bestDist = Double.MAX_VALUE;
-				for(int box=0; box<polys.length; box++)
+				// special case for MOS transistors: examine the gate/active tabs
+				NodeProto.Function fun = np.getFunction();
+				if (fun == NodeProto.Function.TRANMOS || fun == NodeProto.Function.TRAPMOS || fun == NodeProto.Function.TRADMOS)
 				{
-					Poly poly = polys[box];
-					Layer.Function lf = poly.getLayer().getFunction();
-					if (lf.isPoly() && !lf.isDiff()) continue;
-					poly.transform(trans);
-					double dist = poly.polyDistance(pt);
-					if (dist < bestDist) bestDist = dist;
+					Technology tech = np.getTechnology();
+					Poly [] polys = tech.getShape(ni, wnd);
+					double bestDist = Double.MAX_VALUE;
+					for(int box=0; box<polys.length; box++)
+					{
+						Poly poly = polys[box];
+						Layer layer = poly.getLayer();
+						if (layer == null) continue;
+						Layer.Function lf = layer.getFunction();
+						if (lf.isPoly() && !lf.isDiff()) continue;
+						poly.transform(trans);
+						double dist = poly.polyDistance(pt);
+						if (dist < bestDist) bestDist = dist;
+					}
+					return bestDist;
 				}
-				return bestDist;
-			}
 
-			// special case for 1-polygon primitives: check precise distance to cursor
-//			if (ni->proto->primindex != 0 && (ni->proto->userbits&NEDGESELECT) != 0)
-//			{
-//				count = nodepolys(ni, 0, NOWINDOWPART);
-//				bestdist = MAXINTBIG;
-//				for(box=0; box<count; box++)
-//				{
-//					shapenodepoly(ni, box, poly);
-//					if ((poly->desc->colstyle&INVISIBLE) != 0) continue;
-//					xformpoly(poly, trans);
-//					dist = polydistance(poly, x, y);
-//					if (dist < bestdist) bestdist = dist;
-//				}
-//				return(bestdist);
-//			}
+				// special case for 1-polygon primitives: check precise distance to cursor
+				if (np.isEdgeSelect())
+				{
+					Technology tech = np.getTechnology();
+					Poly [] polys = tech.getShape(ni, wnd);
+					double bestDist = Double.MAX_VALUE;
+					for(int box=0; box<polys.length; box++)
+					{
+						Poly poly = polys[box];
+						poly.transform(trans);
+						double dist = poly.polyDistance(pt);
+						if (dist < bestDist) bestDist = dist;
+					}
+					return bestDist;
+				}
+			}
 
 			// get the bounds of the node in a polygon
 			SizeOffset so = ni.getProto().getSizeOffset();
@@ -896,26 +966,28 @@ public class Highlight
 			Poly nodePoly = new Poly((lX+hX)/2, (lY+hY)/2, hX-lX, hY-lY);
 			nodePoly.setStyle(Poly.Type.FILLED);
 			nodePoly.transform(trans);
-			return nodePoly.polyDistance(pt);
+			double dist = nodePoly.polyDistance(pt);
+			return dist;
 		}
 
 		// determine distance to arc
 		ArcInst ai = (ArcInst)geom;
+		ArcProto ap = ai.getProto();
 
 		// if arc is selectable precisely, check distance to cursor
-//		if ((ai->proto->userbits&AEDGESELECT) != 0)
-//		{
-//			count = arcpolys(ai, NOWINDOWPART);
-//			bestdist = MAXINTBIG;
-//			for(box=0; box<count; box++)
-//			{
-//				shapearcpoly(ai, box, poly);
-//				if ((poly->desc->colstyle&INVISIBLE) != 0) continue;
-//				dist = polydistance(poly, x, y);
-//				if (dist < bestdist) bestdist = dist;
-//			}
-//			return(bestdist);
-//		}
+		if (ap.isEdgeSelect())
+		{
+			Technology tech = ap.getTechnology();
+			Poly [] polys = tech.getShape(ai, wnd);
+			double bestDist = Double.MAX_VALUE;
+			for(int box=0; box<polys.length; box++)
+			{
+				Poly poly = polys[box];
+				double dist = poly.polyDistance(pt);
+				if (dist < bestDist) bestDist = dist;
+			}
+			return bestDist;
+		}
 
 		// standard distance to the arc
 		double wid = ai.getWidth() - ai.getProto().getWidthOffset();
@@ -924,6 +996,12 @@ public class Highlight
 			Poly poly = ai.makePoly(ai.getXSize(), wid, Poly.Type.FILLED);
 		return poly.polyDistance(pt);
 	}
+
+	/**
+	 * Returns a printable version of this Highlight.
+	 * @return a printable version of this Highlight.
+	 */
+	public String toString() { return "Highlight "+type; }
 
 	// ************************************* SUPPORT *************************************
 

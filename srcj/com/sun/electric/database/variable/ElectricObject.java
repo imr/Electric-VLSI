@@ -31,12 +31,14 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.tool.user.ui.UIEdit;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.font.GlyphVector;
 
 /**
  * This class is the base class of all Electric objects that can be extended with "Variables".
@@ -108,7 +110,7 @@ public class ElectricObject
 	 * Displayable Variables can only sensibly exist on NodeInst and ArcInst objects.
 	 * @return the number of displayable Variables on this ElectricObject.
 	 */
-	public int numDisplayableVariables()
+	public int numDisplayableVariables(boolean multipleStrings)
 	{
 		if (vars == null) return 0;
 
@@ -116,21 +118,26 @@ public class ElectricObject
 		for(Iterator it = vars.values().iterator(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
-			if (var.isDisplay()) numVars++;
+			if (var.isDisplay())
+			{
+				int len = var.getLength();
+				if (!multipleStrings) len = 1;
+				numVars += len;
+			}
 		}
 		return numVars;
 	}
-	
+
 	/**
 	 * Routine to add all displayable Variables on this Electric object to an array of Poly objects.
 	 * @param rect a rectangle describing the bounds of the object on which the Variables will be displayed.
 	 * @param polys an array of Poly objects that will be filled with the displayable Variables.
 	 * @param start the starting index in the array of Poly objects to fill with displayable Variables.
 	 */
-	public void addDisplayableVariables(Rectangle2D rect, Poly [] polys, int start)
+	public void addDisplayableVariables(Rectangle2D rect, Poly [] polys, int start, UIEdit wnd, boolean multipleStrings)
 	{
 		if (vars == null) return;
-		
+
 		double cX = rect.getCenterX();
 		double cY = rect.getCenterY();
 		for(Iterator it = vars.values().iterator(); it.hasNext(); )
@@ -140,16 +147,35 @@ public class ElectricObject
 			TextDescriptor td = var.getTextDescriptor();
 			double offX = (double)td.getXOff() / 4;
 			double offY = (double)td.getYOff() / 4;
-			Point2D.Double [] pointList = new Point2D.Double[1];
-			pointList[0] = new Point2D.Double(cX+offX, cY+offY);
-			polys[start] = new Poly(pointList);
+			int varLength = var.getLength();
+			double height = 0;
 			TextDescriptor.Position pos = td.getPos();
 			Poly.Type style = pos.getPolyType();
-			polys[start].setStyle(style);
-			polys[start].setString(var.describe());
-			polys[start].setTextDescriptor(td);
-			polys[start].setLayer(null);
-			start++;
+			if (varLength > 1)
+			{
+				// compute text height
+				GlyphVector gv = wnd.getGlyphs(var.describe(0, -1), td);
+				Rectangle2D glyphBounds = gv.getVisualBounds();
+				height = glyphBounds.getHeight() / wnd.getScale();
+				if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT)
+					cY += height * (varLength-1) / 2;
+				if (style == Poly.Type.TEXTBOT || style == Poly.Type.TEXTBOTLEFT || style == Poly.Type.TEXTBOTRIGHT)
+					cY += height * (varLength-1);
+				if (!multipleStrings) varLength = 1;
+			}
+			for(int i=0; i<varLength; i++)
+			{
+				Point2D.Double [] pointList = new Point2D.Double[1];
+				pointList[0] = new Point2D.Double(cX+offX, cY+offY);
+				polys[start] = new Poly(pointList);
+				polys[start].setStyle(style);
+				polys[start].setString(var.describe(i, -1));
+				polys[start].setTextDescriptor(td);
+				polys[start].setLayer(null);
+				polys[start].setVariable(var);
+				cY -= height;
+				start++;
+			}
 		}
 	}
 

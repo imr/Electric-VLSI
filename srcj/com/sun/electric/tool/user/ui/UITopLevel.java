@@ -97,9 +97,9 @@ public class UITopLevel extends JFrame
 		{
 			libdir = dir1.getCanonicalPath();
 		} catch(Exception e) { libdir = null; }
-		libdir = "C:\\DevelE\\Electric\\lib";
+		libdir = "C:\\DevelE\\Electric\\lib\\";
 
-		topLevel.setIconImage(new ImageIcon(UITopLevel.getLibDir() + "\\ElectricIcon.gif").getImage());
+		topLevel.setIconImage(new ImageIcon(UITopLevel.getLibDir() + "ElectricIcon.gif").getImage());
 	}
 	
 	public static void setMenuBar(JMenuBar menuBar)

@@ -1426,7 +1426,7 @@ public class InputBinary extends Input
 		if (elib == null)
 		{
 			// library does not exist: see if file is in the same directory as the main file
-			String externalFile = mainLibDirectory + File.separator + libFileName;
+			String externalFile = mainLibDirectory + libFileName;
 			File testFile = new File(externalFile);
 			if (!testFile.exists())
 			{
