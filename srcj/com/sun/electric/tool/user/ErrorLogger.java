@@ -219,6 +219,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
          * Method to return a specific object in a list of objects on this ErrorLog.
          * Returns null at the end of the list.
          */
+        /*
         public ErrorHighlight getErrorGeom(int index)
         {
             int total = 0;
@@ -231,7 +232,26 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
             }
             return null;
         }
+        */
 
+	    public boolean findGeometries(Geometric geo1, Cell cell1, Geometric geo2, Cell cell2)
+        {
+            boolean eh1found = false;
+	        boolean eh2found = false;
+
+	        for(Iterator it = highlights.iterator(); it.hasNext(); )
+            {
+                ErrorHighlight eh = (ErrorHighlight)it.next();
+                if (eh.type != ERRORTYPEGEOM) continue;
+		        if (!eh1found && eh.cell == cell1 && eh.geom == geo1)
+		            eh1found = true;
+		        if (!eh2found && eh.cell == cell2 && eh.geom == geo2)
+		            eh2found = true;
+		        if (eh1found && eh2found)
+		            return (true);
+            }
+	        return (false);
+        }
         /**
          * Method to describe error "elv".
          */
@@ -465,6 +485,28 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         if (persistent) WindowFrame.wantToRedoErrorTree();
         return el;
     }
+
+	/**
+	 * Method to determine if existing report was not looged already
+	 * @param cell
+	 * @param geom1
+	 * @param cell2
+	 * @param geom2
+	 * @return
+	 */
+	public synchronized boolean findError(Cell cell, Geometric geom1, Cell cell2, Geometric geom2)
+	{
+		boolean found = false;
+
+		for (int i = 0; i < allErrors.size(); i++)
+		{
+			ErrorLog el = (ErrorLog)allErrors.get(i);
+
+			if (el.findGeometries(geom1, cell, geom2, cell2))
+				return (true);
+		}
+		return (false);
+	}
 
 	/**
 	 * Method to remove all logged errors from this errorlog.

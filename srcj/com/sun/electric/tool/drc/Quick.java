@@ -2327,7 +2327,7 @@ public class Quick
 		{
 			if (!fun.isContact() || (funExtras&Layer.Function.CONDIFF) == 0) return false;
 		}
-		if (funExtras != layer2.getFunctionExtras())
+		if (Main.getDebug() && funExtras != layer2.getFunctionExtras())
 			System.out.println("This seems an error. Ask Steve!");
 		funExtras = layer2.getFunctionExtras();
 		fun = layer2.getFunction();
@@ -3059,12 +3059,19 @@ public class Quick
 		if (errorType == SPACINGERROR || errorType == NOTCHERROR)
 		{
 			// describe spacing width error
-			if (errorType == SPACINGERROR) errorMessage += "Spacing"; else
+			if (errorType == SPACINGERROR)
+				errorMessage += "Spacing";
+			else
 				errorMessage += "Notch";
 			if (layer1 == layer2)
 				errorMessage += " (layer " + layer1.getName() + ")";
 			errorMessage += ": ";
 			Cell np2 = geom2.getParent();
+
+			// Error already logged
+			if ( errorLogger.findError(cell, geom1, geom2.getParent(), geom2))
+				return;
+
 			if (np1 != np2)
 			{
 				errorMessage += "cell " + np1.describe() + ", ";
@@ -3073,8 +3080,9 @@ public class Quick
 				errorMessage += "[in cell " + np1.describe() + "] ";
 			}
 			if (geom1 instanceof NodeInst)
-				errorMessage += "node " + geom1.describe(); else
-					errorMessage += "arc " + geom1.describe();
+				errorMessage += "node " + geom1.describe();
+			else
+				errorMessage += "arc " + geom1.describe();
 			if (layer1 != layer2)
 				errorMessage += ", layer " + layer1.getName();
 
@@ -3085,8 +3093,9 @@ public class Quick
 			if (np1 != np2)
 				errorMessage += "cell " + np2.describe() + ", ";
 			if (geom2 instanceof NodeInst)
-				errorMessage += "node " + geom2.describe(); else
-					errorMessage += "arc " + geom2.describe();
+				errorMessage += "node " + geom2.describe();
+			else
+				errorMessage += "arc " + geom2.describe();
 			if (layer1 != layer2)
 				errorMessage += ", layer " + layer2.getName();
 			if (msg != null)

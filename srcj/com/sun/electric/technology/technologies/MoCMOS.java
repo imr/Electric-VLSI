@@ -180,7 +180,6 @@ public class MoCMOS extends Technology
 		new DRC.RuleTemplate("2.2",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.SPACING,  "P-Active",       "P-Active",       3,  null),
 		new DRC.RuleTemplate("2.2",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.SPACING,  "N-Active",       "N-Active",       3,  null),
 		new DRC.RuleTemplate("2.2",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.SPACING,  "P-Active-Well",  "P-Active-Well",  3,  null),
-		new DRC.RuleTemplate("2.2",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.SPACING,  "P-Active",       "N-Active",       3,  null),
 		new DRC.RuleTemplate("2.2",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.SPACING,  "P-Active",       "P-Active-Well",  3,  null),
 		new DRC.RuleTemplate("2.2",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.SPACING,  "N-Active",       "P-Active-Well",  3,  null),
 
@@ -194,6 +193,10 @@ public class MoCMOS extends Technology
 		new DRC.RuleTemplate("2.3",  DRC.RuleTemplate.SC, DRC.RuleTemplate.SURROUND, "P-Well",         "N-Active",       5,  "Metal-1-N-Active-Con"),
 		new DRC.RuleTemplate("2.3",  DRC.RuleTemplate.SC, DRC.RuleTemplate.ASURROUND,"P-Well",         "N-Active",       5,  "N-Active"),
 		new DRC.RuleTemplate("2.3",  DRC.RuleTemplate.SC, DRC.RuleTemplate.TRAWELL,   null,             null,            5,  null),
+
+		// Rule 2.4 not implemented
+		// In C-Electric it is implemented as 2.2 (min spacing=3) so we might discrepancies.
+		new DRC.RuleTemplate("2.5",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.SPACING,  "P-Active",       "N-Active",       4,  null),
 
 		new DRC.RuleTemplate("3.1",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.MINWID,   "Polysilicon-1",   null,            2,  null),
 		new DRC.RuleTemplate("3.1",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.MINWID,   "Transistor-Poly", null,            2,  null),
@@ -332,6 +335,7 @@ public class MoCMOS extends Technology
 		new DRC.RuleTemplate("6.5b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.UCONSPA,  "Active-Cut",     "N-Active",       5,  null),
 
 		new DRC.RuleTemplate("6.6b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.SPACING,  "Active-Cut",     "Polysilicon-1",  2,  null),
+		// 6.7b is not implemented due to complexity. See manual
 		new DRC.RuleTemplate("6.8b",       DRC.RuleTemplate.AC,        DRC.RuleTemplate.SPACING,  "Active-Cut",     "Poly-Cut",       4,  null),
 
 		new DRC.RuleTemplate("7.1",  DRC.RuleTemplate.ALL, DRC.RuleTemplate.MINWID,   "Metal-1",         null,            3,  null),
@@ -451,8 +455,7 @@ public class MoCMOS extends Technology
 		new DRC.RuleTemplate("25.1", DRC.RuleTemplate.DE|DRC.RuleTemplate.M5,    DRC.RuleTemplate.NODSIZ,    null,             null,            7, "Metal-4-Metal-5-Con"),
 		new DRC.RuleTemplate("25.1", DRC.RuleTemplate.DE|DRC.RuleTemplate.M6,    DRC.RuleTemplate.NODSIZ,    null,             null,            5, "Metal-4-Metal-5-Con"),
 
-		// Bug even in C-Electric
-		// new DRC.RuleTemplate("25.2", DRC.RuleTemplate.ALL,               DRC.RuleTemplate.SPACINGW, WIDELIMIT, "Via4",           "Via4",           3),
+		// Bug even in C-Electric It was SPACINGW originally
 		new DRC.RuleTemplate("25.2", DRC.RuleTemplate.ALL,               DRC.RuleTemplate.SPACING, "Via4",           "Via4",           3, null),
 
 		new DRC.RuleTemplate("25.3", DRC.RuleTemplate.ALL,               DRC.RuleTemplate.VIASUR,   "Metal-4",         null,            1, "Metal-4-Metal-5-Con"),
