@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01am: *********************************
 
+IMP: (11/9/04, GVG) Metal1 back from 1.4 -> 1.2
+
 BUG: (11/9/04, DN) Can't read mixture of JELIB and ELIB files.
 FIX: In JELIB reader use "realizeCellsRecursively" instead of "instantiateCellContents".
 
