@@ -402,6 +402,7 @@ public class Input
 		int maxAssociation = 0;
 		for(int i=0; i<associationArray.length; i++)
 		{
+            if (associationArray[i] == null) continue;
 			int fontNumber = TextUtils.atoi(associationArray[i]);
 			if (fontNumber > maxAssociation) maxAssociation = fontNumber;
 		}
@@ -411,6 +412,7 @@ public class Input
 		for(int i=0; i<maxAssociation; i++) fontNames[i] = null;
 		for(int i=0; i<associationArray.length; i++)
 		{
+            if (associationArray[i] == null) continue;
 			int fontNumber = TextUtils.atoi(associationArray[i]);
 			if (fontNumber <= 0) continue;
 			int slashPos = associationArray[i].indexOf('/');

@@ -852,7 +852,20 @@ public class ELIB extends Output
 			writeBigInteger(additionalVarType);
 			TextDescriptor td = (additionalVarType & ELIBConstants.VDISPLAY) != 0 ? obj.getTextDescriptor(additionalVarName) : null;
 			writeTextDescriptor(td, true);
-			putOutVar(additionalVarValue);
+            if (additionalVarValue instanceof Object[])
+            {
+                Object [] objList = (Object [])additionalVarValue;
+                int len = objList.length;
+                writeBigInteger(len);
+                for(int i=0; i<len; i++)
+                {
+                    Object oneObj = objList[i];
+                    putOutVar(oneObj);
+                }
+            } else
+            {
+                putOutVar(additionalVarValue);
+            }
 		}
 	}
 

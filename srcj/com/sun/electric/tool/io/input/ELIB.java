@@ -2519,6 +2519,16 @@ public class ELIB extends LibraryFiles
 					}
 				}
 			}
+
+            if ((obj instanceof Library) && (Library.FONT_ASSOCIATIONS == varKeys.getKey(key))) {
+
+                Library lib = (Library)obj;
+                if (version.compareTo(Version.parseVersion("8.02c")) == 0) {
+                    System.out.println("Library "+lib.getName()+" is being patched for bad Font Association var");
+                    continue;
+                }
+            }
+
 			if (!definedDescript)
 			{
 //				defaulttextdescript(newDescript, NOGEOM);
@@ -2535,7 +2545,7 @@ public class ELIB extends LibraryFiles
 				{
 					case ELIBConstants.VADDRESS:
 					case ELIBConstants.VINTEGER:    newAddrArray = new Integer[cou];     break;
-					case ELIBConstants.VFRACT:      
+					case ELIBConstants.VFRACT:
 					case ELIBConstants.VFLOAT:      newAddrArray = new Float[cou];       break;
 					case ELIBConstants.VDOUBLE:     newAddrArray = new Double[cou];      break;
 					case ELIBConstants.VSHORT:      newAddrArray = new Short[cou];       break;
@@ -2576,7 +2586,7 @@ public class ELIB extends LibraryFiles
 						}
 						if (newAddrArray != null) newAddrArray[j] = ret;
 					}
-					
+
 				}
 			} else
 			{
