@@ -111,7 +111,10 @@ public class MessagesWindow
 
 		info = new JTextArea(20, 110);
 		info.setLineWrap(false);
-		info.setFont(new Font("Courier", 0, 12));
+		if (TopLevel.getOperatingSystem() == TopLevel.OS.UNIX)
+            info.setFont(new Font("Monospaced", 0, 12));
+        else
+            info.setFont(new Font("Courier", 0, 12));            
 		info.addMouseListener(this);
 		JScrollPane scrollPane = new JScrollPane(info,
 			JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
