@@ -28,20 +28,20 @@ import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.Highlight;
 
 import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.FocusListener;
-import java.awt.event.FocusEvent;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
+import java.util.Iterator;
 import javax.swing.*;
+import javax.swing.event.InternalFrameListener;
+import javax.swing.event.InternalFrameEvent;
 
 
 /**
  * This class manages the Electric toolbar.
  */
-public class ToolBar extends JToolBar implements PropertyChangeListener, FocusListener
+public class ToolBar extends JToolBar implements PropertyChangeListener, InternalFrameListener
 {
     /** Menu name that exists on ToolBar, public for consistency matching */ public static final String selectAreaName = "Area";
     /** Menu name that exists on ToolBar, public for consistency matching */ public static final String selectObjectsName = "Objects";
@@ -596,26 +596,54 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, FocusLi
     }
 
     /**
-     * Listen for focus gained events.  Currently this supports
-     * when a JInternalFrame gains focus, we associate the forward
+     * Listen for InternalFrame activation events.  Currently this supports
+     * when a JInternalFrame gets raised to front, we associate the forward
      * and back history buttons with the EditWindow in that frame
-     * (well, the current edit window, anyway).
-     * @param e the FocusEvent.
+     * @param e the event.
      */
-    public void focusGained(FocusEvent e) {
-        Component source = e.getComponent();
+    public void internalFrameActivated(InternalFrameEvent e) {
+        JInternalFrame source = e.getInternalFrame();
         if (source instanceof JInternalFrame) {
             // associate go back and forward states with that frame's window
-            EditWindow wnd = EditWindow.getCurrent();
+            WindowFrame useFrame = null;
+            for (Iterator it = WindowFrame.getWindows(); it.hasNext(); ) {
+                WindowFrame frame = (WindowFrame)it.next();
+                if (frame.getInternalFrame() == source) {
+                    useFrame = frame;
+                    break;
+                }
+            }
+            if (useFrame == null) return;
+            EditWindow wnd = useFrame.getEditWindow();
             if (wnd == null) return;
             goBackButton.setEnabled(wnd.cellHistoryCanGoBack());
             goForwardButton.setEnabled(wnd.cellHistoryCanGoForward());
         }
     }
 
-    /** Empty  */
-    public void focusLost(FocusEvent e) {
-
+    public void internalFrameClosed(InternalFrameEvent e) {
+        //To change body of implemented methods use File | Settings | File Templates.
     }
+
+    public void internalFrameClosing(InternalFrameEvent e) {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public void internalFrameDeactivated(InternalFrameEvent e) {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public void internalFrameDeiconified(InternalFrameEvent e) {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public void internalFrameIconified(InternalFrameEvent e) {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public void internalFrameOpened(InternalFrameEvent e) {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
+
 
 }

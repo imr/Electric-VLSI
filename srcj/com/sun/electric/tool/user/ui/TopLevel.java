@@ -106,7 +106,7 @@ public class TopLevel extends JFrame
 		setLocation(bound.x, bound.y);
 		setSize(bound.width, bound.height);
 		getContentPane().setLayout(new BorderLayout());
-		setVisible(true);
+        setVisible(true);
 
 		// set an icon on the window
 		setIconImage(new ImageIcon(getClass().getResource("IconElectric.gif")).getImage());
@@ -121,7 +121,7 @@ public class TopLevel extends JFrame
 
 		// create the status bar
 		sb = new StatusBar(frame);
-		getContentPane().add(sb, BorderLayout.SOUTH);
+		//getContentPane().add(sb, BorderLayout.SOUTH);
 
 		if (isMDIMode())
 		{
@@ -129,8 +129,8 @@ public class TopLevel extends JFrame
 			addComponentListener(new ReshapeComponentAdapter());
  		} else
 		{
-			//setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-            setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+			setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+            //setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		}
 
 		cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
@@ -157,14 +157,13 @@ public class TopLevel extends JFrame
 		scrnSize = (Toolkit.getDefaultToolkit()).getScreenSize();
 
 		// setup specific look-and-feel
-		mdi = false;
+        mdi = false;            // default
 		try{
 			String osName = System.getProperty("os.name").toLowerCase();
 			if (osName.startsWith("windows"))
 			{
 				os = OS.WINDOWS;
                 mdi = true;     // default
-                //mdi = false;
 				scrnSize.height -= 30;
 				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
 			} else if (osName.startsWith("linux") || osName.startsWith("solaris") || osName.startsWith("sunos"))
@@ -333,7 +332,7 @@ public class TopLevel extends JFrame
 	 * @param wnd the EditWindow to associatd with this.
 	 */
 	public void setEditWindow(EditWindow wnd) { this.wnd = wnd; }
-
+    
     /**
      * Method called when done with this Frame.  Both the menuBar
      * and toolBar have persistent state in static hash tables to maintain

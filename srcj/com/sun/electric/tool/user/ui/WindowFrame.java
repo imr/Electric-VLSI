@@ -62,13 +62,15 @@ public class WindowFrame
 	/** the text edit window part */					private JTextArea textWnd;
 	/** the text edit window component. */				private JScrollPane textPanel;
 	/** the split pane that shows explorer and edit. */	private JSplitPane js;
+    /** the internal frame (if MDI). */					private JInternalFrame jif = null;
+    /** the top-level frame (if SDI). */				private TopLevel jf = null;
+    /** the internalframe listener */                   private InternalWindowsEvents internalWindowsEvents;
+    /** the window event listener */                    private WindowsEvents windowsEvents;
 
 	/** the tree view part */							private ExplorerTree tree;
 	/** the offset of each new windows from the last */	private static int windowOffset = 0;
 	/** the list of all windows on the screen */		private static List windowList = new ArrayList();
 	/** the current windows. */							private static WindowFrame curWindowFrame = null;
-	/** the internal frame (if MDI). */					private JInternalFrame jif;
-	/** the top-level frame (if SDI). */				private TopLevel jf;
 	/** the explorer part of a frame. */				private static DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Explorer");
 	/** the explorer part of a frame. */				private static DefaultTreeModel treeModel = null;
 
@@ -84,59 +86,52 @@ public class WindowFrame
 	 */
     public static WindowFrame createEditWindow(Cell cell)
     {
-        return createEditWindow(cell, null);
+        WindowFrame frame = new WindowFrame();
+        frame.createEditWindow(cell, null);
+        return frame;
     }
-    
-	public static WindowFrame createEditWindow(Cell cell, GraphicsConfiguration gc)
+
+	private void createEditWindow(Cell cell, GraphicsConfiguration gc)
 	{
-		final WindowFrame frame = new WindowFrame();
-
-		// initialize the frame
-        frame.createJFrame(cell, gc);
-        
-		curWindowFrame = frame;
-		windowOffset += 70;
-		if (windowOffset > 300) windowOffset = 0;
-
 		// the right half: an edit window with scroll bars
-		frame.circuitPanel = new JPanel(new GridBagLayout());
+		circuitPanel = new JPanel(new GridBagLayout());
 
 		// the horizontal scroll bar in the edit window
 		int thumbSize = SCROLLBARRESOLUTION / 20;
-		frame.bottomScrollBar = new JScrollBar(JScrollBar.HORIZONTAL, SCROLLBARRESOLUTION/2, thumbSize, 0, SCROLLBARRESOLUTION+thumbSize);
-		frame.bottomScrollBar.setBlockIncrement(SCROLLBARRESOLUTION / 4);
+		bottomScrollBar = new JScrollBar(JScrollBar.HORIZONTAL, SCROLLBARRESOLUTION/2, thumbSize, 0, SCROLLBARRESOLUTION+thumbSize);
+		bottomScrollBar.setBlockIncrement(SCROLLBARRESOLUTION / 4);
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0;   gbc.gridy = 1;
 		gbc.fill = GridBagConstraints.HORIZONTAL;
-		frame.circuitPanel.add(frame.bottomScrollBar, gbc);
-		frame.bottomScrollBar.addAdjustmentListener(new ScrollAdjustmentListener(frame));
-		frame.bottomScrollBar.setValue(frame.bottomScrollBar.getMaximum()/2);
+		circuitPanel.add(bottomScrollBar, gbc);
+		bottomScrollBar.addAdjustmentListener(new ScrollAdjustmentListener(this));
+		bottomScrollBar.setValue(bottomScrollBar.getMaximum()/2);
 
 		// the vertical scroll bar in the edit window
-		frame.rightScrollBar = new JScrollBar(JScrollBar.VERTICAL, SCROLLBARRESOLUTION/2, thumbSize, 0, SCROLLBARRESOLUTION+thumbSize);
-		frame.rightScrollBar.setBlockIncrement(SCROLLBARRESOLUTION / 4);
+		rightScrollBar = new JScrollBar(JScrollBar.VERTICAL, SCROLLBARRESOLUTION/2, thumbSize, 0, SCROLLBARRESOLUTION+thumbSize);
+		rightScrollBar.setBlockIncrement(SCROLLBARRESOLUTION / 4);
 		gbc = new GridBagConstraints();
 		gbc.gridx = 1;   gbc.gridy = 0;
 		gbc.fill = GridBagConstraints.VERTICAL;
-		frame.circuitPanel.add(frame.rightScrollBar, gbc);
-		frame.rightScrollBar.addAdjustmentListener(new ScrollAdjustmentListener(frame));
-		frame.rightScrollBar.setValue(frame.rightScrollBar.getMaximum()/2);
+		circuitPanel.add(rightScrollBar, gbc);
+		rightScrollBar.addAdjustmentListener(new ScrollAdjustmentListener(this));
+		rightScrollBar.setValue(rightScrollBar.getMaximum()/2);
 
 //		JButton explorerButton = Button.newInstance(new ImageIcon(frame.getClass().getResource("IconExplorer.gif")));
 //		js.setCorner(JScrollPane.LOWER_LEFT_CORNER, explorerButton);
 
 		// the edit window
-		frame.wnd = EditWindow.CreateElectricDoc(null, frame);
+		wnd = EditWindow.CreateElectricDoc(null, this);
 		gbc = new GridBagConstraints();
 		gbc.gridx = 0;   gbc.gridy = 0;
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.weightx = gbc.weighty = 1;
-		frame.circuitPanel.add(frame.wnd, gbc);
+		circuitPanel.add(wnd, gbc);
 
 		// the text edit window (for textual cells)
-		frame.textWnd = new JTextArea();
-		frame.textWnd.setTabSize(4);
-		frame.textPanel = new JScrollPane(frame.textWnd);
+		textWnd = new JTextArea();
+		textWnd.setTabSize(4);
+		textPanel = new JScrollPane(textWnd);
 
 		// the left half: an explorer tree in a scroll pane
 		rootNode.removeAllChildren();
@@ -144,30 +139,34 @@ public class WindowFrame
 		rootNode.add(Job.getExplorerTree());
 		rootNode.add(ErrorLog.getExplorerTree());
 		treeModel = new DefaultTreeModel(rootNode);
-		frame.tree = ExplorerTree.CreateExplorerTree(rootNode, treeModel);
+		tree = ExplorerTree.CreateExplorerTree(rootNode, treeModel);
 		ExplorerTree.explorerTreeChanged();
-		JScrollPane scrolledTree = new JScrollPane(frame.tree);
+		JScrollPane scrolledTree = new JScrollPane(tree);
 
 		// put them together into the split pane
-		frame.js = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-		frame.js.setRightComponent(frame.circuitPanel);
-		frame.js.setLeftComponent(scrolledTree);
-		frame.js.setDividerLocation(0.2);
+		js = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+		js.setRightComponent(circuitPanel);
+		js.setLeftComponent(scrolledTree);
+		js.setDividerLocation(0.2);
+
+
+        // initialize the frame
+        String cellDescription = (cell == null) ? "no cell" : cell.describe();
+        createJFrame(cellDescription, gc);
+        windowOffset += 70;
+        if (windowOffset > 300) windowOffset = 0;
 
         // Put everything into the frame
-        frame.populateJFrame();
+        populateJFrame();
 //		js.requestFocusInWindow();
 
-		frame.wnd.setCell(cell, VarContext.globalContext);
+		wnd.setCell(cell, VarContext.globalContext);
 
 		// accumulate a list of current windows
 		synchronized(windowList) {
-            windowList.add(frame);
+            windowList.add(this);
         }
-
-		setCurrentWindowFrame(frame);
-
-		return frame;
+		setCurrentWindowFrame(this);
 	}
 
     
@@ -175,21 +174,20 @@ public class WindowFrame
      * Create the JFrame that will hold all the Components in 
      * this WindowFrame.
      */
-    private void createJFrame(Cell cell, GraphicsConfiguration gc)
+    private void createJFrame(String title, GraphicsConfiguration gc)
     {
 		Dimension scrnSize = TopLevel.getScreenSize();
 		Dimension frameSize = new Dimension(scrnSize.width * 4 / 5, scrnSize.height * 6 / 8);
-		String cellDescription = (cell == null) ? "no cell" : cell.describe();
 		if (TopLevel.isMDIMode())
 		{
-			jif = new JInternalFrame(cellDescription, true, true, true, true);
+			jif = new JInternalFrame(title, true, true, true, true);
 			jif.setSize(frameSize);
 			jif.setLocation(windowOffset+150, windowOffset);
 			jif.setAutoscrolls(true);
 			jif.setFrameIcon(new ImageIcon(WindowFrame.class.getResource("IconElectric.gif")));
 		} else
 		{
-			jf = new TopLevel("Electric - " + cellDescription, new Rectangle(frameSize), this, gc);
+			jf = new TopLevel("Electric - " + title, new Rectangle(frameSize), this, gc);
 			jf.setSize(frameSize);
 			jf.setLocation(windowOffset+150, windowOffset);
 		}
@@ -203,11 +201,12 @@ public class WindowFrame
 		if (TopLevel.isMDIMode())
 		{
 			jif.getContentPane().add(js);
-			jif.addInternalFrameListener(new InternalWindowsEvents(this));
+            internalWindowsEvents = new InternalWindowsEvents(this);
+			jif.addInternalFrameListener(internalWindowsEvents);
 			jif.show();
 			TopLevel.addToDesktop(jif);
             // add tool bar as listener so it can find out state of cell history in EditWindow
-            jif.addFocusListener(TopLevel.getTopLevel().getToolBar());
+            jif.addInternalFrameListener(TopLevel.getTopLevel().getToolBar());
             wnd.addPropertyChangeListener(TopLevel.getTopLevel().getToolBar());
 //			frame.jif.moveToFront();
 			try
@@ -217,8 +216,9 @@ public class WindowFrame
 		} else
 		{
 			jf.getContentPane().add(js);
-			jf.addWindowListener(new WindowsEvents(this));
-			jf.addWindowFocusListener(new WindowsEvents(this));
+            windowsEvents = new WindowsEvents(this);
+			jf.addWindowListener(windowsEvents);
+			jf.addWindowFocusListener(windowsEvents);
 			jf.setEditWindow(wnd);
             // add tool bar as listener so it can find out state of cell history in EditWindow
             wnd.addPropertyChangeListener(EditWindow.propGoBackEnabled, ((TopLevel)jf).getToolBar());
@@ -226,12 +226,53 @@ public class WindowFrame
 			jf.show();
 		}
     }
-    
+
+    /**
+     * Depopulate the JFrame.  Currently this is only used in SDI mode when
+     * moving a WindowFrame from one display to another.  A new JFrame on the
+     * new display must be created and populated with the WindowFrame Components.
+     * To do so, those components must first be removed from the old frame.
+     */
+    private void depopulateJFrame()
+    {
+        if (TopLevel.isMDIMode()) {
+            jif.getContentPane().remove(js);
+            jif.removeInternalFrameListener(internalWindowsEvents);
+            jif.removeInternalFrameListener(TopLevel.getTopLevel().getToolBar());
+            // TODO: TopLevel.removeFromDesktop(jif);
+            wnd.removePropertyChangeListener(TopLevel.getTopLevel().getToolBar());
+        } else {
+            jf.getContentPane().remove(js);
+            jf.removeWindowListener(windowsEvents);
+            jf.removeWindowFocusListener(windowsEvents);
+            jf.setEditWindow(null);
+            wnd.removePropertyChangeListener(EditWindow.propGoBackEnabled, ((TopLevel)jf).getToolBar());
+            wnd.removePropertyChangeListener(EditWindow.propGoForwardEnabled, ((TopLevel)jf).getToolBar());
+        }
+    }
+
+
+    public void moveEditWindow(GraphicsConfiguration gc) {
+
+        if (TopLevel.isMDIMode()) return;           // only valid in SDI mode
+        jf.hide();                                  // hide old Frame
+        //jf.getFocusOwner().setFocusable(false);
+        //System.out.println("Set unfocasable: "+jf.getFocusOwner());
+        depopulateJFrame();                         // remove all components from old Frame
+        TopLevel oldFrame = jf;
+        oldFrame.finished();                        // clear and garbage collect old Frame
+        Cell cell = wnd.getCell();                  // get current cell
+        String cellDescription = (cell == null) ? "no cell" : cell.describe();  // new title
+        createJFrame(cellDescription, gc);          // create new Frame
+        populateJFrame();                           // populate new Frame
+        wnd.fireCellHistoryStatus();                // update tool bar history buttons
+    }
+
 	/**
 	 * Method to get the current WindowFrame.
 	 * @return the current WindowFrame.
 	 */
-	public static WindowFrame getCurrentWindowFrame() { return curWindowFrame; }
+	public static WindowFrame getCurrentWindowFrame() { synchronized(windowList) { return curWindowFrame; } }
 
 	/**
 	 * Method to set the current WindowFrame.
@@ -239,11 +280,13 @@ public class WindowFrame
 	 */
 	public static void setCurrentWindowFrame(WindowFrame wf)
 	{
-		curWindowFrame = wf;
+        synchronized(windowList) {
+		    curWindowFrame = wf;
+        }
 		if (wf != null)
 		{
-			if (!TopLevel.isMDIMode())
-				wf.jf.show();
+			//if (!TopLevel.isMDIMode())
+			//	wf.jf.show();  // < ---- BAD BAD BAD BAD!!!!
 			EditWindow wnd = wf.getEditWindow();
 			Cell cell = wnd.getCell();
 			if (cell != null)
@@ -286,8 +329,8 @@ public class WindowFrame
                 return;
             }
             windowList.remove(this);
+		    if (curWindowFrame == this) curWindowFrame = null;
         }
-		if (curWindowFrame == this) curWindowFrame = null;
 
         // tell EditWindow it's finished
         wnd.finished();
@@ -393,9 +436,9 @@ public class WindowFrame
     public void setTitle(String title)
     {
         if (TopLevel.isMDIMode())
-            jif.setTitle(title);
+            if (jif != null) jif.setTitle(title);
         else
-            jf.setTitle(title);
+            if (jf != null) jf.setTitle(title);
     }
 
 	/**

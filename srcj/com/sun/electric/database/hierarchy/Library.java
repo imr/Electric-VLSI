@@ -664,6 +664,18 @@ public class Library extends ElectricObject
 		}
 	}
 
+    static class CellComparatorNoLibDescribe implements Comparator
+    {
+        public int compare(Object o1, Object o2)
+        {
+            Cell c1 = (Cell)o1;
+            Cell c2 = (Cell)o2;
+            String s1 = c1.noLibDescribe();
+            String s2 = c2.noLibDescribe();
+            return s1.compareTo(s2);
+        }
+    }
+
 	/**
 	 * Method to return an Iterator over all Cells in this Library.
 	 * @return an Iterator over all Cells in this Library.
@@ -685,5 +697,19 @@ public class Library extends ElectricObject
 		Collections.sort(sortedList, new CellCaseInsensitive());
 		return sortedList;
 	}
+
+    /**
+     * Combines two lists of cells and sorts them by name
+     * (case sensitive sort by Cell.noLibDescribe()).
+     * @param cellList
+     * @return a sorted list of cells by name
+     */
+    public static List getCellsSortedByName(List cellList)
+    {
+        List sortedList = new ArrayList();
+        sortedList.addAll(cellList);
+        Collections.sort(sortedList, new CellComparatorNoLibDescribe());
+        return sortedList;
+    }
 
 }

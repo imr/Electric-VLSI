@@ -867,8 +867,9 @@ public final class MenuCommands
 	/**
 	 * This method implements the command to save a library.
 	 * It is interactive, and pops up a dialog box.
+     * @return true if library saved, false otherwise.
 	 */
-	public static void saveLibraryCommand(Library lib)
+	public static boolean saveLibraryCommand(Library lib)
 	{
 		String fileName;
 		if (lib.isFromDisk())
@@ -877,7 +878,7 @@ public final class MenuCommands
 		} else
 		{
 			fileName = OpenFile.chooseOutputFile(OpenFile.ELIB, null, lib.getLibName()+".elib");
-			if (fileName == null) return;
+			if (fileName == null) return false;
 
 			Library.Name n = Library.Name.newInstance(fileName);
 			n.setExtension("elib");
@@ -885,6 +886,7 @@ public final class MenuCommands
 			lib.setLibName(n.getName());
 		}
 		SaveLibrary job = new SaveLibrary(lib);
+        return true;
 	}
 
 	/**
@@ -1108,6 +1110,7 @@ public final class MenuCommands
 	 */
 	public static boolean preventLoss(Library desiredLib, int action)
 	{
+        boolean saveCancelled = false;
 		for(Iterator it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
@@ -1130,13 +1133,15 @@ public final class MenuCommands
 			if (ret == 0)
 			{
 				// save the library
-				saveLibraryCommand(lib);
+				if (!saveLibraryCommand(lib))
+                    saveCancelled = true;
 				continue;
 			}
 			if (ret == 1) continue;
 			if (ret == 2) return true;
 			if (ret == 3) break;
 		}
+        if (saveCancelled) return true;
 		return false;
 	}
 
@@ -1419,7 +1424,7 @@ public final class MenuCommands
 		{
 			// information about the cell
 			Cell c = Library.getCurrent().getCurCell();
-			c.getInfo();
+            if (c != null) c.getInfo();
 		} else
 		{
 			// information about the selected items
@@ -2082,23 +2087,8 @@ public final class MenuCommands
             if (gs[i] == curDevice) break;
         }
         if (i == (gs.length - 1)) i = 0; else i++;      // go to next device
-        
-        // only way to move window is to rebuild it in other display
-        Cell cell = curEdit.getCell();
-        WindowFrame.createEditWindow(cell, gs[i].getDefaultConfiguration());
-        // destroy old window by firing window close event
-        curWF.finished();
-        //WindowListener listeners[] = curWF.getFrame().getWindowListeners();
-        //for (int j=0; j<listeners.length; j++) {
-         //   WindowEvent e = new WindowEvent(curWF.getFrame(), WindowEvent.WINDOW_CLOSING);
-         //   WindowListener listener = listeners[j];
-         //   listener.windowClosing(e);
-        //}
-        // move WindowFrame
-        /*
-         * Don't use the curWF.moveToDisplay code...it causes bad things to happen 
-         curWF.moveToDisplay(gs[i].getDefaultConfiguration());
-         */
+
+        curWF.moveEditWindow(gs[i].getDefaultConfiguration());
     }
     
 	// ---------------------- THE TOOLS MENU -----------------

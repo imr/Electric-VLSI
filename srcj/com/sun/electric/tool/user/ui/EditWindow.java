@@ -72,7 +72,7 @@ public class EditWindow extends JPanel
 	implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, ActionListener
 {
     /** the window scale */									private double scale;
-    /** the window offset */								private double offx, offy;
+    /** the window offset */								private double offx = 0, offy = 0;
     /** the window bounds in database units */				private Rectangle2D databaseBounds;
     /** the size of the window (in pixels) */				private Dimension sz;
     /** the cell that is in the window */					private Cell cell;
@@ -100,15 +100,7 @@ public class EditWindow extends JPanel
 	/** list of windows to redraw (gets synchronized) */	private static List redrawThese = new ArrayList();
 	/** true if rendering a window now (synchronized) */	private static boolean runningNow = false;
 
-    /** the offset of each new window on the screen */		private static int windowOffset = 0;
-
     /** for drawing selection boxes */	private static final BasicStroke selectionLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {2}, 3);
-
-    /** Cell navigation history */                          private List cellHistory;
-    /** Context associated with Cell nav. history */        private List cellVarContextHistory;
-    /** Location in history */                              private int cellHistoryLocation;
-    /** Property name: go back enabled */                   public static final String propGoBackEnabled = "GoBackEnabled";
-    /** Property name: go forward enabled */                public static final String propGoForwardEnabled = "GoForwardEnabled";
 
     // ************************************* CONTROL *************************************
 
@@ -127,23 +119,16 @@ public class EditWindow extends JPanel
 		databaseBounds = new Rectangle2D.Double();
 
         cellHistory = new ArrayList();
-        cellVarContextHistory = new ArrayList();
         cellHistoryLocation = -1;
-        if (cell != null) {
-            cellHistory.add(cell);
-            cellVarContextHistory.add(getVarContext());
-            cellHistoryLocation = 0;
-        }
 
 		//setAutoscrolls(true);
-        // add listeners --> BE SURE to remove listeners in close()
+        // add listeners --> BE SURE to remove listeners in finished()
 		addKeyListener(this);
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		addMouseWheelListener(this);
 		if (wf != null) setCell(cell, VarContext.globalContext);
 
-        //addKeyListener(KeyBindingManager.listener);
 	}
 
 	/**
@@ -175,18 +160,26 @@ public class EditWindow extends JPanel
 	public Cell getCell() { return cell; }
 
 
+    /**
+     * Method to set the cell that is shown in the window to "cell".
+     */
     public void setCell(Cell cell, VarContext context)
     {
-        // by default, record set cell changes. Only do not record
-        // if navigating back or forward through history
+        // by default record history and fillscreen
+        // However, when navigating through history, don't want to record new
+        // history objects.
         setCell(cell, context, true);
     }
 
-	/**
-	 * Method to set the cell that is shown in the window to "cell".
-	 */
-	public void setCell(Cell cell, VarContext context, boolean addToHistory)
+    /**
+     * Method to set the cell that is shown in the window to "cell".
+     */
+	private void setCell(Cell cell, VarContext context, boolean addToHistory)
 	{
+        // record current history before switching to new cell
+        saveCurrentCellHistoryState();
+
+        // set new values
 		this.cell = cell;
         this.cellVarContext = context;
 		Library curLib = Library.getCurrent();
@@ -238,9 +231,8 @@ public class EditWindow extends JPanel
 		}
 		fillScreen();
 
-        // add cell to history
-        if (addToHistory && (cell != null)) {
-            setCellHistory(cell, context);
+        if (addToHistory) {
+            addToHistory(cell, context);
         }
 
 		if (cell != null && User.isCheckCellDates()) cell.checkCellDates();
@@ -977,11 +969,28 @@ public class EditWindow extends JPanel
             Nodable ni = cellVarContext.getNodable();
             Cell parent = ni.getParent();
             VarContext context = cellVarContext.pop();
-            setCell(parent, context);
+            // see if this was in history, if so, restore offset and scale
+            // search backwards to get most recent entry
+            // search history **before** calling setCell, otherwise we find
+            // the history record for the cell we just switched to
+            CellHistory foundHistory = null;
+            for (int i=cellHistory.size()-1; i>-1; i--) {
+                CellHistory history = (CellHistory)cellHistory.get(i);
+                if ((history.cell == parent) && (history.context.equals(context))) {
+                    foundHistory = history;
+                    break;
+                }
+            }
+            setCell(parent, context, true);
+            if (foundHistory != null) {
+                setOffset(foundHistory.offset);
+                setScale(foundHistory.scale);
+            }
 			if (ni instanceof NodeInst)
 				Highlight.addElectricObject((NodeInst)ni, parent);
         } catch (NullPointerException e)
 		{
+            e.printStackTrace();
             // no parent - if icon, go to sch view
             if (cell.getView() == View.ICON)
 			{
@@ -1055,40 +1064,39 @@ public class EditWindow extends JPanel
 
     // ************************** Cell History Traversal  *************************************
 
+    /** List of CellHistory objects */                      private List cellHistory;
+    /** Location in history (points to valid location) */   private int cellHistoryLocation;
+    /** Property name: go back enabled */                   public static final String propGoBackEnabled = "GoBackEnabled";
+    /** Property name: go forward enabled */                public static final String propGoForwardEnabled = "GoForwardEnabled";
+    /** History limit */                                    private static final int cellHistoryLimit = 20;
+
+    /**
+     * Used to track CellHistory and associated values.
+     */
+    private static class CellHistory
+    {
+        /** cell */                     public Cell cell;
+        /** context */                  public VarContext context;
+        /** offset */                   public Point2D offset;
+        /** scale */                    public double scale;
+        /** highlights */               public List highlights;
+        /** highlight offset*/          public Point2D highlightOffset;
+    }
+
     /**
      * Go back in history list.
      */
     public void cellHistoryGoBack() {
         if (cellHistoryLocation <= 0) return;               // at start of history
-        if (cellHistoryLocation == (cellHistory.size()-1)) {
-            // we are going to go back, fire property so to enable forward button
-            firePropertyChange(propGoForwardEnabled, false, true);
-        }
-        cellHistoryLocation--;
-        setCell((Cell)cellHistory.get(cellHistoryLocation),
-                (VarContext)cellVarContextHistory.get(cellHistoryLocation), false);
-        if (cellHistoryLocation == 0) {
-            // can't go back anymore, disable back button
-            firePropertyChange(propGoBackEnabled, true, false);
-        }
+        setCellByHistory(cellHistoryLocation-1);
     }
 
     /**
      * Go forward in history list.
      */
     public void cellHistoryGoForward() {
-        if (cellHistoryLocation == (cellHistory.size() - 1)) return; // at end of history
-        if (cellHistoryLocation == 0) {
-            // we are about to go forward, fire property to enable back button
-            firePropertyChange(propGoBackEnabled, false, true);
-        }
-        cellHistoryLocation++;
-        setCell((Cell)cellHistory.get(cellHistoryLocation),
-                (VarContext)cellVarContextHistory.get(cellHistoryLocation), false);
-        if (cellHistoryLocation == (cellHistory.size() - 1)) {
-            // can't go forward anymore, disable button
-            firePropertyChange(propGoForwardEnabled, true, false);
-        }
+        if (cellHistoryLocation >= (cellHistory.size() - 1)) return; // at end of history
+        setCellByHistory(cellHistoryLocation+1);
     }
 
     /** Returns true if we can go back in history list, false otherwise */
@@ -1103,30 +1111,120 @@ public class EditWindow extends JPanel
         return false;
     }
 
-    private void setCellHistory(Cell cell, VarContext context) {
+    /**
+     * Used when new tool bar is created with existing edit window
+     * (when moving windows across displays).  Updates back/forward
+     * button states.
+     */
+    public void fireCellHistoryStatus() {
+        if (cellHistoryLocation > 0)
+            firePropertyChange(propGoBackEnabled, false, true);
+        if (cellHistoryLocation < (cellHistory.size() - 1))
+            firePropertyChange(propGoForwardEnabled, false, true);
+    }
 
+    /** Adds to cellHistory record list
+     * Should only be called via non-history traversing modifications
+     * to history. (such as Edit->New Cell).
+     */
+    private void addToHistory(Cell cell, VarContext context) {
+
+        if (cell == null) return;
+
+        CellHistory history = new CellHistory();
+        history.cell = cell;
+        history.context = context;
+
+
+        // when user has moved back through history, and then edits a new cell,
+        // get rid of forward history
         if (cellHistoryLocation < (cellHistory.size() - 1)) {
             // inserting into middle of history: get rid of history forward of this
             for (int i=cellHistoryLocation+1; i<cellHistory.size(); i++) {
                 cellHistory.remove(i);
-                cellVarContextHistory.remove(i);
             }
-        }
-
-        if (cellHistoryLocation == 0) {
-            // about to add, we can go back after this
-            firePropertyChange(propGoBackEnabled, false, true);
-        }
-        if (cellHistoryLocation < (cellHistory.size() - 1)) {
-            // going from somewhere in history to end of history, disable forward
+            // disable previously enabled forward button
             firePropertyChange(propGoForwardEnabled, true, false);
         }
-        // add to cell history
-        cellHistory.add(cell);
-        cellVarContextHistory.add(context);
+
+        // if location is 0, adding should enable back button
+        if (cellHistoryLocation == 0) firePropertyChange(propGoBackEnabled, false, true);
+
+        // update history
+        cellHistory.add(history);
         cellHistoryLocation = cellHistory.size() - 1;
+
+        // adjust if we are over the limit
+        if (cellHistoryLocation > cellHistoryLimit) {
+            cellHistory.remove(0);
+            cellHistoryLocation--;
+        }
+
+        System.out.println("Adding to History at location="+cellHistoryLocation+", cellHistory.size()="+cellHistory.size());
     }
 
+    /** Records current cell state into history
+     * Assumes record pointed to by cellHistoryLocation is
+     * history record for the current cell/context.
+     */
+    private void saveCurrentCellHistoryState() {
+
+        if (cellHistoryLocation < 0) return;
+
+        CellHistory current = (CellHistory)cellHistory.get(cellHistoryLocation);
+
+        System.out.println("Updating cell history state of location="+cellHistoryLocation+", cell "+cell);
+
+        current.offset = new Point2D.Double(offx, offy);
+        current.scale = scale;
+        current.highlights = new ArrayList();
+        current.highlights.clear();
+        for (Iterator it = Highlight.getHighlights(); it.hasNext(); ) {
+            current.highlights.add(it.next());
+        }
+        current.highlightOffset = Highlight.getHighlightOffset();
+    }
+
+    /** Restores cell state from history record */
+    private void setCellByHistory(int location) {
+
+        // fire property changes if back/forward buttons should change state
+        if (cellHistoryLocation == (cellHistory.size()-1)) {
+            // was at end, forward button was disabled
+            if (location < (cellHistory.size()-1))
+                firePropertyChange(propGoForwardEnabled, false, true);
+        } else {
+            // not at end, forward button was enabled
+            if (location == (cellHistory.size()-1))
+                firePropertyChange(propGoForwardEnabled, true, false);
+        }
+        if (cellHistoryLocation == 0) {
+            // at beginning, back button was disabled
+            if (location > 0)
+                firePropertyChange(propGoBackEnabled, false, true);
+        } else {
+            // not at beginning, back button was enabled
+            if (location == 0)
+                firePropertyChange(propGoBackEnabled, true, false);
+        }
+
+        System.out.println("Setting cell to location="+location+", cellHistory.size()="+cellHistory.size());
+
+        // get cell history to go to
+        CellHistory history = (CellHistory)cellHistory.get(location);
+
+        // update current cell
+        setCell(history.cell, history.context, false);
+        setOffset(history.offset);
+        setScale(history.scale);
+        Highlight.setHighlightList(history.highlights);
+        Highlight.setHighlightOffset((int)history.highlightOffset.getX(), (int)history.highlightOffset.getY());
+
+        // point to new location *after* calling setCell, since setCell updates by current location
+        cellHistoryLocation = location;
+
+        repaintContents();
+    }
 
     // ************************************* COORDINATES *************************************
 

@@ -116,7 +116,32 @@ public class VarContext
 	{
 		return prev;
 	}
-    
+
+    /**
+     * Return the Node Instance that provides the context for the
+     * variable evaluation for this level.
+     */
+    public Nodable getNodable()
+    {
+        return ni;
+    }
+
+    /**
+     * Does deep comparison of two VarContexts.  Matches
+     * hierarchy traversal.  Returns true if they both represent
+     * the same hierarchy traversal, false otherwise. (Recursive method).
+     * @param c the VarContext to compare against.
+     * @return true if equal, false otherwise.
+     */
+    public boolean equals(VarContext c)
+    {
+        if (this == c) return true;             // both globalContext, or the same object
+        if (ni != c.getNodable()) return false; // compare nodeinsts
+        return prev.equals(c.pop());            // compare parents
+    }
+
+    // ------------------------------ Variable Evaluation -----------------------
+
     /**
      * Gets the value of Variable @param var.
      * If variable is Java, uses EvalJavaBsh to evaluate
@@ -210,15 +235,8 @@ public class VarContext
 		return null;
 	}
     
-	/**
-	 * Return the Node Instance that provides the context for the
-	 * variable evaluation for this level.
-	 */
-	public Nodable getNodable()
-	{
-		return ni;
-	}
-	
+    // ---------------------------------- Utility Methods ----------------------------
+
 	/** Return the concatonation of all instances names left to right
 	 * from the root to the leaf. Begin with the string with a separator
 	 * and place a separator between adjacent instance names.

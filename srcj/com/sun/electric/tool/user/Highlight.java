@@ -699,6 +699,15 @@ public class Highlight
 		highOffY = offY;
 	}
 
+    /**
+     * Method to return the screen offset for the display of highlighting
+     * @return a Point2D containing the x and y offset.
+     */
+    public static Point2D getHighlightOffset()
+    {
+        return new Point2D.Double(highOffX, highOffY);
+    }
+
 	/**
 	 * Method to add everything in an area to the selection.
 	 * @param wnd the window being examined.
