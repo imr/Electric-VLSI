@@ -293,7 +293,6 @@ public class SizeListener
             if (wnd == null) return false;
             Highlighter highlighter = wnd.getHighlighter();
 
-
 			double xS = TextUtils.atof(dialog.xSize.getText());
 			double yS = 0;
 			if (dialog.nodes)
@@ -308,6 +307,10 @@ public class SizeListener
 					SizeOffset so = ni.getSizeOffset();					
 					double x = xS + so.getLowXOffset() + so.getHighXOffset();
 					double y = yS + so.getLowYOffset() + so.getHighYOffset();
+					if (ni.getProto().isSquare())
+					{
+						if (y > x) x = y; else y = x;
+					}
 					ni.modifyInstance(0, 0, x - ni.getXSize(), y - ni.getYSize(), 0);
 					didSomething = true;
 				} else if (geom instanceof ArcInst && !dialog.nodes)
@@ -528,6 +531,11 @@ public class SizeListener
 			}
 			if (grx > gry) growthRatioY = 1; else
 				growthRatioX = 1;
+		}
+		if (ni.getProto().isSquare())
+		{
+			if (growthRatioX > growthRatioY) growthRatioY = growthRatioX; else
+				growthRatioX = growthRatioY;
 		}
 
 		// compute the new node size

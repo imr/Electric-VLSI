@@ -488,6 +488,28 @@ public class JELIB extends Output
 		abbreviationMap.put(cell, new StringBuffer(cell.noLibDescribe()));
 	}
 
+	private String describeDescriptor(TextDescriptor td)
+	{
+		StringBuffer ret = new StringBuffer();
+		// Asize; for absolute size
+		// B if bold
+		// Cindex; if color index
+		// Dx for display position (2=bottom 8=top 4=left 6=right 7=upleft 9=upright 1=downleft 3=downright 0=boxed)
+		// FfontName; if a nonstandard font
+		// Gsize; for relative (grid unit) size
+		// H if inherit
+		// I if italic
+		// L if underline
+		// N if name=value;
+		// P if parameter
+		// R/RR/RRR if rotated (90, 180, 270)
+		// T if interior
+		// Ux for units (R=resistance C=capacitance I=inductance A=current V=voltage D=distance T=time)
+		// Xoffset; for X offset
+		// Yoffset; for Y offset
+		return ret.toString();
+	}
+
 	/**
 	 * Method to write the variables on an object.  The current cell is
 	 * "curCell" such that any references to objects in a cell must be in
@@ -503,21 +525,6 @@ public class JELIB extends Output
 			printWriter.print("|" + var.getKey().getName() + "=" + var.getObject());
 //			int type = var.lowLevelGetFlags() & ~(ELIBConstants.VTYPE|ELIBConstants.VISARRAY|ELIBConstants.VLENGTH);
 //			Object varObj = var.getObject();
-//
-//			// special case for "trace" information on NodeInsts
-//			if (eObj instanceof NodeInst && var.getKey() == NodeInst.TRACE && varObj instanceof Object[])
-//			{
-//				Object [] objList = (Object [])varObj;
-//				Point2D [] points = (Point2D [])objList;
-//				int len = points.length * 2;
-//				Float [] newPoints = new Float[len];
-//				for(int j=0; j<points.length; j++)
-//				{
-//					newPoints[j*2] = new Float(points[j].getX());
-//					newPoints[j*2+1] = new Float(points[j].getY());
-//				}
-//				varObj = newPoints;
-//			}
 //
 //			String pt = makeString(varObj, curCell);
 //			if (pt == null) pt = "";

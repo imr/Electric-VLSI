@@ -827,7 +827,7 @@ public class Schematics extends Technology
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		powerNode.setFunction(NodeProto.Function.CONPOWER);
-		powerNode.isSquare();
+		powerNode.setSquare();
 
 		/** ground */
 		groundNode = PrimitiveNode.newInstance("Ground", this, 3.0, 4.0, null,
@@ -867,7 +867,7 @@ public class Schematics extends Technology
 					EdgeH.makeCenter(), EdgeV.makeBottomEdge(), EdgeH.makeCenter(), EdgeV.makeBottomEdge())
 			});
 		sourceNode.setFunction(NodeProto.Function.SOURCE);
-		sourceNode.isSquare();
+		sourceNode.setSquare();
 
 		/** transistor */
 		Technology.NodeLayer tranLayerMOS = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
@@ -1095,7 +1095,7 @@ public class Schematics extends Technology
 					EdgeH.makeCenter(), EdgeV.makeBottomEdge(), EdgeH.makeCenter(), EdgeV.makeBottomEdge())
 			});
 		meterNode.setFunction(NodeProto.Function.METER);
-		meterNode.isSquare();
+		meterNode.setSquare();
 
 		/** well contact */
 		wellNode = PrimitiveNode.newInstance("Well", this, 4.0, 2.0, null,
