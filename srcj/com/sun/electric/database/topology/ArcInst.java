@@ -103,6 +103,7 @@ public class ArcInst extends Geometric
 	/** set if hard to select */						private static final int HARDSELECTA =     020000000000;
 
 	/** Key of the obsolete variable holding arc name.*/public static final Variable.Key ARC_NAME = ElectricObject.newKey("ARC_name");
+	/** Key of Varible holding arc curvature. */		public static final Variable.Key ARC_RADIUS = ElectricObject.newKey("ARC_radius");
 
 	/** width of this ArcInst. */						private double width;
 	/** length of this ArcInst. */						private double length;
@@ -566,7 +567,7 @@ public class ArcInst extends Geometric
 	public Poly curvedArcOutline(ArcInst ai, Poly.Type style, double wid)
 	{
 		// get the radius information on the arc
-		Variable var = ai.getVar("ARC_radius");
+		Variable var = ai.getVar(ARC_RADIUS);
 		if (var == null) return null;
 		double radius = TextUtils.atof(var.getObject().toString());
 

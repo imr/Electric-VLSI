@@ -1810,8 +1810,8 @@ public class NodeInst extends Geometric implements Nodable
 				EMath.figureAngle(zero, delta[0]) !=
 				EMath.figureAngle(delta[1], zero)) return false;
 		}
-		if (reconAr[0].getVar("ARC_radius") != null) return false;
-		if (reconAr[1].getVar("ARC_radius") != null) return false;
+		if (reconAr[0].getVar(ArcInst.ARC_RADIUS) != null) return false;
+		if (reconAr[1].getVar(ArcInst.ARC_RADIUS) != null) return false;
 
 		// the arcs must not have network names on them
 		Name name0 = reconAr[0].getNameKey();

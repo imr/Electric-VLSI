@@ -301,11 +301,6 @@ public class Netlist
 	 */
 	public boolean portsConnected(Nodable no, PortProto port1, PortProto port2)
 	{
-// 		int index1 = getNetIndex(no, port1, 0);
-// 		if (index1 < 0) return false;
-// 		int index2 = getNetIndex(no, port2, 0);
-// 		if (index2 < 0) return false;
-// 		return networks[index1] == networks[index2];
 		int busWidth = port1.getProtoNameKey().busWidth();
 		if (port2.getProtoNameKey().busWidth() != busWidth) return false;
 		for (int i = 0; i < busWidth; i++) {
@@ -344,6 +339,26 @@ public class Netlist
 		int netIndex = getNetIndex(ai, busIndex);
 		if (netIndex < 0) return null;
 		return networks[netIndex];
+	}
+
+	/**
+	 * Method to tell whether two ArcInsts are electrically equivalent.
+	 * This considers individual elements of busses.
+	 * @param ai1 the first ArcInst.
+	 * @param ai2 the second ArcInst.
+	 * @return true if the arcs are electrically connected.
+	 */
+	public boolean sameNetwork(ArcInst ai1, ArcInst ai2)
+	{
+		int busWidth1 = netCell.getBusWidth(ai1);
+		int busWidth2 = netCell.getBusWidth(ai2);
+		if (busWidth1 != busWidth2) return false;
+		for(int i=0; i<busWidth1; i++)
+		{
+			if (getNetIndex(ai1, i) != getNetIndex(ai2, i))
+				return false;
+		}
+		return true;
 	}
 
 	/**

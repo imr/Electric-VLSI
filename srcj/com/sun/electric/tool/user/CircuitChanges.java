@@ -34,7 +34,10 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.hierarchy.NodeUsage;
+import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
@@ -382,6 +385,7 @@ public class CircuitChanges
 			List highlightedText = Highlight.getHighlightedText();
 			List deleteList = new ArrayList();
 			Cell cell = null;
+			Geometric oneGeom = null;
 			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
@@ -400,12 +404,26 @@ public class CircuitChanges
 						return;
 					}
 				}
+				oneGeom = (Geometric)eobj;
 				deleteList.add(eobj);
 			}
 
 			// clear the highlighting
 			Highlight.clear();
 			Highlight.finished();
+
+			// if just one node is selected, see if it can be deleted with "pass through"
+			if (deleteList.size() == 1 && oneGeom instanceof NodeInst)
+			{
+				Reconnect re = Reconnect.erasePassThru((NodeInst)oneGeom, false);
+				if (re != null)
+				{
+					ArcInst ai = re.reconnectArcs();
+					Highlight.addElectricObject(ai, cell);
+					Highlight.finished();
+					return;
+				}
+			}
 
 			// delete the text
 			for(Iterator it = highlightedText.iterator(); it.hasNext(); )
@@ -567,6 +585,7 @@ public class CircuitChanges
 		}
 
 		// kill all unexported pin or bus nodes left in the middle of arcs
+		List nodesToPassThru = new ArrayList();
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
@@ -575,8 +594,14 @@ public class CircuitChanges
 			{
 				if (ni.getProto().getFunction() != NodeProto.Function.PIN) continue;
 				if (ni.getNumExports() != 0) continue;
-//				erasePassThru(ni, FALSE, &ai);
+				Reconnect re = Reconnect.erasePassThru(ni, false);
+				if (re != null) nodesToPassThru.add(re);
 			}
+		}
+		for(Iterator it = nodesToPassThru.iterator(); it.hasNext(); )
+		{
+			Reconnect re = (Reconnect)it.next();
+			re.reconnectArcs();
 		}
 
 		deleteFlag.freeFlagSet();
@@ -798,18 +823,18 @@ public class CircuitChanges
 
 	/**
 	 * Method to clean-up cell "np" as follows:
-	 *   remove stranded pins (*****OK*****)
+	 *   remove stranded pins
 	 *   collapse redundant (inline) arcs
-	 *   highlight zero-size nodes (*****OK*****)
-	 *   removes duplicate arcs (*****OK*****)
+	 *   highlight zero-size nodes
+	 *   removes duplicate arcs
 	 *   highlight oversize pins that allow arcs to connect without touching
-	 *   move unattached and invisible pins with text in a different location (*****OK*****)
-	 *   resize oversized pins that don't have oversized arcs on them (*****OK*****)
+	 *   move unattached and invisible pins with text in a different location
+	 *   resize oversized pins that don't have oversized arcs on them
 	 * Returns true if changes are made.
 	 */
 	private static boolean us_cleanupcell(Cell cell, boolean justThis)
 	{
-		// look for unused pins that can be deleted (*****OK*****)
+		// look for unused pins that can be deleted
 		List pinsToRemove = new ArrayList();
 		List pinsToPassThrough = new ArrayList();
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
@@ -843,12 +868,13 @@ public class CircuitChanges
 			// if the pin is connected to two arcs along the same slope, delete it
 			if (ni.isInlinePin())
 			{
-//				if (us_erasepassthru(ni, false, &ai) >= 0)
-//					pinsToPassThrough.add(ni);
+				Reconnect re = Reconnect.erasePassThru(ni, false);
+				if (re != null)
+					pinsToPassThrough.add(re);
 			}
 		}
 
-		// look for oversized pins that can be reduced in size (*****OK*****)
+		// look for oversized pins that can be reduced in size
 		HashMap pinsToScale = new HashMap();
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
@@ -901,7 +927,7 @@ public class CircuitChanges
 			pinsToScale.put(ni, new Point2D.Double(-dSX, -dSY));
 		}
 
-		// look for pins that are invisible and have text in different location (*****OK*****)
+		// look for pins that are invisible and have text in different location
 		List textToMove = new ArrayList();
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
@@ -934,11 +960,10 @@ public class CircuitChanges
 					ArcInst oAi = oCon.getArc();
 					if (ai.getArcIndex() <= oAi.getArcIndex()) continue;
 					double oI = oAi.getWidth() - oAi.getProto().getWidthOffset();
-					Poly oPoly = ai.curvedArcOutline(oAi, Poly.Type.CLOSED, oI);
+					Poly oPoly = oAi.curvedArcOutline(oAi, Poly.Type.CLOSED, oI);
 					if (oPoly == null)
-						oPoly = ai.makePoly(oAi.getLength(), oI, Poly.Type.FILLED);
+						oPoly = oAi.makePoly(oAi.getLength(), oI, Poly.Type.FILLED);
 					double dist = poly.separation(oPoly);
-System.out.println("Distance between two arcs on a pin is "+dist);
 					if (dist <= 0) continue;
 					nodeIsBad = true;
 					break;
@@ -955,7 +980,7 @@ System.out.println("Distance between two arcs on a pin is "+dist);
 			}
 		}
 
-		// look for duplicate arcs (*****OK*****)
+		// look for duplicate arcs
 		HashMap arcsToKill = new HashMap();
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
@@ -990,7 +1015,7 @@ System.out.println("Distance between two arcs on a pin is "+dist);
 			}
 		}
 
-		// now highlight negative or zero-size nodes (*****OK*****)
+		// now highlight negative or zero-size nodes
 		int zeroSize = 0, negSize = 0;
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
@@ -1069,9 +1094,8 @@ System.out.println("Distance between two arcs on a pin is "+dist);
 			}
 			for(Iterator it = pinsToPassThrough.iterator(); it.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)it.next();
-	//			if (us_erasepassthru(ni, false, &ai) >= 0)
-	//				pinsToPassThrough.add(ni);
+				Reconnect re = (Reconnect)it.next();
+				re.reconnectArcs();
 			}
 			for(Iterator it = pinsToScale.keySet().iterator(); it.hasNext(); )
 			{
@@ -1156,14 +1180,173 @@ System.out.println("Distance between two arcs on a pin is "+dist);
 		}
 	}
 
+	/**
+	 * Method to analyze the current cell and show all nonmanhattan geometry.
+	 */
 	public static void showNonmanhattanCommand()
 	{
-		System.out.println("Can't show nonmanhattan yet");
+		Cell curCell = Library.needCurCell();
+		if (curCell == null) return;
+
+		// see which cells (in any library) have nonmanhattan stuff
+		FlagSet cellMark = NodeProto.getFlagSet(1);
+		for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+		{
+			Library lib = (Library)lIt.next();
+			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			{
+				Cell cell = (Cell)cIt.next();
+				cell.clearBit(cellMark);
+			}
+		}
+		for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+		{
+			Library lib = (Library)lIt.next();
+			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			{
+				Cell cell = (Cell)cIt.next();
+				for(Iterator aIt = cell.getArcs(); aIt.hasNext(); )
+				{
+					ArcInst ai = (ArcInst)aIt.next();
+					ArcProto ap = ai.getProto();
+					if (ap.getTechnology() == Generic.tech || ap.getTechnology() == Artwork.tech ||
+						ap.getTechnology() == Schematics.tech) continue;
+					Variable var = ai.getVar(ArcInst.ARC_RADIUS);
+					if (var != null) cell.setBit(cellMark);
+					if (ai.getHead().getLocation().getX() != ai.getTail().getLocation().getX() &&
+						ai.getHead().getLocation().getY() != ai.getTail().getLocation().getY())
+							cell.setBit(cellMark);
+				}
+				for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
+				{
+					NodeInst ni = (NodeInst)nIt.next();
+					if ((ni.getAngle() % 900) != 0) cell.setBit(cellMark);
+				}
+			}
+		}
+
+		// show the nonmanhattan things in the current cell
+		int i = 0;
+		for(Iterator aIt = curCell.getArcs(); aIt.hasNext(); )
+		{
+			ArcInst ai = (ArcInst)aIt.next();
+			ArcProto ap = ai.getProto();
+			if (ap.getTechnology() == Generic.tech || ap.getTechnology() == Artwork.tech ||
+				ap.getTechnology() == Schematics.tech) continue;
+			boolean nonMan = false;
+			Variable var = ai.getVar(ArcInst.ARC_RADIUS);
+			if (var != null) nonMan = true;
+			if (ai.getHead().getLocation().getX() != ai.getTail().getLocation().getX() &&
+				ai.getHead().getLocation().getY() != ai.getTail().getLocation().getY())
+					nonMan = true;
+			if (nonMan)
+			{
+				if (i == 0) Highlight.clear();
+				Highlight.addElectricObject(ai, curCell);
+				i++;
+			}
+		}
+		for(Iterator nIt = curCell.getNodes(); nIt.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)nIt.next();
+			if ((ni.getAngle() % 900) == 0) continue;
+			if (i == 0) Highlight.clear();
+			Highlight.addElectricObject(ni, curCell);
+			i++;
+		}
+		if (i == 0) System.out.println("No nonmanhattan objects in this cell"); else
+		{
+			Highlight.finished();
+			System.out.println(i + " objects are not manhattan in this cell");
+		}
+
+		// tell about other non-manhatten-ness elsewhere
+		for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+		{
+			Library lib = (Library)lIt.next();
+			if (lib.isHidden()) continue;
+			int numBad = 0;
+			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			{
+				Cell cell = (Cell)cIt.next();
+				if (cell.isBit(cellMark) && cell != curCell) numBad++;
+			}
+			if (numBad == 0) continue;
+			if (lib == Library.getCurrent())
+			{
+				int cellsFound = 0;
+				String infstr = "";
+				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+				{
+					Cell cell = (Cell)cIt.next();
+					if (cell == curCell || !cell.isBit(cellMark)) continue;
+					if (cellsFound > 0) infstr += " ";;
+					infstr += cell.describe();
+					cellsFound++;
+				}
+				if (cellsFound == 1)
+				{
+					System.out.println("Found nonmanhattan geometry in cell " + infstr);
+				} else
+				{
+					System.out.println("Found nonmanhattan geometry in these cells: " + infstr);
+				}
+			} else
+			{
+				System.out.println("Found nonmanhattan geometry in library " + lib.getLibName());
+			}
+		}
+		cellMark.freeFlagSet();
 	}
 
+	/**
+	 * Method to shorten all selected arcs.
+	 * Since arcs may connect anywhere inside of the ports on nodes, a port with nonzero area will allow an arc
+	 * to move freely.
+	 * This command shortens selected arcs so that their endpoints arrive at the part of the node that allows the shortest arc.
+	 */
 	public static void shortenArcsCommand()
 	{
-		System.out.println("Can't short arcs yet");
+		ShortenArcs job = new ShortenArcs();
+	}
+	
+	/**
+	 * This class implements the changes needed to shorten selected arcs.
+	 */
+	private static class ShortenArcs extends Job
+	{
+		private ShortenArcs()
+		{
+			super("Shorten selected arcs", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.startJob();
+		}
+
+		public void doIt()
+		{
+			List selected = Highlight.getHighlighted(false, true);
+			int l = 0;
+			double [] dX = new double[2];
+			double [] dY = new double[2];
+			for(Iterator it = selected.iterator(); it.hasNext(); )
+			{
+				ArcInst ai = (ArcInst)it.next();
+				for(int j=0; j<2; j++)
+				{
+					Poly portPoly = ai.getConnection(j).getPortInst().getPoly();
+					double wid = ai.getWidth() - ai.getProto().getWidthOffset();
+					portPoly.reducePortPoly(ai.getConnection(j).getPortInst(), wid, ai.getAngle());
+					Point2D closest = portPoly.closestPoint(ai.getConnection(1-j).getLocation());
+					dX[j] = closest.getX() - ai.getConnection(j).getLocation().getX();
+					dY[j] = closest.getY() - ai.getConnection(j).getLocation().getY();
+				}
+				if (dX[0] != 0 || dY[0] != 0 || dX[1] != 0 || dY[1] != 0)
+				{
+					ai.modify(0, dX[0], dY[0], dX[1], dY[1]);
+					l++;
+				}
+			}
+			System.out.println("Shortened " + l + " arcs");
+		}
 	}
 
 	/****************************** CHANGE A CELL'S VIEW ******************************/
@@ -1992,8 +2175,7 @@ System.out.println("Distance between two arcs on a pin is "+dist);
 			}
 
 			// also move selected text
-			Point screenDelta = wnd.deltaDatabaseToScreen(dX, dY);
-			moveSelectedText(highlightedText, screenDelta);
+			moveSelectedText(highlightedText);
 		}
 
 		/*
@@ -2002,7 +2184,7 @@ System.out.println("Distance between two arcs on a pin is "+dist);
 		 * and the "total" nodes in "nodelist" have already been moved, so don't move any text that
 		 * is on these objects.
 		 */
-		private void moveSelectedText(List highlightedText, Point screenDelta)
+		private void moveSelectedText(List highlightedText)
 		{
 			for(Iterator it = highlightedText.iterator(); it.hasNext(); )
 			{
@@ -2021,6 +2203,11 @@ System.out.println("Distance between two arcs on a pin is "+dist);
 				if (var != null)
 				{
 					TextDescriptor td = var.getTextDescriptor();
+					if (eobj instanceof NodeInst && ((NodeInst)eobj).isInvisiblePinWithText())
+					{
+						((NodeInst)eobj).modifyInstance(dX, dY, 0, 0, 0);
+						return;
+					}
 					if (eobj instanceof NodeInst || eobj instanceof PortInst || eobj instanceof Export)
 					{
 						NodeInst ni = null;
@@ -2071,160 +2258,181 @@ System.out.println("Distance between two arcs on a pin is "+dist);
 		}
 	}
 
-	//	typedef struct Ireconnect
-//	{
-//		NETWORK *net;					/* network for this reconnection */
-//		INTBIG arcsfound;				/* number of arcs found on this reconnection */
-//		INTBIG reconx[2], recony[2];	/* coordinate at other end of arc */
-//		INTBIG origx[2], origy[2];		/* coordinate where arc hits deleted node */
-//		INTBIG dX[2], dY[2];			/* distance between ends */
-//		NODEINST *reconno[2];			/* node at other end of arc */
-//		PORTPROTO *reconpt[2];			/* port at other end of arc */
-//		ARCINST *reconar[2];			/* arcinst being reconnected */
-//		ARCPROTO *ap;					/* prototype of new arc */
-//		INTBIG wid;						/* width of new arc */
-//		INTBIG bits;					/* user bits of new arc */
-//		struct Ireconnect *nextreconnect;
-//	} RECONNECT;
-//
-//	/**
-//	 * Method to kill a node between two arcs and join the arc as one.  Returns an error
-//	 * code according to its success.  If it worked, the new arc is placed in "newai".
-//	 */
-//	int erasePassThru(NodeInst ni, boolean allowdiffs, ArcInst **newai)
-//	{
-//		// disallow erasing if lock is on
-//		Cell cell = ni.getParent();
-//		if (cantEdit(cell, ni, true)) return(-1);
-//
-//		// look for pairs arcs that will get reconnected
-//		firstrecon = NORECONNECT;
-//		for(pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//		{
-//			// ignore arcs that connect from the node to itself
-//			ai = pi->conarcinst;
-//			if (ai->end[0].nodeinst == ni && ai->end[1].nodeinst == ni) continue;
-//
-//			// find a "reconnect" object with this network
-//			for(re = firstrecon; re != NORECONNECT; re = re->nextreconnect)
-//				if (re->net == ai->network) break;
-//			if (re == NORECONNECT)
-//			{
-//				re = (RECONNECT *)emalloc(sizeof (RECONNECT), us_tool->cluster);
-//				if (re == 0) return(-1);
-//				re->net = ai->network;
-//				re->arcsfound = 0;
-//				re->nextreconnect = firstrecon;
-//				firstrecon = re;
-//			}
-//			j = re->arcsfound;
-//			re->arcsfound++;
-//			if (re->arcsfound > 2) continue;
-//			re->reconar[j] = ai;
-//			for(i=0; i<2; i++) if (ai->end[i].nodeinst != ni)
-//			{
-//				re->reconno[j] = ai->end[i].nodeinst;
-//				re->reconpt[j] = ai->end[i].portarcinst->proto;
-//				re->reconx[j] = ai->end[i].xpos;
-//				re->origx[j] = ai->end[1-i].xpos;
-//				re->dX[j] = re->reconx[j] - re->origx[j];
-//				re->recony[j] = ai->end[i].ypos;
-//				re->origy[j] = ai->end[1-i].ypos;
-//				re->dY[j] = re->recony[j] - re->origy[j];
-//			}
-//		}
-//
-//		// examine all of the reconnection situations
-//		for(re = firstrecon; re != NORECONNECT; re = re->nextreconnect)
-//		{
-//			if (re->arcsfound != 2) continue;
-//
-//			// verify that the two arcs to merge have the same type
-//			if (re->reconar[0]->proto != re->reconar[1]->proto) { re->arcsfound = -1; continue; }
-//			re->ap = re->reconar[0]->proto;
-//
-//			if (!allowdiffs)
-//			{
-//				// verify that the two arcs to merge have the same width
-//				if (re->reconar[0]->width != re->reconar[1]->width) { re->arcsfound = -2; continue; }
-//
-//				// verify that the two arcs have the same slope
-//				if ((re->dX[1]*re->dY[0]) != (re->dX[0]*re->dY[1])) { re->arcsfound = -3; continue; }
-//				if (re->origx[0] != re->origx[1] || re->origy[0] != re->origy[1])
-//				{
-//					// did not connect at the same location: be sure that angle is consistent
-//					if (re->dX[0] != 0 || re->dY[0] != 0)
-//					{
-//						if (((re->origx[0]-re->origx[1])*re->dY[0]) !=
-//							(re->dX[0]*(re->origy[0]-re->origy[1]))) { re->arcsfound = -3; continue; }
-//					} else if (re->dX[1] != 0 || re->dY[1] != 0)
-//					{
-//						if (((re->origx[0]-re->origx[1])*re->dY[1]) !=
-//							(re->dX[1]*(re->origy[0]-re->origy[1]))) { re->arcsfound = -3; continue; }
-//					} else { re->arcsfound = -3; continue; }
-//				}
-//			}
-//
-//			// remember facts about the new arcinst
-//			re->wid = re->reconar[0]->width;
-//			re->bits = re->reconar[0]->userbits | re->reconar[1]->userbits;
-//
-//			// special code to handle directionality
-//			if ((re->bits&(ISDIRECTIONAL|ISNEGATED|NOTEND0|NOTEND1|REVERSEEND)) != 0)
-//			{
-//				// reverse ends if the arcs point the wrong way
-//				for(i=0; i<2; i++)
-//				{
-//					if (re->reconar[i]->end[i].nodeinst == ni)
-//					{
-//						if ((re->reconar[i]->userbits&REVERSEEND) == 0)
-//							re->reconar[i]->userbits |= REVERSEEND; else
-//								re->reconar[i]->userbits &= ~REVERSEEND;
-//					}
-//				}
-//				re->bits = re->reconar[0]->userbits | re->reconar[1]->userbits;
-//
-//				// two negations make a positive
-//				if ((re->reconar[0]->userbits&ISNEGATED) != 0 &&
-//					(re->reconar[1]->userbits&ISNEGATED) != 0) re->bits &= ~ISNEGATED;
-//			}
-//		}
-//
-//		// see if any reconnection will be done
-//		for(re = firstrecon; re != NORECONNECT; re = re->nextreconnect)
-//		{
-//			retval = re->arcsfound;
-//			if (retval == 2) break;
-//		}
-//
-//		// erase the nodeinst if reconnection will be done (this will erase connecting arcs)
-//		if (retval == 2) us_erasenodeinst(ni);
-//
-//		// reconnect the arcs
-//		for(re = firstrecon; re != NORECONNECT; re = re->nextreconnect)
-//		{
-//			if (re->arcsfound != 2) continue;
-//
-//			// make the new arcinst
-//			*newai = newarcinst(re->ap, re->wid, re->bits, re->reconno[0], re->reconpt[0],
-//				re->reconx[0], re->recony[0], re->reconno[1], re->reconpt[1], re->reconx[1], re->recony[1],
-//					cell);
-//			if (*newai == NOARCINST) { re->arcsfound = -5; continue; }
-//
-//			(void)copyvars((INTBIG)re->reconar[0], VARCINST, (INTBIG)*newai, VARCINST, FALSE);
-//			(void)copyvars((INTBIG)re->reconar[1], VARCINST, (INTBIG)*newai, VARCINST, FALSE);
-//			endobjectchange((INTBIG)*newai, VARCINST);
-//			(*newai)->changed = 0;
-//		}
-//
-//		// deallocate
-//		for(re = firstrecon; re != NORECONNECT; re = nextre)
-//		{
-//			nextre = re->nextreconnect;
-//			efree((CHAR *)re);
-//		}
-//		return(retval);
-//	}
+	/**
+	 * This class handles deleting pins that are between two arcs,
+	 * and reconnecting the arcs without the pin.
+	 */
+	static class Reconnect
+	{
+		/** node in the center of the reconnect */			private NodeInst ni;
+		/** number of arcs found on this reconnection */	private int arcsFound;
+		/** coordinate at other end of arc */				private Point2D [] recon;
+		/** coordinate where arc hits deleted node */		private Point2D [] orig;
+		/** distance between ends */						private Point2D [] delta;
+		/** port at other end of arc */						private PortInst [] reconPi;
+		/** arcinst being reconnected */					private ArcInst [] reconAr;
+		/** prototype of new arc */							private ArcProto ap;
+		/** width of new arc */								private double wid;
+		/** true to make new arc directional */				private boolean directional;
+		/** true to make new arc negated */					private boolean negated;
+		/** true to ignore the head of the new arc */		private boolean ignoreHead;
+		/** true to ignore the tail of the new arc */		private boolean ignoreTail;
+		/** true to reverse the head/tail on new arc */		private boolean reverseEnd;
+
+		/**
+		 * Method to find a possible Reconnect through a given NodeInst.
+		 * @param ni the NodeInst to examine.
+		 * @param allowDiffs true to allow differences in the two arcs.
+		 * If this is false, then different width arcs, or arcs that are not lined up
+		 * precisely, will not be considered for reconnection.
+		 * @return a Reconnect object that describes the reconnection to be done.
+		 * Returns null if no reconnection can be found.
+		 */
+		public static Reconnect erasePassThru(NodeInst ni, boolean allowdiffs)
+		{
+			// disallow erasing if lock is on
+			Cell cell = ni.getParent();
+			if (cantEdit(cell, ni, true)) return null;
+			Netlist netlist = cell.getUserNetlist();
+
+			// look for pairs arcs that will get reconnected
+			List reconList = new ArrayList();
+			for(Iterator it = ni.getConnections(); it.hasNext(); )
+			{
+				Connection con = (Connection)it.next();
+				PortInst pi = con.getPortInst();
+				ArcInst ai = con.getArc();
+
+				// ignore arcs that connect from the node to itself
+				if (ai.getHead().getPortInst().getNodeInst() == ai.getTail().getPortInst().getNodeInst())
+					continue;
+
+				// find a "reconnect" object with this network
+				Reconnect reFound = null;
+				for(Iterator rIt = reconList.iterator(); rIt.hasNext(); )
+				{
+					Reconnect re = (Reconnect)rIt.next();
+					if (netlist.sameNetwork(ai, re.reconAr[0])) { reFound = re;   break; }
+				}
+				if (reFound == null)
+				{
+					reFound = new Reconnect();
+					reFound.ni = ni;
+					reFound.recon = new Point2D[2];
+					reFound.orig = new Point2D[2];
+					reFound.delta = new Point2D[2];
+					reFound.reconPi = new PortInst[2];
+					reFound.reconAr = new ArcInst[2];
+					reFound.arcsFound = 0;
+					reconList.add(reFound);
+				}
+				int j = reFound.arcsFound;
+				reFound.arcsFound++;
+				if (reFound.arcsFound > 2) continue;
+				reFound.reconAr[j] = ai;
+				for(int i=0; i<2; i++)
+				{
+					if (ai.getConnection(i).getPortInst().getNodeInst() == ni) continue;
+					reFound.reconPi[j] = ai.getConnection(i).getPortInst();
+					reFound.recon[j] = ai.getConnection(i).getLocation();
+					reFound.orig[j] = ai.getConnection(1-i).getLocation();
+					reFound.delta[j] = new Point2D.Double(reFound.recon[j].getX() - reFound.orig[j].getX(),
+						reFound.recon[j].getY() - reFound.orig[j].getY());
+				}
+			}
+
+			// examine all of the reconnection situations
+			for(Iterator rIt = reconList.iterator(); rIt.hasNext(); )
+			{
+				Reconnect re = (Reconnect)rIt.next();
+				if (re.arcsFound != 2) continue;
+
+				// verify that the two arcs to merge have the same type
+				if (re.reconAr[0].getProto() != re.reconAr[1].getProto()) { re.arcsFound = -1; continue; }
+				re.ap = re.reconAr[0].getProto();
+
+				if (!allowdiffs)
+				{
+					// verify that the two arcs to merge have the same width
+					if (re.reconAr[0].getWidth() != re.reconAr[1].getWidth()) { re.arcsFound = -2; continue; }
+
+					// verify that the two arcs have the same slope
+					if ((re.delta[1].getX()*re.delta[0].getY()) != (re.delta[0].getX()*re.delta[1].getY())) { re.arcsFound = -3; continue; }
+					if (re.orig[0].getX() != re.orig[1].getX() || re.orig[0].getY() != re.orig[1].getY())
+					{
+						// did not connect at the same location: be sure that angle is consistent
+						if (re.delta[0].getX() != 0 || re.delta[0].getY() != 0)
+						{
+							if (((re.orig[0].getX()-re.orig[1].getX())*re.delta[0].getY()) !=
+								(re.delta[0].getX()*(re.orig[0].getY()-re.orig[1].getY()))) { re.arcsFound = -3; continue; }
+						} else if (re.delta[1].getX() != 0 || re.delta[1].getY() != 0)
+						{
+							if (((re.orig[0].getX()-re.orig[1].getX())*re.delta[1].getY()) !=
+								(re.delta[1].getX()*(re.orig[0].getY()-re.orig[1].getY()))) { re.arcsFound = -3; continue; }
+						} else { re.arcsFound = -3; continue; }
+					}
+				}
+
+				// remember facts about the new arcinst
+				re.wid = re.reconAr[0].getWidth();
+
+				re.directional = re.reconAr[0].isDirectional() || re.reconAr[1].isDirectional();
+				re.negated = re.reconAr[0].isNegated() || re.reconAr[1].isNegated();
+				if (re.reconAr[0].isNegated() && re.reconAr[1].isNegated()) re.negated = false;
+				re.ignoreHead = re.reconAr[0].isSkipHead() || re.reconAr[1].isSkipHead();
+				re.ignoreTail = re.reconAr[0].isSkipTail() || re.reconAr[1].isSkipTail();
+				re.reverseEnd = re.reconAr[0].isReverseEnds() || re.reconAr[1].isReverseEnds();
+
+				// special code to handle directionality
+				if (re.directional || re.negated || re.ignoreHead || re.ignoreTail || re.reverseEnd)
+				{
+					// reverse ends if the arcs point the wrong way
+					for(int i=0; i<2; i++)
+					{
+						if (re.reconAr[i].getConnection(i).getPortInst().getNodeInst() == ni)
+						{
+							if (re.reconAr[i].isReverseEnds()) re.reverseEnd = false; else
+								re.reverseEnd = true;									
+						}
+					}
+				}
+			}
+
+			// see if any reconnection will be done
+			Reconnect reFound = null;
+			for(Iterator rIt = reconList.iterator(); rIt.hasNext(); )
+			{
+				Reconnect re = (Reconnect)rIt.next();
+				if (re.arcsFound == 2) { reFound = re;   break; }
+			}
+			return reFound;
+		}
+
+		/**
+		 * Method to implement the reconnection in this Reconnect.
+		 * @return the newly created ArcInst that reconnects.
+		 */
+		public ArcInst reconnectArcs()
+		{
+			// kill the intermediate pin
+			eraseNodeInst(ni);
+
+			// reconnect the arcs
+			ArcInst newai = ArcInst.makeInstance(ap, wid,
+				reconPi[0], recon[0], reconPi[1], recon[1], null);
+			if (newai == null) return null;
+			if (directional) newai.setDirectional();
+			if (negated) newai.setNegated();
+			if (ignoreHead) newai.setSkipHead();
+			if (ignoreTail) newai.setSkipTail();
+			if (reverseEnd) newai.setReverseEnds();
+
+			reconAr[0].copyVars(newai);
+			reconAr[1].copyVars(newai);
+
+			return newai;
+		}
+	};
 
 	/****************************** COPY CELLS ******************************/
 

@@ -122,7 +122,7 @@ public final class MenuCommands
 {
 	public static JMenuItem selectArea, selectObjects;
 	public static JMenuItem moveFull, moveHalf, moveQuarter;
-	public static JMenuItem cursorClickZoomWire, cursorSelect, cursorWiring, cursorSelectSpecial, cursorPan, cursorZoom, cursorOutline;
+	public static JMenuItem cursorSelect, cursorWiring, cursorSelectSpecial, cursorPan, cursorZoom, cursorOutline, cursorClickZoomWire;
 
 	// It is never useful for anyone to create an instance of this class
 	private MenuCommands() {}
@@ -245,20 +245,18 @@ public final class MenuCommands
 		editMenu.add(modeSubMenu);
 
 		Menu modeSubMenuEdit = Menu.createMenu("Edit");
-        modeSubMenu.add(modeSubMenuEdit);
-        ButtonGroup editGroup = new ButtonGroup();
-        cursorClickZoomWire = modeSubMenuEdit.addRadioButton("ClickZoomWire", true, editGroup, null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("ClickZoomWire"); } });
-        cursorSelect = modeSubMenuEdit.addRadioButton("Select", true, editGroup, KeyStroke.getKeyStroke('M', 0),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Select"); } });
-        cursorWiring = modeSubMenuEdit.addRadioButton("Wiring", false, editGroup, KeyStroke.getKeyStroke('W', 0),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Wiring"); } });
-        cursorSelectSpecial = modeSubMenuEdit.addRadioButton("Special Select", false, editGroup, null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Special Select"); } });
-        cursorPan = modeSubMenuEdit.addRadioButton("Pan", false, editGroup, KeyStroke.getKeyStroke('P', 0),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Pan"); } });
-        cursorZoom = modeSubMenuEdit.addRadioButton("Zoom", false, editGroup, KeyStroke.getKeyStroke('Z', 0),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Zoom"); } });
+		modeSubMenu.add(modeSubMenuEdit);
+		ButtonGroup editGroup = new ButtonGroup();
+		cursorSelect = modeSubMenuEdit.addRadioButton("Select", true, editGroup, KeyStroke.getKeyStroke('M', 0),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Select"); } });
+		cursorWiring = modeSubMenuEdit.addRadioButton("Wiring", false, editGroup, KeyStroke.getKeyStroke('W', 0),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Wiring"); } });
+		cursorSelectSpecial = modeSubMenuEdit.addRadioButton("Special Select", false, editGroup, null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Special Select"); } });
+		cursorPan = modeSubMenuEdit.addRadioButton("Pan", false, editGroup, KeyStroke.getKeyStroke('P', 0),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Pan"); } });
+		cursorZoom = modeSubMenuEdit.addRadioButton("Zoom", false, editGroup, KeyStroke.getKeyStroke('Z', 0),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Zoom"); } });
 		cursorOutline = modeSubMenuEdit.addRadioButton("Outline Edit", false, editGroup, KeyStroke.getKeyStroke('Y', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { setEditModeCommand("Outline Edit"); } });
 		ToolBar.CursorMode cm = ToolBar.getCursorMode();
@@ -276,7 +274,7 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { setMovementModeCommand("Full"); } });
 		moveHalf = modeSubMenuMovement.addRadioButton("Half", false, movementGroup, KeyStroke.getKeyStroke('H', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { setMovementModeCommand("Half"); } });
-		moveQuarter = modeSubMenuMovement.addRadioButton("Quarter", false, movementGroup, null,
+		moveQuarter = modeSubMenuMovement.addRadioButton("Quarter", false, movementGroup, KeyStroke.getKeyStroke('Q', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { setMovementModeCommand("Quarter"); } });
 		double ad = ToolBar.getArrowDistance();
 		if (ad == 1.0) moveFull.setSelected(true); else
@@ -1085,29 +1083,28 @@ public final class MenuCommands
 		Attributes.showDialog();
 	}
 
-    public static void setEditModeCommand(String mode)
-    {
-        if (mode.equals("ClickZoomWire")) ToolBar.clickZoomWireCommand();
-        if (mode.equals("Select")) ToolBar.selectCommand();
-        if (mode.equals("Special Select")) ToolBar.selectSpecialCommand();
-        if (mode.equals("Wiring")) ToolBar.wiringCommand();
-        if (mode.equals("Pan")) ToolBar.panCommand();
-        if (mode.equals("Zoom")) ToolBar.zoomCommand();
-        if (mode.equals("Outline Edit")) ToolBar.outlineEditCommand();
-    }
+	public static void setEditModeCommand(String mode)
+	{
+		if (mode.equals("Select")) ToolBar.selectCommand();
+		if (mode.equals("Special Select")) ToolBar.selectSpecialCommand();
+		if (mode.equals("Wiring")) ToolBar.wiringCommand();
+		if (mode.equals("Pan")) ToolBar.panCommand();
+		if (mode.equals("Zoom")) ToolBar.zoomCommand();
+		if (mode.equals("Outline Edit")) ToolBar.outlineEditCommand();
+	}
 
-    public static void setMovementModeCommand(String mode)
-    {
-        if (mode.equals("Full")) ToolBar.fullArrowDistanceCommand();
-        if (mode.equals("Half")) ToolBar.halfArrowDistanceCommand();
-        if (mode.equals("Quarter")) ToolBar.quarterArrowDistanceCommand();
-    }
+	public static void setMovementModeCommand(String mode)
+	{
+		if (mode.equals("Full")) ToolBar.fullArrowDistanceCommand();
+		if (mode.equals("Half")) ToolBar.halfArrowDistanceCommand();
+		if (mode.equals("Quarter")) ToolBar.quarterArrowDistanceCommand();
+	}
 
-    public static void setSelectModeCommand(String mode)
-    {
-        if (mode.equals("Area")) ToolBar.selectAreaCommand();
-        if (mode.equals("Objects")) ToolBar.selectObjectsCommand();
-    }
+	public static void setSelectModeCommand(String mode)
+	{
+		if (mode.equals("Area")) ToolBar.selectAreaCommand();
+		if (mode.equals("Objects")) ToolBar.selectObjectsCommand();
+	}
 
 	/**
 	 * This method implements the command to highlight all objects in the current Cell.
@@ -1123,7 +1120,21 @@ public final class MenuCommands
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if ((ni.getProto() instanceof Cell) && ignoreCells) continue;
-			Highlight.addElectricObject(ni, curCell);
+			if (ni.isInvisiblePinWithText())
+			{
+				for(Iterator vIt = ni.getVariables(); vIt.hasNext(); )
+				{
+					Variable var = (Variable)vIt.next();
+					if (var.isDisplay())
+					{
+						Highlight.addText(ni, curCell, var, null);
+						break;
+					}
+				}
+			} else
+			{
+				Highlight.addElectricObject(ni, curCell);
+			}
 		}
 		for(Iterator it = curCell.getArcs(); it.hasNext(); )
 		{
