@@ -39,10 +39,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.HighlightListener;
-import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.EditWindow;
 
@@ -532,7 +529,7 @@ getContentPane().add(buttonsPanel, gridBagConstraints);
                     System.out.println("Line "+i+" is: "+currentText.substring(startPos, endPos));
                     first = false;
                 } catch (javax.swing.text.BadLocationException e) {
-                    e.printStackTrace(System.out);
+                    ActivityLogger.logException(e);                    
                 }
             }
             currentText = text.toString();

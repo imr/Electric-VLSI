@@ -1,10 +1,24 @@
 			Java Electric change log
 
 ************************* Version 8.01j: *********************************
+
+BUG: (8/22/04, JKG) From Justin: double clicking in library explorer
+    changes cell in another window
+FIX: Current window frame was not strictly deterministic
+    with respect to window focus. Instead of setting the current window
+    frame, request focus, which will in turn set the current window frame.
+
+IMP: (8/22/04, JKG) Created ActivityLogger to log user's activities. Also
+    added EventProcesser to catch Swing exceptions. Hopefully all user
+    actions and exceptions can be logged and analyzed later.
+
+FIX: (8/22/04, JKG) fixes to some GUI classes to try to make them Swing-thread safer
+
 BUG: ERC reporting wrong floating well contacts (Justin reported).
 FIX: Non-connected contacts get netNum = -1 in Java
 
 ************************* Version 8.01i: *********************************
+
 IMP/MAN: (8/19/04, JKG) new command line options: -mdi (force MDI mode) and
     -sdi (force SDI mode). -m no longer works.
 

@@ -23,6 +23,8 @@
  */
 package com.sun.electric.database.text;
 
+import com.sun.electric.tool.user.ActivityLogger;
+
 import java.io.File;
 import java.util.Date;
 import java.util.StringTokenizer;
@@ -131,7 +133,7 @@ public class Version
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            ActivityLogger.logException(e);
         }
         return (null);
     }

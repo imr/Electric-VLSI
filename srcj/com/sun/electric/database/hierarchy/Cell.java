@@ -49,6 +49,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TextWindow;
@@ -2533,7 +2534,7 @@ public class Cell extends NodeProto implements Comparable
 
         if (cellGroup == null) {
             Exception e = new Exception("Cannot set CellGroup to NULL!");
-            e.printStackTrace(System.out);
+            ActivityLogger.logException(e);
         }
 
         // stop if already that way

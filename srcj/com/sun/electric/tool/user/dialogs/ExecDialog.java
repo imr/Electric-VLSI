@@ -25,6 +25,7 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.tool.user.Exec;
+import com.sun.electric.tool.user.ActivityLogger;
 
 import javax.swing.*;
 import java.io.OutputStream;
@@ -77,6 +78,7 @@ public class ExecDialog extends EDialog implements Exec.FinishedListener {
                 updateScheduled = false;
             } catch (javax.swing.text.BadLocationException e) {
                 e.printStackTrace(System.out);
+                ActivityLogger.logException(e);                
             }
         }
 

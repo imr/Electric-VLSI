@@ -180,7 +180,7 @@ public class Exec extends Thread {
 
             } catch (java.io.IOException e) {
 
-                e.printStackTrace(System.out);
+                ActivityLogger.logException(e);
 
             }
 
@@ -484,7 +484,7 @@ public class Exec extends Thread {
 
         } catch (Exception e) {
 
-            e.printStackTrace(System.out);
+            ActivityLogger.logException(e);
 
         }
 

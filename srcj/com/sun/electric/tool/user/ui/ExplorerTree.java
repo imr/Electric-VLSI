@@ -619,14 +619,12 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				{
 					CellAndCount cc = (CellAndCount)currentSelectedObject;
 					wf.setCellWindow(cc.getCell());
-					WindowFrame.setCurrentWindowFrame(wf);
 					return;
 				}
 				if (currentSelectedObject instanceof Cell)
 				{
 					Cell cell = (Cell)currentSelectedObject;
 					wf.setCellWindow(cell);
-					WindowFrame.setCurrentWindowFrame(wf);
 					return;
 				}
 				if (currentSelectedObject instanceof Library || currentSelectedObject instanceof Cell.CellGroup ||
@@ -979,7 +977,6 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			{
 				WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 				wf.setCellWindow(cell);
-				WindowFrame.setCurrentWindowFrame(wf);
 			}
 		}
 

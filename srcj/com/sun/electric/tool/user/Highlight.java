@@ -788,6 +788,45 @@ public class Highlight
 	 */
 	public String toString() { return "Highlight "+type; }
 
+    /**
+     * Describe the Highlight
+     * @return a string describing the highlight
+     */
+    public String describe() {
+        StringBuffer desc = new StringBuffer();
+        desc.append(type);
+        desc.append(" in cell ");
+        desc.append(cell.describe());
+        desc.append(": ");
+        if (type == Type.MESSAGE){
+            desc.append(", ");
+            desc.append(msg);
+        }
+        else if (type == Type.EOBJ) {
+            desc.append(", ");
+            if (eobj instanceof PortInst) {
+                desc.append(((PortInst)eobj).describe());
+            }
+            if (eobj instanceof NodeInst) {
+                desc.append(((NodeInst)eobj).describe());
+            }
+            if (eobj instanceof ArcInst) {
+                desc.append(((ArcInst)eobj).describe());
+            }
+        }
+        else if (type == Type.TEXT) {
+            if (var != null) {
+                desc.append(", var: ");
+                desc.append(var.describe(-1, -1));
+            }
+            if (name != null) {
+                desc.append(", name: ");
+                desc.append(name.toString());
+            }
+        }
+        return desc.toString();
+    }
+
 	// ************************************* SUPPORT *************************************
 
     /**

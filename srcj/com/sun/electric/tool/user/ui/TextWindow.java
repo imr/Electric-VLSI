@@ -124,7 +124,7 @@ public class TextWindow
 			textArea.requestFocus();
 
 		// redo the explorer tree if it changed
-		wf.redoExplorerTreeIfRequested();
+		//wf.redoExplorerTreeIfRequested();
 //System.out.println("REPAINT");
 		textArea.paint(g);
 	}

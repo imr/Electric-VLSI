@@ -306,7 +306,6 @@ public class NewCell extends EDialog
 			{
 				WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 				wf.setCellWindow(cell);
-				WindowFrame.setCurrentWindowFrame(wf);
 				return true;
 			}
 			WindowFrame.createEditWindow(cell);

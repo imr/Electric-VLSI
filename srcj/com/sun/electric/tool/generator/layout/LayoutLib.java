@@ -36,6 +36,7 @@ import com.sun.electric.technology.*;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.ActivityLogger;
 
 /**
  * The LayoutLib class provides an assortment of methods that I
@@ -63,7 +64,7 @@ public class LayoutLib {
 		if (!errorHasOccurred) return;
 		RuntimeException e = new RuntimeException(msg);
 		// The following prints a stack trace on the console
-		e.printStackTrace();
+        ActivityLogger.logException(e);
 
 		// The following prints a stack trace in the Electric messages window
 		throw e;

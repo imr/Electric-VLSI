@@ -51,8 +51,11 @@ import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.change.DatabaseChangeListener;
+import com.sun.electric.database.change.Undo;
 
 /**
  * This class defines an edit window, with a cell explorer on the left side.
@@ -84,6 +87,7 @@ public class WindowFrame
     /** current mouse wheel listener */					public static MouseWheelListener curMouseWheelListener = ClickZoomWireListener.theOne;
     /** current key listener */							public static KeyListener curKeyListener = ClickZoomWireListener.theOne;
 
+    /** library tree updater */                         private static LibraryTreeUpdater libTreeUpdater = new LibraryTreeUpdater();
 	//******************************** CONSTRUCTION ********************************
 
 	// constructor
@@ -162,7 +166,7 @@ public class WindowFrame
 			frame.populateJFrame();
 		} catch (Exception e) {
             System.out.println("Can't open 3D View window: " + e.getMessage());
-			e.printStackTrace();
+            ActivityLogger.logException(e);
         }
 
 		return frame;
@@ -284,14 +288,14 @@ public class WindowFrame
 			jif.getContentPane().add(js);
 			internalWindowsEvents = new InternalWindowsEvents(this);
 			jif.addInternalFrameListener(internalWindowsEvents);
-			jif.show();
-			TopLevel.addToDesktop(jif);
 			// add tool bar as listener so it can find out state of cell history in EditWindow
 			jif.addInternalFrameListener(TopLevel.getCurrentJFrame().getToolBar());
 			//content.getPanel().addPropertyChangeListener(TopLevel.getTopLevel().getToolBar());
 			content.getPanel().addPropertyChangeListener(EditWindow.propGoBackEnabled, TopLevel.getCurrentJFrame().getToolBar());
 			content.getPanel().addPropertyChangeListener(EditWindow.propGoForwardEnabled, TopLevel.getCurrentJFrame().getToolBar());
 //			frame.jif.moveToFront();
+            TopLevel.addToDesktop(jif);
+            jif.show();
 			try
 			{
 				jif.setSelected(true);
@@ -318,6 +322,7 @@ public class WindowFrame
 	 */
 	private void depopulateJFrame()
 	{
+        Job.checkSwingThread();
 		if (TopLevel.isMDIMode()) {
 			jif.getContentPane().remove(js);
 			jif.removeInternalFrameListener(internalWindowsEvents);
@@ -371,6 +376,7 @@ public class WindowFrame
 			}
 		}
 		content.setCell(cell, VarContext.globalContext);
+        currentCellChanged();
 	}
 
 	public void moveEditWindow(GraphicsConfiguration gc) {
@@ -396,45 +402,72 @@ public class WindowFrame
 	private boolean wantToRedoErrorTree = false;
 	private boolean wantToRedoSignalTree = false;
 
+    /**
+     * @deprecated the library tree is reloaded when the appropriate
+     * database change event is caught by WindowFrame.LibraryTreeUpdater
+     */
 	public static void wantToRedoLibraryTree()
 	{
+/*
 		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			wf.wantToRedoLibraryTree = true;
 			wf.getContent().repaint();
 		}
+*/
 	}
 
 	public static void wantToRedoJobTree()
 	{
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() { wantToRedoJobTree(); }
+            });
+            return;
+        }
 		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			wf.wantToRedoJobTree = true;
-			wf.getContent().repaint();
+			//wf.getContent().repaint();
+            wf.redoExplorerTreeIfRequested();
 		}
 	}
 
 	public static void wantToRedoErrorTree()
 	{
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() { wantToRedoErrorTree(); }
+            });
+            return;
+        }
 		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
-			wf.wantToRedoErrorTree = true;
-			wf.getContent().repaint();
+            wf.wantToRedoErrorTree = true;
+			//wf.getContent().repaint();
+            wf.redoExplorerTreeIfRequested();
 		}
 	}
 
 	public void wantToRedoSignalTree()
 	{
-		wantToRedoSignalTree = true;
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() { wantToRedoJobTree(); }
+            });
+            return;
+        }
+        wantToRedoSignalTree = true;
 		content.loadExplorerTree(rootNode);
 		redoExplorerTreeIfRequested();
 	}
 
 	public void redoExplorerTreeIfRequested()
 	{
+        Job.checkSwingThread();
 		if (!wantToRedoLibraryTree && !wantToRedoJobTree && !wantToRedoErrorTree && !wantToRedoSignalTree) return;
 
 		// remember the state of the tree
@@ -566,7 +599,7 @@ public class WindowFrame
 	 */
 	public static Cell getCurrentCell()
 	{
-		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
 		if (wf == null) return null;
 		return wf.getContent().getCell();
 	}
@@ -609,11 +642,43 @@ public class WindowFrame
 		}
 	}
 
+    /**
+     * Method to request focus on this window
+     */
+    public void requestFocus() {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() { requestFocusUnsafe(); }
+            });
+            return;
+        }
+        requestFocusUnsafe();
+    }
+
+    private void requestFocusUnsafe() {
+        if (jif != null) {
+            jif.toFront();
+            try {
+                jif.setSelected(true);
+            } catch (java.beans.PropertyVetoException e) {}
+        }
+        if (jf != null) {
+            jf.toFront();
+            jf.requestFocus();
+        }
+    }
+
+    private boolean isFocusOwner() {
+        if (jif != null) return jif.isSelected();
+        if (jf != null) return jf.isFocusOwner();
+        return false;
+    }
+
 	/**
 	 * Method to set the current WindowFrame.
 	 * @param wf the WindowFrame to make current.
 	 */
-	public static void setCurrentWindowFrame(WindowFrame wf)
+	private static void setCurrentWindowFrame(WindowFrame wf)
 	{
         synchronized(windowList) {
             curWindowFrame = wf;
@@ -623,14 +688,7 @@ public class WindowFrame
         }
 		if (wf != null)
 		{
-			Cell cell = wf.getContent().getCell();
-			if (cell != null)
-			{
-				cell.getLibrary().setCurCell(cell);
-
-				// if auto-switching technology, do it
-				PaletteFrame.autoTechnologySwitch(cell);
-			}
+            wf.currentCellChanged();
             if (wf.getContent() != null) {
                 Highlighter highlighter = wf.getContent().getHighlighter();
                 if (highlighter != null) highlighter.gainedFocus();
@@ -638,6 +696,18 @@ public class WindowFrame
 		}
 		wantToRedoTitleNames();
 	}
+
+    private void currentCellChanged() {
+        if (!isFocusOwner()) return;
+        Cell cell = getContent().getCell();
+        if (cell != null)
+        {
+            cell.getLibrary().setCurCell(cell);
+
+            // if auto-switching technology, do it
+            PaletteFrame.autoTechnologySwitch(cell);
+        }
+    }
 
 	public static void wantToRedoTitleNames()
 	{
@@ -763,7 +833,10 @@ public class WindowFrame
 	 * Method to return an Iterator over all WindowFrames.
 	 * @return an Iterator over all WindowFrames.
 	 */
-	public static Iterator getWindows() { return windowList.iterator(); }
+	public static synchronized Iterator getWindows() {
+        List listCopy = new ArrayList(windowList);
+        return listCopy.iterator();
+    }
 
 	/**
 	 * Centralized version of naming windows! Might move it to class
@@ -810,7 +883,7 @@ public class WindowFrame
         removeUIBinding(map.getParent(), key);
     }
 
-	//******************************** HANDLERS FOR WINDOW EVENTS ********************************
+    //******************************** HANDLERS FOR WINDOW EVENTS ********************************
 
 	/**
 	 * This class handles activation and close events for JFrame objects (used in SDI mode).
@@ -861,5 +934,40 @@ public class WindowFrame
 			WindowFrame.setCurrentWindowFrame((WindowFrame)wf.get());
 		}
 	}
+
+    /**
+     * Database change listener that updates library trees when needed
+     */
+    private static class LibraryTreeUpdater implements DatabaseChangeListener {
+
+        private LibraryTreeUpdater() { Undo.addDatabaseChangeListener(this); }
+
+        private void updateLibraryTrees() {
+            for (Iterator it = WindowFrame.getWindows(); it.hasNext(); ) {
+                WindowFrame frame = (WindowFrame)it.next();
+                frame.wantToRedoLibraryTree = true;
+                frame.redoExplorerTreeIfRequested();
+            }
+        }
+
+        public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+            boolean changed = false;
+            for (Iterator it = batch.getChanges(); it.hasNext(); ) {
+                Undo.Change change = (Undo.Change)it.next();
+                if (change.getType() == Undo.Type.LIBRARYKILL ||
+                    change.getType() == Undo.Type.LIBRARYNEW ||
+                    change.getType() == Undo.Type.CELLKILL ||
+                    change.getType() == Undo.Type.CELLNEW ||
+                    (change.getType() == Undo.Type.OBJECTRENAME && change.getObject() instanceof Cell)) {
+                    changed = true; break;
+                }
+            }
+            if (changed)
+                updateLibraryTrees();
+        }
+
+        public void databaseChanged(Undo.Change evt) {}
+        public boolean isGUIListener() { return true; }
+    }
 
 }

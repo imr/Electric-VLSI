@@ -559,7 +559,9 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
 	            System.out.println("Type > and < to step through errors, or open the ERRORS view in the explorer");
             }
         }
-        WindowFrame.wantToRedoErrorTree();
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {WindowFrame.wantToRedoErrorTree(); }
+        });
         synchronized(allLoggers) {
             currentLogger = this;
         }

@@ -29,6 +29,7 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.io.IOTool;
@@ -176,6 +177,9 @@ public class FileMenu {
      */
     public static void openLibraryCommand()
     {
+        Integer i = null;
+        System.out.println(i.toString());
+
         String fileName = OpenFile.chooseInputFile(OpenFile.Type.ELIB, null);
         if (fileName != null)
         {
@@ -221,7 +225,6 @@ public class FileMenu {
             Library mainLib = Library.newInstance("noname", null);
             if (mainLib == null) return false;
             mainLib.setCurrent();
-            WindowFrame window1 = WindowFrame.createEditWindow(null);
 
             // try to open initial libraries
             boolean success = false;
@@ -235,6 +238,10 @@ public class FileMenu {
                 WindowFrame.wantToRedoLibraryTree();
                 EditWindow.repaintAll();
                 EditWindow.repaintAllContents();
+            }
+            if (WindowFrame.getCurrentWindowFrame() == null) {
+                // create a new frame
+                WindowFrame window1 = WindowFrame.createEditWindow(null);
             }
             return true;
         }
@@ -268,7 +275,7 @@ public class FileMenu {
                 if (content.getCell() == null)
                 {
                     wf.setCellWindow(cell);
-                    WindowFrame.setCurrentWindowFrame(wf);
+                    wf.requestFocus();
                     TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
                     return true;
                 }
@@ -443,6 +450,21 @@ public class FileMenu {
 
         public boolean doIt()
         {
+            boolean retVal = false;
+            try {
+                retVal = _doIt();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), new String [] {"Exception caught when saving files",
+                     "Please check your libraries"}, "Saving Failed", JOptionPane.ERROR_MESSAGE);
+            }
+            if (!retVal) {
+                JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), new String [] {"Error saving files",
+                     "Please check your libraries"}, "Saving Failed", JOptionPane.ERROR_MESSAGE);
+            }
+            return retVal;
+        }
+
+        private boolean _doIt() {
             // rename the library if requested
             if (newName != null)
             {
@@ -452,10 +474,7 @@ public class FileMenu {
             }
 
             boolean error = Output.writeLibrary(lib, type, compatibleWith6);
-            if (error)
-            {
-                System.out.println("Error writing the library file");
-            }
+            if (error) return false;
             return true;
         }
     }
@@ -716,6 +735,7 @@ public class FileMenu {
 
         public boolean doIt()
         {
+            ActivityLogger.finished();
             System.exit(0);
             return true;
         }

@@ -546,7 +546,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
                 } else
                 {
                     wf.setCellWindow(cell);
-                    WindowFrame.setCurrentWindowFrame(wf);
+                    wf.requestFocus();
                 }
                 // if multiple cells selected, all cells after first
                 // should be opened in new window

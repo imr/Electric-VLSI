@@ -27,6 +27,7 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Resources;
+import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.menus.MenuCommands;
@@ -108,7 +109,6 @@ public class TopLevel extends JFrame
 		setLocation(bound.x, bound.y);
 		setSize(bound.width, bound.height);
 		getContentPane().setLayout(new BorderLayout());
-        setVisible(true);
 
 		// set an icon on the window
 		setIconImage(Resources.getResource(getClass(), "IconElectric.gif").getImage());
@@ -154,13 +154,12 @@ public class TopLevel extends JFrame
 	 * Method to initialize the window system with the specified mode.
      * If mode is null, the mode is implied by the operating system.
 	 */
-	public static void Initialize(Mode mode)
+	public static void Initialize()
 	{
 		// initialize the messages window and palette
-        //OSInitialize(mode);
 		messages = new MessagesWindow();
 		palette = PaletteFrame.newInstance();
-        //palette.loadForTechnology();
+        palette.loadForTechnology();
     }
 
 	private static Pref cacheWindowLoc = Pref.makeStringPref("WindowLocation", User.tool.prefs, "");
@@ -225,10 +224,10 @@ public class TopLevel extends JFrame
 			if (bound == null)
 				bound = new Rectangle(scrnSize);
 			topLevel = new TopLevel("Electric", bound, null, null);
-
 			// make the desktop
 			desktop = new JDesktopPane();
 			topLevel.getContentPane().add(desktop, BorderLayout.CENTER);
+            topLevel.setVisible(true);
 		}
 	}
 
@@ -316,7 +315,19 @@ public class TopLevel extends JFrame
 	 * This only makes sense in MDI mode, where the desktop has multiple subframes.
 	 * @param jif the internal frame to add.
 	 */
-	public static void addToDesktop(JInternalFrame jif) { desktop.add(jif); }
+	public static void addToDesktop(JInternalFrame jif) {
+        if (desktop.isVisible() && !SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(new AddToDesktopSafe(jif));
+        } else
+            desktop.add(jif); 
+    }
+
+    private static class AddToDesktopSafe implements Runnable {
+        private JInternalFrame jif;
+        private AddToDesktopSafe(JInternalFrame jif) { this.jif = jif; }
+        public void run() { desktop.add(jif); }
+    }
+
 	public static JDesktopPane getDesktop() { return desktop; }
 
 	public static Cursor getCurrentCursor() { return cursor; }
@@ -402,7 +413,7 @@ public class TopLevel extends JFrame
         if (print) {
             Throwable t = new Throwable(msg);
             System.out.println(t.toString());
-            t.printStackTrace(System.out);
+            ActivityLogger.logException(t);            
         }
     }
 

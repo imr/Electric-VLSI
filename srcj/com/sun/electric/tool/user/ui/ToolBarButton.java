@@ -30,6 +30,7 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.tool.user.menus.MenuBar;
+import com.sun.electric.tool.user.ActivityLogger;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -66,7 +67,8 @@ public class ToolBarButton extends AbstractButton implements Accessible, ActionL
     /** Hash table of arraylists for all buttons */     private static HashMap allButtons = new HashMap(15);
     /** Dummy object for listener for updating */       public static ToolBarButton updater = new ToolBarButton(null, null);
     /** Name of ToolBarButton */                        private String name;
-    
+    /** Tool bar button logger */                       private static final ButtonLogger buttonLogger = new ButtonLogger();
+
     /**
      * @see #getUIClassID
      * @see #readObject
@@ -108,7 +110,8 @@ public class ToolBarButton extends AbstractButton implements Accessible, ActionL
         ToolBarButton b = new ToolBarButton(text, icon);
         b.addActionListener(ToolBarButton.updater);
         b.addActionListener(MenuBar.MenuBarGroup.getUpdaterFor(""));
-        
+        b.addActionListener(buttonLogger);
+
         // add to book-keeping
         ArrayList buttonGroup;
         if (!allButtons.containsKey(text)) {
@@ -121,8 +124,14 @@ public class ToolBarButton extends AbstractButton implements Accessible, ActionL
         return b;
     }
     
-    
-    /** 
+    public void addActionListener(ActionListener l) {
+        // buttonLogger needs to be last in list so it is activated first
+        removeActionListener(buttonLogger);
+        super.addActionListener(l);
+        super.addActionListener(buttonLogger);
+    }
+
+    /**
      * Update associated ToolBarButtons on other toolbars
      */
     public void actionPerformed(ActionEvent e)
@@ -203,7 +212,15 @@ public class ToolBarButton extends AbstractButton implements Accessible, ActionL
         if (list == null) return;
         list.remove(this);
     }
-    
+
+    private static class ButtonLogger implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            ToolBarButton b = (ToolBarButton)e.getSource();
+            ActivityLogger.logToolBarButtonActivated(b);
+        }
+    }
+
+
     // ---------------------------------- UI ---------------------------------
     
     /**

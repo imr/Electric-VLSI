@@ -84,10 +84,6 @@ public class User extends Listener
 		// the user interface tool is always on
 		setOn();
 		setIncremental();
-
-		// initialize the display
-        TopLevel.Initialize(null);
-        TopLevel.getPaletteFrame().loadForTechnology();
 	}
 
 	/**

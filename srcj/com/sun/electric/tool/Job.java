@@ -31,6 +31,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -362,6 +363,7 @@ public abstract class Job implements ActionListener, Runnable {
         startTime = System.currentTimeMillis();
 
         if (DEBUG) System.out.println(jobType+" Job: "+jobName+" started");
+        ActivityLogger.logJobStarted(jobName, jobType, upCell, savedHighlights, savedHighlightsOffset);
 		try {
 			if (jobType == Type.CHANGE)	Undo.startChanges(tool, jobName, upCell, savedHighlights, savedHighlightsOffset);
 			if (jobType != Type.EXAMINE) changingJob = this;
@@ -369,11 +371,7 @@ public abstract class Job implements ActionListener, Runnable {
 			if (jobType == Type.CHANGE)	Undo.endChanges();
 		} catch (Throwable e) {
             endTime = System.currentTimeMillis();
-            String [] msg = {"Exception Caught!!!",
-                             "Job \""+jobName+"\" generated the following Exception (see Messages Window):",
-                             e.toString() };
-            e.printStackTrace(System.out);
-            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), msg, "Exception in Job "+jobName, JOptionPane.ERROR_MESSAGE);
+            ActivityLogger.logException(e);
 		} finally {
 			if (jobType == Type.EXAMINE)
 			{
@@ -388,7 +386,7 @@ public abstract class Job implements ActionListener, Runnable {
 
 		finished = true;                        // is this redundant with Thread.isAlive()?
 //        Job.removeJob(this);
-        WindowFrame.wantToRedoJobTree();
+        //WindowFrame.wantToRedoJobTree();
 
 		// say something if it took more than a minute by default
 		if (reportExecution || (endTime - startTime) >= MIN_NUM_SECONDS)
@@ -408,7 +406,7 @@ public abstract class Job implements ActionListener, Runnable {
 
     protected synchronized void setProgress(String progress) {
         this.progress = progress;
-        WindowFrame.wantToRedoJobTree();        
+        WindowFrame.wantToRedoJobTree();
     }        
     
     private synchronized String getProgress() { return progress; }
@@ -496,18 +494,35 @@ public abstract class Job implements ActionListener, Runnable {
 
 		if (changingJob == null)
 		{
-			System.out.println("Database is changing but no change job is running");
+			String msg = "Database is changing but no change job is running";
+            System.out.println(msg);
+            ActivityLogger.logMessage(msg);
 			//throw new IllegalStateException("Job.checkChanging()");
 		} else if (Thread.currentThread() != databaseChangesThread)
 		{
-			System.out.println("Database is changing by other thread");
+			String msg = "Database is changing by other thread";
+            System.out.println(msg);
+            ActivityLogger.logMessage(msg);
 			//throw new IllegalStateException("Job.checkChanging()");
 		} else if (changingJob.upCell != null)
 		{
-			System.out.println("Database is changing which only up-tree of "+changingJob.upCell+" is locked");
+			String msg = "Database is changing which only up-tree of "+changingJob.upCell+" is locked";
+            System.out.println(msg);
+            ActivityLogger.logMessage(msg);
 			//throw new IllegalStateException("Undo.checkChanging()");
 		}
 	}
+
+    /**
+     * Asserts that this is the Swing Event thread
+     */
+    public static void checkSwingThread()
+    {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            Exception e = new Exception("Job.checkSwingThread is not in the AWT Event Thread, it is in Thread "+Thread.currentThread());
+            ActivityLogger.logException(e);
+        }
+    }
 
 	//-------------------------------JOB UI--------------------------------
     

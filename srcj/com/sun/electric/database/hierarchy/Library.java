@@ -33,7 +33,9 @@ import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.TopLevel;
 
+import javax.swing.*;
 import java.util.*;
 import java.net.URL;
 
@@ -157,6 +159,8 @@ public class Library extends ElectricObject
 			if (newCurLib == null)
 			{
 				System.out.println("Cannot delete the last library");
+                JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Cannot delete the last "+toString(),
+                        "Close library", JOptionPane.INFORMATION_MESSAGE);
 				return false;
 			}
 		}
@@ -165,6 +169,8 @@ public class Library extends ElectricObject
 		if (!libraries.contains(this))
 		{
 			System.out.println("Cannot delete library " + this);
+            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Cannot delete "+toString(),
+                    "Close library", JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
 

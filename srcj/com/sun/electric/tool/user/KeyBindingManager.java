@@ -138,7 +138,7 @@ public class KeyBindingManager {
         try {
             allKeys = prefs.keys();
         } catch (BackingStoreException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            e.printStackTrace();
             return;
         }
         for (int i = 0; i < allKeys.length; i++) {

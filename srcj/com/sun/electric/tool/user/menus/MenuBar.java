@@ -31,6 +31,7 @@ package com.sun.electric.tool.user.menus;
  */
 
 import com.sun.electric.tool.user.KeyBindingManager;
+import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ui.ToolBarButton;
 import com.sun.electric.tool.user.ui.KeyBindings;
 import com.sun.electric.tool.user.ui.KeyStrokePair;
@@ -148,7 +149,13 @@ public class MenuBar extends JMenuBar
                 }
             }
         }
+    }
 
+    private static class MenuLogger implements ActionListener {
+        public synchronized void actionPerformed(ActionEvent e) {
+            JMenuItem m = (JMenuItem)e.getSource();
+            ActivityLogger.logMenuActivated(m);
+        }
     }
 
     /**
@@ -253,7 +260,7 @@ public class MenuBar extends JMenuBar
 		 * Add a JMenuItem to the JMenu.
 		 * @param s the menu item's displayed text.
 		 * @param accelerator the shortcut key, or null if none specified.
-		 * @param mnemonic the index in s of the char that gets underlined. 
+		 * @param mnemonicIndex the index in s of the char that gets underlined.
 		 * @param action the action to be taken when menu is activated.
 		 */
 		public MenuItem addMenuItem(String s, KeyStroke accelerator, int mnemonicIndex, ActionListener action)
@@ -311,6 +318,8 @@ public class MenuBar extends JMenuBar
             item.setAccelerator(accelerator);
             // add action listeners so when user selects menu, actions will occur
             item.addActionListener(action);
+            // add logger listener
+            item.addActionListener(menuLogger);
 
             // if Menu already part of a MenuBar, let menu bar know this was added
             JComponent parent = parentMenu;
@@ -333,6 +342,7 @@ public class MenuBar extends JMenuBar
     /** hidden menus */                         private ArrayList hiddenMenus = new ArrayList();
     /** whether to ignore all shortcuts keys */ boolean ignoreKeyBindings;
     /** whether to ignore text editing keys */  boolean ignoreTextEditKeys;
+    /** For logging menu activiations */        private static MenuLogger menuLogger = new MenuLogger();
 
     /**
      * See MenuBar(String name). This creates a MenuBar belonging

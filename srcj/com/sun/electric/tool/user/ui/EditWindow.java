@@ -237,7 +237,6 @@ public class EditWindow extends JPanel
 		MessagesWindow.userCommandIssued();
 		lastXPosition = evt.getX();   lastYPosition = evt.getY();
 		EditWindow wnd = (EditWindow)evt.getSource();
-		WindowFrame.setCurrentWindowFrame(wnd.wf);
 
 		WindowFrame.curMouseListener.mousePressed(evt);
 	}
@@ -569,7 +568,7 @@ public class EditWindow extends JPanel
 			requestFocus();
 
 		// redo the explorer tree if it changed
-		wf.redoExplorerTreeIfRequested();
+		//wf.redoExplorerTreeIfRequested();
 
 		if (offscreen == null || !getSize().equals(sz))
 		{
@@ -2235,7 +2234,7 @@ public class EditWindow extends JPanel
 			}
         } catch (NullPointerException e)
 		{
-            e.printStackTrace();
+            ActivityLogger.logException(e);
 		}
     }
 

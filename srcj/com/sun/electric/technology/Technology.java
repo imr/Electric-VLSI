@@ -51,6 +51,7 @@ import com.sun.electric.technology.technologies.nMOS;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.Main;
 
 import java.awt.Dimension;
@@ -567,7 +568,7 @@ public class Technology extends ElectricObject
 	 		} catch (Exception e)
             {
                 System.out.println("Exceptions while importing extra technologies");
-                e.printStackTrace();
+                ActivityLogger.logException(e);
             }
 		}
 

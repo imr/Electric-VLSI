@@ -1613,7 +1613,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 					throw new NullPointerException();
 			} catch (Throwable t)
 			{
-				t.printStackTrace();
+                ActivityLogger.logException(t);
 				dtde.dropComplete(false);
 				return;
 			}
@@ -3681,7 +3681,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		if (mainTimePanel != null)
 			mainTimePanel.repaint();
 		// redo the explorer tree if it changed
-		wf.redoExplorerTreeIfRequested();
+		//wf.redoExplorerTreeIfRequested();
 	}
 
 	public void fireCellHistoryStatus()
