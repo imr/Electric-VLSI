@@ -521,10 +521,11 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
                 textField.setEditable(true);
                 textFieldLabel.setText("Area:");
 
-                TransistorSize d = ni.getTransistorSize(null);
-                initialTextField = Double.toString(d.getDoubleWidth());
+                Variable var = ni.getVar(Schematics.ATTR_AREA);
+//                TransistorSize d = ni.getTransistorSize(null);
+//                initialTextField = Double.toString(d.getDoubleWidth());
 
-                textField.setText(initialTextField);
+                textField.setText(var.getPureValue(-1));
 
                 popupLabel.setText("Transistor type:");
                 popup.addItem(fun.getName());

@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02j: *********************************
 
+BUG: (03/16/05, GVG) Exception in GetInfo for non FET transistors in schematic. Function getTransistorSize() can't
+be called.
+FIX: get the area value by querying the corresponding attribute in the node
+
 IMP: (03/16/05, GVG) PolyBase.getArea() returns positive value. TransistorSize also calculates
 active length for parasitic calculation.
 
