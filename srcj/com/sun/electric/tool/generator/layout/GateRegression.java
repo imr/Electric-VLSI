@@ -127,10 +127,8 @@ public class GateRegression extends Job {
 	}
 
 	private static void allSizes(StdCellParams stdCell) {
-		//double maxSz = 1000;
-		//double minSz = 0.1;
-		double minSz = 100;
-		double maxSz = 100.1;
+		double minSz = 0.1;
+		double maxSz = 1000;
 		for (double d=minSz; d<maxSz; d*=10) {
 			for (double x=d; x<Math.min(d*10, maxSz); x*=1.01) {
 				aPass(x, stdCell);
@@ -143,7 +141,7 @@ public class GateRegression extends Job {
 		boolean nfsWedged = true;
 		String homeDir;
 		if (!osIsWindows()) {
-			homeDir = "/home/rkao";
+			homeDir = "/home/rkao/";
 		} else if (nfsWedged) {
 			homeDir = "c:/a1/kao/Sun/";
 		} else {

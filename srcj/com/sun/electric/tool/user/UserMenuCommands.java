@@ -449,17 +449,16 @@ public final class UserMenuCommands
 
 		Menu russMenu = Menu.createMenu("Russell", 'R');
 		menuBar.add(russMenu);
-		russMenu.addMenuItem("ivanFlat", null, new com.sun.electric.tool.generator.layout.IvanFlat());
+		russMenu.addMenuItem("create flat netlists for Ivan", null, new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				new com.sun.electric.tool.generator.layout.IvanFlat();
+			}	
+		});
 		russMenu.addMenuItem("layout flat", null, new com.sun.electric.tool.generator.layout.LayFlat());
 		russMenu.addMenuItem("gate regression", null, new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
 			    new com.sun.electric.tool.generator.layout.GateRegression();
 		    }
-		});
-		russMenu.addMenuItem("create corrupt library", null, new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				new com.sun.electric.tool.generator.layout.BadLibrary();
-			}
 		});
 		
 		/****************************** Jon's TEST MENU ******************************/

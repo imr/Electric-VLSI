@@ -146,13 +146,6 @@ class IvanFlater extends HierarchyEnumerator.Visitor {
 								 HierarchyEnumerator.CellInfo info) {
 		//System.out.println("Visit inst of: "+ni.getProto().getName());
 		NodeProto np = no.getProto();
-// 		if (np instanceof Cell) {
-// 			String nm = ni.getName();
-// 			if (nm == null) {
-// 				// NodeInst without a name
-// 				ni.setName("ivanFlat" + nameNumber);
-// 			}
-// 		}
 		String msg = null;
 		if (np instanceof PrimitiveNode) {
 		    NodeInst ni = (NodeInst)no;
@@ -186,7 +179,7 @@ class IvanFlater extends HierarchyEnumerator.Visitor {
 	}
 }
 
-class IvanFlatJob extends Job {
+public class IvanFlat extends Job {
 	private static class CellDescription {
 		final String libName;
 		final String cellName;
@@ -299,6 +292,7 @@ class IvanFlatJob extends Job {
 		long endTime = System.currentTimeMillis();
 		double deltaTime = (endTime - startTime) / 1000.0;
 		System.out.println("Flattening took " + deltaTime + " seconds");
+		System.out.flush();
 
 		flattener.close();
 	}
@@ -307,22 +301,23 @@ class IvanFlatJob extends Job {
 		System.out.println("Begin IvanFlat");
 		String homeDir = getKaoHomeDir();
 		
-		String outFileDir = homeDir + "work/async/ivanTest/qFourP1/"; 
+		String outFileDir = homeDir + "ivanTest/qFourP1/"; 
 
-//		String libDir = homeDir + "work/async/ivanTest/qFourP1/electric-final/";
-//
-//		CellDescription[] cellDescrs = {
-//			new CellDescription("rxPads", "equilibrate{lay}"),
-//			new CellDescription("rxPads", "rxPadArray2{lay}"),
-//			new CellDescription("rxPads", "rxGroup{lay}"),
-//			new CellDescription("qFourP1", "expArings{lay}"),
-//			new CellDescription("qFourP1", "expTail{lay}")
-//		};
-		
-		String libDir = homeDir + "work/async/kaoLayout/";		
+		String libDir = homeDir + "ivanTest/qFourP1/electric-final/";
+
 		CellDescription[] cellDescrs = {
-			new CellDescription("hierEnumNameTest", "top{sch}")
+			new CellDescription("stages", "stagePairJac{lay}"),
+			new CellDescription("rxPads", "equilibrate{lay}"),
+			new CellDescription("rxPads", "rxPadArray2{lay}"),
+			new CellDescription("rxPads", "rxGroup{lay}"),
+			new CellDescription("qFourP1", "expArings{lay}"),
+			new CellDescription("qFourP1", "expTail{lay}")
 		};
+		
+//		String libDir = homeDir + "work/async/kaoLayout/";		
+//		CellDescription[] cellDescrs = {
+//			new CellDescription("hierEnumNameTest", "top{sch}")
+//		};
 
 
 		for (int i=0; i<cellDescrs.length; i++) {
@@ -331,15 +326,11 @@ class IvanFlatJob extends Job {
 
 		System.out.println("Done");
 	}
-	IvanFlatJob() {
-		super("Flatten Netlist for Ivan", User.tool, Job.Type.CHANGE, 
-		      null, null, Job.Priority.USER);
+	public IvanFlat() {
+		super("Flatten Netlists for Ivan", User.tool, Job.Type.CHANGE, 
+		      null, null, Job.Priority.ANALYSIS);
+		startJob();		      
 	}
 }
 
-public class IvanFlat implements ActionListener {
-	// They menu command simply adds a job to the job queue
-	public void actionPerformed(ActionEvent e) {
-		new IvanFlatJob();
-	}
-}
+

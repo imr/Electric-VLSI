@@ -248,11 +248,11 @@ public final class HierarchyEnumerator {
 	 */
 	public static abstract class Visitor {
 		/** A hook to allow the user to add additional information to
-		 * a CellInfo. newCellInfo is a "Factory" method. If the user
-		 * wishes to record additional application specific
-		 * information for each Cell, the user should extend the
-		 * CellInfo class and then override newCellInfo to return an
-		 * instance of that derived class. */
+		 * a CellInfo. The newCellInfo method is a "Factory"
+		 * method. If the user wishes to record additional application
+		 * specific information for each Cell, the user should extend
+		 * the CellInfo class and then override newCellInfo to return
+		 * an instance of that derived class. */
 		public CellInfo newCellInfo() {return new CellInfo();}
 
 		/** The HierarchyEnumerator is about to begin enumerating the
@@ -429,16 +429,18 @@ public final class HierarchyEnumerator {
 			return (NetDescription) netIdToNetDesc.get(netID);
 		}
 
-		/** Find position of NodeInst: ni in the root
-		 * Cell. getPositionInRoot is useful for flattening layout. */
+		/** Find position of NodeInst: ni in the root Cell. The
+		 * getPositionInRoot method is useful for flattening
+		 * layout. */
 		public final AffineTransform getPositionInRoot(NodeInst ni) {
 			AffineTransform x = new AffineTransform(xformToRoot);
 			x.concatenate(ni.getPositionAsTransform());
 			return x;
 		}
 
-		/** Find position of Point2D: p in the root
-		 * Cell. getPOsitionInRoot is useful for flattening layout. */
+		/** Find the position of a Point2D: p in the root Cell. The
+		 * getPositionInRoot method is useful for flattening
+		 * layout. */
 		public final Point2D getPositionInRoot(Point2D p) {
 			Point2D ans = new Point2D.Double();
 			xformToRoot.transform(p, ans);
