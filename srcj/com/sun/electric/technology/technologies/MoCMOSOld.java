@@ -940,8 +940,8 @@ public class MoCMOSOld extends Technology
 		PrimitiveNode dap_node = PrimitiveNode.newInstance("D-Active-Pin", this, 10, 10, new SizeOffset(4, 4, 4, 4),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(PPW_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, box_13),
-				new Technology.NodeLayer(PDA_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, box_11)
+				new Technology.NodeLayer(PDA_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, box_11),
+				new Technology.NodeLayer(PPW_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, box_13)
 			});
 		dap_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -991,8 +991,8 @@ public class MoCMOSOld extends Technology
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.MINBOX, box_8),
-				new Technology.NodeLayer(PW_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13),
 				new Technology.NodeLayer(DA_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_11),
+				new Technology.NodeLayer(PW_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13),
 				new Technology.NodeLayer(AC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_9)
 			});
 		mdac_node.addPrimitivePorts(new PrimitivePort[]

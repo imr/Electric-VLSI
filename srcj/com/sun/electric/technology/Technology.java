@@ -27,7 +27,6 @@ import com.sun.electric.Main;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -37,10 +36,8 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.BiCMOS;
 import com.sun.electric.technology.technologies.Bipolar;
@@ -3184,7 +3181,9 @@ public class Technology
 
 		boolean hasChanged = false;
 
-		hasChanged = (!ap.setDefaultWidth(width + ap.getWidthOffset())) ? hasChanged : true;
+        if (ap.getDefaultWidth() != width + ap.getWidthOffset())
+            hasChanged = true;
+		//hasChanged = (!ap.setDefaultWidth(width + ap.getWidthOffset())) ? hasChanged : true;
 
 		// find the arc's pin and set its size and port offset
 		PrimitiveNode np = ap.findPinProto();
@@ -3193,7 +3192,9 @@ public class Technology
 		double newWidth = width + so.getLowXOffset() + so.getHighXOffset();
 		double newHeight = width + so.getLowYOffset() + so.getHighYOffset();
 
-		hasChanged = (!np.setDefSize(newWidth, newHeight)) ? hasChanged : true;
+        if (np.getDefHeight() != newHeight || np.getDefWidth() != newWidth)
+            hasChanged = true;
+		//hasChanged = (!np.setDefSize(newWidth, newHeight)) ? hasChanged : true;
 
 		PrimitivePort pp = (PrimitivePort)np.getPorts().next();
 		EdgeH left = pp.getLeft();
@@ -3202,15 +3203,20 @@ public class Technology
 		EdgeV top = pp.getTop();
 		double indent = newWidth / 2;
 
-		hasChanged = (!left.setAdder(indent)) ? hasChanged : true;
-		hasChanged = (!right.setAdder(-indent)) ? hasChanged : true;
-		hasChanged = (!top.setAdder(-indent)) ? hasChanged : true;
-		hasChanged = (!bottom.setAdder(indent)) ? hasChanged : true;
+        if (left.getAdder() != indent || right.getAdder() != -indent ||
+            top.getAdder() != -indent || bottom.getAdder() != indent)
+            hasChanged = true;
+//		hasChanged = (!left.setAdder(indent)) ? hasChanged : true;
+//		hasChanged = (!right.setAdder(-indent)) ? hasChanged : true;
+//		hasChanged = (!top.setAdder(-indent)) ? hasChanged : true;
+//		hasChanged = (!bottom.setAdder(indent)) ? hasChanged : true;
 		if (hasChanged)
 		{
 			// describe the error
-			String errorMessage = "Layer Minimum Size correction of " + indent + " done in '"
-					+ layername + ":" + getTechDesc() + "' by rule " + rulename;
+//			String errorMessage = "Layer Minimum Size correction of " + indent + " done in '"
+//					+ layername + ":" + getTechDesc() + "' by rule " + rulename;
+            String errorMessage = "User preference of " + width + " overwrites layer minimum size in '"
+					+ layername + ":" + getTechShortName() + "' by rule " + rulename;
 			if (Main.getDebug()) System.out.println(errorMessage);
 		}
 	}

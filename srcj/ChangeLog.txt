@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ap: *********************************
 
+IMP: (11/18/04, GVG) Allow to keep min sizes stored in preferences (not applying Technoloogy.setLayerMinWidth().
+Send a warning with debugging option.
+
 IMP: (11/18/04, GVG) DRC will ignore goodDRCDates if library was created with old JElectric version.
 
 BUG: (11/18/04, GVG) Not removing goodDRCDate from cells that didn't pass DRC.
