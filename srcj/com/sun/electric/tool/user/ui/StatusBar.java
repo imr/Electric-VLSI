@@ -366,7 +366,8 @@ public class StatusBar extends JPanel implements HighlightListener
                 theArc = (ArcInst)eObj;
                 Netlist netlist = theArc.getParent().getUserNetlist();
                 JNetwork net = netlist.getNetwork(theArc, 0);
-                return("NETWORK: "+net.describe()+ ", ARC: " + theArc.describe());
+	            String netMsg = (net != null) ? "NETWORK: "+net.describe()+ ", " : "";
+                return(netMsg + "ARC: " + theArc.describe());
             }
         } else if (h.getType() == Highlight.Type.TEXT)
         {

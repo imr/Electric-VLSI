@@ -253,19 +253,24 @@ public class Quick
 
 	    // determine if min area must be checked (if any layer got valid data)
 	    minAreaLayerMap.clear();
-	    for(Iterator it = tech.getLayers(); it.hasNext(); )
+	    enclosedAreaLayerMap.clear();
+	    // No incremental neither per Cell
+	    if (!onlyFirstError)
 	    {
-		    Layer layer = (Layer)it.next();
+		    for(Iterator it = tech.getLayers(); it.hasNext(); )
+			{
+				Layer layer = (Layer)it.next();
 
-		    // Storing min areas
-			DRCRules.DRCRule minAreaRule = DRC.getMinValue(layer, DRCTemplate.AREA);
-		    if (minAreaRule != null)
-			    minAreaLayerMap.put(layer, minAreaRule);
+				// Storing min areas
+				DRCRules.DRCRule minAreaRule = DRC.getMinValue(layer, DRCTemplate.AREA);
+				if (minAreaRule != null)
+					minAreaLayerMap.put(layer, minAreaRule);
 
-		    // Storing enclosed areas
-		    DRCRules.DRCRule enclosedAreaRule = DRC.getMinValue(layer, DRCTemplate.ENCLOSEDAREA);
-		    if (enclosedAreaRule != null)
-			    enclosedAreaLayerMap.put(layer, enclosedAreaRule);
+				// Storing enclosed areas
+				DRCRules.DRCRule enclosedAreaRule = DRC.getMinValue(layer, DRCTemplate.ENCLOSEDAREA);
+				if (enclosedAreaRule != null)
+					enclosedAreaLayerMap.put(layer, enclosedAreaRule);
+			}
 	    }
 
 		// initialize all cells for hierarchical network numbering
@@ -569,9 +574,9 @@ public class Quick
 		if (np instanceof PrimitiveNode && np == Generic.tech.cellCenterNode)
 			return false;
 
-		// Check the area first
-		boolean ret = checkMinArea(ni);
-		if (ret && onlyFirstError) return true;
+		// Check the area first but only when is not incremental
+		if (!onlyFirstError)
+			checkMinArea(ni);
 
 		// get all of the polygons on this node
 		//NodeProto.Function fun = ni.getFunction();
@@ -592,7 +597,7 @@ public class Quick
 			// determine network for this polygon
 			int netNumber = getDRCNetNumber(netlist, poly.getPort(), ni, globalIndex);
 
-			ret = badBox(poly, layer, netNumber, tech, ni, trans, cell, globalIndex);
+			boolean ret = badBox(poly, layer, netNumber, tech, ni, trans, cell, globalIndex);
 			if (ret)
 			{
 				if (onlyFirstError) return true;
