@@ -30,6 +30,7 @@ import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
@@ -1168,10 +1169,19 @@ public abstract class NodeProto extends ElectricObject
 	 */
 	public PortProto findPortProto(String name)
 	{
+		return findPortProto(Name.findName(name));
+	}
+
+	/**
+	 * Routine to find the PortProto that has a particular Name.
+	 * @return the PortProto, or null if there is no PortProto with that name.
+	 */
+	public PortProto findPortProto(Name name)
+	{
 		for (int i = 0; i < ports.size(); i++)
 		{
 			PortProto pp = (PortProto) ports.get(i);
-			if (pp.getProtoName().equals(name))
+			if (pp.getProtoNameLow() == name)
 				return pp;
 		}
 		return null;

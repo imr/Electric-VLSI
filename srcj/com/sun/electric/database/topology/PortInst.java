@@ -77,16 +77,17 @@ public class PortInst
 	 */
 	public PortProto getPortProto() { return portProto; }
 
-    /** 
-     ** Routine to return the equivalent PortProto of this PortInst's PortProto.
-     * This is typically used to find the PortProto in the schematic view.
-     * @return the equivalent PortProto of this PortInst's PortProto, or null if not found.
-     */
+	/** 
+	 ** Routine to return the equivalent PortProto of this PortInst's PortProto.
+	 * This is typically used to find the PortProto in the schematic view.
+	 * @return the equivalent PortProto of this PortInst's PortProto, or null if not found.
+	 */
     public PortProto getProtoEquivalent() 
     {
-        Cell schCell = nodeInst.getProtoEquivalent();
-        if (schCell == null) return null;               // no cell equivalent view
-        return schCell.findPortProto(portProto.getProtoName());
+		return portProto.getEquivalent();
+		//Cell schCell = nodeInst.getProtoEquivalent();
+		//if (schCell == null) return null;               // no cell equivalent view
+		//return schCell.findPortProto(portProto.getProtoName());
     }
     
 	/**

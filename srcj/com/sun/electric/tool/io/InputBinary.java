@@ -833,6 +833,7 @@ public class InputBinary extends Input
 		// process the cell groups
 		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
 		{
+			if (magic <= MAGIC9 && magic >= MAGIC11) continue;
 			Cell cell = nodeProtoList[cellIndex];
 			if (cell == null) continue;
 			if (cell.isBit(cellFlag)) continue;

@@ -34,6 +34,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.text.CellName;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
@@ -534,47 +535,6 @@ public class Cell extends NodeProto
 		return nu;
 	}
 
-	private class NodeInstsIterator implements Iterator
-	{
-		private boolean hasNext;
-		private Iterator uit;
-		private NodeUsage nu;
-		private int i, n;
-
-		NodeInstsIterator()
-		{
-			uit = getUsagesIn();
-			hasNext = false;
-			i = 0;
-			while (!hasNext && uit.hasNext())
-			{
-				nu = (NodeUsage)uit.next();
-				n = nu.getNumInsts();
-				hasNext = n > 0;
-			}
-		}
-
-		public boolean hasNext() { return hasNext; }
-
-		public Object next()
-		{
-			if (!hasNext) uit.next(); // throw NoSuchElementException
-			Object o = nu.getInst(i);
-			i++;
-			hasNext = i < n;
-			while (!hasNext && uit.hasNext())
-			{
-				nu = (NodeUsage)uit.next();
-				n = nu.getNumInsts();
-				hasNext = n > 0;
-				i = 0;
-			}
-			return o;
-		}
-
-		public void remove() { throw new UnsupportedOperationException("NodeInstsIterator.remove()"); };
-	}
-
 	/**
 	 * Routine to indicate that the bounds of this Cell are incorrect because
 	 * a node or arc has been created, deleted, or modified.
@@ -589,122 +549,6 @@ public class Cell extends NodeProto
 	 * @return a Rectangle2D.Double with the bounds of this cell's contents
 	 */
 	public Rectangle2D.Double getBounds()
-	{
-		if (boundsDirty)
-		{
-			// recompute bounds
-			double cellLowX, cellHighX, cellLowY, cellHighY;
-			boundsEmpty = true;
-			cellLowX = cellHighX = cellLowY = cellHighY = 0;
-
-			for(Iterator it = getNodes(); it.hasNext(); )
-			{
-				NodeInst ni = (NodeInst) it.next();
-				if (ni.getProto() == Generic.tech.cellCenter_node) continue;
-				Rectangle2D bounds = ni.getBounds();
-				double lowx = bounds.getMinX();
-				double highx = bounds.getMaxX();
-				double lowy = bounds.getMinY();
-				double highy = bounds.getMaxY();
-				if (boundsEmpty)
-				{
-					boundsEmpty = false;
-					cellLowX = lowx;   cellHighX = highx;
-					cellLowY = lowy;   cellHighY = highy;
-				} else
-				{
-					if (lowx < cellLowX) cellLowX = lowx;
-					if (highx > cellHighX) cellHighX = highx;
-					if (lowy < cellLowY) cellLowY = lowy;
-					if (highy > cellHighY) cellHighY = highy;
-				}
-			}
-			for(Iterator it = arcs.iterator(); it.hasNext(); )
-			{
-				ArcInst ai = (ArcInst) it.next();
-				Rectangle2D bounds = ai.getBounds();
-				double lowx = bounds.getMinX();
-				double highx = bounds.getMaxX();
-				double lowy = bounds.getMinY();
-				double highy = bounds.getMaxY();
-				if (lowx < cellLowX) cellLowX = lowx;
-				if (highx > cellHighX) cellHighX = highx;
-				if (lowy < cellLowY) cellLowY = lowy;
-				if (highy > cellHighY) cellHighY = highy;
-			}
-			elecBounds.x = EMath.smooth(cellLowX);
-			elecBounds.width = EMath.smooth(cellHighX - cellLowX);
-			elecBounds.y = EMath.smooth(cellLowY);
-			elecBounds.height = EMath.smooth(cellHighY - cellLowY);
-			boundsDirty = false;
-		}
-
-		return elecBounds;
-	}
-
-	/**
-	 * Routine to return the bounds of this Cell.
-	 * @return a Rectangle2D.Double with the bounds of this cell's contents
-	 */
-	public Rectangle2D.Double getBoundsByUsage()
-	{
-		if (boundsDirty)
-		{
-			// recompute bounds
-			double cellLowX, cellHighX, cellLowY, cellHighY;
-			boundsEmpty = true;
-			cellLowX = cellHighX = cellLowY = cellHighY = 0;
-
-			for(Iterator it = getNodesByUsage(); it.hasNext(); )
-			{
-				NodeInst ni = (NodeInst) it.next();
-				if (ni.getProto() == Generic.tech.cellCenter_node) continue;
-				Rectangle2D bounds = ni.getBounds();
-				double lowx = bounds.getMinX();
-				double highx = bounds.getMaxX();
-				double lowy = bounds.getMinY();
-				double highy = bounds.getMaxY();
-				if (boundsEmpty)
-				{
-					boundsEmpty = false;
-					cellLowX = lowx;   cellHighX = highx;
-					cellLowY = lowy;   cellHighY = highy;
-				} else
-				{
-					if (lowx < cellLowX) cellLowX = lowx;
-					if (highx > cellHighX) cellHighX = highx;
-					if (lowy < cellLowY) cellLowY = lowy;
-					if (highy > cellHighY) cellHighY = highy;
-				}
-			}
-			for(Iterator it = arcs.iterator(); it.hasNext(); )
-			{
-				ArcInst ai = (ArcInst) it.next();
-				Rectangle2D bounds = ai.getBounds();
-				double lowx = bounds.getMinX();
-				double highx = bounds.getMaxX();
-				double lowy = bounds.getMinY();
-				double highy = bounds.getMaxY();
-				if (lowx < cellLowX) cellLowX = lowx;
-				if (highx > cellHighX) cellHighX = highx;
-				if (lowy < cellLowY) cellLowY = lowy;
-				if (highy > cellHighY) cellHighY = highy;
-			}
-			elecBounds.x = EMath.smooth(cellLowX);
-			elecBounds.width = EMath.smooth(cellHighX - cellLowX);
-			elecBounds.y = EMath.smooth(cellLowY);
-			elecBounds.height = EMath.smooth(cellHighY - cellLowY);
-			boundsDirty = false;
-		}
-
-		return elecBounds;
-	}
-
-	/**
-	 * Routine to return the bounds of this Cell.
-	 * @return a Rectangle2D.Double with the bounds of this cell's contents
-	 */
-	public Rectangle2D.Double getBoundsByArray()
 	{
 		if (boundsDirty)
 		{
@@ -1043,15 +887,6 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to return an Iterator over all NodeInst objects in this Cell.
-	 * @return an Iterator over all NodeInst objects in this Cell.
-	 */
-	public Iterator getNodesByUsage()
-	{
-		return new NodeInstsIterator();
-	}
-
-	/**
 	 * Routine to return the number of NodeInst objects in this Cell.
 	 * @return the number of NodeInst objects in this Cell.
 	 */
@@ -1359,8 +1194,7 @@ public class Cell extends NodeProto
 			for(Iterator cit = lib.getCells(); cit.hasNext(); )
 			{
 				Cell cell = (Cell)cit.next();
-				if (cell.getView() != View.LAYOUT) continue;
-				cell.redoNetworks(connPorts);;
+				cell.redoNetworks(connPorts);
 			}
 		}
 	}

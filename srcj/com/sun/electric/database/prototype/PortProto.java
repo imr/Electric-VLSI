@@ -29,6 +29,7 @@ import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.technology.PrimitivePort;
 
 import java.util.HashMap;
@@ -143,7 +144,7 @@ public abstract class PortProto extends ElectricObject implements Networkable
 
 	// ------------------------ private data --------------------------
 
-	/** The name of this PortProto. */							protected String protoName;
+	/** The name of this PortProto. */							private Name protoName;
 	/** Internal flag bits of this PortProto. */				protected int userBits;
 	/** The parent NodeProto of this PortProto. */				protected NodeProto parent;
 	/** The text descriptor of this PortProto. */				private TextDescriptor descriptor;
@@ -188,6 +189,15 @@ public abstract class PortProto extends ElectricObject implements Networkable
 	}
 
 	/**
+	 * Routine to set the name of this PortProto.
+	 * @param protoName string with new name of this PortProto.
+	 */
+	protected void setProtoName(String protoName)
+	{
+		this.protoName = Name.findName(protoName);
+	}
+
+	/**
 	 * Routine to remove this PortProto from its parent NodeProto.
 	 */
 	public void kill()
@@ -210,10 +220,16 @@ public abstract class PortProto extends ElectricObject implements Networkable
 	// ---------------------- public methods -------------------------
 
 	/**
+	 * Routine to return the Name object of this PortProto.
+	 * @return the Name of this PortProto.
+	 */
+	public Name getProtoNameLow() { return protoName; }
+
+	/**
 	 * Routine to return the name of this PortProto.
 	 * @return the name of this PortProto.
 	 */
-	public String getProtoName() { return protoName; }
+	public String getProtoName() { return protoName.toString(); }
 
 	/**
 	 * Routine to return the parent NodeProto of this PortProto.

@@ -56,7 +56,7 @@ public class PrimitivePort extends PortProto
 		// initialize the parent object
 		super();
 		this.parent = parent;
-		this.protoName = protoName;
+		setProtoName(protoName);
 		setAngle(portAngle);
 		setAngleRange(portRange);
 		setTopology(portTopology);
@@ -192,6 +192,6 @@ public class PrimitivePort extends PortProto
 	 */
 	public String toString()
 	{
-		return "PrimitivePort " + protoName;
+		return "PrimitivePort " + getProtoName();
 	}
 }

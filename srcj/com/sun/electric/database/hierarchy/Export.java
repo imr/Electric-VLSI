@@ -83,7 +83,7 @@ public class Export extends PortProto
 	{
 		// initialize the parent object
 		this.parent = parent;
-		this.protoName = protoName;
+		setProtoName(protoName);
 		setParent(parent);
 		return false;
 	}
@@ -98,7 +98,7 @@ public class Export extends PortProto
 		// initialize this object
 		if (originalPort == null)
 		{
-			System.out.println("Null port on Export " + protoName + " in cell " + parent.describe());
+			System.out.println("Null port on Export " + getProtoName() + " in cell " + parent.describe());
 			return true;
 		}
 		this.originalPort = originalPort;
@@ -258,7 +258,7 @@ public class Export extends PortProto
 			return this;
 		if (equiv == null)
 			return null;
-		return equiv.findPortProto(protoName);
+		return equiv.findPortProto(getProtoNameLow());
 	}
 
 	/**
@@ -267,6 +267,7 @@ public class Export extends PortProto
 	 */
 	public String toString()
 	{
-		return "Export " + protoName;
+
+		return "Export " + getProtoName();
 	}
 }

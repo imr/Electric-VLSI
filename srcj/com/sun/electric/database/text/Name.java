@@ -26,6 +26,7 @@ package com.sun.electric.database.text;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.HashMap;
 
 /**
  * A Name is a text-parsing object for port, node and arc names.
@@ -41,7 +42,7 @@ public class Name
 	/** the name */				private String ns;
 	/** the lowercase name */	private Name lowerCase;
 	/** list of subnames */		private List subnames;
-	/** Map String -> Name */	private static Map allNames;
+	/** Map String -> Name */	private static Map allNames = new HashMap();
 	/** the flags */			private int flags;
 	
 
@@ -183,6 +184,7 @@ public class Name
 	 */
 	private Name(String ns)
 	{
+		//System.out.println("Name <"+ns+"> allocated");
 		this.ns = ns;
 		String lower = ns.toLowerCase();
 		this.lowerCase = (ns.equals(lower) ? this : findTrimmedName(lower));
@@ -278,10 +280,11 @@ public class Name
 		subnames = new ArrayList(baseName.busWidth()*indexList.busWidth());
 		for (int i = 0; i < baseName.busWidth(); i++)
 		{
+			String bs = baseName.subname(i).toString();
 			for (int j = 0; j < indexList.busWidth(); j++)
 			{
-				subnames.set(i*indexList.busWidth()+j,
-					baseName.subname(i).toString()+indexList.subname(j).toString());
+				String is = indexList.subname(j).toString();
+				subnames.add(findTrimmedName(bs+is));
 			}
 
 		}
