@@ -75,13 +75,16 @@ import com.sun.electric.tool.generator.layout.LayoutLib;
  * with the most recent.  Defaults to Integer(0).<br>
  * PARD(name, default) -- get the value of variable name on any NodeInst,
  * starting with the most recent.  Defaults to default.
+ * <P>
+ * This class is thread-safe.
  */
 public class VarContext
 {
 	private static class ValueCache {
+
 		private static class EvalPair {
-			private Variable var;
-			private Object info;
+			private final Variable var;
+			private final Object info;
 			public EvalPair(Variable v, Object i) {var=v;  info=i;}
 			public int hashCode() {return var.hashCode() * info.hashCode();}
 			public boolean equals(Object o) {
@@ -90,14 +93,16 @@ public class VarContext
 				return var==ep.var && info==ep.info;
 			}
 		}
-	    private Map cache = new HashMap();
-		public boolean containsKey(Variable var, Object info) {
+
+	    private final Map cache = new HashMap();
+
+		public synchronized boolean containsKey(Variable var, Object info) {
 			return cache.containsKey(new EvalPair(var, info));
 		}
-		public Object get(Variable var, Object info) {
+		public synchronized Object get(Variable var, Object info) {
 			return cache.get(new EvalPair(var, info));
 		}
-		public void put(Variable var, Object info, Object value) {
+		public synchronized void put(Variable var, Object info, Object value) {
 			EvalPair key = new EvalPair(var, info); 
 			LayoutLib.error(cache.containsKey(key), "duplicate keys in ValueCache?");
 			cache.put(key, value);
@@ -105,17 +110,19 @@ public class VarContext
 	}
     private static final Object FAST_EVAL_FAILED = new Object(); 
 	
-	private VarContext prev;
-    private Nodable ni;
-    private PortInst pi;
+	private final VarContext prev;
+    private final Nodable ni;
+    private final PortInst pi;
     private ValueCache cache;
 
     // ------------------------ private methods -------------------------------
 	// For the global context.
 	private VarContext()
 	{
-		ni = null;
-		prev = this;
+		this.ni = null;
+        this.prev = this;
+        this.pi = null;
+        this.cache = null;
 	}
 
     private VarContext(Nodable ni, VarContext prev, PortInst pi, boolean caching)
@@ -170,8 +177,10 @@ public class VarContext
     private Object fastJavaVarEval(Variable var, Object info) throws EvalException {
     	// Avoid re-computing the value if it is already in the cache.
     	// Use "contains" because the value might be null.
-    	if (cache!=null && cache.containsKey(var, info)) {
-        	return cache.get(var, info); 
+        synchronized(this) {
+            if (cache!=null && cache.containsKey(var, info)) {
+                return cache.get(var, info);
+            }
         }
     	// Avoid calling bean shell if value is just a reference to another
     	// variable.
@@ -205,7 +214,7 @@ public class VarContext
 	/**
 	 * The blank VarContext that is the parent of all VarContext chains.
 	 */
-	public static VarContext globalContext = new VarContext();
+	public static final VarContext globalContext = new VarContext();
 
 	/**
 	 * get a new VarContext that consists of the current VarContext with
@@ -287,7 +296,7 @@ public class VarContext
     }
     
     /** Get rid of the variable cache thereby release its storage */
-    public void deleteVariableCache() {cache=null;}
+    public synchronized void deleteVariableCache() { cache=null; }
 
     // ------------------------------ Variable Evaluation -----------------------
 
@@ -356,7 +365,9 @@ public class VarContext
     			// OK, I give up.  Call the darn bean shell.
         		value = EvalJavaBsh.evalJavaBsh.evalVarObject(var.getObject(), 
                                                               this, info);
-    			if (cache!=null) cache.put(var, info, value);
+                synchronized(this) {
+    			    if (cache!=null) cache.put(var, info, value);
+                }
         	}
         }
         // TODO: if(code == Variable.Code.TCL) { }
