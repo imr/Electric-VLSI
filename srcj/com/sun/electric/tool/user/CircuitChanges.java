@@ -2868,6 +2868,7 @@ public class CircuitChanges
 			for(Iterator it = pinsToPassThrough.iterator(); it.hasNext(); )
 			{
 				Reconnect re = (Reconnect)it.next();
+				if (!re.ni.isLinked()) continue;
 				re.reconnectArcs();
 				re.ni.kill();
 			}
@@ -2885,6 +2886,7 @@ public class CircuitChanges
 			for(Iterator it = arcsToKill.keySet().iterator(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
+				if (!ai.isLinked()) continue;
 				ai.kill();
 			}
 
@@ -4316,9 +4318,10 @@ public class CircuitChanges
             List newArcs = new ArrayList();
 
 			// reconnect the arcs
-            for (Iterator it = reconnectedArcs.iterator(); it.hasNext(); ) {
-
+            for (Iterator it = reconnectedArcs.iterator(); it.hasNext(); )
+            {
                 ReconnectedArc ra = (ReconnectedArc)it.next();
+                if (!ra.reconPi[0].getNodeInst().isLinked() || !ra.reconPi[1].getNodeInst().isLinked()) continue;
                 ArcInst newAi = ArcInst.makeInstance(ra.ap, ra.wid, ra.reconPi[0], ra.recon[0], ra.reconPi[1], ra.recon[1], null);
                 if (newAi == null) continue;
                 if (ra.directional) newAi.setDirectional();
