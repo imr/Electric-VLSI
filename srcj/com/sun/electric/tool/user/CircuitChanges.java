@@ -4264,6 +4264,23 @@ public class CircuitChanges
 			// ensure that the copied cell is the right size
 //			(*el_curconstraint->solve)(newFromCell);
 
+            // Message before the delete!!
+			if (verbose)
+			{
+				if (fromCell.getLibrary() != toLib)
+				{
+					String msg = "";
+					if (move) msg += "Moved "; else
+						 msg += "Copied ";
+					msg += subDescript + fromCell.libDescribe() +
+						" to library " + toLib.getName();
+					System.out.println(msg);
+				} else
+				{
+					System.out.println("Copied " + subDescript + newFromCell.describe());
+				}
+			}
+
 			// if moving, adjust pointers and kill original cell
 			if (move)
 			{
@@ -4310,22 +4327,6 @@ public class CircuitChanges
 				doKillCell(fromCell);
 //				toolturnon(net_tool);
 				fromCell = null;
-			}
-
-			if (verbose)
-			{
-				if (fromCell.getLibrary() != toLib)
-				{
-					String msg = "";
-					if (move) msg += "Moved "; else
-						 msg += "Copied ";
-					msg += subDescript + fromCell.libDescribe() +
-						" to library " + toLib.getName();
-					System.out.println(msg);
-				} else
-				{
-					System.out.println("Copied " + subDescript + newFromCell.describe());
-				}
 			}
 		}
 		return newFromCell;
