@@ -76,7 +76,6 @@ import com.sun.j3d.utils.behaviors.interpolators.TCBKeyFrame;
 import com.sun.j3d.utils.picking.PickCanvas;
 import com.sun.j3d.utils.picking.PickResult;
 import com.sun.j3d.utils.picking.PickIntersection;
-import com.sun.j3d.utils.picking.PickTool;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.j3d.utils.universe.Viewer;
 import com.sun.j3d.utils.universe.ViewingPlatform;
@@ -406,10 +405,8 @@ public class View3DWindow extends JPanel
         objTrans.setCapability(TransformGroup.ALLOW_BOUNDS_READ);
 		objRoot.addChild(objTrans);
 
-		// Create a simple Shape3D node; add it to the scene graph.
-		Background bg = new Background(new Color3f(new Color(User.getColorBackground())));
-		bg.setApplicationBounds(infiniteBounds);
-		objRoot.addChild(bg);
+		// Background
+        J3DUtils.createBackground(objRoot);
 
 		View3DEnumerator view3D = new View3DEnumerator();
 		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, view3D);

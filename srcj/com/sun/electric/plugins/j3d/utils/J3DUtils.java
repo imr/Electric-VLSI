@@ -50,8 +50,9 @@ public final class J3DUtils
 {
     /** standard colors to be used by materials **/         public static final Color3f black = new Color3f(0.0f, 0.0f, 0.0f);
     /** standard colors to be used by materials **/         public static final Color3f white = new Color3f(1.0f, 1.0f, 1.0f);
-    /** Ambiental light **/                 private static Color3fObservable ambientalColor;
-    /** Directional light **/               private static Color3fObservable directionalColor;
+    /** Ambiental light color **/                 private static Color3fObservable ambientalColor;
+    /** Directional light color **/               private static Color3fObservable directionalColor;
+    /** Background color **/                      private static Color3fObservable backgroundColor;
     /** Directional vectors **/              private static Vector3fObservable[] lights = new Vector3fObservable[2]; // = new Vector3f(-1.0f, -1.0f, -1.0f);
 
     public static final BoundingSphere infiniteBounds = new BoundingSphere(new Point3d(), Double.MAX_VALUE);
@@ -81,7 +82,7 @@ public final class J3DUtils
     }
 
     /**
-     * Observer class for directional class
+     * Observer class for directional light
      */
     private static class DirectionalLightObserver extends DirectionalLight implements Observer
     {
@@ -136,6 +137,24 @@ public final class J3DUtils
         public AmbientLightObserver(Color3f color3f)
         {
             super(color3f);
+        }
+        public void update(Observable o, Object arg)
+        {
+            if (arg != null && arg instanceof Color3f)
+            {
+                // change the color
+                setColor((Color3f)arg);
+            }
+        }
+    }
+
+    private static class BackgroundObserver extends Background implements Observer
+    {
+        public BackgroundObserver(Color3f color3f)
+        {
+            super(color3f);
+            setCapability(Background.ALLOW_COLOR_WRITE);
+            setCapability(Background.ALLOW_COLOR_READ);
         }
         public void update(Observable o, Object arg)
         {
@@ -233,6 +252,31 @@ public final class J3DUtils
             directionalColor = new Color3fObservable(userColor);
         else if (initValue == null)
             directionalColor.setValue(userColor);
+    }
+
+    /**
+     * Method to set background color
+     * @param initValue null if value has to be redone from user data
+     */
+    public static void setBackgroundColor(Object initValue)
+    {
+        Color3f userColor = new Color3f(new Color(User.getColorBackground()));
+        if (backgroundColor == null)
+            backgroundColor = new Color3fObservable(userColor);
+        else if (initValue == null)
+            backgroundColor.setValue(userColor);
+    }
+
+    /** Create the background node based on given background color
+     * @param scene
+     */
+    public static void createBackground(BranchGroup scene)
+    {
+        setBackgroundColor(scene);
+        BackgroundObserver bg = new BackgroundObserver(backgroundColor.getValue());
+        backgroundColor.addObserver(bg);
+		bg.setApplicationBounds(infiniteBounds);
+		scene.addChild(bg);
     }
 
     /**

@@ -868,6 +868,8 @@ public class User extends Listener
 	public static void setColorBackground(int c)
 	{
 		cacheColorBackground.setInt(c);
+        Color color = new Color(c);
+
 		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
@@ -875,9 +877,21 @@ public class User extends Listener
 			{
 				EditWindow wnd = (EditWindow)wf.getContent();
 				PixelDrawing offscreen = wnd.getOffscreen();
-				offscreen.setBackgroundColor(new Color(c));
+				offscreen.setBackgroundColor(color);
 			}
 		}
+
+        // 3D case. Uses observer/observable pattern so doesn't make sense to call every single 3D ViewWindow
+        // and update
+        try
+        {
+            Class j3DUtilsClass = Resources.get3DClass("utils.J3DUtils");
+            Method setMethod = j3DUtilsClass.getDeclaredMethod("setBackgroundColor", new Class[] {Object.class});
+            setMethod.invoke(j3DUtilsClass, new Object[]{null});
+        } catch (Exception e) {
+            System.out.println("Cannot call 3D plugin method setBackgroundColor: " + e.getMessage());
+            e.printStackTrace();
+        }
 	}
 
 	private static Pref cacheColorGrid = Pref.makeIntPref("ColorGrid", User.tool.prefs, Color.BLACK.getRGB());
@@ -1007,6 +1021,7 @@ public class User extends Listener
             setMethod.invoke(j3DAppClass, new Object[]{null});
         } catch (Exception e) {
             System.out.println("Cannot call 3D plugin method setHighlightedAppearanceValues: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -1032,6 +1047,7 @@ public class User extends Listener
             setMethod.invoke(j3DUtilsClass, new Object[]{null});
         } catch (Exception e) {
             System.out.println("Cannot call 3D plugin method setAmbientalColor: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -1057,6 +1073,7 @@ public class User extends Listener
             setMethod.invoke(j3DUtilsClass, new Object[]{null});
         } catch (Exception e) {
             System.out.println("Cannot call 3D plugin method setDirectionalColor: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -1083,6 +1100,7 @@ public class User extends Listener
             setMethod.invoke(j3DUtilsClass, new Object[]{null});
         } catch (Exception e) {
             System.out.println("Cannot call 3D plugin method setDirection: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -1108,6 +1126,7 @@ public class User extends Listener
             setMethod.invoke(j3DUtilsClass, new Object[]{null});
         } catch (Exception e) {
             System.out.println("Cannot call 3D plugin method setAxisAppearanceValues: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
