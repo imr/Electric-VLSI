@@ -386,7 +386,7 @@ public class Verilog extends Topology
 				Variable varTemplate = niProto.getVar(VERILOG_TEMPLATE_KEY);
 				if (varTemplate != null)
 				{
-					writeTemplate((String)varTemplate.getObject(), no, cni);
+					writeTemplate((String)varTemplate.getObject(), no, cni, context);
 					continue;
 				}
 			}
@@ -660,7 +660,7 @@ public class Verilog extends Topology
 		return positive;
 	}
 
-	private void writeTemplate(String line, Nodable no, CellNetInfo cni)
+	private void writeTemplate(String line, Nodable no, CellNetInfo cni, VarContext context)
 	{
 		// special case for Verilog templates
 		Netlist netList = cni.getNetList();
@@ -705,7 +705,7 @@ public class Verilog extends Topology
 				}
 				if (var == null) infstr.append("??"); else
 				{
-					infstr.append(var.getPureValue(-1,-1));
+                    infstr.append(context.evalVar(var));
 				}
 			}
 		}
@@ -884,7 +884,8 @@ public class Verilog extends Topology
 		while (s.length() > MAXDECLARATIONWIDTH)
 		{
 			int lastSpace = s.lastIndexOf(' ', MAXDECLARATIONWIDTH);
-			if (lastSpace < 0) lastSpace = MAXDECLARATIONWIDTH;
+            //if (lastSpace < 0) lastSpace = MAXDECLARATIONWIDTH;
+            if (lastSpace < 0) lastSpace = s.length();
 			printWriter.print(s.substring(0, lastSpace) + "\n      ");
 			while (lastSpace+1 < s.length() && s.charAt(lastSpace) == ' ') lastSpace++;
 			s = s.substring(lastSpace);
