@@ -175,6 +175,14 @@ public class EvalJavaBsh
      * @return the evaluated object.
      */
     public synchronized Object eval(Object obj, VarContext context, Object info) {
+        if (obj instanceof String[]) {
+            // concatentate arrayed strings
+            String[] strArray = (String[])obj;
+            StringBuffer buf = new StringBuffer();
+            for (int i=0; i<strArray.length; i++) buf.append(strArray[i]);
+            obj = buf;
+        }
+
         String expr = replace(obj.toString());  // change @var calls to P(var)
         if (context == null) context = VarContext.globalContext;
         // check for infinite recursion
