@@ -31,22 +31,13 @@ import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.menus.MenuBar;
 import com.sun.electric.tool.user.menus.FileMenu;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.Toolkit;
-import java.awt.Cursor;
-import java.awt.Rectangle;
-import java.awt.GraphicsConfiguration;
+import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Iterator;
-import javax.swing.JFrame;
-import javax.swing.JDesktopPane;
-import javax.swing.JInternalFrame;
-import javax.swing.UIManager;
-import javax.swing.ImageIcon;
+import javax.swing.*;
 
 
 /**
@@ -130,6 +121,16 @@ public class TopLevel extends JFrame
 		}
 
 		cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
+
+		// For 3D: LightWeight v/s heavy: mixing awt and swing
+		try {
+			javax.swing.JPopupMenu.setDefaultLightWeightPopupEnabled(false);
+			javax.swing.ToolTipManager.sharedInstance().setLightWeightPopupEnabled(false);
+			enableEvents(AWTEvent.WINDOW_EVENT_MASK);
+		}
+		catch (Exception e) {
+			JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+		}
 	}
 
 	/**

@@ -25,7 +25,6 @@ package com.sun.electric;
 
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.constraint.Layout;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.variable.EvalJavaBsh;
@@ -35,13 +34,10 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.menus.MenuCommands;
-import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.HelpMenu;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.help.HelpViewer;
-import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.BorderLayout;
