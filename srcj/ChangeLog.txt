@@ -4,6 +4,9 @@ FIX/IMP (8/19/04, RK) NCC check's assertions: exportsConnectedByParent. It turns
 
 ************************* Version 8.01h: *********************************
 
+BUG: (8/18/04, SMR) Reading ELIB files with cell-centers that are not at the origin places geometry badly.
+FIX: In "tool.io.input.ELIB.realizeNode()" must offset the anchor values by (xoff,yoff).
+
 BUG: (8/18/04, SMR) "Show Ports On Node" and "Show Exports" display incorrectly when zoomed in.
 FIX: Determines visible ports before arranging them on the display.
 

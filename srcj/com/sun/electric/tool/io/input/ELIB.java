@@ -726,7 +726,6 @@ public class ELIB extends LibraryFiles
 
 			int index = tech.getIndex();
 			techScale[index] = lambda;
-//System.out.println("Library "+lib.getName()+" technology "+tech.getTechName()+" lambda is "+lambda);
 			if (topLevelLibrary)
 			{
 				String varName = tech.getScaleVariableName();
@@ -1483,8 +1482,8 @@ public class ELIB extends LibraryFiles
 		Point2D center = new Point2D.Double(((lowX + highX) / 2) / lambdaX, ((lowY + highY) / 2) / lambdaY);
 		double width = (highX - lowX) / lambdaX;
 		double height = (highY - lowY) / lambdaY;
-        double anchorX = nodeInstList.anchorX[i] / lambdaX;
-        double anchorY = nodeInstList.anchorY[i] / lambdaY;
+        double anchorX = (nodeInstList.anchorX[i]-xoff) / lambdaX;
+        double anchorY = (nodeInstList.anchorY[i]-yoff) / lambdaY;
 		if (np instanceof Cell)
 		{
 			Cell subCell = (Cell)np;
