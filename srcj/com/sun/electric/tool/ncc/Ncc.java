@@ -46,23 +46,18 @@ public class Ncc {
 			return new NccResult(true, true, true, null);
 		} else {
 	    	Date before = new Date();
-			NccResult result = new NccResult(false, false, false, null);
-			if (options.operation==NccOptions.FLAT_TOP_CELL) {
-				prln("Flat NCC top cell");
-				result = NccUtils.compareAndPrintStatus(cell1, ctxt1, cell2, 
-														ctxt2, null, options);
-			} else if (options.operation==NccOptions.FLAT_EACH_CELL) {
-				prln("Flat NCC every cell in the design");
-				result = NccBottomUp.compare(cell1, cell2, 
-				                             false, options.skipPassed, options);
-			} else if (options.operation==NccOptions.HIER_EACH_CELL) {
-				prln("Hierarchical NCC every cell in the design");
-				result = NccBottomUp.compare(cell1, cell2, 
-	                                         true, options.skipPassed, options);
-			} else {
+			switch (options.operation) {
+			  case NccOptions.FLAT_TOP_CELL:
+				prln("Flat NCC top cell"); break;
+			  case NccOptions.FLAT_EACH_CELL:
+				prln("Flat NCC every cell in the design"); break;
+			  case NccOptions.HIER_EACH_CELL:
+				prln("Hierarchical NCC every cell in the design"); break;
+			  default:
 				LayoutLib.error(true, "bad operation: "+options.operation);
-				return result;
 			}
+			NccResult result = NccBottomUp.compare(cell1, cell2, options); 
+
 			System.out.println("Summary for all cells: "+result.summary(options.checkSizes));
 			Date after = new Date();
 			System.out.println("NCC command completed in: "+

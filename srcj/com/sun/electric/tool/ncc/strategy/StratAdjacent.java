@@ -97,7 +97,7 @@ public class StratAdjacent extends Strategy {
 	
 	/** The real output of this method is what it adds to adjacent */
     public LeafList doFor(EquivRecord g){
-		if(g.isLeaf()){
+		if(g.isLeaf()) {
 			numEquivProcessed++;
 			addAdjacentEquivRecs(g);
 //			String s= ("processed " + g.nameString());

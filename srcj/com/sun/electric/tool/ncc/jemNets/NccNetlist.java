@@ -243,81 +243,6 @@ class ExportGlobal {
 	}
 }
 
-
-
-/** Iterate over a Cell's Exports and global signals. This is useful because
- * NCC creates a Port for each of them. 
- * <p>TODO: RK This was a stupid idea. The next time this has a bug delete it and 
- * replace it with a straightforward loop that returns a list!!! */
-//class ExportGlobalIter {
-//	private final int CHECK_EXPORT = 0;
-//	private final int INIT_GLOBAL = 1;
-//	private final int CHECK_BIT_IN_BUS = 2;
-//	private final int CHECK_GLOBAL = 3;
-//	private final int DONE = 4;
-//	private CellInfo info;
-//	private Iterator expIt;
-//	private Export export;
-//	private int[] expNetIDs;
-//	private int bitInBus;
-//	private Global.Set globals;
-//	private int globNdx;
-//	private int state = CHECK_EXPORT;
-//	private ExportGlobal current;
-//	
-//	private void advance() {
-//		switch (state) {
-//		  case CHECK_EXPORT:
-//			if (!expIt.hasNext()) {
-//				state=INIT_GLOBAL;  advance();  break;
-//			}
-//			export = (Export) expIt.next();
-//			expNetIDs = info.getExportNetIDs(export);
-//			bitInBus = 0;
-//		  case CHECK_BIT_IN_BUS:
-//			if (bitInBus>=expNetIDs.length) {
-//				state=CHECK_EXPORT;  advance();  break;
-//			}
-//			Name nameKey = export.getNameKey();
-//			current = new ExportGlobal(nameKey.subname(bitInBus).toString(),
-//									   expNetIDs[bitInBus],
-//									   export.getCharacteristic());
-//			bitInBus++;
-//			state=CHECK_BIT_IN_BUS;  break;
-//		  case INIT_GLOBAL:
-//			globals = info.getNetlist().getGlobals();
-//			globNdx = 0;
-//		  case CHECK_GLOBAL:
-//			if (globNdx>=globals.size()) {
-//				state=DONE;  break;
-//			}
-//			Global global = globals.get(globNdx);
-//			Network net = info.getNetlist().getNetwork(global);
-//			current = new ExportGlobal(global.getName(),
-//									   info.getNetID(net),
-//									   globals.getCharacteristic(global));
-//			globNdx++;
-//			state=CHECK_GLOBAL;  break;
-//		  case DONE:
-//		  	state=DONE;  break;
-//		  default:
-//		  	LayoutLib.error(true, "no such state!");
-//		}
-//	}
-//	public ExportGlobalIter(CellInfo info) {
-//		this.info = info;
-//		expIt = info.getCell().getPorts();
-//		advance();
-//	}
-//	public boolean hasNext() {return state!=DONE;}
-//	public ExportGlobal next() {
-//		LayoutLib.error(state==DONE, "next() called when DONE");
-//		ExportGlobal e = current;
-//		advance();
-//		return e;
-//	}
-//}
-
 class Visitor extends HierarchyEnumerator.Visitor {
 	// --------------------------- private data -------------------------------
 	private static final boolean debug = false;
@@ -405,38 +330,55 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		return wires.get(netIDs[0], info);
 	}
 	
-	private boolean isInstanceOfSchematicPrimitive(NodeInst ni) {
+	private boolean isSchematicPrimitive(NodeInst ni) {
 		return ni.getProto().getTechnology()==SCHEMATIC;
 	}
 	
+	/** @return true if NMOS schematic or layout primitive */
 	private boolean isNmosPrimitive(NodeInst ni) {
 		PrimitiveNode.Function func = ni.getFunction();
-
-		if (func==PrimitiveNode.Function.TRA4NMOS ||
-	        func==PrimitiveNode.Function.TRANMOS) {
-			return true;
-		} else {
-			LayoutLib.error(func!=PrimitiveNode.Function.TRA4PMOS &&
-			                func!=PrimitiveNode.Function.TRAPMOS,
-							"Not NMOS or PMOS Primitive Node");
-			return false;
-		}
+		return func==PrimitiveNode.Function.TRA4NMOS ||
+	           func==PrimitiveNode.Function.TRANMOS;
 	}
-	
-	private Transistor.Type getTransistorType(NodeInst ni) {
+	/** @return true if PMOS schematic or layout primitive */
+	private boolean isPmosPrimitive(NodeInst ni) {
+		PrimitiveNode.Function func = ni.getFunction();
+		return func==PrimitiveNode.Function.TRA4PMOS ||
+               func==PrimitiveNode.Function.TRAPMOS;
+	}
+	/** @return true if NPN schematic or layout primitive */
+	private boolean isNpnPrimitive(NodeInst ni) {
+		PrimitiveNode.Function func = ni.getFunction();
+		return func==PrimitiveNode.Function.TRANPN ||
+               func==PrimitiveNode.Function.TRA4NPN;
+	}
+	/** @return true if PNP schematic or layout primitive */
+	private boolean isPnpPrimitive(NodeInst ni) {
+		PrimitiveNode.Function func = ni.getFunction();
+		return func==PrimitiveNode.Function.TRAPNP ||
+               func==PrimitiveNode.Function.TRA4PNP;
+	}
+	private Mos.Type getMosType(NodeInst ni) {
 		String typeNm;
-		if (isInstanceOfSchematicPrimitive(ni)) {
+		if (isSchematicPrimitive(ni)) {
+			// Designer convention:
+			// If the Cell containing a schematic transistor primitive has an  
+			// NCC declaration "transistorType" then get the type information 
+			// from that annotation. Otherwise use the type of the transistor
+			// primitive.
 			Cell parent = ni.getParent();
 			NccCellAnnotations ann = NccCellAnnotations.getAnnotations(parent);
 			typeNm = ann==null ? null : ann.getTransistorType();
 			if (typeNm==null) {
 				// No transistorType annotation. Use defaults.
+				LayoutLib.error(!isNmosPrimitive(ni) && !isPmosPrimitive(ni), 
+						        "not NMOS nor PMOS");
 				typeNm = isNmosPrimitive(ni) ? "N-Transistor" : "P-Transistor";
 			}
 		} else {
 			typeNm = ni.getProto().getName();
 		}
-		Transistor.Type t = Transistor.TYPES.getTypeFromLongName(typeNm);
+		Mos.Type t = Mos.TYPES.getTypeFromLongName(typeNm);
 		if (t==null) {
 			System.out.println("  Unrecognized transistor type: "+typeNm);
 			throw new BadTransistorType();
@@ -444,7 +386,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		return t;
 	}
 
-	private void buildMOS(NodeInst ni, NccCellInfo info) {
+	private void buildMos(NodeInst ni, NccCellInfo info) {
 		NodableNameProxy np = info.getUniqueNodableNameProxy(ni, "/");
 		PartNameProxy name = new PartNameProxy(np, pathPrefix); 
 		double width=0, length=0;
@@ -456,15 +398,38 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		Wire s = getWireForPortInst(ni.getTransistorSourcePort(), info);
 		Wire g = getWireForPortInst(ni.getTransistorGatePort(), info);
 		Wire d = getWireForPortInst(ni.getTransistorDrainPort(), info);
-		Transistor.Type type = getTransistorType(ni);
-		Part t = new Transistor(type, name, width, length, s, g, d);
+		Mos.Type type = getMosType(ni);
+		Part t = new Mos(type, name, width, length, s, g, d);
 		parts.add(t);								 
 	}
-	
+	private void buildBipolar(NodeInst ni, NccCellInfo info) {
+		NodableNameProxy np = info.getUniqueNodableNameProxy(ni, "/");
+		PartNameProxy name = new PartNameProxy(np, pathPrefix); 
+		double area=0;
+		if (globals.getOptions().checkSizes) {
+			TransistorSize dim = ni.getTransistorSize(info.getContext());
+			area = dim.getDoubleArea();
+		}
+		Wire e = getWireForPortInst(ni.getTransistorEmitterPort(), info);
+		Wire b = getWireForPortInst(ni.getTransistorBasePort(), info);
+		Wire c = getWireForPortInst(ni.getTransistorCollectorPort(), info);
+		Bipolar.Type type = isNpnPrimitive(ni) ? Bipolar.Type.NPN : Bipolar.Type.PNP;
+		Part t = new Bipolar(type, name, area, e, b, c);
+		parts.add(t);								 
+	}
+	private void buildTransistor(NodeInst ni, NccCellInfo info) {
+		if (isNmosPrimitive(ni) || isPmosPrimitive(ni)) {
+			buildMos(ni, info);
+		} else if (isPnpPrimitive(ni) || isNpnPrimitive(ni)) {
+			buildBipolar(ni, info);
+		} else {
+			LayoutLib.error(true, "Unrecognized primitive transistor");
+		}
+	}
 	private void doPrimitiveNode(NodeInst ni, NodeProto np, NccCellInfo info) {
 		PrimitiveNode.Function func = ni.getFunction();
 		if (ni.isPrimitiveTransistor()) {
-			buildMOS(ni, info);
+			buildTransistor(ni, info);
 		} else if (func==PrimitiveNode.Function.RESIST) {
 //		    error(true, "can't handle Resistors yet");
 		} else {	
@@ -601,7 +566,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			// the root Cell as a primitive.
 			Cell cell = info.getCell();
 			if (!parentSaysFlattenMe(info) &&
-			    hierarchicalCompareInfo!=null && 
+//			    hierarchicalCompareInfo!=null && 
 				hierarchicalCompareInfo.treatAsPrimitive(cell) &&
 				!exportAssertFail) {
 				SubcircuitInfo subcktInfo = 

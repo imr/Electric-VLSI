@@ -32,7 +32,7 @@ import java.util.Set;
 
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.jemNets.Part;
-import com.sun.electric.tool.ncc.jemNets.Transistor;
+import com.sun.electric.tool.ncc.jemNets.Mos;
 import com.sun.electric.tool.ncc.jemNets.Wire;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
@@ -69,7 +69,7 @@ public class SerialParallelMerge {
 			Circuit ckt = (Circuit) it.next();
 			for (Iterator ni=ckt.getNetObjs(); ni.hasNext();) {
 				Wire w = (Wire) ni.next();
-				if (Transistor.joinOnWire(w)) numMerged++;
+				if (Mos.joinOnWire(w)) numMerged++;
 			}
 		}
 		globals.status2("    Serial merged "+numMerged+" Transistors");

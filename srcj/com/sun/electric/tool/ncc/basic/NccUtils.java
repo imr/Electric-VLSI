@@ -121,17 +121,6 @@ public class NccUtils {
 		return cellCtxts;
 	}
 
-//	public static boolean hasSkipAnnotation(Cell c) {
-//		NccCellAnnotations ann = NccCellAnnotations.getAnnotations(c);
-//		if (ann==null) return false;
-//		String reason = ann.getSkipReason();
-//		if (reason!=null) {
-//			System.out.println("Skip NCC of "+NccUtils.fullName(c)+
-//							   " because "+reason);
-//			return true;							   
-//		}
-//		return false;
-//	}
 	/** print hours minutes seconds */
 	public static String hourMinSec(Date start, Date stop) {
 		final int msecPerHour = 1000*60*60;
@@ -149,28 +138,6 @@ public class NccUtils {
 		return time; 
 	}
 	
-	public static NccResult compareAndPrintStatus(Cell cell1, VarContext ctxt1, 
-												  Cell cell2, VarContext ctxt2, 
-							   	                  HierarchyInfo hierInfo,
-							                      NccOptions options) {
-		System.out.println("Comparing: "+NccUtils.fullName(cell1)+
-						   " with: "+NccUtils.fullName(cell2));
-		System.out.flush();
-		Date before = new Date();
-		NccResult result = NccEngine.compare(cell1, ctxt1, 
-		                                     cell2, ctxt2,  
-										     hierInfo, options);
-		if (options.checkNetEquivalenceMap) 
-			result.getNetEquivalence().regressionTest();
-		
-		Date after = new Date();
-
-		String timeStr = hourMinSec(before, after);
-		System.out.println(result.summary(options.checkSizes)+" in "+timeStr+".");
-		System.out.flush();
-
-		return result;
-	}
 	public static boolean buildBlackBoxes(CellContext c1, CellContext c2,
 								          HierarchyInfo hierInfo, 
 								          NccOptions options) {
@@ -193,12 +160,6 @@ public class NccUtils {
 		return absWidErr<=opt.absoluteSizeTolerance || 
 		       relWidErr<=opt.relativeSizeTolerance;
 	}
-//	public static String removePathPrefix(String path, String prefix) {
-//		if (prefix.length()==0) return path;
-//		LayoutLib.error(!path.startsWith(prefix), "path doesn't contain prefix");
-//		// I add one to remove the leading '/' from returned path
-//		return path.substring(prefix.length()+1);
-//	}
     /** Wait forever. This allows me to explore memory usage */
     public static void hang(String msg) {
 //        final long YEAR = 1000*60*60*24*365;

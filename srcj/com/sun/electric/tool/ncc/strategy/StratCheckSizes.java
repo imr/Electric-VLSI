@@ -37,7 +37,7 @@ import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.jemNets.NetObject;
 import com.sun.electric.tool.ncc.jemNets.Part;
 import com.sun.electric.tool.ncc.jemNets.Subcircuit;
-import com.sun.electric.tool.ncc.jemNets.Transistor;
+import com.sun.electric.tool.ncc.jemNets.Mos;
 import com.sun.electric.tool.ncc.lists.LeafList;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
@@ -47,8 +47,8 @@ public class StratCheckSizes extends Strategy {
 		private StringBuffer sb = new StringBuffer();
 		private void aln(String s) {sb.append(s); sb.append("\n");}
 		public final double min, max;
-		public final Transistor minMos, maxMos;
-		Mismatch(double min, Transistor minMos, double max, Transistor maxMos) {
+		public final Mos minMos, maxMos;
+		Mismatch(double min, Mos minMos, double max, Mos maxMos) {
 			this.min=min; this.max=max;
 			this.minMos=minMos; this.maxMos=maxMos;
 		}
@@ -71,23 +71,23 @@ public class StratCheckSizes extends Strategy {
 	private static class LengthMismatch extends Mismatch {
 		public String widLen() {return "length";}
 		public String wl() {return "L";}
-		public LengthMismatch(double min, Transistor minMos, double max, 
-				              Transistor maxMos) {
+		public LengthMismatch(double min, Mos minMos, double max, 
+				              Mos maxMos) {
 			super(min, minMos, max, maxMos);
 		}
 	}
 	private static class WidthMismatch extends Mismatch {
 		public String widLen() {return "width";}
 		public String wl() {return "W";}
-		public WidthMismatch(double min, Transistor minMos, double max, 
-				             Transistor maxMos) {
+		public WidthMismatch(double min, Mos minMos, double max, 
+				             Mos maxMos) {
 			super(min, minMos, max, maxMos);
 		}
 	}
 	// ------------------------------ private data -----------------------------
 	private NccOptions options;
 	private double minWidth, maxWidth, minLength, maxLength;
-	private Transistor minWidMos, maxWidMos, minLenMos, maxLenMos;
+	private Mos minWidMos, maxWidMos, minLenMos, maxLenMos;
 	private List mismatches = new ArrayList();
 	
     private StratCheckSizes(NccGlobals globals) {
@@ -147,8 +147,8 @@ public class StratCheckSizes extends Strategy {
 		if (p instanceof Subcircuit) {
 			minWidth = maxWidth = minLength = maxLength = 1;
 		} else {
-			globals.error(!(p instanceof Transistor), "unimplemented part type");
-			Transistor t = (Transistor) p;
+			globals.error(!(p instanceof Mos), "unimplemented part type");
+			Mos t = (Mos) p;
 			double w = t.getWidth();
 			if (w<minWidth) {minWidth=w;  minWidMos=t;}
 			if (w>maxWidth) {maxWidth=w;  maxWidMos=t;}

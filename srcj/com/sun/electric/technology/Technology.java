@@ -1363,6 +1363,12 @@ public class Technology implements Comparable
      * @return a PortInst for the gate of the transistor
      */
 	public PortInst getTransistorGatePort(NodeInst ni) { return ni.getPortInst(0); }
+    /**
+     * Method to return a base PortInst for this transistor NodeInst.
+     * @param ni the NodeInst
+     * @return a PortInst for the base of the transistor
+     */
+	public PortInst getTransistorBasePort(NodeInst ni) { return ni.getPortInst(0); }
     
     /**
      * Method to return a source PortInst for this transistor NodeInst.
@@ -1374,6 +1380,12 @@ public class Technology implements Comparable
      * @return a PortInst for the source of the transistor
      */
 	public PortInst getTransistorSourcePort(NodeInst ni) { return ni.getPortInst(1); }
+    /**
+     * Method to return a emitter PortInst for this transistor NodeInst.
+     * @param ni the NodeInst
+     * @return a PortInst for the emitter of the transistor
+     */
+	public PortInst getTransistorEmitterPort(NodeInst ni) { return ni.getPortInst(1); }
 
     /**
      * Method to return a drain PortInst for this transistor NodeInst.
@@ -1389,6 +1401,12 @@ public class Technology implements Comparable
 		if (ni.getProto().getTechnology() == Schematics.tech) return ni.getPortInst(2);
 		return ni.getPortInst(3);
 	}
+    /**
+     * Method to return a collector PortInst for this transistor NodeInst.
+     * @param ni the NodeInst
+     * @return a PortInst for the collector of the transistor
+     */
+	public PortInst getTransistorCollectorPort(NodeInst ni) { return ni.getPortInst(2); }
 
     /**
      * Method to return a bias PortInst for this transistor NodeInst.

@@ -43,7 +43,7 @@ public class Resistor extends Part {
 	}
 
     // ---------- private data -------------
-    private static final int TERM_COEFFS[] = 
+    private static final int PIN_COEFFS[] = 
     	{Primes.get(1), Primes.get(1)}; //resistors are symmetric
     private float resistance;
 
@@ -63,8 +63,7 @@ public class Resistor extends Part {
 
     // ---------- abstract commitment ----------
 
-	public boolean isThisGate(int x){return false;}
-    public int[] getTermCoefs(){return TERM_COEFFS;}
+    public int[] getPinCoeffs(){return PIN_COEFFS;}
 	public String valueDescription(){
 		String sz= "R= " + resistance;
 		return sz;
@@ -83,7 +82,7 @@ public class Resistor extends Part {
 	 * @param w the Wire to test
 	 * @return false because Resistors don't have gates.
 	 */
-    public boolean touchesAtGate(Wire w){return false;}
+//    public boolean touchesAtGate(Wire w){return false;}
 	
     public void connect(Wire ss, Wire ee){
         pins[0] = ss;

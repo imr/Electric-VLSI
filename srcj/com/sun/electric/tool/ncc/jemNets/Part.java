@@ -39,7 +39,8 @@ public abstract class Part extends NetObject {
 
 	protected static final int RESISTOR = 0;
 	protected static final int TRANSISTOR = 1;
-	protected static final int SUBCIRCUIT = 2;
+	protected static final int BIPOLAR = 2;
+	protected static final int SUBCIRCUIT = 3;
 	protected static final int TYPE_FIELD_WIDTH = 4;
 	
     // ---------- private data -------------
@@ -48,10 +49,8 @@ public abstract class Part extends NetObject {
 
     // ---------- private methods ----------
 
-	/** 
-	 * @param name the name of this Part
-	 * @param pins terminals of this Part
-	 */
+	/** @param name the name of this Part
+	 * @param pins terminals of this Part */
     protected Part(PartNameProxy name, Wire[] pins){
     	nameProxy = name;
 		this.pins = pins;
@@ -64,32 +63,24 @@ public abstract class Part extends NetObject {
 	public PartNameProxy getNameProxy() {return nameProxy;}
     public Type getNetObjType() {return Type.PART;}
 
-	/** 
-	 * Here is the accessor for the number of terminals on this Part
-	 * @return the number of terminals on this Part, usually a small number.
-	 */
+	/** Here is the accessor for the number of terminals on this Part
+	 * @return the number of terminals on this Part, usually a small number. */
 	public int numPins() {return pins.length;}
 
-	/** 
-	 * Here is an accessor method for the coefficiant array for this
+	/**  Here is an accessor method for the coefficiant array for this
 	 * Part.  The terminal coefficients are used to compute new hash
 	 * codes.
-	 * @return the array of terminal coefficients for this Part
-	 */
-	public abstract int[] getTermCoefs(); //the terminal coeficients
+	 * @return the array of terminal coefficients for this Part*/
+	public abstract int[] getPinCoeffs(); 
 
-	/** 
-	 * This method attempts to merge this Part in parallel with another Part
+	/** This method attempts to merge this Part in parallel with another Part
 	 * @param p the other Part with which to merge
-	 * @return true if merge was successful, false otherwise
-	 */
+	 * @return true if merge was successful, false otherwise */
 	public abstract boolean parallelMerge(Part p);
-	/**
-	 * Compute a hash code for this part for the purpose of performing
+	/** Compute a hash code for this part for the purpose of performing
 	 * parallel merge. If two parallel Parts should be merged into one then
 	 * hashCodeForParallelMerge() must return the same value for both
-	 * Parts. 
-	 */
+	 * Parts. */
 	public abstract Integer hashCodeForParallelMerge();
 	
     /** Mark this Part deleted and release all storage */
@@ -119,27 +110,12 @@ public abstract class Part extends NetObject {
         return numConnected;
     }
 
-	/** 
-	 * A method to test if this Part touches a Wire with a gate connection.
-	 * Transistors that have gates must provide touchesAtGate.
-	 * @param w the Wire to test
-	 * @return true if a gate terminal of this Part touches the Wire
-	 */
-    public abstract boolean touchesAtGate(Wire w);
-
-	/** 
-	 * isThisGate returns true if the terminal number is a gate.
-	 * @param x the terminal number to test
-	 * @return true if the terminal is a gate, false otherwise
-	 */
-	protected abstract boolean isThisGate(int x);
-	
 	/** Return a set of all the different pin types for this part */
 	public abstract Set getPinTypes();
 	
 	public Integer computeHashCode(){
         int sum= 0;
-        int codes[]= getTermCoefs();
+        int codes[]= getPinCoeffs();
 		for(int i=0; i<pins.length; i++) {
 			Wire w = pins[i];
             sum += w.getCode() * codes[i];
@@ -147,16 +123,14 @@ public abstract class Part extends NetObject {
         return new Integer(sum);
     }
 
-	/** 
-	 * The Part must compute a hash code contribution for a Wire to
+	/**  The Part must compute a hash code contribution for a Wire to
 	 * use.  because the Wire doesn't know how it's connected to this
 	 * Part and multiple connections are allowed.
 	 * @param w the Wire for which a hash code is needed
-	 * @return an int with the code contribution.
-	 */
+	 * @return an int with the code contribution. */
     public int getHashFor(Wire w){
         int sum= 0;
-        int codes[]= getTermCoefs();
+        int codes[]= getPinCoeffs();
 		for(int i=0; i<pins.length; i++){
 			Wire x= pins[i];
 			error(x==null, "null wire?");
@@ -165,11 +139,9 @@ public abstract class Part extends NetObject {
         return sum;
     }
 	
-	/** 
-	 * check that this Part is in proper form
+	/** check that this Part is in proper form
 	 * complain if it's wrong
-	 * @return true if all OK, false if there's a problem
-	 */
+	 * @return true if all OK, false if there's a problem */
 	public void checkMe(Circuit parent){
 		error(parent!=getParent(), "wrong parent");
 		for(int i=0; i<pins.length; i++){
@@ -179,12 +151,10 @@ public abstract class Part extends NetObject {
 		}
     }
 	
-	/** 
-	 * Get the number of distinct Wires this part is connected to.
+	/**  Get the number of distinct Wires this part is connected to.
 	 * For example, if all pins are connected to the same Wire then return 1.
 	 * This method is only used for sanity checking by StratCount.
-	 * @return the number of distinct Wires to which this Part is connected 
-	 */
+	 * @return the number of distinct Wires to which this Part is connected */
 	public int getNumWiresConnected() {
 		HashSet wires = new HashSet();
 		for (int i=0; i<pins.length; i++)  wires.add(pins[i]);

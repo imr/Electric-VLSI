@@ -50,13 +50,13 @@ public class Subcircuit extends Part {
 		}
 		public String description() {return description;}
 	}
-	private final int[] termCoeffs;
+	private final int[] pinCoeffs;
 	private final SubcircuitInfo subcircuitInfo;
 	
 	private String getPortName(int i) {return subcircuitInfo.getPortName(i);}
 	
 	public String valueDescription() {return "";}
-	public int[] getTermCoefs() {return termCoeffs;}
+	public int[] getPinCoeffs() {return pinCoeffs;}
 	public boolean parallelMerge(Part p) {return false;}
 	
 	/** I never parallel merge subcircuits so this really doesn't matter. */
@@ -65,7 +65,7 @@ public class Subcircuit extends Part {
 		int hc = pins.length;
 		// include what's connected
 		for (int i=0; i<pins.length; i++)  
-			hc += pins[i].hashCode() * termCoeffs[i];
+			hc += pins[i].hashCode() * pinCoeffs[i];
 		// include the class
 		hc += getClass().hashCode();
 		// include subcircuit ID
@@ -78,8 +78,6 @@ public class Subcircuit extends Part {
 		return Part.SUBCIRCUIT + 
 		       (subcircuitInfo.getID() << Part.TYPE_FIELD_WIDTH);
 	}
-	public boolean touchesAtGate(Wire w) {return false;}
-	public boolean isThisGate(int x) {return false;}
 	public Set getPinTypes() {
 		Set types = new HashSet();
 		// Assume that each pin on a subcircuit is unique. That is no
@@ -114,6 +112,6 @@ public class Subcircuit extends Part {
 	                  Wire[] pins) {
 		super(instName, pins);
 		this.subcircuitInfo = subcircuitInfo;
-		termCoeffs = subcircuitInfo.getPortCoeffs();
+		pinCoeffs = subcircuitInfo.getPortCoeffs();
 	}
 }

@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: Transistor.java
+ * File: Mos.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -38,7 +38,7 @@ import com.sun.electric.tool.ncc.trees.Circuit;
 
 /** One or more MOS transistors in series. All gates have the same width
  * and length. */
-public class Transistor extends Part {
+public class Mos extends Part {
 	public static class Type {
 		private String name;
 		private int ordinal;
@@ -93,8 +93,8 @@ public class Transistor extends Part {
 		private final boolean cap;
 
 		public int numConnectionsToPinOfThisType(Part p, Wire w) {
-			if (!(p instanceof Transistor)) return 0;
-			Transistor t = (Transistor) p;
+			if (!(p instanceof Mos)) return 0;
+			Mos t = (Mos) p;
 			if (t.getType()!=np) return 0;
 			if (t.numSeries()!=numSeries) return 0;
 			if (cap!=t.isCapacitor()) return 0;
@@ -136,8 +136,8 @@ public class Transistor extends Part {
 		private final boolean cap;
 
 		public int numConnectionsToPinOfThisType(Part p, Wire w) {
-			if (!(p instanceof Transistor)) return 0;
-			Transistor t = (Transistor) p;
+			if (!(p instanceof Mos)) return 0;
+			Mos t = (Mos) p;
 			if (t.getType()!=np) return 0;
 			if (t.numSeries()!=numSeries) return 0;
 			if (cap!=t.isCapacitor()) return 0;
@@ -198,41 +198,6 @@ public class Transistor extends Part {
 		return pinTypes;
 	}
 	
-//	private static final List PIN_TYPES = new ArrayList();
-//	static {
-//		for (Iterator it=TYPES.iterator(); it.hasNext();) {
-//			Type type = (Type) it.next(); 
-//			List tList = new ArrayList();
-//			PIN_TYPES.add(tList);
-//			for (int j=0; j<2; j++) {
-//				List cList = new ArrayList();
-//				tList.add(cList);
-//				boolean cap = j==0 ? false : true;
-//				for (int numSeries=1; numSeries<=12; numSeries++) {
-//					Set pinTypes = new HashSet();
-//					cList.add(pinTypes);
-//					
-//					pinTypes.add(new DiffType(type, numSeries, cap));
-//
-//					int maxHeight = (numSeries+1) / 2;
-//					for (int gateHeight=1; gateHeight<=maxHeight; gateHeight++) {
-//						pinTypes.add(new GateType(type, numSeries, gateHeight, cap));
-//					}
-//				}
-//			}
-//		}
-//	}
-//	public Set getPinTypes() {
-//		int t = type.getOrdinal();
-//		ArrayList l1 = (ArrayList) PIN_TYPES.get(t);
-//		int c = isCapacitor() ? 1 : 0;
-//		ArrayList l2 = (ArrayList) l1.get(c);
-//		int s = numSeries()-1;
-//		Set pinTypes = (Set) l2.get(s); 
-//		return pinTypes;
-//	}
-
-
 	/** Generate arrays of pin coefficients on demand. Share these arrays
 	 * between identically sized Transistors */
 	private static class CoeffGen {
@@ -262,38 +227,38 @@ public class Transistor extends Part {
 	}
 
     // ---------- private data -------------
-    private final int[] term_coeffs;
+    private final int[] pin_coeffs;
     private double width;
     private final double length;
     private final Type type;
     
     // ---------- private methods ----------
 	/** Stack of series transistors */
-	private Transistor(Type np, PartNameProxy name, double width, double length,
-					   Wire[] pins) {
+	private Mos(Type np, PartNameProxy name, double width, double length,
+				Wire[] pins) {
 		super(name, pins);
 		type = np;
 		this.width = width;
 		this.length = length;
 		LayoutLib.error(type==null, "null type?");
 		
-		term_coeffs = CoeffGen.getCoeffArray(pins.length);
+		pin_coeffs = CoeffGen.getCoeffArray(pins.length);
 	}
 
-	private boolean matchForward(Transistor t) {
+	private boolean matchForward(Mos t) {
 		for (int i=0; i<pins.length; i++) {
 			if (pins[i]!=t.pins[i]) return false;
 		}
 		return true;
 	}
-	private boolean matchReverse(Transistor t) {
+	private boolean matchReverse(Mos t) {
 		for (int i=0; i<pins.length; i++) {
 			int j = pins.length-1-i;
 			if (pins[i]!=t.pins[j]) return false;
 		}
 		return true;
 	}
-	private boolean samePinsAs(Transistor t) {
+	private boolean samePinsAs(Mos t) {
 		if (pins.length!=t.pins.length) return false;
 		return matchForward(t) || matchReverse(t);
 	}
@@ -311,7 +276,7 @@ public class Transistor extends Part {
     // ---------- public methods ----------
 
 	/** The standard 3 terminal Transistor. */
-	public Transistor(Type np, PartNameProxy name, double width, double length,
+	public Mos(Type np, PartNameProxy name, double width, double length,
 					  Wire src, Wire gate, Wire drn) {
 		this(np, name, width, length, new Wire[] {src, gate, drn});
 	}
@@ -319,18 +284,17 @@ public class Transistor extends Part {
     public Type getType() {return type;}
     public double getLength() {return length;}
     public double getWidth() {return width;}
-	public boolean isThisGate(int x){return x!=0 && x!=pins.length-1;}
 	public int numSeries() {return pins.length-2;}
-	public int[] getTermCoefs() {return term_coeffs;}
+	public int[] getPinCoeffs() {return pin_coeffs;}
 
-	public boolean touchesAtGate(Wire w){
+	private boolean touchesSomeGate(Wire w){
 		for (int i=1; i<pins.length-1; i++)  if (w==pins[i]) return true;
 		return false;
 	}
 
 	public boolean touchesOneDiffPinAndNoOtherPins(Wire w) {
 		return (w==pins[0] ^ w==pins[pins.length-1]) &&
-			   !touchesAtGate(w);
+			   !touchesSomeGate(w);
 	}
 
 	public boolean isCapacitor() {return pins[0]==pins[pins.length-1];}
@@ -340,7 +304,7 @@ public class Transistor extends Part {
 		int hc = pins.length;
 		// include what's connected
 		for (int i=0; i<pins.length; i++)  
-			hc += pins[i].hashCode() * term_coeffs[i];
+			hc += pins[i].hashCode() * pin_coeffs[i];
 		// include the class
 		hc += getClass().hashCode();
 		// include whether its NMOS or PMOS
@@ -350,8 +314,8 @@ public class Transistor extends Part {
 
 	// merge into this transistor
 	public boolean parallelMerge(Part p){
-		if(!(p instanceof Transistor)) return false;
-		Transistor t= (Transistor) p;
+		if(!(p instanceof Mos)) return false;
+		Mos t= (Mos) p;
 		if(this == t)return false; //same transistor
 
 		if(!this.isLike(t))return false; //different type
@@ -423,12 +387,10 @@ public class Transistor extends Part {
 		return s;
 	}
 
-	/**
-	 * Compare the type (N vs P) and the gate length
+	/** Compare the type (N vs P) and the gate length
 	 * @param t Transistor to compare to
-	 * @return true if type and gate length match
-	 */
-	public boolean isLike(Transistor t){
+	 * @return true if type and gate length match */
+	public boolean isLike(Mos t){
 		return type==t.type && length==t.length;
     }
 	
@@ -451,8 +413,8 @@ public class Transistor extends Part {
 		for (Iterator it=w.getParts(); it.hasNext();) {
 			Part p = (Part) it.next();
 			if (p.isDeleted()) continue;
-			if (!(p instanceof Transistor)) return false;
-			Transistor t = (Transistor) p;
+			if (!(p instanceof Mos)) return false;
+			Mos t = (Mos) p;
 			if (!t.touchesOneDiffPinAndNoOtherPins(w)) return false;
 			trans.add(t);
 			if (trans.size()>2) return false;
@@ -460,8 +422,8 @@ public class Transistor extends Part {
 		if (trans.size()!=2) return false;
 
 		Iterator it = trans.iterator();
-		Transistor ta = (Transistor) it.next();
-		Transistor tb = (Transistor) it.next();
+		Mos ta = (Mos) it.next();
+		Mos tb = (Mos) it.next();
 		error(ta.getParent()!=tb.getParent(), "mismatched parents?");
 		if (!ta.isLike(tb))  return false;
 		if (ta.width!=tb.width)  return false;
@@ -479,7 +441,7 @@ public class Transistor extends Part {
 		for (int bNdx=1; bNdx<tb.pins.length; bNdx++){
 			mergedPins[aNdx++] = tb.pins[bNdx];
 		}
-		Transistor stack = new Transistor(ta.getType(), ta.getNameProxy(),  
+		Mos stack = new Mos(ta.getType(), ta.getNameProxy(),  
 										  ta.getWidth(), ta.getLength(), 
 										  mergedPins);
 
@@ -495,9 +457,9 @@ public class Transistor extends Part {
 		// the function is symmetric: ABCD = DCBA
 		int sumLo=0, sumHi=0;
 		for (int i=0; i<(pins.length+1)/2; i++){
-			sumLo += pins[i].getCode() * term_coeffs[i];
+			sumLo += pins[i].getCode() * pin_coeffs[i];
 			int j = pins.length-1-i;
-			sumHi += pins[j].getCode() * term_coeffs[j];
+			sumHi += pins[j].getCode() * pin_coeffs[j];
 		}
 		return new Integer(sumLo * sumHi);
 	}

@@ -193,6 +193,7 @@ public class NccCellAnnotations {
 		}
 	}
 	private void processBlackBox(NamePatternLexer lex) {
+		blackBoxReason = lex.restOfLine();
 	}
 	private void processTransistorType(NamePatternLexer lex) {
 		NamePattern type = lex.nextPattern();

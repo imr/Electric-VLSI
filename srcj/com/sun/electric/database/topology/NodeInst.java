@@ -2666,6 +2666,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 				return true;
 		return false;
 	}
+	public boolean isBipolar() {
+		PrimitiveNode.Function fun = getFunction();
+		return fun==PrimitiveNode.Function.TRANPN || fun==PrimitiveNode.Function.TRA4NPN || 
+		       fun==PrimitiveNode.Function.TRAPNP || fun==PrimitiveNode.Function.TRA4PNP; 
+	}
 
 	/**
 	 * Method to return the size of this transistor NodeInst.
@@ -2675,7 +2680,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public TransistorSize getTransistorSize(VarContext context)
 	{
-        if (!isPrimitiveTransistor() && !isFET()) return null;
+        if (!isPrimitiveTransistor() || !isFET()) return null;
 		PrimitiveNode np = (PrimitiveNode)protoType;
 		return np.getTechnology().getTransistorSize(this, context);
 	}
@@ -2761,6 +2766,19 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		return np.getTechnology().getTransistorSourcePort(this);
     }
 
+    public PortInst getTransistorEmitterPort() {
+		PrimitiveNode np = (PrimitiveNode)protoType;
+		return np.getTechnology().getTransistorEmitterPort(this);
+    }
+    public PortInst getTransistorBasePort() {
+		PrimitiveNode np = (PrimitiveNode)protoType;
+		return np.getTechnology().getTransistorBasePort(this);
+    }
+    public PortInst getTransistorCollectorPort() {
+		PrimitiveNode np = (PrimitiveNode)protoType;
+		return np.getTechnology().getTransistorCollectorPort(this);
+    }
+    
     /**
      * Method to return a gate PortInst for this transistor NodeInst.
      * Implementation Note: May want to make this a more general

@@ -27,23 +27,21 @@ import com.sun.electric.database.variable.VarContext;
 
 /**
  * Holds the Width and Length of a PrimitiveNode that is a transistor.
- * This holds the width and length as objects, because the width and length
+ * This holds the width, length, and area as objects, because the width and length,
  * may be specified as strings if they are java code, or just numbers.
  */
 public class TransistorSize {
-
-    private Object width;
-    private Object length;
+    private final Object width;
+    private final Object length;
 
     public TransistorSize(Object width, Object length) {
         this.width = width;
         this.length = length;
     }
+    public Object getWidth() {return width;}
 
-    public Object getWidth() { return width; }
-
-    public Object getLength() { return length; }
-
+    public Object getLength() {return length; }
+    
     /**
      * Gets the width *ONLY IF* the width can be converted to a double.
      * i.e. it is a Number or a parsable String. If it is some other type,
@@ -51,7 +49,7 @@ public class TransistorSize {
      * @return the width.
      */
     public double getDoubleWidth() {
-        return VarContext.objectToDouble(width, 0);
+    	return VarContext.objectToDouble(width, 0);
     }
 
     /**
@@ -64,4 +62,13 @@ public class TransistorSize {
         return VarContext.objectToDouble(length, 0);
     }
 
+    /**
+     * Gets the area *ONLY IF* the width and length can be converted to a double.
+     * i.e. they are Numbers or a parsable Strings. If they are some other type,
+     * this method returns zero.
+     * @return the area.
+     */
+    public double getDoubleArea() {
+    	return getDoubleWidth() * getDoubleLength();
+    }
 }

@@ -30,7 +30,7 @@ import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.jemNets.NetObject;
-import com.sun.electric.tool.ncc.jemNets.Transistor;
+import com.sun.electric.tool.ncc.jemNets.Mos;
 import com.sun.electric.tool.ncc.lists.LeafList;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
@@ -51,10 +51,10 @@ class OutlierRecord {
 	}
 	public EquivRecord getEquivRecord() {
 		OutlierTrans first = (OutlierTrans) outlierTrans.get(1);
-		Transistor t = first.outlier;
+		Mos t = first.outlier;
 		return t.getParent().getParent();
 	}
-	public boolean isOutlier(Transistor t) {
+	public boolean isOutlier(Mos t) {
 		for (Iterator it=outlierTrans.iterator(); it.hasNext();) {
 			OutlierTrans tr = (OutlierTrans) it.next(); 
 			if (t==tr.outlier) return true; 
@@ -64,10 +64,10 @@ class OutlierRecord {
 }
 /** The Transistor in the Circuit that is most different from the others */
 class OutlierTrans {
-	public final Transistor outlier;
+	public final Mos outlier;
 	/** absolute value of difference / average */
 	public final double deviation;
-	OutlierTrans(Transistor t, double diff) {outlier=t; deviation=diff;}
+	OutlierTrans(Mos t, double diff) {outlier=t; deviation=diff;}
 }
 
 /** If Hash code partitioning fails to match all equivalence classes then try to 
@@ -92,12 +92,12 @@ public class StratSizes extends Strategy {
 		double maxSz = Double.MIN_VALUE;
 		double sumSz = 0;
 		int numTrans = 0;
-		Transistor minT = null;
-		Transistor maxT = null;
+		Mos minT = null;
+		Mos maxT = null;
 		for (Iterator it=c.getNetObjs(); it.hasNext();) {
 			NetObject no = (NetObject) it.next();
-			if (!(no instanceof Transistor)) return null;
-			Transistor t = (Transistor) no;
+			if (!(no instanceof Mos)) return null;
+			Mos t = (Mos) no;
 			double sz = t.getWidth();
 			if (sz<minSz) {minT=t; minSz=sz;}
 			if (sz>maxSz) {maxT=t; maxSz=sz;}
@@ -162,7 +162,7 @@ public class StratSizes extends Strategy {
 	}
 
 	public Integer doFor(NetObject n){
-		Transistor t = (Transistor) n;
+		Mos t = (Mos) n;
 		return outlierRecord.isOutlier(t) ? CODE_OUTLIER : CODE_REST;
 	}
 
