@@ -39,12 +39,6 @@ public interface Nodable
 	// ------------------------ public methods -------------------------------
 
 	/**
-	 * Routine to return the NodeUsage of this Nodable.
-	 * @return the NodeUsage of this Nodable.
-	 */
-	public NodeUsage getNodeUsage();
-
-	/**
 	 * Routine to return the prototype of this Nodable.
 	 * @return the prototype of this Nodable.
 	 */
@@ -81,12 +75,6 @@ public interface Nodable
 	 * @param busIndex index in bus.
 	 */
 	public JNetwork getNetwork(PortProto portProto, int busIndex);
-
-	/**
-	 * Routine to get the index of this Nodable in a cell.
-	 * @return index of this NodeInstProxy in a cell.
-	 */
-	public int getIndex();
 
 	/**
 	 * Returns a printable version of this Nodable.

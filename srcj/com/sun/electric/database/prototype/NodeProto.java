@@ -423,12 +423,13 @@ public abstract class NodeProto extends ElectricObject
 	public void removePort(PortProto port)
 	{
 		checkChanging();
-		int ind = ports.indexOf(port);
-		ports.remove(ind);
-		for (; ind < ports.size(); )
+		int portIndex = port.getIndex();
+		ports.remove(portIndex);
+		for (; portIndex < ports.size(); portIndex++)
 		{
-			((PortProto)ports.get(ind)).setPortIndex(ind);
+			((PortProto)ports.get(portIndex)).setPortIndex(portIndex);
 		}
+		port.setPortIndex(-1);
 	}
 
 	/**
@@ -493,6 +494,26 @@ public abstract class NodeProto extends ElectricObject
 	boolean containsPort(PortProto port)
 	{
 		return ports.contains(port);
+	}
+
+	/**
+	 * Routine to check and repair data structure errors in this NodeProto.
+	 */
+	protected int checkAndRepair()
+	{
+		int errorCount = 0;
+
+		for (int i = 0; i < ports.size(); i++)
+		{
+			PortProto pp = (PortProto)ports.get(i);
+			if (pp.getIndex() != i)
+			{
+				System.out.println();
+				System.out.println(this + ", " + pp + " has wrong index");
+				errorCount++;
+			}
+		}
+		return errorCount;
 	}
 
 	// ----------------------- public methods -----------------------

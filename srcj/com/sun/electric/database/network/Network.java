@@ -53,7 +53,7 @@ public class Network extends Tool
 
 	// ---------------------- private and protected methods -----------------
 
-	/** the Network tool. */						public static Network tool = new Network();
+	/** the Network tool. */						public static final Network tool = new Network();
 	/** flag for debug print. */					private static boolean debug = false;
 
 	/** array of port equiv map for prim nodes.*/	private static int[][] primEquivPorts;
@@ -61,7 +61,8 @@ public class Network extends Tool
 	/** port equiv map of resistor primitive. */	private static int[] resistorEquivPorts;
 	/** current valuse of shortResistors flag. */	private static boolean shortResistors;
 
-	/** size of cell* arrays */						static NetCell[] cells;
+	/** NetCells. */								private static NetCell[] cells;
+	/** NetCells. */								private static int[] cellIcon;
 
 	/**
 	 * The constructor sets up the Network tool.
@@ -124,15 +125,74 @@ public class Network extends Tool
 			}
 		}
 		cells = new NetCell[maxCell];
+		cellIcon = new int[maxCell];
 		for (Iterator lit = Library.getLibraries(); lit.hasNext(); )
 		{
 			Library lib = (Library)lit.next();
 			for (Iterator cit = lib.getCells(); cit.hasNext(); )
 			{
 				Cell c = (Cell)cit.next();
-				cells[c.getIndex()] = new NetCell(c);
+				if (getNetCell(c) != null) continue;
+				if (c.isIcon() || c.isSchematicView())
+					new NetSchem(c);
+				else
+					new NetCell(c);
 			}
 		}
+	}
+
+	static public void reloadSchems(Cell.CellGroup cellGroup) {
+		for (Iterator it = cellGroup.getCells(); it.hasNext();) {
+			Cell cell = (Cell)it.next();
+			if (cell.isIcon() || cell.isSchematicView()) {
+				NetCell.invalidateUsagesOf(cell, true);
+				setCell(cell, null, 0);
+			}
+		}
+		for (Iterator it = cellGroup.getCells(); it.hasNext();) {
+			Cell cell = (Cell)it.next();
+			if (cell.isIcon() || cell.isSchematicView()) {
+				if (getNetCell(cell) != null) continue;
+				new NetSchem(cell);
+			}
+		}
+	}
+
+	static void setCell(Cell cell, NetCell netCell, int iconIndex) {
+		int ind = cell.getIndex();
+		if (ind >= cells.length)
+		{
+			int newLength = cells.length;
+			while (ind >= newLength) newLength *= 2;
+			NetCell[] newCells = new NetCell[newLength];
+			int[] newCellIcon = new int[newLength];
+			for (int i = 0; i < cells.length; i++) {
+				newCells[i] = cells[i];
+				newCellIcon[i] = cellIcon[i];
+			}
+			cells = newCells;
+			cellIcon = newCellIcon;
+		}
+		cells[cell.getIndex()] = netCell;
+		cellIcon[cell.getIndex()] = iconIndex;
+	}
+
+	static final NetCell getNetCell(Cell cell) { return cells[cell.getIndex()]; }
+
+// 	final static NetSchem.Icon getNetIcon(Cell cell) {
+// 		int cellIndex = cell.getIndex();
+// 		int iconNum = cellIcon[cellIndex];
+// 		if (iconNum >= 0) return null;
+// 		return ((NetSchem)cells[cellIndex]).icons[~iconNum];
+// 	}
+
+	static final int getPortOffset(PortProto pp, int busIndex) {
+		int portIndex = pp.getIndex();
+		int cellIndex = pp.getParent().getIndex();
+		if (cellIndex < 0 || !(cells[cellIndex] instanceof NetSchem))
+			return busIndex == 0 ? portIndex : -1;
+		NetSchem netSchem = (NetSchem)cells[cellIndex];
+		return netSchem.getPortOffset(cellIcon[cellIndex], portIndex, busIndex);
 	}
 
 	static int[] getEquivPorts(NodeProto np)
@@ -174,27 +234,35 @@ public class Network extends Tool
 			Network.shortResistors = shortResistors;
 			System.out.println("shortResistors="+shortResistors);
 		}
-		cells[cell.getIndex()].redoNetworks();
+		getNetCell(cell).redoNetworks();
 	}
+
+	/**
+	 * Get an iterator over all of the Nodables of this Cell.
+	 * <p> Warning: before getNodables() is called, JNetworks must be
+	 * build by calling Cell.rebuildNetworks()
+	 */
+	public static Iterator getNodables(Cell cell) { return getNetCell(cell).getNodables(); }
 
 	/**
 	 * Get an iterator over all of the JNetworks of this Cell.
 	 * <p> Warning: before getNetworks() is called, JNetworks must be
 	 * build by calling Cell.rebuildNetworks()
 	 */
-	public static Iterator getNetworks(Cell cell) { return cells[cell.getIndex()].getNetworks(); }
+	public static Iterator getNetworks(Cell cell) { return getNetCell(cell).getNetworks(); }
 
 	/*
 	 * Get network by index in networks maps.
 	 */
-	public static JNetwork getNetwork(Nodable ni, PortProto portProto, int busIndex)
-	{
-		NetCell netCell = cells[ni.getParent().getIndex()];
-		netCell.redoNetworks();
-		if (ni.getIndex() < 0) return null; // Nonelectric node
-		if (portProto.getParent() != ni.getProto())
+	public static JNetwork getNetwork(Nodable no, int arrayIndex, PortProto portProto, int busIndex) {
+		if (portProto.getParent() != no.getProto())
 		{
-			System.out.println("Invalid portProto argument in Nodable.getNetwork");
+			System.out.println("Nodable.getNetwork: invalid argument portProto");
+			return null;
+		}
+		if (arrayIndex < 0 || arrayIndex >= portProto.getProtoNameKey().busWidth())
+		{
+			System.out.println("Nodable.getNetwork: invalid arguments arrayIndex="+arrayIndex+" node="+no.getName());
 			return null;
 		}
 		if (busIndex < 0 || busIndex >= portProto.getProtoNameKey().busWidth())
@@ -202,7 +270,8 @@ public class Network extends Tool
 			System.out.println("Nodable.getNetwork: invalid arguments busIndex="+busIndex+" portProto="+portProto);
 			return null;
 		}
-		return netCell.getNetwork(ni.getIndex() + portProto.getIndex() + busIndex);
+		NetCell netCell = getNetCell(no.getParent());
+		return netCell.getNetwork(no, arrayIndex, portProto, busIndex);
 	}
 
 	/****************************** CHANGE LISTENER ******************************/
@@ -282,33 +351,16 @@ public class Network extends Tool
 
 	public void newObject(ElectricObject obj)
 	{
+		Cell cell = obj.whichCell();
 		if (obj instanceof Cell)
 		{
-			Cell cell = (Cell)obj;
-			int ind = cell.getIndex();
-			if (ind >= cells.length)
-			{
-				int newLength = cells.length;
-				while (ind >= newLength) newLength *= 2;
-				NetCell[] newCells = new NetCell[newLength];
-				for (int i = 0; i < cells.length; i++) newCells[i] = cells[i];
-				cells = newCells;
-			}
-			cells[cell.getIndex()] = new NetCell(cell);
-		} else if (obj instanceof Export)
-		{
-			Export e = (Export)obj;
-			Cell cell = (Cell)e.getParent();
-			cells[cell.getIndex()].setNetworksDirty();
-			for (Iterator it = cell.getUsagesOf(); it.hasNext();)
-			{
-				NodeUsage nu = (NodeUsage) it.next();
-				cells[nu.getParent().getIndex()].setNetworksDirty();
-			}
+			if (cell.isIcon() || cell.isSchematicView())
+				reloadSchems(cell.getCellGroup());
+			else
+				new NetCell(cell);
 		} else
 		{
-			Cell cell = obj.whichCell();
-			if (cell != null) cells[cell.getIndex()].setNetworksDirty();
+			if (cell != null) getNetCell(cell).setNetworksDirty();
 		}
 		if (!debug) return;
 		System.out.println("Network.newObject("+obj+")");
@@ -316,24 +368,15 @@ public class Network extends Tool
 
 	public void killObject(ElectricObject obj)
 	{
+		Cell cell = obj.whichCell();
 		if (obj instanceof Cell)
 		{
-			Cell cell = (Cell)obj;
-			cells[cell.getIndex()] = null;
-		} else if (obj instanceof Export)
-		{
-			Export e = (Export)obj;
-			Cell cell = (Cell)e.getParent();
-			cells[cell.getIndex()].setNetworksDirty();
-			for (Iterator it = cell.getUsagesOf(); it.hasNext();)
-			{
-				NodeUsage nu = (NodeUsage) it.next();
-				cells[nu.getParent().getIndex()].setNetworksDirty();
-			}
+			setCell(cell, null, 0);
+			if (cell.isIcon() || cell.isSchematicView())
+				reloadSchems(cell.getCellGroup());
 		} else
 		{
-			Cell cell = obj.whichCell();
-			if (cell != null) cells[cell.getIndex()].setNetworksDirty();
+			if (cell != null) getNetCell(cell).setNetworksDirty();
 		}
 		if (!debug) return;
 		System.out.println("Network.killObject("+obj+")");

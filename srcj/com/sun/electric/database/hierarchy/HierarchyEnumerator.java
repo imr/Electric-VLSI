@@ -28,6 +28,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.prototype.NodeProto;
@@ -158,35 +159,21 @@ public final class HierarchyEnumerator {
 		boolean enumInsts = visitor.enterCell(info);
 		if (!enumInsts) return;
 
-		for (Iterator uit = cell.getUsagesIn(); uit.hasNext();)
-		{
-			NodeUsage nu = (NodeUsage) uit.next();
-			if (nu.isIcon()) continue;
-			if (nu.getProto().getFunction() == NodeProto.Function.ART) continue;
+		for (Iterator it = Network.getNodables(cell); it.hasNext();) {
+			Nodable ni = (Nodable)it.next();
 
-			NodeProto np = nu.getProto();
-			for (Iterator iit = nu.getInsts(); iit.hasNext();)
-			{
-				NodeInst ni = (NodeInst)iit.next();
-				instCnt++;
-				if (!visitor.visitNodeInst(ni, info)) continue;
-				if (!(nu.getProto() instanceof Cell)) continue;
+			instCnt++;
+			boolean descend = visitor.visitNodeInst(ni, info);
+			NodeProto np = ni.getProto();
+			if (descend && np instanceof Cell && !np.isIcon()) {
 				Map portNmToNetIDs2 = buildPortMap(ni, netToNetID);
-				AffineTransform xformToRoot2 =
-					new AffineTransform(xformToRoot);
-				xformToRoot2.concatenate(ni.rkTransformOut());
-				enumerateCell(ni, (Cell)ni.getProto(), context.push(ni), portNmToNetIDs2,
+				AffineTransform xformToRoot2 = xformToRoot;
+				if (ni instanceof NodeInst) {
+					xformToRoot2 = new AffineTransform(xformToRoot);
+					xformToRoot2.concatenate(((NodeInst)ni).rkTransformOut());
+				}
+				enumerateCell(ni, (Cell)np, context.push(ni), portNmToNetIDs2,
 					xformToRoot2, info);
-                //visitor.visitNodeInstBottomUp(ni, info);
-			}
-			for (Iterator iit = nu.getProxies(); iit.hasNext();)
-			{
-				NodeInstProxy nip = (NodeInstProxy)iit.next();
-				if (!visitor.visitNodeInst(nip, info)) continue;
-				if (!(nu.getProto() instanceof Cell)) continue;
-				Map portNmToNetIDs2 = buildPortMap(nip, netToNetID);
-				enumerateCell(nip, (Cell)nip.getProto(), context.push(nip), portNmToNetIDs2,
-					xformToRoot, info);
 			}
 		}
 

@@ -183,8 +183,10 @@ public class OutputCIF extends OutputGeometry {
         NodeProto np = no.getProto();
         Cell cell = (Cell)np;
         int cellNum = ((Integer)cellNumbers.get(cell)).intValue();
-        for (Iterator it = no.getNodeUsage().getInsts(); it.hasNext(); ) {
-            NodeInst ni = (NodeInst)it.next();
+		NodeInst ni = (NodeInst)no; // In layout cell all Nodables are NodeInsts
+		{
+//         for (Iterator it = no.getNodeUsage().getInsts(); it.hasNext(); ) {
+//             NodeInst ni = (NodeInst)it.next();
             int rotx = 0;//(int)scale((EMath.cos(ni.getAngle())>>14) * 100 >> 16);
             int roty = 0;//(int)scale((EMath.sin(ni.getAngle())>>14) * 100 >> 16);
             String line = "C "+cellNum+" R "+rotx+" "+roty+" "+

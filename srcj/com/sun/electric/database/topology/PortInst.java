@@ -27,7 +27,6 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.NodeInstProxy;
 
 import java.awt.geom.Rectangle2D;
 
@@ -96,16 +95,8 @@ public class PortInst
 	{
 		if (portProto.getProtoNameKey().isBus())
 		{
-			System.out.println("NodeInst.getNetwork() was called for instance of bus port"+portProto.getProtoName());
+			System.out.println("PortInst.getNetwork() was called for instance of bus port "+portProto.getProtoName());
 			return null;
-		}
-		if (nodeInst.getProto().isIcon())
-		{
-			NodeInst.Subinst sub = nodeInst.getSubinst(0);
-			NodeInstProxy nip = sub.getProxy();
-			if (nip == null) System.out.println("No proxy for "+this);
-			PortProto pp = portProto.getEquivalent();
-			if (nip != null && pp != null) return nip.getNetwork(pp, 0);
 		}
 		return nodeInst.getNetwork(portProto, 0);
 	}

@@ -109,70 +109,6 @@ public class Cell extends NodeProto
 	{
 		// private data
 		private ArrayList cells;
-		private Cell mainSchematics;
-
-		// ------------------ protected and private methods -----------------------
-
-		/**
-		 * Routine to update main schematics Cell in ths CellGroup.
-		 */
-		private void updateMainSchematics()
-		{
-			Cell newMainSchematics = null;
-			for (Iterator it = getCells(); it.hasNext();)
-			{
-				Cell sch = (Cell) it.next();
-				if (sch.getView() == View.SCHEMATIC)
-				{
-					newMainSchematics = sch;
-					break;
-				}
-			}
-			if (mainSchematics == newMainSchematics) return;
-			if (mainSchematics == null)
-			{
-				for (Iterator itc = getCells(); itc.hasNext();)
-				{
-					Cell icon = (Cell) itc.next();
-					if (icon.getView() == View.ICON)
-					{
-						for (Iterator it = icon.getUsagesOf(); it.hasNext();)
-						{
-							NodeUsage nu = (NodeUsage)it.next();
-							if (nu.isIconOfParent()) continue;
-							nu.getParent().addUsage(newMainSchematics).addIcon(nu);
-						}
-					}
-				}
-			} else
-			{
-				for (Iterator itc = mainSchematics.getUsagesOf(); itc.hasNext();)
-				{
-					NodeUsage oldNu = (NodeUsage)itc.next();
-					if (oldNu.getNumIcons() == 0) continue;
-					Cell parent = oldNu.getParent();
-					NodeUsage newNu = newMainSchematics != null
-						? parent.addUsage(newMainSchematics)
-						: null;
-					for (Iterator it = oldNu.getIcons(); it.hasNext();)
-					{
-						NodeUsage nuIcon = (NodeUsage)it.next();
-						// oldNu.removeIcon(nuIcon)
-						it.remove();
-						nuIcon.clearSch();
-						if (newNu != null)
-							newNu.addIcon(nuIcon);
-					}
-					if (oldNu.isEmpty())
-					{
-						// parent.removeUsage(oldNu) - we should do it by iterator
-						itc.remove();
-						parent.usagesIn.remove(mainSchematics);
-					}
-				}
-			}
-			mainSchematics = newMainSchematics;
-		}
 
 		// ------------------------- public methods -----------------------------
 
@@ -192,7 +128,6 @@ public class Cell extends NodeProto
 		{
 			cells.add(cell);
 			cell.cellGroup = this;
-			updateMainSchematics();
 		}
 
 		/**
@@ -202,7 +137,6 @@ public class Cell extends NodeProto
 		void remove(Cell f)
 		{
 			cells.remove(f);
-			updateMainSchematics();
 		}
 
 		/**
@@ -246,7 +180,16 @@ public class Cell extends NodeProto
 		 * Routine to return main schematics Cell in ths CellGroup.
 		 * @return main schematics Cell  in this CellGroup.
 		 */
-		public Cell getMainSchematics() { return mainSchematics; }
+		public Cell getMainSchematics()
+		{
+			for (Iterator it = getCells(); it.hasNext();)
+			{
+				Cell c = (Cell) it.next();
+				if (c.isSchematicView())
+					return c;
+			}
+			return null;
+		}
 
         /** See if this cell group contains @param cell */
         public boolean containsCell(Cell cell) { return cells.contains(cell); }
@@ -338,7 +281,6 @@ public class Cell extends NodeProto
 	/** The basename for autonaming of instances of this Cell */	private Name basename;
 	/** The Cell's essential-bounds. */								private List essenBounds = new ArrayList();
 	/** A list of NodeInsts in this Cell. */						private List nodes;
-	/** A sorted map of Nodables in this Cell. */					private SortedMap nodables;
 	/** A map from NodeProto to NodeUsages in it */					private Map usagesIn;
 	/** A map from Name to Integer maximal numeric suffix */        private Map maxSuffix;
 	/** A list of ArcInsts in this Cell. */							private List arcs;
@@ -367,7 +309,6 @@ public class Cell extends NodeProto
 //		this.versionGroup = new VersionGroup(this);
 		setIndex(cellNumber++);
 		nodes = new ArrayList();
-		nodables = new TreeMap();
 		usagesIn = new HashMap();
 		maxSuffix = new HashMap();
 		arcs = new ArrayList();
@@ -672,7 +613,6 @@ public class Cell extends NodeProto
 		Job.checkChanging();
 		Cell c = new Cell();
 		c.nodes = new ArrayList();
-		c.nodables = new TreeMap();
 		c.usagesIn = new HashMap();
 		c.maxSuffix = new HashMap();
 		c.arcs = new ArrayList();
@@ -1152,6 +1092,7 @@ public class Cell extends NodeProto
 		}
 
 		// add the node
+		ni.lowLevelSetIndex(nodes.size());
 		nodes.add(ni);
 		nu.addInst(ni);
 		updateMaxSuffix(ni);
@@ -1189,63 +1130,18 @@ public class Cell extends NodeProto
 		nu.removeInst(ni);
 		if (nu.isEmpty())
 			removeUsage(nu);
-		nodes.remove(ni);
+		int nodeIndex = ni.getIndex();
+		nodes.remove(nodeIndex);
+		for (; nodeIndex < nodes.size(); nodeIndex++)
+		{
+			((NodeInst)nodes.get(nodeIndex)).lowLevelSetIndex(nodeIndex);
+		}
+		ni.lowLevelSetIndex(-1);
 
 		// must recompute the bounds of the cell
 		boundsDirty = true;
 
 		essenBounds.remove(ni);
-	}
-
-	/**
-	 * Routine to add a new NodeInstProxys to the cell.
-	 * @param ni the NodeInst to be included in the cell.
-	 * @param subs array of subinstances of this NodeInst ni.
-	 */
-	public void addNodables(NodeInst ni, NodeInst.Subinst[] subs)
-	{
-		checkChanging();
-		NodeUsage sch = ni.getNodeUsage().getSch();
-		if (subs != null && sch != null)
-		{
-			for (int i = 0; i < subs.length; i++)
-			{
-				NodeInstProxy proxy = new NodeInstProxy(sch);
-				subs[i].setProxy(proxy);
-				proxy.addSubinst(subs[i]);
-				nodables.put(subs[i].getName().lowerCase(), proxy);
-				sch.addProxy(proxy);
-			}
-		} else
-		{
-			nodables.put(ni.getNameKey().lowerCase(), ni);
-		}
-		updateMaxSuffix(ni);
-	}
-
-	/**
-	 * Routine to remove NodeInstProxys from the cell.
-	 * @param ni the NodeInst to be included in the cell.
-	 * @param subs array of subinstances of this NodeInst si.
-	 */
-	public void removeNodables(NodeInst ni, NodeInst.Subinst[] subs)
-	{
-		checkChanging();
-		NodeUsage sch = ni.getNodeUsage().getSch();
-		if (subs != null && sch != null)
-		{
-			for (int i = 0; i < subs.length; i++)
-			{
-				NodeInstProxy proxy = subs[i].getProxy();
-				subs[i].setProxy(null);
-				proxy.removeSubinst(subs[i]);
-				//if (proxy.isEmpty())
-				sch.removeProxy(proxy);
-			}
-		} else
-		{
-			nodables.remove(ni.getNameKey().lowerCase());
-		}
 	}
 
 	/**
@@ -1261,16 +1157,6 @@ public class Cell extends NodeProto
 			nu = new NodeUsage(protoType, this);
 			usagesIn.put(protoType, nu);
 			protoType.addUsageOf(nu);
-			if (protoType instanceof Cell)
-			{
-				Cell cell = (Cell)protoType;
-				Cell mainSch = cell.cellGroup.getMainSchematics();
-				if (cell.view == View.ICON && !nu.isIconOfParent() && mainSch != null)
-				{
-					NodeUsage nuSch = addUsage(mainSch);
-					nuSch.addIcon(nu);
-				}
-			}
 		}
 		return nu;
 	}
@@ -1285,18 +1171,6 @@ public class Cell extends NodeProto
 		NodeProto protoType = nu.getProto();
 		protoType.removeUsageOf(nu);
 		usagesIn.remove(protoType);
-		if (protoType instanceof Cell)
-		{
-			Cell cell = (Cell)protoType;
-			Cell mainSch = cell.cellGroup.getMainSchematics();
-			if (cell.view == View.ICON && !nu.isIconOfParent() && mainSch != null)
-			{
-				NodeUsage nuSch = (NodeUsage)usagesIn.get(mainSch);
-				nuSch.removeIcon(nu);
-				if (nuSch.isEmpty())
-					removeUsage(nuSch);
-			}
-		}
 	}
 
 	/****************************** ARCS ******************************/
@@ -1551,6 +1425,14 @@ public class Cell extends NodeProto
 		}
 		if (cls == NodeInst.class)
 		{
+			for(Iterator it = getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				if (exclude == ni) continue;
+				Name nodeName = ni.getNameKey();
+				if (nodeName == null) continue;
+				if (name == nodeName.lowerCase()) return false;
+			}
 // 			int width = name.busWidth();
 // 			for (int i = 0; i < width; i++)
 // 			{
@@ -1559,8 +1441,8 @@ public class Cell extends NodeProto
 // 				if (na != null && na != exclude) return false;
 // 			}
 //			return true;
-			Nodable na = (Nodable)nodables.get(name);
-			return na == null || exclude == na;
+// 			Nodable na = (Nodable)nodables.get(name);
+// 			return na == null || exclude == na;
 		}
 		if (cls == ArcInst.class)
 		{
@@ -1572,7 +1454,7 @@ public class Cell extends NodeProto
 			for(Iterator it = getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
-				if (exclude != null && exclude == ai) continue;
+				if (exclude == ai) continue;
 				Name arcName = ai.getNameKey();
 				if (arcName == null) continue;
 				if (name == arcName.lowerCase()) return false;
@@ -1951,7 +1833,7 @@ public class Cell extends NodeProto
 	 */
 	public int checkAndRepair()
 	{
-		int errorCount = 0;
+		int errorCount = super.checkAndRepair();
 
 		// make sure that every connection is on an arc and a node
 		HashMap connections = new HashMap();
@@ -2042,7 +1924,7 @@ public class Cell extends NodeProto
 			NodeUsage nu = (NodeUsage)it.next();
 			nu.getParent().setChangeLock();
 		}
-		if (this != cellGroup.getMainSchematics()) return;
+		if (!isSchematicView()) return;
 		for (Iterator it = cellGroup.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
@@ -2098,7 +1980,7 @@ public class Cell extends NodeProto
 	 * Update max suffix of node/arc names
 	 * @param geom Geometric
 	 */
-	private void updateMaxSuffix(Geometric geom)
+	public void updateMaxSuffix(Geometric geom)
 	{
 		Name name = geom.getNameKey();
 		if (name == null || !name.isTempname()) return;

@@ -33,7 +33,6 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.hierarchy.NodeInstProxy;
 import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.ArcProto;
@@ -111,27 +110,6 @@ public class NodeInst extends Geometric implements Nodable
 		/** the associated PortInst on the new NodeInst. */		PortInst assn;
 	}
 
-	/**
-	 * the Subinst class is used when icon node has arrayed name.
-	 */
-	public static class Subinst
-	{
-		/** parent NodeInst. */									NodeInst inst;
-		/** index in icon NodeInst. */							int index;
-		/** NodeInstProxy of this subinstance */				NodeInstProxy proxy;
-
-		Subinst(NodeInst inst, int index) { this.inst = inst; this.index = index; }
-
-		public NodeInst getInst() { return inst; }
-		public Name getName()
-		{
-			return inst.name;
-			//return inst.name != null ? inst.name.subname(index) : null;
-		}
-		public NodeInstProxy getProxy() { return proxy; }
-		public void setProxy(NodeInstProxy proxy) { this.proxy = proxy; }
-	}
-
 	// ---------------------- private data ----------------------------------
 	/** prototype of this node instance */					private NodeProto protoType;
 	/** node usage of this node instance */					private NodeUsage nodeUsage;
@@ -140,7 +118,6 @@ public class NodeInst extends Geometric implements Nodable
 	/** List of connections belonging to this instance */	private List connections;
 	/** List of Exports belonging to this node instance */	private List exports;
 	/** Text descriptor of prototype name */				private TextDescriptor protoDescriptor;
-	/** array of subinstances of icon node instance */		private Subinst[] subs;
 
 	// --------------------- private and protected methods ---------------------
 
@@ -605,15 +582,6 @@ public class NodeInst extends Geometric implements Nodable
 	{
 		setParent(parent);
 		this.protoType = protoType;
-		if (protoType instanceof Cell)
-		{
-			Cell protoCell = (Cell)protoType;
-			if (protoCell.getView() == View.ICON)
-			{
-				subs = new Subinst[1];
-				subs[0] = new Subinst(this, 0);
-			}
-		}
 
 		// create all of the portInsts on this node inst
 		int i = 0;
@@ -665,7 +633,7 @@ public class NodeInst extends Geometric implements Nodable
 		// add to linked lists
 		linkGeom(parent);
 		nodeUsage = parent.addNode(this);
-		parent.addNodables(this, subs);
+		parent.updateMaxSuffix(this);
 		return false;
 	}
 
@@ -676,7 +644,6 @@ public class NodeInst extends Geometric implements Nodable
 	{
 		// remove this node from the cell
 		unLinkGeom(parent);
-		parent.removeNodables(this, subs);
 		parent.removeNode(this);
 		nodeUsage = null;
 	}
@@ -725,12 +692,6 @@ public class NodeInst extends Geometric implements Nodable
 
 		return getParent().getCellGroup() == ((Cell) np).getCellGroup();
 	}
-
-	/**
-	 * Routine to return i-th subinstance of NodeInst.
-	 * @return subinstance.
-	 */
-	public Subinst getSubinst(int i) { return subs[i]; }
 
 	/**
 	 * Routine to set an index of this PortProto in NodeProto ports.
@@ -1330,7 +1291,23 @@ public class NodeInst extends Geometric implements Nodable
 	 * @param portProto PortProto in protoType.
 	 * @param busIndex index in bus.
 	 */
-	public JNetwork getNetwork(PortProto portProto, int busIndex) { return Network.getNetwork(this, portProto, busIndex); }
+	public JNetwork getNetwork(PortProto portProto, int busIndex)
+	{
+		if (getNameKey().isBus())
+		{
+			System.out.println("NodeInst.getNetwork() was called for arrayed instance "+describe());
+			return null;
+		}
+		return Network.getNetwork(this, 0, portProto, busIndex);
+	}
+
+	/**
+	 * Routine to get network by PortProto and bus index.
+	 * @param arrayIndex PortProto in protoType.
+	 * @param portProto PortProto in protoType.
+	 * @param busIndex index in bus.
+	 */
+	public JNetwork getNetwork(int arrayIndex, PortProto portProto, int busIndex) { return Network.getNetwork(this, arrayIndex, portProto, busIndex); }
 
 	/**
 	 * Routine to add an Export to this NodeInst.
@@ -1647,25 +1624,11 @@ public class NodeInst extends Geometric implements Nodable
 	{
 		if (name == getNameKey()) return false;
 		if (checkNodeName(name)) return true;
-
-		if (nodeUsage != null && getNameKey() != null)
-		{
-			parent.removeNodables(this, subs);
-		}
 		super.setNameKey(name);
 		if (nodeUsage != null)
 		{
-			parent.addNodables(this, subs);
+			parent.updateMaxSuffix(this);
 		}
-
-		// create subs
-		if (subs == null) return false;
-		/*
-		int width = name.busWidth();
-		if (width != subs.length) subs = new Subinst[width];
-		for (int i = 0; i < width; i++)
-			subs[i] = new Subinst(this, i);
-		*/
 		return false;
 	}
 

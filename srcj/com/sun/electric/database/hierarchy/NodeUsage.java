@@ -43,9 +43,6 @@ public class NodeUsage
 	/** prototype of this node usage */						private NodeProto protoType;
 	/** Cell using this prototype */						private Cell parent;
 	/** List of NodeInsts of protoType in parent */			private List insts;
-	/** List of NodeInstProxies of protoType in parent */	private List proxies;
-	/** Usage of mainSchematics for icons */				private NodeUsage sch;
-	/** Number of icon NodeUsages for schematics */			private List icons;
 
 	// --------------------- private and protected methods ---------------------
 
@@ -58,12 +55,6 @@ public class NodeUsage
 		this.protoType = protoType;
 		this.parent = parent;
 		insts = new ArrayList();
-		proxies = new ArrayList();
-		sch = null;
-		if (protoType instanceof Cell && ((Cell)protoType).getView() == View.SCHEMATIC)
-		{
-			icons = new ArrayList();
-		}
 	}
 
 	/**
@@ -85,138 +76,17 @@ public class NodeUsage
 	}
 
 	/**
-	 * Routine to add an NodeInst to this NodeUsage.
-	 * @param nip the NodeInstProxy to add.
-	 */
-	void addProxy(NodeInstProxy nip)
-	{
-		proxies.add(nip);
-	}
-
-	/**
-	 * Routine to remove an NodeInstProxy from this NodeUsage.
-	 * @param ni the NodeInstProxy to remove.
-	 */
-	void removeProxy(NodeInstProxy nip)
-	{
-		proxies.remove(nip);
-	}
-
-	/**
-	 * Routine to return the number of icon NodeUsages for this schematics.
-	 * Returns zero if protoType is non-schematic.
-	 * @return the number of NodeInsts of this NodeUsage.
-	 */
-	int getNumIcons()
-	{
-		return icons != null ? icons.size() : 0;
-	}
-
-	/**
-	 * Routine to return an Iterator for all NodeUsages of icon of this schematics.
-	 * @return an Iterator for all icon NodeUsages of this schematic NodeUsage.
-	 */
-	Iterator getIcons()
-	{
-		return icons.iterator();
-	}
-
-	/**
-	 * Routine to increment the number of icon NodeUsages for this schematics.
-	 */
-	void addIcon(NodeUsage nu)
-	{
-		icons.add(nu);
-		nu.sch = this;
-	}
-
-	/**
-	 * Routine to decrement the number of icon NodeUsages for this schematics.
-	 */
-	void removeIcon(NodeUsage nu)
-	{
-		icons.remove(nu);
-		nu.clearSch();
-	}
-
-	/**
-	 * Routine to clear schematic NodeUsage of this icon NodeUsage
-	 */
-	void clearSch()
-	{
-		sch = null;
-	}
-
-	/**
-	 * Routine to clear schematic NodeUsage of this icon NodeUsage
-	 */
-	NodeUsage getSch() { return sch; }
-
-	/**
 	 * Routine to self-check
 	 */
 	public int checkAndRepair()
 	{
 		int error = 0;
-		if (protoType instanceof Cell && ((Cell)protoType).getView() == View.ICON)
+		for (int i = 0; i < insts.size(); i++)
 		{
-			Cell mainSch = ((Cell)protoType).getCellGroup().getMainSchematics();
-			if (mainSch == null || isIconOfParent())
+			NodeInst ni = (NodeInst)insts.get(i);
+			if (ni.getNodeUsage() != this || ni.getProto() != protoType || ni.getParent() != parent)
 			{
-				if (sch != null)
-				{
-					System.out.println(this+" is icon without mainSchematics, sch="+sch);
-					error++;
-				}
-			} else
-			{
-				if (sch == null)
-				{
-					System.out.println(this+" is icon with mainScjematics "+mainSch+", sch=null");
-					error++;
-				}
-				if (mainSch != sch.protoType)
-				{
-					System.out.println(this+" is icon with mainSchematics "+mainSch+", sch="+sch);
-					error++;
-				}
-				if (!sch.icons.contains(this))
-				{
-					System.out.println(this+" is not contained in icons of "+sch);
-					error++;
-				}
-			}
-		} else
-		{
-			if (sch != null)
-			{
-				System.out.println(this+" is not icon, sch="+sch);
-				error++;
-			}
-		}
-		if (protoType instanceof Cell && ((Cell)protoType).getView() == View.SCHEMATIC)
-		{
-			if (icons == null)
-			{
-				System.out.println(this+" is schematics, icons == null");
-				error++;
-			}
-			for (int i = 0; i < icons.size(); i++)
-			{
-				NodeUsage icon = (NodeUsage)icons.get(i);
-				if (icon.sch != this) System.out.println(this+" is schematics, contain "+icon);
-				for (int j = 0; j < i; j++)
-					if (icons.get(j) == icon)
-					{
-						System.out.println(this+" contains icon "+icon+" twice");
-						error++;
-					}
-			}
-		} else
-		{
-			if (icons != null)
-			{
-				System.out.println(this+" is not schematics, icons!=null");
+				System.out.println("Error in NodeUsage.chechAndRepair");
 				error++;
 			}
 		}
@@ -266,34 +136,6 @@ public class NodeUsage
 	}
 
 	/**
-	 * Routine to return by index a NodeInstProxies of this NodeIsage.
-	 * @param i index
-	 * @return specified NodeInstProxy.
-	 */
-	public final NodeInstProxy getProxy(int i)
-	{
-		return (NodeInstProxy)proxies.get(i);
-	}
-
-	/**
-	 * Routine to return an Iterator for all NodeInstProxies of this NodeIsage .
-	 * @return an Iterator for all NodeInstProxies of this NodeUsage.
-	 */
-	public Iterator getProxies()
-	{
-		return proxies.iterator();
-	}
-
-	/**
-	 * Routine to return the number of NodeInsts of this NodeUsage.
-	 * @return the number of NodeInsts of this NodeUsage.
-	 */
-	public int getNumProxies()
-	{
-		return insts.size();
-	}
-
-	/**
 	 * Routine to check if NodeUsages contains NodeInst.
 	 * @param ni NodeInst to check
 	 * @return true if NodeInst is contained
@@ -309,7 +151,7 @@ public class NodeUsage
 	 */
 	public boolean isEmpty()
 	{
-		return insts.size() == 0 && (icons == null || icons.size() == 0);
+		return insts.size() == 0;
 	}
 
 	/**
