@@ -105,6 +105,7 @@
             <exclude name="Hack_stack.txt"/>
             <exclude name="**/*.java"/>
             <exclude name="**/*.form"/>
+            <exclude name="classes/"/>
         </jar>
         <delete file="electric${version}.mf"/>
         <delete dir="bsh"/>
