@@ -492,9 +492,10 @@ public class Quick
 		// Job aborted or scheduled for abort
 		if (job != null && job.checkAbort()) return -1;
 
+        // Cell already checked
 		if (cellsMap.get(cell) != null)
 		{
-			if (Main.LOCALDEBUGFLAG) System.out.println("Done already cell " + cell.getName());
+			//if (Main.LOCALDEBUGFLAG) System.out.println("Done already cell " + cell.getName());
 			return (0);
 		}
 
@@ -1079,6 +1080,7 @@ public class Quick
 		DBMath.transformRect(rBound, upTrans); // Step 1
 		Netlist netlist = getCheckProto(cell).netlist;
         Rectangle2D subBound = new Rectangle2D.Double(); //Sept 30
+        boolean foundError = false;
 
 		// These nodes won't generate any DRC errors. Most of them are pins
 		if (geom instanceof NodeInst && NodeInst.isSpecialNode(((NodeInst)geom)))
@@ -1115,7 +1117,7 @@ public class Quick
 					// compute localIndex
 					if (badBoxInArea(poly, layer, tech, net, geom, trans, globalIndex, subBound, (Cell)np, localIndex,
 						             topCell, topGlobalIndex, subTrans, minSize, baseMulti, sameInstance))
-                        return true;
+                        foundError = true;
 				} else
 				{
 					// don't check between technologies
@@ -1195,7 +1197,7 @@ public class Quick
 							poly, layer, net, geom, trans, globalIndex,
 							npoly, nLayer, nNet, nGeom, rTrans, cellGlobalIndex,
 							con, dist, edge, rule);
-						if (ret) return true;
+						if (ret) foundError = true;
 					}
 				}
 			} else
@@ -1267,11 +1269,11 @@ public class Quick
 						poly, layer, net, geom, trans, globalIndex,
 						nPoly, nLayer, nNet, nGeom, upTrans, cellGlobalIndex,
 						con, dist, edge, rule);
-					if (ret) return true;
+					if (ret) foundError = true;
 				}
 			}
 		}
-		return false;
+		return foundError;
 	}
 
 	/**
