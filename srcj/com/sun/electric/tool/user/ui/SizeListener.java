@@ -487,8 +487,8 @@ public class SizeListener
 			}
 		}
 
-		// if Control is held, use center-based sizing
-		boolean centerBased = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
+		// if Shift is held, use center-based sizing
+		boolean centerBased = (evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0;
 
 		// determine the amount of growth of the node
 		AffineTransform transIn = ni.rotateIn();
@@ -518,7 +518,9 @@ public class SizeListener
 			growthRatioX = ptToFarthestX / closestToFarthestX;
 			growthRatioY = ptToFarthestY / closestToFarthestY;
 		}
-		if ((evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0)
+
+		// if Control is held, constrain to single-axis stretching
+		if ((evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0)
 		{
 			double grx = Math.abs(growthRatioX);
 			if (grx < 1)
@@ -551,7 +553,7 @@ public class SizeListener
 		} else
 		{
 			double alignment = User.getAlignmentToGrid();
-			EditWindow.gridAlign(newSize, alignment * 2);
+			EditWindow.gridAlign(newSize, alignment);
 		}
 
 		// determine the new center point

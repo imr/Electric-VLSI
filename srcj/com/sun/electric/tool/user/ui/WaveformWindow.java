@@ -124,7 +124,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 public class WaveformWindow implements WindowContent
 {
 	private static int panelSizeDigital = 25;
-	private static int panelSizeAnalog = 150;
+	private static int panelSizeAnalog  = 75;
 	private static Color [] colorArray = new Color [] {
 		new Color(255,   0,   0),		// red
 		new Color(255, 127,   0),
@@ -2291,8 +2291,8 @@ public class WaveformWindow implements WindowContent
 		// initialize the structure
 		this.wf = wf;
 		this.sd = sd;
+		resetSweeps();
 		wavePanels = new ArrayList();
-		sweepSignals = new ArrayList();
 		this.timeLocked = true;
 		this.showVertexPoints = false;
 
@@ -2764,6 +2764,17 @@ public class WaveformWindow implements WindowContent
 		overall.add(mainTimePanel, gbc);
 	}
 
+	private void resetSweeps()
+	{
+		sweepSignals = new ArrayList();
+		List sweeps = sd.getSweepList();
+		for(Iterator it = sweeps.iterator(); it.hasNext(); )
+		{
+			Object obj = it.next();
+			SweepSignal ss = new SweepSignal(obj, this);
+		}
+	}
+
 	public List getSweepSignals() { return sweepSignals; }
 
 	private void removeMainTimePanel()
@@ -2911,6 +2922,10 @@ public class WaveformWindow implements WindowContent
 	public void setSimData(Simulation.SimData sd)
 	{
 		this.sd = sd;
+
+		// reload the sweeps
+		resetSweeps();
+
 		List panelList = new ArrayList();
 		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
 			panelList.add(it.next());
@@ -3078,13 +3093,11 @@ public class WaveformWindow implements WindowContent
 
 	private DefaultMutableTreeNode getSweepsForExplorer()
 	{
-		List sweeps = sd.getSweepList();
-		if (sweeps.size() <= 0) return null;
+		if (sweepSignals.size() <= 0) return null;
 		DefaultMutableTreeNode sweepsExplorerTree = new DefaultMutableTreeNode("SWEEPS");
-		for(Iterator it = sweeps.iterator(); it.hasNext(); )
+		for(Iterator it = sweepSignals.iterator(); it.hasNext(); )
 		{
-			Object obj = it.next();
-			SweepSignal ss = new SweepSignal(obj, this);
+			SweepSignal ss = (SweepSignal)it.next();
 			sweepsExplorerTree.add(new DefaultMutableTreeNode(ss));
 		}
 		return sweepsExplorerTree;

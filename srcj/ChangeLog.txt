@@ -2,6 +2,12 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+BUG: (11/8/04, SMR) Reloading waveform window fails if there are a different number of sweeps.
+FIX: Reload sweeps list correctly.
+
+IMP/MAN: (11/8/04, SMR) When interactively resizing a node, holding Control limits
+     resize to a single axis.  Holding Shift switches to center-based sizing.
+
 ************************* Version 8.01al: *********************************
 
 IMP: (11/8/04, SMR) Disallow moving the cell-center when other objects are moving.

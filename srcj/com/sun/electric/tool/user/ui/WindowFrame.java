@@ -469,7 +469,7 @@ public class WindowFrame
 	{
         if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(new Runnable() {
-                public void run() { wantToRedoJobTree(); }
+                public void run() { wantToRedoSignalTree(); }
             });
             return;
         }
