@@ -22,6 +22,8 @@
  * Boston, Mass 02111-1307, USA.
  */
 
+package com.sun.electric.tool.simulation.interval;
+
 /**
  * Class for representation of intervals X = [a, b]. a and b are double 
  * precision floation point numbers with a <= b. 
@@ -62,16 +64,20 @@ public class Interval
      * A constant holding 3/4*ulp(1.0). next(x) is round-to-nearest
 	 * of (x + x*ULP_EPS) for positive normalized doble numbers.
      */
-    private static final double ULP_EPS = 0x1.8p-53;
+    private static final double ULP_EPS = 1.5/(1L << 53); // 0x1.8p-53;
     /**
      * A constant holding prev(1.0). prev(x) is round-to-nearest
 	 * if (x*SCALE_DOWN) for positive normalized double numbers.
      */
-    private static final double SCALE_DOWN = 0x0.fffffffffffffp0;
+    private static final double SCALE_DOWN = 1.0 - 1.0/(1L << 53); // 0x0.fffffffffffffp0;
     /**
      * A constant holding minimal positive normalized double number.
      */
-    private static final double MIN_NORMAL = 0x1.0p-1022;
+    private static final double MIN_NORMAL = Double.MIN_VALUE*(1L << 52); // (0x1.0p-1022;
+    /**
+     * A constant holding ulp(Double.MAX_VALUE).
+     */
+    private static final double	MAX_ULP = Double.MAX_VALUE/(1L << 53)/SCALE_DOWN; // 0x1.0p971;
     /**
      * A constant holding range of long numbers exactly represented
 	 * by double numbers. All longs in [ -EXACT_LONG, EXACT_LONG] are
@@ -81,7 +87,7 @@ public class Interval
     /**
      * A constant holding Long.MAX_VALUE rounded down.
      */
-	private static final double INF_MAX_LONG = 0x1.fffffffffffffp62;
+	private static final double INF_MAX_LONG = SCALE_DOWN*2*(1L << 62); // 0x1.fffffffffffffp62;
 
 	// -----------------------------------------------------------------------
 	// Constructors
@@ -114,7 +120,7 @@ public class Interval
 	 * <UL>
 	 * <LI> if x == +INF then [ +INF ] is constructed
 	 * <LI> if x == -INF then [ -INF ] is constructed
-	 * <LI> if x == NaN then [ EMPTY ] is constructed
+	 * <LI> if x == NaN then the entire interval [ -INF,+INF ] is constructed
 	 * </UL>
 	 */
     public Interval(double x) {
@@ -126,7 +132,7 @@ public class Interval
 	 *
 	 * Special cases in the extended system:
 	 * <UL>
-	 * <LI> if inf < sup then the interval [ EMPTY ] is constructed
+	 * <LI> if inf < sup then the entire interval [ -INF,+INF ] is constructed
 	 * </UL>
 	 *
 	 * @param inf The infimum of the interval to be constructed.
@@ -141,7 +147,7 @@ public class Interval
 	 *
 	 * Special cases in the extended system:
 	 * <UL>
-	 * <LI> if inf < sup then the interval [ EMPTY ] is constructed
+	 * <LI> if inf < sup then the entire interval [ -INF,+INF ] is constructed
 	 * </UL>
 	 *
 	 * @param inf The infimum of the interval to be constructed.
@@ -158,8 +164,8 @@ public class Interval
 	 * <UL>
 	 * <LI> if inf == sup == -INF the interval [ -INF ] is constructed
 	 * <LI> if inf == sup == +INF the interval [ +INF ] is constructed
-	 * <LI> if inf < sup then the interval [ EMPTY ] is constructed
-	 * <LI> if inf == NaN or sup == NaN then [ EMPTY ] is constructed
+	 * <LI> if inf < sup then the entire interval [ -INF,+INF ] is constructed
+	 * <LI> if inf == NaN or sup == NaN then the entire interval [ -INF,+INF ] is constructed
 	 * </UL>
 	 *
 	 * @param inf The infimum of the interval to be constructed.
@@ -225,7 +231,7 @@ public class Interval
 	 * <UL>
 	 * <LI> if x == +INF then [ +INF ] is constructed
 	 * <LI> if x == -INF then [ -INF ] is constructed
-	 * <LI> if x == NaN then [ EMPTY ] is constructed
+	 * <LI> if x == NaN then the entire interval [ -INF,+INF ] is constructed
 	 * </UL>
 	 */
     public Interval assign(double x) {
@@ -235,7 +241,7 @@ public class Interval
 		else if (x == Double.NEGATIVE_INFINITY)
 			sup = -Double.MAX_VALUE;
 		else if (x != x)
-			assignEmpty();
+			assignEntire();
 		return this;
     }
 
@@ -244,7 +250,7 @@ public class Interval
 	 *
 	 * Special cases in the extended system:
 	 * <UL>
-	 * <LI> if inf < sup then the interval [ EMPTY ] is constructed
+	 * <LI> if inf < sup then the entire interval [ -INF,+INF ] is constructed
 	 * </UL>
 	 *
 	 * @param inf The infimum of the interval to be constructed.
@@ -255,7 +261,7 @@ public class Interval
 			this.inf = (double)inf;
 			this.sup = (double)sup;
 		} else
-			assignEmpty();
+			assignEntire();
 		return this;
 	}
 
@@ -264,7 +270,7 @@ public class Interval
 	 *
 	 * Special cases in the extended system:
 	 * <UL>
-	 * <LI> if inf < sup then the interval [ EMPTY ] is constructed
+	 * <LI> if inf < sup then the the entire interval [ -INF,+INF ] is constructed
 	 * </UL>
 	 *
 	 * @param inf The infimum of the interval to be constructed.
@@ -281,7 +287,7 @@ public class Interval
 					this.sup = next(this.sup);
 			}
 		} else
-			assignEmpty();
+			assignEntire();
 		return this;
 	}
 
@@ -292,8 +298,8 @@ public class Interval
 	 * <UL>
 	 * <LI> if inf == sup == -INF the interval [ -INF ] is constructed
 	 * <LI> if inf == sup == +INF the interval [ +INF ] is constructed
-	 * <LI> if inf < sup then the interval [ EMPTY ] is constructed
-	 * <LI> if inf == NaN or sup == NaN then [ EMPTY ] is constructed
+	 * <LI> if inf < sup then the entire interval [ -INF,+INF ] is constructed
+	 * <LI> if inf == NaN or sup == NaN then the entire [ -INF,+INF ] is constructed
 	 * </UL>
 	 *
 	 * @param inf The infimum of the interval to be constructed.
@@ -304,12 +310,12 @@ public class Interval
 			this.inf = (inf == Double.POSITIVE_INFINITY ? Double.MAX_VALUE : inf);
 			this.sup = (sup == Double.NEGATIVE_INFINITY ? -Double.MAX_VALUE : sup);
 		} else
-			assignEmpty();
+			assignEntire();
 		return this;
 	}
 
 	/**
-	 * Constructs interval same as x.:
+	 * Assigns interval same as x.:
 	 */
 	public Interval assign(Interval x) {
 		this.inf = x.inf;
@@ -318,21 +324,19 @@ public class Interval
 	}
 
 	/**
-	 * Constructs the interval from string.
+	 * Assigns the interval from string.
 	 */
 	public Interval assign(String s) {
 		//		return stringToInterval(s);
-		assignEntire();
-		return this;
+		return assignEntire();
 	}
 
 	/**
-	 * Constructs the interval from character array.
+	 * Assigns the interval from character array.
 	 */
 	public Interval assign(char[] b) {
 		//		return bufToInterval(b);
-		assignEntire();
-		return this;
+		return assignEntire();
 	}
 
 	/**
@@ -505,13 +509,7 @@ public class Interval
 	 * </UL> 
 	 */
     public double wid() {
-		double res;
-		double d = sup - inf;
-		if (sup - d > inf || d + inf < sup) {
-			assert  MIN_NORMAL < d && d < Double.POSITIVE_INFINITY;
-			d += d*ULP_EPS;
-		}
-		return d;
+		return add_up(sup, -inf);
 	}
 
 	/**
@@ -542,6 +540,206 @@ public class Interval
 	public double mag() {
 		return -inf > sup ? -inf : sup;
     }
+
+	/**
+	 * Returns the interval of absolute values of this interval, i.e.
+	 *
+	 * x.abs() == [ x.mig(), x.mag() ]
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.abs() == [ EMPTY ] for x == [ EMPTY ] 
+	 * <LI> x.abs() == [ +INF ] for x == [ +/- INF ]
+	 * </UL>
+	 */
+	public Interval abs()
+    {
+		if (sup <= 0) {
+			double h = sup;
+			this.sup = -inf;
+			this.inf = -h;
+		} else if (inf < 0) {
+			if (-inf > sup)
+				this.sup = -inf;
+			// else sup = this.sup;
+			inf = 0;
+		} // else { inf = this.inf; sup = this.sup; }
+		return this;
+	}
+
+	/**
+	 * Returns an enclosure for the range of minima of this interval and the 
+	 * interval x, i.e.
+	 *
+	 * x.min(y) == { z : z == min(a, b) : a in x, b in y }
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.min(y) == [ EMPTY ] for x == [ EMPTY ] and y == [ EMPTY ] 
+	 * </UL>
+	 */
+	public Interval min(Interval y) {
+		if (this.inf != this.inf) // inf = this.inf; sup = this.sup;
+			return this;
+		inf = (this.inf < y.inf ? this.inf : y.inf);
+		sup = (this.sup < y.sup ? this.sup : y.sup);
+		return this;
+    }
+
+	/**
+	 * Returns an enclosure for the range of maxima of this interval and the 
+	 * interval x, i.e.
+	 *
+	 * x.max(y) == { z : z == max(a, b) : a in x, b in y }
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.max(y) == [ EMPTY ] for x == [ EMPTY ] and y == [ EMPTY ]
+	 * </UL>
+	 */
+	public Interval max(Interval y) {
+		if (this.inf != this.inf) // inf = this.inf; sup = this.sup;
+			return this;
+		inf = (this.inf > y.inf ? this.inf : y.inf);
+		sup = (this.sup > y.sup ? this.sup : y.sup);
+		return this;
+    }
+
+	/**
+	 * Returns an upper bound for the Hausdorff distance of this interval 
+	 * and the interval x, i.e.
+	 *
+	 * x.dist(y) == max{ abs(x.inf()-y.inf()), abs(x.sup() - y.sup()) }
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.dist(y) == NaN for x == [ EMPTY ] or y == [ EMPTY ] 
+	 * </UL>
+	 */
+	double dist(Interval x) {
+
+		if (isEmpty() || x.isEmpty())
+			return Double.NaN;
+
+		if ( this.inf == x.inf && this.sup == x.sup)
+			return 0;
+
+		if (isInfinite() || x.isInfinite())
+			return Double.POSITIVE_INFINITY;;
+
+		double dinf = this.inf > x.inf ? add_up(this.inf, -x.inf) : add_up(-this.inf, x.inf);
+		double dsup = this.sup > x.sup ? add_up(this.sup, -x.sup) : add_up(-this.sup, x.sup);
+
+		return Math.max(dinf, dsup);
+	}
+
+	// -----------------------------------------------------------------------
+	// Set operations
+	// -----------------------------------------------------------------------
+
+	/** 
+	 * Returns the intersection of this interval and the interval x.
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.intersect(y) == [ EMPTY ] iff x and y are disjoint
+	 * </UL>
+	 */
+	public Interval intersect(Interval y) {
+		double l, u;
+		if (isEmpty() || y.isEmpty()) {
+			this.inf = Double.NaN;
+			this.sup = Double.NaN;
+			return this;
+		}
+		l = (this.inf > y.inf ? this.inf : y.inf);
+		u = (this.sup < y.sup ? this.sup : y.sup);
+		if (l > u) {
+			this.inf = Double.NaN;
+			this.sup = Double.NaN;
+			return this;
+		}
+		this.inf = l;
+		this.sup = u;
+		return this;
+	}
+
+
+	/**
+	 * Same as x.intersect(y)
+	 */
+	public Interval ix(Interval y) {
+		return intersect(y);
+	}
+  
+	/**
+	 * Returns the convex hull of this interval and the interval x.
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.interval_hull(y) == [ EMPTY ] for x == y == [ EMPTY ]
+	 * </UL>
+	 */
+	public Interval interval_hull(Interval y) {
+		if (isEmpty()) {
+			this.inf = y.inf;
+			this.sup = y.sup;
+			return this;
+		}
+		if (y.isEmpty())
+			return this;
+		inf = (this.inf < y.inf ? this.inf : y.inf);
+		sup = (this.sup > y.sup ? this.sup : y.sup);
+		return this;
+    }
+
+	/**
+	 * Returns the convex hull of this interval and the double x.
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.interval_hull(y) == [ -INF,+INF ] for y == NaN
+	 * </UL>
+	 */
+	Interval interval_hull(double x) {
+		if (isEmpty())
+			return assign(x);
+		if (x != x)
+			return assignEntire();
+		inf = (this.inf < x ? this.inf : x);
+		sup = (this.sup > x ? this.sup : x);
+		return this;
+	}
+
+	/**
+	 * Same as x.interval_hull(y)
+	 */
+	public Interval ih(Interval y) {
+		return interval_hull(y);
+	}
+
+	// -----------------------------------------------------------------------
+	// Set relations
+	// -----------------------------------------------------------------------
+  
+	/**
+	 * Returns true iff this interval and interval x are disjoint., i.e.
+	 *
+	 * Special cases in the extended system:
+	 * <UL>
+	 * <LI> x.disjoint(y) == true for x or y == [ EMPTY ]
+	 * </UL>
+	 */
+	boolean disjoint(Interval y) {
+		return !(this.inf <= y.sup && y.inf <= this.sup);
+	}
+  
+	/**
+	 * Same as x.disjoint(y)
+	 */
+	public boolean dj(Interval y) {
+		return !(this.inf <= y.sup && y.inf <= this.sup);
+	}
 
 	// -----------------------------------------------------------------------
 	// Arithmetic operations
@@ -622,65 +820,69 @@ public class Interval
 	public Interval mul(Interval y) {
 		double l, h;
 
-		if (y.sup >= 0) { // y.sup >= 0
-			if (this.sup >= 0) { // x.sup >= 0, y.sup >= 0
+		if (y.inf > 0) {
+			if (this.inf > 0) { // x > 0, y > 0
+				l = this.inf*y.inf;
 				h = this.sup*y.sup;
-				if (y.inf <= 0) { // x.sup >= 0, 0 in y
-					l = this.sup*y.inf;
-					if (this.inf <= 0) { // 0 in x, 0 in y
-						double lo = this.inf*y.sup;
-						double ho = this.inf*y.inf;
-						if (lo == lo && ho == ho) {
-							if (l > lo)
-								l = lo;
-							if (h < ho)
-								h = ho;
-						} else {
-							assignEntire();
-							return this;
-						}
-					} // else x > 0, 0 in y
-				} else { // this.sup >= 0, y > 0
-					l = this.inf*(this.inf <= 0 ? y.sup : y.inf);
-				}
-			} else if (this.sup < 0) { // x < 0, y.sup >= 0
+			} else if (this.sup < 0) { // x < 0, y > 0
 				l = this.inf*y.sup;
-				h = (y.inf <= 0 ? this.inf : this.sup)*y.inf;
-			} else { // x is [NaN,NaN]
-				// inf = sup = Double.NaN;
-				return this;
+				h = this.sup*y.inf;
+			} else { // 0 in x or x is [NaN,NaN], y > 0
+				l = this.inf*y.sup;
+				h = this.sup*y.sup;
 			}
-		} else if (y.sup < 0) {	// y < 0
-			if (this.sup >= 0) { // x.sup >= 0, y < 0
+		} else if (y.sup < 0) {
+			if (this.inf > 0) { // x > 0, y < 0
 				l = this.sup*y.inf;
-				h = this.inf*(this.inf <= 0 ? y.inf : y.sup);
+				h = this.inf*y.sup;
 			} else if (this.sup < 0) { // x < 0, y < 0
 				l = this.sup*y.sup;
 				h = this.inf*y.inf;
-			} else { // x is [NaN,NaN]
-				// inf = sup = Double.NaN
-				return this;
+			} else { // 0 in x or x is [NaN,NaN], y < 0
+				l = this.sup*y.inf;
+				h = this.inf*y.inf;
 			}
-		} else { // y is [NaN,NaN]
-			inf = sup = Double.NaN;
-			return this;
+		} else {
+			if (this.inf > 0) { // x > 0, 0 in y or y is [NaN,NaN]
+				l = this.sup*y.inf;
+				h = this.sup*y.sup;
+			} else if (this.sup < 0) { // x < 0, 0 in y or y is [NaN,NaN]
+				l = this.inf*y.sup;
+				h = this.inf*y.inf;
+			} else { // 0 in x or x is [NaN,NaN], 0 in y or y is [NaN,NaN]
+				l = this.sup*y.inf;
+				double lo = this.inf*y.sup;
+				if (l > lo || lo != lo)
+					l = lo;
+				h = this.inf*y.inf;
+				double ho = this.sup*y.sup;
+				if (h < ho || ho != ho)
+					h = ho;
+			}
 		}
+
 		if (l > 0)
 			inf = prevPos(l);
 		else if (l < 0)
 			inf = prevNeg(l);
 		else if (l == 0)
 			inf = (this.inf >= 0 && y.inf >= 0 || this.sup <= 0 && y.sup <= 0) ? 0 : -Double.MIN_VALUE;
+		else if (this.inf == this.inf && y.inf == y.inf)
+			return assignEntire();
 		else
-			inf = Double.NEGATIVE_INFINITY;
+			inf = l;
+
 		if (h > 0)
 			sup = nextPos(h);
 		else if (h < 0)
 			sup = nextNeg(h);
 		else if (h == 0)
 			sup = (this.inf >= 0 && y.inf <= 0 || this.sup <= 0 && y.sup >= 0) ? 0 : Double.MIN_VALUE;
+		else if (this.inf == this.inf && y.inf == y.inf)
+			return assignEntire();
 		else
-			sup = Double.NEGATIVE_INFINITY;
+			sup = h;
+
 		return this;
 	}
 
@@ -695,56 +897,55 @@ public class Interval
 	 */
 	public Interval div(Interval y) {
 		double l, h;
-		if (y.sup >= 0) {
-			if (y.inf <= 0) { // 0 in y
-				if (this.inf == this.inf) {
-					assignEntire();
-				}
-				// else inf = sup = Double.NaN;
-				return this;
-			} else { // y > 0
-				if (this.sup >= 0) { // x.sup >= 0, y > 0
-					h = this.sup/y.inf;
-					l = this.inf/(this.inf <= 0 ? y.inf : y.sup);
-				} else if (this.sup < 0) { // x < 0, y > 0
-					l = this.inf/y.inf;
-					h = this.sup/y.sup;
-				} else { // x is [NaN,NaN]
-					// inf = sup = Double.NaN
-					return this;
-				}
+
+		if (y.inf > 0) {
+			if (this.inf > 0) { // x > 0, y > 0
+				l = this.inf/y.sup;
+				h = this.sup/y.inf;
+			} else if (this.sup < 0) { // x < 0, y > 0
+				l = this.inf/y.inf;
+				h = this.sup/y.sup;
+			} else { // 0 in x or x is [NaN,NaN], y > 0
+				l = this.inf/y.inf;
+				h = this.sup/y.inf;
 			}
 		} else if (y.sup < 0) {
-			if (this.sup >= 0) { // x.sup >= 0, y < 0
+			if (this.inf > 0) { // x > 0, y < 0
 				l = this.sup/y.sup;
-				h = this.inf/(this.inf <= 0 ? y.sup : y.inf);
+				h = this.inf/y.inf;
 			} else if (this.sup < 0) { // x < 0, y < 0
 				l = this.sup/y.inf;
 				h = this.inf/y.sup;
-			} else { // x is [NaN,NaN]
-				// inf = sup = Double.NaN
-				return this;
+			} else { // 0 in x or x is [NaN,NaN], y < 0
+				l = this.sup/y.sup;
+				h = this.inf/y.sup;
 			}
-		} else { // y is [NaN,NaN]
-			inf = sup = Double.NaN;
-			return this;
+		} else { // 0 in y or y is [NaN,NaN]
+			l = h = Double.NaN;
 		}
+
 		if (l > 0)
 			inf = prevPos(l);
 		else if (l < 0)
 			inf = prevNeg(l);
 		else if (l == 0)
-			inf = (this.inf >= 0 && y.inf >= 0 || this.sup <= 0 && y.sup <= 0) ? 0 : -Double.MIN_VALUE;
+			inf = (this.inf >= 0 && y.inf > 0 || this.sup <= 0 && y.sup < 0) ? 0 : -Double.MIN_VALUE;
+		else if (this.inf == this.inf && y.inf == y.inf)
+			return assignEntire();
 		else
-			inf = Double.NEGATIVE_INFINITY;
+			inf = l;
+
 		if (h > 0)
 			sup = nextPos(h);
 		else if (h < 0)
 			sup = nextNeg(h);
 		else if (h == 0)
-			sup = (this.inf >= 0 && y.inf <= 0 || this.sup <= 0 && y.sup >= 0) ? 0 : Double.MIN_VALUE;
+			sup = (this.inf >= 0 && y.inf < 0 || this.sup <= 0 && y.sup > 0) ? 0 : Double.MIN_VALUE;
+		else if (this.inf == this.inf && y.inf == y.inf)
+			return assignEntire();
 		else
-			sup = Double.NEGATIVE_INFINITY;
+			sup = h;
+
 		return this;
 	}
 
@@ -766,6 +967,40 @@ public class Interval
 	// -----------------------------------------------------------------------
 	// predecessor and successor of a number
 	// -----------------------------------------------------------------------
+
+    /**
+     * Returns the size of an ulp of the argument.  An ulp of a
+     * <code>double</code> value is the positive distance between this
+     * floating-point value and the <code>double</code> value next
+     * larger in magnitude.  Note that for non-NaN <i>x</i>,
+     * <code>ulp(-<i>x</i>) == ulp(<i>x</i>)</code>.
+     * 
+     * <p>Special Cases:
+     * <ul>
+     * <li> If the argument is NaN, then the result is NaN.
+     * <li> If the argument is positive or negative infinity, then the
+     * result is positive infinity.
+     * <li> If the argument is positive or negative zero, then the result is
+     * <code>Double.MIN_VALUE</code>.
+     * <li> If the argument is &plusmn;<code>Double.MAX_VALUE</code>, then
+     * the result is equal to 2<sup>971</sup>.
+     * </ul>
+     *
+     * @param d the floating-point value whose ulp is to be returned
+     * @return the size of an ulp of the argument
+     */
+	public static double ulp(double d) {
+		if (d < 0)
+			d = -d;
+		if (d < Double.MAX_VALUE) {
+			if (d >= MIN_NORMAL*2)
+				return (d + d*ULP_EPS) - d;
+			return Double.MIN_VALUE;
+		}
+		if (d == Double.MAX_VALUE)
+			return MAX_ULP;
+		return d;
+	}
 
 	/**
 	 * Returns previous floating point double number.
@@ -818,6 +1053,16 @@ public class Interval
 	private static double prevNeg(double x) {
 		assert x <= 0;
 		return x <= MIN_NORMAL*2 ? x + x*ULP_EPS : x - Double.MIN_VALUE;
+	}
+
+	private double add_up(double x, double y) {
+		double z = x + y;
+		assert z > 0;
+		if (z - x < y || z - y < x) {
+			assert Math.abs(z) > MIN_NORMAL*2;
+			z = z + z*ULP_EPS;
+		}
+		return z;
 	}
 
 }
