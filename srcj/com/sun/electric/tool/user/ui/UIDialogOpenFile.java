@@ -1,13 +1,6 @@
-package com.sun.electric.tool.user;
+package com.sun.electric.tool.user.ui;
 
-/*
- * Created on Sep 30, 2003
- *
- * To change the template for this generated file go to
- * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
- */
-
-import com.sun.electric.tool.user.ElectricDocWnd;
+import com.sun.electric.tool.user.ui.UIEditFrame;
 import com.sun.electric.tool.io.Input;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
@@ -16,29 +9,25 @@ import java.awt.event.*;
 import java.io.File;
 
 /**
- * @author wc147374
+ * @author Willy Chung
  *
  * To change the template for this generated type comment go to
  * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
  */
-public class OpenElectricFile implements ActionListener 
+public class UIDialogOpenFile implements ActionListener 
 {
 	private JComponent parent=null;
 	/** File Chooser Dialog handle*/private final JFileChooser fc = new JFileChooser();
 	/** file handle*/				public File file;
-	/** desktop pane handle*/ 		private JDesktopPane desktop = null;
 
-	//messange handler when clicked
+	// message handler when clicked
 	public void actionPerformed(ActionEvent e)
 	{
 		int returnVal = fc.showOpenDialog(parent);
-		if(returnVal==JFileChooser.APPROVE_OPTION)
+		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
-			file=fc.getSelectedFile();
-			
-			//open internal frame window
+			file = fc.getSelectedFile();
 
-			//frame.setVisible(true);
 			Library lib = Input.ReadLibrary(file.getPath(), null, Input.ImportType.BINARY);
 			if (lib == null)
 			{
@@ -53,30 +42,14 @@ public class OpenElectricFile implements ActionListener
 					System.out.println("No current cell in this library");
 				} else
 				{
-					ElectricDocWndFrame frame = ElectricDocWndFrame.CreateElectricDocFrame(cell);
-					desktop.add(frame); 
+					UIEditFrame frame = UIEditFrame.CreateEditWindow(cell);
 				}
 			}
 
 			
 			//	try{frame.setSelected(true);
-			//	}catch(java.beans.PropertyVetoException f){}
-			
-			//TODO: open elib file
-			
+			//	}catch(java.beans.PropertyVetoException f){}			
 		}		
-	}
-
-	//set desktop for the internal frame
-	public void setDesktop(JDesktopPane desktopPane)
-	{
-		desktop = desktopPane;
-	}
-	
-	//get desktop for the internal frame
-	public JDesktopPane getDesktop()
-	{
-		return desktop;
 	}
 }
 

@@ -1,4 +1,4 @@
-package com.sun.electric.tool.user;
+package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -37,7 +37,7 @@ import java.awt.font.*;
  * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
  */
 
-public class ElectricDocWnd extends JPanel
+public class UIEdit extends JPanel
 	implements MouseMotionListener, MouseListener, KeyListener
 {
 	static int openFrameCount =0;
@@ -57,16 +57,14 @@ public class ElectricDocWnd extends JPanel
 	/** for drawing dashed lines */		private static final BasicStroke dashedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10, new float[] {10}, 0);
 
 	//constructor
-	private ElectricDocWnd(Cell cell)
+	private UIEdit(Cell cell)
 	{
 		//super(cell.describe(), true, true, true, true);
 		this.cell = cell;
-		setSize(500,500); //change size 
-		
+
 		sz = new Dimension(500, 500);
+		setSize(sz.width, sz.height);
 		setPreferredSize(sz);
-	//	pack();
-		show();
 		//setAutoscrolls(true);
 		addMouseMotionListener(this);
 		addMouseListener(this);
@@ -74,9 +72,9 @@ public class ElectricDocWnd extends JPanel
 
 
 	//factory
-	public static ElectricDocWnd CreateElectricDoc(Cell cell)
+	public static UIEdit CreateElectricDoc(Cell cell)
 	{
-		return new ElectricDocWnd(cell);
+		return new UIEdit(cell);
 	}
 
 	/**

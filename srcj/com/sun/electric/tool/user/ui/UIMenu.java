@@ -1,4 +1,4 @@
-package com.sun.electric.tool.user;
+package com.sun.electric.tool.user.ui;
 
 /*
  * Created on Sep 30, 2003
@@ -17,31 +17,31 @@ import java.awt.event.*;
  * To change the template for this generated type comment go to
  * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
  */
-public class ElectricMenu extends JMenu 
+public class UIMenu extends JMenu 
 {
 	private JMenuItem menuItem = null;
 	
 	// constructor
-	private ElectricMenu(String s)
+	private UIMenu(String s)
 	{
 		super(s);
 	}
 	
-	private ElectricMenu(String s, char mnemonic)
+	private UIMenu(String s, char mnemonic)
 	{
 		super(s);
 		setMnemonic(mnemonic);
 	}
 
 	// factory function
-	public static ElectricMenu CreateElectricMenu(String s)
+	public static UIMenu CreateUIMenu(String s)
 	{
-		return new ElectricMenu(s);
+		return new UIMenu(s);
 	}
 	
-	public static ElectricMenu CreateElectricMenu(String s, char mnemonic)
+	public static UIMenu CreateUIMenu(String s, char mnemonic)
 	{
-		return new ElectricMenu(s, mnemonic);
+		return new UIMenu(s, mnemonic);
 	}
 	
 	// add menu item

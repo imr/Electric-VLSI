@@ -1,4 +1,4 @@
-package com.sun.electric.tool.user;
+package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
@@ -14,6 +14,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.Dimension;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
@@ -26,16 +27,17 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
+import javax.swing.JInternalFrame;
 
 /**
  * a console for the Java side of Electric.  Used because the standard
  * Electric console can't handle multiple threads of printing.
  * An instance of this class should be set as the PrintStream for System.out,
- * e.g. System.setOut(new PrintStream(new MessagesWindow()));
+ * e.g. System.setOut(new PrintStream(new UIMessages()));
  * In such a situation, there should never be a reason to call any of
  * the methods of this class directly.
  */
-public class MessagesWindow
+public class UIMessages
 	extends OutputStream
 	implements ActionListener, KeyListener, CaretListener, Runnable
 {
@@ -47,27 +49,19 @@ public class MessagesWindow
 	Thread ticker = null;
 	StringBuffer buffer = new StringBuffer();
 	Interpreter bi;
-
-//	public static MessagesWindow MESSAGES = new MessagesWindow();
+	JInternalFrame jf;
 
 	// -------------------- private and protected methods ------------------------
-	MessagesWindow()
+	public UIMessages(Dimension scrnSize)
 	{
-		JFrame jf = new JFrame("Electric Messages");
-		// jf.setDefaultCloseOperation(jf.DO_NOTHING_ON_CLOSE);
-		jf.addWindowListener(new WindowAdapter()
-		{
-			public void windowClosing(WindowEvent evt)
-			{
-				info.setText("");
-			}
-		});
+		jf = new JInternalFrame("Messages", true, true, true, true);
+//		jf.setDefaultCloseOperation(jf.DO_NOTHING_ON_CLOSE);
 		bi = new Interpreter();
 		history = new ArrayList();
 		entry = new JTextField();
 		entry.addActionListener(this);
 		entry.addKeyListener(this);
-		info = new JTextArea(40, 80);
+		info = new JTextArea(10, 80);
 		info.addCaretListener(this);
 		info.setLineWrap(false);
 		JScrollPane scroll = new JScrollPane(info,
@@ -78,11 +72,14 @@ public class MessagesWindow
 		jf.getContentPane().add(entry, BorderLayout.SOUTH);
 		jf.getContentPane().add(scroll, BorderLayout.CENTER);
 		jf.pack();
-		jf.setLocation(1000, 250);
+		jf.setLocation(100, scrnSize.height/4*3);
 		jf.show();
 
 		System.setOut(new java.io.PrintStream(this));
+System.out.println("height="+scrnSize.height);
 	}
+
+	public JInternalFrame getFrame() { return jf; }
 
 	public void interpret(String args[])
 	{

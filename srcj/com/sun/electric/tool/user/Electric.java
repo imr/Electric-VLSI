@@ -1,5 +1,9 @@
 package com.sun.electric.tool.user;
 
+import com.sun.electric.tool.user.ui.UIEditFrame;
+import com.sun.electric.tool.user.ui.UIMenu;
+import com.sun.electric.tool.user.ui.UITopLevel;
+import com.sun.electric.tool.user.ui.UIDialogOpenFile;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -24,37 +28,7 @@ public final class Electric
 
 	public static void main(String[] args)
 	{
-		try{
-			UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-		} catch(Exception e) {}
-
-		ElectricFrame electricFrame = ElectricFrame.CreateFrame("Electric");
-		electricFrame.AddWindowExit();
-		Dimension scrnSize = (Toolkit.getDefaultToolkit()).getScreenSize();
-		scrnSize.height -= 30;
-
-		// setup the menus
-		ElectricMenu fileMenu = ElectricMenu.CreateElectricMenu("File");
-		OpenElectricFile fileOpen = new OpenElectricFile();
-		fileMenu.addMenuItem("Open", KeyStroke.getKeyStroke('O', InputEvent.CTRL_MASK), fileOpen);
-		fileMenu.addMenuItem("Quit", KeyStroke.getKeyStroke('Q', InputEvent.CTRL_MASK),
-			new ActionListener()
-			{
-				public void actionPerformed(ActionEvent e) { System.exit(0); }
-			});
-		JMenuBar menuBar = new JMenuBar();
-		menuBar.add(fileMenu);
-		electricFrame.setJMenuBar(menuBar);
-
-		JDesktopPane desktop = new JDesktopPane();
-		electricFrame.getContentPane().add(desktop);
-		fileOpen.setDesktop(desktop);	
-		electricFrame.setSize(scrnSize);
-		electricFrame.setVisible(true);
-
-		
-		// initialize all of the technologies
-		Technology.initAllTechnologies();
+		initializeEverything();
 
 		// get information about the nodes
 		NodeProto m1m2Proto = NodeProto.findNodeProto("mocmos:Metal-1-Metal-2-Con");
@@ -158,10 +132,8 @@ public final class Electric
 		instanceArc.getInfo();
 
 		// display some cells
-		ElectricDocWndFrame window1 = ElectricDocWndFrame.CreateElectricDocFrame(myCell);
-		desktop.add(window1); 
-		ElectricDocWndFrame window2 = ElectricDocWndFrame.CreateElectricDocFrame(higherCell);
-		desktop.add(window2); 
+		UIEditFrame window1 = UIEditFrame.CreateEditWindow(myCell);
+		UIEditFrame window2 = UIEditFrame.CreateEditWindow(higherCell);
 		System.out.println("*********************** TERMINATED SUCCESSFULLY ***********************");
 		System.out.println("************* Click and drag to Pan");
 		System.out.println("************* Use CONTROL-CLICK to Zoom");
@@ -174,35 +146,28 @@ public final class Electric
 	{
 	}
 
-	private static MessagesWindow cl;
-
-	static
+	private static void initializeEverything()
 	{
-		// create the command line
-		cl = new MessagesWindow();
-	}
+		// initialize the display
+		UITopLevel.Initialize();
 
-	// ----------------------- public methods -------------------------------
+		// setup the File menu
+		UIMenu fileMenu = UIMenu.CreateUIMenu("File");
+		UIDialogOpenFile fileOpen = new UIDialogOpenFile();
+		fileMenu.addMenuItem("Open", KeyStroke.getKeyStroke('O', InputEvent.CTRL_MASK), fileOpen);
+		fileMenu.addMenuItem("Quit", KeyStroke.getKeyStroke('Q', InputEvent.CTRL_MASK),
+			new ActionListener()
+			{
+				public void actionPerformed(ActionEvent e) { System.exit(0); }
+			});
 
-	/** Equivalent to error(true, msg). */
-	public static void error(String msg)
-	{
-		RuntimeException e = new RuntimeException(msg);
-		e.printStackTrace();
-		throw e;
-	}
+		// create the menu bar
+		JMenuBar menuBar = new JMenuBar();
+		menuBar.add(fileMenu);
+		UITopLevel.setMenuBar(menuBar);
 
-	/** If pred is true, print an error message, dump the stack, and
-	 * stop Java execution dead in its tracks.
-	 *
-	 * Output goes to the Jose window as well as the Electric message
-	 * window.  This allows us to see when a Java error occurs with
-	 * respect to debugging messages printed on the C side (for example
-	 * messages printed by dbmirror.cpp) and debugging messages printed
-	 * on the Java side. */
-	public static void error(boolean pred, String msg)
-	{
-		if (pred) error(msg);
+		// initialize all of the technologies
+		Technology.initAllTechnologies();
 	}
 
 }

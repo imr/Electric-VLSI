@@ -52,10 +52,10 @@ public class JNetwork
 	// names.
 
 	// ----------------------- protected and private methods -----------------
-	private static void error(boolean pred, String msg)
-	{
-		Electric.error(pred, msg);
-	}
+//	private static void error(boolean pred, String msg)
+//	{
+//		Electric.error(pred, msg);
+//	}
 
 	// used for PrimitivePorts
 	public JNetwork(Collection names, NodeProto np)
@@ -129,9 +129,8 @@ public class JNetwork
 	 * anyone trying to reference it */
 	public static JNetwork merge(JNetwork net0, JNetwork net1)
 	{
-		error(
-			net0.parent != net1.parent,
-			"merging nets with different parents?");
+		if (net0.parent != net1.parent)
+			System.out.println("merging nets with different parents?");
 
 		if (net0.portInsts.size() >= net1.portInsts.size())
 		{
@@ -158,7 +157,7 @@ public class JNetwork
 				bigNet = net;
 			}
 		}
-		error(bigNet == null, "JNetwork.findBiggestNet: no networks?");
+		if (bigNet == null) System.out.println("JNetwork.findBiggestNet: no networks?");
 		return bigNet;
 	}
 
