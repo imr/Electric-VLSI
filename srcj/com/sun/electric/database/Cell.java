@@ -353,7 +353,7 @@ public class Cell extends NodeProto
 		for (int i = 0; i < nodes.size(); i++)
 		{
 			NodeInst ni = (NodeInst) nodes.get(i);
-			for (Iterator it = ni.getPorts(); it.hasNext();)
+			for (Iterator it = ni.getPortInsts(); it.hasNext();)
 			{
 				PortInst pi = (PortInst) it.next();
 				JNetwork net = new JNetwork(this);
@@ -398,7 +398,7 @@ public class Cell extends NodeProto
 				continue;
 
 			HashMap netToPort = new HashMap(); // subNet -> PortInst
-			for (Iterator it = ni.getPorts(); it.hasNext();)
+			for (Iterator it = ni.getPortInsts(); it.hasNext();)
 			{
 				PortInst piNew = (PortInst) it.next();
 				JNetwork subNet =
@@ -436,7 +436,7 @@ public class Cell extends NodeProto
 				continue;
 
 			HashMap listToPort = new HashMap(); // equivList -> PortInst
-			for (Iterator it = ni.getPorts(); it.hasNext();)
+			for (Iterator it = ni.getPortInsts(); it.hasNext();)
 			{
 				PortInst piNew = (PortInst) it.next();
 				Object equivList =
@@ -462,7 +462,7 @@ public class Cell extends NodeProto
 		for (Iterator nit = getNodes(); nit.hasNext();)
 		{
 			NodeInst ni = (NodeInst) nit.next();
-			for (Iterator pit = ni.getPorts(); pit.hasNext();)
+			for (Iterator pit = ni.getPortInsts(); pit.hasNext();)
 			{
 				PortInst pi = (PortInst) pit.next();
 				nets.add(pi.getNetwork());
@@ -648,6 +648,7 @@ public class Cell extends NodeProto
 		}
 		return oldToNew;
 	}
+
 	private PortInst getNewPortInst(PortInst oldPort, HashMap oldToNew)
 	{
 		NodeInst newInst = (NodeInst) oldToNew.get(oldPort.getNodeInst());
@@ -656,7 +657,7 @@ public class Cell extends NodeProto
 			"no new instance for old instance in oldToNew?!");
 		String portNm = oldPort.getPortProto().getProtoName();
 		error(portNm == null, "PortProto with no name?");
-		return newInst.findPort(portNm);
+		return newInst.findPortInst(portNm);
 	}
 
 	private void copyArcs(Cell f, HashMap oldToNew)
@@ -801,38 +802,6 @@ public class Cell extends NodeProto
 //		e.setRole(role);
 //		return e;
 		return null;
-	}
-
-	/** Create an export for a particular layer.
-	 *
-	 * <p> At the coordinates <code>(x, y)</code> create an instance of
-	 * a pin for the layer <code>ap</code>. Export that layer-pin's
-	 * PortInst.
-	 *
-	 * <p> Attach an arc to the layer-pin.  This is done because
-	 * Electric uses the widest arc on a PortInst as a hint for the
-	 * width to use for all future arcs. Because Electric doesn't use
-	 * the size of layer-pins as width hints, the layer-pin is created
-	 * in it's default size.
-	 *
-	 * <p> This method seems very specialized, but it's nearly the only
-	 * one I use when generating layout.
-	 * @param name the name of the new Export
-	 * @param role the Export's type 
-	 * @param ap the ArcProto indicating what layer I want to create an
-	 * export on.
-	 * @param hintW width of the arc hint
-	 * @param x the x coordinate of the layer pins.
-	 * @param y the y coordinate of the layer pin. */
-	public Export newExport(String name, ArcProto ap, double w, double x, double y)
-	{
-		NodeProto np = ap.findPinProto();
-		error(np == null, "Cell.newExport: This layer has no layer-pin");
-
-		NodeInst ni = NodeInst.newInstance(np, new Point2D.Double(1, 1), x, y, 0, this);
-		ArcInst.newInstance(ap, w, ni.getPort(), ni.getPort());
-
-		return newExport(name, ni.getPort());
 	}
 
 	/** Get Export with specified name. @return null if not found */
@@ -987,24 +956,6 @@ public class Cell extends NodeProto
 
 		referencePointCoord.setLocation(x, y);
 	}
-
-	/** Create a copy of this Cell. Warning: this routine doesn't yet
-	 * properly copy all variables on all objects.
-	 * @param copyLib library into which the copy is placed. null means
-	 * place the copy into the library that contains this Cell.
-	 * @param copyNm name of the copy
-	 * @return the copy */
-//	public Cell copy(Library copyLib, String copyNm)
-//	{
-//		if (copyLib == null)
-//			copyLib = lib;
-//		error(copyNm == null, "Cell.makeCopy: copyNm is null");
-//		Cell f = copyLib.newCell(copyNm);
-//		error(f == null, "unable to create copy Cell named: " + copyNm);
-//		copyContents(f);
-//		return f;
-//	}
-
 	/** sanity check method used by Geometric.checkobj */
 	public boolean containsInstance(Geometric thing)
 	{
@@ -1024,5 +975,54 @@ public class Cell extends NodeProto
 	{
 		return "Cell " + describe();
 	}
+
+	/** Create a copy of this Cell. Warning: this routine doesn't yet
+	 * properly copy all variables on all objects.
+	 * @param copyLib library into which the copy is placed. null means
+	 * place the copy into the library that contains this Cell.
+	 * @param copyNm name of the copy
+	 * @return the copy */
+//	public Cell copy(Library copyLib, String copyNm)
+//	{
+//		if (copyLib == null)
+//			copyLib = lib;
+//		error(copyNm == null, "Cell.makeCopy: copyNm is null");
+//		Cell f = copyLib.newCell(copyNm);
+//		error(f == null, "unable to create copy Cell named: " + copyNm);
+//		copyContents(f);
+//		return f;
+//	}
+
+	/** Create an export for a particular layer.
+	 *
+	 * <p> At the coordinates <code>(x, y)</code> create an instance of
+	 * a pin for the layer <code>ap</code>. Export that layer-pin's
+	 * PortInst.
+	 *
+	 * <p> Attach an arc to the layer-pin.  This is done because
+	 * Electric uses the widest arc on a PortInst as a hint for the
+	 * width to use for all future arcs. Because Electric doesn't use
+	 * the size of layer-pins as width hints, the layer-pin is created
+	 * in it's default size.
+	 *
+	 * <p> This method seems very specialized, but it's nearly the only
+	 * one I use when generating layout.
+	 * @param name the name of the new Export
+	 * @param role the Export's type 
+	 * @param ap the ArcProto indicating what layer I want to create an
+	 * export on.
+	 * @param hintW width of the arc hint
+	 * @param x the x coordinate of the layer pins.
+	 * @param y the y coordinate of the layer pin. */
+//	public Export newExport(String name, ArcProto ap, double w, double x, double y)
+//	{
+//		NodeProto np = ap.findPinProto();
+//		error(np == null, "Cell.newExport: This layer has no layer-pin");
+//
+//		NodeInst ni = NodeInst.newInstance(np, new Point2D.Double(1, 1), x, y, 0, this);
+//		ArcInst.newInstance(ap, w, ni.getPort(), ni.getPort());
+//
+//		return newExport(name, ni.getPort());
+//	}
 
 }

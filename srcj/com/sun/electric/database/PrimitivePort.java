@@ -133,6 +133,8 @@ public class PrimitivePort extends PortProto
 		return "PrimitivePort " + protoName;
 	}
 
+	public PortProto getEquivalent() { return this; }
+	
 	/** Get the first "real" (non-zero width) ArcProto style that can
 	 * connect to this port. */
 //	public ArcProto getWire()

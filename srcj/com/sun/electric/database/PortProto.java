@@ -135,28 +135,7 @@ public abstract class PortProto extends ElectricObject implements Networkable
 		return getBasePort().connectsTo(arc);
 	}
 
-	/** If this PortProto belongs to an Icon View Cell then return the
-	 * PortProto with the same name on the corresponding Schematic View
-	 * Cell.
-	 *
-	 * <p> If this PortProto doesn't belong to an Icon View Cell then
-	 * return this PortProto.
-	 *
-	 * <p> If the Icon View Cell has no corresponding Schematic View
-	 * Cell then return null. If the corresponding Schematic View Cell
-	 * has no port with the same name then return null.
-	 *
-	 * <p> If there are multiple versions of the Schematic Cell return
-	 * the latest. */
-	public PortProto getEquivalent()
-	{
-		NodeProto equiv = parent.getEquivalent();
-		if (equiv == parent)
-			return this;
-		if (equiv == null)
-			return null;
-		return equiv.findPort(protoName);
-	}
+	public abstract PortProto getEquivalent();
 
 	public String toString()
 	{

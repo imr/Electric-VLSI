@@ -44,7 +44,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	/** flags for this arc instance */					private int userBits;
 	/** width of this arc instance */					private double arcWidth;
 	/** prototype of this arc instance */				private ArcProto protoType;
-	/** end connections of this arc instance */			private Connection ends[];
+	/** end connections of this arc instance */			private Connection head, tail;
 
 	// -------------------- private and protected methods ------------------------
 	
@@ -63,8 +63,8 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 * where they should be. */
 	void updateGeometric()
 	{
-		Point2D.Double p1 = ends[0].getLocation();
-		Point2D.Double p2 = ends[1].getLocation();
+		Point2D.Double p1 = head.getLocation();
+		Point2D.Double p2 = tail.getLocation();
 		double dx = p2.x - p1.x;
 		double dy = p2.y - p1.y;
 		double len = Math.sqrt(dx * dx + dy * dy);
@@ -79,47 +79,49 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	}
 
 	/** set the connection on a particular end */
-	void setConnection(Connection c, boolean end)
+	void setConnection(Connection c, boolean onHead)
 	{
-		ends[end ? 1 : 0] = c;
+		if (onHead) head = c; else
+			tail = c;
 	}
-	public Connection getConnection(int end)
+	/** get the connection on a particular end */
+	public Connection getConnection(boolean onHead)
 	{
-		return ends[end];
+		return onHead ? head : tail;
 	}
 
-	// Remove this ArcInst.  Will also remove the connections on either
-	// side.
+	// Remove this ArcInst.  Will also remove the connections on either side.
 	void remove()
 	{
-		ends[0].remove();
-		ends[1].remove();
+		head.remove();
+		tail.remove();
 		getParent().removeArc(this);
 		super.remove();
 	}
 
 	/** remove the connection from a particular end */
-	void removeConnection(Connection c, boolean end)
+	void removeConnection(Connection c, boolean onHead)
 	{
 		/* safety check */
-		if (ends[end ? 1 : 0] != c)
+		if ((onHead ? head : tail) != c)
 		{
 			System.out.println("Tried to remove the wrong connection from a wire end: "
 				+ c + " on " + this);
 		}
-		ends[end ? 1 : 0] = null;
+		if (onHead) head = null; else
+			tail = null;
 	}
 
 	public void getInfo()
 	{
 		System.out.println("--------- ARC INSTANCE: ---------");
 		System.out.println(" ArcProto: " + protoType.describe());
-		Point2D loc = ends[0].getLocation();
-		System.out.println(" Head on " + ends[0].getPortInst().getNodeInst().getProto().describe() +
+		Point2D loc = head.getLocation();
+		System.out.println(" Head on " + head.getPortInst().getNodeInst().getProto().describe() +
 			" at (" + loc.getX() + "," + loc.getY() + ")");
 
-		loc = ends[1].getLocation();
-		System.out.println(" Tail on " + ends[1].getPortInst().getNodeInst().getProto().describe() +
+		loc = tail.getLocation();
+		System.out.println(" Tail on " + tail.getPortInst().getNodeInst().getProto().describe() +
 			" at (" + loc.getX() + "," + loc.getY() + ")");
 		super.getInfo();
 	}
@@ -203,9 +205,8 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		}
 
 		// create node/arc connections and place them properly
-		Connection ca = new Connection(ai, a, aX, aY);
-		Connection cb = new Connection(ai, b, bX, bY);
-		ai.ends = new Connection[] {ca, cb};
+		ai.head = new Connection(ai, a, aX, aY);
+		ai.tail = new Connection(ai, b, bX, bY);
 		
 		// fill in the geometry
 		ai.updateGeometric();
@@ -331,12 +332,6 @@ public class ArcInst extends Geometric /*implements Networkable*/
 //		Electric.modifyArcInst(getAddr(), dWidth);
 	}
 
-	/** Get the connection to the specified end of this ArcInst. */
-	public Connection getConnection(boolean end)
-	{
-		return ends[end ? 1 : 0];
-	}
-
 	/** Get the ArcProto of this ArcInst. */
 	public ArcProto getProto()
 	{
@@ -358,8 +353,8 @@ public class ArcInst extends Geometric /*implements Networkable*/
 
 	Poly makearcpoly(double len, double wid, Poly.Type style)
 	{
-		Point2D end1 = ends[0].getLocation();
-		Point2D end2 = ends[1].getLocation();
+		Point2D end1 = head.getLocation();
+		Point2D end2 = tail.getLocation();
 
 		/* zero-width polygons are simply lines */
 		if (wid == 0)
