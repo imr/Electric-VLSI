@@ -970,7 +970,7 @@ public class Library extends ElectricObject
 			for(Iterator it = getCells(); it.hasNext(); )
 				sortedList.add(it.next());
 		}
-		Collections.sort(sortedList, new TextUtils.CellsByFullName());
+		Collections.sort(sortedList, new TextUtils.CellsByName());
 		return sortedList;
 	}
 

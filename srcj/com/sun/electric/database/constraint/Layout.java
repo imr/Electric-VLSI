@@ -238,6 +238,16 @@ public class Layout extends Constraints
 		}
 	}
 
+	/**
+	 * Method to remove temporary rigidity on an ArcInst.
+	 * @param ai the ArcInst to remove temporarily rigidity.
+	 */
+	public static void removeTempRigid(ArcInst ai)
+	{
+		if (ai.getChangeClock() != changeClock + 3 && ai.getChangeClock() != changeClock + 2) return;
+		ai.setChangeClock(changeClock - 3);
+	}
+
 	private static HashSet deletedArcs;
 
 	/**

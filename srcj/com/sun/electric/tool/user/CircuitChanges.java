@@ -3410,6 +3410,27 @@ public class CircuitChanges
         if (highlighter == null) return;
 
         List highlighted = highlighter.getHighlights();
+
+        // prevent mixing cell-center and non-cell-center
+        int nonCellCenterCount = 0;
+        Highlight cellCenterHighlight = null;
+        for(Iterator it = highlighted.iterator(); it.hasNext(); )
+        {
+        	Highlight h = (Highlight)it.next();
+        	if (h.getType() != Highlight.Type.EOBJ) continue;
+        	ElectricObject eObj = h.getElectricObject();
+        	if (eObj instanceof NodeInst)
+        	{
+        		NodeInst ni = (NodeInst)eObj;
+        		if (ni.getProto() == Generic.tech.cellCenterNode) cellCenterHighlight = h; else
+        			nonCellCenterCount++;
+        	} else nonCellCenterCount++;
+        }
+        if (cellCenterHighlight != null && nonCellCenterCount != 0)
+        {
+        	System.out.println("Cannot move the Cell-center along with other objects.  Cell-center will not be moved.");
+        	highlighted.remove(cellCenterHighlight);
+        }
         List highlightedText = highlighter.getHighlightedText(true);
         ManyMove job = new ManyMove(highlighted, highlightedText, dX, dY);
 	}
@@ -4183,7 +4204,6 @@ public class CircuitChanges
 					if (inDestLib(np, toLib)) continue;
 
 					// copy equivalent view if not already there
-//					if (move) fromCellWalk = np->nextcellgrp; // if np is moved (i.e. deleted), circular linked list is broken
 					Cell oNp = copyRecursively(np, np.getName(), toLib, np.getView(),
 						verbose, move, "alternate view ", true, noSubCells, useExisting);
 					if (oNp == null)
@@ -4211,7 +4231,6 @@ public class CircuitChanges
 					if (inDestLib(np, toLib)) continue;
 
 					// copy equivalent view if not already there
-//					if (move) fromCellWalk = np->nextcellgrp; // if np is moved (i.e. deleted), circular linked list is broken
 					Cell oNp = copyRecursively(np, np.getName(), toLib, np.getView(),
 						verbose, move, "alternate view ", true, noSubCells, useExisting);
 					if (oNp == null)
@@ -4261,9 +4280,6 @@ public class CircuitChanges
 				return null;
 			}
 
-			// ensure that the copied cell is the right size
-//			(*el_curconstraint->solve)(newFromCell);
-
             // Message before the delete!!
 			if (verbose)
 			{
@@ -4284,9 +4300,6 @@ public class CircuitChanges
 			// if moving, adjust pointers and kill original cell
 			if (move)
 			{
-				// ensure that the copied cell is the right size
-//				(*el_curconstraint->solve)(newFromCell);
-
 				// clear highlighting if the current node is being replaced
 //				list = us_gethighlighted(WANTNODEINST, 0, 0);
 //				for(i=0; list[i] != NOGEOM; i++)
@@ -4323,9 +4336,7 @@ public class CircuitChanges
 						}
 					}
 				}
-//				toolturnoff(net_tool, FALSE);
 				doKillCell(fromCell);
-//				toolturnon(net_tool);
 				fromCell = null;
 			}
 		}

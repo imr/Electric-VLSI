@@ -37,6 +37,7 @@ import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.erc.ERCWellCheck;
+import com.sun.electric.tool.compaction.Compaction;
 import com.sun.electric.tool.erc.ERCAntenna;
 import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.routing.River;
@@ -320,6 +321,13 @@ public class ToolMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { new com.sun.electric.tool.generator.layout.GateLayoutGenerator(MoCMOS.tech); }});
         generationSubMenu.addMenuItem("Generate gate layouts (TSMC90)", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { new com.sun.electric.tool.generator.layout.GateLayoutGenerator(TSMC90.tech); }});
+
+		//------------------- Compaction
+
+		MenuBar.Menu compactionSubMenu = new MenuBar.Menu("Compaction", 'C');
+		toolMenu.add(compactionSubMenu);
+		compactionSubMenu.addMenuItem("Do Compaction", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Compaction.compactNow();}});
 
 		toolMenu.addSeparator();
 

@@ -2,7 +2,15 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+IMP: (11/8/04, SMR) Disallow moving the cell-center when other objects are moving.
+
+BUG: (11/8/04, SMR) Cell names are not sorted properly (the views are not considered).
+     Names do not line-up properly in cross-library copy dialog.
+FIX: In TextUtils.CellsByName, use "noLibDescribe()" instead of "getName()".
+     No longer need TextUtils.CellsByFullName.
+
 ************************* Version 8.01al: *********************************
+
 IMP: (11/6/04, GVG) New width for metal1 arcs. New well rectangular contact to avoid min area/width problems.
      New primitive nodes are available from Tech Palette via menu.
 
