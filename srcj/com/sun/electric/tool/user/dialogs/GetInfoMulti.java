@@ -269,11 +269,12 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
             initialXPosition = "";
 			if (xPositionLow == xPositionHigh)
 			{
-				initialXPosition = Double.toString(xPositionLow);
+				initialXPosition = TextUtils.formatDouble(xPositionLow);
 				xPositionRange.setText("All the same");
 			} else
 			{
-				xPositionRange.setText(xPositionLow + " to " + xPositionHigh);
+				xPositionRange.setText(TextUtils.formatDouble(xPositionLow) + " to " +
+                        TextUtils.formatDouble(xPositionHigh));
 			}
 			xPosition.setEditable(true);
 			xPosition.setText(initialXPosition);
@@ -281,11 +282,12 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 			initialYPosition = "";
 			if (yPositionLow == yPositionHigh)
 			{
-				initialYPosition = Double.toString(yPositionLow);
+				initialYPosition = TextUtils.formatDouble(yPositionLow);
 				yPositionRange.setText("All the same");
 			} else
 			{
-				yPositionRange.setText(yPositionLow + " to " + yPositionHigh);
+				yPositionRange.setText(TextUtils.formatDouble(yPositionLow) + " to " +
+                        TextUtils.formatDouble(yPositionHigh));
 			}
 			yPosition.setEditable(true);
 			yPosition.setText(initialYPosition);
@@ -293,11 +295,12 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 			initialXSize = "";
 			if (xSizeLow == xSizeHigh)
 			{
-				initialXSize = Double.toString(xSizeLow);
+				initialXSize = TextUtils.formatDouble(xSizeLow);
 				xSizeRange.setText("All the same");
 			} else
 			{
-				xSizeRange.setText(xSizeLow + " to " + xSizeHigh);
+				xSizeRange.setText(TextUtils.formatDouble(xSizeLow) + " to " +
+                        TextUtils.formatDouble(xSizeHigh));
 			}
 			xSize.setEditable(true);
 			xSize.setText(initialXSize);
@@ -305,11 +308,12 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 			initialYSize = "";
 			if (ySizeLow == ySizeHigh)
 			{
-				initialYSize = Double.toString(ySizeLow);
+				initialYSize = TextUtils.formatDouble(ySizeLow);
 				ySizeRange.setText("All the same");
 			} else
 			{
-				ySizeRange.setText(ySizeLow + " to " + ySizeHigh);
+				ySizeRange.setText(TextUtils.formatDouble(ySizeLow) + " to " +
+                        TextUtils.formatDouble(ySizeHigh));
 			}
 			ySize.setEditable(true);
 			ySize.setText(initialYSize);
@@ -333,11 +337,12 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 			initialWidth = "";
 			if (widthLow == widthHigh)
 			{
-				initialWidth = Double.toString(widthLow);
+				initialWidth = TextUtils.formatDouble(widthLow);
 				widthRange.setText("All the same");
 			} else
 			{
-				widthRange.setText(widthLow + " to " + widthHigh);
+				widthRange.setText(TextUtils.formatDouble(widthLow) + " to " +
+                        TextUtils.formatDouble(widthHigh));
 			}
 			width.setEditable(true);
 			width.setText(initialWidth);
