@@ -1295,7 +1295,12 @@ public class Spice extends Topology
 		}
 
 		if (ni.getName() != null) partName += getSafeNetName(ni.getName());
-		multiLinePrint(false, partName + " " + cs1.getName() + " " + cs0.getName() + " " + extra + "\n");
+
+        // add Mfactor if there
+        StringBuffer sbExtra = new StringBuffer(extra);
+        writeMFactor(ni, sbExtra);
+
+		multiLinePrint(false, partName + " " + cs1.getName() + " " + cs0.getName() + " " + sbExtra.toString() + "\n");
 	}
 
     /**
