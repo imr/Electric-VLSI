@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: Instansable.java
+ * File: Nodable.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -31,43 +31,43 @@ import com.sun.electric.database.topology.NodeInst;
 /**
  * This interface defines real or virtual instance of NodeProto in a Cell..
  */
-public interface Instancable
+public interface Nodable
 {
 	// ------------------------ public methods -------------------------------
 
 	/**
-	 * Routine to return the NodeUsage of this Instancable.
-	 * @return the NodeUsage of this Instancable.
+	 * Routine to return the NodeUsage of this Nodable.
+	 * @return the NodeUsage of this Nodable.
 	 */
 	public NodeUsage getNodeUsage();
 
 	/**
-	 * Routine to return the prototype of this Instancable.
-	 * @return the prototype of this Instancable.
+	 * Routine to return the prototype of this Nodable.
+	 * @return the prototype of this Nodable.
 	 */
 	public NodeProto getProto();
 
 	/**
-	 * Routine to return the Cell that contains this Instancable.
-	 * @return the Cell that contains this Instancable.
+	 * Routine to return the Cell that contains this Nodable.
+	 * @return the Cell that contains this Nodable.
 	 */
 	public Cell getParent();
 
 	/**
-	 * Routine to return the name of this Instancable.
-	 * @return the name of this Instancable, null if there is no name.
+	 * Routine to return the name of this Nodable.
+	 * @return the name of this Nodable.
 	 */
 	public String getName();
 
 	/**
-	 * Routine to return the Name object of this Instancable.
-	 * @return the name of this Instancable, null if there is no name.
+	 * Routine to return the Name object of this Nodable.
+	 * @return the name of this Nodable.
 	 */
 	public Name getNameLow();
 
 	/**
-	 * Returns a printable version of this Instancable.
-	 * @return a printable version of this Instancable.
+	 * Returns a printable version of this Nodable.
+	 * @return a printable version of this Nodable.
 	 */
 	public String toString();
 

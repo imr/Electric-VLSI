@@ -23,10 +23,12 @@
  */
 package com.sun.electric.database.text;
 
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Map;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 
 /**
  * A Name is a text-parsing object for port, node and arc names.
@@ -41,11 +43,11 @@ import java.util.HashMap;
  * string doesn't contain '[', ']', ',', ':'.
  * Bus names are expanded into a list of subnames.
  */
-public class Name
+public class Name implements Comparable
 {
 	/** the name */				private String ns;
 	/** the lowercase name */	private Name lowerCase;
-	/** list of subnames */		private List subnames;
+	/** list of subnames */		private Name[] subnames;
 	/** basename */				private Name basename;
 	/** numerical suffix */     private int numSuffix;
 	/** the flags */			private int flags;
@@ -88,6 +90,36 @@ public class Name
 	 */
 	public Name lowerCase() { return lowerCase; }
 
+    /**
+     * Compares this Name with the specified Name for order.  Returns a
+     * negative integer, zero, or a positive integer as this object is less
+     * than, equal to, or greater than the specified object.<p>
+     * @param   name the Name to be compared.
+     * @return  a negative integer, zero, or a positive integer as this object
+     *		is less than, equal to, or greater than the specified object.
+     */
+    public int compareTo(Name name)
+	{
+		if (lowerCase == name.lowerCase) return 0;
+		return lowerCase.ns.compareTo(name.lowerCase.ns);
+	}
+
+    /**
+     * Compares this Name with the specified object for order.  Returns a
+     * negative integer, zero, or a positive integer as this object is less
+     * than, equal to, or greater than the specified object.<p>
+     * @param   o the Object to be compared.
+     * @return  a negative integer, zero, or a positive integer as this object
+     *		is less than, equal to, or greater than the specified object.
+     * 
+     * @throws ClassCastException if the specified object's type prevents it
+     *         from being compared to this Object.
+     */
+    public int compareTo(Object o)
+	{
+		return compareTo((Name)o);
+	}
+
 	/**
      * Compares this <code>Name</code> to another <code>Name</code>,
      * ignoring case considerations.  Two strings are considered equal
@@ -96,7 +128,7 @@ public class Name
      * @return  <code>true</code> if names are equal,
      *          ignoring case; <code>false</code> otherwise.
 	 */
-	public boolean equalsIgnoreCase(Object anObject)
+	public boolean equals(Object anObject)
 	{
 		if (this == anObject) return false;
 		if (anObject instanceof Name)
@@ -107,6 +139,13 @@ public class Name
 		return false;
 	}
 
+    /**
+     * Returns a hash code for this TextDescriptor. The hash code for a
+     * <code>TextDescriptor</code> object is computed as sum of its fields.
+     * @return  a hash code value for this object.
+     */
+    public int hashCode() { return lowerCase.ns.hashCode(); }
+
 	/**
 	 * Tells whether or not this Name is a valid bus or signal name.
 	 * @return true if Name is a valid name.
@@ -114,10 +153,22 @@ public class Name
 	public boolean isValid() { return (flags & ERROR) == 0; }
 
 	/**
-	 * Tells whether or not this Name is a valid bus or signal name.
-	 * @return true if Name is a valid name.
+	 * Tells whether or not this Name is a temporary name
+	 * @return true if Name is a temporary name.
 	 */
 	public boolean isTempname() { return (flags & TEMP) != 0; }
+
+	/**
+	 * Tells whether Name has duplicate subnames.
+	 * @return true if Name has duplicate subnames.
+	 */
+	public boolean hasDuplicates() { return (flags & DUPLICATES) != 0; }
+
+	/**
+	 * Tells whether Name has duplicate subnames.
+	 * @return true if Name has duplicate subnames.
+	 */
+	public boolean hasEmptySubnames() { return (flags & HAS_EMPTIES) != 0; }
 
 	/**
 	 * Tells whether or not this Name is a list of names separated by comma.
@@ -136,13 +187,13 @@ public class Name
 	 * @param i an index of subname.
 	 * @return the view part of a parsed Cell name.
 	 */
-	public Name subname(int i) { return subnames == null ? this : (Name)subnames.get(i); }
+	public Name subname(int i) { return subnames == null ? this : subnames[i]; }
 
 	/**
 	 * Returns number of subnames of a bus.
 	 * @return the number of subnames of a bus.
 	 */
-	public int busWidth() { return subnames == null ? 1 : subnames.size(); }
+	public int busWidth() { return subnames == null ? 1 : subnames.length; }
 
 	/**
 	 * Returns basename of simple Name.
@@ -172,11 +223,13 @@ public class Name
 
 	// ------------------ protected and private methods -----------------------
 
-	public static final int ERROR    = 0x01;
-	public static final int LIST     = 0x02;
-	public static final int BUS      = 0x04;
-	public static final int SIMPLE   = 0x08;
-	public static final int TEMP     = 0x10;
+	public static final int ERROR		= 0x01;
+	public static final int LIST		= 0x02;
+	public static final int BUS			= 0x04;
+	public static final int SIMPLE		= 0x08;
+	public static final int TEMP		= 0x10;
+	public static final int DUPLICATES	= 0x20;
+	public static final int HAS_EMPTIES	= 0x40;
 
 	/**
 	 * Returns the name object for this string, assuming that is is trimmed.
@@ -249,7 +302,7 @@ public class Name
 		}
 		if ((flags & BUS) == 0) return;
 
-		/* Make subnames */
+		// Make subnames
 		if (isList())
 		{
 			makeListSubNames();
@@ -268,7 +321,7 @@ public class Name
 	 */
 	private void makeListSubNames()
 	{
-		subnames = new ArrayList();
+		List subs = new ArrayList();
 		for (int beg = 0; beg <= ns.length(); )
 		{
 			int end = beg;
@@ -282,9 +335,10 @@ public class Name
 			}
 			Name nm = findTrimmedName(ns.substring(beg,end));
 			for (int j = 0; j < nm.busWidth(); j++)
-				subnames.add(nm.subname(j));
+				subs.add(nm.subname(j));
 			beg = end + 1;
 		}
+		setSubnames(subs);
 	}
 
 	/**
@@ -292,7 +346,7 @@ public class Name
 	 */
 	private void makeBracketSubNames()
 	{
-		subnames = new ArrayList();
+		List subs = new ArrayList();
 		for (int beg = 1; beg < ns.length(); )
 		{
 			int end = ns.indexOf(',', beg);
@@ -301,7 +355,7 @@ public class Name
 			if (colon < 0)
 			{
 				Name nm = findTrimmedName("["+ns.substring(beg,end)+"]");
-				subnames.add(nm);
+				subs.add(nm);
 			} else
 			{
 				int ind1 = Integer.parseInt(ns.substring(beg, colon));
@@ -309,14 +363,34 @@ public class Name
 				if (ind1 < ind2)
 				{
 					for (int i = ind1; i <= ind2; i++)
-						subnames.add(findTrimmedName("["+i+"]"));
+						subs.add(findTrimmedName("["+i+"]"));
 				} else
 				{
 					for (int i = ind1; i >= ind2; i--)
-						subnames.add(findTrimmedName("["+i+"]"));
+						subs.add(findTrimmedName("["+i+"]"));
 				}
 			}
 			beg = end+1;
+		}
+		setSubnames(subs);
+	}
+
+	private void setSubnames(List subs)
+	{
+		subnames = new Name[subs.size()];
+		subs.toArray(subnames);
+
+		// check duplicates
+		Name[] sorted = new Name[subs.size()];
+		subs.toArray(sorted);
+		Arrays.sort(sorted);
+		for (int i = 1; i < sorted.length; i++)
+		{
+			if (sorted[i].equals(sorted[i-1]))
+			{
+				flags |= DUPLICATES;
+				break;
+			}
 		}
 	}
 
@@ -328,17 +402,18 @@ public class Name
 	{
 		Name baseName = findTrimmedName(ns.substring(0,split));
 		Name indexList = findTrimmedName(ns.substring(split));
-		subnames = new ArrayList(baseName.busWidth()*indexList.busWidth());
+		subnames = new Name[baseName.busWidth()*indexList.busWidth()];
 		for (int i = 0; i < baseName.busWidth(); i++)
 		{
 			String bs = baseName.subname(i).toString();
 			for (int j = 0; j < indexList.busWidth(); j++)
 			{
 				String is = indexList.subname(j).toString();
-				subnames.add(findTrimmedName(bs+is));
+				subnames[i*indexList.busWidth()+j] = findTrimmedName(bs+is);
 			}
-
 		}
+		if (baseName.hasDuplicates() || indexList.hasDuplicates())
+			flags |= DUPLICATES;
 	}
 
 	/**
@@ -352,6 +427,7 @@ public class Name
 		int flags = SIMPLE;
 		
 		int bracket = -1;
+		boolean wasBrackets = false;
 		int colon = -1;
 		for (int i = 0; i < ns.length(); i++)
 		{
@@ -359,18 +435,21 @@ public class Name
 			if (bracket < 0)
 			{
 				colon = -1;
+				if (c == ']') throw new NumberFormatException("unmatched ']' in name");
+				if (c == ':') throw new NumberFormatException("':' out of brackets");
 				if (c == '[')
 				{
 					bracket = i;
 					flags &= ~SIMPLE;
-				}
-				if (c == ']') throw new NumberFormatException("unmatched ']' in name");
-				if (c == ':') throw new NumberFormatException("':' out of brackets");
-				if (c == ',')
+					if (i == 0 || ns.charAt(i-1) == ',') flags |= HAS_EMPTIES;
+					wasBrackets = true;
+				} else if (c == ',')
 				{
 					flags |= (LIST|BUS);
 					flags &= ~SIMPLE;
-				}
+					if (i == 0 || ns.charAt(i-1) == ',') flags |= HAS_EMPTIES;
+					wasBrackets = false;
+				} else if (wasBrackets) throw new NumberFormatException("Wrong character after brackets");
 				if (c == '@') flags |= TEMP;
 				continue;
 			}
@@ -409,6 +488,7 @@ public class Name
 			}
 			if (c == '@') throw new NumberFormatException("'@' in brackets");
 		}
+		if ((flags & TEMP) != 0 && (flags & LIST) != 0) throw new NumberFormatException("list of temporary names");
 		return flags;
 	}
 }

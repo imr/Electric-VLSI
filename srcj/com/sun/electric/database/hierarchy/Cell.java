@@ -51,14 +51,16 @@ import com.sun.electric.technology.technologies.Schematics;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Map;
+import java.text.DateFormat;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.text.DateFormat;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * A Cell is a non-primitive NodeProto.
@@ -270,6 +272,7 @@ public class Cell extends NodeProto
 	/** The basename for autonaming of instances of this Cell */	private Name basename;
 	/** The Cell's essential-bounds. */								private List essenBounds = new ArrayList();
 	/** A list of NodeInsts in this Cell. */						private List nodes;
+	/** A sorted map of Nodables in this Cell. */					private SortedMap nodables;
 	/** A map from NodeProto to NodeUsages in it */					private Map usagesIn;
 	/** A map from Name to Integer maximal numeric suffix */        private Map maxSuffix;
 	/** A list of ArcInsts in this Cell. */							private List arcs;
@@ -307,6 +310,7 @@ public class Cell extends NodeProto
 		Job.checkChanging();
 		Cell c = new Cell();
 		c.nodes = new ArrayList();
+		c.nodables = new TreeMap();
 		c.usagesIn = new HashMap();
 		c.maxSuffix = new HashMap();
 		c.arcs = new ArrayList();
@@ -552,6 +556,12 @@ public class Cell extends NodeProto
 	}
 
 	/**
+	 * Routine to determine whether this NodeProto  is an icon Cell.
+	 * @return true if this NodeProto is an icon  Cell.
+	 */
+	public boolean isIcon() { return view == View.ICON; }
+
+	/**
 	 * Routine to determine whether this Cell is an icon of another Cell.
 	 * @param cell the other cell which this may be an icon of.
 	 * @return true if this Cell is an icon of that other Cell.
@@ -698,6 +708,14 @@ public class Cell extends NodeProto
 				errorCount++;
 			}
 		}
+
+		// check node usages
+		for(Iterator it = getUsagesIn(); it.hasNext(); )
+		{
+			NodeUsage nu = (NodeUsage)it.next();
+			errorCount += nu.checkAndRepair();
+		}
+
 		return errorCount;
 	}
 
@@ -911,6 +929,57 @@ public class Cell extends NodeProto
 	}
 
 	/**
+	 * Routine to add a new NodeInstProxys to the cell.
+	 * @param ni the NodeInst to be included in the cell.
+	 * @param subs array of subinstances of this NodeInst si.
+	 */
+	public void addNodables(NodeInst ni, NodeInst.Subinst[] subs)
+	{
+		checkChanging();
+//		NodeUsage sch = ni.getNodeUsage().getSch();
+// 		if (subs != null && sch != null)
+// 		{
+// 			for (int i = 0; i < subs.length(); i++)
+// 			{
+// 				NodeInstProxy proxy = new NodeInstProxy(sch);
+// 				subs[i].setProxy(proxy);
+// 				proxy.addSubinst(subs[i]);
+// 				nodables.put(subs[i].getName().lowerCase(), proxy);
+// 				//sch.addProxy(proxy);
+// 			}
+// 		} else
+		{
+			nodables.put(ni.getNameLow().lowerCase(), ni);
+		}
+	}
+
+	/**
+	 * Routine to remove NodeInstProxys from the cell.
+	 * @param ni the NodeInst to be included in the cell.
+	 * @param subs array of subinstances of this NodeInst si.
+	 */
+	public void removeNodables(NodeInst ni, NodeInst.Subinst[] subs)
+	{
+		checkChanging();
+//		NodeUsage sch = ni.getNodeUsage().getSch();
+// 		if (subs != null && sch != null)
+// 		{
+// 			for (int i = 0; i < subs.length(); i++)
+// 			{
+// 				proxy = subs[i].getProxy();
+// 				subs[i].setProxy(null);
+// 				proxy.removeSubinst(subs[i]);
+// 				if (proxy.isEmpty())
+// 					sch.remove
+// 				//sch.removeProxy(proxy);
+// 			}
+// 		} else
+		{
+			nodables.remove(ni.getNameLow().lowerCase());
+		}
+	}
+
+	/**
 	 * Routine to find or to to add a new NodeUsage to the cell.
 	 * @param protoType is a NodeProto of node usage
 	 */
@@ -970,7 +1039,6 @@ public class Cell extends NodeProto
 		Name name = ni.getNameLow();
 		if (name == null) return;
 		Name basename = name.getBasename();
-		int numSuffix = name.getNumSuffix();
 		if (basename != null && basename != name && basename.isTempname())
 		{
 			basename = basename.lowerCase(); 
@@ -980,6 +1048,7 @@ public class Cell extends NodeProto
 				ms = new MaxSuffix();
 				maxSuffix.put(basename, ms);
 			}
+			int numSuffix = name.getNumSuffix();
 			if (numSuffix > ms.v)
 			{
 				ms.v = numSuffix;
@@ -999,7 +1068,7 @@ public class Cell extends NodeProto
 		if (ms == null)
 		{
 			ms = new MaxSuffix();
-			maxSuffix.put(basename, ms);
+			maxSuffix.put(basename.lowerCase(), ms);
 			return basename.findSuffixed(0);
 		} else 
 		{
@@ -1638,15 +1707,16 @@ public class Cell extends NodeProto
 		}
 		if (cls == NodeInst.class)
 		{
-			for(Iterator it = getNodes(); it.hasNext(); )
-			{
-				NodeInst ni = (NodeInst)it.next();
-				if (exclude != null && exclude == ni) continue;
-				Name nodeName = ni.getNameLow();
-				if (nodeName == null) continue;
-				if (name == nodeName.lowerCase()) return false;
-			}
-			return true;
+// 			int width = name.busWidth();
+// 			for (int i = 0; i < width; i++)
+// 			{
+// 				Name subname = name.subname(i);
+// 				Nodable na = (Nodable)nodables.get(subname);
+// 				if (na != null && na != exclude) return false;
+// 			}
+//			return true;
+			Nodable na = (Nodable)nodables.get(name);
+			return na == null || exclude == na;
 		}
 		if (cls == ArcInst.class)
 		{

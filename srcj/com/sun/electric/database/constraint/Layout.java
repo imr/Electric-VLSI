@@ -1353,7 +1353,7 @@ System.out.println("Jogging arc");
 				NodeProto np = ni.getProto();
 
 				// ignore recursive references (showing icon in contents)
-				if (np.isIconOf(start)) continue;
+				if (ni.isIconOfParent()) continue;
 
 				// if this nodeinst is to change, mark the parent cell also
 				if (np.isBit(cellModFlag)) start.setBit(cellModFlag);
@@ -1382,7 +1382,7 @@ System.out.println("Jogging arc");
 			ni.clearBit(markNode);
 			ni.clearBit(touchNode);
 			if (np instanceof PrimitiveNode) continue;
-			if (np.isIconOf(start)) continue;
+			if (ni.isIconOfParent()) continue;
 			if (!np.isBit(cellModFlag)) continue;
 			ni.setBit(markNode);
 			ni.setBit(touchNode);

@@ -25,27 +25,28 @@ package com.sun.electric.database.topology;
 
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.constraint.Constraint;
-import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.NodeInstProxy;
+import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.hierarchy.Instancable;
-import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -71,7 +72,7 @@ import java.util.Iterator;
  * <P>
  * <CENTER><IMG SRC="doc-files/NodeInst-1.gif"></CENTER>
  */
-public class NodeInst extends Geometric implements Instancable
+public class NodeInst extends Geometric implements Nodable
 {
 	// -------------------------- constants --------------------------------
 //	/** node is not in use */								private static final int DEADN =                     01;
@@ -114,10 +115,13 @@ public class NodeInst extends Geometric implements Instancable
 	public class Subinst
 	{
 		/** index in icon NodeInst. */							int index;
+		/** NodeInstProxy of this subinstance */				NodeInstProxy proxy;
 
 		Subinst(int index) { this.index = index; }
 
 		public Name getName() { return name != null ? name.subname(index) : null; }
+		public NodeInstProxy getProxy() { return proxy; }
+		public void setProxy(NodeInstProxy proxy) { this.proxy = proxy; }
 	}
 
 	// ---------------------- private data ----------------------------------
@@ -664,6 +668,7 @@ public class NodeInst extends Geometric implements Instancable
 		// add to linked lists
 		linkGeom(parent);
 		nodeUsage = parent.addNode(this);
+		parent.addNodables(this, null);
 		return false;
 	}
 
@@ -676,6 +681,7 @@ public class NodeInst extends Geometric implements Instancable
 		unLinkGeom(parent);
 		parent.removeNode(this);
 		nodeUsage = null;
+		parent.removeNodables(this, null);
 	}
 
 	/**
@@ -1608,20 +1614,18 @@ public class NodeInst extends Geometric implements Instancable
 	 */
 	public boolean setNameLow(Name name)
 	{
-		if (nodeUsage != null)
-		{
-			if (name == null || !parent.isUniqueName(name, getClass(), this))
-			{
-				if (name != null && !name.isTempname())
-				{
-					System.out.println("NodeInst "+name+" already exists in "+parent);
-					return true;
-				}
-				name = parent.getAutoname(getBasename());
-			}
-		}
 		if (name == getNameLow()) return false;
-		if (super.setNameLow(name)) return true;
+		if (checkNodeName(name)) return true;
+
+		if (getNameLow() != null)
+		{
+			parent.removeNodables(this, null);
+		}
+		super.setNameLow(name);
+		if (name != null)
+		{
+			parent.addNodables(this, null);
+		}
 
 		// If linked, update max suffix
 		if (nodeUsage != null)
@@ -1635,6 +1639,40 @@ public class NodeInst extends Geometric implements Instancable
 		if (width != subs.length) subs = new Subinst[width];
 		for (int i = 0; i < width; i++)
 			subs[i] = new Subinst(i);
+		return false;
+	}
+
+	/**
+	 * Routine to check the name of this NodeInst.
+	 * @param name the new name of this NodeInst.
+	 */
+	public boolean checkNodeName(Name name)
+	{
+		if (!name.isValid())
+		{
+			System.out.println("Invalid node name <"+name+"> :"+Name.checkName(name.toString()));
+			return true;
+		}
+		if (name.hasEmptySubnames())
+		{
+			System.out.println("Name <"+name+"> has empty subnames");
+			return true;
+		}
+		if (name.hasDuplicates())
+		{
+			System.out.println("Name <"+name+"> has duplicate subnames");
+			return true;
+		}
+		if (name.isBus() && !protoType.isIcon())
+		{
+			System.out.println("Bus name <"+name+"> can be assigned only to icon nodes");
+			return true;
+		}
+		if (!parent.isUniqueName(name, NodeInst.class, this))
+		{
+			System.out.println("Node name <"+name+"> is duplicated in "+parent);
+			return true;
+		}
 		return false;
 	}
 

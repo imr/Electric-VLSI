@@ -35,7 +35,7 @@ import java.util.Iterator;
  * A NodeInstProxy is a class which represents virtual instance of schematic Cell
  * induced by one or more icon NodeInsts.
  */
-public class NodeInstProxy implements Instancable
+public class NodeInstProxy implements Nodable
 {
 	// ---------------------- private data ----------------------------------
 	/** node usage */										private NodeUsage nodeUsage;
@@ -134,13 +134,13 @@ public class NodeInstProxy implements Instancable
 
 	/**
 	 * Routine to return the name of this NodeInstProxy.
-	 * @return the name of this NodeInstProxy, null if there is no name.
+	 * @return the name of this NodeInstProxy.
 	 */
 	public String getName() { return subinsts[0].getName().toString(); }
 
 	/**
 	 * Routine to return the Name object of this NodeInstProxy.
-	 * @return the name of this NodeInstProxy, null if there is no name.
+	 * @return the name of this NodeInstProxy.
 	 */
 	public Name getNameLow() { return subinsts[0].getName(); }
 

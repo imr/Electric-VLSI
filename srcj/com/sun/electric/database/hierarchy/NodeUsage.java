@@ -128,41 +128,79 @@ public class NodeUsage
 	}
 
 	/**
+	 * Routine to clear schematic NodeUsage of this icon NodeUsage
+	 */
+	NodeUsage getSch() { return sch; }
+
+	/**
 	 * Routine to self-check
 	 */
-	public void check()
+	public int checkAndRepair()
 	{
+		int error = 0;
 		if (protoType instanceof Cell && ((Cell)protoType).getView() == View.ICON)
 		{
 			Cell mainSch = ((Cell)protoType).getCellGroup().getMainSchematics();
 			if (mainSch == null || isIconOfParent())
 			{
-				if (sch != null) System.out.println(this+" is icon without mainSchematics, sch="+sch);
+				if (sch != null)
+				{
+					System.out.println(this+" is icon without mainSchematics, sch="+sch);
+					error++;
+				}
 			} else
 			{
-				if (sch == null) System.out.println(this+" is icon with mainScjematics "+mainSch+", sch=null");
-				if (mainSch != sch.protoType) System.out.println(this+" is icon with mainSchematics "+mainSch+", sch="+sch);
-				if (!sch.icons.contains(this)) System.out.println(this+" is not contained in icons of "+sch);
+				if (sch == null)
+				{
+					System.out.println(this+" is icon with mainScjematics "+mainSch+", sch=null");
+					error++;
+				}
+				if (mainSch != sch.protoType)
+				{
+					System.out.println(this+" is icon with mainSchematics "+mainSch+", sch="+sch);
+					error++;
+				}
+				if (!sch.icons.contains(this))
+				{
+					System.out.println(this+" is not contained in icons of "+sch);
+					error++;
+				}
 			}
 		} else
 		{
-			if (sch != null) System.out.println(this+" is not icon, sch="+sch);
+			if (sch != null)
+			{
+				System.out.println(this+" is not icon, sch="+sch);
+				error++;
+			}
 		}
 		if (protoType instanceof Cell && ((Cell)protoType).getView() == View.SCHEMATIC)
 		{
-			if (icons == null) System.out.println(this+" is schematics, icons == null");
+			if (icons == null)
+			{
+				System.out.println(this+" is schematics, icons == null");
+				error++;
+			}
 			for (int i = 0; i < icons.size(); i++)
 			{
 				NodeUsage icon = (NodeUsage)icons.get(i);
 				if (icon.sch != this) System.out.println(this+" is schematics, contain "+icon);
 				for (int j = 0; j < i; j++)
 					if (icons.get(j) == icon)
+					{
 						System.out.println(this+" contains icon "+icon+" twice");
+						error++;
+					}
 			}
 		} else
 		{
-			if (icons != null) System.out.println(this+" is not schematics, icons!=null");
+			if (icons != null)
+			{
+				System.out.println(this+" is not schematics, icons!=null");
+				error++;
+			}
 		}
+		return error;
 	}
 
 	// ------------------------ public methods -------------------------------

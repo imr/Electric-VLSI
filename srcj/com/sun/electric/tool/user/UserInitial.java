@@ -329,7 +329,7 @@ public final class UserInitial
 			{
 				for(int x=0; x<arraySize; x++)
 				{
-					String theName = x + "," + y;
+					String theName = "arr["+ x + "][" + y + "]";
 					NodeInst instanceNode = NodeInst.newInstance(myCell, new Point2D.Double(x*(myWidth+2), y*(myHeight+2)),
 						myWidth, myHeight, 0, bigCell, theName);
 					instanceNode.setNameTextDescriptor(instanceNode.getNameTextDescriptor().setOff(0, 32));

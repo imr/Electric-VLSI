@@ -310,10 +310,10 @@ public class ElectricObject
 	 * routine to return a unique object name in cell "cell" starting with the
 	 * name "name".
 	 */
-	public static String uniqueObjectName(String name, Cell cell, Class cls, ElectricObject exclude)
+	public static String uniqueObjectName(String name, Cell cell, Class cls)
 	{
 		// first see if the name is unique
-		if (cell.isUniqueName(name, cls, exclude)) return name;
+		if (cell.isUniqueName(name, cls, null)) return name;
 
 		char separatechar = '_';
 

@@ -253,8 +253,6 @@ public final class UserMenuCommands
 		menuBar.add(dimaMenu);
 		dimaMenu.addMenuItem("redo Network Numbering", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { redoNetworkNumberingCommand(); } });
-		dimaMenu.addMenuItem("check node usages", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { checkNodeUsagesCommand(); } });
 
         // setup JonGainsley's test menu
         Menu jongMenu = Menu.createMenu("JonG", 'J');
@@ -928,23 +926,6 @@ public final class UserMenuCommands
 		long endTime = System.currentTimeMillis();
 		float finalTime = (endTime - startTime) / 1000F;
 		System.out.println("**** Renumber networks took " + finalTime + " seconds");
-	}
-    
-	public static void checkNodeUsagesCommand()
-	{
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
-		{
-			Library lib = (Library)it.next();
-			for(Iterator cit = lib.getCells(); cit.hasNext(); )
-			{
-				Cell cell = (Cell)cit.next();
-				for(Iterator nuit = cell.getUsagesIn(); nuit.hasNext(); )
-				{
-					NodeUsage nu = (NodeUsage)nuit.next();
-					nu.check();
-				}
-			}
-		}
 	}
     
     // ---------------------- THE JON GAINSLEY MENU -----------------

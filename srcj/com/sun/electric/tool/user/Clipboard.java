@@ -551,7 +551,7 @@ public class Clipboard
 			if (ni.isYMirrored()) height = -height;
 			String name = null;
 			if (ni.isUsernamed())
-				name = ElectricObject.uniqueObjectName(ni.getName(), tocell, NodeInst.class, null);
+				name = ElectricObject.uniqueObjectName(ni.getName(), tocell, NodeInst.class);
 			NodeInst newNi = NodeInst.newInstance(ni.getProto(), new Point2D.Double(ni.getCenterX()+dx, ni.getCenterY()+dy),
 				width, height, ni.getAngle(), tocell, name);
 			if (newNi == null)
@@ -608,7 +608,7 @@ public class Clipboard
 
 				String name = null;
 				if (ai.isUsernamed())
-					name = ElectricObject.uniqueObjectName(ai.getName(), tocell, ArcInst.class, null);
+					name = ElectricObject.uniqueObjectName(ai.getName(), tocell, ArcInst.class);
 				ArcInst newAr = ArcInst.newInstance(ai.getProto(), ai.getWidth(),
 					headPi, new Point2D.Double(ai.getHead().getLocation().getX() + dx, ai.getHead().getLocation().getY() + dy),
 					tailPi, new Point2D.Double(ai.getTail().getLocation().getX() + dx, ai.getTail().getLocation().getY() + dy), name);
@@ -690,7 +690,7 @@ public class Clipboard
 			PortInst newPi = ni.findPortInstFromProto(pp);
 
 			Cell cell = ni.getParent();
-			String portname = ElectricObject.uniqueObjectName(origpp.getProtoName(), cell, PortProto.class, null);
+			String portname = ElectricObject.uniqueObjectName(origpp.getProtoName(), cell, PortProto.class);
 			Export newpp =  Export.newInstance(cell, newPi, portname);
 			if (newpp == null) return;
 			newpp.setTextDescriptor(origpp.getTextDescriptor());
