@@ -298,7 +298,7 @@ public class Hist
 	static int irsim_backToTime(Sim.Node nd)
 	{
 		if ((nd.nflags & (Sim.ALIAS | Sim.MERGED)) != 0)
-			return(0);
+			return 0;
 	
 		Sim.HistEnt h = nd.head;
 		Sim.HistEnt p = NEXTH(h);
@@ -376,6 +376,6 @@ public class Hist
 				t.state = (byte)Eval.compute_trans_state(t);
 			}
 		}
-		return(0);
+		return 0;
 	}
 }

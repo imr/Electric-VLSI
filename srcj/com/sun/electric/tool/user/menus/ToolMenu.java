@@ -147,10 +147,6 @@ public class ToolMenu {
 			toolMenu.add(irsimSimulationSubMenu);
 			irsimSimulationSubMenu.addMenuItem("Simulate Current Cell", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { simulateCellWithIRSIM(false); } });
-			irsimSimulationSubMenu.addMenuItem("Write IRSIM Deck...", null,
-					new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.IRSIM, true); }});
-			irsimSimulationSubMenu.addMenuItem("Simulate IRSIM Deck...", null,
-					new ActionListener() { public void actionPerformed(ActionEvent e) { simulateCellWithIRSIM(true); }});
 			irsimSimulationSubMenu.addSeparator();
 			irsimSimulationSubMenu.addMenuItem("Set Signal High at Main Time", KeyStroke.getKeyStroke('V', 0),
 				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("h"); } });
@@ -158,9 +154,18 @@ public class ToolMenu {
 				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("l"); } });
 			irsimSimulationSubMenu.addMenuItem("Set Signal Undefined at Main Time", KeyStroke.getKeyStroke('X', 0),
 				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("x"); } });
+			irsimSimulationSubMenu.addMenuItem("Get Information about Selected Signals", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("info"); } });
 			irsimSimulationSubMenu.addSeparator();
 			irsimSimulationSubMenu.addMenuItem("Clear Vectors on Selected Signals", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("clear"); } });
+			irsimSimulationSubMenu.addMenuItem("Clear All Vectors", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("clearAll"); } });
+			irsimSimulationSubMenu.addSeparator();
+			irsimSimulationSubMenu.addMenuItem("Write IRSIM Deck...", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.IRSIM, true); }});
+			irsimSimulationSubMenu.addMenuItem("Simulate IRSIM Deck...", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { simulateCellWithIRSIM(true); }});
 			irsimSimulationSubMenu.addSeparator();
 			irsimSimulationSubMenu.addMenuItem("Save Vectors to Disk...", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("save"); } });

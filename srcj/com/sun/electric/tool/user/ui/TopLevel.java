@@ -108,6 +108,7 @@ public class TopLevel extends JFrame
 	/** The size of the screen. */							private static Dimension scrnSize;
 	/** The current operating system. */					private static OS os;
 	/** The messages window. */								private static MessagesWindow messages;
+	/** The rate of double-clicks. */						private static int doubleClickDelay;
 	/** The cursor being displayed. */						private static Cursor cursor;
     /** If the busy cursor is overriding the normal cursor */ private static boolean busyCursorOn = false;
 
@@ -193,7 +194,9 @@ public class TopLevel extends JFrame
 	public static void OSInitialize(Mode mode)
 	{
 		// setup the size of the screen
-		scrnSize = (Toolkit.getDefaultToolkit()).getScreenSize();
+		Toolkit tk = Toolkit.getDefaultToolkit();
+		scrnSize = tk.getScreenSize();
+		doubleClickDelay = Integer.parseInt(tk.getDesktopProperty("awt.multiClickInterval").toString());
 
 		// a more advanced way of determining the size of a screen
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -322,7 +325,13 @@ public class TopLevel extends JFrame
     /** Get the Menu Bar. Unfortunately named because getMenuBar() already exists */
     public MenuBar getTheMenuBar() { return menuBar; }
 
-	/**
+    /**
+     * Method to return the speed of double-clicks (in milliseconds).
+     * @return the speed of double-clicks (in milliseconds).
+     */
+    public static int getDoubleClickSpeed() { return doubleClickDelay; }
+
+    /**
 	 * Method to return the size of the screen that Electric is on.
 	 * @return the size of the screen that Electric is on.
 	 */

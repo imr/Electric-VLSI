@@ -701,7 +701,7 @@ public class Sim
 			}
 		}
 	
-		return(nd_list);
+		return nd_list;
 	}
 
 	/*

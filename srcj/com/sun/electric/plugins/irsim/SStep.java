@@ -677,6 +677,6 @@ public class SStep extends Eval
 	
 		n.nflags &= ~Sim.VISITED;
 	
-		return(result);
+		return result;
 	}
 }

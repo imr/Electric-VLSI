@@ -345,10 +345,10 @@ public class RSim
 					break;
 	
 				default:
-					return(0);
+					return 0;
 			}
 		}
-		return(1);
+		return 1;
 	}
 	
 	
@@ -378,7 +378,7 @@ public class RSim
 	static int irsim_info(Sim.Node n, String which)
 	{
 		if (n == null)
-			return(0);
+			return 0;
 	
 		String name = n.nname;
 		while((n.nflags & Sim.ALIAS) != 0)
@@ -387,7 +387,7 @@ public class RSim
 		if ((n.nflags & Sim.MERGED) != 0)
 		{
 			System.out.println(name + " => node is inside a transistor stack");
-			return(1);
+			return 1;
 		}
 	
 		String infstr = "";
@@ -425,7 +425,7 @@ public class RSim
 				System.out.println("   transition to " + trans.charAt(e.eval) + " at " + Sim.d2ns(e.ntime)+ "ns");
 		}
 	
-		return(1);
+		return 1;
 	}
 
 	static String pvalue(String node_name, Sim.Node node)
@@ -526,7 +526,7 @@ public class RSim
 //				if (irsim_str_match(pattern, n.nname))
 //					total += (*fun)(n, arg);
 //	
-//		return(total);
+//		return total;
 //	}
 
 	/* compare pattern with string, case doesn't matter.  "*" wildcard accepted */
@@ -566,7 +566,7 @@ public class RSim
 				return false;
 			}
 			else if (p >= pStr.length())
-				return(s >= sStr.length());
+				return s >= sStr.length();
 			else if (getCh(pStr, p++) != getCh(sStr, s++))
 				break;
 		}
@@ -588,10 +588,10 @@ public class RSim
 		String s = "0ux1lUXhLUXH";
 		for(int i = 0; i < s.length(); i++)
 			if (s.charAt(i) == ch)
-				return(i & (Sim.N_POTS - 1));
+				return i & (Sim.N_POTS - 1);
 	
 		System.out.println(ch + ": unknown node value");
-		return(Sim.N_POTS);
+		return Sim.N_POTS;
 	}
 	
 	
@@ -616,7 +616,7 @@ public class RSim
 	static int setvalue(String [] args)
 	{
 		apply(SETIN_CALL, 0, args, 1);
-		return(0);
+		return 0;
 	}
 	
 	
@@ -661,7 +661,7 @@ public class RSim
 	static int display(String [] args)
 	{
 		apply(DISPLAY_CALL, 0, args, 1);
-		return(0);
+		return 0;
 	}
 	
 	
@@ -680,7 +680,7 @@ public class RSim
 	
 		System.out.println(b.name + "=" + bits + " ");
 	
-		return(1);
+		return 1;
 	}
 	
 	
@@ -751,7 +751,7 @@ public class RSim
 		if ((n.nflags & Sim.MERGED) != 0)
 		{
 			System.out.println("can't trace " + n.nname);
-			return(1);
+			return 1;
 		}
 	
 		if (flag.startsWith("+"))
@@ -762,7 +762,7 @@ public class RSim
 			n.nflags &= ~Sim.WATCHED;
 		}
 	
-		return(1);
+		return 1;
 	}
 	
 	
@@ -779,7 +779,7 @@ public class RSim
 				b.nodes[i].nflags &= ~Sim.WATCHVECTOR;
 			b.traced &= ~Sim.WATCHVECTOR;
 		}
-		return(1);
+		return 1;
 	}
 	
 	/*
@@ -803,13 +803,13 @@ public class RSim
 		n = UnAlias(n);
 	
 		if ((n.nflags & Sim.MERGED) != 0)
-			return(1);
+			return 1;
 	
 		if (flag.startsWith("-"))
 			n.nflags &= ~Sim.STOPONCHANGE;
 		else
 			n.nflags |= Sim.STOPONCHANGE;
-		return(1);
+		return 1;
 	}
 	
 	
@@ -826,7 +826,7 @@ public class RSim
 				b.nodes[i].nflags &= ~Sim.STOPVECCHANGE;
 			b.traced &= ~Sim.STOPVECCHANGE;
 		}
-		return(1);
+		return 1;
 	}
 	
 	
@@ -837,7 +837,7 @@ public class RSim
 	{
 		apply(SETTRACE_CALL, 0, args, 1);
 		set_vec_nodes(Sim.WATCHVECTOR);
-		return(0);
+		return 0;
 	}
 	
 	/*
@@ -868,7 +868,7 @@ public class RSim
 			capsum = sumcapdoit(n, capsum);
 		}
 		System.out.println(capsum + " pF");
-		return(0);
+		return 0;
 	}
 
 
@@ -879,7 +879,7 @@ public class RSim
 	{
 		apply(SETSTOP_CALL, 0, args, 1);
 		set_vec_nodes(Sim.STOPVECCHANGE);
-		return(0);
+		return 0;
 	}
 	
 	
@@ -895,7 +895,7 @@ public class RSim
 		if (Sim.Node.irsim_find(args[1]) != null)
 		{
 //			Sim.irsim_error(filename, lineno, "'" + args[1] + "' is a node, can't be a vector");
-			return(0);
+			return 0;
 		}
 	
 		// get rid of any vector with the same name
@@ -908,7 +908,7 @@ public class RSim
 //				Sim.irsim_error(filename, lineno,
 //					"%s is a clock/sequence; can't change it while stoped"),
 //						b.name);
-//				return(0);
+//				return 0;
 //			}
 //			irsim_idelete((Sim.Node) b, &wvlist);	// untrace its nodes
 //			if (last == null)
@@ -927,7 +927,7 @@ public class RSim
 //		{
 //			if (b) efree((CHAR *)b);
 //				Sim.irsim_error(filename, lineno, "Not enough memory for vector");
-//			return(0);
+//			return 0;
 //		}
 //		b.traced = 0;
 //		b.nbits = 0;
@@ -958,7 +958,7 @@ public class RSim
 //			efree((CHAR *)b);
 //		}
 	
-		return(0);
+		return 0;
 	}
 	
 	
@@ -981,23 +981,23 @@ public class RSim
 //		if (!found)
 //		{
 //			Sim.irsim_error(filename, lineno, args[1] + ": No such vector");
-//			return(0);
+//			return 0;
 //		}
 //
 //		// set nodes
 //		if (args[2].length() != b.nbits)
 //		{
 //			Sim.irsim_error(filename, lineno, "wrong number of bits for this vector");
-//			return(0);
+//			return 0;
 //		}
 //		for(int i = 0; i < b.nbits; i++)
 //		{
 //			if ((val[i] = potchars.charAt(ch2pot(val[i]))) == '.')
-//				return(0);
+//				return 0;
 //		}
 //		for(int i = 0; i < b.nbits; i++)
 //			irsim_setin(b.nodes[i], val++);
-		return(0);
+		return 0;
 	}
 	
 	
@@ -1090,7 +1090,7 @@ public class RSim
 			}
 			System.out.println("Want (" + value + ") but got (" + infstr + ")");
 		}
-		return(0);
+		return 0;
 	}
 	
 	
@@ -1164,7 +1164,7 @@ public class RSim
 			}
 			System.out.println("Want (" + value + ") but got (" + infstr + ")");
 		}
-		return(0);
+		return 0;
 	}
 	
 	
@@ -1207,7 +1207,7 @@ public class RSim
 		}
 		else if (trig.vec != null) 
 			System.out.println("trigger to assertWhen " + args[1] + " can't be a vector");
-		return(0);
+		return 0;
 	}
 	
 	static void	irsim_evalAssertWhen(Sim.Node n)
@@ -1238,7 +1238,7 @@ public class RSim
 			inps[n.npot] = n;
 			n.nflags |= Sim.VISITED;
 		}
-		return(0);
+		return 0;
 	}
 	
 	
@@ -1283,7 +1283,7 @@ public class RSim
 		for(Sim.Node n = inptbl[Sim.X]; n != null; n.nflags &= ~Sim.VISITED, n = n.getNext())
 			System.out.println(" " + n.nname);
 		System.out.println();
-		return(0);
+		return 0;
 	}
 	
 	
@@ -1302,7 +1302,7 @@ public class RSim
 			} else
 				stepsize = newsize;
 		}
-		return(0);
+		return 0;
 	}
 	
 	
@@ -1339,7 +1339,7 @@ public class RSim
 		while (Eval.irsim_step(stoptime))
 		{
 		}
-		return(Sched.irsim_cur_delta - stoptime);
+		return Sched.irsim_cur_delta - stoptime;
 	}
 	
 	
@@ -1357,7 +1357,7 @@ public class RSim
 			if (newsize <= 0)
 			{
 				System.out.println("bad step size: " + args[1]);
-				return(0);
+				return 0;
 			}
 		}
 	
@@ -1365,7 +1365,7 @@ public class RSim
 		if (ddisplay)
 			pnwatchlist();
 	
-		return(0);
+		return 0;
 	}
 	
 	
@@ -1505,7 +1505,7 @@ public class RSim
 				b.nodes[i] = UnAlias(b.nodes[i]);
 			}
 		}
-		return(total);
+		return total;
 	}
 	
 	
@@ -1534,7 +1534,7 @@ public class RSim
 //				list = &(s.next);
 //			}
 //		}
-//		return(max);
+//		return max;
 //	}
 	
 	
@@ -1614,7 +1614,7 @@ public class RSim
 		GenMath.MutableInteger mi = new GenMath.MutableInteger(maxsequence);
 		slist = defsequence(args, slist, mi);
 		maxsequence = mi.intValue();
-		return(0);
+		return 0;
 	}
 	
 	
@@ -1628,7 +1628,7 @@ public class RSim
 		GenMath.MutableInteger mi = new GenMath.MutableInteger(maxclock);
 		xclock = defsequence(args, xclock, mi);
 		maxclock = mi.intValue();
-		return(0);
+		return 0;
 	}
 	
 	
@@ -1640,9 +1640,9 @@ public class RSim
 	{
 		vecvalue(xclock, which_phase);
 		if (relax(Sched.irsim_cur_delta + stepsize) != 0)
-			return(1);
+			return 1;
 		which_phase = (which_phase + 1) % maxclock;
-		return(0);
+		return 0;
 	}
 	
 	
@@ -1655,7 +1655,7 @@ public class RSim
 		if (ddisplay)
 			pnwatchlist();
 	
-		return(0);
+		return 0;
 	}
 	
 	
@@ -1690,7 +1690,7 @@ public class RSim
 			if (ddisplay)
 				pnwatchlist();
 		}
-		return(maxclock - i);
+		return maxclock - i;
 	}
 	
 	
@@ -1722,12 +1722,12 @@ public class RSim
 		{
 			vecvalue(slist, i);
 			if (clockit(1) != 0)
-				return(0);
+				return 0;
 			if (ddisplay)
 				pnwatchlist();
 		}
 	
-		return(0);
+		return 0;
 	}
 	
 	
@@ -1737,7 +1737,7 @@ public class RSim
 	static int doclock(String [] args)
 	{
 		if (stoped_state)		// continue after stop
-			return(1);
+			return 1;
 	
 		// calculate how many clock cycles to run
 		int  n = 1;
@@ -1749,7 +1749,7 @@ public class RSim
 		}
 	
 		clockit(n);		// do the hard work
-		return(0);
+		return 0;
 	}
 	
 	
@@ -1765,7 +1765,7 @@ public class RSim
 			infstr += args[n];
 		}
 		System.out.println(infstr);
-		return(0);
+		return 0;
 	}
 	
 	
@@ -1830,7 +1830,7 @@ public class RSim
 				}
 			}
 		}
-		return(bits);
+		return bits;
 	}
 	
 
@@ -1842,7 +1842,7 @@ public class RSim
 	static int setreport(String [] args)
 	{
 		Eval.irsim_treport = do_flags(args, Eval.irsim_treport, "report", "none", rep);
-		return(0);
+		return 0;
 	}
 	
 	
@@ -1858,7 +1858,7 @@ public class RSim
 		{
 			Eval.irsim_model = SStep.switchModel;
 		}
-		return(0);
+		return 0;
 	}
 	
 
@@ -1868,7 +1868,7 @@ public class RSim
 	static int quest(String [] args)
 	{
 		apply(QUEST_CALL, 0, args, 1);
-		return(0);
+		return 0;
 	}
 
 	/*
@@ -1888,7 +1888,7 @@ public class RSim
 			if (NewRStep.irsim_tdecay < 0)
 				NewRStep.irsim_tdecay = 0;
 		}
-		return(0);
+		return 0;
 	}
 	
 	
@@ -1909,7 +1909,7 @@ public class RSim
 			if (NewRStep.irsim_tunitdelay < 0)
 				NewRStep.irsim_tunitdelay = 0;
 		}
-		return(0);
+		return 0;
 	}
 	
 	static long ptime;
@@ -1968,7 +1968,7 @@ public class RSim
 		System.out.println("critical path for last transition of " + n.nname + ":");
 		n = UnAlias(n);
 		cpath(n, 0);
-		return(1);
+		return 1;
 	}
 	
 	
@@ -1978,7 +1978,7 @@ public class RSim
 	static int dopath(String [] args)
 	{
 		apply(PATH_CALL, 0, args, 1);
-		return(0);
+		return 0;
 	}
 	
 	
@@ -2044,7 +2044,7 @@ public class RSim
 //			System.out.println(" " + Sim.d2ns(ac.begin + (i * ac.size)) + " -" + Sim.d2ns(ac.begin + (i + 1) * ac.size) +
 //				ac.table[i] + "  " + st[SIZE_ST - (SIZE_ST * ac.table[i]) / total]);
 	
-		return(0);
+		return 0;
 	}
 	
 	
@@ -2074,7 +2074,7 @@ public class RSim
 			n = UnAlias(n);
 			
 			if ((n.nflags & (Sim.MERGED | Sim.ALIAS)) != 0)
-				return(0);
+				return 0;
 		
 			if (n.getTime() >= ac.begin && n.getTime() <= ac.end)
 			{
@@ -2088,7 +2088,7 @@ public class RSim
 			}
 		}
 		System.out.println();
-		return(0);
+		return 0;
 	}
 	
 	
@@ -2116,7 +2116,7 @@ public class RSim
 			}
 		}
 		System.out.println();
-		return(0);
+		return 0;
 	}
 	
 	/*
@@ -2140,7 +2140,7 @@ public class RSim
 				}
 			}
 		}
-		return(0);
+		return 0;
 	}
 	
 	
@@ -2150,13 +2150,13 @@ public class RSim
 	static int print_list(int n, Sim.Event l, Sim.Event eolist)
 	{
 		if (l == null)
-			return(n);
+			return n;
 		for(eolist = eolist.flink; l != eolist && n != 0; l = l.flink, n--)
 		{
 			System.out.println("Node " + l.enode.nname + " . " + Sim.irsim_vchars.charAt(l.eval) +
 				" @ " + Sim.d2ns(l.ntime) + "ns (" + Sim.d2ns(l.ntime - Sched.irsim_cur_delta) + "ns)");
 		}
-		return(n);
+		return n;
 	}
 	
 	/*
@@ -2174,7 +2174,7 @@ public class RSim
 					t.source.nname + " d=" + t.drain.nname + " (" +
 					(t.r.length / Config.irsim_LAMBDACM) + "x" + (t.r.width / Config.irsim_LAMBDACM) + ")");
 		}
-		return(0);
+		return 0;
 	}
 
 
@@ -2189,7 +2189,7 @@ public class RSim
 		if (newt < irsim_sim_time0 || newt > Sched.irsim_cur_delta)
 		{
 			System.out.println(args[1] + ": invalid time");
-			return(0);
+			return 0;
 		}
 	
 		Sched.irsim_cur_delta = newt;
@@ -2209,7 +2209,7 @@ public class RSim
 			Analyzer.irsim_RestartAnalyzer(irsim_sim_time0, Sched.irsim_cur_delta, 1);
 	
 		pnwatchlist();
-		return(0);
+		return 0;
 	}
 	
 	static void irsim_ClearInputs()
@@ -2237,7 +2237,7 @@ public class RSim
 	{
 		if ((n.nflags & Sim.POWER_RAIL) == 0)
 			n.nflags &= ~Sim.INPUT;
-		return(0);
+		return 0;
 	}
 
 	static int tranCntNSD = 0, tranCntNG = 0;
@@ -2281,7 +2281,7 @@ public class RSim
 	
 		System.out.println("nevents = " + Sched.irsim_nevent);
 	
-		return(0);
+		return 0;
 	}
 	
 	/*
@@ -2296,12 +2296,12 @@ public class RSim
 			if (ftime < 0 || ftime > Sched.irsim_cur_delta)
 			{
 				System.out.println(args[1] + ": Invalid flush time");
-				return(0);
+				return 0;
 			}
 		}
 	
 		if (ftime == 0)
-			return(0);
+			return 0;
 	
 		Hist.irsim_FlushHist(ftime);
 		irsim_sim_time0 = ftime;
@@ -2309,7 +2309,7 @@ public class RSim
 		if (irsim_analyzerON)
 			Analyzer.irsim_RestartAnalyzer(irsim_sim_time0, Sched.irsim_cur_delta, 1);
 	
-		return(0);
+		return 0;
 	}
 	
 	static class Command

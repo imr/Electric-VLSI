@@ -247,7 +247,7 @@ public class Eval
 		}
 		while(event != null);
 	
-		return(brk_flag);
+		return brk_flag;
 	}
 	
 	
@@ -378,11 +378,11 @@ public class Eval
 				{
 					Sim.Node n = (Sim.Node)l.gate;
 					if (n.npot == Sim.LOW)
-						return(Sim.OFF);
+						return Sim.OFF;
 					else if (n.npot == Sim.X)
 						result = Sim.UNKNOWN;
 				}
-				return(result);
+				return result;
 	
 			case Sim.PCHAN:
 				result = Sim.ON;
@@ -390,19 +390,19 @@ public class Eval
 				{
 					Sim.Node n = (Sim.Node)l.gate;
 					if (n.npot == Sim.HIGH)
-						return(Sim.OFF);
+						return Sim.OFF;
 					else if (n.npot == Sim.X)
 						result = Sim.UNKNOWN;
 				}
-				return(result);
+				return result;
 	
 			case Sim.DEP:
 			case Sim.RESIST:
-				return(Sim.WEAK);
+				return Sim.WEAK;
 	
 			default:
 		}
 		System.out.println("**** internal error: unrecongized transistor type (" + Sim.BASETYPE(t.ttype) + ")");
-		return(Sim.UNKNOWN);
+		return Sim.UNKNOWN;
 	}
 }

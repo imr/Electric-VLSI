@@ -63,6 +63,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
@@ -398,24 +399,24 @@ public class WaveformWindow implements WindowContent
 				});
 			} else
 			{
-				// the "toggle bus" button for this panel
-				toggleBusSignals = new JButton(iconToggleBus);
-				toggleBusSignals.setBorderPainted(false);
-				toggleBusSignals.setDefaultCapable(false);
-				toggleBusSignals.setToolTipText("View or hide the individual signals on this bus");
-				minWid = new Dimension(iconToggleBus.getIconWidth()+4, iconToggleBus.getIconHeight()+4);
-				toggleBusSignals.setMinimumSize(minWid);
-				toggleBusSignals.setPreferredSize(minWid);
-				gbc.gridx = 3;       gbc.gridy = 1;
-				gbc.gridwidth = 1;   gbc.gridheight = 1;
-				gbc.weightx = 0.2;  gbc.weighty = 0;
-				gbc.anchor = GridBagConstraints.CENTER;
-				gbc.fill = GridBagConstraints.NONE;
-				leftHalf.add(toggleBusSignals, gbc);
-				toggleBusSignals.addActionListener(new ActionListener()
-				{
-					public void actionPerformed(ActionEvent evt) { toggleBusContents(); }
-				});
+//				// the "toggle bus" button for this panel
+//				toggleBusSignals = new JButton(iconToggleBus);
+//				toggleBusSignals.setBorderPainted(false);
+//				toggleBusSignals.setDefaultCapable(false);
+//				toggleBusSignals.setToolTipText("View or hide the individual signals on this bus");
+//				minWid = new Dimension(iconToggleBus.getIconWidth()+4, iconToggleBus.getIconHeight()+4);
+//				toggleBusSignals.setMinimumSize(minWid);
+//				toggleBusSignals.setPreferredSize(minWid);
+//				gbc.gridx = 3;       gbc.gridy = 1;
+//				gbc.gridwidth = 1;   gbc.gridheight = 1;
+//				gbc.weightx = 0.2;  gbc.weighty = 0;
+//				gbc.anchor = GridBagConstraints.CENTER;
+//				gbc.fill = GridBagConstraints.NONE;
+//				leftHalf.add(toggleBusSignals, gbc);
+//				toggleBusSignals.addActionListener(new ActionListener()
+//				{
+//					public void actionPerformed(ActionEvent evt) { toggleBusContents(); }
+//				});
 			}
 
 			// the list of signals in this panel (analog only)
@@ -501,8 +502,18 @@ public class WaveformWindow implements WindowContent
 			return signals;
 		}
 
+		static long lastClick = 0;
+
 		private void digitalSignalNameClicked(ActionEvent evt)
 		{
+			long delay = evt.getWhen() - lastClick;
+			lastClick = evt.getWhen();
+			if (delay < TopLevel.getDoubleClickSpeed())
+			{
+				toggleBusContents();
+				return;
+			}
+
 			Set set = waveSignals.keySet();
 			if (set.size() == 0) return;
 			JButton but = (JButton)set.iterator().next();

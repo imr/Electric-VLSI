@@ -25,6 +25,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
+import java.util.List;
+import java.util.Iterator;
+import java.util.ArrayList;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -107,22 +110,14 @@ public class Config
 	}
 	static Width [][] resistances = new Width[Sim.R_TYPES][Sim.NTTYPES];
 	
-	
 	/* linear interpolation, assume that x1 < x <= x2 */
 	static double interp(double x, double x1, double y1, double x2, double y2)
 	{
 		return ((x - x1) / (x2 - x1)) * (y2 - y1) + y1;
 	}
 
-	
-	static class ResEntry
-	{
-		ResEntry    r_next;
-		Sim.Resists   r;
-	};
-
-	static final int	RES_TAB_SIZE	= 67;
-	static ResEntry    [][] irsim_res_htab = new ResEntry[Sim.NTTYPES][];
+	static final int RES_TAB_SIZE = 67;
+	static List [][] irsim_res_htab = new List[Sim.NTTYPES][];
 	static boolean first = true;
 	
 	/*
@@ -145,21 +140,9 @@ public class Config
 		// deallocate
 		for(int i=0; i<Sim.NTTYPES; i++)
 		{
-			ResEntry [] rtab = irsim_res_htab[i];
+			List [] rtab = irsim_res_htab[i];
 			if (rtab != null)
-			{
-				for(int n = 0; n < RES_TAB_SIZE; n++)
-				{
-					while (rtab[n] != null)
-					{
-						ResEntry r = rtab[n];
-						rtab[n] = r.r_next;
-//						efree((CHAR *)r);
-					}
-				}
-//				efree((CHAR *)irsim_res_htab[i]);
 				irsim_res_htab[i] = null;
-			}
 		}
 		for(int t = 0; t < Sim.NTTYPES; t++)
 		{
@@ -199,13 +182,9 @@ public class Config
 			{
 				String line = lineReader.readLine();
 				if (line == null) break;
+				maxerr = 15;
 				if (line.startsWith("; configuration file"))
-				{
-//					rewind(cfile);
 					maxerr = 1;
-				}
-				else
-					maxerr = 15;
 				if (line.startsWith(";")) continue;
 	
 				String [] targ = Sim.parse_line(line, false);
@@ -213,8 +192,7 @@ public class Config
 				if (targ[0].equals("resistance"))
 				{
 					if (targ.length >= 6)
-						insert(fileName, lineReader.getLineNumber(), targ[1], targ[2], targ[3], targ[4], targ[5]);
-					else
+						insert(fileName, lineReader.getLineNumber(), targ[1], targ[2], targ[3], targ[4], targ[5]); else
 					{
 						Sim.irsim_error(fileName, lineReader.getLineNumber(), "syntax error in resistance spec");
 						nerrs++;
@@ -264,7 +242,7 @@ public class Config
 						System.out.println("I think " + fileName + " is not an electrical parameters file");
 					else
 						System.out.println("Too many errors in '" + fileName + "'");
-					return(1);
+					return 1;
 				}
 			}
 			inputStream.close();
@@ -305,7 +283,7 @@ public class Config
 		if ((irsim_config_flags & CNTPULLUP) != 0)
 			System.out.println("warning: cntpullup is not supported");
 
-		return(0);
+		return 0;
 	}
 	
 	
@@ -320,13 +298,13 @@ public class Config
 		for(Length p = list; p != null; q = p, p = p.next)
 		{
 			if (p.l == l ||(p.l > l && q == null))
-				return(p.r * size);
+				return p.r * size;
 			if (p.l > l)
-				return(size * interp(l, q.l, q.r, p.l, p.r));
+				return size * interp(l, q.l, q.r, p.l, p.r);
 		}
 		if (q != null)
-			return(q.r *size);
-		return(1E4 * size);
+			return q.r *size;
+		return 1E4 * size;
 	}
 	
 	
@@ -341,17 +319,17 @@ public class Config
 		Width q = null;
 		for(Width p = list; p != null; q = p, p = p.next)
 		{
-			if (p.w == w ||(p.w > w && q == null))
-				return(lresist(p.list, l, size));
+			if (p.w == w || (p.w > w && q == null))
+				return lresist(p.list, l, size);
 			if (p.w > w)
 			{
 				double temp = lresist(q.list, l, size);
-				return(interp(w, q.w, temp, p.w, lresist(p.list, l, size)));
+				return interp(w, q.w, temp, p.w, lresist(p.list, l, size));
 			}
 		}
 		if (q != null)
-			return(lresist(q.list, l, size));
-		return(1E4 * size);
+			return lresist(q.list, l, size);
+		return 1E4 * size;
 	}
 	
 	
@@ -364,38 +342,40 @@ public class Config
 	{
 		type = Sim.BASETYPE(type);
 	
-		ResEntry [] rtab = irsim_res_htab[type];
+		List [] rtab = irsim_res_htab[type];
 		if (rtab == null)
 		{
-			rtab = new ResEntry[RES_TAB_SIZE];
+			rtab = new List[RES_TAB_SIZE];
 			for(int n = 0; n < RES_TAB_SIZE; n++) rtab[n] = null;
 			irsim_res_htab[type] = rtab;
 		}
 		int n = (int)(Math.abs(length * 110133 + width) % RES_TAB_SIZE);
-		ResEntry r = null;
-		for(r = rtab[n]; r != null; r = r.r_next)
+		if (rtab[n] != null)
 		{
-			if ((long)r.r.length == length && (long)r.r.width == width) return(r.r);
+			for(Iterator it = rtab[n].iterator(); it.hasNext(); )
+			{
+				Sim.Resists rr = (Sim.Resists)it.next();
+				if ((long)rr.length == length && (long)rr.width == width) return rr;
+			}
 		}
 	
-		r = new ResEntry();
-		r.r = new Sim.Resists();
-		r.r_next = rtab[n];
-		rtab[n] = r;
+		Sim.Resists rr = new Sim.Resists();
+		if (rtab[n] == null) rtab[n] = new ArrayList();
+		rtab[n].add(rr);
 	
-		r.r.length = length;
-		r.r.width = width;
+		rr.length = length;
+		rr.width = width;
 	
 		if (type == Sim.RESIST)
 		{
-			r.r.dynres[Sim.R_LOW] = r.r.dynres[Sim.R_HIGH] = r.r.rstatic = (float) length / irsim_LAMBDACM;
+			rr.dynres[Sim.R_LOW] = rr.dynres[Sim.R_HIGH] = rr.rstatic = (float) length / irsim_LAMBDACM;
 		} else
 		{
-			r.r.rstatic = (float)wresist(resistances[Sim.STATIC][type], width, length);
-			r.r.dynres[Sim.R_LOW] = (float)wresist(resistances[Sim.DYNLOW][type], width, length);
-			r.r.dynres[Sim.R_HIGH] = (float)wresist(resistances[Sim.DYNHIGH][type], width, length);
+			rr.rstatic = (float)wresist(resistances[Sim.STATIC][type], width, length);
+			rr.dynres[Sim.R_LOW] = (float)wresist(resistances[Sim.DYNLOW][type], width, length);
+			rr.dynres[Sim.R_HIGH] = (float)wresist(resistances[Sim.DYNHIGH][type], width, length);
 		}
-		return r.r;
+		return rr;
 	}
 	
 	

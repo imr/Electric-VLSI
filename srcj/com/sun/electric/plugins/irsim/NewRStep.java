@@ -561,7 +561,7 @@ public class NewRStep extends Eval
 			if (r.finall != thisone.npot)
 				anyChange = true;
 		}
-		return(anyChange);
+		return anyChange;
 	}
 	
 	
@@ -583,7 +583,7 @@ public class NewRStep extends Eval
 		if ((n.nflags & Sim.INPUT) != 0)
 		{
 			Sim.Thev r = new Sim.Thev(input_thev[n.npot]);
-			return(r);
+			return r;
 		}
 	
 		Sim.Thev r = new Sim.Thev(init_thev);
@@ -637,7 +637,7 @@ public class NewRStep extends Eval
 			r.flags |= T_UDELAY;
 		}
 
-		return(r);
+		return r;
 	}
 	
 	
@@ -744,7 +744,7 @@ public class NewRStep extends Eval
 				GetReq(r, t, Sim.R_LOW);
 			else
 				GetMinR(r, t);
-			return(r);		// no driver, so just set Req 
+			return r;		// no driver, so just set Req 
 		}
 	
 		if (r.Rdown.min > r.Rup.max)
@@ -772,7 +772,7 @@ public class NewRStep extends Eval
 			if (r.Rdown.max < Sim.LIMIT)
 				r.Rdown.max += r.Req.max * (1.0 + r.Rdown.max / up_min);
 		}
-		return(r);
+		return r;
 	}
 	
 	
@@ -895,7 +895,7 @@ public class NewRStep extends Eval
 			}
 			ptin.setValue(tmp);
 		}
-		return(is_int);
+		return is_int;
 	}
 	
 	static boolean parallel_GetTin(Sim.Trans t, GenMath.MutableDouble itau)
@@ -913,7 +913,7 @@ public class NewRStep extends Eval
 			}
 			itau.setValue(tin.doubleValue());
 		}
-		return(is_int);
+		return is_int;
 	}
 	
 	
@@ -961,14 +961,14 @@ public class NewRStep extends Eval
 				else
 					r.Rdom = r.Rmax = Sim.LARGE;
 			}
-			return(r);
+			return r;
 		}
 	
 		if ((n.getThev().flags & T_REFNODE) != 0)	    // reference node in pure CS
 		{
 			r.Rmin = r.Rdom = r.Rmax = 0.0;
 			r.Ca = r.Cd = 0.0;
-			return(r);
+			return r;
 		}
 	
 		r.Rmin = r.Rdom = r.Rmax = Sim.LARGE;
@@ -1062,7 +1062,7 @@ public class NewRStep extends Eval
 			}
 		}
 	
-		return(r);
+		return r;
 	}
 	
 	
@@ -1077,7 +1077,7 @@ public class NewRStep extends Eval
 	static double get_tauP(Sim.Node n, Sim.Trans tran, int dom)
 	{
 		if ((n.nflags & Sim.INPUT) != 0)
-			return(0.0);
+			return 0.0;
 	
 		Sim.Thev r = n.getThev();
 		if (r.tau_done != dom)		// compute tauA for the node
@@ -1112,7 +1112,7 @@ public class NewRStep extends Eval
 			taup += r.tauP;
 		}
 	
-		return(taup);
+		return taup;
 	}
 	
 	/*
@@ -1127,7 +1127,7 @@ public class NewRStep extends Eval
 	{	
 		if (r.tauP <= Sim.SMALL)		// no capacitance, no spike
 		{
-			return(null);
+			return null;
 		}
 	
 		int rtype = (dom == Sim.LOW) ? Sim.R_LOW : Sim.R_HIGH;
@@ -1170,13 +1170,13 @@ public class NewRStep extends Eval
 		{
 			if (spk.peak <= nd.vlow)		// spike is too small
 			{
-				return(null);
+				return null;
 			}
 			spk.charge = (spk.peak >= nd.vhigh) ? Sim.HIGH : Sim.X;
 		}
 		else	// dom == HIGH
 		{
-			if (spk.peak <= 1.0 - nd.vhigh) return(null);
+			if (spk.peak <= 1.0 - nd.vhigh) return null;
 			spk.charge = (spk.peak >= 1.0 - nd.vlow) ? Sim.LOW : Sim.X;
 		}
 	
@@ -1187,7 +1187,7 @@ public class NewRStep extends Eval
 		else
 			spk.dr_delay = r.Rdom * r.Ca;
 	
-		return(spk);
+		return spk;
 	}
 	
 	

@@ -50,7 +50,7 @@ public class Sched
 	 */
 	static Sim.Event irsim_get_next_event(long stop_time)
 	{
-		if (irsim_npending == 0) return(null);
+		if (irsim_npending == 0) return null;
 	
 		Sim.Event event = null;
 		boolean eventValid = false;
@@ -74,7 +74,7 @@ public class Sched
 			if (time == (long)Hist.irsim_max_time)
 			{
 				System.out.println("*** internal error: no events but npending set");
-				return(null);
+				return null;
 			}
 	
 			event = EV_LIST(time);
@@ -84,7 +84,7 @@ public class Sched
 
 		time = evlist.ntime;
 
-		if (time >= stop_time) return(null);
+		if (time >= stop_time) return null;
 
 		irsim_cur_delta = time;			// advance simulation time
 
@@ -106,7 +106,7 @@ public class Sched
 			evlist.blink = event.blink;
 			event.flink = event.blink = event;
 		}
-		return(evlist);
+		return evlist;
 	}
 	
 	
@@ -345,13 +345,13 @@ public class Sched
 		if (is_inc == 0)
 		{
 			irsim_requeue_events(tmplist, false);
-			return(null);
+			return null;
 		}
 	
 		if (is_inc != 1)	// only for fault simulation (is_inc == 2)
 		{
 			irsim_npending = 0;
-			return(tmplist);
+			return tmplist;
 		}
 	
 		// now move the temporary list to the time wheel
@@ -380,7 +380,7 @@ public class Sched
 		}
 	
 		irsim_npending = nevents;
-		return(null);
+		return null;
 	}
 	
 	
@@ -540,7 +540,7 @@ public class Sched
 		marker.blink.flink = newev;
 		marker.blink = newev;
 		irsim_npending += 1;
-		return(newev);
+		return newev;
 	}
 
 	static void free_from_node(Sim.Event ev, Sim.Node nd)
