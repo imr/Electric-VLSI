@@ -186,7 +186,7 @@ public class DebugMenus {
 	    gildaMenu.addMenuItem("List Geometry on Network SWEEP", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.listGeometryOnNetworkCommand(GeometryHandler.ALGO_SWEEP); } });
 	    gildaMenu.addMenuItem("3D View", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) { WindowMenu.create3DViewCommand(); } });
+                new ActionListener() { public void actionPerformed(ActionEvent e) { WindowMenu.create3DViewCommand(false); } });
         gildaMenu.addMenuItem("Merge Polyons qTree", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) {CellMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.MERGE, GeometryHandler.ALGO_QTREE);}});
         gildaMenu.addMenuItem("Merge Polyons Sweep", null,

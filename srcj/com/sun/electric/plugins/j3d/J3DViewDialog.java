@@ -30,6 +30,8 @@ import com.sun.electric.tool.user.dialogs.EDialog;
 
 /**
  * Class to handle the "3D View Demo Dialog" dialog.
+ * @author  Gilda Garreton
+ * @version 0.1
  */
 public class J3DViewDialog extends EDialog
 {
@@ -257,11 +259,7 @@ public class J3DViewDialog extends EDialog
             start.setText("Stop");
         else
            start.setText("Start");
-        //view3D.set3DCamera(spline.getSelectedIndex());
-        view3D.moveAndRotate(TextUtils.atof(xField.getText()),
-                TextUtils.atof(yField.getText()), TextUtils.atof(zField.getText()),
-                        TextUtils.atof(xRotField.getText()),
-                TextUtils.atof(yRotField.getText()), TextUtils.atof(zRotField.getText()), 500, 500, 0);
+        view3D.set3DCamera(spline.getSelectedIndex());
     }//GEN-LAST:event_startActionPerformed
 
 	private void cancelActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cancelActionPerformed

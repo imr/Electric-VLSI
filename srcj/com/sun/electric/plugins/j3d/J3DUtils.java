@@ -137,7 +137,7 @@ public final class J3DUtils
     public static TCBKeyFrame getNextTCBKeyFrame(float ratio, ThreeDDemoKnot knot)
     {
         // Prepare spline keyframe data
-        Vector3f pos = new Vector3f (knot.xValue+100, knot.yValue+100, knot.zValue);
+        Vector3f pos = new Vector3f (knot.xValue, knot.yValue, knot.zValue);
         Point3f point = new Point3f (pos);            // position
         Quat4f quat = createQuaternionFromEuler(knot.rotX, knot.rotY, knot.rotZ);
         Point3f scale = new Point3f(knot.scale, knot.scale, knot.scale); // uniform scale3D

@@ -29,6 +29,8 @@ import com.sun.electric.tool.user.menus.MenuBar.MenuItem;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.Resources;
+import com.sun.electric.tool.user.ActivityLogger;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -38,6 +40,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
 import java.util.List;
 import java.util.ArrayList;
+import java.lang.reflect.Method;
 
 /**
  * This class has all of the pulldown menu commands in Electric.
@@ -90,6 +93,20 @@ public final class MenuCommands
 
 		if (Main.getDebug())
 	        DebugMenus.addDebugMenus(menuBar, helpMenu);
+
+        Class plugin3D = Resources.get3DClass("J3DMenu");
+        if (plugin3D != null)
+        {
+            // Adding 3D/Demo menu
+            try {
+                Method createMethod = plugin3D.getDeclaredMethod("add3DMenus", new Class[] {MenuBar.class});
+                createMethod.invoke(plugin3D, new Object[] {menuBar});
+            } catch (Exception e)
+            {
+                System.out.println("Can't open 3D Menu class: " + e.getMessage());
+                ActivityLogger.logException(e);
+            }
+        }
 
         /********************************* Hidden Menus *******************************/
 

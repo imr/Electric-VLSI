@@ -47,12 +47,7 @@ import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.ElectricPrinter;
-import com.sun.electric.tool.user.ui.ExplorerTree;
-import com.sun.electric.tool.user.ui.StatusBar;
-import com.sun.electric.tool.user.ui.WindowContent;
-import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.*;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -88,8 +83,7 @@ import com.sun.j3d.utils.universe.Viewer;
 import com.sun.j3d.utils.universe.ViewingPlatform;
 
 import javax.media.j3d.*;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
+import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.vecmath.*;
 
@@ -102,6 +96,9 @@ public class View3DWindow extends JPanel
         implements WindowContent, MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, ActionListener,
         HighlightListener
 {
+
+	/** # of nodes to consider scene graph big */       private static final int MAX3DVIEWNODES = 5000;
+
 	private SimpleUniverse u;
 	private Canvas3D canvas;
 	private TransformGroup objTrans;
@@ -113,7 +110,17 @@ public class View3DWindow extends JPanel
     // For demo cases
     KBRotPosScaleSplinePathInterpolator kbSplineInter;
     RotPosScaleTCBSplinePathInterpolator tcbSplineInter;
-    JAlpha jAlpha;
+
+    JAlpha jAlpha = new JAlpha(new Alpha (-1,
+        Alpha.INCREASING_ENABLE | Alpha.DECREASING_ENABLE,
+        0,
+        0,
+        2500, // 25000
+        400,  // 4000
+        100,
+        2000,  //20000
+        5000,
+        50 ), true, 0.5f);
 
 	/** the window frame containing this editwindow */      private WindowFrame wf;
 	/** reference to 2D view of the cell */                 private WindowContent view2D;
@@ -122,7 +129,7 @@ public class View3DWindow extends JPanel
 	/** Highlighter for this window */                      private Highlighter highlighter;
 	private PickCanvas pickCanvas;
 	/** Lis with all Shape3D drawn per ElectricObject */    private HashMap electricObjectMap = new HashMap();
-    private boolean oneTransformPerNode = true;
+    private boolean oneTransformPerNode = false;
     /** Map with object transformation for individual moves */ private HashMap transformGroupMap = new HashMap();
 
 	// Done only once.
@@ -152,12 +159,39 @@ public class View3DWindow extends JPanel
 		cellApp.setLineAttributes(lineAttr);
 	}
 
+    public static WindowContent create3DWindow(Cell cell, WindowFrame wf, WindowContent view2D, Boolean transPerNode)
+    {
+        int number = cell.getNumNodes() + cell.getNumArcs();
+        if (number < MAX3DVIEWNODES)
+        {
+            for (int i = 0; i < cell.getNumNodes(); i++)
+            {
+                NodeInst node = cell.getNode(i);
+                if (node.getProto() instanceof Cell && node.isExpanded())
+                {
+                    Cell np = (Cell)node.getProto();
+                    number += (np.getNumArcs() + np.getNumNodes());
+                }
+            }
+        }
+
+        if (number >= MAX3DVIEWNODES)
+        {
+            int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+                "The graph scene contains " + number + " nodes, are you sure you want to open 3D view of " + cell.describe() + "?",
+                    "Warning", JOptionPane.OK_CANCEL_OPTION);
+            if (response == JOptionPane.CANCEL_OPTION) return null;
+        }
+        return (new View3DWindow(cell, wf, view2D, transPerNode));
+    }
+
     // constructor
-	public View3DWindow(Cell cell, WindowFrame wf, WindowContent view2D)
+	private View3DWindow(Cell cell, WindowFrame wf, WindowContent view2D, Boolean transPerNode)
 	{
 		this.cell = cell;
         this.wf = wf;
 		this.view2D = view2D;
+        this.oneTransformPerNode = transPerNode.booleanValue();
 
 		highlighter = new Highlighter(Highlighter.SELECT_HIGHLIGHTER, wf);
         highlighter.addHighlightListener(this);
@@ -266,7 +300,7 @@ public class View3DWindow extends JPanel
 
 		vTrans.set(vCenter);
 
-		view.setBackClipDistance((vDist+radius)*2.0);
+		view.setBackClipDistance((vDist+radius)*200.0);
 		view.setFrontClipDistance((vDist+radius)/200.0);
 		view.setBackClipPolicy(View.VIRTUAL_EYE);
 		view.setFrontClipPolicy(View.VIRTUAL_EYE);
@@ -298,6 +332,9 @@ public class View3DWindow extends JPanel
 		objTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
 		objTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
 		objTrans.setCapability(TransformGroup.ENABLE_PICK_REPORTING);
+        objTrans.setCapability(TransformGroup.ALLOW_CHILDREN_EXTEND);
+        objTrans.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
+        objTrans.setCapability(TransformGroup.ALLOW_CHILDREN_WRITE);
 		objRoot.addChild(objTrans);
 
 		// Create a simple Shape3D node; add it to the scene graph.
@@ -485,7 +522,7 @@ public class View3DWindow extends JPanel
 	 * @param no
 	 * @param objTrans
 	 */
-	public void addNode(NodeInst no, AffineTransform transform, TransformGroup objTrans)
+	private void addNode(NodeInst no, AffineTransform transform, TransformGroup objTrans)
 	{
 		// add the node
 		NodeProto nProto = no.getProto();
@@ -873,51 +910,62 @@ public class View3DWindow extends JPanel
                               double rotX, double rotY, double rotZ,
                               double rotPosX, double rotPosY, double rotPosZ)
     {
-        Vector3d extraTrans = new Vector3d(posX, posY, posZ);
+        Vector3d newPos = new Vector3d(posX, posY, posZ);
         Vector3d rotation = new Vector3d(rotX, rotY, rotZ);
+        Quat4f quaf = J3DUtils.createQuaternionFromEuler(rotX, rotY, rotZ);
         Transform3D tmpTrans = new Transform3D();
         Transform3D currXform = new Transform3D();
 
-        for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext();)
+        for (Iterator it = cell.getNodes(); it.hasNext();)
+        //for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext();)
         {
-            Highlight h = (Highlight)it.next();
-			Shape3D obj = (Shape3D)h.getObject();
-            TransformGroup grp = (TransformGroup)transformGroupMap.get(obj);
+            //Highlight h = (Highlight)it.next();
+            NodeInst ni = (NodeInst)it.next();
+			//Shape3D obj = (Shape3D)h.getObject();
+            Variable var = (Variable)ni.getVar("3D_NODE_DEMO");
+            if (var == null) continue;
+            List list = (List)electricObjectMap.get(ni);
+            for (int i = 0; i < list.size(); i++)
+            {
+                Shape3D obj = (Shape3D)list.get(i);
+                TransformGroup grp = (TransformGroup)transformGroupMap.get(obj);
 
-            grp.getTransform(currXform);
-            tmpTrans.set(extraTrans);
-            boolean invert = false;
-            if (invert) {
-                currXform.mul(currXform, tmpTrans);
-            } else {
-                currXform.mul(tmpTrans, currXform);
+                grp.getTransform(currXform);
+                currXform.setTranslation(newPos);
+//                tmpTrans.set(newPos);
+                boolean invert = true;
+//                if (invert) {
+//                    currXform.mul(currXform, tmpTrans);
+//                } else {
+//                    currXform.mul(tmpTrans, currXform);
+//                }
+                grp.setTransform(currXform);
+
+                grp.getTransform(currXform);
+
+                Matrix4d mat = new Matrix4d();
+                // Remember old matrix
+                currXform.get(mat);
+
+                tmpTrans.setEuler(rotation);
+
+                // Translate to rotation point
+                currXform.setTranslation(new Vector3d(rotPosX, rotPosY, rotPosZ));
+                currXform.setRotation(quaf);
+//                if (invert) {
+//                currXform.mul(currXform, tmpTrans);
+//                } else {
+//                currXform.mul(tmpTrans, currXform);
+//                }
+
+                // Set old translation back
+                Vector3d translation = new
+                Vector3d(mat.m03, mat.m13, mat.m23);
+                currXform.setTranslation(translation);
+
+                // Update xform
+                grp.setTransform(currXform);
             }
-            grp.setTransform(currXform);
-            //grp.setTransform(currXform);
-
-        grp.getTransform(currXform);
-
-        Matrix4d mat = new Matrix4d();
-        // Remember old matrix
-        currXform.get(mat);
-
-            tmpTrans.setEuler(rotation);
-
-        // Translate to rotation point
-        currXform.setTranslation(new Vector3d(rotPosX, rotPosY, rotPosZ));
-        if (invert) {
-        currXform.mul(currXform, tmpTrans);
-        } else {
-        currXform.mul(tmpTrans, currXform);
-        }
-
-        // Set old translation back
-        Vector3d translation = new
-        Vector3d(mat.m03, mat.m13, mat.m23);
-        currXform.setTranslation(translation);
-
-        // Update xform
-        grp.setTransform(currXform);
         }
     }
 
@@ -1131,6 +1179,9 @@ public class View3DWindow extends JPanel
                 grp = new TransformGroup();
                 grp.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
 		        grp.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+                grp.setCapability(TransformGroup.ALLOW_CHILDREN_EXTEND);
+                grp.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
+                grp.setCapability(TransformGroup.ALLOW_CHILDREN_WRITE);
                 objTrans.addChild(grp);
             }
 			addNode(ni, trans, grp);
@@ -1218,17 +1269,6 @@ public class View3DWindow extends JPanel
             keyFrames[i] = J3DUtils.getNextTCBKeyFrame((float)((float)i/(polys.size()-1)), knot);
         }
 
-        Alpha alpha = new Alpha (-1,
-           	Alpha.INCREASING_ENABLE | Alpha.DECREASING_ENABLE,
-			0,
-			0,
-			2500, // 25000
-			400,  // 4000
-			100,
-			2000,  //20000
-			5000,
-			50 );
-        jAlpha = new JAlpha(alpha, true, 0.5f);
         kbSplineInter = new KBRotPosScaleSplinePathInterpolator(jAlpha, objTrans,
                                                   yAxis, splineKeyFrames);
         kbSplineInter.setSchedulingBounds(infiniteBounds);
@@ -1244,5 +1284,34 @@ public class View3DWindow extends JPanel
         //objTrans.addChild(behaviorBranch);
         objTrans.addChild(kbSplineInter);
         objTrans.addChild(tcbSplineInter);
+    }
+
+    public void addInterpolator(List knotList)
+    {
+        for (Iterator it = cell.getNodes(); it.hasNext();)
+        {
+            NodeInst ni = (NodeInst)it.next();
+            Variable var = (Variable)ni.getVar("3D_NODE_DEMO");
+            if (var == null) continue;
+            List list = (List)electricObjectMap.get(ni);
+            for (int j = 0; j < list.size(); j++)
+            {
+                Shape3D obj = (Shape3D)list.get(j);
+                TransformGroup grp = (TransformGroup)transformGroupMap.get(obj);
+                BranchGroup behaviorBranch = new BranchGroup();
+                TCBKeyFrame[] keyFrames = new TCBKeyFrame[knotList.size()];
+                for (int i = 0; i < knotList.size(); i++)
+                {
+                    J3DUtils.ThreeDDemoKnot knot = (J3DUtils.ThreeDDemoKnot)knotList.get(i);
+                    keyFrames[i] = J3DUtils.getNextTCBKeyFrame((float)((float)i/(knotList.size()-1)), knot);
+                }
+                Transform3D yAxis = new Transform3D();
+                tcbSplineInter = new RotPosScaleTCBSplinePathInterpolator(jAlpha, grp,
+                                                          yAxis, keyFrames);
+                tcbSplineInter.setSchedulingBounds(new BoundingSphere(new Point3d(), Double.MAX_VALUE));
+                behaviorBranch.addChild(tcbSplineInter);
+                grp.addChild(behaviorBranch);
+            }
+        }
     }
 }

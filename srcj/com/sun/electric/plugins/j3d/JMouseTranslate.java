@@ -7,6 +7,8 @@ import java.awt.*;
 
 /**
  * Extending original translate class to allow panning
+ * @author  Gilda Garreton
+ * @version 0.1
  */
 public class JMouseTranslate extends MouseTranslate
 {

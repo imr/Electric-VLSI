@@ -7,6 +7,8 @@ import javax.vecmath.Vector3d;
 
 /**
  * Extending original rotation class to allow rotation not from original behavior
+ * @author  Gilda Garreton
+ * @version 0.1
  */
 public class JMouseRotate extends MouseRotate
 {

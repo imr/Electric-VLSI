@@ -49,6 +49,8 @@ import javax.media.j3d.TransparencyAttributes;
 
 /**
  * Class to handle the "3D" tab of the Preferences dialog.
+ * @author  Gilda Garreton
+ * @version 0.1
  */
 public class JThreeDTab extends ThreeDTab
 {

@@ -7,6 +7,8 @@ import java.awt.*;
 
 /**
  * Extending original zoom class to allow zoom not from original behavior
+ * @author  Gilda Garreton
+ * @version 0.1
  */
 public class JMouseZoom extends MouseZoom
 {
