@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01x: *********************************
 
+IMP/MAN: (10/7/04, SMR) Added Explorer-pane context menu item on cell groups to rename the entire group.
+
 BUG: (10/6/04, SMR) Arc negation is lost during many operations (copy/paste, cross-library copy, insert jog in arc).
 FIX: Must reset this information.
 

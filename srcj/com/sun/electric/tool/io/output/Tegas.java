@@ -250,14 +250,6 @@ public class Tegas extends Topology
 				implicitInverters.put(ai, new Integer(count));
 				count++;
 			}
-	
-//			// Check to ensure at least one end of negated arc is attached to functional
-//			// THIS CODE SHOULD BE MOVED TO Connection.setNegated
-//			tempb = ai->end[1].portarcinst->proto->userbits&STATEBITS;
-//			tempa = ai->end[0].portarcinst->proto->userbits&STATEBITS;
-//
-//			if ((tempa&(INPORT|OUTPORT)) == 0 && (tempb&(INPORT|OUTPORT)) == 0)
-//				System.out.println("NEGATED ARC MUST BE CONNECTED TO INPUT OR OUTPUT OF NODEINST");
 		}
 
 		// name every node

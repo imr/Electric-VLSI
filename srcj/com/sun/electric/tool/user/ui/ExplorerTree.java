@@ -895,6 +895,10 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { newCellAction(); } });
 
+				menuItem = new JMenuItem("Rename Cells in Group");
+				menu.add(menuItem);
+				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { renameGroupAction(); } });
+
 				menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 				return;
 			}
@@ -1039,6 +1043,18 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		{
 			Library lib = (Library)currentSelectedObject;
 			FileMenu.closeLibraryCommand(lib);
+		}
+
+		private void renameGroupAction()
+		{
+			Cell.CellGroup cellGroup = (Cell.CellGroup)currentSelectedObject;
+			String defaultName = "";
+			if (cellGroup.getNumCells() > 0)
+				defaultName = ((Cell)cellGroup.getCells().next()).getName();
+			
+			String response = JOptionPane.showInputDialog(tree, "New name for cells in this group", defaultName);
+			if (response == null) return;
+			CircuitChanges.renameCellGroupInJob(cellGroup, response);
 		}
 
 		private void editCellAction(boolean newWindow)

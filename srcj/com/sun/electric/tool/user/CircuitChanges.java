@@ -1813,7 +1813,7 @@ public class CircuitChanges
 
 		protected RenameCell(Cell cell, String newName)
 		{
-			super("Rename Cell" + cell.describe(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Rename Cell " + cell.describe(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.newName = newName;
 			startJob();
@@ -1822,6 +1822,38 @@ public class CircuitChanges
 		public boolean doIt()
 		{
 			cell.rename(newName);
+			return true;
+		}
+	}
+
+	public static void renameCellGroupInJob(Cell.CellGroup cellGroup, String newName)
+	{
+		RenameCellGroup job = new RenameCellGroup(cellGroup, newName);
+	}
+
+	/**
+	 * Class to rename a cell in a new thread.
+	 */
+	private static class RenameCellGroup extends Job
+	{
+		Cell.CellGroup cellGroup;
+		String newName;
+
+		protected RenameCellGroup(Cell.CellGroup cellGroup, String newName)
+		{
+			super("Rename Cell Group", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cellGroup = cellGroup;
+			this.newName = newName;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			for(Iterator it = cellGroup.getCells(); it.hasNext(); )
+			{
+				Cell cell = (Cell)it.next();
+				cell.rename(newName);
+			}
 			return true;
 		}
 	}
