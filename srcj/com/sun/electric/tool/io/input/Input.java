@@ -68,6 +68,7 @@ import javax.swing.JOptionPane;
 public class Input
 {
 	protected static final int READ_BUFFER_SIZE = 65536;
+	private static final boolean NEWJELIB = false;
 
 	/** key of Varible holding true library of fake cell. */		public static final Variable.Key IO_TRUE_LIBRARY = ElectricObject.newKey("IO_true_library");
 	/** key of Variable to denote a dummy cell or library */        public static final Variable.Key IO_DUMMY_OBJECT = ElectricObject.newKey("IO_dummy_object");
@@ -177,34 +178,34 @@ public class Input
 		// get the name of the imported library
 		String libName = TextUtils.getFileNameWithoutExtension(fileURL);
 
-		// see if it already exists
-		Library deleteThis = null;
-		Library lib = Library.findLibrary(libName);
-		if (lib != null)
-		{
-			// library already exists, prompt for save
-			if (FileMenu.preventLoss(lib, 2)) return null;
-			WindowFrame.removeLibraryReferences(lib);
+// 		// see if it already exists
+// 		Library deleteThis = null;
+// 		Library lib = Library.findLibrary(libName);
+// 		if (lib != null)
+// 		{
+// 			// library already exists, prompt for save
+// 			if (FileMenu.preventLoss(lib, 2)) return null;
+// 			WindowFrame.removeLibraryReferences(lib);
 
-			// see if the former library can be deleted
-			if (Library.getNumLibraries() > 1)
-			{
-				if (!lib.kill()) return null;
-			} else
-			{
-				// cannot delete last library: must delete it later
-				deleteThis = lib;
+// 			// see if the former library can be deleted
+// 			if (Library.getNumLibraries() > 1)
+// 			{
+// 				if (!lib.kill()) return null;
+// 			} else
+// 			{
+// 				// cannot delete last library: must delete it later
+// 				deleteThis = lib;
 
-				// mangle the name so that the new one can be created
-				lib.setName("FORMERVERSIONOF" + lib.getName());
-			}
-		}
+// 				// mangle the name so that the new one can be created
+// 				lib.setName("FORMERVERSIONOF" + lib.getName());
+// 			}
+// 		}
 
 		// create a new library
 		lib = Library.newInstance(libName, fileURL);
 
-		// delete any former library with the same name
-		if (deleteThis != null) deleteThis.kill();
+// 		// delete any former library with the same name
+// 		if (deleteThis != null) deleteThis.kill();
 
 		// initialize timer, error log, etc
 		long startTime = System.currentTimeMillis();
@@ -304,15 +305,18 @@ public class Input
 		LibraryFiles in;
 		if (type == OpenFile.Type.ELIB)
 		{
-			in = (LibraryFiles)new ELIB();
+			in = new ELIB();
 			if (in.openBinaryInput(fileURL)) return null;
 		} else if (type == OpenFile.Type.JELIB)
 		{
-			in = (LibraryFiles)new JELIB();
+			if (NEWJELIB)
+				in = new JELIB1();
+			else
+				in = new JELIB();
 			if (in.openTextInput(fileURL)) return null;
 		} else if (type == OpenFile.Type.READABLEDUMP)
 		{
-			in = (LibraryFiles)new ReadableDump();
+			in = new ReadableDump();
 			if (in.openTextInput(fileURL)) return null;
 		} else
 		{
@@ -330,33 +334,33 @@ public class Input
 
 		if (lib == null)
 		{
-			Library deleteThis = null;
-			lib = Library.findLibrary(libName);
-			if (lib != null)
-			{
-				// library already exists, prompt for save
-				if (FileMenu.preventLoss(lib, 2)) return null;
-				WindowFrame.removeLibraryReferences(lib);
+// 			Library deleteThis = null;
+// 			lib = Library.findLibrary(libName);
+// 			if (lib != null)
+// 			{
+// 				// library already exists, prompt for save
+// 				if (FileMenu.preventLoss(lib, 2)) return null;
+// 				WindowFrame.removeLibraryReferences(lib);
 
-				// see if the former library can be deleted
-				if (Library.getNumLibraries() > 1)
-				{
-					if (!lib.kill()) return null;
-				} else
-				{
-					// cannot delete last library: must delete it later
-					deleteThis = lib;
+// 				// see if the former library can be deleted
+// 				if (Library.getNumLibraries() > 1)
+// 				{
+// 					if (!lib.kill()) return null;
+// 				} else
+// 				{
+// 					// cannot delete last library: must delete it later
+// 					deleteThis = lib;
 
-					// mangle the name so that the new one can be created
-					lib.setName("FORMERVERSIONOF" + lib.getName());
-				}
-			}
+// 					// mangle the name so that the new one can be created
+// 					lib.setName("FORMERVERSIONOF" + lib.getName());
+// 				}
+// 			}
 
 			// create a new library
 			lib = Library.newInstance(libName, fileURL);
 
-			// delete former library with the same name
-			if (deleteThis != null) deleteThis.kill();
+// 			// delete former library with the same name
+// 			if (deleteThis != null) deleteThis.kill();
 		}
 
 		in.lib = lib;

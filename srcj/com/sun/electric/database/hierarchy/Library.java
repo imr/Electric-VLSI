@@ -32,6 +32,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.net.URL;
@@ -457,13 +458,18 @@ public class Library extends ElectricObject
 	/**
 	 * Method to check and repair data structure errors in this Library.
 	 */
-	public int checkAndRepair()
+	public int checkAndRepair(boolean repair, ErrorLogger errorLogger)
 	{
 		int errorCount = 0;
 		for(Iterator it = getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-			errorCount += cell.checkAndRepair();
+			errorCount += cell.checkAndRepair(repair, errorLogger);
+		}
+		if (errorCount != 0 && repair)
+		{
+			setChangedMajor();
+			setChangedMinor();
 		}
 		return errorCount;
 	}

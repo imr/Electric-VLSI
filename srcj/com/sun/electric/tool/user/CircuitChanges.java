@@ -5152,16 +5152,39 @@ public class CircuitChanges
 	/**
 	 * Method to implement the "Repair Librariesy" command.
 	 */
-	public static void checkAndRepairCommand()
+	public static void checkAndRepairCommand(boolean repair)
 	{
-		int errorCount = 0;
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		new CheckAndRepairJob(repair);
+	}
+
+	/**
+	 * This class implement the command to repair libraries.
+	 */
+	private static class CheckAndRepairJob extends Job
+	{
+		boolean repair;
+
+		protected CheckAndRepairJob(boolean repair)
 		{
-			Library lib = (Library)it.next();
-			errorCount += lib.checkAndRepair();
+			super((repair ? "Repair Libraries" : "Check Libraries"), User.tool, (repair ? Job.Type.CHANGE : Job.Type.EXAMINE), null, null, Job.Priority.USER);
+			this.repair = repair;
+			startJob();
 		}
-		if (errorCount > 0) System.out.println("Found " + errorCount + " errors"); else
-			System.out.println("No errors found");
+
+		public boolean doIt()
+		{
+			ErrorLogger errorLogger = ErrorLogger.newInstance(repair ? "Repair Libraries" : "Check Libraries");
+			int errorCount = 0;
+			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			{
+				Library lib = (Library)it.next();
+				errorCount += lib.checkAndRepair(repair, errorLogger);
+			}
+			if (errorCount > 0) System.out.println("Found " + errorCount + " errors"); else
+				System.out.println("No errors found");
+			errorLogger.termLogging(true);
+			return true;
+		}
 	}
 
 	/****************************** DETERMINE ABILITY TO MAKE CHANGES ******************************/

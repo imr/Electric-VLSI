@@ -89,7 +89,11 @@ public class Connection
 	 * Method to set the location on this Connection.
 	 * @param pt the location on this Connection.
 	 */
-	public synchronized void setLocation(Point2D pt) { location.setLocation(pt.getX(), pt.getY()); }
+	public synchronized void setLocation(Point2D pt)
+	{
+		arc.checkChanging();
+		location.setLocation(pt.getX(), pt.getY());
+	}
 
 	/**
 	 * Method to return the shrinkage happening because of angled arcs on this Connection.
@@ -101,7 +105,11 @@ public class Connection
 	 * Method to set the shrinkage happening because of angled arcs on this Connection.
 	 * @param endShrink the shrinkage for this Connection.
 	 */
-	public synchronized void setEndShrink(int endShrink) { flags = (short)((flags & ~SHRINKAGE) | (endShrink & SHRINKAGE)); }
+	public synchronized void setEndShrink(int endShrink)
+	{
+		arc.checkChanging();
+		flags = (short)((flags & ~SHRINKAGE) | (endShrink & SHRINKAGE));
+	}
 
 	/**
 	 * Method to tell whether this connection is negated.
@@ -140,6 +148,7 @@ public class Connection
 
     private synchronized void setNegatedSafe(boolean negated)
     {
+		arc.checkChanging();
         if (negated)
             flags |= NEGATED;
         else

@@ -51,6 +51,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ActivityLogger;
+import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -3311,7 +3312,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	/**
 	 * Method to check and repair data structure errors in this Cell.
 	 */
-	public int checkAndRepair()
+	public int checkAndRepair(boolean repair, ErrorLogger errorLogger)
 	{
 		int errorCount = 0;
 
@@ -3320,7 +3321,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			Export pp = (Export)exports.get(i);
 			if (pp.getPortIndex() != i)
 			{
-				System.out.println(this + ", " + pp + " has wrong index");
+				String msg = this + ", " + pp + " has wrong index";
+				System.out.println(msg);
+				if (errorLogger != null)
+				{
+					ErrorLogger.MessageLog error = errorLogger.logError(msg, this, 1);
+					error.addExport(pp, true, this, null);
+				}
 				errorCount++;
 			}
 		}
@@ -3330,12 +3337,19 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		for(Iterator it = getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
-			errorCount += ai.checkAndRepair();
+			errorCount += ai.checkAndRepair(repair, errorLogger);
 			ArcInst otherAi = (ArcInst)connections.get(ai.getHead());
 			if (otherAi != null)
 			{
-				System.out.println("Cell " + describe() + ", Arc " + ai.describe() +
-					": head connection already on other arc " + otherAi.describe());
+				String msg = "Cell " + describe() + ", Arc " + ai.describe() +
+					": head connection already on other arc " + otherAi.describe();
+				System.out.println(msg);
+				if (errorLogger != null)
+				{
+					ErrorLogger.MessageLog error = errorLogger.logError(msg, this, 1);
+					error.addGeom(ai, true, this, null);
+					error.addGeom(otherAi, true, this, null);
+				}
 				errorCount++;
 			} else
 			{
@@ -3345,8 +3359,15 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			otherAi = (ArcInst)connections.get(ai.getTail());
 			if (otherAi != null)
 			{
-				System.out.println("Cell " + describe() + ", Arc " + ai.describe() +
-					": tail connection already on other arc " + otherAi.describe());
+				String msg = "Cell " + describe() + ", Arc " + ai.describe() +
+					": tail connection already on other arc " + otherAi.describe();
+				System.out.println(msg);
+				if (errorLogger != null)
+				{
+					ErrorLogger.MessageLog error = errorLogger.logError(msg, this, 1);
+					error.addGeom(ai, true, this, null);
+					error.addGeom(otherAi, true, this, null);
+				}
 				errorCount++;
 			} else
 			{
@@ -3358,16 +3379,22 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		for(Iterator it = getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			errorCount += ni.checkAndRepair();
+			errorCount += ni.checkAndRepair(repair, errorLogger);
 			for(Iterator pIt = ni.getConnections(); pIt.hasNext(); )
 			{
 				Connection con = (Connection)pIt.next();
 				ArcInst ai = (ArcInst)connections.get(con);
 				if (ai == null)
 				{
-					System.out.println("Cell " + describe() + ", Node " + ni.describe() +
+					String msg = "Cell " + describe() + ", Node " + ni.describe() +
 						": has connection to unknown arc: " + con.getArc().describe() +
-						" (node has " + ni.getNumConnections() + " connections)");
+						" (node has " + ni.getNumConnections() + " connections)";
+					System.out.println(msg);
+					if (errorLogger != null)
+					{
+						ErrorLogger.MessageLog error = errorLogger.logError(msg, this, 1);
+						error.addGeom(ni, true, this, null);
+					}
 					errorCount++;
 				} else
 				{
@@ -3382,8 +3409,14 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			ArcInst ai = (ArcInst)it.next();
 			if (ai != null)
 			{
-				System.out.println("Cell " + describe() + ", Arc " + ai.describe() +
-					": connection is not on any node");
+				String msg = "Cell " + describe() + ", Arc " + ai.describe() +
+					": connection is not on any node";
+				System.out.println(msg);
+				if (errorLogger != null)
+				{
+					ErrorLogger.MessageLog error = errorLogger.logError(msg, this, 1);
+					error.addGeom(ai, true, this, null);
+				}
 				errorCount++;
 			}
 		}
@@ -3392,18 +3425,24 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		for(Iterator it = getUsagesIn(); it.hasNext(); )
 		{
 			NodeUsage nu = (NodeUsage)it.next();
-			errorCount += nu.checkAndRepair();
+			errorCount += nu.checkAndRepair(errorLogger);
 		}
 
 		// check group pointers
 		if (versionGroup == null)
 		{
-			System.out.println("Cell " + describe() + ", Version group is null");
+			String msg = "Cell " + describe() + ", Version group is null";
+			System.out.println(msg);
+			if (errorLogger != null)
+				errorLogger.logError(msg, this, 1);
 			errorCount++;
 		}
 		if (cellGroup == null)
 		{
-			System.out.println("Cell " + describe() + ", Cell group is null");
+			String msg = "Cell " + describe() + ", Cell group is null";
+			System.out.println(msg);
+			if (errorLogger != null)
+				errorLogger.logError(msg, this, 1);
 			errorCount++;
 		}
 		return errorCount;

@@ -36,7 +36,11 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.*;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Point2D;
@@ -75,6 +79,8 @@ public class ArcInst extends Geometric
 	/** The index of the tail of this ArcInst. */		public static final int TAILEND = 1;
 	/** Key of the obsolete variable holding arc name.*/public static final Variable.Key ARC_NAME = ElectricObject.newKey("ARC_name");
 	/** Key of Varible holding arc curvature. */		public static final Variable.Key ARC_RADIUS = ElectricObject.newKey("ARC_radius");
+
+	/** Minimal distance of arc end to port polygon. */	static final double MINPORTDISTANCE = DBMath.getEpsilon()*0.71; // sqrt(0.5)
 
 	// -------------------------- private data ----------------------------------
 
@@ -815,6 +821,7 @@ public class ArcInst extends Geometric
 	 */
 	private void updateGeometric(int defAngle)
 	{
+		checkChanging();
 		Point2D p1 = ends[TAILEND].getLocation();
 		Point2D p2 = ends[HEADEND].getLocation();
 		double dx = p2.getX() - p1.getX();
@@ -882,7 +889,7 @@ public class ArcInst extends Geometric
 			poly.reducePortPoly(pi, wid, ai.getAngle());
 		}
 		if (poly.isInside(pt)) return true;
-
+		if (poly.polyDistance(pt.getX(), pt.getY()) < MINPORTDISTANCE) return true;
 		// no good
 //System.out.println("NOT STILL IN PORT BECAUSE pt="+pt+" reduce="+reduceForArc+" poly ctr=("+poly.getCenterX()+","+poly.getCenterY()+")");
 		return false;
@@ -948,7 +955,7 @@ public class ArcInst extends Geometric
 	/**
 	 * Method to check and repair data structure errors in this ArcInst.
 	 */
-	public int checkAndRepair()
+	public int checkAndRepair(boolean repair, ErrorLogger errorLogger)
 	{
 		int errorCount = 0;
 
@@ -956,44 +963,68 @@ public class ArcInst extends Geometric
 		Point2D headPt = getHead().getLocation();
 		if (!stillInPort(getHead(), headPt, false))
 		{
-			// allow for round-off error
-			headPt.setLocation(DBMath.round(headPt.getX()), DBMath.round(headPt.getY()));
-
-			if (!stillInPort(getHead(), headPt, false))
+			Poly poly = getHead().getPortInst().getPoly();
+			String msg = "Cell " + parent.describe() + ", arc " + describe() +
+				": head not in port, is at (" + headPt.getX() + "," + headPt.getY() +
+				") distance to port is " + poly.polyDistance(headPt.getX(), headPt.getY()) +
+				" port center is (" + poly.getCenterX() + "," + poly.getCenterY() + ")";
+			System.out.println(msg);
+			if (errorLogger != null)
 			{
-				Poly poly = getHead().getPortInst().getPoly();
-				System.out.println("Cell " + parent.describe() + ", arc " + describe() +
-					": head not in port, is at (" + headPt.getX() + "," + headPt.getY() + ") but port center is (" +
-					poly.getCenterX() + "," + poly.getCenterY() + ")");
-				getHead().setLocation(new Point2D.Double(poly.getCenterX(), poly.getCenterY()));
-				updateGeometric(getAngle());
-				errorCount++;
+				ErrorLogger.MessageLog error = errorLogger.logError(msg, parent, 1);
+				error.addGeom(this, true, parent, null);
+				error.addGeom(getHead().getPortInst().getNodeInst(), true, parent, null);
 			}
+			if (repair)
+			{
+				double x = DBMath.round(poly.getCenterX());
+				double y = DBMath.round(poly.getCenterY());
+				getHead().setLocation(new Point2D.Double(x, y));
+				updateGeometric(getAngle());
+			}
+			errorCount++;
 		}
 		Point2D tailPt = getTail().getLocation();
 		if (!stillInPort(getTail(), tailPt, false))
 		{
-			// allow for round-off error
-			tailPt.setLocation(DBMath.round(tailPt.getX()), DBMath.round(tailPt.getY()));
-			//tailPt.setLocation(DBMath.smooth(tailPt.getX()), DBMath.smooth(tailPt.getY()));
-			if (!stillInPort(getTail(), tailPt, false))
+			Poly poly = getTail().getPortInst().getPoly();
+			String msg = "Cell " + parent.describe() + ", arc " + describe() +
+				": tail not in port, is at (" + tailPt.getX() + "," + tailPt.getY() +
+				") distance to port is " + poly.polyDistance(tailPt.getX(), tailPt.getY()) +
+				" port center is (" + poly.getCenterX() + "," + poly.getCenterY() + ")";
+			System.out.println(msg);
+			if (errorLogger != null)
 			{
-				Poly poly = getTail().getPortInst().getPoly();
-				System.out.println("Cell " + parent.describe() + ", arc " + describe() +
-					": tail not in port, is at (" + tailPt.getX() + "," + tailPt.getY() + ") but port center is (" +
-					poly.getCenterX() + "," + poly.getCenterY() + ")");
-				getTail().setLocation(new Point2D.Double(poly.getCenterX(), poly.getCenterY()));
-				updateGeometric(getAngle());
-				errorCount++;
+				ErrorLogger.MessageLog error = errorLogger.logError(msg, parent, 1);
+				error.addGeom(this, true, parent, null);
+				error.addGeom(getTail().getPortInst().getNodeInst(), true, parent, null);
 			}
+			if (repair)
+			{
+				double x = DBMath.round(poly.getCenterX());
+				double y = DBMath.round(poly.getCenterY());
+				getTail().setLocation(new Point2D.Double(x, y));
+				updateGeometric(getAngle());
+			}
+			errorCount++;
 		}
 
 		// make sure width is not negative
 		if (getWidth() < 0)
 		{
-			System.out.println("Cell " + parent.describe() + ", arc " + describe() +
-				": has negative width (" + getWidth() + ")");
-			width = Math.abs(width);
+			String msg = "Cell " + parent.describe() + ", arc " + describe() +
+				": has negative width (" + getWidth() + ")";
+			System.out.println(msg);
+			if (errorLogger != null)
+			{
+				ErrorLogger.MessageLog error = errorLogger.logError(msg, parent, 1);
+				error.addGeom(this, true, parent, null);
+			}
+			if (repair)
+			{
+				checkChanging();
+				width = DBMath.round(Math.abs(width));
+			}
 			errorCount++;
 		}
 		return errorCount;

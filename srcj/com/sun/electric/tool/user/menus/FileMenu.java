@@ -164,8 +164,12 @@ public class FileMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.renameLibrary(Library.getCurrent()); } });
 		fileMenu.addMenuItem("Mark All Libraries for Saving", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.markAllLibrariesForSavingCommand(); } });
-		fileMenu.addMenuItem("Repair Libraries", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.checkAndRepairCommand(); } });
+		MenuBar.Menu checkSubMenu = new MenuBar.Menu("Check Libraries");
+		fileMenu.add(checkSubMenu);
+		checkSubMenu.addMenuItem("Check", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.checkAndRepairCommand(false); } });
+		checkSubMenu.addMenuItem("Repair", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.checkAndRepairCommand(true); } });
 
         fileMenu.addSeparator();
 
@@ -231,8 +235,17 @@ public class FileMenu {
         {
             // start a job to do the input
             URL fileURL = TextUtils.makeURLToFile(fileName);
-            OpenFile.Type type = getLibraryFormat(fileName, OpenFile.Type.DEFAULTLIB);
-			ReadLibrary job = new ReadLibrary(fileURL, type);
+			String libName = TextUtils.getFileNameWithoutExtension(fileURL);
+			Library deleteThis = null;
+			Library deleteLib = Library.findLibrary(libName);
+			if (deleteLib != null)
+			{
+				// library already exists, prompt for save
+				if (FileMenu.preventLoss(deleteLib, 2)) return;
+				WindowFrame.removeLibraryReferences(deleteLib);
+			}
+			OpenFile.Type type = getLibraryFormat(fileName, OpenFile.Type.DEFAULTLIB);
+			ReadLibrary job = new ReadLibrary(fileURL, type, deleteLib);
         }
     }
 
@@ -254,18 +267,36 @@ public class FileMenu {
 	{
 		private URL fileURL;
 		private OpenFile.Type type;
+		private Library deleteLib;
 
-		public ReadLibrary(URL fileURL, OpenFile.Type type)
+		public ReadLibrary(URL fileURL, OpenFile.Type type, Library deleteLib)
 		{
 			super("Read External Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.fileURL = fileURL;
 			this.type = type;
+			this.deleteLib = deleteLib;
 			startJob();
 		}
 
 		public boolean doIt()
 		{
+			// see if the former library can be deleted
+			if (deleteLib != null)
+			{
+				if (Library.getNumVisibleLibraries() > 1)
+				{
+					if (!deleteLib.kill()) return false;
+					deleteLib = null;
+				} else
+				{
+					// cannot delete last library: must delete it later
+					// mangle the name so that the new one can be created
+					deleteLib.setName("FORMERVERSIONOF" + deleteLib.getName());
+				}
+			}
 			openALibrary(fileURL, type);
+			if (deleteLib != null)
+				deleteLib.kill();
 			return true;
 		}
 	}
@@ -384,7 +415,16 @@ public class FileMenu {
 		{
 			// start a job to do the input
 			URL fileURL = TextUtils.makeURLToFile(fileName);
-			ReadLibrary job = new ReadLibrary(fileURL, type);
+			String libName = TextUtils.getFileNameWithoutExtension(fileURL);
+			Library deleteThis = null;
+			Library deleteLib = Library.findLibrary(libName);
+			if (deleteLib != null)
+			{
+				// library already exists, prompt for save
+				if (FileMenu.preventLoss(deleteLib, 2)) return;
+				WindowFrame.removeLibraryReferences(deleteLib);
+			}
+			ReadLibrary job = new ReadLibrary(fileURL, type, deleteLib);
 		}
 	}
 

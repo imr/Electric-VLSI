@@ -25,6 +25,7 @@ package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.tool.user.ErrorLogger;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -77,7 +78,7 @@ public class NodeUsage
 	/**
 	 * Method to self-check
 	 */
-	public int checkAndRepair()
+	public int checkAndRepair(ErrorLogger errorLogger)
 	{
 		int error = 0;
 		for (int i = 0; i < insts.size(); i++)
@@ -85,14 +86,20 @@ public class NodeUsage
 			NodeInst ni = (NodeInst)insts.get(i);
 			if (ni.getNodeUsage() != this || ni.getProto() != protoType || ni.getParent() != parent)
 			{
-				System.out.println("Error in " + this);
+				String msg = "Error in " + this;
+				System.out.println(msg);
+				if (errorLogger != null)
+					errorLogger.logError(msg, parent, 1);
 				error++;
 			}
 		}
 		if (protoType instanceof Cell && !(((Cell)protoType).usagesOf.contains(this)))
 		{
-				System.out.println(protoType + " doesn't contain " + this);
-				error++;
+			String msg = protoType + " doesn't contain " + this;
+			System.out.println(msg);
+			if (errorLogger != null)
+				errorLogger.logError(msg, parent, 1);
+			error++;
 		}
 		return error;
 	}

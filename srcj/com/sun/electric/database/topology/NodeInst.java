@@ -40,11 +40,17 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.*;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -752,7 +758,7 @@ public class NodeInst extends Geometric implements Nodable
 			if (getName() == null || !parent.isUniqueName(name, getClass(), this))
 				if (setNameKey(parent.getAutoname(getBasename()))) return true;
 		}
-		if (checkAndRepair() > 0) return true;
+		if (checkAndRepair(true, null) > 0) return true;
 
 		// add to linked lists
         linkGeom(parent);
@@ -2676,54 +2682,79 @@ public class NodeInst extends Geometric implements Nodable
 	/**
 	 * Method to check and repair data structure errors in this NodeInst.
 	 */
-	public int checkAndRepair()
+	public int checkAndRepair(boolean repair, ErrorLogger errorLogger)
 	{
 		int errorCount = 0;
 		int warningCount = 0;
+		double width = getXSize();
+		double height = getYSize();
+		String sizeMsg = null;
 		if (protoType instanceof Cell)
 		{
 			// make sure the instance is the same size as the cell
 			Rectangle2D bounds = ((Cell)protoType).getBounds();
-			if (bounds.getWidth() != getXSize() ||
-				bounds.getHeight() != getYSize())
-			{
-				System.out.println("Cell " + parent.describe() + ", node " + describe() +
-					" is " + getXSize() + "x" + getYSize() + ", but prototype is " + bounds.getWidth() +
-					" x " + bounds.getHeight() + " (REPAIRED)");
-				sX = DBMath.round(bounds.getWidth()) * (isXMirrored() ? -1 : 1);
-				sY = DBMath.round(bounds.getHeight()) * (isYMirrored() ? -1 : 1);
-				redoGeometric();
-				warningCount++;
-			}
+			width = DBMath.round(bounds.getWidth());
+			height = DBMath.round(bounds.getHeight());
+			if (width != getXSize() || height != getYSize())
+				sizeMsg = ", but prototype is ";
 		} else
 		{
 			PrimitiveNode pn = (PrimitiveNode)protoType;
-			if (pn.isHoldsOutline() && getTrace() != null)
+			if (getTrace() != null)
 			{
-				Rectangle2D bounds = new Rectangle2D.Double();
-				Poly[] polys = pn.getTechnology().getShapeOfNode(this);
-				for (int i = 0; i < polys.length; i++)
+				if (pn.isHoldsOutline())
 				{
-					Poly poly = polys[i];
-					if (i == 0)
-						bounds.setRect(poly.getBounds2D());
-					else
-						Rectangle2D.union(poly.getBounds2D(), bounds, bounds);
-				}
-				double width = DBMath.round(bounds.getWidth());
-				double height = DBMath.round(bounds.getHeight());
-				if (width != getXSize() || height != getYSize())
+					Rectangle2D bounds = new Rectangle2D.Double();
+					Poly[] polys = pn.getTechnology().getShapeOfNode(this);
+					for (int i = 0; i < polys.length; i++)
+					{
+						Poly poly = polys[i];
+						if (i == 0)
+							bounds.setRect(poly.getBounds2D());
+						else
+							Rectangle2D.union(poly.getBounds2D(), bounds, bounds);
+					}
+					width = DBMath.round(bounds.getWidth());
+					height = DBMath.round(bounds.getHeight());
+					if (width != getXSize() || height != getYSize())
+						sizeMsg = " but has outline of size ";
+				} else
 				{
-					System.out.println("Cell " + parent.describe() + ", node " + describe() +
-						" is " + getXSize() + "x" + getYSize() +
-						" but has outline of size " + width + "x" + height +
-						" (REPAIRED)");
-					sX = isXMirrored() ? -width : width;
-					sY = isYMirrored() ? -height : height;
-					redoGeometric();
-					warningCount++;
+					String msg = "Cell " + parent.describe() + ", node " + describe() + " has unexpected outline";
+					System.out.println(msg);
+					if (errorLogger != null)
+					{
+						ErrorLogger.MessageLog error = errorLogger.logError(msg, parent, 1);
+						error.addGeom(this, true, parent, null);
+					}
+					if (repair)
+						delVar(TRACE);
 				}
 			}
+		}
+		if (sizeMsg != null)
+		{
+			sizeMsg = "Cell " + parent.describe() + ", node " + describe() +
+				" is " + getXSize() + "x" + getYSize() + sizeMsg + width + "x" + height;
+			if (repair)
+			{
+				checkChanging();
+				sizeMsg += " (REPAIRED)";
+			}
+			System.out.println(sizeMsg);
+			if (errorLogger != null)
+			{
+				ErrorLogger.MessageLog error = errorLogger.logWarning(sizeMsg, parent, 1);
+				error.addGeom(this, true, parent, null);
+			}
+			if (repair)
+			{
+				sX = isXMirrored() ? -width : width;
+				sY = isYMirrored() ? -height : height;
+				redoGeometric();
+			}
+			warningCount++;
+		}
 // 			Point2D [] points = getTrace();
 // 			if (points != null)
 // 			{
@@ -2752,12 +2783,17 @@ public class NodeInst extends Geometric implements Nodable
 // 					warningCount++;
 // 				}
 // 			}
-		}
 		if (portInsts.size() != protoType.getNumPorts())
 		{
-			System.out.println("Cell " + parent.describe() + ", node " + describe() +
+			String msg = "Cell " + parent.describe() + ", node " + describe() +
 				" has number of PortInsts " + portInsts.size() + " , but prototype " + protoType +
-				" has " + protoType.getNumPorts() + " ports");
+				" has " + protoType.getNumPorts() + " ports";
+			System.out.println(msg);
+			if (errorLogger != null)
+			{
+				ErrorLogger.MessageLog error = errorLogger.logError(sizeMsg, parent, 1);
+				error.addGeom(this, true, parent, null);
+			}
 			return 1;
 		}
 		int i = 0;
@@ -2767,8 +2803,14 @@ public class NodeInst extends Geometric implements Nodable
 			PortInst pi = (PortInst)portInsts.get(i);
 			if (pp.getPortIndex() != i || pi.getPortProto() != pp)
 			{
- 				System.out.println("Cell " + parent.describe() + ", node " + describe() +
- 					" has mismatches between PortInsts and PortProtos (" + pp.getName() + ")");
+				String msg = "Cell " + parent.describe() + ", node " + describe() +
+ 					" has mismatches between PortInsts and PortProtos (" + pp.getName() + ")";
+ 				System.out.println(msg);
+				if (errorLogger != null)
+				{
+					ErrorLogger.MessageLog error = errorLogger.logError(sizeMsg, parent, 1);
+					error.addGeom(this, true, parent, null);
+				}
 				errorCount++;
 			}
 		}

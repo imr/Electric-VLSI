@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.help;
 
 import com.sun.electric.Main;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
@@ -206,8 +207,9 @@ public class ManualViewer extends EDialog
 
 	public static void loadSamplesLibrary()
 	{
+		if (Library.findLibrary("samples") != null) return;
 		URL url = ManualViewer.class.getResource("helphtml/samples.jelib");
-		FileMenu.ReadLibrary job = new FileMenu.ReadLibrary(url, OpenFile.Type.JELIB);
+		FileMenu.ReadLibrary job = new FileMenu.ReadLibrary(url, OpenFile.Type.JELIB, null);
 	}
 
 	private void loadMenuBar()
