@@ -2,6 +2,8 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (6/1/04), GVG) Open and Save functions in tool bar. Extra functions to verify if Save icon is enabled or disable.
+
 IMP: (5/31/04, SMR) Implemented cell instance extraction and packaging.
 
 IMP: (5/31/04, SMR) Implemented MOSIS CMOS scalable transistors.

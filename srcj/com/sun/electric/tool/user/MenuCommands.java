@@ -914,6 +914,7 @@ public final class MenuCommands
 		lib.setCurrent();
 		WindowFrame.wantToRedoLibraryTree();
 		EditWindow.repaintAll();
+		TopLevel.getTopLevel().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
 	}
 
 	/**
@@ -953,7 +954,9 @@ public final class MenuCommands
 			if (lib == null) return;
 			lib.setCurrent();
 			Cell cell = lib.getCurCell();
-			if (cell == null) System.out.println("No current cell in this library"); else
+			if (cell == null)
+				System.out.println("No current cell in this library");
+			else
 			{
 				// check if edit window open with null cell, use that one if exists
 				for (Iterator it = WindowFrame.getWindows(); it.hasNext(); )
@@ -964,10 +967,13 @@ public final class MenuCommands
 					{
 						wf.setCellWindow(cell);
 						WindowFrame.setCurrentWindowFrame(wf);
+						TopLevel.getTopLevel().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
 						return;
 					}
 				}
 				WindowFrame.createEditWindow(cell);
+				// no clean for now.
+				TopLevel.getTopLevel().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
 			}
 		}
 	}
@@ -1038,6 +1044,8 @@ public final class MenuCommands
 			System.out.println("Library " + libName + " closed");
 		WindowFrame.wantToRedoLibraryTree();
 		EditWindow.repaintAll();
+		// Disable save icon if no more libraries are open
+		TopLevel.getTopLevel().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
 	}
 
 	/**

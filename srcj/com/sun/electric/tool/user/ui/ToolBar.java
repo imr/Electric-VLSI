@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.dialogs.EditOptions;
@@ -70,9 +71,12 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
     /** Menu name that exists on ToolBar, public for consistency matching */ public static final String cursorZoomName = "Zoom";
     /** Menu name that exists on ToolBar, public for consistency matching */ public static final String cursorOutlineName = "Outline Edit";
     /** Menu name that exists on ToolBar, public for consistency matching */ public static final String specialSelectName = "Special Select";
+	/** Menu name that exists on ToolBar, public for consistency matching */ public static final String OpenLibraryName = "Open Library";
+	/** Menu name that exists on ToolBar, public for consistency matching */ public static final String SaveLibraryName = "Save Library";
 
     /** Go back button */           private JButton goBackButton;
     /** Go forward button */        private JButton goForwardButton;
+	/** Save button */              private ToolBarButton saveLibraryButton;
 
     public static final boolean secondaryInputModes = false;
 
@@ -166,6 +170,26 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		// the "Select mode" button
 		modeGroup = new ButtonGroup();
 
+		/** Open and Save buttons */
+        ToolBarButton open = ToolBarButton.newInstance(OpenLibraryName, new ImageIcon(toolbar.getClass().getResource("ButtonOpenLibrary.gif")));
+        open.addActionListener(
+            new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.openLibraryCommand(); } });
+        open.setToolTipText(OpenLibraryName);
+        open.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
+        toolbar.add(open);
+
+		toolbar.saveLibraryButton = ToolBarButton.newInstance(SaveLibraryName,
+		        new ImageIcon(toolbar.getClass().getResource("ButtonSaveLibrary.gif")));
+        toolbar.saveLibraryButton.addActionListener(
+            new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.saveLibraryCommand(Library.getCurrent()); } });
+        toolbar.saveLibraryButton.setToolTipText(SaveLibraryName);
+        toolbar.saveLibraryButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
+        // setModel before setEnable... not sure why yet
+		toolbar.saveLibraryButton.setEnabled(Library.getCurrent()!=null);
+		toolbar.add(toolbar.saveLibraryButton);
+
+        toolbar.addSeparator();
+
         clickZoomWireButton = ToolBarButton.newInstance(cursorClickZoomWireName,
             new ImageIcon(toolbar.getClass().getResource("ButtonClickZoomWire.gif")));
         clickZoomWireButton.addActionListener(
@@ -177,22 +201,22 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 
         if (secondaryInputModes) {
 
-		selectButton = ToolBarButton.newInstance(cursorSelectName,
-            new ImageIcon(toolbar.getClass().getResource("ButtonSelect.gif")));
-		selectButton.addActionListener(
-			new ActionListener() { public void actionPerformed(ActionEvent e) { selectCommand(); } });
-		selectButton.setToolTipText("Select");
-		toolbar.add(selectButton);
-		modeGroup.add(selectButton);
+			selectButton = ToolBarButton.newInstance(cursorSelectName,
+				new ImageIcon(toolbar.getClass().getResource("ButtonSelect.gif")));
+			selectButton.addActionListener(
+				new ActionListener() { public void actionPerformed(ActionEvent e) { selectCommand(); } });
+			selectButton.setToolTipText("Select");
+			toolbar.add(selectButton);
+			modeGroup.add(selectButton);
 
-		// the "Wiring" button
-		wireButton = ToolBarButton.newInstance(cursorWiringName,
-            new ImageIcon(toolbar.getClass().getResource("ButtonWiring.gif")));
-		wireButton.addActionListener(
-			new ActionListener() { public void actionPerformed(ActionEvent e) { wiringCommand(); } });
-		wireButton.setToolTipText("Wiring");
-		toolbar.add(wireButton);
-		modeGroup.add(wireButton);
+			// the "Wiring" button
+			wireButton = ToolBarButton.newInstance(cursorWiringName,
+				new ImageIcon(toolbar.getClass().getResource("ButtonWiring.gif")));
+			wireButton.addActionListener(
+				new ActionListener() { public void actionPerformed(ActionEvent e) { wiringCommand(); } });
+			wireButton.setToolTipText("Wiring");
+			toolbar.add(wireButton);
+			modeGroup.add(wireButton);
 
         }
 
@@ -597,6 +621,10 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		if (wf != null) wf.getContent().cellHistoryGoForward();
     }
 
+	public void setSaveLibraryButton(boolean value)
+	{
+		saveLibraryButton.setEnabled(value);
+	}
     // ----------------------------------------------------------------------------
 
     /**
@@ -627,7 +655,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
             boolean enabled = ((Boolean)evt.getNewValue()).booleanValue();
             goBackButton.setEnabled(enabled);
         }
-        if (name.equals(EditWindow.propGoForwardEnabled)) {
+        else if (name.equals(EditWindow.propGoForwardEnabled)) {
             boolean enabled = ((Boolean)evt.getNewValue()).booleanValue();
             goForwardButton.setEnabled(enabled);
         }
@@ -683,5 +711,9 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
         //To change body of implemented methods use File | Settings | File Templates.
     }
 
-
+    public void setEnabled(String name, boolean flag)
+    {
+	    if (name.equals(SaveLibraryName))
+		    saveLibraryButton.setEnabled(flag);
+    }
 }
