@@ -461,13 +461,10 @@ public class Quick
 		// Job aborted or scheduled for abort
 		if (job != null && job.checkAbort()) return -1;
 
-		if (Main.LOCALDEBUGFLAG)
-		{
 		if (cellsMap.get(cell) != null)
 		{
-			System.out.println("Done already cell " + cell.getName());
+			if (Main.LOCALDEBUGFLAG) System.out.println("Done already cell " + cell.getName());
 			return (0);
-		}
 		}
 
 		// Previous # of errors/warnings
@@ -620,16 +617,12 @@ public class Quick
 		Technology tech = np.getTechnology();
 		AffineTransform trans = ni.rotateOut();
 
-		if (Main.LOCALDEBUGFLAG)
-		{
 		if (nodesMap.get(ni) != null)
 		{
-			System.out.println("Done already node " + ni.getName());
+			if (Main.LOCALDEBUGFLAG) System.out.println("Done already node " + ni.getName());
 			return (false);
 		}
-
 		nodesMap.put(ni, ni);
-		}
 
 		// Skipping special nodes
 		if (NodeInst.isSpecialNode(ni)) return false; // Oct 5;
@@ -720,16 +713,12 @@ public class Quick
 		if (net == null) return false;
 		Integer [] netNumbers = (Integer [])networkLists.get(net);
 
-		if (Main.LOCALDEBUGFLAG)
+		if (nodesMap.get(ai) != null)
 		{
-			if (nodesMap.get(ai) != null)
-			{
-				System.out.println("Done already arc " + ai.getName());
-				return (false);
-			}
-
-			nodesMap.put(ai, ai);
+			if (Main.LOCALDEBUGFLAG) System.out.println("Done already arc " + ai.getName());
+			return (false);
 		}
+		nodesMap.put(ai, ai);
 
 		// get all of the polygons on this arc
 		Technology tech = ai.getProto().getTechnology();
