@@ -357,8 +357,6 @@ public class JThreeDTab extends ThreeDTab
         threeDHeight = new javax.swing.JTextField();
         threeDPerspective = new javax.swing.JCheckBox();
         threeDAntialiasing = new javax.swing.JCheckBox();
-        jLabel48 = new javax.swing.JLabel();
-        threeDZoom = new javax.swing.JTextField();
         transparencyPanel = new javax.swing.JPanel();
         transparencyMode = new javax.swing.JComboBox();
         transparancyField = new javax.swing.JTextField();
@@ -382,12 +380,18 @@ public class JThreeDTab extends ThreeDTab
         xDirTwoField = new javax.swing.JTextField();
         yDirTwoField = new javax.swing.JTextField();
         zDirTwoField = new javax.swing.JTextField();
-        scaleLabel = new javax.swing.JLabel();
-        scaleField = new javax.swing.JTextField();
+        threeDCellBnd = new javax.swing.JCheckBox();
+        initialViewPanel = new javax.swing.JPanel();
         xRotLabel = new javax.swing.JLabel();
         xRotField = new javax.swing.JTextField();
-        yRotLabel = new javax.swing.JLabel();
         yRotField = new javax.swing.JTextField();
+        yRotLabel = new javax.swing.JLabel();
+        threeDZoom = new javax.swing.JTextField();
+        origZoomLabel = new javax.swing.JLabel();
+        zRotField = new javax.swing.JTextField();
+        zRotLabel = new javax.swing.JLabel();
+        scaleField = new javax.swing.JTextField();
+        scaleLabel = new javax.swing.JLabel();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -476,24 +480,6 @@ public class JThreeDTab extends ThreeDTab
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         threeD.add(threeDAntialiasing, gridBagConstraints);
-
-        jLabel48.setText("Orig. Zoom:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        threeD.add(jLabel48, gridBagConstraints);
-
-        threeDZoom.setColumns(6);
-        threeDZoom.setMinimumSize(new java.awt.Dimension(70, 19));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        threeD.add(threeDZoom, gridBagConstraints);
 
         transparencyPanel.setLayout(new java.awt.GridBagLayout());
 
@@ -669,65 +655,122 @@ public class JThreeDTab extends ThreeDTab
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridy = 10;
         gridBagConstraints.gridwidth = java.awt.GridBagConstraints.RELATIVE;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         threeD.add(directionPanel, gridBagConstraints);
 
-        scaleLabel.setText("Z Scale:");
+        threeDCellBnd.setText("Display Cell  Bounding Box");
+        threeDCellBnd.setToolTipText("Turn on Antialiasing if available");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        threeD.add(scaleLabel, gridBagConstraints);
+        threeD.add(threeDCellBnd, gridBagConstraints);
 
-        scaleField.setColumns(6);
-        scaleField.setMinimumSize(new java.awt.Dimension(70, 19));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        threeD.add(scaleField, gridBagConstraints);
+        initialViewPanel.setLayout(new java.awt.GridBagLayout());
 
+        initialViewPanel.setBorder(new javax.swing.border.TitledBorder("Initial Position"));
         xRotLabel.setText("Rotation X:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        threeD.add(xRotLabel, gridBagConstraints);
+        initialViewPanel.add(xRotLabel, gridBagConstraints);
 
         xRotField.setColumns(6);
         xRotField.setMinimumSize(new java.awt.Dimension(70, 19));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        threeD.add(xRotField, gridBagConstraints);
-
-        yRotLabel.setText("Rotation Y:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        threeD.add(yRotLabel, gridBagConstraints);
+        initialViewPanel.add(xRotField, gridBagConstraints);
 
         yRotField.setColumns(6);
         yRotField.setMinimumSize(new java.awt.Dimension(70, 19));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        threeD.add(yRotField, gridBagConstraints);
+        initialViewPanel.add(yRotField, gridBagConstraints);
+
+        yRotLabel.setText("Rotation Y:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        initialViewPanel.add(yRotLabel, gridBagConstraints);
+
+        threeDZoom.setColumns(6);
+        threeDZoom.setMinimumSize(new java.awt.Dimension(70, 19));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        initialViewPanel.add(threeDZoom, gridBagConstraints);
+
+        origZoomLabel.setText("Orig. Zoom:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        initialViewPanel.add(origZoomLabel, gridBagConstraints);
+
+        zRotField.setColumns(6);
+        zRotField.setMinimumSize(new java.awt.Dimension(70, 19));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        initialViewPanel.add(zRotField, gridBagConstraints);
+
+        zRotLabel.setText("Rotation Z:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        initialViewPanel.add(zRotLabel, gridBagConstraints);
+
+        scaleField.setColumns(6);
+        scaleField.setMinimumSize(new java.awt.Dimension(70, 19));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        initialViewPanel.add(scaleField, gridBagConstraints);
+
+        scaleLabel.setText("Z Scale:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        initialViewPanel.add(scaleLabel, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        threeD.add(initialViewPanel, gridBagConstraints);
 
         getContentPane().add(threeD, new java.awt.GridBagConstraints());
 
@@ -756,14 +799,16 @@ public class JThreeDTab extends ThreeDTab
     private javax.swing.JCheckBox dirTwoBox;
     private javax.swing.JPanel dirTwoPanel;
     private javax.swing.JPanel directionPanel;
+    private javax.swing.JPanel initialViewPanel;
     private javax.swing.JLabel jLabel45;
     private javax.swing.JLabel jLabel47;
-    private javax.swing.JLabel jLabel48;
+    private javax.swing.JLabel origZoomLabel;
     private javax.swing.JTextField scaleField;
     private javax.swing.JLabel scaleLabel;
     private javax.swing.JSeparator separator;
     private javax.swing.JPanel threeD;
     private javax.swing.JCheckBox threeDAntialiasing;
+    private javax.swing.JCheckBox threeDCellBnd;
     private javax.swing.JTextField threeDHeight;
     private javax.swing.JScrollPane threeDLayerPane;
     private javax.swing.JCheckBox threeDPerspective;
@@ -791,6 +836,8 @@ public class JThreeDTab extends ThreeDTab
     private javax.swing.JTextField zDirOneField;
     private javax.swing.JLabel zDirTwo;
     private javax.swing.JTextField zDirTwoField;
+    private javax.swing.JTextField zRotField;
+    private javax.swing.JLabel zRotLabel;
     // End of variables declaration//GEN-END:variables
 
 }
