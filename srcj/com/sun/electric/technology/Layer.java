@@ -426,7 +426,7 @@ public class Layer
 
 	/**
 	 * Method to set the factory-default GDS name of this Layer.
-	 * @param cifLayer the factory-default GDS name of this Layer.
+	 * @param gdsLayer the factory-default GDS name of this Layer.
 	 */
 	public void setFactoryGDSLayer(String gdsLayer) { getLayerPref("GDS", gdsLayerPrefs, gdsLayer); }
 
@@ -444,7 +444,7 @@ public class Layer
 
 	/**
 	 * Method to set the factory-default DXF name of this Layer.
-	 * @param cifLayer the factory-default DXF name of this Layer.
+	 * @param dxfLayer the factory-default DXF name of this Layer.
 	 */
 	public void setFactoryDXFLayer(String dxfLayer) { getLayerPref("DXF", dxfLayerPrefs, dxfLayer); }
 
@@ -462,7 +462,7 @@ public class Layer
 
 	/**
 	 * Method to set the factory-default Skill name of this Layer.
-	 * @param cifLayer the factory-default Skill name of this Layer.
+	 * @param skillLayer the factory-default Skill name of this Layer.
 	 */
 	public void setFactorySkillLayer(String skillLayer) { getLayerPref("Skill", skillLayerPrefs, skillLayer); }
 

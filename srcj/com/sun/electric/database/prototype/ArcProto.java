@@ -187,24 +187,24 @@ public abstract class ArcProto extends ElectricObject
 	/**
 	 * Method to set the factory-default width of this ArcProto.
 	 * This is only called from PrimitiveArc during construction.
-	 * @param cifLayer the factory-default width of this ArcProto.
+	 * @param defaultWidth the factory-default width of this ArcProto.
 	 */
 	protected void setFactoryDefaultWidth(double defaultWidth) { getArcProtoWidthPref(defaultWidth); }
-
-	/**
-	 * Method to return the full default width of this ArcProto.
-	 * This is the full width, including nonselectable layers such as implants.
-	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
-	 * This call returns the width of all of these layers. 
-	 * @return the full default width of this ArcProto.
-	 */
-	public void setDefaultWidth(double defaultWidth) { getArcProtoWidthPref(this.defaultWidth).setDouble(defaultWidth); }
 
 	/**
 	 * Method to set the full default width of this ArcProto.
 	 * This is the full width, including nonselectable layers such as implants.
 	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
+	 * This call returns the width of all of these layers. 
 	 * @param defaultWidth the full default width of this ArcProto.
+	 */
+	public void setDefaultWidth(double defaultWidth) { getArcProtoWidthPref(this.defaultWidth).setDouble(defaultWidth); }
+
+	/**
+	 * Method to return the full default width of this ArcProto.
+	 * This is the full width, including nonselectable layers such as implants.
+	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
+	 * @return the full default width of this ArcProto.
 	 */
 	public double getDefaultWidth() { return getArcProtoWidthPref(defaultWidth).getDouble(); }
 
@@ -307,7 +307,7 @@ public abstract class ArcProto extends ElectricObject
 	 * Arcs that slide will not move their connected NodeInsts if the arc's end is still within the port area.
 	 * Arcs that cannot slide will force their NodeInsts to move by the same amount as the arc.
 	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
-	 * @param fixed true if this ArcProto should be slidability by factory-default.
+	 * @param slidable true if this ArcProto should be slidability by factory-default.
 	 */
 	public void setFactorySlidable(boolean slidable) { getArcProtoBitPref("Slidable", defaultSlidablePrefs, slidable); }
 
@@ -333,7 +333,7 @@ public abstract class ArcProto extends ElectricObject
 	 * Method to set the "factory default" end-extension state of this ArcProto.
 	 * End-extension causes an arc to extend past its endpoint by half of its width.
 	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
-	 * @param fixed true if this ArcProto should be end-extended by factory-default.
+	 * @param extended true if this ArcProto should be end-extended by factory-default.
 	 */
 	public void setFactoryExtended(boolean extended) { getArcProtoBitPref("Extended", defaultExtendedPrefs, extended); }
 
@@ -398,8 +398,6 @@ public abstract class ArcProto extends ElectricObject
 	 * and when instances of these arcs connect to the pins, those pins stop being drawn.
 	 * It is necessary for the pin node prototype to enable wiping (with setArcsWipe).
 	 * A NodeInst that becomes wiped out has "setWiped" called.
-	 * @see NodeProto#setArcsWipe
-	 * @see NodeInst#setWiped
 	 */
 	public void setWipable() { userBits |= CANWIPE; }
 
@@ -410,8 +408,6 @@ public abstract class ArcProto extends ElectricObject
 	 * and when instances of these arcs connect to the pins, those pins stop being drawn.
 	 * It is necessary for the pin node prototype to enable wiping (with setArcsWipe).
 	 * A NodeInst that becomes wiped out has "setWiped" called.
-	 * @see NodeProto#setArcsWipe
-	 * @see NodeInst#setWiped
 	 */
 	public void clearWipable() { userBits &= ~CANWIPE; }
 
@@ -492,7 +488,7 @@ public abstract class ArcProto extends ElectricObject
 	/**
 	 * Method to set the factory-default angle of this ArcProto.
 	 * This is only called from PrimitiveArc during construction.
-	 * @param cifLayer the factory-default angle of this ArcProto.
+	 * @param angle the factory-default angle of this ArcProto.
 	 */
 	public void setFactoryAngleIncrement(int angle)
 	{
@@ -506,7 +502,7 @@ public abstract class ArcProto extends ElectricObject
 	 * of this ArcProto.  It is in degrees.
 	 * For example, a value of 90 requests that instances run at 0, 90, 180, or 270 degrees.
 	 * A value of 0 allows arcs to be created at any angle.
-	 * @param value the angle increment on this ArcProto.
+	 * @param angle the angle increment on this ArcProto.
 	 */
 	public void setAngleIncrement(int angle)
 	{

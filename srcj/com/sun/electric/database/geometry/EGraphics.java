@@ -25,6 +25,9 @@ package com.sun.electric.database.geometry;
 
 import java.awt.Color;
 
+/**
+ * Class to define the appearance of a piece of geometry.
+ */
 public class EGraphics
 {
 	/** appearance on a display */							private int displayMethod;
@@ -269,6 +272,11 @@ public class EGraphics
 		if ((color&LAYERT12) != 0) transparentLayer = 12;
 	}
 
+	/**
+	 * Method to find the index of a color, given its name.
+	 * @param name the name of the color.
+	 * @return the index of the color.
+	 */
 	public static int findColorIndex(String name)
 	{
 		if (name.equals("white"))          return WHITE;

@@ -78,6 +78,7 @@ public class TextDescriptor
 	private static final int VTOFFSCALE =       03700000000;		/* 1: scale of text offset */
 	private static final int VTOFFSCALESH =              24;		/* 1: right shift of VTOFFSCALE */
 	private static final int VTUNITS =         034000000000;		/* 1: units of text */
+	private static final int VTUNITSHMASK =              07;		/* 1: mask of this value after being shifted down */
 	private static final int VTUNITSSH =                 29;		/* 1: right shift of VTUNITS */
 	private static final int VTUNITSNONE =                0;		/* 1:   units: none */
 	private static final int VTUNITSRES =                 1;		/* 1:   units: resistance */
@@ -1154,7 +1155,7 @@ public class TextDescriptor
 	 * is volts, millivolts, microvolts, etc.
 	 * @return the Unit of the TextDescriptor.
 	 */
-	public Unit getUnit() { return Unit.getUnitAt((descriptor1 & VTUNITS) >> VTUNITSSH); }
+	public Unit getUnit() { return Unit.getUnitAt(((descriptor1 & VTUNITS) >> VTUNITSSH) & VTUNITSHMASK); }
 
 	/**
 	 * Method to set the Unit of the TextDescriptor.

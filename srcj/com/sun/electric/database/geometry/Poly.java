@@ -71,6 +71,10 @@ public class Poly implements Shape
 		 */
 		public boolean isText() { return isText; }
 
+		/**
+		 * Returns a printable version of this Type.
+		 * @return a printable version of this Type.
+		 */
 		public String toString() { return "Poly.Type "+name; }
 
 		// ************************ polygons ************************
@@ -1119,7 +1123,7 @@ public class Poly implements Shape
 		return otherPt.distance(polyCenter);
 	}
 
-	/*
+	/**
 	 * Method to return the distance between this Poly and another.
 	 * @param polyOther the other Poly to consider.
 	 * @return the distance between them (returns 0 if they touch or overlap).
@@ -1359,8 +1363,8 @@ public class Poly implements Shape
 		return false;
 	}
 
-	/*
-	 * routine to return true if the line segment from (px1,py1) to (tx1,ty1)
+	/**
+	 * Method to return true if the line segment from (px1,py1) to (tx1,ty1)
 	 * intersects any line in polygon "poly"
 	 */
 	private boolean lineIntersect(Point2D p1, Point2D t1)
@@ -1455,7 +1459,7 @@ public class Poly implements Shape
 		return false;
 	}
 
-	/*
+	/**
 	 * Method to compute the area of this Poly.
 	 * @return the area of this Poly.
 	 * The calculation may return a negative value if the polygon points are counter-clockwise.

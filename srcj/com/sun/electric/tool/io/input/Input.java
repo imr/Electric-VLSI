@@ -217,9 +217,10 @@ public class Input extends IOTool
 	 * Method to handle conversion of nodes read from disk that have outline information.
 	 * @param ni the NodeInst being converted.
 	 * @param np the prototype of the NodeInst being converted.
-	 * @param lambda the conversion factor.
+	 * @param lambdaX the X conversion factor.
+	 * @param lambdaY the Y conversion factor.
 	 */
-	protected void scaleOutlineInformation(NodeInst ni, NodeProto np, double lambda)
+	protected void scaleOutlineInformation(NodeInst ni, NodeProto np, double lambdaX, double lambdaY)
 	{
 		// ignore if not a primitive
 		if (!(np instanceof PrimitiveNode)) return;
@@ -239,7 +240,7 @@ public class Input extends IOTool
 			{
 				double oldX = outline[j*2].intValue();
 				double oldY = outline[j*2+1].intValue();
-				newOutline[j] = new Point2D.Double(oldX / lambda, oldY / lambda);
+				newOutline[j] = new Point2D.Double(oldX / lambdaX, oldY / lambdaY);
 			}
 			//ni.delVar(NodeInst.TRACE);
 			Variable newVar = ni.newVar(NodeInst.TRACE, newOutline);

@@ -22,20 +22,33 @@
  * Boston, Mass 02111-1307, USA.
  */
 
- package com.sun.electric.tool.user.dialogs.ToolTips;
+package com.sun.electric.tool.user.dialogs.ToolTips;
 
-import javax.swing.*;
-import javax.swing.text.EditorKit;
-import java.util.prefs.Preferences;
-import java.util.*;
-import java.util.List;
-import java.net.URL;
-import java.io.IOException;
-import java.io.InputStream;
-import java.awt.*;
-import java.awt.event.ItemListener;
-import java.awt.event.ActionListener;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemListener;
+import java.io.IOException;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
+import java.util.prefs.Preferences;
+
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JEditorPane;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+import javax.swing.text.html.HTMLDocument;
+import javax.swing.text.html.HTMLFrameHyperlinkEvent;
 
 /**
  * User: gainsley
@@ -140,6 +153,32 @@ public class ToolTip extends javax.swing.JDialog {
         }
     }
 
+	class Hyperactive implements HyperlinkListener
+	{
+ 		public void hyperlinkUpdate(HyperlinkEvent e)
+		{
+			 if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED)
+			 {
+				JEditorPane pane = (JEditorPane)e.getSource();
+			 	if (e instanceof HTMLFrameHyperlinkEvent)
+				{
+					HTMLFrameHyperlinkEvent evt = (HTMLFrameHyperlinkEvent)e;
+					HTMLDocument doc = (HTMLDocument)pane.getDocument();
+					doc.processHTMLFrameHyperlinkEvent(evt);
+			 	} else
+			 	{
+					try
+					{
+						pane.setPage(e.getURL());
+					} catch (Throwable t)
+					{
+						System.out.println("Cannot find URL "+e.getURL());
+					}
+			 	}
+			}
+		}
+	}
+
     /**
      * Initialize list of all ToolTips and initilize components
      */
@@ -177,6 +216,7 @@ public class ToolTip extends javax.swing.JDialog {
         // set up editor pane
         editorPane = new JEditorPane();
         editorPane.setEditable(false);
+        editorPane.addHyperlinkListener(new Hyperactive());
 
         // set up scroll pane
         scrollPane = new JScrollPane(editorPane);

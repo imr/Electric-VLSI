@@ -345,7 +345,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * Method to recursively create the contents of each cell in the library.
 	 */
-	protected void realizeCellsRecursively(Cell cell, FlagSet markCellForNodes, String scaledCellName, double scale)
+	protected void realizeCellsRecursively(Cell cell, FlagSet markCellForNodes, String scaledCellName, double scaleX, double scaleY)
 	{
 		// cannot do scaling yet
 		if (scaledCellName != null) return;
@@ -370,7 +370,7 @@ public class ReadableDump extends LibraryFiles
 
 		// now fill in the nodes
 		double lambda = cellLambda[cellIndex];
-		Point2D offset = realizeNode(cell, nil, lambda);
+		Point2D offset = realizeNode(cell, nil, lambda, lambda);
 		nodeProtoOffX[cellIndex] = offset.getX();
 		nodeProtoOffY[cellIndex] = offset.getY();
 
@@ -445,7 +445,7 @@ public class ReadableDump extends LibraryFiles
 		return lambda;
 	}
 
-	private Point2D realizeNode(Cell cell, LibraryFiles.NodeInstList nil, double lambda)
+	private Point2D realizeNode(Cell cell, LibraryFiles.NodeInstList nil, double lambdaX, double lambdaY)
 	{
 		// find the "cell center" node and place it first
 		double xoff = 0, yoff = 0;
@@ -465,9 +465,9 @@ public class ReadableDump extends LibraryFiles
 				int highY = nil.highY[j];
 				xoff = (lowX + highX) / 2;
 				yoff = (lowY + highY) / 2;
-				Point2D center = new Point2D.Double(xoff / lambda, yoff / lambda);
-				double width = (highX - lowX) / lambda;
-				double height = (highY - lowY) / lambda;
+				Point2D center = new Point2D.Double(xoff / lambdaX, yoff / lambdaY);
+				double width = (highX - lowX) / lambdaX;
+				double height = (highY - lowY) / lambdaY;
 				ni.lowLevelPopulate(np, center, width, height, nil.rotation[j], cell);
 				if (name != null) ni.setNameKey(name);
 				ni.lowLevelLink();
@@ -489,9 +489,9 @@ public class ReadableDump extends LibraryFiles
 			int highY = nil.highY[j];
 			int cX = (lowX + highX) / 2;
 			int cY = (lowY + highY) / 2;
-			Point2D center = new Point2D.Double((double)(cX-xoff) / lambda, (double)(cY-yoff) / lambda);
-			double width = (highX - lowX) / lambda;
-			double height = (highY - lowY) / lambda;
+			Point2D center = new Point2D.Double((double)(cX-xoff) / lambdaX, (double)(cY-yoff) / lambdaY);
+			double width = (highX - lowX) / lambdaX;
+			double height = (highY - lowY) / lambdaY;
 			int rotation = nil.rotation[j];
 
 			if (emajor > 7 || (emajor == 7 && eminor >= 1))
@@ -535,7 +535,7 @@ public class ReadableDump extends LibraryFiles
 			ni.lowLevelLink();
 
 			// convert outline information, if present
-			scaleOutlineInformation(ni, np, lambda);
+			scaleOutlineInformation(ni, np, lambdaX, lambdaY);
 		}
 		return offset;
 	}

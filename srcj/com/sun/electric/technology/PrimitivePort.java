@@ -185,7 +185,7 @@ public class PrimitivePort extends PortProto
 
 	/**
 	 * Method to tell set this type of port can be negated.
-	 * @param canNegate true if this type of port can be negated.
+	 * @param negatable true if this type of port can be negated.
 	 */
 	public void setNegatable(boolean negatable) { this.negatable = negatable; }
 	

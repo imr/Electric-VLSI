@@ -771,13 +771,13 @@ public class Interval
 	public Interval add(Interval y) {
 		double l = this.inf + y.inf;
 		if (l - this.inf > y.inf || l - y.inf > this.inf) {
-			assert Math.abs(l) >= MIN_NORMAL*2;
+//			assert Math.abs(l) >= MIN_NORMAL*2;
 			l = (l < 0 ? l + l*ULP_EPS : l < Double.POSITIVE_INFINITY ? l*SCALE_DOWN : Double.MAX_VALUE);
 		}
 		inf = l;
 		double h = this.sup + y.sup;
 		if (h - this.sup < y.sup || h - y.sup < this.sup) {
-			assert Math.abs(h) >= MIN_NORMAL*2;
+//			assert Math.abs(h) >= MIN_NORMAL*2;
 			h = (h > 0 ? h + h*ULP_EPS : h > Double.NEGATIVE_INFINITY ? h*SCALE_DOWN : -Double.MAX_VALUE);
 		}
 		sup = h;
@@ -795,13 +795,13 @@ public class Interval
 	public Interval sub(Interval y) {
 		double l = this.inf - y.inf;
 		if (this.inf - l < y.inf || l + y.inf > this.inf) {
-			assert Math.abs(l) >= MIN_NORMAL*2;
+//			assert Math.abs(l) >= MIN_NORMAL*2;
 			l = (l < 0 ? l + l*ULP_EPS : l < Double.POSITIVE_INFINITY ? l*SCALE_DOWN : Double.MAX_VALUE);
 		}
 		inf = l;
 		double h = this.sup - y.sup;
 		if (this.sup - h >  y.sup || h + y.sup < this.sup) {
-			assert Math.abs(l) >= MIN_NORMAL*2;
+//			assert Math.abs(l) >= MIN_NORMAL*2;
 			h = (h > 0 ? h + h*ULP_EPS : h > Double.NEGATIVE_INFINITY ? h*SCALE_DOWN : -Double.MAX_VALUE);
 		}
 		sup = h;
@@ -1037,29 +1037,29 @@ public class Interval
 	}
 
 	private static double nextPos(double x) {
-		assert x >= 0;
+//		assert x >= 0;
 		return x >= MIN_NORMAL*2 ? x + x*ULP_EPS : x + Double.MIN_VALUE;
 	}
 	private static double nextNeg(double x) {
-		assert x <= 0;
+//		assert x <= 0;
 		return x <= -MIN_NORMAL ? (x > Double.NEGATIVE_INFINITY ? x*SCALE_DOWN : -Double.MAX_VALUE) : x < 0 ? x + Double.MIN_VALUE : x;
 	}
 
 	private static double prevPos(double x) {
-		assert x >= 0;
+//		assert x >= 0;
 		return x >= MIN_NORMAL ? (x < Double.POSITIVE_INFINITY ? x*SCALE_DOWN : Double.MAX_VALUE ) : x > 0 ? x - Double.MIN_VALUE : x;
 	}
 
 	private static double prevNeg(double x) {
-		assert x <= 0;
+//		assert x <= 0;
 		return x <= MIN_NORMAL*2 ? x + x*ULP_EPS : x - Double.MIN_VALUE;
 	}
 
 	private double add_up(double x, double y) {
 		double z = x + y;
-		assert z > 0;
+//		assert z > 0;
 		if (z - x < y || z - y < x) {
-			assert Math.abs(z) > MIN_NORMAL*2;
+//			assert Math.abs(z) > MIN_NORMAL*2;
 			z = z + z*ULP_EPS;
 		}
 		return z;

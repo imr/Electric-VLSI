@@ -32,16 +32,44 @@ import java.awt.geom.AffineTransform;
  */
 public class EMath
 {
+	/**
+	 * Class to define an Integer-like object that can be modified.
+	 */
 	public static class MutableInteger
 	{
-		int value;
+		private int value;
+
+		/**
+		 * Constructor creates a MutableInteger object with an initial value.
+		 * @param value the initial value.
+		 */
 		public MutableInteger(int value) { this.value = value; }
+
+		/**
+		 * Method to change the value of this MutableInteger.
+		 * @param value the new value.
+		 */
 		public void setValue(int value) { this.value = value; }
+
+		/**
+		 * Method to increment this MutableInteger by 1.
+		 */
 		public void increment() { value++; }
+
+		/**
+		 * Method to return the value of this MutableInteger.
+		 * @return the current value of this MutableInteger.
+		 */
 		public int intValue() { return value; }
+
+		/**
+		 * Returns a printable version of this MutableInteger.
+		 * @return a printable version of this MutableInteger.
+		 */
 		public String toString() { return Integer.toString(value); }
 	}
 
+	/** A transformation matrix that does nothing (identity). */
 	public static final AffineTransform MATID = new AffineTransform();
 
 	/**
@@ -307,7 +335,7 @@ public class EMath
 		bounds.setRect(lX, lY, hX-lX, hY-lY);
 	}
 
-	/*
+	/**
 	 * Method to determine the intersection of two lines and return that point.
 	 * @param p1 a point on the first line.
 	 * @param ang1 the angle of the first line (in tenth degrees).
@@ -349,7 +377,7 @@ public class EMath
 		return new Point2D.Double((-fb1 * fy - fc1) / fa1, fy);
 	}
 
-	/*
+	/**
 	 * Method to determine the intersection of two lines and return that point.
 	 * @param p1 a point on the first line.
 	 * @param ang1 the angle of the first line (in radians).
@@ -415,7 +443,7 @@ public class EMath
 	private static final int BOTTOM  = 4;
 	private static final int TOP     = 8;
 
-	/*
+	/**
 	 * Method to clip a line against a rectangle.
 	 * @param from one end of the line.
 	 * @param to the other end of the line.

@@ -750,10 +750,20 @@ public class Undo
 		private String activity;
 		private Cell upCell;
 
-		ChangeBatch() {}
+		private ChangeBatch() {}
 		
 		private void add(Change change) { changes.add(change); }
+
+		/**
+		 * Method to return an iterator over all changes in this ChangeBatch.
+		 * @return an iterator over all changes in this ChangeBatch.
+		 */
 		public Iterator getChanges() { return changes.iterator(); }
+
+		/**
+		 * Method to return the number of changes in this ChangeBatch.
+		 * @return the number of changes in this ChangeBatch.
+		 */
 		public int getNumChanges() { return changes.size(); }
 
 		private void describe()
@@ -834,8 +844,7 @@ public class Undo
 	}
 
 	/**
-	 * ChangeBatch describes a batch of changes.
-	 * There are no public methods or field variables.
+	 * This method describes a Cell that changed as a result of changes to the database.
 	 */
 	public static class ChangeCell
 	{
@@ -849,14 +858,31 @@ public class Undo
 			this.forcedLook = false;
 		}
 
-		public Cell getCell() { return cell;}
-		public boolean getForcedLook() { return forcedLook;}
+		/**
+		 * Method to return the Cell that has changed.
+		 * @return the Cell that has changed.
+		 */
+		public Cell getCell() { return cell; }
 
+		/**
+		 * Method to tell whether changes to a Cell are complex and require extensive recomputation.
+		 * @return true if the hierarchy above the Cell must be examined.
+		 */
+		public boolean getForcedLook() { return forcedLook; }
+
+		/**
+		 * Method to clear the list of changed cells.
+		 */
 		public static void clear()
 		{
 			changeCells.clear();
 		}
 
+		/**
+		 * Method to add a Cell to the list of changed cells.
+		 * @param cell the Cell to add to the list.
+		 * @return the ChangeCell object associated with the Cell.
+		 */
 		public static ChangeCell add(Cell cell)
 		{
 			ChangeCell cc = new ChangeCell(cell);
@@ -864,6 +890,11 @@ public class Undo
 			return cc;
 		}
 
+		/**
+		 * Method to tell whether a Cell is listed in the current change-cells.
+		 * @param cell the Cell in question.
+		 * @return true if that Cell is in the list.
+		 */
 		public static boolean contains(Cell cell)
 		{
 			for(Iterator it = changeCells.iterator(); it.hasNext(); )
@@ -883,9 +914,11 @@ public class Undo
 			return changeCells.iterator();
 		}
 
-		/*
-		 * Method to ensure that cell "np" is given a hierarchical analysis by the
-		 * constraint system.
+		/**
+		 * Method to ensure that a cell is in the list of changed-cells.
+		 * The cell is listed with the "forcelook" state set true so that
+		 * full hierarchical analysis is done.
+		 * @param cell the Cell to add.
 		 */
 		public static void forceHierarchicalAnalysis(Cell cell)
 		{
@@ -1043,6 +1076,15 @@ public class Undo
 		return ch;
 	}
 
+	/**
+	 * Method to store a change to a NodeInst in the change-control system.
+	 * @param ni the NodeInst that changed.
+	 * @param oCX the former X center position.
+	 * @param oCY the former Y center position.
+	 * @param oSX the former X size.
+	 * @param oSY the former Y size.
+	 * @param oRot the former rotation of the NodeInst.
+	 */
 	public static void modifyNodeInst(NodeInst ni, double oCX, double oCY, double oSX, double oSY, int oRot)
 	{
 		if (!recordChange()) return;
@@ -1055,6 +1097,15 @@ public class Undo
 		//Constraint.getCurrent().modifyArcInst(ni, oCX, oCY, oSX, oSY, oRot);
 	}
 
+	/**
+	 * Method to store a change to an ArcInst in the change-control system.
+	 * @param ai the ArcInst that changed.
+	 * @param oHX the former X position of the arc's head.
+	 * @param oHY the former Y position of the arc's head.
+	 * @param oTX the former X position of the arc's tail.
+	 * @param oTY the former Y position of the arc's tail.
+	 * @param oWid the former width of the ArcInst.
+	 */
 	public static void modifyArcInst(ArcInst ai, double oHX, double oHY, double oTX, double oTY, double oWid)
 	{
 		if (!recordChange()) return;
@@ -1067,6 +1118,12 @@ public class Undo
 		//Constraint.getCurrent().modifyArcInst(ai, oHX, oHY, oTX, oTY, oWid);
 	}
 
+	/**
+	 * Method to store a change to an Export in the change-control system.
+	 * Export changes involve moving them from one PortInst to another in the Cell.
+	 * @param pp the Export that was moved.
+	 * @param oldPi the former PortInst on which the Export resided.
+	 */
 	public static void modifyExport(Export pp, PortInst oldPi)
 	{
 		if (!recordChange()) return;
@@ -1077,6 +1134,14 @@ public class Undo
 		Constraints.getCurrent().modifyExport(pp, oldPi);
 	}
 
+	/**
+	 * Method to store a change to a Cell in the change-control system.
+	 * @param cell the Cell that changed.
+	 * @param oLX the former low-X coordinate of the Cell.
+	 * @param oHX the former high-X coordinate of the Cell.
+	 * @param oLY the former low-Y coordinate of the Cell.
+	 * @param oHY the former high-Y coordinate of the Cell.
+	 */
 	public static void modifyCell(Cell cell, double oLX, double oHX, double oLY, double oHY)
 	{
 		if (!recordChange()) return;
@@ -1088,7 +1153,14 @@ public class Undo
 		//Constraint.getCurrent().modifyCell(cell, oLX, oHX, oLY, oHY);
 	}
 
-	public static void  modifyTextDescript(ElectricObject obj, TextDescriptor descript, int oldDescript0, int oldDescript1)
+	/**
+	 * Method to store a change to a TextDescriptor in the change-control system.
+	 * @param obj the ElectricObject on which the TextDescriptor resides.
+	 * @param descript the TextDescriptor that changed.
+	 * @param oldDescript0 the former word-0 value of the TextDescriptor.
+	 * @param oldDescript1 the former word-1 value of the TextDescriptor.
+	 */
+	public static void modifyTextDescript(ElectricObject obj, TextDescriptor descript, int oldDescript0, int oldDescript1)
 	{
 		if (!recordChange()) return;
 		Change ch = newChange(obj, Type.DESCRIPTORMOD, descript);
@@ -1100,6 +1172,10 @@ public class Undo
 		Constraints.getCurrent().modifyTextDescript(obj, descript, oldDescript0, oldDescript1);
 	}
 
+	/**
+	 * Method to store the creation of a new ElectricObject in the change-control system.
+	 * @param obj the ElectricObject that was created.
+	 */
 	public static void newObject(ElectricObject obj)
 	{
 		if (!recordChange()) return;
@@ -1114,6 +1190,13 @@ public class Undo
 		Constraints.getCurrent().newObject(obj);
 	}
 
+	/**
+	 * Method to store the deletion of an ElectricObject in the change-control system.
+	 * @param obj the ElectricObject that was deleted.
+	 * Note: because a reference to the object is kept in the change-control system,
+	 * the object is not really deallocated until the change-control system no longer
+	 * remembers the change, and it can no longer be undone.
+	 */
 	public static void killObject(ElectricObject obj)
 	{
 		if (!recordChange()) return;
@@ -1127,6 +1210,11 @@ public class Undo
 		Constraints.getCurrent().killObject(obj);
 	}
 
+	/**
+	 * Method to store the deletion of an Export in the change-control system.
+	 * @param pp the Export that was deleted.
+	 * @param oldPortInsts a collection of deleted PortInsts of the Export.
+	 */
 	public static void killExport(Export pp, Collection oldPortInsts)
 	{
 		if (!recordChange()) return;
@@ -1137,6 +1225,11 @@ public class Undo
 		Constraints.getCurrent().killExport(pp, oldPortInsts);
 	}
 
+	/**
+	 * Method to store the renaming of an ElectricObject in the change-control system.
+	 * @param obj the ElectricObject that was renamed.
+	 * @param oldName the former name of the ElectricObject.
+	 */
 	public static void renameObject(ElectricObject obj, Name oldName)
 	{
 		if (!recordChange()) return;
@@ -1147,6 +1240,12 @@ public class Undo
 		Constraints.getCurrent().renameObject(obj, oldName);
 	}
 
+	/**
+	 * Method to store the redrawing of an ElectricObject in the change-control system.
+	 * This does not relate to database changes, but may be necessary if
+	 * another change requires redisplay of the object.
+	 * @param obj the ElectricObject to redisplay.
+	 */
 	public static void redrawObject(ElectricObject obj)
 	{
 		if (!recordChange()) return;
@@ -1156,6 +1255,11 @@ public class Undo
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
 	}
 
+	/**
+	 * Method to store the creation of a new Variable in the change-control system.
+	 * @param obj the ElectricObject that has the Variable.
+	 * @param var the Variable that was created.
+	 */
 	public static void newVariable(ElectricObject obj, Variable var)
 	{
 		if (!recordChange()) return;
@@ -1166,6 +1270,11 @@ public class Undo
 		Constraints.getCurrent().newVariable(obj, var);
 	}
 
+	/**
+	 * Method to store the deletion of a Variable in the change-control system.
+	 * @param obj the ElectricObject on which the Variable resided.
+	 * @param var the Variable that was deleted.
+	 */
 	public static void killVariable(ElectricObject obj, Variable var)
 	{
 		if (!recordChange()) return;
@@ -1176,6 +1285,13 @@ public class Undo
 		Constraints.getCurrent().killVariable(obj, var);
 	}
 
+	/**
+	 * Method to store the modification of a Variable's flags in the change-control system.
+	 * The flag bits of a Variable control whether it is displayed, treated as code, etc.
+	 * @param obj the ElectricObject on which the Variable resides.
+	 * @param var the Variable that was modified.
+	 * @param oldFlags the former flag bits on the Variable.
+	 */
 	public static void modifyVariableFlags(ElectricObject obj, Variable var, int oldFlags)
 	{
 		if (!recordChange()) return;
@@ -1186,6 +1302,13 @@ public class Undo
 		Constraints.getCurrent().modifyVariableFlags(obj, var, oldFlags);
 	}
 
+	/**
+	 * Method to store the modification if an entry in an arrayed Variable, in the change-control system.
+	 * @param obj the ElectricObject on which the Variable resides.
+	 * @param var the Variable.
+	 * @param index the entry in the Variable's array.
+	 * @param oldValue the former value of that entry.
+	 */
 	public static void modifyVariable(ElectricObject obj, Variable var, int index, Object oldValue)
 	{
 		if (!recordChange()) return;
@@ -1197,6 +1320,12 @@ public class Undo
 		Constraints.getCurrent().modifyVariable(obj, var, index, oldValue);
 	}
 
+	/**
+	 * Method to store the insertion of an entry into a Variable, in the change-control system.
+	 * @param obj the ElectricObject on which the Variable resides.
+	 * @param var the Variable that has had a new entry added to it.
+	 * @param index the entry in the Variable's array that was added.
+	 */
 	public static void insertVariable(ElectricObject obj, Variable var, int index)
 	{
 		if (!recordChange()) return;
@@ -1207,6 +1336,13 @@ public class Undo
 		Constraints.getCurrent().insertVariable(obj, var, index);
 	}
 
+	/**
+	 * Method to store the deletion of an entry on a Variable, in the change-control system.
+	 * @param obj the ElectricObject on which the Variable resides.
+	 * @param var the Variable that has had an entry removed.
+	 * @param index the entry in the Variable's array that was deleted.
+	 * @param oldValue the former value at that entry.
+	 */
 	public static void deleteVariable(ElectricObject obj, Variable var, int index, Object oldValue)
 	{
 		if (!recordChange()) return;
@@ -1342,7 +1478,6 @@ public class Undo
 		return true;
 	}
 
-	
 	/**
 	 * Returns root of up-tree of undo or redo batch.
 	 * @param redo true if redo batch, false if undo batch

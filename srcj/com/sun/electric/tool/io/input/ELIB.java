@@ -65,6 +65,7 @@ import java.io.InputStream;
 import java.io.File;
 import java.net.URL;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.HashMap;
 import java.util.Date;
@@ -224,7 +225,6 @@ public class ELIB extends LibraryFiles
 			cellCount = nodeProtoCount;
 		}
 		curCell = readBigInteger();
-		numScaledCells = 0;
 
 		// get the Electric version (version 8 and later)
 		String versionString;
@@ -1004,9 +1004,9 @@ public class ELIB extends LibraryFiles
 	/**
 	 * Method to recursively create the contents of each cell in the library.
 	 */
-	protected void realizeCellsRecursively(Cell cell, FlagSet recursiveSetupFlag, String scaledCellName, double scale)
+	protected void realizeCellsRecursively(Cell cell, FlagSet recursiveSetupFlag, String scaledCellName, double scaleX, double scaleY)
 	{
-		// get informatino about this cell
+		// get information about this cell
 		int cellIndex = cell.getTempInt();
 		if (cellIndex+1 >= firstNodeIndex.length) return;
 		int startNode = firstNodeIndex[cellIndex];
@@ -1031,7 +1031,7 @@ public class ELIB extends LibraryFiles
 				{
 					LibraryFiles reader = getReaderForLib(subCell.getLibrary());
 					if (reader != null)
-						reader.realizeCellsRecursively(subCell, recursiveSetupFlag, null, 0);
+						reader.realizeCellsRecursively(subCell, recursiveSetupFlag, null, 0, 0);
 				}
 
 				int startPort = firstPortIndex[cI];
@@ -1067,13 +1067,14 @@ public class ELIB extends LibraryFiles
 				System.out.println("Binary: Doing contents of cell " + cell.describe() + " in library " + lib.getLibName());
 			} else
 			{
-				System.out.println("Binary: Scaling (by " + scale + ") contents of cell " + cell.describe() + " in library " + lib.getLibName());
+				System.out.println("Binary: Scaling (by " + scaleX + "x" + scaleY + ") contents of cell " + cell.describe() + " in library " + lib.getLibName());
 			}
 		}
 		cellsConstructed++;
 		progress.setProgress(cellsConstructed * 100 / totalCells);
 
-		double lambda = cellLambda[cellIndex];
+		double lambdaX = cellLambda[cellIndex];
+		double lambdaY = lambdaX;
 		NodeInst [] oldNodes = null;
 
 		// if scaling, actually construct the cell
@@ -1086,9 +1087,11 @@ public class ELIB extends LibraryFiles
 			cell.setTempInt(cellIndex);
 			cell.setBit(recursiveSetupFlag);
 			cell.joinGroup(oldCell);
-			numScaledCells++;
+			if (scaleX != scaleY) skewedCells.add(cell); else
+				scaledCells.add(cell);
 
-			lambda /= scale;
+			lambdaX /= scaleX;
+			lambdaY /= scaleY;
 			oldNodes = new NodeInst[endNode - startNode];
 			int j = 0;
 			for(int i=startNode; i<endNode; i++)
@@ -1097,7 +1100,7 @@ public class ELIB extends LibraryFiles
 				nodeInstList.theNode[i] = NodeInst.lowLevelAllocate();
 				j++;
 			}
-		} else scale = 1;
+		} else scaleX = scaleY = 1;
 
 		// finish initializing the NodeInsts in the cell: start with the cell-center
 		int xoff = 0, yoff = 0;
@@ -1105,7 +1108,7 @@ public class ELIB extends LibraryFiles
 		{
 			if (nodeInstList.protoType[i] == Generic.tech.cellCenterNode)
 			{
-				realizeNode(i, xoff, yoff, lambda, cell, recursiveSetupFlag);
+				realizeNode(i, xoff, yoff, lambdaX, lambdaY, cell, recursiveSetupFlag);
 				xoff = (nodeInstList.lowX[i] + nodeInstList.highX[i]) / 2;
 				yoff = (nodeInstList.lowY[i] + nodeInstList.highY[i]) / 2;
 				break;
@@ -1119,15 +1122,15 @@ public class ELIB extends LibraryFiles
 		{
 			if (nodeInstList.protoType[i] != Generic.tech.cellCenterNode)
 			{
-				realizeNode(i, xoff, yoff, lambda, cell, recursiveSetupFlag);
+				realizeNode(i, xoff, yoff, lambdaX, lambdaY, cell, recursiveSetupFlag);
 			}
 		}
 
 		// do the exports now
-		realizeExports(cell, cellIndex, scaledCellName, scale);
+		realizeExports(cell, cellIndex, scaledCellName);
 
 		// do the arcs now
-		realizeArcs(cell, cellIndex, scaledCellName, scale);
+		realizeArcs(cell, cellIndex, scaledCellName, scaleX, scaleY);
 
 		// restore the node pointers if this was a scaled cell construction
 		if (scaledCellName != null)
@@ -1184,7 +1187,7 @@ public class ELIB extends LibraryFiles
 		return lambda;
 	}
 
-	private void realizeExports(Cell cell, int cellIndex, String scaledCellName, double scale)
+	private void realizeExports(Cell cell, int cellIndex, String scaledCellName)
 	{
 		// finish initializing the Exports in the cell
 		int startPort = firstPortIndex[cellIndex];
@@ -1305,9 +1308,10 @@ public class ELIB extends LibraryFiles
 	/**
 	 * Method to create the ArcInsts in a given cell and it's index in the global lists.
 	 */
-	private void realizeArcs(Cell cell, int cellIndex, String scaledCellName, double scale)
+	private void realizeArcs(Cell cell, int cellIndex, String scaledCellName, double scaleX, double scaleY)
 	{
-		double lambda = cellLambda[cellIndex] / scale;
+		double lambdaX = cellLambda[cellIndex] / scaleX;
+		double lambdaY = cellLambda[cellIndex] / scaleY;
 		int xoff = cellXOff[cellIndex];
 		int yoff = cellYOff[cellIndex];
 		boolean arcInfoError = false;
@@ -1321,11 +1325,11 @@ public class ELIB extends LibraryFiles
 
 			ArcProto ap = arcTypeList[i];
 			Name name = arcNameList[i];
-			double width = arcWidthList[i] / lambda;
-			double headX = (arcHeadXPosList[i] - xoff) / lambda;
-			double headY = (arcHeadYPosList[i] - yoff) / lambda;
-			double tailX = (arcTailXPosList[i] - xoff) / lambda;
-			double tailY = (arcTailYPosList[i] - yoff) / lambda;
+			double width = arcWidthList[i] / lambdaX;
+			double headX = (arcHeadXPosList[i] - xoff) / lambdaX;
+			double headY = (arcHeadYPosList[i] - yoff) / lambdaY;
+			double tailX = (arcTailXPosList[i] - xoff) / lambdaX;
+			double tailY = (arcTailYPosList[i] - yoff) / lambdaY;
 			if (arcHeadNodeList[i] < 0)
 			{
 				System.out.println("ERROR: head of arc " + ap.describe() + " not known");
@@ -1399,7 +1403,7 @@ public class ELIB extends LibraryFiles
 	/**
 	 * Method to build a NodeInst.
 	 */
-	private void realizeNode(int i, int xoff, int yoff, double lambda, Cell cell, FlagSet recursiveSetupFlag)
+	private void realizeNode(int i, int xoff, int yoff, double lambdaX, double lambdaY, Cell cell, FlagSet recursiveSetupFlag)
 	{
 		NodeInst ni = nodeInstList.theNode[i];
 		NodeProto np = nodeInstList.protoType[i];
@@ -1408,9 +1412,9 @@ public class ELIB extends LibraryFiles
 		double lowY = nodeInstList.lowY[i]-yoff;
 		double highX = nodeInstList.highX[i]-xoff;
 		double highY = nodeInstList.highY[i]-yoff;
-		Point2D center = new Point2D.Double(((lowX + highX) / 2) / lambda, ((lowY + highY) / 2) / lambda);
-		double width = (highX - lowX) / lambda;
-		double height = (highY - lowY) / lambda;
+		Point2D center = new Point2D.Double(((lowX + highX) / 2) / lambdaX, ((lowY + highY) / 2) / lambdaY);
+		double width = (highX - lowX) / lambdaX;
+		double height = (highY - lowY) / lambdaY;
 		if (np instanceof Cell)
 		{
 			Cell subCell = (Cell)np;
@@ -1423,41 +1427,94 @@ public class ELIB extends LibraryFiles
 					// see if uniform scaling can be done
 					double scaleX = width / bounds.getWidth();
 					double scaleY = height / bounds.getHeight();
-					if (scaleX == scaleY)
+					String scaledCellName = subCell.getProtoName() + "-SCALED-BY-" + scaleX +
+						"{" + subCell.getView().getAbbreviation() + "}";
+					if (scaleX != scaleY)
 					{
-						// uniform scaling: probably due to old lambda inconsistencies
-						String scaledCellName = subCell.getProtoName() + "-SCALED-BY-" + scaleX +
+						// nonuniform scaling: library inconsistency detected
+						scaledCellName = subCell.getProtoName() + "-SCALED-BY-" + scaleX + "-AND-" + scaleY +
 							"{" + subCell.getView().getAbbreviation() + "}";
-						Cell scaledCell = subCell.getLibrary().findNodeProto(scaledCellName);
+					}
+					Cell scaledCell = subCell.getLibrary().findNodeProto(scaledCellName);
+					if (scaledCell == null)
+					{
+						// create a scaled version of the cell
+						LibraryFiles reader = this;
+						if (subCell.getLibrary() != lib)
+						{
+							reader = getReaderForLib(subCell.getLibrary());
+						}
+						if (reader != null)
+							reader.realizeCellsRecursively(subCell, recursiveSetupFlag, scaledCellName, scaleX, scaleY);
+						scaledCell = subCell.getLibrary().findNodeProto(scaledCellName);
 						if (scaledCell == null)
 						{
-							// create a scaled version of the cell
-							LibraryFiles reader = this;
-							if (subCell.getLibrary() != lib)
-							{
-								reader = getReaderForLib(subCell.getLibrary());
-							}
-							if (reader != null)
-								reader.realizeCellsRecursively(subCell, recursiveSetupFlag, scaledCellName, scaleX);
-							scaledCell = subCell.getLibrary().findNodeProto(scaledCellName);
-							if (scaledCell == null)
-							{
-								System.out.println("Error scaling cell " + subCell.describe() + " by " + scaleX);
-							}
+							System.out.println("Error scaling cell " + subCell.describe() + " by " + scaleX);
 						}
-						if (scaledCell != null)
-						{
-							bounds = scaledCell.getBounds();
-							np = scaledCell;
-						}
+					}
+					if (scaledCell != null)
+					{
+						bounds = scaledCell.getBounds();
+						np = scaledCell;
 					}
 
 					if (Math.abs(bounds.getWidth() - width) > 0.5 ||
 						Math.abs(bounds.getHeight() - height) > 0.5)
 					{
-						System.out.println("Cell " + cell.describe() + ": adjusting size of instance of " + subCell.describe() +
-							" (cell is " + bounds.getWidth() + "x" + bounds.getHeight() +
-							" but instance is " + width + "x" + height + ")");
+						// see if there is already a dummy cell that is the right size
+						Cell dummyCell = null;
+//						String theProtoName = np.getProtoName();
+//						String startString = theProtoName + "FROM" + lib.getLibName();
+//						View v = subCell.getView();
+//						for(Iterator it = lib.getCells(); it.hasNext(); )
+//						{
+//							Cell oC = (Cell)it.next();
+//							if (!oC.getProtoName().startsWith(startString)) continue;
+//							if (oC.getView() != v) continue;
+//							Rectangle2D oCBounds = oC.getBounds();
+//							if (Math.abs(oCBounds.getWidth() - width) <= 0.5 ||
+//								Math.abs(oCBounds.getHeight() - height) <= 0.5)
+//							{
+//								dummyCell = oC;
+//								break;
+//							}
+//						}
+//						if (dummyCell == null)
+//						{
+//							String dummyCellName = null;
+//							for(int index=0; ; index++)
+//							{
+//								dummyCellName = new String(startString);
+//								if (index > 0) dummyCellName += "." + index;
+//								dummyCellName += "{" + v.getAbbreviation() + "}";
+//								if (lib.findNodeProto(dummyCellName) == null) break;
+//							}
+//							dummyCell = Cell.newInstance(lib, dummyCellName);
+//							if (dummyCell != null)
+//							{
+//								// create an artwork "Crossed box" to define the cell size
+//								Technology tech = MoCMOS.tech;
+//								if (v == View.ICON) tech = Artwork.tech; else
+//									if (v == View.SCHEMATIC) tech = Schematics.tech;
+//								Point2D ctr = new Point2D.Double(0, 0);
+//								NodeInst.newInstance(Generic.tech.drcNode, ctr, width, height, 0, dummyCell, null);
+//								NodeInst.newInstance(Generic.tech.universalPinNode, ctr, width, height, 0, dummyCell, null);
+//		
+//								System.out.println("...Creating dummy version of cell in library " + lib.getLibName());
+////								oC.newVar(IO_TRUE_LIBRARY, elib.getLibName());
+//							}
+//						}
+
+						if (dummyCell == null)
+						{
+							System.out.println("Cell " + cell.describe() + ": adjusting size of instance of " + subCell.describe() +
+								" (cell is " + bounds.getWidth() + "x" + bounds.getHeight() +
+								" but instance is " + width + "x" + height + ")");
+						} else
+						{
+							np = dummyCell;
+							bounds = dummyCell.getBounds();
+						}
 					}
 				}
 				width = bounds.getWidth();
@@ -1510,7 +1567,7 @@ public class ELIB extends LibraryFiles
 		ni.lowLevelLink();
 
 		// convert outline information, if present
-		scaleOutlineInformation(ni, np, lambda);
+		scaleOutlineInformation(ni, np, lambdaX, lambdaY);
 	}
 
 	protected boolean readerHasExport(Cell c, String portName)
@@ -1926,28 +1983,28 @@ public class ELIB extends LibraryFiles
 			System.out.println("Cannot find cell " + fullCellName + " in library " + elib.getLibName());
 		}
 
-		// if cell found, check that size is unchanged
-		if (c != null)
-		{
-			Rectangle2D bounds = c.getBounds();
-			double lambda = 1;
-			Technology cellTech = Technology.whatTechnology(c);
-			if (cellTech != null) lambda = techScale[cellTech.getIndex()];
-			double cellWidth = (highX - lowX) / lambda;
-			double cellHeight = (highY - lowY) / lambda;
-			if (!EMath.doublesEqual(bounds.getWidth(), cellWidth) || !EMath.doublesEqual(bounds.getHeight(), cellHeight))
-			{
-				// bounds differ, but lambda scaling is inaccurate: see if aspect ratio changed
-				if (!EMath.doublesEqual(bounds.getWidth() * cellHeight, bounds.getHeight() * cellWidth))
-				{
-					System.out.println("Error: cell " + c.noLibDescribe() + " in library " + elib.getLibName() +
-						" has changed size since its use in library " + lib.getLibName());
-					System.out.println("  The cell is " + bounds.getWidth() + "x" +  bounds.getHeight() +
-						" but the instances in library " + lib.getLibName() + " are " + cellWidth + "x" + cellHeight);
-					c = null;
-				}
-			}
-		}
+		// if cell found, check that size is unchanged (size is unknown at this point)
+//		if (c != null)
+//		{
+//			Rectangle2D bounds = c.getBounds();
+//			double lambda = 1;
+//			Technology cellTech = Technology.whatTechnology(c);
+//			if (cellTech != null) lambda = techScale[cellTech.getIndex()];
+//			double cellWidth = (highX - lowX) / lambda;
+//			double cellHeight = (highY - lowY) / lambda;
+//			if (!EMath.doublesEqual(bounds.getWidth(), cellWidth) || !EMath.doublesEqual(bounds.getHeight(), cellHeight))
+//			{
+//				// bounds differ, but lambda scaling is inaccurate: see if aspect ratio changed
+//				if (!EMath.doublesEqual(bounds.getWidth() * cellHeight, bounds.getHeight() * cellWidth))
+//				{
+//					System.out.println("Error: cell " + c.noLibDescribe() + " in library " + elib.getLibName() +
+//						" has changed size since its use in library " + lib.getLibName());
+//					System.out.println("  The cell is " + bounds.getWidth() + "x" +  bounds.getHeight() +
+//						" but the instances in library " + lib.getLibName() + " are " + cellWidth + "x" + cellHeight);
+//					c = null;
+//				}
+//			}
+//		}
 
 		// if cell found, check that ports match
 		if (c != null)

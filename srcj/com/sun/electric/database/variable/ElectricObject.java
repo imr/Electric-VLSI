@@ -174,7 +174,6 @@ public class ElectricObject
 	 * The text can be described by a node or arc name.
 	 * The text can be described by a variable on an ElectricObject.
 	 * @param wnd the EditWindow in which the text will be drawn.
-	 * @param eobj the ElectricObject with the text.
 	 * @param var the Variable on the ElectricObject (may be null).
 	 * @param name the Name of the node or arc in the ElectricObject (may be null).
 	 * @return a Poly that covers the text completely.

@@ -3664,13 +3664,13 @@ public class MoCMOS extends Technology
 	/**
 	 * Method to tell the number of polysilicon layers in this Technology.
 	 * The default is false.
-	 * @return the number of polysilicon layers in this Technology (1 or 2).
+	 * @return true if there are 2 polysilicon layers in this Technology.
+	 * If false, there is only 1 polysilicon layer.
 	 */
 	public static boolean isSecondPolysilicon() { return cacheSecondPolysilicon.getBoolean(); }
 	/**
-	 * Method to set the number of polysilicon layers in this Technology.
-	 * @param count the new number of polysilicon layers in this Technology.
-	 * The number of polysilicon layers must be 1 or 2.
+	 * Method to set a second polysilicon layer in this Technology.
+	 * @param on true if there are 2 polysilicon layers in this Technology.
 	 */
 	public static void setSecondPolysilicon(boolean on) { cacheSecondPolysilicon.setBoolean(on); }
 

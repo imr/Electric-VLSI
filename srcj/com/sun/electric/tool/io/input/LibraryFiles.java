@@ -32,6 +32,8 @@ import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.MoCMOS;
 
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.HashMap;
 
@@ -47,7 +49,8 @@ public class LibraryFiles extends Input
 	/** lambda value for each cell of the library */						protected double [] cellLambda;
 	/** total number of cells in all read libraries */						protected static int totalCells;
 	/** number of cells constructed so far. */								protected static int cellsConstructed;
-	/** the number of scaled Cells that got created */						protected int numScaledCells;
+	/** a List of scaled Cells that got created */							protected List scaledCells;
+	/** a List of wrong-size Cells that got created */						protected List skewedCells;
 
 	protected static class NodeInstList
 	{
@@ -79,6 +82,8 @@ public class LibraryFiles extends Input
 	{
 		// add this reader to the list
 		libsBeingRead.put(lib, this);
+		scaledCells = new ArrayList();
+		skewedCells = new ArrayList();
 
 		return readLib();
 	}
@@ -102,7 +107,7 @@ public class LibraryFiles extends Input
 
 			// subcell: make sure that cell is setup
 			if (reader != null)
-				reader.realizeCellsRecursively(otherCell, markCellForNodes, null, 0);
+				reader.realizeCellsRecursively(otherCell, markCellForNodes, null, 0, 0);
 		}
 		cell.setBit(markCellForNodes);
 	}
@@ -170,7 +175,7 @@ public class LibraryFiles extends Input
 			{
 				Cell cell = reader.nodeProtoList[cellIndex];
 				if (cell.isBit(markCellForNodes)) continue;
-				reader.realizeCellsRecursively(cell, markCellForNodes, null, 0);
+				reader.realizeCellsRecursively(cell, markCellForNodes, null, 0, 0);
 			}
 		}
 		markCellForNodes.freeFlagSet();
@@ -180,14 +185,37 @@ public class LibraryFiles extends Input
 		for(Iterator it = libsBeingRead.values().iterator(); it.hasNext(); )
 		{
 			LibraryFiles reader = (LibraryFiles)it.next();
-			if (reader.numScaledCells != 0)
+			if (reader.scaledCells != null && reader.scaledCells.size() != 0)
 			{
 				if (first)
 				{
-					System.out.println("WARNING: to accomodate scaling inconsistencies, created scaled cells in these libraries");
+					System.out.println("WARNING: to accommodate scaling inconsistencies, these cells were created:");
 					first = false;
 				}
-				System.out.println("   Created " + reader.numScaledCells + " scaled cells in library " + reader.lib.getLibName());
+				StringBuffer sb = new StringBuffer();
+				sb.append("   Library " + reader.lib.getLibName() + ":");
+				for(Iterator sIt = reader.scaledCells.iterator(); sIt.hasNext(); )
+				{
+					Cell cell = (Cell)sIt.next();
+					sb.append(" " + cell.noLibDescribe());
+				}
+				System.out.println(sb.toString());
+			}
+			if (reader.skewedCells != null && reader.skewedCells.size() != 0)
+			{
+				if (first)
+				{
+					System.out.println("ERROR: because of library inconsistencies, these stretched cells were created:");
+					first = false;
+				}
+				StringBuffer sb = new StringBuffer();
+				sb.append("   Library " + reader.lib.getLibName() + ":");
+				for(Iterator sIt = reader.skewedCells.iterator(); sIt.hasNext(); )
+				{
+					Cell cell = (Cell)sIt.next();
+					sb.append(" " + cell.noLibDescribe());
+				}
+				System.out.println(sb.toString());
 			}
 		}
 
@@ -212,7 +240,7 @@ public class LibraryFiles extends Input
 	/**
 	 * Method to recursively create the contents of each cell in the library.
 	 */
-	protected void realizeCellsRecursively(Cell cell, FlagSet recursiveSetupFlag, String scaledCellName, double scale)
+	protected void realizeCellsRecursively(Cell cell, FlagSet recursiveSetupFlag, String scaledCellName, double scaleX, double scaleY)
 	{
 	}
 

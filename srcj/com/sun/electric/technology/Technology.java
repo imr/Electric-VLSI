@@ -820,8 +820,6 @@ public class Technology extends ElectricObject
 	 * It is set once by the technology during initialization.
 	 * Negated arcs have bubbles on them to graphically indicated negation.
 	 * Only Schematics and related technologies allow negated arcs.
-	 * @see ArcInst#setNegated
-	 * @see ArcProto#setNegated
 	 */
 	protected void setNoNegatedArcs() { userBits |= NONEGATEDARCS; }
 
@@ -830,8 +828,6 @@ public class Technology extends ElectricObject
 	 * @return true if this technology does not have negated arcs.
 	 * Negated arcs have bubbles on them to graphically indicated negation.
 	 * Only Schematics and related technologies allow negated arcs.
-	 * @see ArcInst#setNegated
-	 * @see ArcProto#setNegated
 	 */
 	public boolean isNoNegatedArcs() { return (userBits & NONEGATEDARCS) != 0; }
 

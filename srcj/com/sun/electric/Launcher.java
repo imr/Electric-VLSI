@@ -26,11 +26,13 @@ package com.sun.electric;
 import com.sun.electric.tool.user.User;
 
 /**
- * This class initializes the User Interface.
- * It is the main class of Electric.
+ * This class initializes the Electric by re-launching a JVM with sufficient memory.
+ * It is the main entrypoint of the system.
  */
 public final class Launcher
 {
+	private Launcher() {}
+
 	/**
 	 * The main entry point of Electric.
 	 * The "main" method in this class checks to make sure that

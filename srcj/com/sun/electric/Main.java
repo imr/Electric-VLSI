@@ -63,11 +63,12 @@ import com.apple.eawt.ApplicationAdapter;
 import com.apple.eawt.ApplicationEvent;
 
 /**
- * This class initializes the User Interface.
- * It is the main class of Electric.
+ * This class initializes Electric and starts the system.
  */
 public final class Main
 {
+	private Main() {}
+
 	/**
 	 * The main entry point of Electric.
 	 * @param args the arguments to the program.

@@ -54,6 +54,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
+/**
+ * Class to implement the layout-constraint system.
+ * Handles the fixed-angle and rigid constraints.
+ * Also propagates these constraints up the hierarchy.
+ */
 public class Layout extends Constraints
 {
 	private static final Layout layoutConstraint = new Layout();
@@ -75,11 +80,17 @@ public class Layout extends Constraints
 	private static int changeClock = 10;
 
 	private Layout() {}
-	
+
+	/**
+	 * Method to return the current constraint solver.
+	 * @return the current constraint solver.
+	 */
 	public static Layout getConstraint() { return layoutConstraint; }
 
 	/**
 	 * Method to start a batch of changes.
+	 * @param tool the tool that generated the changes.
+	 * @param undoRedo true if these changes are from an undo or redo command.
 	 */
 	public void startBatch(Tool tool, boolean undoRedo)
 	{
@@ -142,8 +153,9 @@ public class Layout extends Constraints
 		}
 	}
 
-	/*
-	 * If an export is created, touch all instances of the cell
+	/**
+	 * Method to handle the creation of a new ElectricObject.
+	 * @param obj the ElectricObject that was just created.
 	 */
 	public void newObject(ElectricObject obj)
 	{
@@ -160,8 +172,10 @@ public class Layout extends Constraints
 //		}
 	}
 
-	/*
-	 * If an export is deleted, touch all instances of the cell
+	/**
+	 * Method to handle the deletion of an Export.
+	 * @param pp the Export that was just deleted.
+	 * @param oldPortInsts the PortInsts that were on that Export (?).
 	 */
 	public void killExport(Export pp, Collection oldPortInsts)
 	{
@@ -174,8 +188,10 @@ public class Layout extends Constraints
 // 		}
 	}
 
-	/*
-	 * If an export is renamed, touch all instances of the cell
+	/**
+	 * Method to handle a new Variable.
+	 * @param obj the ElectricObject on which the Variable resides.
+	 * @param var the newly created Variable.
 	 */
 	public void newVariable(ElectricObject obj, Variable var)
 	{
@@ -217,6 +233,15 @@ public class Layout extends Constraints
 		}
 	}
 
+	/**
+	 * Method to handle a change to a NodeInst.
+	 * @param ni the NodeInst that was changed.
+	 * @param oCX the old X center of the NodeInst.
+	 * @param oCY the old Y center of the NodeInst.
+	 * @param oSX the old X size of the NodeInst.
+	 * @param oSY the old Y size of the NodeInst.
+	 * @param oRot the old rotation of the NodeInst.
+	 */
 	public void modifyNodeInst(NodeInst ni, double dCX, double dCY, double dSX, double dSY, int dRot)
 	{
 		// advance the change clock
@@ -235,6 +260,15 @@ public class Layout extends Constraints
 			Undo.ChangeCell.forceHierarchicalAnalysis(ni.getParent());
 	}
 
+	/**
+	 * Method to handle a change to many NodeInsts at once.
+	 * @param nis the NodeInsts that were changed.
+	 * @param oCX the old X centers of the NodeInsts.
+	 * @param oCY the old Y centers of the NodeInsts.
+	 * @param oSX the old X sizes of the NodeInsts.
+	 * @param oSY the old Y sizes of the NodeInsts.
+	 * @param oRot the old rotations of the NodeInsts.
+	 */
 	public void modifyNodeInsts(NodeInst [] nis, double [] dCX, double [] dCY, double [] dSX, double [] dSY, int [] dRot)
 	{
 		// advance the change clock
@@ -1323,7 +1357,7 @@ public class Layout extends Constraints
 		cellModFlag.freeFlagSet();
 	}
 
-	boolean lookDown(Cell start)
+	private boolean lookDown(Cell start)
 	{
 		// first look recursively to the bottom to see if this cell changed
 		for(Iterator it = start.getNodes(); it.hasNext(); )

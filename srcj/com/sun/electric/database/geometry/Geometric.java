@@ -37,7 +37,7 @@ import java.awt.geom.Rectangle2D;
 /**
  * This class is the superclass for the Electric classes that have visual
  * bounds on the screen, specifically NodeInst and ArcInst.
- *
+ * <P>
  * Besides representing the geometry of these objects, it organizes them
  * into an R-tree, which is a spatial structure that enables fast searching.
  */
@@ -82,7 +82,7 @@ public abstract class Geometric extends ElectricObject
 			this.searchBounds.setRect(bounds);
 		}
 
-		/*
+		/**
 		 * Method to return the next object in the bounds of the search.
 		 * @return the next object found.  Returns null when all objects have been reported.
 		 */
@@ -191,6 +191,10 @@ public abstract class Geometric extends ElectricObject
 
 		private static int branchCount;
 
+		/**
+		 * Debugging method to print this R-Tree.
+		 * @param indent the level of the tree, for proper indentation.
+		 */
 		public void printRTree(int indent)
 		{
 			if (indent == 0) branchCount = 0;
@@ -226,6 +230,11 @@ public abstract class Geometric extends ElectricObject
 			}
 		}
 
+		/**
+		 * Method to check the validity of an RTree node.
+		 * @param level the level of the node in the tree (for error reporting purposes).
+		 * @param cell the Cell on which this node resides.
+		 */
 		public void checkRTree(int level, Cell cell)
 		{
 			Rectangle2D localBounds = new Rectangle2D.Double();
@@ -527,7 +536,7 @@ public abstract class Geometric extends ElectricObject
 		/**
 		 * Method to remove entry "ind" from this R-tree node in cell "cell"
 		 */
-		void removeRTNode(int ind, Cell cell)
+		private void removeRTNode(int ind, Cell cell)
 		{
 			// delete entry from this R-tree node
 			int j = 0;
@@ -593,7 +602,7 @@ public abstract class Geometric extends ElectricObject
 		/**
 		 * Method to reinsert the tree of nodes below this RTNode into cell "cell".
 		 */
-		void reInsert(Cell cell)
+		private void reInsert(Cell cell)
 		{
 			if (getFlag())
 			{
@@ -611,7 +620,7 @@ public abstract class Geometric extends ElectricObject
 		 * and the index in that subnode is placed in "subind".  The method returns
 		 * null if it is unable to find the geometry module.
 		 */
-		Object [] findGeom(Geometric geom)
+		private Object [] findGeom(Geometric geom)
 		{
 			// if R-tree node contains primitives, search for direct hit
 			if (getFlag())
@@ -646,13 +655,13 @@ public abstract class Geometric extends ElectricObject
 			return null;
 		}
 
-		/*
+		/**
 		 * Method to find the location of geometry module "geom" anywhere in the R-tree
 		 * at "rtn".  The subnode that contains this module is placed in "subrtn"
 		 * and the index in that subnode is placed in "subind".  The method returns
 		 * false if it is unable to find the geometry module.
 		 */
-		Object [] findGeomAnywhere(Geometric geom)
+		private Object [] findGeomAnywhere(Geometric geom)
 		{
 			// if R-tree node contains primitives, search for direct hit
 			if (getFlag())
@@ -727,7 +736,8 @@ public abstract class Geometric extends ElectricObject
 	}
 
 	/**
-	 * Method to remove this geometry from the R-tree in cell "parnt"
+	 * Method to remove this geometry from the R-tree its parent cell.
+	 * @param parnt the parent Cell.
 	 */
 	protected void unLinkGeom(Cell parnt)
 	{
@@ -758,12 +768,12 @@ public abstract class Geometric extends ElectricObject
 
 	// ------------------------------- private data ------------------------------
 
-	/** Cell containing this Geometric object */			protected Cell parent;
-	/** name of this Geometric object */					protected Name name;
+	/** Cell containing this Geometric object. */			protected Cell parent;
+	/** name of this Geometric object. */					protected Name name;
 	/** The text descriptor of name of Geometric. */		private TextDescriptor nameDescriptor;
-	/** bounds after transformation */						protected Rectangle2D visBounds;
+	/** bounds after transformation. */						protected Rectangle2D visBounds;
 	/** The temporary Object for the node or arc. */		private Object tempObj;
-	/** temporary integer value for the node or arc */		private int tempInt;
+	/** temporary integer value for the node or arc. */		private int tempInt;
 	/** Flag bits for this Geometric. */					protected int userBits;
 	/** The temporary flag bits. */							private int flagBits;
 	/** The timestamp for changes. */						private int changeClock;
@@ -801,7 +811,7 @@ public abstract class Geometric extends ElectricObject
 	 */
 	public void checkChanging() { if (parent != null) parent.checkChanging(); }
 
-	/*
+	/**
 	 * Method to determine the appropriate Cell associated with this ElectricObject.
 	 * @return the appropriate Cell associated with this ElectricicObject.
 	 */
@@ -814,7 +824,7 @@ public abstract class Geometric extends ElectricObject
 	 */
 	protected boolean inDatabase() { return parent != null; }
 
-	/*
+	/**
 	 * Method to write a description of this Geometric.
 	 * Displays the description in the Messages Window.
 	 */

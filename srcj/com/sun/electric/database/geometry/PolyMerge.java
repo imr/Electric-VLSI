@@ -61,20 +61,18 @@ public class PolyMerge
 {
 	private HashMap allLayers;
 
-	/*
-	 * Method to create a new "merge" object.  After this call, multiple calls to
-	 * "mergeaddpolygon()" may be made, followed by a single call to "mergeextract()"
-	 * to obtain the merged geometry, and a call to "mergedelete()" to free this object.
-	 * Returns zero on error.
+	/**
+	 * Method to create a new "merge" object.
 	 */
 	public PolyMerge()
 	{
 		allLayers = new HashMap();
 	}
 
-	/*
-	 * Method to add polygon "poly" to the merged collection.  The polygon is on layer
-	 * "layer" of technology "tech".
+	/**
+	 * Method to add a Poly to the merged collection.
+	 * @param layer the layer that this Poly sits on.
+	 * @param poly the Poly to merge.
 	 */
 	public void addPolygon(Layer layer, Poly poly)
 	{
@@ -96,17 +94,19 @@ public class PolyMerge
 		}
 	}
 
-	/*
-	 * Method to subtract polygon "poly" from the merged collection.  The polygon is on layer
-	 * "layer" of technology "tech".
+	/**
+	 * Method to subtract a Poly from the merged collection.
+	 * @param layer the layer that this Poly sits on.
+	 * @param poly the Poly to merge.
 	 */
 	public void subPolygon(Layer layer, Poly poly)
 	{
 	}
 
-	/*
-	 * Method to add merge object "addmerge" to the merged collection "merge", transforming
-	 * it by "trans".
+	/**
+	 * Method to add another Merge to this one.
+	 * @param other the other Merge to add in.
+	 * @param trans a transformation on the other Merge.
 	 */
 	public void addMerge(PolyMerge other, AffineTransform trans)
 	{
@@ -126,14 +126,19 @@ public class PolyMerge
 		}
 	}
 
+	/**
+	 * Method to return an Iterator over all of the Layers used in this Merge.
+	 * @return an Iterator over all of the Layers used in this Merge.
+	 */
 	public Iterator getLayersUsed()
 	{
 		return allLayers.keySet().iterator();
 	}
 
-	/*
-	 * Method to return a merged Poly for a given layer.
-	 * THIS CANNOT BE RIGHT, BECAUSE THERE MAY BE MULTIPLE POLYGONS.
+	/**
+	 * Method to return list of Polys on a given Layer in this Merge.
+	 * @param layer the layer in question.
+	 * @return the list of Polys that describes this Merge.
 	 */
 	public List getMergedPoints(Layer layer)
 	{
