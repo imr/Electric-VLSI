@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01at: *********************************
 
+BUG: (12/2/04, SMR) Layer Visibility dialog doesn't work right on Macintosh.
+FIX: Change event handling to work on Mac.
+
+IMP: (12/2/04, SMR) Waveform window "measure" mode now snaps to waveform points.
+
 BUG: (12/2/04, GVG) Multi cuts conditions not proporly checked for TSM90 tech and viaXs
 IMP: isMultiCutCase() depends on technologies. By default, if more than 1 cut then is multiCut node.
 For TSM90, only when 3 neighbors (Bug #21). Bug #49 as well.

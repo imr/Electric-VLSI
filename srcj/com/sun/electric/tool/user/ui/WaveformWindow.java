@@ -1423,8 +1423,62 @@ public class WaveformWindow implements WindowContent
 
 			// drag area
 			draggingArea = true;
-			dragStartX = dragEndX = evt.getX();
-			dragStartY = dragEndY = evt.getY();
+			Point pt = new Point(evt.getX(), evt.getY());
+			if (ToolBar.getCursorMode() == ToolBar.CursorMode.MEASURE)
+				pt = snapPoint(pt);
+			dragEndX = dragStartX = pt.x;
+			dragEndY = dragStartY = pt.y;
+		}
+
+		private Point snapPoint(Point pt)
+		{
+			// snap to any waveform points if measuring
+			for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
+			{
+				Signal ws = (Signal)it.next();
+				if (!(ws.sSig instanceof Simulation.SimAnalogSignal)) continue;
+
+				// draw analog trace
+				Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)ws.sSig;
+				int numEvents = as.getNumEvents();
+				if (as.isBasic())
+				{
+					// basic signal
+					for(int i=0; i<numEvents; i++)
+					{
+						double time = ws.sSig.getTime(i);
+						int x = scaleTimeToX(time);
+						int y = scaleValueToY(as.getValue(i));
+						if (Math.abs(x - pt.x) < 5 && Math.abs(y - pt.y) < 5)
+						{
+							pt.x = x;
+							pt.y = y;
+						}
+					}
+				} else if (as.isSweep())
+				{
+					// swept signal
+					List sweepSignals = waveWindow.sweepSignals;
+					for(int s=0; s<as.getNumSweeps(); s++)
+					{
+						SweepSignal ss = (SweepSignal)sweepSignals.get(s);
+						if (ss != null && !ss.included) continue;
+						numEvents = as.getNumEvents(s);
+						for(int i=0; i<numEvents; i++)
+						{
+							double time = ws.sSig.getTime(i, s);
+							int x = scaleTimeToX(time);
+							int y = scaleValueToY(as.getSweepValue(s, i));
+							if (Math.abs(x - pt.x) < 5 && Math.abs(y - pt.y) < 5)
+							{
+								pt.x = x;
+								pt.y = y;
+							}
+						}
+					}
+				}
+			}
+			return pt;
 		}
 
 		/**
@@ -1494,8 +1548,11 @@ public class WaveformWindow implements WindowContent
 				waveWindow.redrawAllPanels();
 			} else if (draggingArea)
 			{
-				dragEndX = evt.getX();
-				dragEndY = evt.getY();
+				Point pt = new Point(evt.getX(), evt.getY());
+				if (ToolBar.getCursorMode() == ToolBar.CursorMode.MEASURE)
+					pt = snapPoint(pt);
+				dragEndX = pt.x;
+				dragEndY = pt.y;
 				this.repaint();
 			}
 		}

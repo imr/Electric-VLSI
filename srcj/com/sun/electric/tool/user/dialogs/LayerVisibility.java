@@ -36,7 +36,9 @@ import com.sun.electric.tool.user.ui.PixelDrawing;
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import javax.swing.event.ChangeEvent;
 import java.awt.event.MouseAdapter;
+import javax.swing.event.ChangeEvent;
 import java.awt.event.MouseEvent;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -135,7 +137,8 @@ public class LayerVisibility extends EDialog
 				Layer layer = (Layer)lIt.next();
 				Boolean layerVis = (Boolean)visibility.get(layer.getNonPseudoLayer());
                 if (layerVis == null) continue;
-				layer.setVisible(layerVis.booleanValue());
+                if (layer.isVisible() != layerVis.booleanValue())
+                	layer.setVisible(layerVis.booleanValue());
 
 				// 3D appearance if available
 				Object obj3D = layer.getGraphics().get3DAppearance();
@@ -237,7 +240,7 @@ public class LayerVisibility extends EDialog
 			StringBuffer layerName = new StringBuffer(layer.getName());
 			JCheckBox cb = new JCheckBox(layerName.toString());
 			cb.setSelected(layerVisible.booleanValue());
-			cb.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent evt) { changedVisibilityBox(evt); }});
+			cb.addChangeListener(new CheckChangeListener(this));
 //			cb.addMouseListener(new MouseAdapter()
 //			{
 //				public void mouseClicked(MouseEvent evt) { changedVisibilityBox(evt); }
@@ -292,6 +295,14 @@ public class LayerVisibility extends EDialog
 
 			i++;
 		}
+	}
+
+	private static class CheckChangeListener implements javax.swing.event.ChangeListener
+	{
+		private LayerVisibility lv;
+		CheckChangeListener(LayerVisibility lv) { this.lv = lv; }
+
+		public void stateChanged(ChangeEvent evt) { lv.changedVisibilityBox(evt); }
 	}
 
 	/**
@@ -354,7 +365,7 @@ public class LayerVisibility extends EDialog
 		}
 	}
 
-	private void changedVisibilityBox(ActionEvent evt)
+	private void changedVisibilityBox(ChangeEvent evt)
 	{
 		JCheckBox cb = (JCheckBox)evt.getSource();
 		rememberVisibility(cb);
