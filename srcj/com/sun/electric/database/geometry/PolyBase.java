@@ -32,6 +32,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.Main;
 
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -192,6 +193,14 @@ public class PolyBase implements Shape
 	 */
 	public void transform(AffineTransform af)
 	{
+		// Nothing to do
+		if (af.getType() == AffineTransform.TYPE_IDENTITY)
+		{
+//			if (Main.LOCALDEBUGFLAG)
+//				System.out.println("Doing nothing");
+			return;
+		}
+
 		// special case for Poly type CIRCLEARC and THICKCIRCLEARC: if transposing, reverse points
 		if (style == Poly.Type.CIRCLEARC || style == Poly.Type.THICKCIRCLEARC)
 		{

@@ -2,7 +2,15 @@
 
 NOTE: Please place changes under the version that will be released next.
 
-************************* Version 8.02a: *********************************
+************************* Version 8.01aj: *********************************
+
+IMP: (11/4/04, GVG) PolyBase: not applying transformation if matrix is identity
+
+BUG: (11/4/04, GVG) Rouding points before merging in DRC min area calculation otherwise merged area won't be
+a simple polygon. FIX: poly.roundPoints();
+
+BUG: (11/4/04, GVG) DRC and PolySelect rule, ignoring case when remaining area after second substract was empty.
+FIX: call Area.isEmpty()
 
 IMP: (11/4/04, SMR) GDS output produces better cell names.
 

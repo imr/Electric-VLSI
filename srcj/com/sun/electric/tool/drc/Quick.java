@@ -2184,34 +2184,6 @@ public class Quick
 	}
 
 	/**
-	 * Method to tell whether the objects at geometry modules "geom1" and "geom2"
-	 * touch directly (that is, an arcinst connected to a nodeinst).  The method
-	 * returns true if they touch
-	 */
-    /*
-	private boolean objectsTouch(Geometric geom1, Geometric geom2)
-	{
-		if (geom1 instanceof NodeInst)
-		{
-			if (geom2 instanceof NodeInst) return false;
-			Geometric temp = geom1;   geom1 = geom2;   geom2 = temp;
-		}
-		if (!(geom2 instanceof NodeInst))
-			return false;
-
-		// see if the arcinst at "geom1" touches the nodeinst at "geom2"
-		NodeInst ni = (NodeInst)geom2;
-		ArcInst ai = (ArcInst)geom1;
-		for(int i=0; i<2; i++)
-		{
-			Connection con = ai.getConnection(i);
-			if (con.getPortInst().getNodeInst() == ni) return true;
-		}
-		return false;
-	}
-    */
-
-	/**
 	 * Method to find two points between polygons "poly1" and "poly2" that can be used to test
 	 * for notches.  The points are returned in (xf1,yf1) and (xf2,yf2).  Returns zero if no
 	 * points exist in the gap between the polygons (becuase they don't have common facing edges).
@@ -3524,8 +3496,7 @@ public class Quick
 							polyLayer = layer;
 						layer = polyLayer;
 					}
-					if (rTrans.getType() != AffineTransform.TYPE_IDENTITY)
-						poly.transform(rTrans);
+					poly.transform(rTrans);
 					if (layer.getFunction().isMetal() || layer.getFunction().isPoly())
 						metalMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
 					else
@@ -3611,6 +3582,7 @@ public class Quick
 						polyLayer = layer;
 					layer = polyLayer;
 				}
+				poly.roundPoints(); // Trying to avoid mismatches while joining areas.
 				poly.transform(trans);
 				if (layer.getFunction().isMetal() || layer.getFunction().isPoly())
 					metalMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
