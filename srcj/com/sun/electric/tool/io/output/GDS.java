@@ -593,6 +593,12 @@ public class GDS extends Geometry
 		outputDate(cell.getRevisionDate());
 
 		String name = (String)cellNames.get(cell);
+        if (name == null) {
+            System.out.println("Warning, subcell "+cell.describe()+" in hierarchy is not the same view" +
+                    " as top level cell");
+            name = makeUniqueName(cell, cellNames);
+            cellNames.put(cell, name);
+        }
 		outputName(HDR_STRNAME, name, HDR_M_STRNAME);
 	}
 
