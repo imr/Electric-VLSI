@@ -54,6 +54,7 @@ import com.sun.electric.tool.simulation.interval.Diode;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.Clipboard;
 import com.sun.electric.tool.user.dialogs.ExecDialog;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -144,6 +145,8 @@ public class DebugMenus {
             new ActionListener() { public void actionPerformed(ActionEvent e) { startDefunctJob(); }});
         jongMenu.addMenuItem("Add String var", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { addStringVar(); }});
+        jongMenu.addMenuItem("Edit clipboard", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { Clipboard.editClipboard(); }});
 
         /****************************** Gilda's TEST MENU ******************************/
 
