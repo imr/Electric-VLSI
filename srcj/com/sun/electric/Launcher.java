@@ -117,7 +117,7 @@ public final class Launcher
 		try
 		{
 			runtime.exec(command);
-            // Mac process doesn't finish nicely for some reason, try and kill it here
+            // Sometimes Mac process doesn't finish nicely for some reason, try and kill it here
             System.exit(0);
 		} catch (java.io.IOException e)
 		{

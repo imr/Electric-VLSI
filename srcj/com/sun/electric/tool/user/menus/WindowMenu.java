@@ -563,6 +563,9 @@ public class WindowMenu {
 
         // get all screens
         GraphicsDevice[] gs = getAllGraphicsDevices();
+        for (int j=0; j<gs.length; j++) {
+            //System.out.println("Found GraphicsDevice: "+gs[j]+", type: "+gs[j].getType());
+        }
         // find screen after current screen
         int i;
         for (i=0; i<gs.length; i++) {
