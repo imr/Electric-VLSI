@@ -3,7 +3,6 @@ package com.sun.electric.tool.user;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.io.Input;
-import com.sun.electric.tool.user.EditWindow;
 
 import bsh.*;
 
@@ -79,7 +78,7 @@ public class MessagesWindow
 		jf.getContentPane().add(entry, BorderLayout.SOUTH);
 		jf.getContentPane().add(scroll, BorderLayout.CENTER);
 		jf.pack();
-		jf.setLocation(0, 250);
+		jf.setLocation(1000, 250);
 		jf.show();
 
 		System.setOut(new java.io.PrintStream(this));
@@ -233,18 +232,6 @@ public class MessagesWindow
 			Runtime rt = Runtime.getRuntime();
 			System.out.println("Total memory: " + rt.totalMemory());
 			System.out.println("Free memory: " + rt.freeMemory());
-		} else if (cmds[0].equals("read"))
-		{
-			System.out.println("reading test.elib ...");
-			Library lib = Input.ReadLibrary("C:\\DevelE\\Electric\\srcj\\test.elib", null, Input.ImportType.BINARY);
-			if (lib != null)
-			{
-				Cell cell = lib.getCurCell();
-				if (cell != null)
-				{
-					EditWindow window = EditWindow.newInstance(cell);
-				}
-			}
 		} else
 		{
 			// try to execute it
