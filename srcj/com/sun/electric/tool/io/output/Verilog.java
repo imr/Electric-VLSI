@@ -1000,6 +1000,9 @@ public class Verilog extends Topology
 	/** Method to report that aggregate names (busses) ARE used. */
 	protected boolean isAggregateNamesSupported() { return true; }
 
+	/** Method to report whether input and output names are separated. */
+	protected boolean isSeparateInputAndOutput() { return true; }
+
 	/**
 	 * Method to adjust a network name to be safe for Verilog output.
 	 * Verilog does permit a digit in the first location; prepend a "_" if found.
@@ -1014,11 +1017,22 @@ public class Verilog extends Topology
 		boolean allAlnum = true;
 		int len = name.length();
 		if (len == 0) return name;
+		int openSquareCount = 0;
+		int openSquarePos = 0;
 		for(int i=0; i<len; i++)
 		{
-			if (!TextUtils.isLetterOrDigit(name.charAt(i))) { allAlnum = false;   break; }
+			char chr = name.charAt(i);
+			if (chr == '[') { openSquareCount++;   openSquarePos = i; }
+			if (!TextUtils.isLetterOrDigit(chr)) { allAlnum = false;   break; }
 		}
 		if (allAlnum && Character.isLetter(name.charAt(0))) return name;
+
+		// if there are indexed values, make sure they are numeric
+		if (openSquareCount == 1)
+		{
+			if (openSquarePos+1 >= name.length() ||
+				!Character.isDigit(name.charAt(openSquarePos+1))) openSquareCount = 0;
+		}
 
 		StringBuffer sb = new StringBuffer();
 		for(int t=0; t<name.length(); t++)
@@ -1026,8 +1040,11 @@ public class Verilog extends Topology
 			char chr = name.charAt(t);
 			if (chr == '[' || chr == ']')
 			{
-				sb.append('_');
-				if (t+1 < name.length() && chr == ']' && name.charAt(t+1) == '[') t++;
+				if (openSquareCount == 1) sb.append(chr); else
+				{
+					sb.append('_');
+					if (t+1 < name.length() && chr == ']' && name.charAt(t+1) == '[') t++;
+				}
 			} else
 			{
 				if (TextUtils.isLetterOrDigit(chr) || chr == '$')

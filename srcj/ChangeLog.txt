@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02f: *********************************
 
+BUG: (02/02/05, SMR) Verilog output writes indexed signal names wrong (Bug #188).
+FIX: In Verilog.getSafeNetName() allow square brackets if they enclose a singly indexed number.
+
+IMP: (02/02/05, SMR) Spice output now sorts signal names in subcircuit headers (Bug #186).
+
 IMP: (02/02/05, SMR) Waveform window now sorts signal names in the explorer part on the left (Bug #187).
 
 IMP: (02/02/05, SMR) Status bar now shows both local coordinates and "hierarchical" coordinates

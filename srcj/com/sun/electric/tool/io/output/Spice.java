@@ -1242,6 +1242,9 @@ public class Spice extends Topology
 	/** Method to report that aggregate names (busses) are not used. */
 	protected boolean isAggregateNamesSupported() { return false; }
 
+	/** Method to report whether input and output names are separated. */
+	protected boolean isSeparateInputAndOutput() { return false; }
+
     /** If the netlister has requirments not to netlist certain cells and their
      * subcells, override this method.
      * If this cell has a spice template, skip it

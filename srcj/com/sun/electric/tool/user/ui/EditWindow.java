@@ -34,6 +34,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
@@ -389,6 +390,11 @@ public class EditWindow extends JPanel
 							break;
 						}
 						ni = (NodeInst)no;
+						if (((Cell)ni.getProto()).getView() == View.ICON)
+						{
+							validPath = false;
+							break;
+						}
 						if (first) first = false; else
 							path += " / ";
 						path = ni.describe() + path;

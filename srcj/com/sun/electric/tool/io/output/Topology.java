@@ -133,6 +133,9 @@ public abstract class Topology extends Output
 	/** Abstract method to decide whether aggregate names (busses) are used. */
 	protected abstract boolean isAggregateNamesSupported();
 
+	/** Abstract method to decide whether aggregate names (busses) are used. */
+	protected abstract boolean isSeparateInputAndOutput();
+
     /** If the netlister has requirments not to netlist certain cells and their
      * subcells, override this method. */
     protected boolean skipCellAndSubcells(Cell cell) { return false; }
@@ -632,7 +635,7 @@ public abstract class Topology extends Output
 		cni.cellSignalsSorted.add(it.next());
 
 		// sort the networks by characteristic and name
-		Collections.sort(cni.cellSignalsSorted, new SortNetsByName());
+		Collections.sort(cni.cellSignalsSorted, new SortNetsByName(isSeparateInputAndOutput()));
 
 		// create aggregate signals if needed
 		if (isAggregateNamesSupported())
@@ -823,6 +826,9 @@ public abstract class Topology extends Output
 
 	private static class SortNetsByName implements Comparator
 	{
+		private boolean separateInputAndOutput;
+		SortNetsByName(boolean separateInputAndOutput) { this.separateInputAndOutput = separateInputAndOutput; }
+
 		public int compare(Object o1, Object o2)
 		{
 			CellSignal cs1 = (CellSignal)o1;
@@ -834,10 +840,13 @@ public abstract class Topology extends Output
 			}
 			if (cs1.pp != null && cs2.pp != null)
 			{
-				// both are exported: sort by characteristics (if different)
-				PortCharacteristic ch1 = cs1.pp.getCharacteristic();
-				PortCharacteristic ch2 = cs2.pp.getCharacteristic();
-				if (ch1 != ch2) return ch1.getOrder() - ch2.getOrder();
+				if (separateInputAndOutput)
+				{
+					// both are exported: sort by characteristics (if different)
+					PortCharacteristic ch1 = cs1.pp.getCharacteristic();
+					PortCharacteristic ch2 = cs2.pp.getCharacteristic();
+					if (ch1 != ch2) return ch1.getOrder() - ch2.getOrder();
+				}
 			}
 			if (cs1.descending != cs2.descending)
 			{
