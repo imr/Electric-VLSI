@@ -432,10 +432,12 @@ public class TopLevel extends JFrame
         // TODO: figure out why Swing still sends events to finished menuBars
         //menuBar.finished(); menuBar = null;
         // clean up toolbar
-        getContentPane().remove(toolBar);
+        Container container = getContentPane();
+        if (container != null) container.remove(toolBar);
+//        getContentPane().remove(toolBar);
         toolBar.finished(); toolBar = null;
         // clean up scroll bar
-        getContentPane().remove(sb);
+        if (container != null) container.remove(sb);
         sb.finished(); sb = null;
         /* Note that this gets called from WindowFrame, and
             WindowFrame has a reference to EditWindow, so

@@ -60,7 +60,7 @@ public class DXF extends Input
 		private int		 layerColor;
 		private double   layerRed, layerGreen, layerBlue;
 		private DXFLayer next;
-	};
+	}
 
 	private static class ForwardRef
 	{
@@ -72,7 +72,13 @@ public class DXF extends Input
 		private double     xSpa, ySpa;
 		private double     xSca, ySca;
 		private ForwardRef nextForwardRef;
-	};
+	}
+
+	private static class PolyPoint
+	{
+		double x, y, z;
+		double bulge;
+	}
 
 	private int                 lastGroupID;
 	private String              lastText;
@@ -560,7 +566,6 @@ public class DXF extends Input
 				System.out.println("Unknown group code (" + groupID + ") at line " + lineReader.getLineNumber());
 				return true;
 			}
-
 			if (text.equals("ARC"))
 			{
 				if (readArcEntity()) return true;
@@ -876,12 +881,6 @@ public class DXF extends Input
 		ni.newVar(DXF_LAYER_KEY, layer.layerName);
 		readLines++;
 		return false;
-	}
-
-	private static class PolyPoint
-	{
-		double x, y, z;
-		double bulge;
 	}
 
 	private boolean readPolyLineEntity()
@@ -1221,9 +1220,9 @@ public class DXF extends Input
 		{
 			if (msg != null)
 			{
-				double h = 1;
-				EditWindow wnd = EditWindow.getCurrent();
-				if (wnd != null) h = wnd.getTextScreenSize(height);
+				double h = msg.length();
+//				EditWindow wnd = EditWindow.getCurrent();
+//				if (wnd != null) h = wnd.getTextScreenSize(height);
 				lX = x;	hX = x + height * h;
 				lY = y;	hY = y + height;
 			}
@@ -1318,8 +1317,8 @@ public class DXF extends Input
 
 	private boolean isAcceptableLayer(DXFLayer layer)
 	{
-		if (IOTool.isDXFInputReadsAllLayers()) return true;
 		if (layer == null) return false;
+		if (IOTool.isDXFInputReadsAllLayers()) return true;
 		if (validLayerNames.contains(layer.layerName)) return true;
 
 		// add this to the list of layer names that were ignored
@@ -1379,7 +1378,15 @@ public class DXF extends Input
 			{
 				// copy text information
 				Variable var = ni.getVar(Artwork.ART_MESSAGE);
-				if (var != null) nNi.newVar(Artwork.ART_MESSAGE, var.getObject());
+				if (var != null)
+				{
+					Variable newVar = nNi.newVar(Artwork.ART_MESSAGE, var.getObject());
+					if (newVar != null)
+					{
+						newVar.setTextDescriptor(var.getTextDescriptor());
+						newVar.setDisplay(var.isDisplay());
+					}
+				}
 			} else if (ni.getProto() == Artwork.tech.circleNode || ni.getProto() == Artwork.tech.thickCircleNode)
 			{
 				// copy arc information
@@ -1444,7 +1451,15 @@ public class DXF extends Input
 			{
 				// copy text information
 				Variable var = ni.getVar(Artwork.ART_MESSAGE);
-				if (var != null) nNi.newVar(Artwork.ART_MESSAGE, var.getObject());
+				if (var != null)
+				{
+					Variable newVar = nNi.newVar(Artwork.ART_MESSAGE, var.getObject());
+					if (newVar != null)
+					{
+						newVar.setTextDescriptor(var.getTextDescriptor());
+						newVar.setDisplay(var.isDisplay());
+					}
+				}
 			} else if (ni.getProto() == Artwork.tech.circleNode || ni.getProto() == Artwork.tech.thickCircleNode)
 			{
 				// copy arc information

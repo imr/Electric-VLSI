@@ -118,7 +118,7 @@ public class ZoomAndPanListener
 			} else if (mode == ToolBar.CursorMode.PAN)
 			{
 				// panning the window location
-				Point2D pt = wnd.getOffset();
+				Point2D pt = wnd.getScheduledOffset();
 				wnd.setOffset(new Point2D.Double(pt.getX() - (newX - lastX) / scale,
 					pt.getY() + (newY - lastY) / scale));
 				wnd.repaintContents(null);

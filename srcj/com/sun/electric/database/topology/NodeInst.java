@@ -1156,10 +1156,20 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public void setArcDegrees(double start, double curvature)
 	{
-		Float [] fAddr = new Float[2];
-		fAddr[0] = new Float(start);
-		fAddr[1] = new Float(curvature);
-		this.newVar(Artwork.ART_DEGREES, fAddr);
+		if (!(protoType instanceof PrimitiveNode)) return;
+		if (protoType != Artwork.tech.circleNode && protoType != Artwork.tech.thickCircleNode) return;
+		if (start == 0 && curvature == 0)
+		{
+			if (getVar(Artwork.ART_DEGREES) == null) return;
+			delVar(Artwork.ART_DEGREES);
+		} else
+		{
+			Float [] fAddr = new Float[2];
+			fAddr[0] = new Float(start);
+			fAddr[1] = new Float(curvature);
+			newVar(Artwork.ART_DEGREES, fAddr);
+		}
+		redoGeometric();
 	}
 
 	/**

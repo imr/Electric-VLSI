@@ -218,6 +218,7 @@ public class Artwork extends Technology
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		boxNode.setFunction(PrimitiveNode.Function.ART);
+		boxNode.setEdgeSelect();
 
 		/** Crossed-Box */
 		crossedBoxNode = PrimitiveNode.newInstance("Crossed-Box", this, 6, 6, null,
@@ -244,6 +245,7 @@ public class Artwork extends Technology
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		filledBoxNode.setFunction(PrimitiveNode.Function.ART);
+		filledBoxNode.setEdgeSelect();
 
 		/** Circle */
 		circleNode = PrimitiveNode.newInstance("Circle", this, 6, 6, null,
@@ -257,7 +259,7 @@ public class Artwork extends Technology
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		circleNode.setFunction(PrimitiveNode.Function.ART);
-
+		circleNode.setEdgeSelect();
 
 		/** Filled-Circle */
 		filledCircleNode = PrimitiveNode.newInstance("Filled-Circle", this, 6, 6, null,
@@ -272,6 +274,7 @@ public class Artwork extends Technology
 			});
 		filledCircleNode.setFunction(PrimitiveNode.Function.ART);
 		filledCircleNode.setSquare();
+		filledCircleNode.setEdgeSelect();
 
 		/** Spline */
 		splineNode = PrimitiveNode.newInstance("Spline", this, 6, 6, null,
@@ -286,6 +289,7 @@ public class Artwork extends Technology
 			});
 		splineNode.setFunction(PrimitiveNode.Function.ART);
 		splineNode.setHoldsOutline();
+		splineNode.setEdgeSelect();
 
 		/** Triangle */
 		triangleNode = PrimitiveNode.newInstance("Triangle", this, 6, 6, null,
@@ -299,6 +303,7 @@ public class Artwork extends Technology
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		triangleNode.setFunction(PrimitiveNode.Function.ART);
+		triangleNode.setEdgeSelect();
 
 		/** Filled-Triangle */
 		filledTriangleNode = PrimitiveNode.newInstance("Filled-Triangle", this, 6, 6, null,
@@ -312,6 +317,7 @@ public class Artwork extends Technology
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		filledTriangleNode.setFunction(PrimitiveNode.Function.ART);
+		filledTriangleNode.setEdgeSelect();
 
 		/** Arrow */
 		arrowNode = PrimitiveNode.newInstance("Arrow", this, 2, 2, null,
@@ -331,6 +337,7 @@ public class Artwork extends Technology
 					EdgeH.makeRightEdge(), EdgeV.makeCenter(), EdgeH.makeRightEdge(), EdgeV.makeCenter())
 			});
 		arrowNode.setFunction(PrimitiveNode.Function.ART);
+		arrowNode.setEdgeSelect();
 
 		/** Opened-Polygon */
 		openedPolygonNode = PrimitiveNode.newInstance("Opened-Polygon", this, 6, 6, null,
@@ -345,6 +352,7 @@ public class Artwork extends Technology
 			});
 		openedPolygonNode.setFunction(PrimitiveNode.Function.ART);
 		openedPolygonNode.setHoldsOutline();
+		openedPolygonNode.setEdgeSelect();
 
 		/** Opened-Dotted-Polygon */
 		openedDottedPolygonNode = PrimitiveNode.newInstance("Opened-Dotted-Polygon", this, 6, 6, null,
@@ -359,6 +367,7 @@ public class Artwork extends Technology
 			});
 		openedDottedPolygonNode.setFunction(PrimitiveNode.Function.ART);
 		openedDottedPolygonNode.setHoldsOutline();
+		openedDottedPolygonNode.setEdgeSelect();
 
 		/** Opened-Dashed-Polygon */
 		openedDashedPolygonNode = PrimitiveNode.newInstance("Opened-Dashed-Polygon", this, 6, 6, null,
@@ -373,6 +382,7 @@ public class Artwork extends Technology
 			});
 		openedDashedPolygonNode.setFunction(PrimitiveNode.Function.ART);
 		openedDashedPolygonNode.setHoldsOutline();
+		openedDashedPolygonNode.setEdgeSelect();
 
 		/** Opened-Thicker-Polygon */
 		openedThickerPolygonNode = PrimitiveNode.newInstance("Opened-Thicker-Polygon", this, 6, 6, null,
@@ -387,6 +397,7 @@ public class Artwork extends Technology
 			});
 		openedThickerPolygonNode.setFunction(PrimitiveNode.Function.ART);
 		openedThickerPolygonNode.setHoldsOutline();
+		openedThickerPolygonNode.setEdgeSelect();
 
 		/** Closed-Polygon */
 		closedPolygonNode = PrimitiveNode.newInstance("Closed-Polygon", this, 6, 6, null,
@@ -401,6 +412,7 @@ public class Artwork extends Technology
 			});
 		closedPolygonNode.setFunction(PrimitiveNode.Function.ART);
 		closedPolygonNode.setHoldsOutline();
+		closedPolygonNode.setEdgeSelect();
 
 		/** Filled-Polygon */
 		filledPolygonNode = PrimitiveNode.newInstance("Filled-Polygon", this, 6, 6, null,
@@ -415,6 +427,7 @@ public class Artwork extends Technology
 			});
 		filledPolygonNode.setFunction(PrimitiveNode.Function.ART);
 		filledPolygonNode.setHoldsOutline();
+		filledPolygonNode.setEdgeSelect();
 
 		/** Thick-Circle */
 		thickCircleNode = PrimitiveNode.newInstance("Thick-Circle", this, 6, 6, null,
@@ -428,6 +441,7 @@ public class Artwork extends Technology
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		thickCircleNode.setFunction(PrimitiveNode.Function.ART);
+		thickCircleNode.setEdgeSelect();
 	};
 
 	/**

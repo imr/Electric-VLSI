@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01aq: *********************************
 
+IMP: (11/22/04, SMR) Display improved: "Peek" is faster; Panning the display is faster
+     Display no longer inaccurate during/after panning; Down-hierarchy in-place faster.
+
+BUG: (11/22/04, SMR) R-Trees may fail if too many objects are on top of each other.
+FIX: In Geometric.RTNode.addToRTNode(), make sure the two seed nodes (oldN and newN) are different.
+
 IMP: (11/21/04, GVG) 3D modifications: (a) Extra polygons connecting poly and poly gates in transistors so gate oxide
 looks more real. (b) Adding active region beneath poly gate (electrical layers from getShapeOfNode don't provide such
 polygons).
@@ -11,6 +17,8 @@ polygons).
 IMP: (11/21/04, GVG) Orbit behavior replaced by 3 separate ones in 3D view. Better zoom and translation
 
 ************************* Version 8.01ap: *********************************
+
+IMP: (11/18/04, SMR) Added security to TopLevel.finished().
 
 IMP: (11/18/04, GVG) Technology name in new Arc/Node tabs in preferences
 

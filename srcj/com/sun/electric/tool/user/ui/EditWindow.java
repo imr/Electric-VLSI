@@ -142,6 +142,7 @@ public class EditWindow extends JPanel
     /** Mouse-over Highlighter for this window */           private Highlighter mouseOverHighlighter;
 
 	/** list of windows to redraw (gets synchronized) */	private static List redrawThese = new ArrayList();
+	/** list of pan/zoom changes (synchronized) */			private static List zoomAndPanRequests = new ArrayList();
 	/** true if rendering a window now (synchronized) */	private static EditWindow runningNow = null;
 
 	private static final int SCROLLBARRESOLUTION = 200;
@@ -756,6 +757,26 @@ public class EditWindow extends JPanel
 
 		// draw any components that are on top (such as in-line text edits)
 		super.paint(g);
+
+		// see if anything else is queued
+		synchronized(redrawThese)
+		{
+			if (runningNow == null)
+			{
+				if (handleZoomAndPanRequests(this))
+				{
+					if (!redrawThese.contains(this))
+						redrawThese.add(this);
+				}
+				if (redrawThese.size() > 0)
+				{
+					runningNow = (EditWindow)redrawThese.get(0);
+					redrawThese.remove(0);
+					RenderJob nextJob = new RenderJob(runningNow, runningNow.getOffscreen(), null);
+					return;
+				}
+			}
+		}
 	}
 
 	public void fullRepaint() { repaintContents(null); }
@@ -790,6 +811,14 @@ public class EditWindow extends JPanel
 		}
 	}
 
+	private static class ZoomAndPanRequest
+	{
+		EditWindow wnd;
+		double offx, offy;
+		double scale;
+		boolean zoomRequest;
+	}
+
 	/**
 	 * Method requests that this EditWindow be redrawn, including a rerendering of the contents.
 	 */
@@ -807,6 +836,7 @@ public class EditWindow extends JPanel
 					redrawThese.add(this);
 				return;
 			}
+			handleZoomAndPanRequests(this);
 			runningNow = this;
 		}
 		RenderJob renderJob = new RenderJob(this, offscreen, bounds);
@@ -848,17 +878,22 @@ public class EditWindow extends JPanel
             }
             //long end = System.currentTimeMillis();
             //System.out.println("Rerender time "+TextUtils.getElapsedTime(end-start));
-
-			// see if anything else is queued
+//
+//			// see if anything else is queued
 			synchronized(redrawThese)
 			{
-				if (redrawThese.size() > 0)
-				{
-					runningNow = (EditWindow)redrawThese.get(0);
-					redrawThese.remove(0);
-					RenderJob nextJob = new RenderJob(runningNow, runningNow.getOffscreen(), null);
-					return true;
-				}
+//				if (handleZoomAndPanRequests(wnd))
+//				{
+//					if (!redrawThese.contains(wnd))
+//						redrawThese.add(wnd);
+//				}
+//				if (redrawThese.size() > 0)
+//				{
+//					runningNow = (EditWindow)redrawThese.get(0);
+//					redrawThese.remove(0);
+//					RenderJob nextJob = new RenderJob(runningNow, runningNow.getOffscreen(), null);
+//					return true;
+//				}
 				runningNow = null;
 			}
 			wnd.repaint();
@@ -1783,8 +1818,53 @@ public class EditWindow extends JPanel
 	 */
 	public void setScale(double scale)
 	{
+		if (wf != null)
+		{
+			synchronized (redrawThese)
+			{
+				if (runningNow != null)
+				{
+					// must queue the request
+					ZoomAndPanRequest zap = new ZoomAndPanRequest();
+					zap.wnd = this;
+					zap.scale = scale;
+					zap.zoomRequest = true;
+					zoomAndPanRequests.add(zap);
+					return;
+				}
+			}
+		}
 		this.scale = scale;
 		computeDatabaseBounds();
+	}
+
+	private static boolean handleZoomAndPanRequests(EditWindow wnd)
+	{
+		boolean changed = false;
+		List notThisWindow = null;
+		for(Iterator it = zoomAndPanRequests.iterator(); it.hasNext(); )
+		{
+			ZoomAndPanRequest zap = (ZoomAndPanRequest)it.next();
+			if (zap.wnd != wnd)
+			{
+				if (notThisWindow == null) notThisWindow = new ArrayList();
+				notThisWindow.add(zap);
+				continue;
+			}
+			if (zap.zoomRequest)
+			{
+				if (wnd.scale != zap.scale) changed = true;
+				wnd.scale = zap.scale;
+			} else
+			{
+				if (wnd.offx != zap.offx || wnd.offy != zap.offy) changed = true;
+				wnd.offx = zap.offx;   wnd.offy = zap.offy;
+			}
+		}
+		if (notThisWindow != null) zoomAndPanRequests = notThisWindow; else
+			zoomAndPanRequests.clear();
+		if (changed) wnd.computeDatabaseBounds();
+		return changed;
 	}
 
 	/**
@@ -1794,11 +1874,51 @@ public class EditWindow extends JPanel
 	public Point2D getOffset() { return new Point2D.Double(offx, offy); }
 
 	/**
+	 * Method to return the offset factor for this window.
+	 * If new offsets are queued, this gets the ultimate offset value.
+	 * @return the offset factor for this window.
+	 */
+	public Point2D getScheduledOffset()
+	{
+		double oX = offx;
+		double oY = offy;
+		synchronized (redrawThese)
+		{
+			for(Iterator it = zoomAndPanRequests.iterator(); it.hasNext(); )
+			{
+				ZoomAndPanRequest zap = (ZoomAndPanRequest)it.next();
+				if (zap.zoomRequest) continue;
+				oX = zap.offx;
+				oY = zap.offy;
+			}
+		}
+		return new Point2D.Double(oX, oY);
+	}
+
+	/**
 	 * Method to set the offset factor for this window.
 	 * @param off the offset factor for this window.
 	 */
 	public void setOffset(Point2D off)
 	{
+		// see if the request must be queued
+		if (wf != null)
+		{
+			synchronized (redrawThese)
+			{
+				if (runningNow != null)
+				{
+					// must queue the request
+					ZoomAndPanRequest zap = new ZoomAndPanRequest();
+					zap.wnd = this;
+					zap.offx = off.getX();
+					zap.offy = off.getY();
+					zap.zoomRequest = false;
+					zoomAndPanRequests.add(zap);
+					return;
+				}
+			}
+		}
 		offx = off.getX();   offy = off.getY();
 		computeDatabaseBounds();
 	}

@@ -28,29 +28,19 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.io.IOTool;
 
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.Iterator;
-
-import javax.swing.DefaultListModel;
-import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.ListSelectionModel;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 
 /**
  * Class to handle the "DXF" tab of the Preferences dialog.
  */
 public class DXFTab extends PreferencePanel
 {
-	private JList dxfLayersList;
-	private DefaultListModel dxfLayersModel;
+	private Layer artworkLayer;
+	private String initialNames;
 	private boolean initialInputFlattensHierarchy;
 	private boolean initialInputReadsAllLayers;
 	private int initialScale;
 	private TextUtils.UnitScale [] scales;
-	private boolean changingDXF = false;
 
 	/** Creates new form DXFTab */
 	public DXFTab(java.awt.Frame parent, boolean modal)
@@ -68,31 +58,13 @@ public class DXFTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		dxfTechnology.setText("DXF layers for Artwork Technology");
-
-		// build the layers list
-		dxfLayersModel = new DefaultListModel();
-		dxfLayersList = new JList(dxfLayersModel);
-		dxfLayersList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		dxfLayerList.setViewportView(dxfLayersList);
-		dxfLayersList.clearSelection();
-		dxfLayersList.addMouseListener(new MouseAdapter()
+		initialNames = "";
+		artworkLayer = Artwork.tech.findLayer("Graphics");
+		if (artworkLayer != null)
 		{
-			public void mouseClicked(MouseEvent evt) { dxfClickLayer(); }
-		});
-		dxfLayersModel.clear();
-		for(Iterator it = Artwork.tech.getLayers(); it.hasNext(); )
-		{
-			Layer layer = (Layer)it.next();
-			String str = layer.getName();
-			String dxfLayer = layer.getDXFLayer();
-			if (dxfLayer == null) dxfLayer = "";
-			if (dxfLayer.length() > 0) str += " (" + dxfLayer + ")";
-			dxfLayersModel.addElement(str);
+			initialNames = artworkLayer.getDXFLayer();
+			dxfLayerName.setText(initialNames);
 		}
-		dxfLayersList.setSelectedIndex(0);
-		dxfLayerName.getDocument().addDocumentListener(new DXFDocumentListener(this));
-		dxfClickLayer();
 
 		// initialize the scale popup
 		initialScale = IOTool.getDXFScale();
@@ -110,88 +82,14 @@ public class DXFTab extends PreferencePanel
 	}
 
 	/**
-	 * Method called when the user clicks on a layer name in the scrollable list.
-	 */
-	private void dxfClickLayer()
-	{
-		changingDXF = true;
-		String str = (String)dxfLayersList.getSelectedValue();
-		dxfLayerName.setText(dxfGetLayerName(str));
-		changingDXF = false;
-	}
-
-	/**
-	 * Method to parse the line in the scrollable list and return the DXF layer name part
-	 * (in parentheses).
-	 */
-	private String dxfGetLayerName(String str)
-	{
-		int openParen = str.indexOf('(');
-		if (openParen < 0) return "";
-		int closeParen = str.lastIndexOf(')');
-		if (closeParen < 0) return "";
-		String dxfLayer = str.substring(openParen+1, closeParen);
-		return dxfLayer;
-	}
-
-	/**
-	 * Method to parse the line in the scrollable list and return the Layer.
-	 */
-	private Layer dxfGetLayer(String str)
-	{
-		int openParen = str.indexOf('(');
-		if (openParen < 0) openParen = str.length()+1;
-		String layerName = str.substring(0, openParen-1);
-		Layer layer = Artwork.tech.findLayer(layerName);
-		return layer;
-	}
-
-	/**
-	 * Method called when the user types a new layer name into the edit field.
-	 */
-	private void dxfLayerChanged()
-	{
-		if (changingDXF) return;
-		String str = (String)dxfLayersList.getSelectedValue();
-		Layer layer = dxfGetLayer(str);
-		if (layer == null) return;
-		String newLine = layer.getName();
-		String newLayer = dxfLayerName.getText().trim();
-		if (newLayer.length() > 0) newLine += " (" + newLayer + ")";
-		int index = dxfLayersList.getSelectedIndex();
-		dxfLayersModel.set(index, newLine);
-	}
-
-	/**
-	 * Class to handle special changes to changes to a DXF layer.
-	 */
-	private static class DXFDocumentListener implements DocumentListener
-	{
-		DXFTab dialog;
-
-		DXFDocumentListener(DXFTab dialog) { this.dialog = dialog; }
-
-		public void changedUpdate(DocumentEvent e) { dialog.dxfLayerChanged(); }
-		public void insertUpdate(DocumentEvent e) { dialog.dxfLayerChanged(); }
-		public void removeUpdate(DocumentEvent e) { dialog.dxfLayerChanged(); }
-	}
-
-	/**
 	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the DXF tab.
 	 */
 	public void term()
 	{
-		for(int i=0; i<dxfLayersModel.getSize(); i++)
-		{
-			String str = (String)dxfLayersModel.getElementAt(i);
-			Layer layer = dxfGetLayer(str);
-			if (layer == null) continue;
-
-			String currentDXFNumbers = dxfGetLayerName(str);
-			if (currentDXFNumbers.equalsIgnoreCase(layer.getDXFLayer())) continue;
-			layer.setDXFLayer(currentDXFNumbers);
-		}
+		String currentNames = dxfLayerName.getText();
+		if (!currentNames.equals(initialNames))
+			artworkLayer.setDXFLayer(currentNames);
 
 		int currentScaleIndex = dxfScale.getSelectedIndex();
 		int currentScale = scales[currentScaleIndex].getIndex();
@@ -217,14 +115,14 @@ public class DXFTab extends PreferencePanel
         java.awt.GridBagConstraints gridBagConstraints;
 
         dxf = new javax.swing.JPanel();
-        dxfLayerList = new javax.swing.JScrollPane();
-        jLabel16 = new javax.swing.JLabel();
         dxfLayerName = new javax.swing.JTextField();
         dxfInputFlattensHierarchy = new javax.swing.JCheckBox();
         dxfInputReadsAllLayers = new javax.swing.JCheckBox();
         jLabel17 = new javax.swing.JLabel();
         dxfScale = new javax.swing.JComboBox();
-        dxfTechnology = new javax.swing.JLabel();
+        header = new javax.swing.JLabel();
+        jLabel1 = new javax.swing.JLabel();
+        jSeparator1 = new javax.swing.JSeparator();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -240,29 +138,11 @@ public class DXFTab extends PreferencePanel
 
         dxf.setLayout(new java.awt.GridBagLayout());
 
+        dxfLayerName.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridheight = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        dxf.add(dxfLayerList, gridBagConstraints);
-
-        jLabel16.setText("DXF Layer:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        dxf.add(jLabel16, gridBagConstraints);
-
-        dxfLayerName.setColumns(8);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
@@ -270,8 +150,8 @@ public class DXFTab extends PreferencePanel
 
         dxfInputFlattensHierarchy.setText("Input flattens hierarchy");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
@@ -279,9 +159,8 @@ public class DXFTab extends PreferencePanel
 
         dxfInputReadsAllLayers.setText("Input reads all layers");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         dxf.add(dxfInputReadsAllLayers, gridBagConstraints);
@@ -291,23 +170,39 @@ public class DXFTab extends PreferencePanel
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         dxf.add(jLabel17, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
         dxf.add(dxfScale, gridBagConstraints);
 
-        dxfTechnology.setText("DXF layers for technology: mocmos");
+        header.setText("DXF Input will accpt all of these layers (separate layer names with a comma):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 3;
-        dxf.add(dxfTechnology, gridBagConstraints);
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        dxf.add(header, gridBagConstraints);
+
+        jLabel1.setText("DXF Output will use the first layer in the list");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        dxf.add(jLabel1, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
+        dxf.add(jSeparator1, gridBagConstraints);
 
         getContentPane().add(dxf, new java.awt.GridBagConstraints());
 
@@ -325,12 +220,12 @@ public class DXFTab extends PreferencePanel
     private javax.swing.JPanel dxf;
     private javax.swing.JCheckBox dxfInputFlattensHierarchy;
     private javax.swing.JCheckBox dxfInputReadsAllLayers;
-    private javax.swing.JScrollPane dxfLayerList;
     private javax.swing.JTextField dxfLayerName;
     private javax.swing.JComboBox dxfScale;
-    private javax.swing.JLabel dxfTechnology;
-    private javax.swing.JLabel jLabel16;
+    private javax.swing.JLabel header;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel17;
+    private javax.swing.JSeparator jSeparator1;
     // End of variables declaration//GEN-END:variables
 	
 }

@@ -203,6 +203,8 @@ public class User extends Listener
 			Undo.ChangeCell cc = (Undo.ChangeCell)it.next();
 			Cell cell = cc.getCell();
 			markCellForRedraw(cell, false);
+
+			PixelDrawing.forceRedraw(cell);
 		}
 
 		// update live dialogs and status bar

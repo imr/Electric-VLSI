@@ -26,6 +26,7 @@ package com.sun.electric.database.geometry;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
@@ -38,6 +39,8 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.font.GlyphVector;
 import java.awt.geom.*;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -830,7 +833,8 @@ public class PolyBase implements Shape
 				return bestDist;
 			} else
 			{
-				if (otherBounds.intersects(polyBounds)) return Double.MIN_VALUE;
+				if (GenMath.rectsIntersect(otherBounds,polyBounds)) return Double.MIN_VALUE;
+//				if (otherBounds.intersects(polyBounds)) return Double.MIN_VALUE;
 				return otherPt.distance(polyCenter);
 			}
 		}
@@ -853,7 +857,7 @@ public class PolyBase implements Shape
 				return bestDist;
 			} else
 			{
-				if (otherBounds.intersects(polyBounds)) return Double.MIN_VALUE;
+				if (GenMath.rectsIntersect(otherBounds,polyBounds)) return Double.MIN_VALUE;
 				return otherPt.distance(polyCenter);
 			}
 		}
@@ -861,12 +865,20 @@ public class PolyBase implements Shape
 		// handle circular objects
 		if (localStyle == Poly.Type.CIRCLE || localStyle == Poly.Type.THICKCIRCLE || localStyle == Poly.Type.DISC)
 		{
+			double odist = points[0].distance(points[1]);
+			double dist = points[0].distance(otherPt);
 			if (otherIsPoint)
 			{
-				double odist = points[0].distance(points[1]);
-				double dist = points[0].distance(otherPt);
 				if (localStyle == Poly.Type.DISC && dist < odist) return dist-Double.MAX_VALUE;
 				return Math.abs(dist-odist);
+			} else
+			{
+//System.out.println("Testing circle at ("+points[0].getX()+","+points[0].getY()+") against "+otherBounds);
+				if (points[0].getX() + dist < otherBounds.getMinX()) return dist;
+				if (points[0].getX() - dist > otherBounds.getMaxX()) return dist;
+				if (points[0].getY() + dist < otherBounds.getMinY()) return dist;
+				if (points[0].getY() - dist > otherBounds.getMaxY()) return dist;
+				return Double.MIN_VALUE;
 			}
 		}
 		if (localStyle == Poly.Type.CIRCLEARC || localStyle == Poly.Type.THICKCIRCLEARC)
@@ -894,6 +906,15 @@ public class PolyBase implements Shape
 				double odist = points[0].distance(points[1]);
 				dist = points[0].distance(otherPt);
 				return Math.abs(dist-odist);
+			} else
+			{
+				Point2D [] savePoints = points;
+				clipArc(otherBounds.getMinX(), otherBounds.getMaxX(), otherBounds.getMinY(), otherBounds.getMaxY());
+				Point2D [] newPoints = points;
+				points = savePoints;
+				if (newPoints.length > 0) return Double.MIN_VALUE;
+				double dist = points[0].distance(points[1]);
+				return points[0].distance(otherPt) - dist;
 			}
 		}
 
@@ -1839,4 +1860,329 @@ public class PolyBase implements Shape
 		if (!crops) return -1;
 		return 0;
 	}
+
+	private static class AngleList
+	{
+		private double angle;
+		private double x, y;
+		AngleList(Point2D pt) { x = pt.getX();   y = pt.getY(); }
+	};
+		
+
+    /**
+     * Method to clip a curved polygon (CIRCLE, THICKCIRCLE, DISC, CIRCLEARC, or THICKCIRCLEARC)
+     * against the rectangle lx <= X <= hx and ly <= Y <= hy.
+     * Adjusts the polygon to contain the visible portions.
+     */
+    public void clipArc(double lx, double hx, double ly, double hy)
+    {
+    	double plx = bounds.getMinX();
+    	double phx = bounds.getMaxX();
+    	double ply = bounds.getMinY();
+    	double phy = bounds.getMaxY();
+
+    	// if not clipped, stop now
+    	if (plx >= lx && phx <= hx && ply >= ly && phy <= hy) return;
+
+    	// if totally invisible, blank the polygon
+    	if (plx > hx || phx < lx || ply > hy || phy < ly)
+    	{
+    		points = new Point2D[0];
+    		return;
+    	}
+
+    	// initialize list of relevant points
+    	double xc = points[0].getX();   double yc = points[0].getY();
+    	double xp = points[1].getX();   double yp = points[1].getY();
+    	List curveList = new ArrayList();
+     	if (style == Poly.Type.CIRCLEARC || style == Poly.Type.THICKCIRCLEARC)
+    	{
+    		// include arc endpoints
+    		AngleList al1 = new AngleList(points[1]);
+    		double dx = xp - xc;      double dy = yp - yc;
+    		if (dx == 0.0 && dy == 0.0)
+    		{
+    			System.out.println("Domain error doing circle/circle tangents");
+    			points = new Point2D[0];
+    			return;
+    		}
+    		al1.angle = Math.atan2(dy, dx);
+    		curveList.add(al1);
+
+    		AngleList al2 = new AngleList(points[2]);
+    		dx = al1.x-xc;
+    		dy = al1.y-yc;
+    		if (dx == 0.0 && dy == 0.0)
+    		{
+    			System.out.println("Domain error doing circle/circle tangents");
+    			points = new Point2D[0];
+    			return;
+    		}
+    		al2.angle = Math.atan2(dy, dx);
+    		curveList.add(al2);
+    	}
+       	int initialCount = curveList.size();
+
+    	// find intersection points along left edge
+    	Point2D i1 = new Point2D.Double(lx, ly);
+    	Point2D i2 = new Point2D.Double(lx, hy);
+    	int ints = circlelineintersection(points[0], points[1], i1, i2, 0);
+    	if (ints > 0) curveList.add(new AngleList(i1));
+    	if (ints > 1) curveList.add(new AngleList(i2));
+
+    	// find intersection points along top edge
+    	i1 = new Point2D.Double(lx, hy);
+    	i2 = new Point2D.Double(hx, hy);
+    	ints = circlelineintersection(points[0], points[1], i1, i2, 0);
+    	if (ints > 0) curveList.add(new AngleList(i1));
+    	if (ints > 1) curveList.add(new AngleList(i2));
+
+    	// find intersection points along right edge
+    	i1 = new Point2D.Double(hx, hy);
+    	i2 = new Point2D.Double(hx, ly);
+    	ints = circlelineintersection(points[0], points[1], i1, i2, 0);
+    	if (ints > 0) curveList.add(new AngleList(i1));
+    	if (ints > 1) curveList.add(new AngleList(i2));
+
+    	// find intersection points along bottom edge
+    	i1 = new Point2D.Double(hx, ly);
+    	i2 = new Point2D.Double(lx, ly);
+    	ints = circlelineintersection(points[0], points[1], i1, i2, 0);
+    	if (ints > 0) curveList.add(new AngleList(i1));
+    	if (ints > 1) curveList.add(new AngleList(i2));
+
+    	// if there are no intersections, arc is invisible
+    	if (curveList.size() == initialCount) { points = new Point2D[0];   return; }
+
+    	// determine angle of intersection points
+    	for(int i=initialCount; i<curveList.size(); i++)
+    	{
+    		AngleList al = (AngleList)curveList.get(i);
+    		if (al.y == yc && al.x == xc)
+    		{
+    			System.out.println("Warning: instability ahead");
+    			points = new Point2D[0];
+    			return;
+    		}
+    		double dx = al.x - xc;
+    		double dy = al.y - yc;
+    		if (dx == 0.0 && dy == 0.0)
+    		{
+    			System.out.println("Domain error doing circle/circle tangents");
+    			points = new Point2D[0];
+    			return;
+    		}
+    		al.angle = Math.atan2(dy, dx);
+    	}
+
+    	// reject points not on the arc
+     	if (style == Poly.Type.CIRCLEARC || style == Poly.Type.THICKCIRCLEARC)
+    	{
+    		int j = 2;
+       		AngleList al0 = (AngleList)curveList.get(0);
+       		AngleList al1 = (AngleList)curveList.get(1);
+    		for(int i=2; i<curveList.size(); i++)
+    		{
+        		AngleList al = (AngleList)curveList.get(i);
+    			if (al0.angle > al1.angle)
+    			{
+    				if (al.angle > al0.angle ||
+    					al.angle < al1.angle) continue;
+    			} else
+    			{
+    				if (al.angle > al0.angle &&
+    					al.angle < al1.angle) continue;
+    			}
+    			AngleList alj = (AngleList)curveList.get(j);
+    			alj.x = al.x;
+    			alj.y = al.y;
+    			alj.angle = al.angle;
+    			j++;
+    		}
+    		while (curveList.size() > j) curveList.remove(curveList.size()-1);
+
+    		// make sure the start of the arc is the first point
+       		al0 = (AngleList)curveList.get(0);
+    		for(int i=0; i<curveList.size(); i++)
+    		{
+        		AngleList al = (AngleList)curveList.get(i);
+    			if (al.angle > al0.angle)
+    				al.angle -= Math.PI*2.0;
+    		}
+    	} else
+    	{
+    		// make sure all angles are negative
+    		for(int i=0; i<curveList.size(); i++)
+    		{
+        		AngleList al = (AngleList)curveList.get(i);
+    			if (al.angle > 0.0) al.angle -= Math.PI*2.0;
+    		}
+    	}
+
+    	// sort by angle
+		Collections.sort(curveList, new AngleListDescending());
+
+    	// for full circles, add in starting point to complete circle
+    	if (style != Poly.Type.CIRCLEARC && style != Poly.Type.THICKCIRCLEARC)
+    	{
+    		AngleList al0 = (AngleList)curveList.get(0);
+    		AngleList alNew = new AngleList(new Point2D.Double(al0.x, al0.y));
+    		alNew.angle = al0.angle - Math.PI*2.0;
+    		curveList.add(alNew);
+    	}
+
+    	// now examine each segment and add it, if it is in the window
+    	double radius = points[0].distance(points[1]);
+    	List newIn = new ArrayList();
+    	for(int i=1; i<curveList.size(); i++)
+    	{
+    		int prev = i-1;
+       		AngleList al = (AngleList)curveList.get(i);
+       		AngleList alP = (AngleList)curveList.get(prev);
+    		double midAngle = (alP.angle + al.angle) / 2.0;
+    		while (midAngle < -Math.PI) midAngle += Math.PI * 2.0;
+    		double midx = xc + radius * Math.cos(midAngle);
+    		double midy = yc + radius * Math.sin(midAngle);
+    		if (midx < lx || midx > hx || midy < ly || midy > hy) continue;
+
+    		// add this segment
+    		newIn.add(new Point2D.Double(xc, yc));
+    		newIn.add(new Point2D.Double(alP.x, alP.y));
+    		newIn.add(new Point2D.Double(al.x, al.y));
+    	}
+    	points = new Point2D[newIn.size()];
+    	for(int i=0; i<newIn.size(); i++)
+     		points[i] = (Point2D)newIn.get(i);
+    	if (style == Poly.Type.THICKCIRCLE) style = Poly.Type.THICKCIRCLEARC; else
+    		if (style == Poly.Type.CIRCLE) style = Poly.Type.CIRCLEARC;
+    }
+
+    /**
+     * Helper class for doing curve clipping.
+     */
+	private static class AngleListDescending implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			AngleList c1 = (AngleList)o1;
+			AngleList c2 = (AngleList)o2;
+			double diff = c2.angle - c1.angle;
+			if (diff < 0.0) return -1;
+			if (diff > 0.0) return 1;
+			return 0;
+		}
+	}
+
+    /**
+     * Method to find the intersection points between the circle at (icx,icy) with point (isx,isy)
+     * and the line from (lx1,ly1) to (lx2,ly2).  Returns the two points in (ix1,iy1) and (ix2,iy2).
+     * Allows intersection tolerance of "tolerance".
+     * Returns the number of intersection points (0 if none, 1 if tangent, 2 if intersecting).
+     */
+    private int circlelineintersection(Point2D ctr, Point2D edge, Point2D from, Point2D to, double tolerance)
+    {
+    	double icx = ctr.getX();
+    	double icy = ctr.getY();
+    	double isx = edge.getX();
+    	double isy = edge.getY();
+    	double lx1 = from.getX();
+    	double ly1 = from.getY();
+    	double lx2 = to.getX();
+    	double ly2 = to.getY();
+
+    	/*
+    	 * construct a line that is perpendicular to the intersection line and passes
+    	 * through the circle center.  It meets the intersection line at (segx, segy)
+    	 */
+    	double segx = 0, segy = 0;
+    	if (ly1 == ly2)
+    	{
+    		segx = icx;
+    		segy = ly1;
+    	} else if (lx1 == lx2)
+    	{
+    		segx = lx1;
+    		segy = icy;
+    	} else
+    	{
+    		// compute equation of the line
+    		double fx = lx1 - lx2;   double fy = ly1 - ly2;
+    		double m = fy / fx;
+    		double b = -lx1;   b *= m;   b += ly1;
+
+    		// compute perpendicular to line through the point
+    		double mi = -1.0/m;
+    		double bi = -icx;  bi *= mi;  bi += icy;
+
+    		// compute intersection of the lines
+    		segx = (bi-b) / (m-mi);
+    		segy = m * segx + b;
+    	}
+
+    	// special case when line passes through the circle center
+    	if (segx == icx && segy == icy)
+    	{
+    		double fx = isx - icx;   double fy = isy - icy;
+    		double radius = Math.sqrt(fx*fx + fy*fy);
+    		fx = lx2 - lx1;   fy = ly2 - ly1;
+    		if (fx == 0.0 && fy == 0.0)
+    		{
+    			System.out.println("Domain error doing circle/line intersection");
+    			return 0;
+    		}
+    		double angle = Math.atan2(fy, fx);
+
+    		from.setLocation(icx + Math.cos(angle) * radius, icy + Math.sin(angle) * radius);
+    		to.setLocation(icx + Math.cos(-angle) * radius, icy + Math.sin(-angle) * radius);
+    	} else
+    	{
+    		/*
+    		 * construct a right triangle with the three points: (icx, icy), (segx, segy), and (ix1,iy1)
+    		 * the right angle is at the point (segx, segy) and the hypotenuse is the circle radius
+    		 * The unknown point is (ix1, iy1), the intersection of the line and the circle.
+    		 * To find it, determine the angle at the point (icx, icy)
+    		 */
+    		double fx = isx - icx;   double fy = isy - icy;
+    		double radius = Math.sqrt(fx*fx + fy*fy);
+    		fx = segx - icx;   fy = segy - icy;
+    		double adjacent = Math.sqrt(fx*fx + fy*fy);
+
+    		// if they are within tolerance, accept
+    		if (Math.abs(adjacent - radius) < tolerance)
+    		{
+    			from.setLocation(segx, segy);
+    			return 1;
+    		}
+
+    		// if the point is outside of the circle, quit
+    		if (adjacent > radius) return 0;
+
+    		// for zero radius, use circle center
+    		if (radius == 0.0)
+    		{
+    			from.setLocation(icx, icy);
+    			to.setLocation(icx, icy);
+    		} else
+    		{
+    			/*
+    			 * now determine the angle from the center to the point (segx, segy) and offset that angle
+    			 * by "angle".  Then project it by "radius" to get the two intersection points
+    			 */
+    			double angle = Math.acos(adjacent / radius);
+    			fx = segx - icx;   fy = segy - icy;
+    			if (fx == 0.0 && fy == 0.0)
+    			{
+    				System.out.println("Domain error doing line/circle intersection");
+    				return 0;
+    			}
+    			double intangle = Math.atan2(fy, fx);
+    			double a1 = intangle - angle;   double a2 = intangle + angle;
+    			from.setLocation(icx + Math.cos(a1) * radius, icy + Math.sin(a1) * radius);
+    			to.setLocation(icx + Math.cos(a2) * radius, icy + Math.sin(a2) * radius);
+    		}
+    	}
+
+    	if (from.getX() == to.getX() && from.getY() == to.getY()) return 1;
+    	return 2;
+    }
 }

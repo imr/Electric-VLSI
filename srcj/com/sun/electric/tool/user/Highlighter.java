@@ -1380,7 +1380,6 @@ public class Highlighter implements DatabaseChangeListener {
 	{
 		// make a list of things under the cursor
 		List list = new ArrayList();
-
 		boolean areaMustEnclose = User.isDraggingMustEncloseObjects();
 
 		// this is the distance from an object that is necessary for a "direct hit"
@@ -1534,7 +1533,6 @@ public class Highlighter implements DatabaseChangeListener {
                 for(Iterator it = cell.searchIterator(searchArea); it.hasNext(); )
                 {
                     Geometric geom = (Geometric)it.next();
-
                     Highlight h;
                     switch (phase)
                     {
@@ -1609,7 +1607,6 @@ public class Highlighter implements DatabaseChangeListener {
 
 			// get the distance to the object
 			double dist = distToNode(bounds, ni, wnd);
-
 			// direct hit
 			if (dist < directHitDist)
 			{
@@ -1788,8 +1785,6 @@ public class Highlighter implements DatabaseChangeListener {
         // return first in list (list empty case handled above)
         return (Highlight)sameTypes.get(0);
     }
-
-
 
     /**
 	 * Method to return the distance from a bound to a NodeInst.

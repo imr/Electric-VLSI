@@ -380,6 +380,7 @@ public abstract class Geometric extends ElectricObject
 				thisCenter = new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
 				double oldDist = 0;
 				int oldN = 0;
+				if (oldN == newN) oldN++;
 				for(int i=0; i<temp.getTotal(); i++)
 				{
 					if (i == newN) continue;

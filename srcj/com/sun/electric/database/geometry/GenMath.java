@@ -520,6 +520,22 @@ public class GenMath
     }
 
     /**
+     * Method to tell whether two Rectangle2D objects intersect.
+     * If one of the rectangles has zero size, then standard "intersect()" fails.
+     * @param r1 the first rectangle.
+     * @param r2 the second rectangle.
+     * @return true if they overlap.
+     */
+    public static boolean rectsIntersect(Rectangle2D r1, Rectangle2D r2)
+	{
+		if (r2.getMaxX() < r1.getMinX()) return false;
+		if (r2.getMinX() > r1.getMaxX()) return false;
+		if (r2.getMaxY() < r1.getMinY()) return false;
+		if (r2.getMinY() > r1.getMaxY()) return false;
+		return true;
+	}
+
+    /**
      * Method to determine the intersection of two lines and return that point.
      * @param p1 a point on the first line.
      * @param ang1 the angle of the first line (in tenth degrees).
