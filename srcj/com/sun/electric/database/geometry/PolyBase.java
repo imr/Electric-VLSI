@@ -1728,40 +1728,60 @@ public class PolyBase implements Shape
 
         //@TODO Rounding error here GVG
 		// if the two boxes don't touch, just return
-		if (bX >= hX || bY >= hY || uX <= lX || uY <= lY) return 0;
+		//if (bX >= hX || bY >= hY || uX <= lX || uY <= lY) return 0;
+        if (!DBMath.isGreaterThan(hX, bX) || !DBMath.isGreaterThan(hY, bY) ||
+		    !DBMath.isGreaterThan(uX, lX) || !DBMath.isGreaterThan(uY, lY)) return 0;
 
 		// if the box to be cropped is within the other, figure out which half to remove
-		if (bX <= lX && uX >= hX && bY <= lY && uY >= hY)
+        boolean blX = !DBMath.isGreaterThan(bX, lX);
+		boolean uhX = !DBMath.isGreaterThan(hX, uX);
+		boolean blY = !DBMath.isGreaterThan(bY, lY);
+		boolean uhY = !DBMath.isGreaterThan(hY, uY);
+
+		if (blX && uhX && blY && uhY)
+        //if (bX <= lX && uX >= hX && bY <= lY && uY >= hY)
 		{
 			double lxe = lX - bX;   double hxe = uX - hX;
 			double lye = lY - bY;   double hye = uY - hY;
 			double biggestExt = Math.max(Math.max(lxe, hxe), Math.max(lye, hye));
-			if (biggestExt == 0) return 1;
-			if (lxe == biggestExt)
+            boolean hlX = !DBMath.isGreaterThan(hX, lX);
+			//if (biggestExt == 0) return 1;
+            if (DBMath.areEquals(biggestExt, 0)) return 1;
+			//if (lxe == biggestExt)
+            if (DBMath.areEquals(lxe, biggestExt))
 			{
 				lX = (lX + uX) / 2;
-				if (lX >= hX) return 1;
+				if (hlX) return 1;
+                //if (lX >= hX) return 1;
 				bounds.setRect(lX, lY, hX-lX, hY-lY);
 				return 0;
 			}
-			if (hxe == biggestExt)
+			//if (hxe == biggestExt)
+            if (DBMath.areEquals(hxe, biggestExt))
 			{
 				hX = (hX + bX) / 2;
-				if (hX <= lX) return 1;
+				if (hlX) return 1;
+                //if (hX <= lX) return 1;
 				bounds.setRect(lX, lY, hX-lX, hY-lY);
 				return 0;
 			}
-			if (lye == biggestExt)
+
+            boolean hlY = !DBMath.isGreaterThan(hY, lY);
+            //if (lye == biggestExt)
+			if (DBMath.areEquals(lye, biggestExt))
 			{
 				lY = (lY + uY) / 2;
-				if (lY >= hY) return 1;
+				if (hlY) return 1;
+                //if (lY >= hY) return 1;
 				bounds.setRect(lX, lY, hX-lX, hY-lY);
 				return 0;
 			}
-			if (hye == biggestExt)
+            //if (hye == biggestExt)
+			if (DBMath.areEquals(hye, biggestExt))
 			{
 				hY = (hY + bY) / 2;
-				if (hY <= lY) return 1;
+				if (hlY) return 1;
+                //if (hY <= lY) return 1;
 				bounds.setRect(lX, lY, hX-lX, hY-lY);
 				return 0;
 			}
@@ -1769,19 +1789,25 @@ public class PolyBase implements Shape
 
 		// reduce (lx-hx,lY-hy) bY (bX-uX,bY-uY)
 		boolean crops = false;
-		if (bX <= lX && uX >= hX)
+        //if (bX <= lX && uX >= hX)
+		if (blX && uhX)
 		{
 			// it covers in X...crop in Y
-			if (uY >= hY) hY = (hY + bY) / 2;
-			if (bY <= lY) lY = (lY + uY) / 2;
+			//if (uY >= hY) hY = (hY + bY) / 2;
+			//if (bY <= lY) lY = (lY + uY) / 2;
+            if (!DBMath.isGreaterThan(hY, uY)) hY = (hY + bY) / 2;
+			if (blY) lY = (lY + uY) / 2;
 			bounds.setRect(lX, lY, hX-lX, hY-lY);
 			crops = true;
 		}
-		if (bY <= lY && uY >= hY)
+        if (blY && uhY)
+		//if (bY <= lY && uY >= hY)
 		{
 			// it covers in Y...crop in X
-			if (uX >= hX) hX = (hX + bX) / 2;
-			if (bX <= lX) lX = (lX + uX) / 2;
+			//if (uX >= hX) hX = (hX + bX) / 2;
+			//if (bX <= lX) lX = (lX + uX) / 2;
+            if (!DBMath.isGreaterThan(hX, uX)) hX = (hX + bX) / 2;
+			if (blX) lX = (lX + uX) / 2;
 			bounds.setRect(lX, lY, hX-lX, hY-lY);
 			crops = true;
 		}

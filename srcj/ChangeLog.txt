@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ai: *********************************
 
+BUG: (11/2/04, GVG) Rounding errors in PolyBase.halfCropBox
+FIX: Same wrapper operations as in PolyBase.cropBox.
+
 IMP: (11/1/04, DN) Coordinates and sizes of ArcInst and NodeInst are
     rounded to DBMath.GRID when loaded from libraries. Comparison
     functions from DBMath consider neighbour grid points as equal.
