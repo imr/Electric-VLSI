@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02j: *********************************
 
+IMP: (03/16/05, GVG) IRSIM will ignore non-fet transistors in schematic (not supported by IRSIM sim)
+
 BUG: (03/16/05, GVG) Exception in GetInfo for non FET transistors in schematic. Function getTransistorSize() can't
 be called.
 FIX: get the area value by querying the corresponding attribute in the node

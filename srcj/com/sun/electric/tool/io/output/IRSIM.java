@@ -292,7 +292,11 @@ public class IRSIM extends Output
             ci.netName3 = iinfo.getUniqueNetName(dnet, "/").substring(len);
             TransistorSize dim = ni.getTransistorSize(iinfo.getContext());
             if (dim == null || dim.getDoubleLength() == 0 || dim.getDoubleWidth() == 0)
-            	dim = new TransistorSize(new Double(2), new Double(2), new Double(2));
+            {
+            	//dim = new TransistorSize(new Double(2), new Double(2), new Double(2));
+                System.out.println("Warning, ignoring non fet transistor " + ni + " in cell " + iinfo.getCell());
+                return false;
+            }
             float m = iinfo.getMFactor();
             ci.length = dim.getDoubleLength();
             ci.width = dim.getDoubleWidth() * m;
