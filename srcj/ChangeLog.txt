@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01u: *********************************
 
+IMP: (9/19/04, SMR) Serpentine transistors now know port information.
+
+BUG: (9/19/04, SMR) Verilog output still gets busses wrong.
+FIX: In Verilog.writeCellTopology(), must find proper signal in aggregate list.
+
 ************************* Version 8.01t: *********************************
 
 IMP: (9/19/04, RK) Implement Variable Value caching and simple expression evaluation in VarContext. These two bypass 80% of the bean shell calls
@@ -11,6 +16,11 @@ IMP: (9/19/04, RK) Implement Variable Value caching and simple expression evalua
 IMP: (9/19/04, RK) Allow the user to enable more detailed progress reports.
 
 BUG: (9/19/04, RK) For AnnC. Hierarchical NCC from two windows didn't compare the two root cells.
+
+IMP: (9/18/04, SMR) HSpice waveform reader checks binary data for EOF.
+
+BUG: (9/18/04, SMR) Verilog output still gets descending busses wrong.
+FIX: In Verilog.writeCellTopology(), must take original bus size into account.
 
 ************************* Version 8.01s: *********************************
 

@@ -440,6 +440,11 @@ public class HSpiceOut extends Simulate
 		updateProgressDialog(4);
 
 		// now read the data
+		if (bytes > 8192)
+		{
+			System.out.println("ERROR: block is " + bytes + " long, but limit is 8192");
+			bytes = 8192;
+		}
 		int amtread = dataInputStream.read(binaryTR0Buffer, 0, bytes);
 		if (amtread != bytes) return true;
 		updateProgressDialog(bytes);

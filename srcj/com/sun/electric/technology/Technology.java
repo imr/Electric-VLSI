@@ -1506,7 +1506,7 @@ public class Technology extends ElectricObject
 		{
 			for(int i = 0; i < numExtraLayers; i++)
 			{
-				polys[fillPoly] = std.fillTransPoly(i);
+				polys[fillPoly] = std.fillTransPoly(i, electrical);
 				fillPoly++;
 			}
 		}
@@ -1730,7 +1730,7 @@ public class Technology extends ElectricObject
 		 * gate segment that extends from left to right, and on the left of a
 		 * segment that goes from bottom to top.
 		 */
-		private Poly fillTransPoly(int box)
+		private Poly fillTransPoly(int box, boolean electrical)
 		{
 			// compute the segment (along the serpent) and element (of transistor)
 			int segment = box % numSegments;
@@ -1843,6 +1843,18 @@ public class Technology extends ElectricObject
 			Technology.NodeLayer primLayer = primLayers[element];
 			retPoly.setStyle(primLayer.getStyle());
 			retPoly.setLayer(primLayer.getLayer());
+
+			// include port information if requested
+			if (electrical)
+			{
+				int portIndex = primLayer.getPortNum();
+				if (portIndex >= 0)
+				{
+					PrimitiveNode np = (PrimitiveNode)theNode.getProto();
+					PortProto port = np.getPort(portIndex);
+					retPoly.setPort(port);
+				}
+			}
 			return retPoly;
 		}
 

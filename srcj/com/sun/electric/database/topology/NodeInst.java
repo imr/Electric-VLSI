@@ -2219,11 +2219,13 @@ public class NodeInst extends Geometric implements Nodable
 	public boolean isFET()
 	{
 		NodeProto.Function fun = getFunction();
-		if (fun == NodeProto.Function.TRANMOS || fun == NodeProto.Function.TRA4NMOS ||
-			fun == NodeProto.Function.TRAPMOS || fun == NodeProto.Function.TRA4PMOS ||
-			fun == NodeProto.Function.TRADMOS || fun == NodeProto.Function.TRA4DMOS ||
-			fun == NodeProto.Function.TRADMES || fun == NodeProto.Function.TRA4DMES ||
-			fun == NodeProto.Function.TRAEMES || fun == NodeProto.Function.TRA4EMES)
+		if (fun == NodeProto.Function.TRANMOS  || fun == NodeProto.Function.TRA4NMOS ||
+			fun == NodeProto.Function.TRAPMOS  || fun == NodeProto.Function.TRA4PMOS ||
+			fun == NodeProto.Function.TRADMOS  || fun == NodeProto.Function.TRA4DMOS ||
+			fun == NodeProto.Function.TRANJFET || fun == NodeProto.Function.TRA4NJFET ||
+			fun == NodeProto.Function.TRAPJFET || fun == NodeProto.Function.TRA4PJFET ||
+			fun == NodeProto.Function.TRADMES  || fun == NodeProto.Function.TRA4DMES ||
+			fun == NodeProto.Function.TRAEMES  || fun == NodeProto.Function.TRA4EMES)
 				return true;
 		return false;
 	}

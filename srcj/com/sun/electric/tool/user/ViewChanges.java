@@ -4,7 +4,7 @@
 *
 * File: ViewChanges.java
 *
-* Copyright (c) 2003 Sun Microsystems and Static Free Software
+* Copyright (c) 2004 Sun Microsystems and Static Free Software
 *
 * Electric(tm) is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -54,6 +54,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -85,7 +86,7 @@ import java.util.Set;
 import javax.swing.JOptionPane;
 
 /**
- * Class for user-level changes to the circuit.
+ * Class for view-related changes to the circuit.
  */
 public class ViewChanges
 {
@@ -93,8 +94,7 @@ public class ViewChanges
 	ViewChanges() {}
 
 	/**
-	 * this routine converts cell "oldcell" to one of technology "newtech".
-	 * Returns the address of the new cell (NONODEPROTO on error).
+	 * Method to converts the current Cell into a schematic.
 	 */
 	public static void makeSchematicView()
 	{
@@ -163,24 +163,20 @@ public class ViewChanges
 	
 	/********************** CODE FOR CONVERSION TO SCHEMATIC **********************/
 	
-	private static void us_tran_logmakenodes(Cell cell, Cell newcell, Technology newtech, HashMap newNodes)
+	private static void us_tran_logmakenodes(Cell cell, Cell newCell, Technology newtech, HashMap newNodes)
 	{
-		/*
-		 * for each node, create a new node in the newcell, of the correct
-		 * logical type.  Also, store a pointer to the new node in the old
-		 * node's temp1.  This is used in the arc translation part of the
-		 * program to find the new ends of each arc.
-		 */
+		// for each node, create a new node in the newcell, of the correct logical type.
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
-			NodeProto.Function type = us_tranismos(ni);
+			NodeInst mosNI = (NodeInst)it.next();
+			NodeProto.Function type = us_tranismos(mosNI);
 			NodeInst schemNI = null;
+			if (type == NodeProto.Function.UNKNOWN) continue;
 			if (type == NodeProto.Function.PIN)
 			{
 				// compute new x, y coordinates
 				NodeProto prim = Schematics.tech.wirePinNode;
-				schemNI = us_tran_logmakenode(prim, ni, prim.getDefWidth(), prim.getDefHeight(), 0, 0, newcell);
+				schemNI = us_tran_logmakenode(prim, mosNI, prim.getDefWidth(), prim.getDefHeight(), 0, 0, newCell);
 			} else if (type == null)
 			{
 				// a cell
@@ -192,148 +188,136 @@ public class ViewChanges
 //					if (onp == NONODEPROTO) break;
 //				}
 //				schemni = us_tran_logmakenode(onp, ni, ni->transpose, ni->rotation,
-//					newcell, newtech);
-			} else if (type == NodeProto.Function.UNKNOWN)
-			{
+//					newCell, newtech);
 			} else
 			{
-				int rotate = ni.getAngle();
-				rotate += 2700;
-				while (rotate >= 3600) rotate -= 3600;
+				int rotate = mosNI.getAngle();
+				rotate = (rotate + 900) % 3600;
 				NodeProto prim = Schematics.tech.transistorNode;
-				int bits = Schematics.getPrimitiveFunctionBits(ni.getFunction());
-				schemNI = us_tran_logmakenode(prim, ni, prim.getDefWidth(), prim.getDefHeight(), rotate, bits, newcell);
-
-				// set the type of the transistor
-//				switch (type)
-//				{
-//					case NPTRAPMOS:  schemni->userbits |= TRANPMOS;    break;
-//					case NPTRANMOS:  schemni->userbits |= TRANNMOS;    break;
-//					case NPTRADMOS:  schemni->userbits |= TRANDMOS;    break;
-//					case NPTRAPNP:   schemni->userbits |= TRANPNP;     break;
-//					case NPTRANPN:   schemni->userbits |= TRANNPN;     break;
-//					case NPTRANJFET: schemni->userbits |= TRANNJFET;   break;
-//					case NPTRAPJFET: schemni->userbits |= TRANPJFET;   break;
-//					case NPTRADMES:  schemni->userbits |= TRANDMES;    break;
-//					case NPTRAEMES:  schemni->userbits |= TRANEMES;    break;
-//				}
+				int bits = Schematics.getPrimitiveFunctionBits(mosNI.getFunction());
+				schemNI = us_tran_logmakenode(prim, mosNI, prim.getDefWidth(), prim.getDefHeight(), rotate, bits, newCell);
 
 				// add in the size
-//				transistorsize(ni, &len, &wid);
-//				if (len >= 0 && wid >= 0)
-//				{
-//					TDCLEAR(descript);
-//					defaulttextsize(3, descript);
-//					lambda = lambdaofnode(ni);
-//					if (type == NPTRAPMOS || type == NPTRANMOS || type == NPTRADMOS ||
-//						type == NPTRANJFET || type == NPTRAPJFET ||
-//						type == NPTRADMES || type == NPTRAEMES)
-//					{
-//						// set length/width
-//						us_getlenwidoffset(schemni, descript, &xoff, &yoff);
-//						var = setvalkey((INTBIG)schemni, VNODEINST, el_attrkey_length,
-//							len*WHOLE/lambda, VFRACT|VDISPLAY);
-//						if (var != NOVARIABLE)
-//						{
-//							TDCOPY(var->textdescript, descript);
-//							size = TDGETSIZE(var->textdescript);
-//							i = TXTGETPOINTS(size);
-//							if (i > 3) size = TXTSETPOINTS(i-2); else
-//							{
-//								i = TXTGETQLAMBDA(size);
-//								if (i > 3) size = TXTSETQLAMBDA(i-2);
-//							}
-//							TDSETSIZE(var->textdescript, size);
-//							TDSETOFF(var->textdescript, TDGETXOFF(descript)-xoff,
-//								TDGETYOFF(descript)-yoff);
-//						}
-//						var = setvalkey((INTBIG)schemni, VNODEINST, el_attrkey_width,
-//							wid*WHOLE/lambda, VFRACT|VDISPLAY);
-//						if (var != NOVARIABLE)
-//						{
-//							TDCOPY(var->textdescript, descript);
-//							TDSETOFF(var->textdescript, TDGETXOFF(descript)+xoff,
-//								TDGETYOFF(descript)+yoff);
-//						}
-//					} else
-//					{
-//						// set area
-//						var = setvalkey((INTBIG)schemni, VNODEINST, el_attrkey_area,
-//							len*WHOLE/lambda, VFRACT|VDISPLAY);
-//						if (var != NOVARIABLE)
-//							TDCOPY(var->textdescript, descript);
-//					}
-//				}
+				TransistorSize ts = mosNI.getTransistorSize(VarContext.globalContext);
+				if (ts != null)
+				{
+					if (mosNI.isFET())
+					{
+						// set length/width
+						Variable lenVar = schemNI.newVar("ATTR_length", new Double(ts.getDoubleLength()));
+						if (lenVar != null)
+						{
+							lenVar.setDisplay(true);
+							TextDescriptor lenTD = lenVar.getTextDescriptor();
+							lenTD.setRelSize(0.5);
+							lenTD.setOff(-0.5, -1);
+						}
+						Variable widVar = schemNI.newVar("ATTR_width", new Double(ts.getDoubleWidth()));
+						if (widVar != null)
+						{
+							widVar.setDisplay(true);
+							TextDescriptor widTD = widVar.getTextDescriptor();
+							widTD.setRelSize(1);
+							widTD.setOff(0.5, -1);
+						}
+					} else
+					{
+						// set area
+						schemNI.newVar("ATTR_area", new Double(ts.getDoubleLength()));
+					}
+				}
 			}
 	
 			// store the new node in the old node
-			newNodes.put(ni, schemNI);
+			newNodes.put(mosNI, schemNI);
 	
 			// reexport ports
 			if (schemNI != null)
 			{
-//				for(pexp = ni->firstportexpinst; pexp != NOPORTEXPINST; pexp = pexp->nextportexpinst)
-//				{
-//					pp = us_tranconvpp(ni, pexp->proto);
-//					if (pp == NOPORTPROTO) continue;
-//					pp2 = newportproto(newcell, schemni, pp, pexp->exportproto->protoname);
-//					if (pp2 == NOPORTPROTO) return;
-//					pp2->userbits = (pp2->userbits & ~STATEBITS) |
-//						(pexp->exportproto->userbits & STATEBITS);
-//					TDCOPY(pp2->textdescript, pexp->exportproto->textdescript);
-//					if (copyvars((INTBIG)pexp->exportproto, VPORTPROTO, (INTBIG)pp2, VPORTPROTO, FALSE))
-//						return;
-//				}
-//				endobjectchange((INTBIG)schemni, VNODEINST);
+				for(Iterator eIt = mosNI.getExports(); eIt.hasNext(); )
+				{
+					Export mosPP = (Export)eIt.next();
+					PortInst schemPI = us_tranconvpp(mosNI, mosPP.getOriginalPort().getPortProto(), schemNI);
+					if (schemPI == null) continue;
+
+					Export schemPP = Export.newInstance(newCell, schemPI, mosPP.getName());
+					if (schemPP != null)
+					{
+						schemPP.setCharacteristic(mosPP.getCharacteristic());
+						schemPP.setTextDescriptor(mosPP.getTextDescriptor());
+						schemPP.copyVarsFrom(mosPP);
+					}
+				}
 			}
 		}
 	}
-	
+
 	private static NodeInst us_tran_logmakenode(NodeProto prim, NodeInst orig, double wid, double hei, int angle, int techSpecific, Cell newCell)
 	{
 		Point2D newLoc = new Point2D.Double(orig.getAnchorCenterX(), orig.getAnchorCenterY());
 		NodeInst newNI = NodeInst.makeInstance(prim, newLoc, wid, hei, angle, newCell, null, techSpecific);
 		return newNI;
 	}
-	
+
+	/**
+	 * for each arc in cell, find the ends in the new technology, and
+	 * make a new arc to connect them in the new cell.
+	 */
 	private static void us_tran_logmakearcs(Cell cell, Cell newcell, HashMap newNodes)
 	{
-//		PORTPROTO *oldpp1, *oldpp2, *newpp1, *newpp2;
-//		ARCINST *oldai, *newai;
-//		NODEINST *newni1, *newni2;
-//		INTBIG x1, x2, y1, y2, bits;
-//	
-//		/*
-//		 * for each arc in cell, find the ends in the new technology, and
-//		 * make a new arc to connect them in the new cell.
-//		 */
-//		for(oldai = cell->firstarcinst; oldai != NOARCINST; oldai = oldai->nextarcinst)
-//		{
-//			newni1 = (NODEINST *)oldai->end[0].nodeinst->temp1;
-//			newni2 = (NODEINST *)oldai->end[1].nodeinst->temp1;
-//			if (newni1 == NONODEINST || newni2 == NONODEINST) continue;
-//			oldpp1 = oldai->end[0].portarcinst->proto;
-//			oldpp2 = oldai->end[1].portarcinst->proto;
-//	
-//			// find the logical portproto for the first end node
-//			newpp1 = us_tranconvpp(oldai->end[0].nodeinst, oldpp1);
-//			if (newpp1 == NOPORTPROTO) continue;
-//	
-//			// find the logical portproto for the second end node
-//			newpp2 = us_tranconvpp(oldai->end[1].nodeinst, oldpp2);
-//			if (newpp2 == NOPORTPROTO) continue;
-//	
-//			// find the endpoints of the arc
-//			portposition(newni1, newpp1, &x1, &y1);
-//			portposition(newni2, newpp2, &x2, &y2);
-//	
-//			// create the new arc
+		for(Iterator it = cell.getArcs(); it.hasNext(); )
+		{
+			ArcInst mosAI = (ArcInst)it.next();
+			NodeInst mosHeadNI = mosAI.getHead().getPortInst().getNodeInst();
+			NodeInst mosTailNI = mosAI.getTail().getPortInst().getNodeInst();
+			NodeInst schemHeadNI = (NodeInst)newNodes.get(mosHeadNI);
+			NodeInst schemTailNI = (NodeInst)newNodes.get(mosTailNI);
+			if (schemHeadNI == null || schemTailNI == null) continue;
+			PortInst schemHeadPI = us_tranconvpp(mosHeadNI, mosAI.getHead().getPortInst().getPortProto(), schemHeadNI);
+			PortInst schemTailPI = us_tranconvpp(mosTailNI, mosAI.getTail().getPortInst().getPortProto(), schemTailNI);
+			if (schemHeadPI == null || schemTailPI == null) continue;
+
+			// create the new arc
 //			bits = us_makearcuserbits(sch_wirearc) & ~(FIXANG|FIXED);
-//			newai = newarcinst(sch_wirearc, defaultarcwidth(sch_wirearc), bits,
-//				newni1, newpp1, x1, y1, newni2, newpp2, x2, y2, newcell);
-//			if (newai == NOARCINST) break;
-//			endobjectchange((INTBIG)newai, VARCINST);
-//		}
+			ArcInst schemAI = ArcInst.makeInstance(Schematics.tech.wire_arc, 0, schemHeadPI, schemTailPI, mosAI.getName());
+		}
+	}
+
+	/**
+	 * Method to find the logical portproto corresponding to the mos portproto of ni
+	 */
+	private static PortInst us_tranconvpp(NodeInst mosNI, PortProto mosPP, NodeInst schemNI)
+	{
+		NodeProto.Function fun = us_tranismos(schemNI);
+		if (fun == NodeProto.Function.PIN)
+		{
+			return schemNI.getOnlyPortInst();
+		}
+		if (fun == null)
+		{
+			// a cell
+			PortProto schemPP = schemNI.getProto().findPortProto(mosPP.getName());
+			return schemNI.findPortInstFromProto(schemPP);
+		}
+
+		// a transistor
+		int portNum = 1;
+		for(Iterator it = mosNI.getProto().getPorts(); it.hasNext(); )
+		{
+			PortProto pp = (PortProto)it.next();
+			if (pp == mosPP) break;
+			portNum++;
+		}
+		if (portNum == 4) portNum = 3; else
+			if (portNum == 3) portNum = 1;
+		for(Iterator it = schemNI.getProto().getPorts(); it.hasNext(); )
+		{
+			PortProto schemPP = (PortProto)it.next();
+			portNum--;
+			if (portNum > 0) continue;
+			return schemNI.findPortInstFromProto(schemPP);
+		}
+		return null;
 	}
 
 	private static void us_tran_makemanhattan(Cell newcell)
@@ -385,7 +369,7 @@ public class ViewChanges
 	 */
 	private static NodeProto.Function us_tranismos(NodeInst ni)
 	{
-		if (ni.getProto() instanceof Cell) return NodeProto.Function.UNKNOWN;
+		if (ni.getProto() instanceof Cell) return null;
 		NodeProto.Function fun = ni.getFunction();
 		if (fun.isTransistor()) return fun;
 		if (fun == NodeProto.Function.PIN || fun == NodeProto.Function.CONTACT ||
@@ -397,47 +381,6 @@ public class ViewChanges
 }
 
 //#define MAXADJUST 5
-
-///* find the logical portproto corresponding to the mos portproto of ni */
-//PORTPROTO *us_tranconvpp(NODEINST *ni, PORTPROTO *mospp)
-//{
-//	PORTPROTO *schempp, *pp;
-//	NODEINST *schemni;
-//	INTBIG port;
-//
-//	schemni = (NODEINST *)ni->temp1;
-//
-//	switch (us_tranismos(schemni))
-//	{
-//		case TRAN_PIN:
-//			schempp = schemni->proto->firstportproto;
-//			break;
-//		case TRAN_CELL:
-//			schempp = getportproto(schemni->proto, mospp->protoname);
-//			break;
-//		default: // transistor
-//			for(port = 1, pp = ni->proto->firstportproto; pp != NOPORTPROTO;
-//				pp = pp->nextportproto, port++)
-//					if (pp == mospp) break;	 // partic. port in MOS
-//			schempp = us_trangetproto(schemni, port);
-//			break;
-//	}
-//	return(schempp);
-//}
-//
-//PORTPROTO *us_trangetproto(NODEINST *ni, INTBIG port)
-//{
-//	PORTPROTO *pp;
-//	INTBIG count = port, i;
-//
-//	if (count == 4) count = 3; else
-//		if (count == 3) count = 1;
-//
-//	for(i = 1, pp = ni->proto->firstportproto; pp != NOPORTPROTO && i < count;
-//		pp = pp->nextportproto, i++) // get portproto for schematic
-//				;
-//	return(pp);
-//}
 //
 ///************************* CODE FOR CONVERSION TO LAYOUT *************************/
 //

@@ -981,8 +981,8 @@ public class Poly implements Shape
 		Point2D pt = new Point2D.Double(100, 0);
 		trans.transform(pt, pt);
 		int xAngle = GenMath.figureAngle(new Point2D.Double(0, 0), pt);
-//		if (ni.isMirroredAboutXAxis() != ni.isMirroredAboutYAxis() &&
-//			((angle%1800) == 0 || (angle%1800) == 1350)) angle += 1800;
+		if (ni.isMirroredAboutXAxis() != ni.isMirroredAboutYAxis() &&
+			((angle%1800) == 0 || (angle%1800) == 1350)) angle += 1800;
 		angle = (angle + xAngle) % 3600;
 
 		Type style = Type.getTextTypeFromAngle(angle);
