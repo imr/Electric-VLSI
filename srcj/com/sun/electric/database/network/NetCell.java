@@ -38,6 +38,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.user.ErrorLogger;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -213,8 +214,12 @@ class NetCell
 		int numNodes = cell.getNumNodes();
 		for (int i = 0; i < numNodes; i++) {
 			NodeInst ni = (NodeInst)cell.getNode(i);
-			if (ni.getNameKey().isBus())
-				System.out.println("Network: Layout cell " + cell.describe() + " has arrayed node " + ni.describe());
+			if (ni.getNameKey().isBus()) {
+				String msg = "Network: Layout cell " + cell.describe() + " has arrayed node " + ni.describe();
+                System.out.println(msg);
+                ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                log.addGeom(ni, true, 0, null);
+            }
 		}
 		for (Iterator it = cell.getUsagesIn(); it.hasNext();) {
 			NodeUsage nu = (NodeUsage)it.next();
@@ -222,20 +227,38 @@ class NetCell
 			boolean err = false;
 			if (np instanceof Cell) {
 				if (Network.getNetCell((Cell)np) instanceof NetSchem) {
-					System.out.println("Network: Layout cell " + cell.describe() + " has " + nu.getNumInsts() +
-						" " + np.describe() + " nodes");
+					String msg = "Network: Layout cell " + cell.describe() + " has " + nu.getNumInsts() +
+						" " + np.describe() + " nodes";
+                    System.out.println(msg);
+                    ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                    for (Iterator nit = nu.getInsts(); nit.hasNext(); ) {
+                        NodeInst ni = (NodeInst)nit.next();
+                        log.addGeom(ni, true, 0, null);
+                    }
 					err = true;
 				}
 			}
 			if (np == Generic.tech.universalPinNode) {
-				System.out.println("Network: Layout cell " + cell.describe() + " has " + nu.getNumInsts() +
-					" " + np.describe() + " nodes");
+				String msg = "Network: Layout cell " + cell.describe() + " has " + nu.getNumInsts() +
+					" " + np.describe() + " nodes";
+                System.out.println(msg);
+                ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                for (Iterator nit = nu.getInsts(); nit.hasNext(); ) {
+                    NodeInst ni = (NodeInst)nit.next();
+                    log.addGeom(ni, true, 0, null);
+                }
 				err = true;
 			}
 			if (np instanceof PrimitiveNode) {
 				if (np.getTechnology() == Schematics.tech) {
-					System.out.println("Network: Layout cell " + cell.describe() + " has " + nu.getNumInsts() +
-						" " + np.describe() + " nodes");
+					String msg = "Network: Layout cell " + cell.describe() + " has " + nu.getNumInsts() +
+						" " + np.describe() + " nodes";
+                    System.out.println(msg);
+                    ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                    for (Iterator nit = nu.getInsts(); nit.hasNext(); ) {
+                        NodeInst ni = (NodeInst)nit.next();
+                        log.addGeom(ni, true, 0, null);
+                    }
 					err = true;
 				}
 			}
@@ -414,14 +437,22 @@ class NetCell
 					np.getFunction() == NodeProto.Function.ART ||
 					np == Artwork.tech.pinNode ||
 					np == Generic.tech.invisiblePinNode) {
-					if (drawns[piOffset] >= 0 && !cell.isIcon())
-						System.out.println("Network: " + cell + " has connections on " + pi);
+					if (drawns[piOffset] >= 0 && !cell.isIcon()) {
+						String msg = "Network: " + cell + " has connections on " + pi;
+                        System.out.println(msg);
+                        ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                        log.addPoly(pi.getPoly(), true);
+                    }
 					continue;
 				}
 				if (drawns[piOffset] >= 0) continue;
 				if (pi.getPortProto().isIsolated()) continue;
-				if (np.getFunction() == NodeProto.Function.PIN)
-					System.out.println("Network: " + cell + " has unconnected pin " + pi.describe());
+				if (np.getFunction() == NodeProto.Function.PIN) {
+					String msg = "Network: " + cell + " has unconnected pin " + pi.describe();
+                    System.out.println(msg);
+                    ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                    log.addGeom(ni, true, 0, null);
+                }
 				addToDrawn(pi);
 				numDrawns++;
 			}
@@ -479,8 +510,12 @@ class NetCell
 		for (Iterator it = cell.getArcs(); it.hasNext(); ) {
 			ArcInst ai = (ArcInst) it.next();
 			if (ai.getProto().getFunction() == ArcProto.Function.NONELEC) continue;
-			if (ai.getNameKey().isBus() && ai.getProto() != busArc)
-				System.out.println("Network: " + cell + " has bus name <"+ai.getNameKey()+"> not on to bus arc");
+			if (ai.getNameKey().isBus() && ai.getProto() != busArc) {
+				String msg = "Network: " + cell + " has bus name <"+ai.getNameKey()+"> on arc that is not a bus";
+                System.out.println(msg);
+                ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
+                log.addGeom(ai, true, 0, null);
+            }
 			if (ai.isUsernamed())
 				addNetNames(ai.getNameKey());
 		}
@@ -591,8 +626,13 @@ class NetCell
 	private void setNetName(JNetwork[] netNamesToNet, int drawn, Name name) {
 		JNetwork network = userNetlist.getNetworkByMap(drawn);
 		NetName nn = (NetName)netNames.get(name);
-		if (netNamesToNet[nn.index] != null)
-			System.out.println("Network: Layout cell " + cell.describe() + " has nets with same name " + name);
+		if (netNamesToNet[nn.index] != null) {
+			String msg = "Network: Layout cell " + cell.describe() + " has nets with same name " + name;
+            System.out.println(msg);
+            ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
+            // TODO: add to log: what should be highlighted?
+            // log.addGeom(??, true, 0, null);
+        }
 		else
 			netNamesToNet[nn.index] = network;
 		network.addName(name.toString());

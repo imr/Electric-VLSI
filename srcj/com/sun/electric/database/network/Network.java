@@ -38,6 +38,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.user.ErrorLogger;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -56,6 +57,11 @@ public class Network extends Listener
 	/** current valuse of shortResistors flag. */	static boolean shortResistors;
 
 	/** NetCells. */								private static NetCell[] cells;
+
+    /** The logger for logging Network errors */    protected static ErrorLogger errorLogger = ErrorLogger.newInstance("Network Errors");
+    /** sort keys for sorting network errors */     protected static final int errorSortNetworks = 0;
+                                                    protected static final int errorSortNodes = 1;
+                                                    protected static final int errorSortPorts = 2;
 
 	/**
 	 * The constructor sets up the Network tool.

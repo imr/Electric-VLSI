@@ -37,6 +37,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.user.ErrorLogger;
 
 import java.util.Arrays;
 import java.util.List;
@@ -176,8 +177,11 @@ class NetSchem extends NetCell {
 				if (var == null) {
 					var = v;
 				} else if (!v.getObject().equals(var.getObject())) {
-					System.out.println("Network: Cell " + cell.describe() + " has multipart icon <" + getName() +
-						"> with ambigouos definition of variable " + name);
+					String msg = "Network: Cell " + cell.describe() + " has multipart icon <" + getName() +
+						"> with ambigouos definition of variable " + name;
+                    System.out.println(msg);
+                    ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                    log.addGeom(shared[i].nodeInst, true, 0, null);
 				}
 			}
 			return var;
@@ -198,8 +202,11 @@ class NetSchem extends NetCell {
 				if (var == null) {
 					var = v;
 				} else if (!v.getObject().equals(var.getObject())) {
-					System.out.println("Network: Cell " + cell.describe() + " has multipart icon <" + getName() +
-						"> with ambigouos definition of variable " + key.getName());
+					String msg = "Network: Cell " + cell.describe() + " has multipart icon <" + getName() +
+						"> with ambigouos definition of variable " + key.getName();
+                    System.out.println(msg);
+                    ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                    log.addGeom(shared[i].nodeInst, true, 0, null);
 				}
 			}
 			return var;
@@ -509,21 +516,34 @@ class NetSchem extends NetCell {
 			if (np instanceof Cell)
 				netCell = Network.getNetCell((Cell)np);
 			if (netCell != null && netCell instanceof NetSchem) {
-				if (ni.getNameKey().hasDuplicates())
-					System.out.println(cell + ": Node name <"+ni.getNameKey()+"> has duplicate subnames");
+				if (ni.getNameKey().hasDuplicates()) {
+					String msg = cell + ": Node name <"+ni.getNameKey()+"> has duplicate subnames";
+                    System.out.println(msg);
+                    ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                    log.addGeom(ni, true, 0, null);
+                }
 				nodeOffsets[i] = ~nodeProxiesOffset;
 				nodeProxiesOffset += ni.getNameKey().busWidth();
 			} else {
-				if (ni.getNameKey().isBus())
-					System.out.println(cell + ": Array name <"+ni.getNameKey()+"> can be assigned only to icon nodes");
+				if (ni.getNameKey().isBus()) {
+					String msg = cell + ": Array name <"+ni.getNameKey()+"> can be assigned only to icon nodes";
+                    System.out.println(msg);
+                    ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                    log.addGeom(ni, true, 0, null);
+                }
 				nodeOffsets[i] = 0;
 			}
 			if (netCell != null) {
 				NetSchem sch = Network.getNetCell((Cell)np).getSchem();
 				if (sch != null) {
 					String errorMsg = Global.addToBuf(sch.globals);
-					if (errorMsg != null)
-						System.out.println("Network: Cell " + cell.describe() + " has globals with conflicting characteristic " + errorMsg);
+					if (errorMsg != null) {
+						String msg = "Network: Cell " + cell.describe() + " has globals with conflicting characteristic " + errorMsg;
+                        System.out.println(msg);
+                        ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
+                        // TODO: what to highlight?
+                        // log.addGeom(shared[i].nodeInst, true, 0, null);
+                    }
 				}
 			} else {
 				Global g = globalInst(ni);
@@ -536,14 +556,21 @@ class NetSchem extends NetCell {
 					else {
 						characteristic = PortProto.Characteristic.findCharacteristic(ni.getTechSpecific());
 						if (characteristic == null) {
-							System.out.println("Network: Cell " + cell.describe() + " has global " + g.getName() +
-								" with unknown characteristic bits");
+							String msg = "Network: Cell " + cell.describe() + " has global " + g.getName() +
+								" with unknown characteristic bits";
+                            System.out.println(msg);
+                            ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
+                            log.addGeom(ni, true, 0, null);
 							characteristic = PortProto.Characteristic.UNKNOWN;
 						}
 					}
 					String errorMsg = Global.addToBuf(g, characteristic);
-					if (errorMsg != null)
-						System.out.println("Network: Cell " + cell.describe() + " has global with conflicting characteristic " + errorMsg);
+					if (errorMsg != null) {
+						String msg = "Network: Cell " + cell.describe() + " has global with conflicting characteristic " + errorMsg;
+                        System.out.println(msg);
+                        ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
+                        //log.addGeom(shared[i].nodeInst, true, 0, null);
+                    }
 				}
 			}
 		}
@@ -592,12 +619,19 @@ class NetSchem extends NetCell {
 						if (namedProxy != null) {
 							Cell namedIconCell = (Cell)namedProxy.nodeInst.getProto();
 							if (namedProxy.hasMulti(iconCell)) {
-								System.out.println("Network: Cell " + cell.describe() + " has instances of " + iconCell.describe() +
-									" with same name <" + name + ">");
+								String msg = "Network: Cell " + cell.describe() + " has instances of " + iconCell.describe() +
+									" with same name <" + name + ">";
+                                System.out.println(msg);
+                                ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                                log.addGeom(ni, true, 0, null);
 							} else if (!iconCell.isMultiPartIcon() || !namedIconCell.isMultiPartIcon() ||
 								Network.getNetCell(namedIconCell).getSchem() != netSchem) {
-								System.out.println("Network: Cell " + cell.describe() + " has instances of " + iconCell.describe() + " and " +
-									namedIconCell.describe() + " with same name <" + name + ">");
+								String msg = "Network: Cell " + cell.describe() + " has instances of " + iconCell.describe() + " and " +
+									namedIconCell.describe() + " with same name <" + name + ">";
+                                System.out.println(msg);
+                                ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                                log.addGeom(ni, true, 0, null);
+                                log.addGeom(namedProxy.nodeInst, true, 0, null);
 							} else {
 								proxy = namedProxy;
 								proxy.addMulti(ni, i);

@@ -335,15 +335,25 @@ public class ErrorLogger implements ActionListener {
     private boolean limitExceeded;
     private String errorSystem;
     private boolean terminated;
+    private boolean persistent; // cannot be deleted
 
     private ErrorLogger() {}
 
     /**
-     * Method to free all previously stored errors and initialize the system.
-     * The errors are described by "system" and up to two cells "cell1" and
-     * "cell2" (may be NONODEPROTO).
+     * Create a new ErrorLogger instance.
      */
     public static synchronized ErrorLogger newInstance(String system)
+    {
+        return newInstance(system, false);
+    }
+
+    /**
+     * Create a new ErrorLogger instance
+     * @param system the name of the system logging errors
+     * @param persistent if true, this error tree cannot be deleted
+     * @return a new ErrorLogger for logging errors
+     */
+    public static synchronized ErrorLogger newInstance(String system, boolean persistent)
     {
         ErrorLogger logger = new ErrorLogger();
         logger.allErrors = new ArrayList();
@@ -353,6 +363,7 @@ public class ErrorLogger implements ActionListener {
         logger.errorSystem = system;
         logger.errorLimit = User.getErrorLimit();
         logger.terminated = false;
+        logger.persistent = persistent;
         if (currentLogger == null) currentLogger = logger;
         allLoggers.add(logger);
         return logger;
@@ -365,7 +376,7 @@ public class ErrorLogger implements ActionListener {
      */
     public ErrorLog logError(String message, Cell cell, int sortKey)
     {
-        if (terminated) {
+        if (terminated && !persistent) {
             System.out.println("WARNING: "+errorSystem+" already terminated, should not log new error");
         }
 
@@ -406,6 +417,16 @@ public class ErrorLogger implements ActionListener {
 
     /** Delete this logger */
     public synchronized void delete() {
+
+        if (persistent) {
+            // just clear errors
+            allErrors.clear();
+            trueNumErrors = 0;
+            currentErrorNumber = -1;
+            WindowFrame.wantToRedoErrorTree();
+            return;
+        }
+
         allLoggers.remove(this);
         if (currentLogger == this) {
             if (allLoggers.size() > 0) currentLogger = (ErrorLogger)allLoggers.get(0);
@@ -578,6 +599,7 @@ public class ErrorLogger implements ActionListener {
         DefaultMutableTreeNode explorerTree = new DefaultMutableTreeNode(errorNode);
         for (Iterator eit = allLoggers.iterator(); eit.hasNext(); ) {
             ErrorLogger logger = (ErrorLogger)eit.next();
+            if (logger.getNumErrors() == 0) continue;
             DefaultMutableTreeNode loggerNode = new DefaultMutableTreeNode(logger);
             for (Iterator it = logger.allErrors.iterator(); it.hasNext();)
             {
