@@ -2,9 +2,15 @@
 
 NOTE: Please place changes under the version that will be released next.
 
-************************* Version 8.02: *********************************
+************************* Version 8.02a: *********************************
 
 IMP: (01/05/05, DN) View, Libraries, Cells are comparable by name and ordered in database.
+
+IMP: (1/3/5, SMR) Added silicon compiler.  Initial translation without any improvements.
+     Only reads netlists (no VHDL compiler yet).
+
+BUG: Must quote system properties when relaunching.
+FIX: In Launcher.invokeElectric()", quote results of System.getProperty().
 
 BUG: (12/23/04, GVG): Exception creating a bufferImage if width or heigth was zero (text) (Bug #139)
 FIX: return null in these cases
