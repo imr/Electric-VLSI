@@ -1342,10 +1342,11 @@ public final class MenuCommands
 	/**
 	 * This method implements the command to quit Electric.
 	 */
-	public static void quitCommand()
+	public static boolean quitCommand()
 	{
-		if (preventLoss(null, 0)) return;
+		if (preventLoss(null, 0)) return (false);
 		QuitJob job = new QuitJob();
+        return (true);
 	}
 
 	/**
