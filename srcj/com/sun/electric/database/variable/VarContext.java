@@ -110,7 +110,7 @@ public class VarContext
 	{
 		return prev;
 	}
-
+    
     /**
      * Gets the value of Variable @param var.
      * If variable is Java, uses EvalJavaBsh to evaluate

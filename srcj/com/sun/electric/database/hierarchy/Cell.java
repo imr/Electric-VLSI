@@ -66,7 +66,7 @@ import java.text.DateFormat;
  * <CENTER><IMG SRC="doc-files/Cell-2.gif"></CENTER>
  * <P>
  * A Cell can have different views and versions, each of which is a cell.
- * The library shown here has two cells (“gate” and “twogate”), each of which has many
+ * The library shown here has two cells (?gate? and ?twogate?), each of which has many
  * views (layout, schematics, icon, vhdl) and versions:
  * <P>
  * <CENTER><IMG SRC="doc-files/Cell-1.gif"></CENTER>
@@ -117,6 +117,16 @@ public class Cell extends NodeProto
 		 */
 		public Iterator getCells() { return cells.iterator(); }
 
+        /** See if this cell group contains @param cell */
+        public boolean containsCell(Cell cell) 
+        {
+            for (Iterator it=getCells(); it.hasNext();) {
+                Cell c = (Cell)it.next();
+                if (c == cell) return true;
+            }
+            return false;
+        }
+        
 		public String toString() { return "CELLGROUP"; }
 	}
 
@@ -1015,6 +1025,45 @@ public class Cell extends NodeProto
 		return name;
 	}
 
+    /** Get the library referred to in the cell description from cell.describe()
+     * @return the Library, or null if none specified
+     */
+    public static Library getLibFromDescription(String desc)
+    {
+        String descsplit[] = desc.split(":");
+        if (descsplit.length == 1) return null; // no library specified
+        for (Iterator libIt = Library.getLibraries(); libIt.hasNext();) {
+            Library lib = (Library)libIt.next();
+            if (lib.getLibName().equals(descsplit[0]))
+                return lib;
+        }
+        return null;                            // lib not found
+    }
+
+    /** Get the cell referred to in the cell description from cell.describe().
+     * Assumes current library if none specified.
+     * @return a Cell, or null if none found.
+     */
+    public static Cell getCellFromDescription(String desc)
+    {
+        String descsplit[] = desc.split(":");
+        Library lib = Library.getCurrent(); // assume lib is current lib
+        if (descsplit.length > 1) {
+            for (Iterator libIt = Library.getLibraries(); libIt.hasNext();) {
+                Library lib2 = (Library)libIt.next();
+                if (lib.getLibName().equals(descsplit[0])) { lib = lib2; break; }
+            }
+        }   
+        // find cell in lib
+        String cellname = (descsplit.length > 1)? descsplit[1] : descsplit[0];
+        for (Iterator cellIt = lib.getCells(); cellIt.hasNext();) {
+            Cell cell = (Cell)cellIt.next();
+            if (cell.noLibDescribe().equals(cellname))
+                return cell;
+        }
+        return null; // cell not found
+    }
+        
 	/**
 	 * Finds the Schematic Cell associated with this Icon Cell.
 	 * If this Cell is an Icon View then find the schematic Cell in its
