@@ -524,7 +524,7 @@ public class Quick
 
 		// if the cell hasn't changed since the last good check, stop now
 
-		if (!Main.getDebug() && allSubCellsStillOK)
+		if (/*!Main.getDebug() && */allSubCellsStillOK)
 		{
 			Date lastGoodDate = DRC.getLastDRCDate(cell);
 			if (lastGoodDate != null)
@@ -769,6 +769,13 @@ public class Quick
 		for(Iterator it = ni.getParent().searchIterator(searchBounds); it.hasNext(); )
 		{
 			Geometric geom = (Geometric)it.next();
+
+			if ( geom == ni )
+			{
+				//System.out.println("Should I skip it 3?");
+				continue;
+			}
+
 			if (!(geom instanceof NodeInst)) continue;
 			NodeInst oNi = (NodeInst)geom;
 
@@ -818,6 +825,12 @@ public class Quick
 		for(Iterator it = cell.searchIterator(bb); it.hasNext(); )
 		{
 			Geometric geom = (Geometric)it.next();
+			if (Main.getDebug() && geom == thisNi )
+			{
+				System.out.println("Should I skip it 2?");
+				//continue;
+			}
+
 			if (geom instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)geom;
@@ -1265,6 +1278,7 @@ public class Quick
 
 		// special code if both polygons are manhattan
 		double pd = 0;
+		boolean overlap = false;
 		if (isBox1 != null && isBox2 != null)
 		{
 			// manhattan
@@ -1275,6 +1289,7 @@ public class Quick
 			if (maytouch)
 			{
 				// they are electrically connected: see if they touch
+				overlap = (pd < 0);
 				if (pd <= 0)
 				{
 					// they are electrically connected and they touch: look for minimum size errors
@@ -1395,12 +1410,6 @@ public class Quick
 				pdx = Math.max(lX2-hX1, lX1-hX2);
 				pdy = Math.max(lY2-hY1, lY1-hY2);
 
-				/*
-				if ( (pdx == 0) != (DBMath.doublesEqual(pdx, 0)))
-				  System.out.println("ErrorX?");
-				if ( (pdy == 0) != (DBMath.doublesEqual(pdy, 0)))
-				  System.out.println("ErrorY?");
-				  */
 				if (pdx == 0 && pdy == 0)
 					pd = 0; // they are touching!!
 				else
@@ -1465,33 +1474,40 @@ public class Quick
 				if (pd <= 0) return false;
 
 				// see if the notch is filled
-				boolean newR = lookForCrossPolygons(geom1, poly1, geom2, poly2, layer1, cell);
-				/*
+				boolean newR = lookForCrossPolygons(geom1, poly1, geom2, poly2, layer1, cell, overlap);
 				if (Main.getDebug())
 				{
 					Point2D pt1 = new Point2D.Double();
 					Point2D pt2 = new Point2D.Double();
-					int intervening = findInterveningPoints(poly1, poly2, pt1, pt2);
+					int intervening = findInterveningPoints(poly1, poly2, pt1, pt2, false);
 					if (intervening == 0)
 					{
 						if (!newR)
+						{
 							System.out.println("DIfferent");
-						return false;
+							lookForCrossPolygons(geom1, poly1, geom2, poly2, layer1, cell, overlap);
+
+						}
+						//return false;
 					}
 					boolean needBoth = true;
 					if (intervening == 1) needBoth = false;
-					/*
+
 					if (lookForPoints(pt1, pt2, layer1, cell, needBoth))
 					{
-						return false;
+						if (!newR)
+						{
+							System.out.println("DIfferent");
+							lookForPoints(pt1, pt2, layer1, cell, needBoth);
+							lookForCrossPolygons(geom1, poly1, geom2, poly2, layer1, cell, overlap);
+						//return false;
+						}
 					}
-					*/
-				/*
+
 					boolean oldR = lookForPoints(pt1, pt2, layer1, cell, needBoth);
 					if (oldR != newR)
 							System.out.println("DIfferent 2");
 				}
-			*/
 				if (newR) return false;
 
 				// look further if on the same net and diagonally separate (1 intervening point)
@@ -1577,6 +1593,13 @@ public class Quick
 		for(Iterator it = cell.searchIterator(searchBounds); it.hasNext(); )
 		{
 			Geometric geom = (Geometric)it.next();
+
+			if ( geom == ni )
+			{
+				//System.out.println("Should I skip it?");
+				continue;
+			}
+
 			if (geom instanceof ArcInst)
 			{
 				if (checkGeomAgainstInstance(netlist, geom, ni)) return true;
@@ -2230,10 +2253,20 @@ public class Quick
 	 * Returns 1 if only one of the reported points needs to be filled (because the polygons meet
 	 * at a point).  Returns 2 if both reported points need to be filled.
 	 */
-	private int findInterveningPoints(Poly poly1, Poly poly2, Point2D pt1, Point2D pt2)
+	private int findInterveningPoints(Poly poly1, Poly poly2, Point2D pt1, Point2D pt2, boolean newFix)
 	{
 		Rectangle2D isBox1 = poly1.getBox();
 		Rectangle2D isBox2 = poly2.getBox();
+
+		// Better to treat serpentine cases with bouding box
+		if (newFix)
+		{
+			if (isBox1 == null)
+				isBox1 = poly1.getBounds2D();
+			if (isBox2 == null)
+				isBox2 = poly2.getBounds2D();
+		}
+
 		if (isBox1 != null && isBox2 != null)
 		{
 			// handle vertical gap between polygons
@@ -2374,11 +2407,12 @@ public class Quick
 	 * geometry on layer "layer" (in or below cell "cell").  Returns true if there is.
 	 * If "needBoth" is true, both points must have geometry, otherwise only 1 needs it.
 	 */
-	private boolean lookForCrossPolygons(Geometric geo1, Poly poly1, Geometric geo2, Poly poly2, Layer layer, Cell cell)
+	private boolean lookForCrossPolygons(Geometric geo1, Poly poly1, Geometric geo2, Poly poly2, Layer layer,
+	                                     Cell cell, boolean overlap)
 	{
 		Point2D pt1 = new Point2D.Double();
 		Point2D pt2 = new Point2D.Double();
-		int intervening = findInterveningPoints(poly1, poly2, pt1, pt2);
+		int intervening = findInterveningPoints(poly1, poly2, pt1, pt2, true);
 
 		// compute bounds for searching inside cells
 		double flx = Math.min(pt1.getX(), pt2.getX());   double fhx = Math.max(pt1.getX(), pt2.getX());
@@ -2389,7 +2423,7 @@ public class Quick
 		boolean [] pointsFound = new boolean[2];
 		pointsFound[0] = pointsFound[1] = false;
 		boolean allFound = lookForLayerNew(geo1, poly1, geo2, poly2, cell, layer, DBMath.MATID, bounds,
-		        pt1, pt2, null, pointsFound);
+		        pt1, pt2, null, pointsFound, overlap);
 
 		return allFound;
 	}
@@ -2506,7 +2540,7 @@ public class Quick
 	 */
 	private boolean lookForLayerNew(Geometric geo1, Poly poly1, Geometric geo2, Poly poly2, Cell cell,
 	                                Layer layer, AffineTransform moreTrans, Rectangle2D bounds,
-	                                Point2D pt1, Point2D pt2, Point2D pt3, boolean [] pointsFound)
+	                                Point2D pt1, Point2D pt2, Point2D pt3, boolean[] pointsFound, boolean overlap)
 	{
 		int j;
 
@@ -2514,7 +2548,15 @@ public class Quick
 		{
 			Geometric g = (Geometric)it.next();
 			// Geometries to exclude from the search
-			//if ( geo1 == g || geo2 == g ) continue;
+			/*
+			if ( geo1 == g || geo2 == g )
+			{
+				/*
+				if (Main.getDebug())
+					System.out.println("Should I skip it lookForLayerNew?");
+				continue;
+			}
+			*/
 			if (g instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)g;
@@ -2530,11 +2572,9 @@ public class Quick
 
 					// compute new matrix for sub-cell examination
 					AffineTransform trans = ni.translateOut(ni.rotateOut());
-					//AffineTransform rot = ni.rotateOut();
-					//trans.preConcatenate(rot);
 					trans.preConcatenate(moreTrans);
 					if (lookForLayerNew(geo1, poly1, geo2, poly2, (Cell)ni.getProto(), layer, trans, newBounds,
-						pt1, pt2, pt3, pointsFound))
+						pt1, pt2, pt3, pointsFound, overlap))
 							return true;
 					continue;
 				}
@@ -2548,24 +2588,21 @@ public class Quick
 					Poly poly = layerLookPolyList[i];
 					if (!tech.sameLayer(poly.getLayer(), layer)) continue;
 
-					if (poly1 != null && poly.polySame(poly1)) continue;
-					if (poly2 != null && poly.polySame(poly2)) continue;
                     // Should be the transform before?
 					poly.transform(bound);
+
+					if (poly1 != null && !overlap && poly.polySame(poly1))
+						continue;
+					if (poly2 != null && !overlap && poly.polySame(poly2))
+						continue;
+
 					if (poly.isInside(pt1)) pointsFound[0] = true;
 					if (poly.isInside(pt2)) pointsFound[1] = true;
 					if (pt3 != null && poly.isInside(pt3)) pointsFound[2] = true;
-					boolean oldR = pointsFound[0] && pointsFound[1] && (pt3 == null || (pt3 != null && pointsFound[2]));
 					for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
 					boolean newR = (j == pointsFound.length);
-					if (newR != oldR)
-						System.out.println("Error in Quit.lookForLayer");
 					if (newR)
 						return true;
-					/*
-					if (pointsFound[0] && pointsFound[1] && pointsFound[2])
-						return true;
-						*/
 				}
 			} else
 			{
@@ -2581,27 +2618,18 @@ public class Quick
 					if (poly.isInside(pt1)) pointsFound[0] = true;
 					if (poly.isInside(pt2)) pointsFound[1] = true;
 					if (pt3 != null && poly.isInside(pt3)) pointsFound[2] = true;
-					boolean oldR = pointsFound[0] && pointsFound[1] && (pt3 == null || (pt3 != null && pointsFound[2]));
 					for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
 					boolean newR = (j == pointsFound.length);
-					if (newR != oldR)
-						System.out.println("Error in Quit.lookForLayer");
 					if (newR)
 						return true;
+					// @TODO NO need of checking rest of polygons. They are not going to have same layer!!
 				}
 			}
 
-					boolean oldR = pointsFound[0] && pointsFound[1] && (pt3 == null || (pt3 != null && pointsFound[2]));
-					for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
-					boolean newR = (j == pointsFound.length);
-					if (newR != oldR)
-						System.out.println("Error in Quit.lookForLayer");
-					if (newR)
-						return true;
-			/*
-			if (pointsFound[0] && pointsFound[1] && pointsFound[2])
+			for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
+			boolean newR = (j == pointsFound.length);
+			if (newR)
 				return true;
-				*/
 		}
 		return false;
 	}
@@ -3255,7 +3283,7 @@ public class Quick
 	 * Method to recursively scan cell "cell" (transformed with "trans") searching
 	 * for DRC Exclusion nodes.  Each node is added to the global list "exclusionList".
 	 */
-	private void accumulateExclusion(Cell cell, AffineTransform trans)
+	private void accumulateExclusion(Cell cell, AffineTransform upTrans)
 	{
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
@@ -3267,6 +3295,11 @@ public class Quick
 				dex.cell = cell;
 				// extract the information about this DRC exclusion node
 				dex.poly = new Poly(ni.getBounds());
+				/*
+				AffineTransform subUpTrans = ni.rotateOut();
+				subUpTrans.preConcatenate(upTrans);
+				dex.poly.transform(subUpTrans);
+				*/
 				dex.poly.setStyle(Poly.Type.FILLED);
 				dex.ni = ni;
 
@@ -3290,8 +3323,6 @@ public class Quick
 			{
 				// examine contents
 				AffineTransform tTrans = ni.translateOut(ni.rotateOut());
-				//AffineTransform rTrans = ni.rotateOut();
-				//tTrans.preConcatenate(rTrans);
 				accumulateExclusion((Cell)np, tTrans);
 			}
 		}

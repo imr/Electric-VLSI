@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01r: *********************************
 
+FIX: (9/17/04, GVG) DRC fix related to Well regions not connected. Improvements to
+speed up incremental DRC.
+
 IMP/MAN: (9/17/04, JKG) new command "Tool -> Logical Effort -> Clear LE Sizes in all Libraries"
 
 ************************* Version 8.01q: *********************************
