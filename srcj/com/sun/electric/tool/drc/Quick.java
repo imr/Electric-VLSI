@@ -23,10 +23,8 @@
  */
 package com.sun.electric.tool.drc;
 
-import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.JNetwork;
@@ -48,9 +46,6 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.Main;
 
 import java.awt.geom.AffineTransform;
@@ -104,6 +99,7 @@ public class Quick
 	private static final int MINSIZEERROR       = 4;
 	private static final int BADLAYERERROR      = 5;
 	private static final int LAYERSURROUNDERROR = 6;
+	private static final int MINAREAERROR       = 7;
 
 	/**
 	 * The CheckInst object is associated with every cell instance in the library.
@@ -586,6 +582,12 @@ public class Quick
 				if (onlyFirstError) return true;
 				errorsFound = true;
 			}
+			ret = checkMinArea(ni, layer, poly, tech);
+			if (ret)
+			{
+				if (onlyFirstError) return true;
+				errorsFound = true;
+			}
 			if (tech == layersValidTech && !layersValid[layer.getIndex()])
 			{
 				reportError(BADLAYERERROR, layersValidTech, null, cell, 0, 0, null,
@@ -1059,11 +1061,11 @@ public class Quick
 						String rule;
 						if (dRule != null)
 						{
-							dist = dRule.distance;
+							dist = dRule.value;
 							rule = dRule.rule;
 						} else
 						{
-							dist = eRule.distance;
+							dist = eRule.value;
 							rule = eRule.rule;
 							edge = true;
 						}
@@ -1131,11 +1133,11 @@ public class Quick
 					String rule;
 					if (dRule != null)
 					{
-						dist = dRule.distance;
+						dist = dRule.value;
 						rule = dRule.rule;
 					} else
 					{
-						dist = eRule.distance;
+						dist = eRule.value;
 						rule = eRule.rule;
 						edge = true;
 					}
@@ -1227,10 +1229,10 @@ public class Quick
 				if (pd <= 0)
 				{
 					// they are electrically connected and they touch: look for minimum size errors
-					DRC.Rule wRule = DRC.getMinWidth(layer1);
+					DRC.Rule wRule = DRC.getMinValue(layer1, DRC.RuleTemplate.MINWID);
 					if (wRule != null)
 					{
-						double minWidth = wRule.distance;
+						double minWidth = wRule.value;
 						String sizeRule = wRule.rule;
 						double lxb = Math.max(trueBox1.getMinX(), trueBox2.getMinX());
 						double hxb = Math.min(trueBox1.getMaxX(), trueBox2.getMaxX());
@@ -1869,13 +1871,18 @@ public class Quick
 	 * technology "tech" meets minimum width rules.  If it is too narrow, other layers
 	 * in the vicinity are checked to be sure it is indeed an error.  Returns true
 	 * if an error is found.
+	 * @param geom
+	 * @param layer
+	 * @param poly
+	 * @param tech
+	 * @return
 	 */
 	private boolean checkMinWidth(Geometric geom, Layer layer, Poly poly, Technology tech)
 	{
 		Cell cell = geom.getParent();
-		DRC.Rule minWidthRule = DRC.getMinWidth(layer);
+		DRC.Rule minWidthRule = DRC.getMinValue(layer, DRC.RuleTemplate.MINWID);
 		if (minWidthRule == null) return false;
-		double minWidth = minWidthRule.distance;
+		double minWidth = minWidthRule.value;
 
 		// simpler analysis if manhattan
 		Rectangle2D bounds = poly.getBox();
@@ -2001,7 +2008,34 @@ public class Quick
 	}
 
 	/**
+	 * Method to ensure that polygon "poly" on layer "layer" from object "geom" in
+	 * technology "tech" meets minimum area rules. Returns true
+	 * if an error is found.
+	 * @param geom
+	 * @param layer
+	 * @param poly
+	 * @param tech
+	 * @return
+	 */
+	private boolean checkMinArea(Geometric geom, Layer layer, Poly poly, Technology tech)
+	{
+		Cell cell = geom.getParent();
+		DRC.Rule minAreaRule = DRC.getMinValue(layer, DRC.RuleTemplate.AREA);
+		if (minAreaRule == null) return false;
+		double area = Math.abs(poly.getArea());
+		double actual = area - minAreaRule.value;
+
+		if (actual >= 0) return false;
+
+		reportError(MINAREAERROR, tech, null, cell, minAreaRule.value, area, minAreaRule.rule, poly, geom, layer, -1, null, null, null, -1);
+
+		return true;
+	}
+
+	/**
 	 * Method to determine whether node "ni" is a multiple cut contact.
+	 * @param ni
+	 * @return
 	 */
 	private boolean isMultiCut(NodeInst ni)
 	{
@@ -3034,19 +3068,29 @@ public class Quick
 		} else
 		{
 			// describe minimum width/size or layer error
+			String errorMessagePart2 = "";
 			switch (errorType)
 			{
+				case MINAREAERROR:
+					errorMessage += "Minimum area error:";
+					errorMessagePart2 = " LESS THAN " + TextUtils.formatDouble(limit) + " IN AREA (IS " + TextUtils.formatDouble(actual) + ")";
+					break;
 				case MINWIDTHERROR:
 					errorMessage += "Minimum width error:";
+					errorMessagePart2 = ", layer " + layer1.getName();
+					errorMessagePart2 += " LESS THAN " + TextUtils.formatDouble(limit) + " WIDE (IS " + TextUtils.formatDouble(actual) + ")";
 					break;
 				case MINSIZEERROR:
 					errorMessage += "Minimum size error:";
+					errorMessagePart2 = " LESS THAN " + TextUtils.formatDouble(limit) + " IN SIZE (IS " + TextUtils.formatDouble(actual) + ")";
 					break;
 				case BADLAYERERROR:
 					errorMessage += "Invalid layer (" + layer1.getName() + "):";
 					break;
 				case LAYERSURROUNDERROR:
 					errorMessage += "Layer surround error:";
+					errorMessagePart2 = ", layer %" + layer1.getName();
+					errorMessagePart2 += " NEEDS SURROUND OF LAYER " + layer2.getName() + " BY " + limit;
 					break;
 			}
 			errorMessage += " cell " + np1.describe();
@@ -3057,19 +3101,8 @@ public class Quick
 			{
 				errorMessage += ", arc " + geom1.describe();
 			}
-			if (errorType == MINWIDTHERROR)
-			{
-				errorMessage += ", layer " + layer1.getName();
-				errorMessage += " LESS THAN " + TextUtils.formatDouble(limit) + " WIDE (IS " + TextUtils.formatDouble(actual) + ")";
-			} else if (errorType == MINSIZEERROR)
-			{
-				errorMessage += " LESS THAN " + TextUtils.formatDouble(limit) + " IN SIZE (IS " + TextUtils.formatDouble(actual) + ")";
-			} else if (errorType == LAYERSURROUNDERROR)
-			{
-				errorMessage += ", layer %" + layer1.getName();
-				errorMessage += " NEEDS SURROUND OF LAYER " + layer2.getName() + " BY " + limit;
-			}
 			if (layer1 != null) sortLayer = layer1.getIndex();
+			errorMessage += errorMessagePart2;
 		}
 		if (rule != null && rule.length() > 0) errorMessage += " [rule " + rule + "]";
 

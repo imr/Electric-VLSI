@@ -306,13 +306,13 @@ public class ERCWellCheck
 					if (wa.netNum == oWa.netNum && wa.netNum >= 0) con = true;
 					DRC.Rule rule = DRC.getSpacingRule(wa.layer, wa.layer, con, false, 0);
 					//DRC.Rule rule = DRC.getSpacingRule(wa.layer, wa.layer, con, false, false, 0);
-					if (rule.distance < 0) continue;
-					if (wa.bounds.getMinX() > oWa.bounds.getMaxX()+rule.distance ||
-						oWa.bounds.getMinX() > wa.bounds.getMaxX()+rule.distance ||
-						wa.bounds.getMinY() > oWa.bounds.getMaxY()+rule.distance ||
-						oWa.bounds.getMinY() > wa.bounds.getMaxY()+rule.distance) continue;
+					if (rule.value < 0) continue;
+					if (wa.bounds.getMinX() > oWa.bounds.getMaxX()+rule.value ||
+						oWa.bounds.getMinX() > wa.bounds.getMaxX()+rule.value ||
+						wa.bounds.getMinY() > oWa.bounds.getMaxY()+rule.value ||
+						oWa.bounds.getMinY() > wa.bounds.getMaxY()+rule.value) continue;
 					double dist = wa.poly.separation(oWa.poly);
-					if (dist < rule.distance)
+					if (dist < rule.value)
 					{
 						int layertype = getWellLayerType(wa.layer);
 						if (layertype == 0) continue;
@@ -326,7 +326,7 @@ public class ERCWellCheck
 						}
 						ErrorLog err = errorLogger.logError(areaType + " areas too close (are "
 						        + TextUtils.formatDouble(dist, 1) + ", should be "
-						        + TextUtils.formatDouble(rule.distance, 1) + ")", cell, 0);
+						        + TextUtils.formatDouble(rule.value, 1) + ")", cell, 0);
 						err.addPoly(wa.poly, true, cell);
 						err.addPoly(oWa.poly, true, cell);
 					}
@@ -679,13 +679,13 @@ public class ERCWellCheck
 					if (wa.netNum == oWa.netNum && wa.netNum >= 0) con = true;
 					DRC.Rule rule = DRC.getSpacingRule(wa.layer, wa.layer, con, false, 0);
 					//DRC.Rule rule = DRC.getSpacingRule(wa.layer, wa.layer, con, false, false, 0);
-					if (rule.distance < 0) continue;
-					if (wa.bounds.getMinX() > oWa.bounds.getMaxX()+rule.distance ||
-						oWa.bounds.getMinX() > wa.bounds.getMaxX()+rule.distance ||
-						wa.bounds.getMinY() > oWa.bounds.getMaxY()+rule.distance ||
-						oWa.bounds.getMinY() > wa.bounds.getMaxY()+rule.distance) continue;
+					if (rule.value < 0) continue;
+					if (wa.bounds.getMinX() > oWa.bounds.getMaxX()+rule.value ||
+						oWa.bounds.getMinX() > wa.bounds.getMaxX()+rule.value ||
+						wa.bounds.getMinY() > oWa.bounds.getMaxY()+rule.value ||
+						oWa.bounds.getMinY() > wa.bounds.getMaxY()+rule.value) continue;
 					double dist = wa.poly.separation(oWa.poly);
-					if (dist < rule.distance)
+					if (dist < rule.value)
 					{
 						int layertype = getWellLayerType(wa.layer);
 						if (layertype == 0) continue;
@@ -699,7 +699,7 @@ public class ERCWellCheck
 						}
 						ErrorLog err = errorLogger.logError(areaType + " areas too close (are "
 						        + TextUtils.formatDouble(dist, 1) + ", should be "
-						        + TextUtils.formatDouble(rule.distance, 1) + ")", cell, 0);
+						        + TextUtils.formatDouble(rule.value, 1) + ")", cell, 0);
 						err.addPoly(wa.poly, true, cell);
 						err.addPoly(oWa.poly, true, cell);
 					}

@@ -152,6 +152,7 @@ public class DRC extends Listener
 		/** X contact cut surround rule */	public static final int CUTSURX =    18;
 		/** Y contact cut surround rule */	public static final int CUTSURY =    19;
 		/** arc surround rule */			public static final int ASURROUND = 20;
+		/** area rule */			        public static final int AREA = 21;
 
 		public String rule;			/* the name of the rule */
 		public int when;				/* when the rule is used */
@@ -466,8 +467,6 @@ public class DRC extends Listener
 					unConList[index] = new Double(rule.distance);
 					unConListRules[index] = rule.rule;
 					break;
-				default:
-					System.out.println("Not implemented in RRule::addRule");
 			}
 			r = new RRule(rule.rule, rule.distance, internalType, rule.maxW);
 			if (map.get(r) != null)
@@ -525,12 +524,12 @@ public class DRC extends Listener
 
 	public static class Rule
 	{
-		public double distance;
+		public double value;
 		public String rule;
 
 		Rule(double distance, String rule)
 		{
-			this.distance = distance;
+			this.value = distance;
 			this.rule = rule;
 		}
 	}
@@ -1211,24 +1210,24 @@ public class DRC extends Listener
 	}
 
 	/**
-	 * Method to get the minimum width rule for a Layer.
+	 * Method to get the minimum <type> rule for a Layer
+	 * where <type> is the rule type. E.g. MinWidth or Area
 	 * @param layer the Layer to examine.
+	 * @param type rule type
 	 * @return the minimum width rule for the layer.
 	 * Returns null if there is no minimum width rule.
 	 */
-	public static Rule getMinWidth(Layer layer)
+	public static Rule getMinValue(Layer layer, int type)
 	{
 		Technology tech = layer.getTechnology();
 		Rules rules = getRules(tech);
 		if (rules == null) return null;
 		int index = layer.getIndex();
-		RRule rule = rules.getRule(index, DRC.RuleTemplate.MINWID, 0);
+		//RRule rule = rules.getRule(index, DRC.RuleTemplate.MINWID, 0);
+       RRule rule = rules.getRule(index, type, 0);
 
-		if (rule == null)
-		{
-			//System.out.println("Error in getMinWidth in '" + tech.getTechName() + "'");
-			return (null);
-		}
+		if (rule == null) return (null);
+
 		//double dist = rules.minWidth[index].doubleValue();
 		//if (dist < 0) return null;
 		//return new Rule(dist, rules.minWidthRules[index]);
@@ -1248,7 +1247,9 @@ public class DRC extends Listener
 		if (pnp.getMinWidth() < 0 && pnp.getMinHeight() < 0) return null;
 		return new NodeSizeRule(pnp.getMinWidth(), pnp.getMinHeight(), pnp.getMinSizeRule());
 	}
- 
+
+
+
 	/****************************** SUPPORT FOR DESIGN RULES ******************************/
 
 	/**
