@@ -25,6 +25,7 @@ package com.sun.electric.tool.io;
 
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.NodeUsage;
@@ -40,6 +41,8 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
@@ -92,6 +95,8 @@ public abstract class OutputTopology extends Output
 		topCell = cell;
 		cellTopos = new HashMap();
 
+		makeCellNameMap();
+
 		// write out cells
 		start();
 		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, visitor);
@@ -109,10 +114,67 @@ public abstract class OutputTopology extends Output
 	/** Abstract method to write CellGeom to disk */
 	protected abstract void writeCellTopology(Cell cell, CellNets cn);
 
+	/** Abstract method to convert a network name to one that is safe for this format */
+	protected abstract String getSafeNetName(String name);
+
+	/** Abstract method to convert a cell name to one that is safe for this format */
+	protected abstract String getSafeCellName(String name);
+
+	/** Abstract method to convert a cell name to one that is safe for this format */
+	protected abstract Netlist getNetlistForCell(Cell cell);
+
 	protected CellNets getCellNets(Cell cell)
 	{
 		CellNets cn = (CellNets)cellTopos.get(cell);
 		return cn;
+	}
+	private HashMap cellNameMap;
+
+	/*
+	 * determine whether any cells have name clashes in other libraries
+	 */
+	private void makeCellNameMap()
+	{
+		cellNameMap = new HashMap();
+		for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+		{
+			Library lib = (Library)lIt.next();
+			if (lib.isHidden()) continue;
+			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			{
+				Cell cell = (Cell)cIt.next();
+				boolean duplicate = false;
+				for(Iterator oLIt = Library.getLibraries(); oLIt.hasNext(); )
+				{
+					Library oLib = (Library)oLIt.next();
+					if (oLib.isHidden()) continue;
+					if (oLib == lib) continue;
+					for(Iterator oCIt = oLib.getCells(); oCIt.hasNext(); )
+					{
+						Cell oCell = (Cell)oCIt.next();
+						if (cell.getProtoName().equalsIgnoreCase(oCell.getProtoName()))
+						{
+							duplicate = true;
+							break;
+						}
+					}
+					if (duplicate) break;
+				}
+
+				if (duplicate) cellNameMap.put(cell, cell.getLibrary().getLibName() + "__" + cell.getProtoName()); else
+					cellNameMap.put(cell, cell.getProtoName());
+			}
+		}
+	}
+
+	/*
+	 * Method to return the name of cell "c", given that it may be ambiguously used in multiple
+	 * libraries.
+	 */
+	protected String getUniqueCellName(Cell cell)
+	{
+		String name = (String)cellNameMap.get(cell);
+		return name;
 	}
 
 	//------------------HierarchyEnumerator.Visitor Implementation----------------------
@@ -131,8 +193,7 @@ public abstract class OutputTopology extends Output
 			Cell cell = info.getCell();
 			if (cellTopos.containsKey(cell)) return false;	// already processed this Cell
 
-			boolean shortResistors = false;
-			Netlist netList = cell.getNetlist(shortResistors);
+			Netlist netList = getNetlistForCell(cell);
 			CellNets cn = sim_vergetnetworks(cell, false);
 //printWriter.print("********Decomposition of cell " + cell.describe() + "\n");
 //printWriter.print(" Power is " + cn.pwrNet + "\n");
@@ -147,7 +208,7 @@ public abstract class OutputTopology extends Output
 //for(Iterator it = cn.portInfo.iterator(); it.hasNext(); )
 //{
 //	OutputTopology.NetInfo nin = (OutputTopology.NetInfo)it.next();
-//	printWriter.print("   Temp="+nin.temp1+", port="+nin.pp+", net=["+nin.net.length+"], name="+nin.name+", low="+nin.low+", high="+nin.high+"\n");
+//	printWriter.print("   Temp="+nin.temp1+", port="+nin.pp+", name="+nin.name+", low="+nin.low+", high="+nin.high+"\n");
 //}
 			cellTopos.put(cell, cn);
 			return true;
@@ -165,6 +226,7 @@ public abstract class OutputTopology extends Output
 		{
 			NodeProto np = no.getProto();
 			if (np instanceof PrimitiveNode) return false;
+//	protected String parameterizedName(NodeInst ni, String cellname)
 
 			// else just a cell
 			return true;
@@ -181,7 +243,7 @@ public abstract class OutputTopology extends Output
 		/** name to use for this network. */	String name;
 		/** true if part of a descending bus */	boolean descending;
 		/** true if from a global signal */		boolean isGlobal;
-		int flags;
+		/** scratch word for the subclass */	int flags;
 	}
 
 	static class NetInfo
@@ -221,8 +283,7 @@ public abstract class OutputTopology extends Output
 	private CellNets sim_vergetnetworks(Cell cell, boolean quiet)
 	{
 		// get network information about this cell
-		boolean shortResistors = false;
-		Netlist netList = cell.getNetlist(shortResistors);
+		Netlist netList = getNetlistForCell(cell);
 
 		// create a map of all nets in the cell
 		HashMap wireListMap = new HashMap();
@@ -385,7 +446,7 @@ public abstract class OutputTopology extends Output
 //					if (*pwrNet != NONETWORK && *pwrNet != net && !multiPwr)
 //					{
 //						if (!quiet)
-//							ttyputmsg(_("Warning: multiple power networks in cell %s"),
+//							ttyputmsg("Warning: multiple power networks in cell %s",
 //								describenodeproto(cell));
 //						multiPwr = TRUE;
 //					}
@@ -395,7 +456,7 @@ public abstract class OutputTopology extends Output
 //					if (*gndNet != NONETWORK && *gndNet != net && !multiGnd)
 //					{
 //						if (!quiet)
-//							ttyputmsg(_("Warning: multiple ground networks in cell %s"),
+//							ttyputmsg("Warning: multiple ground networks in cell %s",
 //								describenodeproto(cell));
 //						multiGnd = TRUE;
 //					}
@@ -514,7 +575,9 @@ public abstract class OutputTopology extends Output
 			} else
 			{
 				if (net.hasNames()) name = (String)net.getNames().next(); else
-					name = "EMPTYNAME"+(emptyName++);
+				{
+					name = net.describe();
+				}
 
 				// if exported, be sure to get the export name
 //				if (wl.temp1 > 1 && wl.temp1 < 6)
@@ -534,7 +597,7 @@ public abstract class OutputTopology extends Output
 				nin.wires[0] = wl;
 			} else
 			{
-				nin.high = nin.low = TextUtils.atoi(name.substring(nin.name.length()));
+				nin.high = nin.low = TextUtils.atoi(name.substring(nin.name.length()+1));
 				int start = i;
 				for(int j=i+1; j<total; j++)
 				{
@@ -548,14 +611,14 @@ public abstract class OutputTopology extends Output
 					String endName = (String)endNet.getNames().next();
 					String ept = sim_verstartofindex(endName);
 					if (ept.equals(endName)) break;
-					int index = TextUtils.atoi(endName.substring(ept.length()));
+					int index = TextUtils.atoi(endName.substring(ept.length()+1));
 
 					// make sure export indices go in order
 					if (index != nin.high+1) break;
 					if (index > nin.high) nin.high = index;
 					i = j;
 				}
-				nin.name = nin.name.substring(0, nin.name.length()-1);
+//				nin.name = name;
 				nin.wires = new WireList[i-start+1];
 				for(int j=start; j<=i; j++)
 				{
@@ -570,7 +633,8 @@ public abstract class OutputTopology extends Output
 		for(Iterator it = netInfoList.iterator(); it.hasNext(); )
 		{
 			NetInfo nin = (NetInfo)it.next();
-			if (nin.low == nin.high) nin.name = nin.name + "_" + nin.low + "_";
+			nin.name =  getSafeNetName(nin.name);
+//			if (nin.low == nin.high) nin.name = nin.name + "_" + nin.low + "_";
 		}
 
 		// make sure all names are unique
@@ -648,7 +712,7 @@ public abstract class OutputTopology extends Output
 			if (!Character.isDigit(theChr)) break;
 		}
 		if (name.charAt(i) != '[') return name;
-		return name.substring(0, i+1);
+		return name.substring(0, i);
 	}
 
 	static class SortNetsByName implements Comparator
@@ -664,6 +728,42 @@ public abstract class OutputTopology extends Output
 			if (wl2.net.hasNames()) s2 = (String)wl2.net.getNames().next();
 			return TextUtils.nameSameNumeric(s1, s2);
 		}
+	}
+
+	/*
+	 * Method to create a parameterized name for node instance "ni".
+	 * If the node is not parameterized, returns zero.
+	 * If it returns a name, that name must be deallocated when done.
+	 */
+	protected String parameterizedName(NodeInst ni, String cellname)
+	{
+		if (!(ni.getProto() instanceof Cell)) return null;
+
+		// must have parameter variables on it
+		boolean hasParameters = false;
+		for(Iterator it = ni.getVariables(); it.hasNext(); )
+		{
+			Variable var = (Variable)it.next();
+			if (var.getTextDescriptor().isParam()) { hasParameters = true;   break; }
+		}
+		if (!hasParameters) return null;
+
+		// generate the parameterized name
+		StringBuffer sb = new StringBuffer();
+		sb.append(cellname);
+		for(Iterator it = ni.getVariables(); it.hasNext(); )
+		{
+			Variable var = (Variable)it.next();
+			if (!var.getTextDescriptor().isParam()) continue;
+
+//            Object eval = context.evalVar(var, ni);
+//
+//			sb.append("-");
+//			sb.append(var.getTrueName());
+//			sb.append("-");
+//			sb.append(eval.toString());
+		}
+		return sb.toString();
 	}
 
 }

@@ -161,7 +161,8 @@ public class OutputCIF extends OutputGeometry
 	{
 		cellNumber++;
 		writeLine("DS " + cellNumber + " 1 1;");
-		writeLine("9 " + cellGeom.cell.describe() + ";");
+		writeLine("9 " + (cellGeom.nonUniqueName ? (cellGeom.cell.getLibrary().getLibName() + ":") : "") +
+			cellGeom.cell.noLibDescribe() + ";");
 		cellNumbers.put(cellGeom.cell, new Integer(cellNumber));
 
 		// write all polys by Layer

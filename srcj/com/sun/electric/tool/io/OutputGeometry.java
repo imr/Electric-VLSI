@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.topology.NodeInst;
@@ -112,9 +113,10 @@ public abstract class OutputGeometry extends Output
     protected class CellGeom
     {
         /** HashMap of Poly(gons) in this Cell, keyed by Layer, all polys per layer stored as a List */
-                                            protected HashMap polyMap;
-        /** Nodables in this Cell */        protected ArrayList nodables;
-        /** Cell */                         protected Cell cell;
+															protected HashMap polyMap;
+        /** Nodables in this Cell */						protected ArrayList nodables;
+        /** Cell */											protected Cell cell;
+		/** true if cell name used in other libraries */	protected boolean nonUniqueName;
         
         /** Constructor */
         protected CellGeom()
@@ -160,9 +162,26 @@ public abstract class OutputGeometry extends Output
         public boolean enterCell(HierarchyEnumerator.CellInfo info) 
         {
 			outGeomStack[curHierDepth] = cellGeom;
-            if (cellGeoms.containsKey(info.getCell())) return false;    // already processed this Cell
+			Cell cell = info.getCell();
+            if (cellGeoms.containsKey(cell)) return false;    // already processed this Cell
             cellGeom = new CellGeom();
-            cellGeom.cell = info.getCell();
+            cellGeom.cell = cell;
+			cellGeom.nonUniqueName = false;
+			for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+			{
+				Library lib = (Library)lIt.next();
+				if (lib.isHidden()) continue;
+				if (lib == cell.getLibrary()) continue;
+				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+				{
+					Cell oCell = (Cell)cIt.next();
+					if (cell.getView() != oCell.getView()) continue;
+					if (!cell.getProtoName().equalsIgnoreCase(oCell.getProtoName())) continue;
+					cellGeom.nonUniqueName = true;
+					break;
+				}
+				if (cellGeom.nonUniqueName) break;
+			}
             cellGeoms.put(info.getCell(), cellGeom);
             curHierDepth++;
             return true;

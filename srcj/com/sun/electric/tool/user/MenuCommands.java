@@ -2522,12 +2522,12 @@ public final class MenuCommands
 			NodeInst [] outputs = new NodeInst[128];
 			for(int i=0; i<128; i++)
 			{
-				inputs[i] = NodeInst.newInstance(pinNp, new Point2D.Double(-300.0, i*5), 0, 0, 0, myCell, null);
+				inputs[i] = NodeInst.newInstance(pinNp, new Point2D.Double(-200.0, i*5), 0, 0, 0, myCell, null);
 				Variable inVar = inputs[i].newVar("label", "Input "+(i+1));
 				inVar.setDisplay();
 				inVar.getTextDescriptor().setPos(TextDescriptor.Position.LEFT);
 				inVar.getTextDescriptor().setRelSize(5);
-				outputs[i] = NodeInst.newInstance(pinNp, new Point2D.Double(300.0, i*5), 0, 0, 0, myCell, null);
+				outputs[i] = NodeInst.newInstance(pinNp, new Point2D.Double(200.0, i*5), 0, 0, 0, myCell, null);
 				Variable outVar = outputs[i].newVar("label", "Output "+(i+1));
 				outVar.setDisplay();
 				outVar.getTextDescriptor().setPos(TextDescriptor.Position.RIGHT);

@@ -425,17 +425,17 @@ public class PaletteFrame
 					{
 						JPopupMenu menu = new JPopupMenu("MOS");
 						menu.add(menuItem = new JMenuItem("nMOS"));
-						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRANMOS, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRANMOS, 900)));
 						menu.add(menuItem = new JMenuItem("PMOS"));
-						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAPMOS, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAPMOS, 900)));
 						menu.add(menuItem = new JMenuItem("DMOS"));
-						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRADMOS, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRADMOS, 900)));
 						menu.add(menuItem = new JMenuItem("nMOS 4-port"));
-						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4NMOS, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4NMOS, 900)));
 						menu.add(menuItem = new JMenuItem("PMOS 4-port"));
-						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4PMOS, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4PMOS, 900)));
 						menu.add(menuItem = new JMenuItem("DMOS 4-port"));
-						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4DMOS, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4DMOS, 900)));
 						menu.show(panel, e.getX(), e.getY());
 						return;
 					}
@@ -443,13 +443,13 @@ public class PaletteFrame
 					{
 						JPopupMenu menu = new JPopupMenu("Bipolar");
 						menu.add(menuItem = new JMenuItem("NPN"));
-						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRANPN, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRANPN, 900)));
 						menu.add(menuItem = new JMenuItem("PNP"));
-						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAPNP, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAPNP, 900)));
 						menu.add(menuItem = new JMenuItem("NPN 4-port"));
-						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4NPN, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4NPN, 900)));
 						menu.add(menuItem = new JMenuItem("PNP 4-port"));
-						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4PNP, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4PNP, 900)));
 						menu.show(panel, e.getX(), e.getY());
 						return;
 					}
@@ -457,13 +457,13 @@ public class PaletteFrame
 					{
 						JPopupMenu menu = new JPopupMenu("DMES/EMES");
 						menu.add(menuItem = new JMenuItem("DMES"));
-						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRADMES, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRADMES, 900)));
 						menu.add(menuItem = new JMenuItem("EMES"));
-						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAEMES, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAEMES, 900)));
 						menu.add(menuItem = new JMenuItem("DMES 4-port"));
-						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4DMES, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4DMES, 900)));
 						menu.add(menuItem = new JMenuItem("EMES 4-port"));
-						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4EMES, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4EMES, 900)));
 						menu.show(panel, e.getX(), e.getY());
 						return;
 					}
@@ -471,13 +471,13 @@ public class PaletteFrame
 					{
 						JPopupMenu menu = new JPopupMenu("FET");
 						menu.add(menuItem = new JMenuItem("PJFET"));
-						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAPJFET, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAPJFET, 900)));
 						menu.add(menuItem = new JMenuItem("NJFET"));
-						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRANJFET, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRANJFET, 900)));
 						menu.add(menuItem = new JMenuItem("PJFET 4-port"));
-						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4PJFET, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4PJFET, 900)));
 						menu.add(menuItem = new JMenuItem("NJFET 4-port"));
-						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4NJFET, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4NJFET, 900)));
 						menu.show(panel, e.getX(), e.getY());
 						return;
 					}
@@ -970,17 +970,18 @@ public class PaletteFrame
 
 			// get default creation angle
 			NodeProto np = null;
+			defAngle = 0;
 			if (toDraw instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)toDraw;
 				np = ni.getProto();
+				defAngle = ni.getAngle();
 			}
 			if (toDraw instanceof NodeProto)
 			{
 				np = (NodeProto)toDraw;
-			}
-			if (np == null) defAngle = 0; else
 				defAngle = np.getDefPlacementAngle();
+			}
 		}
 
 		public void setParameter(Object toDraw) { this.toDraw = toDraw; }
@@ -1153,11 +1154,18 @@ public class PaletteFrame
 			if (isTextNode) width = height = 0;
 
 			// get default creation angle
-			int defAngle = np.getDefPlacementAngle();
-			if (defAngle >= 3600)
+			int defAngle = 0;
+			if (ni != null)
 			{
-				defAngle %= 3600;
-				width = -width;
+				defAngle = ni.getAngle();
+			} else
+			{
+				defAngle = np.getDefPlacementAngle();
+				if (defAngle >= 3600)
+				{
+					defAngle %= 3600;
+					width = -width;
+				}
 			}
 
 			NodeInst newNi = NodeInst.makeInstance(np, where, width, height, defAngle, cell, null);

@@ -395,8 +395,8 @@ public class Quick
 			for(Iterator it = goodDRCDate.keySet().iterator(); it.hasNext(); )
 			{
 				Cell cell = (Cell)it.next();
-				Long DRCDate = (Long)goodDRCDate.get(cell);
-				DRC.setLastDRCDate(cell, new Date(DRCDate.longValue()));
+				Date now = (Date)goodDRCDate.get(cell);
+				DRC.setLastDRCDate(cell, now);
 			}
 		}
 	}
@@ -502,8 +502,7 @@ public class Quick
 		int localErrors = ErrorLog.numErrors() - errCount;
 		if (localErrors == 0)
 		{
-			Long now = new Long(new Date().getTime());
-			goodDRCDate.put(cell, now);
+			goodDRCDate.put(cell, new Date());
 			haveGoodDRCDate = true;
 			System.out.println("   No errors found");
 		} else
@@ -1159,12 +1158,12 @@ public class Quick
 		Rectangle2D trueBox2 = isBox2;
 		if (trueBox2 == null) trueBox2 = poly2.getBounds2D();
 //boolean debug = false;
-//if (layer1.getName().equalsIgnoreCase("N-Select") && layer2.getName().equalsIgnoreCase("N-Select")) debug = true;
-//if (layer2.getName().equalsIgnoreCase("N-Select") && layer1.getName().equalsIgnoreCase("N-Select")) debug = true;
+//if (layer1.getName().equalsIgnoreCase("N-Active") && layer2.getName().equalsIgnoreCase("Polysilicon-1")) debug = true;
+//if (layer2.getName().equalsIgnoreCase("Polysilicon-1") && layer1.getName().equalsIgnoreCase("N-Active")) debug = true;
 //if (debug)
 //{
-// System.out.println("Comparing layer "+layer1.getName()+" is "+trueBox1.getMinX()+"<=X<="+trueBox1.getMaxX()+" and "+trueBox1.getMinY()+"<=Y<="+trueBox1.getMaxY());
-// System.out.println("     with layer "+layer2.getName()+" is "+trueBox2.getMinX()+"<=X<="+trueBox2.getMaxX()+" and "+trueBox2.getMinY()+"<=Y<="+trueBox2.getMaxY());
+// System.out.println("Comparing layer "+layer1.getName()+" is "+trueBox1.getMinX()+"<=X<="+trueBox1.getMaxX()+" and "+trueBox1.getMinY()+"<=Y<="+trueBox1.getMaxY()+" on object "+geom1.describe());
+// System.out.println("     with layer "+layer2.getName()+" is "+trueBox2.getMinX()+"<=X<="+trueBox2.getMaxX()+" and "+trueBox2.getMinY()+"<=Y<="+trueBox2.getMaxY()+" on object "+geom2.describe());
 //}
 
 		/*
@@ -1259,6 +1258,8 @@ public class Quick
 			}
 
 			// crop out parts of any arc that is covered by an adjoining node
+			trueBox1 = new Rectangle2D.Double(trueBox1.getMinX(), trueBox1.getMinY(), trueBox1.getWidth(), trueBox1.getHeight());
+			trueBox2 = new Rectangle2D.Double(trueBox2.getMinX(), trueBox2.getMinY(), trueBox2.getWidth(), trueBox2.getHeight());
 			if (geom1 instanceof NodeInst)
 			{
 				if (cropNodeInst((NodeInst)geom1, globalIndex1, trans1,
@@ -1266,7 +1267,7 @@ public class Quick
 						return false;
 			} else
 			{
-				if (cropArcInst((ArcInst)geom1, layer1, trueBox1))
+				if (cropArcInst((ArcInst)geom1, layer1, trans1, trueBox1))
 					return false;
 			}
 			if (geom2 instanceof NodeInst)
@@ -1276,7 +1277,7 @@ public class Quick
 						return false;
 			} else
 			{
-				if (cropArcInst((ArcInst)geom2, layer2, trueBox2))
+				if (cropArcInst((ArcInst)geom2, layer2, trans2, trueBox2))
 					return false;
 			}
 //if (debug)
@@ -1344,6 +1345,7 @@ public class Quick
 			return false;
 		}
 		int errorType = SPACINGERROR;
+//if (debug) System.out.println("   POSSIBLE ERROR, distance="+pd+" but limit="+dist);
 
 		/*
 		 * special case: ignore errors between two active layers connected
@@ -1352,6 +1354,7 @@ public class Quick
 		 */
 		if (activeOnTransistor(poly1, layer1, net1,
 			poly2, layer2, net2, tech, cell, globalIndex)) return false;
+//if (debug) System.out.println("   Active-on-transistor rule doesn't help");
 
 		// special cases if the layers are the same
 		if (tech.sameLayer(layer1, layer2))
@@ -1379,6 +1382,7 @@ public class Quick
 				errorType = NOTCHERROR;
 			}
 		}
+//if (debug) System.out.println("   ERROR FOUND");
 
 		String msg = null;
 		if (tinyNodeInst != null)
@@ -2529,7 +2533,7 @@ public class Quick
 	 * are in the reference parameters (lx-hx, ly-hy).  Returns false
 	 * normally, 1 if the arcinst is cropped into oblivion.
 	 */
-	private static boolean cropArcInst(ArcInst ai, Layer lay, Rectangle2D bounds)
+	private static boolean cropArcInst(ArcInst ai, Layer lay, AffineTransform inTrans, Rectangle2D bounds)
 	{
 		for(int i=0; i<2; i++)
 		{
@@ -2539,14 +2543,19 @@ public class Quick
 			NodeInst ni = pi.getNodeInst();
 			NodeProto np = ni.getProto();
 			PortProto pp = pi.getPortProto();
+			AffineTransform trans = ni.rotateOut();
+			trans.concatenate(inTrans);
 			while (np instanceof Cell)
 			{
+				AffineTransform xTrans = ni.translateOut();
+				trans.preConcatenate(xTrans);
 				PortInst subPi = ((Export)pp).getOriginalPort();
 				ni = subPi.getNodeInst();
 				np = ni.getProto();
 				pp = subPi.getPortProto();
+				AffineTransform rTrans = ni.rotateOut();
+				trans.preConcatenate(rTrans);
 			}
-			AffineTransform trans = ni.rotateOut();
 			Technology tech = np.getTechnology();
 			Poly [] cropArcPolyList = tech.getShapeOfNode(ni, null, false, ignoreCenterCuts);
 			int tot = cropArcPolyList.length;

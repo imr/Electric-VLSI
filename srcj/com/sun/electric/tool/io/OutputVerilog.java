@@ -37,6 +37,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.PrimitiveNode;
@@ -67,7 +68,6 @@ public class OutputVerilog extends OutputTopology
 	/** key of Variable holding verilog wire time. */		public static final Variable.Key WIRE_TYPE_KEY = ElectricObject.newKey("SIM_verilog_wire_type");
 	/** key of Variable holding verilog templates. */		public static final Variable.Key VERILOG_TEMPLATE_KEY = ElectricObject.newKey("ATTR_verilog_template");
 
-	private HashMap cellNameMap;
 	private boolean mustBackAnnotate;
 	private int unconnectedNet;
 
@@ -108,43 +108,8 @@ public class OutputVerilog extends OutputTopology
 		}
 		emitCopyright("/* ", " */");
 
-		/*
-		 * determine whether any cells have name clashes in other libraries
-		 */
-		cellNameMap = new HashMap();
-		for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
-		{
-			Library lib = (Library)lIt.next();
-			if (lib.isHidden()) continue;
-			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
-			{
-				Cell cell = (Cell)cIt.next();
-				boolean duplicate = false;
-				for(Iterator oLIt = Library.getLibraries(); oLIt.hasNext(); )
-				{
-					Library oLib = (Library)oLIt.next();
-					if (oLib.isHidden()) continue;
-					if (oLib == lib) continue;
-					for(Iterator oCIt = oLib.getCells(); oCIt.hasNext(); )
-					{
-						Cell oCell = (Cell)oCIt.next();
-						if (cell.getProtoName().equalsIgnoreCase(oCell.getProtoName()))
-						{
-							duplicate = true;
-							break;
-						}
-					}
-					if (duplicate) break;
-				}
-
-				if (duplicate) cellNameMap.put(cell, cell.getLibrary().getLibName() + "__" + cell.getProtoName()); else
-					cellNameMap.put(cell, cell.getProtoName());
-			}
-		}
-
 		// gather all global signal names
-		boolean shortResistors = false;
-		Netlist netList = topCell.getNetlist(shortResistors);
+		Netlist netList = getNetlistForCell(topCell);
 		Global.Set globals = netList.getGlobals();
 		int globalSize = globals.size();
 		if (globalSize > 0)
@@ -247,15 +212,14 @@ public class OutputVerilog extends OutputTopology
 //		}
 
 		// gather networks in the cell
-		boolean shortResistors = false;
-		Netlist netList = cell.getNetlist(shortResistors);
+		Netlist netList = getNetlistForCell(cell);
 
 		// write the module header
 		printWriter.print("\n");
 		StringBuffer sb = new StringBuffer();
 		sb.append("module ");
-//		if (paramname != 0) sb.append(convertVerName(paramname)); else
-			sb.append(getVerCellName(cell));
+//		if (paramname != 0) sb.append(getSafeNetName(paramname)); else
+			sb.append(getUniqueCellName(cell));
 		sb.append("(");
 		boolean first = true;
 		for(Iterator it = cn.portInfo.iterator(); it.hasNext(); )
@@ -326,6 +290,8 @@ public class OutputVerilog extends OutputTopology
 			}
 		}
 		if (!first) printWriter.print("\n");
+//		public void setUserBit(boolean bit) { this.bit = bit; }
+//		public boolean getUserBit() { return bit; }
 
 		// describe power and ground nets
 		if (cn.pwrNet != null) printWriter.print("  supply1 vdd;\n");
@@ -337,7 +303,6 @@ public class OutputVerilog extends OutputTopology
 
 		// write "wire/trireg" declarations for internal single-wide signals
 		int localWires = 0;
-		int emptyName = 1;
 		for(int wt=0; wt<2; wt++)
 		{
 			first = true;
@@ -543,10 +508,10 @@ public class OutputVerilog extends OutputTopology
 			String nodeName = null;
 			if (niProto instanceof Cell)
 			{
-				nodeName = getVerCellName((Cell)niProto);
+				nodeName = getUniqueCellName((Cell)niProto);
 //				String pname = parameterizedname(ni, nodeName);
 //				if (pname != 0)
-//					nodeName = convertVerName(pname);
+//					nodeName = getSafeNetName(pname);
 			} else
 			{
 				nodeName = niProto.getProtoName();
@@ -575,35 +540,20 @@ public class OutputVerilog extends OutputTopology
 				} else if (nodeType == NodeProto.Function.GATEAND)
 				{
 					implicitPorts = 1;
-					nodeName = "and";
-//					for(pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//						if (estrcmp(pi->proto->protoname, x_("y")) == 0) break;
-//					if (pi != NOPORTARCINST && (pi->conarcinst->userbits&ISNEGATED) != 0)
-//						pt = x_("nand");
+					nodeName = chooseNodeName((NodeInst)no, "and", "nand");
 				} else if (nodeType == NodeProto.Function.GATEOR)
 				{
 					implicitPorts = 1;
-					nodeName = "or";
-//					for(pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//						if (estrcmp(pi->proto->protoname, x_("y")) == 0) break;
-//					if (pi != NOPORTARCINST && (pi->conarcinst->userbits&ISNEGATED) != 0)
-//						pt = x_("nor");
+					nodeName = chooseNodeName((NodeInst)no, "or", "nor");
 				} else if (nodeType == NodeProto.Function.GATEXOR)
 				{
 					implicitPorts = 1;
-					nodeName = "xor";
-//					for(pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//						if (estrcmp(pi->proto->protoname, x_("y")) == 0) break;
-//					if (pi != NOPORTARCINST && (pi->conarcinst->userbits&ISNEGATED) != 0)
-//						pt = x_("xnor");
+					nodeName = chooseNodeName((NodeInst)no, "xor", "xnor");
 				} else if (nodeType == NodeProto.Function.BUFFER)
 				{
 					implicitPorts = 1;
+					nodeName = chooseNodeName((NodeInst)no, "buf", "not");
 					nodeName = "buf";
-//					for(pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//						if (estrcmp(pi->proto->protoname, x_("y")) == 0) break;
-//					if (pi != NOPORTARCINST && (pi->conarcinst->userbits&ISNEGATED) != 0)
-//						pt = x_("not");
 				}
 			}
 
@@ -633,124 +583,11 @@ public class OutputVerilog extends OutputTopology
 			{
 				case 0:		// explicit ports
 					// special case for Verilog templates
-//					if (varTemplate != NOVARIABLE)
-//					{
-//						infstr = initinfstr();
-//						addstringtoinfstr(infstr, x_("  "));
-//						for(pt = (CHAR *)varTemplate->addr; *pt != 0; pt++)
-//						{
-//							if (pt[0] != '$' || pt[1] != '(')
-//							{
-//								addtoinfstr(infstr, *pt);
-//								continue;
-//							}
-//							startpt = pt + 2;
-//							for(pt = startpt; *pt != 0; pt++)
-//								if (*pt == ')') break;
-//							save = *pt;
-//							*pt = 0;
-//							pp = getportproto(ni->proto, startpt);
-//							if (pp != NOPORTPROTO)
-//							{
-//								// port name found: use its verilog node
-//								net = getNetOnPort(ni, pp);
-//								if (net == NONETWORK)
-//								{
-//									formatinfstr(infstr, x_("UNCONNECTED%ld"), unconnectedNet++);
-//								} else
-//								{
-//									if (net->buswidth > 1)
-//									{
-//										sigcount = net->buswidth;
-//										if (nodewidth > 1 && pp->network->buswidth * nodewidth == net->buswidth)
-//										{
-//											// map wide bus to a particular instantiation of an arrayed node
-//											if (pp->network->buswidth == 1)
-//											{
-//												onet = net->networklist[nindex];
-//												if (onet == pwrnet) addstringtoinfstr(infstr, x_("vdd")); else
-//													if (onet == gndnet) addstringtoinfstr(infstr, x_("gnd")); else
-//														addstringtoinfstr(infstr, &((CHAR *)onet->temp2)[1]);
-//											} else
-//											{
-//												outernetlist = (NETWORK **)emalloc(pp->network->buswidth * (sizeof (NETWORK *)),
-//													sim_tool->cluster);
-//												for(j=0; j<pp->network->buswidth; j++)
-//													outernetlist[j] = net->networklist[i + nindex*pp->network->buswidth];
-//												for(opt = pp->protoname; *opt != 0; opt++)
-//													if (*opt == '[') break;
-//												osave = *opt;
-//												*opt = 0;
-//												writeBus(outernetlist, 0, net->buswidth-1, 0,
-//													0, pwrnet, gndnet, infstr);
-//												*opt = osave;
-//												efree((CHAR *)outernetlist);
-//											}
-//										} else
-//										{
-//											if (pp->network->buswidth != net->buswidth)
-//											{
-//												ttyputerr(_("***ERROR: port %s on node %s in cell %s is %d wide, but is connected/exported with width %d"),
-//													pp->protoname, describenodeinst(ni), describenodeproto(np),
-//														cpp->network->buswidth, net->buswidth);
-//												sigcount = mini(sigcount, cpp->network->buswidth);
-//												if (sigcount == 1) sigcount = 0;
-//											}
-//											outernetlist = (NETWORK **)emalloc(net->buswidth * (sizeof (NETWORK *)),
-//												sim_tool->cluster);
-//											for(j=0; j<net->buswidth; j++)
-//												outernetlist[j] = net->networklist[j];
-//											for(opt = pp->protoname; *opt != 0; opt++)
-//												if (*opt == '[') break;
-//											osave = *opt;
-//											*opt = 0;
-//											writeBus(outernetlist, 0, net->buswidth-1, 0,
-//												0, pwrnet, gndnet, infstr);
-//											*opt = osave;
-//											efree((CHAR *)outernetlist);
-//										}
-//									} else
-//									{
-//										if (net == pwrnet) addstringtoinfstr(infstr, x_("vdd")); else
-//											if (net == gndnet) addstringtoinfstr(infstr, x_("gnd")); else
-//												addstringtoinfstr(infstr, &((CHAR *)net->temp2)[1]);
-//									}
-//								}
-//							} else if (namesame(startpt, x_("node_name")) == 0)
-//							{
-//								if (nodewidth > 1) opt = nodenames[nindex]; else
-//								{
-//									var = getvalkey((INTBIG)ni, VNODEINST, VSTRING, el_node_name_key);
-//									if (var == NOVARIABLE) opt = x_(""); else
-//										opt = (CHAR *)var->addr;
-//								}
-//								addstringtoinfstr(infstr, nameNoIndices(opt));
-//							} else
-//							{
-//								// no port name found, look for variable name
-//								esnprintf(line, 200, x_("ATTR_%s"), startpt);
-//								var = getval((INTBIG)ni, VNODEINST, -1, line);
-//								if (var == NOVARIABLE)
-//									var = getval((INTBIG)ni, VNODEINST, -1, startpt);
-//								if (var == NOVARIABLE)
-//								{
-//									// value not found: see if this is a parameter and use default
-//									nip = ni->proto;
-//									nipc = contentsview(nip);
-//									if (nipc != NONODEPROTO) nip = nipc;
-//									var = getval((INTBIG)nip, VNODEPROTO, -1, line);
-//								}
-//								if (var == NOVARIABLE)
-//									addstringtoinfstr(infstr, x_("??")); else
-//								{
-//									addstringtoinfstr(infstr, describesimplevariable(var));
-//								}
-//							}
-//							*pt = save;
-//							if (save == 0) break;
-//						}
-//						break;
-//					}
+					if (varTemplate != null)
+					{
+						writeTemplate((String)varTemplate.getObject(), no);
+						break;
+					}
 
 					// generate the line the normal way
 					OutputTopology.CellNets subCn = getCellNets((Cell)niProto);
@@ -900,9 +737,8 @@ public class OutputVerilog extends OutputTopology
 //								// this input is negated: write the implicit inverter
 //								esnprintf(invsigname, 100, x_("%s%ld"), IMPLICITINVERTERSIGNAME,
 //									pi->conarcinst->temp1+nindex);
-//								printWriter.print(sim_verfile, x_("  inv %s%ld (%s, %s);\n"),
-//									IMPLICITINVERTERNODENAME, pi->conarcinst->temp1+nindex,
-//										invsigname, signame);
+//								printWriter.print("  inv " + IMPLICITINVERTERNODENAME +
+//									(pi->conarcinst->temp1+nindex) + " (" + invsigname + ", " + signame + ");\n");
 //								signame = invsigname;
 //							}
 							infstr.append(sigName);
@@ -913,9 +749,140 @@ public class OutputVerilog extends OutputTopology
 			}
 			writeLongLine(infstr.toString());
 		}
-		String moduleName = getVerCellName(cell);
-//		if (paramname != 0) moduleName = convertVerName(paramname);
+		String moduleName = getUniqueCellName(cell);
+//		if (paramname != 0) moduleName = getSafeNetName(paramname);
 		printWriter.print("endmodule   /* " + moduleName + " */\n");
+	}
+
+	private String chooseNodeName(NodeInst ni, String positive, String negative)
+	{
+		for(Iterator aIt = ni.getConnections(); aIt.hasNext(); )
+		{
+			Connection con = (Connection)aIt.next();
+			if (con.getPortInst().getPortProto().getProtoName().equals("y") &&
+				con.getArc().isNegated()) return negative;
+		}
+		return positive;
+	}
+
+	private void writeTemplate(String line, Nodable no)
+	{
+//		// special case for Verilog templates
+//		StringBuffer infstr = new StringBuffer();
+//		infstr.append("  ");
+//		for(int pt = 0; pt < line.length(); pt++)
+//		{
+//			char chr = line.charAt(pt);
+//			if (chr != '$' || line.charAt(pt+1) != '(')
+//			{
+//				infstr.append(chr);
+//				continue;
+//			}
+//			int startpt = pt + 2;
+//			for(pt = startpt; pt < line.length(); pt++)
+//				if (*pt == ')') break;
+//			save = *pt;
+//			*pt = 0;
+//			pp = getportproto(ni->proto, startpt);
+//			if (pp != NOPORTPROTO)
+//			{
+//				// port name found: use its verilog node
+//				net = getNetOnPort(ni, pp);
+//				if (net == NONETWORK)
+//				{
+//					formatinfstr(infstr, x_("UNCONNECTED%ld"), unconnectedNet++);
+//				} else
+//				{
+//					if (net->buswidth > 1)
+//					{
+//						sigcount = net->buswidth;
+//						if (nodewidth > 1 && pp->network->buswidth * nodewidth == net->buswidth)
+//						{
+//							// map wide bus to a particular instantiation of an arrayed node
+//							if (pp->network->buswidth == 1)
+//							{
+//								onet = net->networklist[nindex];
+//								if (onet == pwrnet) addstringtoinfstr(infstr, x_("vdd")); else
+//									if (onet == gndnet) addstringtoinfstr(infstr, x_("gnd")); else
+//										addstringtoinfstr(infstr, &((CHAR *)onet->temp2)[1]);
+//							} else
+//							{
+//								outernetlist = (NETWORK **)emalloc(pp->network->buswidth * (sizeof (NETWORK *)),
+//									sim_tool->cluster);
+//								for(j=0; j<pp->network->buswidth; j++)
+//									outernetlist[j] = net->networklist[i + nindex*pp->network->buswidth];
+//								for(opt = pp->protoname; *opt != 0; opt++)
+//									if (*opt == '[') break;
+//								osave = *opt;
+//								*opt = 0;
+//								writeBus(outernetlist, 0, net->buswidth-1, 0,
+//									0, pwrnet, gndnet, infstr);
+//								*opt = osave;
+//								efree((CHAR *)outernetlist);
+//							}
+//						} else
+//						{
+//							if (pp->network->buswidth != net->buswidth)
+//							{
+//								ttyputerr(_("***ERROR: port %s on node %s in cell %s is %d wide, but is connected/exported with width %d"),
+//									pp->protoname, describenodeinst(ni), describenodeproto(np),
+//										cpp->network->buswidth, net->buswidth);
+//								sigcount = mini(sigcount, cpp->network->buswidth);
+//								if (sigcount == 1) sigcount = 0;
+//							}
+//							outernetlist = (NETWORK **)emalloc(net->buswidth * (sizeof (NETWORK *)),
+//								sim_tool->cluster);
+//							for(j=0; j<net->buswidth; j++)
+//								outernetlist[j] = net->networklist[j];
+//							for(opt = pp->protoname; *opt != 0; opt++)
+//								if (*opt == '[') break;
+//							osave = *opt;
+//							*opt = 0;
+//							writeBus(outernetlist, 0, net->buswidth-1, 0,
+//								0, pwrnet, gndnet, infstr);
+//							*opt = osave;
+//							efree((CHAR *)outernetlist);
+//						}
+//					} else
+//					{
+//						if (net == pwrnet) addstringtoinfstr(infstr, x_("vdd")); else
+//							if (net == gndnet) addstringtoinfstr(infstr, x_("gnd")); else
+//								addstringtoinfstr(infstr, &((CHAR *)net->temp2)[1]);
+//					}
+//				}
+//			} else if (namesame(startpt, x_("node_name")) == 0)
+//			{
+//				if (nodewidth > 1) opt = nodenames[nindex]; else
+//				{
+//					var = getvalkey((INTBIG)ni, VNODEINST, VSTRING, el_node_name_key);
+//					if (var == NOVARIABLE) opt = x_(""); else
+//						opt = (CHAR *)var->addr;
+//				}
+//				addstringtoinfstr(infstr, nameNoIndices(opt));
+//			} else
+//			{
+//				// no port name found, look for variable name
+//				esnprintf(line, 200, x_("ATTR_%s"), startpt);
+//				var = getval((INTBIG)ni, VNODEINST, -1, line);
+//				if (var == NOVARIABLE)
+//					var = getval((INTBIG)ni, VNODEINST, -1, startpt);
+//				if (var == NOVARIABLE)
+//				{
+//					// value not found: see if this is a parameter and use default
+//					nip = ni->proto;
+//					nipc = contentsview(nip);
+//					if (nipc != NONODEPROTO) nip = nipc;
+//					var = getval((INTBIG)nip, VNODEPROTO, -1, line);
+//				}
+//				if (var == NOVARIABLE)
+//					addstringtoinfstr(infstr, x_("??")); else
+//				{
+//					addstringtoinfstr(infstr, describesimplevariable(var));
+//				}
+//			}
+//			*pt = save;
+//			if (save == 0) break;
+//		}
 	}
 
 	/*
@@ -1095,32 +1062,14 @@ public class OutputVerilog extends OutputTopology
 	 */
 	private void writeLongLine(String s)
 	{
-//		lastspace = NULL;
-//		i = 0;
-//		for (pt = s; *pt; pt++)
-//		{
-//			if (*pt == ' ' || *pt == ',') lastspace = pt;
-//			++i;
-//			if (i >= MAXDECLARATIONWIDTH)
-//			{
-//				if (lastspace != NULL)
-//				{
-//					if (*lastspace != ' ') lastspace++;
-//					save = *lastspace;   *lastspace = 0;
-//					xputs(s, sim_verfile);
-//					*lastspace = save;
-//					xputs(x_("\n      "), sim_verfile);
-//					s = lastspace;
-//					if (*s == ' ') s++;
-//					i = 6 + pt-s+1;
-//					lastspace = NULL;
-//				} else
-//				{
-//					xputs(x_("\n      "), sim_verfile);
-//					i = 6 + 1;
-//				}
-//			}
-//		}
+		while (s.length() > MAXDECLARATIONWIDTH)
+		{
+			int lastSpace = s.lastIndexOf(' ', MAXDECLARATIONWIDTH);
+			if (lastSpace < 0) lastSpace = MAXDECLARATIONWIDTH;
+			printWriter.print(s.substring(0, lastSpace) + "\n      ");
+			while (lastSpace+1 < s.length() && s.charAt(lastSpace) == ' ') lastSpace++;
+			s = s.substring(lastSpace);
+		}
 		printWriter.print(s + "\n");
 	}
 
@@ -1163,59 +1112,6 @@ public class OutputVerilog extends OutputTopology
 	}
 
 	/*
-	 * Method to return the name of cell "c", given that it may be ambiguously used in multiple
-	 * libraries.
-	 */
-	private String getVerCellName(Cell cell)
-	{
-		String name = (String)cellNameMap.get(cell);
-		return name;
-	}
-
-	/*
-	 * Method to adjust name "p" and return the string.
-	 * Verilog does permit a digit in the first location; prepend a "_" if found.
-	 * Verilog only permits the "_" and "$" characters: all others are converted to "_".
-	 * Verilog does not permit nonnumeric indices, so "P[A]" is converted to "P_A_"
-	 * Verilog does not permit multidimensional arrays, so "P[1][2]" is converted to "P_1_[2]"
-	 *   and "P[1][T]" is converted to "P_1_T_"
-	 */
-	private String convertVerName(String p)
-	{
-		// simple names are trivially accepted as is
-		boolean allAlnum = true;
-		for(int i=0; i<p.length(); i++)
-		{
-			if (!Character.isLetterOrDigit(p.charAt(i))) { allAlnum = false;   break; }
-		}
-		if (allAlnum && Character.isLetter(p.charAt(0))) return p;
-
-		StringBuffer sb = new StringBuffer();
-		String end = OutputTopology.sim_verstartofindex(p);
-		for(int t=0; t<end.length(); t++)
-		{
-			char chr = end.charAt(t);
-			if (chr == '[' || chr == ']')
-			{
-				sb.append('_');
-				if (chr == ']' && end.charAt(t+1) == '[') t++;
-			} else
-			{
-				if (Character.isLetterOrDigit(chr) || chr == '_' || chr == '$')
-					sb.append(chr); else
-						sb.append('_');
-			}
-		}
-		if (end.length() < p.length())
-		{
-			for(int t=end.length(); t<p.length(); t++)
-				sb.append(p.charAt(t));
-			sb.append('_');
-		}
-		return sb.toString();
-	}
-
-	/*
 	 * Method to adjust name "p" and return the string.
 	 * This code removes all index indicators and other special characters, turning
 	 * them into "_".
@@ -1233,101 +1129,53 @@ public class OutputVerilog extends OutputTopology
 		return sb.toString();
 	}
 
-	/*
-	 * Method to return the network connected to node "ni", port "pp".
-	 */
-//	private JNetwork getNetOnPort(Netlist netList, Nodable no, PortProto pp)
-//	{
-//		JNetwork net = netList.getNetwork(no, pp, 0);
-//		return net;
-//	}
+	protected String getSafeCellName(String name)
+	{
+		return getSafeNetName(name);
+	}
 
 	/*
-	 * Method to recursively examine cells and gather global network names.
+	 * Method to adjust name "p" and return the string.
+	 * Verilog does permit a digit in the first location; prepend a "_" if found.
+	 * Verilog only permits the "_" and "$" characters: all others are converted to "_".
+	 * Verilog does not permit nonnumeric indices, so "P[A]" is converted to "P_A_"
+	 * Verilog does not permit multidimensional arrays, so "P[1][2]" is converted to "P_1_[2]"
+	 *   and "P[1][T]" is converted to "P_1_T_"
 	 */
-//	void gatherGlobals(NODEPROTO *np)
-//	{
-//		REGISTER INTBIG i, newtotal, globalnet;
-//		REGISTER UINTBIG *newchars;
-//		NETWORK *net;
-//		REGISTER CHAR *gname, **newlist;
-//		REGISTER NODEPROTO *onp, *cnp;
-//		REGISTER NODEINST *ni;
-//		REGISTER PORTARCINST *pi;
-//
-//		if (np->temp1 != 0) return;
-//		np->temp1 = 1;
-//
-//		// mark all exported nets
-//		for(ni = np->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//		{
-//			if (ni->proto != sch_globalprim) continue;
-//			pi = ni->firstportarcinst;
-//			if (pi == NOPORTARCINST) continue;
-//			net = pi->conarcinst->network;
-//			if (net == NONETWORK) continue;	
-//			globalnet = net->globalnet;
-//			if (globalnet < 2) continue;
-//
-//			// global net found: see if it is already in the list
-//			gname = convertVerName(np->globalnetnames[globalnet]);
-//			for(i=0; i<sim_verilogglobalnetcount; i++)
-//				if (namesame(gname, sim_verilogglobalnets[i]) == 0) break;
-//			if (i < sim_verilogglobalnetcount) continue;
-//
-//			// add the global net name
-//			if (sim_verilogglobalnetcount >= sim_verilogglobalnettotal)
-//			{
-//				newtotal = sim_verilogglobalnettotal * 2;
-//				if (sim_verilogglobalnetcount >= newtotal)
-//					newtotal = sim_verilogglobalnetcount + 5;
-//				newlist = (CHAR **)emalloc(newtotal * (sizeof (CHAR *)), sim_tool->cluster);
-//				if (newlist == 0) return;
-//				newchars = (UINTBIG *)emalloc(newtotal * SIZEOFINTBIG, sim_tool->cluster);
-//				if (newchars == 0) return;
-//				for(i=0; i<sim_verilogglobalnettotal; i++)
-//				{
-//					newlist[i] = sim_verilogglobalnets[i];
-//					newchars[i] = sim_verilogglobalchars[i];
-//				}
-//				for(i=sim_verilogglobalnettotal; i<newtotal; i++)
-//					newlist[i] = 0;
-//				if (sim_verilogglobalnettotal > 0)
-//				{
-//					efree((CHAR *)sim_verilogglobalnets);
-//					efree((CHAR *)sim_verilogglobalchars);
-//				}
-//				sim_verilogglobalnets = newlist;
-//				sim_verilogglobalchars = newchars;
-//				sim_verilogglobalnettotal = newtotal;
-//			}
-//			if (sim_verilogglobalnets[sim_verilogglobalnetcount] != 0)
-//				efree((CHAR *)sim_verilogglobalnets[sim_verilogglobalnetcount]);
-//			(void)allocstring(&sim_verilogglobalnets[sim_verilogglobalnetcount], gname,
-//				sim_tool->cluster);
-//
-//			// should figure out the characteristics of this global!!!
-//			sim_verilogglobalchars[sim_verilogglobalnetcount] =
-//				((ni->userbits&NTECHBITS) >> NTECHBITSSH) << STATEBITSSH;
-//			sim_verilogglobalnetcount++;
-//		}
-//
-//		for(ni = np->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//		{
-//			onp = ni->proto;
-//			if (onp->primindex != 0) continue;
-//
-//			// ignore recursive references (showing icon in contents)
-//			if (isiconof(onp, np)) continue;
-//
-//			if (onp->cellview == el_iconview)
-//			{
-//				cnp = contentsview(onp);
-//				if (cnp != NONODEPROTO) onp = cnp;
-//			}
-//
-//			gatherGlobals(onp);
-//		}
-//	}
+	protected String getSafeNetName(String name)
+	{
+		// simple names are trivially accepted as is
+		boolean allAlnum = true;
+		for(int i=0; i<name.length(); i++)
+		{
+			if (!Character.isLetterOrDigit(name.charAt(i))) { allAlnum = false;   break; }
+		}
+		if (allAlnum && Character.isLetter(name.charAt(0))) return name;
+
+		StringBuffer sb = new StringBuffer();
+		for(int t=0; t<name.length(); t++)
+		{
+			char chr = name.charAt(t);
+			if (chr == '[' || chr == ']')
+			{
+				sb.append('_');
+				if (t+1 < name.length() && chr == ']' && name.charAt(t+1) == '[') t++;
+			} else
+			{
+				if (Character.isLetterOrDigit(chr) || chr == '$')
+					sb.append(chr); else
+						sb.append('_');
+			}
+		}
+		return sb.toString();
+	}
+
+	protected Netlist getNetlistForCell(Cell cell)
+	{
+		// get network information about this cell
+		boolean shortResistors = false;
+		Netlist netList = cell.getNetlist(shortResistors);
+		return netList;
+	}
 
 }

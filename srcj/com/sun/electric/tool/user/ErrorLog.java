@@ -264,8 +264,7 @@ public class ErrorLog
 
 		if (errs > 0 && explain)
 		{
-			System.out.println("Type > and < to step through errors");
-			System.out.println("Or open the ERRORS view in the explorer");
+			System.out.println("Type > and < to step through errors, or open the ERRORS view in the explorer");
 		}
 		rebuildExplorerTree();
 		ExplorerTree.explorerTreeChanged();

@@ -785,8 +785,9 @@ public class DRC extends Tool
 		Variable varDate = cell.getVar(LAST_GOOD_DRC, Integer[].class);
 		if (varDate == null) return null;
 		Integer [] lastDRCDateAsInts = (Integer [])varDate.getObject();
-		long lastDRCDateInSeconds = ((long)lastDRCDateAsInts[0].intValue() << 32) |
-			(lastDRCDateAsInts[1].intValue() & 0xFFFFFFFF);
+		long lastDRCDateInSecondsHigh = lastDRCDateAsInts[0].intValue();
+		long lastDRCDateInSecondsLow = lastDRCDateAsInts[1].intValue();
+		long lastDRCDateInSeconds = (lastDRCDateInSecondsHigh << 32) | (lastDRCDateInSecondsLow & 0xFFFFFFFFL);
 		Date lastDRCDate = new Date(lastDRCDateInSeconds);
 		return lastDRCDate;
 	}
@@ -802,7 +803,6 @@ public class DRC extends Tool
 		dateArray[0] = new Integer((int)(iVal >> 32));
 		dateArray[1] = new Integer((int)(iVal & 0xFFFFFFFF));
 		cell.newVar(DRC.LAST_GOOD_DRC, dateArray);
-//		tool.setVarInJob(cell, LAST_GOOD_DRC, dateArray);
 	}
 	/**
 	 * Method to delete all cached date information on all cells.
