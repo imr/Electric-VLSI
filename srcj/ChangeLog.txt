@@ -2,6 +2,9 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.01v: *********************************
+
+
 ************************* Version 8.01u: *********************************
 
 BUG: (9/20/04, GVG) DRC and minimum area checking: no merging correctly poly and transistor-poly areas
