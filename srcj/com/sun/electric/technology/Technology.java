@@ -1555,7 +1555,7 @@ public class Technology
 		// determine the number of polygons (considering that it may be "wiped")
 		int numBasicLayers = primLayers.length;
 		// Determine if possible cutlayer is really a contact layer
-		boolean isCutLayer = /*np.getFunction() == PrimitiveNode.Function.CONTACT &&*/ primLayers[numBasicLayers-1].getLayer().getFunction().isContact();
+		boolean isCutLayer = (numBasicLayers > 0) && /*np.getFunction() == PrimitiveNode.Function.CONTACT &&*/ primLayers[numBasicLayers-1].getLayer().getFunction().isContact();
 
 		// if a MultiCut contact, determine the number of extra cuts
 		int numExtraLayers = 0;
