@@ -215,7 +215,7 @@ public class Generic extends Technology
 		portNode.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, portNode, new ArcProto[] {invisible_arc,universal_arc}, "center", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
+					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		portNode.setFunction(PrimitiveNode.Function.ART);
 		portNode.setCanBeZeroSize();

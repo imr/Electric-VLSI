@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: Create.java
+ * File: Manipulate.java
  * User tool: Technology Editor, creation
  * Written by Steven M. Rubin, Sun Microsystems.
  *
@@ -27,6 +27,7 @@ package com.sun.electric.tool.user.tecEdit;
 
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -37,6 +38,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
@@ -55,13 +57,16 @@ import com.sun.electric.tool.user.dialogs.PromptAt;
 import com.sun.electric.tool.user.Highlighter;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.StringTokenizer;
 import java.util.Iterator;
+import java.util.HashSet;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.JButton;
+import java.awt.geom.Rectangle2D;
 import java.awt.Point;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
@@ -71,9 +76,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
 /**
- * This class creates technology libraries from technologies.
+ * This class manipulates technology libraries from technologies.
  */
-public class Create
+public class Manipulate
 {
 
 //	/* these must correspond to the layer functions in "efunction.h" */
@@ -191,83 +196,6 @@ public class Create
 //			us_tecfromlibinit(el_curlib, pp, 0);
 //			return;
 //		}
-//		if (namesamen(pp, x_("tech-to-library"), l) == 0)
-//		{
-//			if (count == 1) tech = el_curtech; else
-//			{
-//				tech = gettechnology(par[1]);
-//				if (tech == NOTECHNOLOGY)
-//				{
-//					us_abortcommand(_("Technology '%s' unknown"), par[1]);
-//					return;
-//				}
-//			}
-//			if ((tech.userbits&NONSTANDARD) != 0)
-//			{
-//				us_abortcommand(_("Cannot convert technology '%s', it is nonstandard"), tech.techname);
-//				return;
-//			}
-//	
-//			// see if there is already such a library
-//			for(lib = el_curlib; lib != NOLIBRARY; lib = lib.nextlibrary)
-//				if (namesame(lib.libname, tech.techname) == 0) break;
-//			if (lib != NOLIBRARY)
-//				ttyputmsg(_("Already a library called %s, using that"), lib.libname); else
-//					lib = us_tecedmakelibfromtech(tech);
-//			if (lib != NOLIBRARY)
-//			{
-//				newpar[0] = x_("use");
-//				newpar[1] = lib.libname;
-//				us_library(2, newpar);
-//				us_tecedloadlibmap(lib);
-//			}
-//			return;
-//		}
-//		if (namesamen(pp, x_("reorder-arcs"), l) == 0 && l >= 9)
-//		{
-//			us_reorderprimdlog(_("Arcs"), x_("arc-"), x_("EDTEC_arcsequence"));
-//			return;
-//		}
-//		if (namesamen(pp, x_("reorder-nodes"), l) == 0 && l >= 9)
-//		{
-//			us_reorderprimdlog(_("Nodes"), x_("node-"), x_("EDTEC_nodesequence"));
-//			return;
-//		}
-//		if (namesamen(pp, x_("reorder-layers"), l) == 0 && l >= 9)
-//		{
-//			us_reorderprimdlog(_("Layers"), x_("layer-"), x_("EDTEC_layersequence"));
-//			return;
-//		}
-//		if (namesamen(pp, x_("inquire-layer"), l) == 0 && l >= 2)
-//		{
-//			us_teceditinquire();
-//			return;
-//		}
-//		if (namesamen(pp, x_("place-layer"), l) == 0)
-//		{
-//			if (count < 2)
-//			{
-//				ttyputusage(x_("technology edit place-layer SHAPE"));
-//				return;
-//			}
-//	
-//			us_teceditcreat(count-1, &par[1]);
-//			return;
-//		}
-//		if (namesamen(pp, x_("change"), l) == 0 && l >= 2)
-//		{
-//			// in outline edit, create a point
-//			if ((el_curwindowpart.state&WINDOWOUTLINEEDMODE) != 0)
-//			{
-//				newpar[0] = x_("trace");
-//				newpar[1] = x_("add-point");
-//				us_node(2, newpar);
-//				return;
-//			}
-//	
-//			us_teceditmodobject(count-1, &par[1]);
-//			return;
-//		}
 //		if (namesamen(pp, x_("edit-node"), l) == 0 && l >= 6)
 //		{
 //			if (count < 2)
@@ -349,58 +277,6 @@ public class Create
 //			(void)us_tecedentercell(describenodeproto(np));
 //			return;
 //		}
-//		if (namesamen(pp, x_("edit-subsequent"), l) == 0 && l >= 6)
-//		{
-//			np = us_needcell();
-//			if (np == NONODEPROTO) return;
-//			if (namesamen(np.protoname, x_("node-"), 5) == 0)
-//			{
-//				dependentlibcount = us_teceditgetdependents(el_curlib, &dependentlibs);
-//				i = us_teceditfindsequence(dependentlibs, dependentlibcount, x_("node-"),
-//					x_("EDTEC_nodesequence"), &sequence);
-//				if (i == 0) return;
-//				for(l=0; l<i; l++) if (sequence[l] == np)
-//				{
-//					if (l == i-1) np = sequence[0]; else np = sequence[l+1];
-//					(void)us_tecedentercell(describenodeproto(np));
-//					break;
-//				}
-//				efree((CHAR *)sequence);
-//				return;
-//			}
-//			if (namesamen(np.protoname, x_("arc-"), 4) == 0)
-//			{
-//				dependentlibcount = us_teceditgetdependents(el_curlib, &dependentlibs);
-//				i = us_teceditfindsequence(dependentlibs, dependentlibcount, x_("arc-"),
-//					x_("EDTEC_arcsequence"), &sequence);
-//				if (i == 0) return;
-//				for(l=0; l<i; l++) if (sequence[l] == np)
-//				{
-//					if (l == i-1) np = sequence[0]; else np = sequence[l+1];
-//					(void)us_tecedentercell(describenodeproto(np));
-//					break;
-//				}
-//				efree((CHAR *)sequence);
-//				return;
-//			}
-//			if (namesamen(np.protoname, x_("layer-"), 6) == 0)
-//			{
-//				dependentlibcount = us_teceditgetdependents(el_curlib, &dependentlibs);
-//				i = us_teceditfindsequence(dependentlibs, dependentlibcount, x_("layer-"),
-//					x_("EDTEC_layersequence"), &sequence);
-//				if (i == 0) return;
-//				for(l=0; l<i; l++) if (sequence[l] == np)
-//				{
-//					if (l == i-1) np = sequence[0]; else np = sequence[l+1];
-//					(void)us_tecedentercell(describenodeproto(np));
-//					break;
-//				}
-//				efree((CHAR *)sequence);
-//				return;
-//			}
-//			ttyputerr(_("Must be editing a layer, node, or arc to advance to the next"));
-//			return;
-//		}
 //		if (namesamen(pp, x_("edit-colors"), l) == 0 && l >= 6)
 //		{
 //			us_teceditcolormap();
@@ -409,24 +285,6 @@ public class Create
 //		if (namesamen(pp, x_("edit-design-rules"), l) == 0 && l >= 6)
 //		{
 //			us_teceditdrc();
-//			return;
-//		}
-//		if (namesamen(pp, x_("edit-misc-information"), l) == 0 && l >= 6)
-//		{
-//			// first make sure all fields exist
-//			np = getnodeproto(x_("factors"));
-//			if (np != NONODEPROTO)
-//			{
-//				us_tecedmakeinfo(np, 2000, el_curlib.libname);
-//				(*el_curconstraint.solve)(np);
-//			}
-//	
-//			// now edit the cell
-//			np = us_tecedentercell(x_("factors"));
-//			if (np == NONODEPROTO) return;
-//			us_tecedmakeinfo(np, 2000, el_curlib.libname);
-//			(*el_curconstraint.solve)(np);
-//			(void)us_tecedentercell(describenodeproto(np));
 //			return;
 //		}
 //		if (namesamen(pp, x_("identify-layers"), l) == 0 && l >= 10)
@@ -444,7 +302,7 @@ public class Create
 //			if (count < 2)
 //			{
 //				// display dependent library names
-//				var = getval((INTBIG)el_curlib, VLIBRARY, VSTRING|VISARRAY, x_("EDTEC_dependent_libraries"));
+//				var = el_curlib.getVar(Generate.DEPENDENTLIB_KEY);
 //				if (var == NOVARIABLE) ttyputmsg(_("There are no dependent libraries")); else
 //				{
 //					i = getlength(var);
@@ -462,9 +320,9 @@ public class Create
 //			// clear list if just "-" is given
 //			if (count == 2 && estrcmp(par[1], x_("-")) == 0)
 //			{
-//				var = getval((INTBIG)el_curlib, VLIBRARY, VSTRING|VISARRAY, x_("EDTEC_dependent_libraries"));
+//				var = el_curlib.getVar(Generate.DEPENDENTLIB_KEY);
 //				if (var != NOVARIABLE)
-//					(void)delval((INTBIG)el_curlib, VLIBRARY, x_("EDTEC_dependent_libraries"));
+//					delval((INTBIG)el_curlib, VLIBRARY, Generate.DEPENDENTLIB_KEY);
 //				return;
 //			}
 //	
@@ -472,8 +330,7 @@ public class Create
 //			dependentlist = (CHAR **)emalloc((count-1) * (sizeof (CHAR *)), el_tempcluster);
 //			if (dependentlist == 0) return;
 //			for(i=1; i<count; i++) dependentlist[i-1] = par[i];
-//			(void)setval((INTBIG)el_curlib, VLIBRARY, x_("EDTEC_dependent_libraries"), (INTBIG)dependentlist,
-//				VSTRING|VISARRAY|((count-1)<<VLENGTHSH));
+//			el_curlib.newVar(Generate.DEPENDENTLIB_KEY, dependentlist);
 //			efree((CHAR *)dependentlist);
 //			return;
 //		}
@@ -679,7 +536,7 @@ public class Create
 //		// get the current list of layer and node names
 //		us_tecedgetlayernamelist();
 //		liblist[0] = el_curlib;
-//		nodecount = us_teceditfindsequence(liblist, 1, x_("node-"), x_("EDTEC_nodesequence"), &nodesequence);
+//		nodecount = us_teceditfindsequence(liblist, "node-", Generate.NODESEQUENCE_KEY);
 //	
 //		// create a RULES structure
 //		rules = dr_allocaterules(us_teceddrclayers, nodecount, x_("EDITED TECHNOLOGY"));
@@ -707,13 +564,13 @@ public class Create
 //		dr_freerules(rules);
 //	}
 //	
-//	/*
-//	 * Routine to update tables to reflect that cell "oldname" is now called "newname".
-//	 * If "newname" is not valid, any rule that refers to "oldname" is removed.
-//	 * 
-//	 */
-//	void us_tecedrenamecell(CHAR *oldname, CHAR *newname)
-//	{
+	/*
+	 * Routine to update tables to reflect that cell "oldname" is now called "newname".
+	 * If "newname" is not valid, any rule that refers to "oldname" is removed.
+	 * 
+	 */
+	void us_tecedrenamecell(String oldname, String newname)
+	{
 //		REGISTER VARIABLE *var;
 //		REGISTER INTBIG i, len;
 //		REGISTER BOOLEAN valid;
@@ -721,25 +578,25 @@ public class Create
 //		REGISTER CHAR *origstr, *firstkeyword, *keyword;
 //		CHAR *str, **strings;
 //		REGISTER void *infstr, *sa;
-//	
-//		// if this is a layer, rename the layer sequence array
-//		if (namesamen(oldname, x_("layer-"), 6) == 0 && namesamen(newname, x_("layer-"), 6) == 0)
-//		{
-//			us_tecedrenamesequence(x_("EDTEC_layersequence"), &oldname[6], &newname[6]);
-//		}
-//	
-//		// if this is an arc, rename the arc sequence array
-//		if (namesamen(oldname, x_("arc-"), 4) == 0 && namesamen(newname, x_("arc-"), 4) == 0)
-//		{
-//			us_tecedrenamesequence(x_("EDTEC_arcsequence"), &oldname[4], &newname[4]);
-//		}
-//	
-//		// if this is a node, rename the node sequence array
-//		if (namesamen(oldname, x_("node-"), 5) == 0 && namesamen(newname, x_("node-"), 5) == 0)
-//		{
-//			us_tecedrenamesequence(x_("EDTEC_nodesequence"), &oldname[5], &newname[5]);
-//		}
-//	
+	
+		// if this is a layer, rename the layer sequence array
+		if (oldname.startsWith("layer-") && newname.startsWith("layer-"))
+		{
+			us_tecedrenamesequence(Generate.LAYERSEQUENCE_KEY, oldname.substring(6), newname.substring(6));
+		}
+	
+		// if this is an arc, rename the arc sequence array
+		if (oldname.startsWith("arc-") && newname.startsWith("arc-"))
+		{
+			us_tecedrenamesequence(Generate.ARCSEQUENCE_KEY, oldname.substring(4), newname.substring(4));
+		}
+	
+		// if this is a node, rename the node sequence array
+		if (oldname.startsWith("node-") && newname.startsWith("node-"))
+		{
+			us_tecedrenamesequence(Generate.NODESEQUENCE_KEY, oldname.substring(5), newname.substring(5));
+		}
+	
 //		// see if there are design rules in the current library
 //		var = getval((INTBIG)el_curlib, VLIBRARY, VSTRING|VISARRAY, x_("EDTEC_DRC"));
 //		if (var == NOVARIABLE) return;
@@ -842,15 +699,15 @@ public class Create
 //		setval((INTBIG)el_curlib, VLIBRARY, x_("EDTEC_DRC"), (INTBIG)strings,
 //			VSTRING|VISARRAY|(count<<VLENGTHSH));
 //		killstringarray(sa);
-//	}
-//	
-//	/*
-//	 * Routine to rename the layer/arc/node sequence arrays to account for a name change.
-//	 * The sequence array is in variable "varname", and the item has changed from "oldname" to
-//	 * "newname".
-//	 */
-//	void us_tecedrenamesequence(CHAR *varname, CHAR *oldname, CHAR *newname)
-//	{
+	}
+	
+	/**
+	 * Method to rename the layer/arc/node sequence arrays to account for a name change.
+	 * The sequence array is in variable "varname", and the item has changed from "oldname" to
+	 * "newname".
+	 */
+	static void us_tecedrenamesequence(Variable.Key varname, String oldname, String newname)
+	{
 //		REGISTER VARIABLE *var;
 //		CHAR **strings;
 //		REGISTER INTBIG i, len;
@@ -873,37 +730,8 @@ public class Create
 //		setval((INTBIG)el_curlib, VLIBRARY, varname, (INTBIG)strings,
 //			VSTRING|VISARRAY|(count<<VLENGTHSH));
 //		killstringarray(sa);
-//	}
-//	
-//	void us_tecedgetlayernamelist(void)
-//	{
-//		REGISTER INTBIG i, dependentlibcount;
-//		REGISTER NODEPROTO *np;
-//		NODEPROTO **sequence;
-//		LIBRARY **dependentlibs;
-//	
-//		// free any former layer name information
-//		if (us_teceddrclayernames != 0)
-//		{
-//			for(i=0; i<us_teceddrclayers; i++) efree(us_teceddrclayernames[i]);
-//			efree((CHAR *)us_teceddrclayernames);
-//			us_teceddrclayernames = 0;
-//		}
-//	
-//		dependentlibcount = us_teceditgetdependents(el_curlib, &dependentlibs);
-//		us_teceddrclayers = us_teceditfindsequence(dependentlibs, dependentlibcount, x_("layer-"),
-//			x_("EDTEC_layersequence"), &sequence);
-//	
-//		// build and fill array of layers for DRC parsing
-//		us_teceddrclayernames = (CHAR **)emalloc(us_teceddrclayers * (sizeof (CHAR *)), us_tool.cluster);
-//		if (us_teceddrclayernames == 0) return;
-//		for(i = 0; i<us_teceddrclayers; i++)
-//		{
-//			np = sequence[i];
-//			(void)allocstring(&us_teceddrclayernames[i], &np.protoname[6], us_tool.cluster);
-//		}
-//	}
-//	
+	}
+	
 //	/*
 //	 * Routine to create arrays describing the design rules in the variable "var" (which is
 //	 * from "EDTEC_DRC" on a library).  The arrays are stored in "rules".
@@ -1302,8 +1130,7 @@ public class Create
 //		us_tecedloadlibmap(el_curlib);
 //	
 //		dependentlibcount = us_teceditgetdependents(el_curlib, &dependentlibs);
-//		total = us_teceditfindsequence(dependentlibs, dependentlibcount, x_("layer-"),
-//			x_("EDTEC_layersequence"), &sequence);
+//		total = us_teceditfindsequence(dependentlibs, "layer-", Generate.LAYERSEQUENCE_KEY);
 //		printcolors = (INTBIG *)emalloc(total*5*SIZEOFINTBIG, us_tool.cluster);
 //		if (printcolors == 0) return;
 //		layernames = (CHAR **)emalloc(total * (sizeof (CHAR *)), us_tool.cluster);
@@ -1380,8 +1207,8 @@ public class Create
 //				np = sequence[i];
 //				for(ni = np.firstnodeinst; ni != NONODEINST; ni = ni.nextnodeinst)
 //				{
-//					var = getvalkey((INTBIG)ni, VNODEINST, VINTEGER, us_edtec_option_key);
-//					if (var == NOVARIABLE) continue;
+//					var = ni.getVar(Generate.OPTION_KEY);
+//					if (var == null) continue;
 //					if (var.addr != LAYERPRINTCOL) continue;
 //					(void)esnprintf(line, 50, x_("%s%ld,%ld,%ld, %ld,%s"), TECEDNODETEXTPRINTCOL,
 //						printcolors[i*5], printcolors[i*5+1], printcolors[i*5+2],
@@ -1409,150 +1236,82 @@ public class Create
 //				*mapptr++ = ((INTBIG *)vargreen.addr)[i];
 //				*mapptr++ = ((INTBIG *)varblue.addr)[i];
 //			}
-//			(void)setval((INTBIG)el_curlib, VLIBRARY, x_("EDTEC_colormap"), (INTBIG)newmap,
-//				VINTEGER|VISARRAY|((256*3)<<VLENGTHSH));
+//			el_curlib.newVar(Generate.COLORMAP_KEY, newmap);
 //			efree((CHAR *)newmap);
 //		}
 //		efree((CHAR *)layernames);
 //		efree((CHAR *)printcolors);
 //	}
-//	
-//	/*
-//	 * routine for creating a new layer with shape "pp"
-//	 */
-//	void us_teceditcreat(INTBIG count, CHAR *par[])
-//	{
-//		REGISTER INTBIG l;
-//		REGISTER CHAR *name, *pp;
-//		CHAR *subpar[3];
-//		REGISTER NODEINST *ni;
-//		REGISTER NODEPROTO *np, *savenp, *cell;
-//		HIGHLIGHT high;
-//		REGISTER VARIABLE *var;
-//	
-//		l = estrlen(pp = par[0]);
-//		np = NONODEPROTO;
-//		if (namesamen(pp, x_("port"), l) == 0 && l >= 1) np = gen_portprim;
-//		if (namesamen(pp, x_("highlight"), l) == 0 && l >= 1) np = art_boxprim;
-//		if (namesamen(pp, x_("rectangle-filled"), l) == 0 && l >= 11) np = art_filledboxprim;
-//		if (namesamen(pp, x_("rectangle-outline"), l) == 0 && l >= 11) np = art_boxprim;
-//		if (namesamen(pp, x_("rectangle-crossed"), l) == 0 && l >= 11) np = art_crossedboxprim;
-//		if (namesamen(pp, x_("polygon-filled"), l) == 0 && l >= 9) np = art_filledpolygonprim;
-//		if (namesamen(pp, x_("polygon-outline"), l) == 0 && l >= 9) np = art_closedpolygonprim;
-//		if (namesamen(pp, x_("lines-solid"), l) == 0 && l >= 7) np = art_openedpolygonprim;
-//		if (namesamen(pp, x_("lines-dotted"), l) == 0 && l >= 8) np = art_openeddottedpolygonprim;
-//		if (namesamen(pp, x_("lines-dashed"), l) == 0 && l >= 8) np = art_openeddashedpolygonprim;
-//		if (namesamen(pp, x_("lines-thicker"), l) == 0 && l >= 7) np = art_openedthickerpolygonprim;
-//		if (namesamen(pp, x_("circle-outline"), l) == 0 && l >= 8) np = art_circleprim;
-//		if (namesamen(pp, x_("circle-filled"), l) == 0 && l >= 8) np = art_filledcircleprim;
-//		if (namesamen(pp, x_("circle-half"), l) == 0 && l >= 8) np = art_circleprim;
-//		if (namesamen(pp, x_("circle-arc"), l) == 0 && l >= 8) np = art_circleprim;
-//		if (namesamen(pp, x_("text"), l) == 0 && l >= 1) np = gen_invispinprim;
-//	
-//		if (np == NONODEPROTO)
-//		{
-//			ttyputerr(_("Unrecoginzed shape: '%s'"), pp);
-//			return;
-//		}
-//	
-//		// make sure the cell is right
-//		cell = us_needcell();
-//		if (cell == NONODEPROTO) return;
-//		if (namesamen(cell.protoname, x_("node-"), 5) != 0 &&
-//			namesamen(cell.protoname, x_("arc-"), 4) != 0)
-//		{
-//			us_abortcommand(_("Must be editing a node or arc to place geometry"));
-//			if ((us_tool.toolstate&NODETAILS) == 0)
-//				ttyputmsg(_("Use 'edit-node' or 'edit-arc' options"));
-//			return;
-//		}
-//		if (np == gen_portprim &&
-//			namesamen(cell.protoname, x_("node-"), 5) != 0)
-//		{
-//			us_abortcommand(_("Can only place ports in node descriptions"));
-//			if ((us_tool.toolstate&NODETAILS) == 0)
-//				ttyputmsg(_("Use the 'edit-node' options"));
-//			return;
-//		}
-//	
-//		// create the node
-//		us_clearhighlightcount();
-//		savenp = us_curnodeproto;
-//		us_curnodeproto = np;
-//		subpar[0] = x_("wait-for-down");
-//		us_create(1, subpar);
-//		us_curnodeproto = savenp;
-//	
-//		var = getvalkey((INTBIG)us_tool, VTOOL, VSTRING|VISARRAY, us_highlightedkey);
-//		if (var == NOVARIABLE) return;
-//		(void)us_makehighlight(((CHAR **)var.addr)[0], &high);
-//		if (high.fromgeom == NOGEOM) return;
-//		if (!high.fromgeom.entryisnode) return;
-//		ni = high.fromgeom.entryaddr.ni;
-//		(void)setvalkey((INTBIG)ni, VNODEINST, us_edtec_option_key, LAYERPATCH, VINTEGER);
-//	
-//		// postprocessing on the nodes
-//		if (namesamen(pp, x_("port"), l) == 0 && l >= 1)
-//		{
-//			// a port layer
-//			if (count == 1)
-//			{
-//				name = ttygetline(M_("Port name: "));
-//				if (name == 0 || name[0] == 0)
-//				{
-//					us_abortedmsg();
-//					return;
-//				}
-//			} else name = par[1];
-//			var = setval((INTBIG)ni, VNODEINST, x_("EDTEC_portname"), (INTBIG)name, VSTRING|VDISPLAY);
-//			if (var != NOVARIABLE) defaulttextdescript(var.textdescript, ni.geom);
-//			if ((us_tool.toolstate&NODETAILS) == 0)
-//				ttyputmsg(_("Use 'change' option to set arc connectivity and port angle"));
-//		}
-//		if (namesamen(pp, x_("highlight"), l) == 0 && l >= 1)
-//		{
-//			// a highlight layer
-//			us_teceditsetpatch(ni, &us_edtechigh);
-//			(void)setval((INTBIG)ni, VNODEINST, x_("EDTEC_layer"), (INTBIG)NONODEPROTO, VNODEPROTO);
-//			ttyputmsg(_("Keep highlight a constant distance from the example edge"));
-//		}
-//		if (namesamen(pp, x_("circle-half"), l) == 0 && l >= 8)
-//			setarcdegrees(ni, 0.0, 180.0*EPI/180.0);
-//		if ((us_tool.toolstate&NODETAILS) == 0)
-//		{
-//			if (namesamen(pp, x_("rectangle-"), 10) == 0)
-//				ttyputmsg(_("Use 'change' option to set a layer for this shape"));
-//			if (namesamen(pp, x_("polygon-"), 8) == 0)
-//			{
-//				ttyputmsg(_("Use 'change' option to set a layer for this shape"));
-//				ttyputmsg(_("Use 'outline edit' to describe polygonal shape"));
-//			}
-//			if (namesamen(pp, x_("lines-"), 6) == 0)
-//				ttyputmsg(_("Use 'change' option to set a layer for this line"));
-//			if (namesamen(pp, x_("circle-"), 7) == 0)
-//				ttyputmsg(_("Use 'change' option to set a layer for this circle"));
-//			if (namesamen(pp, x_("text"), l) == 0 && l >= 1)
-//			{
-//				ttyputmsg(_("Use 'change' option to set a layer for this text"));
-//				ttyputmsg(_("Use 'var textedit ~.ART_message' command to set text"));
-//				ttyputmsg(_("Then use 'var change ~.ART_message display' command"));
-//			}
-//		}
-//		if (namesamen(pp, x_("circle-arc"), l) == 0 && l >= 8)
-//		{
-//			setarcdegrees(ni, 0.0, 45.0*EPI/180.0);
-//			if ((us_tool.toolstate&NODETAILS) == 0)
-//				ttyputmsg(_("Use 'setarc' command to set portion of circle"));
-//		}
-//		if ((ni.proto.userbits&HOLDSTRACE) != 0)
-//		{
-//			// give it real points if it holds an outline
-//			subpar[0] = x_("trace");
-//			subpar[1] = x_("init-points");
-//			us_node(2, subpar);
-//		}
-//	}
-//	
+
+	/**
+	 * Method to determine whether it is legal to place an instance in a technology-edit cell.
+	 * @param np the type of node to create.
+	 * @param cell the cell in which to place it.
+	 * @return true if the creation is invalid (and prints an error message).
+	 */
+	public static boolean invalidCreation(NodeProto np, Cell cell)
+	{
+		// make sure the cell is right
+		if (!cell.getName().startsWith("node-") && !cell.getName().startsWith("arc-"))
+		{
+			System.out.println("Must be editing a node or arc to place geometry");
+			return true;
+		}
+		if (np == Generic.tech.portNode && !cell.getName().startsWith("node-"))
+		{
+			System.out.println("Can only place ports in node descriptions");
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Method to complete the creation of a new node in a technology edit cell.
+	 * @param newNi the node that was just created.
+	 */
+	public static void completeNodeCreation(NodeInst newNi, Object toDraw)
+	{
+		newNi.newVar(Generate.OPTION_KEY, new Integer(Generate.LAYERPATCH));
+		
+		// postprocessing on the nodes
+		if (newNi.getProto() == Generic.tech.portNode)
+		{
+			// a port layer
+			String portName = JOptionPane.showInputDialog("Port name:", "");
+			if (portName == null) return;
+			Variable var = newNi.newVar(Generate.PORTNAME_KEY, portName);
+			if (var != null) var.setDisplay(true);
+			return;
+		}
+		if (newNi.getProto() == Artwork.tech.boxNode)
+		{
+			// could be a highlight layer
+			if (toDraw instanceof NodeInst)
+			{
+				NodeInst ni = (NodeInst)toDraw;
+				if (ni.getVar(Generate.LAYER_KEY) != null)
+				{
+					newNi.newVar(Generate.LAYER_KEY, null);
+					return;
+				}
+			}
+		}
+
+		// a real layer: default to the first one
+		String [] layerNames = us_tecedgetlayernamelist();
+		if (layerNames != null && layerNames.length > 0)
+		{
+			Cell cell = Library.getCurrent().findNodeProto(layerNames[0]);
+			if (cell != null)
+			{
+				newNi.newVar(Generate.LAYER_KEY, cell);
+				Generate.LayerInfo li = Generate.LayerInfo.us_teceditgetlayerinfo(cell);
+				if (li != null)
+					us_teceditsetpatch(newNi, li.desc);
+			}
+		}
+	}
+
 //	/*
 //	 * routine to highlight information about all layers (or ports if "doports" is true)
 //	 */
@@ -1771,30 +1530,16 @@ public class Create
 //		// free all examples
 //		us_tecedfreeexamples(nelist);
 //	}
-//	
-//	/*
-//	 * routine to print information about selected object
-//	 */
-//	void us_teceditinquire(void)
-//	{
-//		REGISTER NODEINST *ni;
-//		REGISTER ARCINST *ai;
-//		REGISTER NODEPROTO *np;
-//		REGISTER CHAR *pt1, *pt2, *pt;
-//		REGISTER VARIABLE *var;
-//		REGISTER INTBIG opt;
-//		REGISTER HIGHLIGHT *high;
-//	
-//		high = us_getonehighlight();
-//		if ((high.status&HIGHTYPE) != HIGHTEXT && (high.status&HIGHTYPE) != HIGHFROM)
-//		{
-//			us_abortcommand(_("Must select a single object for inquiry"));
-//			return;
-//		}
-//		if ((high.status&HIGHTYPE) == HIGHFROM && !high.fromgeom.entryisnode)
-//		{
-//			// describe currently highlighted arc
-//			ai = high.fromgeom.entryaddr.ai;
+	
+	/**
+	 * Method to return information about a given object.
+	 */
+	public static String us_teceditinquire(Geometric geom)
+	{
+		if (geom instanceof ArcInst)
+		{
+			// describe currently highlighted arc
+			ArcInst ai = (ArcInst)geom;
 //			if (ai.proto != gen_universalarc)
 //			{
 //				ttyputmsg(_("This is an unimportant %s arc"), describearcproto(ai.proto));
@@ -1811,260 +1556,165 @@ public class Create
 //			if (pt1 == 0 || pt2 == 0)
 //				ttyputmsg(_("This arc connects two port objects")); else
 //					ttyputmsg(_("This arc connects ports '%s' and '%s'"), pt1, pt2);
-//			return;
-//		}
-//		ni = high.fromgeom.entryaddr.ni;
-//		np = ni.parent;
-//		opt = us_tecedgetoption(ni);
-//		if (opt < 0)
-//		{
-//			ttyputmsg(_("This object has no relevance to technology editing"));
-//			return;
-//		}
-//	
-//		switch (opt)
-//		{
-//			case ARCFIXANG:
-//				ttyputmsg(_("This object defines the fixed-angle factor of %s"), describenodeproto(np));
-//				break;
-//			case ARCFUNCTION:
-//				ttyputmsg(_("This object defines the function of %s"), describenodeproto(np));
-//				break;
-//			case ARCINC:
-//				ttyputmsg(_("This object defines the prefered angle increment of %s"), describenodeproto(np));
-//				break;
-//			case ARCNOEXTEND:
-//				ttyputmsg(_("This object defines the arc extension of %s"), describenodeproto(np));
-//				break;
-//			case ARCWIPESPINS:
-//				ttyputmsg(_("This object defines the arc coverage of %s"), describenodeproto(np));
-//				break;
-//			case CENTEROBJ:
-//				ttyputmsg(_("This object identifies the grab point of %s"), describenodeproto(np));
-//				break;
-//			case LAYER3DHEIGHT:
-//				ttyputmsg(_("This object defines the 3D height of %s"), describenodeproto(np));
-//				break;
-//			case LAYER3DTHICK:
-//				ttyputmsg(_("This object defines the 3D thickness of %s"), describenodeproto(np));
-//				break;
-//			case LAYERPRINTCOL:
-//				ttyputmsg(_("This object defines the print colors of %s"), describenodeproto(np));
-//				break;
-//			case LAYERCIF:
-//				ttyputmsg(_("This object defines the CIF name of %s"), describenodeproto(np));
-//				break;
-//			case LAYERCOLOR:
-//				ttyputmsg(_("This object defines the color of %s"), describenodeproto(np));
-//				break;
-//			case LAYERDXF:
-//				ttyputmsg(_("This object defines the DXF name(s) of %s"), describenodeproto(np));
-//				break;
-//			case LAYERDRCMINWID:
-//				ttyputmsg(_("This object defines the minimum DRC width of %s (OBSOLETE)"), describenodeproto(np));
-//				break;
-//			case LAYERFUNCTION:
-//				ttyputmsg(_("This object defines the function of %s"), describenodeproto(np));
-//				break;
-//			case LAYERGDS:
-//				ttyputmsg(_("This object defines the Calma GDS-II number of %s"), describenodeproto(np));
-//				break;
-//			case LAYERLETTERS:
-//				ttyputmsg(_("This object defines the letters to use for %s"), describenodeproto(np));
-//				break;
-//			case LAYERPATCONT:
-//				ttyputmsg(_("This object provides control of the stipple pattern in %s"), describenodeproto(np));
-//				break;
-//			case LAYERPATTERN:
-//				ttyputmsg(_("This is one of the bitmap squares in %s"), describenodeproto(np));
-//				break;
-//			case LAYERSPICAP:
-//				ttyputmsg(_("This object defines the SPICE capacitance of %s"), describenodeproto(np));
-//				break;
-//			case LAYERSPIECAP:
-//				ttyputmsg(_("This object defines the SPICE edge capacitance of %s"), describenodeproto(np));
-//				break;
-//			case LAYERSPIRES:
-//				ttyputmsg(_("This object defines the SPICE resistance of %s"), describenodeproto(np));
-//				break;
-//			case LAYERSTYLE:
-//				ttyputmsg(_("This object defines the style of %s"), describenodeproto(np));
-//				break;
-//			case LAYERPATCH:
-//			case HIGHLIGHTOBJ:
-//				np = us_tecedgetlayer(ni);
-//				if (np == 0)
-//					ttyputerr(_("This is an object with no valid layer!")); else
-//				{
-//					if (np == NONODEPROTO) ttyputmsg(_("This is a highlight box")); else
-//						ttyputmsg(_("This is a '%s' layer"), &np.protoname[6]);
-//					var = getval((INTBIG)ni, VNODEINST, VSTRING, x_("EDTEC_minbox"));
-//					if (var != NOVARIABLE)
-//						ttyputmsg(_("   It is at minimum size"));
-//				}
-//				break;
-//			case NODEFUNCTION:
-//				ttyputmsg(_("This object defines the function of %s"), describenodeproto(np));
-//				break;
-//			case NODELOCKABLE:
-//				ttyputmsg(_("This object tells if %s can be locked (used in array technologies)"),
-//					describenodeproto(np));
-//				break;
-//			case NODEMULTICUT:
-//				ttyputmsg(_("This object tells the separation between multiple contact cuts in %s"),
-//					describenodeproto(np));
-//				break;
-//			case NODESERPENTINE:
-//				ttyputmsg(_("This object tells if %s is a serpentine transistor"), describenodeproto(np));
-//				break;
-//			case NODESQUARE:
-//				ttyputmsg(_("This object tells if %s is square"), describenodeproto(np));
-//				break;
-//			case NODEWIPES:
-//				ttyputmsg(_("This object tells if %s disappears when conencted to one or two arcs"),
-//					describenodeproto(np));
-//				break;
-//			case PORTOBJ:
-//				pt = us_tecedgetportname(ni);
-//				if (pt == 0) ttyputmsg(_("This is a port object")); else
-//					ttyputmsg(_("This is port '%s'"), pt);
-//				break;
-//			case TECHDESCRIPT:
-//				ttyputmsg(_("This object contains the technology description"));
-//				break;
-//			case TECHLAMBDA:
-//				ttyputmsg(_("This object defines the value of lambda"));
-//				break;
-//			default:
-//				ttyputerr(_("This object has unknown information"));
-//				break;
-//		}
-//	}
-//	
-//	/*
-//	 * Routine to return a brief description of node "ni" for use in the status area.
-//	 */
-//	CHAR *us_teceddescribenode(NODEINST *ni)
-//	{
-//		REGISTER INTBIG opt;
-//		REGISTER NODEPROTO *np;
-//		REGISTER void *infstr;
-//		REGISTER CHAR *pt;
-//	
-//		opt = us_tecedgetoption(ni);
-//		if (opt < 0) return(0);
-//		switch (opt)
-//		{
-//			case ARCFIXANG:      return(_("Arc fixed-angle factor"));
-//			case ARCFUNCTION:    return(_("Arc function"));
-//			case ARCINC:         return(_("Arc angle increment"));
-//			case ARCNOEXTEND:    return(_("Arc extension"));
-//			case ARCWIPESPINS:   return(_("Arc coverage"));
-//			case CENTEROBJ:      return(_("Grab point"));
-//			case LAYER3DHEIGHT:  return(_("3D height"));
-//			case LAYER3DTHICK:   return(_("3D thickness"));
-//			case LAYERPRINTCOL:  return(_("Print colors"));
-//			case LAYERCIF:       return(_("CIF names"));
-//			case LAYERCOLOR:     return(_("Layer color"));
-//			case LAYERDXF:       return(_("DXF name(s)"));
-//			case LAYERFUNCTION:  return(_("Layer function"));
-//			case LAYERGDS:       return(_("GDS-II number(s)"));
-//			case LAYERLETTERS:   return(_("Layer letters"));
-//			case LAYERPATCONT:   return(_("Pattern control"));
-//			case LAYERPATTERN:   return(_("Stipple pattern element"));
-//			case LAYERSPICAP:    return(_("Spice capacitance"));
-//			case LAYERSPIECAP:   return(_("Spice edge capacitance"));
-//			case LAYERSPIRES:    return(_("Spice resistance"));
-//			case LAYERSTYLE:     return(_("Srawing style"));
-//			case LAYERPATCH:
-//			case HIGHLIGHTOBJ:
-//				np = us_tecedgetlayer(ni);
-//				if (np == 0) return(_("Unknown layer"));
-//				if (np == NONODEPROTO) return(_("Highlight box"));
-//				infstr = initinfstr();
-//				formatinfstr(infstr, _("Layer %s"), &np.protoname[6]);
-//				return(returninfstr(infstr));
-//			case NODEFUNCTION:   return(_("Node function"));
-//			case NODELOCKABLE:   return(_("Node lockability"));
-//			case NODEMULTICUT:   return(_("Multicut separation"));
-//			case NODESERPENTINE: return(_("Serpentine transistor"));
-//			case NODESQUARE:     return(_("Square node"));
-//			case NODEWIPES:      return(_("Disappearing pin"));
-//			case PORTOBJ:
-//				pt = us_tecedgetportname(ni);
-//				if (pt == 0) return(_("Unnamed export"));
-//				infstr = initinfstr();
-//				formatinfstr(infstr, _("Export %s"), pt);
-//				return(returninfstr(infstr));
-//			case TECHDESCRIPT:   return(_("Technology description"));
-//			case TECHLAMBDA:     return(_("Lambda value"));
-//		}
-//		return(0);
-//	}
+			return "An arc";
+		}
+		NodeInst ni = (NodeInst)geom;
+		Cell cell = ni.getParent();
+		int opt = us_tecedgetoption(ni);
+		if (opt < 0) return "No relevance";
+	
+		switch (opt)
+		{
+			case Generate.ARCFIXANG:
+				return "Whether " + cell.describe() + " is fixed-angle";
+			case Generate.ARCFUNCTION:
+				return "The function of " + cell.describe();
+			case Generate.ARCINC:
+				return "The prefered angle increment of " + cell.describe();
+			case Generate.ARCNOEXTEND:
+				return "The arc extension of " + cell.describe();
+			case Generate.ARCWIPESPINS:
+				return "Thie arc coverage of " + cell.describe();
+			case Generate.CENTEROBJ:
+				return "The grab point of " + cell.describe();
+			case Generate.LAYER3DHEIGHT:
+				return "The 3D height of " + cell.describe();
+			case Generate.LAYER3DTHICK:
+				return "The 3D thickness of " + cell.describe();
+			case Generate.LAYERTRANSPARENCY:
+				return "The transparency layer of " + cell.describe();
+			case Generate.LAYERCIF:
+				return "The CIF name of " + cell.describe();
+			case Generate.LAYERCOLOR:
+				return "The color of " + cell.describe();
+			case Generate.LAYERDXF:
+				return "The DXF name(s) of " + cell.describe();
+			case Generate.LAYERFUNCTION:
+				return "The function of " + cell.describe();
+			case Generate.LAYERGDS:
+				return "The Calma GDS-II number of " + cell.describe();
+			case Generate.LAYERPATCONT:
+				return "A stipple-pattern controller";
+			case Generate.LAYERPATTERN:
+				return "One of the bitmap squares in " + cell.describe();
+			case Generate.LAYERSPICAP:
+				return "The SPICE capacitance of " + cell.describe();
+			case Generate.LAYERSPIECAP:
+				return "The SPICE edge capacitance of " + cell.describe();
+			case Generate.LAYERSPIRES:
+				return "The SPICE resistance of " + cell.describe();
+			case Generate.LAYERSTYLE:
+				return "The style of " + cell.describe();
+			case Generate.LAYERPATCH:
+			case Generate.HIGHLIGHTOBJ:
+				Cell np = us_tecedgetlayer(ni);
+				if (np == null) return "Highlight box";
+				String msg = "Layer '" + np.getName().substring(6) + "'";
+				Variable var = ni.getVar(Generate.MINSIZEBOX_KEY);
+				if (var != null) msg += " (at minimum size)";
+				return msg;
+			case Generate.NODEFUNCTION:
+				return "The function of " + cell.describe();
+			case Generate.NODELOCKABLE:
+				return "Whether " + cell.describe() + " can be locked (used in array technologies)";
+			case Generate.NODEMULTICUT:
+				return "The separation between multiple contact cuts in " + cell.describe();
+			case Generate.NODESERPENTINE:
+				return "Whether " + cell.describe() + " is a serpentine transistor";
+			case Generate.NODESQUARE:
+				return "Whether " + cell.describe() + " is square";
+			case Generate.NODEWIPES:
+				return "Whether " + cell.describe() + " disappears when conencted to one or two arcs";
+			case Generate.PORTOBJ:
+				String pt = us_tecedgetportname(ni);
+				if (pt == null) return "Unnamed port";
+				return "Port '" + pt + "'";
+			case Generate.TECHDESCRIPT:
+				return "The technology description";
+			case Generate.TECHLAMBDA:
+				return "The technology scale";
+		}
+		return "Unknown information";
+	}
+	
+	/**
+	 * Method to obtain the layer associated with node "ni".  Returns 0 if the layer is not
+	 * there or invalid.  Returns NONODEPROTO if this is the highlight layer.
+	 */
+	static Cell us_tecedgetlayer(NodeInst ni)
+	{
+		Variable var = ni.getVar(Generate.LAYER_KEY);
+		if (var == null) return null;
+		Cell np = (Cell)var.getObject();
+		if (np != null)
+		{
+			// validate the reference
+			for(Iterator it = ni.getParent().getLibrary().getCells(); it.hasNext(); )
+			{
+				Cell oNp = (Cell)it.next();
+				if (oNp == np) return np;
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * Method to return the name of the technology-edit port on node "ni".  Typically,
+	 * this is stored on the Generate.PORTNAME_KEY variable, but it may also be the node's name.
+	 */
+	static String us_tecedgetportname(NodeInst ni)
+	{	
+		Variable var = ni.getVar(Generate.PORTNAME_KEY);
+		if (var != null) return (String)var.getObject();
+		var = ni.getVar(NodeInst.NODE_NAME);
+		if (var != null) return (String)var.getObject();
+		return null;
+	}
 	
 	/**
 	 * Method for modifying the selected object.  If two are selected, connect them.
 	 */
 	public static void us_teceditmodobject(EditWindow wnd, NodeInst ni, int opt)
 	{
-//		REGISTER NODEINST *ni;
-//		GEOM *fromgeom, *togeom, **list;
-//		PORTPROTO *fromport, *toport;
-//		INTBIG opt, textcount, i, found;
-//		REGISTER HIGHLIGHT *high;
-//		HIGHLIGHT newhigh;
-//		CHAR *newpar[2], **textinfo;
-	
-		// special case for port modification: reset highlighting by hand
-//		if (opt == PORTOBJ)
-//		{
-//			// pick up old highlight values and then remove highlighting
-//			newhigh = *high;
-//			us_clearhighlightcount();
-//	
-//			// modify the port
-//			us_tecedmodport(ni, count, par);
-//	
-//			// set new highlighting variable
-//			newhigh.fromvar = getval((INTBIG)ni, VNODEINST, VSTRING, x_("EDTEC_portname"));
-//			if (newhigh.fromvar == NOVARIABLE)
-//				newhigh.fromvar = getvalkey((INTBIG)ni, VNODEINST, VSTRING, el_node_name_key);
-//			us_addhighlight(&newhigh);
-//			return;
-//		}
-
 		// handle other cases
 		switch (opt)
 		{
-			case Generate.LAYERFUNCTION:     us_tecedlayerfunction(wnd, ni);  break;
-			case Generate.LAYERCOLOR:        us_tecedlayercolor(wnd, ni);     break;
-			case Generate.LAYERTRANSPARENCY: us_tecedlayertransparency(wnd, ni);  break;
-			case Generate.LAYERSTYLE:        us_tecedlayerstyle(wnd, ni);     break;
-			case Generate.LAYERCIF:          us_tecedlayercif(wnd, ni);       break;
-			case Generate.LAYERGDS:          us_tecedlayergds(wnd, ni);       break;
-			case Generate.LAYERDXF:          us_tecedlayerdxf(wnd, ni);       break;
-			case Generate.LAYERSPIRES:       us_tecedlayerspires(wnd, ni);    break;
-			case Generate.LAYERSPICAP:       us_tecedlayerspicap(wnd, ni);    break;
-			case Generate.LAYERSPIECAP:      us_tecedlayerspiecap(wnd, ni);   break;
-			case Generate.LAYER3DHEIGHT:     us_tecedlayer3dheight(wnd, ni);  break;
-			case Generate.LAYER3DTHICK:      us_tecedlayer3dthick(wnd, ni);   break;
-			case Generate.LAYERPATTERN:      us_tecedlayerpattern(wnd, ni);   break;
-			case Generate.LAYERPATCONT:      us_tecedlayerpatterncontrol(wnd, ni);   break;
-//			case Generate.LAYERPATCH:        us_tecedlayertype(wnd, ni);      break;
-			case Generate.ARCFIXANG:         us_tecedarcfixang(wnd, ni);      break;
-			case Generate.ARCFUNCTION:       us_tecedarcfunction(wnd, ni);    break;
-			case Generate.ARCINC:            us_tecedarcinc(wnd, ni);         break;
-			case Generate.ARCNOEXTEND:       us_tecedarcnoextend(wnd, ni);    break;
-			case Generate.ARCWIPESPINS:      us_tecedarcwipes(wnd, ni);       break;
-			case Generate.NODEFUNCTION:      us_tecednodefunction(wnd, ni);   break;
-			case Generate.NODELOCKABLE:      us_tecednodelockable(wnd, ni);   break;
-			case Generate.NODEMULTICUT:      us_tecednodemulticut(wnd, ni);   break;
-			case Generate.NODESERPENTINE:    us_tecednodeserpentine(wnd, ni); break;
-			case Generate.NODESQUARE:        us_tecednodesquare(wnd, ni);     break;
-			case Generate.NODEWIPES:         us_tecednodewipes(wnd, ni);      break;
-			case Generate.TECHDESCRIPT:      us_tecedinfodescript(wnd, ni);   break;
-			case Generate.TECHLAMBDA:        us_tecedinfolambda(wnd, ni);     break;
-			default:             System.out.println("Cannot modify this object");   break;
+			case Generate.PORTOBJ:           us_tecedmodport(wnd, ni);                break;
+			case Generate.LAYERFUNCTION:     us_tecedlayerfunction(wnd, ni);          break;
+			case Generate.LAYERCOLOR:        us_tecedlayercolor(wnd, ni);             break;
+			case Generate.LAYERTRANSPARENCY: us_tecedlayertransparency(wnd, ni);      break;
+			case Generate.LAYERSTYLE:        us_tecedlayerstyle(wnd, ni);             break;
+			case Generate.LAYERCIF:          us_tecedlayercif(wnd, ni);               break;
+			case Generate.LAYERGDS:          us_tecedlayergds(wnd, ni);               break;
+			case Generate.LAYERDXF:          us_tecedlayerdxf(wnd, ni);               break;
+			case Generate.LAYERSPIRES:       us_tecedlayerspires(wnd, ni);            break;
+			case Generate.LAYERSPICAP:       us_tecedlayerspicap(wnd, ni);            break;
+			case Generate.LAYERSPIECAP:      us_tecedlayerspiecap(wnd, ni);           break;
+			case Generate.LAYER3DHEIGHT:     us_tecedlayer3dheight(wnd, ni);          break;
+			case Generate.LAYER3DTHICK:      us_tecedlayer3dthick(wnd, ni);           break;
+			case Generate.LAYERPATTERN:      us_tecedlayerpattern(wnd, ni);           break;
+			case Generate.LAYERPATCONT:      us_tecedlayerpatterncontrol(wnd, ni, 0); break;
+			case Generate.LAYERPATCLEAR:     us_tecedlayerpatterncontrol(wnd, ni, 1); break;
+			case Generate.LAYERPATINVERT:    us_tecedlayerpatterncontrol(wnd, ni, 2); break;
+			case Generate.LAYERPATCOPY:      us_tecedlayerpatterncontrol(wnd, ni, 3); break;
+			case Generate.LAYERPATPASTE:     us_tecedlayerpatterncontrol(wnd, ni, 4); break;
+			case Generate.LAYERPATCH:        us_tecedlayertype(wnd, ni);              break;
+			case Generate.ARCFIXANG:         us_tecedarcfixang(wnd, ni);              break;
+			case Generate.ARCFUNCTION:       us_tecedarcfunction(wnd, ni);            break;
+			case Generate.ARCINC:            us_tecedarcinc(wnd, ni);                 break;
+			case Generate.ARCNOEXTEND:       us_tecedarcnoextend(wnd, ni);            break;
+			case Generate.ARCWIPESPINS:      us_tecedarcwipes(wnd, ni);               break;
+			case Generate.NODEFUNCTION:      us_tecednodefunction(wnd, ni);           break;
+			case Generate.NODELOCKABLE:      us_tecednodelockable(wnd, ni);           break;
+			case Generate.NODEMULTICUT:      us_tecednodemulticut(wnd, ni);           break;
+			case Generate.NODESERPENTINE:    us_tecednodeserpentine(wnd, ni);         break;
+			case Generate.NODESQUARE:        us_tecednodesquare(wnd, ni);             break;
+			case Generate.NODEWIPES:         us_tecednodewipes(wnd, ni);              break;
+			case Generate.TECHDESCRIPT:      us_tecedinfodescript(wnd, ni);           break;
+			case Generate.TECHLAMBDA:        us_tecedinfolambda(wnd, ni);             break;
+			default:
+				System.out.println("Cannot modify this object");
+				break;
 		}
 	}
 	
@@ -2252,115 +1902,66 @@ public class Create
 		us_tecedsetnode(ni, "Function: " + Generate.makeLayerFunctionName(li.fun, li.funExtra));
 	}
 
-//	private static void us_tecedlayerletters(EditWindow wnd, NodeInst ni)
-//	{
-//		REGISTER NODEPROTO *np;
-//		REGISTER CHAR *pt;
-//		REGISTER INTBIG i;
-//		CHAR *cif, *layerletters, *dxf, *gds;
-//		GRAPHICS desc;
-//		float spires, spicap, spiecap;
-//		INTBIG func, drcminwid, height3d, thick3d, printcol[5];
-//		REGISTER void *infstr;
-//	
-//		if (par[0][0] == 0)
-//		{
-//			us_abortcommand(_("Layer letter(s) required"));
-//			return;
-//		}
-//	
-//		// check layer letters for uniqueness
-//		for(np = el_curlib.firstnodeproto; np != NONODEPROTO; np = np.nextnodeproto)
-//		{
-//			if (namesamen(np.protoname, x_("layer-"), 6) != 0) continue;
-//			cif = layerletters = gds = 0;
-//			if (us_teceditgetlayerinfo(np, &desc, &cif, &func, &layerletters,
-//				&dxf, &gds, &spires, &spicap, &spiecap, &drcminwid, &height3d,
-//					&thick3d, printcol)) return;
-//			if (gds != 0) efree(gds);
-//			if (cif != 0) efree(cif);
-//			if (layerletters == 0) continue;
-//	
-//			// check these layer letters for uniqueness
-//			for(pt = layerletters; *pt != 0; pt++)
-//			{
-//				for(i=0; par[0][i] != 0; i++) if (par[0][i] == *pt)
-//				{
-//					us_abortcommand(_("Cannot use letter '%c', it is in %s"), *pt, describenodeproto(np));
-//					efree(layerletters);
-//					return;
-//				}
-//			}
-//			efree(layerletters);
-//		}
-//	
-//		infstr = initinfstr();
-//		addstringtoinfstr(infstr, TECEDNODETEXTLETTERS);
-//		addstringtoinfstr(infstr, par[0]);
-//		us_tecedsetnode(ni, returninfstr(infstr));
-//	}
-	
-	private static void us_tecedlayerpatterncontrol(EditWindow wnd, NodeInst ni)
+	static int [] copiedPattern = null;
+
+	private static void us_tecedlayerpatterncontrol(EditWindow wnd, NodeInst ni, int forced)
 	{
-//		REGISTER INTBIG len;
-//		REGISTER NODEINST *pni;
-//		REGISTER INTBIG opt;
-//		UINTSML color;
-//		static GRAPHICS desc;
-//		static BOOLEAN didcopy = FALSE;
-//		CHAR *cif, *layerletters, *gds, *dxf;
-//		INTBIG func, drcminwid, height3d, thick3d, printcol[5];
-//		float spires, spicap, spiecap;
-	
-//		len = estrlen(par[0]);
-//		if (namesamen(par[0], x_("Clear Pattern"), len) == 0 && len > 2)
-//		{
-//			us_clearhighlightcount();
-//			for(pni = ni.parent.firstnodeinst; pni != NONODEINST; pni = pni.nextnodeinst)
-//			{
-//				opt = us_tecedgetoption(pni);
-//				if (opt != LAYERPATTERN) continue;
-//				color = us_tecedlayergetpattern(pni);
-//				if (color != 0)
-//					us_tecedlayersetpattern(pni, 0);
-//			}
-//	
-//			// redraw the demo layer in this cell
-//			us_tecedredolayergraphics(ni.parent);
-//			return;
-//		}
-//		if (namesamen(par[0], x_("Invert Pattern"), len) == 0 && len > 1)
-//		{
-//			us_clearhighlightcount();
-//			for(pni = ni.parent.firstnodeinst; pni != NONODEINST; pni = pni.nextnodeinst)
-//			{
-//				opt = us_tecedgetoption(pni);
-//				if (opt != LAYERPATTERN) continue;
-//				color = us_tecedlayergetpattern(pni);
-//				us_tecedlayersetpattern(pni, (INTSML)(~color));
-//			}
-//	
-//			// redraw the demo layer in this cell
-//			us_tecedredolayergraphics(ni.parent);
-//			return;
-//		}
-//		if (namesamen(par[0], x_("Copy Pattern"), len) == 0 && len > 2)
-//		{
-//			us_clearhighlightcount();
-//			if (us_teceditgetlayerinfo(ni.parent, &desc, &cif, &func, &layerletters, &dxf,
-//				&gds, &spires, &spicap, &spiecap, &drcminwid, &height3d, &thick3d, printcol)) return;
-//			didcopy = TRUE;
-//			return;
-//		}
-//		if (namesamen(par[0], x_("Paste Pattern"), len) == 0 && len > 1)
-//		{
-//			us_clearhighlightcount();
-//			us_teceditsetlayerpattern(ni.parent, &desc);
-//	
-//			// redraw the demo layer in this cell
-//			us_tecedredolayergraphics(ni.parent);
-//			return;
-//		}
+		if (forced == 0)
+		{
+			String [] operationNames = new String[4];
+			operationNames[0] = "Clear Pattern";
+			operationNames[1] = "Invert Pattern";
+			operationNames[2] = "Copy Pattern";
+			operationNames[3] = "Paste Pattern";
+			String choice = PromptAt.showPromptAt(wnd, ni, "Pattern Operations", null, "", operationNames);
+			if (choice == null) return;
+			if (choice.equals("Clear Pattern")) forced = 1; else
+			if (choice.equals("Invert Pattern")) forced = 2; else
+			if (choice.equals("Copy Pattern")) forced = 3; else
+			if (choice.equals("Paste Pattern")) forced = 4;
+		}
+		switch (forced)
+		{
+			case 1:		// clear pattern
+				for(Iterator it = ni.getParent().getNodes(); it.hasNext(); )
+				{
+					NodeInst pni = (NodeInst)it.next();
+					int opt = us_tecedgetoption(pni);
+					if (opt != Generate.LAYERPATTERN) continue;
+					int color = us_tecedlayergetpattern(pni);
+					if (color != 0)
+						us_tecedlayersetpattern(pni, 0);
+				}
+		
+				// redraw the demo layer in this cell
+				us_tecedredolayergraphics(ni.getParent());
+				break;
+			case 2:		// invert pattern
+				for(Iterator it = ni.getParent().getNodes(); it.hasNext(); )
+				{
+					NodeInst pni = (NodeInst)it.next();
+					int opt = us_tecedgetoption(pni);
+					if (opt != Generate.LAYERPATTERN) continue;
+					int color = us_tecedlayergetpattern(pni);
+					us_tecedlayersetpattern(pni, ~color);
+				}
+		
+				// redraw the demo layer in this cell
+				us_tecedredolayergraphics(ni.getParent());
+				break;
+			case 3:		// copy pattern
+				Generate.LayerInfo li = Generate.LayerInfo.us_teceditgetlayerinfo(ni.getParent());
+				if (li == null) return;
+				copiedPattern = li.desc.getPattern();
+				break;
+			case 4:		// paste pattern
+				if (copiedPattern == null) return;
+				us_teceditsetlayerpattern(ni.getParent(), copiedPattern);
+		
+				// redraw the demo layer in this cell
+				us_tecedredolayergraphics(ni.getParent());
+				break;
+		}
 	}
 	
 	/**
@@ -2432,169 +2033,306 @@ public class Create
 		// redraw the demo layer in this cell
 		us_tecedredolayergraphics(ni.getParent());
 	}
+
+	/**
+	 * Method to get a list of layers in the current library (in the proper order).
+	 * @return an array of strings with the names of the layers.
+	 */
+	static String [] us_tecedgetlayernamelist()
+	{
+		Library [] dependentlibs = us_teceditgetdependents(Library.getCurrent());
+		Cell [] layerCells = us_teceditfindsequence(dependentlibs, "layer-", Generate.LAYERSEQUENCE_KEY);
 	
-//	/**
-//	 * Method to modify the layer information in node "ni".
-//	 */
-//	void us_tecedlayertype(NODEINST *ni, INTBIG count, CHAR *par[])
-//	{
-//		REGISTER NODEPROTO *np;
-//		CHAR *cif, *layerletters, *dxf, *gds;
-//		REGISTER CHAR *name;
-//		GRAPHICS desc;
-//		float spires, spicap, spiecap;
-//		INTBIG func, drcminwid, height3d, thick3d, printcol[5];
-//		REGISTER void *infstr;
-//	
-//		if (par[0][0] == 0)
-//		{
-//			us_abortcommand(_("Requires a layer name"));
-//			return;
-//		}
-//	
-//		np = us_needcell();
-//		if (np == NONODEPROTO) return;
-//		if (namesame(par[0], x_("SET-MINIMUM-SIZE")) == 0)
-//		{
-//			if (namesamen(np.protoname, x_("node-"), 5) != 0)
-//			{
-//				us_abortcommand(_("Can only set minimum size in node descriptions"));
-//				if ((us_tool.toolstate&NODETAILS) == 0) ttyputmsg(_("Use 'edit-node' option"));
-//				return;
-//			}
-//			startobjectchange((INTBIG)ni, VNODEINST);
-//			(void)setval((INTBIG)ni, VNODEINST, x_("EDTEC_minbox"), (INTBIG)x_("MIN"), VSTRING|VDISPLAY);
-//			endobjectchange((INTBIG)ni, VNODEINST);
-//			return;
-//		}
-//	
-//		if (namesame(par[0], x_("CLEAR-MINIMUM-SIZE")) == 0)
-//		{
-//			if (getval((INTBIG)ni, VNODEINST, VSTRING, x_("EDTEC_minbox")) == NOVARIABLE)
-//			{
-//				ttyputmsg(_("Minimum size is not set on this layer"));
-//				return;
-//			}
-//			startobjectchange((INTBIG)ni, VNODEINST);
-//			(void)delval((INTBIG)ni, VNODEINST, x_("EDTEC_minbox"));
-//			endobjectchange((INTBIG)ni, VNODEINST);
-//			return;
-//		}
-//	
-//		// find the actual cell with that layer specification
-//		infstr = initinfstr();
-//		addstringtoinfstr(infstr, x_("layer-"));
-//		addstringtoinfstr(infstr, par[0]);
-//		name = returninfstr(infstr);
-//		np = getnodeproto(name);
-//		if (np == NONODEPROTO)
-//		{
-//			ttyputerr(_("Cannot find layer primitive %s"), name);
-//			return;
-//		}
-//	
-//		// get the characteristics of that layer
-//		cif = layerletters = gds = 0;
-//		if (us_teceditgetlayerinfo(np, &desc, &cif, &func, &layerletters,
-//			&dxf, &gds, &spires, &spicap, &spiecap, &drcminwid, &height3d,
-//				&thick3d, printcol)) return;
-//		if (gds != 0) efree(gds);
-//		if (cif != 0) efree(cif);
-//		if (layerletters != 0) efree(layerletters);
-//	
-//		startobjectchange((INTBIG)ni, VNODEINST);
-//		us_teceditsetpatch(ni, &desc);
-//		(void)setval((INTBIG)ni, VNODEINST, x_("EDTEC_layer"), (INTBIG)np, VNODEPROTO);
-//		endobjectchange((INTBIG)ni, VNODEINST);
-//	}
-//	
-//	/**
-//	 * Method to modify port characteristics
-//	 */
-//	void us_tecedmodport(NODEINST *ni, INTBIG count, CHAR *par[])
-//	{
-//		REGISTER INTBIG total, i, len, j, yes;
-//		BOOLEAN changed;
-//		REGISTER BOOLEAN *yesno;
-//		REGISTER NODEPROTO *np, **conlist;
-//		REGISTER VARIABLE *var;
-//	
-//		// build an array of arc connections
-//		for(total = 0, np = el_curlib.firstnodeproto; np != NONODEPROTO; np = np.nextnodeproto)
-//			if (namesamen(np.protoname, x_("arc-"), 4) == 0) total++;
-//		conlist = (NODEPROTO **)emalloc(total * (sizeof (NODEPROTO *)), el_tempcluster);
-//		if (conlist == 0) return;
-//		for(total = 0, np = el_curlib.firstnodeproto; np != NONODEPROTO; np = np.nextnodeproto)
-//			if (namesamen(np.protoname, x_("arc-"), 4) == 0) conlist[total++] = np;
-//		yesno = (BOOLEAN *)emalloc(total * (sizeof (BOOLEAN)), el_tempcluster);
-//		if (yesno == 0) return;
-//		for(i=0; i<total; i++) yesno[i] = FALSE;
-//	
-//		// put current list into the array
-//		var = getval((INTBIG)ni, VNODEINST, VNODEPROTO|VISARRAY, x_("EDTEC_connects"));
-//		if (var != NOVARIABLE)
-//		{
-//			len = getlength(var);
-//			for(j=0; j<len; j++)
-//			{
-//				for(i=0; i<total; i++)
-//					if (conlist[i] == ((NODEPROTO **)var.addr)[j]) break;
-//				if (i < total) yesno[i] = TRUE;
-//			}
-//		}
-//	
-//		// parse the command parameters
-//		changed = FALSE;
-//		for(i=0; i<count-1; i += 2)
-//		{
-//			// search for an arc name
-//			for(np = el_curlib.firstnodeproto; np != NONODEPROTO; np = np.nextnodeproto)
-//				if (namesamen(np.protoname, x_("arc-"), 4) == 0 &&
-//					namesame(&np.protoname[4], par[i]) == 0) break;
-//			if (np != NONODEPROTO)
-//			{
-//				for(j=0; j<total; j++) if (conlist[j] == np)
-//				{
-//					if (*par[i+1] == 'y' || *par[i+1] == 'Y') yesno[j] = TRUE; else
-//						yesno[j] = FALSE;
-//					changed = TRUE;
-//					break;
-//				}
-//				continue;
-//			}
-//	
-//			if (namesame(par[i], x_("PORT-ANGLE")) == 0)
-//			{
-//				(void)setval((INTBIG)ni, VNODEINST, x_("EDTEC_portangle"), myatoi(par[i+1]), VINTEGER);
-//				continue;
-//			}
-//			if (namesame(par[i], x_("PORT-ANGLE-RANGE")) == 0)
-//			{
-//				(void)setval((INTBIG)ni, VNODEINST, x_("EDTEC_portrange"), myatoi(par[i+1]), VINTEGER);
-//				continue;
-//			}
-//		}
-//	
-//		// store list back if it was changed
-//		if (changed)
-//		{
-//			yes = 0;
-//			for(i=0; i<total; i++)
-//			{
-//				if (!yesno[i]) continue;
-//				conlist[yes++] = conlist[i];
-//			}
-//			if (yes == 0 && var != NOVARIABLE)
-//				(void)delval((INTBIG)ni, VNODEINST, x_("EDTEC_connects")); else
-//			{
-//				(void)setval((INTBIG)ni, VNODEINST, x_("EDTEC_connects"), (INTBIG)conlist,
-//					VNODEPROTO|VISARRAY|(yes<<VLENGTHSH));
-//			}
-//		}
-//		efree((CHAR *)conlist);
-//		efree((CHAR *)yesno);
-//	}
+		// build and fill array of layers for DRC parsing
+		String [] layerNames = new String[layerCells.length];
+		for(int i=0; i<layerCells.length; i++)
+			layerNames[i] = layerCells[i].getName().substring(6);
+		return layerNames;
+	}
 	
+	/**
+	 * Method to get the list of libraries that are used in the construction
+	 * of library "lib".  Returns an array of libraries, terminated with "lib".
+	 */
+	public static Library [] us_teceditgetdependents(Library lib)
+	{
+		// get list of dependent libraries
+		List dependentLibs = new ArrayList();
+		Variable var = lib.getVar(Generate.DEPENDENTLIB_KEY);
+		if (var != null)
+		{
+			String [] libNames = (String [])var.getObject();
+			for(int i=0; i<libNames.length; i++)
+			{
+				String pt = libNames[i];
+				Library dLib = Library.findLibrary(pt);
+				if (dLib == null)
+				{
+					System.out.println("Cannot find dependent technology library " + pt + ", ignoring");
+					continue;
+				}
+				if (dLib == lib)
+				{
+					System.out.println("Library " + lib.getName() + " cannot depend on itself, ignoring dependency");
+					continue;
+				}
+				dependentLibs.add(dLib);
+			}
+		}
+		dependentLibs.add(lib);
+		Library [] theLibs = new Library[dependentLibs.size()];
+		for(int i=0; i<dependentLibs.size(); i++)
+			theLibs[i] = (Library)dependentLibs.get(i);
+		return theLibs;
+	}
+
+	/**
+	 * general-purpose method to scan the libraries in "dependentlibs",
+	 * looking for cells that begin with the string "match".  It then uses the
+	 * variable "seqname" on the last library to determine an ordering of the cells.
+	 * Then, it returns the cells in an array.
+	 */
+	public static Cell [] us_teceditfindsequence(Library [] dependentlibs, String match, Variable.Key seqKey)
+	{
+		// look backwards through libraries for the appropriate cells
+		int total = 0;
+		List npList = new ArrayList();
+		for(int i=dependentlibs.length-1; i>=0; i--)
+		{
+			Library olderlib = dependentlibs[i];
+			for(Iterator it = olderlib.getCells(); it.hasNext(); )
+			{
+				Cell np = (Cell)it.next();
+				if (!np.getName().startsWith(match)) continue;
+
+				// see if this cell is used in a later library
+				boolean foundInLater = false;
+				for(int j=i+1; j<dependentlibs.length; j++)
+				{
+					Library laterLib = dependentlibs[j];
+					for(Iterator oIt = laterLib.getCells(); oIt.hasNext(); )
+					{
+						Cell lNp = (Cell)oIt.next();
+						if (!lNp.getName().equals(np.getName())) continue;
+						foundInLater = true;
+
+						// got older and later version of same cell: check dates
+						if (lNp.getRevisionDate().before(np.getRevisionDate()))
+							System.out.println("Warning: library " + olderlib.getName() + " has newer " + np.getName() +
+								" than library " + laterLib.getName());
+						break;
+					}
+					if (foundInLater) break;
+				}
+	
+				// if no later library has this, add to total
+				if (!foundInLater) npList.add(np);
+			}
+		}
+	
+		// if there is no sequence, simply return the list
+		Variable var = dependentlibs[dependentlibs.length-1].getVar(seqKey);
+		if (var == null) return (Cell [])npList.toArray();
+	
+		// build a new list with the sequence
+		List sequence = new ArrayList();
+		String [] sequenceNames = (String [])var.getObject();
+		for(int i=0; i<sequenceNames.length; i++)
+		{
+			Cell foundCell = null;
+			for(int l = 0; l < npList.size(); l++)
+			{
+				Cell np = (Cell)npList.get(l);
+				if (np.getName().equals(sequenceNames[i])) { foundCell = np;   break; }
+			}
+			if (foundCell != null)
+			{
+				sequence.add(foundCell);
+				npList.remove(foundCell);
+			}
+		}
+		for(Iterator it = npList.iterator(); it.hasNext(); )
+			sequence.add(it.next());
+		Cell [] theCells = new Cell[sequence.size()];
+		for(int i=0; i<sequence.size(); i++)
+			theCells[i] = (Cell)sequence.get(i);
+		return theCells;
+	}
+
+	/**
+	 * Method to modify the layer information in node "ni".
+	 */
+	static void us_tecedlayertype(EditWindow wnd, NodeInst ni)
+	{
+		Library [] dependentlibs = us_teceditgetdependents(Library.getCurrent());
+		Cell [] layerCells = us_teceditfindsequence(dependentlibs, "layer-", Generate.LAYERSEQUENCE_KEY);
+		if (layerCells == null) return;
+
+		String [] options = new String[layerCells.length + 2];
+		for(int i=0; i<layerCells.length; i++)
+			options[i] = layerCells[i].getName().substring(6);
+		options[layerCells.length] = "SET-MINIMUM-SIZE";
+		options[layerCells.length+1] = "CLEAR-MINIMUM-SIZE";
+		String initial = options[0];
+		Variable curLay = ni.getVar(Generate.LAYER_KEY);
+		if (curLay != null) initial = ((Cell)curLay.getObject()).getName().substring(6);
+		String choice = PromptAt.showPromptAt(wnd, ni, "Change Layer", "New layer for this geometry:", initial, options);
+		if (choice == null) return;
+
+		// save the results
+		ModifyLayerJob job = new ModifyLayerJob(ni, choice, layerCells);
+	}
+
+    /**
+     * Class to modify a port object in a node of the technology editor.
+     */
+    public static class ModifyLayerJob extends Job
+	{
+		private NodeInst ni;
+		private String choice;
+		private Cell [] layerCells;
+
+		public ModifyLayerJob(NodeInst ni, String choice, Cell [] layerCells)
+		{
+			super("Change Layer Information", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.ni = ni;
+			this.choice = choice;
+			this.layerCells = layerCells;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			if (choice.equals("SET-MINIMUM-SIZE"))
+			{
+				if (!ni.getParent().getName().startsWith("node-"))
+				{
+					System.out.println("Can only set minimum size in node descriptions");
+					return true;
+				}
+				Variable var = ni.newVar(Generate.MINSIZEBOX_KEY, "MIN");
+				if (var != null) var.setDisplay(true);
+				return true;
+			}
+		
+			if (choice.equals("CLEAR-MINIMUM-SIZE"))
+			{
+				if (ni.getVar(Generate.MINSIZEBOX_KEY) == null)
+				{
+					System.out.println("Minimum size is not set on this layer");
+					return true;
+				}
+				ni.delVar(Generate.MINSIZEBOX_KEY);
+				return true;
+			}
+		
+			// find the actual cell with that layer specification
+			for(int i=0; i<layerCells.length; i++)
+			{
+				if (choice.equals(layerCells[i].getName().substring(6)))
+				{
+					// found the name, set the patch
+					Generate.LayerInfo li = Generate.LayerInfo.us_teceditgetlayerinfo(layerCells[i]);
+					if (li == null) return true;
+					us_teceditsetpatch(ni, li.desc);
+					ni.newVar(Generate.LAYER_KEY, layerCells[i]);
+				}
+			}
+			System.out.println("Cannot find layer primitive " + choice);
+			return true;
+		}
+	}
+	
+	/**
+	 * Method to modify port characteristics
+	 */
+	static void us_tecedmodport(EditWindow wnd, NodeInst ni)
+	{
+		// count the number of arcs in this technology
+		List allArcs = new ArrayList();
+		for(Iterator it = ni.getParent().getLibrary().getCells(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			if (cell.getName().startsWith("arc-")) allArcs.add(cell);
+		}
+
+		// make a set of those arcs which can connect to this port
+		HashSet connectSet = new HashSet();
+		Variable var = ni.getVar(Generate.CONNECTION_KEY);
+		if (var != null)
+		{
+			Cell [] connects = (Cell [])var.getObject();
+			for(int i=0; i<connects.length; i++)
+				connectSet.add(connects[i]);
+		}
+
+		// build an array of arc connections
+		PromptAt.Field [] fields = new PromptAt.Field[allArcs.size()+2];
+		for(int i=0; i<allArcs.size(); i++)
+		{
+			Cell cell = (Cell)allArcs.get(i);
+			boolean doesConnect = connectSet.contains(cell);
+			fields[i] = new PromptAt.Field(cell.getName().substring(4),
+				new String [] {"Allowed", "Disallowed"}, (doesConnect ? "Allowed" : "Disallowed"));
+		}
+		Variable angVar = ni.getVar(Generate.PORTANGLE_KEY);
+		int ang = 0;
+		if (angVar != null) ang = ((Integer)angVar.getObject()).intValue();
+		Variable rangeVar = ni.getVar(Generate.PORTRANGE_KEY);
+		int range = 180;
+		if (rangeVar != null) range = ((Integer)rangeVar.getObject()).intValue();
+		fields[allArcs.size()] = new PromptAt.Field("Angle:", ang);
+		fields[allArcs.size()+1] = new PromptAt.Field("Angle Range:", range);
+		String choice = PromptAt.showPromptAt(wnd, ni, "Change Port", fields);
+		if (choice == null) return;
+
+		// save the results
+		ModifyPortJob job = new ModifyPortJob(ni, allArcs, fields);
+	}
+
+    /**
+     * Class to modify a port object in a node of the technology editor.
+     */
+    public static class ModifyPortJob extends Job
+	{
+		private NodeInst ni;
+		private List allArcs;
+		private PromptAt.Field [] fields;
+
+		public ModifyPortJob(NodeInst ni, List allArcs, PromptAt.Field [] fields)
+		{
+			super("Change Port Information", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.ni = ni;
+			this.allArcs = allArcs;
+			this.fields = fields;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			int numConnects = 0;
+			for(int i=0; i<allArcs.size(); i++)
+			{
+				String answer = (String)fields[i].getFinal();
+				if (answer.equals("Allowed")) numConnects++;
+			}
+			Cell [] newConnects = new Cell[numConnects];
+			int k = 0;
+			for(int i=0; i<allArcs.size(); i++)
+			{
+				String answer = (String)fields[i].getFinal();
+				if (answer.equals("Allowed")) newConnects[k++] = (Cell)allArcs.get(i);
+			}
+			ni.newVar(Generate.CONNECTION_KEY, newConnects);
+
+			Integer newAngle = (Integer)fields[allArcs.size()].getFinal();
+			ni.newVar(Generate.PORTANGLE_KEY, newAngle);
+			Integer newRange = (Integer)fields[allArcs.size()+1].getFinal();
+			ni.newVar(Generate.PORTRANGE_KEY, newRange);
+			return true;
+		}
+	}
+
 	private static void us_tecedarcfunction(EditWindow wnd, NodeInst ni)
 	{
 		String initialFuncName = getValueOnNode(ni);
@@ -2838,7 +2576,7 @@ public class Create
 
 		public boolean doIt()
 		{
-			Variable var = cell.getVar("EDTEC_colornode");
+			Variable var = cell.getVar(Generate.COLORNODE_KEY);
 			if (var == null) return false;
 			NodeInst ni = (NodeInst)var.getObject();
 		
@@ -2858,7 +2596,7 @@ public class Create
 				{
 					NodeInst cNi = (NodeInst)nIt.next();
 					if (us_tecedgetoption(cNi) != Generate.LAYERPATCH) continue;
-					Variable varLay = cNi.getVar("EDTEC_layer");
+					Variable varLay = cNi.getVar(Generate.LAYER_KEY);
 					if (varLay == null) continue;
 					if ((Cell)varLay.getObject() != cell) continue;
 					us_teceditsetpatch(cNi, li.desc);
@@ -2908,7 +2646,7 @@ public class Create
 //		REGISTER INTBIG *mapptr;
 //		INTBIG redmap[256], greenmap[256], bluemap[256];
 //	
-//		var = getval((INTBIG)lib, VLIBRARY, VINTEGER|VISARRAY, x_("EDTEC_colormap"));
+//		var = getval((INTBIG)lib, VLIBRARY, VINTEGER|VISARRAY, Generate.COLORMAP_KEY);
 //		if (var != NOVARIABLE)
 //		{
 //			mapptr = (INTBIG *)var.addr;
@@ -2982,72 +2720,67 @@ public class Create
 //			if (namesamen(pt, x_("off"), 3) == 0) *f = 0; else
 //				*f = myatoi(pt);
 //	}
-//	
-//	/**
-//	 * Method to set the layer-pattern squares of cell "np" to the bits in "desc".
-//	 */
-//	void us_teceditsetlayerpattern(NODEPROTO *np, GRAPHICS *desc)
-//	{
-//		REGISTER NODEINST *ni;
-//		REGISTER INTBIG patterncount;
-//		REGISTER INTBIG lowx, highx, lowy, highy, x, y;
-//		REGISTER INTSML wantcolor, color;
-//		REGISTER VARIABLE *var;
-//	
-//		// look at all nodes in the layer description cell
-//		patterncount = 0;
-//		for(ni = np.firstnodeinst; ni != NONODEINST; ni = ni.nextnodeinst)
-//		{
-//			if (ni.proto == art_boxprim || ni.proto == art_filledboxprim)
-//			{
-//				var = getvalkey((INTBIG)ni, VNODEINST, VINTEGER, us_edtec_option_key);
-//				if (var == NOVARIABLE) continue;
-//				if (var.addr != LAYERPATTERN) continue;
-//				if (patterncount == 0)
-//				{
-//					lowx = ni.lowx;   highx = ni.highx;
-//					lowy = ni.lowy;   highy = ni.highy;
-//				} else
-//				{
-//					if (ni.lowx < lowx) lowx = ni.lowx;
-//					if (ni.highx > highx) highx = ni.highx;
-//					if (ni.lowy < lowy) lowy = ni.lowy;
-//					if (ni.highy > highy) highy = ni.highy;
-//				}
-//				patterncount++;
-//			}
-//		}
-//	
-//		if (patterncount != 16*16 && patterncount != 16*8)
-//		{
-//			ttyputerr(_("Incorrect number of pattern boxes in %s (has %ld, not %d)"),
-//				describenodeproto(np), patterncount, 16*16);
-//			return;
-//		}
-//	
-//		// set the pattern
-//		for(ni = np.firstnodeinst; ni != NONODEINST; ni = ni.nextnodeinst)
-//		{
-//			if (ni.proto != art_boxprim && ni.proto != art_filledboxprim) continue;
-//			var = getvalkey((INTBIG)ni, VNODEINST, VINTEGER, us_edtec_option_key);
-//			if (var == NOVARIABLE) continue;
-//			if (var.addr != LAYERPATTERN) continue;
-//	
-//			x = (ni.lowx - lowx) / ((highx-lowx) / 16);
-//			y = (highy - ni.highy) / ((highy-lowy) / 16);
-//			if ((desc.raster[y] & (1 << (15-x))) == 0) wantcolor = 0;
-//				else wantcolor = (INTSML)0xFFFF;
-//	
-//			color = us_tecedlayergetpattern(ni);
-//			if (color != wantcolor)
-//				us_tecedlayersetpattern(ni, wantcolor);
-//		}
-//	}
+	
+	/**
+	 * Method to set the layer-pattern squares of cell "np" to the bits in "desc".
+	 */
+	private static void us_teceditsetlayerpattern(Cell np, int [] pattern)
+	{
+		// look at all nodes in the layer description cell
+		int patterncount = 0;
+		Rectangle2D patternBounds = null;
+		for(Iterator it = np.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			if (ni.getProto() == Artwork.tech.boxNode || ni.getProto() == Artwork.tech.filledBoxNode)
+			{
+				Variable var = ni.getVar(Generate.OPTION_KEY);
+				if (var == null) continue;
+				if (((Integer)var.getObject()).intValue() != Generate.LAYERPATTERN) continue;
+				Rectangle2D bounds = ni.getBounds();
+				if (patterncount == 0)
+				{
+					patternBounds = bounds;
+				} else
+				{
+					Rectangle2D.union(patternBounds, bounds, patternBounds);
+				}
+				patterncount++;
+			}
+		}
+	
+		if (patterncount != 16*16 && patterncount != 16*8)
+		{
+			System.out.println("Incorrect number of pattern boxes in " + np.describe() +
+				" (has " + patterncount + ", not " + (16*16) + ")");
+			return;
+		}
+	
+		// set the pattern
+		for(Iterator it = np.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			if (ni.getProto() != Artwork.tech.boxNode && ni.getProto() != Artwork.tech.filledBoxNode) continue;
+			Variable var = ni.getVar(Generate.OPTION_KEY);
+			if (var == null) continue;
+			if (((Integer)var.getObject()).intValue() != Generate.LAYERPATTERN) continue;
+
+			Rectangle2D niBounds = ni.getBounds();
+			int x = (int)((niBounds.getMinX() - patternBounds.getMinX()) / (patternBounds.getWidth() / 16));
+			int y = (int)((patternBounds.getMaxY() - niBounds.getMaxY()) / (patternBounds.getHeight() / 16));
+			int wantColor = 0;
+			if ((pattern[y] & (1 << (15-x))) != 0) wantColor = 0xFFFF;
+	
+			int color = us_tecedlayergetpattern(ni);
+			if (color != wantColor)
+				us_tecedlayersetpattern(ni, wantColor);
+		}
+	}
 	
 	/**
 	 * Method to return the option index of node "ni"
 	 */
-	static int us_tecedgetoption(NodeInst ni)
+	public static int us_tecedgetoption(NodeInst ni)
 	{
 		// port objects are readily identifiable
 		if (ni.getProto() == Generic.tech.portNode) return Generate.PORTOBJ;
@@ -3055,13 +2788,13 @@ public class Create
 		// center objects are also readily identifiable
 		if (ni.getProto() == Generic.tech.cellCenterNode) return Generate.CENTEROBJ;
 	
-		Variable var = ni.getVar(Generate.EDTEC_OPTION);
+		Variable var = ni.getVar(Generate.OPTION_KEY);
 		if (var == null) return -1;
 		int option = ((Integer)var.getObject()).intValue();
 		if (option == Generate.LAYERPATCH)
 		{
 			// may be a highlight object
-			Variable var2 = ni.getVar("EDTEC_layer");
+			Variable var2 = ni.getVar(Generate.LAYER_KEY);
 			if (var2 != null)
 			{
 				if (var2.getObject() == null) return Generate.HIGHLIGHTOBJ;
@@ -3081,11 +2814,9 @@ public class Create
 //		REGISTER NODEINST *ni;
 //		REGISTER BOOLEAN warned, isnode;
 //		REGISTER CHAR *layername;
-//		static INTBIG edtec_layer_key = 0;
 //		REGISTER void *infstr;
 //	
 //		// may have deleted layer cell in technology library
-//		if (edtec_layer_key == 0) edtec_layer_key = makekey(x_("EDTEC_layer"));
 //		layername = &np.protoname[6];
 //		warned = FALSE;
 //		for(onp = np.lib.firstnodeproto; onp != NONODEPROTO; onp = onp.nextnodeproto)
@@ -3095,8 +2826,8 @@ public class Create
 //					continue;
 //			for(ni = onp.firstnodeinst; ni != NONODEINST; ni = ni.nextnodeinst)
 //			{
-//				var = getvalkey((INTBIG)ni, VNODEINST, VNODEPROTO, edtec_layer_key);
-//				if (var == NOVARIABLE) continue;
+//				var = ni.getVar(Generate.LAYER_KEY);
+//				if (var == null) continue;
 //				if ((NODEPROTO *)var.addr == np) break;
 //			}
 //			if (ni != NONODEINST)
@@ -3248,9 +2979,9 @@ public class Create
 //	#define DTER_DOWN           6		/* Move Down (button) */
 //	#define DTER_FARUP          7		/* Move Far Up (button) */
 //	#define DTER_FARDOWN        8		/* Move Far Down (button) */
-//	
-//	void us_reorderprimdlog(CHAR *type, CHAR *prefix, CHAR *varname)
-//	{
+
+	public static void us_reorderprimdlog(String type, String prefix, Variable.Key varname)
+	{
 //		REGISTER INTBIG itemHit, i, j, total, len, amt;
 //		CHAR line[100], **seqname;
 //		REGISTER BOOLEAN changed;
@@ -3324,5 +3055,5 @@ public class Create
 //		}
 //		efree((CHAR *)sequence);
 //		DiaDoneDialog(dia);
-//	}
+	}
 }

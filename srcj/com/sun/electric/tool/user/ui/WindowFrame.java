@@ -236,7 +236,7 @@ public class WindowFrame extends Observable
         // by default on Mac
         if (TopLevel.getOperatingSystem() == TopLevel.OS.MACINTOSH)
             tp.setTabPlacement(JTabbedPane.LEFT);
-		paletteTab = PaletteFrame.newInstance();
+		paletteTab = PaletteFrame.newInstance(this);
 		loadComponentMenuForTechnology();
 		tp.add("Components", paletteTab.getTechPalette());
 
@@ -310,7 +310,7 @@ public class WindowFrame extends Observable
 		}
 
 		//Technology tech = Technology.findTechnology(User.getDefaultTechnology());
-		paletteTab.loadForTechnology(tech);
+		paletteTab.loadForTechnology(tech, this);
 	}
 
 	public void addJS(JComponent js, int width, int height, int lowX, int lowY)

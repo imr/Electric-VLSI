@@ -55,6 +55,7 @@ import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -500,23 +501,6 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         PrimitiveNode.Function fun = ni.getFunction();
 		if (np == Schematics.tech.transistorNode || np == Schematics.tech.transistor4Node)
 		{
-            /*
-			textField.setEditable(true);
-			TransistorSize d = ni.getTransistorSize(null);
-			if (ni.isFET())
-			{
-				textFieldLabel.setText("Width / length:");
-				initialTextField = d.getWidth() + " / " + d.getDoubleLength();
-			} else
-			{
-				textFieldLabel.setText("Area:");
-				initialTextField = Double.toString(d.getDoubleWidth());
-			}
-			textField.setText(initialTextField);
-
-			popupLabel.setText("Transistor type:");
-			popup.addItem(fun.getName());
-            */
             if (!ni.isFET()) {
                 textField.setEditable(true);
                 textFieldLabel.setText("Area:");
@@ -650,19 +634,27 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			popup.setEnabled(true);
 		}
 
-		// load color of artwork primitives
-		if (np instanceof PrimitiveNode && np.getTechnology() == Artwork.tech)
+		// handle technology editor primitives
+		if (ni.getParent().isInTechnologyLibrary())
 		{
-			popupLabel.setText("Color:");
-			int [] colors = EGraphics.getColorIndices();
-			for(int i=0; i<colors.length; i++)
-				popup.addItem(EGraphics.getColorIndexName(colors[i]));
-			int index = EGraphics.BLACK;
-			Variable var = ni.getVar(Artwork.ART_COLOR);
-			if (var != null) index = ((Integer)var.getObject()).intValue();
-			initialPopupEntry = EGraphics.getColorIndexName(index);
-			popup.setSelectedItem(initialPopupEntry);
-			popup.setEnabled(true);
+			popupLabel.setText("Tech. editor:");
+			popup.addItem(Manipulate.us_teceditinquire(ni));
+		} else
+		{
+			// load color of artwork primitives
+			if (np instanceof PrimitiveNode && np.getTechnology() == Artwork.tech)
+			{
+				popupLabel.setText("Color:");
+				int [] colors = EGraphics.getColorIndices();
+				for(int i=0; i<colors.length; i++)
+					popup.addItem(EGraphics.getColorIndexName(colors[i]));
+				int index = EGraphics.BLACK;
+				Variable var = ni.getVar(Artwork.ART_COLOR);
+				if (var != null) index = ((Integer)var.getObject()).intValue();
+				initialPopupEntry = EGraphics.getColorIndexName(index);
+				popup.setSelectedItem(initialPopupEntry);
+				popup.setEnabled(true);
+			}
 		}
 
 		// load the degrees of a circle if appropriate

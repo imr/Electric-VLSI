@@ -549,7 +549,6 @@ public class WindowMenu {
         	WindowFrame wf = (WindowFrame)it.next();
         	wf.loadComponentMenuForTechnology();
         }
-//        TopLevel.getPaletteFrame().loadForTechnology();
     }
 
     /**
@@ -569,7 +568,6 @@ public class WindowMenu {
         	WindowFrame wf = (WindowFrame)it.next();
         	wf.loadComponentMenuForTechnology();
         }
-//        TopLevel.getPaletteFrame().loadForTechnology();
     }
 
     /**
@@ -589,7 +587,6 @@ public class WindowMenu {
         	WindowFrame wf = (WindowFrame)it.next();
         	wf.loadComponentMenuForTechnology();
         }
-//        TopLevel.getPaletteFrame().loadForTechnology();
     }
 
     private static GraphicsDevice [] getAllGraphicsDevices() {

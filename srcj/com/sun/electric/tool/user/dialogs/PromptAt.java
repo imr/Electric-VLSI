@@ -133,28 +133,12 @@ public class PromptAt extends EDialog
 	}
 
 	/**
-	 * Method to invoke a "yes/no" dialog centered at a point in the circuit.
+	 * Method to invoke a popup dialog centered at a point in the circuit.
 	 * @param wnd the window displaying the circuit.
 	 * @param ni the NodeInst about which to display the dialog.
 	 * @param title the dialog title.
-	 * @param fields an array of Field objects that describe each field in the dialog.
-	 * @return the returned choice (null if cancelled).
-	 */
-	public static String showPromptAt(EditWindow wnd, NodeInst ni, String title, Field [] fields)
-	{
-		PromptAt dialog = new PromptAt(CUSTOM);
-		dialog.initComponents(wnd, ni, title, null, null, false, null, fields);
-		dialog.goodClicked = false;
-		dialog.setVisible(true);
-		return dialog.value;
-	}
-
-	/**
-	 * Method to invoke a "yes/no" dialog centered at a point in the circuit.
-	 * @param wnd the window displaying the circuit.
-	 * @param ni the NodeInst about which to display the dialog.
-	 * @param title the dialog title.
-	 * @param label the message inside of the dialog, before the text area.
+	 * @param label the message inside of the dialog, before the choices.
+	 * @param initial the default choice.
 	 * @param choices an array of strings to present as choices.
 	 * @return the returned choice (null if cancelled).
 	 */
@@ -199,6 +183,23 @@ public class PromptAt extends EDialog
 	{
 		PromptAt dialog = new PromptAt(INPUT);
 		dialog.initComponents(wnd, ni, title, label, initial, false, null, null);
+		dialog.setVisible(true);
+		return dialog.value;
+	}
+
+	/**
+	 * Method to invoke a custom dialog centered at a point in the circuit.
+	 * @param wnd the window displaying the circuit.
+	 * @param ni the NodeInst about which to display the dialog.
+	 * @param title the dialog title.
+	 * @param fields an array of Field objects that describe each field in the dialog.
+	 * @return null if cancelled, non-null if OK (the results are stored in the Field objects).
+	 */
+	public static String showPromptAt(EditWindow wnd, NodeInst ni, String title, Field [] fields)
+	{
+		PromptAt dialog = new PromptAt(CUSTOM);
+		dialog.initComponents(wnd, ni, title, null, null, false, null, fields);
+		dialog.goodClicked = false;
 		dialog.setVisible(true);
 		return dialog.value;
 	}
@@ -266,23 +267,24 @@ public class PromptAt extends EDialog
 			for(int i=0; i<fields.length; i++)
 			{
 				JLabel jLabel1 = new JLabel(fields[i].label);
-				GridBagConstraints gridBagConstraints = new java.awt.GridBagConstraints();
-				gridBagConstraints.gridx = 0;
-				gridBagConstraints.gridy = i;
-				gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-				gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-				getContentPane().add(jLabel1, gridBagConstraints);
+				GridBagConstraints gbc = new java.awt.GridBagConstraints();
+				gbc.gridx = 0;
+				gbc.gridy = i;
+				gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+				gbc.anchor = java.awt.GridBagConstraints.WEST;
+				getContentPane().add(jLabel1, gbc);
 				if (fields[i].type == Field.FIELD_INT || fields[i].type == Field.FIELD_DOUBLE)
 				{
 					fields[i].dX = new JTextField();
 					fields[i].dX.setColumns(8);
 					fields[i].dX.setText(fields[i].initial.toString());
-					gridBagConstraints = new java.awt.GridBagConstraints();
-					gridBagConstraints.gridx = 1;
-					gridBagConstraints.gridy = i;
-					gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-					gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-					getContentPane().add(fields[i].dX, gridBagConstraints);
+					gbc = new java.awt.GridBagConstraints();
+					gbc.gridx = 1;
+					gbc.gridy = i;
+					gbc.weightx = 1.0;
+					gbc.fill = java.awt.GridBagConstraints.HORIZONTAL;
+					gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+					getContentPane().add(fields[i].dX, gbc);
 					if (centerIt == null)
 					{
 						fields[i].dX.selectAll();
@@ -295,37 +297,41 @@ public class PromptAt extends EDialog
 					for(int j=0; j<poss.length; j++)
 						fields[i].combo.addItem(poss[j]);
 					fields[i].combo.setSelectedItem(fields[i].finalValue);
-					gridBagConstraints = new java.awt.GridBagConstraints();
-					gridBagConstraints.gridx = 1;
-					gridBagConstraints.gridy = i;
-					gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-					gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-					getContentPane().add(fields[i].combo, gridBagConstraints);
+					gbc = new java.awt.GridBagConstraints();
+					gbc.gridx = 1;
+					gbc.gridy = i;
+					gbc.fill = java.awt.GridBagConstraints.HORIZONTAL;
+					gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+					getContentPane().add(fields[i].combo, gbc);
 					if (centerIt == null) centerIt = fields[i].combo;
 				}
 			}
 			buttonRow = fields.length + 1;
 		} else
 		{
-			JLabel jLabel1 = new JLabel(label);
-			GridBagConstraints gridBagConstraints = new java.awt.GridBagConstraints();
-			gridBagConstraints.gridx = 0;
-			gridBagConstraints.gridy = 0;
-			gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-			gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-			getContentPane().add(jLabel1, gridBagConstraints);
-			if (type == YESNO) centerIt = jLabel1;
+			if (label != null)
+			{
+				JLabel jLabel1 = new JLabel(label);
+				GridBagConstraints gbc = new java.awt.GridBagConstraints();
+				gbc.gridx = 0;
+				gbc.gridy = 0;
+				gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+				gbc.anchor = java.awt.GridBagConstraints.WEST;
+				getContentPane().add(jLabel1, gbc);
+				if (type == YESNO) centerIt = jLabel1;
+			}
 			if (type == INPUT)
 			{
 				dX = new JTextField();
-				dX.setColumns(8);
+//				dX.setColumns(8);
 				dX.setText(initialInput);
-				gridBagConstraints = new java.awt.GridBagConstraints();
-				gridBagConstraints.gridx = 1;
-				gridBagConstraints.gridy = 0;
-				gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-				gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-				getContentPane().add(dX, gridBagConstraints);
+				GridBagConstraints gbc = new java.awt.GridBagConstraints();
+				gbc.gridx = 1;
+				gbc.gridy = 0;
+				gbc.weightx = 1.0;
+				gbc.fill = java.awt.GridBagConstraints.HORIZONTAL;
+				gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+				getContentPane().add(dX, gbc);
 				dX.selectAll();
 				centerIt = dX;
 			}
@@ -335,24 +341,25 @@ public class PromptAt extends EDialog
 				for(int i=0; i<choices.length; i++)
 					combo.addItem(choices[i]);
 				combo.setSelectedItem(initialInput);
-				gridBagConstraints = new java.awt.GridBagConstraints();
-				gridBagConstraints.gridx = 1;
-				gridBagConstraints.gridy = 0;
-				gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-				gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-				getContentPane().add(combo, gridBagConstraints);
+				GridBagConstraints gbc = new java.awt.GridBagConstraints();
+				gbc.gridx = 1;
+				gbc.gridy = 0;
+				gbc.weightx = 1.0;
+				gbc.fill = java.awt.GridBagConstraints.HORIZONTAL;
+				gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+				getContentPane().add(combo, gbc);
 				centerIt = combo;
 			}
 		}
 
 		String badButton = (type == YESNO ? "No" : "Cancel");
 		JButton cancel = new JButton(badButton);
-		GridBagConstraints gridBagConstraints = new GridBagConstraints();
-		gridBagConstraints.gridx = 0;
-		gridBagConstraints.gridy = buttonRow;
-		gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-		gridBagConstraints.weightx = 0.5;
-		getContentPane().add(cancel, gridBagConstraints);
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.gridx = 0;
+		gbc.gridy = buttonRow;
+		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+		gbc.weightx = 0.5;
+		getContentPane().add(cancel, gbc);
 		cancel.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { exit(false); }
@@ -361,12 +368,12 @@ public class PromptAt extends EDialog
 		String goodButton = (type == YESNO ? "Yes" : "OK");
 		JButton ok = new JButton(goodButton);
 		getRootPane().setDefaultButton(ok);
-		gridBagConstraints = new java.awt.GridBagConstraints();
-		gridBagConstraints.gridx = 2;
-		gridBagConstraints.gridy = buttonRow;
-		gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-		gridBagConstraints.weightx = 0.5;
-		getContentPane().add(ok, gridBagConstraints);
+		gbc = new java.awt.GridBagConstraints();
+		gbc.gridx = 2;
+		gbc.gridy = buttonRow;
+		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+		gbc.weightx = 0.5;
+		getContentPane().add(ok, gbc);
 		ok.addActionListener(new java.awt.event.ActionListener()
 		{
 			public void actionPerformed(java.awt.event.ActionEvent evt) { exit(true); }

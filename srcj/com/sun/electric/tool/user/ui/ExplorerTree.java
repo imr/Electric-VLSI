@@ -44,6 +44,8 @@ import com.sun.electric.tool.user.dialogs.ChangeCellGroup;
 import com.sun.electric.tool.user.dialogs.NewCell;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.CellMenu;
+import com.sun.electric.tool.user.tecEdit.Generate;
+import com.sun.electric.tool.user.tecEdit.Manipulate;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -208,14 +210,70 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		{
 			Library lib = (Library)it.next();
 			DefaultMutableTreeNode libTree = new DefaultMutableTreeNode(lib);
-			for(Iterator eit = lib.getCells(); eit.hasNext(); )
+			if (!addTechnologyLibraryToTree(lib, libTree))
 			{
-				Cell cell = (Cell)eit.next();
-				DefaultMutableTreeNode cellTree = new DefaultMutableTreeNode(cell);
-				libTree.add(cellTree);
+				for(Iterator eit = lib.getCells(); eit.hasNext(); )
+				{
+					Cell cell = (Cell)eit.next();
+					DefaultMutableTreeNode cellTree = new DefaultMutableTreeNode(cell);
+					libTree.add(cellTree);
+				}
 			}
 			libraryExplorerTree.add(libTree);
 		}
+	}
+
+	private static boolean addTechnologyLibraryToTree(Library lib, DefaultMutableTreeNode libTree)
+	{
+		boolean techLib = false;
+		for(Iterator it = lib.getCells(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			if (cell.isInTechnologyLibrary())
+			{
+				techLib = true;
+				break;
+			}
+		}
+		if (!techLib) return false;
+
+		// add this library as a technology library
+		DefaultMutableTreeNode layerTree = new DefaultMutableTreeNode("TECHNOLOGY LAYERS");
+		DefaultMutableTreeNode arcTree = new DefaultMutableTreeNode("TECHNOLOGY ARCS");
+		DefaultMutableTreeNode nodeTree = new DefaultMutableTreeNode("TECHNOLOGY NODES");
+		DefaultMutableTreeNode miscTree = new DefaultMutableTreeNode("TECHNOLOGY SUPPORT");
+		libTree.add(layerTree);
+		libTree.add(arcTree);
+		libTree.add(nodeTree);
+		libTree.add(miscTree);
+		Library [] oneLib = new Library[1];
+		oneLib[0] = lib;
+		HashSet allCells = new HashSet();
+		Cell [] layerCells = Manipulate.us_teceditfindsequence(oneLib, "layer-", Generate.LAYERSEQUENCE_KEY);
+		for(int i=0; i<layerCells.length; i++)
+		{
+			allCells.add(layerCells[i]);
+			layerTree.add(new DefaultMutableTreeNode(layerCells[i]));
+		}
+		Cell [] arcCells = Manipulate.us_teceditfindsequence(oneLib, "arc-", Generate.ARCSEQUENCE_KEY);
+		for(int i=0; i<arcCells.length; i++)
+		{
+			allCells.add(arcCells[i]);
+			arcTree.add(new DefaultMutableTreeNode(arcCells[i]));
+		}
+		Cell [] nodeCells = Manipulate.us_teceditfindsequence(oneLib, "node-", Generate.NODESEQUENCE_KEY);
+		for(int i=0; i<nodeCells.length; i++)
+		{
+			allCells.add(nodeCells[i]);
+			nodeTree.add(new DefaultMutableTreeNode(nodeCells[i]));
+		}
+		for(Iterator it = lib.getCells(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			if (allCells.contains(cell)) continue;
+			miscTree.add(new DefaultMutableTreeNode(cell));
+		}
+		return true;
 	}
 
 	private static synchronized void rebuildExplorerTreeByHierarchy(DefaultMutableTreeNode libraryExplorerTree)
@@ -225,27 +283,30 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		{
 			Library lib = (Library)it.next();
 			DefaultMutableTreeNode libTree = new DefaultMutableTreeNode(lib);
-			for(Iterator eit = lib.getCells(); eit.hasNext(); )
+			if (!addTechnologyLibraryToTree(lib, libTree))
 			{
-				Cell cell = (Cell)eit.next();
-
-				// ignore icons and text views
-				if (cell.isIcon()) continue;
-				if (cell.getView().isTextView()) continue;
-
-		        HashSet addedCells = new HashSet();
-				for(Iterator vIt = cell.getVersions(); vIt.hasNext(); )
+				for(Iterator eit = lib.getCells(); eit.hasNext(); )
 				{
-					Cell cellVersion = (Cell)vIt.next();
-					Iterator insts = cellVersion.getInstancesOf();
-					if (insts.hasNext()) continue;
-
-					// no children: add this as root node
-                    if (addedCells.contains(cellVersion)) continue;          // prevent duplicate entries
-					DefaultMutableTreeNode cellTree = new DefaultMutableTreeNode(cellVersion);
-					libTree.add(cellTree);
-                    addedCells.add(cellVersion);
-					createHierarchicalExplorerTree(cellVersion, cellTree);
+					Cell cell = (Cell)eit.next();
+	
+					// ignore icons and text views
+					if (cell.isIcon()) continue;
+					if (cell.getView().isTextView()) continue;
+	
+			        HashSet addedCells = new HashSet();
+					for(Iterator vIt = cell.getVersions(); vIt.hasNext(); )
+					{
+						Cell cellVersion = (Cell)vIt.next();
+						Iterator insts = cellVersion.getInstancesOf();
+						if (insts.hasNext()) continue;
+	
+						// no children: add this as root node
+	                    if (addedCells.contains(cellVersion)) continue;          // prevent duplicate entries
+						DefaultMutableTreeNode cellTree = new DefaultMutableTreeNode(cellVersion);
+						libTree.add(cellTree);
+	                    addedCells.add(cellVersion);
+						createHierarchicalExplorerTree(cellVersion, cellTree);
+					}
 				}
 			}
 			libraryExplorerTree.add(libTree);
@@ -301,44 +362,47 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		{
 			Library lib = (Library)it.next();
 			DefaultMutableTreeNode libTree = new DefaultMutableTreeNode(lib);
-			for(Iterator eit = lib.getCells(); eit.hasNext(); )
+			if (!addTechnologyLibraryToTree(lib, libTree))
 			{
-				Cell cell = (Cell)eit.next();
-				cellsSeen.remove(cell);
-			}
-			for(Iterator eit = lib.getCells(); eit.hasNext(); )
-			{
-				Cell cell = (Cell)eit.next();
-				if (cell.getNewestVersion() != cell) continue;
-				Cell.CellGroup group = cell.getCellGroup();
-				int numNewCells = 0;
-				for(Iterator gIt = group.getCells(); gIt.hasNext(); )
+				for(Iterator eit = lib.getCells(); eit.hasNext(); )
 				{
-					Cell cellInGroup = (Cell)gIt.next();
-					if (cellInGroup.getNewestVersion() == cellInGroup) numNewCells++;
+					Cell cell = (Cell)eit.next();
+					cellsSeen.remove(cell);
 				}
-				if (numNewCells == 1)
+				for(Iterator eit = lib.getCells(); eit.hasNext(); )
 				{
-					addCellAndAllVersions(cell, libTree);
-					continue;
-				}
-
-				List cellsInGroup = group.getCellsSortedByView();
-				DefaultMutableTreeNode groupTree = null;
-				for(Iterator gIt = cellsInGroup.iterator(); gIt.hasNext(); )
-				{
-					Cell cellInGroup = (Cell)gIt.next();
-                    if ((cellInGroup.getNumVersions() > 1) && (cellInGroup.getNewestVersion() != cellInGroup)) continue;
-					if (cellsSeen.contains(cellInGroup)) continue;
-					if (groupTree == null)
+					Cell cell = (Cell)eit.next();
+					if (cell.getNewestVersion() != cell) continue;
+					Cell.CellGroup group = cell.getCellGroup();
+					int numNewCells = 0;
+					for(Iterator gIt = group.getCells(); gIt.hasNext(); )
 					{
-						groupTree = new DefaultMutableTreeNode(group);
+						Cell cellInGroup = (Cell)gIt.next();
+						if (cellInGroup.getNewestVersion() == cellInGroup) numNewCells++;
 					}
-					cellsSeen.add(cellInGroup);
-					addCellAndAllVersions(cellInGroup, groupTree);
+					if (numNewCells == 1)
+					{
+						addCellAndAllVersions(cell, libTree);
+						continue;
+					}
+	
+					List cellsInGroup = group.getCellsSortedByView();
+					DefaultMutableTreeNode groupTree = null;
+					for(Iterator gIt = cellsInGroup.iterator(); gIt.hasNext(); )
+					{
+						Cell cellInGroup = (Cell)gIt.next();
+	                    if ((cellInGroup.getNumVersions() > 1) && (cellInGroup.getNewestVersion() != cellInGroup)) continue;
+						if (cellsSeen.contains(cellInGroup)) continue;
+						if (groupTree == null)
+						{
+							groupTree = new DefaultMutableTreeNode(group);
+						}
+						cellsSeen.add(cellInGroup);
+						addCellAndAllVersions(cellInGroup, groupTree);
+					}
+					if (groupTree != null)
+						libTree.add(groupTree);
 				}
-				if (groupTree != null)
-					libTree.add(groupTree);
 			}
 			libraryExplorerTree.add(libTree);
 		}
@@ -1064,6 +1128,51 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					menuItem = new JMenuItem("Show Cells by Hierarchy");
 					menu.add(menuItem);
 					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { showByHierarchyAction(); } });
+
+					menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
+					return;
+				}
+				if (msg.equalsIgnoreCase("TECHNOLOGY LAYERS"))
+				{
+					JPopupMenu menu = new JPopupMenu("Technology Layers");
+
+					JMenuItem menuItem = new JMenuItem("Add New Layer");
+					menu.add(menuItem);
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { openAction(); } });
+
+					menuItem = new JMenuItem("Reorder Layers");
+					menu.add(menuItem);
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.us_reorderprimdlog("Layers", "layer-", Generate.LAYERSEQUENCE_KEY); } });
+
+					menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
+					return;
+				}
+				if (msg.equalsIgnoreCase("TECHNOLOGY ARCS"))
+				{
+					JPopupMenu menu = new JPopupMenu("Technology Arcs");
+
+					JMenuItem menuItem = new JMenuItem("Add New Arc");
+					menu.add(menuItem);
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { openAction(); } });
+
+					menuItem = new JMenuItem("Reorder Arcs");
+					menu.add(menuItem);
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.us_reorderprimdlog("Arcs", "arc-", Generate.ARCSEQUENCE_KEY); } });
+
+					menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
+					return;
+				}
+				if (msg.equalsIgnoreCase("TECHNOLOGY NODES"))
+				{
+					JPopupMenu menu = new JPopupMenu("Technology Nodes");
+
+					JMenuItem menuItem = new JMenuItem("Add New Node");
+					menu.add(menuItem);
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { openAction(); } });
+
+					menuItem = new JMenuItem("Reorder Nodes");
+					menu.add(menuItem);
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.us_reorderprimdlog("Nodes", "node-", Generate.NODESEQUENCE_KEY); } });
 
 					menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 					return;

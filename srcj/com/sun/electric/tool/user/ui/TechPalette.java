@@ -50,6 +50,7 @@ import com.sun.electric.tool.user.dialogs.AnnularRing;
 import com.sun.electric.tool.user.dialogs.CellBrowser;
 import com.sun.electric.tool.user.dialogs.LayoutText;
 import com.sun.electric.tool.user.menus.CellMenu;
+import com.sun.electric.tool.user.tecEdit.Generate;
 
 import java.awt.*;
 import java.awt.dnd.DnDConstants;
@@ -119,9 +120,10 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
      * Loads a new technology into the palette. Returns the
      * new desired size of the panel
      * @param tech the technology to load
+     * @param curCell the cell in the window associated with this palette
      * @return the preferred size of the new panel
      */
-    public Dimension loadForTechnology(Technology tech)
+    public Dimension loadForTechnology(Technology tech, Cell curCell)
     {
         inPalette.clear();
         elementsMap.clear();
@@ -232,33 +234,62 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             inPalette.add(Schematics.tech.andNode);
         } else if (tech == Artwork.tech)
         {
-            menuX = 2;
-            menuY = 12;
-            inPalette.add(Artwork.tech.solidArc);
-            inPalette.add(Artwork.tech.thickerArc);
-            inPalette.add("Cell");
-            inPalette.add(Artwork.tech.openedPolygonNode);
-            inPalette.add(Artwork.tech.openedThickerPolygonNode);
-            inPalette.add(Artwork.tech.filledTriangleNode);
-            inPalette.add(Artwork.tech.filledBoxNode);
-            inPalette.add(Technology.makeNodeInst(Artwork.tech.filledPolygonNode, PrimitiveNode.Function.ART, 0, false, null, 4.5));
-            inPalette.add(Artwork.tech.filledCircleNode);
-            inPalette.add(Artwork.tech.pinNode);
-            inPalette.add(Artwork.tech.crossedBoxNode);
-            inPalette.add(Artwork.tech.thickCircleNode);
-
-            inPalette.add(Artwork.tech.dottedArc);
-            inPalette.add(Artwork.tech.dashedArc);
-            inPalette.add("Text");
-            inPalette.add(Artwork.tech.openedDottedPolygonNode);
-            inPalette.add(Artwork.tech.openedDashedPolygonNode);
-            inPalette.add(Artwork.tech.triangleNode);
-            inPalette.add(Artwork.tech.boxNode);
-            inPalette.add(Technology.makeNodeInst(Artwork.tech.closedPolygonNode, PrimitiveNode.Function.ART, 0, false, null, 4.5));
-            inPalette.add(Artwork.tech.circleNode);
-            inPalette.add("Export");
-            inPalette.add(Artwork.tech.arrowNode);
-            inPalette.add(Technology.makeNodeInst(Artwork.tech.splineNode, PrimitiveNode.Function.ART, 0, false, null, 4.5));
+        	if (curCell != null && curCell.isInTechnologyLibrary())
+        	{
+        		// special variation of Artwork for technology editing
+	            menuX = 1;
+	            menuY = 16;
+	            inPalette.add("Text");
+                NodeInst arc = NodeInst.makeDummyInstance(Artwork.tech.circleNode);
+                arc.setArcDegrees(0, Math.PI/4);
+	            inPalette.add(arc);
+                NodeInst half = NodeInst.makeDummyInstance(Artwork.tech.circleNode);
+                half.setArcDegrees(0, Math.PI);
+	            inPalette.add(half);
+	            inPalette.add(Artwork.tech.filledCircleNode);
+	            inPalette.add(Artwork.tech.circleNode);
+	            inPalette.add(Artwork.tech.openedThickerPolygonNode);
+	            inPalette.add(Artwork.tech.openedDashedPolygonNode);
+	            inPalette.add(Artwork.tech.openedDottedPolygonNode);
+	            inPalette.add(Artwork.tech.openedPolygonNode);
+	            inPalette.add(Technology.makeNodeInst(Artwork.tech.closedPolygonNode, PrimitiveNode.Function.ART, 0, false, null, 4.5));
+	            inPalette.add(Technology.makeNodeInst(Artwork.tech.filledPolygonNode, PrimitiveNode.Function.ART, 0, false, null, 4.5));
+	            inPalette.add(Artwork.tech.boxNode);
+	            inPalette.add(Artwork.tech.crossedBoxNode);
+	            inPalette.add(Artwork.tech.filledBoxNode);
+	            inPalette.add("High");
+	            inPalette.add("Port");
+        	} else
+        	{
+        		// regular artwork menu
+	            menuX = 2;
+	            menuY = 12;
+	            inPalette.add(Artwork.tech.solidArc);
+	            inPalette.add(Artwork.tech.thickerArc);
+	            inPalette.add("Cell");
+	            inPalette.add(Artwork.tech.openedPolygonNode);
+	            inPalette.add(Artwork.tech.openedThickerPolygonNode);
+	            inPalette.add(Artwork.tech.filledTriangleNode);
+	            inPalette.add(Artwork.tech.filledBoxNode);
+	            inPalette.add(Technology.makeNodeInst(Artwork.tech.filledPolygonNode, PrimitiveNode.Function.ART, 0, false, null, 4.5));
+	            inPalette.add(Artwork.tech.filledCircleNode);
+	            inPalette.add(Artwork.tech.pinNode);
+	            inPalette.add(Artwork.tech.crossedBoxNode);
+	            inPalette.add(Artwork.tech.thickCircleNode);
+	
+	            inPalette.add(Artwork.tech.dottedArc);
+	            inPalette.add(Artwork.tech.dashedArc);
+	            inPalette.add("Text");
+	            inPalette.add(Artwork.tech.openedDottedPolygonNode);
+	            inPalette.add(Artwork.tech.openedDashedPolygonNode);
+	            inPalette.add(Artwork.tech.triangleNode);
+	            inPalette.add(Artwork.tech.boxNode);
+	            inPalette.add(Technology.makeNodeInst(Artwork.tech.closedPolygonNode, PrimitiveNode.Function.ART, 0, false, null, 4.5));
+	            inPalette.add(Artwork.tech.circleNode);
+	            inPalette.add("Export");
+	            inPalette.add(Artwork.tech.arrowNode);
+	            inPalette.add(Technology.makeNodeInst(Artwork.tech.splineNode, PrimitiveNode.Function.ART, 0, false, null, 4.5));
+        	}
         } else
         {
             int pinTotal = 0, pureTotal = 0, compTotal = 0, arcTotal = 0;
@@ -627,7 +658,18 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 specialMenu.show(panel, e.getX(), e.getY());
             } if (msg.equals("Text"))
             {
+            	// place a piece of text
                 PaletteFrame.placeInstance("ART_message", panel, false);
+            } if (msg.equals("High"))
+            {
+            	// place a technology-edit highlight box
+            	NodeInst ni = NodeInst.makeDummyInstance(Artwork.tech.boxNode);
+            	ni.newVar(Generate.LAYER_KEY, null);
+                PaletteFrame.placeInstance(ni, panel, false);
+            } if (msg.equals("Port"))
+            {
+            	// place a technology-edit port
+                PaletteFrame.placeInstance(Generic.tech.portNode, panel, false);
             }
         }
         repaint();

@@ -66,7 +66,7 @@ import com.sun.electric.tool.user.dialogs.GetInfoText;
 import com.sun.electric.tool.user.dialogs.MoveBy;
 import com.sun.electric.tool.user.dialogs.SelectObject;
 import com.sun.electric.tool.user.dialogs.Spread;
-import com.sun.electric.tool.user.tecEdit.Create;
+import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.tecEdit.Generate;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.OutlineListener;
@@ -340,7 +340,7 @@ public class EditMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ArtworkLook.showArtworkLookDialog(); }});
 		specialSubMenu.addSeparator();
 		specialSubMenu.addMenuItem("Convert Technology to Library for Editing...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { com.sun.electric.tool.user.tecEdit.Generate.makeLibFromTech(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Generate.makeLibFromTech(); }});
 
 		MenuBar.Menu selListSubMenu = new MenuBar.Menu("Selection");
 		editMenu.add(selListSubMenu);
@@ -515,10 +515,10 @@ public class EditMenu {
 					nodeCount + textCount == 1 && theNode != null)
 				{
 		    		// if double-clicked on a technology editing object, modify it
-	    			Variable var = theNode.getVar(Generate.EDTEC_OPTION);
-	    			if (var != null)
+	    			int opt = Manipulate.us_tecedgetoption(theNode);
+	    			if (opt >= 0)
 	    			{
-	    				Create.us_teceditmodobject(wnd, theNode, ((Integer)var.getObject()).intValue());
+	    				Manipulate.us_teceditmodobject(wnd, theNode, opt);
 	    				return;
 		    		}
 				}

@@ -37,12 +37,15 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
+
+import java.util.Iterator;
 
 /**
 * This class creates technology libraries from technologies.
@@ -267,7 +270,7 @@ public class Parse
 //		if (us_tecedmakenodes(dependentlibs, dependentlibcount, tech)) return;
 //	
 //		// copy any miscellaneous variables (should use dependent libraries facility)
-//		var = getval((INTBIG)lib, VLIBRARY, VSTRING|VISARRAY, x_("EDTEC_variable_list"));
+//		Variable var = lib.getVar(Generate.VARIABLELIST_KEY);
 //		if (var != NOVARIABLE)
 //		{
 //			j = getlength(var);
@@ -621,8 +624,7 @@ public class Parse
 //		REGISTER void *infstr;
 //	
 //		// first find the number of layers
-//		tech.layercount = us_teceditfindsequence(dependentlibs, dependentlibcount, x_("layer-"),
-//			x_("EDTEC_layersequence"), &sequence);
+//		tech.layercount = us_teceditfindsequence(dependentlibs, "layer-", Generate.LAYERSEQUENCE_KEY);
 //		if (tech.layercount <= 0)
 //		{
 //			ttyputerr(_("No layers found"));
@@ -698,8 +700,7 @@ public class Parse
 //			dr_freerules(us_tecdrc_rules);
 //			us_tecdrc_rules = 0;
 //		}
-//		nodecount = us_teceditfindsequence(dependentlibs, dependentlibcount, x_("node-"),
-//			x_("EDTEC_nodesequence"), &nodesequence);
+//		nodecount = us_teceditfindsequence(dependentlibs, "node-", Generate.NODERSEQUENCE_KEY);
 //		us_tecdrc_rules = dr_allocaterules(us_teceddrclayers, nodecount, x_("EDITED TECHNOLOGY"));
 //		if (us_tecdrc_rules == NODRCRULES) return(TRUE);
 //		for(i=0; i<us_teceddrclayers; i++)
@@ -773,8 +774,8 @@ public class Parse
 //		var = NOVARIABLE;
 //		for(i=dependentlibcount-1; i>=0; i--)
 //		{
-//			var = getval((INTBIG)dependentlibs[i], VLIBRARY, VINTEGER|VISARRAY, x_("EDTEC_colormap"));
-//			if (var != NOVARIABLE) break;
+//			var = dependentlibs[i].getVar(Generate.COLORMAP_KEY);
+//			if (var != null) break;
 //		}
 //		if (var != NOVARIABLE)
 //		{
@@ -938,8 +939,7 @@ public class Parse
 //		REGISTER VARIABLE *var;
 //	
 //		// count the number of arcs in the technology
-//		us_tecarc_count = us_teceditfindsequence(dependentlibs, dependentlibcount, x_("arc-"),
-//			x_("EDTEC_arcsequence"), &sequence);
+//		us_tecarc_count = us_teceditfindsequence(dependentlibs, "arc-", Generate.ARCSEQUENCE_KEY);
 //		if (us_tecarc_count <= 0)
 //		{
 //			ttyputerr(_("No arcs found"));
@@ -1147,8 +1147,7 @@ public class Parse
 //		// no rectangle rules
 //		us_tecedfirstrule = NORULE;
 //	
-//		us_tecnode_count = us_teceditfindsequence(dependentlibs, dependentlibcount, x_("node-"),
-//			x_("EDTEC_nodesequence"), &sequence);
+//		us_tecnode_count = us_teceditfindsequence(dependentlibs, "node-", Generate.NODESEQUENCE_KEY);
 //		if (us_tecnode_count <= 0)
 //		{
 //			ttyputerr(_("No nodes found"));
@@ -1360,7 +1359,7 @@ public class Parse
 //				if (ns.layer != gen_portprim) continue;
 //	
 //				// port connections
-//				var = getval((INTBIG)ns.node, VNODEINST, VNODEPROTO|VISARRAY, x_("EDTEC_connects"));
+//				var = ns.node.getVar(Generate.CONNECTION_KEY);
 //				if (var == NOVARIABLE) pc = us_tecedaddportlist(0, (INTBIG *)0); else
 //				{
 //					// convert "arc-CELL" pointers to indices
@@ -1450,10 +1449,10 @@ public class Parse
 //	
 //				// port angle and range
 //				tlist.portlist[i].initialbits = 0;
-//				var = getval((INTBIG)ns.node, VNODEINST, VINTEGER, x_("EDTEC_portangle"));
+//				var = ns.node.getVar(Generate.PORTANGLE_KEY);
 //				if (var != NOVARIABLE)
 //					tlist.portlist[i].initialbits |= var.addr << PORTANGLESH;
-//				var = getval((INTBIG)ns.node, VNODEINST, VINTEGER, x_("EDTEC_portrange"));
+//				var = ns.node.getVar(Generate.PORTRANGE_KEY);
 //				if (var != NOVARIABLE)
 //					tlist.portlist[i].initialbits |= var.addr << PORTARANGESH; else
 //						tlist.portlist[i].initialbits |= 180 << PORTARANGESH;
@@ -2789,8 +2788,8 @@ public class Parse
 //				truecount = count;
 //				if (var3 == NOVARIABLE)
 //				{
-//					var2 = getval((INTBIG)ns.node, VNODEINST, VSTRING, x_("EDTEC_minbox"));
-//					if (var2 != NOVARIABLE) count *= 2;
+//					Variable var2 = ns.node.getVar(Generate.MINSIZEBOX_KEY);
+//					if (var2 != null) count *= 2;
 //				}
 //				us_tecedforcearrays(count);
 //	
@@ -2927,36 +2926,35 @@ public class Parse
 //				if (ns.layer != gen_portprim) continue;
 //	
 //				// check port angle
-//				var = getval((INTBIG)ns.node, VNODEINST, VINTEGER, x_("EDTEC_portangle"));
-//				var2 = getval((INTBIG)ni, VNODEINST, VINTEGER, x_("EDTEC_portangle"));
-//				if (var == NOVARIABLE && var2 != NOVARIABLE)
+//				var = ns.node.getVar(Generate.PORTANGLE_KEY);
+//				var2 = ni.getVar(Generate.PORTANGLE_KEY);
+//				if (var == null && var2 != null)
 //				{
 //					us_tecedpointout(NONODEINST, np);
 //					ttyputerr(_("Warning: moving port angle to main example of %s"),
 //						describenodeproto(np));
-//					(void)setval((INTBIG)ns.node, VNODEINST, x_("EDTEC_portangle"), var2.addr, VINTEGER);
+//					ns.node.newVar(Generate.PORTANGLE_KEY, new Integer(var2.addr));
 //				}
 //	
 //				// check port range
-//				var = getval((INTBIG)ns.node, VNODEINST, VINTEGER, x_("EDTEC_portrange"));
-//				var2 = getval((INTBIG)ni, VNODEINST, VINTEGER, x_("EDTEC_portrange"));
-//				if (var == NOVARIABLE && var2 != NOVARIABLE)
+//				var = ns.node.getVar(Generate.PORTRANGE_KEY);
+//				var2 = ni.getVar(Generate.PORTRANGE_KEY);
+//				if (var == null && var2 != null)
 //				{
 //					us_tecedpointout(NONODEINST, np);
 //					ttyputerr(_("Warning: moving port range to main example of %s"), describenodeproto(np));
-//					(void)setval((INTBIG)ns.node, VNODEINST, x_("EDTEC_portrange"), var2.addr, VINTEGER);
+//					ns.node.newVar(Generate.PORTRANGE_KEY, new Integer(var2.addr));
 //				}
 //	
 //				// check connectivity
-//				var = getval((INTBIG)ns.node, VNODEINST, VNODEPROTO|VISARRAY, x_("EDTEC_connects"));
-//				var2 = getval((INTBIG)ni, VNODEINST, VNODEPROTO|VISARRAY, x_("EDTEC_connects"));
-//				if (var == NOVARIABLE && var2 != NOVARIABLE)
+//				var = ns.node.getVar(Generate.CONNECTION_KEY);
+//				var2 = ni.getVar(Generate.CONNECTION_KEY);
+//				if (var == null && var2 != null)
 //				{
 //					us_tecedpointout(NONODEINST, np);
 //					ttyputerr(_("Warning: moving port connections to main example of %s"),
 //						describenodeproto(np));
-//					(void)setval((INTBIG)ns.node, VNODEINST, x_("EDTEC_connects"),
-//						var2.addr, VNODEPROTO|VISARRAY|(getlength(var2)<<VLENGTHSH));
+//					ns.node.newVar(Generate.CONNECTION_KEY, var2.addr);
 //				}
 //			}
 //	
@@ -3337,149 +3335,6 @@ public class Parse
 //		return(pc);
 //	}
 //	
-//	/*
-//	 * routine to get the list of libraries that are used in the construction
-//	 * of library "lib".  Returns the number of libraries, terminated with "lib",
-//	 * and sets the list in "liblist".
-//	 */
-//	INTBIG us_teceditgetdependents(LIBRARY *lib, LIBRARY ***liblist)
-//	{
-//		REGISTER VARIABLE *var;
-//		REGISTER INTBIG i, j, total;
-//		REGISTER CHAR *pt;
-//	
-//		// get list of dependent libraries
-//		var = getval((INTBIG)lib, VLIBRARY, VSTRING|VISARRAY, x_("EDTEC_dependent_libraries"));
-//		if (var == NOVARIABLE) j = 0; else j = getlength(var);
-//		if (j >= us_teceddepliblistsize)
-//		{
-//			if (us_teceddepliblistsize != 0) efree((CHAR *)us_teceddepliblist);
-//			us_teceddepliblist = (LIBRARY **)emalloc((j+1) * (sizeof (LIBRARY *)), us_tool.cluster);
-//			if (us_teceddepliblist == 0) return(0);
-//			us_teceddepliblistsize = j+1;
-//		}
-//	
-//		total = 0;
-//		for(i=0; i<j; i++)
-//		{
-//			pt = ((CHAR **)var.addr)[i];
-//			us_teceddepliblist[total++] = getlibrary(pt);
-//			if (us_teceddepliblist[total-1] == NOLIBRARY)
-//			{
-//				ttyputerr(_("Cannot find dependent technology library %s, ignoring"), pt);
-//				total--;
-//				continue;
-//			}
-//			if (us_teceddepliblist[total-1] == lib)
-//			{
-//				ttyputerr(_("Library cannot depend on itself, ignoring dependency"));
-//				total--;
-//				continue;
-//			}
-//		}
-//		us_teceddepliblist[total++] = lib;
-//		*liblist = us_teceddepliblist;
-//		return(total);
-//	}
-//	
-//	/*
-//	 * general-purpose routine to scan the "dependentlibcount" libraries in "dependentlibs",
-//	 * looking for cells that begin with the string "match".  It then uses the
-//	 * variable "seqname" on the last library to determine an ordering of the cells.
-//	 * Then, it returns the cells in the array "sequence" and returns the number of them.
-//	 * Returns 0 on error.
-//	 */
-//	INTBIG us_teceditfindsequence(LIBRARY **dependentlibs, INTBIG dependentlibcount,
-//		CHAR *match, CHAR *seqname, NODEPROTO ***sequence)
-//	{
-//		REGISTER INTBIG total;
-//		REGISTER INTBIG i, j, k, l, npsize, matchcount;
-//		REGISTER NODEPROTO *np, *lnp, **nplist, **newnplist;
-//		REGISTER VARIABLE *var;
-//		REGISTER LIBRARY *olderlib, *laterlib;
-//	
-//		// look backwards through libraries for the appropriate cells
-//		matchcount = estrlen(match);
-//		total = 0;
-//		npsize = 0;
-//		for(i=dependentlibcount-1; i>=0; i--)
-//		{
-//			olderlib = dependentlibs[i];
-//			for(np = olderlib.firstnodeproto; np != NONODEPROTO; np = np.nextnodeproto)
-//				if (namesamen(np.protoname, match, matchcount) == 0)
-//			{
-//				// see if this cell is used in a later library
-//				for(j=i+1; j<dependentlibcount; j++)
-//				{
-//					laterlib = dependentlibs[j];
-//					for(lnp = laterlib.firstnodeproto; lnp != NONODEPROTO; lnp = lnp.nextnodeproto)
-//						if (namesame(lnp.protoname, np.protoname) == 0)
-//					{
-//						// got older and later version of same cell: check dates
-//						if (lnp.revisiondate < np.revisiondate)
-//							ttyputmsg(_("Warning: library %s has newer %s than library %s"),
-//								olderlib.libname, np.protoname, laterlib.libname);
-//						break;
-//					}
-//					if (lnp != NONODEPROTO) break;
-//				}
-//	
-//				// if no later library has this, add to total
-//				if (j >= dependentlibcount)
-//				{
-//					if (total >= npsize)
-//					{
-//						newnplist = (NODEPROTO **)emalloc((npsize+10) * (sizeof (NODEPROTO *)),
-//							el_tempcluster);
-//						if (newnplist == 0) return(0);
-//	
-//						// LINTED "nplist" used in proper order
-//						for(k=0; k<total; k++) newnplist[k] = nplist[k];
-//						if (npsize != 0) efree((CHAR *)nplist);
-//						nplist = newnplist;
-//						npsize += 10;
-//					}
-//					newnplist[total++] = np;
-//				}
-//			}
-//		}
-//		if (total <= 0) return(0);
-//	
-//		// if there is no sequence, simply return the list
-//		var = getval((INTBIG)dependentlibs[dependentlibcount-1], VLIBRARY, VSTRING|VISARRAY, seqname);
-//		if (var == NOVARIABLE)
-//		{
-//			*sequence = nplist;
-//			return(total);
-//		}
-//	
-//		// allocate a new list to be built from the sequence
-//		*sequence = (NODEPROTO **)emalloc(total * (sizeof (NODEPROTO *)), el_tempcluster);
-//		if (*sequence == 0) return(0);
-//	
-//		j = getlength(var);
-//		k = 0;
-//		for(i=0; i<j; i++)
-//		{
-//			for(l = 0; l < total; l++)
-//			{
-//				np = nplist[l];
-//				if (np == NONODEPROTO) continue;
-//				if (namesame(&np.protoname[matchcount], ((CHAR **)var.addr)[i]) == 0) break;
-//			}
-//			if (l >= total) continue;
-//			(*sequence)[k++] = np;
-//			nplist[l] = NONODEPROTO;
-//		}
-//		for(l = 0; l < total; l++)
-//		{
-//			np = nplist[l];
-//			if (np != NONODEPROTO) (*sequence)[k++] = np;
-//		}
-//		efree((CHAR *)nplist);
-//		return(total);
-//	}
-//	
 //	RULE *us_tecedaddrule(INTBIG list[8], INTBIG count, BOOLEAN multcut, CHAR *istext)
 //	{
 //		REGISTER RULE *r;
@@ -3516,29 +3371,7 @@ public class Parse
 //		}
 //		return(r);
 //	}
-//	
-//	/*
-//	 * Routine to obtain the layer associated with node "ni".  Returns 0 if the layer is not
-//	 * there or invalid.  Returns NONODEPROTO if this is the highlight layer.
-//	 */
-//	NODEPROTO *us_tecedgetlayer(NODEINST *ni)
-//	{
-//		REGISTER VARIABLE *var;
-//		REGISTER NODEPROTO *np, *onp;
-//	
-//		var = getval((INTBIG)ni, VNODEINST, VNODEPROTO, x_("EDTEC_layer"));
-//		if (var == NOVARIABLE) return(0);
-//		np = (NODEPROTO *)var.addr;
-//		if (np != NONODEPROTO)
-//		{
-//			// validate the reference
-//			for(onp = ni.parent.lib.firstnodeproto; onp != NONODEPROTO; onp = onp.nextnodeproto)
-//				if (onp == np) break;
-//			if (onp == NONODEPROTO) return(0);
-//		}
-//		return(np);
-//	}
-//	
+	
 //	/****************************** WRITE TECHNOLOGY AS "C" CODE ******************************/
 //	
 //	/*
@@ -5903,20 +5736,5 @@ public class Parse
 //		*str++;
 //		while (*str == ' ') str++;
 //		return(str);
-//	}
-//	
-//	/*
-//	 * Routine to return the name of the technology-edit port on node "ni".  Typically,
-//	 * this is stored on the "EDTEC_portname" variable, but it may also be the node's name.
-//	 */
-//	CHAR *us_tecedgetportname(NODEINST *ni)
-//	{
-//		REGISTER VARIABLE *var;
-//	
-//		var = getval((INTBIG)ni, VNODEINST, VSTRING, x_("EDTEC_portname"));
-//		if (var != NOVARIABLE) return((CHAR *)var.addr);
-//		var = getvalkey((INTBIG)ni, VNODEINST, VSTRING, el_node_name_key);
-//		if (var != NOVARIABLE) return((CHAR *)var.addr);
-//		return(0);
 //	}
 }

@@ -26,7 +26,6 @@ package com.sun.electric.tool.user.ui;
 //import com.sun.electric.database.change.DatabaseChangeListener;
 //import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
@@ -34,6 +33,7 @@ import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
@@ -41,6 +41,7 @@ import com.sun.electric.tool.user.ExportChanges;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.tecEdit.Manipulate;
 
 import java.awt.Container;
 import java.awt.Cursor;
@@ -56,7 +57,6 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.util.EventListener;
 import java.util.Iterator;
 
@@ -94,7 +94,7 @@ public class PaletteFrame implements /*DatabaseChangeListener,*/ MouseListener
 	 * Method to create a new window on the screen that displays the component menu.
 	 * @return the PaletteFrame that shows the component menu.
 	 */
-	public static PaletteFrame newInstance()
+	public static PaletteFrame newInstance(WindowFrame ww)
 	{
 		PaletteFrame palette = new PaletteFrame();
 
@@ -126,7 +126,7 @@ public class PaletteFrame implements /*DatabaseChangeListener,*/ MouseListener
 		palette.topPanel = new JPanel();
 
 		// initialize all components
-        palette.initComponents();
+        palette.initComponents(ww);
 
 //		if (TopLevel.isMDIMode())
 //		{
@@ -142,7 +142,7 @@ public class PaletteFrame implements /*DatabaseChangeListener,*/ MouseListener
 		return palette;
 	}
 
-    private void initComponents() {
+    private void initComponents(WindowFrame ww) {
 //        Container content = ((RootPaneContainer)container).getContentPane();
         Container content = topPanel;
 
@@ -223,7 +223,7 @@ public class PaletteFrame implements /*DatabaseChangeListener,*/ MouseListener
         //techSelector.setSelectedItem(User.getDefaultTechnology());
         techSelector.setSelectedItem(Technology.getCurrent().getTechName());
 
-        PaletteControlListener l = new PaletteControlListener(this);
+        PaletteControlListener l = new PaletteControlListener(this, ww);
 //        techRadioButton.addActionListener(l);
         techSelector.addActionListener(l);
 //        librarySelector.addActionListener(l);
@@ -319,11 +319,11 @@ public class PaletteFrame implements /*DatabaseChangeListener,*/ MouseListener
     /**
      * Set the Technology Palette (if shown) to the current technology.
      */
-	public void loadForTechnology(Technology tech)
+	public void loadForTechnology(Technology tech, WindowFrame ww)
 	{
 //		Technology tech = Technology.getCurrent();
         //Technology tech = Technology.findTechnology(User.getDefaultTechnology());
-        Dimension size = techPalette.loadForTechnology(tech);
+        Dimension size = techPalette.loadForTechnology(tech, ww.getContent().getCell());
         if (techPalette.isVisible()) {
             setSize(size);
         }
@@ -347,9 +347,14 @@ public class PaletteFrame implements /*DatabaseChangeListener,*/ MouseListener
     // responds to changes in the Palette control
     private static class PaletteControlListener implements ActionListener
     {
-        PaletteFrame palette;
+        private PaletteFrame palette;
+        private WindowFrame ww;
 
-        PaletteControlListener(PaletteFrame palette) { this.palette = palette; }
+        PaletteControlListener(PaletteFrame palette, WindowFrame ww)
+        {
+        	this.palette = palette;
+        	this.ww = ww;
+        }
 
         public void actionPerformed(ActionEvent evt) {
             Object source = evt.getSource();
@@ -359,7 +364,7 @@ public class PaletteFrame implements /*DatabaseChangeListener,*/ MouseListener
                 Technology  tech = Technology.findTechnology(techName);
                 if (tech != null) {
                     tech.setCurrent();
-                    palette.loadForTechnology(tech);
+                    palette.loadForTechnology(tech, ww);
                 }
             }
 //            else if (source == palette.librarySelector) {
@@ -643,7 +648,8 @@ public class PaletteFrame implements /*DatabaseChangeListener,*/ MouseListener
 
 			oldx = evt.getX();
 			oldy = evt.getY();
-			if (wnd.getCell() == null)
+			Cell cell = wnd.getCell();
+			if (cell == null)
 			{
 				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
 					"Cannot create node: this window has no cell in it");
@@ -663,11 +669,23 @@ public class PaletteFrame implements /*DatabaseChangeListener,*/ MouseListener
 				ni = (NodeInst)toDraw;
 				np = ni.getProto();
 			}
+
+			// if in a technology editor, validate the creation
+			if (cell.isInTechnologyLibrary())
+			{
+				if (Manipulate.invalidCreation(np, cell))
+				{
+					// invalid placement: restore the former listener to the edit windows
+		            finished(wnd, false);
+					return;
+				}
+			}
+
 			String descript = "Create ";
 			if (np instanceof Cell) descript += ((Cell)np).noLibDescribe(); else
 				descript += np.getName() + " Primitive";
             wnd.getHighlighter().clear();
-			PlaceNewNode job = new PlaceNewNode(descript, toDraw, where, wnd.getCell(), textNode, makePort);
+			PlaceNewNode job = new PlaceNewNode(descript, toDraw, where, cell, textNode, makePort);
 
 			// restore the former listener to the edit windows
             finished(wnd, false);
@@ -855,10 +873,23 @@ public class PaletteFrame implements /*DatabaseChangeListener,*/ MouseListener
 						MutableTextDescriptor td = MutableTextDescriptor.getNodeTextDescriptor();
 						var.setTextDescriptor(td);
 					}
+				} else if (np == Artwork.tech.circleNode)
+				{
+					if (ni != null)
+					{
+						double [] angles = ni.getArcDegrees();
+						newNi.setArcDegrees(angles[0], angles[1]);
+					}
 				}
 				ElectricObject eObj = newNi;
 				if (newNi.getNumPortInsts() > 0) eObj = (ElectricObject)newNi.getPortInsts().next();
 				highlighter.addElectricObject(eObj, cell);
+			}
+
+			// for technology edit cells, mark the new geometry specially
+			if (cell.isInTechnologyLibrary())
+			{
+				Manipulate.completeNodeCreation(newNi, toDraw);
 			}
 			highlighter.finished();
 			if (export)

@@ -44,6 +44,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Artwork;
@@ -102,29 +103,32 @@ public class Generate
 		 */
 		void us_tecedmakelayer(Cell np)
 		{
-			NodeInst laystipple = null, laypatcontrol = null;
+			NodeInst laystipple = null, laypatclear = null, laypatinvert = null, laypatcopy = null, laypatpaste = null;
 			for(Iterator it = np.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
-				Variable var = ni.getVar(EDTEC_OPTION);
+				Variable var = ni.getVar(OPTION_KEY);
 				if (var == null) continue;
 				switch (((Integer)var.getObject()).intValue())
 				{
-					case LAYERPATTERN: laystipple = ni;    break;
-					case LAYERPATCONT: laypatcontrol = ni; break;
+					case LAYERPATTERN:   laystipple = ni;    break;
+					case LAYERPATCLEAR:  laypatclear = ni;   break;
+					case LAYERPATINVERT: laypatinvert = ni;  break;
+					case LAYERPATCOPY:   laypatcopy = ni;    break;
+					case LAYERPATPASTE:  laypatpaste = ni;   break;
 				}
 			}
 		
 			// create the transparency information if it is not there
-			Variable patchVar = np.getVar("EDTEC_colornode");
+			Variable patchVar = np.getVar(Generate.COLORNODE_KEY);
 			if (patchVar == null)
 			{
 				// create the graphic color object
 				NodeInst nicolor = NodeInst.makeInstance(Artwork.tech.filledBoxNode, new Point2D.Double(-15000/SCALEALL,15000/SCALEALL),
 					10000/SCALEALL, 10000/SCALEALL, np);
 				if (nicolor == null) return;
-				Create.us_teceditsetpatch(nicolor, desc);
-				np.newVar("EDTEC_colornode", nicolor);
+				Manipulate.us_teceditsetpatch(nicolor, desc);
+				np.newVar(COLORNODE_KEY, nicolor);
 			}
 		
 			// create the stipple pattern objects if none are there
@@ -142,7 +146,7 @@ public class Generate
 						for(int i=0; i<16; i++) spattern[i] = new Short((short)0);
 						ni.newVar(Artwork.ART_PATTERN, spattern);
 					}
-					ni.newVar(EDTEC_OPTION, new Integer(LAYERPATTERN));
+					ni.newVar(OPTION_KEY, new Integer(LAYERPATTERN));
 				}
 				NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(-24000/SCALEALL,7000/SCALEALL), 0, 0, np);
 				if (ni == null) return;
@@ -155,16 +159,43 @@ public class Generate
 			}
 		
 			// create the patch control object
-			if (laypatcontrol == null)
+			if (laypatclear == null)
 			{
 				NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode,
 					new Point2D.Double((16000-40000)/SCALEALL, (4000-16*2000)/SCALEALL), 0, 0, np);
 				if (ni == null) return;
-				Variable var = ni.newVar(Artwork.ART_MESSAGE, "Stipple Pattern Operations");
+				Variable var = ni.newVar(Artwork.ART_MESSAGE, "Clear Pattern");
 				if (var != null) var.setDisplay(true);
-				ni.newVar(EDTEC_OPTION, new Integer(LAYERPATCONT));
+				ni.newVar(OPTION_KEY, new Integer(LAYERPATCLEAR));
 			}
-		
+			if (laypatinvert == null)
+			{
+				NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode,
+					new Point2D.Double((16000-40000)/SCALEALL, (4000-18*2000)/SCALEALL), 0, 0, np);
+				if (ni == null) return;
+				Variable var = ni.newVar(Artwork.ART_MESSAGE, "Invert Pattern");
+				if (var != null) var.setDisplay(true);
+				ni.newVar(OPTION_KEY, new Integer(LAYERPATINVERT));
+			}
+			if (laypatcopy == null)
+			{
+				NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode,
+					new Point2D.Double((16000-40000)/SCALEALL, (4000-20*2000)/SCALEALL), 0, 0, np);
+				if (ni == null) return;
+				Variable var = ni.newVar(Artwork.ART_MESSAGE, "Copy Pattern");
+				if (var != null) var.setDisplay(true);
+				ni.newVar(OPTION_KEY, new Integer(LAYERPATCOPY));
+			}
+			if (laypatpaste == null)
+			{
+				NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode,
+					new Point2D.Double((16000-40000)/SCALEALL, (4000-22*2000)/SCALEALL), 0, 0, np);
+				if (ni == null) return;
+				Variable var = ni.newVar(Artwork.ART_MESSAGE, "Paste Pattern");
+				if (var != null) var.setDisplay(true);
+				ni.newVar(OPTION_KEY, new Integer(LAYERPATPASTE));
+			}
+
 			// load up the structure with the current values
 			for(int i=0; i<us_tecedlayertexttable.length; i++)
 			{
@@ -229,7 +260,7 @@ public class Generate
 			for(Iterator it = np.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
-				Variable varkey = ni.getVar(EDTEC_OPTION);
+				Variable varkey = ni.getVar(OPTION_KEY);
 				if (varkey == null) continue;
 				Variable var = ni.getVar(Artwork.ART_MESSAGE);
 				String str = "";
@@ -374,7 +405,7 @@ public class Generate
 			{
 				NodeInst ni = (NodeInst)it.next();
 				if (ni.getProto() != Artwork.tech.filledBoxNode) continue;
-				Variable var = ni.getVar(EDTEC_OPTION);
+				Variable var = ni.getVar(OPTION_KEY);
 				if (var == null) continue;
 				if (((Integer)var.getObject()).intValue() != LAYERPATTERN) continue;
 				var = ni.getVar(Artwork.ART_PATTERN);
@@ -401,9 +432,58 @@ public class Generate
 		}
 	}
 
+	static class ArcInfo
+	{
+		ArcProto.Function func;
+		boolean fixang;
+		boolean wipes;
+		boolean noextend;
+		int anginc;
+
+		ArcInfo()
+		{
+		}
+
+		/**
+		 * Method to build the appropriate descriptive information for an arc into
+		 * cell "np".  The function is in "func"; the arc is fixed-angle if "fixang"
+		 * is nonzero; the arc wipes pins if "wipes" is nonzero; and the arc does
+		 * not extend its ends if "noextend" is nonzero.  The angle increment is
+		 * in "anginc".
+		 */
+		void us_tecedmakearc(Cell np)
+		{
+			// load up the structure with the current values
+			for(int i=0; i<us_tecedarctexttable.length; i++)
+			{
+				switch (us_tecedarctexttable[i].funct)
+				{
+					case ARCFUNCTION:
+						us_tecedarctexttable[i].value = func;
+						break;
+					case ARCFIXANG:
+						us_tecedarctexttable[i].value = new Boolean(fixang);
+						break;
+					case ARCWIPESPINS:
+						us_tecedarctexttable[i].value = new Boolean(wipes);
+						break;
+					case ARCNOEXTEND:
+						us_tecedarctexttable[i].value = new Boolean(noextend);
+						break;
+					case ARCINC:
+						us_tecedarctexttable[i].value = new Integer(anginc);
+						break;
+				}
+			}
+		
+			// now create those text objects
+			us_tecedcreatespecialtext(np, us_tecedarctexttable);
+		}
+	}
+
 	static final double SCALEALL = 2000;
 
-	/* the meaning of "EDTEC_option" on nodes */
+	/* the meaning of OPTION_KEY on nodes */
 	static final int LAYERTRANSPARENCY =  1;					/* transparency layer (layer cell) */
 	static final int LAYERSTYLE        =  2;					/* style (layer cell) */
 	static final int LAYERCIF          =  3;					/* CIF name (layer cell) */
@@ -437,9 +517,25 @@ public class Generate
 	static final int LAYER3DHEIGHT     = 31;					/* 3D height (layer cell) */
 	static final int LAYER3DTHICK      = 32;					/* 3D thickness (layer cell) */
 	static final int LAYERCOLOR        = 33;					/* color (layer cell) */
+	static final int LAYERPATCLEAR     = 34;					/* clear the pattern (layer cell) */
+	static final int LAYERPATINVERT    = 35;					/* invert the pattern (layer cell) */
+	static final int LAYERPATCOPY      = 36;					/* copy the pattern (layer cell) */
+	static final int LAYERPATPASTE     = 37;					/* paste the pattern (layer cell) */
 
-	/** key of Variable holding option information. */		public static final Variable.Key EDTEC_OPTION = ElectricObject.newKey("EDTEC_option");
-	/** key of Variable holding layer information. */		public static final Variable.Key EDTEC_LAYER = ElectricObject.newKey("EDTEC_layer");
+	/** key of Variable holding option information. */	public static final Variable.Key OPTION_KEY = ElectricObject.newKey("EDTEC_option");
+	/** key of Variable holding layer information. */	public static final Variable.Key LAYER_KEY = ElectricObject.newKey("EDTEC_layer");
+	/** key of Variable holding arc ordering. */		public static final Variable.Key ARCSEQUENCE_KEY = ElectricObject.newKey("EDTEC_arcsequence");
+	/** key of Variable holding node ordering. */		public static final Variable.Key NODESEQUENCE_KEY = ElectricObject.newKey("EDTEC_nodesequence");
+	/** key of Variable holding layer ordering. */		public static final Variable.Key LAYERSEQUENCE_KEY = ElectricObject.newKey("EDTEC_layersequence");
+	/** key of Variable holding extra variables. */		public static final Variable.Key VARIABLELIST_KEY = ElectricObject.newKey("EDTEC_variable_list");
+	/** key of Variable marking geometry as min-size. */public static final Variable.Key MINSIZEBOX_KEY = ElectricObject.newKey("EDTEC_minbox");
+	/** key of Variable holding port name. */			public static final Variable.Key PORTNAME_KEY = ElectricObject.newKey("EDTEC_portname");
+	/** key of Variable holding port angle. */			public static final Variable.Key PORTANGLE_KEY = ElectricObject.newKey("EDTEC_portangle");
+	/** key of Variable holding port range. */			public static final Variable.Key PORTRANGE_KEY = ElectricObject.newKey("EDTEC_portrange");
+	/** key of Variable holding arc connection list. */	public static final Variable.Key CONNECTION_KEY = ElectricObject.newKey("EDTEC_connects");
+	/** key of Variable with color node in layer cell. */public static final Variable.Key COLORNODE_KEY = ElectricObject.newKey("EDTEC_colornode");
+	/** key of Variable with color map table. */		public static final Variable.Key COLORMAP_KEY = ElectricObject.newKey("EDTEC_colormap");
+	/** key of Variable with color map table. */		public static final Variable.Key DEPENDENTLIB_KEY = ElectricObject.newKey("EDTEC_dependent_libraries");
 
 	/* additional technology variables */
 	static class TechVar
@@ -690,34 +786,6 @@ public class Generate
 	 */
 	static Library us_tecedmakelibfromtech(Technology tech)
 	{
-//		REGISTER CHAR *lay, *dxf, **sequence, **varnames, *fname, *gds;
-//		REGISTER INTBIG i, j, k, e, xs, ys, oldlam, *newmap, *mapptr, *minnodesize,
-//			tcon, func, nodexpos, bits, layertotal, arctotal, nodetotal, multicutsep,
-//			height3d, thick3d, lambda, min2x, min2y, nlx, nhx, nly, nhy, wid, xoff,
-//			*printcolors, *colors;
-//		INTBIG lx, hx, ly, hy, xpos[4], ypos[4], xsc[4], ysc[4], lxo, hxo, lyo, hyo,
-//			lxp, hxp, lyp, hyp, blx, bhx, bly, bhy;
-//		REGISTER BOOLEAN serp, square, wipes, lockable, first;
-//		float spires, spicap, spiecap;
-//		CHAR gdsbuf[50];
-//		REGISTER void *infstr;
-//		REGISTER NODEPROTO *np, **nplist, *pnp, **aplist;
-//		REGISTER VARIABLE *var, *var2, *var3, *var5, *var6, *var7, *var8,
-//			*var10, *var11, *varred, *vargreen, *varblue;
-//		REGISTER LIBRARY *lib;
-//		REGISTER NODEINST *ni, *oni, *nni;
-//		REGISTER ARCINST *ai;
-//		REGISTER PORTPROTO *pp, *opp;
-//		REGISTER ARCPROTO *ap;
-//		REGISTER GRAPHICS *desc;
-//		static POLYGON *poly = NOPOLYGON;
-//		REGISTER DRCRULES *rules;
-//		REGISTER TECH_POLYGON *ll;
-//		REGISTER TECH_NODES *techn;
-//		REGISTER TECH_COLORMAP *colmap;
-//		NODEINST node;
-//		ARCINST arc;
-
 		Library lib = Library.newInstance(tech.getTechName(), null);
 		if (lib == null)
 		{
@@ -730,11 +798,6 @@ public class Generate
 		Cell fNp = Cell.makeInstance(lib, "factors");
 		if (fNp == null) return null;
 		fNp.setInTechnologyLibrary();
-	
-//		// modify this technology's lambda value to match the current one
-//		oldlam = lib.lambda[tech.techindex];
-//		lambda = lib.lambda[art_tech.techindex];
-//		lib.lambda[tech.techindex] = lambda;
 	
 		// create the miscellaneous info cell (called "factors")
 		us_tecedmakeinfo(fNp, tech.getTechDesc());
@@ -756,7 +819,7 @@ public class Generate
 			varCount = 0;
 			for(int i=0; i<us_knownvars.length; i++)
 				if (us_knownvars[i].ival != 0) varnames[varCount++] = us_knownvars[i].varname;
-			lib.newVar("EDTEC_variable_list", varnames);
+			lib.newVar(VARIABLELIST_KEY, varnames);
 		}
 	
 		// create the layer node names
@@ -765,6 +828,7 @@ public class Generate
 	
 		// create the layer nodes
 		System.out.println("Creating the layers...");
+		String [] layerSequence = new String[layertotal];
 		for(int i=0; i<layertotal; i++)
 		{
 			Layer layer = tech.getLayer(i);
@@ -804,26 +868,19 @@ public class Generate
 	
 			// build the layer cell
 			li.us_tecedmakelayer(lNp);
+			layerSequence[i] = lNp.getName();
 		}
 	
 		// save the layer sequence
-		String [] layerSequence = new String[layertotal];
-		int layIndex = 0;
-		for(Iterator it = lib.getCells(); it.hasNext(); )
-		{
-			Cell lNp = (Cell)it.next();
-			if (lNp.getName().startsWith("layer-"))
-				layerSequence[layIndex++] = lNp.getName();
-		}
-		lib.newVar("EDTEC_layersequence", layerSequence);
+		lib.newVar(LAYERSEQUENCE_KEY, layerSequence);
 	
 		// create the arc cells
 		System.out.println("Creating the arcs...");
 		int arctotal = 0;
+		HashMap arcCells = new HashMap();
 		for(Iterator it = tech.getArcs(); it.hasNext(); )
 		{
 			PrimitiveArc ap = (PrimitiveArc)it.next();
-//			ap.temp1 = (INTBIG)NONODEPROTO;
 			if (ap.isNotUsed()) continue;
 			String fname = "arc-" + ap.getName();
 	
@@ -837,11 +894,18 @@ public class Generate
 			Cell aNp = Cell.makeInstance(lib, fname);
 			if (aNp == null) return null;
 			aNp.setInTechnologyLibrary();
-//			ap.temp1 = (INTBIG)aNp;
+
+			ArcInfo aIn = new ArcInfo();
+			aIn.func = ap.getFunction();
+			aIn.fixang = ap.isFixedAngle();
+			aIn.wipes = ap.isWipable();
+			aIn.noextend = ap.isExtended();
+			aIn.anginc = ap.getAngleIncrement();
+			arcCells.put(ap, aNp);
 //			var = getvalkey((INTBIG)ap, VARCPROTO, VINTEGER, us_arcstylekey);
 //			if (var != NOVARIABLE) bits = var.addr; else
 //				bits = ap.userbits;
-			us_tecedmakearc(aNp, ap.getFunction(), ap.isFixedAngle(), ap.isWipable(), ap.isExtended(), ap.getAngleIncrement());
+			aIn.us_tecedmakearc(aNp);
 	
 			// now create the arc layers
 			double wid = ap.getDefaultWidth() - ap.getWidthOffset();
@@ -866,17 +930,17 @@ public class Generate
 				if (ni == null) continue;
 	
 				// get graphics for this layer
-				Create.us_teceditsetpatch(ni, arcDesc);
+				Manipulate.us_teceditsetpatch(ni, arcDesc);
 				Cell layerCell = (Cell)layerCells.get(arcLayer);
-				if (layerCell != null) ni.newVar(EDTEC_LAYER, layerCell);
-				ni.newVar(EDTEC_OPTION, new Integer(LAYERPATCH));
+				if (layerCell != null) ni.newVar(LAYER_KEY, layerCell);
+				ni.newVar(OPTION_KEY, new Integer(LAYERPATCH));
 			}
             double i = ai.getProto().getWidthOffset() / 2;
 			NodeInst ni = NodeInst.makeInstance(Artwork.tech.boxNode, new Point2D.Double(-40000/SCALEALL - wid*2.5 - i, -10000/SCALEALL), wid*5, wid, aNp);
 			if (ni == null) return null;
 			ni.newVar(Artwork.ART_COLOR, new Integer(EGraphics.WHITE));
-			ni.newVar(EDTEC_LAYER, null);
-			ni.newVar(EDTEC_OPTION, new Integer(LAYERPATCH));
+			ni.newVar(LAYER_KEY, null);
+			ni.newVar(OPTION_KEY, new Integer(LAYERPATCH));
 			arctotal++;
 
 			// compact it accordingly
@@ -892,7 +956,7 @@ public class Generate
 			if (ap.isNotUsed()) continue;
 			arcSequence[arcIndex++] = ap.getName();
 		}
-		lib.newVar("EDTEC_arcsequence", arcSequence);
+		lib.newVar(ARCSEQUENCE_KEY, arcSequence);
 	
 		// create the node cells
 		System.out.println("Creating the nodes...");
@@ -908,7 +972,6 @@ public class Generate
 		for(Iterator it = tech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode pnp = (PrimitiveNode)it.next();
-//			pnp.temp1 = 0;
 			if (pnp.isNotUsed()) continue;
 			nodeSequence[nodeIndex++] = pnp.getName();
 			boolean first = true;
@@ -948,6 +1011,7 @@ public class Generate
 				ysc[3] = min2y;
 			}
 			Cell nNp = null;
+			Rectangle2D mainBounds = null;
 			for(int e=0; e<4; e++)
 			{
 				// do not create node if main example had no polygons
@@ -971,21 +1035,17 @@ public class Generate
 //					if (desc.bits == LAYERN) continue;
 
 					// accumulate total size of main example
-//					if (e == 0)
-//					{
-//						getbbox(poly, &blx, &bhx, &bly, &bhy);
-//						if (i == 0)
-//						{
-//							nlx = blx;   nhx = bhx;
-//							nly = bly;   nhy = bhy;
-//						} else
-//						{
-//							if (blx < nlx) nlx = blx;
-//							if (bhx > nhx) nhx = bhx;
-//							if (bly < nly) nly = bly;
-//							if (bhy > nhy) nhy = bhy;
-//						}
-//					}
+					if (e == 0)
+					{
+						Rectangle2D polyBounds = poly.getBounds2D();
+						if (i == 0)
+						{
+							mainBounds = polyBounds;
+						} else
+						{
+							Rectangle2D.union(mainBounds, polyBounds, mainBounds);
+						}
+					}
 	
 					// create the node cell on the first valid layer
 					if (first)
@@ -1017,7 +1077,6 @@ public class Generate
 							multiCutSep = values[4];
 						}
 						us_tecedmakenode(nNp, func, serp, square, wipes, lockable, multiCutSep);
-//						pnp.temp1 = (INTBIG)nNp;
 					}
 
 					// create the node to describe this layer
@@ -1025,10 +1084,10 @@ public class Generate
 					if (ni == null) return null;
 
 					// get graphics for this layer
-					Create.us_teceditsetpatch(ni, desc);
+					Manipulate.us_teceditsetpatch(ni, desc);
 					Cell layerCell = (Cell)layerCells.get(nodeLayer);
-					if (layerCell != null) ni.newVar(EDTEC_LAYER, layerCell);
-					ni.newVar(EDTEC_OPTION, new Integer(LAYERPATCH));
+					if (layerCell != null) ni.newVar(LAYER_KEY, layerCell);
+					ni.newVar(OPTION_KEY, new Integer(LAYERPATCH));
 	
 					// set minimum polygon factor on smallest example
 					if (e != 0) continue;
@@ -1036,9 +1095,8 @@ public class Generate
 //					ll = tech.nodeprotos[pnp.primindex-1].layerlist;
 //					if (ll == 0) continue;
 //					if (ll[i].representation != MINBOX) continue;
-//					var = setval((INTBIG)ni, VNODEINST, x_("EDTEC_minbox"), (INTBIG)x_("MIN"), VSTRING|VDISPLAY);
-//					if (var != NOVARIABLE)
-//						defaulttextsize(3, var.textdescript);
+//					Variable var = ni.newVar(MINSIZEBOX_KEY, "MIN");
+//					if (var != null) var.setDisplay(true);
 				}
 				if (first) continue;
 	
@@ -1046,8 +1104,8 @@ public class Generate
 				NodeInst ni = NodeInst.makeInstance(Artwork.tech.boxNode, pos[e], xsc[e], ysc[e], nNp);
 				if (ni == null) return null;
 				ni.newVar(Artwork.ART_COLOR, new Integer(EGraphics.makeIndex(Color.WHITE)));
-				ni.newVar(EDTEC_LAYER, null);
-				ni.newVar(EDTEC_OPTION, new Integer(LAYERPATCH));
+				ni.newVar(LAYER_KEY, null);
+				ni.newVar(OPTION_KEY, new Integer(LAYERPATCH));
 	
 				// create a grab node (only in main example)
 //				if (e == 0)
@@ -1068,70 +1126,63 @@ public class Generate
 //				}
 	
 				// also draw ports
-//				for(pp = pnp.firstportproto; pp != NOPORTPROTO; pp = pp.nextportproto)
-//				{
-//					shapeportpoly(oni, pp, poly, FALSE);
-//					getbbox(poly, &lx, &hx, &ly, &hy);
-//					lx = muldiv(lx, lambda, oldlam);
-//					hx = muldiv(hx, lambda, oldlam);
-//					ly = muldiv(ly, lambda, oldlam);
-//					hy = muldiv(hy, lambda, oldlam);
-//					nodeprotosizeoffset(gen_portprim, &lxo, &lyo, &hxo, &hyo, np);
-//					ni = newnodeinst(gen_portprim, lx-lxo, hx+hxo, ly-lyo, hy+hyo, 0, 0, np);
-//					if (ni == null) return(NOLIBRARY);
-//					pp.temp1 = (INTBIG)ni;
-//					(void)setvalkey((INTBIG)ni, VNODEINST, us_edtec_option_key, LAYERPATCH, VINTEGER);
-//					var = setval((INTBIG)ni, VNODEINST, x_("EDTEC_portname"), (INTBIG)pp.protoname,
-//						VSTRING|VDISPLAY);
-//					if (var != NOVARIABLE)
-//						defaulttextsize(3, var.textdescript);
-//					endobjectchange((INTBIG)ni, VNODEINST);
-//	
-//					// on the first sample, also show angle and connection
-//					if (e != 0) continue;
-//					if (((pp.userbits&PORTANGLE)>>PORTANGLESH) != 0 ||
-//						((pp.userbits&PORTARANGE)>>PORTARANGESH) != 180)
-//					{
-//						(void)setval((INTBIG)ni, VNODEINST, x_("EDTEC_portangle"),
-//							(pp.userbits&PORTANGLE)>>PORTANGLESH, VINTEGER);
-//						(void)setval((INTBIG)ni, VNODEINST, x_("EDTEC_portrange"),
-//							(pp.userbits&PORTARANGE)>>PORTARANGESH, VINTEGER);
-//					}
-//	
-//					// add in the "local" port connections (from this tech)
-//					for(tcon=i=0; pp.connects[i] != NOARCPROTO; i++)
-//						if (pp.connects[i].tech == tech) tcon++;
-//					if (tcon != 0)
-//					{
-//						aplist = (NODEPROTO **)emalloc((tcon * (sizeof (NODEPROTO *))), el_tempcluster);
-//						if (aplist == 0) return(NOLIBRARY);
-//						for(j=i=0; pp.connects[i] != NOARCPROTO; i++)
-//						{
-//							if (pp.connects[i].tech != tech) continue;
-//							aplist[j] = (NODEPROTO *)pp.connects[i].temp1;
-//							if (aplist[j] != NONODEPROTO) j++;
-//						}
-//						(void)setval((INTBIG)ni, VNODEINST, x_("EDTEC_connects"),
-//							(INTBIG)aplist, VNODEPROTO|VISARRAY|(j<<VLENGTHSH));
-//						efree((CHAR *)aplist);
-//					}
-//	
-//					// connect the connected ports
+				for(Iterator pIt = pnp.getPorts(); pIt.hasNext(); )
+				{
+					PrimitivePort pp = (PrimitivePort)pIt.next();
+					Poly poly = tech.getShapeOfPort(oNi, pp);
+					SizeOffset pSo = Generic.tech.portNode.getProtoSizeOffset();
+					double width = poly.getBounds2D().getWidth() + pSo.getLowXOffset() + pSo.getHighXOffset();
+					double height = poly.getBounds2D().getHeight() + pSo.getLowYOffset() + pSo.getHighYOffset();
+					NodeInst pNi = NodeInst.makeInstance(Generic.tech.portNode, new Point2D.Double(poly.getCenterX(), poly.getCenterY()),
+						width, height, nNp);
+					if (pNi == null) return null;
+					pNi.newVar(OPTION_KEY, new Integer(LAYERPATCH));
+					Variable var = pNi.newVar(PORTNAME_KEY, pp.getName());
+					if (var != null)
+						var.setDisplay(true);
+	
+					// on the first sample, also show angle and connection
+					if (e != 0) continue;
+					if (pp.getAngle() != 0 || pp.getAngleRange() != 180)
+					{
+						pNi.newVar(PORTANGLE_KEY, new Integer(pp.getAngle()));
+						pNi.newVar(PORTRANGE_KEY, new Integer(pp.getAngleRange()));
+					}
+	
+					// add in the "local" port connections (from this tech)
+					ArcProto [] connects = pp.getConnections();
+					int tcon = 0;
+					for(int i=0; i<connects.length; i++)
+					{
+						if (connects[i].getTechnology() == tech) tcon++;
+					}
+					if (tcon != 0)
+					{
+						Cell [] aplist = new Cell[tcon];
+						int k = 0;
+						for(int i=0; i<connects.length; i++)
+						{
+							if (connects[i].getTechnology() == tech) aplist[k++] = (Cell)arcCells.get(connects[i]);
+						}
+						pNi.newVar(CONNECTION_KEY, aplist);
+					}
+	
+					// connect the connected ports
 //					for(opp = pnp.firstportproto; opp != pp; opp = opp.nextportproto)
 //					{
 //						if (opp.network != pp.network) continue;
 //						nni = (NODEINST *)opp.temp1;
 //						if (nni == null) continue;
-//						if (newarcinst(gen_universalarc, 0, 0, ni, ni.proto.firstportproto,
-//							(ni.highx+ni.lowx)/2, (ni.highy+ni.lowy)/2, nni,
+//						if (newarcinst(gen_universalarc, 0, 0, pNi, pNi.proto.firstportproto,
+//							(pNi.highx+pNi.lowx)/2, (pNi.highy+pNi.lowy)/2, nni,
 //								nni.proto.firstportproto, (nni.highx+nni.lowx)/2,
 //									(nni.highy+nni.lowy)/2, np) == NOARCINST) return(NOLIBRARY);
 //						break;
 //					}
-//				}
+				}
 			}
-//			minnodesize[nodetotal*2] = (nhx - nlx) * WHOLE / lambda;
-//			minnodesize[nodetotal*2+1] = (nhy - nly) * WHOLE / lambda;
+//			minnodesize[nodetotal*2] = mainBounds.getWidth();
+//			minnodesize[nodetotal*2+1] = mainBounds.getHeight();
 			nodetotal++;
 	
 			// compact it accordingly
@@ -1139,7 +1190,7 @@ public class Generate
 		}
 	
 		// save the node sequence
-		lib.newVar("EDTEC_nodesequence", nodeSequence);
+		lib.newVar(NODESEQUENCE_KEY, nodeSequence);
 	
 		// create the color map information
 //		System.out.println("Adding color map and design rules...");
@@ -1166,8 +1217,7 @@ public class Generate
 //				newmap[(i<<2)*3+1] = colmap[i].green;
 //				newmap[(i<<2)*3+2] = colmap[i].blue;
 //			}
-//			(void)setval((INTBIG)lib, VLIBRARY, x_("EDTEC_colormap"), (INTBIG)newmap,
-//				VINTEGER|VISARRAY|((256*3)<<VLENGTHSH));
+//			lib.newVar(COLORMAP_KEY, newmap);
 //			efree((CHAR *)newmap);
 //		}
 	
@@ -1283,8 +1333,6 @@ public class Generate
 	
 		// clean up
 		System.out.println("Done.");
-//		efree((CHAR *)minnodesize);
-//		lib.lambda[tech.techindex] = oldlam;
 		return(lib);
 	}
 	
@@ -1312,42 +1360,6 @@ public class Generate
 	
 		// now create those text objects
 		us_tecedcreatespecialtext(np, us_tecedmisctexttable);
-	}
-
-	/**
-	 * Method to build the appropriate descriptive information for an arc into
-	 * cell "np".  The function is in "func"; the arc is fixed-angle if "fixang"
-	 * is nonzero; the arc wipes pins if "wipes" is nonzero; and the arc does
-	 * not extend its ends if "noextend" is nonzero.  The angle increment is
-	 * in "anginc".
-	 */
-	static void us_tecedmakearc(Cell np, ArcProto.Function func, boolean fixang, boolean wipes, boolean noextend, int anginc)
-	{
-		// load up the structure with the current values
-		for(int i=0; i<us_tecedarctexttable.length; i++)
-		{
-			switch (us_tecedarctexttable[i].funct)
-			{
-				case ARCFUNCTION:
-					us_tecedarctexttable[i].value = func;
-					break;
-				case ARCFIXANG:
-					us_tecedarctexttable[i].value = new Boolean(fixang);
-					break;
-				case ARCWIPESPINS:
-					us_tecedarctexttable[i].value = new Boolean(wipes);
-					break;
-				case ARCNOEXTEND:
-					us_tecedarctexttable[i].value = new Boolean(noextend);
-					break;
-				case ARCINC:
-					us_tecedarctexttable[i].value = new Integer(anginc);
-					break;
-			}
-		}
-	
-		// now create those text objects
-		us_tecedcreatespecialtext(np, us_tecedarctexttable);
 	}
 	
 	/**
@@ -1514,7 +1526,7 @@ public class Generate
 				Variable var = ni.newVar(Artwork.ART_MESSAGE, str);
 				if (var != null)
 					var.setDisplay(true);
-				var = ni.newVar(EDTEC_OPTION, new Integer(table[i].funct));
+				var = ni.newVar(OPTION_KEY, new Integer(table[i].funct));
 			}
 		}
 	}
@@ -1533,7 +1545,7 @@ public class Generate
 		for(Iterator it = np.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			Variable var = ni.getVar(EDTEC_OPTION);
+			Variable var = ni.getVar(OPTION_KEY);
 			if (var == null) continue;
 			int opt = ((Integer)var.getObject()).intValue();
 			for(int i=0; i < table.length; i++)
