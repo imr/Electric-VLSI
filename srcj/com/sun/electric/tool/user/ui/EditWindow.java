@@ -171,9 +171,6 @@ public class EditWindow extends JPanel
 		gbc.weightx = gbc.weighty = 1;
 		overall.add(this, gbc);
 
-        // Gilda 3D
-        //GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
-
 		//setAutoscrolls(true);
         // add listeners --> BE SURE to remove listeners in finished()
 		addKeyListener(this);

@@ -2,6 +2,8 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (6/25/04, GVG) First version working of 3D View. 
+
 IMP: (6/25/04, RK) Added NCC Local processing step to find user-understandable differences
 
 IMP: (6/23/04, SMR) Preferences panel opens the tree to the proper place (and uses single-click to open them).
