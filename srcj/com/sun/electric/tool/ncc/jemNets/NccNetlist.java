@@ -120,8 +120,6 @@ class Wires {
 		growIfNeeded(netID);
 		Wire wire = (Wire) wires.get(netID);
 		if (wire==null) {
-//			String wireNm = info.getUniqueNetName(netID, "/");
-//			wireNm = NccUtils.removePathPrefix(wireNm, pathPrefix);
 			NameProxy np = info.getUniqueNetNameProxy(netID, "/");
 			NccNameProxy wireNm = new NccNameProxy(np, pathPrefix);
 			wire = new Wire(wireNm/*, info.isGlobalNet(netID)*/);
@@ -142,8 +140,6 @@ class Wires {
 }
 
 class NccCellInfo extends CellInfo {
-	//private HashSet nodablesToDiscard = new HashSet();
-	//private HashMap nodableSizeMultipliers = new HashMap();
 	private NccGlobals globals;
 	// I'm caching the annotations because otherwise every Cell
 	// instance is going to regenerate annotations for it's parent.
@@ -155,103 +151,9 @@ class NccCellInfo extends CellInfo {
 		gotAnnotations = true;
 		return annotations;
 	}
-
-	// Compute a Nodable's hash code based upon its connectivity and Cell type
-//	private int computeNodableHashCode(Nodable no, Netlist netlist) {
-//		Cell c = (Cell) no.getProto();
-//		int hash = c.hashCode();
-//		for (Iterator it=c.getPorts(); it.hasNext();) {
-//			Export e = (Export) it.next();
-//			int[] netIDs = getPortNetIDs(no, e);
-//			for (int i=0; i<netIDs.length; i++) {
-//				int netID = netIDs[i];
-//				hash = (hash<<1) ^ netID;
-//			}
-//		}
-//		return hash;
-//	}
-	
-//	private HashMap hashNodablesBasedOnConnectivity(Netlist netlist) {
-//		HashMap codeToNodable = new HashMap();
-//		for (Iterator it=netlist.getNodables(); it.hasNext();) {
-//			Nodable no = (Nodable) it.next();
-//			NodeProto np = no.getProto();
-//			if (np instanceof Cell) {
-//				Integer c = new Integer(computeNodableHashCode(no, netlist));
-//				LinkedList ll = (LinkedList) codeToNodable.get(c);
-//				if (ll==null) {
-//					ll = new LinkedList();
-//					codeToNodable.put(c, ll);
-//				}
-//				ll.add(no);
-//			}
-//		}
-//		return codeToNodable;
-//	}
-	
-//	private boolean areParalleled(Nodable n1, Nodable n2, Netlist netlist) {
-//		Cell c = (Cell) n1.getProto();
-//		Cell c2 = (Cell) n2.getProto();
-//		if (c2!=c) return false;
-//		for (Iterator it=c.getPorts(); it.hasNext();) {
-//			Export e = (Export) it.next();
-//			int[] netIDs1 = getPortNetIDs(n1, e);
-//			int[] netIDs2 = getPortNetIDs(n2, e);
-//			for (int i=0; i<netIDs1.length; i++) {
-//				if (netIDs1[i]!=netIDs2[i]) return false;
-//			}
-//		}
-//		return true;
-//	}
-	// Find all parallel Nodables. For each group of paralleled Nodables 
-	// discard all Nodables but the first. Record the number of Nodables in 
-	// parallel.
-//	private void findParallelNodables(LinkedList ll, Netlist netlist) {
-//		for (Iterator it=ll.iterator(); it.hasNext();) {
-//			Nodable first = (Nodable) it.next();
-//			it.remove();
-//			int count = 1;
-//			for (; it.hasNext();) {
-//				Nodable no = (Nodable) it.next();
-//				if (areParalleled(first, no, netlist)) {
-//					it.remove();
-//					nodablesToDiscard.add(no);
-//					count++;
-//				}
-//			}
-//			if (count>=2) nodableSizeMultipliers.put(first, new Integer(count));
-//		}
-//	}
-	// Get size multiplier for nodable contained by current Cell	
-//	private int getSizeMultiplier(Nodable no) {
-//		Integer i = (Integer) nodableSizeMultipliers.get(no);
-//		return (i==null) ? 1 : i.intValue();
-//	}
 	
 	// ----------------------------- public methods ---------------------------
 	public NccCellInfo(NccGlobals globals) {this.globals=globals;}
-
-	// Record the information we need to merge parallel instances of the same 
-	// Cell
-//	public void recordMergeParallelInfo() {
-//		Netlist netlist = getNetlist();
-//		HashMap codeToNodables = hashNodablesBasedOnConnectivity(netlist);
-//		for (Iterator it=codeToNodables.keySet().iterator(); it.hasNext();) {
-//			LinkedList ll = (LinkedList) codeToNodables.get(it.next());
-//			findParallelNodables(ll, netlist);
-//		}
-//	}
-//	public boolean isDiscardable(Nodable no) {
-//		return nodablesToDiscard.contains(no);
-//	}
-	/** Get size multipler for everything instantiated by the current Cell */
-//	public int getSizeMultiplier() {
-//		if (isRootCell()) return 1;
-//		NccCellInfo parentInfo = (NccCellInfo) getParentInfo();
-//		int parentMult = parentInfo.getSizeMultiplier();
-//		int nodableMult = parentInfo.getSizeMultiplier(getParentInst());
-//		return parentMult * nodableMult;
-//	}
 }
 
 /** Information from either an Export or a Global signal */
@@ -405,29 +307,6 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			Wire wire = wires.get(eg.netID, rootInfo);
 			portSet.add(wire.addExport(eg.name, eg.type));
 		}
-//		Cell rootCell = rootInfo.getCell();
-//		for (Iterator it=rootCell.getPorts(); it.hasNext();) {
-//			Export e = (Export) it.next();
-//			PortCharacteristic type = e.getCharacteristic();
-//			int[] expNetIDs = rootInfo.getExportNetIDs(e);
-//			for (int i=0; i<expNetIDs.length; i++) {
-//				Wire wire = wires.get(expNetIDs[i], rootInfo);
-//				String expName = e.getNameKey().subname(i).toString();
-//				portSet.add(wire.addExport(expName, type));
-//			}
-//		}
-//		// create exports for global schematic signals
-//		Netlist rootNetlist = rootInfo.getNetlist();
-//		Global.Set globals = rootNetlist.getGlobals();
-//		for (int i=0; i<globals.size(); i++) {
-//			Global global = globals.get(i);
-//			PortCharacteristic type = globals.getCharacteristic(global);
-//			String globName = global.getName();
-//			int netIndex = rootNetlist.getNetIndex(global);
-//			int netID = rootInfo.getNetID(netIndex);
-//			Wire wire = wires.get(netID, rootInfo);
-//			portSet.add(wire.addExport(globName, type));
-//		}
 		
 		for (Iterator it=portSet.iterator(); it.hasNext();) 
 			ports.add(it.next());
@@ -447,15 +326,8 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	}
 
 	private void buildMOS(NodeInst ni, Transistor.Type type, NccCellInfo info) {
-//		String name = info.getUniqueNodableName(ni, "/");
-//		name = NccUtils.removePathPrefix(name, pathPrefix);
 		NameProxy np = info.getUniqueNodableNameProxy(ni, "/");
 		NccNameProxy name = new NccNameProxy(np, pathPrefix); 
-//		int mul = info.getSizeMultiplier();
-//		if (mul!=1) {
-//			globals.println("mul="+mul+" for "+
-//						   info.getContext().getInstPath("/")+"/"+name);
-//		}
 		double width=0, length=0;
 		if (globals.getOptions().checkSizes) {
 			TransistorSize dim = ni.getTransistorSize(info.getContext());
@@ -566,29 +438,6 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			int pinNdx = subcktInfo.getPortIndex(eg.name);
 			addToPins(pins, pinNdx, wire);
 		}
-//		for (Iterator it=cell.getPorts(); it.hasNext();) {
-//			Export e = (Export) it.next();
-//			int[] expNetIDs = info.getExportNetIDs(e);
-//			for (int i=0; i<expNetIDs.length; i++) {
-//				Wire wire = wires.get(expNetIDs[i], info);
-//				String expName = e.getNameKey().subname(i).toString();
-//				int pinNdx = subcktInfo.getPortIndex(expName);
-//				addToPins(pins, pinNdx, wire);
-//			}
-//		}
-//		// connect pins corresponding to Exports created for global 
-//		// schematic signals
-//		Netlist netlist = info.getNetlist();
-//		Global.Set globalNets = netlist.getGlobals();
-//		for (int i=0; i<globalNets.size(); i++) {
-//			Global global = globalNets.get(i);
-//			String globalName = global.getName();
-//			int pinNdx = subcktInfo.getPortIndex(globalName);
-//			int netIndex = netlist.getNetIndex(global);
-//			int netID = info.getNetID(netIndex);
-//			Wire wire = wires.get(netID, info);
-//			addToPins(pins, pinNdx, wire);
-//		}
 		for (int i=0; i<pins.length; i++) 
 			globals.error(pins[i]==null, "disconnected subcircuit pins!");
 
@@ -597,7 +446,6 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		NameProxy np = parentInfo.getUniqueNodableNameProxy(parentInst, "/");
 		NccNameProxy name = new NccNameProxy(np, pathPrefix); 
 
-//		String instName = info.getParentInst().getName();
 		parts.add(new Subcircuit(name, subcktInfo, pins));
 	}
 	/** Check to see if the parent of the current Cell instance says to
@@ -652,9 +500,6 @@ class Visitor extends HierarchyEnumerator.Visitor {
 				return false;			
 			} 
 		}
-//		if (globals.getOptions().mergeParallelCells) {  
-//			info.recordMergeParallelInfo();
-//		}
 		return true;
 	}
 
@@ -693,62 +538,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		this.globals = globals;
 		this.hierarchicalCompareInfo = hierarchicalCompareInfo;
 		this.blackBox = blackBox;
-		this.pathPrefix = context==null ? "" : context.getInstPath("/");
+		this.pathPrefix = context.getInstPath("/");
 	}
 }
-//abstract class ExportGlobalEnumerator {
-//public void enumerate(CellInfo info) {
-//	  Cell rootCell = info.getCell();  								 
-//	  for (Iterator it=rootCell.getPorts(); it.hasNext();) {
-//		  Export e = (Export) it.next();
-//		  int[] expNetIDs = info.getExportNetIDs(e);
-//		  for (int i=0; i<expNetIDs.length; i++) {
-//			  String expName = e.getNameKey().subname(i).toString();
-//			  exportGlobal(expName, expNetIDs[i]);
-//		  }
-//	  }
-//	  // global schematic signals
-//	  Netlist rootNetlist = info.getNetlist();
-//	  Global.Set globals = rootNetlist.getGlobals();
-//	  for (int i=0; i<globals.size(); i++) {
-//		  Global global = globals.get(i);
-//		  String globName = global.getName();
-//		  int netIndex = rootNetlist.getNetIndex(global);
-//		  int netID = info.getNetID(netIndex);
-//		  exportGlobal(globName, netID);
-//	  }
-//}
-//abstract void exportGlobal(String name, int netID);
-//}
 
-//class C extends ExportGlobalEnumerator {
-//	List netIDs;
-//	NamePattern pattern;
-//	C(List ids, NamePattern pat) {
-//		netIDs=ids;  pattern=pat;
-//	}
-//	void exportGlobal(String name, int netID) {
-//		if (pattern.matches(name)) netIDs.add(new Integer(netID));			 								
-//	}
-//}
-//(new C(netIDs, pattern)).enumerate(rootInfo);
-//
-//Cell rootCell = rootInfo.getCell();  								 
-//for (Iterator it=rootCell.getPorts(); it.hasNext();) {
-//	Export e = (Export) it.next();
-//	int[] expNetIDs = rootInfo.getExportNetIDs(e);
-//	for (int i=0; i<expNetIDs.length; i++) {
-//		String expName = e.getNameKey().subname(i).toString();
-//		if (pattern.matches(expName)) netIDs.add(new Integer(expNetIDs[i]));
-//	}
-//}
-//// global schematic signals
-//Netlist rootNetlist = rootInfo.getNetlist();
-//Global.Set globals = rootNetlist.getGlobals();
-//for (int i=0; i<globals.size(); i++) {
-//	Global global = globals.get(i);
-//	String globName = global.getName();
-//	int netIndex = rootNetlist.getNetIndex(global);
-//	int netID = rootInfo.getNetID(netIndex);
-//	if (pattern.matches(globName)) netIDs.add(new Integer(netID));
-//}

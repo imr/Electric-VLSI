@@ -54,6 +54,8 @@ public class Gallery {
 		View layView = View.findView("layout");
 		while (it.hasNext()) {
 			Cell c = (Cell) it.next();
+			if (c.getName().equals("gallery")) continue;
+			if (c.getName().startsWith("drcRing")) continue;
 			if (c.getView()==layView)  cells.add(c);
 		}
 		return cells;
@@ -76,10 +78,11 @@ public class Gallery {
 		}
 	}
 
-	ArrayList addOneInstOfEveryCell(ArrayList facets, Cell gallery) {
+	ArrayList addOneInstOfEveryCell(ArrayList cells, Cell gallery) {
 		ArrayList insts = new ArrayList();
-		for (int i=0; i<facets.size(); i++) {
-			NodeInst ni = LayoutLib.newNodeInst((Cell)facets.get(i), 0, 0, 0,
+		for (int i=0; i<cells.size(); i++) {
+			Cell c = (Cell) cells.get(i);
+			NodeInst ni = LayoutLib.newNodeInst(c, 0, 0, 0,
 			                                    0, 0, gallery);
 			insts.add(ni);
 		}

@@ -26,6 +26,7 @@ import java.util.HashSet;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator.CellInfo;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.prototype.PortCharacteristic;
@@ -74,16 +75,8 @@ public class GateLayoutGenerator extends Job {
             stdCell = locoParams(outLib);
         }
 
-		// Due to NCC deficiency in C-Electric, gates with "_pwr" suffix need 
-		// power bus assigned Characteristic "IN". This is my hack until I have 
-		// a properly functioning version of NCC.
-		StdCellParams stdCellPwr = locoParams(outLib);
-        // JKG: NCC in Jelectric does not use "power" type: hack removed
-		//stdCellPwr.setVddExportName("power");
-		//stdCellPwr.setVddExportRole(PortCharacteristic.IN);
-
 		GenerateLayoutForGatesInSchematic visitor =
-			new GenerateLayoutForGatesInSchematic(stdCell, stdCellPwr);
+			new GenerateLayoutForGatesInSchematic(stdCell);
 		HierarchyEnumerator.enumerateCell(cell, null, null, visitor);
 			
 		return outLib;
@@ -91,8 +84,7 @@ public class GateLayoutGenerator extends Job {
 	
 	private static StdCellParams locoParams(Library outLib) {
 		StdCellParams stdCell = new StdCellParams(outLib, Tech.MOCMOS);
-//		stdCell.enableNCC(
-//			homeDir + "work/async/electric-jkl-28august/purpleFour.elib");
+		stdCell.enableNCC("purpleFour");
 		stdCell.setSizeQuantizationError(0);
 		stdCell.setMaxMosWidth(1000);
 		stdCell.setVddY(21);
@@ -155,7 +147,6 @@ public class GateLayoutGenerator extends Job {
 /** Traverse a schematic hierarchy and generate Cells that we recognize. */
 class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 	private final StdCellParams stdCell;
-	private final StdCellParams stdCellPwr;
 	private final HashSet visitedCells = new HashSet();
 	
 	/**
@@ -164,64 +155,59 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 	 * which we want to generate layout. For example: "redFour" or "purpleFour".
 	 * @param cellNames the names of the Cells for which we want to generate layout
 	 */
-	public GenerateLayoutForGatesInSchematic(StdCellParams stdCell,
-	                          				 StdCellParams stdCellPwr) {
+	public GenerateLayoutForGatesInSchematic(StdCellParams stdCell) {
 		this.stdCell = stdCell;
-		this.stdCellPwr = stdCellPwr;
 	}
-
-	private static double getNumericVal(Object val) {
-		if (val==null) {
-			//System.out.println("null value detected, using 40");
-			return -1;
-		} if (val instanceof Number) {
-			return ((Number)val).doubleValue();
-		}
-		LayoutLib.error(true, "not a numeric value: "+val);
-		return 0;
+	/** @return value of strength attribute "ATTR_X" or -1 if no such
+	 * attribute or -2 if attribute exists but has no value. */
+	private static double getStrength(Nodable no, VarContext context) {
+		Variable var = no.getVar("ATTR_X");
+		if (var==null) return -1;
+		Object val = context.evalVar(var, no);
+		if (val==null) return -2;
+		//LayoutLib.error(val==null, "strength is null?");
+		LayoutLib.error(!(val instanceof Number), 
+				        "strength not number?");
+		return ((Number)val).doubleValue();
 	}
 	
-	private void generateCell(Nodable iconInst, VarContext context) {
+	private void generateCell(Nodable iconInst, CellInfo info) {
+		VarContext context = info.getContext();
 		String pNm = iconInst.getProto().getName();
-		Variable var = iconInst.getVar("ATTR_X");
-		double x = getNumericVal(context.evalVar(var, iconInst));
-		if (x==-1) return;
+		double x = getStrength(iconInst, context);
+//		System.out.println("Try : "+pNm+" X="+x+" for instance: "+
+//                           info.getUniqueNodableName(iconInst, "/"));
 		
-		StdCellParams sc = stdCell;
+		if (x<0) return;
 
-		boolean unknown = false;
-		
 		int pwr = pNm.indexOf("_pwr");
-		if (pwr!=-1) {
-			pNm = pNm.substring(0, pwr);
-			sc = stdCellPwr;
+		if (pwr!=-1) pNm = pNm.substring(0, pwr);
+
+		Cell c = Tech.isTSMC90() ? TSMC90Generator.makeGate(pNm, x, stdCell)
+                                 : MoCMOSGenerator.makeGate(pNm, x, stdCell);
+		if (c!=null) {
+			System.out.println("Use: "+pNm+" X="+x+" for instance: "+
+			                   info.getUniqueNodableName(iconInst, "/"));
 		}
-
-        if (Tech.isTSMC90())
-            TSMC90Generator.makeGate(pNm, x, sc);
-        else
-            MoCMOSGenerator.makeGate(pNm, x, sc);
-
-		//if (!unknown) System.out.println("Gate Type: " + pNm + ", Gate Size: " + x);
 	}
 
-	public boolean enterCell(HierarchyEnumerator.CellInfo info) {
+	public boolean enterCell(CellInfo info) {
 		Cell cell = info.getCell();
 		if (visitedCells.contains(cell)) return false;
 		visitedCells.add(cell);
-		return true;
+		return true; 
 	}
-	public void exitCell(HierarchyEnumerator.CellInfo info) {}
-	public boolean visitNodeInst(Nodable no,
-								 HierarchyEnumerator.CellInfo info) {
+	public void exitCell(CellInfo info) {}
+	public boolean visitNodeInst(Nodable no, CellInfo info) {
 		// we never generate layout for PrimitiveNodes
 		if (no instanceof NodeInst) return false;
 		
 		Cell cell = (Cell) no.getProto();
 		Library lib = cell.getLibrary();
 		String libNm = lib.getName();
-		if (libNm.equals("redFour") || libNm.equals("power2_gates")) {
-			generateCell(no, info.getContext());	
+		if (libNm.equals("redFour") || libNm.equals("purpleFour") ||
+			libNm.equals("power2_gates")) {
+			generateCell(no, info);	
 			return false;
 		}
 		return true;

@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.generator.layout;
+import com.sun.electric.database.change.Undo;
 import java.util.Properties;
 
 import com.sun.electric.database.hierarchy.Cell;
@@ -53,12 +54,6 @@ public class GateRegression extends Job {
 		LayoutLib.error(pred, msg);
 	}
 
-	private static boolean osIsWindows() {
-		Properties props = System.getProperties();
-		String osName = ((String) props.get("os.name")).toLowerCase();
-		return osName.indexOf("windows") != -1;
-	}
-
     private static void allSizes(StdCellParams stdCell, Technology technology) {
         double minSz = 0.1;
         double maxSz = 200;//500;
@@ -72,11 +67,11 @@ public class GateRegression extends Job {
     public static void aPass(double x, StdCellParams stdCell, Technology technology) {
         if (technology == MoCMOS.tech) {
             Tech.setTechnology(Tech.MOCMOS);
-            MoCMOSGenerator.generateAllGates(200, stdCell);
+            MoCMOSGenerator.generateAllGates(x, stdCell);
         }
         if (technology == TSMC90.tech) {
             Tech.setTechnology(Tech.TSMC90);
-            TSMC90Generator.generateAllGates(200, stdCell);
+            TSMC90Generator.generateAllGates(x, stdCell);
         }
     }
 
@@ -86,7 +81,7 @@ public class GateRegression extends Job {
     }
     // This is the programatic interface
     public static void runRegression(Technology technology) {
-		System.out.println("begin execution of Gates");
+		System.out.println("begin Gate Regression");
 
 		Library scratchLib = 
 		  LayoutLib.openLibForWrite("scratch", "scratch");
@@ -109,27 +104,30 @@ public class GateRegression extends Job {
         }
 
 		// a normal run
-        //allSizes(stdCell);
-        //aPass(20, stdCell);
+        allSizes(stdCell, technology);
+        //aPass(200, stdCell, technology);
 
         // test the ability to move ground bus
         stdCell.setGndY(stdCell.getGndY() - 7);
         stdCell.setNmosWellHeight(stdCell.getNmosWellHeight()+7);
-        //allSizes(stdCell);
-        aPass(20, stdCell, technology);
+        //allSizes(stdCell, technology);
+        aPass(10, stdCell, technology);
+        aPass(200, stdCell, technology);
         stdCell.setGndY(stdCell.getGndY() + 7);
         stdCell.setNmosWellHeight(stdCell.getNmosWellHeight()-7);
 
         // test different PMOS to NMOS heights
         stdCell.setNmosWellHeight(50);
         stdCell.setPmosWellHeight(100);
-        //allSizes(stdCell);
-        aPass(20, stdCell, technology);
+        //allSizes(stdCell, technology);
+        aPass(10, stdCell, technology);
+        aPass(200, stdCell, technology);
 
         stdCell.setNmosWellHeight(100);
         stdCell.setPmosWellHeight(50);
-        //allSizes(stdCell);
-        aPass(20, stdCell, technology);
+        //allSizes(stdCell, technology);
+        aPass(10, stdCell, technology);
+        aPass(200, stdCell, technology);
         stdCell.setNmosWellHeight(70);
         stdCell.setPmosWellHeight(70);
 

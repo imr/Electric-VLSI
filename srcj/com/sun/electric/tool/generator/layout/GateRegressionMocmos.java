@@ -88,11 +88,6 @@ public class GateRegressionMocmos extends Job {
 		LayoutLib.error(pred, msg);
 	}
 
-	private static boolean osIsWindows() {
-		Properties props = System.getProperties();
-		String osName = ((String) props.get("os.name")).toLowerCase();
-		return osName.indexOf("windows") != -1;
-	}
 	private static int gateNb;
 	
 	private static void tracePass(double x) {
@@ -194,8 +189,8 @@ public class GateRegressionMocmos extends Job {
 		stdCell.setPmosWellHeight(49);
 
 		// a normal run
-		allSizes(stdCell);
-		//aPass(20, stdCell);
+		//allSizes(stdCell);
+		aPass(20, stdCell);
 		
 		// test the ability to move ground bus
 		stdCell.setGndY(stdCell.getGndY() - 7);

@@ -75,6 +75,8 @@ public class Ncc {
     public static NccResult compare(Cell cell1, VarContext ctxt1, 
     		                        Cell cell2, VarContext ctxt2, 
 									NccOptions options) {
+    	if (ctxt1==null) ctxt1 = VarContext.globalContext; 
+    	if (ctxt2==null) ctxt2 = VarContext.globalContext; 
     	Ncc ncc = new Ncc();
     	return ncc.compare1(cell1, ctxt1, cell2, ctxt2, options);
     }

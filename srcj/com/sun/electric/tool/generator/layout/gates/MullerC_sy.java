@@ -83,8 +83,10 @@ public class MullerC_sy {
 		FoldedMos pmos = new FoldedPmos(mosX, pmosY, fwP.nbFolds, nbSeries,
 										fwP.gateWid, mull, stdCell);
 		
+		double rightDiffX =
+			StdCellParams.getRightDiffX(nmos, pmos); 
 		// inb  m1_wid/2 + m1_m1_sp + m1_wid/2
-		double inbX = StdCellParams.getRightDiffX(pmos) + 2 + 3 + 2;
+		double inbX = rightDiffX + 2 + 3 + 2;
 		LayoutLib.newExport(mull, "inb", PortCharacteristic.IN, Tech.m1,
 							4, inbX, inbY);
 		// output d  m1_wid/2 + m1_m1_sp + m1_wid/2
@@ -94,22 +96,6 @@ public class MullerC_sy {
 		// create gnd export and connect to MOS source/drains
 		stdCell.wireVddGnd(nmos, StdCellParams.EVEN, mull);
 		stdCell.wireVddGnd(pmos, StdCellParams.EVEN, mull);
-		
-//		// fool Electric's NCC into paralleling NMOS stacks by connecting
-//		// stacks' internal diffusion nodes.
-//		for (int i=2; i<nmos.nbInternalSrcDrns(); i++) {
-//			LayoutLib.newArcInst(Tech.universalArc, 0,
-//								 nmos.getInternalSrcDrn(i%2),
-//								 nmos.getInternalSrcDrn(i));
-//		}
-//		
-//		// fool Electric's NCC into paralleling NMOS stacks by connecting
-//		// stacks' internal diffusion nodes.
-//		for (int i=2; i<pmos.nbInternalSrcDrns(); i++) {
-//			LayoutLib.newArcInst(Tech.universalArc, 0,
-//								 pmos.getInternalSrcDrn(i%2),
-//								 pmos.getInternalSrcDrn(i));
-//		}
 		
 		// connect input ina
 		TrackRouter ina = new TrackRouterH(Tech.m1, 3, inaY, mull);
