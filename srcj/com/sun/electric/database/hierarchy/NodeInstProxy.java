@@ -1,0 +1,156 @@
+/* -*- tab-width: 4 -*-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: NodeInstProxy.java
+ *
+ * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
+package com.sun.electric.database.hierarchy;
+
+import com.sun.electric.database.text.Name;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.topology.NodeInst;
+
+import java.util.Arrays;
+import java.util.Iterator;
+
+/**
+ * A NodeInstProxy is a class which represents virtual instance of schematic Cell
+ * induced by one or more icon NodeInsts.
+ */
+public class NodeInstProxy implements Instancable
+{
+	// ---------------------- private data ----------------------------------
+	/** node usage */										private NodeUsage nodeUsage;
+	/** Icon subinstances NodeInst.Subinst */				private NodeInst.Subinst[] subinsts;
+
+	// --------------------- private and protected methods ---------------------
+
+	/**
+	 * The constructor.
+	 */
+	NodeInstProxy(NodeUsage nodeUsage)
+	{
+		// initialize this object
+		this.nodeUsage = nodeUsage;
+	}
+
+	/**
+	 * Routine to add an NodeInst to this NodeUsage.
+	 * @param ni the NodeInsy to add.
+	 */
+	void addSubinst(NodeInst.Subinst nsi)
+	{
+		int length = subinsts != null ? subinsts.length : 0;
+		NodeInst.Subinst[] newSubinsts = new NodeInst.Subinst[length + 1];
+		for (int i = 0; i < length; i++)
+			newSubinsts[i] = subinsts[i];
+		newSubinsts[length] = nsi;
+		subinsts = newSubinsts;
+	}
+
+	/**
+	 * Routine to remove an NodeInst from this NodeUsage.
+	 * @param ni the NodeInst to remove.
+	 */
+	void removeSubinst(NodeInst.Subinst nsi)
+	{
+		if (subinsts == null) return;
+		if (subinsts.length == 1)
+		{
+			if (subinsts[0] == nsi) subinsts = null;
+			return;
+		}
+		NodeInst.Subinst[] newSubinsts = new NodeInst.Subinst[subinsts.length - 1];
+		int i = 0;
+		for (; i < newSubinsts.length && subinsts[i] != nsi; i++)
+			newSubinsts[i] = subinsts[i];
+		for (; i < newSubinsts.length; i++)
+			newSubinsts[i] = subinsts[i+1];
+		subinsts = newSubinsts;
+	}
+
+	// ------------------------ public methods -------------------------------
+
+	/**
+	 * Returns the NodeUsage of this NodeInstProxy.
+	 * @return the NodeUsage of this NideInstProxy.
+	 */
+	public NodeUsage getNodeUsage() { return nodeUsage; }
+
+	/**
+	 * Routine to return the prototype of this NodeInstProxy.
+	 * @return the prototype of this NodeInstProxy.
+	 */
+	public NodeProto getProto() { return nodeUsage.getProto(); }
+
+	/**
+	 * Routine to return the Cell that contains this NodeInstProxy.
+	 * @return the Cell that contains this NodeInstProxy.
+	 */
+	public Cell getParent() { return nodeUsage.getParent(); }
+
+	/**
+	 * Routine to return by index an icon subinstance generated this NodeInstProxy.
+	 * @param i index
+	 * @return specified icon subinstance for this NodeInstProxy.
+	 */
+	public final NodeInst.Subinst getSubinst(int i)
+	{
+		return subinsts[i];
+	}
+
+	/**
+	 * Routine to return an Iterator for all icon subinstances which generated this NodeInstProxy.
+	 * @return an Iterator for all icon instance of this NodeInstProxy.
+	 */
+	public Iterator getSubinsts() { return Arrays.asList(subinsts).iterator(); }
+
+	/**
+	 * Routine to return the number of icon subinstances which generated this NodeInstProxy.
+	 * @return the number of icon subinstances which generated this NodeInstProxy.
+	 */
+	public int getNumSubinsts()
+	{
+		return subinsts.length;
+	}
+
+	/**
+	 * Routine to return the name of this NodeInstProxy.
+	 * @return the name of this NodeInstProxy, null if there is no name.
+	 */
+	public String getName() { return subinsts[0].getName().toString(); }
+
+	/**
+	 * Routine to return the Name object of this NodeInstProxy.
+	 * @return the name of this NodeInstProxy, null if there is no name.
+	 */
+	public Name getNameLow() { return subinsts[0].getName(); }
+
+	/**
+	 * Returns a printable version of this NodeInstProxy.
+	 * @return a printable version of this NodeInstProxy.
+	 */
+	public String toString()
+	{
+		return "NodeInstProxy " + getName();
+	}
+
+}
