@@ -119,7 +119,7 @@ public class ThreeDTab extends PreferencePanel
 		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
 		threeD.add(threeDSideView, gbc);
 
-        JLabel scaleLabel = new javax.swing.JLabel("Scale:");
+        JLabel scaleLabel = new javax.swing.JLabel("Z Scale:");
         gbc = new java.awt.GridBagConstraints();
         gbc.gridx = 2;
         gbc.gridy = 5;

@@ -217,7 +217,7 @@
         </Container>
         <Component class="javax.swing.JCheckBox" name="drcCheck">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Check DRC Spacing Rule"/>
+            <Property name="text" type="java.lang.String" value="Check DRC Spacing Rules for Wells"/>
           </Properties>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">

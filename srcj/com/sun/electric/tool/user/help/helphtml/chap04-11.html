@@ -18,18 +18,27 @@ See <A HREF="chap01-05.html#chap01-05">Section 1-5</A> for details about Electri
 <P>
 To see a circuit in 3D, use the <B>3D Display</B> command (in menu <B>Window</B>).
 The circuit is displayed in 3D, and mouse movements will rotate, pan, or zoom the circuit.
-Use the left button to rotate and the right button for panning. To zoom in drag the left button by pressing 
-"Alt" key in one direction and the opposite to zoom out.
+Use the left button to rotate, the right button for panning and the middle one for zooming.
+To zoom in drag the middle button in one direction and the opposite to zoom out.
 <P>
-Two view modes are available: perspective (default) and parallel views. Unselect radio box "Use Perspective" 
-to switch to parallel mode. If available, antialiasing can be turned on by clicking on radio box "Use Antialiasing".
-Due to performance issues, antialiasing is not on by default.
-<P>
-For optimal 3D viewing, the circuit should be centered in the window before issuing the
-<B>3D Display</B> command. 
+Nodes and arcs will be highlighted in the 3D view by clicking in the corresponding 2D instance, and vice versa.
+Furthermore, the network tool will also highlight nodes if they are displayed in a 3D view.
+In case of cells, bounding boxes will be shown in the scene graph and the interior will be displayed if cells are marked
+as extended.
 <P>
 To control the 3D view,
 use the "3D" preferences (in menu <B>File / Preferences...</B>, "Display" section, "3D" tab).
+On the 3D tab, thickness and Z distance of each layer can be modified as well as the view mode,
+the scale along Z axis and antialiasing feature.
+<P>
+Two view modes are available: perspective (default) and parallel views. Unselect radio box "Use Perspective" 
+to switch to parallel mode.
+If available, antialiasing can be turned on by clicking on radio box "Use Antialiasing".
+Due to performance issues, antialiasing is not on by default.
+In case of having layers are too thin along Z axis compared to X,Y values, use the scale factor field.
+By default it is set to 1.
+<!--For optimal 3D viewing, the circuit should be centered in the window before issuing the
+<B>3D Display</B> command. -->
 <P>
 <TABLE><TR><TD>
 On the left side of this dialog is a list of layers in the current technology.

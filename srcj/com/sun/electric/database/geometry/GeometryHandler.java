@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: GeometryHandler.java
+ * Written by Gilda Garreton, Sun Microsystems.
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *

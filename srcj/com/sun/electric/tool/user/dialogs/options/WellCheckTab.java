@@ -243,13 +243,13 @@ public class WellCheckTab extends PreferencePanel
 
         wellCheck.add(jPanel2, new java.awt.GridBagConstraints());
 
-        drcCheck.setText("Check DRC Spacing Rule");
+        drcCheck.setText("Check DRC Spacing Rules for Wells");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         wellCheck.add(drcCheck, gridBagConstraints);
 
         getContentPane().add(wellCheck, new java.awt.GridBagConstraints());
