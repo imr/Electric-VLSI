@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02c: *********************************
 
+BUG: (01/21/05, SMR) Spice crossprobing doesn't work right (Bug #170).
+FIX: In WaveformWindow.java, do not convert "@" to "_" unless name match fails.
+
 IMP/MAN: (01/21/05, SMR) Combined the Component menu into the Explorer panel,
      Also added the "Layer Visibility" dialog there (Bug #35, #67)
 

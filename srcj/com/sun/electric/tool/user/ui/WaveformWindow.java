@@ -2334,7 +2334,12 @@ public class WaveformWindow implements WindowContent
 					//String netName = loc.getContext() + net.describe();
                     String netName = WaveformWindow.getSpiceNetName(loc.getContext(), net);
 					Simulation.SimSignal sSig = ww.sd.findSignalForNetwork(netName);
-					if (sSig == null) return;
+					if (sSig == null)
+					{
+						netName = netName.replace('@', '_');
+						sSig = ww.sd.findSignalForNetwork(netName);
+						if (sSig == null) return;
+					}
 
 					boolean foundSignal = false;
 					for(Iterator it = ww.wavePanels.iterator(); it.hasNext(); )
@@ -3315,8 +3320,13 @@ public class WaveformWindow implements WindowContent
 			Simulation.SimSignal sSig = sd.findSignalForNetwork(netName);
 			if (sSig == null)
 			{
-				System.out.println("Unable to find a signal named " + netName);
-				continue;
+				netName = netName.replace('@', '_');
+				sSig = sd.findSignalForNetwork(netName);
+				if (sSig == null)
+				{
+					System.out.println("Unable to find a signal named " + netName);
+					continue;
+				}
 			}
 
 			// add the signal
@@ -3364,6 +3374,26 @@ public class WaveformWindow implements WindowContent
 		}
 	}
 
+    public static String getSpiceNetName(Network net) {
+        String name = "";
+        if (net.hasNames())
+        {
+            if (net.getExportedNames().hasNext())
+            {
+                name = (String)net.getExportedNames().next();
+            } else
+            {
+                name = (String)net.getNames().next();
+            }
+        } else
+        {
+            name = net.describe();
+            if (name.equals(""))
+                name = "UNCONNECTED";
+        }
+        return name;
+    }
+
     /**
      * Get the spice net name associated with the network and the context.
      * If the network is null, a String describing only the context is returned.
@@ -3384,7 +3414,7 @@ public class WaveformWindow implements WindowContent
         }
         // create net name
         String contextStr = context.getInstPath(".");
-        contextStr = contextStr.toLowerCase().replace('@', '_');
+        contextStr = contextStr.toLowerCase();
         if (net == null)
             return contextStr;
         else {
@@ -3443,26 +3473,6 @@ public class WaveformWindow implements WindowContent
 //        Network parentNet = parentCell.getUserNetlist().getNetwork(childNodable, pp, i);
         Network parentNet = netlist.getNetwork(childNodable, pp, i);
         return parentNet;
-    }
-
-    public static String getSpiceNetName(Network net) {
-        String name = "";
-        if (net.hasNames())
-        {
-            if (net.getExportedNames().hasNext())
-            {
-                name = (String)net.getExportedNames().next();
-            } else
-            {
-                name = (String)net.getNames().next();
-            }
-        } else
-        {
-            name = net.describe();
-            if (name.equals(""))
-                name = "UNCONNECTED";
-        }
-        return name;
     }
 
 	/**

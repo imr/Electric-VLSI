@@ -2601,8 +2601,8 @@ public class PixelDrawing
         LineMetrics lm = renderInfo.lm;
 
 	    // Too small to appear in the screen
-	    if (width == 0 || height == 0)
-		    return (null);
+	    if (width <= 0 || height <= 0)
+		    return null;
 
 		BufferedImage textImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
 
