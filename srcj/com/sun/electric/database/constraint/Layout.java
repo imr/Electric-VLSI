@@ -31,6 +31,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
@@ -39,6 +40,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
@@ -97,19 +99,20 @@ public class Layout extends Constraint
 	 */
 	public void endBatch()
 	{
-		// if only one cell is requested, solve that
-		Undo.ChangeBatch curBatch = Undo.getCurrentBatch();
-//		if (np != null)
-//		{
-//			cla_computecell(np, false);
-//		} else
-//		{
-//			// solve all cells that changed
-//			if (curBatch != null)
-//				for(cc = curBatch->firstchangecell; cc != NOCHANGECELL; cc = cc->nextchangecell)
-//					cla_computecell(cc->changecell, cc->forcedlook);
-//		}
+		// solve any cells that changed
+		List changedCells = new ArrayList();
+		for(Iterator it = Undo.ChangeCell.getIterator(); it.hasNext(); )
+			changedCells.add(it.next());
+		for(Iterator it = changedCells.iterator(); it.hasNext(); )
+		{
+			Undo.ChangeCell cc = (Undo.ChangeCell)it.next();
+			Cell cell = cc.getCell();
+			boolean forcedLook = cc.getForcedLook();
+			computeCell(cell, forcedLook);
+		}
 
+		// clear all change objects
+		Undo.ChangeBatch curBatch = Undo.getCurrentBatch();
 		if (curBatch == null) return;
 		for(Iterator it = curBatch.getChanges(); it.hasNext(); )
 		{
@@ -312,7 +315,7 @@ public class Layout extends Constraint
 		ni.setChangeClock(changeClock + change);
 
 		// see if this nodeinst is a port of the current cell
-		if (ni.getNumExports() > 0) return false;
+		if (ni.getNumExports() == 0) return false;
 		return true;
 	}
 
@@ -1203,19 +1206,22 @@ public class Layout extends Constraint
 		return transform;
 	}
 
+	FlagSet cellModFlag;
+	FlagSet cellNoModFlag;
+
 	/*
 	 * routine to re-compute the bounds of the cell "cell" (because an object
 	 * has been added or removed from it) and store these bounds in the nominal
 	 * size and the size of each instantiation of the cell.  It is also necessary
 	 * to re-position each instantiation of the cell in its proper position list.
-	 * If "forcedlook" is true, the cell is re-examined regardless of
+	 * If "forcedLook" is true, the cell is re-examined regardless of
 	 * whether its size changed.
 	 */
-	void cla_computecell(Cell cell, boolean forcedlook)
+	void computeCell(Cell cell, boolean forcedLook)
 	{
 		// get current boundary of cell
-//		db_boundcell(cell, &nlx,&nhx, &nly,&nhy);
-		Rectangle2D oldCellBounds = cell.getRememberedBounds();
+		Rectangle2D oldCellBounds = new Rectangle2D.Double();
+		oldCellBounds.setRect(cell.getRememberedBounds());
 		Rectangle2D cellBounds = cell.getBounds();
 
 		// quit if it has not changed
@@ -1223,204 +1229,242 @@ public class Layout extends Constraint
 
 		// advance the change clock
 		changeClock += 4;
-//
-//		// get former size of cell from change information
-//		flx = cell->lowx;   fhx = cell->highx;
-//		fly = cell->lowy;   fhy = cell->highy;
-//		c = (CHANGE *)cell->changeaddr;
-//		if (c != NOCHANGE && c->changetype == CELLMOD)
-//		{
-//			// modification changes carry original size
-//			flx = c->p1;   fhx = c->p2;
-//			fly = c->p3;   fhy = c->p4;
-//		}
-//
-//		// update the cell size
-//		cell->lowx = nlx;   cell->highx = nhx;
-//		cell->lowy = nly;   cell->highy = nhy;
-//		cell->changeaddr = (CHAR *)db_change((INTBIG)cell, CELLMOD, flx, fhx, fly, fhy, 0, 0);
-//
-//		// see if all instances of this cell are in the same location
-//		mixed = FALSE;
-//		oneparent = NONODEPROTO;
-//		lni = NONODEINST;
-//		for(ni = cell->firstinst; ni != NONODEINST; ni = ni->nextinst)
-//		{
-//			oneparent = ni->parent;
-//			if (lni != NONODEINST) if (ni->parent != lni->parent) mixed = TRUE;
-//			lni = ni;
-//		}
-//
-//		// if there are no constrained instances of the cell, no change
-//		if (oneparent == NONODEPROTO) return;
-//
-//		// if all parent cells the same, make changes to the instances
-//		if (!mixed && !forcedlook)
-//		{
-//			dlx = cell->lowx - flx;   dhx = cell->highx - fhx;
-//			dly = cell->lowy - fly;   dhy = cell->highy - fhy;
-//			for(ni = cell->firstinst; ni != NONODEINST; ni = ni->nextinst)
-//			{
-//				makeangle(ni->rotation, ni->transpose, trans);
-//				xform(dhx+dlx, dhy+dly, &offx, &offy, trans);
-//				nlx = (dlx-dhx+offx)/2;  nhx = offx - nlx;
-//				nly = (dly-dhy+offy)/2;  nhy = offy - nly;
-//				if (alterNodeInst(ni, nlx, nly, nhx, nhy, 0, 0, TRUE)) forcedlook = TRUE;
-//			}
-//			for(ni = cell->firstinst; ni != NONODEINST; ni = ni->nextinst)
-//				if (modNodeArcs(ni, 0, 0)) forcedlook = TRUE;
-//			cla_computecell(oneparent, forcedlook);
-//			return;
-//		}
-//
+
+		// get former size of cell from change information
+		double flx = oldCellBounds.getMinX();   double fhx = oldCellBounds.getMaxX();
+		double fly = oldCellBounds.getMinY();   double fhy = oldCellBounds.getMaxY();
+		Undo.Change change = cell.getChange();
+		if (change != null && change.getType() == Undo.Type.CELLMOD)
+		{
+			// modification changes carry original size
+			flx = change.getA1();   fhx = change.getA2();
+			fly = change.getA3();   fhy = change.getA4();
+		}
+
+		// update the cell size
+		if (change == null)
+		{
+			change = Undo.newChange(cell, Undo.Type.CELLMOD);
+			change.setDoubles(flx, fhx, fly, fhy, 0);
+			cell.setChange(change);
+		}
+
+		// see if all instances of this cell are in the same location
+		boolean mixed = false;
+		Cell oneParent = null;
+		for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			if (oneParent != null && oneParent != ni.getParent()) mixed = true;
+			oneParent = ni.getParent();
+		}
+
+		// if there are no constrained instances of the cell, no change
+		if (oneParent == null) return;
+
+		// if all parent cells the same, make changes to the instances
+		if (!mixed && !forcedLook)
+		{
+			double dlx = cellBounds.getMinX() - flx;   double dhx = cellBounds.getMaxX() - fhx;
+			double dly = cellBounds.getMinY() - fly;   double dhy = cellBounds.getMaxY() - fhy;
+			for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				double sX = ni.getXSize();   if (ni.isXMirrored()) sX = -sX;
+				double sY = ni.getYSize();   if (ni.isYMirrored()) sY = -sY;
+				AffineTransform trans = NodeInst.pureRotate(ni.getAngle(), sX, sY);
+				Point2D off = new Point2D.Double(cellBounds.getCenterX() - oldCellBounds.getCenterX(),
+					cellBounds.getCenterY() - oldCellBounds.getCenterY());
+				trans.transform(off, off);
+				double dSX = EMath.smooth(cellBounds.getWidth() - oldCellBounds.getWidth());
+				double dSY = EMath.smooth(cellBounds.getHeight() - oldCellBounds.getHeight());
+				if (alterNodeInst(ni, EMath.smooth(off.getX()), EMath.smooth(off.getY()), dSX, dSY, 0, true)) forcedLook = true;
+			}
+			for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				if (modNodeArcs(ni, 0, 0, 0)) forcedLook = true;
+			}
+			computeCell(oneParent, forcedLook);
+			return;
+		}
+
 //		/*
 //		 * if instances are scattered or port motion has occured, examine
 //		 * entire database in proper recursive order and adjust cell sizes
 //		 */
-//		for(lib = el_curlib; lib != NOLIBRARY; lib = lib->nextlibrary)
-//			for(np = lib->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
-//				np->userbits &= ~(CELLMOD|CELLNOMOD);
-//		cell->userbits |= CELLMOD;
-//		for(lib = el_curlib; lib != NOLIBRARY; lib = lib->nextlibrary)
-//			for(np = lib->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
+//		cellModFlag = NodeProto.getFlagSet(1);
+//		cellNoModFlag = NodeProto.getFlagSet(1);
+//		for(Iterator it = Library.getLibraries(); it.hasNext(); )
 //		{
-//			// only want cells with no instances as roots of trees
-//			if (np->firstinst != NONODEINST) continue;
-//
-//			// now look recursively at the nodes in this cell
-//			(void)cla_lookdown(np);
+//			Library lib = (Library)it.next();
+//			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+//			{
+//				Cell c = (Cell)cIt.next();
+//				c.clearBit(cellModFlag);
+//				c.clearBit(cellNoModFlag);
+//			}
 //		}
+//		cell.setBit(cellModFlag);
+//		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+//		{
+//			Library lib = (Library)it.next();
+//			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+//			{
+//				Cell c = (Cell)cIt.next();
+//
+//				// only want cells with no instances as roots of trees
+//				Iterator iIt = c.getInstancesOf();
+//				if (iIt.hasNext()) continue;
+//
+//				// now look recursively at the nodes in this cell
+//				cla_lookdown(c);
+//			}
+//		}
+//		cellNoModFlag.freeFlagSet();
+//		cellModFlag.freeFlagSet();
 	}
 
-//	BOOLEAN cla_lookdown(NODEPROTO *start)
-//	{
-//		REGISTER NODEINST *ni;
-//		REGISTER NODEPROTO *np;
-//		REGISTER INTBIG dlx, dhx, dly, dhy, flx, fhx, fly, fhy;
-//		REGISTER BOOLEAN forcedlook, foundone;
-//		INTBIG nlx, nhx, nly, nhy, offx, offy;
-//		XARRAY trans;
-//
-//		// first look recursively to the bottom to see if this cell changed
-//		for(ni = start->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//			if (ni->proto->primindex == 0) ni->userbits |= MARKN; else
-//				ni->userbits &= ~MARKN;
-//
-//		foundone = TRUE;
-//		while (foundone)
-//		{
-//			foundone = FALSE;
-//			for(ni = start->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//			{
-//				if ((ni->userbits & MARKN) == 0) continue;
-//				ni->userbits &= ~MARKN;
-//				np = ni->proto;
-//
-//				// ignore recursive references (showing icon in contents)
-//				if (isiconof(np, start)) continue;
-//
-//				// if this nodeinst is to change, mark the parent cell also
-//				if ((np->userbits & CELLMOD) != 0) start->userbits |= CELLMOD;
-//
-//				// don't look inside if the cell is certified
-//				if ((np->userbits & (CELLNOMOD|CELLMOD)) != 0) continue;
-//
-//				// look inside nodeinst to see if it changed
-//				if (cla_lookdown(np)) start->userbits |= CELLMOD;
-//				foundone = TRUE;
-//			}
-//		}
-//
-//		// if this cell did not change, certify so and quit
-//		if ((start->userbits & CELLMOD) == 0)
-//		{
-//			start->userbits |= CELLNOMOD;
-//			return(FALSE);
-//		}
-//
-//		// mark those nodes that must change
-//		for(ni = start->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//		{
-//			np = ni->proto;
-//			ni->userbits &= ~(MARKN|TOUCHN);
-//			if (np->primindex != 0) continue;
-//			if (isiconof(np, start)) continue;
-//			if ((np->userbits & CELLMOD) == 0) continue;
-//			ni->userbits |= MARKN | TOUCHN;
-//		}
-//
-//		// modify the nodes in this cell that changed
-//		forcedlook = FALSE;
-//		foundone = TRUE;
-//		while (foundone)
-//		{
-//			foundone = FALSE;
-//			for(ni = start->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//			{
-//				if ((ni->userbits & MARKN) == 0) continue;
-//				ni->userbits &= ~MARKN;
-//				np = ni->proto;
-//
-//				// determine original size of cell
-//				if ((CHANGE *)np->changeaddr != NOCHANGE &&
-//					((CHANGE *)np->changeaddr)->changetype == NODEPROTOMOD)
-//				{
-//					// modification changes carry original size
-//					flx = ((CHANGE *)np->changeaddr)->p1;
-//					fhx = ((CHANGE *)np->changeaddr)->p2;
-//					fly = ((CHANGE *)np->changeaddr)->p3;
-//					fhy = ((CHANGE *)np->changeaddr)->p4;
-//				} else
-//				{
-//					// creation changes have no original size: use current size
-//					flx = np->lowx;   fhx = np->highx;
-//					fly = np->lowy;   fhy = np->highy;
-//				}
-//				if (ni->highx-ni->lowx == np->highx-np->lowx && ni->highy-ni->lowy == np->highy-np->lowy)
-//					nlx = nhx = nly = nhy = 0; else
-//				{
-//					dlx = np->lowx - flx;   dhx = np->highx - fhx;
-//					dly = np->lowy - fly;   dhy = np->highy - fhy;
-//					makeangle(ni->rotation, ni->transpose, trans);
-//					xform(dhx+dlx, dhy+dly, &offx, &offy, trans);
-//					nlx = (dlx-dhx+offx)/2;  nhx = offx - nlx;
-//					nly = (dly-dhy+offy)/2;  nhy = offy - nly;
-//				}
-//				if (alterNodeInst(ni, nlx, nly, nhx, nhy, 0, 0, TRUE)) forcedlook = TRUE;
-//				foundone = TRUE;
-//			}
-//		}
-//
-//		// now change the arcs in the nodes in this cell that changed
-//		foundone = TRUE;
-//		while (foundone)
-//		{
-//			foundone = FALSE;
-//			for(ni = start->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//			{
-//				if ((ni->userbits & TOUCHN) == 0) continue;
-//				ni->userbits &= ~TOUCHN;
-//				if (modNodeArcs(ni, 0, 0)) forcedlook = TRUE;
-//				foundone = TRUE;
-//			}
-//		}
-//
-//		// now change the size of this cell
-//		db_boundcell(start, &nlx,&nhx, &nly,&nhy);
-//
-//		// quit if it has not changed
-//		if (start->lowx == nlx && start->highx == nhx && start->lowy == nly &&
-//			start->highy == nhy && !forcedlook)
-//		{
-//			start->userbits |= CELLNOMOD;
-//			return(FALSE);
-//		}
-//
-//		// update the cell size
-//		start->changeaddr = (CHAR *)db_change((INTBIG)start, NODEPROTOMOD,
-//			start->lowx, start->highx, start->lowy, start->highy, 0, 0);
-//		start->lowx = nlx;  start->highx = nhx;
-//		start->lowy = nly;  start->highy = nhy;
-//		return(TRUE);
-//	}
+	boolean cla_lookdown(Cell start)
+	{
+		// first look recursively to the bottom to see if this cell changed
+		FlagSet markNode = NodeInst.getFlagSet(1);
+		for(Iterator it = start.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			if (ni.getProto() instanceof Cell) ni.setBit(markNode); else
+				ni.clearBit(markNode);
+		}
+
+		boolean foundone = true;
+		while (foundone)
+		{
+			foundone = false;
+			for(Iterator it = start.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				if (!ni.isBit(markNode)) continue;
+				ni.clearBit(markNode);
+				NodeProto np = ni.getProto();
+
+				// ignore recursive references (showing icon in contents)
+				if (np.isIconOf(start)) continue;
+
+				// if this nodeinst is to change, mark the parent cell also
+				if (np.isBit(cellModFlag)) start.setBit(cellModFlag);
+
+				// don't look inside if the cell is certified
+				if (np.isBit(cellModFlag) || np.isBit(cellNoModFlag)) continue;
+
+				// look inside nodeinst to see if it changed
+				if (cla_lookdown((Cell)np)) start.setBit(cellModFlag);
+				foundone = true;
+			}
+		}
+
+		// if this cell did not change, certify so and quit
+		if (!start.isBit(cellModFlag))
+		{
+			start.setBit(cellNoModFlag);
+			markNode.freeFlagSet();
+			return false;
+		}
+
+		// mark those nodes that must change
+		FlagSet touchNode = NodeInst.getFlagSet(1);
+		for(Iterator it = start.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			NodeProto np = ni.getProto();
+			ni.clearBit(markNode);
+			ni.clearBit(touchNode);
+			if (np instanceof PrimitiveNode) continue;
+			if (np.isIconOf(start)) continue;
+			if (!np.isBit(cellModFlag)) continue;
+			ni.setBit(markNode);
+			ni.setBit(touchNode);
+		}
+
+		// modify the nodes in this cell that changed
+		boolean forcedLook = false;
+		foundone = true;
+		while (foundone)
+		{
+			foundone = false;
+			for(Iterator it = start.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				if (!ni.isBit(markNode)) continue;
+				ni.clearBit(markNode);
+				Cell np = (Cell)ni.getProto();
+
+				// determine original size of cell
+				Undo.Change change = np.getChange();
+				double flx, fhx, fly, fhy;
+				if (change != null && change.getType() == Undo.Type.CELLMOD)
+				{
+					// modification changes carry original size
+					flx = change.getA1();   fhx = change.getA2();
+					fly = change.getA3();   fhy = change.getA4();
+				} else
+				{
+					// creation changes have no original size: use current size
+					Rectangle2D oldCellBounds = new Rectangle2D.Double();
+					flx = oldCellBounds.getMinX();   fhx = oldCellBounds.getMaxX();
+					fly = oldCellBounds.getMinY();   fhy = oldCellBounds.getMaxY();
+				}
+
+				Rectangle2D cellBounds = np.getBounds();
+				double dlx = cellBounds.getMinX() - flx;   double dhx = cellBounds.getMaxX() - fhx;
+				double dly = cellBounds.getMinY() - fly;   double dhy = cellBounds.getMaxY() - fhy;
+				double sX = ni.getXSize();   if (ni.isXMirrored()) sX = -sX;
+				double sY = ni.getYSize();   if (ni.isYMirrored()) sY = -sY;
+				AffineTransform trans = NodeInst.pureRotate(ni.getAngle(), sX, sY);
+				Point2D off = new Point2D.Double(cellBounds.getCenterX() - (flx+fhx)/2,
+					cellBounds.getCenterY() - (fly+fhy)/2);
+				trans.transform(off, off);
+				double dSX = EMath.smooth(cellBounds.getWidth() - (fhx-flx));
+				double dSY = EMath.smooth(cellBounds.getHeight() - (fhy-fly));
+				if (alterNodeInst(ni, EMath.smooth(off.getX()), EMath.smooth(off.getY()), dSX, dSY, 0, true)) forcedLook = true;
+				foundone = true;
+			}
+		}
+
+		// now change the arcs in the nodes in this cell that changed
+		foundone = true;
+		while (foundone)
+		{
+			foundone = false;
+			for(Iterator it = start.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				if (!ni.isBit(touchNode)) continue;
+				ni.clearBit(touchNode);
+				if (modNodeArcs(ni, 0, 0, 0)) forcedLook = true;
+				foundone = true;
+			}
+		}
+
+		// now change the size of this cell
+		Rectangle2D oldCellBounds = new Rectangle2D.Double();
+		oldCellBounds.setRect(start.getRememberedBounds());
+		Rectangle2D cellBounds = start.getBounds();
+
+		// quit if it has not changed
+		if (oldCellBounds.equals(cellBounds) && !forcedLook)
+		{
+			start.setBit(cellModFlag);
+			touchNode.freeFlagSet();
+			markNode.freeFlagSet();
+			return false;
+		}
+
+		// update the cell size
+		Undo.Change change = Undo.newChange(start, Undo.Type.CELLMOD);
+		change.setDoubles(oldCellBounds.getMinX(), oldCellBounds.getMaxX(), oldCellBounds.getMinY(), oldCellBounds.getMaxY(), 0);
+		start.setChange(change);
+		touchNode.freeFlagSet();
+		markNode.freeFlagSet();
+		return true;
+	}
 }

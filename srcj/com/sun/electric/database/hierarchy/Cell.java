@@ -851,7 +851,11 @@ public class Cell extends NodeProto
 	{
 		if (boundsDirty)
 		{
-			if (boundLock) { boundLock = false;   lastBounds.setRect(cellBounds); }
+			if (boundLock)
+			{
+				boundLock = false;
+				lastBounds.setRect(cellBounds);
+			}
 
 			// recompute bounds
 			double cellLowX, cellHighX, cellLowY, cellHighY;
