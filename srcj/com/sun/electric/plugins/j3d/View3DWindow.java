@@ -64,10 +64,6 @@ import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.PathIterator;
 import java.awt.*;
-import java.awt.print.PageFormat;
-import java.awt.print.PrinterJob;
-import java.awt.print.PrinterException;
-import java.awt.print.Printable;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -93,7 +89,6 @@ public class View3DWindow extends JPanel
 	private MouseBehavior rotateB, translateB;
 	private JMouseZoom zoomB;
 
-    //private OrbitBehavior orbit;
 	/** the window frame containing this editwindow */      private WindowFrame wf;
 	/** reference to 2D view of the cell */                 private WindowContent view2D;
 	/** the cell that is in the window */					private Cell cell;
@@ -269,10 +264,6 @@ public class View3DWindow extends JPanel
 		vCenter.z += vDist;
 		Transform3D vTrans = new Transform3D();
 		Transform3D proj = new Transform3D();
-        Transform3D lookAt = new Transform3D();
-
-		//lookAt.lookAt(c2, c1, new Vector3d(1, 1, 1));
-		//lookAt.invert();
 
 		proj.ortho(cell.getBounds().getMinX(), cell.getBounds().getMaxX(),
 		        cell.getBounds().getMinY(), cell.getBounds().getMaxY(), (vDist+radius)/200.0, (vDist+radius)*2.0);
@@ -1178,65 +1169,24 @@ public class View3DWindow extends JPanel
 		//lastXPosition = evt.getX();   lastYPosition = evt.getY();
 		//WindowFrame.curMouseListener.mouseClicked(evt);
 		pickCanvas.setShapeLocation(evt);
-        Point3d eyePos = pickCanvas.getStartPosition();
 		Transform3D t = new Transform3D();
 		Transform3D t1 = new Transform3D();
 		canvas.getImagePlateToVworld(t);
 		canvas.getVworldToImagePlate(t1);
-
 		PickResult result = pickCanvas.pickClosest();
-        PickResult[] results = pickCanvas.pickAllSorted();
 
 		// Clean previous selection
 		selectObject(false, true);
 
 		if (result != null)
 		{
-		   Primitive p = (Primitive)result.getNode(PickResult.PRIMITIVE);
 		   Shape3D s = (Shape3D)result.getNode(PickResult.SHAPE3D);
 			
 			if (s != null)
 			{
-				//selectedObject = s;
 				highlighter.addObject(s, Highlight.Type.SHAPE3D, cell);
 				selectObject(true, true);
 			}
-           //PickIntersection pi = result.getClosestIntersection(eyePos);
-
-			/*
-            PickIntersection pi =
-		    results[0].getClosestIntersection(eyePos);
-
-		   if (pi != null) {
-			   Point3d point = pi.getPointCoordinates();
-			   Point3d point1 = pi.getPointCoordinatesVW();
-			   //point1.sub(eyePos);
-
-			   Point3d p11 = new Point3d();
-			   Point3d pp = new Point3d();
-			   point = point1;
-			   t1.transform(point1, p11);
-			   t.transform(point, pp);
-               Transform3D vTrans = new Transform3D();
-			   //point1.negate();
-			   Vector3d vCenter = new Vector3d(point1);
-			   vTrans.set(vCenter);
-			   //u.getViewingPlatform().getViewPlatformTransform().setTransform(vTrans);
-			   Point3d position = new Point3d();
-
-			   canvas.getCenterEyeInImagePlate(position);
-
-			   Transform3D trans = new Transform3D();
-			   //objTrans.getTransform(trans);
-			   //trans.transform(vCenter);
-               //trans.setTranslation (vCenter);
-			   //objTrans.setTransform(trans);
-               //u.getViewingPlatform().getViewPlatformTransform().setTransform(vTrans);
-               orbit.setRotationCenter(point1);
-		   } else{
-			  System.out.println("null");
-		   }
-		   */
 		}
         WindowFrame.curMouseListener.mouseClicked(evt);
 	}
@@ -1378,7 +1328,7 @@ public class View3DWindow extends JPanel
 		void doProcess(MouseEvent evt)
 		{
 			int id;
-			int dx, dy;
+			int dy;
 
 			processMouseEvent(evt);
 
