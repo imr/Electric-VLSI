@@ -1409,8 +1409,8 @@ public class MoCMOS extends Technology
 		nSelect_lay.setFactory3DInfo(DIFF_LAYER, BULK_LAYER + DIFF_LAYER);				// N-Select
 		pWell_lay.setFactory3DInfo(DIFF_LAYER, BULK_LAYER);					// P-Well
 		nWell_lay.setFactory3DInfo(DIFF_LAYER, BULK_LAYER);					// N-Well
-		//pActiveWell_lay.setFactory3DInfo(pActive_lay.getDepth()-pWell_lay.getDistance(), BULK_LAYER);			// P-Active-Well
         pActiveWell_lay.setFactory3DInfo(0.85, BULK_LAYER + 2*DIFF_LAYER);			// P-Active-Well
+        thickActive_lay.setFactory3DInfo(0.5, BULK_LAYER + 0.5);			// Thick Active (between select and well)
 
 		metal1_lay.setFactory3DInfo(METAL_LAYER, ILD_LAYER + pActive_lay.getDepth());					// Metal-1   0.53um/0.2
 		metal2_lay.setFactory3DInfo(METAL_LAYER, IMD_LAYER + metal1_lay.getDistance());					// Metal-2
