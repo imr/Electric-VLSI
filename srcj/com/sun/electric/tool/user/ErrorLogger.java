@@ -279,6 +279,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
          * @return
          */
         public boolean isValid() {
+        	if (logCell == null) return true;
             if (!logCell.isLinked()) return false;
             // check validity of highlights
             boolean allValid = true;

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01x: *********************************
 
+IMP/MAN: (10/11/04, SMR) Added river routing.
+
 BUG: (10/11/04, DN) Networks of isolated ports have no names.
 FIX: Add names "node.port".
 

@@ -83,6 +83,7 @@ public class OpenFile
 		/** Describes Verilog decks. */			public static final Type VERILOG      = new Type("Verilog", new String[] {"v"}, "Verilog Deck (v)");
 		/** Describes Verilog output. */		public static final Type VERILOGOUT   = new Type("VerilogOutput", new String[] {"dump"}, "Verilog VCD Dump (vcd)");
 
+		/** Describes default file format.*/	public static final Type DEFAULTLIB   = JELIB;
 
 		private final String name;
 		private final String [] extensions;

@@ -60,6 +60,7 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.user.dialogs.ChangeCurrentLib;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.StatusBar;
@@ -5144,6 +5145,23 @@ public class CircuitChanges
 		{
 			Library lib = (Library)it.next();
 			if (lib.isHidden()) continue;
+
+			// make sure all old format library extensions are converted
+			String ext = TextUtils.getExtension(lib.getLibFile());
+			if (OpenFile.Type.DEFAULTLIB == OpenFile.Type.JELIB)
+			{
+				if (ext.equals("elib"))
+				{
+					String fullName = lib.getLibFile().getFile();
+					int len = fullName.length();
+					fullName = fullName.substring(0, len-4) + "jelib";
+					lib.setLibFile(TextUtils.makeURLToFile(fullName));
+				}
+			}
+
+			// do not mark readable dump files for saving
+			if (ext.equals("txt")) continue;
+
 			lib.setChangedMajor();
 			lib.setChangedMinor();
 		}

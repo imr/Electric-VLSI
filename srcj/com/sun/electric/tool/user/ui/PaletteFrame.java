@@ -470,7 +470,7 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
     private void selectedLibSave() {
         Library lib = getSelectedLib();
         if (lib == null) return;
-        FileMenu.saveLibraryCommand(lib, OpenFile.Type.ELIB, false, true);
+        FileMenu.saveLibraryCommand(lib, OpenFile.Type.DEFAULTLIB, false, true);
     }
     private void selectedLibSaveAs() {
         Library lib = getSelectedLib();

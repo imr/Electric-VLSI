@@ -79,8 +79,8 @@ public class FileMenu {
 
 		MenuBar.Menu importSubMenu = new MenuBar.Menu("Import");
 		fileMenu.add(importSubMenu);
-		importSubMenu.addMenuItem("Version 8 JELIB...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(OpenFile.Type.JELIB); } });
+		importSubMenu.addMenuItem("Version 7 ELIB...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(OpenFile.Type.ELIB); } });
 		importSubMenu.addMenuItem("Readable Dump...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(OpenFile.Type.READABLEDUMP); } });
 		importSubMenu.addMenuItem("Text Cell Contents...", null,
@@ -91,7 +91,7 @@ public class FileMenu {
 		fileMenu.addMenuItem("Close Library", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { closeLibraryCommand(Library.getCurrent()); } });
 		fileMenu.addMenuItem("Save Library", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.ELIB, false, true); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.DEFAULTLIB, false, true); } });
 		fileMenu.addMenuItem("Save Library as...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveAsLibraryCommand(Library.getCurrent()); } });
 		fileMenu.addMenuItem("Save All Libraries", KeyStroke.getKeyStroke('S', buckyBit),
@@ -129,8 +129,8 @@ public class FileMenu {
 		exportSubMenu.addSeparator();
 		exportSubMenu.addMenuItem("ELIB (Version 6)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.ELIB, true, false); } });
-		exportSubMenu.addMenuItem("JELIB (Version 8)...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.JELIB, true, false); } });
+		exportSubMenu.addMenuItem("ELIB (Version 7)...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.ELIB, false, false); } });
 		exportSubMenu.addMenuItem("Readable Dump...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.READABLEDUMP, false, false); } });
 
@@ -205,12 +205,12 @@ public class FileMenu {
      */
     public static void openLibraryCommand()
     {
-        String fileName = OpenFile.chooseInputFile(OpenFile.Type.ELIB, null);
+        String fileName = OpenFile.chooseInputFile(OpenFile.Type.DEFAULTLIB, null);
         if (fileName != null)
         {
             // start a job to do the input
             URL fileURL = TextUtils.makeURLToFile(fileName);
-			ReadLibrary job = new ReadLibrary(fileURL, OpenFile.Type.ELIB);
+			ReadLibrary job = new ReadLibrary(fileURL, OpenFile.Type.DEFAULTLIB);
         }
     }
 
@@ -258,7 +258,7 @@ public class FileMenu {
             boolean success = false;
             for (Iterator it = fileURLs.iterator(); it.hasNext(); ) {
                 URL file = (URL)it.next();
-                if (openALibrary(file, OpenFile.Type.ELIB)) success = true;
+                if (openALibrary(file, OpenFile.Type.DEFAULTLIB)) success = true;
             }
             if (success) {
                 // close no name library
@@ -498,7 +498,7 @@ public class FileMenu {
     public static void saveAsLibraryCommand(Library lib)
     {
         lib.clearFromDisk();
-        saveLibraryCommand(lib, OpenFile.Type.ELIB, false, true);
+        saveLibraryCommand(lib, OpenFile.Type.DEFAULTLIB, false, true);
         WindowFrame.wantToRedoTitleNames();
     }
 
@@ -512,7 +512,7 @@ public class FileMenu {
             Library lib = (Library)it.next();
             if (lib.isHidden()) continue;
             if (!lib.isChangedMajor() && !lib.isChangedMinor()) continue;
-            if (!saveLibraryCommand(lib, OpenFile.Type.ELIB, false, true)) break;
+            if (!saveLibraryCommand(lib, OpenFile.Type.DEFAULTLIB, false, true)) break;
         }
     }
 
@@ -851,7 +851,7 @@ public class FileMenu {
             if (ret == 0)
             {
                 // save the library
-                if (!saveLibraryCommand(lib, OpenFile.Type.ELIB, false, true))
+                if (!saveLibraryCommand(lib, OpenFile.Type.DEFAULTLIB, false, true))
                     saveCancelled = true;
                 continue;
             }
@@ -943,7 +943,7 @@ public class FileMenu {
         }
         // set libraries to save to panic dir
         boolean retValue = true;
-        OpenFile.Type type = OpenFile.Type.ELIB;
+        OpenFile.Type type = OpenFile.Type.DEFAULTLIB;
         for(Iterator it = Library.getLibraries(); it.hasNext(); )
         {
             Library lib = (Library)it.next();

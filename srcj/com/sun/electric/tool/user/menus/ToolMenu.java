@@ -39,6 +39,7 @@ import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.erc.ERCAntenna;
 import com.sun.electric.tool.routing.Routing;
+import com.sun.electric.tool.routing.River;
 import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.routing.MimicStitch;
 import com.sun.electric.tool.Job;
@@ -278,6 +279,9 @@ public class ToolMenu {
         routingSubMenu.addMenuItem("Mimic Selected", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { Routing.tool.mimicSelected(); }});
 
+        routingSubMenu.addSeparator();
+        routingSubMenu.addMenuItem("River-Route", null,
+                new ActionListener() { public void actionPerformed(ActionEvent e) { River.riverRoute(); }});
         routingSubMenu.addSeparator();
 
         routingSubMenu.addMenuItem("Get Unrouted Wire", null,

@@ -247,17 +247,19 @@ public class ArcInst extends Geometric
 		if (!ai.stillInPort(ai.getHead(), headPt, false))
 		{
 			Cell parent = head.getNodeInst().getParent();
+			Poly poly = ai.getHead().getPortInst().getPoly();
 			System.out.println("Error in cell " + parent.describe() + ": head of " + type.getName() +
 				" arc at (" + headPt.getX() + "," + headPt.getY() + ") does not fit in port " +
-				ai.getHead().getPortInst().describe());
+				ai.getHead().getPortInst().describe() + " which is centered at (" + poly.getCenterX() + "," + poly.getCenterY() + ")");
 			return null;
 		}
 		if (!ai.stillInPort(ai.getTail(), tailPt, false))
 		{
 			Cell parent = tail.getNodeInst().getParent();
+			Poly poly = ai.getTail().getPortInst().getPoly();
 			System.out.println("Error in cell " + parent.describe() + ": tail of " + type.getName() +
 				" arc at (" + tailPt.getX() + "," + tailPt.getY() + ") does not fit in port " +
-				ai.getTail().getPortInst().describe());
+				ai.getTail().getPortInst().describe() + " which is centered at (" + poly.getCenterX() + "," + poly.getCenterY() + ")");
 			return null;
 		}
 		if (name != null) ai.setName(name);

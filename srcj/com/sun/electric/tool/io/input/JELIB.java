@@ -79,6 +79,7 @@ public class JELIB extends LibraryFiles
 		boolean filledIn;
 		int lineNumber;
 		List cellStrings;
+		String fileName;
 
 		CellContents()
 		{
@@ -91,6 +92,8 @@ public class JELIB extends LibraryFiles
 	private HashMap externalCells;
 	private String version;
 	private String curLibName;
+	/** The number of lines that have been "processed" so far. */	private int numProcessed;
+	/** The number of lines that must be "processed". */			private int numToProcess;
 
 	JELIB()
 	{
@@ -201,6 +204,7 @@ public class JELIB extends LibraryFiles
 
 				// gather the contents of the cell into a list of Strings
 				CellContents cc = new CellContents();
+				cc.fileName = filePath;
 				cc.lineNumber = lineReader.getLineNumber() + 1;
 				for(;;)
 				{
@@ -389,6 +393,8 @@ public class JELIB extends LibraryFiles
 				for(int i=0; i<pieces.size(); i++)
 				{
 					String cellName = (String)pieces.get(i);
+					int colonPos = cellName.indexOf(':');
+					if (colonPos >= 0) cellName = cellName.substring(colonPos+1);
 					Cell cell = lib.findNodeProto(cellName);
 					if (cell == null)
 					{
@@ -424,8 +430,19 @@ public class JELIB extends LibraryFiles
 	 */
 	private void instantiateCellContents()
 	{
-		// look through all cells
 		System.out.println("Creating the circuitry...");
+        progress.setNote("Creating the circuitry");
+
+		// count the number of lines that need to be processed
+		numToProcess = 0;
+		for(Iterator it = allCells.values().iterator(); it.hasNext(); )
+		{
+			CellContents cc = (CellContents)it.next();
+			numToProcess += cc.cellStrings.size();
+		}
+
+		// instantiate all cells recursively
+		numProcessed = 0;
 		for(Iterator it = allCells.keySet().iterator(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
@@ -453,13 +470,15 @@ public class JELIB extends LibraryFiles
 		{
 			String cellString = (String)cc.cellStrings.get(line);
 			if (cellString.charAt(0) != 'N') continue;
+			numProcessed++;
+			if ((numProcessed%100) == 0) progress.setProgress(numProcessed * 100 / numToProcess);
 
 			// parse the node line
 			List pieces = parseLine(cellString);
 			if (pieces.size() < 10)
 			{
-				Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
-					", Node instance needs 10 fields: " + line, cell, -1);
+				Input.errorLogger.logError(cc.fileName + ", line " + lineReader.getLineNumber() +
+					", Node instance needs 10 fields: " + cellString, cell, -1);
 				continue;
 			}
 			String protoName = (String)pieces.get(0);
@@ -493,23 +512,23 @@ public class JELIB extends LibraryFiles
 			{
 				if (cellLib == null)
 				{
-					Input.errorLogger.logError(filePath + ", line " + (cc.lineNumber + line) +
+					Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
 						", Creating dummy library " + prefixName, cell, -1);
 					cellLib = Library.newInstance(prefixName, null);
 				}
 				np = Cell.makeInstance(cellLib, protoName);
 				if (np == null)
 				{
-					Input.errorLogger.logError(filePath + ", line " + (cc.lineNumber + line) +
+					Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
 						", Unable to create dummy cell " + protoName + " in library " + cellLib.getName(), cell, -1);
 					continue;
 				}
-				Input.errorLogger.logError(filePath + ", line " + (cc.lineNumber + line) +
+				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
 					", Creating dummy cell " + protoName + " in library " + cellLib.getName(), cell, -1);
 				Rectangle2D bounds = (Rectangle2D)externalCells.get(pieces.get(0));
 				if (bounds == null)
 				{
-					Input.errorLogger.logError(filePath + ", line " + (cc.lineNumber + line) +
+					Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
 						", Warning: cannot find information about external cell " + pieces.get(0), cell, -1);
 					NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(0,0), wid, hei, (Cell)np);
 				} else
@@ -572,14 +591,14 @@ public class JELIB extends LibraryFiles
 			NodeInst ni = NodeInst.newInstance(np, new Point2D.Double(x, y), wid, hei, cell, angle, nodeName, techSpecific);
 			if (ni == null)
 			{
-				Input.errorLogger.logError(filePath + ", line " + (cc.lineNumber + line) +
+				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
 					" (cell " + cell.describe() + ") cannot create node " + protoName, cell, -1);
 				continue;
 			}
 
 			// get the node name text descriptor
 			String nameTextDescriptorInfo = (String)pieces.get(2);
-			loadTextDescriptor(ni.getNameTextDescriptor(), null, nameTextDescriptorInfo, filePath, cc.lineNumber + line);
+			loadTextDescriptor(ni.getNameTextDescriptor(), null, nameTextDescriptorInfo, cc.fileName, cc.lineNumber + line);
 
 			// insert into map of disk names
 			diskName.put(diskNodeName, ni);
@@ -594,10 +613,10 @@ public class JELIB extends LibraryFiles
 
 			// get text descriptor for cell instance names
 			String textDescriptorInfo = (String)pieces.get(9);
-			loadTextDescriptor(ni.getProtoTextDescriptor(), null, textDescriptorInfo, filePath, cc.lineNumber + line);
+			loadTextDescriptor(ni.getProtoTextDescriptor(), null, textDescriptorInfo, cc.fileName, cc.lineNumber + line);
 
 			// add variables in fields 10 and up
-			addVariables(ni, pieces, 10, filePath, cc.lineNumber + line);
+			addVariables(ni, pieces, 10, cc.fileName, cc.lineNumber + line);
 		}
 
 		// place all exports
@@ -605,13 +624,15 @@ public class JELIB extends LibraryFiles
 		{
 			String cellString = (String)cc.cellStrings.get(line);
 			if (cellString.charAt(0) != 'E') continue;
+			numProcessed++;
+			if ((numProcessed%100) == 0) progress.setProgress(numProcessed * 100 / numToProcess);
 
 			// parse the export line
 			List pieces = parseLine(cellString);
 			if (pieces.size() < 7)
 			{
-				Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
-					", Export needs 7 fields: " + line, cell, -1);
+				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
+					", Export needs 7 fields, has " + pieces.size() + ": " + cellString, cell, -1);
 				continue;
 			}
 			String exportName = (String)pieces.get(0);
@@ -619,21 +640,21 @@ public class JELIB extends LibraryFiles
 			String portName = (String)pieces.get(3);
 			double x = TextUtils.atof((String)pieces.get(4));
 			double y = TextUtils.atof((String)pieces.get(5));
-			PortInst pi = figureOutPortInst(cell, portName, nodeName, x, y, diskName, cc.lineNumber + line);
+			PortInst pi = figureOutPortInst(cell, portName, nodeName, x, y, diskName, cc.fileName, cc.lineNumber + line);
 			if (pi == null) continue;
 
 			// create the export
 			Export pp = Export.newInstance(cell, pi, exportName);
 			if (pp == null)
 			{
-				Input.errorLogger.logError(filePath + ", line " + (cc.lineNumber + line) +
+				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
 					" (cell " + cell.describe() + ") cannot create export " + exportName, cell, -1);
 				continue;
 			}
 
 			// get text descriptor in field 1
 			String textDescriptorInfo = (String)pieces.get(1);
-			loadTextDescriptor(pp.getTextDescriptor(), null, textDescriptorInfo, filePath, cc.lineNumber + line);
+			loadTextDescriptor(pp.getTextDescriptor(), null, textDescriptorInfo, cc.fileName, cc.lineNumber + line);
 
 			// parse state information in field 6
 			String stateInfo = (String)pieces.get(6);
@@ -653,7 +674,7 @@ public class JELIB extends LibraryFiles
 			pp.setCharacteristic(ch);
 
 			// add variables in fields 7 and up
-			addVariables(pp, pieces, 7, filePath, cc.lineNumber + line);
+			addVariables(pp, pieces, 7, cc.fileName, cc.lineNumber + line);
 		}
 
 		// next place all arcs
@@ -661,20 +682,22 @@ public class JELIB extends LibraryFiles
 		{
 			String cellString = (String)cc.cellStrings.get(line);
 			if (cellString.charAt(0) != 'A') continue;
+			numProcessed++;
+			if ((numProcessed%100) == 0) progress.setProgress(numProcessed * 100 / numToProcess);
 
 			// parse the arc line
 			List pieces = parseLine(cellString);
 			if (pieces.size() < 13)
 			{
-				Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
-					", Arc instance needs 13 fields: " + line, cell, -1);
+				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
+					", Arc instance needs 13 fields: " + cellString, cell, -1);
 				continue;
 			}
 			String protoName = (String)pieces.get(0);
 			ArcProto ap = ArcProto.findArcProto(protoName);
 			if (ap == null)
 			{
-				Input.errorLogger.logError(filePath + ", line " + (cc.lineNumber + line) +
+				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
 					" (cell " + cell.describe() + ") cannot find arc " + protoName, cell, -1);
 				continue;
 			}
@@ -685,14 +708,14 @@ public class JELIB extends LibraryFiles
 			String headPortName = (String)pieces.get(6);
 			double headX = TextUtils.atof((String)pieces.get(7));
 			double headY = TextUtils.atof((String)pieces.get(8));
-			PortInst headPI = figureOutPortInst(cell, headPortName, headNodeName, headX, headY, diskName, cc.lineNumber + line);
+			PortInst headPI = figureOutPortInst(cell, headPortName, headNodeName, headX, headY, diskName, cc.fileName, cc.lineNumber + line);
 			if (headPI == null) continue;
 
 			String tailNodeName = (String)pieces.get(9);
 			String tailPortName = (String)pieces.get(10);
 			double tailX = TextUtils.atof((String)pieces.get(11));
 			double tailY = TextUtils.atof((String)pieces.get(12));
-			PortInst tailPI = figureOutPortInst(cell, tailPortName, tailNodeName, tailX, tailY, diskName, cc.lineNumber + line);
+			PortInst tailPI = figureOutPortInst(cell, tailPortName, tailNodeName, tailX, tailY, diskName, cc.fileName, cc.lineNumber + line);
 			if (tailPI == null) continue;
 
 			// parse state information in field 4
@@ -727,14 +750,14 @@ public class JELIB extends LibraryFiles
 			        new Point2D.Double(tailX, tailY), arcName, angle);
 			if (ai == null)
 			{
-				Input.errorLogger.logError(filePath + ", line " + (cc.lineNumber + line) +
+				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
 					" (cell " + cell.describe() + ") cannot create arc " + protoName, cell, -1);
 				continue;
 			}
 
 			// get the ard name text descriptor
 			String nameTextDescriptorInfo = (String)pieces.get(2);
-			loadTextDescriptor(ai.getNameTextDescriptor(), null, nameTextDescriptorInfo, filePath, cc.lineNumber + line);
+			loadTextDescriptor(ai.getNameTextDescriptor(), null, nameTextDescriptorInfo, cc.fileName, cc.lineNumber + line);
 
 			// add state bits
 			ai.setRigid(rigid);
@@ -750,7 +773,7 @@ public class JELIB extends LibraryFiles
 			ai.getTail().setNegated(tailNegated);
 
 			// add variables in fields 13 and up
-			addVariables(ai, pieces, 13, filePath, cc.lineNumber + line);
+			addVariables(ai, pieces, 13, cc.fileName, cc.lineNumber + line);
 		}
 		cc.filledIn = true;
 	}
@@ -766,12 +789,12 @@ public class JELIB extends LibraryFiles
 	 * @param lineNumber the line number in the file being read (for error reporting).
 	 * @return the PortInst specified (null if none can be found).
 	 */
-	private PortInst figureOutPortInst(Cell cell, String portName, String nodeName, double xPos, double yPos, HashMap diskName, int lineNumber)
+	private PortInst figureOutPortInst(Cell cell, String portName, String nodeName, double xPos, double yPos, HashMap diskName, String fileName, int lineNumber)
 	{
 		NodeInst ni = (NodeInst)diskName.get(nodeName);
 		if (ni == null)
 		{
-			Input.errorLogger.logError(filePath + ", line " + lineNumber +
+			Input.errorLogger.logError(fileName + ", line " + lineNumber +
 				" (cell " + cell.describe() + ") cannot find node " + nodeName, cell, -1);
 			return null;
 		}
@@ -785,6 +808,10 @@ public class JELIB extends LibraryFiles
 		{
 			pi = ni.findPortInst(portName);
 		}
+
+		// primitives use the name match
+		NodeProto np = ni.getProto();
+		if (np instanceof PrimitiveNode) return pi;
 
 		// make sure the port can handle the position
 		Point2D headPt = new Point2D.Double(xPos, yPos);
@@ -804,11 +831,11 @@ public class JELIB extends LibraryFiles
 			NodeInst portNI = NodeInst.newInstance(Generic.tech.universalPinNode, headPt, 0, 0, cell);
 			if (portNI == null)
 			{
-				Input.errorLogger.logError(filePath + ", line " + lineNumber +
+				Input.errorLogger.logError(fileName + ", line " + lineNumber +
 					", Unable to create dummy node on cell " + cell.describe() + " (cannot create source node)", cell, -1);
 				return null;
 			}
-			Input.errorLogger.logError(filePath + ", line " + lineNumber +
+			Input.errorLogger.logError(fileName + ", line " + lineNumber +
 				", Creating dummy node on cell " + cell.describe(), cell, -1);
 			return portNI.getOnlyPortInst();
 		}
@@ -823,7 +850,7 @@ public class JELIB extends LibraryFiles
 		NodeInst portNI = NodeInst.newInstance(Generic.tech.universalPinNode, headPt, 0, 0, subCell);
 		if (portNI == null)
 		{
-			Input.errorLogger.logError(filePath + ", line " + lineNumber +
+			Input.errorLogger.logError(fileName + ", line " + lineNumber +
 				", Unable to create export " + name + " on dummy cell " + subCell.describe() + " (cannot create source node)", cell, -1);
 			return null;
 		}
@@ -831,12 +858,12 @@ public class JELIB extends LibraryFiles
 		Export pp = Export.newInstance(subCell, portPI, name);
 		if (pp == null)
 		{
-			Input.errorLogger.logError(filePath + ", line " + lineNumber +
+			Input.errorLogger.logError(fileName + ", line " + lineNumber +
 				", Unable to create export " + name + " on dummy cell " + subCell.describe(), cell, -1);
 			return null;
 		}
 		pi = ni.findPortInstFromProto(pp);
-		Input.errorLogger.logError(filePath + ", line " + lineNumber +
+		Input.errorLogger.logError(fileName + ", line " + lineNumber +
 			", Creating export " + name + " on dummy cell " + subCell.describe(), cell, -1);
 
 		return pi;

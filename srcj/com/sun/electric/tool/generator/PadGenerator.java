@@ -527,7 +527,7 @@ public class PadGenerator {
                         }
                     }
 
-                    OpenFile.Type style = OpenFile.Type.ELIB;
+                    OpenFile.Type style = OpenFile.Type.DEFAULTLIB;
                     if (TextUtils.getExtension(fileURL).equals("txt")) style = OpenFile.Type.READABLEDUMP;
                     Library saveLib = Library.getCurrent();
                     cellLib = Library.newInstance(TextUtils.getFileNameWithoutExtension(fileURL), fileURL);

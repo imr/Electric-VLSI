@@ -913,6 +913,7 @@ public class JELIB extends Output
 		for(int i=0; i<len; i++)
 		{
 			char ch = str.charAt(i);
+			if (ch == '\n') continue;
 			if (ch == '|' || ch == '^')
 				infstr.append('^');
 			infstr.append(ch);
