@@ -433,7 +433,7 @@ public class Quick
 	private int checkThisCell(Cell cell, int globalIndex, Rectangle2D bounds)
 	{
 		// Job aborted or scheduled for abort
-		if (job.checkAbort()) return -1;
+		if (job != null && job.checkAbort()) return -1;
 
 		// Previous # of errors/warnings
 		int prevErrors = 0;
@@ -777,7 +777,7 @@ public class Quick
 		AffineTransform upTrans, int globalIndex, NodeInst oNi, int topGlobalIndex)
 	{
         // Job aborted or scheduled for abort
-		if (job.checkAbort()) return true;
+		if (job != null && job.checkAbort()) return true;
 
 		Cell cell = (Cell)thisNi.getProto();
 		boolean logsFound = false;
@@ -803,7 +803,6 @@ public class Quick
 				NodeInst ni = (NodeInst)geom;
 				NodeProto np = ni.getProto();
 
-				//if (np == Generic.tech.cellCenterNode) continue;  // Oct 4
                 if (isSpecialNode(np)) continue; // Oct 5;
 
 				if (np instanceof Cell)
@@ -2611,8 +2610,9 @@ public class Quick
 
 		Rectangle2D polyBnd = poly.getBounds2D();
         Area polyArea = new Area(poly);
+        boolean found = polyArea.isEmpty();
 
-		for(Iterator sIt = cell.searchIterator(polyBnd); sIt.hasNext(); )
+		for(Iterator sIt = cell.searchIterator(polyBnd); !found && sIt.hasNext(); )
 		{
 			Geometric g = (Geometric)sIt.next();
 			if (!(g instanceof NodeInst)) continue;
@@ -2639,11 +2639,13 @@ public class Quick
                     polyArea.subtract(nPolyArea);
 
                     distPolyArea.subtract(polyArea);
+					if (distPolyArea.isEmpty())
+						continue;  // no intersection
                     Rectangle2D interRect = distPolyArea.getBounds2D();
                     Rectangle2D ruleBnd = new Rectangle2D.Double(interRect.getMinX()-value, interRect.getMinY()-value,
                             interRect.getWidth() + value*2, interRect.getHeight() + value*2);
                     PolyBase extPoly = new PolyBase(ruleBnd);
-					PolyBase distPoly = new PolyBase(distPolyArea.getBounds2D());
+					PolyBase distPoly = new PolyBase(interRect);
                     Arrays.fill(founds, false);
 					// Removing points on original polygon. No very efficient though
 					Point2D[] points = extPoly.getPoints();
@@ -2654,7 +2656,7 @@ public class Quick
 					for (int i = 0; i < points.length; i++)
 					{
 						// Check if point is corner
-						boolean found = poly.isPointOnCorner(distPoints[i]);
+						found = poly.isPointOnCorner(distPoints[i]);
 						// Point along edge
 						if (!found)
 							founds[i] = true;
@@ -2663,13 +2665,12 @@ public class Quick
                     if (!foundAll)
                     {
                          reportError(POLYSELECTERROR, "No enough surround, ", cell, minOverlapRule.value, -1, minOverlapRule.rule,
-                            new Poly(distPolyArea.getBounds2D()), geom, layer, null, null, null);
+                            distPoly/*new Poly(distPolyArea.getBounds2D())*/, geom, layer, null, null, null);
                     }
 				}
 			}
+			found = polyArea.isEmpty();
 		}
-
-		boolean found = polyArea.isEmpty();
 
 		// error if the merged area doesn't contain 100% the search area.
 		if (!found)
@@ -3149,7 +3150,7 @@ public class Quick
 		int numLayers = tech.getNumLayers();
 
 		// build the node table
-        if (layersInterNodes != null && old != null)
+        if (layersInterNodes != null && old != null && job != null)
         {
 	        ErrorLogger.MessageLog err =  errorLogger.logWarning("Switching from '" + old.getTechName() +
 	                "' to '" +  tech.getTechName() + "' in DRC process. Check for non desired nodes in cell '" +
@@ -3464,7 +3465,8 @@ public class Quick
 		 */
 		private boolean searchNetworkInParent(Network net, HierarchyEnumerator.CellInfo info)
 		{
-			if (net == null && Main.LOCALDEBUGFLAG) System.out.println("Here error");
+			if (net == null && Main.LOCALDEBUGFLAG)
+				System.out.println("Here error");
 			if (jNet == net) return true;
 			HierarchyEnumerator.CellInfo cinfo = info;
 			while (net != null && cinfo.getParentInst() != null) {
@@ -3558,7 +3560,8 @@ public class Quick
 			if (!(np instanceof PrimitiveNode)) return (true);
 
 			PrimitiveNode pNp = (PrimitiveNode)np;
-			if (np instanceof PrimitiveNode && np == Generic.tech.cellCenterNode) return (false);
+			//if (np instanceof PrimitiveNode && np == Generic.tech.cellCenterNode) return (false);
+			if (np instanceof PrimitiveNode && isSpecialNode(np)) return (false);
 
 			boolean found = false;
 			boolean newFound = false;
