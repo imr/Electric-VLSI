@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02a: *********************************
 
+IMP: (11/2/04, GVG) Rule CO.C.1 implemented in TSMC90
+
 BUG: (11/2/04, RK) Repair bugs from partial conversion of gate layout generators to tsmc90
 
 IMP; (11/2/04, GVG) CO.S.1, VIAx.S.1 and VIAn.S.1 rules for vias (meta1 and actives cuts)
