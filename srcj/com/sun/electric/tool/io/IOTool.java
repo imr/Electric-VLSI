@@ -31,6 +31,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
@@ -179,7 +180,7 @@ public class IOTool extends Tool
 
 	/****************************** INPUT / OUTPUT PREFERENCES ******************************/
 
-	private static Tool.Pref cacheBackupRedundancy = IOTool.tool.makeIntPref("int", 0);
+	private static Pref cacheBackupRedundancy = IOTool.tool.makeIntPref("int", 0);
 	/**
 	 * Method to tell what kind of redundancy to apply when writing library files.
 	 * The value is:

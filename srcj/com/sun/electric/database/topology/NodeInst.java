@@ -2106,7 +2106,7 @@ public class NodeInst extends Geometric implements Nodable
 		PrimitiveNode np = (PrimitiveNode)protoType;
 		return np.getTechnology().getTransistorGatePort(this);
     }
-    
+
     /**
      * Method to return a gate PortInst for this transistor NodeInst.
      * Implementation Note: May want to make this a more general
@@ -2118,6 +2118,19 @@ public class NodeInst extends Geometric implements Nodable
     {
 		PrimitiveNode np = (PrimitiveNode)protoType;
 		return np.getTechnology().getTransistorSourcePort(this);
+    }
+
+    /**
+     * Method to return a gate PortInst for this transistor NodeInst.
+     * Implementation Note: May want to make this a more general
+     * method, getPrimitivePort(PortType), if the number of port
+     * types increases.
+     * @return a PortInst for the gate of the transistor
+     */
+    public PortInst getTransistorBiasPort()
+    {
+		PrimitiveNode np = (PrimitiveNode)protoType;
+		return np.getTechnology().getTransistorBiasPort(this);
     }
     
     /**

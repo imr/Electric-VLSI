@@ -789,7 +789,8 @@ public class ToolOptions extends javax.swing.JDialog
 
 	private JList spiceLayerList, spiceCellList;
 	private DefaultListModel spiceLayerListModel, spiceCellListModel;
-	private String spiceEngineInitial, spiceLevelInitial, spiceOutputFormatInitial, spicePartsLibraryInitial;
+	private int spiceEngineInitial;
+	private String spiceLevelInitial, spiceOutputFormatInitial, spicePartsLibraryInitial;
 	private boolean spiceUseParasiticsInitial, spiceUseNodeNamesInitial, spiceForceGlobalPwrGndInitial;
 	private boolean spiceUseCellParametersInitial, spiceWriteTransSizesInLambdaInitial;
 	private double spiceTechMinResistanceInitial, spiceTechMinCapacitanceInitial;
@@ -813,7 +814,7 @@ public class ToolOptions extends javax.swing.JDialog
 		spiceEnginePopup.addItem("PSpice");
 		spiceEnginePopup.addItem("Gnucap");
 		spiceEnginePopup.addItem("SmartSpice");
-		spiceEnginePopup.setSelectedItem(spiceEngineInitial);
+		spiceEnginePopup.setSelectedIndex(spiceEngineInitial);
 
 		spiceLevelInitial = Simulation.getSpiceLevel();
 		spiceLevelPopup.addItem("1");
@@ -998,10 +999,10 @@ public class ToolOptions extends javax.swing.JDialog
 	private void termSpice()
 	{
 		// the top section: general controls
-		String stringNow = (String)spiceEnginePopup.getSelectedItem();
-		if (!spiceEngineInitial.equals(stringNow)) Simulation.setSpiceEngine(stringNow);
+		int intNow = spiceEnginePopup.getSelectedIndex();
+		if (spiceEngineInitial != intNow) Simulation.setSpiceEngine(intNow);
 
-		stringNow = (String)spiceLevelPopup.getSelectedItem();
+		String stringNow = (String)spiceLevelPopup.getSelectedItem();
 		if (!spiceLevelInitial.equals(stringNow)) Simulation.setSpiceLevel(stringNow);
 
 		stringNow = (String)spiceOutputFormatPopup.getSelectedItem();
@@ -1571,12 +1572,11 @@ public class ToolOptions extends javax.swing.JDialog
 		leKeeperSizeRatio.setText(Double.toString(leKeeperSizeRatioInitial));
 
 		// make an empty list for the layer names
-        Tool leTool = Tool.findTool("logical effort");
 		leArcOptions = new HashMap();
 		for(Iterator it = curTech.getArcs(); it.hasNext(); )
 		{
 			ArcProto arc = (ArcProto)it.next();
-			leArcOptions.put(arc, Option.newDoubleOption(leTool.getPrefs().getDouble(arc.toString(), 0.0)));
+			leArcOptions.put(arc, Option.newDoubleOption(LETool.tool.getPrefs().getDouble(arc.toString(), 0.0)));
 		}
 		leArcListModel = new DefaultListModel();
 		leArcList = new JList(leArcListModel);
@@ -1607,8 +1607,6 @@ public class ToolOptions extends javax.swing.JDialog
 	 */
 	private void termLogicalEffort()
 	{
-        Tool leTool = Tool.findTool("logical effort");
-
         boolean nowBoolean = leUseLocalSettings.isSelected();
 		if (leUseLocalSettingsInitial != nowBoolean) LETool.setUseLocalSettings(nowBoolean);
 
@@ -1644,7 +1642,7 @@ public class ToolOptions extends javax.swing.JDialog
 			ArcProto arc = (ArcProto)it.next();
 			Option option = (Option)leArcOptions.get(arc);
 			if (option != null && option.isChanged())
-                leTool.getPrefs().putDouble(arc.toString(), option.getDoubleValue());
+                LETool.tool.getPrefs().putDouble(arc.toString(), option.getDoubleValue());
 		}
 	}
 

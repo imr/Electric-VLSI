@@ -33,6 +33,7 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.text.Version;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
@@ -1119,15 +1120,15 @@ public class OutputPostScript extends Output
 				if (rot == TextDescriptor.Rotation.ROT90)
 				{
 					// 90 degrees counterclockwise
-					printWriter.print("90 rotate " + (-xoff) + " " + (-yoff) + " translate\n");
+					printWriter.print("-90 rotate " + (-xoff) + " " + (-yoff) + " translate\n");
 				} else if (rot == TextDescriptor.Rotation.ROT180)
 				{
 					// 180 degrees
-					printWriter.print("180 rotate " + (-xoff) + " " + (-yoff) + " translate\n");
+					printWriter.print("-180 rotate " + (-xoff) + " " + (-yoff) + " translate\n");
 				} else if (rot == TextDescriptor.Rotation.ROT270)
 				{
 					// 90 degrees clockwise
-					printWriter.print("270 rotate " + (-xoff) + " " + (-yoff) + " translate\n");
+					printWriter.print("-270 rotate " + (-xoff) + " " + (-yoff) + " translate\n");
 				}
 			}
 		}
@@ -1541,7 +1542,7 @@ public class OutputPostScript extends Output
 
 	/****************************** POSTSCRIPT OUTPUT PREFERENCES ******************************/
 
-	private static Tool.Pref cacheEncapsulated = IOTool.tool.makeBooleanPref("PostScriptEncapsulated", false);
+	private static Pref cacheEncapsulated = IOTool.tool.makeBooleanPref("PostScriptEncapsulated", false);
 	/**
 	 * Method to tell whether PostScript Output is Encapsulated.
 	 * Encapsulated PostScript can be inserted into other documents.
@@ -1556,7 +1557,7 @@ public class OutputPostScript extends Output
 	 */
 	public static void setEncapsulated(boolean on) { cacheEncapsulated.setBoolean(on); }
 
-	private static Tool.Pref cacheForPlotter = IOTool.tool.makeBooleanPref("PostScriptForPlotter", false);
+	private static Pref cacheForPlotter = IOTool.tool.makeBooleanPref("PostScriptForPlotter", false);
 	/**
 	 * Method to tell whether PostScript Output is for a plotter.
 	 * Plotters have width, but no height, since they are continuous feed.
@@ -1571,7 +1572,7 @@ public class OutputPostScript extends Output
 	 */
 	public static void setForPlotter(boolean on) { cacheForPlotter.setBoolean(on); }
 
-	private static Tool.Pref cacheWidth = IOTool.tool.makeDoublePref("PostScriptWidth", 8.5);
+	private static Pref cacheWidth = IOTool.tool.makeDoublePref("PostScriptWidth", 8.5);
 	/**
 	 * Method to tell the width of PostScript Output.
 	 * The width is in inches.
@@ -1586,7 +1587,7 @@ public class OutputPostScript extends Output
 	 */
 	public static void setWidth(double wid) { cacheWidth.setDouble(wid); }
 
-	private static Tool.Pref cacheHeight = IOTool.tool.makeDoublePref("PostScriptHeight", 11);
+	private static Pref cacheHeight = IOTool.tool.makeDoublePref("PostScriptHeight", 11);
 	/**
 	 * Method to tell the height of PostScript Output.
 	 * The height is in inches, and only applies if printing (not plotting).
@@ -1601,7 +1602,7 @@ public class OutputPostScript extends Output
 	 */
 	public static void setHeight(double hei) { cacheHeight.setDouble(hei); }
 
-	private static Tool.Pref cacheMargin = IOTool.tool.makeDoublePref("PostScriptMargin", 0.75);
+	private static Pref cacheMargin = IOTool.tool.makeDoublePref("PostScriptMargin", 0.75);
 	/**
 	 * Method to tell the margin of PostScript Output.
 	 * The margin is in inches and insets from all sides.
@@ -1616,7 +1617,7 @@ public class OutputPostScript extends Output
 	 */
 	public static void setMargin(double mar) { cacheMargin.setDouble(mar); }
 
-	private static Tool.Pref cacheRotation = IOTool.tool.makeIntPref("PostScriptRotation", 0);
+	private static Pref cacheRotation = IOTool.tool.makeIntPref("PostScriptRotation", 0);
 	/**
 	 * Method to tell the rotation of PostScript Output.
 	 * The plot can be normal or rotated 90 degrees to better fit the paper.
@@ -1636,7 +1637,7 @@ public class OutputPostScript extends Output
 	 */
 	public static void setRotation(int rot) { cacheRotation.setInt(rot); }
 
-	private static Tool.Pref cacheColorMethod = IOTool.tool.makeIntPref("PostScriptColorMethod", 0);
+	private static Pref cacheColorMethod = IOTool.tool.makeIntPref("PostScriptColorMethod", 0);
 	/**
 	 * Method to tell the color method of PostScript Output.
 	 * @return the color method of PostScript Output:

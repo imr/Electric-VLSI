@@ -32,6 +32,7 @@ import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -345,7 +346,7 @@ public class Network extends Listener
 
 	/****************************** OPTIONS ******************************/
 
-	private static Tool.Pref cacheUnifyPowerAndGround = Network.tool.makeBooleanPref("UnifyPowerAndGround", false);
+	private static Pref cacheUnifyPowerAndGround = Network.tool.makeBooleanPref("UnifyPowerAndGround", false);
 	/**
 	 * Method to tell whether all Power nets are unified and all Ground nets are unified.
 	 * @return true if all Power nets are unified and all Ground nets are unified.
@@ -358,7 +359,7 @@ public class Network extends Listener
 	public static void setUnifyPowerAndGround(boolean u) { cacheUnifyPowerAndGround.setBoolean(u); }
 
 
-	private static Tool.Pref cacheUnifyLikeNamedNets = Network.tool.makeBooleanPref("UnifyLikeNamedNets", false);
+	private static Pref cacheUnifyLikeNamedNets = Network.tool.makeBooleanPref("UnifyLikeNamedNets", false);
 	/**
 	 * Method to tell whether all like-named nets are unified.
 	 * Typically, like-named nets (two networks with the same name) are unified only in a schematic.
@@ -374,7 +375,7 @@ public class Network extends Listener
 	 */
 	public static void setUnifyLikeNamedNets(boolean u) { cacheUnifyLikeNamedNets.setBoolean(u); }
 
-	private static Tool.Pref cacheIgnoreResistors = Network.tool.makeBooleanPref("IgnoreResistors", false);
+	private static Pref cacheIgnoreResistors = Network.tool.makeBooleanPref("IgnoreResistors", false);
 	/**
 	 * Method to tell whether resistors are ignored in the circuit.
 	 * When ignored, they appear as a "short", connecting the two sides.
@@ -390,7 +391,7 @@ public class Network extends Listener
 	 */
 	public static void setIgnoreResistors(boolean i) { cacheIgnoreResistors.setBoolean(i); }
 
-	private static Tool.Pref cacheUnificationPrefix = Network.tool.makeStringPref("UnificationPrefix", "");
+	private static Pref cacheUnificationPrefix = Network.tool.makeStringPref("UnificationPrefix", "");
 	/**
 	 * Method to return the list of unification prefixes.
 	 * Unification prefixes are strings which, when two nets both start with them, cause the networks to be unified.
@@ -406,7 +407,7 @@ public class Network extends Listener
 	 */
 	public static void setUnificationPrefix(String p) { cacheUnificationPrefix.setString(p); }
 
-	private static Tool.Pref cacheBusBaseZero = Network.tool.makeBooleanPref("BusBaseZero", false);
+	private static Pref cacheBusBaseZero = Network.tool.makeBooleanPref("BusBaseZero", false);
 	/**
 	 * Method to tell whether unnamed busses should be zero-based.
 	 * The alternative is 1-based.
@@ -420,7 +421,7 @@ public class Network extends Listener
 	 */
 	public static void setBusBaseZero(boolean z) { cacheBusBaseZero.setBoolean(z); }
 
-	private static Tool.Pref cacheBusAscending = Network.tool.makeBooleanPref("BusAscending", false);
+	private static Pref cacheBusAscending = Network.tool.makeBooleanPref("BusAscending", false);
 	/**
 	 * Method to tell whether unnamed busses should be numbered ascending.
 	 * The alternative is descending.

@@ -28,6 +28,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.network.Network;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -55,48 +56,6 @@ import java.util.prefs.BackingStoreException;
  */
 public class Tool extends ElectricObject
 {
-	public class Pref
-	{
-		String  name;
-		Tool tool;
-		boolean cachedBool;
-		int     cachedInt;
-		double  cachedDouble;
-		String  cachedString;
-
-		public Pref(String name, Tool tool)
-		{
-			this.name = name;
-			this.tool = tool;
-		}
-
-		public boolean getBoolean() { return cachedBool; }
-		public int getInt() { return cachedInt; }
-		public double getDouble() { return cachedDouble; }
-		public String getString() { return cachedString; }
-		public String getPrefName() { return name; }
-		public void setBoolean(boolean v)
-		{
-			tool.prefs.putBoolean(name, cachedBool = v);
-			tool.flushOptions();
-		}
-		public void setInt(int v)
-		{
-			tool.prefs.putInt(name, cachedInt = v);
-			tool.flushOptions();
-		}
-		public void setDouble(double v)
-		{
-			tool.prefs.putDouble(name, cachedDouble = v);
-			tool.flushOptions();
-		}
-		public void setString(String str)
-		{
-			tool.prefs.put(name, cachedString = str);
-			tool.flushOptions();
-		}
-	}
-
 	// The name of this tool
 	private String toolName;
 	private int toolState;
@@ -228,41 +187,19 @@ public class Tool extends ElectricObject
 
 	public Pref makeBooleanPref(String name, boolean factory)
 	{
-		Pref pref = new Pref(name, this);
-		pref.cachedBool = prefs.getBoolean(name, factory);
-		return pref;
+		return Pref.makeBooleanPref(name, prefs, factory);
 	}
 	public Pref makeIntPref(String name, int factory)
 	{
-		Pref pref = new Pref(name, this);
-		pref.cachedInt = prefs.getInt(name, factory);
-		return pref;
+		return Pref.makeIntPref(name, prefs, factory);
 	}
 	public Pref makeDoublePref(String name, double factory)
 	{
-		Pref pref = new Pref(name, this);
-		pref.cachedDouble = prefs.getDouble(name, factory);
-		return pref;
+		return Pref.makeDoublePref(name, prefs, factory);
 	}
 	public Pref makeStringPref(String name, String factory)
 	{
-		Pref pref = new Pref(name, this);
-		pref.cachedString = prefs.get(name, factory);
-		return pref;
-	}
-
-	/**
-	 * Method to force all User Preferences to be saved.
-	 */
-	public void flushOptions()
-	{
-		try
-		{
-	        prefs.flush();
-		} catch (BackingStoreException e)
-		{
-			System.out.println("Failed to save " + toolName + " options");
-		}
+		return Pref.makeStringPref(name, prefs, factory);
 	}
 
 	/**

@@ -28,6 +28,7 @@ import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.prototype.NodeProto;
@@ -396,7 +397,7 @@ public class OutputCIF extends OutputGeometry
 
 	/****************************** CIF OUTPUT PREFERENCES ******************************/
 
-	private static Tool.Pref cacheMimicsDisplay = IOTool.tool.makeBooleanPref("CIFMimicsDisplay", false);
+	private static Pref cacheMimicsDisplay = IOTool.tool.makeBooleanPref("CIFMimicsDisplay", false);
 	/**
 	 * Method to tell whether CIF Output mimics the display.
 	 * To mimic the display, unexpanded cell instances are described as black boxes,
@@ -413,7 +414,7 @@ public class OutputCIF extends OutputGeometry
 	 */
 	public static void setMimicsDisplay(boolean on) { cacheMimicsDisplay.setBoolean(on); }
 
-	private static Tool.Pref cacheMergesBoxes = IOTool.tool.makeBooleanPref("CIFMergesBoxes", false);
+	private static Pref cacheMergesBoxes = IOTool.tool.makeBooleanPref("CIFMergesBoxes", false);
 	/**
 	 * Method to tell whether CIF Output merges boxes into complex polygons.
 	 * This takes more time but produces a smaller output file.
@@ -428,7 +429,7 @@ public class OutputCIF extends OutputGeometry
 	 */
 	public static void setMergesBoxes(boolean on) { cacheMergesBoxes.setBoolean(on); }
 
-	private static Tool.Pref cacheInstantiatesTopLevel = IOTool.tool.makeBooleanPref("CIFInstantiatesTopLevel", true);
+	private static Pref cacheInstantiatesTopLevel = IOTool.tool.makeBooleanPref("CIFInstantiatesTopLevel", true);
 	/**
 	 * Method to tell whether CIF Output instantiates the top-level.
 	 * When this happens, a CIF "call" to the top cell is emitted.
@@ -443,7 +444,7 @@ public class OutputCIF extends OutputGeometry
 	 */
 	public static void setInstantiatesTopLevel(boolean on) { cacheInstantiatesTopLevel.setBoolean(on); }
 
-	private static Tool.Pref cacheCheckResolution = IOTool.tool.makeBooleanPref("CIFCheckResolution", false);
+	private static Pref cacheCheckResolution = IOTool.tool.makeBooleanPref("CIFCheckResolution", false);
 	/**
 	 * Method to tell whether to report CIF resolution errors.
 	 * The default is "false".
@@ -456,7 +457,7 @@ public class OutputCIF extends OutputGeometry
 	 */
 	public static void setCheckResolution(boolean c) { cacheCheckResolution.setBoolean(c); }
 
-	private static Tool.Pref cacheResolution = IOTool.tool.makeDoublePref("CIFResolution", 0);
+	private static Pref cacheResolution = IOTool.tool.makeDoublePref("CIFResolution", 0);
 	/**
 	 * Method to tell the minimum CIF Output resolution.
 	 * This is the smallest feature size that can be safely generated.

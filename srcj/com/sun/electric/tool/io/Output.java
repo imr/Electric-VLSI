@@ -28,6 +28,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
@@ -42,6 +43,7 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.OutputCIF;
 import com.sun.electric.tool.io.OutputGDS;
+import com.sun.electric.tool.io.OutputSpice;
 import com.sun.electric.tool.io.OutputVerilog;
 import com.sun.electric.tool.io.OutputPostScript;
 import com.sun.electric.tool.user.Highlight;
@@ -244,6 +246,9 @@ public class Output extends IOTool
 		} else if (type == ExportType.GDS)
 		{
 			error = OutputGDS.writeGDSFile(cell, filePath);
+		} else if (type == ExportType.SPICE)
+		{
+			error = OutputSpice.writeSpiceFile(cell, filePath);
 		} else if (type == ExportType.VERILOG)
 		{
 			error = OutputVerilog.writeVerilogFile(cell, filePath);
@@ -508,7 +513,7 @@ public class Output extends IOTool
 
 	/****************************** GENERAL OUTPUT PREFERENCES ******************************/
 
-	private static Tool.Pref cacheUseCopyrightMessage = IOTool.tool.makeBooleanPref("UseCopyrightMessage", false);
+	private static Pref cacheUseCopyrightMessage = IOTool.tool.makeBooleanPref("UseCopyrightMessage", false);
 	/**
 	 * Method to tell whether to add the copyright message to output decks.
 	 * The default is "false".
@@ -521,7 +526,7 @@ public class Output extends IOTool
 	 */
 	public static void setUseCopyrightMessage(boolean u) { cacheUseCopyrightMessage.setBoolean(u); }
 
-	private static Tool.Pref cacheCopyrightMessage = IOTool.tool.makeStringPref("CopyrightMessage", "");
+	private static Pref cacheCopyrightMessage = IOTool.tool.makeStringPref("CopyrightMessage", "");
 	/**
 	 * Method to tell the copyright message that will be added to output decks.
 	 * The default is "".
@@ -534,7 +539,7 @@ public class Output extends IOTool
 	 */
 	public static void setCopyrightMessage(String m) { cacheCopyrightMessage.setString(m); }
 
-	private static Tool.Pref cachePlotArea = IOTool.tool.makeIntPref("PlotArea", 0);
+	private static Pref cachePlotArea = IOTool.tool.makeIntPref("PlotArea", 0);
 	/**
 	 * Method to tell the area of the screen to plot for printing/PostScript/HPGL.
 	 * @return the area of the screen to plot for printing/PostScript/HPGL:
@@ -552,7 +557,7 @@ public class Output extends IOTool
 	 */
 	public static void setPlotArea(int pa) { cachePlotArea.setInt(pa); }
 
-	private static Tool.Pref cachePlotDate = IOTool.tool.makeBooleanPref("PlotDate", false);
+	private static Pref cachePlotDate = IOTool.tool.makeBooleanPref("PlotDate", false);
 	/**
 	 * Method to tell whether to plot the date in PostScript/HPGL output.
 	 * The default is "false".
@@ -565,7 +570,7 @@ public class Output extends IOTool
 	 */
 	public static void setPlotDate(boolean pd) { cachePlotDate.setBoolean(pd); }
 
-	private static Tool.Pref cachePrinterName = IOTool.tool.makeStringPref("PrinterName",
+	private static Pref cachePrinterName = IOTool.tool.makeStringPref("PrinterName",
 		PrintServiceLookup.lookupDefaultPrintService().getName());
 	/**
 	 * Method to tell the default printer name to use.

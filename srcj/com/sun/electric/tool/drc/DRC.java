@@ -28,6 +28,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
@@ -707,7 +708,7 @@ public class DRC extends Tool
 
 	/****************************** OPTIONS ******************************/
 
-	private static Tool.Pref cacheIncrementalDRCOn = DRC.tool.makeBooleanPref("IncrementalDRCOn", true);
+	private static Pref cacheIncrementalDRCOn = DRC.tool.makeBooleanPref("IncrementalDRCOn", true);
 	/**
 	 * Method to tell whether DRC should be done incrementally.
 	 * The default is "true".
@@ -720,7 +721,7 @@ public class DRC extends Tool
 	 */
 	public static void setIncrementalDRCOn(boolean on) { cacheIncrementalDRCOn.setBoolean(on); }
 
-	private static Tool.Pref cacheOneErrorPerCell = DRC.tool.makeBooleanPref("OneErrorPerCell", false);
+	private static Pref cacheOneErrorPerCell = DRC.tool.makeBooleanPref("OneErrorPerCell", false);
 	/**
 	 * Method to tell whether DRC should report only one error per Cell.
 	 * The default is "false".
@@ -733,7 +734,7 @@ public class DRC extends Tool
 	 */
 	public static void setOneErrorPerCell(boolean on) { cacheOneErrorPerCell.setBoolean(on); }
 
-	private static Tool.Pref cacheUseMultipleThreads = DRC.tool.makeBooleanPref("UseMultipleThreads", false);
+	private static Pref cacheUseMultipleThreads = DRC.tool.makeBooleanPref("UseMultipleThreads", false);
 	/**
 	 * Method to tell whether DRC should use multiple threads.
 	 * The default is "false".
@@ -746,7 +747,7 @@ public class DRC extends Tool
 	 */
 	public static void setUseMultipleThreads(boolean on) { cacheUseMultipleThreads.setBoolean(on); }
 
-	private static Tool.Pref cacheNumberOfThreads = DRC.tool.makeIntPref("NumberOfThreads", 2);
+	private static Pref cacheNumberOfThreads = DRC.tool.makeIntPref("NumberOfThreads", 2);
 	/**
 	 * Method to return the number of threads to use when running DRC with multiple threads.
 	 * The default is 2.
@@ -759,7 +760,7 @@ public class DRC extends Tool
 	 */
 	public static void setNumberOfThreads(int th) { cacheNumberOfThreads.setInt(th); }
 
-	private static Tool.Pref cacheIgnoreCenterCuts = DRC.tool.makeBooleanPref("IgnoreCenterCuts", false);
+	private static Pref cacheIgnoreCenterCuts = DRC.tool.makeBooleanPref("IgnoreCenterCuts", false);
 	/**
 	 * Method to tell whether DRC should ignore center cuts in large contacts.
 	 * Only the perimeter of cuts will be checked.

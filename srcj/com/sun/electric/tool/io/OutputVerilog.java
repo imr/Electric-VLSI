@@ -1118,4 +1118,9 @@ public class OutputVerilog extends OutputTopology
 		return netList;
 	}
 
+	/**
+	 * Method to tell whether the topological analysis should mangle cell names that are parameterized.
+	 */
+	protected boolean canParameterizeNames() { return true; }
+
 }

@@ -24,6 +24,7 @@
 package com.sun.electric.tool.routing;
 
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.ElectricObject;
@@ -152,7 +153,7 @@ public class Routing extends Listener
 
 	/****************************** OPTIONS ******************************/
 
-	private static Tool.Pref cacheAutoStitchOn = Routing.tool.makeBooleanPref("AutoStitchOn", false);
+	private static Pref cacheAutoStitchOn = Routing.tool.makeBooleanPref("AutoStitchOn", false);
 	/**
 	 * Method to tell whether Auto-stitching should be done.
 	 * The default is "false".
@@ -165,7 +166,7 @@ public class Routing extends Listener
 	 */
 	public static void setAutoStitchOn(boolean on) { cacheAutoStitchOn.setBoolean(on); }
 
-	private static Tool.Pref cacheMimicStitchOn = Routing.tool.makeBooleanPref("MimicStitchOn", false);
+	private static Pref cacheMimicStitchOn = Routing.tool.makeBooleanPref("MimicStitchOn", false);
 	/**
 	 * Method to tell whether Mimic-stitching should be done.
 	 * The default is "false".
@@ -178,7 +179,7 @@ public class Routing extends Listener
 	 */
 	public static void setMimicStitchOn(boolean on) { cacheMimicStitchOn.setBoolean(on); }
 
-	private static Tool.Pref cacheMimicStitchCanUnstitch = Routing.tool.makeBooleanPref("MimicStitchCanUnstitch", false);
+	private static Pref cacheMimicStitchCanUnstitch = Routing.tool.makeBooleanPref("MimicStitchCanUnstitch", false);
 	/**
 	 * Method to tell whether Mimic-stitching can remove arcs (unstitch).
 	 * The default is "false".
@@ -191,7 +192,7 @@ public class Routing extends Listener
 	 */
 	public static void setMimicStitchCanUnstitch(boolean on) { cacheMimicStitchCanUnstitch.setBoolean(on); }
 
-	private static Tool.Pref cacheMimicStitchInteractive = Routing.tool.makeBooleanPref("MimicStitchInteractive", false);
+	private static Pref cacheMimicStitchInteractive = Routing.tool.makeBooleanPref("MimicStitchInteractive", false);
 	/**
 	 * Method to tell whether Mimic-stitching runs interactively.
 	 * During interactive Mimic stitching, each new set of arcs is shown to the user for confirmation.
@@ -206,7 +207,7 @@ public class Routing extends Listener
 	 */
 	public static void setMimicStitchInteractive(boolean on) { cacheMimicStitchInteractive.setBoolean(on); }
 
-	private static Tool.Pref cacheMimicStitchMatchPorts = Routing.tool.makeBooleanPref("MimicStitchMatchPorts", false);
+	private static Pref cacheMimicStitchMatchPorts = Routing.tool.makeBooleanPref("MimicStitchMatchPorts", false);
 	/**
 	 * Method to tell whether Mimic-stitching only works between matching ports.
 	 * The default is "false".
@@ -219,7 +220,7 @@ public class Routing extends Listener
 	 */
 	public static void setMimicStitchMatchPorts(boolean on) { cacheMimicStitchMatchPorts.setBoolean(on); }
 
-	private static Tool.Pref cacheMimicStitchMatchNumArcs = Routing.tool.makeBooleanPref("MimicStitchMatchNumArcs", false);
+	private static Pref cacheMimicStitchMatchNumArcs = Routing.tool.makeBooleanPref("MimicStitchMatchNumArcs", false);
 	/**
 	 * Method to tell whether Mimic-stitching only works when the number of existing arcs matches.
 	 * The default is "false".
@@ -232,7 +233,7 @@ public class Routing extends Listener
 	 */
 	public static void setMimicStitchMatchNumArcs(boolean on) { cacheMimicStitchMatchNumArcs.setBoolean(on); }
 
-	private static Tool.Pref cacheMimicStitchMatchNodeSize = Routing.tool.makeBooleanPref("MimicStitchMatchNodeSize", false);
+	private static Pref cacheMimicStitchMatchNodeSize = Routing.tool.makeBooleanPref("MimicStitchMatchNodeSize", false);
 	/**
 	 * Method to tell whether Mimic-stitching only works when the node sizes are the same.
 	 * The default is "false".
@@ -245,7 +246,7 @@ public class Routing extends Listener
 	 */
 	public static void setMimicStitchMatchNodeSize(boolean on) { cacheMimicStitchMatchNodeSize.setBoolean(on); }
 
-	private static Tool.Pref cacheMimicStitchMatchNodeType = Routing.tool.makeBooleanPref("MimicStitchMatchNodeType", true);
+	private static Pref cacheMimicStitchMatchNodeType = Routing.tool.makeBooleanPref("MimicStitchMatchNodeType", true);
 	/**
 	 * Method to tell whether Mimic-stitching only works when the nodes have the same type.
 	 * The default is "true".
@@ -258,7 +259,7 @@ public class Routing extends Listener
 	 */
 	public static void setMimicStitchMatchNodeType(boolean on) { cacheMimicStitchMatchNodeType.setBoolean(on); }
 
-	private static Tool.Pref cacheMimicStitchNoOtherArcsSameDir = Routing.tool.makeBooleanPref("MimicStitchNoOtherArcsSameDir", true);
+	private static Pref cacheMimicStitchNoOtherArcsSameDir = Routing.tool.makeBooleanPref("MimicStitchNoOtherArcsSameDir", true);
 	/**
 	 * Method to tell whether Mimic-stitching only works when there are no other arcs running in the same direction.
 	 * The default is "true".
@@ -271,7 +272,7 @@ public class Routing extends Listener
 	 */
 	public static void setMimicStitchNoOtherArcsSameDir(boolean on) { cacheMimicStitchNoOtherArcsSameDir.setBoolean(on); }
 
-	private static Tool.Pref cachePreferredRoutingArc = Routing.tool.makeStringPref("PreferredRoutingArc", "");
+	private static Pref cachePreferredRoutingArc = Routing.tool.makeStringPref("PreferredRoutingArc", "");
 	/**
 	 * Method to return the name of the arc that should be used as a default by the stitching routers.
 	 * The default is "".

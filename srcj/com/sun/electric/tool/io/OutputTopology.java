@@ -120,6 +120,17 @@ public abstract class OutputTopology extends Output
 	/** Abstract method to convert a cell name to one that is safe for this format */
 	protected abstract String getSafeCellName(String name);
 
+	/**
+	 * Method to tell whether the topological analysis should mangle cell names that are parameterized.
+	 */
+	protected boolean canParameterizeNames() { return false; }
+
+	/**
+	 * Method to tell set a limit on the number of characters in a name.
+	 * @return the limit to name size (0 if no limit). 
+	 */
+	protected int maxNameLength() { return 0; }
+
 	/** Abstract method to convert a cell name to one that is safe for this format */
 	protected abstract Netlist getNetlistForCell(Cell cell);
 
@@ -206,6 +217,7 @@ public abstract class OutputTopology extends Output
 		/** true if from a global signal */			private Global globalSignal;
 
 		protected String getName() { return name; }
+		protected Export getExport() { return pp; }
 		protected CellAggregateSignal getAggregateSignal() { return aggregateSignal; }
 		protected boolean isDescending() { return descending; }
 		protected boolean isGlobal() { return globalSignal != null; }
@@ -242,12 +254,15 @@ public abstract class OutputTopology extends Output
 		private List cellAggretateSignals;
 		private JNetwork pwrNet;
 		private JNetwork gndNet;
+		private Netlist netList;
 
 		protected CellSignal getCellSignal(JNetwork net) { return (CellSignal)cellSignals.get(net); }
+//		protected Iterator getCellSignals() { return cellSignals.values().iterator(); }
 		protected Iterator getCellAggregateSignals() { return cellAggretateSignals.iterator(); }
 		protected String getParameterizedName() { return paramName; }
 		protected JNetwork getPowerNet() { return pwrNet; }
 		protected JNetwork getGroundNet() { return gndNet; }
+		protected Netlist getNetList() { return netList; }
 	}
 
 	private CellNetInfo getNetworkInformation(Cell cell, boolean quiet, String paramName)
@@ -272,19 +287,19 @@ public abstract class OutputTopology extends Output
 
 	private CellNetInfo doGetNetworks(Cell cell, boolean quiet, String paramName)
 	{
-		// get network information about this cell
-		Netlist netList = getNetlistForCell(cell);
-		Global.Set globals = netList.getGlobals();
-		int globalSize = globals.size();
-
 		// create the object with cell net information
 		CellNetInfo cni = new CellNetInfo();
 		cni.paramName = paramName;
 
+		// get network information about this cell
+		cni.netList = getNetlistForCell(cell);
+		Global.Set globals = cni.netList.getGlobals();
+		int globalSize = globals.size();
+
 		// create a map of all nets in the cell
 		cni.cellSignals = new HashMap();
 		int nullNameCount = 1;
-		for(Iterator it = netList.getNetworks(); it.hasNext(); )
+		for(Iterator it = cni.netList.getNetworks(); it.hasNext(); )
 		{
 			JNetwork net = (JNetwork)it.next();
 			CellSignal cs = new CellSignal();
@@ -299,7 +314,7 @@ public abstract class OutputTopology extends Output
 			for(int j=0; j<globalSize; j++)
 			{
 				Global global = (Global)globals.get(j);
-				if (netList.getNetIndex(global) == netIndex) { cs.globalSignal = global;   break; }
+				if (cni.netList.getNetIndex(global) == netIndex) { cs.globalSignal = global;   break; }
 			}
 
 			// name the signal
@@ -326,10 +341,10 @@ public abstract class OutputTopology extends Output
 			Export pp = (Export)it.next();
 
 			// mark every network on the bus (or just 1 network if not a bus)
-			int portWidth = netList.getBusWidth(pp);
+			int portWidth = cni.netList.getBusWidth(pp);
 			for(int i=0; i<portWidth; i++)
 			{
-				JNetwork net = netList.getNetwork(pp, i);
+				JNetwork net = cni.netList.getNetwork(pp, i);
 				CellSignal cs = (CellSignal)cni.cellSignals.get(net);
 				cs.pp = pp;
 			}
@@ -339,7 +354,7 @@ public abstract class OutputTopology extends Output
 			int last = 0;
 			for(int i=0; i<portWidth; i++)
 			{
-				JNetwork subNet = netList.getNetwork(pp, i);
+				JNetwork subNet = cni.netList.getNetwork(pp, i);
 				if (!subNet.hasNames()) break;
 				String firstName = (String)subNet.getNames().next();
 				int openSquare = firstName.indexOf('[');
@@ -359,7 +374,7 @@ public abstract class OutputTopology extends Output
 			if (!upDir && !downDir) continue;
 			for(int i=0; i<portWidth; i++)
 			{
-				JNetwork subNet = netList.getNetwork(pp, i);
+				JNetwork subNet = cni.netList.getNetwork(pp, i);
 				CellSignal cs = (CellSignal)cni.cellSignals.get(subNet);
 				cs.descending = downDir;
 			}
@@ -371,9 +386,9 @@ public abstract class OutputTopology extends Output
 		for(Iterator eIt = cell.getPorts(); eIt.hasNext(); )
 		{
 			Export pp = (Export)eIt.next();
-			int portWidth = netList.getBusWidth(pp);
+			int portWidth = cni.netList.getBusWidth(pp);
 			if (portWidth > 1) continue;
-			JNetwork subNet = netList.getNetwork(pp, 0);
+			JNetwork subNet = cni.netList.getNetwork(pp, 0);
 			if (pp.isPower())
 			{
 				if (cni.pwrNet != null && cni.pwrNet != subNet && !multiPwr)
@@ -395,7 +410,7 @@ public abstract class OutputTopology extends Output
 				cni.gndNet = subNet;
 			}
 		}
-		for(Iterator it = netList.getNetworks(); it.hasNext(); )
+		for(Iterator it = cni.netList.getNetworks(); it.hasNext(); )
 		{
 			JNetwork net = (JNetwork)it.next();
 			CellSignal cs = (CellSignal)cni.cellSignals.get(net);
@@ -433,7 +448,7 @@ public abstract class OutputTopology extends Output
 				{
 					Connection con = (Connection)cIt.next();
 					ArcInst ai = con.getArc();
-					JNetwork subNet = netList.getNetwork(ai, 0);
+					JNetwork subNet = cni.netList.getNetwork(ai, 0);
 					if (fun == NodeProto.Function.CONPOWER)
 					{
 						if (cni.pwrNet != null && cni.pwrNet != subNet && !multiPwr)
@@ -468,7 +483,7 @@ public abstract class OutputTopology extends Output
 		}
 
 		// find the widest export associated with each network
-		for(Iterator it = netList.getNetworks(); it.hasNext(); )
+		for(Iterator it = cni.netList.getNetworks(); it.hasNext(); )
 		{
 			JNetwork net = (JNetwork)it.next();
 			CellSignal cs = (CellSignal)cni.cellSignals.get(net);
@@ -480,11 +495,11 @@ public abstract class OutputTopology extends Output
 			for(Iterator eIt = cell.getPorts(); eIt.hasNext(); )
 			{
 				Export pp = (Export)eIt.next();
-				int portWidth = netList.getBusWidth(pp);
+				int portWidth = cni.netList.getBusWidth(pp);
 				boolean found = false;
 				for(int j=0; j<portWidth; j++)
 				{
-					JNetwork subNet = netList.getNetwork(pp, j);
+					JNetwork subNet = cni.netList.getNetwork(pp, j);
 					if (subNet == net) found = true;
 				}
 				if (found)
@@ -673,28 +688,37 @@ public abstract class OutputTopology extends Output
 	 */
 	protected String parameterizedName(Nodable no, VarContext context)
 	{
-		if (!(no.getProto() instanceof Cell))
-		{
-			return getSafeCellName(no.getProto().getProtoName());
-		}
-
 		Cell cell = (Cell)no.getProto();
 		String uniqueCellName = getUniqueCellName(cell);
-
-		// if there are parameters, append them to this name
-		HashMap paramValues = new HashMap();
-		for(Iterator it = no.getVariables(); it.hasNext(); )
+		if (canParameterizeNames() &&
+			no.getProto() instanceof Cell)
 		{
-			Variable var = (Variable)it.next();
-			if (!var.getTextDescriptor().isParam()) continue;
-			paramValues.put(var.getKey(), var);
+			// if there are parameters, append them to this name
+			HashMap paramValues = new HashMap();
+			for(Iterator it = no.getVariables(); it.hasNext(); )
+			{
+				Variable var = (Variable)it.next();
+				if (!var.getTextDescriptor().isParam()) continue;
+				paramValues.put(var.getKey(), var);
+			}
+			for(Iterator it = paramValues.keySet().iterator(); it.hasNext(); )
+			{
+				Variable.Key key = (Variable.Key)it.next();
+				Variable var = no.getVar(key.getName());
+				Object eval = context.evalVar(var, no);
+				uniqueCellName += "-" + var.getTrueName() + "-" + eval.toString();
+			}
 		}
-		for(Iterator it = paramValues.keySet().iterator(); it.hasNext(); )
+
+		// if it is over the length limit, truncate it
+		int limit = maxNameLength();
+		if (limit > 0 && uniqueCellName.length() > limit)
 		{
-			Variable.Key key = (Variable.Key)it.next();
-			Variable var = no.getVar(key.getName());
-			Object eval = context.evalVar(var, no);
-			uniqueCellName += "-" + var.getTrueName() + "-" + eval.toString();
+			int ckSum = 0;
+			for(int i=0; i<uniqueCellName.length(); i++)
+				ckSum += (int)uniqueCellName.charAt(i);
+			ckSum = (ckSum % 9999);
+			uniqueCellName = uniqueCellName.substring(0, limit-10) + "-TRUNC"+ckSum;
 		}
 
 		// make it safe

@@ -32,6 +32,7 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
@@ -913,7 +914,7 @@ public class OutputGDS extends OutputGeometry
 
 	/****************************** GDS OUTPUT PREFERENCES ******************************/
 
-	private static Tool.Pref cacheMergesBoxes = IOTool.tool.makeBooleanPref("GDSMergesBoxes", false);
+	private static Pref cacheMergesBoxes = IOTool.tool.makeBooleanPref("GDSMergesBoxes", false);
 	/**
 	 * Method to tell whether GDS Output merges boxes into complex polygons.
 	 * This takes more time but produces a smaller output file.
@@ -928,7 +929,7 @@ public class OutputGDS extends OutputGeometry
 	 */
 	public static void setMergesBoxes(boolean on) { cacheMergesBoxes.setBoolean(on); }
 
-	private static Tool.Pref cacheWritesExportPins = IOTool.tool.makeBooleanPref("GDSWritesExportPins", false);
+	private static Pref cacheWritesExportPins = IOTool.tool.makeBooleanPref("GDSWritesExportPins", false);
 	/**
 	 * Method to tell whether GDS Output writes pins at Export locations.
 	 * Some systems can use this information to reconstruct export locations.
@@ -943,7 +944,7 @@ public class OutputGDS extends OutputGeometry
 	 */
 	public static void setWritesExportPins(boolean on) { cacheWritesExportPins.setBoolean(on); }
 
-	private static Tool.Pref cacheUpperCase = IOTool.tool.makeBooleanPref("GDSOutputUpperCase", false);
+	private static Pref cacheUpperCase = IOTool.tool.makeBooleanPref("GDSOutputUpperCase", false);
 	/**
 	 * Method to tell whether GDS Output makes all text upper-case.
 	 * Some systems insist on this.
@@ -958,7 +959,7 @@ public class OutputGDS extends OutputGeometry
 	 */
 	public static void setUpperCase(boolean on) { cacheUpperCase.setBoolean(on); }
 
-	private static Tool.Pref cacheDefaultTextLayer = IOTool.tool.makeIntPref("GDSDefaultTextLayer", 230);
+	private static Pref cacheDefaultTextLayer = IOTool.tool.makeIntPref("GDSDefaultTextLayer", 230);
 	/**
 	 * Method to tell the default GDS layer to use for the text of Export pins.
 	 * Export pins are annotated with text objects on this layer.

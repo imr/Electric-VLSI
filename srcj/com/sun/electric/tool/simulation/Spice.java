@@ -33,48 +33,9 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 /**
- * Class for user-level changes to the circuit.
+ * Class for SPICE waveform display.
  */
 public class Spice
 {
-	/** key of Variable holding generic Spice templates. */		public static final Variable.Key SPICE_TEMPLATE_KEY = ElectricObject.newKey("ATTR_SPICE_template");
-	/** key of Variable holding Spice 2 templates. */			public static final Variable.Key SPICE_2_TEMPLATE_KEY = ElectricObject.newKey("ATTR_SPICE_template_spice2");
-	/** key of Variable holding Spice 3 templates. */			public static final Variable.Key SPICE_3_TEMPLATE_KEY = ElectricObject.newKey("ATTR_SPICE_template_spice3");
-	/** key of Variable holding HSpice templates. */			public static final Variable.Key SPICE_H_TEMPLATE_KEY = ElectricObject.newKey("ATTR_SPICE_template_hspice");
-	/** key of Variable holding PSpice templates. */			public static final Variable.Key SPICE_P_TEMPLATE_KEY = ElectricObject.newKey("ATTR_SPICE_template_pspice");
-	/** key of Variable holding GnuCap templates. */			public static final Variable.Key SPICE_GC_TEMPLATE_KEY = ElectricObject.newKey("ATTR_SPICE_template_gnucap");
-	/** key of Variable holding Smart Spice templates. */		public static final Variable.Key SPICE_SM_TEMPLATE_KEY = ElectricObject.newKey("ATTR_SPICE_template_smartspice");
-
-	public static void writeSpiceDeck()
-	{
-		EditWindow wnd = EditWindow.getCurrent();
-		if (wnd == null) return;
-		if (wnd.getCell() == null) return;
-		String fileName = OpenFile.chooseOutputFile(OpenFile.SPI, null, wnd.getCell().getProtoName());
-		if (fileName != null)
-		{
-			// start a job to do the deck writing
-			WriteSpiceDeck job = new WriteSpiceDeck(fileName);
-		}
-	}
-
-	/**
-	 * Class to write a Spice deck in a new thread.
-	 */
-	protected static class WriteSpiceDeck extends Job
-	{
-		String fileName;
-		protected WriteSpiceDeck(String fileName)
-		{
-			super("Write Spice Deck", Simulation.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
-			this.fileName = fileName;
-			startJob();
-		}
-
-		public void doIt()
-		{
-			System.out.println("Can't write Spice decks yet");
-		}
-	}
 
 }

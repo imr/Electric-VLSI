@@ -100,13 +100,6 @@ import java.util.prefs.BackingStoreException;
  */
 public class Technology extends ElectricObject
 {
-	/** technology is not electrical */									private static final int NONELECTRICAL =       01;
-	/** has no directional arcs */										private static final int NODIRECTIONALARCS =   02;
-	/** has no negated arcs */											private static final int NONEGATEDARCS =       04;
-	/** nonstandard technology (cannot be edited) */					private static final int NONSTANDARD =        010;
-	/** statically allocated (don't deallocate memory) */				private static final int STATICTECHNOLOGY =   020;
-	/** no primitives in this technology (don't auto-switch to it) */	private static final int NOPRIMTECHNOLOGY =   040;
-
 	/**
 	 * Defines a single layer of a PrimitiveArc.
 	 * A PrimitiveArc has a list of these ArcLayer objects, one for
@@ -471,6 +464,14 @@ public class Technology extends ElectricObject
 		public void setSerpentineExtentB(double extendB) { this.extendB = extendB; }
 	}
 
+	/** technology is not electrical */									private static final int NONELECTRICAL =       01;
+	/** has no directional arcs */										private static final int NODIRECTIONALARCS =   02;
+	/** has no negated arcs */											private static final int NONEGATEDARCS =       04;
+	/** nonstandard technology (cannot be edited) */					private static final int NONSTANDARD =        010;
+	/** statically allocated (don't deallocate memory) */				private static final int STATICTECHNOLOGY =   020;
+	/** no primitives in this technology (don't auto-switch to it) */	private static final int NOPRIMTECHNOLOGY =   040;
+
+
 	/** name of the technology */						private String techName;
 	/** full description of the technology */			private String techDesc;
 	/** flags for the technology */						private int userBits;
@@ -486,6 +487,10 @@ public class Technology extends ElectricObject
 	/** minimum resistance in this Technology. */		private double minResistance;
 	/** minimum capacitance in this Technology. */		private double minCapacitance;
 	/** true if parasitic overrides were examined. */	private boolean parasiticOverridesGathered = false;
+	/** Spice header cards, level 1. */					private String [] spiceHeaderLevel1;
+	/** Spice header cards, level 2. */					private String [] spiceHeaderLevel2;
+	/** Spice header cards, level 3. */					private String [] spiceHeaderLevel3;
+	/** preferences for all technologies */				private static Preferences prefs = null;
 
 	/* static list of all Technologies in Electric */	private static List technologies = new ArrayList();
 	/* the current technology in Electric */			private static Technology curTech = null;
@@ -507,6 +512,7 @@ public class Technology extends ElectricObject
 		this.scale = 1.0;
 		this.techIndex = techNumber++;
 		userBits = 0;
+		if (prefs == null) prefs = Preferences.userNodeForPackage(getClass());
 
 		// add the technology to the global list
 		technologies.add(this);
@@ -1054,26 +1060,46 @@ public class Technology extends ElectricObject
 	public PortInst getTransistorGatePort(NodeInst ni) { return ni.getPortInst(0); }
     
     /**
-     * Method to return a gate PortInst for this transistor NodeInst.
+     * Method to return a source PortInst for this transistor NodeInst.
      * Implementation Note: May want to make this a more general
      * method, getPrimitivePort(PortType), if the number of port
      * types increases.  Note: You should be calling 
      * NodeInst.getTransistorSourcePort() instead of this, most likely.
      * @param ni the NodeInst
-     * @return a PortInst for the gate of the transistor
+     * @return a PortInst for the source of the transistor
      */
 	public PortInst getTransistorSourcePort(NodeInst ni) { return ni.getPortInst(1); }
 
     /**
-     * Method to return a gate PortInst for this transistor NodeInst.
+     * Method to return a drain PortInst for this transistor NodeInst.
      * Implementation Note: May want to make this a more general
      * method, getPrimitivePort(PortType), if the number of port
      * types increases.  Note: You should be calling 
      * NodeInst.getTransistorDrainPort() instead of this, most likely.
      * @param ni the NodeInst
-     * @return a PortInst for the gate of the transistor
+     * @return a PortInst for the drain of the transistor
      */
-	public PortInst getTransistorDrainPort(NodeInst ni) { return ni.getPortInst(3); }
+	public PortInst getTransistorDrainPort(NodeInst ni)
+	{
+		if (ni.getProto().getTechnology() == Schematics.tech) return ni.getPortInst(2);
+		return ni.getPortInst(3);
+	}
+
+    /**
+     * Method to return a bias PortInst for this transistor NodeInst.
+     * Implementation Note: May want to make this a more general
+     * method, getPrimitivePort(PortType), if the number of port
+     * types increases.  Note: You should be calling 
+     * NodeInst.getTransistorBiasPort() instead of this, most likely.
+     * @param ni the NodeInst
+     * @return a PortInst for the bias of the transistor
+     */
+	public PortInst getTransistorBiasPort(NodeInst ni)
+	{
+		if (ni.getNumPortInsts() < 4) return null;
+		if (ni.getProto().getTechnology() != Schematics.tech) return null;
+		return ni.getPortInst(3);
+	}
 
     /**
 	 * Method to set the pure "NodeProto Function" for a primitive NodeInst in this Technology.
@@ -1929,7 +1955,6 @@ public class Technology extends ElectricObject
 	public void setMinResistance(double minResistance)
 	{
 		this.minResistance = minResistance;
-		Preferences prefs = Preferences.userNodeForPackage(getClass());
 		prefs.putDouble("MinResistance_" + techName, minResistance);
 		try
 		{
@@ -1953,7 +1978,6 @@ public class Technology extends ElectricObject
 	public void setMinCapacitance(double minCapacitance)
 	{
 		this.minCapacitance = minCapacitance;
-		Preferences prefs = Preferences.userNodeForPackage(getClass());
 		prefs.putDouble("MinCapacitance_" + techName, minCapacitance);
 		try
 		{
@@ -1999,6 +2023,22 @@ public class Technology extends ElectricObject
 			layer.setDefaultParasitics(resistance, capacitance, edgeCapacitance);
 		}
 	}
+
+//	private static Pref cacheNumberOfThreads = DRC.tool.makeIntPref("NumberOfThreads", 2);
+	/**
+	 * Method to return the level-1 header cards for SPICE in this Technology.
+	 * The default is [""].
+	 * @return the level-1 header cards for SPICE in this Technology.
+	 */
+	public String [] getSpiceHeaderLevel1() { return spiceHeaderLevel1; }
+	/**
+	 * Method to set the level-1 header cards for SPICE in this Technology.
+	 * @param lines the level-1 header cards for SPICE in this Technology.
+	 */
+	public void setSpiceHeaderLevel1(String [] lines) { spiceHeaderLevel1 = lines; }
+//	/** Spice header cards, level 1. */					private String [] spiceHeaderLevel1;
+//	/** Spice header cards, level 2. */					private String [] spiceHeaderLevel2;
+//	/** Spice header cards, level 3. */					private String [] spiceHeaderLevel3;
 
 	/****************************** MISCELANEOUS ******************************/
 

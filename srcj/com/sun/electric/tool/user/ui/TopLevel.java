@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.User;
@@ -146,7 +147,7 @@ public class TopLevel extends JFrame
 		palette = PaletteFrame.newInstance();
     }
 
-	private static Tool.Pref cacheWindowLoc = User.tool.makeStringPref("WindowLocation", "");
+	private static Pref cacheWindowLoc = User.tool.makeStringPref("WindowLocation", "");
 
 	/**
 	 * Method to initialize the window system.

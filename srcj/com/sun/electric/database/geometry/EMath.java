@@ -40,6 +40,7 @@ public class EMath
 		int value;
 		public MutableInteger(int value) { this.value = value; }
 		public void setValue(int value) { this.value = value; }
+		public void increment() { value++; }
 		public int intValue() { return value; }
 		public String toString() { return Integer.toString(value); }
 	}

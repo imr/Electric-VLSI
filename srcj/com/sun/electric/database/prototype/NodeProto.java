@@ -635,7 +635,8 @@ public abstract class NodeProto extends ElectricObject
 			function == Function.TRANJFET || function == Function.TRA4NJFET ||
 			function == Function.TRAPJFET || function == Function.TRA4PJFET ||
 			function == Function.TRADMES || function == Function.TRA4DMES ||
-			function == Function.TRAEMES || function == Function.TRA4EMES)
+			function == Function.TRAEMES || function == Function.TRA4EMES ||
+			function == Function.TRANS4)
 				return Function.TRANS;
 		if (function == Function.RESIST || function == Function.CAPAC ||
 			function == Function.ECAPAC || function == Function.DIODE ||

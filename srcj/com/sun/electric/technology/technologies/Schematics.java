@@ -26,6 +26,8 @@ package com.sun.electric.technology.technologies;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.NodeProto;
@@ -45,11 +47,13 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Point2D;
 import java.awt.Dimension;
 import java.util.Iterator;
+import java.util.HashMap;
 
 
 /**
@@ -1758,7 +1762,78 @@ public class Schematics extends Technology
         dim.setSize(width, length);
         return dim;
     }
-    
+
+	/****************************** GENERAL PREFERENCES ******************************/
+
+	/**
+	 * Method to determine the default schematic technology.
+	 * This is the technology to really use when the current technology is "schematics" and you want a layout technology.
+ 	 * This is important in Spice deck generation (for example) because the Spice primitives may
+	 * say "2x3" on them, but a real technology (such as "mocmos") must be found to convert these pure
+	 * numbers to real spacings for the deck.
+	 */
+	public static Technology getDefaultSchematicTechnology()
+	{
+		// see if the default schematics technology is already set
+		String defTech = User.getSchematicTechnology();
+		if (defTech.length() > 0)
+		{
+			Technology tech = Technology.findTechnology(defTech);
+			if (tech != null) return tech;
+		}
+
+		// look at all circuitry and see which technologies are in use
+		HashMap usedTechnologies = new HashMap();
+		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+			usedTechnologies.put(it.next(), new EMath.MutableInteger(0));
+		for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+		{
+			Library lib = (Library)lIt.next();
+			if (lib.isHidden()) continue;
+			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			{
+				Cell cell = (Cell)cIt.next();
+				Technology tech = cell.getTechnology();
+				if (tech == null) continue;
+				EMath.MutableInteger mi = (EMath.MutableInteger)usedTechnologies.get(tech);
+				mi.increment();
+			}
+		}
+
+		// ignore nonlayout technologies
+		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		{
+			Technology tech = (Technology)it.next();
+			EMath.MutableInteger mi = (EMath.MutableInteger)usedTechnologies.get(tech);
+			if (tech == Schematics.tech || tech == Generic.tech ||
+				tech.isNonElectrical() || tech.isNoPrimitiveNodes()) mi.setValue(-1);
+		}
+
+//		// if the desired technology is possible, use it
+//		if (deftech->temp2 >= 0) return(deftech);
+
+		// figure out the most popular technology
+		int bestAmount = -1;
+		Technology bestTech = null;
+		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		{
+			Technology tech = (Technology)it.next();
+			EMath.MutableInteger mi = (EMath.MutableInteger)usedTechnologies.get(tech);
+			if (mi.intValue() <= bestAmount) continue;
+			bestAmount = mi.intValue();
+			bestTech = tech;
+		}
+		if (bestTech != null)
+		{
+			User.setSchematicTechnology(bestTech.getTechName());
+			return bestTech;
+		}
+
+		// presume mosos cmos
+		bestTech = MoCMOS.tech;
+		return bestTech;
+	}
+
     /**
      * Method to return a gate PortInst for this transistor NodeInst.
      * Implementation Note: May want to make this a more general
