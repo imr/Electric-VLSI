@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.01as: *********************************
+
 ************************* Version 8.01ar: *********************************
 
 IMP: (11/30/04, GVG) New stipple patterns for m7/m8 in TSMC90 (Bug #22)
