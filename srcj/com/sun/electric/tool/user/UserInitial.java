@@ -141,6 +141,8 @@ public final class UserInitial
 		UIMenu dimaMenu = UIMenu.CreateUIMenu("Dima", 'D');
 		dimaMenu.addMenuItem("redo Network Numbering", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.redoNetworkNumberingCommand(); } });
+		dimaMenu.addMenuItem("test NodeInstsOterator", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.testNodeInstsIteratorCommand(); } });
 
         // setup JonGainsley's test menu
         UIMenu jongMenu = UIMenu.CreateUIMenu("JonG", 'J');

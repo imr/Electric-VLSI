@@ -320,6 +320,101 @@ public final class UserMenuCommands
 		System.out.println("**** Renumber networks took " + finalTime + " seconds");
 	}
     
+	public static void testNodeInstsIteratorCommand()
+	{
+		int ncells, nnodes;
+		long startTime, endTime;
+		float finalTime;
+
+		startTime = System.currentTimeMillis();
+		nnodes = 0;
+		for (int i = 0; i < 1000; i++)
+		{
+			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			{
+				Library lib = (Library)it.next();
+				for(Iterator cit = lib.getCells(); cit.hasNext(); )
+				{
+					Cell cell = (Cell)cit.next();
+					for (Iterator nit = cell.getNodes(); nit.hasNext();)
+					{
+						NodeInst ni = (NodeInst)nit.next();
+						nnodes++;
+					}
+				}
+			}
+		}
+		endTime = System.currentTimeMillis();
+		finalTime = (endTime - startTime) / 1000F;
+		System.out.println("**** getNodes() on "+nnodes+" nodes took " + finalTime + " seconds ("+
+			(int)(finalTime/nnodes*1e9)+" nsec/node)");
+
+		startTime = System.currentTimeMillis();
+		nnodes = 0;
+		for (int i = 0; i < 1000; i++)
+		{
+			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			{
+				Library lib = (Library)it.next();
+				for(Iterator cit = lib.getCells(); cit.hasNext(); )
+				{
+					Cell cell = (Cell)cit.next();
+					for (Iterator nit = cell.getNodesDirect(); nit.hasNext();)
+					{
+						NodeInst ni = (NodeInst)nit.next();
+						nnodes++;
+					}
+				}
+			}
+		}
+		endTime = System.currentTimeMillis();
+		finalTime = (endTime - startTime) / 1000F;
+		System.out.println("**** getNodesDirect() on "+nnodes+" nodes took " + finalTime + " seconds ("+
+			(int)(finalTime/nnodes*1e9)+" nsec/node)");
+
+		startTime = System.currentTimeMillis();
+		ncells = 0;
+		for (int i = 0; i < 10; i++)
+		{
+			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			{
+				Library lib = (Library)it.next();
+				for(Iterator cit = lib.getCells(); cit.hasNext(); )
+				{
+					Cell cell = (Cell)cit.next();
+					cell.setDirty();
+					cell.getBounds();
+					ncells++;
+				}
+			}
+		}
+		endTime = System.currentTimeMillis();
+		finalTime = (endTime - startTime) / 1000F;
+		System.out.println("**** getBounds() on "+ncells+" cells took " + finalTime + " seconds ("+
+			(int)(finalTime/ncells*1e6)+" usec/cell)");
+
+		startTime = System.currentTimeMillis();
+		ncells = 0;
+		for (int i = 0; i < 10; i++)
+		{
+			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			{
+				Library lib = (Library)it.next();
+				for(Iterator cit = lib.getCells(); cit.hasNext(); )
+				{
+					Cell cell = (Cell)cit.next();
+					cell.setDirty();
+					cell.getBoundsDirect();
+					ncells++;
+				}
+			}
+		}
+		endTime = System.currentTimeMillis();
+		finalTime = (endTime - startTime) / 1000F;
+		System.out.println("**** getBoundsDirect() on "+ncells+" cells took " + finalTime + " seconds ("+
+			(int)(finalTime/ncells*1e6)+" usec/cell)");
+	}
+    
     // ---------------------- THE JON GAINSLEY MENU -----------------
 
     public static void downHierCommand() {

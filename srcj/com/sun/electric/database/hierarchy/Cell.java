@@ -540,32 +540,42 @@ public class Cell extends NodeProto
 
 	private class NodeInstsIterator implements Iterator
 	{
+		private boolean hasNext;
 		private Iterator uit;
 		private Iterator iit;
 
 		NodeInstsIterator()
 		{
 			uit = getNodeUsages();
-			if (uit.hasNext())
+			hasNext = false;
+			while (!hasNext && uit.hasNext())
 			{
 				NodeUsage nu = (NodeUsage)uit.next();
 				iit = nu.getInsts();
+				hasNext = iit.hasNext();
+			}
+			if (iit == null)
+			{
+				iit = uit; /* cause next() to throw NoSuchElementException */
 			}
 		}
 
-		public boolean hasNext() { return iit != null && iit.hasNext() || uit.hasNext(); }
+		public boolean hasNext() { return hasNext; }
 
 		public Object next()
 		{
-			if (iit == null || !iit.hasNext())
+			Object o = iit.next();
+			hasNext = iit.hasNext();
+			while (!hasNext && uit.hasNext())
 			{
 				NodeUsage nu = (NodeUsage)uit.next();
 				iit = nu.getInsts();
+				hasNext = iit.hasNext();
 			}
-			return iit.next();
+			return o;
 		}
 
-		public void remove() {};
+		public void remove() { throw new UnsupportedOperationException("NodeInstsIterator.remove()"); };
 	}
 
 	/**
@@ -591,6 +601,64 @@ public class Cell extends NodeProto
 			cellLowX = cellHighX = cellLowY = cellHighY = 0;
 
 			for(Iterator it = getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst) it.next();
+				if (ni.getProto() == Generic.tech.cellCenter_node) continue;
+				Rectangle2D bounds = ni.getBounds();
+				double lowx = bounds.getMinX();
+				double highx = bounds.getMaxX();
+				double lowy = bounds.getMinY();
+				double highy = bounds.getMaxY();
+				if (boundsEmpty)
+				{
+					boundsEmpty = false;
+					cellLowX = lowx;   cellHighX = highx;
+					cellLowY = lowy;   cellHighY = highy;
+				} else
+				{
+					if (lowx < cellLowX) cellLowX = lowx;
+					if (highx > cellHighX) cellHighX = highx;
+					if (lowy < cellLowY) cellLowY = lowy;
+					if (highy > cellHighY) cellHighY = highy;
+				}
+			}
+			for(Iterator it = arcs.iterator(); it.hasNext(); )
+			{
+				ArcInst ai = (ArcInst) it.next();
+				Rectangle2D bounds = ai.getBounds();
+				double lowx = bounds.getMinX();
+				double highx = bounds.getMaxX();
+				double lowy = bounds.getMinY();
+				double highy = bounds.getMaxY();
+				if (lowx < cellLowX) cellLowX = lowx;
+				if (highx > cellHighX) cellHighX = highx;
+				if (lowy < cellLowY) cellLowY = lowy;
+				if (highy > cellHighY) cellHighY = highy;
+			}
+			elecBounds.x = EMath.smooth(cellLowX);
+			elecBounds.width = EMath.smooth(cellHighX - cellLowX);
+			elecBounds.y = EMath.smooth(cellLowY);
+			elecBounds.height = EMath.smooth(cellHighY - cellLowY);
+			boundsDirty = false;
+		}
+
+		return elecBounds;
+	}
+
+	/**
+	 * Routine to return the bounds of this Cell.
+	 * @return a Rectangle2D.Double with the bounds of this cell's contents
+	 */
+	public Rectangle2D.Double getBoundsDirect()
+	{
+		if (boundsDirty)
+		{
+			// recompute bounds
+			double cellLowX, cellHighX, cellLowY, cellHighY;
+			boundsEmpty = true;
+			cellLowX = cellHighX = cellLowY = cellHighY = 0;
+
+			for(Iterator it = getNodesDirect(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst) it.next();
 				if (ni.getProto() == Generic.tech.cellCenter_node) continue;
@@ -900,6 +968,15 @@ public class Cell extends NodeProto
 	public Iterator getNodes()
 	{
 		return new NodeInstsIterator();
+	}
+
+	/**
+	 * Routine to return an Iterator over all NodeInst objects in this Cell.
+	 * @return an Iterator over all NodeInst objects in this Cell.
+	 */
+	public Iterator getNodesDirect()
+	{
+		return nodes.iterator();
 	}
 
 	/**
