@@ -147,7 +147,14 @@ public class GateLayoutGenerator extends Job {
 /** Traverse a schematic hierarchy and generate Cells that we recognize. */
 class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 	private final StdCellParams stdCell;
-	private final HashSet visitedCells = new HashSet();
+	private final boolean DEBUG = false;
+	private void trace(String s) {
+		if (DEBUG) System.out.println(s);
+	}
+	private void traceln(String s) {
+		trace(s);
+		trace("\n");
+	}
 	
 	/**
 	 * Construct a Visitor that will walk a schematic and generate layout for Cells.
@@ -175,6 +182,11 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 		VarContext context = info.getContext();
 		String pNm = iconInst.getProto().getName();
 		double x = getStrength(iconInst, context);
+		if (x==-2) {
+			System.out.println("no value for strength attribute for Cell: "+
+					           pNm+" instance: "+
+							   info.getUniqueNodableName(iconInst, "/"));
+		}
 //		System.out.println("Try : "+pNm+" X="+x+" for instance: "+
 //                           info.getUniqueNodableName(iconInst, "/"));
 		
@@ -192,24 +204,31 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 	}
 
 	public boolean enterCell(CellInfo info) {
-		Cell cell = info.getCell();
-		if (visitedCells.contains(cell)) return false;
-		visitedCells.add(cell);
+		VarContext ctxt = info.getContext();
+		traceln("Entering Cell instance: "+ctxt.getInstPath("/"));
 		return true; 
 	}
-	public void exitCell(CellInfo info) {}
+	public void exitCell(CellInfo info) {
+		VarContext ctxt = info.getContext();
+		traceln("Leaving Cell instance: "+ctxt.getInstPath("/"));
+	}
 	public boolean visitNodeInst(Nodable no, CellInfo info) {
 		// we never generate layout for PrimitiveNodes
 		if (no instanceof NodeInst) return false;
+		
+		trace("considering instance: "+
+			  info.getUniqueNodableName(no, "/")+" ... ");
 		
 		Cell cell = (Cell) no.getProto();
 		Library lib = cell.getLibrary();
 		String libNm = lib.getName();
 		if (libNm.equals("redFour") || libNm.equals("purpleFour") ||
 			libNm.equals("power2_gates")) {
+			traceln("generate");
 			generateCell(no, info);	
 			return false;
 		}
+		traceln("descend");
 		return true;
 	}
 }

@@ -6,6 +6,8 @@ IMP: (11/10/04, DN) Better diagnostic in JELIB reader when point doesn't fit a p
 
 ************************* Version 8.01am: *********************************
 
+BUG: (11/10/04, RK) Make gate generator generate gates for every instance of a Cell (For Justin)
+
 IMP/MAN: (11/9/04, GVG) Two new toggles in DRC tab to ignore hierarchical/poly-select conditions.
 
 IMP: (11/9/04, GVG) LayoutLib.openLibForRead works with JELIB format. Terminate program if -batch option in EvalJavaBsh
