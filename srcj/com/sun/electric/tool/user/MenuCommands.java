@@ -78,6 +78,7 @@ import com.sun.electric.tool.user.dialogs.ToolOptions;
 import com.sun.electric.tool.user.dialogs.ViewControl;
 import com.sun.electric.tool.user.ui.MenuManager;
 import com.sun.electric.tool.user.ui.MenuManager.Menu;
+import com.sun.electric.tool.user.ui.MenuManager.MenuBar;
 import com.sun.electric.tool.user.ui.*;
 
 import java.awt.Toolkit;
@@ -146,7 +147,7 @@ public final class MenuCommands
 	public static JMenuBar createMenuBar()
 	{
 		// create the menu bar
-		JMenuBar menuBar = new MenuManager.MenuBar();
+		MenuBar menuBar = new MenuBar();
 		int buckyBit = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
 		/****************************** THE FILE MENU ******************************/
@@ -208,13 +209,13 @@ public final class MenuCommands
 
 		Menu arcSubMenu = new Menu("Arc", 'A');
 		editMenu.add(arcSubMenu);
-		arcSubMenu.addMenuItem("Rigid", null, 
+		arcSubMenu.addMenuItem("Rigid", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { arcRigidCommand(); }});
-		arcSubMenu.addMenuItem("Not Rigid", null, 
+		arcSubMenu.addMenuItem("Not Rigid", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { arcNotRigidCommand(); }});
-		arcSubMenu.addMenuItem("Fixed Angle", null, 
+		arcSubMenu.addMenuItem("Fixed Angle", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { arcFixedAngleCommand(); }});
-		arcSubMenu.addMenuItem("Not Fixed Angle", null, 
+		arcSubMenu.addMenuItem("Not Fixed Angle", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { arcNotFixedAngleCommand(); }});
 
 		editMenu.addSeparator();
@@ -228,20 +229,20 @@ public final class MenuCommands
 
 		Menu rotateSubMenu = new Menu("Rotate", 'R');
 		editMenu.add(rotateSubMenu);
-		rotateSubMenu.addMenuItem("90 Degrees Clockwise", null, 
+		rotateSubMenu.addMenuItem("90 Degrees Clockwise", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.rotateObjects(2700); }});
-		rotateSubMenu.addMenuItem("90 Degrees Counterclockwise", KeyStroke.getKeyStroke('J', buckyBit), 
+		rotateSubMenu.addMenuItem("90 Degrees Counterclockwise", KeyStroke.getKeyStroke('J', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.rotateObjects(900); }});
-		rotateSubMenu.addMenuItem("180 Degrees", null, 
+		rotateSubMenu.addMenuItem("180 Degrees", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.rotateObjects(1800); }});
-		rotateSubMenu.addMenuItem("Other...", null, 
+		rotateSubMenu.addMenuItem("Other...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.rotateObjects(0); }});
 
 		Menu mirrorSubMenu = new Menu("Mirror", 'M');
 		editMenu.add(mirrorSubMenu);
-		mirrorSubMenu.addMenuItem("Horizontally", null, 
+		mirrorSubMenu.addMenuItem("Horizontally", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.mirrorObjects(true); }});
-		mirrorSubMenu.addMenuItem("Vertically", null, 
+		mirrorSubMenu.addMenuItem("Vertically", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.mirrorObjects(false); }});
 
 		editMenu.addMenuItem("Size", KeyStroke.getKeyStroke('B', buckyBit),
@@ -321,13 +322,13 @@ public final class MenuCommands
 
 		Menu cleanupSubMenu = new Menu("Cleanup Cell");
 		editMenu.add(cleanupSubMenu);
-		cleanupSubMenu.addMenuItem("Cleanup Pins", null, 
+		cleanupSubMenu.addMenuItem("Cleanup Pins", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.cleanupPinsCommand(false); }});
-		cleanupSubMenu.addMenuItem("Cleanup Pins Everywhere", null, 
+		cleanupSubMenu.addMenuItem("Cleanup Pins Everywhere", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.cleanupPinsCommand(true); }});
-		cleanupSubMenu.addMenuItem("Show Nonmanhattan", null, 
+		cleanupSubMenu.addMenuItem("Show Nonmanhattan", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.showNonmanhattanCommand(); }});
-		cleanupSubMenu.addMenuItem("Shorten Selected Arcs", null, 
+		cleanupSubMenu.addMenuItem("Shorten Selected Arcs", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.shortenArcsCommand(); }});
 
 		Menu modeSubMenuSelect = new Menu("Select");
@@ -346,25 +347,25 @@ public final class MenuCommands
 
 		Menu selListSubMenu = new Menu("Selection");
 		editMenu.add(selListSubMenu);
-		selListSubMenu.addMenuItem("Select All", KeyStroke.getKeyStroke('A', buckyBit), 
+		selListSubMenu.addMenuItem("Select All", KeyStroke.getKeyStroke('A', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectAllCommand(); }});
-		selListSubMenu.addMenuItem("Select All Like This", null, 
+		selListSubMenu.addMenuItem("Select All Like This", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectAllLikeThisCommand(); }});
-		selListSubMenu.addMenuItem("Select Easy", null, 
+		selListSubMenu.addMenuItem("Select Easy", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectEasyCommand(); }});
-		selListSubMenu.addMenuItem("Select Hard", null, 
+		selListSubMenu.addMenuItem("Select Hard", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectHardCommand(); }});
-		selListSubMenu.addMenuItem("Select Nothing", null, 
+		selListSubMenu.addMenuItem("Select Nothing", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectNothingCommand(); }});
 		selListSubMenu.addSeparator();
-		selListSubMenu.addMenuItem("Make Selected Easy", null, 
+		selListSubMenu.addMenuItem("Make Selected Easy", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectMakeEasyCommand(); }});
-		selListSubMenu.addMenuItem("Make Selected Hard", null, 
+		selListSubMenu.addMenuItem("Make Selected Hard", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectMakeHardCommand(); }});
 		selListSubMenu.addSeparator();
-		selListSubMenu.addMenuItem("Show Next Error", KeyStroke.getKeyStroke('>'), 
+		selListSubMenu.addMenuItem("Show Next Error", KeyStroke.getKeyStroke('>'),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showNextErrorCommand(); }});
-		selListSubMenu.addMenuItem("Show Previous Error", KeyStroke.getKeyStroke('<'), 
+		selListSubMenu.addMenuItem("Show Previous Error", KeyStroke.getKeyStroke('<'),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showPrevErrorCommand(); }});
 
 		/****************************** THE CELL MENU ******************************/
@@ -382,7 +383,7 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { crossLibraryCopyCommand(); } });
 
 		cellMenu.addSeparator();
- 
+
 		cellMenu.addMenuItem("Down Hierarchy", KeyStroke.getKeyStroke('D', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { downHierCommand(); }});
 		cellMenu.addMenuItem("Up Hierarchy", KeyStroke.getKeyStroke('U', buckyBit),
@@ -405,11 +406,11 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.generalCellListsCommand(); } });
 		Menu specListSubMenu = new Menu("Special Cell Lists");
 		cellMenu.add(specListSubMenu);
-		specListSubMenu.addMenuItem("List Nodes in this Cell", null, 
+		specListSubMenu.addMenuItem("List Nodes in this Cell", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.listNodesInCellCommand(); }});
-		specListSubMenu.addMenuItem("List Cell Instances", null, 
+		specListSubMenu.addMenuItem("List Cell Instances", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.listCellInstancesCommand(); }});
-		specListSubMenu.addMenuItem("List Cell Usage", null, 
+		specListSubMenu.addMenuItem("List Cell Usage", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.listCellUsageCommand(); }});
 		cellMenu.addMenuItem("Cell Parameters...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { cellParametersCommand(); } });
@@ -418,19 +419,19 @@ public final class MenuCommands
 
 		Menu expandListSubMenu = new Menu("Expand Cell Instances");
 		cellMenu.add(expandListSubMenu);
-		expandListSubMenu.addMenuItem("One Level Down", null, 
+		expandListSubMenu.addMenuItem("One Level Down", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { expandOneLevelDownCommand(); }});
-		expandListSubMenu.addMenuItem("All the Way", null, 
+		expandListSubMenu.addMenuItem("All the Way", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { expandFullCommand(); }});
-		expandListSubMenu.addMenuItem("Specified Amount", null, 
+		expandListSubMenu.addMenuItem("Specified Amount", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { expandSpecificCommand(); }});
 		Menu unExpandListSubMenu = new Menu("Unexpand Cell Instances");
 		cellMenu.add(unExpandListSubMenu);
-		unExpandListSubMenu.addMenuItem("One Level Up", null, 
+		unExpandListSubMenu.addMenuItem("One Level Up", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { unexpandOneLevelUpCommand(); }});
-		unExpandListSubMenu.addMenuItem("All the Way", null, 
+		unExpandListSubMenu.addMenuItem("All the Way", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { unexpandFullCommand(); }});
-		unExpandListSubMenu.addMenuItem("Specified Amount", null, 
+		unExpandListSubMenu.addMenuItem("Specified Amount", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { unexpandSpecificCommand(); }});
 
 		/****************************** THE EXPORT MENU ******************************/
@@ -524,11 +525,11 @@ public final class MenuCommands
 
 		Menu windowPartitionSubMenu = new Menu("Adjust Position");
 		windowMenu.add(windowPartitionSubMenu);
-		windowPartitionSubMenu.addMenuItem("Tile Horizontally", null, 
+		windowPartitionSubMenu.addMenuItem("Tile Horizontally", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { tileHorizontallyCommand(); }});
-		windowPartitionSubMenu.addMenuItem("Tile Vertically", KeyStroke.getKeyStroke(KeyEvent.VK_F9, 0), 
+		windowPartitionSubMenu.addMenuItem("Tile Vertically", KeyStroke.getKeyStroke(KeyEvent.VK_F9, 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { tileVerticallyCommand(); }});
-		windowPartitionSubMenu.addMenuItem("Cascade", null, 
+		windowPartitionSubMenu.addMenuItem("Cascade", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { cascadeWindowsCommand(); }});
 
 		windowMenu.addSeparator();
@@ -541,7 +542,7 @@ public final class MenuCommands
             windowMenu.addMenuItem("Move to Other Display", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) { moveToOtherDisplayCommand(); } });
         }
-            
+
 		/****************************** THE TOOL MENU ******************************/
 
 		Menu toolMenu = new Menu("Tool", 'T');
@@ -549,37 +550,37 @@ public final class MenuCommands
 
 		Menu drcSubMenu = new Menu("DRC", 'D');
 		toolMenu.add(drcSubMenu);
-		drcSubMenu.addMenuItem("Check Hierarchically", KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0), 
+		drcSubMenu.addMenuItem("Check Hierarchically", KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(); }});
-		drcSubMenu.addMenuItem("Check Selection Area Hierarchically", null, 
+		drcSubMenu.addMenuItem("Check Selection Area Hierarchically", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkAreaHierarchically(); }});
 
 		Menu spiceSimulationSubMenu = new Menu("Simulation (SPICE)", 'S');
 		toolMenu.add(spiceSimulationSubMenu);
-		spiceSimulationSubMenu.addMenuItem("Write SPICE Deck...", null, 
+		spiceSimulationSubMenu.addMenuItem("Write SPICE Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Spice.writeSpiceDeck(); }});
 		spiceSimulationSubMenu.addSeparator();
-		spiceSimulationSubMenu.addMenuItem("Set Generic SPICE Template", null, 
+		spiceSimulationSubMenu.addMenuItem("Set Generic SPICE Template", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_TEMPLATE_KEY); }});
-		spiceSimulationSubMenu.addMenuItem("Set SPICE 2 Template", null, 
+		spiceSimulationSubMenu.addMenuItem("Set SPICE 2 Template", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_2_TEMPLATE_KEY); }});
-		spiceSimulationSubMenu.addMenuItem("Set SPICE 3 Template", null, 
+		spiceSimulationSubMenu.addMenuItem("Set SPICE 3 Template", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_3_TEMPLATE_KEY); }});
-		spiceSimulationSubMenu.addMenuItem("Set HSPICE Template", null, 
+		spiceSimulationSubMenu.addMenuItem("Set HSPICE Template", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_H_TEMPLATE_KEY); }});
-		spiceSimulationSubMenu.addMenuItem("Set PSPICE Template", null, 
+		spiceSimulationSubMenu.addMenuItem("Set PSPICE Template", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_P_TEMPLATE_KEY); }});
-		spiceSimulationSubMenu.addMenuItem("Set GnuCap Template", null, 
+		spiceSimulationSubMenu.addMenuItem("Set GnuCap Template", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_GC_TEMPLATE_KEY); }});
-		spiceSimulationSubMenu.addMenuItem("Set SmartSPICE Template", null, 
+		spiceSimulationSubMenu.addMenuItem("Set SmartSPICE Template", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_SM_TEMPLATE_KEY); }});
 
 		Menu verilogSimulationSubMenu = new Menu("Simulation (Verilog)", 'V');
 		toolMenu.add(verilogSimulationSubMenu);
-		verilogSimulationSubMenu.addMenuItem("Write Verilog Deck...", null, 
+		verilogSimulationSubMenu.addMenuItem("Write Verilog Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(Output.ExportType.VERILOG, OpenFile.VERILOG); } });
 		verilogSimulationSubMenu.addSeparator();
-		verilogSimulationSubMenu.addMenuItem("Set Verilog Template", null, 
+		verilogSimulationSubMenu.addMenuItem("Set Verilog Template", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(OutputVerilog.VERILOG_TEMPLATE_KEY); }});
 
 		Menu netlisters = new Menu("Simulation (others)");
@@ -596,27 +597,27 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { redoNetworkNumberingCommand(); } });
 
 		Menu logEffortSubMenu = new Menu("Logical Effort", 'L');
-		logEffortSubMenu.addMenuItem("Analyze Cell", null, 
+		logEffortSubMenu.addMenuItem("Analyze Cell", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { analyzeCellCommand(); }});
 		toolMenu.add(logEffortSubMenu);
 
 		Menu routingSubMenu = new Menu("Routing", 'R');
-		routingSubMenu.addMenuItem("Mimic-Stitch Now", KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), 
+		routingSubMenu.addMenuItem("Mimic-Stitch Now", KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { MimicStitch.mimicStitch(true); }});
-	   routingSubMenu.addMenuItem("Auto-Stitch Now", null, 
+	   routingSubMenu.addMenuItem("Auto-Stitch Now", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { AutoStitch.autoStitch(false, true); }});
-		routingSubMenu.addMenuItem("Auto-Stitch Highlighted Now", KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), 
+		routingSubMenu.addMenuItem("Auto-Stitch Highlighted Now", KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { AutoStitch.autoStitch(true, true); }});
 		toolMenu.add(routingSubMenu);
 
 		Menu generationSubMenu = new Menu("Generation", 'G');
 		toolMenu.add(generationSubMenu);
-		generationSubMenu.addMenuItem("Pad Frame Generator", null, 
+		generationSubMenu.addMenuItem("Pad Frame Generator", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
 
 		Menu compactionSubMenu = new Menu("Compaction", 'C');
 		toolMenu.add(compactionSubMenu);
- 
+
 		Menu languagesSubMenu = new Menu("Languages");
 		languagesSubMenu.addMenuItem("Run Java Bean Shell Script", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { javaBshScriptCommand(); }});
@@ -650,7 +651,7 @@ public final class MenuCommands
 		russMenu.addMenuItem("create flat netlists for Ivan", null, new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				new com.sun.electric.tool.generator.layout.IvanFlat();
-			}	
+			}
 		});
 		russMenu.addMenuItem("layout flat", null, new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -672,7 +673,7 @@ public final class MenuCommands
 				new com.sun.electric.tool.generator.layout.Test();
 			}
 		});
-		
+
 		/****************************** Jon's TEST MENU ******************************/
 
 		Menu jongMenu = new Menu("JonG", 'J');
@@ -689,6 +690,28 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { LENetlister.test1(); }});
 		jongMenu.addMenuItem("Open Purple Lib", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { openP4libCommand(); }});
+
+
+        /********************************* Hidden Menus *******************************/
+
+        Menu wiringShortcuts = new Menu("Wiring");
+        menuBar.addHidden(wiringShortcuts);
+        wiringShortcuts.addMenuItem("Wire to Poly", KeyStroke.getKeyStroke(KeyEvent.VK_0, 0),
+                new ActionListener() { public void actionPerformed(ActionEvent e) { ClickZoomWireListener.theOne.wireTo(0); }});
+        wiringShortcuts.addMenuItem("Wire to M1", KeyStroke.getKeyStroke(KeyEvent.VK_1, 0),
+                new ActionListener() { public void actionPerformed(ActionEvent e) { ClickZoomWireListener.theOne.wireTo(1); }});
+        wiringShortcuts.addMenuItem("Wire to M2", KeyStroke.getKeyStroke(KeyEvent.VK_2, 0),
+                new ActionListener() { public void actionPerformed(ActionEvent e) { ClickZoomWireListener.theOne.wireTo(2); }});
+        wiringShortcuts.addMenuItem("Wire to M3", KeyStroke.getKeyStroke(KeyEvent.VK_3, 0),
+                new ActionListener() { public void actionPerformed(ActionEvent e) { ClickZoomWireListener.theOne.wireTo(3); }});
+        wiringShortcuts.addMenuItem("Wire to M4", KeyStroke.getKeyStroke(KeyEvent.VK_4, 0),
+                new ActionListener() { public void actionPerformed(ActionEvent e) { ClickZoomWireListener.theOne.wireTo(4); }});
+        wiringShortcuts.addMenuItem("Wire to M5", KeyStroke.getKeyStroke(KeyEvent.VK_5, 0),
+                new ActionListener() { public void actionPerformed(ActionEvent e) { ClickZoomWireListener.theOne.wireTo(5); }});
+        wiringShortcuts.addMenuItem("Wire to M6", KeyStroke.getKeyStroke(KeyEvent.VK_6, 0),
+                new ActionListener() { public void actionPerformed(ActionEvent e) { ClickZoomWireListener.theOne.wireTo(6); }});
+
+
 
 		// return the menu bar
 		return menuBar;

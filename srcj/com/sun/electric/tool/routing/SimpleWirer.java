@@ -85,7 +85,7 @@ public class SimpleWirer extends InteractiveRouter {
                         // replace starting point with connectRE
                         // if startRE is a bisectPin, replace it with connectRE
                         if (startRE.isBisectArcPin()) {
-                            replaceBisectPin(route, startRE, connectRE);
+                            replaceRouteElementArcPin(route, startRE, connectRE);
                             while (route.remove(startRE)) {}        // remove all startRE references
                         } else {
                             // otherwise connect it to connectRE

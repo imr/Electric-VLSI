@@ -226,15 +226,13 @@ public abstract class Router {
         // if pi null, just return default width of ap
         if (pi == null) return ap.getDefaultWidth();
 
-        // get all ArcInsts on pi, find largest of type ap
+        // get all ArcInsts on pi, find largest
         double width = 0;
         boolean found = false;
         for (Iterator it = pi.getConnections(); it.hasNext(); ) {
             Connection c = (Connection)it.next();
-            if (c.getArc().getProto() == ap) {
-                found = true;
-                if (width < c.getArc().getWidth()) width = c.getArc().getWidth();
-            }
+            found = true;
+            if (width < c.getArc().getWidth()) width = c.getArc().getWidth();
         }
         if (!found) return ap.getDefaultWidth();
         return width;

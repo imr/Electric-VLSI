@@ -26,12 +26,16 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.routing.InteractiveRouter;
 import com.sun.electric.tool.routing.SimpleWirer;
+import com.sun.electric.tool.routing.RouteElement;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.PrimitiveArc;
 
 import javax.swing.*;
 import java.awt.event.*;
@@ -782,6 +786,51 @@ public class ClickZoomWireListener
 
     // ********************************* Wiring Stuff ********************************
 
+    public void wireTo(int layerNumber) {
+        EditWindow wnd = EditWindow.getCurrent();
+        Cell cell = wnd.getCell();
+
+        System.out.println("layer is "+layerNumber);
+        ArcProto ap = null;
+        Technology tech = Technology.getCurrent();
+        for (Iterator it = tech.getArcs(); it.hasNext(); ) {
+            boolean found = false;
+            ap = (ArcProto)it.next();
+            switch(layerNumber) {
+                case 0: {
+                    if (ap.getFunction() == PrimitiveArc.Function.POLY1) { found = true; } break; }
+                case 1: {
+                    if (ap.getFunction() == PrimitiveArc.Function.METAL1) { found = true; } break; }
+                case 2: {
+                    if (ap.getFunction() == PrimitiveArc.Function.METAL2) { found = true; } break; }
+                case 3: {
+                    if (ap.getFunction() == PrimitiveArc.Function.METAL3) { found = true; } break; }
+                case 4: {
+                    if (ap.getFunction() == PrimitiveArc.Function.METAL4) { found = true; } break; }
+                case 5: {
+                    if (ap.getFunction() == PrimitiveArc.Function.METAL5) { found = true; } break; }
+                case 6: {
+                    if (ap.getFunction() == PrimitiveArc.Function.METAL6) { found = true; } break; }
+            }
+            if (found) break;
+        }
+        if (ap == null) return;
+        System.out.println("found "+ap);
+        // if a single portinst highlighted, route from that to node that can connect to arc
+        if (Highlight.getNumHighlights() == 1 && cell != null) {
+            ElectricObject obj = Highlight.getOneHighlight().getElectricObject();
+            if (obj instanceof PortInst) {
+                PortInst pi = (PortInst)obj;
+				List route = null;
+                //List route = router.routeVerticallyToArc(pi, ap);
+                if (route != null) {
+                    //router.createRoute(route, cell, (RouteElement)route.get(route.size()-1));
+				}
+            }
+        }
+        // switch palette to arc
+        User.tool.setCurrentArcProto(ap);
+    }
 
 
     // ********************************* Popup Menus *********************************

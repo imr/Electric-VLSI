@@ -284,6 +284,8 @@ public class MenuManager
      */
     public static class MenuBar extends JMenuBar
     {
+        /** hidden menus */                 ArrayList hiddenMenus = new ArrayList();
+
         /**
          * Overrides JMenuBar's processKeyBinding, which distributes event
          * to it's menu items.  Instead, we pass the event to the keyBindingManager
@@ -305,6 +307,11 @@ public class MenuManager
             // *do not* pass it to menus
 
             return retValue;
+        }
+
+        public JMenu addHidden(JMenu c) {
+            hiddenMenus.add(c);
+            return c;
         }
     }
     
