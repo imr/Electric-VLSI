@@ -64,20 +64,13 @@ public class J3DAppearance extends Appearance
     private void setOtherAppearanceValues(int mode, float factor, Color color)
     {
         // Transparency values
-        //TransparencyAttributes ta = new TransparencyAttributes(mode, factor);
-        TransparencyAttributes ta = new TransparencyAttributes(
-          mode, factor,
-          TransparencyAttributes.BLEND_SRC_ALPHA,
-          TransparencyAttributes.BLEND_ONE);
+        TransparencyAttributes ta = new TransparencyAttributes(mode, factor);
         ta.setCapability(TransparencyAttributes.ALLOW_VALUE_READ);
         ta.setCapability(TransparencyAttributes.ALLOW_VALUE_WRITE);
         ta.setCapability(TransparencyAttributes.ALLOW_MODE_READ);
         ta.setCapability(TransparencyAttributes.ALLOW_MODE_WRITE);
         setTransparencyAttributes(ta);
 
-        // For changing color
-        //setCapability(Appearance.ALLOW_COLORING_ATTRIBUTES_WRITE);
-        //setCapability(Appearance.ALLOW_COLORING_ATTRIBUTES_READ);
         setCapability(ALLOW_TRANSPARENCY_ATTRIBUTES_READ);
         setCapability(ALLOW_TRANSPARENCY_ATTRIBUTES_WRITE);
         // For highlight
@@ -86,18 +79,6 @@ public class J3DAppearance extends Appearance
         // For visibility
         setCapability(ALLOW_RENDERING_ATTRIBUTES_READ);
         setCapability(ALLOW_RENDERING_ATTRIBUTES_WRITE);
-
-        // Nothing else to set
-//        if (graphics == null) return;
-//
-//        // Adding color
-//        Color color = graphics.getColor();
-        //Color3f objColor = new Color3f(color);
-        /*
-        ColoringAttributes ca = new ColoringAttributes(objColor, ColoringAttributes.SHADE_GOURAUD);
-        ca.setCapability(ColoringAttributes.ALLOW_COLOR_WRITE);
-        setColoringAttributes(ca);
-        */
 
         // Adding Rendering attributes to access visibility flag if layer is available
         if (graphics != null)
