@@ -859,6 +859,21 @@ public abstract class Geometric extends ElectricObject
 	public Cell whichCell() { return parent; }
 
 	/**
+	 * Method to determine which page of a multi-page schematic this Geometric is on.
+	 * @return the page number (0-based).
+	 */
+	public int whichMultiPage()
+	{
+		int pageNo = 0;
+		if (parent.isMultiPage())
+		{
+			double cY = getBounds().getCenterY();
+			pageNo = (int)((cY+Cell.FrameDescription.MULTIPAGESEPARATION/2) / Cell.FrameDescription.MULTIPAGESEPARATION);
+		}
+		return pageNo;
+	}
+
+	/**
 	 * Method which indicates that this object is in database.
 	 * Some objects are not in database, for example Geometrics in PaletteFrame.
 	 * @return true if this object is in database.

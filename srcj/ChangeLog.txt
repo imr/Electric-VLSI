@@ -93,7 +93,6 @@ FIX: (12/1/04, JKG) MoCMOS Gate Layout Generator regression fails in 8.01ar (Bug
 BUG: (12/1/04, SMR) Multi-object Properties does not adjust sizes right when mirroring is involved. (Bug #32)
 FIX: In GetInfoMulti.MultiChange.doIt(), account for mirroring when computing new size.
 
-
 IMP: (12/1/04, SMR) "Pure" menu entry no longer offers contact or via layers.
 
 IMP/MAN: (12/1/04, SMR) "Layer Visibility" dialog now shows layers sorted by height (Bug #26, 33)

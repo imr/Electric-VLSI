@@ -4124,6 +4124,228 @@ public class CircuitChanges
 		}
 	};
 
+	/**
+	 * Method to spread circuitry.
+	 * @param cell the cell in which spreading happens.
+	 * @param ni the NodeInst about which spreading happens (may be null).
+	 * @param direction the direction to spread: 'u' for up, 'd' for down, 'l' for left, 'r' for right.
+	 * @param amount the distance to spread (negative values compact).
+	 * @param lX the low X bound of the node (the edge of spreading).
+	 * @param hX the high X bound of the node (the edge of spreading).
+	 * @param lY the low Y bound of the node (the edge of spreading).
+	 * @param hY the high Y bound of the node (the edge of spreading).
+	 */
+	public static void spreadCircuitry(Cell cell, NodeInst ni, char direction, double amount, double lX, double hX, double lY, double hY)
+	{
+		// disallow spreading if lock is on
+		if (CircuitChanges.cantEdit(cell, null, true) != 0) return;
+
+		// initialize a collection of Geometrics that have been seen
+		HashSet geomSeen = new HashSet();
+
+		// set "already done" flag for nodes manhattan connected on spread line
+		boolean mustBeHor = true;
+		if (direction == 'l' || direction == 'r') mustBeHor = false;
+		if (ni != null) manhattanTravel(ni, mustBeHor, geomSeen);
+
+		// set "already done" flag for nodes that completely cover spread node or are in its line
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst oNi = (NodeInst)it.next();
+			SizeOffset oSo = oNi.getSizeOffset();
+			if (direction == 'l' || direction == 'r')
+			{
+				if (oNi.getTrueCenterX() - oNi.getXSize()/2 + oSo.getLowXOffset() < lX &&
+					oNi.getTrueCenterX() + oNi.getXSize()/2 - oSo.getHighXOffset() > hX)
+						geomSeen.add(oNi);
+				if (oNi.getTrueCenterX() == (lX+hX)/2)
+					geomSeen.add(oNi);
+			} else
+			{
+				if (oNi.getTrueCenterY() - oNi.getYSize()/2 + oSo.getLowYOffset() < lY &&
+					oNi.getTrueCenterY() + oNi.getYSize()/2 - oSo.getHighYOffset() > hY)
+						geomSeen.add(oNi);
+				if (oNi.getTrueCenterY() == (lY+hY)/2)
+					geomSeen.add(oNi);
+			}
+		}
+
+		// mark those arcinsts that should stretch during spread
+		for(Iterator it = cell.getArcs(); it.hasNext(); )
+		{
+			ArcInst ai = (ArcInst)it.next();
+			NodeInst no1 = ai.getTail().getPortInst().getNodeInst();
+			NodeInst no2 = ai.getHead().getPortInst().getNodeInst();
+			double xC1 = no1.getTrueCenterX();
+			double yC1 = no1.getTrueCenterY();
+			double xC2 = no2.getTrueCenterX();
+			double yC2 = no2.getTrueCenterY();
+
+			// if one node is along spread line, make it "no1"
+			if (geomSeen.contains(no2))
+			{
+				NodeInst swapNi = no1;  no1 = no2;  no2 = swapNi;
+				double swap = xC1;     xC1 = xC2;  xC2 = swap;
+				swap = yC1;     yC1 = yC2;  yC2 = swap;
+			}
+
+			// if both nodes are along spread line, leave arc alone
+			if (geomSeen.contains(no2)) continue;
+
+			boolean i = true;
+			if (geomSeen.contains(no1))
+			{
+				// handle arcs connected to spread line
+				switch (direction)
+				{
+					case 'l': if (xC2 <= lX) i = false;   break;
+					case 'r': if (xC2 >= hX) i = false;   break;
+					case 'u': if (yC2 >= hY) i = false;   break;
+					case 'd': if (yC2 <= lY) i = false;   break;
+				}
+			} else
+			{
+				// handle arcs that cross the spread line
+				switch (direction)
+				{
+					case 'l': if (xC1 > lX && xC2 <= lX) i = false; else
+						if (xC2 > lX && xC1 <= lX) i = false;
+						break;
+					case 'r': if (xC1 < hX && xC2 >= hX) i = false; else
+						if (xC2 < hX && xC1 >= hX) i = false;
+						break;
+					case 'u': if (yC1 > hY && yC2 <= hY) i = false; else
+						if (yC2 > hY && yC1 <= hY) i = false;
+						break;
+					case 'd': if (yC1 < lY && yC2 >= lY) i = false; else
+						if (yC2 < lY && yC1 >= lY) i = false;
+						break;
+				}
+			}
+			if (!i) geomSeen.add(ai);
+		}
+
+		// now look at every nodeinst in the cell
+		boolean moved = false;
+		boolean again = true;
+		while (again)
+		{
+			again = false;
+			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			{
+				NodeInst oNi = (NodeInst)it.next();
+
+				// ignore this nodeinst if it has been spread already
+				if (geomSeen.contains(oNi)) continue;
+
+				// make sure nodeinst is on proper side of requested spread
+				double xC1 = oNi.getTrueCenterX();
+				double yC1 = oNi.getTrueCenterY();
+				boolean doIt = false;
+				switch (direction)
+				{
+					case 'l': if (xC1 < lX) doIt = true;   break;
+					case 'r': if (xC1 > hX) doIt = true;   break;
+					case 'u': if (yC1 > hY) doIt = true;   break;
+					case 'd': if (yC1 < lY) doIt = true;   break;
+				}
+				if (!doIt) continue;
+
+				// set every connecting nodeinst to be "spread"
+				for(Iterator aIt = cell.getArcs(); aIt.hasNext(); )
+				{
+					ArcInst ai = (ArcInst)aIt.next();
+					if (geomSeen.contains(ai))
+					{
+						// make arc temporarily unrigid
+						Layout.setTempRigid(ai, false);
+					} else
+					{
+						// make arc temporarily rigid
+						Layout.setTempRigid(ai, true);
+					}
+				}
+				netTravel(oNi, geomSeen);
+
+				// move this nodeinst in proper direction to do spread
+				switch(direction)
+				{
+					case 'l':
+						oNi.modifyInstance(-amount, 0, 0, 0, 0);
+						break;
+					case 'r':
+						oNi.modifyInstance(amount, 0, 0, 0, 0);
+						break;
+					case 'u':
+						oNi.modifyInstance(0, amount, 0, 0, 0);
+						break;
+					case 'd':
+						oNi.modifyInstance(0, -amount, 0, 0, 0);
+						break;
+				}
+
+				// set loop iteration flag and node spread flag
+				moved = true;
+				again = true;
+				break;
+			}
+		}
+		if (!moved) System.out.println("Nothing changed");
+	}
+
+	/**
+	 * Method to travel through the network, setting flags.
+	 * @param ni the NodeInst from which to start traveling.
+	 * @param geomSeen the HashSet bit to mark during travel.
+	 */
+	private static void netTravel(NodeInst ni, HashSet geomSeen)
+	{
+		if (geomSeen.contains(ni)) return;
+		geomSeen.add(ni);
+
+		for(Iterator it = ni.getConnections(); it.hasNext(); )
+		{
+			Connection con = (Connection)it.next();
+			ArcInst ai = con.getArc();
+			if (geomSeen.contains(ai)) continue;
+			netTravel(ai.getHead().getPortInst().getNodeInst(), geomSeen);
+			netTravel(ai.getTail().getPortInst().getNodeInst(), geomSeen);
+		}
+	}
+
+	/**
+	 * Method to recursively travel along all arcs on a NodeInst.
+	 * @param ni the NodeInst to examine.
+	 * @param hor true to travel along horizontal arcs; false for vertical.
+	 * @param geomSeen the HashSet used to mark nodes that are examined.
+	 * This is called from "spread" to propagate along manhattan
+	 * arcs that are in the correct orientation (along the spread line).
+	 */
+	private static void manhattanTravel(NodeInst ni, boolean hor, HashSet geomSeen)
+	{
+		geomSeen.add(ni);
+		for(Iterator it = ni.getConnections(); it.hasNext(); )
+		{
+			Connection con = (Connection)it.next();
+			ArcInst ai = con.getArc();
+			int angle = ai.getAngle();
+			if (hor)
+			{
+				// only want horizontal arcs
+				if (angle != 0 && angle != 1800) continue;
+			} else
+			{
+				// only want vertical arcs
+				if (angle != 900 && angle != 2700) continue;
+			}
+			NodeInst other = null;
+			if (ai.getHead() == con) other = ai.getTail().getPortInst().getNodeInst(); else
+				other = ai.getHead().getPortInst().getNodeInst();
+			if (geomSeen.contains(other)) continue;
+			manhattanTravel(other, hor, geomSeen);
+		}
+	}
+
 	/****************************** COPY CELLS ******************************/
 
 	/**

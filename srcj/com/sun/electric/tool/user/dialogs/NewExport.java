@@ -332,7 +332,23 @@ public class NewExport extends EDialog
 
 		public boolean doIt()
 		{
-			Export e = Export.newInstance(cell, pi, name);
+			// see if this export already exists
+			Export e = cell.findExport(name);
+			if (e != null)
+			{
+				// special case for exports in multipage schematics
+				if (cell.isMultiPage())
+				{
+					int exportPage = e.getOriginalPort().getNodeInst().whichMultiPage();
+					int currentPage = pi.getNodeInst().whichMultiPage();
+					if (currentPage != exportPage)
+					{
+						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+							"That export name already exists on page " + (exportPage+1), "Duplicate Export", JOptionPane.WARNING_MESSAGE);
+					}
+				}
+			}
+			e = Export.newInstance(cell, pi, name);
 			if (e == null)
 			{
 				System.out.println("Failed to create export");
