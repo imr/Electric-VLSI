@@ -917,7 +917,9 @@ public class Pref
 			prefs.flush();
 		} catch (BackingStoreException e)
 		{
-			System.out.println("Failed to save " + name + " options");
+            if (!Main.BATCHMODE) {
+			    System.out.println("Failed to save " + name + " options");
+            }
 		}
 	}
 }
