@@ -50,7 +50,6 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.routing.Router;
 import com.sun.electric.tool.Job;
 

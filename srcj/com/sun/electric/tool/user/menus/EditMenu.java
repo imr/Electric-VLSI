@@ -28,6 +28,7 @@ import com.sun.electric.tool.user.ui.*;
 import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.*;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.misc.LayerCoverageJob;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -168,7 +169,7 @@ public class EditMenu {
 		MenuBar.Menu editInfoSubMenu = new MenuBar.Menu("Info", 'V');
 		editMenu.add(editInfoSubMenu);
 		editInfoSubMenu.addMenuItem("List Layer Coverage", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.layerCoverageCommand(Job.Type.EXAMINE, ToolMenu.LayerCoverageJob.AREA, false); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, false); } });
 		editInfoSubMenu.addMenuItem("Show Undo List", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); } });
 		editInfoSubMenu.addMenuItem("Describe this Technology", null,

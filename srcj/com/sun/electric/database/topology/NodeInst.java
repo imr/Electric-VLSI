@@ -97,6 +97,20 @@ public class NodeInst extends Geometric implements Nodable
 	/** set if node is locked (can't be changed) */			private static final int NILOCKED =          0100000000;
 
 	/**
+	 * Method to detect if np is not relevant for some tool calculation and therefore
+	 * could be skip. E.g. cellCenter, drcNodes, essential bounds and pins in DRC.
+	 * Similar for layer generation
+	 * @param ni
+	 * @return
+	 */
+	public static boolean isSpecialNode(NodeInst ni)
+	{
+		NodeProto np = ni.getProto();
+		return (np == Generic.tech.cellCenterNode || np == Generic.tech.drcNode ||
+		        np == Generic.tech.essentialBoundsNode || np.getFunction() == PrimitiveNode.Function.PIN);
+	}
+
+	/**
 	 * the PortAssociation class is used when replacing nodes.
 	 */
 	private static class PortAssociation

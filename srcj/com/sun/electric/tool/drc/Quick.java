@@ -490,8 +490,7 @@ public class Quick
 		cp.cellChecked = true;
 
 		// if the cell hasn't changed since the last good check, stop now
-
-		if (/*!Main.getDebug() && */allSubCellsStillOK)
+		if (allSubCellsStillOK)
 		{
 			Date lastGoodDate = DRC.getLastDRCDate(cell);
 			if (lastGoodDate != null)
@@ -576,7 +575,7 @@ public class Quick
 		AffineTransform trans = ni.rotateOut();
 
 		// Skipping special nodes
-		if (isSpecialNode(np)) return false; // Oct 5;
+		if (NodeInst.isSpecialNode(ni)) return false; // Oct 5;
 
         if (np.getFunction() == PrimitiveNode.Function.PIN) return false; // Sept 30
 
@@ -612,7 +611,7 @@ public class Quick
 			}
 			// Check PP.R.1 select over transistor poly
 			// Assumes polys on transistors fulfill condition by construction
-			ret = !isTransistor && checkSelectOverPolysilicon(ni, layer, poly, cell, netNumber, globalIndex);
+			ret = !isTransistor && checkSelectOverPolysilicon(ni, layer, poly, cell);
 			if (ret)
 			{
 				if (onlyFirstError) return true;
@@ -693,7 +692,7 @@ public class Quick
 				errorsFound = true;
 			}
 			// Check PP.R.1 select over transistor poly
-			ret = checkSelectOverPolysilicon(ai, layer, poly, ai.getParent(), netNumber, globalIndex);
+			ret = checkSelectOverPolysilicon(ai, layer, poly, ai.getParent());
 			if (ret)
 			{
 				if (onlyFirstError) return true;
@@ -765,18 +764,6 @@ public class Quick
 	}
 
 	/**
-	 * Method to detect if np is not relevant for DRC calculation and therefore
-	 * could be skip. E.g. cellCenter, drcNodes, essential bounds and pins
-	 * @param np
-	 * @return
-	 */
-	private static boolean isSpecialNode(NodeProto np)
-	{
-		return (np == Generic.tech.cellCenterNode || np == Generic.tech.drcNode ||
-		        np == Generic.tech.essentialBoundsNode || np.getFunction() == PrimitiveNode.Function.PIN);
-	}
-
-	/**
 	 * Method to recursively examine the area "bounds" in cell "cell" with global index "globalIndex".
 	 * The objects that are found are transformed by "uptrans" to be in the space of a top-level cell.
 	 * They are then compared with objects in "oNi" (which is in that top-level cell),
@@ -812,7 +799,7 @@ public class Quick
 				NodeInst ni = (NodeInst)geom;
 				NodeProto np = ni.getProto();
 
-                if (isSpecialNode(np)) continue; // Oct 5;
+                if (NodeInst.isSpecialNode(ni)) continue; // Oct 5;
 
 				if (np instanceof Cell)
 				{
@@ -1006,7 +993,7 @@ public class Quick
         Rectangle2D subBound = new Rectangle2D.Double(); //Sept 30
 
 		// These nodes won't generate any DRC errors. Most of them are pins
-		if (geom instanceof NodeInst && isSpecialNode(((NodeInst)geom).getProto()))
+		if (geom instanceof NodeInst && NodeInst.isSpecialNode(((NodeInst)geom)))
 			return false;
 
 		// Sept04 changes: bounds by rBound
@@ -1019,7 +1006,7 @@ public class Quick
 				NodeInst ni = (NodeInst)nGeom;
 				NodeProto np = ni.getProto();
 
-				if (isSpecialNode(np)) continue; // Oct 5;
+				if (NodeInst.isSpecialNode(ni)) continue; // Oct 5;
 
 				// ignore nodes that are not primitive
 				if (np instanceof Cell)
@@ -1269,7 +1256,7 @@ public class Quick
 				// they are electrically connected: see if they touch
 				overlap = (pd < 0);
                 //code decomissioned Sept 04
-				if (Main.getDebug() && pd <= 0)
+				if (Main.LOCALDEBUGFLAG && pd <= 0)
 				{
 					// they are electrically connected and they touch: look for minimum size errors
 					DRCRules.DRCRule wRule = DRC.getMinValue(layer1, DRCTemplate.MINWID);
@@ -2191,7 +2178,6 @@ public class Quick
 		}
 
 		// Checking nodes not exported down in the hierarchy. Probably good enought not to collect networks first
-		/*
 		for(Iterator niIt = notExportedNodes.keySet().iterator(); niIt.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)niIt.next();
@@ -2212,7 +2198,6 @@ public class Quick
 				}
 			}
 		}
-		*/
 
 		// Special cases for select areas. You can't evaluate based on networks
 		for(Iterator it = selectMerge.getKeyIterator(); it.hasNext(); )
@@ -2626,11 +2611,9 @@ public class Quick
 	 * @param layer
 	 * @param poly
 	 * @param cell
-	 * @param net
-	 * @param globalIndex
 	 * @return
 	 */
-	private boolean checkSelectOverPolysilicon(Geometric geom, Layer layer, Poly poly, Cell cell, int net, int globalIndex)
+	private boolean checkSelectOverPolysilicon(Geometric geom, Layer layer, Poly poly, Cell cell)
 	{
         if(DRC.isIgnorePolySelectChecking()) return false;
 
@@ -2653,7 +2636,7 @@ public class Quick
 			if (!(g instanceof NodeInst)) continue;
 			NodeInst ni = (NodeInst)g;
 			NodeProto np = ni.getProto();
-			if (isSpecialNode(np)) continue; // Nov 4;
+			if (NodeInst.isSpecialNode(ni)) continue; // Nov 4;
 			if (np instanceof Cell)
 			{
 				System.out.println("Skipping this case for now");
@@ -2739,7 +2722,7 @@ public class Quick
             if (!(g instanceof NodeInst)) continue;
             NodeInst ni = (NodeInst)g;
             NodeProto np = ni.getProto();
-	        if (isSpecialNode(np)) continue; // Nov 4;
+	        if (NodeInst.isSpecialNode(ni)) continue; // Nov 4;
             if (np instanceof Cell)
             {
                 return (allPointsContainedInLayer(geom, (Cell)np, ruleBnd, points, founds));
@@ -3607,7 +3590,7 @@ public class Quick
 			boolean forceChecking = false;
 			if (np instanceof PrimitiveNode)
 			{
-				if (isSpecialNode(np)) return (false);
+				if (NodeInst.isSpecialNode(ni)) return (false);
 				forceChecking = pNp.isPureImplantNode(); // forcing the checking
 			}
 
@@ -3626,11 +3609,9 @@ public class Quick
 			notExported = notExported && !forceChecking && !pureNode && info.getParentInfo() != null;
 			if (!found)
 			{
-				/*
 				if (notExportedNodes != null && notExported)
 					notExportedNodes.put(ni, ni);
 				else
-				*/
 					return (false);
 			}
 

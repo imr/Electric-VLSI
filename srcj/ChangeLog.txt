@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01an: *********************************
 
+IMP: (11/12/04, GVG) LayerCoverageJob class moved to new misc directory to decouple code
+otherwise its not easy to generate regressions.
+
+IMP: (11/12/04, GVG) List Geometry on Network: fast algorithm in PolyQTree working now
+
 FIX (11/12/04, JKG) Parasitic extraction of capacitance in the Spice netlister
     now works properly.
 

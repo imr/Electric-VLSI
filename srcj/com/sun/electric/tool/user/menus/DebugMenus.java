@@ -56,6 +56,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.misc.LayerCoverageJob;
 import com.sun.electric.tool.parasitic.ParasiticTool;
 import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.logicaleffort.LENetlister;
@@ -187,13 +188,13 @@ public class DebugMenus {
 	    gildaMenu.addMenuItem("3D View", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) { WindowMenu.create3DViewCommand(); } });
         gildaMenu.addMenuItem("Merge Polyons", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, ToolMenu.LayerCoverageJob.MERGE, true);}});
+                new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.MERGE, true);}});
         gildaMenu.addMenuItem("Covering Implants", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, ToolMenu.LayerCoverageJob.IMPLANT, true);}});
+                new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, true);}});
         gildaMenu.addMenuItem("Covering Implants Old", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(false, false);}});
         gildaMenu.addMenuItem("List Layer Coverage", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.layerCoverageCommand(Job.Type.EXAMINE, ToolMenu.LayerCoverageJob.AREA, true); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, true); } });
 
         /****************************** Dima's TEST MENU ******************************/
 

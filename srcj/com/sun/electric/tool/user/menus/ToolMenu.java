@@ -46,6 +46,7 @@ import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.routing.MimicStitch;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.misc.LayerCoverageJob;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.Ncc;
 import com.sun.electric.tool.ncc.NccOptions;
@@ -90,6 +91,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
 import java.util.*;
+import java.util.List;
 
 /**
  * Class to handle the commands in the "Tool" pulldown menu.
@@ -478,7 +480,7 @@ public class ToolMenu {
                 // get wire length
                 HashSet nets = new HashSet();
                 nets.add(layNet);
-                GeometryOnNetwork geoms = listGeometryOnNetworks(schLayCells[1], nets);
+                LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworks(schLayCells[1], nets, false);
                 double length = geoms.getTotalWireLength();
 
                 // update wire length
@@ -802,16 +804,15 @@ public class ToolMenu {
         if (cell == null) return;
         EditWindow wnd = EditWindow.needCurrent();
         if (wnd == null) return;
-        Highlighter highlighter = wnd.getHighlighter();
 
-        HashSet nets = (HashSet)highlighter.getHighlightedNetworks();
+        HashSet nets = (HashSet)wnd.getHighlighter().getHighlightedNetworks();
         if (nets.isEmpty())
         {
             System.out.println("No network in cell '" + cell.describe() + "' selected");
             return;
         }
-        GeometryOnNetwork geoms = listGeometryOnNetworks(cell, nets);
-        geoms.print();
+	    else
+            LayerCoverageJob.listGeometryOnNetworks(cell, nets, true);
     }
 
     public static void listGeomsAllNetworksCommand() {
@@ -830,115 +831,13 @@ public class ToolMenu {
             Network net = (Network)it.next();
             HashSet nets = new HashSet();
             nets.add(net);
-            ToolMenu.GeometryOnNetwork geoms = ToolMenu.listGeometryOnNetworks(cell, nets);
+            LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworks(cell, nets, false);
             if (geoms.getTotalWireLength() == 0) continue;
             System.out.println("Network "+net+" has wire length "+geoms.getTotalWireLength());
         }
     }
 
-    public static GeometryOnNetwork listGeometryOnNetworks(Cell cell, HashSet nets) {
-        if (cell == null || nets == null || nets.isEmpty()) return null;
-	    Netlist netlist = ((Network)nets.iterator().next()).getNetlist();
-
-	    long startTime = System.currentTimeMillis();
-        PolyQTree tree = new PolyQTree(cell.getBounds());
-	    LayerCoverageJob.LayerVisitor visitor = new LayerCoverageJob.LayerVisitor(true, tree, null, LayerCoverageJob.NETWORK, null, nets);
-	    HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, netlist, visitor);
-
-        double lambda = 1; // lambdaofcell(np);
-        GeometryOnNetwork geoms = new GeometryOnNetwork(cell, nets, lambda);
-        geoms.setStartTime(startTime);
-
-		// Traversing tree with merged geometry
-		for (Iterator it = tree.getKeyIterator(); it.hasNext(); )
-		{
-			Layer layer = (Layer)it.next();
-			Collection set = tree.getObjects(layer, false, true);
-			double layerArea = 0;
-			double perimeter = 0;
-
-			// Get all objects and sum the area
-			for (Iterator i = set.iterator(); i.hasNext(); )
-			{
-				PolyQTree.PolyNode area = (PolyQTree.PolyNode)i.next();
-				layerArea += area.getArea();
-				perimeter += area.getPerimeter();
-			}
-			layerArea /= lambda;
-			perimeter /= 2;
-
-            geoms.addLayer(layer, layerArea, perimeter);
-		}
-	    long endTime = System.currentTimeMillis();
-        geoms.setEndTime(endTime);
-        return geoms;
-
-		// @TODO GVG lambda and ratio ==0 (when is the case?)
-    }
-
-    public static class GeometryOnNetwork {
-        public final Cell cell;
-        private Set nets;
-        private double lambda;
-        private long startTime;
-        private long endTime;
-
-        // these lists tie together a layer, its area, and its half-perimeter
-        private ArrayList layers;
-        private ArrayList areas;
-        private ArrayList halfPerimeters;
-        private double totalWire;
-
-        private GeometryOnNetwork(Cell cell, Set nets, double lambda) {
-            this.cell = cell;
-            this.nets = nets;
-            this.lambda = lambda;
-            layers = new ArrayList();
-            areas = new ArrayList();
-            halfPerimeters = new ArrayList();
-            totalWire = 0;
-            startTime = endTime = 0;
-        }
-        private void setStartTime(long startTime) { this.startTime = startTime; }
-        private void setEndTime(long endTime) { this.endTime = endTime; }
-        public double getTotalWireLength() { return totalWire; }
-
-        private void addLayer(Layer layer, double area, double halfperimeter) {
-            layers.add(layer);
-            areas.add(new Double(area));
-            halfPerimeters.add(new Double(halfperimeter));
-
-            Layer.Function func = layer.getFunction();
-            /* accumulate total wire length on all metal/poly layers */
-            if (func.isPoly() && !func.isGatePoly() || func.isMetal()) {
-                //System.out.println(func.toString()+": "+halfperimeter);
-                totalWire += halfperimeter;
-            }
-        }
-
-        public void print() {
-            for(Iterator it = nets.iterator(); it.hasNext(); )
-            {
-                Network net = (Network)it.next();
-                System.out.println("For network '" + net.describe() + "' in cell '" + cell.describe() + "':");
-            }
-            for (int i=0; i<layers.size(); i++) {
-                Layer layer = (Layer)layers.get(i);
-                Double area = (Double)areas.get(i);
-                Double halfperim = (Double)halfPerimeters.get(i);
-
-                System.out.println("Layer " + layer.getName()
-                        + ":\t area " + TextUtils.formatDouble(area.doubleValue())
-                        + "\t half-perimeter " + TextUtils.formatDouble(halfperim.doubleValue())
-                        + "\t ratio " + TextUtils.formatDouble(area.doubleValue()/halfperim.doubleValue()));
-            }
-            if (totalWire > 0)
-                System.out.println("Total wire length = " + TextUtils.formatDouble(totalWire/lambda) +
-                        " (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
-        }
-    }
-
-    public static void showPowerAndGround()
+	public static void showPowerAndGround()
     {
         Cell cell = WindowFrame.needCurCell();
         if (cell == null) return;
@@ -1121,360 +1020,22 @@ public class ToolMenu {
     }
 
     /**
-     * Method to handle the "List Layer Coverage" command.
+     * Method to handle the "List Layer Coverage", "Coverage Implant Generator",  polygons merge
+     * except "List Geometry on Network" commands.
      */
     public static void layerCoverageCommand(Job.Type jobType, int func, boolean test)
     {
         Cell curCell = WindowFrame.needCurCell();
         if (curCell == null) return;
-        Job job = new LayerCoverageJob(jobType, curCell, func, test);
+	    EditWindow wnd = EditWindow.needCurrent();
+	    Highlighter highlighter = null;
+	    if ((wnd != null) && (wnd.getCell() == curCell))
+		    highlighter = wnd.getHighlighter();
+
+        Job job = new LayerCoverageJob(jobType, curCell, func, test, highlighter, null);
     }
 
-    protected static class LayerCoverageJob extends Job
-    {
-        private Cell curCell;
-        private boolean testCase;
-        private PolyQTree tree; // = new PolyQTree(curCell.getBounds());
-        public final static int AREA = 0;   // function Layer Coverage
-        public final static int MERGE = 1;  // Generic merge polygons function
-        public final static int IMPLANT = 2; // Coverage implants
-	    public final static int NETWORK = 3; // List Geometry on Network function
-        private final int function;
-        private java.util.List deleteList; // Only used for coverage Implants. New coverage implants are pure primitive nodes
-	    private HashMap originalPolygons = new HashMap(); // Storing initial nodes
-
-        public static class LayerVisitor extends HierarchyEnumerator.Visitor
-        {
-            private boolean testCase;
-            private PolyQTree tree;
-            private java.util.List deleteList; // Only used for coverage Implants. New coverage implants are pure primitive nodes
-            private final int function;
-            private HashMap originalPolygons;
-	        private Set netSet; // For network type, rest is null
-
-	        /**
-	         * Determines if function of given layer is applicable for the corresponding operation
-	         * @param func
-	         * @param function
-	         * @param testCase
-	         * @return
-	         */
-	        private static boolean IsValidFunction(Layer.Function func, int function, boolean testCase)
-	        {
-		        if (testCase) return (true);
-				switch (function)
-				{
-					case IMPLANT:
-						return (func.isSubstrate());
-					case AREA:
-						return (func.isPoly() || func.isMetal());
-					default:
-						return (false);
-				}
-	        }
-
-            public LayerVisitor(boolean test, PolyQTree t, java.util.List delList, int func, HashMap original, Set netSet)
-            {
-                this.testCase = test;
-                this.tree = t;
-                this.deleteList = delList;
-                this.function = func;
-	            this.originalPolygons = original;
-	            this.netSet = netSet;
-            }
-            public void exitCell(HierarchyEnumerator.CellInfo info)
-            {
-            }
-
-            public boolean enterCell(HierarchyEnumerator.CellInfo info)
-            {
-                Cell curCell = info.getCell();
-	            Netlist netlist = info.getNetlist();
-	            // @TODO GVG put node checking into visitorNode
-
-	            // Checking if any network is found
-				boolean found = (netSet == null);
-				for (Iterator it = netlist.getNetworks(); !found && it.hasNext(); )
-				{
-					Network aNet = (Network)it.next();
-					Network parentNet = aNet;
-					HierarchyEnumerator.CellInfo cinfo = info;
-					boolean netFound = false;
-					while ((netFound = netSet.contains(parentNet)) == false && cinfo.getParentInst() != null) {
-						parentNet = cinfo.getNetworkInParent(parentNet);
-//						parentNet = HierarchyEnumerator.getNetworkInParent(parentNet, cinfo.getParentInst());
-						cinfo = cinfo.getParentInfo();
-					}
-					found = netFound;
-				}
-				if (!found) return (false);
-
-                // Traversing arcs
-                for (Iterator it = curCell.getArcs(); it.hasNext(); )
-                {
-                    ArcInst arc = (ArcInst)it.next();
-	                int width = netlist.getBusWidth(arc);
-					found = (netSet == null);
-
-					for (int i=0; !found && i<width; i++)
-					{
-						Network parentNet = netlist.getNetwork(arc, i);
-						HierarchyEnumerator.CellInfo cinfo = info;
-						boolean netFound = false;
-						while ((netFound = netSet.contains(parentNet)) == false && cinfo.getParentInst() != null) {
-							parentNet = cinfo.getNetworkInParent(parentNet);
-//							parentNet = HierarchyEnumerator.getNetworkInParent(parentNet, cinfo.getParentInst());
-							cinfo = cinfo.getParentInfo();
-						}
-		                found = netFound;
-					}
-					if (!found) continue; // skipping this arc
-                    ArcProto arcType = arc.getProto();
-                    Technology tech = arcType.getTechnology();
-                    Poly[] polyList = tech.getShapeOfArc(arc);
-
-                    // Treating the arcs associated to each node
-                    // Arcs don't need to be rotated
-                    for (int i = 0; i < polyList.length; i++)
-                    {
-                        Poly poly = polyList[i];
-                        Layer layer = poly.getLayer();
-                        Layer.Function func = layer.getFunction();
-
-	                    boolean value = IsValidFunction(func, function, testCase);
-                        if (!value) continue;
-
-	                    poly.transform(info.getTransformToRoot());
-						PolyQTree.PolyNode pnode = new PolyQTree.PolyNode(poly);
-						if (function == IMPLANT)
-						{
-							// For coverage implants
-							Map map = (Map)originalPolygons.get(layer);
-							if (map == null)
-							{
-								map = new HashMap();
-								originalPolygons.put(layer, map);
-							}
-							map.put(pnode, pnode.clone());
-						}
-	                    //if (layer.getName().equals("Metal-1"))
-                        tree.add(layer, pnode, false/*function==NETWORK*/);  // tmp fix
-                    }
-                }
-
-	            // Skipping actual nodes
-	            //if (function == NETWORK) return (true);
-
-                // Traversing nodes
-                // This function should be moved to visitNodeInst
-                for (Iterator it = curCell.getNodes(); it.hasNext(); )
-                {
-                    NodeInst node = (NodeInst)it.next();
-
-	                found = (netSet == null);
-
-	                for(Iterator pIt = node.getPortInsts(); !found && pIt.hasNext(); )
-					{
-						PortInst pi = (PortInst)pIt.next();
-						PortProto subPP = pi.getPortProto();
-						Network oNet = info.getNetlist().getNetwork(node, subPP, 0);
-						Network parentNet = oNet;
-						HierarchyEnumerator.CellInfo cinfo = info;
-						boolean netFound = false;
-						while ((netFound = netSet.contains(parentNet)) == false && cinfo.getParentInst() != null) {
-							parentNet = cinfo.getNetworkInParent(parentNet);
-//							parentNet = HierarchyEnumerator.getNetworkInParent(parentNet, cinfo.getParentInst());
-							cinfo = cinfo.getParentInfo();
-						}
-		                found = netFound;
-					}
-					if (!found) continue; // skipping this node
-
-                    // Coverage implants are pure primitive nodes
-                    // and they are ignored.
-                    if (!testCase && node.isPrimtiveSubstrateNode()) //node.getFunction() == PrimitiveNode.Function.NODE)
-                    {
-                        deleteList.add(node);
-                        continue;
-                    }
-
-                    NodeProto protoType = node.getProto();
-
-	                // Skip Facet-Center
-	                if (protoType == Tech.facetCenter)
-	                    continue;
-
-                    //  Analyzing only leaves
-                    if (!(protoType instanceof Cell))
-                    {
-                        Technology tech = protoType.getTechnology();
-                        Poly[] polyList = tech.getShapeOfNode(node);
-                        AffineTransform transform = node.rotateOut();
-
-                        for (int i = 0; i < polyList.length; i++)
-                        {
-                            Poly poly = polyList[i];
-                            Layer layer = poly.getLayer();
-                            Layer.Function func = layer.getFunction();
-
-                            // Only checking poly or metal for AREA case
-                            boolean value = IsValidFunction(func, function, testCase);
-                            if (!value) continue;
-
-	                        if (poly.getPoints().length < 3)
-	                        {
-		                        // When is this happening?
-		                        continue;
-	                        }
-
-                            poly.transform(transform);
-                            // Not sure if I need this for general merge polygons function
-                            poly.transform(info.getTransformToRoot());
-
-	                        PolyQTree.PolyNode pnode = new PolyQTree.PolyNode(poly);
-	                        if (function == IMPLANT)
-	                        {
-								// For coverage implants
-								Map map = (Map)originalPolygons.get(layer);
-								if (map == null)
-								{
-									map = new HashMap();
-									originalPolygons.put(layer, map);
-								}
-		                        map.put(pnode, pnode.clone());
-	                        }
-	                        //if (layer.getName().equals("Metal-1"))
-                            tree.add(layer, pnode, false/*function==NETWORK*/);
-                        }
-                    }
-                }
-                return (true);
-            }
-            public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
-            {
-	            // @todo GVG Migrate functionality here from enterCell
-                return (true);
-            }
-        }
-
-        protected LayerCoverageJob(Type jobType, Cell cell, int func, boolean test)
-        {
-            super("Layer Coverage", User.tool, jobType, null, null, Job.Priority.USER);
-            this.curCell = cell;
-            this.testCase = test;
-            this.tree = new PolyQTree(curCell.getBounds());
-            this.function = func;
-            this.deleteList = new ArrayList(); // should only be used by IMPLANT
-
-            setReportExecutionFlag(true);
-            startJob();
-        }
-
-        public boolean doIt()
-        {
-            // enumerate the hierarchy below here
-            LayerVisitor visitor = new LayerVisitor(testCase, tree, deleteList, function, originalPolygons, null);
-            HierarchyEnumerator.enumerateCell(curCell, VarContext.globalContext, null, visitor);
-
-            switch (function)
-            {
-                case AREA:
-                    {
-                        double lambdaSqr = 1;
-                        // @todo GVG Calculates lambda!
-                        Rectangle2D bbox = curCell.getBounds();
-                        double totalArea =  (bbox.getHeight()*bbox.getWidth())/lambdaSqr;
-
-                        // Traversing tree with merged geometry
-                        for (Iterator it = tree.getKeyIterator(); it.hasNext(); )
-                        {
-                            Layer layer = (Layer)it.next();
-                            Collection set = tree.getObjects(layer, false, true);
-                            double layerArea = 0;
-
-                            // Get all objects and sum the area
-                            for (Iterator i = set.iterator(); i.hasNext(); )
-                            {
-                                PolyQTree.PolyNode area = (PolyQTree.PolyNode)i.next();
-                                layerArea += area.getArea();
-                            }
-                            System.out.println("Layer " + layer.getName() + " covers " + TextUtils.formatDouble(layerArea) + " square lambda (" + TextUtils.formatDouble((layerArea/totalArea)*100, 0) + "%)");
-                        }
-
-                        System.out.println("Cell is " + TextUtils.formatDouble(totalArea, 2) + " square lambda (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
-                    }
-                    break;
-                case MERGE:
-                case IMPLANT:
-                    {
-                        EditWindow wnd = EditWindow.needCurrent();
-                        Highlighter highlighter = null;
-                        if ((wnd != null) && (wnd.getCell() == curCell))
-                            highlighter = wnd.getHighlighter();
-
-                        // With polygons collected, new geometries are calculated
-                        if (highlighter != null) highlighter.clear();
-                        boolean noNewNodes = true;
-                        boolean isMerge = (function == MERGE);
-
-                        // Need to detect if geometry was really modified
-                        for(Iterator it = tree.getKeyIterator(); it.hasNext(); )
-                        {
-                            Layer layer = (Layer)it.next();
-                            Collection set = tree.getObjects(layer, !isMerge, true);
-
-                            // Ready to create new implants.
-                            for (Iterator i = set.iterator(); i.hasNext(); )
-                            {
-                                PolyQTree.PolyNode qNode = (PolyQTree.PolyNode)i.next();
-
-	                            if (function == IMPLANT)
-	                            {
-		                            Map map = (Map)originalPolygons.get(layer);
-		                            // One of the original elements
-		                            if (map.containsValue(qNode))
-			                            continue;
-	                            }
-                                Rectangle2D rect = qNode.getBounds2D();
-                                Point2D center = new Point2D.Double(rect.getCenterX(), rect.getCenterY());
-                                PrimitiveNode priNode = layer.getPureLayerNode();
-                                // Adding the new implant. New implant not assigned to any local variable                                .
-                                NodeInst node = NodeInst.makeInstance(priNode, center, rect.getWidth(), rect.getHeight(), curCell);
-                                if (highlighter != null)
-                                    highlighter.addElectricObject(node, curCell);
-
-                                if (isMerge)
-                                {
-                                    Point2D [] points = qNode.getPoints();
-                                    node.newVar(NodeInst.TRACE, points);
-                                }
-                                else
-                                {
-                                    // New implant can't be selected again
-                                    node.setHardSelect();
-                                }
-                                noNewNodes = false;
-                            }
-                        }
-                        if (highlighter != null) highlighter.finished();
-                        for (Iterator it = deleteList.iterator(); it.hasNext(); )
-                        {
-                            NodeInst node = (NodeInst)it .next();
-                            node.kill();
-                        }
-                        if (noNewNodes)
-                            System.out.println("No new areas added");
-
-                    }
-                    break;
-                default:
-                    System.out.println("Error in LayerCoverageJob: function not implemented");
-            }
-            return true;
-        }
-    }
-
-    public static void listToolsCommand()
+	public static void listToolsCommand()
     {
         System.out.println("Tools in Electric:");
         for(Iterator it = Tool.getTools(); it.hasNext(); )

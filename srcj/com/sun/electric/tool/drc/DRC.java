@@ -290,24 +290,6 @@ public class DRC extends Listener
 		}
 		// never used
 		public boolean doIt() { return (false);}
-
-
-		/**
-		* Check if we are scheduled to abort. If so, print msg if non null
-		 * and return true.
-		 * @return true on abort, false otherwise
-		 */
-		protected boolean checkAbort()
-		{
-            if (getAborted()) return (true);
-			boolean scheduledAbort = getScheduledToAbort();
-			if (scheduledAbort)
-			{
-				System.out.println(this + ": aborted");  // should call Job.toString()
-				setAborted();                   // Job has been aborted
-			}
-			return scheduledAbort;
-		}
 	}
 
 	private static class CheckLayoutHierarchically extends CheckDRCLayoutJob

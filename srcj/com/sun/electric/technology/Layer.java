@@ -28,6 +28,7 @@ import com.sun.electric.database.prototype.ArcProto.Function;
 import com.sun.electric.database.text.Pref;
 
 import java.util.HashMap;
+import java.util.Comparator;
 
 /**
  * The Layer class defines a single layer of material, out of which NodeInst and ArcInst objects are created.
@@ -244,6 +245,16 @@ public class Layer
 		 * @return the distance of this layer function.
 		 */
 		public int getHeight() { return height; }
+	}
+
+	public static class LayerSort implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			String s1 = ((Layer)o1).getName();
+			String s2 = ((Layer)o2).getName();;
+			return s1.compareToIgnoreCase(s2);
+		}
 	}
 
 	private String name;

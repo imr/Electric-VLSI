@@ -566,6 +566,23 @@ public abstract class Job implements ActionListener, Runnable {
     /** get deleteWhenDone status */
     public boolean getDeleteWhenDone() { return deleteWhenDone; }
 
+	/**
+	* Check if we are scheduled to abort. If so, print msg if non null
+	 * and return true.
+	 * @return true on abort, false otherwise
+	 */
+	public boolean checkAbort()
+	{
+		if (getAborted()) return (true);
+		boolean scheduledAbort = getScheduledToAbort();
+		if (scheduledAbort)
+		{
+			System.out.println(this + ": aborted");  // should call Job.toString()
+			setAborted();                   // Job has been aborted
+		}
+		return scheduledAbort;
+	}
+
     /** get all jobs iterator */
     public static Iterator getAllJobs() { return databaseChangesThread.getAllJobs(); }
     

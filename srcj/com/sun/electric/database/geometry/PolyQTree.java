@@ -34,8 +34,7 @@ import java.util.List;
  * @author  Gilda Garreton
  * @version 0.1
  */
-public class PolyQTree
-        implements GeometryHandler
+public class PolyQTree implements GeometryHandler
 {
 	private static int MAX_NUM_CHILDREN = 4;
 	//private static int MAX_DEPTH = 10;
@@ -62,12 +61,21 @@ public class PolyQTree
 	}
 
 	/**
+	 * Access to keySet to create a collection for example
+	 * @return
+	 */
+	public Collection getKeySet()
+	{
+		return (layers.keySet());
+	}
+
+	/**
 	 * Access to keySet with iterator
 	 * @return iterator for keys in hashmap
 	 */
 	public Iterator getKeyIterator()
 	{
-		return (layers.keySet().iterator());
+		return (getKeySet().iterator());
 	}
 
 	/**
@@ -93,7 +101,30 @@ public class PolyQTree
 
 		if (root != null)
 		{
+			// First collect all leaves. They might be repeated so I must collect them first
 			root.getLeafObjects(objSet, modified, simple);
+
+			// Checking if element must be replaced
+			Set toRemove = new HashSet();
+			Set toAdd  = new HashSet();
+			for (Iterator it = objSet.iterator(); it.hasNext();)
+			{
+				PolyNode node = (PolyNode)it.next();
+				//if (!modified || (modified && !node.isOriginal()))
+				{
+					boolean old = (!(node.isOriginal() || !simple));
+					boolean newC = !node.isOriginal() && simple;
+					if (newC != old)
+						System.out.println("Aqui wribg");
+					if (!(node.isOriginal() || !simple))
+					{
+						toRemove.add(node);
+						toAdd.addAll(node.getSimpleObjects(false));
+					}
+				}
+			}
+			objSet.addAll(toAdd);
+			objSet.removeAll(toRemove);
 		}
 		return (objSet);
 	}
@@ -116,8 +147,19 @@ public class PolyQTree
 		};
 		// Only if no other identical element was found, element is inserted
 		Rectangle2D areaBB = obj.getBounds2D();
-		if (!root.findAndRemoveObjects(rootBox, obj, areaBB, fasterAlgorithm))
-			root.insert(rootBox, obj, areaBB);
+		Set removedElems = new HashSet();
+		if (!root.findAndRemoveObjects(rootBox, obj, areaBB, fasterAlgorithm, removedElems))
+		{
+			// Add removed elements. They overlap with new element.
+			for (Iterator it = removedElems.iterator(); it.hasNext(); )
+			{
+				PolyNode node = (PolyNode)it.next();
+				obj.add(node);
+			}
+			// Recalculate the new bounding box because it might have extended
+			areaBB = obj.getBounds2D();
+			root.insert(rootBox, obj, areaBB, removedElems);
+		}
 	}
 
 	/**
@@ -592,10 +634,10 @@ public class PolyQTree
 					PolyNode node = (PolyNode)it.next();
 					if (!modified || (modified && !node.isOriginal()))
 					{
-						if (node.isOriginal() || !simple)
+						//if (node.isOriginal() || !simple)
 							set.add(node);
-						else
-							set.addAll(node.getSimpleObjects(false));
+						//else
+							//set.addAll(node.getSimpleObjects(false));
 					}
 				}
 			}
@@ -604,8 +646,8 @@ public class PolyQTree
 			{
 				if (children[i] != null) children[i].getLeafObjects(set, modified, simple);
 			}
-
 		}
+
 		/**
 		 *   print function for debugging purposes
 		 */
@@ -675,7 +717,8 @@ public class PolyQTree
 		 * @param fasterAlgorithm
 		 * @return
 		 */
-		protected boolean findAndRemoveObjects(Rectangle2D box, PolyNode obj, Rectangle2D areaBB, boolean fasterAlgorithm)
+		protected boolean findAndRemoveObjects(Rectangle2D box, PolyNode obj, Rectangle2D areaBB,
+		                                       boolean fasterAlgorithm, Set removedElems)
 		{
 			double centerX = box.getCenterX();
             double centerY = box.getCenterY();
@@ -699,7 +742,7 @@ public class PolyQTree
 						// No need of reviewing other quadrants?
 						if (children[i] == null) continue;
 
-						if (children[i].findAndRemoveObjects(bb, obj, areaBB, fasterAlgorithm))
+						if (children[i].findAndRemoveObjects(bb, obj, areaBB, fasterAlgorithm, removedElems))
 							return (true);
 
 						if (children[i].compact())
@@ -709,24 +752,29 @@ public class PolyQTree
 			}
 			else if (nodes != null)
 			{
-				List deleteList = new ArrayList();
+				Set deleteSet = new HashSet();
 
 				for (Iterator it = nodes.iterator(); it.hasNext();)
 				{
 					PolyNode node = (PolyNode)it.next();
 
 					if (node.equals((Object)obj))
-						return (true);
+					{
+						if (removedElems.size() != 0)
+							System.out.println("I will have problems here!!");
+						return (true);           // I will have problems here!!!
+					}
 
 					// @TODO this should be reviewed!!
 					if (!fasterAlgorithm || (fasterAlgorithm && node.intersects(obj)))
 					{
-						obj.add(node);
+						//obj.add(node);  // It might removed immeadiately in other quadrants
+						removedElems.add(node);
 						obj.setNotOriginal();
-						deleteList.add(node);
+						deleteSet.add(node);
 					}
 				}
-				nodes.removeAll(deleteList);
+				nodes.removeAll(deleteSet);
 				if (nodes.size() == 0)
 				{
 					// not sure yet
@@ -747,7 +795,8 @@ public class PolyQTree
 		 * @param areaBB Bounding box of the object to insert
 		 * @return True if element was inserted
 		 */
-		protected boolean insertInAllChildren(Rectangle2D box, double centerX, double centerY, PolyNode obj, Rectangle2D areaBB)
+		protected boolean insertInAllChildren(Rectangle2D box, double centerX, double centerY, PolyNode obj,
+		                                      Rectangle2D areaBB, Set removedElems)
 		{
 			int loc = getQuadrants(centerX, centerY, areaBB);
 			boolean inserted = false;
@@ -764,20 +813,23 @@ public class PolyQTree
 
 					if (children[i] == null) children[i] = new PolyQNode();
 
-					boolean done = children[i].insert(bb, obj, areaBB);
+					boolean done = children[i].insert(bb, obj, areaBB, removedElems);
 
 					inserted = (inserted) ? inserted : done;
 				}
 			}
 			return (inserted);
 		}
+
 		/**
 		 *
 		 * @param box Bounding box of the current PolyQNode
 		 * @param obj Object to insert
 		 * @param areaBB Bounding box of object to insert
+		 * @param removedElems list of old nodes that might need to be replaced
+		 * @return if node was really inserted
 		 */
-		protected boolean insert(Rectangle2D box, PolyNode obj, Rectangle2D areaBB)
+		protected boolean insert(Rectangle2D box, PolyNode obj, Rectangle2D areaBB, Set removedElems)
 		{
 			if (!box.intersects(areaBB))
 			{
@@ -792,7 +844,7 @@ public class PolyQTree
 			// Node has been split
 			if (children != null)
 			{
-				return (insertInAllChildren(box, centerX, centerY, obj, areaBB));
+				return (insertInAllChildren(box, centerX, centerY, obj, areaBB, removedElems));
 			}
 			if (nodes == null)
 			{
@@ -803,6 +855,9 @@ public class PolyQTree
 			if (nodes.size() < PolyQTree.MAX_NUM_CHILDREN)
 			{
 				inserted = nodes.add(obj);
+				// still might have references to previous nodes that were merged.
+				if(removedElems != null)
+					nodes.removeAll(removedElems);
 				//  nodes.add(obj.clone());
 			}
 			else
@@ -824,12 +879,12 @@ public class PolyQTree
 					{
 						PolyNode node = (PolyNode)it.next();
 
-						children[i].insert(bb, node, node.getBounds2D());
+						children[i].insert(bb, node, node.getBounds2D(), removedElems);
 					}
 				}
 				nodes.clear(); // not sure about this clear yet
 				nodes = null;
-				inserted = insertInAllChildren(box, centerX, centerY, obj, areaBB);
+				inserted = insertInAllChildren(box, centerX, centerY, obj, areaBB, null);
 			}
 			return (inserted);
 		}
