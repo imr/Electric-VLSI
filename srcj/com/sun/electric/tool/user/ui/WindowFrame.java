@@ -77,6 +77,7 @@ public class WindowFrame
 	/** the error explorer part. */						public DefaultMutableTreeNode errorExplorerNode;
 	/** the signal explorer part. */					public DefaultMutableTreeNode signalExplorerNode;
 	/** the explorer part of a frame. */				private DefaultTreeModel treeModel;
+    /** true if this window is finished */              private boolean finished = false;
 
 	/** the offset of each new windows from the last */	private static int windowOffset = 0;
 	/** the list of all windows on the screen */		private static List windowList = new ArrayList();
@@ -678,6 +679,7 @@ public class WindowFrame
 	private static void setCurrentWindowFrame(WindowFrame wf)
 	{
         synchronized(windowList) {
+            if (wf.finished) return;            // don't do anything, the window is finished
             curWindowFrame = wf;
             // set this to be last in list
             windowList.remove(wf);
@@ -756,6 +758,7 @@ public class WindowFrame
                 return;
             }
             windowList.remove(this);
+            finished = true;
 		    if (curWindowFrame == this) curWindowFrame = null;
         }
 
