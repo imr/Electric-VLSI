@@ -2,11 +2,10 @@
 
 ************************* Version 8.01b: *********************************
 
+IMP (7/23/04, RK) If Export names don't match then suggest a possible mapping
 
 
 ************************* Version 8.01a: Released 7/22/04 ************************
-
-IMP (7/23/04, RK) If Export names don't match then suggest a possible mapping
 
 IMP/MAN: (7/22/04, JKG) Numerical display now always formats to show postfix. Units Preferences
      disabled, as they no longer make sense. Use TextUtils.parseUserInput to read in numbers.
