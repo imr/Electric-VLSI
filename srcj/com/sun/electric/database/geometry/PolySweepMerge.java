@@ -73,9 +73,13 @@ public class PolySweepMerge extends GeometryHandler
 
     private static class PolySweepContainer
     {
-        List polyList = new ArrayList();
+        List polyList = null;
         List areas = null; // Needs to be a list to apply sort
 
+        public PolySweepContainer(boolean createPolyList)
+        {
+            polyList = (createPolyList) ? new ArrayList() : null;
+        }
         public void add(Object value)
         {
             polyList.add(value);
@@ -90,7 +94,7 @@ public class PolySweepMerge extends GeometryHandler
 
         if (container == null)
         {
-            container = new PolySweepContainer();
+            container = new PolySweepContainer(true);
             layers.put(layer, container);
         }
         container.add(value);
@@ -110,7 +114,8 @@ public class PolySweepMerge extends GeometryHandler
             // Nothing valid in top cell
             if (container == null)
             {
-                container = new PolySweepContainer();
+                // No need of creating polyListArray
+                container = new PolySweepContainer(false);
                 layers.put(layer, container);
                 container.areas = new ArrayList();
             }

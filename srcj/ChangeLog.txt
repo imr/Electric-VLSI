@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02g: *********************************
 
+IMP: (02/03/05, GVG) Removing extra call in ERC for subMerge trees.
+
 IMP: (02/03/05, GVG) Optimizing usage of memory in sweep algorithm (using ERC as test case).
 
 IMP: (02/03/05, GVG) Change dialog: node names in dialog sorted.

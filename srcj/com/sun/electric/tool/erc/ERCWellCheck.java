@@ -590,8 +590,9 @@ public class ERCWellCheck
 			Cell cell = info.getCell();
 	        GeometryHandler thisMerge = (GeometryHandler)check.cellMerges.get(info.getCell());
 			if (thisMerge == null) throw new Error("wrong condition in ERCWellCheck.enterCell()");
+            boolean done = check.doneCells.get(cell) != null;
 
-	        if (check.doneCells.get(cell) == null)
+	        if (!done)
 	        {
                 boolean qTreeAlgo = check.mode == GeometryHandler.ALGO_QTREE;
 
@@ -618,10 +619,6 @@ public class ERCWellCheck
 
                 if (check.mode == GeometryHandler.ALGO_SWEEP)
                     ((PolySweepMerge)thisMerge).postProcess();
-	        }
-
-	        // To mark if cell is already done
-			check.doneCells.put(cell, cell);
 
 			// merge everything sub trees
 			for(Iterator it = cell.getNodes(); it.hasNext(); )
@@ -637,6 +634,10 @@ public class ERCWellCheck
 					thisMerge.addAll(subMerge, tTrans);
 				}
 			}
+	        }
+
+	        // To mark if cell is already done
+			check.doneCells.put(cell, cell);
        }
         public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
         {
