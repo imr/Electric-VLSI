@@ -2,6 +2,8 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (5/28/04, GVG) Testing qTree in ERC Check Well (new function doesn't overwrite current one).
+
 IMP: (5/28/04, GVG) Added execution flag to Job class. Second version of qTree for polygon merging
 
 IMP: (5/28/04, RK) Added fill cells: fill456_pwr and fill456w_pwr. Merge Jonathan's gate generator code into mine. Add user interface checks.

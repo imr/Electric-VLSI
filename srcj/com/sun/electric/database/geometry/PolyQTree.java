@@ -25,6 +25,7 @@
 package com.sun.electric.database.geometry;
 
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.AffineTransform;
 import java.util.*;
 
 /**
@@ -112,6 +113,23 @@ public class PolyQTree {
 		// Only if no other identical element was found, element is inserted
 		if (!root.findAndRemoveObjects(box, testBox))
 			root.insert(box, testBox);
+	}
+
+	public void insert(PolyQTree other, Rectangle2D bounds, AffineTransform trans)
+	{
+		for(Iterator it = other.layers.keySet().iterator(); it.hasNext();)
+		{
+			Object layer = it.next();
+			Set set = other.getObjects(layer, null);
+
+			for(Iterator i = set.iterator(); i.hasNext(); )
+			{
+				Rectangle2D rect = (Rectangle2D)i.next();
+                // missing the transformation
+				System.out.println("Missing transformation " + trans);
+				insert(layer, bounds, rect);
+			}
+		}
 	}
 
 	//--------------------------PRIVATE METHODS--------------------------
