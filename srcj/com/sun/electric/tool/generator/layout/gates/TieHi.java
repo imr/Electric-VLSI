@@ -55,8 +55,9 @@ public class TieHi {
 		// We need to export two pins in order to export two hints, one
 		// for the width of metal-2 Vdd connections and one for the width
 		// of metal-1 out connections.
-		LayoutLib.newExport(tieHi, "vdd", PortProto.Characteristic.PWR,
-							Tech.m2, 4, pwrX, pwrY);
+		String vddName = stdCell.getVddExportName();
+		PortProto.Characteristic vddRole = stdCell.getVddExportRole();
+		LayoutLib.newExport(tieHi, vddName, vddRole, Tech.m2, 4, pwrX, pwrY);
 		LayoutLib.newExport(tieHi, "pwr", PortProto.Characteristic.OUT,
 							Tech.m1, 4, pwrX, pwrY);
 
@@ -66,7 +67,7 @@ public class TieHi {
 											 0, tieHi).getOnlyPortInst();
 		
 		LayoutLib.newArcInst(Tech.m2, DEF_SIZE,
-							 tieHi.findExport("vdd").getOriginalPort(), via);
+							 tieHi.findExport(vddName).getOriginalPort(), via);
 		LayoutLib.newArcInst(Tech.m1, DEF_SIZE,
 							 tieHi.findExport("pwr").getOriginalPort(), via);
 		

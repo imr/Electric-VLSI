@@ -355,14 +355,16 @@ class CapCell {
 
 	/** Interleave well contacts with diffusion contacts left to right. Begin 
 	 *  and end with well contacts */
-	private PortInst[] diffCont(double y, ProtoPlan plan, Cell cell) {
+	private PortInst[] diffCont(double y, ProtoPlan plan, Cell cell, 
+	                            StdCellParams stdCell) {
 		PortInst[] conts = new PortInst[plan.numMosX];
 		double x = - plan.numMosX * plan.mosPitchX / 2;
 		PortInst wellCont = LayoutLib.newNodeInst(Tech.pwm1, x, y, G.DEF_SIZE,  
 										 		  G.DEF_SIZE, 0, cell
 										 		  ).getOnlyPortInst();
-		Export e = Export.newInstance(cell, wellCont, "gnd_"+gndNum++);
-		e.setCharacteristic(PortProto.Characteristic.PWR);
+		Export e = Export.newInstance(cell, wellCont, 
+		                              stdCell.getGndExportName()+"_"+gndNum++);
+		e.setCharacteristic(stdCell.getGndExportRole());
 
 		for (int i=0; i<plan.numMosX; i++) {
 			x += plan.mosPitchX/2;
@@ -394,15 +396,16 @@ class CapCell {
 	/** Interleave gate contacts and MOS transistors left to right. Begin 
 	 *  and end with gate contacts. */ 
 	private void mos(PortInst[] botDiffs, PortInst[] topDiffs, double y, 
-					 ProtoPlan plan, Cell cell) {
+					 ProtoPlan plan, Cell cell, StdCellParams stdCell) {
 		final double POLY_CONT_HEIGHT = plan.vddWidth + 1;
 		double x = plan.leftWellContX;
 		PortInst poly = LayoutLib.newNodeInst(Tech.p1m1, x, y, POLY_CONT_WIDTH, 
 											  POLY_CONT_HEIGHT, 0, cell
 											  ).getOnlyPortInst();	
 		PortInst leftCont = poly;
-		Export e = Export.newInstance(cell, poly, "vdd_"+vddNum++);
-		e.setCharacteristic(PortProto.Characteristic.PWR);
+		Export e = Export.newInstance(cell, poly,
+		                              stdCell.getVddExportName()+"_"+vddNum++);
+		e.setCharacteristic(stdCell.getVddExportRole());
 		
 		for (int i=0; i<plan.numMosX; i++) {
 			x += plan.mosPitchX/2;
@@ -459,25 +462,27 @@ class CapCell {
 		}
 	}
 		
-	public CapCell(Library lib, CapFloorplan instPlan) {
+	public CapCell(Library lib, CapFloorplan instPlan, StdCellParams stdCell) {
 		this.plan = new ProtoPlan(instPlan);
 		PortInst[] botDiffs = new PortInst[plan.numMosX]; 
 		PortInst[] topDiffs = new PortInst[plan.numMosX]; 
 
-		cell = Cell.newInstance(lib, "fillCap{lay}");
+		String nameExt = stdCell.getVddExportName().equals("vdd") ? "" : "_pwr";
+		cell = Cell.newInstance(lib, "fillCap"+nameExt+"{lay}");
 		double y = plan.botWellContY;
 	
-		PortInst[] lastCont = diffCont(y, plan, cell);
+		PortInst[] lastCont = diffCont(y, plan, cell, stdCell);
 		for (int i=0; i<plan.numMosY; i++) {
 			y += plan.mosPitchY/2;
-			mos(botDiffs, topDiffs, y, plan, cell);
+			mos(botDiffs, topDiffs, y, plan, cell, stdCell);
 			connectDiffs(lastCont, botDiffs);
 			y += plan.mosPitchY/2;
-			lastCont = diffCont(y, plan, cell);
+			lastCont = diffCont(y, plan, cell, stdCell);
 			connectDiffs(topDiffs, lastCont);
 		}
 		// Cover the sucker with well to eliminate notch errors
-		LayoutLib.newNodeInst(Tech.pwell, 0, 0, plan.protoWidth, plan.protoHeight, 0, cell);
+		LayoutLib.newNodeInst(Tech.pwell, 0, 0, plan.protoWidth, 
+		                      plan.protoHeight, 0, cell);
 	}
 	public int numVdd() {return plan.numMosY;}
 	public int numGnd() {return plan.numMosY+1;}
@@ -491,10 +496,14 @@ class CapLayer implements VddGndStraps {
 	private CapCell capCell;
 	private NodeInst capCellInst;
 	private CapFloorplan plan; 
+	private String vddName, gndName;
 
-	public CapLayer(Library lib, CapFloorplan plan, CapCell capCell, Cell cell) {
+	public CapLayer(Library lib, CapFloorplan plan, CapCell capCell, Cell cell,
+	                StdCellParams stdCell) {
 		this.plan = plan;
 		this.capCell = capCell; 
+		vddName = stdCell.getVddExportName();
+		gndName = stdCell.getGndExportName(); 
 
 		double angle = plan.horizontal ? 0 : 90;
 		capCellInst = LayoutLib.newNodeInst(capCell.getCell(), 0, 0, G.DEF_SIZE,
@@ -503,14 +512,18 @@ class CapLayer implements VddGndStraps {
 
 	public boolean isHorizontal() {return plan.horizontal;}
 	public int numVdd() {return capCell.numVdd();}
-	public PortInst getVdd(int n) {return capCellInst.findPortInst("vdd_"+n);}
+	public PortInst getVdd(int n) {
+		return capCellInst.findPortInst(vddName+"_"+n);
+	}
 	public double getVddCenter(int n) {
 		Rectangle2D bounds = getVdd(n).getBounds();
 		return plan.horizontal ? bounds.getCenterY() : bounds.getCenterX();
 	}
 	public double getVddWidth(int n) {return capCell.getVddWidth();}
 	public int numGnd() {return capCell.numGnd();}
-	public PortInst getGnd(int n) {return capCellInst.findPortInst("gnd_"+n);}
+	public PortInst getGnd(int n) {
+		return capCellInst.findPortInst(gndName+"_"+n);
+	}
 	public double getGndCenter(int n) {
 		Rectangle2D bounds = getGnd(n).getBounds();
 		return plan.horizontal ? bounds.getCenterY() : bounds.getCenterX();
@@ -527,25 +540,28 @@ class CapLayer implements VddGndStraps {
 // ---------------------------------- FillCell --------------------------------
 class FillCell {
 	private int vddNum, gndNum;
-	
+	private String vddNm, gndNm;
+		
 	private String vddName() {
 		int n = vddNum++; 
-		return "vdd" + (n==0 ? "" : ("_"+n)); 
+		return vddNm + (n==0 ? "" : ("_"+n)); 
 	}
 	private String gndName() {
 		int n = gndNum++; 
-		return "gnd" + (n==0 ? "" : ("_"+n)); 
+		return gndNm + (n==0 ? "" : ("_"+n)); 
 	}
 	
-	public void exportPerimeter(VddGndStraps lay, Cell cell) {
+	public void exportPerimeter(VddGndStraps lay, Cell cell, 
+	StdCellParams stdCell) {
 		for (int i=0; i<lay.numGnd(); i++) {
-			exportStripeEnds(i, lay, true, cell);				 
+			exportStripeEnds(i, lay, true, cell, stdCell);				 
 		}
 		for (int i=0; i<lay.numVdd(); i++) {
-			exportStripeEnds(i, lay, false, cell);				 
+			exportStripeEnds(i, lay, false, cell, stdCell);				 
 		}
 	}
-	private void exportStripeEnds(int n, VddGndStraps lay, boolean gnd, Cell cell) {
+	private void exportStripeEnds(int n, VddGndStraps lay, boolean gnd, Cell cell,
+	StdCellParams stdCell) {
 		PrimitiveNode pin = lay.getPinType();
 		PrimitiveArc metal = lay.getMetalType();
 		double edge = (lay.isHorizontal() ? lay.getCellWidth() : lay.getCellHeight())/2;
@@ -554,35 +570,37 @@ class FillCell {
 		PortInst pi = gnd ? lay.getGnd(n) : lay.getVdd(n);
 		if (lay.isHorizontal()) {
 			export(-edge, center, pin, metal, pi, width, 
-				   gnd ? gndName() : vddName(), gnd, cell);	
+				   gnd ? gndName() : vddName(), gnd, cell, stdCell);	
 			export(edge, center, pin, metal, pi, width, 
-				   gnd ? gndName() : vddName(), gnd, cell);	
+				   gnd ? gndName() : vddName(), gnd, cell, stdCell);	
 		} else {
 			export(center, -edge, pin, metal, pi, width, 
-				   gnd ? gndName() : vddName(), gnd, cell);	
+				   gnd ? gndName() : vddName(), gnd, cell, stdCell);	
 			export(center, edge, pin, metal, pi, width, 
-				   gnd ? gndName() : vddName(), gnd, cell);	
+				   gnd ? gndName() : vddName(), gnd, cell, stdCell);	
 		}
 	}
 	private void export(double x, double y, PrimitiveNode pin, 
 						PrimitiveArc metal, PortInst conn, double w, 
-						String name, boolean gnd, Cell cell) {
+						String name, boolean gnd, Cell cell,
+						StdCellParams stdCell) {
 		PortInst pi = LayoutLib.newNodeInst(pin, x, y, G.DEF_SIZE, G.DEF_SIZE, 
 											0, cell).getOnlyPortInst();							 	
 		G.noExtendArc(metal, w, conn, pi);
 		Export e = Export.newInstance(cell, pi, name);
-		e.setCharacteristic(gnd ? PortProto.Characteristic.GND : 
-								  PortProto.Characteristic.PWR);
+		e.setCharacteristic(gnd ? stdCell.getGndExportRole() : 
+								  stdCell.getVddExportRole());
 	}
-	public void exportWiring(VddGndStraps lay, Cell cell) {
+	public void exportWiring(VddGndStraps lay, Cell cell, StdCellParams stdCell) {
 		for (int i=0; i<lay.numGnd(); i++) {
-			exportStripeCenter(i, lay, true, cell);				 
+			exportStripeCenter(i, lay, true, cell, stdCell);				 
 		}
 		for (int i=0; i<lay.numVdd(); i++) {
-			exportStripeCenter(i, lay, false, cell);				 
+			exportStripeCenter(i, lay, false, cell, stdCell);				 
 		}
 	}
-	private void exportStripeCenter(int n, VddGndStraps lay, boolean gnd, Cell cell) {
+	private void exportStripeCenter(int n, VddGndStraps lay, boolean gnd, Cell cell,
+	StdCellParams stdCell) {
 		PrimitiveNode pin = lay.getPinType();
 		PrimitiveArc metal = lay.getMetalType();
 		double center = gnd ? lay.getGndCenter(n) : lay.getVddCenter(n);
@@ -590,14 +608,15 @@ class FillCell {
 		PortInst pi = gnd ? lay.getGnd(n) : lay.getVdd(n);
 		if (lay.isHorizontal()) {
 			export(0, center, pin, metal, pi, width, 
-				   gnd ? gndName() : vddName(), gnd, cell);	
+				   gnd ? gndName() : vddName(), gnd, cell, stdCell);	
 		} else {
 			export(center, 0, pin, metal, pi, width, 
-				   gnd ? gndName() : vddName(), gnd, cell);	
+				   gnd ? gndName() : vddName(), gnd, cell, stdCell);	
 		}
 	}
 
-	private String fillName(int lo, int hi, boolean wireLowest) {
+	private String fillName(int lo, int hi, boolean wireLowest, 
+						    StdCellParams stdCell) {
 		StringBuffer buf = new StringBuffer();
 		buf.append("fill");
 		if (lo!=1 || hi!=6) {
@@ -605,6 +624,7 @@ class FillCell {
 		}
 
 		if (wireLowest)  buf.append("w");
+		if (!stdCell.getVddExportName().equals("vdd")) buf.append("_pwr");
 		buf.append("{lay}");
 		return buf.toString();
 	}
@@ -706,13 +726,15 @@ class FillCell {
    	}
 	
 	private Cell makeFillCell1(Library lib, Floorplan[] plans, int botLayer, 
-					 		   int topLayer, CapCell capCell, boolean wireLowest) {
-		String name = fillName(botLayer, topLayer, wireLowest);
+					 		   int topLayer, CapCell capCell, boolean wireLowest, 
+					 		   StdCellParams stdCell) {
+		String name = fillName(botLayer, topLayer, wireLowest, stdCell);
 		Cell cell = Cell.newInstance(lib, name);
 		VddGndStraps[] layers = new VddGndStraps[7];
 		for (int i=topLayer; i>=botLayer; i--) {
 			if (i==1) {
-				layers[i] = new CapLayer(lib, (CapFloorplan) plans[i], capCell, cell); 
+				layers[i] = new CapLayer(lib, (CapFloorplan) plans[i], capCell, 
+				                         cell, stdCell); 
 			} else {
 				layers[i] = new MetalLayer(i, (MetalFloorplan)plans[i], cell);
 			} 
@@ -721,9 +743,9 @@ class FillCell {
 				connectLayers(layers[i], layers[i+1], cell);
 			}
 		}
-		if (layers[topLayer]!=null) exportPerimeter(layers[topLayer], cell);
-		if (layers[topLayer-1]!=null) exportPerimeter(layers[topLayer-1], cell);
-		if (wireLowest)  exportWiring(layers[botLayer], cell);
+		if (layers[topLayer]!=null) exportPerimeter(layers[topLayer], cell, stdCell);
+		if (layers[topLayer-1]!=null) exportPerimeter(layers[topLayer-1], cell, stdCell);
+		if (wireLowest)  exportWiring(layers[botLayer], cell, stdCell);
 		
 		double cellWidth = plans[topLayer].cellWidth;
 		double cellHeight = plans[topLayer].cellHeight;
@@ -735,13 +757,17 @@ class FillCell {
 							  G.DEF_SIZE, G.DEF_SIZE, 0, cell);
 		return cell;
 	}
-	private FillCell() {}
+	private FillCell(StdCellParams stdCell) {
+		gndNm = stdCell.getGndExportName();
+		vddNm = stdCell.getVddExportName();
+	}
 	public static Cell makeFillCell(Library lib, Floorplan[] plans, 
 								   int botLayer, int topLayer, CapCell capCell, 
-								   boolean wireLowest) {
-		FillCell fc = new FillCell();
+								   boolean wireLowest, StdCellParams stdCell) {
+		FillCell fc = new FillCell(stdCell);
 
-		return fc.makeFillCell1(lib, plans, botLayer, topLayer, capCell, wireLowest);
+		return fc.makeFillCell1(lib, plans, botLayer, topLayer, capCell, 
+		                        wireLowest, stdCell);
 	}
 }
 
@@ -804,14 +830,15 @@ class TiledCell {
 	private static final int INTERIOR = 2;
 
 	private int vddNum, gndNum;
+	private final String vddNm, gndNm;
 
 	private String vddName() {
 		int n = vddNum++;
-		return n==0 ? "vdd" : "vdd_"+n;
+		return n==0 ? vddNm : vddNm+"_"+n;
 	}
 	private String gndName() {
 		int n = gndNum++;
-		return n==0 ? "gnd" : "gnd_"+n;
+		return n==0 ? gndNm : gndNm+"_"+n;
 	}
 
 	private static class OrderPortInstsByName implements Comparator {
@@ -879,20 +906,21 @@ class TiledCell {
 		}
 		return ports;
 	}
-	private void exportPortInsts(List ports, Cell tiled) {
+	private void exportPortInsts(List ports, Cell tiled,
+								 StdCellParams stdCell) {
 		Collections.sort(ports, new OrderPortInstsByName());
 		for (Iterator it=ports.iterator(); it.hasNext();) {
 			PortInst pi = (PortInst) it.next();
 			PortProto pp = (PortProto) pi.getPortProto();
 			PortProto.Characteristic role = pp.getCharacteristic(); 
-			if (role==PortProto.Characteristic.PWR) {
+			if (role==stdCell.getVddExportRole()) {
 				//System.out.println(pp.getProtoName());
 				Export e = Export.newInstance(tiled, pi, vddName());
-				e.setCharacteristic(PortProto.Characteristic.PWR);
-			} else if (role==PortProto.Characteristic.GND) {
+				e.setCharacteristic(role);
+			} else if (role==stdCell.getGndExportRole()) {
 				//System.out.println(pp.getProtoName());
 				Export e = Export.newInstance(tiled, pi, gndName());
-				e.setCharacteristic(PortProto.Characteristic.GND);
+				e.setCharacteristic(role);
 			} else {
 				LayoutLib.error(true, "unrecognized Characteristic");
 			}
@@ -901,7 +929,8 @@ class TiledCell {
 	/** export all PortInsts of all NodeInsts in insts that aren't connected
 	 * to something */
 	private void exportUnconnectedPortInsts(NodeInst[][] rows, 
-	                                        Floorplan[] plans, Cell tiled) {
+	                                        Floorplan[] plans, Cell tiled,
+	                                        StdCellParams stdCell) {
 		// Subtle!  If top layer is horizontal then begin numbering exports on 
 		// vertical edges of boundary first. This ensures that fill6_2x2 and 
 		// fill56_2x2 have matching port names on the vertical edges.
@@ -929,7 +958,7 @@ class TiledCell {
 					if (orientation!=INTERIOR || row==col) {
 						List ports = 
 							getUnconnectedPortInsts(orientation, rows[row][col]);
-						exportPortInsts(ports, tiled);
+						exportPortInsts(ports, tiled, stdCell);
 					} 
 				}
 			}
@@ -943,7 +972,10 @@ class TiledCell {
 		return rows;
 	}
 	private TiledCell(int numX, int numY, Cell cell, Floorplan[] plans, 
-	                  Library lib) {
+	                  Library lib, StdCellParams stdCell) {
+	    vddNm = stdCell.getVddExportName();
+	    gndNm = stdCell.getGndExportName();
+	    
 		String tiledName = "t"+cell.getProtoName()+"_"+numX+"x"+numY+"{lay}";
 		Cell tiled = Cell.newInstance(lib, tiledName);
 
@@ -968,11 +1000,12 @@ class TiledCell {
 		}
 		ArrayList portInsts = getAllPortInsts(tiled);
 		Router.connectCoincident(portInsts);
-		exportUnconnectedPortInsts(rows, plans, tiled);
+		exportUnconnectedPortInsts(rows, plans, tiled, stdCell);
 	}
 	public static void makeTiledCell(int numX, int numY, Cell cell, 
-	                                 Floorplan[] plans, Library lib) {
-		new TiledCell(numX, numY, cell, plans, lib);
+	                                 Floorplan[] plans, Library lib,
+	                                 StdCellParams stdCell) {
+		new TiledCell(numX, numY, cell, plans, lib, stdCell);
 	}
 }
 
@@ -1038,12 +1071,20 @@ public class FillLibGen extends Job {
 		//genFillCellFamily("noGapFillLib", noGapPlans);
 	}
 
-	private void makeTiledCells(Cell cell, Floorplan[] plans, Library lib) {
+	private void makeTiledCells(Cell cell, Floorplan[] plans, Library lib,
+	                            StdCellParams stdCell) {
 		for (int i=0; i<TILE_DIMS.length; i++) {
 			int numX = TILE_DIMS[i][0];
 			int numY = TILE_DIMS[i][1];
-			TiledCell.makeTiledCell(numX, numY, cell, plans, lib);
+			TiledCell.makeTiledCell(numX, numY, cell, plans, lib, stdCell);
 		}
+	}
+	private void makeAndTileCell(Library lib, Floorplan[] plans, int lowLay, 
+								 int hiLay, CapCell capCell, boolean wireLowest, 
+								 StdCellParams stdCell) {
+		Cell c = FillCell.makeFillCell(lib, plans, lowLay, hiLay, capCell, 
+		                               wireLowest, stdCell);
+		makeTiledCells(c, plans, lib, stdCell);
 	}
 
 	private void genFillCellFamily(String libName, Floorplan[] plans) {
@@ -1052,32 +1093,34 @@ public class FillLibGen extends Job {
 		System.out.println("m1-m5 reserved space: "+m1Res);
 		System.out.println("m6 reserved space: "+m6Res);
 
+		StdCellParams stdCell = new StdCellParams(null);
+
 		// create a special cell to hold the power supply bypass capacitor
-		CapCell capCell = new CapCell(lib, (CapFloorplan) plans[1]); 
+		CapCell capCell = new CapCell(lib, (CapFloorplan) plans[1], stdCell); 
 		
-//		Cell c = FillCell.makeFillCell(lib, plans, 5, 6, true);
-//		makeTiledCells(c, lib);	
-		for (int i=1; i<=6; i++) {
-			for (int w=0; w<2; w++) {
-				boolean wireLowest = w==1;
-				if (!(wireLowest && i==1)) {
-					Cell fill = 
-						FillCell.makeFillCell(lib, plans, i, 6, capCell, 
-						                      wireLowest);
-					makeTiledCells(fill, plans, lib);	
-				}
-			}
-		}
-		// Now do the odd-ball cases
-		Cell fill;
-		fill = FillCell.makeFillCell(lib, plans, 1, 4, capCell, false);
-		makeTiledCells(fill, plans, lib);
-		fill = FillCell.makeFillCell(lib, plans, 1, 3, capCell, false);
-		makeTiledCells(fill, plans, lib);
-		fill = FillCell.makeFillCell(lib, plans, 3, 4, capCell, false);
-		makeTiledCells(fill, plans, lib);
-		fill = FillCell.makeFillCell(lib, plans, 3, 4, capCell, true);
-		makeTiledCells(fill, plans, lib);
+		makeAndTileCell(lib, plans, 1, 6, capCell, false, stdCell);
+		makeAndTileCell(lib, plans, 2, 6, capCell, false, stdCell);
+		makeAndTileCell(lib, plans, 3, 6, capCell, false, stdCell);
+		makeAndTileCell(lib, plans, 4, 6, capCell, false, stdCell);
+		makeAndTileCell(lib, plans, 5, 6, capCell, false, stdCell);
+		makeAndTileCell(lib, plans, 6, 6, capCell, false, stdCell);
+
+		makeAndTileCell(lib, plans, 2, 6, capCell, true, stdCell);
+		makeAndTileCell(lib, plans, 3, 6, capCell, true, stdCell);
+		makeAndTileCell(lib, plans, 4, 6, capCell, true, stdCell);
+		makeAndTileCell(lib, plans, 5, 6, capCell, true, stdCell);
+		makeAndTileCell(lib, plans, 6, 6, capCell, true, stdCell);
+
+		stdCell.setVddExportName("power");
+		stdCell.setVddExportRole(PortProto.Characteristic.IN);
+		capCell = new CapCell(lib, (CapFloorplan) plans[1], stdCell); 
+		makeAndTileCell(lib, plans, 1, 4, capCell, false, stdCell);
+		makeAndTileCell(lib, plans, 1, 3, capCell, false, stdCell);
+		makeAndTileCell(lib, plans, 3, 4, capCell, false, stdCell);
+		makeAndTileCell(lib, plans, 3, 4, capCell, true,  stdCell);
+		makeAndTileCell(lib, plans, 5, 6, capCell, false, stdCell);
+		makeAndTileCell(lib, plans, 5, 6, capCell, true,  stdCell);
+
 		Gallery.makeGallery(lib);
 	}
 

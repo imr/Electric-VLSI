@@ -2,6 +2,8 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (5/27/04, RK) Added _pwr gates to layout generators. Added fill56_pwr and fill56w_pwr to fill cell generator.
+
 IMP: (5/26/04, SMR) Implemented schematic frames.
 
 IMP: (5/26/04, SMR) Implemented Spice cell model overrides in the Spice tab of the Tool Options dialog.

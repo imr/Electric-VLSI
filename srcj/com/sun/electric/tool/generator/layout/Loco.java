@@ -81,43 +81,46 @@ public class Loco extends Job {
 		return c;
 	}
 	
-	private Library doTom() {
-		String outLibNm = "tomsAutoGenLib";
-		String outLibDir = "c:/a1/kao/Sun/";
-		Library outLib = LayoutLib.openLibForWrite(outLibNm, outLibDir+outLibNm);
-		StdCellParams stdCell = locoParams(outLib);
-
-		String inLibNm = "rcexp";
-		String inLibDir = "x:/links/async/cad/2004/loco/ronho/electric/";
-		inLibDir = "x:/links/toneill/tmp/tgo-0525/";
-		Library inLib = LayoutLib.openLibForRead(inLibNm, inLibDir+inLibNm+".elib");
-		
-		HashSet cellNames = new HashSet();
-		cellNames.add("inv");
-		cellNames.add("invLT");
-		cellNames.add("invHT");
-		cellNames.add("invCLK");
-		GenerateLayoutForGatesInSchematic visitor =
-			new GenerateLayoutForGatesInSchematic("redFour", cellNames, stdCell);
-		
-		Cell c = findCell(inLib, "rcexp_mux{sch}");
-		HierarchyEnumerator.enumerateCell(c, null, null, visitor);
-		c = findCell(inLib, "rcexp_driver{sch}");
-		HierarchyEnumerator.enumerateCell(c, null, null, visitor);
-		c = findCell(inLib, "rcexp_edgegen{sch}"); 
-		HierarchyEnumerator.enumerateCell(c, null, null, visitor);
-			
-		return outLib;
-	}
+//	private Library doTom() {
+//		String outLibNm = "tomsAutoGenLib";
+//		String outLibDir = "c:/a1/kao/Sun/";
+//		Library outLib = LayoutLib.openLibForWrite(outLibNm, outLibDir+outLibNm);
+//		StdCellParams stdCell = locoParams(outLib);
+//
+//		String inLibNm = "rcexp";
+//		String inLibDir = "x:/links/async/cad/2004/loco/ronho/electric/";
+//		inLibDir = "x:/links/toneill/tmp/tgo-0525/";
+//		Library inLib = LayoutLib.openLibForRead(inLibNm, inLibDir+inLibNm+".elib");
+//		
+//		HashSet cellNames = new HashSet();
+//		cellNames.add("inv");
+//		cellNames.add("invLT");
+//		cellNames.add("invHT");
+//		cellNames.add("invCLK");
+//		GenerateLayoutForGatesInSchematic visitor =
+//			new GenerateLayoutForGatesInSchematic("redFour", cellNames, stdCell);
+//		
+//		Cell c = findCell(inLib, "rcexp_mux{sch}");
+//		HierarchyEnumerator.enumerateCell(c, null, null, visitor);
+//		c = findCell(inLib, "rcexp_driver{sch}");
+//		HierarchyEnumerator.enumerateCell(c, null, null, visitor);
+//		c = findCell(inLib, "rcexp_edgegen{sch}"); 
+//		HierarchyEnumerator.enumerateCell(c, null, null, visitor);
+//			
+//		return outLib;
+//	}
 	
 	private Library doLoco() {
 		String outLibNm = "locoAutoGenLib";
 		String outLibDir = "c:/a1/kao/Sun/";
 		Library outLib = LayoutLib.openLibForWrite(outLibNm, outLibDir+outLibNm);
 		StdCellParams stdCell = locoParams(outLib);
+		StdCellParams stdCellPwr = locoParams(outLib);
+		stdCellPwr.setVddExportName("power");
+		stdCellPwr.setVddExportRole(PortProto.Characteristic.IN);
 
 		String inLibNm = "loco_jkl";
-		String inLibDir = "x:/links/async/cad/2004/loco/integrate-0525/";
+		String inLibDir = "x:/links/async/cad/2004/loco/integrate-0527/";
 		Library inLib = LayoutLib.openLibForRead(inLibNm, inLibDir+inLibNm+".elib");
 		
 		HashSet cellNames = new HashSet();
@@ -127,7 +130,8 @@ public class Loco extends Job {
 		cellNames.add("invCLK");
 		cellNames.add("nand2");
 		GenerateLayoutForGatesInSchematic visitor =
-			new GenerateLayoutForGatesInSchematic("redFour", cellNames, stdCell);
+			new GenerateLayoutForGatesInSchematic("redFour", cellNames, stdCell, 
+			                                      stdCellPwr);
 		
 		Cell c = findCell(inLib, "loco_core{sch}");
 		HierarchyEnumerator.enumerateCell(c, null, null, visitor);
@@ -183,6 +187,7 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 	private final String libName;
 	private final HashSet cellNames;
 	private final StdCellParams stdCell;
+	private final StdCellParams stdCellPwr;
 	private final HashSet visitedCells = new HashSet();
 	
 	/**
@@ -193,10 +198,12 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 	 */
 	public GenerateLayoutForGatesInSchematic(String libraryName, 
 											 HashSet cellNames,
-	                          				 StdCellParams stdCell) {
+	                          				 StdCellParams stdCell,
+	                          				 StdCellParams stdCellPwr) {
 		libName = libraryName;
 		this.cellNames = cellNames;
 		this.stdCell = stdCell;
+		this.stdCellPwr = stdCellPwr;
 	}
 
 	private static double getNumericVal(Object val) {
@@ -224,6 +231,12 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 //		else if (pNm.equals("nand2"))    Nand2.makePart(x, sc);
 
 		boolean unknown = false;
+		
+		int pwr = pNm.indexOf("_pwr");
+		if (pwr!=-1) {
+			pNm = pNm.substring(0, pwr);
+			sc = stdCellPwr;
+		}
 		
 		if      (pNm.equals("nms1"))          Nms1.makePart(x, sc);
 		else if (pNm.equals("nms1K"))         Nms1.makePart(x, sc);
@@ -284,7 +297,7 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 		Cell cell = (Cell) no.getProto();
 		Library lib = cell.getLibrary();
 		String libNm = lib.getLibName();
-		if (libNm.equals(libName)) {
+		if (libNm.equals("redFour") || libNm.equals("power2_gates")) {
 			String cellName = cell.getProtoName();
 			//if (cellNames.contains(cellName)) {
 				// Generate layout for this Cell

@@ -53,6 +53,11 @@ public class Nand2PHfk {
 		if (nand!=null)  return nand;
 		nand = stdCell.newPart(nm, sz);
 
+		String vddName = stdCell.getVddExportName();
+		String gndName = stdCell.getGndExportName();
+		PortProto.Characteristic vddRole = stdCell.getVddExportRole();
+		PortProto.Characteristic gndRole = stdCell.getGndExportRole();
+
 		NodeInst inv2i = LayoutLib.newNodeInst(Inv2i.makePart(sz, stdCell),
 											   0, 0, 1, 1, 0, nand);
 		NodeInst pms1 = LayoutLib.newNodeInst(Pms1.makePart(sz, stdCell),
@@ -77,10 +82,10 @@ public class Nand2PHfk {
 
 		// connect up power and ground
 		TrackRouter vdd = new TrackRouterH(Tech.m2, 10, nand);
-		vdd.connect(l, "vdd");
+		vdd.connect(l, vddName);
 
 		TrackRouter gnd = new TrackRouterH(Tech.m2, 10, nand);
-		gnd.connect(l, "gnd");
+		gnd.connect(l, gndName);
 
 		// connect up signal wires
 		TrackRouter out = new TrackRouterH(Tech.m2, 4, outHiY, nand);
@@ -100,10 +105,10 @@ public class Nand2PHfk {
 			.setCharacteristic(Export.Characteristic.IN);
 		Export.newInstance(nand, inv2i.findPortInst("out"), "out")
 			.setCharacteristic(Export.Characteristic.OUT);
-		Export.newInstance(nand, inv2i.findPortInst("vdd"), "vdd")
-			.setCharacteristic(Export.Characteristic.PWR);
-		Export.newInstance(nand, inv2i.findPortInst("gnd"), "gnd")
-			.setCharacteristic(Export.Characteristic.GND);
+		Export.newInstance(nand, inv2i.findPortInst(vddName), vddName)
+			.setCharacteristic(vddRole);
+		Export.newInstance(nand, inv2i.findPortInst(gndName), gndName)
+			.setCharacteristic(gndRole);
 
 		// add essential bounds
 		stdCell.addEssentialBounds(0, inv1.getBounds().getMaxX(), nand);

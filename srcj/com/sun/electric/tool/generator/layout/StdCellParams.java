@@ -29,8 +29,6 @@ import java.awt.*;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
-//import com.sun.dbmirror.*;
-
 import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.database.prototype.*;
 import com.sun.electric.database.topology.*;
@@ -89,8 +87,6 @@ public class StdCellParams {
 	private double gndWidth = 10;
 	private double vddWidth = 10;
 	private double trackPitch = 7;
-	//  private double lowestTrackY;
-	//  private double highestTrackY;
 	private double trackWidth = 4;
 	private double metalSpace = 3;
 	// An "enable" style Nand gate has a weak pullup. This is how much
@@ -129,6 +125,10 @@ public class StdCellParams {
 	private boolean exhaustivePlace = true;
 	private int nbPlacerPerms = 40000;
 	private boolean simpleName = false;
+	private String vddExportName = "vdd";
+	private String gndExportName = "gnd";
+	private PortProto.Characteristic vddExportRole = PortProto.Characteristic.PWR;
+	private PortProto.Characteristic gndExportRole = PortProto.Characteristic.GND;
 
 	// ------------------------ private methods -----------------------------
 
@@ -137,9 +137,6 @@ public class StdCellParams {
 		init();
 	}
 	private void init() {
-		//    lowestTrackY = -outsideTrackY(nmosWellHeight, trackPitch);
-		//    highestTrackY = outsideTrackY(pmosWellHeight, trackPitch);
-
 		TrackBlockages blockages = new TrackBlockages(metalSpace);
 
 		// The symmetric nand2 and nand3 reserve 2 metal-2 tracks for
@@ -359,6 +356,23 @@ public class StdCellParams {
 		error(schemLib==null, "can't open schematic library: "+schemLibFileNm);
 	}
 
+	public void setVddExportName(String vddNm) {vddExportName=vddNm;}
+	public String getVddExportName() {return vddExportName;}
+	public void setGndExportName(String gndNm) {gndExportName=gndNm;}
+	public String getGndExportName() {return gndExportName;}
+	public void setVddExportRole(PortProto.Characteristic vddRole) {
+		vddExportRole = vddRole;
+	}
+	public PortProto.Characteristic getVddExportRole() {
+		return vddExportRole;
+	}
+	public void setGndExportRole(PortProto.Characteristic gndRole) {
+		gndExportRole = gndRole;
+	}
+	public PortProto.Characteristic getGndExportRole() {
+		return gndExportRole;
+	}
+
 	//------------------------------------------------------------------------------
 	// Utilities for gate generators
 
@@ -449,13 +463,6 @@ public class StdCellParams {
 	 * index. */
 	public int nbPmosTracks() {return pmosTracks.size();}
 
-	/*
-	public int getBotNmosTrack() {return botNmosTrack;}
-	public int getTopNmosTrack() {return topNmosTrack;}
-	public int getBotPmosTrack() {return botPmosTrack;}
-	public int getTopPmosTrack() {return topPmosTrack;}
-	*/
-
 	public boolean getSeparateWellTies() {return separateWellTies;}
 	/** Connect well ties to separate exports rather than vdd and gnd */
 	public void setSeparateWellTies(boolean b) {
@@ -472,19 +479,19 @@ public class StdCellParams {
 		return separateWellTies ? trackWidth : vddWidth;
 	}
 	public String getNmosWellTieName() {
-		return separateWellTies ? "vsb" : "gnd";
+		return separateWellTies ? "vsb" : gndExportName;
 	}
 	public String getPmosWellTieName() {
-		return separateWellTies ? "vnw" : "vdd";
+		return separateWellTies ? "vnw" : vddExportName;
 	}
 	public PortProto.Characteristic getNmosWellTieRole() {
-		return separateWellTies ? PortProto.Characteristic.IN 
-						        : PortProto.Characteristic.GND;
+		return separateWellTies ? PortProto.Characteristic.IN : gndExportRole;
 	}
 	public PortProto.Characteristic getPmosWellTieRole() {
-		return separateWellTies ? PortProto.Characteristic.IN 
-							    : PortProto.Characteristic.PWR;
+		return separateWellTies ? PortProto.Characteristic.IN : vddExportRole;
 	}
+	public void setSimpleName(boolean b) {simpleName = b;}
+	public boolean getSimpleName() {return simpleName;}
 
 	// maximum distance between well contacts
 	public double getWellTiePitch() {
@@ -512,6 +519,7 @@ public class StdCellParams {
 		// Safety margin: add twice as many ties as necessary
 		return (int) tiePitch/2;
 	}
+	
 
 	// An "enable" style Nand gate has a weak pullup. This is how much
 	// weaker than normal the PMOS is.
@@ -562,6 +570,7 @@ public class StdCellParams {
 	 * "_PH70" for PMOS region height of 70 lambda
 	 * "_MW70" for maximum transistor width of 70 lambda */
 	public String parameterizedName(String nm) {
+		if (!vddExportName.equals("vdd")) nm += "_pwr";
 		if (simpleName) return nm;
 		return nm
 			+"_NH"+nmosWellHeight+"_PH"+pmosWellHeight
@@ -724,7 +733,7 @@ public class StdCellParams {
 		}
 	}
 
-	/** Wire pmos or nmos to "vdd" or "gnd", respectively.  Add an export
+	/** Wire pmos or nmos to vdd or gnd, respectively.  Add an export
 	 * if there is none. */
 	public void wireVddGnd(FoldedMos[] moss, SelectSrcDrn select, Cell p) {
 		FoldedMos mos = moss[0];
@@ -735,7 +744,7 @@ public class StdCellParams {
 		double busY = mos instanceof FoldedPmos ? vddY : gndY;
 		TrackRouter net = new TrackRouterH(Tech.m2, busWid, busY, p);
 
-		String exportNm = mos instanceof FoldedPmos ? "vdd" : "gnd";
+		String exportNm = mos instanceof FoldedPmos ? vddExportName : gndExportName;
 		if (f.findPortProto(exportNm)==null) {
 			// The export doesn't yet exist.  Create and export a metal2 pin
 			// aligned with the first diffusion.
@@ -744,9 +753,8 @@ public class StdCellParams {
 			                                         busY, DEF_SIZE, DEF_SIZE, 0, f);
 			PortInst pin = pinProt.getOnlyPortInst();
 			Export e = Export.newInstance(f, pin, exportNm);
-			PortProto.Characteristic role =	mos instanceof FoldedPmos 
-			    ? PortProto.Characteristic.PWR 
-			    : PortProto.Characteristic.GND;
+			PortProto.Characteristic role =	
+				mos instanceof FoldedPmos ? vddExportRole : gndExportRole;
 			e.setCharacteristic(role);
 
 			// Connect the export to itself using a standard width power or
@@ -964,7 +972,5 @@ public class StdCellParams {
 		Cell f = diffNode.getParent();
 		LayoutLib.newNodeInst(sel, r.getCenterX(), r.getCenterY(), w, h, 0, f);
 	}
-	public void setSimpleName(boolean b) {simpleName = b;}
-	public boolean getSimpleName() {return simpleName;}
 
 }
