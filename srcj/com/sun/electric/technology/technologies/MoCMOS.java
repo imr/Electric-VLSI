@@ -2667,7 +2667,7 @@ public class MoCMOS extends Technology
 		silicideBlockNode_node = PrimitiveNode.newInstance("Silicide-Block-Node", this, 2.0, 2.0, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(transistorPoly_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
+				new Technology.NodeLayer(silicideBlock_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
 		silicideBlockNode_node.addPrimitivePorts(new PrimitivePort []
 			{
