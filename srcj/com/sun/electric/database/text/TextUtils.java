@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
+import java.util.HashMap;
 
 /**
  * This class is a collection of text utilities.
