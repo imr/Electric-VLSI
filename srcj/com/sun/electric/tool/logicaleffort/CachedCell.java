@@ -2,12 +2,15 @@ package com.sun.electric.tool.logicaleffort;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 
 import java.util.*;
+import java.io.PrintStream;
+import java.io.PrintWriter;
 
 /**
  * Created by IntelliJ IDEA.
@@ -118,33 +121,22 @@ public class CachedCell {
             ceno.subCell = subCell;
         }
 
-        //System.out.println("Importing from "+no.getName()+":");
-        // hook up networks: create temporary map from globalIDs to LENetworks
-        Map globalNetworks = new HashMap();
-        for (Iterator it = localNetworks.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry entry = (Map.Entry)it.next();
-            JNetwork jnet = (JNetwork)entry.getKey();
-            LENetwork net = (LENetwork)entry.getValue();
-            int globalID = info.getNetID(jnet);
-            globalNetworks.put(new Integer(globalID), net);
-            //System.out.println("  Using local network "+net.getName());
-        }
+        //System.out.println("Importing to "+cell.describe()+" from "+no.getName()+":");
         // map subCell networks to this cell's networks through global network id's
         for (Iterator it = subCell.getLocalNetworks().entrySet().iterator(); it.hasNext(); ) {
             Map.Entry entry = (Map.Entry)it.next();
-            JNetwork jnet = (JNetwork)entry.getKey();
-            LENetwork subnet = (LENetwork)entry.getValue();
-            int globalID = subCellInfo.getNetID(jnet);
-            LENetwork net = (LENetwork)globalNetworks.get(new Integer(globalID));
-            if (net == null) continue;
-            //System.out.println("  Adding subnet "+ subnet.getName() + " to net "+ net.getName());
-            net.add(subnet);
+            JNetwork subJNet = (JNetwork)entry.getKey();
+            LENetwork subLENet = (LENetwork)entry.getValue();
+            JNetwork localJNet = subCellInfo.getNetworkInParent(subJNet);
+            if (localJNet == null) continue;
+            LENetwork net = (LENetwork)localNetworks.get(localJNet);
+            if (net == null) {
+                net = new LENetwork(localJNet.describe());
+                localNetworks.put(localJNet, net);
+            }
+            net.add(subLENet);
+            //System.out.println("  Added to "+net.getName() +" in "+cell.describe()+": "+subLENet.getName()+" from "+subCell.cell.describe());
         }
-/*        for (Iterator it = subCell.allCachedNodables.iterator(); it.hasNext(); ) {
-            LENodable leno = (LENodable)it.next();
-            //System.out.println("  Adding LENodable "+ leno.getName());
-            allCachedNodables.add(leno);
-        }*/
     }
 
     protected boolean isContextFree(LENetlister2.NetlisterConstants constants) {
@@ -199,6 +191,11 @@ public class CachedCell {
         return true;
     }
 
+    /**
+     * Create a copy of the cached cell. This also recursively creates
+     * copies of all subcells (cached cells).
+     * @return the copy
+     */
     private CachedCell copy() {
         CachedCell copy = new CachedCell(cell, null);
         // copy all subcell structures
@@ -247,5 +244,32 @@ public class CachedCell {
         copy.contextFree = contextFree;
         //copy.allCachedNodables.addAll(allCachedNodables);
         return copy;
+    }
+
+    /**
+     * Print the contents of the Cached cell
+     * @param indent
+     */
+    protected void printContents(String indent, PrintStream out) {
+        out.println(indent+"CachedCell "+cell.describe()+" contents:");
+        for (Iterator it = lenodables.values().iterator(); it.hasNext(); ) {
+            LENodable leno = (LENodable)it.next();
+            out.println(leno.printOneLine(indent+"  "));
+        }
+        for (Iterator it = localNetworks.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry entry = (Map.Entry)it.next();
+            JNetwork jnet = (JNetwork)entry.getKey();
+            LENetwork net = (LENetwork)entry.getValue();
+            net.print(indent+"  ", out);
+        }
+        for (Iterator it = cellnodables.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry entry = (Map.Entry)it.next();
+            Nodable no = (Nodable)entry.getKey();
+            CellNodable ceno = (CellNodable)entry.getValue();
+            //ceno.subCell.printContents(indent+"  ", out);
+            boolean subCachable = ceno.subCell.isContextFree(null);
+            System.out.println(indent+indent+"contains subCachedCell for "+ceno.subCell.cell.describe()+" ("+
+                    (subCachable?"cachable":"not cachable")+")");
+        }
     }
 }

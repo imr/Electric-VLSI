@@ -344,6 +344,15 @@ public class LETool extends Tool {
         }
         
         public boolean doIt() {
+            // delete last job, if any
+            for (Iterator it = Job.getAllJobs(); it.hasNext(); ) {
+                Job job = (Job)it.next();
+                if (job instanceof AnalyzeCell) {
+                    job.remove();
+                    break;
+                }
+            }
+
             setProgress("building equations");
             System.out.print("Building equations...");
 

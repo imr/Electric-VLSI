@@ -5,6 +5,7 @@ import com.sun.electric.database.variable.VarContext;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.io.PrintStream;
 
 /**
  * Created by IntelliJ IDEA.
@@ -41,19 +42,19 @@ public class LENetwork {
     }
 
     protected void print() {
-        print("");
+        print("", System.out);
     }
 
-    private void print(String header) {
-        System.out.println(header+"Network "+name+", connects to: ");
+    protected void print(String header, PrintStream out) {
+        out.println(header+"Network "+name+", connects to: ");
         for (Iterator it = pins.iterator(); it.hasNext();) {
             LEPin pin = (LEPin)it.next();
             LENodable leno = pin.getInstance();
-            System.out.println(header+"  "+leno.getName());
+            out.println(header+"  "+leno.getName());
         }
         for (Iterator it = networks.iterator(); it.hasNext(); ) {
             LENetwork net = (LENetwork)it.next();
-            net.print(header+"  ");
+            net.print(header+"  ", out);
         }
     }
 }

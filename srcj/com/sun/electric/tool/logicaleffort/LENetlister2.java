@@ -43,8 +43,7 @@ import com.sun.electric.technology.PrimitiveNode;
 
 import java.awt.geom.AffineTransform;
 import java.awt.*;
-import java.io.OutputStream;
-import java.io.PrintStream;
+import java.io.*;
 import java.util.*;
 import java.util.List;
 
@@ -75,6 +74,8 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
 
     private static final boolean DEBUG = false;
     private static final boolean DISABLE_CACHING = false;
+    private static final boolean DEBUG_FIRSTPASS = false;
+    private static final boolean DEBUG_PRINTCACHEDCELLS = false;
 
     public static final Variable.Key ATTR_su = ElectricObject.newKey("ATTR_su");
     public static final Variable.Key ATTR_le = ElectricObject.newKey("ATTR_le");
@@ -144,6 +145,26 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
                 Cell acell = (Cell)entry.getKey();
                 CachedCell cc = (CachedCell)entry.getValue();
                 System.out.println("Cached cell "+acell.describe());
+            }
+        }
+        if (DEBUG_PRINTCACHEDCELLS) {
+            String outputFile = System.getProperty("user.dir") + File.separator + "PrintCachedCells.txt";
+            try {
+                FileOutputStream fos = new FileOutputStream(outputFile, false);
+                BufferedOutputStream bout = new BufferedOutputStream(fos);
+                PrintStream out2 = new PrintStream(bout);
+                // redirect stderr to the log file
+                //System.setErr(new PrintStream(bout, true));
+                for (Iterator it = cellMap.entrySet().iterator(); it.hasNext(); ) {
+                    Map.Entry entry = (Map.Entry)it.next();
+                    Cell acell = (Cell)entry.getKey();
+                    CachedCell cc = (CachedCell)entry.getValue();
+                    cc.printContents("  ", out2);
+                }
+                out2.close();
+                System.out.println("Wrote debug to "+outputFile);
+            } catch (IOException e) {
+                System.out.println("Cannot write CachedCells debug: "+e.getMessage());
             }
         }
         HierarchyEnumerator.enumerateCell(cell, context, netlist, this);
@@ -233,7 +254,6 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
 
     // ======================= Hierarchy Enumerator ==============================
 
-    private static final boolean DEBUG_FIRSTPASS = false;
     /**
      * The first pass creates the definitions for all LENodables, and sees which
      * Cells can be cached (i.e. do not have parameters that need parent context
@@ -355,7 +375,7 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
         // if there is a cachedCell, do not enter
         CachedCell cachedCell = (CachedCell)cellMap.get(info.getCell());
         // if this was a cached cell, link cached networks into global network
-        // not that a cached cell cannot by definition contain sizeable LE gates
+        // note that a cached cell cannot by definition contain sizeable LE gates
         if ((cachedCell != null) && (leinfo.getMFactor() == 1f)) {
             for (Iterator it = cachedCell.getLocalNetworks().entrySet().iterator(); it.hasNext(); ) {
                 Map.Entry entry = (Map.Entry)it.next();

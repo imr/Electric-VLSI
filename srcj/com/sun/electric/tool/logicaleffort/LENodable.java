@@ -284,6 +284,16 @@ public class LENodable {
         System.out.println("    M Factor\t= "+mfactor);
     }
 
+    protected String printOneLine(String indent) {
+        StringBuffer buf = new StringBuffer(indent);
+        buf.append(getType().toString());
+        buf.append(": Size="+TextUtils.formatDouble(leX, 2));
+        buf.append(" M="+TextUtils.formatDouble(mfactor, 2));
+        buf.append(" tPG="+parallelGroup);
+        buf.append(" "+getName());
+        return buf.toString();
+    }
+
     protected void printPins() {
         for (Iterator it = pins.iterator(); it.hasNext(); ) {
             LEPin pin = (LEPin)it.next();
