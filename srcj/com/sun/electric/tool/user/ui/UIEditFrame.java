@@ -23,9 +23,13 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import java.awt.BorderLayout;
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+import java.util.Iterator;
 
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 
 
@@ -43,21 +47,39 @@ public class UIEditFrame extends JInternalFrame
 	// constructor
 	private UIEditFrame(Cell cell)
 	{
+		// initialize the frame
 		super(cell.describe(), true, true, true, true);
-		setSize(500, 500);
+		setSize(700, 500);
 		setLocation(windowOffset, windowOffset);
 		windowOffset += 70;
 		if (windowOffset > 300) windowOffset = 0;
 		setAutoscrolls(true);
+
+		// the right half: an edit window
 		wnd = UIEdit.CreateElectricDoc(cell);
-		this.getContentPane().add(wnd);
+
+		// the left half: a cell explorer tree
+		DefaultMutableTreeNode root = new DefaultMutableTreeNode("CONTENTS VIEW");
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			DefaultMutableTreeNode libTree = lib.getLibraryTree();
+			root.add(libTree);
+		}
+		UITreeView tree = UITreeView.CreateTreeView(root, wnd);
+
+		// put them together into the frame
+		JSplitPane js = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+		js.setRightComponent(wnd);
+		js.setLeftComponent(tree);
+		this.getContentPane().add(js);
+		show();
 		addInternalFrameListener(
 			new InternalFrameAdapter()
 			{
 				public void internalFrameClosing(InternalFrameEvent evt) { windowClosed(); }
 			}
 		);
-		show();
 //		this.moveToFront();
 //		this.toFront();
 	}
@@ -66,6 +88,7 @@ public class UIEditFrame extends JInternalFrame
 	public static UIEditFrame CreateEditWindow(Cell cell)
 	{
 		UIEditFrame frame = new UIEditFrame(cell);
+
 		JDesktopPane desktop = UITopLevel.getDesktop();
 		desktop.add(frame); 
 		return frame;

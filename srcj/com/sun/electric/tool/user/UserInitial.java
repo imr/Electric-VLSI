@@ -200,7 +200,6 @@ public final class UserInitial
 
 		// display some cells
 		UIEditFrame window1 = UIEditFrame.CreateEditWindow(myCell);
-		UIEditFrame window2 = UIEditFrame.CreateEditWindow(higherCell);
 		System.out.println("*********************** TERMINATED SUCCESSFULLY ***********************");
 		System.out.println("************* Click and drag to Pan");
 		System.out.println("************* Use CONTROL-CLICK to Zoom");

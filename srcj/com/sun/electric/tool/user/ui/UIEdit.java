@@ -110,6 +110,7 @@ public class UIEdit extends JPanel
 	public void setCell(Cell cell)
 	{
 		this.cell = cell;
+		fillScreen();
 		redraw();
 	}
 
@@ -529,11 +530,7 @@ public class UIEdit extends JPanel
 			if (cell == null) return;
 			sz = getSize();
 			img = createImage(sz.width, sz.height);
-			Rectangle2D cellBounds = cell.getBounds();
-			scale = sz.width/cellBounds.getWidth() * 0.8;
-			offx = cellBounds.getCenterX();
-			offy = cellBounds.getCenterY();
-			needsUpdate = true;
+			fillScreen();
 		}
 		if (needsUpdate)
 		{
@@ -542,6 +539,19 @@ public class UIEdit extends JPanel
 		}
 		g.drawImage(img, 0, 0, this);
 		//super.paint(g);
+	}
+
+	public void fillScreen()
+	{
+		if (cell == null) return;
+		sz = getSize();
+		Rectangle2D cellBounds = cell.getBounds();
+		double scalex = sz.width/cellBounds.getWidth() * 0.9;
+		double scaley = sz.height/cellBounds.getHeight() * 0.9;
+		scale = Math.min(scalex, scaley);
+		offx = cellBounds.getCenterX();
+		offy = cellBounds.getCenterY();
+		needsUpdate = true;
 	}
 
 	int oldx, oldy;

@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.io.File;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
  * A Library represents a collection of Cells.
@@ -234,6 +235,19 @@ public class Library extends ElectricObject
 	
 	/** Low-level routine to set the user bits for this Library.  Should not normally be called. */
 	public void lowLevelSetUserBits(int userBits) { this.userBits = userBits; }
+
+	/** Routine to build a tree of cells in this Library. */
+	public DefaultMutableTreeNode getLibraryTree()
+	{
+		DefaultMutableTreeNode root = new DefaultMutableTreeNode("Library " + getLibName());
+		for(Iterator it = getCells(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			DefaultMutableTreeNode node = new DefaultMutableTreeNode(cell);
+			root.add(node);
+		}
+		return root;
+	}
 
 	/**
 	 * Check all currently loaded Libraries for one named <code>libName</code>.
