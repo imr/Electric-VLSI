@@ -165,13 +165,19 @@ public class NodeUsage
 	 * This method determines whether this NodeInst is such an icon.
 	 * @return true if this NodeUsage is an icon of its parent.
 	 */
-	public boolean isIconOfParent() { return protoType.isIconOf(parent); };
+	public boolean isIconOfParent()
+	{
+		return (protoType instanceof Cell) && ((Cell)protoType).isIconOf(parent);
+	};
 
 	/**
 	 * Method to determine whether this NodeUsage is an icon Cell.
 	 * @return true if this NodeUsage is an icon  Cell.
 	 */
-	public boolean isIcon() { return protoType.isIcon(); }
+	public boolean isIcon()
+	{
+		return (protoType instanceof Cell) && ((Cell)protoType).isIcon();
+	}
 
 	/**
 	 * Returns a printable version of this NodeUsage.

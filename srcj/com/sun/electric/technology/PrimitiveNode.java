@@ -24,12 +24,15 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.database.geometry.Dimension2D;
-import com.sun.electric.database.prototype.AbstractNodeProto;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.user.User;
 
 import java.awt.Dimension;
 import java.util.Iterator;
@@ -41,7 +44,7 @@ import java.util.NoSuchElementException;
  * Technology.  It has a name, and several functions that describe how
  * to draw it
  */
-public class PrimitiveNode extends AbstractNodeProto
+public class PrimitiveNode extends ElectricObject implements NodeProto
 {
 	/**
 	 * Function is a typesafe enum class that describes the function of a NodeProto.
@@ -417,6 +420,17 @@ public class PrimitiveNode extends AbstractNodeProto
 	/** Defines a multi-cut contact. */				public static final int MULTICUT =  3;
 	/** Defines a special transistor */             public static final int SPECIALTRANS =  4;
 
+	/** set if nonmanhattan instances shrink */				private static final int NODESHRINK =           01;
+	/** set if instances can be wiped */					private static final int ARCSWIPE =          01000;
+	/** set if node is to be kept square in size */			private static final int NSQUARE =           02000;
+	/** primitive can hold trace information */				private static final int HOLDSTRACE =        04000;
+	/** set if this primitive can be zero-sized */			private static final int CANBEZEROSIZE =    010000;
+	/** set to erase if connected to 1 or 2 arcs */			private static final int WIPEON1OR2 =       020000;
+	/** set if primitive is lockable (cannot move) */		private static final int LOCKEDPRIM =       040000;
+	/** set if primitive is selectable by edge, not area */	private static final int NEDGESELECT =     0100000;
+	/** set if nonmanhattan arcs on this shrink */			private static final int ARCSHRINK =       0200000;
+	/** set if not used (don't put in menu) */				private static final int NNOTUSED =       02000000;
+
 	// --------------------- private data -----------------------------------
 	
 	/** The name of this PrimitiveNode. */			private String protoName;
@@ -653,6 +667,23 @@ public class PrimitiveNode extends AbstractNodeProto
 			if (oneLayer.getLayer() == layer) return oneLayer;
 		}
 		return null;
+	}
+
+	/**
+	 * Abstract method to return the default rotation for new instances of this PrimitiveNode.
+	 * @return the angle, in tenth-degrees to use when creating new NodeInsts of this PrimitiveNode.
+	 * If the value is 3600 or greater, it means that X should be mirrored.
+	 */
+	public int getDefPlacementAngle()
+	{
+		int defAngle = User.getNewNodeRotation();
+		Variable var = getVar(User.PLACEMENT_ANGLE, Integer.class);
+		if (var != null)
+		{
+			Integer rot = (Integer)var.getObject();
+			defAngle = rot.intValue();
+		}
+		return defAngle;
 	}
 
 	/**
@@ -990,6 +1021,255 @@ public class PrimitiveNode extends AbstractNodeProto
 		name += protoName;
 		return name;
 	}
+
+	/**
+	 * Method to allow instances of this PrimitiveNode to shrink.
+	 * Shrinkage occurs on MOS transistors when they are connected to wires at angles that are not manhattan
+	 * (the angle between the transistor and the wire is not a multiple of 90 degrees).
+	 * The actual transistor must be shrunk back appropriately to prevent little tabs from emerging at the connection site.
+	 * This state is only set on primitive node prototypes.
+	 * If the actual NodeInst is to shrink, it must be marked with "setShortened".
+	 * Note that shrinkage does not apply if there is no arc connected.
+	 */
+	public void setCanShrink() { checkChanging(); userBits |= NODESHRINK; }
+
+	/**
+	 * Method to prevent instances of this PrimitiveNode from shrinking.
+	 * Shrinkage occurs on MOS transistors when they are connected to wires at angles that are not manhattan
+	 * (the angle between the transistor and the wire is not a multiple of 90 degrees).
+	 * The actual transistor must be shrunk back appropriately to prevent little tabs from emerging at the connection site.
+	 * This state is only set on primitive node prototypes.
+	 * If the actual NodeInst is to shrink, it must be marked with "setShortened".
+	 * Note that shrinkage does not apply if there is no arc connected.
+	 */
+	public void clearCanShrink() { checkChanging(); userBits &= ~NODESHRINK; }
+
+	/**
+	 * Method to tell if instances of this PrimitiveNode can shrink.
+	 * Shrinkage occurs on MOS transistors when they are connected to wires at angles that are not manhattan
+	 * (the angle between the transistor and the wire is not a multiple of 90 degrees).
+	 * The actual transistor must be shrunk back appropriately to prevent little tabs from emerging at the connection site.
+	 * This state is only set on primitive node prototypes.
+	 * If the actual NodeInst is to shrink, it must be marked with "setShortened".
+	 * Note that shrinkage does not apply if there is no arc connected.
+	 * @return true if instances of this PrimitiveNode can shrink.
+	 */
+	public boolean canShrink() { return (userBits & NODESHRINK) != 0; }
+
+	/**
+	 * Method to set this PrimitiveNode so that instances of it are "arc-wipable".
+	 * For display efficiency reasons, pins that have arcs connected to them should not bother being drawn.
+	 * Therefore, pin prototypes have this state set, and when instances of the
+	 * appropriate arc prototypes connect to instances of these pins, they stop being drawn.
+	 * It is necessary for the arc prototype to enable wiping (with setWipable).
+	 * A NodeInst that becomes wiped out has "setWiped" called.
+	 * @see ArcProto#setWipable
+	 * @see NodeInst#setWiped
+	 */
+	public void setArcsWipe() { checkChanging(); userBits |= ARCSWIPE; }
+
+	/**
+	 * Method to set this PrimitiveNode so that instances of it are not "arc-wipable".
+	 * For display efficiency reasons, pins that have arcs connected to them should not bother being drawn.
+	 * Therefore, pin prototypes have this state set, and when instances of the
+	 * appropriate arc prototypes connect to instances of these pins, they stop being drawn.
+	 * It is necessary for the arc prototype to enable wiping (with setWipable).
+	 * A NodeInst that becomes wiped out has "setWiped" called.
+	 * @see ArcProto#setWipable
+	 * @see NodeInst#setWiped
+	 */
+	public void clearArcsWipe() { checkChanging(); userBits &= ~ARCSWIPE; }
+
+	/**
+	 * Method to tell if instances of this PrimitiveNode are "arc-wipable" by when created.
+	 * For display efficiency reasons, pins that have arcs connected to them should not bother being drawn.
+	 * Therefore, pin prototypes have this state set, and when instances of the
+	 * appropriate arc prototypes connect to instances of these pins, they stop being drawn.
+	 * It is necessary for the arc prototype to enable wiping (with setWipable).
+	 * A NodeInst that becomes wiped out has "setWiped" called.
+	 * @return true if instances of this PrimitiveNode are "arc-wipable" by when created.
+	 * @see ArcProto#setWipable
+	 * @see NodeInst#setWiped
+	 */
+	public boolean isArcsWipe() { return (userBits & ARCSWIPE) != 0; }
+
+	/**
+	 * Method to set this PrimitiveNode so that instances of it are "square".
+	 * Square nodes must have the same X and Y size.
+	 * This is useful for round components that really have only one dimension.
+	 */
+	public void setSquare() { checkChanging(); userBits |= NSQUARE; }
+
+	/**
+	 * Method to set this PrimitiveNode so that instances of it are not "square".
+	 * Square nodes must have the same X and Y size.
+	 * This is useful for round components that really have only one dimension.
+	 */
+	public void clearSquare() { checkChanging(); userBits &= ~NSQUARE; }
+
+	/**
+	 * Method to tell if instances of this PrimitiveNode are square.
+	 * Square nodes must have the same X and Y size.
+	 * This is useful for round components that really have only one dimension.
+	 * @return true if instances of this PrimitiveNode are square.
+	 */
+	public boolean isSquare() { return (userBits & NSQUARE) != 0; }
+
+	/**
+	 * Method to set this PrimitiveNode so that instances of it may hold outline information.
+	 * Outline information is an array of coordinates that define the node.
+	 * It can be as simple as an opened-polygon that connects the points,
+	 * or a serpentine transistor that lays down polysilicon to follow the points.
+	 */
+	public void setHoldsOutline() { checkChanging(); userBits |= HOLDSTRACE; }
+
+	/**
+	 * Method to set this PrimitiveNode so that instances of it may not hold outline information.
+	 * Outline information is an array of coordinates that define the node.
+	 * It can be as simple as an opened-polygon that connects the points,
+	 * or a serpentine transistor that lays down polysilicon to follow the points.
+	 */
+	public void clearHoldsOutline() { checkChanging(); userBits &= ~HOLDSTRACE; }
+
+	/**
+	 * Method to tell if instances of this PrimitiveNode can hold an outline.
+	 * Outline information is an array of coordinates that define the node.
+	 * It can be as simple as an opened-polygon that connects the points,
+	 * or a serpentine transistor that lays down polysilicon to follow the points.
+	 * @return true if instances of this PrimitiveNode can hold an outline.
+	 */
+	public boolean isHoldsOutline() { return (userBits & HOLDSTRACE) != 0; }
+
+	/**
+	 * Method to set this PrimitiveNode so that it can be zero in size.
+	 * The display system uses this to eliminate zero-size nodes that cannot be that way.
+	 */
+	public void setCanBeZeroSize() { checkChanging(); userBits |= CANBEZEROSIZE; }
+
+	/**
+	 * Method to set this PrimitiveNode so that it cannot be zero in size.
+	 * The display system uses this to eliminate zero-size nodes that cannot be that way.
+	 */
+	public void clearCanBeZeroSize() { checkChanging(); userBits &= ~CANBEZEROSIZE; }
+
+	/**
+	 * Method to tell if instances of this PrimitiveNode can be zero in size.
+	 * The display system uses this to eliminate zero-size nodes that cannot be that way.
+	 * @return true if instances of this PrimitiveNode can be zero in size.
+	 */
+	public boolean isCanBeZeroSize() { return (userBits & CANBEZEROSIZE) != 0; }
+
+	/**
+	 * Method to set this PrimitiveNode so that instances of it are wiped when 1 or 2 arcs connect.
+	 * This is used in Schematics pins, which are not shown if 1 or 2 arcs connect, but are shown
+	 * when standing alone, or when 3 or more arcs make a "T" or other connection to it.
+	 */
+	public void setWipeOn1or2() { checkChanging(); userBits |= WIPEON1OR2; }
+
+	/**
+	 * Method to set this PrimitiveNode so that instances of it are not wiped when 1 or 2 arcs connect.
+	 * Only Schematics pins enable this state.
+	 */
+	public void clearWipeOn1or2() { checkChanging(); userBits &= ~WIPEON1OR2; }
+
+	/**
+	 * Method to tell if instances of this PrimitiveNode are wiped when 1 or 2 arcs connect.
+	 * This is used in Schematics pins, which are not shown if 1 or 2 arcs connect, but are shown
+	 * when standing alone, or when 3 or more arcs make a "T" or other connection to it.
+	 * @return true if instances of this PrimitiveNode are wiped when 1 or 2 arcs connect.
+	 */
+	public boolean isWipeOn1or2() { return (userBits & WIPEON1OR2) != 0; }
+
+	/**
+	 * Method to set this PrimitiveNode so that instances of it are locked.
+	 * Locked Primitives cannot be created, deleted, or modified.
+	 * Typically, array technologies (such as FPGA) have lockable primitives which are used for the fixed part of a design,
+	 * and then locked to prevent the customization work from damaging the circuit.
+	 */
+	public void setLockedPrim() { checkChanging(); userBits |= LOCKEDPRIM; }
+
+	/**
+	 * Method to set this PrimitiveNode so that instances of it are not locked.
+	 * Locked Primitives cannot be created, deleted, or modified.
+	 * Typically, array technologies (such as FPGA) have lockable primitives which are used for the fixed part of a design,
+	 * and then locked to prevent the customization work from damaging the circuit.
+	 */
+	public void clearLockedPrim() { checkChanging(); userBits &= ~LOCKEDPRIM; }
+
+	/**
+	 * Method to tell if instances of this PrimitiveNode are loced.
+	 * Locked Primitives cannot be created, deleted, or modified.
+	 * Typically, array technologies (such as FPGA) have lockable primitives which are used for the fixed part of a design,
+	 * and then locked to prevent the customization work from damaging the circuit.
+	 * @return true if instances of this PrimitiveNode are loced.
+	 */
+	public boolean isLockedPrim() { return (userBits & LOCKEDPRIM) != 0; }
+
+	/**
+	 * Method to set this PrimitiveNode so that instances of it are selectable only by their edges.
+	 * Artwork primitives that are not filled-in or are outlines want edge-selection, instead
+	 * of allowing a click anywhere in the bounding box to work.
+	 */
+	public void setEdgeSelect() { checkChanging(); userBits |= NEDGESELECT; }
+
+	/**
+	 * Method to set this PrimitiveNode so that instances of it are not selectable only by their edges.
+	 * Artwork primitives that are not filled-in or are outlines want edge-selection, instead
+	 * of allowing a click anywhere in the bounding box to work.
+	 */
+	public void clearEdgeSelect() { checkChanging(); userBits &= ~NEDGESELECT; }
+
+	/**
+	 * Method to tell if instances of this PrimitiveNode are selectable on their edges.
+	 * Artwork primitives that are not filled-in or are outlines want edge-selection, instead
+	 * of allowing a click anywhere in the bounding box to work.
+	 * @return true if instances of this PrimitiveNode are selectable on their edges.
+	 */
+	public boolean isEdgeSelect() { return (userBits & NEDGESELECT) != 0; }
+
+	/**
+	 * Method to set this PrimitiveNode so that arcs connected to instances will shrink in nonmanhattan situations.
+	 * This happens to pins where any combination of multiple arcs in angles that are not increments of 90 degrees
+	 * will cause tabs to emerge at the connection site.
+	 */
+	public void setArcsShrink() { checkChanging(); userBits |= ARCSHRINK; }
+
+	/**
+	 * Method to set this PrimitiveNode so that arcs connected to instances will not shrink in nonmanhattan situations.
+	 * This happens to pins where any combination of multiple arcs in angles that are not increments of 90 degrees
+	 * will cause tabs to emerge at the connection site.
+	 */
+	public void clearArcsShrink() { checkChanging(); userBits &= ~ARCSHRINK; }
+
+	/**
+	 * Method to tell if instances of this PrimitiveNode cause arcs to shrink in nonmanhattan situations.
+	 * This happens to pins where any combination of multiple arcs in angles that are not increments of 90 degrees
+	 * will cause tabs to emerge at the connection site.
+	 * @return true if instances of this PrimitiveNode cause arcs to shrink in nonmanhattan situations.
+	 */
+	public boolean isArcsShrink() { return (userBits & ARCSHRINK) != 0; }
+
+	/**
+	 * Method to set this PrimitiveNode so that it is not used.
+	 * Unused nodes do not appear in the component menus and cannot be created by the user.
+	 * The state is useful for hiding primitives that the user should not use.
+	 */
+	public void setNotUsed() { checkChanging(); userBits |= NNOTUSED; }
+
+	/**
+	 * Method to set this PrimitiveNode so that it is used.
+	 * Unused nodes do not appear in the component menus and cannot be created by the user.
+	 * The state is useful for hiding primitives that the user should not use.
+	 */
+	public void clearNotUsed() { checkChanging(); userBits &= ~NNOTUSED; }
+
+	/**
+	 * Method to tell if this PrimitiveNode is used.
+	 * Unused nodes do not appear in the component menus and cannot be created by the user.
+	 * The state is useful for hiding primitives that the user should not use.
+	 * @return true if this PrimitiveNode is used.
+	 */
+	public boolean isNotUsed() { return (userBits & NNOTUSED) != 0; }
 
 	/**
 	 * Method to get the index of this PrimitiveNode.

@@ -1836,7 +1836,7 @@ public class Highlighter implements DatabaseChangeListener {
 			}
 
 			// special case for 1-polygon primitives: check precise distance to cursor
-			if (np.isEdgeSelect())
+			if (((PrimitiveNode)np).isEdgeSelect())
 			{
 				Technology tech = np.getTechnology();
 				Poly [] polys = tech.getShapeOfNode(ni, wnd);

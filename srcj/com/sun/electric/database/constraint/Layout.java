@@ -556,7 +556,7 @@ public class Layout extends Constraints
 					} else
 					{
 						if (User.isDisallowModificationLockedPrims() &&
-							ono.getProto().isLockedPrim()) locked = true;
+							((PrimitiveNode)ono.getProto()).isLockedPrim()) locked = true;
 					}
 				}
 			}
@@ -776,7 +776,7 @@ public class Layout extends Constraints
 					} else
 					{
 						if (User.isDisallowModificationLockedPrims() &&
-							ono.getProto().isLockedPrim()) mangle = false;
+							((PrimitiveNode)ono.getProto()).isLockedPrim()) mangle = false;
 					}
 				}
 			}

@@ -581,29 +581,17 @@ public class PixelDrawing
 		if (ctrY + halfWidth < databaseBounds.getMinY()) return;
 		if (ctrY - halfWidth > databaseBounds.getMaxY()) return;
 
-		// if the node is tiny, just approximate it with a single dot
-		if (np instanceof Cell) totalCells++; else totalPrims++;
-		if (!np.isCanBeZeroSize() && halfWidth * wnd.getScale() < 1)
-		{
-			if (np instanceof Cell) tinyCells++; else
-			{
-				tinyPrims++;
-
-				// draw a tiny primitive by setting a single dot from each layer
-				Point scrPt = wnd.databaseToScreen(ctrX, ctrY);
-				if (scrPt.x >= 0 && scrPt.x < sz.width && scrPt.y >= 0 && scrPt.y < sz.height)
-				{
-					drawTinyLayers(((PrimitiveNode)np).layerIterator(), scrPt.x, scrPt.y);
-				}
-			}
-			return;
-		}
-
 		// draw the node
 		if (np instanceof Cell)
 		{
 			// cell instance
 			Cell subCell = (Cell)np;
+			totalCells++;
+			if (halfWidth * wnd.getScale() < 1)
+			{
+				tinyCells++;
+				return;
+			}
 			boolean expanded = ni.isExpanded();
 			if (expandBounds != null)
 			{
@@ -668,10 +656,22 @@ public class PixelDrawing
 		} else
 		{
 			// primitive
+			PrimitiveNode prim = (PrimitiveNode)np;
+			totalPrims++;
+			if (!prim.isCanBeZeroSize() && halfWidth * wnd.getScale() < 1)
+			{
+				// draw a tiny primitive by setting a single dot from each layer
+				tinyPrims++;
+				Point scrPt = wnd.databaseToScreen(ctrX, ctrY);
+				if (scrPt.x >= 0 && scrPt.x < sz.width && scrPt.y >= 0 && scrPt.y < sz.height)
+				{
+					drawTinyLayers(prim.layerIterator(), scrPt.x, scrPt.y);
+				}
+				return;
+			}
 			if (topLevel || !ni.isVisInside())
 			{
 				EditWindow nodeWnd = wnd;
-				PrimitiveNode prim = (PrimitiveNode)np;
 				if (!User.isTextVisibilityOnNode()) nodeWnd = null;
 				if (prim == Generic.tech.invisiblePinNode)
 				{
@@ -780,29 +780,25 @@ public class PixelDrawing
 	private void showCellPorts(NodeInst ni, AffineTransform trans, Color col)
 	{
 		// show the ports that are not further exported or connected
-		FlagSet fs = PortProto.getFlagSet(1);
-		for(Iterator it = ni.getProto().getPorts(); it.hasNext(); )
-		{
-			PortProto pp = (PortProto)it.next();
-			pp.clearBit(fs);
-		}
+		int numPorts = ni.getProto().getNumPorts();
+		boolean[] shownPorts = new boolean[numPorts];
 		for(Iterator it = ni.getConnections(); it.hasNext();)
 		{
 			Connection con = (Connection) it.next();
 			PortInst pi = con.getPortInst();
-			pi.getPortProto().setBit(fs);
+			shownPorts[pi.getPortIndex()] = true;
 		}
 		for(Iterator it = ni.getExports(); it.hasNext();)
 		{
 			Export exp = (Export) it.next();
 			PortInst pi = exp.getOriginalPort();
-			pi.getPortProto().setBit(fs);
+			shownPorts[pi.getPortIndex()] = true;
 		}
 		int portDisplayLevel = User.getPortDisplayLevel();
-		for(Iterator it = ni.getProto().getPorts(); it.hasNext(); )
+		for(int i = 0; i < numPorts; i++)
 		{
-			PortProto pp = (PortProto)it.next();
-			if (pp.isBit(fs)) continue;
+			if (shownPorts[i]) continue;
+			PortProto pp = ni.getProto().getPort(i);
 	
 			Poly portPoly = ni.getShapeOfPort(pp);
 			if (portPoly == null) continue;
@@ -837,7 +833,6 @@ public class PixelDrawing
 				}
 			}
 		}
-		fs.freeFlagSet();
 	}
 
 	private void drawUnexpandedCell(NodeInst ni, AffineTransform trans)

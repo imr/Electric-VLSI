@@ -30,7 +30,6 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.technology.PrimitivePort;
 
 import java.awt.Color;
@@ -404,15 +403,11 @@ public abstract class PortProto extends ElectricObject
 
 	// ------------------------ private data --------------------------
 
-	/** The object used to request flag bits. */				private static FlagSet.Generator flagGenerator = new FlagSet.Generator("PortProto");
-
 	/** The name of this PortProto. */							private Name protoName;
 	/** Internal flag bits of this PortProto. */				protected int userBits;
 	/** The parent NodeProto of this PortProto. */				protected NodeProto parent;
 	/** Index of this PortProto in NodeProto ports. */			private int portIndex;
 	/** The text descriptor of this PortProto. */				private TextDescriptor descriptor;
-	/** A temporary integer value of this PortProto. */			private int tempInt;
-	/** The temporary flag bits. */								private int flagBits;
 
 	/**
 	 * This constructor should not be called.
@@ -785,49 +780,6 @@ public abstract class PortProto extends ElectricObject
 	 * @param userBits the new "user bits".
 	 */
 	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
-
-	/**
-	 * Method to set an arbitrary integer in a temporary location on this PortProto.
-	 * @param tempInt the integer to be set on this PortProto.
-	 */
-	public void setTempInt(int tempInt) { this.tempInt = tempInt; }
-
-	/**
-	 * Method to get the temporary integer on this PortProto.
-	 * @return the temporary integer on this PortProto.
-	 */
-	public int getTempInt() { return tempInt; }
-
-	/**
-	 * Method to get access to flag bits on this PortProto.
-	 * Flag bits allow NodeProtos to be marked and examined more conveniently.
-	 * However, multiple competing activities may want to mark the nodes at
-	 * the same time.  To solve this, each activity that wants to mark nodes
-	 * must create a FlagSet that allocates bits in the node.  When done,
-	 * the FlagSet must be released.
-	 * @param numBits the number of flag bits desired.
-	 * @return a FlagSet object that can be used to mark and test the PortProto.
-	 */
-	public static FlagSet getFlagSet(int numBits) { return FlagSet.getFlagSet(flagGenerator, numBits); }
-
-	/**
-	 * Method to set the specified flag bits on this PortProto.
-	 * @param set the flag bits that are to be set on this PortProto.
-	 */
-	public void setBit(FlagSet set) { /*checkChanging();*/ flagBits = flagBits | set.getMask(); }
-
-	/**
-	 * Method to set the specified flag bits on this PortProto.
-	 * @param set the flag bits that are to be cleared on this PortProto.
-	 */
-	public void clearBit(FlagSet set) { /*checkChanging();*/ flagBits = flagBits & set.getUnmask(); }
-
-	/**
-	 * Method to test the specified flag bits on this PortProto.
-	 * @param set the flag bits that are to be tested on this PortProto.
-	 * @return true if the flag bits are set.
-	 */
-	public boolean isBit(FlagSet set) { return (flagBits & set.getMask()) != 0; }
 
 	/**
 	 * Method to return the PortProto that is equivalent to this in the

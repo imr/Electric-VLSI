@@ -251,7 +251,7 @@ public abstract class Geometric extends ElectricObject
 					line = "";
 					for(int i=0; i<indent+3; i++) line += " ";
 					Geometric child = (Geometric)getChild(j);
-					child.setTempInt(branchCount);
+//					child.setTempInt(branchCount);
 					Rectangle2D childBounds = child.getBounds();
 					line += "Child X(" + childBounds.getMinX() + "-" + childBounds.getMaxX() + ") Y(" +
 						childBounds.getMinY() + "-" + childBounds.getMaxY() + ") is " + child.describe();
@@ -814,7 +814,6 @@ public abstract class Geometric extends ElectricObject
 	/** name of this Geometric object. */					protected Name name;
 	/** The text descriptor of name of Geometric. */		private TextDescriptor nameDescriptor;
 	/** bounds after transformation. */						protected Rectangle2D visBounds;
-	/** temporary integer value for the node or arc. */		private int tempInt;
 	/** Flag bits for this Geometric. */					protected int userBits;
 	/** The temporary flag bits. */							private int flagBits;
 	/** The timestamp for changes. */						private int changeClock;
@@ -1111,18 +1110,6 @@ public abstract class Geometric extends ElectricObject
 	 * @return true if the flag bits are set.
 	 */
 	public boolean isBit(FlagSet set) { return (flagBits & set.getMask()) != 0; }
-
-	/**
-	 * Method to get the temporary integer on this Geometric.
-	 * @return the temporary integer on this Geometric.
-	 */
-	public int getTempInt() { return tempInt; }
-
-	/**
-	 * Method to set an arbitrary integer in a temporary location on this Geometric.
-	 * @param tempInt the integer to be set on this Geometric.
-	 */
-	public void setTempInt(int tempInt) { this.tempInt = tempInt; }
 
 	/**
 	 * Method to set a timestamp for constraint propagation on this Geometric.

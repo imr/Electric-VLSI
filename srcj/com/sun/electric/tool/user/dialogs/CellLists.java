@@ -61,7 +61,7 @@ import javax.swing.JFrame;
 public class CellLists extends EDialog
 {
 	FlagSet cellFlagBit;
-	FlagSet portFlagBit;
+//	FlagSet portFlagBit;
 	Cell curCell;
 	private static int whichSwitch = 0;
 	private static boolean onlyViewSwitch = false;
@@ -871,7 +871,7 @@ public class CellLists extends EDialog
 	{//GEN-HEADEREND:event_ok
 		// get cell and port markers
 		cellFlagBit = Cell.getFlagSet(1);
-		portFlagBit = PortProto.getFlagSet(1);
+//		portFlagBit = PortProto.getFlagSet(1);
 
 		// mark cells to be shown
 		if (allCells.isSelected())
@@ -1102,7 +1102,7 @@ public class CellLists extends EDialog
 
 		// free cell and port markers
 		cellFlagBit.freeFlagSet();
-		portFlagBit.freeFlagSet();
+//		portFlagBit.freeFlagSet();
 		closeDialog(null);
 	}//GEN-LAST:event_ok
 

@@ -1666,7 +1666,7 @@ public class ELIB extends LibraryFiles
 		ni.lowLevelLink();
 
         // if this was a dummy cell, log instance as an error so the user can find easily
-        if (np.getVar(IO_DUMMY_OBJECT) != null) {
+        if (np instanceof Cell && ((Cell)np).getVar(IO_DUMMY_OBJECT) != null) {
             ErrorLogger.MessageLog error = Input.errorLogger.logError("Instance of dummy cell "+np.getName(), cell, 1);
             error.addGeom(ni, true, cell, null);
         }
@@ -1741,8 +1741,8 @@ public class ELIB extends LibraryFiles
 
             // if this was a dummy cell, create the export in cell
             Cell c = null;
-            if (node.getProto() != null)
-                if (node.getProto().getVar(IO_DUMMY_OBJECT) != null) c = (Cell)node.getProto();
+            if (node.getProto() != null && node.getProto() instanceof Cell)
+                if (((Cell)node.getProto()).getVar(IO_DUMMY_OBJECT) != null) c = (Cell)node.getProto();
             if (c != null) {
                 double anchorX = node.getAnchorCenterX();
                 double anchorY = node.getAnchorCenterY();

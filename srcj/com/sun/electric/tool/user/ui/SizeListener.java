@@ -32,8 +32,9 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
@@ -307,7 +308,7 @@ public class SizeListener
 					SizeOffset so = ni.getSizeOffset();					
 					double x = xS + so.getLowXOffset() + so.getHighXOffset();
 					double y = yS + so.getLowYOffset() + so.getHighYOffset();
-					if (ni.getProto().isSquare())
+					if (ni.getProto() instanceof PrimitiveNode && ((PrimitiveNode)ni.getProto()).isSquare())
 					{
 						if (y > x) x = y; else y = x;
 					}
@@ -532,7 +533,7 @@ public class SizeListener
 			if (grx > gry) growthRatioY = 1; else
 				growthRatioX = 1;
 		}
-		if (ni.getProto().isSquare())
+		if (ni.getProto() instanceof PrimitiveNode && ((PrimitiveNode)ni.getProto()).isSquare())
 		{
 			if (growthRatioX > growthRatioY) growthRatioY = growthRatioX; else
 				growthRatioX = growthRatioY;

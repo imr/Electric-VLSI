@@ -838,7 +838,7 @@ class NetSchem extends NetCell {
 				if (np instanceof Cell) {
 					NetCell netCell = NetworkTool.getNetCell((Cell)np);
 					if (netCell instanceof NetSchem) {
-						int arraySize = np.isIcon() ? ni.getNameKey().busWidth() : 1;
+						int arraySize = ((Cell)np).isIcon() ? ni.getNameKey().busWidth() : 1;
 						int portWidth = pi.getPortProto().getNameKey().busWidth();
 						if (oldWidth == portWidth) continue;
 						newWidth = arraySize*portWidth;

@@ -5204,7 +5204,7 @@ public class CircuitChanges
 			if (item.getProto() instanceof PrimitiveNode)
 			{
 				// see if a primitive is locked
-				if (item.getProto().isLockedPrim() &&
+				if (((PrimitiveNode)item.getProto()).isLockedPrim() &&
 					User.isDisallowModificationLockedPrims())
 				{
 					if (!giveError) return 1;

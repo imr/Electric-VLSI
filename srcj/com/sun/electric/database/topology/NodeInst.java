@@ -187,7 +187,7 @@ public class NodeInst extends Geometric implements Nodable
 			if (protoType instanceof Cell)
 			{
 				// for cells, use the default expansion on this instance
-				if (protoType.isWantExpanded()) ni.setExpanded();
+				if (((Cell)protoType).isWantExpanded()) ni.setExpanded();
 			} else
 			{
 				// for primitives, set a default outline if appropriate
@@ -456,7 +456,7 @@ public class NodeInst extends Geometric implements Nodable
 			} else
 			{
 				// replacing a primitive: use default expansion for the cell
-				if (np.isWantExpanded()) newNi.setExpanded(); else
+				if (((Cell)np).isWantExpanded()) newNi.setExpanded(); else
 					newNi.clearExpanded();
 			}
 		}
@@ -1068,8 +1068,10 @@ public class NodeInst extends Geometric implements Nodable
 			return;
 		}
 
+		PrimitiveNode pn = (PrimitiveNode)protoType;
+
 		// special case for arcs of circles
-		if (protoType == Artwork.tech.circleNode || protoType == Artwork.tech.thickCircleNode)
+		if (pn == Artwork.tech.circleNode || pn == Artwork.tech.thickCircleNode)
 		{
 			// see if there this circle is only a partial one
 			double [] angles = getArcDegrees();
@@ -1085,7 +1087,7 @@ public class NodeInst extends Geometric implements Nodable
 		}
 
 		// special case for pins that become steiner points
-		if (protoType.isWipeOn1or2() && getNumExports() == 0)
+		if (pn.isWipeOn1or2() && getNumExports() == 0)
 		{
 			if (pinUseCount())
 			{
@@ -1095,7 +1097,7 @@ public class NodeInst extends Geometric implements Nodable
 		}
 
 		// special case for polygonally-defined nodes: compute precise geometry
-		if (protoType.isHoldsOutline())
+		if (pn.isHoldsOutline())
 		{
 			Point2D [] outline = getTrace();
 			if (outline != null)
@@ -1973,7 +1975,8 @@ public class NodeInst extends Geometric implements Nodable
 	public void computeWipeState()
 	{
 		clearWiped();
-		if (getProto().isArcsWipe())
+		NodeProto np = getProto();
+		if (np instanceof PrimitiveNode && ((PrimitiveNode)np).isArcsWipe())
 		{
 			for(Iterator it = getConnections(); it.hasNext(); )
 			{
@@ -2540,43 +2543,6 @@ public class NodeInst extends Geometric implements Nodable
 		}
 		return errorCount;
 	}
-// 	{
-// 		int errorCount = 0;
-
-// 		// make sure there is a PortInst for every PortProto
-// 		FlagSet fs = PortProto.getFlagSet(1);
-// 		for(Iterator it = protoType.getPorts(); it.hasNext(); )
-// 		{
-// 			PortProto pp = (PortProto)it.next();
-// 			pp.clearBit(fs);
-// 		}
-// 		for(Iterator it = getPortInsts(); it.hasNext(); )
-// 		{
-// 			PortInst pi = (PortInst)it.next();
-// 			PortProto pp = pi.getPortProto();
-// 			if (pp.isBit(fs))
-// 			{
-// 				System.out.println("Library " + parent.getLibrary().getName() +
-// 					", cell " + parent.describe() + ", node " + describe() +
-// 					" has multiple PortInsts pointing to the same PortProto (" + pp.getName() + ")");
-// 				errorCount++;
-// 			}
-// 			pp.setBit(fs);
-// 		}
-// 		for(Iterator it = protoType.getPorts(); it.hasNext(); )
-// 		{
-// 			PortProto pp = (PortProto)it.next();
-// 			if (!pp.isBit(fs))
-// 			{
-// 				System.out.println("Library " + parent.getLibrary().getName() +
-// 					", cell " + parent.describe() + ", node " + describe() +
-// 					" port " + pp.getName() + " has no PortInst");
-// 				errorCount++;
-// 			}
-// 		}
-// 		fs.freeFlagSet();
-// 		return errorCount;
-// 	}
 
 	/**
 	 * Returns the basename for autonaming.

@@ -516,8 +516,8 @@ public class JELIB extends LibraryFiles
 						", Creating dummy library " + prefixName, cell, -1);
 					cellLib = Library.newInstance(prefixName, null);
 				}
-				np = Cell.makeInstance(cellLib, protoName);
-				if (np == null)
+				Cell dummyCell = Cell.makeInstance(cellLib, protoName);
+				if (dummyCell == null)
 				{
 					Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
 						", Unable to create dummy cell " + protoName + " in library " + cellLib.getName(), cell, -1);
@@ -530,16 +530,17 @@ public class JELIB extends LibraryFiles
 				{
 					Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
 						", Warning: cannot find information about external cell " + pieces.get(0), cell, -1);
-					NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(0,0), wid, hei, (Cell)np);
+					NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(0,0), wid, hei, dummyCell);
 				} else
 				{
 					NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(bounds.getCenterX(), bounds.getCenterY()),
-						bounds.getWidth(), bounds.getHeight(), (Cell)np);
+						bounds.getWidth(), bounds.getHeight(), dummyCell);
 				}
 
 				// mark this as a dummy cell
-				np.newVar(IO_TRUE_LIBRARY, prefixName);
-				np.newVar(IO_DUMMY_OBJECT, protoName);
+				dummyCell.newVar(IO_TRUE_LIBRARY, prefixName);
+				dummyCell.newVar(IO_DUMMY_OBJECT, protoName);
+				np = dummyCell;
 			}
 
 			// make sure the subcell has been instantiated

@@ -412,7 +412,7 @@ public class Verilog extends Topology
 			// look for a Verilog template on the prototype
 			if (niProto instanceof Cell)
 			{
-				Variable varTemplate = niProto.getVar(VERILOG_TEMPLATE_KEY);
+				Variable varTemplate = ((Cell)niProto).getVar(VERILOG_TEMPLATE_KEY);
 				if (varTemplate != null)
 				{
 					writeTemplate((String)varTemplate.getObject(), no, cni, context);

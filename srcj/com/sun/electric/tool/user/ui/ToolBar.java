@@ -23,10 +23,12 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.menus.MenuCommands;
@@ -563,9 +565,10 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
                 setCursorMode(oldMode);
 			return;
 		}
-		if (!ni.getProto().isHoldsOutline())
+		NodeProto np = ni.getProto();
+		if (!(np instanceof PrimitiveNode && ((PrimitiveNode)np).isHoldsOutline()))
 		{
-			System.out.println("Cannot edit outline information on " + ni.getProto().describe() + " nodes");
+			System.out.println("Cannot edit outline information on " + np.describe() + " nodes");
             if (oldMode == CursorMode.OUTLINE) selectCommand(); else
                 setCursorMode(oldMode);
 			return;

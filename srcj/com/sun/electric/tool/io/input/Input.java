@@ -346,7 +346,7 @@ public class Input // extends IOTool
 		if (!(np instanceof PrimitiveNode)) return;
 
 		// ignore if it doesn't hold outline information
-		if (!np.isHoldsOutline()) return;
+		if (!((PrimitiveNode)np).isHoldsOutline()) return;
 
 		// see if there really is outline information
 		Variable var = ni.getVar(NodeInst.TRACE, Integer[].class);

@@ -41,7 +41,10 @@ import java.awt.geom.Rectangle2D;
  */
 public class SizeOffset
 {
-	private double lx, hx, ly, hy;
+	/** Offset with all zero distances. */
+	public static final SizeOffset ZERO_OFFSET = new SizeOffset(0, 0, 0, 0);
+
+	private final double lx, hx, ly, hy;
 
 	/**
 	 * Constructor to create a SizeOffset from the specified parameters.

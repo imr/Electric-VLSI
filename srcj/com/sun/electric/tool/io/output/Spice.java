@@ -578,10 +578,11 @@ public class Spice extends Topology
 			// handle sub-cell calls
 			if (niProto instanceof Cell)
 			{
+				Cell subCell = (Cell)niProto;
 				// look for a SPICE template on the prototype
-				Variable varTemplate = niProto.getVar(preferedEgnineTemplateKey);
+				Variable varTemplate = subCell.getVar(preferedEgnineTemplateKey);
 				if (varTemplate == null)
-					varTemplate = niProto.getVar(SPICE_TEMPLATE_KEY);
+					varTemplate = subCell.getVar(SPICE_TEMPLATE_KEY);
 
 				// handle self-defined models
 				if (varTemplate != null)
@@ -601,7 +602,7 @@ public class Spice extends Topology
 						for(pt = start; pt < line.length(); pt++)
 							if (line.charAt(pt) == ')') break;
 						String paramName = line.substring(start, pt);
-						PortProto pp = niProto.findPortProto(paramName);
+						PortProto pp = subCell.findPortProto(paramName);
 						if (pp != null)
 						{
 							// port name found: use its spice node
@@ -669,7 +670,7 @@ public class Spice extends Topology
 				if (!useCDL && Simulation.isSpiceUseCellParameters())
 				{
 					// add in parameters to this instance
-					for(Iterator it = niProto.getVariables(); it.hasNext(); )
+					for(Iterator it = subCell.getVariables(); it.hasNext(); )
 					{
 						Variable paramVar = (Variable)it.next();
 						if (!paramVar.getTextDescriptor().isParam()) continue;

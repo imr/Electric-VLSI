@@ -213,7 +213,7 @@ public final class HierarchyEnumerator {
 			instCnt++;
 			boolean descend = visitor.visitNodeInst(ni, info);
 			NodeProto np = ni.getProto();
-			if (descend && np instanceof Cell && !np.isIcon()) {
+			if (descend && np instanceof Cell && !((Cell)np).isIcon()) {
 				int[][] portNmToNetIDs2 = buildPortMap(netlist, ni, netNdxToNetID);
 				AffineTransform xformToRoot2 = xformToRoot;
 				if (ni instanceof NodeInst) {

@@ -22,7 +22,6 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.database.variable;
-import java.util.Map;import java.util.HashMap;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
@@ -31,7 +30,11 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.generator.layout.LayoutLib;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * VarContext represents a hierarchical path of NodeInsts.  Its
@@ -138,7 +141,7 @@ public class VarContext
     }
     
     private Object ifNotNumberTryToConvertToNumber(Object val) {
-        if (val == null) return val;
+		if (val == null) return val;
         if (val instanceof Number) return val;
         try {
             Number d = TextUtils.parsePostFixNumber(val.toString());
@@ -393,19 +396,14 @@ public class VarContext
         if (var == null) {
             // look up default var on prototype
 			NodeProto np = ni.getProto();
-			if (np.isIcon()) {
-				Cell cell = ((Cell)np).getEquivalent();
-				if (cell != null) np = cell;
+			if (np instanceof Cell) {
+				Cell cell = (Cell)np;
+				Cell equiv = cell.getEquivalent();
+				if (equiv != null) cell = equiv;
+				var = cell.getVar(name);
+			} else {
+				var = ((PrimitiveNode)np).getVar(name);
 			}
-//             NodeProto np;
-//             if (ni instanceof NodeInst) {
-//                 NodeInst nni = (NodeInst)ni;
-//                 Nodable no = Netlist.getNodableFor(nni);
-//                 np = no.getProto();
-//             } else {
-//                 np = ni.getProto();
-//             }
-            var = np.getVar(name);
         }
         if (var == null) throwNotFound(name);
 
@@ -444,19 +442,14 @@ public class VarContext
 			}
 				
 			NodeProto np = sni.getProto();               // look up default var value on prototype
-			if (np.isIcon()) {
-				Cell cell = ((Cell)np).getEquivalent();
-				if (cell != null) np = cell;
+			if (np instanceof Cell) {
+				Cell cell = (Cell)np;
+				Cell equiv = cell.getEquivalent();
+				if (equiv != null) cell = equiv;
+				var = cell.getVar(name);
+			} else {
+				var = ((PrimitiveNode)np).getVar(name);
 			}
-//            NodeProto np;                               // look up default var value on prototype
-//             if (ni instanceof NodeInst) {
-//                 NodeInst nni = (NodeInst)ni;
-//                 Nodable no = Netlist.getNodableFor(nni);
-//                 np = no.getProto();
-//             } else {
-//                 np = ni.getProto();
-//             }
-            var = np.getVar(name);
             if (var != null) {
             	value = scan.pop().evalVarRecurse(var, sni);
             	break;

@@ -561,25 +561,11 @@ public class ToolMenu {
             System.out.println("Network '" + net.describe() + "':");
 
             // find all exports on network "net"
-            FlagSet fs = Geometric.getFlagSet(1);
-            for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
-            {
-                Library lib = (Library)lIt.next();
-                for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
-                {
-                    Cell oCell = (Cell)cIt.next();
-                    for(Iterator pIt = oCell.getPorts(); pIt.hasNext(); )
-                    {
-                        Export pp = (Export)pIt.next();
-                        pp.clearBit(fs);
-                    }
-                }
-            }
+            HashSet listedExports = new HashSet();
             System.out.println("  Going up the hierarchy from cell " + cell.describe() + ":");
-            findPortsUp(netlist, net, cell, fs);
+            findPortsUp(netlist, net, cell, listedExports);
             System.out.println("  Going down the hierarchy from cell " + cell.describe() + ":");
-            findPortsDown(netlist, net, cell, fs);
-            fs.freeFlagSet();
+            findPortsDown(netlist, net, cell, listedExports);
         }
     }
 
@@ -602,22 +588,7 @@ public class ToolMenu {
             System.out.println("Network '" + net.describe() + "':");
 
             // find all exports on network "net"
-            FlagSet fs = Geometric.getFlagSet(1);
-            for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
-            {
-                Library lib = (Library)lIt.next();
-                for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
-                {
-                    Cell oCell = (Cell)cIt.next();
-                    for(Iterator pIt = oCell.getPorts(); pIt.hasNext(); )
-                    {
-                        Export pp = (Export)pIt.next();
-                        pp.clearBit(fs);
-                    }
-                }
-            }
-            findPortsDown(netlist, net, cell, fs);
-            fs.freeFlagSet();
+            findPortsDown(netlist, net, cell, new HashSet());
         }
     }
 
@@ -625,7 +596,7 @@ public class ToolMenu {
      * helper method for "telltool network list-hierarchical-ports" to print all
      * ports connected to net "net" in cell "cell", and recurse up the hierarchy
      */
-    private static void findPortsUp(Netlist netlist, Network net, Cell cell, FlagSet fs)
+    private static void findPortsUp(Netlist netlist, Network net, Cell cell, HashSet listedExports)
     {
         // look at every node in the cell
         for(Iterator it = cell.getPorts(); it.hasNext(); )
@@ -636,8 +607,8 @@ public class ToolMenu {
             {
                 Network ppNet = netlist.getNetwork(pp, i);
                 if (ppNet != net) continue;
-                if (pp.isBit(fs)) continue;
-                pp.setBit(fs);
+                if (listedExports.contains(pp)) continue;
+                listedExports.add(listedExports);
                 System.out.println("    Export " + pp.getName() + " in cell " + cell.describe());
 
                 // code to find the proper instance
@@ -655,7 +626,7 @@ public class ToolMenu {
                         Nodable no = (Nodable)nIt.next();
                         if (no.getProto() != cell) continue;
                         Network superNet = superNetlist.getNetwork(no, pp, i);
-                        findPortsUp(superNetlist, superNet, superCell, fs);
+                        findPortsUp(superNetlist, superNet, superCell, listedExports);
                     }
                 }
             }
@@ -666,7 +637,7 @@ public class ToolMenu {
      * helper method for "telltool network list-hierarchical-ports" to print all
      * ports connected to net "net" in cell "cell", and recurse down the hierarchy
      */
-    private static void findPortsDown(Netlist netlist, Network net, Cell cell, FlagSet fs)
+    private static void findPortsDown(Netlist netlist, Network net, Cell cell, HashSet listedExports)
     {
         // look at every node in the cell
         for(Iterator it = netlist.getNodables(); it.hasNext(); )
@@ -689,12 +660,12 @@ public class ToolMenu {
                     if (oNet != net) continue;
 
                     // found the net here: report it
-                    if (pp.isBit(fs)) continue;
-                    pp.setBit(fs);
+                    if (listedExports.contains(pp)) continue;
+                    listedExports.add(pp);
                     System.out.println("    Export " + pp.getName() + " in cell " + subCell.describe());
                     Netlist subNetlist = subCell.getUserNetlist();
                     Network subNet = subNetlist.getNetwork(pp, i);
-                    findPortsDown(subNetlist, subNet, subCell, fs);
+                    findPortsDown(subNetlist, subNet, subCell, listedExports);
                 }
             }
         }

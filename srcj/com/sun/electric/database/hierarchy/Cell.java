@@ -31,7 +31,6 @@ import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.NetworkTool;
-import com.sun.electric.database.prototype.AbstractNodeProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.CellName;
@@ -100,7 +99,7 @@ import javax.swing.JOptionPane;
  * <P>
  * <CENTER><IMG SRC="doc-files/Cell-1.gif"></CENTER>
  */
-public class Cell extends AbstractNodeProto implements Comparable
+public class Cell extends ElectricObject implements NodeProto, Comparable
 {
 	// ------------------------- private classes -----------------------------
 
@@ -294,6 +293,12 @@ public class Cell extends AbstractNodeProto implements Comparable
 	/** Variable key for characteristic spacing for a cell. */		public static final Variable.Key CHARACTERISTIC_SPACING = ElectricObject.newKey("FACET_characteristic_spacing");
 	/** Variable key for text cell contents. */						public static final Variable.Key CELL_TEXT_KEY = ElectricObject.newKey("FACET_message");
 
+	/** set if instances should be expanded */						private static final int WANTNEXPAND =          02;
+	/** set if everything in cell is locked */						private static final int NPLOCKED =       04000000;
+	/** set if instances in cell are locked */						private static final int NPILOCKED =     010000000;
+	/** set if cell is part of a "cell library" */					private static final int INCELLLIBRARY = 020000000;
+	/** set if cell is from a technology-library */					private static final int TECEDITCELL =   040000000;
+
 	/** Length of base name for autonaming. */						private static final int ABBREVLEN = 8;
 	/** zero rectangle */											private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
 
@@ -309,12 +314,13 @@ public class Cell extends AbstractNodeProto implements Comparable
 	/** The date this Cell was created. */							private Date creationDate;
 	/** The date this Cell was last modified. */					private Date revisionDate;
 	/** The version of this Cell. */								private int version;
+	/** Internal flag bits. */										private int userBits;
 	/** The basename for autonaming of instances of this Cell */	private Name basename;
 	/** A list of Exports on the Cell. */							private List exports;
 	/** The Cell's essential-bounds. */								private List essenBounds = new ArrayList();
 	/** A list of NodeInsts in this Cell. */						private List nodes;
 	/** A map from NodeProto to NodeUsages in it */					private Map usagesIn;
-	/** A list of NodeUsages of this Cell. */						/*package*/ List usagesOf;
+	/** A list of NodeUsages of this Cell. */						/*package-only*/ List usagesOf;
 	/** A map from Name to Integer maximal numeric suffix */        private Map maxSuffix;
 	/** A list of ArcInsts in this Cell. */							private List arcs;
 	/** A map from temporary Name keys to Geometric. */				private Map tempNames;
@@ -902,6 +908,28 @@ public class Cell extends AbstractNodeProto implements Comparable
 		setLinked(false);
 	}
 
+	/**
+	 * Low-level method to get the user bits.
+	 * The "user bits" are a collection of flags that are more sensibly accessed
+	 * through special methods.
+	 * This general access to the bits is required because the ELIB
+	 * file format stores it as a full integer.
+	 * This should not normally be called by any other part of the system.
+	 * @return the "user bits".
+	 */
+	public int lowLevelGetUserbits() { return userBits; }
+
+	/**
+	 * Low-level method to set the user bits.
+	 * The "user bits" are a collection of flags that are more sensibly accessed
+	 * through special methods.
+	 * This general access to the bits is required because the ELIB
+	 * file format stores it as a full integer.
+	 * This should not normally be called by any other part of the system.
+	 * @param userBits the new "user bits".
+	 */
+	public void lowLevelSetUserbits(int userBits) { checkChanging(); this.userBits = userBits; }
+
 	/****************************** GRAPHICS ******************************/
 
 	/**
@@ -920,7 +948,7 @@ public class Cell extends AbstractNodeProto implements Comparable
 	 * Method to get the size offset of this Cell.
 	 * @return the size offset of this Cell.  It is always zero for cells.
 	 */
-	public SizeOffset getProtoSizeOffset() { return new SizeOffset(0, 0, 0, 0); }
+	public SizeOffset getProtoSizeOffset() { return SizeOffset.ZERO_OFFSET; }
 
 	/**
 	 * Method to get the characteristic spacing for this Cell.
@@ -2751,6 +2779,12 @@ public class Cell extends AbstractNodeProto implements Comparable
 	}
 
 	/**
+	 * Method to tell if this Cell is icon cell which is a part of multi-part icon.
+	 * @return true if this Cell is part of multi-part icon.
+	 */
+	public boolean isMultiPartIcon() { return false; }
+
+	/**
 	 * Method to find the contents Cell associated with this Cell.
 	 * This only makes sense if the current Cell is an icon or skeleton Cell.
 	 * @return the contents Cell associated with this Cell.
@@ -2945,6 +2979,117 @@ public class Cell extends AbstractNodeProto implements Comparable
 	}
 
 	/****************************** MISCELLANEOUS ******************************/
+
+	/**
+	 * Method to set this Cell so that instances of it are "expanded" by when created.
+	 * Expanded NodeInsts are instances of Cells that show their contents.
+	 */
+	public void setWantExpanded() { checkChanging(); userBits |= WANTNEXPAND; }
+
+	/**
+	 * Method to set this Cell so that instances of it are "not expanded" by when created.
+	 * Expanded NodeInsts are instances of Cells that show their contents.
+	 */
+	public void clearWantExpanded() { checkChanging(); userBits &= ~WANTNEXPAND; }
+
+	/**
+	 * Method to tell if instances of it are "not expanded" by when created.
+	 * Expanded NodeInsts are instances of Cells that show their contents.
+	 * @return true if instances of it are "not expanded" by when created.
+	 */
+	public boolean isWantExpanded() { return (userBits & WANTNEXPAND) != 0; }
+
+	/**
+	 * Method to return the function of this Cell.
+	 * The Function of CELL is alway UNKNOWN.
+	 * @return the function of this Cell.
+	 */
+	public PrimitiveNode.Function getFunction() { return PrimitiveNode.Function.UNKNOWN; }
+
+	/**
+	 * Method to set this Cell so that everything inside of it is locked.
+	 * Locked instances cannot be moved or deleted.
+	 */
+	public void setAllLocked() { checkChanging(); userBits |= NPLOCKED; }
+
+	/**
+	 * Method to set this Cell so that everything inside of it is not locked.
+	 * Locked instances cannot be moved or deleted.
+	 */
+	public void clearAllLocked() { checkChanging(); userBits &= ~NPLOCKED; }
+
+	/**
+	 * Method to tell if the contents of this Cell are locked.
+	 * Locked instances cannot be moved or deleted.
+	 * @return true if the contents of this Cell are locked.
+	 */
+	public boolean isAllLocked() { return (userBits & NPLOCKED) != 0; }
+
+	/**
+	 * Method to set this Cell so that all instances inside of it are locked.
+	 * Locked instances cannot be moved or deleted.
+	 */
+	public void setInstancesLocked() { checkChanging(); userBits |= NPILOCKED; }
+
+	/**
+	 * Method to set this Cell so that all instances inside of it are not locked.
+	 * Locked instances cannot be moved or deleted.
+	 */
+	public void clearInstancesLocked() { checkChanging(); userBits &= ~NPILOCKED; }
+
+	/**
+	 * Method to tell if the sub-instances in this Cell are locked.
+	 * Locked instances cannot be moved or deleted.
+	 * @return true if the sub-instances in this Cell are locked.
+	 */
+	public boolean isInstancesLocked() { return (userBits & NPILOCKED) != 0; }
+
+	/**
+	 * Method to set this Cell so that it is part of a cell library.
+	 * Cell libraries are simply libraries that contain standard cells but no hierarchy
+	 * (as opposed to libraries that define a complete circuit).
+	 * Certain commands exclude facets from cell libraries, so that the actual circuit hierarchy can be more clearly seen.
+	 */
+	public void setInCellLibrary() { checkChanging(); userBits |= INCELLLIBRARY; }
+
+	/**
+	 * Method to set this Cell so that it is not part of a cell library.
+	 * Cell libraries are simply libraries that contain standard cells but no hierarchy
+	 * (as opposed to libraries that define a complete circuit).
+	 * Certain commands exclude facets from cell libraries, so that the actual circuit hierarchy can be more clearly seen.
+	 */
+	public void clearInCellLibrary() { checkChanging(); userBits &= ~INCELLLIBRARY; }
+
+	/**
+	 * Method to tell if this Cell is part of a cell library.
+	 * Cell libraries are simply libraries that contain standard cells but no hierarchy
+	 * (as opposed to libraries that define a complete circuit).
+	 * Certain commands exclude facets from cell libraries, so that the actual circuit hierarchy can be more clearly seen.
+	 * @return true if this Cell is part of a cell library.
+	 */
+	public boolean isInCellLibrary() { return (userBits & INCELLLIBRARY) != 0; }
+
+	/**
+	 * Method to set this Cell so that it is part of a technology library.
+	 * Technology libraries are those libraries that contain Cells with
+	 * graphical descriptions of the nodes, arcs, and layers of a technology.
+	 */
+	public void setInTechnologyLibrary() { checkChanging(); userBits |= TECEDITCELL; }
+
+	/**
+	 * Method to set this Cell so that it is not part of a technology library.
+	 * Technology libraries are those libraries that contain Cells with
+	 * graphical descriptions of the nodes, arcs, and layers of a technology.
+	 */
+	public void clearInTechnologyLibrary() { checkChanging(); userBits &= ~TECEDITCELL; }
+
+	/**
+	 * Method to tell if this Cell is part of a Technology Library.
+	 * Technology libraries are those libraries that contain Cells with
+	 * graphical descriptions of the nodes, arcs, and layers of a technology.
+	 * @return true if this Cell is part of a Technology Library.
+	 */
+	public boolean isInTechnologyLibrary() { return (userBits & TECEDITCELL) != 0; }
 
     /**
      * Returns true if this Cell is completely linked into database.

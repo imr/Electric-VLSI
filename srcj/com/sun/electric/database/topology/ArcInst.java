@@ -823,7 +823,9 @@ public class ArcInst extends Geometric
 	{
 		// quit now if we don't have to worry about this kind of nodeinst
 		NodeProto np = ni.getProto();
-		if (!np.canShrink() && !np.isArcsShrink()) return 0;
+		if (!(np instanceof PrimitiveNode)) return 0;
+		PrimitiveNode pn = (PrimitiveNode)np;
+		if (!pn.canShrink() && !pn.isArcsShrink()) return 0;
 
 		// gather the angles of the nodes/arcs
 		int total = 0, off90 = 0;
@@ -836,7 +838,7 @@ public class ArcInst extends Geometric
 			if (ai.getWidth() == 0) continue;
 
 			// ignore this arcinst if it is not on the desired port
-			if (!np.isArcsShrink() && con.getPortInst().getPortProto() != pp) continue;
+			if (!pn.isArcsShrink() && con.getPortInst().getPortProto() != pp) continue;
 
 			// compute the angle
 			int ang = ai.getAngle() / 10;
@@ -848,7 +850,7 @@ public class ArcInst extends Geometric
 		}
 
 		// throw in the nodeinst rotation factor if it is important
-		if (np.canShrink())
+		if (pn.canShrink())
 		{
 			PrimitivePort pRp = (PrimitivePort)pp;
 			int ang = pRp.getAngle();

@@ -72,13 +72,79 @@ public class ELIB extends Output
 	/** cell flag for finding external cell refernces */		private FlagSet externalRefFlag;
 	/** true to write a 6.XX compatible library (MAGIC11) */	private boolean compatibleWith6;
 	/** map to assign indices to cell names (for 6.XX) */		private HashMap cellIndexMap;
-	/** indices assigned to PrimitiveNodes */					private int[] primNodeIndexMap;
+	/** map to assign indices to node protos (for 6.XX) */		private HashMap nodeProtoIndexMap = new HashMap();
 
 	/** all of the names used in variables */					private static HashMap varNames;
 	/** all of the views and their integer values. */			private HashMap viewMap;
 
 	ELIB()
 	{
+	}
+
+	private class NodeProtoIndices
+	{
+		private final int nodeProtoIndex;
+		private final int portProtoStartIndex;
+		private final int nodeInstStartIndex;
+		private final int arcInstStartIndex;
+
+		NodeProtoIndices(int nodeProtoIndex, int portProtoStartIndex)
+		{
+			this.nodeProtoIndex = nodeProtoIndex;
+			this.portProtoStartIndex = portProtoStartIndex;
+			this.nodeInstStartIndex = -1;
+			this.arcInstStartIndex = -1;
+		}
+
+		NodeProtoIndices(int nodeProtoIndex, int portProtoStartIndex, int nodeInstStartIndex, int arcInstStartIndex)
+		{
+			this.nodeProtoIndex = nodeProtoIndex;
+			this.portProtoStartIndex = portProtoStartIndex;
+			this.nodeInstStartIndex = nodeInstStartIndex;
+			this.arcInstStartIndex = arcInstStartIndex;
+		}
+
+	}
+
+	private void writeNodeProtoIndex(NodeProto np)
+		throws IOException
+	{
+		NodeProtoIndices inds = (NodeProtoIndices)nodeProtoIndexMap.get(np);
+		int i = -1;
+		if (inds != null)
+			i = inds.nodeProtoIndex;
+		writeBigInteger(i);
+	}
+
+	private void writePortProtoIndex(PortProto pp)
+		throws IOException
+	{
+		NodeProtoIndices inds = (NodeProtoIndices)nodeProtoIndexMap.get(pp.getParent());
+		int i = -1;
+		if (inds != null) {
+			if (pp instanceof Export)
+				i = inds.portProtoStartIndex + pp.getPortIndex();
+			else
+				i = inds.portProtoStartIndex - pp.getPortIndex();
+		}
+		writeBigInteger(i);
+	}
+
+	private void writeNodeInstIndex(NodeInst ni)
+		throws IOException
+	{
+		NodeProtoIndices inds = (NodeProtoIndices)nodeProtoIndexMap.get(ni.getParent());
+		int i = -1;
+		if (inds != null && inds.nodeInstStartIndex >= 0)
+			i = inds.nodeInstStartIndex + ni.getNodeIndex();
+		writeBigInteger(i);
+	}
+
+	private int getArcInstIndex(ArcInst ai)
+	{
+		NodeProtoIndices inds = (NodeProtoIndices)nodeProtoIndexMap.get(ai.getParent());
+		if (inds == null || inds.arcInstStartIndex < 0) return -1;
+		return inds.arcInstStartIndex + ai.getArcIndex();
 	}
 
 	public void write6Compatible() { compatibleWith6 = true; }
@@ -166,22 +232,11 @@ public class ELIB extends Output
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-			cell.setTempInt(nodeProtoIndex++);
-			for(Iterator pit = cell.getPorts(); pit.hasNext(); )
-			{
-				Export pp = (Export)pit.next();
-				pp.setTempInt(portProtoIndex++);
-			}
-			for(Iterator ait = cell.getArcs(); ait.hasNext(); )
-			{
-				ArcInst ai = (ArcInst)ait.next();
-				ai.setTempInt(arcIndex++);
-			}
-			for(Iterator nit = cell.getNodes(); nit.hasNext(); )
-			{
-				NodeInst ni = (NodeInst)nit.next();
-				ni.setTempInt(nodeIndex++);
-			}
+			nodeProtoIndexMap.put(cell, new NodeProtoIndices(nodeProtoIndex, portProtoIndex, nodeIndex, arcIndex));
+			nodeProtoIndex++;
+			portProtoIndex += cell.getNumPorts();
+			nodeIndex += cell.getNumNodes();
+			arcIndex += cell.getNumArcs();
 		}
 		int cellsHere = nodeProtoIndex;
 
@@ -208,7 +263,6 @@ public class ELIB extends Output
 			}
 			for(Iterator nit = tech.getNodes(); nit.hasNext(); )
 			{
-				primNodeProtoIndex++;
 				PrimitiveNode np = (PrimitiveNode)nit.next();
 				findXLibVariables(np);
 				for(Iterator eit = np.getPorts(); eit.hasNext(); )
@@ -267,33 +321,23 @@ public class ELIB extends Output
 				{
 					Cell cell = (Cell)cit.next();
 					if (!cell.isBit(externalRefFlag)) continue;
-					cell.setTempInt(nodeProtoIndex++);
-					for(Iterator eit = cell.getPorts(); eit.hasNext(); )
-					{
-						Export pp = (Export)eit.next();
-						pp.setTempInt(portProtoIndex++);
-					}
+					nodeProtoIndexMap.put(cell, new NodeProtoIndices(nodeProtoIndex, portProtoIndex));
+					nodeProtoIndex++;
+					portProtoIndex += cell.getNumPorts();
 				}
 			}
 		}
 
 		// count and number the primitive node and port prototypes
-		primNodeIndexMap = new int[primNodeProtoIndex];
-		Arrays.fill(primNodeIndexMap, -1);
-		primNodeProtoIndex = 0;
 		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			for(Iterator nit = tech.getNodes(); nit.hasNext(); )
 			{
 				PrimitiveNode np = (PrimitiveNode)nit.next();
-				assert primNodeIndexMap[np.getPrimNodeIndex()] == -1;
-				primNodeIndexMap[np.getPrimNodeIndex()] = -2 - primNodeProtoIndex++;
-				for(Iterator eit = np.getPorts(); eit.hasNext(); )
-				{
-					PrimitivePort pp = (PrimitivePort)eit.next();
-					pp.setTempInt(-2 - primPortProtoIndex++);
-				}
+				nodeProtoIndexMap.put(np, new NodeProtoIndices(-2 - primNodeProtoIndex, -2 - primPortProtoIndex));
+				primNodeProtoIndex++;
+				primPortProtoIndex += np.getNumPorts();
 			}
 			for(Iterator ait = tech.getArcs(); ait.hasNext(); )
 			{
@@ -352,10 +396,7 @@ public class ELIB extends Output
 		}
 
 		// write the current cell
-		int curNodeProto = -1;
-		if (lib.getCurCell() != null)
-			curNodeProto = lib.getCurCell().getTempInt();
-		writeBigInteger(curNodeProto);
+		writeNodeProtoIndex(lib.getCurCell());
 
 		// write the version number
 		writeString(Version.getVersion());
@@ -685,14 +726,11 @@ public class ELIB extends Output
 			writeString(cell.getName());
 	
 			// write the "next in cell group" pointer
-			int nextGrp = -1;
 			Object obj = cellInSameGroup.get(cell);
+			Cell nextInGroup = null;
 			if (obj != null && obj instanceof Cell)
-			{
-				Cell nextInGroup = (Cell)obj;
-				nextGrp = nextInGroup.getTempInt();
-			}
-			writeBigInteger(nextGrp);
+				nextInGroup = (Cell)obj;
+			writeNodeProtoIndex(nextInGroup);
 	
 			// write the "next in continuation" pointer
 			int nextCont = -1;
@@ -734,28 +772,11 @@ public class ELIB extends Output
 			Export pp = (Export)it.next();
 			if (thislib)
 			{
-				// write the connecting subnodeinst for this portproto
-				int i = -1;
 				PortInst pi = pp.getOriginalPort();
-				if (pi != null)
-				{
-					i = pi.getNodeInst().getTempInt();
-				} else
-				{
-					System.out.println("ERROR: cell " + cell.describe() + " export " + pp.getName() + " has no subnode");
-				}
-				writeBigInteger(i);
-
+				// write the connecting subnodeinst for this portproto
+				writeNodeInstIndex(pi.getNodeInst());
 				// write the portproto index in the subnodeinst
-				i = -1;
-				if (pi != null)
-				{
-					i = pi.getPortProto().getTempInt();
-				} else
-				{
-					System.out.println("ERROR: cell " + cell.describe() + " export " + pp.getName() + " has no subport");
-				}
-				writeBigInteger(i);
+				writePortProtoIndex(pi.getPortProto());
 			}
 
 			// write the portproto name
@@ -796,17 +817,15 @@ public class ELIB extends Output
 		// write descriptive information
 		Technology tech = ni.getParent().getTechnology();
 		int lowX, highX, lowY, highY;
+		writeNodeProtoIndex(np);
 		if (np instanceof Cell)
 		{
-			writeBigInteger(((Cell)np).getTempInt());
 			lowX = (int)Math.round((ni.getTrueCenterX() - ni.getXSize()/2) * tech.getScale()*2);
 			highX = (int)Math.round((ni.getTrueCenterX() + ni.getXSize()/2) * tech.getScale()*2);
 			lowY = (int)Math.round((ni.getTrueCenterY() - ni.getYSize()/2) * tech.getScale()*2);
 			highY = (int)Math.round((ni.getTrueCenterY() + ni.getYSize()/2) * tech.getScale()*2);
 		} else
 		{
-			assert primNodeIndexMap[((PrimitiveNode)np).getPrimNodeIndex()] < -1;
-			writeBigInteger(primNodeIndexMap[((PrimitiveNode)np).getPrimNodeIndex()]);
 			lowX = (int)Math.round((ni.getAnchorCenterX() - ni.getXSize()/2) * tech.getScale()*2);
 			highX = (int)Math.round((ni.getAnchorCenterX() + ni.getXSize()/2) * tech.getScale()*2);
 			lowY = (int)Math.round((ni.getAnchorCenterY() - ni.getYSize()/2) * tech.getScale()*2);
@@ -860,14 +879,12 @@ public class ELIB extends Output
 			{
 				Connection con = (Connection)it.next();
 				ArcInst ai = con.getArc();
-				int i = ai.getTempInt() << 1;
+				int i = getArcInstIndex(ai) << 1;
 				if (ai.getHead() == con) i++;
 				writeBigInteger(i);
 
 				// write the portinst prototype
-				PortInst pi = con.getPortInst();
-				int protoIndex = pi.getPortProto().getTempInt();
-				writeBigInteger(protoIndex);
+				writePortProtoIndex(con.getPortInst().getPortProto());
 
 				// write the variable information
 				writeNoVariables();
@@ -888,10 +905,10 @@ public class ELIB extends Output
 			for(Iterator it = sortedList.iterator(); it.hasNext(); )
 			{
 				Export pp = (Export)it.next();
-				writeBigInteger(pp.getTempInt());
+				writePortProtoIndex(pp);
 
 				// write the portinst prototype
-				writeBigInteger(pp.getOriginalPort().getPortProto().getTempInt());
+				writePortProtoIndex(pp.getOriginalPort().getPortProto());
 
 				// write the variable information
 				writeNoVariables();
@@ -943,13 +960,13 @@ public class ELIB extends Output
 		Point2D location = ai.getTail().getLocation();
 		writeBigInteger((int)Math.round(location.getX() * tech.getScale()*2));
 		writeBigInteger((int)Math.round(location.getY() * tech.getScale()*2));
-		writeBigInteger(ai.getTail().getPortInst().getNodeInst().getTempInt());
+		writeNodeInstIndex(ai.getTail().getPortInst().getNodeInst());
 
 		// write the arcinst head information
 		location = ai.getHead().getLocation();
 		writeBigInteger((int)Math.round(location.getX() * tech.getScale()*2));
 		writeBigInteger((int)Math.round(location.getY() * tech.getScale()*2));
-		writeBigInteger(ai.getHead().getPortInst().getNodeInst().getTempInt());
+		writeNodeInstIndex(ai.getHead().getPortInst().getNodeInst());
 
 		// write the arcinst's tool information
 		int arcAngle = ai.getAngle() / 10;
@@ -1192,33 +1209,29 @@ public class ELIB extends Output
 		if (obj instanceof NodeInst)
 		{
 			NodeInst ni = (NodeInst)obj;
-			writeBigInteger(ni.getTempInt());
+			writeNodeInstIndex(ni);
 			return;
 		}
 		if (obj instanceof ArcInst)
 		{
 			ArcInst ai = (ArcInst)obj;
-			writeBigInteger(ai.getTempInt());
+			writeBigInteger(getArcInstIndex(ai));
 			return;
 		}
 		if (obj instanceof NodeProto)
 		{
-			int i = (obj instanceof Cell ? ((Cell)obj).getTempInt() : primNodeIndexMap[((PrimitiveNode)obj).getPrimNodeIndex()]);
-			writeBigInteger(i);
+			writeNodeProtoIndex((NodeProto)obj);
 			return;
 		}
 		if (obj instanceof ArcProto)
 		{
 			ArcProto ap = (ArcProto)obj;
-			if (ap == null) writeBigInteger(-1); else
-				writeBigInteger(ap.getTempInt());
+			writeBigInteger(ap.getTempInt());
 			return;
 		}
 		if (obj instanceof PortProto)
 		{
-			PortProto pp = (PortProto)obj;
-			if (pp == null) writeBigInteger(-1); else
-				writeBigInteger(pp.getTempInt());
+			writePortProtoIndex((PortProto)obj);
 			return;
 		}
 		System.out.println("Error: Cannot write objects of type " + obj.getClass());
@@ -1236,24 +1249,36 @@ public class ELIB extends Output
 			Variable var = (Variable)it.next();
 			if (var.isDontSave()) continue;
 			Object refObj = var.getObject();
-			if (refObj instanceof NodeProto || refObj instanceof NodeProto[])
+			if (refObj instanceof NodeProto[])
 			{
-				if (refObj instanceof NodeProto[])
+				NodeProto [] npArray = (NodeProto[])refObj;
+				int len = npArray.length;
+				for(int j=0; j<len; j++)
 				{
-					Object [] npArray = (Object [])refObj;
-					int len = npArray.length;
-					for(int j=0; j<len; j++)
-					{
-						NodeProto np = (NodeProto)npArray[j];
-						if (np instanceof Cell)
-							((Cell)np).setBit(externalRefFlag);
-					}
-				} else
-				{
-					NodeProto np = (NodeProto)refObj;
+					NodeProto np = npArray[j];
 					if (np instanceof Cell)
 						((Cell)np).setBit(externalRefFlag);
 				}
+			} else if (refObj instanceof NodeProto)
+			{
+				NodeProto np = (NodeProto)refObj;
+				if (np instanceof Cell)
+					((Cell)np).setBit(externalRefFlag);
+			} else if (refObj instanceof PortProto[])
+			{
+				PortProto [] ppArray = (PortProto [])refObj;
+				int len = ppArray.length;
+				for(int j=0; j<len; j++)
+				{
+					NodeProto np = ppArray[j].getParent();
+					if (np instanceof Cell)
+						((Cell)np).setBit(externalRefFlag);
+				}
+			} else if (refObj instanceof PortProto)
+			{
+				NodeProto np = ((PortProto)refObj).getParent();
+				if (np instanceof Cell)
+					((Cell)np).setBit(externalRefFlag);
 			}
 		}
 	}

@@ -961,7 +961,7 @@ public class Highlight
         if (np instanceof PrimitiveNode)
         {
             // special case for outline nodes
-            if (np.isHoldsOutline())
+            if (((PrimitiveNode)np).isHoldsOutline())
             {
                 Point2D [] outline = ni.getTrace();
                 if (outline != null)

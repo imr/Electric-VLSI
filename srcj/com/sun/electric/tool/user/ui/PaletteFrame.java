@@ -625,18 +625,18 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
             this.palette = palette;
 
 			// get default creation angle
-			NodeProto np = null;
+			PrimitiveNode pn = null;
 			defAngle = 0;
 			if (toDraw instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)toDraw;
-				np = ni.getProto();
+				pn = (PrimitiveNode)ni.getProto();
 				defAngle = ni.getAngle();
 			}
-			if (toDraw instanceof NodeProto)
+			if (toDraw instanceof PrimitiveNode)
 			{
-				np = (NodeProto)toDraw;
-				defAngle = np.getDefPlacementAngle();
+				pn = (PrimitiveNode)toDraw;
+				defAngle = pn.getDefPlacementAngle();
 			}
 
             //if (window != null) {
@@ -821,18 +821,18 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
             EditWindow wnd = EditWindow.getCurrent();
             Highlighter highlighter = wnd.getHighlighter();
 
-			NodeProto np = null;
+			PrimitiveNode pn = null;
 			NodeInst ni = null;
 			if (toDraw instanceof NodeProto)
 			{
-				np = (NodeProto)toDraw;
+				pn = (PrimitiveNode)toDraw;
 			} else if (toDraw instanceof NodeInst)
 			{
 				ni = (NodeInst)toDraw;
-				np = ni.getProto();
+				pn = (PrimitiveNode)ni.getProto();
 			}
-			double width = np.getDefWidth();
-			double height = np.getDefHeight();
+			double width = pn.getDefWidth();
+			double height = pn.getDefHeight();
 			if (varName != null) width = height = 0;
 
 			// get default creation angle
@@ -844,7 +844,7 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 				techBits = ni.getTechSpecific();
 			} else
 			{
-				defAngle = np.getDefPlacementAngle();
+				defAngle = pn.getDefPlacementAngle();
 				if (defAngle >= 3600)
 				{
 					defAngle %= 3600;
@@ -852,9 +852,9 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 				}
 			}
 
-			NodeInst newNi = NodeInst.makeInstance(np, where, width, height, cell, defAngle, null, techBits);
+			NodeInst newNi = NodeInst.makeInstance(pn, where, width, height, cell, defAngle, null, techBits);
 			if (newNi == null) return false;
-			if (np == Generic.tech.cellCenterNode || np == Generic.tech.essentialBoundsNode)
+			if (pn == Generic.tech.cellCenterNode || pn == Generic.tech.essentialBoundsNode)
 				newNi.setHardSelect();
 			if (varName != null)
 			{
@@ -871,31 +871,31 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 			} else
 			{
 				//if (ni != null) newNi.setTechSpecific(ni.getTechSpecific());
-				if (np == Schematics.tech.resistorNode)
+				if (pn == Schematics.tech.resistorNode)
 				{
 					Variable var = newNi.newVar(Schematics.SCHEM_RESISTANCE, "100");
 					var.setDisplay(true);
 					TextDescriptor td = TextDescriptor.getNodeTextDescriptor(null);
 					var.setTextDescriptor(td);
-				} else if (np == Schematics.tech.capacitorNode)
+				} else if (pn == Schematics.tech.capacitorNode)
 				{
 					Variable var = newNi.newVar(Schematics.SCHEM_CAPACITANCE, "100M");
 					var.setDisplay(true);
 					TextDescriptor td = TextDescriptor.getNodeTextDescriptor(null);
 					var.setTextDescriptor(td);
-				} else if (np == Schematics.tech.inductorNode)
+				} else if (pn == Schematics.tech.inductorNode)
 				{
 					Variable var = newNi.newVar(Schematics.SCHEM_INDUCTANCE, "100");
 					var.setDisplay(true);
 					TextDescriptor td = TextDescriptor.getNodeTextDescriptor(null);
 					var.setTextDescriptor(td);
-				} else if (np == Schematics.tech.diodeNode)
+				} else if (pn == Schematics.tech.diodeNode)
 				{
 					Variable var = newNi.newVar(Schematics.SCHEM_DIODE, "10");
 					var.setDisplay(true);
 					TextDescriptor td = TextDescriptor.getNodeTextDescriptor(null);
 					var.setTextDescriptor(td);
-				} else if (np == Schematics.tech.transistorNode || np == Schematics.tech.transistor4Node)
+				} else if (pn == Schematics.tech.transistorNode || pn == Schematics.tech.transistor4Node)
 				{
 					if (newNi.isFET())
 					{

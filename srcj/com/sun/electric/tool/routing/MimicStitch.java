@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import javax.swing.JOptionPane;
 
@@ -274,7 +275,7 @@ public class MimicStitch
 		private ArcProto oProto;
 		private double prefX, prefY;
 		private boolean forced;
-		FlagSet portMark;
+		HashSet portMark;
         private List allRoutes;                         // all routes to be created
         private Highlighter highlighter;
 
@@ -350,9 +351,8 @@ public class MimicStitch
 
 		public boolean doIt()
 		{
-			portMark = PortProto.getFlagSet(1);
+			portMark = new HashSet();
 			int result = mimic();
-			portMark.freeFlagSet();
 			return true;
 		}
 
@@ -393,9 +393,8 @@ public class MimicStitch
 				for(Iterator pIt = ni.getProto().getPorts(); pIt.hasNext(); )
 				{
 					PortProto pp = (PortProto)pIt.next();
-					pp.clearBit(portMark);
 					if (!pp.connectsTo(oProto)) continue;
-					pp.setBit(portMark);
+					portMark.add(pp);
 					total++;
 				}
 			}
@@ -411,7 +410,7 @@ public class MimicStitch
 				for(Iterator pIt = ni.getProto().getPorts(); pIt.hasNext(); )
 				{
 					PortProto pp = (PortProto)pIt.next();
-					if (!pp.isBit(portMark)) continue;
+					if (!portMark.contains(pp)) continue;
 					ro_mimicportpolys[i] = ni.getShapeOfPort(pp);
 					i++;
 				}
@@ -484,7 +483,7 @@ public class MimicStitch
 							PortProto pp = (PortProto)pIt.next();
 
 							// make sure the arc can connect
-							if (!pp.isBit(portMark)) continue;
+							if (!portMark.contains(pp)) continue;
 
 							Poly poly = ro_mimicportpolys[portPos++];
 							double x0 = poly.getCenterX();
@@ -513,7 +512,7 @@ public class MimicStitch
 								PortProto opp = (PortProto)oPIt.next();
 
 								// make sure the arc can connect
-								if (!opp.isBit(portMark)) continue;
+								if (!portMark.contains(pp)) continue;
 								Poly thisPoly = ro_mimicportpolys[oPortPos++];
 
 								// don't replicate what is already done
