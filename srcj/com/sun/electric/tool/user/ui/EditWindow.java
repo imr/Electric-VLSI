@@ -139,6 +139,7 @@ public class EditWindow extends JPanel
 
         cellHistory = new ArrayList();
         cellHistoryLocation = -1;
+        scale = 1;
 
 		// the total panel in the waveform window
 		overall = new JPanel();
@@ -147,7 +148,7 @@ public class EditWindow extends JPanel
 		// the horizontal scroll bar
 		int thumbSize = SCROLLBARRESOLUTION / 20;
 		bottomScrollBar = new JScrollBar(JScrollBar.HORIZONTAL, SCROLLBARRESOLUTION/2, thumbSize, 0, SCROLLBARRESOLUTION+thumbSize);
-		bottomScrollBar.setBlockIncrement(SCROLLBARRESOLUTION / 4);
+		bottomScrollBar.setBlockIncrement(SCROLLBARRESOLUTION / 5);
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0;   gbc.gridy = 1;
 		gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -157,7 +158,7 @@ public class EditWindow extends JPanel
 
 		// the vertical scroll bar in the edit window
 		rightScrollBar = new JScrollBar(JScrollBar.VERTICAL, SCROLLBARRESOLUTION/2, thumbSize, 0, SCROLLBARRESOLUTION+thumbSize);
-		rightScrollBar.setBlockIncrement(SCROLLBARRESOLUTION / 4);
+		rightScrollBar.setBlockIncrement(SCROLLBARRESOLUTION / 5);
 		gbc = new GridBagConstraints();
 		gbc.gridx = 1;   gbc.gridy = 0;
 		gbc.fill = GridBagConstraints.VERTICAL;
@@ -1835,32 +1836,60 @@ public class EditWindow extends JPanel
 
         // adjust scroll bars to reflect new bounds (only if not being adjusted now)
         // newValue, newThumbSize, newMin, newMax
-        bottomScrollBar.getModel().setRangeProperties(
-                (int)((offx-0.5*viewBounds.getWidth())*scrollRangeMult),
-                (int)(viewBounds.getWidth()*scrollRangeMult),
-                (int)((overallBounds.getX() - scrollPagePercent*overallBounds.getWidth())*scrollRangeMult),
-                (int)(((overallBounds.getX()+overallBounds.getWidth()) + scrollPagePercent*overallBounds.getWidth())*scrollRangeMult),
-                false);
-        bottomScrollBar.setUnitIncrement((int)(0.05*viewBounds.getWidth()*scrollRangeMult));
-        bottomScrollBar.setBlockIncrement((int)(scrollPagePercent*viewBounds.getWidth()*scrollRangeMult));
-/*
-        System.out.println("overallBounds="+overallBounds);
-        System.out.println("cellBounds="+cellBounds);
-        System.out.println("offy="+offy);
-        System.out.print(" value="+(int)(-offy-0.5*cellBounds.getHeight()));
-        System.out.print(" extent="+(int)(cellBounds.getHeight()));
-        System.out.print(" min="+(int)(-((overallBounds.getY()+overallBounds.getHeight()) + scrollPagePercent*overallBounds.getHeight())));
-        System.out.println(" max="+(int)(-(overallBounds.getY() - scrollPagePercent*overallBounds.getHeight())));
-*/
-        rightScrollBar.getModel().setRangeProperties(
-                (int)((-offy-0.5*viewBounds.getHeight())*scrollRangeMult),
-                (int)((viewBounds.getHeight())*scrollRangeMult),
-                (int)((-((overallBounds.getY()+overallBounds.getHeight()) + scrollPagePercent*overallBounds.getHeight()))*scrollRangeMult),
-                (int)((-(overallBounds.getY() - scrollPagePercent*overallBounds.getHeight()))*scrollRangeMult),
-                false);
-        //System.out.println("model is "+rightScrollBar.getModel());
-        rightScrollBar.setUnitIncrement((int)(0.05*viewBounds.getHeight()*scrollRangeMult));
-        rightScrollBar.setBlockIncrement((int)(scrollPagePercent*viewBounds.getHeight()*scrollRangeMult));
+        /*
+        if (!bottomScrollBar.getValueIsAdjusting()) {
+            bottomScrollBar.getModel().setRangeProperties(
+                    (int)((offx-0.5*viewBounds.getWidth())*scrollRangeMult),
+                    (int)(viewBounds.getWidth()*scrollRangeMult),
+                    (int)((overallBounds.getX() - scrollPagePercent*overallBounds.getWidth())*scrollRangeMult),
+                    (int)(((overallBounds.getX()+overallBounds.getWidth()) + scrollPagePercent*overallBounds.getWidth())*scrollRangeMult),
+                    false);
+            bottomScrollBar.setUnitIncrement((int)(0.05*viewBounds.getWidth()*scrollRangeMult));
+            bottomScrollBar.setBlockIncrement((int)(scrollPagePercent*viewBounds.getWidth()*scrollRangeMult));
+        }
+        //System.out.println("overallBounds="+overallBounds);
+        //System.out.println("cellBounds="+cellBounds);
+        //System.out.println("offy="+offy);
+        System.out.print(" value="+(int)((-offy-0.5*viewBounds.getHeight()))*scrollRangeMult);
+        //System.out.print(" extent="+(int)(cellBounds.getHeight()));
+        System.out.print(" min="+(int)((-((overallBounds.getY()+overallBounds.getHeight()) + scrollPagePercent*overallBounds.getHeight())))*scrollRangeMult);
+        System.out.println(" max="+((int)(-(overallBounds.getY() - scrollPagePercent*overallBounds.getHeight())))*scrollRangeMult);
+        if (!rightScrollBar.getValueIsAdjusting()) {
+            rightScrollBar.getModel().setRangeProperties(
+                    (int)((-offy-0.5*viewBounds.getHeight())*scrollRangeMult),
+                    (int)((viewBounds.getHeight())*scrollRangeMult),
+                    (int)((-((overallBounds.getY()+overallBounds.getHeight()) + scrollPagePercent*overallBounds.getHeight()))*scrollRangeMult),
+                    (int)((-(overallBounds.getY() - scrollPagePercent*overallBounds.getHeight()))*scrollRangeMult),
+                    false);
+            //System.out.println("model is "+rightScrollBar.getModel());
+            rightScrollBar.setUnitIncrement((int)(0.05*viewBounds.getHeight()*scrollRangeMult));
+            rightScrollBar.setBlockIncrement((int)(scrollPagePercent*viewBounds.getHeight()*scrollRangeMult));
+        }
+        */
+        double width = (viewBounds.getWidth() < cellBounds.getWidth()) ? viewBounds.getWidth() : cellBounds.getWidth();
+        double height = (viewBounds.getHeight() < cellBounds.getHeight()) ? viewBounds.getHeight() : cellBounds.getHeight();
+
+        if (!bottomScrollBar.getValueIsAdjusting()) {
+            bottomScrollBar.getModel().setRangeProperties(
+                    (int)((offx-0.5*width)*scrollRangeMult),
+                    (int)(width*scrollRangeMult),
+                    (int)((cellBounds.getX() - scrollPagePercent*cellBounds.getWidth())*scrollRangeMult),
+                    (int)(((cellBounds.getX()+cellBounds.getWidth()) + scrollPagePercent*cellBounds.getWidth())*scrollRangeMult),
+                    false);
+            bottomScrollBar.setUnitIncrement((int)(0.05*viewBounds.getWidth()*scrollRangeMult));
+            bottomScrollBar.setBlockIncrement((int)(scrollPagePercent*viewBounds.getWidth()*scrollRangeMult));
+        }
+        if (!rightScrollBar.getValueIsAdjusting()) {
+            rightScrollBar.getModel().setRangeProperties(
+                    (int)((-offy-0.5*height)*scrollRangeMult),
+                    (int)((height)*scrollRangeMult),
+                    (int)((-((cellBounds.getY()+cellBounds.getHeight()) + scrollPagePercent*cellBounds.getHeight()))*scrollRangeMult),
+                    (int)((-(cellBounds.getY() - scrollPagePercent*cellBounds.getHeight()))*scrollRangeMult),
+                    false);
+            //System.out.println("model is "+rightScrollBar.getModel());
+            rightScrollBar.setUnitIncrement((int)(0.05*viewBounds.getHeight()*scrollRangeMult));
+            rightScrollBar.setBlockIncrement((int)(scrollPagePercent*viewBounds.getHeight()*scrollRangeMult));
+        }
 
         ignoreScrollChange = false;
     }
@@ -1873,7 +1902,8 @@ public class EditWindow extends JPanel
         double val = (double)value/(double)scrollRangeMult;
         Rectangle2D cellBounds = cell.getBounds();
         Rectangle2D viewBounds = displayableBounds();
-        double newoffx = val+0.5*viewBounds.getWidth();           // new offset
+        double width = (viewBounds.getWidth() < cellBounds.getWidth()) ? viewBounds.getWidth() : cellBounds.getWidth();
+        double newoffx = val+0.5*width;           // new offset
         //double ignoreDelta = 0.03*viewBounds.getWidth();             // ignore delta
         //double delta = newoffx - offx;
         //System.out.println("Old offx="+offx+", new offx="+newoffx+", delta="+(newoffx-offx));
@@ -1892,7 +1922,8 @@ public class EditWindow extends JPanel
         double val = (double)value/(double)scrollRangeMult;
         Rectangle2D cellBounds = cell.getBounds();
         Rectangle2D viewBounds = displayableBounds();
-        double newoffy = -(val+0.5*viewBounds.getHeight());
+        double height = (viewBounds.getHeight() < cellBounds.getHeight()) ? viewBounds.getHeight() : cellBounds.getHeight();
+        double newoffy = -(val+0.5*height);
         // annoying cause +y is down in java
         //double ignoreDelta = 0.03*viewBounds.getHeight();             // ignore delta
         //double delta = newoffy - offy;
