@@ -20,7 +20,7 @@ IMP: (10/21/04, SMR) Deleting a library (or re-reading it) checks to make sure t
 
 IMP: (10/21/04, SMR) Selecting a signal in the schematic shows all equivalents in the waveform window.
 
-IMP: (10/21/04, GVG) Cross-shaped contacts in TSMC90.
+IMP: (10/21/04, GVG) Cross-shaped contacts in TSMC90 including multiple cuts.
 
 IMP/MAN: (10/21/04, SMR) Added "CIF" input.
 

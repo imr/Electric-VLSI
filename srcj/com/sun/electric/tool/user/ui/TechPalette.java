@@ -206,7 +206,8 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 	                else if (fun == PrimitiveNode.Function.CONTACT && np.isGroupNode())
 	                    contactList.add(np);
 	                // Leaving standard transistors or contact
-	                if (np.getSpecialType() != PrimitiveNode.SPECIALNODE)
+	                //if (np.getSpecialType() != PrimitiveNode.SPECIALNODE)
+	                if (!np.isSpecialNode())
 	                {
                         compTotal++;
 		                inPalette.add(np);

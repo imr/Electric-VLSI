@@ -49,10 +49,9 @@
 	</target>
 
     <target name="jar" depends="init,compile" description="Make binary Jar file">
-        <!--<java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
+        <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
         	<arg value="-v"/>
         </java>
-        -->
 	    <antcall target="unjarBsh"></antcall>
         <unjar dest="." src="${AppleJava}"/>
         <delete dir="META-INF"/>

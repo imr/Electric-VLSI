@@ -421,7 +421,6 @@ public class PrimitiveNode implements NodeProto
 	/** Defines a special trans or X contact */     public static final int SPECIALNODE =  4;
 
 	/** set if nonmanhattan instances shrink */				private static final int NODESHRINK =           01;
-	/** set if nodes are in same group in menu */           private static final int NODEGROUP =           10;
 	/** set if instances can be wiped */					private static final int ARCSWIPE =          01000;
 	/** set if node is to be kept square in size */			private static final int NSQUARE =           02000;
 	/** primitive can hold trace information */				private static final int HOLDSTRACE =        04000;
@@ -430,7 +429,9 @@ public class PrimitiveNode implements NodeProto
 	/** set if primitive is lockable (cannot move) */		private static final int LOCKEDPRIM =       040000;
 	/** set if primitive is selectable by edge, not area */	private static final int NEDGESELECT =     0100000;
 	/** set if nonmanhattan arcs on this shrink */			private static final int ARCSHRINK =       0200000;
+	/** set if nodes are in same group in menu */           private static final int NODESPECIAL =      01000000;
 	/** set if not used (don't put in menu) */				private static final int NNOTUSED =       02000000;
+	/** set if nodes are in same group in menu */           private static final int NODEGROUP =      04000000;
 
 	// --------------------- private data -----------------------------------
 	
@@ -1034,6 +1035,19 @@ public class PrimitiveNode implements NodeProto
 	 * @return
 	 */
 	public boolean isGroupNode() { return (userBits & NODEGROUP) != 0; }
+
+	/**
+	 * Method to allow instances of this PrimitiveNode to be special in menu.
+	 * Valid for menu display
+	 */
+	public void setSpecialNode() { checkChanging(); userBits |= NODESPECIAL; }
+
+	/**
+	 * Method to tell if instaces of this PrimitiveNode are special (don't appear in menu).
+	 * Valid for menu display
+	 * @return
+	 */
+	public boolean isSpecialNode() { return (userBits & NODESPECIAL) != 0; }
 
 	/**
 	 * Method to allow instances of this PrimitiveNode to shrink.
