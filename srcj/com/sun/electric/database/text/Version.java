@@ -38,18 +38,18 @@ package com.sun.electric.database.text;
  * Examples:
  *  6.03a
  *  7.04.1
- *  6.08
+ *  8.00
  */
 public class Version
 {
-	private int major;
-	private int minor;
-	private int details;
-
 	/**
 	 * This is the current version of Electric
 	 */
-	private static final String CURRENT = "8.00m";
+	private static final String CURRENT = "8.00n";
+
+	private int major;
+	private int minor;
+	private int details;
 
 	/**
 	 * Constructs a <CODE>Version</CODE> (cannot be called).

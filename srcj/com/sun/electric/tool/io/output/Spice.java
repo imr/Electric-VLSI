@@ -223,7 +223,10 @@ public class Spice extends Topology
 				for(int i=0; i<globalSize; i++)
 				{
 					Global global = (Global)globals.get(i);
-					infstr.append(" " + global.getName());
+					String name = global.getName();
+					if (global == Global.power) name = getPowerName();
+					if (global == Global.ground) name = getGroundName();
+					infstr.append(" " + name);
 				}
 				infstr.append("\n");
 				multiLinePrint(false, infstr.toString());
@@ -1090,13 +1093,14 @@ public class Spice extends Topology
            if (headerFile.startsWith(SPICE_EXTENSION_PREFIX))
 			{
 				// extension specified: look for a file with the cell name and that extension
-				String headerPath = "";   // TextUtils.getFilePath(cell.getLibrary().getLibFile());
-				String fileName = headerPath + cell.getName() + "." + headerFile.substring(SPICE_EXTENSION_PREFIX.length());
+				String headerPath = TextUtils.getFilePath(cell.getLibrary().getLibFile());
+				String filePart = cell.getName() + "." + headerFile.substring(SPICE_EXTENSION_PREFIX.length());
+				String fileName = headerPath + filePart;
 				File test = new File(fileName);
 				if (test.exists())
 				{
 					multiLinePrint(true, "* Model cards are described in this file:\n");
-					addIncludeFile(fileName);
+					addIncludeFile(filePart);
 					return;
 				}
 			} else
@@ -1144,13 +1148,14 @@ public class Spice extends Topology
 			if (trailerFile.startsWith(SPICE_EXTENSION_PREFIX))
 			{
 				// extension specified: look for a file with the cell name and that extension
-				String trailerpath = "";   // TextUtils.getFilePath(cell.getLibrary().getLibFile());
-				String fileName = trailerpath + cell.getName() + "." + trailerFile.substring(SPICE_EXTENSION_PREFIX.length());
+				String trailerpath = TextUtils.getFilePath(cell.getLibrary().getLibFile());
+				String filePart = cell.getName() + "." + trailerFile.substring(SPICE_EXTENSION_PREFIX.length());
+				String fileName = trailerpath + filePart;
 				File test = new File(fileName);
 				if (test.exists())
 				{
 					multiLinePrint(true, "* Trailer cards are described in this file:\n");
-					addIncludeFile(fileName);
+					addIncludeFile(filePart);
 				}
 			} else
 			{

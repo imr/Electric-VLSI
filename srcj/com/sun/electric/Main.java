@@ -89,7 +89,7 @@ public final class Main
         for (int i=0; i<args.length; i++) argsList.add(args[i]);
 
 		// -m for multiple windows
-		TopLevel.OSInitialize(hasCommandLineOption(argsList, "-m"));
+		TopLevel.OSInitialize(!hasCommandLineOption(argsList, "-m"));
 
 		// initialize database
 		new InitDatabase(argsList, sw);

@@ -2,6 +2,9 @@
 
 ************************* Version 8.00: Released  *************************
 
+BUG: (6/18/04, SMR) Spice output uses wrong .global names.
+FIX: In "io.output.Spice.start()" convert power and ground to proper names.
+
 IMP: (6/17/04, SMR) Merged 3 options dialogs into 1 "Preferences" dialog.  Created tool.user.dialogs.options package.
 
 IMP: (6/17/04, SMR) Moved per-cell frame selection into "Cell Properties" instead of "Frame" tab of "Edit Options".
@@ -22,8 +25,6 @@ IMP: (6/16/04, SMR) Made DRC be non-static.
 
 BUG: (6/16/04, SMR) DRC fails on active-to-transistor rules.
 FIX: Better cropping in Quick.cropActiveArc().
-
-IMP: (6/16/04, SMR) Changed all "dialog.show()" calls to "dialog.setVisible(true)" because of deprecation in 1.5.
 
 IMP: (6/15/04, SMR) Changed all "dialog.show()" calls to "dialog.setVisible(true)" because of deprecation in 1.5.
 
