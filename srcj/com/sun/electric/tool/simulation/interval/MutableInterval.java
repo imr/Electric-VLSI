@@ -1428,29 +1428,28 @@ public class MutableInterval
 		else if (x == Double.POSITIVE_INFINITY)
 			buf.append("               Infinity");
 		else if (x == 0 && !isSup)
-			buf.append("-0.0000000000000000E000");
+			buf.append("-.0000000000000000E+000");
 		else if (x == 0 && isSup)
-			buf.append(" 0.0000000000000000E000");
+			buf.append("0.0000000000000000E+000");
 		else {
 			BigDecimal bx = new BigDecimal(x);
 			String s = bx.unscaledValue().abs().toString();
 			int drop = 0;
-			if (s.length() > d + 1) {
-				drop = s.length() - (d + 1);
+			if (s.length() != d) {
+				drop = s.length() - d;
 				bx = bx.setScale(bx.scale() - drop, isSup ? BigDecimal.ROUND_CEILING : BigDecimal.ROUND_FLOOR);
 			}
 			s = bx.unscaledValue().abs().toString();
-			if (s.length() > d + 1) {
-				assert s.length() == d + 2 && s.charAt(s.length() - 1) == '0';
+			if (s.length() > d) {
+				assert s.length() == d + 1 && s.charAt(s.length() - 1) == '0';
 				drop++;
 				bx = bx.setScale(bx.scale() - 1, BigDecimal.ROUND_UNNECESSARY);
 				s = bx.unscaledValue().abs().toString();
 			}
 		
-			buf.append(bx.signum() < 0 ? '-' : ' ');
-			buf.append(s.charAt(0));
+			buf.append(bx.signum() < 0 ? '-' : '0');
 			buf.append('.');
-			buf.append(s.substring(1));
+			buf.append(s);
 			buf.append('E');
 			int exp = d - bx.scale();
 			if (exp >= 0)
@@ -1460,11 +1459,11 @@ public class MutableInterval
 				exp = -exp;
 			}
 			assert (exp < 1000);
-			buf.append('0' + exp/100);
+			buf.append((char)('0' + exp/100));
 			exp %= 100;
-			buf.append('0' + exp/10);
+			buf.append((char)('0' + exp/10));
 			exp %= 10;
-			buf.append('0' + exp);
+			buf.append((char)('0' + exp));
 		}
 	}
 
@@ -1481,12 +1480,17 @@ public class MutableInterval
 			inf = Double.POSITIVE_INFINITY;
 		else if (ls.equals("-Infinity"))
 			inf = Double.NEGATIVE_INFINITY;
-		else {
+		else if (ls.equals("EMPTY")) {
+			if (comma >= 0)
+				throw new NumberFormatException();
+			assignEmpty();
+			return;
+		} else {
 			lb = new BigDecimal(ls);
 			inf = lb.doubleValue();
 		}
 		if (comma >= 0) {
-			String rs = s.substring(comma + 1, s.length() - 1);
+			String rs = s.substring(comma + 1, s.length() - 1).trim();
 			BigDecimal rb = null;
 			if (rs.equals("NaN") || rs.equals("+NaN") || rs.equals("-NaN"))
 				sup = Double.NaN;

@@ -3,6 +3,7 @@ import net.sourceforge.interval.ia_math.RMath;
 import net.sourceforge.interval.ia_math.RealInterval;
 import net.sourceforge.interval.ia_math.IAMath;
 import su.nsk.nbsp.Functions;
+import java.math.BigDecimal;
 
 class TestIntervals {
 
@@ -195,6 +196,30 @@ class TestIntervals {
 	}
     }
 
+    private void checkOutput() {
+	for (int i = 0; i < mrel.length; i++) {
+	    mix.assign(mrel[i]);
+	    nix.assign(nrel[i]);
+	    String ms = mix.toString();
+	    String ns = nix.toString();
+	    miz = new MutableInterval(ms);
+	    miy = new MutableInterval(ns);
+	    double minf = miz.inf();
+	    double msup = miz.sup();
+	    double ninf = miy.inf();
+	    double nsup = miy.sup();
+	    if ((!(minf <= mix.inf()) || !(msup >= mix.sup())) && (minf == minf || msup == msup || !mix.isEmpty()) ) {
+		System.out.println("checkOutput " + i + " m=[" + minf + "," + msup+"] o=[" + mix.inf() + "," + mix.sup() + "]");
+	    }
+	    if ((!(ninf <= mix.inf()) || !(nsup >= mix.sup())) && (ninf == ninf || nsup == nsup || !mix.isEmpty()) ) {
+		System.out.println("checkOutput " + i + " n=[" + ninf + "," + nsup+"] o=[" + mix.inf() + "," + mix.sup() + "]");
+	    }
+// 	    if ((!(ninf <= minf) || !(nsup >= msup)) && (minf == minf || msup == msup || ninf == ninf || nsup == nsup) ) {
+// 		System.out.println("checkOutput " + i + " m=[" + minf + "," + msup+"] n=[" + ninf + "," + nsup + "] o=[" + mix.inf() + "," + mix.sup() + "]");
+// 	    }
+	}
+    }
+
     private static void checkTab() {
 	for (int i = 0; i < mrel.length; i++) {
 	    double minf = mrel[i].inf();
@@ -213,6 +238,7 @@ class TestIntervals {
     {
 	checkTab();
 	TestIntervals t = new TestIntervals();
+	t.checkOutput();
 	t.checkUnops();
 	t.checkBinops();
     }
