@@ -694,7 +694,8 @@ public class WaveformWindow implements WindowContent
 		public void paint(Graphics g)
 		{
 			// to enable keys to be received
-			requestFocus();
+            if (waveWindow.wf == WindowFrame.getCurrentWindowFrame())
+			    requestFocus();
 
 			sz = getSize();
 			int wid = sz.width;
@@ -1229,6 +1230,7 @@ public class WaveformWindow implements WindowContent
 		// the MouseListener events
 		public void mousePressed(MouseEvent evt)
 		{
+            requestFocus();
 			waveWindow.vcrClickStop();
 
 			// set this to be the selected panel

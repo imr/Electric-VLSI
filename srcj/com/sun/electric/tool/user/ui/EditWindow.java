@@ -587,7 +587,7 @@ public class EditWindow extends JPanel
 	public void paint(Graphics g)
 	{
 		// to enable keys to be received
-		if (cell != null && cell == WindowFrame.getCurrentCell())
+		if (wf == WindowFrame.getCurrentWindowFrame())
 			requestFocus();
 
 		// redo the explorer tree if it changed
