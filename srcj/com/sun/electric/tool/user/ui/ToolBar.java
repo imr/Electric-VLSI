@@ -28,10 +28,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.tool.user.menus.MenuCommands;
-import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.Resources;
-import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.EditMenu;
@@ -624,6 +621,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 	public static void fullArrowDistanceCommand()
 	{
 		curArrowDistance = ArrowDistance.FULL;
+        User.setAlignmentToGrid(1.0);
 	}
 
 	/**
@@ -632,6 +630,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 	public static void halfArrowDistanceCommand()
 	{
 		curArrowDistance = ArrowDistance.HALF;
+        User.setAlignmentToGrid(0.5);
 	}
 
 	/**
@@ -640,13 +639,8 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 	public static void quarterArrowDistanceCommand()
 	{
 		curArrowDistance = ArrowDistance.QUARTER;
+        User.setAlignmentToGrid(0.25);
 	}
-
-	/**
-	 * Method to tell what arrow distance is in effect.
-	 * @return the current arrow distance (1.0, 0.5, or 0.25).
-	 */
-	public static double getArrowDistance() { return curArrowDistance.getDistance(); }
 
 	/**
 	 * Method called when the "select objects" button is pressed.

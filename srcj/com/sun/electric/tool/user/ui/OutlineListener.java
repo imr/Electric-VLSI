@@ -330,19 +330,19 @@ class OutlineListener
 			setNewPoints(newPoints, pt);
 		} else if (chr == KeyEvent.VK_LEFT)
 		{
-			double arrowDistance = ToolBar.getArrowDistance();
+			double arrowDistance = User.getAlignmentToGrid();
 			moveSelectedPoint(-arrowDistance, 0);
 		} else if (chr == KeyEvent.VK_RIGHT)
 		{
-			double arrowDistance = ToolBar.getArrowDistance();
+			double arrowDistance = User.getAlignmentToGrid();
 			moveSelectedPoint(arrowDistance, 0);
 		} else if (chr == KeyEvent.VK_UP)
 		{
-			double arrowDistance = ToolBar.getArrowDistance();
+			double arrowDistance = User.getAlignmentToGrid();
 			moveSelectedPoint(0, arrowDistance);
 		} else if (chr == KeyEvent.VK_DOWN)
 		{
-			double arrowDistance = ToolBar.getArrowDistance();
+			double arrowDistance = User.getAlignmentToGrid();
 			moveSelectedPoint(0, -arrowDistance);
 		} else if (chr == KeyEvent.VK_PERIOD)
 		{

@@ -242,7 +242,7 @@ class ClickAndDragListener
         // scale distance according to arrow motion
 		EditWindow wnd = (EditWindow)evt.getSource();
         Highlighter highlighter = wnd.getHighlighter();
-		double arrowDistance = ToolBar.getArrowDistance();
+		double arrowDistance = User.getAlignmentToGrid();
 		dX *= arrowDistance;
 		dY *= arrowDistance;
 		int scale = User.getDefGridXBoldFrequency();

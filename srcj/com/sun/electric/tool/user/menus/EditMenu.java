@@ -258,9 +258,9 @@ public class EditMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.fullArrowDistanceCommand(); } });
 		moveHalf = modeSubMenuMovement.addRadioButton(ToolBar.moveHalfName, false, movementGroup, KeyStroke.getKeyStroke('H', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.halfArrowDistanceCommand(); } });
-		moveQuarter = modeSubMenuMovement.addRadioButton(ToolBar.moveQuarterName, false, movementGroup, KeyStroke.getKeyStroke('Q', 0),
+		moveQuarter = modeSubMenuMovement.addRadioButton(ToolBar.moveQuarterName, false, movementGroup, null, // do not put shortcut in here! Too dangerous!!
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.quarterArrowDistanceCommand(); } });
-		double ad = ToolBar.getArrowDistance();
+		double ad = User.getAlignmentToGrid();
 		if (ad == 1.0) moveFull.setSelected(true); else
 		if (ad == 0.5) moveHalf.setSelected(true); else
 			moveQuarter.setSelected(true);

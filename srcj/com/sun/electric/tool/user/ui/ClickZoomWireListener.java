@@ -595,16 +595,15 @@ public class ClickZoomWireListener
 	                if (another)
 	                    dbMouse = convertToOrthogonal(new Point2D.Double(dbMoveStartX, dbMoveStartY), dbMouse);
 	                // relocate highlight to under mouse
-	                Point2D dbDelta = new Point((int)dbMouse.getX() - dbMoveStartX, (int)dbMouse.getY() - dbMoveStartY);
+	                Point2D dbDelta = new Point2D.Double(dbMouse.getX() - dbMoveStartX, dbMouse.getY() - dbMoveStartY);
 	                EditWindow.gridAlign(dbDelta);              // align to grid
-	                Point2D screenDelta = wnd.deltaDatabaseToScreen((int)dbDelta.getX(), (int)dbDelta.getY());
+                    System.out.println("Delta is "+dbDelta);
+	                Point2D screenDelta = wnd.deltaDatabaseToScreen(dbDelta.getX(), dbDelta.getY());
 	                highlighter.setHighlightOffset((int)screenDelta.getX(), (int)screenDelta.getY());
                     // display amount to be moved in center of screen
-                    Point2D center = new Point((int)(-screenDelta.getX() + wnd.getOffset().getX()),
-                                               (int)(-screenDelta.getY() + wnd.getOffset().getY()));
                     if (moveDelta != null) highlighter.remove(moveDelta);
                     Rectangle2D bounds = wnd.getDisplayedBounds();
-                    moveDelta = highlighter.addMessage(cell, "("+(int)dbDelta.getX()+","+(int)dbDelta.getY()+")",
+                    moveDelta = highlighter.addMessage(cell, "("+dbDelta.getX()+","+dbDelta.getY()+")",
                             new Point2D.Double(bounds.getCenterX(),bounds.getCenterY()));
 	                wnd.repaint();
 	            }
@@ -785,7 +784,7 @@ public class ClickZoomWireListener
 	                    // moving objects
 	                    if (another)
 	                        dbMouse = convertToOrthogonal(new Point2D.Double(dbMoveStartX, dbMoveStartY), dbMouse);
-	                    Point2D dbDelta = new Point((int)dbMouse.getX() - dbMoveStartX, (int)dbMouse.getY() - dbMoveStartY);
+	                    Point2D dbDelta = new Point2D.Double(dbMouse.getX() - dbMoveStartX, dbMouse.getY() - dbMoveStartY);
 	                    EditWindow.gridAlign(dbDelta);
                         if (moveDelta != null) highlighter.remove(moveDelta);
 	                    if (dbDelta.getX() != 0 || dbDelta.getY() != 0) {
@@ -1018,7 +1017,7 @@ public class ClickZoomWireListener
         EditWindow wnd = EditWindow.getCurrent();
         if (wnd == null) return;
         Highlighter highlighter = wnd.getHighlighter();
-		double arrowDistance = ToolBar.getArrowDistance();
+		double arrowDistance = User.getAlignmentToGrid();
 		dX *= arrowDistance;
 		dY *= arrowDistance;
 		int scaleX = User.getDefGridXBoldFrequency();
