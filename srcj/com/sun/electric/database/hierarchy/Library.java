@@ -57,7 +57,7 @@ import javax.swing.JOptionPane;
  * Cell, get an Enumeration of all Cells, or find the Cell that the user
  * is currently editing.
  */
-public class Library extends ElectricObject implements Comparable<Library>
+public class Library extends ElectricObject implements Comparable/*<Library>*/
 {
 	/** key of Variable holding font associations. */		public static final Variable.Key FONT_ASSOCIATIONS = ElectricObject.newKey("LIB_font_associations");
 
@@ -80,10 +80,10 @@ public class Library extends ElectricObject implements Comparable<Library>
 	/** Preference for cell currently being edited */		private Pref curCellPref;
 	/** flag bits */										private int userBits;
 	/** The temporary flag bits. */							private int flagBits;
-    /** list of referenced libs */                          private List<Library> referencedLibs;
+    /** list of referenced libs */                          private List/*<Library>*/ referencedLibs;
 	/** preferences for all libraries */					private static Preferences prefs = null;
 
-	/** static list of all libraries in Electric */			private static TreeSet<Library> libraries = new TreeSet<Library>();
+	/** static list of all libraries in Electric */			private static TreeSet/*<Library>*/ libraries = new TreeSet/*<Library>*/();
 	/** the current library in Electric */					private static Library curLib = null;
 
 	// ----------------- private and protected methods --------------------
@@ -133,7 +133,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 		lib.curCellPref = null;
 		lib.libName = legalName;
 		lib.libFile = libFile;
-        lib.referencedLibs = new ArrayList<Library>();
+        lib.referencedLibs = new ArrayList/*<Library>*/();
         lib.setLinked(true);
 
 		// add the library to the global list
@@ -160,8 +160,10 @@ public class Library extends ElectricObject implements Comparable<Library>
 		if (curLib == this)
 		{
 			// find another library
-			for(Library lib: libraries)
+			/*for(Library lib: libraries)*/
+			for (Iterator it = libraries.iterator(); it.hasNext(); )
 			{
+				Library lib = (Library)it.next();
 				if (lib == curLib) continue;
 				if (lib.isHidden()) continue;
 				newCurLib = lib;
@@ -187,8 +189,10 @@ public class Library extends ElectricObject implements Comparable<Library>
 
 		// make sure none of these cells are referenced by other libraries
 		boolean referenced = false;
-		for(Library lib: libraries)
+		/*for(Library lib: libraries)*/
+		for (Iterator it = libraries.iterator(); it.hasNext(); )
 		{
+			Library lib = (Library)it.next();
 			if (lib == this) continue;
 			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 			{
@@ -597,8 +601,10 @@ public class Library extends ElectricObject implements Comparable<Library>
 	{
 		TreeSet list = new TreeSet();
 
-		for (Library l: libraries)
+		/*for (Library l: libraries)*/
+		for (Iterator it = libraries.iterator(); it.hasNext(); )
 		{
+			Library l = (Library)it.next();
 			// skip itself
 			if (l == elib) continue;
 
@@ -618,8 +624,10 @@ public class Library extends ElectricObject implements Comparable<Library>
 	 */
 	public static Library findLibrary(String libName)
 	{
-		for (Library l: libraries)
+		/*for (Library l: libraries)*/
+		for (Iterator it = libraries.iterator(); it.hasNext(); )
 		{
+			Library l = (Library)it.next();
 			if (l.getName().equalsIgnoreCase(libName))
 				return l;
 		}
@@ -630,10 +638,10 @@ public class Library extends ElectricObject implements Comparable<Library>
 	 * Method to return an iterator over all libraries.
 	 * @return an iterator over all libraries.
 	 */
-	public static Iterator<Library> getLibraries()
+	public static Iterator/*<Library>*/ getLibraries()
 	{
         synchronized(libraries) {
-			ArrayList<Library> librariesCopy = new ArrayList<Library>(libraries);
+			ArrayList/*<Library>*/ librariesCopy = new ArrayList/*<Library>*/(libraries);
 			return librariesCopy.iterator();
         }
 	}
@@ -651,12 +659,14 @@ public class Library extends ElectricObject implements Comparable<Library>
 	 * Method to return an iterator over all libraries.
 	 * @return an iterator over all libraries.
 	 */
-	public static List<Library> getVisibleLibraries()
+	public static List/*<Library>*/ getVisibleLibraries()
 	{
         synchronized(libraries) {
-			ArrayList<Library> visibleLibraries = new ArrayList<Library>();
-			for (Library lib: libraries)
+			ArrayList/*<Library>*/ visibleLibraries = new ArrayList/*<Library>*/();
+			/*for (Library lib: libraries)*/
+			for (Iterator it = libraries.iterator(); it.hasNext(); )
 			{
+				Library lib = (Library)it.next();
 				if (!lib.isHidden()) visibleLibraries.add(lib);
 			}
 			return visibleLibraries;
@@ -726,11 +736,12 @@ public class Library extends ElectricObject implements Comparable<Library>
 
     /**
      * Compares two <code>Library</code> objects.
-     * @param   that   the Library to be compared.
+     * @param   o   the Library to be compared.
      * @return	the result of comparison.
      */
-    public int compareTo(Library that)
+    public int compareTo(Object o/*Library that*/)
 	{
+		Library that = (Library)o;
 		return TextUtils.nameSameNumeric(libName, that.libName);
     }
 

@@ -146,8 +146,13 @@ public class CellProperties extends EDialog
 		frameSize.addItem("E-Size");
 
 		// make a popup of libraries
-		List<Library> libList = Library.getVisibleLibraries();
-		for(Library lib: libList) libraryPopup.addItem(lib.getName());
+		List/*<Library>*/ libList = Library.getVisibleLibraries();
+		/*for(Library lib: libList) libraryPopup.addItem(lib.getName());*/
+		for(Iterator it = libList.iterator(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			libraryPopup.addItem(lib.getName());
+		}
 		int curIndex = libList.indexOf(Library.getCurrent());
 		if (curIndex >= 0) libraryPopup.setSelectedIndex(curIndex);
 

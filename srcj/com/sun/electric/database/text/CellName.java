@@ -37,7 +37,7 @@ import com.sun.electric.database.hierarchy.View;
  * If the ";Version" is omitted, then the most recent version is assumed.
  * If the "{View}" is omitted, then the "unknown" view is assumed.
  */
-public class CellName implements Comparable<CellName>
+public class CellName implements Comparable/*<CellName>*/
 {
 	/** the name */		private final String name;
 	/** the view */		private final View   view;
@@ -123,10 +123,11 @@ public class CellName implements Comparable<CellName>
 
     /**
      * Compares two <code>CellName</code> objects.
-     * @param   that   the CellName to be compared.
+     * @param   o   the CellName to be compared.
      * @return	the result of comparison.
      */
-    public int compareTo(CellName that) {
+    public int compareTo(Object o/*CellName that*/) {
+		CellName that = (CellName)o;
 		int cmp = TextUtils.nameSameNumeric(name, that.name);
 		if (cmp != 0) return cmp;
 

@@ -119,9 +119,9 @@ public class JELIB extends Output
 
 		// write view information
 		boolean viewHeaderPrinted = false;
-		for(Iterator<View> it = View.getViews(); it.hasNext(); )
+		for(Iterator/*<View>*/ it = View.getViews(); it.hasNext(); )
 		{
-			View view = it.next();
+			View view = (View)it.next();
 			if (!externalObjs.contains(view)) continue;
 			if (!viewHeaderPrinted)
 			{
@@ -134,9 +134,9 @@ public class JELIB extends Output
 
 		// write external library information
 		boolean libraryHeaderPrinted = false;
-		for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+		for (Iterator/*<Library>*/ it = Library.getLibraries(); it.hasNext(); )
 		{
-			Library eLib = it.next();
+			Library eLib = (Library)it.next();
 			if (eLib == lib || !externalObjs.contains(eLib)) continue;
 			if (!libraryHeaderPrinted)
 			{

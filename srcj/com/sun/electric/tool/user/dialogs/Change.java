@@ -124,10 +124,12 @@ public class Change extends EDialog implements HighlightListener
 		});
 
 		// make a popup of libraries
-		List<Library> libList = Library.getVisibleLibraries();
+		List/*<Library>*/ libList = Library.getVisibleLibraries();
         int curIndex = libList.indexOf(Library.getCurrent());
-		for(Library lib: libList)
+		/*for(Library lib: libList)*/
+		for (Iterator it = libList.iterator(); it.hasNext(); )
 		{
+			Library lib = (Library)it.next();
 			librariesPopup.addItem(lib.getName());
             if (lib.getName().equals(libSelected)) {
                 curIndex = -1;                          // won't set to current library now

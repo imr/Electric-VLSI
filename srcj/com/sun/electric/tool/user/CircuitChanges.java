@@ -5256,8 +5256,10 @@ public class CircuitChanges
 	{
 		System.out.println("----- Libraries: -----");
 		int k = 0;
-		for(Library lib: Library.getVisibleLibraries())
+		/*for(Library lib: Library.getVisibleLibraries())*/
+		for (Iterator it = Library.getVisibleLibraries().iterator(); it.hasNext(); )
 		{
+			Library lib = (Library)it.next();
 			if (lib.isHidden()) continue;
 			StringBuffer infstr = new StringBuffer();
 			infstr.append(lib.getName());

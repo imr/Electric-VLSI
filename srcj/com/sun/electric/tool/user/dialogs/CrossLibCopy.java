@@ -49,7 +49,7 @@ import javax.swing.event.ChangeListener;
  */
 public class CrossLibCopy extends EDialog
 {
-	private List<Library> libList;
+	private List/*<Library>*/ libList;
 	private Library curLibLeft, curLibRight;
 	private List cellListLeft, cellListRight;
 	private JList listLeft, listRight, listCenter;
@@ -102,8 +102,10 @@ public class CrossLibCopy extends EDialog
 
 		// setup the library popups
 		libList = Library.getVisibleLibraries();
-		for(Library lib: libList)
+		/*for(Library lib: libList)*/
+		for (Iterator it = libList.iterator(); it.hasNext(); )
 		{
+			Library lib = (Library)it.next();
 			librariesLeft.addItem(lib.getName());
 			librariesRight.addItem(lib.getName());
 		}

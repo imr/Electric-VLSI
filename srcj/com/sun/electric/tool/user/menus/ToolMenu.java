@@ -524,7 +524,12 @@ public class ToolMenu {
 	}
 
 	public static void clearSizesCommand() {
-		for (Library lib: Library.getVisibleLibraries()) LETool.clearStoredSizesJob(lib);
+		/*for (Library lib: Library.getVisibleLibraries()) LETool.clearStoredSizesJob(lib);*/
+		for (Iterator it = Library.getVisibleLibraries().iterator(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			LETool.clearStoredSizesJob(lib);
+		}
 		System.out.println("Sizes cleared");
 	}
 

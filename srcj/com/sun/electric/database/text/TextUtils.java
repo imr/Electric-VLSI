@@ -1239,10 +1239,13 @@ public class TextUtils
 // 		}
 // 	}
 
-	public static class CellsByDate implements Comparator<Cell>
+	public static class CellsByDate implements Comparator/*<Cell>*/
 	{
-		public int compare(Cell c1, Cell c2)
+		/*public int compare(Cell c1, Cell c2)*/
+		public int compare(Object o1, Object o2)
 		{
+			Cell c1 = (Cell)o1;
+			Cell c2 = (Cell)o2;
 			Date r1 = c1.getRevisionDate();
 			Date r2 = c2.getRevisionDate();
 			return r1.compareTo(r2);
