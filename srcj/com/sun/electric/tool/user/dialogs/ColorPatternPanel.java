@@ -163,10 +163,10 @@ public class ColorPatternPanel extends JPanel
            {
                if (getJAppMethod == null)
                     getJAppMethod = app3DClass.getDeclaredMethod("getAppearanceInfo",
-                       new Class[] {Info.class});
+                       new Class[] {ColorPatternPanel.Info.class});
                getJAppMethod.invoke(app3DClass, new Object[] {this});
             } catch (Exception e) {
-                System.out.println("Cannot create instance of 3D plugin J3DColorOptions: " + e.getMessage());
+                System.out.println("Cannot get 3D plugin getAppearanceInfo method: " + e.getMessage());
             }
 		}
 
