@@ -181,6 +181,7 @@ public class RouteElement {
         e.done = false;
         e.nodeInstToDelete = nodeInstToDelete;
         e.showHighlight = true;
+        e.cell = nodeInstToDelete.getParent();
         return e;
     }
 
@@ -192,6 +193,7 @@ public class RouteElement {
         RouteElement e = new RouteElement(RouteElementAction.deleteArc);
         e.done = false;
         e.arcInstToDelete = arcInstToDelete;
+        e.cell = arcInstToDelete.getParent();
         e.showHighlight = true;
         return e;
     }
@@ -557,6 +559,8 @@ public class RouteElement {
      * Adds RouteElement to highlights
      */
     public void addHighlightArea() {
+
+        if (!showHighlight) return;
 
         if (action == RouteElementAction.newNode) {
             // create box around new Node

@@ -136,6 +136,7 @@ public class StatusBar extends JPanel implements HighlightListener
 
     public void highlightChanged()
     {
+        updateSelectedText();
         redoStatusBar();
     }
 
@@ -162,68 +163,6 @@ public class StatusBar extends JPanel implements HighlightListener
 	
 	private void redoStatusBar()
 	{
-		String selectedMsg = "NOTHING SELECTED";
-		if (selectionOverride != null)
-		{
-			selectedMsg = selectionOverride;
-		} else
-		{
-			// count the number of nodes and arcs selected
-			int nodeCount = 0, arcCount = 0, textCount = 0;
-            Highlight lastHighlight = null;
-			for(Iterator hIt = Highlight.getHighlights(); hIt.hasNext(); )
-			{
-				Highlight h = (Highlight)hIt.next();
-				if (h.getType() == Highlight.Type.EOBJ)
-				{
-					ElectricObject eObj = (ElectricObject)h.getElectricObject();
-                    if (eObj instanceof PortInst)
-                    {
-                        lastHighlight = h;
-                        nodeCount++;
-                    } else if (eObj instanceof NodeInst)
-					{
-                        lastHighlight = h;
-						nodeCount++;
-					} else if (eObj instanceof ArcInst)
-					{
-                        lastHighlight = h;
-						arcCount++;
-					}
-				} else if (h.getType() == Highlight.Type.TEXT)
-				{
-                    lastHighlight = h;
-					textCount++;
-				}
-			}
-			if (nodeCount + arcCount + textCount == 1)
-			{
-                selectedMsg = "SELECTED "+getSelectedText(lastHighlight);
-			} else
-			{
-				if (nodeCount + arcCount + textCount > 0)
-				{
-                    StringBuffer buf = new StringBuffer();
-					buf.append("SELECTED:");
-					if (nodeCount > 0) buf.append(" " + nodeCount + " NODES");
-					if (arcCount > 0)
-					{
-						if (nodeCount > 0) buf.append(",");
-						buf.append(" " + arcCount + " ARCS");
-					}
-					if (textCount > 0)
-					{
-						if (nodeCount + arcCount > 0) buf.append(",");
-						buf.append(" " + textCount + " TEXT");
-					}
-                    // add on info for last highlight
-                    buf.append(". LAST: "+getSelectedText(lastHighlight));
-                    selectedMsg = buf.toString();
-				}
-			}
-		}
-		fieldSelected.setText(selectedMsg);
-
 		Cell cell = null;
 		if (frame == null)
 		{
@@ -264,6 +203,71 @@ public class StatusBar extends JPanel implements HighlightListener
 		if (coords == null) fieldCoords.setText(""); else
 			fieldCoords.setText(coords);
 	}
+
+    private void updateSelectedText() {
+
+        String selectedMsg = "NOTHING SELECTED";
+        if (selectionOverride != null)
+        {
+            selectedMsg = selectionOverride;
+        } else
+        {
+            // count the number of nodes and arcs selected
+            int nodeCount = 0, arcCount = 0, textCount = 0;
+            Highlight lastHighlight = null;
+            for(Iterator hIt = Highlight.getHighlights(); hIt.hasNext(); )
+            {
+                Highlight h = (Highlight)hIt.next();
+                if (h.getType() == Highlight.Type.EOBJ)
+                {
+                    ElectricObject eObj = (ElectricObject)h.getElectricObject();
+                    if (eObj instanceof PortInst)
+                    {
+                        lastHighlight = h;
+                        nodeCount++;
+                    } else if (eObj instanceof NodeInst)
+                    {
+                        lastHighlight = h;
+                        nodeCount++;
+                    } else if (eObj instanceof ArcInst)
+                    {
+                        lastHighlight = h;
+                        arcCount++;
+                    }
+                } else if (h.getType() == Highlight.Type.TEXT)
+                {
+                    lastHighlight = h;
+                    textCount++;
+                }
+            }
+            if (nodeCount + arcCount + textCount == 1)
+            {
+                selectedMsg = "SELECTED "+getSelectedText(lastHighlight);
+            } else
+            {
+                if (nodeCount + arcCount + textCount > 0)
+                {
+                    StringBuffer buf = new StringBuffer();
+                    buf.append("SELECTED:");
+                    if (nodeCount > 0) buf.append(" " + nodeCount + " NODES");
+                    if (arcCount > 0)
+                    {
+                        if (nodeCount > 0) buf.append(",");
+                        buf.append(" " + arcCount + " ARCS");
+                    }
+                    if (textCount > 0)
+                    {
+                        if (nodeCount + arcCount > 0) buf.append(",");
+                        buf.append(" " + textCount + " TEXT");
+                    }
+                    // add on info for last highlight
+                    buf.append(". LAST: "+getSelectedText(lastHighlight));
+                    selectedMsg = buf.toString();
+                }
+            }
+        }
+        fieldSelected.setText(selectedMsg);
+    }
 
     /**
      * Get a String describing the Highlight, to display in the
