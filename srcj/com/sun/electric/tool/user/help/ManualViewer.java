@@ -526,6 +526,7 @@ public class ManualViewer extends EDialog
 				if (line.length() == 0) continue;
 				if (line.equals("<!-- TRAILER -->")) continue;
 				if (line.startsWith("<!-- COMMAND ")) continue;
+				if (line.startsWith("<!-- NEED ")) continue;
 				if (line.startsWith("<!-- HEADER ")) line = line.substring(12);
 				sb.append(line);
 			}
@@ -547,7 +548,7 @@ public class ManualViewer extends EDialog
 	 */
 	private void manual()
 	{
-		String manualFileName = OpenFile.chooseOutputFile(OpenFile.Type.ELIB, "Manual file", "electric.html");
+		String manualFileName = OpenFile.chooseOutputFile(OpenFile.Type.HTML, "Manual file", "electric.html");
 		if (manualFileName == null) return;
 		PrintWriter printWriter = null;
 		try

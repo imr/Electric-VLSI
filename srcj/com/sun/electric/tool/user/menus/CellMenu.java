@@ -108,9 +108,6 @@ public class CellMenu {
         cellMenu.addMenuItem("Cell Properties...", null,
              new ActionListener() { public void actionPerformed(ActionEvent e) { cellControlCommand(); }});
 
-//		cellMenu.addMenuItem("Cell Parameters...", null,
-//			new ActionListener() { public void actionPerformed(ActionEvent e) { cellParametersCommand(); } });
-
         cellMenu.addSeparator();
 
         MenuBar.Menu expandListSubMenu = new MenuBar.Menu("Expand Cell Instances");
@@ -220,14 +217,4 @@ public class CellMenu {
     {
         CircuitChanges.deleteUnusedOldVersions();
     }
-
-    /**
-     * This method implements the command to do cell parameters.
-     */
-    public static void cellParametersCommand()
-    {
-         CellParameters dialog = new CellParameters(TopLevel.getCurrentJFrame(), true);
-        dialog.setVisible(true);
-    }
-
 }

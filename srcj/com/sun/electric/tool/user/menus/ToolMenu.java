@@ -274,16 +274,11 @@ public class ToolMenu {
         MenuBar.Menu generationSubMenu = new MenuBar.Menu("Generation", 'G');
         toolMenu.add(generationSubMenu);
         generationSubMenu.addMenuItem("Coverage Implants Generator", null,
-            //new ActionListener() { public void actionPerformed(ActionEvent e) { implantGeneratorCommand(true, false); }});
             new ActionListener() { public void actionPerformed(ActionEvent e) {layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, false);}});
         generationSubMenu.addMenuItem("Pad Frame Generator", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
-        generationSubMenu.addMenuItem("Generate gate layouts", null,
-                                       new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                new com.sun.electric.tool.generator.layout.GateLayoutGenerator();
-            }
-        });
+//		generationSubMenu.addMenuItem("Generate gate layouts", null,
+//			new ActionListener() { public void actionPerformed(ActionEvent e) { new com.sun.electric.tool.generator.layout.GateLayoutGenerator(); }});
 
         toolMenu.addSeparator();
 

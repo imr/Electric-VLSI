@@ -47,6 +47,7 @@ public class OpenFile
 		/** Describes any file.*/				public static final Type ANY          = new Type("All", new String[] {}, "All Files");
 		/** Describes ELIB files.*/				public static final Type ELIB         = new Type("ELIB", new String[] {"elib"}, "Library File (elib)");
 		/** Describes text files. */			public static final Type TEXT         = new Type("Text", new String[] {"txt"}, "Text File (txt)");
+		/** Describes HTML files. */			public static final Type HTML         = new Type("HTML", new String[] {"html"}, "HTML File (html)");
 		/** Describes Readable Dump files. */	public static final Type READABLEDUMP = new Type("ReadableDump", new String[] {"txt"}, "Readable Dump Library File (txt)");
 		/** Describes CIF files. */				public static final Type CIF          = new Type("CIF", new String[] {"cif"}, "CIF File (cif)");
 		/** Describes GDS files. */				public static final Type GDS          = new Type("GDS", new String[] {"gds"}, "GDS File (gds)");

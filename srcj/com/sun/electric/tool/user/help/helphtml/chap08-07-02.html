@@ -1,12 +1,17 @@
 <!-- HEADER 8-7-2: Other Generators -->
 
-<!-- COMMAND Tool/Generation/Generate gate layouts -->
+<!-- COMMAND Tool/Generation/Coverage Implants Generator -->
 
 There are other generators built into Electric.
 These commands (in menu <B>Tool / Generation</B>) may be used:
 <UL>
 <LI>
-    <B>Generate gate layouts</B> not known yet.
+    <B>Coverage Implants Generator</B>
+    Although individual MOS nodes and arcs have the proper amount of implant around them,
+    a collection of such objects may result in an irregular implant boundary.
+    To clean this up, you can place pure-layer nodes of implant that neatly cover the implant area.
+    This command does it automatically.
+    It removes previous pieces of coverage implant before running, so that the result is a clean cover.
 </LI>
 </UL>
 

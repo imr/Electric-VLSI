@@ -25,7 +25,7 @@ Two commands may be given to the Logical Effort tool:
 <LI><B>Print Info for Selected Node</B>
 </UL>
 <P>
-<H2>Optimize for Equal Gate Delays</H2>
+<H3>Optimize for Equal Gate Delays</H3>
 <P>
 Optimizes all Logical Effort gates (Cells) to have the same delay.  The delay is specified by the
 Global fan-out (step-up) option.  This is *NOT* a path optimization algorithm.
@@ -62,7 +62,7 @@ There must be at least one load that is driven by the gates in order for them to
 is either an Electric transistor or capacitor.  Gates that do not drive loads, or that do not drive
 gates that drive loads, will not be assigned sizes.
 <P>
-<B>Advanced Features</B>
+<H3>Advanced Features</H3>
 <P>
 There are several advanced features that may be added to the Cell definition:
 <UL>
@@ -76,7 +76,8 @@ amongst those gates.
 fanout specified in the options.  If set to -1, this attribute is ignored, and the global value is used.
 </UL>
 
-<H2>Print Info for Selected Node</H2>
+<P>
+<H3>Print Info for Selected Node</H3>
 <P>
 After running sizing, information about a specific logical effort gate can be found by
 selecting the gate instance and running this command.
