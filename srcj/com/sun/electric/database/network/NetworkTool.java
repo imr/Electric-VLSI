@@ -41,6 +41,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.Main;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -249,7 +250,7 @@ public class NetworkTool extends Listener
 			NetCell netCell = getNetCell(cell);
 			return netCell.getNetlist(isIgnoreResistors());
 		}
-        if (Main.DEBUG && SwingUtilities.isEventDispatchThread())
+        if (Main.getDebug() && SwingUtilities.isEventDispatchThread())
 		{
 			System.out.println("getUserNetlist() used in GUI thread");
 		}

@@ -105,7 +105,7 @@ public class TextInfoPanel extends javax.swing.JPanel
 
         // populate color combo box
         int [] colorIndices = EGraphics.getColorIndices();
-        textColorComboBox.addItem("");
+        textColorComboBox.addItem("DEFAULT COLOR");
         for (int i=0; i<colorIndices.length; i++) {
             String str = EGraphics.getColorIndexName(colorIndices[i]);
             textColorComboBox.addItem(str);
@@ -137,7 +137,7 @@ public class TextInfoPanel extends javax.swing.JPanel
         initialRotation = TextDescriptor.Rotation.ROT0;
         rotation.setSelectedItem(initialRotation);
         // color
-        initialColorIndex = EGraphics.BLACK; // // Is BLACK the default? or should it be retrieved from TextDescriptor.DescriptorPref?
+        initialColorIndex = 0; // Zero is the default font
 
         setTextDescriptor(null, null);
 
@@ -380,8 +380,6 @@ public class TextInfoPanel extends javax.swing.JPanel
 
         // set the color
         initialColorIndex = td.getColorIndex();
-        if (initialColorIndex ==0) // nothing assigned
-           initialColorIndex = EGraphics.BLACK;   // Is BLACK the default? or should it be retrieved from TextDescriptor.DescriptorPref
         int [] colorIndices = EGraphics.getColorIndices();
         int colorComboIndex = Arrays.binarySearch(colorIndices, initialColorIndex);
 //      int colorComboIndex = 0;
