@@ -43,12 +43,11 @@ import com.sun.electric.technology.PrimitiveNode;
 // Java3D packages
 import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.j3d.utils.universe.ViewingPlatform;
+import com.sun.j3d.utils.universe.Viewer;
 import com.sun.j3d.utils.geometry.GeometryInfo;
 import com.sun.j3d.utils.geometry.Primitive;
 import com.sun.j3d.utils.geometry.NormalGenerator;
-import com.sun.j3d.utils.behaviors.mouse.MouseTranslate;
-import com.sun.j3d.utils.behaviors.mouse.MouseZoom;
-import com.sun.j3d.utils.behaviors.mouse.MouseRotate;
+import com.sun.j3d.utils.behaviors.mouse.*;
 import com.sun.j3d.utils.picking.PickTool;
 import com.sun.j3d.utils.picking.PickResult;
 import com.sun.j3d.utils.picking.PickCanvas;
@@ -82,6 +81,9 @@ public class View3DWindow extends JPanel
 	private SimpleUniverse u;
 	private Canvas3D canvas;
 	private TransformGroup objTrans;
+	private MouseBehavior rotateB, translateB;
+	private JMouseZoom zoomB;
+
     //private OrbitBehavior orbit;
 	/** the window frame containing this editwindow */      private WindowFrame wf;
 	/** reference to 2D view of the cell */                 private WindowContent view2D;
@@ -171,37 +173,45 @@ public class View3DWindow extends JPanel
 
 		// Create a simple scene and attach it to the virtual universe
 		BranchGroup scene = createSceneGraph(cell, infiniteBounds);
-		u = new SimpleUniverse(canvas, 4);
+
+		ViewingPlatform viewP = new ViewingPlatform(4);
+		viewP.setCapability(ViewingPlatform.ALLOW_CHILDREN_READ);
+		Viewer viewer = new Viewer(canvas);
+		//u = new SimpleUniverse(canvas, 4);
+		u = new SimpleUniverse(viewP, viewer);
+		u.addBranchGraph(scene);
 
         // This will move the ViewPlatform back a bit so the
         // objects in the scene can be viewed.
+
 		ViewingPlatform viewingPlatform = u.getViewingPlatform();
+		//viewingPlatform.setCapability(ViewingPlatform.ALLOW_CHILDREN_READ);
 
         MouseTranslate translate = new MouseTranslate(canvas, MouseTranslate.INVERT_INPUT);
-        translate.setTransformGroup(viewingPlatform.getMultiTransformGroup().
-                        getTransformGroup(2));
+        translate.setTransformGroup(viewingPlatform.getMultiTransformGroup().getTransformGroup(2));
         translate.setSchedulingBounds(infiniteBounds);
         translate.setFactor(0.1); // default 0.02
         BranchGroup translateBG = new BranchGroup();
         translateBG.addChild(translate);
         viewingPlatform.addChild(translateBG);
+		translateB = translate;
 
-        MouseZoom zoom = new MouseZoom(canvas, MouseZoom.INVERT_INPUT);
-        zoom.setTransformGroup(viewingPlatform.getMultiTransformGroup().
-                  getTransformGroup(1));
+        JMouseZoom zoom = new JMouseZoom(canvas, MouseZoom.INVERT_INPUT);
+        zoom.setTransformGroup(viewingPlatform.getMultiTransformGroup().getTransformGroup(1));
         zoom.setSchedulingBounds(infiniteBounds);
         zoom.setFactor(0.7);    // default 0.4
         BranchGroup zoomBG = new BranchGroup();
         zoomBG.addChild(zoom);
         viewingPlatform.addChild(zoomBG);
+		zoomB = zoom;
 
         MouseRotate rotate = new MouseRotate(MouseRotate.INVERT_INPUT);
-        rotate.setTransformGroup(viewingPlatform.getMultiTransformGroup().
-                       getTransformGroup(0));
+        rotate.setTransformGroup(viewingPlatform.getMultiTransformGroup().getTransformGroup(0));
         BranchGroup rotateBG = new BranchGroup();
         rotateBG.addChild(rotate);
         viewingPlatform.addChild(rotateBG);
         rotate.setSchedulingBounds(infiniteBounds);
+		rotateB = rotate;
 
 //		OrbitBehavior orbit = new OrbitBehavior(canvas, OrbitBehavior.REVERSE_ALL);
 //		orbit.setSchedulingBounds(infiniteBounds);
@@ -223,7 +233,6 @@ public class View3DWindow extends JPanel
         // objects in the scene can be viewed.
         //viewingPlatform.setNominalViewingTransform();
 
-		u.addBranchGraph(scene);
 
 		BoundingSphere sceneBnd = (BoundingSphere)scene.getBounds();
 		double radius = sceneBnd.getRadius();
@@ -375,11 +384,29 @@ public class View3DWindow extends JPanel
 	public void fullRepaint() { System.out.println("View3DWindow::fullRepaint"); }
 	public boolean findNextText(boolean reverse) { return false; }
 	public void replaceText(String replace) {}
-	public void initTextSearch(String search, boolean caseSensitive, boolean regExp, Set whatToSearch) {}
-	public void zoomOutContents() {}
-	public void zoomInContents() {}
 	public JPanel getPanel() { return this; }
-	public void fillScreen() {}
+	public void initTextSearch(String search, boolean caseSensitive, boolean regExp, Set whatToSearch) {}
+
+
+	public void zoomOutContents() {zoomB.zoomInOut(false);}
+	public void zoomInContents() {zoomB.zoomInOut(true);}
+
+	/**
+	 * Method to reset zoom/rotation/translation to original place (Fill Window operation)
+	 */
+	public void fillScreen()
+	{
+		Transform3D trans = new Transform3D();
+
+	    Transform3D x = new Transform3D();
+		zoomB.getTransformGroup().getTransform(x);
+		zoomB.getTransformGroup().setTransform(trans);
+		rotateB.getTransformGroup().getTransform(x);
+		rotateB.getTransformGroup().setTransform(trans);
+		translateB.getTransformGroup().getTransform(x);
+		translateB.getTransformGroup().setTransform(trans);
+	}
+
 	public void setCell(Cell cell, VarContext context) {}
 	public void focusOnHighlighted() {}
 	public void cellHistoryGoBack() {}
@@ -917,7 +944,6 @@ public class View3DWindow extends JPanel
 			WindowContent content = wf.getContent();
 			if (!(content instanceof View3DWindow)) continue;
 			View3DWindow wnd = (View3DWindow)content;
-            Enumeration enum = wnd.u.getLocale().getAllBranchGraphs();
             wnd.objTrans.getTransform(vTrans);
             vTrans.setScale(vCenter);
             wnd.objTrans.setTransform(vTrans);
@@ -1177,5 +1203,124 @@ public class View3DWindow extends JPanel
 
 		*/
 		return new Point2D.Double(dbX, dbY);
+	}
+
+	//************************ SPECIAL BEHAVIORS *********************************************/
+	/**
+	 * Extending original zoom class to allow zoom with respect to scene center
+	 */
+	public class JMouseZoom extends MouseZoom
+	{
+		Vector3d translation = new Vector3d();
+
+		public JMouseZoom(Component c, int flags) {super(c, flags);}
+
+		void zoomInOut(boolean out)
+		{
+			// Remember old matrix
+			transformGroup.getTransform(currXform);
+
+			Matrix4d mat = new Matrix4d();
+			currXform.get(mat);
+			double factor = (out) ? 0.5 : 2;
+			double dy = currXform.getScale() * factor;
+
+			// Translate to origin
+			currXform.setTranslation(new Vector3d(0.0,0.0,0.0));
+
+			translation.z = dy*getFactor();
+
+			//transformX.set(translation);
+			transformX.setScale(dy);
+
+			if (invert) {
+				currXform.mul(currXform, transformX);
+			} else {
+				currXform.mul(transformX, currXform);
+			}
+
+			// Set old translation back
+			Vector3d translation = new Vector3d(mat.m03, mat.m13, mat.m23);
+			currXform.setTranslation(translation);
+
+			transformGroup.setTransform(currXform);
+
+			transformChanged( currXform );
+
+		}
+
+		/**
+		 * Similar to original MouseZoom function but zoom with respect to
+		 * center
+		 * @param evt
+		 */
+		void doProcess(MouseEvent evt)
+		{
+			int id;
+			int dx, dy;
+
+			processMouseEvent(evt);
+
+			if (((buttonPress)&&((flags & MANUAL_WAKEUP) == 0)) ||
+			    ((wakeUp)&&((flags & MANUAL_WAKEUP) != 0)))
+			{
+			    id = evt.getID();
+			    if ((id == MouseEvent.MOUSE_DRAGGED) &&
+				evt.isAltDown() && !evt.isMetaDown())
+			    {
+					x = evt.getX();
+					y = evt.getY();
+
+					//dx = x - x_last;
+					dy = y - y_last;
+
+					if (!reset){
+						transformGroup.getTransform(currXform);
+
+						// Remember old matrix
+						Matrix4d mat = new Matrix4d();
+						currXform.get(mat);
+
+						// Translate to origin
+						currXform.setTranslation(new Vector3d(0.0,0.0,0.0));
+
+						translation.z  = dy*getFactor();
+
+						transformX.set(translation);
+
+						if (invert) {
+							currXform.mul(currXform, transformX);
+						} else {
+							currXform.mul(transformX, currXform);
+						}
+
+						// Set old translation back
+						Vector3d translation = new Vector3d(mat.m03, mat.m13, mat.m23);
+						currXform.setTranslation(translation);
+
+						transformGroup.setTransform(currXform);
+
+						transformChanged( currXform );
+
+						/*
+						if (callback!=null)
+						callback.transformChanged( MouseBehaviorCallback.ZOOM,
+									   currXform );
+									   */
+
+					}
+					else {
+						reset = false;
+					}
+
+					x_last = x;
+					y_last = y;
+			    }
+			    else if (id == MouseEvent.MOUSE_PRESSED) {
+					x_last = evt.getX();
+					y_last = evt.getY();
+			    }
+			}
+		}
 	}
 }
