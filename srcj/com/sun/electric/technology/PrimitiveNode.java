@@ -27,24 +27,28 @@ import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
 
 import java.awt.Dimension;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.HashMap;
 import java.util.NoSuchElementException;
+import java.util.TreeMap;
 
 /**
  * A PrimitiveNode represents information about a NodeProto that lives in a
  * Technology.  It has a name, and several functions that describe how
  * to draw it
  */
-public class PrimitiveNode implements NodeProto
+public class PrimitiveNode implements NodeProto, Comparable
 {
 	/**
 	 * Function is a typesafe enum class that describes the function of a NodeProto.
@@ -842,10 +846,13 @@ public class PrimitiveNode implements NodeProto
 	public void addPrimitivePorts(PrimitivePort [] ports)
 	{
 		assert primPorts == null : this + " addPrimitivePorts twice";
-		primPorts = ports;
-		for(int i = 0; i < ports.length; i++)
+		primPorts = (PrimitivePort[])ports.clone();
+//		Arrays.sort(primPorts);
+		for (int i = 0; i < primPorts.length; i++)
 		{
-			ports[i].setPortIndex(this, i);
+			primPorts[i].setPortIndex(this, i);
+// 			if (i > 0)
+// 				assert primPorts[i - 1].compareTo(primPorts[i]) < 0;
 		}
 	}
 
@@ -869,8 +876,9 @@ public class PrimitiveNode implements NodeProto
 		name = name.lowerCase();
 		for (int i = 0; i < primPorts.length; i++)
 		{
-			if (primPorts[i].getNameKey().lowerCase() == name)
-				return primPorts[i];
+			PrimitivePort pp = primPorts[i];
+			if (pp.getNameKey().lowerCase() == name)
+				return pp;
 		}
 		return null;
 	}
@@ -881,39 +889,7 @@ public class PrimitiveNode implements NodeProto
 	 */
 	public Iterator getPorts()
 	{
-		return new ArrayIterator(primPorts);
-	}
-
-	/** 
-	 * Iterator for array of Objects
-	 */ 
-	private static class ArrayIterator implements Iterator 
-	{ 
-		Object [] array; 
-		int pos; 
-
-		public ArrayIterator(Object [] a) 
-		{ 
-			array = a; 
-			pos = 0; 
-		} 
-
-		public boolean hasNext() 
-		{ 
-			return pos < array.length; 
-		} 
-
-		public Object next() throws NoSuchElementException 
-		{ 
-			if (pos >= array.length) 
-				throw new NoSuchElementException(); 
-			return array[pos++];
-		} 
-
-		public void remove() throws UnsupportedOperationException, IllegalStateException 
-		{ 
-			throw new UnsupportedOperationException(); 
-		}
+		return ArrayIterator.iterator(primPorts);
 	}
 
 	/**
@@ -946,8 +922,9 @@ public class PrimitiveNode implements NodeProto
 	{
 		for (int i = 0; i < primPorts.length; i++)
 		{
-			if (primPorts[i].connectsTo(arc))
-				return primPorts[i];
+			PrimitivePort pp = primPorts[i];
+			if (pp.connectsTo(arc))
+				return pp;
 		}
 		return null;
 	}
@@ -1332,6 +1309,22 @@ public class PrimitiveNode implements NodeProto
 	 * @return the index of this PrimitiveNode.
 	 */
 	public final int getPrimNodeIndex() { return primNodeIndex; }
+
+    /**
+     * Compares PrimtiveNodes by their Technologies and names.
+     * @param obj the other PrimitiveNode.
+     * @return a comparison between the PrimitiveNodes.
+     */
+	public int compareTo(Object obj)
+	{
+		PrimitiveNode that = (PrimitiveNode)obj;
+		if (tech != that.tech)
+		{
+			int cmp = tech.compareTo(that.tech);
+			if (cmp != 0) return cmp;
+		}
+		return TextUtils.nameSameNumeric(protoName, that.protoName);
+	}
 
 	/**
 	 * Returns a printable version of this PrimitiveNode.

@@ -36,6 +36,7 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.ElectricObject;
@@ -80,6 +81,9 @@ public class NodeInst extends Geometric implements Nodable
 	/** key of obsolete Varible holding instance name. */		public static final Variable.Key NODE_NAME = ElectricObject.newKey("NODE_name");
 	/** key of Varible holding outline information. */			public static final Variable.Key TRACE = ElectricObject.newKey("trace");
 	/** key of Varible holding serpentine transistor length. */	private static final Variable.Key TRANSISTOR_LENGTH_KEY = ElectricObject.newKey("transistor_width");
+
+	private static final PortInst[] NULL_PORT_INST_ARRAY = new PortInst[0];
+	private static final Export[] NULL_EXPORT_ARRAY = new Export[0];
 
 	// -------------------------- constants --------------------------------
 //	/** node is not in use */								private static final int DEADN =                     01;
@@ -130,11 +134,11 @@ public class NodeInst extends Geometric implements Nodable
 	// ---------------------- private data ----------------------------------
 	/** prototype of this NodeInst. */						private NodeProto protoType;
 	/** node usage of this NodeInst. */						private NodeUsage nodeUsage;
-	/** 0-based index of this NodeInst in Cell. */			private int nodeIndex;
+	/** 0-based index of this NodeInst in Cell. */			private int nodeIndex = -1;
 	/** labling information for this NodeInst. */			private int textbits;
-	/** HashTable of portInsts on this NodeInst. */			private List portInsts;
-	/** List of connections belonging to this NodeInst. */	private List connections;
-	/** List of Exports belonging to this NodeInst. */		private List exports;
+	/** Array of PortInsts on this NodeInst. */				private PortInst[] portInsts = NULL_PORT_INST_ARRAY;
+	/** List of connections belonging to this NodeInst. */	private List connections = new ArrayList(2);
+	/** Array of Exports belonging to this NodeInst. */		private Export[] exports = NULL_EXPORT_ARRAY;
 	/** Text descriptor of prototype name. */				private TextDescriptor protoDescriptor;
 
 	// The internal representation of position and orientation is the 2D transformation matrix:
@@ -143,7 +147,7 @@ public class NodeInst extends Geometric implements Nodable
 	// |  -sX sin(angle)    sY cos(angle)   0  |
 	// |    center.x         center.y       1  |
 	// -----------------------------------------
-	/** center coordinate of this NodeInst. */				private Point2D center;
+	/** center coordinate of this NodeInst. */				private Point2D center = new Point2D.Double();
 	/** size of this NodeInst (negative to mirror). */		private double sX, sY;
 	/** angle of this NodeInst (in tenth-degrees). */		private int angle;
 
@@ -155,13 +159,8 @@ public class NodeInst extends Geometric implements Nodable
 	private NodeInst()
 	{
 		// initialize this object
-		this.nodeIndex = -1;
 		this.textbits = 0;
-		this.portInsts = new ArrayList();
-		this.connections = new ArrayList();
-		this.exports = new ArrayList();
 		this.protoDescriptor = TextDescriptor.getInstanceTextDescriptor(this);
-		center = new Point2D.Double();
         setLinked(false);
 	}
 
@@ -319,9 +318,9 @@ public class NodeInst extends Geometric implements Nodable
 		}
 
 		// remove any exports
-		while (exports.size() > 0)
+		while (exports.length != 0)
 		{
-			Export pp = (Export)exports.get(exports.size() - 1);
+			Export pp = exports[exports.length - 1];
 			pp.kill();
 		}
 
@@ -728,10 +727,11 @@ public class NodeInst extends Geometric implements Nodable
 		this.protoType = protoType;
 
 		// create all of the portInsts on this node inst
-		for (Iterator it = protoType.getPorts(); it.hasNext();)
+		portInsts = new PortInst[protoType.getNumPorts()];
+		for (int i = 0; i < portInsts.length; i++)
 		{
-			PortProto pp = (PortProto) it.next();
-			addPortInst(pp);
+			PortProto pp = protoType.getPort(i);
+			portInsts[i] = PortInst.newInstance(pp, this);
 		}
 		this.center.setLocation(DBMath.round(center.getX()), DBMath.round(center.getY()));
 		this.sX = DBMath.round(width);
@@ -1809,29 +1809,20 @@ public class NodeInst extends Geometric implements Nodable
 	 * Method to return an Iterator for all PortInsts on this NodeInst.
 	 * @return an Iterator for all PortInsts on this NodeInst.
 	 */
-	public Iterator getPortInsts()
-	{
-		return portInsts.iterator();
-	}
+	public Iterator getPortInsts() { return ArrayIterator.iterator(portInsts); }
 
 	/**
 	 * Method to return the number of PortInsts on this NodeInst.
 	 * @return the number of PortInsts on this NodeInst.
 	 */
-	public int getNumPortInsts()
-	{
-		return portInsts.size();
-	}
+	public int getNumPortInsts() { return portInsts.length; }
 
 	/**
 	 * Method to return the PortInst at specified position.
 	 * @param portIndex specified position of PortInst.
 	 * @return the PortProto at specified position..
 	 */
-	public PortInst getPortInst(int portIndex)
-	{
-		return (PortInst)portInsts.get(portIndex);
-	}
+	public PortInst getPortInst(int portIndex) { return portInsts[portIndex]; }
 
 	/**
 	 * Method to return the only PortInst on this NodeInst.
@@ -1841,14 +1832,14 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public PortInst getOnlyPortInst()
 	{
-		int sz = portInsts.size();
+		int sz = portInsts.length;
 		if (sz != 1)
 		{
 			System.out.println("NodeInst.getOnlyPortInst: Cell " + parent.describe() +
 				", node " + describe() + " doesn't have just one port, it has " + sz);
 			return null;
 		}
-		return (PortInst) portInsts.get(0);
+		return portInsts[0];
 	}
 
 	/**
@@ -1860,7 +1851,7 @@ public class NodeInst extends Geometric implements Nodable
 	{
 		PortProto pp = protoType.findPortProto(name);
 		if (pp == null) return null;
-		return (PortInst) portInsts.get(pp.getPortIndex());
+		return portInsts[pp.getPortIndex()];
 	}
 
 	/**
@@ -1872,9 +1863,9 @@ public class NodeInst extends Geometric implements Nodable
 	{
 		double bestDist = Double.MAX_VALUE;
 		PortInst bestPi = null;
-		for (int i = 0; i < portInsts.size(); i++)
+		for (int i = 0; i < portInsts.length; i++)
 		{
-			PortInst pi = (PortInst) portInsts.get(i);
+			PortInst pi = portInsts[i];
 			Poly piPoly = pi.getPoly();
 			Point2D piPt = new Point2D.Double(piPoly.getCenterX(), piPoly.getCenterY());
 			double thisDist = piPt.distance(w);
@@ -1895,7 +1886,7 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public PortInst findPortInstFromProto(PortProto pp)
 	{
-		return (PortInst) portInsts.get(pp.getPortIndex());
+		return portInsts[pp.getPortIndex()];
 	}
 
 	/**
@@ -1904,8 +1895,7 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public void addPortInst(PortProto pp)
 	{
-		PortInst pi = PortInst.newInstance(pp, this);
-		portInsts.add(pp.getPortIndex(), pi);
+		linkPortInst(PortInst.newInstance(pp, this));
 	}
 
 	/**
@@ -1914,7 +1904,27 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public void linkPortInst(PortInst pi)
 	{
-		portInsts.add(pi.getPortIndex(), pi);
+		int portIndex = pi.getPortIndex();
+		PortInst[] newPortInsts = new PortInst[portInsts.length + 1];
+		System.arraycopy(portInsts, 0, newPortInsts, 0, portIndex);
+		newPortInsts[portIndex] = pi;
+		System.arraycopy(portInsts, portIndex, newPortInsts, portIndex + 1, portInsts.length - portIndex);
+		portInsts = newPortInsts;
+	}
+
+	/**
+	 * Method to move PortInst on this NodeInst.
+	 * @param oldPortIndex old port index of the PortInst.
+	 */
+	public void movePortInst(int oldPortIndex)
+	{
+		PortInst pi = portInsts[oldPortIndex];
+		int portIndex = pi.getPortIndex();
+		if (portIndex > oldPortIndex)
+			System.arraycopy(portInsts, oldPortIndex + 1, portInsts, oldPortIndex, portIndex - oldPortIndex);
+		else if (portIndex < oldPortIndex)
+			System.arraycopy(portInsts, portIndex, portInsts, portIndex + 1, oldPortIndex - portIndex);
+		portInsts[portIndex] = pi;
 	}
 
 	/**
@@ -1924,7 +1934,8 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public PortInst removePortInst(PortProto pp)
 	{
-		PortInst pi = (PortInst) portInsts.get(pp.getPortIndex());
+		int portIndex = pp.getPortIndex();
+		PortInst pi = portInsts[portIndex];
 
 		// kill the arcs attached to the connections to this port instance.
 		// This will also remove the connections themselves
@@ -1937,13 +1948,16 @@ public class NodeInst extends Geometric implements Nodable
 		}
 
 		// remove connected exports
-		for (int i = exports.size() - 1; i >= 0; i--)
+		for (int i = exports.length - 1; i >= 0; i--)
 		{
-			Export export = (Export)exports.get(i);
+			Export export = exports[i];
 			if (export.getOriginalPort() == pi) export.kill();
 		}
 
-		portInsts.remove(pp.getPortIndex());
+		PortInst[] newPortInsts = portInsts.length > 1 ? new PortInst[portInsts.length - 1] : NULL_PORT_INST_ARRAY;
+		System.arraycopy(portInsts, 0, newPortInsts, 0, portIndex);
+		System.arraycopy(portInsts, portIndex + 1, newPortInsts, portIndex, newPortInsts.length - portIndex);
+		portInsts = newPortInsts;
 		return pi;
 	}
 
@@ -1964,7 +1978,10 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public void addExport(Export e)
 	{
-		exports.add(e);
+		Export[] newExports = new Export[exports.length + 1];
+		System.arraycopy(exports, 0, newExports, 0, exports.length);
+		newExports[newExports.length - 1] = e;
+		exports = newExports;
 		redoGeometric();
 	}
 
@@ -1974,11 +1991,14 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public void removeExport(Export e)
 	{
-		if (!exports.contains(e))
-		{
+		int i = 0;
+		while (i < exports.length && exports[i] != e) i++;
+		if (i >= exports.length)
 			throw new RuntimeException("Tried to remove a non-existant export");
-		}
-		exports.remove(e);
+		Export[] newExports = exports.length > 1 ? new Export[exports.length - 1] : NULL_EXPORT_ARRAY;
+		System.arraycopy(exports, 0, newExports, 0, i);
+		System.arraycopy(exports, i + 1, newExports, i, newExports.length - i);
+		exports = newExports;
 		redoGeometric();
 	}
 
@@ -1986,16 +2006,13 @@ public class NodeInst extends Geometric implements Nodable
 	 * Method to return an Iterator over all Exports on this NodeInst.
 	 * @return an Iterator over all Exports on this NodeInst.
 	 */
-	public Iterator getExports()
-	{
-		return exports.iterator();
-	}
+	public Iterator getExports() { return ArrayIterator.iterator(exports); }
 
 	/**
 	 * Method to return the number of Exports on this NodeInst.
 	 * @return the number of Exports on this NodeInst.
 	 */
-	public int getNumExports() { return exports.size(); }
+	public int getNumExports() { return exports.length; }
 
 	/**
 	 * Method to associate the ports between two NodeInsts.
@@ -2147,7 +2164,7 @@ public class NodeInst extends Geometric implements Nodable
 	public boolean pinUseCount()
 	{
 		if (connections.size() > 2) return false;
-		if (exports.size() != 0) return true;
+		if (getNumExports() != 0) return true;
 		if (connections.size() == 0) return false;
 		return true;
 	}
@@ -2710,66 +2727,25 @@ public class NodeInst extends Geometric implements Nodable
 			}
 			warningCount++;
 		}
-// 			Point2D [] points = getTrace();
-// 			if (points != null)
-// 			{
-// 				double lX = points[0].getX();
-// 				double hX = lX;
-// 				double lY = points[0].getY();
-// 				double hY = lY;
-// 				for(int i=1; i<points.length; i++)
-// 				{
-// 					if (points[i].getX() < lX) lX = points[i].getX();
-// 					if (points[i].getX() > hX) hX = points[i].getX();
-// 					if (points[i].getY() < lY) lY = points[i].getY();
-// 					if (points[i].getY() > hY) hY = points[i].getY();
-// 				}
-// 				if (hX-lX != getXSize() || hY-lY != getYSize())
-// 				{
-// 					System.out.println("Cell " + parent.describe() + ", node " + describe() +
-// 						" is " + getXSize() + "x" + getYSize() +
-// 						" but has outline of size " + (hX-lX) + "x" + (hY-lY) +
-// 						" (REPAIRED)");
-// 					sX = DBMath.round(hX-lX) * (isXMirrored() ? -1 : 1);
-// 					sY = DBMath.round(hY-lY) * (isYMirrored() ? -1 : 1);
-// // 					sX = (hX-lX) * getXSize() / getXSizeWithMirror();
-// // 					sY = (hY-lY) * getYSize() / getYSizeWithMirror();
-// 					redoGeometric();
-// 					warningCount++;
-// 				}
-// 			}
-		if (portInsts.size() != protoType.getNumPorts())
-		{
-			String msg = "Cell " + parent.describe() + ", node " + describe() +
-				" has number of PortInsts " + portInsts.size() + " , but prototype " + protoType +
-				" has " + protoType.getNumPorts() + " ports";
-			System.out.println(msg);
-			if (errorLogger != null)
-			{
-				ErrorLogger.MessageLog error = errorLogger.logError(sizeMsg, parent, 1);
-				error.addGeom(this, true, parent, null);
-			}
-			return 1;
-		}
-		int i = 0;
-		for (Iterator it = protoType.getPorts(); it.hasNext(); i++)
-		{
-			PortProto pp = (PortProto)it.next();
-			PortInst pi = (PortInst)portInsts.get(i);
-			if (pp.getPortIndex() != i || pi.getPortProto() != pp)
-			{
-				String msg = "Cell " + parent.describe() + ", node " + describe() +
- 					" has mismatches between PortInsts and PortProtos (" + pp.getName() + ")";
- 				System.out.println(msg);
-				if (errorLogger != null)
-				{
-					ErrorLogger.MessageLog error = errorLogger.logError(sizeMsg, parent, 1);
-					error.addGeom(this, true, parent, null);
-				}
-				errorCount++;
-			}
-		}
 		return errorCount;
+	}
+
+	/**
+	 * Method to check invariants in this NodeInst.
+	 * @exception AssertionError if invariants are not valid
+	 */
+	public void check()
+	{
+		assert portInsts != null;
+		assert portInsts.length == protoType.getNumPorts();
+		for (int i = 0; i < portInsts.length; i++)
+		{
+			PortProto pp = protoType.getPort(i);
+			assert pp.getPortIndex() == i;
+			PortInst pi = portInsts[i];
+			assert pi.getPortProto() == pp;
+		}
+		assert exports != null;
 	}
 
 	/**

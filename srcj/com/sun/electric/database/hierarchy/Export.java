@@ -59,7 +59,7 @@ import java.util.Iterator;
  * <P>
  * <CENTER><IMG SRC="doc-files/Export-1.gif"></CENTER>
  */
-public class Export extends ElectricObject implements PortProto
+public class Export extends ElectricObject implements PortProto, Comparable
 {
 	/** key of Varible holding reference name. */			public static final Variable.Key EXPORT_REFERENCE_NAME = ElectricObject.newKey("EXPORT_reference_name");
 
@@ -295,6 +295,7 @@ public class Export extends ElectricObject implements PortProto
 	 */
 	public void lowLevelRename(Name newName)
 	{
+		if (isLinked()) parent.moveExport(portIndex, newName.toString());
 		this.name = newName;
 	}
 
@@ -507,6 +508,22 @@ public class Export extends ElectricObject implements PortProto
 			return name.substring(0, i);
 		}
 		return name;
+	}
+
+    /**
+     * Compares Exports by their Cells and names.
+     * @param obj the other Export.
+     * @return a comparison between the Exports.
+     */
+	public int compareTo(Object obj)
+	{
+		Export that = (Export)obj;
+		if (parent != that.parent)
+		{
+			int cmp = parent.compareTo(that.parent);
+			if (cmp != 0) return cmp;
+		}
+		return name.toString().compareTo(that.name.toString());
 	}
 
 	/**

@@ -25,6 +25,7 @@ package com.sun.electric.technology;
 
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 
@@ -44,7 +45,7 @@ import java.util.NoSuchElementException;
  * <P>
  * The basic PrimitiveArc has Layers that describe it graphically.
  */
-public class PrimitiveArc extends ArcProto
+public class PrimitiveArc extends ArcProto implements Comparable
 {
 	// ----------------------- private data -------------------------------
 
@@ -237,6 +238,22 @@ public class PrimitiveArc extends ArcProto
 	 * @return the full name of this PrimitiveArc.
 	 */
 	public String getFullName() { return fullName; }
+
+    /**
+     * Compares PrimtiveArc by their Technologies and names.
+     * @param obj the other PrimitiveArc.
+     * @return a comparison between the PrimitiveArc.
+     */
+	public int compareTo(Object obj)
+	{
+		PrimitiveArc that = (PrimitiveArc)obj;
+		if (tech != that.tech)
+		{
+			int cmp = tech.compareTo(that.tech);
+			if (cmp != 0) return cmp;
+		}
+		return TextUtils.nameSameNumeric(protoName, that.protoName);
+	}
 
 	/**
 	 * Returns a printable version of this PrimitiveArc.

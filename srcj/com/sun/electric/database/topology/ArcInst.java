@@ -112,7 +112,8 @@ public class ArcInst extends Geometric
 	/** width of this ArcInst. */						private double width;
 	/** length of this ArcInst. */						private double length;
 	/** prototype of this arc instance */				private ArcProto protoType;
-	/** end connections of this arc instance */			private Connection [] ends;
+	/** head connection of this arc instance */			private Connection headEnd;
+	/** tail connection of this arc instance */			private Connection tailEnd;
 	/** 0-based index of this ArcInst in cell. */		private int arcIndex;
 	/** angle of this ArcInst (in tenth-degrees). */	private int angle;
 
@@ -307,10 +308,10 @@ public class ArcInst extends Geometric
 	public void modify(double dWidth, double dHeadX, double dHeadY, double dTailX, double dTailY)
 	{
 		// save old arc state
-		double oldxA = ends[HEADEND].getLocation().getX();
-		double oldyA = ends[HEADEND].getLocation().getY();
-		double oldxB = ends[TAILEND].getLocation().getX();
-		double oldyB = ends[TAILEND].getLocation().getY();
+		double oldxA = headEnd.getLocation().getX();
+		double oldyA = headEnd.getLocation().getY();
+		double oldxB = tailEnd.getLocation().getX();
+		double oldyB = tailEnd.getLocation().getY();
 		double oldWidth = getWidth();
 
 		// change the arc
@@ -369,7 +370,6 @@ public class ArcInst extends Geometric
 	public static ArcInst lowLevelAllocate()
 	{
 		ArcInst ai = new ArcInst();
-		ai.ends = new Connection[2];
 		return ai;
 	}
 
@@ -424,8 +424,8 @@ public class ArcInst extends Geometric
 		}
 
 		// create node/arc connections and place them properly
-		ends[HEADEND] = new Connection(this, headPort, headPt);
-		ends[TAILEND] = new Connection(this, tailPort, tailPt);
+		headEnd = new Connection(this, headPort, headPt);
+		tailEnd = new Connection(this, tailPort, tailPt);
 		
 		// fill in the geometry
 		updateGeometric(defAngle);
@@ -446,16 +446,16 @@ public class ArcInst extends Geometric
 		}
 
 		// attach this arc to the two nodes it connects
-		if (ends[HEADEND] != null) ends[HEADEND].getPortInst().getNodeInst().addConnection(ends[HEADEND]);
-		if (ends[TAILEND] != null) ends[TAILEND].getPortInst().getNodeInst().addConnection(ends[TAILEND]);
+		if (headEnd != null) headEnd.getPortInst().getNodeInst().addConnection(headEnd);
+		if (tailEnd != null) tailEnd.getPortInst().getNodeInst().addConnection(tailEnd);
 
 		// add this arc to the cell
 		linkGeom(parent);
 		parent.addArc(this);
 
 		// update end shrinkage information
-		for(int k=0; k<2; k++)
-			updateShrinkage(ends[k].getPortInst().getNodeInst());
+		updateShrinkage(headEnd.getPortInst().getNodeInst());
+		updateShrinkage(tailEnd.getPortInst().getNodeInst());
 		return false;
 	}
 
@@ -465,16 +465,16 @@ public class ArcInst extends Geometric
 	public void lowLevelUnlink()
 	{
 		// remove this arc from the two nodes it connects
-		ends[HEADEND].getPortInst().getNodeInst().removeConnection(ends[HEADEND]);
-		ends[TAILEND].getPortInst().getNodeInst().removeConnection(ends[TAILEND]);
+		headEnd.getPortInst().getNodeInst().removeConnection(headEnd);
+		tailEnd.getPortInst().getNodeInst().removeConnection(tailEnd);
 
 		// add this arc to the cell
 		unLinkGeom(parent);
 		parent.removeArc(this);
 
 		// update end shrinkage information
-		for(int k=0; k<2; k++)
-			updateShrinkage(ends[k].getPortInst().getNodeInst());
+		updateShrinkage(headEnd.getPortInst().getNodeInst());
+		updateShrinkage(tailEnd.getPortInst().getNodeInst());
 	}
 
 	/**
@@ -495,19 +495,19 @@ public class ArcInst extends Geometric
 
 		if (dHeadX != 0 || dHeadY != 0)
 		{
-			Point2D pt = ends[HEADEND].getLocation();
-			ends[HEADEND].setLocation(new Point2D.Double(DBMath.round(dHeadX+pt.getX()), DBMath.round(pt.getY()+dHeadY)));
+			Point2D pt = headEnd.getLocation();
+			headEnd.setLocation(new Point2D.Double(DBMath.round(dHeadX+pt.getX()), DBMath.round(pt.getY()+dHeadY)));
 		}
 		if (dTailX != 0 || dTailY != 0)
 		{
-			Point2D pt = ends[TAILEND].getLocation();
-			ends[TAILEND].setLocation(new Point2D.Double(DBMath.round(dTailX+pt.getX()), DBMath.round(pt.getY()+dTailY)));
+			Point2D pt = tailEnd.getLocation();
+			tailEnd.setLocation(new Point2D.Double(DBMath.round(dTailX+pt.getX()), DBMath.round(pt.getY()+dTailY)));
 		}
 		updateGeometric(getAngle());
 
 		// update end shrinkage information
-		for(int k=0; k<2; k++)
-			updateShrinkage(ends[k].getPortInst().getNodeInst());
+		updateShrinkage(headEnd.getPortInst().getNodeInst());
+		updateShrinkage(tailEnd.getPortInst().getNodeInst());
 
 		// reinsert in the R-Tree structure
 		linkGeom(parent);
@@ -559,8 +559,8 @@ public class ArcInst extends Geometric
 			if (curvedPoly != null) return curvedPoly;
 		}
 
-		Point2D endH = ends[HEADEND].getLocation();
-		Point2D endT = ends[TAILEND].getLocation();
+		Point2D endH = headEnd.getLocation();
+		Point2D endT = tailEnd.getLocation();
 
 		// zero-width polygons are simply lines
 		if (width == 0)
@@ -830,8 +830,8 @@ public class ArcInst extends Geometric
 	private void updateGeometric(int defAngle)
 	{
 		checkChanging();
-		Point2D p1 = ends[TAILEND].getLocation();
-		Point2D p2 = ends[HEADEND].getLocation();
+		Point2D p1 = tailEnd.getLocation();
+		Point2D p2 = headEnd.getLocation();
 		double dx = p2.getX() - p1.getX();
 		double dy = p2.getY() - p1.getY();
 		length = Math.sqrt(dx * dx + dy * dy);
@@ -852,13 +852,13 @@ public class ArcInst extends Geometric
 	 * Method to return the Connection on the head end of this ArcInst.
 	 * @return the Connection on the head end of this ArcInst.
 	 */
-	public Connection getHead() { return ends[HEADEND]; }
+	public Connection getHead() { return headEnd; }
 
 	/**
 	 * Method to return the Connection on the tail end of this ArcInst.
 	 * @return the Connection on the tail end of this ArcInst.
 	 */
-	public Connection getTail() { return ends[TAILEND]; }
+	public Connection getTail() { return tailEnd; }
 
 	/**
 	 * Method to return the connection at an end of this ArcInst.
@@ -867,7 +867,7 @@ public class ArcInst extends Geometric
 	 */
 	public Connection getConnection(boolean onHead)
 	{
-		return onHead ? ends[HEADEND] : ends[TAILEND];
+		return onHead ? headEnd : tailEnd;
 	}
 
 	/**
@@ -876,7 +876,12 @@ public class ArcInst extends Geometric
 	 */
 	public Connection getConnection(int index)
 	{
-		return ends[index];
+		switch (index)
+		{
+			case HEADEND: return headEnd;
+			case TAILEND: return tailEnd;
+			default: throw new IllegalArgumentException("Bad end " + index);
+		}
 	}
 
 	/**
@@ -1018,6 +1023,15 @@ public class ArcInst extends Geometric
 			errorCount++;
 		}
 		return errorCount;
+	}
+
+	/**
+	 * Method to check invariants in this ArcInst.
+	 * @exception AssertionError if invariants are not valid
+	 */
+	public void check()
+	{
+		assert headEnd != null && tailEnd != null;
 	}
 
 	/**

@@ -32,6 +32,7 @@ import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
@@ -343,6 +344,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	/** Variable key for text cell contents. */						public static final Variable.Key CELL_TEXT_KEY = ElectricObject.newKey("FACET_message");
 	/** Variable key for number of multipage pages. */				public static final Variable.Key MULTIPAGE_COUNT_KEY = ElectricObject.newKey("CELL_page_count");
 
+	private static final Export[] NULL_EXPORT_ARRAY = new Export[0];
+
 	/** set if instances should be expanded */						private static final int WANTNEXPAND   =           02;
 	/** set if everything in cell is locked */						private static final int NPLOCKED      =     04000000;
 	/** set if instances in cell are locked */						private static final int NPILOCKED     =    010000000;
@@ -364,7 +367,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	/** The date this Cell was last modified. */					private Date revisionDate;
 	/** Internal flag bits. */										private int userBits;
 	/** The basename for autonaming of instances of this Cell */	private Name basename;
-	/** A list of Exports on the Cell. */							private List exports;
+	/** A sorted array of Exports on the Cell. */					private Export[] exports = NULL_EXPORT_ARRAY;
 	/** The Cell's essential-bounds. */								private List essenBounds = new ArrayList();
 	/** A list of NodeInsts in this Cell. */						private List nodes;
 	/** A map from NodeProto to NodeUsages in it */					private Map usagesIn;
@@ -392,7 +395,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	private Cell()
 	{
 		this.cellIndex = cellNumber++;
-		exports = new ArrayList();
 		nodes = new ArrayList();
 		usagesIn = new HashMap();
 		usagesOf = new ArrayList();
@@ -1890,8 +1892,20 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	void addExport(Export export, Collection oldPortInsts)
 	{
 		checkChanging();
-		export.setPortIndex(exports.size());
-		exports.add(export);
+		int portIndex = - searchExport(export.getName()) - 1;
+		assert portIndex >= 0;
+		export.setPortIndex(portIndex);
+
+		Export[] newExports = new Export[exports.length + 1];
+		System.arraycopy(exports, 0, newExports, 0, portIndex);
+		newExports[portIndex] = export;
+		for (int i = portIndex; i < exports.length; i++)
+		{
+			Export e = exports[i];
+			e.setPortIndex(i + 1);
+			newExports[i + 1] = e;
+		}
+		exports = newExports;
 
 		// create a PortInst for every instance of this node
 		if (oldPortInsts != null)
@@ -1920,10 +1934,14 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	{
 		checkChanging();
 		int portIndex = export.getPortIndex();
-		exports.remove(portIndex);
-		for (; portIndex < exports.size(); portIndex++)
+
+		Export[] newExports = exports.length > 1 ? new Export[exports.length - 1] : NULL_EXPORT_ARRAY;
+		System.arraycopy(exports, 0, newExports, 0, portIndex);
+		for (int i = portIndex; portIndex < newExports.length; i++)
 		{
-			((Export)exports.get(portIndex)).setPortIndex(portIndex);
+			Export e = exports[i + 1];
+			e.setPortIndex(i);
+			newExports[i] = e;
 		}
 
 		Collection portInsts = new ArrayList();
@@ -1936,6 +1954,50 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 
 		export.setPortIndex(-1);
 		return portInsts;
+	}
+
+	/**
+	 * Move renamed Export in sorted exports array.
+	 * @param oldPortIndex old position of the Export in exports array.
+	 */
+	void moveExport(int oldPortIndex, String newName)
+	{
+		Export export = exports[oldPortIndex];
+		int newPortIndex = - searchExport(newName) - 1;
+		System.out.println("Move " + export + " " + oldPortIndex + " " + newPortIndex);
+		if (newPortIndex < 0) return;
+		if (newPortIndex > oldPortIndex)
+			newPortIndex--;
+		if (newPortIndex == oldPortIndex) return;
+		
+		if (newPortIndex > oldPortIndex)
+		{
+			for (int i = oldPortIndex; i < newPortIndex; i++)
+			{
+				Export e = exports[i + 1];
+				e.setPortIndex(i);
+				exports[i] = e;
+			}
+		} else
+		{
+			for (int i = oldPortIndex; i > newPortIndex; i--)
+			{
+				Export e = exports[i - 1];
+				e.setPortIndex(i);
+				exports[i] = e;
+			}
+		}
+		export.setPortIndex(newPortIndex);
+		exports[newPortIndex] = export;
+		for (int i = 0; i < exports.length; i++)
+			System.out.print(" " + exports[i].getPortIndex() + ":" + exports[i].getName());
+		System.out.println();
+		for(Iterator it = getInstancesOf(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			ni.movePortInst(oldPortIndex);
+		}
+		
 	}
 
 	/**
@@ -1955,12 +2017,14 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	public PortProto findPortProto(Name name)
 	{
         if (name == null) return null;
+		int portIndex = searchExport(name.toString());
+		if (portIndex >= 0) return exports[portIndex];
 		name = name.lowerCase();
-		for (int i = 0; i < exports.size(); i++)
+		for (int i = 0; i < exports.length; i++)
 		{
-			PortProto pp = (PortProto) exports.get(i);
-			if (pp.getNameKey().lowerCase() == name)
-				return pp;
+			Export e = exports[i];
+			if (e.getNameKey().lowerCase() == name)
+				return e;
 		}
 		return null;
 	}
@@ -1970,42 +2034,34 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * @param port the PortProto in question.
 	 * @return true if the PortProto is an export.
 	 */
-	public boolean findPortProto(PortProto port)
-	{
-		for (int i = 0; i < exports.size(); i++)
-		{
-			PortProto pp = (PortProto) exports.get(i);
-			if (pp == port) return true;
-		}
-		return false;
-	}
+// 	public boolean findPortProto(PortProto port)
+// 	{
+// 		for (int i = 0; i < exports.length; i++)
+// 		{
+// 			PortProto pp = (PortProto) exports[i];
+// 			if (pp == port) return true;
+// 		}
+// 		return false;
+// 	}
 
 	/**
 	 * Method to return an iterator over all PortProtos of this NodeProto.
 	 * @return an iterator over all PortProtos of this NodeProto.
 	 */
-	public Iterator getPorts()
-	{
-		return exports.iterator();
-	}
+	public Iterator getPorts() { return ArrayIterator.iterator(exports); }
 
 	/**
 	 * Method to return the number of PortProtos on this NodeProto.
 	 * @return the number of PortProtos on this NodeProto.
 	 */
-	public int getNumPorts()
-	{
-		return exports.size();
-	}
+	public int getNumPorts() { return exports.length; }
 
 	/**
 	 * Method to return the PortProto at specified position.
 	 * @param portIndex specified position of PortProto.
 	 * @return the PortProto at specified position..
 	 */
-	public final PortProto getPort(int portIndex)
-	{
-		return (PortProto)exports.get(portIndex);
+	public final PortProto getPort(int portIndex) {	return exports[portIndex];
 	}
 
 	/**
@@ -2027,6 +2083,40 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	{
 		return (Export) findPortProto(name);
 	}
+
+    /**
+     * Searches the exports for the specified name key using the binary
+     * search algorithm.
+     * @param name the name key array to be searched.
+     * @param key the value to be searched for.
+     * @return index of the search name key, if it is contained in the exports;
+     *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
+     *	       <i>insertion point</i> is defined as the point at which the
+     *	       key would be inserted into the list: the index of the first
+     *	       element greater than the key, or <tt>exports.length()</tt>, if all
+     *	       elements in the list are less than the specified key.  Note
+     *	       that this guarantees that the return value will be &gt;= 0 if
+     *	       and only if the key is found.
+     */
+	private int searchExport(String name)
+	{
+		int low = 0;
+		int high = exports.length-1;
+
+		while (low <= high) {
+			int mid = (low + high) >> 1;
+			Export e = exports[mid];
+			int cmp = TextUtils.nameSameNumeric(e.getName(), name);
+
+			if (cmp < 0)
+				low = mid + 1;
+			else if (cmp > 0)
+				high = mid - 1;
+			else
+				return mid; // Export found
+		}
+		return -(low + 1);  // Export not found.
+    }
 
 	/****************************** TEXT ******************************/
 
@@ -3283,10 +3373,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	{
 		assert getVersion() > 0;
 
-		for (int i = 0; i < exports.size(); i++)
+		for (int i = 0; i < exports.length; i++)
 		{
-			Export pp = (Export)exports.get(i);
-			assert pp.getPortIndex() == i : pp;
+			assert exports[i].getPortIndex() == i : exports[i];
+			if (i > 0)
+				assert(TextUtils.nameSameNumeric(exports[i].getName(), exports[i - 1].getName()) > 0) : i;
 		}
 
 		// make sure that every connection is on an arc and a node
@@ -3294,6 +3385,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		for(Iterator it = getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
+			ai.check();
 			assert !connections.contains(ai.getHead()) : ai;
 			connections.add(ai.getHead());
 			assert !connections.contains(ai.getTail()) : ai;
@@ -3303,6 +3395,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		for(Iterator it = getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
+			ni.check();
 			for(Iterator pIt = ni.getConnections(); pIt.hasNext(); )
 			{
 				Connection con = (Connection)pIt.next();
@@ -3686,13 +3779,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			if (cmp != 0) return cmp;
 		}
 		return getCellName().compareTo(that.getCellName());
-
-// 		if (equals(obj)) return 0;
-//         if (!(obj instanceof Cell)) return (-1);
-
-// 		Cell toCompare = (Cell)obj;
-//         Date toCompareDate = toCompare.getRevisionDate();
-//         return (toCompareDate.compareTo(getRevisionDate()));
 	}
 
 	/**

@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.TreeMap;
 
 /**
  * This class is the base class of all Electric objects that can be extended with "Variables".
@@ -56,7 +57,7 @@ public abstract class ElectricObject
 {
 	// ------------------------ private data ------------------------------------
 
-	/** extra variables (null if no variables yet) */		private HashMap vars;
+	/** extra variables (null if no variables yet) */		private TreeMap vars;
     /** if object is linked into database */                private boolean linked;
 
 	/** a list of all variable keys */						private static final HashMap varKeys = new HashMap();
@@ -95,12 +96,6 @@ public abstract class ElectricObject
 	 * Library&#46;libraries->Library&#46;cells->Cell&#46;nodes-> NodeInst
 	 * Library&#46;libraries->Library&#46;cells->Cell&#46;nodes->NodeInst&#46;portInsts-> PortInst
 	 * Library&#46;libraries->Library&#46;cells->Cell&#46;arcs-> ArcInst
-	 * Technology&#46;technologies-> Technology
-	 * Technology&#46;technologies->Technology&#46;nodes-> PrimitiveNode
-	 * Technology&#46;technologies->Technology&#46;nodes->PrimitiveNode&#46;ports -> PrimitivePort
-	 * Technology&#46;technologies->Technology&#46;arcs-> PrimitiveArc
-	 * View&#46;views-> View
-	 * Tool&#46;tools-> Tool's subclass
      */
 	public abstract boolean isActuallyLinked();
 	
@@ -204,7 +199,7 @@ public abstract class ElectricObject
             ActivityLogger.logException(new Exception("GetParameters recurse error: "+debugGetParametersRecurse));
         debugGetParametersRecurse++;
 
-        HashMap keysToVars = new HashMap();
+        TreeMap keysToVars = new TreeMap();
         // get all parameters on this object
         for (Iterator it = getVariables(); it.hasNext(); ) {
             Variable v = (Variable)it.next();
@@ -588,7 +583,7 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
         Variable oldVar;
         synchronized(this) {
             if (vars == null)
-                vars = new HashMap();
+                vars = new TreeMap();
             oldVar = (Variable) vars.get(key);
         }
 		if (oldVar != null)
@@ -1116,7 +1111,7 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 	{
         //checkExamine();
 		if (vars == null) return 0;
-		return vars.entrySet().size();
+		return vars.size();
 	}
 
 	/**

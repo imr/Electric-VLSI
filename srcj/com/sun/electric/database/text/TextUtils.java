@@ -1205,19 +1205,6 @@ public class TextUtils
 		}
 	}
 
-	// use Cell.compareTo()
-// 	public static class CellsByName implements Comparator
-// 	{
-// 		public int compare(Object o1, Object o2)
-// 		{
-// 			Cell c1 = (Cell)o1;
-// 			Cell c2 = (Cell)o2;
-// 			String s1 = c1.noLibDescribe();
-// 			String s2 = c2.noLibDescribe();
-// 			return TextUtils.nameSameNumeric(s1, s2);
-// 		}
-// 	}
-
 	public static class CellsByDate implements Comparator/*<Cell>*/
 	{
 		/*public int compare(Cell c1, Cell c2)*/
@@ -1276,64 +1263,6 @@ public class TextUtils
 		}
 	}
 
-	public static class ExportsByName implements Comparator
-	{
-		private boolean reverse = false;
-
-		public ExportsByName() {}
-
-		public ExportsByName(boolean reverse) { this.reverse = reverse; }
-
-		public int compare(Object o1, Object o2)
-		{
-			Export p1 = (Export)o1;
-			Export p2 = (Export)o2;
-			String s1 = p1.getName();
-			String s2 = p2.getName();
-			if (reverse) return nameSameNumeric(s2, s1);
-			return nameSameNumeric(s1, s2);
-		}
-	}
-
-	/**
-	 * Class to sort Variables by name.
-	 */
-	public static class VariablesByName implements Comparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			Variable v1 = (Variable)o1;
-			Variable v2 = (Variable)o2;
-			String s1 = v1.getKey().getName();
-			String s2 = v2.getKey().getName();
-			return s1.compareToIgnoreCase(s2);
-		}
-	}
-
-	public static class ToolsByName implements Comparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			Tool t1 = (Tool)o1;
-			Tool t2 = (Tool)o2;
-			String s1 = t1.getName();
-			String s2 = t2.getName();
-			return s1.compareToIgnoreCase(s2);
-		}
-	}
-
-	public static class TechnologiesByName implements Comparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			Technology c1 = (Technology)o1;
-			Technology c2 = (Technology)o2;
-			String s1 = c1.getTechName();
-			String s2 = c2.getTechName();
-			return s1.compareToIgnoreCase(s2);
-		}
-	}
-
 	public static class PrefsByName implements Comparator
 	{
 		public int compare(Object o1, Object o2)
@@ -1352,18 +1281,6 @@ public class TextUtils
         {
             Network n1 = (Network)o1;
             Network n2 = (Network)o2;
-            String s1 = n1.describe();
-            String s2 = n2.describe();
-            return s1.compareToIgnoreCase(s2);
-        }
-    }
-
-	public static class PrimitiveNodeByName implements Comparator
-    {
-        public int compare(Object o1, Object o2)
-        {
-            PrimitiveNode n1 = (PrimitiveNode)o1;
-            PrimitiveNode n2 = (PrimitiveNode)o2;
             String s1 = n1.describe();
             String s2 = n2.describe();
             return s1.compareToIgnoreCase(s2);

@@ -50,7 +50,7 @@ public class Variable
 	/**
 	 * The Key class caches Variable names.
 	 */
-	public static class Key
+	public static class Key implements Comparable
 	{
 		private final String name;
 		private final int    index;
@@ -85,6 +85,17 @@ public class Variable
          * @return true if equal, false otherwise.
          */
         public boolean equals(Key k) { return name.equals(k.getName()); }
+
+		/**
+		 * Compares Variable Keys by their names.
+		 * @param obj the other Variable Key.
+		 * @return a comparison between the Variable Keys.
+		 */
+		public int compareTo(Object obj)
+		{
+			Key that = (Key)obj;
+			return TextUtils.nameSameNumeric(name, that.name);
+		}
 	}
 
     /**

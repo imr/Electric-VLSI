@@ -29,6 +29,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Generic;
 
@@ -39,7 +40,7 @@ import java.awt.Color;
  * It contains a list of ArcProto types that it
  * accepts connections from.
  */
-public class PrimitivePort implements PortProto
+public class PrimitivePort implements PortProto, Comparable
 {
 	// ---------------------------- private data --------------------------
 	private Name name; // The name of this PrimitivePort.
@@ -82,7 +83,7 @@ public class PrimitivePort implements PortProto
 		this.right = right;
 		this.top = top;
 		this.negatable = false;
-        tech.addPortProto(this);
+//        tech.addPortProto(this);
 	}
 
 	/**
@@ -357,6 +358,23 @@ public class PrimitivePort implements PortProto
 		}
 		if (numColors == 0) return null;
 		return new Color((int)(r/numColors), (int)(g/numColors), (int)(b/numColors));
+	}
+
+    /**
+     * Compares PrimtivePorts by their PrimitiveNodes and names.
+     * @param obj the other PrimitivePort.
+     * @return a comparison between the PrimitivePorts.
+     */
+	public int compareTo(Object obj)
+	{
+		PrimitivePort that = (PrimitivePort)obj;
+		if (parent != that.parent)
+		{
+			int cmp = parent.compareTo(that.parent);
+			if (cmp != 0) return cmp;
+		}
+		return portIndex - that.portIndexText;
+//		return TextUtils.nameSameNumeric(getName(), that.getName());
 	}
 
 	/**
