@@ -24,25 +24,30 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.Resources;
-import com.sun.electric.tool.user.ActivityLogger;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.PixelDrawing;
 
+import java.awt.GridBagConstraints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Iterator;
-import java.util.List;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.lang.reflect.Method;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.Box;
+import javax.swing.JPanel;
 
 
 /**
@@ -50,9 +55,14 @@ import javax.swing.Box;
  */
 public class LayerVisibility extends EDialog
 {
-	private Box layerBox;
-	private List layerList;
+	private static final ImageIcon iconOpenAbove = Resources.getResource(LayerVisibility.class, "ButtonOpenAbove.gif");
+	private static final ImageIcon iconOpenBelow = Resources.getResource(LayerVisibility.class, "ButtonOpenBelow.gif");
+	private static final ImageIcon iconCloseAbove = Resources.getResource(LayerVisibility.class, "ButtonCloseAbove.gif");
+	private static final ImageIcon iconCloseBelow = Resources.getResource(LayerVisibility.class, "ButtonCloseBelow.gif");
+	private JPanel layerPanel;
 	private HashMap visibility;
+	private HashMap buttonIndex;
+	private List checkBoxList;
 	private boolean initialTextOnNode;
 	private boolean initialTextOnArc;
 	private boolean initialTextOnPort;
@@ -95,6 +105,7 @@ public class LayerVisibility extends EDialog
 			for(Iterator lIt = tech.getLayers(); lIt.hasNext(); )
 			{
 				Layer layer = (Layer)lIt.next();
+				if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
 				visibility.put(layer, new Boolean(layer.isVisible()));
 			}
 		}
@@ -106,6 +117,8 @@ public class LayerVisibility extends EDialog
 			technology.addItem(tech.getTechName());
 		}
 		technology.setSelectedItem(Technology.getCurrent().getTechName());
+
+		showLayersForTechnology();
 		finishInitialization();
 	}
 
@@ -120,9 +133,10 @@ public class LayerVisibility extends EDialog
 			for(Iterator lIt = tech.getLayers(); lIt.hasNext(); )
 			{
 				Layer layer = (Layer)lIt.next();
-				Boolean layerVis = (Boolean)visibility.get(layer);
+				Boolean layerVis = (Boolean)visibility.get(layer.getNonPseudoLayer());
                 if (layerVis == null) continue;
 				layer.setVisible(layerVis.booleanValue());
+
 				// 3D appearance if available
 				Object obj3D = layer.getGraphics().get3DAppearance();
 				if (obj3D != null)
@@ -206,32 +220,151 @@ public class LayerVisibility extends EDialog
 		String techName = (String)technology.getSelectedItem();
 		Technology tech = Technology.findTechnology(techName);
 
-		layerBox = Box.createVerticalBox();
-		layerPane.setViewportView(layerBox);
-		layerList = new ArrayList();
-		for(Iterator it = tech.getLayers(); it.hasNext(); )
+		layerPanel = new JPanel();
+		layerPanel.setLayout(new java.awt.GridBagLayout());
+		layerPane.setViewportView(layerPanel);
+		int i = 0;
+		buttonIndex = new HashMap();
+		checkBoxList = new ArrayList();
+		for(Iterator it = tech.getLayersSortedByHeight().iterator(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
-			layerList.add(layer);
+			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
 			Boolean layerVisible = (Boolean)visibility.get(layer);
+			Integer index = new Integer(i);
+
+			// the checkbox for the layer
 			StringBuffer layerName = new StringBuffer(layer.getName());
-			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) layerName.append(" (for pins)");
 			JCheckBox cb = new JCheckBox(layerName.toString());
 			cb.setSelected(layerVisible.booleanValue());
-			cb.addMouseListener(new MouseAdapter()
-			{
-				public void mouseClicked(MouseEvent evt) { changedVisibilityBox(evt); }
-			});
-			layerBox.add(cb);
+			cb.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent evt) { changedVisibilityBox(evt); }});
+//			cb.addMouseListener(new MouseAdapter()
+//			{
+//				public void mouseClicked(MouseEvent evt) { changedVisibilityBox(evt); }
+//			});
+			GridBagConstraints gbc = new GridBagConstraints();
+			gbc.gridx = 0;   gbc.gridy = i;
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.fill = GridBagConstraints.HORIZONTAL;
+			gbc.weightx = 1;
+			layerPanel.add(cb, gbc);
+			checkBoxList.add(cb);
+
+			// the button for hiding all above this layer
+			JButton aboveInvis = new JButton(iconCloseAbove);
+			buttonIndex.put(aboveInvis, index);
+			aboveInvis.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent evt) { closeAbove(evt); }});
+			aboveInvis.setMargin(new java.awt.Insets(0,0,0,0));
+			gbc = new GridBagConstraints();
+			gbc.gridx = 1;   gbc.gridy = i;
+			gbc.insets = new java.awt.Insets(0, 0, 0, 2);
+			layerPanel.add(aboveInvis, gbc);
+
+			// the button for hiding all below this layer
+			JButton belowInvis = new JButton(iconCloseBelow);
+			buttonIndex.put(belowInvis, index);
+			belowInvis.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent evt) { closeBelow(evt); }});
+			belowInvis.setMargin(new java.awt.Insets(0,0,0,0));
+			gbc = new GridBagConstraints();
+			gbc.gridx = 2;   gbc.gridy = i;
+			gbc.insets = new java.awt.Insets(0, 2, 0, 2);
+			layerPanel.add(belowInvis, gbc);
+
+			// the button for showing all above this layer
+			JButton aboveVis = new JButton(iconOpenAbove);
+			buttonIndex.put(aboveVis, index);
+			aboveVis.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent evt) { openAbove(evt); }});
+			aboveVis.setMargin(new java.awt.Insets(0,0,0,0));
+			gbc = new GridBagConstraints();
+			gbc.gridx = 3;   gbc.gridy = i;
+			gbc.insets = new java.awt.Insets(0, 2, 0, 2);
+			layerPanel.add(aboveVis, gbc);
+
+			// the button for showing all below this layer
+			JButton belowVis = new JButton(iconOpenBelow);
+			buttonIndex.put(belowVis, index);
+			belowVis.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent evt) { openBelow(evt); }});
+			belowVis.setMargin(new java.awt.Insets(0,0,0,0));
+			gbc = new GridBagConstraints();
+			gbc.gridx = 4;   gbc.gridy = i;
+			gbc.insets = new java.awt.Insets(0, 2, 0, 0);
+			layerPanel.add(belowVis, gbc);
+
+			i++;
 		}
 	}
 
-	private void changedVisibilityBox(MouseEvent evt)
+	/**
+	 * Method to make all layers at this and above invisible.
+	 */
+	private void closeAbove(ActionEvent evt)
+	{
+		Integer index = (Integer)buttonIndex.get(evt.getSource());
+		if (index == null) return;
+		for(int i=0; i<=index.intValue(); i++)
+		{
+			JCheckBox cb = (JCheckBox)checkBoxList.get(i);
+			cb.setSelected(false);
+			rememberVisibility(cb);
+		}
+	}
+
+	/**
+	 * Method to make all layers at this and below invisible.
+	 */
+	private void closeBelow(ActionEvent evt)
+	{
+		Integer index = (Integer)buttonIndex.get(evt.getSource());
+		if (index == null) return;
+		for(int i=index.intValue(); i<checkBoxList.size(); i++)
+		{
+			JCheckBox cb = (JCheckBox)checkBoxList.get(i);
+			cb.setSelected(false);
+			rememberVisibility(cb);
+		}
+	}
+
+	/**
+	 * Method to make all layers at this and above visible.
+	 */
+	private void openAbove(ActionEvent evt)
+	{
+		Integer index = (Integer)buttonIndex.get(evt.getSource());
+		if (index == null) return;
+		for(int i=0; i<=index.intValue(); i++)
+		{
+			JCheckBox cb = (JCheckBox)checkBoxList.get(i);
+			cb.setSelected(true);
+			rememberVisibility(cb);
+		}
+	}
+
+	/**
+	 * Method to make all layers at this and below visible.
+	 */
+	private void openBelow(ActionEvent evt)
+	{
+		Integer index = (Integer)buttonIndex.get(evt.getSource());
+		if (index == null) return;
+		for(int i=index.intValue(); i<checkBoxList.size(); i++)
+		{
+			JCheckBox cb = (JCheckBox)checkBoxList.get(i);
+			cb.setSelected(true);
+			rememberVisibility(cb);
+		}
+	}
+
+	private void changedVisibilityBox(ActionEvent evt)
+	{
+		JCheckBox cb = (JCheckBox)evt.getSource();
+		rememberVisibility(cb);
+	}
+
+	private void rememberVisibility(JCheckBox cb)
 	{
 		String techName = (String)technology.getSelectedItem();
 		Technology tech = Technology.findTechnology(techName);
 
-		JCheckBox cb = (JCheckBox)evt.getSource();
 		String name = cb.getText();
 		int spacePos = name.indexOf(' ');
 		if (spacePos >= 0) name = name.substring(0, spacePos);
@@ -239,16 +372,17 @@ public class LayerVisibility extends EDialog
 		visibility.put(layer, new Boolean(cb.isSelected()));
 	}
 
+	/**
+	 * Method to make all layers visible or invisible.
+	 * @param on true to make all layers visible.
+	 */
 	private void setAllVisibility(boolean on)
 	{
-		String techName = (String)technology.getSelectedItem();
-		Technology tech = Technology.findTechnology(techName);
-		for(Iterator it = tech.getLayers(); it.hasNext(); )
+		for(int i=0; i<checkBoxList.size(); i++)
 		{
-			Layer layer = (Layer)it.next();
-			visibility.put(layer, new Boolean(on));
+			JCheckBox cb = (JCheckBox)checkBoxList.get(i);
+			cb.setSelected(on);
 		}
-		showLayersForTechnology();
 	}
 
 	/** This method is called from within the constructor to
@@ -304,8 +438,8 @@ public class LayerVisibility extends EDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 11;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(apply, gridBagConstraints);
 
         ok.setText("OK");
@@ -325,6 +459,8 @@ public class LayerVisibility extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(ok, gridBagConstraints);
 
+        layerPane.setMinimumSize(new java.awt.Dimension(300, 300));
+        layerPane.setPreferredSize(new java.awt.Dimension(300, 300));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -364,8 +500,8 @@ public class LayerVisibility extends EDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
         getContentPane().add(nodeText, gridBagConstraints);
 
         arcText.setText("Arc text");
@@ -373,8 +509,8 @@ public class LayerVisibility extends EDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
         getContentPane().add(arcText, gridBagConstraints);
 
         portText.setText("Port text");
@@ -382,8 +518,8 @@ public class LayerVisibility extends EDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
         getContentPane().add(portText, gridBagConstraints);
 
         exportText.setText("Export text");
@@ -391,8 +527,8 @@ public class LayerVisibility extends EDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
         getContentPane().add(exportText, gridBagConstraints);
 
         annotationText.setText("Annotation text");
@@ -400,8 +536,8 @@ public class LayerVisibility extends EDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
         getContentPane().add(annotationText, gridBagConstraints);
 
         instanceNames.setText("Instance names");
@@ -409,8 +545,8 @@ public class LayerVisibility extends EDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 7;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
         getContentPane().add(instanceNames, gridBagConstraints);
 
         cellText.setText("Cell text");
@@ -418,8 +554,8 @@ public class LayerVisibility extends EDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 8;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
         getContentPane().add(cellText, gridBagConstraints);
 
         allVisible.setText("All Visible");
@@ -435,8 +571,8 @@ public class LayerVisibility extends EDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 11;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(allVisible, gridBagConstraints);
 
         allInvisible.setText("All Invisible");
@@ -452,8 +588,8 @@ public class LayerVisibility extends EDialog
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 11;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(allInvisible, gridBagConstraints);
 
         jLabel2.setText("Click to change visibility.");
@@ -479,8 +615,8 @@ public class LayerVisibility extends EDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(jLabel4, gridBagConstraints);
 
         cancel.setText("Cancel");

@@ -32,6 +32,7 @@ import java.awt.Point;
 
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
+import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JTextArea;
@@ -59,6 +60,7 @@ public class Progress
 			jif = new JInternalFrame(title);
 			jif.setSize(300, 80);
 			jif.setLocation(xPos, yPos);
+			jif.setLayer(JLayeredPane.POPUP_LAYER);
 		} else
 		{
 			jf = new JFrame(title);
@@ -84,39 +86,12 @@ public class Progress
 		{
 			jif.getContentPane().add(panel);
             TopLevel.addToDesktop(jif);
-//            jif.addInternalFrameListener(new InternalFrameEvents(jif));
 		} else
 		{
 			jf.getContentPane().add(panel);
 			if (!Main.BATCHMODE) jf.show();
 		}
 	}
-
-	/**
-	 * This class handles deactivation of the progress dialog and forces it back to the top.
-	 */
-//	private static class InternalFrameEvents implements javax.swing.event.InternalFrameListener
-//	{
-//		private JInternalFrame jif;
-//
-//		InternalFrameEvents(JInternalFrame jif)
-//		{
-//			super();
-//			this.jif = jif;
-//		}
-//
-//		public void internalFrameActivated(InternalFrameEvent e) {}
-//		public void internalFrameClosed(InternalFrameEvent e) {}
-//		public void internalFrameClosing(InternalFrameEvent e) {}
-//		public void internalFrameDeiconified(InternalFrameEvent e) {}
-//		public void internalFrameIconified(InternalFrameEvent e) {}
-//		public void internalFrameOpened(InternalFrameEvent e) {}
-//		public void internalFrameDeactivated(InternalFrameEvent e)
-//		{
-//			jif.toFront();
-//			jif.show();
-//		}
-//	}
 
 	/**
 	 * Method to terminate the progress dialog.

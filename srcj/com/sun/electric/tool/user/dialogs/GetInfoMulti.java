@@ -488,9 +488,17 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 					if (currentYPosition.equals("")) dYP[index] = 0; else
 						dYP[index] = newYPosition - ni.getAnchorCenterY();
 					if (currentXSize.equals("")) dXS[index] = 0; else
-						dXS[index] = newXSize - ni.getXSize() + so.getHighXOffset() + so.getLowXOffset();
+					{
+						double trueXSize = newXSize + so.getHighXOffset() + so.getLowXOffset();
+						if (ni.getXSizeWithMirror() < 0) dXS[index] = -trueXSize - ni.getXSizeWithMirror(); else
+							dXS[index] = trueXSize - ni.getXSizeWithMirror();
+					}
 					if (currentYSize.equals("")) dYS[index] = 0; else
-						dYS[index] = newYSize - ni.getYSize() + so.getHighYOffset() + so.getLowYOffset();
+					{
+						double trueYSize = newYSize + so.getHighYOffset() + so.getLowYOffset();
+						if (ni.getYSizeWithMirror() < 0) dYS[index] = -trueYSize - ni.getYSizeWithMirror(); else
+							dYS[index] = trueYSize - ni.getYSizeWithMirror();
+					}
 					dRot[index] = 0;
 					index++;
 				}

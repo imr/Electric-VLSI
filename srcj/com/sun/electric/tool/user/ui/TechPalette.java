@@ -692,6 +692,8 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                     PrimitiveNode np = (PrimitiveNode)it.next();
                     if (np.isNotUsed()) continue;
                     if (np.getFunction() != PrimitiveNode.Function.NODE) continue;
+                    Technology.NodeLayer layer = np.getLayers()[0];
+                    if (layer.getLayer().getFunction().isContact()) continue;
                     menuItem = new JMenuItem(np.describe());
                     menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, np));
                     pureMenu.add(menuItem);

@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01as: *********************************
 
+BUG: (12/1/04, SMR) Multi-object Properties does not adjust sizes right when mirroring is involved.
+FIX: In GetInfoMulti.MultiChange.doIt(), account for mirroring when computing new size.
+
+IMP: (12/1/04, SMR) "Pure" menu entry no longer offers contact or via layers.
+
+IMP/MAN: (12/1/04, SMR) "Layer Visibility" dialog now shows layers sorted by height
+     and lets you set all layers above or below a point to be visible/invisible.
+
 ************************* Version 8.01ar: *********************************
 
 IMP: (11/30/04, GVG) New stipple patterns for m7/m8 in TSMC90 (Bug #22)
