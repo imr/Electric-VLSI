@@ -38,10 +38,12 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.ncc.Ncc;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.NccResult;
@@ -1269,7 +1271,13 @@ public class StdCellParams {
 
         boolean added = false;
         double pspace = getNmosWellHeight() - nselMaxY;
-        if (pspace > wellConSelectHeight + 2*gridResolution) {
+        // the space needed is the well contact select height plus the metal1-metal1 spacing,
+        // or plus the select to select spacing, whichever is greater.
+        double m1m1_sp = 2.4;
+        double psel_sp = 4.8;
+        double nsel_sp = 4.8;
+        Technology tech = cell.getTechnology();
+        if (pspace > (wellConSelectHeight+m1m1_sp) + 2*gridResolution) {
             // there is space, create it
             double pwellX = roundToGrid(gndPort.getBounds().getCenterX());
             double pwellY = -roundToGrid(nselMaxY + 0.5*wellConSelectHeight + wellConSelectOffset) - gridResolution;
@@ -1279,9 +1287,34 @@ public class StdCellParams {
                     Tech.pwellNode.getDefHeight() -so.getHighYOffset() - so.getLowYOffset(), 0, cell);
             LayoutLib.newArcInst(Tech.m1, getM1TrackWidth(), ni.getOnlyPortInst(), gndPort);
             added = true;
+            // if the space to the end of the cell is less than the select to select spacing,
+            // fill it in with the appropriate select.
+            double distFromEdge = getNmosWellHeight() - (Math.abs(pwellY) + 0.5*wellConSelectHeight);
+            if (distFromEdge < psel_sp) {
+                // get size of select layer
+                Poly [] polys = tech.getShapeOfNode(ni);
+                if (polys != null) {
+                    Layer.Function function = Layer.Function.IMPLANTP;
+                    Rectangle2D bounds = null;
+                    for (int i=0; i<polys.length; i++) {
+                        if (polys[i] == null) continue;
+                        if (polys[i].getLayer().getFunction() == function) {
+                            bounds = polys[i].getBox();
+                        }
+                    }
+                    if (bounds != null) {
+                        // fill over the well contact.  Round up bottom of fill so it is on lambda grid
+                        double fillBot = (int)(Math.abs(pwellY) - 0.5*wellConSelectHeight) + 1;
+                        double fillH = getNmosWellHeight() - fillBot;
+                        ni = LayoutLib.newNodeInst(Tech.pselNode, pwellX, -1*roundToGrid(fillH/2 + fillBot),
+                                bounds.getWidth(), roundToGrid(fillH), 0, cell);
+                        ni.setHardSelect();
+                    }
+                }
+            }
         }
         double nspace = getPmosWellHeight() - pselMaxY;
-        if (nspace > wellConSelectHeight + 2*gridResolution) {
+        if (nspace > (wellConSelectHeight+m1m1_sp) + 2*gridResolution) {
             double nwellX = roundToGrid(vddPort.getBounds().getCenterX());
             double nwellY = roundToGrid(pselMaxY + 0.5*wellConSelectHeight + wellConSelectOffset) + gridResolution;
             SizeOffset so = Tech.nwellNode.getProtoSizeOffset();
@@ -1290,7 +1323,33 @@ public class StdCellParams {
                     Tech.nwellNode.getDefHeight() - so.getHighYOffset() - so.getLowYOffset(), 0, cell);
             LayoutLib.newArcInst(Tech.m1, getM1TrackWidth(), ni.getOnlyPortInst(), vddPort);
             added = true;
+            // if the space to the end of the cell is less than the select to select spacing,
+            // fill it in with the appropriate select.
+            double distFromEdge = getPmosWellHeight() - (Math.abs(nwellY) + 0.5*wellConSelectHeight);
+            if (distFromEdge < nsel_sp) {
+                // get size of select layer
+                Poly [] polys = tech.getShapeOfNode(ni);
+                if (polys != null) {
+                    Layer.Function function = Layer.Function.IMPLANTN;
+                    Rectangle2D bounds = null;
+                    for (int i=0; i<polys.length; i++) {
+                        if (polys[i] == null) continue;
+                        if (polys[i].getLayer().getFunction() == function) {
+                            bounds = polys[i].getBox();
+                        }
+                    }
+                    if (bounds != null) {
+                        // fill over the well contact.  Round up bottom of fill so it is on lambda grid
+                        double fillBot = (int)(Math.abs(nwellY) - 0.5*wellConSelectHeight) + 1;
+                        double fillH = getPmosWellHeight() - fillBot;
+                        ni = LayoutLib.newNodeInst(Tech.nselNode, nwellX, roundToGrid(fillH/2 + fillBot),
+                                bounds.getWidth(), roundToGrid(fillH), 0, cell);
+                        ni.setHardSelect();
+                    }
+                }
+            }
         }
+
         return added;
     }
 
