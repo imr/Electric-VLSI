@@ -71,6 +71,32 @@ public class PrimitiveNode extends NodeProto
 		tech.addNodeProto(this);
 	}
 
+	/**
+	 * Add connections inside node proto to map of equivalent ports newEquivPort.
+	 * Assume that each PortProto.getTempInt() contains sequential index of
+     * port in this NodeProto.
+	 */
+	protected void connectEquivPorts(int[] newEquivPorrs)
+	{
+		/* Commented, hbecause getTopology() is not set properly now
+		int i = 0;
+		for (Iterator it = getPorts(); it.hasNext(); i++)
+		{
+			PrimitivePort pi = (PrimitivePort)it.next();
+			int j = 0;
+			for (Iterator jt = getPorts(); j < i; j++)
+			{
+				PrimitivePort pj = (PrimitivePort)jt.next();
+				if (pi.getTopology() == pj.getTopology())
+				{
+					connectMap(newEquivPorts, i, j);
+					break;
+				}
+			}
+		}
+		*/
+	}
+
 	// ------------------------- public methods -------------------------------
 
 	/**

@@ -509,6 +509,9 @@ public abstract class NodeProto extends ElectricObject
 		}
 	}
 
+	/**
+	 * Merge classes of equivalence map to which elements a1 and a2 belong.
+	 */
 	protected static void connectMap(int[] map, int a1, int a2)
 	{
 		int m1, m2, m;
@@ -533,6 +536,9 @@ public abstract class NodeProto extends ElectricObject
 		}
 	}
 
+	/**
+	 * Obtain canonical representation of equivalence map.
+	 */
 	private static void closureMap(int[] map)
 	{
 		for (int i = 0; i < map.length; i++)
@@ -541,15 +547,40 @@ public abstract class NodeProto extends ElectricObject
 		}
 	}
 
-	protected void connectEquivPorts(int[] newEquivPorrs)
+	/**
+	 * Obtain canonical representation of equivalence map.
+	 */
+	private static boolean equalMaps(int[] map1, int[] map2)
 	{
+		if (map1.length != map2.length) return false;
+		for (int i = 0; i < map1.length; i++)
+		{
+			if (map1[i] != map2[i]) return false;
+		}
+		return true;
 	}
 
-	private void updateEquivPorts(HashMap userEquivPorts)
+	/**
+	 * Add connections inside node proto to map of equivalent ports newEquivPort.
+	 * Assume that each PortProto.getTempInt() contains sequential index of
+     * port in this NodeProto.
+	 */
+	protected abstract void connectEquivPorts(int[] newEquivPorrs);
+
+	/**
+	 * Update map of equivalent ports newEquivPort.
+	 * @param userEquivMap HashMap (PortProto -> JNetwork) of user-specified equivalent ports
+	 * @param currentTime.time stamp of current network reevaluation
+	 * This routine will always set equivPortsCheckTime to currentTime.
+     * equivPortsUpdateTime will either change to currentTime if map will change,
+	 * or will be kept untouched if not.
+	 */
+	public void updateEquivPorts(HashMap userEquivPorts, int currentTime)
 	{
 		int[] newEquivPorts = new int[ports.size()];
 		int i;
 
+		/* Initialize new equiv map. Mark PortProto's . */
 		i = 0;
 		for (Iterator it = ports.iterator(); it.hasNext(); i++)
 		{
@@ -582,6 +613,47 @@ public abstract class NodeProto extends ElectricObject
 		}
 
 		closureMap(newEquivPorts);
+
+		/* set time stamps */
+		if (equivPorts == null || !equalMaps(equivPorts, newEquivPorts))
+		{
+			equivPorts = newEquivPorts;
+			equivPortsUpdateTime = currentTime;
+		}
+		equivPortsCheckTime = currentTime;
+	}
+
+	/**
+	 * Show map of equivalent ports newEquivPort.
+	 * @param userEquivMap HashMap (PortProto -> JNetwork) of user-specified equivalent ports
+	 * @param currentTime.time stamp of current network reevaluation
+	 * This routine will always set equivPortsCheckTime to currentTime.
+     * equivPortsUpdateTime will either change to currentTime if map will change,
+	 * or will be kept untouched if not.
+	 */
+	private void showEquivPorts()
+	{
+		System.out.println("Equivalent ports of "+this+" updateTime="+equivPortsUpdateTime+" checkTime="+equivPortsCheckTime);
+		String s = "\t";
+		for (int i = 0; i < equivPorts.length; i++)
+		{
+			if (equivPorts[i] != i) continue;
+			PortProto pi = (PortProto)ports.get(i);
+			boolean found = false;
+			for (int j = i+1; j < equivPorts.length; j++)
+			{
+				if (equivPorts[i] != equivPorts[j]) continue;
+				PortProto pj = (PortProto)ports.get(j);
+				if (!found) s = s+" ( "+pi.getProtoName();
+				found = true;
+				s = s+" "+pj.getProtoName();
+			}
+			if (found)
+				s = s+")";
+			else
+				s = s+" "+pi.getProtoName();
+		}
+		System.out.println(s);
 	}
 
 	// ----------------------- public methods -----------------------
@@ -1150,6 +1222,20 @@ public abstract class NodeProto extends ElectricObject
 	}
 
 	/**
+	 * Routine to set tempInt of of every PortProto of this NodeProto to
+	 * sequential index of PortProto
+	 */
+	public void numeratePorts()
+	{
+		int i = 0;
+		for (Iterator it = ports.iterator(); it.hasNext();)
+		{
+			PortProto pp = (PortProto)it.next();
+			pp.setTempInt(i++);
+		}
+	}
+
+	/**
 	 * Routine to return an iterator over all instances of this NodeProto.
 	 * @return an iterator over all instances of this NodeProto.
 	 */
@@ -1227,6 +1313,23 @@ public abstract class NodeProto extends ElectricObject
 	 * @param userBits the new "user bits".
 	 */
 	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
+
+	/**
+	 * Routine to return map of equivalent ports of this NodeProto.
+	 */
+    public int[] getEquivPorts() { return equivPorts; }
+
+	/**
+	 * Routime to return time stamp when map of equivalent ports of
+	 * this NodeProto was modified.
+	 */
+	public int getEquivPortsUpdateTime() { return equivPortsUpdateTime; }
+
+	/**
+	 * Routime to return time stamp when map of equivalent ports of
+	 * this NodeProto was checked.
+	 */
+	public int getEquivPortsCheckTime() { return equivPortsCheckTime; }
 
 	/**
 	 * Returns a printable version of this NodeProto.

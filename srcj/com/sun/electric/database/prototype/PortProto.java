@@ -309,6 +309,19 @@ public abstract class PortProto extends ElectricObject implements Networkable
 	}
 
 	/**
+	 * Routine to get the topology of this PortProto.
+	 * This is a small integer that is unique among PortProtos on this NodeProto.
+	 * When two PortProtos have the same topology number, it indicates that these
+	 * ports are connected.
+	 * It is only used on PrimitivePorts, and is set during Technology creation.
+	 * @return the topology of this PortProto.
+	 */
+	public int getTopology(int topologyIndex)
+	{
+		return (userBits & PORTNET) >> PORTNETSH;
+	}
+
+	/**
 	 * Routine to set this PortProto to be isolated.
 	 * Isolated ports do not electrically connect their arcs.
 	 * This occurs in the multiple inputs to a schematic gate that all connect to the same port but do not themselves connect.

@@ -196,20 +196,26 @@ public final class UserMenuCommands
 	{
 		long startTime = System.currentTimeMillis();
 		System.out.println("**** Renumber networks of layout cells");
-		int ncell = 0;
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		if (false)
 		{
-			Library lib = (Library)it.next();
-			for(Iterator cit = lib.getCells(); cit.hasNext(); )
+			int ncell = 0;
+			for(Iterator it = Library.getLibraries(); it.hasNext(); )
 			{
-				Cell cell = (Cell)cit.next();
-				if (cell.getView() != View.LAYOUT) continue;
-				ncell++;
-				cell.rebuildNetworks(null);
+				Library lib = (Library)it.next();
+				for(Iterator cit = lib.getCells(); cit.hasNext(); )
+				{
+					Cell cell = (Cell)cit.next();
+					if (cell.getView() != View.LAYOUT) continue;
+					ncell++;
+					cell.rebuildNetworks(null);
+				}
 			}
+		} else
+		{
+			Cell.rebuildAllNetworks(null);
 		}
 		long endTime = System.currentTimeMillis();
 		float finalTime = (endTime - startTime) / 1000F;
-		System.out.println("**** Renumber networks end, "+ncell+" cells took " + finalTime + " seconds");
+		System.out.println("**** Renumber networks took " + finalTime + " seconds");
 	}
 }

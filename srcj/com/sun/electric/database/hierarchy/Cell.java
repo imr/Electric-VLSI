@@ -176,7 +176,7 @@ public class Cell extends NodeProto
 	/** A list of NodeInsts in this Cell. */						private List nodes;
 	/** A list of ArcInsts in this Cell. */							private List arcs;
 	/** The current timestamp value. */								private static int currentTime = 0;
-	/** A time stamp for marking Cells. */							private int timeStamp;
+	/** The timestamp of last network renumbering of this Cell */	private int networksTime;
 	/** The bounds of the Cell. */									private Rectangle2D.Double elecBounds;
 	/** Whether the bounds need to be recomputed. */				private boolean boundsDirty;
 	/** Whether the bounds have anything in them. */				private boolean boundsEmpty;
@@ -205,12 +205,12 @@ public class Cell extends NodeProto
 		c.nodes = new ArrayList();
 		c.arcs = new ArrayList();
 		c.cellGroup = null;
-		c.timeStamp = -1; // initial time is in the past
 		c.tech = null;
 		c.lib = lib;
 		c.creationDate = new Date();
 		c.revisionDate = new Date();
 		c.userBits = 0;
+		c.networksTime = 0;
 		c.elecBounds = new Rectangle2D.Double();
 		c.boundsEmpty = true;
 		c.boundsDirty = false;
@@ -1039,7 +1039,40 @@ public class Cell extends NodeProto
 		redoNetworks(connPorts);
 	}
 
-	private HashMap buildConnPortsTable(ArrayList connPortsLists)
+	/** Recompute the network structure for all Cells.
+	 *
+	 * @param connectedPorts this argument allows the user to tell the
+	 * network builder to treat certain PortProtos of a NodeProto as a
+	 * short circuit. For example, it is sometimes useful to build the
+	 * net list as if the PortProtos of a resistor where shorted
+	 * together.
+	 *
+	 * <p> <code>connectedPorts</code> must be either null or an
+	 * ArrayList of ArrayLists of PortProtos.  All of the PortProtos in
+	 * an ArrayList are treated as if they are connected.  All of the
+	 * PortProtos in a single ArrayList must belong to the same
+	 * NodeProto. */
+	public static void rebuildAllNetworks(ArrayList connectedPorts)
+	{
+		if (connectedPorts == null)
+		{
+			connectedPorts = new ArrayList();
+		}
+		HashMap connPorts = buildConnPortsTable(connectedPorts);
+		currentTime++;
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			for(Iterator cit = lib.getCells(); cit.hasNext(); )
+			{
+				Cell cell = (Cell)cit.next();
+				if (cell.getView() != View.LAYOUT) continue;
+				cell.redoNetworks(connPorts);;
+			}
+		}
+	}
+
+	private static HashMap buildConnPortsTable(ArrayList connPortsLists)
 	{
 		HashMap connPorts = new HashMap();
 		if (connPortsLists == null)
@@ -1079,27 +1112,45 @@ public class Cell extends NodeProto
 		return connPorts;
 	}
 
-	private void redoDescendents(HashMap equivPorts)
+	/**
+	 * Update map of equivalent ports userEquivPort.
+	 * @param userEquivMap HashMap (PortProto -> JNetwork) of user-specified equivalent ports
+	 * @param currentTime.time stamp of current network reevaluation
+	 * This routine will always set equivPortsCheckTime to currentTime.
+     * equivPortsUpdateTime will either change to currentTime if map will change,
+	 * or will be kept untouched if not.
+     * For the Cell this routine will refresh networks of contents cell too.
+	 */
+	public void updateEquivPorts(HashMap userEquivPorts, int currentTime)
 	{
+		// If Cell is an Icon View then redo the Schematic
+		// View. Otherwise redo the Cell.
+		Cell equivCell = getEquivalent();
+		if (equivCell == null) equivCell = this;
+		equivCell.redoNetworks(userEquivPorts);
+
+		super.updateEquivPorts(userEquivPorts, currentTime);
+	}
+
+	/**
+	 * Redo subcells of this cell. Ifmap of equivalent ports of some subcell has
+     * been updated since last network renumbering, then retunr true.
+	 */
+	private boolean redoDescendents(HashMap userEquivPorts)
+	{
+		boolean redoThis = false;
 		for (int i = 0; i < nodes.size(); i++)
 		{
 			NodeInst ni = (NodeInst) nodes.get(i);
+			if (ni.isIconOfParent()) continue;
+
 			NodeProto np = ni.getProto();
-
-			if (np instanceof Cell)
-			{
-				if (ni.isIconOfParent())
-					continue;
-
-				// If Cell is an Icon View then redo the Schematic
-				// View. Otherwise redo the Cell.
-				Cell equivCell = ((Cell)np).getEquivalent();
-
-				// if an icon has no corresponding schematic then equivCell==null
-				if (equivCell != null)
-					equivCell.redoNetworks(equivPorts);
-			}
+			if (np.getEquivPortsCheckTime() != currentTime)
+				np.updateEquivPorts(userEquivPorts, currentTime);
+			if (networksTime < np.getEquivPortsUpdateTime())
+				redoThis = true;
 		}
+		return redoThis;
 	}
 
 	private void placeEachPortInstOnItsOwnNet()
@@ -1107,11 +1158,18 @@ public class Cell extends NodeProto
 		for (int i = 0; i < nodes.size(); i++)
 		{
 			NodeInst ni = (NodeInst) nodes.get(i);
+			if (ni.isIconOfParent()) continue;
+
+			NodeProto np = ni.getProto();
+			np.numeratePorts();
+			int[] eq = np.getEquivPorts();
+			JNetwork[] nets = new JNetwork[eq.length];
 			for (Iterator it = ni.getPortInsts(); it.hasNext();)
 			{
 				PortInst pi = (PortInst) it.next();
-				JNetwork net = new JNetwork(this);
-				net.addPortInst(pi);
+				int k = eq[pi.getPortProto().getTempInt()];
+				if (nets[k] == null) nets[k] = new JNetwork(this);
+				nets[k].addPortInst(pi);
 			}
 		}
 	}
@@ -1144,6 +1202,7 @@ public class Cell extends NodeProto
 		}
 	}
 
+	/*
 	private PortProto getEquivPortProto(PortProto pp) {
 		NodeProto np = pp.getParent();
 		if (np instanceof Cell) {
@@ -1222,6 +1281,7 @@ public class Cell extends NodeProto
 			}
 		}
 	}
+	*/
 
 	protected void connectEquivPorts(int[] newEquivPorts)
 	{
@@ -1248,6 +1308,8 @@ public class Cell extends NodeProto
 		for (Iterator nit = getNodes(); nit.hasNext();)
 		{
 			NodeInst ni = (NodeInst) nit.next();
+			if (ni.isIconOfParent()) continue;
+
 			for (Iterator pit = ni.getPortInsts(); pit.hasNext();)
 			{
 				PortInst pi = (PortInst) pit.next();
@@ -1309,22 +1371,21 @@ public class Cell extends NodeProto
 
 	private void redoNetworks(HashMap equivPorts)
 	{
-		if (timeStamp == currentTime)
-			return;
-		timeStamp = currentTime;
+		if (!redoDescendents(equivPorts)) return;
 
-		redoDescendents(equivPorts);
 		placeEachPortInstOnItsOwnNet();
 		mergeNetsConnectedByArcs();
-		mergeNetsConnectedByNodeProtoSubnets();
-		mergeNetsConnectedByUserEquivPorts(equivPorts);
+		//mergeNetsConnectedByNodeProtoSubnets();
+		//mergeNetsConnectedByUserEquivPorts(equivPorts);
 		addExportNamesToNets();
 		mergeSameNameNets();
 		buildNetworkList();
+		networksTime = currentTime;
 	}
 
 	public final void setNetworksDirty()
 	{
+		networksTime = 0;
 	}
 
 }
