@@ -48,6 +48,7 @@ import com.sun.electric.tool.user.User;
 
 import java.util.Iterator;
 import java.util.Date;
+import java.util.ArrayList;
 
 /**
  * This is the Simulation Interface tool.
@@ -105,14 +106,22 @@ public class Verilog extends Topology
 		// gather all global signal names
 		Netlist netList = getNetlistForCell(topCell);
 		Global.Set globals = netList.getGlobals();
-		int globalSize = globals.size();
-		if (globalSize > 0)
+        int globalSize = globals.size();
+
+        // see if any globals besides power and ground to write
+        ArrayList globalsToWrite = new ArrayList();
+        for (int i=0; i<globalSize; i++) {
+            Global global = (Global)globals.get(i);
+            if (global == Global.power || global == Global.ground) continue;
+            globalsToWrite.add(global);
+        }
+
+		if (globalsToWrite.size() > 0)
 		{
 			printWriter.print("\nmodule glbl();\n");
-			for(int i=0; i<globalSize; i++)
+			for(int i=0; i<globalsToWrite.size(); i++)
 			{
-				Global global = (Global)globals.get(i);
-				if (global == Global.power || global == Global.ground) continue;
+				Global global = (Global)globalsToWrite.get(i);
 				if (Simulation.getVerilogUseTrireg())
 				{
 					printWriter.print("    trireg " + global.getName() + ";\n");
@@ -129,23 +138,33 @@ public class Verilog extends Topology
 	{
 	}
 
+    protected boolean skipCellAndSubcells(Cell cell) {
+        // do not write modules for cells with verilog_templates defined
+        // also skip their subcells
+        if (cell.getVar(VERILOG_TEMPLATE_KEY) != null) {
+            return true;
+        }
+        // also skip subcells if a behavioral file specified.
+        // If one specified, write it out here and skip both cell and subcells
+        Variable behaveFileVar = cell.getVar(VERILOG_BEHAVE_FILE_KEY);
+        if (behaveFileVar != null)
+        {
+            String fileName = behaveFileVar.getObject().toString();
+            if (fileName.length() > 0)
+            {
+                printWriter.print("`include \"" + fileName + "\"\n");
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 	/**
 	 * Method to write cellGeom
 	 */
 	protected void writeCellTopology(Cell cell, CellNetInfo cni, VarContext context)
 	{
-		// use attached file if specified
-		Variable behaveFileVar = cell.getVar(VERILOG_BEHAVE_FILE_KEY);
-		if (behaveFileVar != null)
-		{
-			String fileName = behaveFileVar.getObject().toString();
-			if (fileName.length() > 0)
-			{
-				printWriter.print("`include \"" + fileName + "\"\n");
-				return;
-			}
-		}
-
 		// use library behavior if it is available
 		Cell verViewCell = cell.otherView(View.VERILOG);
 		if (verViewCell != null)
@@ -158,6 +177,12 @@ public class Verilog extends Topology
 			}
 			return;
 		}
+
+        // if verilog template specified, don't need to write out this cell
+/*        Variable varT = cell.getVar(VERILOG_TEMPLATE_KEY);
+        if (varT != null) {
+            return;
+        } */
 
 //		// prepare arcs to store implicit inverters
 //		impinv = 1;

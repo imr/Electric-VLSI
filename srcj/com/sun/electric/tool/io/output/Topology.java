@@ -125,6 +125,10 @@ public abstract class Topology extends Output
      * arc names when determining the name of the network. */
     protected abstract boolean isNetworksUseExportedNames();
 
+    /** If the netlister has requirments not to netlist certain cells and their
+     * subcells, override this method. */
+    protected boolean skipCellAndSubcells(Cell cell) { return false; }
+
 	/**
 	 * Method to tell whether the topological analysis should mangle cell names that are parameterized.
 	 */
@@ -163,6 +167,7 @@ public abstract class Topology extends Output
 
 		public boolean enterCell(HierarchyEnumerator.CellInfo info) 
 		{
+            if (skipCellAndSubcells(info.getCell())) return false;
 			return true;
 		}
 
@@ -345,9 +350,8 @@ public abstract class Topology extends Output
 				if (net.hasNames())
                 {
                     String name = null;
-                    if (useExportedName && net.getExports().hasNext()) {
-                        //name = ((Export)net.getExports().next()).getName();
-                        name = (String)net.getNames().next();
+                    if (useExportedName && net.getExportedNames().hasNext()) {
+                        name = (String)net.getExportedNames().next();
                     } else
                         name = (String)net.getNames().next();
                     cs.name = name;
