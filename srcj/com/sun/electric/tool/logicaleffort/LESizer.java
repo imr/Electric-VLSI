@@ -148,16 +148,19 @@ public class LESizer {
 	 * @param maxDeltaX maximum tolerance allowed in X
 	 * @param N maximum number of loops
 	 * @param verbose print out size information for each optimization loop
-	 *
+	 * @return true if succeeded, false otherwise
+     *
 	 * Optimization will stop when the difference in sizes (X) is 
 	 * less than maxDeltaX, or when N iterations have occurred.
 	 */
-	protected void optimizeLoops(float maxDeltaX, int N, boolean verbose, 
+	protected boolean optimizeLoops(float maxDeltaX, int N, boolean verbose,
         float alpha, float keeperRatio)
 	{
 		// iterate through all the instances, updating sizes
 
 		float currentLoopDeltaX = maxDeltaX + 1;	// force at least one iteration
+        float lastLoopDeltaX = currentLoopDeltaX;
+        int divergingIters = 0;                     // count number if iterations sizing is diverging
         long startTime;
         
 		int loopcount = 0;
@@ -221,9 +224,18 @@ public class LESizer {
             System.out.println("  ...done ("+elapsed+"), delta: "+currentLoopDeltaX);            
             if (verbose) System.out.println("-----------------------------------");
 			loopcount++;
+            // check to see if we're diverging or not converging
+            if (currentLoopDeltaX >= lastLoopDeltaX) {
+                if (divergingIters > 2) {
+                    System.out.println("  Sizing diverging, aborting");
+                    return false;
+                }
+                divergingIters++;
+            }
+            lastLoopDeltaX = currentLoopDeltaX;
 
 		} // while (currentLoopDeltaX ... )
-
+        return true;
 	}
 	   
     /**

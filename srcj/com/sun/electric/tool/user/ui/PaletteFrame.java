@@ -139,6 +139,7 @@ public class PaletteFrame
 
 		// create a paletteWindow and a selector combobox
 		palette.panel = new PalettePanel(palette);
+        palette.panel.setFocusable(true);
 		palette.selector = new JComboBox();
 		List techList = Technology.getTechnologiesSortedByName();
 		for(Iterator it = techList.iterator(); it.hasNext(); )
@@ -381,6 +382,7 @@ public class PaletteFrame
 		public void mousePressed(MouseEvent e)
 		{
 			PalettePanel panel = (PalettePanel)e.getSource();
+            panel.requestFocus();
 			Object obj = getObjectUnderCursor(e);
 			if (obj instanceof NodeProto || obj instanceof NodeInst)
 			{
@@ -982,6 +984,10 @@ public class PaletteFrame
 				np = (NodeProto)toDraw;
 				defAngle = np.getDefPlacementAngle();
 			}
+
+            if (window != null) {
+                window.addKeyListener(this);
+            }
 		}
 
 		public void setParameter(Object toDraw) { this.toDraw = toDraw; }
@@ -1078,16 +1084,22 @@ public class PaletteFrame
 			PlaceNewNode job = new PlaceNewNode(descript, toDraw, where, wnd.getCell(), isTextNode);
 
 			// restore the former listener to the edit windows
-			Highlight.clear();
-			Highlight.finished();
-			EditWindow.setListener(oldListener);
-			TopLevel.setCurrentCursor(oldCursor);
-			if (window != null)
-			{
-				window.frame.highlightedNode = null;
-				window.repaint();
-			}
+            finished();
 		}
+
+        public void finished()
+        {
+            Highlight.clear();
+            Highlight.finished();
+            EditWindow.setListener(oldListener);
+            TopLevel.setCurrentCursor(oldCursor);
+            if (window != null)
+            {
+                window.removeKeyListener(this);
+                window.frame.highlightedNode = null;
+                window.repaint();
+            }
+        }
 
 		public void mousePressed(MouseEvent evt) {}
 		public void mouseClicked(MouseEvent evt) {}
@@ -1108,10 +1120,10 @@ public class PaletteFrame
 		public void keyPressed(KeyEvent evt)
 		{
 			int chr = evt.getKeyCode();
-			EditWindow wnd = (EditWindow)evt.getSource();
-			if (chr == KeyEvent.VK_A)
+			if (chr == KeyEvent.VK_A || chr == KeyEvent.VK_ESCAPE)
 			{
-				// abort?
+                // abort
+				finished();
 			}
 		}
 

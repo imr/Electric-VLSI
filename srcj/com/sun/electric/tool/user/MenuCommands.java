@@ -522,7 +522,7 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { tileVerticallyCommand(); }});
 		windowPartitionSubMenu.addMenuItem("Cascade", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { cascadeWindowsCommand(); }});
-        windowMenu.addMenuItem("Close Window", KeyStroke.getKeyStroke(KeyEvent.VK_W, 0),
+        windowMenu.addMenuItem("Close Window", KeyStroke.getKeyStroke(KeyEvent.VK_W, buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { WindowFrame curWF = WindowFrame.getCurrentWindowFrame();
                 curWF.finished(); }});
 

@@ -27,6 +27,7 @@ import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.network.Netlist;
 
 import java.lang.Number;
 import java.lang.NumberFormatException;
@@ -156,10 +157,18 @@ public class VarContext
         if (ni == null) return null;
         Variable var = ni.getVar(name);
         if (var == null) {
-            NodeProto np = ni.getProto();
+            // look up default var on prototype
+            NodeProto np;
+            if (ni instanceof NodeInst) {
+                NodeInst nni = (NodeInst)ni;
+                Nodable no = Netlist.getNodableFor(nni);
+                np = no.getProto();
+            } else {
+                np = ni.getProto();
+            }
             var = np.getVar(name);
         }
-        if (var == null) return null;
+        if (var == null) return "Var "+name.replaceFirst("ATTR_", "")+" not found";
         // evaluate var in it's context
         return this.pop().evalVar(var, ni);
     }
@@ -185,7 +194,14 @@ public class VarContext
             Variable var = ni.getVar(name);             // look up var
 			if (var != null)
 				return scan.pop().evalVar(var, ni);
-            NodeProto np = ni.getProto();               // look up default var
+            NodeProto np;                               // look up default var value on prototype
+            if (ni instanceof NodeInst) {
+                NodeInst nni = (NodeInst)ni;
+                Nodable no = Netlist.getNodableFor(nni);
+                np = no.getProto();
+            } else {
+                np = ni.getProto();
+            }
             var = np.getVar(name);
             if (var != null)
                 return scan.pop().evalVar(var, ni);

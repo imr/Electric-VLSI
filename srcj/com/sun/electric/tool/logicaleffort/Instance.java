@@ -137,7 +137,7 @@ public class Instance {
             }
         }
         if (outputPinCount == 0)
-            System.out.println("LETool leGate '"+name+"' error: no output pin");
+            System.out.println("LETool leGate '"+name+"' error: no output pin, or no 'le' logical effort defined on output pin");
         if (outputPinCount > 1)
             System.out.println(err.substring(0, err.length()-2));
     }

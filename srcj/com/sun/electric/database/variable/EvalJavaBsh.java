@@ -96,7 +96,7 @@ public class EvalJavaBsh extends Tool {
      
     /** Handle errors.  Sends it to system.out */
     protected void handleBshError(bsh.EvalError e) {
-        System.out.println("Bean Shell eval error: " + e.getMessage());
+        //System.out.println("Bean Shell eval error: " + e.getMessage());
         if (debug) {
             if (e instanceof bsh.TargetError) {
                 bsh.TargetError te = (bsh.TargetError)e;
@@ -168,18 +168,23 @@ public class EvalJavaBsh extends Tool {
             if (context == null) context = VarContext.globalContext;
             contextStack.push(context);             // push context
             infoStack.push(info);                   // push info
-            //if (debug) System.out.println("Evaluating JavaBsh Expression: "+expr);
-            //if (debug) System.out.println("Evaluating JavaBsh Expression: "+expr);
             Object ret = env.eval(expr);            // ask bsh to eval
             contextStack.pop();                     // pop context
             infoStack.pop();                        // pop info
             //System.out.println("BSH: "+expr.toString()+" --> "+ret);
             return ret;
         } catch (bsh.EvalError e) {
-            handleBshError(e);
+            // filter out Operator: "'x'" inappropriate for objects, and
+            // "illegal use of null value or null literal messages
+            //Matcher mat = errorFilter.matcher(e.getMessage());
+            //Matcher mat2 = errorFilter2.matcher(e.getMessage());
+            //if (!mat.matches() && !mat2.matches())
+                handleBshError(e);
         }
         return null;
     }
+    //private static final Pattern errorFilter = Pattern.compile(".*?Operator:.*?inappropriate for objects.*");
+    //private static final Pattern errorFilter2 = Pattern.compile(".*?illegal use of null value or 'null' literal.*");
 
     //------------------Methods that may be called through Interpreter--------------
 

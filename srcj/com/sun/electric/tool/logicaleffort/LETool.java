@@ -99,9 +99,10 @@ public class LETool extends Tool {
         String ledrive = LETool.makeDriveStr(context.push(ni));
         if (ledrive == null) return "No var name";
         Variable var = ni.getVar(ledrive);
-        if (var == null) return "No variable "+ledrive;
+        //if (var == null) return "No variable "+ledrive;
+        if (var == null) return "?";
         Object val = var.getObject();
-        if (val == null) return "Null";
+        if (val == null) return "?";
         return val;
     }
 
@@ -137,7 +138,8 @@ public class LETool extends Tool {
         if (ni == null) return "subdrive(): no nodeInst of name "+nodeName;
         Variable var = ni.getVar(parName);                          // find variable on nodeinst
         if (var == null) var = ni.getVar("ATTR_"+parName);          // maybe it's an attribute
-        if (var == null) return "subdrive(): no variable of name "+parName;
+        //if (var == null) return "subdrive(): no variable of name "+parName.replaceFirst("ATTR_", "");
+        if (var == null) return "?";
         return context.push(no).evalVar(var);                       // evaluate variable and return it
     }
 
@@ -188,8 +190,12 @@ public class LETool extends Tool {
             if (getScheduledToAbort()) { setAborted(); return; }                  // abort job
             System.out.println("Starting iterations: ");
             setProgress("iterating");
-            netlister.size();
-            netlister.updateSizes();
+            boolean success = netlister.size();
+            if (success) {
+                netlister.updateSizes();
+            } else {
+                System.out.println("Sizing failed, sizes unchanged");
+            }
             try {
                 boolean donesleeping = false;
                 while(!donesleeping) {

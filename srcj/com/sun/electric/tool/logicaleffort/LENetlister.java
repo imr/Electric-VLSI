@@ -65,7 +65,9 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
     /** LESizer to do sizing */                 private LESizer lesizer;
     /** Where to direct output */               private PrintStream out;
     /** Mapping between NodeInst and Instance */private HashMap instancesMap;
-    
+
+    private static final boolean DEBUG = true;
+
     /** Creates a new instance of LENetlister */
     public LENetlister(LESizer lesizer, OutputStream ostream) {
         // get preferences for this package
@@ -81,7 +83,7 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
         this.lesizer = lesizer;
         this.instancesMap = new HashMap();
         this.out = new PrintStream(ostream);
-    }        
+    }
     
     /** NodeInst should be an LESettings instance */
     protected void useLESettings(NodeInst ni, VarContext context) {
@@ -112,13 +114,18 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
 
         HierarchyEnumerator.enumerateCell(cell, context, netlist, this);
     }
-    
-    public void size() {
+
+    /**
+     * Size the netlist.
+     * @return true on success, false otherwise.
+     */
+    public boolean size() {
         //lesizer.printDesign();
         boolean verbose = true;
-        lesizer.optimizeLoops((float)0.01, maxIterations, verbose, alpha, keeperRatio);
+        boolean success = lesizer.optimizeLoops((float)0.01, maxIterations, verbose, alpha, keeperRatio);
         //out.println("---------After optimization:------------");
         //lesizer.printDesign();
+        return success;
     }
     
     public void updateSizes() {
@@ -126,9 +133,14 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
         for (Iterator it = allEntries.iterator(); it.hasNext();) {
             Map.Entry entry = (Map.Entry)it.next();
             Instance inst = (Instance)entry.getKey();
-            NodeInst ni = (NodeInst)entry.getValue();
+            Nodable no = (Nodable)entry.getValue();
             String varName = "LEDRIVE_" + inst.getName();
-            ni.newVar(varName, new Float(inst.getLeX()));
+            if (no instanceof NodeInst) {
+                ((NodeInst)no).newVar(varName, new Float(inst.getLeX()));
+            } else {
+                // TODO: figure out how to update sizes on Nodables/multipart icons
+                System.out.println("Can't handle NodeInst Proxies on update sizes yet");
+            }
         }
     }
         
@@ -161,17 +173,19 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
             float width = VarContext.objectToFloat(info.getContext().evalVar(var), (float)3.0f);
             leX = (float)(0.95f*len + 0.05f*len*(width/3.0f))*wireRatio;  // equivalent lambda of gate
             leX = leX/9.0f;                         // drive strength X=1 is 9 lambda of gate
+            VarContext vc = info.getContext().push(ni);
+            if (DEBUG) System.out.println("  Added LEWire "+vc.getInstPath(".")+", X="+leX);
         }
         else if (ni.getVar("ATTR_LEKEEPER") != null) type = Instance.Type.LEKEEPER;
         else if (ni.getVar("ATTR_LESETTINGS") != null) return false;
         else return true;                           // descend into and process
         
         // build leGate instance
-        //out.println("------------------------------------");
+        if (DEBUG) System.out.println("------------------------------------");
         ArrayList pins = new ArrayList();
         //Cell schCell = ni.getProtoEquivalent();
 		Netlist netlist = info.getNetlist();
-		for (Iterator ppIt = ni.getParent().getPorts(); ppIt.hasNext();) {
+		for (Iterator ppIt = ni.getProto().getPorts(); ppIt.hasNext();) {
 			PortProto pp = (PortProto)ppIt.next();
 //      for (Iterator piIt = ni.getPortInsts(); piIt.hasNext();) {
 //          PortInst pi = (PortInst)piIt.next();
@@ -186,13 +200,13 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
             // if it's not an output, it doesn't really matter what it is.
             if (pp.getCharacteristic() == PortProto.Characteristic.OUT) dir = Pin.Dir.OUTPUT;
             pins.add(new Pin(pp.getProtoName(), dir, le, netName));
-            //out.println("    Added "+dir+" pin "+pp.getProtoName()+", le: "+le+", netName: "+netName);
+            if (DEBUG) System.out.println("    Added "+dir+" pin "+pp.getProtoName()+", le: "+le+", netName: "+netName);
             if (type == Instance.Type.NOTSIZEABLE) break;    // this is LEWIRE, only add one pin of it
         }
         // create new leGate instance
         VarContext vc = info.getContext().push(ni);                   // to create unique flat name
         Instance inst = lesizer.addInstance(vc.getInstPath("."), type, su, leX, pins);
-        //out.println("  Added instance "+vc.getInstPath(".")+" of type "+type);
+        if (DEBUG) System.out.println("  Added instance "+vc.getInstPath(".")+" of type "+type);
         instancesMap.put(inst, ni);
         return false;
     }

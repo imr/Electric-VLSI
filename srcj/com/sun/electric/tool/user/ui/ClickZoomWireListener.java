@@ -514,7 +514,7 @@ public class ClickZoomWireListener
 
             // ignore move if done within cancelMoveDelayMillis
             long curTime = evt.getWhen();
-            if (debug) System.out.println("Time diff between click release is: "+(curTime - leftMousePressedTimeStamp));
+            if (debug) System.out.println("Time diff between click->release is: "+(curTime - leftMousePressedTimeStamp));
             if (modeLeft == Mode.move || modeLeft == Mode.stickyMove) {
                 if ((curTime - leftMousePressedTimeStamp) < cancelMoveDelayMillis) {
                     Highlight.setHighlightOffset(0, 0);
@@ -558,7 +558,6 @@ public class ClickZoomWireListener
                 }
                 if (modeLeft == Mode.move || modeLeft == Mode.stickyMove) {
                     // moving objects
-                    System.out.println("Moving: time diff is: "+(curTime - leftMousePressedTimeStamp));
                     if (another)
                         dbMouse = convertToOrthogonal(new Point2D.Double(dbMoveStartX, dbMoveStartY), dbMouse);
                     Point2D dbDelta = new Point((int)dbMouse.getX() - dbMoveStartX, (int)dbMouse.getY() - dbMoveStartY);

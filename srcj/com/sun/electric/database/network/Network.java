@@ -132,7 +132,11 @@ public class Network extends Listener
 
 	/****************************** PUBLIC METHODS ******************************/
 
-	public static Netlist getUserNetlist(Cell cell) { return getNetCell(cell).getUserNetlist(); }
+	public static Netlist getUserNetlist(Cell cell) {
+        //synchronized(cells) {
+            return getNetCell(cell).getUserNetlist();
+        //}
+    }
 
 	/** Recompute the Netlist structure for given Cell.
 	 * @param cell cell to recompute Netlist structure.
@@ -141,17 +145,19 @@ public class Network extends Listener
 	 * @return the Netlist structure for Cell.
      */
 	public static Netlist getNetlist(Cell cell, boolean shortResistors) {
-		if (Network.shortResistors != shortResistors)
-		{
-			for (int i = 0; i < cells.length; i++)
-			{
-				NetCell netCell = cells[i];
-				if (netCell != null) netCell.setInvalid(true);
-			}
-			Network.shortResistors = shortResistors;
-			System.out.println("shortResistors="+shortResistors);
-		}
-		return getNetCell(cell).getUserNetlist();
+        synchronized(cells) {
+            if (Network.shortResistors != shortResistors)
+            {
+                for (int i = 0; i < cells.length; i++)
+                {
+                    NetCell netCell = cells[i];
+                    if (netCell != null) netCell.setInvalid(true);
+                }
+                Network.shortResistors = shortResistors;
+                System.out.println("shortResistors="+shortResistors);
+            }
+		    return getNetCell(cell).getUserNetlist();
+        }
 	}
 
 	/****************************** CHANGE LISTENER ******************************/

@@ -871,11 +871,11 @@ public class EditWindow extends JPanel
         Rectangle2D cellBounds = cell.getBounds();
         Rectangle2D viewBounds = displayableBounds();
         double newoffx = value+0.5*viewBounds.getWidth();           // new offset
-        //double ignoreDelta = 0.03*viewBounds.getWidth();             // ignore delta
-        //double delta = newoffx - offx;
+        double ignoreDelta = 0.03*viewBounds.getWidth();             // ignore delta
+        double delta = newoffx - offx;
         //System.out.println("Old offx="+offx+", new offx="+newoffx+", delta="+(newoffx-offx));
         //System.out.println("will ignore delta offset of "+ignoreDelta);
-        //if (Math.abs(newoffx - offx) < Math.abs(ignoreDelta)) return;
+        if (Math.abs(delta) < Math.abs(ignoreDelta)) return;
         Point2D offset = new Point2D.Double(newoffx, offy);
         setOffset(offset);
         repaintContents();
@@ -887,11 +887,11 @@ public class EditWindow extends JPanel
         Rectangle2D viewBounds = displayableBounds();
         double newoffy = -(value+0.5*viewBounds.getHeight());
         // annoying cause +y is down in java
-        //double ignoreDelta = 0.03*viewBounds.getHeight();             // ignore delta
-        //double delta = newoffy - offy;
+        double ignoreDelta = 0.03*viewBounds.getHeight();             // ignore delta
+        double delta = newoffy - offy;
         //System.out.println("Old offy="+offy+", new offy="+newoffy+", deltay="+(newoffy-offy));
         //System.out.println("will ignore delta offset of "+ignoreDelta);
-        //if (Math.abs(newoffy - offy) < Math.abs(ignoreDelta)) return;
+        if (Math.abs(delta) < Math.abs(ignoreDelta)) return;
         Point2D offset = new Point2D.Double(offx, newoffy);
         setOffset(offset);
         repaintContents();
