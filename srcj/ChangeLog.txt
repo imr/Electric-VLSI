@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ap: *********************************
 
+IMP: (11/17/04, DN) XSize and YSize of serpentine transistors are not properly calcualted.
+
+BUG: (11/16/04, SMR) Cross-library copy does not update cell references properly.
+FIX: In Cell.copyNodeProto() ignore existing cross-library references.
+
 BUG: (11/16/04, RK) NCC: NCC crashes if A and B are in the same Cell group and A instantiates B.
 
 IMP/MAN: (11/16/04, GVG) DRC: dates stored disabled.
@@ -15,7 +20,8 @@ BUG: (11/16/04, GVG) MOSRules.getMaxSurround()didn't consider information about 
 FIX: condition added. Plus 100 is the new wide value for TSMC180nm
 
 IMP: (11/16/04, DN) XSize and YSize of serpentine transistors are not properly calcualted.
-FIX: getShapeOfNode and getShapeOfPort use getAnchorCenter instead of getTrueCenter
+
+FIX: (11/16/04, DN) getShapeOfNode and getShapeOfPort use getAnchorCenter instead of getTrueCenter
      In NodeInst use getShapeOfNode to calculate sizes of primitive with TRACE.
 
 BUG: (11/16/04, SMR) Hierarchical display of wires is sometimes off by 1 pixel.

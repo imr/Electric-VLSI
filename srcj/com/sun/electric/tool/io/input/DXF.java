@@ -90,6 +90,8 @@ public class DXF extends Input
 	private HashSet             validLayerNames;
 	private HashSet             ignoredLayerNames;
 	private TextUtils.UnitScale io_dxfdispunit;
+	private int                 groupID;
+	private String              text;
 	/** key of Variable holding DXF layer name. */			public static final Variable.Key DXF_LAYER_KEY = ElectricObject.newKey("IO_dxf_layer");
 	/** key of Variable holding DXF header text. */			public static final Variable.Key DXF_HEADER_TEXT_KEY = ElectricObject.newKey("IO_dxf_header_text");
 	/** key of Variable holding DXF header information. */	public static final Variable.Key DXF_HEADER_ID_KEY = ElectricObject.newKey("IO_dxf_header_ID");
@@ -110,7 +112,7 @@ public class DXF extends Input
 		}
 		return ret;
 	}
-	
+
 	/**
 	 * Method to read the DXF file into library "lib".  Returns true on error.
 	 */
@@ -119,10 +121,10 @@ public class DXF extends Input
 	{
 		// set the scale
 		io_dxfsetcurunits();
-	
+
 		// examine technology for acceptable DXF layer names
 		io_dxfgetacceptablelayers();
-	
+
 		// make the only cell in this library
 		io_dxfmaincell = Cell.makeInstance(lib, lib.getName());
 		if (io_dxfmaincell == null) return true;
@@ -131,7 +133,7 @@ public class DXF extends Input
 		io_dxfheaderid = new ArrayList();
 		io_dxfheadertext = new ArrayList();
 		ignoredLayerNames = new HashSet();
-	
+
 		// read the file
 		io_dxfpairvalid = false;
 		boolean err = false;
@@ -144,16 +146,16 @@ public class DXF extends Input
 		for(;;)
 		{
 			if (io_dxfgetnextpair()) break;
-	
+
 			// must have section change here
 			if (groupID != 0)
 			{
 				System.out.println("Expected group 0 (start section) at line " + lineReader.getLineNumber());
 				break;
 			}
-	
+
 			if (text.equals("EOF")) break;
-	
+
 			if (text.equals("SECTION"))
 			{
 				// see what section is coming
@@ -199,7 +201,7 @@ public class DXF extends Input
 			err = true;
 			break;
 		}
-	
+
 		// insert forward references
 		for(FORWARDREF fr = io_dxffirstforwardref; fr != null; fr = fr.nextforwardref)
 		{
@@ -231,7 +233,7 @@ public class DXF extends Input
 				ni.setExpanded();
 			}
 		}
-	
+
 		// save header with library
 		if (io_dxfheaderid.size() > 0)
 		{
@@ -296,7 +298,7 @@ public class DXF extends Input
 			}
 			System.out.println(warning);
 		}
-	
+
 		if (io_dxfignoredpoints > 0 || io_dxfignoredattributes > 0 || io_dxfignoredattribdefs > 0)
 		{
 			String warning = "Ignored";
@@ -318,7 +320,7 @@ public class DXF extends Input
 			}
 			System.out.println(warning);
 		}
-	
+
 		// say which layers were ignored
 		if (ignoredLayerNames.size() > 0)
 		{
@@ -329,16 +331,13 @@ public class DXF extends Input
 				String name = (String)it.next();
 				if (!first) warning += ", ";
 				first = false;
-				warning += name;
+				warning += "'" + name + "'";
 			}
 			System.out.println(warning);
 		}
-	
+
 		return err;
 	}
-
-	private int groupID;
-	private String text;
 
 	/**
 	 * Method to read the next group ID and content pair from the file.
@@ -354,7 +353,7 @@ public class DXF extends Input
 			io_dxfpairvalid = false;
 			return false;
 		}
-	
+
 		for(;;)
 		{
 			// read a line and get the group ID
@@ -371,10 +370,10 @@ public class DXF extends Input
 				return true;
 			}
 			groupID = TextUtils.atoi(groupLine);
-	
+
 			// ignore blank line if file is double-spaced
 			if (io_dxfinputmode == 2) io_dxfgetnextline(true);
-	
+
 			// read a line and get the text
 			io_dxfline = io_dxfgetnextline(true);
 			if (io_dxfline == null)
@@ -382,11 +381,11 @@ public class DXF extends Input
 				System.out.println("Unexpected end-of-file at line " + lineReader.getLineNumber());
 				return true;
 			}
-			text = io_dxfline;
-	
+			text = io_dxfline.trim();
+
 			// ignore blank line if file is double-spaced
 			if (io_dxfinputmode == 2) io_dxfgetnextline(true);
-	
+
 			if (io_dxfinputmode == 0)
 			{
 				// see if file is single or double spaced
@@ -403,14 +402,14 @@ public class DXF extends Input
 					io_dxfgetnextline(true);
 				}
 			}
-	
+
 			// continue reading if a comment, otherwise quit
 			if (groupID != 999) break;
 		}
-	
+
 		return false;
 	}
-	
+
 	private String io_dxfgetnextline(boolean canBeBlank)
 		throws IOException
 	{
@@ -420,9 +419,9 @@ public class DXF extends Input
 			if (canBeBlank || text.length() != 0) return text;
 		}
 	}
-	
+
 	/****************************************** READING SECTIONS ******************************************/
-	
+
 	private boolean io_dxfreadheadersection()
 		throws IOException
 	{
@@ -438,7 +437,7 @@ public class DXF extends Input
 		}
 		return false;
 	}
-	
+
 	private boolean io_dxfreadtablessection()
 		throws IOException
 	{
@@ -446,21 +445,21 @@ public class DXF extends Input
 		for(;;)
 		{
 			if (io_dxfgetnextpair()) return true;
-	
+
 			// quit now if at the end of the table section
 			if (groupID == 0 && text.equals("ENDSEC")) break;
-	
+
 			// must be a 'TABLE' declaration
 			if (groupID != 0 || !text.equals("TABLE")) continue;
-	
+
 			// a table: see what kind it is
 			if (io_dxfgetnextpair()) return true;
 			if (groupID != 2 || !text.equals("LAYER")) continue;
-	
+
 			// a layer table: ignore the size information
 			if (io_dxfgetnextpair()) return true;
 			if (groupID != 70) continue;
-	
+
 			// read the layers
 			DXFLAYER layer = null;
 			for(;;)
@@ -534,7 +533,7 @@ public class DXF extends Input
 		}
 		return false;
 	}
-	
+
 	private boolean io_dxfignoresection()
 		throws IOException
 	{
@@ -546,9 +545,9 @@ public class DXF extends Input
 		}
 		return false;
 	}
-	
+
 	/****************************************** READING ENTITIES ******************************************/
-	
+
 	private boolean io_dxfreadentities(Library lib)
 		throws IOException
 	{
@@ -561,7 +560,7 @@ public class DXF extends Input
 				System.out.println("Unknown group code (" + groupID + ") at line " + lineReader.getLineNumber());
 				return true;
 			}
-	
+
 			if (text.equals("ARC"))
 			{
 				if (io_dxfreadarcentity()) return true;
@@ -604,7 +603,7 @@ public class DXF extends Input
 			}
 			if (text.equals("INSERT"))
 			{
-				if (io_dxfreadinsertentity()) return true;
+				if (io_dxfreadinsertentity(lib)) return true;
 				continue;
 			}
 			if (text.equals("LINE"))
@@ -699,7 +698,7 @@ public class DXF extends Input
 		io_dxfreadarcs++;
 		return false;
 	}
-	
+
 	private String io_dxfreadblock()
 		throws IOException
 	{
@@ -716,7 +715,7 @@ public class DXF extends Input
 		}
 		return saveMsg;
 	}
-	
+
 	private boolean io_dxfreadcircleentity()
 		throws IOException
 	{
@@ -747,8 +746,8 @@ public class DXF extends Input
 		io_dxfreadcircles++;
 		return false;
 	}
-	
-	private boolean io_dxfreadinsertentity()
+
+	private boolean io_dxfreadinsertentity(Library lib)
 		throws IOException
 	{
 		DXFLAYER layer = null;
@@ -783,7 +782,6 @@ public class DXF extends Input
 			}
 		}
 
-		
 		String pt = io_dxfblockname(name);
 		if (pt != null)
 		{
@@ -792,7 +790,7 @@ public class DXF extends Input
 				System.out.println("Cannot insert block '" + pt + "' repeated " + xrep + "x" + yrep + " times");
 				return false;
 			}
-	
+
 			// have to search by hand because of weird prototype names
 			Cell found = null;
 			for(Iterator it = lib.getCells(); it.hasNext(); )
@@ -814,7 +812,7 @@ public class DXF extends Input
 				io_dxffirstforwardref = fr;
 				return false;
 			}
-	
+
 			if (IOTool.isDXFInputFlattensHierarchy())
 			{
 				if (io_dxfextractinsert(found, x, y, xsca, ysca, rot, io_dxfcurcell)) return true;
@@ -835,7 +833,7 @@ public class DXF extends Input
 		io_dxfreadinserts++;
 		return false;
 	}
-	
+
 	private boolean io_dxfreadlineentity()
 		throws IOException
 	{
@@ -904,7 +902,7 @@ public class DXF extends Input
 				layer = io_dxfgetlayer(text);
 				continue;
 			}
-			
+
 			if (groupID == 10)
 			{
 				if (curPP != null) curPP.x = scaleString(text);
@@ -1015,7 +1013,7 @@ public class DXF extends Input
 						// compute radius of arc (bulge is tangent of 1/4 of included arc angle)
 						double incangle = Math.atan(lastPp.bulge) * 4.0;
 						double arcrad = Math.abs((dist / 2.0) / Math.sin(incangle / 2.0));
-						int rad = (int)arcrad;
+						double rad = arcrad;
 
 						// prepare to compute the two circle centers
 						double r2 = arcrad*arcrad;
@@ -1121,9 +1119,9 @@ public class DXF extends Input
 			}
 		}
 		io_dxfreadpolylines++;
-		return true;
+		return false;
 	}
-	
+
 	private boolean io_dxfreadsolidentity()
 		throws IOException
 	{
@@ -1165,7 +1163,7 @@ public class DXF extends Input
 		x2 = x2 * factor;
 		x3 = x3 * factor;
 		x4 = x4 * factor;
-		if (!io_dxfacceptablelayer(layer)) return true;
+		if (!io_dxfacceptablelayer(layer)) return false;
 		double lx = Math.min(Math.min(x1, x2), Math.min(x3, x4));
 		double hx = Math.max(Math.max(x1, x2), Math.max(x3, x4));
 		double ly = Math.min(Math.min(y1, y2), Math.min(y3, y4));
@@ -1184,7 +1182,7 @@ public class DXF extends Input
 		io_dxfreadsolids++;
 		return false;
 	}
-	
+
 	private boolean io_dxfreadtextentity()
 		throws IOException
 	{
@@ -1203,7 +1201,7 @@ public class DXF extends Input
 				case 20: y = scaleString(text);                        break;
 				case 40: height = scaleString(text);                   break;
 				case 11: xAlign = scaleString(text);   gotxa = true;   break;
-				case 1:  msg = text.trim();                            break;
+				case 1:  msg = text;                                   break;
 			}
 			if (groupID == 0)
 			{
@@ -1230,7 +1228,7 @@ public class DXF extends Input
 				ly = y;	hy = y + height;
 			}
 		}
-		if (!io_dxfacceptablelayer(layer)) return true;
+		if (!io_dxfacceptablelayer(layer)) return false;
 		if (msg != null)
 		{
 			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double((lx+hx)/2, (ly+hy)/2), hx-lx, hy-ly, io_dxfcurcell);
@@ -1248,7 +1246,7 @@ public class DXF extends Input
 		}
 		return false;
 	}
-	
+
 	private boolean io_dxfread3dfaceentity()
 		throws IOException
 	{
@@ -1266,15 +1264,15 @@ public class DXF extends Input
 				case 10: x1 = scaleString(text);         break;
 				case 20: y1 = scaleString(text);         break;
 				case 30: z1 = scaleString(text);         break;
-	
+
 				case 11: x2 = scaleString(text);         break;
 				case 21: y2 = scaleString(text);         break;
 				case 31: z2 = scaleString(text);         break;
-	
+
 				case 12: x3 = scaleString(text);         break;
 				case 22: y3 = scaleString(text);         break;
 				case 32: z3 = scaleString(text);         break;
-	
+
 				case 13: x4 = scaleString(text);         break;
 				case 23: y4 = scaleString(text);         break;
 				case 33: z4 = scaleString(text);         break;
@@ -1304,7 +1302,7 @@ public class DXF extends Input
 		io_dxfread3dfaces++;
 		return false;
 	}
-	
+
 	private void io_dxfignoreentity()
 		throws IOException
 	{
@@ -1315,20 +1313,20 @@ public class DXF extends Input
 		}
 		io_dxfpushpair(groupID, text);
 	}
-	
+
 	/****************************************** READING SUPPORT ******************************************/
-	
+
 	private boolean io_dxfacceptablelayer(DXFLAYER layer)
 	{
 		if (IOTool.isDXFInputReadsAllLayers()) return true;
 		if (layer == null) return false;
 		if (validLayerNames.contains(layer.layerName)) return true;
-	
+
 		// add this to the list of layer names that were ignored
 		ignoredLayerNames.add(layer.layerName);
 		return false;
 	}
-	
+
 	private boolean io_dxfextractinsert(Cell onp, double x, double y, double xsca, double ysca, int rot, Cell np)
 	{
 		// rotate "rot*10" about point [(onp->lowx+onp->highx)/2+x, (onp->lowy+onp->highy)/2+y]
@@ -1356,8 +1354,8 @@ public class DXF extends Input
 			if (ni.getProto() == Generic.tech.cellCenterNode) continue;
 			double sX = ni.getXSize() * xsca;
 			double sY = ni.getYSize() * ysca;
-			double cx = x + ni.getAnchorCenterX() * xsca / 2.0;
-			double cy = y + ni.getAnchorCenterY() * ysca / 2.0;
+			double cx = x + ni.getAnchorCenterX() * xsca;
+			double cy = y + ni.getAnchorCenterY() * ysca;
 			Point2D tPt = new Point2D.Double(cx, cy);
 			trans.transform(tPt, tPt);
 			if (ni.isXMirrored()) sX = -sX;
@@ -1368,15 +1366,14 @@ public class DXF extends Input
 				ni.getProto() == Artwork.tech.openedPolygonNode || ni.getProto() == Artwork.tech.openedDashedPolygonNode)
 			{
 				// copy trace information
-				Variable var = ni.getVar(NodeInst.TRACE);
-				if (var != null)
+				Point2D [] oldTrace = ni.getTrace();
+				if (oldTrace != null)
 				{
-					int len = var.getLength();
-					Point2D [] oldTrace = (Point2D [])var.getObject();
+					int len = oldTrace.length;
 					Point2D [] newTrace = new Point2D[len];
 					for(int i=0; i<len; i++)
 						newTrace[i] = new Point2D.Double(oldTrace[i].getX() * xsca, oldTrace[i].getY() * ysca);
-					nni.newVar(Artwork.ART_MESSAGE, newTrace);
+					nni.newVar(NodeInst.TRACE, newTrace);
 				}
 			} else if (ni.getProto() == Generic.tech.invisiblePinNode)
 			{
@@ -1389,7 +1386,7 @@ public class DXF extends Input
 				double [] curvature = ni.getArcDegrees();
 				nni.setArcDegrees(curvature[0], curvature[1]);
 			}
-	
+
 			// copy other information
 			Variable var = ni.getVar(DXF_LAYER_KEY);
 			if (var != null) nni.newVar(DXF_LAYER_KEY, var.getObject());
@@ -1398,7 +1395,7 @@ public class DXF extends Input
 		}
 		return false;
 	}
-	
+
 	private Cell io_dxfgetscaledcell(Cell onp, double xsca, double ysca)
 	{
 		String fviewname = "scaled" + xsca + "x" + ysca;
@@ -1409,16 +1406,16 @@ public class DXF extends Input
 			view = View.newInstance(fviewname, sviewname);
 			if (view == null) return null;
 		}
-	
+
 		// find the view of this cell
 		Cell rightView = onp.otherView(view);
 		if (rightView != null) return rightView;
-	
+
 		// not found: create it
 		String cellname = onp.getName() + "{" + sviewname + "}";
 		Cell np = Cell.makeInstance(onp.getLibrary(), cellname);
 		if (np == null) return null;
-	
+
 		for(Iterator it = onp.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
@@ -1434,15 +1431,14 @@ public class DXF extends Input
 				ni.getProto() == Artwork.tech.openedPolygonNode || ni.getProto() == Artwork.tech.openedDashedPolygonNode)
 			{
 				// copy trace information
-				Variable var = ni.getVar(NodeInst.TRACE);
-				if (var != null)
+				Point2D [] oldTrace = ni.getTrace();
+				if (oldTrace != null)
 				{
-					int len = var.getLength();
-					Point2D [] oldTrace = (Point2D [])var.getObject();
+					int len = oldTrace.length;
 					Point2D [] newTrace = new Point2D[len];
 					for(int i=0; i<len; i++)
 						newTrace[i] = new Point2D.Double(oldTrace[i].getX() * xsca, oldTrace[i].getY() * ysca);
-					nni.newVar(Artwork.ART_MESSAGE, newTrace);
+					nni.newVar(NodeInst.TRACE, newTrace);
 				}
 			} else if (ni.getProto() == Generic.tech.invisiblePinNode)
 			{
@@ -1455,19 +1451,19 @@ public class DXF extends Input
 				double [] curvature = ni.getArcDegrees();
 				nni.setArcDegrees(curvature[0], curvature[1]);
 			}
-	
+
 			// copy layer information
 			Variable var = ni.getVar(DXF_LAYER_KEY);
 			if (var != null) nni.newVar(DXF_LAYER_KEY, var.getObject());
 		}
 		return np;
 	}
-	
+
 	private DXFLAYER io_dxfgetlayer(String name)
 	{
 		for(DXFLAYER layer = io_dxffirstlayer; layer != null; layer = layer.next)
 			if (name.equals(layer.layerName)) return layer;
-	
+
 		// create a new one
 		DXFLAYER layer = new DXFLAYER();
 		layer.layerName = name;
@@ -1479,19 +1475,19 @@ public class DXF extends Input
 		io_dxffirstlayer = layer;
 		return layer;
 	}
-	
+
 	private void io_dxfclearlayers()
 	{
 		io_dxffirstlayer = null;
 	}
-	
+
 	private void io_dxfpushpair(int groupID, String text)
 	{
 		io_dxfgroupid = groupID;
 		io_dxfline = text;
 		io_dxfpairvalid = true;
 	}
-	
+
 	/**
 	 * Method to examine the variable "IO_dxf_layer_names" on the artwork technology and obtain
 	 * a list of acceptable layer names and numbers.
@@ -1511,10 +1507,11 @@ public class DXF extends Input
 				String oneName = layNames.substring(0, commaPos);
 				validLayerNames.add(oneName);
 				layNames = layNames.substring(oneName.length());
+				if (layNames.startsWith(",")) layNames = layNames.substring(1);
 			}
 		}
 	}
-	
+
 	/**
 	 * Method to convert a block name "name" into a valid Electric cell name (converts
 	 * bad characters).
@@ -1530,12 +1527,12 @@ public class DXF extends Input
 		}
 		return infstr.toString();
 	}
-	
+
 	/**
 	 * Method to set the conversion units between DXF files and real distance.
 	 * The value is stored in the global "io_dxfdispunit".
 	 */
-	void io_dxfsetcurunits()
+	private void io_dxfsetcurunits()
 	{
 		int units = IOTool.getDXFScale();
 		switch (units)

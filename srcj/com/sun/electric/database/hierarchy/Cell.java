@@ -554,7 +554,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 				Cell niProto = (Cell)ni.getProto();
 
 				// keep cross-library references
-				if (niProto.getLibrary() != fromCell.getLibrary()) continue;
+//				if (niProto.getLibrary() != fromCell.getLibrary()) continue;
 
 				boolean maySubstitute = useExisting;
 				if (!maySubstitute)
