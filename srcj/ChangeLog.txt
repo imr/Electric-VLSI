@@ -2,7 +2,9 @@
 
 NOTE: Please place changes under the version that will be released next.
 
-BUG: (9/9/4, SMR) Area-erase doesn't work in schematics.
+BUG: (9/9/04, RK) NCC Memory usage optimization. On small test case: LoCo fourMemories NCC uses 1/3 of the memory. Hierarchical comparison of LoCo is now 3x faster with these optimizations.
+
+BUG: (9/9/04, SMR) Area-erase doesn't work in schematics.
 FIX: Better choice of nodes to delete.
 
 IMP: (9/9/04, SMR) HSpice output reader now handles binary files with bytes swapped.

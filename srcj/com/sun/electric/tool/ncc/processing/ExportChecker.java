@@ -119,11 +119,10 @@ public class ExportChecker {
 	private void printOneToManyError(String design1, String exports1,
 								     String design2, String exports2a,
 								     String exports2b) {
-		prln("A single network in: "+design1+
-		   " has Exports with names that ");
-		pr("match multiple Exports in: "+design2);
-		prln("However, the "+design2+
-		   " Exports are attached to more than one network.");
+		prln("  A single network in: "+design1+" has Exports with names that "+
+			 "match multiple Exports in: "+design2);
+		prln("  However, the "+design2+
+		     " Exports are attached to more than one network.");
 		prln("    The "+design1+" Exports are: "+exports1);
 		prln("    The 1st set of "+design2+" Exports are: "+exports2a);
 		prln("    The 2nd set of "+design2+" Exports are: "+exports2b);
@@ -157,9 +156,9 @@ public class ExportChecker {
 				}
 			}
 			if (p2==null) {
-				pr("In "+designNames[ckt1]+
-				   " the network with Exports: "+p1.exportNamesString());
-				prln("    matches no Export with the same name in: "+
+				prln("  In "+designNames[ckt1]+
+				     " the network with Exports: "+p1.exportNamesString()+
+					 "    matches no Export with the same name in: "+
 				     designNames[ckt2]);
 				noPortNameMatches.add(p1, ckt1, ckt2);
 				match = false;
@@ -295,13 +294,13 @@ public class ExportChecker {
 				// skip Ports that the user wants us to rename
 				if (p0.getToBeRenamed() || pn.getToBeRenamed()) continue;
 				if (p0.getType()!=pn.getType()) {
-					pr("Exports that match by name don't have the same Characteristic\n"+
-					   "  Cell1: "+rootCellNames[0]+"\n"+
-					   "  Exports1: "+p0.exportNamesString()+"\n"+
-					   "  Characteristic1: "+p0.getType().toString()+"\n"+
-					   "  Cell2: "+rootCellNames[i]+"\n"+
-					   "  Exports2: "+pn.exportNamesString()+"\n"+
-					   "  Characteristic2: "+pn.getType().toString()+"\n");
+					pr("  Exports that match by name don't have the same Characteristic\n"+
+					   "    Cell1: "+rootCellNames[0]+"\n"+
+					   "    Exports1: "+p0.exportNamesString()+"\n"+
+					   "    Characteristic1: "+p0.getType().toString()+"\n"+
+					   "    Cell2: "+rootCellNames[i]+"\n"+
+					   "    Exports2: "+pn.exportNamesString()+"\n"+
+					   "    Characteristic2: "+pn.getType().toString()+"\n");
 				}
 			}
 		}
@@ -376,16 +375,16 @@ public class ExportChecker {
 				EquivRecord er0 = w0.getParent().getParent();
 				EquivRecord ern = wn.getParent().getParent();
 				if (er0!=ern) {
-					pr("Exports that match by name aren't on equivalent"+
-					   " networks\n"+
-					   "  Cell1: "+rootCellNames[0]+"\n"+
-					   "  Exports1: "+p0.exportNamesString()+"\n"+
-					   "  Cell2: "+rootCellNames[i]+"\n"+
-					   "  Exports2: "+pn.exportNamesString()+"\n");
+					prln("  Exports that match by name aren't on equivalent"+
+					     " networks");
+					prln("    Cell1: "+rootCellNames[0]);
+					prln("    Exports1: "+p0.exportNamesString());
+					prln("    Cell2: "+rootCellNames[i]);
+					prln("    Exports2: "+pn.exportNamesString());
 					Object portOrWire = findMatchingPortOrWire(p0, i);
 					if (portOrWire!=null) 
-						pr("  However the Cell1 network appears to match Cell2's: "+
-						   getDescription(portOrWire));
+						prln("    However the Cell1 network appears to match Cell2's: "+
+						     getDescription(portOrWire));
 					prln("");
 					match = false;
 				}
@@ -401,13 +400,13 @@ public class ExportChecker {
     		Port p = (Port) it.next();
     		if (p.getToBeRenamed()) {
     			if (!printedHeader) {
-    				System.out.println("Attempting to find better names for Exports in Cell: "+
-    				                   NccUtils.fullName(rootCell)); 
+    				prln("  Attempting to find better names for Exports in Cell: "+
+    				      NccUtils.fullName(rootCell)); 
     				printedHeader = true;
     			}
 				Object o = findMatchingPortOrWire(p, otherCktIndex);
-    			System.out.println("    "+ p.exportNamesString()+" -> "+
-				                   getDescription(o));
+    			prln("    "+ p.exportNamesString()+" -> "+
+				     getDescription(o));
     		}
     	}
     }
@@ -431,7 +430,7 @@ public class ExportChecker {
 			if (o==null) continue;
 			if (!printedHeader) {
 				printedHeader = true;
-				prln("The following list suggests possible matches for "+
+				prln("  The following list suggests possible matches for "+
 					 "Exports that failed to match by name.");
 			}
 			prln("    in Cell "+rootCellNames[no.circuit]+

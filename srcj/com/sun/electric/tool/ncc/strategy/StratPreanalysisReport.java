@@ -68,7 +68,7 @@ public class StratPreanalysisReport extends Strategy {
 	private void printMismatchedRecord(EquivRecord r) {
 		String t = r.getNetObjType()==PART ? "parts" : "wires";
     			 
-		prln("    The "+t+" in this set share the following characteristics:");
+		prln("    The "+t+" in this equivalence class share the following characteristics:");
 		List reasons = r.getPartitionReasonsFromRootToMe();
 		for (Iterator it=reasons.iterator(); it.hasNext();) {
 			prln("      "+it.next());

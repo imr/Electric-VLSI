@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.HashSet;
+import java.util.TreeSet;
 
 /** An NCC Port holds all the Export names associated with a single NCC
  * Wire. */ 
@@ -119,7 +120,8 @@ public class Port extends NetObject {
 	public String exportNamesString() {
 		StringBuffer sb = new StringBuffer();
 		sb.append("{ ");
-		for (Iterator it=names.iterator(); it.hasNext();) {
+		// Sort the names
+		for (Iterator it=(new TreeSet(names)).iterator(); it.hasNext();) {
 			if (sb.length()>2)  sb.append(", ");
 			sb.append((String) it.next());
 		}

@@ -88,7 +88,7 @@ public class NccCellAnnotations {
 				startTok = pos;
 				endTok = findSlash();
 				if (endTok==-1) {
-					prErr("Regular Expression has no trailing '/'"+
+					prErr("Regular Expression has no trailing '/': "+
 						  s.substring(startTok-1)+".");
 					endTok = s.length();
 				} else {
@@ -145,7 +145,7 @@ public class NccCellAnnotations {
 
 	private void prErr(String s) {
 		String currAnnot = (String) annotText.get(annotText.size()-1);
-		System.out.println(s+"  cell= "+cellThatOwnsMe+" annotation= "+currAnnot);
+		System.out.println("  "+s+"  cell= "+cellThatOwnsMe+" annotation= "+currAnnot);
 	}
 	private void processJoinGroupAnnotation(String note) {
 		StringTokenizer lex = new StringTokenizer(note);
