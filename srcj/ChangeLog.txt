@@ -547,7 +547,8 @@ IMP: (11/3/04, RK) Changes for NCC and Gate Layout Generator regressions
 IMP: (11/4/04, GVG) PolyBase: not applying transformation if matrix is identity
 
 BUG: (11/4/04, GVG) Rouding points before merging in DRC min area calculation otherwise merged area
-     won't be a simple polygon. FIX: poly.roundPoints();
+     won't be a simple polygon.
+FIX: poly.roundPoints();
 
 BUG: (11/4/04, GVG) DRC and PolySelect rule, ignoring case when remaining area after second substract was empty.
 FIX: call Area.isEmpty()
@@ -1129,8 +1130,6 @@ BUG: (9/10/04, SMR) Arraying arcs doesn't copy their constraining properties.
 FIX: Array code calls "copyPropertiesFrom()".
 
 IMP/MAN: (9/10/04, SMR) Added David Harris's ROM generator.
-
-BUG: (9/9/4, SMR) Area-erase doesn't work in schematics.
 
 IMP: (9/9/04, GVG) DRC Adding warning messages when zero width arcs are detected (covered or non-covered by other layers).
 

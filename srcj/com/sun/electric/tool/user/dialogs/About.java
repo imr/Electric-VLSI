@@ -41,14 +41,14 @@ import javax.swing.DefaultListModel;
  */
 public class About extends EDialog
 {
-	JList list;
-	DefaultListModel model;
+	private JList list;
+	private DefaultListModel model;
 	static private CastOfThousands [] showingCast = null;
 
 	private static class CastOfThousands
 	{
-		String name;
-		String work;
+		private String name;
+		private String work;
 
 		private CastOfThousands(String name, String work) { this.name = name;   this.work = work; }
 
@@ -56,59 +56,59 @@ public class About extends EDialog
 		{
 			new CastOfThousands("Robert Bosnyak", 			"Pads library"),
 			new CastOfThousands("Jonathan Gainsley", 		"User interface, spice, logical effort, and more"),
-			new CastOfThousands("Gilda Garretón", 			"Geometry, parasitics, 3D"),
+			new CastOfThousands("Gilda Garretón", 			"DRC, ERC, parasitics, 3D"),
 			new CastOfThousands("Russell Kao",				"NCC, generators, hierarchy enumeration"),
-			new CastOfThousands("Dmitry Nadezhin", 			"Networks, simulation, optimizations, and more"),
+			new CastOfThousands("Dmitry Nadezhin", 			"Networks, library I/O, simulation, optimizations, and more"),
 			new CastOfThousands("Ivan Sutherland", 			"Inspiration, NCC"),
 		};
 		static CastOfThousands [] theCast = new CastOfThousands[]
 		{
-			new CastOfThousands("Philip Attfield", 			"Box merging (C)"),
-			new CastOfThousands("Brett Bissinger", 		    "Node extraction (C)"),
-			new CastOfThousands("Ron Bolton", 				"Mathematical help (C)"),
+			new CastOfThousands("Philip Attfield", 			"Box merging"),
+			new CastOfThousands("Brett Bissinger", 		    "Node extraction"),
+			new CastOfThousands("Ron Bolton", 				"Mathematical help"),
 			new CastOfThousands("Robert Bosnyak", 			"Pads library"),
-			new CastOfThousands("Mark Brinsmead", 			"Mathematical help (C)"),
-			new CastOfThousands("Stefano Concina", 			"Polygon clipping (C)"),
+			new CastOfThousands("Mark Brinsmead", 			"Mathematical help"),
+			new CastOfThousands("Stefano Concina", 			"Polygon clipping"),
 			new CastOfThousands("Jonathan Gainsley", 		"User interface, logical effort"),
-			new CastOfThousands("Peter Gallant", 			"ALS simulator (C)"),
+			new CastOfThousands("Peter Gallant", 			"ALS simulator"),
 			new CastOfThousands("R. Brian Gardiner", 		"Electric lifeline"),
 			new CastOfThousands("Gilda Garretón", 			"Geometry, parasitics, 3D"),
-			new CastOfThousands("T. J. Goodman", 			"Texsim output (C)"),
+			new CastOfThousands("T. J. Goodman", 			"Texsim output"),
 			new CastOfThousands("Gerrit Groenewold", 		"SPICE parts"),
-			new CastOfThousands("David Groulx", 		    "Node extraction (C)"),
-			new CastOfThousands("D. Guptill", 			    "X-window help (C)"),
-			new CastOfThousands("David Harris", 			"Color PostScript output (C)"),
-			new CastOfThousands("Robert Hon", 				"CIF input parser (C)"),
+			new CastOfThousands("David Groulx", 		    "Node extraction"),
+			new CastOfThousands("D. Guptill", 			    "X-window help"),
+			new CastOfThousands("David Harris", 			"Color PostScript output"),
+			new CastOfThousands("Robert Hon", 				"CIF input parser"),
 			new CastOfThousands("Jason Imada", 				"ROM generator"),
-			new CastOfThousands("Sundaravarathan Iyengar", 	"nMOS PLA generator (C)"),
-			new CastOfThousands("Allan Jost", 				"VHDL compiler help, X-window help (C)"),
+			new CastOfThousands("Sundaravarathan Iyengar", 	"nMOS PLA generator"),
+			new CastOfThousands("Allan Jost", 				"VHDL compiler help, X-window help"),
 			new CastOfThousands("Russell Kao",				"NCC, hierarchy enumeration"),
-			new CastOfThousands("Wallace Kroeker", 			"Digital filter technology, CMOS PLA generator (C)"),
-			new CastOfThousands("Andrew Kostiuk", 			"VHDL compiler, Silicon Compiler (C)"),
-			new CastOfThousands("Oliver Laumann", 			"ELK Lisp (C)"),
-			new CastOfThousands("Glen Lawson", 				"Maze routing, GDS input, EDIF I/O (C)"),
-			new CastOfThousands("Frank Lee", 				"ROM generator (C)"),
-			new CastOfThousands("Neil Levine", 				"PADS output (C)"),
-			new CastOfThousands("David Lewis", 				"Flat DRC checking (C)"),
-			new CastOfThousands("Erwin Liu", 				"Schematic and Round CMOS technology help (C)"),
-			new CastOfThousands("Dick Lyon", 				"MOSIS and Round CMOS technology help (C)"),
-			new CastOfThousands("John Mohammed", 			"Mathematical help (C)"),
-			new CastOfThousands("Mark Moraes", 				"Hierarchical DRC, X-window help (C)"),
+			new CastOfThousands("Wallace Kroeker", 			"Digital filter technology, CMOS PLA generator"),
+			new CastOfThousands("Andrew Kostiuk", 			"VHDL compiler, Silicon Compiler"),
+			new CastOfThousands("Oliver Laumann", 			"ELK Lisp"),
+			new CastOfThousands("Glen Lawson", 				"Maze routing, GDS input, EDIF I/O"),
+			new CastOfThousands("Frank Lee", 				"ROM generator"),
+			new CastOfThousands("Neil Levine", 				"PADS output"),
+			new CastOfThousands("David Lewis", 				"Flat DRC checking"),
+			new CastOfThousands("Erwin Liu", 				"Schematic and Round CMOS technology help"),
+			new CastOfThousands("Dick Lyon", 				"MOSIS and Round CMOS technology help"),
+			new CastOfThousands("John Mohammed", 			"Mathematical help"),
+			new CastOfThousands("Mark Moraes", 				"Hierarchical DRC, X-window help"),
 			new CastOfThousands("Dmitry Nadezhin", 			"Qt port, simulation, networks, optimizations, development"),
-			new CastOfThousands("Sid Penstone", 			"SPICE, SILOS, GDS, Box merging, technologies (C)"),
-			new CastOfThousands("J. P. Polonovski", 		"Memory allocation help (C)"),
-			new CastOfThousands("Kevin Ryan", 			    "X-window help (C)"),
-			new CastOfThousands("Nora Ryan", 				"Compaction, technology conversion (C)"),
-			new CastOfThousands("Miguel Saro", 				"French translation (C)"),
-			new CastOfThousands("Brent Serbin", 			"ALS simulator (C)"),
+			new CastOfThousands("Sid Penstone", 			"SPICE, SILOS, GDS, Box merging, technologies"),
+			new CastOfThousands("J. P. Polonovski", 		"Memory allocation help"),
+			new CastOfThousands("Kevin Ryan", 			    "X-window help"),
+			new CastOfThousands("Nora Ryan", 				"Compaction, technology conversion"),
+			new CastOfThousands("Miguel Saro", 				"French translation"),
+			new CastOfThousands("Brent Serbin", 			"ALS simulator"),
 			new CastOfThousands("Ivan Sutherland", 			"Inspiration, NCC"),
-			new CastOfThousands("Lyndon Swab", 				"HPGL output, SPICE output help, technologies (C)"),
-			new CastOfThousands("Brian W. Thomson", 		"Mimic stitcher, RSIM interface (C)"),
-			new CastOfThousands("Burnie West", 				"Bipolar technology, EDIF output help (C)"),
-			new CastOfThousands("Telle Whitney", 			"River router (C)"),
-			new CastOfThousands("Rob Winstanley", 			"CIF input, RNL output (C)"),
-			new CastOfThousands("Russell Wright", 			"SDF input, miscellaneous help (C)"),
-			new CastOfThousands("David J. Yurach",			"VHDL help (C)")
+			new CastOfThousands("Lyndon Swab", 				"HPGL output, SPICE output help, technologies"),
+			new CastOfThousands("Brian W. Thomson", 		"Mimic stitcher, RSIM interface"),
+			new CastOfThousands("Burnie West", 				"Bipolar technology, EDIF output help"),
+			new CastOfThousands("Telle Whitney", 			"River router"),
+			new CastOfThousands("Rob Winstanley", 			"CIF input, RNL output"),
+			new CastOfThousands("Russell Wright", 			"SDF input, miscellaneous help"),
+			new CastOfThousands("David J. Yurach",			"VHDL help")
 		};
 	}
 
