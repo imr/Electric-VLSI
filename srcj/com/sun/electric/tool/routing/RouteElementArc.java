@@ -307,6 +307,7 @@ public class RouteElementArc extends RouteElement {
 
 			// now run the arc
             ArcInst newAi = ArcInst.makeInstance(arcProto, arcWidth, headPi, tailPi, headPoint, tailPoint, arcName);
+            if (newAi == null) return null;
             if (arcAngle != 0)
                 newAi.setAngle(arcAngle);
             if ((arcName != null) && (arcNameDescriptor != null)) {
