@@ -20,6 +20,8 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.Rectangle;
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
 
 public final class Electric
 {
@@ -27,6 +29,30 @@ public final class Electric
 
 	public static void main(String[] args)
 	{
+		try{UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+		}catch(Exception e){}
+
+		ElectricFrame test = ElectricFrame.CreateFrame("Electric");
+		test.AddWindowExit();
+		Dimension scrnSize = (Toolkit.getDefaultToolkit()).getScreenSize();
+		scrnSize.height-=30;
+
+		ElectricMenu eMenu = ElectricMenu.CreateElectricMenu("File");
+		OpenElectricFile fileOpen = new OpenElectricFile();
+		eMenu.addMenuItem("Open", fileOpen);
+		eMenu.addMenuItem("Close", new ActionListener(){public void actionPerformed(ActionEvent e){System.exit(0);}});
+		JMenuBar menuBar = new JMenuBar();
+		menuBar.add(eMenu);
+		test.setJMenuBar(menuBar);
+
+		JDesktopPane desktop = new JDesktopPane();
+		test.getContentPane().add(desktop);
+		fileOpen.setDesktop(desktop);	
+		test.setSize(scrnSize);
+		test.setVisible(true);
+
+		
+		
 		// Because of lazy evaluation, technologies aren't initialized unless they're referenced here
 		Technology.setCurrent(TecGeneric.tech);
 		Technology.setCurrent(TecSchematics.tech);
@@ -136,9 +162,10 @@ public final class Electric
 		instanceArc.getInfo();
 
 		// display some cells
-		EditWindow window1 = EditWindow.newInstance(myCell);
-		EditWindow window2 = EditWindow.newInstance(higherCell);
-//		EditWindow window3 = EditWindow.newInstance(bigCell);
+		ElectricDocWnd window1 = ElectricDocWnd.CreateElectricDoc(myCell);
+		desktop.add(window1); 
+		ElectricDocWnd window2 = ElectricDocWnd.CreateElectricDoc(higherCell);
+		desktop.add(window2); 
 		System.out.println("*********************** TERMINATED SUCCESSFULLY ***********************");
 		System.out.println("************* Click and drag to Pan");
 		System.out.println("************* Use CONTROL-CLICK to Zoom");

@@ -1,12 +1,20 @@
+package com.sun.electric.tool.user;
+
 /*
  * Created on Sep 30, 2003
  *
  * To change the template for this generated file go to
  * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
  */
+
+import com.sun.electric.tool.user.ElectricDocWnd;
+import com.sun.electric.tool.io.Input;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Cell;
 import javax.swing.*;
 import java.awt.event.*;
 import java.io.File;
+
 /**
  * @author wc147374
  *
@@ -29,29 +37,28 @@ public class OpenElectricFile implements ActionListener
 			file=fc.getSelectedFile();
 			
 			//open internal frame window
-			JInternalFrame frame = ElectricDocWnd.CreateElectricDoc();
-			frame.setVisible(true);
-			desktop.add(frame);
-			try{frame.setSelected(true);
-			}catch(java.beans.PropertyVetoException f){}
+
+			//frame.setVisible(true);
+			Library lib = Input.ReadLibrary(file.getPath(), null, Input.ImportType.BINARY);
+			if (lib != null)
+			{
+				Cell cell = lib.getCurCell();
+				if (cell != null)
+				{
+					ElectricDocWnd frame = ElectricDocWnd.CreateElectricDoc(cell);
+					desktop.add(frame); 
+				}
+			}
+
+			
+			//	try{frame.setSelected(true);
+			//	}catch(java.beans.PropertyVetoException f){}
 			
 			//TODO: open elib file
 			
 		}		
 	}
-/*	
-	//set parent window for file chooser dialog
-	public void setParentWnd(JComponent comp)
-	{
-		parent = comp;	
-	}
-	
-	//get parent window
-	public JComponent getParentWnd()
-	{
-		return parent;
-	}
-*/	
+
 	//set desktop for the internal frame
 	public void setDesktop(JDesktopPane desktopPane)
 	{
@@ -64,3 +71,4 @@ public class OpenElectricFile implements ActionListener
 		return desktop;
 	}
 }
+

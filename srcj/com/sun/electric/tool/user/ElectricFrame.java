@@ -1,3 +1,5 @@
+package com.sun.electric.tool.user;
+
 /*
  * Created on Sep 22, 2003
  *
