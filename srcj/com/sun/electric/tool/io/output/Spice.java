@@ -62,6 +62,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Date;
+import java.net.URL;
 
 /**
  * This is the Simulation Interface tool.
@@ -105,12 +106,15 @@ public class Spice extends Topology
     private static class SpiceFinishedListener implements Exec.FinishedListener {
         private Cell cell;
         private OpenFile.Type type;
-        private SpiceFinishedListener(Cell cell, OpenFile.Type type) {
+        private String file;
+        private SpiceFinishedListener(Cell cell, OpenFile.Type type, String file) {
             this.cell = cell;
             this.type = type;
+            this.file = file;
         }
         public void processFinished(Exec.FinishedEvent e) {
-            Simulate.plotSimulationResults(type, cell, null, null);
+            URL fileURL = TextUtils.makeURLToFile(file);
+            Simulate.plotSimulationResults(type, cell, fileURL, null);
         }
     }
 
@@ -199,8 +203,10 @@ public class Spice extends Topology
             command = command.replaceAll("\\$\\{FILENAME_NO_EXT}", filename_noext);
 
             // set up run probe
-            Exec.FinishedListener l = new SpiceFinishedListener(cell,
-                    Simulate.getCurrentSpiceOutputType());
+            OpenFile.Type type = Simulate.getCurrentSpiceOutputType();
+            String [] extensions = type.getExtensions();
+            String outFile = rundir + File.separator + filename_noext + "." + extensions[0];
+            Exec.FinishedListener l = new SpiceFinishedListener(cell, type, outFile);
 
             if (runSpice.equals(Simulation.spiceRunChoiceRunIgnoreOutput)) {
                 Exec e = new Exec(command, null, dir, null, null);
