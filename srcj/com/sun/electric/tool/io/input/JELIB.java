@@ -899,8 +899,10 @@ public class JELIB extends LibraryFiles
 				new Point2D.Double(tailX, tailY), arcName, angle);
 			if (ai == null)
 			{
-				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
+				ErrorLogger.MessageLog log = Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
 					" (cell " + cell.describe() + ") cannot create arc " + protoName, cell, -1);
+                log.addGeom(headPI.getNodeInst(), true, cell, null);
+                log.addGeom(tailPI.getNodeInst(), true, cell, null);
 				continue;
 			}
 
