@@ -68,46 +68,24 @@ public class SimpleWirer extends InteractiveRouter {
                 useArc = Generic.tech.universal_arc;
             else {
                 // add in contacts on startPort to be able to route to endPort
-                RouteElement vertEndRE = routeVertically(route, startRE, endPort);
+                // route from endRE to startPort to put contact at the endRE instead
+                // of the startRE
+                RouteElement vertEndRE = routeVertically(route, endRE, startPort);
                 if (vertEndRE == null) {
                     System.out.println("Don't know how to connect (using Technology "+cell.getTechnology()+"):\n   "+startRE+"\n   "+endRE);
                     return false;
                 }
-            /*
-                // if startRE was bisect pin, replace it with next node in list
-                if (startRE.isBisectArcPin()) {
-                    // find next newNode
-                    for (Iterator it = addedRoute.iterator(); it.hasNext(); ) {
-                        RouteElement re = (RouteElement)it.next();
-                        if (re.getAction() == RouteElement.RouteElementAction.newNode && re != startRE) {
-                            replaceRouteElementArcPin(addedRoute, startRE, re);
-                            addedRoute.remove(startRE);
-                            break;
-                        }
-                    }
-                }
-                */
-                // get new startRE to start route from (last RE in addedRoute)
-
-
-                /*
-                for (Iterator it = addedRoute.iterator(); it.hasNext(); ) {
-                    RouteElement re = (RouteElement)it.next();
-                    if (re.getAction() == RouteElement.RouteElementAction.newNode ||
-                        re.getAction() == RouteElement.RouteElementAction.existingPortInst)
-                        startRE = re;
-                }
+                endRE = vertEndRE;
                 // add to new route
-                route.addAll(addedRoute);
-                useArc = getArcToUse(startRE.getPortProto(), endPort);
+                useArc = getArcToUse(endRE.getPortProto(), startPort);
                 if (useArc == null) return false;               // this should never happen
-
-                */
             }
         }
 
         // find arc width to use
         double width = getArcWidthToUse(startRE, useArc);
+        double width2 = getArcWidthToUse(endRE, useArc);
+        if (width2 > width) width = width2;
 
         // this router only draws horizontal and vertical arcs
         // if either X or Y coords are the same, create a single arc

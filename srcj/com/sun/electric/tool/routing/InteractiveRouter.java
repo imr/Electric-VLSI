@@ -498,15 +498,6 @@ public abstract class InteractiveRouter extends Router {
         return newPoint;
     }
 
-    protected void replaceRouteElementArcPin(List route, RouteElement bisectPinRE, RouteElement newPinRE) {
-        // go through route and update newArcs
-        for (Iterator it = route.iterator(); it.hasNext(); ) {
-            RouteElement e = (RouteElement)it.next();
-            e.replaceArcEnd(bisectPinRE, newPinRE);
-        }
-    }
-
-
     // ----------------------------------------------------------------------
 
     protected boolean withinBounds(double point, double bound1, double bound2) {

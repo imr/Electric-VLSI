@@ -204,11 +204,18 @@ public abstract class Router {
             if (lastRE == null) continue;
 
             // else, valid route found.  add final connection
-            Cell cell = startRE.getCell();
-            double arcWidth = getArcWidthToUse(startRE, endArc);
-            RouteElement arc = RouteElement.newArc(cell, endArc, arcWidth, lastRE, endRE, null);
-            route.add(arc);
-            route.add(endRE);
+            if (endRE.isBisectArcPin()) {
+                // replace endRE with lastRE
+                replaceRouteElementArcPin(route, endRE, lastRE);
+                route.remove(endRE);
+                // no need to create final arc
+            } else {
+                Cell cell = startRE.getCell();
+                double arcWidth = getArcWidthToUse(startRE, endArc);
+                RouteElement arc = RouteElement.newArc(cell, endArc, arcWidth, lastRE, endRE, null);
+                route.add(arc);
+                route.add(endRE);
+            }
             return true;
         }
         return false;
@@ -229,8 +236,7 @@ public abstract class Router {
             if (endArc == Generic.tech.invisible_arc) continue;
             if (endArc == Generic.tech.unrouted_arc) continue;
             if (endArc.isNotUsed()) continue;
-            List vertRoute = new ArrayList();
-            RouteElement lastRE = routeVertically(vertRoute, startRE, endArc);
+            RouteElement lastRE = routeVertically(route, startRE, endArc);
 
             // continue if no valid route found
             if (lastRE == null) continue;
@@ -277,9 +283,17 @@ public abstract class Router {
             RouteElement node = RouteElement.newNode(cell, pp.getParent(), pp,
                     location, pp.getParent().getDefWidth(), pp.getParent().getDefHeight());
             route.add(node);
-            if (arcWidth == -1); arcWidth = getArcWidthToUse(startRE, ap);
-            RouteElement arc = RouteElement.newArc(cell, ap, arcWidth, lastNode, node, null);
-            route.add(arc);
+            // if startRE is a bisectArcPin, replace it with first pin in vertical route
+            if (lastNode == startRE && startRE.isBisectArcPin()) {
+                replaceRouteElementArcPin(route, startRE, node);
+                while (route.indexOf(startRE) != -1) {
+                    route.remove(startRE);
+                }
+            } else {
+                if (arcWidth == -1); arcWidth = getArcWidthToUse(startRE, ap);
+                RouteElement arc = RouteElement.newArc(cell, ap, arcWidth, lastNode, node, null);
+                route.add(arc);
+            }
             lastNode = node;
         }
         return lastNode;
@@ -435,6 +449,14 @@ public abstract class Router {
             }
         }
         return null;
+    }
+
+    protected void replaceRouteElementArcPin(List route, RouteElement bisectPinRE, RouteElement newPinRE) {
+        // go through route and update newArcs
+        for (Iterator it = route.iterator(); it.hasNext(); ) {
+            RouteElement e = (RouteElement)it.next();
+            e.replaceArcEnd(bisectPinRE, newPinRE);
+        }
     }
 
     protected static void cleanRoute(List route) {
