@@ -619,12 +619,14 @@ public final class HierarchyEnumerator {
          * @param sep the context separator to use if needed.
          * @return a unique String identifier for the network */
         public final String getUniqueNetName(JNetwork net, String sep) {
-        	return getUniqueNetName(net.getNetIndex(), sep);
+        	NameProxy proxy = getUniqueNetNameProxy(net, sep);
+        	return proxy.toString();
         }
+        
         /** Same as getUniqueNetName except it returns a NameProxy instead of a
          * String name */
 		public final NameProxy getUniqueNetNameProxy(JNetwork net, String sep) {
-			return getUniqueNetNameProxy(net.getNetIndex(), sep);
+			return getUniqueNetNameProxy(getNetID(net), sep);
 		}
         
 		/** Get a unique, flat net name for the network.  The network 
@@ -641,7 +643,6 @@ public final class HierarchyEnumerator {
 		public final NameProxy getUniqueNetNameProxy(int netID, String sep) {
 			NetDescription ns = (NetDescription) netIdToNetDesc.get(netID);
 			VarContext netContext = ns.getCellInfo().getContext();
-			/* SMR thinks the above line should just be: VarContext netContext = getContext(); */
 			String leafName;
 
 			Iterator it = ns.getNet().getNames();
