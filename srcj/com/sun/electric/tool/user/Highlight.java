@@ -1534,6 +1534,7 @@ public class Highlight
 				for(int i=0; i<polys.length; i++)
 				{
 					Poly poly = polys[i];
+					poly.transform(trans);
 					poly.setExactTextBounds(wnd);
 					if (areaMustEnclose)
 					{

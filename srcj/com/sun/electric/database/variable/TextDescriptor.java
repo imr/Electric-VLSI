@@ -1070,7 +1070,7 @@ public class TextDescriptor
 		int offset = (descriptor0 & VTXOFF) >> VTXOFFSH;
 		if ((descriptor0&VTXOFFNEG) != 0) offset = -offset;
 		int scale = getOffScale() + 1;
-		return(offset * scale / 4);
+		return((double)offset * scale / 4);
 	}
 
 	/**
@@ -1082,7 +1082,7 @@ public class TextDescriptor
 		int offset = (descriptor0 & VTYOFF) >> VTYOFFSH;
 		if ((descriptor0&VTYOFFNEG) != 0) offset = -offset;
 		int scale = getOffScale() + 1;
-		return(offset * scale / 4);
+		return((double)offset * scale / 4);
 	}
 
 	/**

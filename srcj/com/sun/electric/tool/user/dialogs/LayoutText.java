@@ -74,6 +74,7 @@ public class LayoutText extends javax.swing.JDialog
 	private static double lastSeparation = 0;
 	private static boolean lastItalic = false;
 	private static boolean lastBold = false;
+	private static boolean lastUnderline = false;
 	private static String lastFont = "sansserif.plain";
 	private static String lastLayer = null;
 	private static String lastMessage = null;
@@ -91,6 +92,7 @@ public class LayoutText extends javax.swing.JDialog
 
 		textItalic.setSelected(lastItalic);
 		textBold.setSelected(lastBold);
+		textUnderline.setSelected(lastUnderline);
 
 		for(Iterator it = Technology.getCurrent().getNodes(); it.hasNext(); )
 		{
@@ -148,13 +150,13 @@ public class LayoutText extends javax.swing.JDialog
 	 * Houtine to convert the text in "msg" to bits on the display.
 	 */
 	private void makeLayoutText(String layer, int tsize, double scale, String font, boolean italic,
-		boolean bold, double separation, String msg)
+		boolean bold, boolean underline, double separation, String msg)
 	{
 		Cell curCell = Library.needCurCell();
 		if (curCell == null) return;
 
 		// get the raster
-		Raster ras = PixelDrawing.renderText(msg, font, tsize, italic, bold, -1, -1);
+		Raster ras = PixelDrawing.renderText(msg, font, tsize, italic, bold, underline, -1, -1);
 		if (ras == null) return;
 
 		/* determine the primitive to use for the layout */
@@ -207,6 +209,7 @@ public class LayoutText extends javax.swing.JDialog
         textLayer = new javax.swing.JComboBox();
         jLabel6 = new javax.swing.JLabel();
         textMessage = new javax.swing.JTextField();
+        textUnderline = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -249,8 +252,9 @@ public class LayoutText extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 7;
-        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.weightx = 0.5;
         getContentPane().add(ok, gridBagConstraints);
 
         jLabel1.setText("Size (max 63):");
@@ -267,6 +271,7 @@ public class LayoutText extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(textSize, gridBagConstraints);
@@ -285,6 +290,7 @@ public class LayoutText extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(textScale, gridBagConstraints);
@@ -303,6 +309,7 @@ public class LayoutText extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(dotSeparation, gridBagConstraints);
@@ -318,7 +325,7 @@ public class LayoutText extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(textFont, gridBagConstraints);
@@ -336,6 +343,7 @@ public class LayoutText extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(textBold, gridBagConstraints);
 
         jLabel5.setText("Layer:");
@@ -349,7 +357,7 @@ public class LayoutText extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 5;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(textLayer, gridBagConstraints);
@@ -367,12 +375,18 @@ public class LayoutText extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(textMessage, gridBagConstraints);
+
+        textUnderline.setText("Underline");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 4;
+        getContentPane().add(textUnderline, gridBagConstraints);
 
         pack();
     }//GEN-END:initComponents
@@ -405,6 +419,7 @@ public class LayoutText extends javax.swing.JDialog
 		lastSeparation = TextUtils.atof(dotSeparation.getText());
 		lastItalic = textItalic.isSelected();
 		lastBold = textBold.isSelected();
+		lastUnderline = textUnderline.isSelected();
 		lastLayer = (String)textLayer.getSelectedItem();
 		lastFont = (String)textFont.getSelectedItem();
 		lastMessage = textMessage.getText();
@@ -429,7 +444,7 @@ public class LayoutText extends javax.swing.JDialog
 			// should ensure that the name is valid
 			dialog.grabDialogValues();
 			dialog.makeLayoutText(lastLayer, lastSize, lastScale, lastFont, lastItalic,
-				lastBold, lastSeparation, lastMessage);
+				lastBold, lastUnderline, lastSeparation, lastMessage);
 		}
 	}
 
@@ -450,6 +465,7 @@ public class LayoutText extends javax.swing.JDialog
     private javax.swing.JTextField textMessage;
     private javax.swing.JTextField textScale;
     private javax.swing.JTextField textSize;
+    private javax.swing.JCheckBox textUnderline;
     // End of variables declaration//GEN-END:variables
 	
 }

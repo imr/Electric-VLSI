@@ -50,6 +50,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.CircuitChanges;
@@ -328,7 +329,6 @@ public class EditWindow extends JPanel
 			runningNow = true;
 		}
 		RenderJob renderJob = new RenderJob(this, offscreen);
-		renderJob.start();
 	}
 
 	/**
@@ -379,18 +379,20 @@ public class EditWindow extends JPanel
 	/**
 	 * This class queues requests to rerender a window.
 	 */
-	class RenderJob extends Thread
+	protected static class RenderJob extends Job
 	{
 		private EditWindow wnd;
 		private PixelDrawing offscreen;
 
-		public RenderJob(EditWindow wnd, PixelDrawing offscreen)
+		protected RenderJob(EditWindow wnd, PixelDrawing offscreen)
 		{
+			super("Display", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.wnd = wnd;
 			this.offscreen = offscreen;
+			this.startJob();
 		}
 
-		public void run()
+		public void doIt()
 		{
 			offscreen.drawImage();
 			wnd.repaint();
@@ -401,7 +403,6 @@ public class EditWindow extends JPanel
 					EditWindow nextWnd = (EditWindow)redrawThese.get(0);
 					redrawThese.remove(0);
 					RenderJob nextJob = new RenderJob(nextWnd, nextWnd.getOffscreen());
-					nextJob.start();
 					return;
 				}
 				runningNow = false;
@@ -658,21 +659,25 @@ public class EditWindow extends JPanel
 	{
 		if (cell == null) return;
 
-		Rectangle2D bounds = getDisplayedBounds();
+		// get the bounds of the cell in database coordinates
+		Rectangle2D bounds = cell.getBounds();
 		double xWidth = bounds.getWidth();
 		double xCenter = bounds.getCenterX();
 
+		// get the current thumb position
 		JScrollBar bottom = wf.getBottomScrollBar();
 		int xThumbPos = bottom.getValue();
+
+		// figure out what the thumb position SHOULD be
 		int scrollBarResolution = WindowFrame.getScrollBarResolution();
 		double scaleFactor = scrollBarResolution / 4;
 		int computedXThumbPos = (int)((offx - xCenter) / xWidth * scaleFactor) + scrollBarResolution/2;
+
+		// adjust the screen if there is change
 		if (computedXThumbPos != xThumbPos)
 		{
-//System.out.println("Computed thumb = " + computedXThumbPos + " but real is " + xThumbPos+ " offx was " + offx);
 			offx = (xThumbPos-scrollBarResolution/2)/scaleFactor * xWidth + xCenter;
 			computeDatabaseBounds();
-//System.out.println("   now offx="+offx);
 			repaintContents();
 		}
 	}
@@ -684,15 +689,21 @@ public class EditWindow extends JPanel
 	{
 		if (cell == null) return;
 
-		Rectangle2D bounds = getDisplayedBounds();
+		// get the bounds of the cell in database coordinates
+		Rectangle2D bounds = cell.getBounds();
 		double yHeight = bounds.getHeight();
 		double yCenter = bounds.getCenterY();
 
+		// get the current thumb position
 		JScrollBar right = wf.getRightScrollBar();
 		int yThumbPos = right.getValue();
+
+		// figure out what the thumb position SHOULD be
 		int scrollBarResolution = WindowFrame.getScrollBarResolution();
 		double scaleFactor = scrollBarResolution / 4;
 		int computedYThumbPos = (int)((yCenter - offy) / yHeight * scaleFactor) + scrollBarResolution/2;
+
+		// adjust the screen if there is change
 		if (computedYThumbPos != yThumbPos)
 		{
 			offy = yCenter - (yThumbPos - scrollBarResolution/2) / scaleFactor * yHeight;
@@ -716,7 +727,7 @@ public class EditWindow extends JPanel
 			int scrollBarResolution = WindowFrame.getScrollBarResolution();
 			double scaleFactor = scrollBarResolution / 4;
 
-			Rectangle2D bounds = getDisplayedBounds();
+			Rectangle2D bounds = cell.getBounds();
 			double xWidth = bounds.getWidth();
 			double xCenter = bounds.getCenterX();
 			int xThumbPos = (int)((offx - xCenter) / xWidth * scaleFactor) + scrollBarResolution/2;

@@ -29,6 +29,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
@@ -77,6 +78,12 @@ public class Schematic
 	private static void checkSchematicCellRecursively(Cell cell)
 	{
 		cell.setBit(cellsCheckedBit);
+
+		// ignore if not a schematic
+		if (cell.getView() != View.SCHEMATIC && cell.getTechnology() != Schematics.tech)
+			return;
+
+		// recursively check contents
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();

@@ -1110,15 +1110,15 @@ public class PixelDrawing
 			if (style == Poly.Type.OPENEDT2) lineType = 2; else
 			if (style == Poly.Type.OPENEDT3) lineType = 3;
 
-			Point pt1 = wnd.databaseToScreen(points[0]);
 			for(int j=1; j<points.length; j++)
 			{
+				Point pt1 = wnd.databaseToScreen(points[j-1]);
 				Point pt2 = wnd.databaseToScreen(points[j]);
 				drawLine(pt1, pt2, layerBitMap, graphics, lineType);
-				pt1 = pt2;
 			}
 			if (style == Poly.Type.CLOSED)
 			{
+				Point pt1 = wnd.databaseToScreen(points[points.length-1]);
 				Point pt2 = wnd.databaseToScreen(points[0]);
 				drawLine(pt1, pt2, layerBitMap, graphics, lineType);
 			}
@@ -1723,7 +1723,6 @@ public class PixelDrawing
 	 */
 	private void drawText(Rectangle rect, Poly.Type style, TextDescriptor descript, String s, byte [][] layerBitMap, EGraphics desc)
 	{
-		// get parameters
 		// quit if string is null
 		int len = s.length();
 		if (len == 0) return;
@@ -1738,6 +1737,7 @@ public class PixelDrawing
 		String fontName = "SansSerif";
 		boolean italic = false;
 		boolean bold = false;
+		boolean underline = false;
 		int rotation = 0;
 		if (descript != null)
 		{
@@ -1745,36 +1745,43 @@ public class PixelDrawing
 			if (size <= 0) size = 1;
 			italic = descript.isItalic();
 			bold = descript.isBold();
+			underline = descript.isUnderline();
 			int fontIndex = descript.getFace();
 			if (fontIndex != 0)
 			{
 				TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(fontIndex);
 				if (af != null) fontName = af.getName();
 			}
+			rotation = descript.getRotation().getIndex();
 		}
+
+		// get box information for limiting text size
 		int boxedWidth = -1, boxedHeight = -1;
 		if (style == Poly.Type.TEXTBOX)
 		{
 			boxedWidth = (int)rect.getWidth();
 			boxedHeight = (int)rect.getHeight();
 		}
-		Raster ras = renderText(s, fontName, size, italic, bold, boxedWidth, boxedHeight);
+
+		// render the text
+		Raster ras = renderText(s, fontName, size, italic, bold, underline, boxedWidth, boxedHeight);
 		if (ras == null) return;
-		Point pt = getTextCorner(ras, style, rect);
+		Point pt = getTextCorner(ras, style, rect, rotation);
 		int atX = pt.x;
 		int atY = pt.y;
 		DataBufferByte dbb = (DataBufferByte)ras.getDataBuffer();
 		byte [] samples = dbb.getData();
 
+		int sx, ex;
+		int rasWidth = ras.getWidth();
+		int rasHeight = ras.getHeight();
 		switch (rotation)
 		{
 			case 0:			// no rotation
-				// copy text buffer to the main offscreen buffer
-				int sx = 0;
-				if (atX < 0) sx = -atX;
-				int ex = ras.getWidth();
-				if (atX+ras.getWidth() >= sz.width) ex = sz.width-1 - atX;
-				for(int y=0; y<ras.getHeight(); y++)
+				if (atX < 0) sx = -atX; else sx = 0;
+				if (atX+rasWidth >= sz.width) ex = sz.width-1 - atX; else
+					ex = rasWidth;
+				for(int y=0; y<rasHeight; y++)
 				{
 					int trueY = atY + y;
 					if (trueY < 0 || trueY >= sz.height) continue;
@@ -1784,7 +1791,7 @@ public class PixelDrawing
 					int baseIndex = 0;
 					if (layerBitMap == null) baseIndex = trueY * sz.width; else
 						row = layerBitMap[trueY];
-					int samp = y * ras.getWidth() + sx;
+					int samp = y * rasWidth + sx;
 					for(int x=sx; x<ex; x++)
 					{
 						int trueX = atX + x;
@@ -1794,60 +1801,78 @@ public class PixelDrawing
 					}
 				}
 				break;
-//			case 1:			// 90 degrees counterclockwise
-//				if (atX-ras.getHeight() < lx) sx = lx+ras.getHeight()-atX; else sx = 0;
-//				if (atX >= hx) ex = hx - atX; else ex = ras.getHeight();
-//				pos = atY - ras.getWidth();
-//				for(i=0; i<ras.getWidth(); i++)
-//				{
-//					desti = pos + i;
-//					if (desti < ly || desti > hy) continue;
-//					dest = wf->rowstart[desti];
-//					for(j=sx; j<ex; j++)
-//					{
-//						ptr = rowstart[ras.getHeight()-1-j];
-//						if (ptr[ras.getWidth()-1-i] == 0) continue;
-//						dpos = atX - j;
-//						dest[dpos] = (UCHAR1)((dest[dpos] & mask) | col);
-//					}
-//				}
-//				break;
-//			case 2:			// 180 degrees
-//				if (atX-ras.getWidth() < lx) sx = lx+ras.getWidth()-atX; else sx = 0;
-//				if (atX >= hx) ex = hx - atX; else ex = ras.getWidth();
-//				pos = atY;
-//				for(i=0; i<ras.getHeight(); i++)
-//				{
-//					desti = pos + ras.getHeight() - i;
-//					if (desti < ly || desti > hy) continue;
-//					ptr = rowstart[i];
-//					dest = wf->rowstart[desti];
-//					for(j=sx; j<ex; j++)
-//					{
-//						if (ptr[j] == 0) continue;
-//						dpos = atX - j;
-//						dest[dpos] = (UCHAR1)((dest[dpos] & mask) | col);
-//					}
-//				}
-//				break;
-//			case 3:			// 90 degrees clockwise
-//				if (atX < lx) sx = lx-atX; else sx = 0;
-//				if (atX+ras.getHeight() >= hx) ex = hx - atX; else ex = ras.getHeight();
-//				pos = atY;
-//				for(i=0; i<ras.getWidth(); i++)
-//				{
-//					desti = pos + i;
-//					if (desti < ly || desti > hy) continue;
-//					dest = wf->rowstart[desti];
-//					for(j=sx; j<ex; j++)
-//					{
-//						ptr = rowstart[ras.getHeight()-1-j];
-//						if (ptr[i] == 0) continue;
-//						dpos = atX + j;
-//						dest[dpos] = (UCHAR1)((dest[dpos] & mask) | col);
-//					}
-//				}
-//				break;
+			case 1:			// 90 degrees counterclockwise
+				if (atX-rasHeight < 0) sx = rasHeight-atX; else sx = 0;
+				if (atX >= sz.height) ex = sz.height - atX; else
+					ex = rasHeight;
+				for(int y=0; y<rasWidth; y++)
+				{
+					int trueY = atY + y;
+					if (trueY < 0 || trueY >= sz.height) continue;
+
+					// setup pointers for filling this row
+					byte [] row = null;
+					int baseIndex = 0;
+					if (layerBitMap == null) baseIndex = trueY * sz.width; else
+						row = layerBitMap[trueY];
+					for(int x=sx; x<ex; x++)
+					{
+						int trueX = atX + x;
+						if (samples[x * rasWidth + (rasWidth-y-1)] == 0) continue;
+						if (layerBitMap == null) opaqueData[baseIndex + trueX] = col.getRGB();  else
+							row[trueX>>3] |= (1 << (trueX&7));
+					}
+				}
+				break;
+			case 2:			// 180 degrees
+				atX -= rasWidth;
+				atY -= rasHeight;
+				if (atX < 0) sx = -atX; else sx = 0;
+				if (atX+rasWidth >= sz.width) ex = sz.width-1 - atX; else
+					ex = rasWidth;
+
+				for(int y=0; y<rasHeight; y++)
+				{
+					int trueY = atY + y;
+					if (trueY < 0 || trueY >= sz.height) continue;
+
+					// setup pointers for filling this row
+					byte [] row = null;
+					int baseIndex = 0;
+					if (layerBitMap == null) baseIndex = trueY * sz.width; else
+						row = layerBitMap[trueY];
+					for(int x=sx; x<ex; x++)
+					{
+						int trueX = atX + x;
+						if (samples[(rasHeight-y-1) * rasWidth + (rasWidth-x-1)] == 0) continue;
+						if (layerBitMap == null) opaqueData[baseIndex + trueX] = col.getRGB();  else
+							row[trueX>>3] |= (1 << (trueX&7));
+					}
+				}
+				break;
+			case 3:			// 90 degrees clockwise
+				if (atX-rasHeight < 0) sx = rasHeight-atX; else sx = 0;
+				if (atX >= sz.height) ex = sz.height - atX; else
+					ex = rasHeight;
+				for(int y=0; y<rasWidth; y++)
+				{
+					int trueY = atY + y;
+					if (trueY < 0 || trueY >= sz.height) continue;
+
+					// setup pointers for filling this row
+					byte [] row = null;
+					int baseIndex = 0;
+					if (layerBitMap == null) baseIndex = trueY * sz.width; else
+						row = layerBitMap[trueY];
+					for(int x=sx; x<ex; x++)
+					{
+						int trueX = atX + x;
+						if (samples[(rasHeight-x-1) * rasWidth + y] == 0) continue;
+						if (layerBitMap == null) opaqueData[baseIndex + trueX] = col.getRGB();  else
+							row[trueX>>3] |= (1 << (trueX&7));
+					}
+				}
+				break;
 		}
 	}
 
@@ -1855,49 +1880,46 @@ public class PixelDrawing
 	 * Method to return the coordinates of the lower-left corner of text in this window.
 	 * @param gv the GlyphVector describing the text.
 	 * @param style the grab-point information about where the text is anchored.
-	 * @param lX the low X bound of the polygon containing the text.
-	 * @param hX the high X bound of the polygon containing the text.
-	 * @param lY the low Y bound of the polygon containing the text.
-	 * @param hY the high Y bound of the polygon containing the text.
+	 * @param rect the bounds of the polygon containing the text.
+	 * @param rotation the rotation of the text (0=normal, 1=90 counterclockwise, 2=180, 3=90 clockwise).
 	 * @return the coordinates of the lower-left corner of the text.
 	 */
-	private Point getTextCorner(Raster ras, Poly.Type style, Rectangle rect)
+	private Point getTextCorner(Raster ras, Poly.Type style, Rectangle rect, int rotation)
 	{
 		// adjust to place text in the center
-		int cX = (int)rect.getCenterX();
-		int cY = (int)rect.getCenterY();
 		int textWidth = ras.getWidth();
 		int textHeight = ras.getHeight();
+		int offX = 0, offY = 0;
 		if (style == Poly.Type.TEXTCENT)
 		{
-			cX -= textWidth/2;
-			cY -= textHeight/2;
+			offX = -textWidth/2;
+			offY = -textHeight/2;
 		} else if (style == Poly.Type.TEXTTOP)
 		{
-			cX -= textWidth/2;
+			offX = -textWidth/2;
 		} else if (style == Poly.Type.TEXTBOT)
 		{
-			cX -= textWidth/2;
-			cY -= textHeight;
+			offX = -textWidth/2;
+			offY = -textHeight;
 		} else if (style == Poly.Type.TEXTLEFT)
 		{
-			cY -= textHeight/2;
+			offY = -textHeight/2;
 		} else if (style == Poly.Type.TEXTRIGHT)
 		{
-			cX -= textWidth;
-			cY -= textHeight/2;
+			offX = -textWidth;
+			offY = -textHeight/2;
 		} else if (style == Poly.Type.TEXTTOPLEFT)
 		{
 		} else if (style == Poly.Type.TEXTBOTLEFT)
 		{
-			cY -= textHeight;
+			offY = -textHeight;
 		} else if (style == Poly.Type.TEXTTOPRIGHT)
 		{
-			cX -= textWidth;
+			offX = -textWidth;
 		} else if (style == Poly.Type.TEXTBOTRIGHT)
 		{
-			cX -= textWidth;
-			cY -= textHeight;
+			offX = -textWidth;
+			offY = -textHeight;
 		} if (style == Poly.Type.TEXTBOX)
 		{
 //			if (textWidth > rect.getWidth())
@@ -1905,9 +1927,30 @@ public class PixelDrawing
 //				// text too big for box: scale it down
 //				textScale *= rect.getWidth() / textWidth;
 //			}
-			cX -= textWidth/2;
-			cY += textHeight/2;
+			offX = -textWidth/2;
+			offY = -textHeight/2;
 		}
+		if (rotation != 0)
+		{
+			int saveOffX = offX;
+			switch (rotation)
+			{
+				case 1:
+					offX = offY;
+					offY = saveOffX;
+					break;
+				case 2:
+					offX = -offX;
+					offY = -offY;
+					break;
+				case 3:
+					offX = offY;
+					offY = saveOffX;
+					break;
+			}
+		}
+		int cX = (int)rect.getCenterX() + offX;
+		int cY = (int)rect.getCenterY() + offY;
 		return new Point(cX, cY);
 	}
 
@@ -1919,11 +1962,12 @@ public class PixelDrawing
 	 * @param tSize the size of the font to use.
 	 * @param italic true to make the text italic.
 	 * @param bold true to make the text bold.
+	 * @param underline true to underline the text.
 	 * @param boxedWidth the maximum width of the text (it is scaled down to fit).
 	 * @param boxedHeight the maximum height of the text (it is scaled down to fit).
 	 * @return a Raster with the text bits.
 	 */
-	public static Raster renderText(String msg, String font, int tSize, boolean italic, boolean bold, int boxedWidth, int boxedHeight)
+	public static Raster renderText(String msg, String font, int tSize, boolean italic, boolean bold, boolean underline, int boxedWidth, int boxedHeight)
 	{
 		// get the font
 		int fontStyle = Font.PLAIN;
@@ -1942,7 +1986,6 @@ public class PixelDrawing
 		java.awt.font.LineMetrics lm = theFont.getLineMetrics(msg, frc);
 		double lmHeight = lm.getHeight();
 		double lmAscent = lm.getAscent();
-		double lmDescent = lm.getDescent();
 		double lmLeading = lm.getLeading();
 
 		// allocate space for the rendered text
@@ -1970,13 +2013,17 @@ public class PixelDrawing
 				}
 			}
 		}
+		if (underline) height++;
 		BufferedImage textImage = new BufferedImage(rect.width, height, BufferedImage.TYPE_BYTE_GRAY);
 
 		// now render it
 		Graphics2D g2 = (Graphics2D)textImage.getGraphics();
 		g2.setColor(new Color(128,128,128));
-//System.out.println("Text has overall height="+height+" but descent="+lm.getDescent()+", ascent="+lm.getAscent()+", leading="+lm.getLeading()+", height="+lm.getHeight());
 		g2.drawGlyphVector(gv, (float)-rect.x, (float)(lmAscent-lmLeading));
+		if (underline)
+		{
+			g2.drawLine(0, height-1, rect.width, height-1);
+		}
 
 		// return the bits
 		return textImage.getData();

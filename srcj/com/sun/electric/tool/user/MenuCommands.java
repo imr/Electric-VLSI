@@ -224,8 +224,13 @@ public final class MenuCommands
 		rotateSubMenu.addMenuItem("Other...", null, 
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.rotateObjects(0); }});
 
-		editMenu.addMenuItem("Mirror", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.mirrorObjects(); } });
+		Menu mirrorSubMenu = Menu.createMenu("Mirror", 'M');
+		editMenu.add(mirrorSubMenu);
+		mirrorSubMenu.addMenuItem("Horizontally", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.mirrorObjects(true); }});
+		mirrorSubMenu.addMenuItem("Vertically", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.mirrorObjects(false); }});
+
 		editMenu.addMenuItem("Size", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.sizeObjects(); } });
 

@@ -849,6 +849,23 @@ public class Poly implements Shape
 		double textScale = getTextScale(wnd, gv, getStyle(), lX, hX, lY, hY);
 		double width = glyphBounds.getWidth() * textScale;
 		double height = font.getSize() * textScale * numLines;
+		switch (getTextDescriptor().getRotation().getIndex())
+		{
+			case 1:		// rotate 90 counterclockwise
+				double saveWidth = width;
+				width = height;
+				height = saveWidth;
+				break;
+			case 2:		// rotate 180
+				width = -width;
+				height = -height;
+				break;
+			case 3:		// rotate 90 clockwise
+				double saveHeight = height;
+				height = width;
+				width = saveHeight;
+				break;
+		}
 		points = new Point2D.Double[] {
 			new Point2D.Double(cX, cY),
 			new Point2D.Double(cX+width, cY),
@@ -900,42 +917,41 @@ public class Poly implements Shape
 		// adjust to place text in the center
 		Rectangle2D glyphBounds = gv.getVisualBounds();
 		double textScale = getTextScale(wnd, gv, style, lX, hX, lY, hY);
-		double cX = (lX + hX) / 2;
-		double cY = (lY + hY) / 2;
 		double textWidth = glyphBounds.getWidth();
 		double textHeight = font.getSize();
 		double scaledWidth = textWidth * textScale;
 		double scaledHeight = textHeight * textScale;
+		double offX = 0, offY = 0;
 		if (style == Poly.Type.TEXTCENT)
 		{
-			cX -= scaledWidth/2;
-			cY -= scaledHeight/2;
+			offX = -scaledWidth/2;
+			offY = -scaledHeight/2;
 		} else if (style == Poly.Type.TEXTTOP)
 		{
-			cX -= scaledWidth/2;
-			cY -= scaledHeight;
+			offX = -scaledWidth/2;
+			offY = -scaledHeight;
 		} else if (style == Poly.Type.TEXTBOT)
 		{
-			cX -= scaledWidth/2;
+			offX = -scaledWidth/2;
 		} else if (style == Poly.Type.TEXTLEFT)
 		{
-			cY -= scaledHeight/2;
+			offY = -scaledHeight/2;
 		} else if (style == Poly.Type.TEXTRIGHT)
 		{
-			cX -= scaledWidth;
-			cY -= scaledHeight/2;
+			offX = -scaledWidth;
+			offY = -scaledHeight/2;
 		} else if (style == Poly.Type.TEXTTOPLEFT)
 		{
-			cY -= scaledHeight;
+			offY = -scaledHeight;
 		} else if (style == Poly.Type.TEXTBOTLEFT)
 		{
 		} else if (style == Poly.Type.TEXTTOPRIGHT)
 		{
-			cX -= scaledWidth;
-			cY -= scaledHeight;
+			offX = -scaledWidth;
+			offY = -scaledHeight;
 		} else if (style == Poly.Type.TEXTBOTRIGHT)
 		{
-			cX -= scaledWidth;
+			offX = -scaledWidth;
 		} if (style == Poly.Type.TEXTBOX)
 		{
 			if (textWidth > hX - lX)
@@ -943,10 +959,32 @@ public class Poly implements Shape
 				// text too big for box: scale it down
 				textScale *= (hX - lX) / textWidth;
 			}
-			cX -= (textWidth * textScale) / 2;
-			cY += (textHeight * textScale) / 2;
+			offX = -(textWidth * textScale) / 2;
+			offY = -(textHeight * textScale) / 2;
 		}
-		return new Point2D.Double(cX, cY);
+		int rotation = getTextDescriptor().getRotation().getIndex();
+		if (rotation != 0)
+		{
+			double saveOffX = offX;
+			switch (rotation)
+			{
+				case 1:
+					offX = offY;
+					offY = saveOffX;
+					break;
+				case 2:
+					offX = -offX;
+					offY = -offY;
+					break;
+				case 3:
+					offX = offY;
+					offY = saveOffX;
+					break;
+			}
+		}
+		double cX = (lX + hX) / 2;
+		double cY = (lY + hY) / 2;
+		return new Point2D.Double(cX+offX, cY+offY);
 	}
 
 	/**

@@ -795,6 +795,20 @@ public class NodeInst extends Geometric implements Nodable
 	 * @return the Y size of this NodeInst.
 	 */
 	public double getYSize() { return Math.abs(sY); }
+
+	/**
+	 * Method to return the X size of this NodeInst, including the mirroring factor.
+	 * When mirrored about Y, the X size is negated.
+	 * @return the X size of this NodeInst, including the mirroring factor.
+	 */
+	public double getXSizeWithMirror() { return sX; }
+
+	/**
+	 * Method to return the Y size of this NodeInst, including the mirroring factor.
+	 * When mirrored about X, the Y size is negated.
+	 * @return the Y size of this NodeInst, including the mirroring factor.
+	 */
+	public double getYSizeWithMirror() { return sY; }
 	
 	/**
 	 * Method to return whether NodeInst is mirrored about a 

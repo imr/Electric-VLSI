@@ -87,6 +87,10 @@ public class CircuitChanges
 
 	private static double lastRotationAmount = 90;
 
+	/**
+	 * Method to handle the command to rotate the selected objects by an amount.
+	 * @param amount the amount to rotate.  If the amount is zero, prompt for an amount.
+	 */
 	public static void rotateObjects(int amount)
 	{
 		Cell cell = Library.needCurCell();
@@ -110,25 +114,44 @@ public class CircuitChanges
 			amount = (int)(fAmount * 10);
 		}
 
-		RotateSelected job = new RotateSelected(cell, amount);
+		RotateSelected job = new RotateSelected(cell, amount, false, false);
 	}
 
+	/**
+	 * Method to handle the command to mirror the selected objects.
+	 * @param horizontally true to mirror horizontally (about the horizontal, flipping the Y value).
+	 * False to mirror vertically (about the vertical, flipping the X value).
+	 */
+	public static void mirrorObjects(boolean horizontally)
+	{
+		Cell cell = Library.needCurCell();
+		if (cell == null) return;
+
+		// disallow rotating if lock is on
+		if (cantEdit(cell, null, true)) return;
+
+		RotateSelected job = new RotateSelected(cell, 0, true, horizontally);
+	}
+	
 	protected static class RotateSelected extends Job
 	{
-		Cell cell;
-		int amount;
+		private Cell cell;
+		private int amount;
+		private boolean mirror, mirrorH;
 
-		protected RotateSelected(Cell cell, int amount)
+		protected RotateSelected(Cell cell, int amount, boolean mirror, boolean mirrorH)
 		{
 			super("Rotate selected objects", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.amount = amount;
+			this.mirror = mirror;
+			this.mirrorH = mirrorH;
 			this.startJob();
 		}
 
 		public void doIt()
 		{
-			// figure out which nodes get rotated
+			// figure out which nodes get rotated/mirrored
 			FlagSet markObj = Geometric.getFlagSet(1);
 			for(Iterator it = cell.getNodes(); it.hasNext(); )
 			{
@@ -136,7 +159,7 @@ public class CircuitChanges
 				ni.clearBit(markObj);
 			}
 			int nicount = 0;
-			NodeInst theni = null;
+			NodeInst theNi = null;
 			Rectangle2D selectedBounds = new Rectangle2D.Double();
 			List highs = Highlight.getHighlighted(true, true);
 			for(Iterator it = highs.iterator(); it.hasNext(); )
@@ -157,7 +180,7 @@ public class CircuitChanges
 				{
 					Rectangle2D.union(selectedBounds, ni.getBounds(), selectedBounds);
 				}
-				theni = ni;
+				theNi = ni;
 				nicount++;
 			}
 
@@ -173,7 +196,7 @@ public class CircuitChanges
 			if (nicount > 1)
 			{
 				Point2D center = new Point2D.Double(selectedBounds.getCenterX(), selectedBounds.getCenterY());
-				theni = null;
+				theNi = null;
 				double bestdist = Integer.MAX_VALUE;
 				for(Iterator it = cell.getNodes(); it.hasNext(); )
 				{
@@ -182,66 +205,21 @@ public class CircuitChanges
 					double dist = center.distance(ni.getTrueCenter());
 
 					// LINTED "bestdist" used in proper order
-					if (theni == null || dist < bestdist)
+					if (theNi == null || dist < bestdist)
 					{
-						theni = ni;
+						theNi = ni;
 						bestdist = dist;
 					}
 				}
 			}
 
-//			if (nicount > 1)
-//			{
-//				us_abortcommand(_("Must highlight one node for rotation about the grab-point"));
-//				markObj.freeFlagSet();
-//				return;
-//			}
-//			ni = theni;
-//
-//			// disallow rotating if lock is on
-//			if (us_cantedit(ni->parent, ni, TRUE))
-//			{
-//				markObj.freeFlagSet();
-//				return;
-//			}
-//
-//			// find the grab point
-//			corneroffset(ni, ni->proto, ni->rotation, ni->transpose, &gx, &gy, FALSE);
-//			gx += ni->lowx;   gy += ni->lowy;
-//
-//			// build transformation for this operation
-//			transid(transtz);   transtz[2][0] = -gx;   transtz[2][1] = -gy;
-//			makeangle(amt, 0, rot);
-//			transid(transfz);   transfz[2][0] = gx;    transfz[2][1] = gy;
-//			transmult(transtz, rot, t1);
-//			transmult(t1, transfz, t2);
-//			cx = (ni->lowx+ni->highx)/2;   cy = (ni->lowy+ni->highy)/2;
-//			xform(cx, cy, &gx, &gy, t2);
-//			gx -= cx;   gy -= cy;
-//
-//			// save highlighting
-//			us_pushhighlight();
-//			us_clearhighlightcount();
-//
-//			// do the rotation
-//			startobjectchange((INTBIG)ni, VNODEINST);
-//
-//			// rotate and translate
-//			modifynodeinst(ni, gx, gy, gx, gy, amt, 0);
-//
-//			// end change
-//			endobjectchange((INTBIG)ni, VNODEINST);
-//
-//			// restore highlighting
-//			us_pophighlight(TRUE);
-
-			// see which nodes already connect to the main rotation node (theni)
+			// see which nodes already connect to the main rotation/mirror node (theNi)
 			for(Iterator it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				ni.clearBit(markObj);
 			}
-			theni.setBit(markObj);
+			theNi.setBit(markObj);
 			for(Iterator it = cell.getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
@@ -254,77 +232,83 @@ public class CircuitChanges
 				ArcInst ai = (ArcInst)geom;
 				ai.setBit(markObj);
 			}
-			us_spreadrotateconnection(theni, markObj);
+			us_spreadrotateconnection(theNi, markObj);
 
 			// now make sure that it is all connected
-			List nilist = new ArrayList();
-			List ailist = new ArrayList();
+			List niList = new ArrayList();
+			List aiList = new ArrayList();
 			for(Iterator it = highs.iterator(); it.hasNext(); )
 			{
 				Geometric geom = (Geometric)it.next();
 				if (!(geom instanceof NodeInst)) continue;
 				NodeInst ni = (NodeInst)geom;
-				if (ni == theni) continue;
+				if (ni == theNi) continue;
 				if (ni.isBit(markObj)) continue;
 
-				if (theni.getNumPortInsts() == 0)
+				if (theNi.getNumPortInsts() == 0)
 				{
 					// no port on the cell: create one
-					Cell subCell = (Cell)theni.getProto();
+					Cell subCell = (Cell)theNi.getProto();
 					NodeInst subni = NodeInst.makeInstance(Generic.tech.universalPinNode, new Point2D.Double(0,0), 0, 0, 0, subCell, null);
 					if (subni == null) break;
 					Export thepp = Export.newInstance(subCell, subni.getOnlyPortInst(), "temp");
 					if (thepp == null) break;
 
 					// add to the list of temporary nodes
-					nilist.add(subni);
+					niList.add(subni);
 				}
-				PortInst thepi = theni.getPortInst(0);
+				PortInst thepi = theNi.getPortInst(0);
 				if (ni.getNumPortInsts() != 0)
 				{
 					ArcInst ai = ArcInst.makeInstance(Generic.tech.invisible_arc, 0, ni.getPortInst(0), thepi, null);
 					if (ai == null) break;
 					ai.setRigid();
-					ailist.add(ai);
+					aiList.add(ai);
 				}
 			}
 
 			// make all selected arcs temporarily rigid
-//			us_modarcbits(6, FALSE, x_(""), list);
+			for(Iterator it = highs.iterator(); it.hasNext(); )
+			{
+				Geometric geom = (Geometric)it.next();
+				if (!(geom instanceof ArcInst)) continue;
+				Layout.setTempRigid((ArcInst)geom, true);
+			}
 
-			// see if there is a snap point
-//			if (!us_getonesnappoint(&rotcx, &rotcy))
-//			{
-//				// no snap point, use center of node
-//				rotcx = (theni->lowx + theni->highx) / 2;
-//				rotcy = (theni->lowy + theni->highy) / 2;
-//			}
-
-			// build transformation for this operation
-//			transid(transtz);   transtz[2][0] = -rotcx;   transtz[2][1] = -rotcy;
-//			makeangle(amt, 0, rot);
-//			transid(transfz);   transfz[2][0] = rotcx;    transfz[2][1] = rotcy;
-//			transmult(transtz, rot, t1);
-//			transmult(t1, transfz, t2);
-//			cx = (theni->lowx+theni->highx)/2;   cy = (theni->lowy+theni->highy)/2;
-//			xform(cx, cy, &gx, &gy, t2);
-//			gx -= cx;   gy -= cy;
-
-			// do the rotation
-			theni.modifyInstance(0, 0, 0, 0, amount);
+			// do the rotation/mirror
+			if (mirror)
+			{
+				// do mirroring
+				if (mirrorH)
+				{
+					// mirror horizontally (flip Y)
+					double sY = theNi.getYSizeWithMirror();
+					System.out.println("Mirroring: size was "+sY+" so transformation is by "+(-sY-sY));
+					theNi.modifyInstance(0, 0, 0, -sY - sY, 0);
+				} else
+				{
+					// mirror horizontally (flip X)
+					double sX = theNi.getXSizeWithMirror();
+					theNi.modifyInstance(0, 0, -sX - sX, 0, 0);
+				}
+			} else
+			{
+				// do rotation
+				theNi.modifyInstance(0, 0, 0, 0, amount);
+			}
 
 			// delete intermediate arcs used to constrain
-			for(Iterator it = ailist.iterator(); it.hasNext(); )
+			for(Iterator it = aiList.iterator(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 				ai.kill();
 			}
 
 			// delete intermediate nodes used to constrain
-			for(Iterator it = nilist.iterator(); it.hasNext(); )
+			for(Iterator it = niList.iterator(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
-//				(void)killportproto(nilist[i]->parent, nilist[i]->firstportexpinst->exportproto);
+//				(void)killportproto(niList[i]->parent, niList[i]->firstportexpinst->exportproto);
 				ni.kill();
 			}
 			markObj.freeFlagSet();
@@ -335,9 +319,9 @@ public class CircuitChanges
 	 * Helper method for rotation to mark selected nodes that need not be
 	 * connected with an invisible arc.
 	 */
-	private static void us_spreadrotateconnection(NodeInst theni, FlagSet markObj)
+	private static void us_spreadrotateconnection(NodeInst theNi, FlagSet markObj)
 	{
-		for(Iterator it = theni.getConnections(); it.hasNext(); )
+		for(Iterator it = theNi.getConnections(); it.hasNext(); )
 		{
 			Connection con = (Connection)it.next();
 			ArcInst ai = con.getArc();
@@ -2288,6 +2272,8 @@ public class CircuitChanges
 		/** true to ignore the head of the new arc */		private boolean ignoreHead;
 		/** true to ignore the tail of the new arc */		private boolean ignoreTail;
 		/** true to reverse the head/tail on new arc */		private boolean reverseEnd;
+		/** the name to use on the reconnected arc */		private String arcName;
+		/** TextDescriptor for the reconnected arc name */	private TextDescriptor arcNameTD;
 
 		/**
 		 * Method to find a possible Reconnect through a given NodeInst.
@@ -2392,6 +2378,17 @@ public class CircuitChanges
 				re.ignoreHead = re.reconAr[0].isSkipHead() || re.reconAr[1].isSkipHead();
 				re.ignoreTail = re.reconAr[0].isSkipTail() || re.reconAr[1].isSkipTail();
 				re.reverseEnd = re.reconAr[0].isReverseEnds() || re.reconAr[1].isReverseEnds();
+				re.arcName = null;
+				if (re.reconAr[0].getName() != null && !re.reconAr[0].getNameKey().isTempname())
+				{
+					re.arcName = re.reconAr[0].getName();
+					re.arcNameTD = re.reconAr[0].getNameTextDescriptor();
+				}
+				if (re.reconAr[1].getName() != null && !re.reconAr[1].getNameKey().isTempname())
+				{
+					re.arcName = re.reconAr[1].getName();
+					re.arcNameTD = re.reconAr[1].getNameTextDescriptor();
+				}
 
 				// special code to handle directionality
 				if (re.directional || re.negated || re.ignoreHead || re.ignoreTail || re.reverseEnd)
@@ -2428,19 +2425,23 @@ public class CircuitChanges
 			eraseNodeInst(ni);
 
 			// reconnect the arcs
-			ArcInst newai = ArcInst.makeInstance(ap, wid,
-				reconPi[0], recon[0], reconPi[1], recon[1], null);
-			if (newai == null) return null;
-			if (directional) newai.setDirectional();
-			if (negated) newai.setNegated();
-			if (ignoreHead) newai.setSkipHead();
-			if (ignoreTail) newai.setSkipTail();
-			if (reverseEnd) newai.setReverseEnds();
+			ArcInst newAi = ArcInst.makeInstance(ap, wid, reconPi[0], recon[0], reconPi[1], recon[1], null);
+			if (newAi == null) return null;
+			if (directional) newAi.setDirectional();
+			if (negated) newAi.setNegated();
+			if (ignoreHead) newAi.setSkipHead();
+			if (ignoreTail) newAi.setSkipTail();
+			if (reverseEnd) newAi.setReverseEnds();
+			if (arcName != null)
+			{
+				newAi.setName(arcName);
+				newAi.setNameTextDescriptor(arcNameTD);
+			}
 
-			reconAr[0].copyVars(newai);
-			reconAr[1].copyVars(newai);
+			reconAr[0].copyVars(newAi);
+			reconAr[1].copyVars(newAi);
 
-			return newai;
+			return newAi;
 		}
 	};
 

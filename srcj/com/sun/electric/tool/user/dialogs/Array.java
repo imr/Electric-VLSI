@@ -453,8 +453,8 @@ public class Array extends javax.swing.JDialog
 					if ((xIndex&1) != 0 && dialog.lastXStagger) yPos += yOverlap/2;
 					if ((yIndex&1) != 0 && dialog.lastYStagger) xPos += xOverlap/2;
 					int ro = ni.getAngle();
-					double sx = ni.getXSize();   if (ni.isMirroredAboutXAxis()) sx = -sx;
-					double sy = ni.getYSize();   if (ni.isMirroredAboutYAxis()) sy = -sy;
+					double sx = ni.getXSizeWithMirror();
+					double sy = ni.getYSizeWithMirror();
 					if ((xIndex&1) != 0 && dialog.lastXFlip)
 					{
 						sx = -sx;

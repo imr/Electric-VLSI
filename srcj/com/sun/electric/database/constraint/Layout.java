@@ -47,6 +47,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.user.User;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -225,11 +226,15 @@ public class Layout extends Constraints
 		changeClock += 4;
 
 		// change the nodeinst
+		double oldSX = ni.getXSizeWithMirror();
+		double oldSY = ni.getYSizeWithMirror();
 		if (alterNodeInst(ni, dCX, dCY, dSX, dSY, dRot, false))
 			Undo.ChangeCell.forceHierarchicalAnalysis(ni.getParent());
 
 		// change the arcs on the nodeinst
-		if (modNodeArcs(ni, dRot, dSX, dSY))
+		boolean flipX = (oldSX * ni.getXSizeWithMirror()) < 0;
+		boolean flipY = (oldSY * ni.getYSizeWithMirror()) < 0;
+		if (modNodeArcs(ni, dRot, dSX, dSY, flipX, flipY))
 			Undo.ChangeCell.forceHierarchicalAnalysis(ni.getParent());
 	}
 
@@ -240,16 +245,22 @@ public class Layout extends Constraints
 
 		// change the nodeinst
 		Cell parent = null;
+		boolean [] flipX = new boolean[nis.length];
+		boolean [] flipY = new boolean[nis.length];
 		for(int i=0; i<nis.length; i++)
 		{
+			double oldSX = nis[i].getXSizeWithMirror();
+			double oldSY = nis[i].getYSizeWithMirror();
 			if (alterNodeInst(nis[i], dCX[i], dCY[i], dSX[i], dSY[i], dRot[i], false))
 				parent = (Cell)nis[i].getParent();
+			flipX[i] = (oldSX * nis[i].getXSizeWithMirror()) < 0;
+			flipY[i] = (oldSY * nis[i].getYSizeWithMirror()) < 0;
 		}
 
 		// change the arcs on the nodeinst
 		for(int i=0; i<nis.length; i++)
 		{
-			if (modNodeArcs(nis[i], dRot[i], dSX[i], dSY[i]))
+			if (modNodeArcs(nis[i], dRot[i], dSX[i], dSY[i], flipX[i], flipY[i]))
 				parent = nis[i].getParent();
 		}
 		if (parent != null)
@@ -279,16 +290,20 @@ public class Layout extends Constraints
 		// reject if this change has already been done
 		if (ni.getChangeClock() >= changeClock+change) return false;
 
-//		// if simple rotation on transposed nodeinst, reverse rotation
-//		if (ni->transpose != 0 && dtrans == 0) dAngle = (3600 - dAngle) % 3600;
+		// if simple rotation on transposed nodeinst, reverse rotation
+		boolean flipX = ni.isMirroredAboutXAxis();
+		if ((ni.getXSizeWithMirror() + deltaSX) * ni.getXSizeWithMirror() < 0) flipX = !flipX;
+		boolean flipY = ni.isMirroredAboutYAxis();
+		if ((ni.getYSizeWithMirror() + deltaSY) * ni.getYSizeWithMirror() < 0) flipY = !flipY;
+		if (flipX ^ flipY) dAngle = (3600 - dAngle) % 3600;
 		if (DEBUG) System.out.println("Moving node "+ni.describe()+" by ("+deltaCX+","+deltaCY+")");
 
 		// make changes to the nodeinst
 		int oldang = ni.getAngle();
 		double oldCX = ni.getGrabCenterX();
 		double oldCY = ni.getGrabCenterY();
-		double oldSX = ni.getXSize();
-		double oldSY = ni.getYSize();
+		double oldSX = ni.getXSizeWithMirror();
+		double oldSY = ni.getYSizeWithMirror();
 		ni.lowLevelModify(deltaCX, deltaCY, deltaSX, deltaSY, dAngle);
 
 		// mark that this nodeinst has changed
@@ -308,12 +323,14 @@ public class Layout extends Constraints
 	 * Method to modify all of the arcs connected to a NodeInst.
 	 * @param ni the NodeInst being examined.
 	 * @param dAngle the change in the nodes rotation (in tenth-degrees).
-	 * @param dSX the change in the node's X size (negative if mirrored).
-	 * @param dSY the change in the node's Y size (negative if mirrored).
+	 * @param dSX the change in the node's X size.
+	 * @param dSY the change in the node's Y size.
+	 * @param flipX true if the node flipped in X coordinates.
+	 * @param flipY true if the node flipped in Y coordinates.
 	 * @return true if some exports on the current cell have moved.
 	 * This indicates that the cell must be re-examined for export locations.
 	 */
-	private static boolean modNodeArcs(NodeInst ni, int dangle, double dSX, double dSY)
+	private static boolean modNodeArcs(NodeInst ni, int dangle, double dSX, double dSY, boolean flipX, boolean flipY)
 	{
 		if (DEBUG) System.out.println("Updating arcs on node "+ni.describe());
 
@@ -321,13 +338,13 @@ public class Layout extends Constraints
 		boolean examineCell = false;
 
 		// next look at arcs that run within this nodeinst
-		cla_modwithin(ni, dangle, dSX, dSY);
+		modWithin(ni, dangle, dSX, dSY, flipX, flipY);
 
 		// next look at the rest of the rigid arcs on this nodeinst
-		if (cla_modrigid(ni, dangle, dSX, dSY)) examineCell = true;
+		if (modRigid(ni, dangle, dSX, dSY, flipX, flipY)) examineCell = true;
 
 		// finally, look at rest of the flexible arcs on this nodeinst
-		if (modFlex(ni, dangle, dSX, dSY)) examineCell = true;
+		if (modFlex(ni, dangle, dSX, dSY, flipX, flipY)) examineCell = true;
 
 		return examineCell;
 	}
@@ -335,7 +352,7 @@ public class Layout extends Constraints
 	/*
 	 * Method to modify the arcs that run within nodeinst "ni"
 	 */
-	private static void cla_modwithin(NodeInst ni, int dAngle, double dSX, double dSY)
+	private static void modWithin(NodeInst ni, int dAngle, double dSX, double dSY, boolean flipX, boolean flipY)
 	{
 		// ignore all this stuff if the node just got created
 		Undo.Change change = ni.getChange();
@@ -363,7 +380,7 @@ public class Layout extends Constraints
 //			if ((ai->userbits&DEADA) != 0) continue;
 
 			// prepare transformation matrix
-			AffineTransform trans = NodeInst.pureRotate(dAngle, dSX < 0, dSY < 0);
+			AffineTransform trans = NodeInst.pureRotate(dAngle, flipX, flipY);
 
 			// compute old center of nodeinst
 			double ox = change.getA1();
@@ -389,12 +406,14 @@ public class Layout extends Constraints
 	 * Method to modify the rigid arcs connected to a NodeInst.
 	 * @param ni the NodeInst being examined.
 	 * @param dAngle the change in the nodes rotation (in tenth-degrees).
-	 * @param dSX the change in the node's X size (negative if mirrored).
-	 * @param dSY the change in the node's Y size (negative if mirrored).
+	 * @param dSX the change in the node's X size.
+	 * @param dSY the change in the node's Y size.
+	 * @param flipX true if the node flipped in X coordinates.
+	 * @param flipY true if the node flipped in Y coordinates.
 	 * @return true if any nodes that have exports move.
 	 * This indicates that instances of the current cell must be examined for ArcInst motion.
 	 */
-	private static boolean cla_modrigid(NodeInst ni, int dAngle, double dSX, double dSY)
+	private static boolean modRigid(NodeInst ni, int dAngle, double dSX, double dSY, boolean flipX, boolean flipY)
 	{
 		// build a list of the rigid arcs on this nodeinst
 		List rigidArcs = new ArrayList();
@@ -415,14 +434,8 @@ public class Layout extends Constraints
 		}
 		if (rigidArcs.size() == 0) return false;
 
-		// if simple rotation on transposed nodeinst, reverse rotation
-		int nextAngle = dAngle;
-//		if (((CHANGE *)ni->changeaddr)->changetype != NODEINSTNEW &&
-//			((CHANGE *)ni->changeaddr)->p6 != 0 && dtrans != 0)
-//				nextAngle = (3600 - dAngle) % 3600;
-
 		// prepare transformation matrix and angle/transposition information
-		AffineTransform trans = NodeInst.pureRotate(nextAngle, dSX < 0, dSY < 0);
+		AffineTransform trans = NodeInst.pureRotate(dAngle, flipX, flipY);
 
 		// look for rigid arcs on this nodeinst
 		boolean examineCell = false;
@@ -474,7 +487,6 @@ public class Layout extends Constraints
 			// figure out the new location of that arcinst connection
 			src.setLocation(thatEnd.getLocation().getX()-ox, thatEnd.getLocation().getY()-oy);
 			trans.transform(src, newPts[thatEndIndex]);
-
 			// see if other nodeinst has changed
 			boolean locked = false;
 			if (ono.getChangeClock() == changeClock) locked = true; else
@@ -486,8 +498,8 @@ public class Layout extends Constraints
 						if (ono.getParent().isInstancesLocked()) locked = true;
 					} else
 					{
-//						if ((us_useroptions&NOPRIMCHANGES) != 0 &&
-//							(ono.getProto().isLockedPrim()) locked = true;
+						if (User.isDisallowModificationLockedPrims() &&
+							ono.getProto().isLockedPrim()) locked = true;
 					}
 				}
 			}
@@ -509,16 +521,20 @@ public class Layout extends Constraints
 				dy = dy - ono.getGrabCenterY() - othY;
 
 				// move the other nodeinst
-				nextAngle = dAngle;
-//				if (dtrans != 0 && ono->transpose != ((CHANGE *)ni->changeaddr)->p6)
-//					nextAngle = (3600 - nextAngle) % 3600;
+				int nextAngle = dAngle;
+				boolean oFlipX = ono.isMirroredAboutXAxis(); if (flipX) oFlipX = !oFlipX;
+				boolean oFlipY = ono.isMirroredAboutYAxis(); if (flipY) oFlipY = !oFlipY;
+				if (oFlipX ^ oFlipY) nextAngle = (3600 - nextAngle) % 3600;
 
 				// ignore null motion on nodes that have already been examined
 				if (dx != 0 || dy != 0 || nextAngle != 0 || ono.getChangeClock() != changeClock-1)
 				{
 					ai.setRigidModified();
 					if (DEBUG) System.out.println("  Moving node "+ono.describe()+" at other end by ("+dx+","+dy+")");
-					if (alterNodeInst(ono, dx, dy, 0, 0, nextAngle, true))
+					double changeSX = 0, changeSY = 0;
+					if (oFlipX) changeSX = -ono.getXSizeWithMirror() * 2;
+					if (oFlipY) changeSY = -ono.getYSizeWithMirror() * 2;
+					if (alterNodeInst(ono, dx, dy, changeSX, changeSY, nextAngle, true))
 						examineCell = true;
 				}
 			}
@@ -544,11 +560,10 @@ public class Layout extends Constraints
 			if (ai.getTail().getPortInst().getNodeInst() == ni) ono = ai.getHead().getPortInst().getNodeInst(); else
 				ono = ai.getTail().getPortInst().getNodeInst();
 
-			nextAngle = dAngle;
-//			if (dtrans != 0 && ((CHANGE *)ono->changeaddr)->p6 != ((CHANGE *)ni->changeaddr)->p6)
-//				nextAngle = (3600 - nextAngle) % 3600;
+			int nextAngle = dAngle;
+			if (ono.isMirroredAboutXAxis() ^ ono.isMirroredAboutYAxis()) nextAngle = (3600 - nextAngle) % 3600;
 			if (DEBUG) System.out.println("Propagating to other node "+ono.describe());
-			if (modNodeArcs(ono, nextAngle, 0, 0)) examineCell = true;
+			if (modNodeArcs(ono, nextAngle, 0, 0, flipX, flipY)) examineCell = true;
 		}
 		return examineCell;
 	}
@@ -557,12 +572,14 @@ public class Layout extends Constraints
 	 * Method to modify the flexible arcs connected to a NodeInst.
 	 * @param ni the NodeInst being examined.
 	 * @param dAngle the change in the nodes rotation (in tenth-degrees).
-	 * @param dSX the change in the node's X size (negative if mirrored).
-	 * @param dSY the change in the node's Y size (negative if mirrored).
+	 * @param dSX the change in the node's X size.
+	 * @param dSY the change in the node's Y size.
+	 * @param flipX true if the node flipped in X coordinates.
+	 * @param flipY true if the node flipped in Y coordinates.
 	 * @return true if any nodes that have exports move.
 	 * This indicates that instances of the current cell must be examined for ArcInst motion.
 	 */
-	private static boolean modFlex(NodeInst ni, int dAngle, double dSX, double dSY)
+	private static boolean modFlex(NodeInst ni, int dAngle, double dSX, double dSY, boolean flipX, boolean flipY)
 	{
 		// build a list of the flexible arcs on this nodeinst
 		List flexArcs = new ArrayList();
@@ -585,12 +602,10 @@ public class Layout extends Constraints
 
 		// if simple rotation on transposed nodeinst, reverse rotation
 		int nextAngle = dAngle;
-//		if (((CHANGE *)ni->changeaddr)->changetype != NODEINSTNEW &&
-//			((CHANGE *)ni->changeaddr)->p6 != 0 && dtrans != 0)
-//				nextAngle = (3600 - dAngle) % 3600;
+		if (ni.isMirroredAboutXAxis() ^ ni.isMirroredAboutYAxis()) nextAngle = (3600 - dAngle) % 3600;
 
 		// prepare transformation matrix and angle/transposition information
-		AffineTransform trans = NodeInst.pureRotate(nextAngle, dSX < 0, dSY < 0);
+		AffineTransform trans = NodeInst.pureRotate(nextAngle, flipX, flipY);
 
 		// look at all of the flexible arcs on this nodeinst
 		boolean examineCell = false;
@@ -689,8 +704,8 @@ public class Layout extends Constraints
 						if (ono.getParent().isInstancesLocked()) mangle = false;
 					} else
 					{
-//						if ((us_useroptions&NOPRIMCHANGES) != 0 &&
-//							ono.getProto().isLockedPrim()) mangle = false;
+						if (User.isDisallowModificationLockedPrims() &&
+							ono.getProto().isLockedPrim()) mangle = false;
 					}
 				}
 			}
@@ -731,7 +746,7 @@ public class Layout extends Constraints
 							") and tail=("+newPts[1].getX()+","+newPts[1].getY()+")");
 						doMoveArcInst(ai, newPts[0], newPts[1], 1);
 						if (!EMath.doublesEqual(dx, odx))
-							if (modNodeArcs(ono, 0, 0, 0)) examineCell = true;
+							if (modNodeArcs(ono, 0, 0, 0, false, false)) examineCell = true;
 						continue;
 					}
 				}
@@ -761,7 +776,7 @@ public class Layout extends Constraints
 						") and tail=("+newPts[1].getX()+","+newPts[1].getY()+")");
 					doMoveArcInst(ai, newPts[0], newPts[1], 1);
 					if (!EMath.doublesEqual(dy, ody))
-						if (modNodeArcs(ono, 0, 0, 0)) examineCell = true;
+						if (modNodeArcs(ono, 0, 0, 0, false, false)) examineCell = true;
 					continue;
 				}
 
@@ -783,7 +798,7 @@ public class Layout extends Constraints
 					if (DEBUG) System.out.println("  Moving node "+ono.describe()+" by ("+dx+","+dy+")");
 					if (alterNodeInst(ono, dx, dy, 0, 0, 0, true))
 						examineCell = true;
-					if (modNodeArcs(ono, 0, 0, 0)) examineCell = true;
+					if (modNodeArcs(ono, 0, 0, 0, false, false)) examineCell = true;
 				}
 				continue;
 			}
@@ -1077,9 +1092,9 @@ public class Layout extends Constraints
 		double m02 = ni.getGrabCenterX();
 		double m12 = ni.getGrabCenterY();
 		Undo.Change change = ni.getChange();
-		if (change.getA3() == ni.getXSize() && change.getA4() == ni.getYSize() && change.getI1() == ni.getAngle())
+		if (change.getA3() * ni.getXSizeWithMirror() >= 0 && change.getA4() * ni.getYSizeWithMirror() >= 0 && change.getI1() == ni.getAngle())
 		{
-			// nodeinst did not rotate: adjust for port motion
+			// nodeinst did not rotate or mirror: adjust for port motion
 			Point2D ono = oldPortPosition(ni, pp);
 			Poly curPoly = ni.getShapeOfPort(pp);
 			double dx = curPoly.getCenterX();
@@ -1101,7 +1116,6 @@ public class Layout extends Constraints
 	{
 		// descend to the primitive node
 		AffineTransform subrot = makeOldRot(ni);
-
 		NodeInst bottomNi = ni;
 		PortProto bottomPP = pp;
 		while (bottomNi.getProto() instanceof Cell)
@@ -1174,10 +1188,8 @@ public class Layout extends Constraints
 	private static AffineTransform makeOldTrans(NodeInst ni)
 	{
 		// get current values
-		Cell np = (Cell)ni.getProto();
-		double cX = ni.getGrabCenterX();   double cY = ni.getGrabCenterY();
-		Rectangle2D cellBounds = np.getBounds();
-		double pCX = cellBounds.getCenterX();   double pCY = cellBounds.getCenterY();
+		double cX = ni.getGrabCenterX();
+		double cY = ni.getGrabCenterY();
 
 		// set to previous values if they changed
 		Undo.Change change = ni.getChange();
@@ -1186,18 +1198,10 @@ public class Layout extends Constraints
 			cX = change.getA1();
 			cY = change.getA2();
 		}
-		change = np.getChange();
-		if (change != null && change.getType() == Undo.Type.CELLMOD)
-		{
-			pCX = (change.getA1()+change.getA2()) / 2;
-			pCY = (change.getA2()+change.getA4()) / 2;
-		}
 
-		// create the former translation matrix (this hack is stolen from NodeInst.translateOut())
-		double dx = cX - pCX;
-		double dy = cY - pCY;
+		// create the former translation matrix
 		AffineTransform transform = new AffineTransform();
-		transform.translate(dx, dy);
+		transform.translate(cX, cY);
 		return transform;
 	}
 
@@ -1228,8 +1232,6 @@ public class Layout extends Constraints
 		changeClock += 4;
 
 		// get former size of cell from change information
-//		double flx = oldCellBounds.getMinX();   double fhx = oldCellBounds.getMaxX();
-//		double fly = oldCellBounds.getMinY();   double fhy = oldCellBounds.getMaxY();
 		double flx = cellBounds.getMinX();   double fhx = cellBounds.getMaxX();
 		double fly = cellBounds.getMinY();   double fhy = cellBounds.getMaxY();
 		Undo.Change change = cell.getChange();
@@ -1268,26 +1270,21 @@ public class Layout extends Constraints
 				double sY = ni.getYSize();
 
 				// proceed only if the instance is not the same size as the current cell bounds
-//System.out.println("Instance is "+sX+"x"+sY+", old cell bounds are "+oldCellBounds.getWidth()+"x"+oldCellBounds.getHeight()+" but cell bounds are "+cellBounds.getWidth()+"x"+cellBounds.getHeight());
 //				if (sX != cellBounds.getWidth() || sY != cellBounds.getHeight())
 				{
-//System.out.println("   so updating instance");
 					AffineTransform trans = NodeInst.pureRotate(ni.getAngle(), ni.isXMirrored(), ni.isYMirrored());
 					Point2D off = new Point2D.Double(cellBounds.getCenterX() - oldCellBounds.getCenterX(),
 						cellBounds.getCenterY() - oldCellBounds.getCenterY());
 					trans.transform(off, off);
-//					double dSX = EMath.smooth(cellBounds.getWidth() - oldCellBounds.getWidth());
-//					double dSY = EMath.smooth(cellBounds.getHeight() - oldCellBounds.getHeight());
 					double dSX = EMath.smooth(cellBounds.getWidth() - ni.getXSize());
 					double dSY = EMath.smooth(cellBounds.getHeight() - ni.getYSize());
 					if (alterNodeInst(ni, 0, 0, dSX, dSY, 0, true)) forcedLook = true;
-//					if (alterNodeInst(ni, EMath.smooth(off.getX()), EMath.smooth(off.getY()), dSX, dSY, 0, true)) forcedLook = true;
 				}
 			}
 			for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
-				if (modNodeArcs(ni, 0, 0, 0)) forcedLook = true;
+				if (modNodeArcs(ni, 0, 0, 0, false, false)) forcedLook = true;
 			}
 			computeCell(oneParent, forcedLook);
 			return;
@@ -1324,7 +1321,7 @@ public class Layout extends Constraints
 				if (iIt.hasNext()) continue;
 
 				// now look recursively at the nodes in this cell
-				cla_lookdown(c);
+				lookDown(c);
 			}
 		}
 		touchNode.freeFlagSet();
@@ -1333,7 +1330,7 @@ public class Layout extends Constraints
 		cellModFlag.freeFlagSet();
 	}
 
-	boolean cla_lookdown(Cell start)
+	boolean lookDown(Cell start)
 	{
 		// first look recursively to the bottom to see if this cell changed
 		for(Iterator it = start.getNodes(); it.hasNext(); )
@@ -1364,7 +1361,7 @@ public class Layout extends Constraints
 				if (np.isBit(cellModFlag) || np.isBit(cellNoModFlag)) continue;
 
 				// look inside nodeinst to see if it changed
-				if (cla_lookdown((Cell)np)) start.setBit(cellModFlag);
+				if (lookDown((Cell)np)) start.setBit(cellModFlag);
 				foundone = true;
 			}
 		}
@@ -1424,19 +1421,14 @@ public class Layout extends Constraints
 				double dly = cellBounds.getMinY() - fly;   double dhy = cellBounds.getMaxY() - fhy;
 				double sX = ni.getXSize();
 				double sY = ni.getYSize();
-//System.out.println("Complex instance is "+sX+"x"+sY+", old cell bounds are "+(fhx-flx)+"x"+(fhy-fly)+" but cell bounds are "+cellBounds.getWidth()+"x"+cellBounds.getHeight());
 //				if (sX != cellBounds.getWidth() || sY != cellBounds.getHeight())
 				{
-//System.out.println("   so updating instance");
 					AffineTransform trans = NodeInst.pureRotate(ni.getAngle(), ni.isXMirrored(), ni.isYMirrored());
 					Point2D off = new Point2D.Double(cellBounds.getCenterX() - (flx+fhx)/2,
 						cellBounds.getCenterY() - (fly+fhy)/2);
 					trans.transform(off, off);
-//					double dSX = EMath.smooth(cellBounds.getWidth() - (fhx-flx));
-//					double dSY = EMath.smooth(cellBounds.getHeight() - (fhy-fly));
 					double dSX = EMath.smooth(cellBounds.getWidth() - ni.getXSize());
 					double dSY = EMath.smooth(cellBounds.getHeight() - ni.getYSize());
-//					if (alterNodeInst(ni, EMath.smooth(off.getX()), EMath.smooth(off.getY()), dSX, dSY, 0, true)) forcedLook = true;
 					if (alterNodeInst(ni, 0, 0, dSX, dSY, 0, true)) forcedLook = true;
 					foundone = true;
 				}
@@ -1459,7 +1451,7 @@ public class Layout extends Constraints
 				NodeInst ni = (NodeInst)it.next();
 				if (!ni.isBit(touchNode)) continue;
 				ni.clearBit(touchNode);
-				if (modNodeArcs(ni, 0, 0, 0)) forcedLook = true;
+				if (modNodeArcs(ni, 0, 0, 0, false, false)) forcedLook = true;
 				foundone = true;
 			}
 		}

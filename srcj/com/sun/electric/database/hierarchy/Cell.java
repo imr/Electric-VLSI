@@ -2130,6 +2130,17 @@ public class Cell extends NodeProto
 			errorCount += nu.checkAndRepair();
 		}
 
+		// check group pointers
+		if (versionGroup == null)
+		{
+			System.out.println("Cell " + describe() + ", Version group is null");
+			errorCount++;
+		}
+		if (cellGroup == null)
+		{
+			System.out.println("Cell " + describe() + ", Cell group is null");
+			errorCount++;
+		}
 		return errorCount;
 	}
 
