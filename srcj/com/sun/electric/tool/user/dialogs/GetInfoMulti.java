@@ -31,6 +31,8 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.change.DatabaseChangeListener;
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
@@ -50,7 +52,7 @@ import javax.swing.*;
 /**
  * Class to handle the "Multi-object Get Info" dialog.
  */
-public class GetInfoMulti extends JDialog implements HighlightListener
+public class GetInfoMulti extends JDialog implements HighlightListener, DatabaseChangeListener
 {
 	private static GetInfoMulti theDialog = null;
 	private DefaultListModel listModel;
@@ -83,6 +85,32 @@ public class GetInfoMulti extends JDialog implements HighlightListener
 		loadMultiInfo();
 	}
 
+    /**
+     * Respond to database changes we care about
+     * @param batch a batch of changes
+     */
+    public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+        if (!isVisible()) return;
+
+        boolean reload = false;
+        // reload if any objects that changed are part of our list of highlighted objects
+        for (Iterator it = batch.getChanges(); it.hasNext(); ) {
+            Undo.Change change = (Undo.Change)it.next();
+            ElectricObject obj = change.getObject();
+            for (Iterator it2 = highlightList.iterator(); it2.hasNext(); ) {
+                Highlight h = (Highlight)it2.next();
+                if (obj == h.getElectricObject()) {
+                    reload = true; break;
+                }
+            }
+        }
+        if (reload) {
+            // update dialog
+            loadMultiInfo();
+        }
+    }
+    public void databaseChanged(Undo.Change change) {}
+
 	/** Creates new form Multi-Object Get Info */
 	private GetInfoMulti(java.awt.Frame parent, boolean modal)
 	{
@@ -94,6 +122,7 @@ public class GetInfoMulti extends JDialog implements HighlightListener
 
         // add myself as a listener to Highlights
         Highlight.addHighlightListener(this);
+        Undo.addDatabaseChangeListener(this);
 
 		// make the list
 		listModel = new DefaultListModel();
@@ -234,6 +263,7 @@ public class GetInfoMulti extends JDialog implements HighlightListener
 		}
 		if (numNodes != 0)
 		{
+            initialXPosition = "";
 			if (xPositionLow == xPositionHigh)
 			{
 				initialXPosition = Double.toString(xPositionLow);

@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -50,7 +51,7 @@ import javax.swing.*;
 /**
  * Class to handle the "Export Get-Info" dialog.
  */
-public class GetInfoExport extends JDialog implements HighlightListener
+public class GetInfoExport extends JDialog implements HighlightListener, DatabaseChangeListener
 {
 	private static GetInfoExport theDialog = null;
 	private Export shownExport;
@@ -88,6 +89,30 @@ public class GetInfoExport extends JDialog implements HighlightListener
         if (!isVisible()) return;
 		loadExportInfo();
 	}
+
+    /**
+     * Respond to database changes
+     * @param batch a batch of changes completed
+     */
+    public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+        if (!isVisible()) return;
+
+        // check if we care about the changes
+        boolean reload = false;
+        for (Iterator it = batch.getChanges(); it.hasNext(); ) {
+            Undo.Change change = (Undo.Change)it.next();
+            ElectricObject obj = change.getObject();
+            if (obj == shownExport) {
+                reload = true;
+                break;
+            }
+        }
+        if (reload) {
+            // update dialog
+            loadExportInfo();
+        }
+    }
+    public void databaseChanged(Undo.Change change) {}
 
 	private void loadExportInfo()
 	{
@@ -171,6 +196,7 @@ public class GetInfoExport extends JDialog implements HighlightListener
 
         // add myself as a listener for highlight changes
         Highlight.addHighlightListener(this);
+        Undo.addDatabaseChangeListener(this);
 
         // set characteristic combo box
 		List chars = PortProto.Characteristic.getOrderedCharacteristics();
@@ -480,9 +506,6 @@ public class GetInfoExport extends JDialog implements HighlightListener
         }
         // possibly generate job to change export text options
         textPanel.applyChanges();
-        // update dialog
-        // TODO: need to be a database change listener
-        //UpdateDialog job2 = new UpdateDialog();
 
         initialName = newName;
         initialBodyOnly = newBodyOnly;

@@ -39,6 +39,8 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.PrimitiveNode;
@@ -64,7 +66,7 @@ import javax.swing.*;
 /**
  * Class to handle the "Node Get-Info" dialog.
  */
-public class GetInfoNode extends JDialog implements HighlightListener
+public class GetInfoNode extends JDialog implements HighlightListener, DatabaseChangeListener
 {
 	private static GetInfoNode theDialog = null;
 	private static NodeInst shownNode = null;
@@ -109,6 +111,30 @@ public class GetInfoNode extends JDialog implements HighlightListener
 		loadNodeInfo();
 	}
 
+    /**
+     * Respond to database changes
+     * @param batch a batch of changes completed
+     */
+    public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+        if (!isVisible()) return;
+
+        // check if we care about the changes
+        boolean reload = false;
+        for (Iterator it = batch.getChanges(); it.hasNext(); ) {
+            Undo.Change change = (Undo.Change)it.next();
+            ElectricObject obj = change.getObject();
+            if (obj == shownNode || obj == shownPort) {
+                reload = true;
+                break;
+            }
+        }
+        if (reload) {
+            // update dialog
+            loadNodeInfo();
+        }
+    }
+    public void databaseChanged(Undo.Change change) {}
+
 	/** Creates new form Node Get-Info */
 	private GetInfoNode(java.awt.Frame parent, boolean modal)
 	{
@@ -119,6 +145,7 @@ public class GetInfoNode extends JDialog implements HighlightListener
 
         // add myself as a listener for highlight changes
         Highlight.addHighlightListener(this);
+        Undo.addDatabaseChangeListener(this);
 
         bigger = prefs.getBoolean("GetInfoNode-bigger", false);
         int buttonSelected = prefs.getInt("GetInfoNode-buttonSelected", 0);
@@ -258,8 +285,7 @@ public class GetInfoNode extends JDialog implements HighlightListener
 		// in small version
 		NodeProto np = ni.getProto();
 		name.setEditable(true);
-		xSize.setEditable(true);
-		ySize.setEditable(true);
+        boolean sizeEditable = true;
 		xPos.setEditable(true);
 		yPos.setEditable(true);
 		rotation.setEditable(true);
@@ -346,8 +372,7 @@ public class GetInfoNode extends JDialog implements HighlightListener
 		if (outline != null)
 		{
 			holdsOutline = true;
-			xSize.setEditable(false);
-			ySize.setEditable(false);
+            sizeEditable = false;
 		}
 
 		// if there is outline information on a transistor, remember that
@@ -377,13 +402,20 @@ public class GetInfoNode extends JDialog implements HighlightListener
 			initialExpansion = ni.isExpanded();
 			if (initialExpansion) expanded.setSelected(true); else
 				unexpanded.setSelected(true);
-			xSize.setEditable(false);
-			ySize.setEditable(false);
+            sizeEditable = false;
 		} else
 		{
 			expanded.setEnabled(false);
 			unexpanded.setEnabled(false);
 		}
+
+        if (sizeEditable) {
+            xSize.setEditable(true);
+            ySize.setEditable(true);
+        } else {
+            xSize.setEditable(false);
+            ySize.setEditable(false);
+        }
 
 		// load visible-outside-cell state
 		initialInvisibleOutsideCell = ni.isVisInside();
@@ -1621,6 +1653,7 @@ public class GetInfoNode extends JDialog implements HighlightListener
 		setVisible(false);
 		//theDialog = null;
         //Highlight.removeHighlightListener(this);
+        //Undo.removeDatabaseChangeListener(this);
 		//dispose();
 	}//GEN-LAST:event_closeDialog
 

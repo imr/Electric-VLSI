@@ -28,6 +28,8 @@ import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.change.DatabaseChangeListener;
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
@@ -42,7 +44,7 @@ import javax.swing.*;
 /**
  * Class to handle the "Arc Get-Info" dialog.
  */
-public class GetInfoArc extends JDialog implements HighlightListener
+public class GetInfoArc extends JDialog implements HighlightListener, DatabaseChangeListener
 {
 	private static GetInfoArc theDialog = null;
 	private static ArcInst shownArc = null;
@@ -77,6 +79,30 @@ public class GetInfoArc extends JDialog implements HighlightListener
 		loadArcInfo();
 	}
 
+    /**
+     * Respond to database changes
+     * @param batch a batch of changes completed
+     */
+    public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+        if (!isVisible()) return;
+
+        // check if we care about the changes
+        boolean reload = false;
+        for (Iterator it = batch.getChanges(); it.hasNext(); ) {
+            Undo.Change change = (Undo.Change)it.next();
+            ElectricObject obj = change.getObject();
+            if (obj == shownArc) {
+                reload = true;
+                break;
+            }
+        }
+        if (reload) {
+            // update dialog
+            loadArcInfo();
+        }
+    }
+    public void databaseChanged(Undo.Change change) {}
+
 	/** Creates new form Arc Get-Info */
 	private GetInfoArc(java.awt.Frame parent, boolean modal)
 	{
@@ -87,6 +113,7 @@ public class GetInfoArc extends JDialog implements HighlightListener
         setLocation(100, 50);
         // add myself as a highlight listener
         Highlight.addHighlightListener(this);
+        Undo.addDatabaseChangeListener(this);
 	}
 
 	private void loadArcInfo()

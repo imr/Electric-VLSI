@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
@@ -59,7 +60,7 @@ import javax.swing.border.BevelBorder;
 /**
  * Class to handle the "Text Get-Info" dialog.
  */
-public class GetInfoText extends JDialog implements HighlightListener {
+public class GetInfoText extends JDialog implements HighlightListener, DatabaseChangeListener {
     private static GetInfoText theDialog = null;
     private Highlight shownText;
     private String initialText;
@@ -93,6 +94,25 @@ public class GetInfoText extends JDialog implements HighlightListener {
         if (!isVisible()) return;
         loadTextInfo();
     }
+
+    public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+        if (!isVisible()) return;
+
+        boolean reload = false;
+        for (Iterator it = batch.getChanges(); it.hasNext(); ) {
+            Undo.Change change = (Undo.Change)it.next();
+            ElectricObject obj = change.getObject();
+            if (obj == owner) {
+                reload = true;
+                break;
+            }
+        }
+        if (reload) {
+            // update dialog
+            loadTextInfo();
+        }
+    }
+    public void databaseChanged(Undo.Change change) {}
 
     private void loadTextInfo() {
         // must have a single text selected
@@ -219,18 +239,21 @@ public class GetInfoText extends JDialog implements HighlightListener {
 
         // add myself as a listener for Highlight changes
         Highlight.addHighlightListener(this);
+        Undo.addDatabaseChangeListener(this);
 
         loadTextInfo();
     }
 
     protected static class ChangeText extends Job {
+        Highlight shownText;
         Variable var;
         Name name;
         ElectricObject owner;
         String[] newText;
 
-        protected ChangeText(Variable var, Name name, ElectricObject owner, String[] newText) {
+        protected ChangeText(Highlight shownText, Variable var, Name name, ElectricObject owner, String[] newText) {
             super("Modify Text", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.shownText = shownText;
             this.var = var;
             this.name = name;
             this.owner = owner;
@@ -247,6 +270,8 @@ public class GetInfoText extends JDialog implements HighlightListener {
                     // change variable
                     newVar = owner.updateVar(var.getKey(), newText[0]);
                 }
+                if (newVar != null)
+                    shownText.setVar(newVar);
             } else {
                 if (name != null) {
                     if (owner != null) {
@@ -255,8 +280,6 @@ public class GetInfoText extends JDialog implements HighlightListener {
                     }
                 }
             }
-            // TODO: need to be a database change listener
-            //GetInfoText.highlightChanged();
             return true;
         }
     }
@@ -522,7 +545,7 @@ getContentPane().add(buttonsPanel, gridBagConstraints);
 
             if (textArray.length > 0) {
                 // generate job to change text
-                ChangeText job = new ChangeText(var, shownText.getName(), owner, textArray);
+                ChangeText job = new ChangeText(shownText, var, shownText.getName(), owner, textArray);
                 initialText = currentText;
             }
         }
@@ -545,9 +568,6 @@ getContentPane().add(buttonsPanel, gridBagConstraints);
      */
     private void closeDialog(java.awt.event.WindowEvent evt) {
         setVisible(false);
-        //theDialog = null;
-        //Highlight.removeHighlightListener(this);
-        //dispose();
     }
 
     private javax.swing.JButton apply;

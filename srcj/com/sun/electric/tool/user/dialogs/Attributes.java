@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.text.TextUtils;
@@ -58,7 +59,7 @@ import javax.swing.*;
 /**
  * Class to handle the "Attributes" dialog.
  */
-public class Attributes extends JDialog implements HighlightListener
+public class Attributes extends JDialog implements HighlightListener, DatabaseChangeListener
 {
     private static Attributes theDialog = null;
     private DefaultListModel listModel;
@@ -94,7 +95,7 @@ public class Attributes extends JDialog implements HighlightListener
             }
         }
         theDialog.loadAttributesInfo();
-        if (!theDialog.isVisible()) theDialog.pack();        
+        if (!theDialog.isVisible()) theDialog.pack();
         theDialog.show();
     }
 
@@ -108,6 +109,29 @@ public class Attributes extends JDialog implements HighlightListener
     }
 
     /**
+     * Reload if the database has changed in a way we care about
+     * @param batch a batch of changes
+     */
+    public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+        if (!isVisible()) return;
+
+        boolean reload = false;
+        for (Iterator it = batch.getChanges(); it.hasNext(); ) {
+            Undo.Change change = (Undo.Change)it.next();
+            ElectricObject obj = change.getObject();
+            if (obj == selectedObject) {
+                reload = true;
+                break;
+            }
+        }
+        if (reload) {
+            // update dialog
+            loadAttributesInfo();
+        }
+    }
+    public void databaseChanged(Undo.Change change) {}
+
+    /**
      * Creates new form Attributes.
      */
     private Attributes(java.awt.Frame parent, boolean modal)
@@ -118,6 +142,7 @@ public class Attributes extends JDialog implements HighlightListener
 
         // add myself as a listener for highlight changes
         Highlight.addHighlightListener(this);
+        Undo.addDatabaseChangeListener(this);
 
         // make the list
         listModel = new DefaultListModel();
@@ -521,9 +546,6 @@ public class Attributes extends JDialog implements HighlightListener
         {
             if (var == null) return false;
             owner.delVar(var.getKey());
-            // update the attributes dialog
-            // TODO: need to be database change listener
-            //Attributes.load();
             return true;
         }
     }
@@ -1040,13 +1062,9 @@ public class Attributes extends JDialog implements HighlightListener
         CreateAttribute job = new CreateAttribute(varName, getVariableObject(val), selectedObject);
         // Spawn a Job to set the new Variable's text options
         // because the var has not been created yet, set the futureVarName for the panel
-        //textPanel.setTextDescriptor(null, varName, selectedObject);
         textPanel.applyChanges();
         // same for text attributes panel
-        //attrPanel.setVariable(null, null, varName, selectedObject);
         attrPanel.applyChanges();
-        // generate Job to update this dialog when the changes have been processed
-        //UpdateDialog job2 = new UpdateDialog();
 
         initialName = varName;
         initialValue = val;
@@ -1078,8 +1096,6 @@ public class Attributes extends JDialog implements HighlightListener
         // update text options and attribute options (will check for changes)
         textPanel.applyChanges();
         attrPanel.applyChanges();
-        // generate Job to update this dialog once changes have completed
-        //UpdateDialog job2 = new UpdateDialog();
 
     }//GEN-LAST:event_updateButtonActionPerformed
 

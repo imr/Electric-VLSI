@@ -634,6 +634,8 @@ public class Undo
 			return false;
 		}
 
+        public String toString() { return describe(); }
+
 		/**
 		 * Method to describe this change as a string.
 		 */
@@ -959,6 +961,8 @@ public class Undo
 	private static List doneList = new ArrayList();
 	private static List undoneList = new ArrayList();
 
+    /** List of all DatabaseChangeListeners */          private static List changeListeners = new ArrayList();
+
 	/**
 	 * Method to start a new batch of changes.
 	 * @param tool the tool that is producing the activity.
@@ -1020,9 +1024,38 @@ public class Undo
 			Listener listener = (Listener)it.next();
 			listener.endBatch();
 		}
+        fireEndChangeBatch(currentBatch);
 
 		currentBatch = null;
 	}
+
+    /** Add a DatabaseChangeListener. It will be notified when
+     * objects in the database change.
+     * @param l the listener
+     */
+    public static synchronized void addDatabaseChangeListener(DatabaseChangeListener l) {
+        changeListeners.add(l);
+    }
+
+    /** Remove a DatabaseChangeListener. */
+    public static synchronized void removeDatabaseChangeListener(DatabaseChangeListener l) {
+        changeListeners.remove(l);
+    }
+
+    /** Fire a change event to all database change listeners */
+    private static synchronized void fireChangeEvent(Change change) {
+        for (Iterator it = changeListeners.iterator(); it.hasNext(); ) {
+            DatabaseChangeListener l = (DatabaseChangeListener)it.next();
+            l.databaseChanged(change);
+        }
+    }
+
+    private static synchronized void fireEndChangeBatch(ChangeBatch batch) {
+        for (Iterator it = changeListeners.iterator(); it.hasNext(); ) {
+            DatabaseChangeListener l = (DatabaseChangeListener)it.next();
+            l.databaseEndChangeBatch(batch);
+        }
+    }
 
 	/**
 	 * Method to record and broadcast a change.
@@ -1107,6 +1140,7 @@ public class Undo
 		ni.setChange(ch);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+        fireChangeEvent(ch);
 		//Constraint.getCurrent().modifyArcInst(ni, oCX, oCY, oSX, oSY, oRot);
 	}
 
@@ -1128,6 +1162,7 @@ public class Undo
 		ai.setChange(ch);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+        fireChangeEvent(ch);
 		//Constraint.getCurrent().modifyArcInst(ai, oHX, oHY, oTX, oTY, oWid);
 	}
 
@@ -1144,6 +1179,7 @@ public class Undo
 		pp.setChange(ch);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+        fireChangeEvent(ch);
 		Constraints.getCurrent().modifyExport(pp, oldPi);
 	}
 
@@ -1163,6 +1199,7 @@ public class Undo
 		cell.setChange(ch);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+        fireChangeEvent(ch);
 		//Constraint.getCurrent().modifyCell(cell, oLX, oHX, oLY, oHY);
 	}
 
@@ -1181,6 +1218,7 @@ public class Undo
 		ch.i2 = oldDescript1;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+        fireChangeEvent(ch);
 		// tell constraint system about this TextDescriptor
 		Constraints.getCurrent().modifyTextDescript(obj, descript, oldDescript0, oldDescript1);
 	}
@@ -1200,6 +1238,7 @@ public class Undo
 		Change ch = newChange(obj, type, null);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+        fireChangeEvent(ch);
 		Constraints.getCurrent().newObject(obj);
 	}
 
@@ -1220,6 +1259,7 @@ public class Undo
 		Change ch = newChange(obj, type, null);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+        fireChangeEvent(ch);
 		Constraints.getCurrent().killObject(obj);
 	}
 
@@ -1235,6 +1275,7 @@ public class Undo
 		Change ch = newChange(pp, type, oldPortInsts);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+        fireChangeEvent(ch);
 		Constraints.getCurrent().killExport(pp, oldPortInsts);
 	}
 
@@ -1250,6 +1291,7 @@ public class Undo
 		Change ch = newChange(obj, type, oldName);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+        fireChangeEvent(ch);
 		Constraints.getCurrent().renameObject(obj, oldName);
 	}
 
@@ -1266,6 +1308,7 @@ public class Undo
 		Change ch = newChange(obj, type, null);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+        fireChangeEvent(ch);
 	}
 
 	/**
@@ -1280,6 +1323,7 @@ public class Undo
 		Change ch = newChange(obj, type, var);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+        fireChangeEvent(ch);
 		Constraints.getCurrent().newVariable(obj, var);
 	}
 
@@ -1295,6 +1339,7 @@ public class Undo
 		Change ch = newChange(obj, type, var);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+        fireChangeEvent(ch);
 		Constraints.getCurrent().killVariable(obj, var);
 	}
 
@@ -1312,6 +1357,7 @@ public class Undo
 		ch.i1 = oldFlags;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+        fireChangeEvent(ch);
 		Constraints.getCurrent().modifyVariableFlags(obj, var, oldFlags);
 	}
 
@@ -1330,6 +1376,7 @@ public class Undo
 		ch.o2 = oldValue;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+        fireChangeEvent(ch);
 		Constraints.getCurrent().modifyVariable(obj, var, index, oldValue);
 	}
 
@@ -1346,6 +1393,7 @@ public class Undo
 		ch.i1 = index;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+        fireChangeEvent(ch);
 		Constraints.getCurrent().insertVariable(obj, var, index);
 	}
 
@@ -1364,6 +1412,7 @@ public class Undo
 		ch.o2 = oldValue;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+        fireChangeEvent(ch);
 		Constraints.getCurrent().deleteVariable(obj, var, index, oldValue);
 	}
 
