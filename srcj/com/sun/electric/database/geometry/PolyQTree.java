@@ -126,10 +126,10 @@ public class PolyQTree implements GeometryHandler
 				PolyNode node = (PolyNode)it.next();
 				//if (!modified || (modified && !node.isOriginal()))
 				{
-					boolean old = (!(node.isOriginal() || !simple));
-					boolean newC = !node.isOriginal() && simple;
-					if (newC != old)
-						System.out.println("Aqui wribg");
+//					boolean old = (!(node.isOriginal() || !simple));
+//					boolean newC = !node.isOriginal() && simple;
+//					if (newC != old)
+//						System.out.println("Aqui wribg");
 					if (!(node.isOriginal() || !simple))
 					{
 						toRemove.add(node);
