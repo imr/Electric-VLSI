@@ -1999,5 +1999,31 @@ public class WaveformWindow implements WindowContent
 	public void fireCellHistoryStatus()
 	{
 	}
-	
+
+	/**
+	 * Method to initialize for a new text search.
+	 * @param search the string to locate.
+	 * @param caseSensitive true to match only where the case is the same.
+	 */
+	public void initTextSearch(String search, boolean caseSensitive) {}
+
+	/**
+	 * Method to find the next occurrence of a string.
+	 * @param reverse true to find in the reverse direction.
+	 * @return true if something was found.
+	 */
+	public boolean findNextText(boolean reverse) { return false; }
+
+	/**
+	 * Method to replace the text that was just selected with findNextText().
+	 * @param replace the new text to replace.
+	 */
+	public void replaceText(String replace) {}
+
+	/**
+	 * Method to replace all selected text.
+	 * @param replace the new text to replace everywhere.
+	 */
+	public void replaceAllText(String replace) {}
+
 }

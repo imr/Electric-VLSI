@@ -313,6 +313,32 @@ public class TextUtils
 	}
 
 	/**
+	 * Method to find a string inside of another string.
+	 * @param string the main string being searched.
+	 * @param search the string being located in the main string.
+	 * @param startingPos the starting position in the main string to look (0 to search the whole string).
+	 * @param caseSensitive true to do a case-sensitive search.
+	 * @return the position of the search string.  Returns negative if the string is not found.
+	 */
+	public static int findStringInString(String string, String search, int startingPos, boolean caseSensitive)
+	{
+		if (caseSensitive)
+		{
+			// case-sensitive search
+			int i = string.indexOf(search, startingPos);
+			return i;
+		}
+
+		// case-insensitive search
+		if (startingPos > 0) string = string.substring(startingPos);
+		String stringLC = string.toLowerCase();
+		String searchLC = search.toLowerCase();
+		int i = stringLC.indexOf(searchLC);
+		if (i >= 0) i += startingPos;
+		return i;
+	}
+
+	/**
 	 * Unit is a typesafe enum class that describes a unit scale (metric factors of 10).
 	 */
 	public static class UnitScale

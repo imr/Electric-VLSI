@@ -2712,6 +2712,49 @@ public class MoCMOS extends Technology
 		silicideBlockNode_node.setFunction(NodeProto.Function.NODE);
 		silicideBlockNode_node.setHoldsOutline();
 		silicideBlockNode_node.setSpecialType(PrimitiveNode.POLYGONAL);
+
+		// The pure layer nodes
+		metal1_lay.setPureLayerNode(metal1Node_node);					// Metal-1
+		metal2_lay.setPureLayerNode(metal2Node_node);					// Metal-2
+		metal3_lay.setPureLayerNode(metal3Node_node);					// Metal-3
+		metal4_lay.setPureLayerNode(metal4Node_node);					// Metal-4
+		metal5_lay.setPureLayerNode(metal5Node_node);					// Metal-5
+		metal6_lay.setPureLayerNode(metal6Node_node);					// Metal-6
+		poly1_lay.setPureLayerNode(poly1Node_node);						// Polysilicon-1
+		poly2_lay.setPureLayerNode(poly2Node_node);						// Polysilicon-2
+		pActive_lay.setPureLayerNode(pActiveNode_node);					// P-Active
+		nActive_lay.setPureLayerNode(nActiveNode_node);					// N-Active
+		pSelect_lay.setPureLayerNode(pSelectNode_node);					// P-Select
+		nSelect_lay.setPureLayerNode(nSelectNode_node);					// N-Select
+		pWell_lay.setPureLayerNode(pWellNode_node);						// P-Well
+		nWell_lay.setPureLayerNode(nWellNode_node);						// N-Well
+		polyCut_lay.setPureLayerNode(polyCutNode_node);					// Poly-Cut
+		activeCut_lay.setPureLayerNode(activeCutNode_node);				// Active-Cut
+		via1_lay.setPureLayerNode(via1Node_node);						// Via-1
+		via2_lay.setPureLayerNode(via2Node_node);						// Via-2
+		via3_lay.setPureLayerNode(via3Node_node);						// Via-3
+		via4_lay.setPureLayerNode(via4Node_node);						// Via-4
+		via5_lay.setPureLayerNode(via5Node_node);						// Via-5
+		passivation_lay.setPureLayerNode(passivationNode_node);			// Passivation
+		transistorPoly_lay.setPureLayerNode(polyTransistorNode_node);	// Transistor-Poly
+		polyCap_lay.setPureLayerNode(polyCapNode_node);					// Poly-Cap
+		pActiveWell_lay.setPureLayerNode(pActiveWellNode_node);			// P-Active-Well
+		silicideBlock_lay.setPureLayerNode(silicideBlockNode_node);		// Silicide-Block
+//		pseudoMetal1_lay.setPureLayerNode(XXXXXXXXXXXXX);				// Pseudo-Metal-1
+//		pseudoMetal2_lay.setPureLayerNode(XXXXXXXXXXXXX);				// Pseudo-Metal-2
+//		pseudoMetal3_lay.setPureLayerNode(XXXXXXXXXXXXX);				// Pseudo-Metal-3
+//		pseudoMetal4_lay.setPureLayerNode(XXXXXXXXXXXXX);				// Pseudo-Metal-4
+//		pseudoMetal5_lay.setPureLayerNode(XXXXXXXXXXXXX);				// Pseudo-Metal-5
+//		pseudoMetal6_lay.setPureLayerNode(XXXXXXXXXXXXX);				// Pseudo-Metal-6
+//		pseudoPoly1_lay.setPureLayerNode(XXXXXXXXXXXXX);				// Pseudo-Polysilicon-1
+//		pseudoPoly2_lay.setPureLayerNode(XXXXXXXXXXXXX);				// Pseudo-Polysilicon-2
+//		pseudoPActive_lay.setPureLayerNode(XXXXXXXXXXXXX);				// Pseudo-P-Active
+//		pseudoNActive_lay.setPureLayerNode(XXXXXXXXXXXXX);				// Pseudo-N-Active
+//		pseudoPSelect_lay.setPureLayerNode(XXXXXXXXXXXXX);				// Pseudo-P-Select
+//		pseudoNSelect_lay.setPureLayerNode(XXXXXXXXXXXXX);				// Pseudo-N-Select
+//		pseudoPWell_lay.setPureLayerNode(XXXXXXXXXXXXX);				// Pseudo-P-Well
+//		pseudoNWell_lay.setPureLayerNode(XXXXXXXXXXXXX);				// Pseudo-N-Well
+		padFrame_lay.setPureLayerNode(padFrameNode_node);				// Pad-Frame
 	}
 
 	/******************** SUPPORT METHODS ********************/

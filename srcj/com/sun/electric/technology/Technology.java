@@ -2377,6 +2377,12 @@ public class Technology extends ElectricObject
 				NodeProto np = nodeProtoList[i];
 				if (np == null) continue;
 				Technology nodeTech = np.getTechnology();
+				if (np instanceof Cell)
+				{
+					Cell subCell = (Cell)np;
+					if (subCell.getView() == View.ICON)
+						nodeTech = Schematics.tech;
+				}
 				if (nodeTech != null) useCount[nodeTech.getIndex()]++;
 			}
 		} else

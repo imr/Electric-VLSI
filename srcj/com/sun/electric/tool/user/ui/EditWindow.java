@@ -23,17 +23,23 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.Job;
@@ -49,6 +55,7 @@ import java.awt.BasicStroke;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Color;
+import java.awt.Toolkit;
 import java.awt.Rectangle;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -783,6 +790,333 @@ public class EditWindow
 
 				// just a single dot
 				g.fillRect(x,y, 1, 1);
+			}
+		}
+	}
+
+	// *************************** SEARCHING FOR TEXT ***************************
+
+	/** list of all found strings in the cell */		private List foundInCell;
+	/** the currently reported string */				private StringsInCell currentStringInCell;
+	/** the currently reported string index */			private int currentFindPosition;
+
+	/**
+	 * Class to define a string found in a cell.
+	 */
+	private static class StringsInCell
+	{
+		/** the object that the string resides on */	Object object;
+		/** the Variable that the string resides on */	Variable.Key key;
+		/** the Name that the string resides on */		Name name;
+		/** the original string. */						String theLine;
+		/** the line number in arrayed variables */		int lineInVariable;
+		/** the starting character position */			int startPosition;
+		/** the ending character position */			int endPosition;
+		/** true if the replacement has been done */	boolean replaced;
+
+		StringsInCell(Object object, Variable.Key key, Name name, int lineInVariable, String theLine, int startPosition, int endPosition)
+		{
+			this.object = object;
+			this.key = key;
+			this.name = name;
+			this.lineInVariable = lineInVariable;
+			this.theLine = theLine;
+			this.startPosition = startPosition;
+			this.endPosition = endPosition;
+			this.replaced = false;
+		}
+
+		public String toString() { return "StringsInCell obj="+object+" var="+key+
+			" name="+name+" line="+lineInVariable+" start="+startPosition+" end="+endPosition+" msg="+theLine; }
+	}
+
+	/**
+	 * Method to initialize for a new text search.
+	 * @param search the string to locate.
+	 * @param caseSensitive true to match only where the case is the same.
+	 */
+	public void initTextSearch(String search, boolean caseSensitive)
+	{
+		foundInCell = new ArrayList();
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			Name name = ni.getNameKey();
+			if (!name.isTempname())
+			{
+				findAllMatches(ni, null, 0, name, name.toString(), foundInCell, search, caseSensitive);
+			}
+			addVariableTextToList(ni, foundInCell, search, caseSensitive);
+		}
+		for(Iterator it = cell.getArcs(); it.hasNext(); )
+		{
+			ArcInst ai = (ArcInst)it.next();
+			Name name = ai.getNameKey();
+			if (!name.isTempname())
+			{
+				findAllMatches(ai, null, 0, name, name.toString(), foundInCell, search, caseSensitive);
+			}
+			addVariableTextToList(ai, foundInCell, search, caseSensitive);
+		}
+		for(Iterator it = cell.getPorts(); it.hasNext(); )
+		{
+			Export pp = (Export)it.next();
+			addVariableTextToList(pp, foundInCell, search, caseSensitive);
+		}
+		for(Iterator it = cell.getVariables(); it.hasNext(); )
+		{
+			Variable var = (Variable)it.next();
+			if (!var.isDisplay()) continue;
+			findAllMatches(null, var, -1, null, var.getPureValue(-1, -1), foundInCell, search, caseSensitive);
+		}
+		currentFindPosition = -1;
+		currentStringInCell = null;
+	}
+
+	/**
+	 * Method to find the next occurrence of a string.
+	 * @param reverse true to find in the reverse direction.
+	 * @return true if something was found.
+	 */
+	public boolean findNextText(boolean reverse)
+	{
+		if (foundInCell == null || foundInCell.size() == 0)
+		{
+			currentStringInCell = null;
+			return false;
+		}
+		if (reverse)
+		{
+			currentFindPosition--;
+			if (currentFindPosition < 0) currentFindPosition = foundInCell.size()-1;
+		} else
+		{
+			currentFindPosition++;
+			if (currentFindPosition >= foundInCell.size()) currentFindPosition = 0;
+		}
+		currentStringInCell = (StringsInCell)foundInCell.get(currentFindPosition);
+
+		Highlight.clear();
+		if (currentStringInCell.object == null)
+		{
+			Highlight.addText(cell, cell, (Variable)currentStringInCell.object, null);
+		} else
+		{
+			ElectricObject eObj = (ElectricObject)currentStringInCell.object;
+			Variable var = eObj.getVar(currentStringInCell.key);
+			Highlight.addText(eObj, cell, var, currentStringInCell.name);
+		}
+		Highlight.finished();
+		return true;		
+	}
+
+	/**
+	 * Method to replace the text that was just selected with findNextText().
+	 * @param replace the new text to replace.
+	 */
+	public void replaceText(String replace)
+	{
+		if (currentStringInCell == null) return;
+		ReplaceTextJob job = new ReplaceTextJob(this, replace);
+	}
+
+	/**
+	 * Method to replace all selected text.
+	 * @param replace the new text to replace everywhere.
+	 */
+	public void replaceAllText(String replace)
+	{
+		ReplaceAllTextJob job = new ReplaceAllTextJob(this, replace);
+	}
+
+	/**
+	 * Method to all all displayable variable strings to the list of strings in the Cell.
+	 * @param eObj the ElectricObject on which variables should be examined.
+	 * @param foundInCell the list of strings found in the cell.
+	 * @param search the string to find on the text.
+	 * @param caseSensitive true to do a case-sensitive search.
+	 */
+	private void addVariableTextToList(ElectricObject eObj, List foundInCell, String search, boolean caseSensitive)
+	{
+		for(Iterator it = eObj.getVariables(); it.hasNext(); )
+		{
+			Variable var = (Variable)it.next();
+			if (!var.isDisplay()) continue;
+			Object obj = var.getObject();
+			if (obj instanceof String)
+			{
+				findAllMatches(eObj, var, -1, null, (String)obj, foundInCell, search, caseSensitive);
+			} else if (obj instanceof String[])
+			{
+				String [] strings = (String [])obj;
+				for(int i=0; i<strings.length; i++)
+				{
+					findAllMatches(eObj, var, i, null, strings[i], foundInCell, search, caseSensitive);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Method to find all strings on a given database string, and add matches to the list.
+	 * @param object the Object on which the string resides.
+	 * @param variable the Variable on which the string resides.
+	 * @param lineInVariable the line number in arrayed variables.
+	 * @param name the name on which the string resides.
+	 * @param theLine the actual string from the database.
+	 * @param foundInCell the list of found strings.
+	 * @param search the string to find.
+	 * @param caseSensitive true to do a case-sensitive search.
+	 */
+	private static void findAllMatches(Object object, Variable variable, int lineInVariable, Name name, String theLine, List foundInCell,
+		String search, boolean caseSensitive)
+	{
+		for(int startPos = 0; ; )
+		{
+			startPos = TextUtils.findStringInString(theLine, search, startPos, caseSensitive);
+			if (startPos < 0) break;
+			int endPos = startPos + search.length();
+			Variable.Key key = null;
+			if (variable != null) key = variable.getKey();
+			foundInCell.add(new StringsInCell(object, key, name, lineInVariable, theLine, startPos, endPos));
+			startPos = endPos;
+		}
+	}
+
+	/**
+	 * Class to change text in a new thread.
+	 */
+	private static class ReplaceTextJob extends Job
+	{
+		EditWindow wnd;
+		String replace;
+
+		public ReplaceTextJob(EditWindow wnd, String replace)
+		{
+			super("Replace Text", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.wnd = wnd;
+			this.replace = replace;
+			startJob();
+		}
+
+		public void doIt()
+		{
+			wnd.changeOneText(wnd.currentStringInCell, replace, wnd.cell);
+		}
+	}
+
+	/**
+	 * Class to change text in a new thread.
+	 */
+	private static class ReplaceAllTextJob extends Job
+	{
+		EditWindow wnd;
+		String replace;
+
+		public ReplaceAllTextJob(EditWindow wnd, String replace)
+		{
+			super("Replace All Text", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.wnd = wnd;
+			this.replace = replace;
+			startJob();
+		}
+
+		public void doIt()
+		{
+			int total = 0;
+			for(wnd.currentFindPosition = 0; wnd.currentFindPosition < wnd.foundInCell.size(); wnd.currentFindPosition++)
+			{
+				wnd.currentStringInCell = (StringsInCell)wnd.foundInCell.get(wnd.currentFindPosition);
+				wnd.changeOneText(wnd.currentStringInCell, replace, wnd.cell);
+				total++;
+			}
+			if (total == 0)
+			{
+				Toolkit.getDefaultToolkit().beep();
+			} else
+			{
+				System.out.println("Replaced " + total + " times");
+			}
+		}
+	}
+
+	/**
+	 * Method to change a string to another.
+	 * @param sic the string being replaced.
+	 * @param rep the new string.
+	 * @param cell the Cell in which these strings reside.
+	 */
+	private void changeOneText(StringsInCell sic, String rep, Cell cell)
+	{
+		if (sic.replaced) return;
+		sic.replaced = true;
+		String oldString = sic.theLine;
+		String newString = oldString.substring(0, sic.startPosition) + rep + oldString.substring(sic.endPosition);
+		if (sic.object == null)
+		{
+			// cell variable name name
+			cell.updateVar(sic.key, newString);
+		} else
+		{
+			if (sic.key == null)
+			{
+				if (sic.name == null)
+				{
+					// export name
+					Export pp = (Export)sic.object;
+					pp.setProtoName(newString);
+					Undo.redrawObject(pp.getOriginalPort().getNodeInst());					
+				} else
+				{
+					// node or arc name
+					Geometric geom = (Geometric)sic.object;
+					geom.setName(newString);
+					Undo.redrawObject(geom);					
+				}
+			} else
+			{
+				// text on a variable
+				ElectricObject base = (ElectricObject)sic.object;
+				Variable var = base.getVar(sic.key);
+				Object obj = var.getObject();
+				Variable newVar = null;
+				if (obj instanceof String)
+				{
+					base.updateVar(sic.key, newString);
+				} else if (obj instanceof String[])
+				{
+					String [] oldLines = (String [])obj;
+					String [] newLines = new String[oldLines.length];
+					for(int i=0; i<oldLines.length; i++)
+					{
+						if (i == sic.lineInVariable) newLines[i] = newString; else
+							newLines[i] = oldLines[i];
+					}
+					base.updateVar(sic.key, newLines);
+				}
+			}
+		}
+
+		int delta = rep.length() - (sic.endPosition - sic.startPosition);
+		if (delta != 0)
+		{
+			// because the replacement changes the line length, must update other search strings
+			for(Iterator it = foundInCell.iterator(); it.hasNext(); )
+			{
+				StringsInCell oSIC = (StringsInCell)it.next();
+				if (oSIC == sic) continue;
+				if (oSIC.object != sic.object) continue;
+				if (oSIC.key != sic.key) continue;
+				if (oSIC.name != sic.name) continue;
+				if (oSIC.lineInVariable != sic.lineInVariable) continue;
+
+				// part of the same string: update it
+				oSIC.theLine = newString;
+				if (oSIC.startPosition > sic.startPosition)
+				{
+					oSIC.startPosition += delta;
+					oSIC.endPosition += delta;
+				}
 			}
 		}
 	}

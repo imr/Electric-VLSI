@@ -25,11 +25,19 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ErrorLog;
+import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.dialogs.FindText;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.MenuBar;
 
@@ -38,6 +46,12 @@ import java.awt.event.FocusListener;
 import java.awt.event.FocusEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.InputStream;
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -47,7 +61,10 @@ import javax.swing.JScrollPane;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.text.Position;
 import javax.swing.text.Document;
+import javax.swing.text.Element;
+import javax.swing.text.BadLocationException;
 
 /**
  * This class defines a text window for displaying text cells.
@@ -55,6 +72,11 @@ import javax.swing.text.Document;
 public class TextWindow
 	implements WindowContent
 {
+
+//	/** set if search is case-sensitive. */					public static final int CASE_SENSITIVE = 4;
+//	/** set to replace all occurrences. */					public static final int REPLACE_ALL = 2;
+//	/** set search backwards. */							public static final int FIND_REVERSE = 8;
+
 	/** the cell that is in the window */					private Cell cell;
 	/** the window frame containing this editwindow */      private WindowFrame wf;
 	/** the overall panel with disp area and sliders */		private JPanel overall;
@@ -84,6 +106,10 @@ public class TextWindow
 		TextWindowDocumentListener twDocumentListener = new TextWindowDocumentListener(this);
 		textArea.getDocument().addDocumentListener(twDocumentListener);
 		textArea.addFocusListener(twDocumentListener);
+
+//		textArea.requestFocus();
+//		textArea.setSelectionStart(0);
+//		textArea.setSelectionEnd(0);
 	}
 
 	/**
@@ -228,8 +254,86 @@ public class TextWindow
 		textArea.setText(makeOneString(lines));
 	}
 
-	private void putTextBack()
+	/**
+	 * Method to read a text disk file into this TextWindow.
+	 */
+	public static void readTextCell()
 	{
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		if (wf == null) return;
+		WindowContent content = wf.getContent();
+		if (content instanceof TextWindow)
+		{
+			TextWindow tw = (TextWindow)content;
+			String fileName = OpenFile.chooseInputFile(OpenFile.Type.TEXT, null);
+			if (fileName != null)
+			{
+				// start a job to do the input
+				URL fileURL = TextUtils.makeURLToFile(fileName);
+				InputStream stream = TextUtils.getURLStream(fileURL);
+				URLConnection urlCon = null;
+				try
+				{
+					urlCon = fileURL.openConnection();
+				} catch (IOException e)
+				{
+					System.out.println("Could not find file: " + fileURL.getFile());
+					return;
+				}
+
+				// clear the buffer
+				tw.textArea.setText("");
+
+				final int READ_BUFFER_SIZE = 65536;
+				char [] buf = new char[READ_BUFFER_SIZE];
+				BufferedInputStream bufStrm = new BufferedInputStream(stream, READ_BUFFER_SIZE);
+				InputStreamReader is = new InputStreamReader(stream);
+				try
+				{
+					for(;;)
+					{
+						int amtRead = is.read(buf, 0, READ_BUFFER_SIZE);
+						if (amtRead <= 0) break;
+						String addString = new String(buf, 0, amtRead);
+						tw.textArea.append(addString);
+					}
+					stream.close();
+				} catch (IOException e)
+				{
+					System.out.println("Error reading the file");
+				}
+			}
+		}
+	}
+
+	/**
+	 * Method to save this TextWindow to a disk file.
+	 */
+	public static void writeTextCell()
+	{
+		System.out.println("CANNOT YET");
+	}
+
+	/**
+	 * Method to select a line number in this TextWindow.
+	 * @param lineNumber the line to select (1-based).
+	 */
+	public void goToLineNumber(int lineNumber)
+	{
+		Document doc = textArea.getDocument();
+		Element paragraph = doc.getDefaultRootElement();
+		int lines = paragraph.getElementCount();
+		if (lineNumber <= 0 || lineNumber > lines)
+		{
+			System.out.println("Line numbers must be between 1 and "+lines);
+			return;
+		}
+
+		Element e = paragraph.getElement(lineNumber-1);
+		int startPos = e.getStartOffset();
+		int endPos = e.getEndOffset();
+		textArea.setSelectionStart(startPos);
+		textArea.setSelectionEnd(endPos);
 	}
 
 	/**
@@ -262,6 +366,8 @@ public class TextWindow
 
 	/**
 	 * Method to update text for a cell (if it is being displayed).
+	 * This is called when the text for a cell has been changed by some other part of the system,
+	 * and should be redisplayed where appropriate.
 	 * @param cell the Cell whose text changed.
 	 * @param strings the new text for that cell.
 	 */
@@ -309,31 +415,20 @@ public class TextWindow
 	 */
 	private String [] convertToStrings()
 	{
-		String entire = textArea.getText();
-		int len = entire.length();
-		int total = 0;
-		char lastCh = 0;
-		for(int i=0; i<len; i++)
+		Document doc = textArea.getDocument();
+		Element paragraph = doc.getDefaultRootElement();
+		int lines = paragraph.getElementCount();
+		String [] strings = new String[lines];
+		for(int i=0; i<lines; i++)
 		{
-			lastCh = entire.charAt(i);
-			if (lastCh == '\n') total++;
-		}
-		if (lastCh != '\n') total++;
-
-		String [] strings = new String[total];
-		int fill = 0;
-		int start = 0;
-		for(int i=0; i<len; i++)
-		{
-			lastCh = entire.charAt(i);
-			if (lastCh == '\n')
+			Element e = paragraph.getElement(i);
+			int startPos = e.getStartOffset();
+			int endPos = e.getEndOffset();
+			try
 			{
-				strings[fill] = entire.substring(start, i);
-				start = i+1;
-				fill++;
-			}
+				strings[i] = textArea.getText(startPos, endPos - startPos - 1);
+			} catch (BadLocationException ex) {}
 		}
-		if (start < len) strings[fill] = entire.substring(start, len);
 		return strings;
 	}
 
@@ -384,4 +479,109 @@ public class TextWindow
     public void fireCellHistoryStatus()
 	{
     }
+
+	private String searchString = null;
+	private boolean searchCaseSensitive = false;
+
+	/**
+	 * Method to initialize for a new text search.
+	 * @param search the string to locate.
+	 * @param caseSensitive true to match only where the case is the same.
+	 */
+	public void initTextSearch(String search, boolean caseSensitive)
+	{
+		searchString = search;
+		searchCaseSensitive = caseSensitive;
+	}
+
+	/**
+	 * Method to find the next occurrence of a string.
+	 * @param reverse true to find in the reverse direction.
+	 * @return true if something was found.
+	 */
+	public boolean findNextText(boolean reverse)
+	{
+		Document doc = textArea.getDocument();
+		Element paragraph = doc.getDefaultRootElement();
+		int lines = paragraph.getElementCount();
+		int lineNo = 0;
+		int endSelection = textArea.getSelectionEnd();
+		try
+		{
+			lineNo = textArea.getLineOfOffset(endSelection);
+		} catch (BadLocationException e)
+		{
+			return false;
+		}
+
+		for(int i=0; i<lines; i++)
+		{
+			Element e = paragraph.getElement((i+lineNo) % lines);
+			int startPos = e.getStartOffset();
+			int endPos = e.getEndOffset();
+			if (i == 0) startPos = endSelection;
+
+			String theLine = null;
+			try
+			{
+				theLine = textArea.getText(startPos, endPos - startPos - 1);
+			} catch (BadLocationException ex)
+			{
+				return false;
+			}
+			int foundPos = TextUtils.findStringInString(theLine, searchString, 0, searchCaseSensitive);
+			if (foundPos >= 0)
+			{
+				textArea.setSelectionStart(startPos + foundPos);
+				textArea.setSelectionEnd(startPos + foundPos + searchString.length());
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Method to replace the text that was just selected with findNextText().
+	 * @param replace the new text to replace.
+	 */
+	public void replaceText(String replace)
+	{
+		int startSelection = textArea.getSelectionStart();
+		int endSelection = textArea.getSelectionEnd();
+		textArea.replaceRange(replace, startSelection, endSelection);
+	}
+
+	/**
+	 * Method to replace all selected text.
+	 * @param replace the new text to replace everywhere.
+	 */
+	public void replaceAllText(String replace)
+	{
+//		String entire = textArea.getText();
+//		int len = entire.length();
+//		int total = 0;
+//		char lastCh = 0;
+//		for(int i=0; i<len; i++)
+//		{
+//			lastCh = entire.charAt(i);
+//			if (lastCh == '\n') total++;
+//		}
+//		if (lastCh != '\n') total++;
+//
+//		String [] strings = new String[total];
+//		int fill = 0;
+//		int start = 0;
+//		for(int i=0; i<len; i++)
+//		{
+//			lastCh = entire.charAt(i);
+//			if (lastCh == '\n')
+//			{
+//				strings[fill] = entire.substring(start, i);
+//				start = i+1;
+//				fill++;
+//			}
+//		}
+//		if (start < len) strings[fill] = entire.substring(start, len);
+//		return strings;
+	}
 }

@@ -71,6 +71,7 @@ import com.sun.electric.tool.user.ui.PaletteFrame;
 import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.SizeListener;
+import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.ZoomAndPanListener;
@@ -326,6 +327,16 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.showNonmanhattanCommand(); }});
 		cleanupSubMenu.addMenuItem("Shorten Selected Arcs", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.shortenArcsCommand(); }});
+
+
+		Menu textSubMenu = new Menu("Text");
+		editMenu.add(textSubMenu);
+		textSubMenu.addMenuItem("Find Text...", KeyStroke.getKeyStroke('L', buckyBit),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FindText.findTextDialog(); }});
+		textSubMenu.addMenuItem("Read Text Cell...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { TextWindow.readTextCell(); }});
+		textSubMenu.addMenuItem("Write Text Cell...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { TextWindow.writeTextCell(); }});
 
 		Menu modeSubMenuSelect = new Menu("Select");
 		modeSubMenu.add(modeSubMenuSelect);

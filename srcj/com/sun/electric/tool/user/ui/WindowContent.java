@@ -34,6 +34,37 @@ import javax.swing.tree.DefaultMutableTreeNode;
  */
 public interface WindowContent
 {
+	/**
+	 * Method to initialize for a new text search.
+	 * @param search the string to locate.
+	 * @param caseSensitive true to match only where the case is the same.
+	 */
+	public abstract void initTextSearch(String search, boolean caseSensitive);
+
+	/**
+	 * Method to find the next occurrence of a string.
+	 * @param reverse true to find in the reverse direction.
+	 * @return true if something was found.
+	 */
+	public abstract boolean findNextText(boolean reverse);
+
+	/**
+	 * Method to replace the text that was just selected with findNextText().
+	 * @param replace the new text to replace.
+	 */
+	public abstract void replaceText(String replace);
+
+	/**
+	 * Method to replace all selected text.
+	 * @param replace the new text to replace everywhere.
+	 */
+	public abstract void replaceAllText(String replace);
+
+	// the "flags" for searchText():
+//	/** set to replace all occurrences. */					public static final int REPLACE_ALL = 2;
+//	/** set if search is case-sensitive. */					public static final int CASE_SENSITIVE = 4;
+//	/** set search backwards. */							public static final int FIND_REVERSE = 8;
+
 	public abstract void finished();
 	public abstract void requestRepaint();
 	public abstract void fillScreen();

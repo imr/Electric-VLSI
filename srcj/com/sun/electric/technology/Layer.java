@@ -215,6 +215,7 @@ public class Layer
 	private double resistance, capacitance, edgeCapacitance;
 	private Layer nonPseudoLayer;
 	private boolean visible;
+	private PrimitiveNode pureLayerNode;
 
 	private static HashMap cifLayerPrefs = new HashMap();
 	private static HashMap gdsLayerPrefs = new HashMap();
@@ -314,6 +315,18 @@ public class Layer
 	 * @return the Function extras of this Layer.
 	 */
 	public int getFunctionExtras() { return functionExtras; }
+
+	/**
+	 * Method to set the Pure Layer Node associated with this Layer.
+	 * @param pln the Pure Layer PrimitiveNode to use for this Layer.
+	 */
+	public void setPureLayerNode(PrimitiveNode pln) { pureLayerNode = pln; }
+
+	/**
+	 * Method to return the Pure Layer Node associated with this Layer.
+	 * @return the Pure Layer Node associated with this Layer.
+	 */
+	public PrimitiveNode getPureLayerNode() { return pureLayerNode; }
 
 	/**
 	 * Method to tell whether this layer function is non-electrical.
