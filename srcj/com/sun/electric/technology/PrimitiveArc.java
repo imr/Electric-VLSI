@@ -114,7 +114,7 @@ public class PrimitiveArc extends ArcProto
 	 */
 	public PrimitiveNode findPinProto()
 	{
-		Iterator it = tech.getNodeIterator();
+		Iterator it = tech.getNodes();
 		while (it.hasNext())
 		{
 			PrimitiveNode pn = (PrimitiveNode) it.next();

@@ -172,6 +172,12 @@ public class View extends ElectricObject
 		return views.iterator();
 	}
 
+	/** Get the number of views. */
+	public static int getNumViews()
+	{
+		return views.size();
+	}
+
 	public String toString()
 	{
 		return "View " + fullName;

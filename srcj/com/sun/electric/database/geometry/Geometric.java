@@ -60,6 +60,7 @@ public class Geometric extends ElectricObject
 	/** center coordinate of this geometric */		protected double cX, cY;
 	/** size of this geometric */					protected double sX, sY;
 	/** angle of this geometric */					protected double angle;
+	/** temporary value for the arc instance */		private int temp1;
 
 	// ------------------------ private and protected methods--------------------
 
@@ -153,5 +154,8 @@ public class Geometric extends ElectricObject
 	public double getXSize() { return Math.abs(sX); }
 	public double getYSize() { return Math.abs(sY); }
 	public Rectangle2D getBounds() { return visBounds; }
+
+	public int getTemp1() { return temp1; }
+	public void setTemp1(int temp1) { this.temp1 = temp1; }
 
 }

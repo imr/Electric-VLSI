@@ -262,10 +262,10 @@ public class TecGeneric extends Technology
 	{
 		// count the number of arcs in all technologies
 		int tot = 0;
-		for(Iterator it = Technology.getTechnologyIterator(); it.hasNext(); )
+		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
-			for(Iterator ait = tech.getArcIterator(); ait.hasNext(); )
+			for(Iterator ait = tech.getArcs(); ait.hasNext(); )
 			{
 				ArcProto ap = (ArcProto)ait.next();
 				tot++;
@@ -277,10 +277,10 @@ public class TecGeneric extends Technology
 
 		// fill the array
 		tot = 0;
-		for(Iterator it = Technology.getTechnologyIterator(); it.hasNext(); )
+		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
-			for(Iterator ait = tech.getArcIterator(); ait.hasNext(); )
+			for(Iterator ait = tech.getArcs(); ait.hasNext(); )
 			{
 				ArcProto ap = (ArcProto)ait.next();
 				upconn[tot++] = ap;

@@ -83,6 +83,7 @@ public abstract class ArcProto extends ElectricObject
 	/** Default width of this wire */					protected double defaultWidth;
 	/** Width of other the material */					protected double widthOffset;
 	/** Flags for this arc */							private int userBits;
+	/** temporary value for this arc */					private int temp1;
 	/** function of this arc */							private Function function;
 
 	// the meaning of the "userBits" field:
@@ -198,6 +199,9 @@ public abstract class ArcProto extends ElectricObject
 	public void setAngleIncrement(int value) { userBits = (userBits & ~AANGLEINC) | (value << AANGLEINCSH); }
 	/** Get the arc angle increment */
 	public int getAngleIncrement() { return (userBits & AANGLEINC) >> AANGLEINCSH; }
+
+	public int getTemp1() { return temp1; }
+	public void setTemp1(int temp1) { this.temp1 = temp1; }
 
 	public static ArcProto findArcProto(String line)
 	{

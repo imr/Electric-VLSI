@@ -93,6 +93,12 @@ public class Tool extends ElectricObject
 		return tools.iterator();
 	}
 
+	/** Get the number of tools. */
+	public static int getNumTools()
+	{
+		return tools.size();
+	}
+
 	/** Get the name of this tool */
 	public String getName() { return toolName; }
 	public int getIndex() { return toolIndex; }

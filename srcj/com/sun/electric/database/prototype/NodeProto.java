@@ -566,6 +566,14 @@ public abstract class NodeProto extends ElectricObject
 	}
 
 	/**
+	 * Get the number of PortProtos on this NodeProto
+	 */
+	public int getNumPorts()
+	{
+		return ports.size();
+	}
+
+	/**
 	 * Get an iterator over all of the NodeInsts in all open Libraries
 	 * that instantiate this NodeProto.
 	 */

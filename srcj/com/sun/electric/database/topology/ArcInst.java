@@ -363,6 +363,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	/** Get the Hard-to-Select bit */
 	public boolean isHardSelect() { return (userBits & HARDSELECTA) != 0; }
 
+	public int lowLevelGetUserbits() { return userBits; }
 	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
 
 	/** Get the width of this ArcInst.

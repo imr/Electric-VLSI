@@ -863,6 +863,12 @@ public class Cell extends NodeProto
 		return nodes.iterator();
 	}
 
+	/** Return the number of NodeInsts in this Cell */
+	public int getNumNodes()
+	{
+		return nodes.size();
+	}
+
 	/** Return a NodeInst with specified name */
 	public NodeInst findNode(String nm)
 	{
@@ -880,6 +886,12 @@ public class Cell extends NodeProto
 	public Iterator getArcs()
 	{
 		return arcs.iterator();
+	}
+
+	/** Return the number of ArcInsts in this Cell */
+	public int getNumArcs()
+	{
+		return arcs.size();
 	}
 
 	/** Return the version number of this Cell */

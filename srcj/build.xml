@@ -25,9 +25,11 @@
         <!-- Manifest-Version: 1.0 -->
         <!-- Main-Class: com.sun.electric.user.Electric -->
         <!-- 3. Pass to <jar>: manifest="electric.mf" -->
-        <exec executable="jar"><arg line="xf ${beanshell}"></arg></exec>
+        <exec executable="jar"><arg line="xf ${beanshell}"></arg></exec> 
         <delete dir="META-INF"></delete>
         <jar basedir="." compress="true" jarfile="electric.jar" manifest="electric.mf">
+            <!--  <arg line="-J-mx500m"></arg>  -->
+            <!--  <arg line="-J-Dcom.apple.macos.useScreenMenuBar=true"></arg>  -->
             <exclude name="**/*.java"/>
             <exclude name="**/*.form"/>
             <exclude name="**/.nbattrs"/>

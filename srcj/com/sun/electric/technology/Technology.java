@@ -329,7 +329,7 @@ public class Technology extends ElectricObject
 	 */
 	public int getIndex() { return techIndex; }
 
-	public static int numTechnologies()
+	public static int getNumTechnologies()
 	{
 		return technologies.size();
 	}
@@ -353,7 +353,7 @@ public class Technology extends ElectricObject
 	/**
 	 * get an iterator over all of the Technologies
 	 */
-	public static Iterator getTechnologyIterator()
+	public static Iterator getTechnologies()
 	{
 		return technologies.iterator();
 	}
@@ -643,7 +643,7 @@ public class Technology extends ElectricObject
 
 		// count the number of technologies
 		int maxTech = 0;
-		for(Iterator it = Technology.getTechnologyIterator(); it.hasNext(); )
+		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 			if (tech.getIndex() > maxTech) maxTech = tech.getIndex();
@@ -697,7 +697,7 @@ public class Technology extends ElectricObject
 		// find a concensus
 		int best = 0;         Technology bestTech = null;
 		int bestLayout = 0;   Technology bestLayoutTech = null;
-		for(Iterator it = Technology.getTechnologyIterator(); it.hasNext(); )
+		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
 
@@ -817,9 +817,17 @@ public class Technology extends ElectricObject
 	/**
 	 * get an iterator over all of the PrimitiveArcs in this technology
 	 */
-	public Iterator getArcIterator()
+	public Iterator getArcs()
 	{
 		return arcs.iterator();
+	}
+
+	/**
+	 * get the number of PrimitiveArcs in this technology
+	 */
+	public int getNumArcs()
+	{
+		return arcs.size();
 	}
 
 	// *************************** NodeProtos ***************************
@@ -841,9 +849,17 @@ public class Technology extends ElectricObject
 	/**
 	 * get an iterator over all of the PrimitiveNodes in this technology
 	 */
-	public Iterator getNodeIterator()
+	public Iterator getNodes()
 	{
 		return nodes.iterator();
+	}
+
+	/**
+	 * get the number of PrimitiveNodes in this technology
+	 */
+	public int getNumNodes()
+	{
+		return nodes.size();
 	}
 
 }

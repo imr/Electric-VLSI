@@ -33,8 +33,8 @@ public class UIDialogOpenFile
 	private String extension;
 	private String description;
 
-	public static final UIDialogOpenFile TEXT = new UIDialogOpenFile(null, "Any file");
-	public static final UIDialogOpenFile ELIB = new UIDialogOpenFile("elib", "Library file");
+	public static final UIDialogOpenFile TEXT = new UIDialogOpenFile(null, "Any File");
+	public static final UIDialogOpenFile ELIB = new UIDialogOpenFile("elib", "Library File");
 
 	public UIDialogOpenFile(String extension, String description)
 	{
@@ -42,14 +42,32 @@ public class UIDialogOpenFile
 		this.description = description;
 	}
 
-	public String chooseFile()
+	public String chooseInputFile()
 	{
 		JFileChooser fc = new JFileChooser();
 		UIFileFilter filter = new UIFileFilter();
 		if (extension != null) filter.addExtension(extension);
+		fc.setDialogTitle("Read " + description);
 		filter.setDescription(description);
 		fc.setFileFilter(filter);
 		int returnVal = fc.showOpenDialog(null);
+		if (returnVal == JFileChooser.APPROVE_OPTION)
+		{
+			File file = fc.getSelectedFile();
+			return file.getPath();
+		}
+		return null;
+	}
+
+	public String chooseOutputFile()
+	{
+		JFileChooser fc = new JFileChooser();
+		fc.setDialogTitle("Write " + description);
+		UIFileFilter filter = new UIFileFilter();
+		if (extension != null) filter.addExtension(extension);
+		filter.setDescription(description);
+		fc.setFileFilter(filter);
+		int returnVal = fc.showSaveDialog(null);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
 			File file = fc.getSelectedFile();

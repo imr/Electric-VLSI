@@ -35,6 +35,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.ui.UIEditFrame;
 import com.sun.electric.tool.user.ui.UIDialogOpenFile;
 import com.sun.electric.tool.io.Input;
+import com.sun.electric.tool.io.Output;
 
 import java.util.Iterator;
 
@@ -52,7 +53,7 @@ public final class UserMenuCommands
 
 	public static void openLibraryCommand()
 	{
-		String fileName = UIDialogOpenFile.ELIB.chooseFile();
+		String fileName = UIDialogOpenFile.ELIB.chooseInputFile();
 		if (fileName != null)
 		{
 			long startTime = System.currentTimeMillis();
@@ -75,6 +76,34 @@ public final class UserMenuCommands
 					lastFrame = UIEditFrame.CreateEditWindow(cell);
 				}
 			}
+		}
+	}
+
+	public static void saveLibraryCommand()
+	{
+		Library lib = Library.getCurrent();
+		String fileName;
+		if (lib.isFromDisk())
+		{
+			fileName = lib.getLibFile();
+		} else
+		{
+			fileName = UIDialogOpenFile.ELIB.chooseOutputFile();
+			if (fileName != null)
+			{
+				Library.LibraryName n = Library.LibraryName.newInstance(fileName);
+				n.setExtension("elib");
+				lib.setLibFile(n.makeName());
+				lib.setLibName(n.getName());
+			}
+		}
+		boolean error = Output.WriteLibrary(lib, Output.ExportType.BINARY);
+		if (error)
+		{
+			System.out.println("Error writing the library file");
+		} else
+		{
+			System.out.println("Library " + fileName + " written");
 		}
 	}
 

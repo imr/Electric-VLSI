@@ -96,33 +96,25 @@ public class Input
 		Input in;
 
 		// break file name into library name and path; determine whether this is top-level
-		File f = new File(fileName);
-		String libName = f.getName();
+		Library.LibraryName n = Library.LibraryName.newInstance(fileName);
 		boolean topLevel = false;
 		if (lib == null)
 		{
-			mainLibDirectory = f.getParent();
+			mainLibDirectory = n.getPath();
 			topLevel = true;
 		}
 
 		// handle different file types
 		if (type == ImportType.BINARY)
 		{
-			if (libName.endsWith(".elib"))
-				libName = libName.substring(0, libName.length()-5);
 			in = (Input)new InputBinary();
 		} else if (type == ImportType.TEXT)
 		{
-			if (libName.endsWith(".txt"))
-				libName = libName.substring(0, libName.length()-4);
 //			in = (Input)new InputText();
 			
 			// no text reader yet, see if an elib can be found
-			if (fileName.endsWith(".txt"))
-			{
-				fileName = fileName.substring(0, fileName.length()-4) + ".elib";
-				lib.setLibFile(fileName);
-			}
+			n.setExtension("elib");
+			fileName = n.makeName();
 			in = (Input)new InputBinary();
 		} else
 		{
@@ -130,8 +122,8 @@ public class Input
 			return null;
 		}
 		if (lib == null)
-			lib = Library.newInstance(libName, fileName);
-		
+			lib = Library.newInstance(n.getName(), fileName);
+
 		// add to the list of libraries read at once
 		if (topLevel) newLibraries.clear();
 		newLibraries.add(lib);
@@ -148,7 +140,16 @@ public class Input
 			return null;
 		}
 		in.dataInputStream = new DataInputStream(in.fileInputStream);
-		if (in.ReadLib())
+		boolean error = in.ReadLib();
+		try
+		{
+			in.fileInputStream.close();
+		} catch (IOException e)
+		{
+			System.out.println("Error closing " + fileName);
+			return null;
+		}
+		if (error)
 		{
 			System.out.println("Error reading library");
 			if (topLevel) mainLibDirectory = null;

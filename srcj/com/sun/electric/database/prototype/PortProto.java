@@ -74,6 +74,7 @@ public abstract class PortProto extends ElectricObject implements Networkable
 
 	/** port name */								protected String protoName;
 	/** flag bits */								protected int userBits;
+	/** temporary values */							protected int temp1;
 	/** parent NodeProto */							protected NodeProto parent;
 	/** Text descriptor */							protected TextDescriptor descriptor;
 	
@@ -178,6 +179,9 @@ public abstract class PortProto extends ElectricObject implements Networkable
 	public abstract PortProto getEquivalent();
 
 	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
+
+	public int getTemp1() { return temp1; }
+	public void setTemp1(int temp1) { this.temp1 = temp1; }
 
 	public String toString()
 	{

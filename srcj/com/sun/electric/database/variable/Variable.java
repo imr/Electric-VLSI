@@ -10,7 +10,23 @@ import com.sun.electric.database.topology.ArcInst;
  */
 public class Variable
 {
+	public static class Name
+	{
+		String name;
+		int    index;
+		static int currentIndex = 0;
+		
+		Name(String name)
+		{
+			this.name = name;
+			this.index = currentIndex++;
+		}
+		public int getIndex() { return index; }
+		public String getName() { return name; }
+	}
+
 	private Object addr;
+	private Name vn;
 	private int flags;
 	private TextDescriptor descriptor;
 
@@ -24,14 +40,18 @@ public class Variable
 	/** set to prevent saving on disk */				private static final int VDONTSAVE =    010000000000;
 	/** set to prevent changing value */				private static final int VCANTSET =     020000000000;
 
-	public Variable(Object addr, TextDescriptor descriptor)
+	public Variable(Object addr, TextDescriptor descriptor, Name vn)
 	{
 		this.addr = addr;
 		this.descriptor = descriptor;
+		this.vn = vn;
 	}
 	
 	/** Routine to return the actual object stored in this variable. */
 	public Object getObject() { return addr; }
+	
+	/** Routine to return the name associated with this variable. */
+	public Name getName() { return vn; }
 
 	public String describe()
 	{
@@ -127,6 +147,7 @@ public class Variable
 //	}
 	public TextDescriptor getTextDescriptor() { return descriptor; }
 	public void setDescriptor(TextDescriptor descriptor) { this.descriptor = descriptor; }
+	public int lowLevelGetFlags() { return flags; }
 	public void lowLevelSetFlags(int flags) { this.flags = flags; }
 
 	/** Set the Display bit */

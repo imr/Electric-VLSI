@@ -577,17 +577,14 @@ public class UIEdit extends JPanel
 
 	public void keyPressed(KeyEvent e)
 	{
-		System.out.println("key pressed");
 	}
 
 	public void keyReleased(KeyEvent e)
 	{
-		System.out.println("key released");
 	}
 
 	public void keyTyped(KeyEvent e)
 	{
-		System.out.println("Key typed");
 	}
 
 	public void mouseWheelMoved(MouseWheelEvent e)

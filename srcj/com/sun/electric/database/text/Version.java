@@ -31,6 +31,8 @@ public class Version
 	int minor;
 	int details;
 
+	public static final String CURRENT = "7.00aa";
+
 	private Version() {}
 	
 	public int getMajor() { return major; }

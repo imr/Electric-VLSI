@@ -29,6 +29,7 @@ import com.sun.electric.database.text.CellName;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.io.File;
 
 /**
  * A Library represents a collection of Cells.
@@ -63,6 +64,44 @@ public class Library extends ElectricObject
 	/** the current library in Electric */					private static Library curLib = null;
 
 	// ----------------- private and protected methods --------------------
+
+	public static class LibraryName
+	{
+		private String path;
+		private String name;
+		private String extension;
+
+		private LibraryName() {}
+
+		public String getPath() { return path; }
+		public String getName() { return name; }
+		public void setName(String name) { this.name = name; }
+		public String getExtension() { return extension; }
+		public void setExtension(String extension) { this.extension = extension; }
+
+		public static LibraryName newInstance(String libFile)
+		{
+			// figure out the view and version of the cell
+			LibraryName n = new LibraryName();
+			File f = new File(libFile);
+			n.path = f.getParent();
+			n.name = f.getName();
+			int dotPos = n.name.lastIndexOf('.');
+			if (dotPos < 0) n.extension = null; else
+			{
+				n.extension = n.name.substring(dotPos+1);
+				n.name = n.name.substring(0, dotPos);
+			}
+			return n;
+		}
+
+		public String makeName()
+		{
+			String libFile = path + File.separator + name;
+			if (extension != null) libFile += "." + extension;
+			return libFile;
+		}
+	}
 
 	private Library()
 	{
@@ -191,9 +230,14 @@ public class Library extends ElectricObject
 	public static void setCurrent(Library lib) { curLib = lib; }
 	
 	/**
+	 * Get the user bits for this Library
+	 */
+	public int lowLevelGetUserBits() { return userBits; }
+	
+	/**
 	 * Set the user bits for this Library
 	 */
-	public void lowLevelSetUserBits(int bits) { this.userBits = bits; }
+	public void lowLevelSetUserBits(int userBits) { this.userBits = userBits; }
 
 	/**
 	 * Check all currently loaded Libraries for one named <code>libName</code>.
@@ -226,6 +270,14 @@ public class Library extends ElectricObject
 	public String getLibName() { return libName; }
 
 	/**
+	 * Set the disk file of this Library
+	 */
+	public void setLibName(String libName)
+	{
+		this.libName = libName;
+	}
+
+	/**
 	 * Get the disk file of this Library
 	 */
 	public String getLibFile() { return fileName; }
@@ -233,7 +285,10 @@ public class Library extends ElectricObject
 	/**
 	 * Set the disk file of this Library
 	 */
-	public void setLibFile(String fileName) { this.fileName = fileName; }
+	public void setLibFile(String fileName)
+	{
+		this.fileName = fileName;
+	}
 
 	public String toString()
 	{

@@ -157,18 +157,18 @@ public class InputBinary extends Input
 	/** true to require text descriptor values */							private boolean alwaysTextDescriptors;
 
 	// ".elib" file version numbers
-	/** current magic number: version 12 */		private static final int MAGIC12 = -1595;
-	/** older magic number: version 11 */		private static final int MAGIC11 = -1593;
-	/** older magic number: version 10 */		private static final int MAGIC10 = -1591;
-	/** older magic number: version 9 */		private static final int MAGIC9 =  -1589;
-	/** older magic number: version 8 */		private static final int MAGIC8 =  -1587;
-	/** older magic number: version 7 */		private static final int MAGIC7 =  -1585;
-	/** older magic number: version 6 */		private static final int MAGIC6 =  -1583;
-	/** older magic number: version 5 */		private static final int MAGIC5 =  -1581;
-	/** older magic number: version 4 */		private static final int MAGIC4 =  -1579;
-	/** older magic number: version 3 */		private static final int MAGIC3 =  -1577;
-	/** older magic number: version 2 */		private static final int MAGIC2 =  -1575;
-	/** oldest magic number: version 1 */		private static final int MAGIC1 =  -1573;
+	/** current magic number: version 12 */		public static final int MAGIC12 = -1595;
+	/** older magic number: version 11 */		public static final int MAGIC11 = -1593;
+	/** older magic number: version 10 */		public static final int MAGIC10 = -1591;
+	/** older magic number: version 9 */		public static final int MAGIC9 =  -1589;
+	/** older magic number: version 8 */		public static final int MAGIC8 =  -1587;
+	/** older magic number: version 7 */		public static final int MAGIC7 =  -1585;
+	/** older magic number: version 6 */		public static final int MAGIC6 =  -1583;
+	/** older magic number: version 5 */		public static final int MAGIC5 =  -1581;
+	/** older magic number: version 4 */		public static final int MAGIC4 =  -1579;
+	/** older magic number: version 3 */		public static final int MAGIC3 =  -1577;
+	/** older magic number: version 2 */		public static final int MAGIC2 =  -1575;
+	/** oldest magic number: version 1 */		public static final int MAGIC1 =  -1573;
 
 	InputBinary()
 	{
@@ -517,7 +517,7 @@ public class InputBinary extends Input
 			if (tech == null)
 			{
 				// cannot figure it out: just pick the first technology
-				Iterator it = Technology.getTechnologyIterator();
+				Iterator it = Technology.getTechnologies();
 				tech = (Technology) it.next();
 				techError[techIndex] = name;
 			} else techError[techIndex] = null;
@@ -543,7 +543,7 @@ public class InputBinary extends Input
 					boolean advise = true;
 
 					// look for substring name match at start of name
-					for(Iterator it = tech.getNodeIterator(); it.hasNext();)
+					for(Iterator it = tech.getNodes(); it.hasNext();)
 					{
 						PrimitiveNode opnp = (PrimitiveNode) it.next();
 						String primName = opnp.getProtoName();
@@ -557,7 +557,7 @@ public class InputBinary extends Input
 					// look for substring match at end of name
 					if (pnp == null)
 					{
-						for(Iterator it = tech.getNodeIterator(); it.hasNext();)
+						for(Iterator it = tech.getNodes(); it.hasNext();)
 						{
 							PrimitiveNode opnp = (PrimitiveNode) it.next();
 							String primName = opnp.getProtoName();
@@ -579,7 +579,7 @@ public class InputBinary extends Input
 					// give up and use first primitive in this technology
 					if (pnp == null)
 					{
-						Iterator it = tech.getNodeIterator();
+						Iterator it = tech.getNodes();
 						pnp = (PrimitiveNode) it.next();
 					}
 
@@ -646,7 +646,7 @@ public class InputBinary extends Input
 				}
 				if (ap == null)
 				{
-					Iterator it = tech.getArcIterator();
+					Iterator it = tech.getArcs();
 					ap = (PrimitiveArc) it.next();
 					String errorMessage;
 					if (techError[techIndex] != null)

@@ -43,6 +43,8 @@ public class ElectricObject
 {
 	// ------------------------ private data ------------------------------------
 
+	/** a list of all variable names */						private static HashMap varNames = new HashMap();
+
 	/** extra variables (null if no variables yet) */		private HashMap vars;
 
 	// ------------------------ private and protected methods -------------------
@@ -142,11 +144,18 @@ public class ElectricObject
 	/** put an object value associated with a name */
 	public Variable setVal(String name, Object value)
 	{
+		Variable.Name vn = (Variable.Name)varNames.get(name);
+		if (vn == null)
+		{
+			vn = new Variable.Name(name);
+			varNames.put(name, vn);
+		}
+
 		if (vars == null)
 		{
 			vars = new HashMap();
 		}
-		Variable v = new Variable(value, new TextDescriptor());
+		Variable v = new Variable(value, new TextDescriptor(), vn);
 		vars.put(name, v);
 		return v;
 	}
@@ -181,6 +190,25 @@ public class ElectricObject
 		if (vars == null)
 			return (new ArrayList()).iterator();
 		return vars.keySet().iterator();
+	}
+
+	/** Return the number of Variables. */
+	public int getNumVariables()
+	{
+		if (vars == null) return 0;
+		return vars.keySet().size();
+	}
+
+	/** Return all the Variable names. */
+	public static Iterator getVariableNames()
+	{
+		return varNames.entrySet().iterator();
+	}
+
+	/** Return the number of Variable names. */
+	public static int getNumVariableNames()
+	{
+		return varNames.entrySet().size();
 	}
 
 	/** Print a full description of this object (in response to an INFO request). */

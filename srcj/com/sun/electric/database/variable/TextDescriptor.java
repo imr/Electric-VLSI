@@ -175,6 +175,8 @@ public class TextDescriptor
 
 	/** routine to set the bits in the text descriptor directly. */
 	public void lowLevelSet(int descriptor0, int descriptor1) { this.descriptor0 = descriptor0;   this.descriptor1 = descriptor1; }
+	public int lowLevelGet0() { return descriptor0; }
+	public int lowLevelGet1() { return descriptor1; }
 
 	/** routine to clear the bits in the text descriptor. */
 	public void TDClear() { this.descriptor0 = this.descriptor1 = 0; }
