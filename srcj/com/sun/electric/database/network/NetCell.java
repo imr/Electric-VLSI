@@ -69,7 +69,9 @@ class NetCell
 	 * equivPorts[i] contains minimal index among ports of its group.
      */																int[] equivPorts;
 	/** Node offsets. */											int[] nodeOffsets;
-	/** A map from Name to NetName. */								private Map netNames = new HashMap();
+	/** A map from Name to NetName. */								Map netNames = new HashMap();
+	/** Counter for enumerating NetNames. */						private int netNameCount;
+	
 	/** An equivalence map of PortInsts and NetNames. */			int[] netMap;
 	/** An array of JNetworks in this Cell. */						JNetwork[] networks;
 
@@ -87,25 +89,6 @@ class NetCell
 			dbExports = new Export[0];
 			equivPorts = new int[0];
 		}
-
-// 		int ind = cellsStart + c.getIndex();
-// 		int numPorts = c.getNumPorts();
-// 		int[] beg = new int[numPorts + 1];
-// 		for (int i = 0; i < beg.length; i++) beg[i] = 0;
-// 		for (Iterator pit = c.getPorts(); pit.hasNext(); )
-// 		{
-// 			Export pp = (Export)pit.next();
-// 			beg[pp.getIndex()] = pp.getProtoNameLow().busWidth();
-// 		}
-// 		int b = 0;
-// 		for (int i = 0; i < numPorts; i++)
-// 		{
-// 			int w = beg[i];
-// 			beg[i] = b;
-// 			b = b + w;
-// 		}
-// 		beg[numPorts] = b;
-//		protoPortBeg[ind] = beg;
 	}
 
 	final void setNetworksDirty()
@@ -189,53 +172,64 @@ class NetCell
 	private int initNodables() {
 		if (nodeOffsets == null || nodeOffsets.length != cell.getNumNodes())
 			nodeOffsets = new int[cell.getNumNodes()];
-		int nodeOffset = 0;
+		int nodeOffset = cell.getNumPorts();
 		for (Iterator it = cell.getNodes(); it.hasNext();) {
 			NodeInst ni = (NodeInst)it.next();
+			if (ni.getNameKey().isBus())
+				System.out.println("Layout cell " + cell.describe() + " has arrayed node " + ni.describe());
 			int nodeIndex = ni.getIndex();
 			NodeProto np = ni.getProto();
 			if (isSchem(np))
-				System.out.println("Cell " + cell.describe() + " has schematic node " + ni.describe());
+				System.out.println("Layout cell " + cell.describe() + " has schematic node " + ni.describe());
 			nodeOffsets[nodeIndex] = nodeOffset;
 			nodeOffset += np.getNumPorts();
 		}
 		return nodeOffset;
 	}
 
-	int initNetnames(int mapOffset) {
+	int initNetnames() {
 		for (Iterator it = netNames.values().iterator(); it.hasNext(); ) {
 			NetName nn = (NetName)it.next();
 			nn.name = null;
 			nn.index = -1;
 		}
+		netNameCount = 0;
 		for (Iterator it = cell.getPorts(); it.hasNext();) {
 			Export e = (Export) it.next();
-			Name expNm = e.getProtoNameKey();
-			NetName nn = (NetName)netNames.get(expNm);
-			if (nn == null) {
-				nn = new NetName();
-				netNames.put(expNm.lowerCase(), nn);
-			}
-			if (nn.index < 0) {
-				nn.name = expNm;
-				nn.index = mapOffset++;
-			}
+			addNetNames(e.getProtoNameKey());
 		}
 		for (Iterator it = cell.getArcs(); it.hasNext(); ) {
 			ArcInst ai = (ArcInst) it.next();
-			if (!ai.isUsernamed()) continue;
-			Name arcNm = ai.getNameKey();
-			NetName nn = (NetName)netNames.get(arcNm);
-			if (nn == null) {
-				nn = new NetName();
-				netNames.put(arcNm.lowerCase(), nn);
-			}
-			if (nn.index < 0) {
-				nn.name = arcNm;
-				nn.index = mapOffset++;
-			}
+			if (ai.getProto().getFunction() == ArcProto.Function.NONELEC) continue;
+			if (ai.isUsernamed())
+				addNetNames(ai.getNameKey());
 		}
-		return mapOffset;
+		for (Iterator it = netNames.values().iterator(); it.hasNext(); ) {
+			NetName nn = (NetName)it.next();
+			if (nn.name == null)
+				it.remove();
+			else if (Network.debug)
+				System.out.println("NetName "+nn.name+" "+nn.index);
+		}
+		return netNameCount;
+	}
+
+	void addNetNames(Name name) {
+		if (name.isBus())
+			System.out.println("Layout cell " + cell.describe() + " has bus port/arc " + name);
+		addNetName(name);
+	}
+
+	void addNetName(Name name) {
+		NetName nn = (NetName)netNames.get(name);
+		if (nn == null) {
+			nn = new NetName();
+			netNames.put(name.lowerCase(), nn);
+		}
+		if (nn.index < 0) {
+			nn.name = name;
+			nn.index = netNameCount++;
+		}
 	}
 
 	private void mergeInternallyConnected()
@@ -249,50 +243,36 @@ class NetCell
 			for (int i = 0; i < eq.length; i++)
 			{
 				if (eq[i] == i) continue;
-				connectMap(netMap, nodeOffset + i, nodeOffset + eq[i]);
+				connectMap(nodeOffset + i, nodeOffset + eq[i]);
 			}
 		}
 	}
 
-	void mergeNetsConnectedByArcs()
+	private void mergeNetsConnectedByArcs()
 	{
-		if (cell == null) return;
 		for (Iterator it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst) it.next();
 			if (ai.getProto().getFunction() == ArcProto.Function.NONELEC) continue;
-
-			int ind = -1;
-			if (ai.isUsernamed()) {
-				Name arcNm = ai.getNameKey();
-				NetName nn = (NetName)netNames.get(arcNm);
-				ind = nn.index;
-			}
-			ind = connectPortInst(ind, ai.getHead().getPortInst());
-			ind = connectPortInst(ind, ai.getTail().getPortInst());
+			connectMap(getPortInstOffset(ai.getHead().getPortInst()), getPortInstOffset(ai.getTail().getPortInst()));
 		}
 	}
 
-	void addExportNamesToNets()
+	private void addExportNamesToNets()
 	{
-		if (cell == null) return;
 		for (Iterator it = cell.getPorts(); it.hasNext();)
 		{
 			Export e = (Export) it.next();
-			Name expNm = e.getProtoNameKey();
-			NetName nn = (NetName)netNames.get(expNm);
-			connectPortInst(nn.index, e.getOriginalPort());
+			int ind = e.getIndex();
+			connectMap(e.getIndex(), getPortInstOffset(e.getOriginalPort()));
 		}
 	}
 
-	int connectPortInst(int oldInd, PortInst pi) {
-		int ind = nodeOffsets[pi.getNodeInst().getIndex()] + pi.getPortProto().getIndex();
-		if (oldInd < 0) return ind;
-		connectMap(netMap, oldInd, ind);
-		return oldInd;
+	private final int getPortInstOffset(PortInst pi) {
+		return nodeOffsets[pi.getNodeInst().getIndex()] + pi.getPortProto().getIndex();
 	}
 
-	void buildNetworkList()
+	private void buildNetworkList()
 	{
 		if (networks == null || networks.length != netMap.length)
 			networks = new JNetwork[netMap.length];
@@ -300,11 +280,26 @@ class NetCell
 		{
 			networks[i] = (netMap[i] == i ? new JNetwork(cell) : null);
 		}
-		for (Iterator it = netNames.values().iterator(); it.hasNext(); )
-		{
-			NetName nn = (NetName)it.next();
-			if (nn.index < 0) continue;
-			networks[netMap[nn.index]].addName(nn.name.toString());
+		JNetwork[] netNameToNet = new JNetwork[netNames.size()];
+		for (Iterator it = cell.getPorts(); it.hasNext();) {
+			Export e = (Export) it.next();
+			setNetName(netNameToNet, e.getIndex(), e.getProtoNameKey());
+		}
+		for (Iterator it = cell.getArcs(); it.hasNext(); ) {
+			ArcInst ai = (ArcInst) it.next();
+			if (ai.getProto().getFunction() == ArcProto.Function.NONELEC) continue;
+			if (!ai.isUsernamed()) continue;
+			int ind = getPortInstOffset(ai.getHead().getPortInst());
+			setNetName(netNameToNet, ind, ai.getNameKey());
+		}
+		for (Iterator it = cell.getArcs(); it.hasNext(); ) {
+			ArcInst ai = (ArcInst) it.next();
+			if (ai.getProto().getFunction() == ArcProto.Function.NONELEC) continue;
+			if (ai.isUsernamed()) continue;
+			int ind = getPortInstOffset(ai.getHead().getPortInst());
+			JNetwork network = networks[netMap[ind]];
+			if (network.hasNames()) continue;
+			network.addName(ai.getName());
 		}
 		/*
 		// debug info
@@ -330,51 +325,38 @@ class NetCell
 		*/
 	}
 
+	private void setNetName(JNetwork[] netNamesToNet, int netIndex, Name name) {
+		JNetwork network = networks[netMap[netIndex]];
+		NetName nn = (NetName)netNames.get(name);
+		if (netNamesToNet[nn.index] != null)
+			System.out.println("Layout cell " + cell.describe() + " has nets with same name " + name);
+		else
+			netNamesToNet[nn.index] = network;
+		network.addName(name.toString());
+	}
+
 	/**
 	 * Update map of equivalent ports newEquivPort.
 	 * @param currentTime time stamp of current network reevaluation
 	 * or will be kept untouched if not.
 	 */
-	void updateInterface()
-	{
-		boolean changed = false;
+	void updateInterface(boolean changed) {
 		if (dbExports == null || dbExports.length != cell.getNumPorts()) {
 			changed = true;
 			dbExports = new Export[cell.getNumPorts()];
+			equivPorts = new int[cell.getNumPorts()];
 		}
-
-		int[] newEquivPorts = new int[cell.getNumPorts()];
-		for (int i = 0; i < newEquivPorts.length; i++) newEquivPorts[i] = i;
-
-		/* Connect ports connected by node proto subnets */
-		int[] netToPort = new int[networks.length];
-		for (int i = 0; i < netToPort.length; i++) netToPort[i] = -1;
-		int i = 0;
-		for (Iterator it = cell.getPorts(); it.hasNext(); i++)
-		{
+		for (Iterator it = cell.getPorts(); it.hasNext();) {
 			Export e = (Export) it.next();
-			if (dbExports[e.getIndex()] != e) {
+			int portIndex = e.getIndex();
+			if (dbExports[portIndex] != e) {
 				changed = true;
-				dbExports[e.getIndex()] = e;
+				dbExports[portIndex] = e;
 			}
-			NetName nn = (NetName)netNames.get(e.getProtoNameKey());
-			int netNum = netMap[nn.index];
-			int iOld = netToPort[netNum];
-			if (iOld >= 0)
-			{
-				connectMap(newEquivPorts, iOld, i);
-			} else
-			{
-				netToPort[netNum] = i;
+			if (equivPorts[portIndex] != netMap[portIndex]) {
+				changed = true;
+				equivPorts[portIndex] = netMap[portIndex];
 			}
-		}
-		closureMap(newEquivPorts);
-
-		/* if equivalent ports changed, invalidate user cells */
-		if (equivPorts == null || !equalMaps(equivPorts, newEquivPorts))
-		{
-			changed = true;
-			equivPorts = newEquivPorts;
 		}
 		if (changed)
 			invalidateUsagesOf(true);
@@ -440,27 +422,40 @@ class NetCell
 		}
 
 		/* Set index of NodeInsts */
-		int mapOffset = initNodables();
+		int netMapSize = initNodables();
 
 		// Gather port and arc names
-		mapOffset = initNetnames(mapOffset);
+		int netNameSize = initNetnames();
 
-		if (netMap == null || netMap.length != mapOffset)
-			netMap = new int[mapOffset];
+		if (netMap == null || netMap.length != netMapSize)
+			netMap = new int[netMapSize];
 		for (int i = 0; i < netMap.length; i++) netMap[i] = i;
 		mergeInternallyConnected();
 		mergeNetsConnectedByArcs();
 		addExportNamesToNets();
-		closureMap(netMap);
+		closureMap();
 		buildNetworkList();
-		updateInterface();
+		updateInterface(false);
 		flags |= (LOCALVALID|VALID);
 	}
 
 	/**
 	 * Merge classes of equivalence map to which elements a1 and a2 belong.
 	 */
-	static void connectMap(int[] map, int a1, int a2)
+	final void connectMap(int a1, int a2) {
+		if (Network.debug) System.out.println("connectMap "+a1+" "+a2);
+		NetCell.connectMap(netMap, a1, a2);
+	}
+
+	/**
+	 * Obtain canonical representation of equivalence map.
+	 */
+	final void closureMap() { NetCell.closureMap(netMap); }
+
+	/**
+	 * Merge classes of equivalence map to which elements a1 and a2 belong.
+	 */
+	private static void connectMap(int[] map, int a1, int a2)
 	{
 		int m1, m2, m;
 
@@ -487,7 +482,7 @@ class NetCell
 	/**
 	 * Obtain canonical representation of equivalence map.
 	 */
-	static void closureMap(int[] map)
+	private static void closureMap(int[] map)
 	{
 		for (int i = 0; i < map.length; i++)
 		{
@@ -508,7 +503,7 @@ class NetCell
 		return true;
 	}
 
-	private boolean isSchem(NodeProto np) {
+	boolean isSchem(NodeProto np) {
 		return np instanceof Cell && Network.getNetCell((Cell)np) instanceof NetSchem;
 	}
 }

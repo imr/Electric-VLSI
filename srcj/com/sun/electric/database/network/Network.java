@@ -54,7 +54,7 @@ public class Network extends Tool
 	// ---------------------- private and protected methods -----------------
 
 	/** the Network tool. */						public static final Network tool = new Network();
-	/** flag for debug print. */					private static boolean debug = false;
+	/** flag for debug print. */					static boolean debug = false;
 
 	/** array of port equiv map for prim nodes.*/	private static int[][] primEquivPorts;
 	/** index of resistor primitive. */				private static int resistorIndex;

@@ -48,8 +48,8 @@ import java.awt.geom.Point2D;
  */
 public class Artwork extends Technology
 {
-	/** key of Varible holding starting and ending angles. */	public static final Variable.Key ART_DEGREES = ElectricObject.newKey("ART_degrees");
-	/** key of Varible holding message text. */					public static final Variable.Key ART_MESSAGE = ElectricObject.newKey("ART_message");
+	/** key of Variable holding starting and ending angles. */	public static final Variable.Key ART_DEGREES = ElectricObject.newKey("ART_degrees");
+	/** key of Variable holding message text. */				public static final Variable.Key ART_MESSAGE = ElectricObject.newKey("ART_message");
 
 	/** the Artwork Technology object. */			public static final Artwork tech = new Artwork();
 

@@ -130,7 +130,7 @@ public class Name implements Comparable
 	 */
 	public boolean equals(Object anObject)
 	{
-		if (this == anObject) return false;
+		if (this == anObject) return true;
 		if (anObject instanceof Name)
 		{
 			Name anotherName = (Name)anObject;

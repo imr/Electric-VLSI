@@ -27,14 +27,15 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.NodeUsage;
-// import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
-// import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.technologies.Schematics;
 
 // import java.util.Arrays;
 import java.util.ArrayList;
@@ -149,8 +150,10 @@ class NetSchem extends NetCell {
 
 	}
 
-	private Icon[] icons;
+	/** */															private Icon[] icons;
 	/** Node offsets. */											Proxy[] nodeProxies;
+	/** */															Global.Set globals = Global.Set.empty;
+	/** */															int netNamesOffset;
 
 	NetSchem(Cell cell) {
 		super(cell.isIcon() ? cell.getCellGroup().getMainSchematics() : cell);
@@ -184,28 +187,25 @@ class NetSchem extends NetCell {
 		}
 	}
 
-	void mergeInternallyConnected()
-	{
-		for (Iterator it = cell.getNodes(); it.hasNext();) {
-			NodeInst ni = (NodeInst)it.next();
-			int nodeOffset = nodeOffsets[ni.getIndex()];
-			if (nodeOffset < 0) continue;
-			mergeInternallyConnected(nodeOffset, ni);
-		}
-		for (int i = 0; i < nodeProxies.length; i++) {
-			Proxy proxy = nodeProxies[i];
-			if (proxy == null) continue;
-			mergeInternallyConnected(proxy.nodeOffset, proxy.nodeInst);
-		}
-	}
 
-	private void mergeInternallyConnected(int nodeOffset, NodeInst ni) {
-		int[] eq = Network.getEquivPorts(ni.getProto());
-		for (int i = 0; i < eq.length; i++) {
-			if (eq[i] == i) continue;
-			connectMap(netMap, nodeOffset + i, nodeOffset + eq[i]);
-		}
-	}
+// 		int ind = cellsStart + c.getIndex();
+// 		int numPorts = c.getNumPorts();
+// 		int[] beg = new int[numPorts + 1];
+// 		for (int i = 0; i < beg.length; i++) beg[i] = 0;
+// 		for (Iterator pit = c.getPorts(); pit.hasNext(); )
+// 		{
+// 			Export pp = (Export)pit.next();
+// 			beg[pp.getIndex()] = pp.getProtoNameLow().busWidth();
+// 		}
+// 		int b = 0;
+// 		for (int i = 0; i < numPorts; i++)
+// 		{
+// 			int w = beg[i];
+// 			beg[i] = b;
+// 			b = b + w;
+// 		}
+// 		beg[numPorts] = b;
+//		protoPortBeg[ind] = beg;
 
 	int getPortOffset(int iconIndex, int portIndex, int busIndex) {
 		int portInd = icons[~iconIndex].iconToSchem[portIndex];
@@ -247,7 +247,9 @@ class NetSchem extends NetCell {
 			NodeInst ni = (NodeInst)no;
 			nodeOffset = nodeOffsets[ni.getIndex()];
 			if (nodeOffset < 0) {
-				Proxy proxy = nodeProxies[~nodeOffset];
+				if (arrayIndex < 0 || arrayIndex >= ni.getNameKey().busWidth())
+					return null;
+				Proxy proxy = nodeProxies[~nodeOffset + arrayIndex];
 				if (proxy == null) return null;
 				nodeOffset = proxy.nodeOffset;
 			}
@@ -263,10 +265,11 @@ class NetSchem extends NetCell {
 			icons[i].invalidateUsagesOf(strong);
 	}
 
-	int initNodables() {
+	private boolean initNodables() {
 		if (nodeOffsets == null || nodeOffsets.length != cell.getNumNodes())
 			nodeOffsets = new int[cell.getNumNodes()];
-		int nodeOffset = 0;
+		int nodeOffset = cell.getNumPorts();
+		Global.clearBuf();
 		int nodeProxiesOffset = 0;
 		for (Iterator it = cell.getNodes(); it.hasNext();) {
 			NodeInst ni = (NodeInst)it.next();
@@ -274,11 +277,26 @@ class NetSchem extends NetCell {
 			NodeProto np = ni.getProto();
 			if (np.isIcon()) {
 				nodeOffsets[nodeIndex] = ~nodeProxiesOffset;
-				nodeProxiesOffset += 1;
+				nodeProxiesOffset += ni.getNameKey().busWidth();
 			} else {
+				if (Network.debug) System.out.println(ni+" "+nodeOffset);
 				nodeOffsets[nodeIndex] = nodeOffset;
 				nodeOffset += np.getNumPorts();
 			}
+			if (isSchem(np)) {
+				NetSchem sch = (NetSchem)Network.getNetCell((Cell)np);
+				Global.addToBuf(sch.globals);
+			} else {
+				Global g = getGlobal(ni);
+				if (g != null) Global.addToBuf(g);
+			}
+		}
+		Global.Set newGlobals = Global.getBuf();
+		boolean changed = false;
+		if (globals != newGlobals) {
+			changed = true;
+			globals = newGlobals;
+			if (Network.debug) System.out.println(cell+" has "+globals);
 		}
 		if (nodeProxies == null || nodeProxies.length != nodeProxiesOffset)
 			nodeProxies = new Proxy[nodeProxiesOffset];
@@ -287,36 +305,159 @@ class NetSchem extends NetCell {
 			int proxyOffset = nodeOffsets[ni.getIndex()];
 			if (proxyOffset >= 0) continue;
 			NetCell netCell = Network.getNetCell((Cell)ni.getProto());
-			if (netCell != this && netCell.cell != null) {
-				Proxy proxy = new Proxy(ni, 0);
-				nodeProxies[~proxyOffset] = proxy;
-				proxy.nodeOffset = nodeOffset;
-				nodeOffset += proxy.getProto().getNumPorts();
-			} else {
-				nodeProxies[~proxyOffset] = null;
+			for (int i = 0; i < ni.getNameKey().busWidth(); i++) {
+				Proxy proxy = null;
+				if (netCell != this && netCell.cell != null) {
+					proxy = new Proxy(ni, i);
+					if (Network.debug) System.out.println(proxy+" "+nodeOffset);
+					proxy.nodeOffset = nodeOffset;
+					nodeOffset += proxy.getProto().getNumPorts();
+				}
+				nodeProxies[~proxyOffset + i] = proxy;
 			}
 		}
-		return nodeOffset;
+		netNamesOffset = nodeOffset;
+		return changed;
 	}
 
-	int connectPortInst(int oldInd, PortInst pi) {
+	private static Global getGlobal(NodeInst ni) {
+		NodeProto np = ni.getProto();
+		if (np == Schematics.tech.groundNode) return Global.ground;
+		if (np == Schematics.tech.powerNode) return Global.power;
+		if (np == Schematics.tech.globalNode) {
+			Variable var = ni.getVar(Schematics.SCHEM_GLOBAL_NAME, String.class);
+			if (var != null) return Global.newGlobal((String)var.getObject());
+		}
+		return null;
+	}
+
+	void addNetNames(Name name) {
+		addNetName(name);
+// 		for (int i = 0; i < name.busWidth(); i++)
+// 			addNetName(name.subname(i));
+	}
+
+	void mergeInternallyConnected()
+	{
+		for (Iterator it = cell.getNodes(); it.hasNext();) {
+			NodeInst ni = (NodeInst)it.next();
+			int nodeOffset = nodeOffsets[ni.getIndex()];
+			if (nodeOffset < 0) continue;
+			mergeInternallyConnected(nodeOffset, ni);
+		}
+		for (int i = 0; i < nodeProxies.length; i++) {
+			Proxy proxy = nodeProxies[i];
+			if (proxy == null) continue;
+			mergeInternallyConnected(proxy.nodeOffset, proxy.nodeInst);
+		}
+	}
+
+	private void mergeInternallyConnected(int nodeOffset, NodeInst ni) {
+		int[] eq = Network.getEquivPorts(ni.getProto());
+		for (int i = 0; i < eq.length; i++) {
+			if (eq[i] == i) continue;
+			connectMap(nodeOffset + i, nodeOffset + eq[i]);
+		}
+	}
+
+	private void mergeNetsConnectedByArcs()
+	{
+		for (Iterator it = cell.getArcs(); it.hasNext(); )
+		{
+			ArcInst ai = (ArcInst) it.next();
+			if (ai.getProto().getFunction() == ArcProto.Function.NONELEC) continue;
+
+			int ind = -1;
+			if (ai.isUsernamed()) {
+				Name arcNm = ai.getNameKey();
+				NetName nn = (NetName)netNames.get(arcNm);
+				ind = netNamesOffset + nn.index;
+			}
+			ind = connectPortInst(ind, ai.getHead().getPortInst());
+			ind = connectPortInst(ind, ai.getTail().getPortInst());
+		}
+	}
+
+	private void addExportNamesToNets()
+	{
+		for (Iterator it = cell.getPorts(); it.hasNext();)
+		{
+			Export e = (Export) it.next();
+			int ind = e.getIndex();
+			Name expNm = e.getProtoNameKey();
+			NetName nn = (NetName)netNames.get(expNm);
+			connectMap(ind, netNamesOffset + nn.index);
+			connectPortInst(ind, e.getOriginalPort());
+		}
+	}
+
+	private int connectPortInst(int oldInd, PortInst pi) {
 		int portOffset = Network.getPortOffset(pi.getPortProto(), 0);
 		if (portOffset < 0) return oldInd;
-		int nodeOffset = nodeOffsets[pi.getNodeInst().getIndex()];
-		if (nodeOffset < 0) {
-			Proxy proxy = nodeProxies[~nodeOffset];
-			if (proxy == null) return oldInd;
-			nodeOffset = proxy.nodeOffset;
+		NodeInst ni = pi.getNodeInst();
+		int nodeOffset = nodeOffsets[ni.getIndex()];
+		if (nodeOffset >= 0) {
+			int ind = nodeOffset + portOffset;
+			if (oldInd < 0)
+				oldInd = ind;
+			else
+				connectMap(oldInd, ind);
+		} else {
+			for (int i = 0; i < ni.getNameKey().busWidth(); i++) {
+				Proxy proxy = nodeProxies[~nodeOffset + i];
+				if (proxy == null) continue;
+				nodeOffset = proxy.nodeOffset;
+				int ind = nodeOffset + portOffset;
+				if (oldInd < 0)
+					oldInd = ind;
+				else
+					connectMap(oldInd, ind);
+			}
 		}
-		int ind = nodeOffset + portOffset;
-		if (oldInd < 0) return ind;
-		connectMap(netMap, oldInd, ind);
 		return oldInd;
 	}
 
-	void updateInterface() {
+	void buildNetworkList()
+	{
+		if (networks == null || networks.length != netMap.length)
+			networks = new JNetwork[netMap.length];
+		for (int i = 0; i < netMap.length; i++)
+		{
+			networks[i] = (netMap[i] == i ? new JNetwork(cell) : null);
+		}
+		for (Iterator it = netNames.values().iterator(); it.hasNext(); )
+		{
+			NetName nn = (NetName)it.next();
+			if (nn.index < 0) continue;
+			networks[netMap[netNamesOffset + nn.index]].addName(nn.name.toString());
+		}
+		/*
+		// debug info
+		System.out.println("BuildNetworkList "+this);
+		int i = 0;
+		for (Iterator nit = getNetworks(); nit.hasNext(); )
+		{
+			JNetwork network = (JNetwork)nit.next();
+			String s = "";
+			for (Iterator sit = network.getNames(); sit.hasNext(); )
+			{
+				String n = (String)sit.next();
+				s += "/"+ n;
+			}
+			for (Iterator pit = network.getPorts(); pit.hasNext(); )
+			{
+				PortInst pi = (PortInst)pit.next();
+				s += "|"+pi.getNodeInst().getProto()+"&"+pi.getPortProto().getProtoName();
+			}
+			System.out.println("    "+i+"    "+s);
+			i++;
+		}
+		*/
+	}
+
+	void updateInterface(boolean changed) {
 		if (cell != null)
-			super.updateInterface();
+			super.updateInterface(changed);
 		for (int i = 0; i < icons.length; i++) {
 			icons[i].updateInterface();
 		}
@@ -325,6 +466,12 @@ class NetSchem extends NetCell {
 	void redoNetworks()
 	{
 		if ((flags & VALID) != 0) return;
+
+		if (cell == null) {
+			updateInterface(false);
+			flags |= (LOCALVALID|VALID);
+			return;
+		}
 
 		// redo descendents
 		for (Iterator it = cell.getUsagesIn(); it.hasNext();)
@@ -346,28 +493,25 @@ class NetSchem extends NetCell {
 			return;
 		}
 
-		if (cell == null) {
-			updateInterface();
-			flags |= (LOCALVALID|VALID);
-			return;
-		}
-
 		/* Set index of NodeInsts */
-		int mapOffset = initNodables();
+		boolean changed = initNodables();
 
 		// Gather port and arc names
-		mapOffset = initNetnames(mapOffset);
+		int mapSize = netNamesOffset + initNetnames();
 
-		if (netMap == null || netMap.length != mapOffset)
-			netMap = new int[mapOffset];
+		if (netMap == null || netMap.length != mapSize)
+			netMap = new int[mapSize];
 		for (int i = 0; i < netMap.length; i++) netMap[i] = i;
 
+		if (Network.debug) System.out.println("mergeInternallyConnected");
 		mergeInternallyConnected();
+		if (Network.debug) System.out.println("mergeNetsConnectedByArcs");
 		mergeNetsConnectedByArcs();
+		if (Network.debug) System.out.println("addExportNamesToNets");
 		addExportNamesToNets();
-		closureMap(netMap);
+		closureMap();
 		buildNetworkList();
-		updateInterface();
+		updateInterface(changed);
 		flags |= (LOCALVALID|VALID);
 	}
 }

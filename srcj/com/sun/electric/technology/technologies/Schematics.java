@@ -33,8 +33,10 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -55,6 +57,8 @@ import java.util.Iterator;
  */
 public class Schematics extends Technology
 {
+	/** key of Variable holding global signal name. */	public static final Variable.Key SCHEM_GLOBAL_NAME = ElectricObject.newKey("SCHEM_global_name");
+
 	/** the Schematics Technology object. */			public static final Schematics tech = new Schematics();
 
 	/** Defines the Flip-flop type. */					private static final int FFTYPE =    07;

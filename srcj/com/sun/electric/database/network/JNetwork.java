@@ -112,6 +112,12 @@ public class JNetwork
 		return names.iterator();
 	}
 
+	/** Returns true if JNetwork has names */
+	public boolean hasNames()
+	{
+		return names.size() > 0;
+	}
+
 	/** Returns true if nm is one of JNetwork's names */
 	public boolean hasName(String nm)
 	{
