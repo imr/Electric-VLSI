@@ -23,7 +23,7 @@
         <!-- 1. Create electric.mf manifest. -->
         <!-- 2. Put in it two lines: -->
         <!-- Manifest-Version: 1.0 -->
-        <!-- Main-Class: com.sun.electric.user.UserInitial -->
+        <!-- Main-Class: com.sun.electric.Main -->
         <!-- 3. Pass to <jar>: manifest="electric.mf" -->
         <exec executable="jar"><arg line="xf ${beanshell}"></arg></exec> 
         <delete dir="META-INF"></delete>
@@ -48,7 +48,7 @@
     </target>
 
     <target depends="init,all" description="Try running it." name="test">
-        <java classname="com.sun.electric.tool.user.UserInitial" failonerror="true" fork="true" maxmemory="256m">
+        <java classname="com.sun.electric.Main" failonerror="true" fork="true" maxmemory="256m">
             <classpath>
                 <pathelement location="."/>
                 <pathelement location="${beanshell}"/>
@@ -58,18 +58,6 @@
             <!-- Will be given as an absolute path: -->
             <!-- arg file="myfile.txt"/ -->
         </java>
-    </target>
-
-    <target depends="init" description="Javadoc for my API." name="javadoc">
-        <mkdir dir="apidoc"/>
-        <javadoc destdir="apidoc" packagenames="com.sun.electric.*">
-            <classpath>
-                <pathelement location="${beanshell}"/>
-           </classpath>
-           <sourcepath>
-                <pathelement location="."/>
-            </sourcepath>
-        </javadoc>
     </target>
 
     <target depends="init" description="Clean all build products." name="clean">
@@ -83,6 +71,18 @@
         </delete>
     <delete file="electric.jar"/>
         <delete dir="apidoc"/>
+    </target>
+
+    <target depends="init" description="Javadoc for my API." name="javadoc">
+        <mkdir dir="apidoc"/>
+        <javadoc destdir="apidoc" packagenames="com.sun.electric.*">
+            <classpath>
+                <pathelement location="${beanshell}"/>
+           </classpath>
+           <sourcepath>
+                <pathelement location="."/>
+            </sourcepath>
+        </javadoc>
     </target>
 
 </project>

@@ -385,7 +385,7 @@ public class Quick
 
 		protected SaveDRCDates(HashMap goodDRCDate)
 		{
-			super("Save DRC Dates", DRC.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Remember DRC Successes", DRC.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.goodDRCDate = goodDRCDate;
 			this.startJob();
 		}

@@ -136,16 +136,6 @@ public class ToolBar extends JToolBar
 		toolbar.setFloatable(true);
 		toolbar.setRollover(true);
 
-		// the "Open file" button
-		JButton openButton = Button.newInstance(new ImageIcon(toolbar.getClass().getResource("ButtonOpen.gif")));
-		openButton.addActionListener(
-			new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.openLibraryCommand(); } });
-		openButton.setToolTipText("Open");
-		toolbar.add(openButton);
-
-		// a separator
-		toolbar.addSeparator();
-
 		// the "Select mode" button
 		modeGroup = new ButtonGroup();
 		selectButton = new JToggleButton(new ImageIcon(toolbar.getClass().getResource("ButtonSelect.gif")));
@@ -259,6 +249,23 @@ public class ToolBar extends JToolBar
 			new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.ioOptionsCommand(); } });
 		ioOptionButton.setToolTipText("I/O Options");
 		toolbar.add(ioOptionButton);
+
+		// a separator
+		toolbar.addSeparator();
+
+		// the "Expanded" button
+		JButton expandButton = Button.newInstance(new ImageIcon(toolbar.getClass().getResource("ButtonExpand.gif")));
+		expandButton.addActionListener(
+			new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.expandOneLevelDownCommand(); } });
+		expandButton.setToolTipText("Expand Cell Instances");
+		toolbar.add(expandButton);
+
+		// the "Unexpanded" button
+		JButton unExpandButton = Button.newInstance(new ImageIcon(toolbar.getClass().getResource("ButtonUnexpand.gif")));
+		unExpandButton.addActionListener(
+			new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.unexpandOneLevelUpCommand(); } });
+		unExpandButton.setToolTipText("Unexpand Cell Instances");
+		toolbar.add(unExpandButton);
 
 		// return the toolbar
 		return toolbar;

@@ -28,13 +28,16 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
@@ -83,7 +86,7 @@ public class Change extends javax.swing.JDialog
 		// first make sure something is selected
 		List highs = Highlight.getHighlighted(true, true);
 		Geometric geomToChange = null;
-		if (highs.size() == 1) geomToChange = (Geometric)highs.get(0);
+		if (highs.size() > 0) geomToChange = (Geometric)highs.get(0);
 		if (geomToChange == null)
 		{
 			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
@@ -270,11 +273,11 @@ public class Change extends javax.swing.JDialog
 					if (!pp1.connectsTo(ap)) continue;
 					if (!pp2.connectsTo(ap)) continue;
 				}
-				changeListModel.addElement(ap.getProtoName());
+				changeListModel.addElement(ap.describe());
 			}
 			if (curTech != Generic.tech)
 			{
-				for(Iterator it = curTech.getArcs(); it.hasNext(); )
+				for(Iterator it = Generic.tech.getArcs(); it.hasNext(); )
 				{
 					PrimitiveArc ap = (PrimitiveArc)it.next();
 					if (!changeNodesWithArcs.isSelected())
@@ -282,7 +285,7 @@ public class Change extends javax.swing.JDialog
 						if (!pp1.connectsTo(ap)) continue;
 						if (!pp2.connectsTo(ap)) continue;
 					}
-					changeListModel.addElement(ap.getProtoName());
+					changeListModel.addElement(ap.describe());
 				}
 			}
 			Technology arcTech = ai.getProto().getTechnology();
@@ -296,7 +299,7 @@ public class Change extends javax.swing.JDialog
 						if (!pp1.connectsTo(ap)) continue;
 						if (!pp2.connectsTo(ap)) continue;
 					}
-					changeListModel.addElement(ap.getProtoName());
+					changeListModel.addElement(ap.describe());
 				}
 			}
 		}
@@ -468,6 +471,7 @@ public class Change extends javax.swing.JDialog
 				{
 					// replace all connected to this in the cell if requested
 					Cell curCell = Library.getCurrent().getCurCell();
+					Netlist netlist = curCell.getUserNetlist();
 					List others = new ArrayList();
 					for(Iterator it = curCell.getNodes(); it.hasNext(); )
 					{
@@ -479,11 +483,11 @@ public class Change extends javax.swing.JDialog
 						for(Iterator pIt = onlyNewNi.getPortInsts(); pIt.hasNext(); )
 						{
 							PortInst pi = (PortInst)pIt.next();
-							JNetwork net = pi.getNetwork();
+							JNetwork net = netlist.getNetwork(pi);
 							for(Iterator lPIt = lNi.getPortInsts(); lPIt.hasNext(); )
 							{
 								PortInst lPi = (PortInst)lPIt.next();
-								JNetwork lNet = lPi.getNetwork();
+								JNetwork lNet = netlist.getNetwork(lPi);
 								if (lNet == net)
 								{
 									found = true;
@@ -544,11 +548,11 @@ public class Change extends javax.swing.JDialog
 						for(Iterator it = Library.getCurrent().getCells(); it.hasNext(); )
 						{
 							Cell cell = (Cell)it.next();
-							us_replaceallarcs(cell, ai, ap, false, true);
+							replaceAllArcs(cell, ai, ap, false, true);
 						}
 					} else
 					{
-						us_replaceallarcs(ai.getParent(), ai, ap, dialog.changeConnected.isSelected(),
+						replaceAllArcs(ai.getParent(), ai, ap, dialog.changeConnected.isSelected(),
 							dialog.changeInCell.isSelected());
 					}
 					return;
@@ -665,12 +669,13 @@ public class Change extends javax.swing.JDialog
 					// replace all connected to this if requested
 					List others = new ArrayList();
 					Cell cell = Library.getCurrent().getCurCell();
+					Netlist netlist = cell.getUserNetlist();
 					for(Iterator it = cell.getArcs(); it.hasNext(); )
 					{
 						ArcInst lAi = (ArcInst)it.next();
 						if (lAi == onlyNewAi) continue;
-						JNetwork net = onlyNewAi.getNetwork(0);
-						JNetwork lNet = lAi.getNetwork(0);
+						JNetwork net = netlist.getNetwork(onlyNewAi, 0);
+						JNetwork lNet = netlist.getNetwork(lAi, 0);
 						if (net == lNet) others.add(lAi);
 					}
 
@@ -695,114 +700,259 @@ public class Change extends javax.swing.JDialog
 		 * as needed to keep the connections.  If "connected" is true, replace all such arcs
 		 * connected to this.  If "thiscell" is true, replace all such arcs in the cell.
 		 */
-		private void us_replaceallarcs(Cell cell, ArcInst oldAi, ArcProto ap, boolean connected, boolean thiscell)
+		private void replaceAllArcs(Cell cell, ArcInst oldAi, ArcProto ap, boolean connected, boolean thiscell)
 		{
-//			/* mark the pin nodes that must be changed */
-//			for(ni = cell->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//				ni->temp1 = 0;
-//			for(ai = cell->firstarcinst; ai != NOARCINST; ai = ai->nextarcinst)
-//				ai->temp1 = 0;
-//
-//			for(i=0; list[i] != NOGEOM; i++)
-//			{
-//				if (list[i]->entryisnode) continue;
-//				ai = list[i]->entryaddr.ai;
-//				if (ai->proto != oldAi.getProto()) continue;
-//				ai->temp1 = 1;
-//			}
-//			if (connected)
-//			{
-//				for(ai = cell->firstarcinst; ai != NOARCINST; ai = ai->nextarcinst)
-//					if (ai->proto == oldAi->proto && ai->network == oldAi->network)
-//						ai->temp1 = 1;
-//			}
-//			if (thiscell)
-//			{
-//				for(ai = cell->firstarcinst; ai != NOARCINST; ai = ai->nextarcinst)
-//					if (ai->proto == oldAi->proto)
-//						ai->temp1 = 1;
-//			}
-//			for(ni = cell->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//			{
-//				if (ni->proto->primindex == 0) continue;
-//				if (ni->firstportexpinst != NOPORTEXPINST) continue;
-//				if (nodefunction(ni) != NPPIN) continue;
-//				for(pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//					if (pi->conarcinst->temp1 == 0) break;
-//				if (pi == NOPORTARCINST) ni->temp1 = 1;
-//			}
-//
-//			/* now create new pins where they belong */
-//			pin = getpinproto(ap);
-//			defaultnodesize(pin, &xs, &ys);
-//			for(ni = cell->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//			{
-//				if (ni->temp1 == 0) continue;
-//				cx = (ni->lowx + ni->highx) / 2;
-//				cy = (ni->lowy + ni->highy) / 2;
-//				lx = cx - xs / 2;   hx = lx + xs;
-//				ly = cy - ys / 2;   hy = ly + ys;
-//				newni = newnodeinst(pin, lx, hx, ly, hy, 0, 0, cell);
-//				if (newni == NONODEINST) return;
-//				endobjectchange((INTBIG)newni, VNODEINST);
-//				newni->temp1 = 0;
-//				ni->temp1 = (INTBIG)newni;
-//			}
-//
-//			/* now create new arcs to replace the old ones */
-//			for(ai = cell->firstarcinst; ai != NOARCINST; ai = ai->nextarcinst)
-//			{
-//				if (ai->temp1 == 0) continue;
-//				ni0 = ai->end[0].nodeinst;
-//				if (ni0->temp1 != 0)
-//				{
-//					ni0 = (NODEINST *)ni0->temp1;
-//					pp0 = ni0->proto->firstportproto;
-//				} else
-//				{
-//					/* need contacts to get to the right level */
-//					us_makecontactstack(ai, 0, ap, &ni0, &pp0);
-//					if (ni0 == NONODEINST) return;
-//				}
-//				ni1 = ai->end[1].nodeinst;
-//				if (ni1->temp1 != 0)
-//				{
-//					ni1 = (NODEINST *)ni1->temp1;
-//					pp1 = ni1->proto->firstportproto;
-//				} else
-//				{
-//					/* need contacts to get to the right level */
-//					us_makecontactstack(ai, 1, ap, &ni1, &pp1);
-//					if (ni1 == NONODEINST) return;
-//				}
-//
-//				wid = defaultarcwidth(ap);
-//				if (ai->width > wid) wid = ai->width;
-//				bits = us_makearcuserbits(ap);
-//				newai = newarcinst(ap, wid, bits, ni0, pp0, ai->end[0].xpos, ai->end[0].ypos,
-//					ni1, pp1, ai->end[1].xpos, ai->end[1].ypos, cell);
-//				if (newai == NOARCINST) return;
-//				(void)copyvars((INTBIG)ai, VARCINST, (INTBIG)newai, VARCINST, FALSE);
-//				newai->temp1 = 0;
-//				endobjectchange((INTBIG)newai, VARCINST);
-//			}
-//
-//			/* now remove the previous arcs and nodes */
-//			for(ai = cell->firstarcinst; ai != NOARCINST; ai = nextai)
-//			{
-//				nextai = ai->nextarcinst;
-//				if (ai->temp1 == 0) continue;
-//				startobjectchange((INTBIG)ai, VARCINST);
-//				(void)killarcinst(ai);
-//			}
-//			for(ni = cell->firstnodeinst; ni != NONODEINST; ni = nextni)
-//			{
-//				nextni = ni->nextnodeinst;
-//				if (ni->temp1 == 0) continue;
-//				startobjectchange((INTBIG)ni, VNODEINST);
-//				(void)killnodeinst(ni);
-//			}
+			List highs = Highlight.getHighlighted(true, true);
+			FlagSet marked = Geometric.getFlagSet(1);
+
+			// mark the pin nodes that must be changed
+			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				ni.clearBit(marked);
+				ni.setTempObj(null);
+			}
+			for(Iterator it = cell.getArcs(); it.hasNext(); )
+			{
+				ArcInst ai = (ArcInst)it.next();
+				ai.clearBit(marked);
+			}
+
+			for(Iterator it = highs.iterator(); it.hasNext(); )
+			{
+				Geometric geom = (Geometric)it.next();
+				if (!(geom instanceof ArcInst)) continue;
+				ArcInst ai = (ArcInst)geom;
+				if (ai.getProto() != oldAi.getProto()) continue;
+				ai.setBit(marked);
+			}
+			if (connected)
+			{
+				Netlist netlist = cell.getUserNetlist();
+				for(Iterator it = cell.getArcs(); it.hasNext(); )
+				{
+					ArcInst ai = (ArcInst)it.next();
+					if (ai.getProto() != oldAi.getProto()) continue;
+					JNetwork net = netlist.getNetwork(ai, 0);
+					JNetwork oNet = netlist.getNetwork(oldAi, 0);
+					if (net != oNet) continue;
+					ai.setBit(marked);
+				}
+			}
+			if (thiscell)
+			{
+				for(Iterator it = cell.getArcs(); it.hasNext(); )
+				{
+					ArcInst ai = (ArcInst)it.next();
+					if (ai.getProto() != oldAi.getProto()) continue;
+					ai.setBit(marked);
+				}
+			}
+			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				if (ni.getProto() instanceof Cell) continue;
+				if (ni.getNumExports() != 0) continue;
+				if (ni.getFunction() != NodeProto.Function.PIN) continue;
+				boolean allArcs = true;
+				for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+				{
+					Connection con = (Connection)cIt.next();
+					if (!con.getArc().isBit(marked)) { allArcs = false;   break; }
+				}
+				if (allArcs) ni.setBit(marked);
+			}
+
+			// now create new pins where they belong
+			PrimitiveNode pin = ((PrimitiveArc)ap).findPinProto();
+			double xS = pin.getDefWidth();
+			double yS = pin.getDefHeight();
+			List dupPins = new ArrayList();
+			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				if (!ni.isBit(marked)) continue;
+				dupPins.add(ni);
+			}
+			for(Iterator it = dupPins.iterator(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+
+				NodeInst newNi = NodeInst.makeInstance(pin, ni.getGrabCenter(), xS, yS, 0, cell, null);
+				if (newNi == null) return;
+				newNi.clearBit(marked);
+				ni.setTempObj(newNi);
+			}
+
+			// now create new arcs to replace the old ones
+			List dupArcs = new ArrayList();
+			for(Iterator it = cell.getArcs(); it.hasNext(); )
+			{
+				ArcInst ai = (ArcInst)it.next();
+				if (ai.isBit(marked)) dupArcs.add(ai);
+			}
+			for(Iterator it = dupArcs.iterator(); it.hasNext(); )
+			{
+				ArcInst ai = (ArcInst)it.next();
+
+				NodeInst ni0 = ai.getHead().getPortInst().getNodeInst();
+				PortInst pi0 = null;
+				if (ni0.getTempObj() != null)
+				{
+					ni0 = (NodeInst)ni0.getTempObj();
+					pi0 = ni0.getOnlyPortInst();
+				} else
+				{
+					// need contacts to get to the right level
+					pi0 = makeContactStack(ai, 0, ap);
+					if (pi0 == null) return;
+				}
+				NodeInst ni1 = ai.getTail().getPortInst().getNodeInst();
+				PortInst pi1 = null;
+				if (ni1.getTempObj() != null)
+				{
+					ni1 = (NodeInst)ni1.getTempObj();
+					pi1 = ni1.getOnlyPortInst();
+				} else
+				{
+					// need contacts to get to the right level
+					pi1 = makeContactStack(ai, 1, ap);
+					if (pi1 == null) return;
+				}
+
+				double wid = ap.getDefaultWidth();
+				if (ai.getWidth() > wid) wid = ai.getWidth();
+				ArcInst newAi = ArcInst.makeInstance(ap, wid, pi0, ai.getHead().getLocation(),
+					pi1, ai.getTail().getLocation(), null);
+				if (newAi == null) return;
+				ai.copyVars(newAi);
+				newAi.clearBit(marked);
+			}
+
+			// now remove the previous arcs and nodes
+			List killArcs = new ArrayList();
+			for(Iterator it = cell.getArcs(); it.hasNext(); )
+			{
+				ArcInst ai = (ArcInst)it.next();
+				if (ai.isBit(marked)) killArcs.add(ai);
+			}
+			for(Iterator it = killArcs.iterator(); it.hasNext(); )
+			{
+				ArcInst ai = (ArcInst)it.next();
+				ai.kill();
+			}
+
+			List killNodes = new ArrayList();
+			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				if (ni.isBit(marked)) killNodes.add(ni);
+			}
+			for(Iterator it = killNodes.iterator(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				ni.kill();
+			}
+			marked.freeFlagSet();
 		}
+
+		NodeProto [] contactStack = new NodeProto[100];
+		ArcProto [] contactStackArc = new ArcProto[100];
+
+		/**
+		 * Method to examine end "end" of arc "ai" and return a node at that position which
+		 * can connect to arcs of type "ap".  This may require creation of one or more contacts
+		 * to change layers.
+		 */
+		private PortInst makeContactStack(ArcInst ai, int end, ArcProto ap)
+		{
+			NodeInst lastNi = ai.getConnection(end).getPortInst().getNodeInst();
+			PortProto lastPp = ai.getConnection(end).getPortInst().getPortProto();
+			FlagSet marked = NodeProto.getFlagSet(1);
+			for(Iterator it = ap.getTechnology().getNodes(); it.hasNext(); )
+			{
+				PrimitiveNode np = (PrimitiveNode)it.next();
+				np.clearBit(marked);
+			}
+			int depth = findPathToArc(lastPp, ap, 0, marked);
+			if (depth < 0) return null;
+
+			// create the contacts
+			Cell cell = ai.getParent();
+			PortInst retPi = lastNi.findPortInstFromProto(lastPp);
+			Point2D center = ai.getConnection(end).getLocation();
+			for(int i=0; i<depth; i++)
+			{
+				double xS = contactStack[i].getDefWidth();
+				double yS = contactStack[i].getDefHeight();
+				NodeInst newNi = NodeInst.makeInstance(contactStack[i], center, xS, yS, 0, cell, null);
+				if (newNi == null) return null;
+				PortInst thisPi = newNi.findPortInstFromProto(contactStack[i].getPort(0));
+
+				ArcProto typ = contactStackArc[i];
+				double wid = typ.getDefaultWidth();
+				ArcInst newAi = ArcInst.makeInstance(typ, wid, thisPi, retPi, null);
+				retPi = thisPi;
+				if (newAi == null) return null;
+			}
+			marked.freeFlagSet();
+			return retPi;
+		}
+
+		int findPathToArc(PortProto pp, ArcProto ap, int depth, FlagSet marked)
+		{
+			// see if the connection is made
+			if (pp.connectsTo(ap)) return depth;
+
+			// look for a contact
+			NodeProto bestNp = null;
+			ArcProto bestAp = null;
+			int bestDepth = 0;
+			Technology tech = ap.getTechnology();
+			for(Iterator it = tech.getNodes(); it.hasNext(); )
+			{
+				PrimitiveNode nextNp = (PrimitiveNode)it.next();
+				if (nextNp.isBit(marked)) continue;
+				NodeProto.Function fun = nextNp.getFunction();
+				if (fun != NodeProto.Function.CONTACT) continue;
+
+				// see if this contact connects to the destination
+				PortProto nextPp = nextNp.getPort(0);
+				ArcProto [] connections = nextPp.getBasePort().getConnections();
+				ArcProto found = null;
+				for(int i=0; i<connections.length; i++)
+				{
+					ArcProto thisAp = connections[i];
+					if (thisAp.getTechnology() != tech) continue;
+					if (pp.connectsTo(thisAp)) { found = thisAp;   break; }
+				}
+				if (found == null) continue;
+
+				// this contact is part of the chain
+				contactStack[depth] = nextNp;
+				nextNp.setBit(marked);
+				int newDepth = findPathToArc(nextPp, ap, depth+1, marked);
+				nextNp.clearBit(marked);
+				if (newDepth < 0) continue;
+				if (bestNp == null || newDepth < bestDepth)
+				{
+					bestDepth = newDepth;
+					bestNp = nextNp;
+					bestAp = found;
+				}
+			}
+			if (bestNp != null)
+			{
+				contactStack[depth] = bestNp;
+				contactStackArc[depth] = bestAp;
+				bestNp.setBit(marked);
+				int newDepth = findPathToArc(bestNp.getPort(0), ap, depth+1, marked);
+				bestNp.clearBit(marked);
+				return newDepth;
+			}
+			return -1;
+		}
+
 	}
 
 	/** This method is called from within the constructor to
