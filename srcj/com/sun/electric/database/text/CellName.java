@@ -118,7 +118,15 @@ public class CellName
 			String versionString;
 			if (openCurly > semiColon) versionString = name.substring(semiColon+1, openCurly); else
 				versionString = name.substring(semiColon+1);
-			n.version = Integer.parseInt(versionString);
+			try
+			{
+				n.version = Integer.parseInt(versionString);
+			}
+			catch (NumberFormatException e)
+			{
+				System.out.println(versionString + "is not a valid cell version number");
+				return null;
+			}
 			if (n.version <= 0)
 			{
 				System.out.println("Cell versions must be positive, this is " + n.version);
