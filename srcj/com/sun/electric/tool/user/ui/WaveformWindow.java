@@ -3418,11 +3418,12 @@ public class WaveformWindow implements WindowContent
 		Collections.sort(signals, new SignalsByName());
 
 		// add branches first
+		char separatorChar = sd.getSeparatorChar();
 		for(Iterator it = signals.iterator(); it.hasNext(); )
 		{
 			Simulation.SimSignal sSig = (Simulation.SimSignal)it.next();
 			if (sSig.getSignalContext() != null)
-				makeContext(sSig.getSignalContext(), contextMap);
+				makeContext(sSig.getSignalContext(), contextMap, separatorChar);
 		}
 
 		// add all signals to the tree
@@ -3431,7 +3432,7 @@ public class WaveformWindow implements WindowContent
 			Simulation.SimSignal sSig = (Simulation.SimSignal)it.next();
 			DefaultMutableTreeNode thisTree = signalsExplorerTree;
 			if (sSig.getSignalContext() != null)
-				thisTree = makeContext(sSig.getSignalContext(), contextMap);
+				thisTree = makeContext(sSig.getSignalContext(), contextMap, separatorChar);
 			thisTree.add(new DefaultMutableTreeNode(sSig));
 		}
 		return signalsExplorerTree;
@@ -3444,7 +3445,7 @@ public class WaveformWindow implements WindowContent
 	 * @param contextMap a HashMap of branch names to tree nodes.
 	 * @return the tree node for the requested branch name.
 	 */
-	private DefaultMutableTreeNode makeContext(String branchName, HashMap contextMap)
+	private DefaultMutableTreeNode makeContext(String branchName, HashMap contextMap, char separatorChar)
 	{
 		DefaultMutableTreeNode branchTree = (DefaultMutableTreeNode)contextMap.get(branchName);
 		if (branchTree != null) return branchTree;
@@ -3452,14 +3453,14 @@ public class WaveformWindow implements WindowContent
 		// split the branch name into a leaf and parent
 		String parent = "";
 		String leaf = branchName;
-		int dotPos = leaf.lastIndexOf('.');
+		int dotPos = leaf.lastIndexOf(separatorChar);
 		if (dotPos >= 0)
 		{
 			parent = leaf.substring(0, dotPos);
 			leaf = leaf.substring(dotPos+1);
 		}
 
-		DefaultMutableTreeNode parentBranch = makeContext(parent, contextMap);
+		DefaultMutableTreeNode parentBranch = makeContext(parent, contextMap, separatorChar);
 		DefaultMutableTreeNode thisTree = new DefaultMutableTreeNode(leaf);
 		parentBranch.add(thisTree);
 		contextMap.put(branchName, thisTree);

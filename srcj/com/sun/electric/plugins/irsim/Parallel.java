@@ -52,7 +52,7 @@ public class Parallel
 					if ((t1.ttype & Sim.ORED) == 0)
 					{
 						t2 = new Sim.Trans();
-						t2.r = (Sim.Resists)new Sim.TranResist();
+						t2.r = new Sim.Resists();
 						t2.r.dynres[Sim.R_LOW] = t1.r.dynres[Sim.R_LOW];
 						t2.r.dynres[Sim.R_HIGH] = t1.r.dynres[Sim.R_HIGH];
 						t2.r.rstatic = t1.r.rstatic;

@@ -687,17 +687,26 @@ public class Analyzer
     		URL fileURL = TextUtils.makeURLToFile("Electric.XXXXXX");
 
     		// read the configuration file
-    		String parameterFile = Simulation.getIRSIMParameterFile();
-    		File pf = new File(parameterFile);
-    		URL url;
-    		if (pf != null && pf.exists())
+    		String parameterFile = Simulation.getIRSIMParameterFile().trim();
+    		if (parameterFile.length() > 0)
     		{
-    			url = TextUtils.makeURLToFile(parameterFile);
-    		} else
-    		{
-        		url = LibFile.getLibFile(parameterFile);
+	    		File pf = new File(parameterFile);
+	    		URL url;
+	    		if (pf != null && pf.exists())
+	    		{
+	    			url = TextUtils.makeURLToFile(parameterFile);
+	    		} else
+	    		{
+	        		url = LibFile.getLibFile(parameterFile);
+	    		}
+	    		if (url == null)
+	    		{
+	    			System.out.println("Cannot find parameter file: " + parameterFile);
+	    		} else
+	    		{
+	    			if (Config.irsim_config(url) != 0) return true;
+	    		}
     		}
-    		if (Config.irsim_config(url) != 0) return true;
     	
     		// Read network (.sim file)
     		if (Sim.irsim_rd_network(fileURL)) return true;

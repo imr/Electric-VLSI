@@ -52,9 +52,10 @@ public class FileType {
 	/** Describes HSpice output. */			public static final FileType HSPICEOUT    = new FileType("HSpiceOutput", new String[] {"tr0", "pa0"}, "HSpice Output File (tr0/pa0)");
 	/** Describes HTML files. */			public static final FileType HTML         = new FileType("HTML", new String[] {"html"}, "HTML File (html)");
 	/** Describes IRSIM decks. */			public static final FileType IRSIM        = new FileType("IRSIM", new String[] {"sim"}, "IRSIM Deck (sim)");
+	/** Describes IRSIM stimuli decks. */	public static final FileType IRSIMSTIM    = new FileType("IRSIM Stimuli", new String[] {"cmd"}, "IRSIM Stimuli Deck (cmd)");
 	/** Describes Java source. */			public static final FileType JAVA         = new FileType("Java", new String[] {"java", "bsh"}, "Java Script File (java, bsh)");
 	/** Describes JELIB files.*/			public static final FileType JELIB        = new FileType("JELIB", new String[] {"jelib"}, "Library File (jelib)");
-    /** Describes JELIB files.*/			public static final FileType J3D          = new FileType("J3D", new String[] {"j3d"}, "Java3D Demo File");	
+    /** Describes J3D files.*/				public static final FileType J3D          = new FileType("J3D", new String[] {"j3d"}, "Java3D Demo File");	
     /** Describes L files.*/				public static final FileType L            = new FileType("L", new String[] {"L"}, "L File (L)");
 	/** Describes LEF files.*/				public static final FileType LEF          = new FileType("LEF", new String[] {"lef"}, "LEF File (lef)");
 	/** Describes Maxwell decks. */			public static final FileType MAXWELL      = new FileType("Maxwell", new String[] {"mac"}, "Maxwell Deck (mac)");

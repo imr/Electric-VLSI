@@ -41,6 +41,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.user.User;
 
 import java.util.Date;
@@ -84,8 +85,11 @@ public class IRSIM extends Output
 	private void writeHeader(Cell cell)
 	{
 		// get scale in centimicrons
-		double scale = Technology.getCurrent().getScale() / 10;
-		printWriter.println("| units: " + scale + " tech: mocmos format: SU");
+		Technology tech = cell.getTechnology();
+		if (tech == Schematics.tech)
+			tech = Technology.findTechnology(User.getSchematicTechnology());
+		double scale = tech.getScale() / 10;
+		printWriter.println("| units: " + scale + " tech: " + tech.getTechName() + " format: SU");
 		printWriter.println("| IRSIM file for cell " + cell.noLibDescribe() +
 			" from library " + cell.getLibrary().getName());
 		emitCopyright("| ", "");
@@ -153,11 +157,13 @@ public class IRSIM extends Output
 			printWriter.print(" " + iinfo.getUniqueNetName(snet, "/"));
 			printWriter.print(" " + iinfo.getUniqueNetName(dnet, "/"));
             TransistorSize dim = ni.getTransistorSize(iinfo.getContext());
+            if (dim.getDoubleLength() == 0 || dim.getDoubleWidth() == 0)
+            	dim = new TransistorSize(2, 2);
             float m = iinfo.getMFactor();
-			printWriter.print(" " + dim.getLength());                // length
-			printWriter.print(" " + (double)m * dim.getDoubleWidth());     // width
-			printWriter.print(" " + ni.getAnchorCenterX());          // xpos
-			printWriter.print(" " + ni.getAnchorCenterY());          // ypos
+			printWriter.print(" " + dim.getLength());                   // length
+			printWriter.print(" " + (double)m * dim.getDoubleWidth());  // width
+			printWriter.print(" " + ni.getAnchorCenterX());             // xpos
+			printWriter.print(" " + ni.getAnchorCenterY());             // ypos
             if (isNMOS)
 				printWriter.print(" g=S_gnd");
             else 

@@ -147,16 +147,23 @@ public class ToolMenu {
 			toolMenu.add(irsimSimulationSubMenu);
 			irsimSimulationSubMenu.addMenuItem("Simulate Current Cell", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { simulateCellWithIRSIM(); } });
+			irsimSimulationSubMenu.addMenuItem("Write IRSIM Deck...", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.IRSIM, true); }});
 			irsimSimulationSubMenu.addSeparator();
 			irsimSimulationSubMenu.addMenuItem("Set Signal High at Main Time", KeyStroke.getKeyStroke('V', 0),
-				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setIRSIMSignal(1); } });
+				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("h"); } });
 			irsimSimulationSubMenu.addMenuItem("Set Signal Low at Main Time", KeyStroke.getKeyStroke('G', 0),
-				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setIRSIMSignal(0); } });
+				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("l"); } });
 			irsimSimulationSubMenu.addMenuItem("Set Signal Undefined at Main Time", KeyStroke.getKeyStroke('X', 0),
-				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setIRSIMSignal(-1); } });
+				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("x"); } });
 			irsimSimulationSubMenu.addSeparator();
-			irsimSimulationSubMenu.addMenuItem("Clear Stimuli on Selected Signals", null,
-				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.clearIRSIMStimuli(); } });
+			irsimSimulationSubMenu.addMenuItem("Clear Vectors on Selected Signals", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("clear"); } });
+			irsimSimulationSubMenu.addSeparator();
+			irsimSimulationSubMenu.addMenuItem("Save Vectors to Disk...", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("save"); } });
+			irsimSimulationSubMenu.addMenuItem("Restore Vectors from Disk...", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("restore"); } });
         }
 
 		//------------------- Simulation (SPICE)
@@ -238,8 +245,11 @@ public class ToolMenu {
 		netlisters.addMenuItem("Write PAL Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.PAL, true); } });
 		netlisters.addSeparator();
-		netlisters.addMenuItem("Write IRSIM Deck...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.IRSIM, true); }});
+		if (!Simulation.hasIRSIM())
+		{
+			netlisters.addMenuItem("Write IRSIM Deck...", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.IRSIM, true); }});
+		}
 		netlisters.addMenuItem("Write ESIM/RNL Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.ESIM, true); }});
 		netlisters.addMenuItem("Write RSIM Deck...", null,
