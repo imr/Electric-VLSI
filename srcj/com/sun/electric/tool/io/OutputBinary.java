@@ -656,7 +656,7 @@ public class OutputBinary extends Output
 		int transpose = 0;
 		if (ni.isTransposed()) transpose = 1;
 		writeBigInteger(transpose);
-		int rotation = (int)(ni.getAngle() * 1800 / Math.PI);
+		int rotation = ni.getAngle();
 		writeBigInteger(rotation);
 
 		TextDescriptor td = ni.getTextDescriptor();
@@ -727,8 +727,7 @@ public class OutputBinary extends Output
 		writeBigInteger(ai.getTail().getPortInst().getNodeInst().getTempInt());
 
 		// write the arcinst's tool information
-		int arcAngle = (int)(ai.getAngle() * 180 / Math.PI);
-		if (arcAngle < 0) arcAngle += 360;
+		int arcAngle = ai.getAngle() / 10;
 		ai.lowLevelSetArcAngle(arcAngle);
 		int userBits = ai.lowLevelGetUserbits();
 		writeBigInteger(userBits);
