@@ -4,7 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01aq: *********************************
 
-IMP: (11/21/04, GVG) Extra polygons connecting poly and poly gates in transistors so gate oxide looks more real.
+IMP: (11/21/04, GVG) 3D modifications: (a) Extra polygons connecting poly and poly gates in transistors so gate oxide
+looks more real. (b) Adding active region beneath poly gate (electrical layers from getShapeOfNode don't provide such
+polygons).
 
 IMP: (11/21/04, GVG) Orbit behavior replaced by 3 separate ones in 3D view. Better zoom and translation
 
