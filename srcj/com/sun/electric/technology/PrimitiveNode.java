@@ -26,6 +26,7 @@ package com.sun.electric.technology;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.technology.technologies.Generic;
 
 import java.awt.Dimension;
 import java.util.Iterator;
@@ -448,5 +449,25 @@ public class PrimitiveNode extends NodeProto
 	{
 		return "PrimitiveNode " + describe();
 	}
-    
+
+	/**
+	 * Method to get MinZ and MaxZ of the cell calculated based on nodes
+	 * @param array array[0] is minZ and array[1] is max
+	 */
+	public void getZValues(double [] array)
+	{
+		for(int j=0; j<layers.length; j++)
+		{
+			Layer layer = layers[j].getLayer();
+
+			// Skipping Glyph node
+			if (layer.getTechnology() instanceof Generic) continue;
+			double distance = layer.getDistance();
+			double thickness = layer.getThickness();
+			double z = distance + thickness;
+
+			array[0] = (array[0] > distance) ? distance : array[0];
+			array[1] = (array[1] < z) ? z : array[1];
+		}
+	}
 }

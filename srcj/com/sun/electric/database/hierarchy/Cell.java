@@ -2754,6 +2754,7 @@ public class Cell extends NodeProto implements Comparable
 		return (true);
 	}
 
+	///////////////////////////// MISCELANEOUS ///////////////////////////////////////
     /**
      * Compares revision dates of Cells.
      * @param obj
@@ -2767,5 +2768,32 @@ public class Cell extends NodeProto implements Comparable
 		Cell toCompare = (Cell)obj;
         Date toCompareDate = toCompare.getRevisionDate();
         return (toCompareDate.compareTo(getRevisionDate()));
+	}
+
+	/**
+	 * Method to get MinZ and MaxZ of the cell calculated based on nodes.
+	 * You must guarantee minZ = Double.MaxValue() and maxZ = Double.MinValue()
+	 * for initial call.
+	 * @param array array[0] is minZ and array[1] is max
+	 */
+	public void getZValues(double [] array)
+	{
+		int n = nodes.size();
+		for (int i = 0; i < n; i++)
+		{
+			NodeInst ni = (NodeInst) nodes.get(i);
+			NodeProto nProto = ni.getProto();
+			if (nProto instanceof Cell)
+			{
+				Cell nCell = (Cell)nProto;
+				nCell.getZValues(array);
+			}
+			else
+			{
+				PrimitiveNode np = (PrimitiveNode)nProto;
+				np.getZValues(array);
+
+			}
+		}
 	}
 }

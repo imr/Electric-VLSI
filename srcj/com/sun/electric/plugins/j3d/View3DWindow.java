@@ -95,6 +95,32 @@ public class View3DWindow extends JPanel
 	/** Collection of attributes per layer. It might need to go in other place */ private HashMap appearances = new HashMap();
 	private PickCanvas pickCanvas;
 
+	// Done only once.
+	private static Appearance cellApp = new Appearance();
+	static {
+
+		Color3f objColor = new Color3f(Color.GRAY);
+		ColoringAttributes ca = new ColoringAttributes();
+		ca.setColor(objColor);
+		cellApp.setColoringAttributes(ca);
+
+		TransparencyAttributes ta = new TransparencyAttributes();
+		ta.setTransparencyMode(TransparencyAttributes.SCREEN_DOOR);
+		ta.setTransparency(0.5f);
+		cellApp.setTransparencyAttributes(ta);
+
+			// Set up the polygon attributes
+		PolygonAttributes pa = new PolygonAttributes();
+		pa.setCullFace(PolygonAttributes.CULL_NONE);
+		//pa.setPolygonMode(PolygonAttributes.POLYGON_LINE);
+		//ap.setPolygonAttributes(pa);
+
+		TextureAttributes texAttr = new TextureAttributes();
+		texAttr.setTextureMode(TextureAttributes.MODULATE);
+		//texAttr.setTextureColorTable(pattern);
+		cellApp.setTextureAttributes(texAttr);
+	}
+
 	// constructor
 	public View3DWindow(Cell cell, WindowFrame wf)
 	{
@@ -333,7 +359,7 @@ public class View3DWindow extends JPanel
 		ArcProto ap = ai.getProto();
 		Technology tech = ap.getTechnology();
 
-		addPolys(tech.getShapeOfArc(ai), null, objTrans, null);
+		addPolys(tech.getShapeOfArc(ai), null, objTrans);
 	}
 
 	/**
@@ -350,20 +376,68 @@ public class View3DWindow extends JPanel
 		// Skipping Gyph node
 		 if (nProto == Tech.facetCenter) return;
 
-		addPolys(tech.getShapeOfNode(no), no.rotateOut(), objTrans, nProto);
+		if (!(nProto instanceof PrimitiveNode))
+		{
+			// Cell
+			Cell cell = (Cell)nProto;
+			Rectangle2D rect = no.getBounds();
+			double [] values = new double[2];
+			values[0] = Double.MAX_VALUE;
+			values[1] = Double.MIN_VALUE;
+			cell.getZValues(values);
+			addPolyhedron(rect, values[0], values[1] - values[0], cellApp, objTrans);
+		}
+		else
+			addPolys(tech.getShapeOfNode(no), no.rotateOut(), objTrans);
 	}
 
 	/**
-	 * Adds given list of Polys to transformation group
+	 * Method to add a polyhedron to the transformation group
+	 * @param objTrans
+	 */
+	public void addPolyhedron(Rectangle2D bounds, double distance, double thickness,
+	                          Appearance ap, TransformGroup objTrans)
+	{
+			GeometryInfo gi = new GeometryInfo(GeometryInfo.QUAD_ARRAY);
+			double height = thickness + distance;
+			Point3d[] pts = new Point3d[8];
+			pts[0] = new Point3d(bounds.getMinX(), bounds.getMinY(), distance);
+			pts[1] = new Point3d(bounds.getMinX(), bounds.getMaxY(), distance);
+			pts[2] = new Point3d(bounds.getMaxX(), bounds.getMaxY(), distance);
+			pts[3] = new Point3d(bounds.getMaxX(), bounds.getMinY(), distance);
+			pts[4] = new Point3d(bounds.getMinX(), bounds.getMinY(), height);
+			pts[5] = new Point3d(bounds.getMinX(), bounds.getMaxY(), height);
+			pts[6] = new Point3d(bounds.getMaxX(), bounds.getMaxY(), height);
+			pts[7] = new Point3d(bounds.getMaxX(), bounds.getMinY(), height);
+			int[] indices = {0, 1, 2, 3, /* bottom z */
+			                 0, 4, 5, 1, /* back y */
+			                 0, 3, 7, 4, /* back x */
+			                 1, 5, 6, 2, /* front x */
+			                 2, 6, 7, 3, /* front y */
+			                 4, 7, 6, 5}; /* top z */
+			gi.setCoordinates(pts);
+			gi.setCoordinateIndices(indices);
+			GeometryArray c = gi.getGeometryArray();
+            c.setCapability(GeometryArray.ALLOW_INTERSECT);
+
+			//cubeTrans.addChild(new Shape3D(c, ap));
+			Shape3D box = new Shape3D(c, ap);
+			box.setCapability(Shape3D.ENABLE_PICK_REPORTING);
+			box.setCapability(Node.ALLOW_LOCAL_TO_VWORLD_READ);
+            box.setCapability(Shape3D.ALLOW_PICKABLE_READ);
+			PickTool.setCapabilities(box, PickTool.INTERSECT_FULL);
+			objTrans.addChild(box);
+	}
+
+	/**
+	 * Adds given list of Polys representing a PrimitiveNode to the transformation group
 	 * @param polys
 	 * @param transform
 	 * @param objTrans
 	 */
-	public void addPolys(Poly [] polys, AffineTransform transform, TransformGroup objTrans,
-	                     NodeProto nProto)
+	public void addPolys(Poly [] polys, AffineTransform transform, TransformGroup objTrans)
 	{
 		if (polys == null) return;
-		//Layer[] metals = new Layer[3];
 
 		for(int i = 0; i < polys.length; i++)
 		{
@@ -375,44 +449,9 @@ public class View3DWindow extends JPanel
 			double thickness = layer.getThickness();
 			double distance = layer.getDistance();
 
-			// Trying to calculate distance from two layers
-			// Might go away if correct values are provided by technology
-			/*
-			if (layer.getFunction().isContact())
-			{
-				if (nProto instanceof PrimitiveNode)
-				{
-					PrimitiveNode np = (PrimitiveNode)nProto;
-					Iterator iter = np.layerIterator();
-					Technology.NodeLayer [] primLayers = np.getLayers();
-					int size = primLayers.length;
+			if (thickness == 0)
+				System.out.println("Layer has zero thickness: " + layer.getName());
 
-					// Searching for this layer
-					if (size != 3) break;
-					metals[0] = metals[1] = metals[2] = null;
-					for (int j = 0; j < size; j++)
-					{
-						if (primLayers[j].getLayer() == layer)
-						{
-							metals[0] = layer;
-							metals[1] = primLayers[(j+1)%size].getLayer();
-							metals[2] = primLayers[(j+2)%size].getLayer();
-							j = size; // out of the loop
-						}
-					}
-					if (metals[0] == null)
-						System.out.println("Error");
-					if (metals[1].getDistance() > metals[2].getDistance())
-					{
-						Layer layerTmp = metals[1];
-						metals[1] = metals[2] ;
-						metals[2] = layerTmp;
-					}
-					distance = metals[1].getDistance() + metals[1].getThickness();
-					thickness = metals[2].getDistance() - distance;
-				}
-			}
-			*/
 			if (transform != null)
 				poly.transform(transform);
 			Rectangle2D bounds = poly.getBounds2D();
@@ -450,38 +489,8 @@ public class View3DWindow extends JPanel
 				appearances.put(layer, ap);
 			}
 
-			//Box box = new Box((float)bounds.getWidth(), (float)bounds.getDistance(), (float)thickness, ap);   //B
-			GeometryInfo gi = new GeometryInfo(GeometryInfo.QUAD_ARRAY);
-			double height = thickness + distance;
-			Point3d[] pts = new Point3d[8];
-			pts[0] = new Point3d(bounds.getMinX(), bounds.getMinY(), distance);
-			pts[1] = new Point3d(bounds.getMinX(), bounds.getMaxY(), distance);
-			pts[2] = new Point3d(bounds.getMaxX(), bounds.getMaxY(), distance);
-			pts[3] = new Point3d(bounds.getMaxX(), bounds.getMinY(), distance);
-			pts[4] = new Point3d(bounds.getMinX(), bounds.getMinY(), height);
-			pts[5] = new Point3d(bounds.getMinX(), bounds.getMaxY(), height);
-			pts[6] = new Point3d(bounds.getMaxX(), bounds.getMaxY(), height);
-			pts[7] = new Point3d(bounds.getMaxX(), bounds.getMinY(), height);
-			int[] indices = {0, 1, 2, 3, /* bottom z */
-			                 0, 4, 5, 1, /* back y */
-			                 0, 3, 7, 4, /* back x */
-			                 1, 5, 6, 2, /* front x */
-			                 2, 6, 7, 3, /* front y */
-			                 4, 7, 6, 5}; /* top z */
-			gi.setCoordinates(pts);
-			gi.setCoordinateIndices(indices);
-			GeometryArray c = gi.getGeometryArray();
-            c.setCapability(GeometryArray.ALLOW_INTERSECT);
-			if (thickness == 0)
-				System.out.println("Layer has zero thickness: " + layer.getName());
 
-			//cubeTrans.addChild(new Shape3D(c, ap));
-			Shape3D box = new Shape3D(c, ap);
-			box.setCapability(Shape3D.ENABLE_PICK_REPORTING);
-			box.setCapability(Node.ALLOW_LOCAL_TO_VWORLD_READ);
-            box.setCapability(Shape3D.ALLOW_PICKABLE_READ);
-			PickTool.setCapabilities(box, PickTool.INTERSECT_FULL);
-			objTrans.addChild(box);
+			addPolyhedron(bounds, distance, thickness, ap, objTrans);
 		}
 	}
 
