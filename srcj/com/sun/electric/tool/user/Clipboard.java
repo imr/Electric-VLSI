@@ -637,9 +637,6 @@ public class Clipboard
 		// adjust this corner so that, after grid alignment, objects are in the same location
 		EditWindow.gridAlign(corner);
 
-		// initialize for queueing creation of new exports
-		List queuedExports = new ArrayList();
-
 		// sort the nodes by name
 		Collections.sort(theNodes, new NodeNameCaseInsensitive());
 
@@ -673,18 +670,20 @@ public class Clipboard
 //			us_dupnode = newNi;
 
 			// copy the ports, too
+            List portInstsToExport = new ArrayList();
+            List referenceExports = new ArrayList();
 			if (User.isDupCopiesExports())
 			{
 				for(Iterator eit = ni.getExports(); eit.hasNext(); )
 				{
 					Export pp = (Export)eit.next();
-					queuedExports.add(pp);
+                    referenceExports.add(pp);
+                    PortInst pi = ExportChanges.getNewPortFromReferenceExport(newNi, pp);
+                    portInstsToExport.add(pi);
 				}
 			}
+            ExportChanges.reExportPorts(portInstsToExport, true, false, false, referenceExports);
 		}
-
-		// create any queued exports
-		createQueuedExports(queuedExports);
 
 		// create a list of arcs to be copied
 		List theArcs = new ArrayList();

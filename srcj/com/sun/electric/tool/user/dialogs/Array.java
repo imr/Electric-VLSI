@@ -438,9 +438,6 @@ public class Array extends EDialog
 					continue;
 				}
 
-				// initialize for queueing creation of new exports
-				List queuedExports = new ArrayList();
-
 				// first replicate the nodes
 				boolean firstNode = true;
 				for(Iterator it = dialog.selected.keySet().iterator(); it.hasNext(); )
@@ -490,14 +487,21 @@ public class Array extends EDialog
 					}
 
 					// copy the ports, too
+                    List portInstsToExport = new ArrayList();
+                    List referenceExports = new ArrayList();
 					if (User.isDupCopiesExports())
 					{
 						for(Iterator eit = ni.getExports(); eit.hasNext(); )
 						{
 							Export pp = (Export)eit.next();
-							queuedExports.add(pp);
+                            referenceExports.add(pp);
+							// find port on new nodeinst to export
+                            PortInst pi = ExportChanges.getNewPortFromReferenceExport(newNi, pp);
+                            portInstsToExport.add(pi);
 						}
 					}
+                    ExportChanges.reExportPorts(portInstsToExport, true, false, false, referenceExports);
+
 
 					ni.setTempObj(newNi);
 					if (lastDRCGood && firstNode)
@@ -506,9 +510,6 @@ public class Array extends EDialog
 						firstNode = false;
 					}
 				}
-
-				// create any queued exports
-				Clipboard.createQueuedExports(queuedExports);
 
 				// next replicate the arcs
 				for(Iterator it = dialog.selected.keySet().iterator(); it.hasNext(); )
