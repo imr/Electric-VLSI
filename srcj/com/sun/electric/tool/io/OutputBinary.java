@@ -728,18 +728,20 @@ public class OutputBinary extends Output
 		writeBigInteger(highY);
 		int transpose = 0;
 		int rotation = ni.getAngle();
-		if (ni.isXMirrored())
-		{
-			if (ni.isYMirrored()) rotation = (rotation + 1800) % 3600; else
-			{
-				rotation = (rotation + 900) % 3600;
-				transpose = 1 - transpose;
-			}
-		} else if (ni.isYMirrored())
-		{
-			rotation = (rotation + 2700) % 3600;
-			transpose = 1 - transpose;
-		}
+		if (ni.isXMirrored()) transpose |= 2;
+		if (ni.isYMirrored()) transpose |= 4;
+//		if (ni.isXMirrored())
+//		{
+//			if (ni.isYMirrored()) rotation = (rotation + 1800) % 3600; else
+//			{
+//				rotation = (rotation + 900) % 3600;
+//				transpose = 1 - transpose;
+//			}
+//		} else if (ni.isYMirrored())
+//		{
+//			rotation = (rotation + 2700) % 3600;
+//			transpose = 1 - transpose;
+//		}
 		writeBigInteger(transpose);
 		writeBigInteger(rotation);
 

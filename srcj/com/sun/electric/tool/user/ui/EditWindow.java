@@ -115,8 +115,8 @@ public class EditWindow extends JPanel
     /** the window frame containing this editwindow */      private WindowFrame wf;
 	/** true if the window needs to be rerendered */		private boolean needsUpdate = true;
 	/** true if showing grid in this window */				private boolean showGrid = false;
-	/** X spacing of grid dots in this window */			private float gridXSpacing;
-	/** Y spacing of grid dots in this window */			private float gridYSpacing;
+	/** X spacing of grid dots in this window */			private double gridXSpacing;
+	/** Y spacing of grid dots in this window */			private double gridYSpacing;
 	/** true if doing object-selection drag */				private boolean doingAreaDrag = false;
 	/** starting screen point for drags in this window */	private Point startDrag = new Point();
 	/** ending screen point for drags in this window */		private Point endDrag = new Point();
@@ -963,23 +963,23 @@ public class EditWindow extends JPanel
 	 * Method to return the distance between grid dots in the X direction.
 	 * @return the distance between grid dots in the X direction.
 	 */
-	public float getGridXSpacing() { return gridXSpacing; }
+	public double getGridXSpacing() { return gridXSpacing; }
 	/**
 	 * Method to set the distance between grid dots in the X direction.
 	 * @param spacing the distance between grid dots in the X direction.
 	 */
-	public void setGridXSpacing(float spacing) { gridXSpacing = spacing; }
+	public void setGridXSpacing(double spacing) { gridXSpacing = spacing; }
 
 	/**
 	 * Method to return the distance between grid dots in the Y direction.
 	 * @return the distance between grid dots in the Y direction.
 	 */
-	public float getGridYSpacing() { return gridYSpacing; }
+	public double getGridYSpacing() { return gridYSpacing; }
 	/**
 	 * Method to set the distance between grid dots in the Y direction.
 	 * @param spacing the distance between grid dots in the Y direction.
 	 */
-	public void setGridYSpacing(float spacing) { gridYSpacing = spacing; }
+	public void setGridYSpacing(double spacing) { gridYSpacing = spacing; }
 
 	/**
 	 * Method to return a rectangle in database coordinates that covers the viewable extent of this window.

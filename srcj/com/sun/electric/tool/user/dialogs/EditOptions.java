@@ -785,7 +785,7 @@ public class EditOptions extends javax.swing.JDialog
 	private int initialIconExportLocation, initialIconExportStyle, initialIconExportTech;
 	private int initialIconInstanceLocation;
 	private boolean initialIconDrawLeads, initialIconDrawBody, initialIconReverseExportOrder;
-	private float initialIconLeadLength, initialIconLeadSpacing;
+	private double initialIconLeadLength, initialIconLeadSpacing;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -871,8 +871,8 @@ public class EditOptions extends javax.swing.JDialog
 		iconDrawBody.setSelected(initialIconDrawBody = User.isIconGenDrawBody());
 		iconReverseOrder.setSelected(initialIconReverseExportOrder = User.isIconGenReverseExportOrder());
 
-		iconLeadLength.setText(Float.toString(initialIconLeadLength = User.getIconGenLeadLength()));
-		iconLeadSpacing.setText(Float.toString(initialIconLeadSpacing = User.getIconGenLeadSpacing()));
+		iconLeadLength.setText(Double.toString(initialIconLeadLength = User.getIconGenLeadLength()));
+		iconLeadSpacing.setText(Double.toString(initialIconLeadSpacing = User.getIconGenLeadSpacing()));
 	}
 
 	/**
@@ -933,22 +933,22 @@ public class EditOptions extends javax.swing.JDialog
 		if (currentReverseOrder != initialIconReverseExportOrder)
 			User.setIconGenReverseExportOrder(currentReverseOrder);
 
-		float currentLeadLength = (float)TextUtils.atof(iconLeadLength.getText());
+		double currentLeadLength = TextUtils.atof(iconLeadLength.getText());
 		if (currentLeadLength != initialIconLeadLength)
 			User.setIconGenLeadLength(currentLeadLength);
 
-		float currentLeadSpacing = (float)TextUtils.atof(iconLeadSpacing.getText());
+		double currentLeadSpacing = TextUtils.atof(iconLeadSpacing.getText());
 		if (currentLeadSpacing != initialIconLeadSpacing)
 			User.setIconGenLeadSpacing(currentLeadSpacing);
 	}
 
 	//******************************** GRID ********************************
 
-	private float initialGridXSpacing, initialGridYSpacing;
-	private float initialGridDefXSpacing, initialGridDefYSpacing;
+	private double initialGridXSpacing, initialGridYSpacing;
+	private double initialGridDefXSpacing, initialGridDefYSpacing;
 	private int initialGridDefXBoldFrequency, initialGridDefYBoldFrequency;
 	private boolean initialGridAlignWithCircuitry, initialShowCursorCoordinates;
-	private float initialGridAlignment, initialGridEdgeAlignment;
+	private double initialGridAlignment, initialGridEdgeAlignment;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -996,20 +996,20 @@ public class EditOptions extends javax.swing.JDialog
 		EditWindow wnd = EditWindow.getCurrent();
 		if (wnd != null)
 		{
-			float currentXSpacing = (float)TextUtils.atof(gridCurrentHoriz.getText());
+			double currentXSpacing = TextUtils.atof(gridCurrentHoriz.getText());
 			if (currentXSpacing != initialGridXSpacing)
 				wnd.setGridXSpacing(currentXSpacing);
 
-			float currentYSpacing = (float)TextUtils.atof(gridCurrentVert.getText());
+			double currentYSpacing = TextUtils.atof(gridCurrentVert.getText());
 			if (currentYSpacing != initialGridYSpacing)
 				wnd.setGridYSpacing(currentYSpacing);
 		}
 
-		float currentDefXSpacing = (float)TextUtils.atof(gridNewHoriz.getText());
+		double currentDefXSpacing = TextUtils.atof(gridNewHoriz.getText());
 		if (currentDefXSpacing != initialGridDefXSpacing)
 			User.setDefGridXSpacing(currentDefXSpacing);
 
-		float currentDefYSpacing = (float)TextUtils.atof(gridNewVert.getText());
+		double currentDefYSpacing = TextUtils.atof(gridNewVert.getText());
 		if (currentDefYSpacing != initialGridDefYSpacing)
 			User.setDefGridYSpacing(currentDefYSpacing);
 
@@ -1029,11 +1029,11 @@ public class EditOptions extends javax.swing.JDialog
 		if (currentShowCursorCoordinates != initialShowCursorCoordinates)
 			StatusBar.setShowCoordinates(currentShowCursorCoordinates);
 
-		float currentAlignment = (float)TextUtils.atof(gridAlignCursor.getText());
+		double currentAlignment = TextUtils.atof(gridAlignCursor.getText());
 		if (currentAlignment != initialGridAlignment)
 			User.setAlignmentToGrid(currentAlignment);
 
-		float currentEdgeAlignment = (float)TextUtils.atof(gridAlignEdges.getText());
+		double currentEdgeAlignment = TextUtils.atof(gridAlignEdges.getText());
 		if (currentEdgeAlignment != initialGridEdgeAlignment)
 			User.setEdgeAlignmentToGrid(currentEdgeAlignment);
 	}

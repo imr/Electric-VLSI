@@ -139,6 +139,8 @@ public abstract class OutputGeometry extends Output {
 
     //------------------HierarchyEnumerator.Visitor Implementation----------------------
 
+	private static boolean mergeWarning = false;
+
     public class Visitor extends HierarchyEnumerator.Visitor
     {
         /** OutputGeometry object this Visitor is enumerating for */	private OutputGeometry outGeom;
@@ -174,13 +176,19 @@ public abstract class OutputGeometry extends Output {
 				addArcInst(ai);
             }
             
-            if (outGeom.mergeGeom(maxHierDepth - curHierDepth)) {
+            if (outGeom.mergeGeom(maxHierDepth - curHierDepth))
+			{
                 // merging takes place here
+				if (!mergeWarning)
+				{
+					mergeWarning = true;
+					System.out.println("Cannot merge geometry yet");
+				}
             }           
-            
+
             // write cell
             outGeom.writeCellGeom(cellGeom);
-            
+
             curHierDepth--;
             cellGeom = outGeomStack[curHierDepth];
         }

@@ -27,12 +27,20 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator;
+import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ErrorLog;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.AffineTransform;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Set;
 import java.util.HashMap;
@@ -40,218 +48,428 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-
 /** 
- * Class to write CIF output to disk
+ * Class to write CIF output to disk.
  */
-public class OutputCIF extends OutputGeometry {
-    
-    // preferences
-    /** minimum output grid resolution (lambda) */      private double minAllowedResolution = 0.5;
-    /** instantiate top level */                        private boolean instTopLevel = true;
-    /** scale factor from internal units to centi-microns */    private double scale = 10;
-    
-    // crc checksum stuff
-    /** checksum */                                     private int crcChecksum;
-    /** crc tab */                                      private int [] crcTab = new int[256];
-    /** keep track of chars */                          private boolean crcPrevIsCharSep;
-    /** num chars written */                            private int crcNumChars;
-    /** MOSIS initial key */                            private static final int[] crcRow =
-    {0x04C11DB7, 0x09823B6E, 0x130476DC, 0x2608EDB8, 0x4C11DB70, 0x9823B6E0, 0x34867077, 0x690CE0EE};
-    /** ASCII (and UNICODE) space value */              private byte space = 0x20;
-    
-    // cif output data
-    /** cell number */                                  private int cellNumber = 100;
-    /** cell to cell number map */                      private HashMap cellNumbers;
+public class OutputCIF extends OutputGeometry
+{
+	// preferences
+	/** minimum output grid resolution */				private double minAllowedResolution;
+
+	// crc checksum stuff
+	/** checksum */										private int crcChecksum;
+	/** crc tab */										private int [] crcTab = new int[256];
+	/** keep track of chars */							private boolean crcPrevIsCharSep;
+	/** num chars written */							private int crcNumChars;
+	/** MOSIS initial key */							private static final int[] crcRow =
+		{0x04C11DB7, 0x09823B6E, 0x130476DC, 0x2608EDB8, 0x4C11DB70, 0x9823B6E0, 0x34867077, 0x690CE0EE};
+	/** ASCII (and UNICODE) space value */				private byte space = 0x20;
+
+	// cif output data
+	/** cell number */									private int cellNumber = 100;
+	/** cell to cell number map */						private HashMap cellNumbers;
+	/** scale factor from internal units. */			private double scaleFactor;
 
 	public static boolean writeCIFFile(Cell cell, String filePath)
 	{
 		boolean error = false;
+		ErrorLog.initLogging("CIF resolution");
 		OutputCIF out = new OutputCIF();
 		if (out.openTextOutputStream(filePath)) error = true;
-		if (out.writeCell(cell)) error = true;
+		CIFVisitor visitor = out.makeCIFVisitor(getMaxHierDepth(cell));
+		if (out.writeCell(cell, visitor)) error = true;
 		if (out.closeTextOutputStream()) error = true;
 		if (!error) System.out.println(filePath + " written");
+		if (ErrorLog.numErrors() != 0)
+			System.out.println(ErrorLog.numErrors() + " CIF RESOLUTION ERRORS FOUND");
+		ErrorLog.termLogging(true);
 		return error;
 	}
- 
-	/** Creates a new instance of OutputCIF */
-    OutputCIF() {
-        cellNumbers = new HashMap();
-    }
-        
-    protected void start() {
-        Date now = new Date(System.currentTimeMillis());
-        //writeLine("( Electric VLSI Design System, version "+")");
-        //writeLine("( "+now+" )");
-        
-        // initialize crc checksum info
-        for (int i=0; i<crcTab.length; i++) {
-            crcTab[i] = 0;
-            for (int j=0; j<8; j++) {
-                if (((1 << j) & i) != 0)
-                    crcTab[i] = crcTab[i] ^ crcRow[j];
-            }
-            crcTab[i] &= 0xFFFFFFFF; // unneccessary in java, int is always 32 bits
-        }
-        crcNumChars = 1;
-        crcPrevIsCharSep = true;
-        crcChecksum = crcTab[' '];
-    }
-    
-    protected void done() {
-        if (instTopLevel)
-            writeLine("C "+cellNumber+";");
-        writeLine("E");
-        
-        // finish up crc stuff
-        if (!crcPrevIsCharSep) {
-            crcChecksum = (crcChecksum << 8) ^ crcTab[((crcChecksum >> 24) ^ ' ') & 0xFF];
-            crcNumChars++;
-        }
-        int bytesread = crcNumChars;
-        while (bytesread > 0) {
-            crcChecksum = (crcChecksum << 8) ^ crcTab[((crcChecksum >> 24) ^ bytesread) & 0xFF];
-            bytesread >>= 8;
-        }
-        crcChecksum = ~crcChecksum & 0xFFFFFFFF;
-        System.out.println("MOSIS CRC: "+EMath.unsignedIntValue(crcChecksum)+" "+crcNumChars);
-    }    
 
-    /** Method to write cellGeom */
-    protected void writeCellGeom(CellGeom cellGeom)
-    {
-        cellNumber++;
-        writeLine("DS "+cellNumber+" 1 1;");        
-        writeLine("9 "+cellGeom.cell.describe()+";");
-        cellNumbers.put(cellGeom.cell, new Integer(cellNumber));
-        
-        // write all polys by Layer
-        Set layers = cellGeom.polyMap.keySet();
-        for (Iterator it = layers.iterator(); it.hasNext();) {
-            Layer layer = (Layer)it.next();
-            writeLayer(layer);
-            List polyList = (List)cellGeom.polyMap.get(layer);
-            for (Iterator polyIt = polyList.iterator(); polyIt.hasNext(); ) {
-                Poly poly = (Poly)polyIt.next();
-                writePoly(poly);
-            }
-        }
-        // write all instances
-        for (Iterator noIt = cellGeom.nodables.iterator(); noIt.hasNext(); ) {
-            Nodable no = (Nodable)noIt.next();
-            writeNodable(no);
-        }
-        writeLine("DF;");
-    }
-    
-    protected void writeLayer(Layer layer) {
-        writeLine("L "+layer.getCIFLayer()+";");
-    }
-    
-    protected void writePoly(Poly poly) {
-        Point2D [] points = poly.getPoints();
-        
-        checkResolution(poly);
-        
-        if (poly.getStyle() == Poly.Type.DISC) {
-            double r = points[0].distance(points[1]);
-            if (r <= 0) return;                     // ignore zero size geometry
-            r = scale(r);
-            double x = scale(points[0].getX());
-            double y = scale(points[0].getY());            
-            String line = " R "+(long)r+" "+(int)x+" "+(int)y+";";
-            writeLine(line);
-        } else {
-            Rectangle2D bounds = poly.getBounds2D();
-            // ignore zero size geometry
-            if (bounds.getHeight() <= 0 || bounds.getWidth() <= 0) return;
-            Rectangle2D box = poly.getBox();
-            // simple case if poly is a box
-            if (box != null) {
-                double width = scale(box.getWidth());
-                double height = scale(box.getHeight());
-                double x = scale(box.getCenterX());
-                double y = scale(box.getCenterY());
-                String line = " B "+(int)width+" "+(int)height+" "+
-                                    (int)x+" "+(int)y+";";
-                writeLine(line);
-                return;
-            }
-            // not a box
-            StringBuffer line = new StringBuffer(" P");
-            for (int i=0; i<points.length; i++) {
-                double x = scale(points[i].getX());
-                double y = scale(points[i].getY());
-                line.append(" "+(int)x+" "+(int)y);
-            }
-            line.append(";");
-            writeLine(line.toString());
-        }
-    }
+	/**
+	 * Creates a new instance of OutputCIF
+	 */
+	OutputCIF()
+	{
+		cellNumbers = new HashMap();
 
-    protected void writeNodable(Nodable no) {
-        NodeProto np = no.getProto();
-        Cell cell = (Cell)np;
-        int cellNum = ((Integer)cellNumbers.get(cell)).intValue();
-		NodeInst ni = (NodeInst)no; // In layout cell all Nodables are NodeInsts
+		// scale is in centimicrons, technology scale is in nanometers
+		scaleFactor = Technology.getCurrent().getScale() / 10;
+
+		// initialize preferences
+		minAllowedResolution = 0;
+		if (isCheckResolution())
+			minAllowedResolution = getResolution();
+	}
+
+	protected void start()
+	{
+		if (User.isIncludeDateAndVersionInOutput())
 		{
-//         for (Iterator it = no.getNodeUsage().getInsts(); it.hasNext(); ) {
-//             NodeInst ni = (NodeInst)it.next();
-            int rotx = 0;//(int)scale((EMath.cos(ni.getAngle())>>14) * 100 >> 16);
-            int roty = 0;//(int)scale((EMath.sin(ni.getAngle())>>14) * 100 >> 16);
-            String line = "C "+cellNum+" R "+rotx+" "+roty+" "+
-                          "T "+ni.getTrueCenterX()+" "+ni.getTrueCenterY()+";";
-            writeLine(line);
-        }
-    }
-    
-    /** Write a line to the CIF file, and accumlate 
-     * checksum information.
-     */
-    protected void writeLine(String line) {
-        line = line + '\n';
-        printWriter.print(line);
-        // crc checksum stuff
-        for (int i=0; i < line.length(); i++) {
-            char c = line.charAt(i);
-            if (c > ' ') {
-                crcChecksum = (crcChecksum << 8) ^ crcTab[((crcChecksum >> 24) ^ c) & 0xFF];
-                crcPrevIsCharSep = false;
-                crcNumChars++;
-            } else if (!crcPrevIsCharSep) {
-                crcChecksum = (crcChecksum << 8) ^ crcTab[((crcChecksum >> 24) ^ ' ') & 0xFF];
-                crcPrevIsCharSep = true;
-                crcNumChars++;
-            }
-        }
-    }
-    
-    /** Method to scale Electric units to CIF units
-     */
-    protected double scale(double n)
-    {
-        return scale*n;
-    }
-        
-    /** Check Poly for CIF Resolution Errors */
-    protected void checkResolution(Poly poly) {
-        ArrayList badpoints = new ArrayList();
-        Point2D [] points = poly.getPoints();
-        for (int i=0; i<points.length; i++) {
-            if ( (points[i].getX() % minAllowedResolution) != 0 ||
-                 (points[i].getY() % minAllowedResolution) != 0)
-                badpoints.add(points[i]);
-        }
-        if (badpoints.size() > 0) {
-            // there was an error, for now print error
-            System.out.println("Error on poly "+poly);
-            Point2D [] badpolypoints = new Point2D[badpoints.size()];
-            for (int i=0; i<badpoints.size(); i++) {
-                badpolypoints[i] = (Point2D)badpoints.get(i);
-            }
-            Poly badpoly = new Poly(badpolypoints);
-        }
-    }
-    
+			writeLine("( Electric VLSI Design System, version " + Version.CURRENT + " );");
+			SimpleDateFormat sdf = new SimpleDateFormat("MMMM dd, yyyy HH:mm:ss");
+			Date now = new Date();
+			String today = sdf.format(now);
+			writeLine("( written on " + today + " );");
+		} else
+		{
+			writeLine("( Electric VLSI Design System );");
+		}
+		emitCopyright("( ", " );");
+
+		// initialize crc checksum info
+		for (int i=0; i<crcTab.length; i++)
+		{
+			crcTab[i] = 0;
+			for (int j=0; j<8; j++)
+			{
+				if (((1 << j) & i) != 0)
+					crcTab[i] = crcTab[i] ^ crcRow[j];
+			}
+			crcTab[i] &= 0xFFFFFFFF; // unneccessary in java, int is always 32 bits
+		}
+		crcNumChars = 1;
+		crcPrevIsCharSep = true;
+		crcChecksum = crcTab[' '];
+	}
+
+	protected void done()
+	{
+		if (isInstantiatesTopLevel())
+			writeLine("C " + cellNumber + ";");
+		writeLine("E");
+
+		// finish up crc stuff
+		if (!crcPrevIsCharSep)
+		{
+			crcChecksum = (crcChecksum << 8) ^ crcTab[((crcChecksum >> 24) ^ ' ') & 0xFF];
+			crcNumChars++;
+		}
+		int bytesread = crcNumChars;
+		while (bytesread > 0)
+		{
+			crcChecksum = (crcChecksum << 8) ^ crcTab[((crcChecksum >> 24) ^ bytesread) & 0xFF];
+			bytesread >>= 8;
+		}
+		crcChecksum = ~crcChecksum & 0xFFFFFFFF;
+		System.out.println("MOSIS CRC: " + EMath.unsignedIntValue(crcChecksum) + " " + crcNumChars);
+	}
+
+	/**
+	 * Method to write cellGeom
+	 */
+	protected void writeCellGeom(CellGeom cellGeom)
+	{
+		cellNumber++;
+		writeLine("DS " + cellNumber + " 1 1;");
+		writeLine("9 " + cellGeom.cell.describe() + ";");
+		cellNumbers.put(cellGeom.cell, new Integer(cellNumber));
+
+		// write all polys by Layer
+		Set layers = cellGeom.polyMap.keySet();
+		for (Iterator it = layers.iterator(); it.hasNext();)
+		{
+			Layer layer = (Layer)it.next();
+			if (writeLayer(layer)) continue;
+			List polyList = (List)cellGeom.polyMap.get(layer);
+			for (Iterator polyIt = polyList.iterator(); polyIt.hasNext(); )
+			{
+				Poly poly = (Poly)polyIt.next();
+				writePoly(poly, cellGeom.cell);
+			}
+		}
+		// write all instances
+//		for (Iterator noIt = cellGeom.nodables.iterator(); noIt.hasNext(); )
+//		{
+//			Nodable no = (Nodable)noIt.next();
+//			writeNodable(no);
+//		}
+		for (Iterator noIt = cellGeom.cell.getNodes(); noIt.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)noIt.next();
+			if (ni.getProto() instanceof Cell)
+				writeNodable(ni);
+		}
+		writeLine("DF;");
+	}
+
+	/**
+	 * method to determine whether or not to merge geometry
+	 */
+	protected boolean mergeGeom(int hierLevelsFromBottom)
+	{
+		return isMergesBoxes();
+	}
+
+	/**
+	 * Method to emit the current layer number.
+	 * @return true if the layer is invalid.
+	 */
+	protected boolean writeLayer(Layer layer)
+	{
+		String layName = layer.getCIFLayer();
+		if (layName == null) return true;
+		writeLine("L " + layName + ";");
+		return false;
+	}
+
+	protected void writePoly(Poly poly, Cell cell)
+	{
+		Point2D [] points = poly.getPoints();
+
+		checkResolution(poly, cell);
+
+		if (poly.getStyle() == Poly.Type.DISC)
+		{
+			double r = points[0].distance(points[1]);
+			if (r <= 0) return;			// ignore zero size geometry
+			int radius = scale(r);
+			int x = scale(points[0].getX());
+			int y = scale(points[0].getY());
+			String line = " R " + radius + " " + x + " " + y + ";";
+			writeLine(line);
+		} else
+		{
+			Rectangle2D bounds = poly.getBounds2D();
+			// ignore zero size geometry
+			if (bounds.getHeight() <= 0 || bounds.getWidth() <= 0) return;
+			Rectangle2D box = poly.getBox();
+			// simple case if poly is a box
+			if (box != null)
+			{
+				int width = scale(box.getWidth());
+				int height = scale(box.getHeight());
+				int x = scale(box.getCenterX());
+				int y = scale(box.getCenterY());
+				String line = " B " + width + " " + height + " " +
+					x + " " + y + ";";
+				writeLine(line);
+				return;
+			}
+
+			// not a box
+			StringBuffer line = new StringBuffer(" P");
+			for (int i=0; i<points.length; i++)
+			{
+				int x = scale(points[i].getX());
+				int y = scale(points[i].getY());
+				line.append(" " + x + " " + y);
+			}
+			line.append(";");
+			writeLine(line.toString());
+		}
+	}
+
+	protected void writeNodable(NodeInst ni)
+	{
+		Cell cell = (Cell)ni.getProto();
+
+		// if mimicing display and unexpanded, draw outline
+		if (!ni.isExpanded() && OutputCIF.isMimicsDisplay())
+		{
+			Rectangle2D bounds = ni.getBounds();
+			Poly poly = new Poly(bounds.getCenterX(), bounds.getCenterY(), ni.getXSize(), ni.getYSize());
+			AffineTransform localPureTrans = ni.rotateOutAboutTrueCenter();
+			poly.transform(localPureTrans);
+			Point2D [] points = poly.getPoints();
+			String line = "0V";
+			for(int i=0; i<4; i++)
+				line += " " + scale(points[i].getX()) + " " + scale(points[i].getY());
+			line += " " + scale(points[0].getX()) + " " + scale(points[0].getY());
+			writeLine(line + ";");
+			writeLine("2C \"" + cell.describe() + "\" T " + scale(bounds.getCenterX()) + " " +
+				scale(bounds.getCenterY()) + ";");
+			return;
+		}
+
+		// write a call to the cell
+		int cellNum = ((Integer)cellNumbers.get(cell)).intValue();
+		int rotx = (int)(EMath.cos(ni.getAngle()) * 100);
+		int roty = (int)(EMath.sin(ni.getAngle()) * 100);
+		String line = "C " + cellNum + " R " + rotx + " " + roty;
+		if (ni.isMirroredAboutXAxis()) line += " M Y";
+		if (ni.isMirroredAboutYAxis()) line += " M X";
+		line += " T " + scale(ni.getGrabCenterX()) + " " + scale(ni.getGrabCenterY());
+		writeLine(line + ";");
+	}
+
+	/**
+	 * Write a line to the CIF file, and accumlate 
+	 * checksum information.
+	 */
+	protected void writeLine(String line)
+	{
+		line = line + '\n';
+		printWriter.print(line);
+
+		// crc checksum stuff
+		for (int i=0; i < line.length(); i++)
+		{
+			char c = line.charAt(i);
+			if (c > ' ')
+			{
+				crcChecksum = (crcChecksum << 8) ^ crcTab[((crcChecksum >> 24) ^ c) & 0xFF];
+				crcPrevIsCharSep = false;
+				crcNumChars++;
+			} else if (!crcPrevIsCharSep)
+			{
+				crcChecksum = (crcChecksum << 8) ^ crcTab[((crcChecksum >> 24) ^ ' ') & 0xFF];
+				crcPrevIsCharSep = true;
+				crcNumChars++;
+			}
+		}
+	}
+
+	/**
+	 * Method to scale Electric units to CIF units
+	 */
+	protected int scale(double n)
+	{
+		return (int)(scaleFactor * n);
+	}
+
+	/**
+	 * Check Poly for CIF Resolution Errors
+	 */
+	protected void checkResolution(Poly poly, Cell cell)
+	{
+		if (minAllowedResolution == 0) return;
+		ArrayList badpoints = new ArrayList();
+		Point2D [] points = poly.getPoints();
+		for (int i=0; i<points.length; i++)
+		{
+			if ((points[i].getX() % minAllowedResolution) != 0 ||
+				(points[i].getY() % minAllowedResolution) != 0)
+					badpoints.add(points[i]);
+		}
+		if (badpoints.size() > 0)
+		{
+			// there was an error, for now print error
+			Layer layer = poly.getLayer();
+			ErrorLog err = null;
+			if (layer == null)
+			{
+				err = ErrorLog.logError("Unknown layer", cell, layer.getIndex());
+			} else
+			{
+				err = ErrorLog.logError("Resolution < " + minAllowedResolution + " on layer " + layer.getName(), cell, layer.getIndex());
+			}
+			err.addPoly(poly);
+		}
+	}
+
+	/****************************** VISITOR SUBCLASS ******************************/
+
+	private CIFVisitor makeCIFVisitor(int maxDepth)
+	{
+		CIFVisitor visitor = new CIFVisitor(this, maxDepth);
+		return visitor;
+	}
+
+	/**
+	 * Class to override the OutputGeometry visitor and add bloating to all polygons.
+	 * Currently, no bloating is being done.
+	 */
+	private class CIFVisitor extends OutputGeometry.Visitor
+	{
+		CIFVisitor(OutputGeometry outGeom, int maxHierDepth)
+		{
+			super(outGeom, maxHierDepth);
+		}
+
+		/**
+		 * Overriding this class allows us to stop descension on unexpanded instances in "mimic" mode.
+		 */
+		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info) 
+		{
+			NodeInst ni = (NodeInst)no;
+			NodeProto np = ni.getProto();
+			if (np instanceof Cell)
+			{
+				if (!ni.isExpanded() && OutputCIF.isMimicsDisplay())
+				{
+					return false;
+				}
+			}
+			return super.visitNodeInst(no, info);
+		}
+	}
+
+	/****************************** CIF OUTPUT PREFERENCES ******************************/
+
+	private static Tool.Pref cacheMimicsDisplay = IOTool.tool.makeBooleanPref("CIFMimicsDisplay", false);
+	/**
+	 * Method to tell whether CIF Output mimics the display.
+	 * To mimic the display, unexpanded cell instances are described as black boxes,
+	 * instead of calls to their contents.
+	 * The default is "false".
+	 * @return true if CIF Output mimics the display.
+	 */
+	public static boolean isMimicsDisplay() { return cacheMimicsDisplay.getBoolean(); }
+	/**
+	 * Method to set whether CIF Output mimics the display.
+	 * To mimic the display, unexpanded cell instances are described as black boxes,
+	 * instead of calls to their contents.
+	 * @param on true if CIF Output mimics the display.
+	 */
+	public static void setMimicsDisplay(boolean on) { cacheMimicsDisplay.setBoolean(on); }
+
+	private static Tool.Pref cacheMergesBoxes = IOTool.tool.makeBooleanPref("CIFMergesBoxes", false);
+	/**
+	 * Method to tell whether CIF Output merges boxes into complex polygons.
+	 * This takes more time but produces a smaller output file.
+	 * The default is "false".
+	 * @return true if CIF Output merges boxes into complex polygons.
+	 */
+	public static boolean isMergesBoxes() { return cacheMergesBoxes.getBoolean(); }
+	/**
+	 * Method to set whether CIF Output merges boxes into complex polygons.
+	 * This takes more time but produces a smaller output file.
+	 * @param on true if CIF Output merges boxes into complex polygons.
+	 */
+	public static void setMergesBoxes(boolean on) { cacheMergesBoxes.setBoolean(on); }
+
+	private static Tool.Pref cacheInstantiatesTopLevel = IOTool.tool.makeBooleanPref("CIFInstantiatesTopLevel", true);
+	/**
+	 * Method to tell whether CIF Output instantiates the top-level.
+	 * When this happens, a CIF "call" to the top cell is emitted.
+	 * The default is "true".
+	 * @return true if CIF Output merges boxes into complex polygons.
+	 */
+	public static boolean isInstantiatesTopLevel() { return cacheInstantiatesTopLevel.getBoolean(); }
+	/**
+	 * Method to set whether CIF Output merges boxes into complex polygons.
+	 * When this happens, a CIF "call" to the top cell is emitted.
+	 * @param on true if CIF Output merges boxes into complex polygons.
+	 */
+	public static void setInstantiatesTopLevel(boolean on) { cacheInstantiatesTopLevel.setBoolean(on); }
+
+	private static Tool.Pref cacheCheckResolution = IOTool.tool.makeBooleanPref("CIFCheckResolution", false);
+	/**
+	 * Method to tell whether to report CIF resolution errors.
+	 * The default is "false".
+	 * @return true to report CIF resolution errors.
+	 */
+	public static boolean isCheckResolution() { return cacheCheckResolution.getBoolean(); }
+	/**
+	 * Method to set whether to report CIF resolution errors.
+	 * @param s whether to report CIF resolution errors.
+	 */
+	public static void setCheckResolution(boolean c) { cacheCheckResolution.setBoolean(c); }
+
+	private static Tool.Pref cacheResolution = IOTool.tool.makeDoublePref("CIFResolution", 0);
+	/**
+	 * Method to tell the minimum CIF Output resolution.
+	 * This is the smallest feature size that can be safely generated.
+	 * The default is "0".
+	 * @return the minimum CIF Output resolution.
+	 */
+	public static double getResolution() { return cacheResolution.getDouble(); }
+	/**
+	 * Method to set the minimum CIF Output resolution.
+	 * This is the smallest feature size that can be safely generated.
+	 * @param r the minimum CIF Output resolution.
+	 */
+	public static void setResolution(double r) { cacheResolution.setDouble(r); }
+
 }

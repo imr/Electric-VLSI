@@ -41,8 +41,6 @@ import com.sun.electric.tool.drc.Schematic;
 import com.sun.electric.tool.user.ErrorLog;
 
 import java.util.Iterator;
-import java.util.prefs.Preferences;
-import java.util.prefs.BackingStoreException;
 
 /**
  * This is the Design Rule Checker tool.
@@ -725,104 +723,70 @@ public class DRC extends Tool
 
 	/****************************** OPTIONS ******************************/
 
-	/**
-	 * Method to force all DRC Preferences to be saved.
-	 */
-	private static void flushOptions()
-	{
-		try
-		{
-	        tool.prefs.flush();
-		} catch (BackingStoreException e)
-		{
-			System.out.println("Failed to save DRC options");
-		}
-	}
-
+	private static Tool.Pref cacheIncrementalDRCOn = DRC.tool.makeBooleanPref("IncrementalDRCOn", true);
 	/**
 	 * Method to tell whether DRC should be done incrementally.
 	 * The default is "true".
 	 * @return true if DRC should be done incrementally.
 	 */
-	private static boolean cacheIncrementalDRCOn = tool.prefs.getBoolean("IncrementalDRCOn", true);
-	public static boolean isIncrementalDRCOn() { return cacheIncrementalDRCOn; }
+	public static boolean isIncrementalDRCOn() { return cacheIncrementalDRCOn.getBoolean(); }
 	/**
 	 * Method to set whether DRC should be done incrementally.
 	 * @param on true if DRC should be done incrementally.
 	 */
-	public static void setIncrementalDRCOn(boolean on)
-	{
-		tool.prefs.putBoolean("IncrementalDRCOn", cacheIncrementalDRCOn = on);
-		flushOptions();
-	}
+	public static void setIncrementalDRCOn(boolean on) { cacheIncrementalDRCOn.setBoolean(on); }
 
+	private static Tool.Pref cacheOneErrorPerCell = DRC.tool.makeBooleanPref("OneErrorPerCell", false);
 	/**
 	 * Method to tell whether DRC should report only one error per Cell.
 	 * The default is "false".
 	 * @return true if DRC should report only one error per Cell.
 	 */
-	private static boolean cacheOneErrorPerCell = tool.prefs.getBoolean("OneErrorPerCell", false);
-	public static boolean isOneErrorPerCell() { return cacheOneErrorPerCell; }
+	public static boolean isOneErrorPerCell() { return cacheOneErrorPerCell.getBoolean(); }
 	/**
 	 * Method to set whether DRC should report only one error per Cell.
 	 * @param on true if DRC should report only one error per Cell.
 	 */
-	public static void setOneErrorPerCell(boolean on)
-	{
-		tool.prefs.putBoolean("OneErrorPerCell", cacheOneErrorPerCell = on);
-		flushOptions();
-	}
+	public static void setOneErrorPerCell(boolean on) { cacheOneErrorPerCell.setBoolean(on); }
 
+	private static Tool.Pref cacheUseMultipleThreads = DRC.tool.makeBooleanPref("UseMultipleThreads", false);
 	/**
 	 * Method to tell whether DRC should use multiple threads.
 	 * The default is "false".
 	 * @return true if DRC should use multiple threads.
 	 */
-	private static boolean cacheUseMultipleThreads = tool.prefs.getBoolean("UseMultipleThreads", false);
-	public static boolean isUseMultipleThreads() { return cacheUseMultipleThreads; }
+	public static boolean isUseMultipleThreads() { return cacheUseMultipleThreads.getBoolean(); }
 	/**
 	 * Method to set whether DRC should use multiple threads.
 	 * @param on true if DRC should use multiple threads.
 	 */
-	public static void setUseMultipleThreads(boolean on)
-	{
-		tool.prefs.putBoolean("UseMultipleThreads", cacheUseMultipleThreads = on);
-		flushOptions();
-	}
+	public static void setUseMultipleThreads(boolean on) { cacheUseMultipleThreads.setBoolean(on); }
 
+	private static Tool.Pref cacheNumberOfThreads = DRC.tool.makeIntPref("NumberOfThreads", 2);
 	/**
 	 * Method to return the number of threads to use when running DRC with multiple threads.
 	 * The default is 2.
 	 * @return the number of threads to use when running DRC with multiple threads.
 	 */
-	private static int cacheNumberOfThreads = tool.prefs.getInt("NumberOfThreads", 2);
-	public static int getNumberOfThreads() { return cacheNumberOfThreads; }
+	public static int getNumberOfThreads() { return cacheNumberOfThreads.getInt(); }
 	/**
 	 * Method to set the number of threads to use when running DRC with multiple threads.
 	 * @param th the number of threads to use when running DRC with multiple threads.
 	 */
-	public static void setNumberOfThreads(int th)
-	{
-		tool.prefs.putInt("NumberOfThreads", cacheNumberOfThreads = th);
-		flushOptions();
-	}
+	public static void setNumberOfThreads(int th) { cacheNumberOfThreads.setInt(th); }
 
+	private static Tool.Pref cacheIgnoreCenterCuts = DRC.tool.makeBooleanPref("IgnoreCenterCuts", false);
 	/**
 	 * Method to tell whether DRC should ignore center cuts in large contacts.
 	 * Only the perimeter of cuts will be checked.
 	 * The default is "false".
 	 * @return true if DRC should ignore center cuts in large contacts.
 	 */
-	private static boolean cacheIgnoreCenterCuts = tool.prefs.getBoolean("IgnoreCenterCuts", false);
-	public static boolean isIgnoreCenterCuts() { return cacheIgnoreCenterCuts; }
+	public static boolean isIgnoreCenterCuts() { return cacheIgnoreCenterCuts.getBoolean(); }
 	/**
 	 * Method to set whether DRC should ignore center cuts in large contacts.
 	 * Only the perimeter of cuts will be checked.
 	 * @param on true if DRC should ignore center cuts in large contacts.
 	 */
-	public static void setIgnoreCenterCuts(boolean on)
-	{
-		tool.prefs.putBoolean("IgnoreCenterCuts", cacheIgnoreCenterCuts = on);
-		flushOptions();
-	}
+	public static void setIgnoreCenterCuts(boolean on) { cacheIgnoreCenterCuts.setBoolean(on); }
 }

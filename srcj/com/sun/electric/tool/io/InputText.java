@@ -75,7 +75,7 @@ public class InputText extends Input
 		private int []       nodeInstLowY;
 		private int []       nodeInstHighY;
 		private int []       nodeInstRotation;
-		private boolean []   nodeInstTranspose;
+		private int []       nodeInstTranspose;
 	};
 	static class ArcInstList
 	{
@@ -454,7 +454,6 @@ public class InputText extends Input
 				Point2D center = new Point2D.Double(xoff / lambda, yoff / lambda);
 				double width = (highX - lowX) / lambda;
 				double height = (highY - lowY) / lambda;
-				if (nil.nodeInstTranspose[j]) width = -width;
 				ni.lowLevelPopulate(np, center, width, height, nil.nodeInstRotation[j], cell);
 				if (name != null) ni.setNameKey(name);
 				ni.lowLevelLink();
@@ -479,10 +478,33 @@ public class InputText extends Input
 			double width = (highX - lowX) / lambda;
 			double height = (highY - lowY) / lambda;
 			int rotation = nil.nodeInstRotation[j];
-			if (nil.nodeInstTranspose[j])
+
+			if (emajor > 7 || (emajor == 7 && eminor >= 1))
 			{
-				height = -height;
-				rotation = (rotation + 900) % 3600;
+				// new version: allow mirror bits
+				if ((nil.nodeInstTranspose[j]&1) != 0)
+				{
+					height = -height;
+					rotation = (rotation + 900) % 3600;
+				}
+				if ((nil.nodeInstTranspose[j]&2) != 0)
+				{
+					// mirror in X
+					width = -width;
+				}
+				if ((nil.nodeInstTranspose[j]&4) != 0)
+				{
+					// mirror in Y
+					height = -height;
+				}
+			} else
+			{
+				// old version: just use transpose information
+				if (nil.nodeInstTranspose[j] != 0)
+				{
+					height = -height;
+					rotation = (rotation + 900) % 3600;
+				}
 			}
 			if (np instanceof Cell)
 			{
@@ -1062,7 +1084,7 @@ public class InputText extends Input
 		nil.nodeInstLowY = new int[nodeInstCount];
 		nil.nodeInstHighY = new int[nodeInstCount];
 		nil.nodeInstRotation = new int[nodeInstCount];
-		nil.nodeInstTranspose = new boolean[nodeInstCount];
+		nil.nodeInstTranspose = new int[nodeInstCount];
 		for(int i=0; i<nodeInstCount; i++)
 		{
 			nil.nodeList[i] = NodeInst.lowLevelAllocate();
@@ -1229,8 +1251,7 @@ public class InputText extends Input
 	 */
 	private void io_nodtra()
 	{
-		int trn = Integer.parseInt(keyWord);
-		nodeInstList[curCellNumber].nodeInstTranspose[curNodeInstIndex] = (trn == 0 ? false : true);
+		nodeInstList[curCellNumber].nodeInstTranspose[curNodeInstIndex] = Integer.parseInt(keyWord);
 	}
 
 	/**

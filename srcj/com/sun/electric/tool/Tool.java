@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.prefs.Preferences;
+import java.util.prefs.BackingStoreException;
 
 /**
  * This class represents a Tool in Electric.  It's here mostly for the name
@@ -54,6 +55,48 @@ import java.util.prefs.Preferences;
  */
 public class Tool extends ElectricObject implements Changes
 {
+	public class Pref
+	{
+		String  name;
+		Tool tool;
+		boolean cachedBool;
+		int     cachedInt;
+		double  cachedDouble;
+		String  cachedString;
+
+		public Pref(String name, Tool tool)
+		{
+			this.name = name;
+			this.tool = tool;
+		}
+
+		public boolean getBoolean() { return cachedBool; }
+		public int getInt() { return cachedInt; }
+		public double getDouble() { return cachedDouble; }
+		public String getString() { return cachedString; }
+		public String getPrefName() { return name; }
+		public void setBoolean(boolean v)
+		{
+			tool.prefs.putBoolean(name, cachedBool = v);
+			tool.flushOptions();
+		}
+		public void setInt(int v)
+		{
+			tool.prefs.putInt(name, cachedInt = v);
+			tool.flushOptions();
+		}
+		public void setDouble(double v)
+		{
+			tool.prefs.putDouble(name, cachedDouble = v);
+			tool.flushOptions();
+		}
+		public void setString(String str)
+		{
+			tool.prefs.put(name, cachedString = str);
+			tool.flushOptions();
+		}
+	}
+
 	// The name of this tool
 	private String toolName;
 	private int toolState;
@@ -153,12 +196,53 @@ public class Tool extends ElectricObject implements Changes
 	 */
 	public int getIndex() { return toolIndex; }
 
+	/****************************** FOR PREFERENCES ******************************/
+
     /**
      * Method to return Preferences object
      * @return Preferences object
      */
     public Preferences getPrefs() { return prefs; }
-    
+
+	public Pref makeBooleanPref(String name, boolean factory)
+	{
+		Pref pref = new Pref(name, this);
+		pref.cachedBool = prefs.getBoolean(name, factory);
+		return pref;
+	}
+	public Pref makeIntPref(String name, int factory)
+	{
+		Pref pref = new Pref(name, this);
+		pref.cachedInt = prefs.getInt(name, factory);
+		return pref;
+	}
+	public Pref makeDoublePref(String name, double factory)
+	{
+		Pref pref = new Pref(name, this);
+		pref.cachedDouble = prefs.getDouble(name, factory);
+		return pref;
+	}
+	public Pref makeStringPref(String name, String factory)
+	{
+		Pref pref = new Pref(name, this);
+		pref.cachedString = prefs.get(name, factory);
+		return pref;
+	}
+
+	/**
+	 * Method to force all User Preferences to be saved.
+	 */
+	public void flushOptions()
+	{
+		try
+		{
+	        prefs.flush();
+		} catch (BackingStoreException e)
+		{
+			System.out.println("Failed to save " + toolName + " options");
+		}
+	}
+
 	/**
 	 * Method to set this Tool to be on.
 	 * Tools that are "on" are running incrementally, and get slices and broadcasts.

@@ -72,6 +72,7 @@ public class InputBinary extends Input
 {
 	// ------------------------- private data ----------------------------
 	/** the magic number in the library file */								private int magic;
+	/** the Electric version in the library file */							private Version version;
 
 	// characteristics of the file
 	/** true if bytes are swapped on disk */								private boolean bytesSwapped;
@@ -132,7 +133,7 @@ public class InputBinary extends Input
 	/** list of Low Y values for NodeInsts in the library */				private int [] nodeLowYList;
 	/** list of High Y values for NodeInsts in the library */				private int [] nodeHighYList;
 	/** list of rotation values for NodeInsts in the library */				private short [] nodeRotationList;
-	/** list of transpose values for NodeInsts in the library */			private boolean [] nodeTransposeList;
+	/** list of transpose values for NodeInsts in the library */			private int [] nodeTransposeList;
 
 	// the ArcInsts in the library
 	/** the number of ArcInsts in the library */							private int arcCount;
@@ -245,7 +246,7 @@ public class InputBinary extends Input
 		String versionString;
 		if (magic <= MAGIC8) versionString = readString(); else
 			versionString = "3.35";
-		Version version = Version.parseVersion(versionString);
+		version = Version.parseVersion(versionString);
 
 		// for versions before 6.03q, convert MOSIS CMOS technology names
 		convertMosisCmosTechnologies = false;
@@ -379,7 +380,7 @@ public class InputBinary extends Input
 		nodeLowYList = new int[nodeCount];
 		nodeHighYList = new int[nodeCount];
 		nodeRotationList = new short[nodeCount];
-		nodeTransposeList = new boolean[nodeCount];
+		nodeTransposeList = new int[nodeCount];
 
 
 		// allocate pointers for the ArcInsts
@@ -1219,15 +1220,37 @@ public class InputBinary extends Input
 		double lowY = nodeLowYList[i]-yoff;
 		double highX = nodeHighXList[i]-xoff;
 		double highY = nodeHighYList[i]-yoff;
-		boolean transpose = nodeTransposeList[i];
-		int rotation = nodeRotationList[i];
 		Point2D center = new Point2D.Double(((lowX + highX) / 2) / lambda, ((lowY + highY) / 2) / lambda);
 		double width = (highX - lowX) / lambda;
 		double height = (highY - lowY) / lambda;
-		if (transpose)
+
+		int rotation = nodeRotationList[i];
+		if (version.getMajor() > 7 || (version.getMajor() == 7 && version.getMinor() >= 1))
 		{
-			height = -height;
-			rotation = (rotation + 900) % 3600;
+			// new version: allow mirror bits
+			if ((nodeTransposeList[i]&1) != 0)
+			{
+				height = -height;
+				rotation = (rotation + 900) % 3600;
+			}
+			if ((nodeTransposeList[i]&2) != 0)
+			{
+				// mirror in X
+				width = -width;
+			}
+			if ((nodeTransposeList[i]&4) != 0)
+			{
+				// mirror in Y
+				height = -height;
+			}
+		} else
+		{
+			// old version: just use transpose information
+			if (nodeTransposeList[i] != 0)
+			{
+				height = -height;
+				rotation = (rotation + 900) % 3600;
+			}
 		}
 
 		// figure out the grab center if this is a cell instance
@@ -1748,7 +1771,7 @@ public class InputBinary extends Input
 		nodeLowYList[nodeIndex] = readBigInteger();
 		nodeHighXList[nodeIndex] = readBigInteger();
 		nodeHighYList[nodeIndex] = readBigInteger();
-		nodeTransposeList[nodeIndex] = readBigInteger() != 0;
+		nodeTransposeList[nodeIndex] = readBigInteger();
 		nodeRotationList[nodeIndex] = (short)readBigInteger();
 		nodeNameList[nodeIndex] = null;
 

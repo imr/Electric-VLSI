@@ -33,18 +33,20 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.*;
+import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.Job;
 
 import bsh.Interpreter;
 import bsh.InterpreterError;
 
-import java.util.Iterator;
-import java.lang.InterruptedException;
 import java.io.OutputStream;
+import java.lang.InterruptedException;
+import java.util.Iterator;
 
 /**
  * This is the Logical Effort Tool.  It doesn't actually do
@@ -59,25 +61,7 @@ public class LETool extends Tool {
     /** The Logical Effort tool Thread */       private Thread toolThread = null;
     /** LESizer object */                       private LESizer lesizer = null;
     /** if the tool has been paused */          private boolean paused = false;
-   
-    // preferences; default values are for the TSMC 180nm technology
-    public static String        OPTION_USELOCALSETTINGS = "UseLocalSettings";
-    public static boolean       DEFAULT_USELOCALSETTINGS = true;
-    public static String        OPTION_GLOBALFANOUT = "GlobalFanout";
-    public static float         DEFAULT_GLOBALFANOUT = 4.7f;
-    public static String        OPTION_WIRERATIO = "WireRatio";
-    public static float         DEFAULT_WIRERATIO = 0.16f;
-    public static String        OPTION_EPSILON = "Epsilon";
-    public static float         DEFAULT_EPSILON = 0.001f;
-    public static String        OPTION_MAXITER = "MaxIterations";
-    public static int           DEFAULT_MAXITER = 30;
-    public static String        OPTION_GATECAP = "GateCapfFPerLambda";
-    public static float         DEFAULT_GATECAP = 0.4f;
-    public static String        OPTION_DIFFALPHA = "DiffusionAlpha";
-    public static float         DEFAULT_DIFFALPHA = 0.7f;
-    public static String        OPTION_KEEPERRATIO = "KeeperRatio";
-    public static float         DEFAULT_KEEPERRATIO = 0.1f;
-    
+
     /** Creates a new instance of LETool */
     private LETool() {
         super("logical effort");
@@ -179,6 +163,146 @@ public class LETool extends Tool {
             return buf.toString();
         }
     }
-    
-    
+
+	/****************************** OPTIONS ******************************/
+
+	// preferences; default values are for the TSMC 180nm technology
+    private static double DEFAULT_GLOBALFANOUT = 4.7;
+    private static double DEFAULT_EPSILON      = 0.001;
+    private static int    DEFAULT_MAXITER      = 30;
+    private static double DEFAULT_GATECAP      = 0.4;
+    private static double DEFAULT_WIRERATIO    = 0.16;
+    private static double DEFAULT_DIFFALPHA    = 0.7;
+    private static double DEFAULT_KEEPERRATIO  = 0.1;
+
+	private static Tool.Pref cacheUseLocalSettings = LETool.tool.makeBooleanPref("UseLocalSettings", true);
+	/**
+	 * Method to tell whether to use local settings for Logical Effort.
+	 * The default is true.
+	 * @return true to use local settings for Logical Effort
+	 */
+	public static boolean isUseLocalSettings() { return cacheUseLocalSettings.getBoolean(); }
+	/**
+	 * Method to set whether to use local settings for Logical Effort
+	 * @param on whether to use local settings for Logical Effort
+	 */
+	public static void setUseLocalSettings(boolean on) { cacheUseLocalSettings.setBoolean(on); }
+
+	private static Tool.Pref cacheHighlightComponents = LETool.tool.makeBooleanPref("HighlightComponents", false);
+	/**
+	 * Method to tell whether to highlight components in Logical Effort.
+	 * The default is false.
+	 * @return true to highlight components in Logical Effort
+	 */
+	public static boolean isHighlightComponents() { return cacheHighlightComponents.getBoolean(); }
+	/**
+	 * Method to set whether to highlight components in Logical Effort
+	 * @param on whether to highlight components in Logical Effort
+	 */
+	public static void setHighlightComponents(boolean on) { cacheHighlightComponents.setBoolean(on); }
+
+	private static Tool.Pref cacheShowIntermediateCapacitances = LETool.tool.makeBooleanPref("ShowIntermediateCapacitances", false);
+	/**
+	 * Method to tell whether to highlight intermediate capacitances in Logical Effort.
+	 * The default is false.
+	 * @return true to highlight intermediate capacitances in Logical Effort
+	 */
+	public static boolean isShowIntermediateCapacitances() { return cacheShowIntermediateCapacitances.getBoolean(); }
+	/**
+	 * Method to set whether to highlight intermediate capacitances in Logical Effort
+	 * @param on whether to highlight intermediate capacitances in Logical Effort
+	 */
+	public static void setShowIntermediateCapacitances(boolean on) { cacheShowIntermediateCapacitances.setBoolean(on); }
+
+	private static Tool.Pref cacheGlobalFanout = LETool.tool.makeDoublePref("GlobalFanout", DEFAULT_GLOBALFANOUT);
+	/**
+	 * Method to get the Global Fanout for Logical Effort.
+	 * The default is DEFAULT_GLOBALFANOUT.
+	 * @return the Global Fanout for Logical Effort.
+	 */
+	public static double getGlobalFanout() { return cacheGlobalFanout.getDouble(); }
+	/**
+	 * Method to set the Global Fanout for Logical Effort.
+	 * @param fo the Global Fanout for Logical Effort.
+	 */
+	public static void setGlobalFanout(double fo) { cacheGlobalFanout.setDouble(fo); }
+
+	private static Tool.Pref cacheConvergenceEpsilon = LETool.tool.makeDoublePref("Epsilon", DEFAULT_EPSILON);
+	/**
+	 * Method to get the Convergence Epsilon value for Logical Effort.
+	 * The default is DEFAULT_EPSILON.
+	 * @return the Convergence Epsilon value for Logical Effort.
+	 */
+	public static double getConvergenceEpsilon() { return cacheConvergenceEpsilon.getDouble(); }
+	/**
+	 * Method to set the Convergence Epsilon value for Logical Effort.
+	 * @param ep the Convergence Epsilon value for Logical Effort.
+	 */
+	public static void setConvergenceEpsilon(double ep) { cacheConvergenceEpsilon.setDouble(ep); }
+
+	private static Tool.Pref cacheMaxIterations = LETool.tool.makeIntPref("MaxIterations", DEFAULT_MAXITER);
+	/**
+	 * Method to get the maximum number of iterations for Logical Effort.
+	 * The default is DEFAULT_MAXITER.
+	 * @return the maximum number of iterations for Logical Effort.
+	 */
+	public static int getMaxIterations() { return cacheMaxIterations.getInt(); }
+	/**
+	 * Method to set the maximum number of iterations for Logical Effort.
+	 * @param it the maximum number of iterations for Logical Effort.
+	 */
+	public static void setMaxIterations(int it) { cacheMaxIterations.setInt(it); }
+
+	private static Tool.Pref cacheGateCapacitance = LETool.tool.makeDoublePref("GateCapfFPerLambda", DEFAULT_GATECAP);
+	/**
+	 * Method to get the Gate Capacitance for Logical Effort.
+	 * The default is DEFAULT_GATECAP.
+	 * @return the Gate Capacitance for Logical Effort.
+	 */
+	public static double getGateCapacitance() { return cacheGateCapacitance.getDouble(); }
+	/**
+	 * Method to set the Gate Capacitance for Logical Effort.
+	 * @param gc the Gate Capacitance for Logical Effort.
+	 */
+	public static void setGateCapacitance(double gc) { cacheGateCapacitance.setDouble(gc); }
+
+	private static Tool.Pref cacheWireRatio = LETool.tool.makeDoublePref("WireRatio", DEFAULT_WIRERATIO);
+	/**
+	 * Method to get the wire capacitance ratio for Logical Effort.
+	 * The default is DEFAULT_WIRERATIO.
+	 * @return the wire capacitance ratio for Logical Effort.
+	 */
+	public static double getWireRatio() { return cacheWireRatio.getDouble(); }
+	/**
+	 * Method to set the wire capacitance ratio for Logical Effort.
+	 * @param wr the wire capacitance ratio for Logical Effort.
+	 */
+	public static void setWireRatio(double wr) { cacheWireRatio.setDouble(wr); }
+
+	private static Tool.Pref cacheDiffAlpha = LETool.tool.makeDoublePref("DiffusionAlpha", DEFAULT_DIFFALPHA);
+	/**
+	 * Method to get the diffusion to gate capacitance ratio for Logical Effort.
+	 * The default is DEFAULT_DIFFALPHA.
+	 * @return the diffusion to gate capacitance ratio for Logical Effort.
+	 */
+	public static double getDiffAlpha() { return cacheDiffAlpha.getDouble(); }
+	/**
+	 * Method to set the diffusion to gate capacitance ratio for Logical Effort.
+	 * @param da the diffusion to gate capacitance ratio for Logical Effort.
+	 */
+	public static void setDiffAlpha(double da) { cacheDiffAlpha.setDouble(da); }
+
+	private static Tool.Pref cacheKeeperRatio = LETool.tool.makeDoublePref("KeeperRatio", DEFAULT_KEEPERRATIO);
+	/**
+	 * Method to get the keeper size ratio for Logical Effort.
+	 * The default is DEFAULT_KEEPERRATIO.
+	 * @return the keeper size ratio for Logical Effort.
+	 */
+	public static double getKeeperRatio() { return cacheKeeperRatio.getDouble(); }
+	/**
+	 * Method to set the keeper size ratio for Logical Effort.
+	 * @param kr the keeper size ratio for Logical Effort.
+	 */
+	public static void setKeeperRatio(double kr) { cacheKeeperRatio.setDouble(kr); }
+
 }

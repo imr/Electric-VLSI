@@ -34,6 +34,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ExplorerTree;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.Point2D;
 import java.util.Iterator;
@@ -273,9 +274,8 @@ public class ErrorLog
 
 		if (errs > 0 && explain)
 		{
-			System.out.println("To review errors, type:");
-			System.out.println(" >  Show the next error");
-			System.out.println(" <  Show the previous error");
+			System.out.println("Type > and < to step through errors");
+			System.out.println("Or open the ERRORS view in the explorer");
 		}
 		rebuildExplorerTree();
 		ExplorerTree.explorerTreeChanged();
@@ -501,7 +501,6 @@ public class ErrorLog
 		if (showhigh)
 		{
 			Highlight.clear();
-
 			// validate the cell (it may have been deleted)
 			if (cell != null)
 			{
@@ -510,122 +509,26 @@ public class ErrorLog
 					String msg = errorSystem + " error " + index + " of " + allErrors.size() + " (but cell is deleted): " + message;
 					return msg;
 				}
-			}
 
-			// first figure out which cells need to be displayed
-			Set cells = new TreeSet();
-			for(Iterator it = highlights.iterator(); it.hasNext(); )
-			{
-				ErrorHighlight eh = (ErrorHighlight)it.next();
-				Cell showCell = null;
-//				hierpathcount = 0;
-				if (eh.showgeom && eh.type == ERRORTYPEGEOM && showCell == null)
+				// make sure it is shown
+				boolean found = false;
+				for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 				{
-					showCell = eh.geom.getParent();
-					if (showCell != null && !showCell.isLinked())
-						showCell = null;
+					WindowFrame wf = (WindowFrame)it.next();
+					EditWindow wnd = wf.getEditWindow();
+					if (wnd.getCell() == cell)
+					{
+						// already displayed.  should force window "wf" to front?
+						found = true;
+						break;
+					}
 				}
-				switch (eh.type)
+				if (!found)
 				{
-					case ERRORTYPEGEOM:
-						if (!eh.showgeom) break;
-						if (showCell != null)
-						{
-							// validate the geometry
-							boolean found = false;
-							if (!eh.geom.isLinked())
-							{
-								// geometry pointer is not valid
-								eh.showgeom = false;
-								showCell = null;
-							}
-						} else
-						{
-							showCell = eh.geom.getParent();
-//							if (eh.pathlen > 0)
-//							{
-//								hierpathcount = eh.pathlen;
-//								hierpath = eh.path;
-//							}
-						}
-						break;
-					case ERRORTYPEEXPORT:
-						if (!eh.showgeom) showCell = null; else
-							if (showCell != null)
-						{
-							showCell = (Cell)eh.pp.getParent();
-
-							// validate the export
-//							for(pp = cell->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
-//								if (pp == eh.pp) break;
-//							if (pp == NOPORTPROTO)
-//							{
-//								eh.showgeom = FALSE;
-//								cell = null;
-//							}
-						}
-						break;
-					case ERRORTYPELINE:
-					case ERRORTYPEPOINT:
-						break;
+					// make a new window for the cell
+					WindowFrame wf = WindowFrame.createEditWindow(cell);
 				}
-				if (showCell == null) continue;
-				cells.add(showCell.describe());
 			}
-
-			// be sure that all requested cells are shown
-			int newwindows = 0;
-			for(Iterator it = cells.iterator(); it.hasNext(); )
-			{	
-				// see if the cell is already being displayed
-				String cellName = (String)it.next();
-				Cell showCell = (Cell)NodeProto.findNodeProto(cellName);
-//				for(w = el_topwindowpart; w != NOWINDOWPART; w = w->nextwindowpart)
-//					if (w->curnodeproto == showCell) break;
-//				if (w != NOWINDOWPART)
-//				{
-//					// already displayed: mark this cell done
-//					bringwindowtofront(w->frame);
-//					celllist[i] = NONODEPROTO;
-//					continue;
-//				}
-
-				// keep a count of the number of new windows needed
-				newwindows++;
-			}
-//			while (newwindows > 0)
-//			{
-//				neww[0] = us_wantnewwindow(0);
-//				newwindows--;
-//				if (newwindows > 0)
-//				{
-//					el_curwindowpart = neww[0];
-//					neww[1] = us_splitcurrentwindow(2, FALSE, &neww[0], 50);
-//					newwindows--;
-//				}
-//				if (newwindows > 0)
-//				{
-//					el_curwindowpart = neww[0];
-//					neww[2] = us_splitcurrentwindow(1, FALSE, &neww[0], 50);
-//					newwindows--;
-//				}
-//				if (newwindows > 0)
-//				{
-//					el_curwindowpart = neww[1];
-//					neww[3] = us_splitcurrentwindow(1, FALSE, &neww[1], 50);
-//					newwindows--;
-//				}
-//				count = 0;
-//				for(i=0; i<numcells; i++)
-//				{
-//					if (celllist[i] == NONODEPROTO) continue;
-//					el_curwindowpart = neww[count++];
-//					us_fullview(celllist[i], &lx, &hx, &ly, &hy);
-//					us_switchtocell(celllist[i], lx, hx, ly, hy, NONODEINST, NOPORTPROTO, FALSE, FALSE, FALSE);
-//					celllist[i] = NONODEPROTO;
-//					if (count >= 4) break;
-//				}
-//			}
 
 			// first show the geometry associated with this error
 			for(Iterator it = highlights.iterator(); it.hasNext(); )

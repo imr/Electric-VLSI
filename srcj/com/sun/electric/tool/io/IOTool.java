@@ -49,8 +49,6 @@ import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.prefs.Preferences;
-import java.util.prefs.BackingStoreException;
 
 /**
  * This class manages reading files in different formats.
@@ -177,21 +175,5 @@ public class IOTool extends Tool
 			}
 		}
 		td.setFace(fontNumber);
-	}
-
-	/****************************** FOR PREFERENCES ******************************/
-
-	/**
-	 * Method to force all User Preferences to be saved.
-	 */
-	protected static void flushOptions()
-	{
-		try
-		{
-	        tool.prefs.flush();
-		} catch (BackingStoreException e)
-		{
-			System.out.println("Failed to save user interface options");
-		}
 	}
 }

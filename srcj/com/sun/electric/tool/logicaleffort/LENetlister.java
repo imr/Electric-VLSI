@@ -21,8 +21,6 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  *
- * LENetlister.java
- *
  * Created on November 11, 2003, 3:56 PM
  */
 
@@ -36,11 +34,14 @@ import com.sun.electric.database.prototype.*;
 import com.sun.electric.database.variable.*;
 import com.sun.electric.tool.Tool;
 
-import java.util.prefs.*;
+import java.awt.geom.AffineTransform;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.util.*;
-import java.awt.geom.AffineTransform;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Creates a logical effort netlist to be sized by LESizer.
@@ -69,13 +70,13 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
     public LENetlister(LESizer lesizer, OutputStream ostream) {
         // get preferences for this package
         Tool leTool = Tool.findTool("logical effort");
-        su = leTool.getPrefs().getFloat(LETool.OPTION_GLOBALFANOUT, LETool.DEFAULT_GLOBALFANOUT);
-		epsilon = leTool.getPrefs().getFloat(LETool.OPTION_EPSILON, LETool.DEFAULT_EPSILON);
-		maxIterations = leTool.getPrefs().getInt(LETool.OPTION_MAXITER, LETool.DEFAULT_MAXITER);
-		gateCap = leTool.getPrefs().getFloat(LETool.OPTION_GATECAP, LETool.DEFAULT_GATECAP);
-		wireRatio = leTool.getPrefs().getFloat(LETool.OPTION_WIRERATIO, LETool.DEFAULT_WIRERATIO);
-		alpha = leTool.getPrefs().getFloat(LETool.OPTION_DIFFALPHA, LETool.DEFAULT_DIFFALPHA);
-		keeperRatio = leTool.getPrefs().getFloat(LETool.OPTION_KEEPERRATIO, LETool.DEFAULT_KEEPERRATIO);
+        su = (float)LETool.getGlobalFanout();
+        epsilon = (float)LETool.getConvergenceEpsilon();
+        maxIterations = LETool.getMaxIterations();
+        gateCap = (float)LETool.getGateCapacitance();
+        wireRatio = (float)LETool.getWireRatio();
+        alpha = (float)LETool.getDiffAlpha();
+        keeperRatio = (float)LETool.getKeeperRatio();
         
         this.lesizer = lesizer;
         this.instancesMap = new HashMap();

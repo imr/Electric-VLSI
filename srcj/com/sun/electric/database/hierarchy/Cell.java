@@ -1062,8 +1062,8 @@ public class Cell extends NodeProto
 		checkChanging();
 
 		// if there is no change, stop now
-		double cX = referencePointNode.getTrueCenterX();
-		double cY = referencePointNode.getTrueCenterY();
+		double cX = referencePointNode.getGrabCenterX();
+		double cY = referencePointNode.getGrabCenterY();
 		if (cX == 0 && cY == 0) return;
 
 		// move reference point by (dx,dy)

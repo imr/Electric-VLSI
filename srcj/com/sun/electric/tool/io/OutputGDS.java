@@ -26,18 +26,22 @@ package com.sun.electric.tool.io;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.OutputGeometry;
 
 import java.awt.geom.Point2D;
@@ -50,29 +54,26 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Set;
 import java.util.List;
-import java.util.prefs.Preferences;
-import java.util.prefs.BackingStoreException;
 
 /**
  * This class writes files in GDS format.
  */
 public class OutputGDS extends OutputGeometry
 {
+	private static final int GDSVERSION        =      3;
+	private static final int BYTEMASK          =   0xFF;
+	private static final int DSIZE             =    512;		/* data block */
+	private static final int MAXPOINTS         =    510;		/* maximum points in a polygon */
+	private static final int EXPORTPRESENTATION=      0;		/* centered (was 8 for bottomleft) */
 
-	private static final int GDSVERSION        =    3;
-	private static final int BYTEMASK          = 0xFF;
-	private static final int DSIZE             =  512;		/* data block */
-	private static final int MAXPOINTS         =  510;		/* maximum points in a polygon */
-	private static final int EXPORTPRESENTATION=    0;		/* centered (was 8 for bottomleft) */
+	// GDSII bit assignments in STRANS record
+	private static final int STRANS_REFLX      = 0x8000;
+	private static final int STRANS_ABSA       =    0x2;
 
-	/* GDSII bit assignments in STRANS record */
-	private static final int STRANS_REFLX     =0x8000;
-	private static final int STRANS_ABSA      =   0x2;
+	// data type codes
+	private static final int DTYP_NONE         =      0;
 
-	/* data type codes */
-	private static final int DTYP_NONE         =    0;
-
-	/* header codes */
+	// header codes
 	private static final short HDR_HEADER      = 0x0002;
 	private static final short HDR_BGNLIB      = 0x0102;
 	private static final short HDR_LIBNAME     = 0x0206;
@@ -98,33 +99,43 @@ public class OutputGDS extends OutputGeometry
 	private static final short HDR_MAG         = 0x1B05;
 	private static final short HDR_ANGLE       = 0x1C05;
 
-	/* Header byte counts */
-	private static final short HDR_N_BGNLIB      =   28;
-	private static final short HDR_N_UNITS       =   20;
-	private static final short HDR_N_ANGLE       =   12;
-	private static final short HDR_N_MAG          =  12;
+	// Header byte counts
+	private static final short HDR_N_BGNLIB    =     28;
+	private static final short HDR_N_UNITS     =     20;
+	private static final short HDR_N_ANGLE     =     12;
+	private static final short HDR_N_MAG       =     12;
 
-	/* Maximum string sizes  */
-	private static final int HDR_M_SNAME       =   32;
-	private static final int HDR_M_STRNAME     =   32;
-	private static final int HDR_M_ASCII       =  256;
+	// Maximum string sizes
+	private static final int HDR_M_SNAME       =     32;
+	private static final int HDR_M_STRNAME     =     32;
+	private static final int HDR_M_ASCII       =    256;
 
-	/* contour gathering thresholds for polygon accumulation */
-	private static final double BESTTHRESH         =  0.001;			/* 1/1000 of a millimeter */
-	private static final double WORSTTHRESH        =  0.1;			/* 1/10 of a millimeter */
+	// contour gathering thresholds for polygon accumulation
+	private static final double BESTTHRESH     =   0.001;		/* 1/1000 of a millimeter */
+	private static final double WORSTTHRESH    =   0.1;			/* 1/10 of a millimeter */
+
+	public static class GDSLayers
+	{
+		public int normal;
+		public int pin;
+		public int text;
+	}
 
 	/** for buffering output data */			private static byte [] dataBufferGDS = new byte[DSIZE];
 	/** for buffering output data */			private static byte [] emptyBuffer = new byte[DSIZE];
-	/* Current layer for gds output */			private static int [] currentLayerNumber;
-	/* Position of next byte in the buffer */	private static int bufferPosition;					
-	/* Number data buffers output so far */		private static int blockCount;				
-	/* constant for GDS units */				private static double scaleFactor;				
-    /** cell naming map */						private HashMap cellNames;
-    /** layer number map */						private HashMap layerNumbers;
-//	static int  io_gds_exportlayer;			/* layer for export text */
+	/** Current layer for gds output */			private static GDSLayers currentLayerNumbers;
+	/** Position of next byte in the buffer */	private static int bufferPosition;					
+	/** Number data buffers output so far */	private static int blockCount;				
+	/** constant for GDS units */				private static double scaleFactor;				
+	/** cell naming map */						private HashMap cellNames;
+	/** layer number map */						private HashMap layerNumbers;
 
-	/****************************** USING OutputGeometry ******************************/
-
+	/**
+	 * Main entry point for GDS output.
+	 * @param cell the top-level cell to write.
+	 * @param filePath the name of the file to create.
+	 * @return true on error.
+	 */
 	public static boolean writeGDSFile(Cell cell, String filePath)
 	{
 		boolean error = false;
@@ -137,6 +148,228 @@ public class OutputGDS extends OutputGeometry
 		return error;
 	}
 
+	/** Creates a new instance of OutputGDS */
+	OutputGDS()
+	{
+	}
+
+	protected void start()
+	{
+		initOutput();
+		outputBeginLibrary(topCell);
+	}
+
+	protected void done()
+	{
+		outputHeader(HDR_ENDLIB, 0);
+		doneWritingOutput();
+	}
+
+	/** Method to write cellGeom */
+	protected void writeCellGeom(CellGeom cellGeom)
+	{
+		// write this cell
+		Cell cell = cellGeom.cell;
+		outputBeginStruct(cell);
+
+		// write all polys by Layer
+		Set layers = cellGeom.polyMap.keySet();
+		for (Iterator it = layers.iterator(); it.hasNext();)
+		{
+			Layer layer = (Layer)it.next();
+			selectLayer(layer);
+			List polyList = (List)cellGeom.polyMap.get(layer);
+			for (Iterator polyIt = polyList.iterator(); polyIt.hasNext(); )
+			{
+				Poly poly = (Poly)polyIt.next();
+				writePoly(poly, currentLayerNumbers.normal);
+			}
+		}
+
+		// write all instances
+		for (Iterator noIt = cellGeom.nodables.iterator(); noIt.hasNext(); )
+		{
+			Nodable no = (Nodable)noIt.next();
+			writeNodable(no);
+		}
+
+		// now write exports
+		if (getDefaultTextLayer() >= 0)
+		{
+			for(Iterator it = cell.getPorts(); it.hasNext(); )
+			{
+				Export pp = (Export)it.next();
+
+				// find the node at the bottom of this export
+				NodeInst bottomNi = pp.getOriginalPort().getNodeInst();
+				PortProto bottomPp = pp.getOriginalPort().getPortProto();
+				AffineTransform trans = bottomNi.rotateOut();
+				while (bottomNi.getProto() instanceof Cell)
+				{
+					AffineTransform tempTrans = bottomNi.translateOut();
+					tempTrans.preConcatenate(trans);
+					PortInst pi = ((Export)bottomPp).getOriginalPort();
+					bottomNi = pi.getNodeInst();
+					bottomPp = pi.getPortProto();
+					trans = bottomNi.rotateOut();
+					trans.preConcatenate(tempTrans);
+				}
+
+				// find the layer associated with this node
+				boolean wasWiped = bottomNi.isWiped();
+				bottomNi.clearWiped();
+				Technology tech = bottomNi.getProto().getTechnology();
+				Poly [] polys = tech.getShapeOfNode(bottomNi, null);
+				Poly poly = polys[0];
+				if (wasWiped) bottomNi.setWiped();
+				Layer layer = poly.getLayer().getNonPseudoLayer();
+				selectLayer(layer);
+
+				int textLayer, pinLayer;
+				textLayer = pinLayer = getDefaultTextLayer();
+				if (currentLayerNumbers.text >= 0) textLayer = currentLayerNumbers.text;
+				if (currentLayerNumbers.pin >= 0) pinLayer = currentLayerNumbers.pin;
+
+				// put out a pin if requested
+				if (isWritesExportPins())
+				{
+					poly.transform(trans);
+					writePoly(poly, pinLayer);
+				}
+
+				outputHeader(HDR_TEXT, 0);
+				outputHeader(HDR_LAYER, textLayer);
+				outputHeader(HDR_TEXTTYPE, 0);
+				outputHeader(HDR_PRESENTATION, EXPORTPRESENTATION);
+
+				// now the orientation
+				NodeInst ni = pp.getOriginalPort().getNodeInst();
+				int transValue = 0;
+				int angle = ni.getAngle();
+				if (ni.isXMirrored() != ni.isYMirrored()) transValue |= STRANS_REFLX;
+				if (ni.isYMirrored()) angle = (3600 - angle)%3600;
+				if (ni.isXMirrored()) angle = (1800 - angle)%3600;
+				outputHeader(HDR_STRANS, transValue);
+
+				// reduce the size of export text by a factor of 2
+				outputMag(0.5);
+				outputAngle(angle);
+				outputShort((short)12);
+				outputShort(HDR_XY);
+				Poly portPoly = pp.getOriginalPort().getPoly();
+				outputInt((int)(scaleFactor*portPoly.getCenterX()));
+				outputInt((int)(scaleFactor*portPoly.getCenterY()));
+
+				// now the string
+				String str = pp.getProtoName();
+				int j = str.length();
+				if (j > 512) j = 512;
+
+				// pad with a blank
+				outputShort((short)(4+j));
+				outputShort(HDR_STRING);
+				outputString(str, j);
+				outputHeader(HDR_ENDEL, 0);
+			}
+		}
+		outputHeader(HDR_ENDSTR, 0);
+	}
+
+	/**
+	 * Method to determine whether or not to merge geometry.
+	 */
+	protected boolean mergeGeom(int hierLevelsFromBottom)
+	{
+		return isMergesBoxes();
+	}
+
+	protected boolean selectLayer(Layer layer)
+	{
+		boolean validLayer = true;
+		GDSLayers numbers = (GDSLayers)layerNumbers.get(layer);
+		if (numbers == null)
+		{
+			String layerName = layer.getGDSLayer();
+			if (layerName == null)
+			{
+				numbers = new GDSLayers();
+				numbers.normal = numbers.pin = numbers.text = -1;
+				validLayer = false;
+			} else
+			{
+				numbers = parseLayerString(layerName);
+			}
+			layerNumbers.put(layer, numbers);
+		}
+		currentLayerNumbers = numbers;
+		return validLayer;
+	}
+
+	protected void writePoly(Poly poly, int layerNumber)
+	{
+		Point2D [] points = poly.getPoints();
+		if (poly.getStyle() == Poly.Type.DISC)
+		{
+			// Make a square of the size of the diameter 
+			double r = points[0].distance(points[1]);
+			if (r <= 0) return;
+			Poly newPoly = new Poly(points[0].getX(), points[0].getY(), r*2, r*2);
+			outputBoundary(newPoly, layerNumber);
+			return;
+		}
+
+		Rectangle2D polyBounds = poly.getBox();
+		if (polyBounds != null)
+		{
+			// rectangular manhattan shape: make sure it has positive area
+			if (polyBounds.getWidth() == 0 || polyBounds.getHeight() == 0) return;
+
+			outputBoundary(poly, layerNumber);
+			return;
+		}
+
+		// non-manhattan or worse .. direct output
+		if (points.length == 1)
+		{
+			System.out.println("WARNING: Single point cannot be written in GDS-II");
+			return;
+		}
+		if (points.length > 200)
+		{
+			System.out.println("WARNING: GDS-II Polygons may not have more than 200 points (this has " + points.length + ")");
+			return;
+		}
+		if (points.length == 2) outputPath(poly, layerNumber); else
+		outputBoundary(poly, layerNumber);
+	}
+
+	protected void writeNodable(Nodable no)
+	{
+		NodeInst ni = (NodeInst)no; // In layout cell all Nodables are NodeInsts
+		Cell subCell = (Cell)ni.getProto();
+
+		// figure out transformation
+		int transValue = 0;
+		int angle = ni.getAngle();
+		if (ni.isXMirrored() != ni.isYMirrored()) transValue |= STRANS_REFLX;
+		if (ni.isYMirrored()) angle = (3600 - angle)%3600;
+		if (ni.isXMirrored()) angle = (1800 - angle)%3600;
+
+		// write a call to a cell
+		outputHeader(HDR_SREF, 0);
+		String name = (String)cellNames.get(subCell);
+		outputName(HDR_SNAME, name, HDR_M_SNAME);
+		outputHeader(HDR_STRANS, transValue);
+		outputAngle(angle);
+		outputShort((short)12);
+		outputShort(HDR_XY);
+		outputInt((int)(scaleFactor*ni.getGrabCenterX()));
+		outputInt((int)(scaleFactor*ni.getGrabCenterY()));
+		outputHeader(HDR_ENDEL, 0);
+	}
+
+	/****************************** VISITOR SUBCLASS ******************************/
+
 	private BloatVisitor makeBloatVisitor(int maxDepth)
 	{
 		BloatVisitor visitor = new BloatVisitor(this, maxDepth);
@@ -147,8 +380,8 @@ public class OutputGDS extends OutputGeometry
 	 * Class to override the OutputGeometry visitor and add bloating to all polygons.
 	 * Currently, no bloating is being done.
 	 */
-    private class BloatVisitor extends OutputGeometry.Visitor
-    {
+	private class BloatVisitor extends OutputGeometry.Visitor
+	{
 		BloatVisitor(OutputGeometry outGeom, int maxHierDepth)
 		{
 			super(outGeom, maxHierDepth);
@@ -169,21 +402,19 @@ public class OutputGDS extends OutputGeometry
 				{
 					// dump this text field
 					outputHeader(HDR_TEXT, 0);
-					if (firstLayer != null) writeLayer(firstLayer);
-					outputHeader(HDR_LAYER, currentLayerNumber[0]);
+					if (firstLayer != null) selectLayer(firstLayer);
+					outputHeader(HDR_LAYER, currentLayerNumbers.normal);
 					outputHeader(HDR_TEXTTYPE, 0);
 					outputHeader(HDR_PRESENTATION, EXPORTPRESENTATION);
 
-					// now the orientation
-					int transvalue = 0;
+					// figure out transformation
+					int transValue = 0;
 					int angle = ni.getAngle();
-//					if (subno->transpose != 0)
-//					{
-//						// Angles are reversed 
-//						transvalue |= STRANS_REFLX;
-//						angle = (3600 - angle)%3600;
-//					}
-					outputHeader(HDR_STRANS, transvalue);
+					if (ni.isXMirrored() != ni.isYMirrored()) transValue |= STRANS_REFLX;
+					if (ni.isYMirrored()) angle = (3600 - angle)%3600;
+					if (ni.isXMirrored()) angle = (1800 - angle)%3600;
+
+					outputHeader(HDR_STRANS, transValue);
 					outputAngle(angle);
 					outputShort((short)12);
 					outputShort(HDR_XY);
@@ -214,206 +445,6 @@ public class OutputGDS extends OutputGeometry
 		}
 	}
 
-    /** Creates a new instance of OutputGDS */
-    OutputGDS()
-	{
-    }
-
-	protected void start()
-	{
-		initOutput();
-		outputBeginLibrary(topCell);
-    }
-
-    protected void done()
-	{
-		outputHeader(HDR_ENDLIB, 0);
-		doneWritingOutput();
-    }    
-
-    /** Method to write cellGeom */
-    protected void writeCellGeom(CellGeom cellGeom)
-    {
-		// write this cell
-		Cell cell = cellGeom.cell;
-		outputBeginStruct(cell);
-        
-        // write all polys by Layer
-        Set layers = cellGeom.polyMap.keySet();
-        for (Iterator it = layers.iterator(); it.hasNext();)
-		{
-            Layer layer = (Layer)it.next();
-            writeLayer(layer);
-            List polyList = (List)cellGeom.polyMap.get(layer);
-            for (Iterator polyIt = polyList.iterator(); polyIt.hasNext(); )
-			{
-                Poly poly = (Poly)polyIt.next();
-                writePoly(poly);
-            }
-        }
- 
-		// write all instances
-        for (Iterator noIt = cellGeom.nodables.iterator(); noIt.hasNext(); )
-		{
-            Nodable no = (Nodable)noIt.next();
-            writeNodable(no);
-        }
-
-//		// see if there are any outline nodes (opened polygon or circle arcs)
-//		boolean gatherpolygon = false;
-//		for(Iterator it = cell.getNodes(); it.hasNext(); )
-//		{
-//			NodeInst subno = (NodeInst)it.next();
-//			subno.clearBit(nodeMark);
-//			if (subno.getProto() == Artwork.tech.openedPolygonNode || subno.getProto() == Artwork.tech.circleNode ||
-//				subno.getProto() == Artwork.tech.thickCircleNode)
-//					gatherpolygon = true;
-//		}
-//		if (gatherpolygon)
-//		{
-//			bestthresh = scalefromdispunit((float)BESTTHRESH, DISPUNITMM);
-//			worstthresh = scalefromdispunit((float)WORSTTHRESH, DISPUNITMM);
-//			contourlist = gathercontours(cell, 0, bestthresh, worstthresh);
-//
-//			// write the contour polygons
-//			for(con = contourlist; con != NOCONTOUR; con = con->nextcontour)
-//			{
-//				poly->count = 0;
-//				poly->style = OPENED;
-//				poly->layer = 0;
-//
-//				// add in first point of contour
-//				if (poly->count+1 >= poly->limit)
-//					(void)extendpolygon(poly, poly->count+1);
-//				poly->xv[poly->count] = con->firstcontourelement->sx;
-//				poly->yv[poly->count] = con->firstcontourelement->sy;
-//				poly->count++;
-//				layeroverride = -1;
-//				for(conel = con->firstcontourelement; conel != NOCONTOURELEMENT; conel = conel->nextcontourelement)
-//				{
-//					conel->ni->temp1 = 1;
-//					switch (conel->elementtype)
-//					{
-//						case ARCSEGMENTTYPE:
-//						case REVARCSEGMENTTYPE:
-//						case CIRCLESEGMENTTYPE:
-//							initcontoursegmentgeneration(conel);
-//							for(;;)
-//							{
-//								if (nextcontoursegmentgeneration(&fx, &fy, &tx, &ty)) break;
-//								if (poly->count+1 >= poly->limit)
-//									(void)extendpolygon(poly, poly->count+1);
-//								poly->xv[poly->count] = tx;
-//								poly->yv[poly->count] = ty;
-//								poly->count++;
-//							}
-//							break;
-//						case LINESEGMENTTYPE:
-//							if (poly->count+1 >= poly->limit)
-//								(void)extendpolygon(poly, poly->count+1);
-//							poly->xv[poly->count] = conel->ex;
-//							poly->yv[poly->count] = conel->ey;
-//							poly->count++;
-//							break;
-//						default:
-//							break;
-//					}
-//				}
-//				io_outputgdspoly(art_tech, poly, 0, offx, offy, el_matid, layeroverride);
-//			}
-//		}
-		outputHeader(HDR_ENDSTR, 0);
-   }
-
-	protected void writeLayer(Layer layer)
-	{
-		int [] numbers = (int [])layerNumbers.get(layer);
-		if (numbers == null)
-		{
-			String layerName = layer.getGDSLayer();
-			numbers = parseLayerString(layerName);
-			layerNumbers.put(layer, numbers);
-		}
-		currentLayerNumber = numbers;
-    }
-
-    protected void writePoly(Poly poly)
-	{
-		if (poly.getStyle() == Poly.Type.DISC)
-		{
-			// Make a square of the size of the diameter 
-//			xformpoly(poly, trans);
-//			r = computedistance(poly->xv[0], poly->yv[0], poly->xv[1], poly->yv[1]);
-//			if (r <= 0) break;
-//			xform(poly->xv[0], poly->yv[0], &xpos, &ypos, trans);
-//			xl = xpos - offx - (r + bloat/2);
-//			xh = xl + 2*r + bloat;
-//			yl = ypos - offy - (r + bloat/2);
-//			yh = yl + 2*r + bloat;
-//			makerectpoly(xl, xh, yl, yh, poly2);
-//			outputBoundary(poly2);
-			return;
-		}
-
-		Rectangle2D polyBounds = poly.getBox();
-		if (polyBounds != null)
-		{
-			// rectangular manhattan shape: make sure it has positive area
-			if (polyBounds.getWidth() == 0 || polyBounds.getHeight() == 0) return;
-
-			outputBoundary(poly);
-			return;
-		}
-
-		// non-manhattan or worse .. direct output
-		Point2D [] points = poly.getPoints();
-		if (points.length == 1)
-		{
-			System.out.println("WARNING: Single point cannot be written in GDS-II");
-			return;
-		}
-		if (points.length > 200)
-		{
-			System.out.println("WARNING: GDS-II Polygons may not have more than 200 points (this has " + points.length + ")");
-			return;
-		}
-		if (points.length == 2) outputPath(poly); else
-			outputBoundary(poly);
-    }
-
-    protected void writeNodable(Nodable no)
-	{
-        NodeProto np = no.getProto();
-		NodeInst ni = (NodeInst)no; // In layout cell all Nodables are NodeInsts
-		Cell subCell = (Cell)np;
-
-		// write a call to a cell
-		// now origin, normal placement
-//		Rectangle2D niBounds = ni.getBounds();
-//		Rectangle2D cellBounds = subCell.getBounds();
-//		AffineTransform trans = ni.rotateOut();
-//		Point2D pt = new Point2D.Double(niBounds.getMinX() - cellBounds.getMinX(), niBounds.getMinY() - cellBounds.getMinY());
-//		trans.transform(pt, pt);
-		Point2D pt = ni.getGrabCenter();
-
-		// Generate a symbol reference 
-		outputHeader(HDR_SREF, 0);
-		String name = (String)cellNames.get(subCell);
-		outputName(HDR_SNAME, name, HDR_M_SNAME);
-		int transvalue = 0;
-		if (ni.isXMirrored() != ni.isYMirrored()) transvalue |= STRANS_REFLX;
-
-//System.out.println("instance at ("+pt.getX()+","+pt.getY()+"), angle "+angle+", trans "+transvalue);
-		// always output the angle and transvalue
-		outputHeader(HDR_STRANS, transvalue);
-		outputAngle(ni.getAngle());
-		outputShort((short)12);
-		outputShort(HDR_XY);
-		outputInt((int)(scaleFactor*pt.getX()));
-		outputInt((int)(scaleFactor*pt.getY()));
-		outputHeader(HDR_ENDEL, 0);
-    }
-
 	/*************************** GDS OUTPUT ROUTINES ***************************/
 
 	// Initialize various fields, get some standard values
@@ -425,11 +456,25 @@ public class OutputGDS extends OutputGeometry
 		// all zeroes
 		for (int i=0; i<DSIZE; i++) emptyBuffer[i] = 0;
 
-		scaleFactor = Technology.getCurrent().getScale();
+		Technology tech = Technology.getCurrent();
+		scaleFactor = tech.getScale();
 		layerNumbers = new HashMap();
 
+		// precache the layers in this technology
+		boolean foundValid = false;
+		for(Iterator it = tech.getLayers(); it.hasNext(); )
+		{
+			Layer layer = (Layer)it.next();
+			if (selectLayer(layer)) foundValid = true;
+		}
+		if (!foundValid)
+		{
+			System.out.println("Warning: there are no GDS II layers defined for the " +
+			tech.getTechName() + " technology");
+		}
+
 		// make a hashmap of all names to use for cells
-        cellNames = new HashMap();
+		cellNames = new HashMap();
 		for(Iterator it = Library.getCurrent().getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
@@ -473,7 +518,7 @@ public class OutputGDS extends OutputGeometry
 		return name;
 	}
 
-	/*
+	/**
 	 * function to create proper GDSII names with restricted character set
 	 * from input string str.
 	 * Uses only 'A'-'Z', '_', $, ?, and '0'-'9'
@@ -647,7 +692,7 @@ public class OutputGDS extends OutputGeometry
 	}
 
 	// Output the pairs of XY points to the file 
-	private void outputBoundary(Poly poly)
+	private void outputBoundary(Poly poly, int layerNumber)
 	{
 		Point2D [] points = poly.getPoints();
 		int count = points.length;
@@ -661,8 +706,8 @@ public class OutputGDS extends OutputGeometry
 //			{
 //				if (polysplithoriz((ly+hy)/2, poly, &side1, &side2)) return;
 //			}
-//			outputBoundary(side1);
-//			outputBoundary(side2);
+//			outputBoundary(side1, layerNumber);
+//			outputBoundary(side2, layerNumber);
 //			freepolygon(side1);
 //			freepolygon(side2);
 			return;
@@ -678,7 +723,7 @@ public class OutputGDS extends OutputGeometry
 			if (sofar < count) sofar++;
 
 			outputHeader(HDR_BOUNDARY, 0);
-			outputHeader(HDR_LAYER, currentLayerNumber[0]);
+			outputHeader(HDR_LAYER, layerNumber);
 			outputHeader(HDR_DATATYPE, 0);
 			outputShort((short)(8 * (sofar+1) + 4));
 			outputShort(HDR_XY);
@@ -696,10 +741,10 @@ public class OutputGDS extends OutputGeometry
 		}
 	}
 
-	private void outputPath(Poly poly)
+	private void outputPath(Poly poly, int layerNumber)
 	{
 		outputHeader(HDR_PATH, 0);
-		outputHeader(HDR_LAYER, currentLayerNumber[0]);
+		outputHeader(HDR_LAYER, layerNumber);
 		outputHeader(HDR_DATATYPE, 0);
 		Point2D [] points = poly.getPoints();
 		int count = 8 * points.length + 4;
@@ -730,6 +775,8 @@ public class OutputGDS extends OutputGeometry
 			bufferPosition = 0;
 		}
 	}
+
+	/*************************** GDS LOW-LEVEL OUTPUT ROUTINES ***************************/
 
 	// Add a 2-byte integer
 	private void outputShort(short val)
@@ -836,10 +883,10 @@ public class OutputGDS extends OutputGeometry
 	 * [1] is the pin layer number;
 	 * [2] is the text layer number.
 	 */
-	public static int [] parseLayerString(String string)
+	public static GDSLayers parseLayerString(String string)
 	{
-		int [] answers = new int[3];
-		answers[0] = answers[1] = answers[2] = -1;
+		GDSLayers answers = new GDSLayers();
+		answers.normal = answers.pin = answers.text = -1;
 		for(;;)
 		{
 			String trimmed = string.trim();
@@ -850,13 +897,13 @@ public class OutputGDS extends OutputGeometry
 			char lastch = trimmed.charAt(endPos-1);
 			if (lastch == 't')
 			{
-				answers[2] = number;
+				answers.text = number;
 			} else if (lastch == 'p')
 			{
-				answers[1] = number;
+				answers.pin = number;
 			} else
 			{
-				answers[0] = number;
+				answers.normal = number;
 			}
 			if (endPos == trimmed.length()) break;
 			string = trimmed.substring(endPos+1);
@@ -866,60 +913,65 @@ public class OutputGDS extends OutputGeometry
 
 	/****************************** GDS OUTPUT PREFERENCES ******************************/
 
+	private static Tool.Pref cacheMergesBoxes = IOTool.tool.makeBooleanPref("GDSMergesBoxes", false);
 	/**
 	 * Method to tell whether GDS Output merges boxes into complex polygons.
 	 * This takes more time but produces a smaller output file.
 	 * The default is "false".
 	 * @return true if GDS Output merges boxes into complex polygons.
 	 */
-	private static boolean cacheMergesBoxes = tool.prefs.getBoolean("GDSMergesBoxes", false);
-	public static boolean isMergesBoxes() { return cacheMergesBoxes; }
+	public static boolean isMergesBoxes() { return cacheMergesBoxes.getBoolean(); }
 	/**
 	 * Method to set whether GDS Output merges boxes into complex polygons.
 	 * This takes more time but produces a smaller output file.
-	 * @param on true if nGDS Output merges boxes into complex polygons.
+	 * @param on true if GDS Output merges boxes into complex polygons.
 	 */
-	public static void setMergesBoxes(boolean on)
-	{
-		tool.prefs.putBoolean("GDSMergesBoxes", cacheMergesBoxes = on);
-		flushOptions();
-	}
+	public static void setMergesBoxes(boolean on) { cacheMergesBoxes.setBoolean(on); }
 
+	private static Tool.Pref cacheWritesExportPins = IOTool.tool.makeBooleanPref("GDSWritesExportPins", false);
 	/**
 	 * Method to tell whether GDS Output writes pins at Export locations.
 	 * Some systems can use this information to reconstruct export locations.
 	 * The default is "false".
 	 * @return true if GDS Output writes pins at Export locations.
 	 */
-	private static boolean cacheWritesExportPins = tool.prefs.getBoolean("GDSWritesExportPins", false);
-	public static boolean isWritesExportPins() { return cacheWritesExportPins; }
+	public static boolean isWritesExportPins() { return cacheWritesExportPins.getBoolean(); }
 	/**
 	 * Method to set whether GDS Output writes pins at Export locations.
 	 * Some systems can use this information to reconstruct export locations.
-	 * @param on true if nGDS Output writes pins at Export locations.
+	 * @param on true if GDS Output writes pins at Export locations.
 	 */
-	public static void setWritesExportPins(boolean on)
-	{
-		tool.prefs.putBoolean("GDSWritesExportPins", cacheWritesExportPins = on);
-		flushOptions();
-	}
+	public static void setWritesExportPins(boolean on) { cacheWritesExportPins.setBoolean(on); }
 
+	private static Tool.Pref cacheUpperCase = IOTool.tool.makeBooleanPref("GDSOutputUpperCase", false);
 	/**
 	 * Method to tell whether GDS Output makes all text upper-case.
 	 * Some systems insist on this.
 	 * The default is "false".
 	 * @return true if GDS Output makes all text upper-case.
 	 */
-	private static boolean cacheUpperCase = tool.prefs.getBoolean("GDSOutputUpperCase", false);
-	public static boolean isUpperCase() { return cacheUpperCase; }
+	public static boolean isUpperCase() { return cacheUpperCase.getBoolean(); }
 	/**
 	 * Method to set whether GDS Output makes all text upper-case.
 	 * Some systems insist on this.
-	 * @param on true if nGDS Output makes all text upper-case.
+	 * @param on true if GDS Output makes all text upper-case.
 	 */
-	public static void setUpperCase(boolean on)
-	{
-		tool.prefs.putBoolean("GDSOutputUpperCase", cacheUpperCase = on);
-		flushOptions();
-	}
+	public static void setUpperCase(boolean on) { cacheUpperCase.setBoolean(on); }
+
+	private static Tool.Pref cacheDefaultTextLayer = IOTool.tool.makeIntPref("GDSDefaultTextLayer", 230);
+	/**
+	 * Method to tell the default GDS layer to use for the text of Export pins.
+	 * Export pins are annotated with text objects on this layer.
+	 * If this is negative, do not write Export pins.
+	 * The default is "230".
+	 * @return the default GDS layer to use for the text of Export pins.
+	 */
+	public static int getDefaultTextLayer() { return cacheDefaultTextLayer.getInt(); }
+	/**
+	 * Method to set the default GDS layer to use for the text of Export pins.
+	 * Export pins are annotated with text objects on this layer.
+	 * @param num the default GDS layer to use for the text of Export pins.
+	 * If this is negative, do not write Export pins.
+	 */
+	public static void setDefaultTextLayer(int num) { cacheDefaultTextLayer.setInt(num); }
 }

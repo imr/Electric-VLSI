@@ -362,8 +362,23 @@ public class Output extends IOTool
         }
         return false;
     }
-    
-    /** 
+
+	protected void emitCopyright(String prefix, String postfix)
+	{
+		if (!isUseCopyrightMessage()) return;
+		String str = getCopyrightMessage();
+		int start = 0;
+		while (start < str.length())
+		{
+			int endPos = str.indexOf('\n', start);
+			if (endPos < 0) endPos = str.length();
+			String oneLine = str.substring(start, endPos);
+			printWriter.println(prefix + oneLine + postfix);
+			start = endPos+1;
+		}
+	}
+
+	/** 
      * Close the printWriter.
      * @return true on error.
      */
@@ -372,5 +387,33 @@ public class Output extends IOTool
         printWriter.close();
         return false;
     }
+
+	/****************************** GENERAL OUTPUT PREFERENCES ******************************/
+
+	private static Tool.Pref cacheUseCopyrightMessage = IOTool.tool.makeBooleanPref("UseCopyrightMessage", false);
+	/**
+	 * Method to tell whether to add the copyright message to output decks.
+	 * The default is "false".
+	 * @return true to add the copyright message to output decks.
+	 */
+	public static boolean isUseCopyrightMessage() { return cacheUseCopyrightMessage.getBoolean(); }
+	/**
+	 * Method to set whether to add the copyright message to output decks.
+	 * @param m true to add the copyright message to output decks.
+	 */
+	public static void setUseCopyrightMessage(boolean u) { cacheUseCopyrightMessage.setBoolean(u); }
+
+	private static Tool.Pref cacheCopyrightMessage = IOTool.tool.makeStringPref("CopyrightMessage", "");
+	/**
+	 * Method to tell the copyright message that will be added to output decks.
+	 * The default is "".
+	 * @return the copyright message that will be added to output decks.
+	 */
+	public static String getCopyrightMessage() { return cacheCopyrightMessage.getString(); }
+	/**
+	 * Method to set the copyright message that will be added to output decks.
+	 * @param m the copyright message that will be added to output decks.
+	 */
+	public static void setCopyrightMessage(String m) { cacheCopyrightMessage.setString(m); }
 
 }

@@ -24,15 +24,21 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.tool.io.Output;
+import com.sun.electric.tool.io.OutputCIF;
 import com.sun.electric.tool.io.OutputGDS;
 
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyAdapter;
 import java.util.Iterator;
 import javax.swing.JComboBox;
 import javax.swing.JList;
+import javax.swing.JTextArea;
 import javax.swing.ListSelectionModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JScrollPane;
@@ -96,21 +102,131 @@ public class IOOptions extends javax.swing.JDialog
 
 	//******************************** CIF ********************************
 
+	private boolean initialCIFOutputMimicsDisplay;
+	private boolean initialCIFOutputMergesPolygons;
+	private boolean initialCIFOutputInstantiatesTopLevel;
+	private boolean initialCIFOutputCheckResolution;
+	private double initialCIFOutputResolution;
+	private JList cifLayersList;
+	private DefaultListModel cifLayersModel;
+	private boolean changingCIF = false;
+
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the CIF tab.
 	 */
 	private void initCIF()
 	{
-		cifLayers.setEnabled(false);
-		cifOutputMimicsDisplay.setEnabled(false);
-		cifOutputMergesBoxes.setEnabled(false);
-		cifOutputInstantiatesTopLevel.setEnabled(false);
-		cifNormalizeCoordinates.setEnabled(false);
+		initialCIFOutputMimicsDisplay = OutputCIF.isMimicsDisplay();
+		cifOutputMimicsDisplay.setSelected(initialCIFOutputMimicsDisplay);
+
+		initialCIFOutputMergesPolygons = OutputCIF.isMergesBoxes();
+		cifOutputMergesBoxes.setSelected(initialCIFOutputMergesPolygons);
+
+		initialCIFOutputInstantiatesTopLevel = OutputCIF.isInstantiatesTopLevel();
+		cifOutputInstantiatesTopLevel.setSelected(initialCIFOutputInstantiatesTopLevel);
+
+		initialCIFOutputCheckResolution = OutputCIF.isCheckResolution();
+		cifCheckResolution.setSelected(initialCIFOutputCheckResolution);
+
+		initialCIFOutputResolution = OutputCIF.getResolution();
+		cifResolutionValue.setText(Double.toString(initialCIFOutputResolution));
+
+		// build the layers list
+		Technology tech = Technology.getCurrent();
+		cifTechnology.setText("Technology " + tech.getTechName() + ":");
+		cifLayersModel = new DefaultListModel();
+		cifLayersList = new JList(cifLayersModel);
+		cifLayersList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		cifLayers.setViewportView(cifLayersList);
+		cifLayersList.clearSelection();
+		cifLayersList.addMouseListener(new MouseAdapter()
+		{
+			public void mouseClicked(MouseEvent evt) { cifClickLayer(); }
+		});
+		cifLayersModel.clear();
+		for(Iterator it = tech.getLayers(); it.hasNext(); )
+		{
+			Layer layer = (Layer)it.next();
+			String str = layer.getName();
+			String cifLayer = layer.getCIFLayer();
+			if (cifLayer == null) cifLayer = "";
+			if (cifLayer.length() > 0) str += " (" + cifLayer + ")";
+			cifLayersModel.addElement(str);
+		}
+		cifLayersList.setSelectedIndex(0);
+		cifLayer.getDocument().addDocumentListener(new CIFDocumentListener(this));
+		cifClickLayer();
+
+		// not yet
 		cifInputSquaresWires.setEnabled(false);
-		cifResolution.setEnabled(false);
-		cifLayer.setEditable(false);
-		cifResolutionValue.setEditable(false);
+	}
+
+	/**
+	 * Method called when the user clicks on a layer name in the scrollable list.
+	 */
+	private void cifClickLayer()
+	{
+		changingCIF = true;
+		String str = (String)cifLayersList.getSelectedValue();
+		cifLayer.setText(cifGetLayerName(str));
+		changingCIF = false;
+	}
+
+	/**
+	 * Method to parse the line in the scrollable list and return the CIF layer name part
+	 * (in parentheses).
+	 */
+	private String cifGetLayerName(String str)
+	{
+		int openParen = str.indexOf('(');
+		if (openParen < 0) return "";
+		int closeParen = str.lastIndexOf(')');
+		if (closeParen < 0) return "";
+		String cifLayer = str.substring(openParen+1, closeParen);
+		return cifLayer;
+	}
+
+	/**
+	 * Method to parse the line in the scrollable list and return the Layer.
+	 */
+	private Layer cifGetLayer(String str)
+	{
+		int openParen = str.indexOf('(');
+		if (openParen < 0) openParen = str.length()+1;
+		String layerName = str.substring(0, openParen-1);
+		Layer layer = Technology.getCurrent().findLayer(layerName);
+		return layer;
+	}
+
+	/**
+	 * Method called when the user types a new layer name into the edit field.
+	 */
+	private void cifLayerChanged()
+	{
+		if (changingCIF) return;
+		String str = (String)cifLayersList.getSelectedValue();
+		Layer layer = cifGetLayer(str);
+		if (layer == null) return;
+		String newLine = layer.getName();
+		String newLayer = cifLayer.getText().trim();
+		if (newLayer.length() > 0) newLine += " (" + newLayer + ")";
+		int index = cifLayersList.getSelectedIndex();
+		cifLayersModel.set(index, newLine);
+	}
+
+	/**
+	 * Class to handle special changes to changes to a CIF layer.
+	 */
+	private static class CIFDocumentListener implements DocumentListener
+	{
+		IOOptions dialog;
+
+		CIFDocumentListener(IOOptions dialog) { this.dialog = dialog; }
+
+		public void changedUpdate(DocumentEvent e) { dialog.cifLayerChanged(); }
+		public void insertUpdate(DocumentEvent e) { dialog.cifLayerChanged(); }
+		public void removeUpdate(DocumentEvent e) { dialog.cifLayerChanged(); }
 	}
 
 	/**
@@ -119,6 +235,35 @@ public class IOOptions extends javax.swing.JDialog
 	 */
 	private void termCIF()
 	{
+		for(int i=0; i<cifLayersModel.getSize(); i++)
+		{
+			String str = (String)cifLayersModel.getElementAt(i);
+			Layer layer = cifGetLayer(str);
+			if (layer == null) continue;
+
+			String currentCIFNumbers = cifGetLayerName(str);
+			if (currentCIFNumbers.equalsIgnoreCase(layer.getCIFLayer())) continue;
+			layer.setCIFLayer(currentCIFNumbers);
+		}
+		boolean currentMimicsDisplay = cifOutputMimicsDisplay.isSelected();
+		if (currentMimicsDisplay != initialCIFOutputMimicsDisplay)
+			OutputCIF.setMimicsDisplay(currentMimicsDisplay);
+
+		boolean currentMergesPolygons = cifOutputMergesBoxes.isSelected();
+		if (currentMergesPolygons != initialCIFOutputMergesPolygons)
+			OutputCIF.setMergesBoxes(currentMergesPolygons);
+
+		boolean currentInstantiatesTopLevel = cifOutputInstantiatesTopLevel.isSelected();
+		if (currentInstantiatesTopLevel != initialCIFOutputInstantiatesTopLevel)
+			OutputCIF.setInstantiatesTopLevel(currentInstantiatesTopLevel);
+
+		boolean currentCheckResolution = cifCheckResolution.isSelected();
+		if (currentCheckResolution != initialCIFOutputCheckResolution)
+			OutputCIF.setCheckResolution(currentCheckResolution);
+
+		double currentResolution = TextUtils.atof(cifResolutionValue.getText());
+		if (currentResolution != initialCIFOutputResolution)
+			OutputCIF.setResolution(currentResolution);
 	}
 
 	//******************************** GDS ********************************
@@ -126,8 +271,9 @@ public class IOOptions extends javax.swing.JDialog
 	private boolean initialGDSOutputMergesBoxes;
 	private boolean initialGDSOutputWritesExportPins;
 	private boolean initialGDSOutputUpperCase;
-	private JList layersList;
-	private DefaultListModel layersModel;
+	private int initialGDSTextLayer;
+	private JList gdsLayersList;
+	private DefaultListModel gdsLayersModel;
 	private boolean changingGDS = false;
 
 	/**
@@ -144,25 +290,30 @@ public class IOOptions extends javax.swing.JDialog
 		gdsOutputWritesExportPins.setSelected(initialGDSOutputWritesExportPins);
 		initialGDSOutputUpperCase = OutputGDS.isUpperCase();
 		gdsOutputUpperCase.setSelected(initialGDSOutputUpperCase);
+		initialGDSTextLayer = OutputGDS.getDefaultTextLayer();
+		gdsDefaultTextLayer.setText(Integer.toString(initialGDSTextLayer));
 
 		// build the layers list
-		layersModel = new DefaultListModel();
-		layersList = new JList(layersModel);
-		layersList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		gdsLayerList.setViewportView(layersList);
-		layersList.clearSelection();
-		layersList.addMouseListener(new MouseAdapter()
+		gdsLayersModel = new DefaultListModel();
+		gdsLayersList = new JList(gdsLayersModel);
+		gdsLayersList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		gdsLayerList.setViewportView(gdsLayersList);
+		gdsLayersList.clearSelection();
+		gdsLayersList.addMouseListener(new MouseAdapter()
 		{
 			public void mouseClicked(MouseEvent evt) { gdsClickLayer(); }
 		});
-		layersModel.clear();
+		gdsLayersModel.clear();
 		for(Iterator it = tech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
-			String str = layer.getName() + " (" + layer.getGDSLayer() + ")";
-			layersModel.addElement(str);
+			String str = layer.getName();
+			String gdsLayer = layer.getGDSLayer();
+			if (gdsLayer != null) str += " (" + gdsLayer + ")";
+			gdsLayersModel.addElement(str);
 		}
-		layersList.setSelectedIndex(0);
+		gdsLayersList.setSelectedIndex(0);
+		gdsClickLayer();
 
 		GDSDocumentListener myDocumentListener = new GDSDocumentListener(this);
 		gdsLayerNumber.getDocument().addDocumentListener(myDocumentListener);
@@ -174,37 +325,44 @@ public class IOOptions extends javax.swing.JDialog
 		gdsInputExpandsCells.setEnabled(false);
 		gdsInputInstantiatesArrays.setEnabled(false);
 		gdsInputIgnoresUnknownLayers.setEnabled(false);
-		gdsDefaultTextLayer.setEditable(false);
-		gdsMaxArcAngle.setEditable(false);
-		gdsMaxArcSag.setEditable(false);
 	}
 
+	/**
+	 * Method called when the user clicks on a layer name in the scrollable list.
+	 */
 	private void gdsClickLayer()
 	{
 		changingGDS = true;
-		String str = (String)layersList.getSelectedValue();
-		int [] numbers = getNumbers(str);
+		String str = (String)gdsLayersList.getSelectedValue();
+		OutputGDS.GDSLayers numbers = gdsGetNumbers(str);
 		if (numbers == null) return;
-		if (numbers[0] < 0) gdsLayerNumber.setText(""); else
-			gdsLayerNumber.setText(Integer.toString(numbers[0]));
-		if (numbers[1] < 0) gdsPinLayer.setText(""); else
-			gdsPinLayer.setText(Integer.toString(numbers[1]));
-		if (numbers[2] < 0) gdsTextLayer.setText(""); else
-			gdsTextLayer.setText(Integer.toString(numbers[2]));
+		if (numbers.normal < 0) gdsLayerNumber.setText(""); else
+			gdsLayerNumber.setText(Integer.toString(numbers.normal));
+		if (numbers.pin < 0) gdsPinLayer.setText(""); else
+			gdsPinLayer.setText(Integer.toString(numbers.pin));
+		if (numbers.text < 0) gdsTextLayer.setText(""); else
+			gdsTextLayer.setText(Integer.toString(numbers.text));
 		changingGDS = false;
 	}
 
-	private int [] getNumbers(String str)
+	/**
+	 * Method to parse the line in the scrollable list and return the GDS layer numbers part
+	 * (in parentheses).
+	 */
+	private OutputGDS.GDSLayers gdsGetNumbers(String str)
 	{
 		int openParen = str.indexOf('(');
 		if (openParen < 0) return null;
 		int closeParen = str.lastIndexOf(')');
 		if (closeParen < 0) return null;
 		String gdsNumbers = str.substring(openParen+1, closeParen);
-		int [] numbers = OutputGDS.parseLayerString(gdsNumbers);
+		OutputGDS.GDSLayers numbers = OutputGDS.parseLayerString(gdsNumbers);
 		return numbers;
 	}
 
+	/**
+	 * Method to parse the line in the scrollable list and return the Layer.
+	 */
 	private Layer gdsGetLayer(String str)
 	{
 		int openParen = str.indexOf('(');
@@ -214,10 +372,13 @@ public class IOOptions extends javax.swing.JDialog
 		return layer;
 	}
 
+	/**
+	 * Method called when the user types a new layer number into one of the 3 edit fields.
+	 */
 	private void gdsNumbersChanged()
 	{
 		if (changingGDS) return;
-		String str = (String)layersList.getSelectedValue();
+		String str = (String)gdsLayersList.getSelectedValue();
 		Layer layer = gdsGetLayer(str);
 		if (layer == null) return;
 		String newLine = layer.getName() + " (" + gdsLayerNumber.getText().trim();
@@ -226,12 +387,12 @@ public class IOOptions extends javax.swing.JDialog
 		String textLayer = gdsTextLayer.getText().trim();
 		if (textLayer.length() > 0) newLine += "," + textLayer + "t";
 		newLine += ")";
-		int index = layersList.getSelectedIndex();
-		layersModel.set(index, newLine);
+		int index = gdsLayersList.getSelectedIndex();
+		gdsLayersModel.set(index, newLine);
 	}
 
 	/**
-	 * Class to handle special changes to changes to design rules.
+	 * Class to handle special changes to changes to a GDS layer.
 	 */
 	private static class GDSDocumentListener implements DocumentListener
 	{
@@ -250,18 +411,18 @@ public class IOOptions extends javax.swing.JDialog
 	 */
 	private void termGDS()
 	{
-		for(int i=0; i<layersModel.getSize(); i++)
+		for(int i=0; i<gdsLayersModel.getSize(); i++)
 		{
-			String str = (String)layersModel.getElementAt(i);
+			String str = (String)gdsLayersModel.getElementAt(i);
 			Layer layer = gdsGetLayer(str);
 			if (layer == null) continue;
 
-			int [] numbers = getNumbers(str);
+			OutputGDS.GDSLayers numbers = gdsGetNumbers(str);
 			if (numbers == null) continue;
 			String currentGDSNumbers = "";
-			if (numbers[0] >= 0) currentGDSNumbers += Integer.toString(numbers[0]);
-			if (numbers[1] >= 0) currentGDSNumbers += "," + numbers[1] + "p";
-			if (numbers[2] >= 0) currentGDSNumbers += "," + numbers[2] + "t";
+			if (numbers.normal >= 0) currentGDSNumbers += Integer.toString(numbers.normal);
+			if (numbers.pin >= 0) currentGDSNumbers += "," + numbers.pin + "p";
+			if (numbers.text >= 0) currentGDSNumbers += "," + numbers.text + "t";
 			if (currentGDSNumbers.equalsIgnoreCase(layer.getGDSLayer())) continue;
 			layer.setGDSLayer(currentGDSNumbers);
 		}
@@ -274,6 +435,9 @@ public class IOOptions extends javax.swing.JDialog
 		boolean currentOutputUpperCase = gdsOutputUpperCase.isSelected();
 		if (currentOutputUpperCase != initialGDSOutputUpperCase)
 			OutputGDS.setUpperCase(currentOutputUpperCase);
+		int currentTextLayer = TextUtils.atoi(gdsDefaultTextLayer.getText());
+		if (currentTextLayer != initialGDSTextLayer)
+			OutputGDS.setDefaultTextLayer(currentTextLayer);
 	}
 
 	//******************************** EDIF ********************************
@@ -381,16 +545,33 @@ public class IOOptions extends javax.swing.JDialog
 
 	//******************************** COPYRIGHT ********************************
 
+	private boolean initialUseCopyrightMessage;
+	private String initialCopyrightMessage;
+	private JTextArea copyrightTextArea;
+
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Copyright tab.
 	 */
 	private void initCopyright()
 	{
-		copyrightNone.setEnabled(false);
-		copyrightUse.setEnabled(false);
-		copyrightFileName.setEditable(false);
-		copyrightBrowse.setEnabled(false);
+		initialUseCopyrightMessage = Output.isUseCopyrightMessage();
+		if (initialUseCopyrightMessage) copyrightUse.setSelected(true); else
+			copyrightNone.setSelected(true);
+
+		copyrightTextArea = new JTextArea();
+		copyrightMessage.setViewportView(copyrightTextArea);
+		initialCopyrightMessage = Output.getCopyrightMessage();
+		copyrightTextArea.setText(initialCopyrightMessage);
+		copyrightTextArea.addKeyListener(new KeyAdapter()
+		{
+			public void keyTyped(KeyEvent evt) { copyrightMessageKeyTyped(evt); }
+		});
+	}
+
+	private void copyrightMessageKeyTyped(KeyEvent evt)
+	{
+		copyrightUse.setSelected(true);
 	}
 
 	/**
@@ -399,6 +580,13 @@ public class IOOptions extends javax.swing.JDialog
 	 */
 	private void termCopyright()
 	{
+		boolean currentUseCopyrightMessage = copyrightUse.isSelected();
+		if (currentUseCopyrightMessage != initialUseCopyrightMessage)
+			Output.setUseCopyrightMessage(currentUseCopyrightMessage);
+
+		String msg = copyrightTextArea.getText();
+		if (!msg.equals(initialCopyrightMessage))
+			Output.setCopyrightMessage(msg);
 	}
 
 	//******************************** LIBRARY ********************************
@@ -484,13 +672,14 @@ public class IOOptions extends javax.swing.JDialog
         cifOutputMimicsDisplay = new javax.swing.JCheckBox();
         cifOutputMergesBoxes = new javax.swing.JCheckBox();
         cifOutputInstantiatesTopLevel = new javax.swing.JCheckBox();
-        cifNormalizeCoordinates = new javax.swing.JCheckBox();
         cifInputSquaresWires = new javax.swing.JCheckBox();
         jLabel2 = new javax.swing.JLabel();
-        cifResolution = new javax.swing.JComboBox();
-        jLabel3 = new javax.swing.JLabel();
         cifLayer = new javax.swing.JTextField();
+        jPanel1 = new javax.swing.JPanel();
+        jLabel3 = new javax.swing.JLabel();
         cifResolutionValue = new javax.swing.JTextField();
+        cifCheckResolution = new javax.swing.JCheckBox();
+        cifTechnology = new javax.swing.JLabel();
         gds = new javax.swing.JPanel();
         gdsLayerList = new javax.swing.JScrollPane();
         jLabel6 = new javax.swing.JLabel();
@@ -508,11 +697,6 @@ public class IOOptions extends javax.swing.JDialog
         gdsOutputUpperCase = new javax.swing.JCheckBox();
         jLabel9 = new javax.swing.JLabel();
         gdsDefaultTextLayer = new javax.swing.JTextField();
-        jLabel10 = new javax.swing.JLabel();
-        jLabel11 = new javax.swing.JLabel();
-        gdsMaxArcAngle = new javax.swing.JTextField();
-        jLabel12 = new javax.swing.JLabel();
-        gdsMaxArcSag = new javax.swing.JTextField();
         gdsTechName = new javax.swing.JLabel();
         edif = new javax.swing.JPanel();
         edifUseSchematicView = new javax.swing.JCheckBox();
@@ -541,9 +725,8 @@ public class IOOptions extends javax.swing.JDialog
         jLabel4 = new javax.swing.JLabel();
         copyrightNone = new javax.swing.JRadioButton();
         copyrightUse = new javax.swing.JRadioButton();
-        copyrightFileName = new javax.swing.JTextField();
-        copyrightBrowse = new javax.swing.JButton();
         jLabel5 = new javax.swing.JLabel();
+        copyrightMessage = new javax.swing.JScrollPane();
         library = new javax.swing.JPanel();
         libNoBackup = new javax.swing.JRadioButton();
         libBackupLast = new javax.swing.JRadioButton();
@@ -604,15 +787,16 @@ public class IOOptions extends javax.swing.JDialog
         jLabel1.setText("CIF Layer:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         cif.add(jLabel1, gridBagConstraints);
 
         cifLayers.setPreferredSize(new java.awt.Dimension(200, 200));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridheight = 9;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridheight = 7;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
@@ -622,34 +806,29 @@ public class IOOptions extends javax.swing.JDialog
         cifOutputMimicsDisplay.setText("Output Mimics Display");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         cif.add(cifOutputMimicsDisplay, gridBagConstraints);
 
         cifOutputMergesBoxes.setText("Output Merges Boxes");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
         cif.add(cifOutputMergesBoxes, gridBagConstraints);
 
         cifOutputInstantiatesTopLevel.setText("Output Instantiates Top Level");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        cif.add(cifOutputInstantiatesTopLevel, gridBagConstraints);
-
-        cifNormalizeCoordinates.setText("Normalize Coordinates");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        cif.add(cifNormalizeCoordinates, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 8, 4);
+        cif.add(cifOutputInstantiatesTopLevel, gridBagConstraints);
 
         cifInputSquaresWires.setText("Input Squares Wires");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -657,46 +836,67 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(8, 4, 4, 4);
         cif.add(cifInputSquaresWires, gridBagConstraints);
 
         jLabel2.setText("(time consuming)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
         cif.add(jLabel2, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        cif.add(cifLayer, gridBagConstraints);
+
+        jPanel1.setLayout(new java.awt.GridBagLayout());
+
+        jLabel3.setText("Output resolution:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 0);
+        jPanel1.add(jLabel3, gridBagConstraints);
+
+        cifResolutionValue.setColumns(6);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(cifResolutionValue, gridBagConstraints);
+
+        cifCheckResolution.setText("Find resolution errors");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(cifCheckResolution, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 7;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        cif.add(cifResolution, gridBagConstraints);
+        cif.add(jPanel1, gridBagConstraints);
 
-        jLabel3.setText("Output resolution:");
+        cifTechnology.setText(" ");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        cif.add(jLabel3, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        cif.add(cifLayer, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        cif.add(cifResolutionValue, gridBagConstraints);
+        cif.add(cifTechnology, gridBagConstraints);
 
         tabPane.addTab("CIF", cif);
 
@@ -705,12 +905,12 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridheight = 13;
+        gridBagConstraints.gridheight = 10;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gds.add(gdsLayerList, gridBagConstraints);
 
         jLabel6.setText("GDS Layer(s):");
@@ -799,7 +999,7 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 6, 4);
         gds.add(gdsInputIgnoresUnknownLayers, gridBagConstraints);
 
         gdsOutputMergesBoxes.setText("Output merges Boxes");
@@ -808,7 +1008,7 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 7;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        gridBagConstraints.insets = new java.awt.Insets(6, 4, 2, 4);
         gds.add(gdsOutputMergesBoxes, gridBagConstraints);
 
         gdsOutputWritesExportPins.setText("Output writes export Pins");
@@ -844,49 +1044,6 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gds.add(gdsDefaultTextLayer, gridBagConstraints);
-
-        jLabel10.setText("Output arc conversion:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 11;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
-        gds.add(jLabel10, gridBagConstraints);
-
-        jLabel11.setText("Maximum arc angle:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 12;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        gds.add(jLabel11, gridBagConstraints);
-
-        gdsMaxArcAngle.setColumns(8);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 12;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gds.add(gdsMaxArcAngle, gridBagConstraints);
-
-        jLabel12.setText("Maximum arc sag:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 13;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        gds.add(jLabel12, gridBagConstraints);
-
-        gdsMaxArcSag.setColumns(8);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 13;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gds.add(gdsMaxArcSag, gridBagConstraints);
 
         gdsTechName.setText(" ");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1074,11 +1231,10 @@ public class IOOptions extends javax.swing.JDialog
 
         copyright.setLayout(new java.awt.GridBagLayout());
 
-        jLabel4.setText("Copyright information can be added to every generated deck");
+        jLabel4.setText("A Copyright message can be added to every generated deck");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 20, 4);
         copyright.add(jLabel4, gridBagConstraints);
@@ -1088,46 +1244,35 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         copyright.add(copyrightNone, gridBagConstraints);
 
-        copyrightUse.setText("Use copyright message from file:");
+        copyrightUse.setText("Use this copyright message:");
         copyrightGroup.add(copyrightUse);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         copyright.add(copyrightUse, gridBagConstraints);
 
-        copyrightFileName.setColumns(20);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        copyright.add(copyrightFileName, gridBagConstraints);
-
-        copyrightBrowse.setText("Browse");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        copyright.add(copyrightBrowse, gridBagConstraints);
-
-        jLabel5.setText("Do not put comment characters in this file");
+        jLabel5.setText("Do not put comment characters in this message");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         copyright.add(jLabel5, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        copyright.add(copyrightMessage, gridBagConstraints);
 
         tabPane.addTab("Copyright", copyright);
 
@@ -1547,19 +1692,18 @@ public class IOOptions extends javax.swing.JDialog
     private javax.swing.JTextField cdlLibraryName;
     private javax.swing.JTextField cdlLibraryPath;
     private javax.swing.JPanel cif;
+    private javax.swing.JCheckBox cifCheckResolution;
     private javax.swing.JCheckBox cifInputSquaresWires;
     private javax.swing.JTextField cifLayer;
     private javax.swing.JScrollPane cifLayers;
-    private javax.swing.JCheckBox cifNormalizeCoordinates;
     private javax.swing.JCheckBox cifOutputInstantiatesTopLevel;
     private javax.swing.JCheckBox cifOutputMergesBoxes;
     private javax.swing.JCheckBox cifOutputMimicsDisplay;
-    private javax.swing.JComboBox cifResolution;
     private javax.swing.JTextField cifResolutionValue;
+    private javax.swing.JLabel cifTechnology;
     private javax.swing.JPanel copyright;
-    private javax.swing.JButton copyrightBrowse;
-    private javax.swing.JTextField copyrightFileName;
     private javax.swing.ButtonGroup copyrightGroup;
+    private javax.swing.JScrollPane copyrightMessage;
     private javax.swing.JRadioButton copyrightNone;
     private javax.swing.JRadioButton copyrightUse;
     private javax.swing.JPanel def;
@@ -1582,8 +1726,6 @@ public class IOOptions extends javax.swing.JDialog
     private javax.swing.JCheckBox gdsInputInstantiatesArrays;
     private javax.swing.JScrollPane gdsLayerList;
     private javax.swing.JTextField gdsLayerNumber;
-    private javax.swing.JTextField gdsMaxArcAngle;
-    private javax.swing.JTextField gdsMaxArcSag;
     private javax.swing.JCheckBox gdsOutputMergesBoxes;
     private javax.swing.JCheckBox gdsOutputUpperCase;
     private javax.swing.JCheckBox gdsOutputWritesExportPins;
@@ -1591,9 +1733,6 @@ public class IOOptions extends javax.swing.JDialog
     private javax.swing.JLabel gdsTechName;
     private javax.swing.JTextField gdsTextLayer;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel10;
-    private javax.swing.JLabel jLabel11;
-    private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel15;
@@ -1617,6 +1756,7 @@ public class IOOptions extends javax.swing.JDialog
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel6;
