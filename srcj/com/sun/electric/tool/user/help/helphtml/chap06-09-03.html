@@ -1,5 +1,7 @@
 <!-- HEADER 6-9-3: Bus Naming -->
 
+<!-- COMMAND Edit/Arc/Rip Bus -->
+
 The Bus arc of the Schematics technology is a special arc that can carry multiple signals.
 When giving a network name to Bus arcs, it is possible to specify complex bus names.
 Bus names can be lists (for example, "clock,in1,out" which aggregates 3 singals into a 3-wide bus)
@@ -12,14 +14,11 @@ Finally, it is possible to use symbolic indices in bus naming
 <P>
 When a bus is unnamed, the system determines its width from the ports that it connects.
 Some tools (such as simulation netlisters) need to name everything,
-and so must give names to these unnamed busses.
-You can control the way that these busses are numbered by setting the "Default starting index" field in the
-<B>Network Options...</B> dialog.
-You can also select whether the numbering should go up or down.
+and so use automatically-generated names.
 <P>
 Individual wires that connect to a bus must be named with names from that bus.
 As an aid in obtaining individual signals from a bus,
-the <B>Rip Bus Signals</B> subcommand of the <B>Network</B> command of the <B>Tools</B>
+the <B>Rip Bus</B> subcommand of the <B>Arc</B> command of the <B>Edit</B>
 menu will automatically create such wires for the selected bus arc.
 <P>
 Besides using array names on busses, you can also give array names to schematic nodes.

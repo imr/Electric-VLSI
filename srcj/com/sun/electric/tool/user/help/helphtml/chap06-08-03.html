@@ -1,49 +1,36 @@
 <!-- HEADER 6-8-3: Modifying Text -->
 
+<!-- COMMAND Edit/Text/Change Text Size... -->
+
 Like nodes and arcs, text can be moved simply by clicking and dragging.
 It can be erased with the <B>Erase</B> command of the <B>Edit</B> menu.
 <P>
-There are two ways to change the actual text: <I>in-place editing</I> or with a dialog.
-In-place editing is done by double-clicking on the text.
-After the double-click, all of the text is selected.
-Portions of the text can be selected by clicking over it.
-To insert or replace text, simply type.
-When done editing, click away from the text to end the editing mode.
-<P>
-<!-- NEED 6in -->
 <TABLE><TR><TD>
-Dialog control of text is done by using the <B>Get Info</B> command of the <B>Info</B> menu.
-This dialog allows modification of the text, size, font, style, grab-point, rotation,
-and even the offset of the grab-point from the attached node or arc.
+To change text, select it and use the
+<B>Object Properties...</B> subcommand of the <B>Properties</B> command of the <B>Edit</B> menu.
+This dialog allows modification of the text, size, font, style, anchor-point, rotation,
+and even the offset of the anchor-point from the attached node or arc.
 Note that the offset is always relative to the center of the attached object.
-The size of text can be absolute (given in "points") or relative (given in lambda units).
-The font of text can use the default face or any font installed on your system.
+The size of text can be absolute (given in "points") or relative (given in units).
+The font of the text can be the default font or any font installed on your system.
 The style of text can be any combination of Italic, Bold, or Underline.
 Text rotation can be in 90-degree increments only.
 You can set the units to any electrical type (capacitance, resistance, etc.)
-See section <A HREF="chap07-02.html#chap07-02">Section 7-2</A> for more on these units.
-The "Language" option allows the text to be code in an interpretive language,
+See section <A HREF="chap07-02-01.html#chap07-02-01">Section 7-2-1</A> for more on these units.
+The "Code" option allows the text to be code in an interpretive language,
 in which case, the evaluation of that code is displayed.
-(see <A HREF="chap11-01.html#chap11-01">Section 11-1</A> for more on languages).
 You can choose to show the text value, the name of the piece of text, or both.
-The little arrows next to the grab-point options show where the point of attachment lies on the text.
 </TD><TD><CENTER><IMG SRC="fig06-06.png" ALT="Figure 6.6"></CENTER></TD></TR></TABLE>
 <P>
 If the text contains more than 1 line,
 then the only way to change it is to click on the "Edit Text" button,
 which closes the dialog and enters in-place editing mode.
-The "See Arc" button highlights the arc on which the text is attached
-(the button is "See Node" if the text is on a node).
-Similarly, the "Arc Info" (or "Node Info") button brings up the <B>Get Info</B> dialog for that object.
-The checkbox "Visible only inside cell" requests that the text not be drawn when an instance of the cell is examined.
-In addition, for text objects
-(those created with the <B>Text (nonlayout)</B> subcommand of the <B>New Special Object</B> command of the <B>Edit</B> menu)
-the location of the text will not affect the bounding box of the cell.
-This means that the text can be placed arbitrarily far outside of the actual layout,
-and it will not affect the hierarchy.
+The "Highlight Owner" button highlights the node or arc on which the text is attached
+.
+The checkbox "Invisible outside cell" requests that the text not be drawn when an instance of the cell is examined.
 <P>
 <TABLE><TR><TD><CENTER><IMG SRC="fig04-14.png" ALT="Figure 4-14"></CENTER></TD><TD>
-The <B>Change Text Size...</B> subcommand of the <B>Special Function</B> command of the <B>Edit</B>
+The <B>Change Text Size...</B> subcommand of the <B>Text</B> command of the <B>Edit</B>
 menu allows you to change the size, face, and style of any text object.
 You can choose which of the 6 classes of text you wish to change,
 and you can choose whether to make the changes only on selected objects, in the current cell,

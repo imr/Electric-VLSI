@@ -184,27 +184,27 @@ public class ToolMenu {
 		// ------------------- NCC
 		MenuBar.Menu nccSubMenu = new MenuBar.Menu("NCC", 'N');
 		toolMenu.add(nccSubMenu);
-		nccSubMenu.addMenuItem("flat NCC schematic and layout of current cell", null, 33, new ActionListener() {
+		nccSubMenu.addMenuItem("Flat NCC schematic and layout of current cell", null, 33, new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				new com.sun.electric.tool.ncc.NccJob(1, false, false);
 			}
 		});
-		nccSubMenu.addMenuItem("flat NCC two cells from open windows", null, 9, new ActionListener() {
+		nccSubMenu.addMenuItem("Flat NCC two cells from open windows", null, 9, new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				new com.sun.electric.tool.ncc.NccJob(2, false, false);
 			}
 		});
-		nccSubMenu.addMenuItem("flat NCC each cell in the design, current cell is root", null, 9, new ActionListener() {
+		nccSubMenu.addMenuItem("Flat NCC each cell in the design, current cell is root", null, 9, new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				new com.sun.electric.tool.ncc.NccJob(1, true, false);
 			}
 		});
-		nccSubMenu.addMenuItem("hierarchical NCC each cell in the design, current cell is root", null, 0, new ActionListener() {
+		nccSubMenu.addMenuItem("Hierarchical NCC each cell in the design, current cell is root", null, 0, new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				new com.sun.electric.tool.ncc.NccJob(1, false, true);
 			}
 		});
-		nccSubMenu.addMenuItem("list annotations of each cell in the design, current cell is root", null, 0, new ActionListener() {
+		nccSubMenu.addMenuItem("List annotations of each cell in the design, current cell is root", null, 0, new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				new com.sun.electric.tool.ncc.ListNccAnnotations();
 			}

@@ -73,12 +73,12 @@ public class FileMenu {
 
 		fileMenu.addMenuItem("New Library...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { newLibraryCommand(); } });
-		fileMenu.addMenuItem("Open Library", KeyStroke.getKeyStroke('O', buckyBit),
+		fileMenu.addMenuItem("Open Library...", KeyStroke.getKeyStroke('O', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { openLibraryCommand(); } });
 
 		MenuBar.Menu importSubMenu = new MenuBar.Menu("Import");
 		fileMenu.add(importSubMenu);
-		importSubMenu.addMenuItem("Readable Dump", null,
+		importSubMenu.addMenuItem("Readable Dump...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(); } });
 		importSubMenu.addMenuItem("Text Cell Contents...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { TextWindow.readTextCell(); }});
@@ -96,17 +96,17 @@ public class FileMenu {
 
 		MenuBar.Menu exportSubMenu = new MenuBar.Menu("Export");
 		fileMenu.add(exportSubMenu);
-		exportSubMenu.addMenuItem("CIF (Caltech Intermediate Format)", null,
+		exportSubMenu.addMenuItem("CIF (Caltech Intermediate Format)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.CIF, false); } });
-		exportSubMenu.addMenuItem("GDS II (Stream)", null,
+		exportSubMenu.addMenuItem("GDS II (Stream)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.GDS, false); } });
-		exportSubMenu.addMenuItem("PostScript", null,
+		exportSubMenu.addMenuItem("PostScript...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.POSTSCRIPT, false); } });
 		exportSubMenu.addMenuItem("Text Cell Contents...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { TextWindow.writeTextCell(); }});
-		exportSubMenu.addMenuItem("Readable Dump", null,
+		exportSubMenu.addMenuItem("Readable Dump...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.READABLEDUMP, false); } });
-		exportSubMenu.addMenuItem("Version 6 ELIB", null,
+		exportSubMenu.addMenuItem("Version 6 ELIB...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.ELIB, true); } });
 
 		fileMenu.addSeparator();

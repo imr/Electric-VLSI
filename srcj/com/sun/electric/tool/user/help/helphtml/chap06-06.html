@@ -1,4 +1,6 @@
-<!-- HEADER 6-1: Replacing Circuitry -->
+<!-- HEADER 6-6: Replacing Circuitry -->
+
+<!-- COMMAND Edit/Change... -->
 
 The <B>Change...</B> command of the <B>Edit</B>
 menu removes the currently highlighted node or arc and replaces it with a new one of a different type.
@@ -32,13 +34,12 @@ it is also possible to specify replacement of many other objects.
 <H3>Special Considerations</H3>
 <P>
 Some Schematic nodes use parameters to further describe them.
-For example, an Electrolytic Capacitor is really just a Capacitor with the "electrolytic" parameter on it.
-Therefore, you can change a node into a Capacitor, but not an Electrolytic Capacitor,
+For example, an electrolytic capacitor is really just a capacitor with the "electrolytic" parameter on it.
+Therefore, you can change a node into a capacitor, but not an electrolytic capacitor,
 because it is not in the list.
-However, once changed, you can use the <B>Get Info</B> command of the <B>Info</B>
-menu to set the parameter and turn it into an Electrolytic Capacitor.
-Besides Capacitors, parameters can be found on Diodes, Transistors,
-Sources, and Two-Ports (the four-connection primitives such as VCCS).
+To change a capacitor into an electrolytic capacitor, paste an electrolytic capacitor onto it.
+Besides capacitors, parameters can be found on diodes, transistors,
+sources, and two-ports (the four-connection primitives such as VCCS).
 <P>
 Because arcs can connect only to certain types of nodes, it can be difficult to replace both.
 For example, if you wish to convert all Metal-1 into Metal-2,
@@ -50,7 +51,7 @@ nor is it possible to do it in any two-step fashion
 and you cannot replace the pins, because the arcs won't connect to the new type).
 <P>
 The solution is to use the Universal arc and the Universal Pin
-(from the Generic technology, see <A HREF="chap07-09.html#chap07-09">Section 7-9</A>).
+(from the Generic technology, see <A HREF="chap07-06-02.html#chap07-06-02">Section 7-6-2</A>).
 These components can connect to any other,
 and so they can be used as intermediate placeholders.
 The solution to converting Metal-1 into Metal-2 is as follows:

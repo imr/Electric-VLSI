@@ -4,9 +4,9 @@
 
 IMP: (7/13/04, RK) Install NCC into main menus.
 
-IMP: (7/12/04), RK) Roll in all changes to NCC from July break. NCC of all Cells in LoCo. Reorganize file hierarchy.
+IMP: (7/12/04, RK) Roll in all changes to NCC from July break. NCC of all Cells in LoCo. Reorganize file hierarchy.
 
-IMP: (7/12/04), GVG) List Geometry on Network functionality.
+IMP: (7/12/04, GVG) List Geometry on Network functionality.
 
 IMP: (7/12/04, SMR) Made window adjustment handle multiscreen configurations.
 

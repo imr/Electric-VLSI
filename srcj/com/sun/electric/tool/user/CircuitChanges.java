@@ -1632,15 +1632,6 @@ public class CircuitChanges
 			if (response != JOptionPane.YES_OPTION) return false;
 		}
 
-        // update any windows that used the cell
-        for (Iterator it = WindowFrame.getWindows(); it.hasNext(); ) {
-            WindowFrame frame = (WindowFrame)it.next();
-            WindowContent content = frame.getContent();
-            if (cell == content.getCell()) {
-                content.setCell(null, VarContext.globalContext);
-            }
-        }
-
 		// delete the cell
 		DeleteCell job = new DeleteCell(cell);
 		return true;
@@ -1686,7 +1677,10 @@ public class CircuitChanges
 			WindowContent content = wf.getContent();
 			if (content == null) continue;
 			if (content.getCell() == cell)
+			{
 				content.setCell(null, null);
+				content.fullRepaint();
+			}
 		}
 
 //		prevversion = cell->prevversion;

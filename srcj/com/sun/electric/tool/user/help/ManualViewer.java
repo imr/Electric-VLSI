@@ -101,6 +101,7 @@ public class ManualViewer extends EDialog
 	private int currentIndex;
 	private boolean menubarShown = false;
 	private static int lastPageVisited = 0;
+	private static HashMap menuMap = null;
 
     /**
      * Create a new user's manual dialog.
@@ -191,6 +192,70 @@ public class ManualViewer extends EDialog
 		if (menubarShown) return;
 		menubarShown = true;
 
+		if (menuMap == null)
+		{
+			menuMap = new HashMap();
+
+			// scan all manual entries for menu associations
+			URL url = ManualViewer.class.getResource("helphtml/toc.txt");
+			InputStream stream = TextUtils.getURLStream(url, null);
+			InputStreamReader is = new InputStreamReader(stream);
+			for(;;)
+			{
+				String line = getLine(is);
+				if (line == null) break;
+				if (line.length() == 0) continue;
+				int indent = 0;
+				for(;;)
+				{
+					if (indent >= line.length() || line.charAt(indent) != ' ') break;
+					indent++;
+				}
+				int titleStart = indent;
+				int titleEnd = line.indexOf('=', titleStart);
+				if (titleEnd < 0) continue;
+				String fileName = line.substring(titleEnd+1);
+	
+				URL pageURL = ManualViewer.class.getResource("helphtml/" + fileName + ".html");
+				if (pageURL == null)
+				{
+					System.out.println("NULL URL to "+fileName);
+					continue;
+				}
+				InputStream pageStream = TextUtils.getURLStream(pageURL, null);
+				InputStreamReader pageIS = new InputStreamReader(pageStream);
+				for(;;)
+				{
+					String pageLine = getLine(pageIS);
+					if (pageLine == null) break;
+					if (pageLine.startsWith("<!-- COMMAND "))
+					{
+						int endPt = pageLine.indexOf("-->");
+						if (endPt < 0)
+						{
+							System.out.println("No end comment on line: "+pageLine);
+							continue;
+						}
+						String commandName = pageLine.substring(13, endPt).trim();
+						String already = (String)menuMap.get(commandName);
+						if (already != null)
+						{
+							System.out.println("ERROR: command " + commandName + " is keyed to both " + already + " and " + fileName);
+						}
+						menuMap.put(commandName, fileName);
+						continue;
+					}
+				}
+				try
+				{
+					pageStream.close();
+				} catch (IOException e)
+				{
+					System.out.println("Error closing file");
+				}
+			}
+		}
+
 		JMenuBar helpMenuBar = new JMenuBar();
 
 		// convert menuBar to tree
@@ -227,22 +292,46 @@ public class ManualViewer extends EDialog
 			{
 				JMenuItem helpMenuItem = new JMenuItem(menuItem.getText());
 				helpMenu.add(helpMenuItem);
-				helpMenuItem.addActionListener(new HelpMenuActionListener(cumulative + menuItem.getText()));
+				String fileName = (String)menuMap.get(cumulative + menuItem.getText());
+				if (fileName == null)
+				{
+					System.out.println("No help for " + cumulative + menuItem.getText());
+				}
+				helpMenuItem.addActionListener(new HelpMenuActionListener(this, fileName));
 			}
 		}
 	}
 
 	private static class HelpMenuActionListener implements ActionListener
 	{
+		private ManualViewer dialog;
 		private String title;
 
-		HelpMenuActionListener(String title) { this.title = title; }
+		HelpMenuActionListener(ManualViewer dialog, String title)
+		{
+			this.dialog = dialog;
+			this.title = title;
+		}
 
 		public void actionPerformed(ActionEvent e) { doHelpMenu(title); }
 
-		private void doHelpMenu(String name)
+		private void doHelpMenu(String fileName)
 		{
-			System.out.println(name);
+			if (fileName == null)
+			{
+				System.out.println("No help for this command");
+				return;
+			}
+			for(int i=0; i<dialog.pageSequence.size(); i++)
+			{
+				PageInfo pi = (PageInfo)dialog.pageSequence.get(i);
+				if (pi.fileName.equals(fileName))
+				{
+					dialog.loadPage(i);
+					return;
+				}
+			}
+
 		}
 	}
 

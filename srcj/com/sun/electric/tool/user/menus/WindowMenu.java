@@ -52,7 +52,7 @@ public class WindowMenu {
         MenuBar.Menu windowMenu = new MenuBar.Menu("Window", 'W');
         menuBar.add(windowMenu);
 
-        m = windowMenu.addMenuItem("Fill Display", KeyStroke.getKeyStroke('9', buckyBit),
+        m = windowMenu.addMenuItem("Fill Window", KeyStroke.getKeyStroke('9', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { fullDisplay(); } });
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD9, buckyBit), null);
         m = windowMenu.addMenuItem("Redisplay Window", null,

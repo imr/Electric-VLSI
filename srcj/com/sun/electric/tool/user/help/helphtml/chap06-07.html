@@ -1,5 +1,8 @@
 <!-- HEADER 6-7: Undo Control -->
 
+<!-- COMMAND Edit/Undo -->
+<!-- COMMAND Edit/Redo -->
+
 Electric has an undo mechanism that tracks all changes made during a session.
 When a command is issued, it and its side effects are stored.
 <P>
@@ -10,15 +13,11 @@ The <B>Redo</B> command redoes changes, up to the most recent change made.
 <P>
 Electric stores only the last 20 changes, so anything older than that cannot be undone.
 <P>
-In Electric, almost every command is undoable.
-This includes some commands that you would not normally conside undoable,
-such as the mouse click which changes highlighting.
-Although most commands are undoable, there are some exceptions.
+In Electric, almost every command is undoable, but there are some exceptions.
 Commands that write disk files are not undoable,
 because Electric would not be so presumptuous as to delete a disk file.
 Also commands that make vast changes (such as library or technology deletion)
 are not undoable.
-Finally, pure informational commands (as found in the <B>Info</B> menu)
-are not undoable.
+
 
 <!-- TRAILER -->

@@ -1,5 +1,7 @@
 <!-- HEADER 6-4: Making Arrays -->
 
+<!-- COMMAND Edit/Array... -->
+
 If one copy is not enough, you may want an array of objects.
 <P>
 The <B>Array...</B> command of the <B>Edit</B> menu takes the currently highlighted objects and replicates them many times.
@@ -23,13 +25,10 @@ Centerline distance is the distance between object centers,
 and defaults to the size of the selected objects
 (which causes the copies to touch).
 Characteristic spacing is an amount that is set for specific cells
-(see <A HREF="chap03-07.html#chap03-07">Section 3-7</A>).
+(see <A HREF="chap03-07-03.html#chap03-07-03">Section 3-7-3</A>).
 If a cell with a characteristic spacing is arrayed, that value can be used.
 Finally, the last measured distance can be used to determine the array spacing
-(use the <B>Measure Distance</B> command of the <B>Info</B> menu to set this amount).
-Note that the default unit for typed values is <I>lambda</I>,
-unless another unit is explicitly mentioned (see
-<A HREF="chap07-02.html#chap07-02">Section 7-2</A>).
+(for more on measuring, see <A HREF="chap04-07-04.html#chap04-07-04">Section 4-7-4</A>).
 <P>
 <CENTER><IMG SRC="fig06-02.png" ALT="Figure 6.2"></CENTER>
 <P>
@@ -42,10 +41,14 @@ requests that the array entries be drawn with index information.
 When this is checked, array entries are labeled with the index of each entry.
 The original copy is labeled "0-0" and the copy to its right is labeled "1-0".
 These names are simply visual tags that have no bearing on the contents
-(use the <B>Get Info</B> command of the <B>Info</B> menu to set or remove these names).
+(use the <B>Object Properties...</B> subcommand of the <B>Properties</B> command of the <B>Edit</B> menu to set or remove these names).
 <P>
 The "Only place entries that are DRC correct" check box requests that array entries only be placed where they do not create design-rule violations.
 This option is only available if a single node is being arrayed.
 After the array is created, the design-rule checker is run on each entry, and if it causes an error, it is removed.
+<P>
+The "Transpose placement ordering" check box requests that array placement go by column instead of by row.
+This is useful if the arraying includes names which are being auto-incremented in the array.
+By transposing the order of arraying, the names will run in the orthogonal direction.
 
 <!-- TRAILER -->
