@@ -10,8 +10,11 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.WindowContent;
 
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.*;
 import java.util.*;
 import java.awt.geom.Point2D;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 /**
  * Holds a log of errors:
@@ -29,7 +32,7 @@ import java.awt.geom.Point2D;
  * </pre>
  * <p>To end logging, call errorLogger.termLogging(boolean explain).
  */
-public class ErrorLogger {
+public class ErrorLogger implements ActionListener {
 
     private static final int ERRORTYPEGEOM      = 1;
     private static final int ERRORTYPEEXPORT    = 2;
@@ -250,7 +253,8 @@ public class ErrorLogger {
                         WindowContent content = wf.getContent();
                         if (content.getCell() == cell)
                         {
-                            // already displayed.  should force window "wf" to front?
+                            // already displayed.  should force window "wf" to front? yes
+                            wf.getFrame().toFront();
                             found = true;
                             break;
                         }
@@ -318,8 +322,6 @@ public class ErrorLogger {
             return message;
         }
 
-
-
     }
 
 
@@ -330,7 +332,6 @@ public class ErrorLogger {
     private int errorLimit;
     private List allErrors;
     private int currentErrorNumber;
-    private int errorPosition;
     private boolean limitExceeded;
     private String errorSystem;
     private boolean terminated;
@@ -348,12 +349,11 @@ public class ErrorLogger {
         logger.allErrors = new ArrayList();
         logger.trueNumErrors = 0;
         logger.limitExceeded = false;
-        logger.errorPosition = 0;
         logger.currentErrorNumber = -1;
         logger.errorSystem = system;
         logger.errorLimit = User.getErrorLimit();
         logger.terminated = false;
-        currentLogger = logger;
+        if (currentLogger == null) currentLogger = logger;
         allLoggers.add(logger);
         return logger;
     }
@@ -407,9 +407,15 @@ public class ErrorLogger {
     /** Delete this logger */
     public synchronized void delete() {
         allLoggers.remove(this);
+        if (currentLogger == this) {
+            if (allLoggers.size() > 0) currentLogger = (ErrorLogger)allLoggers.get(0);
+            else currentLogger = null;
+        }
+        WindowFrame.wantToRedoErrorTree();
     }
 
     public String describe() {
+        if (currentLogger == this) return errorSystem + " [Current]";
         return errorSystem;
     }
 
@@ -438,6 +444,7 @@ public class ErrorLogger {
             System.out.println("Type > and < to step through errors, or open the ERRORS view in the explorer");
         }
         WindowFrame.wantToRedoErrorTree();
+        currentLogger = this;
 
         terminated = true;
     }
@@ -483,7 +490,7 @@ public class ErrorLogger {
      */
     public static String reportNextError(boolean showhigh, Geometric [] gPair)
     {
-        if (currentLogger == null) return "No current ErrorLogger";
+        if (currentLogger == null) return "No errors to report";
         return currentLogger.reportNextError_(showhigh, gPair);
     }
 
@@ -504,7 +511,7 @@ public class ErrorLogger {
      */
     public static String reportPrevError()
     {
-        if (currentLogger == null) return "No current ErrorLogger";
+        if (currentLogger == null) return "No errors to report";
         return currentLogger.reportPrevError_();
     }
 
@@ -549,6 +556,15 @@ public class ErrorLogger {
      */
     public Iterator getErrors() { return allErrors.iterator(); }
 
+    public void deleteError(ErrorLog error) {
+        if (!allErrors.contains(error)) {
+            System.out.println(errorSystem+ ": Does not contain error to delete");
+        }
+        allErrors.remove(error);
+        trueNumErrors--;
+        if (currentErrorNumber >= allErrors.size()) currentErrorNumber = 0;
+    }
+
 
     // ----------------------------- Explorer Tree Stuff ---------------------------
 
@@ -574,4 +590,22 @@ public class ErrorLogger {
         return explorerTree;
     }
 
+    public JPopupMenu getPopupMenu() {
+        JPopupMenu p = new JPopupMenu();
+        JMenuItem m;
+        m = new JMenuItem("Delete"); m.addActionListener(this); p.add(m);
+        m = new JMenuItem("Set Current"); m.addActionListener(this); p.add(m);
+        return p;
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() instanceof JMenuItem) {
+            JMenuItem m = (JMenuItem)e.getSource();
+            if (m.getText().equals("Delete")) delete();
+            if (m.getText().equals("Set Current")) {
+                currentLogger = this;
+                WindowFrame.wantToRedoErrorTree();
+            }
+        }
+    }
 }

@@ -828,6 +828,12 @@ public class ExplorerTree extends JTree
 					return;
 				}
 			}
+            if (currentSelectedObject instanceof ErrorLogger) {
+                ErrorLogger logger = (ErrorLogger)currentSelectedObject;
+                JPopupMenu p = logger.getPopupMenu();
+                if (p != null) p.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
+                return;
+            }
 		}
 
 		private void openAction()

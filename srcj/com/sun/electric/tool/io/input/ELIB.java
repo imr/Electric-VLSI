@@ -1664,7 +1664,7 @@ public class ELIB extends LibraryFiles
                     if (portLocation.contains(x, y)) {
                         if (pi.getPortProto().connectsTo(ap)) {
                             // connect to this port
-                            String msg = "Cell "+cell.getName()+": Port '"+portname+"' on '"+nodeName+"' not found, connecting to port '"+
+                            String msg = "Cell "+cell.describe()+": Port '"+portname+"' on '"+nodeName+"' not found, connecting to port '"+
                                     pi.getPortProto().getName()+"' at the same location";
                             System.out.println("ERROR: "+msg);
                             ErrorLogger.ErrorLog error = Input.errorLogger.logError(msg, cell, 0);
@@ -1697,7 +1697,7 @@ public class ELIB extends LibraryFiles
 
 
         // create pin as new end point of arc
-        String msg = "Cell "+cell.getName()+": Port '"+portname+"' on '"+nodeName+"' "+whatHappenedToPort+": leaving arc disconnected";
+        String msg = "Cell "+cell.describe()+": Port '"+portname+"' on '"+nodeName+"' "+whatHappenedToPort+": leaving arc disconnected";
         System.out.println("ERROR: "+msg);
         ErrorLogger.ErrorLog error = Input.errorLogger.logError(msg, cell, 0);
         error.addGeom(ai, true, 0, null);

@@ -29,11 +29,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.user.dialogs.OptionReconcile;
 import com.sun.electric.tool.user.ui.TopLevel;
 
-import java.util.List;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.*;
 import java.util.prefs.Preferences;
 import java.util.prefs.BackingStoreException;
 
@@ -558,6 +554,8 @@ public class Pref
 		setSideEffect();
 	}
 
+//    private static Map meaningPrefs = new HashMap();
+
 	/**
 	 * Method to make this Pref a "meaning" option.
 	 * Meaning options are attached to objects in the Electric database,
@@ -571,6 +569,9 @@ public class Pref
 	public Meaning attachToObject(ElectricObject eObj, String location, String description)
 	{
 		meaning = new Meaning(eObj, this, location, description);
+ //       List list = (List)meaningPrefs.get(this.name);
+ //       if (list == null) { list = new ArrayList(); }
+ //       list.add(meaning);
 		return meaning;
 	}
 
@@ -583,6 +584,14 @@ public class Pref
 	 */
 	public static Meaning getMeaningVariable(ElectricObject eObj, String name)
 	{
+/*
+        List list = (List)meaningPrefs.get(name);
+        if (list == null) return null;
+        for (Iterator it = list.iterator(); it.hasNext(); ) {
+            Meaning m = (Meaning)it.next();
+            if (m.eObj == eObj) return m;
+        }
+*/
 		for(Iterator it = allPrefs.iterator(); it.hasNext(); )
 		{
 			Pref pref = (Pref)it.next();
