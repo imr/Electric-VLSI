@@ -49,6 +49,7 @@ public class TextAttributesPanel extends javax.swing.JPanel {
 
     private Variable var;
     private TextDescriptor td;
+    private String futureVarName;
     private ElectricObject owner;
     private TextDescriptor.Unit initialUnit;
     private TextDescriptor.DispPos initialDispPos;
@@ -79,20 +80,35 @@ public class TextAttributesPanel extends javax.swing.JPanel {
             show.addItem((TextDescriptor.DispPos)it.next());
         }
 
-        setVariable(null, null, null);
+        setVariable(null, null, null, null);
     }
 
     /**
      * Set the Variable that can be edited through this Panel
+     * <p>Var can be null, if this is the TextDescriptor on a Geom object
+     * <p>td can be null if futureVarName is non-null. If both var and td are null,
+     * the Panel gets filled with default values that will be applied to a variable yet to
+     * be created named "futureVarName".
+     * <p>if all three are null, the entire Panel is disabled.
      * @param var the Variable to be edited
+     * @param tdesc the TextDescriptor to be edited if if var is null
+     * @param futureVarName the name of a variable yet to be created that will be used if
+     * both var and tdesc are null. 
      * @param owner the owner of the variable
      */
-    public synchronized void setVariable(Variable var, TextDescriptor tdesc, ElectricObject owner) {
+    public synchronized void setVariable(Variable var, TextDescriptor tdesc, String futureVarName, ElectricObject owner) {
+
+        // do not allow empty var names
+        if (futureVarName != null) {
+            if (futureVarName.trim().equals("")) futureVarName = null;
+        }
+
         this.var = var;
         this.td = tdesc;
+        this.futureVarName = futureVarName;
         this.owner = owner;
 
-        boolean enabled = ((var == null) && (td == null)) ? false : true;
+        boolean enabled = ((var == null) && (td == null) && (futureVarName == null)) ? false : true;
 
         // update enabled state of everything
         // can't just enable all children because objects might be inside JPanel
@@ -105,6 +121,36 @@ public class TextAttributesPanel extends javax.swing.JPanel {
         if (!enabled) return;
 
         if (var != null) this.td = var.getTextDescriptor(); else td = tdesc;
+
+        if (td == null) {
+            // do default settings for future var name
+
+            // set code
+            initialCode = notcode;
+            code.setSelectedItem(notcode);
+            // set units
+            initialUnit = TextDescriptor.Unit.NONE;
+            units.setSelectedItem(initialUnit);
+            // set show style
+            initialDispPos = TextDescriptor.DispPos.NAMEVALUE;
+            show.setSelectedItem(initialDispPos);
+            // set isParam
+            initialParamter = false;
+            parameter.setSelected(false);
+            // only vars on cell and nodeinst can thier parameter property set
+            if (!(owner instanceof Cell) && !(owner instanceof NodeInst))
+                parameter.setEnabled(false);
+            // set isInherits
+            initialInherits = false;
+            inherited.setSelected(false);
+            // only vars on Cell and Exports can have their inherits property set
+            if (!(owner instanceof Cell) && !(owner instanceof Export))
+                inherited.setEnabled(false);
+
+            return;
+        }
+
+        // otherwise, use td
 
         // set code
         code.setSelectedItem(notcode); initialCode = notcode;
@@ -141,35 +187,7 @@ public class TextAttributesPanel extends javax.swing.JPanel {
      * @return true if any changes committed to database, false otherwise
      */
     public synchronized boolean applyChanges() {
-        return applyChanges(var, td, owner, null);
-    }
-
-    /**
-     * This method is used when the Panel's field values will be used to
-     * modify a new Variable, i.e. one that has not yet been created.
-     * The Job to create the variable must already have been generated before
-     * this method is called.
-     * @param name the name of the variable that has yet to be created
-     * @return true if any changes committed to database, false otherwise.
-     */
-    public synchronized boolean applyChangesFutureVar(String name) {
-        return applyChanges(null, null, owner, name);
-    }
-
-    /**
-     * This method applies the values in the fields of the Panel to:
-     * <p> - var and td on owner if futureVar is null.
-     * <p> - a Variable named "futureVar" on owner if futureVar is not null.
-     * <p>This allows fields to be applied to a var that will be created by
-     * a Job already on the Job queue.
-     * @param var the Variable to be modified, instead of the Variable passed to setVariable()
-     * @param td the TextDescriptor to be modified, instead of the TextDescriptor passed to setVariable()
-     * @param owner the owner of the Variable
-     * @param futureVar the name of the variable on 'owner' to be modified
-     * @return true if changes made, false otherwise
-     */
-    private boolean applyChanges(Variable var, TextDescriptor td, ElectricObject owner, String futureVar) {
-        if ((var == null) && (td == null) && (futureVar == null)) return false;
+        if ((var == null) && (td == null) && (futureVarName == null)) return false;
 
         boolean changed = false;
 
@@ -194,7 +212,9 @@ public class TextAttributesPanel extends javax.swing.JPanel {
 
         ChangeText job = new ChangeText(
                 owner,
-                futureVar,
+                var,
+                td,
+                futureVarName,
                 newCode,
                 newUnit,
                 newDisp,
@@ -213,7 +233,9 @@ public class TextAttributesPanel extends javax.swing.JPanel {
     private static class ChangeText extends Job {
 
         private ElectricObject owner;
-        private String varName;
+        private Variable var;
+        private TextDescriptor td;
+        private String futureVarName;
         private String code;
         private TextDescriptor.Unit unit;
         private TextDescriptor.DispPos dispPos;
@@ -222,7 +244,9 @@ public class TextAttributesPanel extends javax.swing.JPanel {
         
         private ChangeText(
                 ElectricObject owner,
-                String varName,
+                Variable var,
+                TextDescriptor td,
+                String futureVarName,
                 String code,
                 TextDescriptor.Unit unit,
                 TextDescriptor.DispPos dispPos,
@@ -232,7 +256,9 @@ public class TextAttributesPanel extends javax.swing.JPanel {
         {
             super("Modify Text Attribute", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.owner = owner;
-            this.varName = varName;
+            this.var = var;
+            this.td = td;
+            this.futureVarName = futureVarName;
             this.code = code;
             this.unit = unit;
             this.dispPos = dispPos;
@@ -242,13 +268,12 @@ public class TextAttributesPanel extends javax.swing.JPanel {
         }
 
         public void doIt() {
-            Variable var;
-            TextDescriptor td;
-            if (varName != null) {
-                var = owner.getVar(varName);
+            // if var and td not specified, use future var name
+            if ((var == null) && (td == null)) {
+                var = owner.getVar(futureVarName);
                 if (var == null) return;                // var doesn't exist, abort
                 td = var.getTextDescriptor();
-            } else return;
+            }
 
             // change the code type
             if (var != null) {

@@ -75,8 +75,6 @@ public class Attributes2 extends javax.swing.JDialog
     private TextAttributesPanel attrPanel;
     private TextInfoPanel textPanel;
 
-    private Point2D lastLocation;
-
     /**
      * Method to show the Attributes dialog.
      */
@@ -281,8 +279,9 @@ public class Attributes2 extends javax.swing.JDialog
             deleteButton.setEnabled(false);
             newButton.setEnabled(false);
             updateButton.setEnabled(false);
-            textPanel.setTextDescriptor(null, null);
-            attrPanel.setVariable(null, null, null);
+            renameButton.setEnabled(false);
+            textPanel.setTextDescriptor(null, null, null);
+            attrPanel.setVariable(null, null, null, null);
             return;
         }
 
@@ -299,6 +298,7 @@ public class Attributes2 extends javax.swing.JDialog
         value.setEditable(true);
         deleteButton.setEnabled(true);
         updateButton.setEnabled(true);
+        renameButton.setEnabled(true);
         newButton.setEnabled(true);
 
         // show all attributes on the selected object
@@ -368,6 +368,9 @@ public class Attributes2 extends javax.swing.JDialog
             list.setSelectedIndex(selectIndex);
             list.ensureIndexIsVisible(selectIndex);
             showSelectedAttribute();
+        } else {
+            // this will set state of create new/update buttons
+            checkName();
         }
     }
 
@@ -453,11 +456,11 @@ public class Attributes2 extends javax.swing.JDialog
         }
 
         // set the text info panel
-        textPanel.setTextDescriptor(var.getTextDescriptor(), selectedObject);
-        attrPanel.setVariable(var, var.getTextDescriptor(), selectedObject);
+        textPanel.setTextDescriptor(var.getTextDescriptor(), null, selectedObject);
+        attrPanel.setVariable(var, var.getTextDescriptor(), null, selectedObject);
 
         // this will set state of create new/update buttons
-        nameKeyPressed(null);
+        checkName();
     }
 
     /**
@@ -576,6 +579,45 @@ public class Attributes2 extends javax.swing.JDialog
         }
     }
 
+    private void checkName() {
+        // if name does not equal name of selected var, disable update button
+        String varName = name.getText().trim();
+
+        // can't create new variable of empty, no vars can be empty text
+        if (varName.equals("")) {
+            updateButton.setEnabled(false);
+            newButton.setEnabled(false);
+            deleteButton.setEnabled(false);
+            renameButton.setEnabled(false);
+            return;
+        }
+
+        varName = "ATTR_" + varName;
+
+        // try to find variable
+        Variable var = selectedObject.getVar(varName);
+        if (var != null) {
+            // see if this is selected var
+            if (var == getSelectedVariable()) {
+                // enable buttons that affect selected var, disable new button
+                newButton.setEnabled(false);
+                updateButton.setEnabled(true);
+                renameButton.setEnabled(true);
+                deleteButton.setEnabled(true);
+            } else {
+                // switch to var
+                showAttributesOnSelectedObject(var); // this will call this method again
+            }
+        } else {
+            // no such var, remove selection and enable new buttons
+            newButton.setEnabled(true);
+            updateButton.setEnabled(false);
+            renameButton.setEnabled(false);
+            deleteButton.setEnabled(false);
+            list.clearSelection();
+        }
+    }
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -609,6 +651,7 @@ public class Attributes2 extends javax.swing.JDialog
         jLabel3 = new javax.swing.JLabel();
         updateButton = new javax.swing.JButton();
         deleteButton = new javax.swing.JButton();
+        renameButton = new javax.swing.JButton();
         cellName = new javax.swing.JLabel();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
@@ -718,11 +761,8 @@ public class Attributes2 extends javax.swing.JDialog
 
         name.setText(" ");
         name.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                nameKeyPressed(evt);
-            }
-            public void keyTyped(java.awt.event.KeyEvent evt) {
-                nameKeyTyped(evt);
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                nameKeyReleased(evt);
             }
         });
 
@@ -809,8 +849,17 @@ public class Attributes2 extends javax.swing.JDialog
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.insets = new java.awt.Insets(4, 8, 4, 8);
         jPanel1.add(deleteButton, gridBagConstraints);
+
+        renameButton.setText("Rename");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(renameButton, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -840,41 +889,18 @@ public class Attributes2 extends javax.swing.JDialog
         pack();
     }//GEN-END:initComponents
 
+    private void nameKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_nameKeyReleased
+        checkName();
+    }//GEN-LAST:event_nameKeyReleased
+
     private void ok(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ok
-        // Add your handling code here:
+        closeDialog(null);
     }//GEN-LAST:event_ok
-
-    private void nameKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_nameKeyTyped
-        nameKeyPressed(null);
-    }//GEN-LAST:event_nameKeyTyped
-
-    private void nameKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_nameKeyPressed
-        // if name does not equal name of selected var, disable update button
-        String varName = name.getText();
-        varName = "ATTR_" + varName;
-        Variable var = getSelectedVariable();
-        if (var.getKey().getName().equals(varName)) {
-            updateButton.setEnabled(true);
-            newButton.setEnabled(false);
-        } else {
-            // first, try to find variable
-            var = selectedObject.getVar(varName);
-            if (var != null) {
-                // switch to var
-                showAttributesOnSelectedObject(var);
-                updateButton.setEnabled(true);
-                newButton.setEnabled(false);
-            } else {
-                updateButton.setEnabled(false);
-                newButton.setEnabled(true);
-            }
-        }
-    }//GEN-LAST:event_nameKeyPressed
 
     private void newButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newButtonActionPerformed
 
         // check variable name
-        String varName = name.getText();
+        String varName = name.getText().trim();
         if (varName.trim().length() == 0) {
             JOptionPane.showMessageDialog(null, "Attribute name must not be empty",
                     "Invalid Input", JOptionPane.WARNING_MESSAGE);
@@ -890,15 +916,15 @@ public class Attributes2 extends javax.swing.JDialog
         }
 
         // get value
-        String val = value.getText();
+        String val = value.getText().trim();
 
         // Spawn a Job to create the Variable
         CreateAttribute job = new CreateAttribute(varName, getVariableObject(val), selectedObject);
         // Spawn a Job to set the new Variable's text options
         // because the var has not been created yet, the Job gets passed the Var name
-        textPanel.applyChangesFutureVar(varName);
+        textPanel.applyChanges();
         // same for text attributes panel
-        attrPanel.applyChangesFutureVar(varName);
+        attrPanel.applyChanges();
         // generate Job to update this dialog when the changes have been processed
         UpdateDialog job2 = new UpdateDialog();
 
@@ -921,7 +947,7 @@ public class Attributes2 extends javax.swing.JDialog
         String varName = selectedVar.getKey().getName();
 
         // see if value changed
-        String varValue = value.getText();
+        String varValue = value.getText().trim();
         if (varValue != initialValue) changed = true;
 
         if (changed) {
@@ -940,7 +966,6 @@ public class Attributes2 extends javax.swing.JDialog
     /** Closes the dialog */
     private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
     {
-        lastLocation = getLocation();
         setVisible(false);
 //		dispose();
     }//GEN-LAST:event_closeDialog
@@ -968,6 +993,7 @@ public class Attributes2 extends javax.swing.JDialog
     private javax.swing.JTextField name;
     private javax.swing.JButton newButton;
     private javax.swing.JButton ok;
+    private javax.swing.JButton renameButton;
     private javax.swing.ButtonGroup size;
     private javax.swing.JButton updateButton;
     private javax.swing.JTextField value;

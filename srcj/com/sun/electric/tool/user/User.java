@@ -193,8 +193,8 @@ public class User extends Listener
 	{
 		GetInfoNode.load();
 		GetInfoArc.load();
-		GetInfoExport2.load();
-		GetInfoText2.load();
+		GetInfoExport.load();
+		GetInfoText.load();
 		GetInfoMulti.load();
 		Attributes.load();
 		StatusBar.updateStatusBar();

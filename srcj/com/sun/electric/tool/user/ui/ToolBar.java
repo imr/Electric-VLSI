@@ -173,7 +173,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
         modeGroup.add(clickZoomWireButton);
 
         if (secondaryInputModes) {
-            
+
 		selectButton = ToolBarButton.newInstance(cursorSelectName,
             new ImageIcon(toolbar.getClass().getResource("ButtonSelect.gif")));
 		selectButton.addActionListener(
@@ -190,6 +190,8 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		wireButton.setToolTipText("Wiring");
 		toolbar.add(wireButton);
 		modeGroup.add(wireButton);
+
+        }
 
 		// the "Pan mode" button
 		panButton = ToolBarButton.newInstance(cursorPanName,
@@ -208,8 +210,6 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		zoomButton.setToolTipText("Zoom");
 		toolbar.add(zoomButton);
 		modeGroup.add(zoomButton);
-
-        }
 
 		// the "Outline edit mode" button
 		outlineButton = ToolBarButton.newInstance(cursorOutlineName,

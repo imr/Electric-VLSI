@@ -114,8 +114,8 @@ public class GetInfoText2 extends javax.swing.JDialog
             evaluation.setText("");
             theText.setText("");
             shownText = null;
-            textPanel.setTextDescriptor(null, null);
-            attrPanel.setVariable(null, null, null);
+            textPanel.setTextDescriptor(null, null, null);
+            attrPanel.setVariable(null, null, null, null);
             return;
         }
 
@@ -182,8 +182,8 @@ public class GetInfoText2 extends javax.swing.JDialog
         }
 
         // set the text edit panel
-        textPanel.setTextDescriptor(td, owner);
-        attrPanel.setVariable(var, td, owner);
+        textPanel.setTextDescriptor(td, null, owner);
+        attrPanel.setVariable(var, td, null, owner);
 
         shownText = textHighlight;
     }
@@ -240,6 +240,21 @@ public class GetInfoText2 extends javax.swing.JDialog
                     }
                 }
             }
+            GetInfoText2.load();
+        }
+    }
+
+    /**
+     * Job to trigger update to Attributes dialog.  Type set to CHANGE and priority to USER
+     * so that in queues in order behind other Jobs from this class: this assures it will
+     * occur after the queued changes
+     */
+    private static class UpdateDialog extends Job {
+        private UpdateDialog() {
+            super("Update Attributes Dialog", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+        }
+        public void doIt() {
+            GetInfoText2.load();
         }
     }
 
@@ -403,6 +418,8 @@ public class GetInfoText2 extends javax.swing.JDialog
 
         if (textArray.length == 0) return;
         ChangeText job = new ChangeText(var, shownText.getName(), owner, textArray);
+        // update dialog
+        UpdateDialog job2 = new UpdateDialog();
 
         initialText = currentText;
     }

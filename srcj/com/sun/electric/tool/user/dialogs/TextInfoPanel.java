@@ -53,8 +53,10 @@ public class TextInfoPanel extends javax.swing.JPanel
     private boolean initialInvisibleOutsideCell;
     private int initialFont;
     private double initialXOffset, initialYOffset;
+    private double initialBoxedWidth, initialBoxedHeight;
 
     private TextDescriptor td;
+    private String futureVarName;
     private ElectricObject owner;
 
     /**
@@ -81,26 +83,38 @@ public class TextInfoPanel extends javax.swing.JPanel
         // populate Anchor combo box
         for (Iterator it = TextDescriptor.Position.getPositions(); it.hasNext(); ) {
             TextDescriptor.Position pos = (TextDescriptor.Position)it.next();
-            if (pos == TextDescriptor.Position.BOXED) continue;
             textAnchor.addItem(pos);
         }
 
-        setTextDescriptor(null, null);
+        setTextDescriptor(null, null, null);
     }
 
     /**
-     * Set the variable whose Text options will be displayed
-     * in the Panel.  If Variable is null, the Panel and it's
-     * children will be disabled.
+     * Set what the dialog displays: It can display and allow editing of the settings
+     * for a passed text descriptor, or it can display and allow editing of default values
+     * for a text descriptor of a variable that has not yet been created (futureVarName).
+     * <p>if td is non-null, display and allow editing of the td text options
+     * <p>else if futureVarName is non-null, display and allow editing of default values.
+     * <p>if both are null, disable entire panel
+     * <p>if both are non-null, ignore "futureVarName".
      * @param td the TextDescriptor whose text settings will be displayed.
+     * @param futureVarName the name a variable that will be created later.
      * @param owner the object the variable is on.
      */
-    public synchronized void setTextDescriptor(TextDescriptor td, ElectricObject owner)
+    public synchronized void setTextDescriptor(TextDescriptor td, String futureVarName, ElectricObject owner)
     {
+        // do not allow empty names for future vars
+        if (futureVarName != null) {
+            futureVarName = futureVarName.trim();
+            if (futureVarName.equals("")) futureVarName = null;
+        }
+
         this.td = td;
+        this.futureVarName = futureVarName;
         this.owner = owner;
 
-        boolean enabled = (td == null) ? false : true;
+
+        boolean enabled = ((td == null) && (futureVarName == null)) ? false : true;
 
         // update enabled state of everything
         // can't just enable all children because objects might be inside JPanel
@@ -118,14 +132,14 @@ public class TextInfoPanel extends javax.swing.JPanel
         underline.setEnabled(enabled);
         invisibleOutsideCell.setEnabled(enabled);
         seeNode.setEnabled(enabled);
+        boxedWidth.setEnabled(false);               // only enabled when boxed anchor is selected
+        boxedHeight.setEnabled(false);               // only enabled when boxed anchor is selected
 
-        if (!enabled) return;
+        if (!enabled) {
+            // values for new TextDescriptors
+            return;
+        }
 
-        // set Position
-        initialPos = td.getPos();
-        textAnchor.setSelectedItem(td.getPos());
-
-        // set the offset
         NodeInst ni = null;
         // use location of owner if it is a generic invisible pin, because
         // this is the location of the text on the cell
@@ -137,6 +151,40 @@ public class TextInfoPanel extends javax.swing.JPanel
                 }
             }
         }
+
+        if (td == null) {
+            // do default settings for future var name
+
+            // offset
+            initialXOffset = initialYOffset = 0;
+            xOffset.setText("0"); yOffset.setText("0");
+            // invisible outside cell
+            initialInvisibleOutsideCell = false;
+            invisibleOutsideCell.setSelected(initialInvisibleOutsideCell);
+            // size
+            initialSize = TextDescriptor.Size.newRelSize(1.0);
+            unitsButton.setSelected(true);
+            unitsSize.setText("1.0");
+            // position
+            initialPos = TextDescriptor.Position.CENT;
+            textAnchor.setSelectedItem(initialPos);
+            // font
+            initialFont = 0;
+            font.setSelectedIndex(initialFont);
+            // italic/bold/underline
+            initialItalic = false; italic.setEnabled(false);
+            initialBold = false; bold.setEnabled(false);
+            initialUnderline = false; underline.setEnabled(false);
+            // rotation
+            initialRotation = TextDescriptor.Rotation.ROT0;
+            rotation.setSelectedItem(initialRotation);
+
+            return;
+        }
+
+        // td is non-null, fill it values for it
+
+        // set the offset
         if (ni != null) {
             initialXOffset = ni.getGrabCenterX();
             initialYOffset = ni.getGrabCenterY();
@@ -176,6 +224,39 @@ public class TextInfoPanel extends javax.swing.JPanel
             }
         }
 
+        // set Position
+        initialPos = td.getPos();
+        boxedWidth.setText("");
+        boxedHeight.setText("");
+        initialBoxedWidth = -1.0;
+        initialBoxedHeight = -1.0;
+        boolean ownerIsNodeInst = false;
+        if (owner instanceof NodeInst) ownerIsNodeInst = true;
+        if ((td.getPos() == TextDescriptor.Position.BOXED) && ownerIsNodeInst) {
+            initialBoxedWidth = ni.getXSize();
+            initialBoxedHeight = ni.getYSize();
+            boxedWidth.setEnabled(true); boxedWidth.setText(Double.toString(ni.getXSize()));
+            boxedHeight.setEnabled(true); boxedHeight.setText(Double.toString(ni.getYSize()));
+            // make sure BOXED option is part of pull down menu
+            boolean found = false;
+            for (int i=0; i<textAnchor.getModel().getSize(); i++) {
+                TextDescriptor.Position pos = (TextDescriptor.Position)textAnchor.getModel().getElementAt(i);
+                if (pos == TextDescriptor.Position.BOXED) {
+                    found = true; break;
+                }
+            }
+            if (!found) {
+                textAnchor.addItem(TextDescriptor.Position.BOXED);
+            }
+        }
+        if (!ownerIsNodeInst) {
+            // The TextDescriptor cannot be set to boxed, so remove it from the list
+            textAnchor.removeItem(TextDescriptor.Position.BOXED);
+        }
+        textAnchor.setSelectedItem(td.getPos());
+        // update enable/disabled state of boxed height, width textfields
+        textAnchorItemStateChanged(null);
+
         // set the font
         initialFont = td.getFace();
         if (initialFont == 0) font.setSelectedIndex(0); else
@@ -203,34 +284,8 @@ public class TextInfoPanel extends javax.swing.JPanel
      * @return true if any changes made to database, false if no changes made.
      */
     public synchronized boolean applyChanges() {
-        return applyChanges(td, owner, null);
-    }
 
-    /**
-     * This method is used when the Panel's field values will be used to
-     * modify a new Variable, i.e. one that has not yet been created.
-     * The Job to create the variable must already have been generated before
-     * this method is called.
-     * @param futureVar the name of the variable that has yet to be created
-     * @return true if any changes committed to database, false otherwise.
-     */
-    public synchronized boolean applyChangesFutureVar(String futureVar) {
-        return applyChanges(null, null, futureVar);
-    }
-
-    /**
-     * This method applies the values in the fields of the Panel to:
-     * <p> - var and td on owner if futureVar is null.
-     * <p> - a Variable named "futureVar" on owner if futureVar is not null.
-     * <p>This allows fields to be applied to a var that will be created by
-     * a Job already on the Job queue.
-     * @param td the TextDescriptor to be modified, instead of the TextDescriptor passed to setTextDescriptor()
-     * @param owner the owner of the Variable
-     * @param futureVar the name of the variable on 'owner' to be modified
-     * @return true if changes made, false otherwise
-     */
-    private boolean applyChanges(TextDescriptor td, ElectricObject owner, String futureVar) {
-        if ((td == null) && (futureVar == null)) return false;
+        if ((td == null) && (futureVarName == null)) return false;
 
         boolean changed = false;
 
@@ -245,6 +300,8 @@ public class TextInfoPanel extends javax.swing.JPanel
             double size = TextUtils.atof(unitsSize.getText());
             newSize = TextDescriptor.Size.newRelSize(size);
         }
+        // default size
+        if (newSize == null) newSize = TextDescriptor.Size.newRelSize(1.0);
         if (!newSize.equals(initialSize)) changed = true;
 
         // handle changes to the offset
@@ -257,6 +314,25 @@ public class TextInfoPanel extends javax.swing.JPanel
         // handle changes to the anchor point
         TextDescriptor.Position newPosition = (TextDescriptor.Position)textAnchor.getSelectedItem();
         if (newPosition != initialPos) changed = true;
+        double newBoxedWidth = 10;
+        double newBoxedHeight = 10;
+        if (newPosition == TextDescriptor.Position.BOXED) {
+            Double width, height;
+            try {
+                width = new Double(boxedWidth.getText());
+                height = new Double(boxedHeight.getText());
+                newBoxedWidth = width.doubleValue();
+                newBoxedHeight = height.doubleValue();
+            } catch (java.lang.NumberFormatException e) {
+                if (owner instanceof NodeInst) {
+                    NodeInst ni = (NodeInst)owner;
+                    newBoxedWidth = ni.getXSize();
+                    newBoxedHeight = ni.getYSize();
+                }
+            }
+            if (newBoxedWidth != initialBoxedWidth) changed = true;
+            if (newBoxedHeight != initialBoxedHeight) changed = true;
+        }
 
         // handle changes to the rotation
         int index = rotation.getSelectedIndex();
@@ -284,9 +360,9 @@ public class TextInfoPanel extends javax.swing.JPanel
         ChangeText job = new ChangeText(
                 td,
                 owner,
-                futureVar,
+                futureVarName,
                 newSize,
-                newPosition,
+                newPosition, newBoxedWidth, newBoxedHeight,
                 newRotation,
                 (String)font.getSelectedItem(),
                 currentXOffset, currentYOffset,
@@ -303,10 +379,11 @@ public class TextInfoPanel extends javax.swing.JPanel
         initialUnderline = newUnderlined;
         initialBold = newBold;
         initialInvisibleOutsideCell = newInvis;
+        initialBoxedWidth = newBoxedWidth;
+        initialBoxedHeight = newBoxedHeight;
 
         return true;
     }
-
 
     private static class ChangeText extends Job
 	{
@@ -315,6 +392,7 @@ public class TextInfoPanel extends javax.swing.JPanel
         private String futureVar;
         private TextDescriptor.Size size;
         private TextDescriptor.Position position;
+        private double boxedWidth, boxedHeight;
         private TextDescriptor.Rotation rotation;
         private String font;
         private double xoffset, yoffset;
@@ -325,7 +403,7 @@ public class TextInfoPanel extends javax.swing.JPanel
                 ElectricObject owner,
                 String futureVar,
                 TextDescriptor.Size size,
-                TextDescriptor.Position position,
+                TextDescriptor.Position position, double boxedWidth, double boxedHeight,
                 TextDescriptor.Rotation rotation,
                 String font,
                 double xoffset, double yoffset,
@@ -338,6 +416,8 @@ public class TextInfoPanel extends javax.swing.JPanel
             this.futureVar = futureVar;
             this.size = size;
             this.position = position;
+            this.boxedWidth = boxedWidth;
+            this.boxedHeight = boxedHeight;
             this.rotation = rotation;
             this.font = font;
             this.xoffset = xoffset; this.yoffset = yoffset;
@@ -347,10 +427,8 @@ public class TextInfoPanel extends javax.swing.JPanel
 
         public void doIt()
         {
-            // if futureVar is not null, try get to Var to edit from owner
-            // this variable may not have existed when the Job was generated, thus we
-            // look it up by name now.
-            if (futureVar != null) {
+            // if td is null, use future var name to look up var and get td
+            if (td == null) {
                 Variable var = owner.getVar(futureVar);
                 if (var == null) return;                // var doesn't exist, failed
                 td = var.getTextDescriptor();           // use TextDescriptor from new var
@@ -364,6 +442,22 @@ public class TextInfoPanel extends javax.swing.JPanel
 
             // handle changes to the text corner
             td.setPos(position);
+            if (owner instanceof NodeInst) {
+                NodeInst ni = (NodeInst)owner;
+                if (position == TextDescriptor.Position.BOXED) {
+                    // set the boxed size
+                    ni.modifyInstance(0, 0, boxedWidth-ni.getXSize(),
+                            boxedHeight-ni.getYSize(), 0);
+                } else {
+                    // make invisible pin zero size if no longer boxed
+                    if (ni.getProto() == Generic.tech.invisiblePinNode) {
+                        if (ni.getXSize() != 0 || ni.getYSize() != 0) {
+                            // no longer boxed: make it zero size
+                            ni.modifyInstance(0, 0, -ni.getXSize(), -ni.getYSize(), 0);
+                        }
+                    }
+                }
+            }
 
             // handle changes to the rotation
             td.setRotation(rotation);
@@ -429,6 +523,12 @@ public class TextInfoPanel extends javax.swing.JPanel
         seeNode = new javax.swing.JButton();
         textAnchor = new javax.swing.JComboBox();
         jLabel1 = new javax.swing.JLabel();
+        jPanel1 = new javax.swing.JPanel();
+        jLabel2 = new javax.swing.JLabel();
+        boxedWidth = new javax.swing.JTextField();
+        boxedHeight = new javax.swing.JTextField();
+        jLabelX = new javax.swing.JLabel();
+        jLabel7 = new javax.swing.JLabel();
 
         setLayout(new java.awt.GridBagLayout());
 
@@ -449,9 +549,9 @@ public class TextInfoPanel extends javax.swing.JPanel
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 2, 1, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.SOUTH;
         gridBagConstraints.weightx = 0.1;
+        gridBagConstraints.insets = new java.awt.Insets(4, 2, 1, 4);
         add(pointsSize, gridBagConstraints);
 
         unitsSize.setColumns(8);
@@ -460,138 +560,131 @@ public class TextInfoPanel extends javax.swing.JPanel
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(1, 2, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
         gridBagConstraints.weightx = 0.1;
+        gridBagConstraints.insets = new java.awt.Insets(1, 2, 4, 4);
         add(unitsSize, gridBagConstraints);
 
-        pointsButton.setText("Points");
+        pointsButton.setText("Points (max 63)");
         sizes.add(pointsButton);
-        pointsButton.setMaximumSize(new java.awt.Dimension(75, 24));
-        pointsButton.setMinimumSize(new java.awt.Dimension(75, 24));
-        pointsButton.setPreferredSize(new java.awt.Dimension(75, 24));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 0, 0, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.SOUTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 0, 0);
         add(pointsButton, gridBagConstraints);
 
-        unitsButton.setText("Units");
+        unitsButton.setText("Units (max 127.75)");
         sizes.add(unitsButton);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
         add(unitsButton, gridBagConstraints);
 
         jLabel5.setText("Font:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         add(jLabel5, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(0, 2, 2, 4);
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         add(font, gridBagConstraints);
 
         italic.setText("Italic");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         add(italic, gridBagConstraints);
 
         bold.setText("Bold");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         add(bold, gridBagConstraints);
 
         underline.setText("Underline");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.SOUTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         add(underline, gridBagConstraints);
 
         jLabel6.setText("Rotation:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         add(jLabel6, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         add(rotation, gridBagConstraints);
 
         jLabel8.setText("X offset:");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(6, 4, 2, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.SOUTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 3, 0);
         add(jLabel8, gridBagConstraints);
 
         xOffset.setColumns(8);
         xOffset.setMinimumSize(new java.awt.Dimension(92, 20));
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.SOUTH;
         gridBagConstraints.weightx = 0.1;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 1, 4);
+        gridBagConstraints.insets = new java.awt.Insets(0, 2, 1, 4);
         add(xOffset, gridBagConstraints);
 
         jLabel9.setText("Y offset:");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 7, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 0, 0);
         add(jLabel9, gridBagConstraints);
 
         yOffset.setColumns(8);
         yOffset.setMinimumSize(new java.awt.Dimension(92, 20));
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
         gridBagConstraints.weightx = 0.1;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 0, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 2, 0, 4);
         add(yOffset, gridBagConstraints);
 
         invisibleOutsideCell.setText("Invisible outside cell");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 2, 0);
         add(invisibleOutsideCell, gridBagConstraints);
 
-        seeNode.setText("See Owner");
-        seeNode.setMargin(new java.awt.Insets(2, 2, 2, 2));
-        seeNode.setMaximumSize(new java.awt.Dimension(80, 26));
-        seeNode.setMinimumSize(new java.awt.Dimension(80, 26));
-        seeNode.setPreferredSize(new java.awt.Dimension(80, 26));
+        seeNode.setText("Highlight Owner");
         seeNode.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 seeNodeActionPerformed(evt);
@@ -599,15 +692,20 @@ public class TextInfoPanel extends javax.swing.JPanel
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         add(seeNode, gridBagConstraints);
 
+        textAnchor.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                textAnchorItemStateChanged(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         add(textAnchor, gridBagConstraints);
@@ -615,18 +713,82 @@ public class TextInfoPanel extends javax.swing.JPanel
         jLabel1.setText("Anchor:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         add(jLabel1, gridBagConstraints);
 
+        jPanel1.setLayout(new java.awt.GridBagLayout());
+
+        jLabel2.setText("Boxed width:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(jLabel2, gridBagConstraints);
+
+        boxedWidth.setColumns(4);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(boxedWidth, gridBagConstraints);
+
+        boxedHeight.setColumns(4);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(boxedHeight, gridBagConstraints);
+
+        jLabelX.setText("height:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(jLabelX, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
+        add(jPanel1, gridBagConstraints);
+
+        jLabel7.setText("(0.25 increments)");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 6, 0, 0);
+        add(jLabel7, gridBagConstraints);
+
     }//GEN-END:initComponents
+
+    private void textAnchorItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_textAnchorItemStateChanged
+        // if BOXED selected, enable input boxes, otherwise disable them
+        TextDescriptor.Position pos = (TextDescriptor.Position)textAnchor.getSelectedItem();
+        if (pos == TextDescriptor.Position.BOXED) {
+            boxedWidth.setEnabled(true);
+            boxedWidth.setBackground(Color.WHITE);
+            boxedHeight.setEnabled(true);
+            boxedHeight.setBackground(Color.WHITE);
+        } else {
+            boxedWidth.setEnabled(false);
+            boxedWidth.setBackground(this.getBackground());
+            boxedHeight.setEnabled(false);
+            boxedHeight.setBackground(this.getBackground());
+        }
+    }//GEN-LAST:event_textAnchorItemStateChanged
 
     private void seeNodeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_seeNodeActionPerformed
     {//GEN-HEADEREND:event_seeNodeActionPerformed
         EditWindow wnd = EditWindow.getCurrent();
         Cell cell = wnd.getCell();
         Highlight.addElectricObject(owner, cell);
+        Highlight.finished();
 /*        ElectricObject eobj = shownText.getElectricObject();
         if (eobj instanceof NodeInst || eobj instanceof PortInst)
         {
@@ -643,15 +805,21 @@ public class TextInfoPanel extends javax.swing.JPanel
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox bold;
+    private javax.swing.JTextField boxedHeight;
+    private javax.swing.JTextField boxedWidth;
     private javax.swing.JComboBox font;
     private javax.swing.JCheckBox invisibleOutsideCell;
     private javax.swing.JCheckBox italic;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
+    private javax.swing.JLabel jLabelX;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JRadioButton pointsButton;
     private javax.swing.JTextField pointsSize;
     private javax.swing.JComboBox rotation;

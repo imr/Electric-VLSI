@@ -282,20 +282,20 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.selectCommand(); } });
 		cursorWiring = modeSubMenuEdit.addRadioButton(ToolBar.cursorWiringName, false, editGroup, KeyStroke.getKeyStroke('W', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.wiringCommand(); } });
+        }
 		cursorPan = modeSubMenuEdit.addRadioButton(ToolBar.cursorPanName, false, editGroup, KeyStroke.getKeyStroke('P', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.panCommand(); } });
 		cursorZoom = modeSubMenuEdit.addRadioButton(ToolBar.cursorZoomName, false, editGroup, KeyStroke.getKeyStroke('Z', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.zoomCommand(); } });
-        }
 		cursorOutline = modeSubMenuEdit.addRadioButton(ToolBar.cursorOutlineName, false, editGroup, KeyStroke.getKeyStroke('Y', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.outlineEditCommand(); } });
         if (ToolBar.secondaryInputModes) {
-		if (cm == ToolBar.CursorMode.SELECT) cursorSelect.setSelected(true); else
-		if (cm == ToolBar.CursorMode.WIRE) cursorWiring.setSelected(true); else
-		if (cm == ToolBar.CursorMode.PAN) cursorPan.setSelected(true); else
-		if (cm == ToolBar.CursorMode.ZOOM) cursorZoom.setSelected(true); else
-			cursorOutline.setSelected(true);
+		if (cm == ToolBar.CursorMode.SELECT) cursorSelect.setSelected(true);
+		if (cm == ToolBar.CursorMode.WIRE) cursorWiring.setSelected(true);
         }
+		if (cm == ToolBar.CursorMode.PAN) cursorPan.setSelected(true);
+		if (cm == ToolBar.CursorMode.ZOOM) cursorZoom.setSelected(true);
+	    if (cm == ToolBar.CursorMode.OUTLINE) cursorOutline.setSelected(true);
 
 		Menu modeSubMenuMovement = new Menu("Movement");
 		modeSubMenu.add(modeSubMenuMovement);
@@ -1377,8 +1377,8 @@ public final class MenuCommands
 			{
 				if (arcCount == 1) GetInfoArc.showDialog();
 				if (nodeCount == 1) GetInfoNode.showDialog();
-				if (exportCount == 1) GetInfoExport2.showDialog();
-				if (textCount == 1) GetInfoText2.showDialog();
+				if (exportCount == 1) GetInfoExport.showDialog();
+				if (textCount == 1) GetInfoText.showDialog();
 			} else
 			{
 				GetInfoMulti.showDialog();

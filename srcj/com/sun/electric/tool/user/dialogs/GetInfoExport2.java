@@ -115,7 +115,7 @@ public class GetInfoExport2 extends javax.swing.JDialog
 		    shownExport = null;
             theText.setText("");
             refName.setText("");
-            textPanel.setTextDescriptor(null, null);
+            textPanel.setTextDescriptor(null, null, null);
 			return;
 		}
 
@@ -149,7 +149,7 @@ public class GetInfoExport2 extends javax.swing.JDialog
 
         // set text info panel
         TextDescriptor td = pp.getTextDescriptor();
-        textPanel.setTextDescriptor(td, pp);
+        textPanel.setTextDescriptor(td, null, pp);
 
 		shownExport = pp;
 	}
@@ -231,6 +231,20 @@ public class GetInfoExport2 extends javax.swing.JDialog
 //				pp.getOriginalPort().getNodeInst().modifyInstance(0, 0, 0, 0, 0);
 		}
 	}
+
+    /**
+     * Job to trigger update to Attributes dialog.  Type set to CHANGE and priority to USER
+     * so that in queues in order behind other Jobs from this class: this assures it will
+     * occur after the queued changes
+     */
+    private static class UpdateDialog extends Job {
+        private UpdateDialog() {
+            super("Update Attributes Dialog", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+        }
+        public void doIt() {
+            GetInfoExport2.load();
+        }
+    }
 
 	/** This method is called from within the constructor to
 	 * initialize the form.
@@ -452,6 +466,8 @@ public class GetInfoExport2 extends javax.swing.JDialog
                 newChar, newRefName
                 );
         textPanel.applyChanges();
+        // update dialog
+        UpdateDialog job2 = new UpdateDialog();
 
         initialName = newName;
         initialBodyOnly = newBodyOnly;
