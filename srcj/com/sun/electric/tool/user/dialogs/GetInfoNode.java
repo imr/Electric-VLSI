@@ -303,7 +303,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		shownNode = ni;
 		shownPort = pp;
 
-        System.out.println("Node technology is "+ni.getProto().getTechnology().getTechDesc());
+        //System.out.println("Node technology is "+ni.getProto().getTechnology().getTechDesc());
 
 		// in small version
 		NodeProto np = ni.getProto();

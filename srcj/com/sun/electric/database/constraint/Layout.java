@@ -553,7 +553,9 @@ public class Layout extends Constraints
 			if (!locked)
 			{
 				// compute port motion within the other nodeinst (is this right? !!!)
-				Point2D onoPt = oldPortPosition(ono, opt);
+				Poly oldPoly = oldPortPosition(ono, opt);
+				//Point2D onoPt = oldPortPosition(ono, opt);
+				Point2D onoPt = new Point2D.Double(oldPoly.getCenterX(), oldPoly.getCenterY());
 				Poly oPoly = thatEnd.getPortInst().getPoly();
 				double dx = oPoly.getCenterX();   double dy = oPoly.getCenterY();
 				double othX = dx - onoPt.getX();
@@ -694,8 +696,8 @@ public class Layout extends Constraints
 
 			// create the two points that will be the new ends of this arc
 			Point2D [] newPts = new Point2D.Double[2];
-			newPts[0] = new Point2D.Double();
-			newPts[1] = new Point2D.Double();
+			newPts[thisEndIndex] = new Point2D.Double();
+			newPts[thatEndIndex] = new Point2D.Double();
 
 			// figure out the new location of this arcinst connection
 			Point2D src = new Point2D.Double(thisEnd.getLocation().getX()-ox, thisEnd.getLocation().getY()-oy);
@@ -1145,12 +1147,16 @@ public class Layout extends Constraints
 		if (change.getA3() * ni.getXSizeWithMirror() >= 0 && change.getA4() * ni.getYSizeWithMirror() >= 0 && change.getI1() == ni.getAngle())
 		{
 			// nodeinst did not rotate or mirror: adjust for port motion
-			Point2D ono = oldPortPosition(ni, pp);
+			//Point2D ono = oldPortPosition(ni, pp);
+			Poly oldPoly = oldPortPosition(ni, pp);
+			Point2D ono = new Point2D.Double(oldPoly.getCenterX(), oldPoly.getCenterY());
 			Poly curPoly = ni.getShapeOfPort(pp);
 			double dx = curPoly.getCenterX();
 			double dy = curPoly.getCenterY();
 			double ox = change.getA1();
 			double oy = change.getA2();
+			m00 = curPoly.getBounds2D().getWidth() / oldPoly.getBounds2D().getWidth();
+			m11 = curPoly.getBounds2D().getHeight() / oldPoly.getBounds2D().getHeight();
 			m02 = dx - ono.getX() + ox;   m12 = dy - ono.getY() + oy;
 		}
 		trans.setTransform(m00, m10, m01, m11, m02, m12);
@@ -1162,7 +1168,7 @@ public class Layout extends Constraints
 	 * is the "old" position, as determined by any changes that may have occured
 	 * to the nodeinst (and any sub-nodes).
 	 */
-	private static Point2D oldPortPosition(NodeInst ni, PortProto pp)
+	private static Poly oldPortPosition(NodeInst ni, PortProto pp)
 	{
 		// descend to the primitive node
 		AffineTransform subrot = makeOldRot(ni);
@@ -1208,9 +1214,12 @@ public class Layout extends Constraints
 		Technology tech = np.getTechnology();
 		Poly poly = tech.getShapeOfPort(bottomNi, (PrimitivePort)bottomPP);
 		poly.transform(subrot);
+		return (poly);
+		/*
 		double x = poly.getCenterX();
 		double y = poly.getCenterY();
 		return new Point2D.Double(x, y);
+		*/
 	}
 
 	private static AffineTransform makeOldRot(NodeInst ni)

@@ -1132,16 +1132,15 @@ public class NodeInst extends Geometric implements Nodable
 
 	/**
 	 * Method to return a transformation that translates down the hierarchy.
-	 * Presuming that this NodeInst is a Cell instance, the transformation goes
-	 * from the space of this NodeInst's parent Cell to the space of the contents of the Cell.
+	 * Transform out of this node instance, translate outer coordinates to inner
 	 * However, it does not account for the rotation of this NodeInst...it only
 	 * translates from one space to another.
 	 * @return a transformation that translates down the hierarchy.
 	 */
 	public AffineTransform translateIn()
 	{
-		// to transform out of this node instance, translate inner coordinates to outer
-		Cell lowerCell = (Cell)protoType;
+		// to transform out of this node instance, translate outer coordinates to inner
+		//Cell lowerCell = (Cell)protoType;
 		double dx = getAnchorCenterX();
 		double dy = getAnchorCenterY();
 		AffineTransform transform = new AffineTransform();
@@ -1151,8 +1150,7 @@ public class NodeInst extends Geometric implements Nodable
 
 	/**
 	 * Method to return a transformation that translates up the hierarchy.
-	 * Presuming that this NodeInst is a Cell instance, the transformation goes
-	 * from the space of that Cell to the space of this NodeInst's parent Cell.
+	 * Transform out of this node instance, translate inner coordinates to outer.
 	 * However, it does not account for the rotation of this NodeInst...it only
 	 * translates from one space to another.
 	 * @return a transformation that translates up the hierarchy.
@@ -1160,7 +1158,7 @@ public class NodeInst extends Geometric implements Nodable
 	public AffineTransform translateOut()
 	{
 		// to transform out of this node instance, translate inner coordinates to outer
-		Cell lowerCell = (Cell)protoType;
+		//Cell lowerCell = (Cell)protoType;
 		double dx = getAnchorCenterX();
 		double dy = getAnchorCenterY();
 		AffineTransform transform = new AffineTransform();
