@@ -28,7 +28,7 @@
       <SubComponents>
         <Component class="javax.swing.JLabel" name="threeDTechnology">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Layer heights for technology:"/>
+            <Property name="text" type="java.lang.String" value="Layer cross section for technology:"/>
           </Properties>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
@@ -39,7 +39,7 @@
         <Container class="javax.swing.JScrollPane" name="threeDLayerPane">
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-              <GridBagConstraints gridX="0" gridY="1" gridWidth="2" gridHeight="1" fill="1" ipadX="0" ipadY="0" insetsTop="4" insetsLeft="4" insetsBottom="4" insetsRight="4" anchor="10" weightX="0.5" weightY="1.0"/>
+              <GridBagConstraints gridX="0" gridY="1" gridWidth="3" gridHeight="1" fill="1" ipadX="0" ipadY="0" insetsTop="4" insetsLeft="4" insetsBottom="4" insetsRight="4" anchor="10" weightX="0.5" weightY="1.0"/>
             </Constraint>
           </Constraints>
 
@@ -57,7 +57,7 @@
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel47">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Height:"/>
+            <Property name="text" type="java.lang.String" value="Distance:"/>
           </Properties>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">

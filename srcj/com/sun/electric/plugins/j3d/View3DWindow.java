@@ -340,7 +340,7 @@ public class View3DWindow extends JPanel
 	                     NodeProto nProto)
 	{
 		if (polys == null) return;
-		Layer[] metals = new Layer[3];
+		//Layer[] metals = new Layer[3];
 
 		for(int i = 0; i < polys.length; i++)
 		{
@@ -350,9 +350,11 @@ public class View3DWindow extends JPanel
 			if (!layer.isVisible()) continue; // Doesn't generate the graph
 
 			double thickness = layer.getThickness();
-			double height = layer.getHeight();
+			double distance = layer.getDistance();
 
 			// Trying to calculate distance from two layers
+			// Might go away if correct values are provided by technology
+			/*
 			if (layer.getFunction().isContact())
 			{
 				if (nProto instanceof PrimitiveNode)
@@ -377,16 +379,17 @@ public class View3DWindow extends JPanel
 					}
 					if (metals[0] == null)
 						System.out.println("Error");
-					if (metals[1].getHeight() > metals[2].getHeight())
+					if (metals[1].getDistance() > metals[2].getDistance())
 					{
 						Layer layerTmp = metals[1];
 						metals[1] = metals[2] ;
 						metals[2] = layerTmp;
 					}
-					height = metals[1].getHeight() + metals[1].getThickness();
-					thickness = metals[2].getHeight() - height;
+					distance = metals[1].getDistance() + metals[1].getThickness();
+					thickness = metals[2].getDistance() - distance;
 				}
 			}
+			*/
 			if (transform != null)
 				poly.transform(transform);
 			Rectangle2D bounds = poly.getBounds2D();
@@ -424,17 +427,18 @@ public class View3DWindow extends JPanel
 				appearances.put(layer, ap);
 			}
 
-			//Box box = new Box((float)bounds.getWidth(), (float)bounds.getHeight(), (float)thickness, ap);   //B
+			//Box box = new Box((float)bounds.getWidth(), (float)bounds.getDistance(), (float)thickness, ap);   //B
 			GeometryInfo gi = new GeometryInfo(GeometryInfo.QUAD_ARRAY);
+			double height = thickness + distance;
 			Point3d[] pts = new Point3d[8];
-			pts[0] = new Point3d(bounds.getMinX(), bounds.getMinY(), height);
-			pts[1] = new Point3d(bounds.getMinX(), bounds.getMaxY(), height);
-			pts[2] = new Point3d(bounds.getMaxX(), bounds.getMaxY(), height);
-			pts[3] = new Point3d(bounds.getMaxX(), bounds.getMinY(), height);
-			pts[4] = new Point3d(bounds.getMinX(), bounds.getMinY(), height+thickness);
-			pts[5] = new Point3d(bounds.getMinX(), bounds.getMaxY(), height+thickness);
-			pts[6] = new Point3d(bounds.getMaxX(), bounds.getMaxY(), height+thickness);
-			pts[7] = new Point3d(bounds.getMaxX(), bounds.getMinY(), height+thickness);
+			pts[0] = new Point3d(bounds.getMinX(), bounds.getMinY(), distance);
+			pts[1] = new Point3d(bounds.getMinX(), bounds.getMaxY(), distance);
+			pts[2] = new Point3d(bounds.getMaxX(), bounds.getMaxY(), distance);
+			pts[3] = new Point3d(bounds.getMaxX(), bounds.getMinY(), distance);
+			pts[4] = new Point3d(bounds.getMinX(), bounds.getMinY(), height);
+			pts[5] = new Point3d(bounds.getMinX(), bounds.getMaxY(), height);
+			pts[6] = new Point3d(bounds.getMaxX(), bounds.getMaxY(), height);
+			pts[7] = new Point3d(bounds.getMaxX(), bounds.getMinY(), height);
 			int[] indices = {0, 1, 2, 3, /* bottom z */
 			                 0, 4, 5, 1, /* back y */
 			                 0, 3, 7, 4, /* back x */

@@ -205,8 +205,8 @@ public class Layer
 		}
 
 		/**
-		 * Method to tell the height of this layer function.
-		 * @return the height of this layer function.
+		 * Method to tell the distance of this layer function.
+		 * @return the distance of this layer function.
 		 */
 		public int getHeight() { return height; }
 	}
@@ -221,7 +221,7 @@ public class Layer
 	private String dxfLayer;
 	private String gdsLayer;
 	private String skillLayer;
-	private double thickness, height;
+	private double thickness, distance;
 	private double resistance, capacitance, edgeCapacitance;
 	private Layer nonPseudoLayer;
 	private boolean visible;
@@ -235,7 +235,7 @@ public class Layer
 	private static HashMap capacitanceParasiticPrefs = new HashMap();
 	private static HashMap edgeCapacitanceParasiticPrefs = new HashMap();
 	private static HashMap layerThicknessPrefs = new HashMap();
-	private static HashMap layerHeightPrefs = new HashMap();
+	private static HashMap layerDistancePrefs = new HashMap();
 
 	private Layer(String name, Technology tech, EGraphics graphics)
 	{
@@ -415,34 +415,41 @@ public class Layer
 	}
 
 	/**
-	 * Method to set the 3D height and thickness of this Layer.
+	 * Method to set the 3D distance and thickness of this Layer.
 	 * @param thickness the thickness of this layer.
-	 * Most layers have a thickness of 0, but contact layers are fatter
-	 * because they bridge layers...they typically have a thickness of 1.
-	 * @param height the height of this layer above the ground plane.
-	 * The higher the height value, the farther from the wafer.
+	 * @param distance the distance of this layer above the ground plane (silicon).
+	 * Negative values represent layes in silicon like p++, p well, etc.
+	 * The higher the distance value, the farther from the silicon.
 	 */
-	public void setFactory3DInfo(double thickness, double height)
+	public void setFactory3DInfo(double thickness, double distance)
 	{
-		get3DPref("Thickness", layerThicknessPrefs, thickness);
-		get3DPref("Height", layerHeightPrefs, height);
 		this.thickness = thickness;
-		this.height = height;
+		this.distance = distance;
+		get3DPref("Distance", layerDistancePrefs, this.distance).setDouble(this.distance);
+		get3DPref("Thickness", layerThicknessPrefs, thickness).setDouble(this.thickness);
 	}
 
 	/**
-	 * Method to return the height of this layer.
-	 * The higher the height value, the farther from the wafer.
-	 * @return the height of this layer above the ground plane.
+	 * Method to return the distance of this layer.
+	 * The higher the distance value, the farther from the wafer.
+	 * @return the distance of this layer above the ground plane.
 	 */
-	public double getHeight() { return get3DPref("Height", layerHeightPrefs, height).getDouble(); }
+	public double getDistance() { return get3DPref("Distance", layerDistancePrefs, distance).getDouble(); }
 
 	/**
-	 * Method to set the height of this layer.
-	 * The higher the height value, the farther from the wafer.
-	 * @param height the height of this layer above the ground plane.
+	 * Method to set the distance of this layer.
+	 * The higher the distance value, the farther from the wafer.
+	 * @param distance the distance of this layer above the ground plane.
 	 */
-	public void setHeight(double height) { get3DPref("Height", layerHeightPrefs, this.height).setDouble(height); }
+	public void setDistance(double distance) { get3DPref("Distance", layerDistancePrefs, this.distance).setDouble(distance); }
+
+	/**
+	 * Method to calculate Z value of the upper part of the layer.
+	 * Note: not called getHeight to avoid confusion
+	 * with getDistance())
+	 * @return Height of the layer
+	 */
+	public double getDepth() { return (distance+thickness); }
 
 	/**
 	 * Method to return the thickness of this layer.

@@ -1431,48 +1431,70 @@ public class MoCMOS extends Technology
 		pseudoNWell_lay.setFactorySkillLayer("nwell");		// Pseudo-N-Well
 		padFrame_lay.setFactorySkillLayer("");				// Pad-Frame
 
-		// The layer height
-		metal1_lay.setFactory3DInfo(0.1, 17);					// Metal-1
-		metal2_lay.setFactory3DInfo(0.2, 19);					// Metal-2
-		metal3_lay.setFactory3DInfo(0.3, 21);					// Metal-3
-		metal4_lay.setFactory3DInfo(0.4, 23);					// Metal-4
-		metal5_lay.setFactory3DInfo(0.5, 25);					// Metal-5
-		metal6_lay.setFactory3DInfo(0.6, 27);					// Metal-6
-		poly1_lay.setFactory3DInfo(0.7, 15);					// Polysilicon-1
-		poly2_lay.setFactory3DInfo(0.8, 16);					// Polysilicon-2
-		pActive_lay.setFactory3DInfo(0.9, 13);				// P-Active
-		nActive_lay.setFactory3DInfo(1.0, 13);				// N-Active
-		pSelect_lay.setFactory3DInfo(0.1, 12);				// P-Select
-		nSelect_lay.setFactory3DInfo(0.2, 12);				// N-Select
-		pWell_lay.setFactory3DInfo(0.3, 11);					// P-Well
-		nWell_lay.setFactory3DInfo(0.4, 11);					// N-Well
-		polyCut_lay.setFactory3DInfo(2, 16);				// Poly-Cut
-		activeCut_lay.setFactory3DInfo(4, 15);				// Active-Cut
-		via1_lay.setFactory3DInfo(2, 18);					// Via-1
-		via2_lay.setFactory3DInfo(2, 20);					// Via-2
-		via3_lay.setFactory3DInfo(2, 22);					// Via-3
-		via4_lay.setFactory3DInfo(2, 24);					// Via-4
-		via5_lay.setFactory3DInfo(2, 26);					// Via-5
-		passivation_lay.setFactory3DInfo(0, 30);			// Passivation
-		transistorPoly_lay.setFactory3DInfo(0.5, 15);			// Transistor-Poly
-		polyCap_lay.setFactory3DInfo(0, 28);				// Poly-Cap
-		pActiveWell_lay.setFactory3DInfo(0, 13);			// P-Active-Well
-		silicideBlock_lay.setFactory3DInfo(0, 10);			// Silicide-Block
-		pseudoMetal1_lay.setFactory3DInfo(0, 17);			// Pseudo-Metal-1
-		pseudoMetal2_lay.setFactory3DInfo(0, 19);			// Pseudo-Metal-2
-		pseudoMetal3_lay.setFactory3DInfo(0, 21);			// Pseudo-Metal-3
-		pseudoMetal4_lay.setFactory3DInfo(0, 23);			// Pseudo-Metal-4
-		pseudoMetal5_lay.setFactory3DInfo(0, 25);			// Pseudo-Metal-5
-		pseudoMetal6_lay.setFactory3DInfo(0, 27);			// Pseudo-Metal-6
-		pseudoPoly1_lay.setFactory3DInfo(0, 12);			// Pseudo-Polysilicon-1
-		pseudoPoly2_lay.setFactory3DInfo(0, 13);			// Pseudo-Polysilicon-2
-		pseudoPActive_lay.setFactory3DInfo(0, 11);			// Pseudo-P-Active
-		pseudoNActive_lay.setFactory3DInfo(0, 11);			// Pseudo-N-Active
-		pseudoPSelect_lay.setFactory3DInfo(0, 2);			// Pseudo-P-Select
-		pseudoNSelect_lay.setFactory3DInfo(0, 2);			// Pseudo-N-Select
-		pseudoPWell_lay.setFactory3DInfo(0, 0);				// Pseudo-P-Well
-		pseudoNWell_lay.setFactory3DInfo(0, 0);				// Pseudo-N-Well
-		padFrame_lay.setFactory3DInfo(0, 33);				// Pad-Frame
+		// The layer distance
+		double BULK_LAYER = 10;
+		double DIFF_LAYER = 1; // dummy distance for noe 0.2/0.2
+		double ILD_LAYER = 3.5; // 0.7/0.2
+		double IMD_LAYER = 5.65; // 1.13um/0.2
+		double METAL_LAYER = 2.65; // 0.53um/0.2
+		pActive_lay.setFactory3DInfo(0.85, BULK_LAYER + 2*DIFF_LAYER);				// P-Active 0.17um/0.2 =
+		nActive_lay.setFactory3DInfo(0.8, BULK_LAYER + 2*DIFF_LAYER);				// N-Active 0.16um/0.2
+		pSelect_lay.setFactory3DInfo(DIFF_LAYER, BULK_LAYER + DIFF_LAYER);				// P-Select
+		nSelect_lay.setFactory3DInfo(DIFF_LAYER, BULK_LAYER + DIFF_LAYER);				// N-Select
+		pWell_lay.setFactory3DInfo(DIFF_LAYER, BULK_LAYER);					// P-Well
+		nWell_lay.setFactory3DInfo(DIFF_LAYER, BULK_LAYER);					// N-Well
+		pActiveWell_lay.setFactory3DInfo(pActive_lay.getDepth()-pWell_lay.getDistance(), BULK_LAYER);			// P-Active-Well
+
+		metal1_lay.setFactory3DInfo(METAL_LAYER, ILD_LAYER + pActive_lay.getDepth());					// Metal-1   0.53um/0.2
+		metal2_lay.setFactory3DInfo(METAL_LAYER, IMD_LAYER + metal1_lay.getDistance());					// Metal-2
+		via1_lay.setFactory3DInfo(metal2_lay.getDistance()-metal1_lay.getDepth(), metal1_lay.getDepth());					// Via-1
+
+		metal3_lay.setFactory3DInfo(METAL_LAYER, IMD_LAYER + metal2_lay.getDistance());					// Metal-3
+		via2_lay.setFactory3DInfo(metal3_lay.getDistance()-metal2_lay.getDepth(), metal2_lay.getDepth());					// Via-2
+
+		metal4_lay.setFactory3DInfo(METAL_LAYER, IMD_LAYER + metal3_lay.getDistance());					// Metal-4
+        via3_lay.setFactory3DInfo(metal4_lay.getDistance()-metal3_lay.getDepth(), metal3_lay.getDepth());					// Via-3
+
+		metal5_lay.setFactory3DInfo(METAL_LAYER, IMD_LAYER + metal4_lay.getDistance());					// Metal-5
+		via4_lay.setFactory3DInfo(metal5_lay.getDistance()-metal4_lay.getDepth(), metal4_lay.getDepth());					// Via-4
+
+		metal6_lay.setFactory3DInfo(4.95, IMD_LAYER + metal5_lay.getDistance());					// Metal-6 0.99um/0.2
+        via5_lay.setFactory3DInfo(metal6_lay.getDistance()-metal5_lay.getDepth(), metal5_lay.getDepth());					// Via-5
+
+		double PASS_LAYER = 5; // 1um/0.2
+		double PO_LAYER = 1; // 0.2/0.2
+		double FOX_LAYER = 1.75; // 0.35/0.2
+		double TOX_LAYER = 0.25; // Very narrow thin oxide in gate
+
+		pseudoMetal1_lay.setFactory3DInfo(0, metal1_lay.getDistance());			// Pseudo-Metal-1
+		pseudoMetal2_lay.setFactory3DInfo(0, metal2_lay.getDistance());			// Pseudo-Metal-2
+		pseudoMetal3_lay.setFactory3DInfo(0, metal3_lay.getDistance());			// Pseudo-Metal-3
+		pseudoMetal4_lay.setFactory3DInfo(0, metal4_lay.getDistance());			// Pseudo-Metal-4
+		pseudoMetal5_lay.setFactory3DInfo(0, metal5_lay.getDistance());			// Pseudo-Metal-5
+		pseudoMetal6_lay.setFactory3DInfo(0, metal6_lay.getDistance());			// Pseudo-Metal-6
+
+		// Poly layers
+		poly1_lay.setFactory3DInfo(PO_LAYER, FOX_LAYER + pActive_lay.getDepth());					// Polysilicon-1
+		transistorPoly_lay.setFactory3DInfo(PO_LAYER, TOX_LAYER + pActive_lay.getDepth());			// Transistor-Poly
+		poly2_lay.setFactory3DInfo(PO_LAYER, transistorPoly_lay.getDepth());					// Polysilicon-2 // on top of transistor layer?
+		polyCap_lay.setFactory3DInfo(PO_LAYER, FOX_LAYER + pActive_lay.getDepth());				// Poly-Cap @TODO GVG Ask polyCap
+
+		polyCut_lay.setFactory3DInfo(metal1_lay.getDistance()-poly1_lay.getDepth(), poly1_lay.getDepth());				// Poly-Cut between poly and metal1
+		activeCut_lay.setFactory3DInfo(metal1_lay.getDistance()-transistorPoly_lay.getDepth(), transistorPoly_lay.getDepth());				// Active-Cut betweent trans_poly and metal1
+
+		// Other layers
+		passivation_lay.setFactory3DInfo(PASS_LAYER, metal6_lay.getDepth());			// Passivation
+		silicideBlock_lay.setFactory3DInfo(0, BULK_LAYER);			// Silicide-Block
+		padFrame_lay.setFactory3DInfo(0, passivation_lay.getDepth());				// Pad-Frame
+
+		pseudoPoly1_lay.setFactory3DInfo(0, poly1_lay.getDistance());			// Pseudo-Polysilicon-1
+		pseudoPoly2_lay.setFactory3DInfo(0, poly2_lay.getDistance());			// Pseudo-Polysilicon-2
+		pseudoPActive_lay.setFactory3DInfo(0, pActive_lay.getDistance());			// Pseudo-P-Active
+		pseudoNActive_lay.setFactory3DInfo(0, nActive_lay.getDistance());			// Pseudo-N-Active
+		pseudoPSelect_lay.setFactory3DInfo(0, pSelect_lay.getDistance());			// Pseudo-P-Select
+		pseudoNSelect_lay.setFactory3DInfo(0, nSelect_lay.getDistance());			// Pseudo-N-Select
+		pseudoPWell_lay.setFactory3DInfo(0, pWell_lay.getDistance());				// Pseudo-P-Well
+		pseudoNWell_lay.setFactory3DInfo(0, nWell_lay.getDistance());				// Pseudo-N-Well
 
 		// The Spice parasitics
 		metal1_lay.setFactoryParasitics(0.06, 0.07, 0);			// Metal-1

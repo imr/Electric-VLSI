@@ -73,7 +73,7 @@ public class ThreeDTab extends PreferencePanel
 	private boolean initial3DTextChanging = false;
 	private JList threeDLayerList;
 	private DefaultListModel threeDLayerModel;
-	private HashMap threeDThicknessMap, threeDHeightMap;
+	private HashMap threeDThicknessMap, threeDDistanceMap;
 	private JPanel threeDSideView;
 
 	/**
@@ -82,7 +82,7 @@ public class ThreeDTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		threeDTechnology.setText("Layer heights for technology " + curTech.getTechName());
+		threeDTechnology.setText("Layer cross section for technology '" + curTech.getTechName() + "'");
 		threeDLayerModel = new DefaultListModel();
 		threeDLayerList = new JList(threeDLayerModel);
 		threeDLayerList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -93,14 +93,14 @@ public class ThreeDTab extends PreferencePanel
 			public void mouseClicked(MouseEvent evt) { threeDClickedLayer(); }
 		});
 		threeDThicknessMap = new HashMap();
-		threeDHeightMap = new HashMap();
+		threeDDistanceMap = new HashMap();
 		for(Iterator it = curTech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
 			threeDLayerModel.addElement(layer.getName());
 			threeDThicknessMap.put(layer, new GenMath.MutableDouble(layer.getThickness()));
-			threeDHeightMap.put(layer, new GenMath.MutableDouble(layer.getHeight()));
+			threeDDistanceMap.put(layer, new GenMath.MutableDouble(layer.getDistance()));
 		}
 		threeDLayerList.setSelectedIndex(0);
 		threeDHeight.getDocument().addDocumentListener(new ThreeDInfoDocumentListener(this));
@@ -130,32 +130,50 @@ public class ThreeDTab extends PreferencePanel
 		implements MouseMotionListener, MouseListener
 	{
 		ThreeDTab dialog;
-		double lowHeight, highHeight;
+		double lowHeight = Double.MAX_VALUE, highHeight = Double.MIN_VALUE;
 
 		ThreeDSideView(ThreeDTab dialog)
 		{
 			this.dialog = dialog;
 			addMouseListener(this);
 			addMouseMotionListener(this);
-			boolean first = true;
+			//boolean first = true;
+
 			for(Iterator it = dialog.curTech.getLayers(); it.hasNext(); )
 			{
 				Layer layer = (Layer)it.next();
 				if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+				if (!layer.isVisible()) continue;
 				GenMath.MutableDouble thickness = (GenMath.MutableDouble)dialog.threeDThicknessMap.get(layer);
-				GenMath.MutableDouble height = (GenMath.MutableDouble)dialog.threeDHeightMap.get(layer);
+				GenMath.MutableDouble distance = (GenMath.MutableDouble)dialog.threeDDistanceMap.get(layer);
+				double dis = distance.doubleValue();
+				double thick = thickness.doubleValue() / 2;
+				double valLow = dis - thick;
+				double valHig = dis + thick;
+
+				if (valLow < lowHeight)
+					lowHeight = valLow;
+				if (valHig > highHeight)
+					highHeight = valHig;
+
+				/*
 				if (first)
 				{
-					lowHeight = height.doubleValue() - thickness.doubleValue()/2;
-					highHeight = height.doubleValue() + thickness.doubleValue()/2;
+					//lowHeight = distance.doubleValue() - thickness.doubleValue()/2;
+					//highHeight = distance.doubleValue() + thickness.doubleValue()/2;
+					lowHeight = valLow;
+					highHeight = valHig;
 					first = false;
 				} else
 				{
-					if (height.doubleValue() - thickness.doubleValue()/2 < lowHeight)
-						lowHeight = height.doubleValue() - thickness.doubleValue()/2;
-					if (height.doubleValue() + thickness.doubleValue()/2 > highHeight)
-						highHeight = height.doubleValue() + thickness.doubleValue()/2;
+					// lowHeight, highHeight might be never less than 0
+
+					if (distance.doubleValue() - thickness.doubleValue()/2 < lowHeight)
+						lowHeight = distance.doubleValue() - thickness.doubleValue()/2;
+					if (distance.doubleValue() + thickness.doubleValue()/2 > highHeight)
+						highHeight = distance.doubleValue() + thickness.doubleValue()/2;
 				}
+				*/
 			}
 			lowHeight -= 4;
 			highHeight += 4;
@@ -181,18 +199,20 @@ public class ThreeDTab extends PreferencePanel
 			{
 				Layer layer = (Layer)it.next();
 				if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+				if (!layer.isVisible()) continue;
 				if (layer == selectedLayer) g.setColor(Color.RED); else
 					g.setColor(Color.BLACK);
 				GenMath.MutableDouble thickness = (GenMath.MutableDouble)dialog.threeDThicknessMap.get(layer);
-				GenMath.MutableDouble height = (GenMath.MutableDouble)dialog.threeDHeightMap.get(layer);
-				int yValue = dim.height - (int)((height.doubleValue() - lowHeight) / (highHeight - lowHeight) * dim.height + 0.5);
+				GenMath.MutableDouble distance = (GenMath.MutableDouble)dialog.threeDDistanceMap.get(layer);
+				double dis = distance.doubleValue() + thickness.doubleValue()/2;
+				int yValue = dim.height - (int)((dis - lowHeight) / (highHeight - lowHeight) * dim.height + 0.5);
 				int yHeight = (int)(thickness.doubleValue() / (highHeight - lowHeight) * dim.height + 0.5);
 				if (yHeight == 0)
 				{
 					g.drawLine(0, yValue, dim.width/3, yValue);
 				} else
 				{
-					yHeight -= 4;
+					//yHeight -= 4;
 					int firstPart = dim.width / 6;
 					int pointPos = dim.width / 4;
 					g.drawLine(0, yValue-yHeight/2, firstPart, yValue-yHeight/2);
@@ -221,7 +241,7 @@ public class ThreeDTab extends PreferencePanel
 			Dimension dim = getSize();
 			String layerName = (String)dialog.threeDLayerList.getSelectedValue();
 			Layer selectedLayer = dialog.curTech.findLayer(layerName);
-			GenMath.MutableDouble height = (GenMath.MutableDouble)dialog.threeDHeightMap.get(selectedLayer);
+			GenMath.MutableDouble height = (GenMath.MutableDouble)dialog.threeDDistanceMap.get(selectedLayer);
 			int yValue = dim.height - (int)((height.doubleValue() - lowHeight) / (highHeight - lowHeight) * dim.height + 0.5);
 			if (Math.abs(yValue - evt.getY()) > 5)
 			{
@@ -230,7 +250,7 @@ public class ThreeDTab extends PreferencePanel
 				{
 					Layer layer = (Layer)it.next();
 					if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
-					height = (GenMath.MutableDouble)dialog.threeDHeightMap.get(layer);
+					height = (GenMath.MutableDouble)dialog.threeDDistanceMap.get(layer);
 					yValue = dim.height - (int)((height.doubleValue() - lowHeight) / (highHeight - lowHeight) * dim.height + 0.5);
 					int dist = Math.abs(yValue - evt.getY());
 					if (dist < bestDist)
@@ -255,7 +275,7 @@ public class ThreeDTab extends PreferencePanel
 			Dimension dim = getSize();
 			String layerName = (String)dialog.threeDLayerList.getSelectedValue();
 			Layer layer = dialog.curTech.findLayer(layerName);
-			GenMath.MutableDouble height = (GenMath.MutableDouble)threeDHeightMap.get(layer);
+			GenMath.MutableDouble height = (GenMath.MutableDouble)threeDDistanceMap.get(layer);
 			double newHeight = (double)(dim.height - evt.getY()) / dim.height * (highHeight - lowHeight) + lowHeight;
 			if (height.doubleValue() != newHeight)
 			{
@@ -287,7 +307,7 @@ public class ThreeDTab extends PreferencePanel
 		Layer layer = curTech.findLayer(layerName);
 		if (layer == null) return;
 		GenMath.MutableDouble thickness = (GenMath.MutableDouble)threeDThicknessMap.get(layer);
-		GenMath.MutableDouble height = (GenMath.MutableDouble)threeDHeightMap.get(layer);
+		GenMath.MutableDouble height = (GenMath.MutableDouble)threeDDistanceMap.get(layer);
 		thickness.setValue(TextUtils.atof(threeDThickness.getText()));
 		height.setValue(TextUtils.atof(threeDHeight.getText()));
 		threeDSideView.repaint();
@@ -300,7 +320,7 @@ public class ThreeDTab extends PreferencePanel
 		Layer layer = curTech.findLayer(layerName);
 		if (layer == null) return;
 		GenMath.MutableDouble thickness = (GenMath.MutableDouble)threeDThicknessMap.get(layer);
-		GenMath.MutableDouble height = (GenMath.MutableDouble)threeDHeightMap.get(layer);
+		GenMath.MutableDouble height = (GenMath.MutableDouble)threeDDistanceMap.get(layer);
 		threeDHeight.setText(TextUtils.formatDouble(height.doubleValue()));
 		threeDThickness.setText(TextUtils.formatDouble(thickness.doubleValue()));
 		initial3DTextChanging = false;
@@ -318,11 +338,11 @@ public class ThreeDTab extends PreferencePanel
 			Layer layer = (Layer)it.next();
 			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
 			GenMath.MutableDouble thickness = (GenMath.MutableDouble)threeDThicknessMap.get(layer);
-			GenMath.MutableDouble height = (GenMath.MutableDouble)threeDHeightMap.get(layer);
+			GenMath.MutableDouble height = (GenMath.MutableDouble)threeDDistanceMap.get(layer);
 			if (thickness.doubleValue() != layer.getThickness())
 				layer.setThickness(thickness.doubleValue());
-			if (height.doubleValue() != layer.getHeight())
-				layer.setHeight(height.doubleValue());
+			if (height.doubleValue() != layer.getDistance())
+				layer.setDistance(height.doubleValue());
 		}
 
 		boolean currentPerspective = threeDPerspective.isSelected();
@@ -335,8 +355,7 @@ public class ThreeDTab extends PreferencePanel
 	 * WARNING: Do NOT modify this code. The content of this method is
 	 * always regenerated by the Form Editor.
 	 */
-    private void initComponents()//GEN-BEGIN:initComponents
-    {
+    private void initComponents() {//GEN-BEGIN:initComponents
         java.awt.GridBagConstraints gridBagConstraints;
 
         threeD = new javax.swing.JPanel();
@@ -352,17 +371,15 @@ public class ThreeDTab extends PreferencePanel
 
         setTitle("Edit Options");
         setName("");
-        addWindowListener(new java.awt.event.WindowAdapter()
-        {
-            public void windowClosing(java.awt.event.WindowEvent evt)
-            {
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
                 closeDialog(evt);
             }
         });
 
         threeD.setLayout(new java.awt.GridBagLayout());
 
-        threeDTechnology.setText("Layer heights for technology:");
+        threeDTechnology.setText("Layer cross section for technology:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -374,7 +391,7 @@ public class ThreeDTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 0.5;
         gridBagConstraints.weighty = 1.0;
@@ -389,7 +406,7 @@ public class ThreeDTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         threeD.add(jLabel45, gridBagConstraints);
 
-        jLabel47.setText("Height:");
+        jLabel47.setText("Distance:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
