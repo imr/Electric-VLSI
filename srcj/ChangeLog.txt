@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.01ar: *********************************
+
 ************************* Version 8.01aq: *********************************
 
 BUG: (11/23/04, SMR) Panning an expanded cell makes its exports go away.
