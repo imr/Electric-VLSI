@@ -2,14 +2,23 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.01am: *********************************
+
+IMP: (11/9/04, GVG) LayoutLib.openLibForRead works with JELIB format. Terminate program if -batch option in EvalJavaBsh
+                                                        
+BUG: (11/9/04, GVG) DRC Min Area and select, disconnected nodes not considered.
+FIX: Special treatment in visitNodeInst by using PrimitiveNode.containsSubstrateLayer()
+
+BUG: (11/9/04, GVG) DRC and notch errors for arcs in same network. Modifications done under
+maytouch/sameLayer inside checkDist were not correct (done back in Aug'04)
+FIX: if (net1==net2) -> return false regardless notch distance
+
 IMP: (11/9/04, SMR) Redid cross-library copy so that it is safe from looping.
 
 IMP: (11/9/04, SMR) Closing a library ensures that it is saved to disk.
 
 BUG: (11/9/04, SMR) Mimic stitching crashes.
 FIX: Replaced array of cached Polygons with a more robust HashMap.
-
-************************* Version 8.01am: *********************************
 
 IMP: (11/9/04, GVG) Metal1 back from 1.4 -> 1.2
 

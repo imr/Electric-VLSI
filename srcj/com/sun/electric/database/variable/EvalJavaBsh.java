@@ -28,6 +28,7 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.Main;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -403,6 +404,10 @@ public class EvalJavaBsh
             System.out.println(description+": "+e.getMessage());
             e.printStackTrace(System.out);
         }
+
+	    // Finishing session
+		if (Main.BATCHMODE)
+			System.exit(1);
     }
 
     /**

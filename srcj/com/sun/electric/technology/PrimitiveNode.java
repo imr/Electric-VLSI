@@ -1306,6 +1306,15 @@ public class PrimitiveNode implements NodeProto
 	 */
 	public boolean isNotUsed() { return (userBits & NNOTUSED) != 0; }
 
+    /**
+     * Method to determine if PrimitiveNode represents substrate or contains one layer
+     * @return true if this PrimitiveNode contains substrate layer
+     */
+	public boolean containsSubstrateLayer()
+	{
+		return (function.isTransistor() || function == PrimitiveNode.Function.SUBSTRATE || function == PrimitiveNode.Function.WELL);
+	}
+
 	/**
 	 * Method to get the index of this PrimitiveNode.
 	 * @return the index of this PrimitiveNode.

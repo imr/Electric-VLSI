@@ -428,7 +428,7 @@ public class OpenFile
 	 * @param libName
 	 * @return OpenFile.Type extension
 	 */
-	public static Type getOpenFileType(String libName)
+	public static Type getOpenFileType(String libName, Type def)
 	{
 		if (libName.endsWith(".elib"))
 			return Type.ELIB;
@@ -436,6 +436,6 @@ public class OpenFile
 			return Type.JELIB;
 		else if (libName.endsWith(".txt"))
 			return Type.READABLEDUMP;
-		return (Type.DEFAULTLIB);
+		return (def);
 	}
 }

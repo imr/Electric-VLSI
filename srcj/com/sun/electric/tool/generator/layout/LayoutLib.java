@@ -117,8 +117,9 @@ public class LayoutLib {
 		URL libFileURL = TextUtils.makeURLToFile(libFileName);
 		String libName = TextUtils.getFileNameWithoutExtension(libFileURL);
 		Library lib = Library.findLibrary(libName);
+		OpenFile.Type type = OpenFile.getOpenFileType(libFileName, OpenFile.Type.DEFAULTLIB);
 		if (lib==null) {
-			lib = Input.readLibrary(libFileURL, OpenFile.Type.ELIB);
+			lib = Input.readLibrary(libFileURL, type/*OpenFile.Type.ELIB*/);
 		}
 		error(lib==null, "can't open Library for reading: "+libFileName);
 		return lib;

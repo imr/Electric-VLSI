@@ -206,24 +206,28 @@ public class LibraryFiles extends Input
 			libFileName = libFileName.substring(charPos+1);
 			libFilePath = "";
 		}
-		OpenFile.Type importType = defaultType;
+		OpenFile.Type oldimportType = defaultType;
 		String libName = libFileName;
+		OpenFile.Type importType = OpenFile.getOpenFileType(libName, defaultType);
+
 		if (libName.endsWith(".elib"))
 		{
 			libName = libName.substring(0, libName.length()-5);
 		} else if (libName.endsWith(".jelib"))
 		{
 			libName = libName.substring(0, libName.length()-6);
-			importType = OpenFile.Type.JELIB;
+			oldimportType = OpenFile.Type.JELIB;
 		} else if (libName.endsWith(".txt"))
 		{
 			libName = libName.substring(0, libName.length()-4);
-			importType = OpenFile.Type.READABLEDUMP;
+			oldimportType = OpenFile.Type.READABLEDUMP;
 		} else
 		{
 			// no recognizable extension, add one to the file name
 			libFileName += "." + defaultType.getExtensions()[0];
 		}
+
+		if (oldimportType != importType) System.out.println("Error in LibraryFiles.readExternalLibraryFromFilename()");
 
 		// first try the pure library name with no path information
 		Library elib = Library.findLibrary(libName);
@@ -275,17 +279,19 @@ public class LibraryFiles extends Input
 		if (exists)
 		{
 			System.out.println("Reading referenced library " + externalURL.getFile());
-            importType = defaultType;
+            importType = OpenFile.getOpenFileType(externalURL.getFile(), defaultType);
+			OpenFile.Type oldimport = defaultType;
             if (externalURL.getFile().endsWith(".elib"))
             {
-                importType = OpenFile.Type.ELIB;
+                oldimport = OpenFile.Type.ELIB;
             } else if (externalURL.getFile().endsWith(".jelib"))
             {
-                importType = OpenFile.Type.JELIB;
+                oldimport = OpenFile.Type.JELIB;
             } else if (externalURL.getFile().endsWith(".txt"))
             {
-                importType = OpenFile.Type.READABLEDUMP;
+                oldimport = OpenFile.Type.READABLEDUMP;
             }
+			if (oldimportType != importType) System.out.println("Error in LibraryFiles.readExternalLibraryFromFilename");
             elib = Library.newInstance(libName, externalURL);
 		}
 

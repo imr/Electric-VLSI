@@ -453,9 +453,17 @@ public class FileMenu {
 	            fileName = lib.getLibFile().getPath();
 	            if (forceToType)
 	            {
-					if (fileName.endsWith(".elib")) type = OpenFile.Type.ELIB; else
-					if (fileName.endsWith(".jelib")) type = OpenFile.Type.JELIB; else
-					if (fileName.endsWith(".txt")) type = OpenFile.Type.READABLEDUMP;
+		            type = OpenFile.getOpenFileType(fileName, OpenFile.Type.DEFAULTLIB);
+		            if (Main.getDebug())
+		            {
+			            // old code Gilda Nov 9
+						OpenFile.Type oldtype = type;
+						if (fileName.endsWith(".elib")) oldtype = OpenFile.Type.ELIB; else
+						if (fileName.endsWith(".jelib")) oldtype = OpenFile.Type.JELIB; else
+						if (fileName.endsWith(".txt")) oldtype = OpenFile.Type.READABLEDUMP;
+			            if (type != oldtype)
+				            System.out.println("Wrong type determined by OpenFile.getOpenFileType");
+		            }
 	            }
 	        }
             // check to see that file is writable
