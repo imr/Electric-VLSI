@@ -1390,6 +1390,17 @@ public class Interval
 		return this;
 	}
 
+	/**
+	 * Return string representation.
+	 */
+
+	public String toString() {
+		final int precision = 16;
+		if (isEmpty())
+			return "[Empty]";
+		return "[" + DirectedFloatingDecimal.toStringInf(inf, precision) + "," + DirectedFloatingDecimal.toStringSup(sup, precision) + "]";
+	}
+
 	// -----------------------------------------------------------------------
 	// I/O
 	// -----------------------------------------------------------------------
@@ -1398,17 +1409,17 @@ public class Interval
 	 * Return string representation.
 	 */
 
-	public String toString() {
-		if (isEmpty())
-			return "[EMPTY                                          ]";
-		StringBuffer buf = new StringBuffer(49);
-		buf.append('[');
-		append(buf, inf, false);
-		buf.append(',');
-		append(buf, sup, true);
-		buf.append(']');
-		return buf.toString();
-	}
+//	public String toString() {
+//		if (isEmpty())
+//			return "[EMPTY                                          ]";
+//		StringBuffer buf = new StringBuffer(49);
+//		buf.append('[');
+//		append(buf, inf, false);
+//		buf.append(',');
+//		append(buf, sup, true);
+//		buf.append(']');
+//		return buf.toString();
+//	}
 
 	private static void append(StringBuffer buf, double x, boolean isSup) {
 		final int d = 16; // digits after floating point
