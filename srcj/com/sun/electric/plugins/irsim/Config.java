@@ -38,28 +38,28 @@ public class Config
 	 */
 	private static class Length
 	{
-		Length    next;		/* next element with same width */
-		long      l;		/* length of this channel in centimicrons */
-		double    r;		/* equivalent resistance/square */
+		/** next element with same width */				Length    next;		
+		/** length of this channel in centimicrons */	long      l;		
+		/** equivalent resistance/square */				double    r;		
 	};
 
 	private static class Width
 	{
-		Width     next;		/* next width */
-		long      w;		/* width of this channel in centimicrons */
-		Length    list;		/* list of length structures */
+		/** next width */								Width     next;		
+		/** width of this channel in centimicrons */	long      w;		
+		/** list of length structures */				Length    list;		
 	}
 
-	private static final double CM_M	  = 100.0;	/* centimicrons per micron */
-
-	private static final int RES_TAB_SIZE = 67;
+	/** centimicrons per micron */														private static final double CM_M	  = 100.0;	
 
 	/* values of irsim_config_flags */
-	private static final int CNTPULLUP	= 0x2;		/* set if capacitance from gate of pullup should be included. */
-	private static final int DIFFPERIM	= 0x4;		/* set if diffusion perimeter does not include sources/drains of transistors. */
-	private static final int SUBPAREA	= 0x8;		/* set if poly over xistor doesn't make a capacitor */
-	private static final int DIFFEXTF	= 0x10;		/* set if we should add capacitance due to diffusion-extension of source/drain. */
-	private static final int TDIFFCAP	= 0x1;		/* set if DIFFPERIM or DIFFEXTF are true */
+	/** set if capacitance from gate of pullup should be included. */					private static final int CNTPULLUP	= 0x2;		
+	/** set if diffusion perimeter does not include sources/drains of transistors. */	private static final int DIFFPERIM	= 0x4;		
+	/** set if poly over xistor doesn't make a capacitor */								private static final int SUBPAREA	= 0x8;		
+	/** set if we should add capacitance due to diffusion-extension of source/drain. */	private static final int DIFFEXTF	= 0x10;		
+	/** set if DIFFPERIM or DIFFEXTF are true */										private static final int TDIFFCAP	= 0x1;		
+
+	private static final int RES_TAB_SIZE = 67;
 
 	/*
 	 * electrical parameters used for deriving capacitance info for charge
@@ -68,31 +68,31 @@ public class Config
 	 *	Area capacitances are all in pfarads/sq-micron units.
 	 *	Perimeter capacitances are all in pfarads/micron units.
 	 */
-	public  double irsim_CM2A = .00000;		/* 2nd metal capacitance -- area */
-	public  double irsim_CM2P = .00000;		/* 2nd metal capacitance -- perimeter */
-	public  double irsim_CMA  = .00003;		/* 1st metal capacitance -- area */
-	public  double irsim_CMP  = .00000;		/* 1st metal capacitance -- perimeter */
-	public  double irsim_CPA  = .00004;		/* poly capacitance -- area */
-	public  double irsim_CPP  = .00000;		/* poly capacitance -- perimeter */
-	public  double irsim_CDA  = .00010;		/* n-diffusion capacitance -- area */
-	public  double irsim_CDP  = .00060;		/* n-diffusion capacitance -- perimeter */
-	public  double irsim_CPDA = .00010;		/* p-diffusion capacitance -- area */
-	public  double irsim_CPDP = .00060;		/* p-diffusion capacitance -- perimeter */
-	public  double irsim_CGA  = .00040;		/* gate capacitance -- area */
+	/** 2nd metal capacitance -- area */			public  double irsim_CM2A = .00000;		
+	/** 2nd metal capacitance -- perimeter */		public  double irsim_CM2P = .00000;		
+	/** 1st metal capacitance -- area */			public  double irsim_CMA  = .00003;		
+	/** 1st metal capacitance -- perimeter */		public  double irsim_CMP  = .00000;		
+	/** poly capacitance -- area */					public  double irsim_CPA  = .00004;		
+	/** poly capacitance -- perimeter */			public  double irsim_CPP  = .00000;		
+	/** n-diffusion capacitance -- area */			public  double irsim_CDA  = .00010;		
+	/** n-diffusion capacitance -- perimeter */		public  double irsim_CDP  = .00060;		
+	/** p-diffusion capacitance -- area */			public  double irsim_CPDA = .00010;		
+	/** p-diffusion capacitance -- perimeter */		public  double irsim_CPDP = .00060;		
+	/** gate capacitance -- area */					public  double irsim_CGA  = .00040;		
 
-	public  double irsim_LAMBDA     = 2.5;	/* microns/lambda */
-	public  double irsim_LAMBDA2    = 6.25;	/* LAMBDA**2 */
-	public  long   irsim_LAMBDACM   = 250;	/* centi-microns/lambda */
-	public  double irsim_LOWTHRESH  = 0.3;	/* low voltage threshold, normalized units */
-	public  double irsim_HIGHTHRESH = 0.8;	/* high voltage threshold,normalized units */
-	private double irsim_DIFFEXT    = 0;	/* width of source/drain diffusion */
+	/** microns/lambda */							public  double irsim_LAMBDA     = 2.5;	
+	/** LAMBDA**2 */								public  double irsim_LAMBDA2    = 6.25;	
+	/** centi-microns/lambda */						public  long   irsim_LAMBDACM   = 250;	
+	/** low voltage threshold, normalized units */	public  double irsim_LOWTHRESH  = 0.3;	
+	/** high voltage threshold,normalized units */	public  double irsim_HIGHTHRESH = 0.8;	
+	/** width of source/drain diffusion */			private double irsim_DIFFEXT    = 0;	
 
 	/* the following are computed from above */
-	private double irsim_CTDW;				/* xtor diff-width capacitance -- perimeter */
-	private double irsim_CPTDW;
-	private double irsim_CTDE;				/* xtor diff-extension cap. -- perimeter */
-	private double irsim_CPTDE;
-	public  double irsim_CTGA;				/* xtor gate capacitance -- area */
+	/** xtor diff-width capacitance -- perimeter */	private double irsim_CTDW;				
+													private double irsim_CPTDW;
+	/** xtor diff-extension cap. -- perimeter */	private double irsim_CTDE;				
+													private double irsim_CPTDE;
+	/** xtor gate capacitance -- area */			public  double irsim_CTGA;				
 
 	private List [][]  irsim_res_htab;
 	private int        irsim_config_flags;
@@ -249,7 +249,7 @@ public class Config
 			for(Iterator it = rtab[n].iterator(); it.hasNext(); )
 			{
 				Sim.Resists rr = (Sim.Resists)it.next();
-				if ((long)rr.length == length && (long)rr.width == width) return rr;
+				if (rr.length == length && rr.width == width) return rr;
 			}
 		}
 

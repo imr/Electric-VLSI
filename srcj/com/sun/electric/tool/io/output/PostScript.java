@@ -93,6 +93,7 @@ public class PostScript extends Output
 	/** list of patterns emitted so far. */								private HashMap patternsEmitted;
 	/** current layer number (-1: do all; 0: cleanup). */				private int currentLayer;
 	/** the last color written out. */									private int lastColor;
+	/** the normal width of lines. */									private int lineWidth;
 	/** true to plot date information in the corner. */					private boolean plotDates;
 	/** matrix from database units to PS units. */						private AffineTransform matrix;
 	/** fake layer for drawing outlines and text. */					private static Layer blackLayer = Layer.newInstance(null, "black",
@@ -347,7 +348,8 @@ public class PostScript extends Output
 		printWriter.print("    exch scalefont setfont} def\n");
 
 		// make the line width proper
-		printWriter.print((int)(PSSCALE/2) + " setlinewidth\n");
+		lineWidth = (int)(PSSCALE/2 * IOTool.getPrintPSLineWidth());
+		printWriter.print(lineWidth + " setlinewidth\n");
 
 		// make the line ends look right
 		printWriter.print("1 setlinecap\n");
@@ -1002,10 +1004,10 @@ public class PostScript extends Output
 				printWriter.print(" [] 0 setdash\n");
 				break;
 			case 3:
-				printWriter.print(PSSCALE + " setlinewidth ");
+				printWriter.print((lineWidth*2) + " setlinewidth ");
 				printWriter.print(TextUtils.formatDouble(pt1.getX()) + " " + TextUtils.formatDouble(pt1.getY()) + " " +
 					TextUtils.formatDouble(pt2.getX()) + " " + TextUtils.formatDouble(pt2.getY()) + " Drawline\n");
-				printWriter.print(PSSCALE/2 + " setlinewidth\n");
+				printWriter.print(lineWidth + " setlinewidth\n");
 				break;
 		}
 	}

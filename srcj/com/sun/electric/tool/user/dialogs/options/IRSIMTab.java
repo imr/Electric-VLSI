@@ -40,7 +40,6 @@ public class IRSIMTab extends PreferencePanel
 	private boolean initialAutoAdvance;
 	private boolean initialShowCommands;
 	private int initialParasiticsLevel;
-	private int initialStepSize;
 	private String initialParameterFile;
 	private String initialSteppingModel;
 
@@ -68,9 +67,6 @@ public class IRSIMTab extends PreferencePanel
 
 		initialShowCommands = Simulation.isIRSIMShowsCommands();
 		showCommands.setSelected(initialShowCommands);
-
-		initialStepSize = Simulation.getIRSIMStepSize();
-		stepSize.setText(Integer.toString(initialStepSize));
 
 		initialParasiticsLevel = Simulation.getIRSIMParasiticLevel();
 		switch (initialParasiticsLevel)
@@ -126,10 +122,6 @@ public class IRSIMTab extends PreferencePanel
 		String currentSteppingModel = (String)simModel.getSelectedItem();
 		if (!currentSteppingModel.equals(initialSteppingModel))
 			Simulation.setIRSIMStepModel(currentSteppingModel);
-
-		int currentStepSize = TextUtils.atoi(stepSize.getText());
-		if (currentStepSize != initialStepSize)
-			Simulation.setIRSIMStepSize(currentStepSize);
 	}
 
 	/** This method is called from within the constructor to
@@ -146,8 +138,6 @@ public class IRSIMTab extends PreferencePanel
         showCommands = new javax.swing.JCheckBox();
         autoAdvanceTime = new javax.swing.JCheckBox();
         resimulateEachChange = new javax.swing.JCheckBox();
-        jLabel3 = new javax.swing.JLabel();
-        stepSize = new javax.swing.JTextField();
         jPanel2 = new javax.swing.JPanel();
         setParameterFile = new javax.swing.JButton();
         parameterFile = new javax.swing.JTextField();
@@ -199,21 +189,6 @@ public class IRSIMTab extends PreferencePanel
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(resimulateEachChange, gridBagConstraints);
-
-        jLabel3.setText("Step size:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel1.add(jLabel3, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel1.add(stepSize, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -312,7 +287,7 @@ public class IRSIMTab extends PreferencePanel
     }//GEN-END:initComponents
 
     private void setParameterFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setParameterFileActionPerformed
-        String paramFile = OpenFile.chooseInputFile(FileType.IRSIMVECTOR, "IRSIM Vector file");
+        String paramFile = OpenFile.chooseInputFile(FileType.IRSIMPARAM, "IRSIM Parameter file");
         if (paramFile == null) return;
         parameterFile.setText(paramFile);
     }//GEN-LAST:event_setParameterFileActionPerformed
@@ -329,7 +304,6 @@ public class IRSIMTab extends PreferencePanel
     private javax.swing.JRadioButton fullParasitics;
     private javax.swing.JPanel irsim;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
@@ -341,7 +315,6 @@ public class IRSIMTab extends PreferencePanel
     private javax.swing.JButton setParameterFile;
     private javax.swing.JCheckBox showCommands;
     private javax.swing.JComboBox simModel;
-    private javax.swing.JTextField stepSize;
     // End of variables declaration//GEN-END:variables
 
 }

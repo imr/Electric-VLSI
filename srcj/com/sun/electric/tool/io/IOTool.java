@@ -715,6 +715,20 @@ public class IOTool extends Tool
 		tool.setVarInJob(cell, POSTSCRIPT_FILEDATE, dateArray);
 	}
 
+	private static Pref cachePrintPSLineWidth = Pref.makeDoublePref("PostScriptLineWidth", IOTool.tool.prefs, 1);
+	/**
+	 * Method to tell the width of PostScript lines.
+	 * Lines have their width scaled by this amount, so the default (1) means normal lines.
+	 * @return the width of PostScript lines.
+	 */
+	public static double getPrintPSLineWidth() { return cachePrintPSLineWidth.getDouble(); }
+	/**
+	 * Method to set the width of PostScript lines.
+	 * Lines have their width scaled by this amount, so the default (1) means normal lines.
+	 * @param mar the width of PostScript lines.
+	 */
+	public static void setPrintPSLineWidth(double mar) { cachePrintPSLineWidth.setDouble(mar); }
+
 	/****************************** EDIF PREFERENCES ******************************/
 
 	private static Pref cacheEDIFUseSchematicView = Pref.makeBooleanPref("EDIFUseSchematicView", IOTool.tool.prefs, false);

@@ -18,6 +18,8 @@
 
 package com.sun.electric.plugins.irsim;
 
+import java.util.Iterator;
+
 
 public class SStep extends Eval
 {
@@ -640,11 +642,11 @@ public class SStep extends Eval
 
 		// initial values and stuff...
 		n.nflags |= Sim.VISITED;
-		int result = (n.ngate == null) ? xcharged_state[n.npot] : charged_state[n.npot];
+		int result = (n.ngateList.size() == 0) ? xcharged_state[n.npot] : charged_state[n.npot];
 
-		for(Sim.Tlist l = n.nterm; l != null; l = l.next)
+		for(Iterator it = n.ntermList.iterator(); it.hasNext(); )
 		{
-			Sim.Trans t = l.xtor;
+			Sim.Trans t = (Sim.Trans)it.next();
 
 			// don't bother with off transistors
 			if (t.state == Sim.OFF) continue;

@@ -770,21 +770,6 @@ public class Simulation extends Tool
 	 */
 	public static void setIRSIMStepModel(String m) { cacheIRSIMStepModel.setString(m); }
 
-	private static Pref cacheIRSIMStepSize = Pref.makeIntPref("IRSIMStepSize", Simulation.tool.prefs, 50000);
-	/**
-	 * Method to tell the simulation step size for IRSIM.
-	 * This is the distance forward to examine when simulating, given in IRSIM units (10 picosecond).
-	 * The default is 50,000, which is 500 nanoseconds.
-	 * @return the simulation step size for IRSIM.
-	 */
-	public static int getIRSIMStepSize() { return cacheIRSIMStepSize.getInt(); }
-	/**
-	 * Method to set the simulation step size for IRSIM.
-	 * This is the distance forward to examine when simulating, given in IRSIM units (10 picosecond).
-	 * @param s the simulation step size for IRSIM.
-	 */
-	public static void setIRSIMStepSize(int s) { cacheIRSIMStepSize.setInt(s); }
-
 	/****************************** SPICE OPTIONS ******************************/
 
 	/** Spice 2 engine. */		public static final int SPICE_ENGINE_2 = 0;

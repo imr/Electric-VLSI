@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02j: *********************************
 
+BUG: (03/10/05, SMR) Deleting circuitry doesn't remove all highlighting (Bug #219).
+FIX: In CircuitChanges.DeleteSelected.doIt(), clear highlighting when done.
+
+IMP/MAN: (03/10/05, SMR) Added PostScript line thickness control to "Print" preferences.
+
 ************************* Version 8.02i: *********************************
 
 IMP: (03/09/05, GVG) Sweep algorithm in DRC min area checking

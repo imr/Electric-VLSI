@@ -4219,9 +4219,15 @@ public class WaveformWindow implements WindowContent
 //			}
 //		} else
 		{
-			/* 2-state display */
-			if ((state & Stimuli.LOGIC) == Stimuli.LOGIC_HIGH) return Color.RED;
-			return Color.BLACK;
+			/* only level display, no strength indications */
+			switch (state & Stimuli.LOGIC)
+			{
+				case Stimuli.LOGIC_LOW:
+					return Color.BLACK;
+				case Stimuli.LOGIC_HIGH:
+					return Color.GREEN;
+			}
+			return Color.RED;
 		}
 	}
 
@@ -4233,11 +4239,11 @@ public class WaveformWindow implements WindowContent
 
 		// find the proper data for the time of the main cursor
 		int numEvents = ds.getNumEvents();
-		int state = 0;
-		for(int i=0; i<numEvents; i++)
+		int state = Stimuli.LOGIC_X;
+		for(int i=numEvents-1; i>=0; i--)
 		{
 			double time = ds.getTime(i);
-			if (mainTime < time)
+			if (time <= mainTime)
 			{
 				state = ds.getState(i) & Stimuli.LOGIC;
 				break;

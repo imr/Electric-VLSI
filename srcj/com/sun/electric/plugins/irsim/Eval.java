@@ -23,9 +23,12 @@ import java.util.List;
 
 public class Eval
 {
+	private static final boolean DEBUG = false;
+
 	private boolean	firstcall;	    /* reset when calling init_vdd_gnd */
 	protected Analyzer theAnalyzer;
 	protected Sim theSim;
+	private  int      irsim_npending;         /* number of pending events */
 
 	public Eval(Analyzer analyzer, Sim sim)
 	{
@@ -181,7 +184,7 @@ public class Eval
 
 			// Add the new value to the history list (if they differ)
 			if ((n.nflags & Sim.INPUT) == 0 && ((short)n.curr.val != n.npot))
-				theSim.irsim_AddHist(n, n.npot, false, e.ntime, (long) e.delay, (long) e.rtime);
+				theSim.irsim_AddHist(n, n.npot, false, e.ntime, e.delay, e.rtime);
 
 			if (n.awpending != null  && n.awpot == n.npot)
 				theAnalyzer.irsim_evalAssertWhen(n);
@@ -195,9 +198,9 @@ public class Eval
 			 * Fixed it so nodes with pending events also get
 			 * re_evaluated. Kevin Karplus
 			 */
-			for(Sim.Tlist l = n.ngate; l != null; l = l.next)
+			for(Iterator it = n.ngateList.iterator(); it.hasNext(); )
 			{
-				Sim.Trans t = l.xtor;
+				Sim.Trans t = (Sim.Trans)it.next();
 				t.state = (byte)compute_trans_state(t);
 				if ((t.source.nflags & Sim.INPUT) == 0)
 					t.source.nflags |= Sim.VISITED;
@@ -219,9 +222,9 @@ public class Eval
 				if ((n.nflags & (Sim.INPUT | Sim.POWER_RAIL)) != Sim.INPUT)
 					continue;
 
-				for(Sim.Tlist l = n.nterm; l != null; l = l.next)
+				for(Iterator it = n.ntermList.iterator(); it.hasNext(); )
 				{
-					Sim.Trans t = l.xtor;
+					Sim.Trans t = (Sim.Trans)it.next();
 					if (t.state != Sim.OFF)
 					{
 						Sim.Node other = Sim.other_node(t, n);
@@ -236,7 +239,7 @@ public class Eval
 	private long EvalNodes(Sim.Event evlist)
 	{
 		long brk_flag = 0;
-		Sim.Event  event = evlist;
+		Sim.Event event = evlist;
 
 		do
 		{
@@ -244,17 +247,17 @@ public class Eval
 			Sim.Node n = theSim.irsim_cur_node = event.enode;
 			n.setTime(event.ntime);	// set up the cause stuff
 			n.setCause(event.cause);
-
-			theSim.irsim_npending -= 1;
+if (DEBUG) System.out.println("Removing event at " + event.ntime + " in EvalNodes");
+			irsim_npending--;
 
 			/*
 			 * now calculate new value for each marked node.  Some nodes marked
 			 * above may become unmarked by earlier calculations before we get
 			 * to them in this loop...
 			 */
-			for(Sim.Tlist l = n.ngate; l != null; l = l.next)
+			for(Iterator it = n.ngateList.iterator(); it.hasNext(); )
 			{
-				Sim.Trans t = l.xtor;
+				Sim.Trans t = (Sim.Trans)it.next();
 				if ((t.source.nflags & Sim.VISITED) != 0)
 					modelEvaluate(t.source);
 				if ((t.drain.nflags & Sim.VISITED) != 0)
@@ -263,9 +266,9 @@ public class Eval
 
 			if ((n.nflags & (Sim.INPUT | Sim.POWER_RAIL)) == Sim.INPUT)
 			{
-				for(Sim.Tlist l = n.nterm; l != null; l = l.next)
+				for(Iterator it = n.ntermList.iterator(); it.hasNext(); )
 				{
-					Sim.Trans t = l.xtor;
+					Sim.Trans t = (Sim.Trans)it.next();
 					Sim.Node other = Sim.other_node(t, n);
 					if ((other.nflags & Sim.VISITED) != 0)
 						modelEvaluate(other);
@@ -299,7 +302,7 @@ public class Eval
 			// enqueue event so consequences are computed.
 			irsim_enqueue_input(n, val);
 
-			if ((int)n.curr.val != val || ! (n.curr.inp))
+			if (n.curr.val != val || !n.curr.inp)
 				theSim.irsim_AddHist(n, val, true, theSim.irsim_cur_delta, 0L, 0L);
 		}
 	}
@@ -323,7 +326,7 @@ public class Eval
 		{
 			Sim.Node n = (Sim.Node)it.next();
 			theSim.irsim_cur_node = n;
-			theSim.irsim_AddHist(n, (int) n.curr.val, false, theSim.irsim_cur_delta, 0L, 0L);
+			theSim.irsim_AddHist(n, n.curr.val, false, theSim.irsim_cur_delta, 0L, 0L);
 			if ((n.nflags & Sim.VISITED) != 0)
 				modelEvaluate(n);
 		}
@@ -384,8 +387,9 @@ public class Eval
 	 */
 	private Sim.Event irsim_get_next_event(long stop_time)
 	{
-		if (theSim.irsim_npending == 0) return null;
+		if (irsim_npending == 0) return null;
 
+if (DEBUG) System.out.println("Find events up to " + stop_time);
 		Sim.Event event = null;
 		boolean eventValid = false;
 		long time = theSim.irsim_max_time;
@@ -405,7 +409,7 @@ public class Eval
 		}
 		if (!eventValid)
 		{
-			if (time == (long)theSim.irsim_max_time)
+			if (time == theSim.irsim_max_time)
 			{
 				System.out.println("*** internal error: no events but npending set");
 				return null;
@@ -418,7 +422,11 @@ public class Eval
 
 		time = evlist.ntime;
 
-		if (time >= stop_time) return null;
+		if (time >= stop_time)
+		{
+if (DEBUG) System.out.println("Time="+time+" which is beyond stop time="+stop_time);
+			return null;
+		}
 
 		theSim.irsim_cur_delta = time;			// advance simulation time
 
@@ -440,6 +448,18 @@ public class Eval
 			evlist.blink = event.blink;
 			event.flink = event.blink = event;
 		}
+if (DEBUG)
+{
+	System.out.print("FOUND EVENTS:");
+	Sim.Event xx = evlist;
+	do
+	{
+		System.out.print(" time="+xx.ntime);
+		xx = (Sim.Event)xx.flink;
+	}
+	while(xx != null);
+	System.out.println();
+}
 		return evlist;
 	}
 
@@ -451,7 +471,7 @@ public class Eval
 		// unhook from doubly-linked event list
 		event.blink.flink = event.flink;
 		event.flink.blink = event.blink;
-		theSim.irsim_npending -= 1;
+		irsim_npending--;
 
 		free_from_node(event, event.enode);
 	}
@@ -465,7 +485,7 @@ public class Eval
 		Sim.Event newev = new Sim.Event();
 
 		// remember facts about this event
-		long etime = theSim.irsim_cur_delta + (long)delta;
+		long etime = theSim.irsim_cur_delta + delta;
 		newev.ntime = etime;
 		newev.rtime = (short)rtime;
 		newev.enode = n;
@@ -498,8 +518,8 @@ public class Eval
 		newev.blink = marker.blink;
 		marker.blink.flink = newev;
 		marker.blink = newev;
-		theSim.irsim_npending += 1;
-
+		irsim_npending++;
+if (DEBUG) System.out.println("Adding event at " + newev.ntime + " in irsim_enqueue_event (cur="+theSim.irsim_cur_delta+" delta="+delta);
 		/*
 		 * thread event onto list of events for this node, keeping it
 		 * in sorted order
@@ -544,8 +564,8 @@ public class Eval
 		newev.blink = marker;
 		marker.flink.blink = newev;
 		marker.flink = newev;
-		theSim.irsim_npending += 1;
-
+		irsim_npending++;
+if (DEBUG) System.out.println("Adding event at " + newev.ntime + " in irsim_enqueue_input");
 		// thread event onto (now empty) list of events for this node
 		newev.nlink = null;
 		n.events = newev;
@@ -562,7 +582,7 @@ public class Eval
 			ev_array[i] = event;
 			event.flink = event.blink = event;
 		}
-		theSim.irsim_npending = 0;
+		irsim_npending = 0;
 		theSim.irsim_nevent = 0;
 	}
 
@@ -579,14 +599,15 @@ public class Eval
 
 	private void irsim_requeue_events(Sim.Event evlist, boolean thread)
 	{
-		theSim.irsim_npending = 0;
+		irsim_npending = 0;
 		Sim.Event next = null;
 		for(Sim.Event ev = evlist; ev != null; ev = next)
 		{
 			next = (Sim.Event)ev.flink;
 
-			theSim.irsim_npending++;
+			irsim_npending++;
 			long etime = ev.ntime;
+if (DEBUG) System.out.println("Adding of event at time "+etime + " in irsim_requeue_events");
 			Sim.Event target = EV_LIST(etime);
 
 			if ((target.blink != target) && (((Sim.Event)target.blink).ntime > etime))
@@ -619,7 +640,22 @@ public class Eval
 		}
 	}
 
-		// Incremental simulation routines
+	public void printPendingEvents()
+	{
+		if (irsim_npending == 0) return;
+		System.out.println("Warning: there are " + irsim_npending + " pending events:");
+
+		for(int i=0; i<TSIZE; i++)
+		{
+			Sim.Event hdr = ev_array[i];
+			for(Sim.Event evhdr = hdr.flink; evhdr != hdr; evhdr = evhdr.flink)
+			{
+				if (!(evhdr instanceof Sim.Event)) continue;
+				Sim.Event ev = (Sim.Event)evhdr;
+				System.out.println("   Event at time " + Sim.d2ns(ev.ntime) + " caused by node " + ev.cause.nname);
+			}
+		}
+	}
 
 	/**
 	 * Back the event queues up to time 'btime'.  This is the opposite of
@@ -668,7 +704,7 @@ public class Eval
 
 		if (is_inc != 1)	// only for fault simulation (is_inc == 2)
 		{
-			theSim.irsim_npending = 0;
+			irsim_npending = 0;
 			return tmplist;
 		}
 
@@ -676,15 +712,12 @@ public class Eval
 		Sim.Event next = null;
 		for(Sim.Event ev = tmplist; ev != null; ev = next)
 		{
-			long   etime;
-			Sim.Event  target;
-
 			next = (Sim.Event)ev.flink;
 
-			ev.ntime -= (long)ev.delay;
+			ev.ntime -= ev.delay;
 			ev.type = Sim.PENDING;
-			etime = ev.ntime;
-			target = EV_LIST(etime);
+			long etime = ev.ntime;
+			Sim.Event target = EV_LIST(etime);
 
 			if ((target.blink != target) && (((Sim.Event)target.blink).ntime > etime))
 			{
@@ -697,7 +730,7 @@ public class Eval
 			target.blink = ev;
 		}
 
-		theSim.irsim_npending = nevents;
+		irsim_npending = nevents;
 		return null;
 	}
 

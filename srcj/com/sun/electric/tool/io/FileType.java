@@ -52,6 +52,7 @@ public class FileType {
 	/** Describes HSpice output. */			public static final FileType HSPICEOUT    = new FileType("HSpiceOutput", new String[] {"tr0", "pa0"}, "HSpice Output File (tr0/pa0)");
 	/** Describes HTML files. */			public static final FileType HTML         = new FileType("HTML", new String[] {"html"}, "HTML File (html)");
 	/** Describes IRSIM decks. */			public static final FileType IRSIM        = new FileType("IRSIM", new String[] {"sim"}, "IRSIM Deck (sim)");
+	/** Describes IRSIM parameter decks. */	public static final FileType IRSIMPARAM   = new FileType("IRSIM Parameters", new String[] {"prm"}, "IRSIM Parameter Deck (prm)");
 	/** Describes IRSIM vector decks. */	public static final FileType IRSIMVECTOR  = new FileType("IRSIM Vectors", new String[] {"cmd"}, "IRSIM Vector Deck (cmd)");
 	/** Describes Java source. */			public static final FileType JAVA         = new FileType("Java", new String[] {"java", "bsh"}, "Java Script File (java, bsh)");
 	/** Describes JELIB files.*/			public static final FileType JELIB        = new FileType("JELIB", new String[] {"jelib"}, "Library File (jelib)");

@@ -38,34 +38,34 @@ public class Sim
 {
 	public static class Node
 	{
-		Node     nlink;		/* sundries list */
-		Event    events;	/* charge sharing event */
-		Tlist    ngate;		/* list of xtors w/ gates connected to this node */
-		Tlist    nterm;		/* list of xtors w/ src/drn connected to this node */
-		Node     hnext;		/* link in hash bucket */
-		float    ncap;		/* capacitance of node in pf */
-		float    vlow;		/* low logic threshold for node, normalized units */
-		float    vhigh;		/* high logic threshold for node, normalized units */
-		short    tplh;		/* low to high transition time in DELTA's */
-		short    tphl;		/* high to low transition time in DELTA's */
-		Stimuli.DigitalSignal sig;
-		private Object   c;			/* combines time, nindex, cap, and event */
+		/** sundries list */									Node     nlink;
+		/** charge sharing event */								Event    events;
+		/** list of xtors w/ gates connected to this node */	List     ngateList;
+		/** list of xtors w/ src/drn connected to this node */	List     ntermList;
+		/** link in hash bucket */								Node     hnext;
+		/** capacitance of node in pf */						float    ncap;
+		/** low logic threshold for node, normalized units */	float    vlow;
+		/** high logic threshold for node, normalized units */	float    vhigh;
+		/** low to high transition time in DELTA's */			short    tplh;
+		/** high to low transition time in DELTA's */			short    tphl;
+																Stimuli.DigitalSignal sig;
+		/** combines time, nindex, cap, and event */			private Object   c;
 
-		private Object   t;			/* combines cause, punts, and tranT */
+		/** combines cause, punts, and tranT */					private Object   t;
 
-		short    npot;		/* current potential */
-		short    oldpot;	/* old potential (for incremental simulation). */
-		long     nflags;	/* flag word (see defs below) */
-		String   nname;		/* ascii name of node */
+		/** current potential */								short    npot;
+		/** old potential (for incremental simulation). */		short    oldpot;
+		/** flag word (see defs below) */						long     nflags;
+		/** ascii name of node */								String   nname;
 
-		private Object   n;			/* combines thev, next, and tranN */
+		/** combines thev, next, and tranN */					private Object   n;
 
-		HistEnt  head;		/* first entry in transition history */
-		HistEnt  curr;		/* ptr. to current history entry */
-		HistEnt  hchange;	/* special entry to avoid changing the history */
-		short    awpot;		/* potential for pending AssertWhen */
-		Analyzer.AssertWhen awpending;	/* pending asswertWhen list */
-		int index;			/* index of this node (a unique value) */
+		/** first entry in transition history */				HistEnt  head;
+		/** ptr. to current history entry */					HistEnt  curr;
+		/** special entry to avoid changing the history */		HistEnt  hchange;
+		/** potential for pending AssertWhen */					short    awpot;
+		/** pending asswertWhen list */							Analyzer.AssertWhen awpending;
+		/** index of this node (a unique value) */				int index;
 
 		Node(Sim theSim)
 		{
@@ -99,13 +99,15 @@ public class Sim
 		Trans getTrans() { return (Trans)n; }
 	};
 
-	/* find node in network */
+	/**
+	 * find node in network
+	 */
 	public Node irsim_find(String name)
 	{
 		return (Node)nodeHash.get(name.toLowerCase());
 	}
 
-	/*
+	/**
 	 * Get node structure.  If not found, create a new one.
 	 * If create is TRUE a new node is created and NOT entered into the table.
 	 */
@@ -144,7 +146,8 @@ public class Sim
 
 		// initialize node entries
 		n.nname = name;
-		n.ngate = n.nterm = null;
+		n.ngateList = new ArrayList();
+		n.ntermList = new ArrayList();
 		n.nflags = 0;
 		n.ncap = (float)MIN_CAP;
 		n.vlow = (float)theConfig.irsim_LOWTHRESH;
@@ -180,16 +183,16 @@ public class Sim
 
 	public static class Trans
 	{
-		Object   gate;    			/* nodes to which trans is connected */
-		Node     source, drain;		/* nodes to which trans is connected */
-		Object   sCache, dCache;	/* caches to remember src/drn values */
-		byte     ttype;				/* type of transistor */
-		byte     state;				/* cache to remember current state */
-		byte     tflags; 		    /* transistor flags */
-		byte     n_par;				/* index into parallel list */
-		Resists  r;					/* transistor resistances */
-		Trans    tlink;				/* next txtor in position hash table */
-		int      x, y;				/* position in the layout */
+		/** nodes to which trans is connected */	Object   gate;
+		/** nodes to which trans is connected */	Node     source, drain;
+		/** caches to remember src/drn values */	Object   sCache, dCache;
+		/** type of transistor */					byte     ttype;
+		/** cache to remember current state */		byte     state;
+		/** transistor flags */						byte     tflags;
+		/** index into parallel list */				byte     n_par;
+		/** transistor resistances */				Resists  r;
+		/** next txtor in position hash table */	Trans    tlink;
+		/** position in the layout */				int      x, y;
 
 		void setSThev(Thev r) { sCache = r; }
 		void setDThev(Thev r) { dCache = r; }
@@ -208,60 +211,54 @@ public class Sim
 
 	private static class TranResist
 	{
-		float  [] dynres;		/* dynamic resistances [R_LOW - R_MAX] */
-		float  rstatic;			/* static resistance of transistor */
+		/** dynamic resistances [R_LOW - R_MAX] */	float  [] dynres;
+		/** static resistance of transistor */		float  rstatic;
 
 		TranResist() { dynres = new float[2]; }
 	};
 
-	public static class Resists extends TranResist		/* same as Res_1 but indexed dynamic resists */
+	public static class Resists extends TranResist
 	{
-		long  width, length;	/* transistor size in centimicrons */
+		/** transistor size in centimicrons */		long  width, length;
 	};
 
 	public static class HistEnt
 	{
-		HistEnt  next;			/* next transition in history */
-		short    delay;			/* delay from input */
-		short    rtime;			/* rise/fall time */
-		short    ptime;			/* punt time */
-		long     htime;			/* time of transition */
-		boolean  inp;			/* 1 if node became an input */
-		boolean  punt;			/* 1 if this event was punted */
-		byte     val;			/* value: HIGH, LOW, or X */
-	};
-
-	public static class Tlist
-	{
-		Tlist    next;			/* next list element */
-		Trans    xtor;			/* txtor connected to this node */
+		/** next transition in history */			HistEnt  next;
+		/** delay from input */						short    delay;
+		/** rise/fall time */						short    rtime;
+		/** punt time */							short    ptime;
+		/** time of transition */					long     htime;
+		/** 1 if node became an input */			boolean  inp;
+		/** 1 if this event was punted */			boolean  punt;
+		/** value: HIGH, LOW, or X */				byte     val;
 	};
 
 	/* resists are in ohms, caps in pf */
 	public static class Thev
 	{
-		Object   link;
-		int      flags;		/* flags defined above			    */
-		Range    Clow;		/* capacitance charged low		    */
-		Range    Chigh;		/* capacitance charged high		    */
-		Range    Rup;		/* resistance pulling up to Vdd		    */
-		Range    Rdown;		/* resistance pulling down to GND	    */
-		Range    Req;		/* resist. of present (parallel) xtor(s)    */
-		Range    V;			/* normalized voltage range (0-1)	    */
-		double   Rmin;		/* minimum resistance to any driver	    */
-		double   Rdom;		/* minimum resistance to dominant driver    */
-		double   Rmax;		/* maximum resistance to dominant driver    */
-		double   Ca;		/* Adjusted non-switching capacitance 	    */
-		double   Cd;		/* Adjusted total capacitance		    */
-		double   tauD;		/* Elmore delay	(psec)			    */
-		double   tauA;		/* 1st order time-constant (psec)	    */
-		double   tauP;		/* 2nd order time-constant (psec)	    */
-		double   Tin;		/* input transition = (input_tau) * Rin	    */
-		short    tplh;		/* user specified low->high delay (DELTA)   */
-		short    tphl;		/* user specified high->low delay (DELTA)   */
-		char     finall;		/* steady-state value calculated (H, L, X)  */
-		char     tau_done;	/* if tau calculated, == dominant voltage   */
-		char     taup_done;	/* if tauP calculated, == dominant voltage  */
+														Object   link;
+		/** flags defined above */						int      flags;
+		/** capacitance charged low */					Range    Clow;
+		/** capacitance charged high */					Range    Chigh;
+		/** resistance pulling up to Vdd */				Range    Rup;
+		/** resistance pulling down to GND */			Range    Rdown;
+		/** resist. of present (parallel) xtor(s) */	Range    Req;
+		/** normalized voltage range (0-1) */			Range    V;
+		/** minimum resistance to any driver */			double   Rmin;
+		/** minimum resistance to dominant driver */	double   Rdom;
+		/** maximum resistance to dominant driver */	double   Rmax;
+		/** Adjusted non-switching capacitance */		double   Ca;
+		/** Adjusted total capacitance */				double   Cd;
+		/** Elmore delay (psec) */						double   tauD;
+		/** 1st order time-constant (psec) */			double   tauA;
+		/** 2nd order time-constant (psec) */			double   tauP;
+		/** input transition = (input_tau) * Rin */		double   Tin;
+		/** user specified low->high delay (DELTA) */	short    tplh;
+		/** user specified high->low delay (DELTA) */	short    tphl;
+		/** steady-state value calculated (H, L, X) */	char     finall;
+		/** if tau calculated, == dominant voltage */	char     tau_done;
+		/** if tauP calculated, == dominant voltage */	char     taup_done;
 
 		Thev()
 		{
@@ -323,59 +320,52 @@ public class Sim
 
 	public static class Event
 	{
-		Event    flink, blink;	/* pointers in doubly-linked list */
-		Event    nlink;			/* link for list of events for this node */
-		Node     enode;			/* node this event is all about */
-		Node     cause;
-		long     ntime;			/* time, in DELTAs, of this event */
-		long     delay;			/* delay associated with this event */
-		short    rtime;			/* rise/fall time, in DELTAs */
-		byte     eval;			/* new value */
-		byte     type;			/* type of event (for incremental only) */
+		/** pointers in doubly-linked list */			Event    flink, blink;
+		/** link for list of events for this node */	Event    nlink;
+		/** node this event is all about */				Node     enode;
+														Node     cause;
+		/** time, in DELTAs, of this event */			long     ntime;
+		/** delay associated with this event */			long     delay;
+		/** rise/fall time, in DELTAs */				short    rtime;
+		/** new value */								byte     eval;
+		/** type of event */							byte     type;
 	};
 
 	/* transistor types (ttype) */
-	public static final int	NCHAN          = 0;	/* n-channel enhancement */
-	public static final int	PCHAN          = 1;	/* p-channel enhancement */
-	public static final int	DEP            = 2;	/* depletion */
-	public static final int	RESIST         = 3;	/* simple two-terminal resistor */
-	public static final int	TYPERESERVED   = 4;	/* reserved for future transistor types */
-	public static final int	SUBCKT         = 5;	/* black box user code */
+	/** n-channel enhancement */					public static final int	NCHAN          = 0;
+	/** p-channel enhancement */					public static final int	PCHAN          = 1;
+	/** depletion */								public static final int	DEP            = 2;
+	/** simple two-terminal resistor */				public static final int	RESIST         = 3;
 
-	public static final int	ALWAYSON	= 0x02;	/* transistors not affected by gate logic */
+	/** transistors not affected by gate logic */	public static final int	ALWAYSON	= 0x02;
 
-	public static final int	GATELIST	= 0x08;	/* set if gate of xistor is a node list */
-	public static final int	STACKED		= 0x10;	/* transistor was stacked into gate list */
-	public static final int	ORED		= 0x20;	/* result of or'ing parallel transistors */
-	public static final int	ORLIST		= 0x40;	/* part of an or'ed transistor */
-	public static final int	TCAP		= 0x80;	/* transistor capacitor (source == drain) */
-
-	static final String    irsim_version = "version 9.5j";
+	/** set if gate of xistor is a node list */		public static final int	GATELIST	= 0x08;
+	/** result of or'ing parallel transistors */	public static final int	ORED		= 0x20;
+	/** part of an or'ed transistor */				public static final int	ORLIST		= 0x40;
+	/** transistor capacitor (source == drain) */	public static final int	TCAP		= 0x80;
 
 	/* transistor states (state)*/
-	public static final int	OFF            = 0;	/* non-conducting */
-	public static final int	ON             = 1;	/* conducting */
-	public static final int	UNKNOWN        = 2;	/* unknown */
-	public static final int	WEAK           = 3;	/* weak */
+	/** non-conducting */							public static final int	OFF            = 0;
+	/** conducting */								public static final int	ON             = 1;
+	/** unknown */									public static final int	UNKNOWN        = 2;
+	/** weak */										public static final int	WEAK           = 3;
 
 	/* transistor temporary flags (tflags) */
-	public static final int	CROSSED		= 0x01;	/* Mark for crossing a transistor */
-	public static final int BROKEN		= 0x02;	/* Mark a broken transistor to avoid loop */
-	public static final int	PBROKEN		= 0x04;	/* Mark as broken a parallel transistor */
-	public static final int	PARALLEL	= 0x08;	/* Mark as being a parallel transistor */
-	public static final int	ACTIVE_T	= 0x10;	/* incremental status of transistor */
+	/** Mark for crossing a transistor */			public static final int	CROSSED		= 0x01;
+	/** Mark a broken transistor to avoid loop */	public static final int BROKEN		= 0x02;
+	/** Mark as broken a parallel transistor */		public static final int	PBROKEN		= 0x04;
+	/** Mark as being a parallel transistor */		public static final int	PARALLEL	= 0x08;
 
 	/* node potentials */
-	public static final int	LOW            = 0;	/* low low */
-	public static final int	X              = 1;	/* unknown, intermediate, ... value */
-	public static final int	X_X            = 2;
-	public static final int	HIGH           = 3;	/* logic high */
-	public static final int	N_POTS         = 4;	/* number of potentials [LOW-HIGH] */
+	/** low low */									public static final int	LOW            = 0;
+	/** unknown, intermediate, ... value */			public static final int	X              = 1;
+													public static final int	X_X            = 2;
+	/** logic high */								public static final int	HIGH           = 3;
+	/** number of potentials [LOW-HIGH] */			public static final int	N_POTS         = 4;
 
-	public static final int	DECAY          = 4;	/* waiting to decay to X (only in events) */
+	/** waiting to decay to X (only in events) */	public static final int	DECAY          = 4;
 
 	/* possible values for nflags */
-	public static final int	DEVIATED       = 0x000001;	/* node's state differs from hist */
 	public static final int	POWER_RAIL     = 0x000002;
 	public static final int	ALIAS          = 0x000004;
 	public static final int	USERDELAY      = 0x000008;
@@ -386,99 +376,39 @@ public class Sim
 	public static final int	STOPVECCHANGE  = 0x000100;
 	public static final int	VISITED        = 0x000200;
 
-	public static final int	MERGED		= 0x000400;	/* node is whithin a txtor stack */
-	public static final int	DELETED		= 0x000800;	/* node was deleted */
+	/** node is whithin a txtor stack */			public static final int	MERGED		= 0x000400;
 
-	public static final int	H_INPUT		= 0x001000;	/* node is in high input list */
-	public static final int	L_INPUT		= 0x002000;	/* node is in low input list */
-	public static final int	U_INPUT		= 0x003000;	/* node is in U input list */
-	public static final int	X_INPUT		= 0x004000;	/* node is in X input list */
+	/** node is in high input list */				public static final int	H_INPUT		= 0x001000;
+	/** node is in low input list */				public static final int	L_INPUT		= 0x002000;
+	/** node is in U input list */					public static final int	U_INPUT		= 0x003000;
+	/** node is in X input list */					public static final int	X_INPUT		= 0x004000;
 
 	public static final int INPUT_MASK	=	(H_INPUT | L_INPUT | X_INPUT | U_INPUT);
 
-	public static final int	CHANGED		= 0x008000;	/* node is affected by a net change */
-	public static final int	STIM		= 0x010000;	/* node is used as stimuli */
-	public static final int	ACTIVE_CL	= 0x020000;	/* node is in an active cluster */
-	public static final int	WAS_ACTIVE	= 0x040000;	/* set if node was ever active */
-
-	public static final int HIST_OFF        = 0x200000;        /* node don't save history */
-
 	/* resistance types */
-	public static final int	STATIC		= 0;	/* static resistance */
-	public static final int	DYNHIGH 	= 1;	/* dynamic-high resistance */
-	public static final int	DYNLOW  	= 2;	/* dynamic-low resistance */
-	public static final int	POWER		= 3;	/* resist. for power calculation (unused) */
-	public static final int	R_TYPES		= 3;	/* number of resistance contexts */
+	/** static resistance */						public static final int	STATIC		= 0;
+	/** dynamic-high resistance */					public static final int	DYNHIGH 	= 1;
+	/** dynamic-low resistance */					public static final int	DYNLOW  	= 2;
+	/** resist. for power calculation (unused) */	public static final int	POWER		= 3;
+	/** number of resistance contexts */			public static final int	R_TYPES		= 3;
 
-	/* Event Types (for incremental simulation only) */
-	public static final int	IS_INPUT		= 0x1;		/* event makes node input */
-	public static final int	IS_XINPUT		= 0x2;		/* event terminates input */
+	/** result of re-evaluation */					public static final int	REVAL		= 0x0;
+	/** node is decaying to X */					public static final int	DECAY_EV	= 0x1;
 
-	public static final int	REVAL			= 0x0;		/* result of re-evaluation */
-	public static final int	DECAY_EV		= 0x1;		/* node is decaying to X */
-	public static final int	PUNTED			= 0x3;		/* previously punted event */
+	/** pending from last run */					public static final int	PENDING		= 0x4;
 
-	/* events > THREAD are NOT threaded into node structure */
-	public static final int	THREAD			= 0x3;
+	/** minimum node capacitance (in pf) */			public static final double MIN_CAP	= 0.00001;
 
-	public static final int	PENDING			= 0x4;		/* pending from last run */
-	public static final int	STIMULI			= 0x8;		/* self-schedulled stimuli */
-	public static final int	STIM_INP		= (STIMULI | IS_INPUT);
-	public static final int	STIM_XINP		= (STIMULI | IS_XINPUT);
+	/** dynamic low resiatance index */				public static final int	R_LOW		= 0;
+	/** dynamic high resiatance index */			public static final int	R_HIGH		= 1;
 
-	public static final int	CHECK_PNT		= 0x10;		/* next change in history */
-	public static final int	INP_EV			= (CHECK_PNT | IS_INPUT);
-	public static final int	XINP_EV			= (CHECK_PNT | IS_XINPUT);
-	public static final int	DELAY_CHK		= 0x20;		/* delayed CHECK_PNT */
-	public static final int	DELAY_EV		= 0x40;		/* last REVAL was delayed */
+	/** a huge time */								private static final long MAX_TIME	= 0x0FFFFFFFFFFFFFFFL;
 
-	public static final int	CHNG_MODEL		= 0x80;		/* change evaluation model */
+	/** A small number */							public static final double SMALL	= 1E-15;
+	/** A large number */							public static final double LARGE	= 1E15;
+	/** R > LIMIT are considered infinite */		public static final double LIMIT	= 1E8;
 
-	public static final double MIN_CAP		= 0.00001;		/* minimum node capacitance (in pf) */
-
-	public static final int	R_LOW		= 0;		/* dynamic low resiatance index */
-	public static final int	R_HIGH		= 1;		/* dynamic high resiatance index */
-
-	static final int REPORT_DECAY	= 0x01;
-	static final int REPORT_DELAY	= 0x02;
-	static final int REPORT_TAU		= 0x04;
-	static final int REPORT_TCOORD	= 0x08;
-
-	static final long MAX_TIME	= 0x0FFFFFFFFFFFFFFFL;	/* a huge time */
-
-	static final double SMALL		= 1E-15;	/* A small number */
-	static final double LARGE		= 1E15;	    /* A large number */
-	static final double LIMIT		= 1E8;	    /* R > LIMIT are considered infinite */
-
-	/* Conversion macros between various time units */
-	static double d2ns(long d) { return d * 0.01; }	/* deltas to ns */
-	static double d2ps(long d) { return d * 10.0; }	/* deltas to ps */
-
-	static long ns2d(double d) { return Math.round(d * 100); }	/* ns to deltas */
-	static long ps2d(double d) { return Math.round(d * 0.1); }	/* ps to deltas */
-
-	static double ps2ns(double d) { return (long)(d * 0.001); }	/* ps to ns */
-
-	/* figure what's on the *other* terminal node of a transistor */
-	static Node other_node(Trans t, Node n) { return t.drain == n ? t.source : t.drain; }
-
-	static int BASETYPE(int T) { return T & 0x07; }
-
-	private int hash_terms(Trans t) { return t.source.index ^ t.drain.index; }
-
-	static int INPUT_NUM(int flg) { return ((flg & INPUT_MASK) >> 12); }
-
-	/*
-	 * The routines in this file handle network input (from sim files).
-	 * The input routine "irsim_rd_network" replaces the work formerly done by presim.
-	 * This version differs from the former in the following:
-	 *  1. voltage drops across transistors are ignored (assumes transistors
-	 *     driven by nodes with voltage drops have the same resistance as those
-	 *     driven by a full swing).
-	 *  2. static power calculations not performed (only useful for nmos anyhow).
-	 */
-
-	static final int NTTYPES = 4;	/* number of transistor types defined */
+	/** number of transistor types defined */		public static final int NTTYPES = 4;
 	static String [] irsim_ttype =
 	{
 		"n-channel",
@@ -487,66 +417,61 @@ public class Sim
 		"resistor"
 	};
 
-	/* table to convert transistor type and gate node value into switch state
-	 * indexed by irsim_switch_state[transistor-type][gate-node-value].
+	/**
+	 * table to convert transistor type and gate node value into switch state
+	 * indexed by [transistor-type][gate-node-value].
 	 */
 	static int [][] irsim_switch_state = new int[][]
 	{
-		new int[] {OFF,  UNKNOWN, UNKNOWN, ON},		/* NCHAH */
-		new int[] {ON,   UNKNOWN, UNKNOWN, OFF},	/* PCHAN */
-		new int[] {WEAK, WEAK,    WEAK,    WEAK},   /* RESIST */
-		new int[] {WEAK, WEAK,    WEAK,    WEAK}    /* DEP */
+		/** NCHAH */	new int[] {OFF,  UNKNOWN, UNKNOWN, ON},
+		/** PCHAN */	new int[] {ON,   UNKNOWN, UNKNOWN, OFF},
+		/** RESIST */	new int[] {WEAK, WEAK,    WEAK,    WEAK},
+		/** DEP */		new int[] {WEAK, WEAK,    WEAK,    WEAK}
 	};
 
 	static String   irsim_vchars = "0XX1";
 
 	public static final int	MAX_ERRS	= 20;
-	public static final int	FATAL		= (MAX_ERRS + 1);
 
-	public static final int	MAX_PARALLEL	= 30;	/* this is probably sufficient per stage */
+	/** this is probably sufficient per stage */							public static final int	MAX_PARALLEL	= 30;
 
+	/** power supply node */												public  Node    irsim_VDD_node;
+	/** ground supply node */												public  Node    irsim_GND_node;
 
-	public Node     irsim_VDD_node;		/* power supply nodes */
-	public Node     irsim_GND_node;
+	/** number of actual nodes */											public  int     irsim_nnodes;
+	/** number of aliased nodes */											public  int     irsim_naliases;
+	/** number of txtors indexed by type */									private int []  irsim_ntrans = new int[NTTYPES];
 
-	private Tlist    irsim_on_trans;		/* always on transistors */
+	/** list of capacitor-transistors */									public  Trans   irsim_tcap = null;
 
-	public int      irsim_nnodes;			/* number of actual nodes */
-	public int      irsim_naliases;		/* number of aliased nodes */
-	private int []   irsim_ntrans = new int[NTTYPES];	/* number of txtors indexed by type */
+	/** # of erros found in sim file */										private int     nerrs = 0;
 
-	private Tlist    irsim_freeLinks = null;	/* free list of Tlist structs */
-	public Trans    irsim_tcap = null;		/* list of capacitor-transistors */
+	/** list of transistors just read */									private Trans   rd_tlist;
+	public  Trans [] irsim_parallel_xtors = new Trans[MAX_PARALLEL];
 
-	private int     nerrs = 0;		/* # of erros found in sim file */
+	/** pointer to dummy hist-entry that serves as tail for all nodes */	private HistEnt irsim_last_hist;
+	public  int      irsim_num_edges = 0;
+	public  int      irsim_num_punted = 0;
+	public  int      irsim_num_cons_punted = 0;
+	public  long     irsim_max_time;
 
-	private Trans    rd_tlist;		/* list of transistors just read */
-	public Trans [] irsim_parallel_xtors = new Trans[MAX_PARALLEL];
+	/** current simulated time */											public  long    irsim_cur_delta;
+	/** node that belongs to current event */								public  Node    irsim_cur_node;
+	/** number of current event */											public  long    irsim_nevent;
 
-	private HistEnt  irsim_last_hist;			/* pointer to dummy hist-entry that serves as tail for all nodes */
-	public int      irsim_num_edges = 0;
-	public int      irsim_num_punted = 0;
-	public int      irsim_num_cons_punted = 0;
-	public long     irsim_max_time;
-
-	public long     irsim_cur_delta;	    /* current simulated time */
-	public Node     irsim_cur_node;	        /* node that belongs to current event */
-	public long     irsim_nevent;		    /* number of current event */
-	public int      irsim_npending;         /* number of pending events */
-
-	public int      irsim_tunitdelay = 0;	/* if <> 0, all transitions take 'irsim_tunitdelay' DELAY-units */
-	public long     irsim_tdecay = 0;		/* if <> 0, undriven nodes decay to X after 'irsim_tdecay' DELAY-units */
+	/** if nonzero, all transactions take this DELAY-units */				public  int     irsim_tunitdelay = 0;
+	/** number of DELAY-units after which undriven nodes decay to X */		public  long    irsim_tdecay = 0;
 
 	private boolean  parallelWarning = false;
-	private HashMap nodeHash;
-	private List nodeList;
-	private int nodeIndexCounter;
-	private boolean warnVdd, warnGnd;
+	private HashMap  nodeHash;
+	private List     nodeList;
+	private int      nodeIndexCounter;
+	private boolean  warnVdd, warnGnd;
 
 	private Eval     irsim_model;
 	private Config   theConfig;
 
-	Sim(Analyzer analyzer)
+	public Sim(Analyzer analyzer)
 	{
     	theConfig = new Config();
     	String steppingModel = Simulation.getIRSIMStepModel();
@@ -562,9 +487,9 @@ public class Sim
 
 	public Eval getModel() { return irsim_model; }
 
-	private void BAD_ARGC(String fileName, LineNumberReader lineReader, char cmd, String [] strings)
+	private void BAD_ARGC(String fileName, LineNumberReader lineReader, String [] strings)
 	{
-		irsim_error(fileName, lineReader.getLineNumber(), "Wrong number of args for '" + cmd + "'");
+		irsim_error(fileName, lineReader.getLineNumber(), "Wrong number of args for '" + strings[0] + "'");
 		for(int i=0; i<strings.length; i++) System.out.print(" " + strings[i]);
 		System.out.println();
 		CheckErrs(fileName);
@@ -588,6 +513,24 @@ public class Sim
 		}
 		return false;
 	}
+
+	/* Conversion macros between various time units */
+	static double d2ns(long d) { return d * 0.01; }	/* deltas to ns */
+	static double d2ps(long d) { return d * 10.0; }	/* deltas to ps */
+
+	static long ns2d(double d) { return Math.round(d * 100); }	/* ns to deltas */
+	static long ps2d(double d) { return Math.round(d * 0.1); }	/* ps to deltas */
+
+	static double ps2ns(double d) { return d * 0.001; }	/* ps to ns */
+
+	/* figure what's on the *other* terminal node of a transistor */
+	static Node other_node(Trans t, Node n) { return t.drain == n ? t.source : t.drain; }
+
+	static int BASETYPE(int T) { return T & 0x07; }
+
+	private int hash_terms(Trans t) { return t.source.index ^ t.drain.index; }
+
+	static int INPUT_NUM(int flg) { return ((flg & INPUT_MASK) >> 12); }
 
 	/**
 	 * Traverse the transistor list and add the node connection-list.  We have
@@ -624,22 +567,19 @@ public class Sim
 			} else
 			{
 				// do not connect gate if ALWAYSON since they do not matter
-				if ((t.ttype & ALWAYSON) != 0)
+				if ((t.ttype & ALWAYSON) == 0)
 				{
-					irsim_on_trans = CONNECT(irsim_on_trans, t);
-				} else
-				{
-					((Node)t.gate).ngate = CONNECT(((Node)t.gate).ngate, t);
+					((Node)t.gate).ngateList.add(t);
 				}
 
 				if ((src.nflags & POWER_RAIL) == 0)
 				{
-					src.nterm = CONNECT(src.nterm, t);
+					src.ntermList.add(t);
 					nd_list = LINK_TO_LIST(src, nd_list, visited);
 				}
 				if ((drn.nflags & POWER_RAIL) == 0)
 				{
-					drn.nterm = CONNECT(drn.nterm, t);
+					drn.ntermList.add(t);
 					nd_list = LINK_TO_LIST(drn, nd_list, visited);
 				}
 			}
@@ -671,45 +611,6 @@ public class Sim
 	}
 
 	/**
-	 * Add transistor T to the list of transistors connected to that list.
-	 * The transistor is added at the head of the list.
-	 */
-	private Tlist CONNECT(Tlist list, Trans t)
-	{
-		Tlist newl = new Tlist();
-		newl.xtor = t;
-		newl.next = list;
-		return newl;
-	}
-
-	/**
-	 * Remove the entry for transistor t from "list", and return it to the
-	 * free pool.
-	 */
-	private Tlist DISCONNECT(Tlist list, Trans t)
-	{
-		Tlist last = null;
-		for(Tlist li = list; li != null; li = li.next)
-		{
-			if (li.xtor == t)
-			{
-				if (last != null)
-				{
-//					FREE_LINK(li);
-					last.next = li.next;
-					return list;
-				} else
-				{
-//					FREE_LINK(li);
-					return li.next;
-				}
-			}
-			last = li;
-		}
-		return list;
-	}
-
-	/**
 	 * if FLAG is not set in in NODE->nflags, Link NODE to the head of LIST
 	 * using the temporary entry (n.next) in the node structure.  This is
 	 * used during net read-in/change to build lists of affected nodes.
@@ -731,7 +632,7 @@ public class Sim
 	private void node_info(String [] targ, String fileName, LineNumberReader lineReader)
 	{
 		if (targ.length != 8)
-			BAD_ARGC(fileName, lineReader, 'N', targ);
+			BAD_ARGC(fileName, lineReader, targ);
 
 		Node n = irsim_GetNode(targ[1]);
 
@@ -747,7 +648,7 @@ public class Sim
 	private void nnode_info(String [] targ, String fileName, LineNumberReader lineReader)
 	{
 		if (targ.length != 14)
-			BAD_ARGC(fileName, lineReader, 'M', targ);
+			BAD_ARGC(fileName, lineReader, targ);
 
 		Node n = irsim_GetNode(targ[1]);
 
@@ -778,7 +679,7 @@ public class Sim
 		{
 			if (targ.length != 4)
 			{
-				BAD_ARGC(fileName, lineReader, 'r', targ);
+				BAD_ARGC(fileName, lineReader, targ);
 				return;
 			}
 
@@ -791,7 +692,7 @@ public class Sim
 		{
 			if (targ.length != 11)
 			{
-				BAD_ARGC(fileName, lineReader, targ[0].charAt(0), targ);
+				BAD_ARGC(fileName, lineReader, targ);
 				return;
 			}
 
@@ -859,7 +760,7 @@ public class Sim
 	private void alias(String [] targ, String fileName, LineNumberReader lineReader)
 	{
 		if (targ.length < 3)
-			BAD_ARGC(fileName, lineReader, '=', targ);
+			BAD_ARGC(fileName, lineReader, targ);
 
 		Node n = irsim_GetNode(targ[1]);
 
@@ -896,7 +797,7 @@ public class Sim
 	private void nthresh(String [] targ, String fileName, LineNumberReader lineReader)
 	{
 		if (targ.length != 4)
-			BAD_ARGC(fileName, lineReader, 't', targ);
+			BAD_ARGC(fileName, lineReader, targ);
 
 		Node n = irsim_GetNode(targ[1]);
 		n.vlow = (float)TextUtils.atof(targ[2]);
@@ -909,7 +810,7 @@ public class Sim
 	private void ndelay(String [] targ, String fileName, LineNumberReader lineReader)
 	{
 		if (targ.length != 4)
-			BAD_ARGC(fileName, lineReader, 'D', targ);
+			BAD_ARGC(fileName, lineReader, targ);
 
 		Node n = irsim_GetNode(targ[1]);
 		n.nflags |= USERDELAY;
@@ -941,7 +842,7 @@ public class Sim
 			n.ncap += cap;
 		}
 		else
-			BAD_ARGC(fileName, lineReader, 'c', targ);
+			BAD_ARGC(fileName, lineReader, targ);
 	}
 
 	/**
@@ -1229,9 +1130,9 @@ public class Sim
 		Node thisone = n.nlink = n;
 		do
 		{
-			for(Tlist l = thisone.nterm; l != null; l = l.next)
+			for(Iterator it = thisone.ntermList.iterator(); it.hasNext(); )
 			{
-				Trans t = l.xtor;
+				Trans t = (Trans)it.next();
 				if (t.state == OFF) continue;
 				if ((t.tflags & CROSSED) != 0)	// Each transistor is crossed twice
 				{
@@ -1341,13 +1242,6 @@ public class Sim
 		irsim_num_edges++;
 		HistEnt curr = node.curr;
 
-		if ((node.nflags & HIST_OFF) != 0)
-		{
-			// Old entries are deleted. Keep only last entry for delay calculation
-			irsim_FreeHistList(node);
-			curr = node.curr;
-		}
-
 		while(curr.next.punt)		// skip past any punted events
 			curr = curr.next;
 
@@ -1375,8 +1269,6 @@ public class Sim
 		HistEnt h = node.curr;
 
 		irsim_num_punted++;
-		if ((node.nflags & HIST_OFF) != 0)
-			return;
 
 		HistEnt newp = new HistEnt();
 
@@ -1422,37 +1314,6 @@ public class Sim
 		return h;
 	}
 
-	public void irsim_FlushHist(long ftime)
-	{
-		for(Iterator it = irsim_GetNodeList().iterator(); it.hasNext(); )
-		{
-			Node n = (Node)it.next();
-			HistEnt head = n.head;
-			if (head.next == irsim_last_hist || (n.nflags & ALIAS) != 0)
-				continue;
-			HistEnt p = head;
-			HistEnt h = NEXTH(p);
-			while((long)h.htime < ftime)
-			{
-				p = h;
-				h = NEXTH(h);
-			}
-			head.val = p.val;
-			head.htime = p.htime;
-			head.inp = p.inp;
-			while (p.next != h)
-				p = p.next;
-			if (head.next != h)
-			{
-				head.next = h;
-			}
-			if ((long)n.curr.htime < ftime)
-			{
-				n.curr = head;
-			}
-		}
-	}
-
 	public int irsim_backToTime(Node nd)
 	{
 		if ((nd.nflags & (ALIAS | MERGED)) != 0)
@@ -1460,7 +1321,7 @@ public class Sim
 
 		HistEnt h = nd.head;
 		HistEnt p = NEXTH(h);
-		while((long)p.htime < irsim_cur_delta)
+		while(p.htime < irsim_cur_delta)
 		{
 			h = p;
 			p = NEXTH(p);
@@ -1477,12 +1338,12 @@ public class Sim
 				if (PuntTime(h) < irsim_cur_delta)	// already punted, skip it
 					continue;
 
-				qtime = (long)h.htime - (long)h.delay;	// pending, enqueue it
+				qtime = h.htime - h.delay;	// pending, enqueue it
 				if (qtime < irsim_cur_delta)
 				{
 					long tmp = irsim_cur_delta;
 					irsim_cur_delta = qtime;
-					irsim_model.irsim_enqueue_event(nd, (int) h.val, (long) h.delay, (long) h.rtime);
+					irsim_model.irsim_enqueue_event(nd, h.val, h.delay, h.rtime);
 					irsim_cur_delta = tmp;
 				}
 				p.next = h.next;
@@ -1494,7 +1355,7 @@ public class Sim
 				{
 					long tmp = irsim_cur_delta;
 					irsim_cur_delta = qtime;
-					irsim_model.irsim_enqueue_event(nd, (int) h.val, (long) h.delay, (long) h.rtime);
+					irsim_model.irsim_enqueue_event(nd, h.val, h.delay, h.rtime);
 					irsim_cur_delta = tmp;
 
 					p.next = h.next;		// and free it
@@ -1520,11 +1381,11 @@ public class Sim
 		if (h.inp)
 			nd.nflags |= INPUT;
 
-		if (nd.ngate != null)		// recompute transistor states
+		if (nd.ngateList.size() != 0)		// recompute transistor states
 		{
-			for(Tlist l = nd.ngate; l != null; l = l.next)
+			for(Iterator it = nd.ngateList.iterator(); it.hasNext(); )
 			{
-				Trans t = l.xtor;
+				Trans t = (Trans)it.next();
 				t.state = (byte)irsim_model.compute_trans_state(t);
 			}
 		}
@@ -1541,47 +1402,47 @@ public class Sim
 	 */
 	public void irsim_make_parallel(Node nlist)
 	{
-		long cl = VISITED;
-		for(cl = ~cl; nlist != null; nlist.nflags &= cl, nlist = nlist.getNext())
+		for( ; nlist != null; nlist.nflags &= ~VISITED, nlist = nlist.getNext())
 		{
-			for(Tlist l1 = nlist.nterm; l1 != null; l1 = l1.next)
+			for(int l1 = 0; l1 < nlist.ntermList.size(); l1++)
 			{
-				Trans t1 = l1.xtor;
+				Trans t1 = (Trans)nlist.ntermList.get(l1);
 				int type = t1.ttype;
 				if ((type & (GATELIST | ORED)) != 0)
 					continue;	// ORED implies processed, so skip as well
 
 				long hval = hash_terms(t1);
-				Tlist prev = l1;
-				for(Tlist l2 = l1.next; l2 != null; prev = l2, l2 = l2.next)
+				for(int l2 = l1+1; l2 < nlist.ntermList.size(); l2++)
 				{
-					Trans t2 = l2.xtor;
+					Trans t2 = (Trans)nlist.ntermList.get(l2);
 					if (t1.gate != t2.gate || hash_terms(t2) != hval ||
 						type != (t2.ttype & ~ORED))
 							continue;
 
 					if ((t1.ttype & ORED) == 0)
 					{
-						t2 = new Trans();
-						t2.r = new Resists();
-						t2.r.dynres[R_LOW] = t1.r.dynres[R_LOW];
-						t2.r.dynres[R_HIGH] = t1.r.dynres[R_HIGH];
-						t2.r.rstatic = t1.r.rstatic;
-						t2.gate = t1.gate;
-						t2.source = t1.source;
-						t2.drain = t1.drain;
-						t2.ttype = (byte)((t1.ttype & ~ORLIST) | ORED);
-						t2.state = t1.state;
-						t2.tflags = t1.tflags;
-						t2.tlink = t1;
+						Trans t3 = new Trans();
+						t3.r = new Resists();
+						t3.r.dynres[R_LOW] = t1.r.dynres[R_LOW];
+						t3.r.dynres[R_HIGH] = t1.r.dynres[R_HIGH];
+						t3.r.rstatic = t1.r.rstatic;
+						t3.gate = t1.gate;
+						t3.source = t1.source;
+						t3.drain = t1.drain;
+						t3.ttype = (byte)((t1.ttype & ~ORLIST) | ORED);
+						t3.state = t1.state;
+						t3.tflags = t1.tflags;
+						t3.tlink = t1;
 						t1.setSTrans(null);
-						t1.setDTrans(t2);
-						REPLACE(((Node)t1.gate).ngate, t1, t2);
-						REPLACE(t1.source.nterm, t1, t2);
-						REPLACE(t1.drain.nterm, t1, t2);
+						t1.setDTrans(t3);
+						int oldGateI = ((Node)t1.gate).ngateList.indexOf(t1);
+						if (oldGateI >= 0) ((Node)t1.gate).ngateList.set(oldGateI, t3);
+						int oldSourceI = t1.source.ntermList.indexOf(t1);
+						if (oldSourceI >= 0) t1.source.ntermList.set(oldSourceI, t3);
+						int oldDrainI = t1.drain.ntermList.indexOf(t1);
+						if (oldDrainI >= 0) t1.drain.ntermList.set(oldDrainI, t3);
 						t1.ttype |= ORLIST;
-						t1 = t2;
-						t2 = l2.xtor;
+						t1 = t3;
 						nored[BASETYPE(t1.ttype)]++;
 					}
 
@@ -1590,15 +1451,17 @@ public class Sim
 					r1.dynres[R_LOW] = (float)COMBINE(r1.dynres[R_LOW], r2.dynres[R_LOW]);
 					r1.dynres[R_HIGH] = (float)COMBINE(r1.dynres[R_HIGH], r2.dynres[R_HIGH]);
 
-					((Node)t2.gate).ngate = DISCONNECT(((Node)t2.gate).ngate, t2);	// disconnect gate
+					((Node)t2.gate).ngateList.remove(t2);	// disconnect gate
 					if (t2.source == nlist)		// disconnect term1
-						t2.drain.nterm = DISCONNECT(t2.drain.nterm, t2);
-					else
-						t2.source.nterm = DISCONNECT(t2.source.nterm, t2);
+					{
+						t2.drain.ntermList.remove(t2);
+					} else
+					{
+						t2.source.ntermList.remove(t2);
+					}
 
-					prev.next = l2.next;			// disconnect term2
-					FREE_LINK(l2);
-					l2 = prev;
+					// disconnect term2
+					nlist.ntermList.remove(t2);
 
 					if ((t2.ttype & ORED) != 0)
 					{
@@ -1619,88 +1482,6 @@ public class Sim
 				}
 			}
 		}
-	}
-
-	/**
-	 * Return "Tlist" pointer LP to free pool.
-	 */
-	private void FREE_LINK(Tlist lp)
-	{
-		lp.next = irsim_freeLinks;
-		irsim_freeLinks = lp;
-	}
-
-	/**
-	 * Replace the first ocurrence of transistor "oldT" by "newT" on "list".
-	 */
-	private void REPLACE(Tlist list, Trans oldT, Trans newT)
-	{
-		for(Tlist lp = list; lp != null; lp = lp.next)
-		{
-			if (lp.xtor == oldT)
-			{
-				lp.xtor = newT;
-				break;
-			}
-		}
-	}
-
-	private void irsim_UnParallelTrans(Trans t)
-	{
-		if ((t.ttype & ORLIST) == 0) return;				// should never be
-
-		Trans tor = t.getDTrans();
-		if (tor.tlink == t)
-			tor.tlink = t.getSTrans();
-		else
-		{
-			Trans  tp;
-
-			for(tp = tor.tlink; tp != null; tp = tp.getSTrans())
-			{
-				if (tp.getSTrans() == t)
-				{
-					tp.setSTrans(t.getSTrans());
-					break;
-				}
-			}
-		}
-
-		if (tor.tlink == null)
-		{
-			REPLACE(((Node)tor.gate).ngate, tor, t);
-			REPLACE(tor.source.nterm, tor, t);
-			REPLACE(tor.drain.nterm, tor, t);
-		} else
-		{
-			Resists ror = tor.r;
-			Resists r = t.r;
-
-			double dr = r.rstatic - ror.rstatic;
-			ror.rstatic = (float)((ror.rstatic * r.rstatic) / dr);
-			dr = r.dynres[R_LOW] - ror.dynres[R_LOW];
-			ror.dynres[R_LOW] = (float)((ror.dynres[R_LOW] * r.dynres[R_LOW]) / dr);
-			dr = r.dynres[R_HIGH] - ror.dynres[R_HIGH];
-			ror.dynres[R_HIGH] = (float)((ror.dynres[R_HIGH] * r.dynres[R_HIGH]) / dr);
-
-			if ((t.ttype & ALWAYSON) != 0)
-			{
-				irsim_on_trans = CONNECT(irsim_on_trans, t);
-			} else
-			{
-				((Node)t.gate).ngate = CONNECT(((Node)t.gate).ngate, t);
-			}
-			if ((t.source.nflags & POWER_RAIL) == 0)
-			{
-				t.source.nterm = CONNECT(t.source.nterm, t);
-			}
-			if ((t.drain.nflags & POWER_RAIL) == 0)
-			{
-				t.drain.nterm = CONNECT(t.drain.nterm, t);
-			}
-		}
-		t.ttype &= ~ORLIST;
-		nored[BASETYPE(t.ttype)] -= 1;
 	}
 
 	private void irsim_pParallelTxtors()

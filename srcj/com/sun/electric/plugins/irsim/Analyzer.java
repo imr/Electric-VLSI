@@ -57,7 +57,7 @@ import java.util.List;
  */
 public class Analyzer extends Engine
 {
-	/********** Simulation vectors **********/
+	static final String irsim_version = "9.5j";
 
 	/* the meaning of SIMVECTOR.command */
 	private static final int VECTORCOMMENT    =  1;		/* a comment in the command file */
@@ -74,6 +74,7 @@ public class Analyzer extends Engine
 	private static final int VECTORSET        = 12;		/* the "set" command to change vector values */
 	private static final int VECTOREXCL       = 13;		/* the "!" command to print gate info */
 	private static final int VECTORQUESTION   = 14;		/* the "?" command to print source/drain info */
+	private static final int VECTORTRACE      = 15;		/* the "t" command to trace */
 
 	private static final int    DEF_STEPS         = 4;			/* default simulation steps per screen */
 	private static final double DEFIRSIMTIMERANGE = 10.0E-9f;	/* initial size of simulation window: 10ns */
@@ -114,18 +115,19 @@ public class Analyzer extends Engine
 
 	private SimVector irsim_firstvector = null;
 	private SimVector irsim_lastvector = null;
+	private long      irsim_stepsize = 50000;
 
-	private List     irsim_traces;
-	private Times    irsim_tims = new Times();
-	private long     irsim_lastStart;		/* last redisplay starting time */
-	private WaveformWindow ww;
+	private List      irsim_traces;
+	private Times     irsim_tims = new Times();
+	private long      irsim_lastStart;		/* last redisplay starting time */
 
 	private double [] irsim_tracetime;
 	private short  [] irsim_tracestate;
 	private int       irsim_tracetotal = 0;
 
 	// the simulation engine
-	private Sim      theSim;
+	private Sim       theSim;
+	private WaveformWindow ww;
 
 	/************************** ELECTRIC INTERFACE **************************/
 
@@ -168,7 +170,7 @@ public class Analyzer extends Engine
         	analyzer.irsim_traces = new ArrayList();
 
     		/* now initialize the simulator */
-    		System.out.println("IRSIM " + Sim.irsim_version);
+    		System.out.println("IRSIM, version " + irsim_version);
 
     		String fileToUse = fileName;
     		if (fileName == null)
@@ -261,7 +263,7 @@ public class Analyzer extends Engine
     		// tell the simulator to watch all signals
     		if (!analyzer.irsim_analyzerON)
     		{
-    			analyzer.irsim_InitTimes(analyzer.irsim_sim_time0, 50000, sim.irsim_cur_delta);
+    			analyzer.irsim_InitTimes(0, 50000, sim.irsim_cur_delta);
     		}
 
     		for(Iterator it = sim.irsim_GetNodeList().iterator(); it.hasNext(); )
@@ -270,7 +272,7 @@ public class Analyzer extends Engine
     			analyzer.irsim_AddNode(n);
     		}
     		analyzer.irsim_UpdateWindow(0);
-    		analyzer.irsim_DisplayTraces(analyzer.irsim_analyzerON);		// pass 0 first time
+    		analyzer.irsim_DisplayTraces(analyzer.irsim_analyzerON);
     		analyzer.irsim_analyzerON = true;
 
     		// read signal values
@@ -304,7 +306,7 @@ public class Analyzer extends Engine
 			for(Iterator it = signals.iterator(); it.hasNext(); )
 			{
 				Stimuli.Signal sig = (Stimuli.Signal)it.next();
-				parameters[0] = sig.getFullName();
+				parameters[0] = sig.getFullName().replace('.', '/');
 				irsim_newvector(veccmd, parameters, ww.getMainTimeCursor());
 			}
 			if (Simulation.isIRSIMResimulateEach())
@@ -362,8 +364,8 @@ public class Analyzer extends Engine
 			for(Iterator it = signals.iterator(); it.hasNext(); )
 			{
 				Stimuli.Signal sig = (Stimuli.Signal)it.next();
-				irsim_issuecommand("! " + sig.getFullName());
-				irsim_issuecommand("? " + sig.getFullName());
+				irsim_issuecommand("! " + sig.getFullName().replace('.', '/'));
+				irsim_issuecommand("? " + sig.getFullName().replace('.', '/'));
 			}
 			return;
 		}
@@ -394,7 +396,6 @@ public class Analyzer extends Engine
 		TraceEnt t = new TraceEnt();
 		t.name = nd.nname;
 		t.nd = nd;
-		nd.nflags &= ~Sim.HIST_OFF;
 		t.wind = t.cursor = nd.head;
 		irsim_traces.add(t);
 	}
@@ -431,21 +432,6 @@ public class Analyzer extends Engine
 		irsim_DrawTraces(irsim_tims.start, irsim_tims.end);
 	}
 
-	private void irsim_RemoveAllDeleted()
-	{
-		boolean i = false;
-
-		List newList = new ArrayList();
-		for(Iterator it = irsim_traces.iterator(); it.hasNext(); )
-		{
-			TraceEnt t = (TraceEnt)it.next();
-			if ((t.nd.nflags & Sim.DELETED) != 0) i = true; else
-				newList.add(t);
-		}
-		irsim_traces = newList;
-		if (i) UpdateWinRemove();
-	}
-
 	/**
 	 * Initialize the display times so that when first called the last time is
 	 * shown on the screen.  Default width is DEF_STEPS (simulation) steps.
@@ -454,7 +440,7 @@ public class Analyzer extends Engine
 	{
 		irsim_tims.first = firstT;
 		irsim_tims.last = lastT;
-		irsim_tims.steps = 4 * Simulation.getIRSIMStepSize();
+		irsim_tims.steps = 4 * stepsize;
 
 		if (irsim_tims.start <= irsim_tims.first)
 		{
@@ -477,13 +463,13 @@ public class Analyzer extends Engine
 				if (endtime > irsim_tims.end) irsim_tims.end = endtime;
 			} else
 			{
-				irsim_tims.end = lastT + 2 * Simulation.getIRSIMStepSize();
+				irsim_tims.end = lastT + 2 * stepsize;
 				irsim_tims.start = irsim_tims.end - irsim_tims.steps;
 				if (irsim_tims.start < irsim_tims.first)
 				{
-					Simulation.setIRSIMStepSize((int)(irsim_tims.first - irsim_tims.start));
-					irsim_tims.start += Simulation.getIRSIMStepSize();
-					irsim_tims.end += Simulation.getIRSIMStepSize();
+					stepsize = irsim_tims.first - irsim_tims.start;
+					irsim_tims.start += stepsize;
+					irsim_tims.end += stepsize;
 				}
 			}
 		}
@@ -610,15 +596,15 @@ public class Analyzer extends Engine
 				}
 
 				irsim_tracetime[count] = curt / 100000000000.0;
-				switch(val)
+				switch (val)
 				{
-					case Sim.LOW:	// 0
+					case Sim.LOW:
 						irsim_tracestate[count] = Stimuli.LOGIC_LOW | Stimuli.GATE_STRENGTH;
 						break;
-					case Sim.HIGH:	// 3
+					case Sim.HIGH:
 						irsim_tracestate[count] = Stimuli.LOGIC_HIGH | Stimuli.GATE_STRENGTH;
 						break;
-					case Sim.X:		// 1
+					default:
 						irsim_tracestate[count] = Stimuli.LOGIC_X | Stimuli.GATE_STRENGTH;
 						break;
 				}
@@ -718,13 +704,13 @@ public class Analyzer extends Engine
 						{
 							// splitting step at "inserttime"
 							sv.parameters = new String[1];
-							sv.parameters[0] = Double.toString((inserttime-curtime) * 1000000000.0);
+							sv.parameters[0] = TextUtils.formatDouble((inserttime-curtime) * 1000000000.0);
 
 							// create second step to advance after this signal
 							SimVector aftersv = new SimVector();
 							aftersv.command = VECTORS;
 							aftersv.parameters = new String[1];
-							aftersv.parameters[0] = Double.toString((curtime+stepsize-inserttime) * 1000000000.0);
+							aftersv.parameters[0] = TextUtils.formatDouble((curtime+stepsize-inserttime) * 1000000000.0);
 							aftersv.nextsimvector = sv.nextsimvector;
 							sv.nextsimvector = aftersv;
 						}
@@ -753,7 +739,7 @@ public class Analyzer extends Engine
 					SimVector aftersv = new SimVector();
 					aftersv.command = VECTORS;
 					aftersv.parameters = new String[1];
-					aftersv.parameters[0] = Double.toString(thisstep);
+					aftersv.parameters[0] = TextUtils.formatDouble(thisstep);
 					if (lastsv == null)
 					{
 						aftersv.nextsimvector = irsim_firstvector;
@@ -825,7 +811,7 @@ public class Analyzer extends Engine
 	private void irsim_playvectors()
 	{
 		irsim_issuecommand("back 0");
-		irsim_issuecommand("flush");
+//		irsim_issuecommand("flush");
 
 		double curtime = 0;
 		irsim_analyzerON = false;
@@ -863,6 +849,7 @@ public class Analyzer extends Engine
 			case VECTORSET:      return "set";
 			case VECTOREXCL:     return "!";
 			case VECTORQUESTION: return "?";
+			case VECTORTRACE:    return "t";
 		}
 		return "";
 	}
@@ -961,6 +948,7 @@ public class Analyzer extends Engine
 				if (targ[0].equals("s")) command = VECTORS; else
 				if (targ[0].equals("!")) command = VECTOREXCL; else
 				if (targ[0].equals("?")) command = VECTORQUESTION; else
+				if (targ[0].equals("t")) command = VECTORTRACE; else		
 				if (targ[0].equals("set")) command = VECTORSET; else
 				{
 					System.out.println("Unknown IRSIM command on line " + lineReader.getLineNumber() + ": " + buf);
@@ -1090,7 +1078,6 @@ public class Analyzer extends Engine
 
 	private final String	potchars = "luxh.";			/* set of potential characters */
 	public boolean  irsim_analyzerON = false;	/* set when analyzer is running */
-	private long     irsim_sim_time0 = 0;		/* starting time (see flush_hist) */
 
 	public List  irsim_hinputs = new ArrayList();	/* list of nodes to be driven high */
 	public List  irsim_linputs = new ArrayList();	/* list of nodes to be driven low */
@@ -1108,7 +1095,6 @@ public class Analyzer extends Engine
 		maxclock = 0;
 		column = 0;
 		irsim_analyzerON = false;
-		irsim_sim_time0 = 0;
 		for(int i = 0; i < 8; i++) irsim_listTbl[i] = null;
 		irsim_listTbl[Sim.INPUT_NUM(Sim.H_INPUT)] = irsim_hinputs;
 		irsim_listTbl[Sim.INPUT_NUM(Sim.L_INPUT)] = irsim_linputs;
@@ -1141,7 +1127,6 @@ public class Analyzer extends Engine
 		if (cmdName.equals("changes")) { dochanges(args);   return; }
 		if (cmdName.equals("clock")) { setclock(args);   return; }
 		if (cmdName.equals("decay")) { setdecay(args);   return; }
-		if (cmdName.equals("flush")) { flush_hist(args);   return; }
 		if (cmdName.equals("h")) { setvalue(args);   return; }
 		if (cmdName.equals("l")) { setvalue(args);   return; }
 		if (cmdName.equals("u")) { setvalue(args);   return; }
@@ -1414,16 +1399,38 @@ public class Analyzer extends Engine
 		if (which.startsWith("?"))
 		{
 			infstr += "is computed from:";
-			for(Sim.Tlist l = n.nterm; l != null; l = l.next)
+			for(Iterator it = n.ntermList.iterator(); it.hasNext(); )
 			{
-				Sim.Trans t = l.xtor;
-				infstr += "  " + ptrans(t);
+				Sim.Trans t = (Sim.Trans)it.next();
+				infstr += "  ";
+
+				String drive = null;
+				Sim.Node rail = (t.drain.nflags & Sim.POWER_RAIL) != 0 ? t.drain : t.source;
+				if (Sim.BASETYPE(t.ttype) == Sim.NCHAN && rail == theSim.irsim_GND_node)
+					drive = "pulled down by ";
+				else if (Sim.BASETYPE(t.ttype) == Sim.PCHAN && rail == theSim.irsim_VDD_node)
+					drive = "pulled up by ";
+				else if (Sim.BASETYPE(t.ttype) == Sim.DEP && rail == theSim.irsim_VDD_node &&
+					Sim.other_node(t, rail) == t.gate)
+						drive = "pullup ";
+				else
+					infstr += ptrans(t);
+
+				if (drive != null)
+				{
+					infstr += drive;
+					infstr += pgvalue(t);
+					infstr += pr_t_res(t.r);
+				}
 			}
 		} else
 		{
 			infstr += "affects:";
-			for(Sim.Tlist l = n.ngate; l != null; l = l.next)
-				infstr += ptrans(l.xtor);
+			for(Iterator it = n.ngateList.iterator(); it.hasNext(); )
+			{
+				Sim.Trans t = (Sim.Trans)it.next();
+				infstr += ptrans(t);
+			}
 		}
 		System.out.println(infstr);
 
@@ -1475,7 +1482,7 @@ public class Analyzer extends Engine
 
 	private String pr_one_res(double r)
 	{
-		String ret = Double.toString(r);
+		String ret = TextUtils.formatDouble(r);
 		if (r < 1e-9 || r > 100e9)
 			return ret;
 
@@ -1636,10 +1643,7 @@ public class Analyzer extends Engine
 	 */
 	private void pnwatchlist()
 	{
-		if (theSim.irsim_npending != 0)
-		{
-			System.out.println("Warning: there are " + theSim.irsim_npending + " pending events");
-		}
+		theSim.getModel().printPendingEvents();
 	}
 
 	/**
@@ -2059,7 +2063,7 @@ public class Analyzer extends Engine
 	private void setstep(String [] args)
 	{
 		if (args.length == 1)
-			System.out.println("stepsize = " + Sim.d2ns(Simulation.getIRSIMStepSize()));
+			System.out.println("stepsize = " + Sim.d2ns(irsim_stepsize));
 		else if (args.length == 2)
 		{
 			double timeNS = TextUtils.atof(args[1]);
@@ -2069,7 +2073,7 @@ public class Analyzer extends Engine
 			{
 				System.out.println("Bad step size: " + TextUtils.formatDouble(timeNS*1000) + "psec (must be 10 psec or larger)");
 			} else
-				Simulation.setIRSIMStepSize((int)newsize);
+				irsim_stepsize = newsize;
 		}
 	}
 
@@ -2098,7 +2102,7 @@ public class Analyzer extends Engine
 	/**
 	 * Settle network until the specified stop time is reached.
 	 * Premature returns (before stop time) indicate that a node/vector whose
-	 * stop-bit set has just changed value, so popup a stdin command interpreter.
+	 * stop-bit set has just changed value.
 	 */
 	private long relax(long stoptime)
 	{
@@ -2112,7 +2116,7 @@ public class Analyzer extends Engine
 	 */
 	private void dostep(String [] args)
 	{
-		long newsize = Simulation.getIRSIMStepSize();
+		long newsize = irsim_stepsize;
 		if (args.length == 2)
 		{
 			double timeNS = TextUtils.atof(args[1]);
@@ -2268,11 +2272,11 @@ public class Analyzer extends Engine
 	/**
 	 * Step each clock node through one simulation step
 	 */
-	private int  which_phase = 0;
+	private int which_phase = 0;
 	private int step_phase()
 	{
 		vecvalue(xclock, which_phase);
-		if (relax(theSim.irsim_cur_delta + Simulation.getIRSIMStepSize()) != 0)
+		if (relax(theSim.irsim_cur_delta + irsim_stepsize) != 0)
 			return 1;
 		which_phase = (which_phase + 1) % maxclock;
 		return 0;
@@ -2492,66 +2496,48 @@ public class Analyzer extends Engine
 		apply(PATH_CALL, 0, args, 1, args.length);
 	}
 
-	static final int	NBUCKETS		= 20;	/* number of buckets in histogram */
-
-	static class Accounts
-	{
-		long  begin, end, size;
-		long  [] table;
-		Accounts() { table = new long[NBUCKETS]; }
-	};
+	static final int NBUCKETS		= 20;	/* number of buckets in histogram */
 
 	/**
 	 * print histogram of circuit activity in specified time interval
 	 */
 	private void doactivity(String [] args)
 	{
-//		static CHAR   st[] = {x_("**************************************************")};
-//	#   define	SIZE_ST		(sizeof(st) - 1)
-
-		Accounts      ac = new Accounts();
-		if (args.length == 2)
+		long begin = Sim.ns2d(TextUtils.atof(args[1]));
+		long end = theSim.irsim_cur_delta;
+		if (args.length > 2)
+			end = Sim.ns2d(TextUtils.atof(args[2]));
+		if (end < begin)
 		{
-			ac.begin = Sim.ns2d(TextUtils.atof(args[1]));
-			ac.end = theSim.irsim_cur_delta;
-		} else
-		{
-			ac.begin = Sim.ns2d(TextUtils.atof(args[1]));
-			ac.end = Sim.ns2d(TextUtils.atof(args[2]));
-		}
-
-		if (ac.end < ac.begin)
-		{
-			long swp = ac.end;   ac.end = ac.begin;   ac.begin = swp;
+			long swp = end;   end = begin;   begin = swp;
 		}
 
 		// collect histogram info by walking the network
-		for(int i = 0; i < NBUCKETS; ac.table[i++] = 0);
+		long  [] table = new long[NBUCKETS];
+		for(int i = 0; i < NBUCKETS; table[i++] = 0);
 
-		ac.size = (ac.end - ac.begin + 1) / NBUCKETS;
-		if (ac.size <= 0)
-			ac.size = 1;
+		long size = (end - begin + 1) / NBUCKETS;
+		if (size <= 0) size = 1;
 
 		for(Iterator it = theSim.irsim_GetNodeList().iterator(); it.hasNext(); )
 		{
 			Sim.Node n = (Sim.Node)it.next();
 			if ((n.nflags & (Sim.ALIAS | Sim.MERGED | Sim.POWER_RAIL)) == 0)
 			{
-				if (n.getTime() >= ac.begin && n.getTime() <= ac.end)
-					ac.table[(int)((n.getTime() - ac.begin) / ac.size)] += 1;
+				if (n.getTime() >= begin && n.getTime() <= end)
+					table[(int)((n.getTime() - begin) / size)] += 1;
 			}
 		}
 
 		// print out what we found
 		int total = 0;
-		for(int i = 0; i < NBUCKETS; i++) total += ac.table[i];
+		for(int i = 0; i < NBUCKETS; i++) total += table[i];
 
-		System.out.println("Histogram of circuit activity: " + Sim.d2ns(ac.begin) +
-				" . " + Sim.d2ns(ac.end) + "ns (bucket size = " + Sim.d2ns(ac.size) + ")");
+		System.out.println("Histogram of circuit activity: " + Sim.d2ns(begin) +
+			" . " + Sim.d2ns(end) + "ns (bucket size = " + Sim.d2ns(size) + ")");
 
-//		for(int i = 0; i < NBUCKETS; i += 1)
-//			System.out.println(" " + Sim.d2ns(ac.begin + (i * ac.size)) + " -" + Sim.d2ns(ac.begin + (i + 1) * ac.size) +
-//				ac.table[i] + "  " + st[SIZE_ST - (SIZE_ST * ac.table[i]) / total]);
+		for(int i = 0; i < NBUCKETS; i += 1)
+			System.out.println(" " + Sim.d2ns(begin + (i * size)) + " -" + Sim.d2ns(begin + (i + 1) * size) + table[i]);
 	}
 
 	/**
@@ -2559,20 +2545,13 @@ public class Analyzer extends Engine
 	 */
 	private void dochanges(String [] args)
 	{
-		Accounts  ac = new Accounts();
-
-		if (args.length == 2)
-		{
-			ac.begin = Sim.ns2d(TextUtils.atof(args[1]));
-			ac.end = theSim.irsim_cur_delta;
-		} else
-		{
-			ac.begin = Sim.ns2d(TextUtils.atof(args[1]));
-			ac.end = Sim.ns2d(TextUtils.atof(args[2]));
-		}
+		long begin = Sim.ns2d(TextUtils.atof(args[1]));;
+		long end = theSim.irsim_cur_delta;
+		if (args.length > 2)
+			end = Sim.ns2d(TextUtils.atof(args[2]));
 
 		column = 0;
-		System.out.print("Nodes with last transition in interval " + Sim.d2ns(ac.begin) + " . " + Sim.d2ns(ac.end) + "ns:");
+		System.out.print("Nodes with last transition in interval " + Sim.d2ns(begin) + " . " + Sim.d2ns(end) + "ns:");
 
 		for(Iterator it = theSim.irsim_GetNodeList().iterator(); it.hasNext(); )
 		{
@@ -2582,7 +2561,7 @@ public class Analyzer extends Engine
 			if ((n.nflags & (Sim.MERGED | Sim.ALIAS)) != 0)
 				return;
 
-			if (n.getTime() >= ac.begin && n.getTime() <= ac.end)
+			if (n.getTime() >= begin && n.getTime() <= end)
 			{
 				int i = n.nname.length() + 2;
 				if (column + i >= MAXCOL)
@@ -2668,7 +2647,7 @@ public class Analyzer extends Engine
 	private void back_time(String [] args)
 	{
 		long newt = Sim.ns2d(TextUtils.atof(args[1]));
-		if (newt < irsim_sim_time0 || newt > theSim.irsim_cur_delta)
+		if (newt < 0 || newt > theSim.irsim_cur_delta)
 		{
 			System.out.println(args[1] + ": invalid time");
 			return;
@@ -2688,7 +2667,7 @@ public class Analyzer extends Engine
 			theSim.getModel().irsim_ReInit();
 
 		if (irsim_analyzerON)
-			irsim_RestartAnalyzer(irsim_sim_time0, theSim.irsim_cur_delta, 1);
+			irsim_RestartAnalyzer(0, theSim.irsim_cur_delta, 1);
 
 		pnwatchlist();
 	}
@@ -2736,16 +2715,12 @@ public class Analyzer extends Engine
 					Sim.Node n = (Sim.Node)it.next();
 					if ((n.nflags & (Sim.ALIAS | Sim.POWER_RAIL)) == 0)
 					{
-						int i = 0;
-						for(Sim.Tlist l = n.ngate; l != null; l = l.next, i++);
-						tranCntNG += i;
-						i = 0;
-						for(Sim.Tlist l = n.nterm; l != null; l = l.next, i++);
-						tranCntNSD += i;
+						tranCntNG += n.ngateList.size();
+						tranCntNSD += n.ntermList.size();
 					}
 				}
-				System.out.println("avg: # gates/node = " + Double.toString(tranCntNG / theSim.irsim_nnodes) +
-					",  # src-drn/node = " + Double.toString(tranCntNSD / theSim.irsim_nnodes));
+				System.out.println("avg: # gates/node = " + TextUtils.formatDouble(tranCntNG / theSim.irsim_nnodes) +
+					",  # src-drn/node = " + TextUtils.formatDouble(tranCntNSD / theSim.irsim_nnodes));
 			}
 		}
 		System.out.println("changes = " + theSim.irsim_num_edges);
@@ -2754,38 +2729,11 @@ public class Analyzer extends Engine
 		String n2 = "0.0";
 		if (theSim.irsim_num_punted != 0)
 		{
-			n1 = Double.toString(100.0 / (theSim.irsim_num_edges / theSim.irsim_num_punted + 1.0));
-			n2 = Double.toString(theSim.irsim_num_cons_punted * 100.0 / theSim.irsim_num_punted);
+			n1 = TextUtils.formatDouble(100.0 / (theSim.irsim_num_edges / theSim.irsim_num_punted + 1.0));
+			n2 = TextUtils.formatDouble(theSim.irsim_num_cons_punted * 100.0 / theSim.irsim_num_punted);
 		}
 		System.out.println("punts = " + n1 + "%, cons_punted = " + n2 + "%");
 
 		System.out.println("nevents = " + theSim.irsim_nevent);
 	}
-
-	/**
-	 * Flush out the recorded history up to the (optional) specified time.
-	 */
-	private void flush_hist(String [] args)
-	{
-		long ftime = theSim.irsim_cur_delta;
-		if (args.length != 1)
-		{
-			ftime = Sim.ns2d(TextUtils.atof(args[1]));
-			if (ftime < 0 || ftime > theSim.irsim_cur_delta)
-			{
-				System.out.println(args[1] + ": Invalid flush time");
-				return;
-			}
-		}
-
-		if (ftime == 0)
-			return;
-
-		theSim.irsim_FlushHist(ftime);
-		irsim_sim_time0 = ftime;
-
-		if (irsim_analyzerON)
-			irsim_RestartAnalyzer(irsim_sim_time0, theSim.irsim_cur_delta, 1);
-	}
-
 }

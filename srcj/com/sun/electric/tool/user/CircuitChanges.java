@@ -1319,7 +1319,16 @@ public class CircuitChanges
 			}
 			if (cell != null)
 				eraseObjectsInList(cell, deleteList);
-			return true;
+
+			// remove highlighting
+			WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+			if (wf != null)
+			{
+		        Highlighter highlighter = wf.getContent().getHighlighter();
+		        highlighter.clear();
+	            highlighter.finished();
+			}
+            return true;
 		}
 	}
 

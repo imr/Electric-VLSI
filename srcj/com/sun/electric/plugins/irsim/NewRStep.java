@@ -20,6 +20,8 @@ package com.sun.electric.plugins.irsim;
 
 import com.sun.electric.database.geometry.GenMath;
 
+import java.util.Iterator;
+
 public class NewRStep extends Eval
 {
 	/*
@@ -211,7 +213,7 @@ public class NewRStep extends Eval
 			Sim.Event ev = n.events;
 			if (((ev == null) ? n.npot : ev.eval) != Sim.X)
 			{
-				irsim_enqueue_event(n, Sim.DECAY, (long) theSim.irsim_tdecay, (long) theSim.irsim_tdecay);
+				irsim_enqueue_event(n, Sim.DECAY, theSim.irsim_tdecay, theSim.irsim_tdecay);
 			}
 			n = n.nlink;
 		}
@@ -228,9 +230,9 @@ public class NewRStep extends Eval
 
 			n.getThev().setT(null);
 
-			for(Sim.Tlist l = n.nterm; l != null; l = l.next)
+			for(Iterator it = n.ntermList.iterator(); it.hasNext(); )
 			{
-				Sim.Trans t = l.xtor;
+				Sim.Trans t = (Sim.Trans)it.next();
 				if (t.state == Sim.OFF)
 					continue;
 
@@ -268,7 +270,7 @@ public class NewRStep extends Eval
 	private void irsim_QueueFVal(Sim.Node nd, int fval, double tau, double delay)
 	{
 		boolean queued = false;
-		long delta = theSim.irsim_cur_delta + (long) Sim.ps2d(delay);
+		long delta = theSim.irsim_cur_delta + Sim.ps2d(delay);
 		if (delta == theSim.irsim_cur_delta)			// avoid zero delay
 			delta++;
 
@@ -285,7 +287,7 @@ public class NewRStep extends Eval
 
 		if (fval != ((ev == null) ? nd.npot : ev.eval))
 		{
-			irsim_enqueue_event(nd, fval, (long) delta, (long) Sim.ps2d(tau));
+			irsim_enqueue_event(nd, fval, delta, Sim.ps2d(tau));
 			queued = true;
 		}
 	}
@@ -318,8 +320,8 @@ public class NewRStep extends Eval
 		}
 
 		// enqueue spike and final value events
-		irsim_enqueue_event(nd, (int) spk.charge, (long) ch_delta, (long) ch_delta);
-		irsim_enqueue_event(nd, (int) nd.npot, (long) dr_delta, (long) ch_delta);
+		irsim_enqueue_event(nd, spk.charge, ch_delta, ch_delta);
+		irsim_enqueue_event(nd, nd.npot, dr_delta, ch_delta);
 	}
 
 	private void scheduleDriven()
@@ -380,7 +382,7 @@ public class NewRStep extends Eval
 					}
 				}
 
-				irsim_QueueFVal(nd, (int) r.finall, tau, delay);
+				irsim_QueueFVal(nd, r.finall, tau, delay);
 			}
 
 			if (dom_pot[dom].spike)
@@ -454,7 +456,7 @@ public class NewRStep extends Eval
 					delay = tau;
 			}
 
-			irsim_QueueFVal(nd, (int) r.finall, tau, delay);
+			irsim_QueueFVal(nd, r.finall, tau, delay);
 		}
 	}
 
@@ -564,9 +566,9 @@ public class NewRStep extends Eval
 			case Sim.HIGH:  r.Chigh.min = r.Chigh.max = n.ncap;	break;
 		}
 
-		for(Sim.Tlist l = n.nterm; l != null; l = l.next)
+		for(Iterator it = n.ntermList.iterator(); it.hasNext(); )
 		{
-			Sim.Trans t = l.xtor;
+			Sim.Trans t = (Sim.Trans)it.next();
 
 			// ignore path going back or through a broken loop
 			if (t == tran || t.state == Sim.OFF || (t.tflags & (Sim.BROKEN | Sim.PBROKEN)) != 0)
@@ -947,9 +949,10 @@ public class NewRStep extends Eval
 
 		r.Tin = 0.0;
 		r.flags &= ~(T_DOMDRIVEN | T_INT);
-		for(Sim.Tlist l = n.nterm; l != null; l = l.next)
+
+		for(Iterator it = n.ntermList.iterator(); it.hasNext(); )
 		{
-			Sim.Trans t = l.xtor;
+			Sim.Trans t = (Sim.Trans)it.next();
 			if (t.state == Sim.OFF || t == tran || (t.tflags & (Sim.BROKEN | Sim.PBROKEN)) != 0)
 				continue;
 			Sim.Node  other;
@@ -1052,9 +1055,9 @@ public class NewRStep extends Eval
 
 		double taup = r.tauA * n.ncap;
 
-		for(Sim.Tlist l = n.nterm; l != null; l = l.next)
+		for(Iterator it = n.ntermList.iterator(); it.hasNext(); )
 		{
-			Sim.Trans t = l.xtor;
+			Sim.Trans t = (Sim.Trans)it.next();
 			if (t.state == Sim.OFF || t == tran || (t.tflags & (Sim.BROKEN | Sim.PBROKEN)) != 0)
 				continue;
 
@@ -1095,9 +1098,9 @@ public class NewRStep extends Eval
 
 		int rtype = (dom == Sim.LOW) ? Sim.R_LOW : Sim.R_HIGH;
 		float nmos = 0, pmos = 0;
-		for(Sim.Tlist l = nd.nterm; l != null; l = l.next)
+		for(Iterator it = nd.ntermList.iterator(); it.hasNext(); )
 		{
-			Sim.Trans t = l.xtor;
+			Sim.Trans t = (Sim.Trans)it.next();
 			if (t.state == Sim.OFF || (t.tflags & Sim.BROKEN) != 0)
 				continue;
 			if (Sim.BASETYPE(t.ttype) == Sim.PCHAN)
