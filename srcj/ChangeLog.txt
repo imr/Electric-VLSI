@@ -2,6 +2,8 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (6/4/04, GVG) First version of M factor in Spice output.
+
 IMP: (6/4/04, RK) Change fill cell generator so that all reserved
 space may be allocated between ground only or between power only.
 

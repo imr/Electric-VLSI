@@ -74,6 +74,7 @@ public class Spice extends Topology
 //	/** key of Variable holding SPICE code. */					public static final Variable.Key SPICE_CARD_KEY = ElectricObject.newKey("SPICE_Code");
 	/** key of Variable holding SPICE model. */					public static final Variable.Key SPICE_MODEL_KEY = ElectricObject.newKey("SIM_spice_model");
 	/** key of Variable holding SPICE model file. */			public static final Variable.Key SPICE_MODEL_FILE_KEY = ElectricObject.newKey("SIM_spice_behave_file");
+	/** Old pre-fix for spice extension. */                     public static final Variable.Key SPICE_EXTENSION_KEY = ElectricObject.newKey(":::::");
 
 	/** maximum subcircuit name length */						private static final int SPICEMAXLENSUBCKTNAME     = 70;
 	/** legal characters in a spice deck */						private static final String SPICELEGALCHARS        = "!#$%*+-/<>[]_";
@@ -448,7 +449,7 @@ public class Spice extends Topology
 				{
 					Variable paramVar = (Variable)it.next();
 					if (!paramVar.getTextDescriptor().isParam()) continue;
-					infstr.append(" " + var.getTrueName() + "=" + var.getPureValue(-1, -1));
+					infstr.append(" " + paramVar.getTrueName() + "=" + paramVar.getPureValue(-1, -1));
 				}
 			}
 			infstr.append("\n");
@@ -606,6 +607,9 @@ public class Spice extends Topology
 						infstr.append(" " + paramStr);
 					}
 				}
+				// Calculating M Factor if exists
+				Variable mVar = no.getVar("ATTR_M");
+				if (mVar != null) infstr.append(" M=" + mVar.getObject().toString());
 				infstr.append("\n");
 				multiLinePrint(false, infstr.toString());
 				continue;
@@ -706,7 +710,7 @@ public class Spice extends Topology
 			String modelChar = "";
 			if (fun == NodeProto.Function.TRANSREF)					// self-referential transistor
 			{
-				modelChar = "X"; 
+				modelChar = "X";
 				biasCs = cni.getCellSignal(groundNet);
 				modelName = niProto.getProtoName();
 			} else if (fun == NodeProto.Function.TRANMOS)			// NMOS (Enhancement) transistor
@@ -866,6 +870,9 @@ public class Spice extends Topology
 					if (pd > 0.0) infstr.append(" PD=" + TextUtils.formatDouble(pd, 2) + "U");
 				}
 			}
+			// Calculating M Factor if exists
+			Variable mVar = ni.getVar("ATTR_M");
+			if (mVar != null) infstr.append(" M=" + mVar.getObject().toString());
 			infstr.append("\n");
 			multiLinePrint(false, infstr.toString());
 		}
