@@ -40,6 +40,8 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.technology.EdgeH;
+import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
@@ -68,9 +70,7 @@ import java.util.List;
  * This is the Connectivity extractor.
  *
  * Still to do:
- *    Alternate way to find large contacts which preserves cut placement
  *    Nonmanhattan contacts
- *    In via creation, check that the cut/via is the right size
  *    Explicit connection where two cells overlap?
  */
 public class Connectivity
@@ -394,6 +394,14 @@ public class Connectivity
 					PortInst pi1 = locatePortOnCenterline(cl, loc1, layer, ap, true, newCell);
 					Point2D loc2 = new Point2D.Double();
 					PortInst pi2 = locatePortOnCenterline(cl, loc2, layer, ap, false, newCell);
+
+					// make sure the wire fits
+					int ang = GenMath.figureAngle(loc1, loc2);
+					double wid = cl.width - ap.getWidthOffset();
+					Poly arcPoly = Poly.makeEndPointPoly(loc1.distance(loc2), wid, ang, loc1, wid/2, loc2, wid/2);
+					if (!originalMerge.contains(layer, arcPoly)) continue;
+
+					// create the wire
 					realizeArc(ap, pi1, pi2, loc1, loc2, cl.width+ap.getWidthOffset(), false, merge);
 				}
 			}
@@ -595,11 +603,8 @@ public class Connectivity
 				PortInst pi = (PortInst)pIt.next();
 				Poly portPoly = pi.getPoly();
 				Point2D [] points = portPoly.getPoints();
-//System.out.println((startSide?"Start":"End")+" side of centerline might connect to port "+pi.getPortProto().getName()+" of node "+pi.getNodeInst().describe()+" with "+points.length+" points");
 				if (points.length == 1)
 				{
-//					loc1.setLocation(portPoly.getCenterX(), portPoly.getCenterY());
-//					piRet = pi;
 				    Point2D iPt = GenMath.intersect(cl.start, cl.angle, points[0], (cl.angle+900)%3600);
 				    if (iPt != null)
 					{
@@ -633,12 +638,7 @@ public class Connectivity
 						}
 						if (interPt == null) continue;
 						loc1.setLocation(interPt.getX(), interPt.getY());
-						if (!portPoly.contains(loc1))
-						{
-//	System.out.println("**************NOT IN PORT  CENTERLINE ("+cl.start.getX()+","+cl.start.getY()+") to ("+cl.end.getX()+","+cl.end.getY()+
-//		") Port "+pi.getPortProto().getName()+" of node "+pi.getNodeInst().describe()+" hits at ("+loc1.getX()+","+loc1.getY()+")");
-							continue;
-						}
+						if (!portPoly.contains(loc1)) continue;
 						piRet = pi;
 						break;
 					}
@@ -719,6 +719,32 @@ public class Connectivity
 					PossibleVia pv = (PossibleVia)it.next();
 					PrimitiveNode pNp = pv.pNp;
 
+					if (Extract.isExactCutExtraction())
+					{
+						// want exact cut locations, so create a single-cut contact
+						boolean gotMinimum = true;
+						double desiredWidth = pv.minWidth;
+						double desiredHeight = pv.minHeight;
+						for(int i=0; i<pv.layers.length; i++)
+						{
+							Layer nLayer = pv.layers[i];
+							double minLayWid = desiredWidth - pv.shrink[i];
+							double minLayHei = desiredHeight - pv.shrink[i];
+							Rectangle2D rect = new Rectangle2D.Double(centerX - minLayWid/2, centerY - minLayHei/2, minLayWid, minLayHei);
+							if (!originalMerge.contains(nLayer, rect))
+							{
+								gotMinimum = false;
+								break;
+							}
+						}
+						if (gotMinimum)
+						{
+							checkCutSize(poly, pNp, layer);
+							realizeNode(pNp, centerX, centerY, desiredWidth, desiredHeight, 0, null, merge, newCell);
+						}
+						continue;
+					}
+
 					List contactArea = (List)possibleAreas.get(pNp);
 					if (contactArea == null)
 					{
@@ -735,9 +761,9 @@ public class Connectivity
 					}
 					if (contactArea == null || contactArea.size() == 0) continue;
 
+					// not extracting exact cut placement: find the largest possible contact/via in this area
 					Rectangle2D largest = findLargestRectangle(contactArea, centerX, centerY, pv.minWidth-pv.largestShrink, pv.minHeight-pv.largestShrink);
 					if (largest == null) continue;
-//System.out.println("Largest rect about contacts is "+largest.getMinX()+"<=X<="+largest.getMaxX()+" and "+largest.getMinY()+"<=Y<="+largest.getMaxY());
 					centerX = largest.getCenterX();
 					centerY = largest.getCenterY();
 					double desiredWidth = largest.getWidth() + pv.largestShrink;
@@ -761,6 +787,7 @@ public class Connectivity
 						}
 						if (gotMinimum)
 						{
+							checkCutSize(poly, pNp, layer);
 							realizeNode(pNp, centerX, centerY, desiredWidth, desiredHeight, 0, null, merge, newCell);
 
 							// must remove the contact geometry explicitly because the new contact may not have cuts in the exact location
@@ -775,6 +802,7 @@ public class Connectivity
 								if (largest.contains(x, y))
 								{
 //System.out.println("    and also includes cut at ("+x+","+y+")");
+									checkCutSize(oPoly, pNp, layer);
 									polyList.remove(oPoly);
 									merge.subPolygon(layer, oPoly);
 									o--;
@@ -792,21 +820,58 @@ public class Connectivity
 		}
 	}
 
-//	private void createLargestContact(double centerX, double centerY, PossibleVia pv, List contactArea, List polyList)
-//	{
-//		if (pv.pNp.getSpecialType() == PrimitiveNode.MULTICUT)
-//		{
-//			/* determine distance to search for additional cuts
-//			 *   cut size is specialValues[0] x specialValues[1]
-//			 *   cut indented specialValues[2] x specialValues[3] from highlighting
-//			 *   cuts spaced specialValues[4] apart for 2-neighboring CO
-//			 *   cuts spaced specialValues[5] apart for 3-neighboring CO or more
-//			 */
-//			double [] specialValues = pv.pNp.getSpecialValues();
-//			double cutIncrement = (Math.max(specialValues[0], specialValues[1]) + Math.max(specialValues[4], specialValues[5])) * 2;
-//			
-//		}
-//	}
+	/**
+	 * Method to ensure that contact cuts are the right size.
+	 * Prints an error message if the cut is the wrong size.
+	 * @param poly a polygon describing a contact cut.
+	 * @param pNp the primitive node that this cut will be part of.
+	 * @param cutLayer the cut layer that this polygon will become.
+	 */
+	private void checkCutSize(PolyBase poly, PrimitiveNode pNp, Layer cutLayer)
+	{
+		// find the desired size of the cut layer
+		double xSize = -1, ySize = -1;
+		if (pNp.getSpecialType() == PrimitiveNode.MULTICUT)
+		{
+			double [] values = pNp.getSpecialValues();
+			xSize = values[0];
+			ySize = values[1];
+		} else
+		{
+			Technology.NodeLayer [] nodeLayers = pNp.getLayers();
+			for(int i=0; i<nodeLayers.length; i++)
+			{
+				Technology.NodeLayer nodeLayer = nodeLayers[i];
+				if (nodeLayer.getLayer() == cutLayer)
+				{
+					EdgeH leftEdge = nodeLayer.getLeftEdge();
+					EdgeH rightEdge = nodeLayer.getRightEdge();
+					EdgeV topEdge = nodeLayer.getTopEdge();
+					EdgeV bottomEdge = nodeLayer.getBottomEdge();
+					double lX = leftEdge.getMultiplier() * pNp.getDefWidth() + leftEdge.getAdder();
+					double hX = rightEdge.getMultiplier() * pNp.getDefWidth() + rightEdge.getAdder();
+					double lY = bottomEdge.getMultiplier() * pNp.getDefHeight() + bottomEdge.getAdder();
+					double hY = topEdge.getMultiplier() * pNp.getDefHeight() + topEdge.getAdder();
+					xSize = hX - lX;
+					ySize = hY - lY;
+				}
+			}
+		}
+
+		// see if the cut polygon is the right size
+		boolean valid = true;
+		Rectangle2D polyBox = poly.getBox();
+		if (polyBox != null)
+		{
+			if (xSize != polyBox.getWidth() || ySize != polyBox.getHeight()) polyBox = null;
+		}
+		if (polyBox == null)
+		{
+			double cX = poly.getCenterX();
+			double cY = poly.getCenterY();
+			System.out.println("Warning: layer " + cutLayer.getName() + " at (" + cX + "," + cY + ") is the wrong size (should be " + xSize + "x" + ySize + ")");
+		}
+	}
 
 	private Rectangle2D findLargestRectangle(List contactArea, double centerX, double centerY, double minWidth, double minHeight)
 	{
@@ -844,7 +909,6 @@ public class Connectivity
 					if (dist > 0)
 					{
 						// see if this is a new right edge
-//if (dist < closestRight) System.out.println("Allowing RIGHT edge because of ("+lastPt.getX()+","+lastPt.getY()+") to ("+thisPt.getX()+","+thisPt.getY()+")");
 						if (dist < closestRight)
 						{
 							closestRight = dist;
@@ -854,7 +918,6 @@ public class Connectivity
 					} else
 					{
 						// see if this is a new left edge
-//if (-dist < closestLeft) System.out.println("Allowing LEFT edge because of ("+lastPt.getX()+","+lastPt.getY()+") to ("+thisPt.getX()+","+thisPt.getY()+")");
 						if (-dist < closestLeft)
 						{
 							closestLeft = -dist;
@@ -875,7 +938,6 @@ public class Connectivity
 					if (dist > 0)
 					{
 						// see if this is a new top edge
-//if (dist < closestTop) System.out.println("Allowing TOP edge because of ("+lastPt.getX()+","+lastPt.getY()+") to ("+thisPt.getX()+","+thisPt.getY()+")");
 						if (dist < closestTop)
 						{
 							closestTop = dist;
@@ -885,7 +947,6 @@ public class Connectivity
 					} else
 					{
 						// see if this is a new bottom edge
-//if (-dist < closestBottom) System.out.println("Allowing BOTTOM edge because of ("+lastPt.getX()+","+lastPt.getY()+") to ("+thisPt.getX()+","+thisPt.getY()+")");
 						if (-dist < closestBottom)
 						{
 							closestBottom = -dist;
@@ -899,7 +960,6 @@ public class Connectivity
 				closestLeft == Double.MAX_VALUE || closestRight == Double.MAX_VALUE) return null;
 			Rectangle2D largest = new Rectangle2D.Double(centerX-closestLeft, centerY-closestBottom,
 				closestLeft+closestRight, closestBottom+closestTop);
-//System.out.println("Suggesting rectangle "+largest.getMinX()+"<=X<="+largest.getMaxX()+" and "+largest.getMinY()+"<=Y<="+largest.getMaxY());
 			if (poly.contains(largest)) return largest;
 
 			// try reducing the rectangle until it does fit
@@ -2153,6 +2213,16 @@ public class Connectivity
 		return ni;
 	}
 
+	/**
+	 * Method to compute the proper layer to use for a given other layer.
+	 * Because pure-layer geometry may confuse similar layers that appear
+	 * in Electric, all common layers are converted to a single one that will
+	 * be unambiguous.  For example, all gate-poly is converted to poly-1.
+	 * All diffusion layers are combined into one.  All layers that multiply-
+	 * define a layer function are reduced to just one with that function.
+	 * @param layer the layer found in the circuit.
+	 * @return the layer to use instead.
+	 */
 	private Layer geometricLayer(Layer layer)
 	{
 		Layer.Function fun = layer.getFunction();
@@ -2175,27 +2245,27 @@ public class Connectivity
 
 	}
 
-	/**
-	 * Debugging method to report the coordinates of all geometry on a given layer.
-	 */
-	public static String describeLayer(PolyMerge merge, Layer layer)
-	{
-		List polyList = merge.getMergedPoints(layer, true);
-		if (polyList == null) return "DOES NOT EXIST";
-		StringBuffer sb = new StringBuffer();
-		for(Iterator iit=polyList.iterator(); iit.hasNext(); )
-		{
-			PolyBase p = (PolyBase)iit.next();
-			Point2D [] points = p.getPoints();
-			sb.append(" [");
-			for(int j=0; j<points.length; j++)
-			{
-				Point2D pt = points[j];
-				if (j > 0) sb.append(" ");
-				sb.append("("+TextUtils.formatDouble(pt.getX())+","+TextUtils.formatDouble(pt.getY())+")");
-			}
-			sb.append("]");
-		}
-		return sb.toString();
-	}
+//	/**
+//	 * Debugging method to report the coordinates of all geometry on a given layer.
+//	 */
+//	public static String describeLayer(PolyMerge merge, Layer layer)
+//	{
+//		List polyList = merge.getMergedPoints(layer, true);
+//		if (polyList == null) return "DOES NOT EXIST";
+//		StringBuffer sb = new StringBuffer();
+//		for(Iterator iit=polyList.iterator(); iit.hasNext(); )
+//		{
+//			PolyBase p = (PolyBase)iit.next();
+//			Point2D [] points = p.getPoints();
+//			sb.append(" [");
+//			for(int j=0; j<points.length; j++)
+//			{
+//				Point2D pt = points[j];
+//				if (j > 0) sb.append(" ");
+//				sb.append("("+TextUtils.formatDouble(pt.getX())+","+TextUtils.formatDouble(pt.getY())+")");
+//			}
+//			sb.append("]");
+//		}
+//		return sb.toString();
+//	}
 }

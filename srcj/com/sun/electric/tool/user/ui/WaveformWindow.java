@@ -175,6 +175,7 @@ public class WaveformWindow implements WindowContent
 	/** The highlighter for this waveform window. */		private Highlighter highlighter;
 	private static boolean freezeWaveformHighlighting = false;
 	/** The global listener for all waveform windows. */	private static WaveformWindowHighlightListener waveHighlighter = new WaveformWindowHighlightListener();
+	/** The color of the grid (a gray) */					private static Color gridColor = new Color(0x808080);
 
 	private static WaveFormDropTarget waveformDropTarget = new WaveFormDropTarget();
 
@@ -727,6 +728,80 @@ public class WaveformWindow implements WindowContent
 			g.fillRect(0, 0, wid, hei);
 			waveWindowFont = new Font(User.getDefaultFont(), Font.PLAIN, 12);
 
+			// draw the grid first (behind the signals)
+			if (isAnalog && waveWindow.showGrid)
+			{
+				Graphics2D g2 = (Graphics2D)g;
+				g2.setStroke(Highlight.dottedLine);
+				g.setColor(gridColor);
+
+				// draw the vertical grid lines
+				double displayedXLow = scaleXToTime(WaveformWindow.Panel.VERTLABELWIDTH);
+				double displayedXHigh = scaleXToTime(wid);
+				StepSize ss = getSensibleValues(displayedXHigh, displayedXLow, 10);
+				if (ss.separation != 0.0)
+				{
+					double time = ss.low;
+					for(;;)
+					{
+						if (time >= displayedXLow)
+						{
+							if (time > ss.high) break;
+							int x = scaleTimeToX(time);
+							g.drawLine(x, 0, x, hei);
+						}
+						time += ss.separation;
+					}
+				}
+
+				// draw the horizontal grid lines
+				double displayedLow = scaleYToValue(hei);
+				double displayedHigh = scaleYToValue(0);
+//				ss = getSensibleValues(displayedHigh, displayedLow, 5);
+
+				// instead of sensible values taken from ticks, base it on the range of numbers
+				double lowYData = 0, highYData = 0;
+				boolean first = true;
+				for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
+				{
+					Signal ws = (Signal)it.next();
+					if (ws.sSig instanceof Simulation.SimAnalogSignal)
+					{
+						// draw analog trace
+						Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)ws.sSig;
+						Rectangle2D bounds = as.getBounds();
+						if (first)
+						{
+							lowYData = bounds.getMinY();
+							highYData = bounds.getMaxY();
+							first = false;
+						} else
+						{
+							if (bounds.getMinY() < lowYData) lowYData = bounds.getMinY();
+							if (bounds.getMaxY() > highYData) highYData = bounds.getMaxY();
+						}
+					}
+				}
+				ss.separation = (highYData-lowYData) / 5;
+				ss.low = (highYData-lowYData) / 10 + lowYData;
+				ss.high = highYData - (highYData-lowYData) / 10;
+				if (ss.separation != 0.0)
+				{
+					double value = ss.low;
+					for(;;)
+					{
+						if (value >= displayedLow)
+						{
+							if (value > displayedHigh || value > ss.high) break;
+							int y = scaleValueToY(value);
+							g.drawLine(VERTLABELWIDTH, y, wid, y);
+						}
+						value += ss.separation;
+					}
+				}
+				g2.setStroke(Highlight.solidLine);
+			}
+
 			// look at all traces in this panel
 			processSignals(g, null);
 
@@ -741,30 +816,6 @@ public class WaveformWindow implements WindowContent
 			}
 			if (isAnalog)
 			{
-				if (waveWindow.showGrid)
-				{
-					double displayedXLow = scaleXToTime(WaveformWindow.Panel.VERTLABELWIDTH);
-					double displayedXHigh = scaleXToTime(wid);
-					StepSize ss = getSensibleValues(displayedXHigh, displayedXLow, 10);
-					if (ss.separation != 0.0)
-					{
-						double time = ss.low;
-						Graphics2D g2 = (Graphics2D)g;
-						g2.setStroke(Highlight.dottedLine);
-						for(int i=0; ; i++)
-						{
-							if (time >= displayedXLow)
-							{
-								if (time > ss.high) break;
-								int x = scaleTimeToX(time);
-								g.drawLine(x, 0, x, hei);
-							}
-							time += ss.separation;
-						}
-						g2.setStroke(Highlight.solidLine);
-					}
-				}
-
 				double displayedLow = scaleYToValue(hei);
 				double displayedHigh = scaleYToValue(0);
 				StepSize ss = getSensibleValues(displayedHigh, displayedLow, 5);
@@ -780,12 +831,6 @@ public class WaveformWindow implements WindowContent
 							if (value > displayedHigh) break;
 							int y = scaleValueToY(value);
 							g.drawLine(VERTLABELWIDTH-10, y, VERTLABELWIDTH, y);
-							if (waveWindow.showGrid)
-							{
-								g2.setStroke(Highlight.dottedLine);
-								g.drawLine(VERTLABELWIDTH, y, wid, y);
-								g2.setStroke(Highlight.solidLine);
-							}
 							String yValue = prettyPrint(value, ss.rangeScale, ss.stepScale);
 							GlyphVector gv = waveWindowFont.createGlyphVector(waveWindowFRC, yValue);
 							Rectangle2D glyphBounds = gv.getVisualBounds();
@@ -4494,12 +4539,47 @@ public class WaveformWindow implements WindowContent
 
 	/**
 	 * Method to pan along X or Y according to fixed amount of ticks
-	 * @param direction
-	 * @param panningAmounts
-	 * @param ticks
+	 * @param direction 0 for horizontal, 1 for vertical.
+	 * @param panningAmounts an array of distances, indexed by the current panning distance index.
+	 * @param ticks the number of steps to take (usually 1 or -1).
 	 */
 	public void panXOrY(int direction, double[] panningAmounts, int ticks)
 	{
-		// Nothing in this case
+		// determine the panel extent
+		double hRange = maxTime - minTime;
+		double vRange = -1;
+		double vRangeAny = -1;
+		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next();
+			vRangeAny = wp.analogRange;
+			if (wp.selected)
+			{
+				hRange = wp.maxTime - wp.minTime;
+				vRange = wp.analogRange;
+				break;
+			}
+		}
+		if (vRange < 0) vRange = vRangeAny;
+
+		double distance = ticks * panningAmounts[User.getPanningDistance()];
+		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next();
+			if (direction == 0)
+			{
+				// pan horizontally
+				if (!timeLocked && !wp.selected) continue;
+				wp.minTime -= hRange * distance;
+				wp.maxTime -= hRange * distance;
+			} else
+			{
+				// pan vertically
+				if (!wp.selected) continue;
+				wp.analogLowValue -= vRange * distance;
+				wp.analogHighValue -= vRange * distance;
+			}
+			wp.repaintWithTime();
+		}
 	}
 }
