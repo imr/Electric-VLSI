@@ -24,9 +24,9 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.Main;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -142,7 +142,7 @@ public class MessagesWindow
 		} else
 		{
 			((JFrame)jf).pack();
-			((JFrame)jf).show();
+			if (!Main.BATCHMODE) ((JFrame)jf).show();
 		}
 
 		System.setOut(new java.io.PrintStream(this));
@@ -269,6 +269,7 @@ public class MessagesWindow
 	protected void dump(String str)
 	{
 		info.append(str);
+		if (Main.BATCHMODE) return;
 		try
 		{
 			Rectangle r = info.modelToView(info.getDocument().getLength());

@@ -95,7 +95,6 @@ public class ERCWellCheck
         ErrorLogger errorLogger;
         Highlighter highlighter;
 		List wellCons = new ArrayList();
-	    //int wellConIndex;
 		List wellAreas = new ArrayList();
 		HashMap cellMerges = new HashMap(); // make a map of merge information in each cell
 		HashMap doneCells = new HashMap(); // Mark if cells are done already.

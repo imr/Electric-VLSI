@@ -230,7 +230,7 @@ public class OptionReconcile extends EDialog
 		finishInitialization();
 	}
 
-	private void termDialog()
+	public void termDialog()
 	{
 		DoReconciliation job = new DoReconciliation(changedOptions);
 	}

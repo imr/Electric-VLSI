@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.Main;
 
 import java.awt.Component;
 import java.awt.Frame;
@@ -64,6 +65,8 @@ public class EDialog extends JDialog
 	protected EDialog(Frame parent, boolean modal)
 	{
 		super(parent, modal);
+
+		if (Main.BATCHMODE) return;
 
 		thisClass = this.getClass();
 		Point pt = (Point)locations.get(thisClass);

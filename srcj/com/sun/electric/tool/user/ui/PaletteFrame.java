@@ -53,6 +53,7 @@ import com.sun.electric.tool.user.dialogs.LayoutText;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.menus.CellMenu;
 import com.sun.electric.tool.user.menus.FileMenu;
+import com.sun.electric.Main;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -138,12 +139,12 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 
 		if (TopLevel.isMDIMode())
 		{
-			((JInternalFrame)palette.container).show();
+			if (!Main.BATCHMODE) ((JInternalFrame)palette.container).show();
 			TopLevel.addToDesktop((JInternalFrame)palette.container);
 			//((JInternalFrame)palette.container).moveToFront();
 		} else
 		{
-			((JFrame)palette.container).show();
+			if (!Main.BATCHMODE) ((JFrame)palette.container).show();
 		}
 
         Undo.addDatabaseChangeListener(palette);

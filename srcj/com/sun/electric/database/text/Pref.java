@@ -29,6 +29,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.user.dialogs.OptionReconcile;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.Main;
 
 import java.util.*;
 import java.util.prefs.Preferences;
@@ -734,7 +735,11 @@ public class Pref
 
 		if (meaningsToReconcile.size() == 0) return;
  		OptionReconcile dialog = new OptionReconcile(TopLevel.getCurrentJFrame(), true, meaningsToReconcile, libName);
-		dialog.setVisible(true);
+
+		if (Main.BATCHMODE)
+			dialog.termDialog();
+		else
+			dialog.setVisible(true);
 	}
 
 	/****************************** private methods ******************************/

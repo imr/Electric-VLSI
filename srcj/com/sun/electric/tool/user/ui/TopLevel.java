@@ -241,7 +241,7 @@ public class TopLevel extends JFrame
 			// make the desktop
 			desktop = new JDesktopPane();
 			topLevel.getContentPane().add(desktop, BorderLayout.CENTER);
-            topLevel.setVisible(true);
+            if (!Main.BATCHMODE) topLevel.setVisible(true);
 		}
 	}
 
@@ -288,7 +288,7 @@ public class TopLevel extends JFrame
 	 * The messages window runs along the bottom.
 	 * @return the messages window.
 	 */
-	public static MessagesWindow getMessagesWindow() { return messages; }
+:q	public static MessagesWindow getMessagesWindow() { return messages; }
 
 	/**
 	 * Method to return status bar associated with this TopLevel.
@@ -343,7 +343,7 @@ public class TopLevel extends JFrame
         private AddToDesktopSafe(JInternalFrame jif) { this.jif = jif; }
         public void run() {
             desktop.add(jif);
-            jif.show();
+	        if (!Main.BATCHMODE) jif.show();
         }
     }
 

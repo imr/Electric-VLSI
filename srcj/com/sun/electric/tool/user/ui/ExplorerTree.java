@@ -39,6 +39,7 @@ import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.dialogs.ChangeCellGroup;
 import com.sun.electric.tool.user.dialogs.NewCell;
 import com.sun.electric.tool.user.menus.FileMenu;
+import com.sun.electric.Main;
 
 import java.awt.Component;
 import java.awt.datatransfer.StringSelection;
@@ -1092,7 +1093,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		{
 			JFrame jf = TopLevel.getCurrentJFrame();
 			NewCell dialog = new NewCell(jf, true);
-			dialog.show();
+			if (!Main.BATCHMODE) dialog.show();
 		}
 
 		private void setSweepAction(boolean include)
@@ -1178,7 +1179,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
             Cell cell = (Cell)currentSelectedObject;
             if (cell == null) return;
             ChangeCellGroup dialog = new ChangeCellGroup(TopLevel.getCurrentJFrame(), true, cell, cell.getLibrary());
-            dialog.show();
+            if (!Main.BATCHMODE) dialog.show();
         }
 
 		private void showAlphabeticallyAction()

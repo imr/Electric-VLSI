@@ -41,6 +41,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.Main;
 
 import javax.swing.*;
 import javax.print.PrintService;
@@ -326,7 +327,8 @@ public class FileMenu {
         if (lib == null) return false;
         lib.setCurrent();
         Cell cell = lib.getCurCell();
-        if (cell == null) System.out.println("No current cell in this library"); else
+        if (cell == null) System.out.println("No current cell in this library");
+        else if (!Main.BATCHMODE)
         {
             CreateCellWindow creator = new CreateCellWindow(cell);
             if (!SwingUtilities.isEventDispatchThread()) {

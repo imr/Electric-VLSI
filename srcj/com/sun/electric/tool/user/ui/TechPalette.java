@@ -48,6 +48,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.SwingExamineTask;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.lib.LibFile;
+import com.sun.electric.Main;
 
 import javax.swing.*;
 import java.awt.event.*;
@@ -696,7 +697,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
     public void makeLayoutTextCommand()
     {
         LayoutText dialog = new LayoutText(TopLevel.getCurrentJFrame(), true);
-        dialog.show();
+        if (!Main.BATCHMODE) dialog.show();
     }
 
     public void placeNodeStarted(Object nodeToBePlaced) {

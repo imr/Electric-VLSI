@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.Main;
 
 import java.awt.BorderLayout;
 import java.awt.Insets;
@@ -82,9 +83,9 @@ public class Progress
 			//jif.show();
 			//jif.moveToFront();
 		} else
-		{	
+		{
 			jf.getContentPane().add(panel);
-			jf.show();	
+			if (!Main.BATCHMODE) jf.show();
 		}
 	}
 
@@ -93,6 +94,8 @@ public class Progress
 	 */
 	public void close()
 	{
+		//if (Main.BATCHMODE) return;
+
 		if (TopLevel.isMDIMode())
 		{
 			jif.dispose();
@@ -108,6 +111,7 @@ public class Progress
 	 */
 	public void setProgress(int progress)
 	{
+		//if (Main.BATCHMODE) return;
 		if (progress < 0) progress = 0;
 		if (progress > 100) progress = 100;
 		progressBar.setValue(progress);
@@ -119,6 +123,7 @@ public class Progress
 	 */
 	public int getProgress()
 	{
+		//if (Main.BATCHMODE) return -1;
 		return progressBar.getValue();
 	}
 
