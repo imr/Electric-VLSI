@@ -543,6 +543,7 @@ public class Undo
 				Object oldVal = arr[i1];
 				arr[i1] = o2;
 				o2 = oldVal;
+				obj.lowLevelModVar(var);
 				return;
 			}
 			if (type == Type.VARIABLEINSERT)

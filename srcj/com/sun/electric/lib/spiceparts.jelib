@@ -1,6 +1,42 @@
 # header information:
 Hspiceparts|8.01k|VCCS{ic}|USER_electrical_units()I70464
 
+# Tools:
+Ologeffort|LE_diffn_attr()S"diffn"|LE_diffp_attr()S"diffp"|LE_drive_attr()S"S"|LE_export_le_attr()S"le"|LE_last_convergence_epsilon()F0.1|LE_last_def_wire_ratio()F0.16|LE_last_diff_ratio_nmos()F0.7|LE_last_diff_ratio_pmos()F0.7|LE_last_gate_cap()F0.4|LE_last_global_fanout_effort()F4.0|LE_last_keeper_size_adj()F0.1|LE_last_max_iterations()I40|LE_last_sized_fanout()F1.4E-45|LE_last_top_level_facet()S"crossTest:proximity{sch}"|LE_local_convergence_epsilon()F0.1|LE_local_def_wire_ratio()F0.16|LE_local_diff_ratio_nmos()F0.7|LE_local_diff_ratio_pmos()F0.7|LE_local_fanout_attr()S"su"|LE_local_gate_cap()F0.4|LE_local_global_fanout_effort()F4.0|LE_local_keeper_size_adj()F0.1|LE_local_max_iterations()I40|LE_wire_length_attr()S"L"
+Onetwork|I()I1|NET_ncc_num_processors()I1|NET_ncc_unify_strings()S"Vdd VddQ Vss"
+Osimulation|SIM_spice_schematic_technology()S"mocmos"|SpiceEngine()I2
+Ouser|USER_reporta1tr_attr()S"SP"|USER_reportattr_attr()S"SP"|USER_reportattr_file()S"sp_attr"|USER_reportattr_state()I1
+
+# Technology artwork
+Tartwork|TECH_last_state()I0
+
+# Technology mocmos
+Tmocmos|MoCMOSNumberOfMetalLayers()I6|ScaleFORmocmos()D100.0
+AMetal-1|ARC_default_width()I6400|IO_lef_width()I640|LE_wire_ratio()I6
+AMetal-2|ARC_default_width()I6400|IO_lef_width()I800|LE_wire_ratio()I6
+AMetal-3|IO_lef_width()I800|LE_wire_ratio()I6
+AMetal-4|IO_lef_width()I880|LE_wire_ratio()I6
+AMetal-5|IO_lef_width()I880|LE_wire_ratio()I6
+AMetal-6|LE_wire_ratio()I5
+APolysilicon-1|ARC_default_width()I3200|LE_wire_ratio()I6
+
+# Technology mocmosold
+Tmocmosold
+AMetal-1|ARC_default_width()I3200|IO_lef_width()I880
+AMetal-2|ARC_default_width()I6400|IO_lef_width()I800
+
+# Technology mocmossub
+Tmocmossub|TECH_last_state()I8
+
+# Technology schematic
+Tschematic
+NTransistor|ATTR_M(D5NG1;HPOJ)S"@size_it"
+NCapacitor|ATTR_Capacitance(D5NG1;HP)S"200ff"
+Awire|IO_lef_width()I640
+
+# Technology tsmc90
+Ttsmc90|ScaleFORtsmc90()D100.0
+
 # Cell ACCurrent{ic}
 CACCurrent|ic|1|artwork|1006816118000|1008720580000|E|ATTR_ACCurrent(D5NG0.5;X7;Y0.75;HP)S"1A"|ATTR_DCCurrent(D5NG0.5;X7;Y0.25;HP)S"1A"|ATTR_Delay(D5NG0.5;X7;Y-0.75;HP)S"1ns"|ATTR_Frequency(D5NG0.5;X7;Y-0.25;HP)S"800M"|ATTR_SPICE_template(D5NG0.5;X7;Y5;T)S"I$(node_name) $(plus) $(minus) DC='$(DCCurrent)' AC='$(ACCurrent)' SIN ('$(DCCurrent)' '$(ACCurrent)' '$(Frequency)' '$(Delay)')"
 Nartwork:Circle|art@0|7|0|6|6|0|||ART_color()I10
@@ -69,9 +105,9 @@ CCCVS|ic|1|artwork|1006816118000|1006995720000|E|ATTR_Maximum(D5NG0.5;X7;HP)S"10
 Nartwork:Opened-Dotted-Polygon|art@0|4|1|0|4|0|||ART_color()I10|trace()V[0/2,0/-2]
 Nartwork:Opened-Polygon|art@1|3|-1|2|0|0|||ART_color()I10|trace()V[-1/0,1/0]
 Nartwork:Opened-Polygon|art@2|3|3|2|0|0|||ART_color()I10|trace()V[-1/0,1/0]
-Nartwork:Opened-Polygon|art@3|11|2.375|2|1.25|0|||ART_color()I10|trace()V[1/0.625,-1/0.625,-1/-0.625]
+Nartwork:Opened-Polygon|art@3|11|2.375|2|1.25|0|||ART_color()I10|trace()V[1/0.625,-1/0.625,-1/-0.6]
 Nartwork:Box|art@4|7|1|8|6|0|||ART_color()I10
-Nartwork:Opened-Polygon|art@5|11|-0.375|2|1.25|0|||ART_color()I10|trace()V[1/-0.625,-1/-0.625,-1/0.625]
+Nartwork:Opened-Polygon|art@5|11|-0.375|2|1.25|0|||ART_color()I10|trace()V[1/-0.625,-1/-0.62,-1/0.625]
 Nartwork:Circle|art@6|10|1|1.5|1.5|0|||ART_color()I10
 Ngeneric:Invisible-Pin|pin@0|2|-1|0|0|0||
 Ngeneric:Invisible-Pin|pin@1|2|3|0|0|0||

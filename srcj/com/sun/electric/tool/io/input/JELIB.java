@@ -755,8 +755,6 @@ public class JELIB extends LibraryFiles
 				obj = getVariableValue(piece, objectPos, varType, fileName, lineNumber);
 			}
 
-			// something about "meaning" variables
-
 			// create the variable
 			Variable newVar = eObj.newVar(varKey, obj);
 			if (newVar == null)

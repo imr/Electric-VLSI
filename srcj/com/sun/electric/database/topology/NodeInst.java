@@ -716,6 +716,7 @@ public class NodeInst extends Geometric implements Nodable
 	public void lowLevelModify(double dX, double dY, double dXSize, double dYSize, int dRot)
 	{
 		// remove from the R-Tree structure
+		if (parent == null) return;
 		unLinkGeom(parent);
 
 		// make the change
@@ -2003,6 +2004,18 @@ public class NodeInst extends Geometric implements Nodable
 	{
 		if (key == NODE_NAME) return true;
 		return super.isDeprecatedVariable(key);
+	}
+	
+	/**
+	 * Method to handle special case side-effects of setting variables on this NodeInst.
+	 * Overrides the general method on ElectricObject.
+	 * Currently it handles changes to the number-of-degrees on a circle node.
+	 * @param key the Variable key that has changed on this NodeInst.
+	 */
+	public void checkPossibleVariableEffects(Variable.Key key)
+	{
+		if (key == Artwork.ART_DEGREES)
+			lowLevelModify(0, 0, 0, 0, 0);
 	}
 
 	/**

@@ -249,6 +249,14 @@ public class ElectricObject
 		}
 		return numVars;
 	}
+	
+	/**
+	 * Method to handle special case side-effects of setting variables on this ElectricObject.
+	 * @param key the Variable key that has changed on this ElectricObject.
+	 */
+	public void checkPossibleVariableEffects(Variable.Key key)
+	{
+	}
 
 	/**
 	 * Method to add all displayable Variables on this Electric object to an array of Poly objects.
@@ -546,6 +554,7 @@ public class ElectricObject
 		// restore values
 		newVar.setTextDescriptor(var.getTextDescriptor());
         newVar.copyFlags(var);
+		lowLevelModVar(var);
 		return newVar;
 	}
 
@@ -606,23 +615,39 @@ public class ElectricObject
 	}
 
 	/**
-	 * Low-level access method to link Variabke into this ElectricObject.
+	 * Low-level access method to link a Variable into this ElectricObject.
 	 * @param var Variable to link
 	 */
 	public void lowLevelLinkVar(Variable var)
 	{
 		vars.put(var.getKey(), var);
         var.setLinked(true);
+
+		// check for side-effects of the change
+		checkPossibleVariableEffects(var.getKey());
 	}
 
 	/**
-	 * Low-level access method to unlink Variabke from this ElectricObject.
+	 * Low-level access method to unlink a Variable from this ElectricObject.
 	 * @param var Variable to unlink.
 	 */
 	public void lowLevelUnlinkVar(Variable var)
 	{
 		vars.remove(var.getKey());
         var.setLinked(false);
+
+		// check for side-effects of the change
+		checkPossibleVariableEffects(var.getKey());
+	}
+
+	/**
+	 * Low-level access method to change a Variable from this ElectricObject.
+	 * @param var Variable that changed.
+	 */
+	public void lowLevelModVar(Variable var)
+	{
+		// check for side-effects of the change
+		checkPossibleVariableEffects(var.getKey());
 	}
 
 	/**
@@ -645,6 +670,7 @@ public class ElectricObject
 			if (!isDummyObject())
 				Undo.modifyVariable(this, v, index, oldVal);
 		}
+		lowLevelModVar(v);
 	}
 
 	/**
@@ -665,6 +691,7 @@ public class ElectricObject
 			if (!isDummyObject())
 				Undo.insertVariable(this, v, index);
 		}
+		lowLevelModVar(v);
 	}
 
 	/**
@@ -685,6 +712,7 @@ public class ElectricObject
 			if (!isDummyObject())
 				Undo.deleteVariable(this, v, index, oldVal);
 		}
+		lowLevelModVar(v);
 	}
 
 	/**

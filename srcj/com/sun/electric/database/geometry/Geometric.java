@@ -730,6 +730,7 @@ public abstract class Geometric extends ElectricObject
 	{
 		// find the bottom-level branch (a RTNode with leafs) that would expand least by adding this Geometric
 		RTNode rtn = parnt.getRTree();
+		if (rtn == null) return;
 		for(;;)
 		{
 			// if R-tree node contains primitives, exit loop
@@ -776,7 +777,9 @@ public abstract class Geometric extends ElectricObject
 		// find this node in the tree
 		RTNode whichRTN = null;
 		int whichInd = 0;
-		Object[] result = ((RTNode)parnt.getRTree()).findGeom(this);
+		RTNode rtn = parnt.getRTree();
+		if (rtn == null) return;
+		Object[] result = rtn.findGeom(this);
 		if (result != null)
 		{
 			whichRTN = (RTNode)result[0];

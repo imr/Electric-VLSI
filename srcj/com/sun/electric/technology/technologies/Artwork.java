@@ -51,7 +51,12 @@ import java.util.HashMap;
  */
 public class Artwork extends Technology
 {
-	/** key of Variable holding starting and ending angles. */	public static final Variable.Key ART_DEGREES = ElectricObject.newKey("ART_degrees");
+	/**
+	 * Key of Variable holding starting and ending angles.
+	 * As a special case, NodeInst.checkPossibleVariableEffects()
+	 * updates the node when this variable changes.
+	 */
+	public static final Variable.Key ART_DEGREES = ElectricObject.newKey("ART_degrees");
 	/** key of Variable holding message text. */				public static final Variable.Key ART_MESSAGE = ElectricObject.newKey("ART_message");
 	/** key of Variable holding color information */			public static final Variable.Key ART_COLOR = ElectricObject.newKey("ART_color");
 	/** key of Variable holding color information */			public static final Variable.Key ART_PATTERN = ElectricObject.newKey("ART_pattern");

@@ -288,10 +288,10 @@ public class JELIB extends Output
 				StringBuffer nodeTypeName = (StringBuffer)abbreviationMap.get(np);
 				printWriter.print(nodeTypeName.toString());
 				printWriter.print("|" + ni.getName());
-				printWriter.print("|" + TextUtils.formatDouble(ni.getAnchorCenterX()));
-				printWriter.print("|" + TextUtils.formatDouble(ni.getAnchorCenterY()));
-				printWriter.print("|" + TextUtils.formatDouble(ni.getXSizeWithMirror()));
-				printWriter.print("|" + TextUtils.formatDouble(ni.getYSizeWithMirror()));
+				printWriter.print("|" + TextUtils.formatDouble(ni.getAnchorCenterX(), 0));
+				printWriter.print("|" + TextUtils.formatDouble(ni.getAnchorCenterY(), 0));
+				printWriter.print("|" + TextUtils.formatDouble(ni.getXSizeWithMirror(), 0));
+				printWriter.print("|" + TextUtils.formatDouble(ni.getYSizeWithMirror(), 0));
 				printWriter.print("|" + ni.getAngle());
 				StringBuffer nodeBits = new StringBuffer();
 				if (ni.isExpanded()) nodeBits.append("E");
@@ -324,7 +324,7 @@ public class JELIB extends Output
 				StringBuffer arcTypeName = (StringBuffer)abbreviationMap.get(ap);
 				printWriter.print("A" + arcTypeName.toString());
 				printWriter.print("|" + ai.getName());
-				printWriter.print("|" + TextUtils.formatDouble(ai.getWidth()));
+				printWriter.print("|" + TextUtils.formatDouble(ai.getWidth(), 0));
 				StringBuffer arcBits = new StringBuffer();
 
 				if (ai.isRigid()) arcBits.append("R");
@@ -347,8 +347,8 @@ public class JELIB extends Output
 					PortProto pp = con.getPortInst().getPortProto();
 					if (ni.getProto().getNumPorts() > 1)
 						printWriter.print(pp.getName());
-					printWriter.print("|" + TextUtils.formatDouble(con.getLocation().getX()));
-					printWriter.print("|" + TextUtils.formatDouble(con.getLocation().getY()));
+					printWriter.print("|" + TextUtils.formatDouble(con.getLocation().getX(), 0));
+					printWriter.print("|" + TextUtils.formatDouble(con.getLocation().getY(), 0));
 				}
 				writeVars(ai, cell);
 				printWriter.print("\n");
@@ -610,9 +610,9 @@ public class JELIB extends Output
 
 			// write offset
 			double offX = td.getXOff();
-			if (offX != 0) ret.append("X" + TextUtils.formatDouble(offX) + ";");
+			if (offX != 0) ret.append("X" + TextUtils.formatDouble(offX, 0) + ";");
 			double offY = td.getYOff();
-			if (offY != 0) ret.append("Y" + TextUtils.formatDouble(offY) + ";");
+			if (offY != 0) ret.append("Y" + TextUtils.formatDouble(offY, 0) + ";");
 
 			// write bold/italic/underline
 			if (td.isBold()) ret.append("B");
@@ -795,7 +795,7 @@ public class JELIB extends Output
 		if (obj instanceof Point2D)
 		{
 			Point2D pt2 = (Point2D)obj;
-			infstr.append(TextUtils.formatDouble(pt2.getX()) + "/" + TextUtils.formatDouble(pt2.getY()));
+			infstr.append(TextUtils.formatDouble(pt2.getX(), 0) + "/" + TextUtils.formatDouble(pt2.getY(), 0));
 			return;
 		}
 		if (obj instanceof Technology)

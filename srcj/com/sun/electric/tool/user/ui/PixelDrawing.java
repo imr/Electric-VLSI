@@ -2983,16 +2983,16 @@ public class PixelDrawing
 			if (x < sz.width-1)
 				opaqueData[y * sz.width + (x+1)] = col;
 			if (y > 0)
-				opaqueData[(y-1) * sz.width + (x+1)] = col;
+				opaqueData[(y-1) * sz.width + x] = col;
 			if (y < sz.height-1)
-				opaqueData[(y+1) * sz.width + (x+1)] = col;
+				opaqueData[(y+1) * sz.width + x] = col;
 		} else
 		{
 			layerBitMap[y][x>>3] |= (1 << (x&7));
 			if (x > 0)
-				layerBitMap[y][(x-1)>>3] |= (1 << (x&7));
+				layerBitMap[y][(x-1)>>3] |= (1 << ((x-1)&7));
 			if (x < sz.width-1)
-				layerBitMap[y][(x+1)>>3] |= (1 << (x&7));
+				layerBitMap[y][(x+1)>>3] |= (1 << ((x+1)&7));
 			if (y > 0)
 				layerBitMap[y-1][x>>3] |= (1 << (x&7));
 			if (y < sz.height-1)

@@ -1,8 +1,15 @@
 			Java Electric change log
 
 ************************* Version 8.01l: *********************************
+
 BUG: (9/1/04, GVG) Artwork arcs don't have network associated then modification in StatusBar crashes
 FIX: Get Network information only when network is not null.
+
+BUG: (9/1/04, SMR) Changes to the number-of-degrees of a circle don't update the node bounds.
+FIX: Added ElectricObject.checkPossibleVariableEffects()" and an override in NodeInst.
+
+BUG: (9/1/04, SMR) Thick lines may cause crashes.
+FIX: In PixelDrawing.drawThickPoint(), test X and Y indices properly.
 
 BUG: (9/1/04, SMR) Printing crashes if no printers are defined.
 FIX: Check for valid default printer in "IOTool.getCachePrinterName()".
