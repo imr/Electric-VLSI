@@ -31,6 +31,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
@@ -281,8 +282,8 @@ public class Array extends javax.swing.JDialog
 
 	private void newSpacingSelected()
 	{
-		double x = EMath.atof(xSpacing.getText());
-		double y = EMath.atof(ySpacing.getText());
+		double x = TextUtils.atof(xSpacing.getText());
+		double y = TextUtils.atof(ySpacing.getText());
 		switch (lastSpacingType)
 		{
 			case SPACING_EDGE:   spacingOverX = x;         spacingOverY = y;         break;
@@ -315,16 +316,16 @@ public class Array extends javax.swing.JDialog
 	private void rememberFields()
 	{
 		// gather all "last" values
-		lastXRepeat = EMath.atoi(xRepeat.getText());
+		lastXRepeat = TextUtils.atoi(xRepeat.getText());
 		lastXFlip = flipAlternateColumns.isSelected();
 		lastXStagger = staggerAlternateColumns.isSelected();
 		lastXCenter = centerXAboutOriginal.isSelected();
-		lastYRepeat = EMath.atoi(yRepeat.getText());
+		lastYRepeat = TextUtils.atoi(yRepeat.getText());
 		lastYFlip = flipAlternateRows.isSelected();
 		lastYStagger = staggerAlternateRows.isSelected();
 		lastYCenter = centerYAboutOriginal.isSelected();
-		lastXDistance = EMath.atof(xSpacing.getText());
-		lastYDistance = EMath.atof(ySpacing.getText());
+		lastXDistance = TextUtils.atof(xSpacing.getText());
+		lastYDistance = TextUtils.atof(ySpacing.getText());
 		lastLinearDiagonal = linearDiagonalArray.isSelected();
 		lastAddNames = generateArrayIndices.isSelected();
 		lastDRCGood = onlyDRCCorrect.isSelected();

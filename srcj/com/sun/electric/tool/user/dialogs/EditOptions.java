@@ -27,6 +27,7 @@ import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
@@ -160,7 +161,7 @@ public class EditOptions extends javax.swing.JDialog
 		if (curentIncludeDateAndVersion != initialIncludeDateAndVersion)
 			User.setIncludeDateAndVersionInOutput(curentIncludeDateAndVersion);
 
-		int curentErrorLimit = EMath.atoi(generalErrorLimit.getText());
+		int curentErrorLimit = TextUtils.atoi(generalErrorLimit.getText());
 		if (curentErrorLimit != initialErrorLimit)
 			User.setErrorLimit(curentErrorLimit);
 	}
@@ -305,9 +306,9 @@ public class EditOptions extends javax.swing.JDialog
 		PrimitiveNode np = Technology.getCurrent().findNodeProto(primName);
 		PrimNodeInfo pni = (PrimNodeInfo)initialNewNodesPrimInfo.get(np);
 		if (pni == null) return;
-		pni.wid = EMath.atof(nodePrimitiveXSize.getText());
-		pni.hei = EMath.atof(nodePrimitiveYSize.getText());
-		pni.rotation = (int)(EMath.atof(nodePrimitiveRotation.getText()) * 10);
+		pni.wid = TextUtils.atof(nodePrimitiveXSize.getText());
+		pni.hei = TextUtils.atof(nodePrimitiveYSize.getText());
+		pni.rotation = (int)(TextUtils.atof(nodePrimitiveRotation.getText()) * 10);
 		pni.mirrorX = nodePrimitiveMirror.isSelected();
 		if (pni.rotation != pni.initialRotation || pni.mirrorX != pni.initialMirrorX)
 		{
@@ -371,7 +372,7 @@ public class EditOptions extends javax.swing.JDialog
 		if (currentCopyExports != initialNewNodesDupCopiesExports)
 			User.setDupCopiesExports(currentCopyExports);
 
-		int currentAllRotation = (int)(EMath.atof(nodeAllRotation.getText()) * 10);
+		int currentAllRotation = (int)(TextUtils.atof(nodeAllRotation.getText()) * 10);
 		if (currentAllRotation != initialNewNodesRotation)
 			User.setNewNodeRotation(currentAllRotation);
 
@@ -568,8 +569,8 @@ public class EditOptions extends javax.swing.JDialog
 		pai.directional = arcDirectional.isSelected();
 		pai.endsExtend = arcEndsExtend.isSelected();
 
-		pai.wid = EMath.atof(arcWidth.getText());
-		pai.angleIncrement = EMath.atoi(arcAngle.getText());
+		pai.wid = TextUtils.atof(arcWidth.getText());
+		pai.angleIncrement = TextUtils.atoi(arcAngle.getText());
 		pai.pin = Technology.getCurrent().findNodeProto((String)arcPin.getSelectedItem());
 		PortProto pp = (PortProto)pai.pin.getPorts().next();
 		if (!pp.connectsTo(ap))
@@ -932,11 +933,11 @@ public class EditOptions extends javax.swing.JDialog
 		if (currentReverseOrder != initialIconReverseExportOrder)
 			User.setIconGenReverseExportOrder(currentReverseOrder);
 
-		float currentLeadLength = (float)EMath.atof(iconLeadLength.getText());
+		float currentLeadLength = (float)TextUtils.atof(iconLeadLength.getText());
 		if (currentLeadLength != initialIconLeadLength)
 			User.setIconGenLeadLength(currentLeadLength);
 
-		float currentLeadSpacing = (float)EMath.atof(iconLeadSpacing.getText());
+		float currentLeadSpacing = (float)TextUtils.atof(iconLeadSpacing.getText());
 		if (currentLeadSpacing != initialIconLeadSpacing)
 			User.setIconGenLeadSpacing(currentLeadSpacing);
 	}
@@ -995,28 +996,28 @@ public class EditOptions extends javax.swing.JDialog
 		EditWindow wnd = EditWindow.getCurrent();
 		if (wnd != null)
 		{
-			float currentXSpacing = (float)EMath.atof(gridCurrentHoriz.getText());
+			float currentXSpacing = (float)TextUtils.atof(gridCurrentHoriz.getText());
 			if (currentXSpacing != initialGridXSpacing)
 				wnd.setGridXSpacing(currentXSpacing);
 
-			float currentYSpacing = (float)EMath.atof(gridCurrentVert.getText());
+			float currentYSpacing = (float)TextUtils.atof(gridCurrentVert.getText());
 			if (currentYSpacing != initialGridYSpacing)
 				wnd.setGridYSpacing(currentYSpacing);
 		}
 
-		float currentDefXSpacing = (float)EMath.atof(gridNewHoriz.getText());
+		float currentDefXSpacing = (float)TextUtils.atof(gridNewHoriz.getText());
 		if (currentDefXSpacing != initialGridDefXSpacing)
 			User.setDefGridXSpacing(currentDefXSpacing);
 
-		float currentDefYSpacing = (float)EMath.atof(gridNewVert.getText());
+		float currentDefYSpacing = (float)TextUtils.atof(gridNewVert.getText());
 		if (currentDefYSpacing != initialGridDefYSpacing)
 			User.setDefGridYSpacing(currentDefYSpacing);
 
-		int currentDefXBoldFrequency = EMath.atoi(gridBoldHoriz.getText());
+		int currentDefXBoldFrequency = TextUtils.atoi(gridBoldHoriz.getText());
 		if (currentDefXBoldFrequency != initialGridDefXBoldFrequency)
 			User.setDefGridXBoldFrequency(currentDefXBoldFrequency);
 
-		int currentDefYBoldFrequency = EMath.atoi(gridBoldVert.getText());
+		int currentDefYBoldFrequency = TextUtils.atoi(gridBoldVert.getText());
 		if (currentDefYBoldFrequency != initialGridDefYBoldFrequency)
 			User.setDefGridYBoldFrequency(currentDefYBoldFrequency);
 
@@ -1028,11 +1029,11 @@ public class EditOptions extends javax.swing.JDialog
 		if (currentShowCursorCoordinates != initialShowCursorCoordinates)
 			StatusBar.setShowCoordinates(currentShowCursorCoordinates);
 
-		float currentAlignment = (float)EMath.atof(gridAlignCursor.getText());
+		float currentAlignment = (float)TextUtils.atof(gridAlignCursor.getText());
 		if (currentAlignment != initialGridAlignment)
 			User.setAlignmentToGrid(currentAlignment);
 
-		float currentEdgeAlignment = (float)EMath.atof(gridAlignEdges.getText());
+		float currentEdgeAlignment = (float)TextUtils.atof(gridAlignEdges.getText());
 		if (currentEdgeAlignment != initialGridEdgeAlignment)
 			User.setEdgeAlignmentToGrid(currentEdgeAlignment);
 	}

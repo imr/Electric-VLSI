@@ -31,6 +31,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
@@ -840,12 +841,12 @@ public class GetInfoNode extends javax.swing.JDialog
 				if (!currentTextField.equals(dialog.initialTextField))
 				{
 					double start = 0;
-					double curvature = EMath.atof(currentTextField) * Math.PI / 180.0;
+					double curvature = TextUtils.atof(currentTextField) * Math.PI / 180.0;
 					int slashPos = currentTextField.indexOf('/');
 					if (slashPos >= 0)
 					{
 						start = curvature;
-						curvature = EMath.atof(currentTextField.substring(slashPos+1)) * Math.PI / 180.0;
+						curvature = TextUtils.atof(currentTextField.substring(slashPos+1)) * Math.PI / 180.0;
 					}
 					ni.setArcDegrees(start, curvature);
 					dialog.initialTextField = currentTextField;

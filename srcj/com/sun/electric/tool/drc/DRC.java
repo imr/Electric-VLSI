@@ -744,48 +744,68 @@ public class DRC extends Tool
 	 * The default is "true".
 	 * @return true if DRC should be done incrementally.
 	 */
-	public static boolean isIncrementalDRCOn() { return tool.prefs.getBoolean("IncrementalDRCOn", true); }
+	private static boolean cacheIncrementalDRCOn = tool.prefs.getBoolean("IncrementalDRCOn", true);
+	public static boolean isIncrementalDRCOn() { return cacheIncrementalDRCOn; }
 	/**
 	 * Method to set whether DRC should be done incrementally.
 	 * @param on true if DRC should be done incrementally.
 	 */
-	public static void setIncrementalDRCOn(boolean on) { tool.prefs.putBoolean("IncrementalDRCOn", on);   flushOptions(); }
+	public static void setIncrementalDRCOn(boolean on)
+	{
+		tool.prefs.putBoolean("IncrementalDRCOn", cacheIncrementalDRCOn = on);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell whether DRC should report only one error per Cell.
 	 * The default is "false".
 	 * @return true if DRC should report only one error per Cell.
 	 */
-	public static boolean isOneErrorPerCell() { return tool.prefs.getBoolean("OneErrorPerCell", false); }
+	private static boolean cacheOneErrorPerCell = tool.prefs.getBoolean("OneErrorPerCell", false);
+	public static boolean isOneErrorPerCell() { return cacheOneErrorPerCell; }
 	/**
 	 * Method to set whether DRC should report only one error per Cell.
 	 * @param on true if DRC should report only one error per Cell.
 	 */
-	public static void setOneErrorPerCell(boolean on) { tool.prefs.putBoolean("OneErrorPerCell", on);   flushOptions(); }
+	public static void setOneErrorPerCell(boolean on)
+	{
+		tool.prefs.putBoolean("OneErrorPerCell", cacheOneErrorPerCell = on);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell whether DRC should use multiple threads.
 	 * The default is "false".
 	 * @return true if DRC should use multiple threads.
 	 */
-	public static boolean isUseMultipleThreads() { return tool.prefs.getBoolean("UseMultipleThreads", false); }
+	private static boolean cacheUseMultipleThreads = tool.prefs.getBoolean("UseMultipleThreads", false);
+	public static boolean isUseMultipleThreads() { return cacheUseMultipleThreads; }
 	/**
 	 * Method to set whether DRC should use multiple threads.
 	 * @param on true if DRC should use multiple threads.
 	 */
-	public static void setUseMultipleThreads(boolean on) { tool.prefs.putBoolean("UseMultipleThreads", on);   flushOptions(); }
+	public static void setUseMultipleThreads(boolean on)
+	{
+		tool.prefs.putBoolean("UseMultipleThreads", cacheUseMultipleThreads = on);
+		flushOptions();
+	}
 
 	/**
 	 * Method to return the number of threads to use when running DRC with multiple threads.
 	 * The default is 2.
 	 * @return the number of threads to use when running DRC with multiple threads.
 	 */
-	public static int getNumberOfThreads() { return tool.prefs.getInt("NumberOfThreads", 2); }
+	private static int cacheNumberOfThreads = tool.prefs.getInt("NumberOfThreads", 2);
+	public static int getNumberOfThreads() { return cacheNumberOfThreads; }
 	/**
 	 * Method to set the number of threads to use when running DRC with multiple threads.
-	 * @param rot the number of threads to use when running DRC with multiple threads.
+	 * @param th the number of threads to use when running DRC with multiple threads.
 	 */
-	public static void setNumberOfThreads(int rot) { tool.prefs.putInt("NumberOfThreads", rot);   flushOptions(); }
+	public static void setNumberOfThreads(int th)
+	{
+		tool.prefs.putInt("NumberOfThreads", cacheNumberOfThreads = th);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell whether DRC should ignore center cuts in large contacts.
@@ -793,11 +813,16 @@ public class DRC extends Tool
 	 * The default is "false".
 	 * @return true if DRC should ignore center cuts in large contacts.
 	 */
-	public static boolean isIgnoreCenterCuts() { return tool.prefs.getBoolean("IgnoreCenterCuts", false); }
+	private static boolean cacheIgnoreCenterCuts = tool.prefs.getBoolean("IgnoreCenterCuts", false);
+	public static boolean isIgnoreCenterCuts() { return cacheIgnoreCenterCuts; }
 	/**
 	 * Method to set whether DRC should ignore center cuts in large contacts.
 	 * Only the perimeter of cuts will be checked.
 	 * @param on true if DRC should ignore center cuts in large contacts.
 	 */
-	public static void setIgnoreCenterCuts(boolean on) { tool.prefs.putBoolean("IgnoreCenterCuts", on);   flushOptions(); }
+	public static void setIgnoreCenterCuts(boolean on)
+	{
+		tool.prefs.putBoolean("IgnoreCenterCuts", cacheIgnoreCenterCuts = on);
+		flushOptions();
+	}
 }

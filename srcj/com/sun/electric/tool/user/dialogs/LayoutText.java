@@ -28,6 +28,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
@@ -139,7 +140,7 @@ public class LayoutText extends javax.swing.JDialog
 		int fontStyle = Font.PLAIN;
 		if (textItalic.isSelected()) fontStyle |= Font.ITALIC;
 		if (textBold.isSelected()) fontStyle |= Font.BOLD;
-		int size = EMath.atoi(textSize.getText());
+		int size = TextUtils.atoi(textSize.getText());
 		Font theFont = new Font(fontName, fontStyle, size);
 		if (theFont != null)
 			textMessage.setFont(theFont);
@@ -421,9 +422,9 @@ public class LayoutText extends javax.swing.JDialog
 
 	private void grabDialogValues()
 	{
-		lastSize = EMath.atoi(textSize.getText());
-		lastScale = EMath.atof(textScale.getText());
-		lastSeparation = EMath.atof(dotSeparation.getText());
+		lastSize = TextUtils.atoi(textSize.getText());
+		lastScale = TextUtils.atof(textScale.getText());
+		lastSeparation = TextUtils.atof(dotSeparation.getText());
 		lastItalic = textItalic.isSelected();
 		lastBold = textBold.isSelected();
 		lastLayer = (String)textLayer.getSelectedItem();

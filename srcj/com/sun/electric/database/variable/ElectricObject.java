@@ -28,6 +28,7 @@ import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -449,10 +450,10 @@ public class ElectricObject
 					// colon: make sure there are two numbers
 					String firstIndex = name.substring(startpos+1, i);
 					String secondIndex = name.substring(i+1, endpos);
-					if (EMath.isANumber(firstIndex) && EMath.isANumber(secondIndex))
+					if (TextUtils.isANumber(firstIndex) && TextUtils.isANumber(secondIndex))
 					{
-						int startIndex = EMath.atoi(firstIndex);
-						int endindex = EMath.atoi(secondIndex);
+						int startIndex = TextUtils.atoi(firstIndex);
+						int endindex = TextUtils.atoi(secondIndex);
 						int spacing = Math.abs(endindex - startIndex) + 1;
 						for(int nextindex = 1; ; nextindex++)
 						{
@@ -473,9 +474,9 @@ public class ElectricObject
 
 				// see if this bracketed expression is a pure number
 				String bracketedExpression = name.substring(startpos+1, endpos);
-				if (EMath.isANumber(bracketedExpression))
+				if (TextUtils.isANumber(bracketedExpression))
 				{
-					int nextindex = EMath.atoi(bracketedExpression) + 1;
+					int nextindex = TextUtils.atoi(bracketedExpression) + 1;
 					for(; ; nextindex++)
 					{
 						String newname = name.substring(0, startpos) + "[" + nextindex + name.substring(endpos);
@@ -506,7 +507,7 @@ public class ElectricObject
 				int i;
 				for(i=possibleend-1; i>possiblestart; i--)
 					if (!Character.isDigit(name.charAt(i))) break;
-				int nextindex = EMath.atoi(name.substring(i+1)) + 1;
+				int nextindex = TextUtils.atoi(name.substring(i+1)) + 1;
 				int startpos = i+1;
 				if (name.charAt(startpos-1) == separatechar) startpos--;
 				for(; ; nextindex++)
@@ -534,7 +535,7 @@ public class ElectricObject
 			if (startpos > 0 && name.charAt(startpos-1) == separatechar) startpos--;
 		} else
 		{
-			nextindex = EMath.atoi(name.substring(startpos)) + 1;
+			nextindex = TextUtils.atoi(name.substring(startpos)) + 1;
 			localSepString = "";
 		}
 

@@ -1060,6 +1060,7 @@ public class Cell extends NodeProto
 	public void adjustReferencePoint(NodeInst referencePointNode)
 	{
 		checkChanging();
+
 		// if there is no change, stop now
 		double cX = referencePointNode.getTrueCenterX();
 		double cY = referencePointNode.getTrueCenterY();

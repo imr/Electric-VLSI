@@ -173,36 +173,51 @@ public class Routing extends Tool
 	 * The default is "false".
 	 * @return true if Auto-stitching should be done.
 	 */
-	public static boolean isAutoStitchOn() { return tool.prefs.getBoolean("AutoStitchOn", false); }
+	private static boolean cacheAutoStitchOn = tool.prefs.getBoolean("AutoStitchOn", false);
+	public static boolean isAutoStitchOn() { return cacheAutoStitchOn; }
 	/**
 	 * Method to set whether Auto-stitching should be done.
 	 * @param on true if Auto-stitching should be done.
 	 */
-	public static void setAutoStitchOn(boolean on) { tool.prefs.putBoolean("AutoStitchOn", on);   flushOptions(); }
+	public static void setAutoStitchOn(boolean on)
+	{
+		tool.prefs.putBoolean("AutoStitchOn", cacheAutoStitchOn = on);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell whether Mimic-stitching should be done.
 	 * The default is "false".
 	 * @return true if Mimic-stitching should be done.
 	 */
-	public static boolean isMimicStitchOn() { return tool.prefs.getBoolean("MimicStitchOn", false); }
+	private static boolean cacheMimicStitchOn = tool.prefs.getBoolean("MimicStitchOn", false);
+	public static boolean isMimicStitchOn() { return cacheMimicStitchOn; }
 	/**
 	 * Method to set whether Mimic-stitching should be done.
 	 * @param on true if Mimic-stitching should be done.
 	 */
-	public static void setMimicStitchOn(boolean on) { tool.prefs.putBoolean("MimicStitchOn", on);   flushOptions(); }
+	public static void setMimicStitchOn(boolean on)
+	{
+		tool.prefs.putBoolean("MimicStitchOn", cacheMimicStitchOn = on);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell whether Mimic-stitching can remove arcs (unstitch).
 	 * The default is "false".
 	 * @return true if Mimic-stitching can remove arcs (unstitch).
 	 */
-	public static boolean isMimicStitchCanUnstitch() { return tool.prefs.getBoolean("MimicStitchCanUnstitch", false); }
+	private static boolean cacheMimicStitchCanUnstitch = tool.prefs.getBoolean("MimicStitchCanUnstitch", false);
+	public static boolean isMimicStitchCanUnstitch() { return cacheMimicStitchCanUnstitch; }
 	/**
 	 * Method to set whether Mimic-stitching can remove arcs (unstitch).
 	 * @param on true if Mimic-stitching can remove arcs (unstitch).
 	 */
-	public static void setMimicStitchCanUnstitch(boolean on) { tool.prefs.putBoolean("MimicStitchCanUnstitch", on);   flushOptions(); }
+	public static void setMimicStitchCanUnstitch(boolean on)
+	{
+		tool.prefs.putBoolean("MimicStitchCanUnstitch", cacheMimicStitchCanUnstitch = on);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell whether Mimic-stitching runs interactively.
@@ -210,84 +225,119 @@ public class Routing extends Tool
 	 * The default is "false".
 	 * @return true if Mimic-stitching runs interactively.
 	 */
-	public static boolean isMimicStitchInteractive() { return tool.prefs.getBoolean("MimicStitchInteractive", false); }
+	private static boolean cacheMimicStitchInteractive = tool.prefs.getBoolean("MimicStitchInteractive", false);
+	public static boolean isMimicStitchInteractive() { return cacheMimicStitchInteractive; }
 	/**
 	 * Method to set whether Mimic-stitching runs interactively.
 	 * During interactive Mimic stitching, each new set of arcs is shown to the user for confirmation.
 	 * @param on true if Mimic-stitching runs interactively.
 	 */
-	public static void setMimicStitchInteractive(boolean on) { tool.prefs.putBoolean("MimicStitchInteractive", on);   flushOptions(); }
+	public static void setMimicStitchInteractive(boolean on)
+	{
+		tool.prefs.putBoolean("MimicStitchInteractive", cacheMimicStitchInteractive = on);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell whether Mimic-stitching only works between matching ports.
 	 * The default is "false".
 	 * @return true if Mimic-stitching only works between matching ports.
 	 */
-	public static boolean isMimicStitchMatchPorts() { return tool.prefs.getBoolean("MimicStitchMatchPorts", false); }
+	private static boolean cacheMimicStitchMatchPorts = tool.prefs.getBoolean("MimicStitchMatchPorts", false);
+	public static boolean isMimicStitchMatchPorts() { return cacheMimicStitchMatchPorts; }
 	/**
 	 * Method to set whether Mimic-stitching only works between matching ports.
 	 * @param on true if Mimic-stitching only works between matching ports.
 	 */
-	public static void setMimicStitchMatchPorts(boolean on) { tool.prefs.putBoolean("MimicStitchMatchPorts", on);   flushOptions(); }
+	public static void setMimicStitchMatchPorts(boolean on)
+	{
+		tool.prefs.putBoolean("MimicStitchMatchPorts", cacheMimicStitchMatchPorts = on);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell whether Mimic-stitching only works when the number of existing arcs matches.
 	 * The default is "false".
 	 * @return true if Mimic-stitching only works when the number of existing arcs matches.
 	 */
-	public static boolean isMimicStitchMatchNumArcs() { return tool.prefs.getBoolean("MimicStitchMatchNumArcs", false); }
+	private static boolean cacheMimicStitchMatchNumArcs = tool.prefs.getBoolean("MimicStitchMatchNumArcs", false);
+	public static boolean isMimicStitchMatchNumArcs() { return cacheMimicStitchMatchNumArcs; }
 	/**
 	 * Method to set whether Mimic-stitching only works when the number of existing arcs matches.
 	 * @param on true if Mimic-stitching only works when the number of existing arcs matches.
 	 */
-	public static void setMimicStitchMatchNumArcs(boolean on) { tool.prefs.putBoolean("MimicStitchMatchNumArcs", on);   flushOptions(); }
+	public static void setMimicStitchMatchNumArcs(boolean on)
+	{
+		tool.prefs.putBoolean("MimicStitchMatchNumArcs", cacheMimicStitchMatchNumArcs = on);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell whether Mimic-stitching only works when the node sizes are the same.
 	 * The default is "false".
 	 * @return true if Mimic-stitching only works when the node sizes are the same.
 	 */
-	public static boolean isMimicStitchMatchNodeSize() { return tool.prefs.getBoolean("MimicStitchMatchNodeSize", false); }
+	private static boolean cacheMimicStitchMatchNodeSize = tool.prefs.getBoolean("MimicStitchMatchNodeSize", false);
+	public static boolean isMimicStitchMatchNodeSize() { return cacheMimicStitchMatchNodeSize; }
 	/**
 	 * Method to set whether Mimic-stitching only works when the node sizes are the same.
 	 * @param on true if Mimic-stitching only works when the node sizes are the same.
 	 */
-	public static void setMimicStitchMatchNodeSize(boolean on) { tool.prefs.putBoolean("MimicStitchMatchNodeSize", on);   flushOptions(); }
+	public static void setMimicStitchMatchNodeSize(boolean on)
+	{
+		tool.prefs.putBoolean("MimicStitchMatchNodeSize", cacheMimicStitchMatchNodeSize = on);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell whether Mimic-stitching only works when the nodes have the same type.
 	 * The default is "true".
 	 * @return true if Mimic-stitching only works when the nodes have the same type.
 	 */
-	public static boolean isMimicStitchMatchNodeType() { return tool.prefs.getBoolean("MimicStitchMatchNodeType", true); }
+	private static boolean cacheMimicStitchMatchNodeType = tool.prefs.getBoolean("MimicStitchMatchNodeType", true);
+	public static boolean isMimicStitchMatchNodeType() { return cacheMimicStitchMatchNodeType; }
 	/**
 	 * Method to set whether Mimic-stitching only works when the nodes have the same type.
 	 * @param on true if Mimic-stitching only works when the nodes have the same type.
 	 */
-	public static void setMimicStitchMatchNodeType(boolean on) { tool.prefs.putBoolean("MimicStitchMatchNodeType", on);   flushOptions(); }
+	public static void setMimicStitchMatchNodeType(boolean on)
+	{
+		tool.prefs.putBoolean("MimicStitchMatchNodeType", cacheMimicStitchMatchNodeType = on);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell whether Mimic-stitching only works when there are no other arcs running in the same direction.
 	 * The default is "true".
 	 * @return true if Mimic-stitching only works when there are no other arcs running in the same direction.
 	 */
-	public static boolean isMimicStitchNoOtherArcsSameDir() { return tool.prefs.getBoolean("MimicStitchNoOtherArcsSameDir", true); }
+	private static boolean cacheMimicStitchNoOtherArcsSameDir = tool.prefs.getBoolean("MimicStitchNoOtherArcsSameDir", true);
+	public static boolean isMimicStitchNoOtherArcsSameDir() { return cacheMimicStitchNoOtherArcsSameDir; }
 	/**
 	 * Method to set whether Mimic-stitching only works when there are no other arcs running in the same direction.
 	 * @param on true if Mimic-stitching only works when there are no other arcs running in the same direction.
 	 */
-	public static void setMimicStitchNoOtherArcsSameDir(boolean on) { tool.prefs.putBoolean("MimicStitchNoOtherArcsSameDir", on);   flushOptions(); }
+	public static void setMimicStitchNoOtherArcsSameDir(boolean on)
+	{
+		tool.prefs.putBoolean("MimicStitchNoOtherArcsSameDir", cacheMimicStitchNoOtherArcsSameDir = on);
+		flushOptions();
+	}
 
 	/**
 	 * Method to return the name of the arc that should be used as a default by the stitching routers.
 	 * The default is "".
 	 * @return the name of the arc that should be used as a default by the stitching routers.
 	 */
-	public static String getPreferredRoutingArc() { return tool.prefs.get("PreferredRoutingArc", ""); }
+	private static String cachePreferredRoutingArc = tool.prefs.get("PreferredRoutingArc", "");
+	public static String getPreferredRoutingArc() { return cachePreferredRoutingArc; }
 	/**
 	 * Method to set the name of the arc that should be used as a default by the stitching routers.
 	 * @param arcName the name of the arc that should be used as a default by the stitching routers.
 	 */
-	public static void setPreferredRoutingArc(String arcName) { tool.prefs.put("PreferredRoutingArc", arcName);   flushOptions(); }
+	public static void setPreferredRoutingArc(String arcName)
+	{
+		tool.prefs.put("PreferredRoutingArc", cachePreferredRoutingArc = arcName);
+		flushOptions();
+	}
 
 }

@@ -35,6 +35,7 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
@@ -666,7 +667,7 @@ public class InputText extends Input
 	private void io_libbit()
 	{
 		if (bitCount == 0)
-			lib.lowLevelSetUserBits(EMath.atoi(keyWord));
+			lib.lowLevelSetUserBits(TextUtils.atoi(keyWord));
 		bitCount++;
 	}
 
@@ -675,7 +676,7 @@ public class InputText extends Input
 	 */
 	private void io_libusb()
 	{
-		lib.lowLevelSetUserBits(EMath.atoi(keyWord));
+		lib.lowLevelSetUserBits(TextUtils.atoi(keyWord));
 
 		// this library came as readable dump, so don't automatically save it to disk
 		lib.clearFromDisk();
@@ -788,12 +789,12 @@ public class InputText extends Input
 	 */
 	private void io_newcel()
 	{
-		curCellNumber = EMath.atoi(keyWord);
+		curCellNumber = TextUtils.atoi(keyWord);
 		curNodeProto = nodeProtoList[curCellNumber];
 
 		int tempVal = -1;
 		int slashPos = keyWord.indexOf('/');
-		if (slashPos >= 0) tempVal = EMath.atoi(keyWord.substring(slashPos+1));
+		if (slashPos >= 0) tempVal = TextUtils.atoi(keyWord.substring(slashPos+1));
 		curNodeProto.setTempInt(tempVal);
 		textLevel = INCELL;
 		varPos = INVNODEPROTO;
@@ -821,7 +822,7 @@ public class InputText extends Input
 	 */
 	private void io_celcre()
 	{
-		curNodeProto.lowLevelSetCreationDate(EMath.secondsToDate(EMath.atoi(keyWord)));
+		curNodeProto.lowLevelSetCreationDate(EMath.secondsToDate(TextUtils.atoi(keyWord)));
 	}
 
 	/**
@@ -829,7 +830,7 @@ public class InputText extends Input
 	 */
 	private void io_celrev()
 	{
-		curNodeProto.lowLevelSetRevisionDate(EMath.secondsToDate(EMath.atoi(keyWord)));
+		curNodeProto.lowLevelSetRevisionDate(EMath.secondsToDate(TextUtils.atoi(keyWord)));
 	}
 
 	/**
@@ -1032,7 +1033,7 @@ public class InputText extends Input
 	 */
 	private void io_celbit()
 	{
-		if (bitCount == 0) curNodeProto.lowLevelSetUserbits(EMath.atoi(keyWord));
+		if (bitCount == 0) curNodeProto.lowLevelSetUserbits(TextUtils.atoi(keyWord));
 		bitCount++;
 	}
 
@@ -1041,7 +1042,7 @@ public class InputText extends Input
 	 */
 	private void io_celusb()
 	{
-		curNodeProto.lowLevelSetUserbits(EMath.atoi(keyWord));
+		curNodeProto.lowLevelSetUserbits(TextUtils.atoi(keyWord));
 	}
 
 	/**
@@ -1136,7 +1137,7 @@ public class InputText extends Input
 		int openSquare = keyWord.indexOf('[');
 		if (openSquare >= 0)
 		{
-			curNodeInstProto = nodeProtoList[EMath.atoi(keyWord, openSquare+1)];
+			curNodeInstProto = nodeProtoList[TextUtils.atoi(keyWord, openSquare+1)];
 		} else
 		{
 			curNodeInstProto = NodeProto.findNodeProto(keyWord);
@@ -1174,22 +1175,22 @@ public class InputText extends Input
 	 */
 	private void io_nodlx()
 	{
-		nodeInstList[curCellNumber].nodeInstLowX[curNodeInstIndex] = EMath.atoi(keyWord);
+		nodeInstList[curCellNumber].nodeInstLowX[curNodeInstIndex] = TextUtils.atoi(keyWord);
 	}
 
 	private void io_nodhx()
 	{
-		nodeInstList[curCellNumber].nodeInstHighX[curNodeInstIndex] = EMath.atoi(keyWord);
+		nodeInstList[curCellNumber].nodeInstHighX[curNodeInstIndex] = TextUtils.atoi(keyWord);
 	}
 
 	private void io_nodly()
 	{
-		nodeInstList[curCellNumber].nodeInstLowY[curNodeInstIndex] = EMath.atoi(keyWord);
+		nodeInstList[curCellNumber].nodeInstLowY[curNodeInstIndex] = TextUtils.atoi(keyWord);
 	}
 
 	private void io_nodhy()
 	{
-		nodeInstList[curCellNumber].nodeInstHighY[curNodeInstIndex] = EMath.atoi(keyWord);
+		nodeInstList[curCellNumber].nodeInstHighY[curNodeInstIndex] = TextUtils.atoi(keyWord);
 	}
 
 	/**
@@ -1205,11 +1206,11 @@ public class InputText extends Input
 	 */
 	private void io_noddes()
 	{
-		int td0 = EMath.atoi(keyWord);
+		int td0 = TextUtils.atoi(keyWord);
 		int td1 = 0;
 		int slashPos = keyWord.indexOf('/');
 		if (slashPos >= 0)
-			td1 = EMath.atoi(keyWord.substring(slashPos+1));
+			td1 = TextUtils.atoi(keyWord.substring(slashPos+1));
 		TextDescriptor td = new TextDescriptor(null, td0, td1);
 		Input.fixTextDescriptorFont(td);
 		nodeInstList[curCellNumber].nodeList[curNodeInstIndex].setProtoTextDescriptor(td);
@@ -1250,7 +1251,7 @@ public class InputText extends Input
 	 */
 	private void io_nodbit()
 	{
-		if (bitCount == 0) nodeInstList[curCellNumber].nodeList[curNodeInstIndex].lowLevelSetUserbits(EMath.atoi(keyWord));
+		if (bitCount == 0) nodeInstList[curCellNumber].nodeList[curNodeInstIndex].lowLevelSetUserbits(TextUtils.atoi(keyWord));
 		bitCount++;
 	}
 
@@ -1259,7 +1260,7 @@ public class InputText extends Input
 	 */
 	private void io_nodusb()
 	{
-		nodeInstList[curCellNumber].nodeList[curNodeInstIndex].lowLevelSetUserbits(EMath.atoi(keyWord));
+		nodeInstList[curCellNumber].nodeList[curNodeInstIndex].lowLevelSetUserbits(TextUtils.atoi(keyWord));
 	}
 
 	/**
@@ -1322,7 +1323,7 @@ public class InputText extends Input
 	 */
 	private void io_arcwid()
 	{
-		arcInstList[curCellNumber].arcWidth[curArcInstIndex] = EMath.atoi(keyWord);
+		arcInstList[curCellNumber].arcWidth[curArcInstIndex] = TextUtils.atoi(keyWord);
 	}
 
 	/**
@@ -1339,7 +1340,7 @@ public class InputText extends Input
 	 */
 	private void io_endnod()
 	{
-		int endIndex = EMath.atoi(keyWord);
+		int endIndex = TextUtils.atoi(keyWord);
 		if (curArcEnd == 0)
 		{
 			arcInstList[curCellNumber].arcHeadNode[curArcInstIndex] = nodeInstList[curCellNumber].nodeList[endIndex];
@@ -1368,7 +1369,7 @@ public class InputText extends Input
 	 */
 	private void io_endxp()
 	{
-		int x = EMath.atoi(keyWord);
+		int x = TextUtils.atoi(keyWord);
 		if (curArcEnd == 0)
 		{
 			arcInstList[curCellNumber].arcHeadX[curArcInstIndex] = x;
@@ -1380,7 +1381,7 @@ public class InputText extends Input
 
 	private void io_endyp()
 	{
-		int y = EMath.atoi(keyWord);
+		int y = TextUtils.atoi(keyWord);
 		if (curArcEnd == 0)
 		{
 			arcInstList[curCellNumber].arcHeadY[curArcInstIndex] = y;
@@ -1403,7 +1404,7 @@ public class InputText extends Input
 	 */
 	private void io_arcbit()
 	{
-		if (bitCount == 0) arcInstList[curCellNumber].arcList[curArcInstIndex].lowLevelSetUserbits(EMath.atoi(keyWord));
+		if (bitCount == 0) arcInstList[curCellNumber].arcList[curArcInstIndex].lowLevelSetUserbits(TextUtils.atoi(keyWord));
 		bitCount++;
 	}
 
@@ -1412,7 +1413,7 @@ public class InputText extends Input
 	 */
 	private void io_arcusb()
 	{
-		arcInstList[curCellNumber].arcList[curArcInstIndex].lowLevelSetUserbits(EMath.atoi(keyWord));
+		arcInstList[curCellNumber].arcList[curArcInstIndex].lowLevelSetUserbits(TextUtils.atoi(keyWord));
 	}
 
 	// --------------------------------- PORT PROTOTYPE PARSING METHODS ---------------------------------
@@ -1440,11 +1441,11 @@ public class InputText extends Input
 	 */
 	private void io_ptdes()
 	{
-		int td0 = EMath.atoi(keyWord);
+		int td0 = TextUtils.atoi(keyWord);
 		int td1 = 0;
 		int slashPos = keyWord.indexOf('/');
 		if (slashPos >= 0)
-			td1 = EMath.atoi(keyWord, slashPos+1);
+			td1 = TextUtils.atoi(keyWord, slashPos+1);
 		TextDescriptor td = new TextDescriptor(null, td0, td1);
 		Input.fixTextDescriptorFont(td);
 		exportList[curCellNumber].exportList[curExportIndex].setTextDescriptor(td);
@@ -1480,7 +1481,7 @@ public class InputText extends Input
 	 */
 	private void io_ptbit()
 	{
-		if (bitCount == 0) exportList[curCellNumber].exportList[curExportIndex].lowLevelSetUserbits(EMath.atoi(keyWord));
+		if (bitCount == 0) exportList[curCellNumber].exportList[curExportIndex].lowLevelSetUserbits(TextUtils.atoi(keyWord));
 		bitCount++;
 	}
 
@@ -1489,7 +1490,7 @@ public class InputText extends Input
 	 */
 	private void io_ptusb()
 	{
-		exportList[curCellNumber].exportList[curExportIndex].lowLevelSetUserbits(EMath.atoi(keyWord));
+		exportList[curCellNumber].exportList[curExportIndex].lowLevelSetUserbits(TextUtils.atoi(keyWord));
 	}
 
 	// --------------------------------- VARIABLE PARSING METHODS ---------------------------------
@@ -1571,7 +1572,7 @@ public class InputText extends Input
 				System.out.println("Error on line "+lineReader.getLineNumber()+": missing type information in variable: " + keyWord);
 				return;
 			}
-			int type = EMath.atoi(keyWord, openSquarePos+1);
+			int type = TextUtils.atoi(keyWord, openSquarePos+1);
 
 			// get the descriptor
 			int commaPos = keyWord.indexOf(',');
@@ -1579,11 +1580,11 @@ public class InputText extends Input
 			int td1 = 0;
 			if (commaPos >= 0)
 			{
-				td0 = EMath.atoi(keyWord, commaPos+1);
+				td0 = TextUtils.atoi(keyWord, commaPos+1);
 				td1 = 0;
 				int slashPos = keyWord.indexOf('/');
 				if (slashPos >= 0)
-					td1 = EMath.atoi(keyWord, slashPos+1);
+					td1 = TextUtils.atoi(keyWord, slashPos+1);
 			}
 			TextDescriptor td = new TextDescriptor(null, td0, td1);
 
@@ -1730,9 +1731,9 @@ public class InputText extends Input
 			case BinaryConstants.VSHORT:
 			case BinaryConstants.VBOOLEAN:
 			case BinaryConstants.VADDRESS:
-				return new Integer(EMath.atoi(name));
+				return new Integer(TextUtils.atoi(name));
 			case BinaryConstants.VFRACT:
-				return new Float(EMath.atoi(name) / 120.0f);
+				return new Float(TextUtils.atoi(name) / 120.0f);
 			case BinaryConstants.VCHAR:
 				return new Character(name.charAt(0));
 			case BinaryConstants.VSTRING:
@@ -1757,7 +1758,7 @@ public class InputText extends Input
 			case BinaryConstants.VDOUBLE:
 				return new Double(Double.parseDouble(name));
 			case BinaryConstants.VNODEINST:
-				int niIndex = EMath.atoi(name);
+				int niIndex = TextUtils.atoi(name);
 				NodeInst ni = nodeInstList[curCellNumber].nodeList[niIndex];
 				return ni;
 			case BinaryConstants.VNODEPROTO:
@@ -1779,11 +1780,11 @@ public class InputText extends Input
 					return np;
 				}
 			case BinaryConstants.VPORTPROTO:
-				int ppIndex = EMath.atoi(name);
+				int ppIndex = TextUtils.atoi(name);
 				PortProto pp = exportList[curCellNumber].exportList[ppIndex];
 				return pp;
 			case BinaryConstants.VARCINST:
-				int aiIndex = EMath.atoi(name);
+				int aiIndex = TextUtils.atoi(name);
 				ArcInst ai = arcInstList[curCellNumber].arcList[aiIndex];
 				return ai;
 			case BinaryConstants.VARCPROTO:

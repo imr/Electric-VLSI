@@ -33,6 +33,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
@@ -514,10 +515,10 @@ public class Attributes extends javax.swing.JDialog
 	 */
 	private Object getVariableObject(String text)
 	{
-		if (EMath.isANumber(text))
+		if (TextUtils.isANumber(text))
 		{
-			int i = EMath.atoi(text);
-			double d = EMath.atof(text);
+			int i = TextUtils.atoi(text);
+			double d = TextUtils.atof(text);
 			if (i == d) return new Integer(i);
 			return new Double(d);
 		}
@@ -838,7 +839,7 @@ public class Attributes extends javax.swing.JDialog
 			TextDescriptor.Size currentSize = null;
 			if (dialog.pointsButton.isSelected())
 			{
-				int numPoints = EMath.atoi(dialog.pointsSize.getText());
+				int numPoints = TextUtils.atoi(dialog.pointsSize.getText());
 				if (newAttribute || !dialog.initialSize.isAbsolute() || numPoints != dialog.initialSize.getSize())
 				{
 					td.setAbsSize(numPoints);
@@ -846,7 +847,7 @@ public class Attributes extends javax.swing.JDialog
 				}
 			} else
 			{
-				double newSize = EMath.atof(dialog.unitsSize.getText());
+				double newSize = TextUtils.atof(dialog.unitsSize.getText());
 				if (newAttribute || dialog.initialSize.isAbsolute() || newSize != dialog.initialSize.getSize())
 				{
 					td.setRelSize(newSize);
@@ -855,8 +856,8 @@ public class Attributes extends javax.swing.JDialog
 			}
 
 			// set the Offset fields
-			double currentOffX = EMath.atof(dialog.xOffset.getText());
-			double currentOffY = EMath.atof(dialog.yOffset.getText());
+			double currentOffX = TextUtils.atof(dialog.xOffset.getText());
+			double currentOffY = TextUtils.atof(dialog.yOffset.getText());
 			if (newAttribute || dialog.initialOffX != currentOffX || dialog.initialOffY != currentOffY)
 			{
 				td.setOff(currentOffX, currentOffY);

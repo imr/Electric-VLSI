@@ -31,6 +31,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -350,7 +351,7 @@ public class Input
 		int maxAssociation = 0;
 		for(int i=0; i<associationArray.length; i++)
 		{
-			int fontNumber = EMath.atoi(associationArray[i]);
+			int fontNumber = TextUtils.atoi(associationArray[i]);
 			if (fontNumber > maxAssociation) maxAssociation = fontNumber;
 		}
 		if (maxAssociation <= 0) return;
@@ -359,7 +360,7 @@ public class Input
 		for(int i=0; i<maxAssociation; i++) fontNames[i] = null;
 		for(int i=0; i<associationArray.length; i++)
 		{
-			int fontNumber = EMath.atoi(associationArray[i]);
+			int fontNumber = TextUtils.atoi(associationArray[i]);
 			if (fontNumber <= 0) continue;
 			int slashPos = associationArray[i].indexOf('/');
 			if (slashPos < 0) continue;

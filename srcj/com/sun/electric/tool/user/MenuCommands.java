@@ -31,10 +31,13 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.hierarchy.NodeUsage;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
@@ -52,6 +55,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Clipboard;
 import com.sun.electric.tool.user.ErrorLog;
+import com.sun.electric.tool.user.ExportChanges;
 import com.sun.electric.tool.user.dialogs.About;
 import com.sun.electric.tool.user.dialogs.Array;
 import com.sun.electric.tool.user.dialogs.Attributes;
@@ -358,30 +362,30 @@ public final class MenuCommands
 		menuBar.add(exportMenu);
 
 		exportMenu.addMenuItem("Create Export...", KeyStroke.getKeyStroke('E', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { newExportCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.newExportCommand(); } });
 
 		exportMenu.addSeparator();
 
 		exportMenu.addMenuItem("Re-Export Everything", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.reExportAll(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.reExportAll(); } });
 		exportMenu.addMenuItem("Re-Export Highlighted", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.reExportHighlighted(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.reExportHighlighted(); } });
 		exportMenu.addMenuItem("Re-Export Power and Ground", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.reExportPowerAndGround(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.reExportPowerAndGround(); } });
 
 		exportMenu.addSeparator();
 
 		exportMenu.addMenuItem("Delete All Exports on Highlighted", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.deleteExportsOnHighlighted(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.deleteExportsOnHighlighted(); } });
 		exportMenu.addMenuItem("Delete Exports in Area", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.deleteExportsInArea(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.deleteExportsInArea(); } });
 
 		exportMenu.addSeparator();
 
 		exportMenu.addMenuItem("Summarize Exports", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { describeExports(true); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.describeExports(true); } });
 		exportMenu.addMenuItem("List Exports", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { describeExports(false); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.describeExports(false); } });
 
 		/****************************** THE VIEW MENU ******************************/
 
@@ -1227,7 +1231,7 @@ public final class MenuCommands
 	public static void expandSpecificCommand()
 	{
 		Object obj = JOptionPane.showInputDialog("Number of levels to expand", "1");
-		int levels = EMath.atoi((String)obj);
+		int levels = TextUtils.atoi((String)obj);
 
 		List list = Highlight.getHighlighted(true, false);
 		CircuitChanges.ExpandUnExpand job = new CircuitChanges.ExpandUnExpand(list, false, levels);
@@ -1257,322 +1261,10 @@ public final class MenuCommands
 	public static void unexpandSpecificCommand()
 	{
 		Object obj = JOptionPane.showInputDialog("Number of levels to unexpand", "1");
-		int levels = EMath.atoi((String)obj);
+		int levels = TextUtils.atoi((String)obj);
 
 		List list = Highlight.getHighlighted(true, false);
 		CircuitChanges.ExpandUnExpand job = new CircuitChanges.ExpandUnExpand(list, true, levels);
-	}
-
-	// ---------------------- THE EXPORT MENU -----------------
-
-    /**
-	 * This method implements the command to create a new Export.
-	 */
-	public static void newExportCommand()
-	{
- 		NewExport dialog = new NewExport(TopLevel.getCurrentJFrame(), true);
-		dialog.show();
-	}
-
-	static class ExportList
-	{
-		Export pp;
-		int equiv;
-		int busList;
-	};
-
-	private static void describeExports(boolean summarize)
-	{
-		Cell cell = Library.needCurCell();
-		if (cell == null) return;
-
-		/* compute the associated cell to check */
-//		wnp = contentsview(np);
-//		if (wnp == NONODEPROTO) wnp = iconview(np);
-//		if (wnp == np) wnp = NONODEPROTO;
-
-		/* count the number of exports */
-		if (cell.getNumPorts() == 0)
-		{
-			System.out.println("There are no exports on cell " + cell.describe());
-			return;
-		}
-
-		/* make a list of exports */
-		List exports = new ArrayList();
-		for(Iterator it = cell.getPorts(); it.hasNext(); )
-		{
-			ExportList el = new ExportList();
-			el.pp = (Export)it.next();
-			el.equiv = -1;
-			el.busList = -1;
-			exports.add(el);
-		}
-
-		/* sort exports by name within type */
-		Collections.sort(exports, new ExportSortedByNameAndType());
-
-		/* if summarizing, make associations that combine exports */
-		int num_found = exports.size();
-		if (summarize)
-		{
-			/* make associations among electrically equivalent exports */
-			for(int j=0; j<num_found; j++)
-			{
-				int eqJ = ((ExportList)exports.get(j)).equiv;
-				int blJ = ((ExportList)exports.get(j)).busList;
-				if (eqJ != -1 || blJ != -1) continue;
-				for(int k=j+1; k<num_found; k++)
-				{
-					int eqK = ((ExportList)exports.get(k)).equiv;
-					int blK = ((ExportList)exports.get(k)).busList;
-					if (eqK != -1 || blK != -1) continue;
-					Export ppJ = ((ExportList)exports.get(j)).pp;
-					Export ppK = ((ExportList)exports.get(k)).pp;
-					if (ppJ.getCharacteristic() != ppK.getCharacteristic()) break;
-//					if (pplist[j]->network != pplist[k]->network) continue;
-					((ExportList)exports.get(k)).equiv = j;
-					((ExportList)exports.get(j)).equiv = -2;
-				}
-			}
-
-			/* make associations among bussed exports */
-			for(int j=0; j<num_found; j++)
-			{
-				int eqJ = ((ExportList)exports.get(j)).equiv;
-				int blJ = ((ExportList)exports.get(j)).busList;
-				if (eqJ != -1 || blJ != -1) continue;
-				for(int k=j+1; k<num_found; k++)
-				{
-					int eqK = ((ExportList)exports.get(k)).equiv;
-					int blK = ((ExportList)exports.get(k)).busList;
-					if (eqK != -1 || blK != -1) continue;
-					Export ppJ = ((ExportList)exports.get(j)).pp;
-					Export ppK = ((ExportList)exports.get(k)).pp;
-					if (ppJ.getCharacteristic() != ppK.getCharacteristic()) break;
-
-					String pt1 = ppJ.getProtoName();
-					String pt2 = ppK.getProtoName();
-					int sqPos1 = pt1.indexOf('[');
-					int sqPos2 = pt2.indexOf('[');
-					if (sqPos1 != sqPos2 || sqPos1 < 0) continue;
-					if (pt1.substring(0, sqPos1).equalsIgnoreCase(pt2.substring(0, sqPos2)))
-					{
-						((ExportList)exports.get(k)).equiv = j;
-						((ExportList)exports.get(j)).equiv = -2;
-					}
-				}
-			}
-		}
-
-		/* describe each export */
-		System.out.println("----- Exports on cell " + cell.describe() + " -----");
-		for(int j=0; j<num_found; j++)
-		{
-			ExportList el = (ExportList)exports.get(j);
-			Export pp = el.pp;
-			if (el.equiv >= 0 || el.busList >= 0) continue;
-
-			/* reset flags for arcs that can connect */
-//			for(tech = el_technologies; tech != NOTECHNOLOGY; tech = tech->nexttechnology)
-//				for(ap = tech->firstarcproto; ap != NOARCPROTO; ap = ap->nextarcproto)
-//					ap->temp1 = 0;
-
-			String infstr = null;
-			String activity = pp.getCharacteristic().getFullName();
-			int m = j+1;
-			for( ; m<num_found; m++)
-			{
-				if (((ExportList)exports.get(m)).equiv == j) break;
-			}
-			double lx = 0, hx = 0, ly = 0, hy = 0;
-			if (m < num_found)
-			{
-				/* many exports that are electrically equivalent */
-				infstr += activity + " exports ";
-				for(int k=j; k<num_found; k++)
-				{
-					if (j != k && ((ExportList)exports.get(k)).equiv != j) continue;
-					if (j != k) infstr += ", ";
-					Export opp = ((ExportList)exports.get(k)).pp;
-					infstr += "'" + opp.getProtoName() + "'";
-					Poly poly = opp.getOriginalPort().getPoly();
-					double x = poly.getCenterX();
-					double y = poly.getCenterY();
-					if (j == k)
-					{
-						lx = hx = x;   ly = hy = y;
-					} else
-					{
-						if (x < lx) lx = x;
-						if (x > hx) hx = x;
-						if (y < ly) ly = y;
-						if (y > hy) hy = y;
-					}
-//					for(i=0; opp->connects[i] != NOARCPROTO; i++)
-//						opp->connects[i]->temp1 = 1;
-				}
-				infstr += " at (" + lx + "<=X<=" + hx + ", " + ly + "<=Y<=" + hy + "), electrically connected to";
-//				us_addpossiblearcconnections(infstr);
-			} else
-			{
-				m = j + 1;
-				for( ; m<num_found; m++)
-				{
-					if (((ExportList)exports.get(m)).busList == j) break;
-				}
-				if (m < num_found)
-				{
-					/* many exports from the same bus */
-					int tot = 0;
-					for(int k=j; k<num_found; k++)
-					{
-						if (j != k && ((ExportList)exports.get(k)).busList != j) continue;
-						tot++;
-						Export opp = ((ExportList)exports.get(k)).pp;
-						Poly poly = opp.getOriginalPort().getPoly();
-						double x = poly.getCenterX();
-						double y = poly.getCenterY();
-						if (j == k)
-						{
-							lx = hx = x;   ly = hy = y;
-						} else
-						{
-							if (x < lx) lx = x;
-							if (x > hx) hx = x;
-							if (y < ly) ly = y;
-							if (y > hy) hy = y;
-						}
-//						for(i=0; opp->connects[i] != NOARCPROTO; i++)
-//							opp->connects[i]->temp1 = 1;
-					}
-
-					List sortedBusList = new ArrayList();
-					sortedBusList.add(((ExportList)exports.get(j)).pp);
-					for(int k=j+1; k<num_found; k++)
-					{
-						ExportList elK = (ExportList)exports.get(k);
-						if (elK.busList == j) sortedBusList.add(elK.pp);
-					}
-
-					/* sort the bus by indices */
-//					esort(pplist, tot, sizeof (PORTPROTO *), us_exportnameindexascending);
-					boolean first = true;
-					for(Iterator it = sortedBusList.iterator(); it.hasNext(); )
-					{
-						Export ppS = (Export)it.next();
-						String pt1 = ppS.getProtoName();
-						int openPos = pt1.indexOf('[');
-						if (first)
-						{
-							infstr += activity + " ports '" + pt1.substring(0, openPos) + "[";
-						} else
-						{
-							infstr += ",";
-						}
-						int closePos = pt1.lastIndexOf(']');
-						infstr += pt1.substring(openPos+1, closePos);
-					}
-					infstr += "] at (" + lx + "<=X<=" + hx + ", " + ly + "<=Y<=" + hy + "), same bus, connects to";
-//					us_addpossiblearcconnections(infstr);
-				} else
-				{
-					/* isolated export */
-					Poly poly = pp.getOriginalPort().getPoly();
-					double x = poly.getCenterX();
-					double y = poly.getCenterY();
-					infstr += activity + " export '" + pp.getProtoName() + "' at (" + x + ", " + y + ") connects to";
-//					for(i=0; pp->connects[i] != NOARCPROTO; i++)
-//						pp->connects[i]->temp1 = 1;
-//					us_addpossiblearcconnections(infstr);
-
-					/* check for the export in the associated cell */
-//					if (wnp != NONODEPROTO)
-//					{
-//						if (equivalentport(np, pp, wnp) == NOPORTPROTO)
-//							formatinfstr(infstr, _(" *** no equivalent in %s"), describenodeproto(wnp));
-//					}
-				}
-			}
-
-			System.out.println(infstr);
-//			str = returninfstr(infstr);
-//			prefix = x_("");
-//			while (estrlen(str) > 80)
-//			{
-//				for(i=80; i > 0; i--) if (str[i] == ' ' || str[i] == ',') break;
-//				if (i <= 0) i = 80;
-//				if (str[i] == ',') i++;
-//				save = str[i];
-//				str[i] = 0;
-//				System.out.println(x_("%s%s"), prefix, str);
-//				str[i] = save;
-//				str = &str[i];
-//				if (str[0] == ' ') str++;
-//				prefix = x_("   ");
-//			}
-//			System.out.println(x_("%s%s"), prefix, str);
-		}
-//		if (wnp != NONODEPROTO)
-//		{
-//			for(pp = wnp->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
-//			{
-//				m = pp->userbits & STATEBITS;
-//				for(i=0; i<numtypes; i++) if (porttype[i] == m) break;
-//				if (i >= numtypes) continue;
-//				if (equivalentport(wnp, pp, np) == NOPORTPROTO)
-//					System.out.println(_("*** Export %s, found in cell %s, is missing here"),
-//						pp->protoname, describenodeproto(wnp));
-//			}
-//		}
-	}
-
-	/*
-	 * Helper routine to add all marked arc prototypes to the infinite string.
-	 * Marking is done by having the "temp1" field be nonzero.
-	 */
-//	void us_addpossiblearcconnections(void *infstr)
-//	{
-//		REGISTER TECHNOLOGY *tech;
-//		REGISTER INTBIG i;
-//		REGISTER ARCPROTO *ap;
-//
-//		i = 0;
-//		for(tech = el_technologies; tech != NOTECHNOLOGY; tech = tech->nexttechnology)
-//			for(ap = tech->firstarcproto; ap != NOARCPROTO; ap = ap->nextarcproto)
-//				if (ap->temp1 == 0) i++;
-//		if (i == 0) addstringtoinfstr(infstr, _(" EVERYTHING")); else
-//		{
-//			i = 0;
-//			for(tech = el_technologies; tech != NOTECHNOLOGY; tech = tech->nexttechnology)
-//			{
-//				if (tech == gen_tech) continue;
-//				for(ap = tech->firstarcproto; ap != NOARCPROTO; ap = ap->nextarcproto)
-//				{
-//					if (ap->temp1 == 0) continue;
-//					if (i != 0) addtoinfstr(infstr, ',');
-//					i++;
-//					formatinfstr(infstr, x_(" %s"), ap->protoname);
-//				}
-//			}
-//		}
-//	}
-
-	static class ExportSortedByNameAndType implements Comparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			ExportList el1 = (ExportList)o1;
-			ExportList el2 = (ExportList)o2;
-			Export e1 = el1.pp;
-			Export e2 = el2.pp;
-			PortProto.Characteristic ch1 = e1.getCharacteristic();
-			PortProto.Characteristic ch2 = e2.getCharacteristic();
-			if (ch1 != ch2) return ch1.getOrder() - ch2.getOrder();
-			String s1 = e1.getProtoName();
-			String s2 = e2.getProtoName();
-			return s1.compareToIgnoreCase(s2);
-		}
 	}
 
 	// ---------------------- THE VIEW MENU -----------------

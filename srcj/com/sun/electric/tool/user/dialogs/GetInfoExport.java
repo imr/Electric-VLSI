@@ -31,6 +31,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
@@ -389,11 +390,11 @@ public class GetInfoExport extends javax.swing.JDialog
 			TextDescriptor.Size currentSize = null;
 			if (dialog.pointsButton.isSelected())
 			{
-				int newSize = EMath.atoi(dialog.pointsSize.getText());
+				int newSize = TextUtils.atoi(dialog.pointsSize.getText());
 				currentSize = TextDescriptor.Size.newAbsSize(newSize);
 			} else
 			{
-				double newSize = EMath.atof(dialog.unitsSize.getText());
+				double newSize = TextUtils.atof(dialog.unitsSize.getText());
 				currentSize = TextDescriptor.Size.newRelSize(newSize);
 			}
 			if (!currentSize.equals(dialog.initialSize))
@@ -468,8 +469,8 @@ public class GetInfoExport extends javax.swing.JDialog
 				dialog.initialUnderline = currentUnderline;
 			}
 
-			double currentXOffset = EMath.atof(dialog.xOffset.getText());
-			double currentYOffset = EMath.atof(dialog.yOffset.getText());
+			double currentXOffset = TextUtils.atof(dialog.xOffset.getText());
+			double currentYOffset = TextUtils.atof(dialog.yOffset.getText());
 			if (!EMath.doublesEqual(currentXOffset, dialog.initialXOffset) ||
 				!EMath.doublesEqual(currentYOffset, dialog.initialYOffset))
 			{

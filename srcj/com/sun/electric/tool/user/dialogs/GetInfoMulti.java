@@ -28,6 +28,7 @@ import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
@@ -229,8 +230,11 @@ public class GetInfoMulti extends javax.swing.JDialog
 		if (numNodes + numArcs == 2)
 		{
 			listModel.addElement("---------------------------");
-			listModel.addElement("Distance between centers is " +
-				firstGeom.getTrueCenter().distance(secondGeom.getTrueCenter()));
+			Point2D firstPt = firstGeom.getTrueCenter();
+			if (firstGeom instanceof NodeInst) firstPt = ((NodeInst)firstGeom).getGrabCenter();
+			Point2D secondPt = secondGeom.getTrueCenter();
+			if (secondGeom instanceof NodeInst) secondPt = ((NodeInst)secondGeom).getGrabCenter();
+			listModel.addElement("Distance between centers is " + firstPt.distance(secondPt));
 		}
 		if (numNodes != 0)
 		{
@@ -393,10 +397,10 @@ public class GetInfoMulti extends javax.swing.JDialog
 				!currentXSize.equals(dialog.initialXSize) ||
 				!currentYSize.equals(dialog.initialYSize))
 			{
-				double newXPosition = EMath.atof(currentXPosition);
-				double newYPosition = EMath.atof(currentYPosition);
-				double newXSize = EMath.atof(currentXSize);
-				double newYSize = EMath.atof(currentYSize);
+				double newXPosition = TextUtils.atof(currentXPosition);
+				double newYPosition = TextUtils.atof(currentYPosition);
+				double newXSize = TextUtils.atof(currentXSize);
+				double newYSize = TextUtils.atof(currentYSize);
 				NodeInst [] nis = new NodeInst[dialog.numNodes];
 				double [] dXP = new double[dialog.numNodes];
 				double [] dYP = new double[dialog.numNodes];
@@ -433,7 +437,7 @@ public class GetInfoMulti extends javax.swing.JDialog
 			String currentWidth = dialog.width.getText();
 			if (!currentWidth.equals(dialog.initialWidth))
 			{
-				double newWidth = EMath.atof(currentWidth);
+				double newWidth = TextUtils.atof(currentWidth);
 				for(Iterator it = dialog.highlightList.iterator(); it.hasNext(); )
 				{
 					Highlight h = (Highlight)it.next();

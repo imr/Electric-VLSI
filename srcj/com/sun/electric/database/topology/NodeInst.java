@@ -370,7 +370,7 @@ public class NodeInst extends Geometric implements Nodable
 		}
 
 		// get the location of the cell-center on the old NodeInst
-		Point2D oldCenter = getTrueCenter();
+		Point2D oldCenter = getGrabCenter();
 
 		// create the new NodeInst
 		double newXS = np.getDefWidth();
@@ -383,12 +383,12 @@ public class NodeInst extends Geometric implements Nodable
 			newXS = getXSize() - oldSO.getLowXOffset() - oldSO.getHighXOffset() + newSO.getLowXOffset() + newSO.getHighXOffset();
 			newYS = getYSize() - oldSO.getLowYOffset() - oldSO.getHighYOffset() + newSO.getLowYOffset() + newSO.getHighYOffset();
 		}
-		NodeInst newNi = NodeInst.newInstance(np, new Point2D.Double(0, 0), newXS, newYS, getAngle(), getParent(), null);
+		NodeInst newNi = NodeInst.newInstance(np, oldCenter, newXS, newYS, getAngle(), getParent(), null);
 		if (newNi == null) return null;
 
-		// adjust position of the new NodeInst to align centers
-		Point2D newCenter = newNi.getTrueCenter();
-		newNi.modifyInstance(oldCenter.getX()-newCenter.getX(), oldCenter.getY()-newCenter.getY(), 0, 0, 0);
+//		// adjust position of the new NodeInst to align centers
+//		Point2D newCenter = newNi.getGrabCenter();
+//		newNi.modifyInstance(oldCenter.getX()-newCenter.getX(), oldCenter.getY()-newCenter.getY(), 0, 0, 0);
 
 		// draw new node expanded if appropriate
 		if (np instanceof Cell)
@@ -709,12 +709,12 @@ public class NodeInst extends Geometric implements Nodable
 		unLinkGeom(parent);
 
 		// make the change
-		this.center.setLocation(EMath.smooth(getGrabCenterX() + dX), EMath.smooth(getGrabCenterY() + dY));
+		center.setLocation(EMath.smooth(getGrabCenterX() + dX), EMath.smooth(getGrabCenterY() + dY));
 
-		this.sX = EMath.smooth(this.sX + dXSize);
-		this.sY = EMath.smooth(this.sY + dYSize);
+		sX = EMath.smooth(this.sX + dXSize);
+		sY = EMath.smooth(this.sY + dYSize);
 
-		this.angle += dRot;
+		angle = (angle +dRot) % 3600;
 
 		// fill in the Geometric fields
 		redoGeometric();
@@ -1337,33 +1337,33 @@ public class NodeInst extends Geometric implements Nodable
 		return returnTransform;
 	}
 
-	/**
-	 * Method to return the lower-left corner of this NodeInst.  The
-	 * corner considers both the highlight offset and the rotation, so
-	 * the coordinate is that of the lower-left valid part, as placed
-	 * in the database.
-	 * @return a Point with the location of this NodeInst's lower-left
-	 * corner.
-	 */
-	public Point2D getLowLeft()
-	{
-		SizeOffset so = getProto().getSizeOffset();
-
-		double width = getXSize() / 2;
-		double height = getYSize() / 2;
-		double lX = getTrueCenterX() - width + so.getLowXOffset();
-		double hX = getTrueCenterX() + width - so.getHighXOffset();
-		double lY = getTrueCenterY() - height + so.getLowYOffset();
-		double hY = getTrueCenterY() + height - so.getHighYOffset();
-		Poly poly = new Poly((lX+hX)/2, (lY+hY)/2, hX-lX, hY-lY);
-		if (getAngle() != 0 || isXMirrored() || isYMirrored())
-		{
-			AffineTransform trans = this.rotateOut();
-			poly.transform(trans);
-		}
-		Rectangle2D bounds = poly.getBounds2D();
-		return new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-	}
+//	/**
+//	 * Method to return the lower-left corner of this NodeInst.  The
+//	 * corner considers both the highlight offset and the rotation, so
+//	 * the coordinate is that of the lower-left valid part, as placed
+//	 * in the database.
+//	 * @return a Point with the location of this NodeInst's lower-left
+//	 * corner.
+//	 */
+//	public Point2D getLowLeft()
+//	{
+//		SizeOffset so = getProto().getSizeOffset();
+//
+//		double width = getXSize() / 2;
+//		double height = getYSize() / 2;
+//		double lX = getTrueCenterX() - width + so.getLowXOffset();
+//		double hX = getTrueCenterX() + width - so.getHighXOffset();
+//		double lY = getTrueCenterY() - height + so.getLowYOffset();
+//		double hY = getTrueCenterY() + height - so.getHighYOffset();
+//		Poly poly = new Poly((lX+hX)/2, (lY+hY)/2, hX-lX, hY-lY);
+//		if (getAngle() != 0 || isXMirrored() || isYMirrored())
+//		{
+//			AffineTransform trans = this.rotateOut();
+//			poly.transform(trans);
+//		}
+//		Rectangle2D bounds = poly.getBounds2D();
+//		return new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+//	}
 
 	/**
 	 * Method to return a Poly that describes the location of a port

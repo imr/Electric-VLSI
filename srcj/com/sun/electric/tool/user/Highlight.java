@@ -644,10 +644,8 @@ public class Highlight
 			{
 				Point2D slop = wnd.deltaScreenToDatabase(EXACTSELECTDISTANCE*2, EXACTSELECTDISTANCE*2);
 				double directHitDist = slop.getX();
-				double slopWidth = Math.abs(slop.getX());
-				double slopHeight = Math.abs(slop.getY());
 				Point2D start = wnd.screenToDatabase((int)x, (int)y);
-				Rectangle2D searchArea = new Rectangle2D.Double(start.getX()-slopWidth/2, start.getY()-slopHeight/2, slopWidth, slopHeight);
+				Rectangle2D searchArea = new Rectangle2D.Double(start.getX(), start.getY(), 0, 0);
 
 				ElectricObject eobj = h.getElectricObject();
 				if (eobj instanceof PortInst) eobj = ((PortInst)eobj).getNodeInst();
@@ -1281,7 +1279,7 @@ public class Highlight
 		for(int phase=0; phase<3; phase++)
 		{
 			// ignore cells if requested
-//			if (phase == 0 && !findSpecial && (us_useroptions&NOINSTANCESELECT) != 0) continue;
+			if (phase == 0 && !findSpecial && !User.isEasySelectionOfCellInstances()) continue;
 
 			// examine everything in the area
 			Geometric.Search sea = new Geometric.Search(searchArea, cell);
@@ -1293,20 +1291,20 @@ public class Highlight
 				Highlight h;
 				switch (phase)
 				{
-					case 0:			// check Cell instances
+					case 0:			// check primitive nodes
+						if (!(geom instanceof NodeInst)) break;
+						if (((NodeInst)geom).getProto() instanceof Cell) break;
+						h = checkOutObject(geom, findPort, findSpecial, bounds, wnd, directHitDist, areaMustEnclose);
+						if (h != null) list.add(h);
+						break;
+					case 1:			// check Cell instances
 						if (!(geom instanceof NodeInst)) break;
 						if (((NodeInst)geom).getProto() instanceof PrimitiveNode) break;
 						h = checkOutObject(geom, findPort, findSpecial, bounds, wnd, directHitDist, areaMustEnclose);
 						if (h != null) list.add(h);
 						break;
-					case 1:			// check arcs
+					case 2:			// check arcs
 						if (!(geom instanceof ArcInst)) break;
-						h = checkOutObject(geom, findPort, findSpecial, bounds, wnd, directHitDist, areaMustEnclose);
-						if (h != null) list.add(h);
-						break;
-					case 2:			// check primitive nodes
-						if (!(geom instanceof NodeInst)) break;
-						if (((NodeInst)geom).getProto() instanceof Cell) break;
 						h = checkOutObject(geom, findPort, findSpecial, bounds, wnd, directHitDist, areaMustEnclose);
 						if (h != null) list.add(h);
 						break;
@@ -1424,6 +1422,7 @@ public class Highlight
 		AffineTransform trans = ni.rotateOut();
 
 		NodeProto np = ni.getProto();
+		Poly nodePoly = null;
 		if (np instanceof PrimitiveNode)
 		{
 			// special case for MOS transistors: examine the gate/active tabs
@@ -1469,16 +1468,24 @@ public class Highlight
 				}
 				return bestDist;
 			}
+
+			// get the bounds of the node in a polygon
+			SizeOffset so = Technology.getSizeOffset(ni);
+			double lX = ni.getGrabCenterX() - ni.getXSize()/2 + so.getLowXOffset();
+			double hX = ni.getGrabCenterX() + ni.getXSize()/2 - so.getHighXOffset();
+			double lY = ni.getGrabCenterY() - ni.getYSize()/2 + so.getLowYOffset();
+			double hY = ni.getGrabCenterY() + ni.getYSize()/2 - so.getHighYOffset();
+			nodePoly = new Poly((lX + hX) / 2, (lY + hY) / 2, hX-lX, hY-lY);
+		} else
+		{
+			// cell instance
+			Cell subCell = (Cell)np;
+			Rectangle2D instBounds = subCell.getBounds();
+			nodePoly = new Poly(ni.getGrabCenterX() + instBounds.getCenterX(),
+				ni.getGrabCenterY() + instBounds.getCenterY(), instBounds.getWidth(), instBounds.getHeight());
 		}
 
-		// get the bounds of the node in a polygon
-		SizeOffset so = Technology.getSizeOffset(ni);
-		double lX = ni.getTrueCenterX() - ni.getXSize()/2 + so.getLowXOffset();
-		double hX = ni.getTrueCenterX() + ni.getXSize()/2 - so.getHighXOffset();
-		double lY = ni.getTrueCenterY() - ni.getYSize()/2 + so.getLowYOffset();
-		double hY = ni.getTrueCenterY() + ni.getYSize()/2 - so.getHighYOffset();
-		Poly nodePoly = new Poly((lX + hX) / 2, (lY + hY) / 2, hX-lX, hY-lY);
-		AffineTransform pureTrans = ni.rotateOutAboutTrueCenter();
+		AffineTransform pureTrans = ni.rotateOut();
 		nodePoly.transform(pureTrans);
 		nodePoly.setStyle(Poly.Type.FILLED);
 		double dist = nodePoly.polyDistance(bounds);

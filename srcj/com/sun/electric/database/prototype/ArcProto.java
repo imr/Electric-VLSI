@@ -24,6 +24,7 @@
 package com.sun.electric.database.prototype;
 
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveArc;
 
@@ -114,6 +115,8 @@ public abstract class ArcProto extends ElectricObject
 	/** The function of this ArcProto. */						private Function function;
 	/** A temporary integer for this ArcProto. */				private int tempInt;
 	/** The temporary Object for this ArcProto. */				private Object tempObj;
+	/** The temporary flag bits. */								private int flagBits;
+	/** The object used to request flag bits. */				private static FlagSet.Generator flagGenerator = new FlagSet.Generator();
 
 	// the meaning of the "userBits" field:
 	/** these arcs are fixed-length */					private static final int WANTFIX =            01;
@@ -486,6 +489,37 @@ public abstract class ArcProto extends ElectricObject
 	public int getAngleIncrement() { return (userBits & AANGLEINC) >> AANGLEINCSH; }
 
 	/**
+	 * Method to get access to flag bits on this ArcProto.
+	 * Flag bits allow ArcProtos to be marked and examined more conveniently.
+	 * However, multiple competing activities may want to mark the nodes at
+	 * the same time.  To solve this, each activity that wants to mark nodes
+	 * must create a FlagSet that allocates bits in the node.  When done,
+	 * the FlagSet must be released.
+	 * @param numBits the number of flag bits desired.
+	 * @return a FlagSet object that can be used to mark and test the ArcProto.
+	 */
+	public static FlagSet getFlagSet(int numBits) { return FlagSet.getFlagSet(flagGenerator, numBits); }
+
+	/**
+	 * Method to set the specified flag bits on this ArcProto.
+	 * @param set the flag bits that are to be set on this ArcProto.
+	 */
+	public void setBit(FlagSet set) { /*checkChanging();*/ flagBits = flagBits | set.getMask(); }
+
+	/**
+	 * Method to set the specified flag bits on this ArcProto.
+	 * @param set the flag bits that are to be cleared on this ArcProto.
+	 */
+	public void clearBit(FlagSet set) { /*checkChanging();*/ flagBits = flagBits & set.getUnmask(); }
+
+	/**
+	 * Method to test the specified flag bits on this ArcProto.
+	 * @param set the flag bits that are to be tested on this ArcProto.
+	 * @return true if the flag bits are set.
+	 */
+	public boolean isBit(FlagSet set) { return (flagBits & set.getMask()) != 0; }
+
+	/**
 	 * Method to set an arbitrary integer in a temporary location on this ArcProto.
 	 * @param tempInt the integer to be set on this ArcProto.
 	 */
@@ -498,7 +532,7 @@ public abstract class ArcProto extends ElectricObject
 	public int getTempInt() { return tempInt; }
 
 	/**
-	 * Method to set an arbitrary Object in a temporary location on this NodeProto.
+	 * Method to set an arbitrary Object in a temporary location on this ArcProto.
 	 * @param tempObj the Object to be set on this ArcProto.
 	 */
 	public void setTempObj(Object tempObj) { checkChanging(); this.tempObj = tempObj; }

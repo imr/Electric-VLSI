@@ -55,6 +55,8 @@ public class Simulation extends Tool
 //		setOn();
 	}
 
+	/****************************** SPICE OPTIONS ******************************/
+
 	private static void flushOptions()
 	{
 		try
@@ -66,16 +68,29 @@ public class Simulation extends Tool
 		}
 	}
 
-	/****************************** SPICE OPTIONS ******************************/
+	private static String cacheSpiceEngine = tool.prefs.get("SpiceEngine", "Spice 3");
+	public static String getSpiceEngine() { return cacheSpiceEngine; }
+	public static void setSpiceEngine(String engine)
+	{
+		tool.prefs.put("SpiceEngine", cacheSpiceEngine = engine);
+		flushOptions();
+	}
 
-	public static String getSpiceEngine() { return tool.prefs.get("SpiceEngine", "Spice 3"); }
-	public static void setSpiceEngine(String engine) { tool.prefs.put("SpiceEngine", engine);   flushOptions(); }
+	private static String cacheSpiceLevel = tool.prefs.get("SpiceLevel", "1");
+	public static String getSpiceLevel() { return cacheSpiceLevel; }
+	public static void setSpiceLevel(String level)
+	{
+		tool.prefs.put("SpiceLevel", cacheSpiceLevel = level);
+		flushOptions();
+	}
 
-	public static String getSpiceLevel() { return tool.prefs.get("SpiceLevel", "1"); }
-	public static void setSpiceLevel(String level) { tool.prefs.put("SpiceLevel", level);   flushOptions(); }
-
-	public static String getSpiceOutputFormat() { return tool.prefs.get("SpiceOutputFormat", "Standard"); }
-	public static void setSpiceOutputFormat(String format) { tool.prefs.put("SpiceOutputFormat", format);   flushOptions(); }
+	private static String cacheSpiceOutputFormat = tool.prefs.get("SpiceOutputFormat", "Standard");
+	public static String getSpiceOutputFormat() { return cacheSpiceOutputFormat; }
+	public static void setSpiceOutputFormat(String format)
+	{
+		tool.prefs.put("SpiceOutputFormat", cacheSpiceOutputFormat = format);
+		flushOptions();
+	}
 
 	public static String getSpicePartsLibrary()
 	{
@@ -84,24 +99,59 @@ public class Simulation extends Tool
 	}
 	public static void setSpicePartsLibrary(String parts) { tool.prefs.put("SpicePartsLibrary", parts);   flushOptions(); }
 
-	public static String getSpiceHeaderCardInfo() { return tool.prefs.get("SpiceHeaderCardInfo", ""); }
-	public static void setSpiceHeaderCardInfo(String info) { tool.prefs.put("SpiceHeaderCardInfo", info);   flushOptions(); }
+	private static String cacheSpiceHeaderCardInfo = tool.prefs.get("SpiceHeaderCardInfo", "");
+	public static String getSpiceHeaderCardInfo() { return cacheSpiceHeaderCardInfo; }
+	public static void setSpiceHeaderCardInfo(String info)
+	{
+		tool.prefs.put("SpiceHeaderCardInfo", cacheSpiceHeaderCardInfo = info);
+		flushOptions();
+	}
 
-	public static String getSpiceTrailerCardInfo() { return tool.prefs.get("SpiceTrailerCardInfo", ""); }
-	public static void setSpiceTrailerCardInfo(String info) { tool.prefs.put("SpiceTrailerCardInfo", info);   flushOptions(); }
+	private static String cacheSpiceTrailerCardInfo = tool.prefs.get("SpiceTrailerCardInfo", "");
+	public static String getSpiceTrailerCardInfo() { return cacheSpiceTrailerCardInfo; }
+	public static void setSpiceTrailerCardInfo(String info)
+	{
+		tool.prefs.put("SpiceTrailerCardInfo", cacheSpiceTrailerCardInfo = info);
+		flushOptions();
+	}
 
-	public static boolean isSpiceUseParasitics() { return tool.prefs.getBoolean("SpiceUseParasitics", true); }
-	public static void setSpiceUseParasitics(boolean v) { tool.prefs.putBoolean("SpiceUseParasitics", v);   flushOptions(); }
+	private static boolean cacheSpiceUseParasitics = tool.prefs.getBoolean("SpiceUseParasitics", true);
+	public static boolean isSpiceUseParasitics() { return cacheSpiceUseParasitics; }
+	public static void setSpiceUseParasitics(boolean v)
+	{
+		tool.prefs.putBoolean("SpiceUseParasitics", cacheSpiceUseParasitics = v);
+		flushOptions();
+	}
 
-	public static boolean isSpiceUseNodeNames() { return tool.prefs.getBoolean("SpiceUseNodeNames", true); }
-	public static void setSpiceUseNodeNames(boolean v) { tool.prefs.putBoolean("SpiceUseNodeNames", v);   flushOptions(); }
+	private static boolean cacheSpiceUseNodeNames = tool.prefs.getBoolean("SpiceUseNodeNames", true);
+	public static boolean isSpiceUseNodeNames() { return cacheSpiceUseNodeNames; }
+	public static void setSpiceUseNodeNames(boolean v)
+	{
+		tool.prefs.putBoolean("SpiceUseNodeNames", cacheSpiceUseNodeNames = v);
+		flushOptions();
+	}
 
-	public static boolean isSpiceForceGlobalPwrGnd() { return tool.prefs.getBoolean("SpiceForceGlobalPwrGnd", false); }
-	public static void setSpiceForceGlobalPwrGnd(boolean v) { tool.prefs.putBoolean("SpiceForceGlobalPwrGnd", v);   flushOptions(); }
+	private static boolean cacheSpiceForceGlobalPwrGnd = tool.prefs.getBoolean("SpiceForceGlobalPwrGnd", false);
+	public static boolean isSpiceForceGlobalPwrGnd() { return cacheSpiceForceGlobalPwrGnd; }
+	public static void setSpiceForceGlobalPwrGnd(boolean v)
+	{
+		tool.prefs.putBoolean("SpiceForceGlobalPwrGnd", cacheSpiceForceGlobalPwrGnd = v);
+		flushOptions();
+	}
 
-	public static boolean isSpiceUseCellParameters() { return tool.prefs.getBoolean("SpiceUseCellParameters", false); }
-	public static void setSpiceUseCellParameters(boolean v) { tool.prefs.putBoolean("SpiceUseCellParameters", v);   flushOptions(); }
+	private static boolean cacheSpiceUseCellParameters = tool.prefs.getBoolean("SpiceUseCellParameters", false);
+	public static boolean isSpiceUseCellParameters() { return cacheSpiceUseCellParameters; }
+	public static void setSpiceUseCellParameters(boolean v)
+	{
+		tool.prefs.putBoolean("SpiceUseCellParameters", cacheSpiceUseCellParameters = v);
+		flushOptions();
+	}
 
-	public static boolean isSpiceWriteTransSizeInLambda() { return tool.prefs.getBoolean("SpiceWriteTransSizeInLambda", false); }
-	public static void setSpiceWriteTransSizeInLambda(boolean v) { tool.prefs.putBoolean("SpiceWriteTransSizeInLambda", v);   flushOptions(); }
+	private static boolean cacheSpiceWriteTransSizeInLambda = tool.prefs.getBoolean("SpiceWriteTransSizeInLambda", false);
+	public static boolean isSpiceWriteTransSizeInLambda() { return cacheSpiceWriteTransSizeInLambda; }
+	public static void setSpiceWriteTransSizeInLambda(boolean v)
+	{
+		tool.prefs.putBoolean("SpiceWriteTransSizeInLambda", cacheSpiceWriteTransSizeInLambda = v);
+		flushOptions();
+	}
 }

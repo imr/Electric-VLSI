@@ -435,7 +435,7 @@ public class Artwork extends Technology
 			if (ni.getXSize() != ni.getYSize())
 			{
 				// handle ellipses
-				Point2D [] pointList = fillEllipse(ni.getTrueCenter(), ni.getXSize(), ni.getYSize(),
+				Point2D [] pointList = fillEllipse(ni.getGrabCenter(), ni.getXSize(), ni.getYSize(),
 					angles[0], angles[1]);
 				Poly [] polys = new Poly[1];
 				polys[0] = new Poly(pointList);
@@ -452,8 +452,8 @@ public class Artwork extends Technology
 				// fill an arc of a circle here
 				Poly [] polys = new Poly[1];
 				Point2D [] pointList = new Point2D.Double[3];
-				double cX = ni.getTrueCenterX();
-				double cY = ni.getTrueCenterY();
+				double cX = ni.getGrabCenterX();
+				double cY = ni.getGrabCenterY();
 				double dist = ni.getXSize() / 2;
 				pointList[0] = new Point2D.Double(cX, cY);
 				pointList[1] = new Point2D.Double(cX + Math.cos(angles[0]+angles[1])*dist, cY + Math.sin(angles[0]+angles[1])*dist);
@@ -470,8 +470,8 @@ public class Artwork extends Technology
 			Float [] tracePoints = ni.getTrace();
 			if (tracePoints != null)
 			{
-				double cX = ni.getTrueCenterX();
-				double cY = ni.getTrueCenterY();
+				double cX = ni.getGrabCenterX();
+				double cY = ni.getGrabCenterY();
 				Point2D [] pointList = fillSpline(cX, cY, tracePoints);
 				Poly [] polys = new Poly[1];
 				polys[0] = new Poly(pointList);

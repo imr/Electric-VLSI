@@ -203,12 +203,17 @@ public class User extends Tool
 	 * The default is "true".
 	 * @return true if generated icons should have leads drawn.
 	 */
-	public static boolean isIconGenDrawLeads() { return tool.prefs.getBoolean("IconGenDrawLeads", true); }
+	private static boolean cacheIconGenDrawLeads = tool.prefs.getBoolean("IconGenDrawLeads", true);
+	public static boolean isIconGenDrawLeads() { return cacheIconGenDrawLeads; }
 	/**
 	 * Method to set whether generated icons should have leads drawn.
 	 * @param on true if generated icons should have leads drawn.
 	 */
-	public static void setIconGenDrawLeads(boolean on) { tool.prefs.putBoolean("IconGenDrawLeads", on);   flushOptions(); }
+	public static void setIconGenDrawLeads(boolean on)
+	{
+		tool.prefs.putBoolean("IconGenDrawLeads", cacheIconGenDrawLeads = on);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell whether generated icons should have a body drawn.
@@ -216,13 +221,18 @@ public class User extends Tool
 	 * The default is "true".
 	 * @return true if generated icons should have a body drawn.
 	 */
-	public static boolean isIconGenDrawBody() { return tool.prefs.getBoolean("IconGenDrawBody", true); }
+	private static boolean cacheIconGenDrawBody = tool.prefs.getBoolean("IconGenDrawBody", true);
+	public static boolean isIconGenDrawBody() { return cacheIconGenDrawBody; }
 	/**
 	 * Method to set whether generated icons should have a body drawn.
 	 * The body is just a rectangle.
 	 * @param on true if generated icons should have a body drawn.
 	 */
-	public static void setIconGenDrawBody(boolean on) { tool.prefs.putBoolean("IconGenDrawBody", on);   flushOptions(); }
+	public static void setIconGenDrawBody(boolean on)
+	{
+		tool.prefs.putBoolean("IconGenDrawBody", cacheIconGenDrawBody = on);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell whether generated icons should reverse the order of exports.
@@ -230,104 +240,144 @@ public class User extends Tool
 	 * The default is "false".
 	 * @return true if generated icons should reverse the order of exports.
 	 */
-	public static boolean isIconGenReverseExportOrder() { return tool.prefs.getBoolean("IconGenReverseExportOrder", false); }
+	private static boolean cacheIconGenReverseExportOrder = tool.prefs.getBoolean("IconGenReverseExportOrder", false);
+	public static boolean isIconGenReverseExportOrder() { return cacheIconGenReverseExportOrder; }
 	/**
 	 * Method to set whether generated icons should reverse the order of exports.
 	 * Normally, exports are drawn top-to-bottom alphabetically.
 	 * @param on true if generated icons should reverse the order of exports.
 	 */
-	public static void setIconGenReverseExportOrder(boolean on) { tool.prefs.putBoolean("IconGenReverseExportOrder", on);   flushOptions(); }
+	public static void setIconGenReverseExportOrder(boolean on)
+	{
+		tool.prefs.putBoolean("IconGenReverseExportOrder", cacheIconGenReverseExportOrder = on);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell where Input ports should go on generated icons.
 	 * @return information about where Input ports should go on generated icons.
 	 * 0: left (the default)   1: right   2: top   3: bottom
 	 */
-	public static int getIconGenInputSide() { return tool.prefs.getInt("IconGenInputSide", 0); }
+	private static int cacheIconGenInputSide = tool.prefs.getInt("IconGenInputSide", 0);
+	public static int getIconGenInputSide() { return cacheIconGenInputSide; }
 	/**
 	 * Method to set where Input ports should go on generated icons.
 	 * @param side information about where Input ports should go on generated icons.
 	 * 0: left   1: right   2: top   3: bottom
 	 */
-	public static void setIconGenInputSide(int side) { tool.prefs.putInt("IconGenInputSide", side);   flushOptions(); }
+	public static void setIconGenInputSide(int side)
+	{
+		tool.prefs.putInt("IconGenInputSide", cacheIconGenInputSide = side);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell where Output ports should go on generated icons.
 	 * @return information about where Output ports should go on generated icons.
 	 * 0: left   1: right (the default)   2: top   3: bottom
 	 */
-	public static int getIconGenOutputSide() { return tool.prefs.getInt("IconGenOutputSide", 1); }
+	private static int cacheIconGenOutputSide = tool.prefs.getInt("IconGenOutputSide", 1);
+	public static int getIconGenOutputSide() { return cacheIconGenOutputSide; }
 	/**
 	 * Method to set where Output ports should go on generated icons.
 	 * @param side information about where Output ports should go on generated icons.
 	 * 0: left   1: right   2: top   3: bottom
 	 */
-	public static void setIconGenOutputSide(int side) { tool.prefs.putInt("IconGenOutputSide", side);   flushOptions(); }
+	public static void setIconGenOutputSide(int side)
+	{
+		tool.prefs.putInt("IconGenOutputSide", cacheIconGenOutputSide = side);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell where Bidirectional ports should go on generated icons.
 	 * @return information about where Bidirectional ports should go on generated icons.
 	 * 0: left   1: right   2: top (the default)   3: bottom
 	 */
-	public static int getIconGenBidirSide() { return tool.prefs.getInt("IconGenBidirSide", 2); }
+	private static int cacheIconGenBidirSide = tool.prefs.getInt("IconGenBidirSide", 2);
+	public static int getIconGenBidirSide() { return cacheIconGenBidirSide; }
 	/**
 	 * Method to set where Bidirectional ports should go on generated icons.
 	 * @param side information about where Bidirectional ports should go on generated icons.
 	 * 0: left   1: right   2: top   3: bottom
 	 */
-	public static void setIconGenBidirSide(int side) { tool.prefs.putInt("IconGenBidirSide", side);   flushOptions(); }
+	public static void setIconGenBidirSide(int side)
+	{
+		tool.prefs.putInt("IconGenBidirSide", cacheIconGenBidirSide = side);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell where Power ports should go on generated icons.
 	 * @return information about where Power ports should go on generated icons.
 	 * 0: left   1: right   2: top   3: bottom (the default)
 	 */
-	public static int getIconGenPowerSide() { return tool.prefs.getInt("IconGenPowerSide", 3); }
+	private static int cacheIconGenPowerSide = tool.prefs.getInt("IconGenPowerSide", 3);
+	public static int getIconGenPowerSide() { return cacheIconGenPowerSide; }
 	/**
 	 * Method to set where Power ports should go on generated icons.
 	 * @param side information about where Power ports should go on generated icons.
 	 * 0: left   1: right   2: top   3: bottom
 	 */
-	public static void setIconGenPowerSide(int side) { tool.prefs.putInt("IconGenPowerSide", side);   flushOptions(); }
+	public static void setIconGenPowerSide(int side)
+	{
+		tool.prefs.putInt("IconGenPowerSide", cacheIconGenPowerSide = side);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell where Ground ports should go on generated icons.
 	 * @return information about where Ground ports should go on generated icons.
 	 * 0: left   1: right   2: top   3: bottom (the default)
 	 */
-	public static int getIconGenGroundSide() { return tool.prefs.getInt("IconGenGroundSide", 3); }
+	private static int cacheIconGenGroundSide = tool.prefs.getInt("IconGenGroundSide", 3);
+	public static int getIconGenGroundSide() { return cacheIconGenGroundSide; }
 	/**
 	 * Method to set where Ground ports should go on generated icons.
 	 * @param side information about where Ground ports should go on generated icons.
 	 * 0: left   1: right   2: top   3: bottom
 	 */
-	public static void setIconGenGroundSide(int side) { tool.prefs.putInt("IconGenGroundSide", side);   flushOptions(); }
+	public static void setIconGenGroundSide(int side)
+	{
+		tool.prefs.putInt("IconGenGroundSide", cacheIconGenGroundSide = side);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell where Clock ports should go on generated icons.
 	 * @return information about where Clock ports should go on generated icons.
 	 * 0: left (the default)   1: right   2: top   3: bottom
 	 */
-	public static int getIconGenClockSide() { return tool.prefs.getInt("IconGenClockSide", 0); }
+	private static int cacheIconGenClockSide = tool.prefs.getInt("IconGenClockSide", 0);
+	public static int getIconGenClockSide() { return cacheIconGenClockSide; }
 	/**
 	 * Method to set where Clock ports should go on generated icons.
 	 * @param side information about where Clock ports should go on generated icons.
 	 * 0: left   1: right   2: top   3: bottom
 	 */
-	public static void setIconGenClockSide(int side) { tool.prefs.putInt("IconGenClockSide", side);   flushOptions(); }
+	public static void setIconGenClockSide(int side)
+	{
+		tool.prefs.putInt("IconGenClockSide", cacheIconGenClockSide = side);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell where exports should appear along the leads in generated icons.
 	 * @return information about where exports should appear along the leads in generated icons.
 	 * 0: on the body   1: (the default) at the end of the lead   2: in the middle of the lead
 	 */
-	public static int getIconGenExportLocation() { return tool.prefs.getInt("IconGenExportLocation", 1); }
+	private static int cacheIconGenExportLocation = tool.prefs.getInt("IconGenExportLocation", 1);
+	public static int getIconGenExportLocation() { return cacheIconGenExportLocation; }
 	/**
 	 * Method to set how exports should appear along the leads in generated icons.
 	 * @param loc information about where exports should appear along the leads in generated icons.
 	 * 0: on the body   1: at the end of the lead   2: in the middle of the lead
 	 */
-	public static void setIconGenExportLocation(int loc) { tool.prefs.putInt("IconGenExportLocation", loc);   flushOptions(); }
+	public static void setIconGenExportLocation(int loc)
+	{
+		tool.prefs.putInt("IconGenExportLocation", cacheIconGenExportLocation = loc);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell how the text should appear in generated icons.
@@ -336,7 +386,8 @@ public class User extends Tool
 	 * 1: pointing inward from the export location
 	 * 2: pointing outward from the export location
 	 */
-	public static int getIconGenExportStyle() { return tool.prefs.getInt("IconGenExportStyle", 0); }
+	private static int cacheIconGenExportStyle = tool.prefs.getInt("IconGenExportStyle", 0);
+	public static int getIconGenExportStyle() { return cacheIconGenExportStyle; }
 	/**
 	 * Method to set how the text should appear in generated icons.
 	 * @param style information about how the text should appear in generated icons.
@@ -344,7 +395,11 @@ public class User extends Tool
 	 * 1: pointing inward from the export location
 	 * 2: pointing outward from the export location
 	 */
-	public static void setIconGenExportStyle(int style) { tool.prefs.putInt("IconGenExportStyle", style);   flushOptions(); }
+	public static void setIconGenExportStyle(int style)
+	{
+		tool.prefs.putInt("IconGenExportStyle", cacheIconGenExportStyle = style);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell how exports should be constructed in generated icons.
@@ -352,14 +407,19 @@ public class User extends Tool
 	 * 0: (the default) use Generic:Universal-Pins for exports (can connect to ANYTHING).
 	 * 1: use Schematic:Bus-Pins for exports (can connect to schematic busses or wires).
 	 */
-	public static int getIconGenExportTech() { return tool.prefs.getInt("IconGenExportTech", 0); }
+	private static int cacheIconGenExportTech = tool.prefs.getInt("IconGenExportTech", 0);
+	public static int getIconGenExportTech() { return cacheIconGenExportTech; }
 	/**
 	 * Method to set how exports should be constructed in generated icons.
 	 * @param t information about how exports should be constructed in generated icons.
 	 * 0: use Generic:Universal-Pins for exports (can connect to ANYTHING).
 	 * 1: use Schematic:Bus-Pins for exports (can connect to schematic busses or wires).
 	 */
-	public static void setIconGenExportTech(int t) { tool.prefs.putInt("IconGenExportTech", t);   flushOptions(); }
+	public static void setIconGenExportTech(int t)
+	{
+		tool.prefs.putInt("IconGenExportTech", cacheIconGenExportTech = t);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell where to place an instance of the generated icons in the original schematic.
@@ -369,7 +429,8 @@ public class User extends Tool
 	 * 2: in the lower-right corner.
 	 * 3: in the lower-left corner.
 	 */
-	public static int getIconGenInstanceLocation() { return tool.prefs.getInt("IconGenInstanceLocation", 0); }
+	private static int cacheIconGenInstanceLocation = tool.prefs.getInt("IconGenInstanceLocation", 0);
+	public static int getIconGenInstanceLocation() { return cacheIconGenInstanceLocation; }
 	/**
 	 * Method to set where to place an instance of the generated icons in the original schematic.
 	 * @param loc information about where to place an instance of the generated icons in the original schematic.
@@ -378,29 +439,43 @@ public class User extends Tool
 	 * 2: in the lower-right corner.
 	 * 3: in the lower-left corner.
 	 */
-	public static void setIconGenInstanceLocation(int loc) { tool.prefs.putInt("IconGenInstanceLocation", loc);   flushOptions(); }
+	public static void setIconGenInstanceLocation(int loc)
+	{
+		tool.prefs.putInt("IconGenInstanceLocation", cacheIconGenInstanceLocation = loc);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell how long to make leads in generated icons.
 	 * @return information about how long to make leads in generated icons (the default is 2).
 	 */
-	public static float getIconGenLeadLength() { return tool.prefs.getFloat("IconGenLeadLength", 2.0f); }
+	private static float cacheIconGenLeadLength =  tool.prefs.getFloat("IconGenLeadLength", 2.0f);
+	public static float getIconGenLeadLength() { return cacheIconGenLeadLength; }
 	/**
 	 * Method to set how long to make leads in generated icons.
 	 * @param len how long to make leads in generated icons.
 	 */
-	public static void setIconGenLeadLength(float len) { tool.prefs.putFloat("IconGenLeadLength", len);   flushOptions(); }
+	public static void setIconGenLeadLength(float len)
+	{
+		tool.prefs.putFloat("IconGenLeadLength", cacheIconGenLeadLength = len);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell how far apart to space leads in generated icons.
 	 * @return information about how far apart to space leads in generated icons (the default is 2).
 	 */
-	public static float getIconGenLeadSpacing() { return tool.prefs.getFloat("IconGenLeadSpacing", 2.0f); }
+	private static float cacheIconGenLeadSpacing =  tool.prefs.getFloat("IconGenLeadSpacing", 2.0f);
+	public static float getIconGenLeadSpacing() { return cacheIconGenLeadSpacing; }
 	/**
 	 * Method to set how far apart to space leads in generated icons.
 	 * @param dist how far apart to space leads in generated icons.
 	 */
-	public static void setIconGenLeadSpacing(float dist) { tool.prefs.putFloat("IconGenLeadSpacing", dist);   flushOptions(); }
+	public static void setIconGenLeadSpacing(float dist)
+	{
+		tool.prefs.putFloat("IconGenLeadSpacing", cacheIconGenLeadSpacing = dist);
+		flushOptions();
+	}
 
 	/****************************** PORT AND EXPORT PREFERENCES ******************************/
 
@@ -411,7 +486,8 @@ public class User extends Tool
 	 * 1: short port names (stopping at the first nonalphabetic character).
 	 * 2: ports drawn as crosses.
 	 */
-	public static int getPortDisplayLevel() { return tool.prefs.getInt("PortDisplayLevel", 0); }
+	private static int cachePortDisplayLevel = tool.prefs.getInt("PortDisplayLevel", 0);
+	public static int getPortDisplayLevel() { return cachePortDisplayLevel; }
 	/**
 	 * Method to set how to display ports.
 	 * @param level how to display ports.
@@ -419,7 +495,11 @@ public class User extends Tool
 	 * 1: short port names (stopping at the first nonalphabetic character).
 	 * 2: ports drawn as crosses.
 	 */
-	public static void setPortDisplayLevels(int level) { tool.prefs.putInt("PortDisplayLevel", level);   flushOptions(); }
+	public static void setPortDisplayLevels(int level)
+	{
+		tool.prefs.putInt("PortDisplayLevel", cachePortDisplayLevel = level);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell how to display exports.
@@ -428,7 +508,8 @@ public class User extends Tool
 	 * 1: short export names (stopping at the first nonalphabetic character).
 	 * 2: exports drawn as crosses.
 	 */
-	public static int getExportDisplayLevel() { return tool.prefs.getInt("ExportDisplayLevel", 0); }
+	private static int cacheExportDisplayLevel = tool.prefs.getInt("ExportDisplayLevel", 0);
+	public static int getExportDisplayLevel() { return cacheExportDisplayLevel; }
 	/**
 	 * Method to set how to display exports.
 	 * @param level how to display exports.
@@ -436,19 +517,28 @@ public class User extends Tool
 	 * 1: short export names (stopping at the first nonalphabetic character).
 	 * 2: exports drawn as crosses.
 	 */
-	public static void setExportDisplayLevels(int level) { tool.prefs.putInt("ExportDisplayLevel", level);   flushOptions(); }
+	public static void setExportDisplayLevels(int level)
+	{
+		tool.prefs.putInt("ExportDisplayLevel", cacheExportDisplayLevel = level);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell whether to move a node when its export name moves.
 	 * The default is "false", which means that the export text can move independently.
 	 * @return true to move a node when its export name moves.
 	 */
-	public static boolean isMoveNodeWithExport() { return tool.prefs.getBoolean("MoveNodeWithExport", false); }
+	private static boolean cacheMoveNodeWithExport = tool.prefs.getBoolean("MoveNodeWithExport", false);
+	public static boolean isMoveNodeWithExport() { return cacheMoveNodeWithExport; }
 	/**
 	 * Method to set whether to move a node when its export name moves.
 	 * @param on true to move a node when its export name moves.
 	 */
-	public static void setMoveNodeWithExport(boolean on) { tool.prefs.putBoolean("MoveNodeWithExport", on);   flushOptions(); }
+	public static void setMoveNodeWithExport(boolean on)
+	{
+		tool.prefs.putBoolean("MoveNodeWithExport", cacheMoveNodeWithExport = on);
+		flushOptions();
+	}
 
 	/****************************** SELECTION PREFERENCES ******************************/
 
@@ -457,37 +547,32 @@ public class User extends Tool
 	 * The default is "true".
 	 * @return true if cell instances are all be easy-to-select.
 	 */
-	public static boolean isEasySelectionOfCellInstances() { return tool.prefs.getBoolean("EasySelectionOfCellInstances", true); }
+	private static boolean cacheEasySelectionOfCellInstances = tool.prefs.getBoolean("EasySelectionOfCellInstances", true);
+	public static boolean isEasySelectionOfCellInstances() { return cacheEasySelectionOfCellInstances; }
 	/**
 	 * Method to set whether cell instances are all be easy-to-select.
 	 * @param on true if cell instances are all to be easy-to-select.
 	 */
-	public static void setEasySelectionOfCellInstances(boolean on) { tool.prefs.putBoolean("EasySelectionOfCellInstances", on);   flushOptions(); }
-
-	private static boolean annotationTextInvalid = true;
-	private static boolean annotationTextHardCache = false;
+	public static void setEasySelectionOfCellInstances(boolean on)
+	{
+		tool.prefs.putBoolean("EasySelectionOfCellInstances", cacheEasySelectionOfCellInstances = on);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell whether annotation text is easy-to-select.
 	 * The default is "true".
 	 * @return true if annotation text is easy-to-select.
 	 */
-	public static boolean isEasySelectionOfAnnotationText()
-	{
-		if (annotationTextInvalid)
-		{
-			annotationTextHardCache = tool.prefs.getBoolean("EasySelectionOfAnnotationText", true);
-			annotationTextInvalid = false;
-		}
-		return annotationTextHardCache;
-	}
+	private static boolean cacheEasySelectionOfAnnotationText = tool.prefs.getBoolean("EasySelectionOfAnnotationText", true);
+	public static boolean isEasySelectionOfAnnotationText() { return cacheEasySelectionOfAnnotationText; }
 	/**
 	 * Method to set whether annotation text is easy-to-select.
 	 * @param on true if annotation text is easy-to-select.
 	 */
 	public static void setEasySelectionOfAnnotationText(boolean on)
 	{
-		tool.prefs.putBoolean("EasySelectionOfAnnotationText", annotationTextHardCache = on);
+		tool.prefs.putBoolean("EasySelectionOfAnnotationText", cacheEasySelectionOfAnnotationText = on);
 		flushOptions();
 	}
 
@@ -496,12 +581,17 @@ public class User extends Tool
 	 * The default is "false", which means that the selection rectangle need only touch an object in order to select it.
 	 * @return true if dragging a selection rectangle must completely encose objects in order to select them.
 	 */
-	public static boolean isDraggingMustEncloseObjects() { return tool.prefs.getBoolean("DraggingMustEncloseObjects", false); }
+	private static boolean cacheDraggingMustEncloseObjects = tool.prefs.getBoolean("DraggingMustEncloseObjects", false);
+	public static boolean isDraggingMustEncloseObjects() { return cacheDraggingMustEncloseObjects; }
 	/**
 	 * Method to set whether dragging a selection rectangle must completely encose objects in order to select them.
 	 * @param on true if dragging a selection rectangle must completely encose objects in order to select them.
 	 */
-	public static void setDraggingMustEncloseObjects(boolean on) { tool.prefs.putBoolean("DraggingMustEncloseObjects", on);   flushOptions(); }
+	public static void setDraggingMustEncloseObjects(boolean on)
+	{
+		tool.prefs.putBoolean("DraggingMustEncloseObjects", cacheDraggingMustEncloseObjects = on);
+		flushOptions();
+	}
 
 	/****************************** GRID AND ALIGNMENT PREFERENCES ******************************/
 
@@ -510,120 +600,138 @@ public class User extends Tool
 	 * The default is 1.
 	 * @return true the default spacing of grid dots in the X direction.
 	 */
-	public static float getDefGridXSpacing() { return tool.prefs.getFloat("DefGridXSpacing", 1); }
+	private static float cacheDefGridXSpacing = tool.prefs.getFloat("DefGridXSpacing", 1);
+	public static float getDefGridXSpacing() { return cacheDefGridXSpacing; }
 	/**
 	 * Method to set the default spacing of grid dots in the X direction.
 	 * @param dist the default spacing of grid dots in the X direction.
 	 */
-	public static void setDefGridXSpacing(float dist) { tool.prefs.putFloat("DefGridXSpacing", dist);   flushOptions(); }
+	public static void setDefGridXSpacing(float dist)
+	{
+		tool.prefs.putFloat("DefGridXSpacing", cacheDefGridXSpacing = dist);
+		flushOptions();
+	}
 
 	/**
 	 * Method to return the default spacing of grid dots in the Y direction.
 	 * The default is 1.
 	 * @return true the default spacing of grid dots in the Y direction.
 	 */
-	public static float getDefGridYSpacing() { return tool.prefs.getFloat("DefGridYSpacing", 1); }
+	private static float cacheDefGridYSpacing = tool.prefs.getFloat("DefGridYSpacing", 1);
+	public static float getDefGridYSpacing() { return cacheDefGridYSpacing; }
 	/**
 	 * Method to set the default spacing of grid dots in the Y direction.
 	 * @param dist the default spacing of grid dots in the Y direction.
 	 */
-	public static void setDefGridYSpacing(float dist) { tool.prefs.putFloat("DefGridYSpacing", dist);   flushOptions(); }
+	public static void setDefGridYSpacing(float dist)
+	{
+		tool.prefs.putFloat("DefGridYSpacing", cacheDefGridYSpacing = dist);
+		flushOptions();
+	}
 
 	/**
 	 * Method to return the default frequency of bold grid dots in the X direction.
 	 * The default is 10.
 	 * @return true the default frequency of bold grid dots in the X direction.
 	 */
-	public static int getDefGridXBoldFrequency() { return tool.prefs.getInt("DefGridXBoldFrequency", 10); }
+	private static int cacheDefGridXBoldFrequency = tool.prefs.getInt("DefGridXBoldFrequency", 10);
+	public static int getDefGridXBoldFrequency() { return cacheDefGridXBoldFrequency; }
 	/**
 	 * Method to set the default frequency of bold grid dots in the X direction.
 	 * @param dist the default frequency of bold grid dots in the X direction.
 	 */
-	public static void setDefGridXBoldFrequency(int dist) { tool.prefs.putInt("DefGridXBoldFrequency", dist);   flushOptions(); }
+	public static void setDefGridXBoldFrequency(int dist)
+	{
+		tool.prefs.putInt("DefGridXBoldFrequency", cacheDefGridXBoldFrequency = dist);
+		flushOptions();
+	}
 
 	/**
 	 * Method to return the default frequency of bold grid dots in the Y direction.
 	 * The default is 10.
 	 * @return true the default frequency of bold grid dots in the Y direction.
 	 */
-	public static int getDefGridYBoldFrequency() { return tool.prefs.getInt("DefGridYBoldFrequency", 10); }
+	private static int cacheDefGridYBoldFrequency = tool.prefs.getInt("DefGridYBoldFrequency", 10);
+	public static int getDefGridYBoldFrequency() { return cacheDefGridYBoldFrequency; }
 	/**
 	 * Method to set the default frequency of bold grid dots in the Y direction.
 	 * @param dist the default frequency of bold grid dots in the Y direction.
 	 */
-	public static void setDefGridYBoldFrequency(int dist) { tool.prefs.putInt("DefGridYBoldFrequency", dist);   flushOptions(); }
+	public static void setDefGridYBoldFrequency(int dist)
+	{
+		tool.prefs.putInt("DefGridYBoldFrequency", cacheDefGridYBoldFrequency = dist);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell whether to align the grid dots with the circuitry.
 	 * The default is "false", which implies that the grid dots are placed independently of object locations.
 	 * @return true to align the grid dots with the circuitry.
 	 */
-	public static boolean isAlignGridWithCircuitry() { return tool.prefs.getBoolean("AlignGridWithCircuitry", true); }
+	private static boolean cacheAlignGridWithCircuitry = tool.prefs.getBoolean("AlignGridWithCircuitry", true);
+	public static boolean isAlignGridWithCircuitry() { return cacheAlignGridWithCircuitry; }
 	/**
 	 * Method to set whether to align the grid dots with the circuitry.
 	 * @param on true to align the grid dots with the circuitry.
 	 */
-	public static void setAlignGridWithCircuitry(boolean on) { tool.prefs.putBoolean("AlignGridWithCircuitry", on);   flushOptions(); }
+	public static void setAlignGridWithCircuitry(boolean on)
+	{
+		tool.prefs.putBoolean("AlignGridWithCircuitry", cacheAlignGridWithCircuitry = on);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell whether to show the cursor coordinates as they move in the edit window.
 	 * The default is "false".
 	 * @return true to show the cursor coordinates as they move in the edit window
 	 */
-	public static boolean isShowCursorCoordinates() { return tool.prefs.getBoolean("ShowCursorCoordinates", false); }
+	private static boolean cacheShowCursorCoordinates = tool.prefs.getBoolean("ShowCursorCoordinates", false);
+	public static boolean isShowCursorCoordinates() { return cacheShowCursorCoordinates; }
 	/**
 	 * Method to set whether to show the cursor coordinates as they move in the edit window
 	 * @param on true to show the cursor coordinates as they move in the edit window
 	 */
-	public static void setShowCursorCoordinates(boolean on) { tool.prefs.putBoolean("ShowCursorCoordinates", on);   flushOptions(); }
+	public static void setShowCursorCoordinates(boolean on)
+	{
+		tool.prefs.putBoolean("ShowCursorCoordinates", cacheShowCursorCoordinates = on);
+		flushOptions();
+	}
 
 	/**
 	 * Method to return the default alignment of objects to the grid.
 	 * The default is 1, meaning that placement and movement should land on whole grid units.
 	 * @return true the default alignment of objects to the grid.
 	 */
-	public static float getAlignmentToGrid() { return tool.prefs.getFloat("AlignmentToGrid", 1); }
+	private static float cacheAlignmentToGrid = tool.prefs.getFloat("AlignmentToGrid", 1);
+	public static float getAlignmentToGrid() { return cacheAlignmentToGrid; }
 	/**
 	 * Method to set the default alignment of objects to the grid.
 	 * @param dist the default alignment of objects to the grid.
 	 */
-	public static void setAlignmentToGrid(float dist) { tool.prefs.putFloat("AlignmentToGrid", dist);   flushOptions(); }
+	public static void setAlignmentToGrid(float dist)
+	{
+		tool.prefs.putFloat("AlignmentToGrid", cacheAlignmentToGrid = dist);
+		flushOptions();
+	}
 
 	/**
 	 * Method to return the default alignment of object edges to the grid.
 	 * The default is 0, meaning that no alignment is to be done.
 	 * @return true the default alignment of object edges to the grid.
 	 */
-	public static float getEdgeAlignmentToGrid() { return tool.prefs.getFloat("EdgeAlignmentToGrid", 0); }
+	private static float cacheEdgeAlignmentToGrid = tool.prefs.getFloat("EdgeAlignmentToGrid", 0);
+	public static float getEdgeAlignmentToGrid() { return cacheEdgeAlignmentToGrid; }
 	/**
 	 * Method to set the default alignment of object edges to the grid.
 	 * @param dist the default alignment of object edges to the grid.
 	 */
-	public static void setEdgeAlignmentToGrid(float dist) { tool.prefs.putFloat("EdgeAlignmentToGrid", dist);   flushOptions(); }
+	public static void setEdgeAlignmentToGrid(float dist)
+	{
+		tool.prefs.putFloat("EdgeAlignmentToGrid", cacheEdgeAlignmentToGrid = dist);
+		flushOptions();
+	}
 
 	/****************************** TEXT PREFERENCES ******************************/
-
-	private static boolean textVisibilityInited = false;
-	private static boolean textVisibilityNode;
-	private static boolean textVisibilityArc;
-	private static boolean textVisibilityPort;
-	private static boolean textVisibilityExport;
-	private static boolean textVisibilityAnnotation;
-	private static boolean textVisibilityInstance;
-	private static boolean textVisibilityCell;
-
-	private static void initializeTextSettings()
-	{
-		if (textVisibilityInited) return;
-		textVisibilityNode = tool.prefs.getBoolean("TextVisibilityNode", true);
-		textVisibilityArc = tool.prefs.getBoolean("TextVisibilityArc", true);
-		textVisibilityPort = tool.prefs.getBoolean("TextVisibilityPort", true);
-		textVisibilityExport = tool.prefs.getBoolean("TextVisibilityExport", true);
-		textVisibilityAnnotation = tool.prefs.getBoolean("TextVisibilityAnnotation", true);
-		textVisibilityInstance = tool.prefs.getBoolean("TextVisibilityInstance", true);
-		textVisibilityCell = tool.prefs.getBoolean("TextVisibilityCell", true);
-		textVisibilityInited = true;
-	}
 
 	/**
 	 * Method to tell whether to draw text that resides on nodes.
@@ -631,11 +739,8 @@ public class User extends Tool
 	 * The default is "true".
 	 * @return true if the system should draw text that resides on nodes.
 	 */
-	public static boolean isTextVisibilityOnNode()
-	{
-		initializeTextSettings();
-		return textVisibilityNode;
-	}
+	private static boolean cacheTextVisibilityNode = tool.prefs.getBoolean("TextVisibilityNode", true);
+	public static boolean isTextVisibilityOnNode() { return cacheTextVisibilityNode; }
 	/**
 	 * Method to set whether to draw text that resides on nodes.
 	 * This text includes the node name and any parameters or attributes on it.
@@ -643,7 +748,7 @@ public class User extends Tool
 	 */
 	public static void setTextVisibilityOnNode(boolean on)
 	{
-		tool.prefs.putBoolean("TextVisibilityNode", textVisibilityNode = on);
+		tool.prefs.putBoolean("TextVisibilityNode", cacheTextVisibilityNode = on);
 		flushOptions();
 	}
 
@@ -653,11 +758,8 @@ public class User extends Tool
 	 * The default is "true".
 	 * @return true if the system should draw text that resides on arcs.
 	 */
-	public static boolean isTextVisibilityOnArc()
-	{
-		initializeTextSettings();
-		return textVisibilityArc;
-	}
+	private static boolean cacheTextVisibilityArc = tool.prefs.getBoolean("TextVisibilityArc", true);
+	public static boolean isTextVisibilityOnArc() { return cacheTextVisibilityArc; }
 	/**
 	 * Method to set whether to draw text that resides on arcs.
 	 * This text includes the arc name and any parameters or attributes on it.
@@ -665,7 +767,7 @@ public class User extends Tool
 	 */
 	public static void setTextVisibilityOnArc(boolean on)
 	{
-		tool.prefs.putBoolean("TextVisibilityArc", textVisibilityArc = on);
+		tool.prefs.putBoolean("TextVisibilityArc", cacheTextVisibilityArc = on);
 		flushOptions();
 	}
 
@@ -675,11 +777,8 @@ public class User extends Tool
 	 * The default is "true".
 	 * @return true if the system should draw text that resides on ports.
 	 */
-	public static boolean isTextVisibilityOnPort()
-	{
-		initializeTextSettings();
-		return textVisibilityPort;
-	}
+	private static boolean cacheTextVisibilityPort = tool.prefs.getBoolean("TextVisibilityPort", true);
+	public static boolean isTextVisibilityOnPort() { return cacheTextVisibilityPort; }
 	/**
 	 * Method to set whether to draw text that resides on ports.
 	 * This text includes the port name and any parameters or attributes on it.
@@ -687,7 +786,7 @@ public class User extends Tool
 	 */
 	public static void setTextVisibilityOnPort(boolean on)
 	{
-		tool.prefs.putBoolean("TextVisibilityPort", textVisibilityPort = on);
+		tool.prefs.putBoolean("TextVisibilityPort", cacheTextVisibilityPort = on);
 		flushOptions();
 	}
 
@@ -697,11 +796,8 @@ public class User extends Tool
 	 * The default is "true".
 	 * @return true if the system should draw text that resides on exports.
 	 */
-	public static boolean isTextVisibilityOnExport()
-	{
-		initializeTextSettings();
-		return textVisibilityExport;
-	}
+	private static boolean cacheTextVisibilityExport = tool.prefs.getBoolean("TextVisibilityExport", true);
+	public static boolean isTextVisibilityOnExport() { return cacheTextVisibilityExport; }
 	/**
 	 * Method to set whether to draw text that resides on exports.
 	 * This text includes the export name and any parameters or attributes on it.
@@ -709,7 +805,7 @@ public class User extends Tool
 	 */
 	public static void setTextVisibilityOnExport(boolean on)
 	{
-		tool.prefs.putBoolean("TextVisibilityExport", textVisibilityExport = on);
+		tool.prefs.putBoolean("TextVisibilityExport", cacheTextVisibilityExport = on);
 		flushOptions();
 	}
 
@@ -720,11 +816,8 @@ public class User extends Tool
 	 * The default is "true".
 	 * @return true if the system should draw annotation text.
 	 */
-	public static boolean isTextVisibilityOnAnnotation()
-	{
-		initializeTextSettings();
-		return textVisibilityAnnotation;
-	}
+	private static boolean cacheTextVisibilityAnnotation = tool.prefs.getBoolean("TextVisibilityAnnotation", true);
+	public static boolean isTextVisibilityOnAnnotation() { return cacheTextVisibilityAnnotation; }
 	/**
 	 * Method to set whether to draw annotation text.
 	 * Annotation text is not attached to any node or arc, but appears to move freely about the cell.
@@ -733,7 +826,7 @@ public class User extends Tool
 	 */
 	public static void setTextVisibilityOnAnnotation(boolean on)
 	{
-		tool.prefs.putBoolean("TextVisibilityAnnotation", textVisibilityAnnotation = on);
+		tool.prefs.putBoolean("TextVisibilityAnnotation", cacheTextVisibilityAnnotation = on);
 		flushOptions();
 	}
 
@@ -742,18 +835,15 @@ public class User extends Tool
 	 * The default is "true".
 	 * @return true if the system should draw the name of on cell instances.
 	 */
-	public static boolean isTextVisibilityOnInstance()
-	{
-		initializeTextSettings();
-		return textVisibilityInstance;
-	}
+	private static boolean cacheTextVisibilityInstance = tool.prefs.getBoolean("TextVisibilityInstance", true);
+	public static boolean isTextVisibilityOnInstance() { return cacheTextVisibilityInstance; }
 	/**
 	 * Method to set whether to draw the name of on cell instances.
 	 * @param on true if the system should draw the name of on cell instances.
 	 */
 	public static void setTextVisibilityOnInstance(boolean on)
 	{
-		tool.prefs.putBoolean("TextVisibilityInstance", textVisibilityInstance = on);
+		tool.prefs.putBoolean("TextVisibilityInstance", cacheTextVisibilityInstance = on);
 		flushOptions();
 	}
 
@@ -763,11 +853,8 @@ public class User extends Tool
 	 * The default is "true".
 	 * @return true if the system should draw text that resides on the cell.
 	 */
-	public static boolean isTextVisibilityOnCell()
-	{
-		initializeTextSettings();
-		return textVisibilityCell;
-	}
+	private static boolean cacheTextVisibilityCell = tool.prefs.getBoolean("TextVisibilityCell", true);
+	public static boolean isTextVisibilityOnCell() { return cacheTextVisibilityCell; }
 	/**
 	 * Method to set whether to draw text that resides on the cell.
 	 * This includes the current cell's parameters or attributes (for example, spice templates).
@@ -775,7 +862,7 @@ public class User extends Tool
 	 */
 	public static void setTextVisibilityOnCell(boolean on)
 	{
-		tool.prefs.putBoolean("TextVisibilityCell", textVisibilityCell = on);
+		tool.prefs.putBoolean("TextVisibilityCell", cacheTextVisibilityCell = on);
 		flushOptions();
 	}
 
@@ -787,50 +874,70 @@ public class User extends Tool
 	 * The default is "false".
 	 * @return true if the system should beep after long jobs.
 	 */
-	public static boolean isBeepAfterLongJobs() { return tool.prefs.getBoolean("BeepAfterLongJobs", false); }
+	private static boolean cacheBeepAfterLongJobs = tool.prefs.getBoolean("BeepAfterLongJobs", false);
+	public static boolean isBeepAfterLongJobs() { return cacheBeepAfterLongJobs; }
 	/**
 	 * Method to set whether to beep after long jobs.
 	 * Any task longer than 1 minute is considered a "long job".
 	 * @param on true if the system should beep after long jobs.
 	 */
-	public static void setBeepAfterLongJobs(boolean on) { tool.prefs.putBoolean("BeepAfterLongJobs", on);   flushOptions(); }
+	public static void setBeepAfterLongJobs(boolean on)
+	{
+		tool.prefs.putBoolean("BeepAfterLongJobs", cacheBeepAfterLongJobs = on);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell whether to play a "click" sound when an arc is created.
 	 * The default is "true".
 	 * @return true if the system should play a "click" sound when an arc is created
 	 */
-	public static boolean isPlayClickSoundsWhenCreatingArcs() { return tool.prefs.getBoolean("PlayClickSoundsWhenCreatingArcs", true); }
+	private static boolean cachePlayClickSoundsWhenCreatingArcs = tool.prefs.getBoolean("PlayClickSoundsWhenCreatingArcs", false);
+	public static boolean isPlayClickSoundsWhenCreatingArcs() { return cachePlayClickSoundsWhenCreatingArcs; }
 	/**
 	 * Method to set whether to play a "click" sound when an arc is created
 	 * @param on true if the system should play a "click" sound when an arc is created
 	 */
-	public static void setPlayClickSoundsWhenCreatingArcs(boolean on) { tool.prefs.putBoolean("PlayClickSoundsWhenCreatingArcs", on);   flushOptions(); }
+	public static void setPlayClickSoundsWhenCreatingArcs(boolean on)
+	{
+		tool.prefs.putBoolean("PlayClickSoundsWhenCreatingArcs", cachePlayClickSoundsWhenCreatingArcs = on);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell whether to include the date and Electric version in output files.
 	 * The default is "true".
 	 * @return true if the system should include the date and Electric version in output files.
 	 */
-	public static boolean isIncludeDateAndVersionInOutput() { return tool.prefs.getBoolean("IncludeDateAndVersionInOutput", true); }
+	private static boolean cacheIncludeDateAndVersionInOutput = tool.prefs.getBoolean("IncludeDateAndVersionInOutput", false);
+	public static boolean isIncludeDateAndVersionInOutput() { return cacheIncludeDateAndVersionInOutput; }
 	/**
 	 * Method to set whether to include the date and Electric version in output files.
 	 * @param on true if the system should include the date and Electric version in output files.
 	 */
-	public static void setIncludeDateAndVersionInOutput(boolean on) { tool.prefs.putBoolean("IncludeDateAndVersionInOutput", on);   flushOptions(); }
+	public static void setIncludeDateAndVersionInOutput(boolean on)
+	{
+		tool.prefs.putBoolean("IncludeDateAndVersionInOutput", cacheIncludeDateAndVersionInOutput = on);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell the maximum number of errors to log.
 	 * The default is 0, which means that there is no limit.
 	 * @return the maximum number of errors to log.
 	 */
-	public static int getErrorLimit() { return tool.prefs.getInt("ErrorLimit", 0); }
+	private static int cacheErrorLimit = tool.prefs.getInt("ErrorLimit", 0);
+	public static int getErrorLimit() { return cacheErrorLimit; }
 	/**
 	 * Method to set the maximum number of errors to log.
 	 * @param limit the maximum number of errors to log.
 	 * A value of zero indicates that there is no limit.
 	 */
-	public static void setErrorLimit(int limit) { tool.prefs.putInt("ErrorLimit", limit);   flushOptions(); }
+	public static void setErrorLimit(int limit)
+	{
+		tool.prefs.putInt("ErrorLimit", cacheErrorLimit = limit);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell whether to switch technologies automatically when changing the current Cell.
@@ -838,25 +945,35 @@ public class User extends Tool
 	 * The default is "true".
 	 * @return true if the system should switch technologies automatically when changing the current Cell.
 	 */
-	public static boolean isAutoTechnologySwitch() { return tool.prefs.getBoolean("AutoTechnologySwitch", true); }
+	private static boolean cacheAutoTechnologySwitch = tool.prefs.getBoolean("AutoTechnologySwitch", false);
+	public static boolean isAutoTechnologySwitch() { return cacheAutoTechnologySwitch; }
 	/**
 	 * Method to set whether to switch technologies automatically when changing the current Cell.
 	 * Switching technologies means that the component menu updates to the new primitive set.
 	 * @param on true if the system should switch technologies automatically when changing the current Cell.
 	 */
-	public static void setAutoTechnologySwitch(boolean on) { tool.prefs.putBoolean("AutoTechnologySwitch", on);   flushOptions(); }
+	public static void setAutoTechnologySwitch(boolean on)
+	{
+		tool.prefs.putBoolean("AutoTechnologySwitch", cacheAutoTechnologySwitch = on);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell whether to place a Cell-Center primitive in every newly created Cell.
 	 * The default is "true".
 	 * @return true if the system should place a Cell-Center primitive in every newly created Cell.
 	 */
-	public static boolean isPlaceCellCenter() { return tool.prefs.getBoolean("PlaceCellCenter", true); }
+	private static boolean cachePlaceCellCenter = tool.prefs.getBoolean("PlaceCellCenter", false);
+	public static boolean isPlaceCellCenter() { return cachePlaceCellCenter; }
 	/**
 	 * Method to set whether to place a Cell-Center primitive in every newly created Cell.
 	 * @param on true if the system should place a Cell-Center primitive in every newly created Cell.
 	 */
-	public static void setPlaceCellCenter(boolean on) { tool.prefs.putBoolean("PlaceCellCenter", on);   flushOptions(); }
+	public static void setPlaceCellCenter(boolean on)
+	{
+		tool.prefs.putBoolean("PlaceCellCenter", cachePlaceCellCenter = on);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell whether to check Cell dates when placing instances.
@@ -864,14 +981,18 @@ public class User extends Tool
 	 * The default is "false".
 	 * @return true if the system should check Cell dates when placing instances.
 	 */
-	public static boolean isCheckCellDates() { return tool.prefs.getBoolean("CheckCellDates", false); }
+	private static boolean cacheCheckCellDates = tool.prefs.getBoolean("CheckCellDates", false);
+	public static boolean isCheckCellDates() { return cacheCheckCellDates; }
 	/**
 	 * Method to set whether to check Cell dates when placing instances.
 	 * This is not currently implemented.
 	 * @param on true if the system should check Cell dates when placing instances.
 	 */
-	public static void setCheckCellDates(boolean on) { tool.prefs.putBoolean("CheckCellDates", on);   flushOptions(); }
-
+	public static void setCheckCellDates(boolean on)
+	{
+		tool.prefs.putBoolean("CheckCellDates", cacheCheckCellDates = on);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell whether locked primitives can be modified.
@@ -879,59 +1000,84 @@ public class User extends Tool
 	 * The default is "false".
 	 * @return true if the locked primitives cannot be modified.
 	 */
-	public static boolean isDisallowModificationLockedPrims() { return tool.prefs.getBoolean("DisallowModificationLockedPrims", false); }
+	private static boolean cacheDisallowModificationLockedPrims = tool.prefs.getBoolean("DisallowModificationLockedPrims", false);
+	public static boolean isDisallowModificationLockedPrims() { return cacheDisallowModificationLockedPrims; }
 	/**
 	 * Method to set whether locked primitives can be modified.
 	 * @param on true if locked primitives cannot be modified.
 	 */
-	public static void setDisallowModificationLockedPrims(boolean on) { tool.prefs.putBoolean("DisallowModificationLockedPrims", on);   flushOptions(); }
+	public static void setDisallowModificationLockedPrims(boolean on)
+	{
+		tool.prefs.putBoolean("DisallowModificationLockedPrims", cacheDisallowModificationLockedPrims = on);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell whether to move objects after duplicating them.
 	 * The default is "true".
 	 * @return true if the system should move objects after duplicating them.
 	 */
-	public static boolean isMoveAfterDuplicate() { return tool.prefs.getBoolean("MoveAfterDuplicate", true); }
+	private static boolean cacheMoveAfterDuplicate = tool.prefs.getBoolean("MoveAfterDuplicate", false);
+	public static boolean isMoveAfterDuplicate() { return cacheMoveAfterDuplicate; }
 	/**
 	 * Method to set whether to move objects after duplicating them.
 	 * @param on true if the system should move objects after duplicating them.
 	 */
-	public static void setMoveAfterDuplicate(boolean on) { tool.prefs.putBoolean("MoveAfterDuplicate", on);   flushOptions(); }
+	public static void setMoveAfterDuplicate(boolean on)
+	{
+		tool.prefs.putBoolean("MoveAfterDuplicate", cacheMoveAfterDuplicate = on);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell whether Duplicate/Paste/Array of NodeInst copies exports.
 	 * The default is "false".
 	 * @return true if the system copies exports when doing a Duplicate/Paste/Array of NodeInst.
 	 */
-	public static boolean isDupCopiesExports() { return tool.prefs.getBoolean("DupCopiesExports", false); }
+	private static boolean cacheDupCopiesExports = tool.prefs.getBoolean("DupCopiesExports", false);
+	public static boolean isDupCopiesExports() { return cacheDupCopiesExports; }
 	/**
 	 * Method to set whether Duplicate/Paste/Array of NodeInst copies exports.
 	 * @param on true if the system copies exports when doing a Duplicate/Paste/Array of NodeInst.
 	 */
-	public static void setDupCopiesExports(boolean on) { tool.prefs.putBoolean("DupCopiesExports", on);   flushOptions(); }
+	public static void setDupCopiesExports(boolean on)
+	{
+		tool.prefs.putBoolean("DupCopiesExports", cacheDupCopiesExports = on);
+		flushOptions();
+	}
 
 	/**
 	 * Method to return the default rotation of all new nodes.
 	 * The default is 0.
 	 * @return the default rotation of all new nodes.
 	 */
-	public static int getNewNodeRotation() { return tool.prefs.getInt("NewNodeRotation", 0); }
+	private static int cacheNewNodeRotation = tool.prefs.getInt("NewNodeRotation", 0);
+	public static int getNewNodeRotation() { return cacheNewNodeRotation; }
 	/**
 	 * Method to set the default rotation of all new nodes.
 	 * @param rot the default rotation of all new nodes.
 	 */
-	public static void setNewNodeRotation(int rot) { tool.prefs.putInt("NewNodeRotation", rot);   flushOptions(); }
+	public static void setNewNodeRotation(int rot)
+	{
+		tool.prefs.putInt("NewNodeRotation", cacheNewNodeRotation = rot);
+		flushOptions();
+	}
 
 	/**
 	 * Method to tell whether new nodes are mirrored in X.
 	 * The default is "false".
 	 * @return true if new nodes are mirrored in X.
 	 */
-	public static boolean isNewNodeMirrorX() { return tool.prefs.getBoolean("NewNodeMirrorX", false); }
+	private static boolean cacheNewNodeMirrorX = tool.prefs.getBoolean("NewNodeMirrorX", false);
+	public static boolean isNewNodeMirrorX() { return cacheNewNodeMirrorX; }
 	/**
 	 * Method to set whether new nodes are mirrored in X.
 	 * @param on true if new nodes are mirrored in X.
 	 */
-	public static void setNewNodeMirrorX(boolean on) { tool.prefs.putBoolean("NewNodeMirrorX", on);   flushOptions(); }
+	public static void setNewNodeMirrorX(boolean on)
+	{
+		tool.prefs.putBoolean("NewNodeMirrorX", cacheNewNodeMirrorX = on);
+		flushOptions();
+	}
 
 }

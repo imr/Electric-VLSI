@@ -169,10 +169,7 @@ public class Clipboard
 			clear();
 
 			// copy objects to clipboard
-	//		saveview = us_clipboardcell->cellview;
-	//		us_clipboardcell->cellview = parent->cellview;
 			copyListToCell(wnd, geoms, parent, clipCell, false, false, false);
-	//		us_clipboardcell->cellview = saveview;
 		}
 	}
 
@@ -208,10 +205,7 @@ public class Clipboard
 			clear();
 
 			// copy objects to clipboard
-	//		saveview = us_clipboardcell->cellview;
-	//		us_clipboardcell->cellview = parent->cellview;
 			copyListToCell(wnd, geoms, parent, clipCell, false, false, false);
-	//		us_clipboardcell->cellview = saveview;
 
 			// and delete the original objects
 			CircuitChanges.eraseObjectsInList(parent, geoms);
@@ -248,6 +242,7 @@ public class Clipboard
 			EditWindow wnd = EditWindow.getCurrent();
 			if (wnd == null) return;
 			Cell parent = wnd.getCell();
+
 			// special case of pasting on top of selected objects
 			List geoms = Highlight.getHighlighted(true, true);
 			if (geoms.size() > 0)
@@ -365,14 +360,14 @@ public class Clipboard
 
 	/**
 	 * Method to copy the list of objects in "list" (NOGEOM terminated) from "fromcell"
-	 * to "tocell".  If "highlight" is true, highlight the objects in the new cell.
+	 * to "toCell".  If "highlight" is true, highlight the objects in the new cell.
 	 * If "interactiveplace" is true, interactively select the location in the new cell.
 	 */
-	private static void copyListToCell(EditWindow wnd, List list, Cell fromcell, Cell tocell, boolean highlight,
+	private static void copyListToCell(EditWindow wnd, List list, Cell fromcell, Cell toCell, boolean highlight,
 		boolean interactiveplace, boolean showoffset)
 	{
 		// make sure the destination cell can be modified
-		if (CircuitChanges.cantEdit(tocell, null, true)) return;
+		if (CircuitChanges.cantEdit(toCell, null, true)) return;
 
 		// make sure they are all in the same cell
 		for(Iterator it = list.iterator(); it.hasNext(); )
@@ -386,11 +381,11 @@ public class Clipboard
 		}
 
 		// set the technology of the new cell from the old cell if the new is empty
-//		if (tocell->firstnodeinst == NONODEINST ||
-//			(tocell->firstnodeinst->proto == gen_cellcenterprim &&
-//				tocell->firstnodeinst->nextnodeinst == NONODEINST))
+//		if (toCell->firstnodeinst == NONODEINST ||
+//			(toCell->firstnodeinst->proto == gen_cellcenterprim &&
+//				toCell->firstnodeinst->nextnodeinst == NONODEINST))
 //		{
-//			tocell->tech = fromcell->tech;
+//			toCell->tech = fromcell->tech;
 //		}
 
 		// mark all nodes (including those touched by highlighted arcs)
@@ -415,9 +410,9 @@ public class Clipboard
 			NodeInst ni = (NodeInst)geom;
 
 			// check for cell instance lock
-			if (ni.getProto() instanceof Cell && tocell.isInstancesLocked())
+			if (ni.getProto() instanceof Cell && toCell.isInstancesLocked())
 			{
-				if (CircuitChanges.cantEdit(tocell, ni, true)) continue;
+				if (CircuitChanges.cantEdit(toCell, ni, true)) continue;
 			}
 			ni.setBit(inAreaFlag);
 		}
@@ -437,21 +432,23 @@ public class Clipboard
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() instanceof PrimitiveNode) continue;
-//			if (isachildof(tocell, ni.getProto()))
-//			{
-//				System.out.println("Cannot: that would be recursive");
-//				return;
-//			}
+			Cell niCell = (Cell)ni.getProto();
+			if (niCell.isAChildOf(toCell))
+			{
+				System.out.println("Cannot: that would be recursive (cell " +
+					toCell.describe() + " is beneath cell " + ni.getProto().describe() + ")");
+				return;
+			}
 		}
 
 		// figure out lower-left corner of this collection of objects
 		Iterator nit = theNodes.iterator();
 		NodeInst niFirst = (NodeInst)nit.next();
-		Point2D corner = niFirst.getLowLeft();
+		Point2D corner = niFirst.getGrabCenter();
 		for(; nit.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)nit.next();
-			Point2D pt = ni.getLowLeft();
+			Point2D pt = ni.getGrabCenter();
 			if (pt.getX() < corner.getY()) corner.setLocation(pt.getX(), corner.getY());
 			if (pt.getY() < corner.getY()) corner.setLocation(corner.getX(), pt.getY());
 		}
@@ -470,23 +467,6 @@ public class Clipboard
 
 		// adjust this corner so that, after grid alignment, objects are in the same location
 		EditWindow.gridAlign(corner);
-
-		// special case when moving one node: account for cell center
-		if (theNodes.size() == 1 && list.size() == 1)
-		{
-//			if ((us_useroptions&CENTEREDPRIMITIVES) != 0) centeredprimitives = TRUE; else
-//				centeredprimitives = FALSE;
-//			corneroffset(niFirst, niFirst->proto, niFirst->rotation, niFirst->transpose, &lx, &ly,
-//				centeredprimitives);
-//			bestlx = niFirst->lowx + lx;
-//			bestly = niFirst->lowy + ly;
-//
-//			if (niFirst->proto->primindex != 0 && (us_useroptions&CENTEREDPRIMITIVES) == 0)
-//			{
-//				// adjust this corner so that, after grid alignment, objects are in the same location
-//				gridalign(&bestlx, &bestly, 1, tocell);
-//			}
-		}
 
 		// remove highlighting if planning to highlight new stuff
 //		if (highlight) Highlight.clear();
@@ -530,7 +510,7 @@ public class Clipboard
 //					return;
 //				}
 //			}
-//			gridalign(&xcur, &ycur, 1, tocell);
+//			gridalign(&xcur, &ycur, 1, toCell);
 //
 //			dx = xcur-bestlx;
 //			dy = ycur-bestly;
@@ -552,10 +532,10 @@ public class Clipboard
 			if (ni.isYMirrored()) height = -height;
 			String name = null;
 			if (ni.isUsernamed())
-				name = ElectricObject.uniqueObjectName(ni.getName(), tocell, NodeInst.class);
+				name = ElectricObject.uniqueObjectName(ni.getName(), toCell, NodeInst.class);
 			NodeInst newNi = NodeInst.newInstance(ni.getProto(),
 				new Point2D.Double(ni.getGrabCenterX()+dx, ni.getGrabCenterY()+dy),
-					width, height, ni.getAngle(), tocell, name);
+					width, height, ni.getAngle(), toCell, name);
 			if (newNi == null)
 			{
 				System.out.println("Cannot create node");
@@ -610,7 +590,7 @@ public class Clipboard
 
 				String name = null;
 				if (ai.isUsernamed())
-					name = ElectricObject.uniqueObjectName(ai.getName(), tocell, ArcInst.class);
+					name = ElectricObject.uniqueObjectName(ai.getName(), toCell, ArcInst.class);
 				ArcInst newAr = ArcInst.newInstance(ai.getProto(), ai.getWidth(),
 					headPi, new Point2D.Double(ai.getHead().getLocation().getX() + dx, ai.getHead().getLocation().getY() + dy),
 					tailPi, new Point2D.Double(ai.getTail().getLocation().getX() + dx, ai.getTail().getLocation().getY() + dy), name);
@@ -643,11 +623,11 @@ public class Clipboard
 					for(int i=0; i<polys.length; i++)
 					{
 						Poly poly = polys[i];
-						Highlight h = Highlight.addText(ni, tocell, poly.getVariable(), poly.getName());
+						Highlight h = Highlight.addText(ni, toCell, poly.getVariable(), poly.getName());
 					}
 					continue;
 				}
-				Highlight h = Highlight.addElectricObject(ni, tocell);
+				Highlight h = Highlight.addElectricObject(ni, toCell);
 			}
 			for(Iterator it = list.iterator(); it.hasNext(); )
 			{
@@ -655,7 +635,7 @@ public class Clipboard
 				if (geom instanceof NodeInst) continue;
 				ArcInst ai = (ArcInst)geom;
 				ai = (ArcInst)ai.getTempObj();
-				Highlight h = Highlight.addElectricObject(ai, tocell);
+				Highlight h = Highlight.addElectricObject(ai, toCell);
 			}
 			Highlight.finished();
 		}

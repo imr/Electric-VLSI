@@ -28,6 +28,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.Technology;
@@ -313,7 +314,7 @@ public class ToolOptions extends javax.swing.JDialog
 		if (currentUseMultipleThreads != initialDRCUseMultipleThreads)
 			DRC.setUseMultipleThreads(currentUseMultipleThreads);
 
-		int currentNumberOfThreads = EMath.atoi(drcNumberOfThreads.getText());
+		int currentNumberOfThreads = TextUtils.atoi(drcNumberOfThreads.getText());
 		if (currentNumberOfThreads != initialDRCNumberOfThreads)
 			DRC.setNumberOfThreads(currentNumberOfThreads);
 
@@ -1024,9 +1025,9 @@ public class ToolOptions extends javax.swing.JDialog
 		if (spiceUseParasiticsInitial != booleanNow) Simulation.setSpiceUseParasitics(booleanNow);
 
 		// the next section: parasitic values
-		double doubleNow = EMath.atof(spiceMinResistance.getText());
+		double doubleNow = TextUtils.atof(spiceMinResistance.getText());
 		if (spiceTechMinResistanceInitial != doubleNow) curTech.setMinResistance(doubleNow);
-		doubleNow = EMath.atof(spiceMinCapacitance.getText());
+		doubleNow = TextUtils.atof(spiceMinCapacitance.getText());
 		if (spiceTechMinCapacitanceInitial != doubleNow) curTech.setMinCapacitance(doubleNow);
 
 		for(Iterator it = curTech.getLayers(); it.hasNext(); )
@@ -1112,7 +1113,7 @@ public class ToolOptions extends javax.swing.JDialog
 				text = doc.getText(0, len);
 			} catch (BadLocationException ex) { return; }
 			Option option = (Option)optionMap.get(layer);
-			double v = EMath.atof(text);
+			double v = TextUtils.atof(text);
 
 			// update the option
 			option.setDoubleValue(v);
@@ -1434,25 +1435,25 @@ public class ToolOptions extends javax.swing.JDialog
 		nowBoolean = leHighlightComponents.isSelected();
 		if (leHighlightComponentsInitial != nowBoolean) leTool.getPrefs().putBoolean("blah2", nowBoolean);
 
-		float nowFloat = (float)EMath.atof(leGlobalFanOut.getText());
+		float nowFloat = (float)TextUtils.atof(leGlobalFanOut.getText());
 		if (leGlobalFanOutInitial != nowFloat) leTool.getPrefs().putFloat(LETool.OPTION_GLOBALFANOUT, nowFloat);
 
-		nowFloat = (float)EMath.atof(leConvergence.getText());
+		nowFloat = (float)TextUtils.atof(leConvergence.getText());
 		if (leConvergenceInitial != nowFloat) leTool.getPrefs().putFloat(LETool.OPTION_EPSILON, nowFloat);
 
-		int nowInt = EMath.atoi(leMaxIterations.getText());
+		int nowInt = TextUtils.atoi(leMaxIterations.getText());
 		if (leMaxIterationsInitial != nowInt) leTool.getPrefs().putInt(LETool.OPTION_MAXITER, nowInt);
 
-		nowFloat = (float)EMath.atof(leGateCapacitance.getText());
+		nowFloat = (float)TextUtils.atof(leGateCapacitance.getText());
 		if (leGateCapacitanceInitial != nowFloat) leTool.getPrefs().putFloat(LETool.OPTION_GATECAP, nowFloat);
 
-		nowFloat = (float)EMath.atof(leDefaultWireCapRatio.getText());
+		nowFloat = (float)TextUtils.atof(leDefaultWireCapRatio.getText());
 		if (leDefaultWireCapRatioInitial != nowFloat) leTool.getPrefs().putFloat(LETool.OPTION_WIRERATIO, nowFloat);
 
-		nowFloat = (float)EMath.atof(leDiffToGateCapRatio.getText());
+		nowFloat = (float)TextUtils.atof(leDiffToGateCapRatio.getText());
 		if (leDiffToGateCapRatioInitial != nowFloat) leTool.getPrefs().putFloat(LETool.OPTION_DIFFALPHA, nowFloat);
 
-		nowFloat = (float)EMath.atof(leKeeperSizeRatio.getText());
+		nowFloat = (float)TextUtils.atof(leKeeperSizeRatio.getText());
 		if (leKeeperSizeRatioInitial != nowFloat) leTool.getPrefs().putFloat(LETool.OPTION_KEEPERRATIO, nowFloat);
 
 		for(Iterator it = curTech.getArcs(); it.hasNext(); )
@@ -1511,7 +1512,7 @@ public class ToolOptions extends javax.swing.JDialog
 			{
 				text = doc.getText(0, len);
 			} catch (BadLocationException ex) { return; }
-			double v = EMath.atof(text);
+			double v = TextUtils.atof(text);
 
 			// update the option
 			option.setDoubleValue(v);

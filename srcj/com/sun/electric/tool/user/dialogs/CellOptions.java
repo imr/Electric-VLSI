@@ -27,6 +27,7 @@ import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
@@ -227,7 +228,7 @@ public class CellOptions extends javax.swing.JDialog
 			{
 				text = doc.getText(0, len);
 			} catch (BadLocationException ex) { return; }
-			double v = EMath.atof(text);
+			double v = TextUtils.atof(text);
 
 			// update the option
 			if (x)

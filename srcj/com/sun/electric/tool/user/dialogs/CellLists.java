@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.VarContext;
@@ -144,7 +145,7 @@ public class CellLists extends javax.swing.JDialog
 		}
 
 		/* add the version number */
-		String versionString = EMath.toBlankPaddedString(cell.getVersion(), 5);
+		String versionString = TextUtils.toBlankPaddedString(cell.getVersion(), 5);
 		line += versionString;
 		if (maxlen < 0) line += "\t"; else line += "   ";
 
@@ -181,7 +182,7 @@ public class CellLists extends javax.swing.JDialog
 			if (var != null) len = var.getLength();
 			if (maxlen < 0) line += len + " lines"; else
 			{
-				line += EMath.toBlankPaddedString(len, 8) + " lines   ";
+				line += TextUtils.toBlankPaddedString(len, 8) + " lines   ";
 			}
 		} else
 		{
@@ -208,7 +209,7 @@ public class CellLists extends javax.swing.JDialog
 		}
 		if (maxlen < 0) line += total; else
 		{
-			line += EMath.toBlankPaddedString(total, 4);
+			line += TextUtils.toBlankPaddedString(total, 4);
 		}
 		if (maxlen < 0) line += "\t"; else line += "   ";
 
@@ -397,7 +398,7 @@ public class CellLists extends javax.swing.JDialog
 					System.out.println(curtech.getTechName() + " technology:");
 					printtech = curtech;
 				}
-				System.out.println(EMath.toBlankPaddedString(count.getCount(), 6) + " " + np.describe() + " nodes");
+				System.out.println(TextUtils.toBlankPaddedString(count.getCount(), 6) + " " + np.describe() + " nodes");
 			}
 		}
 		for(Iterator it = Library.getLibraries(); it.hasNext(); )
@@ -415,7 +416,7 @@ public class CellLists extends javax.swing.JDialog
 					System.out.println(lib.getLibName() + " library:");
 					printlib = lib;
 				}
-				System.out.println(EMath.toBlankPaddedString(count.getCount(), 6) + " " + cell.describe() + " nodes");
+				System.out.println(TextUtils.toBlankPaddedString(count.getCount(), 6) + " " + cell.describe() + " nodes");
 			}
 		}
 	}
