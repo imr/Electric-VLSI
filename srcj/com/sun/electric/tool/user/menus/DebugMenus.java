@@ -151,6 +151,10 @@ public class DebugMenus {
             new ActionListener() { public void actionPerformed(ActionEvent e) { addStringVar(); }});
         jongMenu.addMenuItem("Edit clipboard", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { Clipboard.editClipboard(); }});
+        jongMenu.addMenuItem("Cause stack overflow", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { causeStackOverflow(true, false, "blah", 234, "xvsdf"); }});
+        jongMenu.addMenuItem("Cause stack overflow in Job", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { causeStackOverflowJob(); }});
 
         /****************************** Gilda's TEST MENU ******************************/
 
@@ -907,6 +911,29 @@ public class DebugMenus {
         }
     }
 
+
+    public static void causeStackOverflow(boolean x, boolean y, String l, int r, String f) {
+        // this will cause a stack overflow
+        causeStackOverflow(x, y, l, r, f);
+    }
+
+    public static void causeStackOverflowJob() {
+        StackOverflowJob job = new StackOverflowJob();
+    }
+
+    public static class StackOverflowJob extends Job {
+        private StackOverflowJob() {
+            super("overflow", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+            startJob();
+        }
+        public boolean doIt() {
+            dosomething(true, "asfjka;dj");
+            return true;
+        }
+        private void dosomething(boolean b, String str) {
+            dosomething(b, str);
+        }
+    }
 
     public static void shakeDisplay() {
         //RedisplayTest job = new RedisplayTest(50);
