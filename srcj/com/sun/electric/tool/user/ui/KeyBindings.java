@@ -128,6 +128,13 @@ public class KeyBindings implements ActionListener {
         defaultKeyStrokePairs.add(k);
     }
 
+    /**
+     * Clear all active bindings
+     */
+    public void clearKeyBindings() {
+        keyStrokePairs.clear();
+    }
+
     // ----------------------- Action Listener stuff -------------------------
 
     /**

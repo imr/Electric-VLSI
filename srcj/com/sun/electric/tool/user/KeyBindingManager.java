@@ -31,11 +31,7 @@ import com.sun.electric.tool.user.ui.KeyStrokePair;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -132,7 +128,7 @@ public class KeyBindingManager {
      * Initialize: Reads all stored key bindings from preferences
      */
     private synchronized void initialize() {
-        String [] allKeys;
+/*        String [] allKeys;
         try {
             allKeys = prefs.keys();
         } catch (BackingStoreException e) {
@@ -157,7 +153,7 @@ public class KeyBindingManager {
                     addKeyBinding(key, pair);
                 }
             }
-        }
+        }*/
     }
 
     // ---------------------------- Prefix Action Class -----------------------------
@@ -365,10 +361,12 @@ public class KeyBindingManager {
             actionMap.put(actionDesc, keys);
         }
         keys.addDefaultKeyBinding(pair);
+/*
         if (keys.getUsingDefaultKeys()) {
             // using default keys, add default key to active maps
             addKeyBinding(actionDesc, pair);
         }
+*/
     }
 
     /**
@@ -747,8 +745,13 @@ public class KeyBindingManager {
 
         KeyBindings keyBindings = (KeyBindings)actionMap.get(actionDesc);
         if (keyBindings == null) return;
-        if (debugPrefs) System.out.println("Writing to pref '"+prefPrefix+actionDesc+"': "+keyBindings.bindingsToString());
-        prefs.put(prefPrefix+actionDesc, keyBindings.bindingsToString());
+        String actionDescAbbrev = actionDesc;
+        if ((actionDesc.length() + prefPrefix.length()) > Preferences.MAX_KEY_LENGTH) {
+            int start = actionDesc.length() + prefPrefix.length() - Preferences.MAX_KEY_LENGTH;
+            actionDescAbbrev = actionDesc.substring(start, actionDesc.length());
+        }
+        if (debugPrefs) System.out.println("Writing to pref '"+prefPrefix+actionDescAbbrev+"': "+keyBindings.bindingsToString());
+        prefs.put(prefPrefix+actionDescAbbrev, keyBindings.bindingsToString());
     }
 
 
@@ -762,9 +765,14 @@ public class KeyBindingManager {
         if (prefs == null) return null;
         if (actionDesc == null || actionDesc.equals("")) return null;
 
-        String keys = prefs.get(prefPrefix+actionDesc, null);
+        String actionDescAbbrev = actionDesc;
+        if ((actionDesc.length() + prefPrefix.length()) > Preferences.MAX_KEY_LENGTH) {
+            int start = actionDesc.length() + prefPrefix.length() - Preferences.MAX_KEY_LENGTH;
+            actionDescAbbrev = actionDesc.substring(start, actionDesc.length());
+        }
+        String keys = prefs.get(prefPrefix+actionDescAbbrev, null);
         if (keys == null) return null;
-        if (debugPrefs) System.out.println("Read from prefs for "+actionDesc+": "+keys);
+        if (debugPrefs) System.out.println("Read from prefs for "+prefPrefix+actionDescAbbrev+": "+keys);
         KeyBindings k = new KeyBindings(actionDesc);
         k.addKeyBindings(keys);
         if (debugPrefs) System.out.println("  turned into: "+k.describe());
@@ -773,6 +781,44 @@ public class KeyBindingManager {
             bindings.add((KeyStrokePair)it.next());
         }
         return bindings;
+    }
+
+    /**
+     * Restored saved bindings from preferences.  Usually called after
+     * menu has been created.
+     */
+    public synchronized void restoreSavedBindings() {
+        if (prefs == null) return;
+        // try to see if binding saved in preferences for each action
+        for (Iterator it = actionMap.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry entry = (Map.Entry)it.next();
+            String actionDesc = (String)entry.getKey();
+            if (actionDesc == null || actionDesc.equals("")) continue;
+            // clear current bindings
+            if (entry.getValue() instanceof PrefixAction) {
+                continue;
+            }
+            KeyBindings bindings = (KeyBindings)entry.getValue();
+            bindings.clearKeyBindings();
+            // look up bindings in prefs
+            List keyPairs = getBindingsFromPrefs(bindings.getActionDesc());
+            if (keyPairs == null) {
+                // no entry found, use default settings
+                bindings.setUsingDefaultKeys(true);
+                for (Iterator it2 = bindings.getDefaultKeyStrokePairs(); it2.hasNext(); ) {
+                    KeyStrokePair pair = (KeyStrokePair)it2.next();
+                    addKeyBinding(actionDesc, pair);
+                }
+            } else {
+                // otherwise, add bindings found
+                bindings.setUsingDefaultKeys(false);
+                for (Iterator it2 = keyPairs.iterator(); it2.hasNext(); ) {
+                    KeyStrokePair pair = (KeyStrokePair)it2.next();
+                    addKeyBinding(actionDesc, pair);
+                }
+            }
+        }
+
     }
 
     /**

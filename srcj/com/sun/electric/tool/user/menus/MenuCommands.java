@@ -119,7 +119,8 @@ public final class MenuCommands
                 new ActionListener() { public void actionPerformed(ActionEvent e) { ClickZoomWireListener.theOne.switchWiringTarget(); }});
 
 		// return the menu bar
-        menuBar.deleteEmptyBindings();
+        //menuBar.deleteEmptyBindings();
+        menuBar.restoreSavedBindings();
 		return menuBar;
 	}
 

@@ -607,6 +607,17 @@ public class MenuBar extends JMenuBar
         menuBarGroup.keyBindingManager.deleteEmptyBindings();
     }
 
+    public void restoreSavedBindings() {
+        menuBarGroup.keyBindingManager.restoreSavedBindings();
+        // update all accelerators
+        synchronized(menuBarGroup) {
+            for (Iterator it = menuBarGroup.menuItems.keySet().iterator(); it.hasNext(); ) {
+                String actionDesc = (String)it.next();
+                updateAccelerator(actionDesc);
+            }
+        }
+    }
+
     // ------------------------------ Clean Up Methods ----------------------------
 
     /**
