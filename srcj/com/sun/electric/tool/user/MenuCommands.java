@@ -27,6 +27,7 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyMerge;
+import com.sun.electric.database.geometry.PolyQTree;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
@@ -690,7 +691,7 @@ public final class MenuCommands
 		Menu generationSubMenu = new Menu("Generation", 'G');
 		toolMenu.add(generationSubMenu);
 		generationSubMenu.addMenuItem("Coverage Implants Generator", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { implantGeneratorCommand(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { implantGeneratorCommand(true); }});
 		generationSubMenu.addMenuItem("Pad Frame Generator", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
 
@@ -789,7 +790,9 @@ public final class MenuCommands
 		Menu gildaMenu = new Menu("Gilda", 'G');
 		menuBar.add(gildaMenu);
 		gildaMenu.addMenuItem("Covering Implants", null,
-		        new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand();}});
+		        new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(true);}});
+		gildaMenu.addMenuItem("Covering Implants Old", null,
+		        new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(false);}});
 
         /********************************* Hidden Menus *******************************/
 
@@ -2509,11 +2512,19 @@ public final class MenuCommands
 	}
 
     // ---------------------- Gilda's Stuff MENU -----------------
-	public static void implantGeneratorCommand() {
+	public static void implantGeneratorCommand(boolean newIdea) {
 		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
+        Job job = null;
 
-		CoverImplant job = new CoverImplant(curCell);
+	    if (newIdea)
+	    {
+			job = new CoverImplant(curCell);
+	    }
+	    else
+	    {
+		    job = new CoverImplantOld(curCell);
+	    }
 	}
 
 	protected static class CoverImplant extends Job
@@ -2523,6 +2534,134 @@ public final class MenuCommands
 		protected CoverImplant(Cell cell)
 		{
 			super("Coverage Implant", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.curCell = cell;
+			startJob();
+		}
+
+		public void doIt()
+		{
+			List deleteList = new ArrayList(); // New coverage implants are pure primitive nodes
+			HashMap allLayers = new HashMap();
+            PolyQTree tree = new PolyQTree();
+
+			// Traversing arcs
+			for(Iterator it = curCell.getArcs(); it.hasNext(); )
+			{
+				ArcInst arc = (ArcInst)it.next();
+				ArcProto arcType = arc.getProto();
+				Technology tech = arcType.getTechnology();
+				Poly[] polyList = tech.getShapeOfArc(arc);
+
+				// Treating the arcs associated to each node
+				// Arcs don't need to be rotated
+				for (int i = 0; i < polyList.length; i++)
+				{
+					Poly poly = polyList[i];
+					Layer layer = poly.getLayer();
+					Layer.Function func = layer.getFunction();
+					
+					if ( func.isSubstrate() )
+					{
+						Rectangle2D bounds = poly.getBounds2D();
+						tree.insert((Object)layer, curCell.getBounds(), bounds);
+						List rectList = (List)allLayers.get(layer);
+
+						if ( rectList == null )
+						{
+							rectList = new ArrayList();
+							allLayers.put(layer, rectList);
+						}
+						rectList.add(bounds);
+					}
+				}
+			}
+			// Traversing nodes
+			for(Iterator it = curCell.getNodes(); it.hasNext(); )
+			{
+				NodeInst node = (NodeInst)it .next();
+
+				// New coverage implants are pure primitive nodes
+				// and previous get deleted and ignored.
+				if ( node.getFunction() == NodeProto.Function.NODE )
+				{
+					deleteList.add(node);
+					continue;
+				}
+
+				NodeProto protoType = node.getProto();
+				if (protoType instanceof Cell) continue;
+
+				Technology tech = protoType.getTechnology();
+				Poly[] polyList = tech.getShapeOfNode(node);
+				AffineTransform transform = node.rotateOut();
+
+				for (int i = 0; i < polyList.length; i++)
+				{
+					Poly poly = polyList[i];
+					Layer layer = poly.getLayer();
+					Layer.Function func = layer.getFunction();
+
+                    // Only substrate layers, skipping center information
+					if ( func.isSubstrate() )
+					{
+						poly.transform(transform);
+						Rectangle2D bounds = poly.getBounds2D();
+						tree.insert((Object)layer, curCell.getBounds(), bounds);
+						List rectList = (List)allLayers.get(layer);
+
+						if ( rectList == null )
+						{
+							rectList = new ArrayList();
+							allLayers.put(layer, rectList);
+						}
+						rectList.add(bounds);
+					}
+				}
+			}
+
+			tree.print();
+
+			// With polygons collected, new geometries are calculated
+			Highlight.clear();
+			List nodesList = new ArrayList();
+
+			// Need to detect if geometry was really modified
+			for(Iterator it = tree.getKeyIterator(); it.hasNext(); )
+			{
+				Layer layer = (Layer)it.next();
+				List list = tree.getObjects(layer, (List)allLayers.get(layer));
+
+				// Ready to create new implants.
+				for(Iterator i = list.iterator(); i.hasNext(); )
+				{
+					Rectangle2D rect = (Rectangle2D)i.next();
+					Point2D center = new Point2D.Double(rect.getCenterX(), rect.getCenterY());
+					PrimitiveNode priNode = layer.getPureLayerNode();
+					// Adding the new implant. New implant not assigned to any local variable                                .
+					NodeInst node = NodeInst.makeInstance(priNode, center, rect.getWidth(), rect.getHeight(), 0, curCell, null);
+					Highlight.addElectricObject(node, curCell);
+					// New implant can't be selected again
+					node.setHardSelect();
+					nodesList.add(node);
+				}
+			}
+			Highlight.finished();
+			for (Iterator it = deleteList.iterator(); it.hasNext(); )
+			{
+				NodeInst node = (NodeInst)it .next();
+				node.kill();
+			}
+			if ( nodesList.isEmpty() )
+				System.out.println("No implant areas added");
+		}
+	}
+	protected static class CoverImplantOld extends Job
+	{
+		private Cell curCell;
+
+		protected CoverImplantOld(Cell cell)
+		{
+			super("Coverage Implant Old", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.curCell = cell;
 			startJob();
 		}
@@ -2548,6 +2687,7 @@ public final class MenuCommands
 					Poly poly = polyList[i];
 					Layer layer = poly.getLayer();
 					Layer.Function func = layer.getFunction();
+
 					if ( func.isSubstrate() )
 					{
 						merge.addPolygon(layer, poly);
@@ -2585,11 +2725,13 @@ public final class MenuCommands
 				for (int i = 0; i < polyList.length; i++)
 				{
 					Poly poly = polyList[i];
-					Layer.Function func = poly.getLayer().getFunction();
+					Layer layer = poly.getLayer();
+					Layer.Function func = layer.getFunction();
+
+                    // Only substrate layers, skipping center information
 					if ( func.isSubstrate() )
 					{
 						poly.transform(transform);
-						Layer layer = poly.getLayer();
 						merge.addPolygon(layer, poly);
 						List rectList = (List)allLayers.get(layer);
 

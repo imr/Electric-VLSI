@@ -35,6 +35,7 @@ import java.util.*;
 public class PolyQTree {
 	private static int MAX_NUM_CHILDREN = 4;
 	private static int MAX_DEPTH = 10;
+	private static Rectangle2D testBox = new Rectangle2D.Double();
     private HashMap layers = new HashMap();
 
 	public PolyQTree()
@@ -46,32 +47,66 @@ public class PolyQTree {
 	 */
 	public void print()
 	{
-		for (Iterator it = layers.values().iterator(); it.hasNext();)
+		for (Iterator it = getIterator(); it.hasNext();)
 		{
-			PolyQNodeRoot root = (PolyQNodeRoot)(it.next());
+			PolyQNode root = (PolyQNode)(it.next());
 			if (root != null)
 				root.print();
 		}
 	}
 
 	/**
+	 * Access to keySet with iterator
+	 * @return iterator for keys in hashmap
+	 */
+	public Iterator getKeyIterator()
+	{
+		return (layers.keySet().iterator());
+	}
+
+	/**
+	 * Iterator among all layers inserted
+	 * @return
+	 */
+	public Iterator getIterator()
+	{
+		return (layers.values().iterator());
+	}
+	/**
+	 * Retrieves list of leaf elements in the tree give a layer
+	 * @param layer
+	 * @return List contains all leave elements
+	 */
+	public List getObjects(Object layer, List excludeList)
+	{
+		List objList = new ArrayList();
+		PolyQNode root = (PolyQNode)layers.get(layer);
+
+		if (root != null)
+		{
+			root.getLeafObjects(objList, excludeList);
+		}
+		return (objList);
+	}
+
+	/**
 	 * Given a layer, insert the object obj into the qTree associated.
 	 * @param layer Given layer to work with
 	 * @param box Bounding box of the cell containing the layer
-	 * @param obj Poly object to insert
 	 */
 	public void insert(Object layer, Rectangle2D box, Rectangle2D obj)
 	{
-		PolyQNodeRoot root = (PolyQNodeRoot)layers.get(layer);
+		PolyQNode root = (PolyQNode)layers.get(layer);
 
 		if (root == null)
 		{
-			root = new PolyQNodeRoot(box);
+			root = new PolyQNode();
 			layers.put(layer, root);
 		};
-		// check first if there is some overlap and removes previous elements
-		obj = root.removeObjects(box, obj);
-		root.insert(box, obj);
+		// Check whether original got changed! shouldn't happen because they are by value
+		testBox.setRect(obj);
+		testBox = root.removeObjects(box, testBox);
+		root.insert(box, testBox);
 	}
 
 	private static class PolyQNode
@@ -132,7 +167,24 @@ public class PolyQTree {
 		}
 
 		/**
-		 *
+		 * Collects recursive leaf elements in a list
+		 * @param list
+		 */
+		protected void getLeafObjects(List list, List excludeList)
+		{
+			list.addAll(nodes);
+			if ( excludeList != null )
+			{
+				// Make sure objects are not the originals
+				// Not sure how efficient this is
+				list.removeAll(excludeList);
+			}
+			if (children == null) return;
+			for (int i = 0; i < PolyQTree.MAX_NUM_CHILDREN; i++)
+				children[i].getLeafObjects(list, excludeList);
+		}
+		/**
+		 *   print function for debugging purposes
 		 */
 		protected void print()
 		{
@@ -180,11 +232,7 @@ public class PolyQTree {
 					}
 				}
 			}
-			else if (nodes == null)
-			{
-				System.out.println("Should it happen!!?");
-			}
-			else
+			else if (nodes != null)
 			{
 				List deleteList = new ArrayList();
 
@@ -192,9 +240,10 @@ public class PolyQTree {
 				{
 					Rectangle2D node = (Rectangle2D)it.next();
 
-					if (node.intersects(box))
+					// I should test equals first?
+					if (!node.equals(obj) && node.intersects(obj))
 					{
-						box.add(node);
+						obj.add(node);
 						deleteList.add(node);
 					}
 				}
@@ -239,7 +288,7 @@ public class PolyQTree {
 			}
 			if (nodes.size() < PolyQTree.MAX_NUM_CHILDREN)
 			{
-				nodes.add(obj);
+				nodes.add(obj.clone());
 			}
 			else
 			{
@@ -262,15 +311,6 @@ public class PolyQTree {
 				nodes.clear(); // not sure about this clear yet
 				nodes = null;
 			}
-		}
-	}
-	private class PolyQNodeRoot extends PolyQTree.PolyQNode
-	{
-		private Rectangle2D box; // contain the bounding box of the entire cell
-
-		public PolyQNodeRoot (Rectangle2D bound)
-		{
-			box = bound;
 		}
 	}
 }
