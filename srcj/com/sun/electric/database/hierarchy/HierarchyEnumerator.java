@@ -727,15 +727,26 @@ public final class HierarchyEnumerator {
                 }
                 if (found) break;
             }
-            if (!found) return null;
-            // find corresponding port on icon
-            //System.out.println("In "+cell.describe()+" JNet "+network.describe()+" is exported as "+export.getName()+"; index "+i);
-            Nodable no = context.getNodable();
-            PortProto pp = no.getProto().findPortProto(export.getNameKey());
-            //System.out.println("Found corresponding port proto "+pp.getName()+" on cell "+no.getProto().describe());
-            // find corresponding network in parent
-            Network parentNet = parentInfo.getNetlist().getNetwork(no, pp, i);
-            return parentNet;
+            if (found) {
+                // find corresponding port on icon
+                //System.out.println("In "+cell.describe()+" JNet "+network.describe()+" is exported as "+export.getName()+"; index "+i);
+                Nodable no = context.getNodable();
+                PortProto pp = no.getProto().findPortProto(export.getNameKey());
+                //System.out.println("Found corresponding port proto "+pp.getName()+" on cell "+no.getProto().describe());
+                // find corresponding network in parent
+                Network parentNet = parentInfo.getNetlist().getNetwork(no, pp, i);
+                return parentNet;
+            }
+            // check if global network
+            Global.Set globals = netlist.getGlobals();
+            for (i=0; i<globals.size(); i++) {
+                Global global = globals.get(i);
+                if (netlist.getNetwork(global) == network) {
+                    // it is a global, return the global network in the parent
+                    return parentInfo.getNetlist().getNetwork(global);
+                }
+            }
+            return null;
         }
 
 		/** Find position of NodeInst: ni in the root Cell. The
