@@ -40,7 +40,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.TreeMap;
 import java.util.prefs.Preferences;
 
 /**
@@ -57,8 +56,7 @@ public class Tool implements Comparable
 	private int toolIndex;
 
 	// the static list of all tools
-//	private static LinkedHashMap tools = new LinkedHashMap();
-	private static TreeMap tools = new TreeMap();
+	private static LinkedHashMap tools = new LinkedHashMap();
 	private static List listeners = new ArrayList();
 	private static int toolNumber = 0;
 
@@ -276,14 +274,14 @@ public class Tool implements Comparable
 	public boolean isSynthesis() { return (toolState & TOOLSYNTHESIS) != 0; }
 
     /**
-     * Compares Tools by their names.
+     * Compares Tools by their definition order.
      * @param obj the other Tool.
      * @return a comparison between the Tools.
      */
 	public int compareTo(Object obj)
 	{
 		Tool that = (Tool)obj;
-		return toolName.compareTo(that.toolName);
+		return this.toolIndex - that.toolIndex;
 	}
 
 	/**
