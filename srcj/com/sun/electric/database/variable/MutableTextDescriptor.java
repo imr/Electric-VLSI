@@ -54,7 +54,6 @@ public class MutableTextDescriptor extends TextDescriptor
 
 	/**
 	 * The constructor simply creates a TextDescriptor with zero values filled-in.
-	 * @param owner owner of this TextDescriptor.
 	 */
 	public MutableTextDescriptor()
 	{
@@ -64,7 +63,6 @@ public class MutableTextDescriptor extends TextDescriptor
 
 	/**
 	 * The constructor creates copy of anotherTextDescriptor.
-	 * @param owner owner of this TextDescriptor.
 	 * @param descriptor another descriptor.
 	 */
 	public MutableTextDescriptor(TextDescriptor descriptor)
@@ -76,9 +74,9 @@ public class MutableTextDescriptor extends TextDescriptor
 
 	/**
 	 * The constructor simply creates a TextDescriptor with specified values.
-	 * @param owner owner of this TextDescriptor.
 	 * @param descriptor0 lower word of the text descriptor.
 	 * @param descriptor1 higher word of the text descriptor.
+	 * @param colorIndex color index of the text descriptor.
 	 */
 	public MutableTextDescriptor(int descriptor0, int descriptor1, int colorIndex)
 	{
@@ -89,92 +87,71 @@ public class MutableTextDescriptor extends TextDescriptor
 
 	/**
 	 * The constructor simply creates a TextDescriptor with specified values.
-	 * @param owner owner of this TextDescriptor.
 	 * @param descriptor the bits of the text descriptor.
+	 * @param colorIndex color index of the text descriptor.
+	 * @param fontName font name of the text descriptor or empty string
 	 */
-	public MutableTextDescriptor(long descriptor, int colorIndex)
+	public MutableTextDescriptor(long descriptor, int colorIndex, String fontName)
 	{
 		this.descriptor0 = (int)(descriptor >> 32);
 		this.descriptor1 = (int)(descriptor & 0xFFFFFFFF);
 		this.colorIndex = colorIndex;
+		if (fontName.length() > 0)
+			descriptor1 = (descriptor1 & ~VTFACE) | (ActiveFont.findActiveFont(fontName).getIndex() << VTFACESH);
 	}
 
 	/**
 	 * Method to return a TextDescriptor that is a default for Variables on NodeInsts.
-	 * @param owner owner of this TextDescriptor.
 	 * @return a new TextDescriptor that can be stored in a Variable on a NodeInsts.
 	 */
 	public static MutableTextDescriptor getNodeTextDescriptor()
 	{
-		MutableTextDescriptor td = new MutableTextDescriptor(cacheNodeDescriptor.getLong(), 0);
-		String fontName = getNodeTextDescriptorFont();
-		if (fontName.length() > 0) td.setFace(ActiveFont.findActiveFont(fontName).getIndex());
-		return td;
+		return cacheNodeDescriptor.newMutableTextDescriptor();
 	}
 
 	/**
 	 * Method to return a TextDescriptor that is a default for Variables on ArcInsts.
-	 * @param owner owner of this TextDescriptor.
 	 * @return a new TextDescriptor that can be stored in a Variable on a ArcInsts.
 	 */
 	public static MutableTextDescriptor getArcTextDescriptor()
 	{
-		MutableTextDescriptor td = new MutableTextDescriptor(cacheArcDescriptor.getLong(), 0);
-		String fontName = getArcTextDescriptorFont();
-		if (fontName.length() > 0) td.setFace(ActiveFont.findActiveFont(fontName).getIndex());
-		return td;
+		return cacheArcDescriptor.newMutableTextDescriptor();
 	}
 
 	/**
 	 * Method to return a TextDescriptor that is a default for Variables on Exports.
-	 * @param owner owner of this TextDescriptor.
 	 * @return a new TextDescriptor that can be stored in a Variable on a Exports.
 	 */
 	public static MutableTextDescriptor getExportTextDescriptor()
 	{
-		MutableTextDescriptor td = new MutableTextDescriptor(cacheExportDescriptor.getLong(), 0);
-		String fontName = getExportTextDescriptorFont();
-		if (fontName.length() > 0) td.setFace(ActiveFont.findActiveFont(fontName).getIndex());
-		return td;
+		return cacheExportDescriptor.newMutableTextDescriptor();
 	}
 
 	/**
 	 * Method to return a TextDescriptor that is a default for Variables on Annotations.
-	 * @param owner owner of this TextDescriptor.
 	 * @return a new TextDescriptor that can be stored in a Variable on a Annotations.
 	 */
 	public static MutableTextDescriptor getAnnotationTextDescriptor()
 	{
-		MutableTextDescriptor td = new MutableTextDescriptor(cacheAnnotationDescriptor.getLong(), 0);
-		String fontName = getAnnotationTextDescriptorFont();
-		if (fontName.length() > 0) td.setFace(ActiveFont.findActiveFont(fontName).getIndex());
-		return td;
+		return cacheAnnotationDescriptor.newMutableTextDescriptor();
 	}
 
 	/**
 	 * Method to return a TextDescriptor that is a default for Variables on Cell Instance Names.
-	 * @param owner owner of this TextDescriptor.
 	 * @return a new TextDescriptor that can be stored in a Variable on a Cell Instance Names.
 	 */
 	public static MutableTextDescriptor getInstanceTextDescriptor()
 	{
-		MutableTextDescriptor td = new MutableTextDescriptor(cacheInstanceDescriptor.getLong(), 0);
-		String fontName = getInstanceTextDescriptorFont();
-		if (fontName.length() > 0) td.setFace(ActiveFont.findActiveFont(fontName).getIndex());
-		return td;
+		return cacheInstanceDescriptor.newMutableTextDescriptor();
 	}
 
 	/**
 	 * Method to return a TextDescriptor that is a default for Variables on Cell Variables.
-	 * @param owner owner of this TextDescriptor.
 	 * @return a new TextDescriptor that can be stored in a Variable on a Cell Variables.
 	 */
 	public static MutableTextDescriptor getCellTextDescriptor()
 	{
-		MutableTextDescriptor td = new MutableTextDescriptor(cacheCellDescriptor.getLong(), 0);
-		String fontName = getCellTextDescriptorFont();
-		if (fontName.length() > 0) td.setFace(ActiveFont.findActiveFont(fontName).getIndex());
-		return td;
+		return cacheCellDescriptor.newMutableTextDescriptor();
 	}
 
 // 	/**

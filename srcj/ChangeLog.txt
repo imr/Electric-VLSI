@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02b: *********************************
 
+BUG: (01/12/05, DN) JELIB contains only used exports of external cells.
+FIX: Output all exports of external cells.
+
+IMP: (01/12/05, DN) TextDescriptor saves in preferences colors of
+     default Node/Arc/Export/Annotation/Instance/Cell descriptors.
+
 ************************* Version 8.02a: *********************************
 
 IMP: (01/11/05, SMR) "Arc Properties" dialog now has "More/Less" button and, in

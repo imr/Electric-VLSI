@@ -26,6 +26,9 @@ package com.sun.electric.tool.io.output;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -34,6 +37,8 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Listener;
@@ -59,6 +64,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.JOptionPane;
@@ -70,9 +76,10 @@ import javax.swing.JOptionPane;
  */
 public class Output
 {
-	/** file path */                            protected String filePath;
-	/** for writing text files */               protected PrintWriter printWriter;
-	/** for writing binary files */             protected DataOutputStream dataOutputStream;
+	/** file path */									protected String filePath;
+	/** for writing text files */						protected PrintWriter printWriter;
+	/** for writing binary files */						protected DataOutputStream dataOutputStream;
+	/** Map of referenced objects for library files */	HashMap objInfo;
 
 	public Output()
 	{
@@ -345,6 +352,182 @@ public class Output
 //		}
 //		return false;        
     }
+
+	/**
+	 * Gathers into objInfo map all objects references from library objects.
+	 * @param lib the Library to examine.
+	 */
+	void gatherReferencedObjects(Library lib)
+	{
+		objInfo = new HashMap();
+		for (Iterator cIt = lib.getCells(); cIt.hasNext(); )
+		{
+			Cell cell = (Cell)cIt.next();
+			gatherCell(cell);
+
+			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				if (ni.getName() == null)
+					System.out.println("ERROR: Cell " + cell.describe() + " has node " + ni.describe() + " with no name");
+				NodeProto np = ni.getProto();
+				if (np instanceof Cell)
+				{
+					gatherCell((Cell)np);
+				} else
+				{
+					gatherObj(np);
+					gatherObj(((PrimitiveNode)np).getTechnology());
+				}
+				for (Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
+				{
+					PortInst pi = (PortInst)pIt.next();
+					gatherVariables(pi);
+				}
+				gatherVariables(ni);
+			}
+
+			for(Iterator it = cell.getArcs(); it.hasNext(); )
+			{
+				ArcInst ai = (ArcInst)it.next();
+				ArcProto ap = ai.getProto();
+				gatherObj(ap);
+				gatherObj(ap.getTechnology());
+				//gatherObj(ai.getHead().getPortInst().getPortProto());
+				//gatherObj(ai.getTail().getPortInst().getPortProto());
+				gatherVariables(ai);
+			}
+
+			for(Iterator it = cell.getPorts(); it.hasNext(); )
+			{
+				Export e = (Export)it.next();
+				//gatherObj(e.getOriginalPort().getPortProto());
+				gatherVariables(e);
+			}
+
+			gatherVariables(cell);
+		}
+		gatherVariables(lib);
+
+		for (Iterator it = Tool.getTools(); it.hasNext(); )
+			gatherMeaningPrefs(it.next());
+
+		for (Iterator it = Technology.getTechnologies(); it.hasNext(); )
+			gatherMeaningPrefs(it.next());
+	}
+
+	/**
+	 * Gather variables of ElectricObject into objInfo map.
+	 * @param eObj ElectricObject with variables.
+	 */
+	private void gatherVariables(ElectricObject eObj)
+	{
+		for (Iterator it = eObj.getVariables(); it.hasNext(); )
+		{
+			Variable var = (Variable)it.next();
+			Variable.Key key = var.getKey();
+			if (eObj instanceof PortInst)
+				key = convertPortInstVariable(((PortInst)eObj).getPortProto().getName(), key);
+			gatherObj(key);
+			gatherFont(var.getTextDescriptor());
+			Object value = var.getObject();
+			if (value == null) continue;
+			int length = value instanceof Object[] ? ((Object[])value).length : 1;
+			for (int i = 0; i < length; i++)
+			{
+				Object v = value instanceof Object[] ? ((Object[])value)[i] : value;
+				if (v == null) continue;
+				if (v instanceof Technology || v instanceof Tool)
+				{
+					gatherObj(v);
+				} else if (v instanceof PrimitiveNode)
+				{
+					gatherObj(v);
+					gatherObj(((PrimitiveNode)v).getTechnology());
+				} else if (v instanceof PrimitivePort)
+				{
+					//gatherObj(v);
+					PrimitiveNode pn = (PrimitiveNode)((PrimitivePort)v).getParent();
+					gatherObj(pn);
+					gatherObj(pn.getTechnology());
+				} else if (v instanceof ArcProto)
+				{
+					gatherObj(v);
+					gatherObj(((ArcProto)v).getTechnology());
+				} else if (v instanceof ElectricObject)
+				{
+					gatherObj(v);
+					Cell cell = ((ElectricObject)v).whichCell();
+					if (cell != null) gatherCell(cell);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Gather meaning preferences attached to object into objInfo map.
+	 * @param obj Object with attached meaning preferences.
+	 */
+	private void gatherMeaningPrefs(Object obj)
+	{
+		for(Iterator it = Pref.getMeaningVariables(obj).iterator(); it.hasNext(); )
+		{
+			gatherObj(obj);
+			Pref pref = (Pref)it.next();
+			Variable.Key key = pref.getMeaning().getKey();
+			gatherObj(key);
+		}
+	}
+
+	/**
+	 * Gather Cell, its Library and its font into objInfo map.
+	 * @param cell Cell to examine.
+	 */
+	private void gatherCell(Cell cell)
+	{
+		gatherObj(cell);
+		gatherObj(cell.getLibrary());
+		gatherObj(cell.getView());
+	}
+
+	/**
+	 * Gather ActiveFont object of the TextDescriptor into objInfo map.
+	 * @param td TextDescriptor to examine.
+	 */
+	private void gatherFont(TextDescriptor td)
+	{
+		int face = td.getFace();
+		if (face != 0) gatherObj(TextDescriptor.ActiveFont.findActiveFont(face));
+	}
+
+	/**
+	 * Gather object into objInfo map.
+	 * @param obj Object to put.
+	 */
+	private void gatherObj(Object obj)
+	{
+		objInfo.put(obj, null);
+	}
+
+	/**
+	 * Convert variable key on PortInst to modified variable key ATTRP_portName_key.
+	 * PortInst variables are stored on disk as NodeInst variables with such a name.
+	 * @param portName name of port.
+	 * @param key variable key.
+	 */
+	Variable.Key convertPortInstVariable(String portName, Variable.Key key)
+	{
+		StringBuffer sb = new StringBuffer("ATTRP_");
+		for (int i = 0; i < portName.length(); i++)
+		{
+			char ch = portName.charAt(i);
+			if (ch == '\\' || ch == '_') sb.append('\\');
+			sb.append(ch);
+		}
+		sb.append('_');
+		sb.append(key.toString());
+		return ElectricObject.newKey(sb.toString());
+	}
 
 	/**
 	 * Method to gather all font settings in a Library and attach them to the Library.

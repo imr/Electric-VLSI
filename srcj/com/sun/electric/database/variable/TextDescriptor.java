@@ -670,12 +670,66 @@ public class TextDescriptor implements Serializable
 		public String toString() { return fontName; }
 	}
 
+	/**
+	 * DescriptorPref is a factory for creating text descriptors for a definite purpose.
+	 */
+	static class DescriptorPref
+	{
+		final Pref cacheDescriptor;
+		final Pref cacheColor;
+		final Pref cacheFont;
 
-	/** the words of the text descriptor */		/*private*/ int descriptor0, descriptor1;
-	/** the color of the text descriptor */		/*private*/ int colorIndex;
-	/** the owner of the text descriptor */		protected final ElectricObject owner;
+		/**
+		 * Constructs DescriptorPref for a definite purpose.
+		 * @param purpose purpose of new text descriptor.
+		 * @param initialSize relative size for new text descriptor.
+		 */
+		DescriptorPref(String purpose, int initialSize)
+		{
+			cacheDescriptor = Pref.makeLongPref("TextDescriptorFor" + purpose, prefs, (initialSize << Size.TXTQGRIDSH) << VTSIZESH);
+			cacheColor = Pref.makeIntPref("TextDescriptorColorFor" + purpose, prefs, 0);
+			cacheFont = Pref.makeStringPref("TextDescriptorFontFor" + purpose, prefs, "");
+		}
 
-	/** preferences for all descriptors */	/*private*/ static final Preferences prefs = Preferences.userNodeForPackage(TextDescriptor.class);
+		/**
+		 * Creates new TextDescriptor for this purpose attached to specified ElectricObject.
+		 * @param owner ElectricObject for which new text descriptor will be attached.
+		 * @return new TextDescripor.
+		 */
+		TextDescriptor newTextDescriptor(ElectricObject owner)
+		{
+			return new TextDescriptor(owner, cacheDescriptor.getLong(), cacheColor.getInt(), cacheFont.getString());
+		}
+
+		/**
+		 * Creates new MutableTextDescriptor for this purpose.
+		 * @return new MutableTextDescripor.
+		 */
+		MutableTextDescriptor newMutableTextDescriptor()
+		{
+			return new MutableTextDescriptor(cacheDescriptor.getLong(), cacheColor.getInt(), cacheFont.getString());
+		}
+
+		/**
+		 * Changed default TextDescriptor for this purpose.
+		 * @param td default TextDescriptor
+		 */
+		void setTextDescriptor(TextDescriptor td)
+		{
+			MutableTextDescriptor mtd = new MutableTextDescriptor(td);
+			mtd.setFace(0);
+			cacheDescriptor.setLong(mtd.lowLevelGet());
+			cacheColor.setInt(mtd.getColorIndex());
+			ActiveFont af = ActiveFont.findActiveFont(td.getFace());
+			cacheFont.setString(af != null ? af.getName() : "");
+		}
+	}
+
+	/** the words of the text descriptor */		/*package*/ int descriptor0, descriptor1;
+	/** the color of the text descriptor */		/*package*/ int colorIndex;
+	/** the owner of the text descriptor */		/*package*/ final ElectricObject owner;
+
+	/** preferences for all descriptors */	private static final Preferences prefs = Preferences.userNodeForPackage(TextDescriptor.class);
 
 	/**
 	 * This constructor is called only from MutableTextDescriptor constructor.
@@ -689,7 +743,7 @@ public class TextDescriptor implements Serializable
 	 * @param owner owner of this TextDescriptor.
 	 * @param descriptor another descriptor.
 	 */
-	/*public*/ TextDescriptor(ElectricObject owner, TextDescriptor descriptor)
+	/*package*/ TextDescriptor(ElectricObject owner, TextDescriptor descriptor)
 	{
 		if (owner == null) ActivityLogger.logException(new AssertionError("owner == null"));
 		this.owner = owner;
@@ -702,6 +756,8 @@ public class TextDescriptor implements Serializable
 	 * The constructor simply creates a TextDescriptor with specified values.
 	 * @param owner owner of this TextDescriptor.
 	 * @param descriptor the bits of the text descriptor.
+	 * @param colorIndex color index of the text descriptor.
+	 * @param fontName font name of the text descriptor or empty string.
 	 */
 	private TextDescriptor(ElectricObject owner, long descriptor, int colorIndex, String fontName)
 	{
@@ -717,7 +773,8 @@ public class TextDescriptor implements Serializable
 	/**
 	 * Default TextDescriptor for NodeInsts is 1 unit tall.
 	 */
-	/*private*/ static final Pref cacheNodeDescriptor = Pref.makeLongPref("TextDescriptorForNode", prefs, (4 << Size.TXTQGRIDSH) << VTSIZESH);
+	/*package*/ static final DescriptorPref cacheNodeDescriptor = new DescriptorPref("Node", 4);
+
 	/**
 	 * Method to return a TextDescriptor that is a default for Variables on NodeInsts.
 	 * @param owner owner of this TextDescriptor.
@@ -725,30 +782,18 @@ public class TextDescriptor implements Serializable
 	 */
 	public static TextDescriptor getNodeTextDescriptor(ElectricObject owner)
 	{
-		return new TextDescriptor(owner, cacheNodeDescriptor.getLong(), 0, getNodeTextDescriptorFont());
+		return cacheNodeDescriptor.newTextDescriptor(owner);
 	}
 	/**
 	 * Method to set a TextDescriptor that is a default for Variables on NodeInsts.
 	 * @param td the default TextDescriptor for Variables on NodeInsts.
 	 */
-	public static void setNodeTextDescriptor(TextDescriptor td) { cacheNodeDescriptor.setLong(td.lowLevelGet()); }
-
-	private static Pref cacheNodeFont = Pref.makeStringPref("TextDescriptorFontForNode", prefs, "");
-	/**
-	 * Method to return the name of the default font for Variables on NodeInsts.
-	 * @return the name of the default font for Variables on NodeInsts.
-	 */
-	public static String getNodeTextDescriptorFont() { return cacheNodeFont.getString(); }
-	/**
-	 * Method to set the name of the default font for Variables on NodeInsts.
-	 * @param font the name of the default font for Variables on NodeInsts.
-	 */
-	public static void setNodeTextDescriptorFont(String font) { cacheNodeFont.setString(font); }
+	public static void setNodeTextDescriptor(TextDescriptor td) { cacheNodeDescriptor.setTextDescriptor(td); }
 
 	/**
 	 * Default TextDescriptor for ArcInsts is 1 unit tall.
 	 */
-	/*private*/ static Pref cacheArcDescriptor = Pref.makeLongPref("TextDescriptorForArc", prefs, (4 << Size.TXTQGRIDSH) << VTSIZESH);
+	/*package*/ static final DescriptorPref cacheArcDescriptor = new DescriptorPref("Arc", 4);
 	/**
 	 * Method to return a TextDescriptor that is a default for Variables on ArcInsts.
 	 * @param owner owner of this TextDescriptor.
@@ -756,30 +801,18 @@ public class TextDescriptor implements Serializable
 	 */
 	public static TextDescriptor getArcTextDescriptor(ElectricObject owner)
 	{
-		return new TextDescriptor(owner, cacheArcDescriptor.getLong(), 0, getArcTextDescriptorFont());
+		return cacheArcDescriptor.newTextDescriptor(owner);
 	}
 	/**
 	 * Method to set a TextDescriptor that is a default for Variables on ArcInsts.
 	 * @param td the default TextDescriptor for Variables on ArcInsts.
 	 */
-	public static void setArcTextDescriptor(TextDescriptor td) { cacheArcDescriptor.setLong(td.lowLevelGet()); }
-
-	private static Pref cacheArcFont = Pref.makeStringPref("TextDescriptorFontForArc", prefs, "");
-	/**
-	 * Method to return the name of the default font for Variables on ArcInsts.
-	 * @return the name of the default font for Variables on ArcInsts.
-	 */
-	public static String getArcTextDescriptorFont() { return cacheArcFont.getString(); }
-	/**
-	 * Method to set the name of the default font for Variables on ArcInsts.
-	 * @param font the name of the default font for Variables on ArcInsts.
-	 */
-	public static void setArcTextDescriptorFont(String font) { cacheArcFont.setString(font); }
+	public static void setArcTextDescriptor(TextDescriptor td) { cacheArcDescriptor.setTextDescriptor(td); }
 
 	/**
 	 * Default TextDescriptor for Exports and Ports is 2 units tall.
 	 */
-	/*private*/ static Pref cacheExportDescriptor = Pref.makeLongPref("TextDescriptorForExport", prefs, (8 << Size.TXTQGRIDSH) << VTSIZESH);
+	/*package*/ static final DescriptorPref cacheExportDescriptor = new DescriptorPref("Export", 8);
 	/**
 	 * Method to return a TextDescriptor that is a default for Variables on Exports.
 	 * @param owner owner of this TextDescriptor.
@@ -787,30 +820,18 @@ public class TextDescriptor implements Serializable
 	 */
 	public static TextDescriptor getExportTextDescriptor(ElectricObject owner)
 	{
-		return new TextDescriptor(owner, cacheExportDescriptor.getLong(), 0, getExportTextDescriptorFont());
+		return cacheExportDescriptor.newTextDescriptor(owner);
 	}
 	/**
 	 * Method to set a TextDescriptor that is a default for Variables on Exports.
 	 * @param td the default TextDescriptor for Variables on Exports.
 	 */
-	public static void setExportTextDescriptor(TextDescriptor td) { cacheExportDescriptor.setLong(td.lowLevelGet()); }
-
-	private static Pref cacheExportFont = Pref.makeStringPref("TextDescriptorFontForExport", prefs, "");
-	/**
-	 * Method to return the name of the default font for Variables on Exports.
-	 * @return the name of the default font for Variables on Exports.
-	 */
-	public static String getExportTextDescriptorFont() { return cacheExportFont.getString(); }
-	/**
-	 * Method to set the name of the default font for Variables on Exports.
-	 * @param font the name of the default font for Variables on Exports.
-	 */
-	public static void setExportTextDescriptorFont(String font) { cacheExportFont.setString(font); }
+	public static void setExportTextDescriptor(TextDescriptor td) { cacheExportDescriptor.setTextDescriptor(td); }
 
 	/**
 	 * Default TextDescriptor for Annotations is 1 unit tall.
 	 */
-	/*private*/ static Pref cacheAnnotationDescriptor = Pref.makeLongPref("TextDescriptorForAnnotation", prefs, (4 << Size.TXTQGRIDSH) << VTSIZESH);
+	/*package*/ static final DescriptorPref cacheAnnotationDescriptor = new DescriptorPref("Annotation", 4);
 	/**
 	 * Method to return a TextDescriptor that is a default for Variables on Annotations.
 	 * @param owner owner of this TextDescriptor.
@@ -818,30 +839,18 @@ public class TextDescriptor implements Serializable
 	 */
 	public static TextDescriptor getAnnotationTextDescriptor(ElectricObject owner)
 	{
-		return new TextDescriptor(owner, cacheAnnotationDescriptor.getLong(), 0, getAnnotationTextDescriptorFont());
+		return cacheAnnotationDescriptor.newTextDescriptor(owner);
 	}
 	/**
 	 * Method to set a TextDescriptor that is a default for Variables on Annotations.
 	 * @param td the default TextDescriptor for Variables on Annotations.
 	 */
-	public static void setAnnotationTextDescriptor(TextDescriptor td) { cacheAnnotationDescriptor.setLong(td.lowLevelGet()); }
-
-	private static Pref cacheAnnotationFont = Pref.makeStringPref("TextDescriptorFontForAnnotation", prefs, "");
-	/**
-	 * Method to return the name of the default font for Variables on Annotations.
-	 * @return the name of the default font for Variables on Annotations.
-	 */
-	public static String getAnnotationTextDescriptorFont() { return cacheAnnotationFont.getString(); }
-	/**
-	 * Method to set the name of the default font for Variables on Annotations.
-	 * @param font the name of the default font for Variables on Annotations.
-	 */
-	public static void setAnnotationTextDescriptorFont(String font) { cacheAnnotationFont.setString(font); }
+	public static void setAnnotationTextDescriptor(TextDescriptor td) { cacheAnnotationDescriptor.setTextDescriptor(td); }
 
 	/**
 	 * Default TextDescriptor for Cell Instance Names is 4 units tall.
 	 */
-	/*private*/ static Pref cacheInstanceDescriptor = Pref.makeLongPref("TextDescriptorForInstance", prefs, (16 << Size.TXTQGRIDSH) << VTSIZESH);
+	/*package*/ static final DescriptorPref cacheInstanceDescriptor = new DescriptorPref("Instance", 16);
 	/**
 	 * Method to return a TextDescriptor that is a default for Variables on Cell Instance Names.
 	 * @param owner owner of this TextDescriptor.
@@ -849,30 +858,18 @@ public class TextDescriptor implements Serializable
 	 */
 	public static TextDescriptor getInstanceTextDescriptor(ElectricObject owner)
 	{
-		return new TextDescriptor(owner, cacheInstanceDescriptor.getLong(), 0, getInstanceTextDescriptorFont());
+		return cacheInstanceDescriptor.newTextDescriptor(owner);
 	}
 	/**
 	 * Method to set a TextDescriptor that is a default for Variables on Cell Instance Names.
 	 * @param td the default TextDescriptor for Variables on Cell Instance Names.
 	 */
-	public static void setInstanceTextDescriptor(TextDescriptor td) { cacheInstanceDescriptor.setLong(td.lowLevelGet()); }
-
-	private static Pref cacheInstanceFont = Pref.makeStringPref("TextDescriptorFontForInstance", prefs, "");
-	/**
-	 * Method to return the name of the default font for Variables on Cell Instance Names.
-	 * @return the name of the default font for Variables on Cell Instance Names.
-	 */
-	public static String getInstanceTextDescriptorFont() { return cacheInstanceFont.getString(); }
-	/**
-	 * Method to set the name of the default font for Variables on Cell Instance Names.
-	 * @param font the name of the default font for Variables on Cell Instance Names.
-	 */
-	public static void setInstanceTextDescriptorFont(String font) { cacheInstanceFont.setString(font); }
+	public static void setInstanceTextDescriptor(TextDescriptor td) { cacheInstanceDescriptor.setTextDescriptor(td); }
 
 	/**
 	 * Default TextDescriptor for Cell Variables is 1 unit tall.
 	 */
-	/*private*/ static Pref cacheCellDescriptor = Pref.makeLongPref("TextDescriptorForCell", prefs, (4 << Size.TXTQGRIDSH) << VTSIZESH);
+	/*package*/ static final DescriptorPref cacheCellDescriptor = new DescriptorPref("Cell", 4);
 	/**
 	 * Method to return a TextDescriptor that is a default for Variables on Cell Variables.
 	 * @param owner owner of this TextDescriptor.
@@ -880,25 +877,13 @@ public class TextDescriptor implements Serializable
 	 */
 	public static TextDescriptor getCellTextDescriptor(ElectricObject owner)
 	{
-		return new TextDescriptor(owner, cacheCellDescriptor.getLong(), 0, getCellTextDescriptorFont());
+		return cacheCellDescriptor.newTextDescriptor(owner);
 	}
 	/**
 	 * Method to set a TextDescriptor that is a default for Variables on Cell Variables.
 	 * @param td the default TextDescriptor for Variables on Cell Variables.
 	 */
-	public static void setCellTextDescriptor(TextDescriptor td) { cacheCellDescriptor.setLong(td.lowLevelGet()); }
-
-	private static Pref cacheCellFont = Pref.makeStringPref("TextDescriptorFontForCell", prefs, "");
-	/**
-	 * Method to return the name of the default font for Variables on Cell Variables.
-	 * @return the name of the default font for Variables on Cell Variables.
-	 */
-	public static String getCellTextDescriptorFont() { return cacheCellFont.getString(); }
-	/**
-	 * Method to set the name of the default font for Variables on Cell Variables.
-	 * @param font the name of the default font for Variables on Cell Variables.
-	 */
-	public static void setCellTextDescriptorFont(String font) { cacheCellFont.setString(font); }
+	public static void setCellTextDescriptor(TextDescriptor td) { cacheCellDescriptor.setTextDescriptor(td); }
 
     /**
      * Returns a hash code for this <code>TextDescriptor</code>.

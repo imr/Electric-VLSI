@@ -61,22 +61,9 @@ public class TextTab extends PreferencePanel
 	private MutableTextDescriptor initialTextInstanceDescriptor, currentTextInstanceDescriptor;
 	private MutableTextDescriptor initialTextCellDescriptor, currentTextCellDescriptor;
 	private MutableTextDescriptor currentTextDescriptor;
-	private String initialTextNodeFont;
-	private String initialTextArcFont;
-	private String initialTextExportFont;
-	private String initialTextAnnotationFont;
-	private String initialTextInstanceFont;
-	private String initialTextCellFont;
 	private int initialTextSmartVertical;
 	private int initialTextSmartHorizontal;
 	private double initialGlobalTextScale;
-	private StringBuffer currentTextNodeFont;
-	private StringBuffer currentTextArcFont;
-	private StringBuffer currentTextExportFont;
-	private StringBuffer currentTextAnnotationFont;
-	private StringBuffer currentTextInstanceFont;
-	private StringBuffer currentTextCellFont;
-	private StringBuffer currentTextFont;
 	private boolean textValuesChanging = false;
 
 	/**
@@ -98,12 +85,6 @@ public class TextTab extends PreferencePanel
 		initialTextAnnotationDescriptor = MutableTextDescriptor.getAnnotationTextDescriptor();
 		initialTextInstanceDescriptor = MutableTextDescriptor.getInstanceTextDescriptor();
 		initialTextCellDescriptor = MutableTextDescriptor.getCellTextDescriptor();
-		initialTextNodeFont = TextDescriptor.getNodeTextDescriptorFont();
-		initialTextArcFont = TextDescriptor.getArcTextDescriptorFont();
-		initialTextExportFont = TextDescriptor.getExportTextDescriptorFont();
-		initialTextAnnotationFont = TextDescriptor.getAnnotationTextDescriptorFont();
-		initialTextInstanceFont = TextDescriptor.getInstanceTextDescriptorFont();
-		initialTextCellFont = TextDescriptor.getCellTextDescriptorFont();
 
 		// get current descriptors (gets changed by dialog)
 		currentTextNodeDescriptor = MutableTextDescriptor.getNodeTextDescriptor();
@@ -112,12 +93,6 @@ public class TextTab extends PreferencePanel
 		currentTextAnnotationDescriptor = MutableTextDescriptor.getAnnotationTextDescriptor();
 		currentTextInstanceDescriptor = MutableTextDescriptor.getInstanceTextDescriptor();
 		currentTextCellDescriptor = MutableTextDescriptor.getCellTextDescriptor();
-		currentTextNodeFont = new StringBuffer(TextDescriptor.getNodeTextDescriptorFont());
-		currentTextArcFont = new StringBuffer(TextDescriptor.getArcTextDescriptorFont());
-		currentTextExportFont = new StringBuffer(TextDescriptor.getExportTextDescriptorFont());
-		currentTextAnnotationFont = new StringBuffer(TextDescriptor.getAnnotationTextDescriptorFont());
-		currentTextInstanceFont = new StringBuffer(TextDescriptor.getInstanceTextDescriptorFont());
-		currentTextCellFont = new StringBuffer(TextDescriptor.getCellTextDescriptorFont());
 
 		initialTextSmartVertical = User.getSmartVerticalPlacement();
 		switch (initialTextSmartVertical)
@@ -247,11 +222,13 @@ public class TextTab extends PreferencePanel
 
         currentTextDescriptor.setInterior(textNewVisibleInsideCell.isSelected());
 
-		int index = textFace.getSelectedIndex();
-		int len = currentTextFont.length();
-		currentTextFont.delete(0, len);
-		if (index != 0)
-			currentTextFont.append((String)textFace.getSelectedItem());
+		int face = 0;
+		if (textFace.getSelectedIndex() != 0)
+		{
+			TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont((String)textFace.getSelectedItem());
+			face = af.getIndex();
+		}
+		currentTextDescriptor.setFace(face);
 	}
 
 	private void textButtonChanged()
@@ -260,27 +237,21 @@ public class TextTab extends PreferencePanel
 		if (textNodes.isSelected())
 		{
 			currentTextDescriptor = currentTextNodeDescriptor;
-			currentTextFont = currentTextNodeFont;
 		} else if (textArcs.isSelected())
 		{
 			currentTextDescriptor = currentTextArcDescriptor;
-			currentTextFont = currentTextArcFont;
 		} else if (textPorts.isSelected())
 		{
 			currentTextDescriptor = currentTextExportDescriptor;
-			currentTextFont = currentTextExportFont;
 		} else if (textAnnotation.isSelected())
 		{
 			currentTextDescriptor = currentTextAnnotationDescriptor;
-			currentTextFont = currentTextAnnotationFont;
 		} else if (textInstances.isSelected())
 		{
 			currentTextDescriptor = currentTextInstanceDescriptor;
-			currentTextFont = currentTextInstanceFont;
 		} else if (textCellText.isSelected())
 		{
 			currentTextDescriptor = currentTextCellDescriptor;
-			currentTextFont = currentTextCellFont;
 		}
 		loadCurrentDescriptorInfo();
 	}
@@ -309,8 +280,15 @@ public class TextTab extends PreferencePanel
 
 		textNewVisibleInsideCell.setSelected(currentTextDescriptor.isInterior());
 
-		if (currentTextFont.length() == 0) textFace.setSelectedIndex(0); else
-			textFace.setSelectedItem(currentTextFont.toString());
+		int face = currentTextDescriptor.getFace();
+		if (face == 0)
+		{
+			textFace.setSelectedIndex(0);
+		} else
+		{
+			String fontName = TextDescriptor.ActiveFont.findActiveFont(face).getName();
+			textFace.setSelectedItem(fontName);
+		}
 	}
 
 	/**
@@ -335,19 +313,6 @@ public class TextTab extends PreferencePanel
 			TextDescriptor.setInstanceTextDescriptor(currentTextInstanceDescriptor);
 		if (!currentTextCellDescriptor.equals(initialTextCellDescriptor))
 			TextDescriptor.setCellTextDescriptor(currentTextCellDescriptor);
-
-		if (!currentTextNodeFont.toString().equals(initialTextNodeFont))
-			TextDescriptor.setNodeTextDescriptorFont(currentTextNodeFont.toString());
-		if (!currentTextArcFont.toString().equals(initialTextArcFont))
-			TextDescriptor.setArcTextDescriptorFont(currentTextArcFont.toString());
-		if (!currentTextExportFont.toString().equals(initialTextExportFont))
-			TextDescriptor.setExportTextDescriptorFont(currentTextExportFont.toString());
-		if (!currentTextAnnotationFont.toString().equals(initialTextAnnotationFont))
-			TextDescriptor.setAnnotationTextDescriptorFont(currentTextAnnotationFont.toString());
-		if (!currentTextInstanceFont.toString().equals(initialTextInstanceFont))
-			TextDescriptor.setInstanceTextDescriptorFont(currentTextInstanceFont.toString());
-		if (!currentTextCellFont.toString().equals(initialTextCellFont))
-			TextDescriptor.setCellTextDescriptorFont(currentTextCellFont.toString());
 
 		int currentSmartVertical = 0;
 		if (textSmartVerticalInside.isSelected()) currentSmartVertical = 1; else

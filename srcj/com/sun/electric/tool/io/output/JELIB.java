@@ -71,9 +71,6 @@ import java.util.TreeSet;
  */
 public class JELIB extends Output
 {
-	private HashMap abbreviationMap;
-	private HashSet externalObjs;
-
 	JELIB()
 	{
 	}
@@ -103,14 +100,11 @@ public class JELIB extends Output
 	private boolean writeTheLibrary(Library lib)
 		throws IOException
 	{
-		printWriter.println("# header information:");
-
-		// pick up all full names that might become abbreviations
-		abbreviationMap = new HashMap();
-		externalObjs = new HashSet();
-		traverseAndGatherNames(lib);
+		// gather all referenced objects
+		gatherReferencedObjects(lib);
 
 		// write header information (library, version, main cell)
+		printWriter.println("# header information:");
 		printWriter.print("H" + convertString(lib.getName()) + "|" + Version.getVersion());
 		printlnVars(lib, null);
 
@@ -119,7 +113,7 @@ public class JELIB extends Output
 		for(Iterator/*<View>*/ it = View.getViews(); it.hasNext(); )
 		{
 			View view = (View)it.next();
-			if (!externalObjs.contains(view)) continue;
+			if (!objInfo.containsKey(view)) continue;
 			if (!viewHeaderPrinted)
 			{
 				printWriter.println();
@@ -134,7 +128,7 @@ public class JELIB extends Output
 		for (Iterator/*<Library>*/ it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library eLib = (Library)it.next();
-			if (eLib == lib || !externalObjs.contains(eLib)) continue;
+			if (eLib == lib || !objInfo.containsKey(eLib)) continue;
 			if (!libraryHeaderPrinted)
 			{
 				printWriter.println();
@@ -147,7 +141,7 @@ public class JELIB extends Output
 			for(Iterator cIt = eLib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
-				if (!externalObjs.contains(cell)) continue;
+				if (!objInfo.containsKey(cell)) continue;
 				Rectangle2D bounds = cell.getBounds();
 				printWriter.println("R" + convertString(cell.getCellName().toString()) +
 					"|" + TextUtils.formatDouble(DBMath.round(bounds.getMinX()),0) +
@@ -156,10 +150,11 @@ public class JELIB extends Output
 					"|" + TextUtils.formatDouble(DBMath.round(bounds.getMaxY()),0) +
 					"|" + cell.getCreationDate().getTime() +
 					"|" + cell.getRevisionDate().getTime());
+				objInfo.put(cell, getFullCellName(cell));
 				for (Iterator eIt = cell.getPorts(); eIt.hasNext(); )
 				{
 					Export export = (Export)eIt.next();
-					if (!externalObjs.contains(export)) continue;
+					//if (!externalObjs.contains(export)) continue;
 
 					Poly poly = export.getOriginalPort().getPoly();
 					printWriter.println("F" + convertString(export.getName()) +
@@ -190,8 +185,7 @@ public class JELIB extends Output
 		for (Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
-			if (!externalObjs.contains(tech) && Pref.getMeaningVariables(tech).size() == 0)
-				continue;
+			if (!objInfo.containsKey(tech))	continue;
 			if (!technologyHeaderPrinted)
 			{
 				printWriter.println();
@@ -222,13 +216,20 @@ public class JELIB extends Output
 // 			}
 		}
 
-		// write the cells of the database
+		// gather groups and put cell names into objInfo
 		LinkedHashSet groups = new LinkedHashSet();
 		for (Iterator cIt = lib.getCells(); cIt.hasNext(); )
 		{
 			Cell cell = (Cell)cIt.next();
 			if (!groups.contains(cell.getCellGroup()))
 				groups.add(cell.getCellGroup());
+			objInfo.put(cell, convertString(cell.getCellName().toString()));
+		}
+
+		// write the cells of the database
+		for (Iterator cIt = lib.getCells(); cIt.hasNext(); )
+		{
+			Cell cell = (Cell)cIt.next();
 
 			// write the Cell name
 			printWriter.println();
@@ -254,7 +255,7 @@ public class JELIB extends Output
 				NodeProto np = ni.getProto();
 				if (np instanceof Cell)
 				{
-					printWriter.print("I" + (String)abbreviationMap.get(np));
+					printWriter.print("I" + objInfo.get(np));
 				} else {
 					PrimitiveNode prim = (PrimitiveNode)np;
 					if (cell.getTechnology() == prim.getTechnology())
@@ -262,7 +263,9 @@ public class JELIB extends Output
 					else
 						printWriter.print("N" + convertString(prim.getFullName()));
 				}
-				printWriter.print("|" + getGeomName(ni) + "|");
+				String diskNodeName = getGeomName(ni);
+				objInfo.put(ni, diskNodeName);
+				printWriter.print("|" + diskNodeName + "|");
 				if (!ni.getNameKey().isTempname())
 					printWriter.print(describeDescriptor(null, ni.getTextDescriptor(NodeInst.NODE_NAME_TD)));
 				printWriter.print("|" + TextUtils.formatDouble(ni.getAnchorCenterX(), 0));
@@ -330,7 +333,7 @@ public class JELIB extends Output
 				{
 					Connection con = ai.getConnection(e);
 					NodeInst ni = con.getPortInst().getNodeInst();
-					printWriter.print("|" + getGeomName(ni) + "|");
+					printWriter.print("|" + objInfo.get(ni) + "|");
 					PortProto pp = con.getPortInst().getPortProto();
 					if (ni.getProto().getNumPorts() > 1)
 						printWriter.print(convertString(pp.getName()));
@@ -350,7 +353,7 @@ public class JELIB extends Output
 				PortInst subPI = pp.getOriginalPort();
 				NodeInst subNI = subPI.getNodeInst();
 				PortProto subPP = subPI.getPortProto();
-				printWriter.print("|" + getGeomName(subNI) + "|");
+				printWriter.print("|" + objInfo.get(subNI) + "|");
 				if (subNI.getProto().getNumPorts() > 1)
 					printWriter.print(convertString(subPP.getName()));
 				printWriter.print("|" + pp.getCharacteristic().getShortName());
@@ -379,17 +382,13 @@ public class JELIB extends Output
 				printWriter.print(convertString(main.getCellName().toString()));
 			}
 
-			TreeMap groupCells = new TreeMap();
 			for(Iterator cIt = group.getCells(); cIt.hasNext(); )
 			{
-				Cell c = (Cell)cIt.next();
-				if (c != main) groupCells.put(c.getCellName(), c);
-			}
-			for(Iterator cIt = groupCells.values().iterator(); cIt.hasNext(); )
-			{
 				Cell cell = (Cell)cIt.next();
+				if (cell == main) continue;
+
 				printWriter.print("|");
-				printWriter.print(convertString(cell.getCellName().toString()));
+				printWriter.print((String)objInfo.get(cell));
 			}
 			printWriter.println();
 		}
@@ -408,108 +407,6 @@ public class JELIB extends Output
 			return convertString(geom.getName());
 		else
 			return "\"" + convertQuotedString(geom.getName()) + "\"" + duplicate;
-	}
-
-	/**
-	 * Method to help order the library for proper nonforward references
-	 * in the outout
-	 */
-	private void traverseAndGatherNames(Library lib)
-	{
-		for (Iterator cIt = lib.getCells(); cIt.hasNext(); )
-		{
-			Cell cell = (Cell)cIt.next();
-			gatherCell(cell, false);
-			gatherVariables(cell);
-
-			for(Iterator it = cell.getNodes(); it.hasNext(); )
-			{
-				NodeInst ni = (NodeInst)it.next();
-				gatherVariables(ni);
-				if (ni.getName() == null)
-					System.out.println("ERROR: Cell " + cell.describe() + " has node " + ni.describe() + " with no name");
-				if (ni.getProto() instanceof Cell)
-				{
-					Cell subCell = (Cell)ni.getProto();
-					if (subCell.getLibrary() != lib)
-						gatherCell(subCell, true);
-				} else
-				{
-					PrimitiveNode np = (PrimitiveNode)ni.getProto();
-					externalObjs.add(np.getTechnology());
-					externalObjs.add(np);
-				}
-			}
-
-			for(Iterator it = cell.getArcs(); it.hasNext(); )
-			{
-				ArcInst ai = (ArcInst)it.next();
-				gatherVariables(ai);
-				for (int i = 0; i < 2; i++)
-					externalObjs.add(ai.getConnection(i).getPortInst().getPortProto());
-			}
-
-			for(Iterator it = cell.getPorts(); it.hasNext(); )
-			{
-				Export e = (Export)it.next();
-				gatherVariables(e);
-				externalObjs.add(e.getOriginalPort().getPortProto());
-			}
-		}
-	}
-
-	private void gatherCell(Cell cell, boolean full)
-	{
-		if (cell == null) return;
-		if (abbreviationMap.containsKey(cell)) return;
-		externalObjs.add(cell);
-		externalObjs.add(cell.getLibrary());
-		externalObjs.add(cell.getView());
-		abbreviationMap.put(cell, convertString(getCellName(cell, full)));
-	}
-
-	private String getCellName(Cell cell, boolean full)
-	{
-		if (full)
-			return cell.getLibrary().getName() + ":" + cell.getCellName();
-		else
-			return cell.getCellName().toString();
-	}
-
-	/**
-	 * Gather external references in variables of ElectricObject.
-	 * @param eObj ElectricObject which variables are scanned.
-	 */
-	private void gatherVariables(ElectricObject eObj)
-	{
-		for (Iterator it = eObj.getVariables(); it.hasNext(); )
-		{
-			Variable var = (Variable)it.next();
-			Object value = var.getObject();
-			if (value == null) continue;
-			int length = value instanceof Object[] ? ((Object[])value).length : 1;
-			for (int i = 0; i < length; i++)
-			{
-				Object v = value instanceof Object[] ? ((Object[])value)[i] : value;
-				if (v == null) continue;
-				if (v instanceof Technology || v instanceof Tool)
-				{
-					externalObjs.add(v);
-				} else if (v instanceof PrimitiveNode)
-				{
-					externalObjs.add(v);
-					externalObjs.add(((PrimitiveNode)v).getTechnology());
-				} else if (v instanceof ArcProto)
-				{
-					externalObjs.add(v);
-					externalObjs.add(((ArcProto)v).getTechnology());
-				} else if (v instanceof ElectricObject)
-				{
-					externalObjs.add(v);
-					gatherCell(((ElectricObject)v).whichCell(), true);
-				}
-			}
-		}
 	}
 
 	/**
@@ -784,7 +681,7 @@ public class JELIB extends Output
 		if (obj instanceof NodeInst)
 		{
 			NodeInst ni = (NodeInst)obj;
-			infstr.append(convertString(getCellName(ni.getParent(), true) + ":" + ni.getName(), inArray));
+			infstr.append(convertString(getFullCellName(ni.getParent()) + ":" + ni.getName(), inArray));
 			return;
 		}
 		if (obj instanceof ArcInst)
@@ -795,13 +692,13 @@ public class JELIB extends Output
 			{
 				System.out.println("Cannot save pointer to unnamed ArcInst: " + ai.getParent().describe() + ":" + ai.describe());
 			}
-			infstr.append(convertString(getCellName(ai.getParent(), true) + ":" + arcName, inArray));
+			infstr.append(convertString(getFullCellName(ai.getParent()) + ":" + arcName, inArray));
 			return;
 		}
 		if (obj instanceof Cell)
 		{
 			Cell cell = (Cell)obj;
-			infstr.append(convertString(getCellName(cell, true), inArray));
+			infstr.append(convertString(getFullCellName(cell), inArray));
 			return;
 		}
 		if (obj instanceof PrimitiveNode)
@@ -819,9 +716,14 @@ public class JELIB extends Output
 		if (obj instanceof Export)
 		{
 			Export pp = (Export)obj;
-			infstr.append(convertString(getCellName((Cell)pp.getParent(), true) + ":" + pp.getName(), inArray));
+			infstr.append(convertString(getFullCellName((Cell)pp.getParent()) + ":" + pp.getName(), inArray));
 			return;
 		}
+	}
+
+	private String getFullCellName(Cell cell)
+	{
+		return convertString(cell.getLibrary().getName() + ":" + cell.getCellName());
 	}
 
 	/**
