@@ -1432,10 +1432,10 @@ public class MoCMOS extends Technology
 		padFrame_lay.setFactorySkillLayer("");				// Pad-Frame
 
 		// The layer distance
-		// Data base on 18nm technology with 200nm as lambda.
+		// Data base on 18nm technology with 200nm as grid unit.
 		double BULK_LAYER = 10;
-		double DIFF_LAYER = 1; // dummy distance for noe 0.2/0.2
-		double ILD_LAYER = 3.5; // 0.7/0.2
+		double DIFF_LAYER = 1; // dummy distance for now 0.2/0.2
+		double ILD_LAYER = 3.5; // 0.7/0.2     convertLength()
 		double IMD_LAYER = 5.65; // 1.13um/0.2
 		double METAL_LAYER = 2.65; // 0.53um/0.2
 		pActive_lay.setFactory3DInfo(0.85, BULK_LAYER + 2*DIFF_LAYER);				// P-Active 0.17um/0.2 =
@@ -1465,8 +1465,9 @@ public class MoCMOS extends Technology
 		double PASS_LAYER = 5; // 1um/0.2
 		double PO_LAYER = 1; // 0.2/0.2
 		double FOX_LAYER = 1.75; // 0.35/0.2
-		double TOX_LAYER = 0.25; // Very narrow thin oxide in gate
+		double TOX_LAYER = 0; // Very narrow thin oxide in gate
 
+		/* for displaying pins */
 		pseudoMetal1_lay.setFactory3DInfo(0, metal1_lay.getDistance());			// Pseudo-Metal-1
 		pseudoMetal2_lay.setFactory3DInfo(0, metal2_lay.getDistance());			// Pseudo-Metal-2
 		pseudoMetal3_lay.setFactory3DInfo(0, metal3_lay.getDistance());			// Pseudo-Metal-3
@@ -2791,6 +2792,15 @@ public class MoCMOS extends Technology
 		}		
 	}
 
+	/**
+	 * Values are just divided by scale
+	 * @param original value in microns
+	 * @return value in electric units
+	 */
+	private static double convertToGridUnits(double original)
+	{
+		return (original/0.2);
+	}
 	/**
 	 * Method to set the technology to state "newstate", which encodes the number of metal
 	 * layers, whether it is a deep process, and other rules.
