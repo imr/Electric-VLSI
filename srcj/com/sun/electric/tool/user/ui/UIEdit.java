@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.topology.NodeInst;
@@ -67,7 +68,7 @@ public class UIEdit extends JPanel
 	/** the offscreen image of the window */				private Image img = null;
 	/** true if the window needs to be rerendered */		private boolean needsUpdate = false;
 	/** true to track the time for redraw */				private boolean trackTime = false;
-	/** the highlighted objects in this window */			private List highlightList;
+	/** the highlighted objects in this window */			private static List highlightList = new ArrayList();
 	/** starting screen point for drags in this window */	private Point startDrag = new Point();
 	/** ending screen point for drags in this window */		private Point endDrag = new Point();
 	/** true if doing drags in this window */				private boolean doingDrag = false;
@@ -89,7 +90,6 @@ public class UIEdit extends JPanel
 	{
 		//super(cell.describe(), true, true, true, true);
 		this.cell = cell;
-		this.highlightList = new ArrayList();
 
 		sz = new Dimension(500, 500);
 		setSize(sz.width, sz.height);
@@ -136,6 +136,7 @@ public class UIEdit extends JPanel
 		for(Iterator it = highlightList.iterator(); it.hasNext(); )
 		{
 			Geometric geom = (Geometric)it.next();
+			if (geom.getParent() != cell) continue;
 			showHighlight(g, geom);
 		}
 
@@ -155,7 +156,9 @@ public class UIEdit extends JPanel
 	public void setCell(Cell cell)
 	{
 		this.cell = cell;
-		clearThisHighlighting();
+		Library curLib = Library.getCurrent();
+		curLib.setCurCell(cell);
+		clearHighlighting();
 		fillScreen();
 		redraw();
 	}
@@ -349,6 +352,11 @@ public class UIEdit extends JPanel
 		{
 			// get the polygon and transform it
 			Poly poly = polys[i];
+			if (poly == null)
+			{
+				System.out.println("Warning: poly " + i + " of list of " + polys.length + " is null");
+				continue;
+			}
 			poly.transform(trans);
 
 			// set the color
@@ -437,15 +445,13 @@ public class UIEdit extends JPanel
 	 */
 	void drawCross(Graphics2D g2, Poly poly)
 	{
-		g2.setStroke(solidLine);
 		float x = (float)poly.getCenterX();
 		float y = (float)poly.getCenterY();
+		float size = 5 / (float)scale;
+		if (poly.getStyle() == Poly.Type.CROSS) size = 3 / (float)scale;
+		g2.setStroke(solidLine);
 		g2.setColor(Color.black);
 		GeneralPath gp = new GeneralPath();
-		Poly.Type theStyle = poly.getStyle();
-		float size;
-		if (theStyle == Poly.Type.CROSS) size = 3 / (float)scale; else
-			size = 5 / (float)scale;
 		gp.moveTo(x+size, y);  gp.lineTo(x-size, y);
 		gp.moveTo(x, y+size);  gp.lineTo(x, y-size);
 		g2.draw(gp);
@@ -479,7 +485,9 @@ public class UIEdit extends JPanel
 		{
 			gp.moveTo((float)(points[0].getX()*theScale), (float)(points[0].getY()*theScale));
 			for(int j=1; j<points.length; j++)
+			{
 				gp.lineTo((float)(points[j].getX()*theScale), (float)(points[j].getY()*theScale));
+			}
 			if (theStyle == Poly.Type.CLOSED)
 				gp.lineTo((float)(points[0].getX()*theScale), (float)(points[0].getY()*theScale));
 		}
@@ -576,49 +584,72 @@ public class UIEdit extends JPanel
 
 	// ************************************* HIGHLIGHTING *************************************
 
-	public void clearThisHighlighting()
+	/**
+	 * Routine to clear the list of highlighted objects.
+	 */
+	public static void clearHighlighting()
 	{
 		highlightList.clear();
 	}
 
-	public static void clearHighlighting()
-	{
-		for(Iterator it = UIEditFrame.getWindows(); it.hasNext(); )
-		{
-			UIEditFrame uif = (UIEditFrame)it.next();
-			UIEdit ui = uif.getEdit();
-			ui.clearThisHighlighting();
-			ui.repaint();
-		}
-	}
-
+	/**
+	 * Routine to add a Geometric to the list of highlighted objects.
+	 * @param geom the Geometric to add to the list of highlighted objects.
+	 */
 	public static void addHighlighting(Geometric geom)
 	{
 		Cell parent = geom.getParent();
-		for(Iterator it = UIEditFrame.getWindows(); it.hasNext(); )
-		{
-			UIEditFrame uif = (UIEditFrame)it.next();
-			UIEdit ui = uif.getEdit();
-			if (ui.cell != parent) continue;
-			ui.highlightList.add(geom);
-		}
+		highlightList.add(geom);
 	}
 
-	void showHighlight(Graphics g, Geometric geom)
+	/**
+	 * Routine to return the number of highlighted objects.
+	 * @return the number of highlighted objects.
+	 */
+	public static int getNumHighlights()
+	{
+		return highlightList.size();
+	}
+
+	/**
+	 * Routine to return an Iterator over the highlighted objects.
+	 * @return an Iterator over the highlighted objects.
+	 */
+	public static Iterator getHighlights()
+	{
+		return highlightList.iterator();
+	}
+
+	private void showHighlight(Graphics g, Geometric geom)
 	{
 		g.setColor(Color.white);
 		Rectangle2D rect = geom.getBounds();
-		Point c1 = databaseToScreen(rect.getMinX(), rect.getMinY());
-		Point c2 = databaseToScreen(rect.getMinX(), rect.getMaxY());
-		Point c3 = databaseToScreen(rect.getMaxX(), rect.getMaxY());
-		Point c4 = databaseToScreen(rect.getMaxX(), rect.getMinY());
-		g.drawLine(c1.x, c1.y, c2.x, c2.y);
-		g.drawLine(c2.x, c2.y, c3.x, c3.y);
-		g.drawLine(c3.x, c3.y, c4.x, c4.y);
-		g.drawLine(c4.x, c4.y, c1.x, c1.y);
+		if (rect.getWidth() == 0 && rect.getHeight() == 0)
+		{
+			float x = (float)rect.getCenterX();
+			float y = (float)rect.getCenterY();
+			GeneralPath gp = new GeneralPath();
+			float size = 3 / (float)scale;
+			Point c1 = databaseToScreen(x+size, y);
+			Point c2 = databaseToScreen(x-size, y);
+			Point c3 = databaseToScreen(x, y+size);
+			Point c4 = databaseToScreen(x, y-size);
+			g.drawLine(c1.x, c1.y, c2.x, c2.y);
+			g.drawLine(c3.x, c3.y, c4.x, c4.y);
+		} else
+		{
+			Point c1 = databaseToScreen(rect.getMinX(), rect.getMinY());
+			Point c2 = databaseToScreen(rect.getMinX(), rect.getMaxY());
+			Point c3 = databaseToScreen(rect.getMaxX(), rect.getMaxY());
+			Point c4 = databaseToScreen(rect.getMaxX(), rect.getMinY());
+			g.drawLine(c1.x, c1.y, c2.x, c2.y);
+			g.drawLine(c2.x, c2.y, c3.x, c3.y);
+			g.drawLine(c3.x, c3.y, c4.x, c4.y);
+			g.drawLine(c4.x, c4.y, c1.x, c1.y);
+		}
 	}
 
-	void showDragBox(Graphics g)
+	private void showDragBox(Graphics g)
 	{
 		int lX = (int)Math.min(startDrag.getX(), endDrag.getX());
 		int hX = (int)Math.max(startDrag.getX(), endDrag.getX());
@@ -665,13 +696,19 @@ public class UIEdit extends JPanel
 		repaint();
 	}
 
+	private static final int EXACTSELECTDISTANCE = 5;
+
 	public void mouseReleased(MouseEvent evt)
 	{
 		if (doingDrag)
 		{
 			clearHighlighting();
-			Point2D.Double start = screenToDatabase((int)startDrag.getX(), (int)startDrag.getY());
-			Point2D.Double end = screenToDatabase((int)endDrag.getX(), (int)endDrag.getY());
+			double minSelX = Math.min(startDrag.getX(), endDrag.getX())-EXACTSELECTDISTANCE;
+			double maxSelX = Math.max(startDrag.getX(), endDrag.getX())+EXACTSELECTDISTANCE;
+			double minSelY = Math.min(startDrag.getY(), endDrag.getY())-EXACTSELECTDISTANCE;
+			double maxSelY = Math.max(startDrag.getY(), endDrag.getY())+EXACTSELECTDISTANCE;
+			Point2D.Double start = screenToDatabase((int)minSelX, (int)minSelY);
+			Point2D.Double end = screenToDatabase((int)maxSelX, (int)maxSelY);
 			Rectangle2D.Double searchArea = new Rectangle2D.Double(Math.min(start.getX(), end.getX()),
 				Math.min(start.getY(), end.getY()), Math.abs(start.getX() - end.getX()), Math.abs(start.getY() - end.getY()));
 			Geometric.Search sea = new Geometric.Search(searchArea, cell);

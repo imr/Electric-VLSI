@@ -23,12 +23,14 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.FlagSet;
+import com.sun.electric.tool.user.ui.UIEdit;
 import com.sun.electric.tool.user.ui.UIEditFrame;
 import com.sun.electric.tool.user.ui.UIDialogOpenFile;
 import com.sun.electric.tool.user.ui.UITopLevel;
@@ -97,7 +99,7 @@ public final class UserMenuCommands
 				lib.setLibName(n.getName());
 			}
 		}
-		boolean error = Output.WriteLibrary(lib, Output.ExportType.BINARY);
+		boolean error = Output.writeLibrary(lib, Output.ExportType.BINARY);
 		if (error)
 		{
 			System.out.println("Error writing the library file");
@@ -141,6 +143,24 @@ public final class UserMenuCommands
 			uif.setTimeTracking(true);
 			uif.redraw();
 		}
+	}
+
+	public static void getInfoCommand()
+	{
+		for(Iterator it = UIEdit.getHighlights(); it.hasNext(); )
+		{
+			Geometric geom = (Geometric)it.next();
+			geom.getInfo();
+		}
+	}
+
+	public static void showRTreeCommand()
+	{
+		Library curLib = Library.getCurrent();
+		Cell curCell = curLib.getCurCell();
+		System.out.println("Current cell is " + curCell.describe());
+		if (curCell == null) return;
+		curCell.getRTree().printRTree(0);
 	}
 
 	public static void showCellGroupsCommand()

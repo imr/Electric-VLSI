@@ -69,6 +69,10 @@ public final class UserInitial
 		UIMenu steveMenu = UIMenu.CreateUIMenu("Steve", 'S');
 		steveMenu.addMenuItem("Show Cell Groups", KeyStroke.getKeyStroke('T', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.showCellGroupsCommand(); } });
+		steveMenu.addMenuItem("Get Info", KeyStroke.getKeyStroke('I', InputEvent.CTRL_MASK),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.getInfoCommand(); } });
+		steveMenu.addMenuItem("Show R-Tree", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.showRTreeCommand(); } });
 		steveMenu.addMenuItem("Full Display", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.fullDisplayCommand(); } });
 

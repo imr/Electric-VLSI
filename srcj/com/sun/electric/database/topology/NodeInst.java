@@ -30,8 +30,10 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.technologies.Artwork;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -104,11 +106,68 @@ public class NodeInst extends Geometric
 	}
 
 	/**
-	 * Routine to recalculate the Geometric information for this NodeInst.
+	 * Routine to recalculate the Geometric bounds for this NodeInst.
 	 */
 	void updateGeometric()
 	{
-		updateGeometricBounds();
+		if (sX == 0 && sY == 0)
+		{
+			visBounds.setRect(cX, cY, 0, 0);
+		} else
+		{
+			// special case for arcs of circles
+			if (protoType == Artwork.tech.circleNode || protoType == Artwork.tech.thickCircleNode)
+			{
+				/* see if there this circle is only a partial one */
+				double [] angles = getArcDegrees();
+				if (angles[0] != 0.0 || angles[1] != 0.0)
+				{
+					Point2D.Double [] pointList = Artwork.fillEllipse(cX, cY, Math.abs(sX), Math.abs(sY), angles[0], angles[1]);
+					Poly poly = new Poly(pointList);
+					poly.setStyle(Poly.Type.OPENED);
+					poly.transform(rotateOut());
+					visBounds.setRect(poly.getBounds2DDouble());
+					return;
+				}
+			}
+
+			/* special case for polygonally-defined nodes: compute precise geometry */
+			if (protoType.isHoldsOutline())
+			{
+				Integer [] outline = getTrace();
+				if (outline != null)
+				{
+					int numPoints = outline.length / 2;
+					Point2D.Double [] pointList = new Point2D.Double[numPoints];
+					for(int i=0; i<numPoints; i++)
+					{
+						pointList[i] = new Point2D.Double(cX + outline[i*2].intValue(), cY + outline[i*2+1].intValue());
+					}
+					Poly poly = new Poly(pointList);
+					poly.setStyle(Poly.Type.OPENED);
+					poly.transform(rotateOut());
+					visBounds.setRect(poly.getBounds2DDouble());
+//System.out.println("For node in cell "+parent.describe()+" with "+numPoints+" points, bounds="+visBounds);
+					return;
+				}
+			}
+
+			// start with a unit polygon, centered at the origin
+			Poly poly = new Poly(0.0, 0.0, 1.0, 1.0);
+
+			// transform by the relevant amount
+			AffineTransform scale = new AffineTransform();
+			scale.setToScale(sX, sY);
+			AffineTransform rotate = rotateAbout(angle, isTransposed(), 0, 0);
+			AffineTransform translate = new AffineTransform();
+			translate.setToTranslation(cX, cY);
+			rotate.concatenate(scale);
+			translate.concatenate(rotate);
+			poly.transform(translate);
+
+			// return its bounds
+			visBounds.setRect(poly.getBounds2DDouble());
+		}
 	}
 
 	/**
@@ -213,6 +272,18 @@ public class NodeInst extends Geometric
 
 		this.angle += drot;
 		updateGeometric();
+
+		// change the coordinates of every arc end connected to this
+		for(Iterator it = getConnections(); it.hasNext(); )
+		{
+			Connection con = (Connection)it.next();
+			if (con.getPortInst().getNodeInst() == this)
+			{
+				Point2D.Double oldLocation = con.getLocation();
+				con.setLocation(new Point2D.Double(oldLocation.getX()+dx, oldLocation.getY()+dy));
+			}
+			con.getArc().updateGeometric();
+		}
 		parent.setDirty();
 	}
 
@@ -352,6 +423,40 @@ public class NodeInst extends Geometric
 				}
 			}
 		}
+	}
+
+	/**
+	 * Routine to return the starting and ending angle of an arc described by this NodeInst.
+	 * These values can be found in the "ART_degrees" variable on the NodeInst.
+	 * @return a 2-long double array with the starting offset in the first entry (a value in radians)
+	 * and the amount of curvature in the second entry (in radians).
+	 * If the NodeInst does not have circular information, both values are set to zero.
+	 */
+	public double [] getArcDegrees()
+	{
+		double [] returnValues = new double[2];
+		returnValues[0] = returnValues[1] = 0.0;
+
+		if (!(protoType instanceof PrimitiveNode)) return returnValues;
+		if (protoType != Artwork.tech.circleNode && protoType != Artwork.tech.thickCircleNode) return returnValues;
+
+		Variable var = getVal("ART_degrees");
+		if (var != null)
+		{
+			Object addr = var.getObject();
+			if (addr instanceof Integer)
+			{
+				Integer iAddr = (Integer)addr;
+				returnValues[0] = 0.0;
+				returnValues[1] = (double)iAddr.intValue() * Math.PI / 1800.0;
+			} else if (addr instanceof Float[])
+			{
+				Float [] fAddr = (Float [])addr;
+				returnValues[0] = fAddr[0].doubleValue();
+				returnValues[1] = fAddr[1].doubleValue();
+			}
+		}
+		return returnValues;
 	}
 
 	// ------------------------ public methods -------------------------------
@@ -673,7 +778,7 @@ public class NodeInst extends Geometric
 	 */
 	public AffineTransform rotateOut()
 	{
-		return rotateAbout(angle, sX, sY, cX, cY);
+		return rotateAbout(angle, isTransposed(), cX, cY);
 	}
 
 	/**
@@ -905,6 +1010,7 @@ public class NodeInst extends Geometric
 
 	/**
 	 * Routine to describe this NodeInst as a string.
+	 * @return a description of this NodeInst as a string.
 	 */
 	public String describe()
 	{

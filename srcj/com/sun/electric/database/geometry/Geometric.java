@@ -56,7 +56,7 @@ public class Geometric extends ElectricObject
 		/** index stack of search */			private int [] position;
 		/** lower-left corner of search area */	private double lX, lY;
 		/** size of search area */				private double sX, sY;
-		/** desired search bounds */			private Rectangle2D.Double bounds;
+		/** desired search bounds */			private Rectangle2D.Double searchBounds;
 
 		/**
 		 * The constructor starts a search in a specified bounds of a Cell.
@@ -74,8 +74,8 @@ public class Geometric extends ElectricObject
 			this.lY = bounds.getMinY();
 			this.sX = bounds.getWidth();
 			this.sY = bounds.getHeight();
-			this.bounds = new Rectangle2D.Double();
-			this.bounds.setRect(bounds);
+			this.searchBounds = new Rectangle2D.Double();
+			this.searchBounds.setRect(bounds);
 		}
 
 		/*
@@ -90,14 +90,11 @@ public class Geometric extends ElectricObject
 				int i = position[depth]++;
 				if (i < rtnode.getTotal())
 				{
-					Rectangle2D.Double bounds = rtnode.getBBox(i);
-					if (sX == 0 && sY == 0)
-					{
-						if (!bounds.contains(lX, lY)) continue;
-					} else
-					{
-						if (!bounds.intersects(lX, lY, sX, sY)) continue;
-					}
+					Rectangle2D.Double nodeBounds = rtnode.getBBox(i);
+					if (nodeBounds.getMaxX() < searchBounds.getMinX()) continue;
+					if (nodeBounds.getMinX() > searchBounds.getMaxX()) continue;
+					if (nodeBounds.getMaxY() < searchBounds.getMinY()) continue;
+					if (nodeBounds.getMinY() > searchBounds.getMaxY()) continue;
 					if (rtnode.getFlag()) return((Geometric)rtnode.getChild(i));
 
 					/* look down the hierarchy */
@@ -216,7 +213,7 @@ public class Geometric extends ElectricObject
 					child.setTempInt(branchCount);
 					Rectangle2D.Double childBounds = child.getBounds();
 					line += "Child X(" + childBounds.getMinX() + "-" + childBounds.getMaxX() + ") Y(" +
-						childBounds.getMinY() + "-" + childBounds.getMaxY() + ")";
+						childBounds.getMinY() + "-" + childBounds.getMaxY() + ") is " + child.describe();
 					System.out.println(line);
 				} else
 				{
@@ -543,7 +540,7 @@ public class Geometric extends ElectricObject
 	// --                                       --
 
 	/** Cell containing this Geometric object */			protected Cell parent;
-	/** bounds after transformation */						private Rectangle2D.Double visBounds;
+	/** bounds after transformation */						protected Rectangle2D.Double visBounds;
 	/** center coordinate of this geometric */				protected double cX, cY;
 	/** size of this geometric */							protected double sX, sY;
 	/** angle of this geometric */							protected double angle;
@@ -556,6 +553,7 @@ public class Geometric extends ElectricObject
 	 */
 	protected Geometric()
 	{
+		visBounds = new Rectangle2D.Double(0, 0, 0, 0);
 	}
 
 	/**
@@ -571,11 +569,18 @@ public class Geometric extends ElectricObject
 	{
 	}
 
+	/**
+	 * Routine to describe this Geometric as a string.
+	 * This routine is overridden by NodeInst and ArcInst.
+	 * @return a description of this Geometric as a string.
+	 */
+	public String describe() { return "?"; }
+
 	/*
 	 * Routine to write a description of this Geometric.
 	 * Displays the description in the Messages Window.
 	 */
-	protected void getInfo()
+	public void getInfo()
 	{
 		System.out.println(" Parent: " + parent.describe());
 		System.out.println(" Location: (" + cX + "," + cY + "), size: " + sX + "x" + sY + ", rotated " + angle * 180.0 / Math.PI);
@@ -588,16 +593,15 @@ public class Geometric extends ElectricObject
 	/**
 	 * Routine to return a transformation that rotates an object about a point.
 	 * @param angle the amount to rotate (in radians).
-	 * @param sX the X scale of the Geometric (if this or sY are negative, a transposition will be done).
-	 * @param sY the Y scale of the Geometric (if this or sY are negative, a transposition will be done).
+	 * @param transpose true if a transposition will be done after rotation.
 	 * @param cX the center X coordinate about which to rotate.
 	 * @param cY the center Y coordinate about which to rotate.
 	 * @return a transformation that rotates about that point.
 	 */
-	public AffineTransform rotateAbout(double angle, double sX, double sY, double cX, double cY)
+	public AffineTransform rotateAbout(double angle, boolean transpose, double cX, double cY)
 	{
 		AffineTransform transform = new AffineTransform();
-		if (sX < 0 || sY < 0)
+		if (transpose)
 		{
 			// must do transposition, so it is trickier
 			double cosine = Math.cos(angle);
@@ -614,28 +618,34 @@ public class Geometric extends ElectricObject
 		return transform;
 	}
 
-	/**
-	 * Routine to compute the bounds of this Geometric.
-	 */
-	public void updateGeometricBounds()
-	{
-		// start with a unit polygon, centered at the origin
-		Poly poly = new Poly(0.0, 0.0, 1.0, 1.0);
-
-		// transform by the relevant amount
-		AffineTransform scale = new AffineTransform();
-		scale.setToScale(sX, sY);
-		AffineTransform rotate = rotateAbout(angle, sX, sY, 0, 0);
-		AffineTransform translate = new AffineTransform();
-		translate.setToTranslation(cX, cY);
-		rotate.concatenate(scale);
-		translate.concatenate(rotate);
-
-		poly.transform(translate);
-
-		// return its bounds
-		visBounds = poly.getBounds2DDouble();
-	}
+//	/**
+//	 * Routine to compute the bounds of this Geometric.
+//	 */
+//	public void updateGeometricBounds()
+//	{
+//		if (sX == 0 && sY == 0)
+//		{
+//			visBounds.setRect(cX, cY, 0, 0);
+//		} else
+//		{
+//			// start with a unit polygon, centered at the origin
+//			Poly poly = new Poly(0.0, 0.0, 1.0, 1.0);
+//
+//			// transform by the relevant amount
+//			AffineTransform scale = new AffineTransform();
+//			scale.setToScale(sX, sY);
+//			AffineTransform rotate = rotateAbout(angle, sX, sY, 0, 0);
+//			AffineTransform translate = new AffineTransform();
+//			translate.setToTranslation(cX, cY);
+//			rotate.concatenate(scale);
+//			translate.concatenate(rotate);
+//
+//			poly.transform(translate);
+//
+//			// return its bounds
+//			visBounds.setRect(poly.getBounds2DDouble());
+//		}
+//	}
 
 	// ------------------------ public methods -----------------------------
 

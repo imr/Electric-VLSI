@@ -42,6 +42,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ui.UITopLevel;
 
@@ -1036,11 +1037,17 @@ public class InputBinary extends Input
 		if (cellTech != null) lambda = techScale[cellTech.getIndex()];
 
 		// finish initializing the NodeInsts in the cell
+		int cellCenterNode = -1;
 		for(int i=startNode; i<endNode; i++)
 		{
 			// convert to new style
 			NodeInst ni = nodeList[i];
 			NodeProto np = nodeTypeList[i];
+			if (np == Generic.tech.cellCenter_node)
+			{
+				cellCenterNode = i;
+				continue;
+			}
 
 			// determine the value of lambda for this node
 			if (np instanceof PrimitiveNode)
@@ -1133,6 +1140,26 @@ public class InputBinary extends Input
 			}
 			ai.lowLevelPopulate(ap, width, tailPortInst, tailX, tailY, headPortInst, headX, headY);
 			ai.lowLevelLink();
+		}
+
+		// create the cell-center last if it exists
+		if (cellCenterNode >= 0)
+		{
+			NodeInst ni = nodeList[cellCenterNode];
+			NodeProto np = nodeTypeList[cellCenterNode];
+			int lowX = nodeLowXList[cellCenterNode];
+			int lowY = nodeLowYList[cellCenterNode];
+			int highX = nodeHighXList[cellCenterNode];
+			int highY = nodeHighYList[cellCenterNode];
+			boolean transpose = nodeTransposeList[cellCenterNode];
+			int rotation = nodeRotationList[cellCenterNode];
+			Point2D.Double center = new Point2D.Double(((lowX + highX) / 2) / lambda, ((lowY + highY) / 2) / lambda);
+			double width = (highX - lowX) / lambda;
+			double height = (highY - lowY) / lambda;
+			double angle = rotation * Math.PI / 1800;
+			if (transpose) width = -width;
+			ni.lowLevelPopulate(np, center, width, height, angle, cell);
+			ni.lowLevelLink();
 		}
 	}
 

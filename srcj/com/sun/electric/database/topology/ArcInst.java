@@ -26,6 +26,7 @@ package com.sun.electric.database.topology;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveArc;
@@ -115,7 +116,10 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		this.cX = (p1.x + p2.x) / 2;
 		this.cY = (p1.y + p2.y) / 2;
 		this.angle = Math.atan2(dy, dx);
-		updateGeometricBounds();
+
+		// compute the bounds
+		Poly poly = makePoly(len, arcWidth, Poly.Type.FILLED);
+		visBounds.setRect(poly.getBounds2DDouble());
 	}
 
 	/**
@@ -707,7 +711,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		// zero-width polygons are simply lines
 		if (width == 0)
 		{
-			Poly poly = new Poly(new Point2D.Double[]{end1, end2});
+			Poly poly = new Poly(new Point2D.Double[]{new Point2D.Double(end1.getX(), end1.getY()), new Point2D.Double(end2.getX(), end2.getY())});
 			if (style == Poly.Type.FILLED) style = Poly.Type.OPENED;
 			poly.setStyle(style);
 			return poly;
@@ -734,12 +738,10 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		return poly;
 	}
 
-	private Poly makeEndPointPoly(double len, double wid, double angle, Point2D end1, double e1,
-		Point2D end2, double e2)
+	private Poly makeEndPointPoly(double len, double wid, double angle, Point2D.Double end1, double e1,
+		Point2D.Double end2, double e2)
 	{
-		double temp, xextra, yextra, xe1, ye1, xe2, ye2, w2, sa, ca;
-
-		w2 = wid / 2;
+		double w2 = wid / 2;
 		double x1 = end1.getX();   double y1 = end1.getY();
 		double x2 = end2.getX();   double y2 = end2.getY();
 
@@ -749,7 +751,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		{
 			if (y1 > y2)
 			{
-				temp = y1;   y1 = y2;   y2 = temp;
+				double temp = y1;   y1 = y2;   y2 = temp;
 				temp = e1;   e1 = e2;   e2 = temp;
 			}
 			Poly poly = new Poly(new Point2D.Double[] {
@@ -763,7 +765,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		{
 			if (x1 > x2)
 			{
-				temp = x1;   x1 = x2;   x2 = temp;
+				double temp = x1;   x1 = x2;   x2 = temp;
 				temp = e1;   e1 = e2;   e2 = temp;
 			}
 			Poly poly = new Poly(new Point2D.Double[] {
@@ -775,36 +777,36 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		}
 
 		/* nonmanhattan arcs cannot have zero length so re-compute it */
-//		if (len == 0) len = computedistance(x1,y1, x2,y2);
-//		if (len == 0)
-//		{
-//			sa = sine(angle);
-//			ca = cosine(angle);
-//			xe1 = x1 - mult(ca, e1);
-//			ye1 = y1 - mult(sa, e1);
-//			xe2 = x2 + mult(ca, e2);
-//			ye2 = y2 + mult(sa, e2);
-//			xextra = mult(ca, w2);
-//			yextra = mult(sa, w2);
-//		} else
-//		{
-//			/* work out all the math for nonmanhattan arcs */
-//			xe1 = x1 - muldiv(e1, (x2-x1), len);
-//			ye1 = y1 - muldiv(e1, (y2-y1), len);
-//			xe2 = x2 + muldiv(e2, (x2-x1), len);
-//			ye2 = y2 + muldiv(e2, (y2-y1), len);
-//
-//			/* now compute the corners */
-//			xextra = muldiv(w2, (x2-x1), len);
-//			yextra = muldiv(w2, (y2-y1), len);
-//		}
-//		Poly poly = new Poly(new Point2D.Double[] {
-//			new Point2D.Double(yextra + xe1, ye1 - xextra),
-//			new Point2D.Double(xe1 - yextra, xextra + ye1),
-//			new Point2D.Double(xe2 - yextra, xextra + ye2),
-//			new Point2D.Double(yextra + xe2, ye2 - xextra)});
-//		return poly;
-		return null;
+		if (len == 0) len = EMath.computeDistance(end1, end2);
+		double xextra, yextra, xe1, ye1, xe2, ye2;
+		if (len == 0)
+		{
+			double sa = Math.sin(angle);
+			double ca = Math.cos(angle);
+			xe1 = x1 - ca * e1;
+			ye1 = y1 - sa * e1;
+			xe2 = x2 + ca * e2;
+			ye2 = y2 + sa * e2;
+			xextra = ca * w2;
+			yextra = sa * w2;
+		} else
+		{
+			/* work out all the math for nonmanhattan arcs */
+			xe1 = x1 - e1 * (x2-x1) / len;
+			ye1 = y1 - e1 * (y2-y1) / len;
+			xe2 = x2 + e2 * (x2-x1) / len;
+			ye2 = y2 + e2 * (y2-y1) / len;
+
+			/* now compute the corners */
+			xextra = w2 * (x2-x1) / len;
+			yextra = w2 * (y2-y1) / len;
+		}
+		Poly poly = new Poly(new Point2D.Double[] {
+			new Point2D.Double(yextra + xe1, ye1 - xextra),
+			new Point2D.Double(xe1 - yextra, xextra + ye1),
+			new Point2D.Double(xe2 - yextra, xextra + ye2),
+			new Point2D.Double(yextra + xe2, ye2 - xextra)});
+		return poly;
 	}
 
 	/**

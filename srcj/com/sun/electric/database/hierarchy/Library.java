@@ -27,8 +27,10 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.text.CellName;
 
 import java.util.List;
+import java.util.Comparator;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Collections;
 import java.io.File;
 import javax.swing.tree.DefaultMutableTreeNode;
 
@@ -508,6 +510,13 @@ public class Library extends ElectricObject
 	 */
 	public Iterator getCells()
 	{
+		Collections.sort(cells, new Comparator()
+		{
+			public int compare(Object o1, Object o2)
+			{
+				return ((Cell)o1).describe().compareTo(((Cell)o2).describe());
+			}
+		});
 		return cells.iterator();
 	}
 

@@ -79,6 +79,12 @@ public class Connection extends ElectricObject
 	public Point2D.Double getLocation() { return location; }
 
 	/**
+	 * Routine to set the location on this Connection.
+	 * @param pt the location on this Connection.
+	 */
+	public void setLocation(Point2D.Double pt) { location.setLocation(pt.getX(), pt.getY()); }
+
+	/**
 	 * Routine to determine whether this Connection is on the head end of the ArcInst.
 	 * @return true if this Connection is on the head of the ArcInst.
 	 */

@@ -392,7 +392,7 @@ public class Cell extends NodeProto
 		// move reference point by (dx,dy)
 		referencePointNode.modifyInstance(-dx, -dy, 0, 0, 0);
 
-		// must adjust all nodes and arcs by (dx,dy)
+		// must adjust all nodes by (dx,dy)
 		for(Iterator it = getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
@@ -482,6 +482,7 @@ public class Cell extends NodeProto
 			for(Iterator it = nodes.iterator(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst) it.next();
+				if (ni.getProto() == Generic.tech.cellCenter_node) continue;
 				Rectangle2D bounds = ni.getBounds();
 				double lowx = bounds.getMinX();
 				double highx = bounds.getMaxX();
@@ -499,6 +500,19 @@ public class Cell extends NodeProto
 					if (lowy < cellLowY) cellLowY = lowy;
 					if (highy > cellHighY) cellHighY = highy;
 				}
+			}
+			for(Iterator it = arcs.iterator(); it.hasNext(); )
+			{
+				ArcInst ai = (ArcInst) it.next();
+				Rectangle2D bounds = ai.getBounds();
+				double lowx = bounds.getMinX();
+				double highx = bounds.getMaxX();
+				double lowy = bounds.getMinY();
+				double highy = bounds.getMaxY();
+				if (lowx < cellLowX) cellLowX = lowx;
+				if (highx > cellHighX) cellHighX = highx;
+				if (lowy < cellLowY) cellLowY = lowy;
+				if (highy > cellHighY) cellHighY = highy;
 			}
 			elecBounds.x = cellLowX;
 			elecBounds.width = cellHighX - cellLowX;

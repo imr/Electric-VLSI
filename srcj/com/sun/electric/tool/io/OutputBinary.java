@@ -68,7 +68,7 @@ public class OutputBinary extends Output
 
 	// ----------------------- public methods -------------------------------
 
-	public boolean WriteLib(Library lib)
+	public boolean writeLib(Library lib)
 	{
 		try
 		{

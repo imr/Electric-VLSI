@@ -63,12 +63,12 @@ public class Output
 
 	// ----------------------- public methods -------------------------------
 
-	public boolean WriteLib(Library lib) { return true; }
+	public boolean writeLib(Library lib) { return true; }
 
 	/**
 	 * Routine to write Library "lib" with type "type".
 	 */
-	public static boolean WriteLibrary(Library lib, ExportType type)
+	public static boolean writeLibrary(Library lib, ExportType type)
 	{
 		Output out;
 
@@ -104,7 +104,7 @@ public class Output
 			return true;
 		}
 		out.dataOutputStream = new DataOutputStream(out.fileOutputStream);
-		boolean error = out.WriteLib(lib);
+		boolean error = out.writeLib(lib);
 		try
 		{
 			out.fileOutputStream.close();
