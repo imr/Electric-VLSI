@@ -51,102 +51,6 @@ import java.util.Map;
  */
 class NetSchem extends NetCell {
 
-	static class Icon extends NetCell {
-		NetSchem schem;
-		int[] iconToSchem;
-
-		Icon(Cell iconCell) {
-			super(iconCell);
-			updateCellGroup(iconCell.getCellGroup());
-		}
-
-		void setSchem(NetSchem schem) {
-			if (this.schem == schem) return;
-			this.schem = schem;
-			updateInterface();
-		}
-
-		int getPortOffset(int portIndex, int busIndex) {
-			portIndex = iconToSchem[portIndex];
-			if (portIndex < 0) return -1;
-			if (schem == null) return -1;
-			return schem.getPortOffset(portIndex, busIndex);
-		}
-
-		NetSchem getSchem() { return schem; }
-
-		void redoNetworks() {
-			if ((flags & VALID) != 0) return;
-
-			if (schem != null && (schem.flags & VALID) == 0)
-				schem.redoNetworks();
-
-			if ((flags & LOCALVALID) != 0)
-			{
-				flags |= VALID;
-				return;
-			}
-
-			if (userNetlist == null) userNetlist = new Netlist(this);
-			userNetlist.initNetMap(0);
-			userNetlist.initNetworks();
-
-			if (updateInterface())
-				super.invalidateUsagesOf(true);
-			flags |= (LOCALVALID|VALID);
-		}
-
-		private boolean updateInterface() {
-			boolean changed = false;
-			int numPorts = cell.getNumPorts();
-			if (iconToSchem == null || iconToSchem.length != numPorts) {
-				changed = true;
-				iconToSchem = new int[numPorts];
-			}
-			Cell c = schem != null ? schem.cell : null;
-			for (int i = 0; i < numPorts; i++) {
-				Export e = (Export)cell.getPort(i);
-				int equivIndex = -1;
-				if (c != null) {
-					Export equiv = e.getEquivalentPort(c);
-					if (equiv != null) equivIndex = equiv.getPortIndex();
-				}
-				if (iconToSchem[i] != equivIndex) {
-					changed = true;
-					iconToSchem[i] = equivIndex;
-				}
-			}
-			return changed;
-		}
-
-		/**
-		 * Get an iterator over all of the Nodables of this Cell.
-		 */
-		Iterator getNodables() { return (new ArrayList()).iterator(); }
-
-		/*
-		 * Get offset in networks map for given port instance.
-		 */
-		int getNetMapOffset(Nodable no, PortProto portProto, int busIndex) { return -1; }
-
-		/*
-		 * Get offset in networks map for given Export.
-		 */
-		int getNetMapOffset(Export export, int busIndex) { return -1; }
-
-		/*
-		 * Get offset in networks map for given ArcInst.
-		 */
-		int getNetMapOffset(ArcInst ai, int busIndex) { return -1; }
-
-		/**
-		 * Method to return the bus width on an ArcInst.
-		 * @param ai the ArcInst to examine.
-		 * @return the the bus width on the ArcInst.
-		 */
-		public int getBusWidth(ArcInst ai) { return 0; }
-	}
-
 	static void updateCellGroup(Cell.CellGroup cellGroup) {
 		Cell mainSchematics = cellGroup.getMainSchematics();
 		NetSchem mainSchem = null;
@@ -154,15 +58,15 @@ class NetSchem extends NetCell {
 		for (Iterator it = cellGroup.getCells(); it.hasNext();) {
 			Cell cell = (Cell)it.next();
 			if (cell.isIcon()) {
-				NetSchem.Icon icon = (NetSchem.Icon)Network.getNetCell(cell);
+				NetSchem icon = (NetSchem)Network.getNetCell(cell);
 				if (icon == null) continue;
-				icon.setSchem(mainSchem);
+				icon.setImplementation(mainSchem != null ? mainSchem : icon);
 				for (Iterator vit = cell.getVersions(); vit.hasNext();) {
 					Cell verCell = (Cell)vit.next();
 					if (verCell == cell) continue;
-					icon = (NetSchem.Icon)Network.getNetCell(verCell);
+					icon = (NetSchem)Network.getNetCell(verCell);
 					if (icon == null) continue;
-					icon.setSchem(mainSchem);
+					icon.setImplementation(mainSchem != null ? mainSchem : icon);
 				}
 			}
 		}
@@ -311,6 +215,9 @@ class NetSchem extends NetCell {
 
 	}
 
+	/* Implementation of this NetSchem. */							NetSchem implementation;
+	/* Mapping from ports of this to ports of implementation. */	int[] portImplementation;
+
 	/** Node offsets. */											int[] nodeOffsets;
 	/** Node offsets. */											int[] drawnOffsets;
 	/** Node offsets. */											Proxy[] nodeProxies;
@@ -324,39 +231,52 @@ class NetSchem extends NetCell {
 
 	NetSchem(Cell cell) {
 		super(cell);
+		setImplementation(this);
 		updateCellGroup(cell.getCellGroup());
 	}
 
-	NetSchem(Cell.CellGroup cellGroup) {
-		super(cellGroup.getMainSchematics());
+// 	NetSchem(Cell.CellGroup cellGroup) {
+// 		super(cellGroup.getMainSchematics());
+// 	}
+
+	private void setImplementation(NetSchem implementation) {
+		if (this.implementation == implementation) return;
+		this.implementation = implementation;
+		updatePortImplementation();
 	}
 
-// 		int ind = cellsStart + c.getIndex();
-// 		int numPorts = c.getNumPorts();
-// 		int[] beg = new int[numPorts + 1];
-// 		for (int i = 0; i < beg.length; i++) beg[i] = 0;
-// 		for (Iterator pit = c.getPorts(); pit.hasNext(); )
-// 		{
-// 			Export pp = (Export)pit.next();
-// 			beg[pp.getIndex()] = pp.getProtoNameLow().busWidth();
-// 		}
-// 		int b = 0;
-// 		for (int i = 0; i < numPorts; i++)
-// 		{
-// 			int w = beg[i];
-// 			beg[i] = b;
-// 			b = b + w;
-// 		}
-// 		beg[numPorts] = b;
-//		protoPortBeg[ind] = beg;
+	private boolean updatePortImplementation() {
+		boolean changed = false;
+		int numPorts = cell.getNumPorts();
+		if (portImplementation == null || portImplementation.length != numPorts) {
+			changed = true;
+			portImplementation = new int[numPorts];
+		}
+		Cell c = implementation.cell;
+		for (int i = 0; i < numPorts; i++) {
+			Export e = (Export)cell.getPort(i);
+			int equivIndex = -1;
+			if (c != null) {
+				Export equiv = e.getEquivalentPort(c);
+				if (equiv != null) equivIndex = equiv.getPortIndex();
+			}
+			if (portImplementation[i] != equivIndex) {
+				changed = true;
+				portImplementation[i] = equivIndex;
+			}
+		}
+		return changed;
+	}
 
 	int getPortOffset(int portIndex, int busIndex) {
-		int portOffset = portOffsets[portIndex] + busIndex;
-		if (busIndex < 0 || portOffset >= portOffsets[portIndex+1]) return -1;
-		return portOffset - portOffsets[0];
+		portIndex = portImplementation[portIndex];
+		if (portIndex < 0) return -1;
+		int portOffset = implementation.portOffsets[portIndex] + busIndex;
+		if (busIndex < 0 || portOffset >= implementation.portOffsets[portIndex+1]) return -1;
+		return portOffset - implementation.portOffsets[0];
 	}
 
-	NetSchem getSchem() { return this; }
+	NetSchem getSchem() { return implementation; }
 
 	static int getPortOffset(PortProto pp, int busIndex) {
 		int portIndex = pp.getPortIndex();
@@ -474,6 +394,7 @@ class NetSchem extends NetCell {
 	void invalidateUsagesOf(boolean strong)
 	{
 		super.invalidateUsagesOf(strong);
+		if (cell.isIcon()) return;
 		for (Iterator it = cell.getCellGroup().getCells(); it.hasNext();) {
 			Cell c = (Cell)it.next();
 			if (!c.isIcon()) continue;
@@ -498,7 +419,7 @@ class NetSchem extends NetCell {
 			NetCell netCell = null;
 			if (np instanceof Cell)
 				netCell = Network.getNetCell((Cell)np);
-			if (netCell != null && (netCell instanceof NetSchem.Icon || netCell instanceof NetSchem)) {
+			if (netCell != null && netCell instanceof NetSchem) {
 				if (ni.getNameKey().hasDuplicates())
 					System.out.println(cell + ": Node name <"+ni.getNameKey()+"> has duplicate subnames");
 				nodeOffsets[i] = ~nodeProxiesOffset;
@@ -674,7 +595,7 @@ class NetSchem extends NetCell {
 				int newWidth = 1;
 				if (np instanceof Cell) {
 					NetCell netCell = Network.getNetCell((Cell)np);
-					if (netCell instanceof NetSchem.Icon || netCell instanceof NetSchem) {
+					if (netCell instanceof NetSchem) {
 						int arraySize = np.isIcon() ? ni.getNameKey().busWidth() : 1;
 						int portWidth = pi.getPortProto().getProtoNameKey().busWidth();
 						if (oldWidth == arraySize*portWidth) continue;
@@ -748,8 +669,7 @@ class NetSchem extends NetCell {
 			for (int m = 0; m < numPorts; m++) {
 				Export e = (Export) np.getPort(m);
 				int portIndex = m;
-				if (netCell instanceof NetSchem.Icon)
-					portIndex = ((NetSchem.Icon)netCell).iconToSchem[portIndex];
+				portIndex = schem.portImplementation[portIndex];
 				int portOffset = schem.portOffsets[portIndex] - schem.portOffsets[0];
 				int busWidth = e.getProtoNameKey().busWidth();
 				int drawn = drawns[ni_pi[k] + m];
@@ -950,6 +870,7 @@ class NetSchem extends NetCell {
 		localConnections();
 		internalConnections();
 		buildNetworkList();
+		if (updatePortImplementation()) changed = true;
 		if (updateInterface()) changed = true;
 		return changed;
 	}

@@ -223,8 +223,7 @@ class NetCell
 			NodeProto np = nu.getProto();
 			boolean err = false;
 			if (np instanceof Cell) {
-				NetSchem sch = Network.getNetCell((Cell)np).getSchem();
-				if (sch != null) {
+				if (Network.getNetCell((Cell)np) instanceof NetSchem) {
 					System.out.println("Network: Layout cell " + cell.describe() + " has " + nu.getNumInsts() +
 						" " + np.describe() + " nodes");
 					err = true;
@@ -433,7 +432,7 @@ class NetCell
 					np.getFunction() == NodeProto.Function.ART ||
 					np == Artwork.tech.pinNode ||
 					np == Generic.tech.invisiblePinNode) {
-					if (drawns[piOffset] >= 0)
+					if (drawns[piOffset] >= 0 && !cell.isIcon())
 						System.out.println("Network: " + cell + " has connections on " + pi);
 					continue;
 				}
@@ -504,7 +503,7 @@ class NetCell
 			NodeProto np = ni.getProto();
 			if (!(np instanceof Cell)) continue;
 			NetCell netCell = Network.getNetCell((Cell)np);
-			if (netCell instanceof NetSchem || netCell instanceof NetSchem.Icon) continue;
+			if (netCell instanceof NetSchem) continue;
 			int[] eq = netCell.equivPorts;
 			int nodeOffset = ni_pi[ni.getNodeIndex()];
 			for (int i = 0; i < eq.length; i++)
@@ -659,6 +658,11 @@ class NetCell
 			if ((netCell.flags & VALID) == 0)
 				netCell.redoNetworks();
 		}
+
+		// redo implementation
+		NetSchem schem = getSchem();
+		if (schem != null && schem != this)
+			schem.redoNetworks();
 
 		if ((flags & LOCALVALID) != 0)
 		{

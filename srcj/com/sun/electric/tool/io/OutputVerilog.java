@@ -386,7 +386,8 @@ public class OutputVerilog extends OutputTopology
 
 				// special case: verilog should ignore R L C etc.
 				if (nodeType == NodeProto.Function.RESIST || nodeType == NodeProto.Function.CAPAC ||
-					nodeType == NodeProto.Function.ECAPAC || nodeType == NodeProto.Function.INDUCT)
+					nodeType == NodeProto.Function.ECAPAC || nodeType == NodeProto.Function.INDUCT ||
+					nodeType == NodeProto.Function.DIODE || nodeType == NodeProto.Function.DIODEZ)
 						continue;
 			}
 

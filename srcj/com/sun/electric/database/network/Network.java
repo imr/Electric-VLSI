@@ -94,9 +94,7 @@ public class Network extends Listener
 			{
 				Cell c = (Cell)cit.next();
 				if (getNetCell(c) != null) continue;
-				if (c.isIcon())
-					new NetSchem.Icon(c);
-				else if (c.isSchematicView())
+				if (c.isIcon() || c.isSchematicView())
 					new NetSchem(c);
 				else
 					new NetCell(c);
@@ -241,9 +239,7 @@ public class Network extends Listener
 		Cell cell = obj.whichCell();
 		if (obj instanceof Cell)
 		{
-			if (cell.isIcon())
-				new NetSchem.Icon(cell);
-			else if (cell.isSchematicView())
+			if (cell.isIcon() || cell.isSchematicView())
 				new NetSchem(cell);
 			else
 				new NetCell(cell);
