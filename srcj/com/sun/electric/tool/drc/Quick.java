@@ -2155,7 +2155,7 @@ public class Quick
 			}
 		}
 
-		// Special cases for select areas
+		// Special cases for select areas. You can't evaluate based on networks
 		for(Iterator it = selectMerge.getKeyIterator(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
@@ -2610,9 +2610,7 @@ public class Quick
         boolean[] founds = new boolean[4];
 
 		Rectangle2D polyBnd = poly.getBounds2D();
-		Point2D[] origPts = poly.getPoints();
         Area polyArea = new Area(poly);
-        Area polyAreaBase = new Area(poly);
 
 		for(Iterator sIt = cell.searchIterator(polyBnd); sIt.hasNext(); )
 		{
@@ -2635,11 +2633,11 @@ public class Quick
 					Poly nPoly = primPolyList[j];
                     if (!nPoly.getLayer().getFunction().isImplant()) continue;
 
+                    // Checking if are covered by select is surrounded by minOverlapRule
+                    Area distPolyArea = (Area)polyArea.clone();
                     Area nPolyArea = new Area(nPoly);
                     polyArea.subtract(nPolyArea);
 
-                    // Checking if are covered by select is surrounded by minOverlapRule
-                    Area distPolyArea = (Area)polyAreaBase.clone();
                     distPolyArea.subtract(polyArea);
                     Rectangle2D interRect = distPolyArea.getBounds2D();
                     Rectangle2D ruleBnd = new Rectangle2D.Double(interRect.getMinX()-value, interRect.getMinY()-value,
@@ -2661,10 +2659,10 @@ public class Quick
 						if (!found)
 							founds[i] = true;
 					}
-                    boolean foundAll = allPointsContainedInLayer(cell, ruleBnd, extPoly.getPoints(), founds);
+                    boolean foundAll = allPointsContainedInLayer(geom, cell, ruleBnd, points, founds);
                     if (!foundAll)
                     {
-                         reportError(POLYSELECTERROR, "No enough surround", cell, minOverlapRule.value, -1, minOverlapRule.rule,
+                         reportError(POLYSELECTERROR, "No enough surround, ", cell, minOverlapRule.value, -1, minOverlapRule.rule,
                             new Poly(distPolyArea.getBounds2D()), geom, layer, null, null, null);
                     }
 				}
@@ -2681,7 +2679,7 @@ public class Quick
             for (Iterator it = polyList.iterator(); it.hasNext(); )
             {
                 PolyBase nPoly = (PolyBase)it.next();
-                reportError(POLYSELECTERROR, "PolySelect error", cell, minOverlapRule.value, -1, minOverlapRule.rule,
+                reportError(POLYSELECTERROR, "Polysilicon not covered, ", cell, minOverlapRule.value, -1, minOverlapRule.rule,
                             nPoly, geom, layer, null, null, null);
             }
 		}
@@ -2696,17 +2694,18 @@ public class Quick
      * @param founds
      * @return
      */
-    private boolean allPointsContainedInLayer(Cell cell, Rectangle2D ruleBnd, Point2D[] points, boolean[] founds)
+    private boolean allPointsContainedInLayer(Geometric geom, Cell cell, Rectangle2D ruleBnd, Point2D[] points, boolean[] founds)
     {
         for(Iterator sIt = cell.searchIterator(ruleBnd); sIt.hasNext(); )
         {
             Geometric g = (Geometric)sIt.next();
+	        if (g == geom) continue;
             if (!(g instanceof NodeInst)) continue;
             NodeInst ni = (NodeInst)g;
             NodeProto np = ni.getProto();
             if (np instanceof Cell)
             {
-                return (allPointsContainedInLayer((Cell)np, ruleBnd, points, founds));
+                return (allPointsContainedInLayer(geom, (Cell)np, ruleBnd, points, founds));
             }
             else
             {
@@ -2719,10 +2718,11 @@ public class Quick
                     Poly nPoly = primPolyList[j];
                     if (!nPoly.getLayer().getFunction().isImplant()) continue;
                     boolean allFound = true;
-                    for (int i = 0; i < points.length; i++)
+	                // No need of looping if one of them is already out
+                    for (int i = 0; allFound && i < points.length; i++)
                     {
-                        if (!founds[i])
-                            allFound = founds[i] = nPoly.contains(points[i]);
+                        if (!founds[i]) founds[i] = nPoly.contains(points[i]);
+	                    if (!founds[i]) allFound = false;
                     }
                     if (allFound) return true;
                 }
@@ -3413,17 +3413,17 @@ public class Quick
                     break;
 				case LAYERSURROUNDERROR:
 					errorMessage.append("Layer surround error:");
-					errorMessagePart2 = new StringBuffer(", layer %" + layer1.getName());
+					errorMessagePart2 = new StringBuffer(", layer " + layer1.getName());
 					errorMessagePart2.append(" NEEDS SURROUND OF LAYER " + layer2.getName() + " BY " + limit);
 					break;
 			}
 
-			errorMessage.append(" cell " + cell.describe());
+			errorMessage.append(" cell '" + cell.describe() + "'");
 			if (geom1 != null)
 			{
 				errorMessage.append((geom1 instanceof NodeInst) ?
-				        ", node " + geom1.describe() :
-				        ", arc " + geom1.describe());
+				        ", node '" + geom1.describe() + "'" :
+				        ", arc '" + geom1.describe() + "'");
 			}
 			if (layer1 != null) sortLayer = layer1.getIndex();
 			errorMessage.append(errorMessagePart2);
@@ -3455,6 +3455,31 @@ public class Quick
 			this.jNet = jNet;
 			this.selectMerge = selectMerge;
 		}
+
+		/**
+		 * Method to search if child network is connected to visitor network.
+		 * @param net
+		 * @param info
+		 * @return
+		 */
+		private boolean searchNetworkInParent(Network net, HierarchyEnumerator.CellInfo info)
+		{
+			if (net == null && Main.LOCALDEBUGFLAG) System.out.println("Here error");
+			if (jNet == net) return true;
+			HierarchyEnumerator.CellInfo cinfo = info;
+			while (net != null && cinfo.getParentInst() != null) {
+				net = cinfo.getNetworkInParent(net);
+				if (jNet == net) return true;
+				cinfo = cinfo.getParentInfo();
+			}
+			return false;
+		}
+
+		/**
+		 *
+		 * @param info
+		 * @return
+		 */
 		public boolean enterCell(HierarchyEnumerator.CellInfo info)
 		{
 			if (metalMerge == null)
@@ -3473,21 +3498,7 @@ public class Quick
 				{
 					Export exp = (Export)arcIt.next();
 					Network net = info.getNetlist().getNetwork(exp, 0);
-					if (net == null)
-						 if (Main.LOCALDEBUGFLAG) System.out.println("Here error");
-					HierarchyEnumerator.CellInfo cinfo = info;
-					while (!found && net != null && cinfo.getParentInst() != null) {
-						net = cinfo.getNetworkInParent(net);
-//						net = HierarchyEnumerator.getNetworkInParent(net, cinfo.getParentInst());
-						if (jNet == net)
-						{
-							if (Main.LOCALDEBUGFLAG) System.out.println("Found network in Arc " + ai + " network " + net);
-							found = true;
-							break;
-						}
-						cinfo = cinfo.getParentInfo();
-					}
-					if (found) break;
+					found = searchNetworkInParent(net, info);
 				}
 
 				if (!found && aNet != jNet)
@@ -3521,7 +3532,19 @@ public class Quick
 			}
 			return true;
 		}
+
+		/**
+		 *
+		 * @param info
+		 */
 		public void exitCell(HierarchyEnumerator.CellInfo info) {}
+
+		/**
+		 *
+		 * @param no
+		 * @param info
+		 * @return
+		 */
 		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
 		{
 			NodeInst ni = no.getNodeInst();
@@ -3538,14 +3561,20 @@ public class Quick
 			if (np instanceof PrimitiveNode && np == Generic.tech.cellCenterNode) return (false);
 
 			boolean found = false;
+			boolean newFound = false;
+			Network thisNet = null;
 			for(Iterator pIt = ni.getPortInsts(); !found && pIt.hasNext(); )
 			{
 				PortInst pi = (PortInst)pIt.next();
-				Network net = info.getNetlist().getNetwork(pi);
-				if (jNet == net)
-					found = true;
+				thisNet = info.getNetlist().getNetwork(pi);
+				found = searchNetworkInParent(thisNet, info);
+				if (jNet == thisNet)
+					newFound = true;
+				if (found != newFound && Main.LOCALDEBUGFLAG)
+					System.out.println("Here mismatch");
 			}
-			if (!found) return (false);
+			if (!found)
+				return (false);
 
 			Technology tech = pNp.getTechnology();
 			// electrical should not be null due to ports but causes
@@ -3565,8 +3594,12 @@ public class Quick
 				PortProto pp = poly.getPort();
                 if (pp == null) continue;
 				Network net = info.getNetlist().getNetwork(ni, pp, 0);
-				if (net != jNet)
-					continue;
+				found = searchNetworkInParent(net, info);
+				if (net != thisNet)
+				{
+					if (found && Main.LOCALDEBUGFLAG) System.out.println("Another mismatch");
+				}
+				if (!found) continue;
 
 				// it has to take into account poly and transistor poly as one layer
 				if (layer.getFunction().isPoly())
