@@ -581,14 +581,22 @@ public class ERCWellCheck
 					ArcInst ai = (ArcInst)it.next();
 
 					Technology tech = ai.getProto().getTechnology();
-					Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
+					// Getting only ercLayers
+					Poly [] arcInstPolyList = tech.getShapeOfArc(ai, null, null, ercLayers);
 					int tot = arcInstPolyList.length;
 					for(int i=0; i<tot; i++)
 					{
 						Poly poly = arcInstPolyList[i];
 						Layer layer = poly.getLayer();
 						// Only interested in well/select
-						if (!isERCLayerRelated(layer)) continue;
+//						if (Main.LOCALDEBUGFLAG)
+//						{
+//						if (!isERCLayerRelated(layer))
+//						{
+//							System.out.println("This should not happen");
+//							continue;
+//						}
+//						}
 //						if (getWellLayerType(layer) == ERCPSEUDO)
 //						{
 //							System.out.println("When happens?");
@@ -622,7 +630,6 @@ public class ERCWellCheck
 				}
 			}
        }
-
         public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
         {
 	        // Checking if job is scheduled for abort or already aborted
@@ -637,6 +644,9 @@ public class ERCWellCheck
             PrimitiveNode.Function fun = ni.getFunction();
 	        boolean wellSubsContact = (fun == PrimitiveNode.Function.WELL || fun == PrimitiveNode.Function.SUBSTRATE);
 
+	        if (NodeInst.isSpecialNode(ni))
+		        return false; // Nothing to do, Dec 9;
+
 	        // No done yet
 	        if (check.doneCells.get(cell) == null)
 	        {
@@ -645,15 +655,25 @@ public class ERCWellCheck
 				{
 					PrimitiveNode pNp = (PrimitiveNode)subNp;
 					Technology tech = pNp.getTechnology();
-					Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, null, true, true);
+					// Getting only ercLayers
+					Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, null, true, true, ercLayers);
 					int tot = nodeInstPolyList.length;
+
 					for(int i=0; i<tot; i++)
 					{
 						Poly poly = nodeInstPolyList[i];
 						Layer layer = poly.getLayer();
 						//int layerType = getWellLayerType(layer);
 						// Only interested in well/select regions
-						if (!isERCLayerRelated(layer)) continue;
+
+//						if (Main.LOCALDEBUGFLAG)
+//						{
+//						if (!isERCLayerRelated(layer))
+//						{
+//							System.out.println("This should not happen");
+//							continue;
+//						}
+//						}
 						poly.transform(trans);
 						Object newElem = poly;
 
@@ -685,7 +705,6 @@ public class ERCWellCheck
 					HierarchyEnumerator.CellInfo cinfo = info;
 					while (cinfo.getParentInst() != null) {
 						parentNet = cinfo.getNetworkInParent(parentNet);
-//						parentNet = HierarchyEnumerator.getNetworkInParent(parentNet, cinfo.getParentInst());
 						cinfo = cinfo.getParentInfo();
 						if (parentNet == null && Main.LOCALDEBUGFLAG)
 							System.out.println("parentNet null in ERC. Stop loop?");
@@ -720,6 +739,18 @@ public class ERCWellCheck
 	private static final int ERCNSelect = 4;
 	private static final int ERCPSEUDO = 0;
 
+	private static final List ercLayers = new ArrayList(7);
+
+    static {
+	    ercLayers.add(Layer.Function.WELLP);
+	    ercLayers.add(Layer.Function.WELL);
+	    ercLayers.add(Layer.Function.WELLN);
+		ercLayers.add(Layer.Function.SUBSTRATE);
+	    ercLayers.add(Layer.Function.IMPLANTP);
+	    ercLayers.add(Layer.Function.IMPLANT);
+	    ercLayers.add(Layer.Function.IMPLANTN);
+    };
+
 	/**
 	 * Determine if layer is relevant for ERC process to
 	 * speed up calculation
@@ -740,8 +771,10 @@ public class ERCWellCheck
 		if ((extra&Layer.Function.PSEUDO) != 0) return ERCPSEUDO;
 		if (fun == Layer.Function.WELLP) return ERCPWell;
 		if (fun == Layer.Function.WELL || fun == Layer.Function.WELLN) return ERCNWell;
-		if (fun == Layer.Function.IMPLANTP) return ERCPSelect;
-		if (fun == Layer.Function.IMPLANT || fun == Layer.Function.IMPLANTN) return ERCNSelect;
+		if (fun == Layer.Function.IMPLANTP)
+			return ERCPSelect;
+		if (fun == Layer.Function.IMPLANT || fun == Layer.Function.IMPLANTN)
+			return ERCNSelect;
 		if (fun == Layer.Function.SUBSTRATE)
 		{
 			if ((extra&Layer.Function.PTYPE) != 0) return ERCPSelect;

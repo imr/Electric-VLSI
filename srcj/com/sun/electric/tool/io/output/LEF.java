@@ -195,7 +195,7 @@ public class LEF extends Output
 			printWriter.println("    PORT");
 			io_lefoutcurlayer = null;
 			Technology tech = rni.getProto().getTechnology();
-			Poly [] polys = tech.getShapeOfNode(rni, null, true, false);
+			Poly [] polys = tech.getShapeOfNode(rni, null, true, false, null);
 			if (polys.length == 0)
 			{
 				PrimitiveNode np = (PrimitiveNode)rni.getProto();

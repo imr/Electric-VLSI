@@ -97,6 +97,7 @@ public class MoCMOS extends Technology
 	/** metal-1-polysilicon-1-2-contact */		private PrimitiveNode metal1Poly12Contact_node;
 	/** P-Transistor */							private PrimitiveNode pTransistor_node;
 	/** N-Transistor */							private PrimitiveNode nTransistor_node;
+	/** ThickOxide Transistors */				private PrimitiveNode[] thickTransistorNodes = new PrimitiveNode[2];
 	/** Scalable-P-Transistor */				private PrimitiveNode scalablePTransistor_node;
 	/** Scalable-N-Transistor */				private PrimitiveNode scalableNTransistor_node;
 	/** metal-1-metal-2-contact */				private PrimitiveNode metal1Metal2Contact_node;
@@ -1247,7 +1248,7 @@ public class MoCMOS extends Technology
 		polyCap_lay.setFunction(Layer.Function.CAP);									// Poly-Cap
 		pActiveWell_lay.setFunction(Layer.Function.DIFFP);								// P-Active-Well
 		silicideBlock_lay.setFunction(Layer.Function.ART);								// Silicide-Block
-		thickActive_lay.setFunction(Layer.Function.DIFF);								// Thick-Active
+		thickActive_lay.setFunction(Layer.Function.DIFF, Layer.Function.THICK);			// Thick-Active
 		pseudoMetal1_lay.setFunction(Layer.Function.METAL1, Layer.Function.PSEUDO);		// Pseudo-Metal-1
 		pseudoMetal2_lay.setFunction(Layer.Function.METAL2, Layer.Function.PSEUDO);		// Pseudo-Metal-2
 		pseudoMetal3_lay.setFunction(Layer.Function.METAL3, Layer.Function.PSEUDO);		// Pseudo-Metal-3
@@ -2042,6 +2043,52 @@ public class MoCMOS extends Technology
 		nTransistor_node.setSpecialType(PrimitiveNode.SERPTRANS);
 		nTransistor_node.setSpecialValues(new double [] {7, 1.5, 2.5, 2, 1, 2});
 		nTransistor_node.setMinSize(15, 22, "2.1, 3.1");
+
+		/** Thick oxide transistors */
+		String[] thickNames = {"Thick-P", "Thick-N"};
+		Technology.NodeLayer[] thickActiveLayers = new Technology.NodeLayer[] {pTransistorActiveLayer, nTransistorActiveLayer};
+		Technology.NodeLayer[] thickPolyLayers = new Technology.NodeLayer[] {pTransistorPolyLayer, nTransistorPolyLayer};
+		Technology.NodeLayer[] thickWellLayers = new Technology.NodeLayer[] {pTransistorWellLayer, nTransistorWellLayer};
+		Technology.NodeLayer[] thickSelectLayers = new Technology.NodeLayer[] {pTransistorSelectLayer, nTransistorSelectLayer};
+		Technology.NodeLayer[] thickActiveTLayers = new Technology.NodeLayer[] {pTransistorActiveTLayer, nTransistorActiveTLayer};
+		Technology.NodeLayer[] thickActiveBLayers = new Technology.NodeLayer[] {pTransistorActiveBLayer, nTransistorActiveBLayer};
+        Technology.NodeLayer[] thickPolyCLayers = new Technology.NodeLayer[] {pTransistorPolyCLayer, nTransistorPolyCLayer};
+		Technology.NodeLayer[] thickPolyLLayers = new Technology.NodeLayer[] {pTransistorPolyLLayer, nTransistorPolyLLayer};
+		Technology.NodeLayer[] thickPolyRLayers = new Technology.NodeLayer[] {pTransistorPolyRLayer, nTransistorPolyRLayer};
+		Technology.NodeLayer[] thickLayers = new Technology.NodeLayer[2];
+
+		for (int i = 0; i < thickLayers.length; i++)
+		{
+			thickLayers[i] = new Technology.NodeLayer(thickActive_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.fromBottom(1)),
+			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.fromTop(1))}, 10, 10, 6, 6);
+		}
+
+		for (int i = 0; i < thickTransistorNodes.length; i++)
+		{
+			thickTransistorNodes[i] = PrimitiveNode.newInstance(thickNames[i] + "-Transistor", this, 15.0, 22.0, new SizeOffset(6, 6, 10, 10),
+				new Technology.NodeLayer [] {thickActiveLayers[i], thickPolyLayers[i], thickWellLayers[i], thickSelectLayers[i], thickLayers[i]});
+			thickTransistorNodes[i].setElectricalLayers(new Technology.NodeLayer [] {thickActiveTLayers[i], thickActiveBLayers[i],
+				thickPolyCLayers[i], thickPolyLLayers[i], thickPolyRLayers[i], thickWellLayers[i], thickSelectLayers[i], thickLayers[i]});
+			thickTransistorNodes[i].addPrimitivePorts(new PrimitivePort []
+				{
+					PrimitivePort.newInstance(this, thickTransistorNodes[i], new ArcProto[] {poly1_arc}, "p-trans-poly-left", 180,90, 0, PortCharacteristic.UNKNOWN,
+						EdgeH.fromLeft(4), EdgeV.fromBottom(11), EdgeH.fromLeft(4), EdgeV.fromTop(11)),
+					PrimitivePort.newInstance(this, thickTransistorNodes[i], new ArcProto[] {pActive_arc}, "p-trans-diff-top", 90,90, 1, PortCharacteristic.UNKNOWN,
+						EdgeH.fromLeft(7.5), EdgeV.fromTop(7.5), EdgeH.fromRight(7.5), EdgeV.fromTop(7)),
+					PrimitivePort.newInstance(this, thickTransistorNodes[i], new ArcProto[] {poly1_arc}, "p-trans-poly-right", 0,90, 0, PortCharacteristic.UNKNOWN,
+						EdgeH.fromRight(4), EdgeV.fromBottom(11), EdgeH.fromRight(4), EdgeV.fromTop(11)),
+					PrimitivePort.newInstance(this, thickTransistorNodes[i], new ArcProto[] {pActive_arc}, "p-trans-diff-bottom", 270,90, 2, PortCharacteristic.UNKNOWN,
+						EdgeH.fromLeft(7.5), EdgeV.fromBottom(7), EdgeH.fromRight(7.5), EdgeV.fromBottom(7.5))
+				});
+			thickTransistorNodes[i].setFunction((i==P_TYPE) ? PrimitiveNode.Function.TRAPMOS : PrimitiveNode.Function.TRANMOS);
+			thickTransistorNodes[i].setHoldsOutline();
+			thickTransistorNodes[i].setCanShrink();
+			thickTransistorNodes[i].setSpecialType(PrimitiveNode.SERPTRANS);
+			thickTransistorNodes[i].setSpecialValues(new double [] {7, 1.5, 2.5, 2, 1, 2});
+			thickTransistorNodes[i].setMinSize(15, 22, "2.1, 3.1");
+			thickTransistorNodes[i].setSpecialNode(); // For display purposes
+		}
 
 		/** Scalable-P-Transistor */
 		scalablePTransistor_node = PrimitiveNode.newInstance("P-Transistor-Scalable", this, 17.0, 26.0, new SizeOffset(7, 7, 12, 12),

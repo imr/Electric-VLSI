@@ -1468,7 +1468,7 @@ public class Spice extends Topology
 		AffineTransform trans = ni.rotateOut();
 
 		// make linked list of polygons
-		Poly [] polyList = tech.getShapeOfNode(ni, null, true, true);
+		Poly [] polyList = tech.getShapeOfNode(ni, null, true, true, null);
 		int tot = polyList.length;
 		for(int i=0; i<tot; i++)
 		{

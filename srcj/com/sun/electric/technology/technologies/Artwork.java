@@ -45,6 +45,7 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * This is the general purpose sketching technology.
@@ -562,12 +563,13 @@ public class Artwork extends Technology
 	 * because of the unusual primitives in this Technology.
 	 * @param ai the ArcInst to describe.
 	 * @param wnd the window in which this arc will be drawn.
+	 * @param onlyTheseLayers to filter the only required layers
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShapeOfArc(ArcInst ai, EditWindow wnd, Layer layerOverride)
+	public Poly [] getShapeOfArc(ArcInst ai, EditWindow wnd, Layer layerOverride, List onlyTheseLayers)
 	{
 		layerOverride = getProperLayer(ai);
-		return super.getShapeOfArc(ai, wnd, layerOverride);
+		return super.getShapeOfArc(ai, wnd, layerOverride, onlyTheseLayers);
 	}
 
 	/**

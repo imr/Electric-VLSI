@@ -932,7 +932,18 @@ public class FileMenu {
     public static boolean quitCommand()
     {
         if (preventLoss(null, 0)) return false;
-        QuitJob job = new QuitJob();
+
+	    try {
+            QuitJob job = new QuitJob();
+	    } catch (java.lang.NoClassDefFoundError e)
+	    {
+		    // Ignoring this one
+		    return true;
+	    } catch (Exception e)
+	    {
+		    // Don't quit in this case.
+		    return false;
+	    }
         return true;
     }
 

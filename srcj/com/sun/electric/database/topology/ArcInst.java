@@ -1465,7 +1465,7 @@ public class ArcInst extends Geometric
 			// crop the arc against this transistor
 			AffineTransform trans = ni.rotateOut();
 			Technology tech = ni.getProto().getTechnology();
-			Poly [] activeCropPolyList = tech.getShapeOfNode(ni, null, false, false);
+			Poly [] activeCropPolyList = tech.getShapeOfNode(ni, null, false, false, null);
 			int nTot = activeCropPolyList.length;
 			for(int k=0; k<nTot; k++)
 			{

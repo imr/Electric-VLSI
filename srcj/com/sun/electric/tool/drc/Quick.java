@@ -638,7 +638,7 @@ public class Quick
         if (np.getFunction() == PrimitiveNode.Function.PIN) return false; // Sept 30
 
 		// get all of the polygons on this node
-		Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts);
+		Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts, null);
 		convertPseudoLayers(ni, nodeInstPolyList);
 		int tot = nodeInstPolyList.length;
         boolean isTransistor =  np.getFunction().isTransistor();
@@ -892,7 +892,7 @@ public class Quick
 	                    continue; // Sept 30
                     }
 					Technology tech = np.getTechnology();
-					Poly [] primPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts);
+					Poly [] primPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts, null);
 					convertPseudoLayers(ni, primPolyList);
 					int tot = primPolyList.length;
 					for(int j=0; j<tot; j++)
@@ -1115,7 +1115,7 @@ public class Quick
 					rTrans.preConcatenate(upTrans);
 
 					// get the shape of each nodeinst layer
-					Poly [] subPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts);
+					Poly [] subPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts, null);
 					convertPseudoLayers(ni, subPolyList);
 					int tot = subPolyList.length;
 					for(int i=0; i<tot; i++)
@@ -1300,6 +1300,14 @@ public class Quick
 			} else
 			{
 				if (fun.isSubstrate()) maytouch = true;
+				// Special cases for thick actives
+				else
+				{
+					// Searching for THICK bit
+					int funExtras = layer1.getFunctionExtras();
+					if (fun.isDiff() && (funExtras&Layer.Function.THICK) == 0)
+						 maytouch = true;
+				}
 			}
 		}
 
@@ -1318,64 +1326,133 @@ public class Quick
 				// they are electrically connected: see if they touch
 				overlap = (pd < 0);
                 //code decomissioned Sept 04
-				if (Main.LOCALDEBUGFLAG && pd <= 0)
+				if (pd <= 0)
 				{
-					// they are electrically connected and they touch: look for minimum size errors
+					// they are electrically connected and they overlap: look for minimum size errors
+					// of the overlapping region.
 					DRCRules.DRCRule wRule = DRC.getMinValue(layer1, DRCTemplate.MINWID);
 					if (wRule != null)
 					{
 						double minWidth = wRule.value;
+
 						double lxb = Math.max(trueBox1.getMinX(), trueBox2.getMinX());
 						double hxb = Math.min(trueBox1.getMaxX(), trueBox2.getMaxX());
 						double lyb = Math.max(trueBox1.getMinY(), trueBox2.getMinY());
 						double hyb = Math.min(trueBox1.getMaxY(), trueBox2.getMaxY());
 						Point2D lowB = new Point2D.Double(lxb, lyb);
 						Point2D highB = new Point2D.Double(hxb, hyb);
+						Rectangle2D bounds = new Rectangle2D.Double(lxb, lyb, hxb-lxb, hyb-lyb);
+						// Search area should be bigger than bounding box otherwise it might not get the cells due to
+						// rounding errors.
+						Rectangle2D search = new Rectangle2D.Double(DBMath.round(lxb-TINYDELTA), DBMath.round(lyb-TINYDELTA),
+						        DBMath.round(hxb-lxb+2*TINYDELTA), DBMath.round(hyb-lyb+2*TINYDELTA));
 						double actual = lowB.distance(highB);
-						if (actual != 0 && actual < minWidth)
+
+						if (actual != 0 && DBMath.isGreaterThan(minWidth, actual))
+						//if (actual != 0 && actual < minWidth)   // Dec 10
 						{
+							boolean [] pointsFound = new boolean[2];
+							pointsFound[0] = pointsFound[1] = false;
+							Point2D pt1 = new Point2D.Double(lxb-TINYDELTA, lyb-TINYDELTA);
+							Point2D pt2 = new Point2D.Double(lxb-TINYDELTA, hyb+TINYDELTA);
+							Point2D pt3 = new Point2D.Double(hxb+TINYDELTA, lyb-TINYDELTA);
+							Point2D pt4 = new Point2D.Double(hxb+TINYDELTA, hyb+TINYDELTA);
+
+							//+-------------------+
+							//|                   |
+							//|                   |
+							//|                   |B
+							//|           +-------+---------+
+							//|           |       |         |
+							//|           |       |         |
+							//+-----------+-------+         |
+							//            |                 |
+							//           A+-----------------+
+							// Looking for two corners not inside bounding boxes A and B
+							Poly rebuild = new Poly(bounds);
+							if (pd == 0) // flat bounding box
+							{
+								pt1 = lowB;
+								pt2 = highB;
+							}
+							else
+							{
+								Point2D[] points = rebuild.getPoints();
+								int[] cornerPoints = new int[2];
+								int corners = 0;  // if more than 3 corners are found -> bounding box is flat
+								for (int i = 0; i < points.length && corners < 2; i++)
+								{
+									if (!DBMath.pointInsideRect(points[i], poly1.getBounds2D()) &&
+										!DBMath.pointInsideRect(points[i], poly2.getBounds2D()))
+									{
+										cornerPoints[corners++] = i;
+									}
+								}
+								if (corners != 2)
+									throw new Error("Wrong corners in Quick.checkMinArea()");
+
+								pt1 = points[cornerPoints[0]];
+								pt2 = points[cornerPoints[1]];
+							}
+							boolean oldCheck = true;
+							// looking if points around the overlapping area are inside another region
+							// to avoid the error
+							boolean allFound = true;
+							lookForLayerNew(geom1, poly1, geom2, poly2, cell, layer1, DBMath.MATID, search,
+									pt1, pt2, null, pointsFound, false);
+							// Nothing found
+							if (!pointsFound[0] && !pointsFound[1])
+							{
+								reportError(MINWIDTHERROR, null, cell, minWidth, actual, wRule.rule, rebuild,
+											geom1, layer1, rebuild, geom2, layer2);
+								allFound = false;
+							}
+
+							if (Main.LOCALDEBUGFLAG)
+							{
 							if (hxb-lxb > hyb-lyb)
 							{
 								// horizontal abutment: check for minimum width
-								Point2D pt1 = new Point2D.Double(lxb-TINYDELTA, lyb-TINYDELTA);
-								Point2D pt2 = new Point2D.Double(lxb-TINYDELTA, hyb+TINYDELTA);
-								Point2D pt3 = new Point2D.Double(hxb+TINYDELTA, lyb-TINYDELTA);
-								Point2D pt4 = new Point2D.Double(hxb+TINYDELTA, hyb+TINYDELTA);
+								pt1 = new Point2D.Double(lxb-TINYDELTA, lyb-TINYDELTA);
+								pt2 = new Point2D.Double(lxb-TINYDELTA, hyb+TINYDELTA);
+								pt3 = new Point2D.Double(hxb+TINYDELTA, lyb-TINYDELTA);
+								pt4 = new Point2D.Double(hxb+TINYDELTA, hyb+TINYDELTA);
 								if (!lookForPoints(pt1, pt2, layer1, cell, true) &&
 									!lookForPoints(pt3, pt4, layer1, cell, true))
 								{
 									lyb -= minWidth/2;   hyb += minWidth/2;
-									Poly rebuild = new Poly((lxb+hxb)/2, (lyb+hyb)/2, hxb-lxb, hyb-lyb);
+									rebuild = new Poly((lxb+hxb)/2, (lyb+hyb)/2, hxb-lxb, hyb-lyb);
 									rebuild.setStyle(Poly.Type.FILLED);
-                                    /*
-									reportError(MINWIDTHERROR, null, cell, minWidth,
-                                            actual, sizeRule, rebuild,
-											geom1, layer1, null, null, null);
-									return true;
-                                    */
+//									reportError(MINWIDTHERROR, null, cell, minWidth, actual, wRule.rule, rebuild,
+//												geom1, layer1, null, null, null);
+//									return true;
                                     System.out.println("Quick.checkDist code decomissioned");
+									oldCheck = false;
 								}
 							} else
 							{
 								// vertical abutment: check for minimum width
-								Point2D pt1 = new Point2D.Double(lxb-TINYDELTA, lyb-TINYDELTA);
-								Point2D pt2 = new Point2D.Double(hxb+TINYDELTA, lyb-TINYDELTA);
-								Point2D pt3 = new Point2D.Double(lxb-TINYDELTA, hyb+TINYDELTA);
-								Point2D pt4 = new Point2D.Double(hxb+TINYDELTA, hyb+TINYDELTA);
+								 pt1 = new Point2D.Double(lxb-TINYDELTA, lyb-TINYDELTA);
+								 pt2 = new Point2D.Double(hxb+TINYDELTA, lyb-TINYDELTA);
+								 pt3 = new Point2D.Double(lxb-TINYDELTA, hyb+TINYDELTA);
+								 pt4 = new Point2D.Double(hxb+TINYDELTA, hyb+TINYDELTA);
 								if (!lookForPoints(pt1, pt2, layer1, cell, true) &&
 									!lookForPoints(pt3, pt4, layer1, cell, true))
 								{
 									lxb -= minWidth/2;   hxb += minWidth/2;
-									Poly rebuild = new Poly((lxb+hxb)/2, (lyb+hyb)/2, hxb-lxb, hyb-lyb);
+									rebuild = new Poly((lxb+hxb)/2, (lyb+hyb)/2, hxb-lxb, hyb-lyb);
 									rebuild.setStyle(Poly.Type.FILLED);
-									/*reportError(MINWIDTHERROR, null, cell, minWidth,
-                                            actual, sizeRule, rebuild,
-											geom1, layer1, null, null, null);
-									return true;
-                                   */
+//									reportError(MINWIDTHERROR, null, cell, minWidth, actual, wRule.rule, rebuild,
+//												geom1, layer1, null, null, null);
+//									return true;
                                    System.out.println("Quick.checkDist code decomissioned");
+									oldCheck = false;
 								}
 							}
+							if (oldCheck != allFound)
+								System.out.println("Different results in Quick.checkDist");
+							}
+							if (!allFound) return true;
 						}
 					}
 				}
@@ -1687,7 +1764,7 @@ public class Quick
 			NodeInst oNi = (NodeInst)geom;
 			tech = oNi.getProto().getTechnology();
 			trans = oNi.rotateOut();
-			nodeInstPolyList = tech.getShapeOfNode(oNi, null, true, ignoreCenterCuts);
+			nodeInstPolyList = tech.getShapeOfNode(oNi, null, true, ignoreCenterCuts, null);
 			convertPseudoLayers(oNi, nodeInstPolyList);
 			baseMulti = tech.isMultiCutCase(oNi);
 		} else
@@ -2484,7 +2561,7 @@ public class Quick
 				AffineTransform bound = ni.rotateOut();
 				bound.preConcatenate(moreTrans);
 				Technology tech = ni.getProto().getTechnology();
-				Poly [] layerLookPolyList = tech.getShapeOfNode(ni, null, false, ignoreCenterCuts);
+				Poly [] layerLookPolyList = tech.getShapeOfNode(ni, null, false, ignoreCenterCuts, null);
 				int tot = layerLookPolyList.length;
 				for(int i=0; i<tot; i++)
 				{
@@ -2586,7 +2663,7 @@ public class Quick
 				AffineTransform bound = ni.rotateOut();
 				bound.preConcatenate(moreTrans);
 				Technology tech = ni.getProto().getTechnology();
-				Poly [] layerLookPolyList = tech.getShapeOfNode(ni, null, false, ignoreCenterCuts);
+				Poly [] layerLookPolyList = tech.getShapeOfNode(ni, null, false, ignoreCenterCuts, null);
 				int tot = layerLookPolyList.length;
 				for(int i=0; i<tot; i++)
 				{
@@ -2601,7 +2678,7 @@ public class Quick
 					if (poly2 != null && !overlap && poly.polySame(poly2))
 						continue;
 
-					if (poly.isInside(pt1)) pointsFound[0] = true;
+					if (poly.isInside(pt1)) pointsFound[0] = true; // @TODO Should still evaluate isInside if pointsFound[i] is already valid?
 					if (poly.isInside(pt2)) pointsFound[1] = true;
 					if (pt3 != null && poly.isInside(pt3)) pointsFound[2] = true;
 					for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
@@ -2713,7 +2790,7 @@ public class Quick
 			else
 			{
 				Technology tech = np.getTechnology();
-				Poly [] primPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts);
+				Poly [] primPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts, null);
 				int tot = primPolyList.length;
 				for(int j=0; j<tot; j++)
 				{
@@ -2789,7 +2866,7 @@ public class Quick
             else
             {
                 Technology tech = np.getTechnology();
-                Poly [] primPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts);
+                Poly [] primPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts, null);
                 int tot = primPolyList.length;
                 for(int j=0; j<tot; j++)
                 {
@@ -2937,7 +3014,7 @@ public class Quick
 	                             Layer nLayer, int nNet, Geometric nGeom, Rectangle2D bound)
 	{
 		Technology tech = ni.getProto().getTechnology();
-		Poly [] cropNodePolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts);
+		Poly [] cropNodePolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts, null);
 		convertPseudoLayers(ni, cropNodePolyList);
 		int tot = cropNodePolyList.length;
 		if (tot < 0) return false;
@@ -3023,7 +3100,7 @@ public class Quick
 			AffineTransform trans = fp.getTransformToTop();
 
 			Technology tech = np.getTechnology();
-			Poly [] cropArcPolyList = tech.getShapeOfNode(ni, null, false, ignoreCenterCuts);
+			Poly [] cropArcPolyList = tech.getShapeOfNode(ni, null, false, ignoreCenterCuts, null);
 			int tot = cropArcPolyList.length;
 			for(int j=0; j<tot; j++)
 			{
@@ -3085,7 +3162,7 @@ public class Quick
 			// crop the arc against this transistor
 			AffineTransform trans = ni.rotateOut();
 			Technology tech = ni.getProto().getTechnology();
-			Poly [] activeCropPolyList = tech.getShapeOfNode(ni, null, false, ignoreCenterCuts);
+			Poly [] activeCropPolyList = tech.getShapeOfNode(ni, null, false, ignoreCenterCuts, null);
 			int nTot = activeCropPolyList.length;
 			for(int k=0; k<nTot; k++)
 			{
@@ -3418,12 +3495,17 @@ public class Quick
 		}
 
 		// describe the error
-		Cell np1 = null;
+		Cell np1 = geom1.getParent();;
+		Cell np2 = (geom2 != null) ? geom2.getParent() : null;
+
+		// Message already logged
+		if ( geom2 != null && errorLogger.findMessage(cell, geom1, geom2.getParent(), geom2))
+			return;
+
 		StringBuffer errorMessage = new StringBuffer();
 		int sortLayer = cell.hashCode(); // 0;
 		if (errorType == SPACINGERROR || errorType == NOTCHERROR)
 		{
-			np1 = geom1.getParent();
 			// describe spacing width error
 			if (errorType == SPACINGERROR)
 				errorMessage.append("Spacing");
@@ -3432,11 +3514,6 @@ public class Quick
 			if (layer1 == layer2)
 				errorMessage.append(" (layer " + layer1.getName() + ")");
 			errorMessage.append(": ");
-			Cell np2 = geom2.getParent();
-
-			// Message already logged
-			if ( errorLogger.findMessage(cell, geom1, geom2.getParent(), geom2))
-				return;
 
 			if (np1 != np2)
 			{
@@ -3491,7 +3568,7 @@ public class Quick
 					errorMessagePart2 = new StringBuffer(msg);
 					break;
 				case MINWIDTHERROR:
-                    errorMessage.append("Minimum width/heigh error (" + msg + "):");
+                    errorMessage.append("Minimum width/heigh error" + ((msg != null) ? ("(" + msg + "):") : ""));
 					errorMessagePart2 = new StringBuffer(", layer " + layer1.getName());
 					errorMessagePart2.append(" LESS THAN " + TextUtils.formatDouble(limit) + " WIDE (IS " + TextUtils.formatDouble(actual) + ")");
                     break;
@@ -3727,7 +3804,7 @@ public class Quick
 			Technology tech = pNp.getTechnology();
 			// electrical should not be null due to ports but causes
 			// problems with poly and transistor-poly
-			Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, null, true, true);
+			Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, null, true, true, null);
 			int tot = nodeInstPolyList.length;
 			for(int i=0; i<tot; i++)
 			{

@@ -79,6 +79,7 @@ public class Layer
 		/** Describes a layer that contacts polysilicon (used to identify contacts). */	public static final int CONPOLY =     0100000;
 		/** Describes a layer that contacts diffusion (used to identify contacts). */	public static final int CONDIFF =     0200000;
 		/** Describes a layer that is inside transistor. */								public static final int INTRANS =   020000000;
+		/** Describes a thick layer. */								                    public static final int THICK =     040000000;
 
 		/** Describes an unknown layer. */						public static final Function UNKNOWN    = new Function("unknown",    "LFUNKNOWN",    0, 0, 35, 0);
 		/** Describes a metal layer 1. */						public static final Function METAL1     = new Function("metal-1",    "LFMETAL1",     1, 0, 17, 0);

@@ -4,6 +4,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01av: *********************************
 
+BUG: (12/10/04, GVG) No reporting min errors for negative notches (Bug #85)
+FIX: Put code back (decomissioned long time ago) and amended.
+
+IMP: (12/10/04, GVG) ERC profiling results: (1) getShapeArc() touched, (2) getShapeNode touched
+
+IMP: (12/9/04, GVG) New thick transistors in MoCMOS technology.
+
+IMP: (12/9/04, GVG) Transistor names in TSMC90 consistent (Bug #83)
+
 BUG: (12/10/04, SMR) Not all parent cells are listed when "Up Hierarchy" is done (Bug #88).
 FIX: In EditWindow.upHierarchy() use HashSet, not TreeSet.
 

@@ -545,6 +545,9 @@ public class Technology
 	/** Minimum capacitance for this Technology. */			private Pref prefMinCapacitance;
     /** Gate Length subtraction (in microns) for this Tech*/private Pref prefGateLengthSubtraction;
 
+	public static final int N_TYPE = 1;
+	public static final int P_TYPE = 0;
+
 	/****************************** CONTROL ******************************/
 
 	/**
@@ -996,7 +999,7 @@ public class Technology
 	 */
 	public Poly [] getShapeOfArc(ArcInst ai)
 	{
-		return getShapeOfArc(ai, null, null);
+		return getShapeOfArc(ai, null, null, null);
 	}
 
 	/**
@@ -1008,7 +1011,7 @@ public class Technology
 	 */
 	public Poly [] getShapeOfArc(ArcInst ai, EditWindow wnd)
 	{
-		return getShapeOfArc(ai, wnd, null);
+		return getShapeOfArc(ai, wnd, null, null);
 	}
 
 	/**
@@ -1016,16 +1019,32 @@ public class Technology
 	 * @param ai the ArcInst that is being described.
 	 * @param wnd the window in which this arc is being displayed.
 	 * @param layerOverride the layer to use for all generated polygons (if not null).
+	 * @param onlyTheseLayers to filter the only required layers
 	 * @return an array of Poly objects that describes this ArcInst graphically.
 	 * This array includes displayable variables on the ArcInst.
 	 */
-	public Poly [] getShapeOfArc(ArcInst ai, EditWindow wnd, Layer layerOverride)
+	public Poly [] getShapeOfArc(ArcInst ai, EditWindow wnd, Layer layerOverride, List onlyTheseLayers)
 	{
 		// get information about the arc
 		PrimitiveArc ap = (PrimitiveArc)ai.getProto();
 		Technology tech = ap.getTechnology();
-		Technology.ArcLayer [] primLayers = ap.getLayers();
+		ArcLayer [] primLayers = ap.getLayers();
 
+		if (onlyTheseLayers != null)
+		{
+			List layerArray = new ArrayList();
+
+			for (int i = 0; i < primLayers.length; i++)
+			{
+				ArcLayer primLayer = primLayers[i];
+				if (onlyTheseLayers.contains(primLayer.layer.getFunction()))
+					layerArray.add(primLayer);
+			}
+			primLayers = new ArcLayer [layerArray.size()];
+			layerArray.toArray(primLayers);
+		}
+		if (primLayers.length == 0)
+			return new Poly[0];
 		// see how many polygons describe this arc
 		int numDisplayable = ai.numDisplayableVariables(true);
 		if (wnd == null) numDisplayable = 0;
@@ -1061,7 +1080,6 @@ public class Technology
 				double bubbleSize = Schematics.getNegatingBubbleSize();
 				double cosDist = DBMath.cos(angle) * bubbleSize;
 				double sinDist = DBMath.sin(angle) * bubbleSize;
-				Point2D bubbleEdge;
 				if (head.isNegated())
 				{
 					headX -= cosDist;
@@ -1407,7 +1425,7 @@ public class Technology
 	 */
 	public Poly [] getShapeOfNode(NodeInst ni)
 	{
-		return getShapeOfNode(ni, null, false, false);
+		return getShapeOfNode(ni, null, false, false, null);
 	}
 
 	/**
@@ -1420,7 +1438,7 @@ public class Technology
 	 */
 	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd)
 	{
-		return getShapeOfNode(ni, wnd, false, false);
+		return getShapeOfNode(ni, wnd, false, false, null);
 	}
 
 	/**
@@ -1440,16 +1458,16 @@ public class Technology
 	 * @return an array of Poly objects that describes this NodeInst graphically.
 	 * This array includes displayable variables on the NodeInst.
 	 */
-	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, boolean electrical, boolean reasonable)
+	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, boolean electrical, boolean reasonable, List onlyTheseLayers)
 	{
 		NodeProto prototype = ni.getProto();
 		if (!(prototype instanceof PrimitiveNode)) return null;
 
 		PrimitiveNode np = (PrimitiveNode)prototype;
-		Technology.NodeLayer [] primLayers = np.getLayers();
+		NodeLayer [] primLayers = np.getLayers();
 		if (electrical)
 		{
-			Technology.NodeLayer [] eLayers = np.getElectricalLayers();
+			NodeLayer [] eLayers = np.getElectricalLayers();
 			if (eLayers != null) primLayers = eLayers;
 		}
 
@@ -1461,6 +1479,23 @@ public class Technology
 				if (ni.pinUseCount()) primLayers = nullPrimLayers;
 			}
 		}
+
+		if (onlyTheseLayers != null)
+		{
+			List layerArray = new ArrayList();
+
+			for (int i = 0; i < primLayers.length; i++)
+			{
+				NodeLayer primLayer = primLayers[i];
+				if (onlyTheseLayers.contains(primLayer.layer.getFunction()))
+					layerArray.add(primLayer);
+			}
+			primLayers = new NodeLayer [layerArray.size()];
+			layerArray.toArray(primLayers);
+		}
+		if (primLayers.length == 0)
+			return new Poly[0];
+
 		return getShapeOfNode(ni, wnd, electrical, reasonable, primLayers, null);
 	}
 
@@ -1519,12 +1554,14 @@ public class Technology
 
 		// determine the number of polygons (considering that it may be "wiped")
 		int numBasicLayers = primLayers.length;
+		// Determine if possible cutlayer is really a contact layer
+		boolean isCutLayer = /*np.getFunction() == PrimitiveNode.Function.CONTACT &&*/ primLayers[numBasicLayers-1].getLayer().getFunction().isContact();
 
 		// if a MultiCut contact, determine the number of extra cuts
 		int numExtraLayers = 0;
 		MultiCutData mcd = null;
 		SerpentineTrans std = null;
-		if (specialType == PrimitiveNode.MULTICUT)
+		if (specialType == PrimitiveNode.MULTICUT && isCutLayer)
 		{
 			mcd = new MultiCutData(ni, np.getSpecialValues());
 			if (reasonable) numExtraLayers = mcd.cutsReasonable; else

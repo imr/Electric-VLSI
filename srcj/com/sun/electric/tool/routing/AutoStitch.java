@@ -363,7 +363,7 @@ public class AutoStitch
 					// look at all polygons on this nodeinst
 					boolean usePortPoly = false;
 					Technology tech = rNi.getProto().getTechnology();
-					Poly [] nodePolys = tech.getShapeOfNode(rNi, null, true, true);
+					Poly [] nodePolys = tech.getShapeOfNode(rNi, null, true, true, null);
 					int tot = nodePolys.length;
 					if (tot == 0 || rNi.getProto() == Generic.tech.simProbeNode)
 					{
@@ -450,7 +450,7 @@ public class AutoStitch
 				// look at all polygons on this nodeinst
 				boolean usePortPoly = false;
 				Technology tech = ni.getProto().getTechnology();
-				Poly [] polys = tech.getShapeOfNode(ni, null, true, true);
+				Poly [] polys = tech.getShapeOfNode(ni, null, true, true, null);
 				int tot = polys.length;
 				if (tot == 0 || ni.getProto() == Generic.tech.simProbeNode)
 				{
@@ -649,7 +649,7 @@ public class AutoStitch
 
 				// see how much geometry is on this node
 				Technology tech = rNi.getProto().getTechnology();
-				Poly [] polys = tech.getShapeOfNode(rNi, null, true, true);
+				Poly [] polys = tech.getShapeOfNode(rNi, null, true, true, null);
 				int tot = polys.length;
 				if (tot == 0)
 				{
@@ -698,7 +698,7 @@ public class AutoStitch
 
 			// look at all polygons on nodeinst oNi
 			Technology tech = oNi.getProto().getTechnology();
-			Poly [] polys = tech.getShapeOfNode(oNi, null, true, true);
+			Poly [] polys = tech.getShapeOfNode(oNi, null, true, true, null);
 			int tot = polys.length;
 			if (tot == 0)
 			{
