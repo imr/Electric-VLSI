@@ -346,14 +346,14 @@ public class User extends Listener
 	/**
 	 * Method to tell how exports should be constructed in generated icons.
 	 * @return information about how exports should be constructed in generated icons.
-	 * 0: (the default) use Generic:Universal-Pins for exports (can connect to ANYTHING).
+	 * 0: (the default) use Generic:Universal-Pins for non-bus exports (can connect to ANYTHING).
 	 * 1: use Schematic:Bus-Pins for exports (can connect to schematic busses or wires).
 	 */
 	public static int getIconGenExportTech() { return cacheIconGenExportTech.getInt(); }
 	/**
 	 * Method to set how exports should be constructed in generated icons.
 	 * @param t information about how exports should be constructed in generated icons.
-	 * 0: use Generic:Universal-Pins for exports (can connect to ANYTHING).
+	 * 0: use Generic:Universal-Pins for non-bus exports (can connect to ANYTHING).
 	 * 1: use Schematic:Bus-Pins for exports (can connect to schematic busses or wires).
 	 */
 	public static void setIconGenExportTech(int t) { cacheIconGenExportTech.setInt(t); }

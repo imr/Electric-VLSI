@@ -292,7 +292,7 @@ public class SizeListener
 			super("Scale node", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.stretchGeom = stretchGeom;
 			this.stretchPt = stretchPt;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()

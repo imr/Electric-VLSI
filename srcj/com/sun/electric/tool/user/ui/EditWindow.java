@@ -193,7 +193,7 @@ public class EditWindow extends JPanel
 
 					// reload with text information
 					JTextArea ta = wf.getTextEditWindow();
-					Variable var = cell.getVar("FACET_message");
+					Variable var = cell.getVar(Cell.CELL_TEXT_KEY);
 					if (var != null)
 					{
 						int len = var.getLength();
@@ -383,7 +383,7 @@ public class EditWindow extends JPanel
 			super("Display", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.wnd = wnd;
 			this.offscreen = offscreen;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()

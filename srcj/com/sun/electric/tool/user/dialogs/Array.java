@@ -348,7 +348,7 @@ public class Array extends javax.swing.JDialog
 		{
 			super("Make Array", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dialog = dialog;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()

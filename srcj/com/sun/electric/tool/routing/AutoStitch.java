@@ -108,7 +108,7 @@ public class AutoStitch
 			super("Auto-Stitch", Routing.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.nodesToStitch = nodesToStitch;
 			this.forced = forced;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()

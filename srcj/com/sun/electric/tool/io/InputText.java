@@ -1788,7 +1788,7 @@ public class InputText extends InputLibrary
 					System.out.println("Error on line "+lineReader.getLineNumber()+": cannot store array variable: " + keyWord);
 					return;
 				}
-				var.setDescriptor(td);
+				var.setTextDescriptor(td);
 				var.lowLevelSetFlags(type);
 
 				// handle updating of technology caches

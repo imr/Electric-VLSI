@@ -146,7 +146,7 @@ public class CircuitChanges
 			this.amount = amount;
 			this.mirror = mirror;
 			this.mirrorH = mirrorH;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -350,7 +350,7 @@ public class CircuitChanges
 		protected DeleteSelected()
 		{
 			super("Delete selected objects", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -669,7 +669,7 @@ public class CircuitChanges
 		{
 			super("Delete Cell" + cell.describe(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -742,7 +742,7 @@ public class CircuitChanges
 		protected DeleteUnusedOldCells()
 		{
 			super("Delete Unused Old Cells", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -1056,7 +1056,7 @@ public class CircuitChanges
 			this.zeroSize = zeroSize;
 			this.negSize = negSize;
 			this.overSizePins = overSizePins;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -1293,7 +1293,7 @@ public class CircuitChanges
 		private ShortenArcs()
 		{
 			super("Shorten selected arcs", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -1361,7 +1361,7 @@ public class CircuitChanges
 				User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.newView = newView;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -1389,7 +1389,7 @@ public class CircuitChanges
 		{
 			super("Create new Version of cell " + cell.describe(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -1423,7 +1423,7 @@ public class CircuitChanges
 		protected MakeIconView()
 		{
 			super("Make Icon View", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -1627,8 +1627,8 @@ public class CircuitChanges
 	private static boolean makeIconExport(Export pp, int index,
 		double xPos, double yPos, double xBBPos, double yBBPos, Cell np)
 	{
-		// presume "universal" exports (Generic Invisible Pins)
-		NodeProto pinType = Generic.tech.invisiblePinNode;
+		// presume "universal" exports (Generic technology)
+		NodeProto pinType = Generic.tech.universalPinNode;
 		double pinSizeX = 0, pinSizeY = 0;
 		if (User.getIconGenExportTech() != 0)
 		{
@@ -1641,7 +1641,12 @@ public class CircuitChanges
 		// determine the type of wires used for leads
 		PrimitiveArc wireType = Schematics.tech.wire_arc;
 		if (pp.getBasePort().connectsTo(Schematics.tech.bus_arc))
+		{
 			wireType = Schematics.tech.bus_arc;
+			pinType = Schematics.tech.busPinNode;
+			pinSizeX = pinType.getDefWidth();
+			pinSizeY = pinType.getDefHeight();
+		}
 
 		// if the export is on the body (no leads) then move it in
 		if (!User.isIconGenDrawLeads())
@@ -1709,6 +1714,8 @@ public class CircuitChanges
 		if (User.isIconGenDrawLeads())
 		{
 			pinType = wireType.findPinProto();
+			if (pinType == Schematics.tech.busPinNode)
+				pinType = Generic.tech.invisiblePinNode;
 			double wid = pinType.getDefWidth();
 			double hei = pinType.getDefHeight();
 			NodeInst ni = NodeInst.newInstance(pinType, new Point2D.Double(xBBPos, yBBPos), wid, hei, 0, np, null);
@@ -1719,6 +1726,8 @@ public class CircuitChanges
 				ArcInst ai = ArcInst.makeInstance(wireType, wireType.getDefaultWidth(),
 					head, new Point2D.Double(xBBPos, yBBPos),
 					tail, new Point2D.Double(xPos, yPos), null);
+				if (ai != null && wireType == Schematics.tech.bus_arc)
+					ai.clearExtended();
 			}
 		}
 		return true;
@@ -1774,12 +1783,12 @@ public class CircuitChanges
 			super("Duplicate cell " + cell.describe(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.newName = newName;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
 		{
-			Cell dupCell = Cell.copynodeproto(cell, cell.getLibrary(), newName + "{" + cell.getView().getAbbreviation() + "}", false);
+			Cell dupCell = Cell.copyNodeProto(cell, cell.getLibrary(), newName + "{" + cell.getView().getAbbreviation() + "}", false);
 			if (dupCell == null) return;
 
 			// change the display of old cell to the new one
@@ -1815,7 +1824,7 @@ public class CircuitChanges
 			super("Move", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dX = dX;   this.dY = dY;
 			this.wnd = wnd;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -2435,45 +2444,45 @@ public class CircuitChanges
 	/****************************** COPY CELLS ******************************/
 
 	/**
-	 * recursive helper method for "us_copycell" which copies cell "fromnp"
-	 * to a new cell called "toname" in library "tolib" with the new view type
-	 * "toview".  All needed subcells are copied (unless "nosubcells" is true).
+	 * recursive helper method for "us_copycell" which copies cell "fromCell"
+	 * to a new cell called "toName" in library "toLib" with the new view type
+	 * "toView".  All needed subcells are copied (unless "noSubCells" is true).
 	 * All shared view cells referenced by variables are copied too
-	 * (unless "norelatedviews" is true).  If "useexisting" is TRUE, any subcells
+	 * (unless "noRelatedViews" is true).  If "useExisting" is TRUE, any subcells
 	 * that already exist in the destination library will be used there instead of
 	 * creating a cross-library reference.
 	 * If "move" is nonzero, delete the original after copying, and update all
-	 * references to point to the new cell.  If "subdescript" is empty, the operation
+	 * references to point to the new cell.  If "subDescript" is empty, the operation
 	 * is a top-level request.  Otherwise, this is for a subcell, so only create a
 	 * new cell if one with the same name and date doesn't already exists.
 	 */
-	public static Cell copyRecursively(Cell fromnp, String toname, Library tolib,
-		View toview, boolean verbose, boolean move, String subdescript, boolean norelatedviews,
-		boolean nosubcells, boolean useexisting)
+	public static Cell copyRecursively(Cell fromCell, String toName, Library toLib,
+		View toView, boolean verbose, boolean move, String subDescript, boolean noRelatedViews,
+		boolean noSubCells, boolean useExisting)
 	{
-		Date fromnp_creationdate = fromnp.getCreationDate();
-		Date fromnp_revisiondate = fromnp.getRevisionDate();
+		Date fromCellCreationDate = fromCell.getCreationDate();
+		Date fromCellRevisionDate = fromCell.getRevisionDate();
 
 		// see if the cell is already there
-		for(Iterator it = tolib.getCells(); it.hasNext(); )
+		for(Iterator it = toLib.getCells(); it.hasNext(); )
 		{
-			Cell newfromnp = (Cell)it.next();
-			if (!newfromnp.getProtoName().equalsIgnoreCase(toname)) continue;
-			if (newfromnp.getView() != toview) continue;
-			if (!newfromnp.getCreationDate().equals(fromnp.getCreationDate())) continue;
-			if (!newfromnp.getRevisionDate().equals(fromnp.getRevisionDate())) continue;
-			if (subdescript != null) return newfromnp;
+			Cell newFromCell = (Cell)it.next();
+			if (!newFromCell.getProtoName().equalsIgnoreCase(toName)) continue;
+			if (newFromCell.getView() != toView) continue;
+			if (!newFromCell.getCreationDate().equals(fromCell.getCreationDate())) continue;
+			if (!newFromCell.getRevisionDate().equals(fromCell.getRevisionDate())) continue;
+			if (subDescript != null) return newFromCell;
 			break;
 		}
 
 		// copy subcells
-		if (!nosubcells)
+		if (!noSubCells)
 		{
 			boolean found = true;
 			while (found)
 			{
 				found = false;
-				for(Iterator it = fromnp.getNodes(); it.hasNext(); )
+				for(Iterator it = fromCell.getNodes(); it.hasNext(); )
 				{
 					NodeInst ni = (NodeInst)it.next();
 					NodeProto np = ni.getProto();
@@ -2481,16 +2490,16 @@ public class CircuitChanges
 					Cell cell = (Cell)np;
 
 					// allow cross-library references to stay
-					if (cell.getLibrary() != fromnp.getLibrary()) continue;
-					if (cell.getLibrary() == tolib) continue;
+					if (cell.getLibrary() != fromCell.getLibrary()) continue;
+					if (cell.getLibrary() == toLib) continue;
 
 					// see if the cell is already there
-					if (us_indestlib(cell, tolib)) continue;
+					if (us_indestlib(cell, toLib)) continue;
 
 					// copy subcell if not already there
-					Cell onp = copyRecursively(cell, cell.getProtoName(), tolib, cell.getView(),
-						verbose, move, "subcell ", norelatedviews, nosubcells, useexisting);
-					if (onp == null)
+					Cell oNp = copyRecursively(cell, cell.getProtoName(), toLib, cell.getView(),
+						verbose, move, "subcell ", noRelatedViews, noSubCells, useExisting);
+					if (oNp == null)
 					{
 						if (move) System.out.println("Move of subcell " + cell.describe() + " failed"); else
 							System.out.println("Copy of subcell " + cell.describe() + " failed");
@@ -2503,27 +2512,27 @@ public class CircuitChanges
 		}
 
 		// also copy equivalent views
-		if (!norelatedviews)
+		if (!noRelatedViews)
 		{
 			// first copy the icons
 			boolean found = true;
-			Cell fromnpwalk = fromnp;
+			Cell fromCellWalk = fromCell;
 			while (found)
 			{
 				found = false;
-				for(Iterator it = fromnpwalk.getCellGroup().getCells(); it.hasNext(); )
+				for(Iterator it = fromCellWalk.getCellGroup().getCells(); it.hasNext(); )
 				{
 					Cell np = (Cell)it.next();
 					if (np.getView() != View.ICON) continue;
 
 					// see if the cell is already there
-					if (us_indestlib(np, tolib)) continue;
+					if (us_indestlib(np, toLib)) continue;
 
 					// copy equivalent view if not already there
-//					if (move) fromnpwalk = np->nextcellgrp; // if np is moved (i.e. deleted), circular linked list is broken
-					Cell onp = copyRecursively(np, np.getProtoName(), tolib, np.getView(),
-						verbose, move, "alternate view ", true, nosubcells, useexisting);
-					if (onp == null)
+//					if (move) fromCellWalk = np->nextcellgrp; // if np is moved (i.e. deleted), circular linked list is broken
+					Cell oNp = copyRecursively(np, np.getProtoName(), toLib, np.getView(),
+						verbose, move, "alternate view ", true, noSubCells, useExisting);
+					if (oNp == null)
 					{
 						if (move) System.out.println("Move of alternate view " + np.describe() + " failed"); else
 							System.out.println("Copy of alternate view " + np.describe() + " failed");
@@ -2539,19 +2548,19 @@ public class CircuitChanges
 			while (found)
 			{
 				found = false;
-				for(Iterator it = fromnpwalk.getCellGroup().getCells(); it.hasNext(); )
+				for(Iterator it = fromCellWalk.getCellGroup().getCells(); it.hasNext(); )
 				{
 					Cell np = (Cell)it.next();
 					if (np.getView() == View.ICON) continue;
 
 					// see if the cell is already there
-					if (us_indestlib(np, tolib)) continue;
+					if (us_indestlib(np, toLib)) continue;
 
 					// copy equivalent view if not already there
-//					if (move) fromnpwalk = np->nextcellgrp; // if np is moved (i.e. deleted), circular linked list is broken
-					Cell onp = copyRecursively(np, np.getProtoName(), tolib, np.getView(),
-						verbose, move, "alternate view ", true, nosubcells, useexisting);
-					if (onp == null)
+//					if (move) fromCellWalk = np->nextcellgrp; // if np is moved (i.e. deleted), circular linked list is broken
+					Cell oNp = copyRecursively(np, np.getProtoName(), toLib, np.getView(),
+						verbose, move, "alternate view ", true, noSubCells, useExisting);
+					if (oNp == null)
 					{
 						if (move) System.out.println("Move of alternate view " + np.describe() + " failed"); else
 							System.out.println("Copy of alternate view " + np.describe() + " failed");
@@ -2564,48 +2573,48 @@ public class CircuitChanges
 		}
 
 		// see if the cell is NOW there
-		Cell beforenewfromnp = null;
-		Cell newfromnp = null;
-		for(Iterator it = tolib.getCells(); it.hasNext(); )
+		Cell beforeNewFromCell = null;
+		Cell newFromCell = null;
+		for(Iterator it = toLib.getCells(); it.hasNext(); )
 		{
 			Cell thisCell = (Cell)it.next();
-			if (!thisCell.getProtoName().equalsIgnoreCase(toname)) continue;
-			if (thisCell.getView() != toview) continue;
-			if (thisCell.getCreationDate() != fromnp_creationdate) continue;
-			if (!move && thisCell.getRevisionDate() != fromnp_revisiondate) continue; // moving icon of schematic changes schematic's revision date
-			if (subdescript != null) return thisCell;
-			newfromnp = thisCell;
+			if (!thisCell.getProtoName().equalsIgnoreCase(toName)) continue;
+			if (thisCell.getView() != toView) continue;
+			if (thisCell.getCreationDate() != fromCellCreationDate) continue;
+			if (!move && thisCell.getRevisionDate() != fromCellRevisionDate) continue; // moving icon of schematic changes schematic's revision date
+			if (subDescript != null) return thisCell;
+			newFromCell = thisCell;
 			break;
 		}
-		if (beforenewfromnp == newfromnp || newfromnp == null)
+		if (beforeNewFromCell == newFromCell || newFromCell == null)
 		{
 			// copy the cell
-			String newname = toname;
-			if (toview.getAbbreviation().length() > 0)
+			String newName = toName;
+			if (toView.getAbbreviation().length() > 0)
 			{
-				newname = toname + "{" + toview.getAbbreviation() + "}";
+				newName = toName + "{" + toView.getAbbreviation() + "}";
 			}
-			newfromnp = Cell.copynodeproto(fromnp, tolib, newname, useexisting);
-			if (newfromnp == null)
+			newFromCell = Cell.copyNodeProto(fromCell, toLib, newName, useExisting);
+			if (newFromCell == null)
 			{
 				if (move)
 				{
-					System.out.println("Move of " + subdescript + fromnp.describe() + " failed");
+					System.out.println("Move of " + subDescript + fromCell.describe() + " failed");
 				} else
 				{
-					System.out.println("Copy of " + subdescript + fromnp.describe() + " failed");
+					System.out.println("Copy of " + subDescript + fromCell.describe() + " failed");
 				}
 				return null;
 			}
 
 			// ensure that the copied cell is the right size
-//			(*el_curconstraint->solve)(newfromnp);
+//			(*el_curconstraint->solve)(newFromCell);
 
 			// if moving, adjust pointers and kill original cell
 			if (move)
 			{
 				// ensure that the copied cell is the right size
-//				(*el_curconstraint->solve)(newfromnp);
+//				(*el_curconstraint->solve)(newFromCell);
 
 				// clear highlighting if the current node is being replaced
 //				list = us_gethighlighted(WANTNODEINST, 0, 0);
@@ -2613,7 +2622,7 @@ public class CircuitChanges
 //				{
 //					if (!list[i]->entryisnode) continue;
 //					ni = list[i]->entryaddr.ni;
-//					if (ni->proto == fromnp) break;
+//					if (ni->proto == fromCell) break;
 //				}
 //				if (list[i] != NOGEOM) us_clearhighlightcount();
 
@@ -2631,9 +2640,9 @@ public class CircuitChanges
 							for(Iterator nIt = np.getNodes(); nIt.hasNext(); )
 							{
 								NodeInst ni = (NodeInst)nIt.next();
-								if (ni.getProto() == fromnp)
+								if (ni.getProto() == fromCell)
 								{
-									NodeInst replacedNi = ni.replace(newfromnp, false, false);
+									NodeInst replacedNi = ni.replace(newFromCell, false, false);
 									if (replacedNi == null)
 										System.out.println("Error moving node " + ni.describe() + " in cell " + np.describe());
 									found = true;
@@ -2644,28 +2653,28 @@ public class CircuitChanges
 					}
 				}
 //				toolturnoff(net_tool, FALSE);
-				doKillCell(fromnp);
+				doKillCell(fromCell);
 //				toolturnon(net_tool);
-				fromnp = null;
+				fromCell = null;
 			}
 
 			if (verbose)
 			{
-				if (Library.getCurrent() != tolib)
+				if (Library.getCurrent() != toLib)
 				{
 					String msg = "";
 					if (move) msg += "Moved "; else
 						 msg += "Copied ";
-					msg += subdescript + Library.getCurrent().getLibName() + ":" + newfromnp.noLibDescribe() +
-						" to library " + tolib.getLibName();
+					msg += subDescript + Library.getCurrent().getLibName() + ":" + newFromCell.noLibDescribe() +
+						" to library " + toLib.getLibName();
 					System.out.println(msg);
 				} else
 				{
-					System.out.println("Copied " + subdescript + newfromnp.describe());
+					System.out.println("Copied " + subDescript + newFromCell.describe());
 				}
 			}
 		}
-		return newfromnp;
+		return newFromCell;
 	}
 
 	/*
@@ -2675,11 +2684,11 @@ public class CircuitChanges
 	{
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
-			Cell onp = (Cell)it.next();
-			if (!onp.getProtoName().equalsIgnoreCase(np.getProtoName())) continue;
-			if (onp.getView() != np.getView()) continue;
-			if (onp.getCreationDate() != np.getCreationDate()) continue;
-			if (onp.getRevisionDate() != np.getRevisionDate()) continue;
+			Cell oNp = (Cell)it.next();
+			if (!oNp.getProtoName().equalsIgnoreCase(np.getProtoName())) continue;
+			if (oNp.getView() != np.getView()) continue;
+			if (oNp.getCreationDate() != np.getCreationDate()) continue;
+			if (oNp.getRevisionDate() != np.getRevisionDate()) continue;
 			return true;
 		}
 		return false;
@@ -2704,7 +2713,7 @@ public class CircuitChanges
 			this.list = list;
 			this.unExpand = unExpand;
 			this.amount = amount;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -3017,7 +3026,7 @@ public class CircuitChanges
 			{
 				double lambda = 1;
 				TextDescriptor descript = new TextDescriptor(null);
-				var.setDescriptor(descript);
+				var.setTextDescriptor(descript);
 				double dX = descript.getXOff();
 				double dY = descript.getYOff();
 
@@ -3130,7 +3139,7 @@ public class CircuitChanges
 		newVar = ni.newVar(var.getKey(), inheritAddress(np, posVar));
 		if (newVar != null)
 		{
-			newVar.setDescriptor(var.getTextDescriptor());
+			newVar.setTextDescriptor(var.getTextDescriptor());
 			TextDescriptor newDescript = newVar.getTextDescriptor();
 			if (var.isDisplay()) newVar.setDisplay(); else newVar.clearDisplay();
 			if (newDescript.isInterior())

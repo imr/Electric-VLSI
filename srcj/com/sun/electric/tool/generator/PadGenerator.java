@@ -89,7 +89,7 @@ public class PadGenerator
 		{
 			super("Pad Frame Generator", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.filename = file;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()

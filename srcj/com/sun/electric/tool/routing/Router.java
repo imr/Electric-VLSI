@@ -101,7 +101,7 @@ public abstract class Router {
             this.verbose = verbose;
             this.finalRE = finalRE;
             this.cell = cell;
-            this.startJob();
+            startJob();
         }
 
         /** Implemented doIt() method to perform Job */

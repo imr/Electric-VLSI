@@ -436,7 +436,7 @@ public class LayoutText extends javax.swing.JDialog
 		{
 			super("Create Layout Text", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dialog = dialog;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()

@@ -494,7 +494,7 @@ public class GetInfoText extends javax.swing.JDialog
 			super("Modify Text", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.text = text;
 			this.dialog = dialog;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -555,7 +555,7 @@ public class GetInfoText extends javax.swing.JDialog
 					if (newVar != null)
 					{
 						dialog.shownText.setVar(newVar);
-						newVar.setDescriptor(td);
+						newVar.setTextDescriptor(td);
 						if (oldCantSet) newVar.setCantSet();
 						if (oldJava) newVar.setJava();
 						if (oldDisplay) newVar.setDisplay();

@@ -117,7 +117,7 @@ public class MakeCellInstance extends javax.swing.JDialog
 		{
 			super("Create Cell Instance", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dialog = dialog;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -187,8 +187,8 @@ public class MakeCellInstance extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(cancel, gridBagConstraints);
 
         ok.setText("OK");
@@ -203,8 +203,8 @@ public class MakeCellInstance extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(ok, gridBagConstraints);
 
         jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
@@ -221,9 +221,9 @@ public class MakeCellInstance extends javax.swing.JDialog
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(library, gridBagConstraints);
 
         cellPane.setMinimumSize(new java.awt.Dimension(250, 250));

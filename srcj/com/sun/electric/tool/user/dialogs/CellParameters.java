@@ -150,7 +150,7 @@ public class CellParameters extends javax.swing.JDialog
 			super("Delete Parameter from Cell " + dialog.curCell.describe(),
 				User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dialog = dialog;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -185,7 +185,7 @@ public class CellParameters extends javax.swing.JDialog
 		{
 			super((create ? "Create" : "Change") + " Cell Parameter " + dialog.newParameter.getText(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dialog = dialog;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()

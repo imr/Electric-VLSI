@@ -716,7 +716,7 @@ public class Attributes extends javax.swing.JDialog
 		{
 			super("Delete Attribute", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dialog = dialog;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -739,7 +739,7 @@ public class Attributes extends javax.swing.JDialog
 		{
 			super("Change Attribute", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dialog = dialog;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()

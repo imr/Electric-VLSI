@@ -613,7 +613,7 @@ public class PaletteFrame
 				this.panel = panel;
 				this.x = x;
 				this.y = y;
-				this.startJob();
+				startJob();
 			}
 
 			public void doIt()
@@ -1133,7 +1133,7 @@ public class PaletteFrame
 			this.where = where;
 			this.cell = cell;
 			this.isTextNode = isTextNode;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -1169,7 +1169,7 @@ public class PaletteFrame
 				if (var != null)
 				{
 					var.setDisplay();
-					var.setDescriptor(TextDescriptor.newNonLayoutDescriptor(null));
+					var.setTextDescriptor(TextDescriptor.newNonLayoutDescriptor(null));
 					Highlight h = Highlight.addText(newNi, cell, var, null);
 				}
 			} else

@@ -116,7 +116,7 @@ public class ViewControl extends javax.swing.JDialog
 			super("Delete View " + view.getFullName(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.view = view;
 			this.dialog = dialog;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -143,7 +143,7 @@ public class ViewControl extends javax.swing.JDialog
 			this.viewAbbr = viewAbbr;
 			this.isText = isText;
 			this.dialog = dialog;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()

@@ -50,6 +50,8 @@ import javax.swing.text.Document;
  */
 public class NewExport extends javax.swing.JDialog
 {
+	private static String latestCharacteristic;
+
 	/** Creates new form NewExport */
 	public NewExport(java.awt.Frame parent, boolean modal)
 	{
@@ -58,11 +60,14 @@ public class NewExport extends javax.swing.JDialog
 		initComponents();
 
 		// setup the export characteristics popup
+		String last = latestCharacteristic;
 		for(Iterator it = PortProto.Characteristic.getOrderedCharacteristics().iterator(); it.hasNext(); )
 		{
 			PortProto.Characteristic ch = (PortProto.Characteristic)it.next();
 			exportCharacteristics.addItem(ch.getName());
 		}
+		if (last != null)
+			exportCharacteristics.setSelectedItem(last);
 		referenceExport.setEditable(false);
 		exportName.grabFocus();
 	}
@@ -233,8 +238,8 @@ public class NewExport extends javax.swing.JDialog
 
 	private void exportCharacteristicsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_exportCharacteristicsActionPerformed
 	{//GEN-HEADEREND:event_exportCharacteristicsActionPerformed
-		String stringNow = (String)exportCharacteristics.getSelectedItem();
-		PortProto.Characteristic characteristic = PortProto.Characteristic.findCharacteristic(stringNow);
+		latestCharacteristic = (String)exportCharacteristics.getSelectedItem();
+		PortProto.Characteristic characteristic = PortProto.Characteristic.findCharacteristic(latestCharacteristic);
 		referenceExport.setEditable(characteristic.isReference());
 	}//GEN-LAST:event_exportCharacteristicsActionPerformed
 
@@ -315,7 +320,7 @@ public class NewExport extends javax.swing.JDialog
 			this.drawn = drawn;
 			this.ch = ch;
 			this.referenceName = referenceName;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()

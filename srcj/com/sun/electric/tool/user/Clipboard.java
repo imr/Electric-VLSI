@@ -160,7 +160,7 @@ public class Clipboard
 		protected CopyObjects()
 		{
 			super("Copy", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -196,7 +196,7 @@ public class Clipboard
 		protected CutObjects()
 		{
 			super("Cut", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -319,7 +319,7 @@ public class Clipboard
 			super("Paste Arc to Arc", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.src = src;
 			this.dst = dst;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -338,7 +338,7 @@ public class Clipboard
 			super("Paste Node to Node", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.src = src;
 			this.dst = dst;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -359,7 +359,7 @@ public class Clipboard
 			this.pasteList = pasteList;
 			this.dX = dX;
 			this.dY = dY;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -798,7 +798,7 @@ public class Clipboard
 			Variable.Key key = srcVar.getKey();
 			Variable destVar = destArc.newVar(key, srcVar.getObject());
 			if (destVar != null)
-				destVar.setDescriptor(srcVar.getTextDescriptor());
+				destVar.setTextDescriptor(srcVar.getTextDescriptor());
 		}
 
 		// make sure the constraints and other userbits are the same

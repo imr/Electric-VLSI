@@ -325,7 +325,7 @@ public class GetInfoExport extends javax.swing.JDialog
 			super("Modify Export", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.pp = pp;
 			this.dialog = dialog;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()

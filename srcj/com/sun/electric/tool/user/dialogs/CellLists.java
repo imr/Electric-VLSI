@@ -178,7 +178,7 @@ public class CellLists extends javax.swing.JDialog
 		if (cell.getView().isTextView())
 		{
 			int len = 0;
-			Variable var = cell.getVar("FACET_message");
+			Variable var = cell.getVar(Cell.CELL_TEXT_KEY);
 			if (var != null) len = var.getLength();
 			if (maxlen < 0) line += len + " lines"; else
 			{

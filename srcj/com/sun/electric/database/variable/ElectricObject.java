@@ -394,7 +394,7 @@ public class ElectricObject
 			if (newVar != null)
 			{
 				newVar.copyFlags(var);
-				newVar.setDescriptor(td);
+				newVar.setTextDescriptor(td);
 			}
 		}
 

@@ -48,6 +48,7 @@ import com.sun.electric.tool.generator.PadGenerator;
 import com.sun.electric.tool.io.Input;
 import com.sun.electric.tool.io.Output;
 import com.sun.electric.tool.io.OutputPostScript;
+import com.sun.electric.tool.io.OutputVerilog;
 import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.routing.AutoStitch;
@@ -564,11 +565,29 @@ public final class MenuCommands
 		toolMenu.add(spiceSimulationSubMenu);
 		spiceSimulationSubMenu.addMenuItem("Write SPICE Deck...", null, 
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Spice.writeSpiceDeck(); }});
+		spiceSimulationSubMenu.addSeparator();
+		spiceSimulationSubMenu.addMenuItem("Set Generic SPICE Template", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_TEMPLATE_KEY); }});
+		spiceSimulationSubMenu.addMenuItem("Set SPICE 2 Template", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_2_TEMPLATE_KEY); }});
+		spiceSimulationSubMenu.addMenuItem("Set SPICE 3 Template", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_3_TEMPLATE_KEY); }});
+		spiceSimulationSubMenu.addMenuItem("Set HSPICE Template", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_H_TEMPLATE_KEY); }});
+		spiceSimulationSubMenu.addMenuItem("Set PSPICE Template", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_P_TEMPLATE_KEY); }});
+		spiceSimulationSubMenu.addMenuItem("Set GnuCap Template", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_GC_TEMPLATE_KEY); }});
+		spiceSimulationSubMenu.addMenuItem("Set SmartSPICE Template", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_SM_TEMPLATE_KEY); }});
 
 		Menu verilogSimulationSubMenu = Menu.createMenu("Simulation (Verilog)", 'V');
 		toolMenu.add(verilogSimulationSubMenu);
 		verilogSimulationSubMenu.addMenuItem("Write Verilog Deck...", null, 
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(Output.ExportType.VERILOG, OpenFile.VERILOG); } });
+		verilogSimulationSubMenu.addSeparator();
+		verilogSimulationSubMenu.addMenuItem("Set Verilog Template", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(OutputVerilog.VERILOG_TEMPLATE_KEY); }});
 
 		Menu netlisters = Menu.createMenu("Simulation (others)");
 		netlisters.addMenuItem("Write IRSIM Netlist", null,
@@ -620,12 +639,16 @@ public final class MenuCommands
 			helpMenu.addMenuItem("About Electric...", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { aboutCommand(); } });
 		}
+		helpMenu.addSeparator();
 		helpMenu.addMenuItem("Check and Repair Libraries...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { checkAndRepairCommand(); } });
 		helpMenu.addMenuItem("Show Undo List", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); } });
+		helpMenu.addSeparator();
 		helpMenu.addMenuItem("Make fake circuitry...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeCircuitryCommand(); } });
+//		helpMenu.addMenuItem("Whit Diffie's design...", null,
+//			new ActionListener() { public void actionPerformed(ActionEvent e) { whitDiffieCommand(); } });
 
 		/****************************** Russell's TEST MENU ******************************/
 
@@ -719,7 +742,7 @@ public final class MenuCommands
 		{
 			super("Read Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.fileURL = fileURL;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -771,7 +794,7 @@ public final class MenuCommands
 		{
 			super("Read Text Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.fileURL = fileURL;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -844,7 +867,7 @@ public final class MenuCommands
 		{
 			super("Write Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.lib = lib;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -914,7 +937,7 @@ public final class MenuCommands
 			this.cell = cell;
 			this.filePath = filePath;
 			this.type = type;
-			this.startJob();
+			startJob();
 		}
 		
 		public void doIt() 
@@ -982,7 +1005,7 @@ public final class MenuCommands
 			super("Print "+cell.describe(), User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.pj = pj;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt() 
@@ -1094,7 +1117,7 @@ public final class MenuCommands
 		protected UndoCommand()
 		{
 			super("Undo", User.tool, Job.Type.UNDO, Undo.upCell(false), null, Job.Priority.USER);
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -1114,7 +1137,7 @@ public final class MenuCommands
 		protected RedoCommand()
 		{
 			super("Redo", User.tool, Job.Type.UNDO, Undo.upCell(true), null, Job.Priority.USER);
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -2060,6 +2083,48 @@ public final class MenuCommands
 		IRSIMTool.tool.netlistCell(curEdit.getCell(), curEdit.getVarContext(), curEdit);
 	}		
 
+	/**
+	 * Method to create a new template in the current cell.
+	 * Templates can be for SPICE or Verilog, depending on the Variable name.
+	 * @param templateName the name of the variable to create.
+	 */
+	public static void makeTemplate(Variable.Key templateKey)
+	{
+		MakeTemplate job = new MakeTemplate(templateKey);
+	}
+
+	protected static class MakeTemplate extends Job
+	{
+		private Variable.Key templateKey;
+
+		protected MakeTemplate(Variable.Key templateKey)
+		{
+			super("Make template", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.templateKey = templateKey;
+			startJob();
+		}
+
+		public void doIt()
+		{
+			Cell cell = Library.needCurCell();
+			if (cell == null) return;
+			Variable templateVar = cell.getVar(templateKey);
+			if (templateVar != null)
+			{
+				System.out.println("This cell already has a template");
+				return;
+			}
+			templateVar = cell.newVar(templateKey, "*Undefined");
+			if (templateVar != null)
+			{
+				templateVar.setDisplay();
+				TextDescriptor td = templateVar.getTextDescriptor();
+				td.setInterior();
+				td.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
+			}
+		}
+	}
+
 	public static void padFrameGeneratorCommand()
 	{
 		PadGenerator gen = new PadGenerator();
@@ -2127,7 +2192,7 @@ public final class MenuCommands
 		protected MakeFakeCircuitry()
 		{
 			super("Make fake circuitry", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -2437,6 +2502,81 @@ public final class MenuCommands
 		ReadBinaryLibrary job = new ReadBinaryLibrary(url);
 //		OpenBinLibraryThread oThread = new OpenBinLibraryThread("/export/gainsley/soesrc_java/test/purpleFour.elib");
 //		oThread.start();
+	}
+
+	public static void whitDiffieCommand()
+	{
+		MakeWhitDesign job = new MakeWhitDesign();
+	}
+
+	protected static class MakeWhitDesign extends Job
+	{
+		protected MakeWhitDesign()
+		{
+			super("Make Whit design", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			startJob();
+		}
+
+		public void doIt()
+		{
+			String [] theStrings =
+			{
+				"a1f0f1k0p0", "a2f1f2k1p1", "a3f2f3k2p2", "a0a4f0f3f4k3p3", "a0a5f0f4f5k4p4", "a6f5f6k5p5", "a0a7f0f6f7k6p6", "a0f0f7k7p7",
+				"a0f1k0k1p0", "a1f2k1k2p1", "a2f3k2k3p2", "a3f0f4k0k3k4p3", "a4f0f5k0k4k5p4", "a5f6k5k6p5", "a6f0f7k0k6k7p6", "a7f0k0k7p7",
+				"a0f0k1p0p1", "a1f1k2p1p2", "a2f2k3p2p3", "a3f3k0k4p0p3p4", "a4f4k0k5p0p4p5", "a5f5k6p5p6", "a6f6k0k7p0p6p7", "a7f7k0p0p7",
+				"a0a1f0k0p1", "a1a2f1k1p2", "a2a3f2k2p3", "a0a3a4f3k3p0p4", "a0a4a5f4k4p0p5", "a5a6f5k5p6", "a0a6a7f6k6p0p7", "a0a7f7k7p0",
+				"b1g0g1l0m0", "b2g1g2l1m1", "b3g2g3l2m2", "b0b4g0g3g4l3m3", "b0b5g0g4g5l4m4", "b6g5g6l5m5", "b0b7g0g6g7l6m6", "b0g0g7l7m7",
+				"b0g1l0l1m0", "b1g2l1l2m1", "b2g3l2l3m2", "b3g0g4l0l3l4m3", "b4g0g5l0l4l5m4", "b5g6l5l6m5", "b6g0g7l0l6l7m6", "b7g0l0l7m7",
+				"b0g0l1m0m1", "b1g1l2m1m2", "b2g2l3m2m3", "b3g3l0l4m0m3m4", "b4g4l0l5m0m4m5", "b5g5l6m5m6", "b6g6l0l7m0m6m7", "b7g7l0m0m7",
+				"b0b1g0l0m1", "b1b2g1l1m2", "b2b3g2l2m3", "b0b3b4g3l3m0m4", "b0b4b5g4l4m0m5", "b5b6g5l5m6", "b0b6b7g6l6m0m7", "b0b7g7l7m0",
+				"c1h0h1i0n0", "c2h1h2i1n1", "c3h2h3i2n2", "c0c4h0h3h4i3n3", "c0c5h0h4h5i4n4", "c6h5h6i5n5", "c0c7h0h6h7i6n6", "c0h0h7i7n7",
+				"c0h1i0i1n0", "c1h2i1i2n1", "c2h3i2i3n2", "c3h0h4i0i3i4n3", "c4h0h5i0i4i5n4", "c5h6i5i6n5", "c6h0h7i0i6i7n6", "c7h0i0i7n7",
+				"c0h0i1n0n1", "c1h1i2n1n2", "c2h2i3n2n3", "c3h3i0i4n0n3n4", "c4h4i0i5n0n4n5", "c5h5i6n5n6", "c6h6i0i7n0n6n7", "c7h7i0n0n7",
+				"c0c1h0i0n1", "c1c2h1i1n2", "c2c3h2i2n3", "c0c3c4h3i3n0n4", "c0c4c5h4i4n0n5", "c5c6h5i5n6", "c0c6c7h6i6n0n7", "c0c7h7i7n0",
+				"d1e0e1j0o0", "d2e1e2j1o1", "d3e2e3j2o2", "d0d4e0e3e4j3o3", "d0d5e0e4e5j4o4", "d6e5e6j5o5", "d0d7e0e6e7j6o6", "d0e0e7j7o7",
+				"d0e1j0j1o0", "d1e2j1j2o1", "d2e3j2j3o2", "d3e0e4j0j3j4o3", "d4e0e5j0j4j5o4", "d5e6j5j6o5", "d6e0e7j0j6j7o6", "d7e0j0j7o7",
+				"d0e0j1o0o1", "d1e1j2o1o2", "d2e2j3o2o3", "d3e3j0j4o0o3o4", "d4e4j0j5o0o4o5", "d5e5j6o5o6", "d6e6j0j7o0o6o7", "d7e7j0o0o7",
+				"d0d1e0j0o1", "d1d2e1j1o2", "d2d3e2j2o3", "d0d3d4e3j3o0o4", "d0d4d5e4j4o0o5", "d5d6e5j5o6", "d0d6d7e6j6o0o7", "d0d7e7j7o0"
+			};
+			Cell myCell = Cell.newInstance(Library.getCurrent(), "whit{sch}");
+
+			// create the input and output pins
+			NodeProto pinNp = com.sun.electric.technology.technologies.Generic.tech.universalPinNode;
+			NodeInst [] inputs = new NodeInst[128];
+			NodeInst [] outputs = new NodeInst[128];
+			for(int i=0; i<128; i++)
+			{
+				inputs[i] = NodeInst.newInstance(pinNp, new Point2D.Double(-300.0, i*5), 0, 0, 0, myCell, null);
+				Variable inVar = inputs[i].newVar("label", "Input "+(i+1));
+				inVar.setDisplay();
+				inVar.getTextDescriptor().setPos(TextDescriptor.Position.LEFT);
+				inVar.getTextDescriptor().setRelSize(5);
+				outputs[i] = NodeInst.newInstance(pinNp, new Point2D.Double(300.0, i*5), 0, 0, 0, myCell, null);
+				Variable outVar = outputs[i].newVar("label", "Output "+(i+1));
+				outVar.setDisplay();
+				outVar.getTextDescriptor().setPos(TextDescriptor.Position.RIGHT);
+				outVar.getTextDescriptor().setRelSize(5);
+			}
+
+			// wire them together
+			ArcProto wire = com.sun.electric.technology.technologies.Generic.tech.universal_arc;
+			for(int i=0; i<theStrings.length; i++)
+			{
+				PortInst outPort = outputs[i].getOnlyPortInst();
+				int len = theStrings[i].length();
+				for(int j=0; j<len; j+=2)
+				{
+					char letter = theStrings[i].charAt(j);
+					char number = theStrings[i].charAt(j+1);
+					int index = (letter - 'a')*8 + (number - '0');
+					PortInst inPort = inputs[index].getOnlyPortInst();
+					ArcInst.newInstance(wire, 0, inPort, outPort, null);
+				}
+			}
+
+			// display the drawing
+			WindowFrame.createEditWindow(myCell);
+		}
 	}
 
 }

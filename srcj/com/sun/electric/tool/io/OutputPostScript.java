@@ -90,7 +90,7 @@ public class OutputPostScript extends Output
 	/** number of patterns emitted so far. */							private int psNumPatternsEmitted;
 	/** list of patterns emitted so far. */								private HashMap patternsEmitted;
 	/** current layer number (-1: do all; 0: cleanup). */				private int currentLayer;
-	/** the last color written out. */									private Color lastColor;
+	/** the last color written out. */									private int lastColor;
 	/** true to plot date information in the corner. */					private boolean plotDates;
 	/** matrix from database units to PS units. */						private AffineTransform matrix;
 	/** fake layer for drawing outlines and text. */					private static Layer blackLayer = Layer.newInstance(null, "black",
@@ -404,7 +404,7 @@ public class OutputPostScript extends Output
 	private void scanCircuit()
 	{
 		PSVisitor visitor = makePSVisitor();
-		lastColor = null;
+		lastColor = -1;
 
 		if (psUseColor)
 		{
@@ -485,6 +485,7 @@ public class OutputPostScript extends Output
 		// put out dates if requested
 		if (plotDates)
 		{
+			putPSHeader(HEADERSTRING);
 			printWriter.print("0 " + (int)(2 * CORNERDATESIZE * PSSCALE) + " ");
 			writePSString("Cell: " + cell.describe());
 			printWriter.print(" " + (int)(CORNERDATESIZE * PSSCALE) + " Botleftstring\n");
@@ -714,9 +715,9 @@ public class OutputPostScript extends Output
 		// set color if requested
 		if (psUseColor)
 		{
-			if (!col.equals(lastColor))
+			if (col.getRGB() != lastColor)
 			{
-				lastColor = new Color(col.getRGB());
+				lastColor = col.getRGB();
 				printWriter.print(col.getRed()/255.0f + " " + col.getGreen()/255.0f + " " + col.getBlue()/255.0f + " setrgbcolor\n");
 			}
 		}

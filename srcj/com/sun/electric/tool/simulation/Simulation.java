@@ -24,6 +24,8 @@
 package com.sun.electric.tool.simulation;
 
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.tool.Tool;
 
@@ -38,6 +40,8 @@ public class Simulation extends Tool
 	// ---------------------- private and protected methods -----------------
 
 	/** the Simulation tool. */		public static Simulation tool = new Simulation();
+
+	/** key of Variable holding flag for weak nodes. */		public static final Variable.Key WEAK_NODE_KEY = ElectricObject.newKey("SIM_weak_node");
 
 	/**
 	 * The constructor sets up the Simulation tool.

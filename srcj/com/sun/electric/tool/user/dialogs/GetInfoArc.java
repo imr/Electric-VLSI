@@ -712,7 +712,7 @@ public class GetInfoArc extends javax.swing.JDialog
 			super("Modify Arc", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.ai = ai;
 			this.dialog = dialog;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()

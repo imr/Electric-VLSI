@@ -26,7 +26,7 @@ package com.sun.electric.tool.user.dialogs;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
@@ -215,7 +215,7 @@ public class ToolOptions extends javax.swing.JDialog
 		{
 			super("Apply Tool Options", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dialog = dialog;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -1256,24 +1256,24 @@ public class ToolOptions extends javax.swing.JDialog
 	 */
 	private void initNetwork()
 	{
-		netUnifyPwrGndInitial = JNetwork.isUnifyPowerAndGround();
+		netUnifyPwrGndInitial = Network.isUnifyPowerAndGround();
 		netUnifyPwrGnd.setSelected(netUnifyPwrGndInitial);
 
-		netUnifyLikeNamedNetsInitial = JNetwork.isUnifyLikeNamedNets();
+		netUnifyLikeNamedNetsInitial = Network.isUnifyLikeNamedNets();
 		netUnifyLikeNamedNets.setSelected(netUnifyLikeNamedNetsInitial);
 
-		netIgnoreResistorsInitial = JNetwork.isIgnoreResistors();
+		netIgnoreResistorsInitial = Network.isIgnoreResistors();
 		netIgnoreResistors.setSelected(netIgnoreResistorsInitial);
 
-		netUnificationPrefixInitial = JNetwork.getUnificationPrefix();
+		netUnificationPrefixInitial = Network.getUnificationPrefix();
 		netUnificationPrefix.setText(netUnificationPrefixInitial);
 
-		netBusBaseZeroInitial = JNetwork.isBusBaseZero();
+		netBusBaseZeroInitial = Network.isBusBaseZero();
 		netStartingIndex.addItem("0");
 		netStartingIndex.addItem("1");
 		if (!netBusBaseZeroInitial) netStartingIndex.setSelectedIndex(1);
 
-		netBusAscendingInitial = JNetwork.isBusAscending();
+		netBusAscendingInitial = Network.isBusAscending();
 		if (netBusAscendingInitial) netAscending.setSelected(true); else
 			netDescending.setSelected(true);
 	}
@@ -1281,22 +1281,22 @@ public class ToolOptions extends javax.swing.JDialog
 	private void termNetwork()
 	{
 		boolean nowBoolean = netUnifyPwrGnd.isSelected();
-		if (netUnifyPwrGndInitial != nowBoolean) JNetwork.setUnifyPowerAndGround(nowBoolean);
+		if (netUnifyPwrGndInitial != nowBoolean) Network.setUnifyPowerAndGround(nowBoolean);
 
 		nowBoolean = netUnifyLikeNamedNets.isSelected();
-		if (netUnifyLikeNamedNetsInitial != nowBoolean) JNetwork.setUnifyLikeNamedNets(nowBoolean);
+		if (netUnifyLikeNamedNetsInitial != nowBoolean) Network.setUnifyLikeNamedNets(nowBoolean);
 
 		nowBoolean = netIgnoreResistors.isSelected();
-		if (netIgnoreResistorsInitial != nowBoolean) JNetwork.setIgnoreResistors(nowBoolean);
+		if (netIgnoreResistorsInitial != nowBoolean) Network.setIgnoreResistors(nowBoolean);
 
 		String nowString = netUnificationPrefix.getText();
-		if (!netUnificationPrefixInitial.equals(nowString)) JNetwork.setUnificationPrefix(nowString);
+		if (!netUnificationPrefixInitial.equals(nowString)) Network.setUnificationPrefix(nowString);
 
 		nowBoolean = netStartingIndex.getSelectedIndex() == 0;
-		if (netBusBaseZeroInitial != nowBoolean) JNetwork.setBusBaseZero(nowBoolean);
+		if (netBusBaseZeroInitial != nowBoolean) Network.setBusBaseZero(nowBoolean);
 
 		nowBoolean = netAscending.isSelected();
-		if (netBusAscendingInitial != nowBoolean) JNetwork.setBusAscending(nowBoolean);
+		if (netBusAscendingInitial != nowBoolean) Network.setBusAscending(nowBoolean);
 	}
 
 	//******************************** NCC ********************************

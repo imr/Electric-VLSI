@@ -391,7 +391,7 @@ public class EditOptions extends javax.swing.JDialog
 		{
 			super("Update Primitive Node Info", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dialog = dialog;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -601,7 +601,7 @@ public class EditOptions extends javax.swing.JDialog
 		{
 			super("Update Primitive Arc Info", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dialog = dialog;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -1213,7 +1213,7 @@ public class EditOptions extends javax.swing.JDialog
 		{
 			super("Update Technology Info", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dialog = dialog;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()

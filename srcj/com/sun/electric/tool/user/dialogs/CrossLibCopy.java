@@ -275,6 +275,7 @@ public class CrossLibCopy extends javax.swing.JDialog
 			this.fromCell = fromCell;
 			this.toLibrary = toLibrary;
 			this.dialog = dialog;
+			startJob();
 		}
 
 		public void doIt()

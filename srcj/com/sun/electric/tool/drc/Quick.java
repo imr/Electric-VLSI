@@ -387,7 +387,7 @@ public class Quick
 		{
 			super("Remember DRC Successes", DRC.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.goodDRCDate = goodDRCDate;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()

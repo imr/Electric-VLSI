@@ -336,4 +336,95 @@ public class Network extends Listener
 		if (!debug) return;
 		System.out.println("Network.writeLibrary("+lib+","+pass2+")");
 	}
+
+	/****************************** OPTIONS ******************************/
+
+	private static Tool.Pref cacheUnifyPowerAndGround = Network.tool.makeBooleanPref("UnifyPowerAndGround", false);
+	/**
+	 * Method to tell whether all Power nets are unified and all Ground nets are unified.
+	 * @return true if all Power nets are unified and all Ground nets are unified.
+	 */
+	public static boolean isUnifyPowerAndGround() { return cacheUnifyPowerAndGround.getBoolean(); }
+	/**
+	 * Method to set whether all Power nets are unified and all Ground nets are unified.
+	 * @param u true if all Power nets are unified and all Ground nets are to be unified.
+	 */
+	public static void setUnifyPowerAndGround(boolean u) { cacheUnifyPowerAndGround.setBoolean(u); }
+
+
+	private static Tool.Pref cacheUnifyLikeNamedNets = Network.tool.makeBooleanPref("UnifyLikeNamedNets", false);
+	/**
+	 * Method to tell whether all like-named nets are unified.
+	 * Typically, like-named nets (two networks with the same name) are unified only in a schematic.
+	 * With this option, the unification happens in layout cells as well (not recommended).
+	 * @return true if all like-named nets are unified.
+	 */
+	public static boolean isUnifyLikeNamedNets() { return cacheUnifyLikeNamedNets.getBoolean(); }
+	/**
+	 * Method to set whether all like-named nets are unified.
+	 * Typically, like-named nets (two networks with the same name) are unified only in a schematic.
+	 * With this option, the unification happens in layout cells as well (not recommended).
+	 * @param u true if all like-named nets are unified.
+	 */
+	public static void setUnifyLikeNamedNets(boolean u) { cacheUnifyLikeNamedNets.setBoolean(u); }
+
+	private static Tool.Pref cacheIgnoreResistors = Network.tool.makeBooleanPref("IgnoreResistors", false);
+	/**
+	 * Method to tell whether resistors are ignored in the circuit.
+	 * When ignored, they appear as a "short", connecting the two sides.
+	 * When included, they appear as a component with different networks on either side.
+	 * @return true if resistors are ignored in the circuit.
+	 */
+	public static boolean isIgnoreResistors() { return cacheIgnoreResistors.getBoolean(); }
+	/**
+	 * Method to set whether resistors are ignored in the circuit.
+	 * When ignored, they appear as a "short", connecting the two sides.
+	 * When included, they appear as a component with different networks on either side.
+	 * @param i true if resistors are ignored in the circuit.
+	 */
+	public static void setIgnoreResistors(boolean i) { cacheIgnoreResistors.setBoolean(i); }
+
+	private static Tool.Pref cacheUnificationPrefix = Network.tool.makeStringPref("UnificationPrefix", "");
+	/**
+	 * Method to return the list of unification prefixes.
+	 * Unification prefixes are strings which, when two nets both start with them, cause the networks to be unified.
+	 * For example, the prefix "vdd" would cause networks "vdd_1" and "vdd_dirty" to be unified.
+	 * @return the list of unification prefixes.
+	 */
+	public static String getUnificationPrefix() { return cacheUnificationPrefix.getString(); }
+	/**
+	 * Method to set the list of unification prefixes.
+	 * Unification prefixes are strings which, when two nets both start with them, cause the networks to be unified.
+	 * For example, the prefix "vdd" would cause networks "vdd_1" and "vdd_dirty" to be unified.
+	 * @param p the list of unification prefixes.
+	 */
+	public static void setUnificationPrefix(String p) { cacheUnificationPrefix.setString(p); }
+
+	private static Tool.Pref cacheBusBaseZero = Network.tool.makeBooleanPref("BusBaseZero", false);
+	/**
+	 * Method to tell whether unnamed busses should be zero-based.
+	 * The alternative is 1-based.
+	 * @return true if unnamed busses should be zero-based.
+	 */
+	public static boolean isBusBaseZero() { return cacheBusBaseZero.getBoolean(); }
+	/**
+	 * Method to set whether unnamed busses should be zero-based.
+	 * The alternative is 1-based.
+	 * @param z true if unnamed busses should be zero-based.
+	 */
+	public static void setBusBaseZero(boolean z) { cacheBusBaseZero.setBoolean(z); }
+
+	private static Tool.Pref cacheBusAscending = Network.tool.makeBooleanPref("BusAscending", false);
+	/**
+	 * Method to tell whether unnamed busses should be numbered ascending.
+	 * The alternative is descending.
+	 * @return true if unnamed busses should be numbered ascending.
+	 */
+	public static boolean isBusAscending() { return cacheBusBaseZero.getBoolean(); }
+	/**
+	 * Method to set whether unnamed busses should be numbered ascending.
+	 * The alternative is descending.
+	 * @param a true if unnamed busses should be numbered ascending.
+	 */
+	public static void setBusAscending(boolean a) { cacheBusBaseZero.setBoolean(a); }
 }

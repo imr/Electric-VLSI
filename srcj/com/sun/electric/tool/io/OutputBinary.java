@@ -453,7 +453,7 @@ public class OutputBinary extends Output
 						Variable newVar = ni.newVar(newVarName, var.getObject());
 						if (var.isDisplay()) newVar.setDisplay();
 						if (var.isJava()) newVar.setJava();
-						newVar.setDescriptor(var.getTextDescriptor());
+						newVar.setTextDescriptor(var.getTextDescriptor());
 					}
 				}
 			}

@@ -199,7 +199,7 @@ public class DRC extends Tool
 			super("Design-Rule Check", tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.justArea = justArea;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -616,7 +616,7 @@ public class DRC extends Tool
 		{
 			super("Update Design Rules", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.newRules = newRules;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()

@@ -273,7 +273,7 @@ public class NewCell extends javax.swing.JDialog
 			this.lib = lib;
 			this.cellName = cellName;
 			this.newWindow = newWindow;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()

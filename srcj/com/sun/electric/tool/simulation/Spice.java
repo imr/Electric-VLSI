@@ -23,6 +23,8 @@
  */
 package com.sun.electric.tool.simulation;
 
+import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.simulation.Simulation;
@@ -35,6 +37,14 @@ import com.sun.electric.tool.user.ui.TopLevel;
  */
 public class Spice
 {
+	/** key of Variable holding generic Spice templates. */		public static final Variable.Key SPICE_TEMPLATE_KEY = ElectricObject.newKey("ATTR_SPICE_template");
+	/** key of Variable holding Spice 2 templates. */			public static final Variable.Key SPICE_2_TEMPLATE_KEY = ElectricObject.newKey("ATTR_SPICE_template_spice2");
+	/** key of Variable holding Spice 3 templates. */			public static final Variable.Key SPICE_3_TEMPLATE_KEY = ElectricObject.newKey("ATTR_SPICE_template_spice3");
+	/** key of Variable holding HSpice templates. */			public static final Variable.Key SPICE_H_TEMPLATE_KEY = ElectricObject.newKey("ATTR_SPICE_template_hspice");
+	/** key of Variable holding PSpice templates. */			public static final Variable.Key SPICE_P_TEMPLATE_KEY = ElectricObject.newKey("ATTR_SPICE_template_pspice");
+	/** key of Variable holding GnuCap templates. */			public static final Variable.Key SPICE_GC_TEMPLATE_KEY = ElectricObject.newKey("ATTR_SPICE_template_gnucap");
+	/** key of Variable holding Smart Spice templates. */		public static final Variable.Key SPICE_SM_TEMPLATE_KEY = ElectricObject.newKey("ATTR_SPICE_template_smartspice");
+
 	public static void writeSpiceDeck()
 	{
 		EditWindow wnd = EditWindow.getCurrent();
@@ -58,7 +68,7 @@ public class Spice
 		{
 			super("Write Spice Deck", Simulation.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.fileName = fileName;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()

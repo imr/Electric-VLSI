@@ -66,6 +66,7 @@ import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferInt;
 import java.awt.image.DataBufferByte;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Iterator;
 import javax.swing.JPanel;
 
@@ -398,7 +399,8 @@ public class PixelDrawing
 				for(int x=0; x<sz.width; x++)
 				{
 					int index = baseIndex + x;
-					if (opaqueData[index] == backgroundValue)
+					int pixelValue = opaqueData[index];
+					if (pixelValue == backgroundValue)
 					{
 						int bits = 0;
 						int entry = x >> 3;
@@ -410,14 +412,29 @@ public class PixelDrawing
 							if ((byt & maskBit) != 0) bits |= (1<<i);
 						}
 
+						int newColor = backgroundColor;
 						if (bits != 0)
 						{
 							// set a transparent color
-							opaqueData[index] = colorMap[bits].getRGB();
-						} else
+							newColor = colorMap[bits].getRGB();
+						}
+						opaqueData[index] = newColor;
+					} else
+					{
+						if ((pixelValue&0xFF000000) != 0)
 						{
-							// set the background color
-							opaqueData[index] = backgroundColor;
+							int alpha = (pixelValue >> 24) & 0xFF;
+							int red = (pixelValue >> 16) & 0xFF;
+							int green = (pixelValue >> 8) & 0xFF;
+							int blue = pixelValue & 0xFF;
+							int inverseAlpha = 254 - alpha;
+							int redBack = (backgroundColor >> 16) & 0xFF;
+							int greenBack = (backgroundColor >> 8) & 0xFF;
+							int blueBack = backgroundColor & 0xFF;
+							red = ((red * alpha) + (redBack * inverseAlpha)) / 255;
+							green = ((green * alpha) + (greenBack * inverseAlpha)) / 255;
+							blue = ((blue * alpha) + (blueBack * inverseAlpha)) / 255;
+							opaqueData[index] = (red << 16) | (green << 8) + blue;
 						}
 					}
 				}
@@ -426,7 +443,27 @@ public class PixelDrawing
 		{
 			// nothing in transparent layers: make sure background color is right
 			for(int i=0; i<total; i++)
-				if (opaqueData[i] == backgroundValue) opaqueData[i] = backgroundColor;
+			{
+				int pixelValue = opaqueData[i];
+				if (pixelValue == backgroundValue) opaqueData[i] = backgroundColor; else
+				{
+					if ((pixelValue&0xFF000000) != 0)
+					{
+						int alpha = (pixelValue >> 24) & 0xFF;
+						int red = (pixelValue >> 16) & 0xFF;
+						int green = (pixelValue >> 8) & 0xFF;
+						int blue = pixelValue & 0xFF;
+						int inverseAlpha = 254 - alpha;
+						int redBack = (backgroundColor >> 16) & 0xFF;
+						int greenBack = (backgroundColor >> 8) & 0xFF;
+						int blueBack = backgroundColor & 0xFF;
+						red = ((red * alpha) + (redBack * inverseAlpha)) / 255;
+						green = ((green * alpha) + (greenBack * inverseAlpha)) / 255;
+						blue = ((blue * alpha) + (blueBack * inverseAlpha)) / 255;
+						opaqueData[i] = (red << 16) | (green << 8) + blue;
+					}
+				}
+			}
 		}
 		return img;
 	}
@@ -1806,8 +1843,10 @@ public class PixelDrawing
 						if (sampleValue == 0) continue;
 						if (layerBitMap == null)
 						{
-							sampleValue = 255 - sampleValue;
-							opaqueData[baseIndex + trueX] = (sampleValue << 16) | (sampleValue << 8) | sampleValue;
+							int color = col;
+							if (sampleValue < 255)
+								color = (color & 0xFFFFFF) | (sampleValue << 24);
+							opaqueData[baseIndex + trueX] = color;
 						} else
 						{
 							if (sampleValue >= 128) row[trueX>>3] |= (1 << (trueX&7));
@@ -1836,8 +1875,10 @@ public class PixelDrawing
 						if (sampleValue == 0) continue;
 						if (layerBitMap == null)
 						{
-							sampleValue = 255 - sampleValue;
-							opaqueData[baseIndex + trueX] = (sampleValue << 16) | (sampleValue << 8) | sampleValue;
+							int color = col;
+							if (sampleValue < 255)
+								color = (color & 0xFFFFFF) | (sampleValue << 24);
+							opaqueData[baseIndex + trueX] = color;
 						} else
 						{
 							if (sampleValue >= 128) row[trueX>>3] |= (1 << (trueX&7));
@@ -1869,8 +1910,10 @@ public class PixelDrawing
 						if (sampleValue == 0) continue;
 						if (layerBitMap == null)
 						{
-							sampleValue = 255 - sampleValue;
-							opaqueData[baseIndex + trueX] = (sampleValue << 16) | (sampleValue << 8) | sampleValue;
+							int color = col;
+							if (sampleValue < 255)
+								color = (color & 0xFFFFFF) | (sampleValue << 24);
+							opaqueData[baseIndex + trueX] = color;
 						} else
 						{
 							if (sampleValue >= 128) row[trueX>>3] |= (1 << (trueX&7));
@@ -1899,8 +1942,10 @@ public class PixelDrawing
 						if (sampleValue == 0) continue;
 						if (layerBitMap == null)
 						{
-							sampleValue = 255 - sampleValue;
-							opaqueData[baseIndex + trueX] = (sampleValue << 16) | (sampleValue << 8) | sampleValue;
+							int color = col;
+							if (sampleValue < 255)
+								color = (color & 0xFFFFFF) | (sampleValue << 24);
+							opaqueData[baseIndex + trueX] = color;
 						} else
 						{
 							if (sampleValue >= 128) row[trueX>>3] |= (1 << (trueX&7));
@@ -2016,7 +2061,7 @@ public class PixelDrawing
 		}
 
 		// convert the text to a GlyphVector
-		FontRenderContext frc = new FontRenderContext(null, false, false);
+		FontRenderContext frc = new FontRenderContext(null, true, false);
 		GlyphVector gv = theFont.createGlyphVector(frc, msg);
 		java.awt.font.LineMetrics lm = theFont.getLineMetrics(msg, frc);
 
@@ -2035,7 +2080,7 @@ public class PixelDrawing
 				if (theFont != null)
 				{
 					// convert the text to a GlyphVector
-					frc = new FontRenderContext(null, false, false);
+					frc = new FontRenderContext(null, true, false);
 					gv = theFont.createGlyphVector(frc, msg);
 					lm = theFont.getLineMetrics(msg, frc);
 					rect = gv.getPixelBounds(frc, 0, 0);
@@ -2049,6 +2094,7 @@ public class PixelDrawing
 
 		// now render it
 		Graphics2D g2 = (Graphics2D)textImage.getGraphics();
+
 		g2.setColor(new Color(255,255,255));
 		g2.drawGlyphVector(gv, (float)-rect.x, (float)(lm.getAscent()-lm.getLeading()));
 		if (underline)

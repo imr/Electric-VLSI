@@ -467,7 +467,7 @@ public class Variable
 	 * The TextDescriptor gives information for displaying the Variable.
 	 * @param descriptor the new TextDescriptor on this Variable.
 	 */
-	public void setDescriptor(TextDescriptor descriptor) { this.descriptor.copy(descriptor); }
+	public void setTextDescriptor(TextDescriptor descriptor) { this.descriptor.copy(descriptor); }
 
 	/**
 	 * Low-level method to get the type bits.

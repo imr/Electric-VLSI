@@ -209,7 +209,7 @@ public class StatusBar extends JPanel
 			if (cell.getView().isTextView())
 			{
 				int len = 0;
-				Variable var = cell.getVar("FACET_message");
+				Variable var = cell.getVar(Cell.CELL_TEXT_KEY);
 				if (var != null) len = var.getLength();
 				sizeMsg = "LINES: " + len;
 			} else

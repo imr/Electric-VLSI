@@ -383,7 +383,7 @@ public class GetInfoMulti extends javax.swing.JDialog
 		{
 			super("Modify Objects", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dialog = dialog;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()

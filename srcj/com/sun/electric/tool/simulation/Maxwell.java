@@ -79,7 +79,7 @@ public class Maxwell
 		{
 			super("Maxwell Simulation", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			nodeProto = np;
-			this.startJob();			
+			startJob();			
 		}
 		
 		public void doIt()

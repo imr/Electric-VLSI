@@ -238,7 +238,7 @@ public class MimicStitch
 		{
 			super("Mimic-Unstitch", Routing.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.arcKills = arcKills;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -332,7 +332,7 @@ public class MimicStitch
 			this.prefX = prefX;
 			this.prefY = prefY;
 			this.forced = forced;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()

@@ -319,7 +319,7 @@ class OutlineListener
 			this.listener = listener;
 			this.newPoints = newPoints;
 			this.newPoint = newPoint;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()

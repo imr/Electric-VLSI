@@ -694,7 +694,7 @@ public class GetInfoNode extends javax.swing.JDialog
 			super("Modify Node", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.ni = ni;
 			this.dialog = dialog;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -808,7 +808,13 @@ public class GetInfoNode extends javax.swing.JDialog
 				String currentTextField = dialog.textField.getText();
 				if (!currentTextField.equals(dialog.initialTextField))
 				{
-					ni.newVar("SCHEM_global_name", currentTextField);
+					Variable oldVar = ni.getVar("SCHEM_global_name");
+					Variable var = ni.newVar("SCHEM_global_name", currentTextField);
+					if (var != null)
+					{
+						var.setDisplay();
+						if (oldVar != null) var.setTextDescriptor(oldVar.getTextDescriptor());
+					}
 					dialog.initialTextField = currentTextField;
 					changed = true;
 				}

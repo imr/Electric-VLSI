@@ -276,6 +276,7 @@ public class Cell extends NodeProto
 	/** Length of base name for autonaming. */						private static final int ABBREVLEN = 8;
 	/** zero rectangle */											private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
 	public static final Variable.Key CHARACTERISTIC_SPACING = ElectricObject.newKey("FACET_characteristic_spacing");
+	/** key of Variable holding text cell contents. */				public static final Variable.Key CELL_TEXT_KEY = ElectricObject.newKey("FACET_message");
 
 	/** The CellGroup this Cell belongs to. */						private CellGroup cellGroup;
 	/** The VersionGroup this Cell belongs to. */					private VersionGroup versionGroup;
@@ -407,7 +408,7 @@ public class Cell extends NodeProto
 	 */
 	public Cell makeNewVersion()
 	{
-		Cell newVersion = Cell.copynodeproto(this, lib, noLibDescribe(), false);
+		Cell newVersion = Cell.copyNodeProto(this, lib, noLibDescribe(), false);
 		return newVersion;
 	}
 
@@ -434,7 +435,7 @@ public class Cell extends NodeProto
 	 * @param useExisting true to use existing Cell instances if they exist in the destination Library.
 	 * @return the new Cell in the destination Library.
 	 */
-	public static Cell copynodeproto(Cell fromCell, Library toLib, String toName, boolean useExisting)
+	public static Cell copyNodeProto(Cell fromCell, Library toLib, String toName, boolean useExisting)
 	{
 		// check for validity
 		if (fromCell == null) return null;

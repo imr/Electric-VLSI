@@ -467,7 +467,7 @@ public final class ExportChanges
 			this.cell = cell;
 			this.bounds = bounds;
 			this.pAndG = pAndG;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()
@@ -646,7 +646,7 @@ public final class ExportChanges
 		{
 			super("Delete exports", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.exportsToDelete = exportsToDelete;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()

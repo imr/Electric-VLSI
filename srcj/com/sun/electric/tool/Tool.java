@@ -423,7 +423,7 @@ public class Tool extends ElectricObject
 			this.obj = obj;
 			this.key = key;
 			this.newVal = newVal;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()

@@ -437,7 +437,7 @@ public class WiringListener
 			super("Wiring", User.tool, Job.Type.CHANGE, cell, null, Job.Priority.USER);
 			this.wpList = wpList;
 			this.cell = cell;
-			this.startJob();
+			startJob();
 		}
 
 		public void doIt()

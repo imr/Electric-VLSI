@@ -1167,7 +1167,8 @@ public class InputBinary extends InputLibrary
 			InputLibrary reader = this;
 			if (subCell.getLibrary() != lib)
 			{
-				reader = getReaderForLib(subCell.getLibrary());
+				InputLibrary properReader = getReaderForLib(subCell.getLibrary());
+				if (properReader != null) reader = properReader;
 			}
 			int subCellIndex = subCell.getTempInt();
 			double subLambda = reader.cellLambda[subCellIndex];
@@ -1297,7 +1298,7 @@ public class InputBinary extends InputLibrary
 								{
 									if (origVar.isDisplay()) var.setDisplay();
 									if (origVar.isJava()) var.setJava();
-									var.setDescriptor(origVar.getTextDescriptor());									
+									var.setTextDescriptor(origVar.getTextDescriptor());									
 								}
 								ni.delVar(origVarKey);
 								found = true;
@@ -2369,7 +2370,7 @@ public class InputBinary extends InputLibrary
 				Variable.Key varKey = realKey[key];
 				Variable var = obj.newVar(varKey, newAddr);
 				if (var == null) return(-1);
-				var.setDescriptor(new TextDescriptor(null, descript0, descript1));
+				var.setTextDescriptor(new TextDescriptor(null, descript0, descript1));
 				var.lowLevelSetFlags(newtype);
 
 				// handle updating of technology caches
