@@ -255,11 +255,13 @@ public class ElectricObject
 		if (oldVar != null)
 		{
 			lowLevelUnlinkVar(oldVar);
-			Undo.killVariable(this, oldVar);
+			if (inDatabase())
+				Undo.killVariable(this, oldVar);
 		}
 		Variable v = new Variable(this, value, TextDescriptor.newNodeArcDescriptor(null), key);
 		lowLevelLinkVar(v);
-		Undo.newVariable(this, v);
+		if (inDatabase())
+			Undo.newVariable(this, v);
 		return v;
 	}
 
@@ -274,7 +276,8 @@ public class ElectricObject
 		Variable v = getVar(key);
 		if (v == null) return;
 		lowLevelUnlinkVar(v);
-		Undo.killVariable(this, v);
+		if (inDatabase())
+			Undo.killVariable(this, v);
 	}
 
 	/**
@@ -312,7 +315,8 @@ public class ElectricObject
 			Object[] arr = (Object[])addr;
 			Object oldVal = arr[index];
 			arr[index] = value;
-			Undo.modifyVariable(this, v, index, oldVal);
+			if (inDatabase())
+				Undo.modifyVariable(this, v, index, oldVal);
 		}
 	}
 
@@ -331,7 +335,8 @@ public class ElectricObject
 		if (addr instanceof Object[])
 		{
 			v.lowLevelInsert(index, value);
-			Undo.insertVariable(this, v, index);
+			if (inDatabase())
+				Undo.insertVariable(this, v, index);
 		}
 	}
 
@@ -350,7 +355,8 @@ public class ElectricObject
 		{
 			Object oldVal = ((Object[])addr)[index];
 			v.lowLevelDelete(index);
-			Undo.deleteVariable(this, v, index, oldVal);
+			if (inDatabase())
+				Undo.deleteVariable(this, v, index, oldVal);
 		}
 	}
 
@@ -609,10 +615,10 @@ public class ElectricObject
 
 	/**
 	 * Routine which indicates that this object is in database.
-	 * Some objects are not in database, for example NodeInsts in PaletteFrame.
+	 * Some objects are not in database, for example Geometrics in PaletteFrame.
 	 * @return true if this object is in database.
 	 */
-	public boolean inDatabase() { return true; }
+	protected boolean inDatabase() { return true; }
 
 	/**
 	 * Routine to return the Key object for a given Variable name.

@@ -170,8 +170,7 @@ public class NodeInst extends Geometric implements Nodable
 		if (ni.lowLevelLink()) return null;
 
 		// handle change control, constraint, and broadcast
-		if (ni.inDatabase())
-			Undo.newObject(ni);
+		Undo.newObject(ni);
 		return ni;
 	}
 
@@ -198,8 +197,7 @@ public class NodeInst extends Geometric implements Nodable
 		lowLevelUnlink();
 
 		// handle change control, constraint, and broadcast
-		if (inDatabase())
-			Undo.killObject(this);
+		Undo.killObject(this);
 	}
 
 	/**
@@ -694,13 +692,6 @@ public class NodeInst extends Geometric implements Nodable
 	 * @param index an index of this PortProto in NodeProto ports.
 	 */
 	public void lowLevelSetIndex(int index) { setIndex(index); }
-
-	/**
-	 * Routine which indicates that this object is in database.
-	 * Some objects are not in database, for example NodeInsts in PaletteFrame.
-	 * @return true if this object is in database.
-	 */
-	public boolean inDatabase() { return parent != null; }
 
 	/****************************** GRAPHICS ******************************/
 

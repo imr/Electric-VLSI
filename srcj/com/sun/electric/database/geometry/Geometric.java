@@ -821,6 +821,13 @@ public class Geometric extends ElectricObject
 	 */
 	public Cell whichCell() { return parent; }
 
+	/**
+	 * Routine which indicates that this object is in database.
+	 * Some objects are not in database, for example Geometrics in PaletteFrame.
+	 * @return true if this object is in database.
+	 */
+	protected boolean inDatabase() { return parent != null; }
+
 	/*
 	 * Routine to write a description of this Geometric.
 	 * Displays the description in the Messages Window.
