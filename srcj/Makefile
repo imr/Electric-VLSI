@@ -39,12 +39,12 @@ JAVAPURESRC = \
 JAVA_SRCS = $(JAVAPURESRC:%=com/sun/electric/%)
 JAVA_OBJS = $(JAVA_SRCS:%.java=%.class)
 
-all: electric.jar
-	java -classpath .:$(BEANSHELLLOC) com/sun/electric/user/Electric
-
 electric.jar:
 	javac $(JAVAFLAGS) $(JAVA_SRCS)
-	jar -cf electric.jar $(JAVA_OBJS)
+	jar -cfm electric.jar MANIFEST.MF $(JAVA_OBJS) $(BEANSHELLLOC)
+
+all: electric.jar
+	java -classpath .:$(BEANSHELLLOC) com/sun/electric/user/Electric
 
 clean:
 	rm -rf $(JAVA_OBJS)
