@@ -629,6 +629,7 @@ class NetCell
 		JNetwork network = userNetlist.getNetworkByMap(drawn);
 		NetName nn = (NetName)netNames.get(name);
 		if (netNamesToNet[nn.index] != null) {
+			if (netNamesToNet[nn.index] == network) return;
 			String msg = "Network: Layout cell " + cell.describe() + " has nets with same name " + name;
             System.out.println(msg);
             ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
