@@ -48,6 +48,74 @@ public class Geometric extends ElectricObject
 	/** lower bound on R-tree node size */			private static final int MINRTNODESIZE = 4;
 	/** upper bound on R-tree node size */			private static final int MAXRTNODESIZE = (MINRTNODESIZE*2);
 
+	public static class Search
+	{
+		/** maximum depth of search */			private static final int MAXDEPTH = 100;
+
+		/** current depth of search */			private int depth;
+		/** RTNode stack of search */			private RTNode [] rtn;
+		/** index stack of search */			private int [] position;
+		/** lower-left corner of search area */	private double lX, lY;
+		/** size of search area */				private double sX, sY;
+		/** desired search bounds */			private Rectangle2D.Double bounds;
+
+		public Search(Rectangle2D.Double bounds, Cell cell)
+		{
+			this.depth = 0;
+			this.rtn = new RTNode[MAXDEPTH];
+			this.position = new int[MAXDEPTH];
+			this.rtn[0] = cell.getRTree();
+			this.lX = bounds.getMinX();
+			this.lY = bounds.getMinY();
+			this.sX = bounds.getWidth();
+			this.sY = bounds.getHeight();
+			this.bounds = new Rectangle2D.Double();
+			this.bounds.setRect(bounds);
+		}
+
+		/*
+		 * second routine for searches: takes the search module returned by
+		 * "initsearch" and returns the next geometry module in the
+		 * search area.  If there are no more, this returns NOGEOM.
+		 */
+		public Geometric nextObject()
+		{
+			for(;;)
+			{
+				RTNode rtnode = rtn[depth];
+				int i = position[depth]++;
+				if (i < rtnode.getTotal())
+				{
+					Rectangle2D.Double bounds = rtnode.getBBox(i);
+					if (sX == 0 && sY == 0)
+					{
+						if (!bounds.contains(lX, lY)) continue;
+					} else
+					{
+						if (!bounds.intersects(lX, lY, sX, sY)) continue;
+					}
+					if (rtnode.getFlag()) return((Geometric)rtnode.getChild(i));
+
+					/* look down the hierarchy */
+					if (depth >= MAXDEPTH-1)
+					{
+						System.out.println("R-trees: search too deep");
+						continue;
+					}
+					depth++;
+					rtn[depth] = (RTNode)rtnode.getChild(i);
+					position[depth] = 0;
+				} else
+				{
+					/* pop up the hierarchy */
+					if (depth == 0) break;
+					depth--;
+				}
+			}
+			return null;
+		}
+	}
+
 	public static class RTNode
 	{
 		/** bounds of this node and its children */	private Rectangle2D.Double bounds;
@@ -85,7 +153,7 @@ public class Geometric extends ElectricObject
 		/** Routine to get the bounds of this RTNode. */
 		public Rectangle2D.Double getBounds() { return bounds; }
 		/** Routine to set the bounds of this RTNode. */
-		public void setBounds(Rectangle2D.Double bounds) { this.bounds = bounds; }
+		public void setBounds(Rectangle2D.Double bounds) { this.bounds.setRect(bounds); }
 		/** Routine to extend the bounds of this RTNode by "bounds". */
 		public void unionBounds(Rectangle2D.Double bounds) { Rectangle2D.Double.union(this.bounds, bounds, this.bounds); }
 
@@ -104,7 +172,7 @@ public class Geometric extends ElectricObject
 		/**
 		 * routine to get the bounding box of child "child" of this R-tree node.
 		 */
-		Rectangle2D.Double getBBox(int child)
+		public Rectangle2D.Double getBBox(int child)
 		{
 			if (flag)
 			{
@@ -132,177 +200,153 @@ public class Geometric extends ElectricObject
 			for(int i=1; i<total; i++)
 				unionBounds(getBBox(i));
 		}
-	}
 
-	/**
-	 * Routine to link this geometry module into the R-tree that is in cell "parnt".
-	 */
-	protected void linkGeom(Cell parnt)
-	{
-//		// find the bottom-level branch (a RTNode with leafs) that would expand least by adding this Geometric
-//		RTNode rtn = parnt.getRTree();
-//		for(;;)
-//		{
-//			// if R-tree node contains primitives, exit loop
-//			if (rtn.getFlag()) break;
-//
-//			// find sub-node that would expand the least
-//			double bestExpand = 0;
-//			int bestSubNode = 0;
-//			for(int i=0; i<rtn.getTotal(); i++)
-//			{
-//				// get bounds and area of sub-node
-//				RTNode subrtn = (RTNode)rtn.getChild(i);
-//				Rectangle2D.Double bounds = rtn.getBounds();
-//				double area = bounds.getWidth() * bounds.getHeight();
-//
-//				// get area of sub-node with new element
-//				Rectangle2D.Double newUnion = new Rectangle2D.Double();
-//				Rectangle2D.Double.union(visBounds, bounds, newUnion);
-//				double newArea = newUnion.getWidth() * newUnion.getHeight();
-//
-//				// accumulate the least expansion
-//				double expand = newArea - area;
-//
-//				// remember the child that expands the least
-//				if (i != 0 && expand > bestExpand) continue;
-//				bestExpand = expand;
-//				bestSubNode = i;
-//			}
-//
-//			// recurse down to sub-node that expanded least
-//			rtn = (RTNode)rtn.getChild(bestSubNode);
-//		}
-//
-//		// add this geometry element to the correct leaf R-tree node
-//		addToRTNode(rtn, parnt);
-	}
+		private static int branchCount;
 
-	/**
-	 * routine to add this Geometric to R-tree leaf node "rtn".  Routine may have to
-	 * split the node and recurse up the tree
-	 */
-	private void addToRTNode(RTNode rtn, Cell cell)
-	{
-		// see if there is room in the R-tree node
-		if (rtn.getTotal() >= MAXRTNODESIZE)
+		public void printRTree(int indent)
 		{
-			// no room: copy list to temp one
-			RTNode temp = new RTNode();
-			temp.setTotal(rtn.getTotal());
-			temp.setFlag(rtn.getFlag());
-			for(int i=0; i<rtn.getTotal(); i++)
-				temp.setChild(i, rtn.getChild(i));
+			if (indent == 0) branchCount = 0;
 
-			// find the element farthest from new object
-			Rectangle2D.Double bounds = this.visBounds;
-			Point2D.Double thisCenter = new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
-			double newDist = 0;
-			int newN = 0;
-			for(int i=0; i<temp.getTotal(); i++)
+			String line = "";
+			for(int i=0; i<indent; i++) line += " ";
+			line += "RTNode";
+			if (flag)
 			{
-				Rectangle2D.Double thisv = temp.getBBox(i);
-				double dist = EMath.computeDistance(new Point2D.Double(thisv.getCenterX(), thisv.getCenterY()), thisCenter);
-				if (dist >= newDist)
+				branchCount++;
+				line += " NUMBER " + branchCount;
+			}
+			line += " X(" + bounds.getMinX() + "-" + bounds.getMaxX() + ") Y(" + bounds.getMinY() + "-" + bounds.getMaxY() + ") has " +
+				total + " children:";
+			System.out.println(line);
+
+			for(int j=0; j<total; j++)
+			{
+				if (flag)
 				{
-					newDist = dist;
-					newN = i;
+					line = "";
+					for(int i=0; i<indent+3; i++) line += " ";
+					Geometric child = (Geometric)getChild(j);
+					child.setTempInt(branchCount);
+					Rectangle2D.Double childBounds = child.getBounds();
+					line += "Child X(" + childBounds.getMinX() + "-" + childBounds.getMaxX() + ") Y(" +
+						childBounds.getMinY() + "-" + childBounds.getMaxY() + ")";
+					System.out.println(line);
+				} else
+				{
+					((RTNode)getChild(j)).printRTree(indent+3);
 				}
 			}
+		}
 
-			// now find element farthest from "newN"
-			bounds = temp.getBBox(newN);
-			double oldDist = 0;
-			int oldN = 0;
-			for(int i=0; i<temp.getTotal(); i++)
+		/**
+		 * routine to add object "rtnInsert" to this R-tree node, which is in cell "cell".  Routine may have to
+		 * split the node and recurse up the tree
+		 */
+		private void addToRTNode(Object rtnInsert, Cell cell)
+		{
+			// see if there is room in the R-tree node
+			if (getTotal() >= MAXRTNODESIZE)
 			{
-				if (i == newN) continue;
-				Rectangle2D.Double thisv = temp.getBBox(i);
-				double dist = EMath.computeDistance(new Point2D.Double(thisv.getCenterX(), thisv.getCenterY()), thisCenter);
-				if (dist >= oldDist)
+				// no room: copy list to temp one
+				RTNode temp = new RTNode();
+				temp.setTotal(getTotal());
+				temp.setFlag(getFlag());
+				for(int i=0; i<getTotal(); i++)
+					temp.setChild(i, getChild(i));
+
+				// find the element farthest from new object
+				Rectangle2D.Double bounds;
+				if (rtnInsert instanceof Geometric)
 				{
-					oldDist = dist;
-					oldN = i;
+					Geometric geom = (Geometric)rtnInsert;
+					bounds = geom.getBounds();
+				} else
+				{
+					RTNode subrtn = (RTNode)rtnInsert;
+					bounds = subrtn.getBounds();
 				}
-			}
-
-			// allocate a new R-tree node
-			RTNode newrtn = new RTNode();
-			newrtn.setFlag(rtn.getFlag());
-			newrtn.setParent(rtn.getParent());
-
-			// put the first seed element into the new RTree
-			Object obj = temp.getChild(newN);
-			temp.setChild(newN, null);
-			newrtn.setChild(0, obj);
-			newrtn.setTotal(1);
-			if (!newrtn.getFlag()) ((RTNode)obj).setParent(newrtn);
-			Rectangle2D.Double newBounds = newrtn.getBBox(0);
-			newrtn.setBounds(newBounds);
-			double newArea = newBounds.getWidth() * newBounds.getHeight();
-
-			// initialize the old R-tree node and put in the other seed element
-			obj = temp.getChild(oldN);
-			temp.setChild(oldN, null);
-			rtn.setChild(0, obj);
-			for(int i=1; i<rtn.getTotal(); i++) rtn.setChild(i, null);
-			rtn.setTotal(1);
-			if (!rtn.getFlag()) ((RTNode)obj).setParent(rtn);
-			Rectangle2D.Double oldBounds = rtn.getBBox(0);
-			rtn.setBounds(oldBounds);
-			double oldArea = oldBounds.getWidth() * oldBounds.getHeight();
-
-			// cluster the rest of the nodes
-			for(;;)
-			{
-				// search for a cluster about each new node
-				int bestNewNode = -1, bestOldNode = -1;
-				double bestNewExpand = 0, bestOldExpand = 0;
+				Point2D.Double thisCenter = new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
+				double newDist = 0;
+				int newN = 0;
 				for(int i=0; i<temp.getTotal(); i++)
 				{
-					obj = temp.getChild(i);
-					if (obj == null) continue;
-					bounds = temp.getBBox(i);
-
-					Rectangle2D.Double newUnion = new Rectangle2D.Double();
-					Rectangle2D.Double oldUnion = new Rectangle2D.Double();
-					Rectangle2D.Double.union(newBounds, bounds, newUnion);
-					Rectangle2D.Double.union(oldBounds, bounds, oldUnion);
-					double newAreaPlus = newUnion.getWidth() * newUnion.getHeight();
-					double oldAreaPlus = oldUnion.getWidth() * oldUnion.getHeight();
-
-					// remember the child that expands the new node the least
-					if (bestNewNode < 0 || newAreaPlus-newArea < bestNewExpand)
+					Rectangle2D.Double thisv = temp.getBBox(i);
+					double dist = EMath.computeDistance(new Point2D.Double(thisv.getCenterX(), thisv.getCenterY()), thisCenter);
+					if (dist >= newDist)
 					{
-						bestNewExpand = newAreaPlus-newArea;
-						bestNewNode = i;
-					}
-
-					// remember the child that expands the old node the least
-					if (bestOldNode < 0 || oldAreaPlus-oldArea < bestOldExpand)
-					{
-						bestOldExpand = oldAreaPlus-oldArea;
-						bestOldNode = i;
+						newDist = dist;
+						newN = i;
 					}
 				}
 
-				// if there were no nodes added, all have been clustered
-				if (bestNewNode == -1 && bestOldNode == -1) break;
-
-				// if both selected the same object, select another "old node"
-				if (bestNewNode == bestOldNode)
+				// now find element farthest from "newN"
+				bounds = temp.getBBox(newN);
+				thisCenter = new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
+				double oldDist = 0;
+				int oldN = 0;
+				for(int i=0; i<temp.getTotal(); i++)
 				{
-					bestOldNode = -1;
+					if (i == newN) continue;
+					Rectangle2D.Double thisv = temp.getBBox(i);
+					double dist = EMath.computeDistance(new Point2D.Double(thisv.getCenterX(), thisv.getCenterY()), thisCenter);
+					if (dist >= oldDist)
+					{
+						oldDist = dist;
+						oldN = i;
+					}
+				}
+
+				// allocate a new R-tree node
+				RTNode newrtn = new RTNode();
+				newrtn.setFlag(getFlag());
+				newrtn.setParent(getParent());
+
+				// put the first seed element into the new RTree
+				Object obj = temp.getChild(newN);
+				temp.setChild(newN, null);
+				newrtn.setChild(0, obj);
+				newrtn.setTotal(1);
+				if (!newrtn.getFlag()) ((RTNode)obj).setParent(newrtn);
+				Rectangle2D.Double newBounds = newrtn.getBBox(0);
+				newrtn.setBounds(newBounds);
+				double newArea = newBounds.getWidth() * newBounds.getHeight();
+
+				// initialize the old R-tree node and put in the other seed element
+				obj = temp.getChild(oldN);
+				temp.setChild(oldN, null);
+				setChild(0, obj);
+				for(int i=1; i<getTotal(); i++) setChild(i, null);
+				setTotal(1);
+				if (!getFlag()) ((RTNode)obj).setParent(this);
+				Rectangle2D.Double oldBounds = getBBox(0);
+				setBounds(oldBounds);
+				double oldArea = oldBounds.getWidth() * oldBounds.getHeight();
+
+				// cluster the rest of the nodes
+				for(;;)
+				{
+					// search for a cluster about each new node
+					int bestNewNode = -1, bestOldNode = -1;
+					double bestNewExpand = 0, bestOldExpand = 0;
 					for(int i=0; i<temp.getTotal(); i++)
 					{
-						if (i == bestNewNode) continue;
 						obj = temp.getChild(i);
 						if (obj == null) continue;
 						bounds = temp.getBBox(i);
 
+						Rectangle2D.Double newUnion = new Rectangle2D.Double();
 						Rectangle2D.Double oldUnion = new Rectangle2D.Double();
+						Rectangle2D.Double.union(newBounds, bounds, newUnion);
 						Rectangle2D.Double.union(oldBounds, bounds, oldUnion);
+						double newAreaPlus = newUnion.getWidth() * newUnion.getHeight();
 						double oldAreaPlus = oldUnion.getWidth() * oldUnion.getHeight();
+
+						// remember the child that expands the new node the least
+						if (bestNewNode < 0 || newAreaPlus-newArea < bestNewExpand)
+						{
+							bestNewExpand = newAreaPlus-newArea;
+							bestNewNode = i;
+						}
 
 						// remember the child that expands the old node the least
 						if (bestOldNode < 0 || oldAreaPlus-oldArea < bestOldExpand)
@@ -311,89 +355,161 @@ public class Geometric extends ElectricObject
 							bestOldNode = i;
 						}
 					}
+
+					// if there were no nodes added, all have been clustered
+					if (bestNewNode == -1 && bestOldNode == -1) break;
+
+					// if both selected the same object, select another "old node"
+					if (bestNewNode == bestOldNode)
+					{
+						bestOldNode = -1;
+						for(int i=0; i<temp.getTotal(); i++)
+						{
+							if (i == bestNewNode) continue;
+							obj = temp.getChild(i);
+							if (obj == null) continue;
+							bounds = temp.getBBox(i);
+
+							Rectangle2D.Double oldUnion = new Rectangle2D.Double();
+							Rectangle2D.Double.union(oldBounds, bounds, oldUnion);
+							double oldAreaPlus = oldUnion.getWidth() * oldUnion.getHeight();
+
+							// remember the child that expands the old node the least
+							if (bestOldNode < 0 || oldAreaPlus-oldArea < bestOldExpand)
+							{
+								bestOldExpand = oldAreaPlus-oldArea;
+								bestOldNode = i;
+							}
+						}
+					}
+
+					// add to the proper "old node" to the old node cluster
+					if (bestOldNode != -1)
+					{
+						// add this node to "rtn"
+						obj = temp.getChild(bestOldNode);
+						temp.setChild(bestOldNode, null);
+						int curPos = getTotal();
+						setChild(curPos, obj);
+						setTotal(curPos+1);
+						if (!getFlag()) ((RTNode)obj).setParent(this);
+						unionBounds(getBBox(curPos));
+						oldBounds = getBounds();
+						oldArea = oldBounds.getWidth() * oldBounds.getHeight();
+					}
+
+					// add to proper "new node" to the new node cluster
+					if (bestNewNode != -1)
+					{
+						// add this node to "newrtn"
+						obj = temp.getChild(bestNewNode);
+						temp.setChild(bestNewNode, null);
+						int curPos = newrtn.getTotal();
+						newrtn.setChild(curPos, obj);
+						newrtn.setTotal(curPos+1);
+						if (!newrtn.getFlag()) ((RTNode)obj).setParent(newrtn);
+						newrtn.unionBounds(newrtn.getBBox(curPos));
+						newBounds = newrtn.getBounds();
+						newArea = newBounds.getWidth() * newBounds.getHeight();
+					}
 				}
 
-				// add to the proper "old node" to the old node cluster
-				if (bestOldNode != -1)
-				{
-					// add this node to "rtn"
-					obj = temp.getChild(bestOldNode);
-					temp.setChild(bestOldNode, null);
-					int curPos = rtn.getTotal();
-					rtn.setChild(curPos, obj);
-					rtn.setTotal(curPos+1);
-					if (!rtn.getFlag()) ((RTNode)obj).setParent(rtn);
-					rtn.unionBounds(rtn.getBBox(curPos));
-					oldBounds = rtn.getBounds();
-					oldArea = oldBounds.getWidth() * oldBounds.getHeight();
-				}
+				// sensibility check
+				if (temp.getTotal() != getTotal() + newrtn.getTotal())
+					System.out.println("R-trees: " + temp.getTotal() + " nodes split to " +
+						getTotal()+ " and " + newrtn.getTotal() + "!");
 
-				// add to proper "new node" to the new node cluster
-				if (bestNewNode != -1)
+				// now recursively insert this new element up the tree
+				if (getParent() == null)
 				{
-					// add this node to "newrtn"
-					obj = temp.getChild(bestNewNode);
-					temp.setChild(bestNewNode, null);
-					int curPos = newrtn.getTotal();
-					newrtn.setChild(curPos, obj);
-					newrtn.setTotal(curPos+1);
-					if (!newrtn.getFlag()) ((RTNode)obj).setParent(newrtn);
-					newrtn.unionBounds(newrtn.getBBox(curPos));
-					newBounds = newrtn.getBounds();
-					newArea = newBounds.getWidth() * newBounds.getHeight();
+					// at top of tree: create a new level
+					RTNode newroot = new RTNode();
+					newroot.setTotal(2);
+					newroot.setChild(0, this);
+					newroot.setChild(1, newrtn);
+					newroot.setFlag(false);
+					newroot.setParent(null);
+					setParent(newroot);
+					newrtn.setParent(newroot);
+					newroot.figBounds();
+					cell.setRTree(newroot);
+				} else
+				{
+					// first recompute bounding box of R-tree nodes up the tree
+					for(RTNode r = getParent(); r != null; r = r.getParent()) r.figBounds();
+
+					// now add the new node up the tree
+					getParent().addToRTNode(newrtn, cell);
 				}
 			}
 
-			// sensibility check
-			if (temp.getTotal() != rtn.getTotal() + newrtn.getTotal())
-				System.out.println("R-trees: " + temp.getTotal() + " nodes split to " +
-					rtn.getTotal()+ " and " + newrtn.getTotal() + "!");
+			// now add "rtnInsert" to the R-tree node
+			int curPos = getTotal();
+			setChild(curPos, rtnInsert);
+			setTotal(curPos+1);
 
-			// now recursively insert this new element up the tree
-			if (rtn.getParent() == null)
+			// compute the new bounds
+			Rectangle2D.Double bounds = getBBox(curPos);
+			if (getTotal() == 1 && getParent() == null)
 			{
-				// at top of tree: create a new level
-				RTNode newroot = new RTNode();
-				newroot.setTotal(2);
-				newroot.setChild(0, rtn);
-				newroot.setChild(1, newrtn);
-				newroot.setFlag(false);
-				newroot.setParent(null);
-				rtn.setParent(newroot);
-				newrtn.setParent(newroot);
-				newroot.figBounds();
-				cell.setRTree(newroot);
-			} else
-			{
-				// first recompute bounding box of R-tree nodes up the tree
-				for(RTNode r = rtn.getParent(); r != null; r = r.getParent()) r.figBounds();
+				// special case when adding the first node in a cell
+				setBounds(bounds);
+				return;
+			}
 
-				// now add the new node up the tree
-				addToRTNode(newrtn, cell);
+			// recursively update node sizes
+			RTNode climb = this;
+			for(;;)
+			{
+				climb.unionBounds(bounds);
+				if (climb.getParent() == null) break;
+				climb = climb.getParent();
 			}
 		}
+	}
 
-		// now add this element to the R-tree node
-		int curPos = rtn.getTotal();
-		rtn.setChild(curPos, this);
-		rtn.setTotal(curPos+1);
-
-		// compute the new bounds
-		Rectangle2D.Double bounds = rtn.getBBox(curPos);
-		if (rtn.getTotal() == 1 && rtn.getParent() == null)
-		{
-			// special case when adding the first node in a cell
-			rtn.setBounds(bounds);
-			return;
-		}
-
-		// recursively update node sizes
+	/**
+	 * Routine to link this geometry module into the R-tree that is in cell "parnt".
+	 */
+	protected void linkGeom(Cell parnt)
+	{
+		// find the bottom-level branch (a RTNode with leafs) that would expand least by adding this Geometric
+		RTNode rtn = parnt.getRTree();
 		for(;;)
 		{
-			rtn.unionBounds(bounds);
-			if (rtn.getParent() == null) break;
-			rtn = rtn.getParent();
+			// if R-tree node contains primitives, exit loop
+			if (rtn.getFlag()) break;
+
+			// find sub-node that would expand the least
+			double bestExpand = 0;
+			int bestSubNode = 0;
+			for(int i=0; i<rtn.getTotal(); i++)
+			{
+				// get bounds and area of sub-node
+				RTNode subrtn = (RTNode)rtn.getChild(i);
+				Rectangle2D.Double bounds = subrtn.getBounds();
+				double area = bounds.getWidth() * bounds.getHeight();
+
+				// get area of sub-node with new element
+				Rectangle2D.Double newUnion = new Rectangle2D.Double();
+				Rectangle2D.Double.union(visBounds, bounds, newUnion);
+				double newArea = newUnion.getWidth() * newUnion.getHeight();
+
+				// accumulate the least expansion
+				double expand = newArea - area;
+
+				// remember the child that expands the least
+				if (i != 0 && expand > bestExpand) continue;
+				bestExpand = expand;
+				bestSubNode = i;
+			}
+
+			// recurse down to sub-node that expanded least
+			rtn = (RTNode)rtn.getChild(bestSubNode);
 		}
+
+		// add this geometry element to the correct leaf R-tree node
+		rtn.addToRTNode(this, parnt);
 	}
 
 	// ------------------------------- private data ------------------------------

@@ -30,6 +30,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.tool.user.ui.UIEditFrame;
 
 import java.io.*;
 import java.util.List;
@@ -43,6 +44,7 @@ public class Input
 	/** The raw input stream. */							protected FileInputStream fileInputStream;
 	/** The binary input stream. */							protected DataInputStream dataInputStream;
 	/** static list of all libraries in Electric */			protected static List newLibraries = new ArrayList();
+	static String mainLibDirectory = null;
 
 	/**
 	 * Function is a typesafe enum class that describes the types of files that can be read.
@@ -64,25 +66,54 @@ public class Input
 		/** GDS input */			public static final ImportType GDS=      new ImportType("GDS");
 	}
 
+	/**
+	 * The thread class that runs library input.
+	 */
+	private static class ImportThread extends Thread
+	{
+		String fileName;
+		ImportType type;
+		Library lib;
+
+		ImportThread(String fileName, ImportType type)
+		{
+			this.fileName = fileName;
+			this.type = type;
+		}
+
+		public void run()
+		{
+			long startTime = System.currentTimeMillis();
+			lib = readALibrary(fileName, null, type);
+			if (lib == null) return;
+			long endTime = System.currentTimeMillis();
+			float finalTime = (endTime - startTime) / 1000F;
+			System.out.println("Library " + fileName + " read, took " + finalTime + " seconds");
+			Library.setCurrent(lib);
+			Cell cell = lib.getCurCell();
+			if (cell == null)
+			{
+				System.out.println("No current cell in this library");
+			} else
+			{
+				UIEditFrame.CreateEditWindow(cell);
+			}
+		}
+	}
+
 	public static class FakeCell
 	{
 		String cellName;
 		NodeProto firstInCell;
 	}
 
-	// ------------------------- private data ----------------------------
-
 	// ---------------------- private and protected methods -----------------
 
-	protected Input()
+	Input()
 	{
 	}
 
-	static String mainLibDirectory = null;
-
-	// ----------------------- public methods -------------------------------
-
-	public boolean ReadLib() { return true; }
+	protected boolean ReadLib() { return true; }
 
 	/**
 	 * Routine to read disk file "fileName" which is of type "type".
@@ -91,7 +122,7 @@ public class Input
 	 * If "lib" is not null, this is a recursive read caused by a cross-library
 	 * reference from inside another library.
 	 */
-	public static Library ReadLibrary(String fileName, Library lib, ImportType type)
+	protected static Library readALibrary(String fileName, Library lib, ImportType type)
 	{
 		Input in;
 
@@ -121,6 +152,7 @@ public class Input
 			System.out.println("Unknown import type: " + type);
 			return null;
 		}
+		
 		if (lib == null)
 		{
 			lib = Library.findLibrary(n.getName());
@@ -195,5 +227,14 @@ public class Input
 //			}
 //		}
 		return in.lib;
+	}
+
+	// ----------------------- public methods -------------------------------
+
+	public static void readLibrary(String fileName, ImportType type)
+	{
+		// start a new thread to do the input
+		ImportThread iThread = new ImportThread(fileName, type);
+		iThread.start();
 	}
 }

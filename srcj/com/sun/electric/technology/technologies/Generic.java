@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: TecGeneric.java
+ * File: Generic.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -44,9 +44,9 @@ import java.util.Iterator;
 /**
  * This is the MOSIS CMOS technology.
  */
-public class TecGeneric extends Technology
+public class Generic extends Technology
 {
-	public static final TecGeneric tech = new TecGeneric();
+	public static final Generic tech = new Generic();
 	public PrimitiveNode universalPin_node;
 	public PrimitiveNode invisiblePin_node;
 	public PrimitiveNode unroutedPin_node;
@@ -62,7 +62,7 @@ public class TecGeneric extends Technology
 	private PrimitivePort invisPinPort;
 
 	// -------------------- private and protected methods ------------------------
-	private TecGeneric()
+	private Generic()
 	{
 		setTechName("generic");
 		setTechDesc("Useful primitives");

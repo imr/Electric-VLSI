@@ -3,7 +3,7 @@ package com.sun.electric.technology.technologies;
 /**
  * Electric(tm) VLSI Design System
  *
- * File: TecMoCMOSOld.java
+ * File: MoCMOSOld.java
  * mocmosold technology description
  * Generated automatically from a library
  *
@@ -49,11 +49,11 @@ import java.awt.geom.Point2D;
 /**
  * This is the Complementary MOS (old, from MOSIS, P-Well, double metal) technology.
  */
-public class TecMoCMOSOld extends Technology
+public class MoCMOSOld extends Technology
 {
-	public static final TecMoCMOSOld tech = new TecMoCMOSOld();
+	public static final MoCMOSOld tech = new MoCMOSOld();
 	// -------------------- private and protected methods ------------------------
-	private TecMoCMOSOld()
+	private MoCMOSOld()
 	{
 		setTechName("mocmosold");
 		setTechDesc("Complementary MOS (old, from MOSIS, P-Well, double metal)");

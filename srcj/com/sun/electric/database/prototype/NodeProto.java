@@ -448,12 +448,6 @@ public abstract class NodeProto extends ElectricObject
 			this.tech = tech;
 	}
 
-	/** A NodeProto's <i>reference point</i> is (0, 0) unless the
-	 * NodeProto is a Cell containing an instance of a Cell-Center in
-	 * which case the reference point is the location of that
-	 * Cell-Center instance. */
-	public abstract Point2D.Double getReferencePoint();
-
 	/** Can this node connect to a particular arc?
 	 * @param arc the type of arc to test for
 	 * @return the first port that can connect to the arc, or null,

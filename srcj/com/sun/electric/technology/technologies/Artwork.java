@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: TecArtwork.java
+ * File: Artwork.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -46,9 +46,9 @@ import java.awt.geom.Point2D;
 /**
  * This is the General Purpose Sketchpad Facility technology.
  */
-public class TecArtwork extends Technology
+public class Artwork extends Technology
 {
-	public static final TecArtwork tech = new TecArtwork();
+	public static final Artwork tech = new Artwork();
 
 	/** number of lines in an ellipse */	private static final int ELLIPSEPOINTS =        30;
 	/** granularity of a spline */			private static final int SPLINEGRAIN   =        20;
@@ -78,7 +78,7 @@ public class TecArtwork extends Technology
 	/** Thick arc */						private Layer G_lay;
 
 	// -------------------- private and protected methods ------------------------
-	private TecArtwork()
+	private Artwork()
 	{
 		setTechName("artwork");
 		setTechDesc("General Purpose Sketchpad Facility");

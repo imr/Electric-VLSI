@@ -3,7 +3,7 @@ package com.sun.electric.technology.technologies;
 /**
  * Electric(tm) VLSI Design System
  *
- * File: TecMoCMOSSub.java
+ * File: MoCMOSSub.java
  * mocmossub technology description
  * Generated automatically from a library
  *
@@ -49,11 +49,11 @@ import java.awt.geom.Point2D;
 /**
  * This is the Complementary MOS (old, from MOSIS, Submicron, 2-6 metals [4], double poly) technology.
  */
-public class TecMoCMOSSub extends Technology
+public class MoCMOSSub extends Technology
 {
-	public static final TecMoCMOSSub tech = new TecMoCMOSSub();
+	public static final MoCMOSSub tech = new MoCMOSSub();
 	// -------------------- private and protected methods ------------------------
-	private TecMoCMOSSub()
+	private MoCMOSSub()
 	{
 		setTechName("mocmossub");
 		setTechDesc("Complementary MOS (old, from MOSIS, Submicron, 2-6 metals [4], double poly)");

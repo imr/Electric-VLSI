@@ -23,14 +23,16 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Cell;
+
 import java.awt.BorderLayout;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.Iterator;
-
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.Cell;
+import java.util.List;
+import java.util.ArrayList;
 
 
 /**
@@ -43,6 +45,8 @@ public class UIEditFrame extends JInternalFrame
 {
 	static int windowOffset = 0;
 	UIEdit wnd;
+	UITreeView tree;
+	/** the offset of each new window on the screen */		private static List windowList = new ArrayList();
 
 	// constructor
 	private UIEditFrame(Cell cell)
@@ -59,14 +63,7 @@ public class UIEditFrame extends JInternalFrame
 		wnd = UIEdit.CreateElectricDoc(cell);
 
 		// the left half: a cell explorer tree
-		DefaultMutableTreeNode root = new DefaultMutableTreeNode("CONTENTS VIEW");
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
-		{
-			Library lib = (Library)it.next();
-			DefaultMutableTreeNode libTree = lib.getLibraryTree();
-			root.add(libTree);
-		}
-		UITreeView tree = UITreeView.CreateTreeView(root, wnd);
+		tree = UITreeView.CreateTreeView(Library.getExplorerTree(), wnd);
 
 		// put them together into the frame
 		JSplitPane js = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
@@ -80,8 +77,11 @@ public class UIEditFrame extends JInternalFrame
 				public void internalFrameClosing(InternalFrameEvent evt) { windowClosed(); }
 			}
 		);
-//		this.moveToFront();
-//		this.toFront();
+//		moveToFront();
+//		toFront();
+
+		// accumulate a list of current windows
+		windowList.add(this);
 	}
 
 	// factory
@@ -96,9 +96,25 @@ public class UIEditFrame extends JInternalFrame
 
 	public void windowClosed()
 	{
-		System.out.println("Closed");
+		windowList.remove(this);
 	}
 
+	public UIEdit getEdit() { return wnd; }
+
+	public static void explorerTreeChanged()
+	{
+		for(Iterator it = getWindows(); it.hasNext(); )
+		{
+			UIEditFrame uif = (UIEditFrame)it.next();
+			uif.tree.repaint();
+		}
+	}
+
+	public static Iterator getWindows()
+	{
+		return windowList.iterator();
+
+	}
 	public void setTimeTracking(boolean trackTime)
 	{
 		wnd.setTimeTracking(trackTime);

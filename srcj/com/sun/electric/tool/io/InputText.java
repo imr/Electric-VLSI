@@ -154,7 +154,7 @@ public class InputText extends Input
 
 	// ----------------------- public methods -------------------------------
 
-	public boolean ReadLib()
+	protected boolean ReadLib()
 	{
 		// mark all libraries as "not being read", but "wanted"
 //		for(olib = el_curlib; olib != NOLIBRARY; olib = olib->nextlibrary)

@@ -27,7 +27,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.technology.technologies.TecGeneric;
+import com.sun.electric.technology.technologies.Generic;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -74,14 +74,14 @@ public class PrimitivePort extends PortProto
 		int portAngle, int portRange, int portTopology, PortProto.Characteristic characteristic,
 		EdgeH left, EdgeV bottom, EdgeH right, EdgeV top)
 	{
-		if (tech != TecGeneric.tech && TecGeneric.tech != null)
+		if (tech != Generic.tech && Generic.tech != null)
 		{
 			ArcProto [] realPortArcs = new ArcProto[portArcs.length + 3];
 			for(int i=0; i<portArcs.length; i++)
 				realPortArcs[i] = portArcs[i];
-			realPortArcs[portArcs.length] = TecGeneric.tech.universal_arc;
-			realPortArcs[portArcs.length+1] = TecGeneric.tech.invisible_arc;
-			realPortArcs[portArcs.length+2] = TecGeneric.tech.unrouted_arc;
+			realPortArcs[portArcs.length] = Generic.tech.universal_arc;
+			realPortArcs[portArcs.length+1] = Generic.tech.invisible_arc;
+			realPortArcs[portArcs.length+2] = Generic.tech.unrouted_arc;
 			portArcs = realPortArcs;
 		}
 		PrimitivePort pp = new PrimitivePort(tech, parent, portArcs, protoName,

@@ -142,8 +142,7 @@ public class NodeInst extends Geometric
 			pi.setIndex(i++);
 		}
 
-		Point2D refPoint = parent.getReferencePoint();
-		this.cX = center.x + refPoint.getX();   this.cY = center.y + refPoint.getY();
+		this.cX = center.x;   this.cY = center.y;
 		this.sX = width;   this.sY = height;
 		this.angle = angle;
 
@@ -172,6 +171,22 @@ public class NodeInst extends Geometric
 		if (ni.lowLevelPopulate(type, center, width, height, angle, parent)) return null;
 		if (ni.lowLevelLink()) return null;
 		return ni;
+	}
+
+	/**
+	 * Change this node by (dx,dy) in position, (dxsize,dysize) in size, and drot in rotation.
+	 */
+	public void modifyInstance(double dx, double dy, double dxsize, double dysize, double drot)
+	{
+		this.cX += dx;
+		this.cY += dy;
+
+		this.sX += dxsize;
+		this.sY += dysize;
+
+		this.angle += drot;
+		updateGeometric();
+		parent.setDirty();
 	}
 
 	public void delete()
@@ -565,10 +580,11 @@ public class NodeInst extends Geometric
 	}
 
 	/** Set the instance name. */
-	public void setName(String name)
+	public Variable setName(String name)
 	{
 		Variable var = setVal(VAR_INST_NAME, name);
 		if (var != null) var.setDisplay();
+		return var;
 	}
 
 	/**
@@ -583,27 +599,6 @@ public class NodeInst extends Geometric
 	{
 		return "NodeInst " + protoType.getProtoName();
 	}
-
-	/** Get the location of the NodeProto's reference point in the
-	 * coordinate space of the Cell containing this NodeInst.
-	 */
-//	public Point2D getReferencePoint()
-//	{
-//		// Tricky! First transform the reference point in BASE units.
-//		Point2D.Double p = protoType.getRefPointBase();
-//		Poly poly =
-//			new Poly(new double[] { p.x }, new double[] { p.y });
-//		Poly xformedPoly = xformPoly(poly);
-//		Rectangle2D xr = xformedPoly.getBounds2D();
-//
-//		// Then convert the transformed point
-//		double x = xr.getX();
-//		double y = xr.getY();
-//
-//		// return coordinates relative to the reference point in the parent Cell
-//		Point2D rpPar = getParent().getReferencePoint();
-//		return new Point2D.Double(x - rpPar.getX(), y - rpPar.getY());
-//	}
 
 	// Orientation of a line
 //	private static final int HORIZONTAL = 0;

@@ -179,7 +179,7 @@ public class InputBinary extends Input
 
 	// ----------------------- public methods -------------------------------
 
-	public boolean ReadLib()
+	protected boolean ReadLib()
 	{
 		try
 		{
@@ -1474,7 +1474,7 @@ public class InputBinary extends Input
 //			} else
 			{
 				// all other endings: presume binary file
-				elib = ReadLibrary(externalFile, elib, importType);
+				elib = readALibrary(externalFile, elib, importType);
 			}
 //			if (failed) elib->userbits |= UNWANTEDLIB; else
 //			{

@@ -25,6 +25,7 @@ package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.text.CellName;
+import com.sun.electric.tool.user.ui.UIEditFrame;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -236,17 +237,27 @@ public class Library extends ElectricObject
 	/** Low-level routine to set the user bits for this Library.  Should not normally be called. */
 	public void lowLevelSetUserBits(int userBits) { this.userBits = userBits; }
 
-	/** Routine to build a tree of cells in this Library. */
-	public DefaultMutableTreeNode getLibraryTree()
+	private static DefaultMutableTreeNode explorerTree = null;
+
+	public static DefaultMutableTreeNode getExplorerTree()
 	{
-		DefaultMutableTreeNode root = new DefaultMutableTreeNode("Library " + getLibName());
-		for(Iterator it = getCells(); it.hasNext(); )
+		if (explorerTree == null)
+			explorerTree = new DefaultMutableTreeNode("CONTENTS VIEW");
+		explorerTree.removeAllChildren();
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
 		{
-			Cell cell = (Cell)it.next();
-			DefaultMutableTreeNode node = new DefaultMutableTreeNode(cell);
-			root.add(node);
+			Library lib = (Library)it.next();
+			DefaultMutableTreeNode libTree = new DefaultMutableTreeNode("Library " + lib.getLibName());
+			for(Iterator eit = lib.getCells(); eit.hasNext(); )
+			{
+				Cell cell = (Cell)eit.next();
+				DefaultMutableTreeNode node = new DefaultMutableTreeNode(cell);
+				libTree.add(node);
+			}
+			explorerTree.add(libTree);
 		}
-		return root;
+//		UIEditFrame.explorerTreeChanged();
+		return explorerTree;
 	}
 
 	/**

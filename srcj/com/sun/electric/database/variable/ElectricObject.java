@@ -129,8 +129,8 @@ public class ElectricObject
 			Variable var = (Variable)it.next();
 			if (!var.isDisplay()) continue;
 			TextDescriptor td = var.getTextDescriptor();
-			double offX = (double)td.TDGetXOff() / 4;
-			double offY = (double)td.TDGetYOff() / 4;
+			double offX = (double)td.getXOff() / 4;
+			double offY = (double)td.getYOff() / 4;
 			Point2D.Double [] pointList = new Point2D.Double[1];
 			pointList[0] = new Point2D.Double(cX+offX, cY+offY);
 			polys[start] = new Poly(pointList);

@@ -26,13 +26,13 @@ package com.sun.electric.technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.technologies.TecGeneric;
-import com.sun.electric.technology.technologies.TecSchematics;
-import com.sun.electric.technology.technologies.TecArtwork;
-import com.sun.electric.technology.technologies.TecCMOS;
-import com.sun.electric.technology.technologies.TecMoCMOS;
-import com.sun.electric.technology.technologies.TecMoCMOSOld;
-import com.sun.electric.technology.technologies.TecMoCMOSSub;
+import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.technology.technologies.CMOS;
+import com.sun.electric.technology.technologies.MoCMOS;
+import com.sun.electric.technology.technologies.MoCMOSOld;
+import com.sun.electric.technology.technologies.MoCMOSSub;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.NodeProto;
@@ -229,20 +229,20 @@ public class Technology extends ElectricObject
 	public static void initAllTechnologies()
 	{
 		// Because of lazy evaluation, technologies aren't initialized unless they're referenced here
-		Technology.setCurrent(TecGeneric.tech);		// must be called first
+		Technology.setCurrent(Generic.tech);		// must be called first
 
 		// now all of the rest
-		Technology.setCurrent(TecSchematics.tech);
-		Technology.setCurrent(TecArtwork.tech);
-		Technology.setCurrent(TecCMOS.tech);
-		Technology.setCurrent(TecMoCMOSOld.tech);
-		Technology.setCurrent(TecMoCMOSSub.tech);
+		Technology.setCurrent(Schematics.tech);
+		Technology.setCurrent(Artwork.tech);
+		Technology.setCurrent(CMOS.tech);
+		Technology.setCurrent(MoCMOSOld.tech);
+		Technology.setCurrent(MoCMOSSub.tech);
 
 		// the last one is the real current technology
-		Technology.setCurrent(TecMoCMOS.tech);
+		Technology.setCurrent(MoCMOS.tech);
 
 		// setup the generic technology to handle all connections
-		TecGeneric.tech.makeUnivList();
+		Generic.tech.makeUnivList();
 	}
 
 	/** Set the NonElectrical bit */
@@ -286,7 +286,7 @@ public class Technology extends ElectricObject
 	public static void setCurrent(Technology tech)
 	{
 		curTech = tech;
-		if (tech != TecGeneric.tech && tech != TecSchematics.tech && tech != TecArtwork.tech)
+		if (tech != Generic.tech && tech != Schematics.tech && tech != Artwork.tech)
 			curLayoutTech = tech;
 	}
 
@@ -413,7 +413,7 @@ public class Technology extends ElectricObject
 		}
 
 		// construct the polygons
-		int numPolys = ni.numDisplayableVariables() + primLayers.length;
+		int numPolys = primLayers.length + ni.numDisplayableVariables();
 		Poly [] polys = new Poly[numPolys];
 		for(int i = 0; i < primLayers.length; i++)
 		{
@@ -702,7 +702,7 @@ public class Technology extends ElectricObject
 			Technology tech = (Technology)it.next();
 
 			// always ignore the generic technology
-			if (tech == TecGeneric.tech) continue;
+			if (tech == Generic.tech) continue;
 
 			// find the most popular of ALL technologies
 			if (useCount[tech.getIndex()] > best)
@@ -712,7 +712,7 @@ public class Technology extends ElectricObject
 			}
 
 			// find the most popular of the layout technologies
-			if (tech == TecSchematics.tech || tech == TecArtwork.tech) continue;
+			if (tech == Schematics.tech || tech == Artwork.tech) continue;
 			if (useCount[tech.getIndex()] > bestLayout)
 			{
 				bestLayout = useCount[tech.getIndex()];
@@ -724,23 +724,23 @@ public class Technology extends ElectricObject
 		if (((Cell)cell).getView() == View.ICON)
 		{
 			// in icons, if there is any artwork, use it
-			if (useCount[TecArtwork.tech.getIndex()] > 0) return(TecArtwork.tech);
+			if (useCount[Artwork.tech.getIndex()] > 0) return(Artwork.tech);
 
 			// in icons, if there is nothing, presume artwork
-			if (bestTech == null) return(TecArtwork.tech);
+			if (bestTech == null) return(Artwork.tech);
 
 			// use artwork as a default
-			retTech = TecArtwork.tech;
+			retTech = Artwork.tech;
 		} else if (((Cell)cell).getView() == View.SCHEMATIC)
 		{
 			// in schematic, if there are any schematic components, use it
-			if (useCount[TecSchematics.tech.getIndex()] > 0) return(TecSchematics.tech);
+			if (useCount[Schematics.tech.getIndex()] > 0) return(Schematics.tech);
 
 			// in schematic, if there is nothing, presume schematic
-			if (bestTech == null) return(TecSchematics.tech);
+			if (bestTech == null) return(Schematics.tech);
 
 			// use schematic as a default
-			retTech = TecSchematics.tech;
+			retTech = Schematics.tech;
 		} else
 		{
 			// use the current layout technology as the default

@@ -196,13 +196,13 @@ public class TextDescriptor
 	public int lowLevelGet1() { return descriptor1; }
 
 	/** routine to clear the bits in the text descriptor. */
-	public void TDClear() { this.descriptor0 = this.descriptor1 = 0; }
+	public void clear() { this.descriptor0 = this.descriptor1 = 0; }
 
 	/** routine to copy this text descriptor to "dest". */
-	public void TDCopy(TextDescriptor dest) { dest.lowLevelSet(descriptor0, descriptor1); }
+	public void copy(TextDescriptor dest) { dest.lowLevelSet(descriptor0, descriptor1); }
 
 	/** routine to return true if the two text descriptors are different. */
-	public boolean TDDiff(TextDescriptor td)
+	public boolean diff(TextDescriptor td)
 	{
 		if (this.descriptor0 != td.descriptor0) return true;
 		if (this.descriptor1 != td.descriptor1) return true;
@@ -210,78 +210,78 @@ public class TextDescriptor
 	}
 
 	/** routine to return the text position of the text descriptor. */
-	public Position TDGetPos() { return thePositions[descriptor0 & VTPOSITION]; }
+	public Position getPos() { return thePositions[descriptor0 & VTPOSITION]; }
 	/** routine to set the text position of the text descriptor. */
-	public void TDSetPos(Position p) {descriptor0 = (descriptor0 & ~VTPOSITION) | p.getIndex(); }
+	public void setPos(Position p) {descriptor0 = (descriptor0 & ~VTPOSITION) | p.getIndex(); }
 
 	/** routine to return the text size of the text descriptor. */
-	public int TDGetSize() { return (descriptor1 & VTSIZE) >> VTSIZESH; }
+	public int getSize() { return (descriptor1 & VTSIZE) >> VTSIZESH; }
 	/** routine to set the text size of the text descriptor. */
-	public void TDSetSize(int v) {descriptor1 = (descriptor1 & ~VTSIZE) | (v << VTSIZESH); }
+	public void setSize(int v) {descriptor1 = (descriptor1 & ~VTSIZE) | (v << VTSIZESH); }
 
 	/** routine to return the text font of the text descriptor. */
-	public int TDGetFace() { return (descriptor1 & VTFACE) >> VTFACESH; }
+	public int getFace() { return (descriptor1 & VTFACE) >> VTFACESH; }
 	/** routine to set the text font of the text descriptor. */
-	public void TDSetFace(int v) {descriptor1 = (descriptor1 & ~VTFACE) | (v << VTFACESH); }
+	public void setFace(int v) {descriptor1 = (descriptor1 & ~VTFACE) | (v << VTFACESH); }
 
 	/** routine to return the text rotation of the text descriptor. */
-	public int TDGetRotation() { return (descriptor1 & VTROTATION) >> VTROTATIONSH; }
+	public int getRotation() { return (descriptor1 & VTROTATION) >> VTROTATIONSH; }
 	/** routine to set the text rotation of the text descriptor. */
-	public void TDSetRotation(int v) {descriptor1 = (descriptor1 & ~VTROTATION) | (v << VTROTATIONSH); }
+	public void setRotation(int v) {descriptor1 = (descriptor1 & ~VTROTATION) | (v << VTROTATIONSH); }
 
 	/** routine to return the text display part of the text descriptor. */
-	public DispPos TDGetDispPart() { return theDispPos[descriptor0 & VTDISPLAYPART]; }
+	public DispPos getDispPart() { return theDispPos[descriptor0 & VTDISPLAYPART]; }
 	/** routine to set the text display part of the text descriptor. */
-	public void TDSetDispPart(DispPos v) {descriptor0 = (descriptor0 & ~VTDISPLAYPART) | v.getIndex(); }
+	public void setDispPart(DispPos v) {descriptor0 = (descriptor0 & ~VTDISPLAYPART) | v.getIndex(); }
 
 	/** routine to return true if the text descriptor indicates italic text. */
-	public boolean TDGetItalic() { return (descriptor0 & VTITALIC) != 0; }
+	public boolean getItalic() { return (descriptor0 & VTITALIC) != 0; }
 	/** routine to set the text descriptor's italic text factor. */
-	public void TDSetItalic(boolean i) {descriptor0 = (descriptor0 & ~VTITALIC) | (i ? VTITALIC : 0); }
+	public void setItalic(boolean i) {descriptor0 = (descriptor0 & ~VTITALIC) | (i ? VTITALIC : 0); }
 
 	/** routine to return true if the text descriptor indicates bold text. */
-	public boolean TDGetBold() { return (descriptor0 & VTBOLD) != 0; }
+	public boolean getBold() { return (descriptor0 & VTBOLD) != 0; }
 	/** routine to set the text descriptor's bold text factor. */
-	public void TDSetBold(boolean b) {descriptor0 = (descriptor0 & ~VTBOLD) | (b ? VTBOLD : 0); }
+	public void setBold(boolean b) {descriptor0 = (descriptor0 & ~VTBOLD) | (b ? VTBOLD : 0); }
 
 	/** routine to return true if the text descriptor indicates underlined text. */
-	public boolean TDGetUnderline() { return (descriptor0 & VTUNDERLINE) != 0; }
+	public boolean getUnderline() { return (descriptor0 & VTUNDERLINE) != 0; }
 	/** routine to set the text descriptor's underlined text factor. */
-	public void TDSetUnderline(boolean u) {descriptor0 = (descriptor0 & ~VTUNDERLINE) | (u ? VTUNDERLINE : 0); }
+	public void setUnderline(boolean u) {descriptor0 = (descriptor0 & ~VTUNDERLINE) | (u ? VTUNDERLINE : 0); }
 
 	/** routine to return true if the text descriptor indicates interior text (not see at higher-levels of hierarchy). */
-	public boolean TDGetInterior() { return (descriptor0 & VTINTERIOR) != 0; }
+	public boolean getInterior() { return (descriptor0 & VTINTERIOR) != 0; }
 	/** routine to set the text descriptor's interior text factor (whether seen at higher-levels of hierarchy). */
-	public void TDSetInterior(boolean i) {descriptor0 = (descriptor0 & ~VTINTERIOR) | (i ? VTINTERIOR : 0); }
+	public void setInterior(boolean i) {descriptor0 = (descriptor0 & ~VTINTERIOR) | (i ? VTINTERIOR : 0); }
 
 	/** routine to return true if the text descriptor indicates inheritable text (instances copy from prototypes). */
-	public boolean TDGetInherit() { return (descriptor0 & VTINHERIT) != 0; }
+	public boolean getInherit() { return (descriptor0 & VTINHERIT) != 0; }
 	/** routine to set the text descriptor's inheritable text factor (whether instances copy from prototypes). */
-	public void TDSetInherit(boolean i) {descriptor0 = (descriptor0 & ~VTINHERIT) | (i ? VTINHERIT : 0); }
+	public void setInherit(boolean i) {descriptor0 = (descriptor0 & ~VTINHERIT) | (i ? VTINHERIT : 0); }
 
 	/** routine to return true if the text descriptor indicates that this variable is a cell parameter. */
-	public boolean TDGetIsParam() { return (descriptor0 & VTISPARAMETER) != 0; }
+	public boolean getIsParam() { return (descriptor0 & VTISPARAMETER) != 0; }
 	/** routine to set the text descriptor's parameter factor. */
-	public void TDSetIsParam(boolean i) {descriptor0 = (descriptor0 & ~VTISPARAMETER) | (i ? VTISPARAMETER : 0); }
+	public void setIsParam(boolean i) {descriptor0 = (descriptor0 & ~VTISPARAMETER) | (i ? VTISPARAMETER : 0); }
 
 	/** routine to return the X offset of the text in the text descriptor. */
-	public int TDGetXOff()
+	public int getXOff()
 	{
 		int offset = (descriptor0 & VTXOFF) >> VTXOFFSH;
 		if ((descriptor0&VTXOFFNEG) != 0) offset = -offset;
-		int scale = TDGetOffScale() + 1;
+		int scale = getOffScale() + 1;
 		return(offset * scale);
 	}
 	/** routine to return the X offset of the text in the text descriptor. */
-	public int TDGetYOff()
+	public int getYOff()
 	{
 		int offset = (descriptor0 & VTYOFF) >> VTYOFFSH;
 		if ((descriptor0&VTYOFFNEG) != 0) offset = -offset;
-		int scale = TDGetOffScale() + 1;
+		int scale = getOffScale() + 1;
 		return(offset * scale);
 	}
 	/** routine to set the X and Y offset of the text in the text descriptor. */
-	public void TDSetOff(int x, int y)
+	public void setOff(int x, int y)
 	{
 		descriptor0 = descriptor0 & ~(VTXOFF|VTYOFF|VTXOFFNEG|VTYOFFNEG);
 		if (x < 0)
@@ -299,16 +299,16 @@ public class TextDescriptor
 		y /= (scale + 1);
 		descriptor0 |= (x << VTXOFFSH);
 		descriptor0 |= (y << VTYOFFSH);
-		TDSetOffScale(scale);
+		setOffScale(scale);
 	}
 
 	/** routine to return the offset scale of the text in the text descriptor. */
-	public int TDGetOffScale() { return (descriptor1 & VTOFFSCALE) >> VTOFFSCALE; }
+	public int getOffScale() { return (descriptor1 & VTOFFSCALE) >> VTOFFSCALE; }
 	/** routine to set the offset scale of the text in the text descriptor. */
-	public void TDSetOffScale(int v) {descriptor1 = (descriptor1 & ~VTOFFSCALE) | (v << VTOFFSCALESH); }
+	public void setOffScale(int v) {descriptor1 = (descriptor1 & ~VTOFFSCALE) | (v << VTOFFSCALESH); }
 
 	/** routine to return the units of the text in the text descriptor. */
-	public Units TDGetUnits() { return theUnits[(descriptor1 & VTUNITS) >> VTUNITSSH]; }
+	public Units getUnits() { return theUnits[(descriptor1 & VTUNITS) >> VTUNITSSH]; }
 	/** routine to set the units of the text in the text descriptor. */
-	public void TDSetUnits(Units v) {descriptor1 = (descriptor1 & ~VTUNITS) | (v.getIndex() << VTUNITSSH); }
+	public void setUnits(Units v) {descriptor1 = (descriptor1 & ~VTUNITS) | (v.getIndex() << VTUNITSSH); }
 }

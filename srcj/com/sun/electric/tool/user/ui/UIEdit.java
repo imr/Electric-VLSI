@@ -29,6 +29,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EMath;
@@ -65,21 +66,29 @@ public class UIEdit extends JPanel
 	/** the offscreen image of the window */				private Image img = null;
 	/** true if the window needs to be rerendered */		private boolean needsUpdate = false;
 	/** true to track the time for redraw */				private boolean trackTime = false;
+	/** the highlighted objects in this window */			private List highlightList;
+	/** starting screen point for drags in this window */	private Point startDrag = new Point();
+	/** ending screen point for drags in this window */		private Point endDrag = new Point();
+	/** true if doing drags in this window */				private boolean doingDrag = false;
 
 	/** an identity transformation */						private static final AffineTransform IDENTITY = new AffineTransform();
 	/** the offset of each new window on the screen */		private static int windowOffset = 0;
-	/** the offset of each new window on the screen */		private static List windowList = new ArrayList();
 
 	/** for drawing solid lines */		private static final BasicStroke solidLine = new BasicStroke(0);
 	/** for drawing thick lines */		private static final BasicStroke thickLine = new BasicStroke(1);
 	/** for drawing dotted lines */		private static final BasicStroke dottedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {1}, 0);
 	/** for drawing dashed lines */		private static final BasicStroke dashedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10, new float[] {10}, 0);
+	/** for drawing selection boxes */	private static final BasicStroke selectionLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {2}, 3);
+
+
+	// ************************************* CONTROL *************************************
 
 	// constructor
 	private UIEdit(Cell cell)
 	{
 		//super(cell.describe(), true, true, true, true);
 		this.cell = cell;
+		this.highlightList = new ArrayList();
 
 		sz = new Dimension(500, 500);
 		setSize(sz.width, sz.height);
@@ -95,7 +104,6 @@ public class UIEdit extends JPanel
 	public static UIEdit CreateElectricDoc(Cell cell)
 	{
 		UIEdit ui = new UIEdit(cell);
-		windowList.add(ui);
 		return ui;
 	}
 
@@ -103,6 +111,36 @@ public class UIEdit extends JPanel
 	{
 		needsUpdate = true;
 		repaint();
+	}
+
+	public void paint(Graphics g)
+	{
+		// to enable keys to be recieved
+		requestFocus();
+		if (img == null || !getSize().equals(sz))
+		{
+			if (cell == null) return;
+			sz = getSize();
+			img = createImage(sz.width, sz.height);
+			fillScreen();
+		}
+		if (needsUpdate)
+		{
+			needsUpdate = false;
+			drawImage();
+		}
+		g.drawImage(img, 0, 0, this);
+
+		// add in highlighting
+		for(Iterator it = highlightList.iterator(); it.hasNext(); )
+		{
+			Geometric geom = (Geometric)it.next();
+			showHighlight(g, geom);
+		}
+
+		// add in drag area
+		if (doingDrag)
+			showDragBox(g);
 	}
 
 	public void setTimeTracking(boolean trackTime)
@@ -116,9 +154,25 @@ public class UIEdit extends JPanel
 	public void setCell(Cell cell)
 	{
 		this.cell = cell;
+		clearThisHighlighting();
 		fillScreen();
 		redraw();
 	}
+
+	public void fillScreen()
+	{
+		if (cell == null) return;
+		sz = getSize();
+		Rectangle2D cellBounds = cell.getBounds();
+		double scalex = sz.width/cellBounds.getWidth() * 0.9;
+		double scaley = sz.height/cellBounds.getHeight() * 0.9;
+		scale = Math.min(scalex, scaley);
+		offx = cellBounds.getCenterX();
+		offy = cellBounds.getCenterY();
+		needsUpdate = true;
+	}
+
+	// ************************************* RENDERING A WINDOW *************************************
 
 	/**
 	 * Routine to draw the current window.
@@ -149,6 +203,7 @@ public class UIEdit extends JPanel
 			long endTime = System.currentTimeMillis();
 			float finalTime = (endTime - startTime) / 1000F;
 			System.out.println("Took " + finalTime + " seconds to redisplay");
+			trackTime = false;
 		}
 	}
 
@@ -161,7 +216,7 @@ public class UIEdit extends JPanel
 		Iterator arcs = cell.getArcs();
 		while (arcs.hasNext())
 		{
-			drawArc(g2, (ArcInst)arcs.next(), prevTrans);
+			drawArc(g2, (ArcInst)arcs.next(), prevTrans, topLevel);
 		}
 
 		// draw all nodes
@@ -187,32 +242,12 @@ public class UIEdit extends JPanel
 //		clipBound = clipPoly.getBounds();
 //System.out.println("node is "+clipBound.getWidth()+"x"+clipBound.getHeight()+" at ("+clipBound.getCenterX()+","+clipBound.getCenterY());
 
-		// debug to show outline
-//		if (topLevel)
-//		{
-//			Layer outlineLayer = Layer.newInstance("Outline",
-//				new EGraphics(EGraphics.LAYERO, EGraphics.BLACK, EGraphics.SOLIDC, EGraphics.SOLIDC, 255,255,255,1,1,
-//				new int[] {0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
-//					0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff}));
-//			Rectangle2D rect = ni.getBounds();
-//			Poly [] polys = new Poly[1];
-//			Point2D.Double [] points = new Point2D.Double[4];
-//			points[0] = new Point2D.Double(rect.getMinX(), rect.getMinY());
-//			points[1] = new Point2D.Double(rect.getMaxX(), rect.getMinY());
-//			points[2] = new Point2D.Double(rect.getMaxX(), rect.getMaxY());
-//			points[3] = new Point2D.Double(rect.getMinX(), rect.getMaxY());
-//			polys[0] = new Poly(points);
-//			polys[0].setStyle(Poly.Type.CLOSED);
-//			polys[0].setLayer(outlineLayer);
-//			drawPolys(g2, polys, IDENTITY);
-//		}
-
 		AffineTransform localTrans = ni.rotateOut(trans);
 		if (np instanceof Cell)
 		{
 			// cell instance
 			Cell subCell = (Cell)np;
-			
+
 			// two ways to draw a cell instance
 			if (ni.isExpanded())
 			{
@@ -258,6 +293,13 @@ public class UIEdit extends JPanel
 					portPoly.transform(trans);
 					drawTextCentered(g2, portPoly.getCenterX(), portPoly.getCenterY(), portlist[i].getPortProto().getProtoName(), 0.25, Color.red);
 				}
+				
+				// show displayable variables on the instance
+				int numPolys = ni.numDisplayableVariables();
+				Poly [] polys = new Poly[numPolys];
+				Rectangle2D rect = ni.getBounds();
+				ni.addDisplayableVariables(rect, polys, 0);
+				drawPolys(g2, polys, localTrans);
 			}
 		} else
 		{
@@ -288,7 +330,7 @@ public class UIEdit extends JPanel
 	/**
 	 * Routine to draw arc "ai", transformed through "trans".
 	 */
-	void drawArc(Graphics2D g2, ArcInst ai, AffineTransform trans)
+	void drawArc(Graphics2D g2, ArcInst ai, AffineTransform trans, boolean topLevel)
 	{
 		ArcProto ap = ai.getProto();
 		Technology tech = ap.getTechnology();
@@ -386,6 +428,8 @@ public class UIEdit extends JPanel
 		}
 	}
 
+	// ************************************* SPECIAL SHAPE DRAWING *************************************
+
 	/**
 	 * Routine to draw a large or small cross, as described in "poly".
 	 */
@@ -471,17 +515,6 @@ public class UIEdit extends JPanel
 		g2.setTransform(saveAT);
 	}
 
-//		/** text at center */								public static final Type TEXTCENT=       new Type();
-//		/** text below top edge */							public static final Type TEXTTOP=        new Type();
-//		/** text above bottom edge */						public static final Type TEXTBOT=        new Type();
-//		/** text to right of left edge */					public static final Type TEXTLEFT=       new Type();
-//		/** text to left of right edge */					public static final Type TEXTRIGHT=      new Type();
-//		/** text to lower-right of top-left corner */		public static final Type TEXTTOPLEFT=    new Type();
-//		/** text to upper-right of bottom-left corner */	public static final Type TEXTBOTLEFT=    new Type();
-//		/** text to lower-left of top-right corner */		public static final Type TEXTTOPRIGHT=   new Type();
-//		/** text to upper-left of bottom-right corner */	public static final Type TEXTBOTRIGHT=   new Type();
-//		/** text that fits in box (may shrink) */			public static final Type TEXTBOX=        new Type();
-
 	void drawTextCentered(Graphics2D g2, double x, double y, String text, double textScale, Color color)
 	{
 		// make a glyph vector for the desired text
@@ -539,48 +572,118 @@ public class UIEdit extends JPanel
 		g2.setTransform(saveAT);
 	}
 
-	public void paint(Graphics g)
+	// ************************************* HIGHLIGHTING *************************************
+
+	public void clearThisHighlighting()
 	{
-		// to enable keys to be recieved
-		requestFocus();
-		if (img == null || !getSize().equals(sz))
-		{
-			if (cell == null) return;
-			sz = getSize();
-			img = createImage(sz.width, sz.height);
-			fillScreen();
-		}
-		if (needsUpdate)
-		{
-			needsUpdate = false;
-			drawImage();
-		}
-		g.drawImage(img, 0, 0, this);
-		//super.paint(g);
+		highlightList.clear();
 	}
 
-	public void fillScreen()
+	public static void clearHighlighting()
 	{
-		if (cell == null) return;
-		sz = getSize();
-		Rectangle2D cellBounds = cell.getBounds();
-		double scalex = sz.width/cellBounds.getWidth() * 0.9;
-		double scaley = sz.height/cellBounds.getHeight() * 0.9;
-		scale = Math.min(scalex, scaley);
-		offx = cellBounds.getCenterX();
-		offy = cellBounds.getCenterY();
-		needsUpdate = true;
+		for(Iterator it = UIEditFrame.getWindows(); it.hasNext(); )
+		{
+			UIEditFrame uif = (UIEditFrame)it.next();
+			UIEdit ui = uif.getEdit();
+			ui.clearThisHighlighting();
+			ui.repaint();
+		}
 	}
 
-	int oldx, oldy;
+	public static void addHighlighting(Geometric geom)
+	{
+		Cell parent = geom.getParent();
+		for(Iterator it = UIEditFrame.getWindows(); it.hasNext(); )
+		{
+			UIEditFrame uif = (UIEditFrame)it.next();
+			UIEdit ui = uif.getEdit();
+			if (ui.cell != parent) continue;
+			ui.highlightList.add(geom);
+		}
+	}
+
+	void showHighlight(Graphics g, Geometric geom)
+	{
+		g.setColor(Color.white);
+		Rectangle2D rect = geom.getBounds();
+		Point c1 = databaseToScreen(rect.getMinX(), rect.getMinY());
+		Point c2 = databaseToScreen(rect.getMinX(), rect.getMaxY());
+		Point c3 = databaseToScreen(rect.getMaxX(), rect.getMaxY());
+		Point c4 = databaseToScreen(rect.getMaxX(), rect.getMinY());
+		g.drawLine(c1.x, c1.y, c2.x, c2.y);
+		g.drawLine(c2.x, c2.y, c3.x, c3.y);
+		g.drawLine(c3.x, c3.y, c4.x, c4.y);
+		g.drawLine(c4.x, c4.y, c1.x, c1.y);
+	}
+
+	void showDragBox(Graphics g)
+	{
+		int lX = (int)Math.min(startDrag.getX(), endDrag.getX());
+		int hX = (int)Math.max(startDrag.getX(), endDrag.getX());
+		int lY = (int)Math.min(startDrag.getY(), endDrag.getY());
+		int hY = (int)Math.max(startDrag.getY(), endDrag.getY());
+		Graphics2D g2 = (Graphics2D)g;
+		g2.setStroke(selectionLine);
+		g.setColor(Color.white);
+		g.drawLine(lX, lY, lX, hY);
+		g.drawLine(lX, hY, hX, hY);
+		g.drawLine(hX, hY, hX, lY);
+		g.drawLine(hX, lY, lX, lY);
+	}
+	// ************************************* WINDOW INTERACTION *************************************
+
+	private int oldx, oldy;
+
+	public Point2D.Double screenToDatabase(int screenX, int screenY)
+	{
+		double dbX = (screenX - sz.width/2) / scale + offx;
+		double dbY = (sz.height/2 - screenY) / scale + offy;
+		return new Point2D.Double(dbX, dbY);
+	}
+
+	public Point databaseToScreen(double dbX, double dbY)
+	{
+		int screenX = (int)(sz.width/2 + (dbX - offx) * scale);
+		int screenY = (int)(sz.height/2 - (dbY - offy) * scale);
+		return new Point(screenX, screenY);
+	}
 
 	public void mousePressed(MouseEvent evt)
 	{
 		oldx = evt.getX();
 		oldy = evt.getY();
+
+		if ((evt.getModifiers()&evt.SHIFT_MASK) != 0) return;
+		if ((evt.getModifiers()&evt.CTRL_MASK) != 0) return;
+
+		// standard selection: drag out a selection box
+		startDrag.setLocation(oldx, oldy);
+		endDrag.setLocation(oldx, oldy);
+		doingDrag = true;
+		repaint();
 	}
 
-	public void mouseReleased(MouseEvent evt) {}
+	public void mouseReleased(MouseEvent evt)
+	{
+		if (doingDrag)
+		{
+			clearHighlighting();
+			Point2D.Double start = screenToDatabase((int)startDrag.getX(), (int)startDrag.getY());
+			Point2D.Double end = screenToDatabase((int)endDrag.getX(), (int)endDrag.getY());
+			Rectangle2D.Double searchArea = new Rectangle2D.Double(Math.min(start.getX(), end.getX()),
+				Math.min(start.getY(), end.getY()), Math.abs(start.getX() - end.getX()), Math.abs(start.getY() - end.getY()));
+			Geometric.Search sea = new Geometric.Search(searchArea, cell);
+			for(;;)
+			{
+				Geometric nextGeom = sea.nextObject();
+				if (nextGeom == null) break;
+				addHighlighting(nextGeom);
+			}
+			doingDrag = false;
+			repaint();
+		}
+	}
+
 	public void mouseClicked(MouseEvent evt) {}
 	public void mouseEntered(MouseEvent evt) {}
 	public void mouseExited(MouseEvent evt) {}
@@ -588,20 +691,27 @@ public class UIEdit extends JPanel
 
 	public void mouseDragged(MouseEvent evt)
 	{
+		int newX = evt.getX();
+		int newY = evt.getY();
+		if (doingDrag)
+		{
+			endDrag.setLocation(newX, newY);
+			repaint();
+			return;
+		}
 		if ((evt.getModifiers()&evt.CTRL_MASK) != 0)
 		{
 			// control key held: zoom
-			scale = scale * Math.exp((oldy-evt.getY()) / 100.0f);
-		} else
+			scale = scale * Math.exp((oldy-newY) / 100.0f);
+		} else if ((evt.getModifiers()&evt.SHIFT_MASK) != 0)
 		{
 			// shift key held: pan
-			offx -= (evt.getX() - oldx) / scale;
-			offy += (evt.getY() - oldy) / scale;
+			offx -= (newX - oldx) / scale;
+			offy += (newY - oldy) / scale;
 		}
-		oldx = evt.getX();
-		oldy = evt.getY();
-		needsUpdate = true;
-		repaint();
+		oldx = newX;
+		oldy = newY;
+		redraw();
 	}
 
 	public void keyPressed(KeyEvent e)

@@ -32,6 +32,8 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.ui.UIEditFrame;
 import com.sun.electric.tool.user.ui.UIMenu;
@@ -119,6 +121,7 @@ public final class UserInitial
 		NodeInst poly1Pin = NodeInst.newInstance(p1PinProto, new Point2D.Double(20.0, -20.0), p1PinProto.getDefWidth(), p1PinProto.getDefHeight(), 0.0, myCell);
 		NodeInst transistor = NodeInst.newInstance(pTransProto, new Point2D.Double(0.0, -20.0), pTransProto.getDefWidth(), pTransProto.getDefHeight(), 0.0, myCell);
 		NodeInst rotTrans = NodeInst.newInstance(nTransProto, new Point2D.Double(0.0, 0.0), nTransProto.getDefWidth(), nTransProto.getDefHeight(), Math.PI/4, myCell);
+		rotTrans.setName("rotated");
 
 		// make arcs to connect them
 		PortInst m1m2Port = metal12Via.getOnlyPortInst();
@@ -170,12 +173,36 @@ public final class UserInitial
 		NodeInst instance4UNode = NodeInst.newInstance(myCell, new Point2D.Double(300, 100),
 			myCell.getDefWidth(), myCell.getDefHeight(), Math.PI/2*3, higherCell);
 
+		// transposed
+		NodeInst instance5Node = NodeInst.newInstance(myCell, new Point2D.Double(0, 200),
+			-myCell.getDefWidth(), myCell.getDefHeight(), 0, higherCell);
+		instance5Node.setExpanded();
+		NodeInst instance5UNode = NodeInst.newInstance(myCell, new Point2D.Double(0, 300),
+			-myCell.getDefWidth(), myCell.getDefHeight(), 0, higherCell);
+
+		NodeInst instance6Node = NodeInst.newInstance(myCell, new Point2D.Double(100, 200),
+			-myCell.getDefWidth(), myCell.getDefHeight(), Math.PI/2, higherCell);
+		instance6Node.setExpanded();
+		NodeInst instance6UNode = NodeInst.newInstance(myCell, new Point2D.Double(100, 300),
+			-myCell.getDefWidth(), myCell.getDefHeight(), Math.PI/2, higherCell);
+
+		NodeInst instance7Node = NodeInst.newInstance(myCell, new Point2D.Double(200, 200),
+			-myCell.getDefWidth(), myCell.getDefHeight(), Math.PI, higherCell);
+		instance7Node.setExpanded();
+		NodeInst instance7UNode = NodeInst.newInstance(myCell, new Point2D.Double(200, 300),
+			-myCell.getDefWidth(), myCell.getDefHeight(), Math.PI, higherCell);
+
+		NodeInst instance8Node = NodeInst.newInstance(myCell, new Point2D.Double(300, 200),
+			-myCell.getDefWidth(), myCell.getDefHeight(), Math.PI/2*3, higherCell);
+		instance8Node.setExpanded();
+		NodeInst instance8UNode = NodeInst.newInstance(myCell, new Point2D.Double(300, 300),
+			-myCell.getDefWidth(), myCell.getDefHeight(), Math.PI/2*3, higherCell);
+
 		PortInst instance1Port = instance1Node.findPortInst("in");
 		PortInst instance2Port = instance1UNode.findPortInst("in");
 		ArcInst instanceArc = ArcInst.newInstance(m1Proto, m1Proto.getWidth(), instance1Port, instance2Port);
 		instanceArc.setFixedAngle();
 		System.out.println("Created cell " + higherCell.describe());
-
 
 		// now up the hierarchy even farther
 		Cell bigCell = Cell.newInstance(mainLib, "big{lay}");
@@ -189,6 +216,13 @@ public final class UserInitial
 				NodeInst instanceNode = NodeInst.newInstance(myCell, new Point2D.Double(x*(cellWidth+2), y*(cellHeight+2)),
 					cellWidth, cellHeight, 0, bigCell);
 				if ((x%2) == (y%2)) instanceNode.setExpanded();
+				String theName = x + "," + y;
+				Variable var = instanceNode.setName(theName);
+				if (var != null)
+				{
+					TextDescriptor td = var.getTextDescriptor();
+					td.setOff(0, 32);
+				}
 			}
 		}
 		System.out.println("Created cell " + bigCell.describe());
@@ -200,9 +234,8 @@ public final class UserInitial
 
 		// display some cells
 		UIEditFrame window1 = UIEditFrame.CreateEditWindow(myCell);
-		System.out.println("*********************** TERMINATED SUCCESSFULLY ***********************");
-		System.out.println("************* Click and drag to Pan");
-		System.out.println("************* Use CONTROL-CLICK to Zoom");
+		System.out.println("************* Use SHIFT-CLICK to Pan *************");
+		System.out.println("************* Use CONTROL-CLICK to Zoom *************");
 	}
 
 }

@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: TecSchematics.java
+ * File: Schematics.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -47,9 +47,9 @@ import java.util.Iterator;
 /**
  * This is the Schematics technology.
  */
-public class TecSchematics extends Technology
+public class Schematics extends Technology
 {
-	public static final TecSchematics tech = new TecSchematics();
+	public static final Schematics tech = new Schematics();
 
 	/** Flip-flop type */						public static final int FFTYPE =    07;
 	/** Flip-flop is RS type */					public static final int FFTYPERS =   0;
@@ -222,7 +222,7 @@ public class TecSchematics extends Technology
 
 	// -------------------- private and protected methods ------------------------
 
-	private TecSchematics()
+	private Schematics()
 	{
 		setTechName("schematic");
 		setTechDesc("Schematic Capture");

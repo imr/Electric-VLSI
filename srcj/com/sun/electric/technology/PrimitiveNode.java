@@ -47,8 +47,6 @@ public class PrimitiveNode extends NodeProto
 
 	// --------------------- private data -----------------------------------
 	
-	private static final Point2D.Double ORIGIN = new Point2D.Double(0, 0);
-
 	/** layers describing this primitive */			private Technology.NodeLayer [] layers;
 	/** flag bits */								private int userBits;
 	/** special factors for unusual primitives */	private int[] specialValues;
@@ -128,8 +126,6 @@ public class PrimitiveNode extends NodeProto
 
 	public int [] getSpecialValues() { return specialValues; }
 	public void setSpecialValues(int [] specialValues) { this.specialValues = specialValues; }
-
-	public Point2D.Double getReferencePoint() { return ORIGIN; }
 
 	/**
 	 * Does this PrimitiveNode act as a Pin (one port, small size)?

@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: TecMoCMOS.java
+ * File: MoCMOS.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -43,9 +43,9 @@ import java.awt.geom.Point2D;
 /**
  * This is the MOSIS CMOS technology.
  */
-public class TecMoCMOS extends Technology
+public class MoCMOS extends Technology
 {
-	public static final TecMoCMOS tech = new TecMoCMOS();
+	public static final MoCMOS tech = new MoCMOS();
 	/** metal-1-pin */						private PrimitiveNode metal1Pin_node;
 	/** metal-2-pin */						private PrimitiveNode metal2Pin_node;
 	/** metal-3-pin */						private PrimitiveNode metal3Pin_node;
@@ -102,7 +102,7 @@ public class TecMoCMOS extends Technology
 	/** Silicide-Block-Node */				private PrimitiveNode silicideBlockNode_node;
 
 	// -------------------- private and protected methods ------------------------
-	private TecMoCMOS()
+	private MoCMOS()
 	{
 		setTechName("mocmos");
 		setTechDesc("MOSIS CMOS");

@@ -101,6 +101,7 @@ public class UITopLevel extends JFrame
 
 	public static JDesktopPane getDesktop() { return desktop; }
 	public static String getLibDir() { return libdir; }
+	public static UIEditFrame getCurrent() { return (UIEditFrame)desktop.getSelectedFrame(); }
 
 	public void AddWindowExit()
 	{

@@ -69,7 +69,7 @@ public class Variable
 	 */
 	String describe(int aindex, int purpose)
 	{
-		TextDescriptor.Units units = descriptor.TDGetUnits();
+		TextDescriptor.Units units = descriptor.getUnits();
 		String returnVal = "";
 
 //		if ((flags & (VCODE1|VCODE2)) != 0)

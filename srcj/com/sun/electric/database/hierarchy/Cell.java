@@ -33,7 +33,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.technology.technologies.TecGeneric;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.database.text.CellName;
 
 import java.awt.Point;
@@ -117,8 +117,7 @@ public class Cell extends NodeProto
 	/** when this cell was created */				private Date creationDate;
 	/** when this cell was last modified */			private Date revisionDate;
 	/** version of this cell */						private int version;
-	/** cell-Center */								private NodeInst referencePointNode = null;
-	/** cell-Center */								private Point2D.Double referencePointCoord;
+	/** cell-Center */								private NodeInst referencePointNode;
 	/** essential-bounds */							private List essenBounds = new ArrayList();
 	/** NodeInsts that comprise this cell */		private List nodes;
 	/** ArcInsts that comprise this cell */			private List arcs;
@@ -148,13 +147,13 @@ public class Cell extends NodeProto
 		c.timeStamp = -1; // initial time is in the past
 		c.tech = null;
 		c.lib = lib;
-		c.referencePointCoord = new Point2D.Double(0, 0);
 		c.creationDate = new Date();
 		c.revisionDate = new Date();
 		c.userBits = 0;
 		c.elecBounds = new Rectangle2D.Double();
 		c.boundsEmpty = true;
 		c.boundsDirty = false;
+		c.referencePointNode = null;
 		c.rTree = Geometric.RTNode.makeTopLevel();
 		return c;
 	}
@@ -301,6 +300,25 @@ public class Cell extends NodeProto
 		boundsDirty = true;
 	}
 
+	public void setReferencePoint(double dx, double dy)
+	{
+		// if there is no change, stop now
+		if (dx == 0 && dy == 0) return;
+
+		// move reference point by (dx,dy)
+		referencePointNode.modifyInstance(-dx, -dy, 0, 0, 0);
+
+		// must adjust all nodes and arcs by (dx,dy)
+		for(Iterator it = getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			if (ni == referencePointNode) continue;
+
+			// move NodeInst "ni" by (dx,dy)
+			ni.modifyInstance(-dx, -dy, 0, 0, 0);
+		}
+	}
+
 	/**
 	 * Routine to add node instance "ni" to the list of nodes in this cell
 	 */
@@ -321,7 +339,7 @@ public class Cell extends NodeProto
 
 		// make additional checks to keep circuit up-to-date
 		NodeProto np = ni.getProto();
-		if (np instanceof PrimitiveNode && np == TecGeneric.tech.cellCenter_node)
+		if (np instanceof PrimitiveNode && np == Generic.tech.cellCenter_node)
 		{
 			referencePointNode = ni;
 			setReferencePoint(ni.getCenterX(), ni.getCenterY());
@@ -606,6 +624,11 @@ public class Cell extends NodeProto
 		buildNetworkList();
 	}
 
+	public void setDirty()
+	{
+		boundsDirty = true;
+	}
+
 	/** Get the Electric bounds.  This excludes invisible widths. */
 	public Rectangle2D.Double getBounds()
 	{
@@ -689,12 +712,6 @@ public class Cell extends NodeProto
 		return new Rectangle2D.Double(minX, minY, maxX - minX, maxY - minY);
 	}
 
-	private void copyReferencePoint(Cell f)
-	{
-		Point2D rp = getReferencePoint();
-		f.setReferencePoint(rp.getX(), rp.getY());
-	}
-
 	private HashMap copyNodes(Cell f)
 	{
 		HashMap oldToNew = new HashMap();
@@ -774,7 +791,6 @@ public class Cell extends NodeProto
 	private void copyContents(Cell f)
 	{
 		// Note: Electric has already created f and called f.init()
-		copyReferencePoint(f);
 		HashMap oldToNew = copyNodes(f);
 		copyArcs(f, oldToNew);
 		copyExports(f, oldToNew);
@@ -995,34 +1011,6 @@ public class Cell extends NodeProto
 		return null;
 	}
 
-	/** If this Cell contains an instance of the Cell-Center then
-	 * return its absolute coordinates; otherwise return (0, 0).
-	 */
-	public Point2D.Double getReferencePoint()
-	{
-		return referencePointCoord;
-	}
-
-	/** If there is no instance of Cell-Center then create one.
-	 * Position the Cell-Center at the absolute coordinates: (x,
-	 * y). From now on, all positions in this Cell will be interpreted
-	 * relative to the position of the Cell-Center. */
-	public void setReferencePoint(double x, double y)
-	{
-//		if (referencePointNode == null)
-//		{
-//			Technology generic = Technology.findTechnology("generic");
-//			error(generic == null, "can't find generic technlogy?");
-//			PrimitiveNode cellCenter = generic.findNodeProto("Cell-Center");
-//			error(cellCenter == null,
-//				"can't find PrimitiveNode: Cell-Center");
-//			referencePointNode = NodeInst.newInstance(cellCenter, new Point2D.Double(1, 1), 0, 0, 0, this);
-//		}
-//		referencePointNode.alterShape(0, 0, x - r.getX(), y - r.getY(), 0);
-//		referencePointNode.setHardSelect();
-
-		referencePointCoord.setLocation(x, y);
-	}
 	/** sanity check method used by Geometric.checkobj */
 	public boolean containsInstance(Geometric thing)
 	{

@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: TecCMOS.java
+ * File: CMOS.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -43,11 +43,11 @@ import java.awt.geom.Point2D;
 /**
  * This is the Complementary MOS (old, N-Well, from Griswold) technology.
  */
-public class TecCMOS extends Technology
+public class CMOS extends Technology
 {
-	public static final TecCMOS tech = new TecCMOS();
+	public static final CMOS tech = new CMOS();
 	// -------------------- private and protected methods ------------------------
-	private TecCMOS()
+	private CMOS()
 	{
 		setTechName("cmos");
 		setTechDesc("Complementary MOS (old, N-Well, from Griswold)");

@@ -35,6 +35,7 @@ import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.ui.UIEditFrame;
 import com.sun.electric.tool.user.ui.UIDialogOpenFile;
+import com.sun.electric.tool.user.ui.UITopLevel;
 import com.sun.electric.tool.io.Input;
 import com.sun.electric.tool.io.Output;
 
@@ -43,7 +44,6 @@ import java.util.Iterator;
 public final class UserMenuCommands
 {
 	// ---------------------- private and protected methods -----------------
-	static UIEditFrame lastFrame = null;
 
 	// It is never useful for anyone to create an instance of this class
 	private UserMenuCommands()
@@ -57,21 +57,7 @@ public final class UserMenuCommands
 		String fileName = UIDialogOpenFile.ELIB.chooseInputFile();
 		if (fileName != null)
 		{
-			long startTime = System.currentTimeMillis();
-			Library lib = Input.ReadLibrary(fileName, null, Input.ImportType.BINARY);
-			if (lib == null) return;
-			long endTime = System.currentTimeMillis();
-			float finalTime = (endTime - startTime) / 1000F;
-			System.out.println("Library " + fileName + " read, took " + finalTime + " seconds");
-			Library.setCurrent(lib);
-			Cell cell = lib.getCurCell();
-			if (cell == null)
-			{
-				System.out.println("No current cell in this library");
-			} else
-			{
-				lastFrame = UIEditFrame.CreateEditWindow(cell);
-			}
+			Input.readLibrary(fileName, Input.ImportType.BINARY);
 		}
 	}
 
@@ -129,10 +115,13 @@ public final class UserMenuCommands
 				}
 			}
 		}
-		if (lastFrame != null)
+
+		// get the current window
+		UIEditFrame uif = UITopLevel.getCurrent();
+		if (uif != null)
 		{
-			lastFrame.setTimeTracking(true);
-			lastFrame.redraw();
+			uif.setTimeTracking(true);
+			uif.redraw();
 		}
 	}
 
