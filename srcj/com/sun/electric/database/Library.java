@@ -37,7 +37,7 @@ public class Library extends ElectricObject
 	private static Library curLib = null;
 
 	// ----------------- private and protected methods --------------------
-	protected Library(String libName, String fileName)
+	private Library(String libName, String fileName)
 	{
 		this.cells = new ArrayList();
 		this.lambdaSizes = new HashMap();
@@ -74,18 +74,12 @@ public class Library extends ElectricObject
 		lambdaSizes.put(tech, new Double(lambda));
 	}
 
-	protected void getInfo()
-	{
-		System.out.println("  name: " + libName);
-		System.out.println("  file: " + fileName);
-		System.out.println("  total cells: " + cells.size());
-		System.out.println("  current cell: " + curCell);
-		super.getInfo();
-	}
-
 	// ----------------- public interface --------------------
-	
-	public static Library newLibrary(String libraryName, String libraryFile)
+
+	/**
+	 * The factory to create new libraries.
+	 */
+	public static Library newInstance(String libraryName, String libraryFile)
 	{
 		// make sure the name is legal
 		String legalName = libraryName.replace(' ', '-');
@@ -210,85 +204,6 @@ public class Library extends ElectricObject
 	}
 
 	// ----------------- cells --------------------
-
-	/**
-	 * Create a new Cell in this library named "name".
-	 * The name should be something like "foo;2{sch}".
-	 */
-	public Cell newCell(String name)
-	{
-		// see if this cell already exists
-		Cell existingCell = findNodeProto(name);
-		if (existingCell != null)
-		{
-			System.out.println("Cannot create cell " + name + " in library " + libName + " ...already exists");
-			return(null);
-		}
-		
-		// figure out the view and version of the cell
-		View cellView = null;
-		int openCurly = name.indexOf('{');
-		int closeCurly = name.lastIndexOf('}');
-		if (openCurly != -1 && closeCurly != -1)
-		{
-			String viewName = name.substring(openCurly+1, closeCurly);
-			cellView = View.getView(viewName);
-			if (cellView == null)
-			{
-				System.out.println("Unknown view: " + viewName);
-				return null;
-			}
-		}
-		
-		// figure out the version
-		int explicitVersion = 0;
-		int semicolon = name.indexOf(';');
-		if (semicolon != -1)
-		{
-//			explicitVersion = Integer.ParseInt(name.substring(semicolon), 10);
-			if (explicitVersion <= 0)
-			{
-				System.out.println("Cell versions must be positive, this is " + explicitVersion);
-				return null;
-			}
-		}
-
-		// get the pure cell name
-		if (semicolon == -1) semicolon = name.length();
-		if (openCurly == -1) openCurly = name.length();
-		int nameEnd = Math.min(semicolon, openCurly);
-		String pureCellName = name.substring(0, nameEnd);
-
-		// make sure this version isn't in use
-		if (explicitVersion > 0)
-		{
-			for (int i = 0; i < cells.size(); i++)
-			{
-				Cell c = (Cell) cells.get(i);
-				if (pureCellName.equals(c.getProtoName()) && cellView == c.getView() &&
-					explicitVersion == c.getVersion())
-				{
-					System.out.println("Already a cell with this version");
-					return null;
-				}
-			}
-		} else
-		{
-			// find a new version
-			explicitVersion = 1;
-			for (int i = 0; i < cells.size(); i++)
-			{
-				Cell c = (Cell) cells.get(i);
-				if (pureCellName.equals(c.getProtoName()) && cellView == c.getView() &&
-					c.getVersion() >= explicitVersion)
-						explicitVersion = c.getVersion() + 1;
-			}
-		}
-
-		Cell c = new Cell(this, pureCellName, explicitVersion, cellView);
-//		c.setReferencePoint(0, 0); // for 0, units don't matter
-		return c;
-	}
 
 	/**
 	 * Get the cell that is currently being edited in this library,

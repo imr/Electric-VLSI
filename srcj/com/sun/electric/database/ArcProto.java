@@ -13,27 +13,32 @@ import java.util.Iterator;
 public class ArcProto extends ElectricObject
 {
 	// ----------------------- private data -------------------------------
-	private String protoName; // Name of this prototype
-	private double defaultWidth; // Default width of this wire
-	private double widthOffset; // Width of other the material
-	private Technology tech; // Technology of this type of arc
-	private int userbits;
-	private ArcLayer [] layers;
 
-	/** these arcs are fixed-length */					public static final int WANTFIX=            01;
-	/** these arcs are fixed-angle */					public static final int WANTFIXANG=         02;
-	/** set if arcs should not slide in ports */		public static final int WANTCANTSLIDE=      04;
-	/** set if ends do not extend by half width */		public static final int WANTNOEXTEND=      010;
-	/** set if arcs should be negated */				public static final int WANTNEGATED=       020;
-	/** set if arcs should be directional */			public static final int WANTDIRECTIONAL=   040;
-	/** set if arcs can wipe wipable nodes */			public static final int CANWIPE=          0100;
-	/** set if arcs can curve */						public static final int CANCURVE=         0200;
-	/** arc function (from efunction.h) */				public static final int AFUNCTION=      017400;
-	/** right shift for AFUNCTION */					public static final int AFUNCTIONSH=         8;
-	/** angle increment for this type of arc */			public static final int AANGLEINC=   017760000;
-	/** right shift for AANGLEINC */					public static final int AANGLEINCSH=        13;
-	/** set if arc is selectable by edge, not area */	public static final int AEDGESELECT= 020000000;
+	/** Name of this prototype */						private String protoName;
+	/** Default width of this wire */					private double defaultWidth;
+	/** Width of other the material */					private double widthOffset;
+	/** Technology of this type of arc */				private Technology tech;
+	/** Flags for this arc */							private int userBits;
+	/** Layers in this arc */							private Technology.ArcLayer [] layers;
 
+	// the meaning of the "userBits" field:
+	/** these arcs are fixed-length */					private static final int WANTFIX=            01;
+	/** these arcs are fixed-angle */					private static final int WANTFIXANG=         02;
+	/** set if arcs should not slide in ports */		private static final int WANTCANTSLIDE=      04;
+	/** set if ends do not extend by half width */		private static final int WANTNOEXTEND=      010;
+	/** set if arcs should be negated */				private static final int WANTNEGATED=       020;
+	/** set if arcs should be directional */			private static final int WANTDIRECTIONAL=   040;
+	/** set if arcs can wipe wipable nodes */			private static final int CANWIPE=          0100;
+	/** set if arcs can curve */						private static final int CANCURVE=         0200;
+	/** arc function (from efunction.h) */				private static final int AFUNCTION=      017400;
+	/** right shift for AFUNCTION */					private static final int AFUNCTIONSH=         8;
+	/** angle increment for this type of arc */			private static final int AANGLEINC=   017760000;
+	/** right shift for AANGLEINC */					private static final int AANGLEINCSH=        13;
+	/** set if arc is selectable by edge, not area */	private static final int AEDGESELECT= 020000000;
+
+	// ----------------------- PUBLIC CONSTANTS -------------------------------
+
+	// Arc functions:
 	/** arc is unknown type */							public static final int APUNKNOWN=           0;
 	/** arc is metal, layer 1 */						public static final int APMETAL1=            1;
 	/** arc is metal, layer 2 */						public static final int APMETAL2=            2;
@@ -60,17 +65,37 @@ public class ArcProto extends ElectricObject
 	/** arc is nonelectrical */							public static final int APNONELEC=          23;
 
 	// ----------------- protected and private methods -------------------------
-	public ArcProto(String protoName, double defaultWidth, double widthOffset, ArcLayer [] layers, Technology tech, int userbits)
+
+	private ArcProto(Technology tech, String protoName, double defaultWidth, Technology.ArcLayer [] layers)
 	{
 		this.protoName = protoName;
 		this.defaultWidth = defaultWidth;
-		this.widthOffset = widthOffset;
+		this.widthOffset = 0;
 		this.tech = tech;
-		this.userbits = userbits;
+		this.userBits = 0;
 		this.layers = layers;
 	}
 
 	// ------------------------ public methods -------------------------------
+
+	public static ArcProto newInstance(Technology tech, String protoName, double defaultWidth, Technology.ArcLayer [] layers)
+	{
+		// check the arguments
+		if (tech.findArcProto(protoName) != null)
+		{
+			System.out.println("Technology " + tech.getTechName() + " has multiple arcs named " + protoName);
+			return null;
+		}
+		if (defaultWidth < 0.0)
+		{
+			System.out.println("ArcProto " + tech.getTechName() + ":" + protoName + " has negative width");
+			return null;
+		}
+
+		ArcProto ap = new ArcProto(tech, protoName, defaultWidth, layers);
+		tech.addArcProto(ap);
+		return ap;
+	}
 
 	public String getProtoName()
 	{
@@ -82,6 +107,18 @@ public class ArcProto extends ElectricObject
 		return defaultWidth;
 	}
 
+	/**
+	 * Set the default width of this type of arc in Lambda units.
+	 */
+	public void setWidthOffset(double widthOffset)
+	{
+		if (widthOffset < 0.0)
+		{
+			System.out.println("ArcProto " + tech.getTechName() + ":" + protoName + " has negative width offset");
+			return;
+		}
+		this.widthOffset = widthOffset;
+	}
 	/** Get the default width of this type of arc in Lambda units.
 	 *
 	 * <p> Exclude the surrounding material. For example, diffusion arcs
@@ -107,92 +144,81 @@ public class ArcProto extends ElectricObject
 		return tech;
 	}
 
-	// text info about this ArcProto
-	public String describe()
-	{
-		String description = "";
-		if (Technology.getCurrent() != tech)
-			description += tech.getTechName() + ":";
-		description += protoName;
-		return description;
-	}
+	/** Set the Rigid bit */
+	public void setRigid() { userBits |= WANTFIX; }
+	/** Clear the Rigid bit */
+	public void clearRigid() { userBits &= ~WANTFIX; }
+	/** Get the Rigid bit */
+	public boolean getRigid() { return (userBits & WANTFIX) != 0; }
 
-	/** Create a new ArcInst connecting two PortInsts.
-	 *
-	 * <p> Arcs are connected to the <i>center</i> of the PortInsts. If
-	 * the two PortInst centers don't line up vertically or
-	 * horizontally, then generate 'L' shaped wires by first routing
-	 * horizontally from PortInst a and then vertically to PortInst b.
-	 * @param width the width of this material in Lambda units.  Width
-	 * must be >0. A zero width means "use the default width".
-	 * @param a start PortInst
-	 * @param b end PortInst */
-	public ArcInst newInst(double width, PortInst a, PortInst b)
-	{
-		double aX = a.getCenterX();
-		double aY = a.getCenterY();
-		double bX = b.getCenterX();
-		double bY = b.getCenterY();
-		return newInst(width, a, aX, aY, b, bX, bY);
-	}
+	/** Set the Fixed-angle bit */
+	public void setFixedAngle() { userBits |= WANTFIXANG; }
+	/** Clear the Fixed-angle bit */
+	public void clearFixedAngle() { userBits &= ~WANTFIXANG; }
+	/** Get the Fixed-angle bit */
+	public boolean getFixedAngle() { return (userBits & WANTFIXANG) != 0; }
 
-	/** Create an ArcInst connecting two PortInsts at the specified
-	 * locations.
-	 *
-	 * <p> The locations must lie within their respective ports.  The
-	 * coordinates are in Lambda units.
-	 *
-	 * <p> This routine presents the full generality of Electric's
-	 * database.  However, I've never found it to be useful. I recommend
-	 * using the other newInst method. */
-	public ArcInst newInst(double width,
-		PortInst a, double aX, double aY,
-		PortInst b, double bX, double bY)
-	{
-		if (width <= 0)
-			width = getWidth();
+	/** Set the Slidable bit */
+	public void setSlidable() { userBits &= ~WANTCANTSLIDE; }
+	/** Clear the Slidable bit */
+	public void clearSlidable() { userBits |= WANTCANTSLIDE; }
+	/** Get the Slidable bit */
+	public boolean getSlidable() { return (userBits & WANTCANTSLIDE) == 0; }
 
-		Cell aF = a.getNodeInst().getParent();
-		Cell bF = b.getNodeInst().getParent();
-		if (aF != bF)
-		{
-			System.out.println("ArcProto.newInst: the 2 PortInsts are in different Cells!");
-			return null;
-		}
+	/** Set the End-extension bit */
+	public void setEndExtend() { userBits &= ~WANTCANTSLIDE; }
+	/** Clear the End-extension bit */
+	public void clearEndExtend() { userBits |= WANTCANTSLIDE; }
+	/** Get the End-extension bit */
+	public boolean getEndExtend() { return (userBits & WANTCANTSLIDE) == 0; }
 
-		double wid = width + widthOffset;
-		Point2D.Double rp = aF.getReferencePoint();
+	/** Set the Negated bit */
+	public void setNegated() { userBits |= WANTNEGATED; }
+	/** Clear the Negated bit */
+	public void clearNegated() { userBits &= ~WANTNEGATED; }
+	/** Get the Negated bit */
+	public boolean getNegated() { return (userBits & WANTNEGATED) != 0; }
 
-		double ax = aX + rp.getX();
-		double ay = aY + rp.getY();
-		double bx = bX + rp.getX();
-		double by = bY + rp.getY();
+	/** Set the Directional bit */
+	public void setDirectional() { userBits |= WANTDIRECTIONAL; }
+	/** Clear the Directional bit */
+	public void clearDirectional() { userBits &= ~WANTDIRECTIONAL; }
+	/** Get the Directional bit */
+	public boolean getDirectional() { return (userBits & WANTDIRECTIONAL) != 0; }
 
-//		ArcInst ai = Electric.newArcInst(this.getAddr(), wid,
-//				a.getNodeInst().getAddr(), a.getPortProto().getAddr(), ax, ay,
-//				b.getNodeInst().getAddr(), b.getPortProto().getAddr(), bx, by,
-//				aF.getAddr());
-		ArcInst ai = null;
+	/** Set the Can-Wipe bit */
+	public void setCanWipe() { userBits |= CANWIPE; }
+	/** Clear the Can-Wipe bit */
+	public void clearCanWipe() { userBits &= ~CANWIPE; }
+	/** Get the Can-Wipe bit */
+	public boolean getCanWipe() { return (userBits & CANWIPE) != 0; }
 
-		if (ai == null)
-		{
-			System.out.println("couldn't create arc:\n"
-				+ "-------------following dimensions are Cell-Center relative---------\n"
-				+ " NodeInst   A: " + a.getNodeInst() + "\n"
-				+ " PortProto  A: " + a.getPortProto() + "\n"
-				+ " PortBounds A: " + a.getBounds() + "\n"
-				+ " NodeInst   B: " + b.getNodeInst() + "\n"
-				+ " PortProto  B: " + b.getPortProto() + "\n"
-				+ " PortBounds B: " + b.getBounds() + "\n"
-				+ "---------------------following dimensions are absolute-------------\n"
-				+ " (ax, ay): (" + ax + "," + ay + ")\n"
-				+ " (bx, by): (" + bx + "," + by + ")\n");
-			return null;
-		}
-		return ai;
-	}
+	/** Set the Can-Curve bit */
+	public void setCanCurve() { userBits |= CANCURVE; }
+	/** Clear the Can-Curve bit */
+	public void clearCanCurve() { userBits &= ~CANCURVE; }
+	/** Get the Can-Curve bit */
+	public boolean getCanCurve() { return (userBits & CANCURVE) != 0; }
 
-	/** Find the PrimitiveNode pin corresponding to this ArcProto type.
+	/** Set the Edge-Select bit */
+	public void setEdgeSelect() { userBits |= AEDGESELECT; }
+	/** Clear the Edge-Select bit */
+	public void cleardgeSelect() { userBits &= ~AEDGESELECT; }
+	/** Get the Edge-Select bit */
+	public boolean getdgeSelect() { return (userBits & AEDGESELECT) != 0; }
+
+	/** Set the arc function */
+	public void setFunction(int function) { userBits = (userBits & ~AFUNCTION) | (function << AFUNCTIONSH); }
+	/** Get the arc function */
+	public int getFunction() { return (userBits & AFUNCTION) >> AFUNCTIONSH; }
+
+	/** Set the arc angle increment */
+	public void setAngleIncrement(int function) { userBits = (userBits & ~AANGLEINC) | (function << AANGLEINCSH); }
+	/** Get the arc angle increment */
+	public int getAngleIncrement() { return (userBits & AANGLEINC) >> AANGLEINCSH; }
+
+	/**
+	 * Find the PrimitiveNode pin corresponding to this ArcProto type.
 	 * For example, if this ArcProto is metal-1 then return the metal-1 pin.
 	 * @return the PrimitiveNode pin that matches, or null if there is no match
 	 */
@@ -214,6 +240,16 @@ public class ArcProto extends ElectricObject
 			}
 		}
 		return null;
+	}
+
+	/** returns a string that describes this ArcProto */
+	public String describe()
+	{
+		String description = "";
+		if (Technology.getCurrent() != tech)
+			description += tech.getTechName() + ":";
+		description += protoName;
+		return description;
 	}
 
 	/** printable version of this object */

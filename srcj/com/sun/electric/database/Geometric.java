@@ -16,13 +16,13 @@ import java.awt.geom.Rectangle2D;
  * were R-trees in Electric may turn out to be many-to-many rectangular
  * buckets on the Java side.
  */
-public abstract class Geometric extends ElectricObject
+public class Geometric extends ElectricObject
 {
 	// ------------------------------- private data ------------------------------
 	private static final SizeOffset ZERO_SIZE_OFFSET =
 		new SizeOffset(0, 0, 0, 0);
 
-	private Cell parent; // Cell containing this Geometric object
+	protected Cell parent; // Cell containing this Geometric object
 	private Rectangle visBounds; // excludes Electric's invisible material
 
 	// Jose's internal representation of position and orientation is the

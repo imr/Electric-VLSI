@@ -53,19 +53,19 @@ public class Cell extends NodeProto
 	private static final Point2D.Double ORIGIN = new Point2D.Double(0, 0);
 	private static int currentTime = 0;
 
-	private Technology tech; // best guess technology
-	private CellGroup cellGroup; // what group this is a cell of
-	private VersionGroup versionGroup; // what history this is a cell of
-	private Library lib; // what library this is a cell of
-	private View view; // what type of view this cell expresses
-	private Date creationDate; // when this cell was created
-	private Date revisionDate; // when this cell was last modified
-	private int version; // version of this cell
+	private Technology tech;			// best guess technology
+	private CellGroup cellGroup;		// what group this is a cell of
+	private VersionGroup versionGroup;	// what history this is a cell of
+	private Library lib;				// what library this is a cell of
+	private View view;					// what type of view this cell expresses
+	private Date creationDate;			// when this cell was created
+	private Date revisionDate;			// when this cell was last modified
+	private int version;				// version of this cell
 	private NodeInst referencePoint = null; // cell-Center
 	private ArrayList essenBounds = new ArrayList(); // essential-bounds
-	private ArrayList nodes; // NodeInsts that comprise this cell
-	private ArrayList arcs; // ArcInsts that comprise this cell
-	private int userbits; // Miscellaneous userbits copied from C.
+	private ArrayList nodes;			// NodeInsts that comprise this cell
+	private ArrayList arcs;				// ArcInsts that comprise this cell
+	private int userbits;				// Miscellaneous userbits copied from C.
 	private int timeStamp;
 
 	// ------------------ protected and private methods -----------------------
@@ -90,7 +90,7 @@ public class Cell extends NodeProto
 //		}
 //	}
 
-	protected Cell(Library cellLib, String name, int cellVersion, View cellView)
+	private Cell(Library cellLib, String name, int cellVersion, View cellView)
 	{
 		nodes = new ArrayList();
 		arcs = new ArrayList();
@@ -111,6 +111,85 @@ public class Cell extends NodeProto
 
 		// add to cell group
 //		cellGroup.merge(nxtCellGrp);
+	}
+
+	/**
+	 * Create a new Cell in library "lib" named "name".
+	 * The name should be something like "foo;2{sch}".
+	 */
+	public static Cell newInstance(Library lib, String name)
+	{
+		// see if this cell already exists
+		Cell existingCell = lib.findNodeProto(name);
+		if (existingCell != null)
+		{
+			System.out.println("Cannot create cell " + name + " in library " + lib.getLibName() + " ...already exists");
+			return(null);
+		}
+		
+		// figure out the view and version of the cell
+		View cellView = null;
+		int openCurly = name.indexOf('{');
+		int closeCurly = name.lastIndexOf('}');
+		if (openCurly != -1 && closeCurly != -1)
+		{
+			String viewName = name.substring(openCurly+1, closeCurly);
+			cellView = View.getView(viewName);
+			if (cellView == null)
+			{
+				System.out.println("Unknown view: " + viewName);
+				return null;
+			}
+		}
+		
+		// figure out the version
+		int explicitVersion = 0;
+		int semicolon = name.indexOf(';');
+		if (semicolon != -1)
+		{
+//			explicitVersion = Integer.ParseInt(name.substring(semicolon), 10);
+			if (explicitVersion <= 0)
+			{
+				System.out.println("Cell versions must be positive, this is " + explicitVersion);
+				return null;
+			}
+		}
+
+		// get the pure cell name
+		if (semicolon == -1) semicolon = name.length();
+		if (openCurly == -1) openCurly = name.length();
+		int nameEnd = Math.min(semicolon, openCurly);
+		String pureCellName = name.substring(0, nameEnd);
+
+		// make sure this version isn't in use
+		if (explicitVersion > 0)
+		{
+			for (Iterator it = lib.getCells(); it.hasNext();)
+			{
+				Cell c = (Cell) it.next();
+				if (pureCellName.equals(c.getProtoName()) && cellView == c.getView() &&
+					explicitVersion == c.getVersion())
+				{
+					System.out.println("Already a cell with this version");
+					return null;
+				}
+			}
+		} else
+		{
+			// find a new version
+			explicitVersion = 1;
+			for (Iterator it = lib.getCells(); it.hasNext();)
+			{
+				Cell c = (Cell) it.next();
+				if (pureCellName.equals(c.getProtoName()) && cellView == c.getView() &&
+					c.getVersion() >= explicitVersion)
+						explicitVersion = c.getVersion() + 1;
+			}
+		}
+
+		Cell c = new Cell(lib, pureCellName, explicitVersion, cellView);
+//		c.setReferencePoint(0, 0); // for 0, units don't matter
+		return c;
 	}
 
 	void remove()
@@ -148,13 +227,21 @@ public class Cell extends NodeProto
 		arcs.remove(a);
 	}
 
+	/**
+	 * Routine to add node instance "ni" to the list of nodes in this cell
+	 */
 	void addNode(NodeInst ni)
 	{
+		// error check
 		if (nodes.contains(ni))
 		{
 			error("Cell " + this +" already contains node inst " + ni);
 		}
+		
+		// add the node
 		nodes.add(ni);
+		
+		// make additional checks to keep circuit up-to-date
 		NodeProto np = ni.getProto();
 		if (np instanceof PrimitiveNode && np.getProtoName().equals("Cell-Center"))
 		{
@@ -498,7 +585,7 @@ public class Cell extends NodeProto
 			} else
 			{
 				NodeInst newInst =
-					oldProto.newInst(
+					NodeInst.newInstance(oldProto,
 						oldInst.getScaleX(),
 						oldInst.getScaleY(),
 						oldInst.getX(),
@@ -536,7 +623,7 @@ public class Cell extends NodeProto
 			Connection c1 = ai.getConnection(true);
 			Point2D p0 = c0.getLocation();
 			Point2D p1 = c1.getLocation();
-			ai.getProto().newInst(
+			ArcInst.newInstance(ai.getProto(),
 				ai.getWidth(),
 				getNewPortInst(c0.getPortInst(), oldToNew),
 				p0.getX(),
@@ -732,8 +819,8 @@ public class Cell extends NodeProto
 		NodeProto np = ap.findPinProto();
 		error(np == null, "Cell.newExport: This layer has no layer-pin");
 
-		NodeInst ni = np.newInst(1, 1, x, y, 0, this);
-		ap.newInst(w, ni.getPort(), ni.getPort());
+		NodeInst ni = NodeInst.newInstance(np, 1, 1, x, y, 0, this);
+		ArcInst.newInstance(ap, w, ni.getPort(), ni.getPort());
 
 		return newExport(name, role, ni.getPort());
 	}
@@ -799,19 +886,19 @@ public class Cell extends NodeProto
 	 * Return a name of the form: cell;version{view}
 	 * If the cell is not from the current library, prepend the library name.
 	 */
-	public String describeNodeProto()
+	public String describe()
 	{
 		String name = "";
 		if (lib != Library.getCurrent())
 			name += lib.getLibName() + ":";
-		name += noLibDescribeNodeProto();
+		name += noLibDescribe();
 		return name;
 	}
 
 	/**
 	 * Return a name of the form: cell;version{view}
 	 */
-	public String noLibDescribeNodeProto()
+	public String noLibDescribe()
 	{
 		String name = protoName;
 		if (getNewestVersion() != this)
@@ -885,10 +972,9 @@ public class Cell extends NodeProto
 			Technology generic = Technology.findTechnology("generic");
 			error(generic == null, "can't find generic technlogy?");
 			PrimitiveNode cellCenter = generic.findNodeProto("Cell-Center");
-			error(
-				cellCenter == null,
+			error(cellCenter == null,
 				"can't find PrimitiveNode: Cell-Center");
-			referencePoint = cellCenter.newInst(1, 1, 0, 0, 0, this);
+			referencePoint = NodeInst.newInstance(cellCenter, 1, 1, 0, 0, 0, this);
 		}
 
 		// Tricky because alterShape interprets its arguments relative to
@@ -905,23 +991,23 @@ public class Cell extends NodeProto
 	 * place the copy into the library that contains this Cell.
 	 * @param copyNm name of the copy
 	 * @return the copy */
-	public Cell copy(Library copyLib, String copyNm)
-	{
-		if (copyLib == null)
-			copyLib = lib;
-		error(copyNm == null, "Cell.makeCopy: copyNm is null");
-		Cell f = copyLib.newCell(copyNm);
-		error(f == null, "unable to create copy Cell named: " + copyNm);
-		copyContents(f);
-		return f;
-	}
+//	public Cell copy(Library copyLib, String copyNm)
+//	{
+//		if (copyLib == null)
+//			copyLib = lib;
+//		error(copyNm == null, "Cell.makeCopy: copyNm is null");
+//		Cell f = copyLib.newCell(copyNm);
+//		error(f == null, "unable to create copy Cell named: " + copyNm);
+//		copyContents(f);
+//		return f;
+//	}
 
 	public String toString()
 	{
 		String viewNm = "<NO VIEW!>";
 		if (view != null)
 			viewNm = view.getShortName();
-		return "Cell " + describeNodeProto();
+		return "Cell " + describe();
 	}
 
 	/** sanity check method used by Geometric.checkobj */

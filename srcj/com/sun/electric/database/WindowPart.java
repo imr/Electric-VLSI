@@ -1,5 +1,6 @@
 package com.sun.electric.database;
 
+import java.util.ArrayList;
 import java.awt.Rectangle;
 
 /**
@@ -14,15 +15,31 @@ public class WindowPart extends ElectricObject
 	private Cell current;
 	private Rectangle bounds;
 
+	private static ArrayList windows = new ArrayList();
+
 	protected WindowPart()
 	{
-//		super(cptr);
 	}
 
 	protected void init(Cell current, int lx, int hx, int ly, int hy)
 	{
 		this.current = current;
 		this.bounds = new Rectangle(lx, ly, hx - lx, hy - ly);
+	}
+
+	/** Return the WindowPart that is editing a particular Cell.
+	 * <p>
+	 * TODO: does this really work? */
+	public final static WindowPart findWindowPart(Cell f)
+	{
+		for (int i = 0; i < windows.size(); i++)
+		{
+			WindowPart wp = (WindowPart) windows.get(i);
+			wp.showInfo();
+			if (wp.getEditing() == f)
+				return wp;
+		}
+		return null;
 	}
 
 	/**

@@ -22,10 +22,9 @@ public class Layer
 
 //	private Paint p;
 //	private int style;
-//	private static HashMap cache = new HashMap();
+//	public static final int OUTLINE = 1;
+//	public static final int FILL = 2;
 
-	public static final int OUTLINE = 1;
-	public static final int FILL = 2;
 //********************** SHOULD USE ENUMERATION
 	/** number of layers below */				public static final int LFNUMLAYERS=       044;
 	/** unknown layer */						public static final int LFUNKNOWN=           0;
@@ -95,7 +94,7 @@ public class Layer
 		this.graphics = graphics;
 	}
 
-	public static Layer newLayer(String name, Graphics graphics)
+	public static Layer newInstance(String name, Graphics graphics)
 	{
 		Layer layer = new Layer(name, graphics);
 		return layer;
@@ -126,70 +125,6 @@ public class Layer
 	{
 		this.skillLayer = skillLayer;
 	}
-	/**
-	 * Find a layer with a particular name.  This method will create a
-	 * random style for the layer if the layer doesn't already exist.
-	 */
-//	public static Layer findLayer(String name)
-//	{
-//		Layer l = (Layer) cache.get(name);
-//		if (l == null)
-//		{
-//			if (name.equals("port"))
-//			{
-//				l = new Layer(name, Color.black, OUTLINE);
-//			} else
-//			{
-//				l =
-//					new Layer(
-//						name,
-//						new Color(
-//							(float) Math.random(),
-//							(float) Math.random(),
-//							(float) Math.random(),
-//							0.2f),
-//						FILL);
-//			}
-//			cache.put(name, l);
-//		}
-//		return l;
-//	}
-
-	/**
-	 * Find a layer iwth a particular name, assigning a specific style
-	 * if the layer doesn't already exist.
-	 */
-//	public static Layer findLayer(
-//		String name,
-//		float dr,
-//		float dg,
-//		float db,
-//		float da,
-//		int defaultStyle)
-//	{
-//		Layer l = (Layer) cache.get(name);
-//		if (l == null)
-//		{
-//			l = new Layer(name, new Color(dr, dg, db, da), defaultStyle);
-//			cache.put(name, l);
-//		}
-//		return l;
-//	}
-
-	/**
-	 * Find a layer iwth a particular name, assigning a specific style
-	 * if the layer doesn't already exist.
-	 */
-//	public static Layer findLayer(String name, Paint paint, int style)
-//	{
-//		Layer l = (Layer) cache.get(name);
-//		if (l == null)
-//		{
-//			l = new Layer(name, paint, style);
-//			cache.put(name, l);
-//		}
-//		return l;
-//	}
 
 	/**
 	 * Paint a shape into a particular Graphics2D, using this layer's style

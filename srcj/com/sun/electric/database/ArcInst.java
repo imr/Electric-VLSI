@@ -4,8 +4,6 @@ package com.sun.electric.database;
 import java.awt.Point;
 import java.awt.geom.Point2D;
 
-//import java.util.*;
-
 /**
  * An ArcInst is an instance of an ArcProto (a wire type)
  * An ArcInst points to its prototype, the Cell on which it has been
@@ -31,33 +29,111 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	/** set if arc can't slide around in ports */		public static final int CANTSLIDE=          040000000;
 
 	// -------------------------- private data ----------------------------------
+	
+	// Name of the variable holding the ArcInst's name.
 	private static final String VAR_ARC_NAME = "ARC_name";
-	// Name of the variable
-	// holding the ArcInst's
-	// name.
-	private int userbits; // Electric ArcInst's userbits
-	private ArcProto protoType;
-	private Connection ends[];
-	// connections on either side
-	//private JNetwork net;    			// The network on which this Arc
-	// resides.
+
+	/** flags for this arc instance */					private int userbits;
+	/** width of this arc instance */					private double width;
+	/** prototype of this arc instance */				private ArcProto protoType;
+	/** end connections of this arc instance */			private Connection ends[];
 
 	// -------------------- private and protected methods ------------------------
-	public ArcInst(ArcProto protoType, double width, int userbits,
-		PortInst a, double aX, double aY,
-		PortInst b, double bX, double bY,
-		Cell parent)
+	
+	private ArcInst(ArcProto protoType, double width, Cell parent)
 	{
+		// initialize parent class (Geometric)
+		this.parent = parent;
+
+		// initialize this object
 		this.protoType = protoType;
-		this.userbits = userbits;
-		Connection c1 = new Connection(this, a, aX, aY);
-		Connection c2 = new Connection(this, b, bX, bY);
-		ends = new Connection[] {c1, c2};
+		this.width = width;
+		this.userbits = 0;
+	}
+
+	/** Create a new ArcInst connecting two PortInsts.
+	 *
+	 * <p> Arcs are connected to the <i>center</i> of the PortInsts. If
+	 * the two PortInst centers don't line up vertically or
+	 * horizontally, then generate 'L' shaped wires by first routing
+	 * horizontally from PortInst a and then vertically to PortInst b.
+	 * @param width the width of this material in Lambda units.  Width
+	 * must be >0. A zero width means "use the default width".
+	 * @param a start PortInst
+	 * @param b end PortInst */
+	public static ArcInst newInstance(ArcProto type, double width, PortInst a, PortInst b)
+	{
+		double aX = a.getCenterX();
+		double aY = a.getCenterY();
+		double bX = b.getCenterX();
+		double bY = b.getCenterY();
+		return newInstance(type, width, a, aX, aY, b, bX, bY);
+	}
+
+	/** Create an ArcInst connecting two PortInsts at the specified
+	 * locations.
+	 *
+	 * <p> The locations must lie within their respective ports.  The
+	 * coordinates are in Lambda units.
+	 *
+	 * <p> This routine presents the full generality of Electric's
+	 * database.  However, I've never found it to be useful. I recommend
+	 * using the other newInst method. */
+	public static ArcInst newInstance(ArcProto type, double width,
+		PortInst a, double aX, double aY, PortInst b, double bX, double bY)
+	{
+		if (width <= 0)
+			width = type.getWidth();
+
+		Cell parent = a.getNodeInst().getParent();
+		if (parent != b.getNodeInst().getParent())
+		{
+			System.out.println("ArcProto.newInst: the 2 PortInsts are in different Cells!");
+			return null;
+		}
+
+		double wid = width + type.getWidthOffset();
+		Point2D.Double rp = parent.getReferencePoint();
+
+		double ax = aX + rp.getX();
+		double ay = aY + rp.getY();
+		double bx = bX + rp.getX();
+		double by = bY + rp.getY();
+
+		// create the arc instance
+		ArcInst ai = new ArcInst(type, wid, parent);
+		if (ai == null)
+		{
+			System.out.println("couldn't create arc:\n"
+				+ "-------------following dimensions are Cell-Center relative---------\n"
+				+ " NodeInst   A: " + a.getNodeInst() + "\n"
+				+ " PortProto  A: " + a.getPortProto() + "\n"
+				+ " PortBounds A: " + a.getBounds() + "\n"
+				+ " NodeInst   B: " + b.getNodeInst() + "\n"
+				+ " PortProto  B: " + b.getPortProto() + "\n"
+				+ " PortBounds B: " + b.getBounds() + "\n"
+				+ "---------------------following dimensions are absolute-------------\n"
+				+ " (ax, ay): (" + ax + "," + ay + ")\n"
+				+ " (bx, by): (" + bx + "," + by + ")\n");
+			return null;
+		}
+
+		// create node/arc connections and place them properly
+		Connection ca = new Connection(ai, a, aX, aY);
+		Connection cb = new Connection(ai, b, bX, bY);
+		ai.ends = new Connection[] {ca, cb};
+		a.getNodeInst().addConnection(ca);
+		b.getNodeInst().addConnection(cb);
+		
+		// fill in the geometry
+		ai.updateEnds();
+
+		return ai;
 	}
 
 	/** recalculate the transform on this arc to get the endpoints
 	 * where they should be. */
-	private void updateEnds(int width)
+	private void updateEnds()
 	{
 		voidBounds();
 		Point2D.Double p1 = ends[0].getLocation();
@@ -80,22 +156,6 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	{
 		ends[end ? 1 : 0] = c;
 	}
-
-	//void setNetwork(JNetwork net) {this.net=net;}
-	//void clearNetwork() {this.net= null;}	// clear the network pointer
-
-	/** recursively visit this arc in order to build JNetworks */
-	/*
-	void followNetwork(JNetwork net, HashMap equivPorts, HashMap visited) {
-	  if (this.net!=null) return;	// already visited this arc
-	  this.net = net;
-	  //this.net.addPart(this);
-	  
-	  // now visit both ends
-	  ends[0].followNetwork(net, equivPorts, visited);
-	  ends[1].followNetwork(net, equivPorts, visited);
-	}
-	*/
 
 	protected boolean putPrivateVar(String var, Object value)
 	{
@@ -123,27 +183,22 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		/* safety check */
 		if (ends[end ? 1 : 0] != c)
 		{
-			error(
-				"Tried to remove the wrong connection from a wire end: "
-					+ c
-					+ " on "
-					+ this);
+			System.out.println("Tried to remove the wrong connection from a wire end: "
+				+ c + " on " + this);
 		}
 		ends[end ? 1 : 0] = null;
 	}
 
 	protected void getInfo()
 	{
-		System.out.println(" Proto: " + protoType);
-		System.out.println(" EndT: " + ends[0].getPortInst());
-		System.out.println("       on " + ends[0].getPortInst().getNodeInst());
+		System.out.println("ArcProto: " + protoType.getProtoName());
 		Point2D loc = ends[0].getLocation();
-		System.out.println("       at " + loc.getX() + ", " + loc.getY());
-		System.out.println(" EndF: " + ends[1].getPortInst());
-		System.out.println("       on " + ends[1].getPortInst().getNodeInst());
+		System.out.println("Head on " + ends[0].getPortInst().getNodeInst().getProto().describe() +
+			" at (" + loc.getX() + "," + loc.getY() + ")");
+
 		loc = ends[1].getLocation();
-		System.out.println("       at " + loc.getX() + ", " + loc.getY());
-		super.getInfo();
+		System.out.println("Tail on " + ends[1].getPortInst().getNodeInst().getProto().describe() +
+			" at (" + loc.getX() + "," + loc.getY() + ")");
 	}
 
 	// -------------------------- public methods -----------------------------
@@ -205,6 +260,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	{
 		return protoType;
 	}
+
 	/** Get the network to which this ArcInst belongs.  An ArcInst
 	 * becomes part of a JNetwork only after you call
 	 * Cell.rebuildNetworks(). */
@@ -213,6 +269,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	{
 		setVar(VAR_ARC_NAME, name);
 	}
+
 	public String getName()
 	{
 		return (String) getVar(VAR_ARC_NAME);
@@ -223,4 +280,16 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	{
 		return "ArcInst " + protoType.getProtoName();
 	}
+
+	/** recursively visit this arc in order to build JNetworks */
+//	void followNetwork(JNetwork net, HashMap equivPorts, HashMap visited) {
+//	  if (this.net!=null) return;	// already visited this arc
+//	  this.net = net;
+//	  //this.net.addPart(this);
+//	  
+//	  // now visit both ends
+//	  ends[0].followNetwork(net, equivPorts, visited);
+//	  ends[1].followNetwork(net, equivPorts, visited);
+//	}
+
 }

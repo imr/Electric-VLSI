@@ -40,46 +40,113 @@ public class NodeInst extends Geometric
 	// Name of Variable holding instance name.
 	private static final String VAR_INST_NAME = "NODE_name";
 
-	// Orientation of a line
-	private static final int HORIZONTAL = 0;
-	private static final int VERTICAL = 1;
-	private static final int POINT = 2;
-	private static final int DIAGONAL = 3;
-
 	// ---------------------- private data ----------------------------------
-	private NodeProto prototype;
-	private int userbits; // misc. bits of information about this node
-	private int textbits; // name and labling information
-	private HashMap portMap; // HashTable of PortProtos
-	private ArrayList portInsts; // List of portInsts belonging to this node.
-	private ArrayList connections; // List of connections belonging to this node.
-	// There may be 0 or more connections per PortProto on this node.
-	private ArrayList exports; // List of Exports belonging to this node.
-	// WARNING!  exports will be null until needed!  make sure you check!
+	/** prototype of this node instance */					private NodeProto prototype;
+	/** flag bits for this node instance */					private int userbits;
+	/** labling information for this node instance */		private int textbits;
+	/** HashTable of portInsts on this node instance */		private HashMap portMap;
+	/** List of connections belonging to this instance */	private ArrayList connections;
+	/** List of Exports belonging to this node instance */	private ArrayList exports;
 
 	// --------------------- private and protected methods ---------------------
-	protected NodeInst(NodeProto prototype, double dX, double dY, double sX, double sY, double angle, Cell parent)
+	private NodeInst(NodeProto prototype, double dX, double dY, double sX, double sY, double angle, Cell parent)
 	{
 		// initialize parent class (Geometric)
-		this.dX = dX;
-		this.dY = dY;
-		this.sX = sX;
-		this.sY = sY;
+		this.dX = dX;   this.dY = dY;
+		this.sX = sX;   this.sY = sY;
 		this.angle = angle;
 		this.cos = Math.cos(angle);
 		this.sin = Math.sin(angle);
+		this.parent = parent;
 
 		// initialize this object
 		this.prototype = prototype;
 		this.userbits = 0;
 		this.textbits = 0;
-		portInsts = new ArrayList();
+		portMap = new HashMap();
 		connections = new ArrayList();
 		exports = new ArrayList();
 
 		// add to linked lists
 		prototype.addInstance(this);
 		parent.addNode(this);
+	}
+
+	/** Make a new instance of this NodeProto.
+	 *
+	 * <p> Jose positions the NodeInst by performing the following 2D
+	 * transformations, in order, on the NodeProto: <br>
+	 *
+	 * 1) scaling by scaleX and scaleY <br>
+	 * 2) rotating counter-clockwise by angle <br>
+	 * 3) translating by x and y. <br>
+	 *
+	 * <p> All scaling and rotation is performed about the NodeProto's
+	 * Reference-Point. After the 2D transformations, the NodeProto's
+	 * Reference-Point ends up at (x, y) with respect to the
+	 * Reference-Point of the parent.
+	 * 
+	 * <p> The Reference-Point for PrimitiveNodes is always at (0,
+	 * 0). The reference point for a Cell is (0, 0) unless it contain
+	 * an instance of the Cell-Center PrimitiveNode in which case the
+	 * location of the Cell-Center instance determines the Cell's
+	 * Reference-Point.
+	 * @param scaleX the horizontal scale factor. If negative then Jose
+	 * mirrors about the y axis.  If this is a Cell then scaleX must be
+	 * 1 or -1.
+	 * @param scaleY the vertical scale factor. If negative then Jose
+	 * mirrors about the x axis. If this is a Cell then scaleY must be
+	 * 1 or -1.
+	 * @param x the horizontal coordinate of the origin of the
+	 * NodeInst. This is in units of lambda.
+	 * @param y the vertical coordinate of the origin of the
+	 * NodeInst. This is in units of lambda.
+	 * @param angle the rotation of the NodeInst. This is in units of
+	 * degrees.
+	 * @param parent the Cell to contain the new instance.
+	 * @return the instance created
+	 */
+	public static NodeInst newInstance(NodeProto type, double dX, double dY, double sX, double sY,
+		double angle, Cell parent)
+	{
+//		if (this instanceof Cell)
+//			 ((Cell) this).updateBounds();
+
+		NodeInst ni = new NodeInst(type, dX, dY, sX, sY, angle, parent);
+		
+		// create all of the portInsts on this node inst
+		for (Iterator it = type.getPorts(); it.hasNext();)
+		{
+			PortProto pp = (PortProto) it.next();
+			PortInst pi = PortInst.newInstance(pp, ni);
+			ni.portMap.put(pp.getName(), pi);
+		}
+		int sz = ni.portMap.size();
+		return ni;
+	}
+
+	public void delete()
+	{
+		// avoid removing items from the same list we're iterating over
+		ArrayList conns = (ArrayList) connections.clone();
+		for (Iterator it = conns.iterator(); it.hasNext();)
+		{
+			Connection c = (Connection) it.next();
+			ArcInst ai = c.getArc();
+			ai.delete();
+		}
+		super.delete();
+	}
+
+	/** Is this NodeInst an icon of its parent?  This occurs because a
+	 * schematic may contain an icon of itself */
+	public boolean isIconOfParent()
+	{
+		NodeProto np = getProto();
+		if (!(np instanceof Cell))
+			return false;
+
+		return getParent().getCellGroup() == ((Cell) np).getCellGroup();
 	}
 
 	protected boolean putPrivateVar(String var, Object value)
@@ -92,59 +159,6 @@ public class NodeInst extends Geometric
 		return false;
 	}
 
-	// Translate Electric's position parameters into Jose's internal
-	// position parameters.
-	// See SML# 2003-0379 for description of Jose position mathematics.
-//	protected void updateAspect(
-//		int lx,
-//		int ly,
-//		int hx,
-//		int hy,
-//		int rot,
-//		int trans,
-//		Rectangle pbounds)
-//	{
-//		voidBounds();
-//
-//		// RKao debug
-//		/*
-//		System.out.println("updateAspect inst bounds: "+
-//			       "("+lx+", "+ly+"), ("+hx+", "+hy+")");
-//		*/
-//		// Electric's NodeInst center (Memo's equation 1)
-//		double cX = (lx + hx) / 2.0;
-//		double cY = (ly + hy) / 2.0;
-//
-//		// Electric's NodeInst scale (Memo's equation 7)
-//		double seX =
-//			pbounds.width == 0 ? 1 : (hx - lx) / (double) pbounds.width;
-//		double seY =
-//			pbounds.height == 0 ? 1 : (hy - ly) / (double) pbounds.height;
-//
-//		// proto's center
-//		double pX = pbounds.x + pbounds.width / 2.0;
-//		double pY = pbounds.y + pbounds.height / 2.0;
-//
-//		// Jose's variables (Memo's equation 28)
-//		double signT = trans == 1 ? -1 : 1;
-//		sX = signT * seX;
-//		sY = seY;
-//		double angleE = rot / 10.0; // Electric's angle in degrees
-//		angleJ = trans == 1 ? (90 - angleE) : angleE;
-//
-//		// cache cos(angleJ) and sin(angleJ)
-//		cos = Math.cos(angleJ * Math.PI / 180);
-//		sin = Math.sin(angleJ * Math.PI / 180);
-//
-//		/* RKao debug
-//		System.out.println("updateAspect: protoCent, instCent: "+
-//			       "("+pX+", "+pY+"), ("+cX+", "+cY+")");
-//		*/
-//
-//		dX = round(-signT * pX * cos + pY * sin + cX);
-//		dY = round(-signT * pX * sin - pY * cos + cY);
-//	}
-
 	// Set the indicated bits to TRUE in the userbits field.
 	void setUserBits(int bitMask)
 	{
@@ -155,19 +169,6 @@ public class NodeInst extends Geometric
 	void clearUserBits(int bitMask)
 	{
 		setVar("userbits", userbits & ~bitMask);
-	}
-
-	// Generate all PortProtos
-	private void makePorts()
-	{
-		if (portMap != null)
-			return;
-		portMap = new HashMap();
-		for (Iterator it = prototype.getPorts(); it.hasNext();)
-		{
-			PortProto pp = (PortProto) it.next();
-			portMap.put(pp.getName(), new PortInst(this, pp));
-		}
 	}
 
 	void addExport(Export e)
@@ -269,112 +270,6 @@ public class NodeInst extends Geometric
 		return connections.contains(c);
 	}
 
-	// return orientation of line through two points
-	private int orientation(double x0, double y0, double x1, double y1)
-	{
-		if (x0 == x1 && y0 == y1)
-			return POINT;
-		if (x0 != x1 && y0 != y1)
-			return DIAGONAL;
-		if (x0 == x1)
-			return VERTICAL;
-		if (y0 == y1)
-			return HORIZONTAL;
-		error(true, "should have enumerated all cases");
-		return -1;
-	}
-
-	private int portOrientation(PortInst p0, PortInst p1)
-	{
-		return orientation(
-			p0.getCenterX(),
-			p0.getCenterY(),
-			p1.getCenterX(),
-			p1.getCenterY());
-	}
-
-	private int arcOrientation(ArcInst ai)
-	{
-		Point2D.Double p0 = ai.getConnection(false).getLocation();
-		Point2D.Double p1 = ai.getConnection(true).getLocation();
-		return orientation(p0.getX(), p0.getY(), p1.getX(), p1.getY());
-	}
-
-	// Really rough implementation that works for automatically
-	// generated layout.  Assumes that we always connect to center of
-	// Ports. Deletes connections to oldInst.
-//	private void moveConnections(NodeInst oldInst, NodeInst newInst)
-//	{
-//		for (Iterator pit = oldInst.getPorts(); pit.hasNext();)
-//		{
-//			PortInst oldP = (PortInst) pit.next();
-//			String portNm = oldP.getName();
-//			PortInst newP = newInst.findPort(portNm);
-//			error(newP == null, "new NodeProto missing port: " + portNm);
-//			for (Iterator ait = oldP.getArcs(); ait.hasNext();)
-//			{
-//				ArcInst oldA = (ArcInst) ait.next();
-//				PortInst otherP = oldA.getConnection(false).getPortInst();
-//				if (otherP == oldP)
-//				{
-//					otherP = oldA.getConnection(true).getPortInst();
-//				}
-//				double w = oldA.getWidth();
-//				String nm = oldA.getName();
-//				ArcProto ap = oldA.getProto();
-//
-//				int portOrient = portOrientation(oldP, newP);
-//				int arcOrient = arcOrientation(oldA);
-//				oldA.delete(); // I might want to move otherP.
-//
-//				ArcInst newA;
-//				if (portOrient == POINT)
-//				{
-//					// old and new ports are in the same position.
-//					newA = ap.newInst(w, newP, otherP);
-//				} else if (arcOrient == DIAGONAL)
-//				{
-//					// diagonal arc? preserve connectivity
-//					newA = ap.newInst(w, newP, otherP);
-//				} else if (portOrient == arcOrient)
-//				{
-//					// port moves horizontally and wire is horizontal or
-//					// port moves vertically and wire is vertical
-//					newA = ap.newInst(w, newP, otherP);
-//				} else if (arcOrient == VERTICAL)
-//				{
-//					// move other port horizontally to line up with new port X
-//					NodeInst otherInst = otherP.getNodeInst();
-//					otherInst.alterShapeRel(
-//						1,
-//						1,
-//						newP.getCenterX() - otherP.getCenterX(),
-//						0,
-//						0);
-//					newA = ap.newInst(w, newP, otherP);
-//				} else if (arcOrient == HORIZONTAL)
-//				{
-//					// move other port vertically to line up with new port Y
-//					NodeInst otherInst = otherP.getNodeInst();
-//					otherInst.alterShapeRel(
-//						1,
-//						1,
-//						0,
-//						newP.getCenterY() - otherP.getCenterY(),
-//						0);
-//					newA = ap.newInst(w, newP, otherP);
-//				} else
-//				{
-//					// if all else fails, preserve connectivity
-//					newA = ap.newInst(w, newP, otherP);
-//				}
-//
-//				if (nm != null)
-//					newA.setName(nm);
-//			}
-//		}
-//	}
-
 	// Move exports from oldInst to newInst
 	private void moveExports(NodeInst oldInst, NodeInst newInst)
 	{
@@ -411,7 +306,6 @@ public class NodeInst extends Geometric
 	/** Get an iterator for all PortInst's */
 	public Iterator getPorts()
 	{
-		makePorts();
 		return portMap.values().iterator();
 	}
 
@@ -420,7 +314,6 @@ public class NodeInst extends Geometric
 	 * then die. */
 	public PortInst getPort()
 	{
-		makePorts();
 		int sz = portMap.size();
 		error(sz != 1, "NodeInst.getPort: there isn't exactly one port: " + sz);
 		return (PortInst) portMap.values().iterator().next();
@@ -430,7 +323,6 @@ public class NodeInst extends Geometric
 	 * name then return null. */
 	public PortInst findPort(String name)
 	{
-		makePorts();
 		return (PortInst) portMap.get(name);
 	}
 
@@ -538,6 +430,123 @@ public class NodeInst extends Geometric
 		return new Point2D.Double(x - rpPar.getX(), y - rpPar.getY());
 	}
 
+	public String toString()
+	{
+		return "Inst of " + prototype;
+	}
+
+	// Orientation of a line
+//	private static final int HORIZONTAL = 0;
+//	private static final int VERTICAL = 1;
+//	private static final int POINT = 2;
+//	private static final int DIAGONAL = 3;
+
+	// Really rough implementation that works for automatically
+	// generated layout.  Assumes that we always connect to center of
+	// Ports. Deletes connections to oldInst.
+//	private void moveConnections(NodeInst oldInst, NodeInst newInst)
+//	{
+//		for (Iterator pit = oldInst.getPorts(); pit.hasNext();)
+//		{
+//			PortInst oldP = (PortInst) pit.next();
+//			String portNm = oldP.getName();
+//			PortInst newP = newInst.findPort(portNm);
+//			error(newP == null, "new NodeProto missing port: " + portNm);
+//			for (Iterator ait = oldP.getArcs(); ait.hasNext();)
+//			{
+//				ArcInst oldA = (ArcInst) ait.next();
+//				PortInst otherP = oldA.getConnection(false).getPortInst();
+//				if (otherP == oldP)
+//				{
+//					otherP = oldA.getConnection(true).getPortInst();
+//				}
+//				double w = oldA.getWidth();
+//				String nm = oldA.getName();
+//				ArcProto ap = oldA.getProto();
+//
+//				int portOrient = portOrientation(oldP, newP);
+//				int arcOrient = arcOrientation(oldA);
+//				oldA.delete(); // I might want to move otherP.
+//
+//				ArcInst newA;
+//				if (portOrient == POINT)
+//				{
+//					// old and new ports are in the same position.
+//					newA = ap.newInst(w, newP, otherP);
+//				} else if (arcOrient == DIAGONAL)
+//				{
+//					// diagonal arc? preserve connectivity
+//					newA = ap.newInst(w, newP, otherP);
+//				} else if (portOrient == arcOrient)
+//				{
+//					// port moves horizontally and wire is horizontal or
+//					// port moves vertically and wire is vertical
+//					newA = ap.newInst(w, newP, otherP);
+//				} else if (arcOrient == VERTICAL)
+//				{
+//					// move other port horizontally to line up with new port X
+//					NodeInst otherInst = otherP.getNodeInst();
+//					otherInst.alterShapeRel(
+//						1,
+//						1,
+//						newP.getCenterX() - otherP.getCenterX(),
+//						0,
+//						0);
+//					newA = ap.newInst(w, newP, otherP);
+//				} else if (arcOrient == HORIZONTAL)
+//				{
+//					// move other port vertically to line up with new port Y
+//					NodeInst otherInst = otherP.getNodeInst();
+//					otherInst.alterShapeRel(
+//						1,
+//						1,
+//						0,
+//						newP.getCenterY() - otherP.getCenterY(),
+//						0);
+//					newA = ap.newInst(w, newP, otherP);
+//				} else
+//				{
+//					// if all else fails, preserve connectivity
+//					newA = ap.newInst(w, newP, otherP);
+//				}
+//
+//				if (nm != null)
+//					newA.setName(nm);
+//			}
+//		}
+//	}
+
+//	// return orientation of line through two points
+//	private int orientation(double x0, double y0, double x1, double y1)
+//	{
+//		if (x0 == x1 && y0 == y1)
+//			return POINT;
+//		if (x0 != x1 && y0 != y1)
+//			return DIAGONAL;
+//		if (x0 == x1)
+//			return VERTICAL;
+//		if (y0 == y1)
+//			return HORIZONTAL;
+//		error(true, "should have enumerated all cases");
+//		return -1;
+//	}
+
+//	private int portOrientation(PortInst p0, PortInst p1)
+//	{
+//		return orientation(
+//			p0.getCenterX(),
+//			p0.getCenterY(),
+//			p1.getCenterX(),
+//			p1.getCenterY());
+//	}
+
+//	private int arcOrientation(ArcInst ai)
+//	{
+//		Point2D.Double p0 = ai.getConnection(false).getLocation();
+//		Point2D.Double p1 = ai.getConnection(true).getLocation();
+//		return orientation(p0.getX(), p0.getY(), p1.getX(), p1.getY());
+//	}
+
 	/** Change the size, angle, and position of this NodeInst.<br> See
 	 * <code>NodeProto.newInst()</code> for details. Lambda units. */
 //	public void alterShape(
@@ -641,30 +650,6 @@ public class NodeInst extends Geometric
 //			newInst.setName(nm);
 //		return newInst;
 //	}
-
-	/** Is this NodeInst an icon of its parent?  This occurs because a
-	 * schematic may contain an icon of itself */
-	public boolean isIconOfParent()
-	{
-		NodeProto np = getProto();
-		if (!(np instanceof Cell))
-			return false;
-
-		return getParent().getCellGroup() == ((Cell) np).getCellGroup();
-	}
-
-	public void delete()
-	{
-		// avoid removing items from the same list we're iterating over
-		ArrayList conns = (ArrayList) connections.clone();
-		for (Iterator it = conns.iterator(); it.hasNext();)
-		{
-			Connection c = (Connection) it.next();
-			ArcInst ai = c.getArc();
-			ai.delete();
-		}
-		super.delete();
-	}
 
 	/** Translate NodeInst so it's left edge is at x and it's
 	 * reference point has the specified y coordinate. Don't alter the
@@ -786,17 +771,93 @@ public class NodeInst extends Geometric
 //		}
 //	}
 
-	public String toString()
-	{
-		return "Inst of " + prototype;
-	}
+	// Translate Electric's position parameters into Jose's internal
+	// position parameters.
+	// See SML# 2003-0379 for description of Jose position mathematics.
+//	protected void updateAspect(
+//		int lx,
+//		int ly,
+//		int hx,
+//		int hy,
+//		int rot,
+//		int trans,
+//		Rectangle pbounds)
+//	{
+//		voidBounds();
+//
+//		// RKao debug
+//		/*
+//		System.out.println("updateAspect inst bounds: "+
+//			       "("+lx+", "+ly+"), ("+hx+", "+hy+")");
+//		*/
+//		// Electric's NodeInst center (Memo's equation 1)
+//		double cX = (lx + hx) / 2.0;
+//		double cY = (ly + hy) / 2.0;
+//
+//		// Electric's NodeInst scale (Memo's equation 7)
+//		double seX =
+//			pbounds.width == 0 ? 1 : (hx - lx) / (double) pbounds.width;
+//		double seY =
+//			pbounds.height == 0 ? 1 : (hy - ly) / (double) pbounds.height;
+//
+//		// proto's center
+//		double pX = pbounds.x + pbounds.width / 2.0;
+//		double pY = pbounds.y + pbounds.height / 2.0;
+//
+//		// Jose's variables (Memo's equation 28)
+//		double signT = trans == 1 ? -1 : 1;
+//		sX = signT * seX;
+//		sY = seY;
+//		double angleE = rot / 10.0; // Electric's angle in degrees
+//		angleJ = trans == 1 ? (90 - angleE) : angleE;
+//
+//		// cache cos(angleJ) and sin(angleJ)
+//		cos = Math.cos(angleJ * Math.PI / 180);
+//		sin = Math.sin(angleJ * Math.PI / 180);
+//
+//		/* RKao debug
+//		System.out.println("updateAspect: protoCent, instCent: "+
+//			       "("+pX+", "+pY+"), ("+cX+", "+cY+")");
+//		*/
+//
+//		dX = round(-signT * pX * cos + pY * sin + cX);
+//		dY = round(-signT * pX * sin - pY * cos + cY);
+//	}
 
-	/** sanity check: make sure our connections know about us, and that
-	 * the prototype has us as an instance, and that the exports know
-	 * about us.
-	 * TODO: WRITE THIS!
-	public void checkobj(SanityAnswer ans)
-	{
-		super.checkobj(ans);
-	} */
+	/** Same as newInst except it takes width and height instead of
+	 * scaleX and scaleY. <p> Width and height are in Lambda units. <p>
+	 * If width or height is 0 then use the default width or height.
+	 * <p> Note: since Cells can only be scaled by either 1 or -1, it's
+	 * more convenient to use <code>newInst</code> for Cells
+	 **/
+//	public NodeInst newInstWH(
+//		double width,
+//		double height,
+//		double x,
+//		double y,
+//		double angle,
+//		Cell parent)
+//	{
+//		error(this instanceof Cell,
+//			"newInstWH only handles primitiveNodes. " + "use newInst instead");
+//		if (sizeOffset.lx != sizeOffset.hx || sizeOffset.ly != sizeOffset.hy)
+//		{
+//			System.out.println("in newInstWH: " + sizeOffset);
+//			error(true, "newInstWH.init: unimplemented: asymmetric offsets");
+//		}
+//
+//		int w = lambdaToBase(width), h = lambdaToBase(height);
+//
+//		ElectricPosition ep =
+//			joseToElecPosition(
+//				hideInvisWidToScale(w),
+//				hideInvisHeiToScale(h),
+//				lambdaToBase(x),
+//				lambdaToBase(y),
+//				angle,
+//				parent);
+//
+//		return Electric.newNodeInst(this.getAddr(), ep.lx, ep.ly, ep.hx, ep.hy, ep.transpose, ep.angle, parent.getAddr());
+//	}
+
 }

@@ -13,35 +13,44 @@ import java.util.Iterator;
 public class PortInst
 {
 	// ------------------------ private data ------------------------
+
 	private NodeInst nodeInst;
 	private PortProto portProto;
 	private JNetwork network;
 
 	// -------------------protected or private methods ---------------
-	PortInst(NodeInst nodeInst, PortProto portProto)
-	{
-		this.nodeInst = nodeInst;
-		this.portProto = portProto;
-	}
 
-	void setNetwork(JNetwork net)
+	private PortInst(PortProto portProto, NodeInst nodeInst)
 	{
-		network = net;
+		this.portProto = portProto;
+		this.nodeInst = nodeInst;
 	}
 
 	// ------------------------ public methods -------------------------
+
+	public static PortInst newInstance(PortProto portProto, NodeInst nodeInst)
+	{
+		PortInst pi = new PortInst(portProto, nodeInst);
+		return pi;
+	}
 
 	public NodeInst getNodeInst()
 	{
 		return nodeInst;
 	}
+
 	public PortProto getPortProto()
 	{
 		return portProto;
 	}
+
 	public JNetwork getNetwork()
 	{
 		return network;
+	}
+	public void setNetwork(JNetwork net)
+	{
+		network = net;
 	}
 
 	public Rectangle2D getBounds()
@@ -59,15 +68,15 @@ public class PortInst
 	public double getCenterX()
 	{
 		Poly p = portProto.getBounds(nodeInst);
-		Point2D rp = nodeInst.getParent().getReferencePoint();
-		return p.getCenterX() - rp.getX();
+//		Point2D rp = nodeInst.getParent().getReferencePoint();
+		return p.getCenterX(); // - rp.getX();
 	}
 
 	public double getCenterY()
 	{
 		Poly p = portProto.getBounds(nodeInst);
-		Point2D rp = nodeInst.getParent().getReferencePoint();
-		return p.getCenterY() - rp.getY();
+//		Point2D rp = nodeInst.getParent().getReferencePoint();
+		return p.getCenterY(); // - rp.getY();
 	}
 
 	/** Can this PortInst be connected to a particular type of arc? */

@@ -1,6 +1,7 @@
 package com.sun.electric.database;
 
-//import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * This class represents a Tool in Electric.  It's here mostly for the name
@@ -14,6 +15,9 @@ public class Tool extends ElectricObject
 	// The name of this tool
 	private String name;
 
+	// the static list of all tools
+	private static ArrayList tools = new ArrayList();
+
 	/** set if tool is on */								public static final int TOOLON=                    01;
 	/** set if tool is running in background */				public static final int TOOLBG=                    02;
 	/** set if tool will fix errors */						public static final int TOOLFIX=                   04;
@@ -22,21 +26,48 @@ public class Tool extends ElectricObject
 	/** set if tool does analysis */						public static final int TOOLANALYSIS=             040;
 	/** set if tool does synthesis */						public static final int TOOLSYNTHESIS=           0100;
 
-	protected Tool()
+	private Tool(String name)
 	{
-//		super(cptr);
+		this.name = name;
+	}
+
+	/** Initialize this tool with a name */
+	public static final Tool newInstance(String name)
+	{
+		Tool t = new Tool(name);
+		return t;
+	}
+
+	public static void askTool(Tool t, String cmd, String msg)
+	{
+	}
+
+	/** Find the tool with a particular name.  See the Electric internals
+	 * manual for examples of Tools.
+	 * @param name the name of the desired tool
+	 * @return the Tool with the same name, or null if no tool matches. */
+	public static Tool findTool(String name)
+	{
+		for (int i = 0; i < tools.size(); i++)
+		{
+			Tool t = (Tool) tools.get(i);
+			if (t.getName().equals(name))
+				return t;
+		}
+		System.out.println("Couldn't find tool named '" + name + "'.");
+		return null;
+	}
+
+	/** Get an iterator over all tools. */
+	public static Iterator getTools()
+	{
+		return tools.iterator();
 	}
 
 	/** Get the name of this tool */
 	public String getName()
 	{
 		return name;
-	}
-
-	/** Initialize this tool with a name */
-	protected void init(String name)
-	{
-		this.name = name;
 	}
 
 	public String toString()

@@ -15,16 +15,25 @@ public class PrimitivePort extends PortProto
 	//private ShapeProxy proxy; // a proxy determines the port's bounds
 	private ArcProto portArcs[]; // Immutable list of possible connection types.
 	private String protoName;
-	private int initialbits;
+	private int initialBits;
 	private int [][] location;
 
 	// ---------------------- protected and private methods ----------------
-	public PrimitivePort(ArcProto [] portArcs, String protoName, int initialbits, int [][] location)
+	private PrimitivePort(ArcProto [] portArcs, String protoName, int portAngle, int portRange, int portTopology, int [][] location)
 	{
 		this.portArcs = portArcs;
 		this.protoName = protoName;
-		this.initialbits = initialbits;
+		this.initialBits = (portAngle<<PortProto.PORTANGLESH) |
+						(portRange << PortProto.PORTARANGESH) |
+						(portTopology << PortProto.PORTNETSH);
 		this.location = location;
+	}
+
+	public static PrimitivePort newInstance(ArcProto [] portArcs, String protoName, int portAngle, int portRange, int portTopology,
+		int [][] location)
+	{
+		PrimitivePort pp = new PrimitivePort(portArcs, protoName, portAngle, portRange, portTopology, location);
+		return pp;
 	}
 
 	// Get the bounds for this port with respect to some NodeInst.  A

@@ -10,6 +10,39 @@ import java.util.Iterator;
  */
 public class Technology extends ElectricObject
 {
+	public class ArcLayer
+	{
+		Layer layer;
+		int offset;
+		int style;
+
+		public ArcLayer(Layer layer, int offset, int style)
+		{
+			this.layer = layer;
+			this.offset = offset;
+			this.style = style;
+		}
+	}
+
+	public class NodeLayer
+	{
+		Layer layer;
+		int portNum;
+		int count;
+
+		public static final int POINTS=     0;		/* list of scalable points */
+		public static final int BOX=        1;		/* a rectangle */
+		public static final int ABSPOINTS=  2;		/* list of absolute points */
+		public static final int MINBOX=     3;		/* minimum sized rectangle */
+
+		public NodeLayer(Layer layer, int portNum, int count, int style, int representation, int[][] points)
+		{
+			this.layer = layer;
+			this.portNum = portNum;
+			this.count = count;
+		}
+	}
+
 	private String techName;
 	private String techDesc;
 	private double defLambda;
@@ -406,11 +439,10 @@ public class Technology extends ElectricObject
 	/** in from right edge by 19.5  */  public final static int[] RIGHTIN19H ={H0,-H19};	
 	/** in from right edge by 27.5  */  public final static int[] RIGHTIN27H ={H0,-H27};	
 
-	protected Technology(String techName)
+	protected Technology()
 	{
 		this.nodes = new ArrayList();
 		this.arcs = new ArrayList();
-		this.techName = techName;
 
 		// add the technology to the global list
 		technologies.add(this);
@@ -431,20 +463,10 @@ public class Technology extends ElectricObject
 		nodes.add(pn);
 	}
 
-//	void removeNodeProto(PrimitiveNode pn)
-//	{
-//		nodes.remove(pn);
-//	}
-
 	void addArcProto(ArcProto ap)
 	{
 		arcs.add(ap);
 	}
-
-//	void removeArcProto(ArcProto ap)
-//	{
-//		arcs.remove(ap);
-//	}
 
 	/**
 	 * Return the current Technology
@@ -468,6 +490,15 @@ public class Technology extends ElectricObject
 	public String getTechName()
 	{
 		return techName;
+	}
+
+
+	/** 
+	 * set the name (short) of this technology
+	 */
+	protected void setTechName(String techName)
+	{
+		this.techName = techName;
 	}
 
 	/**

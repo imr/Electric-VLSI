@@ -13,46 +13,26 @@ public class View extends ElectricObject
 	private int type;
 	private static HashMap views = new HashMap();
 
-	/** the unknown view */									public static View el_unknownview;
-	/** the simulation snapshot view */						public static View el_simsnapview;
-	/** the NetLisp (netlist) view */						public static View el_netlistnetlispview;
-	/** the RSIM (netlist) view */							public static View el_netlistrsimview;
-	/** the SILOS (netlist) view */							public static View el_netlistsilosview;
-	/** the QUISC (netlist) view */							public static View el_netlistquiscview;
-	/** the ALS (netlist) view */							public static View el_netlistalsview;
-	/** the general Netlist view */							public static View el_netlistview;
-	/** the VHDL view */									public static View el_vhdlview;
-	/** the Verilog view */									public static View el_verilogview;
-	/** the Skeleton view */								public static View el_skeletonview;
-	/** the Compensated view */								public static View el_compview;
-	/** the Documentation view */							public static View el_docview;
-	/** the Icon view */									public static View el_iconview;
-	/** the Schematic view */								public static View el_schematicview;
-	/** the Layout view */									public static View el_layoutview;
-
 	/** view contains only text */							public final static int TEXTVIEW   =01;	
 	/** view is one of multiple pages  */					public final static int MULTIPAGEVIEW   =02;	
 	/** view is statically defined and cannot be deleted */ public final static int PERMANENTVIEW   =04;	
 
-	static void buildViews()
-	{
-		el_unknownview = newView("unknown", "", 0);
-		el_simsnapview = newView("simulation-snapshot", "sim", 0);
-		el_netlistnetlispview = newView("netlist-netlisp-format", "net-netlisp", TEXTVIEW);
-		el_netlistrsimview = newView("netlist-rsim-format", "net-rsim", TEXTVIEW);
-		el_netlistsilosview = newView("netlist-silos-format", "net-silos", TEXTVIEW);
-		el_netlistquiscview = newView("netlist-quisc-format", "net-quisc", TEXTVIEW);
-		el_netlistalsview = newView("netlist-als-format", "net-als", TEXTVIEW);
-		el_netlistview = newView("netlist", "net", TEXTVIEW);
-		el_vhdlview = newView("VHDL", "vhdl", TEXTVIEW);
-		el_verilogview = newView("Verilog", "ver", TEXTVIEW);
-		el_skeletonview = newView("skeleton", "sk", 0);
-		el_compview = newView("compensated", "comp", 0);
-		el_docview = newView("documentation", "doc", TEXTVIEW);
-		el_iconview = newView("icon", "ic", 0);
-		el_schematicview = newView("schematic", "sch", 0);
-		el_layoutview = newView("layout", "lay", 0);
-	}
+	/** the unknown view */					public static final View unknown = newInstance("unknown", "");
+	/** the simulation snapshot view */		public static final View simsnap = newInstance("simulation-snapshot", "sim");
+	/** the NetLisp (netlist) view */		public static final View netlistNetlisp = newTextInstance("netlist-netlisp-format", "net-netlisp");
+	/** the RSIM (netlist) view */			public static final View netlistRsim = newTextInstance("netlist-rsim-format", "net-rsim");
+	/** the SILOS (netlist) view */			public static final View netlistSilos = newTextInstance("netlist-silos-format", "net-silos");
+	/** the QUISC (netlist) view */			public static final View netlistQuisc = newTextInstance("netlist-quisc-format", "net-quisc");
+	/** the ALS (netlist) view */			public static final View netlistAls = newTextInstance("netlist-als-format", "net-als");
+	/** the general Netlist view */			public static final View netlist = newTextInstance("netlist", "net");
+	/** the VHDL view */					public static final View vhdl = newTextInstance("VHDL", "vhdl");
+	/** the Verilog view */					public static final View verilog = newTextInstance("Verilog", "ver");
+	/** the Skeleton view */				public static final View skeleton = newInstance("skeleton", "sk");
+	/** the Compensated view */				public static final View comp = newInstance("compensated", "comp");
+	/** the Documentation view */			public static final View doc = newTextInstance("documentation", "doc");
+	/** the Icon view */					public static final View icon = newInstance("icon", "ic");
+	/** the Schematic view */				public static final View schematic = newInstance("schematic", "sch");
+	/** the Layout view */					public static final View layout = newInstance("layout", "lay");
 
 	private View(String fullName, String shortName, int type)
 	{
@@ -65,7 +45,7 @@ public class View extends ElectricObject
 		views.put(shortName, this);
 	}
 
-	public static View newView(String fullName, String shortName, int type)
+	private static View makeInstance(String fullName, String shortName, int type)
 	{
 		// make sure the view doesn't already exist
 		if (views.get(shortName) != null)
@@ -82,6 +62,16 @@ public class View extends ElectricObject
 		// create the view
 		View v = new View(fullName, shortName, type);
 		return v;
+	}
+
+	public static View newInstance(String fullName, String shortName)
+	{
+		return makeInstance(fullName, shortName, 0);
+	}
+
+	public static View newTextInstance(String fullName, String shortName)
+	{
+		return makeInstance(fullName, shortName, TEXTVIEW);
 	}
 
 	/**

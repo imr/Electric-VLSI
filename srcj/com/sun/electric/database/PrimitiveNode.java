@@ -14,29 +14,50 @@ import java.awt.geom.Point2D;
 public class PrimitiveNode extends NodeProto
 {
 	// --------------------- private data -----------------------------------
+	
 	private static final Point2D.Double ORIGIN_2D = new Point2D.Double(0, 0);
 	private static final Point2D.Double ORIGIN = new Point2D.Double(0, 0);
 
-	private Technology tech; // which Technology do I live in?
-	private PrimitivePort [] ports;
-	private NodeLayer [] layers;
-	private int bits; // user bits
-
-	// Electric's size offsets. This is the invisible portion of the bounds.
+	private Technology tech;
+	private Technology.NodeLayer [] layers;
+	private int userBits;
+	private int[] specialValues;
 	private SizeOffset sizeOffset;
 
 	// ------------------ private and protected methods ----------------------
-	public PrimitiveNode(String protoName, Technology tech, double sx, double sy, double xo, double yo,
-		PrimitivePort [] ports, NodeLayer [] layers, int bits, int [] specialValues)
+	
+	private PrimitiveNode(String protoName, Technology tech, double sx, double sy, double xo, double yo,
+		PrimitivePort [] ports, Technology.NodeLayer [] layers, int userBits)
 	{
+		// things in the base class
 		this.protoName = protoName;
-		this.tech = tech;
 		elecBounds = new Rectangle2D.Double(-sx/2, -sy/2, sx, sy);
-		sizeOffset = new SizeOffset(-sx/2, -sy/2, sx/2, sy/2);
-		this.ports = ports;
+
+		// things in this class
+		this.tech = tech;
+		for(int i = 0; i < ports.length; i++)
+			addPort(ports[i]);
 		this.layers = layers;
-		this.bits = bits;
-		this.tech.addNodeProto(this);
+		this.userBits = userBits;
+		this.specialValues = new int [] {0,0,0,0,0,0};
+		this.sizeOffset = new SizeOffset(-sx/2, -sy/2, sx/2, sy/2);
+
+		// add to the nodes in this technology
+		tech.addNodeProto(this);
+	}
+
+	// ------------------------- public methods -------------------------------
+
+	public static PrimitiveNode newInstance(String protoName, Technology tech, double sx, double sy, double xo, double yo,
+		PrimitivePort [] ports, Technology.NodeLayer [] layers, int userBits)
+	{
+		PrimitiveNode pn = new PrimitiveNode(protoName, tech, sx, sy, xo, yo, ports, layers, userBits);
+		return pn;
+	}
+
+	public void setSpecialValues(int [] specialValues)
+	{
+		this.specialValues = specialValues;
 	}
 
 	Point2D.Double getRefPointBase()
@@ -44,23 +65,6 @@ public class PrimitiveNode extends NodeProto
 		return ORIGIN;
 	}
 
-	protected void getInfo()
-	{
-		System.out.println(" Name: " + protoName + '\n' + " Technology: " + tech);
-		super.getInfo();
-	}
-
-	// ----------------------------- public data ------------------------------
-	/** this node is a Pin */
-	public static final int NPPIN = 1;
-
-	/** this node is a Contact */
-	public static final int NPCONTACT = 2;
-
-	/** this node is a pure layer node */
-	public static final int NPNODE = 3;
-
-	// ------------------------- public methods -------------------------------
 	public Point2D.Double getReferencePoint()
 	{
 		return ORIGIN_2D;
@@ -89,7 +93,7 @@ public class PrimitiveNode extends NodeProto
 	 */
 	public final int getFunction()
 	{
-		return ((bits & NFUNCTION) >> NFUNCTIONSH);
+		return ((userBits & NFUNCTION) >> NFUNCTIONSH);
 	}
 
 	/**
@@ -97,7 +101,7 @@ public class PrimitiveNode extends NodeProto
 	 */
 	public boolean isPin()
 	{
-		return ((bits & 0374) >> 2) == 1; // NFUNCTION >> NFUNCTIONSH = NPPIN
+		return ((userBits & NFUNCTION) >> NFUNCTIONSH) == NPPIN;
 	}
 
 	/** Get the Technology to which this PrimitiveNode belongs */
@@ -112,7 +116,7 @@ public class PrimitiveNode extends NodeProto
 		return this;
 	}
 	
-	public String describeNodeProto()
+	public String describe()
 	{
 		String name = "";
 		if (tech != Technology.getCurrent())

@@ -15,7 +15,8 @@ import java.util.Iterator;
  * the bounds of the node prototype, a list of instances of this node
  * prototype in use in all open libraries, and a list of equivalent nodes
  * for transforming between schematics and icons, or between equivalently
- * structured layouts. */
+ * structured layouts.
+ */
 public abstract class NodeProto extends ElectricObject
 {
 	/** node is unknown type */								public static final int NPUNKNOWN=             0;
@@ -108,23 +109,198 @@ public abstract class NodeProto extends ElectricObject
 	}
 
 	// ------------------------ private data --------------------------
-	// list of PortProto (PrimitivePorts for primitive nodes, Exports for
-	// Cells) that belong to this NodeProto
-	protected String protoName; // what is the name of a cell
-	private ArrayList ports;
-	protected Rectangle2D.Double elecBounds; // Electric's bounds.
-	//private Point center;		// "center" of this NodeProto
-	private ArrayList networks; // JNetworks that comprise this Cell
-	private ArrayList instances; // All instances of this NodeProto
-	// in all open libraries
+
+	/** the name of the NodeProto */				protected String protoName;
+	/** the exports in the NodeProto */				private ArrayList ports;
+	/** the bounds of the NodeProto */				protected Rectangle2D.Double elecBounds;
+	/** JNetworks that comprise this NodeProto */	private ArrayList networks;
+	/** All instances of this NodeProto */			private ArrayList instances;
 
 	// ----------------- protected and private methods -----------------
+
 	protected NodeProto()
 	{
 		ports = new ArrayList();
 		instances = new ArrayList();
 		networks = new ArrayList();
 		elecBounds = new Rectangle2D.Double(0, 0, 0, 0);
+	}
+
+	// Get the Electric bounds. This includes invisible widths. Base units.
+	Rectangle2D.Double getElecBounds()
+	{
+		return elecBounds;
+	}
+
+	/**
+	 * Add a port prototype (Export for Cells, PrimitivePort for
+	 * PrimitiveNodes) to this NodeProto.
+	 */
+	void addPort(PortProto port)
+	{
+		ports.add(port);
+	}
+
+	/** remove a port prototype from this node prototype */
+	void removePort(PortProto port)
+	{
+		ports.remove(port);
+	}
+
+	/** Add a Network to this Cell */
+	void addNetwork(JNetwork n)
+	{
+		if (networks.contains(n))
+		{
+			error("Cell " + this +" already contains network " + n);
+		}
+		networks.add(n);
+	}
+
+	/** Remove a Network from this Cell */
+	void removeNetwork(JNetwork n)
+	{
+		if (!networks.contains(n))
+		{
+			error("Cell " + this +" doesn't contain network " + n);
+		}
+		networks.remove(n);
+	}
+
+	void removeAllNetworks()
+	{
+		networks.clear();
+	}
+
+	/** Add an instance of this nodeproto to its instances list */
+	void addInstance(NodeInst inst)
+	{
+		if (instances == null)
+		{
+			System.out.println("Hmm.  Instances is *still* null!");
+		}
+		instances.add(inst);
+	}
+
+	/** Remove an instance of this nodeproto from its instances list */
+	void removeInstance(NodeInst inst)
+	{
+		instances.remove(inst);
+	}
+
+	/** Remove this NodeProto.  Also offs the ports associated with this
+	 * nodeproto. */
+	void remove()
+	{
+		// kill ports
+		removeAll(ports);
+		// unhook from networks
+		while (networks.size() > 0)
+		{
+			removeNetwork((JNetwork) networks.get(networks.size() - 1));
+		}
+	}
+
+	/** Does the ports list contain a particular port?
+	 * Used by PortProto's sanity check method */
+	boolean containsPort(PortProto port)
+	{
+		return ports.contains(port);
+	}
+
+	// ----------------------- public methods -----------------------
+
+	/** A NodeProto's <i>reference point</i> is (0, 0) unless the
+	 * NodeProto is a Cell containing an instance of a Cell-Center in
+	 * which case the reference point is the location of that
+	 * Cell-Center instance.  Base units. */
+	abstract Point2D.Double getRefPointBase();
+
+	public abstract SizeOffset getSizeOffset();
+
+	public abstract Technology getTechnology();
+
+	/** A NodeProto's <i>reference point</i> is (0, 0) unless the
+	 * NodeProto is a Cell containing an instance of a Cell-Center in
+	 * which case the reference point is the location of that
+	 * Cell-Center instance.  Lambda units. */
+	public abstract Point2D.Double getReferencePoint();
+
+	/** Can this node connect to a particular arc?
+	 * @param arc the type of arc to test for
+	 * @return the first port that can connect to the arc, or null,
+	 * if this node cannot connect to the given arc */
+	public PortProto connectsTo(ArcProto arc)
+	{
+		for (int i = 0; i < ports.size(); i++)
+		{
+			PortProto pp = (PortProto) ports.get(i);
+			if (pp.connectsTo(arc))
+				return pp;
+		}
+		return null;
+	}
+
+	/** If this is an Icon View Cell then return the the corresponding
+	 * Schematic View Cell.
+	 *
+	 * <p> If this isn't an Icon View Cell then return this NodeProto.
+	 *
+	 * <p> If an Icon View Cell has no Schematic View Cell then return
+	 * null.
+	 *
+	 * <p> If there are multiple versions of the Schematic View then
+	 * return the latest version. */
+	public abstract NodeProto getEquivalent();
+
+	/** Get the PortProto that has a particular name.
+	 * @return the PortProto, or null if there is no PortProto with that
+	 * name. */
+	public PortProto findPort(String name)
+	{
+		for (int i = 0; i < ports.size(); i++)
+		{
+			PortProto pp = (PortProto) ports.get(i);
+			if (pp.getName().equals(name))
+				return pp;
+		}
+		return null;
+	}
+
+	/**
+	 * Get an iterator over all PortProtos of this NodeProto
+	 */
+	public Iterator getPorts()
+	{
+		return ports.iterator();
+	}
+
+	/**
+	 * Get an iterator over all of the NodeInsts in all open Libraries
+	 * that instantiate this NodeProto.
+	 */
+	public Iterator getInstances()
+	{
+		return instances.iterator();
+	}
+
+	public abstract String describe();
+
+	/**
+	 * Get the name of this NodeProto.
+	 */
+	public String getProtoName()
+	{
+		return protoName;
+	}
+
+	/** Get an iterator over all of the JNetworks of this NodeProto.
+	 * 
+	 * <p> Warning: before getNetworks() is called, JNetworks must be
+	 * build by calling Cell.rebuildNetworks() */
+	public Iterator getNetworks()
+	{
+		return networks.iterator();
 	}
 
 	// From Jose's position variables generate the equivalent Electric
@@ -226,55 +402,47 @@ public abstract class NodeProto extends ElectricObject
 	// lambda invisible surround.  Without the following two routines a
 	// 2X scaling yields a 9 lambda metal-1/metal-2 via plus a 1/2
 	// lambda surround because the surround doesn't scale.
-	double hideInvisScaleX(double clientScaleX)
-	{
-		int invisW = 0;   // sizeOffset.lx + sizeOffset.hx;
-		double totW = elecBounds.width;
-		double joseScaleX =
-			totW == 0
-				? 1
-				: (invisW + (totW - invisW) * Math.abs(clientScaleX)) / totW;
-		return clientScaleX < 0 ? -joseScaleX : joseScaleX;
-	}
-	double hideInvisScaleY(double clientScaleY)
-	{
-		int invisH = 0;   // sizeOffset.ly + sizeOffset.hy;
-		double totH = elecBounds.height;
-		double joseScaleY =
-			totH == 0
-				? 1
-				: (invisH + (totH - invisH) * Math.abs(clientScaleY)) / totH;
-		return clientScaleY < 0 ? -joseScaleY : joseScaleY;
-	}
+//	double hideInvisScaleX(double clientScaleX)
+//	{
+//		int invisW = 0;   // sizeOffset.lx + sizeOffset.hx;
+//		double totW = elecBounds.width;
+//		double joseScaleX =
+//			totW == 0
+//				? 1
+//				: (invisW + (totW - invisW) * Math.abs(clientScaleX)) / totW;
+//		return clientScaleX < 0 ? -joseScaleX : joseScaleX;
+//	}
+//	double hideInvisScaleY(double clientScaleY)
+//	{
+//		int invisH = 0;   // sizeOffset.ly + sizeOffset.hy;
+//		double totH = elecBounds.height;
+//		double joseScaleY =
+//			totH == 0
+//				? 1
+//				: (invisH + (totH - invisH) * Math.abs(clientScaleY)) / totH;
+//		return clientScaleY < 0 ? -joseScaleY : joseScaleY;
+//	}
 
 	// Modify width and height to make it look as if the client is
 	// specifying only the visible portion of the NodeProto. Base units.
-	double hideInvisWidToScale(int clientW)
-	{
-		double defW = elecBounds.width;
-		double scaleX =
-			(defW == 0 || clientW == 0)
-				? 1
+//	double hideInvisWidToScale(int clientW)
+//	{
+//		double defW = elecBounds.width;
+//		double scaleX =
+//			(defW == 0 || clientW == 0)
+//				? 1
 //				: (Math.abs(clientW) + sizeOffset.lx + sizeOffset.hx) / defW;
-				: (Math.abs(clientW)) / defW;
-		return clientW < 0 ? -scaleX : scaleX;
-	}
-	double hideInvisHeiToScale(int clientH)
-	{
-		double defH = elecBounds.height;
-		double scaleY =
-			(defH == 0 || clientH == 0)
-				? 1
+//		return clientW < 0 ? -scaleX : scaleX;
+//	}
+//	double hideInvisHeiToScale(int clientH)
+//	{
+//		double defH = elecBounds.height;
+//		double scaleY =
+//			(defH == 0 || clientH == 0)
+//				? 1
 //				: (Math.abs(clientH) + sizeOffset.ly + sizeOffset.hy) / defH;
-				: (Math.abs(clientH)) / defH;
-		return clientH < 0 ? -scaleY : scaleY;
-	}
-
-	/** A NodeProto's <i>reference point</i> is (0, 0) unless the
-	 * NodeProto is a Cell containing an instance of a Cell-Center in
-	 * which case the reference point is the location of that
-	 * Cell-Center instance.  Base units. */
-	abstract Point2D.Double getRefPointBase();
+//		return clientH < 0 ? -scaleY : scaleY;
+//	}
 
 	/**
 	 * Add an equivalent NodeProto, which can be swapped with ease with
@@ -315,198 +483,6 @@ public abstract class NodeProto extends ElectricObject
 	   }
 	*/
 
-	// Get the Electric bounds. This includes invisible widths. Base
-	// units.
-	Rectangle2D.Double getElecBounds()
-	{
-		return elecBounds;
-	}
-
-	/** Add a port prototype (Export for Cells, PrimitivePort for
-	 * PrimitiveNodes) to this NodeProto. */
-	void addPort(PortProto port)
-	{
-		ports.add(port);
-	}
-
-	/** remove a port prototype from this node prototype */
-	void removePort(PortProto port)
-	{
-		ports.remove(port);
-	}
-
-	/** Add a Network to this Cell */
-	void addNetwork(JNetwork n)
-	{
-		if (networks.contains(n))
-		{
-			error("Cell " + this +" already contains network " + n);
-		}
-		networks.add(n);
-	}
-
-	/** Remove a Network from this Cell */
-	void removeNetwork(JNetwork n)
-	{
-		if (!networks.contains(n))
-		{
-			error("Cell " + this +" doesn't contain network " + n);
-		}
-		networks.remove(n);
-	}
-
-	void removeAllNetworks()
-	{
-		networks.clear();
-	}
-
-	/** Add an instance of this nodeproto to its instances list */
-	void addInstance(NodeInst inst)
-	{
-		if (instances == null)
-		{
-			System.out.println("Hmm.  Instances is *still* null!");
-		}
-		instances.add(inst);
-	}
-
-	/** Remove an instance of this nodeproto from its instances list */
-	void removeInstance(NodeInst inst)
-	{
-		instances.remove(inst);
-	}
-
-	/** Remove this NodeProto.  Also offs the ports associated with this
-	 * nodeproto. */
-	void remove()
-	{
-		// kill ports
-		removeAll(ports);
-		// unhook from networks
-		while (networks.size() > 0)
-		{
-			removeNetwork((JNetwork) networks.get(networks.size() - 1));
-		}
-	}
-
-	/** Does the ports list contain a particular port?
-	 * Used by PortProto's sanity check method */
-	boolean containsPort(PortProto port)
-	{
-		return ports.contains(port);
-	}
-
-	public abstract SizeOffset getSizeOffset();
-
-	protected void getInfo()
-	{
-		System.out.println(" Ports: " + ports.size());
-		for (int i = 0; i < ports.size(); i++)
-		{
-			System.out.println("      " + ports.get(i));
-		}
-		System.out.println(
-			" Bounds: "
-				+ elecBounds.x
-				+ ","
-				+ elecBounds.y
-				+ ", "
-				+ elecBounds.width
-				+ "x"
-				+ elecBounds.height);
-		super.getInfo();
-	}
-
-	// ----------------------- public methods -----------------------
-
-	/** Make a new instance of this NodeProto.
-	 *
-	 * <p> Jose positions the NodeInst by performing the following 2D
-	 * transformations, in order, on the NodeProto: <br>
-	 *
-	 * 1) scaling by scaleX and scaleY <br>
-	 * 2) rotating counter-clockwise by angle <br>
-	 * 3) translating by x and y. <br>
-	 *
-	 * <p> All scaling and rotation is performed about the NodeProto's
-	 * Reference-Point. After the 2D transformations, the NodeProto's
-	 * Reference-Point ends up at (x, y) with respect to the
-	 * Reference-Point of the parent.
-	 * 
-	 * <p> The Reference-Point for PrimitiveNodes is always at (0,
-	 * 0). The reference point for a Cell is (0, 0) unless it contain
-	 * an instance of the Cell-Center PrimitiveNode in which case the
-	 * location of the Cell-Center instance determines the Cell's
-	 * Reference-Point.
-	 * @param scaleX the horizontal scale factor. If negative then Jose
-	 * mirrors about the y axis.  If this is a Cell then scaleX must be
-	 * 1 or -1.
-	 * @param scaleY the vertical scale factor. If negative then Jose
-	 * mirrors about the x axis. If this is a Cell then scaleY must be
-	 * 1 or -1.
-	 * @param x the horizontal coordinate of the origin of the
-	 * NodeInst. This is in units of lambda.
-	 * @param y the vertical coordinate of the origin of the
-	 * NodeInst. This is in units of lambda.
-	 * @param angle the rotation of the NodeInst. This is in units of
-	 * degrees.
-	 * @param parent the Cell to contain the new instance.
-	 * @return the instance created */
-	public NodeInst newInst(double dX, double dY, double sX, double sY,
-		double angle, Cell parent)
-	{
-//		if (this instanceof Cell)
-//			 ((Cell) this).updateBounds();
-
-		NodeInst ni = new NodeInst(this, dX, dY, sX, sY, angle, parent);
-		return ni;
-	}
-
-	/** Same as newInst except it takes width and height instead of
-	 * scaleX and scaleY. <p> Width and height are in Lambda units. <p>
-	 * If width or height is 0 then use the default width or height.
-	 * <p> Note: since Cells can only be scaled by either 1 or -1, it's
-	 * more convenient to use <code>newInst</code> for Cells
-	public NodeInst newInstWH(
-		double width,
-		double height,
-		double x,
-		double y,
-		double angle,
-		Cell parent)
-	{
-		error(
-			this instanceof Cell,
-			"newInstWH only handles primitiveNodes. " + "use newInst instead");
-		if (sizeOffset.lx != sizeOffset.hx || sizeOffset.ly != sizeOffset.hy)
-		{
-			System.out.println("in newInstWH: " + sizeOffset);
-			error(true, "newInstWH.init: unimplemented: asymmetric offsets");
-		}
-
-		int w = lambdaToBase(width), h = lambdaToBase(height);
-
-		ElectricPosition ep =
-			joseToElecPosition(
-				hideInvisWidToScale(w),
-				hideInvisHeiToScale(h),
-				lambdaToBase(x),
-				lambdaToBase(y),
-				angle,
-				parent);
-
-//		return Electric.newNodeInst(this.getAddr(), ep.lx, ep.ly, ep.hx, ep.hy, ep.transpose, ep.angle, parent.getAddr());
-		return null;
-	} */
-
-	public abstract Technology getTechnology();
-
-	/** A NodeProto's <i>reference point</i> is (0, 0) unless the
-	 * NodeProto is a Cell containing an instance of a Cell-Center in
-	 * which case the reference point is the location of that
-	 * Cell-Center instance.  Lambda units. */
-	public abstract Point2D.Double getReferencePoint();
-
 	/** Get the default bounding box in Lambda units.
 	 *
 	 * <p> This is the default bounding box that would result if this
@@ -543,81 +519,4 @@ public abstract class NodeProto extends ElectricObject
 			v.width,
 			v.height);
 	} */
-
-	/** Can this node connect to a particular arc?
-	 * @param arc the type of arc to test for
-	 * @return the first port that can connect to the arc, or null,
-	 * if this node cannot connect to the given arc */
-	public PortProto connectsTo(ArcProto arc)
-	{
-		for (int i = 0; i < ports.size(); i++)
-		{
-			PortProto pp = (PortProto) ports.get(i);
-			if (pp.connectsTo(arc))
-				return pp;
-		}
-		return null;
-	}
-
-	/** If this is an Icon View Cell then return the the corresponding
-	 * Schematic View Cell.
-	 *
-	 * <p> If this isn't an Icon View Cell then return this NodeProto.
-	 *
-	 * <p> If an Icon View Cell has no Schematic View Cell then return
-	 * null.
-	 *
-	 * <p> If there are multiple versions of the Schematic View then
-	 * return the latest version. */
-	public abstract NodeProto getEquivalent();
-
-	/** Get the PortProto that has a particular name.
-	 * @return the PortProto, or null if there is no PortProto with that
-	 * name. */
-	public PortProto findPort(String name)
-	{
-		for (int i = 0; i < ports.size(); i++)
-		{
-			PortProto pp = (PortProto) ports.get(i);
-			if (pp.getName().equals(name))
-				return pp;
-		}
-		return null;
-	}
-
-	/**
-	 * Get an iterator over all PortProtos of this NodeProto
-	 */
-	public Iterator getPorts()
-	{
-		return ports.iterator();
-	}
-
-	/**
-	 * Get an iterator over all of the NodeInsts in all open Libraries
-	 * that instantiate this NodeProto.
-	 */
-	public Iterator getInstances()
-	{
-		return instances.iterator();
-	}
-
-	public abstract String describeNodeProto();
-
-	/**
-	 * Get the name of this NodeProto.
-	 */
-	public String getProtoName()
-	{
-		return protoName;
-	}
-
-	/** Get an iterator over all of the JNetworks of this NodeProto.
-	 * 
-	 * <p> Warning: before getNetworks() is called, JNetworks must be
-	 * build by calling Cell.rebuildNetworks() */
-	public Iterator getNetworks()
-	{
-		return networks.iterator();
-	}
 }
