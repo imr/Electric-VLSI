@@ -305,7 +305,8 @@ public class VarContext
         if (obj == null) return def;
         if (obj instanceof Number) return ((Number)obj).floatValue();
         try {
-            return Float.valueOf(obj.toString()).floatValue();
+            Number n = TextUtils.parsePostFixNumber(obj.toString());
+            return n.floatValue();
         } catch (NumberFormatException e) {}
         return def;
     }
@@ -317,7 +318,8 @@ public class VarContext
         if (obj == null) return def;
         if (obj instanceof Number) return ((Number)obj).intValue();
         try {
-            return Integer.valueOf(obj.toString()).intValue();
+            Number n = TextUtils.parsePostFixNumber(obj.toString());
+            return n.intValue();
         } catch (NumberFormatException e) {}
         return def;
     }
@@ -329,7 +331,8 @@ public class VarContext
         if (obj == null) return def;
         if (obj instanceof Number) return ((Number)obj).shortValue();
         try {
-            return Short.valueOf(obj.toString()).shortValue();
+            Number n = TextUtils.parsePostFixNumber(obj.toString());
+            return n.shortValue();
         } catch (NumberFormatException e) {}
         return def;
     }
@@ -341,7 +344,8 @@ public class VarContext
         if (obj == null) return def;
         if (obj instanceof Number) return ((Number)obj).doubleValue();
         try {
-            return Double.valueOf(obj.toString()).doubleValue();
+            Number n = TextUtils.parsePostFixNumber(obj.toString());
+            return n.doubleValue();
         } catch (NumberFormatException e) {}
         return def;
     }
