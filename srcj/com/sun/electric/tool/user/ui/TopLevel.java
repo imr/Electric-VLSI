@@ -169,8 +169,6 @@ public class TopLevel extends JFrame
 			} else if (osName.startsWith("linux") || osName.startsWith("solaris") || osName.startsWith("sunos"))
 			{
 				os = OS.UNIX;
-                // set working dir to current dir
-                User.setWorkingDirectory(System.getProperty("user.dir"));
                 //UIManager.setLookAndFeel("com.sun.java.swing.plaf.motif.MotifLookAndFeel");
                 UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
 			} else if (osName.startsWith("mac"))
@@ -179,6 +177,19 @@ public class TopLevel extends JFrame
 				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.MacLookAndFeel");
 			}
 		} catch(Exception e) {}
+
+        // set current working directory
+        String setting = User.getInitialWorkingDirectorySetting();
+        if (setting.equals(User.INITIALWORKINGDIRSETTING_BASEDONOS)) {
+            // default is last used dir
+            if (os == OS.UNIX) {
+                // switch to current dir
+                User.setWorkingDirectory(System.getProperty("user.dir"));
+            }
+        } else if (setting.equals(User.INITIALWORKINGDIRSETTING_USECURRENTDIR))
+            User.setWorkingDirectory(System.getProperty("user.dir"));
+        // else
+            // default is to use last used dir
 
 		// in MDI, create the top frame now
 		if (isMDIMode())

@@ -28,6 +28,7 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.tool.user.User;
 
 import javax.swing.JPanel;
+import java.util.Iterator;
 
 /**
  * Class to handle the "General" tab of the Preferences dialog.
@@ -54,6 +55,7 @@ public class GeneralTab extends PreferencePanel
 	private int initialErrorLimit;
 	private long initialMaxMem;
     private int initialMaxUndo;
+    private String initialWorkingDirSetting;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -72,6 +74,10 @@ public class GeneralTab extends PreferencePanel
 
 		initialIncludeDateAndVersion = User.isIncludeDateAndVersionInOutput();
 		generalIncludeDateAndVersion.setSelected(initialIncludeDateAndVersion);
+
+        initialWorkingDirSetting = User.getInitialWorkingDirectorySetting();
+        for (Iterator it = User.getInitialWorkingDirectorySettings(); it.hasNext(); )
+            workingDirComboBox.addItem(it.next());
 
 		generalPanningDistance.addItem("Small");
 		generalPanningDistance.addItem("Medium");
@@ -113,6 +119,10 @@ public class GeneralTab extends PreferencePanel
 		boolean curentIncludeDateAndVersion = generalIncludeDateAndVersion.isSelected();
 		if (curentIncludeDateAndVersion != initialIncludeDateAndVersion)
 			User.setIncludeDateAndVersionInOutput(curentIncludeDateAndVersion);
+
+        String currentInitialWorkingDirSetting = (String)workingDirComboBox.getSelectedItem();
+        if (!currentInitialWorkingDirSetting.equals(initialWorkingDirSetting))
+            User.setInitialWorkingDirectorySetting(currentInitialWorkingDirSetting);
 
 		int currentPanningDistance = generalPanningDistance.getSelectedIndex();
 		if (currentPanningDistance != initialPanningDistance)
@@ -159,6 +169,8 @@ public class GeneralTab extends PreferencePanel
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         maxUndoHistory = new javax.swing.JTextField();
+        jLabel3 = new javax.swing.JLabel();
+        workingDirComboBox = new javax.swing.JComboBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -202,7 +214,7 @@ public class GeneralTab extends PreferencePanel
         jLabel46.setText("Maximum errors to report:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         general.add(jLabel46, gridBagConstraints);
@@ -211,7 +223,7 @@ public class GeneralTab extends PreferencePanel
         generalErrorLimit.setText(" ");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         general.add(generalErrorLimit, gridBagConstraints);
@@ -219,7 +231,7 @@ public class GeneralTab extends PreferencePanel
         jLabel53.setText("(0 for infinite)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         general.add(jLabel53, gridBagConstraints);
 
@@ -270,7 +282,7 @@ public class GeneralTab extends PreferencePanel
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         general.add(jPanel11, gridBagConstraints);
@@ -286,7 +298,7 @@ public class GeneralTab extends PreferencePanel
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -295,15 +307,15 @@ public class GeneralTab extends PreferencePanel
         jLabel1.setText("Panning distance:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         general.add(jLabel1, gridBagConstraints);
 
         jLabel2.setText("Maximum undo history");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         general.add(jLabel2, gridBagConstraints);
@@ -311,10 +323,26 @@ public class GeneralTab extends PreferencePanel
         maxUndoHistory.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         general.add(maxUndoHistory, gridBagConstraints);
+
+        jLabel3.setText("Working directory:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        general.add(jLabel3, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        general.add(workingDirComboBox, gridBagConstraints);
 
         getContentPane().add(general, new java.awt.GridBagConstraints());
 
@@ -340,6 +368,7 @@ public class GeneralTab extends PreferencePanel
     private javax.swing.JCheckBox generalShowFileDialog;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel46;
     private javax.swing.JLabel jLabel53;
     private javax.swing.JLabel jLabel60;
@@ -347,6 +376,7 @@ public class GeneralTab extends PreferencePanel
     private javax.swing.JLabel jLabel62;
     private javax.swing.JPanel jPanel11;
     private javax.swing.JTextField maxUndoHistory;
+    private javax.swing.JComboBox workingDirComboBox;
     // End of variables declaration//GEN-END:variables
 	
 }
