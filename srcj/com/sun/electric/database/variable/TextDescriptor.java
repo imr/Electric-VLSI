@@ -1134,8 +1134,18 @@ public class TextDescriptor
 	public void setColorIndex(int colorIndex)
 	{
 		checkChanging();
-		this.colorIndex = colorIndex;
+		lowLevelSetColorIndex(colorIndex);
 	}
+
+    /**
+     * This is the low level access method to set the color of the text.
+     * You should be using setColorIndex instead.
+     * @see TextDescriptor#setColorIndex(int)
+     * @param colorIndex the color index
+     */
+    public void lowLevelSetColorIndex(int colorIndex) {
+        this.colorIndex = colorIndex;
+    }
 
 	/**
 	 * Method to return the text position of the TextDescriptor.
