@@ -482,4 +482,14 @@ public class PrimitiveNode extends NodeProto
 			array[1] = (array[1] < z) ? z : array[1];
 		}
 	}
+
+    /**
+     * Method which indicates that this object is in database.
+     * Some objects are not in database, for example Geometrics in PaletteFrame.
+     * PrimitiveNodes are not considered database objects, because their state
+     * is not stored to disk with the libraries. They are actually a technology object.
+     * @return true if this object is in database.
+     */
+    protected boolean isDatabaseObject() { return false; }
+
 }

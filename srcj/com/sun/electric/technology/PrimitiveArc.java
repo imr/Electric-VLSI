@@ -236,4 +236,13 @@ public class PrimitiveArc extends ArcProto
 		return "PrimitiveArc " + describe();
 	}
 
+    /**
+     * Method which indicates that this object is in database.
+     * Some objects are not in database, for example Geometrics in PaletteFrame.
+     * PrimitiveArcs are technology objects: they are not stored to disk with
+     * the libraries.
+     * @return true if this object is in database.
+     */
+    protected boolean isDatabaseObject() { return false; }
+
 }
