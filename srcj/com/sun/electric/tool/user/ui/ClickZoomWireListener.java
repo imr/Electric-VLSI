@@ -876,7 +876,13 @@ public class ClickZoomWireListener
     }
     
     public void mouseClicked(MouseEvent e) {
-        //To change body of implemented methods use File | Settings | File Templates.
+        //To change body of implemented methods use File | Settings | File Templates
+	    // to detect connection with other WindowContents.
+	    if (e.getSource() instanceof EditWindow)
+	    {
+		    EditWindow wnd = (EditWindow)e.getSource();
+	        WindowFrame.show3DHighlight(wnd);
+	    }
     }
 
     public void mouseEntered(MouseEvent e) {

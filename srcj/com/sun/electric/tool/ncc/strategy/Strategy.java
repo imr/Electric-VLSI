@@ -155,7 +155,8 @@ public abstract class Strategy {
 //			//StrategyPrint.doYourJob(globals.getRoot(), globals);
 //			StrategyDebug.doYourJob(globals);
 //			globals.error("mismatched!");
-//			return null;		        		//		}
+//			return null;		        		
+//		}
 		return msg;
 	}
 	
