@@ -2109,22 +2109,26 @@ public class Schematics extends Technology
 	{
 		if (ni.isFET())
 		{
-            Object lengthObj = context.evalVar(ni.getVar(ATTR_LENGTH), ni);
-	        double length = VarContext.objectToDouble(lengthObj, -1);
-            if (length != -1) lengthObj = new Double(length);
-            if (lengthObj == null) {
-                Variable var = ni.getVar(ATTR_LENGTH);
-                if (var != null) lengthObj = var.getObject();
-                else lengthObj = "none";
+            Object lengthObj = null;
+            Variable var = ni.getVar(ATTR_LENGTH);
+            if (var != null) {
+                double length = VarContext.objectToDouble(var.getObject(), -1);
+                if (length != -1)
+                    lengthObj = new Double(length);
+                else {
+                    lengthObj = var.getObject();
+                }
             }
 
-            Object widthObj = context.evalVar(ni.getVar(ATTR_WIDTH), ni);
-	        double width = VarContext.objectToDouble(widthObj, -1);
-            if (width != -1) widthObj = new Double(width);
-            if (widthObj == null) {
-                Variable var = ni.getVar(ATTR_WIDTH);
-                if (var != null) widthObj = var.getObject();
-                else widthObj = "none";
+            Object widthObj = null;
+            var = ni.getVar(ATTR_WIDTH);
+            if (var != null) {
+                double width = VarContext.objectToDouble(var.getObject(), -1);
+                if (width != -1)
+                    widthObj = new Double(width);
+                else {
+                    widthObj = var.getObject();
+                }
             }
 			//Dimension2D dim = new Dimension2D.Double(width, length);
 	        //return dim;

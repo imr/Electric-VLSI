@@ -42,6 +42,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
         private List varsToDelete;
 
         private static class VarEntry {
+            // current state of var entry
             private String varTrueName;
             private Variable.Key varKey;
             private Object value;
@@ -54,19 +55,26 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
             // if any of the above values are different from the original (below) var's value, modify
             // if this is in the varsToDelete list, delete it
             private Variable var;
+            // initial state of var entry
+            private String initialVarTrueName;
+            private Object initialValue;
+            private Variable.Code initialCode;
+            private TextDescriptor.DispPos initialDispPos;
+            private TextDescriptor.Unit initialUnits;
+            private boolean initialDisplay;
 
             private VarEntry(Variable var) {
                 this.var = var;
                 if (var == null) return;
 
-                varTrueName = var.getTrueName();
                 varKey = var.getKey();
-                value = var.getObject();
-                code = var.getCode();
+                varTrueName = initialVarTrueName = var.getTrueName();
+                value = initialValue = var.getObject();
+                code = initialCode = var.getCode();
                 TextDescriptor td = var.getTextDescriptor();
-                dispPos = td.getDispPart();
-                units = td.getUnit();
-                display = var.isDisplay();
+                dispPos = initialDispPos = td.getDispPart();
+                units = initialUnits = td.getUnit();
+                display = initialDisplay = var.isDisplay();
                 owner = var.getOwner();
             }
 
@@ -78,6 +86,16 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
             private boolean isDisplay() { return display; }
             private ElectricObject getOwner() { return owner; }
             private Variable.Key getKey() { return varKey; }
+
+            private boolean isChanged() {
+                if (!varTrueName.equals(initialVarTrueName)) return true;
+                if (value != initialValue) return true;
+                if (code != initialCode) return true;
+                if (display != initialDisplay) return true;
+                if (dispPos != initialDispPos) return true;
+                if (units != initialUnits) return true;
+                return false;
+            }
         }
 
         /**
@@ -423,7 +441,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
                         newVar = owner.newVar(name, ve.getObject());
                         ve.var = newVar;
                     } else {
-                        if (!varChanged(ve)) continue;
+                        if (!ve.isChanged()) continue;
                         // update var
                         newVar = owner.updateVar(ve.getKey(), ve.getObject());
                         ve.var = newVar;
@@ -441,20 +459,6 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
                 return true;
             }
 
-            private boolean varChanged(VarEntry ve) {
-                Variable var = ve.var;
-                if (var == null) return true;
-
-                if (!ve.varTrueName.equals(var.getKey().getName())) return true;
-                if (ve.getObject() != var.getObject()) return true;
-                if (ve.getCode() != var.getCode()) return true;
-                if (ve.isDisplay() != var.isDisplay()) return true;
-                TextDescriptor td = var.getTextDescriptor();
-                if (td == null) return false;
-                if (ve.getDispPos() != td.getDispPart()) return true;
-                if (ve.getUnits() != td.getUnit()) return true;
-                return false;
-            }
         } // end class ApplyChanges
 
     } // end class VariableTableModel
