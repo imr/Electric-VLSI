@@ -257,6 +257,28 @@ public class CrossLibCopy extends EDialog
 		}
 	}
 
+	// Class to compare two cells
+	private static class CrossLibraryExamineJob extends Job
+	{
+		Cell leftC;
+		Cell rightC;
+
+		protected CrossLibraryExamineJob(Cell left, Cell right)
+		{
+			super("Cross-Library examine", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+			this.leftC = left;
+			this.rightC = right;
+			startJob();
+		}
+		public boolean doIt()
+		{
+			boolean sameC = leftC.equals(rightC);
+
+			System.out.println("Cell left and right are " + leftC.compareTo(rightC) + " equal?" + sameC);
+			return (true);
+		}
+	}
+
 	private static class CrossLibraryCopy extends Job
 	{
 		Cell fromCell;
@@ -579,6 +601,13 @@ public class CrossLibCopy extends EDialog
 	private void examineContentsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_examineContentsActionPerformed
 	{//GEN-HEADEREND:event_examineContentsActionPerformed
 		System.out.println("This button doesn't work yet");
+		String cellLeft = (String)listLeft.getSelectedValue();
+		String cellRight = (String)listRight.getSelectedValue();
+
+		Cell leftCell = curLibLeft.findNodeProto(cellLeft);
+		Cell rightCell = curLibRight.findNodeProto(cellRight);
+		Job job = new CrossLibraryExamineJob(leftCell, rightCell);
+
 	}//GEN-LAST:event_examineContentsActionPerformed
 
 	private void copyRightActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_copyRightActionPerformed

@@ -90,7 +90,7 @@ import javax.swing.JOptionPane;
  * <P>
  * <CENTER><IMG SRC="doc-files/Cell-1.gif"></CENTER>
  */
-public class Cell extends NodeProto
+public class Cell extends NodeProto implements Comparable
 {
 	// ------------------------- private classes -----------------------------
 
@@ -2456,4 +2456,29 @@ public class Cell extends NodeProto
 		}
 	}
 
+	/** Use to compare cells in Cross Library Chech
+	 *
+	 */
+	public boolean equals(Object obj)
+	{
+		if (this == obj) return (true);
+
+		// Consider already obj==null
+		if (!(obj instanceof Cell)) return (false);
+
+		Cell toCompare = (Cell)obj;
+        Date toCompareDate = toCompare.getRevisionDate();
+
+		return (false);
+	}
+
+	public int compareTo(Object obj)
+	{
+		if (equals(obj)) return 0;
+        if (!(obj instanceof Cell)) return (-1);
+
+		Cell toCompare = (Cell)obj;
+        Date toCompareDate = toCompare.getRevisionDate();
+        return (toCompareDate.compareTo(getRevisionDate()));
+	}
 }

@@ -712,4 +712,9 @@ public class Library extends ElectricObject
         return sortedList;
     }
 
+	public boolean equals(Object obj)
+	{
+		// Library comparison
+		return (false);
+	}
 }
