@@ -55,6 +55,7 @@ import java.awt.geom.Point2D;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * This is the Auto Stitching tool.
@@ -199,17 +200,28 @@ public class AutoStitch
 			}
 
 			// now run through the nodeinsts to be checked for stitching
+            HashMap arcCount = new HashMap();
 			for(Iterator it = nodesToStitch.iterator(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				if (ni.getParent().isAllLocked()) continue;
-				count += checkStitching(ni);
+				count += checkStitching(ni, arcCount);
 			}
 
 			// report results
 			if (count != 0)
 			{
-				System.out.println("AUTO ROUTING: added " + count + " wires");
+                StringBuffer buf = new StringBuffer();
+                buf.append("AUTO ROUTING: added ");
+                boolean first = true;
+                for (Iterator it = arcCount.keySet().iterator(); it.hasNext(); ) {
+                    ArcProto ap = (ArcProto)it.next();
+                    if (!first) buf.append("; ");
+                    Integer c = (Integer)arcCount.get(ap);
+                    buf.append(c + " " + ap.describe() + " wires");
+                    first = false;
+                }
+                System.out.println(buf.toString());
 			} else
 			{
 				if (forced)
@@ -257,7 +269,7 @@ public class AutoStitch
 		/*
 		 * Method to check NodeInst "ni" for possible stitching to neighboring NodeInsts.
 		 */
-		private int checkStitching(NodeInst ni)
+		private int checkStitching(NodeInst ni, HashMap arcCount)
 		{
 			Cell cell = ni.getParent();
 			Netlist netlist = cell.getUserNetlist();
@@ -399,7 +411,14 @@ public class AutoStitch
 
 									// pass it on to the next test
 									connected = testPoly(ni, pp, ap, poly, oNi, netlist);
-									if (connected) { count++;   break; }
+									if (connected) {
+                                        Integer c = (Integer)arcCount.get(ap);
+                                        if (c == null) c = new Integer(0);
+                                        c = new Integer(c.intValue()+1);
+                                        arcCount.put(ap, c);
+                                        count++;
+                                        break;
+                                    }
 								}
 								if (connected) break;
 							}
@@ -526,7 +545,14 @@ public class AutoStitch
 
 								// pass it on to the next test
 								connected = testPoly(ni, rPp, ap, polyPtr, oNi, netlist);
-								if (connected) { count++;   break; }
+								if (connected) {
+                                    Integer c = (Integer)arcCount.get(ap);
+                                    if (c == null) c = new Integer(0);
+                                    c = new Integer(c.intValue()+1);
+                                    arcCount.put(ap, c);
+                                    count++;
+                                    break;
+                                }
 							}
 							if (connected) break;
 						}

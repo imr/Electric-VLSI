@@ -2892,68 +2892,69 @@ public class CircuitChanges
 			}
 
 			// report what was cleaned
-			String infstr = "";
-			if (!justThis) infstr += "Cell " + cell.describe() + ":";
+			StringBuffer infstr = new StringBuffer();
+			if (!justThis) infstr.append("Cell " + cell.describe() + ":");
 			boolean spoke = false;
-			if (pinsToRemove.size() != 0)
+			if ((pinsToRemove.size()+pinsToPassThrough.size()) != 0)
 			{
-				infstr += "Removed " + pinsToRemove.size() + " pins";
+                int removed = pinsToRemove.size() + pinsToPassThrough.size();
+				infstr.append("Removed " + removed + " pins");
 				spoke = true;
 			}
 			if (arcsToKill.size() != 0)
 			{
-				if (spoke) infstr += "; ";
-				infstr += "Removed " + arcsToKill.size() + " duplicate arcs";
+				if (spoke) infstr.append("; ");
+				infstr.append("Removed " + arcsToKill.size() + " duplicate arcs");
 				spoke = true;
 			}
 			if (pinsToScale.size() != 0)
 			{
-				if (spoke) infstr += "; ";
-				infstr += "Shrunk " + pinsToScale.size() + " pins";
+				if (spoke) infstr.append("; ");
+				infstr.append("Shrunk " + pinsToScale.size() + " pins");
 				spoke = true;
 			}
 			if (zeroSize != 0)
 			{
-				if (spoke) infstr += "; ";
+				if (spoke) infstr.append("; ");
 				if (justThis)
 				{
-					infstr += "Highlighted " + zeroSize + " zero-size pins";
+					infstr.append("Highlighted " + zeroSize + " zero-size pins");
 				} else
 				{
-					infstr += "Found " + zeroSize + " zero-size pins";
+					infstr.append("Found " + zeroSize + " zero-size pins");
 				}
 				spoke = true;
 			}
 			if (negSize != 0)
 			{
-				if (spoke) infstr += "; ";
+				if (spoke) infstr.append("; ");
 				if (justThis)
 				{
-					infstr += "Highlighted " + negSize + " negative-size pins";
+					infstr.append("Highlighted " + negSize + " negative-size pins");
 				} else
 				{
-					infstr += "Found " + negSize + " negative-size pins";
+					infstr.append("Found " + negSize + " negative-size pins");
 				}
 				spoke = true;
 			}
 			if (overSizePins != 0)
 			{
-				if (spoke) infstr += "; ";
+				if (spoke) infstr.append("; ");
 				if (justThis)
 				{
-					infstr += "Highlighted " + overSizePins + " oversize pins with arcs that don't touch";
+					infstr.append("Highlighted " + overSizePins + " oversize pins with arcs that don't touch");
 				} else
 				{
-					infstr += "Found " + overSizePins + " oversize pins with arcs that don't touch";
+					infstr.append("Found " + overSizePins + " oversize pins with arcs that don't touch");
 				}
 				spoke = true;
 			}
 			if (textToMove.size() != 0)
 			{
-				if (spoke) infstr += "; ";
-				infstr += "Moved text on " + textToMove.size() + " pins with offset text";
+				if (spoke) infstr.append("; ");
+				infstr.append("Moved text on " + textToMove.size() + " pins with offset text");
 			}
-			System.out.println(infstr);
+			System.out.println(infstr.toString());
 			return true;
 		}
 	}
@@ -3650,7 +3651,32 @@ public class CircuitChanges
 		public boolean doIt()
 		{
 			Cell dupCell = Cell.copyNodeProto(cell, cell.getLibrary(), newName + "{" + cell.getView().getAbbreviation() + "}", false);
-			if (dupCell == null) return false;
+			if (dupCell == null) {
+                System.out.println("Could not duplicate cell "+cell.describe());
+                return false;
+            }
+
+            // if icon of cell is present, duplicate that as well, and replace old icon with new icon in new cell
+            for (Iterator it = cell.getNodes(); it.hasNext(); ) {
+                NodeInst ni = (NodeInst)it.next();
+                if (ni.getProtoEquivalent() == cell) {
+                    // this is the icon, duplicate it as well
+                    Cell icon = (Cell)ni.getProto();
+                    Cell dupIcon = Cell.copyNodeProto(icon, icon.getLibrary(), newName + "{" + icon.getView().getAbbreviation() + "}", false);
+                    if (dupIcon == null) {
+                        System.out.println("Could not duplicate icon cell "+icon.describe());
+                        break;
+                    }
+                    // replace old icon(s) in duplicated cell
+                    for (Iterator it2 = dupCell.getNodes(); it2.hasNext(); ) {
+                        NodeInst ni2 = (NodeInst)it2.next();
+                        if (ni2.getProto() == icon) {
+                            ni2.replace(dupIcon, true, true);
+                        }
+                    }
+                    break;
+                }
+            }
 
 			// change the display of old cell to the new one
 			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )

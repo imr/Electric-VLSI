@@ -656,7 +656,7 @@ public class Pref
 	 * Presents the user with a dialog to help reconcile the difference
 	 * between meaning options stored in a library and the original values.
 	 */
-	public static void reconcileMeaningVariables()
+	public static void reconcileMeaningVariables(String libName)
 	{
 		for(Iterator it = allPrefs.iterator(); it.hasNext(); )
 		{
@@ -694,7 +694,7 @@ public class Pref
 		}
 
 		if (meaningsToReconcile.size() == 0) return;
- 		OptionReconcile dialog = new OptionReconcile(TopLevel.getCurrentJFrame(), true, meaningsToReconcile);
+ 		OptionReconcile dialog = new OptionReconcile(TopLevel.getCurrentJFrame(), true, meaningsToReconcile, libName);
 		dialog.setVisible(true);
 	}
 

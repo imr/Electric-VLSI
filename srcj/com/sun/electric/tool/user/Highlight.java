@@ -425,6 +425,13 @@ public class Highlight
 				if (oNet == net)
 				{
 					Highlight.addElectricObject(ai, cell);
+                    // also highlight end nodes of arc, if they are primitive nodes
+                    PortInst pi = ai.getHead().getPortInst();
+                    if (pi.getNodeInst().getProto() instanceof PrimitiveNode)
+                        Highlight.addElectricObject(pi, cell);
+                    pi = ai.getTail().getPortInst();
+                    if (pi.getNodeInst().getProto() instanceof PrimitiveNode)
+                        Highlight.addElectricObject(pi, cell);
 					break;
 				}
 			}

@@ -143,7 +143,7 @@ public class Input // extends IOTool
 			float finalTime = (endTime - startTime) / 1000F;
 			System.out.println("Library " + fileURL.getFile() + " read, took " + finalTime + " seconds");
 		}
-		Pref.reconcileMeaningVariables();
+		Pref.reconcileMeaningVariables(lib.getName());
 
         errorLogger.termLogging(true);
 

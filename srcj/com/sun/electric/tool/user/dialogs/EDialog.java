@@ -29,17 +29,12 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 
-import java.awt.Rectangle;
-import java.awt.Point;
-import java.awt.Frame;
+import java.awt.*;
 import java.awt.event.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
-import javax.swing.JDialog;
-import javax.swing.AbstractAction;
-import javax.swing.KeyStroke;
-import javax.swing.JComponent;
+import javax.swing.*;
 
 /**
  * Superclass for all dialogs that handles remembering the last location.
@@ -49,6 +44,7 @@ public class EDialog extends JDialog
 	private static HashMap locations = new HashMap();
 	private Class thisClass;
     public static DialogFocusHandler dialogFocusHandler = new DialogFocusHandler();
+    public static TextBoxFocusListener textBoxFocusListener = new TextBoxFocusListener();
 
 	/** Creates new form Search and Replace */
 	protected EDialog(Frame parent, boolean modal)
@@ -77,6 +73,26 @@ public class EDialog extends JDialog
 
     /** used to cancel the dialog */
 	protected void escapePressed() {}
+
+    private static class TextBoxFocusListener implements FocusListener {
+        public void focusGained(FocusEvent e) {
+            Component source = e.getComponent();
+            if (source instanceof JTextField) {
+                JTextField textField = (JTextField)source;
+                if (textField.isEnabled() && textField.isEditable()) {
+                    int len = textField.getDocument().getLength();
+                    textField.setSelectionStart(0);
+                    textField.setSelectionEnd(len);
+                }
+            }
+        }
+
+        public void focusLost(FocusEvent e) {
+            //To change body of implemented methods use File | Settings | File Templates.
+        }
+
+    }
+
 
 	private static class MoveComponentListener implements ComponentListener
 	{

@@ -53,7 +53,7 @@ public class OptionReconcile extends EDialog
     private ArrayList currentSettings;
 
 	/** Creates new form Option Reconcile */
-	public OptionReconcile(Frame parent, boolean modal, List optionsThatChanged)
+	public OptionReconcile(Frame parent, boolean modal, List optionsThatChanged, String libname)
 	{
 		super(parent, modal);
 		initComponents();
@@ -225,6 +225,7 @@ public class OptionReconcile extends EDialog
 			rowNumber++;
 		}
 
+        optionHeader.setText("Library \""+libname+"\" wants to use the following options which differ from the current options");        
         pack();
 	}
 
