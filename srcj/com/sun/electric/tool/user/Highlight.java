@@ -1433,8 +1433,7 @@ public class Highlight
 						Poly poly = polys[i];
 						poly.setExactTextBounds(wnd);
                         // ignore areaMustEnclose if bounds is size 0,0
-//						if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
-                        if (areaMustEnclose)
+						if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
 						{
 							if (!poly.isInside(bounds)) continue;
 						} else
@@ -1464,8 +1463,7 @@ public class Highlight
 					poly.transform(trans);
 					poly.setExactTextBounds(wnd);
                     // ignore areaMustEnclose if bounds is size 0,0
-//					if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
-                    if (areaMustEnclose)
+					if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
 					{
 						if (!poly.isInside(bounds)) continue;
 					} else
@@ -1509,8 +1507,7 @@ public class Highlight
 						Poly poly = polys[i];
 						poly.setExactTextBounds(wnd);
                         // ignore areaMustEnclose if bounds is size 0,0
-//                        if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
-                        if (areaMustEnclose)
+                        if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
 						{
 							if (!poly.isInside(bounds)) continue;
 						} else
@@ -1605,8 +1602,7 @@ public class Highlight
 		EditWindow wnd, double directHitDist, boolean areaMustEnclose)
 	{
         // ignore areaMustEnclose if bounds is size 0,0
-//        if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
-        if (areaMustEnclose)
+        if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
 		{
 			Rectangle2D geomBounds = geom.getBounds();
 			Poly poly = new Poly(geomBounds);
