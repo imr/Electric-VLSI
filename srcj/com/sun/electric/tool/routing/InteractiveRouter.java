@@ -693,12 +693,18 @@ public abstract class InteractiveRouter extends Router {
         RouteElementPort tailRE = RouteElementPort.existingPortInst(arc.getTail().getPortInst(), tail);
         headRE.setShowHighlight(false);
         tailRE.setShowHighlight(false);
+        // put name on longer arc
+        String name1 = null;
+        String name2 = null;
+        if (head.distance(bisectPoint) > tail.distance(bisectPoint))
+            name1 = arc.getName();
+        else
+            name2 = arc.getName();
         // add two arcs to rebuild old startArc
-        String name = arc.getName();
         RouteElement newHeadArcRE = RouteElementArc.newArc(cell, arc.getProto(), arc.getWidth(), headRE, newPinRE,
-                head, bisectPoint, name, arc.getNameTextDescriptor(), arc);
+                head, bisectPoint, name1, arc.getNameTextDescriptor(), arc);
         RouteElement newTailArcRE = RouteElementArc.newArc(cell, arc.getProto(), arc.getWidth(), newPinRE, tailRE,
-                bisectPoint, tail, null, null, arc);
+                bisectPoint, tail, name2, arc.getNameTextDescriptor(), arc);
         newHeadArcRE.setShowHighlight(false);
         newTailArcRE.setShowHighlight(false);
         // delete old arc
