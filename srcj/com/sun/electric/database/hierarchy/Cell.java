@@ -37,6 +37,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.ElectricObject;
@@ -317,16 +318,7 @@ public class Cell extends NodeProto
 		public Iterator iterator() { return versions.iterator(); }
 	}
 
-	/**
-	 * An NetName class represents possible net name in a cell.
-	 * NetName is obtainsed either from Export name or ArcInst name.
-	 */
-	static class NetName
-	{
-		Name name;
-		int index;
-		NetName() { index = -1; }
-	}
+	class MaxSuffix { int v = 0; }
 
 	// -------------------------- private data ---------------------------------
 
@@ -348,11 +340,6 @@ public class Cell extends NodeProto
 	/** A map from Name to Integer maximal numeric suffix */        private Map maxSuffix;
 	/** A list of ArcInsts in this Cell. */							private List arcs;
 	/** A map from temporary arc name to ArcInst. */				private Map tempNameToArc;
-	/** A map from Name to NetName. */								private Map netNames;
-	/** An equivalence map of PortInsts and NetNames. */			private int[] netMap;
-	/** An array of JNetworks in this Cell. */						private JNetwork[] networks;
-	/** The current timestamp value. */								private static int currentTime = 0;
-	/** The timestamp of last network renumbering of this Cell */	private int networksTime;
 	/** The bounds of the Cell. */									private Rectangle2D cellBounds;
 	/** Whether the bounds need to be recomputed. */				private boolean boundsDirty;
 	/** Whether the bounds have anything in them. */				private boolean boundsEmpty;
@@ -382,13 +369,11 @@ public class Cell extends NodeProto
 		maxSuffix = new HashMap();
 		arcs = new ArrayList();
 		tempNameToArc = new HashMap();
-		netNames = new HashMap();
 		cellGroup = null;
 		tech = null;
 		creationDate = new Date();
 		revisionDate = new Date();
 		userBits = 0;
-		networksTime = 0;
 		cellBounds = new Rectangle2D.Double();
 		boundsEmpty = true;
 		boundsDirty = false;
@@ -678,14 +663,12 @@ public class Cell extends NodeProto
 		c.maxSuffix = new HashMap();
 		c.arcs = new ArrayList();
 		c.tempNameToArc = new HashMap();
-		c.netNames = new HashMap();
 		c.cellGroup = null;
 		c.tech = null;
 		c.lib = lib;
 		c.creationDate = new Date();
 		c.revisionDate = new Date();
 		c.userBits = 0;
-		c.networksTime = 0;
 		c.cellBounds = new Rectangle2D.Double();
 		c.boundsEmpty = true;
 		c.boundsDirty = false;
@@ -1160,7 +1143,6 @@ public class Cell extends NodeProto
 
 		// must recompute the bounds of the cell
 		boundsDirty = true;
-		setNetworksDirty();
 
 		// make additional checks to keep circuit up-to-date
 		NodeProto np = ni.getProto();
@@ -1196,7 +1178,6 @@ public class Cell extends NodeProto
 
 		// must recompute the bounds of the cell
 		boundsDirty = true;
-		setNetworksDirty();
 
 		essenBounds.remove(ni);
 	}
@@ -1204,7 +1185,7 @@ public class Cell extends NodeProto
 	/**
 	 * Routine to add a new NodeInstProxys to the cell.
 	 * @param ni the NodeInst to be included in the cell.
-	 * @param subs array of subinstances of this NodeInst si.
+	 * @param subs array of subinstances of this NodeInst ni.
 	 */
 	public void addNodables(NodeInst ni, NodeInst.Subinst[] subs)
 	{
@@ -1312,25 +1293,6 @@ public class Cell extends NodeProto
 	public Iterator getArcs()
 	{
 		return arcs.iterator();
-//		Name name = geom.getNameKey();
-//		if (name == null || !name.isTempname()) return;
-//		Name basename = name.getBasename();
-//		if (basename != null && basename != name)
-//		{
-//			basename = basename.lowerCase(); 
-//			MaxSuffix ms = (MaxSuffix) maxSuffix.get(basename);
-//			if (ms == null)
-//			{
-//				ms = new MaxSuffix();
-//				maxSuffix.put(basename, ms);
-//			}
-//			int numSuffix = name.getNumSuffix();
-//			if (numSuffix > ms.v)
-//			{
-//				ms.v = numSuffix;
-//				//System.out.println("MaxSuffix "+basename+"="+numSuffix+" in "+this);
-//			}
-//		}
 	}
 
 	/**
@@ -1359,7 +1321,6 @@ public class Cell extends NodeProto
 
 		// must recompute the bounds of the cell
 		boundsDirty = true;
-		setNetworksDirty();
 	}
 
 	/**
@@ -1379,7 +1340,6 @@ public class Cell extends NodeProto
 
 		// must recompute the bounds of the cell
 		boundsDirty = true;
-		setNetworksDirty();
 	}
 
 	/**
@@ -1393,9 +1353,6 @@ public class Cell extends NodeProto
 		{
 			tempNameToArc.put(name.lowerCase(), ai);
 			updateMaxSuffix(ai);
-		} else
-		{
-			netNames.put(name.lowerCase(), new NetName());
 		}
 	}
 
@@ -1431,29 +1388,6 @@ public class Cell extends NodeProto
 	{
 		return (Export) findPortProto(name);
 	}
-
-//	/**
-//	 * Add a PortProto to this NodeProto.
-//	 * Adds Exports for Cells, PrimitivePorts for PrimitiveNodes.
-//	 * @param port the PortProto to add to this NodeProto.
-//	 */
-//	public void addPort(PortProto port)
-//	{
-//		super.addPort(port);
-//		if (this == cellGroup.getMainSchematics())
-//			cellGroup.updateEquivalentPort(port.getProtoNameLow(), (Export)port);
-//	}
-//
-//	/**
-//	 * Removes a PortProto from this NodeProto.
-//	 * @param port the PortProto to remove from this NodeProto.
-//	 */
-//	public void removePort(PortProto port)
-//	{
-//		super.removePort(port);
-//		if (this == cellGroup.getMainSchematics())
-//			cellGroup.updateEquivalentPort(port.getProtoNameLow(), null);
-//	}
 
 	/****************************** TEXT ******************************/
 
@@ -1852,8 +1786,6 @@ public class Cell extends NodeProto
 		return false;
 	}
 
-	class MaxSuffix { int v = 0; }
-
 	/****************************** NETWORKS ******************************/
 
 	/**
@@ -1861,22 +1793,7 @@ public class Cell extends NodeProto
 	 * <p> Warning: before getNetworks() is called, JNetworks must be
 	 * build by calling Cell.rebuildNetworks()
 	 */
-	public Iterator getNetworks()
-	{
-		ArrayList nets = new ArrayList();
-		for (int i = 0; i < networks.length; i++)
-		{
-			if (networks[i] != null)
-				nets.add(networks[i]);
-		}
-		return nets.iterator();
-	}
-
-	/*
-	 * Get network by index in networks maps.
-	 */
-
-	public JNetwork getNetwork(int index) { return networks[netMap[index]]; }
+	public Iterator getNetworks() { return Network.getNetworks(this); }
 
 	/** Recompute the network structure for this Cell.
 	 *
@@ -1895,377 +1812,47 @@ public class Cell extends NodeProto
      * <p>Because shorting resistors is a fairly common request, it is 
      * implemented in the method if @param shortResistors is set to true.
      */
-	public void rebuildNetworks(ArrayList connectedPorts, boolean shortResistors)
-	{
-		if (connectedPorts == null)
-		{
-			connectedPorts = new ArrayList();
-		}
-        if (shortResistors)
-        {
-            connectedPorts.add(Schematics.tech.resistorNode.getPortsList());
-        }
-		HashMap connPorts = buildConnPortsTable(connectedPorts);
-		currentTime++;
-		redoNetworks(connPorts);
-	}
+	public void rebuildNetworks(ArrayList connectedPorts, boolean shortResistors) { Network.rebuildNetworks(this, shortResistors); }
 
-	/** Recompute the network structure for all Cells.
-	 *
-	 * @param connectedPorts this argument allows the user to tell the
-	 * network builder to treat certain PortProtos of a NodeProto as a
-	 * short circuit. For example, it is sometimes useful to build the
-	 * net list as if the PortProtos of a resistor where shorted
-	 * together.
-	 *
-	 * <p> <code>connectedPorts</code> must be either null or an
-	 * ArrayList of ArrayLists of PortProtos.  All of the PortProtos in
-	 * an ArrayList are treated as if they are connected.  All of the
-	 * PortProtos in a single ArrayList must belong to the same
-	 * NodeProto. */
-	public static void rebuildAllNetworks(ArrayList connectedPorts)
-	{
-		if (connectedPorts == null)
-		{
-			connectedPorts = new ArrayList();
-		}
-		HashMap connPorts = buildConnPortsTable(connectedPorts);
-		currentTime++;
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
-		{
-			Library lib = (Library)it.next();
-			for(Iterator cit = lib.getCells(); cit.hasNext(); )
-			{
-				Cell cell = (Cell)cit.next();
-				cell.redoNetworks(connPorts);
-			}
-		}
-	}
+// 	private static HashMap buildConnPortsTable(ArrayList connPortsLists)
+// 	{
+// 		HashMap connPorts = new HashMap();
+// 		if (connPortsLists == null)
+// 			return connPorts;
 
-	private static HashMap buildConnPortsTable(ArrayList connPortsLists)
-	{
-		HashMap connPorts = new HashMap();
-		if (connPortsLists == null)
-			return connPorts;
+// 		// iterate over all lists
+// 		for (int i = 0; i < connPortsLists.size(); i++)
+// 		{
+// 			ArrayList connPortsList = (ArrayList) connPortsLists.get(i);
 
-		// iterate over all lists
-		for (int i = 0; i < connPortsLists.size(); i++)
-		{
-			ArrayList connPortsList = (ArrayList) connPortsLists.get(i);
+// 			// all these PortProtos are shorted together
+// 			JNetwork dummyNet = new JNetwork(null);
+// 			NodeProto parent = null;
+// 			for (int j = 0; j < connPortsList.size(); j++)
+// 			{
+// 				PortProto pp = (PortProto) connPortsList.get(j);
 
-			// all these PortProtos are shorted together
-			JNetwork dummyNet = new JNetwork(null);
-			NodeProto parent = null;
-			for (int j = 0; j < connPortsList.size(); j++)
-			{
-				PortProto pp = (PortProto) connPortsList.get(j);
+// 				// make sure all connected ports have the same parent
+// 				if (j == 0)
+// 					parent = pp.getParent();
+// 				if (pp.getParent() != parent)
+// 				{
+// 					System.out.println("PortProtos in the same connected" + " list must belong to same NodeProto");
+// 					return null;
+// 				}
 
-				// make sure all connected ports have the same parent
-				if (j == 0)
-					parent = pp.getParent();
-				if (pp.getParent() != parent)
-				{
-					System.out.println("PortProtos in the same connected" + " list must belong to same NodeProto");
-					return null;
-				}
+// 				// make sure it's not already present
+// 				if (connPorts.containsKey(pp))
+// 				{
+// 					System.out.println("PortProto occurs more than once in the connected Ports lists");
+// 					return null;
+// 				}
 
-				// make sure it's not already present
-				if (connPorts.containsKey(pp))
-				{
-					System.out.println("PortProto occurs more than once in the connected Ports lists");
-					return null;
-				}
-
-				connPorts.put(pp, dummyNet);
-			}
-		}
-		return connPorts;
-	}
-
-	/**
-	 * Update map of equivalent ports userEquivPort.
-	 * @param userEquivPorts HashMap (PortProto -> JNetwork) of user-specified equivalent ports
-	 * @param currentTime time stamp of current network reevaluation
-	 * This routine will always set equivPortsCheckTime to currentTime.
-     * equivPortsUpdateTime will either change to currentTime if map will change,
-	 * or will be kept untouched if not.
-     * For the Cell this routine will refresh networks of contents cell too.
-	 */
-	public void updateEquivPorts(HashMap userEquivPorts, int currentTime)
-	{
-		// If Cell is an Icon View then redo the Schematic
-		// View. Otherwise redo the Cell.
-		Cell equivCell = getEquivalent();
-		if (equivCell == null) equivCell = this;
-		equivCell.redoNetworks(userEquivPorts);
-
-		super.updateEquivPorts(userEquivPorts, currentTime);
-	}
-
-	/**
-	 * Redo subcells of this cell. Ifmap of equivalent ports of some subcell has
-     * been updated since last network renumbering, then retunr true.
-	 */
-	private boolean redoDescendents(HashMap userEquivPorts)
-	{
-		boolean redoThis = false;
-		for (Iterator it = getUsagesIn(); it.hasNext();)
-		{
-			NodeUsage nu = (NodeUsage) it.next();
-			if (nu.isIconOfParent()) continue;
-
-			NodeProto np = nu.getProto();
-			if (np.getEquivPortsCheckTime() != currentTime)
-				np.updateEquivPorts(userEquivPorts, currentTime);
-			if (networksTime < np.getEquivPortsUpdateTime())
-				redoThis = true;
-		}
-		return redoThis;
-	}
-
-	private void placeEachPortInstOnItsOwnNet()
-	{
-		for (Iterator uit = getUsagesIn(); uit.hasNext();)
-		{
-			NodeUsage nu = (NodeUsage) uit.next();
-			if (nu.isIcon()) continue;
-			if (nu.getProto().getFunction() == NodeProto.Function.ART) continue;
-
-			NodeProto np = nu.getProto();
-			int[] eq = np.getEquivPorts();
-			for (Iterator iit = nu.getInsts(); iit.hasNext();)
-			{
-				NodeInst ni = (NodeInst)iit.next();
-				int ind = ni.getIndex();
-				for (int i = 0; i < eq.length; i++)
-				{
-					if (eq[i] == i) continue;
-					connectMap(netMap, ind + i, ind + eq[i]);
-				}
-			}
-			for (Iterator iit = nu.getProxies(); iit.hasNext();)
-			{
-				NodeInstProxy nip = (NodeInstProxy)iit.next();
-				int ind = nip.getIndex();
-				for (int i = 0; i < eq.length; i++)
-				{
-					if (eq[i] == i) continue;
-					connectMap(netMap, ind + i, ind + eq[i]);
-				}
-			}
-		}
-	}
-
-	private void mergeNetsConnectedByArcs()
-	{
-		for (int i = 0; i < arcs.size(); i++)
-		{
-			ArcInst ai = (ArcInst) arcs.get(i);
-			if (ai.getProto().getFunction() == ArcProto.Function.NONELEC) continue;
-
-			PortInst pi0 = ai.getConnection(false).getPortInst();
-			NodeInst ni0 = pi0.getNodeInst();
-			int ind0 = ni0.getIndex();
-			if (ind0 >= 0)
-			{
-				ind0 += pi0.getPortProto().getIndex();
-			} else if (ni0.getProto().isIcon())
-			{
-				NodeInstProxy nip = ni0.getSubinst(0).getProxy();
-				PortProto pp = pi0.getPortProto().getEquivalent();
-				if (nip != null && pp != null)
-					ind0 = nip.getIndex() + pp.getIndex();
-			}
-
-			PortInst pi1 = ai.getConnection(true).getPortInst();
-			NodeInst ni1 = pi1.getNodeInst();
-			int ind1 = ni1.getIndex();
-			if (ind1 >= 0)
-			{
-				ind1 += pi1.getPortProto().getIndex();
-			} else if (ni1.getProto().isIcon())
-			{
-				NodeInstProxy nip = ni1.getSubinst(0).getProxy();
-				PortProto pp = pi1.getPortProto().getEquivalent();
-				if (nip != null && pp != null)
-					ind1 = nip.getIndex() + pp.getIndex();
-			}
-
-			if (ind0 >= 0 && ind1 >= 0) connectMap(netMap, ind0, ind1);
-
-			Name arcNm = ai.getNameKey();
-			if (!ai.isUsernamed()) continue;
-			NetName nn = (NetName)netNames.get(arcNm);
-			if (ind0 >= 0) connectMap(netMap, nn.index, ind0);
-			if (ind1 >= 0) connectMap(netMap, nn.index, ind1);
-		}
-	}
-
-	private void addExportNamesToNets()
-	{
-		for (Iterator it = getPorts(); it.hasNext();)
-		{
-			Export e = (Export) it.next();
-			Name expNm = e.getProtoNameLow();
-			NetName nn = (NetName)netNames.get(expNm);
-			PortInst pi = e.getOriginalPort();
-			NodeInst ni = pi.getNodeInst();
-			int ind = ni.getIndex();
-			if (ind >= 0)
-			{
-				ind += pi.getPortProto().getIndex();
-			} else if (ni.getProto().isIcon())
-			{
-				NodeInstProxy nip = ni.getSubinst(0).getProxy();
-				PortProto pp = pi.getPortProto().getEquivalent();
-				if (nip != null && pp != null)
-					ind = nip.getIndex() + pp.getIndex();
-			}
-			if (ind >= 0)
-				connectMap(netMap, nn.index, ind);
-		}
-	}
-
-	protected void connectEquivPorts(int[] newEquivPorts)
-	{
-		HashMap netToPort = new HashMap(); // subNet -> Integer
-		int i = 0;
-		for (Iterator it = getPorts(); it.hasNext(); i++)
-		{
-			Export pp = (Export) it.next();
-			JNetwork subNet = ((Export)pp.getEquivalent()).getNetwork();
-			Integer iOld = (Integer) netToPort.get(subNet);
-			if (iOld != null)
-			{
-				connectMap(newEquivPorts, iOld.intValue(), i);
-			} else
-			{
-				netToPort.put(subNet, new Integer(i));
-			}
-		}
-	}
-
-	private void buildNetworkList()
-	{
-		if (networks == null || networks.length != netMap.length)
-			networks = new JNetwork[netMap.length];
-		for (int i = 0; i < netMap.length; i++)
-		{
-			networks[i] = (netMap[i] == i ? new JNetwork(this) : null);
-		}
-		for (Iterator it = netNames.values().iterator(); it.hasNext(); )
-		{
-			NetName nn = (NetName)it.next();
-			if (nn.index < 0) continue;
-			networks[netMap[nn.index]].addName(nn.name.toString());
-		}
-		/*
-		// debug info
-		System.out.println("BuildNetworkList "+this);
-		int i = 0;
-		for (Iterator nit = getNetworks(); nit.hasNext(); )
-		{
-			JNetwork network = (JNetwork)nit.next();
-			String s = "";
-			for (Iterator sit = network.getNames(); sit.hasNext(); )
-			{
-				String n = (String)sit.next();
-				s += "/"+ n;
-			}
- 			for (Iterator pit = network.getPorts(); pit.hasNext(); )
- 			{
- 				PortInst pi = (PortInst)pit.next();
- 				s += "|"+pi.getNodeInst().getProto()+"&"+pi.getPortProto().getProtoName();
- 			}
-			System.out.println("    "+i+"    "+s);
-			i++;
-		}
-		*/
-	}
-
-	private void redoNetworks(HashMap equivPorts)
-	{
-		if (!redoDescendents(equivPorts)) return;
-
-		/* Set index of NodeInsts */
-		int index = 0;
-		for (Iterator uit = getUsagesIn(); uit.hasNext();)
-		{
-			NodeUsage nu = (NodeUsage) uit.next();
-			if (nu.isIcon()) continue;
-			if (nu.getProto().getFunction() == NodeProto.Function.ART) continue;
-
-			NodeProto np = nu.getProto();
-			for (Iterator iit = nu.getInsts(); iit.hasNext();)
-			{
-				NodeInst ni = (NodeInst)iit.next();
-				ni.lowLevelSetIndex(index);
-				index += np.getNumPorts();
-			}
-			for (Iterator iit = nu.getProxies(); iit.hasNext();)
-			{
-				NodeInstProxy nip = (NodeInstProxy)iit.next();
-				nip.setIndex(index);
-				index += np.getNumPorts();
-			}
-		}
-		/* Gather names */
-		for (Iterator it = netNames.values().iterator(); it.hasNext(); )
-		{
-			NetName nn = (NetName)it.next();
-			nn.name = null;
-			nn.index = -1;
-		}
-		for (Iterator it = getPorts(); it.hasNext();)
-		{
-			Export e = (Export) it.next();
-			Name expNm = e.getProtoNameLow();
-			NetName nn = (NetName)netNames.get(expNm);
-			if (nn == null)
-			{
-				nn = new NetName();
-				netNames.put(expNm.lowerCase(), nn);
-			}
-			if (nn.index < 0)
-			{
-				nn.name = expNm;
-				nn.index = index++;
-			}
-		}
-		for (int i = 0; i < arcs.size(); i++)
-		{
-			ArcInst ai = (ArcInst) arcs.get(i);
-			if (!ai.isUsernamed()) continue;
-			Name arcNm = ai.getNameKey();
-			NetName nn = (NetName)netNames.get(arcNm);
-			if (nn == null)
-			{
-				nn = new NetName();
-				netNames.put(arcNm.lowerCase(), nn);
-			}
-			if (nn.index < 0)
-			{
-				nn.name = arcNm;
-				nn.index = index++;
-			}
-		}
-
-		if (netMap == null || netMap.length != index)
-			netMap = new int[index];
-		for (int i = 0; i < netMap.length; i++) netMap[i] = i;
-
-		placeEachPortInstOnItsOwnNet();
-		mergeNetsConnectedByArcs();
-		addExportNamesToNets();
-		closureMap(netMap);
-		buildNetworkList();
-		networksTime = currentTime;
-	}
-
-	public final void setNetworksDirty()
-	{
-		networksTime = 0;
-	}
+// 				connPorts.put(pp, dummyNet);
+// 			}
+// 		}
+// 		return connPorts;
+// 	}
 
 	/****************************** MISCELLANEOUS ******************************/
 

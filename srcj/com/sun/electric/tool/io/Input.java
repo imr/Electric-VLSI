@@ -27,6 +27,7 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
@@ -126,6 +127,7 @@ public class Input
 		Undo.changesQuiet(true);
 		Library lib = readALibrary(fileName, null, type);
 		Undo.changesQuiet(false);
+		Network.reload();
 		if (lib != null)
 		{
 			long endTime = System.currentTimeMillis();

@@ -31,6 +31,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.NodeInstProxy;
 import com.sun.electric.database.hierarchy.NodeUsage;
@@ -1329,21 +1330,7 @@ public class NodeInst extends Geometric implements Nodable
 	 * @param portProto PortProto in protoType.
 	 * @param busIndex index in bus.
 	 */
-	public JNetwork getNetwork(PortProto portProto, int busIndex)
-	{
-		if (getIndex() < 0) return null; // Nonelectric node
-		if (portProto.getParent() != protoType)
-		{
-			System.out.println("Invalid portProto argument in NodeInst.getNetwork");
-			return null;
-		}
-		if (busIndex < 0 || busIndex >= portProto.getProtoNameLow().busWidth())
-		{
-			System.out.println("NodeInst.getNetwork: invalid arguments busIndex="+busIndex+" portProto="+portProto);
-			return null;
-		}
-		return parent.getNetwork(getIndex() + portProto.getIndex() + busIndex);
-	}
+	public JNetwork getNetwork(PortProto portProto, int busIndex) { return Network.getNetwork(this, portProto, busIndex); }
 
 	/**
 	 * Routine to add an Export to this NodeInst.

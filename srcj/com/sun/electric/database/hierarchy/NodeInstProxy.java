@@ -25,6 +25,7 @@ package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
@@ -173,21 +174,7 @@ public class NodeInstProxy implements Nodable
 	 * @param portProto PortProto in protoType.
 	 * @param busIndex index in bus.
 	 */
-	public JNetwork getNetwork(PortProto portProto, int busIndex)
-	{
-		if (getIndex() < 0) return null; // Nonelectric node
-		if (portProto.getParent() != nodeUsage.getProto())
-		{
-			System.out.println("Invalid portProto argument in NodeInstProxy.getNetwork");
-			return null;
-		}
-		if (busIndex < 0 || busIndex >= portProto.getProtoNameLow().busWidth())
-		{
-			System.out.println("NodeInstProxy.getNetwork: invalid arguments busIndex="+busIndex+" portProto="+portProto);
-			return null;
-		}
-		return nodeUsage.getParent().getNetwork(getIndex() + portProto.getIndex() + busIndex);
-	}
+	public JNetwork getNetwork(PortProto portProto, int busIndex) { return Network.getNetwork(this, portProto, busIndex); }
 
 	/**
 	 * Returns a printable version of this NodeInstProxy.

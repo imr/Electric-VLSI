@@ -192,7 +192,6 @@ public class GetInfoArc extends javax.swing.JDialog
 
 		// load the dialog
 		type.setText(ai.getProto().describe());
-		ai.getParent().rebuildNetworks(null, false);
 		JNetwork net = ai.getNetwork(0);
 		network.setText(net != null ? net.describe() : "????");
 		name.setText(initialName);

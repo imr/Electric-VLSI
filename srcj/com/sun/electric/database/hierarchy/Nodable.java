@@ -83,6 +83,12 @@ public interface Nodable
 	public JNetwork getNetwork(PortProto portProto, int busIndex);
 
 	/**
+	 * Routine to get the index of this Nodable in a cell.
+	 * @return index of this NodeInstProxy in a cell.
+	 */
+	public int getIndex();
+
+	/**
 	 * Returns a printable version of this Nodable.
 	 * @return a printable version of this Nodable.
 	 */

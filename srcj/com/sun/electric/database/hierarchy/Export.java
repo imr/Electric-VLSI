@@ -347,7 +347,7 @@ public class Export extends PortProto
 			return this;
 		if (equiv == null)
 			return null;
-		return equiv.findPortProto(getProtoNameLow());
+		return equiv.findPortProto(getProtoNameKey());
 	}
 
 	/**

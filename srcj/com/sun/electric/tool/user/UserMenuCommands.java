@@ -213,6 +213,8 @@ public final class UserMenuCommands
 		toolMenu.add(ercSubMenu);
 		Menu networkSubMenu = Menu.createMenu("Network", 'N');
 		toolMenu.add(networkSubMenu);
+		networkSubMenu.addMenuItem("redo Network Numbering", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { redoNetworkNumberingCommand(); } });
 		networkSubMenu.addMenuItem("NCC test 1", null, 
             new ActionListener() { public void actionPerformed(ActionEvent e) { nccTest1Command(); }});
 		networkSubMenu.addMenuItem("NCC test 2", null, 
@@ -268,13 +270,6 @@ public final class UserMenuCommands
 			}
 		});
 		
-
-		// setup Dima's test menu
-		Menu dimaMenu = Menu.createMenu("Dima", 'D');
-		menuBar.add(dimaMenu);
-		dimaMenu.addMenuItem("redo Network Numbering", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { redoNetworkNumberingCommand(); } });
-
         // setup JonGainsley's test menu
         Menu jongMenu = Menu.createMenu("JonG", 'J');
 		menuBar.add(jongMenu);
@@ -1177,35 +1172,20 @@ public final class UserMenuCommands
 	public static void redoNetworkNumberingCommand()
 	{
 		long startTime = System.currentTimeMillis();
-		System.out.println("**** Renumber networks of cells");
-		if (false)
+		int ncell = 0;
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
 		{
-			int ncell = 0;
-			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			Library lib = (Library)it.next();
+			for(Iterator cit = lib.getCells(); cit.hasNext(); )
 			{
-				Library lib = (Library)it.next();
-				for(Iterator cit = lib.getCells(); cit.hasNext(); )
-				{
-					Cell cell = (Cell)cit.next();
-					ncell++;
-					cell.rebuildNetworks(null, false);
-				}
+				Cell cell = (Cell)cit.next();
+				ncell++;
+				cell.rebuildNetworks(null, false);
 			}
-		} else
-		{
-			ArrayList connectedPorts = new ArrayList();
-			/*
-			ArrayList pair = new ArrayList();
-			NodeProto diode = NodeProto.findNodeProto("schematic:Diode");
-			pair.add(diode.findPortProto("a"));
-			pair.add(diode.findPortProto("b"));
-			connectedPorts.add(pair);
-			*/
-			Cell.rebuildAllNetworks(connectedPorts);
 		}
 		long endTime = System.currentTimeMillis();
 		float finalTime = (endTime - startTime) / 1000F;
-		System.out.println("**** Renumber networks took " + finalTime + " seconds");
+		System.out.println("**** Renumber networks of "+ncell+" cells took " + finalTime + " seconds");
 	}
     
     // ---------------------- THE JON GAINSLEY MENU -----------------

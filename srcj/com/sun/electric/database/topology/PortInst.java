@@ -94,7 +94,7 @@ public class PortInst
 	 */
 	public JNetwork getNetwork()
 	{
-		if (portProto.getProtoNameLow().isBus())
+		if (portProto.getProtoNameKey().isBus())
 		{
 			System.out.println("NodeInst.getNetwork() was called for instance of bus port"+portProto.getProtoName());
 			return null;

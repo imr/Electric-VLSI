@@ -277,10 +277,10 @@ public abstract class PortProto extends ElectricObject
 	// ---------------------- public methods -------------------------
 
 	/**
-	 * Routine to return the Name object of this PortProto.
+	 * Routine to return the name key of this PortProto.
 	 * @return the Name of this PortProto.
 	 */
-	public Name getProtoNameLow() { return protoName; }
+	public Name getProtoNameKey() { return protoName; }
 
 	/**
 	 * Routine to return the name of this PortProto.

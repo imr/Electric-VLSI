@@ -26,7 +26,10 @@ package com.sun.electric.database.network;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -40,6 +43,7 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Tool;
 
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * This is the Network tool.
@@ -50,16 +54,14 @@ public class Network extends Tool
 	// ---------------------- private and protected methods -----------------
 
 	/** the Network tool. */						public static Network tool = new Network();
-	/** flag for debug print. */					private boolean debug = false;
-	/** start of cells info in proto arrays */		private int cellsStart;
-	/** size of proto* arrays */					private int protoNum;
-	/** [i][j] offset of j-th PortProto of i-th NodeProto
-	 * in port maps */	   							private int[][] protoPortBeg;
-	/** [i][j][] port map if j-th NodeProt with i-th set of options
-	 **/											private int[][][] protoPortEquiv;
-	/** size of cell* arrays */						private int cellNum;
-	/** size of cell* arrays */						private Object[] cells;
-	/** size of cell* arrays */						private Object[][] netlist;
+	/** flag for debug print. */					private static boolean debug = false;
+
+	/** array of port equiv map for prim nodes.*/	private static int[][] primEquivPorts;
+	/** index of resistor primitive. */				private static int resistorIndex;
+	/** port equiv map of resistor primitive. */	private static int[] resistorEquivPorts;
+	/** current valuse of shortResistors flag. */	private static boolean shortResistors;
+
+	/** size of cell* arrays */						static NetCell[] cells;
 
 	/**
 	 * The constructor sets up the Network tool.
@@ -67,37 +69,22 @@ public class Network extends Tool
 	private Network()
 	{
 		super("network");
-		protoPortEquiv = new int[2][][];
+		reload();
 	}
 
-	private void reload()
+	static public void reload()
 	{
-		protoPortBeg = null;
-		protoPortEquiv = null;
-		cellsStart = 0;
+		int maxPrim = 0;
 		for (Iterator tit = Technology.getTechnologies(); tit.hasNext(); )
 		{
 			Technology tech = (Technology)tit.next();
 			for (Iterator nit = tech.getNodes(); nit.hasNext(); )
 			{
 				PrimitiveNode pn = (PrimitiveNode)nit.next();
-				cellsStart = Math.max(cellsStart, -pn.getIndex());
+				maxPrim = Math.max(maxPrim, -pn.getIndex());
 			}
 		}
-		int maxCell = 0;
-		for (Iterator lit = Library.getLibraries(); lit.hasNext(); )
-		{
-			Library lib = (Library)lit.next();
-			for (Iterator cit = lib.getCells(); cit.hasNext(); )
-			{
-				Cell c = (Cell)cit.next();
-				maxCell = Math.max(maxCell, c.getIndex());
-			}
-		}
-		protoNum = cellsStart + maxCell + 1;
-		protoPortBeg = new int[protoNum][];
-		protoPortEquiv[0] = new int[protoNum][];
-		protoPortEquiv[1] = new int[protoNum][];
+		primEquivPorts = new int[maxPrim][];
 
 		/* Gather PrimitiveNodes */
 		for (Iterator tit = Technology.getTechnologies(); tit.hasNext(); )
@@ -106,10 +93,6 @@ public class Network extends Tool
 			for (Iterator nit = tech.getNodes(); nit.hasNext(); )
 			{
 				PrimitiveNode pn = (PrimitiveNode)nit.next();
-				int ind = cellsStart + pn.getIndex();
-				int[] beg = new int[pn.getNumPorts()+1];
-				for (int i = 0; i < beg.length; i++) beg[i] = i;
-				protoPortBeg[ind] = beg;
 				int[] equiv = new int[pn.getNumPorts()];
 				int i = 0;
 				for (Iterator it = pn.getPorts(); it.hasNext(); i++)
@@ -124,50 +107,105 @@ public class Network extends Tool
 					}
 					equiv[i] = j;
 				}
-				protoPortEquiv[0][ind] = equiv;
-				protoPortEquiv[1][ind] = equiv;
+				primEquivPorts[~pn.getIndex()] = equiv;
 			}
 		}
+		resistorIndex = Schematics.tech.resistorNode.getIndex();
+		resistorEquivPorts = new int[primEquivPorts[~resistorIndex].length]; // allocated zero-filled
 
-		/* Option set 1 has shortcut resistor */
-		int resInd = cellsStart + Schematics.tech.resistorNode.getIndex();
-		int[] resMap = protoPortEquiv[1][resInd];
-		resMap = new int[resMap.length];
-		for (int i = 0; i < resMap.length; i++) resMap[i] = 0;
-		protoPortEquiv[1][resInd] = resMap;
-
+		int maxCell = 1;
 		for (Iterator lit = Library.getLibraries(); lit.hasNext(); )
 		{
 			Library lib = (Library)lit.next();
 			for (Iterator cit = lib.getCells(); cit.hasNext(); )
 			{
 				Cell c = (Cell)cit.next();
-				int ind = cellsStart + c.getIndex();
-				int numPorts = c.getNumPorts();
-				int[] beg = new int[numPorts + 1];
-				for (int i = 0; i < beg.length; i++) beg[i] = 0;
-				for (Iterator pit = c.getPorts(); pit.hasNext(); )
-				{
-					Export pp = (Export)pit.next();
-					beg[pp.getIndex()] = pp.getProtoNameLow().busWidth();
-				}
-				int b = 0;
-				for (int i = 0; i < numPorts; i++)
-				{
-					int w = beg[i];
-					beg[i] = b;
-					b = b + w;
-				}
-				beg[numPorts] = b;
-				protoPortBeg[ind] = beg;
+				while (c.getIndex() >= maxCell) maxCell *= 2;
+			}
+		}
+		cells = new NetCell[maxCell];
+		for (Iterator lit = Library.getLibraries(); lit.hasNext(); )
+		{
+			Library lib = (Library)lit.next();
+			for (Iterator cit = lib.getCells(); cit.hasNext(); )
+			{
+				Cell c = (Cell)cit.next();
+				cells[c.getIndex()] = new NetCell(c);
 			}
 		}
 	}
 
-	public int[] getEquivPorts(int optionSet, NodeProto np)
+	static int[] getEquivPorts(NodeProto np)
+ 	{
+		int ind = np.getIndex();
+		if (ind >= 0) return cells[ind].equivPorts;
+		if (shortResistors && ind == resistorIndex) return resistorEquivPorts;
+		return primEquivPorts[~ind];
+ 	}
+
+	/****************************** PUBLIC METHODS ******************************/
+
+	/** Recompute the network structure for this Cell.
+	 *
+	 * @param connectedPorts this argument allows the user to tell the
+	 * network builder to treat certain PortProtos of a NodeProto as a
+	 * short circuit. For example, it is sometimes useful to build the
+	 * net list as if the PortProtos of a resistor where shorted
+	 * together.
+	 *
+	 * <p> <code>connectedPorts</code> must be either null or an
+	 * ArrayList of ArrayLists of PortProtos.  All of the PortProtos in
+	 * an ArrayList are treated as if they are connected.  All of the
+	 * PortProtos in a single ArrayList must belong to the same
+	 * NodeProto.
+     *
+     * <p>Because shorting resistors is a fairly common request, it is 
+     * implemented in the method if @param shortResistors is set to true.
+     */
+	public static void rebuildNetworks(Cell cell, boolean shortResistors)
 	{
-		return protoPortEquiv[optionSet][cellsStart + np.getIndex()];
+		if (Network.shortResistors != shortResistors)
+		{
+			for (int i = 0; i < cells.length; i++)
+			{
+				NetCell netCell = cells[i];
+				if (netCell != null) netCell.setInvalid(true);
+			}
+			Network.shortResistors = shortResistors;
+			System.out.println("shortResistors="+shortResistors);
+		}
+		cells[cell.getIndex()].redoNetworks();
 	}
+
+	/**
+	 * Get an iterator over all of the JNetworks of this Cell.
+	 * <p> Warning: before getNetworks() is called, JNetworks must be
+	 * build by calling Cell.rebuildNetworks()
+	 */
+	public static Iterator getNetworks(Cell cell) { return cells[cell.getIndex()].getNetworks(); }
+
+	/*
+	 * Get network by index in networks maps.
+	 */
+	public static JNetwork getNetwork(Nodable ni, PortProto portProto, int busIndex)
+	{
+		NetCell netCell = cells[ni.getParent().getIndex()];
+		netCell.redoNetworks();
+		if (ni.getIndex() < 0) return null; // Nonelectric node
+		if (portProto.getParent() != ni.getProto())
+		{
+			System.out.println("Invalid portProto argument in Nodable.getNetwork");
+			return null;
+		}
+		if (busIndex < 0 || busIndex >= portProto.getProtoNameKey().busWidth())
+		{
+			System.out.println("Nodable.getNetwork: invalid arguments busIndex="+busIndex+" portProto="+portProto);
+			return null;
+		}
+		return netCell.getNetwork(ni.getIndex() + portProto.getIndex() + busIndex);
+	}
+
+	/****************************** CHANGE LISTENER ******************************/
 
 	public void init()
 	{
@@ -244,12 +282,59 @@ public class Network extends Tool
 
 	public void newObject(ElectricObject obj)
 	{
+		if (obj instanceof Cell)
+		{
+			Cell cell = (Cell)obj;
+			int ind = cell.getIndex();
+			if (ind >= cells.length)
+			{
+				int newLength = cells.length;
+				while (ind >= newLength) newLength *= 2;
+				NetCell[] newCells = new NetCell[newLength];
+				for (int i = 0; i < cells.length; i++) newCells[i] = cells[i];
+				cells = newCells;
+			}
+			cells[cell.getIndex()] = new NetCell(cell);
+		} else if (obj instanceof Export)
+		{
+			Export e = (Export)obj;
+			Cell cell = (Cell)e.getParent();
+			cells[cell.getIndex()].setNetworksDirty();
+			for (Iterator it = cell.getUsagesOf(); it.hasNext();)
+			{
+				NodeUsage nu = (NodeUsage) it.next();
+				cells[nu.getParent().getIndex()].setNetworksDirty();
+			}
+		} else
+		{
+			Cell cell = obj.whichCell();
+			if (cell != null) cells[cell.getIndex()].setNetworksDirty();
+		}
 		if (!debug) return;
 		System.out.println("Network.newObject("+obj+")");
 	}
 
 	public void killObject(ElectricObject obj)
 	{
+		if (obj instanceof Cell)
+		{
+			Cell cell = (Cell)obj;
+			cells[cell.getIndex()] = null;
+		} else if (obj instanceof Export)
+		{
+			Export e = (Export)obj;
+			Cell cell = (Cell)e.getParent();
+			cells[cell.getIndex()].setNetworksDirty();
+			for (Iterator it = cell.getUsagesOf(); it.hasNext();)
+			{
+				NodeUsage nu = (NodeUsage) it.next();
+				cells[nu.getParent().getIndex()].setNetworksDirty();
+			}
+		} else
+		{
+			Cell cell = obj.whichCell();
+			if (cell != null) cells[cell.getIndex()].setNetworksDirty();
+		}
 		if (!debug) return;
 		System.out.println("Network.killObject("+obj+")");
 	}
