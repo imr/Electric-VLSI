@@ -4,6 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02i: *********************************
 
+IMP/MAN: 
 IMP/MAN: (03/02/05, GVG) Adding observable-observer pattern to notify changes in light color and direction
 
 BUG: (03/02/05, SMR) Transparent color changes are not restored from saved preferences (Bug #213)

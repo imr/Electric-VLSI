@@ -758,4 +758,15 @@ public class EGraphics extends Observable
 	 * @return the current 3D appearance.
 	 */
 	public Object get3DAppearance() {return appearance3D;}
+
+    /**
+     * Method to notify 3D observers
+     * @param layerVis
+     */
+    public void notifyVisibility(Boolean layerVis)
+    {
+        setChanged();
+        notifyObservers(layerVis);
+        clearChanged();
+    }
 }

@@ -13,6 +13,8 @@ import javax.media.j3d.*;
 import javax.vecmath.Color3f;
 import java.awt.*;
 import java.util.HashMap;
+import java.util.Observer;
+import java.util.Observable;
 
 /**
  * Created by IntelliJ IDEA.
@@ -22,6 +24,7 @@ import java.util.HashMap;
  * To change this template use File | Settings | File Templates.
  */
 public class J3DAppearance extends Appearance
+        implements Observer
 {
     private static final HashMap graphics3DTransModePrefs = new HashMap(); // NONE is the default
     private static final HashMap graphics3DTransFactorPrefs = new HashMap(); // 0 is the default
@@ -38,6 +41,7 @@ public class J3DAppearance extends Appearance
         super();
         if (app == null) throw new Error("Input appearance is null");
         this.graphics = app.graphics;
+        if (graphics != null) graphics.addObserver(this);
         TransparencyAttributes oldTa = app.getTransparencyAttributes();
         setOtherAppearanceValues(oldTa.getTransparencyMode(), oldTa.getTransparency(), graphics.getColor());
     }
@@ -46,9 +50,14 @@ public class J3DAppearance extends Appearance
     {
         super();
         this.graphics = graphics;
+        if (graphics != null) graphics.addObserver(this);
         setOtherAppearanceValues(mode, factor, color); //graphics.getColor());
     }
-    public void setGraphics(EGraphics graphics) {this.graphics = graphics;}
+    public void setGraphics(EGraphics graphics)
+    {
+        this.graphics = graphics;
+        if (graphics != null) graphics.addObserver(this);
+    }
     public EGraphics getGraphics() { return graphics;}
 
     private void setOtherAppearanceValues(int mode, float factor, Color color)
@@ -140,11 +149,25 @@ public class J3DAppearance extends Appearance
         return (ap);
     }
 
+    /********************************************************************************************************
+     *                  Model-View paradigm to control refresh from 2D
+     ********************************************************************************************************/
+    /**
+     * Observer method to update 3D appearance if 2D
+     * @param o
+     * @param arg
+     */
+    public void update(Observable o, Object arg)
+    {
+        if (arg instanceof Boolean)
+            set3DVisibility((Boolean)arg);
+    }
+
     /**
 	 * Method to set visibility in Appearance objects from external tools
 	 * @param visible true if visibility is on
 	 */
-	public void set3DVisibility(Boolean visible)
+	private void set3DVisibility(Boolean visible)
 	{
 		getRenderingAttributes().setVisible(visible.booleanValue());
 	}

@@ -786,6 +786,11 @@ public class View3DWindow extends JPanel
 		if (do2D) view2D.fullRepaint();
 	}
 
+    /**
+     * Observer method to highlight 3D nodes by clicking 2D objects
+     * @param o
+     * @param arg
+     */
     public void update(Observable o, Object arg)
     {
         // Undo previous highlight

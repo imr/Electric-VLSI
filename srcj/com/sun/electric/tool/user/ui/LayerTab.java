@@ -28,14 +28,10 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.PixelDrawing;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -355,21 +351,24 @@ public class LayerTab extends JFrame
                 		changed = true;
 	                	layer.setVisible(layerVis.booleanValue());
 
-						// 3D appearance if available
-						Object obj3D = layer.getGraphics().get3DAppearance();
-						if (obj3D != null)
-						{
-                            Class j3DAppClass = Resources.get3DClass("utils.J3DAppearance");
-                            Method setVisibilityMethod = null;
+                        // graphics notifies to all 3D observers if available
+                        layer.getGraphics().notifyVisibility(layerVis);
 
-							try
-							{
-								if (setVisibilityMethod == null) setVisibilityMethod = j3DAppClass.getDeclaredMethod("set3DVisibility", new Class[] {Boolean.class});
-								setVisibilityMethod.invoke(obj3D, new Object[]{layerVis});
-							} catch (Exception e) {
-								System.out.println("Cannot call 3D plugin method set3DVisibility: " + e.getMessage());
-							}
-						}
+//						// 3D appearance if available
+//						Object obj3D = layer.getGraphics().get3DAppearance();
+//						if (obj3D != null)
+//						{
+//                            Class j3DAppClass = Resources.get3DClass("utils.J3DAppearance");
+//                            Method setVisibilityMethod = null;
+//
+//							try
+//							{
+//								if (setVisibilityMethod == null) setVisibilityMethod = j3DAppClass.getDeclaredMethod("set3DVisibility", new Class[] {Boolean.class});
+//								setVisibilityMethod.invoke(obj3D, new Object[]{layerVis});
+//							} catch (Exception e) {
+//								System.out.println("Cannot call 3D plugin method set3DVisibility: " + e.getMessage());
+//							}
+//						}
 	                }
                 }
 
