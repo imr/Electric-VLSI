@@ -215,9 +215,11 @@ public class Tech {
 		m4 = layers[4];
 		m5 = layers[5];
 		m6 = layers[6];
-        m7 = layers[7];
-        m8 = layers[8];
-        m9 = layers[9];
+        if (isTsmc90) {
+            m7 = layers[7];
+            m8 = layers[8];
+            m9 = layers[9];
+        }
 		pdiff = tech.findArcProto("P-Active");
 		ndiff = tech.findArcProto("N-Active");
 
@@ -230,9 +232,11 @@ public class Tech {
 		m4pin = m4.findOverridablePinProto();
 		m5pin = m5.findOverridablePinProto();
 		m6pin = m6.findOverridablePinProto();
-        m7pin = m7.findOverridablePinProto();
-        m8pin = m8.findOverridablePinProto();
-        m9pin = m9.findOverridablePinProto();
+        if (isTsmc90) {
+            m7pin = m7.findOverridablePinProto();
+            m8pin = m8.findOverridablePinProto();
+            m9pin = m9.findOverridablePinProto();
+        }
 
 		// initialize vias
 		for (int i = 0; i < nbLay - 1; i++) {
@@ -247,9 +251,11 @@ public class Tech {
 		m3m4 = vias[3];
 		m4m5 = vias[4];
 		m5m6 = vias[5];
-        m6m7 = vias[6];
-        m7m8 = vias[7];
-        m8m9 = vias[8];
+        if (isTsmc90) {
+            m6m7 = vias[6];
+            m7m8 = vias[7];
+            m8m9 = vias[8];
+        }
 		ndm1 = tech.findNodeProto("Metal-1-N-Active-Con");
 		pdm1 = tech.findNodeProto("Metal-1-P-Active-Con");
 		nwm1 = tech.findNodeProto("Metal-1-N-Well-Con");
@@ -300,9 +306,11 @@ public class Tech {
 		viaMap.put(new Integer(m3.hashCode() * m4.hashCode()), m3m4);
 		viaMap.put(new Integer(m4.hashCode() * m5.hashCode()), m4m5);
 		viaMap.put(new Integer(m5.hashCode() * m6.hashCode()), m5m6);
-        viaMap.put(new Integer(m6.hashCode() * m7.hashCode()), m6m7);
-        viaMap.put(new Integer(m7.hashCode() * m8.hashCode()), m7m8);
-        viaMap.put(new Integer(m8.hashCode() * m9.hashCode()), m8m9);
+        if (isTsmc90) {
+            viaMap.put(new Integer(m6.hashCode() * m7.hashCode()), m6m7);
+            viaMap.put(new Integer(m7.hashCode() * m8.hashCode()), m7m8);
+            viaMap.put(new Integer(m8.hashCode() * m9.hashCode()), m8m9);
+        }
 
 		viaMap.put(new Integer(ndiff.hashCode() * m1.hashCode()), ndm1);
 		viaMap.put(new Integer(pdiff.hashCode() * m1.hashCode()), pdm1);
