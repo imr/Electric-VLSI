@@ -30,16 +30,11 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.WaveformWindow;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.awt.Color;
-import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ArrayList;
 
 
 /**
@@ -47,223 +42,6 @@ import java.util.ArrayList;
  */
 public class Simulate extends Input
 {
-	public static class SimData
-	{
-		// logic levels and signal strengths in the window
-		public static final int LOGIC         =  03;
-		public static final int LOGIC_LOW     =   0;
-		public static final int LOGIC_X       =   1;
-		public static final int LOGIC_HIGH    =   2;
-		public static final int LOGIC_Z       =   3;
-		public static final int STRENGTH      = 014;
-		public static final int OFF_STRENGTH  =   0;
-		public static final int NODE_STRENGTH =  04;
-		public static final int GATE_STRENGTH = 010;
-		public static final int VDD_STRENGTH  = 014;
-
-		private Cell cell;
-		private OpenFile.Type type;
-		private URL fileURL;
-		private List signals;
-		private double [] commonTime;
-
-		/**
-		 * Constructor to build a new Simulation Data object.
-		 */
-		public SimData()
-		{
-			signals = new ArrayList();
-		}
-
-		/**
-		 * Method to get the list of signals in this Simulation Data object.
-		 * @return a List of signals.
-		 */
-		public List getSignals() { return signals; }
-
-		/**
-		 * Method to add a new signal to this Simulation Data object.
-		 * Signals can be either digital or analog.
-		 * @param ws the signal to add.
-		 * Instead of a "SimSignal", use either SimDigitalSignal or SimAnalogSignal.
-		 */
-		public void addSignal(SimSignal ws) { signals.add(ws); }
-
-		/**
-		 * Method to construct an array of time values that are common to all signals.
-		 * Some simulation data has all of its stimuli at the same time interval for every signal.
-		 * To save space, such data can use a common time array, kept in the Simulation Data.
-		 * If a signal wants to use its own time values, that can be done by placing the time
-		 * array in the signal.
-		 * @param numEvents the number of time events in the common time array.
-		 */
-		public void buildCommonTime(int numEvents) { commonTime = new double[numEvents]; }
-
-		/**
-		 * Method to load an entry in the common time array.
-		 * @param index the entry number.
-		 * @param time the time value at
-		 */
-		public void setCommonTime(int index, double time) { commonTime[index] = time; }
-
-		public void setCell(Cell cell) { this.cell = cell; }
-
-		public Cell getCell() { return cell; }
-
-		public void setDataType(OpenFile.Type type) { this.type = type; }
-
-		public OpenFile.Type getDataType() { return type; }
-
-		public void setFileURL(URL fileURL) { this.fileURL = fileURL; }
-
-		public URL getFileURL() { return fileURL; }
-
-		/**
-		 * Method to compute the time and value bounds of this simulation data.
-		 * @return a Rectangle2D that has time bounds in the X part and
-		 * value bounds in the Y part.
-		 */
-		public Rectangle2D getBounds()
-		{
-			// determine extent of the data
-			double lowTime=0, highTime=0, lowValue=0, highValue=0;
-			boolean first = true;
-			for(Iterator it = signals.iterator(); it.hasNext(); )
-			{
-				SimSignal sig = (SimSignal)it.next();
-				if (sig instanceof SimAnalogSignal)
-				{
-					SimAnalogSignal as = (SimAnalogSignal)sig;
-					for(int i=0; i<as.values.length; i++)
-					{
-						double time = 0;
-						time = as.getTime(i);
-						if (first)
-						{
-							first = false;
-							lowTime = highTime = time;
-							lowValue = highValue = as.values[i];
-						} else
-						{
-							if (time < lowTime) lowTime = time;
-							if (time > highTime) highTime = time;
-							if (as.values[i] < lowValue) lowValue = as.values[i];
-							if (as.values[i] > highValue) highValue = as.values[i];
-						}
-					}
-				} else if (sig instanceof SimDigitalSignal)
-				{
-					SimDigitalSignal ds = (SimDigitalSignal)sig;
-					if (ds.state == null) continue;
-					for(int i=0; i<ds.state.length; i++)
-					{
-						double time = 0;
-						time = ds.getTime(i);
-						if (first)
-						{
-							first = false;
-							lowTime = highTime = time;
-						} else
-						{
-							if (time < lowTime) lowTime = time;
-							if (time > highTime) highTime = time;
-						}
-					}
-				}
-			}
-			return new Rectangle2D.Double(lowTime, lowValue, highTime-lowTime, highValue-lowValue);
-		}
-	}
-
-	public static class SimSignal
-	{
-		public SimSignal(SimData sd)
-		{
-			this.sd = sd;
-			if (sd != null) sd.signals.add(this);
-			this.signalColor = Color.RED;
-		}
-
-		private String signalName;
-		private String signalContext;
-		private Color signalColor;
-		private SimData sd;
-		private boolean useCommonTime;
-		private double [] time;
-		private List bussedSignals;
-		public List tempList;
-
-		public void setSignalName(String signalName) { this.signalName = signalName; }
-
-		public String getSignalName() { return signalName; }
-
-		public void setSignalContext(String signalContext) { this.signalContext = signalContext; }
-
-		public String getSignalContext() { return signalContext; }
-
-		public void setSignalColor(Color signalColor) { this.signalColor = signalColor; }
-
-		public Color getSignalColor() { return signalColor; }
-
-		public int getNumEvents() { return 0; }
-
-		public void buildBussedSignalList() { bussedSignals = new ArrayList(); }
-
-		public List getBussedSignals() { return bussedSignals; }
-
-		public void addToBussedSignalList(SimSignal ws) { bussedSignals.add(ws); }
-
-		public void setCommonTimeUse(boolean useCommonTime) { this.useCommonTime = useCommonTime; }
-
-		public void buildTime(int numEvents) { time = new double[numEvents]; }
-
-		public double getTime(int index)
-		{
-			if (useCommonTime) return sd.commonTime[index];
-			return time[index];
-		}
-
-		public double [] getTimeVector() { return time; }
-
-		public void setTimeVector(double [] time) { this.time = time; }
-
-		public void setTime(int index, double t) { time[index] = t; }
-	}
-
-	public static class SimAnalogSignal extends SimSignal
-	{
-		private double [] values;
-
-		public SimAnalogSignal(SimData sd) { super(sd); }
-
-		public void buildValues(int numEvents) { values = new double[numEvents]; }
-
-		public void setValue(int index, double value) { values[index] = value; }
-
-		public double getValue(int index) { return values[index]; }
-
-		public int getNumEvents() { return values.length; }
-	}
-
-	public static class SimDigitalSignal extends SimSignal
-	{
-		private int [] state;
-
-		public SimDigitalSignal(SimData sd) { super(sd); }
-
-		public void buildState(int numEvents) { state = new int[numEvents]; }
-
-		public void setState(int index, int st) { state[index] = st; }
-
-		public int getState(int index) { return state[index]; }
-
-		public int [] getStateVector() { return state; }
-
-		public void setStateVector(int [] state) { this.state = state; }
-
-		public int getNumEvents() { return state.length; }
-	}
-
 	Simulate() {}
 
 	/**
@@ -387,12 +165,12 @@ if (cell != null) System.out.println("presuming cell "+cell.describe());
 		{
 			try
 			{
-				SimData sd = is.readSimulationOutput(fileURL, cell);
+				Simulation.SimData sd = is.readSimulationOutput(fileURL, cell);
 				if (sd != null)
 				{
 					sd.setDataType(type);
 					sd.setFileURL(fileURL);
-					showSimulationData(sd, ww);
+					Simulation.showSimulationData(sd, ww);
 				}
 			} catch (IOException e)
 			{
@@ -405,7 +183,7 @@ if (cell != null) System.out.println("presuming cell "+cell.describe());
 	/**
 	 * Method that is overridden by subclasses to actually do the work.
 	 */
-	protected SimData readSimulationOutput(URL fileURL, Cell cell)
+	protected Simulation.SimData readSimulationOutput(URL fileURL, Cell cell)
 		throws IOException
 	{
 		return null;
@@ -432,56 +210,6 @@ if (cell != null) System.out.println("presuming cell "+cell.describe());
 			return OpenFile.Type.RAWSSPICEOUT;
 		}
 		return null;
-	}
-
-	private static void showSimulationData(SimData sd, WaveformWindow ww)
-	{
-		// if the window already exists, update the data
-		if (ww != null)
-		{
-			ww.setSimData(sd);
-			return;
-		}
-
-		// determine extent of the data
-		Rectangle2D bounds = sd.getBounds();
-		double lowTime = bounds.getMinX();
-		double highTime = bounds.getMaxX();
-		double lowValue = bounds.getMinY();
-		double highValue = bounds.getMaxY();
-		double timeRange = highTime - lowTime;
-
-		WindowFrame wf = WindowFrame.createWaveformWindow(sd);
-		ww = (WaveformWindow)wf.getContent();
-		ww.setMainTimeCursor(timeRange*0.2 + lowTime);
-		ww.setExtensionTimeCursor(timeRange*0.8 + lowTime);
-		ww.setDefaultTimeRange(lowTime, highTime);
-
-		// put the first waveform panels in it
-		if (sd.signals.size() > 0)
-		{
-			Simulate.SimSignal sSig = (Simulate.SimSignal)sd.signals.get(0);
-			boolean isAnalog = false;
-			if (sSig instanceof SimAnalogSignal) isAnalog = true;
-			if (isAnalog)
-			{
-				WaveformWindow.Panel wp = new WaveformWindow.Panel(ww, isAnalog);
-				wp.setValueRange(lowValue, highValue);
-				wp.makeSelectedPanel();
-			} else
-			{
-				// put all top-level signals in
-				for(int i=0; i<sd.signals.size(); i++)
-				{
-					Simulate.SimDigitalSignal sDSig= (Simulate.SimDigitalSignal)sd.signals.get(i);
-					if (sDSig.getSignalContext() != null) continue;
-					WaveformWindow.Panel wp = new WaveformWindow.Panel(ww, false);
-					wp.makeSelectedPanel();
-					new WaveformWindow.Signal(wp, sDSig);
-				}
-			}
-		}
-		ww.getPanel().validate();
 	}
 
 	/*
@@ -518,64 +246,6 @@ if (cell != null) System.out.println("presuming cell "+cell.describe());
 	//static INTBIG   sim_spice_limit = 0;				/* entries in "time/val" */
 	//static INTBIG   sim_spice_filepos;
 
-//	/******************** SPICE EXECUTION AND PLOTTING ********************/
-//
-//	#define MAXTRACES   7
-//	#define MAXLINE   200
-//
-//	/*
-//	 * Method to add execution parameters to the array "sim_spice_execpars" starting at index "index".
-//	 * The name of the cell is in "cellname".
-//	 */
-//	void sim_spice_addarguments(EProcess &process, CHAR *deckname, CHAR *cellname)
-//	{
-//		REGISTER VARIABLE *var;
-//		REGISTER CHAR *runargs;
-//		REGISTER void *infstr;
-//
-//		var = getvalkey((INTBIG)sim_tool, VTOOL, VSTRING, sim_spice_runargskey);
-//		if (var == NOVARIABLE)
-//		{
-//			process.addArgument( deckname );
-//		} else
-//		{
-//			// parse the arguments
-//			runargs = (CHAR *)var->addr;
-//			for(;;)
-//			{
-//				infstr = initinfstr();
-//				for( ; *runargs != 0 && *runargs != ' '; runargs++)
-//				{
-//					if (*runargs == '%') addstringtoinfstr(infstr, cellname); else
-//						addtoinfstr(infstr, *runargs);
-//				}
-//				process.addArgument( returninfstr(infstr) );
-//				while (*runargs == ' ') runargs++;
-//				if (*runargs == 0) break;
-//			}
-//		}
-//	}
-
-//	BOOLEAN sim_spice_topofsignals(CHAR **c)
-//	{
-//		Q_UNUSED( c );
-//		sim_spice_iter = 0;
-//		return(TRUE);
-//	}
-//
-//	CHAR *sim_spice_nextsignals(void)
-//	{
-//		CHAR *nextname;
-//
-//		if (sim_spice_iter >= sim_spice_signals) return(0);
-//		nextname = sim_spice_signames[sim_spice_iter];
-//		sim_spice_iter++;
-//		return(nextname);
-//	}
-//
-//	static COMCOMP sim_spice_picktrace = {NOKEYWORD, sim_spice_topofsignals,
-//		sim_spice_nextsignals, NOPARAMS, 0, x_(" \t"), N_("pick a signal to display"), x_("")};
-//
 //	/*
 //	 * Method to return the SPICE network name of network "net".
 //	 */

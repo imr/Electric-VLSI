@@ -25,46 +25,55 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.io.input.Simulate;
-import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Resources;
-import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.dialogs.NewCell;
+import com.sun.electric.tool.user.menus.FileMenu;
 
 import java.awt.Component;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseEvent;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DragGestureEvent;
+import java.awt.dnd.DragGestureListener;
+import java.awt.dnd.DragGestureRecognizer;
+import java.awt.dnd.DragSource;
+import java.awt.dnd.DragSourceDragEvent;
+import java.awt.dnd.DragSourceDropEvent;
+import java.awt.dnd.DragSourceEvent;
+import java.awt.dnd.DragSourceListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.StringSelection;
-import java.awt.dnd.*;
-import java.util.Set;
-import java.util.TreeSet;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.HashMap;
+import java.util.Set;
+import java.util.TreeSet;
+
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
-import javax.swing.JTree;
-import javax.swing.JPopupMenu;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
+import javax.swing.JTree;
 import javax.swing.ToolTipManager;
-import javax.swing.tree.TreeSelectionModel;
+import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 
 /**
  * Class to display a cell explorer tree-view of the database.
@@ -408,9 +417,9 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
             ErrorLogger.ErrorLog el = (ErrorLogger.ErrorLog)nodeInfo;
             return el.describeError();
         }
-		if (nodeInfo instanceof Simulate.SimSignal)
+		if (nodeInfo instanceof Simulation.SimSignal)
 		{
-			Simulate.SimSignal sig = (Simulate.SimSignal)nodeInfo;
+			Simulation.SimSignal sig = (Simulation.SimSignal)nodeInfo;
 			return sig.getSignalName();
 		}
 		if (nodeInfo == null) return "";
@@ -440,10 +449,10 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 	public void dragGestureRecognized(DragGestureEvent e)
 	{
 		if (selectedNode == null) return;
-		if (selectedNode.getUserObject() instanceof Simulate.SimSignal)
+		if (selectedNode.getUserObject() instanceof Simulation.SimSignal)
 		{
 			// Get the Transferable Object
-			Simulate.SimSignal sSig = (Simulate.SimSignal)selectedNode.getUserObject();
+			Simulation.SimSignal sSig = (Simulation.SimSignal)selectedNode.getUserObject();
 			String sigName = sSig.getSignalContext();
 			if (sigName == null) sigName = sSig.getSignalName(); else
 				sigName += sSig.getSignalName();
@@ -635,9 +644,9 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 						tree.expandPath(currentPath);
 					return;
 				}
-				if (currentSelectedObject instanceof Simulate.SimSignal)
+				if (currentSelectedObject instanceof Simulation.SimSignal)
 				{
-					Simulate.SimSignal sig = (Simulate.SimSignal)currentSelectedObject;
+					Simulation.SimSignal sig = (Simulation.SimSignal)currentSelectedObject;
 					if (wf.getContent() instanceof WaveformWindow)
 					{
 						WaveformWindow ww = (WaveformWindow)wf.getContent();

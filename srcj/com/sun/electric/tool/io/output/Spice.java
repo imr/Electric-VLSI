@@ -49,9 +49,10 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Exec;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.dialogs.ExecDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.io.input.Simulate;
 
 import java.awt.Dimension;
@@ -114,7 +115,11 @@ public class Spice extends Topology
         }
         public void processFinished(Exec.FinishedEvent e) {
             URL fileURL = TextUtils.makeURLToFile(file);
-            Simulate.plotSimulationResults(type, cell, fileURL, null);
+
+			// smr added this line for jg:
+            WaveformWindow ww = WaveformWindow.findWaveformWindow(cell);
+
+            Simulate.plotSimulationResults(type, cell, fileURL, ww);
         }
     }
 

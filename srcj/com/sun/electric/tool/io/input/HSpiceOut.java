@@ -25,13 +25,13 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.simulation.Simulation;
 
-import java.io.InputStream;
 import java.io.IOException;
 import java.net.URL;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Class for reading and displaying waveforms from HSpice output.
@@ -56,7 +56,7 @@ public class HSpiceOut extends Simulate
 	/**
 	 * Method to read an HSpice output file.
 	 */
-	protected SimData readSimulationOutput(URL fileURL, Cell cell)
+	protected Simulation.SimData readSimulationOutput(URL fileURL, Cell cell)
 		throws IOException
 	{
 		// the .pa0 file has name information
@@ -66,7 +66,7 @@ public class HSpiceOut extends Simulate
 		startProgressDialog("HSpice output", fileURL.getFile());
 
 		// read the actual signal data from the .tr0 file
-		SimData sd = readTR0File(fileURL, pa0List, cell);
+		Simulation.SimData sd = readTR0File(fileURL, pa0List, cell);
 
 		// stop progress dialog
 		stopProgressDialog();
@@ -121,7 +121,7 @@ public class HSpiceOut extends Simulate
 		return pa0List;
 	}
 
-	private SimData readTR0File(URL fileURL, List pa0List, Cell cell)
+	private Simulation.SimData readTR0File(URL fileURL, List pa0List, Cell cell)
 		throws IOException
 	{
 		if (openBinaryInput(fileURL)) return null;
@@ -279,13 +279,13 @@ public class HSpiceOut extends Simulate
 		resetBinaryTR0Reader();
 
 		// now read the data
-		SimData sd = new SimData();
+		Simulation.SimData sd = new Simulation.SimData();
 		sd.setCell(cell);
 		eofReached = false;
 		List timeValues = new ArrayList();
 		for(int k=0; k<numSignals; k++)
 		{
-			Simulate.SimAnalogSignal as = new Simulate.SimAnalogSignal(sd);
+			Simulation.SimAnalogSignal as = new Simulation.SimAnalogSignal(sd);
 			as.setCommonTimeUse(true);
 			int lastDotPos = signalNames[k].lastIndexOf('.');
 			if (lastDotPos >= 0)
@@ -312,7 +312,7 @@ public class HSpiceOut extends Simulate
 				if (eofReached) break;
 				int l = k - nodcnt;
 				if (k < nodcnt) l = k + numnoi - 1;
-				Simulate.SimAnalogSignal as = (Simulate.SimAnalogSignal)sd.getSignals().get(l);
+				Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)sd.getSignals().get(l);
 				as.tempList.add(new Double(value));
 			}
 			if (eofReached) break;
@@ -326,7 +326,7 @@ public class HSpiceOut extends Simulate
 			sd.setCommonTime(i, ((Double)timeValues.get(i)).doubleValue());
 		for(int j=0; j<numSignals; j++)
 		{
-			Simulate.SimAnalogSignal as = (Simulate.SimAnalogSignal)sd.getSignals().get(j);
+			Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)sd.getSignals().get(j);
 			as.buildValues(numEvents);
 			for(int i=0; i<numEvents; i++)
 				as.setValue(i, ((Double)as.tempList.get(i)).doubleValue());

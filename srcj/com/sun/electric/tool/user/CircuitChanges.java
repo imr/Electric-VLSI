@@ -25,55 +25,60 @@ package com.sun.electric.tool.user;
 
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.constraint.Layout;
+import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.JNetwork;
-import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.variable.*;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.FlagSet;
+import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.dialogs.ChangeCurrentLib;
 import com.sun.electric.tool.io.input.Input;
-import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.dialogs.ChangeCurrentLib;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.ToolBar;
+import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.WindowContent;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.HashMap;
-import java.util.Date;
-import java.util.ArrayList;
 import java.util.Set;
-import java.util.HashSet;
-import java.util.Comparator;
-import java.util.Collections;
+
 import javax.swing.JOptionPane;
 
 /**
@@ -1159,6 +1164,18 @@ public class CircuitChanges
 	 */
 	public static void deleteSelected()
 	{
+		// see what type of window is selected
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		if (wf == null) return;
+
+		// for waveform windows, delete selected signals
+		if (wf.getContent() instanceof WaveformWindow)
+		{
+			WaveformWindow ww = (WaveformWindow)wf.getContent();
+			ww.deleteSelectedSignals();
+			return;
+		}
+
 		if (ToolBar.getSelectMode() == ToolBar.SelectMode.AREA)
 		{
 			DeleteSelectedGeometry job = new DeleteSelectedGeometry();

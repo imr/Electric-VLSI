@@ -56,6 +56,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Simulate;
+import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.menus.FileMenu;
@@ -173,7 +174,7 @@ public class WindowFrame
 	 * @param sd the simulation data to use in the waveform window.
 	 * @return the WindowFrame that shows the waveforms.
 	 */
-	public static WindowFrame createWaveformWindow(Simulate.SimData sd)
+	public static WindowFrame createWaveformWindow(Simulation.SimData sd)
 	{
 		WindowFrame frame = new WindowFrame();
 		WaveformWindow wWnd = new WaveformWindow(sd, frame);

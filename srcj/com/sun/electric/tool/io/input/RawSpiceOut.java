@@ -25,8 +25,8 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.simulation.Simulation;
 
-import java.io.InputStream;
 import java.io.IOException;
 import java.net.URL;
 
@@ -41,7 +41,7 @@ public class RawSpiceOut extends Simulate
 	/**
 	 * Method to read an Raw Spice output file.
 	 */
-	protected SimData readSimulationOutput(URL fileURL, Cell cell)
+	protected Simulation.SimData readSimulationOutput(URL fileURL, Cell cell)
 		throws IOException
 	{
 		// open the file
@@ -51,7 +51,7 @@ public class RawSpiceOut extends Simulate
 		startProgressDialog("Raw Spice output", fileURL.getFile());
 
 		// read the actual signal data from the .tr0 file
-		SimData sd = readRawFile(cell);
+		Simulation.SimData sd = readRawFile(cell);
 
 		// stop progress dialog, close the file
 		stopProgressDialog();
@@ -61,16 +61,16 @@ public class RawSpiceOut extends Simulate
 		return sd;
 	}
 
-	private SimData readRawFile(Cell cell)
+	private Simulation.SimData readRawFile(Cell cell)
 		throws IOException
 	{
 		boolean first = true;
 //		List events = new ArrayList();
 		int numSignals = -1;
 		int eventCount = -1;
-		SimData sd = new SimData();
+		Simulation.SimData sd = new Simulation.SimData();
 		sd.setCell(cell);
-		Simulate.SimAnalogSignal [] signals = null;
+		Simulation.SimAnalogSignal [] signals = null;
 		for(;;)
 		{
 			String line = getLineFromSimulator();
@@ -103,10 +103,10 @@ public class RawSpiceOut extends Simulate
 			if (preColon.equals("No. Variables"))
 			{
 				numSignals = TextUtils.atoi(postColon) - 1;
-				signals = new Simulate.SimAnalogSignal[numSignals];
+				signals = new Simulation.SimAnalogSignal[numSignals];
 				for(int i=0; i<numSignals; i++)
 				{
-					signals[i] = new Simulate.SimAnalogSignal(sd);
+					signals[i] = new Simulation.SimAnalogSignal(sd);
 					signals[i].setCommonTimeUse(true);
 				}
 				continue;

@@ -25,15 +25,12 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.simulation.Simulation;
 
-import java.io.InputStream;
 import java.io.IOException;
-import java.io.LineNumberReader;
-import java.io.DataInputStream;
 import java.net.URL;
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.List;
 
 /**
  * Class for reading and displaying waveforms from Spice2 or GNUCap output.
@@ -48,7 +45,7 @@ public class SpiceOut extends Simulate
 	/**
 	 * Method to read an Spice output file.
 	 */
-	protected SimData readSimulationOutput(URL fileURL, Cell cell)
+	protected Simulation.SimData readSimulationOutput(URL fileURL, Cell cell)
 		throws IOException
 	{
 		// open the file
@@ -58,7 +55,7 @@ public class SpiceOut extends Simulate
 		startProgressDialog("Spice output", fileURL.getFile());
 
 		// read the actual signal data from the .tr0 file
-		SimData sd = readSpiceFile(cell);
+		Simulation.SimData sd = readSpiceFile(cell);
 
 		// stop progress dialog, close the file
 		stopProgressDialog();
@@ -70,7 +67,7 @@ public class SpiceOut extends Simulate
 
 	private final static String CELLNAME_HEADER = "*** SPICE deck for cell ";
 
-	private SimData readSpiceFile(Cell cell)
+	private Simulation.SimData readSpiceFile(Cell cell)
 		throws IOException
 	{
 		boolean datamode = false;
@@ -176,7 +173,7 @@ public class SpiceOut extends Simulate
 			return null;
 		}
 
-		SimData sd = new SimData();
+		Simulation.SimData sd = new Simulation.SimData();
 		sd.setCell(cell);
 
 		// convert lists to arrays
@@ -189,7 +186,7 @@ public class SpiceOut extends Simulate
 		}
 		for(int j=0; j<mostSignals; j++)
 		{
-			Simulate.SimAnalogSignal as = new Simulate.SimAnalogSignal(sd);
+			Simulation.SimAnalogSignal as = new Simulation.SimAnalogSignal(sd);
 			as.setSignalName("Signal " + (j+1));
 			as.setCommonTimeUse(true);
 			as.buildValues(numEvents);

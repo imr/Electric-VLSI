@@ -24,16 +24,10 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.simulation.Simulation;
 
-import java.io.InputStream;
 import java.io.IOException;
-import java.io.LineNumberReader;
-import java.io.DataInputStream;
 import java.net.URL;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
 
 /**
  * Class for reading and displaying waveforms from PSpice and Spice3 output.
@@ -48,7 +42,7 @@ public class PSpiceOut extends Simulate
 	/**
 	 * Method to read an PSpice output file.
 	 */
-	protected SimData readSimulationOutput(URL fileURL, Cell cell)
+	protected Simulation.SimData readSimulationOutput(URL fileURL, Cell cell)
 		throws IOException
 	{
 		// this test code locks the file:
@@ -69,7 +63,7 @@ public class PSpiceOut extends Simulate
 		startProgressDialog("PSpice output", fileURL.getFile());
 
 		// read the actual signal data from the .tr0 file
-		SimData sd = readPSpiceFile(cell);
+		Simulation.SimData sd = readPSpiceFile(cell);
 
 		// stop progress dialog, close the file
 		stopProgressDialog();
@@ -79,7 +73,7 @@ public class PSpiceOut extends Simulate
 		return sd;
 	}
 
-	private SimData readPSpiceFile(Cell cell)
+	private Simulation.SimData readPSpiceFile(Cell cell)
 		throws IOException
 	{
 //		numend = NONUMBERS;

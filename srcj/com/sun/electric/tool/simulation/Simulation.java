@@ -23,18 +23,26 @@
  */
 package com.sun.electric.tool.simulation;
 
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
-import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.ui.WaveformWindow;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.awt.Color;
+import java.awt.geom.Rectangle2D;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -43,7 +51,222 @@ import java.util.List;
  */
 public class Simulation extends Tool
 {
-	// ---------------------- private and protected methods -----------------
+	public static class SimData
+	{
+		// logic levels and signal strengths in the window
+		public static final int LOGIC         =  03;
+		public static final int LOGIC_LOW     =   0;
+		public static final int LOGIC_X       =   1;
+		public static final int LOGIC_HIGH    =   2;
+		public static final int LOGIC_Z       =   3;
+		public static final int STRENGTH      = 014;
+		public static final int OFF_STRENGTH  =   0;
+		public static final int NODE_STRENGTH =  04;
+		public static final int GATE_STRENGTH = 010;
+		public static final int VDD_STRENGTH  = 014;
+
+		private Cell cell;
+		private OpenFile.Type type;
+		private URL fileURL;
+		private List signals;
+		private double [] commonTime;
+
+		/**
+		 * Constructor to build a new Simulation Data object.
+		 */
+		public SimData()
+		{
+			signals = new ArrayList();
+		}
+
+		/**
+		 * Method to get the list of signals in this Simulation Data object.
+		 * @return a List of signals.
+		 */
+		public List getSignals() { return signals; }
+
+		/**
+		 * Method to add a new signal to this Simulation Data object.
+		 * Signals can be either digital or analog.
+		 * @param ws the signal to add.
+		 * Instead of a "SimSignal", use either SimDigitalSignal or SimAnalogSignal.
+		 */
+		public void addSignal(SimSignal ws) { signals.add(ws); }
+
+		/**
+		 * Method to construct an array of time values that are common to all signals.
+		 * Some simulation data has all of its stimuli at the same time interval for every signal.
+		 * To save space, such data can use a common time array, kept in the Simulation Data.
+		 * If a signal wants to use its own time values, that can be done by placing the time
+		 * array in the signal.
+		 * @param numEvents the number of time events in the common time array.
+		 */
+		public void buildCommonTime(int numEvents) { commonTime = new double[numEvents]; }
+
+		/**
+		 * Method to load an entry in the common time array.
+		 * @param index the entry number.
+		 * @param time the time value at
+		 */
+		public void setCommonTime(int index, double time) { commonTime[index] = time; }
+
+		public void setCell(Cell cell) { this.cell = cell; }
+
+		public Cell getCell() { return cell; }
+
+		public void setDataType(OpenFile.Type type) { this.type = type; }
+
+		public OpenFile.Type getDataType() { return type; }
+
+		public void setFileURL(URL fileURL) { this.fileURL = fileURL; }
+
+		public URL getFileURL() { return fileURL; }
+
+		/**
+		 * Method to compute the time and value bounds of this simulation data.
+		 * @return a Rectangle2D that has time bounds in the X part and
+		 * value bounds in the Y part.
+		 */
+		public Rectangle2D getBounds()
+		{
+			// determine extent of the data
+			double lowTime=0, highTime=0, lowValue=0, highValue=0;
+			boolean first = true;
+			for(Iterator it = signals.iterator(); it.hasNext(); )
+			{
+				SimSignal sig = (SimSignal)it.next();
+				if (sig instanceof SimAnalogSignal)
+				{
+					SimAnalogSignal as = (SimAnalogSignal)sig;
+					for(int i=0; i<as.values.length; i++)
+					{
+						double time = 0;
+						time = as.getTime(i);
+						if (first)
+						{
+							first = false;
+							lowTime = highTime = time;
+							lowValue = highValue = as.values[i];
+						} else
+						{
+							if (time < lowTime) lowTime = time;
+							if (time > highTime) highTime = time;
+							if (as.values[i] < lowValue) lowValue = as.values[i];
+							if (as.values[i] > highValue) highValue = as.values[i];
+						}
+					}
+				} else if (sig instanceof SimDigitalSignal)
+				{
+					SimDigitalSignal ds = (SimDigitalSignal)sig;
+					if (ds.state == null) continue;
+					for(int i=0; i<ds.state.length; i++)
+					{
+						double time = 0;
+						time = ds.getTime(i);
+						if (first)
+						{
+							first = false;
+							lowTime = highTime = time;
+						} else
+						{
+							if (time < lowTime) lowTime = time;
+							if (time > highTime) highTime = time;
+						}
+					}
+				}
+			}
+			return new Rectangle2D.Double(lowTime, lowValue, highTime-lowTime, highValue-lowValue);
+		}
+	}
+
+	public static class SimSignal
+	{
+		public SimSignal(SimData sd)
+		{
+			this.sd = sd;
+			if (sd != null) sd.signals.add(this);
+			this.signalColor = Color.RED;
+		}
+
+		private String signalName;
+		private String signalContext;
+		private Color signalColor;
+		private SimData sd;
+		private boolean useCommonTime;
+		private double [] time;
+		private List bussedSignals;
+		public List tempList;
+
+		public void setSignalName(String signalName) { this.signalName = signalName; }
+
+		public String getSignalName() { return signalName; }
+
+		public void setSignalContext(String signalContext) { this.signalContext = signalContext; }
+
+		public String getSignalContext() { return signalContext; }
+
+		public void setSignalColor(Color signalColor) { this.signalColor = signalColor; }
+
+		public Color getSignalColor() { return signalColor; }
+
+		public int getNumEvents() { return 0; }
+
+		public void buildBussedSignalList() { bussedSignals = new ArrayList(); }
+
+		public List getBussedSignals() { return bussedSignals; }
+
+		public void addToBussedSignalList(SimSignal ws) { bussedSignals.add(ws); }
+
+		public void setCommonTimeUse(boolean useCommonTime) { this.useCommonTime = useCommonTime; }
+
+		public void buildTime(int numEvents) { time = new double[numEvents]; }
+
+		public double getTime(int index)
+		{
+			if (useCommonTime) return sd.commonTime[index];
+			return time[index];
+		}
+
+		public double [] getTimeVector() { return time; }
+
+		public void setTimeVector(double [] time) { this.time = time; }
+
+		public void setTime(int index, double t) { time[index] = t; }
+	}
+
+	public static class SimAnalogSignal extends SimSignal
+	{
+		private double [] values;
+
+		public SimAnalogSignal(SimData sd) { super(sd); }
+
+		public void buildValues(int numEvents) { values = new double[numEvents]; }
+
+		public void setValue(int index, double value) { values[index] = value; }
+
+		public double getValue(int index) { return values[index]; }
+
+		public int getNumEvents() { return values.length; }
+	}
+
+	public static class SimDigitalSignal extends SimSignal
+	{
+		private int [] state;
+
+		public SimDigitalSignal(SimData sd) { super(sd); }
+
+		public void buildState(int numEvents) { state = new int[numEvents]; }
+
+		public void setState(int index, int st) { state[index] = st; }
+
+		public int getState(int index) { return state[index]; }
+
+		public int [] getStateVector() { return state; }
+
+		public void setStateVector(int [] state) { this.state = state; }
+
+		public int getNumEvents() { return state.length; }
+	}
 
 	/** the Simulation tool. */		public static Simulation tool = new Simulation();
 
@@ -193,6 +416,56 @@ public class Simulation extends Tool
 			}
 			return true;
 		}
+	}
+
+	public static void showSimulationData(SimData sd, WaveformWindow ww)
+	{
+		// if the window already exists, update the data
+		if (ww != null)
+		{
+			ww.setSimData(sd);
+			return;
+		}
+
+		// determine extent of the data
+		Rectangle2D bounds = sd.getBounds();
+		double lowTime = bounds.getMinX();
+		double highTime = bounds.getMaxX();
+		double lowValue = bounds.getMinY();
+		double highValue = bounds.getMaxY();
+		double timeRange = highTime - lowTime;
+
+		WindowFrame wf = WindowFrame.createWaveformWindow(sd);
+		ww = (WaveformWindow)wf.getContent();
+		ww.setMainTimeCursor(timeRange*0.2 + lowTime);
+		ww.setExtensionTimeCursor(timeRange*0.8 + lowTime);
+		ww.setDefaultTimeRange(lowTime, highTime);
+
+		// put the first waveform panels in it
+		if (sd.signals.size() > 0)
+		{
+			Simulation.SimSignal sSig = (Simulation.SimSignal)sd.signals.get(0);
+			boolean isAnalog = false;
+			if (sSig instanceof SimAnalogSignal) isAnalog = true;
+			if (isAnalog)
+			{
+				WaveformWindow.Panel wp = new WaveformWindow.Panel(ww, isAnalog);
+				wp.setValueRange(lowValue, highValue);
+				wp.makeSelectedPanel();
+			} else
+			{
+				// put all top-level signals in
+				for(int i=0; i<sd.signals.size(); i++)
+				{
+					Simulation.SimDigitalSignal sDSig= (Simulation.SimDigitalSignal)sd.signals.get(i);
+					if (sDSig.getSignalContext() != null) continue;
+					WaveformWindow.Panel wp = new WaveformWindow.Panel(ww, false);
+					wp.makeSelectedPanel();
+					new WaveformWindow.Signal(wp, sDSig);
+				}
+			}
+		}
+		ww.getPanel().validate();
 	}
 
 	/****************************** VERILOG OPTIONS ******************************/

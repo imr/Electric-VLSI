@@ -25,15 +25,10 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.simulation.Simulation;
 
-import java.io.InputStream;
 import java.io.IOException;
-import java.io.LineNumberReader;
-import java.io.DataInputStream;
 import java.net.URL;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
 
 /**
  * Class for reading and displaying waveforms from SmartSpice Raw output.
@@ -48,7 +43,7 @@ public class SmartSpiceOut extends Simulate
 	/**
 	 * Method to read an Smart Spice output file.
 	 */
-	protected SimData readSimulationOutput(URL fileURL, Cell cell)
+	protected Simulation.SimData readSimulationOutput(URL fileURL, Cell cell)
 		throws IOException
 	{
 		// open the file
@@ -58,7 +53,7 @@ public class SmartSpiceOut extends Simulate
 		startProgressDialog("SmartSpice output", fileURL.getFile());
 
 		// read the actual signal data from the .tr0 file
-		SimData sd = readRawSmartSpiceFile(cell);
+		Simulation.SimData sd = readRawSmartSpiceFile(cell);
 
 		// stop progress dialog, close the file
 		stopProgressDialog();
@@ -68,7 +63,7 @@ public class SmartSpiceOut extends Simulate
 		return sd;
 	}
 
-	private SimData readRawSmartSpiceFile(Cell cell)
+	private Simulation.SimData readRawSmartSpiceFile(Cell cell)
 		throws IOException
 	{
 		boolean first = true;

@@ -28,18 +28,18 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Simulate;
+import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.HighlightListener;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Resources;
+import com.sun.electric.tool.user.User;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -88,13 +88,13 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
-import javax.swing.Timer;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.SwingConstants;
+import javax.swing.Timer;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
@@ -108,7 +108,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		Color.RED, Color.GREEN, Color.BLUE, Color.PINK, Color.CYAN, Color.ORANGE, Color.MAGENTA, Color.YELLOW};
 
 	/** the window that this lives in */					private WindowFrame wf;
-	/** the cell being simulated */							private Simulate.SimData sd;
+	/** the cell being simulated */							private Simulation.SimData sd;
 	/** the top-level panel of the waveform window. */		private JPanel overall;
 	/** let panel: the signal names */						private JPanel left;
 	/** right panel: the signal traces */					private JPanel right;
@@ -133,6 +133,8 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	/** default range along horozintal axis */				private double minTime, maxTime;
 	/** true if the time axis is the same in each panel */	private boolean timeLocked;
 	/** the actual screen coordinates of the waveform */	private int screenLowX, screenHighX;
+	/** true if click in waveform changes highlights */		private boolean highlightChangedByWaveform = false;
+
 	private static WaveFormDropTarget waveformDropTarget = new WaveFormDropTarget();
 
 	private static final ImageIcon iconAddPanel = Resources.getResource(WaveformWindow.class, "ButtonSimAddPanel.gif");
@@ -155,14 +157,14 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	public static void makeFakeWaveformCommand()
 	{
 		// make the waveform data
-		Simulate.SimData sd = new Simulate.SimData();
+		Simulation.SimData sd = new Simulation.SimData();
 		double timeStep = 0.0000000001;
 		sd.buildCommonTime(100);
 		for(int i=0; i<100; i++)
 			sd.setCommonTime(i, i * timeStep);
 		for(int i=0; i<18; i++)
 		{
-			Simulate.SimAnalogSignal as = new Simulate.SimAnalogSignal(sd);
+			Simulation.SimAnalogSignal as = new Simulation.SimAnalogSignal(sd);
 			as.setSignalName("Signal"+(i+1));
 			as.setSignalColor(colorArray[i % colorArray.length]);
 			as.setCommonTimeUse(true);
@@ -188,7 +190,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			wp.setValueRange(-5, 5);
 			for(int j=0; j<(i+1)*3; j++)
 			{
-				Simulate.SimAnalogSignal as = (Simulate.SimAnalogSignal)sd.getSignals().get(j);
+				Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)sd.getSignals().get(j);
 				Signal wsig = new Signal(wp, as);
 			}
 		}
@@ -461,7 +463,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			waveWindow.closePanel(this);
 		}
 
-		private void addSignalToPanel(Simulate.SimSignal sSig)
+		private void addSignalToPanel(Simulation.SimSignal sSig)
 		{
 			// see if the signal is already there
 			for(Iterator it = waveSignals.keySet().iterator(); it.hasNext(); )
@@ -589,10 +591,10 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			{
 				Signal ws = (Signal)it.next();
 				g.setColor(ws.sSig.getSignalColor());
-				if (ws.sSig instanceof Simulate.SimAnalogSignal)
+				if (ws.sSig instanceof Simulation.SimAnalogSignal)
 				{
 					// draw analog trace
-					Simulate.SimAnalogSignal as = (Simulate.SimAnalogSignal)ws.sSig;
+					Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)ws.sSig;
 					int lx = 0, ly = 0;
 					int numEvents = as.getNumEvents();
 					for(int i=0; i<numEvents; i++)
@@ -608,10 +610,10 @@ public class WaveformWindow implements WindowContent, HighlightListener
 					}
 					continue;
 				}
-				if (ws.sSig instanceof Simulate.SimDigitalSignal)
+				if (ws.sSig instanceof Simulation.SimDigitalSignal)
 				{
 					// draw digital traces
-					Simulate.SimDigitalSignal ds = (Simulate.SimDigitalSignal)ws.sSig;
+					Simulation.SimDigitalSignal ds = (Simulation.SimDigitalSignal)ws.sSig;
 					List bussedSignals = ds.getBussedSignals();
 					if (bussedSignals != null)
 					{
@@ -627,7 +629,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 							boolean curDefined = true;
 							for(Iterator bIt = bussedSignals.iterator(); bIt.hasNext(); )
 							{
-								Simulate.SimDigitalSignal subDS = (Simulate.SimDigitalSignal)bIt.next();
+								Simulation.SimDigitalSignal subDS = (Simulation.SimDigitalSignal)bIt.next();
 								int numEvents = subDS.getNumEvents();
 								boolean undefined = false;
 								for(int i=0; i<numEvents; i++)
@@ -635,12 +637,12 @@ public class WaveformWindow implements WindowContent, HighlightListener
 									double time = subDS.getTime(i);
 									if (time <= curTime)
 									{
-										switch (subDS.getState(i) & Simulate.SimData.LOGIC)
+										switch (subDS.getState(i) & Simulation.SimData.LOGIC)
 										{
-											case Simulate.SimData.LOGIC_LOW:  curValue &= ~(1<<bit);   undefined = false;   break;
-											case Simulate.SimData.LOGIC_HIGH: curValue |= (1<<bit);    undefined = false;   break;
-											case Simulate.SimData.LOGIC_X:
-											case Simulate.SimData.LOGIC_Z: undefined = true;    break;
+											case Simulation.SimData.LOGIC_LOW:  curValue &= ~(1<<bit);   undefined = false;   break;
+											case Simulation.SimData.LOGIC_HIGH: curValue |= (1<<bit);    undefined = false;   break;
+											case Simulation.SimData.LOGIC_X:
+											case Simulation.SimData.LOGIC_Z: undefined = true;    break;
 										}
 									} else
 									{
@@ -702,13 +704,13 @@ public class WaveformWindow implements WindowContent, HighlightListener
 						double time = ds.getTime(i);
 						int x = scaleTimeToX(time);
 						int lowy = 0, highy = 0;
-						int state = ds.getState(i) & Simulate.SimData.LOGIC;
+						int state = ds.getState(i) & Simulation.SimData.LOGIC;
 						switch (state)
 						{
-							case Simulate.SimData.LOGIC_LOW:  lowy = highy = 5;            break;
-							case Simulate.SimData.LOGIC_HIGH: lowy = highy = hei-5;        break;
-							case Simulate.SimData.LOGIC_X:    lowy = 5;   highy = hei-5;   break;
-							case Simulate.SimData.LOGIC_Z:    lowy = 5;   highy = hei-5;   break;
+							case Simulation.SimData.LOGIC_LOW:  lowy = highy = 5;            break;
+							case Simulation.SimData.LOGIC_HIGH: lowy = highy = hei-5;        break;
+							case Simulation.SimData.LOGIC_X:    lowy = 5;   highy = hei-5;   break;
+							case Simulation.SimData.LOGIC_Z:    lowy = 5;   highy = hei-5;   break;
 						}
 						if (i != 0)
 						{
@@ -985,10 +987,10 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
 			{
 				Signal ws = (Signal)it.next();
-				if (ws.sSig instanceof Simulate.SimAnalogSignal)
+				if (ws.sSig instanceof Simulation.SimAnalogSignal)
 				{
 					// search analog trace
-					Simulate.SimAnalogSignal as = (Simulate.SimAnalogSignal)ws.sSig;
+					Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)ws.sSig;
 					double lastXd = 0, lastYd = 0;
 					int numEvents = as.getNumEvents();
 					for(int i=0; i<numEvents; i++)
@@ -1106,15 +1108,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		public void mouseWheelMoved(MouseWheelEvent evt) {}
 
 		// the KeyListener events
-		public void keyPressed(KeyEvent evt)
-		{
-			int chr = evt.getKeyCode();
-			if (chr == KeyEvent.VK_DELETE || chr == KeyEvent.VK_BACK_SPACE)
-			{
-				if (this.isAnalog) waveWindow.deleteSignalFromPanel(this); else
-					closePanel();
-			}
-		}
+		public void keyPressed(KeyEvent evt) {}
 		public void keyReleased(KeyEvent evt) {}
 		public void keyTyped(KeyEvent evt) {}
 
@@ -1139,13 +1133,13 @@ public class WaveformWindow implements WindowContent, HighlightListener
 				draggingExt = true;
 				return;
 			}
-	
+
 			// drag area
 			draggingArea = true;
 			dragStartX = dragEndX = evt.getX();
 			dragStartY = dragEndY = evt.getY();
 		}
-	
+
 		/**
 		 * Method to implement the Mouse Released event for selection.
 		 */ 
@@ -1172,7 +1166,6 @@ public class WaveformWindow implements WindowContent, HighlightListener
 						{
 							// a single signal: show it in the schematic
 							Signal sig = (Signal)foundList.iterator().next();
-							sig.showNetworkInSchematic();
 						}
 					} else
 					{
@@ -1184,6 +1177,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 								wp.addHighlightedSignal(ws);
 						}
 					}
+					wp.waveWindow.showSelectedNetworksInSchematic();
 				} else
 				{
 					// just leave this highlight and show dimensions
@@ -1415,7 +1409,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			Panel panel = op.getPanel();
 
 			// dropped onto an existing panel
-			Simulate.SimSignal sSig = ww.findSignal(sigName);
+			Simulation.SimSignal sSig = ww.findSignal(sigName);
 			if (sSig == null)
 			{
 				dtde.dropComplete(false);
@@ -1423,7 +1417,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			}
 
 			// digital signals are always added in new panels
-			if (sSig instanceof Simulate.SimDigitalSignal) panel = null;
+			if (sSig instanceof Simulation.SimDigitalSignal) panel = null;
 			if (panel != null)
 			{
 				// overlay this signal onto an existing panel
@@ -1435,11 +1429,11 @@ public class WaveformWindow implements WindowContent, HighlightListener
 
 			// add this signal in a new panel
 			boolean isAnalog = false;
-			if (sSig instanceof Simulate.SimAnalogSignal) isAnalog = true;
+			if (sSig instanceof Simulation.SimAnalogSignal) isAnalog = true;
 			panel = new Panel(ww, isAnalog);
 			if (isAnalog)
 			{
-				Simulate.SimAnalogSignal as = (Simulate.SimAnalogSignal)sSig;
+				Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)sSig;
 				double lowValue = 0, highValue = 0;
 				for(int i=0; i<as.getNumEvents(); i++)
 				{
@@ -1551,7 +1545,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	public static class Signal
 	{
 		/** the panel that holds this signal */			private Panel wavePanel;
-		/** the data for this signal */					private Simulate.SimSignal sSig;
+		/** the data for this signal */					private Simulation.SimSignal sSig;
 		/** true if this signal is highlighted */		private boolean highlighted;
 		/** the button on the left with this signal */	private JButton sigButton;
 
@@ -1612,7 +1606,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			}
 		};
 
-		public Signal(Panel wavePanel, Simulate.SimSignal sSig)
+		public Signal(Panel wavePanel, Simulation.SimSignal sSig)
 		{
 			this.wavePanel = wavePanel;
 			this.sSig = sSig;
@@ -1642,52 +1636,21 @@ public class WaveformWindow implements WindowContent, HighlightListener
 				ws.wavePanel.clearHighlightedSignals();
 				ws.wavePanel.addHighlightedSignal(ws);
 				ws.wavePanel.makeSelectedPanel();
-
-				// a single signal: show it in the schematic
-				ws.showNetworkInSchematic();
 			} else
 			{
 				// shift click: add or remove to list of highlighted traces
 				if (ws.highlighted) ws.wavePanel.removeHighlightedSignal(ws); else
 					ws.wavePanel.addHighlightedSignal(ws);
 			}
-		}
 
-		/**
-		 * Method called when a signal is selected in the waveform and should be crossprobed to the schematic.
-		 */
-		public void showNetworkInSchematic()
-		{
-			// if this waveform has no cell associated with it, bail
-			Cell cell = wavePanel.waveWindow.getCell();
-			if (cell == null) return;
-
-			// look for the original cell to highlight it
-			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
-			{
-				WindowFrame wf = (WindowFrame)it.next();
-				if (wf.getContent().getCell() != cell) continue;
-				if (wf.getContent() instanceof EditWindow)
-				{
-					Netlist netlist = cell.getUserNetlist();
-					String want = sSig.getSignalName();
-
-					JNetwork net = findNetwork(netlist, want);
-					if (net != null)
-					{
-						Highlight.clear();
-						Highlight.addNetwork(net, cell);
-						Highlight.finished();
-					}
-					return;	
-				}
-			}
+			// a single signal: show it in the schematic
+			ws.wavePanel.waveWindow.showSelectedNetworksInSchematic();
 		}
 	}
 
     // ************************************* CONTROL *************************************
 
-	public WaveformWindow(Simulate.SimData sd, WindowFrame wf)
+	public WaveformWindow(Simulation.SimData sd, WindowFrame wf)
 	{
 		// initialize the structure
 		this.wf = wf;
@@ -1993,6 +1956,77 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		DropTarget dropTarget = new DropTarget(overall, DnDConstants.ACTION_LINK, waveformDropTarget, true);
 	}
 
+	/**
+	 * Method to return the associated schematics or layout window for this WaveformWindow.
+	 * @return the other window that is cross-linked to this.
+	 * Returns null if none can be found.
+	 */
+	private WindowFrame findSchematicsWindow()
+	{
+		Cell cell = getCell();
+		if (cell == null) return null;
+
+		// look for the original cell to highlight it
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			if (wf.getContent().getCell() != cell) continue;
+			if (wf.getContent() instanceof EditWindow) return wf;
+		}
+		return null;
+	}
+
+	/**
+	 * Method to return the associated schematics or layout window for this WaveformWindow.
+	 * @return the other window that is cross-linked to this.
+	 * Returns null if none can be found.
+	 */
+	public static WaveformWindow findWaveformWindow(Cell cell)
+	{
+		// look for the original cell to highlight it
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			if (wf.getContent().getCell() != cell) continue;
+			if (wf.getContent() instanceof WaveformWindow)
+				return (WaveformWindow)wf.getContent();
+		}
+		return null;
+	}
+
+	/**
+	 * Method called when signal waveforms change, and equivalent should be shown in the edit window.
+	 */
+	public void showSelectedNetworksInSchematic()
+	{
+		WindowFrame wf = findSchematicsWindow();
+		if (wf == null) return;
+
+		Cell cell = wf.getContent().getCell();
+		Netlist netlist = cell.getUserNetlist();
+
+		highlightChangedByWaveform = true;
+		Highlight.clear();
+		for(Iterator it = this.wavePanels.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next();
+			for(Iterator pIt = wp.waveSignals.values().iterator(); pIt.hasNext(); )
+			{
+				Signal ws = (Signal)pIt.next();
+				if (!ws.highlighted) continue;
+				String want = ws.sSig.getSignalName();
+		
+				JNetwork net = findNetwork(netlist, want);
+				if (net != null)
+				{
+					Highlight.addNetwork(net, cell);
+				}
+			}
+		}
+		Highlight.finished();
+		highlightChangedByWaveform = false;
+	}
+
 	private void addMainTimePanel()
 	{
 		mainTimePanel = new TimeTickPanel(null, this);
@@ -2129,7 +2163,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	 * When new data is read from disk, this is used.
 	 * @param sd new simulation data for this window.
 	 */
-	public void setSimData(Simulate.SimData sd)
+	public void setSimData(Simulation.SimData sd)
 	{
 		this.sd = sd;
 		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
@@ -2139,14 +2173,14 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			for(Iterator pIt = wp.waveSignals.values().iterator(); pIt.hasNext(); )
 			{
 				Signal ws = (Signal)pIt.next();
-				Simulate.SimSignal ss = ws.sSig;
+				Simulation.SimSignal ss = ws.sSig;
 				String oldSigName = "";
 				if (ss.getSignalContext() != null) oldSigName = ss.getSignalContext();
 				oldSigName += ss.getSignalName();
 				ws.sSig = null;
 				for(Iterator sIt = sd.getSignals().iterator(); sIt.hasNext(); )
 				{
-					Simulate.SimSignal newSs = (Simulate.SimSignal)sIt.next();
+					Simulation.SimSignal newSs = (Simulation.SimSignal)sIt.next();
 					String newSigName = "";
 					if (newSs.getSignalContext() != null) newSigName = newSs.getSignalContext();
 					newSigName += newSs.getSignalName();
@@ -2246,7 +2280,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		contextMap.put("", signalsExplorerTree);
 		for(Iterator it = sd.getSignals().iterator(); it.hasNext(); )
 		{
-			Simulate.SimSignal sSig = (Simulate.SimSignal)it.next();
+			Simulation.SimSignal sSig = (Simulation.SimSignal)it.next();
 			DefaultMutableTreeNode thisTree = signalsExplorerTree;
 			if (sSig.getSignalContext() != null)
 			{
@@ -2273,11 +2307,11 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		return signalsExplorerTree;
 	}
 
-	private Simulate.SimSignal findSignal(String name)
+	private Simulation.SimSignal findSignal(String name)
 	{
 		for(Iterator it = sd.getSignals().iterator(); it.hasNext(); )
 		{
-			Simulate.SimSignal sSig = (Simulate.SimSignal)it.next();
+			Simulation.SimSignal sSig = (Simulation.SimSignal)it.next();
 			String sigName = sSig.getSignalContext();
 			if (sigName == null) sigName = sSig.getSignalName(); else
 				sigName += sSig.getSignalName();
@@ -2304,6 +2338,8 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	 */
 	public void highlightChanged()
 	{
+		if (highlightChangedByWaveform) return;
+
 		// start by removing all highlighting in the waveform
 		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
 		{
@@ -2422,15 +2458,9 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		if (isDataAnalog()) return;
 
 		// make sure there is a layout/schematic window being simulated
-		EditWindow schemWnd = null;
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
-		{
-			WindowFrame oWf = (WindowFrame)it.next();
-			if (oWf == wf) continue;
-			if (oWf.getContent().getCell() != wf.getContent().getCell()) continue;
-			if (oWf.getContent() instanceof EditWindow) { schemWnd = (EditWindow)oWf.getContent();   break; }
-		}
-		if (schemWnd == null) return;
+		WindowFrame oWf = findSchematicsWindow();
+		if (oWf == null) return;
+		EditWindow schemWnd = (EditWindow)oWf.getContent();
 
 		Cell cell = getCell();
 		Netlist netlist = cell.getUserNetlist();
@@ -2446,19 +2476,22 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
 			{
 				Signal ws = (Signal)sIt.next();
-
-				// can only handle digital waveforms right now
-//				if ((tr->flags&TRACETYPE) == TRACEISDIGITAL)
-//				{
-					putValueOnTrace(ws, cell, netValues, netlist);
-//				} else if ((tr->flags&TRACETYPE) == TRACEISBUS || (tr->flags&TRACETYPE) == TRACEISOPENBUS)
-//				{
-//					for(otr = sim_window_firstrace; otr != NOTRACE; otr = otr->nexttrace)
-//					{
-//						if (otr->buschannel != tr) continue;
-//						putValueOnTrace(otr, cell, netValues, netlist);
-//					}
-//				}
+				Simulation.SimDigitalSignal ds = (Simulation.SimDigitalSignal)ws.sSig;
+				List bussedSignals = ds.getBussedSignals();
+				if (bussedSignals != null)
+				{
+					// a digital bus trace
+					int busWidth = bussedSignals.size();
+					for(Iterator bIt = bussedSignals.iterator(); bIt.hasNext(); )
+					{
+						Simulation.SimDigitalSignal subDS = (Simulation.SimDigitalSignal)bIt.next();
+						putValueOnTrace(subDS, cell, netValues, netlist);
+					}
+				} else
+				{
+					// single signal
+					putValueOnTrace(ds, cell, netValues, netlist);
+				}
 			}
 		}
 
@@ -2557,18 +2590,16 @@ System.out.println("Sim Prob node "+ni+" set to state "+state.intValue());
 //		}
 	}
 
-	private void putValueOnTrace(Signal ws, Cell cell, HashMap netValues, Netlist netlist)
+	private void putValueOnTrace(Simulation.SimDigitalSignal ds, Cell cell, HashMap netValues, Netlist netlist)
 	{
 //		if (tr->statearray == 0) return;
 //		netlist = getcomplexnetworks(tr->name, simnt);
 //System.out.println("Looking for network "+ws.sSig.getSignalName());
 		// set simulation value on the network in the associated layout/schematic window
-		JNetwork net = findNetwork(netlist, ws.sSig.getSignalName());
+		JNetwork net = findNetwork(netlist, ds.getSignalName());
 		if (net == null) return;
-System.out.println("  !!!!!!!!! Found network "+net.describe());
+//System.out.println("  !!!!!!!!! Found network "+net.describe());
 		// find the proper data for the time of the main cursor
-		if (!(ws.sSig instanceof Simulate.SimDigitalSignal)) return;
-		Simulate.SimDigitalSignal ds = (Simulate.SimDigitalSignal)ws.sSig;
 
 		int numEvents = ds.getNumEvents();
 		int state = 0;
@@ -2577,7 +2608,7 @@ System.out.println("  !!!!!!!!! Found network "+net.describe());
 			double time = ds.getTime(i);
 			if (mainTime < time)
 			{
-				state = ds.getState(i) & Simulate.SimData.LOGIC;
+				state = ds.getState(i) & Simulation.SimData.LOGIC;
 				break;
 			}
 		}
@@ -2950,8 +2981,8 @@ System.out.println("  !!!!!!!!! Found network "+net.describe());
 	{
 		if (sd.getSignals().size() > 0)
 		{
-			Simulate.SimSignal sSig = (Simulate.SimSignal)sd.getSignals().get(0);
-			if (sSig instanceof Simulate.SimAnalogSignal) return true;
+			Simulation.SimSignal sSig = (Simulation.SimSignal)sd.getSignals().get(0);
+			if (sSig instanceof Simulation.SimAnalogSignal) return true;
 		}
 		return false;
 	}
@@ -2974,9 +3005,9 @@ System.out.println("  !!!!!!!!! Found network "+net.describe());
 		getPanel().validate();
 	}
 
-	public void addSignal(Simulate.SimSignal sig)
+	public void addSignal(Simulation.SimSignal sig)
 	{
-		if (sig instanceof Simulate.SimAnalogSignal)
+		if (sig instanceof Simulation.SimAnalogSignal)
 		{
 			// add analog signal on top of current panel
 			for(Iterator it = wavePanels.iterator(); it.hasNext(); )
@@ -2995,6 +3026,21 @@ System.out.println("  !!!!!!!!! Found network "+net.describe());
 			Signal wsig = new Signal(wp, sig);
 			overall.validate();
 			wp.repaint();
+		}
+	}
+
+	/**
+	 * Method to delete the selected signals.
+	 */
+	public void deleteSelectedSignals()
+	{
+		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next();
+			if (!wp.selected) continue;
+			if (wp.isAnalog) deleteSignalFromPanel(wp); else
+				wp.closePanel();
+			break;
 		}
 	}
 
