@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02j: *********************************
 
+BUG: (03/31/05, GVG) Exception in output.JELIB if var == null and we are testing var.isParam();
+FIX: var != null added
+
 IMP: (03/30/05, SMR) Duplicating or copying arcs that share names keeps the sharing (Bug #190).
 
 IMP: (03/30/05, GVG) Ability to change color in 3D background.
