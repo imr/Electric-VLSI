@@ -144,6 +144,10 @@ public class WindowFrame
         {
             System.out.println("Can't find 3D View plugin: " + e.getMessage());
 			return frame;
+        } catch (Error e)
+        {
+            System.out.println("Java3D not installed: " + e.getMessage());
+			return frame;
         }
 
         Constructor constructor = null;
