@@ -4150,7 +4150,7 @@ public class CircuitChanges
 			// disallow erasing if lock is on
 			Cell cell = ni.getParent();
 			if (cantEdit(cell, ni, true)) return null;
-			Netlist netlist = cell.getUserNetlist();
+			// Netlist netlist = cell.getUserNetlist(); Commented 07.01.04 by DN to avoid Netlist recalculation
 
             Reconnect recon = new Reconnect();
             recon.ni = ni;
