@@ -160,10 +160,12 @@ public class Quick
 	private HashMap cellsMap = new HashMap(); // for cell caching
     private HashMap nodesMap = new HashMap(); // for node caching
     private byte activeBits = 0; // to caching current extra bits
+    private int mergeMode = GeometryHandler.ALGO_QTREE;
 
-	public Quick(DRC.CheckDRCLayoutJob job)
+	public Quick(DRC.CheckDRCLayoutJob job, int mode)
 	{
 		this.job = job;
+        this.mergeMode = mode;
 	}
 
 	/**
@@ -218,6 +220,12 @@ public class Quick
 	private HashMap layersInterNodes = null;
 	private HashMap layersInterArcs = null;
 
+    public static int checkDesignRules(Cell cell, int count, Geometric[] geomsToCheck, boolean[] validity,
+                                       Rectangle2D bounds, DRC.CheckDRCLayoutJob drcJob)
+    {
+        return checkDesignRules(cell, count, geomsToCheck, validity, bounds, drcJob, GeometryHandler.ALGO_QTREE);
+    }
+
 	/**
 	 * This is the entry point for DRC.
 	 *
@@ -229,9 +237,10 @@ public class Quick
      * @param drcJob
 	 * @return the number of errors found
 	 */
-	public static int checkDesignRules(Cell cell, int count, Geometric[] geomsToCheck, boolean[] validity, Rectangle2D bounds, DRC.CheckDRCLayoutJob drcJob)
+	public static int checkDesignRules(Cell cell, int count, Geometric[] geomsToCheck, boolean[] validity,
+                                       Rectangle2D bounds, DRC.CheckDRCLayoutJob drcJob, int mode)
 	{
-		Quick q = new Quick(drcJob);
+		Quick q = new Quick(drcJob, mode);
 		return q.doCheck(cell, count, geomsToCheck, validity, bounds);
 	}
 
@@ -2275,7 +2284,7 @@ public class Quick
 
 			List list = null;
 
-            if (job.mergeMode == GeometryHandler.ALGO_QTREE)
+            if (mergeMode == GeometryHandler.ALGO_QTREE)
                 list = ((PolyQTree.PolyNode)obj).getSortedLoops();
             else
                 list = ((PolyBase)obj).getSortedLoops();
@@ -2292,7 +2301,7 @@ public class Quick
 				//PolyQTree.PolyNode simplePn = (PolyQTree.PolyNode)list.get(i);
 				double area = 0;
 
-                if (job.mergeMode == GeometryHandler.ALGO_QTREE)
+                if (mergeMode == GeometryHandler.ALGO_QTREE)
                     area = ((PolyQTree.PolyNode)listObj).getArea();
                 else
                     area = ((PolyBase)listObj).getArea();
@@ -2306,7 +2315,7 @@ public class Quick
                 
 				errorFound++;
 				int errorType = (minRule == minAreaRule) ? MINAREAERROR : ENCLOSEDAREAERROR;
-                PolyBase simplePn = ((job.mergeMode == GeometryHandler.ALGO_QTREE))
+                PolyBase simplePn = ((mergeMode == GeometryHandler.ALGO_QTREE))
                         ? new PolyBase(((PolyQTree.PolyNode)listObj).getPoints(true))
                         : (PolyBase)listObj;
 
@@ -2318,9 +2327,8 @@ public class Quick
 
 	}
 
-
     /**
-     * Method to create appropiate GeometryHandler depending on the mode
+     * Method to create appropiate GeometryHandler depending on the mergeMode
      * @param mode
      * @param cell
      * @return
@@ -2356,7 +2364,7 @@ public class Quick
 		// Select/well regions
         HashMap selectMergeMap = new HashMap();
 
-			CheckAreaEnumerator quickArea = new CheckAreaEnumerator(selectMergeMap, job.mergeMode);
+			CheckAreaEnumerator quickArea = new CheckAreaEnumerator(selectMergeMap, mergeMode);
 			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, cp.netlist, quickArea);
             GeometryHandler geom = (GeometryHandler)quickArea.mainMergeMap.get(cell);
 
@@ -2410,7 +2418,7 @@ public class Quick
 			return 0;
 
 		// Select/well regions
-		GeometryHandler	selectMerge = newMergeTree(job.mergeMode, cell); //new PolyQTree(cell.getBounds());
+		GeometryHandler	selectMerge = newMergeTree(mergeMode, cell); //new PolyQTree(cell.getBounds());
 		HashMap notExportedNodes = new HashMap();
 		HashMap checkedNodes = new HashMap();
 
@@ -2419,10 +2427,10 @@ public class Quick
 		{
 			Network net = (Network)netIt.next();
 			QuickAreaEnumerator quickArea = new QuickAreaEnumerator(net, selectMerge, notExportedNodes, checkedNodes,
-                    job.mergeMode);
+                    mergeMode);
 			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, cp.netlist, quickArea);
 
-            if (job.mergeMode == GeometryHandler.ALGO_SWEEP)
+            if (mergeMode == GeometryHandler.ALGO_SWEEP)
             {
                 ((PolySweepMerge)quickArea.mainMerge).postProcess();
             }
@@ -2437,7 +2445,7 @@ public class Quick
 		}
 
 		// Checking nodes not exported down in the hierarchy. Probably good enought not to collect networks first
-		QuickAreaEnumerator quickArea = new QuickAreaEnumerator(notExportedNodes, checkedNodes, job.mergeMode);
+		QuickAreaEnumerator quickArea = new QuickAreaEnumerator(notExportedNodes, checkedNodes, mergeMode);
 		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, cp.netlist, quickArea);
 		// Non exported nodes
 //		for(Iterator it = quickArea.mainMerge.getKeyIterator(); it.hasNext(); )
@@ -2446,7 +2454,7 @@ public class Quick
 //			boolean localError = checkMinAreaLayer(quickArea.mainMerge, cell, layer);
 //			if (!errorFound) errorFound = localError;
 //		}
-            if (job.mergeMode == GeometryHandler.ALGO_SWEEP)
+            if (mergeMode == GeometryHandler.ALGO_SWEEP)
             {
                 ((PolySweepMerge)selectMerge).postProcess();
             }
@@ -3898,7 +3906,7 @@ public class Quick
 		 */
 		public void exitCell(HierarchyEnumerator.CellInfo info)
         {
-//            if (mode == GeometryHandler.ALGO_SWEEP)
+//            if (mergeMode == GeometryHandler.ALGO_SWEEP)
 //            {
 //                ((PolySweepMerge)mainMerge).postProcess();
 //                ((PolySweepMerge)otherTypeMerge).postProcess();

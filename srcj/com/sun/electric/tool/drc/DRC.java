@@ -140,7 +140,7 @@ public class DRC extends Listener
 		}
 	}
 
-	private static void doIncrementalDRCTask(int mode)
+	private static void doIncrementalDRCTask()
 	{
 		if (!isIncrementalDRCOn()) return;
 		if (incrementalRunning) return;
@@ -178,7 +178,7 @@ public class DRC extends Listener
 			int i = 0;
 			for(Iterator it = cellSet.iterator(); it.hasNext(); )
 				objectsToCheck[i++] = (Geometric)it.next();
-			CheckLayoutIncrementally job = new CheckLayoutIncrementally(cellToCheck, objectsToCheck, mode);
+			CheckLayoutIncrementally job = new CheckLayoutIncrementally(cellToCheck, objectsToCheck);
 		}
 	}
 
@@ -187,7 +187,7 @@ public class DRC extends Listener
 	 */
 	public void endBatch()
 	{
-		doIncrementalDRCTask(GeometryHandler.ALGO_SWEEP);
+		doIncrementalDRCTask();
 	}
 
 	/**
@@ -293,14 +293,11 @@ public class DRC extends Listener
 	public static class CheckDRCLayoutJob extends Job
 	{
 		Cell cell;
-        int mergeMode; // for merging algorithm
 
-		protected CheckDRCLayoutJob(String title, Cell cell, Listener tool, Priority priority,
-                                    int mode)
+		protected CheckDRCLayoutJob(String title, Cell cell, Listener tool, Priority priority)
 		{
 			super(title, tool, Job.Type.EXAMINE, null, null, priority);
 			this.cell = cell;
-            this.mergeMode = mode;
 
 		}
 		// never used
@@ -310,6 +307,7 @@ public class DRC extends Listener
 	private static class CheckLayoutHierarchically extends CheckDRCLayoutJob
 	{
 		Rectangle2D bounds;
+        private int mergeMode; // to select the merge algorithm
 
         /**
          * Check bounds within cell. If bounds is null, check entire cell.
@@ -318,8 +316,9 @@ public class DRC extends Listener
          */
 		protected CheckLayoutHierarchically(Cell cell, Rectangle2D bounds, int mode)
 		{
-			super("Design-Rule Check", cell, tool, Job.Priority.USER, mode);
+			super("Design-Rule Check", cell, tool, Job.Priority.USER);
 			this.bounds = bounds;
+            this.mergeMode = mode;
 			startJob();
 		}
 
@@ -327,7 +326,7 @@ public class DRC extends Listener
 		{
 			long startTime = System.currentTimeMillis();
             int errorCount = 0, warnCount = 0;
-            if (Quick.checkDesignRules(cell, 0, null, null, bounds, this) > 0)
+            if (Quick.checkDesignRules(cell, 0, null, null, bounds, this, mergeMode) > 0)
             {
                 errorCount = ErrorLogger.getCurrent().getNumErrors();
                 warnCount = ErrorLogger.getCurrent().getNumWarnings();
@@ -342,13 +341,11 @@ public class DRC extends Listener
 	private static class CheckLayoutIncrementally extends CheckDRCLayoutJob
 	{
 		Geometric [] objectsToCheck;
-        int mode;
 
-		protected CheckLayoutIncrementally(Cell cell, Geometric [] objectsToCheck, int mode)
+		protected CheckLayoutIncrementally(Cell cell, Geometric [] objectsToCheck)
 		{
-			super("DRC in cell " + cell.describe(), cell, tool, Job.Priority.ANALYSIS, mode);
+			super("DRC in cell " + cell.describe(), cell, tool, Job.Priority.ANALYSIS);
 			this.objectsToCheck = objectsToCheck;
-            this.mode = mode;
 			startJob();
 		}
 
@@ -361,7 +358,7 @@ public class DRC extends Listener
 				System.out.println("Incremental DRC found " + errorsFound + " errors/warnings in cell "+ cell.describe());
 			}
 			incrementalRunning = false;
-			doIncrementalDRCTask(mode);
+			doIncrementalDRCTask();
 			return true;
 		}
 	}
