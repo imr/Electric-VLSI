@@ -206,7 +206,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		{
 			Library lib = (Library)it.next();
 			DefaultMutableTreeNode libTree = new DefaultMutableTreeNode(lib);
-			for(Iterator eit = lib.getCellsSortedByName().iterator(); eit.hasNext(); )
+			for(Iterator eit = lib.getCells(); eit.hasNext(); )
 			{
 				Cell cell = (Cell)eit.next();
 				DefaultMutableTreeNode cellTree = new DefaultMutableTreeNode(cell);
@@ -223,7 +223,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		{
 			Library lib = (Library)it.next();
 			DefaultMutableTreeNode libTree = new DefaultMutableTreeNode(lib);
-			for(Iterator eit = lib.getCellsSortedByName().iterator(); eit.hasNext(); )
+			for(Iterator eit = lib.getCells(); eit.hasNext(); )
 			{
 				Cell cell = (Cell)eit.next();
 
@@ -299,13 +299,12 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		{
 			Library lib = (Library)it.next();
 			DefaultMutableTreeNode libTree = new DefaultMutableTreeNode(lib);
-			List cells = lib.getCellsSortedByName();
-			for(Iterator eit = cells.iterator(); eit.hasNext(); )
+			for(Iterator eit = lib.getCells(); eit.hasNext(); )
 			{
 				Cell cell = (Cell)eit.next();
 				cellsSeen.remove(cell);
 			}
-			for(Iterator eit = cells.iterator(); eit.hasNext(); )
+			for(Iterator eit = lib.getCells(); eit.hasNext(); )
 			{
 				Cell cell = (Cell)eit.next();
 				if (cell.getNewestVersion() != cell) continue;

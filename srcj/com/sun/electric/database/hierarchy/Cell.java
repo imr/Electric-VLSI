@@ -785,6 +785,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		}
 
 		// if the new name exists, make this a new version
+		if (isLinked()) lib.removeCell(this);
 		for(Iterator it = this.getLibrary().getCells(); it.hasNext(); )
 		{
 			Cell oCell = (Cell)it.next();
@@ -807,6 +808,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			}
 		}
 		setProtoName(newName);
+		if (isLinked()) lib.addCell(this);
 		cellGroup.groupName = null;
 	}
 
@@ -893,6 +895,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	/**
 	 * Method to change name of this Cell.
 	 * @param name new name.
+	 * @param newVersion new version
 	 */
 	private void setProtoName(String name)
 	{
@@ -914,6 +917,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		if (isLinked())
 		{
 			System.out.println(this+" already linked");
+			return true;
+		}
+
+		if (CellName.parseName(protoName + ";" + version + "{" + view.getAbbreviation() + "}") == null)
+		{
+			System.out.println(this+" has bad name");
 			return true;
 		}
 
@@ -3851,18 +3860,26 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	}
 
     /**
-     * Compares revision dates of Cells.
+     * Compares Cells by their Libraries and CellNames.
      * @param obj the other Cell.
-     * @return a comparison between the dates of the two cells.
+     * @return a comparison between the Cells.
      */
 	public int compareTo(Object obj)
 	{
-		if (equals(obj)) return 0;
-        if (!(obj instanceof Cell)) return (-1);
+		Cell that = (Cell)obj;
+		if (lib != that.lib)
+		{
+			int cmp = lib.compareTo(that.lib);
+			if (cmp != 0) return cmp;
+		}
+		return getCellName().compareTo(that.getCellName());
 
-		Cell toCompare = (Cell)obj;
-        Date toCompareDate = toCompare.getRevisionDate();
-        return (toCompareDate.compareTo(getRevisionDate()));
+// 		if (equals(obj)) return 0;
+//         if (!(obj instanceof Cell)) return (-1);
+
+// 		Cell toCompare = (Cell)obj;
+//         Date toCompareDate = toCompare.getRevisionDate();
+//         return (toCompareDate.compareTo(getRevisionDate()));
 	}
 
 	/**

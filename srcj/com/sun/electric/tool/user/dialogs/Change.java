@@ -350,8 +350,7 @@ public class Change extends EDialog implements HighlightListener
 
 				String libName = (String)librariesPopup.getSelectedItem();
 				Library lib = Library.findLibrary(libName);
-				List cells = lib.getCellsSortedByName();
-				for(Iterator it = cells.iterator(); it.hasNext(); )
+				for(Iterator it = lib.getCells(); it.hasNext(); )
 				{
 					Cell cell = (Cell)it.next();
 					changeListModel.addElement(cell.noLibDescribe());
@@ -1328,7 +1327,7 @@ public class Change extends EDialog implements HighlightListener
 	{
 		setVisible(false);
 		dispose();
-		theDialog = null;	
+		theDialog = null;		
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

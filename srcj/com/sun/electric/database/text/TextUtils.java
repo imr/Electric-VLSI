@@ -1161,7 +1161,8 @@ public class TextUtils
 		}
 	}
 
-	public static class StringsWithNumbers implements Comparator
+	public static final Comparator STRING_NUMBER_ORDER = new StringsWithNumbers();
+	private static class StringsWithNumbers implements Comparator
 	{
 		public int compare(Object o1, Object o2)
 		{
@@ -1203,39 +1204,15 @@ public class TextUtils
 		}
 	}
 
-	public static class CellsByName implements Comparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			Cell c1 = (Cell)o1;
-			Cell c2 = (Cell)o2;
-			String s1 = c1.noLibDescribe();
-			String s2 = c2.noLibDescribe();
-			return TextUtils.nameSameNumeric(s1, s2);
-		}
-	}
-
-// 	public static class CellsByFullName implements Comparator
+// 	public static class CellsByName implements Comparator
 // 	{
 // 		public int compare(Object o1, Object o2)
 // 		{
 // 			Cell c1 = (Cell)o1;
 // 			Cell c2 = (Cell)o2;
-// 			String s1 = c1.getName();
-// 			String s2 = c2.getName();
-// 			int cmp = s1.compareTo(s2);
-// 			if (cmp != 0) return cmp;
-// 
-// 			View v1 = c1.getView();
-// 			View v2 = c2.getView();
-// 			if (v1.isPermanent() || v2.isPermanent())
-// 				cmp = v1.getOrder() - v2.getOrder();
-// 			else
-// 				cmp = v1.getAbbreviation().compareTo(v2.getAbbreviation());
-// 			if (cmp != 0) return cmp;
-// 
-// 			cmp = c1.getVersion() - c2.getVersion();
-// 			return cmp;
+// 			String s1 = c1.noLibDescribe();
+// 			String s2 = c2.noLibDescribe();
+// 			return TextUtils.nameSameNumeric(s1, s2);
 // 		}
 // 	}
 

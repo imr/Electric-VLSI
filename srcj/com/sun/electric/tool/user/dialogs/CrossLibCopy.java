@@ -30,6 +30,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -189,8 +190,10 @@ public class CrossLibCopy extends EDialog
 	private void showCells(boolean report, boolean examineContents)
 	{
 		if (modelLeft == null || modelRight == null || modelCenter == null) return;
-		cellListLeft = curLibLeft.getCellsSortedByName();
-		cellListRight = curLibRight.getCellsSortedByName();
+		cellListLeft = new ArrayList();
+		for (Iterator it = curLibLeft.getCells(); it.hasNext(); ) cellListLeft.add(it.next());
+		cellListRight = new ArrayList();
+		for (Iterator it = curLibRight.getCells(); it.hasNext(); ) cellListRight.add(it.next());
 		modelLeft.clear();
 		modelRight.clear();
 		modelCenter.clear();
@@ -236,7 +239,7 @@ public class CrossLibCopy extends EDialog
 			String pt = " ";
 			if (op == 3)
 			{
-				int compare = leftCell.compareTo(rightCell);
+				int compare = leftCell.getRevisionDate().compareTo(rightCell.getRevisionDate());
 				StringBuffer buffer = null;
 				boolean result = true;
 
@@ -247,25 +250,21 @@ public class CrossLibCopy extends EDialog
 				}
 
 				String message = (result) ? "(but contents are the same)" : "(and contents are different)";
-				switch (compare)
+				if (compare > 0)
 				{
-					case 1:
-						pt = (result) ? "<-OLD" : "<-OLD/DIFF";
-						if (report) System.out.println(curLibLeft.getName() + ":" + leftName + " OLDER THAN " +
-							curLibRight.getName() + ":" + rightName + message + ":" + ((buffer != null) ? buffer.toString() : "\n"));
-						break;
-					case -1:
-						pt = (result) ? "  OLD->" : " DIFF/OLD->";
-						if (report) System.out.println(curLibRight.getName() + ":" + rightName + " OLDER THAN " +
-							curLibLeft.getName() + ":" + leftName + message + ":" + ((buffer != null) ? buffer.toString() : "\n"));
-						break;
-					case 0:
-						pt = (result) ? "-SAME-" : "-DIFF -";
-						if (!result && report) System.out.println(curLibLeft.getName() + ":" + leftName + " DIFFERS FROM " +
-							curLibRight.getName() + ":" + rightName + ":" + ((buffer != null) ? buffer.toString() : "\n"));
-						break;
-					default:
-						System.out.println("Error: invalid case");
+					pt = (result) ? "<-OLD" : "<-OLD/DIFF";
+					if (report) System.out.println(curLibLeft.getName() + ":" + leftName + " OLDER THAN " +
+						curLibRight.getName() + ":" + rightName + message + ":" + ((buffer != null) ? buffer.toString() : "\n"));
+				} else if (compare < 0)
+				{
+					pt = (result) ? "  OLD->" : " DIFF/OLD->";
+					if (report) System.out.println(curLibRight.getName() + ":" + rightName + " OLDER THAN " +
+						curLibLeft.getName() + ":" + leftName + message + ":" + ((buffer != null) ? buffer.toString() : "\n"));
+				} else
+				{
+					pt = (result) ? "-SAME-" : "-DIFF -";
+					if (!result && report) System.out.println(curLibLeft.getName() + ":" + leftName + " DIFFERS FROM " +
+						curLibRight.getName() + ":" + rightName + ":" + ((buffer != null) ? buffer.toString() : "\n"));
 				}
 			}
 			modelCenter.addElement(pt);

@@ -120,7 +120,6 @@ public class LibraryPalette extends JPanel implements DatabaseChangeListener, Mo
         for (Iterator it = library.getCells(); it.hasNext(); ) {
             cellList.add(it.next());
         }
-        cellList = Library.getCellsSortedByName(cellList);
         cellJList.setListData(cellList.toArray());
 
         Rectangle rect = (Rectangle)viewPortMap.get(library);

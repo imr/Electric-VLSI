@@ -241,7 +241,7 @@ public class SelectObject extends EDialog
 				allNames.add(netName);
 			}
 		}
-		Collections.sort(allNames, new TextUtils.StringsWithNumbers());
+		Collections.sort(allNames, TextUtils.STRING_NUMBER_ORDER);
 		for(Iterator it = allNames.iterator(); it.hasNext(); )
 		{
 			String s = (String)it.next();

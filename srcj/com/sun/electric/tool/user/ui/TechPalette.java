@@ -648,8 +648,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             if (msg.equals("Cell"))
             {
                 JPopupMenu cellMenu = new JPopupMenu("Cells");
-                List sortedCells = Library.getCurrent().getCellsSortedByName();
-                for(Iterator it = sortedCells.iterator(); it.hasNext(); )
+                for(Iterator it = Library.getCurrent().getCells(); it.hasNext(); )
                 {
                     Cell cell = (Cell)it.next();
                     menuItem = new JMenuItem(cell.describe());

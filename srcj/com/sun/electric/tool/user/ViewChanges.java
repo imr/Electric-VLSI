@@ -99,7 +99,7 @@ public class ViewChanges
 			System.out.println("No old-style multi-page schematics to convert");
 			return;
 		}
-		Collections.sort(multiPageCells, new TextUtils.CellsByName());
+		Collections.sort(multiPageCells/*, new TextUtils.CellsByName()*/);
 
 		FixOldMultiPageSchematics job = new FixOldMultiPageSchematics(multiPageCells);
 	}

@@ -42,6 +42,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.prefs.Preferences;
 
@@ -75,15 +76,14 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	/** name of this library  */							private String libName;
 	/** file location of this library */					private URL libFile;
 	/** version of Electric which wrote the library. */		private Version version;
-	/** list of Cells in this library */					private ArrayList cells;
-//	/** Cell currently being edited */						private Cell curCell;
+	/** list of Cells in this library */					private TreeMap/*<CellName,Cell>*/ cells = new TreeMap/*<CellName,Cell>*/();
 	/** Preference for cell currently being edited */		private Pref curCellPref;
 	/** flag bits */										private int userBits;
 	/** The temporary flag bits. */							private int flagBits;
     /** list of referenced libs */                          private List/*<Library>*/ referencedLibs;
 	/** preferences for all libraries */					private static Preferences prefs = null;
 
-	/** static list of all libraries in Electric */			private static TreeSet/*<Library>*/ libraries = new TreeSet/*<Library>*/();
+	/** static list of all libraries in Electric */			private static TreeMap/*<String,Library>*/ libraries = new TreeMap/*<String,Library>*/(TextUtils.STRING_NUMBER_ORDER);
 	/** the current library in Electric */					private static Library curLib = null;
 
 	// ----------------- private and protected methods --------------------
@@ -129,7 +129,6 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 		
 		// create the library
 		Library lib = new Library();
-		lib.cells = new ArrayList();
 		lib.curCellPref = null;
 		lib.libName = legalName;
 		lib.libFile = libFile;
@@ -139,7 +138,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 		// add the library to the global list
 		synchronized (libraries)
 		{
-			libraries.add(lib);
+			libraries.put(legalName, lib);
 		}
 
         // always broadcast library changes
@@ -161,7 +160,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 		{
 			// find another library
 			/*for(Library lib: libraries)*/
-			for (Iterator it = libraries.iterator(); it.hasNext(); )
+			for (Iterator it = libraries.values().iterator(); it.hasNext(); )
 			{
 				Library lib = (Library)it.next();
 				if (lib == curLib) continue;
@@ -179,7 +178,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 		}
 
 		// make sure it is in the list of libraries
-		if (!libraries.contains(this))
+		if (libraries.get(libName) != this)
 		{
 			System.out.println("Cannot delete library " + this);
 			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Cannot delete "+toString(),
@@ -190,7 +189,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 		// make sure none of these cells are referenced by other libraries
 		boolean referenced = false;
 		/*for(Library lib: libraries)*/
-		for (Iterator it = libraries.iterator(); it.hasNext(); )
+		for (Iterator it = libraries.values().iterator(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
 			if (lib == this) continue;
@@ -226,7 +225,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 		// remove it from the list of libraries
 		synchronized (libraries)
 		{
-			libraries.remove(this);
+			libraries.remove(libName);
 		}
 
 		// set the new current library if appropriate
@@ -258,15 +257,16 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	 */
 	public void addCell(Cell c)
 	{
+		CellName cn = c.getCellName();
 		// sanity check: make sure Cell isn't already in the list
         synchronized (cells)
         {
-            if (cells.contains(c))
+            if (cells.containsKey(cn))
             {
                 System.out.println("Tried to re-add a cell to a library: " + c);
                 return;
             }
-			cells.add(c);
+			cells.put(cn, c);
 		}
 	}
 
@@ -276,15 +276,16 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	 */
 	public void removeCell(Cell c)
 	{
+		CellName cn = c.getCellName();
 		// sanity check: make sure Cell is in the list
         synchronized (cells)
         {
-            if (!cells.contains(c))
+            if (cells.get(cn) != c)
             {
                 System.out.println("Tried to remove a non-existant Cell from a library: " + c);
                 return;
             }
-			cells.remove(c);
+			cells.remove(cn);
 		}
 	}
 
@@ -454,7 +455,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
      */
 	public boolean isActuallyLinked()
 	{
-		return libraries.contains(this);
+		return libraries.get(libName) == this;
 	}
 
 	/**
@@ -602,15 +603,15 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 		TreeSet list = new TreeSet();
 
 		/*for (Library l: libraries)*/
-		for (Iterator it = libraries.iterator(); it.hasNext(); )
+		for (Iterator it = libraries.values().iterator(); it.hasNext(); )
 		{
 			Library l = (Library)it.next();
 			// skip itself
 			if (l == elib) continue;
 
-			for (int j = 0; j < l.cells.size(); j++)
+			for (Iterator cIt = l.cells.values().iterator(); cIt.hasNext(); )
 			{
-				Cell cell = (Cell) l.cells.get(j);
+				Cell cell = (Cell) cIt.next();
 				cell.findReferenceInCell(elib, list);
 			}
 		}
@@ -624,8 +625,12 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	 */
 	public static Library findLibrary(String libName)
 	{
+		if (libName == null) return null;
+		Library lib = (Library)libraries.get(libName);
+		if (lib != null) return lib;
+
 		/*for (Library l: libraries)*/
-		for (Iterator it = libraries.iterator(); it.hasNext(); )
+		for (Iterator it = libraries.values().iterator(); it.hasNext(); )
 		{
 			Library l = (Library)it.next();
 			if (l.getName().equalsIgnoreCase(libName))
@@ -641,7 +646,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	public static Iterator/*<Library>*/ getLibraries()
 	{
         synchronized(libraries) {
-			ArrayList/*<Library>*/ librariesCopy = new ArrayList/*<Library>*/(libraries);
+			ArrayList/*<Library>*/ librariesCopy = new ArrayList/*<Library>*/(libraries.values());
 			return librariesCopy.iterator();
         }
 	}
@@ -656,15 +661,15 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	}
 
 	/**
-	 * Method to return an iterator over all libraries.
-	 * @return an iterator over all libraries.
+	 * Method to return an iterator over all visible libraries.
+	 * @return an iterator over all visible libraries.
 	 */
 	public static List/*<Library>*/ getVisibleLibraries()
 	{
         synchronized(libraries) {
 			ArrayList/*<Library>*/ visibleLibraries = new ArrayList/*<Library>*/();
 			/*for (Library lib: libraries)*/
-			for (Iterator it = libraries.iterator(); it.hasNext(); )
+			for (Iterator it = libraries.values().iterator(); it.hasNext(); )
 			{
 				Library lib = (Library)it.next();
 				if (!lib.isHidden()) visibleLibraries.add(lib);
@@ -689,6 +694,11 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	{
 		if (this.libName.equals(libName)) return true;
 
+		// make sure the name is legal
+        if (libName == null || libName.equals("") || libName.indexOf(' ') >= 0) {
+            System.out.println("Error: '"+libName+"' is not a valid name");
+            return true;
+        }
 		Library already = findLibrary(libName);
 		if (already != null)
 		{
@@ -709,9 +719,9 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	 */
 	public void lowLevelRename(String libName)
 	{
-		libraries.remove(this);
+		libraries.remove(this.libName);
 		this.libName = libName;
-		libraries.add(this);
+		libraries.put(libName, this);
 
 		String newLibFile = TextUtils.getFilePath(libFile) + libName;
 		String extension = TextUtils.getExtension(libFile);
@@ -801,9 +811,11 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 		if (name == null) return null;
 		CellName n = CellName.parseName(name);
 		if (n == null) return null;
+		Cell cell = (Cell)cells.get(n);
+		if (cell != null) return cell;
 
 		Cell onlyWithName = null;
-		for (Iterator it = cells.iterator(); it.hasNext();)
+		for (Iterator it = cells.values().iterator(); it.hasNext();)
 		{
 			Cell c = (Cell) it.next();
 			if (!n.getName().equalsIgnoreCase(c.getName())) continue;
@@ -820,7 +832,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	/**
 	 * Returns true, if cell is contained in this Library.
 	 */
-	boolean contains(Cell cell) { return cells.contains(cell); }
+	boolean contains(Cell cell) { return cells.get(cell.getCellName()) == cell; }
 
 	/**
 	 * Method to return an Iterator over all Cells in this Library.
@@ -828,28 +840,23 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	 */
 	public Iterator getCells()
 	{
-        ArrayList cellsCopy = new ArrayList();
         synchronized(cells) {
-            cellsCopy.addAll(cells);
+			ArrayList cellsCopy = new ArrayList(cells.values());
+			return cellsCopy.iterator();
         }
-        return cellsCopy.iterator();
 	}
 
 	/**
 	 * Method to return an iterator over all libraries.
 	 * @return an iterator over all libraries.
 	 */
-	public List getCellsSortedByName()
-	{
-		List sortedList = new ArrayList();
-		synchronized (cells)
-		{
-			for(Iterator it = getCells(); it.hasNext(); )
-				sortedList.add(it.next());
-		}
-		Collections.sort(sortedList, new TextUtils.CellsByName());
-		return sortedList;
-	}
+// 	public List getCellsSortedByName()
+// 	{
+// 		synchronized (cells)
+// 		{
+// 			return new ArrayList(cells.values());
+// 		}
+// 	}
 
     /**
      * Combines two lists of cells and sorts them by name
@@ -857,13 +864,13 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
      * @param cellList
      * @return a sorted list of cells by name
      */
-    public static List getCellsSortedByName(List cellList)
-    {
-        List sortedList = new ArrayList();
-        sortedList.addAll(cellList);
-        Collections.sort(sortedList, new TextUtils.CellsByName());
-        return sortedList;
-    }
+//     public static List getCellsSortedByName(List cellList)
+//     {
+//         List sortedList = new ArrayList();
+//         sortedList.addAll(cellList);
+//         Collections.sort(sortedList/*, new TextUtils.CellsByName()*/);
+//         return sortedList;
+//     }
 
 	/**
 	 * Returns verison of Electric which wrote this library.

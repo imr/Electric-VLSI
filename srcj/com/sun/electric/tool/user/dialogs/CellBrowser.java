@@ -34,6 +34,7 @@ import com.sun.electric.tool.user.ui.PaletteFrame;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.prefs.Preferences;
@@ -713,7 +714,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
                 cellList.add(c);
             }
         }
-        cellList = Library.getCellsSortedByName(cellList);      // sort list by name
+        Collections.sort(cellList);      // sort list by name
 
         cellListNames = new ArrayList();
         for (Iterator it = cellList.iterator(); it.hasNext(); ) {

@@ -368,9 +368,8 @@ public class CellLists extends EDialog
 		for(Iterator it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
-			List cellList = lib.getCellsSortedByName();
 			Library printlib = null;
-			for(Iterator cIt = cellList.iterator(); cIt.hasNext(); )
+			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
 				InstanceCount count = (InstanceCount)nodeCount.get(cell);
@@ -1034,7 +1033,7 @@ public class CellLists extends EDialog
 		{
 			if (orderByName.isSelected())
 			{
-				Collections.sort(cellList, new TextUtils.CellsByName());
+				Collections.sort(cellList/*, new TextUtils.CellsByName()*/);
 			} else if (orderByDate.isSelected())
 			{
 				Collections.sort(cellList, new TextUtils.CellsByDate());

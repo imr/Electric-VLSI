@@ -182,7 +182,7 @@ public class CellProperties extends EDialog
 		if (lib == null) return;
 		boolean any = false;
 		cellListModel.clear();
-		for(Iterator it = lib.getCellsSortedByName().iterator(); it.hasNext(); )
+		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			cellListModel.addElement(cell.noLibDescribe());

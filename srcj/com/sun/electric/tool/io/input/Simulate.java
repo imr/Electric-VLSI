@@ -37,8 +37,9 @@ import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.net.URL;
 
 import javax.swing.JOptionPane;
@@ -136,18 +137,16 @@ public class Simulate extends Input
 			if (cell != null)
 			{
 				// prompt for the cell
-				List cellList = curLib.getCellsSortedByName();
-				String [] cellNames = new String[cellList.size()];
-				int i = 0;
-				for(Iterator it = cellList.iterator(); it.hasNext(); )
+				ArrayList cellNames = new ArrayList();
+				for(Iterator it = curLib.getCells(); it.hasNext(); )
 				{
 					Cell aCell = (Cell)it.next();
-					cellNames[i++] = aCell.describe();
+					cellNames.add(aCell.describe());
 				}
-				String defaultCell = cellNames[0];
+				String defaultCell = (String)cellNames.get(0);
 				if (cell != null) defaultCell = cell.describe();
 				String selectedCell = (String)JOptionPane.showInputDialog(null, "Which cell is associated with this data",
-					"Cells in library " + curLib.getName(), JOptionPane.INFORMATION_MESSAGE, null, cellNames, defaultCell);
+					"Cells in library " + curLib.getName(), JOptionPane.INFORMATION_MESSAGE, null, cellNames.toArray(), defaultCell);
 				if (selectedCell != null)
 					cell = curLib.findNodeProto(selectedCell);
 			}
