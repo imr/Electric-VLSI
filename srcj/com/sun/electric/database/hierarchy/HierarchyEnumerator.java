@@ -32,14 +32,11 @@ public final class HierarchyEnumerator {
 	private Map netIdToNetDesc = new HashMap();
 
 	private static void error(boolean pred, String msg) {
-		if (pred) {
-			System.out.println(msg);
-		}
+		if (pred) System.out.println(msg);
 	}
 
 	// Prevent anyone from instantiating HierarchyEnumerator.
-	private HierarchyEnumerator() {
-	};
+	private HierarchyEnumerator() {	};
 
 	// See if this net inherits a net number from an export. If not then
 	// return null.
@@ -121,20 +118,15 @@ public final class HierarchyEnumerator {
 			if (descend && np instanceof Cell) {
 				Cell eq = ((Cell)np).getEquivalent();
 				if (eq == null) {
-					System.out.println(
-						"Warning: missing schematic: " + np.getProtoName());
+					System.out.println("Warning: missing schematic: " 
+					                   + np.getProtoName());
 				} else {
 					Map portNmToNetIDs2 = buildPortMap(ni, netToNetID);
 					AffineTransform xformToRoot2 =
 						new AffineTransform(xformToRoot);
 					xformToRoot2.concatenate(ni.rkTransformOut());
-					enumerateCell(
-						ni,
-						eq,
-						context.push(ni),
-						portNmToNetIDs2,
-						xformToRoot2,
-						info);
+					enumerateCell(ni, eq, context.push(ni), portNmToNetIDs2,
+						          xformToRoot2, info);
 				}
 			}
 		}
@@ -150,8 +142,7 @@ public final class HierarchyEnumerator {
 	//  hierarchical traversal.
 	private void doIt(Cell root, VarContext context, Visitor visitor) {
 		this.visitor = visitor;
-		if (context == null)
-			context = VarContext.globalContext;
+		if (context == null) context = VarContext.globalContext;
 		enumerateCell(null,	root, context, new HashMap(),
 		              new AffineTransform(), null);
 
@@ -274,15 +265,10 @@ public final class HierarchyEnumerator {
 		private Map netIdToNetDesc;
 
 		// package private
-		void init(
-			NodeInst parentInst,
-			Cell cell,
-			VarContext context,
-			Map netToNetID,
-			Map exportNmToNetIDs,
-			AffineTransform xformToRoot,
-			Map netIdToNetDesc,
-			CellInfo parentInfo) {
+		void init(NodeInst parentInst, Cell cell, VarContext context, 
+		          Map netToNetID, Map exportNmToNetIDs, 
+				  AffineTransform xformToRoot, Map netIdToNetDesc,	
+				  CellInfo parentInfo) {
 			this.parentInst = parentInst;
 			this.cell = cell;
 			this.context = context;

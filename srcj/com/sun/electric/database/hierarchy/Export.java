@@ -111,17 +111,16 @@ public class Export extends PortProto
 	/**
 	 * Routine to create an Export with the specified values.
 	 * @param parent the Cell in which this Export resides.
-	 * @param originalNode the node inside of the Export's Cell from which this Export originated.
-	 * @param originalPort the port on that node.
+	 * @param portInst the PortInst to export
 	 * @param protoName the name of this Export.
 	 * It may not have unprintable characters, spaces, or tabs in it.
 	 * @return the newly created Export.
 	 */
-	public static Export newInstance(Cell parent, PortInst originalPort, String protoName)
+	public static Export newInstance(Cell parent, PortInst portInst, String protoName)
 	{
 		Export pp = lowLevelAllocate();
 		if (pp.lowLevelName(parent, protoName)) return null;
-		if (pp.lowLevelPopulate(originalPort)) return null;
+		if (pp.lowLevelPopulate(portInst)) return null;
 		return pp;
 	}	
 
