@@ -52,7 +52,7 @@ public class NccUtils {
 	private static Cell findLayout(Cell.CellGroup group) {
 		for (Iterator it=group.getCells(); it.hasNext();) {
 			Cell c = (Cell) it.next();
-			if (c.getView()==View.LAYOUT) return c;
+			if (c.getView()==View.LAYOUT) return c.getNewestVersion();
 		}
 		return null;
 	}

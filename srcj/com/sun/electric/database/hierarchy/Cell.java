@@ -182,7 +182,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		 */
 		public Cell getMainSchematics()
 		{
-			if (mainSchematic != null) return mainSchematic;
+			if (mainSchematic != null) return mainSchematic.getNewestVersion();
 
 			// not set: see if it is obvious
 			for (Iterator it = getCells(); it.hasNext();)

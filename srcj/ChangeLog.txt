@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01au: *********************************
 
+BUG: (12/8/04, RK) NCC: When guessing which layout or schematic cell to compare against, always select the most recent version.
+
 BUG: (12/8/04, GVG) DRC: polysilicon-select checking not working properly hierarchically (Bug# 66 and #15).
 FIX: work on transformations.
 
