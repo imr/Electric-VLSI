@@ -100,10 +100,7 @@ import java.awt.print.PageFormat;
 import java.awt.print.PrinterException;
 import java.io.File;
 import java.net.URL;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import javax.print.PrintServiceLookup;
 import javax.print.PrintService;
 import javax.swing.ButtonGroup;
@@ -557,6 +554,8 @@ public final class MenuCommands
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, buckyBit), null);
         m = windowMenu.addMenuItem("Zoom In", KeyStroke.getKeyStroke('7', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { zoomInDisplay(); } });
+        m = windowMenu.addMenuItem("Zoom Box", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { zoomBoxCommand(); } });
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD7, buckyBit), null);
         m = windowMenu.addMenuItem("Focus on Highlighted", KeyStroke.getKeyStroke('F', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { focusOnHighlighted(); } });
@@ -1874,6 +1873,14 @@ public final class MenuCommands
 		// zoom in
 		wf.getContent().zoomInContents();
 	}
+
+    public static void zoomBoxCommand()
+    {
+        // only works with click zoom wire listener
+        EventListener oldListener = WindowFrame.getListener();
+        WindowFrame.setListener(ClickZoomWireListener.theOne);
+        ClickZoomWireListener.theOne.zoomBoxSingleShot(oldListener);
+    }
 
 	public static void focusOnHighlighted()
 	{

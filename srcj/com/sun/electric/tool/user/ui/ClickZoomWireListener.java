@@ -43,6 +43,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.*;
 import java.util.List;
 import java.util.Iterator;
+import java.util.EventListener;
 import java.util.prefs.Preferences;
 
 /**
@@ -86,6 +87,8 @@ public class ClickZoomWireListener
     private ElectricObject endObj;              /* object routing to */
 
     private int mouseX, mouseY;                 /* last known location of mouse */
+
+    private EventListener oldListener;          /* used when swtiching back to old listener */
 
     // mac stuff
     private static final boolean isMac = System.getProperty("os.name").toLowerCase().startsWith("mac");
@@ -175,7 +178,10 @@ public class ClickZoomWireListener
     /**
      * Sets the mode to zoom box for the next right click only.
      */
-    public void zoomBoxSingleShot() { modeRight = Mode.zoomBoxSingleShot; }
+    public void zoomBoxSingleShot(EventListener oldListener) {
+        modeRight = Mode.zoomBoxSingleShot;
+        this.oldListener = oldListener;
+    }
 
     /**
      * See if event is a left mouse click.  Platform independent.
@@ -630,6 +636,7 @@ public class ClickZoomWireListener
                         // note these dimensions are in lambda, the db unit, not screen pixels
                         if (bounds.getHeight() > 4 && bounds.getWidth() > 4)
                             wnd.focusScreen(bounds);
+                        WindowFrame.setListener(oldListener);
                     }
 	                if (modeRight == Mode.zoomBox) {
 	                    // zoom to box: focus on box

@@ -203,6 +203,7 @@ public final class Main
             }
             System.out.println("Opening library "+arg);
 			URL url = TextUtils.makeURLToFile(arg);
+            if (url == null) continue;
     		MenuCommands.ReadELIB job = new MenuCommands.ReadELIB(url);
             openedALib = true;
         }
