@@ -540,8 +540,11 @@ public class Clipboard
 			if (ni.isXMirrored()) width = -width;
 			double height = ni.getYSize();
 			if (ni.isYMirrored()) height = -height;
+			String name = null;
+			if (ni.isUsernamed())
+				name = ElectricObject.uniqueObjectName(ni.getName(), tocell, NodeInst.class, null);
 			NodeInst newNi = NodeInst.newInstance(ni.getProto(), new Point2D.Double(ni.getCenterX()+dx, ni.getCenterY()+dy),
-				width, height, ni.getAngle(), tocell);
+				width, height, ni.getAngle(), tocell, name);
 			if (newNi == null)
 			{
 				System.out.println("Cannot create node");
@@ -550,8 +553,9 @@ public class Clipboard
 			newNi.copyStateBits(ni);
 			newNi.clearWiped();
 			newNi.clearShortened();
-			newNi.setTextDescriptor(ni.getTextDescriptor());
-			newNi.copyVars(ni, true);
+			newNi.setProtoTextDescriptor(ni.getProtoTextDescriptor());
+			newNi.setNameTextDescriptor(ni.getNameTextDescriptor());
+			newNi.copyVars(ni);
 			newNi.endChange();
 			ni.setTempObj(newNi);
 //			us_dupnode = newNi;
@@ -594,16 +598,20 @@ public class Clipboard
 				NodeInst tailNi = (NodeInst)oldTailPi.getNodeInst().getTempObj();
 				PortInst tailPi = tailNi.getPortInstFromProto(oldTailPi.getPortProto());
 
+				String name = null;
+				if (ai.isUsernamed())
+					name = ElectricObject.uniqueObjectName(ai.getName(), tocell, ArcInst.class, null);
 				ArcInst newAr = ArcInst.newInstance(ai.getProto(), ai.getWidth(),
 					headPi, new Point2D.Double(ai.getHead().getLocation().getX() + dx, ai.getHead().getLocation().getY() + dy),
-					tailPi, new Point2D.Double(ai.getTail().getLocation().getX() + dx, ai.getTail().getLocation().getY() + dy));
+					tailPi, new Point2D.Double(ai.getTail().getLocation().getX() + dx, ai.getTail().getLocation().getY() + dy), name);
 				if (newAr == null)
 				{
 					System.out.println("Cannot create arc");
 					return;
 				}
 				newAr.copyStateBits(ai);
-				newAr.copyVars(ai, true);
+				newAr.copyVars(ai);
+				newAr.setNameTextDescriptor(ai.getNameTextDescriptor());
 				newAr.endChange();
 				ai.setTempObj(newAr);
 			}
@@ -679,7 +687,7 @@ public class Clipboard
 			Export newpp =  Export.newInstance(cell, newPi, portname);
 			if (newpp == null) return;
 			newpp.setTextDescriptor(origpp.getTextDescriptor());
-			newpp.copyVars(origpp, true);
+			newpp.copyVars(origpp);
 			newpp.endChange();
 		}
 	}
@@ -729,7 +737,7 @@ public class Clipboard
 		}
 
 		// make sure all variables are on the node
-		destNode.copyVars(srcNode, true);
+		destNode.copyVars(srcNode);
 
 		// copy any special user bits
 		destNode.lowLevelSetUserbits(srcNode.lowLevelGetUserbits());
@@ -825,9 +833,9 @@ public class Clipboard
 			inheritAttributes(newNi);
 
 			// remove node name if it is not visible
-			Variable var = newNi.getVar(NodeInst.NODE_NAME, String.class);
-			if (var != null && !var.isDisplay())
-				newNi.delVar(NodeInst.NODE_NAME);
+			//Variable var = newNi.getVar(NodeInst.NODE_NAME, String.class);
+			//if (var != null && !var.isDisplay())
+			//	newNi.delVar(NodeInst.NODE_NAME);
 
 			// end changes to node and all arcs touching this node
 			newNi.endChange();

@@ -52,6 +52,12 @@ public class ElectricObject
 	/** extra variables (null if no variables yet) */		private HashMap vars;
 
 	/** a list of all variable keys */						private static HashMap varKeys = new HashMap();
+	/** key for NODE_NAME */								public static final Variable.Key nodeNameKey = new Variable.Key(NodeInst.NODE_NAME);
+	/** key for VAR_ARC_NAME */								public static final Variable.Key arcNameKey = new Variable.Key(ArcInst.VAR_ARC_NAME);
+	{
+		varKeys.put(nodeNameKey.getName(), nodeNameKey);
+		varKeys.put(arcNameKey.getName(), arcNameKey);
+	}
 
 	// ------------------------ private and protected methods -------------------
 
@@ -258,18 +264,11 @@ public class ElectricObject
 	}
 
 	/**
-	 * Routine to signal that displayability of variable changed.
-	 * Used to update Node/Arc names after changeing NODE_NAME/ARC_NAME variables.
-	 * @param var the Variable.
-	 */
-	protected void updateDisplayable(Variable var) {}
-
-	/**
 	 * Routine to copy all variables from another ElectricObject to this ElectricObject.
 	 * @param other the other ElectricObject from which to copy Variables.
 	 * @param uniqueNames true to change node and arc names to be unique.
 	 */
-	public void copyVars(ElectricObject other, boolean uniqueNames)
+	public void copyVars(ElectricObject other)
 	{
 		checkChanging();
 		for(Iterator it = other.getVariables(); it.hasNext(); )
@@ -279,31 +278,6 @@ public class ElectricObject
 			Object obj = var.getObject();
 			int flags = var.lowLevelGetFlags();
 			TextDescriptor td = var.getTextDescriptor();
-			if (uniqueNames)
-			{
-				if (this instanceof NodeInst && key.getName().equals("NODE_name"))
-				{
-					// if the node name wasn't displayable, do not copy
-					if (!var.isDisplay()) continue;
-
-					// find a unique node name
-					NodeInst ni = (NodeInst)this;
-					String objName = (String)obj;
-					String newName = uniqueObjectName(objName, ni.getParent(), NodeInst.class, ni);
-					if (!newName.equals(objName)) obj = newName;
-				} else if (this instanceof ArcInst && key.getName().equals("ARC_name"))
-				{
-					// if the arc name wasn't displayable, do not copy
-					if (!var.isDisplay()) continue;
-
-					// find a unique node name
-					ArcInst ai = (ArcInst)this;
-					String objName = (String)obj;
-					String newName = uniqueObjectName(objName, ai.getParent(), ArcInst.class, ai);
-					if (!newName.equals(objName)) obj = newName;
-				}
-			}
-
 			Variable newVar = this.setVar(key.getName(), obj);
 			if (newVar != null)
 			{

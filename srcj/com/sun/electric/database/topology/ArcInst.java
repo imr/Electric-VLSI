@@ -98,7 +98,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	/** set if hard to select */						private static final int HARDSELECTA =     020000000000;
 
 	// Name of the variable holding the ArcInst's name.
-	private static final String VAR_ARC_NAME = "ARC_name";
+	public static final String VAR_ARC_NAME = "ARC_name";
 
 	/** width of this arc instance */					private double arcWidth;
 	/** prototype of this arc instance */				private ArcProto protoType;
@@ -118,9 +118,10 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 * @param width the width of the new ArcInst.  The width must be > 0.
 	 * @param head the head end PortInst.
 	 * @param tail the tail end PortInst.
+	 * @param name the name of the new ArcInst
 	 * @return the newly created ArcInst, or null if there is an error.
 	 */
-	public static ArcInst newInstance(ArcProto type, double width, PortInst head, PortInst tail)
+	public static ArcInst newInstance(ArcProto type, double width, PortInst head, PortInst tail, String name)
 	{
 		Rectangle2D headBounds = head.getBounds();
 		double headX = headBounds.getCenterX();
@@ -128,7 +129,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		Rectangle2D tailBounds = tail.getBounds();
 		double tailX = tailBounds.getCenterX();
 		double tailY = tailBounds.getCenterY();
-		return newInstance(type, width, head, new Point2D.Double(headX, headY), tail, new Point2D.Double(tailX, tailY));
+		return newInstance(type, width, head, new Point2D.Double(headX, headY), tail, new Point2D.Double(tailX, tailY), name);
 	}
 
 	/**
@@ -140,10 +141,11 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 * @param headPt the coordinate of the head end PortInst.
 	 * @param tail the tail end PortInst.
 	 * @param tailPt the coordinate of the tail end PortInst.
+	 * @param name the name of the new ArcInst
 	 * @return the newly created ArcInst, or null if there is an error.
 	 */
 	public static ArcInst newInstance(ArcProto type, double width,
-		PortInst head, Point2D headPt, PortInst tail, Point2D tailPt)
+		PortInst head, Point2D headPt, PortInst tail, Point2D tailPt, String name)
 	{
 		ArcInst ai = lowLevelAllocate();
 		if (ai.lowLevelPopulate(type, width, head, headPt, tail, tailPt)) return null;
@@ -161,6 +163,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 				" arc at (" + tailPt.getX() + "," + tailPt.getY() + ") does not fit in port");
 			return null;
 		}
+		if (name != null) ai.setName(name);
 		if (ai.lowLevelLink()) return null;
 
 		// handle change control, constraint, and broadcast
@@ -247,7 +250,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		double newwid = getWidth() - getProto().getWidthOffset() + ap.getWidthOffset();
 
 		// first create the new nodeinst in place
-		ArcInst newar = ArcInst.newInstance(ap, newwid, piH, head.getLocation(), piT, tail.getLocation());
+		ArcInst newar = ArcInst.newInstance(ap, newwid, piH, head.getLocation(), piT, tail.getLocation(), null);
 		if (newar == null)
 		{
 			System.out.println("Cannot replace arc " + describe() + " with one of type " + ap.getProtoName() +
@@ -256,12 +259,14 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		}
 
 		// copy all variables on the arcinst
-		copyVars(newar, false);
+		newar.copyVars(this);
+		newar.setNameTextDescriptor(getNameTextDescriptor());
 		newar.endChange();
 
 		// now delete the original nodeinst
 		startChange();
 		kill();
+		newar.setName(getName());
 		return newar;
 	}
 
@@ -748,28 +753,13 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	/****************************** TEXT ******************************/
 
 	/**
-	 * Routine to set the name of this ArcInst.
-	 * The name is a local string that can be set by the user.
-	 * @param name the new name of this ArcInst.
+	 * Routine to determine whether a variable name on ArcInst is deprecated.
+	 * Deprecated variable names are those that were used in old versions of Electric,
+	 * but are no longer valid.
+	 * @param name the name of the variable.
+	 * @return true if the variable name is deprecated.
 	 */
-	public Variable setName(String name)
-	{
-		Variable var = setVar(VAR_ARC_NAME, name);
-		if (var != null) var.setDisplay();
-		return var;
-	}
-
-	/**
-	 * Routine to return the name of this ArcInst.
-	 * The name is a local string that can be set by the user.
-	 * @return the name of this ArcInst, null if there is no name.
-	 */
-	public String getName()
-	{
-		Variable var = getVar(VAR_ARC_NAME, String.class);
-		if (var == null) return null;
-		return (String) var.getObject();
-	}
+	public boolean isDeprecatedVariable(String name) { return name.equals(VAR_ARC_NAME); }
 
 	/*
 	 * Routine to write a description of this ArcInst.

@@ -24,9 +24,12 @@
 package com.sun.electric.tool.io;
 
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.user.ui.ProgressDialog;
@@ -288,4 +291,35 @@ public class Input
 		if (newVar == null)
 			System.out.println("Could not preserve outline information on node in cell "+ni.getParent().describe());
 	}
+
+	/**
+	 * Routine to set name of Geometric object..
+	 * @param geom the Geometric object.
+	 * @param value name of object
+	 * @param td text descriptor.
+	 * @param type type mask.
+	 */
+	protected void setGeomName(Geometric geom, Object value, TextDescriptor td, int type)
+	{
+		if (value == null || !(value instanceof String)) return;
+		String str = (String)value;
+		Name name = Name.findName(str);
+		if ((type & BinaryConstants.VDISPLAY) != 0)
+		{
+			if (name.isTempname())
+			{
+				String newS = "";
+				for (int i = 0; i < str.length(); i++)
+				{
+					char c = str.charAt(i);
+					if (c == '@') c = '_';
+					newS += c;
+				}
+				name = Name.findName(newS);
+			}
+		} else if (!name.isTempname()) return;
+		geom.setNameLow(name);
+		geom.setNameTextDescriptor(td);
+	}
+
 }

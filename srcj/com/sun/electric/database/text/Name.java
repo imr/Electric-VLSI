@@ -114,6 +114,12 @@ public class Name
 	public boolean isValid() { return (flags & ERROR) == 0; }
 
 	/**
+	 * Tells whether or not this Name is a valid bus or signal name.
+	 * @return true if Name is a valid name.
+	 */
+	public boolean isTempname() { return (flags & TEMP) != 0; }
+
+	/**
 	 * Tells whether or not this Name is a list of names separated by comma.
 	 * @return true if Name is a list of names separated by comma.
 	 */
@@ -166,10 +172,11 @@ public class Name
 
 	// ------------------ protected and private methods -----------------------
 
-	public static final int ERROR    = 0x1;
-	public static final int LIST     = 0x2;
-	public static final int BUS      = 0x4;
-	public static final int SIMPLE   = 0x8;
+	public static final int ERROR    = 0x01;
+	public static final int LIST     = 0x02;
+	public static final int BUS      = 0x04;
+	public static final int SIMPLE   = 0x08;
+	public static final int TEMP     = 0x10;
 
 	/**
 	 * Returns the name object for this string, assuming that is is trimmed.
@@ -364,6 +371,7 @@ public class Name
 					flags |= (LIST|BUS);
 					flags &= ~SIMPLE;
 				}
+				if (c == '@') flags |= TEMP;
 				continue;
 			}
 			if (c == '[') throw new NumberFormatException("nested bracket '[' in name");
@@ -399,6 +407,7 @@ public class Name
 				bracket = i;
 				flags |= BUS;
 			}
+			if (c == '@') throw new NumberFormatException("'@' in brackets");
 		}
 		return flags;
 	}

@@ -127,8 +127,7 @@ public class NodeInst extends Geometric implements Instancable
 	/** HashTable of portInsts on this node instance */		private HashMap portMap;
 	/** List of connections belonging to this instance */	private List connections;
 	/** List of Exports belonging to this node instance */	private List exports;
-	/** Text descriptor */									private TextDescriptor descriptor;
-	/** Name of this node instance */						private Name name;
+	/** Text descriptor of prototype name */				private TextDescriptor protoDescriptor;
 	/** array of subinstances of icon node instance */		private Subinst[] subs;
 
 	// --------------------- private and protected methods ---------------------
@@ -143,7 +142,7 @@ public class NodeInst extends Geometric implements Instancable
 		this.portMap = new HashMap();
 		this.connections = new ArrayList();
 		this.exports = new ArrayList();
-		this.descriptor = TextDescriptor.newInstanceDescriptor();
+		this.protoDescriptor = TextDescriptor.newInstanceDescriptor();
 	}
 
 	/****************************** CREATE, DELETE, MODIFY ******************************/
@@ -158,10 +157,11 @@ public class NodeInst extends Geometric implements Instancable
 	 * If negative, flip the Y coordinate (or flip ABOUT the X axis).
 	 * @param angle the angle of this NodeInst (in tenth-degrees).
 	 * @param parent the Cell in which this NodeInst will reside.
+	 * @param name name of new NodeInst
 	 * @return the newly created NodeInst, or null on error.
 	 */
 	public static NodeInst newInstance(NodeProto protoType, Point2D center, double width, double height,
-		int angle, Cell parent)
+		int angle, Cell parent, String name)
 	{
 		if (protoType instanceof Cell)
 		{
@@ -174,6 +174,7 @@ public class NodeInst extends Geometric implements Instancable
 		}
 		NodeInst ni = lowLevelAllocate();
 		if (ni.lowLevelPopulate(protoType, center, width, height, angle, parent)) return null;
+		if (name != null) ni.setName(name);
 		if (ni.lowLevelLink()) return null;
 
 		// handle change control, constraint, and broadcast
@@ -346,7 +347,7 @@ public class NodeInst extends Geometric implements Instancable
 			newXS = getXSize() - oldSO.getLowXOffset() - oldSO.getHighXOffset() + newSO.getLowXOffset() + newSO.getHighXOffset();
 			newYS = getYSize() - oldSO.getLowYOffset() - oldSO.getHighYOffset() + newSO.getLowYOffset() + newSO.getHighYOffset();
 		}
-		NodeInst newNi = NodeInst.newInstance(np, new Point2D.Double(0, 0), newXS, newYS, getAngle(), getParent());
+		NodeInst newNi = NodeInst.newInstance(np, new Point2D.Double(0, 0), newXS, newYS, getAngle(), getParent(), null);
 		if (newNi == null) return null;
 		newNi.endChange();
 
@@ -514,6 +515,7 @@ public class NodeInst extends Geometric implements Instancable
 					if ((ii%1800) != (ang%1800)) zigzag = true;
 				}
 			}
+			ArcInst newAi;
 			if (zigzag)
 			{
 				// make that two wires
@@ -522,14 +524,14 @@ public class NodeInst extends Geometric implements Instancable
 				NodeProto pinNp = ((PrimitiveArc)ai.getProto()).findPinProto();
 				double psx = pinNp.getDefWidth();
 				double psy = pinNp.getDefHeight();
-				NodeInst pinNi = NodeInst.newInstance(pinNp, new Point2D.Double(cX, cY), psx, psy, 0, getParent());
+				NodeInst pinNi = NodeInst.newInstance(pinNp, new Point2D.Double(cX, cY), psx, psy, 0, getParent(), null);
 				PortInst pinPi = pinNi.getOnlyPortInst();
-				ArcInst newAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), newPortInst[0], newPoint[0],
-					pinPi, new Point2D.Double(cX, cY));
+				newAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), newPortInst[0], newPoint[0],
+					pinPi, new Point2D.Double(cX, cY), null);
 				if (newAi == null) return null;
 				newAi.lowLevelSetUserbits(ai.lowLevelGetUserbits());
 				ArcInst newAi2 = ArcInst.newInstance(ai.getProto(), ai.getWidth(), pinPi, new Point2D.Double(cX, cY),
-					newPortInst[1], newPoint[1]);
+					newPortInst[1], newPoint[1], null);
 				if (newAi2 == null) return null;
 				newAi2.lowLevelSetUserbits(ai.lowLevelGetUserbits());
 				newAi2.clearNegated();
@@ -537,23 +539,23 @@ public class NodeInst extends Geometric implements Instancable
 				{
 					ArcInst aiSwap = newAi;   newAi = newAi2;   newAi2 = aiSwap;
 				}
-				ai.copyVars(newAi, false);
 			} else
 			{
 				// replace the arc with another arc
-				ArcInst newai = ArcInst.newInstance(ai.getProto(), ai.getWidth(), newPortInst[0], newPoint[0], newPortInst[1], newPoint[1]);
-				if (newai == null)
+				newAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), newPortInst[0], newPoint[0], newPortInst[1], newPoint[1], null);
+				if (newAi == null)
 				{
 					newNi.startChange();
 					newNi.kill();
 					return null;
 				}
-				newai.lowLevelSetUserbits(ai.lowLevelGetUserbits());
-				ai.copyVars(newai, false);
-				newai.endChange();
+				newAi.lowLevelSetUserbits(ai.lowLevelGetUserbits());
 			}
+			newAi.copyVars(ai);
+			newAi.endChange();
 			ai.startChange();
 			ai.kill();
+			newAi.setName(ai.getName());
 		}
 
 		// now replace all of the exports
@@ -574,13 +576,16 @@ public class NodeInst extends Geometric implements Instancable
 		}
 
 		// copy all variables on the nodeinst
-		copyVars(newNi, false);
+		newNi.copyVars(this);
+		newNi.setNameTextDescriptor(getNameTextDescriptor());
+		newNi.setProtoTextDescriptor(getProtoTextDescriptor());
 		newNi.lowLevelSetUserbits(lowLevelGetUserbits());
 		newNi.endChange();
 
 		// now delete the original nodeinst
 		startChange();
 		kill();
+		newNi.setName(getName());
 		return newNi;
 	}
 
@@ -655,6 +660,19 @@ public class NodeInst extends Geometric implements Instancable
 	 */
 	public boolean lowLevelLink()
 	{
+		if (isUsernamed())
+		{
+			if (!parent.isUniqueName(name, getClass(), this))
+			{
+				System.out.println("NodeInst "+name+" already exists in "+parent);
+				return true;
+			}
+		} else
+		{
+			if (getName() == null || !parent.isUniqueName(name, getClass(), this))
+				if (setNameLow(parent.getAutoname(getBasename()))) return true;
+		}
+
 		// add to linked lists
 		linkGeom(parent);
 		nodeUsage = parent.addNode(this);
@@ -873,7 +891,7 @@ public class NodeInst extends Geometric implements Instancable
 		{
 			double cX = getCenterX();
 			double cY = getCenterY();
-			TextDescriptor td = getTextDescriptor();
+			TextDescriptor td = getProtoTextDescriptor();
 			double offX = (double)td.getXOff() / 4;
 			double offY = (double)td.getYOff() / 4;
 			TextDescriptor.Position pos = td.getPos();
@@ -1493,7 +1511,7 @@ public class NodeInst extends Geometric implements Instancable
 	 * The Text Descriptor applies to the display of that name.
 	 * @return the Text Descriptor for this NodeInst.
 	 */
-	public TextDescriptor getTextDescriptor() { return descriptor; }
+	public TextDescriptor getProtoTextDescriptor() { return protoDescriptor; }
 
 	/**
 	 * Routine to set the Text Descriptor associated with this NodeInst.
@@ -1502,7 +1520,7 @@ public class NodeInst extends Geometric implements Instancable
 	 * The Text Descriptor applies to the display of that name.
 	 * @param descriptor the Text Descriptor for this NodeInst.
 	 */
-	public void setTextDescriptor(TextDescriptor descriptor) { this.descriptor = descriptor; }
+	public void setProtoTextDescriptor(TextDescriptor descriptor) { this.protoDescriptor = descriptor; }
 
 	/*
 	 * Routine to write a description of this NodeInst.
@@ -1549,74 +1567,40 @@ public class NodeInst extends Geometric implements Instancable
 	}
 
 	/**
-	 * Routine to return the name of this NodeInst.
-	 * The name is a local string that can be set by the user.
-	 * @return the name of this NodeInst, null if there is no name.
-	 */
-	public String getName()
-	{
-		return name != null ? name.toString() : null;
-	}
-
-	/**
-	 * Routine to return the Name object of this NodeInst.
-	 * The name is a local string that can be set by the user.
-	 * @return the name of this NodeInst, null if there is no name.
-	 */
-	public Name getNameLow()
-	{
-		return name;
-	}
-
-	/**
 	 * Routine to set the name of this NodeInst.
 	 * The name is a local string that can be set by the user.
 	 * @param name the new name of this NodeInst.
 	 */
-	public Variable setName(String name)
+	public boolean setNameLow(Name name)
 	{
-		Variable var = super.setVar(NODE_NAME, name);
-		if (var != null) var.setDisplay();
-		updateName();
-		return var;
-	}
+		if (nodeUsage != null)
+		{
+			if (name == null || !parent.isUniqueName(name, getClass(), this))
+			{
+				if (name != null && !name.isTempname())
+				{
+					System.out.println("NodeInst "+name+" already exists in "+parent);
+					return true;
+				}
+				name = parent.getAutoname(getBasename());
+			}
+		}
+		if (name == getNameLow()) return false;
+		if (super.setNameLow(name)) return true;
 
-	/**
-	 * Routine to create a Variable on this ElectricObject with the specified values.
-	 * @param name the name of the Variable.
-	 * @param value the object to store in the Variable.
-	 * @return the Variable that has been created.
-	 */
-	public Variable setVar(String name, Object value)
-	{
-		Variable v = super.setVar(name,value);
-		if (name.equals(NODE_NAME))
-			updateName();
-		return v;
-	}
+		// If linked, update max suffix
+		if (nodeUsage != null)
+		{
+			parent.updateMaxSuffix(this);
+		}
 
-	/**
-	 * Routine to put an Object into an entry in an arrayed Variable on this ElectricObject.
-	 * @param name the name of the arrayed Variable.
-	 * @param value the object to store in an entry of the arrayed Variable.
-	 * @param index the location in the arrayed Variable to store the value.
-	 */
-	public void setVar(String name, Object value, int index)
-	{
-		super.setVar(name,value,index);
-		if (name.equals(NODE_NAME))
-			updateName();
-	}
-
-	/**
-	 * Routine to delete a Variable from this ElectricObject.
-	 * @param name the name of the Variable to delete.
-	 */
-	public void delVar(String name)
-	{
-		super.delVar(name);
-		if (name.equals(NODE_NAME))
-			updateName();
+		// create subs
+		if (subs == null) return false;
+		int width = name.busWidth();
+		if (width != subs.length) subs = new Subinst[width];
+		for (int i = 0; i < width; i++)
+			subs[i] = new Subinst(i);
+		return false;
 	}
 
 	/**
@@ -1648,6 +1632,15 @@ public class NodeInst extends Geometric implements Instancable
 		for (int i = 0; i < width; i++)
 			subs[i] = new Subinst(i);
 	}
+
+	/**
+	 * Routine to determine whether a variable name on NodeInst is deprecated.
+	 * Deprecated variable names are those that were used in old versions of Electric,
+	 * but are no longer valid.
+	 * @param name the name of the variable.
+	 * @return true if the variable name is deprecated.
+	 */
+	public boolean isDeprecatedVariable(String name) { return name.equals(NODE_NAME); }
 
 	/**
 	 * Routine to determine whether this is an Invisible Pin with text.
@@ -1780,7 +1773,7 @@ public class NodeInst extends Geometric implements Instancable
 	 */
 	private Name getBasename()
 	{
-		return protoType instanceof Cell ? ((Cell)protoType).getBasename() : getFunction().getShortName();
+		return protoType instanceof Cell ? ((Cell)protoType).getBasename() : getFunction().getBasename();
 	}
 
 	/**

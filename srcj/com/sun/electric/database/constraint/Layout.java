@@ -994,16 +994,16 @@ public class Layout extends Constraint
 			double oldyA = (tailPt.getY()+headPt.getY()) / 2;
 			double oldyB = oldyA;
 			double oldxA = headPt.getX();   double oldxB = tailPt.getX();
-			no1 = NodeInst.newInstance(np, new Point2D.Double(oldxB, oldyB),psx, psy, 0, pnt);
-			no2 = NodeInst.newInstance(np, new Point2D.Double(oldxA, oldyA),psx, psy, 0, pnt);
+			no1 = NodeInst.newInstance(np, new Point2D.Double(oldxB, oldyB),psx, psy, 0, pnt, null);
+			no2 = NodeInst.newInstance(np, new Point2D.Double(oldxA, oldyA),psx, psy, 0, pnt, null);
 		} else
 		{
 			// assume horizontal arcinst
 			double oldyA = headPt.getY();   double oldyB = tailPt.getY();
 			double oldxA = (tailPt.getX()+headPt.getX()) / 2;
 			double oldxB = oldxA;
-			no1 = NodeInst.newInstance(np, new Point2D.Double(oldxB, oldyB),psx, psy, 0, pnt);
-			no2 = NodeInst.newInstance(np, new Point2D.Double(oldxA, oldyA),psx, psy, 0, pnt);
+			no1 = NodeInst.newInstance(np, new Point2D.Double(oldxB, oldyB),psx, psy, 0, pnt, null);
+			no2 = NodeInst.newInstance(np, new Point2D.Double(oldxA, oldyA),psx, psy, 0, pnt, null);
 		}
 		if (no1 == null || no2 == null)
 		{
@@ -1023,18 +1023,19 @@ public class Layout extends Constraint
 		Rectangle2D no2Bounds = no2pi.getPoly().getBounds2D();
 		Point2D no2Pt = new Point2D.Double(no2Bounds.getCenterX(), no2Bounds.getCenterY());
 
-		ArcInst ar1 = ArcInst.newInstance(ap, wid, fpi, head.getLocation(), no2pi, no2Pt);
+		ArcInst ar1 = ArcInst.newInstance(ap, wid, fpi, head.getLocation(), no2pi, no2Pt, null);
 		ar1.copyStateBits(ai);
-		ArcInst ar2 = ArcInst.newInstance(ap, wid, no2pi, no2Pt, no1pi, no1Pt);
+		ArcInst ar2 = ArcInst.newInstance(ap, wid, no2pi, no2Pt, no1pi, no1Pt, null);
 		ar2.copyStateBits(ai);   ar2.clearNegated();
-		ArcInst ar3 = ArcInst.newInstance(ap, wid, no1pi, no1Pt, tpi, tail.getLocation());
+		ArcInst ar3 = ArcInst.newInstance(ap, wid, no1pi, no1Pt, tpi, tail.getLocation(), null);
 		ar3.copyStateBits(ai);   ar3.clearNegated();
 		if (ar1 == null || ar2 == null || ar3 == null)
 		{
 			System.out.println("Problem creating jog arcs");
 			return;
 		}
-		ar2.copyVars(ai, false);
+		ar2.copyVars(ai);
+		ar2.setNameTextDescriptor(ai.getNameTextDescriptor());
 		Undo.newChange(ar1, Undo.Type.OBJECTEND);
 		Undo.newChange(ar2, Undo.Type.OBJECTEND);
 		Undo.newChange(ar3, Undo.Type.OBJECTEND);
@@ -1056,6 +1057,7 @@ public class Layout extends Constraint
 //			determineangle(ai);
 //		}
 		ai.kill();
+		ar2.setName(ai.getName());
 	}
 
 	/*

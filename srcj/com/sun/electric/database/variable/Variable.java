@@ -387,41 +387,19 @@ public class Variable
 	 * This should not normally be called by any other part of the system.
 	 * @param flags the new "type bits".
 	 */
-	public void lowLevelSetFlags(int flags)
-	{
-		owner.checkChanging();
-		boolean oldDisplay = (this.flags & VDISPLAY) != 0;
-		boolean newDisplay = (flags & VDISPLAY) != 0;
-		this.flags = flags;
-		if (oldDisplay != newDisplay)
-			owner.updateDisplayable(this);
-	}
+	public void lowLevelSetFlags(int flags) { owner.checkChanging(); this.flags = flags; }
 
 	/**
 	 * Routine to set this Variable to be displayable.
 	 * Displayable Variables are shown with the object.
 	 */
-	public void setDisplay()
-	{
-		owner.checkChanging();
-		boolean old = (flags & VDISPLAY) != 0;
-		flags |= VDISPLAY;
-		if (!old)
-			owner.updateDisplayable(this);
-	}
+	public void setDisplay() { owner.checkChanging(); flags |= VDISPLAY; }
 
 	/**
 	 * Routine to set this Variable to be not displayable.
 	 * Displayable Variables are shown with the object.
 	 */
-	public void clearDisplay()
-	{
-		owner.checkChanging();
-		boolean old = (flags & VDISPLAY) != 0;
-		flags &= ~VDISPLAY;
-		if (old)
-			owner.updateDisplayable(this);
-	}
+	public void clearDisplay() { owner.checkChanging(); flags &= ~VDISPLAY; }
 
 	/**
 	 * Routine to return true if this Variable is displayable.

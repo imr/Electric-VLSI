@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.io;
 
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.text.Version;
@@ -670,7 +671,7 @@ public class OutputBinary extends Output
 		writeBigInteger(transpose);
 		writeBigInteger(rotation);
 
-		TextDescriptor td = ni.getTextDescriptor();
+		TextDescriptor td = ni.getProtoTextDescriptor();
 		writeBigInteger(td.lowLevelGet0());
 		writeBigInteger(td.lowLevelGet1());
 
@@ -791,12 +792,27 @@ public class OutputBinary extends Output
 		throws IOException
 	{
 		int count = 0;
+		if (obj instanceof Geometric && ((Geometric)obj).getNameLow() != null)
+			count++;
 		for(Iterator it = obj.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
 			if (!var.isDontSave()) count++;
 		}
 		writeBigInteger(count);
+		if (obj instanceof Geometric && ((Geometric)obj).getNameLow() != null)
+		{
+			Geometric geom = (Geometric)obj;
+			Variable.Key key = geom instanceof NodeInst ? ElectricObject.nodeNameKey : ElectricObject.arcNameKey;
+			writeSmallInteger((short)key.getIndex());
+			int type = BinaryConstants.VSTRING;
+			if (geom.isUsernamed()) type |= BinaryConstants.VDISPLAY;
+			writeBigInteger(type);
+			// write the text descriptor of name
+			writeBigInteger(geom.getNameTextDescriptor().lowLevelGet0());
+			writeBigInteger(geom.getNameTextDescriptor().lowLevelGet1());
+			putOutVar(geom.getName());
+		}
 		for(Iterator it = obj.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();

@@ -25,8 +25,11 @@ package com.sun.electric.database.geometry;
 
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
+import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -765,6 +768,8 @@ public class Geometric extends ElectricObject
 	// --                                       --
 
 	/** Cell containing this Geometric object */			protected Cell parent;
+	/** name of this Geometric object */					protected Name name;
+	/** The text descriptor of name of Geometric. */		private TextDescriptor nameDescriptor;
 	/** bounds after transformation */						protected Rectangle2D visBounds;
 	/** center coordinate of this geometric */				protected Point2D center;
 	/** size of this geometric */							protected double sX, sY;
@@ -786,6 +791,7 @@ public class Geometric extends ElectricObject
 	{
 		this.userBits = 0;
 		center = new Point2D.Double();
+		nameDescriptor = TextDescriptor.newNodeArcDescriptor();
 		visBounds = new Rectangle2D.Double(0, 0, 0, 0);
 	}
 
@@ -827,6 +833,70 @@ public class Geometric extends ElectricObject
 	 * @return the Cell that contains this Geometric object.
 	 */
 	public Cell getParent() { return parent; }
+
+	/**
+	 * Routine to return the name of this Geometric.
+	 * @return the name of this Geometric, null if there is no name.
+	 */
+	public String getName()
+	{
+		return name != null ? name.toString() : null;
+	}
+
+	/**
+	 * Routine to return the Name object of this Geometric.
+	 * @return the name of this Geometric, null if there is no name.
+	 */
+	public Name getNameLow()
+	{
+		return name;
+	}
+
+	/**
+	 * Routine to set the name of this Geometric.
+	 * @param name name of this geometric.
+	 * @return true on error
+	 */
+	public boolean setName(String name)
+	{
+		return setNameLow(Name.findName(name));
+	}
+
+	/**
+	 * Routine to set the Name object of this Geometric.
+	 * @param name name of this geometric.
+	 */
+	public boolean setNameLow(Name name)
+	{
+		if (name != null && !name.isValid())
+		{
+			System.out.println("Invalid name "+name+" wasn't assigned to Geometric");
+			return true;
+		}
+		this.name = name;
+		//System.out.println("SetNameLow "+name);
+		return false;
+	}
+
+	/**
+	 * Routine to return the Text Descriptor associated with name of this Geometric.
+	 * The Text Descriptor applies to the display of that name.
+	 * @return the Text Descriptor for name of this Geometric.
+	 */
+	public TextDescriptor getNameTextDescriptor() { return nameDescriptor; }
+
+	/**
+	 * Routine to set the Text Descriptor associated with name of this Geometric.
+	 * The Text Descriptor applies to the display of that name.
+	 * @param descriptor the Text Descriptor for name of this Geometric.
+	 */
+	public void setNameTextDescriptor(TextDescriptor descriptor) { this.nameDescriptor = descriptor; }
+
+	/**
+	 * Retruns true if this Geometric was named by user.
+	 * @return true if this Geometric was named by user.
+	 */		
+	public boolean isUsernamed() { return name != null && !name.isTempname(); }
 
 	/**
 	 * Routine to return the center point of this Geometric object.
@@ -996,5 +1066,48 @@ public class Geometric extends ElectricObject
 	 * @return the Change object on this Geometric.
 	 */
 	public Undo.Change getChange() { return change; }
+
+	/**
+	 * Routine to return the number of displayable Variables on this ElectricObject.
+	 * A displayable Variable is one that will be shown with its object.
+	 * Displayable Variables can only sensibly exist on NodeInst and ArcInst objects.
+	 * @return the number of displayable Variables on this ElectricObject.
+	 */
+	public int numDisplayableVariables(boolean multipleStrings)
+	{
+		return super.numDisplayableVariables(multipleStrings) + (isUsernamed()?1:0);
+	}
+
+	/**
+	 * Routine to add all displayable Variables on this Electric object to an array of Poly objects.
+	 * @param rect a rectangle describing the bounds of the object on which the Variables will be displayed.
+	 * @param polys an array of Poly objects that will be filled with the displayable Variables.
+	 * @param start the starting index in the array of Poly objects to fill with displayable Variables.
+	 * @return the number of Variables that were added.
+	 */
+	public int addDisplayableVariables(Rectangle2D rect, Poly [] polys, int start, EditWindow wnd, boolean multipleStrings)
+	{
+		int numVars = 0;
+		if (isUsernamed())
+		{
+			double cX = rect.getCenterX();
+			double cY = rect.getCenterY();
+			double offX = (double)nameDescriptor.getXOff() / 4;
+			double offY = (double)nameDescriptor.getYOff() / 4;
+			TextDescriptor.Position pos = nameDescriptor.getPos();
+			Poly.Type style = pos.getPolyType();
+
+			Point2D [] pointList = new Point2D.Double[1];
+			pointList[0] = new Point2D.Double(cX+offX, cY+offY);
+			polys[start] = new Poly(pointList);
+			polys[start].setStyle(style);
+			polys[start].setString(name.toString());
+			polys[start].setTextDescriptor(nameDescriptor);
+			polys[start].setLayer(null);
+			//polys[start].setVariable(var); ???
+			numVars = 1;
+		}
+		return super.addDisplayableVariables(rect,polys,start+numVars,wnd,multipleStrings)+numVars;
+	}
 
 }

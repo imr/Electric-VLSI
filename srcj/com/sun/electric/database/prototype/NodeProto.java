@@ -68,21 +68,29 @@ public abstract class NodeProto extends ElectricObject
 	public static class Function
 	{
 		private final String name;
-		private final Name shortName;
+		private final String shortName;
+		private final Name basename;
 		private final String constantName;
 
 		private Function(String name, String shortName, String constantName)
 		{
 			this.name = name;
-			this.shortName = Name.findName(shortName).getBasename();
+			this.shortName = shortName;
 			this.constantName = constantName;
+			this.basename = Name.findName(shortName+'@').getBasename();
 		}
 
 		/**
 		 * Returns a short name of this Function.
 		 * @return a short name of this Function.
 		 */
-		public Name getShortName() { return shortName; }
+		public String getShortName() { return shortName; }
+
+		/**
+		 * Returns a base name of this Function for autonaming.
+		 * @return a base name of this Function for autonaming.
+		 */
+		public Name getBasename() { return basename; }
 
 		/**
 		 * Returns a printable version of this Function.
@@ -1188,10 +1196,11 @@ public abstract class NodeProto extends ElectricObject
 	 */
 	public PortProto findPortProto(Name name)
 	{
+		name = name.lowerCase();
 		for (int i = 0; i < ports.size(); i++)
 		{
 			PortProto pp = (PortProto) ports.get(i);
-			if (pp.getProtoNameLow() == name)
+			if (pp.getProtoNameLow().lowerCase() == name)
 				return pp;
 		}
 		return null;

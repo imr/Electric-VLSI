@@ -379,9 +379,9 @@ public class Cell extends NodeProto
 		this.version = version;
 
 		// prepare basename for autonaming
-		basename = Name.findName(protoName.substring(0,Math.min(ABBREVLEN,protoName.length()))).getBasename();
+		basename = Name.findName(protoName.substring(0,Math.min(ABBREVLEN,protoName.length()))+'@').getBasename();
 		if (basename == null)
-			basename = NodeProto.Function.UNKNOWN.getShortName();
+			basename = NodeProto.Function.UNKNOWN.getBasename();
 		return false;
 	}
 
@@ -900,7 +900,7 @@ public class Cell extends NodeProto
 		if (name == null) return;
 		Name basename = name.getBasename();
 		int numSuffix = name.getNumSuffix();
-		if (basename != null && basename != basename)
+		if (basename != null && basename != name && basename.isTempname())
 		{
 			basename = basename.lowerCase(); 
 			MaxSuffix ms = (MaxSuffix) maxSuffix.get(basename);
@@ -914,6 +914,25 @@ public class Cell extends NodeProto
 				ms.v = numSuffix;
 				//System.out.println("MaxSuffix "+basename+"="+numSuffix+" in "+this);
 			}
+		}
+	}
+
+	/**
+	 * Routine to return unique autoname in this cell.
+	 * @param basename base name of autoname
+	 * @return autoname
+	 */
+	public Name getAutoname(Name basename)
+	{
+		MaxSuffix ms = (MaxSuffix)maxSuffix.get(basename);
+		if (ms == null)
+		{
+			ms = new MaxSuffix();
+			return basename.findSuffixed(0);
+		} else 
+		{
+			ms.v++;
+			return basename.findSuffixed(ms.v);
 		}
 	}
 
@@ -1220,14 +1239,15 @@ public class Cell extends NodeProto
 			double scaleX = ni.getXSize();   if (ni.isXMirrored()) scaleX = -scaleX;
 			double scaleY = ni.getYSize();   if (ni.isYMirrored()) scaleY = -scaleY;
 			NodeInst toNi = NodeInst.newInstance(lnt, new Point2D.Double(ni.getCenterX(), ni.getCenterY()),
-				scaleX, scaleY, ni.getAngle(), newCell);
+				scaleX, scaleY, ni.getAngle(), newCell, ni.getName());
 			if (toNi == null) return null;
 
 			// save the new nodeinst address in the old nodeinst
 			ni.setTempObj(toNi);
 
 			// copy miscellaneous information
-			toNi.setTextDescriptor(ni.getTextDescriptor());
+			toNi.setProtoTextDescriptor(ni.getProtoTextDescriptor());
+			toNi.setNameTextDescriptor(ni.getNameTextDescriptor());
 			toNi.lowLevelSetUserbits(ni.lowLevelGetUserbits());
 		}
 
@@ -1236,7 +1256,7 @@ public class Cell extends NodeProto
 		{
 			NodeInst ni = (NodeInst)it.next();
 			NodeInst toNi = (NodeInst)ni.getTempObj();
-			ni.copyVars(toNi, false);
+			toNi.copyVars(ni);
 			toNi.endChange();
 		}
 
@@ -1270,11 +1290,12 @@ public class Cell extends NodeProto
 			if (opi[0] == null || opi[1] == null) return null;
 
 			// create the arcinst
-			ArcInst toAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), opi[0], ai.getHead().getLocation(), opi[1], ai.getTail().getLocation());
+			ArcInst toAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), opi[0], ai.getHead().getLocation(), opi[1], ai.getTail().getLocation(), ai.getName());
 			if (toAi == null) return null;
 
 			// copy arcinst variables
-			ai.copyVars(toAi, false);
+			toAi.setNameTextDescriptor(ai.getNameTextDescriptor());
+			toAi.copyVars(ai);
 
 			// copy miscellaneous information
 			toAi.lowLevelSetUserbits(ai.lowLevelGetUserbits());
@@ -1300,7 +1321,7 @@ public class Cell extends NodeProto
 			if (ppt == null) return null;
 
 			// copy portproto variables
-			pp.copyVars(ppt, false);
+			ppt.copyVars(pp);
 
 			// copy miscellaneous information
 			ppt.lowLevelSetUserbits(pp.lowLevelGetUserbits());
@@ -1309,7 +1330,7 @@ public class Cell extends NodeProto
 		}
 
 		// copy cell variables
-		fromCell.copyVars(newCell, false);
+		newCell.copyVars(fromCell);
 
 		// reset (copy) date information
 		newCell.lowLevelSetCreationDate(fromCell.getCreationDate());
@@ -1454,6 +1475,16 @@ public class Cell extends NodeProto
 	}
 
 	/**
+	 * Routine to find a named Export on this Cell.
+	 * @param name the Name of the export.
+	 * @return the export.  Returns null if that name was not found.
+	 */
+	public Export findExport(Name name)
+	{
+		return (Export) findPortProto(name);
+	}
+
+	/**
 	 * Routine to return an Iterator over all NodeInst objects in this Cell.
 	 * @return an Iterator over all NodeInst objects in this Cell.
 	 */
@@ -1509,7 +1540,7 @@ public class Cell extends NodeProto
 
 	/**
 	 * Routine to determine whether a name is unique in this Cell.
-	 * @param name the name being tested to see if it is unique.
+	 * @param name the Name being tested to see if it is unique.
 	 * @param cls the type of object being examined.
 	 * The only classes that can be examined are PortProto, NodeInst, and ArcInst.
 	 * @param exclude an object that should not be considered in this test (null to ignore the exclusion).
@@ -1517,6 +1548,20 @@ public class Cell extends NodeProto
 	 */
 	public boolean isUniqueName(String name, Class cls, ElectricObject exclude)
 	{
+		return isUniqueName(Name.findName(name), cls, exclude);
+	}
+
+	/**
+	 * Routine to determine whether a name is unique in this Cell.
+	 * @param name the Name being tested to see if it is unique.
+	 * @param cls the type of object being examined.
+	 * The only classes that can be examined are PortProto, NodeInst, and ArcInst.
+	 * @param exclude an object that should not be considered in this test (null to ignore the exclusion).
+	 * @return true if the name is unique in the Cell.  False if it already exists.
+	 */
+	public boolean isUniqueName(Name name, Class cls, ElectricObject exclude)
+	{
+		name = name.lowerCase();
 		if (cls == PortProto.class)
 		{
 			PortProto pp = findExport(name);
@@ -1529,9 +1574,9 @@ public class Cell extends NodeProto
 			{
 				NodeInst ni = (NodeInst)it.next();
 				if (exclude != null && exclude == ni) continue;
-				String nodeName = ni.getName();
+				Name nodeName = ni.getNameLow();
 				if (nodeName == null) continue;
-				if (name.equals(nodeName)) return false;
+				if (name == nodeName.lowerCase()) return false;
 			}
 			return true;
 		}
@@ -1541,9 +1586,9 @@ public class Cell extends NodeProto
 			{
 				ArcInst ai = (ArcInst)it.next();
 				if (exclude != null && exclude == ai) continue;
-				String arcName = ai.getName();
+				Name arcName = ai.getNameLow();
 				if (arcName == null) continue;
-				if (name.equals(arcName)) return false;
+				if (name == arcName.lowerCase()) return false;
 			}
 			return true;
 		}

@@ -314,7 +314,7 @@ public class EditWindow extends JPanel
 				g2.setStroke(solidLine);
 				g2.draw(poly);
 				Rectangle2D bounds = poly.getBounds2D();
-				TextDescriptor descript = ni.getTextDescriptor();
+				TextDescriptor descript = ni.getProtoTextDescriptor();
 				drawText(g2, bounds.getMinX(), bounds.getMaxX(), bounds.getMinY(), bounds.getMaxY(),
 					Poly.Type.TEXTBOX, descript, np.describe(), Color.black);
 

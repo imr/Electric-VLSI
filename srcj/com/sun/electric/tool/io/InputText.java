@@ -24,6 +24,7 @@
 package com.sun.electric.tool.io;
 
 import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -1167,7 +1168,7 @@ public class InputText extends Input
 		if (slashPos >= 0)
 			td1 = EMath.atoi(keyWord.substring(slashPos+1));
 		TextDescriptor td = TextDescriptor.newDescriptor(td0, td1);
-		nodeInstList[curCellNumber].nodeList[curNodeInstIndex].setTextDescriptor(td);
+		nodeInstList[curCellNumber].nodeList[curNodeInstIndex].setProtoTextDescriptor(td);
 	}
 
 	/**
@@ -1630,6 +1631,14 @@ public class InputText extends Input
 						((Object [])value)[j] = al.get(j);
 					}
 				}
+			}
+			// Geometric names are saved as variables.
+			if ((naddr instanceof NodeInst && varName.equals(NodeInst.NODE_NAME) ||
+					naddr instanceof ArcInst && varName.equals(ArcInst.VAR_ARC_NAME)) &&
+				value instanceof String)
+			{
+				setGeomName((Geometric)naddr, value, td, type);
+				continue;
 			}
 			if (!invalid)
 			{

@@ -24,6 +24,7 @@
 package com.sun.electric.tool.io;
 
 import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.hierarchy.Export;
@@ -1564,8 +1565,8 @@ public class InputBinary extends Input
 			double width = (highX - lowX) / lambda;
 			double height = (highY - lowY) / lambda;
 			Point2D center = new Point2D.Double(cX / lambda, cY / lambda);
-			NodeInst.newInstance(Generic.tech.drcNode, center, width, height, 0, c);
-			fakeNodeInst = NodeInst.newInstance(Generic.tech.universalPinNode, center, width, height, 0, c);
+			NodeInst.newInstance(Generic.tech.drcNode, center, width, height, 0, c, null);
+			fakeNodeInst = NodeInst.newInstance(Generic.tech.universalPinNode, center, width, height, 0, c, null);
 
 			newCell = true;
 			System.out.println("...Creating dummy version of cell in library " + lib.getLibName());
@@ -1637,6 +1638,7 @@ public class InputBinary extends Input
 			}
 		}
 		TextDescriptor descript = TextDescriptor.newDescriptor(descript0, descript1);
+		ni.setProtoTextDescriptor(descript);
 
 		// read the nodeinst name (versions 1, 2, or 3 only)
 		if (magic >= MAGIC3)
@@ -1924,6 +1926,14 @@ public class InputBinary extends Input
 				return -1;
 			}
 
+			// Geometric names are saved as variables.
+			if ((obj instanceof NodeInst && realName[key].equals(NodeInst.NODE_NAME) ||
+				obj instanceof ArcInst && realName[key].equals(ArcInst.VAR_ARC_NAME)) &&
+				newAddr instanceof String)
+			{
+				setGeomName((Geometric)obj, newAddr, TextDescriptor.newDescriptor(descript0, descript1), newtype);
+				continue;
+			}
 			// see if the variable is deprecated
 			boolean invalid = obj.isDeprecatedVariable(realName[key]);
 			if (!invalid)
