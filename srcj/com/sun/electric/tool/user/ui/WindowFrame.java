@@ -30,7 +30,6 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.simulation.Simulation;
@@ -53,13 +52,8 @@ import java.awt.event.MouseWheelListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.EventListener;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import javax.swing.*;
 import javax.swing.event.InternalFrameAdapter;
@@ -71,7 +65,7 @@ import javax.swing.tree.TreePath;
 /**
  * This class defines an edit window, with a cell explorer on the left side.
  */
-public class WindowFrame
+public class WindowFrame extends Observable
 {
 	/** the nature of the main window part (from above) */	private WindowContent content;
 	/** the text edit window part */					private JTextArea textWnd;
@@ -106,7 +100,6 @@ public class WindowFrame
 
 	/** Main class for 3D plugin */	                    private static final Class view3DClass = Resources.get3DMainClass();
     /** Create 3D view method */                        private static Method create3DMethod = null;
-    /** Show 3D highlight method */                     private static Method show3DMethod = null;
 
 
 	//******************************** CONSTRUCTION ********************************
@@ -193,18 +186,26 @@ public class WindowFrame
 	 */
 	public static void show3DHighlight(WindowContent view2D)
 	{
-		if (view3DClass == null) return; // error in class initialization or not available
-
-		try
+        for(Iterator it = getWindows(); it.hasNext(); )
 		{
-			if (show3DMethod == null)
-				show3DMethod = view3DClass.getDeclaredMethod("show3DHighlight", new Class[] {WindowContent.class});
-			show3DMethod.invoke(view3DClass, new Object[]{view2D});
-		} catch (Exception e) {
-            System.out.println("Cannot call 3D plugin method: " + e.getMessage());
-            ActivityLogger.logException(e);
+			WindowFrame wf = (WindowFrame)it.next();
+            wf.setChanged();
+            wf.notifyObservers(wf.getContent());
+            wf.clearChanged();
         }
+//		if (view3DClass == null) return; // error in class initialization or not available
+//
+//		try
+//		{
+//			if (show3DMethod == null)
+//				show3DMethod = view3DClass.getDeclaredMethod("show3DHighlight", new Class[] {WindowContent.class});
+//			show3DMethod.invoke(view3DClass, new Object[]{view2D});
+//		} catch (Exception e) {
+//            System.out.println("Cannot call 3D plugin method: " + e.getMessage());
+//            ActivityLogger.logException(e);
+//        }
 	}
+
     /*****************************************************************************
      *          END OF 3D Stuff                                                  *
      *****************************************************************************/

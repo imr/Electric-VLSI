@@ -31,12 +31,13 @@ import com.sun.electric.tool.user.Resources;
 
 import java.awt.Color;
 import java.util.HashMap;
+import java.util.Observable;
 import java.lang.reflect.Method;
 
 /**
  * Class to define the appearance of a piece of geometry.
  */
-public class EGraphics
+public class EGraphics extends Observable
         implements Cloneable
 {
 	/** the Layer associated with this graphics. */			private Layer layer;

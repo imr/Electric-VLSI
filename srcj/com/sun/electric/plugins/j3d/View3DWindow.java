@@ -98,7 +98,7 @@ import javax.vecmath.*;
  */
 public class View3DWindow extends JPanel
         implements WindowContent, MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, ActionListener,
-        HighlightListener, J3DCollisionDetector
+        HighlightListener, J3DCollisionDetector, Observer
 {
 
 	/** # of nodes to consider scene graph big */       private static final int MAX3DVIEWNODES = 5000;
@@ -129,7 +129,7 @@ public class View3DWindow extends JPanel
         50 ), true, 0.5f);
 
 	/** the window frame containing this editwindow */      private WindowFrame wf;
-	/** reference to 2D view of the cell */                 private WindowContent view2D;
+	/** reference to 2D view of the cell */                 private EditWindow view2D;
 	/** the cell that is in the window */					protected Cell cell;
     /** scale3D factor in Z axis */                         private double scale3D = User.get3DFactor();
 	/** Highlighter for this window */                      private Highlighter highlighter;
@@ -174,7 +174,9 @@ public class View3DWindow extends JPanel
 	{
 		this.cell = cell;
         this.wf = wf;
-		this.view2D = view2D;
+		this.view2D = (EditWindow)view2D;
+        // Adding observer
+        this.view2D.getWindowFrame().addObserver(this);
         this.oneTransformPerNode = transPerNode;
 
 		highlighter = new Highlighter(Highlighter.SELECT_HIGHLIGHTER, wf);
@@ -724,46 +726,135 @@ public class View3DWindow extends JPanel
 		return (list);
 	}
 
+    /********************************************************************************************************
+     *                  Model-View paradigm to control refresh from 2D
+     ********************************************************************************************************/
+
+	/**
+	 * Internal method to hightlight objects
+	 * @param toSelect true if element must be highlighted
+	 * @param do2D true if 2D highlighter should be called
+	 */
+	private void selectObject(boolean toSelect, boolean do2D)
+	{
+		Highlighter highlighter2D = null;
+		// Clean previous selection
+		if (view2D != null && do2D)
+		{
+			highlighter2D = view2D.getHighlighter();
+			highlighter2D.clear();
+		}
+		for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext();)
+		{
+			Highlight h = (Highlight)it.next();
+			Shape3D obj = (Shape3D)h.getObject();
+			if (toSelect) // highlight cell, set transparency
+			{
+				J3DAppearance app = (J3DAppearance)obj.getAppearance();
+				obj.setAppearance(J3DAppearance.highligtAp);
+				//app.getRenderingAttributes().setVisible(false);
+				J3DAppearance.highligtAp.setGraphics(app.getGraphics());
+				if (view2D != null && do2D)
+				{
+					//Geometry geo = obj.getGeometry();
+					BoundingBox bb = (BoundingBox)obj.getBounds();
+					Point3d lowerP = new Point3d(), upperP = new Point3d();
+					bb.getUpper(upperP);
+					bb.getLower(lowerP);
+					double[] lowerValues = new double[3];
+					double[] upperValues = new double[3];
+					lowerP.get(lowerValues);
+					upperP.get(upperValues);
+					Rectangle2D area = new Rectangle2D.Double(lowerValues[0], lowerValues[1],
+							(upperValues[0]-lowerValues[0]), (upperValues[1]-lowerValues[1]));
+					highlighter2D.addArea(area, cell);
+				}
+			}
+			else // back to normal
+			{
+				EGraphics graphics = J3DAppearance.highligtAp.getGraphics();
+				if (graphics != null)
+				{
+					J3DAppearance origAp = (J3DAppearance)graphics.get3DAppearance();
+					obj.setAppearance(origAp);
+				}
+				else // its a cell
+					obj.setAppearance(J3DAppearance.cellApp);
+			}
+		}
+		if (!toSelect) highlighter.clear();
+		if (do2D) view2D.fullRepaint();
+	}
+
+    public void update(Observable o, Object arg)
+    {
+        // Undo previous highlight
+        selectObject(false, false);
+
+        if (o == view2D.getWindowFrame())
+        {
+            Highlighter highlighter2D = view2D.getHighlighter();
+            List geomList = highlighter2D.getHighlightedEObjs(true, true);
+
+            for (Iterator hIt = geomList.iterator(); hIt.hasNext(); )
+            {
+                ElectricObject eobj = (ElectricObject)hIt.next();
+
+                List list = (List)electricObjectMap.get(eobj);
+
+                if (list == null || list.size() == 0) continue;
+
+                for (Iterator lIt = list.iterator(); lIt.hasNext();)
+                {
+                    Shape3D shape = (Shape3D)lIt.next();
+                    highlighter.addObject(shape, Highlight.Type.SHAPE3D, cell);
+                }
+            }
+            selectObject(true, false);
+            return; // done
+        }
+    }
+
     /**
 	 * Method to connect 2D and 3D highlights.
 	 * @param view2D
 	 */
-	public static void show3DHighlight(WindowContent view2D)
-	{
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
-		{
-			WindowFrame wf = (WindowFrame)it.next();
-			WindowContent content = wf.getContent();
-			if (!(content instanceof View3DWindow)) continue;
-			View3DWindow wnd = (View3DWindow)content;
-
-			// Undo previous highlight
-			wnd.selectObject(false, false);
-
-			if (wnd.view2D == view2D)
-			{
-				Highlighter highlighter2D = view2D.getHighlighter();
-                List geomList = highlighter2D.getHighlightedEObjs(true, true);
-
-				for (Iterator hIt = geomList.iterator(); hIt.hasNext(); )
-				{
-					ElectricObject eobj = (ElectricObject)hIt.next();
-
-					List list = (List)wnd.electricObjectMap.get(eobj);
-
-					if (list == null || list.size() == 0) continue;
-
-					for (Iterator lIt = list.iterator(); lIt.hasNext();)
-					{
-						Shape3D shape = (Shape3D)lIt.next();
-						wnd.highlighter.addObject(shape, Highlight.Type.SHAPE3D, wnd.cell);
-					}
-				}
-				wnd.selectObject(true, false);
-				return; // done
-			}
-		}
-	}
+//	public static void show3DHighlight(WindowContent view2D)
+//	{
+//		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+//		{
+//			WindowFrame wf = (WindowFrame)it.next();
+//			WindowContent content = wf.getContent();
+//			if (!(content instanceof View3DWindow)) continue;
+//			View3DWindow wnd = (View3DWindow)content;
+//
+//			// Undo previous highlight
+//			wnd.selectObject(false, false);
+//
+//			if (wnd.view2D == view2D)
+//			{
+//				Highlighter highlighter2D = view2D.getHighlighter();
+//                List geomList = highlighter2D.getHighlightedEObjs(true, true);
+//
+//				for (Iterator hIt = geomList.iterator(); hIt.hasNext(); )
+//				{
+//					ElectricObject eobj = (ElectricObject)hIt.next();
+//
+//					List list = (List)wnd.electricObjectMap.get(eobj);
+//
+//					if (list == null || list.size() == 0) continue;
+//
+//					for (Iterator lIt = list.iterator(); lIt.hasNext();)
+//					{
+//						Shape3D shape = (Shape3D)lIt.next();
+//						wnd.highlighter.addObject(shape, Highlight.Type.SHAPE3D, wnd.cell);
+//					}
+//				}
+//				wnd.selectObject(true, false);
+//				return; // done
+//			}
+//		}
+//	}
 
     /**
      * Method to change Z values in elements
@@ -965,62 +1056,6 @@ public class View3DWindow extends JPanel
         return(new J3DUtils.ThreeDDemoKnot(values[0], values[1], values[2], 1,
                         0, 0, 0, values[3], values[4], values[5]));
     }
-
-	/**
-	 * Internal method to hightlight objects
-	 * @param toSelect true if element must be highlighted
-	 * @param do2D true if 2D highlighter should be called
-	 */
-	private void selectObject(boolean toSelect, boolean do2D)
-	{
-		Highlighter highlighter2D = null;
-		// Clean previous selection
-		if (view2D != null && do2D)
-		{
-			highlighter2D = view2D.getHighlighter();
-			highlighter2D.clear();
-		}
-		for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext();)
-		{
-			Highlight h = (Highlight)it.next();
-			Shape3D obj = (Shape3D)h.getObject();
-			if (toSelect) // highlight cell, set transparency
-			{
-				J3DAppearance app = (J3DAppearance)obj.getAppearance();
-				obj.setAppearance(J3DAppearance.highligtAp);
-				//app.getRenderingAttributes().setVisible(false);
-				J3DAppearance.highligtAp.setGraphics(app.getGraphics());
-				if (view2D != null && do2D)
-				{
-					//Geometry geo = obj.getGeometry();
-					BoundingBox bb = (BoundingBox)obj.getBounds();
-					Point3d lowerP = new Point3d(), upperP = new Point3d();
-					bb.getUpper(upperP);
-					bb.getLower(lowerP);
-					double[] lowerValues = new double[3];
-					double[] upperValues = new double[3];
-					lowerP.get(lowerValues);
-					upperP.get(upperValues);
-					Rectangle2D area = new Rectangle2D.Double(lowerValues[0], lowerValues[1],
-							(upperValues[0]-lowerValues[0]), (upperValues[1]-lowerValues[1]));
-					highlighter2D.addArea(area, cell);
-				}
-			}
-			else // back to normal
-			{
-				EGraphics graphics = J3DAppearance.highligtAp.getGraphics();
-				if (graphics != null)
-				{
-					J3DAppearance origAp = (J3DAppearance)graphics.get3DAppearance();
-					obj.setAppearance(origAp);
-				}
-				else // its a cell
-					obj.setAppearance(J3DAppearance.cellApp);
-			}
-		}
-		if (!toSelect) highlighter.clear();
-		if (do2D) view2D.fullRepaint();
-	}
 
 	public void mouseClicked(MouseEvent evt)
 	{
