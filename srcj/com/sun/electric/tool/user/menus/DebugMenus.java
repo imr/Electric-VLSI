@@ -636,7 +636,7 @@ public class DebugMenus {
 			NodeInst instance1Node = NodeInst.newInstance(myCell, new Point2D.Double(0, 0), myWidth, myHeight, higherCell);
 			instance1Node.setExpanded();
 
-			NodeInst instance2Node = NodeInst.newInstance(myCell, new Point2D.Double(myWidth, 0), myWidth, myHeight, higherCell, 0, null, 0);
+			NodeInst instance2Node = NodeInst.newInstance(myCell, new Point2D.Double(myWidth, 0), myWidth, myHeight, higherCell, 900, null, 0);
 			instance2Node.setExpanded();
 
 			NodeInst instance3Node = NodeInst.newInstance(myCell, new Point2D.Double(2*myWidth, 0), myWidth, myHeight, higherCell, 1800, null, 0);
