@@ -109,6 +109,9 @@ public class NccCellAnnotations {
 	private List exportsConnByParent = new ArrayList();
 	/** reason given by user for skipping NCC of this Cell */
 	private String skipReason;
+	/** reason given by user for treating this Cell as a subcircuit 
+	 * during hierarchical NCC*/
+	private String notSubcircuitReason;
 	/** the CellGroup that this cell should join */
 	private Cell.CellGroup groupToJoin;
 	/** NamePatterns matching instance names to flatten */
@@ -130,6 +133,12 @@ public class NccCellAnnotations {
 		if (sp!=-1) skipReason = note.substring(sp);
 	}
 	
+	private void processNotSubcircuitAnnotation(String note) {
+		notSubcircuitReason = "";
+		int sp = note.indexOf(" ");
+		if (sp!=-1) notSubcircuitReason = note.substring(sp);
+	}
+
 	private void processJoinGroupAnnotation(String note) {
 		StringTokenizer lex = new StringTokenizer(note);
 		lex.nextToken(); // skip keyword
@@ -176,6 +185,8 @@ public class NccCellAnnotations {
 			processExportsConnAnnot(note);
 		} else if (note.startsWith("skipNCC")) {
 			processSkipAnnotation(note);
+		} else if (note.startsWith("notSubcircuit")) {
+			processNotSubcircuitAnnotation(note);
 		} else if (note.startsWith("joinGroup")) {
 			processJoinGroupAnnotation(note);
 		} else if (note.startsWith("flattenInstances")) {
@@ -210,7 +221,10 @@ public class NccCellAnnotations {
 	 * NCCing the cell or null if there is no skipNCC annotation on 
 	 * the cell. */
 	public String getSkipReason() {return skipReason;}
-	
+	/** @return the reason given by the user for not treating this Cell
+	 * as a subcircuit during hierarchical NCC. Return null if there is
+	 * no notSubcircuitReason annotation on the Cell */
+	public String getNotSubcircuitReason() {return notSubcircuitReason;}
 	/** @return an Iterator over Lists of NamePatterns. Each List specifies 
 	 * the names (or regular expressions that match the names) of Exports 
 	 * that the user expects to be connected by the Cell's parent. */  

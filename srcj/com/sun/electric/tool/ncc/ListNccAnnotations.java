@@ -56,20 +56,20 @@ class ScanHierForNccAnnot extends HierarchyEnumerator.Visitor {
 		}
 	}
 
-	private void scanForAnnot(Cell cell) {
-		Cell.CellGroup g = cell.getCellGroup();
-		for (Iterator it=g.getCells(); it.hasNext();) {
-			Cell c = (Cell) it.next();
-			if (c.getView()==View.SCHEMATIC || c.getView()==View.LAYOUT) {
-				printAnn(c);								
-			}
-		}
-	}
+//	private void scanForAnnot(Cell cell) {
+//		Cell.CellGroup g = cell.getCellGroup();
+//		for (Iterator it=g.getCells(); it.hasNext();) {
+//			Cell c = (Cell) it.next();
+//			if (c.getView()==View.SCHEMATIC || c.getView()==View.LAYOUT) {
+//				printAnn(c);								
+//			}
+//		}
+//	}
 	
 	public boolean enterCell(HierarchyEnumerator.CellInfo info) {
 		Cell cell = info.getCell();
 		if (enteredCells.contains(cell))  return false;
-		scanForAnnot(cell);
+		printAnn(cell);
 		enteredCells.add(cell);
 		return true;
 	}
@@ -80,18 +80,30 @@ class ScanHierForNccAnnot extends HierarchyEnumerator.Visitor {
 } 
 
 public class ListNccAnnotations extends Job {
+	private void scanHierarchy(Cell cell) {
+		System.out.println("Listing NCC annotations for all Cells "+
+						   "in the hierarchy rooted at Cell: "+
+						   NccUtils.fullName(cell));
+		ScanHierForNccAnnot visitor = new ScanHierForNccAnnot();
+		HierarchyEnumerator.enumerateCell(cell, null, null, visitor);
+	}
+
     public boolean doIt() {
 		CellContext cellCtxt = NccUtils.getCurrentCellContext();
 		if (cellCtxt==null) {
-			System.out.println("Please open the root of the hierarchy for which you want to list NCC annotations.");
+			System.out.println("Please open the root of the hierarchy for which"+
+                               " you want to list NCC annotations.");
 			return false;
 		} 
-
-		System.out.println("Listing all NCC annotations for hierarchy rooted at Cell: "+
-						   NccUtils.fullName(cellCtxt.cell));
-		
-		ScanHierForNccAnnot visitor = new ScanHierForNccAnnot();
-		HierarchyEnumerator.enumerateCell(cellCtxt.cell, null, null, visitor);
+		Cell[] schemLay = NccUtils.findSchematicAndLayout(cellCtxt.cell);
+		if (schemLay!=null) {
+			// List annotations for both schematic and layout
+			scanHierarchy(schemLay[0]);
+			scanHierarchy(schemLay[1]);
+		} else {
+			// List annotations for the current cell only
+			scanHierarchy(cellCtxt.cell);
+		}
 		
 		System.out.println("Done listing NCC annotations");											   
 

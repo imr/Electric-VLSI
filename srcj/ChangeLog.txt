@@ -2,6 +2,10 @@
 
 ************************* Version 8.01b: *********************************
 
+FIX: (8/2/04, RK) NCC wasn't checking that same named Exports are on the equivalent nets.
+
+IMP/MAN (8/2/04, RK) Added NCC annotation: "notSubcircuit". 
+
 IMP/MAN: (7/29/04, JKG) Added "Re-export Selected, include wired ports", and
         "Re-export Highlighted Area, inc. wired ports" menu commands.
 

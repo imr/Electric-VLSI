@@ -117,8 +117,10 @@ public class NccJob extends Job {
 	}
 
     public boolean doIt() {
-		System.out.println("Ncc starting");
+		System.out.println((hierarchical ? "Hierarchical" : "Flat")+
+                           " NCC starting");
 		NccOptions options = getOptionsFromNccConfigDialog();
+		options.verbose = true;
 		CellContext[] cellCtxts = getCellsFromWindows(numWindows);
 
 		boolean ok;

@@ -302,8 +302,10 @@ public class ExportChecker {
     		for (Iterator it=portToPort.keySet().iterator(); it.hasNext();) {
     			Port p0 = (Port) it.next();
     			Port pn = (Port) portToPort.get(p0);
-				EquivRecord er0 = p0.getParent().getParent();
-				EquivRecord ern = pn.getParent().getParent();
+    			Wire w0 = p0.getWire();
+    			Wire wn = pn.getWire();
+				EquivRecord er0 = w0.getParent().getParent();
+				EquivRecord ern = wn.getParent().getParent();
 				if (er0!=ern) {
 					pr("Exports that match by name aren't on equivalent"+
 					   " networks\n"+

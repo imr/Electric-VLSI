@@ -102,7 +102,7 @@ public class NccBottomUp {
 		System.out.flush();
 		Date before = new Date();
 		boolean match = NccEngine.compare(schematic, null, layout, null,  
-		                         hierInfo, options);
+		                                  hierInfo, options);
 		Date after = new Date();
 
 		System.out.print(match ? "Matched " : "Mismatched ");
@@ -194,6 +194,22 @@ public class NccBottomUp {
 		return cellsInGroupList;
 	}
 	
+	private boolean dontTreatAsSubcircuit(List cellsInGroup) {
+		for (Iterator it=cellsInGroup.iterator(); it.hasNext();) {
+			Cell c = (Cell) it.next();
+			NccCellAnnotations anns = NccCellAnnotations.getAnnotations(c);
+			if (anns==null) continue;
+			String notSubcktReason = anns.getNotSubcircuitReason();
+			if (notSubcktReason!=null) {
+				System.out.println("For this hierarchical NCC I'm not treating "+
+				                   NccUtils.fullName(c)+
+				                   " as a subcircuit because "+notSubcktReason);
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	private boolean compareCellGroups(CellUsage use1, CellUsage use2,
 	                                  boolean hierarchical, 
 	                                  NccOptions options) {
@@ -204,14 +220,16 @@ public class NccBottomUp {
 			List cellsInGroup = getUsedCellsInGroup(cell, use1, use2);
 			String grpNm = cell.getLibrary().getName()+":"+cell.getName();
 
+			if (hierarchical && dontTreatAsSubcircuit(cellsInGroup))  continue;
+
 			match &= compareCellsInGroup(cellsInGroup, grpNm, hierInfo,options);
 
 			// TODO: I've got to debug this stupid thing later. Hierarchical 
 			// fails but flat succeeds!!!
-			String cellNm = cell.getName(); 
-			if (cellNm.equals("mem_core_36") || cellNm.equals("mem_core_45")) {
-				match = true;				
-			}
+//			String cellNm = cell.getName(); 
+//			if (cellNm.equals("mem_core_36") || cellNm.equals("mem_core_45")) {
+//				match = true;				
+//			}
 
 			if (!match && options.haltAfterFirstMismatch) {
 				System.out.println( 

@@ -76,6 +76,10 @@ public class NccUtils {
 	public static CellContext getCellContext(EditWindow wnd) {
 		if (wnd==null) return null;
 		Cell cell = wnd.getCell();
+		if (cell==null) {
+			System.out.println("window has no Cell");
+			return null;
+		}
 		VarContext context = wnd.getVarContext();
 		return new CellContext(cell, context);
 	}
