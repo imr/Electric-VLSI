@@ -456,6 +456,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	public void kill()
 	{
+		if (!isLinked())
+		{
+			System.out.println("Cell already killed");
+			return;
+		}
 		checkChanging();
 
 		// remove ourselves from the cellGroup.
@@ -3521,6 +3526,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			assert e.getPortIndex() == i : e;
 			if (i > 0)
 				assert(TextUtils.nameSameNumeric(e.getName(), exports[i - 1].getName()) > 0) : i;
+			e.check();
 		}
 
 		// make sure that every connection is on an arc and a node

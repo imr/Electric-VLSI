@@ -628,25 +628,25 @@ public class Output
 	String[] createFontAssociation()
 	{
 		int maxIndices = TextDescriptor.ActiveFont.getMaxIndex();
-		if (maxIndices == 0) return null;
 		faceMap = new int[maxIndices + 1];
 		TreeMap/*<String,TextDescriptor.ActiveFont>*/ sortedFonts = new TreeMap/*<String,TextDescriptor.ActiveFont>*/();
-		for (int i = 1; i < maxIndices; i++)
+		for (int i = 1; i <= maxIndices; i++)
 		{
 			TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(i);
 			if (!objInfo.containsKey(af)) continue;
 			sortedFonts.put(af.getName(), af);
 		}
-		List/*<String>*/ fontAssociation = new ArrayList/*<String>*/();
+		if (sortedFonts.size() == 0) return null;
+		String[] fontAssociation = new String[sortedFonts.size()];
+		int face = 0;
 		for (Iterator it = sortedFonts.values().iterator(); it.hasNext(); )
 		{
 			TextDescriptor.ActiveFont af = (TextDescriptor.ActiveFont)it.next();
-			int face = fontAssociation.size() + 1;
+			face++;
 			faceMap[af.getIndex()] = face;
-			String association = face + "/" + af.getName();
-			fontAssociation.add(association);
+			fontAssociation[face-1] = face + "/" + af.getName();
 		}
-		return (String[])fontAssociation.toArray(new String[fontAssociation.size()]);
+		return fontAssociation;
 	}
 
     /**

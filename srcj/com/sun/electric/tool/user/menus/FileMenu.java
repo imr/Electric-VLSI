@@ -122,13 +122,13 @@ public class FileMenu {
 		fileMenu.addMenuItem("Close Library", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { closeLibraryCommand(Library.getCurrent()); } });
 		fileMenu.addMenuItem("Save Library", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), FileType.DEFAULTLIB, false, true); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { if (checkInvariants()) saveLibraryCommand(Library.getCurrent(), FileType.DEFAULTLIB, false, true); } });
 		fileMenu.addMenuItem("Save Library as...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { saveAsLibraryCommand(Library.getCurrent()); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { if (checkInvariants()) saveAsLibraryCommand(Library.getCurrent()); } });
 		fileMenu.addMenuItem("Save All Libraries", KeyStroke.getKeyStroke('S', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { saveAllLibrariesCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { if (checkInvariants()) saveAllLibrariesCommand(); } });
         fileMenu.addMenuItem("Save All Libraries in Format...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { saveAllLibrariesInFormatCommand(); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { if (checkInvariants()) saveAllLibrariesInFormatCommand(); } });
 
 		MenuBar.Menu exportSubMenu = new MenuBar.Menu("Export");
 		fileMenu.add(exportSubMenu);
@@ -166,7 +166,7 @@ public class FileMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.DXF, false); } });
 		exportSubMenu.addSeparator();
 		exportSubMenu.addMenuItem("ELIB (Version 6)...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), FileType.ELIB, true, false); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { if (checkInvariants()) saveLibraryCommand(Library.getCurrent(), FileType.ELIB, true, false); } });
 
 		fileMenu.addSeparator();
 
@@ -669,6 +669,25 @@ public class FileMenu {
     }
 
     /**
+     * This method checks database invariants.
+     * @return true if database is valid or user forced saving.
+     */
+	private static boolean checkInvariants()
+	{
+		// check database invariants
+		if (!Library.checkInvariants())
+		{
+			String [] messages = { "Database invariants are not valid", "Do you really want to write libraries?"};
+            Object [] options = {"Continue Writing", "Cancel" };
+            int val = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(), messages,
+                    "Invalid database invariants", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null,
+                    options, options[1]);
+            if (val == 1) return false;
+		}
+		return true;
+	}
+
+    /**
      * This method implements the export cell command for different export types.
      * It is interactive, and pops up a dialog box.
      */
@@ -984,6 +1003,7 @@ public class FileMenu {
      */
     public static boolean preventLoss(Library desiredLib, int action)
     {
+		boolean checkedInvariants = false;
         boolean saveCancelled = false;
         for(Iterator it = Library.getLibraries(); it.hasNext(); )
         {
@@ -991,6 +1011,13 @@ public class FileMenu {
             if (desiredLib != null && desiredLib != lib) continue;
             if (lib.isHidden()) continue;
             if (!lib.isChangedMajor() && !lib.isChangedMinor()) continue;
+
+			// Abort if database invariants are not valid
+			if (!checkedInvariants)
+			{
+				if (!checkInvariants()) return true;
+				checkedInvariants = true;
+			}
 
             // warn about this library
             String how = "significantly";

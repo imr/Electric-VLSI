@@ -4,6 +4,22 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02e: *********************************
 
+BUG: (01/26/05, DN) Arcs may be created with ends on unlinked PortInsts.
+FIX: Check PortInst.isLinked when creating arcs.
+
+BUG: (01/26/05, DN) Corrupted ELIBs may be written (Bug #176).
+FIX: Check database invariants before writing libraries.
+     Validate PortProtos when reading ELIBs.
+
+BUG: (01/26/05, DN) ELIB reader unnecessarily scales layout cells (Bug #176).
+FIX: Limit scaling to icon subcells in schematic cells.
+
+BUG: (01/26/05, DN) Group delete causes exception (Bug #175).
+FIX: "kill" methods will return with message if object is already killed.
+
+BUG: (01/26/05, DN) The Font Association String[] var is incorrectly prepared.
+FIX: In Output.createFontAssociation, <= instead of < .
+
 BUG: (01/25/05, GVG) PolyBase.isInside not working properly for non-convex mahnattan polygons. Angle-based algorithm
 tends to cancel out angles for concave corners.
 FIX: (for now) for wiring check if point is along polygon edges. More stable solution is to change algorithm for an intersection-based
@@ -15,11 +31,11 @@ FIX: In Spice.getSafeNetName(), insert an "_" before names that start with a dig
 BUG: (01/25/05, SMR) Auto-routing does not connect to pure-layer nodes with nonmanhattan shape.
 FIX: In Technology.getShapeOfNode(), set a port when outline is present and electrical layers requested.
 
-BUG: (01/24/04, JKG) HierarchyEnumerator.getNetworkInParent() did not handle
+BUG: (01/24/05, JKG) HierarchyEnumerator.getNetworkInParent() did not handle
     globals correctly, because they are not explicitly exported.
 FIX: check for globals
 
-BUG: (01/24/04, JKG) Additional windows (with menu bars) was causing duplicate
+BUG: (01/24/05, JKG) Additional windows (with menu bars) was causing duplicate
     key bindings.
 FIX: boolean check for initialization to occur only once.
 
@@ -28,7 +44,7 @@ FIX: In "Input.importLibrary()", set the library to have major changes.
 
 ************************* Version 8.02d: *********************************
 
-BUG: (01/24/04, JKG) The Font Association String[] var was being incorrectly
+BUG: (01/24/05, JKG) The Font Association String[] var was being incorrectly
     written out in the ELIB writer, as the "additionalVar" in ELIB.writeVariables().
 FIX: A fix has been implemented that checks for version 8.02c of the libraries and
     ignores the variable. Additionally, the ELIB writer has been fixed.

@@ -319,6 +319,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public void kill()
 	{
+		if (!isLinked())
+		{
+			System.out.println("NodeInst already killed");
+			return;
+		}
 		// kill the arcs attached to the connections.  This will also remove the connections themselves
 		while (connections.size() > 0)
 		{

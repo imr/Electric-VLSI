@@ -156,6 +156,11 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	 */
 	public boolean kill()
 	{
+		if (!isLinked())
+		{
+			System.out.println("Library already killed");
+			return false;
+		}
 		// cannot delete the current library
 		Library newCurLib = null;
 		if (curLib == this)

@@ -1319,6 +1319,7 @@ public class ELIB extends LibraryFiles
 				continue;
 			}
 			NodeInst subNodeInst = nodeInstList.theNode[nodeIndex];
+			Object o = portProtoSubPortList[i];
 			if (portProtoSubPortList[i] instanceof Integer)
 			{
 				// this was an external reference that couldn't be resolved yet.  Do it now
@@ -1328,7 +1329,7 @@ public class ELIB extends LibraryFiles
 			PortProto subPortProto = (PortProto)portProtoSubPortList[i];
 
 			// null entries happen when there are external cell references
-			if (subNodeInst == null || subPortProto == null) {
+			if (subNodeInst == null || subPortProto == null || subNodeInst.getParent() != cell || subNodeInst.getProto() != subPortProto.getParent()) {
                 System.out.println("ERROR: Cell "+cell.describe() + ": export " + portProtoNameList[i] + " could not be created");
                 continue;
             }
@@ -1550,8 +1551,10 @@ public class ELIB extends LibraryFiles
 			if ((bounds.getWidth() != width || bounds.getHeight() != height)
 				&& reader != null && reader.canScale())
 			{
-				if (Math.abs(bounds.getWidth() - width) > 0.5 ||
-					Math.abs(bounds.getHeight() - height) > 0.5)
+				System.out.println(cell + " has " + subCell + " " + name + " " + bounds.getWidth() + "x" + bounds.getHeight() + " " + width + "x" + height);
+				if (cell.isSchematic() && subCell.isIcon() &&
+					(Math.abs(bounds.getWidth() - width) > 0.5 ||
+					 Math.abs(bounds.getHeight() - height) > 0.5))
 				{
 					// see if uniform scaling can be done
 					double scaleX = width / bounds.getWidth();

@@ -261,7 +261,7 @@ public class ArcInst extends Geometric implements Comparable
         }
 
 		// make sure fields are valid
-		if (type == null || head == null || tail == null) return null;
+		if (type == null || head == null || tail == null || !head.isLinked() || !tail.isLinked()) return null;
 
 		ArcInst ai = lowLevelAllocate();
 		if (ai.lowLevelPopulate(type, width, head, headPt, tail, tailPt, defAngle, name, -1)) return null;
@@ -301,6 +301,11 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	public void kill()
 	{
+		if (!isLinked())
+		{
+			System.out.println("ArcInst already killed");
+			return;
+		}
 		// remove the arc
 		lowLevelUnlink();
 

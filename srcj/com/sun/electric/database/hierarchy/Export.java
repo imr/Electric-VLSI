@@ -235,8 +235,12 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	 */
 	public void kill()
 	{
+		if (!isLinked())
+		{
+			System.out.println("Export already killed");
+			return;
+		}
 		checkChanging();
-
 		Collection oldPortInsts = lowLevelUnlink();
 
 		// handle change control, constraint, and broadcast
@@ -367,6 +371,13 @@ public class Export extends ElectricObject implements PortProto, Comparable
 		if (originalPort == null)
 		{
 			System.out.println("Null port on Export " + getName() + " in cell " + parent.describe());
+			return true;
+		}
+		NodeInst ni = originalPort.getNodeInst();
+		PortProto subpp = originalPort.getPortProto();
+		if (ni.getParent() != parent || subpp.getParent() != ni.getProto() || doesntConnect(subpp.getBasePort()))
+		{
+			System.out.println("Bad port on Export " + getName() + " in cell " + parent.describe());
 			return true;
 		}
 		this.originalPort = originalPort;
@@ -771,6 +782,20 @@ public class Export extends ElectricObject implements PortProto, Comparable
 		{
 			return false;
 		}
+	}
+
+	/**
+	 * Method to check invariants in this Export.
+	 * @exception AssertionError if invariants are not valid
+	 */
+	void check()
+	{
+		assert originalPort != null;
+		NodeInst ni = originalPort.getNodeInst();
+		PortProto pp = originalPort.getPortProto();
+		assert ni.getParent() == parent && ni.isLinked();
+		assert ni.getProto() == pp.getParent();
+		if (pp instanceof Export) assert ((Export)pp).isLinked();
 	}
 
 	/**
