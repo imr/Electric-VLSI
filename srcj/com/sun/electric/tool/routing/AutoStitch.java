@@ -222,23 +222,25 @@ public class AutoStitch
 		}
 
 		// report results
-		if (count != 0)
+		if (forced)
 		{
-            StringBuffer buf = new StringBuffer();
-            buf.append("AUTO ROUTING: added ");
-            boolean first = true;
-            for (Iterator it = arcCount.keySet().iterator(); it.hasNext(); ) {
-                ArcProto ap = (ArcProto)it.next();
-                if (!first) buf.append("; ");
-                Integer c = (Integer)arcCount.get(ap);
-                buf.append(c + " " + ap.describe() + " wires");
-                first = false;
-            }
-            System.out.println(buf.toString());
-		} else
-		{
-			if (forced)
+			if (count != 0)
+			{
+	            StringBuffer buf = new StringBuffer();
+	            buf.append("AUTO ROUTING: added ");
+	            boolean first = true;
+	            for (Iterator it = arcCount.keySet().iterator(); it.hasNext(); ) {
+	                ArcProto ap = (ArcProto)it.next();
+	                if (!first) buf.append("; ");
+	                Integer c = (Integer)arcCount.get(ap);
+	                buf.append(c + " " + ap.describe() + " wires");
+	                first = false;
+	            }
+	            System.out.println(buf.toString());
+			} else
+			{
 				System.out.println("No arcs added");
+			}
 		}
 
 		// clean up

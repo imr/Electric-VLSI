@@ -274,8 +274,10 @@ public class ToolMenu {
 
         networkSubMenu.addSeparator();
 		
-        networkSubMenu.addMenuItem("Extract Connectivity", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { Connectivity.extractCurCell(); }});
+        networkSubMenu.addMenuItem("Extract Current Cell", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { Connectivity.extractCurCell(false); }});
+        networkSubMenu.addMenuItem("Extract Current Hierarchy", null,
+                new ActionListener() { public void actionPerformed(ActionEvent e) { Connectivity.extractCurCell(true); }});
 
         networkSubMenu.addSeparator();
 

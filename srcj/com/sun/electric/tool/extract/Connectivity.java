@@ -30,82 +30,65 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.DRCRules;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.routing.AutoStitch;
-import com.sun.electric.tool.routing.Routing;
-import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
-import java.awt.geom.Area;
+import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.prefs.Preferences;
 
 /**
  * This is the Connectivity extractor.
- * 
+ *
  * Still to do:
  *    Alternate way to find large contacts which preserves cut placement
  *    Serpentine transistors
- *    Recursively process entire library
- *    Show remaining pure-layer nodes
- *    Cell instances in wiring paths
  *    Nonmanhattan geometry (contacts, transistors)
  *    In via creation, check that the cut/via is the right size
+ *    Explicit connection where two cells overlap?
  */
 public class Connectivity
 {
-	private PolyMerge merge;
-	private PolyMerge originalMerge;
-	private Cell oldCell;
-	private Cell newCell;
-	private Technology tech;
-	private HashMap layerForFunction;
-	private Layer polyLayer;
-	private Layer tempLayer1, tempLayer2;
-	private Layer activeLayer;
-	private HashMap arcsForLayer;
+	/** the current technology for extraction */				private Technology tech;
+	/** layers to use for given arc functions */				private HashMap layerForFunction;
+	/** the layer to use for "polysilicon" geometry */			private Layer polyLayer;
+	/** temporary layers to use for geometric manipulation */	private Layer tempLayer1, tempLayer2;
+	/** the layer to use for "active" geometry */				private Layer activeLayer;
+	/** associates arc prototypes with layers */				private HashMap arcsForLayer;
+	/** map of extracted cells */								private HashMap convertedCells;
+	/** map of export indices in each extracted cell */			private HashMap exportNumbers;
 
 	/**
 	 * Method to examine the current cell and extract it's connectivity in a new one.
+	 * @param recursive true to recursively extract the hierarchy below this cell.
 	 */
-	public static void extractCurCell()
+	public static void extractCurCell(boolean recursive)
 	{
 		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null)
@@ -113,33 +96,39 @@ public class Connectivity
 			System.out.println("Must be editing a cell with pure layer nodes.");
 			return;
 		}
-		ExtractJob job = new ExtractJob(curCell);
+		ExtractJob job = new ExtractJob(curCell, recursive);
 	}
 
 	private static class ExtractJob extends Job
 	{
 		private Cell cell;
+		private boolean recursive;
 
-		private ExtractJob(Cell cell)
+		private ExtractJob(Cell cell, boolean recursive)
 		{
 			super("Extract Connectivity", Extract.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
+			this.recursive = recursive;
 			startJob();
 		}
 
 		public boolean doIt()
 		{
-			Connectivity c = new Connectivity(cell);
-			c.doExtract();
+			Connectivity c = new Connectivity(cell.getTechnology());
+			c.doExtract(cell, recursive, true);
 			return false;
 		}
 	}
-	
-	private Connectivity(Cell oldCell)
+
+	/**
+	 * Constructor to initialize connectivity extraction.
+	 * @param tech the Technology to extract to.
+	 */
+	private Connectivity(Technology tech)
 	{
-		this.oldCell = oldCell;
-		tech = oldCell.getTechnology();
-		merge = new PolyMerge();
+		this.tech = tech;
+		convertedCells = new HashMap();
+		exportNumbers = new HashMap();
 
 		// find important layers
 		polyLayer = null;
@@ -197,19 +186,40 @@ public class Connectivity
 	 * A new version of the cell is created that has real nodes (transistors, contacts) and arcs.
 	 * This cell should have pure-layer nodes which will be converted.
 	 */
-	private void doExtract()
+	private void doExtract(Cell oldCell, boolean recursive, boolean top)
 	{
+		if (recursive)
+		{
+			// first see if subcells need to be converted
+			for(Iterator it = oldCell.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				if (ni.getProto() instanceof Cell)
+				{
+					Cell subCell = (Cell)ni.getProto();
+					Cell convertedCell = (Cell)convertedCells.get(subCell);
+					if (convertedCell == null)
+					{
+						doExtract(subCell, recursive, false);
+					}
+				}
+			}
+		}
+
 		// create the new version of the cell
+		System.out.print("Extracting cell " + oldCell.describe() + ": ");
 		String newCellName = oldCell.getName() + "{" + oldCell.getView().getAbbreviation() + "}";
-		newCell = Cell.makeInstance(oldCell.getLibrary(), newCellName);
+		Cell newCell = Cell.makeInstance(oldCell.getLibrary(), newCellName);
 		if (newCell == null)
 		{
 			System.out.println("Cannot create new cell: " + newCellName);
 			return;
 		}
+		convertedCells.put(oldCell, newCell);
+		exportNumbers.put(newCell, new GenMath.MutableInteger(1));
 
-		System.out.println("Creating new version of cell " + newCell.describe() +
-			" Old version is " + oldCell.describe());
+		// create a merge for the geometry in the cell
+		PolyMerge merge = new PolyMerge();
 
 		// convert the nodes
 		HashMap newNodes = new HashMap();
@@ -218,19 +228,32 @@ public class Connectivity
 			NodeInst ni = (NodeInst)nIt.next();
 			if (ni.getProto() == Generic.tech.cellCenterNode) continue;
 
-			// save all pure-layer nodes, copy all else
-			boolean copyIt = false;
-			PrimitiveNode np = null;
-			if (ni.getProto() instanceof Cell) copyIt = true; else
+			// see if the node can be copied or must be extracted
+			NodeProto copyType = null;
+			if (ni.getProto() instanceof Cell)
 			{
-				np = (PrimitiveNode)ni.getProto();
-				if (np.getFunction() != PrimitiveNode.Function.NODE) copyIt = true;
+				copyType = (NodeProto)convertedCells.get(ni.getProto());
+				if (copyType == null) copyType = ni.getProto();
+			} else
+			{
+				PrimitiveNode np = (PrimitiveNode)ni.getProto();
+				if (np.getFunction() != PrimitiveNode.Function.NODE) copyType = ni.getProto();
 			}
 
 			// copy it now if requested
-			if (copyIt)
+			if (copyType != null)
 			{
-				NodeInst newNi = NodeInst.makeInstance(ni.getProto(), ni.getAnchorCenter(), ni.getXSizeWithMirror(), ni.getYSizeWithMirror(),
+				double sX = ni.getXSize();
+				double sY = ni.getYSize();
+				if (copyType instanceof Cell)
+				{
+					Rectangle2D cellBounds = ((Cell)copyType).getBounds();
+					sX = cellBounds.getWidth();
+					sY = cellBounds.getHeight();
+				}
+				if (ni.isXMirrored()) sX = -sX;
+				if (ni.isYMirrored()) sY = -sY;
+				NodeInst newNi = NodeInst.makeInstance(copyType, ni.getAnchorCenter(), sX, sY,
 					newCell, ni.getAngle(), ni.getName(), ni.getTechSpecific());
 				if (newNi == null)
 				{
@@ -278,46 +301,49 @@ public class Connectivity
 		}
 
 		// now remember the original merge
-		originalMerge = new PolyMerge();
+		PolyMerge originalMerge = new PolyMerge();
 		originalMerge.addMerge(merge, new AffineTransform());
 
 		// start by extracting vias
-		System.out.print("Extracting vias...");
-		extractVias();
-		System.out.println("done");
+		extractVias(merge, originalMerge, newCell);
+		System.out.print("vias, ");
 
 		// now extract transistors
-		System.out.print("Extracting transistors...");
-		extractTransistors();
-		System.out.println("done");
-
-//		// convert any geometry that touches different networks
-//		System.out.print("Extending geometry (pass 1)...");
-//		extendGeometry();
-//		System.out.println("done");
+		extractTransistors(merge, originalMerge, newCell);
+		System.out.print("transistors, ");
 
 		// look for wires and pins
-		System.out.print("Making wires...");
-		makeWires();
-		System.out.println("done");
+		makeWires(merge, originalMerge, newCell);
+		System.out.print("wires, ");
 
-//		// convert any geometry that touches different networks
-//		System.out.print("Extending geometry (pass 2)...");
-//		extendGeometry();
-//		System.out.println("done");
+		// convert any geometry that touches different networks
+		extendGeometry(merge, originalMerge, newCell);
 
 		// dump any remaining layers back in as extra pure layer nodes
-		System.out.print("Converting remaining geometry...");
-		convertAllGeometry();
-		System.out.println("done");
+		convertAllGeometry(merge, originalMerge, newCell);
+		System.out.print("geometry, ");
 
 		// cleanup by auto-stitching
-		System.out.print("Connecting everything...");
 		AutoStitch.runAutoStitch(newCell, false, false, true);
-		System.out.println("done");
-		
-		// show the new version
-		WindowFrame.createEditWindow(newCell);
+		System.out.println("done.");
+
+		// if top level, display results
+		if (top)
+		{
+			// show the new version
+			WindowFrame wf = WindowFrame.createEditWindow(newCell);
+
+			// highlight pure layer nodes
+			EditWindow wnd = (EditWindow)wf.getContent();
+			Highlighter h = wnd.getHighlighter();
+			for(Iterator it = newCell.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				PrimitiveNode.Function fun = ni.getFunction();
+				if (fun == PrimitiveNode.Function.NODE)
+					h.addElectricObject(ni, newCell);
+			}
+		}
 	}
 
 	/********************************************** WIRE EXTRACTION **********************************************/
@@ -330,7 +356,7 @@ public class Connectivity
 		Point2D endPt;
 	}
 
-	private void makeWires()
+	private void makeWires(PolyMerge merge, PolyMerge originalMerge, Cell newCell)
 	{
 		// make a list of layers that could be turned into wires
 		List wireLayers = new ArrayList();
@@ -358,12 +384,12 @@ public class Connectivity
 				PolyBase poly = (PolyBase)pIt.next();
 
 				// convert a polygon to wires
-				convertToWires(poly, layer, ap);
+				convertToWires(poly, layer, ap, merge, originalMerge, newCell);
 			}
 		}
 	}
 
-	private List findPortInstsTouchingPoint(Point2D pt, Layer layer)
+	private List findPortInstsTouchingPoint(Point2D pt, Layer layer, Cell newCell)
 	{
 		List touchingNodes = new ArrayList();
 		Rectangle2D checkBounds = new Rectangle2D.Double(pt.getX(), pt.getY(), 0, 0);
@@ -374,7 +400,24 @@ public class Connectivity
 			NodeInst ni = (NodeInst)geom;
 			if (ni.getProto() instanceof Cell)
 			{
-				// TODO: recursive algorithm needed to find connectivity to a cell instance
+				Cell subCell = (Cell)ni.getProto();
+				boolean found = false;
+				for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
+				{
+					PortInst pi = (PortInst)pIt.next();
+					Poly portPoly = pi.getPoly();
+					if (portPoly.contains(pt))
+					{
+						touchingNodes.add(pi);
+						found = true;
+						break;
+					}
+				}
+				if (found) continue;
+
+				// can we create an export on the cell?
+				PortInst pi = makePort(ni, layer, pt);
+				if (pi != null) touchingNodes.add(pi);
 				continue;
 			}
 			Poly [] polys = tech.getShapeOfNode(ni, null, true, true, null);
@@ -401,6 +444,65 @@ public class Connectivity
 			}
 		}
 		return touchingNodes;
+	}
+
+
+	/**
+	 * Method to create an export so that a node can connect to a layer.
+	 * @param ni the node that needs to connect.
+	 * @param layer the layer on which to connect.
+	 * @param pt the location on the node for the connection.
+	 * @return the PortInst on the node (null if it cannot be created).
+	 */
+	private PortInst makePort(NodeInst ni, Layer layer, Point2D pt)
+	{
+		Cell subCell = (Cell)ni.getProto();
+		GenMath.MutableInteger exportNumber = (GenMath.MutableInteger)exportNumbers.get(subCell);
+		if (exportNumber == null) return null;
+//System.out.println("Want port on instance "+ni.describe()+" that is at ("+pt.getX()+","+pt.getY()+") on layer "+layer.getName());
+		AffineTransform transIn = ni.rotateIn(ni.translateIn());
+		Point2D inside = new Point2D.Double();
+		transIn.transform(pt, inside);
+		Rectangle2D bounds = new Rectangle2D.Double(inside.getX(), inside.getY(), 0, 0);
+		for(Iterator it = subCell.searchIterator(bounds); it.hasNext(); )
+		{
+			Geometric geom = (Geometric)it.next();
+			if (geom instanceof ArcInst) continue;
+			NodeInst subNi = (NodeInst)geom;
+			PortInst foundPi = null;
+			if (subNi.getProto() instanceof Cell)
+			{
+				PortInst pi = makePort(subNi, layer, inside);
+				if (pi != null) foundPi = pi;
+			} else
+			{
+				Technology tech = subNi.getProto().getTechnology();
+				AffineTransform trans = subNi.rotateOut();
+				Poly [] polyList = tech.getShapeOfNode(subNi, null, true, true, null);
+				for(int i=0; i<polyList.length; i++)
+				{
+					Poly poly = polyList[i];
+					if (poly.getPort() == null) continue;
+					if (geometricLayer(poly.getLayer()) != layer) continue;
+					poly.transform(trans);
+					if (poly.contains(inside))
+					{
+						// found polygon that touches the point.  Make the export
+						foundPi = findPortInstClosestToPoly(subNi, (PrimitivePort)poly.getPort(), inside);
+						break;
+					}
+				}
+			}
+			if (foundPi != null)
+			{
+				String exportName = "E" + exportNumber.intValue();
+				exportNumber.increment();
+				Export e = Export.newInstance(subCell, foundPi, exportName);
+				return ni.findPortInstFromProto(e);
+			}
+
+		}
+		return null;
 	}
 
 	/**
@@ -458,22 +560,22 @@ public class Connectivity
 	 * @param layer the layer associated with the polygon.
 	 * @param ap the type of arc to create when converting to wires.
 	 */
-	private void convertToWires(PolyBase poly, Layer layer, ArcProto ap)
+	private void convertToWires(PolyBase poly, Layer layer, ArcProto ap, PolyMerge merge, PolyMerge originalMerge, Cell newCell)
 	{
 		// reduce the geometry to a skeleton of centerlines
-		List lines = findCenterlines(poly, layer, ap);
+		List lines = findCenterlines(poly, layer, ap, merge, originalMerge);
 
 		// now realize the wires
 		for(Iterator it = lines.iterator(); it.hasNext(); )
 		{
 			Centerline cl = (Centerline)it.next();
 			Point2D loc1 = new Point2D.Double();
-			PortInst pi1 = locatePortOnCenterline(cl, loc1, layer, ap, true);
+			PortInst pi1 = locatePortOnCenterline(cl, loc1, layer, ap, true, newCell);
 			Point2D loc2 = new Point2D.Double();
-			PortInst pi2 = locatePortOnCenterline(cl, loc2, layer, ap, false);
+			PortInst pi2 = locatePortOnCenterline(cl, loc2, layer, ap, false, newCell);
 //System.out.println("Centerline from ("+cl.start.getX()+","+cl.start.getY()+") to ("+cl.end.getX()+","+cl.end.getY()+") width="+cl.width);
 //System.out.println("  will run from pi="+pi1+" at ("+loc1.getX()+","+loc1.getY()+") to pi="+pi2+" at ("+loc2.getX()+","+loc2.getY()+")");
-			realizeArc(ap, pi1, pi2, loc1, loc2, cl.width, false);
+			realizeArc(ap, pi1, pi2, loc1, loc2, cl.width, false, merge);
 		}
 	}
 
@@ -486,7 +588,7 @@ public class Connectivity
 	 * @param startSide true to 
 	 * @return
 	 */
-	private PortInst locatePortOnCenterline(Centerline cl, Point2D loc1, Layer layer, ArcProto ap, boolean startSide)
+	private PortInst locatePortOnCenterline(Centerline cl, Point2D loc1, Layer layer, ArcProto ap, boolean startSide, Cell newCell)
 	{
 		PortInst piRet = null;
 		boolean isHub = cl.endHub;
@@ -499,7 +601,7 @@ public class Connectivity
 		if (!isHub)
 		{
 			int angCenterLine = GenMath.figureAngle(cl.start, cl.end);
-			List possiblePorts = findPortInstsTouchingPoint(startPoint, layer);
+			List possiblePorts = findPortInstsTouchingPoint(startPoint, layer, newCell);
 			for(Iterator pIt = possiblePorts.iterator(); pIt.hasNext(); )
 			{
 				PortInst pi = (PortInst)pIt.next();
@@ -558,7 +660,7 @@ public class Connectivity
 				if (!isHub)
 					cl.start.setLocation(cl.start.getX() + GenMath.cos(angle)*cl.width/2,
 						cl.start.getY() + GenMath.sin(angle)*cl.width/2);
-				NodeInst ni = wantNodeAt(cl.start, pin, cl.width);
+				NodeInst ni = wantNodeAt(cl.start, pin, cl.width, newCell);
 				loc1.setLocation(cl.start.getX(), cl.start.getY());
 				piRet = ni.getOnlyPortInst();
 			} else
@@ -566,7 +668,7 @@ public class Connectivity
 				if (!isHub)
 					cl.end.setLocation(cl.end.getX() - GenMath.cos(angle)*cl.width/2,
 						cl.end.getY() - GenMath.sin(angle)*cl.width/2);
-				NodeInst ni = wantNodeAt(cl.end, pin, cl.width);
+				NodeInst ni = wantNodeAt(cl.end, pin, cl.width, newCell);
 				loc1.setLocation(cl.end.getX(), cl.end.getY());
 				piRet = ni.getOnlyPortInst();
 			}
@@ -581,7 +683,7 @@ public class Connectivity
 	 * @param ap the ArcProto to use when realizing the polygon.
 	 * @return a List of Centerline objects that describe a single "bone" of the skeleton.
 	 */
-	private List findCenterlines(PolyBase poly, Layer layer, ArcProto ap)
+	private List findCenterlines(PolyBase poly, Layer layer, ArcProto ap, PolyMerge merge, PolyMerge originalMerge)
 	{
 		// first make a list of all parallel wires in the polygon
 		List centerlines = new ArrayList();
@@ -943,7 +1045,7 @@ public class Connectivity
 	 * Method to scan the geometric information for possible contacts and vias.
 	 * Any vias found are created in the new cell and removed from the geometric information.
 	 */
-	private void extractVias()
+	private void extractVias(PolyMerge merge, PolyMerge originalMerge, Cell newCell)
 	{
 		// make map of PrimitiveNodes and their geometry
 		HashMap possibleAreas = new HashMap();
@@ -1016,7 +1118,7 @@ public class Connectivity
 						}
 						if (gotMinimum)
 						{
-							realizeNode(pNp, centerX, centerY, desiredWidth, desiredHeight, 0);
+							realizeNode(pNp, centerX, centerY, desiredWidth, desiredHeight, 0, merge, newCell);
 //System.out.println("  Is part of "+pNp.getName()+" contact which is "+desiredWidth+"x"+desiredHeight+" at ("+centerX+","+centerY+")");
 							// remove other cuts in this area
 							for(int o=1; o<polyList.size(); o++)
@@ -1219,7 +1321,7 @@ public class Connectivity
 
 	/********************************************** TRANSISTOR EXTRACTION **********************************************/
 
-	private void extractTransistors()
+	private void extractTransistors(PolyMerge merge, PolyMerge originalMerge, Cell newCell)
 	{
 		// must have a poly layer
 		if (polyLayer == null || tempLayer1 == null) return;
@@ -1234,15 +1336,15 @@ public class Connectivity
 		}
 		if (nTransistor != null)
 		{
-			findTransistors(nTransistor);
+			findTransistors(nTransistor, merge, originalMerge, newCell);
 		}
 		if (pTransistor != null)
 		{
-			findTransistors(pTransistor);
+			findTransistors(pTransistor, merge, originalMerge, newCell);
 		}
 	}
 
-	private void findTransistors(PrimitiveNode transistor)
+	private void findTransistors(PrimitiveNode transistor, PolyMerge merge, PolyMerge originalMerge, Cell newCell)
 	{
 		originalMerge.intersectLayers(polyLayer, activeLayer, tempLayer1);
 		Technology.NodeLayer [] layers = transistor.getLayers();
@@ -1288,7 +1390,7 @@ public class Connectivity
 				SizeOffset so = transistor.getProtoSizeOffset();
 				double width = wid + so.getLowXOffset() + so.getHighXOffset();
 				double height = hei + so.getLowYOffset() + so.getHighYOffset();
-				realizeNode(transistor, poly.getCenterX(), poly.getCenterY(), width, height, angle);
+				realizeNode(transistor, poly.getCenterX(), poly.getCenterY(), width, height, angle, merge, newCell);
 			}
 		}
 		originalMerge.deleteLayer(tempLayer1);
@@ -1299,7 +1401,7 @@ public class Connectivity
 	/**
 	 * Method to look for opportunities to place arcs that connect to existing geometry.
 	 */
-	private void extendGeometry()
+	private void extendGeometry(PolyMerge merge, PolyMerge originalMerge, Cell newCell)
 	{
 		for(Iterator lIt = merge.getKeyIterator(); lIt.hasNext(); )
 		{
@@ -1312,7 +1414,7 @@ public class Connectivity
 				PolyBase poly = (PolyBase)pIt.next();
 
 				// find out what this polygon touches
-				HashMap netsThatTouch = getNetsThatTouch(poly, layer);
+				HashMap netsThatTouch = getNetsThatTouch(poly, layer, newCell);
 
 				// make a list of port/arc ends that touch this polygon
 				List objectsToConnect = new ArrayList();
@@ -1326,7 +1428,7 @@ public class Connectivity
 				if (objectsToConnect.size() == 1)
 				{
 					// touches just 1 object: see if that object can be extended to cover the polygon
-					extendObject((ElectricObject)objectsToConnect.get(0), poly, layer, ap);
+					extendObject((ElectricObject)objectsToConnect.get(0), poly, layer, ap, merge, originalMerge, newCell);
 					continue;
 				}
 
@@ -1371,7 +1473,7 @@ public class Connectivity
 						if (xpos > polyBounds2.getMaxX()) xpos = polyBounds2.getMaxX();
 						Point2D pt1 = new Point2D.Double(xpos, polyBounds1.getCenterY());
 						Point2D pt2 = new Point2D.Double(xpos, polyBounds2.getCenterY());
-						ArcInst ai = realizeArc(ap, pi1, pi2, pt1, pt2, ap.getDefaultWidth(), false);
+						ArcInst ai = realizeArc(ap, pi1, pi2, pt1, pt2, ap.getDefaultWidth(), false, merge);
 						continue;
 					}
 					if (polyBounds1.getMinY() <= polyBounds2.getMaxY() && polyBounds1.getMaxY() >= polyBounds2.getMinY())
@@ -1382,7 +1484,7 @@ public class Connectivity
 						if (ypos > polyBounds2.getMaxY()) ypos = polyBounds2.getMaxY();
 						Point2D pt1 = new Point2D.Double(polyBounds1.getCenterX(), ypos);
 						Point2D pt2 = new Point2D.Double(polyBounds2.getCenterX(), ypos);
-						ArcInst ai = realizeArc(ap, pi1, pi2, pt1, pt2, ap.getDefaultWidth(), false);
+						ArcInst ai = realizeArc(ap, pi1, pi2, pt1, pt2, ap.getDefaultWidth(), false, merge);
 						continue;
 					}
 
@@ -1396,16 +1498,16 @@ public class Connectivity
 						PrimitiveNode np = ((PrimitiveArc)ap).findPinProto();
 						NodeInst ni = NodeInst.makeInstance(np, corner1, np.getDefWidth(), np.getDefHeight(), newCell);
 						PortInst pi = ni.getOnlyPortInst();
-						ArcInst ai1 = realizeArc(ap, pi1, pi, pt1, corner1, ap.getDefaultWidth(), false);
-						ArcInst ai2 = realizeArc(ap, pi2, pi, pt2, corner1, ap.getDefaultWidth(), false);
+						ArcInst ai1 = realizeArc(ap, pi1, pi, pt1, corner1, ap.getDefaultWidth(), false, merge);
+						ArcInst ai2 = realizeArc(ap, pi2, pi, pt2, corner1, ap.getDefaultWidth(), false, merge);
 					}
 					if (poly.contains(corner2))
 					{
 						PrimitiveNode np = ((PrimitiveArc)ap).findPinProto();
 						NodeInst ni = NodeInst.makeInstance(np, corner2, np.getDefWidth(), np.getDefHeight(), newCell);
 						PortInst pi = ni.getOnlyPortInst();
-						ArcInst ai1 = realizeArc(ap, pi1, pi, pt1, corner2, ap.getDefaultWidth(), false);
-						ArcInst ai2 = realizeArc(ap, pi2, pi, pt2, corner2, ap.getDefaultWidth(), false);
+						ArcInst ai1 = realizeArc(ap, pi1, pi, pt1, corner2, ap.getDefaultWidth(), false, merge);
+						ArcInst ai2 = realizeArc(ap, pi2, pi, pt2, corner2, ap.getDefaultWidth(), false, merge);
 					}
 				}
 			}
@@ -1415,7 +1517,7 @@ public class Connectivity
 	/**
 	 * Method to see if a polygon can be covered by adding an arc.
 	 */
-	private void extendObject(ElectricObject obj, PolyBase poly, Layer layer, ArcProto ap)
+	private void extendObject(ElectricObject obj, PolyBase poly, Layer layer, ArcProto ap, PolyMerge merge, PolyMerge originalMerge, Cell newCell)
 	{
 		// can only handle rectangles now
 		Rectangle2D polyBounds = poly.getBox();
@@ -1468,7 +1570,7 @@ public class Connectivity
 				pinPt = new Point2D.Double(polyCtr.getX(), polyBounds.getMinY() + endExtension);
 			}
 			NodeInst ni1 = NodeInst.makeInstance(np, pinPt, polyBounds.getWidth(), polyBounds.getWidth(), newCell);
-			ArcInst ai = realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPt, objPt, polyBounds.getWidth(), noEndExtend);
+			ArcInst ai = realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPt, objPt, polyBounds.getWidth(), noEndExtend, merge);
 			return;
 		}
 
@@ -1496,7 +1598,7 @@ public class Connectivity
 				pinPt = new Point2D.Double(polyBounds.getMinX() + endExtension, polyCtr.getY());
 			}
 			NodeInst ni1 = NodeInst.makeInstance(np, pinPt, polyBounds.getHeight(), polyBounds.getHeight(), newCell);
-			ArcInst ai = realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPt, objPt, polyBounds.getHeight(), noEndExtend);
+			ArcInst ai = realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPt, objPt, polyBounds.getHeight(), noEndExtend, merge);
 		}
 	}
 
@@ -1555,7 +1657,7 @@ public class Connectivity
 		return false;
 	}
 
-	private HashMap getNetsThatTouch(PolyBase poly, Layer layer)
+	private HashMap getNetsThatTouch(PolyBase poly, Layer layer, Cell newCell)
 	{
 		// make a map of networks that touch the polygon, and the objects on them
 		HashMap netsThatTouch = new HashMap();
@@ -1626,7 +1728,7 @@ public class Connectivity
 	 * Method to scan the geometric information and convert it all to pure layer nodes in the new cell.
 	 * When all other extractions are done, this is done to preserve any geometry that is unaccounted-for.
 	 */
-	private void convertAllGeometry()
+	private void convertAllGeometry(PolyMerge merge, PolyMerge originalMerge, Cell newCell)
 	{
 		for(Iterator lIt = merge.getKeyIterator(); lIt.hasNext(); )
 		{
@@ -1662,7 +1764,7 @@ public class Connectivity
 								Point2D end2 = new Point2D.Double(polyBounds.getMaxX()-height/2, polyBounds.getCenterY());
 								NodeInst ni1 = NodeInst.makeInstance(np, end1, height, height, newCell);
 								NodeInst ni2 = NodeInst.makeInstance(np, end2, height, height, newCell);
-								ArcInst ai = realizeArc(ap, ni1.getOnlyPortInst(), ni2.getOnlyPortInst(), end1, end2, height, false);
+								ArcInst ai = realizeArc(ap, ni1.getOnlyPortInst(), ni2.getOnlyPortInst(), end1, end2, height, false, merge);
 							} else
 							{
 								// make a vertical arc
@@ -1670,7 +1772,7 @@ public class Connectivity
 								Point2D end2 = new Point2D.Double(polyBounds.getCenterX(), polyBounds.getMaxY()-width/2);
 								NodeInst ni1 = NodeInst.makeInstance(np, end1, width, width, newCell);
 								NodeInst ni2 = NodeInst.makeInstance(np, end2, width, width, newCell);
-								ArcInst ai = realizeArc(ap, ni1.getOnlyPortInst(), ni2.getOnlyPortInst(), end1, end2, width, false);
+								ArcInst ai = realizeArc(ap, ni1.getOnlyPortInst(), ni2.getOnlyPortInst(), end1, end2, width, false, merge);
 							}
 							continue;
 						}
@@ -1708,7 +1810,7 @@ public class Connectivity
 	 * @param width the new node's width.
 	 * @param height the new node's height.
 	 */
-	private void realizeNode(PrimitiveNode pNp, double centerX, double centerY, double width, double height, int angle)
+	private void realizeNode(PrimitiveNode pNp, double centerX, double centerY, double width, double height, int angle, PolyMerge merge, Cell newCell)
 	{
 		NodeInst ni = NodeInst.makeInstance(pNp, new Point2D.Double(centerX, centerY), width, height, newCell, angle, null, 0);
 		if (ni == null) return;
@@ -1737,7 +1839,7 @@ public class Connectivity
 	 * @param width the width of the arc.
 	 * @param noEndExtend true to NOT extend the arc ends.
 	 */
-	private ArcInst realizeArc(ArcProto ap, PortInst pi1, PortInst pi2, Point2D pt1, Point2D pt2, double width, boolean noEndExtend)
+	private ArcInst realizeArc(ArcProto ap, PortInst pi1, PortInst pi2, Point2D pt1, Point2D pt2, double width, boolean noEndExtend, PolyMerge merge)
 	{
 		ArcInst ai = ArcInst.makeInstance(ap, width, pi1, pi2, pt1, pt2, null);
 		if (ai == null) return null;
@@ -1766,7 +1868,7 @@ public class Connectivity
 	 * @return a node of that type at that location.
 	 * If there is none there, it is created.
 	 */
-	private NodeInst wantNodeAt(Point2D pt, NodeProto pin, double size)
+	private NodeInst wantNodeAt(Point2D pt, NodeProto pin, double size, Cell newCell)
 	{
 		Rectangle2D bounds = new Rectangle2D.Double(pt.getX(), pt.getY(), 0, 0);
 		for(Iterator it = newCell.searchIterator(bounds); it.hasNext(); )

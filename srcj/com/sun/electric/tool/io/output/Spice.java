@@ -1258,9 +1258,12 @@ public class Spice extends Topology
 		// simple names are trivially accepted as is
 		boolean allAlNum = true;
 		int len = name.length();
+		if (len <= 0) return name;
 		for(int i=0; i<len; i++)
 		{
-			if (!TextUtils.isLetterOrDigit(name.charAt(i)))
+			boolean valid = TextUtils.isLetterOrDigit(name.charAt(i));
+			if (i == 0) valid = Character.isLetter(name.charAt(i));
+			if (!valid)
 			{
 				allAlNum = false;
 				break;
@@ -1269,6 +1272,7 @@ public class Spice extends Topology
 		if (allAlNum) return name;
 
 		StringBuffer sb = new StringBuffer();
+		if (TextUtils.isDigit(name.charAt(0))) sb.append('_');
 		for(int t=0; t<name.length(); t++)
 		{
 			char chr = name.charAt(t);

@@ -395,7 +395,9 @@ public class CIF extends Input
 	 */
 	protected boolean importALibrary(Library lib)
 	{
-		// initialize all lists and the searching routines
+        progress.setNote("Reading CIF file");
+
+        // initialize all lists and the searching routines
 		cifCellMap = new HashMap();
 
 		if (initFind()) return true;
@@ -404,6 +406,7 @@ public class CIF extends Input
 		if (interpret()) return true;
 
 		// instantiate the cif as nodes
+        progress.setNote("Storing CIF in database...");
 		if (listToNodes(lib)) return true;
 
 		// clean up
@@ -1282,6 +1285,7 @@ public class CIF extends Input
 		try
 		{
 			nextInputCharacter = lineReader.read();
+			updateProgressDialog(1);
 		} catch (IOException e)
 		{
 			nextInputCharacter = -1;
@@ -1308,6 +1312,7 @@ public class CIF extends Input
 			try
 			{
 				nextInputCharacter = lineReader.read();
+				updateProgressDialog(1);
 			} catch (IOException e)
 			{
 				nextInputCharacter = -1;
@@ -2407,8 +2412,7 @@ public class CIF extends Input
 		{
 			String name = sym.name;
 			if (name == null) name = "#" + sym.symNumber;
-			String mess = "cell " + name + " has no geometry in it";
-			errorReport(mess, ADVISORY);
+			System.out.println("Warning: cell " + name + " has no geometry in it");
 			sym.bounds.l = 0;   sym.bounds.r = 0;
 			sym.bounds.b = 0;   sym.bounds.t = 0;
 			sym.boundsValid = true;
