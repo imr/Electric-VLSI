@@ -3,6 +3,7 @@ package com.sun.electric.tool.user;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.Version;
 import com.sun.electric.tool.user.menus.MenuBar;
 import com.sun.electric.tool.user.ui.*;
 import com.sun.electric.tool.Job;
@@ -53,6 +54,7 @@ public class ActivityLogger {
         } catch (IOException e) {
             System.out.println("Warning: Activity Log disabled: "+e.getMessage());
         }
+        out.println("Electric "+Version.getVersionInformation());
     }
 
     /**
