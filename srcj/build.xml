@@ -15,6 +15,7 @@
             <classpath><pathelement location="${beanshell}"/></classpath>
             <classpath><pathelement location="${AppleJava}"/></classpath>
             <exclude name="intervalsimulation/"/>
+	        <exclude name="com/sun/electric/plugins/j3d/*.*" if="NO3D"/>
         </javac>
     </target>
 
@@ -118,6 +119,7 @@
             <exclude name="com/sun/electric/plugins/tsmc90/fill90nm/*.*" if="GNU"/>
             <exclude name="com/sun/electric/plugins/tsmc90/gates90nm/*.*" if="GNU"/>
 	        <exclude name="com/sun/electric/tool/simulation/interval/*.*" if="GNU"/>
+	        <exclude name="com/sun/electric/plugins/j3d/*.*" if="NO3D"/>
             <exclude name="**/*.java" unless="source"/>
             <exclude name="**/*.form" unless="source"/>
             <exclude name="classes/" unless="source"/>
