@@ -2,6 +2,8 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (5/28/04, RK) Added fill cells: fill456_pwr and fill456w_pwr. Merge Jonathan's gate generator code into mine. Add user interface checks.
+
 IMP: (5/27/04, RK) Added _pwr gates to layout generators. Added fill56_pwr and fill56w_pwr to fill cell generator.
 
 IMP: (5/26/04, SMR) Implemented schematic frames.

@@ -27,6 +27,7 @@ import java.util.*;
 import java.awt.*;
 import java.awt.geom.Point2D;
 
+import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.database.variable.*;
 import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.database.prototype.*;
@@ -54,87 +55,25 @@ public class Loco extends Job {
 		LayoutLib.error(pred, msg);
 	}
 
-	private static boolean osIsWindows() {
-		Properties props = System.getProperties();
-		String osName = ((String) props.get("os.name")).toLowerCase();
-		return osName.indexOf("windows") != -1;
-	}
-	private Library doJustin(String homeDir) {
-		Library lib = LayoutLib.openLibForWrite("fullswing_inverters", 
-									  			homeDir+"fullswing_inverters");
-		StdCellParams stdCell = locoParams(lib);
-		InvV.makePart(24.4467, 25.3333, stdCell);	// 3x13x50000
-		InvV.makePart(51.4667, 53.3333, stdCell);	// 3x13x50000D
-		InvV.makePart(25.7333, 26.6667, stdCell);	// 3x13x70850
-		InvV.makePart(28.95, 30, stdCell);			// 3x3x33330
-		InvV.makePart(32.1667, 33.3333, stdCell);	// 3x3x50000
-		InvV.makePart(69.1583, 71.6667, stdCell);	// 3x3x50000D
-		InvV.makePart(23.8033, 24.6667, stdCell);	// 3x7x50000
-		InvV.makePart(26.3767, 27.3333, stdCell);	// 3x7x60000
-		
-		return lib;
-	}
-	
 	private Cell findCell(Library lib, String cellName) {
 		Cell c = lib.findNodeProto(cellName);
 		LayoutLib.error(c==null, "can't find: "+lib.getLibName()+":"+cellName);
 		return c;
 	}
 	
-//	private Library doTom() {
-//		String outLibNm = "tomsAutoGenLib";
-//		String outLibDir = "c:/a1/kao/Sun/";
-//		Library outLib = LayoutLib.openLibForWrite(outLibNm, outLibDir+outLibNm);
-//		StdCellParams stdCell = locoParams(outLib);
-//
-//		String inLibNm = "rcexp";
-//		String inLibDir = "x:/links/async/cad/2004/loco/ronho/electric/";
-//		inLibDir = "x:/links/toneill/tmp/tgo-0525/";
-//		Library inLib = LayoutLib.openLibForRead(inLibNm, inLibDir+inLibNm+".elib");
-//		
-//		HashSet cellNames = new HashSet();
-//		cellNames.add("inv");
-//		cellNames.add("invLT");
-//		cellNames.add("invHT");
-//		cellNames.add("invCLK");
-//		GenerateLayoutForGatesInSchematic visitor =
-//			new GenerateLayoutForGatesInSchematic("redFour", cellNames, stdCell);
-//		
-//		Cell c = findCell(inLib, "rcexp_mux{sch}");
-//		HierarchyEnumerator.enumerateCell(c, null, null, visitor);
-//		c = findCell(inLib, "rcexp_driver{sch}");
-//		HierarchyEnumerator.enumerateCell(c, null, null, visitor);
-//		c = findCell(inLib, "rcexp_edgegen{sch}"); 
-//		HierarchyEnumerator.enumerateCell(c, null, null, visitor);
-//			
-//		return outLib;
-//	}
-	
-	private Library doLoco() {
-		String outLibNm = "locoAutoGenLib";
-		String outLibDir = "c:/a1/kao/Sun/";
-		Library outLib = LayoutLib.openLibForWrite(outLibNm, outLibDir+outLibNm);
+	private Library generateLayout(Library outLib, Cell cell) {
 		StdCellParams stdCell = locoParams(outLib);
+		
+		// Due to NCC deficiency in C-Electric, gates with "_pwr" suffix need 
+		// power bus assigned Characteristic "IN". This is my hack until I have 
+		// a properly functioning version of NCC.
 		StdCellParams stdCellPwr = locoParams(outLib);
 		stdCellPwr.setVddExportName("power");
 		stdCellPwr.setVddExportRole(PortProto.Characteristic.IN);
 
-		String inLibNm = "loco_jkl";
-		String inLibDir = "x:/links/async/cad/2004/loco/integrate-0527/";
-		Library inLib = LayoutLib.openLibForRead(inLibNm, inLibDir+inLibNm+".elib");
-		
-		HashSet cellNames = new HashSet();
-		cellNames.add("inv");
-		cellNames.add("invLT");
-		cellNames.add("invHT");
-		cellNames.add("invCLK");
-		cellNames.add("nand2");
 		GenerateLayoutForGatesInSchematic visitor =
-			new GenerateLayoutForGatesInSchematic("redFour", cellNames, stdCell, 
-			                                      stdCellPwr);
-		
-		Cell c = findCell(inLib, "loco_core{sch}");
-		HierarchyEnumerator.enumerateCell(c, null, null, visitor);
+			new GenerateLayoutForGatesInSchematic(stdCell, stdCellPwr);
+		HierarchyEnumerator.enumerateCell(cell, null, null, visitor);
 			
 		return outLib;
 	}
@@ -154,77 +93,41 @@ public class Loco extends Job {
 	}
 	
 	public void doIt() {
-		System.out.println("begin execution of Gates");
-		boolean nfsWedged = true;
-		String homeDir;
-		if (!osIsWindows()) {
-			homeDir = "/home/rkao/";
-		} else if (nfsWedged) {
-			homeDir = "c:/a1/kao/Sun";
-		} else {
-			homeDir = "x:/";
-		}
+		String outLibNm = "autoGenLib";
+		String outLibDir = "";
+		Library outLib = LayoutLib.openLibForWrite(outLibNm, outLibDir+outLibNm);
 
-		//Library lib = doJustin(homeDir, stdCell);
-		//Library lib = doTom();
-		Library lib = doLoco();
-		Cell gallery = Gallery.makeGallery(lib);
+		EditWindow wnd = EditWindow.getCurrent();
+		Cell cell = wnd.getCell();
+		if (cell==null) {
+			System.out.println("Please open the schematic for which you " +				               "want to generate gate layouts.");
+			return;		
+		}
+		View view = cell.getView();
+		if (view!=View.SCHEMATIC) {
+			System.out.println("The current cell isn't a schematic. This " +				               "command only works on schematics.");
+			return;
+		}
+		System.out.println("Generating layouts for gates in the schematic: "+
+		                   cell.getProtoName()+" and its descendents");
+		System.out.println("Output goes to library: autoGenLib");
+		//Library outLib = cell.getLibrary();
+
+		generateLayout(outLib, cell);
+		Cell gallery = Gallery.makeGallery(outLib);
 		DrcRings.addDrcRings(gallery, FILTER);
 		
-		//LayoutLib.writeLibrary(scratchLib);
-
 		System.out.println("done.");
 	}
 	public Loco() {
-		super("Build inverter library for Justin", User.tool, Job.Type.CHANGE, 
+		super("Generate gate layouts", User.tool, Job.Type.CHANGE, 
 			  null, null, Job.Priority.ANALYSIS);
 		startJob();
 	}
-
-
-    public static void generateCommand(Cell cell, Library outputLib) {
-        GenerateLayout job = new GenerateLayout(cell, outputLib, false);
-    }
-
-    public static void generateCommandSecondaryPower(Cell cell, Library outputLib) {
-        GenerateLayout job = new GenerateLayout(cell, outputLib, true);
-    }
-
-    private static class GenerateLayout extends Job {
-        private Cell cell;
-        private Library outputLib;
-        private boolean useSecondaryPower;      // TODO: fix this total hack
-
-        private GenerateLayout(Cell cell, Library outputLib, boolean useSecondaryPower) {
-            super("Generate Layout", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.cell = cell;
-            this.outputLib = outputLib;
-            this.useSecondaryPower = useSecondaryPower;
-            startJob();
-        }
-
-        public void doIt() {
-            StdCellParams stdCell = locoParams(outputLib);
-            StdCellParams stdCellPwr = locoParams(outputLib);
-            if (useSecondaryPower) {
-                stdCellPwr.setVddExportName("power");
-                stdCellPwr.setVddExportRole(PortProto.Characteristic.IN);
-            } else {
-                stdCellPwr.setVddExportName("vdd");
-                stdCellPwr.setVddExportRole(PortProto.Characteristic.PWR);
-            }
-            GenerateLayoutForGatesInSchematic visitor =
-                    new GenerateLayoutForGatesInSchematic("redFour", new HashSet(), stdCell, stdCellPwr);
-            HierarchyEnumerator.enumerateCell(cell, null, null, visitor);
-        }
-    }
-
 }
 
 /** Traverse a schematic hierarchy and generate Cells that we recognize. */
 class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
-	private final String libName;
-	private final HashSet cellNames;
 	private final StdCellParams stdCell;
 	private final StdCellParams stdCellPwr;
 	private final HashSet visitedCells = new HashSet();
@@ -235,12 +138,8 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 	 * which we want to generate layout. For example: "redFour" or "purpleFour".
 	 * @param cellNames the names of the Cells for which we want to generate layout
 	 */
-	public GenerateLayoutForGatesInSchematic(String libraryName, 
-											 HashSet cellNames,
-	                          				 StdCellParams stdCell,
+	public GenerateLayoutForGatesInSchematic(StdCellParams stdCell,
 	                          				 StdCellParams stdCellPwr) {
-		libName = libraryName;
-		this.cellNames = cellNames;
 		this.stdCell = stdCell;
 		this.stdCellPwr = stdCellPwr;
 	}
@@ -263,11 +162,6 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 		if (x==-1) return;
 		
 		StdCellParams sc = stdCell;
-//		if (pNm.equals("inv"))         InvHT.makePart(x, sc);
-//		else if (pNm.equals("invHT"))         InvHT.makePart(x, sc);
-//		else if (pNm.equals("invLT"))         InvHT.makePart(x, sc);
-//		else if (pNm.equals("invCLK"))         InvHT.makePart(x, sc);
-//		else if (pNm.equals("nand2"))    Nand2.makePart(x, sc);
 
 		boolean unknown = false;
 		
@@ -318,7 +212,7 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 		else if (pNm.equals("nor2kresetV"))   Nor2kresetV.makePart(x, sc);
 		else unknown = true;
 		
-		if (!unknown) System.out.println("Gate Type: " + pNm + ", Gate Size: " + x);
+		//if (!unknown) System.out.println("Gate Type: " + pNm + ", Gate Size: " + x);
 	}
 
 	public boolean enterCell(HierarchyEnumerator.CellInfo info) {
@@ -337,11 +231,7 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 		Library lib = cell.getLibrary();
 		String libNm = lib.getLibName();
 		if (libNm.equals("redFour") || libNm.equals("power2_gates")) {
-			String cellName = cell.getProtoName();
-			//if (cellNames.contains(cellName)) {
-				// Generate layout for this Cell
-				generateCell(no, info.getContext());	
-			//}
+			generateCell(no, info.getContext());	
 			return false;
 		}
 		return true;

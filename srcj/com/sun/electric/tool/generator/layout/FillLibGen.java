@@ -1120,6 +1120,8 @@ public class FillLibGen extends Job {
 		makeAndTileCell(lib, plans, 3, 4, capCell, true,  stdCell);
 		makeAndTileCell(lib, plans, 5, 6, capCell, false, stdCell);
 		makeAndTileCell(lib, plans, 5, 6, capCell, true,  stdCell);
+		makeAndTileCell(lib, plans, 4, 6, capCell, false, stdCell);
+		makeAndTileCell(lib, plans, 4, 6, capCell, true,  stdCell);
 
 		Gallery.makeGallery(lib);
 	}
