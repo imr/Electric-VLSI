@@ -36,14 +36,7 @@ import java.awt.event.AdjustmentEvent;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
-import javax.swing.JInternalFrame;
-import javax.swing.JPanel;
-import javax.swing.JTextArea;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.ImageIcon;
-import javax.swing.JOptionPane;
-import javax.swing.JScrollBar;
+import javax.swing.*;
 import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -393,7 +386,7 @@ public class WindowFrame
 	 * @return an Iterator over all WindowFrames.
 	 */
 	public static Iterator getWindows() { return windowList.iterator(); }
-    
+
     /**
      * Method to set the description on the window frame
      */

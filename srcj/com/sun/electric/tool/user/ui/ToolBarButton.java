@@ -115,7 +115,7 @@ public class ToolBarButton extends AbstractButton implements Accessible, ActionL
         // new button
         ToolBarButton b = new ToolBarButton(text, icon);
         b.addActionListener(ToolBarButton.updater);
-        b.addActionListener(Menu.updater);
+        b.addActionListener(MenuManager.updater);
         
         // add to book-keeping
         ArrayList buttonGroup;

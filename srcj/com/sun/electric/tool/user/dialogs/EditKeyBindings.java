@@ -8,17 +8,17 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.KeyBindingManager;
-import com.sun.electric.tool.user.ui.Menu;
+import com.sun.electric.tool.user.KeyBindingManager.KeyBinding;
+import com.sun.electric.tool.user.ui.MenuManager;
+import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.MenuManager.Menu;
 
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.InputMethodListener;
 import java.awt.event.InputMethodEvent;
 import java.util.List;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.KeyStroke;
+import javax.swing.*;
 import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -58,20 +58,12 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
          */
         public String toString() {
             if (menuItem != null) {
-                return menuItem.getText();
-                /*
                 StringBuffer buf = new StringBuffer(menuItem.getText());
                 KeyStroke key = menuItem.getAccelerator();
                 if (key != null) {
-                    int mods = key.getModifiers();
-                    buf.append("   [ ");
-                    if (mods != 0)
-                        buf.append(KeyEvent.getKeyModifiersText(mods)+"+");
-                    buf.append(KeyEvent.getKeyText(key.getKeyCode()));
-                    buf.append(" ]");
+                    buf.append("   [ "+KeyBindingManager.keyStrokeToString(key)+" ]");
                 }
                 return buf.toString();
-                */
             }
             return "---------------";               // separator
         }
@@ -148,8 +140,8 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         jPanel2.add(add, gridBagConstraints);
 
         remove.setText("Remove");
@@ -164,8 +156,8 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         jPanel2.add(remove, gridBagConstraints);
 
         resetitem.setText("Reset");
@@ -180,8 +172,8 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         jPanel2.add(resetitem, gridBagConstraints);
 
         jPanel4.setLayout(new java.awt.GridBagLayout());
@@ -189,8 +181,8 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
         jLabel1.setText("Shortcuts:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(3, 3, 3, 3);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(3, 3, 3, 3);
         jPanel4.add(jLabel1, gridBagConstraints);
 
         bindingsJList.setBorder(new javax.swing.border.EtchedBorder());
@@ -199,9 +191,9 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         jPanel4.add(bindingsJList, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -262,65 +254,76 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
         pack();
     }//GEN-END:initComponents
 
+    // -------------------------------- Actions ----------------------------------
+
+    /**
+     * Resets a menu item back to its default key bindings
+     * @param evt the event
+     */
     private void resetitemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resetitemActionPerformed
         // get currently selected node
-        KeyBoundTreeNode treeNode = getSelected();
-        if (treeNode == null) return;
-        if (treeNode.getMenuItem() == null) return;
-        Menu.resetToDefaultKeyStroke(treeNode.getMenuItem());
+        JMenuItem item = getSelectedMenuItem();
+        if (item == null) return;
+
+        // reset item to default bindings
+        MenuManager.setToDefaultBindings(item);
+
+        // update tree view and list box
         DefaultTreeModel model = (DefaultTreeModel)commandsTree.getModel();
         model.reload(getSelectedTreeNode());
-        //instructions.setText(treeNode.toString());
+        updateListBox(item);
     }//GEN-LAST:event_resetitemActionPerformed
 
+    /**
+     * Remove a key binding from the menu item
+     * @param evt the event
+     */
     private void removeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeActionPerformed
         // get currently selected node
-        KeyBoundTreeNode treeNode = getSelected();
-        if (treeNode == null) return;
-        if (treeNode.getMenuItem() == null) return;
-        // set key binding in prefs
-        Menu.setUserMenuItemKeyStroke(treeNode.getMenuItem(), null);
-        // set key binding to show up on dialog
-        treeNode.menuItem.setAccelerator(null);
+        JMenuItem item = getSelectedMenuItem();
+        if (item == null) return;
+
+        // get selected key binding
+        KeyBinding k = getListBoxSelected();
+        if (k == null) return;
+
+        // remove it and update view
+        MenuManager.removeKeyBinding(k);
         DefaultTreeModel model = (DefaultTreeModel)commandsTree.getModel();
         model.reload(getSelectedTreeNode());
-        //instructions.setText(treeNode.toString());
+        updateListBox(item);
     }//GEN-LAST:event_removeActionPerformed
 
-    /** Resets all Key Bindings to their default values */
+    /**
+     * Reset *All* menu items to their default Key Bindings
+     * @param evt the event
+     */
     private void resetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resetActionPerformed
-        for (int i=0; i<menuBar.getMenuCount(); i++) {
-            Menu menu = (Menu)menuBar.getMenu(i);
-            resetMenuKeys(menu);
-        }
+        // confirm that the user really wants to reset all key bindings
+        if (!confirmResetAll()) return;
+        MenuManager.setToDefaultBindingsAll();
+
+        // update tree view
         DefaultTreeModel model = (DefaultTreeModel)commandsTree.getModel();
         model.reload();
+        JMenuItem item = getSelectedMenuItem();
+        updateListBox(item);
     }//GEN-LAST:event_resetActionPerformed
 
+    /**
+     * Add a key binding to the selected menu item
+     * @param evt the event
+     */
     private void addActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addActionPerformed
-        KeyBoundTreeNode treeNode = getSelected();
-        if (treeNode == null) return;
-        if (treeNode.getMenuItem() == null) return;
-        // get text from text box
-        //String text = keyinput.getText();
-        KeyStroke newKey = null;//KeyStroke.getKeyStroke(text);
-        if (newKey == null) {
-            //instructions.setText("bad key combination");
-            return;
-        }
-        // set key binding in prefs
-        Menu.setUserMenuItemKeyStroke(treeNode.getMenuItem(), newKey);
-        // set key binding to show up on dialog
-        treeNode.getMenuItem().setAccelerator(newKey);
+        JMenuItem item = getSelectedMenuItem();
+        if (item == null) return;
+        EditKeyBinding dialog = new EditKeyBinding(TopLevel.getCurrentJFrame(), true, item);
+        dialog.show();
+
+        // update tree view
         DefaultTreeModel model = (DefaultTreeModel)commandsTree.getModel();
         model.reload(getSelectedTreeNode());
-        //instructions.setText(treeNode.toString());
-        // check if KeyStroke assigned to another MenuItem; display message
-        JMenuItem conflictItem = checkKeyStrokeConflict(treeNode.getMenuItem());
-        if (conflictItem != null ) {
-            KeyBoundTreeNode tnode = new KeyBoundTreeNode(conflictItem);
-            //instructions.setText("Warning: Duplicate assignment: "+tnode.toString());
-        }
+        updateListBox(item);
     }//GEN-LAST:event_addActionPerformed
 
     private void doneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_doneActionPerformed
@@ -331,11 +334,14 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
     private void exitForm(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_exitForm
 
     }//GEN-LAST:event_exitForm
-    
+
+
+    // -------------------------------- Tree View Population -------------------------------
+
     /** Build tree of menu commands */
     private void buildCommandsTree() {
         DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
-        
+
         menuBar = MenuCommands.createMenuBar();
         // now convert menuBar to tree
         for (int i=0; i<menuBar.getMenuCount(); i++) {
@@ -367,19 +373,13 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
         }
     }
 
-    /** Reset menu keys under Menu.  Recursive method */
-    private void resetMenuKeys(Menu menu) {
-        for (int i=0; i<menu.getItemCount(); i++) {
-            JMenuItem menuItem = menu.getItem(i);
-            if (menuItem == null) continue; // separator
-            if (menuItem instanceof Menu)
-                resetMenuKeys((Menu)menuItem);                     // recurse
-            else
-                Menu.resetToDefaultKeyStroke(menuItem);
-        }
-    }
-        
-    /** Called when selection of Node in tree changes */
+
+    // ---------------------------- Tree Selection Listener -----------------------
+
+    /**
+     * Called when selection of Node in tree changes.
+     * It updates the list box to reflect the current tree selection.
+     */
     public void valueChanged(javax.swing.event.TreeSelectionEvent e) {
         TreePath path = e.getPath();
         if (path == null) return;
@@ -388,33 +388,64 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
         Object n = node.getUserObject();
         if (!(n instanceof KeyBoundTreeNode)) return;
         KeyBoundTreeNode treeNode = (KeyBoundTreeNode)n;
-        if (treeNode.getMenuItem() == null) {
+        updateListBox(treeNode.getMenuItem());
+    }
+
+    // ------------------------------- List Box stuff -----------------------------
+
+    /**
+     * Update list box with item's key bindings
+     * @param item display key bindings for this item
+     */
+    private void updateListBox(JMenuItem item) {
+        if (item == null) {
             bindingsJList.setListData(new Object [] {});
-            return;          // separator
+            return;
         }
-        List bindings = Menu.getKeyBindingsFor(treeNode.getMenuItem());
+        List bindings = MenuManager.getKeyBindingsFor(item);
         if (bindings == null) {
             bindingsJList.setListData(new Object [] {});
             return;          // separator
         }
         bindingsJList.setListData(bindings.toArray());
-        //instructions.setText(treeNode.toString());
     }
-    
 
-    //-----------------------Private Utility Methods--------------------------
-    
-    /** Get selected KeyBoundTreeNode.  
-     * Returns null if no valid KeyBoundTreeNode selected in tree. 
+    private KeyBinding getListBoxSelected() {
+        return (KeyBinding)bindingsJList.getSelectedValue();
+    }
+
+    // ------------------------------ Confirm Dialogs ------------------------------
+
+    /**
+     * Pops up a JOptionPain dialog box to confirm the reset of all
+     * Key Bindings
+     * @return true on confirmation by user to reset all bindings, false otherwise.
      */
-    private KeyBoundTreeNode getSelected() {
+    private boolean confirmResetAll() {
+        Object [] options = {"Reset All", "Do Nothing"};
+        int n = JOptionPane.showOptionDialog(this,
+                "This will delete ***ALL*** your user key bindings.\n  Are you really sure you want to do that??",
+                "You sure about that?", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
+                null, options, options[1]);
+        if (n == 0) return true;
+        return false;
+    }
+
+    //-------------------------- Private Utility Methods ----------------------------
+
+    /**
+     * Get selected menu item in tree view
+     * @return the selected menu item, or null if none.
+     */
+    private JMenuItem getSelectedMenuItem() {
         DefaultMutableTreeNode node = getSelectedTreeNode();
         Object obj = node.getUserObject();
         if (!(obj instanceof KeyBoundTreeNode)) return null;
         KeyBoundTreeNode treeNode = (KeyBoundTreeNode)obj;
-        return treeNode;
+        JMenuItem item = treeNode.getMenuItem();
+        return item;
     }
-    
+
     /** get selected DefaultMutableTreeNode.
      * Returns null if no valid DefaultMutableTree node selected in tree.
      */
@@ -424,44 +455,13 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
         DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
         return node;
     }
-
-    /** Check if another MenuItem has key assigned to it.
-     * If so, return that MenuItem */
-    private JMenuItem checkKeyStrokeConflict(JMenuItem origItem) {
-        for (int i=0; i<menuBar.getMenuCount(); i++) {
-            Menu menu = (Menu)menuBar.getMenu(i);
-            JMenuItem conflict = checkKeyStrokeConflict(menu, origItem);
-            if (conflict != null) return conflict;
-        }
-        return null;
-    }
-    
-    /** Recursive method to check if a MenuItem in menu has been assigned to the
-     * KeyStroke key.  Return a MenuItem if conflict found, otherwise return null. */
-    private JMenuItem checkKeyStrokeConflict(Menu menu, JMenuItem origItem) {
-        for (int i=0; i<menu.getItemCount(); i++) {
-            JMenuItem conflict = null;
-            JMenuItem menuItem = menu.getItem(i);
-            if (menuItem == null) continue;                     // separator
-            if (menuItem instanceof Menu) {                       // recurse
-                conflict = checkKeyStrokeConflict((Menu)menuItem, origItem);
-                if (conflict != null) return conflict;
-            } else {
-                if (origItem == menuItem) continue;
-                String origKey = KeyBindingManager.keyStrokeToString(origItem.getAccelerator());
-                String menuKey = KeyBindingManager.keyStrokeToString(menuItem.getAccelerator());
-                if (origKey.equals(menuKey)) return menuItem;
-            }
-        }
-        return null;
-    }
-    
+        
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton add;
+    private javax.swing.JList bindingsJList;
     private javax.swing.JTree commandsTree;
     private javax.swing.JButton done;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JList bindingsJList;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;

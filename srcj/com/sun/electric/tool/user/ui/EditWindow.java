@@ -37,6 +37,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.KeyBindingManager;
 
 import java.awt.Dimension;
 import java.awt.Image;
@@ -133,6 +134,7 @@ public class EditWindow extends JPanel
 		addMouseWheelListener(this);
 		if (wf != null) setCell(cell, VarContext.globalContext);
 
+        //addKeyListener(KeyBindingManager.listener);
 	}
 
 	/**

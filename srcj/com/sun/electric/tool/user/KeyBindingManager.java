@@ -41,6 +41,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.ActionListener;
+import java.awt.*;
 
 /**
  * The KeyBindingManager manages key bindings and their associated actions. It
@@ -51,12 +52,13 @@ import java.awt.event.ActionListener;
  * of type List.  The List contains Strings.
  * <p>
  * Each String is then used as a key into the HashMap <i>actionMap</i> to retrieve
- * a List of KeyBinding objects.  Each object has an action which can then be
- * executed.
+ * a list of KeyBinding objects.  Each key binding object has an action which can then be
+ * executed.  HOWEVER, only the first object in the list is activated. This means that
+ * only that latest action bound to an action description will be activated.  This means
+ * one key stroke cannot activate multiple actions.
  * <p>
  * This model is similar to jawa.swing.InputMap and java.swing.ActionMap, but has
- * been modified to use lists so that multiple keys can be bound to the same action,
- * and a single key can spawn multiple actions.
+ * been modified to use lists so that multiple keys can be bound to the same action.
  * <p><p>
  * The KeyBindingManager also has a HashMap <i>prefixedInputMapMaps</i>. A prefixStroke
  * is used as a key to this table to obtain an inputMap (HashMap) based on the prefixStroke.
@@ -70,16 +72,20 @@ import java.awt.event.ActionListener;
  *
  * @author  gainsley
  */
-public class KeyBindingManager implements KeyListener {
+public class KeyBindingManager implements KeyEventPostProcessor {
 
     // ----------------------------- object stuff ---------------------------------
     /** Hash table of lists all key bindings */     private HashMap inputMap;
-    /** Hash table of lists of all actions */       private HashMap actionMap;
+    /** Hash table of all actions */                private HashMap actionMap;
     /** last prefix key pressed */                  private KeyStroke lastPrefix;
     /** Hash table of hash of lists of prefixed key bindings */ private HashMap prefixedInputMapMaps;
     /** action to take on prefix key hit */         private PrefixAction prefixAction;
     /** where to store Preferences */               private Preferences prefs;
     /** Hash table of lists of default key bindings*/ private HashMap defaultActionMap;
+
+    // ----------------------------- global stuff ----------------------------------
+    /** Listener to register for catching keys */   public static KeyBindingListener listener = new KeyBindingListener();
+    /** All key binding manangers */                private static List allManagers = new ArrayList();
 
     /**
      * Construct a new KeyBindingManager that can act as a KeyListener
@@ -93,20 +99,34 @@ public class KeyBindingManager implements KeyListener {
         lastPrefix = null;
         prefixAction = new PrefixAction(this);
         this.prefs = prefs;
-        try {
-            prefs.clear();
-        } catch (BackingStoreException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }
 
         // add prefix action to action map
-        actionMap.put(prefixAction.actionDesc, prefixAction);
+        List prefixList = new ArrayList();
+        prefixList.add(prefixAction);           // this list will always be size 1
+        actionMap.put(prefixAction.actionDesc, prefixList);
+
+        // register this with KeyboardFocusManager
+        // so we receive all KeyEvents
+        //KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this);
+        //KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventPostProcessor(this);
+
+        // add to list of all managers
+        allManagers.add(this);
+    }
+
+    /**
+     * Called when disposing of this manager, allows memory used to
+     * be reclaimed by removing static references to this.
+     */
+    public void finished() {
+        allManagers.remove(this);
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventPostProcessor(this);
     }
 
     /**
      * Class to store a key binding
      */
-    public static class KeyBinding
+    public static class KeyBinding implements ActionListener
     {
         /** description of action */            public String actionDesc;
         /** respond to this KeyStroke */        public KeyStroke stroke;
@@ -145,10 +165,14 @@ public class KeyBindingManager implements KeyListener {
             if (prefixStroke == null) return keyStrokeToString(stroke); else
                 return keyStrokeToString(prefixStroke)+", " + keyStrokeToString(stroke);
         }
+
+        public void actionPerformed(ActionEvent e) {
+            action.actionPerformed(e);
+        }
     }
 
     /**
-     * PrefixAction is a an action performed when a prefix key is hit.
+     * Class PrefixAction is an action performed when a prefix key is hit.
      * This then registers that prefix key with the KeyBindingManager.
      * This allows key bindings to consist of two-key sequences.
      */
@@ -166,18 +190,55 @@ public class KeyBindingManager implements KeyListener {
             KeyEvent keyEvent = (KeyEvent)e.getSource();
             KeyStroke stroke = KeyStroke.getKeyStrokeForEvent(keyEvent);
             manager.setPrefixKey(stroke);
-            System.out.println("prefix key "+keyStrokeToString(stroke)+" hit...");
+            System.out.println("prefix key '"+keyStrokeToString(stroke)+"' hit...");
         }
     }
 
+    /**
+     * Called by the KeyBindingManager's prefixAction to register
+     * that a prefix key has been hit.
+     * @param prefix the prefix key
+     */
+    protected void setPrefixKey(KeyStroke prefix) {
+        this.lastPrefix = prefix;
+    }
 
-    // ------------------------------ Key Listener ---------------------------------
+    // ------------------------------ Key Processing ---------------------------------
 
-    public void keyPressed(KeyEvent e) {
 
+    public static class KeyBindingListener implements KeyListener
+    {
+        public void keyPressed(KeyEvent e) {
+            for (Iterator it = allManagers.iterator(); it.hasNext(); ) {
+                KeyBindingManager m = (KeyBindingManager)it.next();
+                if (m.processKeyEvent(e)) return;
+            }
+        }
+
+        public void keyReleased(KeyEvent e) {}
+
+        public void keyTyped(KeyEvent e) {}
+    }
+
+    public boolean postProcessKeyEvent(KeyEvent e) {
+        return processKeyEvent(e);
+    }
+
+    public synchronized boolean processKeyEvent(KeyEvent e) {
+
+        // only look at key pressed events
+        if (e.getID() != KeyEvent.KEY_PRESSED) return false;
+        // ignore modifier only events (CTRL, SHIFT etc just by themselves)
+        if (e.getKeyChar() == KeyEvent.CHAR_UNDEFINED) return false;
+
+
+        System.out.println("last Prefix key is "+lastPrefix);
         System.out.println("got event (consumed="+e.isConsumed()+")"+e);
         // ignore if consumed
-        if (e.isConsumed()) return;
+        if (e.isConsumed()) {
+            lastPrefix = null;              // someone did something with it, null prefix key
+            return false;
+        }
 
         // get KeyStroke
         KeyStroke stroke = KeyStroke.getKeyStrokeForEvent(e);
@@ -187,50 +248,76 @@ public class KeyBindingManager implements KeyListener {
         if (lastPrefix != null) {
             // get input map based on prefix key
             inputMapToUse = (HashMap)prefixedInputMapMaps.get(lastPrefix);
-            if (inputMapToUse == null) return;
+            if (inputMapToUse == null) { lastPrefix = null; return false; }
         }
 
-        PrefixAction prefixActionToDo = null;
+        ActionListener action = null;
         ActionEvent evt = new ActionEvent(e, ActionEvent.ACTION_PERFORMED, stroke.toString(), stroke.getModifiers());
 
+        boolean actionPerformed = false;
         // get list of action strings, iterate over them
         List keyBindingList = (List)inputMapToUse.get(stroke);
-        if (keyBindingList == null) return;             // nothing bound to key
+        if (keyBindingList == null) { lastPrefix = null; return false; }            // nothing bound to key
         for (Iterator it = keyBindingList.iterator(); it.hasNext(); ) {
             String actionDesc = (String)it.next();
 
-            // get KeyBinding objects from action map, activate their actions
-            List bindings = (List)actionMap.get(actionDesc);
-            if (bindings == null) continue;             // nothing bound to actionDesc string
-            for (Iterator it2 = bindings.iterator(); it2.hasNext(); ) {
-                Object obj = it2.next();
-
-                if (obj instanceof PrefixAction) {
-                    prefixActionToDo = (PrefixAction)obj; // setup to perform action later
+            // get KeyBinding object from action map, activate its action
+            // note that if this is a prefixed action, this could actually be a
+            // PrefixAction object instead of a KeyBinding object.
+            List list = (List)actionMap.get(actionDesc);
+            // only activate first object
+            if (list != null && (list.size() > 0)) {
+                action = (ActionListener)list.get(0);
+                if (action instanceof PrefixAction) {
+                    action.actionPerformed(evt);
                 } else {
-                    KeyBinding k = (KeyBinding)obj;
-                    k.action.actionPerformed(evt);      // perform action
+                    action.actionPerformed(evt);
+                    lastPrefix = null;
                 }
+                e.consume();                // consume event
+                actionPerformed = true;
             }
         }
 
-        if (prefixActionToDo != null) {
-            // do this last, so other actions cannot trigger off of it
-            prefixActionToDo.actionPerformed(evt);
+        System.out.println(" actionPerformed="+actionPerformed);
+        // if no action performed, perhaps the user hit a prefix key, then
+        // decided to start another prefix-key-combo (that does not result in
+        // a valid binding with the first prefix, obviously).  We'll be nice
+        // and check for this case
+        if (!actionPerformed) {
+            HashMap prefixMap = (HashMap)prefixedInputMapMaps.get(stroke);
+            if (prefixMap != null) {
+                // valid prefix key, fire prefix event
+                prefixAction.actionPerformed(evt);
+                actionPerformed = true;
+            }
         }
 
-        // finally, remove last prefix key
-        lastPrefix = null;
+        if (actionPerformed) {
+            e.consume();                // consume event if we did something useful with it
+            return true;                // let KeyboardFocusManager know we consumed event
+        }
+
+        // otherwise, do not consume, and return false to let KeyboardFocusManager
+        // know that we did nothing with Event, and to pass it on
+        return false;
     }
 
-    public void keyReleased(KeyEvent e) {
-        System.out.println("got event (consumed="+e.isConsumed()+")"+e);
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
+    // -------------- Static Methods Applied to All KeyBindingManagers ----------------
 
-    public void keyTyped(KeyEvent e) {
-        System.out.println("got event (consumed="+e.isConsumed()+")"+e);
-        //To change body of implemented methods use File | Settings | File Templates.
+    /**
+     * Get a list of conflicting key bindings from all KeyBindingManagers.
+     * @param stroke the main stroke
+     * @param prefixStroke the prefix stroke (ignored if null)
+     * @return a list of conflicting KeyBindings from all KeyBindingManagers
+     */
+    public static List getConflictsAllManagers(KeyStroke stroke, KeyStroke prefixStroke) {
+        List conflicts = new ArrayList();
+        for (Iterator it = allManagers.iterator(); it.hasNext(); ) {
+            KeyBindingManager m = (KeyBindingManager)it.next();
+            conflicts.addAll(m.getConflictingKeyBindings(stroke, prefixStroke));
+        }
+        return conflicts;
     }
 
     // --------------------------------------------------------------------------------
@@ -242,7 +329,7 @@ public class KeyBindingManager implements KeyListener {
      * it's actionDesc and action must be valid.
      * @param k the default KeyBinding
      */
-    public void addDefaultKeyBinding(KeyBinding k) {
+    public synchronized void addDefaultKeyBinding(KeyBinding k) {
         boolean prefsLoaded = true; // if k.actionDesc has already had user prefs loaded
 
         // sanity checks
@@ -255,11 +342,10 @@ public class KeyBindingManager implements KeyListener {
         List list = (List)defaultActionMap.get(k.actionDesc);
         if (list == null) {
             list = new ArrayList();
-            //defaultActionMap.put(k.actionDesc, list);
+            defaultActionMap.put(k.actionDesc, list);
             prefsLoaded = false;
         }
-        if (k.stroke != null)
-            list.add(k);
+        list.add(k);
 
         List userKeyBindings = getBindingsFromPrefs(k.actionDesc);
         if (userKeyBindings == null) {
@@ -281,10 +367,47 @@ public class KeyBindingManager implements KeyListener {
     }
 
     /**
+     * Get list of default KeyBindings for <code>actionDesc</code>
+     * @param actionDesc specifies action
+     * @return list of default KeyBinding objects for actionDesc
+     */
+    public synchronized List getDefaultKeyBindings(String actionDesc) {
+        return (List)defaultActionMap.get(actionDesc);
+    }
+
+    /**
+     * Set <code>actionDesc<code> to use default KeyBindings
+     * @param actionDesc the action to reset to default KeyBindings
+     */
+    public synchronized void setToDefaultBindings(String actionDesc) {
+        // remove all previous bindings
+        List list = (List)actionMap.get(actionDesc);
+        if (list != null) {
+            // copy list, cause it will be modified as we process it's elements
+            List listcopy = new ArrayList();
+            listcopy.addAll(list);
+            for (Iterator it = listcopy.iterator(); it.hasNext(); ) {
+                KeyBinding k = (KeyBinding)it.next();
+                removeKeyBinding(k);
+            }
+        }
+        // remove any user saved preferences
+        prefs.remove(actionDesc);
+        // add in default key bindings
+        List defaults = (List)defaultActionMap.get(actionDesc);
+        if (defaults != null) {
+            for (Iterator it = defaults.iterator(); it.hasNext(); ) {
+                KeyBinding k = (KeyBinding)it.next();
+                addKeyBinding(k);
+            }
+        }
+    }
+
+    /**
      * Adds a user specified KeyBinding. Also adds it to stored user preference.
      * @param k the KeyBinding to add.
      */
-    public void addUserKeyBinding(KeyBinding k) {
+    public synchronized void addUserKeyBinding(KeyBinding k) {
         // sanity checks
         if (k.actionDesc == null || k.action == null) {
             System.out.println("  Attempting to add invalid user key binding");
@@ -293,12 +416,8 @@ public class KeyBindingManager implements KeyListener {
 
         // add to bindings
         addKeyBinding(k);
-        // register in preferences
-        if (prefs == null) return;
-        String keys = prefs.get(k.actionDesc, "");
-        String newkey = keyStrokeToString(k.prefixStroke) + ", " + keyStrokeToString(k.stroke);
-        if (keys.equals("")) keys = newkey; else keys = keys + "; "+ newkey;
-        prefs.put(k.actionDesc, keys);
+        // user has modified bindings, write all current bindings to prefs
+        setBindingsToPrefs(k.actionDesc);
     }
 
     /**
@@ -309,9 +428,12 @@ public class KeyBindingManager implements KeyListener {
      * called from external code.
      * @param k the KeyBinding to add.
      */
-    private void addKeyBinding(KeyBinding k) {
+    private synchronized void addKeyBinding(KeyBinding k) {
 
         //System.out.println("adding binding for "+k.actionDesc);
+        // ignore duplicate bindings
+        if (hasKeyBinding(k)) return;
+        if (k.stroke == null) return;
 
         HashMap inputMapToUse = inputMap;
 
@@ -348,36 +470,54 @@ public class KeyBindingManager implements KeyListener {
             actionMap.put(k.actionDesc, list);
         }
         list.add(k);
-        System.out.println("adding to actionMap "+k.actionDesc);
     }
-
 
     /**
      * Get bindings for action string
      * @param actionDesc string describing action (KeyBinding.actionDesc)
      * @return a list of KeyBinding objects, or null.
      */
-    public List getBindingsFor(String actionDesc) {
+    public synchronized List getBindingsFor(String actionDesc) {
         return (List)actionMap.get(actionDesc);
     }
 
+    /**
+     * Returns true if KeyBinding k is already contained
+     * in the KeyBindingManager.  Note that equality of
+     * actions are not checked; only the actionDesc, and
+     * the two KeyStrokes.  This is because many actions are
+     * anonymous inner classes that instantiated over and over again.
+     * @param k KeyBinding to check for
+     * @return true if key binding found in manager, false otherwise.
+     */
+    public synchronized boolean hasKeyBinding(KeyBinding k) {
+        List list = (List)actionMap.get(k.actionDesc);
+        if (list == null) return false;
+        for (Iterator it = list.iterator(); it.hasNext(); ) {
+            KeyBinding key = (KeyBinding)it.next();
+            if (key.equals(k)) return true;
+        }
+        return false;
+    }
 
     /**
      * Removes a key binding.
      * @param k
      */
-    public void removeKeyBinding(KeyBinding k) {
+    public synchronized void removeKeyBinding(KeyBinding k) {
 
         HashMap inputMapToUse = inputMap;
 
         // remove any prefix stroke
         if (k.prefixStroke != null) {
             List list = (List)inputMap.get(k.prefixStroke);
-            for (Iterator it = list.iterator(); it.hasNext(); ) {
-                Object obj = it.next();
-                if (obj instanceof PrefixAction) {
-                    list.remove(obj);
-                    break;
+            if (list != null) {
+                for (Iterator it = list.iterator(); it.hasNext(); ) {
+                    String str = (String)it.next();
+                    if (str.equals(prefixAction.actionDesc)) {
+                        list.remove(str);
+                        break;
+                    }
                 }
             }
             // get input map to use
@@ -385,12 +525,17 @@ public class KeyBindingManager implements KeyListener {
         }
 
         // remove stroke
-        List list = (List)inputMapToUse.get(k.stroke);
-        list.remove(k.actionDesc);
+        if (inputMapToUse != null) {
+            List list = (List)inputMapToUse.get(k.stroke);
+            if (list != null) list.remove(k.actionDesc);
+        }
 
         // remove action
-        list = (List)actionMap.get(k.actionDesc);
-        list.remove(k);
+        List list = (List)actionMap.get(k.actionDesc);
+        if (list != null) list.remove(k);
+
+        // user has modified bindings, write all current bindings to prefs
+        setBindingsToPrefs(k.actionDesc);
     }
 
     /**
@@ -406,43 +551,56 @@ public class KeyBindingManager implements KeyListener {
      * @param prefixStroke the prefix key stroke, may be null
      * @return a list of conflicting <code>KeyBinding</code>s.  Empty list if no conflicts.
      */
-    public List getConflictingKeyBindings(KeyStroke stroke, KeyStroke prefixStroke) {
+    public synchronized List getConflictingKeyBindings(KeyStroke stroke, KeyStroke prefixStroke) {
 
         List conflicts = new ArrayList();
         List conflictsStrings = new ArrayList();
 
-        if (prefixStroke == null) {
-            // check if stroke conflicts with anything
-            List list = (List)inputMap.get(stroke);
-            for (Iterator it = list.iterator(); it.hasNext(); ) {
-                String str = (String)it.next();
+        HashMap inputMapToUse = inputMap;
 
-                if (str.equals(prefixAction.actionDesc)) {
-                    // find all string associated with prefix in prefix map
-                    HashMap prefixMap = (HashMap)prefixedInputMapMaps.get(stroke);
-                    for (Iterator it2 = prefixMap.values().iterator(); it2.hasNext(); ) {
-                        // all existing prefixStroke,stroke combos conflict, so add them all
-                        List prefixList = (List)it2.next(); // this is a list of strings
-                        conflictsStrings.addAll(prefixList);
-                    }
-                } else {
-                    conflictsStrings.add(str);              // otherwise this is a key actionDesc
+        if (prefixStroke != null) {
+            // check if conflicts with any single key Binding
+            List list = (List)inputMap.get(prefixStroke);
+            if (list != null) {
+                for (Iterator it = list.iterator(); it.hasNext(); ) {
+                    String str = (String)it.next();
+                    if (str.equals(prefixAction.actionDesc)) continue;
+                    // add to conflicts
+                    conflictsStrings.add(str);
                 }
             }
-        } else {
-            // get all bindings associated with prefixStroke
-            HashMap prefixMap = (HashMap)prefixedInputMapMaps.get(prefixStroke);
-            // get list associated with stroke, add all in list to conflicts
-            if (prefixMap != null) {
-                List list = (List)prefixMap.get(stroke);
-                conflictsStrings.addAll(list);
+            inputMapToUse = (HashMap)prefixedInputMapMaps.get(prefixStroke);
+        }
+        // find stroke conflicts
+        if (inputMapToUse != null) {
+            List list = (List)inputMapToUse.get(stroke);
+            if (list != null) {
+                for (Iterator it = list.iterator(); it.hasNext(); ) {
+                    String str = (String)it.next();
+
+                    if (str.equals(prefixAction.actionDesc)) {
+                        // find all string associated with prefix in prefix map
+                        // NOTE: this condition is never true if prefixStroke is valid
+                        // and we are using a prefixed map...prefixActions are only in primary inputMap.
+                        HashMap prefixMap = (HashMap)prefixedInputMapMaps.get(stroke);
+                        if (prefixMap != null) {
+                            for (Iterator it2 = prefixMap.values().iterator(); it2.hasNext(); ) {
+                                // all existing prefixStroke,stroke combos conflict, so add them all
+                                List prefixList = (List)it2.next(); // this is a list of strings
+                                conflictsStrings.addAll(prefixList);
+                            }
+                        }
+                    } else {
+                        conflictsStrings.add(str);              // otherwise this is a key actionDesc
+                    }
+                }
             }
         }
-
         // get all KeyBindings from ActionMap
         for (Iterator it = conflictsStrings.iterator(); it.hasNext(); ) {
-            List list = (List)actionMap.get((String)it.next());
-            conflicts.addAll(list);
+            List list2 = (List)actionMap.get((String)it.next());
+            if (list2 != null && list2.size() > 0)
+                conflicts.add(list2.get(0));            // only first "action" is valid
         }
 
         return conflicts;
@@ -476,19 +634,15 @@ public class KeyBindingManager implements KeyListener {
     /**
      * Add KeyBinding to stored user preferences.
      * @param actionDesc the action description under which to store all the key bindings
-     * @param keyBindings the KeyBindings to write to prefs
      */
-    private void setBindingsToPrefs(String actionDesc, List keyBindings) {
+    private synchronized void setBindingsToPrefs(String actionDesc) {
         if (prefs == null) return;
-        if (keyBindings == null) return;
-
-        StringBuffer keys = new StringBuffer();
-        for (Iterator it = keyBindings.iterator(); it.hasNext(); ) {
-            KeyBinding binding = (KeyBinding)it.next();
-            keys.append(keyStrokeToString(binding.prefixStroke) + ", " + keyStrokeToString(binding.stroke));
-            if (it.hasNext()) keys.append("; ");
+        List keyBindings = getBindingsFor(actionDesc);
+        if (keyBindings == null) {
+            prefs.put(actionDesc, "");            // write empty list, basically
+            return;
         }
-        prefs.put(actionDesc, keys.toString());
+        prefs.put(actionDesc, keyBindingsToString(keyBindings));
     }
 
 
@@ -503,19 +657,45 @@ public class KeyBindingManager implements KeyListener {
      * @return a list of KeyBindings. null if no preference found, empty
      * list if user has removed all default bindings.
      */
-    private List getBindingsFromPrefs(String actionDesc) {
+    private synchronized List getBindingsFromPrefs(String actionDesc) {
         if (prefs == null) return null;
 
-        List list = new ArrayList();
         String keys = prefs.get(actionDesc, null);
-        if (keys == null) return null;                  // actionDesc not found in prefs
-        if (keys.equals("")) return list;               // actionDesc found, but no bindings
+        return stringToKeyBindings(actionDesc, keys);
+    }
 
-        String [] bindings = keys.split("; ");
+    /** KeyEvent separator */           public static final String keyEventSeparator = ", ";
+    /** KeyBinding separator */         public static final String keyBindingSeparator = "; ";
+
+    /**
+     * Convert string to list of KeyBindings.  KeyBindings are
+     * separated by "; ", and KeyEvents within a KeyBinding are
+     * separated by ", ".  Note that actionDesc must be supplied,
+     * and action is null on the KeyBindings.
+     * @param actionDesc the actionDesc for the KeyBindings
+     * @param keys a string specifying the key bindings
+     * @return a list of KeyBindings
+     */
+    public static List stringToKeyBindings(String actionDesc, String keys) {
+        List list = new ArrayList();
+
+        if (keys == null) return null;                  // null str, null result
+        if (keys.equals("")) return list;               // empty str, empty result
+
+        // special case for now: conform to old style
+        if (keys.indexOf(keyBindingSeparator) == -1) {
+            KeyStroke k = stringToKeyStroke(keys);
+            if (k != null) {
+                list.add(new KeyBinding(actionDesc, stringToKeyStroke(keys), null, null));
+                return list;
+            }
+        }
+
+        String [] bindings = keys.split(keyBindingSeparator);
         for (int i = 0; i < bindings.length; i++) {
             String binding = bindings[i];
             KeyStroke stroke, prefixStroke;
-            String [] splitKeys = binding.split(", ");
+            String [] splitKeys = binding.split(keyEventSeparator);
             if (splitKeys[0].equals("")) {
                 stroke = stringToKeyStroke(splitKeys[1]);
                 prefixStroke = null;
@@ -529,12 +709,18 @@ public class KeyBindingManager implements KeyListener {
     }
 
     /**
-     * Called by the KeyBindingManager's prefixAction to register
-     * that a prefix key has been hit.
-     * @param prefix the prefix key
+     * Convert list of KeyBindings to string.  See stringToKeyBindings().
+     * @param keyBindings list of KeyBindings
+     * @return a string representing a list of key bindings
      */
-    protected void setPrefixKey(KeyStroke prefix) {
-        this.lastPrefix = prefix;
+    public static String keyBindingsToString(List keyBindings) {
+        StringBuffer keys = new StringBuffer();
+        for (Iterator it = keyBindings.iterator(); it.hasNext(); ) {
+            KeyBinding binding = (KeyBinding)it.next();
+            keys.append(keyStrokeToString(binding.prefixStroke) + keyEventSeparator +
+                    keyStrokeToString(binding.stroke));
+            if (it.hasNext()) keys.append(keyBindingSeparator);
+        }
+        return keys.toString();
     }
-
 }

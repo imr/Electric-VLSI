@@ -76,16 +76,9 @@ import com.sun.electric.tool.user.dialogs.NewCell;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.ToolOptions;
 import com.sun.electric.tool.user.dialogs.ViewControl;
-import com.sun.electric.tool.user.ui.Menu;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.ui.PixelDrawing;
-import com.sun.electric.tool.user.ui.ToolBar;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.ExplorerTree;
-import com.sun.electric.tool.user.ui.PaletteFrame;
-import com.sun.electric.tool.user.ui.MessagesWindow;
-import com.sun.electric.tool.user.ui.SizeListener;
+import com.sun.electric.tool.user.ui.MenuManager;
+import com.sun.electric.tool.user.ui.MenuManager.Menu;
+import com.sun.electric.tool.user.ui.*;
 
 import java.awt.Toolkit;
 import java.awt.Dimension;
@@ -158,14 +151,14 @@ public final class MenuCommands
 
 		/****************************** THE FILE MENU ******************************/
 
-		Menu fileMenu = Menu.createMenu("File", 'F');
+		Menu fileMenu = new Menu("File", 'F');
 		menuBar.add(fileMenu);
 
 		fileMenu.addMenuItem("New Library", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { newLibraryCommand(); } });
 		fileMenu.addMenuItem("Open Library", KeyStroke.getKeyStroke('O', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { openLibraryCommand(); } });
-		Menu importSubMenu = Menu.createMenu("Import");
+		Menu importSubMenu = new Menu("Import");
 		fileMenu.add(importSubMenu);
 		importSubMenu.addMenuItem("Readable Dump", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(); } });
@@ -178,7 +171,7 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent()); } });
 		fileMenu.addMenuItem("Save Library as...",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveAsLibraryCommand(); } });
-		Menu exportSubMenu = Menu.createMenu("Export");
+		Menu exportSubMenu = new Menu("Export");
 		fileMenu.add(exportSubMenu);
 		exportSubMenu.addMenuItem("CIF (Caltech Intermediate Format)", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(Output.ExportType.CIF, OpenFile.CIF); } });
@@ -201,7 +194,7 @@ public final class MenuCommands
 
 		/****************************** THE EDIT MENU ******************************/
 
-		Menu editMenu = Menu.createMenu("Edit", 'E');
+		Menu editMenu = new Menu("Edit", 'E');
 		menuBar.add(editMenu);
 
 		editMenu.addMenuItem("Cut", KeyStroke.getKeyStroke('X', buckyBit),
@@ -213,7 +206,7 @@ public final class MenuCommands
 
 		editMenu.addSeparator();
 
-		Menu arcSubMenu = Menu.createMenu("Arc", 'A');
+		Menu arcSubMenu = new Menu("Arc", 'A');
 		editMenu.add(arcSubMenu);
 		arcSubMenu.addMenuItem("Rigid", null, 
 			new ActionListener() { public void actionPerformed(ActionEvent e) { arcRigidCommand(); }});
@@ -233,7 +226,7 @@ public final class MenuCommands
 
 		editMenu.addSeparator();
 
-		Menu rotateSubMenu = Menu.createMenu("Rotate", 'R');
+		Menu rotateSubMenu = new Menu("Rotate", 'R');
 		editMenu.add(rotateSubMenu);
 		rotateSubMenu.addMenuItem("90 Degrees Clockwise", null, 
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.rotateObjects(2700); }});
@@ -244,7 +237,7 @@ public final class MenuCommands
 		rotateSubMenu.addMenuItem("Other...", null, 
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.rotateObjects(0); }});
 
-		Menu mirrorSubMenu = Menu.createMenu("Mirror", 'M');
+		Menu mirrorSubMenu = new Menu("Mirror", 'M');
 		editMenu.add(mirrorSubMenu);
 		mirrorSubMenu.addMenuItem("Horizontally", null, 
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.mirrorObjects(true); }});
@@ -279,10 +272,10 @@ public final class MenuCommands
 
 		editMenu.addSeparator();
 
-		Menu modeSubMenu = Menu.createMenu("Modes");
+		Menu modeSubMenu = new Menu("Modes");
 		editMenu.add(modeSubMenu);
 
-		Menu modeSubMenuEdit = Menu.createMenu("Edit");
+		Menu modeSubMenuEdit = new Menu("Edit");
 		modeSubMenu.add(modeSubMenuEdit);
 		ButtonGroup editGroup = new ButtonGroup();
         JMenuItem cursorClickZoomWire, cursorSelect, cursorWiring, cursorPan, cursorZoom, cursorOutline;
@@ -306,7 +299,7 @@ public final class MenuCommands
 		if (cm == ToolBar.CursorMode.ZOOM) cursorZoom.setSelected(true); else
 			cursorOutline.setSelected(true);
 
-		Menu modeSubMenuMovement = Menu.createMenu("Movement");
+		Menu modeSubMenuMovement = new Menu("Movement");
 		modeSubMenu.add(modeSubMenuMovement);
 		ButtonGroup movementGroup = new ButtonGroup();
         JMenuItem moveFull, moveHalf, moveQuarter;
@@ -326,7 +319,7 @@ public final class MenuCommands
 		editMenu.addMenuItem("Change...", KeyStroke.getKeyStroke('C', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Change.showChangeDialog(); } });
 
-		Menu cleanupSubMenu = Menu.createMenu("Cleanup Cell");
+		Menu cleanupSubMenu = new Menu("Cleanup Cell");
 		editMenu.add(cleanupSubMenu);
 		cleanupSubMenu.addMenuItem("Cleanup Pins", null, 
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.cleanupPinsCommand(false); }});
@@ -337,7 +330,7 @@ public final class MenuCommands
 		cleanupSubMenu.addMenuItem("Shorten Selected Arcs", null, 
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.shortenArcsCommand(); }});
 
-		Menu modeSubMenuSelect = Menu.createMenu("Select");
+		Menu modeSubMenuSelect = new Menu("Select");
 		modeSubMenu.add(modeSubMenuSelect);
 		ButtonGroup selectGroup = new ButtonGroup();
         JMenuItem selectArea, selectObjects;
@@ -351,7 +344,7 @@ public final class MenuCommands
 		modeSubMenuSelect.addCheckBox(specialSelectName, false, null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.toggleSelectSpecialCommand(e); } });
 
-		Menu selListSubMenu = Menu.createMenu("Selection");
+		Menu selListSubMenu = new Menu("Selection");
 		editMenu.add(selListSubMenu);
 		selListSubMenu.addMenuItem("Select All", KeyStroke.getKeyStroke('A', buckyBit), 
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectAllCommand(); }});
@@ -376,7 +369,7 @@ public final class MenuCommands
 
 		/****************************** THE CELL MENU ******************************/
 
-		Menu cellMenu = Menu.createMenu("Cell", 'C');
+		Menu cellMenu = new Menu("Cell", 'C');
 		menuBar.add(cellMenu);
 
 		cellMenu.addMenuItem("Cell Control...", null,
@@ -410,7 +403,7 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.describeThisCellCommand(); } });
 		cellMenu.addMenuItem("General Cell Lists...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.generalCellListsCommand(); } });
-		Menu specListSubMenu = Menu.createMenu("Special Cell Lists");
+		Menu specListSubMenu = new Menu("Special Cell Lists");
 		cellMenu.add(specListSubMenu);
 		specListSubMenu.addMenuItem("List Nodes in this Cell", null, 
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.listNodesInCellCommand(); }});
@@ -423,7 +416,7 @@ public final class MenuCommands
 
 		cellMenu.addSeparator();
 
-		Menu expandListSubMenu = Menu.createMenu("Expand Cell Instances");
+		Menu expandListSubMenu = new Menu("Expand Cell Instances");
 		cellMenu.add(expandListSubMenu);
 		expandListSubMenu.addMenuItem("One Level Down", null, 
 			new ActionListener() { public void actionPerformed(ActionEvent e) { expandOneLevelDownCommand(); }});
@@ -431,7 +424,7 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { expandFullCommand(); }});
 		expandListSubMenu.addMenuItem("Specified Amount", null, 
 			new ActionListener() { public void actionPerformed(ActionEvent e) { expandSpecificCommand(); }});
-		Menu unExpandListSubMenu = Menu.createMenu("Unexpand Cell Instances");
+		Menu unExpandListSubMenu = new Menu("Unexpand Cell Instances");
 		cellMenu.add(unExpandListSubMenu);
 		unExpandListSubMenu.addMenuItem("One Level Up", null, 
 			new ActionListener() { public void actionPerformed(ActionEvent e) { unexpandOneLevelUpCommand(); }});
@@ -442,7 +435,7 @@ public final class MenuCommands
 
 		/****************************** THE EXPORT MENU ******************************/
 
-		Menu exportMenu = Menu.createMenu("Export", 'X');
+		Menu exportMenu = new Menu("Export", 'X');
 		menuBar.add(exportMenu);
 
 		exportMenu.addMenuItem("Create Export...", KeyStroke.getKeyStroke('E', buckyBit),
@@ -480,7 +473,7 @@ public final class MenuCommands
 
 		/****************************** THE VIEW MENU ******************************/
 
-		Menu viewMenu = Menu.createMenu("View", 'V');
+		Menu viewMenu = new Menu("View", 'V');
 		menuBar.add(viewMenu);
 
 		viewMenu.addMenuItem("View Control...", null,
@@ -510,7 +503,7 @@ public final class MenuCommands
 
 		/****************************** THE WINDOW MENU ******************************/
 
-		Menu windowMenu = Menu.createMenu("Window", 'W');
+		Menu windowMenu = new Menu("Window", 'W');
 		menuBar.add(windowMenu);
 
 		windowMenu.addMenuItem("Fill Display", KeyStroke.getKeyStroke('9', buckyBit),
@@ -529,7 +522,7 @@ public final class MenuCommands
 
 		windowMenu.addSeparator();
 
-		Menu windowPartitionSubMenu = Menu.createMenu("Adjust Position");
+		Menu windowPartitionSubMenu = new Menu("Adjust Position");
 		windowMenu.add(windowPartitionSubMenu);
 		windowPartitionSubMenu.addMenuItem("Tile Horizontally", null, 
 			new ActionListener() { public void actionPerformed(ActionEvent e) { tileHorizontallyCommand(); }});
@@ -551,17 +544,17 @@ public final class MenuCommands
             
 		/****************************** THE TOOL MENU ******************************/
 
-		Menu toolMenu = Menu.createMenu("Tool", 'T');
+		Menu toolMenu = new Menu("Tool", 'T');
 		menuBar.add(toolMenu);
 
-		Menu drcSubMenu = Menu.createMenu("DRC", 'D');
+		Menu drcSubMenu = new Menu("DRC", 'D');
 		toolMenu.add(drcSubMenu);
 		drcSubMenu.addMenuItem("Check Hierarchically", KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0), 
 			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(); }});
 		drcSubMenu.addMenuItem("Check Selection Area Hierarchically", null, 
 			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkAreaHierarchically(); }});
 
-		Menu spiceSimulationSubMenu = Menu.createMenu("Simulation (SPICE)", 'S');
+		Menu spiceSimulationSubMenu = new Menu("Simulation (SPICE)", 'S');
 		toolMenu.add(spiceSimulationSubMenu);
 		spiceSimulationSubMenu.addMenuItem("Write SPICE Deck...", null, 
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Spice.writeSpiceDeck(); }});
@@ -581,7 +574,7 @@ public final class MenuCommands
 		spiceSimulationSubMenu.addMenuItem("Set SmartSPICE Template", null, 
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_SM_TEMPLATE_KEY); }});
 
-		Menu verilogSimulationSubMenu = Menu.createMenu("Simulation (Verilog)", 'V');
+		Menu verilogSimulationSubMenu = new Menu("Simulation (Verilog)", 'V');
 		toolMenu.add(verilogSimulationSubMenu);
 		verilogSimulationSubMenu.addMenuItem("Write Verilog Deck...", null, 
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(Output.ExportType.VERILOG, OpenFile.VERILOG); } });
@@ -589,25 +582,25 @@ public final class MenuCommands
 		verilogSimulationSubMenu.addMenuItem("Set Verilog Template", null, 
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(OutputVerilog.VERILOG_TEMPLATE_KEY); }});
 
-		Menu netlisters = Menu.createMenu("Simulation (others)");
+		Menu netlisters = new Menu("Simulation (others)");
 		netlisters.addMenuItem("Write IRSIM Netlist", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { irsimNetlistCommand(); }});
 		toolMenu.add(netlisters);
 
-		Menu ercSubMenu = Menu.createMenu("ERC", 'E');
+		Menu ercSubMenu = new Menu("ERC", 'E');
 		toolMenu.add(ercSubMenu);
 
-		Menu networkSubMenu = Menu.createMenu("Network", 'N');
+		Menu networkSubMenu = new Menu("Network", 'N');
 		toolMenu.add(networkSubMenu);
 		networkSubMenu.addMenuItem("redo Network Numbering", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { redoNetworkNumberingCommand(); } });
 
-		Menu logEffortSubMenu = Menu.createMenu("Logical Effort", 'L');
+		Menu logEffortSubMenu = new Menu("Logical Effort", 'L');
 		logEffortSubMenu.addMenuItem("Analyze Cell", null, 
 			new ActionListener() { public void actionPerformed(ActionEvent e) { analyzeCellCommand(); }});
 		toolMenu.add(logEffortSubMenu);
 
-		Menu routingSubMenu = Menu.createMenu("Routing", 'R');
+		Menu routingSubMenu = new Menu("Routing", 'R');
 		routingSubMenu.addMenuItem("Mimic-Stitch Now", KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), 
 			new ActionListener() { public void actionPerformed(ActionEvent e) { MimicStitch.mimicStitch(true); }});
 	   routingSubMenu.addMenuItem("Auto-Stitch Now", null, 
@@ -616,22 +609,22 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { AutoStitch.autoStitch(true, true); }});
 		toolMenu.add(routingSubMenu);
 
-		Menu generationSubMenu = Menu.createMenu("Generation", 'G');
+		Menu generationSubMenu = new Menu("Generation", 'G');
 		toolMenu.add(generationSubMenu);
 		generationSubMenu.addMenuItem("Pad Frame Generator", null, 
 			new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
 
-		Menu compactionSubMenu = Menu.createMenu("Compaction", 'C');
+		Menu compactionSubMenu = new Menu("Compaction", 'C');
 		toolMenu.add(compactionSubMenu);
  
-		Menu languagesSubMenu = Menu.createMenu("Languages");
+		Menu languagesSubMenu = new Menu("Languages");
 		languagesSubMenu.addMenuItem("Run Java Bean Shell Script", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { javaBshScriptCommand(); }});
 		toolMenu.add(languagesSubMenu);
 
 		/****************************** THE HELP MENU ******************************/
 
-		Menu helpMenu = Menu.createMenu("Help", 'H');
+		Menu helpMenu = new Menu("Help", 'H');
 		menuBar.add(helpMenu);
 
 		if (TopLevel.getOperatingSystem() != TopLevel.OS.MACINTOSH)
@@ -652,7 +645,7 @@ public final class MenuCommands
 
 		/****************************** Russell's TEST MENU ******************************/
 
-		Menu russMenu = Menu.createMenu("Russell", 'R');
+		Menu russMenu = new Menu("Russell", 'R');
 		menuBar.add(russMenu);
 		russMenu.addMenuItem("create flat netlists for Ivan", null, new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -682,7 +675,7 @@ public final class MenuCommands
 		
 		/****************************** Jon's TEST MENU ******************************/
 
-		Menu jongMenu = Menu.createMenu("JonG", 'J');
+		Menu jongMenu = new Menu("JonG", 'J');
 		menuBar.add(jongMenu);
 		jongMenu.addMenuItem("Describe Vars", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { listVarsOnObject(false); }});
@@ -2086,7 +2079,7 @@ public final class MenuCommands
 	/**
 	 * Method to create a new template in the current cell.
 	 * Templates can be for SPICE or Verilog, depending on the Variable name.
-	 * @param templateName the name of the variable to create.
+	 * @param templateKey the name of the variable to create.
 	 */
 	public static void makeTemplate(Variable.Key templateKey)
 	{

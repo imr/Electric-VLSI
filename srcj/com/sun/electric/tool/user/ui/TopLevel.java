@@ -29,6 +29,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.MenuCommands;
+import com.sun.electric.tool.user.KeyBindingManager;
 import com.sun.electric.tool.user.ui.PaletteFrame;
 
 import java.awt.BorderLayout;
@@ -162,7 +163,8 @@ public class TopLevel extends JFrame
 			if (osName.startsWith("windows"))
 			{
 				os = OS.WINDOWS;
-				mdi = true;
+                mdi = true;     // default
+                //mdi = false;
 				scrnSize.height -= 30;
 				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
 			} else if (osName.startsWith("linux") || osName.startsWith("solaris") || osName.startsWith("sunos"))
@@ -343,7 +345,7 @@ public class TopLevel extends JFrame
         //System.out.println(this.getClass()+" being disposed of");
         // clean up menubar
         setJMenuBar(null);
-        Menu.disposeOf(menuBar); menuBar = null;
+        MenuManager.disposeOf(menuBar); menuBar = null;
         // clean up toolbar
         getContentPane().remove(toolBar);
         toolBar.finished(); toolBar = null;
