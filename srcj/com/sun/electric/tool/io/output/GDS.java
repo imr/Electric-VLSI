@@ -480,7 +480,7 @@ public class GDS extends Geometry
 		for(Iterator it = Library.getCurrent().getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-			cellNames.put(cell, makeUniqueName(cell));
+			cellNames.put(cell, makeUniqueName(cell, cellNames));
 		}
 		for(Iterator it = Library.getLibraries(); it.hasNext(); )
 		{
@@ -490,12 +490,12 @@ public class GDS extends Geometry
 			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
-				cellNames.put(cell, makeUniqueName(cell));
+				cellNames.put(cell, makeUniqueName(cell, cellNames));
 			}
 		}
 	}
 
-	String makeUniqueName(Cell cell)
+	public static String makeUniqueName(Cell cell, HashMap cellNames)
 	{
 		String name = makeGDSName(cell.getName(), HDR_M_STRNAME);
 		if (cell.getNewestVersion() != cell)
@@ -524,7 +524,7 @@ public class GDS extends Geometry
 	 * from input string str.
 	 * Uses only 'A'-'Z', '_', $, ?, and '0'-'9'
 	 */
-	private String makeGDSName(String str, int maxLen)
+	private static String makeGDSName(String str, int maxLen)
 	{
 		// filter the name string for the GDS output cell
 		StringBuffer ret = new StringBuffer();
