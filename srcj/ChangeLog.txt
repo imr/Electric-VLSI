@@ -2,6 +2,8 @@
 
 ************************* Version 8.00: Released  *************************
 
+BUG: (7/16/04, RK) Series merging needs to count both Pins and Parts
+
 IMP: (7/15/04, RK) Added Size Checking. It doesn't work yet so disable it in the options dialog.
      Embellished the NCC Options Dialog. Added some documentation to the NCC page.
      Removed Hierarchical from NCC menu because it hasn't been adequately tested.

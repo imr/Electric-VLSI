@@ -396,6 +396,7 @@ public class Transistor extends Part {
 		if (w.isGlobal()) return false;
 		
 		if (w.numParts()!=2)  return false;
+		if (w.numPartPins()!=2)  return false;
 
 		Transistor ta= null;
 		Transistor tb= null;
@@ -413,7 +414,7 @@ public class Transistor extends Part {
 		if (!ta.isLike(tb))  return false;
 		if (ta.width!=tb.width)  return false;
 		
-		// it's a match - merge tb into ta
+		// it's a match - merge them into a stack
 		if (ta.hiDiff()!=w) ta.flip();
 		if (tb.loDiff()!=w) tb.flip();
 		
@@ -431,7 +432,7 @@ public class Transistor extends Part {
 										  mergedPins);
 
 		Circuit parent = (Circuit) tb.getParent();
-		parent.adopt(stack);						  
+		parent.adopt(stack);
 		ta.deleteMe();
 		tb.deleteMe();
 		error(w.numParts()!=0, "wire not empty?");

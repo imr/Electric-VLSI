@@ -133,7 +133,8 @@ public class Wire extends NetObject{
             NetObject nn=(NetObject)it.next();
             error(!(nn instanceof Part), "expecting only parts");
             Part pp=(Part)nn;
-            error(!pp.touches(this), "Part not connected back to wire"); 
+            error(pp.numPinsConnected(this)==0, 
+                  "Part not connected back to wire"); 
         }
     }
 
@@ -153,11 +154,19 @@ public class Wire extends NetObject{
         return new Integer(sum);
     }
 
-    /** 
-	 * report the number of Parts connected to this wire.
-	 * @return an int with the number of connections
-	 */
+    /** count the number of Parts connected to this wire.
+	 * @return an int with the number of connections */
     public int numParts(){return content.size();}
+    
+    /** count the number of Part Pins connected to this wire. */
+    public int numPartPins() {
+    	int numPins = 0;
+		for (Iterator it=getParts(); it.hasNext();) {
+			Part p = (Part) it.next();
+			numPins += p.numPinsConnected(this);
+		}
+		return numPins;
+     }
 
     /** 
 	 * Get an identifying String for this NewObject.

@@ -127,8 +127,8 @@ public abstract class Part extends NetObject {
 	 */
     public void deleteMe(){
 		for (int i=0; i<pins.length; i++) {
-			Wire w= pins[i];
-			if(w!=null)	w.disconnect(this);
+			Wire w = pins[i];
+			w.disconnect(this);
 		}
 		Circuit parent= (Circuit)getParent();
 		parent.remove(this);
@@ -151,17 +151,15 @@ public abstract class Part extends NetObject {
     	return typeString()+" "+getName();
     }
 	
-	/** 
-	 * A method to test if a Part touches a Wire.
+	/** A method to how many pins of this Part are connected to Wire.
 	 * @param w the Wire to test
-	 * @return true if this Part touches the Wire, false otherwise
-	 */
-	public boolean touches(Wire w){
+	 * @return number of pins connected to Wire */
+	public int numPinsConnected(Wire w) {
+		int numConnected = 0;
 		for (int i=0; i<pins.length; i++) {
-		    Wire x= pins[i];
-		    if(x == w) return true;
+		    if (pins[i]==w) numConnected++;
 		}
-        return false;
+        return numConnected;
     }
 
 	/** 
