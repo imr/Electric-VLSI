@@ -30,6 +30,8 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.ActivityLogger;
@@ -58,14 +60,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.JInternalFrame;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JTextArea;
-import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -109,6 +104,7 @@ public class WindowFrame
 	/** Main class for 3D plugin */	                    private static final Class view3DClass = Resources.get3DMainClass();
     /** Constructor of main 3D class */                 private static Constructor constructor3DClass = null;
     /** Show 3D highlight method */                     private static Method showMethod3DClass = null;
+	/** # of nodes to consider scene graph big */       private static final int MAX3DVIEWNODES = 5000;
 
 
 	//******************************** CONSTRUCTION ********************************
@@ -153,6 +149,28 @@ public class WindowFrame
 	 */
 	public static WindowFrame create3DViewtWindow(Cell cell, WindowContent view2D)
 	{
+		int number = cell.getNumNodes() + cell.getNumArcs();
+		if (number < MAX3DVIEWNODES)
+		{
+			for (int i = 0; i < cell.getNumNodes(); i++)
+			{
+				NodeInst node = cell.getNode(i);
+				if (node.getProto() instanceof Cell && node.isExpanded())
+				{
+					Cell np = (Cell)node.getProto();
+					number += (np.getNumArcs() + np.getNumNodes());
+				}
+			}
+		}
+
+		if (number >= MAX3DVIEWNODES)
+		{
+			int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+				"The graph scene contains " + number + " nodes, are you sure you want to open 3D view of " + cell.describe() + "?",
+			        "Warning", JOptionPane.OK_CANCEL_OPTION);
+			if (response == JOptionPane.CANCEL_OPTION) return null;
+		}
+
 		WindowFrame frame = new WindowFrame();
 
 		if (view3DClass == null)
