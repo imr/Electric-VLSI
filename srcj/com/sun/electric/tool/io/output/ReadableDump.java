@@ -167,7 +167,7 @@ public class ReadableDump extends Output
 		}
 
 		// write header information
-		printWriter.print("****library: \"" + lib.getLibName() + "\"\n");
+		printWriter.print("****library: \"" + lib.getName() + "\"\n");
 		printWriter.print("version: " + Version.getVersion() + "\n");
 		printWriter.print("aids: " + Tool.getNumTools() + "\n");
 		for(Iterator it = Tool.getTools(); it.hasNext(); )
@@ -210,7 +210,7 @@ public class ReadableDump extends Output
 			EMath.MutableInteger mig = (EMath.MutableInteger)cellGrouping.get(cell);
 			if (mig != null) groupIndex = mig.intValue();
 			printWriter.print("***cell: " + mi.intValue() + "/" + groupIndex + "\n");
-			printWriter.print("name: " + cell.getProtoName());
+			printWriter.print("name: " + cell.getName());
 			if (cell.getView().getAbbreviation().length() > 0)
 				printWriter.print("{" + cell.getView().getAbbreviation() + "}");
 			printWriter.print("\n");
@@ -280,7 +280,7 @@ public class ReadableDump extends Output
 				} else
 				{
 					printWriter.print("type: " + np.getTechnology().getTechName() + ":" +
-					np.getProtoName() + "\n");
+					np.getName() + "\n");
 				}
 				if (np instanceof Cell)
 				{
@@ -317,7 +317,7 @@ public class ReadableDump extends Output
 						{
 							if (!found)
 							{
-								printWriter.print("*port: " + pp.getProtoName() + "\n");
+								printWriter.print("*port: " + pp.getName() + "\n");
 								found = true;
 							}
 							Integer aIndex = (Integer)arcMap.get(con.getArc());
@@ -332,7 +332,7 @@ public class ReadableDump extends Output
 						{
 							if (!found)
 							{
-								printWriter.print("*port: " + pp.getProtoName() + "\n");
+								printWriter.print("*port: " + pp.getName() + "\n");
 								found = true;
 							}
 							Integer pIndex = (Integer)portMap.get(e);
@@ -354,8 +354,8 @@ public class ReadableDump extends Output
 				Integer subNodeIndex = (Integer)nodeMap.get(subNi);
 				PortProto subPp = pp.getOriginalPort().getPortProto();
 				printWriter.print("subnode: " + subNodeIndex.intValue() + "\n");
-				printWriter.print("subport: " + subPp.getProtoName() + "\n");
-				printWriter.print("name: " + pp.getProtoName() + "\n");
+				printWriter.print("subport: " + subPp.getName() + "\n");
+				printWriter.print("name: " + pp.getName() + "\n");
 
 				// need to write both words
 				TextDescriptor td = pp.getTextDescriptor();
@@ -371,7 +371,7 @@ public class ReadableDump extends Output
 				Integer arcIndex = (Integer)arcMap.get(ai);
 				printWriter.print("**arc: " + arcIndex.intValue() + "\n");
 				printWriter.print("type: " + ai.getProto().getTechnology().getTechName() + ":" +
-					ai.getProto().getProtoName() + "\n");
+					ai.getProto().getName() + "\n");
 				int width = (int)(ai.getWidth() * scale);
 				int length = (int)(ai.getLength() * scale);
 				printWriter.print("width: " + width + " length: " + length + "\n");
@@ -400,14 +400,14 @@ public class ReadableDump extends Output
 					Integer conNodeIndex = (Integer)nodeMap.get(conNi);
 					printWriter.print("*end: " + e + "\n");
 					printWriter.print("node: " + conNodeIndex.intValue() + "\n");
-					printWriter.print("nodeport: " + con.getPortInst().getPortProto().getProtoName() + "\n");
+					printWriter.print("nodeport: " + con.getPortInst().getPortProto().getName() + "\n");
 					int endX = (int)(con.getLocation().getX() * scale);
 					int endY = (int)(con.getLocation().getY() * scale);
 					printWriter.print("xpos: " + endX + " ypos: " + endY + "\n");
 				}
 				writeVars(ai, cell);
 			}
-			printWriter.print("celldone: " + cell.getProtoName() + "\n");
+			printWriter.print("celldone: " + cell.getName() + "\n");
 		}
 
 		// print any variable-related error messages
@@ -609,7 +609,7 @@ public class ReadableDump extends Output
 		if (obj instanceof Library)
 		{
 			Library lib = (Library)obj;
-			infstr.append("\"" + lib.getLibName() + "\"");
+			infstr.append("\"" + lib.getName() + "\"");
 			return;
 		}
 		if (obj instanceof Tool)
@@ -650,13 +650,13 @@ public class ReadableDump extends Output
 		if (obj instanceof PrimitiveNode)
 		{
 			PrimitiveNode np = (PrimitiveNode)obj;
-			infstr.append(np.getTechnology().getTechName() + ":" + np.getProtoName());
+			infstr.append(np.getTechnology().getTechName() + ":" + np.getName());
 			return;
 		}
 		if (obj instanceof ArcProto)
 		{
 			ArcProto ap = (ArcProto)obj;
-			infstr.append(ap.getTechnology().getTechName() + ":" + ap.getProtoName());
+			infstr.append(ap.getTechnology().getTechName() + ":" + ap.getName());
 			return;
 		}
 		if (obj instanceof Export)

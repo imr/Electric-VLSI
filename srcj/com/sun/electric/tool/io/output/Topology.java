@@ -169,7 +169,7 @@ public abstract class Topology extends Output
 			CellNetInfo cni = null;
 			if (info.isRootCell())
 			{
-				cni = getNetworkInformation(cell, false, cell.getProtoName());
+				cni = getNetworkInformation(cell, false, cell.getName());
 			} else
 			{
 				MyCellInfo mci = (MyCellInfo)info;
@@ -775,7 +775,7 @@ public abstract class Topology extends Output
 					for(Iterator oCIt = oLib.getCells(); oCIt.hasNext(); )
 					{
 						Cell oCell = (Cell)oCIt.next();
-						if (cell.getProtoName().equalsIgnoreCase(oCell.getProtoName()))
+						if (cell.getName().equalsIgnoreCase(oCell.getName()))
 						{
 							duplicate = true;
 							break;
@@ -784,8 +784,8 @@ public abstract class Topology extends Output
 					if (duplicate) break;
 				}
 
-				if (duplicate) cellNameMap.put(cell, cell.getLibrary().getLibName() + "__" + cell.getProtoName()); else
-					cellNameMap.put(cell, cell.getProtoName());
+				if (duplicate) cellNameMap.put(cell, cell.getLibrary().getName() + "__" + cell.getName()); else
+					cellNameMap.put(cell, cell.getName());
 			}
 		}
 	}

@@ -1213,9 +1213,9 @@ public final class MenuCommands
 
 	public static void closeLibraryCommand(Library lib)
 	{
-		int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), "Are you sure you want to close library " + lib.getLibName() + "?");
+		int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), "Are you sure you want to close library " + lib.getName() + "?");
 		if (response != JOptionPane.YES_OPTION) return;
-		String libName = lib.getLibName();
+		String libName = lib.getName();
 		WindowFrame.removeLibraryReferences(lib);
 		if (lib.kill())
 			System.out.println("Library " + libName + " closed");
@@ -1240,7 +1240,7 @@ public final class MenuCommands
 			fileName = lib.getLibFile().getPath();
 		} else
 		{
-			fileName = OpenFile.chooseOutputFile(type, null, lib.getLibName() + "." + extension);
+			fileName = OpenFile.chooseOutputFile(type, null, lib.getName() + "." + extension);
 			if (fileName == null) return false;
 
 			int dotPos = fileName.lastIndexOf('.');
@@ -1283,7 +1283,7 @@ public final class MenuCommands
 			{
 				URL libURL = TextUtils.makeURLToFile(newName);
 				lib.setLibFile(libURL);
-				lib.setLibName(TextUtils.getFileNameWithoutExtension(libURL));
+				lib.setName(TextUtils.getFileNameWithoutExtension(libURL));
 			}
 
 			boolean error = Output.writeLibrary(lib, type);
@@ -1340,7 +1340,7 @@ public final class MenuCommands
         VarContext context = wnd.getVarContext();
 
 		String [] extensions = type.getExtensions();
-		String filePath = cell.getProtoName() + "." + extensions[0];
+		String filePath = cell.getName() + "." + extensions[0];
 		if (User.isShowFileSelectionForNetlists() || !isNetlist)
 		{
 			filePath = OpenFile.chooseOutputFile(type, null, filePath);
@@ -1557,7 +1557,7 @@ public final class MenuCommands
 				if (action == 2) theAction = "Save before replacing?";
 			String [] options = {"Yes", "No", "Cancel", "No to All"};
 			int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
-				"Library " + lib.getLibName() + " has changed " + how + ".  " + theAction,
+				"Library " + lib.getName() + " has changed " + how + ".  " + theAction,
 				"Save Library?", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
 				null, options, options[0]);
 			if (ret == 0)
@@ -1840,7 +1840,7 @@ public final class MenuCommands
 		    public void exitCell(HierarchyEnumerator.CellInfo info)
             {
                 //return true;
-			    //System.out.println("Cell exit " + info.getCell().getProtoName());
+			    //System.out.println("Cell exit " + info.getCell().getName());
             }
 			public boolean enterCell(HierarchyEnumerator.CellInfo info)
 			{
@@ -2322,7 +2322,7 @@ public final class MenuCommands
 		if (curCell == null) return;
 
 		String newName = JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), "Name of duplicated cell",
-			curCell.getProtoName() + "NEW");
+			curCell.getName() + "NEW");
 		if (newName == null) return;
 		CircuitChanges.duplicateCell(curCell, newName);
 	}
@@ -2893,7 +2893,7 @@ public final class MenuCommands
 					exported = true;
 					infstr.append(", with exports:");
 				}
-				infstr.append(" " + pp.getProtoName());
+				infstr.append(" " + pp.getName());
 			}
 			System.out.println(infstr.toString());
 			total++;
@@ -2962,7 +2962,7 @@ public final class MenuCommands
 				{
 					name = no.getName();
 				}
-				System.out.println("    Node " + name + ", port " + pp.getProtoName());
+				System.out.println("    Node " + name + ", port " + pp.getName());
 				total++;
 			}
 			if (total == 0) System.out.println("  Not connected");
@@ -3057,7 +3057,7 @@ public final class MenuCommands
 				if (ppNet != net) continue;
 				if (pp.isBit(fs)) continue;
 				pp.setBit(fs);
-				System.out.println("    Export " + pp.getProtoName() + " in cell " + cell.describe());
+				System.out.println("    Export " + pp.getName() + " in cell " + cell.describe());
 
 				// code to find the proper instance
 				Cell instanceCell = cell.iconView();
@@ -3110,7 +3110,7 @@ public final class MenuCommands
 					// found the net here: report it
 					if (pp.isBit(fs)) continue;
 					pp.setBit(fs);
-					System.out.println("    Export " + pp.getProtoName() + " in cell " + subCell.describe());
+					System.out.println("    Export " + pp.getName() + " in cell " + subCell.describe());
 					Netlist subNetlist = subCell.getUserNetlist();
 					JNetwork subNet = subNetlist.getNetwork(pp, i);
 					findPortsDown(subNetlist, subNet, subCell, fs);
@@ -3252,13 +3252,13 @@ public final class MenuCommands
 					Export pp = (Export)pIt.next();
 					if (pp.isNamedGround() && pp.getCharacteristic() != PortProto.Characteristic.GND)
 					{
-						System.out.println("Cell " + cell.describe() + ", export " + pp.getProtoName() +
+						System.out.println("Cell " + cell.describe() + ", export " + pp.getName() +
 							": does not have 'GROUND' characteristic");
 						total++;
 					}
 					if (pp.isNamedPower() && pp.getCharacteristic() != PortProto.Characteristic.PWR)
 					{
-						System.out.println("Cell " + cell.describe() + ", export " + pp.getProtoName() +
+						System.out.println("Cell " + cell.describe() + ", export " + pp.getName() +
 							": does not have 'POWER' characteristic");
 						total++;
 					}
@@ -3450,7 +3450,7 @@ public final class MenuCommands
 		{
 			PrimitiveArc ap = (PrimitiveArc)it.next();
 			if (ap.isNotUsed()) continue;
-			sb.append(" " + ap.getProtoName());
+			sb.append(" " + ap.getName());
 		}
 		System.out.println(sb.toString());
 
@@ -3474,7 +3474,7 @@ public final class MenuCommands
 				PrimitiveNode np = (PrimitiveNode)it.next();
 				if (np.isNotUsed()) continue;
 				NodeProto.Function fun = np.getFunction();
-				if (fun == NodeProto.Function.PIN) sb.append(" " + np.getProtoName());
+				if (fun == NodeProto.Function.PIN) sb.append(" " + np.getName());
 			}
 			System.out.println(sb.toString());
 		}
@@ -3488,7 +3488,7 @@ public final class MenuCommands
 				if (np.isNotUsed()) continue;
 				NodeProto.Function fun = np.getFunction();
 				if (fun == NodeProto.Function.CONTACT || fun == NodeProto.Function.CONNECT)
-					sb.append(" " + np.getProtoName());
+					sb.append(" " + np.getName());
 			}
 			System.out.println(sb.toString());
 		}
@@ -3503,7 +3503,7 @@ public final class MenuCommands
 				NodeProto.Function fun = np.getFunction();
 				if (fun != NodeProto.Function.PIN && fun != NodeProto.Function.CONTACT &&
 					fun != NodeProto.Function.CONNECT && fun != NodeProto.Function.NODE)
-						sb.append(" " + np.getProtoName());
+						sb.append(" " + np.getName());
 			}
 			System.out.println(sb.toString());
 		}
@@ -3516,7 +3516,7 @@ public final class MenuCommands
 				PrimitiveNode np = (PrimitiveNode)it.next();
 				if (np.isNotUsed()) continue;
 				NodeProto.Function fun = np.getFunction();
-				if (fun == NodeProto.Function.NODE) sb.append(" " + np.getProtoName());
+				if (fun == NodeProto.Function.NODE) sb.append(" " + np.getName());
 			}
 			System.out.println(sb.toString());
 		}

@@ -559,7 +559,7 @@ class NetSchem extends NetCell {
 		for (int i = 1; i <= numPorts; i++) {
 			Export export = (Export)cell.getPort(i - 1);
 			if (Network.debug) System.out.println(export+" "+portOffsets[i-1]);
-			mapOffset += export.getProtoNameKey().busWidth();
+			mapOffset += export.getNameKey().busWidth();
 			if (portOffsets[i] != mapOffset) {
 				changed = true;
 				portOffsets[i] = mapOffset;
@@ -650,7 +650,7 @@ class NetSchem extends NetCell {
 
 		for (int i = 0; i < numPorts; i++) {
 			int drawn = drawns[i];
-			Name name = cell.getPort(i).getProtoNameKey();
+			Name name = cell.getPort(i).getNameKey();
 			int newWidth = name.busWidth();
 			int oldWidth = drawnWidths[drawn];
 			if (oldWidth < 0) {
@@ -711,7 +711,7 @@ class NetSchem extends NetCell {
 					NetCell netCell = Network.getNetCell((Cell)np);
 					if (netCell instanceof NetSchem) {
 						int arraySize = np.isIcon() ? ni.getNameKey().busWidth() : 1;
-						int portWidth = pi.getPortProto().getProtoNameKey().busWidth();
+						int portWidth = pi.getPortProto().getNameKey().busWidth();
 						if (oldWidth == portWidth) continue;
 						newWidth = arraySize*portWidth;
 					}
@@ -744,7 +744,7 @@ class NetSchem extends NetCell {
 		for (int k = 0; k < numExports; k++) {
 			Export e = (Export) cell.getPort(k);
 			int portOffset = portOffsets[k];
-			Name expNm = e.getProtoNameKey();
+			Name expNm = e.getNameKey();
 			int busWidth = expNm.busWidth();
 			int drawn = drawns[k];
 			int drawnOffset = drawnOffsets[drawn];
@@ -788,7 +788,7 @@ class NetSchem extends NetCell {
 				int portIndex = m;
 				portIndex = icon.portImplementation[portIndex];
 				int portOffset = schem.portOffsets[portIndex] - schem.portOffsets[0];
-				int busWidth = e.getProtoNameKey().busWidth();
+				int busWidth = e.getNameKey().busWidth();
 				int drawn = drawns[ni_pi[k] + m];
 				if (drawn < 0) continue;
 				int width = drawnWidths[drawn];
@@ -929,7 +929,7 @@ class NetSchem extends NetCell {
 			int numPorts = cell.getNumPorts();
 			for (int k = 0; k < numPorts; k++) {
 				Export e = (Export) cell.getPort(k);
-				for (int j = 0; j < e.getProtoNameKey().busWidth(); j++) {
+				for (int j = 0; j < e.getNameKey().busWidth(); j++) {
 					if (networks[netMap[portOffsets[k] + j]] != network) continue;
 					System.out.println("\t" + e + " [" + j + "]");
 				}

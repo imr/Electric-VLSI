@@ -92,7 +92,7 @@ public class AnnularRing extends EDialog
 		{
 			PrimitiveNode np = (PrimitiveNode)it.next();
 			if (np.getFunction() != NodeProto.Function.NODE) continue;
-			layerModel.addElement(np.getProtoName());
+			layerModel.addElement(np.getName());
 		}
 		layerJList.setSelectedIndex(0);
 

@@ -469,8 +469,8 @@ public class Clipboard
 		{
 			Export e1 = (Export)o1;
 			Export e2 = (Export)o2;
-			String s1 = e1.getProtoName();
-			String s2 = e1.getProtoName();
+			String s1 = e1.getName();
+			String s2 = e1.getName();
 			if (s1 == null) s1 = "";
 			if (s2 == null) s2 = "";
 			return s1.compareToIgnoreCase(s2);
@@ -751,7 +751,7 @@ public class Clipboard
 			PortInst newPi = ni.findPortInstFromProto(pp);
 
 			Cell cell = ni.getParent();
-			String portName = ElectricObject.uniqueObjectName(origPp.getProtoName(), cell, PortProto.class);
+			String portName = ElectricObject.uniqueObjectName(origPp.getName(), cell, PortProto.class);
 			Export newPp = Export.newInstance(cell, newPi, portName);
 			if (newPp == null) return;
 			newPp.setTextDescriptor(origPp.getTextDescriptor());

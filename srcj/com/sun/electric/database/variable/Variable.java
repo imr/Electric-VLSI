@@ -228,11 +228,11 @@ public class Variable
 		String description = null;
 		if (eobj instanceof Export)
 		{
-			description = trueName + " on export '" + ((Export)eobj).getProtoName() + "'";
+			description = trueName + " on export '" + ((Export)eobj).getName() + "'";
 		} else if (eobj instanceof PortInst)
 		{
 			PortInst pi = (PortInst)eobj;
-			description = trueName + " on port " + pi.getPortProto().getProtoName() +
+			description = trueName + " on port " + pi.getPortProto().getName() +
 				" of " + pi.getNodeInst().describe();
 		} else if (eobj instanceof ArcInst)
 		{

@@ -143,7 +143,7 @@ public class Output extends IOTool
 		// handle different file types
 		URL libFile = lib.getLibFile();
 		if (libFile == null)
-			libFile = TextUtils.makeURLToFile(lib.getLibName());
+			libFile = TextUtils.makeURLToFile(lib.getName());
 		if (type == OpenFile.Type.ELIB)
 		{
 			// backup previous files if requested

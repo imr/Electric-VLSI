@@ -345,7 +345,7 @@ public class Schematic
 				if (pp == null || pp == pi.getPortProto())
 				{
 					ErrorLog err = ErrorLog.logError("Arc " + ai.describe() + " connects to port " +
-						pi.getPortProto().getProtoName() + " of node " + ni.describe() +
+						pi.getPortProto().getName() + " of node " + ni.describe() +
 						", but there is no equivalent port in cell " + np.describe(), cell, 0);
 					err.addGeom(geom, true, 0, null);
 					err.addGeom(ni, true, 0, null);
@@ -358,7 +358,7 @@ public class Schematic
 				if (signals != portWidth && signals != portWidth*nodeSize)
 				{
 					ErrorLog err = ErrorLog.logError("Arc " + ai.describe() + " (" + signals + " wide) connects to port " +
-						pp.getProtoName() + " of node " + ni.describe() +
+						pp.getName() + " of node " + ni.describe() +
 						" (" + portWidth + " wide)", cell, 0);
 					err.addGeom(geom, true, 0, null);
 					err.addGeom(ni, true, 0, null);

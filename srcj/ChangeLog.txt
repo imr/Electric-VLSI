@@ -2,7 +2,7 @@
 
 ************************* Version 8.00: Released  *************************
 
-IMP: (6/14/04, GVG) More stable version of crosslibcopy with compare functions.
+IMP: (6/14/04, GVG) More stable version of crosslibcopy with compare functions. Refactoring for getProtoName, getLibName, setLibName, getProtoNamekey
 
 IMP: (6/13/04, SMR) Implemented ability to preserve design rules in preferences.
 

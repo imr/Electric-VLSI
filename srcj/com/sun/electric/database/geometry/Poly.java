@@ -1709,16 +1709,21 @@ public class Poly implements Shape
         Layer layer = getLayer();
         if (getLayer() != poly.getLayer())
         {
+	        // Don't put until polys are sorted by layer
+	        /*
 	        if (buffer != null)
-		        buffer.append("Elements belong to different layers " + getLayer().getName() + " found in " + poly.getLayer().getName());
+		        buffer.append("Elements belong to different layers " + getLayer().getName() + " found in " + poly.getLayer().getName() + "\n");
+		        */
 	        return (false);
         }
         if (layer.getFunction() != poly.getLayer().getFunction()) return (false);
 
 	    boolean geometryCheck = polySame(poly);
 
+	    /*
 	    if (!geometryCheck && buffer != null)
-	        buffer.append("Elements don't represent same geometry " + getName() + " found in " + poly.getName());
+	        buffer.append("Elements don't represent same geometry " + getName() + " found in " + poly.getName() + "\n");
+	        */
         return (geometryCheck);
     }
 }

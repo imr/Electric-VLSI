@@ -78,7 +78,7 @@ public class LayoutText extends EDialog
 		{
 			PrimitiveNode np = (PrimitiveNode)it.next();
 			if (np.getFunction() == NodeProto.Function.NODE)
-				textLayer.addItem(np.getProtoName());
+				textLayer.addItem(np.getName());
 		}
 		if (lastLayer != null)
 			textLayer.setSelectedItem(lastLayer);

@@ -81,7 +81,7 @@ public class ChangeCurrentLib extends EDialog
 		initComponents();
 		getRootPane().setDefaultButton(ok);
 
-		currentLibrary.setText("Current Library: " + Library.getCurrent().getLibName());
+		currentLibrary.setText("Current Library: " + Library.getCurrent().getName());
 
 		changeListModel = new DefaultListModel();
 		changeList = new JList(changeListModel);
@@ -92,7 +92,7 @@ public class ChangeCurrentLib extends EDialog
 		for(Iterator it = Library.getVisibleLibrariesSortedByName().iterator(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
-			changeListModel.addElement(lib.getLibName());
+			changeListModel.addElement(lib.getName());
 		}
 	}
 

@@ -507,7 +507,7 @@ public class MimicStitch
 //if (ptInPoly)
 //{
 //Rectangle2D btemp = thisPoly.getBounds2D();
-//System.out.println("YES: ("+want1.getX()+","+want1.getY()+" inside of "+opp.getProtoName()+" port at "+btemp.getMinX()+"<=X<="+btemp.getMaxX()+
+//System.out.println("YES: ("+want1.getX()+","+want1.getY()+" inside of "+opp.getName()+" port at "+btemp.getMinX()+"<=X<="+btemp.getMaxX()+
 //	" and "+btemp.getMinY()+"<=Y<="+btemp.getMaxY());
 //}
 								if (!ptInPoly) continue;

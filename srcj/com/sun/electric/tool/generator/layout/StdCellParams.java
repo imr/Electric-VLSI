@@ -287,7 +287,7 @@ public class StdCellParams {
 		return "Track assignment for export: "
 			+ key
 			+ " in Cell: "
-			+ schem.getProtoName()
+			+ schem.getName()
 			+ ".\n    ";
 	}
 
@@ -914,7 +914,7 @@ public class StdCellParams {
 		for (Iterator it = schem.getPorts(); it.hasNext();) {
 			Export e = (Export) it.next();
 			Object val = e.getVar("ATTR_track");
-			String key = e.getProtoName();
+			String key = e.getName();
 			if (val == null)
 				continue;
 			schAsgn.put(key, val);

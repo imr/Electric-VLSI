@@ -150,7 +150,7 @@ public class DRC extends Tool
 			for(Iterator it = tech.getNodes(); it.hasNext(); )
 			{
 				PrimitiveNode np = (PrimitiveNode)it.next();
-				nodeNames[j++] = np.getProtoName();
+				nodeNames[j++] = np.getName();
 			}
 
 			// allocate tables
@@ -738,7 +738,7 @@ public class DRC extends Tool
 		for(Iterator it = tech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = (PrimitiveNode)it.next();
-			rules.nodeNames[j++] = np.getProtoName();
+			rules.nodeNames[j++] = np.getName();
 		}
 
 		// put width-limit in
@@ -1063,11 +1063,11 @@ public class DRC extends Tool
 //					if (!newRules.minNodeSize[j*2].equals(origRules.minNodeSize[j*2]) ||
 //						!newRules.minNodeSize[j*2+1].equals(origRules.minNodeSize[j*2+1]))
 //					{
-//						changes.append("n:"+np.getProtoName()+"="+newRules.minNodeSize[j*2]+"/"+newRules.minNodeSize[j*2+1]+";");
+//						changes.append("n:"+np.getName()+"="+newRules.minNodeSize[j*2]+"/"+newRules.minNodeSize[j*2+1]+";");
 //					}
 //					if (!newRules.minNodeSizeRules[j].equals(origRules.minNodeSizeRules[j]))
 //					{
-//						changes.append("nr:"+np.getProtoName()+"="+newRules.minNodeSizeRules[j]+";");
+//						changes.append("nr:"+np.getName()+"="+newRules.minNodeSizeRules[j]+";");
 //					}
 //					j++;
 //				}
@@ -1254,11 +1254,11 @@ public class DRC extends Tool
 			if (!newRules.minNodeSize[j*2].equals(origRules.minNodeSize[j*2]) ||
 				!newRules.minNodeSize[j*2+1].equals(origRules.minNodeSize[j*2+1]))
 			{
-				changes.append("n:"+np.getProtoName()+"="+newRules.minNodeSize[j*2]+"/"+newRules.minNodeSize[j*2+1]+";");
+				changes.append("n:"+np.getName()+"="+newRules.minNodeSize[j*2]+"/"+newRules.minNodeSize[j*2+1]+";");
 			}
 			if (!newRules.minNodeSizeRules[j].equals(origRules.minNodeSizeRules[j]))
 			{
-				changes.append("nr:"+np.getProtoName()+"="+newRules.minNodeSizeRules[j]+";");
+				changes.append("nr:"+np.getName()+"="+newRules.minNodeSizeRules[j]+";");
 			}
 			j++;
 		}

@@ -65,7 +65,7 @@ class Flattener extends HierarchyEnumerator.Visitor {
 			Export e = (Export) it.next();
 			PortInst hierPort = e.getOriginalPort();
 			PortInst flatPort = info.getFlatPort(hierPort);
-			PortInst parentHierPort = parentInst.findPortInst(e.getProtoName());
+			PortInst parentHierPort = parentInst.findPortInst(e.getName());
 			FlatInfo parentInfo = (FlatInfo) info.getParentInfo();
 			parentInfo.mapHierPortToFlatPort(parentHierPort, flatPort);
 		}
@@ -77,7 +77,7 @@ class Flattener extends HierarchyEnumerator.Visitor {
 		for (Iterator it = root.getPorts(); it.hasNext();) {
 			Export e = (Export) it.next();
 			PortInst p = info.getFlatPort(e.getOriginalPort());
-			Export eRoot = Export.newInstance(flatCell, p, e.getProtoName());
+			Export eRoot = Export.newInstance(flatCell, p, e.getName());
 			//System.out.println("Export characteristic: "+e.getCharacteristic());
 			eRoot.setCharacteristic(e.getCharacteristic());
 		}
@@ -93,7 +93,7 @@ class Flattener extends HierarchyEnumerator.Visitor {
 		FlatInfo info = (FlatInfo) inf;
 		if (debug) {
 			spaces();
-			System.out.println("Enter cell: " + info.getCell().getProtoName());
+			System.out.println("Enter cell: " + info.getCell().getName());
 			depth++;
 		}
 		return true;
@@ -114,7 +114,7 @@ class Flattener extends HierarchyEnumerator.Visitor {
 		if (debug) {
 			depth--;
 			spaces();
-			System.out.println("Exit cell: " + info.getCell().getProtoName());
+			System.out.println("Exit cell: " + info.getCell().getName());
 		}
 	}
 
@@ -132,7 +132,7 @@ class Flattener extends HierarchyEnumerator.Visitor {
 		if (np instanceof PrimitiveNode) {
 			NodeInst ni = (NodeInst)no;
 			// don't copy Facet-Centers
-			if (!np.getProtoName().equals("Facet-Center")) {
+			if (!np.getName().equals("Facet-Center")) {
 				AffineTransform at = info.getPositionInRoot(ni);
 				//System.out.println("NodeInst: "+ni+" xform: "+at);
 				NodeInst ni2 =
@@ -141,7 +141,7 @@ class Flattener extends HierarchyEnumerator.Visitor {
 //				ni2.setPositionFromTransform(at);
 				for (Iterator it = ni.getPortInsts(); it.hasNext();) {
 					PortInst pi = (PortInst) it.next();
-					PortInst pi2 = ni2.findPortInst(pi.getPortProto().getProtoName());
+					PortInst pi2 = ni2.findPortInst(pi.getPortProto().getName());
 					info.mapHierPortToFlatPort(pi, pi2);
 				}
 			}

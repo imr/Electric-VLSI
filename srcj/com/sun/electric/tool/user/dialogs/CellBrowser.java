@@ -334,8 +334,8 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
         List libList = Library.getVisibleLibrariesSortedByName();
         for (Iterator it = libList.iterator(); it.hasNext(); ) {
             Library lib = (Library)it.next();
-            libraryComboBox.addItem(lib.getLibName());
-            if (lib.getLibName().equals(lastSelectedLib))
+            libraryComboBox.addItem(lib.getName());
+            if (lib.getName().equals(lastSelectedLib))
                 curIndex = i;               // see if this is the last selected lib
             if (lib == Library.getCurrent())
                 curLibIndex = i;            // see if this is the current lib
@@ -575,7 +575,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
             if (cell == null) return;
 
             String newName = JOptionPane.showInputDialog(this, "Name of duplicated cell",
-                cell.getProtoName() + "NEW");
+                cell.getName() + "NEW");
             if (newName == null) return;
             CircuitChanges.duplicateCell(cell, newName);
             closeDialog(null);                     // we have performed the action
@@ -587,7 +587,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
     // -------------------------------- Set State of Dialog ------------------------------
 
     private void setLibrary(Library lib) {
-        String libName = lib.getLibName();
+        String libName = lib.getName();
         libraryComboBox.setSelectedItem(libName);
     }
 

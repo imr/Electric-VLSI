@@ -181,7 +181,7 @@ public class PrimitiveArc extends ArcProto
 	public void setPinProto(PrimitiveNode np)
 	{
 		Pref pref = getArcPinPref();
-		pref.setString(np.getProtoName());
+		pref.setString(np.getName());
 	}
 
 	/**

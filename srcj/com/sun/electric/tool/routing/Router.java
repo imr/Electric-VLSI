@@ -318,7 +318,7 @@ public abstract class Router {
         NodeInst ni = pi.getNodeInst();
         if (ni.getProto() instanceof Cell) {
             Cell cell = (Cell)ni.getProto();
-            Export export = cell.findExport(pi.getPortProto().getProtoName());
+            Export export = cell.findExport(pi.getPortProto().getName());
             PortInst exportedInst = export.getOriginalPort();
             double width2 = getArcWidthToUse(exportedInst, ap);
             if (width2 > width) width = width2;

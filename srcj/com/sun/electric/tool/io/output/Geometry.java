@@ -202,7 +202,7 @@ public abstract class Geometry extends Output
 				{
 					Cell oCell = (Cell)cIt.next();
 					if (cell.getView() != oCell.getView()) continue;
-					if (!cell.getProtoName().equalsIgnoreCase(oCell.getProtoName())) continue;
+					if (!cell.getName().equalsIgnoreCase(oCell.getName())) continue;
 					cellGeom.nonUniqueName = true;
 					break;
 				}

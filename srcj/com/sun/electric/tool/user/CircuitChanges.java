@@ -1791,7 +1791,7 @@ public class CircuitChanges
 			return;
 		}
 
-		String newCellName = JOptionPane.showInputDialog("New cell name:", curCell.getProtoName());
+		String newCellName = JOptionPane.showInputDialog("New cell name:", curCell.getName());
 		if (newCellName == null) return;
 		newCellName += "{" + curCell.getView().getAbbreviation() + "}";
 
@@ -1843,7 +1843,7 @@ public class CircuitChanges
 				{
 					Export pp = (Export)it.next();
 					PortInst pi = newNi.findPortInstFromProto(pp.getOriginalPort().getPortProto());
-					Export newPp = Export.newInstance(cell, pi, pp.getProtoName());
+					Export newPp = Export.newInstance(cell, pi, pp.getName());
 					if (newPp != null)
 					{
 						newPp.setCharacteristic(pp.getCharacteristic());
@@ -2090,7 +2090,7 @@ public class CircuitChanges
 				if (alreadyDone) continue;
 
 				// copy the port
-				String portName = ElectricObject.uniqueObjectName(pp.getProtoName(), cell, PortProto.class);
+				String portName = ElectricObject.uniqueObjectName(pp.getName(), cell, PortProto.class);
 				Export.newInstance(cell, pi, portName);
 			}
 		}
@@ -2129,8 +2129,8 @@ public class CircuitChanges
 		{
 			Export e1 = (Export)o1;
 			Export e2 = (Export)o2;
-			String s1 = e1.getProtoName();
-			String s2 = e2.getProtoName();
+			String s1 = e1.getName();
+			String s2 = e2.getName();
 			return TextUtils.nameSameNumeric(s1, s2);
 		}
 	}
@@ -2624,7 +2624,7 @@ public class CircuitChanges
 				}
 			} else
 			{
-				System.out.println("Found nonmanhattan geometry in library " + lib.getLibName());
+				System.out.println("Found nonmanhattan geometry in library " + lib.getName());
 			}
 		}
 		cellMark.freeFlagSet();
@@ -2693,7 +2693,7 @@ public class CircuitChanges
 		{
 			Cell other = (Cell)it.next();
 			if (other.getView() != newView) continue;
-			if (!other.getProtoName().equalsIgnoreCase(cell.getProtoName())) continue;
+			if (!other.getName().equalsIgnoreCase(cell.getName())) continue;
 
 			// there is another cell with this name and view: warn that it will become old
 			int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
@@ -2817,7 +2817,7 @@ public class CircuitChanges
 			Cell otherView = cell.otherView(v);
 			if (otherView == null)
 			{
-				otherView = Cell.makeInstance(cell.getLibrary(), cell.getProtoName() + "{p" + pageNo + "}");
+				otherView = Cell.makeInstance(cell.getLibrary(), cell.getName() + "{p" + pageNo + "}");
 			}
 			WindowFrame.createEditWindow(otherView);
 			return true;
@@ -2876,7 +2876,7 @@ public class CircuitChanges
 			Collections.sort(exportList, new ExportSorted());
 
 			// create the new icon cell
-			String iconCellName = curCell.getProtoName() + "{ic}";
+			String iconCellName = curCell.getName() + "{ic}";
 			iconCell = Cell.makeInstance(lib, iconCellName);
 			if (iconCell == null)
 			{
@@ -2916,7 +2916,7 @@ public class CircuitChanges
 				bbNi.newVar(Artwork.ART_COLOR, new Integer(EGraphics.RED));
 
 				// put the original cell name on it
-				Variable var = bbNi.newVar(Schematics.SCHEM_FUNCTION, curCell.getProtoName());
+				Variable var = bbNi.newVar(Schematics.SCHEM_FUNCTION, curCell.getName());
 				if (var != null)
 				{
 					var.setDisplay();
@@ -3025,8 +3025,8 @@ public class CircuitChanges
 			{
 				Export e1 = (Export)o1;
 				Export e2 = (Export)o2;
-				String s1 = e1.getProtoName();
-				String s2 = e2.getProtoName();
+				String s1 = e1.getName();
+				String s2 = e2.getName();
 				if (reverseIconExportOrder)
 					return s2.compareToIgnoreCase(s1);
 				return s1.compareToIgnoreCase(s2);
@@ -3076,7 +3076,7 @@ public class CircuitChanges
 
 		// export the port that should be on this pin
 		PortInst pi = pinNi.getOnlyPortInst();
-		Export port = Export.newInstance(np, pi, pp.getProtoName());
+		Export port = Export.newInstance(np, pi, pp.getName());
 		if (port != null)
 		{
 			TextDescriptor td = port.getTextDescriptor();
@@ -3894,7 +3894,7 @@ public class CircuitChanges
 		for(Iterator it = toLib.getCells(); it.hasNext(); )
 		{
 			Cell newFromCell = (Cell)it.next();
-			if (!newFromCell.getProtoName().equalsIgnoreCase(toName)) continue;
+			if (!newFromCell.getName().equalsIgnoreCase(toName)) continue;
 			if (newFromCell.getView() != toView) continue;
 			if (!newFromCell.getCreationDate().equals(fromCell.getCreationDate())) continue;
 			if (!newFromCell.getRevisionDate().equals(fromCell.getRevisionDate())) continue;
@@ -3924,7 +3924,7 @@ public class CircuitChanges
 					if (inDestLib(cell, toLib)) continue;
 
 					// copy subcell if not already there
-					Cell oNp = copyRecursively(cell, cell.getProtoName(), toLib, cell.getView(),
+					Cell oNp = copyRecursively(cell, cell.getName(), toLib, cell.getView(),
 						verbose, move, "subcell ", noRelatedViews, noSubCells, useExisting);
 					if (oNp == null)
 					{
@@ -3957,7 +3957,7 @@ public class CircuitChanges
 
 					// copy equivalent view if not already there
 //					if (move) fromCellWalk = np->nextcellgrp; // if np is moved (i.e. deleted), circular linked list is broken
-					Cell oNp = copyRecursively(np, np.getProtoName(), toLib, np.getView(),
+					Cell oNp = copyRecursively(np, np.getName(), toLib, np.getView(),
 						verbose, move, "alternate view ", true, noSubCells, useExisting);
 					if (oNp == null)
 					{
@@ -3985,7 +3985,7 @@ public class CircuitChanges
 
 					// copy equivalent view if not already there
 //					if (move) fromCellWalk = np->nextcellgrp; // if np is moved (i.e. deleted), circular linked list is broken
-					Cell oNp = copyRecursively(np, np.getProtoName(), toLib, np.getView(),
+					Cell oNp = copyRecursively(np, np.getName(), toLib, np.getView(),
 						verbose, move, "alternate view ", true, noSubCells, useExisting);
 					if (oNp == null)
 					{
@@ -4005,7 +4005,7 @@ public class CircuitChanges
 		for(Iterator it = toLib.getCells(); it.hasNext(); )
 		{
 			Cell thisCell = (Cell)it.next();
-			if (!thisCell.getProtoName().equalsIgnoreCase(toName)) continue;
+			if (!thisCell.getName().equalsIgnoreCase(toName)) continue;
 			if (thisCell.getView() != toView) continue;
 			if (thisCell.getCreationDate() != fromCellCreationDate) continue;
 			if (!move && thisCell.getRevisionDate() != fromCellRevisionDate) continue; // moving icon of schematic changes schematic's revision date
@@ -4092,8 +4092,8 @@ public class CircuitChanges
 					String msg = "";
 					if (move) msg += "Moved "; else
 						 msg += "Copied ";
-					msg += subDescript + Library.getCurrent().getLibName() + ":" + newFromCell.noLibDescribe() +
-						" to library " + toLib.getLibName();
+					msg += subDescript + Library.getCurrent().getName() + ":" + newFromCell.noLibDescribe() +
+						" to library " + toLib.getName();
 					System.out.println(msg);
 				} else
 				{
@@ -4112,7 +4112,7 @@ public class CircuitChanges
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell oNp = (Cell)it.next();
-			if (!oNp.getProtoName().equalsIgnoreCase(np.getProtoName())) continue;
+			if (!oNp.getName().equalsIgnoreCase(np.getName())) continue;
 			if (oNp.getView() != np.getView()) continue;
 			if (oNp.getCreationDate() != np.getCreationDate()) continue;
 			if (oNp.getRevisionDate() != np.getRevisionDate()) continue;
@@ -4720,7 +4720,7 @@ public class CircuitChanges
 			Library lib = (Library)it.next();
 			if (lib.isHidden()) continue;
 			StringBuffer infstr = new StringBuffer();
-			infstr.append(lib.getLibName());
+			infstr.append(lib.getName());
 			if (lib.isChangedMajor() || lib.isChangedMinor())
 			{
 				infstr.append("*");
@@ -4760,7 +4760,7 @@ public class CircuitChanges
 				Library oLib = (Library)lIt.next();
 				if (oLib == lib) continue;
 				if (!oLib.isBit(fs)) continue;
-				System.out.println("   Makes use of cells in library " + oLib.getLibName());
+				System.out.println("   Makes use of cells in library " + oLib.getName());
 				infstr = new StringBuffer();
 				infstr.append("      These cells make reference to that library:");
 				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
@@ -4818,7 +4818,7 @@ public class CircuitChanges
 	 */
 	public static void renameLibrary(Library lib)
 	{
-		String val = JOptionPane.showInputDialog("New Name of Library:", lib.getLibName());
+		String val = JOptionPane.showInputDialog("New Name of Library:", lib.getName());
 		if (val == null) return;
 		RenameLibrary job = new RenameLibrary(lib, val);
 	}
@@ -4833,7 +4833,7 @@ public class CircuitChanges
 
 		protected RenameLibrary(Library lib, String newName)
 		{
-			super("Renaming library " + lib.getLibName(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Renaming library " + lib.getName(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.lib = lib;
 			this.newName = newName;
 			startJob();
@@ -4841,8 +4841,8 @@ public class CircuitChanges
 
 		public boolean doIt()
 		{
-			String oldName = lib.getLibName();
-			if (lib.setLibName(newName)) return false;
+			String oldName = lib.getName();
+			if (lib.setName(newName)) return false;
 			System.out.println("Library " + oldName + " renamed to " + newName);
 	
 			// mark for saving, all libraries that depend on this

@@ -64,8 +64,8 @@ public class CrossLibCopy extends EDialog
 		for(Iterator it = libList.iterator(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
-			librariesLeft.addItem(lib.getLibName());
-			librariesRight.addItem(lib.getLibName());
+			librariesLeft.addItem(lib.getName());
+			librariesRight.addItem(lib.getName());
 		}
 		curLibLeft = curLibRight = Library.getCurrent();
 		int curIndex = libList.indexOf(curLibLeft);
@@ -156,7 +156,7 @@ public class CrossLibCopy extends EDialog
 			{
 				Cell leftCell = (Cell)cellListLeft.get(leftPos);
 				Cell rightCell = (Cell)cellListRight.get(rightPos);
-				int j = leftCell.getProtoName().compareToIgnoreCase(rightCell.getProtoName());
+				int j = leftCell.getName().compareToIgnoreCase(rightCell.getName());
 				if (j < 0) op = 1; else
 					if (j > 0) op = 2; else
 						op = 3;
@@ -194,9 +194,10 @@ public class CrossLibCopy extends EDialog
 				{
 					// Should i put them into a Job?
 					if (report) buffer = new StringBuffer();
-					CrossLibraryExamineJob job = new CrossLibraryExamineJob(leftCell, rightCell, report);
+					result = leftCell.compare(rightCell, buffer);
+					//CrossLibraryExamineJob job = new CrossLibraryExamineJob(leftCell, rightCell, report);
 
-					result = job.getResult();
+					//result = job.getResult();
 					//difference = job.getDifference();
 				}
 				String message = (result) ? "(but contents are the same)" : "(and contents are different)";
@@ -207,15 +208,15 @@ public class CrossLibCopy extends EDialog
                    case -1:
                        {
                            pt = (result) ? "<-OLD" : "<-OLD*";
-                           if (report) System.out.println(curLibLeft.getLibName() + ":" + leftName + " OLDER THAN " +
-                               curLibRight.getLibName() + ":" + rightName + message);
+                           if (report) System.out.println(curLibLeft.getName() + ":" + leftName + " OLDER THAN " +
+                               curLibRight.getName() + ":" + rightName + message + ":" + ((buffer != null) ? buffer.toString() : "\n"));
                        }
                        break;
                    case 1:
                        {
 	                       pt = (result) ? "  OLD->" : " *OLD->";
-                           if (report) System.out.println(curLibRight.getLibName() + ":" + rightName + " OLDER THAN " +
-                               curLibLeft.getLibName() + ":" + leftName + message);
+                           if (report) System.out.println(curLibRight.getName() + ":" + rightName + " OLDER THAN " +
+                               curLibLeft.getName() + ":" + leftName + message + ":" + ((buffer != null) ? buffer.toString() : "\n"));
                        }
                        break;
                    case 0:
@@ -228,7 +229,7 @@ public class CrossLibCopy extends EDialog
                        ;
                }
 			}
-			//if (!report) 
+			//if (!report)
 				modelCenter.addElement(pt);
 		}
 	}
@@ -280,8 +281,8 @@ public class CrossLibCopy extends EDialog
 		public boolean doIt()
 		{
 			if (reportResults)
-				buffer = new StringBuffer("Cells " + leftC.getLibrary().getLibName() + ":" + leftC.getProtoName() + " and " + rightC.getLibrary().getLibName() + ":" +
-				        rightC.getProtoName() + ":");
+				buffer = new StringBuffer("Cells " + leftC.getLibrary().getName() + ":" + leftC.getName() + " and " + rightC.getLibrary().getName() + ":" +
+				        rightC.getName() + ":");
 			result = (leftC != null && leftC.compare(rightC, buffer));
 
             if (reportResults)
@@ -321,7 +322,7 @@ public class CrossLibCopy extends EDialog
 			boolean copyRelated = dialog.copyRelatedViews.isSelected();
 			boolean copySubs = dialog.copySubcells.isSelected();
 			boolean useExisting = dialog.useExistingSubcells.isSelected();
-			CircuitChanges.copyRecursively(fromCell, fromCell.getProtoName(), toLibrary,
+			CircuitChanges.copyRecursively(fromCell, fromCell.getName(), toLibrary,
 				fromCell.getView(), true, deleteAfter, "", !copyRelated, !copySubs, useExisting);
 
 			// schedule the dialog to refresh

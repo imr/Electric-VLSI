@@ -44,7 +44,7 @@ public class NccJob extends Job {
 	private Messenger messenger;
 	
 	private String fullName(Cell cell) {
-		String name = cell.getProtoName();
+		String name = cell.getName();
 		int ver = cell.getVersion();
 		name += ";"+ver;
 		View view = cell.getView();
@@ -91,23 +91,23 @@ public class NccJob extends Job {
 			View view = cell.getView();
 			if (view==View.ICON)  continue;
 			// galleries
-			if (cell.getProtoName().equals("gallery"))  continue;
-			if (cell.getProtoName().equals("halfKeepIndex"))  continue;
-			if (cell.getProtoName().equals("aScanIndex"))  continue;
-			if (cell.getProtoName().equals("aScanIndexB"))  continue;
+			if (cell.getName().equals("gallery"))  continue;
+			if (cell.getName().equals("halfKeepIndex"))  continue;
+			if (cell.getName().equals("aScanIndex"))  continue;
+			if (cell.getName().equals("aScanIndexB"))  continue;
 			
 			// paralleled gates need random matching
 			// These were eliminated by the Cell based parallel merging
-//			if (cell.getProtoName().equals("gaspRowC"))  continue;
-//			if (cell.getProtoName().equals("gaspRing1"))  continue;
-//			if (cell.getProtoName().equals("gaspRowD"))  continue;
+//			if (cell.getName().equals("gaspRowC"))  continue;
+//			if (cell.getName().equals("gaspRing1"))  continue;
+//			if (cell.getName().equals("gaspRowD"))  continue;
 
 			// paralleling hidden from my merger!
-			if (cell.getProtoName().equals("ringTx") && 
+			if (cell.getName().equals("ringTx") &&
 				view==View.LAYOUT)  continue;
 				
 			// I don't understand this one				
-			if (cell.getProtoName().equals("rxPadArray") &&
+			if (cell.getName().equals("rxPadArray") &&
 				view==View.LAYOUT)  continue;
 			
 			compareCellToSelf(cell);									

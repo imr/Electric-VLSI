@@ -664,11 +664,11 @@ public class PixelDrawing
 					// draw port as text
 					TextDescriptor descript = poly.getTextDescriptor();
 					Poly.Type type = descript.getPos().getPolyType();
-					String portName = e.getProtoName();
+					String portName = e.getName();
 					if (exportDisplayLevel == 1)
 					{
 						// use shorter port name
-						portName = e.getShortProtoName();
+						portName = e.getShortName();
 					}
 					Point pt = wnd.databaseToScreen(poly.getCenterX(), poly.getCenterY());
 					Rectangle textRect = new Rectangle(pt);
@@ -770,11 +770,11 @@ public class PixelDrawing
 				{
 					TextDescriptor descript = portPoly.getTextDescriptor();
 					Poly.Type type = descript.getPos().getPolyType();
-					String portName = pp.getProtoName();
+					String portName = pp.getName();
 					if (portDisplayLevel == 1)
 					{
 						// use shorter port name
-						portName = pp.getShortProtoName();
+						portName = pp.getShortName();
 					}
 					Point pt = wnd.databaseToScreen(portPoly.getCenterX(), portPoly.getCenterY());
 					Rectangle rect = new Rectangle(pt);

@@ -606,7 +606,7 @@ public class PaletteFrame
 						for(Iterator it = spiceLib.getCells(); it.hasNext(); )
 						{
 							Cell cell = (Cell)it.next();
-							JMenuItem menuItem = new JMenuItem(cell.getProtoName());
+							JMenuItem menuItem = new JMenuItem(cell.getName());
 							menuItem.addActionListener(new PlacePopupListener(panel, cell));
 							cellMenu.add(menuItem);
 						}
@@ -651,7 +651,7 @@ public class PaletteFrame
 				for(Iterator it = lib.getCells(); it.hasNext(); )
 				{
 					Cell cell = (Cell)it.next();
-					JMenuItem menuItem = new JMenuItem(cell.getProtoName());
+					JMenuItem menuItem = new JMenuItem(cell.getName());
 					menuItem.addActionListener(new PlacePopupListener(panel, cell));
 					cellMenu.add(menuItem);
 				}
@@ -1133,7 +1133,7 @@ public class PaletteFrame
 			}
 			String descript = "Create ";
 			if (np instanceof Cell) descript += ((Cell)np).noLibDescribe(); else
-				descript += np.getProtoName() + " Primitive";
+				descript += np.getName() + " Primitive";
 			PlaceNewNode job = new PlaceNewNode(descript, toDraw, where, wnd.getCell(), textNode);
 
 			// restore the former listener to the edit windows

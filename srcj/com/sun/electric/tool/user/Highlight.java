@@ -1250,7 +1250,7 @@ public class Highlight
 					if (wired)
 					{
 	                    Font font = new Font(User.getDefaultFont(), Font.PLAIN, (int)(1.5*EditWindow.getDefaultFontSize()));
-    	                GlyphVector v = wnd.getGlyphs(pp.getProtoName(), font);
+    	                GlyphVector v = wnd.getGlyphs(pp.getName(), font);
         	            Point2D point = wnd.databaseToScreen(poly.getCenterX(), poly.getCenterY());
             	        ((Graphics2D)g).drawGlyphVector(v, (float)point.getX()+offX, (float)point.getY()+offY);
 					}
@@ -1258,7 +1258,7 @@ public class Highlight
 
 				// handle verbose highlighting of nodes
 				Netlist netlist = cell.getUserNetlist();
-				int busWidth = pp.getProtoNameKey().busWidth();
+				int busWidth = pp.getNameKey().busWidth();
 
 				FlagSet markObj = Geometric.getFlagSet(1);
 				for(Iterator it = cell.getNodes(); it.hasNext(); )

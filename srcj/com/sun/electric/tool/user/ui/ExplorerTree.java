@@ -358,7 +358,7 @@ public class ExplorerTree extends JTree
 		if (nodeInfo instanceof Library)
 		{
 			Library lib = (Library)nodeInfo;
-			String nodeName = lib.getLibName();
+			String nodeName = lib.getName();
 			if (lib == Library.getCurrent())
 			{
 				nodeName += " [Current]";
@@ -382,7 +382,7 @@ public class ExplorerTree extends JTree
 			for(Iterator it = group.getCells(); it.hasNext(); )
 			{
 				Cell cell = (Cell)it.next();
-				groupNames.add(cell.getProtoName());
+				groupNames.add(cell.getName());
 			}
 			String groupName = null;
 			for(Iterator it = groupNames.iterator(); it.hasNext(); )
@@ -925,7 +925,7 @@ public class ExplorerTree extends JTree
 			Cell cell = (Cell)currentSelectedObject;
 
 			String newName = JOptionPane.showInputDialog(tree, "Name of duplicated cell",
-				cell.getProtoName() + "NEW");
+				cell.getName() + "NEW");
 			if (newName == null) return;
 			CircuitChanges.duplicateCell(cell, newName);
 		}
@@ -939,7 +939,7 @@ public class ExplorerTree extends JTree
 		private void renameCellAction()
 		{
 			Cell cell = (Cell)currentSelectedObject;
-			String response = JOptionPane.showInputDialog(tree, "New name for cell " + cell.describe(), cell.getProtoName());
+			String response = JOptionPane.showInputDialog(tree, "New name for cell " + cell.describe(), cell.getName());
 			if (response == null) return;
 			CircuitChanges.renameCellInJob(cell, response);
 		}

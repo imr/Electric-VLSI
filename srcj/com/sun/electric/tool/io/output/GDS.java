@@ -254,7 +254,7 @@ public class GDS extends Geometry
 				outputInt((int)(scaleFactor*portPoly.getCenterY()));
 
 				// now the string
-				String str = pp.getProtoName();
+				String str = pp.getName();
 				int j = str.length();
 				if (j > 512) j = 512;
 
@@ -488,7 +488,7 @@ public class GDS extends Geometry
 
 	String makeUniqueName(Cell cell)
 	{
-		String name = makeGDSName(cell.getProtoName());
+		String name = makeGDSName(cell.getName());
 		if (cell.getNewestVersion() != cell)
 			name += "_" + cell.getVersion();
 
@@ -577,7 +577,7 @@ public class GDS extends Geometry
 		outputHeader(HDR_BGNLIB, 0);
 		outputDate(cell.getCreationDate());
 		outputDate(cell.getRevisionDate());
-		outputName(HDR_LIBNAME, makeGDSName(cell.getProtoName()), HDR_M_ASCII);
+		outputName(HDR_LIBNAME, makeGDSName(cell.getName()), HDR_M_ASCII);
 		outputShort(HDR_N_UNITS);
 		outputShort(HDR_UNITS);
 		outputIntArray(units01, 2);

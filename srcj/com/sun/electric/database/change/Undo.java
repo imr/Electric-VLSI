@@ -484,19 +484,19 @@ public class Undo
 				{
 					Cell cell = (Cell)obj;
 					Name oldName = (Name)o1;
-					o1 = Name.findName(cell.getProtoName());
+					o1 = Name.findName(cell.getName());
 					cell.lowLevelRename(oldName.toString());
 				} else if (obj instanceof Export)
 				{
 					Export pp = (Export)obj;
 					Name oldName = (Name)o1;
-					o1 = pp.getProtoNameKey();
+					o1 = pp.getNameKey();
 					pp.lowLevelRename(oldName.toString());
 				} else if (obj instanceof Library)
 				{
 					Library lib = (Library)obj;
 					Name oldName = (Name)o1;
-					o1 = Name.findName(lib.getLibName());
+					o1 = Name.findName(lib.getName());
 					lib.lowLevelRename(oldName.toString());
 				}
 				return;
@@ -679,19 +679,19 @@ public class Undo
 			if (type == Type.EXPORTNEW)
 			{
 				Export pp = (Export)obj;
-				return "Export " + pp.getProtoName() + " created in cell " + pp.getParent().describe();
+				return "Export " + pp.getName() + " created in cell " + pp.getParent().describe();
 			}
 			if (type == Type.EXPORTKILL)
 			{
 				Export pp = (Export)obj;
-				return "Export " + pp.getProtoName() + " deleted from cell " + pp.getParent().describe();
+				return "Export " + pp.getName() + " deleted from cell " + pp.getParent().describe();
 			}
 			if (type == Type.EXPORTMOD)
 			{
 				Export pp = (Export)obj;
 				PortInst pi = (PortInst)o1;
-				return "Export " + pp.getProtoName() + " moved in cell " + pp.getParent().describe() +
-					"[was on node " + pi.getNodeInst().describe() + " port " + pi.getPortProto().getProtoName() + "]";
+				return "Export " + pp.getName() + " moved in cell " + pp.getParent().describe() +
+					"[was on node " + pi.getNodeInst().describe() + " port " + pi.getPortProto().getName() + "]";
 			}
 			if (type == Type.CELLNEW)
 			{

@@ -553,7 +553,7 @@ public class ELIB extends LibraryFiles
 					for(Iterator it = tech.getNodes(); it.hasNext();)
 					{
 						PrimitiveNode opnp = (PrimitiveNode) it.next();
-						String primName = opnp.getProtoName();
+						String primName = opnp.getName();
 						if (primName.startsWith(name) || name.startsWith(primName))
 						{
 							pnp = opnp;
@@ -567,7 +567,7 @@ public class ELIB extends LibraryFiles
 						for(Iterator it = tech.getNodes(); it.hasNext();)
 						{
 							PrimitiveNode opnp = (PrimitiveNode) it.next();
-							String primName = opnp.getProtoName();
+							String primName = opnp.getName();
 							if (primName.endsWith(name) || name.endsWith(primName))
 							{
 								pnp = opnp;
@@ -629,7 +629,7 @@ public class ELIB extends LibraryFiles
 								if (techError[techIndex] != null)
 									errorMessage += techError[techIndex]; else
 										errorMessage += tech.getTechName();
-								errorMessage += ":" + pnp.getProtoName();
+								errorMessage += ":" + pnp.getName();
 							}
 							primPortProtoError[primPortProtoCount] = errorMessage;
 						}
@@ -983,7 +983,7 @@ public class ELIB extends LibraryFiles
 
 		// library read successfully
 		if (LibraryFiles.VERBOSE)
-			System.out.println("Binary: finished reading data for library " + lib.getLibName());
+			System.out.println("Binary: finished reading data for library " + lib.getName());
 		return false;
 	}
 
@@ -1055,10 +1055,10 @@ public class ELIB extends LibraryFiles
 		{
 			if (scaledCellName == null)
 			{
-				System.out.println("Binary: Doing contents of cell " + cell.describe() + " in library " + lib.getLibName());
+				System.out.println("Binary: Doing contents of cell " + cell.describe() + " in library " + lib.getName());
 			} else
 			{
-				System.out.println("Binary: Scaling (by " + scaleX + "x" + scaleY + ") contents of cell " + cell.describe() + " in library " + lib.getLibName());
+				System.out.println("Binary: Scaling (by " + scaleX + "x" + scaleY + ") contents of cell " + cell.describe() + " in library " + lib.getName());
 			}
 		}
 		cellsConstructed++;
@@ -1199,14 +1199,14 @@ public class ELIB extends LibraryFiles
 			Export pp = (Export)portProtoList[i];
 			if (scaledCellName != null)
 			{
-				String oldName = pp.getProtoName();
+				String oldName = pp.getName();
 				pp = Export.lowLevelAllocate();
 				pp.lowLevelName(cell, oldName);
 			}
 			int nodeIndex = portProtoSubNodeList[i];
 			if (nodeIndex < 0)
 			{
-				System.out.println("Cell " + cell.describe() + ": cannot find the node on which export " + pp.getProtoName() + " resides");
+				System.out.println("Cell " + cell.describe() + ": cannot find the node on which export " + pp.getName() + " resides");
 				continue;
 			}
 			NodeInst subNodeInst = nodeInstList.theNode[nodeIndex];
@@ -1228,7 +1228,7 @@ public class ELIB extends LibraryFiles
 
 			// convert portproto to portinst
 			String exportName = portProtoNameList[i];
-			PortInst pi = subNodeInst.findPortInst(subPortProto.getProtoName());
+			PortInst pi = subNodeInst.findPortInst(subPortProto.getName());
 			if (pp.lowLevelPopulate(pi)) return;
 			if (pp.lowLevelLink(null)) return;
 			pp.lowLevelSetUserbits(portProtoUserbits[i]);
@@ -1353,7 +1353,7 @@ public class ELIB extends LibraryFiles
 				if (!arcInfoError)
 				{
 					System.out.println("ERROR: Missing arc information in cell " + cell.noLibDescribe() +
-						" in library " + lib.getLibName() + " ...");
+						" in library " + lib.getName() + " ...");
 					if (headNode == null) System.out.println("   Head node not found");
 					if (headPort == null) System.out.println("   Head port not found (was "+headPortIntValue+", node="+headNode+")");
 					if (tailNode == null) System.out.println("   Tail node not found");
@@ -1362,11 +1362,11 @@ public class ELIB extends LibraryFiles
 				}
 				continue;
 			}
-			PortInst headPortInst = headNode.findPortInst(((PortProto)headPort).getProtoName());
-			PortInst tailPortInst = tailNode.findPortInst(((PortProto)tailPort).getProtoName());
+			PortInst headPortInst = headNode.findPortInst(((PortProto)headPort).getName());
+			PortInst tailPortInst = tailNode.findPortInst(((PortProto)tailPort).getName());
 			if (headPortInst == null || tailPortInst == null)
 			{
-				System.out.println("Cannot create arc of type " + ap.getProtoName() + " in cell " + cell.getProtoName() +
+				System.out.println("Cannot create arc of type " + ap.getName() + " in cell " + cell.getName() +
 					" because ends are unknown");
 				continue;
 			}
@@ -1417,12 +1417,12 @@ public class ELIB extends LibraryFiles
 					// see if uniform scaling can be done
 					double scaleX = width / bounds.getWidth();
 					double scaleY = height / bounds.getHeight();
-					String scaledCellName = subCell.getProtoName() + "-SCALED-BY-" + scaleX +
+					String scaledCellName = subCell.getName() + "-SCALED-BY-" + scaleX +
 						"{" + subCell.getView().getAbbreviation() + "}";
 					if (!EMath.doublesClose(scaleX, scaleY))
 					{
 						// nonuniform scaling: library inconsistency detected
-						scaledCellName = subCell.getProtoName() + "-SCALED-BY-" + scaleX + "-AND-" + scaleY +
+						scaledCellName = subCell.getName() + "-SCALED-BY-" + scaleX + "-AND-" + scaleY +
 							"{" + subCell.getView().getAbbreviation() + "}";
 					}
 					Cell scaledCell = subCell.getLibrary().findNodeProto(scaledCellName);
@@ -1453,13 +1453,13 @@ public class ELIB extends LibraryFiles
 					{
 						// see if there is already a dummy cell that is the right size
 						Cell dummyCell = null;
-//						String theProtoName = np.getProtoName();
-//						String startString = theProtoName + "FROM" + lib.getLibName();
+//						String theProtoName = np.getName();
+//						String startString = theProtoName + "FROM" + lib.getName();
 //						View v = subCell.getView();
 //						for(Iterator it = lib.getCells(); it.hasNext(); )
 //						{
 //							Cell oC = (Cell)it.next();
-//							if (!oC.getProtoName().startsWith(startString)) continue;
+//							if (!oC.getName().startsWith(startString)) continue;
 //							if (oC.getView() != v) continue;
 //							Rectangle2D oCBounds = oC.getBounds();
 //							if (Math.abs(oCBounds.getWidth() - width) <= 0.5 ||
@@ -1490,8 +1490,8 @@ public class ELIB extends LibraryFiles
 //								NodeInst.newInstance(Generic.tech.drcNode, ctr, width, height, 0, dummyCell, null);
 //								NodeInst.newInstance(Generic.tech.universalPinNode, ctr, width, height, 0, dummyCell, null);
 //		
-//								System.out.println("...Creating dummy version of cell in library " + lib.getLibName());
-////								oC.newVar(IO_TRUE_LIBRARY, elib.getLibName());
+//								System.out.println("...Creating dummy version of cell in library " + lib.getName());
+////								oC.newVar(IO_TRUE_LIBRARY, elib.getName());
 //							}
 //						}
 
@@ -1856,7 +1856,7 @@ public class ELIB extends LibraryFiles
 		if (c == null)
 		{
 			// cell not found in library: issue warning
-			System.out.println("Cannot find cell " + fullCellName + " in library " + elib.getLibName());
+			System.out.println("Cannot find cell " + fullCellName + " in library " + elib.getName());
 		}
 
 		// if cell found, check that size is unchanged (size is unknown at this point)
@@ -1873,10 +1873,10 @@ public class ELIB extends LibraryFiles
 //				// bounds differ, but lambda scaling is inaccurate: see if aspect ratio changed
 //				if (!EMath.doublesEqual(bounds.getWidth() * cellHeight, bounds.getHeight() * cellWidth))
 //				{
-//					System.out.println("Error: cell " + c.noLibDescribe() + " in library " + elib.getLibName() +
-//						" has changed size since its use in library " + lib.getLibName());
+//					System.out.println("Error: cell " + c.noLibDescribe() + " in library " + elib.getName() +
+//						" has changed size since its use in library " + lib.getName());
 //					System.out.println("  The cell is " + bounds.getWidth() + "x" +  bounds.getHeight() +
-//						" but the instances in library " + lib.getLibName() + " are " + cellWidth + "x" + cellHeight);
+//						" but the instances in library " + lib.getName() + " are " + cellWidth + "x" + cellHeight);
 //					c = null;
 //				}
 //			}
@@ -1896,12 +1896,12 @@ public class ELIB extends LibraryFiles
 						if (reader.readerHasExport(c, localPortNames[j])) continue;
 					}
 
-					System.out.println("Error: cell " + c.noLibDescribe() + " in library " + elib.getLibName() +
+					System.out.println("Error: cell " + c.noLibDescribe() + " in library " + elib.getName() +
 						" is missing export '" + localPortNames[j] + "'");
 // 					for (Iterator it = c.getPorts(); it.hasNext(); )
 // 					{
 // 						PortProto ppo = (PortProto)it.next();
-// 						System.out.println("\t"+ppo.getProtoName());
+// 						System.out.println("\t"+ppo.getName());
 // 					}
 					c = null;
 					break;
@@ -1914,8 +1914,8 @@ public class ELIB extends LibraryFiles
 		{
 			if (revisionDate.compareTo(c.getRevisionDate()) != 0)
 			{
-				System.out.println("Warning: cell " + c.noLibDescribe() + " in library " + elib.getLibName() +
-					" has changed since its use in library " + lib.getLibName());
+				System.out.println("Warning: cell " + c.noLibDescribe() + " in library " + elib.getName() +
+					" has changed since its use in library " + lib.getName());
 			}
 		}
 
@@ -1928,7 +1928,7 @@ public class ELIB extends LibraryFiles
 			String dummyCellName = null;
 			for(int index=0; ; index++)
 			{
-				dummyCellName = theProtoName + "FROM" + elib.getLibName();
+				dummyCellName = theProtoName + "FROM" + elib.getName();
 				if (index > 0) dummyCellName += "." + index;
 				dummyCellName += "{" + v.getAbbreviation() + "}";
 				if (lib.findNodeProto(dummyCellName) == null) break;
@@ -1952,8 +1952,8 @@ public class ELIB extends LibraryFiles
 			fakeNodeInst = NodeInst.newInstance(Generic.tech.universalPinNode, center, width, height, 0, c, null);
 
 			newCell = true;
-			System.out.println("...Creating dummy version of cell in library " + lib.getLibName());
-			c.newVar(IO_TRUE_LIBRARY, elib.getLibName());
+			System.out.println("...Creating dummy version of cell in library " + lib.getName());
+			c.newVar(IO_TRUE_LIBRARY, elib.getName());
 		}
 		nodeProtoList[cellIndex] = c;
 
@@ -2534,7 +2534,7 @@ public class ELIB extends LibraryFiles
 		if (primNodeProtoError[i])
 		{
 			System.out.println("Cannot find primitive '" + primNodeProtoOrig[i] + "', using " +
-				primNodeProtoList[i].getProtoName());
+				primNodeProtoList[i].getName());
 			primNodeProtoError[i] = false;
 		}
 		return(primNodeProtoList[i]);
@@ -2544,7 +2544,7 @@ public class ELIB extends LibraryFiles
 	{
 		if (arcProtoError[i] != null)
 		{
-			System.out.println("Cannot find arc '" + arcProtoError[i] + "', using " + arcProtoList[i].getProtoName());
+			System.out.println("Cannot find arc '" + arcProtoError[i] + "', using " + arcProtoList[i].getName());
 			arcProtoError[i] = null;
 		}
 		return(arcProtoList[i]);
@@ -2555,7 +2555,7 @@ public class ELIB extends LibraryFiles
 		if (primPortProtoError[i] != null)
 		{
 			System.out.println("WARNING: port " + primPortProtoError[i] + " not found, using " +
-				primPortProtoList[i].getProtoName());
+				primPortProtoList[i].getName());
 			primPortProtoError[i] = null;
 		}
 		return(primPortProtoList[i]);

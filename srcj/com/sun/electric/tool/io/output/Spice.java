@@ -115,7 +115,7 @@ public class Spice extends Topology
 		if (out.useCDL)
 		{
 			// write the control files
-			String templateFile = cell.getProtoName() + ".cdltemplate";
+			String templateFile = cell.getName() + ".cdltemplate";
 			if (out.openTextOutputStream(templateFile)) return;
 
 			String deckFile = filePath;
@@ -136,7 +136,7 @@ public class Spice extends Topology
 			out.printWriter.print("    'cdlFile                \"" + deckPath + "\"\n");
 			out.printWriter.print("    'userSkillFile          \"\"\n");
 			out.printWriter.print("    'opusLib                \"" + libName + "\"\n");
-			out.printWriter.print("    'primaryCell            \"" + cell.getProtoName() + "\"\n");
+			out.printWriter.print("    'primaryCell            \"" + cell.getName() + "\"\n");
 			out.printWriter.print("    'caseSensitivity        \"preserve\"\n");
 			out.printWriter.print("    'hierarchy              \"flatten\"\n");
 			out.printWriter.print("    'cellTable              \"\"\n");
@@ -722,7 +722,7 @@ public class Spice extends Topology
 			{
 				modelChar = "X";
 				biasCs = cni.getCellSignal(groundNet);
-				modelName = niProto.getProtoName();
+				modelName = niProto.getName();
 			} else if (fun == NodeProto.Function.TRANMOS)			// NMOS (Enhancement) transistor
 			{
 				modelChar = "M";
@@ -1039,7 +1039,7 @@ public class Spice extends Topology
 	{
 		// Print the header line for SPICE 
 		multiLinePrint(true, "*** SPICE deck for cell " + cell.noLibDescribe() +
-			" from library " + cell.getLibrary().getLibName() + "\n");
+			" from library " + cell.getLibrary().getName() + "\n");
 		emitCopyright("*** ", "");
 		if (User.isIncludeDateAndVersionInOutput())
 		{
@@ -1072,7 +1072,7 @@ public class Spice extends Topology
 			{
 				// extension specified: look for a file with the cell name and that extension
 				String headerPath = "";   // TextUtils.getFilePath(cell.getLibrary().getLibFile());
-				String fileName = headerPath + cell.getProtoName() + "." + headerFile.substring(SPICE_EXTENSION_PREFIX.length());
+				String fileName = headerPath + cell.getName() + "." + headerFile.substring(SPICE_EXTENSION_PREFIX.length());
 				File test = new File(fileName);
 				if (test.exists())
 				{
@@ -1126,7 +1126,7 @@ public class Spice extends Topology
 			{
 				// extension specified: look for a file with the cell name and that extension
 				String trailerpath = "";   // TextUtils.getFilePath(cell.getLibrary().getLibFile());
-				String fileName = trailerpath + cell.getProtoName() + "." + trailerFile.substring(SPICE_EXTENSION_PREFIX.length());
+				String fileName = trailerpath + cell.getName() + "." + trailerFile.substring(SPICE_EXTENSION_PREFIX.length());
 				File test = new File(fileName);
 				if (test.exists())
 				{

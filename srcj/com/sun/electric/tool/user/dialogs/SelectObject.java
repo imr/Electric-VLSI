@@ -155,7 +155,7 @@ public class SelectObject extends EDialog
 			for(Iterator it = cell.getPorts(); it.hasNext(); )
 			{
 				Export pp = (Export)it.next();
-				if (s.equals(pp.getProtoName()))
+				if (s.equals(pp.getName()))
 				{
 					Highlight.clear();
 					Highlight.addText(pp, cell, null, null);
@@ -214,7 +214,7 @@ public class SelectObject extends EDialog
 			for(Iterator it = cell.getPorts(); it.hasNext(); )
 			{
 				Export pp = (Export)it.next();
-				allNames.add(pp.getProtoName());
+				allNames.add(pp.getName());
 			}
 		} else
 		{

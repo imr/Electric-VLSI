@@ -115,7 +115,7 @@ public final class HierarchyEnumerator {
 	
 	private static int[] getPortNetIDs(Nodable no, PortProto pp,
 									   Netlist netlist, int[] netNdxToNetID) {
-		int busWidth = pp.getProtoNameKey().busWidth();
+		int busWidth = pp.getNameKey().busWidth();
 		int[] netIDs = new int[busWidth];
 		for (int j=0; j<busWidth; j++) {
 			int netIndex = netlist.getNetIndex(no, pp, j);

@@ -89,7 +89,7 @@ public class Verilog extends Topology
 	{
 		// write header information
 		printWriter.print("/* Verilog for cell " + topCell.describe() +
-			" from Library " + topCell.getLibrary().getLibName() + " */\n");
+			" from Library " + topCell.getLibrary().getName() + " */\n");
 		emitCopyright("/* ", " */");
 		if (User.isIncludeDateAndVersionInOutput())
 		{
@@ -416,10 +416,10 @@ public class Verilog extends Topology
 							PortInst pi = con.getPortInst();
 							if (i == 0)
 							{
-								if (!pi.getPortProto().getProtoName().equals("y")) continue;
+								if (!pi.getPortProto().getName().equals("y")) continue;
 							} else
 							{
-								if (!pi.getPortProto().getProtoName().equals("a")) continue;
+								if (!pi.getPortProto().getName().equals("a")) continue;
 							}
 
 							// determine the network name at this port
@@ -572,10 +572,10 @@ public class Verilog extends Topology
 							PortInst pi = (PortInst)pIt.next();
 							if (i == 0)
 							{
-								if (!pi.getPortProto().getProtoName().equals("y")) continue;
+								if (!pi.getPortProto().getName().equals("y")) continue;
 							} else
 							{
-								if (!pi.getPortProto().getProtoName().equals("a")) continue;
+								if (!pi.getPortProto().getName().equals("a")) continue;
 							}
 							if (first) first = false; else
 								infstr.append(", ");
@@ -617,7 +617,7 @@ public class Verilog extends Topology
 								if (eNet == net) { connected = true;   break; }
 							}
 							if (connected) continue;
-							if (dropBias && pi.getPortProto().getProtoName().equals("b")) continue;
+							if (dropBias && pi.getPortProto().getName().equals("b")) continue;
 							if (i == 0)
 							{
 								if (net == gateNet) continue;
@@ -654,7 +654,7 @@ public class Verilog extends Topology
 		for(Iterator aIt = ni.getConnections(); aIt.hasNext(); )
 		{
 			Connection con = (Connection)aIt.next();
-			if (con.getPortInst().getPortProto().getProtoName().equals("y") &&
+			if (con.getPortInst().getPortProto().getName().equals("y") &&
 				con.isNegated()) return negative;
 		}
 		return positive;

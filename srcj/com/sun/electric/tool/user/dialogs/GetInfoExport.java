@@ -152,7 +152,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 		}
 
         // set name
-		initialName = pp.getProtoName();
+		initialName = pp.getName();
 		theText.setText(initialName);
 
         // set Body and Always Drawn check boxes

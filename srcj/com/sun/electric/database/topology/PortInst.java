@@ -154,7 +154,7 @@ public class PortInst extends ElectricObject
 	 */
 	public String describe()
 	{
-		return nodeInst.describe() + "." + portProto.getProtoName();
+		return nodeInst.describe() + "." + portProto.getName();
 	}
 
 	/**
@@ -165,4 +165,34 @@ public class PortInst extends ElectricObject
 	{
 		return "PortInst " + describe();
 	}
+
+	/**
+	 * This function is to compare PortInst elements. Initiative CrossLibCopy
+ 	 * @param obj Object to compare to
+	 * @param buffer To store comparison messages in case of failure
+	 * @return True if objects represent same PortInst
+	 */
+    public boolean compare(Object obj, StringBuffer buffer)
+	{
+		if (this == obj) return (true);
+
+        // Better if compare classes? but it will crash with obj=null
+        if (obj == null || getClass() != obj.getClass())
+            return (false);
+
+        PortInst no = (PortInst)obj;
+
+		Iterator it = getConnections();
+		Iterator noIt = no.getConnections();
+
+		// @TODO GVG Check this
+		// Just compare connections?? or just poly for now?
+		Poly poly = getPoly();
+		Poly noPoly = no.getPoly();
+		boolean check = poly.compare(noPoly, buffer);
+
+		if (!check && buffer != null)
+			buffer.append("No same ports detected in " + portProto.getName() + " and " + no.getPortProto().getName() + "\n");
+        return (check);
+    }
 }

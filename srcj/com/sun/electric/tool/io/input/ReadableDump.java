@@ -367,7 +367,7 @@ public class ReadableDump extends LibraryFiles
 
 		// report progress
 		if (LibraryFiles.VERBOSE)
-			System.out.println("Text: Doing contents of cell " + cell.describe() + " in library " + lib.getLibName());
+			System.out.println("Text: Doing contents of cell " + cell.describe() + " in library " + lib.getName());
 		cellsConstructed++;
 		progress.setProgress(cellsConstructed * 100 / totalCells);
 
@@ -988,8 +988,8 @@ public class ReadableDump extends LibraryFiles
 				// cell found: make sure it is valid
 				if (cell.getRevisionDate() != ELIBConstants.secondsToDate(curCellCreationDate))
 				{
-					System.out.println("Warning: cell " + cell.describe() + " in library " + elib.getLibName() +
-						" has been modified since its use in library " + lib.getLibName());
+					System.out.println("Warning: cell " + cell.describe() + " in library " + elib.getName() +
+						" has been modified since its use in library " + lib.getName());
 				}
 			}
 		}
@@ -1005,7 +1005,7 @@ public class ReadableDump extends LibraryFiles
 		{
 			// cell not found in external library: figure out the library name
 			String elibName = null;
-			if (elib != null) elibName = elib.getLibName(); else
+			if (elib != null) elibName = elib.getName(); else
 			{
 				File libFile = new File(withoutQuotes);
 				elibName = libFile.getName();

@@ -455,8 +455,8 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		{
 			if (np.getTechnology() == MoCMOS.tech)
 			{
-				if (np.getProtoName().equals("P-Transistor-Scalable") ||
-					np.getProtoName().equals("N-Transistor-Scalable"))
+				if (np.getName().equals("P-Transistor-Scalable") ||
+					np.getName().equals("N-Transistor-Scalable"))
 						scalableTrans = true;
 			}
 		}
@@ -621,7 +621,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 				String description;
 				if (ch == PortProto.Characteristic.UNKNOWN) description = "Port "; else
 					description = ch.getName() + " port ";
-				description += pp.getProtoName() + " connects to";
+				description += pp.getName() + " connects to";
 				ArcProto [] connList = pp.getBasePort().getConnections();
 				int count = 0;
 				for(int i=0; i<connList.length; i++)
@@ -630,7 +630,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 					if ((np instanceof Cell || np.getTechnology() != Generic.tech) &&
 						ap.getTechnology() == Generic.tech) continue;
 					if (count > 0) description += ",";
-					description += " " + ap.getProtoName();
+					description += " " + ap.getName();
 					count++;
 				}
 				boolean moreInfo = false;
@@ -673,7 +673,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 				{
 					Export e = (Export)eIt.next();
 					if (e.getOriginalPort() != pi) continue;
-					description = "  Available as " + e.getCharacteristic().getName() + " export '" + e.getProtoName() + "'";
+					description = "  Available as " + e.getCharacteristic().getName() + " export '" + e.getName() + "'";
 					listModel.addElement(description);
 					portObjects.add(null);
 				}

@@ -294,7 +294,7 @@ public class EditOptions extends EDialog
 			pni.initialWid = pni.wid = np.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
 			pni.initialHei = pni.hei = np.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
 			initialNewNodesPrimInfo.put(np, pni);
-			nodePrimitive.addItem(np.getProtoName());
+			nodePrimitive.addItem(np.getName());
 		}
 		newNodesPrimPopupChanged();
 
@@ -436,7 +436,7 @@ public class EditOptions extends EDialog
 		for(Iterator it = Technology.getCurrent().getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = (PrimitiveNode)it.next();
-			arcPin.addItem(np.getProtoName());
+			arcPin.addItem(np.getName());
 		}
 
 		// gather information about the PrimitiveArcs in the current Technology
@@ -457,7 +457,7 @@ public class EditOptions extends EDialog
 			pai.initialPin = pai.pin = ap.findOverridablePinProto();
 
 			initialNewArcsPrimInfo.put(ap, pai);
-			arcProtoList.addItem(ap.getProtoName());
+			arcProtoList.addItem(ap.getName());
 		}
 		newArcsPrimPopupChanged();
 
@@ -515,7 +515,7 @@ public class EditOptions extends EDialog
 
 		arcWidth.setText(Double.toString(pai.wid));
 		arcAngle.setText(Integer.toString(pai.angleIncrement));
-		arcPin.setSelectedItem(pai.pin.getProtoName());
+		arcPin.setSelectedItem(pai.pin.getName());
 		newArcsDataChanging = false;
 	}
 
@@ -558,9 +558,9 @@ public class EditOptions extends EDialog
 		if (!pp.connectsTo(ap))
 		{
 			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-				"Cannot use " + pai.pin.getProtoName() + " as a pin because it does not connect to " + ap.getProtoName() + " arcs");
+				"Cannot use " + pai.pin.getName() + " as a pin because it does not connect to " + ap.getName() + " arcs");
 			pai.pin = pai.initialPin;
-			arcPin.setSelectedItem(pai.pin.getProtoName());
+			arcPin.setSelectedItem(pai.pin.getName());
 		}
 	}
 
@@ -740,7 +740,7 @@ public class EditOptions extends EDialog
 			lfi.currentDesignerName = lfi.initialDesignerName;
 			lfi.currentProjectName = lfi.initialProjectName;
 			frameLibInfo.put(lib, lfi);
-			frameLibrary.addItem(lib.getLibName());
+			frameLibrary.addItem(lib.getName());
 		}
 
 		frameSize.addItem("None");
@@ -757,7 +757,7 @@ public class EditOptions extends EDialog
 		frameLibraryCompany.getDocument().addDocumentListener(new NewFrameLibInfoListener(this));
 		frameLibraryDesigner.getDocument().addDocumentListener(new NewFrameLibInfoListener(this));
 		frameLibraryProject.getDocument().addDocumentListener(new NewFrameLibInfoListener(this));
-		frameLibrary.setSelectedItem(Library.getCurrent().getLibName());
+		frameLibrary.setSelectedItem(Library.getCurrent().getName());
 
 		Cell cell = WindowFrame.getCurrentCell();
 		if (cell == null)

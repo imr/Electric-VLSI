@@ -205,7 +205,7 @@ public class PadGenerator {
                                     if (copycells) {
                                         if (np != null) {
                                             // copy into the current library
-                                            np = CircuitChanges.copyRecursively(np, np.getProtoName(), Library.getCurrent(),
+                                            np = CircuitChanges.copyRecursively(np, np.getName(), Library.getCurrent(),
                                                     np.getView(), false, false, "", false, false, false);
                                         }
                                     }
@@ -850,7 +850,7 @@ public class PadGenerator {
 
                 // if copying cell, copy it into current library
                 if (copycells) {
-                    cell = CircuitChanges.copyRecursively(cell, cell.getProtoName(), Library.getCurrent(),
+                    cell = CircuitChanges.copyRecursively(cell, cell.getName(), Library.getCurrent(),
                             cell.getView(), false, false, "", false, false, false);
                 }
                 if (cell == null) {
@@ -1029,7 +1029,7 @@ public class PadGenerator {
                 double leadSpacing = User.getIconGenLeadSpacing();
 
                 // create the new icon cell
-                String iconCellName = framecell.getProtoName() + "{ic}";
+                String iconCellName = framecell.getName() + "{ic}";
                 Cell iconCell = Cell.makeInstance(Library.getCurrent(), iconCellName);
                 if (iconCell == null) {
                     JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
@@ -1060,7 +1060,7 @@ public class PadGenerator {
                     bbNi.newVar(NodeInst.TRACE, points);
 
                     // put the original cell name on it
-                    Variable var = bbNi.newVar(Schematics.SCHEM_FUNCTION, framecell.getProtoName());
+                    Variable var = bbNi.newVar(Schematics.SCHEM_FUNCTION, framecell.getName());
                     if (var != null) {
                         var.setDisplay();
                     }

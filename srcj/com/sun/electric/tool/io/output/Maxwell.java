@@ -90,7 +90,7 @@ public class Maxwell extends Output
 		maxNetMap = new HashMap();
 		boxNumber = 1;
 
-		printWriter.print("# Maxwell netlist for cell " + cell.noLibDescribe() + " from library " + cell.getLibrary().getLibName() + "\n");
+		printWriter.print("# Maxwell netlist for cell " + cell.noLibDescribe() + " from library " + cell.getLibrary().getName() + "\n");
 		if (User.isIncludeDateAndVersionInOutput())
 		{
 			printWriter.print("# CELL CREATED ON " + TextUtils.formatDate(cell.getCreationDate()) + "\n");

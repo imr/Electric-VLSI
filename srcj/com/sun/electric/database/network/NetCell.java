@@ -474,7 +474,7 @@ class NetCell
 		netNameCount = 0;
 		for (Iterator it = cell.getPorts(); it.hasNext();) {
 			Export e = (Export) it.next();
-			addNetNames(e.getProtoNameKey());
+			addNetNames(e.getNameKey());
 		}
 		for (Iterator it = cell.getArcs(); it.hasNext(); ) {
 			ArcInst ai = (ArcInst) it.next();
@@ -546,7 +546,7 @@ class NetCell
 		int numPorts = cell.getNumPorts();
 		for (int i = 0; i < numPorts; i++) {
 			Export e = (Export)cell.getPort(i);
-			setNetName(netNameToNet, drawns[i], e.getProtoNameKey());
+			setNetName(netNameToNet, drawns[i], e.getNameKey());
 		}
 		int numArcs = cell.getNumArcs();
 		for (int i = 0; i < numArcs; i++) {
@@ -580,7 +580,7 @@ class NetCell
 			for (Iterator pit = network.getPorts(); pit.hasNext(); )
 			{
 				PortInst pi = (PortInst)pit.next();
-				s += "|"+pi.getNodeInst().getProto()+"&"+pi.getPortProto().getProtoName();
+				s += "|"+pi.getNodeInst().getProto()+"&"+pi.getPortProto().getName();
 			}
 			System.out.println("    "+i+"    "+s);
 			i++;
@@ -647,14 +647,14 @@ class NetCell
 			{
 				if (equivPorts[i] != equivPorts[j]) continue;
 				Export pj = ports[j];
-				if (!found) s = s+" ( "+pi.getProtoName();
+				if (!found) s = s+" ( "+pi.getName();
 				found = true;
-				s = s+" "+pj.getProtoName();
+				s = s+" "+pj.getName();
 			}
 			if (found)
 				s = s+")";
 			else
-				s = s+" "+pi.getProtoName();
+				s = s+" "+pi.getName();
 		}
 		System.out.println(s);
 	}

@@ -345,8 +345,8 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
                 // want them set to OUTPUT so that they count as diffusion capacitance
                 if (pp.getCharacteristic() == PortProto.Characteristic.BIDIR) dir = Pin.Dir.OUTPUT;
             }
-            pins.add(new Pin(pp.getProtoName(), dir, le, netName));
-            if (DEBUG) System.out.println("    Added "+dir+" pin "+pp.getProtoName()+", le: "+le+", netName: "+netName+", JNetwork: "+netlist.getNetwork(ni,pp,0));
+            pins.add(new Pin(pp.getName(), dir, le, netName));
+            if (DEBUG) System.out.println("    Added "+dir+" pin "+pp.getName()+", le: "+le+", netName: "+netName+", JNetwork: "+netlist.getNetwork(ni,pp,0));
             if (type == Instance.Type.WIRE) break;    // this is LEWIRE, only add one pin of it
         }
 

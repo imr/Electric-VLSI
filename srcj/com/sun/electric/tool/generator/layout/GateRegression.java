@@ -45,7 +45,7 @@ public class GateRegression extends Job {
 	private static final DrcRings.Filter FILTER = new DrcRings.Filter() {
 		public boolean skip(NodeInst ni) {
 			// well tie cells don't pass DRC with DrcRings
-	        return ni.getProto().getProtoName().indexOf("mosWellTie_") != -1;
+	        return ni.getProto().getName().indexOf("mosWellTie_") != -1;
 		}
 	};
 

@@ -72,14 +72,14 @@ class IvanFlater extends HierarchyEnumerator.Visitor {
 			JNetwork net = info.getNetlist().getNetwork(e, 0);
 			int netId = info.getNetID(net);
 			String netNm = generateNetName(netId, info);
-			writeln("EXPORT "+e.getProtoName()+" "+netNm);
+			writeln("EXPORT "+e.getName()+" "+netNm);
 		}
 	}
 
 	public boolean enterCell(HierarchyEnumerator.CellInfo info) {
 		if (debug) {
 			spaces();
-			System.out.println("Enter cell: " + info.getCell().getProtoName());
+			System.out.println("Enter cell: " + info.getCell().getName());
 			depth++;
 		}
 		if (info.isRootCell()) writeExports(info);
@@ -90,7 +90,7 @@ class IvanFlater extends HierarchyEnumerator.Visitor {
 		if (debug) {
 			depth--;
 			spaces();
-			System.out.println("Exit cell: " + info.getCell().getProtoName());
+			System.out.println("Exit cell: " + info.getCell().getName());
 		}
 	}
 
@@ -153,7 +153,7 @@ class IvanFlater extends HierarchyEnumerator.Visitor {
 		String msg = null;
 		if (np instanceof PrimitiveNode) {
 		    NodeInst ni = (NodeInst)no;
-			String protNm = np.getProtoName();
+			String protNm = np.getName();
 			if (protNm.equals("N-Transistor")) {
 				msg =
 					"NMOS "
@@ -287,7 +287,7 @@ public class IvanFlat extends Job {
 						   +cellDesc.cellName);
 		Cell cell = openCell(libDir, cellDesc.libName, cellDesc.cellName);
 		Netlist netlist = cell.getNetlist(false);
-		String cellNm = cell.getProtoName();
+		String cellNm = cell.getName();
 
 		String outFileNm = outFileDir + outFileName(cellNm); 
 		IvanFlater flattener = new IvanFlater(outFileNm);

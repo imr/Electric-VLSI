@@ -376,12 +376,12 @@ public class ELIB extends Output
 				PrimitiveNode np = (PrimitiveNode)nit.next();
 
 				// write the primitive node prototype name
-				writeString(np.getProtoName());
+				writeString(np.getName());
 				writeBigInteger(np.getNumPorts());
 				for(Iterator pit = np.getPorts(); pit.hasNext(); )
 				{
 					PrimitivePort pp = (PrimitivePort)pit.next();
-					writeString(pp.getProtoName());
+					writeString(pp.getName());
 				}
 			}
 
@@ -390,7 +390,7 @@ public class ELIB extends Output
 			for(Iterator ait = tech.getArcs(); ait.hasNext(); )
 			{
 				PrimitiveArc ap = (PrimitiveArc)ait.next();
-				writeString(ap.getProtoName());
+				writeString(ap.getName());
 			}
 		}
 
@@ -428,7 +428,7 @@ public class ELIB extends Output
 
 						// convert this PortInst variable to a NodeInst variable
 						StringBuffer sb = new StringBuffer();
-						String portName = pi.getPortProto().getProtoName();
+						String portName = pi.getPortProto().getName();
 						int len = portName.length();
 						for(int j=0; j<len; j++)
 						{
@@ -599,7 +599,7 @@ public class ELIB extends Output
 		throws IOException
 	{
 		// write cell information
-		writeString(cell.getProtoName());
+		writeString(cell.getName());
 
 		// write the "next in cell group" pointer
 		int nextGrp = -1;
@@ -656,7 +656,7 @@ public class ELIB extends Output
 					i = pi.getNodeInst().getTempInt();
 				} else
 				{
-					System.out.println("ERROR: cell " + cell.describe() + " export " + pp.getProtoName() + " has no subnode");
+					System.out.println("ERROR: cell " + cell.describe() + " export " + pp.getName() + " has no subnode");
 				}
 				writeBigInteger(i);
 
@@ -667,13 +667,13 @@ public class ELIB extends Output
 					i = pi.getPortProto().getTempInt();
 				} else
 				{
-					System.out.println("ERROR: cell " + cell.describe() + " export " + pp.getProtoName() + " has no subport");
+					System.out.println("ERROR: cell " + cell.describe() + " export " + pp.getName() + " has no subport");
 				}
 				writeBigInteger(i);
 			}
 
 			// write the portproto name
-			writeString(pp.getProtoName());
+			writeString(pp.getName());
 
 			if (thislib)
 			{
@@ -1059,7 +1059,7 @@ public class ELIB extends Output
 		{
 			Library lib = (Library)obj;
 			if (lib == null) writeString("noname"); else
-				writeString(lib.getLibName());
+				writeString(lib.getName());
 			return;
 		}
 		if (obj instanceof Tool)

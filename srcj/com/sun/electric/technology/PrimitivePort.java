@@ -241,6 +241,6 @@ public class PrimitivePort extends PortProto
 	 */
 	public String toString()
 	{
-		return "PrimitivePort " + getProtoName();
+		return "PrimitivePort " + getName();
 	}
 }

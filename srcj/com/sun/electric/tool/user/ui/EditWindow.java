@@ -381,7 +381,7 @@ public class EditWindow extends JPanel
 
 		String title = cell.describe();
 		if (cell.getLibrary() != Library.getCurrent())
-			title += " - Current library: " + Library.getCurrent().getLibName();
+			title += " - Current library: " + Library.getCurrent().getName();
 		wf.setTitle(title);
 	}
 
@@ -1851,7 +1851,7 @@ public class EditWindow extends JPanel
             setCell(schCell, cellVarContext.push(ni));
         // if highlighted was a port inst, then highlight the corresponding export
         if (pi != null) {
-            PortInst origPort = schCell.findExport(pi.getPortProto().getProtoName()).getOriginalPort();
+            PortInst origPort = schCell.findExport(pi.getPortProto().getName()).getOriginalPort();
             //Highlight.addElectricObject(origPort, schCell);
             Highlight.addElectricObject(origPort.getNodeInst(), schCell);
             Highlight.finished();

@@ -782,7 +782,7 @@ public class Technology extends ElectricObject
 		for (int i = 0; i < arcs.size(); i++)
 		{
 			PrimitiveArc ap = (PrimitiveArc) arcs.get(i);
-			if (ap.getProtoName().equalsIgnoreCase(name))
+			if (ap.getName().equalsIgnoreCase(name))
 				return ap;
 		}
 		return null;
@@ -983,7 +983,7 @@ public class Technology extends ElectricObject
 		for (int i = 0; i < nodes.size(); i++)
 		{
 			PrimitiveNode pn = (PrimitiveNode) nodes.get(i);
-			if (pn.getProtoName().equalsIgnoreCase(name))
+			if (pn.getName().equalsIgnoreCase(name))
 				return pn;
 		}
 		return null;

@@ -139,7 +139,7 @@ public class CellProperties extends EDialog
 		for(Iterator it = libList.iterator(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
-			libraryPopup.addItem(lib.getLibName());
+			libraryPopup.addItem(lib.getName());
 		}
 		int curIndex = libList.indexOf(Library.getCurrent());
 		if (curIndex >= 0) libraryPopup.setSelectedIndex(curIndex);

@@ -116,8 +116,8 @@ public class Change extends EDialog
 		for(Iterator it = libList.iterator(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
-			librariesPopup.addItem(lib.getLibName());
-            if (lib.getLibName().equals(libSelected)) {
+			librariesPopup.addItem(lib.getName());
+            if (lib.getName().equals(libSelected)) {
                 curIndex = -1;                          // won't set to current library now
                 librariesPopup.setSelectedItem(libSelected);
             }
@@ -471,7 +471,7 @@ public class Change extends EDialog
 						}
 					}
 					System.out.println("All " + total + " " + oldNType.describe() +
-						" nodes in library " + lib.getLibName() + " replaced with " + np.describe());
+						" nodes in library " + lib.getName() + " replaced with " + np.describe());
 				} else if (dialog.changeInCell.isSelected())
 				{
 					// replace throughout this cell if "requested
@@ -666,7 +666,7 @@ public class Change extends EDialog
 						}
 					}
 					System.out.println("All " + total + " " + oldAType.describe() +
-						" arcs in library " + lib.getLibName() + " replaced with " + ap.describe());
+						" arcs in library " + lib.getName() + " replaced with " + ap.describe());
 				} else if (dialog.changeInCell.isSelected())
 				{
 					// replace throughout this cell if requested

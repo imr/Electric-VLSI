@@ -76,10 +76,10 @@ public class SchemToLay {
 				error(layInst==null,
 					  "SchemToLay: no layout instance for Icon? "+
 					  iconPort.getNodeInst());
-				String portNm = iconPort.getPortProto().getProtoName();
+				String portNm = iconPort.getPortProto().getName();
 				PortInst layPort = layInst.findPortInst(portNm);
 				error(layPort==null, "Port: "+portNm+" missing from Part: "+
-					  layInst.getProto().getProtoName());
+					  layInst.getProto().getName());
 				layPorts.add(layPort);
 			}
 			return layPorts;
@@ -88,7 +88,7 @@ public class SchemToLay {
 											   HashMap expTrkAsgn) {
 			Integer expTrk = null;
 			for (Iterator it=net.getExports(); it.hasNext();) {
-				String expNm = ((Export)it.next()).getProtoName();
+				String expNm = ((Export)it.next()).getName();
 				if (expTrkAsgn.containsKey(expNm)) {
 					error(expTrk!=null,
 						  "more than one track assigned to segment!");
@@ -281,11 +281,11 @@ public class SchemToLay {
 			NodeProto np = pi.getNodeInst().getProto();
 			
 			// if it's an instance of the Cell wire{ic} then pitch it
-			if (np instanceof Cell  &&  np.getProtoName().equals("wire{ic}")) {
+			if (np instanceof Cell  &&  np.getName().equals("wire{ic}")) {
 				return true;
 			} 
 			if (np instanceof PrimitiveNode && 
-			    np.getProtoName().equals("Global-Signal")) {
+			    np.getName().equals("Global-Signal")) {
 				return true;
 			}
 			return false;
@@ -313,7 +313,7 @@ public class SchemToLay {
 	private static Cell getPurpleLay(NodeInst iconInst, VarContext context,
 									 StdCellParams stdCell) {
 		NodeProto prot = iconInst.getProto();
-		String pNm = prot.getProtoName();
+		String pNm = prot.getName();
 		
 		// we actually generate layout for two primitive nodes: Power and Ground
 		if (!(prot instanceof Cell)) {
@@ -403,16 +403,16 @@ public class SchemToLay {
 			nm.startsWith("PmosWellTie");
 	}
 	private static boolean isNstk(Cell c) {
-		return isNstkNm(c.getProtoName());
+		return isNstkNm(c.getName());
 	}
 	private static boolean isPstk(Cell c) {
-		return isPstkNm(c.getProtoName());
+		return isPstkNm(c.getName());
 	}
 	private static boolean isNstk(NodeInst ni) {
-		return isNstkNm(ni.getProto().getProtoName());
+		return isNstkNm(ni.getProto().getName());
   }
 	private static boolean isPstk(NodeInst ni) {
-		return isPstkNm(ni.getProto().getProtoName());
+		return isPstkNm(ni.getProto().getName());
 	}
 	
 	private static boolean isUsefulIconInst(NodeInst ni, Cell schematic) {
@@ -421,8 +421,8 @@ public class SchemToLay {
 		if (!(np instanceof Cell)) {
 			// Power and Ground symbols mean we need to connect this net to
 			// vdd or gnd.
-			if (np.getProtoName().equals("Power") ||
-				np.getProtoName().equals("Ground")) return true;
+			if (np.getName().equals("Power") ||
+				np.getName().equals("Ground")) return true;
 			
 			// skip all other primitive drawing nodes such as wire pins,
 			// off-page.
@@ -433,7 +433,7 @@ public class SchemToLay {
 		
 		// skip anything that's not an Icon View
 		if (!c.getView().getFullName().equals("icon")) return false;
-		if (c.getProtoName().equals("wire{ic}")) return false;
+		if (c.getName().equals("wire{ic}")) return false;
 		return true;
 	}
 	
@@ -600,7 +600,7 @@ public class SchemToLay {
 		Iterator expIt = r.findExports();
 		while (expIt.hasNext()) {
 			Export exp = (Export)expIt.next();
-			String expNm = exp.getProtoName();
+			String expNm = exp.getName();
 			// Align the export with left most port
 			
 			// RKao debug
@@ -782,7 +782,7 @@ public class SchemToLay {
 	// path to the schematic facet name.
 	private static String layoutCellName(Cell schematic, VarContext context) {
 		// get the name of the schematic (without the "{sch}" suffix)
-		String schemNm = schematic.getProtoName();
+		String schemNm = schematic.getName();
 		int sfxPos = schemNm.indexOf("{sch}");
 		error(sfxPos==-1, "SchemToLay: no {sch} suffix on Cell schematic name?");
 		schemNm = schemNm.substring(0, sfxPos);
@@ -844,7 +844,7 @@ public class SchemToLay {
 								HashMap exportTrackAssign,
 								StdCellParams stdCell) {
 		error(!schem.getView().getFullName().equals("schematic"),
-			  "not a schematic: "+schem.getProtoName());
+			  "not a schematic: "+schem.getName());
 		
 		String nm = layoutCellName(schem, context);
 		System.out.println("SchemToLay making: "+nm);

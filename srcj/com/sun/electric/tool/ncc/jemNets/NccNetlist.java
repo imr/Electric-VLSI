@@ -220,7 +220,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			int[] expNetIDs = rootInfo.getExportNetIDs(e);
 			for (int i=0; i<expNetIDs.length; i++) {
 				Wire wire = wires.get(expNetIDs[i], rootInfo);
-				String expName = e.getProtoNameKey().subname(i).toString(); 
+				String expName = e.getNameKey().subname(i).toString();
 				Port p = new Port(expName, wire);
 				ports.add(p);
 			}
@@ -296,7 +296,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		NccCellInfo info = (NccCellInfo) ci;
 		if (debug) {
 			spaces();
-			globals.println("Enter cell: " + info.getCell().getProtoName());
+			globals.println("Enter cell: " + info.getCell().getName());
 			depth++;
 		}
 		if (info.isRootCell()) getExports(info);
@@ -309,7 +309,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		if (debug) {
 			depth--;
 			spaces();
-			globals.println("Exit cell: " + info.getCell().getProtoName());
+			globals.println("Exit cell: " + info.getCell().getName());
 		}
 	}
 	

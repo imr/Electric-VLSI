@@ -211,7 +211,7 @@ public abstract class ArcProto extends ElectricObject
 	 * Method to return the name of this ArcProto.
 	 * @return the name of this ArcProto.
 	 */
-	public String getProtoName() { return protoName; }
+	public String getName() { return protoName; }
 
 	/**
 	 * Method to return the Technology of this ArcProto.

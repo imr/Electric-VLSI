@@ -62,8 +62,8 @@ public class Gallery {
 	void sortCellsByName(ArrayList facets) {
 		Collections.sort(facets, new Comparator() {
 			public int compare(Object o1, Object o2) {
-				String n1 = ((Cell)o1).getProtoName();
-				String n2 = ((Cell)o2).getProtoName();
+				String n1 = ((Cell)o1).getName();
+				String n2 = ((Cell)o2).getName();
 				return n1.compareTo(n2);
 			}
 		});
@@ -72,7 +72,7 @@ public class Gallery {
 	void printCells(ArrayList facets) {
 		for (int i=0; i<facets.size(); i++) {
 			Cell p = (Cell) facets.get(i);
-			System.out.println(p.getProtoName());
+			System.out.println(p.getName());
 		}
 	}
 
@@ -130,7 +130,7 @@ public class Gallery {
 			  LayoutLib.newNodeInst(textPin, curLeftX+width(ni)/2, centerY-TEXT_OFFSET_BELOW_CELL, defSz, 
 			                        defSz, 0, gallery);
 			ti.setExpanded();
-//			String partNm = ni.getProto().getProtoName();
+//			String partNm = ni.getProto().getName();
 //			System.out.println("Cell: "+partNm+" has width: "+width(ni));
 			//ti.setVar("ART_message", partNm);
 			//String s = (String) ni.getVar("ART_message");

@@ -47,7 +47,7 @@ public class GateLayoutGenerator extends Job {
 	private static final DrcRings.Filter FILTER = new DrcRings.Filter() {
 		public boolean skip(NodeInst ni) {
 			// well tie cells don't pass DRC with DrcRings
-	        return ni.getProto().getProtoName().indexOf("mosWellTie_") != -1;
+	        return ni.getProto().getName().indexOf("mosWellTie_") != -1;
 		}
 	};
 
@@ -57,7 +57,7 @@ public class GateLayoutGenerator extends Job {
 
 	private Cell findCell(Library lib, String cellName) {
 		Cell c = lib.findNodeProto(cellName);
-		LayoutLib.error(c==null, "can't find: "+lib.getLibName()+":"+cellName);
+		LayoutLib.error(c==null, "can't find: "+lib.getName()+":"+cellName);
 		return c;
 	}
 	
@@ -111,7 +111,7 @@ public class GateLayoutGenerator extends Job {
 			return false;
 		}
 		System.out.println("Generating layouts for gates in the schematic: "+
-		                   cell.getProtoName()+" and its descendents");
+		                   cell.getName()+" and its descendents");
 		System.out.println("Output goes to library: autoGenLib");
 		//Library outLib = cell.getLibrary();
 
@@ -159,7 +159,7 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 	}
 	
 	private void generateCell(Nodable iconInst, VarContext context) {
-		String pNm = iconInst.getProto().getProtoName();
+		String pNm = iconInst.getProto().getName();
 		Variable var = iconInst.getVar("ATTR_X");
 		double x = getNumericVal(context.evalVar(var, iconInst));
 		if (x==-1) return;
@@ -232,7 +232,7 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 		
 		Cell cell = (Cell) no.getProto();
 		Library lib = cell.getLibrary();
-		String libNm = lib.getLibName();
+		String libNm = lib.getName();
 		if (libNm.equals("redFour") || libNm.equals("power2_gates")) {
 			generateCell(no, info.getContext());	
 			return false;

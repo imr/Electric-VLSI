@@ -163,7 +163,7 @@ public class CIF extends Geometry
 	{
 		cellNumber++;
 		writeLine("DS " + cellNumber + " 1 1;");
-		writeLine("9 " + (cellGeom.nonUniqueName ? (cellGeom.cell.getLibrary().getLibName() + ":") : "") +
+		writeLine("9 " + (cellGeom.nonUniqueName ? (cellGeom.cell.getLibrary().getName() + ":") : "") +
 			cellGeom.cell.noLibDescribe() + ";");
 		cellNumbers.put(cellGeom.cell, new Integer(cellNumber));
 

@@ -888,8 +888,8 @@ class TiledCell {
 		public int compare(Object o1, Object o2) {
 			PortInst p1 = (PortInst) o1;
 			PortInst p2 = (PortInst) o2;
-			String n1 = p1.getPortProto().getProtoName();
-			String n2 = p2.getPortProto().getProtoName();
+			String n1 = p1.getPortProto().getName();
+			String n2 = p2.getPortProto().getName();
 			String base1 = base(n1);
 			String base2 = base(n2);			
 			if (!base1.equals(base2)) {
@@ -946,11 +946,11 @@ class TiledCell {
 			PortProto pp = (PortProto) pi.getPortProto();
 			PortProto.Characteristic role = pp.getCharacteristic(); 
 			if (role==stdCell.getVddExportRole()) {
-				//System.out.println(pp.getProtoName());
+				//System.out.println(pp.getName());
 				Export e = Export.newInstance(tiled, pi, vddName());
 				e.setCharacteristic(role);
 			} else if (role==stdCell.getGndExportRole()) {
-				//System.out.println(pp.getProtoName());
+				//System.out.println(pp.getName());
 				Export e = Export.newInstance(tiled, pi, gndName());
 				e.setCharacteristic(role);
 			} else {
@@ -1020,7 +1020,7 @@ class TiledCell {
 	    vddNm = stdCell.getVddExportName();
 	    gndNm = stdCell.getGndExportName();
 	    
-		String tiledName = "t"+cell.getProtoName()+"_"+numX+"x"+numY+"{lay}";
+		String tiledName = "t"+cell.getName()+"_"+numX+"x"+numY+"{lay}";
 		Cell tiled = Cell.newInstance(lib, tiledName);
 
 		Rectangle2D bounds = cell.findEssentialBounds();

@@ -88,7 +88,7 @@ public class NewCell extends EDialog
 		for(Iterator it = libList.iterator(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
-			library.addItem(lib.getLibName());
+			library.addItem(lib.getName());
 		}
 		int curIndex = libList.indexOf(Library.getCurrent());
 		if (curIndex >= 0) library.setSelectedIndex(curIndex);

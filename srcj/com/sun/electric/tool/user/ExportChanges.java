@@ -140,7 +140,7 @@ public final class ExportChanges
 				int blJ = ((ExportList)exports.get(j)).busList;
 				if (eqJ != -1 || blJ != -1) continue;
 				Export ppJ = ((ExportList)exports.get(j)).pp;
-				String ptJ = ppJ.getProtoName();
+				String ptJ = ppJ.getName();
 				int sqPosJ = ptJ.indexOf('[');
 				if (sqPosJ < 0) continue;
 				for(int k=j+1; k<num_found; k++)
@@ -151,7 +151,7 @@ public final class ExportChanges
 					Export ppK = ((ExportList)exports.get(k)).pp;
 					if (ppJ.getCharacteristic() != ppK.getCharacteristic()) break;
 
-					String ptK = ppK.getProtoName();
+					String ptK = ppK.getName();
 					int sqPosK = ptK.indexOf('[');
 					if (sqPosJ != sqPosK) continue;
 					if (ptJ.substring(0, sqPosJ).equalsIgnoreCase(ptK.substring(0, sqPosK)))
@@ -200,7 +200,7 @@ public final class ExportChanges
 					if (j != k && ((ExportList)exports.get(k)).equiv != j) continue;
 					if (j != k) infstr += ", ";
 					Export opp = ((ExportList)exports.get(k)).pp;
-					infstr += "'" + opp.getProtoName() + "'";
+					infstr += "'" + opp.getName() + "'";
 					Poly poly = opp.getOriginalPort().getPoly();
 					double x = poly.getCenterX();
 					double y = poly.getCenterY();
@@ -269,7 +269,7 @@ public final class ExportChanges
 					for(Iterator it = sortedBusList.iterator(); it.hasNext(); )
 					{
 						Export ppS = (Export)it.next();
-						String pt1 = ppS.getProtoName();
+						String pt1 = ppS.getName();
 						int openPos = pt1.indexOf('[');
 						if (first)
 						{
@@ -290,7 +290,7 @@ public final class ExportChanges
 					Poly poly = pp.getOriginalPort().getPoly();
 					double x = poly.getCenterX();
 					double y = poly.getCenterY();
-					infstr += activity + " export '" + pp.getProtoName() + "' at (" + x + ", " + y + ") connects to";
+					infstr += activity + " export '" + pp.getName() + "' at (" + x + ", " + y + ") connects to";
 					ArcProto [] arcList = pp.getBasePort().getConnections();
 					for(int a=0; a<arcList.length; a++)
 						arcList[a].setBit(arcMark);
@@ -313,7 +313,7 @@ public final class ExportChanges
 			{
 				Export pp = (Export)it.next();
 				if (pp.getEquivalentPort(cell) == null)
-					System.out.println("*** Export " + pp.getProtoName() + ", found in cell " + wnp.describe() + ", is missing here");
+					System.out.println("*** Export " + pp.getName() + ", found in cell " + wnp.describe() + ", is missing here");
 			}
 		}
 		arcMark.freeFlagSet();
@@ -348,7 +348,7 @@ public final class ExportChanges
 					if (!ap.isBit(arcMark)) continue;
 					if (i != 0) infstr += ",";
 					i++;
-					infstr += " " + ap.getProtoName();
+					infstr += " " + ap.getName();
 				}
 			}
 		}
@@ -366,8 +366,8 @@ public final class ExportChanges
 			PortProto.Characteristic ch1 = e1.getCharacteristic();
 			PortProto.Characteristic ch2 = e2.getCharacteristic();
 			if (ch1 != ch2) return ch1.getOrder() - ch2.getOrder();
-			String s1 = e1.getProtoName();
-			String s2 = e2.getProtoName();
+			String s1 = e1.getName();
+			String s2 = e2.getName();
 			return TextUtils.nameSameNumeric(s1, s2);
 		}
 	}
@@ -378,8 +378,8 @@ public final class ExportChanges
 		{
 			Export e1 = (Export)o1;
 			Export e2 = (Export)o2;
-			String s1 = e1.getProtoName();
-			String s2 = e2.getProtoName();
+			String s1 = e1.getName();
+			String s2 = e2.getName();
 			return TextUtils.nameSameNumeric(s1, s2);
 		}
 	}
@@ -521,7 +521,7 @@ public final class ExportChanges
 				for(Iterator pIt = queuedExports.iterator(); pIt.hasNext(); )
 				{
 					PortInst pi = (PortInst)pIt.next();
-					String portName = ElectricObject.uniqueObjectName(pi.getPortProto().getProtoName(), cell, PortProto.class);
+					String portName = ElectricObject.uniqueObjectName(pi.getPortProto().getName(), cell, PortProto.class);
 					Export newPp = Export.newInstance(cell, pi, portName);
 					if (newPp != null)
 					{
@@ -543,8 +543,8 @@ public final class ExportChanges
 			{
 				PortInst pi1 = (PortInst)o1;
 				PortInst pi2 = (PortInst)o2;
-				String s1 = pi1.getPortProto().getProtoName();
-				String s2 = pi2.getPortProto().getProtoName();
+				String s1 = pi1.getPortProto().getName();
+				String s2 = pi2.getPortProto().getName();
 				return s1.compareToIgnoreCase(s2);
 			}
 		}
@@ -716,7 +716,7 @@ public final class ExportChanges
 			return;
 		}
 		Export pp = (Export)h.getElectricObject();
-		String response = JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), "Rename export", pp.getProtoName());
+		String response = JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), "Rename export", pp.getName());
 		if (response == null) return;
 		RenameExport job = new RenameExport(pp, response);
 	}
@@ -781,7 +781,7 @@ public final class ExportChanges
 
 		protected RenameExport(Export pp, String newName)
 		{
-			super("Rename Export" + pp.getProtoName(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Rename Export" + pp.getName(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.pp = pp;
 			this.newName = newName;
 			startJob();
@@ -992,7 +992,7 @@ public final class ExportChanges
 		for(int i=0; i<total; i++)
 		{
 			int index = (bestOff + i) % total;
-			Highlight.addMessage(cell, portList[index].pp.getProtoName(), labelLocs[i]);
+			Highlight.addMessage(cell, portList[index].pp.getName(), labelLocs[i]);
 			Highlight.addLine(labelLocs[i], portList[index].loc, cell);
 		}
 		Highlight.finished();

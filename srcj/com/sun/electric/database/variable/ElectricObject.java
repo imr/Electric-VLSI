@@ -262,7 +262,7 @@ public class ElectricObject
 					poly = new Poly(pointList);
 					poly.setStyle(style);
 					poly.setTextDescriptor(td);
-					poly.setString(pp.getProtoName());
+					poly.setString(pp.getName());
 				} else
 				{
 					// cell instance name

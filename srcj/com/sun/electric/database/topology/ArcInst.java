@@ -252,7 +252,7 @@ public class ArcInst extends Geometric
 		if (!ai.stillInPort(ai.getHead(), headPt, false))
 		{
 			Cell parent = head.getNodeInst().getParent();
-			System.out.println("Error in cell " + parent.describe() + ": head of " + type.getProtoName() +
+			System.out.println("Error in cell " + parent.describe() + ": head of " + type.getName() +
 				" arc at (" + headPt.getX() + "," + headPt.getY() + ") does not fit in port " +
 				ai.getHead().getPortInst().describe());
 			return null;
@@ -260,7 +260,7 @@ public class ArcInst extends Geometric
 		if (!ai.stillInPort(ai.getTail(), tailPt, false))
 		{
 			Cell parent = tail.getNodeInst().getParent();
-			System.out.println("Error in cell " + parent.describe() + ": tail of " + type.getProtoName() +
+			System.out.println("Error in cell " + parent.describe() + ": tail of " + type.getName() +
 				" arc at (" + tailPt.getX() + "," + tailPt.getY() + ") does not fit in port " +
 				ai.getTail().getPortInst().describe());
 			return null;
@@ -323,7 +323,7 @@ public class ArcInst extends Geometric
 		PortInst piT = tail.getPortInst();
 		if (!piH.getPortProto().connectsTo(ap) || !piT.getPortProto().connectsTo(ap))
 		{
-			System.out.println("Cannot replace arc " + describe() + " with one of type " + ap.getProtoName() +
+			System.out.println("Cannot replace arc " + describe() + " with one of type " + ap.getName() +
 				" because the nodes cannot connect to it");
 			return null;
 		}
@@ -335,7 +335,7 @@ public class ArcInst extends Geometric
 		ArcInst newar = ArcInst.newInstance(ap, newwid, piH, head.getLocation(), piT, tail.getLocation(), null);
 		if (newar == null)
 		{
-			System.out.println("Cannot replace arc " + describe() + " with one of type " + ap.getProtoName() +
+			System.out.println("Cannot replace arc " + describe() + " with one of type " + ap.getName() +
 				" because the new arc failed to create");
 			return null;
 		}
@@ -398,7 +398,7 @@ public class ArcInst extends Geometric
 		if (!headPrimPort.connectsTo(protoType))
 		{
 			System.out.println("Cannot create " + protoType.describe() + " arc in cell " + parent.describe() +
-				" because it cannot connect to port " + headProto.getProtoName());
+				" because it cannot connect to port " + headProto.getName());
 			return true;
 		}
 		PortProto tailProto = tailPort.getPortProto();
@@ -406,7 +406,7 @@ public class ArcInst extends Geometric
 		if (!tailPrimPort.connectsTo(protoType))
 		{
 			System.out.println("Cannot create " + protoType.describe() + " arc in cell " + parent.describe() +
-				" because it cannot connect to port " + tailProto.getProtoName());
+				" because it cannot connect to port " + tailProto.getName());
 			return true;
 		}
 
@@ -957,7 +957,7 @@ public class ArcInst extends Geometric
 	 */
 	public String toString()
 	{
-		return "ArcInst " + protoType.getProtoName();
+		return "ArcInst " + protoType.getName();
 	}
 
 	/****************************** MISCELLANEOUS ******************************/
@@ -1325,9 +1325,10 @@ public class ArcInst extends Geometric
 	public boolean isHardSelect() { return (userBits & HARDSELECTA) != 0; }
 
     /**
-     *
-     * @param obj
-     * @return
+     * This function is to compare NodeInst elements. Initiative CrossLibCopy
+     * @param obj Object to compare to
+     * @param buffer To store comparison messages in case of failure
+     * @return True if objects represent same ArcInst
      */
     public boolean compare(Object obj, StringBuffer buffer)
 	{
@@ -1347,7 +1348,7 @@ public class ArcInst extends Geometric
         if (getProto().getTechnology() != tech)
         {
 	        if (buffer != null)
-		        buffer.append("No same technology for arcs " + getName() + " and " + a.getName());
+		        buffer.append("No same technology for arcs " + getName() + " and " + a.getName() + "\n");
             return (false);
         }
 
@@ -1357,7 +1358,7 @@ public class ArcInst extends Geometric
          if (polyList.length != aPolyList.length)
          {
 	         if (buffer != null)   
-		         buffer.append("No same number of geometries in " + getName() + " and " + a.getName());
+		         buffer.append("No same number of geometries in " + getName() + " and " + a.getName() + "\n");
 	         return (false);
          }
 
@@ -1382,7 +1383,7 @@ public class ArcInst extends Geometric
             if (!found)
             {
 	            if (buffer != null)
-		            buffer.append("No corresponding geometry in " + getName() + " found in " + a.getName());
+		            buffer.append("No corresponding geometry in " + getName() + " found in " + a.getName() + "\n");
 	            return (false);
             }
         }

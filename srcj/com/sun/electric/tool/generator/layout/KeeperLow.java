@@ -49,7 +49,7 @@ public class KeeperLow {
 		double szNmos = -1, szK = -1, szI = -1;
 		while (nodes.hasNext()) {
 			NodeInst ni = (NodeInst) nodes.next();
-			String nm = ni.getProto().getProtoName();
+			String nm = ni.getProto().getName();
 			if (nm.equals("nms1K{ic}")) {
 				szNmos = StdCellParams.getSize(ni, context);
 			} else if (nm.equals("invK{ic}")) {

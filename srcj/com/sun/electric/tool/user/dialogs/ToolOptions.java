@@ -1270,9 +1270,9 @@ public class ToolOptions extends EDialog
 		for(Iterator it = Library.getVisibleLibrariesSortedByName().iterator(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
-			verLibrary.addItem(lib.getLibName());
+			verLibrary.addItem(lib.getName());
 		}
-		verLibrary.setSelectedItem(Library.getCurrent().getLibName());
+		verLibrary.setSelectedItem(Library.getCurrent().getName());
 		verLibrary.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { verilogLoadCellList(); }
@@ -1931,7 +1931,7 @@ public class ToolOptions extends EDialog
 			// update the option
 			option.setDoubleValue(v);
 			int index = list.getSelectedIndex();
-			String newLine = arc.getProtoName() + " (" + v + ")";
+			String newLine = arc.getName() + " (" + v + ")";
 			model.setElementAt(newLine, index);
 		}
 
@@ -1946,7 +1946,7 @@ public class ToolOptions extends EDialog
 		for(Iterator it = curTech.getArcs(); it.hasNext(); )
 		{
 			ArcProto arc = (ArcProto)it.next();
-			model.addElement(arc.getProtoName() + " (" + ((Option)leArcOptions.get(arc)).getDoubleValue() + ")");
+			model.addElement(arc.getName() + " (" + ((Option)leArcOptions.get(arc)).getDoubleValue() + ")");
 		}
 	}
 
@@ -2034,7 +2034,7 @@ public class ToolOptions extends EDialog
 		if (ap != initRoutDefArc)
 		{
 			String newArcName = "";
-			if (ap != null) newArcName = ap.getTechnology().getTechName() + ":" + ap.getProtoName();
+			if (ap != null) newArcName = ap.getTechnology().getTechName() + ":" + ap.getName();
 			Routing.setPreferredRoutingArc(newArcName);
 		}
 		

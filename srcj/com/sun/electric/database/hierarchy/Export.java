@@ -117,7 +117,7 @@ public class Export extends PortProto
 		checkChanging();
 
 		// do the rename
-		Name oldName = getProtoNameKey();
+		Name oldName = getNameKey();
 		lowLevelRename(newName);
 
 		// handle change control, constraint, and broadcast
@@ -201,7 +201,7 @@ public class Export extends PortProto
 		// initialize this object
 		if (originalPort == null)
 		{
-			System.out.println("Null port on Export " + getProtoName() + " in cell " + parent.describe());
+			System.out.println("Null port on Export " + getName() + " in cell " + parent.describe());
 			return true;
 		}
 		this.originalPort = originalPort;
@@ -277,7 +277,7 @@ public class Export extends PortProto
 		poly = new Poly(pointList);
 		poly.setStyle(style);
 		poly.setPort(this);
-		poly.setString(getProtoName());
+		poly.setString(getName());
 		poly.setTextDescriptor(td);
 		return poly;
 	}
@@ -315,7 +315,7 @@ public class Export extends PortProto
 	 */
 	public String toString()
 	{
-		return "Export " + getProtoName();
+		return "Export " + getName();
 	}
 
 	/****************************** MISCELLANEOUS ******************************/
@@ -366,7 +366,7 @@ public class Export extends PortProto
 			return this;
 		if (equiv == null)
 			return null;
-		return equiv.findPortProto(getProtoNameKey());
+		return equiv.findPortProto(getNameKey());
 	}
 
 	/**
@@ -382,7 +382,7 @@ public class Export extends PortProto
 		if (thisCell == otherCell) return this;
 
 		// this is the non-cached way to do it
-		return otherCell.findExport(getProtoName());
+		return otherCell.findExport(getName());
 
 		/* load the cache if not already there */
 //		if (otherCell != thisCell->cachedequivcell)
@@ -395,7 +395,7 @@ public class Export extends PortProto
 //			for(Iterator it = thisCell.getPorts(); it.hasNext(); )
 //			{
 //				Export opp = (Export)it.next();
-//				Export epp = otherCell.findExport(opp.getProtoName());
+//				Export epp = otherCell.findExport(opp.getName());
 //				if (epp != null) opp->cachedequivport = epp;
 //			}
 //			thisCell->cachedequivcell = otherCell;
@@ -437,7 +437,7 @@ public class Export extends PortProto
 				if (!newPP.connectsTo(con.getArc().getProto()))
 				{
 					System.out.println(con.getArc().describe() + " arc in cell " + ni.getParent().describe() +
-						" cannot connect to port " + getProtoName());
+						" cannot connect to port " + getName());
 					return true;
 				}
 			}

@@ -237,7 +237,7 @@ public class TextWindow
 
 		String title = cell.describe();
 		if (cell.getLibrary() != Library.getCurrent())
-			title += " - Current library: " + Library.getCurrent().getLibName();
+			title += " - Current library: " + Library.getCurrent().getName();
 		wf.setTitle(title);
 	}
 
@@ -325,7 +325,7 @@ public class TextWindow
 		if (content instanceof TextWindow)
 		{
 			TextWindow tw = (TextWindow)content;
-			String fileName = OpenFile.chooseOutputFile(OpenFile.Type.TEXT, "Text file", content.getCell().getProtoName() + ".txt");
+			String fileName = OpenFile.chooseOutputFile(OpenFile.Type.TEXT, "Text file", content.getCell().getName() + ".txt");
 			if (fileName != null)
 			{
 				try

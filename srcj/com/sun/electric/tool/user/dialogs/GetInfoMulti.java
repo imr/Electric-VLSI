@@ -229,7 +229,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 							if (eobj instanceof ArcInst) description = "Arc name for " + ((ArcInst)eobj).describe();
 					} else if (eobj instanceof Export)
 					{
-						description = "Text: Export '" + ((Export)eobj).getProtoName() + "'";
+						description = "Text: Export '" + ((Export)eobj).getName() + "'";
 						numExports++;
 					} else if (eobj instanceof NodeInst)
 					{

@@ -51,7 +51,7 @@ public class KeeperHigh {
 		double szMc = -1, szPmos = -1, szK = -1, szI = -1;
 		while (nodes.hasNext()) {
 			NodeInst ni = (NodeInst) nodes.next();
-			String nm = ni.getProto().getProtoName();
+			String nm = ni.getProto().getName();
 			if (nm.equals("pms1K{ic}")) {
 				szPmos = StdCellParams.getSize(ni, context);
 			} else if (nm.equals("invK{ic}")) {

@@ -315,20 +315,20 @@ public abstract class PortProto extends ElectricObject
 	 * Method to return the name key of this PortProto.
 	 * @return the Name of this PortProto.
 	 */
-	public Name getProtoNameKey() { return protoName; }
+	public Name getNameKey() { return protoName; }
 
 	/**
 	 * Method to return the name of this PortProto.
 	 * @return the name of this PortProto.
 	 */
-	public String getProtoName() { return protoName.toString(); }
+	public String getName() { return protoName.toString(); }
 
 	/**
 	 * Method to return the short name of this PortProto.
 	 * The short name is everything up to the first nonalphabetic character.
 	 * @return the short name of this PortProto.
 	 */
-	public String getShortProtoName()
+	public String getShortName()
 	{
 		String name = protoName.toString();
 		int len = name.length();
@@ -401,7 +401,7 @@ public abstract class PortProto extends ElectricObject
 	 */
 	public boolean isNamedPower()
 	{
-		String name = getProtoName().toLowerCase();
+		String name = getName().toLowerCase();
 		if (name.indexOf("vdd") >= 0) return true;
 		if (name.indexOf("vcc") >= 0) return true;
 		if (name.indexOf("pwr") >= 0) return true;
@@ -430,7 +430,7 @@ public abstract class PortProto extends ElectricObject
 	 */
 	public boolean isNamedGround()
 	{
-		String name = getProtoName().toLowerCase();
+		String name = getName().toLowerCase();
 		if (name.indexOf("vss") >= 0) return true;
 		if (name.indexOf("gnd") >= 0) return true;
 		if (name.indexOf("ground") >= 0) return true;

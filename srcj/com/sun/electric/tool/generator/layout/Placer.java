@@ -313,7 +313,7 @@ class Placer {
 			double instWid = inst.getWidth();
 			if (instWid > maxDist) {
 				System.out.println("The gate: "+
-								  inst.getNodeInst().getProto().getProtoName()+
+								  inst.getNodeInst().getProto().getName()+
 								   " is larger than the well tap spacing!!!");
 			}
 			

@@ -375,7 +375,7 @@ public class LibraryFiles extends Input
 					first = false;
 				}
 				StringBuffer sb = new StringBuffer();
-				sb.append("   Library " + reader.lib.getLibName() + ":");
+				sb.append("   Library " + reader.lib.getName() + ":");
 				for(Iterator sIt = reader.scaledCells.iterator(); sIt.hasNext(); )
 				{
 					Cell cell = (Cell)sIt.next();
@@ -391,7 +391,7 @@ public class LibraryFiles extends Input
 					first = false;
 				}
 				StringBuffer sb = new StringBuffer();
-				sb.append("   Library " + reader.lib.getLibName() + ":");
+				sb.append("   Library " + reader.lib.getName() + ":");
 				for(Iterator sIt = reader.skewedCells.iterator(); sIt.hasNext(); )
 				{
 					Cell cell = (Cell)sIt.next();

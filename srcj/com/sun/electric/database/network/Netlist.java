@@ -268,7 +268,7 @@ public class Netlist
 			System.out.println("Netlist.getNetwork: invalid argument portProto");
 			return -1;
 		}
-// 		if (busIndex < 0 || busIndex >= portProto.getProtoNameKey().busWidth())
+// 		if (busIndex < 0 || busIndex >= portProto.getNameKey().busWidth())
 // 		{
 // 			System.out.println("Nodable.getNetwork: invalid arguments busIndex="+busIndex+" portProto="+portProto);
 // 			return -1;
@@ -284,7 +284,7 @@ public class Netlist
 	public int getNetIndex(Export export, int busIndex) {
 		checkForModification();
 		if (export.getParent() != netCell.cell) return -1;
-		if (busIndex < 0 || busIndex >= export.getProtoNameKey().busWidth())
+		if (busIndex < 0 || busIndex >= export.getNameKey().busWidth())
 		{
 			System.out.println("Nodable.getNetwork: invalid arguments busIndex="+busIndex+" export="+export);
 			return -1;
@@ -323,8 +323,8 @@ public class Netlist
 	 */
 	public boolean portsConnected(Nodable no, PortProto port1, PortProto port2)
 	{
-		int busWidth = port1.getProtoNameKey().busWidth();
-		if (port2.getProtoNameKey().busWidth() != busWidth) return false;
+		int busWidth = port1.getNameKey().busWidth();
+		if (port2.getNameKey().busWidth() != busWidth) return false;
 		for (int i = 0; i < busWidth; i++) {
 			if (getNetIndex(no, port1, i) != getNetIndex(no, port2, i))
 				return false;
@@ -337,9 +337,9 @@ public class Netlist
 	 */
 	public JNetwork getNetwork(PortInst pi) {
 		PortProto portProto = pi.getPortProto();
-		if (portProto.getProtoNameKey().isBus())
+		if (portProto.getNameKey().isBus())
 		{
-			System.out.println("PortInst.getNetwork() was called for instance of bus port "+portProto.getProtoName());
+			System.out.println("PortInst.getNetwork() was called for instance of bus port "+portProto.getName());
 			return null;
 		}
 		return getNetwork(pi.getNodeInst(), portProto, 0);
@@ -393,7 +393,7 @@ public class Netlist
 	 */
 	public boolean sameNetwork(Nodable no, PortProto pp, ArcInst ai)
 	{
-		int busWidth1 = pp.getProtoNameKey().busWidth();
+		int busWidth1 = pp.getNameKey().busWidth();
 		int busWidth2 = netCell.getBusWidth(ai);
 		if (busWidth1 != busWidth2) return false;
 		for(int i=0; i<busWidth1; i++)
@@ -415,8 +415,8 @@ public class Netlist
 	 */
 	public boolean sameNetwork(Nodable no1, PortProto pp1, Nodable no2, PortProto pp2)
 	{
-		int busWidth1 = pp1.getProtoNameKey().busWidth();
-		int busWidth2 = pp2.getProtoNameKey().busWidth();
+		int busWidth1 = pp1.getNameKey().busWidth();
+		int busWidth2 = pp2.getNameKey().busWidth();
 		if (busWidth1 != busWidth2) return false;
 		for(int i=0; i<busWidth1; i++)
 		{
@@ -461,7 +461,7 @@ public class Netlist
 	 */
 	public int getBusWidth(Export e)
 	{
-		return e.getProtoNameKey().busWidth();
+		return e.getNameKey().busWidth();
 	}
 
 	/**

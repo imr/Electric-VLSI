@@ -1197,7 +1197,7 @@ public abstract class NodeProto extends ElectricObject
 		for (int i = 0; i < ports.size(); i++)
 		{
 			PortProto pp = (PortProto) ports.get(i);
-			if (pp.getProtoNameKey().lowerCase() == name)
+			if (pp.getNameKey().lowerCase() == name)
 				return pp;
 		}
 		return null;
@@ -1357,7 +1357,7 @@ public abstract class NodeProto extends ElectricObject
 	 * any view or version information.
 	 * @return the prototype name of this NodeProto.
 	 */
-	public String getProtoName() { return protoName; }
+	public String getName() { return protoName; }
 
 	/**
 	 * Method to determine whether a variable key on NodeProtos is deprecated.

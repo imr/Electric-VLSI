@@ -402,7 +402,7 @@ public class CellLists extends EDialog
 				if (count.getCount() == 0) continue;
 				if (lib != printlib)
 				{
-					System.out.println(lib.getLibName() + " library:");
+					System.out.println(lib.getName() + " library:");
 					printlib = lib;
 				}
 				System.out.println(TextUtils.toBlankPaddedString(count.getCount(), 6) + " " + cell.describe() + " nodes");
@@ -1119,7 +1119,7 @@ public class CellLists extends EDialog
 					if (cell.getLibrary() != lib)
 					{
 						lib = cell.getLibrary();
-						System.out.println("======== LIBRARY " + lib.getLibName() + ": ========");
+						System.out.println("======== LIBRARY " + lib.getName() + ": ========");
 					}
 					System.out.println(makeCellLine(cell, maxLen));
 				}

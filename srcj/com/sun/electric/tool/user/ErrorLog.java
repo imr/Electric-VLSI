@@ -99,7 +99,7 @@ public class ErrorLog
 			for(int i=0; i<pathlen; i++)
 			{
 				NodeInst ni = path[i];
-				msg += " in " + ni.getParent().getLibrary().getLibName() +
+				msg += " in " + ni.getParent().getLibrary().getName() +
 					":" + ni.getParent().noLibDescribe() + ":" + ni.describe();
 			}
 			return msg;

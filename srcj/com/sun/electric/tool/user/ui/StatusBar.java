@@ -281,7 +281,7 @@ public class StatusBar extends JPanel implements HighlightListener
                 thePort = (PortInst)eObj;
                 theNode = thePort.getNodeInst();
                 return("NODE: " + theNode.describe() +
-                        " PORT: \"" + thePort.getPortProto().getProtoName() + "\"");
+                        " PORT: \"" + thePort.getPortProto().getName() + "\"");
             } else if (eObj instanceof NodeInst)
             {
                 theNode = (NodeInst)eObj;

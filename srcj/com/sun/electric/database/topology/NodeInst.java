@@ -414,7 +414,7 @@ public class NodeInst extends Geometric implements Nodable
 			if (index >= oldAssoc.length || oldAssoc[index].assn == null)
 			{
 				if (allowMissingPorts) continue;
-				System.out.println("No port on new node corresponds to old port: " + con.getPortInst().getPortProto().getProtoName());
+				System.out.println("No port on new node corresponds to old port: " + con.getPortInst().getPortProto().getName());
 				newNi.kill();
 				return null;
 			}
@@ -425,8 +425,8 @@ public class NodeInst extends Geometric implements Nodable
 			if (!opi.getPortProto().connectsTo(ai.getProto()))
 			{
 				if (allowMissingPorts) continue;
-				System.out.println(ai.describe() + " arc on old port " + con.getPortInst().getPortProto().getProtoName() +
-					" cannot connect to new port " + opi.getPortProto().getProtoName());
+				System.out.println(ai.describe() + " arc on old port " + con.getPortInst().getPortProto().getName() +
+					" cannot connect to new port " + opi.getPortProto().getName());
 				newNi.kill();
 				return null;
 			}
@@ -456,7 +456,7 @@ public class NodeInst extends Geometric implements Nodable
 			if (index >= oldAssoc.length || oldAssoc[index].assn == null)
 			{
 				System.out.println("No port on new node corresponds to old port: " +
-					pp.getOriginalPort().getPortProto().getProtoName());
+					pp.getOriginalPort().getPortProto().getName());
 				newNi.kill();
 				return null;
 			}
@@ -485,7 +485,7 @@ public class NodeInst extends Geometric implements Nodable
 			if (index >= oldAssoc.length || oldAssoc[index].assn == null)
 			{
 				if (allowMissingPorts) continue;
-				System.out.println("No port on new node corresponds to old port: " + con.getPortInst().getPortProto().getProtoName());
+				System.out.println("No port on new node corresponds to old port: " + con.getPortInst().getPortProto().getName());
 				newNi.kill();
 				return null;
 			}
@@ -1643,7 +1643,7 @@ public class NodeInst extends Geometric implements Nodable
 					if (portInfo2[i2].assn != null) continue;
 
 					// stop if the ports have different name
-					if (!pi2.getPortProto().getProtoName().equalsIgnoreCase(pi1.getPortProto().getProtoName())) continue;
+					if (!pi2.getPortProto().getName().equalsIgnoreCase(pi1.getPortProto().getName())) continue;
 
 					// store the correct association of ports
 					portInfo1[i1].assn = pi2;
@@ -1968,7 +1968,7 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public String toString()
 	{
-		return "NodeInst " + protoType.getProtoName();
+		return "NodeInst " + protoType.getName();
 	}
 
 	/****************************** MISCELLANEOUS ******************************/
@@ -2178,7 +2178,7 @@ public class NodeInst extends Geometric implements Nodable
 			if (pp.getPortIndex() != i || pi.getPortProto() != pp)
 			{
  				System.out.println("Cell " + parent.describe() + ", node " + describe() +
- 					" has mismatches between PortInsts and PortProtos (" + pp.getProtoName() + ")");
+ 					" has mismatches between PortInsts and PortProtos (" + pp.getName() + ")");
 				errorCount++;
 			}
 		}
@@ -2200,9 +2200,9 @@ public class NodeInst extends Geometric implements Nodable
 // 			PortProto pp = pi.getPortProto();
 // 			if (pp.isBit(fs))
 // 			{
-// 				System.out.println("Library " + parent.getLibrary().getLibName() +
+// 				System.out.println("Library " + parent.getLibrary().getName() +
 // 					", cell " + parent.describe() + ", node " + describe() +
-// 					" has multiple PortInsts pointing to the same PortProto (" + pp.getProtoName() + ")");
+// 					" has multiple PortInsts pointing to the same PortProto (" + pp.getName() + ")");
 // 				errorCount++;
 // 			}
 // 			pp.setBit(fs);
@@ -2212,9 +2212,9 @@ public class NodeInst extends Geometric implements Nodable
 // 			PortProto pp = (PortProto)it.next();
 // 			if (!pp.isBit(fs))
 // 			{
-// 				System.out.println("Library " + parent.getLibrary().getLibName() +
+// 				System.out.println("Library " + parent.getLibrary().getName() +
 // 					", cell " + parent.describe() + ", node " + describe() +
-// 					" port " + pp.getProtoName() + " has no PortInst");
+// 					" port " + pp.getName() + " has no PortInst");
 // 				errorCount++;
 // 			}
 // 		}
@@ -2433,15 +2433,14 @@ public class NodeInst extends Geometric implements Nodable
 
     /**
      * This function is to compare NodeInst elements. Initiative CrossLibCopy
-     * @param obj
+     * @param obj Object to compare to
+     * @param buffer To store comparison messages in case of failure
      * @return True if objects represent same NodeInst
      */
     public boolean compare(Object obj, StringBuffer buffer)
 	{
 		if (this == obj) return (true);
 
-		// Consider already obj==null
-		//if (!(obj instanceof NodeInst)) return (false);
         // Better if compare classes? but it will crash with obj=null
         if (obj == null || getClass() != obj.getClass())
             return (false);
@@ -2450,7 +2449,7 @@ public class NodeInst extends Geometric implements Nodable
         if (getFunction() != no.getFunction())
         {
 	        if (buffer != null)
-	            buffer.append("Functions are not the same for " + getName() + " and " + no.getName());
+	            buffer.append("Functions are not the same for " + getName() + " and " + no.getName() + "\n");
 	        return (false);
         }
 
@@ -2460,12 +2459,18 @@ public class NodeInst extends Geometric implements Nodable
         if (protoType.getClass() != noProtoType.getClass())
         {
 	        if (buffer != null)
-	            buffer.append("Not the same node prototypes for " + getName() + " and " + no.getName());
+	            buffer.append("Not the same node prototypes for " + getName() + " and " + no.getName() + "\n");
 	        return (false);
         }
-        // Do I need to compare names?
-        //System.out.println("Class " + protoType.getClass() + noProtoType.getClass());
-        //System.out.println("Name " + protoType.getProtoName() + noProtoType.getProtoName());
+
+        // Comparing transformation
+        if (!rotateOut().equals(no.rotateOut()))
+        {
+	        if (buffer != null)
+	            buffer.append("Not the same rotation for " + getName() + " and " + no.getName() + "\n");
+	        return (false);
+        }
+
         // If this is Cell, no is a Cell otherwise class checker would notice
         if (protoType instanceof Cell)
         {
@@ -2481,15 +2486,7 @@ public class NodeInst extends Geometric implements Nodable
         if (function != noFunc)
         {
 	        if (buffer != null)
-	            buffer.append("Not the same node prototypes for " + getName() + " and " + no.getName() + ":" + function.getName() + " v/s " + noFunc.getName());
-	        return (false);
-        }
-
-        // Comparing transformation
-        if (!rotateOut().equals(no.rotateOut()))
-        {
-	        if (buffer != null)
-	            buffer.append("Not the same rotation for " + getName() + " and " + no.getName());
+	            buffer.append("Not the same node prototypes for " + getName() + " and " + no.getName() + ":" + function.getName() + " v/s " + noFunc.getName() + "\n");
 	        return (false);
         }
         Poly[] polyList = np.getTechnology().getShapeOfNode(this);
@@ -2498,7 +2495,7 @@ public class NodeInst extends Geometric implements Nodable
         if (polyList.length != noPolyList.length)
         {
 	        if (buffer != null)
-	            buffer.append("Not same number of geometries in " + getName() + " and " + no.getName());
+	            buffer.append("Not same number of geometries in " + getName() + " and " + no.getName() + "\n");
 	        return (false);
         }
 
@@ -2525,7 +2522,7 @@ public class NodeInst extends Geometric implements Nodable
             if (!found)
             {
 	            if (buffer != null)
-	                buffer.append("No corresponding geometry in " + getName() + " found in " + no.getName());
+	                buffer.append("No corresponding geometry in " + getName() + " found in " + no.getName() + "\n");
 	            return (false);
             }
         }

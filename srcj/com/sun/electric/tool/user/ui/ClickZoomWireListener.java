@@ -521,7 +521,7 @@ public class ClickZoomWireListener
 	                        if (obj instanceof PortInst) {
 	                            // only give option to connect to ports
 	                            PortInst pi = (PortInst)obj;
-	                            String str = "("+num+"): Port "+pi.getPortProto().getProtoName()+" on "+pi.getNodeInst().getName();
+	                            String str = "("+num+"): Port "+pi.getPortProto().getName()+" on "+pi.getNodeInst().getName();
 	                            text.add(str);
 	                            portList.add(pi);
 	                            num++;

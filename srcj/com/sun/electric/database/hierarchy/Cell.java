@@ -491,7 +491,7 @@ public class Cell extends NodeProto implements Comparable
 				for(Iterator cIt = toLib.getCells(); cIt.hasNext(); )
 				{
 					lnt = (Cell)cIt.next();
-					if (lnt.getProtoName().equalsIgnoreCase(niProto.getProtoName()) &&
+					if (lnt.getName().equalsIgnoreCase(niProto.getName()) &&
 						lnt.getView() == niProto.getView()) break;
 					lnt = null;
 				}
@@ -503,7 +503,7 @@ public class Cell extends NodeProto implements Comparable
 				{
 					PortInst pi = (PortInst)pIt.next();
 					PortProto pp = pi.getPortProto();
-					PortProto ppt = lnt.findPortProto(pp.getProtoName());
+					PortProto ppt = lnt.findPortProto(pp.getName());
 					if (ppt != null)
 					{
 						// the connections must match, too
@@ -511,7 +511,7 @@ public class Cell extends NodeProto implements Comparable
 					}
 					if (ppt == null)
 					{
-						System.out.println("Cannot use subcell " + lnt.noLibDescribe() + " in library " + destLib.getLibName() +
+						System.out.println("Cannot use subcell " + lnt.noLibDescribe() + " in library " + destLib.getName() +
 							": exports don't match");
 						validPorts = false;
 						break;
@@ -583,7 +583,7 @@ public class Cell extends NodeProto implements Comparable
 				} else
 				{
 					// cells associate ports by name
-					PortProto ppt = ono.getProto().findPortProto(pp.getProtoName());
+					PortProto ppt = ono.getProto().findPortProto(pp.getName());
 					if (ppt != null) opi[i] = ono.findPortInstFromProto(ppt);
 				}
 				if (opi[i] == null)
@@ -611,7 +611,7 @@ public class Cell extends NodeProto implements Comparable
 
 			// match sub-portproto in old nodeinst to sub-portproto in new one
 			NodeInst ni = (NodeInst)pp.getOriginalPort().getNodeInst().getTempObj();
-			PortInst pi = ni.findPortInst(pp.getOriginalPort().getPortProto().getProtoName());
+			PortInst pi = ni.findPortInst(pp.getOriginalPort().getPortProto().getName());
 			if (pi == null)
 			{
 				System.out.println("Error: no port on " + pp.getOriginalPort().getNodeInst().getProto().describe() + " cell");
@@ -619,7 +619,7 @@ public class Cell extends NodeProto implements Comparable
 			}
 
 			// create the nodeinst portinst
-			Export ppt = Export.newInstance(newCell, pi, pp.getProtoName());
+			Export ppt = Export.newInstance(newCell, pi, pp.getName());
 			if (ppt == null) return null;
 
 			// copy portproto variables
@@ -698,7 +698,7 @@ public class Cell extends NodeProto implements Comparable
 //		Cell existingCell = lib.findNodeProto(name);
 //		if (existingCell != null)
 //		{
-//			System.out.println("Cannot create cell " + name + " in library " + lib.getLibName() + " ...already exists");
+//			System.out.println("Cannot create cell " + name + " in library " + lib.getName() + " ...already exists");
 //			return true;
 //		}
 
@@ -712,7 +712,7 @@ public class Cell extends NodeProto implements Comparable
 			for (Iterator it = lib.getCells(); it.hasNext();)
 			{
 				Cell c = (Cell) it.next();
-				if (n.getName().equalsIgnoreCase(c.getProtoName()) && n.getView() == c.getView() &&
+				if (n.getName().equalsIgnoreCase(c.getName()) && n.getView() == c.getView() &&
 					version == c.getVersion())
 				{
 					System.out.println("Already a cell with this version");
@@ -726,7 +726,7 @@ public class Cell extends NodeProto implements Comparable
 			for (Iterator it = lib.getCells(); it.hasNext();)
 			{
 				Cell c = (Cell) it.next();
-				if (n.getName().equalsIgnoreCase(c.getProtoName()) && n.getView() == c.getView() &&
+				if (n.getName().equalsIgnoreCase(c.getName()) && n.getView() == c.getView() &&
 					c.getVersion() >= version)
 						version = c.getVersion() + 1;
 			}
@@ -773,7 +773,7 @@ public class Cell extends NodeProto implements Comparable
 		{
 			Cell c = (Cell) it.next();
 			if (c.getView() != getView()) continue;
-			if (getProtoName().equalsIgnoreCase(c.getProtoName()))
+			if (getName().equalsIgnoreCase(c.getName()))
 			{
 				versionGroup = c.getVersionGroup();
 				break;
@@ -798,7 +798,7 @@ public class Cell extends NodeProto implements Comparable
 				{
 					Cell c = (Cell) it.next();
 					if (c.getCellGroup() == null) continue;
-					if (getProtoName().equalsIgnoreCase(c.getProtoName()))
+					if (getName().equalsIgnoreCase(c.getName()))
 					{
 						cellGroup = c.getCellGroup();
 						break;
@@ -1270,7 +1270,7 @@ public class Cell extends NodeProto implements Comparable
 			adjustReferencePoint(ni);
 		}
 		if (np instanceof PrimitiveNode
-			&& np.getProtoName().equals("Essential-Bounds"))
+			&& np.getName().equals("Essential-Bounds"))
 		{
 			essenBounds.add(ni);
 		}
@@ -1458,7 +1458,7 @@ public class Cell extends NodeProto implements Comparable
 	{
 		String name = "";
 		if (lib != Library.getCurrent())
-			name += lib.getLibName() + ":";
+			name += lib.getName() + ":";
 		name += noLibDescribe();
 		return name;
 	}
@@ -2449,8 +2449,11 @@ public class Cell extends NodeProto implements Comparable
 		}
 	}
 
-	/** Use to compare cells in Cross Library Chech
-	 *
+	/**
+	 * Use to compare cells in Cross Library Check
+	 * @param obj Object to compare to
+	 * @param buffer To store comparison messages in case of failure
+	 * @return True if objects represent same NodeInst
 	 */
 	public boolean compare(Object obj, StringBuffer buffer)
 	{
@@ -2468,7 +2471,7 @@ public class Cell extends NodeProto implements Comparable
                 getNumPorts() != toCompare.getNumPorts())
         {
 	        if (buffer != null)
-	            buffer.append("Different numbers of nodes/arcs/ports in " + getProtoName() + " and " + toCompare.getProtoName());
+	            buffer.append("Different numbers of nodes/arcs/ports in " + getName() + " and " + toCompare.getName() + "\n");
             return (false);
         }
 
@@ -2501,7 +2504,7 @@ public class Cell extends NodeProto implements Comparable
             if (!found)
             {
 	            if (buffer != null)
-	                buffer.append("No corresponding node " + node.getName() + " found in " + toCompare.getProtoName());
+	                buffer.append("No corresponding node " + node.getName() + " found in " + toCompare.getName() + "\n");
 	            return (false);
             }
         }
@@ -2533,7 +2536,7 @@ public class Cell extends NodeProto implements Comparable
             if (!found)
             {
 	            if (buffer != null)
-	                buffer.append("No corresponding arc " + arc.getName() + " found in other cell");
+	                buffer.append("No corresponding arc " + arc.getName() + " found in other cell" + "\n");
 	            return (false);
             }
         }
@@ -2597,6 +2600,38 @@ public class Cell extends NodeProto implements Comparable
 //					latoa((ni2->lowy+ni2->highy)/2, lambda2), describenodeproto(np2));
 //		return(FALSE);
 //	}
+
+		// Traversing ports
+        for (Iterator it = getPorts(); it.hasNext(); )
+        {
+            boolean found = false;
+            PortInst port = (PortInst)it.next();
+
+            for (Iterator i = toCompare.getPorts(); i.hasNext();)
+            {
+                PortInst p = (PortInst)i.next();
+
+                if (noCheckAgain.contains(p)) continue;
+
+                if (port.compare(p, buffer))
+                {
+                    found = true;
+                    // if node is found, remove elem from iterator
+                    // because it was found
+                    //@TODO GVG Check iterator functionality
+                    // Not sure if it could be done with iterators
+                    noCheckAgain.add(p);
+                    break;
+                }
+            }
+            // No correspoding NodeInst found
+            if (!found)
+            {
+	            if (buffer != null)
+	                buffer.append("No corresponding port " + port.getPortProto().getName() + " found in other cell" + "\n");
+	            return (false);
+            }
+        }
 		return (true);
 	}
 

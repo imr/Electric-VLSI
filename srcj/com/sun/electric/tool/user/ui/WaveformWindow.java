@@ -1503,7 +1503,7 @@ public class WaveformWindow implements WindowContent
 
 		String title = "Waveform for " + sd.getCell().describe();
 		if (sd.getCell().getLibrary() != Library.getCurrent())
-			title += " - Current library: " + Library.getCurrent().getLibName();
+			title += " - Current library: " + Library.getCurrent().getName();
 		wf.setTitle(title);
 	}
 

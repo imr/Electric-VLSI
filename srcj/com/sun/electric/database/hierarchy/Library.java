@@ -375,7 +375,7 @@ public class Library extends ElectricObject
 		for (int i = 0; i < libraries.size(); i++)
 		{
 			Library l = (Library) libraries.get(i);
-			if (l.getLibName().equalsIgnoreCase(libName))
+			if (l.getName().equalsIgnoreCase(libName))
 				return l;
 		}
 		return null;
@@ -504,8 +504,8 @@ public class Library extends ElectricObject
 		{
 			Library l1 = (Library)o1;
 			Library l2 = (Library)o2;
-			String s1 = l1.getLibName();
-			String s2 = l2.getLibName();
+			String s1 = l1.getName();
+			String s2 = l2.getName();
 			return s1.compareToIgnoreCase(s2);
 		}
 	}
@@ -514,7 +514,7 @@ public class Library extends ElectricObject
 	 * Method to return the name of this Library.
 	 * @return the name of this Library.
 	 */
-	public String getLibName() { return libName; }
+	public String getName() { return libName; }
 
 	/**
 	 * Method to set the name of this Library.
@@ -522,14 +522,14 @@ public class Library extends ElectricObject
 	 * @return false if the library was renamed.
 	 * True on error.
 	 */
-	public boolean setLibName(String libName)
+	public boolean setName(String libName)
 	{
 		if (this.libName.equals(libName)) return true;
 
 		Library already = findLibrary(libName);
 		if (already != null)
 		{
-			System.out.println("Already a library called " + already.getLibName());
+			System.out.println("Already a library called " + already.getName());
 			return true;
 		}
 
@@ -639,7 +639,7 @@ public class Library extends ElectricObject
 		for (Iterator it = cells.iterator(); it.hasNext();)
 		{
 			Cell c = (Cell) it.next();
-			if (!n.getName().equalsIgnoreCase(c.getProtoName())) continue;
+			if (!n.getName().equalsIgnoreCase(c.getName())) continue;
 			onlyWithName = c;
 			if (n.getView() != c.getView()) continue;
 			if (n.getVersion() > 0 && n.getVersion() != c.getVersion()) continue;
