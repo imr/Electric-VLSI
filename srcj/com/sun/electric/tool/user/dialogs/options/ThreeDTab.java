@@ -99,7 +99,8 @@ public class ThreeDTab extends PreferencePanel
 		});
 		threeDThicknessMap = new HashMap();
 		threeDDistanceMap = new HashMap();
-		for(Iterator it = curTech.getLayers(); it.hasNext(); )
+        // Sorted by Height to be consistent with LayersTab
+		for(Iterator it = curTech.getLayersSortedByHeight().iterator(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
