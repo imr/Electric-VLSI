@@ -242,14 +242,20 @@ public class LETool extends Tool {
             System.out.println("VarContext.getInstPath: context with null NodeInst?");
         }
         String me;
-        // two cases if arrayed node: one if just a NodeInst, another if Node Proxy
-        if (no instanceof NodeInst) {
-            // no array info, assume zeroth index
-            me = no.getName() + ",0";
-        } else {
-            // TODO: not sure what to do here
-            me = no.getName() + ",0";
+        String name = no.getNodeInst().getName();
+        int at = name.indexOf('@');
+        if (at != -1) {
+            // convert to old default name style if possible
+            if ((at+1) < name.length()) {
+                String num = name.substring(at+1, name.length());
+                try {
+                    Integer i = new Integer(num);
+                    name = name.substring(0, at) + (i.intValue()+1);
+                } catch (NumberFormatException e) {}
+            }
         }
+                // two cases if arrayed node: one if just a NodeInst, another if Node Proxy
+        me = name + ",0";
 
         if (prefix.equals("")) return me;
         return prefix + ";" + me;
