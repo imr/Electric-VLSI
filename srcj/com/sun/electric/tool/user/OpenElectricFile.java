@@ -46,7 +46,7 @@ public class OpenElectricFile implements ActionListener
 				Cell cell = lib.getCurCell();
 				if (cell != null)
 				{
-					ElectricDocWnd frame = ElectricDocWnd.CreateElectricDoc(cell);
+					ElectricDocWndFrame frame = ElectricDocWndFrame.CreateElectricDocFrame(cell);
 					desktop.add(frame); 
 				}
 			}

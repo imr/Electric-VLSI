@@ -14,7 +14,9 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Layer;
 
-import javax.swing.JInternalFrame;
+//import javax.swing.JInternalFrame;
+import javax.swing.JPanel;
+
 import java.awt.event.*;
 import java.awt.*;
 import java.awt.geom.*;
@@ -35,7 +37,7 @@ import java.awt.font.*;
  * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
  */
 
-public class ElectricDocWnd extends JInternalFrame
+public class ElectricDocWnd extends JPanel
 	implements MouseMotionListener, MouseListener, KeyListener
 {
 	static int openFrameCount =0;
@@ -57,17 +59,15 @@ public class ElectricDocWnd extends JInternalFrame
 	//constructor
 	private ElectricDocWnd(Cell cell)
 	{
-		super(cell.describe(), true, true, true, true);
+		//super(cell.describe(), true, true, true, true);
 		this.cell = cell;
 		setSize(500,500); //change size 
-		setLocation(windowOffset, windowOffset);
-		windowOffset += 100;
-		if (windowOffset > 500) windowOffset = 0;
+		
 		sz = new Dimension(500, 500);
 		setPreferredSize(sz);
 	//	pack();
 		show();
-	//	setAutoScroll(true);
+		//setAutoscrolls(true);
 		addMouseMotionListener(this);
 		addMouseListener(this);
 	}
@@ -478,6 +478,7 @@ public class ElectricDocWnd extends JInternalFrame
 			drawImage();
 		}
 		g.drawImage(img, 0, 0, this);
+		//super.paint(g);
 	}
 
 	int oldx, oldy;
