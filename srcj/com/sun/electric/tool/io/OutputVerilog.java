@@ -26,6 +26,7 @@ package com.sun.electric.tool.io;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.JNetwork;
@@ -39,6 +40,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
@@ -68,20 +70,20 @@ public class OutputVerilog extends OutputTopology
 	/** key of Variable holding verilog wire time. */		public static final Variable.Key WIRE_TYPE_KEY = ElectricObject.newKey("SIM_verilog_wire_type");
 	/** key of Variable holding verilog templates. */		public static final Variable.Key VERILOG_TEMPLATE_KEY = ElectricObject.newKey("ATTR_verilog_template");
 
-	private boolean mustBackAnnotate;
-	private int unconnectedNet;
-
+	/**
+	 * The main entry point for Verilog deck writing.
+	 * @param cell the top-level cell to write.
+	 * @param filePath the disk file to create with Verilog.
+	 * @return true on error.
+	 */
 	public static boolean writeVerilogFile(Cell cell, String filePath)
 	{
 		boolean error = false;
 		OutputVerilog out = new OutputVerilog();
-		out.mustBackAnnotate = false;
 		if (out.openTextOutputStream(filePath)) error = true;
 		if (out.writeCell(cell)) error = true;
 		if (out.closeTextOutputStream()) error = true;
 		if (!error) System.out.println(filePath + " written");
-		if (out.mustBackAnnotate)
-			System.out.println("Back-annotation information has been added (library must be saved)");
 		return error;
 	}
 
@@ -118,14 +120,13 @@ public class OutputVerilog extends OutputTopology
 			for(int i=0; i<globalSize; i++)
 			{
 				Global global = (Global)globals.get(i);
-//				if (global == PWRPORT)
-//				{
-//					printWriter.print("    supply1 " + global.getName() + ";\n");
-//				} else if (global == GNDPORT)
-//				{
-//					printWriter.print("    supply0 " + global.getName() + ";\n");
-//				} else
-					if (Simulation.getVerilogUseTrireg())
+				if (global == Global.power)
+				{
+					printWriter.print("    supply1 " + global.getName() + ";\n");
+				} else if (global == Global.ground)
+				{
+					printWriter.print("    supply0 " + global.getName() + ";\n");
+				} else if (Simulation.getVerilogUseTrireg())
 				{
 					printWriter.print("    trireg " + global.getName() + ";\n");
 				} else
@@ -144,7 +145,7 @@ public class OutputVerilog extends OutputTopology
 	/**
 	 * Method to write cellGeom
 	 */
-	protected void writeCellTopology(Cell cell, OutputTopology.CellNets cn)
+	protected void writeCellTopology(Cell cell, CellNetInfo cni, VarContext context)
 	{
 		// use attached file if specified
 		Variable behaveFileVar = cell.getVar("SIM_verilog_behave_file");
@@ -168,16 +169,6 @@ public class OutputVerilog extends OutputTopology
 			return;
 		}
 
-//		// make sure that all nodes and networks have names on them
-//		addednames = 0;
-//		if (asktool(net_tool, x_("name-nodes"), (INTBIG)np) != 0) addednames++;
-//		if (asktool(net_tool, x_("name-nets"), (INTBIG)np) != 0) addednames++;
-//		if (addednames != 0)
-//		{
-//			mustBackAnnotate = true;
-//			net_endbatch();
-//		}
-//
 //		// prepare arcs to store implicit inverters
 //		impinv = 1;
 //		for(ai = np->firstarcinst; ai != NOARCINST; ai = ai->nextarcinst)
@@ -217,17 +208,14 @@ public class OutputVerilog extends OutputTopology
 		// write the module header
 		printWriter.print("\n");
 		StringBuffer sb = new StringBuffer();
-		sb.append("module ");
-//		if (paramname != 0) sb.append(getSafeNetName(paramname)); else
-			sb.append(getUniqueCellName(cell));
-		sb.append("(");
+		sb.append("module " + cni.getParameterizedName() + "(");
 		boolean first = true;
-		for(Iterator it = cn.portInfo.iterator(); it.hasNext(); )
+		for(Iterator it = cni.getCellAggregateSignals(); it.hasNext(); )
 		{
-			OutputTopology.NetInfo nin = (OutputTopology.NetInfo)it.next();
-			if (nin.temp1 <= 1 || nin.temp1 >= 6) continue;
+			CellAggregateSignal ca = (CellAggregateSignal)it.next();
+			if (ca.getExport() == null) continue;
 			if (!first) sb.append(", ");
-			sb.append(nin.name);
+			sb.append(ca.getName());
 			first = false;
 		}
 		sb.append(");");
@@ -247,55 +235,50 @@ public class OutputVerilog extends OutputTopology
 			for(int i=0; i<busWidth; i++)
 			{
 				JNetwork net = netList.getNetwork(ai, i);
-				OutputTopology.WireList wl = (OutputTopology.WireList)cn.wireLists.get(net);
-				if (wl == null) continue;
-				wl.flags = overrideValue;
+				CellSignal cs = cni.getCellSignal(net);
+				if (cs == null) continue;
+				cs.getAggregateSignal().setFlags(overrideValue);
 			}
 		}
 
 		// write description of formal parameters to module
 		first = true;
-		for(Iterator it = cn.portInfo.iterator(); it.hasNext(); )
+		for(Iterator it = cni.getCellAggregateSignals(); it.hasNext(); )
 		{
-			OutputTopology.NetInfo nin = (OutputTopology.NetInfo)it.next();
-			if (nin.temp1 > 1 && nin.temp1 < 6)
+			CellAggregateSignal ca = (CellAggregateSignal)it.next();
+			Export pp = ca.getExport();
+			if (pp == null) continue;
+
+			String portType = "input";
+			if (pp.getCharacteristic() == PortProto.Characteristic.OUT)
+				portType = "output";
+			printWriter.print("  " + portType);
+			if (ca.getLowIndex() > ca.getHighIndex())
 			{
-				String portType = "input";
-				switch (nin.temp1)
+				printWriter.print(" " + ca.getName() + ";");
+			} else
+			{
+				int low = ca.getLowIndex(), high = ca.getHighIndex();
+				if (ca.isDescending())
 				{
-					case 4: case 5: portType = "output";  break;
+					low = ca.getHighIndex();   high = ca.getLowIndex();
 				}
-				printWriter.print("  " + portType);
-				if (nin.low > nin.high)
-				{
-					printWriter.print(" " + nin.name + ";");
-				} else
-				{
-					int low = nin.low, high = nin.high;
-					if ((nin.temp1&1) != 0)
-					{
-						low = nin.high;   high = nin.low;
-					}
-					printWriter.print(" [" + low + ":" + high + "] " + nin.name + ";");
-				}
-				OutputTopology.WireList wl = nin.wires[0];
-				if (wl != null && wl.flags != 0)
-				{
-					if (wl.flags == 1) printWriter.print("  wire"); else
-						printWriter.print("  trireg");
-					printWriter.print(" " + nin.name + ";");
-				}
-				printWriter.print("\n");
-				first = false;
+				printWriter.print(" [" + low + ":" + high + "] " + ca.getName() + ";");
 			}
+			if (ca.getFlags() != 0)
+			{
+				if (ca.getFlags() == 1) printWriter.print("  wire"); else
+					printWriter.print("  trireg");
+				printWriter.print(" " + ca.getName() + ";");
+			}
+			printWriter.print("\n");
+			first = false;
 		}
 		if (!first) printWriter.print("\n");
-//		public void setUserBit(boolean bit) { this.bit = bit; }
-//		public boolean getUserBit() { return bit; }
 
 		// describe power and ground nets
-		if (cn.pwrNet != null) printWriter.print("  supply1 vdd;\n");
-		if (cn.gndNet != null) printWriter.print("  supply0 gnd;\n");
+		if (cni.getPowerNet() != null) printWriter.print("  supply1 vdd;\n");
+		if (cni.getGroundNet() != null) printWriter.print("  supply0 gnd;\n");
 
 		// determine whether to use "wire" or "trireg" for networks
 		String wireType = "wire";
@@ -306,47 +289,47 @@ public class OutputVerilog extends OutputTopology
 		for(int wt=0; wt<2; wt++)
 		{
 			first = true;
-			for(Iterator it = cn.portInfo.iterator(); it.hasNext(); )
+			for(Iterator it = cni.getCellAggregateSignals(); it.hasNext(); )
 			{
-				OutputTopology.NetInfo nin = (OutputTopology.NetInfo)it.next();
-				if (nin.temp1 <= 1 && nin.low > nin.high)
+				CellAggregateSignal ca = (CellAggregateSignal)it.next();
+				if (ca.getExport() != null) continue;
+				if (ca.isSupply()) continue;
+				if (ca.getLowIndex() <= ca.getHighIndex()) continue;
+
+				String impSigName = wireType;
+				if (ca.getFlags() != 0)
 				{
-					OutputTopology.WireList wl = nin.wires[0];
-					if (wl.isGlobal) continue;
-					String impSigName = wireType;
-					if (wl != null && wl.flags != 0)
+					if (ca.getFlags() == 1) impSigName = "wire"; else
+						impSigName = "trireg";
+				}
+				if ((wt == 0) ^ !wireType.equals(impSigName))
+				{
+					if (first)
 					{
-						if (wl.flags == 1) impSigName = "wire"; else
-							impSigName = "trireg";
+						initDeclaration("  " + impSigName);
 					}
-					if ((wt == 0) ^ !wireType.equals(impSigName))
-					{
-						if (first)
-						{
-							initDeclaration("  " + impSigName);
-						}
-						addDeclaration(nin.name);
-						localWires++;
-						first = false;
-					}
+					addDeclaration(ca.getName());
+					localWires++;
+					first = false;
 				}
 			}
 			if (!first) termDeclaration();
 		}
 
 		// write "wire/trireg" declarations for internal busses
-		for(Iterator it = cn.portInfo.iterator(); it.hasNext(); )
+		for(Iterator it = cni.getCellAggregateSignals(); it.hasNext(); )
 		{
-			OutputTopology.NetInfo nin = (OutputTopology.NetInfo)it.next();
-			if (nin.temp1 > 1) continue;
-			if (nin.low > nin.high) continue;
+			CellAggregateSignal ca = (CellAggregateSignal)it.next();
+			if (ca.getExport() != null) continue;
+			if (ca.isSupply()) continue;
+			if (ca.getLowIndex() > ca.getHighIndex()) continue;
 
-			if ((nin.temp1&1) != 0)
+			if (ca.isDescending())
 			{
-				printWriter.print("  " + wireType + " [" + nin.high + ":" + nin.low + "] " + nin.name + ";\n");
+				printWriter.print("  " + wireType + " [" + ca.getHighIndex() + ":" + ca.getLowIndex() + "] " + ca.getName() + ";\n");
 			} else
 			{
-				printWriter.print("  " + wireType + " [" + nin.low + ":" + nin.high + "] " + nin.name + ";\n");
+				printWriter.print("  " + wireType + " [" + ca.getLowIndex() + ":" + ca.getHighIndex() + "] " + ca.getName() + ";\n");
 			}
 			localWires++;
 		}
@@ -372,7 +355,6 @@ public class OutputVerilog extends OutputTopology
 			printWriter.print("  /* automatically generated Verilog */\n");
 
 		// look at every node in this cell
-		unconnectedNet = 1;
 		for(Iterator nIt = netList.getNodables(); nIt.hasNext(); )
 		{
 			Nodable no = (Nodable)nIt.next();
@@ -505,17 +487,9 @@ public class OutputVerilog extends OutputTopology
 			// get the name of the node
 			int implicitPorts = 0;
 			boolean dropBias = false;
-			String nodeName = null;
-			if (niProto instanceof Cell)
+			String nodeName = parameterizedName(no, context);
+			if (!(niProto instanceof Cell))
 			{
-				nodeName = getUniqueCellName((Cell)niProto);
-//				String pname = parameterizedname(ni, nodeName);
-//				if (pname != 0)
-//					nodeName = getSafeNetName(pname);
-			} else
-			{
-				nodeName = niProto.getProtoName();
-
 				// convert 4-port transistors to 3-port
 				if (nodeType == NodeProto.Function.TRA4NMOS)
 				{
@@ -569,7 +543,6 @@ public class OutputVerilog extends OutputTopology
 						varTemplate = cNp.getVar(VERILOG_TEMPLATE_KEY);
 				}
 			}
-
 			StringBuffer infstr = new StringBuffer();
 			if (varTemplate == null)
 			{
@@ -590,56 +563,44 @@ public class OutputVerilog extends OutputTopology
 					}
 
 					// generate the line the normal way
-					OutputTopology.CellNets subCn = getCellNets((Cell)niProto);
-					for(Iterator sIt = subCn.portInfo.iterator(); sIt.hasNext(); )
+					CellNetInfo subCni = getCellNetInfo(parameterizedName(no, context));
+					for(Iterator sIt = subCni.getCellAggregateSignals(); sIt.hasNext(); )
 					{
-						NetInfo nin = (NetInfo)sIt.next();
+						CellAggregateSignal ca = (CellAggregateSignal)sIt.next();
 
 						// ignore networks that aren't exported
-						if (nin.temp1 <= 1 || nin.temp1 >= 6) continue;
+						PortProto pp = ca.getExport();
+						if (pp == null) continue;
 
 						if (first) first = false; else
 							infstr.append(", ");
-						if (nin.low > nin.high)
+						int low = ca.getLowIndex(), high = ca.getHighIndex();
+						if (low > high)
 						{
 							// single signal
-							infstr.append("." + nin.name + "(");
-							PortProto pp = nin.pp;
-							if (pp == null)
-							{
-								System.out.println("How did null port get here?");
-								continue;
-							}
+							infstr.append("." + ca.getName() + "(");
 							JNetwork net = netList.getNetwork(no, pp, 0);
-							if (net == null)
+							if (net == cni.getPowerNet()) infstr.append("vdd"); else
 							{
-								infstr.append("UNCONNECTED" + (unconnectedNet++));
-							} else
-							{
-								if (net == cn.pwrNet) infstr.append("vdd"); else
+								if (net == cni.getGroundNet()) infstr.append("gnd"); else
 								{
-									if (net == cn.gndNet) infstr.append("gnd"); else
-									{
-										WireList wl = (WireList)cn.wireLists.get(net);
-										if (wl.isGlobal) infstr.append("glbl.");
-										infstr.append(wl.name);
-									}
+									CellSignal cs = cni.getCellSignal(net);
+									if (cs.isGlobal()) infstr.append("glbl.");
+									infstr.append(cs.getName());
 								}
 							}
 							infstr.append(")");
 						} else
 						{
-							int total = nin.high - nin.low+1;
-							WireList [] outerNetList = new WireList[total];
-							for(int j=nin.low; j<=nin.high; j++)
+							int total = high - low + 1;
+							CellSignal [] outerSignalList = new CellSignal[total];
+							for(int j=low; j<=high; j++)
 							{
-								JNetwork net = netList.getNetwork(no, nin.pp, j-nin.low);
-								WireList wl = (WireList)cn.wireLists.get(net);
-								outerNetList[j-nin.low] = wl;
+								JNetwork net = netList.getNetwork(no, ca.getExport(), j-low);
+								outerSignalList[j-low] = cni.getCellSignal(net);
 							}
-
-							writeBus(outerNetList, nin.low, nin.high, nin.temp1,
-								nin.name, cn.pwrNet, cn.gndNet, infstr);
+							writeBus(outerSignalList, low, high, ca.isDescending(),
+								ca.getName(), cni.getPowerNet(), cni.getGroundNet(), infstr);
 						}
 					}
 					infstr.append(");");
@@ -723,13 +684,13 @@ public class OutputVerilog extends OutputTopology
 							if (first) first = false; else
 								infstr.append(", ");
 
-							WireList wl = (WireList)cn.wireLists.get(net);
-							String sigName = wl.name;
-							if (net == cn.pwrNet) sigName = "vdd"; else
+							CellSignal cs = cni.getCellSignal(net);
+							String sigName = cs.getName();
+							if (net == cni.getPowerNet()) sigName = "vdd"; else
 							{
-								if (net == cn.gndNet) sigName = "gnd"; else
+								if (net == cni.getGroundNet()) sigName = "gnd"; else
 								{
-									if (wl.isGlobal) sigName = "glbl." + sigName;
+									if (cs.isGlobal()) sigName = "glbl." + sigName;
 								}
 							}
 //							if (i != 0 && pi != null && pi->conarcinst->temp1 != 0)
@@ -749,9 +710,7 @@ public class OutputVerilog extends OutputTopology
 			}
 			writeLongLine(infstr.toString());
 		}
-		String moduleName = getUniqueCellName(cell);
-//		if (paramname != 0) moduleName = getSafeNetName(paramname);
-		printWriter.print("endmodule   /* " + moduleName + " */\n");
+		printWriter.print("endmodule   /* " + cni.getParameterizedName() + " */\n");
 	}
 
 	private String chooseNodeName(NodeInst ni, String positive, String negative)
@@ -887,12 +846,12 @@ public class OutputVerilog extends OutputTopology
 
 	/*
 	 * Method to add a bus of signals named "name" to the infinite string "infstr".  If "name" is zero,
-	 * do not include the ".NAME()" wrapper.  The signals are in "outernetlist" and range in index from
+	 * do not include the ".NAME()" wrapper.  The signals are in "outerSignalList" and range in index from
 	 * "lowindex" to "highindex".  They are described by a bus with characteristic "tempval"
 	 * (low bit is on if the bus descends).  Any unconnected networks can be numbered starting at
 	 * "*unconnectednet".  The power and grounds nets are "pwrnet" and "gndnet".
 	 */
-	private void writeBus(WireList [] outernetlist, int lowindex, int highindex, int tempval,
+	private void writeBus(CellSignal [] outerSignalList, int lowIndex, int highIndex, boolean descending,
 		String name, JNetwork pwrNet, JNetwork gndNet, StringBuffer infstr)
 	{
 		// array signal: see if it gets split out
@@ -900,11 +859,11 @@ public class OutputVerilog extends OutputTopology
 
 		// bus cannot have pwr/gnd, must be connected
 		int numExported = 0, numInternal = 0;
-		for(int j=lowindex; j<=highindex; j++)
+		for(int j=lowIndex; j<=highIndex; j++)
 		{
-			WireList wl = outernetlist[j-lowindex];
-			if (wl.temp1 == 6) { breakBus = true;   break; }
-			if (wl.temp1 > 1) numExported++; else
+			CellSignal cs = outerSignalList[j-lowIndex];
+			if (cs.isPower() || cs.isGround()) { breakBus = true;   break; }
+			if (cs.isExported()) numExported++; else
 				numInternal++;
 		}
 
@@ -914,37 +873,37 @@ public class OutputVerilog extends OutputTopology
 		if (!breakBus)
 		{
 			// see if all of the nets on this bus are distinct
-			int j = lowindex+1;
-			for( ; j<=highindex; j++)
+			int j = lowIndex+1;
+			for( ; j<=highIndex; j++)
 			{
-				WireList wl = outernetlist[j-lowindex];
-				int k = lowindex;
+				CellSignal cs = outerSignalList[j-lowIndex];
+				int k = lowIndex;
 				for( ; k<j; k++)
 				{
-					WireList oWl = outernetlist[k-lowindex];
-					if (wl == oWl) break;
+					CellSignal oCs = outerSignalList[k-lowIndex];
+					if (cs == oCs) break;
 				}
 				if (k < j) break;
 			}
-			if (j <= highindex) breakBus = true; else
+			if (j <= highIndex) breakBus = true; else
 			{
 				// bus entries must have the same root name and go in order
 				String lastnetname = null;
-				for(j=lowindex; j<=highindex; j++)
+				for(j=lowIndex; j<=highIndex; j++)
 				{
-					WireList wl = outernetlist[j-lowindex];
-					String thisnetname = wl.name;
-					if (wl.descending)
+					CellSignal wl = outerSignalList[j-lowIndex];
+					String thisnetname = wl.getName();
+					if (wl.isDescending())
 					{
-						if ((tempval&1) == 0) break;
+						if (!descending) break;
 					} else
 					{
-						if ((tempval&1) != 0) break;
+						if (descending) break;
 					}
 
 					int openSquare = thisnetname.indexOf('[');
 					if (openSquare < 0) break;
-					if (j > lowindex)
+					if (j > lowIndex)
 					{
 						int li = 0;
 						for( ; li < lastnetname.length(); li++)
@@ -957,7 +916,7 @@ public class OutputVerilog extends OutputTopology
 					}
 					lastnetname = thisnetname;
 				}
-				if (j <= highindex) breakBus = true;
+				if (j <= highIndex) breakBus = true;
 			}
 		}
 
@@ -965,26 +924,25 @@ public class OutputVerilog extends OutputTopology
 		if (breakBus)
 		{
 			infstr.append("{");
-			int start = lowindex, end = highindex;
+			int start = lowIndex, end = highIndex;
 			int order = 1;
-			if ((tempval&1) != 0)
+			if (descending)
 			{
-				start = highindex;
-				end = lowindex;
+				start = highIndex;
+				end = lowIndex;
 				order = -1;
 			}
 			for(int j=start; ; j += order)
 			{
 				if (j != start)
 					infstr.append(", ");
-				WireList wl = outernetlist[j-lowindex];
-				JNetwork net = wl.net;
-				if (net == pwrNet) infstr.append("vdd"); else
+				CellSignal cs = outerSignalList[j-lowIndex];
+				if (cs.isPower()) infstr.append("vdd"); else
 				{
-					if (net == gndNet) infstr.append("gnd"); else
+					if (cs.isGround()) infstr.append("gnd"); else
 					{
-						if (wl.isGlobal) infstr.append("glbl.");
-						infstr.append(wl.name);
+						if (cs.isGlobal()) infstr.append("glbl.");
+						infstr.append(cs.getName());
 					}
 				}
 				if (j == end) break;
@@ -992,18 +950,18 @@ public class OutputVerilog extends OutputTopology
 			infstr.append("}");
 		} else
 		{
-			WireList lastWl = outernetlist[0];
-			String lastNetName = lastWl.name;
+			CellSignal lastCs = outerSignalList[0];
+			String lastNetName = lastCs.getName();
 			int openSquare = lastNetName.indexOf('[');
-			WireList wl = outernetlist[highindex-lowindex];
-			String netName = wl.name;
+			CellSignal cs = outerSignalList[highIndex-lowIndex];
+			String netName = cs.getName();
 			int i = 0;
 			for( ; i<netName.length(); i++)
 			{
 				if (netName.charAt(i) == '[') break;
 				infstr.append(netName.charAt(i));
 			}
-			if ((tempval&1) != 0)
+			if (descending)
 			{
 				int first = TextUtils.atoi(netName.substring(i+1));
 				int second = TextUtils.atoi(lastNetName.substring(openSquare+1));
@@ -1024,7 +982,7 @@ public class OutputVerilog extends OutputTopology
 	 * to that text to the output file.  Returns true if anything
 	 * was found.
 	 */
-	boolean includeTypedCode(Cell cell, Variable.Key verilogkey, String descript)
+	private boolean includeTypedCode(Cell cell, Variable.Key verilogkey, String descript)
 	{
 		// write out any directly-typed Verilog code
 		boolean first = true;
@@ -1129,13 +1087,20 @@ public class OutputVerilog extends OutputTopology
 		return sb.toString();
 	}
 
+	/****************************** SUBCLASSED METHODS FOR THE TOPOLOGY ANALYZER ******************************/
+
+	/**
+	 * Method to adjust a cell name to be safe for Verilog output.
+	 * @param name the cell name.
+	 * @return the name, adjusted for Verilog output.
+	 */
 	protected String getSafeCellName(String name)
 	{
 		return getSafeNetName(name);
 	}
 
 	/*
-	 * Method to adjust name "p" and return the string.
+	 * Method to adjust a network name to be safe for Verilog output.
 	 * Verilog does permit a digit in the first location; prepend a "_" if found.
 	 * Verilog only permits the "_" and "$" characters: all others are converted to "_".
 	 * Verilog does not permit nonnumeric indices, so "P[A]" is converted to "P_A_"
@@ -1146,7 +1111,9 @@ public class OutputVerilog extends OutputTopology
 	{
 		// simple names are trivially accepted as is
 		boolean allAlnum = true;
-		for(int i=0; i<name.length(); i++)
+		int len = name.length();
+		if (len == 0) return name;
+		for(int i=0; i<len; i++)
 		{
 			if (!Character.isLetterOrDigit(name.charAt(i))) { allAlnum = false;   break; }
 		}
@@ -1170,6 +1137,11 @@ public class OutputVerilog extends OutputTopology
 		return sb.toString();
 	}
 
+	/**
+	 * Method to obtain Netlist information for a cell.
+	 * This is pushed to the writer because each writer may have different requirements for resistor inclusion.
+	 * Verilog ignores resistors.
+	 */
 	protected Netlist getNetlistForCell(Cell cell)
 	{
 		// get network information about this cell

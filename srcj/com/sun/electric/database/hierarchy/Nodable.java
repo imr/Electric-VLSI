@@ -31,6 +31,8 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
 
+import java.util.Iterator;
+
 /**
  * This interface defines real or virtual instance of NodeProto in a Cell..
  */
@@ -68,6 +70,12 @@ public interface Nodable
 	 * @return the Variable with that name, or null if there is no such Variable.
 	 */
 	public Variable getVar(String name);
+
+	/**
+	 * Method to return an iterator over all Variables on this Nodable.
+	 * @return an iterator over all Variables on this Nodable.
+	 */
+	public Iterator getVariables();
 
 	/**
 	 * Returns a printable version of this Nodable.

@@ -40,6 +40,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Schematics;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -259,6 +260,23 @@ class NetSchem extends NetCell {
 				}
 			}
 			return var;
+		}
+
+		/**
+		 * Method to return an iterator over all Variables on this Nodable.
+		 * @return an iterator over all Variables on this Nodable.
+		 */
+		public Iterator getVariables()
+		{
+			if (shared == null)
+				return nodeInst.getVariables();
+			List allVariables = new ArrayList();
+			for (int i = 0; i < shared.length; i++)
+			{
+				for(Iterator it = shared[i].nodeInst.getVariables(); it.hasNext(); )
+					allVariables.add(it.next());
+			}
+			return allVariables.iterator();
 		}
 
 		/**
