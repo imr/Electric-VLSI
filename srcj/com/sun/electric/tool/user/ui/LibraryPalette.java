@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.tool.user.CircuitChanges;
@@ -150,6 +151,8 @@ public class LibraryPalette extends JPanel implements DatabaseChangeListener, Mo
             } else {
                 // single click
                 // place cell at location
+                // ignore schematics for now
+                if (cell.getView() == View.SCHEMATIC) return;
                 lastPlaceNodeListener = PaletteFrame.placeInstance(cell, this, false);
             }
         }
