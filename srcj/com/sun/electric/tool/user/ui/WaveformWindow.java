@@ -678,6 +678,18 @@ public class WaveformWindow implements WindowContent
 		}
 
 		/**
+		 * Method to return the low time range shown in this panel.
+		 * @return the low time range shown in this panel.
+		 */
+		public double getMinTimeRange() { return minTime; }
+
+		/**
+		 * Method to return the high time range shown in this panel.
+		 * @return the high time range shown in this panel.
+		 */
+		public double getMaxTimeRange() { return maxTime; }
+
+		/**
 		 * Method to set the value range in this panel.
 		 * @param low the low value.
 		 * @param high the high value.
@@ -3720,6 +3732,51 @@ public class WaveformWindow implements WindowContent
 	}
 
 	/**
+	 * Method to remove all highlighting from waveform window.
+	 */
+	public void clearHighlighting()
+	{
+		// look at all signal names in the cell
+		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next();
+
+			// look at all traces in this panel
+			boolean changed = false;
+			for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
+			{
+				Signal ws = (Signal)sIt.next();
+				if (ws.highlighted) changed = true;
+				ws.highlighted = false;
+			}
+			if (changed) wp.repaint();
+		}
+	}
+
+	/**
+	 * Method to return a List of highlighted simulation signals.
+	 * @return a List of highlighted simulation signals.
+	 */
+	public List getHighlightedNetworkNames()
+	{
+		List highlightedSignals = new ArrayList();
+
+		// look at all signal names in the cell
+		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next();
+
+			// look at all traces in this panel
+			for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
+			{
+				Signal ws = (Signal)sIt.next();
+				if (ws.highlighted) highlightedSignals.add(ws.sSig);
+			}
+		}
+		return highlightedSignals;
+	}
+
+	/**
 	 * Method to get a Set of currently highlighted networks in this WaveformWindow.
 	 */
 	public Set getHighlightedNetworks()
@@ -3754,6 +3811,8 @@ public class WaveformWindow implements WindowContent
 	}
 
 	// ************************************ TIME ************************************
+
+	public double getMainTimeCursor() { return mainTime; }
 
 	public void setMainTimeCursor(double time)
 	{

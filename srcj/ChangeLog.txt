@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02i: *********************************
 
+BUG: (03/02/05, SMR) Transparent color changes are not restored from saved preferences (Bug #213)
+FIX: In "Prefs.java", must recache technology colors after importing.
+
 IMP/MAN: (03/02/05, GVG) Colors used for cells and highlighted nodes in 3D view are available as special colors in ColorsTab
 Transparency is available in highlighted nodes (0.5f is the factor).
 

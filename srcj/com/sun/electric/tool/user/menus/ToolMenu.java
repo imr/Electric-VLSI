@@ -66,6 +66,7 @@ import com.sun.electric.tool.extract.LayerCoverageJob;
 import com.sun.electric.tool.generator.PadGenerator;
 import com.sun.electric.tool.generator.ROMGenerator;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.io.output.Spice;
@@ -137,6 +138,26 @@ public class ToolMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(false); }});
 		drcSubMenu.addMenuItem("Check Selection Area Hierarchically", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(true); }});
+
+		//------------------- Simulation (IRSIM)
+
+		if (Simulation.hasIRSIM())
+		{
+			MenuBar.Menu irsimSimulationSubMenu = new MenuBar.Menu("Simulation (IRSIM)", 'I');
+			toolMenu.add(irsimSimulationSubMenu);
+			irsimSimulationSubMenu.addMenuItem("Simulate Current Cell", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { simulateCellWithIRSIM(); } });
+			irsimSimulationSubMenu.addSeparator();
+			irsimSimulationSubMenu.addMenuItem("Set Signal High at Main Time", KeyStroke.getKeyStroke('V', 0),
+				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setIRSIMSignal(1); } });
+			irsimSimulationSubMenu.addMenuItem("Set Signal Low at Main Time", KeyStroke.getKeyStroke('G', 0),
+				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setIRSIMSignal(0); } });
+			irsimSimulationSubMenu.addMenuItem("Set Signal Undefined at Main Time", KeyStroke.getKeyStroke('X', 0),
+				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setIRSIMSignal(-1); } });
+			irsimSimulationSubMenu.addSeparator();
+			irsimSimulationSubMenu.addMenuItem("Clear Stimuli on Selected Signals", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.clearIRSIMStimuli(); } });
+        }
 
 		//------------------- Simulation (SPICE)
 
@@ -1032,6 +1053,16 @@ public class ToolMenu {
         }
         if (total == 0) System.out.println("No problems found"); else
             System.out.println("Found " + total + " export problems");
+    }
+
+    /**
+     * Method to simulate the current cell with IRSIM.
+     */
+    public static void simulateCellWithIRSIM()
+    {
+        Cell cell = WindowFrame.needCurCell();
+        if (cell == null) return;
+    	Simulation.simulateIRSIM(cell);
     }
 
     /**

@@ -2752,6 +2752,20 @@ public class Technology implements Comparable
 	}
 
 	/**
+	 * Method to reload the color map when the layer color preferences have changed.
+	 */
+	public void cacheTransparentLayerColors()
+	{
+		if (transparentLayers <= 0) return;
+		Color [] layers = new Color[transparentLayers];
+		for(int i=0; i<transparentLayers; i++)
+		{
+			layers[i] = new Color(transparentColorPrefs[i].getInt());
+		}
+		setColorMapFromLayers(layers);
+	}
+
+	/**
 	 * Returns the number of transparent layers in this technology.
 	 * Informs the display system of the number of overlapping or transparent layers
 	 * in use.

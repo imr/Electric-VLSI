@@ -42,6 +42,7 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -57,6 +58,101 @@ public class Simulation extends Tool
 	/** key of Variable holding rise time. */				public static final Variable.Key RISE_DELAY_KEY = ElectricObject.newKey("SIM_rise_delay");
 	/** key of Variable holding fall time. */				public static final Variable.Key FALL_DELAY_KEY = ElectricObject.newKey("SIM_fall_delay");
 	/** key of Variable holding flag for weak nodes. */		public static final Variable.Key WEAK_NODE_KEY = ElectricObject.newKey("SIM_weak_node");
+
+	private static boolean irsimChecked = false;
+	private static Class irsimClass = null;
+	private static Method irsimSimulateMethod, irsimSetLevelMethod, irsimClearStimuliMethod;
+
+	/**
+	 * Method to tell whether the IRSIM simulator is available.
+	 * IRSIM is packaged separately because it is from Stanford University.
+	 * This method dynamically figures out whether the IRSIM module is present by using reflection.
+	 * @return true if the IRSIM simulator is available.
+	 */
+	public static boolean hasIRSIM()
+	{
+		if (!irsimChecked)
+		{
+			irsimChecked = true;
+
+			// find the IRSIM class
+			try
+			{
+				irsimClass = Class.forName("com.sun.electric.plugins.irsim.Analyzer");
+			} catch (ClassNotFoundException e)
+			{
+				irsimClass = null;
+				return false;
+			}
+
+			// find the necessary methods on the IRSIM class
+			try
+			{
+				irsimSimulateMethod = irsimClass.getMethod("simulateCell", new Class[] {Cell.class});
+				irsimSetLevelMethod = irsimClass.getMethod("setCurrentSignalLevel", new Class[] {Integer.class});
+				irsimClearStimuliMethod = irsimClass.getMethod("clearCurrentSignalStimuli", new Class[] {});
+				
+			} catch (NoSuchMethodException e)
+			{
+				irsimClass = null;
+				return false;
+			}
+		}
+
+		// if already initialized, return
+		if (irsimClass == null) return false;
+	 	return true;
+	}
+
+	/**
+	 * Method to invoke the IRSIM on a Cell via reflection.
+	 * @param cell the Cell to simulate.
+	 */
+	public static void simulateIRSIM(Cell cell)
+	{
+		if (!hasIRSIM()) return;
+		try
+		{
+			irsimSimulateMethod.invoke(irsimClass, new Object[] {cell});
+		} catch (Exception e)
+		{
+			System.out.println("Unable to run the IRSIM simulator");
+            e.printStackTrace(System.out);
+		}
+	}
+
+	/**
+	 * Method to set a stimuli on the currently selected signal in IRSIM.
+	 * @param value the level to set.
+	 */
+	public static void setIRSIMSignal(int value)
+	{
+		if (!hasIRSIM()) return;
+		try
+		{
+			irsimSetLevelMethod.invoke(irsimClass, new Object[] {new Integer(value)});
+		} catch (Exception e)
+		{
+			System.out.println("Unable to run the IRSIM simulator");
+            e.printStackTrace(System.out);
+		}
+	}
+
+	/**
+	 * Method to clear all stimuli on the currently selected signal in IRSIM.
+	 */
+	public static void clearIRSIMStimuli()
+	{
+		if (!hasIRSIM()) return;
+		try
+		{
+			irsimClearStimuliMethod.invoke(irsimClass, new Object[] {});
+		} catch (Exception e)
+		{
+			System.out.println("Unable to run the IRSIM simulator");
+            e.printStackTrace(System.out);
+		}
+	}
 
 	/**
 	 * Class to define a set of simulation data.
@@ -85,6 +181,7 @@ public class Simulation extends Tool
 		private List sweeps;
 		private double [] commonTime;
 		private List sweepCommonTime;
+		private WaveformWindow ww;
 
 		/**
 		 * Constructor to build a new Simulation Data object.
@@ -213,6 +310,12 @@ public class Simulation extends Tool
 		 * @return a URL to the file containing this simulation data.
 		 */
 		public URL getFileURL() { return fileURL; }
+
+		/**
+		 * Method to return the WaveformWindow that displays this simulation data.
+		 * @return the WaveformWindow that displays this simulation data.
+		 */
+		public WaveformWindow getWaveformWindow() { return ww; }
 
 		/**
 		 * Method to compute the time and value bounds of this simulation data.
@@ -1075,6 +1178,7 @@ public class Simulation extends Tool
 		// create a waveform window
 		WindowFrame wf = WindowFrame.createWaveformWindow(sd);
 		ww = (WaveformWindow)wf.getContent();
+		sd.ww = ww;
 
 		// set bounds of the window from extent of the data
 		Rectangle2D bounds = sd.getBounds();

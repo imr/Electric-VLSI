@@ -49,6 +49,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
+import com.sun.electric.plugins.irsim.Sim;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;

@@ -870,6 +870,18 @@ public class GenMath
         return (Math.abs(a-b) <= DBL_EPSILON);
     }
 
+	/**
+	 * Method to compare two numbers and see if one is less than the other within an acceptable epsilon.
+	 * @param a the first number.
+     * @param b the second number.
+     * @return true if "a" is less than "b" to 16 decimal places.
+	 */
+    public static boolean doublesLessThan(double a, double b)
+	{
+		if (a+DBL_EPSILON < b) return true;
+		return false;
+	}
+
     /**
      * Method to compare two double-precision numbers within an approximate epsilon.
      * <p>NOTE: If you are comparing Electric database units, DO NOT

@@ -27,6 +27,7 @@ import com.sun.electric.Main;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.OptionReconcile;
@@ -288,6 +289,13 @@ public class Pref
 						pref.cachedObj = pref.prefs.get(pref.name, pref.getStringFactoryValue());
 						break;
 				}
+			}
+
+			// recache technology color information
+			for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+			{
+				Technology tech = (Technology)it.next();
+				tech.cacheTransparentLayerColors();
 			}
 		} catch (InvalidPreferencesFormatException e)
 		{
