@@ -4,7 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02a: *********************************
 
+IMP: (01/11/05, SMR) "Arc Properties" dialog now has "More/Less" button and, in
+     expanded mode, shows a list of attributes on the arc (Bug #149).
+
 IMP: (01/11/05, DN) All database objects are comparable and the are ordered in database.
+
+IMP: (01/10/05, SMR) Better detection of the selected export when going up hierarchy (Bug #138).
 
 BUG: (01/10/05, GVG) DRC and min area, still problems with well areas which are not part of any network
 FIX: Forcing substrate to ignore network information in Quick.java
