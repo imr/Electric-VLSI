@@ -38,7 +38,6 @@ import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.HelpMenu;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
-import com.sun.electric.tool.user.help.HelpViewer;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.BorderLayout;
@@ -255,14 +254,6 @@ public final class Main
 
 			// remove the splash screen
 			sw.removeNotify();
-
-            // pop up the tool tips window
-            Preferences prefs = Preferences.userNodeForPackage(HelpViewer.class);
-            boolean showTips = prefs.getBoolean(HelpViewer.showOnStartUp, true);
-            if (showTips) {
-                HelpViewer tip = new HelpViewer(TopLevel.getCurrentJFrame(), false, "Mouse Interface");
-                tip.setVisible(true);
-            }
 
             Undo.changesQuiet(false);
             return true;

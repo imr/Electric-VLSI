@@ -25,7 +25,6 @@
 package com.sun.electric.tool.user.menus;
 
 import com.sun.electric.tool.user.dialogs.About;
-import com.sun.electric.tool.user.help.HelpViewer;
 import com.sun.electric.tool.user.help.ManualViewer;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -52,8 +51,6 @@ public class HelpMenu {
             helpMenu.addMenuItem("About Electric...", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) { aboutCommand(); } });
         }
-		helpMenu.addMenuItem("Help Index...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { toolTipsCommand(); } });
 		helpMenu.addMenuItem("User's Manual...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { userManualCommand(); } });
 		return helpMenu;
@@ -66,12 +63,6 @@ public class HelpMenu {
 		About dialog = new About(TopLevel.getCurrentJFrame(), true);
         dialog.setVisible(true);
     }
-
-	public static void toolTipsCommand()
-	{
-		HelpViewer dialog = new HelpViewer(TopLevel.getCurrentJFrame(), false, null);
-		dialog.setVisible(true);
-	}
 
 	public static void userManualCommand()
 	{

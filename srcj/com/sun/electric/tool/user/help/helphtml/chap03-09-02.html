@@ -6,6 +6,25 @@
 The <B>Open Library...</B> command of the <B>File</B> menu brings a new library into Electric from disk.
 These disk files are in a private binary format (that is, not readable outside of Electric).
 <P>
+<TABLE><TR><TD>
+You can also use the open-library icon from the tool bar.
+</TD><TD><CENTER><IMG SRC="fig03-23.png" ALT="Figure 3.23"></CENTER></TD></TR></TABLE>
+<P>
+By default Electric searches for libraries in the working directory,
+absolute file path references, and Electric's LIB directory.
+Users can specify additional directories to search for Libraries using a file called
+"LIBDIRS" placed in the working directory.
+This file specifies additional paths to search for library files.
+The file has the following syntax:
+<P>
+<code>
+* <i>&lt;comments&gt;</i><BR>
+include <i>&lt;another_LIBDIRS_file&gt;</i><BR>
+<i>&lt;library_directory&gt;</i>
+</code>
+<P>
+Paths may be absolute or relative.
+<P>
 Besides Electric libraries,
 it is possible to read circuit descriptions that are in other formats with the <B>Import</B> command of the <B>File</B> menu.:
 <UL>
@@ -17,6 +36,8 @@ However, it can be transferred between machines more reliably and can be edited 
 </LI>
 <LI><B>Text Cell Contents...</B> is used to read a text file into a text cell.
 The current window must be a textual view (such as VHDL, Verilog, documentation, etc.)
+.
+See <A HREF="chap04-10.html#chap04-10">Section 4-10</A> for more on text windows.
 </UL>
 
 <!-- TRAILER -->

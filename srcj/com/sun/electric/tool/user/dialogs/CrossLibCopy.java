@@ -51,7 +51,7 @@ public class CrossLibCopy extends EDialog
 	private static boolean lastDeleteAfterCopy = false;
 	private static boolean lastCopyRelated = false;
 	private static boolean lastCopySubcells = false;
-	private static boolean lastUseExisting = false;
+	private static boolean lastUseExisting = true;
 
 	/** Creates new form CrossLibCopy */
 	public CrossLibCopy(java.awt.Frame parent, boolean modal)

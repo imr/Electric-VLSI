@@ -47,42 +47,8 @@ public class NCCTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		nccFirstCell.setEditable(false);
-		nccSetFirstCell.setEnabled(false);
-		nccNextFirstCell.setEnabled(false);
-		nccSecondCell.setEditable(false);
-		nccSetSecondCell.setEnabled(false);
-		nccNextSecondCell.setEnabled(false);
-		nccExpandHierarchy.setEnabled(false);
-		nccExpandHierarchyYes.setEnabled(false);
-		nccExpandHierarchyNo.setEnabled(false);
-		nccExpandHierarchyDefault.setEnabled(false);
-		nccMergeParallel.setEnabled(false);
-		nccMergeParallelYes.setEnabled(false);
-		nccMergeParallelNo.setEnabled(false);
-		nccMergeParallelDefault.setEnabled(false);
-		nccMergeSeries.setEnabled(false);
-		nccMergeSeriesYes.setEnabled(false);
-		nccMergeSeriesNo.setEnabled(false);
-		nccMergeSeriesDefault.setEnabled(false);
-		nccClearDatesThisLibrary.setEnabled(false);
-		nccClearDatesAllLibraries.setEnabled(false);
-		nccIgnorePwrGnd.setEnabled(false);
-		nccCheckExportNames.setEnabled(false);
-		nccCheckComponentSizes.setEnabled(false);
 		nccSizeTolerancePct.setEditable(false);
 		nccSizeToleranceAmt.setEditable(false);
-		nccAllowNoCompNets.setEnabled(false);
-		nccRecurse.setEnabled(false);
-		nccAutomaticResistorExclusion.setEnabled(false);
-		nccDebuggingOptions.setEnabled(false);
-		nccShowMatchTags.setEnabled(false);
-		nccLibraryPopup.setEnabled(false);
-		nccCellList.setEnabled(false);
-		nccListForcedMatches.setEnabled(false);
-		nccRemoveForcedMatches.setEnabled(false);
-		nccListOverrides.setEnabled(false);
-		nccRemoveOverrides.setEnabled(false);
 	}
 
 	/**
@@ -106,53 +72,10 @@ public class NCCTab extends PreferencePanel
         mergeParallelGroup = new javax.swing.ButtonGroup();
         mergeSeriesGroup = new javax.swing.ButtonGroup();
         ncc = new javax.swing.JPanel();
-        jPanel1 = new javax.swing.JPanel();
-        jLabel71 = new javax.swing.JLabel();
-        jLabel72 = new javax.swing.JLabel();
-        nccFirstCell = new javax.swing.JTextField();
-        nccSecondCell = new javax.swing.JTextField();
-        nccSetFirstCell = new javax.swing.JButton();
-        nccSetSecondCell = new javax.swing.JButton();
-        nccNextFirstCell = new javax.swing.JButton();
-        nccNextSecondCell = new javax.swing.JButton();
-        jLabel73 = new javax.swing.JLabel();
-        jSeparator10 = new javax.swing.JSeparator();
-        jPanel2 = new javax.swing.JPanel();
-        jLabel74 = new javax.swing.JLabel();
-        nccExpandHierarchy = new javax.swing.JCheckBox();
-        nccMergeParallel = new javax.swing.JCheckBox();
-        nccMergeSeries = new javax.swing.JCheckBox();
-        nccClearDatesThisLibrary = new javax.swing.JButton();
-        nccClearDatesAllLibraries = new javax.swing.JButton();
-        nccIgnorePwrGnd = new javax.swing.JCheckBox();
-        nccCheckExportNames = new javax.swing.JCheckBox();
-        nccCheckComponentSizes = new javax.swing.JCheckBox();
         jLabel75 = new javax.swing.JLabel();
         jLabel76 = new javax.swing.JLabel();
         nccSizeTolerancePct = new javax.swing.JTextField();
         nccSizeToleranceAmt = new javax.swing.JTextField();
-        nccAllowNoCompNets = new javax.swing.JCheckBox();
-        nccRecurse = new javax.swing.JCheckBox();
-        nccAutomaticResistorExclusion = new javax.swing.JCheckBox();
-        nccDebuggingOptions = new javax.swing.JButton();
-        nccShowMatchTags = new javax.swing.JCheckBox();
-        jSeparator9 = new javax.swing.JSeparator();
-        jLabel77 = new javax.swing.JLabel();
-        nccExpandHierarchyYes = new javax.swing.JRadioButton();
-        nccExpandHierarchyNo = new javax.swing.JRadioButton();
-        nccExpandHierarchyDefault = new javax.swing.JRadioButton();
-        nccMergeParallelYes = new javax.swing.JRadioButton();
-        nccMergeParallelNo = new javax.swing.JRadioButton();
-        nccMergeParallelDefault = new javax.swing.JRadioButton();
-        nccMergeSeriesYes = new javax.swing.JRadioButton();
-        nccMergeSeriesNo = new javax.swing.JRadioButton();
-        nccMergeSeriesDefault = new javax.swing.JRadioButton();
-        nccLibraryPopup = new javax.swing.JComboBox();
-        nccCellList = new javax.swing.JScrollPane();
-        nccListForcedMatches = new javax.swing.JButton();
-        nccRemoveForcedMatches = new javax.swing.JButton();
-        nccListOverrides = new javax.swing.JButton();
-        nccRemoveOverrides = new javax.swing.JButton();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -166,361 +89,39 @@ public class NCCTab extends PreferencePanel
             }
         });
 
-        ncc.setLayout(new java.awt.BorderLayout());
-
-        jPanel1.setLayout(new java.awt.GridBagLayout());
-
-        jLabel71.setText("Compare cell:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel1.add(jLabel71, gridBagConstraints);
-
-        jLabel72.setText("With cell:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel1.add(jLabel72, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        jPanel1.add(nccFirstCell, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        jPanel1.add(nccSecondCell, gridBagConstraints);
-
-        nccSetFirstCell.setText("Set");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 0;
-        jPanel1.add(nccSetFirstCell, gridBagConstraints);
-
-        nccSetSecondCell.setText("Set");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
-        jPanel1.add(nccSetSecondCell, gridBagConstraints);
-
-        nccNextFirstCell.setText("Next");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 0;
-        jPanel1.add(nccNextFirstCell, gridBagConstraints);
-
-        nccNextSecondCell.setText("Next");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 1;
-        jPanel1.add(nccNextSecondCell, gridBagConstraints);
-
-        jLabel73.setText("!!! WARNING: These cells are not on the screen !!!");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
-        jPanel1.add(jLabel73, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel1.add(jSeparator10, gridBagConstraints);
-
-        ncc.add(jPanel1, java.awt.BorderLayout.NORTH);
-
-        jPanel2.setLayout(new java.awt.GridBagLayout());
-
-        jLabel74.setText("For all cells:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 0, 0, 0);
-        jPanel2.add(jLabel74, gridBagConstraints);
-
-        nccExpandHierarchy.setText("Expand hierarchy");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        jPanel2.add(nccExpandHierarchy, gridBagConstraints);
-
-        nccMergeParallel.setText("Merge parallel components");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(nccMergeParallel, gridBagConstraints);
-
-        nccMergeSeries.setText("Merge series transistors");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        jPanel2.add(nccMergeSeries, gridBagConstraints);
-
-        nccClearDatesThisLibrary.setText("Clear NCC dates this library");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        jPanel2.add(nccClearDatesThisLibrary, gridBagConstraints);
-
-        nccClearDatesAllLibraries.setText("Clear NCC dates all libraries");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        jPanel2.add(nccClearDatesAllLibraries, gridBagConstraints);
-
-        nccIgnorePwrGnd.setText("Ignore power and ground");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        jPanel2.add(nccIgnorePwrGnd, gridBagConstraints);
-
-        nccCheckExportNames.setText("Check export names");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        jPanel2.add(nccCheckExportNames, gridBagConstraints);
-
-        nccCheckComponentSizes.setText("Check component sizes");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        jPanel2.add(nccCheckComponentSizes, gridBagConstraints);
+        ncc.setLayout(new java.awt.GridBagLayout());
 
         jLabel75.setText("Size tolerance (%):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        jPanel2.add(jLabel75, gridBagConstraints);
+        ncc.add(jLabel75, gridBagConstraints);
 
         jLabel76.setText("Size tolerance (amt):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        jPanel2.add(jLabel76, gridBagConstraints);
+        ncc.add(jLabel76, gridBagConstraints);
 
         nccSizeTolerancePct.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        jPanel2.add(nccSizeTolerancePct, gridBagConstraints);
+        ncc.add(nccSizeTolerancePct, gridBagConstraints);
 
         nccSizeToleranceAmt.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        jPanel2.add(nccSizeToleranceAmt, gridBagConstraints);
-
-        nccAllowNoCompNets.setText("Allow no-component nets");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 11;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        jPanel2.add(nccAllowNoCompNets, gridBagConstraints);
-
-        nccRecurse.setText("Recurse through hierarchy");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 12;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        jPanel2.add(nccRecurse, gridBagConstraints);
-
-        nccAutomaticResistorExclusion.setText("Automatic Resistor Exclusion");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 13;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        jPanel2.add(nccAutomaticResistorExclusion, gridBagConstraints);
-
-        nccDebuggingOptions.setText("NCC Debugging options...");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 15;
-        gridBagConstraints.gridwidth = 2;
-        jPanel2.add(nccDebuggingOptions, gridBagConstraints);
-
-        nccShowMatchTags.setText("Show 'NCCMatch' tags");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 16;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(nccShowMatchTags, gridBagConstraints);
-
-        jSeparator9.setOrientation(javax.swing.SwingConstants.VERTICAL);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridheight = 18;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
-        jPanel2.add(jSeparator9, gridBagConstraints);
-
-        jLabel77.setText("Individual cell overrides:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 0, 0, 0);
-        jPanel2.add(jLabel77, gridBagConstraints);
-
-        nccExpandHierarchyYes.setText("Yes");
-        expandGroup.add(nccExpandHierarchyYes);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(nccExpandHierarchyYes, gridBagConstraints);
-
-        nccExpandHierarchyNo.setText("No");
-        expandGroup.add(nccExpandHierarchyNo);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(nccExpandHierarchyNo, gridBagConstraints);
-
-        nccExpandHierarchyDefault.setText("Default");
-        expandGroup.add(nccExpandHierarchyDefault);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 5;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(nccExpandHierarchyDefault, gridBagConstraints);
-
-        nccMergeParallelYes.setText("Yes");
-        mergeParallelGroup.add(nccMergeParallelYes);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(nccMergeParallelYes, gridBagConstraints);
-
-        nccMergeParallelNo.setText("No");
-        mergeParallelGroup.add(nccMergeParallelNo);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(nccMergeParallelNo, gridBagConstraints);
-
-        nccMergeParallelDefault.setText("Default");
-        mergeParallelGroup.add(nccMergeParallelDefault);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 5;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(nccMergeParallelDefault, gridBagConstraints);
-
-        nccMergeSeriesYes.setText("Yes");
-        mergeSeriesGroup.add(nccMergeSeriesYes);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(nccMergeSeriesYes, gridBagConstraints);
-
-        nccMergeSeriesNo.setText("No");
-        mergeSeriesGroup.add(nccMergeSeriesNo);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(nccMergeSeriesNo, gridBagConstraints);
-
-        nccMergeSeriesDefault.setText("Default");
-        mergeSeriesGroup.add(nccMergeSeriesDefault);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 5;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(nccMergeSeriesDefault, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel2.add(nccLibraryPopup, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.gridheight = 9;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        jPanel2.add(nccCellList, gridBagConstraints);
-
-        nccListForcedMatches.setText("List all forced matches");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 16;
-        gridBagConstraints.gridwidth = 3;
-        jPanel2.add(nccListForcedMatches, gridBagConstraints);
-
-        nccRemoveForcedMatches.setText("Remove all forced matches");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 17;
-        gridBagConstraints.gridwidth = 3;
-        jPanel2.add(nccRemoveForcedMatches, gridBagConstraints);
-
-        nccListOverrides.setText("List all overrides");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 14;
-        gridBagConstraints.gridwidth = 3;
-        jPanel2.add(nccListOverrides, gridBagConstraints);
-
-        nccRemoveOverrides.setText("Remove all overrides");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 15;
-        gridBagConstraints.gridwidth = 3;
-        jPanel2.add(nccRemoveOverrides, gridBagConstraints);
-
-        ncc.add(jPanel2, java.awt.BorderLayout.CENTER);
+        ncc.add(nccSizeToleranceAmt, gridBagConstraints);
 
         getContentPane().add(ncc, new java.awt.GridBagConstraints());
 
@@ -536,54 +137,11 @@ public class NCCTab extends PreferencePanel
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup expandGroup;
-    private javax.swing.JLabel jLabel71;
-    private javax.swing.JLabel jLabel72;
-    private javax.swing.JLabel jLabel73;
-    private javax.swing.JLabel jLabel74;
     private javax.swing.JLabel jLabel75;
     private javax.swing.JLabel jLabel76;
-    private javax.swing.JLabel jLabel77;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JSeparator jSeparator10;
-    private javax.swing.JSeparator jSeparator9;
     private javax.swing.ButtonGroup mergeParallelGroup;
     private javax.swing.ButtonGroup mergeSeriesGroup;
     private javax.swing.JPanel ncc;
-    private javax.swing.JCheckBox nccAllowNoCompNets;
-    private javax.swing.JCheckBox nccAutomaticResistorExclusion;
-    private javax.swing.JScrollPane nccCellList;
-    private javax.swing.JCheckBox nccCheckComponentSizes;
-    private javax.swing.JCheckBox nccCheckExportNames;
-    private javax.swing.JButton nccClearDatesAllLibraries;
-    private javax.swing.JButton nccClearDatesThisLibrary;
-    private javax.swing.JButton nccDebuggingOptions;
-    private javax.swing.JCheckBox nccExpandHierarchy;
-    private javax.swing.JRadioButton nccExpandHierarchyDefault;
-    private javax.swing.JRadioButton nccExpandHierarchyNo;
-    private javax.swing.JRadioButton nccExpandHierarchyYes;
-    private javax.swing.JTextField nccFirstCell;
-    private javax.swing.JCheckBox nccIgnorePwrGnd;
-    private javax.swing.JComboBox nccLibraryPopup;
-    private javax.swing.JButton nccListForcedMatches;
-    private javax.swing.JButton nccListOverrides;
-    private javax.swing.JCheckBox nccMergeParallel;
-    private javax.swing.JRadioButton nccMergeParallelDefault;
-    private javax.swing.JRadioButton nccMergeParallelNo;
-    private javax.swing.JRadioButton nccMergeParallelYes;
-    private javax.swing.JCheckBox nccMergeSeries;
-    private javax.swing.JRadioButton nccMergeSeriesDefault;
-    private javax.swing.JRadioButton nccMergeSeriesNo;
-    private javax.swing.JRadioButton nccMergeSeriesYes;
-    private javax.swing.JButton nccNextFirstCell;
-    private javax.swing.JButton nccNextSecondCell;
-    private javax.swing.JCheckBox nccRecurse;
-    private javax.swing.JButton nccRemoveForcedMatches;
-    private javax.swing.JButton nccRemoveOverrides;
-    private javax.swing.JTextField nccSecondCell;
-    private javax.swing.JButton nccSetFirstCell;
-    private javax.swing.JButton nccSetSecondCell;
-    private javax.swing.JCheckBox nccShowMatchTags;
     private javax.swing.JTextField nccSizeToleranceAmt;
     private javax.swing.JTextField nccSizeTolerancePct;
     // End of variables declaration//GEN-END:variables

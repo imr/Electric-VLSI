@@ -21,7 +21,6 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-
 package com.sun.electric.tool.user.help;
 
 import com.sun.electric.Main;
@@ -33,40 +32,41 @@ import com.sun.electric.tool.user.menus.MenuBar.Menu;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Toolkit;
-import java.awt.Frame;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.WindowEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
-import java.io.PrintWriter;
+import java.awt.event.WindowEvent;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import javax.swing.JEditorPane;
-import javax.swing.JPanel;
 import javax.swing.JButton;
+import javax.swing.JEditorPane;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JTree;
-import javax.swing.JMenuItem;
-import javax.swing.JMenuBar;
-import javax.swing.JMenu;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.HTMLDocument;
@@ -238,7 +238,7 @@ public class ManualViewer extends EDialog
 						}
 						String commandName = pageLine.substring(13, endPt).trim();
 						String already = (String)menuMap.get(commandName);
-						if (already != null)
+						if (already != null && Main.getDebug())
 						{
 							System.out.println("ERROR: command " + commandName + " is keyed to both " + already + " and " + fileName);
 						}
@@ -293,7 +293,7 @@ public class ManualViewer extends EDialog
 				JMenuItem helpMenuItem = new JMenuItem(menuItem.getText());
 				helpMenu.add(helpMenuItem);
 				String fileName = (String)menuMap.get(cumulative + menuItem.getText());
-				if (fileName == null)
+				if (fileName == null && Main.getDebug())
 				{
 					System.out.println("No help for " + cumulative + menuItem.getText());
 				}
@@ -435,6 +435,39 @@ public class ManualViewer extends EDialog
 		int index = currentIndex + 1;
 		if (index >= pageSequence.size()) index = 0;
 		loadPage(index);
+	}
+
+	private void search()
+	{
+		String ret = (String)JOptionPane.showInputDialog(this, "Keyword to locate:",
+			"Manual Search", JOptionPane.QUESTION_MESSAGE, null, null, null);
+		if (ret == null) return;
+		Pattern pattern = Pattern.compile(ret, Pattern.CASE_INSENSITIVE);
+
+		StringBuffer sbResult = new StringBuffer();
+
+		sbResult.append("<CENTER><H1>Search Results for " + ret + "</H1></CENTER>\n");
+		for(int index=0; index < pageSequence.size(); index++)
+		{
+			PageInfo pi = (PageInfo)pageSequence.get(index);
+			InputStream stream = TextUtils.getURLStream(pi.url, null);
+			InputStreamReader is = new InputStreamReader(stream);
+			StringBuffer sb = new StringBuffer();
+			for(;;)
+			{
+				String line = getLine(is);
+				if (line == null) break;
+				if (line.length() == 0) continue;
+				if (line.equals("<!-- TRAILER -->")) continue;
+				if (line.startsWith("<!-- HEADER ")) line = line.substring(12);
+				sb.append(line);
+			}
+			Matcher matcher = pattern.matcher(sb.toString());
+			if (!matcher.find()) continue;
+			sbResult.append("<H2><A HREF=\"" + pi.fileName + ".html\">" + pi.title + "</A></H2>\n");
+		}
+		editorPane.setText(sbResult.toString());
+		editorPane.setCaretPosition(0);
 	}
 
 	/**
@@ -752,17 +785,17 @@ public class ManualViewer extends EDialog
 		{
 			public void actionPerformed(ActionEvent evt) { loadMenuBar(); }
 		});
-//		JButton foreButton = new JButton("Next");
-//		gbc = new GridBagConstraints();
-//		gbc.gridx = 1;      gbc.gridy = 0;
-//		gbc.gridwidth = 1;  gbc.gridheight = 1;
-//		gbc.insets = new java.awt.Insets(0, 4, 4, 4);
-//		gbc.anchor = GridBagConstraints.CENTER;
-//		leftHalf.add(foreButton, gbc);
-//		foreButton.addActionListener(new ActionListener()
-//		{
-//			public void actionPerformed(ActionEvent evt) { next(); }
-//		});
+		JButton searchButton = new JButton("Search...");
+		gbc = new GridBagConstraints();
+		gbc.gridx = 1;      gbc.gridy = 2;
+		gbc.gridwidth = 1;  gbc.gridheight = 1;
+		gbc.insets = new java.awt.Insets(0, 4, 4, 4);
+		gbc.anchor = GridBagConstraints.CENTER;
+		leftHalf.add(searchButton, gbc);
+		searchButton.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { search(); }
+		});
 
 		if (Main.getDebug())
 		{

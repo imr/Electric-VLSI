@@ -76,7 +76,7 @@ Hierarchy
   Automatic Icon Generation          =chap03-11-04
 
 Display
- Introduction to The Display         =chap04-01
+ The Tool Bar                        =chap04-01
  The Messages Window                 =chap04-02
  Creating and Deleting Editing Windows =chap04-03
  Scaling and Panning
@@ -140,9 +140,9 @@ Technologies
  Introduction to Technologies
   Technologies                       =chap07-01-01
   Controlling Technologies           =chap07-01-02
- Units and Scaling
-  Units                              =chap07-02-01
-  Display Units                      =chap07-02-02
+ Scaling and Units
+  Scale                              =chap07-02-01
+  Units                              =chap07-02-02
  I/O Specifications 
   Introduction to I/O Specifications =chap07-03-01
   CIF Control                        =chap07-03-02
