@@ -47,6 +47,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.Highlight;
@@ -147,6 +148,10 @@ public class DebugMenus {
  
         MenuBar.Menu gildaMenu = new MenuBar.Menu("Gilda", 'G');
         menuBar.add(gildaMenu);
+	    gildaMenu.addMenuItem("Check Wells", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(true); } });
+	    gildaMenu.addMenuItem("Check Wells OLD", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(false); } });
 	    gildaMenu.addMenuItem("List Geometry on Network", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.listGeometryOnNetworkCommand(); } });
 	    gildaMenu.addMenuItem("3D View", null,
