@@ -918,16 +918,24 @@ public final class MenuCommands
 		String fileName;
 		if (lib.isFromDisk())
 		{
-			fileName = lib.getLibFile();
+			fileName = lib.getLibFile().getPath();
 		} else
 		{
 			fileName = OpenFile.chooseOutputFile(OpenFile.Type.ELIB, null, lib.getLibName()+".elib");
 			if (fileName == null) return false;
 
-			Library.Name n = Library.Name.newInstance(fileName);
-			n.setExtension("elib");
-			lib.setLibFile(n.makeName());
-			lib.setLibName(n.getName());
+			int dotPos = fileName.lastIndexOf('.');
+			if (dotPos < 0) fileName += ".elib"; else
+			{
+				if (!fileName.substring(dotPos+1).equals("elib"))
+				{
+					fileName = fileName.substring(0, dotPos) + ".elib";
+				}
+			}
+
+			URL libURL = TextUtils.makeURLToFile(fileName);
+			lib.setLibFile(libURL);
+			lib.setLibName(TextUtils.getFileNameWithoutExtension(libURL));
 		}
 		SaveLibrary job = new SaveLibrary(lib);
         return true;

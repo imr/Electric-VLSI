@@ -157,8 +157,8 @@ public class Input extends IOTool
 	protected static Library readALibrary(URL fileURL, InputStream stream, Library lib, OpenFile.Type type)
 	{
 		// get the library file name and path
-		String fileName = fileURL.getFile();
-		Library.Name n = Library.Name.newInstance(fileName);
+		String libName = TextUtils.getFileNameWithoutExtension(fileURL);
+		String extension = TextUtils.getExtension(fileURL);
 
 		// handle different file types
 		LibraryFiles in;
@@ -180,13 +180,13 @@ public class Input extends IOTool
 		in.topLevelLibrary = false;
 		if (lib == null)
 		{
-			mainLibDirectory = n.getPath() + File.separator;
+			mainLibDirectory = TextUtils.getFilePath(fileURL);
 			in.topLevelLibrary = true;
 		}
 
 		if (lib == null)
 		{
-			lib = Library.findLibrary(n.getName());
+			lib = Library.findLibrary(libName);
 			if (lib != null)
 			{
 				// library already exists, prompt for save
@@ -194,7 +194,7 @@ public class Input extends IOTool
 				lib.erase();
 			} else
 			{
-				lib = Library.newInstance(n.getName(), fileName);
+				lib = Library.newInstance(libName, fileURL);
 			}
 		}
 

@@ -75,7 +75,7 @@ public class LayoutText extends javax.swing.JDialog
 	private static boolean lastItalic = false;
 	private static boolean lastBold = false;
 	private static boolean lastUnderline = false;
-	private static String lastFont = "sansserif.plain";
+	private static String lastFont = User.getDefaultFont();
 	private static String lastLayer = null;
 	private static String lastMessage = null;
 

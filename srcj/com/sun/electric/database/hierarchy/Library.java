@@ -36,6 +36,7 @@ import java.util.Comparator;
 import java.util.Collections;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.net.URL;
 
 /**
  * A Library represents a collection of Cells.
@@ -61,7 +62,7 @@ public class Library extends ElectricObject
 //	/** library is unwanted (used during input) */			private static final int UNWANTEDLIB =             0400;
 
 	/** name of this library  */							private String libName;
-	/** file location of this library */					private String libFile;
+	/** file location of this library */					private URL libFile;
 	/** list of Cells in this library */					private ArrayList cells;
 	/** Cell currently being edited */						private Cell curCell;
 	/** flag bits */										private int userBits;
@@ -72,88 +73,6 @@ public class Library extends ElectricObject
 	/** the current library in Electric */					private static Library curLib = null;
 
 	// ----------------- private and protected methods --------------------
-
-	/**
-	 * A Name is a text-parsing object for Library names.
-	 * Library names have a full path, a file name, and an extension.
-	 */
-	public static class Name
-	{
-		private String path;
-		private String name;
-		private String extension;
-
-		private Name() {}
-
-		/**
-		 * Method to return the path to the Library name.
-		 * The path does not include the actual file name or extension.
-		 * @return the path to the Library name.
-		 */
-		public String getPath() { return path; }
-
-		/**
-		 * Method to return the name of the Library name.
-		 * The name does not include the full path to the file or extension.
-		 * @return the name of the Library.
-		 */
-		public String getName() { return name; }
-
-		/**
-		 * Method to set the name of the Library name.
-		 * The name does not include the full path to the file or extension.
-		 * @param name the name of the Library.
-		 */
-		public void setName(String name) { this.name = name; }
-
-		/**
-		 * Method to return the extension of the Library name.
-		 * The extension does not include the dot, so it is "elib" or "txt", etc.
-		 * @return the extension of the Library.
-		 */
-		public String getExtension() { return extension; }
-
-		/**
-		 * Method to set the extension of the Library name.
-		 * The extension does not include the dot, so it is "elib" or "txt", etc.
-		 * @param extension the extension of the Library name.
-		 */
-		public void setExtension(String extension) { this.extension = extension; }
-
-		/**
-		 * Method to create a new Name object from the specified Library file name.
-		 * @param libFile the full name of the Library disk file.
-		 * @return a Name object with the path, file name, and extension broken out.
-		 */
-		public static Name newInstance(String libFile)
-		{
-			// figure out the actual library name and library file
-			Name n = new Name();
-			File f = new File(libFile);
-			n.path = f.getParent();
-			n.name = f.getName();
-			int dotPos = n.name.lastIndexOf('.');
-			if (dotPos < 0) n.extension = null; else
-			{
-				n.extension = n.name.substring(dotPos+1);
-				n.name = n.name.substring(0, dotPos);
-			}
-			return n;
-		}
-
-		/**
-		 * Method to convert this Name object to a full path name.
-		 * @return the full path name to the Library file.
-		 */
-		public String makeName()
-		{
-			String libFile = "";
-			if (path != null) libFile += path + File.separator;
-			libFile += name;
-			if (extension != null) libFile += "." + extension;
-			return libFile;
-		}
-	}
 
 	/**
 	 * The constructor is never called.  Use the factor method "newInstance" instead.
@@ -167,13 +86,13 @@ public class Library extends ElectricObject
 	 * A Library has both a name and a file.
 	 * @param libName the name of the library (for example, "gates").
 	 * Library names must be unique, and they must not contain spaces.
-	 * @param libFile the full path to the disk file (for example "/home/strubin/gates.elib").
+	 * @param libFile the URL to the disk file (for example "/home/strubin/gates.elib").
 	 * If the Library is being created, the libFile can be null.
 	 * If the Library file is given and it points to an existing file, then the I/O system
 	 * can be told to read that file and populate the Library.
 	 * @return the Library object.
 	 */
-	public static Library newInstance(String libName, String libFile)
+	public static Library newInstance(String libName, URL libFile)
 	{
 		// make sure the name is legal
 		String legalName = libName.replace(' ', '-');
@@ -576,25 +495,18 @@ public class Library extends ElectricObject
 	}
 
 	/**
-	 * Method to return the disk file of this Library.
-	 * @return the disk file of this Library.
+	 * Method to return the URL of this Library.
+	 * @return the URL of this Library.
 	 */
-	public String getLibFile() { return libFile; }
+	public URL getLibFile() { return libFile; }
 
 	/**
-	 * Method to set the disk file of this Library.
-	 * @param libFile the new disk file of this Library.
+	 * Method to set the URL of this Library.
+	 * @param libFile the new URL of this Library.
 	 */
-	public void setLibFile(String libFile)
+	public void setLibFile(URL libFile)
 	{
 		this.libFile = libFile;
-	}
-
-	public String getLibPath()
-	{
-		int pathSep = libFile.lastIndexOf(File.pathSeparatorChar);
-		if (pathSep < 0) return "";
-		return libFile.substring(0, pathSep+1);
 	}
 
 	/**

@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
@@ -61,6 +62,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Iterator;
 import java.util.List;
@@ -118,9 +120,9 @@ public class Output extends IOTool
 		Pref.installMeaningVariables();
 
 		// handle different file types
-		Library.Name n;
-		if (lib.getLibFile() != null) n = Library.Name.newInstance(lib.getLibFile()); else
-			n = Library.Name.newInstance(lib.getLibName());
+		URL libFile = lib.getLibFile();
+		if (libFile == null)
+			libFile = TextUtils.makeURLToFile(lib.getLibName());
 		if (type == OpenFile.Type.ELIB)
 		{
 			// backup previous files if requested
@@ -128,13 +130,13 @@ public class Output extends IOTool
 			if (backupScheme == 1)
 			{
 				// one-level backup
-				String backupFileName = n.makeName() + "~";
+				String backupFileName = libFile.getPath() + "~";
 				File oldFile = new File(backupFileName);
 				if (oldFile.exists())
 				{
 					oldFile.delete();
 				}
-				File newFile = new File(n.makeName());
+				File newFile = new File(libFile.getPath());
 				if (newFile.exists())
 				{
 					newFile.renameTo(oldFile);
@@ -142,7 +144,7 @@ public class Output extends IOTool
 			} else if (backupScheme == 2)
 			{
 				// full-history backup
-				File newFile = new File(n.makeName());
+				File newFile = new File(libFile.getPath());
 				if (newFile.exists())
 				{
 					long modified = newFile.lastModified();
@@ -150,10 +152,10 @@ public class Output extends IOTool
 					SimpleDateFormat sdf = new SimpleDateFormat("-yyyy-MM-dd");
 					for(int i=0; i<1000; i++)
 					{
-						String backupFileName = n.getPath() + File.separator + n.getName() + sdf.format(modifiedDate);
+						String backupFileName = TextUtils.getFileNameWithoutExtension(libFile) + sdf.format(modifiedDate);
 						if (i != 0)
 							backupFileName += "--" + i;
-						backupFileName += "." + n.getExtension();
+						backupFileName += "." + TextUtils.getExtension(libFile);
 						File oldFile = new File(backupFileName);
 						if (oldFile.exists()) continue;
 						newFile.renameTo(oldFile);
@@ -163,22 +165,22 @@ public class Output extends IOTool
 			}
 
 			out = (Output)new ELIB();
-			n.setExtension("elib");
-            if (out.openBinaryOutputStream(n.makeName())) return true;
+			String properOutputName = TextUtils.getFilePath(libFile) + TextUtils.getFileNameWithoutExtension(libFile) + ".elib";
+            if (out.openBinaryOutputStream(properOutputName)) return true;
             if (out.writeLib(lib)) return true;
             if (out.closeBinaryOutputStream()) return true;
 		} else if (type == OpenFile.Type.READABLEDUMP)
 		{
 //			out = (Output)new ReadableDump();
-//			n.setExtension("txt");
-//          if (out.openTextOutputStream(n.makeName())) error = true;
+//			String properOutputName = TextUtils.getFilePath(libFile) + TextUtils.getFileNameWithoutExtension(libFile) + ".txt";
+//          if (out.openTextOutputStream(properOutputName)) error = true;
 //          if (out.writeLib(lib)) error = true;
 //          if (out.closeTextOutputStream()) error = true;          
             
 			// no text writer yet, see if an elib can be found
 			out = (Output)new ELIB();
-			n.setExtension("elib");
-            if (out.openBinaryOutputStream(n.makeName())) return true;
+			String properOutputName = TextUtils.getFilePath(libFile) + TextUtils.getFileNameWithoutExtension(libFile) + ".elib";
+            if (out.openBinaryOutputStream(properOutputName)) return true;
             if (out.writeLib(lib)) return true;
             if (out.closeBinaryOutputStream()) return true;
 		} else

@@ -644,7 +644,7 @@ public class ELIB extends Output
 		if (!thislib)
 		{
 			Library instlib = cell.getLibrary();
-			writeString(instlib.getLibFile());
+			writeString(instlib.getLibFile().getPath());
 		}
 
 		// write the number of portprotos on this nodeproto

@@ -86,6 +86,7 @@ public class ExplorerTree extends JTree
 	private static ImageIcon iconJobs = null;
 	private static ImageIcon iconLibraries = null;
 	private static ImageIcon iconErrors = null;
+	private static ImageIcon iconSignals = null;
 	private static ImageIcon iconViewIcon = null;
 	private static ImageIcon iconViewOldIcon = null;
 	private static ImageIcon iconViewLayout = null;
@@ -160,7 +161,13 @@ public class ExplorerTree extends JTree
 
 	public static void explorerTreeChanged() { explorerChanged = true; }
 
-    /**
+	public void updateThisExplorerTree()
+	{
+		treeDidChange();
+		treeModel.reload();
+	}
+
+	/**
 	 * Method called when the explorer information changes.
 	 * It updates the display for minor changes.  See JTree.treeDidChange().
      */
@@ -567,6 +574,11 @@ public class ExplorerTree extends JTree
 					if (iconErrors == null)
 						iconErrors = new ImageIcon(getClass().getResource("IconErrors.gif"));
 					setIcon(iconErrors);
+				} else if (theString.equalsIgnoreCase("signals"))
+				{
+					if (iconSignals == null)
+						iconSignals = new ImageIcon(getClass().getResource("IconSignals.gif"));
+					setIcon(iconSignals);
 				}
 			}
 			if (nodeInfo instanceof Job)

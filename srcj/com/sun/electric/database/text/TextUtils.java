@@ -426,6 +426,11 @@ public class TextUtils
 		return len1 - len2;
 	}
 
+	/**
+	 * Method to convert a file path to a URL.
+	 * @param fileName the path to the file.
+	 * @return the URL to that file (null on error).
+	 */
 	public static URL makeURLToFile(String fileName)
 	{
 		File file = new File(fileName);
@@ -439,6 +444,62 @@ public class TextUtils
 		return null;
 	}
 
+	/**
+	 * Method to return the directory path part of a URL (excluding the file name).
+	 * For example, the URL "file:/users/strubin/gates.elib" has the directory part "/users/strubin/".
+	 * @param url the URL to the file.
+	 * @return the directory path part (including the trailing "/").
+	 * If there is no directory part, returns "".
+	 */
+	public static String getFilePath(URL url)
+	{
+		String filePath = url.getFile();
+		int slashPos = filePath.lastIndexOf('/');
+		if (slashPos < 0) return "";
+		return filePath.substring(0, slashPos+1);
+	}
+
+	/**
+	 * Method to return the pure file name of a URL.
+	 * The pure file name excludes the directory path and the extension.
+	 * It is used to find the library name from a URL.
+	 * For example, the URL "file:/users/strubin/gates.elib" has the pure file name "gates".
+	 * @param url the URL to the file.
+	 * @return the pure file name.
+	 */
+	public static String getFileNameWithoutExtension(URL url)
+	{
+		String fileName = url.getFile();
+		int slashPos = fileName.lastIndexOf('/');
+		if (slashPos >= 0)
+		{
+			fileName = fileName.substring(slashPos+1);
+		}
+		int dotPos = fileName.lastIndexOf('.');
+		if (dotPos >= 0) fileName = fileName.substring(0, dotPos);
+		return fileName;
+	}
+
+	/**
+	 * Method to return the extension of the file in a URL.
+	 * The extension is the part after the last dot.
+	 * For example, the URL "file:/users/strubin/gates.elib" has the extension "elib".
+	 * @param url the URL to the file.
+	 * @return the extension of the file ("" if none).
+	 */
+	public static String getExtension(URL url)
+	{
+		String fileName = url.getFile();
+		int dotPos = fileName.lastIndexOf('.');
+		if (dotPos < 0) return "";
+		return fileName.substring(dotPos+1);
+	}
+
+	/**
+	 * Method to open an input stream to a URL.
+	 * @param url the URL to the file.
+	 * @return the InputStream, or null if the file cannot be found.
+	 */
 	public static InputStream getURLStream(URL url)
 	{
 		if (url != null)

@@ -27,6 +27,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.input.Simulate;
 
+import java.awt.Color;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.LineNumberReader;
@@ -156,7 +157,7 @@ public class HSpiceOut extends Simulate
 		for(int j=0; j<4; j++) line.append((char)getByteFromFile());
 		int multiplier = TextUtils.atoi(line.toString(), 0, 10);
 		nodcnt += multiplier * 10000;
-		int sim_spice_signals = numnoi + nodcnt - 1;
+		int numSignals = numnoi + nodcnt - 1;
 
 		// get version number (known to work with 9007, 9601)
 		line = new StringBuffer();
@@ -194,9 +195,9 @@ public class HSpiceOut extends Simulate
 
 		// get the type of each signal
 		int important = numnoi;
-		String [] sim_spice_signames = new String[sim_spice_signals];
-		int [] sim_spice_sigtypes = new int[sim_spice_signals];
-		for(int k=0; k<=sim_spice_signals; k++)
+		String [] signalNames = new String[numSignals];
+		int [] signalTypes = new int[numSignals];
+		for(int k=0; k<=numSignals; k++)
 		{
 			line = new StringBuffer();
 			for(int j=0; j<8; j++)
@@ -208,9 +209,9 @@ public class HSpiceOut extends Simulate
 			if (k == 0) continue;
 			int l = k - nodcnt;
 			if (k < nodcnt) l = k + numnoi - 1;
-			sim_spice_sigtypes[l] = TextUtils.atoi(line.toString(), 0, 10);
+			signalTypes[l] = TextUtils.atoi(line.toString(), 0, 10);
 		}
-		for(int k=0; k<=sim_spice_signals; k++)
+		for(int k=0; k<=numSignals; k++)
 		{
 			int j = 0;
 			line = new StringBuffer();
@@ -257,7 +258,7 @@ public class HSpiceOut extends Simulate
 			}
 
 			if (k < nodcnt) l = k + numnoi - 1; else l = k - nodcnt;
-			sim_spice_signames[l] = line.toString();
+			signalNames[l] = line.toString();
 		}
 
 		line = new StringBuffer();
@@ -282,37 +283,55 @@ public class HSpiceOut extends Simulate
 			closeInput();
 			return null;
 		}
-		sim_spice_resetbtr0();
+		resetBinaryTR0Reader();
 
 		// now read the data
+		SimData sd = new SimData();
 		eofReached = false;
-		List sim_spice_numbers = new ArrayList();
+		List timeValues = new ArrayList();
+		for(int k=0; k<numSignals; k++)
+		{
+			Simulate.SimAnalogSignal as = new Simulate.SimAnalogSignal();
+			as.useCommonTime = true;
+			as.signalName = signalNames[k];
+			as.signalColor = Color.RED;
+			as.tempList = new ArrayList();
+			sd.signals.add(as);
+		}
 		for(;;)
 		{
 			// get the first number, see if it terminates
-			double time = sim_spice_gethspicefloat();
+			double time = getHSpiceFloat();
 			if (eofReached) break;
+			timeValues.add(new Double(time));
 
 			// get a row of numbers
-			SimEvent se = new SimEvent();
-			se.time = time;
-			se.values = new double[sim_spice_signals];
-			for(int k=1; k<=sim_spice_signals; k++)
+			for(int k=1; k<=numSignals; k++)
 			{
-				double value = sim_spice_gethspicefloat();
+				double value = getHSpiceFloat();
 				if (eofReached) break;
 				int l = k - nodcnt;
 				if (k < nodcnt) l = k + numnoi - 1;
-				se.values[l] = (float)value;
+				Simulate.SimAnalogSignal as = (Simulate.SimAnalogSignal)sd.signals.get(l);
+				as.tempList.add(new Double(value));
 			}
 			if (eofReached) break;
-			sim_spice_numbers.add(se);
 		}
 		closeInput();
 
-		SimData sd = new SimData();
-		sd.signalNames = sim_spice_signames;
-		sd.events = sim_spice_numbers;
+		// convert lists to arrays
+		int numEvents = timeValues.size();
+		sd.commonTime = new double[numEvents];
+		for(int i=0; i<numEvents; i++)
+			sd.commonTime[i] = ((Double)timeValues.get(i)).doubleValue();
+		for(int j=0; j<numSignals; j++)
+		{
+			Simulate.SimAnalogSignal as = (Simulate.SimAnalogSignal)sd.signals.get(j);
+			as.values = new double[numEvents];
+			for(int i=0; i<numEvents; i++)
+				as.values[i] = ((Double)as.tempList.get(i)).doubleValue();
+			as.tempList = null;
+		}
 		return sd;
 	}
 
@@ -320,7 +339,7 @@ public class HSpiceOut extends Simulate
 	 * Method to reset the binary tr0 block pointer (done between the header and
 	 * the data).
 	 */
-	private void sim_spice_resetbtr0()
+	private void resetBinaryTR0Reader()
 	{
 		binaryTR0Size = 0;
 		binaryTR0Position = 0;
@@ -330,7 +349,7 @@ public class HSpiceOut extends Simulate
 	 * Method to read the next block of tr0 data.  Skips the first byte if "firstbyteread"
 	 * is true.  Returns true on EOF.
 	 */
-	private boolean sim_spice_readbtr0block(boolean firstbyteread)
+	private boolean readBinaryTR0Block(boolean firstbyteread)
 		throws IOException
 	{
 		// read the first word of a binary tr0 block
@@ -406,7 +425,7 @@ public class HSpiceOut extends Simulate
 			{
 				isTR0Binary = true;
 				binaryTR0Buffer = new byte[8192];
-				if (sim_spice_readbtr0block(true)) return(-1);
+				if (readBinaryTR0Block(true)) return(-1);
 			} else
 			{
 				isTR0Binary = false;
@@ -417,7 +436,7 @@ public class HSpiceOut extends Simulate
 		{
 			if (binaryTR0Position >= binaryTR0Size)
 			{
-				if (sim_spice_readbtr0block(false))
+				if (readBinaryTR0Block(false))
 					return(-1);
 			}
 			int val = binaryTR0Buffer[binaryTR0Position];
@@ -433,7 +452,7 @@ public class HSpiceOut extends Simulate
 	 * Method to read the next floating point number from the HSPICE file into "val".
 	 * Returns positive on error, negative on EOF, zero if OK.
 	 */
-	private double sim_spice_gethspicefloat()
+	private double getHSpiceFloat()
 		throws IOException
 	{
 		if (!isTR0Binary)

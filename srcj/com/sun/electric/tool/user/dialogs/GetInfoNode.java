@@ -117,6 +117,7 @@ public class GetInfoNode extends javax.swing.JDialog
 		super(parent, modal);
 		setLocation(100, 50);
 		initComponents();
+        getRootPane().setDefaultButton(ok);
 
 		// start small
 		bigger = false;

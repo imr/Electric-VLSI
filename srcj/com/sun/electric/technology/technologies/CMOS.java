@@ -61,7 +61,7 @@ public class CMOS extends Technology
 	{
 		setTechName("cmos");
 		setTechDesc("Complementary MOS (old, N-Well, from Griswold)");
-		setScale(2000);   // in nanometers: really 2 microns
+		setFactoryScale(2000);   // in nanometers: really 2 microns
 		setNoNegatedArcs();
 		setStaticTechnology();
 		setNumTransparentLayers(5);

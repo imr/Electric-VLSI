@@ -61,7 +61,7 @@ public class MoCMOSSub extends Technology
 	{
 		setTechName("mocmossub");
 		setTechDesc("Complementary MOS (old, from MOSIS, Submicron, 2-6 metals [now 6], double poly, converts to newer MOCMOS)");
-		setScale(200);   // in nanometers: really 0.2 microns
+		setFactoryScale(200);   // in nanometers: really 0.2 microns
 		setNoNegatedArcs();
 		setStaticTechnology();
 		setNumTransparentLayers(5);

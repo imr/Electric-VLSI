@@ -1,3 +1,15 @@
 			Java Electric change log
 
 ************************* Version 7.01: Released  *************************
+
+IMP: (5/5/04, SR) Converted file paths to URLs.
+
+IMP: (5/5/04, SR) Can now select default font in the "Text" tab of the
+     "Edit Options" dialog.
+
+IMP: (5/4/04, SR) More improvements to waveform display.
+
+IMP: (5/4/04, SR) Added "Scale" tab in IO Options to set scale factors.
+
+BUG: (5/4/04, SR) Can create two exports with the same name.
+FIX: Disabled this both in Export.newInstance() and in the dialog.

@@ -71,10 +71,11 @@ public class RawSpiceOut extends Simulate
 		throws IOException
 	{
 		boolean first = true;
-		List events = new ArrayList();
+//		List events = new ArrayList();
 		int numSignals = -1;
-		int rowCount = -1;
-		String [] signalNames = null;
+		int eventCount = -1;
+		SimData sd = new SimData();
+		Simulate.SimAnalogSignal [] signals = null;
 		for(;;)
 		{
 			String line = getLineFromSimulator();
@@ -107,12 +108,23 @@ public class RawSpiceOut extends Simulate
 			if (preColon.equals("No. Variables"))
 			{
 				numSignals = TextUtils.atoi(postColon) - 1;
+				signals = new Simulate.SimAnalogSignal[numSignals];
+				for(int i=0; i<numSignals; i++)
+				{
+					signals[i] = new Simulate.SimAnalogSignal();
+					signals[i].useCommonTime = true;
+					signals[i].signalColor = java.awt.Color.RED;
+					sd.signals.add(signals[i]);
+				}
 				continue;
 			}
 
 			if (preColon.equals("No. Points"))
 			{
-				rowCount = TextUtils.atoi(postColon);
+				eventCount = TextUtils.atoi(postColon);
+				sd.commonTime = new double[eventCount];
+				for(int i=0; i<numSignals; i++)
+					signals[i].values = new double[eventCount];
 				continue;
 			}
 
@@ -123,7 +135,6 @@ public class RawSpiceOut extends Simulate
 					System.out.println("Missing variable count in file");
 					return null;
 				}
-				signalNames = new String[numSignals];
 				for(int i=0; i<=numSignals; i++)
 				{
 					line = getLineFromSimulator();
@@ -150,7 +161,7 @@ public class RawSpiceOut extends Simulate
 							System.out.println("Warning: the first variable should be time, is '" + name + "'");
 					} else
 					{
-						signalNames[i-1] = name;
+						signals[i-1].signalName = name;
 					}
 				}
 				continue;
@@ -162,35 +173,32 @@ public class RawSpiceOut extends Simulate
 					System.out.println("Missing variable count in file");
 					return null;
 				}
-				if (rowCount < 0)
+				if (eventCount < 0)
 				{
 					System.out.println("Missing point count in file");
 					return null;
 				}
-				for(int j=0; j<rowCount; j++)
+				for(int j=0; j<eventCount; j++)
 				{
-					SimEvent se = new SimEvent();
-					se.values = new double[numSignals];
 					for(int i=0; i<=numSignals; i++)
 					{
 						line = getLineFromSimulator();
 						if (line == null)
 						{
-							System.out.println("Error: end of file during data points (read " + j + " out of " + rowCount);
+							System.out.println("Error: end of file during data points (read " + j + " out of " + eventCount);
 							return null;
 						}
 						if (i == 0)
 						{
 							int lineNumber = TextUtils.atoi(line);
 							if (lineNumber != j)
-								System.out.println("Warning: data point " + j + " has number " + lineNumber);
+								System.out.println("Warning: event " + j + " has wrong event number: " + lineNumber);
 							while (Character.isDigit(line.charAt(0))) line = line.substring(1);
 						}
 						line = line.trim();
-						if (i == 0) se.time = TextUtils.atof(line); else
-							se.values[i-1] = TextUtils.atof(line);
+						if (i == 0) sd.commonTime[j] = TextUtils.atof(line); else
+							signals[i-1].values[j] = TextUtils.atof(line);
 					}
-					events.add(se);
 				}
 			}
 			if (preColon.equals("Binary"))
@@ -200,28 +208,22 @@ public class RawSpiceOut extends Simulate
 					System.out.println("Missing variable count in file");
 					return null;
 				}
-				if (rowCount < 0)
+				if (eventCount < 0)
 				{
 					System.out.println("Missing point count in file");
 					return null;
 				}
 
 				// read the data
-				for(int j=0; j<rowCount; j++)
+				for(int j=0; j<eventCount; j++)
 				{
-					SimEvent se = new SimEvent();
-					se.values = new double[numSignals];
-
-					double time = dataInputStream.readDouble();
+					sd.commonTime[j] = dataInputStream.readDouble();
 					for(int i=0; i<numSignals; i++)
-						se.values[i] = dataInputStream.readDouble();
+						signals[i].values[j] = dataInputStream.readDouble();
 				}
 			}
 		}
 
-		SimData sd = new SimData();
-		sd.signalNames = signalNames;
-		sd.events = events;
 		return sd;
 	}
 

@@ -42,6 +42,7 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.StatusBar;
 
 import java.awt.Component;
+import java.awt.GraphicsEnvironment;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Iterator;
@@ -1075,6 +1076,8 @@ public class EditOptions extends javax.swing.JDialog
 
 	//******************************** TEXT ********************************
 
+	private String initialFontName;
+
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Text tab.
@@ -1092,6 +1095,14 @@ public class EditOptions extends javax.swing.JDialog
 		textIconUpperLeft.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabUpperLeft.gif")));
 		textIconBoxed.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabBoxed.gif")));
 
+		initialFontName = User.getDefaultFont();
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		String [] fontNames = ge.getAvailableFontFamilyNames();
+		for(int i=0; i<fontNames.length; i++)
+			textDefaultFont.addItem(fontNames[i]);
+		textDefaultFont.setSelectedItem(initialFontName);
+
+		// not yet
 		textNodes.setEnabled(false);
 		textArcs.setEnabled(false);
 		textPorts.setEnabled(false);
@@ -1106,7 +1117,6 @@ public class EditOptions extends javax.swing.JDialog
 		textUnderline.setEnabled(false);
 		textPoints.setEnabled(false);
 		textUnits.setEnabled(false);
-		textEditor.setEnabled(false);
 		textNewVisibleInsideCell.setEnabled(false);
 		textGrabCenter.setEnabled(false);
 		textGrabBottom.setEnabled(false);
@@ -1132,6 +1142,9 @@ public class EditOptions extends javax.swing.JDialog
 	 */
 	private void termText()
 	{
+		String currentFontName = (String)textDefaultFont.getSelectedItem();
+		if (!currentFontName.equalsIgnoreCase(initialFontName))
+			User.setDefaultFont(currentFontName);
 	}
 
 	//******************************** 3D ********************************
@@ -1526,7 +1539,7 @@ public class EditOptions extends javax.swing.JDialog
         textUnits = new javax.swing.JRadioButton();
         middle = new javax.swing.JPanel();
         jLabel44 = new javax.swing.JLabel();
-        textEditor = new javax.swing.JComboBox();
+        textDefaultFont = new javax.swing.JComboBox();
         textNewVisibleInsideCell = new javax.swing.JCheckBox();
         bottom = new javax.swing.JPanel();
         jLabel45 = new javax.swing.JLabel();
@@ -3086,7 +3099,7 @@ public class EditOptions extends javax.swing.JDialog
 
         middle.setLayout(new java.awt.GridBagLayout());
 
-        jLabel44.setText("Text editor:");
+        jLabel44.setText("Default font:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -3099,7 +3112,7 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        middle.add(textEditor, gridBagConstraints);
+        middle.add(textDefaultFont, gridBagConstraints);
 
         textNewVisibleInsideCell.setText("New text visible only inside cell");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -3857,7 +3870,7 @@ public class EditOptions extends javax.swing.JDialog
     private javax.swing.JCheckBox textBold;
     private javax.swing.JRadioButton textCellText;
     private javax.swing.ButtonGroup textCornerGroup;
-    private javax.swing.JComboBox textEditor;
+    private javax.swing.JComboBox textDefaultFont;
     private javax.swing.JComboBox textFace;
     private javax.swing.JRadioButton textGrabBottom;
     private javax.swing.JRadioButton textGrabBoxed;

@@ -30,6 +30,8 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.output.GDS;
 import com.sun.electric.tool.simulation.Simulation;
@@ -41,6 +43,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.util.Iterator;
+import java.util.HashMap;
 import javax.print.PrintServiceLookup;
 import javax.print.PrintService;
 import javax.swing.JComboBox;
@@ -102,6 +105,7 @@ public class IOOptions extends javax.swing.JDialog
 		initCDL();			// initialize the CDL panel
 		initDXF();			// initialize the DXF panel
 		initSUE();			// initialize the SUE panel
+		initUnits();		// initialize the Units panel
 		initCopyright();	// initialize the Copyright panel
 		initLibrary();		// initialize the Library panel
 		initPrinting();		// initialize the Printing panel
@@ -550,6 +554,115 @@ public class IOOptions extends javax.swing.JDialog
 
 	//******************************** SUE ********************************
 
+	private JList unitsTechnologyList;
+	private DefaultListModel unitsTechnologyModel;
+	private HashMap unitValues;
+
+	/**
+	 * Method called at the start of the dialog.
+	 * Caches current values and displays them in the Units tab.
+	 */
+	private void initUnits()
+	{
+		// build the layers list
+		unitsTechnologyModel = new DefaultListModel();
+		unitsTechnologyList = new JList(unitsTechnologyModel);
+		unitsTechnologyList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		unitsList.setViewportView(unitsTechnologyList);
+		unitsTechnologyList.clearSelection();
+		unitsTechnologyList.addMouseListener(new MouseAdapter()
+		{
+			public void mouseClicked(MouseEvent evt) { unitsClickTechnology(); }
+		});
+		unitsTechnologyModel.clear();
+		unitValues = new HashMap();
+		int wantIndex = 0;
+		int index = 0;
+		for(Iterator it = Technology.getTechnologiesSortedByName().iterator(); it.hasNext(); )
+		{
+			Technology tech = (Technology)it.next();
+			if (tech.isNonElectrical()) continue;
+			if (tech == Generic.tech || tech == Schematics.tech) continue;
+			double shownScale = tech.getScale() / 2.0;
+			unitValues.put(tech, new Double(shownScale));
+			unitsTechnologyModel.addElement(tech.getTechName() + " (scale=" + shownScale + " nanometers)");
+			if (tech == Technology.getCurrent()) wantIndex = index;
+			index++;
+		}
+		unitsTechnologyList.setSelectedIndex(wantIndex);
+		unitsClickTechnology();
+
+		unitsScaleValue.getDocument().addDocumentListener(new UnitsDocumentListener(this));
+	}
+
+	/**
+	 * Class to handle special changes to changes to a Technology in the Units panel.
+	 */
+	private static class UnitsDocumentListener implements DocumentListener
+	{
+		IOOptions dialog;
+
+		UnitsDocumentListener(IOOptions dialog) { this.dialog = dialog; }
+
+		public void changedUpdate(DocumentEvent e) { dialog.unitsNumbersChanged(); }
+		public void insertUpdate(DocumentEvent e) { dialog.unitsNumbersChanged(); }
+		public void removeUpdate(DocumentEvent e) { dialog.unitsNumbersChanged(); }
+	}
+
+	/**
+	 * Method called when the user types a new scale factor into the edit fields.
+	 */
+	private void unitsNumbersChanged()
+	{
+		String str = (String)unitsTechnologyList.getSelectedValue();
+		int spacePos = str.indexOf(" ");
+		if (spacePos >= 0) str = str.substring(0, spacePos);
+		Technology tech = Technology.findTechnology(str);
+		if (tech == null) return;
+
+		double shownScale = TextUtils.atof(unitsScaleValue.getText());
+		unitValues.put(tech, new Double(shownScale));
+		String newLine = tech.getTechName() + " (scale=" + shownScale + " nanometers)";
+		int index = unitsTechnologyList.getSelectedIndex();
+		unitsTechnologyModel.set(index, newLine);
+		unitsAlternateScale.setText("nanometers (" + (shownScale/1000.0) + " microns)");
+	}
+
+	/**
+	 * Method called when the user clicks on a layer name in the scrollable list.
+	 */
+	private void unitsClickTechnology()
+	{
+		String str = (String)unitsTechnologyList.getSelectedValue();
+		int spacePos = str.indexOf(" ");
+		if (spacePos >= 0) str = str.substring(0, spacePos);
+		Technology tech = Technology.findTechnology(str);
+		if (tech == null) return;
+		Double shownValue = (Double)unitValues.get(tech);
+		unitsScaleValue.setText(Double.toString(shownValue.doubleValue()));
+		unitsAlternateScale.setText("nanometers (" + (shownValue.doubleValue()/1000.0) + " microns)");
+	}
+
+	/**
+	 * Method called when the "OK" panel is hit.
+	 * Updates any changed fields in the Units tab.
+	 */
+	private void termUnits()
+	{
+		for(Iterator it = unitValues.keySet().iterator(); it.hasNext(); )
+		{
+			Technology tech = (Technology)it.next();
+			Double scaleValue = (Double)unitValues.get(tech);
+			if (scaleValue.doubleValue() != tech.getScale()/2.0)
+			{
+				tech.setScale(scaleValue.doubleValue() * 2.0);
+			}
+		}
+	}
+
+
+	//******************************** SUE ********************************
+
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the SUE tab.
@@ -883,6 +996,12 @@ public class IOOptions extends javax.swing.JDialog
         dxfScale = new javax.swing.JComboBox();
         sue = new javax.swing.JPanel();
         sueMake4PortTransistors = new javax.swing.JCheckBox();
+        units = new javax.swing.JPanel();
+        unitsList = new javax.swing.JScrollPane();
+        jLabel10 = new javax.swing.JLabel();
+        unitsScaleValue = new javax.swing.JTextField();
+        jLabel11 = new javax.swing.JLabel();
+        unitsAlternateScale = new javax.swing.JLabel();
         copyright = new javax.swing.JPanel();
         jLabel4 = new javax.swing.JLabel();
         copyrightNone = new javax.swing.JRadioButton();
@@ -1393,6 +1512,53 @@ public class IOOptions extends javax.swing.JDialog
 
         tabPane.addTab("SUE", sue);
 
+        units.setLayout(new java.awt.GridBagLayout());
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        units.add(unitsList, gridBagConstraints);
+
+        jLabel10.setText("The technology scale converts grid units to real spacing on the chip:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        units.add(jLabel10, gridBagConstraints);
+
+        unitsScaleValue.setColumns(6);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        units.add(unitsScaleValue, gridBagConstraints);
+
+        jLabel11.setText("Technology scale:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        units.add(jLabel11, gridBagConstraints);
+
+        unitsAlternateScale.setText("nanometers");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        units.add(unitsAlternateScale, gridBagConstraints);
+
+        tabPane.addTab("Scale", units);
+
         copyright.setLayout(new java.awt.GridBagLayout());
 
         jLabel4.setText("A Copyright message can be added to every generated deck");
@@ -1843,6 +2009,7 @@ public class IOOptions extends javax.swing.JDialog
 		termCDL();			// terminate the CDL panel
 		termDXF();			// terminate the DXF panel
 		termSUE();			// terminate the SUE panel
+		termUnits();		// terminate the Units panel
 		termCopyright();	// terminate the Copyright panel
 		termLibrary();		// terminate the Library panel
 		termPrinting();		// terminate the Printing panel
@@ -1910,6 +2077,8 @@ public class IOOptions extends javax.swing.JDialog
     private javax.swing.JLabel gdsTechName;
     private javax.swing.JTextField gdsTextLayer;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel15;
@@ -1975,6 +2144,10 @@ public class IOOptions extends javax.swing.JDialog
     private javax.swing.JPanel sue;
     private javax.swing.JCheckBox sueMake4PortTransistors;
     private javax.swing.JTabbedPane tabPane;
+    private javax.swing.JPanel units;
+    private javax.swing.JLabel unitsAlternateScale;
+    private javax.swing.JScrollPane unitsList;
+    private javax.swing.JTextField unitsScaleValue;
     // End of variables declaration//GEN-END:variables
 	
 }

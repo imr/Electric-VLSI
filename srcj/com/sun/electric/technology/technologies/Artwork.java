@@ -87,7 +87,7 @@ public class Artwork extends Technology
 	{
 		setTechName("artwork");
 		setTechDesc("General Purpose Sketchpad Facility");
-		setScale(2000);			// in nanometers: really 2 micron
+		setFactoryScale(2000);			// in nanometers: really 2 micron
 		setNonStandard();
 		setNonElectrical();
 		setNoNegatedArcs();

@@ -42,6 +42,7 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
@@ -51,6 +52,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import javax.swing.JComboBox;
 import javax.swing.JList;
+import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.JCheckBox;
 import javax.swing.DefaultListModel;
@@ -61,12 +63,12 @@ import javax.swing.Box;
 /**
  * Class to handle the "Option Reconcile" dialog.
  */
-public class OptionReconcile extends javax.swing.JDialog
+public class OptionReconcile extends JDialog
 {
 	private HashMap changedOptions;
 	
 	/** Creates new form Option Reconcile */
-	public OptionReconcile(java.awt.Frame parent, boolean modal, List optionsThatChanged)
+	public OptionReconcile(Frame parent, boolean modal, List optionsThatChanged)
 	{
 		super(parent, modal);
 		setLocation(100, 50);

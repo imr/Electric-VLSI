@@ -1417,11 +1417,13 @@ public class EditWindow extends JPanel
 		return pt.x;
 	}
 
+	public static int getDefaultFontSize() { return 14; }
+
 	public Font getFont(TextDescriptor descript)
 	{
-		int size = 14;
+		int size = getDefaultFontSize();
 		int fontStyle = Font.PLAIN;
-		String fontName = "SansSerif";
+		String fontName = User.getDefaultFont();
 		if (descript != null)
 		{
 			size = descript.getTrueSize(this);

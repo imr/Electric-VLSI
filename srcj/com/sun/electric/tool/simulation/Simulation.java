@@ -234,13 +234,49 @@ public class Simulation extends Tool
 
 	private static Pref cacheSpiceHeaderCardInfo = Pref.makeStringPref("SpiceHeaderCardInfo", Simulation.tool.prefs, "");
     static { cacheSpiceHeaderCardInfo.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Header Card Information"); }
+	/**
+	 * Method to get the Spice header card specification.
+	 * Header cards can come from one of three places, depending on the specification:<BR>
+	 * Specification="" means use built-in header cards.<BR>
+	 * Specification=":::::XXX" means use header cards from the file TOPCELL.XXX
+	 * where TOPCELL is the name of the top-level cell name and XXX is a specified extension.<BR>
+	 * Specification="XXX" means use header cards from the file XXX.
+	 * @return the Spice header card specification.
+	 */
 	public static String getSpiceHeaderCardInfo() { return cacheSpiceHeaderCardInfo.getString(); }
-	public static void setSpiceHeaderCardInfo(String info) { cacheSpiceHeaderCardInfo.setString(info); }
+	/**
+	 * Method to set the Spice header card specification.
+	 * Header cards can come from one of three places, depending on the specification:<BR>
+	 * Specification="" means use built-in header cards.<BR>
+	 * Specification=":::::XXX" means use header cards from the file TOPCELL.XXX
+	 * where TOPCELL is the name of the top-level cell name and XXX is a specified extension.<BR>
+	 * Specification="XXX" means use header cards from the file XXX.
+	 * @param spec the Spice header card specification.
+	 */
+	public static void setSpiceHeaderCardInfo(String spec) { cacheSpiceHeaderCardInfo.setString(spec); }
 
 	private static Pref cacheSpiceTrailerCardInfo = Pref.makeStringPref("SpiceTrailerCardInfo", Simulation.tool.prefs, "");
     static { cacheSpiceTrailerCardInfo.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Trailer Card Information"); }
+	/**
+	 * Method to get the Spice trailer card specification.
+	 * Trailer cards can come from one of three places, depending on the specification:<BR>
+	 * Specification="" means use built-in trailer cards.<BR>
+	 * Specification=":::::XXX" means use trailer cards from the file TOPCELL.XXX
+	 * where TOPCELL is the name of the top-level cell name and XXX is a specified extension.<BR>
+	 * Specification="XXX" means use trailer cards from the file XXX.
+	 * @return the Spice trailer card specification.
+	 */
 	public static String getSpiceTrailerCardInfo() { return cacheSpiceTrailerCardInfo.getString(); }
-	public static void setSpiceTrailerCardInfo(String info) { cacheSpiceTrailerCardInfo.setString(info); }
+	/**
+	 * Method to set the Spice trailer card specification.
+	 * Trailer cards can come from one of three places, depending on the specification:<BR>
+	 * Specification="" means use built-in trailer cards.<BR>
+	 * Specification=":::::XXX" means use trailer cards from the file TOPCELL.XXX
+	 * where TOPCELL is the name of the top-level cell name and XXX is a specified extension.<BR>
+	 * Specification="XXX" means use trailer cards from the file XXX.
+	 * @param spec the Spice trailer card specification.
+	 */
+	public static void setSpiceTrailerCardInfo(String spec) { cacheSpiceTrailerCardInfo.setString(spec); }
 
 	private static Pref cacheSpiceUseParasitics = Pref.makeBooleanPref("SpiceUseParasitics", Simulation.tool.prefs, true);
     static { cacheSpiceUseParasitics.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Use Parasitics"); }

@@ -85,6 +85,7 @@ public class WindowFrame
 	/** the current windows. */							private static WindowFrame curWindowFrame = null;
 	/** the explorer part of a frame. */				private static DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Explorer");
 	/** the explorer part of a frame. */				private static DefaultTreeModel treeModel = null;
+	/** the waveform signal explorer data. */			private static DefaultMutableTreeNode waveformTree = null;
 
 	private static final int SCROLLBARRESOLUTION = 200;
 
@@ -402,20 +403,30 @@ public class WindowFrame
 	 */
 	public void setContent(int contents)
 	{
+		if (this.contents == contents) return;
 		this.contents = contents;
+		rootNode.removeAllChildren();
 		switch (contents)
 		{
 			case DISPWINDOW:
 				js.setRightComponent(circuitPanel);
+				rootNode.add(ExplorerTree.getLibraryExplorerTree());
 				break;
 			case TEXTWINDOW:
 				js.setRightComponent(textPanel);
+				rootNode.add(ExplorerTree.getLibraryExplorerTree());
 				break;
 			case WAVEFORMWINDOW:
 				js.setRightComponent(waveformWnd);
+				rootNode.add(waveformTree);
 				break;
 		}
+		rootNode.add(Job.getExplorerTree());
+		rootNode.add(ErrorLog.getExplorerTree());
+		tree.updateThisExplorerTree();
 	}
+
+	public void setWaveformExplorerData(DefaultMutableTreeNode waveformTree) { this.waveformTree = waveformTree; }
 
 	public int getContents() { return contents; }
 

@@ -67,7 +67,7 @@ public class Generic extends Technology
 	{
 		setTechName("generic");
 		setTechDesc("Useful primitives");
-		setScale(1000);			// in nanometers: really 1 micron
+		setFactoryScale(1000);			// in nanometers: really 1 micron
 
 		//**************************************** LAYERS ****************************************
 

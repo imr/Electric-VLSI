@@ -61,7 +61,7 @@ public class MoCMOSOld extends Technology
 	{
 		setTechName("mocmosold");
 		setTechDesc("Complementary MOS (old, from MOSIS, P-Well, double metal)");
-		setScale(1000);   // in nanometers: really 1 microns
+		setFactoryScale(1000);   // in nanometers: really 1 microns
 		setNoNegatedArcs();
 		setStaticTechnology();
 		setNumTransparentLayers(5);

@@ -128,7 +128,7 @@ public class LayoutLib {
 		if (lib!=null)  return lib;
 		
 		// create a new Library
-		lib = Library.newInstance(libName, libFileName);
+		lib = Library.newInstance(libName, libFileURL);
 
 		error(lib==null, "can't open Library for modify: "+libName);
 		return lib;

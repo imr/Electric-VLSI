@@ -61,7 +61,7 @@ public class nMOS extends Technology
 	{
 		setTechName("nmos");
 		setTechDesc("n-channel MOS (from Mead & Conway)");
-		setScale(2000);   // in nanometers: really 2 microns
+		setFactoryScale(2000);   // in nanometers: really 2 microns
 		setNoNegatedArcs();
 		setStaticTechnology();
 		setNumTransparentLayers(5);

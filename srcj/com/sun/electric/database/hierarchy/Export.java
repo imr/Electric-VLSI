@@ -85,6 +85,11 @@ public class Export extends PortProto
 	 */
 	public static Export newInstance(Cell parent, PortInst portInst, String protoName)
 	{
+		if (parent.findExport(protoName) != null)
+		{
+			System.out.println("Cell " + parent.describe() + " already has an export called " + protoName);
+			return null;
+		}
 		Export pp = lowLevelAllocate();
 		if (pp.lowLevelName(parent, protoName)) return null;
 		if (pp.lowLevelPopulate(portInst)) return null;

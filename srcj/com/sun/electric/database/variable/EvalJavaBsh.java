@@ -173,7 +173,7 @@ public class EvalJavaBsh
             if (context == null) context = VarContext.globalContext;
             contextStack.push(context);             // push context
             infoStack.push(info);                   // push info
-            Object ret = env.eval(expr);            // ask bsh to eval
+			Object ret = env.eval(expr);            // ask bsh to eval
             contextStack.pop();                     // pop context
             infoStack.pop();                        // pop info
             //System.out.println("BSH: "+expr.toString()+" --> "+ret);

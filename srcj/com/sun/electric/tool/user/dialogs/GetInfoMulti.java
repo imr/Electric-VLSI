@@ -98,6 +98,7 @@ public class GetInfoMulti extends javax.swing.JDialog
 		setLocation(100, 50);
 		highlightList = new ArrayList();
 		initComponents();
+        getRootPane().setDefaultButton(ok);
 
 		// make the list
 		listModel = new DefaultListModel();

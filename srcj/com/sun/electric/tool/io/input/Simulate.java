@@ -47,6 +47,7 @@ import java.util.Iterator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ArrayList;
 
 
 /**
@@ -54,17 +55,30 @@ import java.util.List;
  */
 public class Simulate extends Input
 {
-	static class SimData
+	public static class SimData
 	{
-		String [] signalNames;
-		List events;
+		public Cell cell;
+		public List signals;
+		public double [] commonTime;
+
+		public SimData()
+		{
+			signals = new ArrayList();
+		}
 	}
 
-	static class SimEvent
+	public static class SimSignal
 	{
-		double time;
-		double [] values;
-	};
+		public String signalName;
+		public Color signalColor;
+		public boolean useCommonTime;
+		public double [] time;
+		public List tempList;
+	}
+	public static class SimAnalogSignal extends SimSignal
+	{
+		public double [] values;
+	}
 
 	Simulate() {}
 
@@ -185,60 +199,56 @@ public class Simulate extends Input
 
 	private static void showSimulationData(SimData sd)
 	{
-		Color [] colorArray = new Color [] {
-			Color.RED, Color.GREEN, Color.BLUE, Color.PINK, Color.ORANGE, Color.YELLOW, Color.CYAN, Color.MAGENTA};
+//		Color [] colorArray = new Color [] {
+//			Color.RED, Color.GREEN, Color.BLUE, Color.PINK, Color.ORANGE, Color.YELLOW, Color.CYAN, Color.MAGENTA};
 		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 		if (wf == null) return;
 
 		// determine extent of the data
-		int numSignals = sd.signalNames.length;
 		double lowTime=0, highTime=0, lowValue=0, highValue=0;
 		boolean first = true;
-		int numValues = sd.events.size();
-		for(Iterator it = sd.events.iterator(); it.hasNext(); )
+		for(Iterator it = sd.signals.iterator(); it.hasNext(); )
 		{
-			SimEvent se = (SimEvent)it.next();
-			if (first)
+			SimSignal sig = (SimSignal)it.next();
+			if (sig instanceof SimAnalogSignal)
 			{
-				first = false;
-				lowTime = highTime = se.time;
-				lowValue = highValue = se.values[0];
-			}
-			if (se.time < lowTime) lowTime = se.time;
-			if (se.time > highTime) highTime = se.time;
-			for(int i=0; i<se.values.length; i++)
-			{
-				if (se.values[i] < lowValue) lowValue = se.values[i];
-				if (se.values[i] > highValue) highValue = se.values[i];
+				SimAnalogSignal as = (SimAnalogSignal)sig;
+				for(int i=0; i<as.values.length; i++)
+				{
+					double time = 0;
+					if (sig.useCommonTime) time = sd.commonTime[i]; else
+						time = as.time[i];
+					if (first)
+					{
+						first = false;
+						lowTime = highTime = time;
+						lowValue = highValue = as.values[i];
+					} else
+					{
+						if (time < lowTime) lowTime = time;
+						if (time > highTime) highTime = time;
+						if (as.values[i] < lowValue) lowValue = as.values[i];
+						if (as.values[i] > highValue) highValue = as.values[i];
+					}
+				}
 			}
 		}
 		double timeRange = highTime - lowTime;
-
+System.out.println("Time from "+lowTime+" to "+highTime);
+System.out.println("Values from "+lowValue+" to "+highValue);
 		// make the waveform window
-		WaveformWindow ww = new WaveformWindow(null, wf);
+		WaveformWindow ww = new WaveformWindow(sd, wf);
 		ww.setMainTimeCursor(timeRange*0.2 + lowTime);
 		ww.setExtensionTimeCursor(timeRange*0.8 + lowTime);
 
 		// put waveform panels in it
-		double [] time = new double[numValues];
-		for(int sig=0; sig<numSignals; sig++)
+		for(int sig=0; sig<sd.signals.size(); sig++)
 		{
+			Simulate.SimSignal sSig = (Simulate.SimSignal)sd.signals.get(sig);
 			WaveformWindow.Panel wp = new WaveformWindow.Panel(ww);
 			wp.setTimeRange(lowTime, highTime);
 			wp.setValueRange(lowValue, highValue);
-			String text = sd.signalNames[sig];
-			Color color = Color.RED;
-			WaveformWindow.Signal wsig = new WaveformWindow.Signal(wp, text, color);
-			double [] value = new double[numValues];
-			int k = 0;
-			for(Iterator it = sd.events.iterator(); it.hasNext(); )
-			{
-				SimEvent se = (SimEvent)it.next();
-				time[k] = se.time;
-				value[k] = se.values[sig];
-				k++;
-			}
-			wsig.setAnalogTrace(time, value);
+			WaveformWindow.Signal wsig = new WaveformWindow.Signal(wp, sSig);
 if (sig > 20) break;
 		}
 	}

@@ -1764,9 +1764,9 @@ public class PixelDrawing
 		if (desc != null) col = desc.getColor().getRGB() & 0xFFFFFF;
 
 		// get text description
-		int size = 14;
+		int size = EditWindow.getDefaultFontSize();
 		int fontStyle = Font.PLAIN;
-		String fontName = "SansSerif";
+		String fontName = User.getDefaultFont();
 		boolean italic = false;
 		boolean bold = false;
 		boolean underline = false;

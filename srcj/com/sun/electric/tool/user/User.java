@@ -715,6 +715,19 @@ public class User extends Listener
 	 */
 	public static void setTextVisibilityOnCell(boolean on) { cacheTextVisibilityCell.setBoolean(on); }
 
+	private static Pref cacheDefaultFont = Pref.makeStringPref("DefaultFont", User.tool.prefs, "SansSerif");
+	/**
+	 * Method to get the default font to use on the display.
+	 * The default is "SansSerif".
+	 * @return the default font to use on the display.
+	 */
+	public static String getDefaultFont() { return cacheDefaultFont.getString(); }
+	/**
+	 * Method to set the default font to use on the display.
+	 * @param f the default font to use on the display.
+	 */
+	public static void setDefaultFont(String f) { cacheDefaultFont.setString(f); }
+
 	/****************************** MISCELLANEOUS PREFERENCES ******************************/
 
 	private static Pref cacheSchematicTechnology = Pref.makeStringPref("SchematicTechnology", User.tool.prefs, "mocmos");
@@ -733,7 +746,7 @@ public class User extends Listener
 	 * This is important in Spice deck generation (for example) because the Spice primitives may
 	 * say "2x3" on them, but a real technology (such as "mocmos") must be found to convert these pure
 	 * numbers to real spacings for the deck.
-	 * @param u the technology to use when schematics are found.
+	 * @param t the technology to use when schematics are found.
 	 */
 	public static void setSchematicTechnology(String t) { cacheSchematicTechnology.setString(t); }
 

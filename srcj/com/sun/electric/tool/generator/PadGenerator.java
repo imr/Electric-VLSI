@@ -139,28 +139,26 @@ public class PadGenerator
 									if (str.hasMoreTokens())
 									{
 										keyWord = str.nextToken();
-										Library.Name n = Library.Name.newInstance(keyWord);
-										cellLib = Library.findLibrary(n.getName());
+										URL fileURL = TextUtils.makeURLToFile(keyWord);
+										cellLib = Library.findLibrary(TextUtils.getFileNameWithoutExtension(fileURL));
 										if (cellLib == null)
 										{
 											// library does not exist: see if file can be found locally
-											String externalFile = keyWord;
-											URL fileURL = TextUtils.makeURLToFile(externalFile);
 											if (TextUtils.getURLStream(fileURL) == null)
 											{
 												// try the Electric library area
 												fileURL = LibFile.getLibFile(keyWord);
 												if (TextUtils.getURLStream(fileURL) == null)
 												{
-													System.out.println("Cannot find cell library " + externalFile);
+													System.out.println("Cannot find cell library " + fileURL.getPath());
 													return;
 												}
 											}
 
 											OpenFile.Type style = OpenFile.Type.ELIB;
-											if (n.getExtension().equals("txt")) style = OpenFile.Type.READABLEDUMP;
+											if (TextUtils.getExtension(fileURL).equals("txt")) style = OpenFile.Type.READABLEDUMP;
 											Library saveLib = Library.getCurrent();
-											cellLib = Library.newInstance(n.getName(), externalFile);
+											cellLib = Library.newInstance(TextUtils.getFileNameWithoutExtension(fileURL), fileURL);
 											cellLib = Input.readLibrary(fileURL, style);
 											if (cellLib == null)
 											{

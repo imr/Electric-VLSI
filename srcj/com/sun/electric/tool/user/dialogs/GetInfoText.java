@@ -386,6 +386,7 @@ public class GetInfoText extends javax.swing.JDialog
 		super(parent, modal);
 		setLocation(100, 50);
 		initComponents();
+        getRootPane().setDefaultButton(ok);
 
 		textIconCenter.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabCenter.gif")));
 		textIconLeft.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabLeft.gif")));

@@ -33,6 +33,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.util.Iterator;
 import javax.swing.JComboBox;
@@ -40,6 +41,7 @@ import javax.swing.JList;
 import javax.swing.ListSelectionModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JScrollPane;
+import javax.swing.JOptionPane;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
@@ -254,7 +256,7 @@ public class NewExport extends javax.swing.JDialog
 		boolean body = bodyOnly.isSelected();
 		if (name.length() <= 0)
 		{
-			System.out.println("Must enter an export name");
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Must enter an export name");
 			return;
 		}
 
@@ -280,6 +282,13 @@ public class NewExport extends javax.swing.JDialog
 			return;
 		}
 		NodeInst ni = (NodeInst)eobj;
+		Cell parent = ni.getParent();
+		if (parent.findExport(name) != null)
+		{
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+				"Cell " + parent.describe() + " already has an export called " + name);
+			return;
+		}
 
 		PortInst pi = null;
 		if (pp == null)
@@ -296,7 +305,7 @@ public class NewExport extends javax.swing.JDialog
 		}
 
 		// make the export
-		MakeExport job = new MakeExport(ni.getParent(), pi, name, body, drawn, ch, referenceName);
+		MakeExport job = new MakeExport(parent, pi, name, body, drawn, ch, referenceName);
 		closeDialog(null);
 	}//GEN-LAST:event_okActionPerformed
 

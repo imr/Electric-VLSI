@@ -491,6 +491,7 @@ public class Technology extends ElectricObject
 	/** Spice header cards, level 1. */					private String [] spiceHeaderLevel1;
 	/** Spice header cards, level 2. */					private String [] spiceHeaderLevel2;
 	/** Spice header cards, level 3. */					private String [] spiceHeaderLevel3;
+	/** scale for this Technology. */					private Pref prefScale;
 	/** Minimum resistance for this Technology. */		private Pref prefMinResistance;
 	/** Minimum capacitance for this Technology. */		private Pref prefMinCapacitance;
 	/** preferences for all technologies */				private static Preferences prefs = null;
@@ -2116,22 +2117,39 @@ public class Technology extends ElectricObject
 	public void setTechDesc(String techDesc) { this.techDesc = techDesc; }
 
 	/**
-	 * Returns the default scale for this Technology.
+	 * Returns the scale for this Technology.
 	 * The technology's scale is for manufacturing output, which must convert
 	 * the unit-based values in Electric to real-world values (in nanometers).
-	 * @return the default scale for this Technology.
+	 * @return the scale for this Technology.
 	 */
-	public double getScale() { return scale; }
+	public double getScale()
+	{
+		return prefScale.getDouble();
+	}
 
 	/**
-	 * Sets the default scale of this technology.
+	 * Sets the factory scale of this technology.
+	 * The technology's scale is for manufacturing output, which must convert
+	 * the unit-based values in Electric to real-world values (in nanometers).
+	 * @param factory the factory scale between this technology and the real units.
+	 */
+	public void setFactoryScale(double factory)
+	{
+		prefScale = Pref.makeDoublePref("ScaleFOR" + getTechName(), prefs, factory);
+		prefScale.attachToObject(this, "IO Options, Units tab", "Technology " + getTechName() + " scale");
+	}
+
+	/**
+	 * Sets the scale of this technology.
 	 * The technology's scale is for manufacturing output, which must convert
 	 * the unit-based values in Electric to real-world values (in nanometers).
 	 * @param scale the new scale between this technology and the real units.
 	 */
 	public void setScale(double scale)
 	{
-		if (scale != 0) this.scale = scale;
+		if (scale == 0) return;
+		System.out.println("SETTING SCALE FOR "+techName+" TO "+scale);
+		prefScale.setDouble(scale);
 	}
 
 	/**

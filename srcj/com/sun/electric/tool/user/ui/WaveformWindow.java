@@ -36,6 +36,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 
@@ -78,6 +79,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
  * This class defines the a screenful of Panels that make up a waveform display.
@@ -94,13 +96,33 @@ public class WaveformWindow
 		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 		if (wf == null) return;
 
-		// make the waveform window
-		WaveformWindow ww = new WaveformWindow(null, wf);
+		// make the waveform data
+		Simulate.SimData sd = new Simulate.SimData();
 		double timeStep = 0.0000000001;
+		sd.commonTime = new double[100];
+		for(int i=0; i<100; i++)
+			sd.commonTime[i] = i * timeStep;
+		for(int i=0; i<18; i++)
+		{
+			Simulate.SimAnalogSignal as = new Simulate.SimAnalogSignal();
+			as.signalName = "Signal"+(i+1);
+			as.signalColor = colorArray[i % colorArray.length];
+			as.useCommonTime = true;
+			as.values = new double[100];
+			for(int k=0; k<100; k++)
+			{
+				as.values[k] = Math.sin((k+i*10) / (2.0+i*2)) * 4;
+			}
+			sd.signals.add(as);
+		}
+		sd.cell = null;
+
+		// make the waveform window
+		WaveformWindow ww = new WaveformWindow(sd, wf);
 		ww.setMainTimeCursor(timeStep*22);
 		ww.setExtensionTimeCursor(timeStep*77);
 
-		// put waveform panels in it
+		// make some waveform panels and put signals in them
 		for(int i=0; i<6; i++)
 		{
 			Panel wp = new Panel(ww);
@@ -108,17 +130,8 @@ public class WaveformWindow
 			wp.setValueRange(-5, 5);
 			for(int j=0; j<(i+1)*3; j++)
 			{
-				String text = "Signal"+(j+1);
-				Color color = colorArray[j % colorArray.length];
-				Signal wsig = new Signal(wp, text, color);
-				double [] time = new double[100];
-				double [] value = new double[100];
-				for(int k=0; k<100; k++)
-				{
-					time[k] = k * timeStep;
-					value[k] = Math.sin((k+j*10) / (2.0+j*2)) * 4;
-				}
-				wsig.setAnalogTrace(time, value);
+				Simulate.SimAnalogSignal as = (Simulate.SimAnalogSignal)sd.signals.get(j);
+				Signal wsig = new Signal(wp, as);
 			}
 		}
 	}
@@ -131,7 +144,7 @@ public class WaveformWindow
 	{
 		/** the main waveform window this is part of */			private WaveformWindow waveWindow;
 		/** maps signal buttons to the actual Signal */			private HashMap waveSignals;
-		/** the list of signal names on the left */				private JPanel signalNames;
+		/** the list of signal name buttons on the left */		private JPanel signalButtons;
 		/** the left side: with signal names etc. */			private JPanel leftHalf;
 		/** the right side: with signal traces */				private JPanel rightHalf;
 		/** the button to close this panel. */					private JButton close;
@@ -148,7 +161,6 @@ public class WaveformWindow
 		/** true if an area is being dragged */					private boolean draggingArea;
 		private double dragStartX, dragStartY;
 		private double dragEndX, dragEndY;
-
 
 		private static final int VERTLABELWIDTH = 60;
 		private static Color background = null;
@@ -256,9 +268,9 @@ public class WaveformWindow
 			});
 
 			// the list of signals in this panel
-			signalNames = new JPanel();
-			signalNames.setLayout(new BoxLayout(signalNames, BoxLayout.Y_AXIS));
-			JScrollPane signalList = new JScrollPane(signalNames);
+			signalButtons = new JPanel();
+			signalButtons.setLayout(new BoxLayout(signalButtons, BoxLayout.Y_AXIS));
+			JScrollPane signalList = new JScrollPane(signalButtons);
 			signalList.setPreferredSize(new Dimension(100, 150));
 			gbc.gridx = 0;       gbc.gridy = 2;
 			gbc.gridwidth = 4;   gbc.gridheight = 1;
@@ -383,16 +395,20 @@ public class WaveformWindow
 			for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
 			{
 				Signal ws = (Signal)it.next();
-				g.setColor(ws.color);
-				if (ws.valueArray != null)
+				g.setColor(ws.sSig.signalColor);
+				if (ws.sSig instanceof Simulate.SimAnalogSignal)
 				{
 					// draw analog trace
+					Simulate.SimAnalogSignal as = (Simulate.SimAnalogSignal)ws.sSig;
 					int lx = 0, ly = 0;
-					for(int i=0; i<ws.valueArray.length; i++)
+					int numEvents = as.values.length;
+					for(int i=0; i<numEvents; i++)
 					{
-						double time = ws.timeArray[i];
+						double time = 0;
+						if (ws.sSig.useCommonTime) time = waveWindow.sd.commonTime[i]; else
+							time = ws.sSig.time[i];
 						int x = scaleTimeToX(time);
-						int y = scaleValueToY(ws.valueArray[i]);
+						int y = scaleValueToY(as.values[i]);
 						if (i != 0)
 						{
 							g.drawLine(lx, ly, x, y);
@@ -421,7 +437,7 @@ public class WaveformWindow
 			if (ss.separation != 0.0)
 			{
 				double value = ss.low;
-				Font font = new Font("SansSerif", Font.PLAIN, 12);
+				Font font = new Font(User.getDefaultFont(), Font.PLAIN, 12);
 				g.setFont(font);
 				FontRenderContext frc = new FontRenderContext(null, false, false);
 				for(;;)
@@ -429,7 +445,7 @@ public class WaveformWindow
 					if (value > ss.high) break;
 					int y = scaleValueToY(value);
 					g.drawLine(VERTLABELWIDTH-10, y, VERTLABELWIDTH, y);
-					String yValue = sim_window_prettyprint(value, ss.rangeScale, ss.stepScale);
+					String yValue = prettyPrint(value, ss.rangeScale, ss.stepScale);
 					GlyphVector gv = font.createGlyphVector(frc, yValue);
 					Rectangle2D glyphBounds = gv.getVisualBounds();
 					int height = (int)glyphBounds.getHeight();
@@ -526,15 +542,19 @@ public class WaveformWindow
 			for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
 			{
 				Signal ws = (Signal)it.next();
-				if (ws.valueArray != null)
+				if (ws.sSig instanceof Simulate.SimAnalogSignal)
 				{
 					// search analog trace
+					Simulate.SimAnalogSignal as = (Simulate.SimAnalogSignal)ws.sSig;
 					int lx = 0, ly = 0;
-					for(int i=0; i<ws.valueArray.length; i++)
+					int numEvents = as.values.length;
+					for(int i=0; i<numEvents; i++)
 					{
-						double time = ws.timeArray[i];
+						double time = 0;
+						if (ws.sSig.useCommonTime) time = waveWindow.sd.commonTime[i]; else
+							time = as.time[i];
 						int x = scaleTimeToX(time);
-						int y = scaleValueToY(ws.valueArray[i]);
+						int y = scaleValueToY(as.values[i]);
 						if (i != 0)
 						{
 							double dist = EMath.distToLine(new Point2D.Double(lx, ly),  new Point2D.Double(x, y), cursor);
@@ -558,23 +578,23 @@ public class WaveformWindow
 				Signal ws = (Signal)it.next();
 				if (!ws.highlighted) continue;
 				ws.highlighted = false;
-				ws.signalName.setBackground(background);
+				ws.sigButton.setBackground(background);
 			}
 			repaint();
 		}
 
 		private void addHighlightedSignal(Signal ws)
 		{
-			if (background == null) background = ws.signalName.getBackground();
+			if (background == null) background = ws.sigButton.getBackground();
 			ws.highlighted = true;
-			ws.signalName.setBackground(Color.BLACK);
+			ws.sigButton.setBackground(Color.BLACK);
 			repaint();
 		}
 
 		private void removeHighlightedSignal(Signal ws)
 		{
 			ws.highlighted = false;
-			ws.signalName.setBackground(background);
+			ws.sigButton.setBackground(background);
 			repaint();
 		}
 
@@ -730,32 +750,26 @@ public class WaveformWindow
 	public static class Signal
 	{
 		/** the panel that holds this signal */			private Panel wavePanel;
-		/** the name of this signal */					private String name;
+		/** the data for this signal */					private Simulate.SimSignal sSig;
 		/** true if this signal is highlighted */		private boolean highlighted;
-		/** the color of this signal */					private Color color;
-		/** the button on the left with this signal */	private JButton signalName;
-		/* time steps along this trace */				private double   [] timeArray;
-		/* states along this trace (digital) */			private int      [] stateArray;
-		/* values along this trace (analog) */			private double   [] valueArray;
+		/** the button on the left with this signal */	private JButton sigButton;
 //		CHAR     *origname;			/* original name of this trace */
-//		INTBIG    flags;			/* state bits for this trace (see above) */
 //		INTBIG    nodeptr;			/* "user" data for this trace */
 //		INTBIG    busindex;			/* index of this trace in the bus (when part of a bus) */
 //		struct Itrace *buschannel;
 
-		public Signal(Panel wavePanel, String name, Color color)
+		public Signal(Panel wavePanel, Simulate.SimSignal sSig)
 		{
 			this.wavePanel = wavePanel;
-			this.name = name;
-			this.color = color;
+			this.sSig = sSig;
 			this.highlighted = false;
-			signalName = new JButton(name);
-			signalName.setBorderPainted(false);
-			signalName.setDefaultCapable(false);
-			signalName.setForeground(color);
-			wavePanel.signalNames.add(signalName);
-			wavePanel.waveSignals.put(signalName, this);
-			signalName.addActionListener(new ActionListener()
+			sigButton = new JButton(sSig.signalName);
+			sigButton.setBorderPainted(false);
+			sigButton.setDefaultCapable(false);
+			sigButton.setForeground(sSig.signalColor);
+			wavePanel.signalButtons.add(sigButton);
+			wavePanel.waveSignals.put(sigButton, this);
+			sigButton.addActionListener(new ActionListener()
 			{
 				public void actionPerformed(ActionEvent evt) { signalNameClicked(evt); }
 			});
@@ -777,37 +791,10 @@ public class WaveformWindow
 					ws.wavePanel.addHighlightedSignal(ws);
 			}
 		}
-
-		/*
-		 * routine to load trace "tri" with "count" digital events.  The events occur
-		 * at time "time" and have state "state".  "State" is encoded with a
-		 * level in the upper 8 bits (LOGIC_LOW, LOGIC_HIGH, LOGIC_X, or LOGIC_Z) and a
-		 * strength in the lower 8 bits (OFF_STRENGTH, NODE_STRENGTH, GATE_STRENGTH,
-		 * or VDD_STRENGTH).
-		 */
-		public void setDigitalTrace(double [] time, int [] state)
-		{
-			// load the data
-			timeArray = time;
-			stateArray = state;
-//			flags = (flags & ~TRACETYPE) | TRACEISDIGITAL;
-		}
-
-		/*
-		 * routine to load trace "tri" with "count" analog events.  The events occur
-		 * at time "time" and have value "value".
-		 */
-		public void setAnalogTrace(double [] time, double [] value)
-		{
-			// load the data
-			timeArray = time;
-			valueArray = value;
-//			flags = (flags & ~TRACETYPE) | TRACEISANALOG;
-		}
 	}
 
 	/** the window that this lives in */					private WindowFrame wf;
-	/** the cell being simulated */							private Cell cell;
+	/** the cell being simulated */							private Simulate.SimData sd;
 	/** let panel: the signal names */						private JPanel left;
 	/** right panel: the signal traces */					private JPanel right;
 	/** labels for the text at the top */					private JLabel mainPos, extPos, delta;
@@ -819,11 +806,11 @@ public class WaveformWindow
 
     // ************************************* CONTROL *************************************
 
-	public WaveformWindow(Cell cell, WindowFrame wf)
+	public WaveformWindow(Simulate.SimData sd, WindowFrame wf)
 	{
 		// initialize the structure
 		this.wf = wf;
-		this.cell = cell;
+		this.sd = sd;
 		wavePanels = new ArrayList();
 
 		// the total panel in the waveform window
@@ -895,7 +882,19 @@ public class WaveformWindow
 		gbc.fill = java.awt.GridBagConstraints.BOTH;
 		gbc.insets = new Insets(0, 0, 0, 0);
 		panel.add(overall, gbc);
+		wf.setWaveformExplorerData(getSignalsForExplorer());
 		wf.setContent(WindowFrame.WAVEFORMWINDOW);
+	}
+
+	private DefaultMutableTreeNode getSignalsForExplorer()
+	{
+		DefaultMutableTreeNode signalsExplorerTree = new DefaultMutableTreeNode("SIGNALS");
+		for(Iterator it = sd.signals.iterator(); it.hasNext(); )
+		{
+			Simulate.SimSignal sSig = (Simulate.SimSignal)it.next();
+			signalsExplorerTree.add(new DefaultMutableTreeNode(sSig.signalName));
+		}
+		return signalsExplorerTree;
 	}
 
 	public void setMainTimeCursor(double time)
@@ -929,7 +928,7 @@ public class WaveformWindow
 	 * Method to return the cell that is shown in this window.
 	 * @return the cell that is shown in this window.
 	 */
-	public Cell getCell() { return cell; }
+	public Cell getCell() { return sd.cell; }
 
 	/**
 	 * Method to set the window title.
@@ -937,14 +936,14 @@ public class WaveformWindow
 	public void setWindowTitle()
 	{
 		if (wf == null) return;
-		if (cell == null)
+		if (sd.cell == null)
 		{
 			wf.setTitle("***WAVEFORM WITH NO CELL***");
 			return;
 		}
 
-		String title = "Waveform for " + cell.describe();
-		if (cell.getLibrary() != Library.getCurrent())
+		String title = "Waveform for " + sd.cell.describe();
+		if (sd.cell.getLibrary() != Library.getCurrent())
 			title += " - Current library: " + Library.getCurrent().getLibName();
 		wf.setTitle(title);
 	}
@@ -1006,7 +1005,7 @@ public class WaveformWindow
 		return ss;
 	}
 
-	private static String sim_window_prettyprint(double v, int i1, int i2)
+	private static String prettyPrint(double v, int i1, int i2)
 	{
 		double d = 1.0;
 		if (i2 > 0)
@@ -1178,14 +1177,14 @@ public class WaveformWindow
 				Signal ws = (Signal)it.next();
 				if (!ws.highlighted) continue;
 				wp.removeHighlightedSignal(ws);
-				wp.signalNames.remove(ws.signalName);
-				wp.waveSignals.remove(ws.signalName);
+				wp.signalButtons.remove(ws.sigButton);
+				wp.waveSignals.remove(ws.sigButton);
 				found = true;
 				break;
 			}
 		}
-		wp.signalNames.validate();
-		wp.signalNames.repaint();
+		wp.signalButtons.validate();
+		wp.signalButtons.repaint();
 		wp.repaint();
 	}
 
@@ -1196,9 +1195,9 @@ public class WaveformWindow
 	public void deleteAllSignalsFromPanel(Panel wp)
 	{
 		wp.clearHighlightedSignals();
-		wp.signalNames.removeAll();
-		wp.signalNames.validate();
-		wp.signalNames.repaint();
+		wp.signalButtons.removeAll();
+		wp.signalButtons.validate();
+		wp.signalButtons.repaint();
 		wp.waveSignals.clear();
 		wp.repaint();
 	}

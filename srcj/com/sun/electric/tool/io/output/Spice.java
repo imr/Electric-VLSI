@@ -354,7 +354,6 @@ public class Spice extends Topology
 						spNet.diffPerim += perim * maskScale;
 					} else
 					{
-						System.out.println("area="+area+" capacitance="+layer.getCapacitance());
 						spNet.nonDiffCapacitance += layer.getCapacitance() * area * maskScale * maskScale;
 						spNet.nonDiffCapacitance += layer.getEdgeCapacitance() * perim * maskScale;
 					}
@@ -1050,15 +1049,14 @@ public class Spice extends Topology
 		}
 
 		// see if spice model/option cards from file if specified
-		Variable var = layoutTechnology.getVar("SIM_spice_model_file");
-		if (var != null)
+		String headerFile = Simulation.getSpiceHeaderCardInfo();
+		if (headerFile.length() > 0)
 		{
-			String pt = var.getObject().toString();
-			if (pt.startsWith(":::::"))
+			if (headerFile.startsWith(":::::"))
 			{
 				// extension specified: look for a file with the cell name and that extension
-				String headerPath = cell.getLibrary().getLibPath();
-				String fileName = headerPath + cell.getProtoName() + pt.substring(5);
+				String headerPath = TextUtils.getFilePath(cell.getLibrary().getLibFile());
+				String fileName = headerPath + cell.getProtoName() + "." + headerFile.substring(5);
 				File test = new File(fileName);
 				if (test.exists())
 				{
@@ -1069,11 +1067,11 @@ public class Spice extends Topology
 			} else
 			{
 				// normal header file specified
-				File test = new File(pt);
+				File test = new File(headerFile);
 				if (!test.exists())
-					System.out.println("Warning: cannot find model file '" + pt + "'");
+					System.out.println("Warning: cannot find model file '" + headerFile + "'");
 				multiLinePrint(true, "* Model cards are described in this file:\n");
-				addIncludeFile(pt);
+				addIncludeFile(headerFile);
 				return;
 			}
 		}
@@ -1105,15 +1103,14 @@ public class Spice extends Topology
 	private void writeTrailer(Cell cell)
 	{
 		// get spice trailer cards from file if specified
-		Variable var = layoutTechnology.getVar("SIM_spice_trailer_file");
-		if (var != null)
+		String trailerFile = Simulation.getSpiceTrailerCardInfo();
+		if (trailerFile.length() > 0)
 		{
-			String pt = var.getObject().toString();
-			if (pt.startsWith(":::::"))
+			if (trailerFile.startsWith(":::::"))
 			{
 				// extension specified: look for a file with the cell name and that extension
-				String trailerpath = cell.getLibrary().getLibPath();
-				String fileName = trailerpath + cell.getProtoName() + pt.substring(5);
+				String trailerpath = TextUtils.getFilePath(cell.getLibrary().getLibFile());
+				String fileName = trailerpath + cell.getProtoName() + "." + trailerFile.substring(5);
 				File test = new File(fileName);
 				if (test.exists())
 				{
@@ -1124,7 +1121,7 @@ public class Spice extends Topology
 			{
 				// normal trailer file specified
 				multiLinePrint(true, "* Trailer cards are described in this file:\n");
-				addIncludeFile(pt);
+				addIncludeFile(trailerFile);
 			}
 		}
 	}

@@ -1852,9 +1852,8 @@ public class ELIB extends LibraryFiles
 			}
 			if (externalStream != null)
 			{
-				String externalFile = externalURL.getFile();
-				System.out.println("Reading referenced library " + externalFile);
-				elib = Library.newInstance(libName, externalFile);
+				System.out.println("Reading referenced library " + externalURL.getFile());
+				elib = Library.newInstance(libName, externalURL);
 			} else
 			{
 				System.out.println("CANNOT FIND referenced library " + libFile.getPath());
