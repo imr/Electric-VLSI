@@ -24,6 +24,8 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.database.hierarchy.Cell;
 
 import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
@@ -33,8 +35,9 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 
-class ZoomAndPanListener
+public class ZoomAndPanListener
 	implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
 {
 	public static ZoomAndPanListener theOne = new ZoomAndPanListener();
@@ -96,5 +99,52 @@ class ZoomAndPanListener
 	public void keyPressed(KeyEvent evt) {}
 	public void keyReleased(KeyEvent evt) {}
 	public void keyTyped(KeyEvent evt) {}
+
+    // ----------------------------------- Zoom commands -----------------------------------
+
+    public static void fullDisplay()
+    {
+        // get the current window
+        EditWindow wnd = EditWindow.getCurrent();
+        if (wnd == null) return;
+
+        // make the circuit fill the window
+        wnd.fillScreen();
+    }
+
+    public static void zoomOutDisplay()
+    {
+        // get the current window
+        EditWindow wnd = EditWindow.getCurrent();
+        if (wnd == null) return;
+
+        // zoom out by a factor of two
+        double scale = wnd.getScale();
+        wnd.setScale(scale / 2);
+        wnd.repaintContents();
+    }
+
+    public static void zoomInDisplay()
+    {
+        // get the current window
+        EditWindow wnd = EditWindow.getCurrent();
+        if (wnd == null) return;
+
+        // zoom in by a factor of two
+        double scale = wnd.getScale();
+        wnd.setScale(scale * 2);
+        wnd.repaintContents();
+    }
+
+    public static void focusOnHighlighted()
+    {
+        // get the current window
+        EditWindow wnd = EditWindow.getCurrent();
+        if (wnd == null) return;
+
+        // focus on highlighting
+        Rectangle2D bounds = Highlight.getHighlightedArea(wnd);
+        wnd.focusScreen(bounds);
+    }
 
 }

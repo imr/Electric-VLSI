@@ -77,6 +77,7 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.ToolOptions;
 import com.sun.electric.tool.user.dialogs.ViewControl;
 import com.sun.electric.tool.user.ui.MenuManager;
+import com.sun.electric.tool.user.ui.MenuManager.MenuItem;
 import com.sun.electric.tool.user.ui.MenuManager.Menu;
 import com.sun.electric.tool.user.ui.MenuManager.MenuBar;
 import com.sun.electric.tool.user.ui.*;
@@ -148,6 +149,7 @@ public final class MenuCommands
 	{
 		// create the menu bar
 		MenuBar menuBar = new MenuBar();
+        MenuItem m;
 		int buckyBit = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
 		/****************************** THE FILE MENU ******************************/
@@ -280,7 +282,7 @@ public final class MenuCommands
 		modeSubMenu.add(modeSubMenuEdit);
 		ButtonGroup editGroup = new ButtonGroup();
         JMenuItem cursorClickZoomWire, cursorSelect, cursorWiring, cursorPan, cursorZoom, cursorOutline;
-		cursorClickZoomWire = modeSubMenuEdit.addRadioButton(cursorClickZoomWireName, true, editGroup, null,
+		cursorClickZoomWire = modeSubMenuEdit.addRadioButton(cursorClickZoomWireName, true, editGroup, KeyStroke.getKeyStroke('S', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.clickZoomWireCommand(); } });
 		cursorSelect = modeSubMenuEdit.addRadioButton(cursorSelectName, false, editGroup, KeyStroke.getKeyStroke('M', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.selectCommand(); } });
@@ -507,14 +509,17 @@ public final class MenuCommands
 		Menu windowMenu = new Menu("Window", 'W');
 		menuBar.add(windowMenu);
 
-		windowMenu.addMenuItem("Fill Display", KeyStroke.getKeyStroke('9', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { fullDisplayCommand(); } });
-		windowMenu.addMenuItem("Zoom Out", KeyStroke.getKeyStroke('0', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { zoomOutDisplayCommand(); } });
-		windowMenu.addMenuItem("Zoom In", KeyStroke.getKeyStroke('7', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { zoomInDisplayCommand(); } });
-		windowMenu.addMenuItem("Focus on Highlighted", KeyStroke.getKeyStroke('F', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { focusOnHighlightedCommand(); } });
+		m = windowMenu.addMenuItem("Fill Display", KeyStroke.getKeyStroke('9', buckyBit),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.fullDisplay(); } });
+        m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD9, buckyBit), null);
+		m = windowMenu.addMenuItem("Zoom Out", KeyStroke.getKeyStroke('0', buckyBit),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.zoomOutDisplay(); } });
+        m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, buckyBit), null);
+		m = windowMenu.addMenuItem("Zoom In", KeyStroke.getKeyStroke('7', buckyBit),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.zoomInDisplay(); } });
+        m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD7, buckyBit), null);
+		m = windowMenu.addMenuItem("Focus on Highlighted", KeyStroke.getKeyStroke('F', buckyBit),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.focusOnHighlighted(); } });
 
 		windowMenu.addSeparator();
 
@@ -1814,51 +1819,6 @@ public final class MenuCommands
 	}
 
 	// ---------------------- THE WINDOW MENU -----------------
-
-	public static void fullDisplayCommand()
-	{
-		// get the current window
-		EditWindow wnd = EditWindow.getCurrent();
-		if (wnd == null) return;
-
-		// make the circuit fill the window
-		wnd.fillScreen();
-	}
-
-	public static void zoomOutDisplayCommand()
-	{
-		// get the current window
-		EditWindow wnd = EditWindow.getCurrent();
-		if (wnd == null) return;
-
-		// zoom out by a factor of two
-		double scale = wnd.getScale();
-		wnd.setScale(scale / 2);
-		wnd.repaintContents();
-	}
-
-	public static void zoomInDisplayCommand()
-	{
-		// get the current window
-		EditWindow wnd = EditWindow.getCurrent();
-		if (wnd == null) return;
-
-		// zoom in by a factor of two
-		double scale = wnd.getScale();
-		wnd.setScale(scale * 2);
-		wnd.repaintContents();
-	}
-
-	public static void focusOnHighlightedCommand()
-	{
-		// get the current window
-		EditWindow wnd = EditWindow.getCurrent();
-		if (wnd == null) return;
-
-		// focus on highlighting
-		Rectangle2D bounds = Highlight.getHighlightedArea(wnd);
-		wnd.focusScreen(bounds);
-	}
 
 	/**
 	 * This method implements the command to toggle the display of the grid.

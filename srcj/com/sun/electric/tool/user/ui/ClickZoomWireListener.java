@@ -133,7 +133,7 @@ public class ClickZoomWireListener
     public boolean getStickyMove() {
         // for now just return true.
         // TODO: make it a preference
-        return true;
+        return false;
     }
 
     public void setRouter(InteractiveRouter router) {
@@ -786,16 +786,20 @@ public class ClickZoomWireListener
 
     // ********************************* Wiring Stuff ********************************
 
+    /**
+     * Wire to a layer.
+     * @param layerNumber
+     */
     public void wireTo(int layerNumber) {
         EditWindow wnd = EditWindow.getCurrent();
         Cell cell = wnd.getCell();
 
-        System.out.println("layer is "+layerNumber);
         ArcProto ap = null;
         Technology tech = Technology.getCurrent();
+        boolean found = false;
         for (Iterator it = tech.getArcs(); it.hasNext(); ) {
-            boolean found = false;
             ap = (ArcProto)it.next();
+            if (ap.isNotUsed()) continue;               // ignore arcs that aren't used
             switch(layerNumber) {
                 case 0: {
                     if (ap.getFunction() == PrimitiveArc.Function.POLY1) { found = true; } break; }
@@ -814,18 +818,13 @@ public class ClickZoomWireListener
             }
             if (found) break;
         }
-        if (ap == null) return;
-        System.out.println("found "+ap);
+        if (!found) return;
         // if a single portinst highlighted, route from that to node that can connect to arc
         if (Highlight.getNumHighlights() == 1 && cell != null) {
             ElectricObject obj = Highlight.getOneHighlight().getElectricObject();
             if (obj instanceof PortInst) {
                 PortInst pi = (PortInst)obj;
-				List route = null;
-                //List route = router.routeVerticallyToArc(pi, ap);
-                if (route != null) {
-                    //router.createRoute(route, cell, (RouteElement)route.get(route.size()-1));
-				}
+                router.makeVerticalRoute(pi, ap);
             }
         }
         // switch palette to arc

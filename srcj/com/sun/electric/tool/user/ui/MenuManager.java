@@ -167,7 +167,7 @@ public class MenuManager
          * @param menuItem the menuItem to be added to menu
          * @return the menuItem added
          */
-        public JMenuItem add(JMenuItem menuItem) {
+        public MenuItem add(MenuItem menuItem) {
             super.add(menuItem);
             if (menuItem instanceof MenuItemInterface) {
                 ((MenuItemInterface)menuItem).setParentMenu(this);
@@ -181,9 +181,9 @@ public class MenuManager
          * @param accelerator the shortcut key, or null if none specified.
          * @param action the action to be taken when menu is activated.
          */
-        public JMenuItem addMenuItem(String s, KeyStroke accelerator, ActionListener action)
+        public MenuItem addMenuItem(String s, KeyStroke accelerator, ActionListener action)
         {
-            JMenuItem item = new MenuItem(s);
+            MenuItem item = new MenuItem(s);
             addItem(item, accelerator, action);
             return item;
         }

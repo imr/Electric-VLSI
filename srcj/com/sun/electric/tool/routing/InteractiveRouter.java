@@ -34,7 +34,9 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.technology.*;
+import com.sun.electric.technology.technologies.Generic;
 
 import java.awt.geom.Point2D;
 import java.util.List;
@@ -63,6 +65,10 @@ public abstract class InteractiveRouter extends Router {
 
     /** for highlighting the start of the route */  private List startRouteHighlights = new ArrayList();
     /** for highlighting the end of the route */    private RouteElement finalRE;
+
+    public InteractiveRouter() {
+        verbose = true;
+    }
 
     // --------------------- Abstract Router Classes ------------------------------
 
@@ -115,6 +121,40 @@ public abstract class InteractiveRouter extends Router {
         createRoute(route, wnd.getCell(), finalRE);
     }
 
+    /**
+     * Make a vertical route.  Will add in contacts in startPort's technology
+     * to be able to connect to endPort.  The added contacts will be placed on
+     * top of startPort.  However, the final arc will route to endPort, regardless
+     * of where it is (this may result in non-orthogonal arcs at this point in time).
+     * @param startPort the start of the route
+     * @param endPort the end of the route
+     * @return true on success, false otherwise
+     */
+    public boolean makeVerticalRoute(PortInst startPort, PortInst endPort) {
+        List route = routeVerticallyToPort(startPort, endPort);
+        if (route == null || route.size() == 0) return false;
+        // last node is second to last in route
+        RouteElement lastNode = (RouteElement)route.get(route.size()-2);
+        createRoute(route, startPort.getNodeInst().getParent(), lastNode);
+        return true;
+    }
+
+    /**
+     * Make a vertical route.  Will add in contacts in startPort's technology
+     * to be able to connect to endPort.  The added contacts will be placed on
+     * top of startPort.  The final contact will be able to connect to <i>arc</i>.
+     * @param startPort the start of the route
+     * @param arc the arc type that the last contact will be able to connect to
+     * @return true on sucess
+     */
+    public boolean makeVerticalRoute(PortInst startPort, ArcProto arc) {
+        List route = routeVerticallyToArc(startPort, arc);
+        if (route == null || route.size() == 0) return false;
+        // last node is second to last in route
+        RouteElement lastNode = (RouteElement)route.get(route.size()-2);
+        createRoute(route, startPort.getNodeInst().getParent(), lastNode);
+        return true;
+    }
 
     // -------------------------- Highlight Route Methods -------------------------
 
@@ -245,136 +285,6 @@ public abstract class InteractiveRouter extends Router {
         else
             return new ArrayList();             // error, return empty route
     }
-
-
-    // ------------------------ Interactive Functions --------------------------
-
-    /**
-     * Routes vertically from pi to layer, and sets current layer in
-     * palette to layer.  This does not route in x or y, just up or down layerwise.
-     * @param startPort the port inst to route from
-     * @param endPort the port inst to route to
-     * @return list of RouteElements that specify route, or null if no
-     * valid route found.
-     */
-    public List routeVerticallyToPort(PortInst startPort, PortInst endPort) {
-
-        // see what arcs endPort can connect to, and try to route to each
-        ArcProto [] endArcs = endPort.getPortProto().getBasePort().getConnections();
-        for (int i = 0; i < endArcs.length; i++) {
-            ArcProto endArc = endArcs[i];
-            List route = routeVerticallyToArc(startPort, endArc);
-            // continue if no valid route found
-            if (route == null || route.size() == 0) continue;
-
-            // else, valid route found.  Add last connection to endPort
-            Cell cell = startPort.getNodeInst().getParent();
-            double arcWidth = getArcWidthToUse(startPort, endArc);
-            // add end of route
-            RouteElement secondToLastNode = (RouteElement)route.get(route.size()-1);
-            RouteElement lastNode = RouteElement.existingPortInst(endPort);
-            route.add(lastNode);
-            RouteElement arc = RouteElement.newArc(cell, endArc, arcWidth, secondToLastNode, lastNode);
-            route.add(arc);
-            return route;
-        }
-        return null;
-    }
-
-
-    /**
-     * Create a List of RouteElements that specifies a route from startPort
-     * to endArc. The final element in the route is a node that can connect
-     * to endArc.  Returns null if no valid route is found.
-     * @param startPort start of the route
-     * @param endArc arc final element should be able to connect to
-     * @return a list of RouteElements specifying a route
-     */
-    public List routeVerticallyToArc(PortInst startPort, ArcProto endArc) {
-
-        // see what arcs endPort can connect to, and try to route to each
-        List bestRoute = new ArrayList();
-        if (!findConnectingPorts(bestRoute, startPort.getPortProto(), endArc))
-            return null;
-        if (bestRoute == null || bestRoute.size() == 0) return null; // no valid route found
-        // create list of route elements
-        List route = new ArrayList();
-
-        Point2D location = new Point2D.Double(startPort.getBounds().getCenterX(),
-                                              startPort.getBounds().getCenterY());
-        Cell cell = startPort.getNodeInst().getParent();
-        double arcWidth = 0;
-        // add start of route (existing port inst)
-        RouteElement lastNode = RouteElement.existingPortInst(startPort);
-        route.add(lastNode);
-        for (Iterator it = bestRoute.iterator(); it.hasNext(); ) {
-            // should always be arc proto, primitive port pair
-            ArcProto ap = (ArcProto)it.next();
-            PrimitivePort pp = (PrimitivePort)it.next();
-            // create new node RouteElement
-            RouteElement node = RouteElement.newNode(cell, pp.getParent(), pp,
-                    location, pp.getParent().getDefWidth(), pp.getParent().getDefHeight());
-            route.add(node);
-            if (arcWidth == 0); arcWidth = getArcWidthToUse(startPort, ap);
-            RouteElement arc = RouteElement.newArc(cell, ap, arcWidth, lastNode, node);
-            route.add(arc);
-            lastNode = node;
-        }
-        return route;
-    }
-
-    public boolean findConnectingPorts(List portsList, PortProto start, ArcProto ap) {
-        return findConnectingPorts("", portsList, start, ap);
-    }
-    public boolean findConnectingPorts(String ds, List portsList, PortProto start, ArcProto ap) {
-        // list should not be null
-        if (portsList == null) return false;
-        boolean debug = true;
-        ds += "  ";
-
-        // this will be our scratch list of ports
-        List tmpPortsList = new ArrayList();
-
-        // find what start can connect to
-        PrimitivePort startpp = start.getBasePort();
-        ArcProto [] startArcs = startpp.getConnections();
-        if (debug) System.out.println(ds+"Checking "+startpp+", "+ap);
-        // find all ports that can connect to what start can connect to
-        for (int i = 0; i < startArcs.length; i++) {
-            ArcProto startArc = startArcs[i];
-            Technology tech = startArc.getTechnology();
-            // first check if we can connect to end
-            if (startArc == ap) {
-                // we're done
-                //portsList.add(startArc);
-                if (debug) System.out.println(ds+"...successfully connected to "+startArc);
-                return true;
-            }
-            // find all primitive ports in technology that can connect to
-            // this arc, and that are not already in list (and are not startpp)
-            Iterator portsIt = tech.getPorts();
-            for (; portsIt.hasNext(); ) {
-                PrimitivePort pp = (PrimitivePort)portsIt.next();
-                if (pp.connectsTo(startArc)) {
-                    if (portsList.contains(pp)) continue;
-                    if (pp == startpp) continue;
-                    // add to list
-                    tmpPortsList.add(startArc); tmpPortsList.add(pp);
-                    if (debug) System.out.println(ds+"...found intermediate node "+pp+" through "+startArc);
-                    // recurse, but ignore results if failed
-                    if (findConnectingPorts(ds, tmpPortsList, pp, ap)) {
-                        // success
-                        portsList.addAll(tmpPortsList);
-                        return true;
-                    }
-                    // else continue search
-                    tmpPortsList.clear();
-                }
-            }
-        }
-        return false;               // no valid path to endpp found
-    }
-
 
     // -------------------- Internal Router Utility Methods --------------------
     

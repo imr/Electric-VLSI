@@ -1818,6 +1818,7 @@ public class CircuitChanges
 	{
 		double dX, dY;
 		EditWindow wnd;
+        boolean verbose = true;
 
 		protected ManyMove(double dX, double dY, EditWindow wnd)
 		{
@@ -1840,10 +1841,16 @@ public class CircuitChanges
 
 			// special case if moving only one node
 			if (total == 1 && firstH.getType() == Highlight.Type.EOBJ &&
-				firstEObj instanceof NodeInst)
+				((firstEObj instanceof NodeInst) || firstEObj instanceof PortInst))
 			{
-				NodeInst ni = (NodeInst)firstEObj;
+                NodeInst ni;
+                if (firstEObj instanceof PortInst) {
+                    ni = ((PortInst)firstEObj).getNodeInst();
+                } else {
+				    ni = (NodeInst)firstEObj;
+                }
 				ni.modifyInstance(dX, dY, 0, 0, 0);
+                if (verbose) System.out.println("Moved "+ni.describe()+": delta(X,Y) = ("+dX+","+dY+")");
 				return;
 			}
 
@@ -1935,6 +1942,7 @@ public class CircuitChanges
 					deltaRots[0] = deltaRots[1] = 0;
 					NodeInst.modifyInstances(niList, deltaXs, deltaYs, deltaNulls, deltaNulls, deltaRots);
 				}
+                if (verbose) System.out.println("Moved many objects: delta(X,Y) = ("+dX+","+dY+")");
 				return;
 			}
 
@@ -1972,6 +1980,7 @@ public class CircuitChanges
 					{
 						ArcInst ai = (ArcInst)eobj;
 						ai.modify(0, dX, dY, dX, dY);
+                        if (verbose) System.out.println("Moved "+ai.describe()+": delta(X,Y) = ("+dX+","+dY+")");
 					}
 				}
 				return;
@@ -2158,6 +2167,7 @@ public class CircuitChanges
 
 			// also move selected text
 			moveSelectedText(highlightedText);
+            if (verbose) System.out.println("Moved many objects: delta(X,Y) = ("+dX+","+dY+")");
 		}
 
 		/*
