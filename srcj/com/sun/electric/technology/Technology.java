@@ -36,9 +36,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.MutableTextDescriptor;
-import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.*;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.BiCMOS;
 import com.sun.electric.technology.technologies.Bipolar;
@@ -56,6 +54,7 @@ import com.sun.electric.technology.technologies.nMOS;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.TechPalette;
 
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
@@ -525,7 +524,7 @@ public class Technology implements Comparable
 	/** Minimum resistance for this Technology. */			private Pref prefMinResistance;
 	/** Minimum capacitance for this Technology. */			private Pref prefMinCapacitance;
     /** Gate Length subtraction (in microns) for this Tech*/private Pref prefGateLengthSubtraction;
-
+    /** To group elements for palette */                    protected Object[][] nodeGroups;
 	public static final int N_TYPE = 1;
 	public static final int P_TYPE = 0;
 
@@ -3333,4 +3332,53 @@ public class Technology implements Comparable
 			bottom.setAdder(indent);
 		}
 	}
+
+    /********************* FOR GUI **********************/
+
+    /** Temporary variable for holding names */         public static final Variable.Key TECH_TMPVAR= ElectricObject.newKey("TECH_TMPVAR");
+
+    /**
+     * Method to retrieve correct group of elements for the palette
+     * @return
+     */
+    public Object[][] getNodesGrouped() { return nodeGroups; }
+
+    /** To create temporary nodes for the palette
+     * @param np
+     * @param func
+     * @param angle
+     * @param display
+     * @param varName
+     * @param fontSize
+     * @return
+     */
+    public static NodeInst makeNodeInst(NodeProto np, PrimitiveNode.Function func, int angle, boolean display,
+                                        String varName, double fontSize)
+    {
+        NodeInst ni = NodeInst.lowLevelAllocate();
+        SizeOffset so = np.getProtoSizeOffset();
+        Point2D pt = new Point2D.Double((so.getHighXOffset() - so.getLowXOffset()) / 2,
+            (so.getHighYOffset() - so.getLowYOffset()) / 2);
+        AffineTransform trans = NodeInst.pureRotate(angle, false, false);
+        trans.transform(pt, pt);
+        ni.lowLevelPopulate(np, pt, np.getDefWidth(), np.getDefHeight(), angle, null, null, -1);
+        np.getTechnology().setPrimitiveFunction(ni, func);
+        np.getTechnology().setDefaultOutline(ni);
+
+	    if (varName != null)
+	    {
+		    Variable var = ni.newVar(TECH_TMPVAR, varName);
+			if (display)
+			{
+				var.setDisplay(true);
+				MutableTextDescriptor td = MutableTextDescriptor.getNodeTextDescriptor();
+				td.setOff(0, -6);
+				//td.setAbsSize(12);
+                td.setRelSize(fontSize);
+				var.setTextDescriptor(td);
+			}
+	    }
+
+        return ni;
+    }
 }

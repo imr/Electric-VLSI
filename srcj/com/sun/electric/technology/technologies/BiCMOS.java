@@ -1701,6 +1701,22 @@ public class BiCMOS extends Technology
 		B_lay.setPureLayerNode(bn_node);		// BCCD
 		OS_lay.setPureLayerNode(os_node);		// Ohmic_Substrate
 		OW_lay.setPureLayerNode(ow_node);		// Ohmic_Well
+
+        // Information for palette
+        int maxY = 2 /*metal arcs*/ + 3 /* active arcs */ + 1 /* text */ + 2 /* poly*/ + 2 /* trans */;
+        nodeGroups = new Object[maxY][3];
+        int count = -1;
+
+        nodeGroups[++count][0] = Metal_1_arc; nodeGroups[count][1] = mp_node;
+        nodeGroups[++count][0] = Metal_2_arc; nodeGroups[count][1] = mp0_node; nodeGroups[count][2] = mmc_node;
+        nodeGroups[++count][0] = Polysilicon_arc; nodeGroups[count][1] = pp_node; nodeGroups[count][2] = mpc0_node;
+        nodeGroups[++count][0] = Polysilicon_2_arc; nodeGroups[count][1] = pp0_node; nodeGroups[count][2] = mpc1_node;
+        nodeGroups[++count][0] = Pdiff_arc; nodeGroups[count][1] = pp1_node; nodeGroups[count][2] = mpc_node;
+        nodeGroups[++count][0] = Ndiff_arc; nodeGroups[count][1] = np_node; nodeGroups[count][2] = mnc_node;
+        nodeGroups[++count][0] = Active_arc; nodeGroups[count][1] = ap_node; nodeGroups[count][2] = mnwc_node;
+        nodeGroups[++count][0] = msc_node; nodeGroups[count][1] = nt0_node; nodeGroups[count][2] = nt_node;
+        nodeGroups[++count][0] = ppc_node; nodeGroups[count][1] = n_node;
+        nodeGroups[++count][0] = "Pure"; nodeGroups[count][1] = "Misc."; nodeGroups[count][2] = "Cell";
 	};
 	public DRCRules getFactoryDesignRules()
 	{

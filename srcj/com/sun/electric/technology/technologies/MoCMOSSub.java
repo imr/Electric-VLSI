@@ -2121,6 +2121,25 @@ public class MoCMOSSub extends Technology
 		PC0_lay.setPureLayerNode(pcn0_node);		// Poly-Cap
 		PAW_lay.setPureLayerNode(pawn_node);		// P-Active-Well
 		PF_lay.setPureLayerNode(pn1_node);		// Pad-Frame
+
+        // Information for palette
+        int maxY = 6 /*metal arcs*/ + 3 /* active arcs */ + 1 /* text */ + 2 /* poly*/ + 1 /* trans */;
+        nodeGroups = new Object[maxY][3];
+        int count = -1;
+
+        nodeGroups[++count][0] = Metal_1_arc; nodeGroups[count][1] = mp_node;
+        nodeGroups[++count][0] = Metal_2_arc; nodeGroups[count][1] = mp0_node; nodeGroups[count][2] = mmc_node;
+        nodeGroups[++count][0] = Metal_3_arc; nodeGroups[count][1] = mp1_node; nodeGroups[count][2] = mmc0_node;
+        nodeGroups[++count][0] = Metal_4_arc; nodeGroups[count][1] = mp2_node; nodeGroups[count][2] = mmc1_node;
+        nodeGroups[++count][0] = Metal_5_arc; nodeGroups[count][1] = mp3_node; nodeGroups[count][2] = mmc2_node;
+        nodeGroups[++count][0] = Metal_6_arc; nodeGroups[count][1] = mp4_node; nodeGroups[count][2] = mmc3_node;
+        nodeGroups[++count][0] = Polysilicon_1_arc; nodeGroups[count][1] = pp_node; nodeGroups[count][2] = mpc_node;
+        nodeGroups[++count][0] = Polysilicon_2_arc; nodeGroups[count][1] = pp0_node; nodeGroups[count][2] = mpc0_node;
+        nodeGroups[++count][0] = P_Active_arc; nodeGroups[count][1] = pap_node; nodeGroups[count][2] = mpac_node;
+        nodeGroups[++count][0] = N_Active_arc; nodeGroups[count][1] = nap_node; nodeGroups[count][2] = mnac_node;
+        nodeGroups[++count][0] = Active_arc; nodeGroups[count][1] = ap_node; nodeGroups[count][2] = mwc_node;
+        nodeGroups[++count][0] = msc_node; nodeGroups[count][1] = pt_node; nodeGroups[count][2] = nt_node;
+        nodeGroups[++count][0] = "Pure"; nodeGroups[count][1] = "Misc."; nodeGroups[count][2] = "Cell";
 	};
 
 

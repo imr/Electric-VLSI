@@ -1214,6 +1214,18 @@ public class EditWindow extends JPanel
 		return offscreen.composite();
 	}
 
+    /**
+	 * Special "hook" to render text.
+	 * This is used by the PaletteWindow to draw arcs that aren't really in the database.
+	 */
+	public Image renderText(String txt, double scale, Rectangle rect)
+	{
+		offscreen.clearImage(false);
+		setScale(scale);
+		offscreen.drawText(txt, rect);
+		return offscreen.composite();
+	}
+
 	// ************************************* SIMULATION CROSSPROBE LEVEL DISPLAY *************************************
 
 	private static class CrossProbe

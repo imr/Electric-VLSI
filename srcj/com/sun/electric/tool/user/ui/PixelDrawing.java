@@ -2230,6 +2230,15 @@ public class PixelDrawing
 
 	// ************************************* TEXT DRAWING *************************************
 
+    /**
+     * Method to draw a text on the off-screen buffer with default values
+     * @param s
+     */
+    public void drawText(String s, Rectangle rect)
+    {
+        drawText(rect, Poly.Type.TEXTBOX, noCellTextDescriptor, s, null, blackGraphics, false);
+    }
+
 	/**
 	 * Method to draw a text on the off-screen buffer
 	 */

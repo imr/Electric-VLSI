@@ -53,6 +53,8 @@ import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.prefs.Preferences;
 
 /**
@@ -75,47 +77,53 @@ public class MoCMOS extends Technology
 	private Layer poly1_lay, transistorPoly_lay;
 
 	// arcs
-	/** metal 1 arc */							private PrimitiveArc metal1_arc;
-	/** metal 2 arc */							private PrimitiveArc metal2_arc;
-	/** metal 3 arc */							private PrimitiveArc metal3_arc;
-	/** metal 4 arc */							private PrimitiveArc metal4_arc;
-	/** metal 5 arc */							private PrimitiveArc metal5_arc;
-	/** metal 6 arc */							private PrimitiveArc metal6_arc;
+    /** metal 1->6 arc */						private PrimitiveArc[] metalArcs = new PrimitiveArc[6];
+//	/** metal 1 arc */							private PrimitiveArc metal1_arc;
+//	/** metal 2 arc */							private PrimitiveArc metal2_arc;
+//	/** metal 3 arc */							private PrimitiveArc metal3_arc;
+//	/** metal 4 arc */							private PrimitiveArc metal4_arc;
+//	/** metal 5 arc */							private PrimitiveArc metal5_arc;
+//	/** metal 6 arc */							private PrimitiveArc metal6_arc;
 	/** polysilicon 1 arc */					private PrimitiveArc poly1_arc;
 	/** polysilicon 2 arc */					private PrimitiveArc poly2_arc;
-	/** P-active arc */							private PrimitiveArc pActive_arc;
-	/** N-active arc */							private PrimitiveArc nActive_arc;
+//	/** P-active arc */							private PrimitiveArc pActive_arc;
+//	/** N-active arc */							private PrimitiveArc nActive_arc;
+    /** P/N-active arc */                       PrimitiveArc[] activeArcs = new PrimitiveArc[2];
 	/** General active arc */					private PrimitiveArc active_arc;
 
 	// nodes
-	/** metal-1-pin */							private PrimitiveNode metal1Pin_node;
-	/** metal-2-pin */							private PrimitiveNode metal2Pin_node;
-	/** metal-3-pin */							private PrimitiveNode metal3Pin_node;
-	/** metal-4-pin */							private PrimitiveNode metal4Pin_node;
-	/** metal-5-pin */							private PrimitiveNode metal5Pin_node;
-	/** metal-6-pin */							private PrimitiveNode metal6Pin_node;
+    /** metal-1->6-pin */				        private PrimitiveNode[] metalPinNodes = new PrimitiveNode[6];
+//	/** metal-1-pin */							private PrimitiveNode metal1Pin_node;
+//	/** metal-2-pin */							private PrimitiveNode metal2Pin_node;
+//	/** metal-3-pin */							private PrimitiveNode metal3Pin_node;
+//	/** metal-4-pin */							private PrimitiveNode metal4Pin_node;
+//	/** metal-5-pin */							private PrimitiveNode metal5Pin_node;
+//	/** metal-6-pin */							private PrimitiveNode metal6Pin_node;
 	/** polysilicon-1-pin */					private PrimitiveNode poly1Pin_node;
 	/** polysilicon-2-pin */					private PrimitiveNode poly2Pin_node;
-	/** P-active-pin */							private PrimitiveNode pActivePin_node;
-	/** N-active-pin */							private PrimitiveNode nActivePin_node;
+//	/** P-active-pin */							private PrimitiveNode pActivePin_node;
+//	/** N-active-pin */							private PrimitiveNode nActivePin_node;
+    /** P/N-active-pins */                      private PrimitiveNode[] activePinNodes = new PrimitiveNode[2];
 	/** General active-pin */					private PrimitiveNode activePin_node;
-	/** metal-1-P-active-contact */				private PrimitiveNode metal1PActiveContact_node;
-	/** metal-1-N-active-contact */				private PrimitiveNode metal1NActiveContact_node;
+//	/** metal-1-P-active-contact */				private PrimitiveNode metal1PActiveContact_node;
+//	/** metal-1-N-active-contact */				private PrimitiveNode metal1NActiveContact_node;
+    /** metal-1-P/N-active-contacts */          private PrimitiveNode[] metalActiveContactNodes = new PrimitiveNode[2];
 	/** metal-1-polysilicon-1-contact */		private PrimitiveNode metal1Poly1Contact_node;
 	/** metal-1-polysilicon-2-contact */		private PrimitiveNode metal1Poly2Contact_node;
 	/** metal-1-polysilicon-1-2-contact */		private PrimitiveNode metal1Poly12Contact_node;
-	/** P-Transistor */							private PrimitiveNode pTransistor_node;
-	/** N-Transistor */							private PrimitiveNode nTransistor_node;
+    /** P/N-Transistors */                      private PrimitiveNode[] transistorNodes = new PrimitiveNode[2];
 	/** ThickOxide Transistors */				private PrimitiveNode[] thickTransistorNodes = new PrimitiveNode[2];
 	/** Scalable-P-Transistor */				private PrimitiveNode scalablePTransistor_node;
 	/** Scalable-N-Transistor */				private PrimitiveNode scalableNTransistor_node;
-	/** metal-1-metal-2-contact */				private PrimitiveNode metal1Metal2Contact_node;
-	/** metal-2-metal-3-contact */				private PrimitiveNode metal2Metal3Contact_node;
-	/** metal-3-metal-4-contact */				private PrimitiveNode metal3Metal4Contact_node;
-	/** metal-4-metal-5-contact */				private PrimitiveNode metal4Metal5Contact_node;
-	/** metal-5-metal-6-contact */				private PrimitiveNode metal5Metal6Contact_node;
-	/** Metal-1-P-Well Contact */				private PrimitiveNode metal1PWellContact_node;
-	/** Metal-1-N-Well Contact */				private PrimitiveNode metal1NWellContact_node;
+//	/** metal-1-metal-2-contact */				private PrimitiveNode metal1Metal2Contact_node;
+//	/** metal-2-metal-3-contact */				private PrimitiveNode metal2Metal3Contact_node;
+//	/** metal-3-metal-4-contact */				private PrimitiveNode metal3Metal4Contact_node;
+//	/** metal-4-metal-5-contact */				private PrimitiveNode metal4Metal5Contact_node;
+//	/** metal-5-metal-6-contact */				private PrimitiveNode metal5Metal6Contact_node;
+    /** M1M2 -> M5M6 contacts */				private PrimitiveNode[] metalContactNodes = new PrimitiveNode[5];
+//	/** Metal-1-P-Well Contact */				private PrimitiveNode metal1PWellContact_node;
+//	/** Metal-1-N-Well Contact */				private PrimitiveNode metal1NWellContact_node;
+    /** metal-1-P/N-Well-contacts */            private PrimitiveNode[] metalWellContactNodes = new PrimitiveNode[2];
 	/** Metal-1-Node */							private PrimitiveNode metal1Node_node;
 	/** Metal-2-Node */							private PrimitiveNode metal2Node_node;
 	/** Metal-3-Node */							private PrimitiveNode metal3Node_node;
@@ -1562,64 +1570,64 @@ public class MoCMOS extends Technology
 		//**************************************** ARCS ****************************************
 
 		/** metal 1 arc */
-		metal1_arc = PrimitiveArc.newInstance(this, "Metal-1", 3.0, new Technology.ArcLayer []
+		metalArcs[0] = PrimitiveArc.newInstance(this, "Metal-1", 3.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(metal1_lay, 0, Poly.Type.FILLED)
 		});
-		metal1_arc.setFunction(PrimitiveArc.Function.METAL1);
-		metal1_arc.setFactoryFixedAngle(true);
-		metal1_arc.setWipable();
-		metal1_arc.setFactoryAngleIncrement(90);
+		metalArcs[0].setFunction(PrimitiveArc.Function.METAL1);
+		metalArcs[0].setFactoryFixedAngle(true);
+		metalArcs[0].setWipable();
+		metalArcs[0].setFactoryAngleIncrement(90);
 
 		/** metal 2 arc */
-		metal2_arc = PrimitiveArc.newInstance(this, "Metal-2", 3.0, new Technology.ArcLayer []
+		metalArcs[1] = PrimitiveArc.newInstance(this, "Metal-2", 3.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(metal2_lay, 0, Poly.Type.FILLED)
 		});
-		metal2_arc.setFunction(PrimitiveArc.Function.METAL2);
-		metal2_arc.setFactoryFixedAngle(true);
-		metal2_arc.setWipable();
-		metal2_arc.setFactoryAngleIncrement(90);
+		metalArcs[1].setFunction(PrimitiveArc.Function.METAL2);
+		metalArcs[1].setFactoryFixedAngle(true);
+		metalArcs[1].setWipable();
+		metalArcs[1].setFactoryAngleIncrement(90);
 
 		/** metal 3 arc */
-		metal3_arc = PrimitiveArc.newInstance(this, "Metal-3", 3.0, new Technology.ArcLayer []
+		metalArcs[2] = PrimitiveArc.newInstance(this, "Metal-3", 3.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(metal3_lay, 0, Poly.Type.FILLED)
 		});
-		metal3_arc.setFunction(PrimitiveArc.Function.METAL3);
-		metal3_arc.setFactoryFixedAngle(true);
-		metal3_arc.setWipable();
-		metal3_arc.setFactoryAngleIncrement(90);
+		metalArcs[2].setFunction(PrimitiveArc.Function.METAL3);
+		metalArcs[2].setFactoryFixedAngle(true);
+		metalArcs[2].setWipable();
+		metalArcs[2].setFactoryAngleIncrement(90);
 
 		/** metal 4 arc */
-		metal4_arc = PrimitiveArc.newInstance(this, "Metal-4", 6.0, new Technology.ArcLayer []
+		metalArcs[3] = PrimitiveArc.newInstance(this, "Metal-4", 6.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(metal4_lay, 0, Poly.Type.FILLED)
 		});
-		metal4_arc.setFunction(PrimitiveArc.Function.METAL4);
-		metal4_arc.setFactoryFixedAngle(true);
-		metal4_arc.setWipable();
-		metal4_arc.setFactoryAngleIncrement(90);
+		metalArcs[3].setFunction(PrimitiveArc.Function.METAL4);
+		metalArcs[3].setFactoryFixedAngle(true);
+		metalArcs[3].setWipable();
+		metalArcs[3].setFactoryAngleIncrement(90);
 
 		/** metal 5 arc */
-		metal5_arc = PrimitiveArc.newInstance(this, "Metal-5", 3.0, new Technology.ArcLayer []
+		metalArcs[4] = PrimitiveArc.newInstance(this, "Metal-5", 3.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(metal5_lay, 0, Poly.Type.FILLED)
 		});
-		metal5_arc.setFunction(PrimitiveArc.Function.METAL5);
-		metal5_arc.setFactoryFixedAngle(true);
-		metal5_arc.setWipable();
-		metal5_arc.setFactoryAngleIncrement(90);
+		metalArcs[4].setFunction(PrimitiveArc.Function.METAL5);
+		metalArcs[4].setFactoryFixedAngle(true);
+		metalArcs[4].setWipable();
+		metalArcs[4].setFactoryAngleIncrement(90);
 
 		/** metal 6 arc */
-		metal6_arc = PrimitiveArc.newInstance(this, "Metal-6", 4.0, new Technology.ArcLayer []
+		metalArcs[5] = PrimitiveArc.newInstance(this, "Metal-6", 4.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(metal6_lay, 0, Poly.Type.FILLED)
 		});
-		metal6_arc.setFunction(PrimitiveArc.Function.METAL6);
-		metal6_arc.setFactoryFixedAngle(true);
-		metal6_arc.setWipable();
-		metal6_arc.setFactoryAngleIncrement(90);
+		metalArcs[5].setFunction(PrimitiveArc.Function.METAL6);
+		metalArcs[5].setFactoryFixedAngle(true);
+		metalArcs[5].setWipable();
+		metalArcs[5].setFactoryAngleIncrement(90);
 
 		/** polysilicon 1 arc */
 		poly1_arc = PrimitiveArc.newInstance(this, "Polysilicon-1", 2.0, new Technology.ArcLayer []
@@ -1643,30 +1651,30 @@ public class MoCMOS extends Technology
 		poly2_arc.setNotUsed();
 
 		/** P-active arc */
-		pActive_arc = PrimitiveArc.newInstance(this, "P-Active", 15.0, new Technology.ArcLayer []
+		activeArcs[P_TYPE] = PrimitiveArc.newInstance(this, "P-Active", 15.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(pActive_lay, 12, Poly.Type.FILLED),
 			new Technology.ArcLayer(nWell_lay, 0, Poly.Type.FILLED),
 			new Technology.ArcLayer(pSelect_lay, 8, Poly.Type.FILLED)
 		});
-		pActive_arc.setFunction(PrimitiveArc.Function.DIFFP);
-		pActive_arc.setFactoryFixedAngle(true);
-		pActive_arc.setWipable();
-		pActive_arc.setFactoryAngleIncrement(90);
-		pActive_arc.setWidthOffset(12.0);
+		activeArcs[P_TYPE].setFunction(PrimitiveArc.Function.DIFFP);
+		activeArcs[P_TYPE].setFactoryFixedAngle(true);
+		activeArcs[P_TYPE].setWipable();
+		activeArcs[P_TYPE].setFactoryAngleIncrement(90);
+		activeArcs[P_TYPE].setWidthOffset(12.0);
 
 		/** N-active arc */
-		nActive_arc = PrimitiveArc.newInstance(this, "N-Active", 15.0, new Technology.ArcLayer []
+		activeArcs[N_TYPE] = PrimitiveArc.newInstance(this, "N-Active", 15.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(nActive_lay, 12, Poly.Type.FILLED),
 			new Technology.ArcLayer(pWell_lay, 0, Poly.Type.FILLED),
 			new Technology.ArcLayer(nSelect_lay, 8, Poly.Type.FILLED)
 		});
-		nActive_arc.setFunction(PrimitiveArc.Function.DIFFN);
-		nActive_arc.setFactoryFixedAngle(true);
-		nActive_arc.setWipable();
-		nActive_arc.setFactoryAngleIncrement(90);
-		nActive_arc.setWidthOffset(12.0);
+		activeArcs[N_TYPE].setFunction(PrimitiveArc.Function.DIFFN);
+		activeArcs[N_TYPE].setFactoryFixedAngle(true);
+		activeArcs[N_TYPE].setWipable();
+		activeArcs[N_TYPE].setFactoryAngleIncrement(90);
+		activeArcs[N_TYPE].setWidthOffset(12.0);
 
 		/** General active arc */
 		active_arc = PrimitiveArc.newInstance(this, "Active", 3.0, new Technology.ArcLayer []
@@ -1683,96 +1691,96 @@ public class MoCMOS extends Technology
 		//**************************************** NODES ****************************************
 
 		/** metal-1-pin */
-		metal1Pin_node = PrimitiveNode.newInstance("Metal-1-Pin", this, 3.0, 3.0, null,
+		metalPinNodes[0] = PrimitiveNode.newInstance("Metal-1-Pin", this, 3.0, 3.0, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(pseudoMetal1_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
-		metal1Pin_node.addPrimitivePorts(new PrimitivePort []
+		metalPinNodes[0].addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, metal1Pin_node, new ArcProto[] {metal1_arc}, "metal-1", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, metalPinNodes[0], new ArcProto[] {metalArcs[0]}, "metal-1", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
-		metal1Pin_node.setFunction(PrimitiveNode.Function.PIN);
-		metal1Pin_node.setArcsWipe();
-		metal1Pin_node.setArcsShrink();
+		metalPinNodes[0].setFunction(PrimitiveNode.Function.PIN);
+		metalPinNodes[0].setArcsWipe();
+		metalPinNodes[0].setArcsShrink();
 
 		/** metal-2-pin */
-		metal2Pin_node = PrimitiveNode.newInstance("Metal-2-Pin", this, 3.0, 3.0, null,
+		metalPinNodes[1] = PrimitiveNode.newInstance("Metal-2-Pin", this, 3.0, 3.0, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(pseudoMetal2_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
-		metal2Pin_node.addPrimitivePorts(new PrimitivePort []
+		metalPinNodes[1].addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, metal2Pin_node, new ArcProto[] {metal2_arc}, "metal-2", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, metalPinNodes[1], new ArcProto[] {metalArcs[1]}, "metal-2", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
-		metal2Pin_node.setFunction(PrimitiveNode.Function.PIN);
-		metal2Pin_node.setArcsWipe();
-		metal2Pin_node.setArcsShrink();
+		metalPinNodes[1].setFunction(PrimitiveNode.Function.PIN);
+		metalPinNodes[1].setArcsWipe();
+		metalPinNodes[1].setArcsShrink();
 
 		/** metal-3-pin */
-		metal3Pin_node = PrimitiveNode.newInstance("Metal-3-Pin", this, 3.0, 3.0, null,
+		metalPinNodes[2] = PrimitiveNode.newInstance("Metal-3-Pin", this, 3.0, 3.0, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(pseudoMetal3_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
-		metal3Pin_node.addPrimitivePorts(new PrimitivePort []
+		metalPinNodes[2].addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, metal3Pin_node, new ArcProto[] {metal3_arc}, "metal-3", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, metalPinNodes[2], new ArcProto[] {metalArcs[2]}, "metal-3", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
-		metal3Pin_node.setFunction(PrimitiveNode.Function.PIN);
-		metal3Pin_node.setArcsWipe();
-		metal3Pin_node.setArcsShrink();
+		metalPinNodes[2].setFunction(PrimitiveNode.Function.PIN);
+		metalPinNodes[2].setArcsWipe();
+		metalPinNodes[2].setArcsShrink();
 
 		/** metal-4-pin */
-		metal4Pin_node = PrimitiveNode.newInstance("Metal-4-Pin", this, 3.0, 3.0, null,
+		metalPinNodes[3] = PrimitiveNode.newInstance("Metal-4-Pin", this, 3.0, 3.0, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(pseudoMetal4_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
-		metal4Pin_node.addPrimitivePorts(new PrimitivePort []
+		metalPinNodes[3].addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, metal4Pin_node, new ArcProto[] {metal4_arc}, "metal-4", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, metalPinNodes[3], new ArcProto[] {metalArcs[3]}, "metal-4", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
-		metal4Pin_node.setFunction(PrimitiveNode.Function.PIN);
-		metal4Pin_node.setArcsWipe();
-		metal4Pin_node.setArcsShrink();
+		metalPinNodes[3].setFunction(PrimitiveNode.Function.PIN);
+		metalPinNodes[3].setArcsWipe();
+		metalPinNodes[3].setArcsShrink();
 
 		/** metal-5-pin */
-		metal5Pin_node = PrimitiveNode.newInstance("Metal-5-Pin", this, 3.0, 3.0, null,
+		metalPinNodes[4] = PrimitiveNode.newInstance("Metal-5-Pin", this, 3.0, 3.0, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(pseudoMetal5_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
-		metal5Pin_node.addPrimitivePorts(new PrimitivePort []
+		metalPinNodes[4].addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, metal5Pin_node, new ArcProto[] {metal5_arc}, "metal-5", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, metalPinNodes[4], new ArcProto[] {metalArcs[4]}, "metal-5", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
-		metal5Pin_node.setFunction(PrimitiveNode.Function.PIN);
-		metal5Pin_node.setArcsWipe();
-		metal5Pin_node.setArcsShrink();
-		metal5Pin_node.setNotUsed();
+		metalPinNodes[4].setFunction(PrimitiveNode.Function.PIN);
+		metalPinNodes[4].setArcsWipe();
+		metalPinNodes[4].setArcsShrink();
+		metalPinNodes[4].setNotUsed();
 
 		/** metal-6-pin */
-		metal6Pin_node = PrimitiveNode.newInstance("Metal-6-Pin", this, 3.0, 3.0, null,
+		metalPinNodes[5] = PrimitiveNode.newInstance("Metal-6-Pin", this, 3.0, 3.0, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(pseudoMetal6_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
-		metal6Pin_node.addPrimitivePorts(new PrimitivePort []
+		metalPinNodes[5].addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, metal6Pin_node, new ArcProto[] {metal6_arc}, "metal-6", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, metalPinNodes[5], new ArcProto[] {metalArcs[5]}, "metal-6", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
-		metal6Pin_node.setFunction(PrimitiveNode.Function.PIN);
-		metal6Pin_node.setArcsWipe();
-		metal6Pin_node.setArcsShrink();
-		metal6Pin_node.setNotUsed();
+		metalPinNodes[5].setFunction(PrimitiveNode.Function.PIN);
+		metalPinNodes[5].setArcsWipe();
+		metalPinNodes[5].setArcsShrink();
+		metalPinNodes[5].setNotUsed();
 
 		/** polysilicon-1-pin */
 		poly1Pin_node = PrimitiveNode.newInstance("Polysilicon-1-Pin", this, 2.0, 2.0, null,
@@ -1806,38 +1814,38 @@ public class MoCMOS extends Technology
 		poly2Pin_node.setNotUsed();
 
 		/** P-active-pin */
-		pActivePin_node = PrimitiveNode.newInstance("P-Active-Pin", this, 15.0, 15.0, new SizeOffset(6, 6, 6, 6),
+		activePinNodes[P_TYPE] = PrimitiveNode.newInstance("P-Active-Pin", this, 15.0, 15.0, new SizeOffset(6, 6, 6, 6),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(pseudoPActive_lay,  0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6)),
 				new Technology.NodeLayer(pseudoNWell_lay,  0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
 				new Technology.NodeLayer(pseudoPSelect_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4))
 			});
-		pActivePin_node.addPrimitivePorts(new PrimitivePort []
+		activePinNodes[P_TYPE].addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, pActivePin_node, new ArcProto[] {pActive_arc}, "p-active", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, activePinNodes[P_TYPE], new ArcProto[] {activeArcs[P_TYPE]}, "p-active", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(7.5), EdgeV.fromBottom(7.5), EdgeH.fromRight(7.5), EdgeV.fromTop(7.5))
 			});
-		pActivePin_node.setFunction(PrimitiveNode.Function.PIN);
-		pActivePin_node.setArcsWipe();
-		pActivePin_node.setArcsShrink();
+		activePinNodes[P_TYPE].setFunction(PrimitiveNode.Function.PIN);
+		activePinNodes[P_TYPE].setArcsWipe();
+		activePinNodes[P_TYPE].setArcsShrink();
 
 		/** N-active-pin */
-		nActivePin_node = PrimitiveNode.newInstance("N-Active-Pin", this, 15.0, 15.0, new SizeOffset(6, 6, 6, 6),
+		activePinNodes[N_TYPE] = PrimitiveNode.newInstance("N-Active-Pin", this, 15.0, 15.0, new SizeOffset(6, 6, 6, 6),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(pseudoNActive_lay,  0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6)),
 				new Technology.NodeLayer(pseudoPWell_lay,  0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
 				new Technology.NodeLayer(pseudoNSelect_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4))
 			});
-		nActivePin_node.addPrimitivePorts(new PrimitivePort []
+		activePinNodes[N_TYPE].addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, nActivePin_node, new ArcProto[] {nActive_arc}, "n-active", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, activePinNodes[N_TYPE], new ArcProto[] {activeArcs[N_TYPE]}, "n-active", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(7.5), EdgeV.fromBottom(7.5), EdgeH.fromRight(7.5), EdgeV.fromTop(7.5))
 			});
-		nActivePin_node.setFunction(PrimitiveNode.Function.PIN);
-		nActivePin_node.setArcsWipe();
-		nActivePin_node.setArcsShrink();
+		activePinNodes[N_TYPE].setFunction(PrimitiveNode.Function.PIN);
+		activePinNodes[N_TYPE].setArcsWipe();
+		activePinNodes[N_TYPE].setArcsShrink();
 
 		/** General active-pin */
 		activePin_node = PrimitiveNode.newInstance("Active-Pin", this, 3.0, 3.0, null,
@@ -1848,7 +1856,7 @@ public class MoCMOS extends Technology
 			});
 		activePin_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, activePin_node, new ArcProto[] {active_arc, pActive_arc, nActive_arc}, "active", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, activePin_node, new ArcProto[] {active_arc, activeArcs[P_TYPE], activeArcs[N_TYPE]}, "active", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
 		activePin_node.setFunction(PrimitiveNode.Function.PIN);
@@ -1857,7 +1865,7 @@ public class MoCMOS extends Technology
         activePin_node.setNotUsed();
 
 		/** metal-1-P-active-contact */
-		metal1PActiveContact_node = PrimitiveNode.newInstance("Metal-1-P-Active-Con", this, 17.0, 17.0, new SizeOffset(6, 6, 6, 6),
+		metalActiveContactNodes[P_TYPE] = PrimitiveNode.newInstance("Metal-1-P-Active-Con", this, 17.0, 17.0, new SizeOffset(6, 6, 6, 6),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(metal1_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6.5)),
@@ -1866,18 +1874,18 @@ public class MoCMOS extends Technology
 				new Technology.NodeLayer(pSelect_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4)),
 				new Technology.NodeLayer(activeCut_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(7.5))
 			});
-		metal1PActiveContact_node.addPrimitivePorts(new PrimitivePort []
+		metalActiveContactNodes[P_TYPE].addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, metal1PActiveContact_node, new ArcProto[] {pActive_arc, metal1_arc}, "metal-1-p-act", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, metalActiveContactNodes[P_TYPE], new ArcProto[] {activeArcs[P_TYPE], metalArcs[0]}, "metal-1-p-act", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(8), EdgeV.fromBottom(8), EdgeH.fromRight(8), EdgeV.fromTop(8))
 			});
-		metal1PActiveContact_node.setFunction(PrimitiveNode.Function.CONTACT);
-		metal1PActiveContact_node.setSpecialType(PrimitiveNode.MULTICUT);
-		metal1PActiveContact_node.setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
-		metal1PActiveContact_node.setMinSize(17, 17, "6.2, 7.3");
+		metalActiveContactNodes[P_TYPE].setFunction(PrimitiveNode.Function.CONTACT);
+		metalActiveContactNodes[P_TYPE].setSpecialType(PrimitiveNode.MULTICUT);
+		metalActiveContactNodes[P_TYPE].setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
+		metalActiveContactNodes[P_TYPE].setMinSize(17, 17, "6.2, 7.3");
 
 		/** metal-1-N-active-contact */
-		metal1NActiveContact_node = PrimitiveNode.newInstance("Metal-1-N-Active-Con", this, 17.0, 17.0, new SizeOffset(6, 6, 6, 6),
+		metalActiveContactNodes[N_TYPE] = PrimitiveNode.newInstance("Metal-1-N-Active-Con", this, 17.0, 17.0, new SizeOffset(6, 6, 6, 6),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(metal1_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6.5)),
@@ -1886,15 +1894,15 @@ public class MoCMOS extends Technology
 				new Technology.NodeLayer(nSelect_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4)),
 				new Technology.NodeLayer(activeCut_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(7.5))
 			});
-		metal1NActiveContact_node.addPrimitivePorts(new PrimitivePort []
+		metalActiveContactNodes[N_TYPE].addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, metal1NActiveContact_node, new ArcProto[] {nActive_arc, metal1_arc}, "metal-1-n-act", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, metalActiveContactNodes[N_TYPE], new ArcProto[] {activeArcs[N_TYPE], metalArcs[0]}, "metal-1-n-act", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(8), EdgeV.fromBottom(8), EdgeH.fromRight(8), EdgeV.fromTop(8))
 			});
-		metal1NActiveContact_node.setFunction(PrimitiveNode.Function.CONTACT);
-		metal1NActiveContact_node.setSpecialType(PrimitiveNode.MULTICUT);
-		metal1NActiveContact_node.setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
-		metal1NActiveContact_node.setMinSize(17, 17, "6.2, 7.3");
+		metalActiveContactNodes[N_TYPE].setFunction(PrimitiveNode.Function.CONTACT);
+		metalActiveContactNodes[N_TYPE].setSpecialType(PrimitiveNode.MULTICUT);
+		metalActiveContactNodes[N_TYPE].setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
+		metalActiveContactNodes[N_TYPE].setMinSize(17, 17, "6.2, 7.3");
 
 		/** metal-1-polysilicon-1-contact */
 		metal1Poly1Contact_node = PrimitiveNode.newInstance("Metal-1-Polysilicon-1-Con", this, 5.0, 5.0, null,
@@ -1906,7 +1914,7 @@ public class MoCMOS extends Technology
 			});
 		metal1Poly1Contact_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, metal1Poly1Contact_node, new ArcProto[] {poly1_arc, metal1_arc}, "metal-1-polysilicon-1", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, metal1Poly1Contact_node, new ArcProto[] {poly1_arc, metalArcs[0]}, "metal-1-polysilicon-1", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(2), EdgeV.fromBottom(2), EdgeH.fromRight(2), EdgeV.fromTop(2))
 			});
 		metal1Poly1Contact_node.setFunction(PrimitiveNode.Function.CONTACT);
@@ -1924,7 +1932,7 @@ public class MoCMOS extends Technology
 			});
 		metal1Poly2Contact_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, metal1Poly2Contact_node, new ArcProto[] {poly2_arc, metal1_arc}, "metal-1-polysilicon-2", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, metal1Poly2Contact_node, new ArcProto[] {poly2_arc, metalArcs[0]}, "metal-1-polysilicon-2", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(4.5), EdgeV.fromBottom(4.5), EdgeH.fromRight(4.5), EdgeV.fromTop(4.5))
 			});
 		metal1Poly2Contact_node.setFunction(PrimitiveNode.Function.CONTACT);
@@ -1944,7 +1952,7 @@ public class MoCMOS extends Technology
 			});
 		metal1Poly12Contact_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, metal1Poly12Contact_node, new ArcProto[] {poly1_arc, poly2_arc, metal1_arc}, "metal-1-polysilicon-1-2", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, metal1Poly12Contact_node, new ArcProto[] {poly1_arc, poly2_arc, metalArcs[0]}, "metal-1-polysilicon-1-2", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(7), EdgeV.fromBottom(7), EdgeH.fromRight(7), EdgeV.fromTop(7))
 			});
 		metal1Poly12Contact_node.setFunction(PrimitiveNode.Function.CONTACT);
@@ -1981,27 +1989,27 @@ public class MoCMOS extends Technology
 		pTransistorSelectLayer = new Technology.NodeLayer(pSelect_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
 			new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.fromBottom(5)),
 			new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(5))}, 6, 6, 2, 2);
-		pTransistor_node = PrimitiveNode.newInstance("P-Transistor", this, 15.0, 22.0, new SizeOffset(6, 6, 10, 10),
+		transistorNodes[P_TYPE] = PrimitiveNode.newInstance("P-Transistor", this, 15.0, 22.0, new SizeOffset(6, 6, 10, 10),
 			new Technology.NodeLayer [] {pTransistorActiveLayer, pTransistorPolyLayer, pTransistorWellLayer, pTransistorSelectLayer});
-		pTransistor_node.setElectricalLayers(new Technology.NodeLayer [] {pTransistorActiveTLayer, pTransistorActiveBLayer,
+		transistorNodes[P_TYPE].setElectricalLayers(new Technology.NodeLayer [] {pTransistorActiveTLayer, pTransistorActiveBLayer,
 			pTransistorPolyCLayer, pTransistorPolyLLayer, pTransistorPolyRLayer, pTransistorWellLayer, pTransistorSelectLayer});
-		pTransistor_node.addPrimitivePorts(new PrimitivePort []
+		transistorNodes[P_TYPE].addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, pTransistor_node, new ArcProto[] {poly1_arc}, "p-trans-poly-left", 180,90, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, transistorNodes[P_TYPE], new ArcProto[] {poly1_arc}, "p-trans-poly-left", 180,90, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(4), EdgeV.fromBottom(11), EdgeH.fromLeft(4), EdgeV.fromTop(11)),
-				PrimitivePort.newInstance(this, pTransistor_node, new ArcProto[] {pActive_arc}, "p-trans-diff-top", 90,90, 1, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, transistorNodes[P_TYPE], new ArcProto[] {activeArcs[P_TYPE]}, "p-trans-diff-top", 90,90, 1, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(7.5), EdgeV.fromTop(7.5), EdgeH.fromRight(7.5), EdgeV.fromTop(7)),
-				PrimitivePort.newInstance(this, pTransistor_node, new ArcProto[] {poly1_arc}, "p-trans-poly-right", 0,90, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, transistorNodes[P_TYPE], new ArcProto[] {poly1_arc}, "p-trans-poly-right", 0,90, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromRight(4), EdgeV.fromBottom(11), EdgeH.fromRight(4), EdgeV.fromTop(11)),
-				PrimitivePort.newInstance(this, pTransistor_node, new ArcProto[] {pActive_arc}, "p-trans-diff-bottom", 270,90, 2, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, transistorNodes[P_TYPE], new ArcProto[] {activeArcs[P_TYPE]}, "p-trans-diff-bottom", 270,90, 2, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(7.5), EdgeV.fromBottom(7), EdgeH.fromRight(7.5), EdgeV.fromBottom(7.5))
 			});
-		pTransistor_node.setFunction(PrimitiveNode.Function.TRAPMOS);
-		pTransistor_node.setHoldsOutline();
-		pTransistor_node.setCanShrink();
-		pTransistor_node.setSpecialType(PrimitiveNode.SERPTRANS);
-		pTransistor_node.setSpecialValues(new double [] {7, 1.5, 2.5, 2, 1, 2});
-		pTransistor_node.setMinSize(15, 22, "2.1, 3.1");
+		transistorNodes[P_TYPE].setFunction(PrimitiveNode.Function.TRAPMOS);
+		transistorNodes[P_TYPE].setHoldsOutline();
+		transistorNodes[P_TYPE].setCanShrink();
+		transistorNodes[P_TYPE].setSpecialType(PrimitiveNode.SERPTRANS);
+		transistorNodes[P_TYPE].setSpecialValues(new double [] {7, 1.5, 2.5, 2, 1, 2});
+		transistorNodes[P_TYPE].setMinSize(15, 22, "2.1, 3.1");
 
 		/** N-Transistor */
 		nTransistorPolyLayer = new Technology.NodeLayer(transistorPoly_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
@@ -2031,27 +2039,27 @@ public class MoCMOS extends Technology
 		nTransistorSelectLayer = new Technology.NodeLayer(nSelect_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
 			new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.fromBottom(5)),
 			new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(5))}, 6, 6, 2, 2);
-		nTransistor_node = PrimitiveNode.newInstance("N-Transistor", this, 15.0, 22.0, new SizeOffset(6, 6, 10, 10),
+		transistorNodes[N_TYPE] = PrimitiveNode.newInstance("N-Transistor", this, 15.0, 22.0, new SizeOffset(6, 6, 10, 10),
 			new Technology.NodeLayer [] {nTransistorActiveLayer, nTransistorPolyLayer, nTransistorWellLayer, nTransistorSelectLayer});
-		nTransistor_node.setElectricalLayers(new Technology.NodeLayer [] {nTransistorActiveTLayer, nTransistorActiveBLayer,
+		transistorNodes[N_TYPE].setElectricalLayers(new Technology.NodeLayer [] {nTransistorActiveTLayer, nTransistorActiveBLayer,
 			nTransistorPolyLLayer, nTransistorPolyRLayer, nTransistorPolyCLayer, nTransistorWellLayer, nTransistorSelectLayer});
-		nTransistor_node.addPrimitivePorts(new PrimitivePort []
+		transistorNodes[N_TYPE].addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, nTransistor_node, new ArcProto[] {poly1_arc}, "n-trans-poly-left", 180,90, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, transistorNodes[N_TYPE], new ArcProto[] {poly1_arc}, "n-trans-poly-left", 180,90, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(4), EdgeV.fromBottom(11), EdgeH.fromLeft(4), EdgeV.fromTop(11)),
-				PrimitivePort.newInstance(this, nTransistor_node, new ArcProto[] {nActive_arc}, "n-trans-diff-top", 90,90, 1, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, transistorNodes[N_TYPE], new ArcProto[] {activeArcs[N_TYPE]}, "n-trans-diff-top", 90,90, 1, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(7.5), EdgeV.fromTop(7.5), EdgeH.fromRight(7.5), EdgeV.fromTop(7)),
-				PrimitivePort.newInstance(this, nTransistor_node, new ArcProto[] {poly1_arc}, "n-trans-poly-right", 0,90, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, transistorNodes[N_TYPE], new ArcProto[] {poly1_arc}, "n-trans-poly-right", 0,90, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromRight(4), EdgeV.fromBottom(11), EdgeH.fromRight(4), EdgeV.fromTop(11)),
-				PrimitivePort.newInstance(this, nTransistor_node, new ArcProto[] {nActive_arc}, "n-trans-diff-bottom", 270,90, 2, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, transistorNodes[N_TYPE], new ArcProto[] {activeArcs[N_TYPE]}, "n-trans-diff-bottom", 270,90, 2, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(7.5), EdgeV.fromBottom(7), EdgeH.fromRight(7.5), EdgeV.fromBottom(7.5))
 			});
-		nTransistor_node.setFunction(PrimitiveNode.Function.TRANMOS);
-		nTransistor_node.setHoldsOutline();
-		nTransistor_node.setCanShrink();
-		nTransistor_node.setSpecialType(PrimitiveNode.SERPTRANS);
-		nTransistor_node.setSpecialValues(new double [] {7, 1.5, 2.5, 2, 1, 2});
-		nTransistor_node.setMinSize(15, 22, "2.1, 3.1");
+		transistorNodes[N_TYPE].setFunction(PrimitiveNode.Function.TRANMOS);
+		transistorNodes[N_TYPE].setHoldsOutline();
+		transistorNodes[N_TYPE].setCanShrink();
+		transistorNodes[N_TYPE].setSpecialType(PrimitiveNode.SERPTRANS);
+		transistorNodes[N_TYPE].setSpecialValues(new double [] {7, 1.5, 2.5, 2, 1, 2});
+		transistorNodes[N_TYPE].setMinSize(15, 22, "2.1, 3.1");
 
 		/** Thick oxide transistors */
 		String[] thickNames = {"Thick-P", "Thick-N"};
@@ -2083,11 +2091,11 @@ public class MoCMOS extends Technology
 				{
 					PrimitivePort.newInstance(this, thickTransistorNodes[i], new ArcProto[] {poly1_arc}, "p-trans-poly-left", 180,90, 0, PortCharacteristic.UNKNOWN,
 						EdgeH.fromLeft(4), EdgeV.fromBottom(11), EdgeH.fromLeft(4), EdgeV.fromTop(11)),
-					PrimitivePort.newInstance(this, thickTransistorNodes[i], new ArcProto[] {pActive_arc}, "p-trans-diff-top", 90,90, 1, PortCharacteristic.UNKNOWN,
+					PrimitivePort.newInstance(this, thickTransistorNodes[i], new ArcProto[] {activeArcs[P_TYPE]}, "p-trans-diff-top", 90,90, 1, PortCharacteristic.UNKNOWN,
 						EdgeH.fromLeft(7.5), EdgeV.fromTop(7.5), EdgeH.fromRight(7.5), EdgeV.fromTop(7)),
 					PrimitivePort.newInstance(this, thickTransistorNodes[i], new ArcProto[] {poly1_arc}, "p-trans-poly-right", 0,90, 0, PortCharacteristic.UNKNOWN,
 						EdgeH.fromRight(4), EdgeV.fromBottom(11), EdgeH.fromRight(4), EdgeV.fromTop(11)),
-					PrimitivePort.newInstance(this, thickTransistorNodes[i], new ArcProto[] {pActive_arc}, "p-trans-diff-bottom", 270,90, 2, PortCharacteristic.UNKNOWN,
+					PrimitivePort.newInstance(this, thickTransistorNodes[i], new ArcProto[] {activeArcs[P_TYPE]}, "p-trans-diff-bottom", 270,90, 2, PortCharacteristic.UNKNOWN,
 						EdgeH.fromLeft(7.5), EdgeV.fromBottom(7), EdgeH.fromRight(7.5), EdgeV.fromBottom(7.5))
 				});
 			thickTransistorNodes[i].setFunction((i==P_TYPE) ? PrimitiveNode.Function.TRAPMOS : PrimitiveNode.Function.TRANMOS);
@@ -2134,11 +2142,11 @@ public class MoCMOS extends Technology
 			{
 				PrimitivePort.newInstance(this, scalablePTransistor_node, new ArcProto[] {poly1_arc}, "p-trans-sca-poly-left", 180,90, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromCenter(-3.5), EdgeV.makeCenter(), EdgeH.fromCenter(-3.5), EdgeV.makeCenter()),
-				PrimitivePort.newInstance(this, scalablePTransistor_node, new ArcProto[] {pActive_arc, metal1_arc}, "p-trans-sca-diff-top", 90,90, 1, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, scalablePTransistor_node, new ArcProto[] {activeArcs[P_TYPE], metalArcs[0]}, "p-trans-sca-diff-top", 90,90, 1, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.fromCenter(4.5), EdgeH.makeCenter(), EdgeV.fromCenter(4.5)),
 				PrimitivePort.newInstance(this, scalablePTransistor_node, new ArcProto[] {poly1_arc}, "p-trans-sca-poly-right", 0,90, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromCenter(3.5), EdgeV.makeCenter(), EdgeH.fromCenter(3.5), EdgeV.makeCenter()),
-				PrimitivePort.newInstance(this, scalablePTransistor_node, new ArcProto[] {pActive_arc, metal1_arc}, "p-trans-sca-diff-bottom", 270,90, 2, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, scalablePTransistor_node, new ArcProto[] {activeArcs[P_TYPE], metalArcs[0]}, "p-trans-sca-diff-bottom", 270,90, 2, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.fromCenter(-4.5), EdgeH.makeCenter(), EdgeV.fromCenter(-4.5))
 			});
 		scalablePTransistor_node.setFunction(PrimitiveNode.Function.TRAPMOS);
@@ -2181,11 +2189,11 @@ public class MoCMOS extends Technology
 			{
 				PrimitivePort.newInstance(this, scalableNTransistor_node, new ArcProto[] {poly1_arc}, "n-trans-sca-poly-left", 180,90, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromCenter(-3.5), EdgeV.makeCenter(), EdgeH.fromCenter(-3.5), EdgeV.makeCenter()),
-				PrimitivePort.newInstance(this, scalableNTransistor_node, new ArcProto[] {nActive_arc, metal1_arc}, "n-trans-sca-diff-top", 90,90, 1, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, scalableNTransistor_node, new ArcProto[] {activeArcs[N_TYPE], metalArcs[0]}, "n-trans-sca-diff-top", 90,90, 1, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.fromCenter(4.5), EdgeH.makeCenter(), EdgeV.fromCenter(4.5)),
 				PrimitivePort.newInstance(this, scalableNTransistor_node, new ArcProto[] {poly1_arc}, "n-trans-sca-poly-right", 0,90, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromCenter(3.5), EdgeV.makeCenter(), EdgeH.fromCenter(3.5), EdgeV.makeCenter()),
-				PrimitivePort.newInstance(this, scalableNTransistor_node, new ArcProto[] {nActive_arc, metal1_arc}, "n-trans-sca-diff-bottom", 270,90, 2, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, scalableNTransistor_node, new ArcProto[] {activeArcs[N_TYPE], metalArcs[0]}, "n-trans-sca-diff-bottom", 270,90, 2, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.fromCenter(-4.5), EdgeH.makeCenter(), EdgeV.fromCenter(-4.5))
 			});
 		scalableNTransistor_node.setFunction(PrimitiveNode.Function.TRANMOS);
@@ -2194,99 +2202,99 @@ public class MoCMOS extends Technology
 		scalableNTransistor_node.setMinSize(17, 26, "2.1, 3.1");
 
 		/** metal-1-metal-2-contact */
-		metal1Metal2Contact_node = PrimitiveNode.newInstance("Metal-1-Metal-2-Con", this, 5.0, 5.0, new SizeOffset(0.5, 0.5, 0.5, 0.5),
+		metalContactNodes[0] = PrimitiveNode.newInstance("Metal-1-Metal-2-Con", this, 5.0, 5.0, new SizeOffset(0.5, 0.5, 0.5, 0.5),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(metal1_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(0.5)),
 				new Technology.NodeLayer(metal2_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(0.5)),
 				new Technology.NodeLayer(via1_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1.5))
 			});
-		metal1Metal2Contact_node.addPrimitivePorts(new PrimitivePort []
+		metalContactNodes[0].addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, metal1Metal2Contact_node, new ArcProto[] {metal1_arc, metal2_arc}, "metal-1-metal-2", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, metalContactNodes[0], new ArcProto[] {metalArcs[0], metalArcs[1]}, "metal-1-metal-2", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
-		metal1Metal2Contact_node.setFunction(PrimitiveNode.Function.CONTACT);
-		metal1Metal2Contact_node.setSpecialType(PrimitiveNode.MULTICUT);
-		metal1Metal2Contact_node.setSpecialValues(new double [] {2, 2, 1, 1, 3, 3});
-		metal1Metal2Contact_node.setMinSize(5, 5, "8.3, 9.3");
+		metalContactNodes[0].setFunction(PrimitiveNode.Function.CONTACT);
+		metalContactNodes[0].setSpecialType(PrimitiveNode.MULTICUT);
+		metalContactNodes[0].setSpecialValues(new double [] {2, 2, 1, 1, 3, 3});
+		metalContactNodes[0].setMinSize(5, 5, "8.3, 9.3");
 
 		/** metal-2-metal-3-contact */
-		metal2Metal3Contact_node = PrimitiveNode.newInstance("Metal-2-Metal-3-Con", this, 6.0, 6.0, new SizeOffset(1, 1, 1, 1),
+		metalContactNodes[1] = PrimitiveNode.newInstance("Metal-2-Metal-3-Con", this, 6.0, 6.0, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(metal2_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1)),
 				new Technology.NodeLayer(metal3_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1)),
 				new Technology.NodeLayer(via2_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2))
 			});
-		metal2Metal3Contact_node.addPrimitivePorts(new PrimitivePort []
+		metalContactNodes[1].addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, metal2Metal3Contact_node, new ArcProto[] {metal2_arc, metal3_arc}, "metal-2-metal-3", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, metalContactNodes[1], new ArcProto[] {metalArcs[1], metalArcs[2]}, "metal-2-metal-3", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(2.5), EdgeV.fromBottom(2.5), EdgeH.fromRight(2.5), EdgeV.fromTop(2.5))
 			});
-		metal2Metal3Contact_node.setFunction(PrimitiveNode.Function.CONTACT);
-		metal2Metal3Contact_node.setSpecialType(PrimitiveNode.MULTICUT);
-		metal2Metal3Contact_node.setSpecialValues(new double [] {2, 2, 1, 1, 3, 3});
-		metal2Metal3Contact_node.setMinSize(6, 6, "14.3, 15.3");
+		metalContactNodes[1].setFunction(PrimitiveNode.Function.CONTACT);
+		metalContactNodes[1].setSpecialType(PrimitiveNode.MULTICUT);
+		metalContactNodes[1].setSpecialValues(new double [] {2, 2, 1, 1, 3, 3});
+		metalContactNodes[1].setMinSize(6, 6, "14.3, 15.3");
 
 		/** metal-3-metal-4-contact */
-		metal3Metal4Contact_node = PrimitiveNode.newInstance("Metal-3-Metal-4-Con", this, 6.0, 6.0, null,
+		metalContactNodes[2] = PrimitiveNode.newInstance("Metal-3-Metal-4-Con", this, 6.0, 6.0, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(metal3_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1)),
 				new Technology.NodeLayer(metal4_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
 				new Technology.NodeLayer(via3_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2))
 			});
-		metal3Metal4Contact_node.addPrimitivePorts(new PrimitivePort []
+		metalContactNodes[2].addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, metal3Metal4Contact_node, new ArcProto[] {metal3_arc, metal4_arc}, "metal-3-metal-4", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, metalContactNodes[2], new ArcProto[] {metalArcs[2], metalArcs[3]}, "metal-3-metal-4", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(2.5), EdgeV.fromBottom(2.5), EdgeH.fromRight(2.5), EdgeV.fromTop(2.5))
 			});
-		metal3Metal4Contact_node.setFunction(PrimitiveNode.Function.CONTACT);
-		metal3Metal4Contact_node.setSpecialType(PrimitiveNode.MULTICUT);
-		metal3Metal4Contact_node.setSpecialValues(new double [] {2, 2, 2, 2, 3, 3});
-		metal3Metal4Contact_node.setMinSize(6, 6, "21.3, 22.3");
+		metalContactNodes[2].setFunction(PrimitiveNode.Function.CONTACT);
+		metalContactNodes[2].setSpecialType(PrimitiveNode.MULTICUT);
+		metalContactNodes[2].setSpecialValues(new double [] {2, 2, 2, 2, 3, 3});
+		metalContactNodes[2].setMinSize(6, 6, "21.3, 22.3");
 
 		/** metal-4-metal-5-contact */
-		metal4Metal5Contact_node = PrimitiveNode.newInstance("Metal-4-Metal-5-Con", this, 7.0, 7.0, new SizeOffset(1.5, 1.5, 1.5, 1.5),
+		metalContactNodes[3] = PrimitiveNode.newInstance("Metal-4-Metal-5-Con", this, 7.0, 7.0, new SizeOffset(1.5, 1.5, 1.5, 1.5),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(metal4_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1.5)),
 				new Technology.NodeLayer(metal5_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1.5)),
 				new Technology.NodeLayer(via4_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2.5))
 			});
-		metal4Metal5Contact_node.addPrimitivePorts(new PrimitivePort []
+		metalContactNodes[3].addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, metal4Metal5Contact_node, new ArcProto[] {metal4_arc, metal5_arc}, "metal-4-metal-5", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, metalContactNodes[3], new ArcProto[] {metalArcs[3], metalArcs[4]}, "metal-4-metal-5", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(2.5), EdgeV.fromBottom(2.5), EdgeH.fromRight(2.5), EdgeV.fromTop(2.5))
 			});
-		metal4Metal5Contact_node.setFunction(PrimitiveNode.Function.CONTACT);
-		metal4Metal5Contact_node.setSpecialType(PrimitiveNode.MULTICUT);
-		metal4Metal5Contact_node.setSpecialValues(new double [] {2, 2, 1, 1, 3, 3});
-		metal4Metal5Contact_node.setNotUsed();
-		metal4Metal5Contact_node.setMinSize(7, 7, "25.3, 26.3");
+		metalContactNodes[3].setFunction(PrimitiveNode.Function.CONTACT);
+		metalContactNodes[3].setSpecialType(PrimitiveNode.MULTICUT);
+		metalContactNodes[3].setSpecialValues(new double [] {2, 2, 1, 1, 3, 3});
+		metalContactNodes[3].setNotUsed();
+		metalContactNodes[3].setMinSize(7, 7, "25.3, 26.3");
 
 		/** metal-5-metal-6-contact */
-		metal5Metal6Contact_node = PrimitiveNode.newInstance("Metal-5-Metal-6-Con", this, 8.0, 8.0, new SizeOffset(1, 1, 1, 1),
+		metalContactNodes[4] = PrimitiveNode.newInstance("Metal-5-Metal-6-Con", this, 8.0, 8.0, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(metal5_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1)),
 				new Technology.NodeLayer(metal6_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1)),
 				new Technology.NodeLayer(via5_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(3))
 			});
-		metal5Metal6Contact_node.addPrimitivePorts(new PrimitivePort []
+		metalContactNodes[4].addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, metal5Metal6Contact_node, new ArcProto[] {metal5_arc, metal6_arc}, "metal-5-metal-6", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, metalContactNodes[4], new ArcProto[] {metalArcs[4], metalArcs[5]}, "metal-5-metal-6", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(2.5), EdgeV.fromBottom(2.5), EdgeH.fromRight(2.5), EdgeV.fromTop(2.5))
 			});
-		metal5Metal6Contact_node.setFunction(PrimitiveNode.Function.CONTACT);
-		metal5Metal6Contact_node.setSpecialType(PrimitiveNode.MULTICUT);
-		metal5Metal6Contact_node.setSpecialValues(new double [] {3, 3, 2, 2, 4, 4});
-		metal5Metal6Contact_node.setNotUsed();
-		metal5Metal6Contact_node.setMinSize(8, 8, "29.3, 30.3");
+		metalContactNodes[4].setFunction(PrimitiveNode.Function.CONTACT);
+		metalContactNodes[4].setSpecialType(PrimitiveNode.MULTICUT);
+		metalContactNodes[4].setSpecialValues(new double [] {3, 3, 2, 2, 4, 4});
+		metalContactNodes[4].setNotUsed();
+		metalContactNodes[4].setMinSize(8, 8, "29.3, 30.3");
 
 		/** Metal-1-P-Well Contact */
-		metal1PWellContact_node = PrimitiveNode.newInstance("Metal-1-P-Well-Con", this, 17.0, 17.0, new SizeOffset(6, 6, 6, 6),
+		metalWellContactNodes[P_TYPE] = PrimitiveNode.newInstance("Metal-1-P-Well-Con", this, 17.0, 17.0, new SizeOffset(6, 6, 6, 6),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(metal1_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6.5)),
@@ -2295,18 +2303,18 @@ public class MoCMOS extends Technology
 				new Technology.NodeLayer(pSelect_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4)),
 				new Technology.NodeLayer(activeCut_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(7.5))
 			});
-		metal1PWellContact_node.addPrimitivePorts(new PrimitivePort []
+		metalWellContactNodes[P_TYPE].addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, metal1PWellContact_node, new ArcProto[] {metal1_arc, active_arc}, "metal-1-well", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, metalWellContactNodes[P_TYPE], new ArcProto[] {metalArcs[0], active_arc}, "metal-1-well", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(8), EdgeV.fromBottom(8), EdgeH.fromRight(8), EdgeV.fromTop(8))
 			});
-		metal1PWellContact_node.setFunction(PrimitiveNode.Function.WELL);
-		metal1PWellContact_node.setSpecialType(PrimitiveNode.MULTICUT);
-		metal1PWellContact_node.setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
-		metal1PWellContact_node.setMinSize(17, 17, "4.2, 6.2, 7.3");
+		metalWellContactNodes[P_TYPE].setFunction(PrimitiveNode.Function.WELL);
+		metalWellContactNodes[P_TYPE].setSpecialType(PrimitiveNode.MULTICUT);
+		metalWellContactNodes[P_TYPE].setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
+		metalWellContactNodes[P_TYPE].setMinSize(17, 17, "4.2, 6.2, 7.3");
 
 		/** Metal-1-N-Well Contact */
-		metal1NWellContact_node = PrimitiveNode.newInstance("Metal-1-N-Well-Con", this, 17.0, 17.0, new SizeOffset(6, 6, 6, 6),
+		metalWellContactNodes[N_TYPE] = PrimitiveNode.newInstance("Metal-1-N-Well-Con", this, 17.0, 17.0, new SizeOffset(6, 6, 6, 6),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(metal1_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6.5)),
@@ -2315,15 +2323,15 @@ public class MoCMOS extends Technology
 				new Technology.NodeLayer(nSelect_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4)),
 				new Technology.NodeLayer(activeCut_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(7.5))
 			});
-		metal1NWellContact_node.addPrimitivePorts(new PrimitivePort []
+		metalWellContactNodes[N_TYPE].addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, metal1NWellContact_node, new ArcProto[] {metal1_arc, active_arc}, "metal-1-substrate", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, metalWellContactNodes[N_TYPE], new ArcProto[] {metalArcs[0], active_arc}, "metal-1-substrate", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(8), EdgeV.fromBottom(8), EdgeH.fromRight(8), EdgeV.fromTop(8))
 			});
-		metal1NWellContact_node.setFunction(PrimitiveNode.Function.SUBSTRATE);
-		metal1NWellContact_node.setSpecialType(PrimitiveNode.MULTICUT);
-		metal1NWellContact_node.setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
-		metal1NWellContact_node.setMinSize(17, 17, "4.2, 6.2, 7.3");
+		metalWellContactNodes[N_TYPE].setFunction(PrimitiveNode.Function.SUBSTRATE);
+		metalWellContactNodes[N_TYPE].setSpecialType(PrimitiveNode.MULTICUT);
+		metalWellContactNodes[N_TYPE].setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
+		metalWellContactNodes[N_TYPE].setMinSize(17, 17, "4.2, 6.2, 7.3");
 
 		/** Metal-1-Node */
 		metal1Node_node = PrimitiveNode.newInstance("Metal-1-Node", this, 3.0, 3.0, null,
@@ -2333,7 +2341,7 @@ public class MoCMOS extends Technology
 			});
 		metal1Node_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, metal1Node_node, new ArcProto[] {metal1_arc}, "metal-1", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, metal1Node_node, new ArcProto[] {metalArcs[0]}, "metal-1", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
 		metal1Node_node.setFunction(PrimitiveNode.Function.NODE);
@@ -2348,7 +2356,7 @@ public class MoCMOS extends Technology
 			});
 		metal2Node_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, metal2Node_node, new ArcProto[] {metal2_arc}, "metal-2", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, metal2Node_node, new ArcProto[] {metalArcs[1]}, "metal-2", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
 		metal2Node_node.setFunction(PrimitiveNode.Function.NODE);
@@ -2363,7 +2371,7 @@ public class MoCMOS extends Technology
 			});
 		metal3Node_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, metal3Node_node, new ArcProto[] {metal3_arc}, "metal-3", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, metal3Node_node, new ArcProto[] {metalArcs[2]}, "metal-3", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
 		metal3Node_node.setFunction(PrimitiveNode.Function.NODE);
@@ -2378,7 +2386,7 @@ public class MoCMOS extends Technology
 			});
 		metal4Node_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, metal4Node_node, new ArcProto[] {metal4_arc}, "metal-4", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, metal4Node_node, new ArcProto[] {metalArcs[3]}, "metal-4", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
 		metal4Node_node.setFunction(PrimitiveNode.Function.NODE);
@@ -2393,7 +2401,7 @@ public class MoCMOS extends Technology
 			});
 		metal5Node_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, metal5Node_node, new ArcProto[] {metal5_arc}, "metal-5", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, metal5Node_node, new ArcProto[] {metalArcs[4]}, "metal-5", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
 		metal5Node_node.setFunction(PrimitiveNode.Function.NODE);
@@ -2409,7 +2417,7 @@ public class MoCMOS extends Technology
 			});
 		metal6Node_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, metal6Node_node, new ArcProto[] {metal6_arc}, "metal-6", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, metal6Node_node, new ArcProto[] {metalArcs[5]}, "metal-6", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
 		metal6Node_node.setFunction(PrimitiveNode.Function.NODE);
@@ -2456,7 +2464,7 @@ public class MoCMOS extends Technology
 			});
 		pActiveNode_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, pActiveNode_node, new ArcProto[] {active_arc, pActive_arc, nActive_arc}, "active", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, pActiveNode_node, new ArcProto[] {active_arc, activeArcs[P_TYPE], activeArcs[N_TYPE]}, "active", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
 		pActiveNode_node.setFunction(PrimitiveNode.Function.NODE);
@@ -2471,7 +2479,7 @@ public class MoCMOS extends Technology
 			});
 		nActiveNode_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, nActiveNode_node, new ArcProto[] {active_arc, pActive_arc, nActive_arc}, "active", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, nActiveNode_node, new ArcProto[] {active_arc, activeArcs[P_TYPE], activeArcs[N_TYPE]}, "active", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
 			});
 		nActiveNode_node.setFunction(PrimitiveNode.Function.NODE);
@@ -2623,7 +2631,7 @@ public class MoCMOS extends Technology
 			});
 		pWellNode_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, pWellNode_node, new ArcProto[] {pActive_arc}, "well", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, pWellNode_node, new ArcProto[] {activeArcs[P_TYPE]}, "well", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(3), EdgeV.fromBottom(3), EdgeH.fromRight(3), EdgeV.fromTop(3))
 			});
 		pWellNode_node.setFunction(PrimitiveNode.Function.NODE);
@@ -2638,7 +2646,7 @@ public class MoCMOS extends Technology
 			});
 		nWellNode_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, nWellNode_node, new ArcProto[] {pActive_arc}, "well", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, nWellNode_node, new ArcProto[] {activeArcs[P_TYPE]}, "well", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromLeft(3), EdgeV.fromBottom(3), EdgeH.fromRight(3), EdgeV.fromTop(3))
 			});
 		nWellNode_node.setFunction(PrimitiveNode.Function.NODE);
@@ -2779,6 +2787,54 @@ public class MoCMOS extends Technology
 		silicideBlock_lay.setPureLayerNode(silicideBlockNode_node);		// Silicide-Block
 		thickActive_lay.setPureLayerNode(thickActiveNode_node);			// Thick-Active
 		padFrame_lay.setPureLayerNode(padFrameNode_node);				// Pad-Frame
+
+        // Information for palette
+        int maxY = metalArcs.length + activeArcs.length + 1 /* poly*/;
+        nodeGroups = new Object[maxY][4];
+        int count = -1;
+        for (int i = 0; i < metalArcs.length; i++)
+        {
+            nodeGroups[++count][0] = metalArcs[i];
+            nodeGroups[count][1] = metalPinNodes[i];
+            nodeGroups[count][2] = (i > 0) ? metalContactNodes[i-1] : null;
+        }
+
+        nodeGroups[++count][0] = poly1_arc;
+        nodeGroups[count][1] = poly1Pin_node;
+        nodeGroups[count][2] = metal1Poly1Contact_node;
+        String[] shortNames = {"p", "n"};
+        for (int i = 0; i < activeArcs.length; i++)
+        {
+            nodeGroups[++count][0] = activeArcs[i];
+            nodeGroups[count][1] = activePinNodes[i];
+            String tmpVar = shortNames[i]+"Act";
+            nodeGroups[count][2] = makeNodeInst(metalActiveContactNodes[i], metalActiveContactNodes[i].getFunction(),
+                    0, true, tmpVar, 5.55);
+        }
+        // Well Contacts
+        for (int i = 0; i < metalWellContactNodes.length; i++)
+        {
+            // Taking reverse order to get N type on top of P type. Due to
+            // y = 0 being on the bottom
+            int j = (i+1)%metalWellContactNodes.length;
+            String tmpVar = shortNames[j]+"Well";
+            nodeGroups[maxY-i-1][3] = makeNodeInst(metalWellContactNodes[j], metalWellContactNodes[j].getFunction(),
+                    0, true, tmpVar, 5.5);
+        }
+        // On the side
+        nodeGroups[maxY-1-transistorNodes.length][3] = "Pure";
+        nodeGroups[maxY-2-transistorNodes.length][3] = "Misc.";
+        nodeGroups[maxY-3-transistorNodes.length][3] = "Cell";
+        // Transistors
+        for (int i = 0; i < transistorNodes.length; i++)
+        {
+            List tmp = new ArrayList(2);
+            int j = (i+1)%transistorNodes.length;
+            String tmpVar = shortNames[j]+"Mos";
+            tmp.add(makeNodeInst(transistorNodes[i], transistorNodes[i].getFunction(), 0, true, tmpVar, 9));
+            tmp.add(makeNodeInst(thickTransistorNodes[i], thickTransistorNodes[i].getFunction(), 0, true, tmpVar, 9));
+            nodeGroups[maxY-4-metalWellContactNodes.length-i][3] = tmp;
+        }
 	}
 
 	/******************** SUPPORT METHODS ********************/
@@ -2855,14 +2911,14 @@ public class MoCMOS extends Technology
 		}
 
 		// disable Metal-3/4/5/6-Pin, Metal-2/3/4/5-Metal-3/4/5/6-Con, Metal-3/4/5/6-Node, Via-2/3/4/5-Node
-		metal3Pin_node.setNotUsed();
-		metal4Pin_node.setNotUsed();
-		metal5Pin_node.setNotUsed();
-		metal6Pin_node.setNotUsed();
-		metal2Metal3Contact_node.setNotUsed();
-		metal3Metal4Contact_node.setNotUsed();
-		metal4Metal5Contact_node.setNotUsed();
-		metal5Metal6Contact_node.setNotUsed();
+		metalPinNodes[2].setNotUsed();
+		metalPinNodes[3].setNotUsed();
+		metalPinNodes[4].setNotUsed();
+		metalPinNodes[5].setNotUsed();
+		metalContactNodes[1].setNotUsed();
+		metalContactNodes[2].setNotUsed();
+		metalContactNodes[3].setNotUsed();
+		metalContactNodes[4].setNotUsed();
 		metal3Node_node.setNotUsed();
 		metal4Node_node.setNotUsed();
 		metal5Node_node.setNotUsed();
@@ -2880,41 +2936,41 @@ public class MoCMOS extends Technology
 		poly2Node_node.setNotUsed();
 
 		// disable metal 3-6 arcs
-		metal3_arc.setNotUsed();
-		metal4_arc.setNotUsed();
-		metal5_arc.setNotUsed();
-		metal6_arc.setNotUsed();
+		metalArcs[2].setNotUsed();
+		metalArcs[3].setNotUsed();
+		metalArcs[4].setNotUsed();
+		metalArcs[5].setNotUsed();
 
 		// enable the desired nodes
 		switch (getNumMetal())
 		{
 			case 6:
-				metal6Pin_node.clearNotUsed();
-				metal5Metal6Contact_node.clearNotUsed();
+				metalPinNodes[5].clearNotUsed();
+				metalContactNodes[4].clearNotUsed();
 				metal6Node_node.clearNotUsed();
 				via5Node_node.clearNotUsed();
-				metal6_arc.clearNotUsed();
+				metalArcs[5].clearNotUsed();
 				// FALLTHROUGH 
 			case 5:
-				metal5Pin_node.clearNotUsed();
-				metal4Metal5Contact_node.clearNotUsed();
+				metalPinNodes[4].clearNotUsed();
+				metalContactNodes[3].clearNotUsed();
 				metal5Node_node.clearNotUsed();
 				via4Node_node.clearNotUsed();
-				metal5_arc.clearNotUsed();
+				metalArcs[4].clearNotUsed();
 				// FALLTHROUGH 
 			case 4:
-				metal4Pin_node.clearNotUsed();
-				metal3Metal4Contact_node.clearNotUsed();
+				metalPinNodes[3].clearNotUsed();
+				metalContactNodes[2].clearNotUsed();
 				metal4Node_node.clearNotUsed();
 				via3Node_node.clearNotUsed();
-				metal4_arc.clearNotUsed();
+				metalArcs[3].clearNotUsed();
 				// FALLTHROUGH 
 			case 3:
-				metal3Pin_node.clearNotUsed();
-				metal2Metal3Contact_node.clearNotUsed();
+				metalPinNodes[2].clearNotUsed();
+				metalContactNodes[1].clearNotUsed();
 				metal3Node_node.clearNotUsed();
 				via2Node_node.clearNotUsed();
-				metal3_arc.clearNotUsed();
+				metalArcs[2].clearNotUsed();
 				break;
 		}
 		if (getRuleSet() != DEEPRULES)
@@ -3038,7 +3094,7 @@ public class MoCMOS extends Technology
 		double metContInset = actContInset + 0.5;
 	
 		// determine the multicut information
-		double [] specialValues = metal1PActiveContact_node.getSpecialValues();
+		double [] specialValues = metalActiveContactNodes[P_TYPE].getSpecialValues();
 		double cutSize = specialValues[0];
 		double cutIndent = specialValues[2];   // or specialValues[3]
 		double cutSep = specialValues[4];      // or specialValues[5]
@@ -3670,8 +3726,8 @@ public class MoCMOS extends Technology
 		nWellTop.setAdder(nActiveTop.getAdder()+wellOverhang);
 
 		// the serpentine active overhang
-		SizeOffset so = pTransistor_node.getProtoSizeOffset();
-		double halfPolyWidth = (pTransistor_node.getDefHeight() - so.getHighYOffset() - so.getLowYOffset()) / 2;
+		SizeOffset so = transistorNodes[P_TYPE].getProtoSizeOffset();
+		double halfPolyWidth = (transistorNodes[P_TYPE].getDefHeight() - so.getHighYOffset() - so.getLowYOffset()) / 2;
 		pTransistorActiveLayer.setSerpentineLWidth(halfPolyWidth+overhang);
 		pTransistorActiveLayer.setSerpentineRWidth(halfPolyWidth+overhang);
 		pTransistorActiveTLayer.setSerpentineRWidth(halfPolyWidth+overhang);
@@ -3766,8 +3822,8 @@ public class MoCMOS extends Technology
 	 */
 	public PrimitiveNode convertOldNodeName(String name)
 	{
-		if (name.equals("Metal-1-Substrate-Con")) return(metal1NWellContact_node);
-		if (name.equals("Metal-1-Well-Con")) return(metal1PWellContact_node);
+		if (name.equals("Metal-1-Substrate-Con")) return(metalWellContactNodes[N_TYPE]);
+		if (name.equals("Metal-1-Well-Con")) return(metalWellContactNodes[P_TYPE]);
 		return null;
 	}
 
