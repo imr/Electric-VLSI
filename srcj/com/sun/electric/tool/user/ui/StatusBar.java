@@ -170,10 +170,7 @@ public class StatusBar extends JPanel implements HighlightListener
 		{
 			// count the number of nodes and arcs selected
 			int nodeCount = 0, arcCount = 0, textCount = 0;
-			NodeInst theNode = null;
-			ArcInst theArc = null;
-            PortInst thePort = null;
-			Highlight theText = null;
+            Highlight lastHighlight = null;
 			for(Iterator hIt = Highlight.getHighlights(); hIt.hasNext(); )
 			{
 				Highlight h = (Highlight)hIt.next();
@@ -182,72 +179,46 @@ public class StatusBar extends JPanel implements HighlightListener
 					ElectricObject eObj = (ElectricObject)h.getElectricObject();
                     if (eObj instanceof PortInst)
                     {
-                        thePort = (PortInst)eObj;
-                        theNode = thePort.getNodeInst();
+                        lastHighlight = h;
                         nodeCount++;
                     } else if (eObj instanceof NodeInst)
 					{
-						theNode = (NodeInst)eObj;
+                        lastHighlight = h;
 						nodeCount++;
 					} else if (eObj instanceof ArcInst)
 					{
-						theArc = (ArcInst)eObj;
+                        lastHighlight = h;
 						arcCount++;
 					}
 				} else if (h.getType() == Highlight.Type.TEXT)
 				{
-					theText = h;
+                    lastHighlight = h;
 					textCount++;
 				}
 			}
 			if (nodeCount + arcCount + textCount == 1)
 			{
-				if (nodeCount == 1)
-                {
-                    if (thePort != null)
-                        selectedMsg = "SELECTED NODE: " + theNode.describe() +
-							" PORT: \"" + thePort.getPortProto().getProtoName() + "\"";
-                    else
-                        selectedMsg = "SELECTED NODE: " + theNode.describe();
-                } else
-				{
-					if (arcCount == 1) selectedMsg = "SELECTED ARC: " + theArc.describe(); else
-					{
-						if (theText.getVar() != null)
-						{
-							selectedMsg = "SELECTED TEXT: " + theText.getVar().getFullDescription(theText.getElectricObject());
-						} else
-						{
-							if (theText.getName() != null)
-							{
-								if (theText.getElectricObject() instanceof NodeInst)
-									selectedMsg = "SELECTED TEXT: Node name"; else
-										selectedMsg = "SELECTED TEXT: Arc name";
-							} else
-							{
-								if (theText.getElectricObject() instanceof Export)
-									selectedMsg = "SELECTED TEXT: Export name"; else
-										selectedMsg = "SELECTED TEXT: Cell instance name";
-							}
-						}
-					}
-				}
+                selectedMsg = "SELECTED "+getSelectedText(lastHighlight);
 			} else
 			{
 				if (nodeCount + arcCount + textCount > 0)
 				{
-					selectedMsg = "SELECTED:";
-					if (nodeCount > 0) selectedMsg += " " + nodeCount + " NODES";
+                    StringBuffer buf = new StringBuffer();
+					buf.append("SELECTED:");
+					if (nodeCount > 0) buf.append(" " + nodeCount + " NODES");
 					if (arcCount > 0)
 					{
-						if (nodeCount > 0) selectedMsg += ",";
-						selectedMsg += " " + arcCount + " ARCS";
+						if (nodeCount > 0) buf.append(",");
+						buf.append(" " + arcCount + " ARCS");
 					}
 					if (textCount > 0)
 					{
-						if (nodeCount + arcCount > 0) selectedMsg += ",";
-						selectedMsg += " " + textCount + " TEXT";
+						if (nodeCount + arcCount > 0) buf.append(",");
+						buf.append(" " + textCount + " TEXT");
 					}
+                    // add on info for last highlight
+                    buf.append(". LAST: "+getSelectedText(lastHighlight));
+                    selectedMsg = buf.toString();
 				}
 			}
 		}
@@ -293,6 +264,55 @@ public class StatusBar extends JPanel implements HighlightListener
 		if (coords == null) fieldCoords.setText(""); else
 			fieldCoords.setText(coords);
 	}
+
+    /**
+     * Get a String describing the Highlight, to display in the
+     * "Selected" part of the status bar.
+     */
+    private String getSelectedText(Highlight h) {
+        PortInst thePort;
+        NodeInst theNode;
+        ArcInst theArc;
+        if (h.getType() == Highlight.Type.EOBJ)
+        {
+            ElectricObject eObj = (ElectricObject)h.getElectricObject();
+            if (eObj instanceof PortInst)
+            {
+                thePort = (PortInst)eObj;
+                theNode = thePort.getNodeInst();
+                return("NODE: " + theNode.describe() +
+                        " PORT: \"" + thePort.getPortProto().getProtoName() + "\"");
+            } else if (eObj instanceof NodeInst)
+            {
+                theNode = (NodeInst)eObj;
+                return("NODE: " + theNode.describe());
+            } else if (eObj instanceof ArcInst)
+            {
+                theArc = (ArcInst)eObj;
+                return("ARC: " + theArc.describe());
+            }
+        } else if (h.getType() == Highlight.Type.TEXT)
+        {
+            if (h.getVar() != null)
+            {
+                return "TEXT: " + h.getVar().getFullDescription(h.getElectricObject());
+            } else
+            {
+                if (h.getName() != null)
+                {
+                    if (h.getElectricObject() instanceof NodeInst)
+                        return "TEXT: Node name"; else
+                            return "TEXT: Arc name";
+                } else
+                {
+                    if (h.getElectricObject() instanceof Export)
+                        return "TEXT: Export name"; else
+                            return "TEXT: Cell instance name";
+                }
+            }
+        }
+        return null;
+    }
 
     /**
      * Call when done with this Object. Cleans up references to this object.
