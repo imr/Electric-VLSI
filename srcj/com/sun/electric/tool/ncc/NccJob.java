@@ -49,7 +49,7 @@ public class NccJob extends Job {
 		if (curCellCtxt==null) {
 			System.out.println("Please open the Cell you wish to NCC");
 			return null;
-		} 
+		}
 		Cell[] schLay = NccUtils.findSchematicAndLayout(curCellCtxt.cell);
 		if (schLay==null) {
 			System.out.println("current Cell Group doesn't have both schematic and layout Cells");
@@ -66,7 +66,6 @@ public class NccJob extends Job {
 		Cell c = cc.cell;
 		View v = c.getView();
 		boolean ok = c.isSchematic() || v==View.LAYOUT;
-// 		boolean ok = v==View.SCHEMATIC || v==View.LAYOUT;
 		if (!ok) System.out.println("Cell: "+NccUtils.fullName(c)+
 									" isn't schematic or layout");
 		return ok;
@@ -74,7 +73,6 @@ public class NccJob extends Job {
 
 	private boolean isSchem(CellContext cc) {
 		return cc.cell.isSchematic();
-// 		return cc.cell.getView()==View.SCHEMATIC;
 	}
 	private void prln(String s) {System.out.println(s);}
 

@@ -49,20 +49,34 @@ public class NccUtils {
 		return prod;
 	}
 	public static String fullName(Cell c) {return c.libDescribe();}
-	public static Cell[] findSchematicAndLayout(Cell cell) {
-		Cell.CellGroup group = cell.getCellGroup();
-		Cell layout=null;
-		Cell schematic = group.getMainSchematics();
+	private static Cell findLayout(Cell.CellGroup group) {
 		for (Iterator it=group.getCells(); it.hasNext();) {
 			Cell c = (Cell) it.next();
-			if (c.getView()==View.LAYOUT) layout=c;
+			if (c.getView()==View.LAYOUT) return c;
 		}
-//		Cell layout=null, schematic=null;
-// 		for (Iterator it=group.getCells(); it.hasNext();) {
-// 			Cell c = (Cell) it.next();
-//			if (c.getView()==View.SCHEMATIC)   schematic=c;
-// 			else if (c.getView()==View.LAYOUT) layout=c;
-// 		}
+		return null;
+	}
+	/** If cell is layout then pair it with the main schematic cell of cell's
+	 * CellGroup. If cell is schematic then pair it with some layout cell from
+	 * cell's CellGroup. If cell is neither schematic nor layout then return 
+	 * the main schematic and some layout cell. Always put the schematic at
+	 * index 0 */
+	public static Cell[] findSchematicAndLayout(Cell cell) {
+		Cell.CellGroup group = cell.getCellGroup();
+		Cell layout=null, schematic=null;
+		if (cell.isSchematic()) {
+			// have schematic, find layout
+			schematic = cell;
+			layout = findLayout(group);
+		} else if (cell.getView()==View.LAYOUT) {
+			// have layout, find schematic
+			layout = cell;
+			schematic = group.getMainSchematics();
+		} else {
+			schematic = group.getMainSchematics();
+			layout = findLayout(group);
+		}
+
 		if (schematic!=null && layout!=null)  return new Cell[] {schematic, layout};
 		else return null;
 	}

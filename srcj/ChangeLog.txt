@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01at: *********************************
 
+BUG: (12/3/04, RK) NCC: more intuitive Cell selection for cell groups having multiple layout cells (Bug #45)
+
 IMP: (12/3/04, GVG) DRC: generating warnings if generic arcs are found in layout cells
 
 BUG: (12/3/04, GVG) TSMC90: Active ports got wrong active arcs attached (Bug #52)
