@@ -335,14 +335,9 @@ public final class HierarchyEnumerator {
          * @return a unique String identifier for the network
          */
         public final String getUniqueNetName(JNetwork net, String sep) {
-            System.out.println("Jnetwork is "+net);
             Integer netID = (Integer)netToNetID.get(net);
-            System.out.println("netID is "+netID);
             NetDescription ns = (NetDescription)netIdToNetDesc.get(netID);
-            if (ns == null) System.out.println("ns is null");
-            if (ns.getCellInfo() == null) System.out.println("getCellInfo returned null");
             VarContext netContext = ns.getCellInfo().getContext();
-            
             
             StringBuffer buf = new StringBuffer();
             buf.append(ns.getCellInfo().getContext().getInstPath(sep));  // append hier path if any

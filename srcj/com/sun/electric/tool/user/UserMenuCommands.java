@@ -40,10 +40,12 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.DialogOpenFile;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.Input;
 import com.sun.electric.tool.io.Output;
 import com.sun.electric.tool.user.ui.Menu;
 import com.sun.electric.tool.logicaleffort.LENetlister;
+import com.sun.electric.tool.logicaleffort.LETool;
 
 import java.util.Iterator;
 import java.awt.event.ActionListener;
@@ -421,7 +423,12 @@ public final class UserMenuCommands
             System.out.println("Please select valid window first");
             return;
         }
-        LENetlister.netlistAndSize(curEdit.getCell(), curEdit.getVarContext());
+        LETool letool = LETool.getLETool();
+        if (letool == null) {
+            System.out.println("Logical Effort tool not found");
+            return;
+        }
+        letool.analyzeCell(curEdit.getCell(), curEdit.getVarContext());
     }
     
     // ---------------------- THE STEVE MENU -----------------

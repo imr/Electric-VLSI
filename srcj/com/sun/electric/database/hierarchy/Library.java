@@ -395,7 +395,7 @@ public class Library extends ElectricObject
 	public static DefaultMutableTreeNode getExplorerTree()
 	{
 		if (explorerTree == null)
-			explorerTree = new DefaultMutableTreeNode("LIBRARY EXPLORER");
+			explorerTree = new DefaultMutableTreeNode("LIBRARIES");
 		explorerTree.removeAllChildren();
 		Library curLib = Library.getCurrent();
 		for(Iterator it = Library.getLibraries(); it.hasNext(); )
@@ -412,7 +412,6 @@ public class Library extends ElectricObject
 			}
 			explorerTree.add(libTree);
 		}
-		WindowFrame.explorerTreeChanged();
 		return explorerTree;
 	}
 

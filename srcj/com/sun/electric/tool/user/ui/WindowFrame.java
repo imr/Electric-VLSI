@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.tool.Job;
 
 import java.util.Iterator;
 import java.util.List;
@@ -33,6 +34,7 @@ import javax.swing.JInternalFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JDesktopPane;
+import javax.swing.tree.*;
 import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
 
@@ -43,6 +45,7 @@ public class WindowFrame extends JInternalFrame
 {
 	/** the edit window part */							private EditWindow wnd;
 	/** the tree view part */							private TreeView tree;
+    /** root of explorer tree */                        private static DefaultMutableTreeNode root = new DefaultMutableTreeNode("EXPLORER");
 	/** the offset of each new windows from the last */	private static int windowOffset = 0;
 	/** the list of all windows on the screen */		private static List windowList = new ArrayList();
 
@@ -51,7 +54,7 @@ public class WindowFrame extends JInternalFrame
 	{
 		// initialize the frame
 		super(cell.describe(), true, true, true, true);
-		setSize(700, 500);
+		setSize(800, 500);
 		setLocation(windowOffset, windowOffset);
 		windowOffset += 70;
 		if (windowOffset > 300) windowOffset = 0;
@@ -61,14 +64,21 @@ public class WindowFrame extends JInternalFrame
 		wnd = EditWindow.CreateElectricDoc(cell);
 
 		// the left half: a cell explorer tree in a scroll pane
-		tree = TreeView.CreateTreeView(Library.getExplorerTree(), wnd);
+        // new
+        root.add(Library.getExplorerTree());
+        root.add(Job.getExplorerTree());
+        tree = TreeView.CreateTreeView(root, wnd);
+        tree.setShowsRootHandles(true);
+        explorerTreeChanged();
+		// old
+        //tree = TreeView.CreateTreeView(Library.getExplorerTree(), wnd);
 		JScrollPane scrolledTree = new JScrollPane(tree);
 
 		// put them together into the frame
 		JSplitPane js = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 		js.setRightComponent(wnd);
 		js.setLeftComponent(scrolledTree);
-		js.setDividerLocation(180);
+		js.setDividerLocation(220);
 		this.getContentPane().add(js);
 		show();
 		addInternalFrameListener(
@@ -100,7 +110,7 @@ public class WindowFrame extends JInternalFrame
 
 	public EditWindow getEditWindow() { return wnd; }
 
-	public static void explorerTreeChanged()
+	public static synchronized void explorerTreeChanged()
 	{
 		for(Iterator it = getWindows(); it.hasNext(); )
 		{

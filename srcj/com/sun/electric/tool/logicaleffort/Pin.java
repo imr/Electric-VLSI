@@ -1,4 +1,5 @@
-/*
+/* -*- tab-width: 4 -*-
+ *
  * Pin.java
  *
  * Created on November 11, 2003, 4:09 PM

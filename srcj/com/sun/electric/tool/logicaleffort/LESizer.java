@@ -1,4 +1,5 @@
-/*
+/* -*- tab-width: 4 -*-
+ *
  * LESizer.java
  *
  * Created on November 11, 2003, 4:42 PM
@@ -11,8 +12,11 @@ import com.sun.electric.tool.logicaleffort.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Collection;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.io.OutputStream;
 import java.text.*;
 
 /**
@@ -31,6 +35,7 @@ public class LESizer {
     /** all networks */                             private HashMap allNets;
     /** all instances (LEGATES, not loads) */       private HashMap allInstances;
     /** which algorithm to use */                   private Alg optimizationAlg;
+    /** Where to direct output */                   private PrintStream out;
    
     /** Alg is a typesafe enum class that describes the algorithm to be used */
     protected static class Alg {
@@ -49,20 +54,14 @@ public class LESizer {
     }
         
     /** Creates a new instance of LESizer */
-    protected LESizer() {
+    protected LESizer(OutputStream ostream) {
         allNets = new HashMap();
         allInstances = new HashMap();
         optimizationAlg = Alg.SIMPLE;
+        
+        out = new PrintStream(ostream);
     }
-
-    protected void error(String err) {
-        System.out.println("LETool Error: "+err);
-    }
-    
-    protected void message(String msg) {
-        System.out.println("LETool: "+msg);
-    }
-    
+   
     /** Set the optimization type */
     public void setAlg(Alg alg) { optimizationAlg = alg; }
     
@@ -88,7 +87,7 @@ public class LESizer {
 		float leX, ArrayList pins)
 	{
 		if (allInstances.containsKey(name)) {
-			error("Instance "+name+" already exists.");
+			out.println("Error: Instance "+name+" already exists.");
 			return null;
 		}
 		// create instance
@@ -130,7 +129,8 @@ public class LESizer {
 	 * Optimization will stop when the difference in sizes (X) is 
 	 * less than maxDeltaX, or when N iterations have occurred.
 	 */
-	protected void optimizeLoops(float maxDeltaX, int N, boolean verbose)
+	protected void optimizeLoops(float maxDeltaX, int N, boolean verbose, 
+        float alpha, float keeperRatio)
 	{
 		// iterate through all the instances, updating sizes
 
@@ -160,7 +160,7 @@ public class LESizer {
                     }
                     Pin outputPin = (Pin)outputPins.get(0);                    
                     Net net = outputPin.getNet();
-
+                    
                     // now find all pins connected to this net
                     ArrayList netpins = net.getAllPins();
 						
@@ -170,7 +170,9 @@ public class LESizer {
                     while (netpinsIter.hasNext()) {
                         Pin netpin = (Pin)netpinsIter.next();
                         Instance netpinInstance = netpin.getInstance();
-                        totalcap += netpinInstance.getLeX() * netpin.getLE();
+                        float load = netpinInstance.getLeX() * netpin.getLE();
+                        if (netpin.getDir() == Pin.Dir.OUTPUT) load *= alpha;
+                        totalcap += load;
                     }
 						
                     float newX = totalcap / instance.getLeSU();
@@ -180,7 +182,7 @@ public class LESizer {
                     currentLoopDeltaX = (deltaX > currentLoopDeltaX) ? deltaX : currentLoopDeltaX;
 
                     if (verbose) {
-                        message("Optimized "+instanceName+": size:  "+
+                        out.println("Optimized "+instanceName+": size:  "+
                             format(instance.getLeX())+"x ==> "+format(newX)+"x");
                     }
                     instance.setLeX(newX);
@@ -190,8 +192,8 @@ public class LESizer {
 			} // while (instancesIter)
 
 			if (verbose) {
-                message("  Loop: "+loopcount+", delta: "+currentLoopDeltaX);
-                message("-----------------------------------");
+                out.println("  Loop: "+loopcount+", delta: "+currentLoopDeltaX);
+                out.println("-----------------------------------");
 			}
 			loopcount++;
 
@@ -213,21 +215,21 @@ public class LESizer {
      */
     protected void printDesign() 
 	{
-		message("Instances in design are:");
+		out.println("Instances in design are:");
 		        
 		Iterator instancesIter = allInstances.values().iterator();
 		while (instancesIter.hasNext()) {
 			Instance instance = (Instance)instancesIter.next();
 			String instanceName = instance.getName();
             StringBuffer buf = new StringBuffer();
-			message("\t"+instanceName+" ==> "+format(instance.getLeX())+"x");
+			out.println("\t"+instanceName+" ==> "+format(instance.getLeX())+"x");
 			ArrayList pins = instance.getAllPins();
 			
 			// now print out pinname ==> netname
 			Iterator pinsIter = pins.iterator();
 			while (pinsIter.hasNext()) {
 				Pin pin = (Pin)pinsIter.next();
-				message("\t\t"+pin.getName()+" ==> "+pin.getNetName());
+				out.println("\t\t"+pin.getName()+" ==> "+pin.getNetName());
 			}
 		}
 	}
@@ -254,7 +256,7 @@ public class LESizer {
 			fileWriter.close(); // throws IOException
 
 		} catch (IOException e) {
-			error("Writing to file "+filename+": "+e.getMessage());
+			out.println("Writing to file "+filename+": "+e.getMessage());
 			return 1;
 		}
 		return 0;
@@ -280,6 +282,19 @@ public class LESizer {
 		// nothing here
 	}
    
+    /** return number of gates sized */
+    protected int getNumGates() { return allInstances.size(); }
+    
+    /** return total size of all sized gates */
+    protected float getTotalSize() {
+        Collection instances = allInstances.values();
+        float totalsize = 0f;
+        for (Iterator it = instances.iterator(); it.hasNext();) {
+            Instance inst = (Instance)it.next();
+            totalsize += inst.getLeX();
+        }
+        return totalsize;
+    }
     
     //---------------------------------------TEST---------------------------------------
     //---------------------------------------TEST---------------------------------------
@@ -291,21 +306,8 @@ public class LESizer {
         System.out.println("=========================");
         
         float su = (float)4.0;
-        LESizer lesizer = new LESizer();
-        
-        // set output stream back to default
- /*
-        PrintStream out = System.out;                   // save old PrintStream
-        File f = new File("lesizer.out");
-        try {
-            FileOutputStream fout = new FileOutputStream(f);
-            System.setOut(new PrintStream(fout));
-        } catch ( FileNotFoundException e) {
-            System.out.println(e.getMessage());
-            return;
-        }
- */      
-        
+        LESizer lesizer = new LESizer((OutputStream)System.out);
+                
         {
         // inv1
         Pin pin_a = new Pin("A", Pin.Dir.INPUT, (float)1.0, "nand1_out");
@@ -373,7 +375,7 @@ public class LESizer {
         Pin pin_c = new Pin("C", Pin.Dir.INPUT, (float)1.0, "pd_out");
         ArrayList pins = new ArrayList();
         pins.add(pin_c);
-        lesizer.addInstance("cap1", Instance.Type.NONLE, su, (float)0.0, pins);
+        lesizer.addInstance("cap1", Instance.Type.NOTSIZEABLE, su, (float)0.0, pins);
         }
 
         {
@@ -381,7 +383,7 @@ public class LESizer {
         Pin pin_c = new Pin("C", Pin.Dir.INPUT, (float)1.0, "pu_out");
         ArrayList pins = new ArrayList();
         pins.add(pin_c);
-        lesizer.addInstance("cap2", Instance.Type.NONLE, su, (float)0.0, pins);
+        lesizer.addInstance("cap2", Instance.Type.NOTSIZEABLE, su, (float)0.0, pins);
         }
 
         {
@@ -389,14 +391,12 @@ public class LESizer {
         Pin pin_c = new Pin("C", Pin.Dir.INPUT, (float)1.0, "inv1_out");
         ArrayList pins = new ArrayList();
         pins.add(pin_c);
-        lesizer.addInstance("cap3", Instance.Type.NONLE, su, (float)100.0, pins);
+        lesizer.addInstance("cap3", Instance.Type.NOTSIZEABLE, su, (float)100.0, pins);
         }
 
         lesizer.printDesign();
-        lesizer.optimizeLoops((float)0.01, 30, true);
+        lesizer.optimizeLoops((float)0.01, 30, true, (float)0.7, (float)0.1);
         System.out.println("After optimization:");
         lesizer.printDesign();
-
-        //System.setOut(out);
     }
 }

@@ -25,10 +25,17 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.tool.Job;
 
+import javax.swing.JPopupMenu;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreePath;
+import java.awt.Component;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseEvent;
 
 /**
  * @author wc147374
@@ -36,11 +43,12 @@ import javax.swing.tree.DefaultMutableTreeNode;
  * To change the template for this generated type comment go to
  * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
  */
-public class TreeHandler implements TreeSelectionListener 
+public class TreeHandler implements TreeSelectionListener, MouseListener, MouseMotionListener
 {
 	private TreeView tree;
 	private EditWindow wnd;
-	
+	private TreePath lastMousedOverPath = null;
+    
 	public void valueChanged(TreeSelectionEvent arg0) 
 	{
 		DefaultMutableTreeNode node = (DefaultMutableTreeNode)tree.getLastSelectedPathComponent();
@@ -68,4 +76,62 @@ public class TreeHandler implements TreeSelectionListener
 	public void setTreeView(TreeView tree) { this.tree = tree; }
 	
 	public void setTreeWindow(EditWindow wnd) { this.wnd = wnd; }
+    
+    public void mouseClicked(MouseEvent e) {
+
+    }
+    
+    public void mouseEntered(MouseEvent e) {
+    }
+    
+    public void mouseExited(MouseEvent e) {
+    }
+    
+    public void mousePressed(MouseEvent e) {
+        // popup menu event
+        if (e.isPopupTrigger()) {
+            TreePath path = tree.getPathForLocation(e.getX(), e.getY());
+            if (path == null) return;
+            Object obj = path.getLastPathComponent();
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode)obj;
+    		Object nodeInfo = node.getUserObject();
+
+            // show Job menu if user clicked on a Job
+            if (nodeInfo instanceof Job) {
+                Object source = e.getSource();
+                if (!(source instanceof Component)) return;
+                Job job = (Job)nodeInfo;
+                JPopupMenu popup = job.getPopupStatus();
+                popup.show((Component)source, e.getX(), e.getY());
+            }
+        }
+    }
+    
+    public void mouseReleased(MouseEvent e) {
+    }
+    
+    public void mouseDragged(MouseEvent e) {
+    }
+    
+    public void mouseMoved(MouseEvent e) {
+        //System.out.println("mouse click at "+e.getPoint());
+        /*
+        TreePath path = tree.getPathForLocation(e.getX(), e.getY());
+
+        if (path == null) return;
+        if (path == lastMousedOverPath) return;
+        lastMousedOverPath = path;
+        Object obj = path.getLastPathComponent();
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode)obj;
+		Object nodeInfo = node.getUserObject();
+        if (nodeInfo instanceof Job) {
+            Object source = e.getSource();
+            if (!(source instanceof Component)) return;
+            Job job = (Job)nodeInfo;
+            JPopupMenu popup = job.getPopupStatus();
+            popup.show((Component)source, e.getX(), e.getY());
+        }
+         */
+    }
+    
 }

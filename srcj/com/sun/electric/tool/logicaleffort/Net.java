@@ -1,4 +1,5 @@
-/*
+/* -*- tab-width: 4 -*-
+ *
  * Net.java
  *
  * Created on November 11, 2003, 4:10 PM

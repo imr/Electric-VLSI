@@ -132,6 +132,7 @@ public class VarContext
      */
     public Object evalVar(Variable var, Object info)
     {
+        if (var == null) return null;
         if (var.isJava()) return(EvalJavaBsh.eval(var.getObject(), this, info));
         // TODO: if(var.isTCL()) { }
         // TODO: if(var.isLisp()) { }
@@ -227,6 +228,7 @@ public class VarContext
      * if not possible, return @param def.
      */
     public static float objectToFloat(Object obj, float def) {
+        if (obj == null) return def;
         if (obj instanceof Number) return ((Number)obj).floatValue();
         try {
             return Float.valueOf(obj.toString()).floatValue();
@@ -238,6 +240,7 @@ public class VarContext
      * if not possible, return @param def.
      */
     public static int objectToInt(Object obj, int def) {
+        if (obj == null) return def;
         if (obj instanceof Number) return ((Number)obj).intValue();
         try {
             return Integer.valueOf(obj.toString()).intValue();
@@ -249,6 +252,7 @@ public class VarContext
      * if not possible, return @param def.
      */
     public static short objectToShort(Object obj, short def) {
+        if (obj == null) return def;
         if (obj instanceof Number) return ((Number)obj).shortValue();
         try {
             return Short.valueOf(obj.toString()).shortValue();
@@ -260,12 +264,12 @@ public class VarContext
      * if not possible, return @param def.
      */
     public static double objectToDouble(Object obj, double def) {
+        if (obj == null) return def;
         if (obj instanceof Number) return ((Number)obj).doubleValue();
         try {
             return Double.valueOf(obj.toString()).doubleValue();
         } catch (NumberFormatException e) {}
         return def;
     }
-    
     
 }

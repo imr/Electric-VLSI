@@ -23,9 +23,11 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import java.awt.Component;
 import javax.swing.ImageIcon;
 import javax.swing.JTree;
 import javax.swing.JScrollPane;
+import javax.swing.ToolTipManager;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreeSelectionModel;
 import javax.swing.tree.DefaultTreeCellRenderer;
@@ -33,6 +35,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.Job;
 
 /**
  * Class to display a cell explorer tree-view of the database.
@@ -52,7 +55,13 @@ public class TreeView extends JTree
 		setShowsRootHandles(true);
 
 		// show one level of indentation
-	//	collapseRow(1);
+        //	collapseRow(1);
+        
+        // enable tool tips - we'll use these to display useful info
+        ToolTipManager.sharedInstance().registerComponent(this);
+        
+        // register our own extended renderer for custom icons and tooltips
+        setCellRenderer(new MyRenderer());
 	}
 
 	public static TreeView CreateTreeView(TreeNode str, EditWindow wnd)
@@ -62,6 +71,8 @@ public class TreeView extends JTree
 		tree.handler.setTreeView(tree);
 		tree.handler.setTreeWindow(wnd);
 		tree.addTreeSelectionListener(tree.handler);
+        tree.addMouseListener(tree.handler);
+        tree.addMouseMotionListener(tree.handler);
 		return tree;
 	}
 
@@ -78,10 +89,41 @@ public class TreeView extends JTree
 	}
 
 	// if need custom image to show tree
+    /* XXX not used, use MyRenderer instead
 	public void addTreeBranchImage(ImageIcon icon)
 	{
 		DefaultTreeCellRenderer renderer = new DefaultTreeCellRenderer();
 		renderer.setLeafIcon(icon);
 		setCellRenderer(renderer);
 	}
+    */
+    
+    private class MyRenderer extends DefaultTreeCellRenderer
+    {
+        public MyRenderer() {
+        }
+        
+        public Component getTreeCellRendererComponent(
+                    JTree tree,
+                    Object value,
+                    boolean sel,
+                    boolean expanded,
+                    boolean leaf,
+                    int row,
+                    boolean hasFocus) {
+            super.getTreeCellRendererComponent(tree, value, sel,
+                    expanded, leaf, row, hasFocus);
+                // setIcon(icon)
+            //setToolTipText(value.toString());
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
+        	Object nodeInfo = node.getUserObject();
+            if (nodeInfo instanceof Job) {
+                Job j = (Job)nodeInfo;
+                //setToolTipText(j.getToolTip());
+                //System.out.println("set tool tip to "+j.getToolTip());
+            }
+            
+            return this;
+        }
+    }
 }

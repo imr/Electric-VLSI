@@ -1,4 +1,5 @@
-/*
+/* -*- tab-width: 4 -*-
+ *
  * Instance.java
  *
  * Created on November 11, 2003, 4:00 PM
@@ -39,7 +40,7 @@ public class Instance {
         private Type(String name) { this.name = name; }
         public String toString() { return name; }
 
-        /** NON-LE */       protected static final Type NONLE = new Type("nonLE");
+        /** NotSizeable */  protected static final Type NOTSIZEABLE = new Type("notSizable");
         /** LeGate */       protected static final Type LEGATE = new Type("leGate");
         /** LeKeeper */     protected static final Type LEKEEPER = new Type("leKeeper");
     }

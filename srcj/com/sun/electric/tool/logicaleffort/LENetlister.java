@@ -34,10 +34,13 @@ import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.database.topology.*;
 import com.sun.electric.database.prototype.*;
 import com.sun.electric.database.variable.*;
+import com.sun.electric.tool.Tool;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.prefs.*;
+import java.io.OutputStream;
+import java.io.PrintStream;
 
 /**
  * Creates a logical effort netlist to be sized by LESizer.
@@ -55,14 +58,14 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
     /** convergence criteron */                 private float epsilon;
     /** max number of iterations */             private int maxIterations;
     /** gate cap, in fF/lambda */               private float gateCap;
-    /** N-diff to gate cap ratio */             private float diffnCapRatio;
-    /** P-diff to gate cap ratio */             private float diffpCapRatio;
+    /** ratio of diffusion to gate cap */       private float alpha;
     /** ratio of keeper to driver size */       private float keeperRatio;
     
     /** LESizer to do sizing */                 private LESizer lesizer;
+    /** Where to direct output */               private PrintStream out;
     
     /** Creates a new instance of LENetlister */
-    public LENetlister() {
+    public LENetlister(LESizer lesizer, OutputStream ostream) {
         // get preferences for this package
         Preferences prefs = Preferences.userNodeForPackage(LENetlister.class);
         su = prefs.getFloat("step-up", (float)4.7);
@@ -70,11 +73,11 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
         epsilon = prefs.getFloat("epsilon", (float)0.001);
         maxIterations = prefs.getInt("maxIterations", 30);
         gateCap = prefs.getFloat("gateCap", (float)0.4);
-        diffnCapRatio = prefs.getFloat("diffnCapRatio", (float)0.7);
-        diffpCapRatio = prefs.getFloat("diffpCapRatio", (float)0.7);
+        alpha = prefs.getFloat("alpha", (float)0.7);
         keeperRatio = prefs.getFloat("keeperRatio", (float)0.1);
         
-        lesizer = new LESizer();
+        this.lesizer = lesizer;
+        this.out = new PrintStream(ostream);
     }        
     
     /** NodeInst should be an LESettings instance */
@@ -85,30 +88,36 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
         if ((var = ni.getVar("ATTR_epsilon")) != null) epsilon = VarContext.objectToFloat(context.evalVar(var), epsilon);
         if ((var = ni.getVar("ATTR_max_iter")) != null) maxIterations = VarContext.objectToInt(context.evalVar(var), maxIterations);
         if ((var = ni.getVar("ATTR_gate_cap")) != null) gateCap = VarContext.objectToFloat(context.evalVar(var), gateCap);
-        if ((var = ni.getVar("ATTR_diffn")) != null) diffnCapRatio = VarContext.objectToFloat(context.evalVar(var), diffnCapRatio);
-        if ((var = ni.getVar("ATTR_diffp")) != null) diffpCapRatio = VarContext.objectToFloat(context.evalVar(var), diffpCapRatio);
+        if ((var = ni.getVar("ATTR_alpha")) != null) alpha = VarContext.objectToFloat(context.evalVar(var), alpha);
         if ((var = ni.getVar("ATTR_keeper_ratio")) != null) keeperRatio = VarContext.objectToFloat(context.evalVar(var), keeperRatio);
     }
         
-    public static void netlistAndSize(Cell cell, VarContext context) {
+    protected void netlist(Cell cell, VarContext context) {
 
-        LENetlister netlister = new LENetlister();
         cell.rebuildNetworks(null);
         
         // read schematic-specific sizing options
         for (Iterator instIt = cell.getNodes(); instIt.hasNext();) {
             NodeInst ni = (NodeInst)instIt.next();
             if (ni.getVar("ATTR_LESETTINGS") != null) {
-                netlister.setOptions(ni, context);            // get settings from object
+                setOptions(ni, context);            // get settings from object
                 break;
             }
         }
-                        
-        HierarchyEnumerator.enumerateCell(cell, context, netlister);
-    }
 
+        HierarchyEnumerator.enumerateCell(cell, context, this);
+    }
+    
+    public void size() {
+        lesizer.printDesign();
+        boolean verbose = true;
+        lesizer.optimizeLoops((float)0.01, maxIterations, verbose, alpha, keeperRatio);
+        out.println("---------After optimization:------------");
+        lesizer.printDesign();
+    }
+        
     public boolean enterCell(HierarchyEnumerator.CellInfo info) {
-        System.out.println("Entering cell "+info.getCell());
+        out.println("Entering cell "+info.getCell());
         
         return true;
     }
@@ -117,45 +126,48 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
     }
     
     public boolean visitNodeInst(NodeInst ni, HierarchyEnumerator.CellInfo info) {
-        System.out.println("------------------------------------");
-        System.out.println("Visiting nodeinst "+ni.describe());
+        float leX = (float)0.0;
 
         // check if leGate
-        Instance.Type type = Instance.Type.NONLE;        
+        Instance.Type type = Instance.Type.NOTSIZEABLE;        
         if (ni.getVar("ATTR_LEGATE") != null) type = Instance.Type.LEGATE;
-        if (ni.getVar("ATTR_LEKEEPER") != null) type = Instance.Type.LEKEEPER;
-        if (ni.getVar("ATTR_LESETTINGS") != null) return false;
-        
-        if (ni.getVar("ATTR_LEWIRE") != null) {
-            
-            return false;
+        else if (ni.getVar("ATTR_LEWIRE") != null) {
+            // Note that if inst is an LEWIRE, it will have no 'le' attributes,
+            // and those pins will have default 'le' values of one.
+            // This creates an instance which has Type LEWIRE, but has
+            // boolean leGate set to false; it will not be sized
+            Variable var = ni.getVar("ATTR_L");
+            float len = VarContext.objectToFloat(info.getContext().evalVar(var), (float)0.0);
+            var = ni.getVar("ATTR_width");
+            float width = VarContext.objectToFloat(info.getContext().evalVar(var), (float)3.0f);
+            leX = (float)(0.95f*len + 0.05f*len*(width/3.0f))*wireRatio;
         }
+        else if (ni.getVar("ATTR_LEKEEPER") != null) type = Instance.Type.LEKEEPER;
+        else if (ni.getVar("ATTR_LESETTINGS") != null) return false;
+        else return true;                           // descend into and process
         
-        if (type == Instance.Type.NONLE) return true;           // descend and process    
-            
-        System.out.println("  Object is an LEGATE");
-        // create pins for each export and network pair
+        // build leGate instance
+        out.println("------------------------------------");
         ArrayList pins = new ArrayList();
         Cell schCell = ni.getProtoEquivalent();
         for (Iterator piIt = ni.getPortInsts(); piIt.hasNext();) {
             PortInst pi = (PortInst)piIt.next();
             PortProto pp = pi.getProtoEquivalent();
-            Variable var = pp.getVar("le");
-            float le = (float)0.0;
-            if (var == null) System.out.println(" le var not found");
-            if (var != null)
-                le = VarContext.objectToFloat(info.getContext().evalVar(var), (float)0.0);
+            Variable var = pp.getVar("ATTR_le");
+            // Note default 'le' value should be one
+            float le = VarContext.objectToFloat(info.getContext().evalVar(var), (float)1.0);
             String netName = info.getUniqueNetName(pi.getNetwork(), ".");
-            Pin.Dir dir = Pin.Dir.INOUT;
-            if (pp.getCharacteristic() == PortProto.Characteristic.IN) dir = Pin.Dir.INPUT;
+            Pin.Dir dir = Pin.Dir.INPUT;
+            //if (pp.getCharacteristic() == PortProto.Characteristic.IN) dir = Pin.Dir.INPUT;
+            // if it's not an output, it doesn't really matter what it is.
             if (pp.getCharacteristic() == PortProto.Characteristic.OUT) dir = Pin.Dir.OUTPUT;
             pins.add(new Pin(pp.getProtoName(), dir, le, netName));
-            System.out.println("    Added "+dir+" pin "+pp.getProtoName()+", le: "+le+", netName: "+netName);
+            out.println("    Added "+dir+" pin "+pp.getProtoName()+", le: "+le+", netName: "+netName);
         }
         // create new leGate instance
         VarContext vc = info.getContext().push(ni);                   // to create unique flat name
-        lesizer.addInstance(vc.getInstPath("."), type, su, (float)0.0, pins);
-        System.out.println("  Added instance "+vc.getInstPath(".")+" of type "+type);
+        lesizer.addInstance(vc.getInstPath("."), type, su, leX, pins);
+        out.println("  Added instance "+vc.getInstPath(".")+" of type "+type);
         return false;
     }
         
