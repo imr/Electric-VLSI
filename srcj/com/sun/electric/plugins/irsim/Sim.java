@@ -642,7 +642,7 @@ public class Sim
 			t.state = (byte)((type & ALWAYSON) != 0 ? WEAK : UNKNOWN);
 			t.tFlags = 0;
 
-			numTrans[type]++;
+			numTrans[baseType(type)]++;
 			if (src == drn || (src.nFlags & drn.nFlags & POWER_RAIL) != 0)
 			{
 				/*
