@@ -22,7 +22,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 
-package com.sun.electric.plugins.j3d;
+package com.sun.electric.plugins.j3d.ui;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.io.FileType;
@@ -32,6 +32,10 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.menus.MenuBar;
 import com.sun.electric.tool.user.menus.WindowMenu;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.plugins.j3d.ui.J3DViewDialog;
+import com.sun.electric.plugins.j3d.View3DWindow;
+import com.sun.electric.plugins.j3d.utils.J3DClientApp;
+import com.sun.electric.plugins.j3d.utils.J3DClientApp;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

@@ -1,8 +1,12 @@
-package com.sun.electric.plugins.j3d;
+package com.sun.electric.plugins.j3d.ui;
 
 import com.sun.electric.tool.user.User;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.plugins.j3d.ui.JThreeDTab;
+import com.sun.electric.plugins.j3d.*;
+import com.sun.electric.plugins.j3d.utils.J3DUtils;
+import com.sun.electric.plugins.j3d.utils.JAppearance;
 
 import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.j3d.utils.universe.ViewingPlatform;

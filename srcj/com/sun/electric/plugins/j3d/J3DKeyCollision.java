@@ -34,11 +34,11 @@ import com.sun.j3d.utils.behaviors.keyboard.KeyNavigatorBehavior;
 
 import javax.media.j3d.*;
 
-public class J3DKeyCollision extends KeyNavigatorBehavior
-{	
+public class J3DKeyCollision extends J3DKeyBehavior // KeyNavigatorBehavior
+{
 	private J3DCollisionChecker		m_CollisionChecker = null;
-    protected TransformGroup transformGroup;
-    protected Transform3D transform3D;
+//    protected TransformGroup transformGroup;
+//    protected Transform3D transform3D;
 
 
 	public J3DKeyCollision( TransformGroup tg, J3DCollisionDetector collisionDetector )
@@ -56,13 +56,13 @@ public class J3DKeyCollision extends KeyNavigatorBehavior
 			transformGroup.setTransform( transform3D );
 	}
 
-	// dissallow rotation up or down
-	protected void altMove( int keycode )
-	{
-	}
-
-	// dissallow moving up or down
-	protected void controlMove( int keycode )
-	{
-	}
+//	// dissallow rotation up or down
+//	protected void altMove( int keycode )
+//	{
+//	}
+//
+//	// dissallow moving up or down
+//	protected void controlMove( int keycode )
+//	{
+//	}
 }

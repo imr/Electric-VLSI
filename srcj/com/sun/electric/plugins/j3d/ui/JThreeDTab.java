@@ -21,13 +21,16 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.plugins.j3d;
+package com.sun.electric.plugins.j3d.ui;
 
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.options.ThreeDTab;
+import com.sun.electric.plugins.j3d.utils.JAppearance;
+import com.sun.electric.plugins.j3d.View3DWindow;
+import com.sun.electric.plugins.j3d.utils.JAppearance;
 
 import java.awt.GridBagConstraints;
 import java.awt.event.MouseAdapter;

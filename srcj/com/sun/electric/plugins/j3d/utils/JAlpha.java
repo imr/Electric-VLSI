@@ -22,7 +22,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.plugins.j3d;
+package com.sun.electric.plugins.j3d.utils;
 
 import javax.media.j3d.Alpha;
 import javax.swing.event.ChangeListener;

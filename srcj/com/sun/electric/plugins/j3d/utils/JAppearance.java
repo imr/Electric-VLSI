@@ -1,10 +1,11 @@
-package com.sun.electric.plugins.j3d;
+package com.sun.electric.plugins.j3d.utils;
 
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.user.dialogs.ColorPatternPanel;
+import com.sun.electric.plugins.j3d.utils.J3DUtils;
 
 import javax.media.j3d.*;
 import javax.vecmath.Color3f;

@@ -14,7 +14,7 @@ public class JMouseZoom extends MouseZoom
 {
     public JMouseZoom(Component c, int flags) {super(c, flags);}
 
-    void setZoom(double factor)
+    public void setZoom(double factor)
     {
         // Remember old matrix
         transformGroup.getTransform(currXform);

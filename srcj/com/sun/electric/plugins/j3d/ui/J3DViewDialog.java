@@ -21,13 +21,18 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.plugins.j3d;
+package com.sun.electric.plugins.j3d.ui;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.dialogs.EDialog;
-import com.sun.electric.tool.Job;
+import com.sun.electric.plugins.j3d.View3DWindow;
+import com.sun.electric.plugins.j3d.utils.J3DClientApp;
+import com.sun.electric.plugins.j3d.utils.J3DUtils;
+import com.sun.electric.plugins.j3d.utils.JAlpha;
+import com.sun.electric.plugins.j3d.utils.J3DUtils;
+import com.sun.electric.plugins.j3d.utils.J3DClientApp;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -71,10 +76,11 @@ public class J3DViewDialog extends EDialog
         getRootPane().setDefaultButton(connect);
 //        spline.addItem("KB Spline");
 //        spline.addItem("TCB Spline");
-        if (view3d.jAlpha != null)
+        JAlpha alpha = view3d.getAlpha();
+        if (alpha != null)
         {
-            slider.addChangeListener(view3d.jAlpha);
-            auto.setSelected(view3d.jAlpha.getAutoMode());
+            slider.addChangeListener(alpha);
+            auto.setSelected(alpha.getAutoMode());
         }
 
         // setting initial other values
@@ -558,7 +564,7 @@ public class J3DViewDialog extends EDialog
     }//GEN-END:initComponents
 
     private void autoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_autoActionPerformed
-        view3D.jAlpha.setAutoMode(auto.isSelected());
+        view3D.getAlpha().setAutoMode(auto.isSelected());
     }//GEN-LAST:event_autoActionPerformed
 
     private void enterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_enterActionPerformed

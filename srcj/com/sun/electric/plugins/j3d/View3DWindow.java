@@ -48,6 +48,9 @@ import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.*;
+import com.sun.electric.plugins.j3d.utils.J3DUtils;
+import com.sun.electric.plugins.j3d.utils.JAlpha;
+import com.sun.electric.plugins.j3d.utils.JAppearance;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -78,6 +81,7 @@ import com.sun.j3d.utils.behaviors.interpolators.RotPosScaleTCBSplinePathInterpo
 import com.sun.j3d.utils.behaviors.interpolators.TCBKeyFrame;
 import com.sun.j3d.utils.picking.PickCanvas;
 import com.sun.j3d.utils.picking.PickResult;
+import com.sun.j3d.utils.picking.PickIntersection;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.j3d.utils.universe.Viewer;
 import com.sun.j3d.utils.universe.ViewingPlatform;
@@ -94,14 +98,15 @@ import javax.vecmath.*;
  */
 public class View3DWindow extends JPanel
         implements WindowContent, MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, ActionListener,
-        HighlightListener
+        HighlightListener, J3DCollisionDetector
 {
 
 	/** # of nodes to consider scene graph big */       private static final int MAX3DVIEWNODES = 5000;
+    /** bounding of scene graph */                      public static final BoundingSphere infiniteBounds = new BoundingSphere(new Point3d(), Double.MAX_VALUE);
 
 	private SimpleUniverse u;
 	private Canvas3D canvas;
-	private TransformGroup objTrans;
+	protected TransformGroup objTrans;
 	private JMouseRotate rotateB;
 	private JMouseZoom zoomB;
 	private JMouseTranslate translateB;
@@ -112,7 +117,7 @@ public class View3DWindow extends JPanel
     //RotPosScaleTCBSplinePathInterpolator tcbSplineInter;
     private Map interpolatorMap = new HashMap();
 
-    JAlpha jAlpha = new JAlpha(new Alpha (-1,
+    private JAlpha jAlpha = new JAlpha(new Alpha (-1,
         Alpha.INCREASING_ENABLE | Alpha.DECREASING_ENABLE,
         0,
         0,
@@ -125,7 +130,7 @@ public class View3DWindow extends JPanel
 
 	/** the window frame containing this editwindow */      private WindowFrame wf;
 	/** reference to 2D view of the cell */                 private WindowContent view2D;
-	/** the cell that is in the window */					private Cell cell;
+	/** the cell that is in the window */					protected Cell cell;
     /** scale3D factor in Z axis */                         private double scale3D = User.get3DFactor();
 	/** Highlighter for this window */                      private Highlighter highlighter;
 	private PickCanvas pickCanvas;
@@ -183,23 +188,27 @@ public class View3DWindow extends JPanel
                     "Warning", JOptionPane.OK_CANCEL_OPTION);
             if (response == JOptionPane.CANCEL_OPTION) return null;
         }
-        return (new View3DWindow(cell, wf, view2D, transPerNode));
+
+//        View3DWindow window = (transPerNode.booleanValue()) ?
+//                new J3DDemoView(cell, wf, view2D, true) : new View3DWindow(cell, wf, view2D, false);
+
+        View3DWindow window = new View3DWindow(cell, wf, view2D, transPerNode.booleanValue());
+        return (window);
     }
 
     // constructor
-	private View3DWindow(Cell cell, WindowFrame wf, WindowContent view2D, Boolean transPerNode)
+	View3DWindow(Cell cell, WindowFrame wf, WindowContent view2D, boolean transPerNode)
 	{
 		this.cell = cell;
         this.wf = wf;
 		this.view2D = view2D;
-        this.oneTransformPerNode = transPerNode.booleanValue();
+        this.oneTransformPerNode = transPerNode;
 
 		highlighter = new Highlighter(Highlighter.SELECT_HIGHLIGHTER, wf);
         highlighter.addHighlightListener(this);
 
 		setLayout(new BorderLayout());
         GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
-        BoundingSphere infiniteBounds = new BoundingSphere(new Point3d(), Double.MAX_VALUE);
 
 		canvas = new Canvas3D(config);
 		add("Center", canvas);
@@ -207,6 +216,9 @@ public class View3DWindow extends JPanel
 
 		// Create a simple scene and attach it to the virtual universe
 		BranchGroup scene = createSceneGraph(cell, infiniteBounds);
+
+		// Have Java 3D perform optimizations on this scene graph.
+	    scene.compile();
 
 		ViewingPlatform viewP = new ViewingPlatform(4);
 		viewP.setCapability(ViewingPlatform.ALLOW_CHILDREN_READ);
@@ -317,7 +329,7 @@ public class View3DWindow extends JPanel
 		setWindowTitle();
 	}
 
-	private BranchGroup createSceneGraph(Cell cell, BoundingSphere infiniteBounds)
+	protected BranchGroup createSceneGraph(Cell cell, BoundingSphere infiniteBounds)
 	{
 		// Create the root of the branch graph
 		BranchGroup objRoot = new BranchGroup();
@@ -382,8 +394,12 @@ public class View3DWindow extends JPanel
 //		key.setEnable( true );
 //		objRoot.addChild( key );
 
-		// Have Java 3D perform optimizations on this scene graph.
-	    objRoot.compile();
+        // create the KeyBehavior and attach
+		J3DKeyCollision keyBehavior = new J3DKeyCollision(objTrans, this);
+		keyBehavior.setSchedulingBounds(infiniteBounds);
+		//keyBehavior.setMovementRate( 0.7 );
+		objTrans.addChild(keyBehavior);
+
 		return objRoot;
 	}
 
@@ -1022,10 +1038,10 @@ public class View3DWindow extends JPanel
 		//lastXPosition = evt.getX();   lastYPosition = evt.getY();
 		//WindowFrame.curMouseListener.mouseClicked(evt);
 		pickCanvas.setShapeLocation(evt);
-		Transform3D t = new Transform3D();
-		Transform3D t1 = new Transform3D();
-		canvas.getImagePlateToVworld(t);
-		canvas.getVworldToImagePlate(t1);
+//		Transform3D t = new Transform3D();
+//		Transform3D t1 = new Transform3D();
+//		canvas.getImagePlateToVworld(t);
+//		canvas.getVworldToImagePlate(t1);
 		PickResult result = pickCanvas.pickClosest();
 
 		// Clean previous selection
@@ -1337,4 +1353,105 @@ public class View3DWindow extends JPanel
             grp.removeChild(node);
         }
     }
+
+    /**
+     * Method to retrieve alpha value associated to this view
+     * @return
+     */
+    public JAlpha getAlpha() { return jAlpha; }
+
+    ///////////////////// KEY BEHAVIOR FUNCTION ///////////////////////////////
+
+    private Vector3d tmpTrans = new Vector3d();
+    private Vector3d mapSize = null;
+
+    protected double getScale( )
+	{
+		return 0.05;
+	}
+
+    Vector3d getMapSize( )
+    {
+        if (mapSize == null)
+            mapSize = new Vector3d(2, 0, 2);
+        return mapSize;
+    }
+
+    Point2d convertToMapCoordinate( Vector3d worldCoord )
+	{
+		Point2d point2d = new Point2d( );
+
+		Vector3d squareSize = getMapSize();
+
+		point2d.x = (worldCoord.x + getPanel().getWidth())/ squareSize.x;
+		point2d.y = (worldCoord.z + getPanel().getHeight())/ squareSize.z;
+
+		return point2d;
+	}
+
+    public boolean isCollision( Transform3D t3d, boolean bViewSide )
+	{
+		// get the translation
+		t3d.get( tmpTrans );
+
+		// we need to scale up by the scale that was
+		// applied to the root TG on the view side of the scenegraph
+		if( bViewSide != false )
+			tmpTrans.scale( 1.0 / getScale( ) );
+
+//        Vector3d mapSquareSize = getMapSize( );
+
+		// first check that we are still inside the "world"
+//		if (tmpTrans.x < -getPanel().getWidth() + mapSquareSize.x ||
+//			tmpTrans.x > getPanel().getWidth() - mapSquareSize.x ||
+//			tmpTrans.y < -getPanel().getHeight() + mapSquareSize.y ||
+//			tmpTrans.y > getPanel().getHeight() - mapSquareSize.y  )
+//			return true;
+
+		if( bViewSide != false )
+			// then do a pixel based look up using the map
+			return isCollision(tmpTrans);
+
+		return false;
+	}
+
+    // returns true if the given x,z location in the world corresponds to a wall section
+	protected boolean isCollision( Vector3d worldCoord )
+	{
+		Point2d point = convertToMapCoordinate( worldCoord );
+//		int nImageWidth = (int)cell.getBounds().getWidth();
+//		int nImageHeight = (int)cell.getBounds().getHeight();
+
+        int nImageWidth = getPanel().getWidth();
+		int nImageHeight = getPanel().getHeight();
+
+		// outside of image
+//		if( point.x < 0 || point.x >= nImageWidth ||
+//			point.y < 0 || point.y >= nImageHeight )
+//			return true;
+
+        pickCanvas.setShapeLocation((int)point.x, (int)point.y);
+        PickResult result = pickCanvas.pickClosest();
+
+        if (result != null && result.getNode(PickResult.SHAPE3D) != null)
+        {
+             Shape3D shape = (Shape3D)result.getNode(PickResult.SHAPE3D);
+             shape.setAppearance(JAppearance.highligtAp);
+            for (int i = 0; i < result.numIntersections(); i++)
+            {
+                PickIntersection inter = result.getIntersection(i);
+            System.out.println("Collision " + inter.getDistance() + " " + inter.getPointCoordinates() + " normal " + inter.getPointNormal());
+                 System.out.println("Point  " + point + " world " + worldCoord);
+                GeometryArray geo = inter.getGeometryArray();
+
+                if (inter.getDistance() < 6) return (true); // collision
+            }
+        }
+
+        return (false);
+//		int color = m_MapImage.getRGB( (int) point.x, (int) point.y );
+//
+//		// we can't walk through walls or bookcases
+//		return( color == m_ColorWall || color == m_ColorBookcase );
+	}
 }

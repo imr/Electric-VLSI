@@ -1,6 +1,8 @@
-package com.sun.electric.plugins.j3d;
+package com.sun.electric.plugins.j3d.utils;
 
 import com.sun.electric.tool.Job;
+import com.sun.electric.plugins.j3d.ui.J3DViewDialog;
+import com.sun.electric.plugins.j3d.utils.J3DUtils;
 
 import java.io.IOException;
 import java.net.DatagramSocket;

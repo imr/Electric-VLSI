@@ -22,7 +22,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.plugins.j3d;
+package com.sun.electric.plugins.j3d.utils;
 
 import com.sun.j3d.utils.behaviors.interpolators.KBKeyFrame;
 import com.sun.j3d.utils.behaviors.interpolators.TCBKeyFrame;
@@ -548,7 +548,7 @@ public final class J3DUtils
      * Class to create offscreen from canvas 3D
      */
     public static class OffScreenCanvas3D extends Canvas3D {
-        OffScreenCanvas3D(GraphicsConfiguration graphicsConfiguration,
+        public OffScreenCanvas3D(GraphicsConfiguration graphicsConfiguration,
                   boolean offScreen) {
             super(graphicsConfiguration, offScreen);
         }

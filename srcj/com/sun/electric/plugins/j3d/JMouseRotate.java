@@ -14,7 +14,7 @@ public class JMouseRotate extends MouseRotate
 {
     public JMouseRotate(int flags) {super(flags);}
 
-    void setRotation(double angleX, double angleY)
+    public void setRotation(double angleX, double angleY)
     {
         transformX.rotX(angleX);
         transformY.rotY(angleY);
