@@ -54,7 +54,7 @@ public class ActivityLogger {
         } catch (IOException e) {
             System.out.println("Warning: Activity Log disabled: "+e.getMessage());
         }
-        out.println("Electric "+Version.getVersionInformation());
+        if (out != null) out.println("Electric "+Version.getVersionInformation());
     }
 
     /**
