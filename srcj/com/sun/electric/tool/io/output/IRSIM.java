@@ -158,7 +158,7 @@ public class IRSIM extends Output
 			printWriter.print(" " + iinfo.getUniqueNetName(dnet, "/"));
             TransistorSize dim = ni.getTransistorSize(iinfo.getContext());
             if (dim.getDoubleLength() == 0 || dim.getDoubleWidth() == 0)
-            	dim = new TransistorSize(2, 2);
+            	dim = new TransistorSize(new Double(2), new Double(2));
             float m = iinfo.getMFactor();
 			printWriter.print(" " + dim.getLength());                   // length
 			printWriter.print(" " + (double)m * dim.getDoubleWidth());  // width
