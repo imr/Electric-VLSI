@@ -71,7 +71,7 @@ public class Connection extends ElectricObject
 //		return this.iterator();
 //	}
 
-	/** Get the location of this Connection.  <p>Lambda units. */
+	/** Get the location of this Connection. */
 //	public Point2D.Double getLocation()
 //	{
 //		Point2D.Double rp = node.getParent().getReferencePoint();

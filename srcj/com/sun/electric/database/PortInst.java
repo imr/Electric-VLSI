@@ -34,50 +34,30 @@ public class PortInst
 		return pi;
 	}
 
-	public NodeInst getNodeInst()
-	{
-		return nodeInst;
-	}
+	public NodeInst getNodeInst() { return nodeInst; }
 
-	public PortProto getPortProto()
-	{
-		return portProto;
-	}
+	public PortProto getPortProto() { return portProto; }
 
-	public JNetwork getNetwork()
-	{
-		return network;
-	}
-	public void setNetwork(JNetwork net)
-	{
-		network = net;
-	}
+	public JNetwork getNetwork() { return network; }
+	public void setNetwork(JNetwork net) { network = net; }
 
 	public Rectangle2D getBounds()
 	{
-		Rectangle r = portProto.getBounds(nodeInst).getBounds();
-		// Adjust bounds relative to Cell's reference point.
-		Point2D rp = nodeInst.getParent().getReferencePoint();
-		return new Rectangle2D.Double(
-			r.x - rp.getX(),
-			r.y - rp.getY(),
-			r.width,
-			r.height);
+		Rectangle2D r = portProto.getPoly(nodeInst).getBounds2D();
+		return r;
 	}
 
-	public double getCenterX()
-	{
-		Poly p = portProto.getBounds(nodeInst);
-//		Point2D rp = nodeInst.getParent().getReferencePoint();
-		return p.getCenterX(); // - rp.getX();
-	}
-
-	public double getCenterY()
-	{
-		Poly p = portProto.getBounds(nodeInst);
-//		Point2D rp = nodeInst.getParent().getReferencePoint();
-		return p.getCenterY(); // - rp.getY();
-	}
+//	public double getCenterX()
+//	{
+//		Poly p = portProto.getPoly(nodeInst);
+//		return p.getCenterX();
+//	}
+//
+//	public double getCenterY()
+//	{
+//		Poly p = portProto.getPoly(nodeInst);
+//		return p.getCenterY();
+//	}
 
 	/** Can this PortInst be connected to a particular type of arc? */
 //	public boolean connectsTo(ArcProto arc)
@@ -96,36 +76,5 @@ public class PortInst
 //				arcs.add(c.getArc());
 //		}
 //		return arcs.iterator();
-//	}
-
-	// Find the width of the widest wire connected hierarchically to a
-	// particular port on a particular instance.  Return -1 if no wire
-	// found.
-//	private double widestWireWidth1(NodeInst ni, PortProto port)
-//	{
-//		double maxWid = -1;
-//		for (Iterator cons = ni.getConnections(); cons.hasNext();)
-//		{
-//			Connection c = (Connection) cons.next();
-//			if (c.getPort() == port)
-//				maxWid = Math.max(maxWid, c.getArc().getWidth());
-//		}
-//		if (port instanceof Export)
-//		{
-//			double check =
-//				widestWireWidth1(
-//					((Export) port).getInstOwner(),
-//					((Export) port).getOriginal());
-//			maxWid = Math.max(maxWid, check);
-//		}
-//		return maxWid;
-//	}
-
-	/** Find the width of the widest wire connected hierarchically to a
-	 * particular port on a particular instance.
-	 *@return width of widest wire. return -1 if no wire found */
-//	public double widestWireWidth()
-//	{
-//		return widestWireWidth1(nodeInst, portProto);
 //	}
 }

@@ -1,7 +1,5 @@
 package com.sun.electric.database;
 
-//import java.util.*;
-
 /**
  * An Export is a PortProto at the Cell level.  It points to the
  * PortProto that got exported, and the NodeInst for that port.
@@ -11,14 +9,12 @@ package com.sun.electric.database;
 public class Export extends PortProto
 {
 	// -------------------------- private data ---------------------------
-	private PortProto originalPort; // The PortProto that got exported
-	// to create this Export
+	private PortProto originalPort; // The PortProto that got exported to create this Export
 	private NodeInst owner; // the node that the exported port belongs to
 
 	// -------------------- protected and private methods --------------
 	protected Export()
 	{
-//		super(cptr);
 	}
 
 	/** Initialize this Export with a parent (the Cell we're a port of),
@@ -31,7 +27,7 @@ public class Export extends PortProto
 		String name,
 		int userbits)
 	{
-		super.init(parent, null, name, userbits);
+//		super.init(parent, null, name, userbits);
 		boolean first = this.originalPort == null;
 		this.originalPort = basis;
 		this.owner = owner;
@@ -65,24 +61,13 @@ public class Export extends PortProto
 	 * @param ni the instance of the port's parent
 	 * @return the shape of the port, transformed into the coordinates
 	 * of the instance's Cell. */
-	Poly getBounds(NodeInst ni)
+	Poly getPoly(NodeInst ni)
 	{
 		// We just figure out where our basis thinks it is, and ask ni to
 		// transform it for us.
-		return ni.xformPoly(originalPort.getBounds(owner));
+//		return ni.xformPoly(originalPort.getPoly(owner));
+		return null;
 	}
-	// Return the first internal connection that exists on the port this
-	// Export was exported from, or null if no such Connection exists.
-	/* No longer useful?
-	Connection findFirstConnection() {
-	  Iterator i= owner.getConnections();
-	  while (i.hasNext()) {
-	    Connection c= (Connection)i.next();
-	    if (c.getPort()== originalPort)  return c;
-	  }
-	  return null;
-	}
-	*/
 
 	protected void getInfo()
 	{
@@ -94,10 +79,6 @@ public class Export extends PortProto
 	}
 
 	// ----------------------- public methods ----------------------------
-	public String toString()
-	{
-		return "Export " + getName();
-	}
 
 	/** Get the base PrimitivePort that generated this Export */
 	public PrimitivePort getBasePort()
@@ -115,4 +96,20 @@ public class Export extends PortProto
 	{
 		return getPortInst().getNetwork();
 	}
+
+	public String toString()
+	{
+		return "Export " + protoName;
+	}
+
+	// Return the first internal connection that exists on the port this
+	// Export was exported from, or null if no such Connection exists.
+//	Connection findFirstConnection() {
+//	  Iterator i= owner.getConnections();
+//	  while (i.hasNext()) {
+//	    Connection c= (Connection)i.next();
+//	    if (c.getPort()== originalPort)  return c;
+//	  }
+//	  return null;
+//	}
 }

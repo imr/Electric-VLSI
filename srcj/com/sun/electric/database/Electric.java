@@ -1,7 +1,9 @@
 package com.sun.electric.database;
 
 import com.sun.electric.technologies.*;
-
+import java.awt.Point;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 
 public final class Electric
 {
@@ -17,26 +19,46 @@ public final class Electric
 
 		// create a cell in the library
 		Cell myCell = Cell.newInstance(mainLib, "text{lay}");
-		System.out.println("Created cell " + myCell.getProtoName());
-		
-		// create two pins in the Cell
-		NodeProto m1PinProto = TecMoCMOS.tech.findNodeProto("Metal-1-Pin");
-//		NodeProto m1PinProto = Technology.findNodeProto("mocmos", "Metal-1-Pin");
-//		NodeProto m1PinProto = Technology.findNodeProto("mocmos:Metal-1-Pin");
-		NodeInst leftPin = NodeInst.newInstance(m1PinProto, 1000.0, 1000.0, 1.0, 1.0, 0.0, myCell);
-		NodeInst rightPin = NodeInst.newInstance(m1PinProto, 5000.0, 1000.0, 1.0, 1.0, 0.0, myCell);
-		System.out.println("Created two instances of " + m1PinProto.getProtoName() +
-			" in '" + leftPin.toString() + "'" + " and '" + rightPin.toString() + "'");
-		
-		// connect the pins with an arc
-		ArcProto m1Proto = TecMoCMOS.tech.findArcProto("Metal-1");
-		PortInst leftPort = leftPin.getPort();
-		PortInst rightPort = rightPin.getPort();
-		double m1Width = m1Proto.getWidth();
-		ArcInst arc = ArcInst.newInstance(m1Proto, m1Width, leftPort, rightPort);
-		System.out.println("Created an arc to join them");
-	}
+		System.out.println("Created cell " + myCell.describe());
 
+		// get information about the metal-1-pin, poly-1-pin, and metal-1-poly-1-contact
+		NodeProto m1PinProto = NodeProto.findNodeProto("mocmos:Metal-1-Pin");
+		double m1PinWidth = m1PinProto.getDefWidth();
+		double m1PinHeight = m1PinProto.getDefHeight();
+		NodeProto p1PinProto = NodeProto.findNodeProto("mocmos:Polysilicon-1-Pin");
+		double p1PinWidth = m1PinProto.getDefWidth();
+		double p1PinHeight = m1PinProto.getDefHeight();
+		NodeProto m1PolyConProto = NodeProto.findNodeProto("mocmos:Metal-1-Polysilicon-1-Con");
+		double m1PolyConWidth = m1PolyConProto.getDefWidth();
+		double m1PolyConHeight = m1PolyConProto.getDefHeight();
+		
+		// put the contact at the top-right, a metal-1 arc going left, a poly-1 arc going down
+		NodeInst contactNode = NodeInst.newInstance(m1PolyConProto, new Point2D.Double(50.0, 50.0), m1PolyConWidth, m1PolyConHeight, 0.0, myCell);
+		NodeInst metal1Pin = NodeInst.newInstance(m1PinProto, new Point2D.Double(10.0, 50.0), m1PinWidth, m1PinHeight, 0.0, myCell);
+		NodeInst poly1Pin = NodeInst.newInstance(p1PinProto, new Point2D.Double(50.0, 10.0), p1PinWidth, p1PinHeight, 0.0, myCell);
+		System.out.println("Created 3 nodes: " + contactNode.describe() + ", " + metal1Pin.describe() + ", and " + poly1Pin.describe());
+
+		// get information about the metal-1 and poly-1 arcs
+		ArcProto m1Proto = TecMoCMOS.tech.findArcProto("Metal-1");
+		double m1Width = m1Proto.getWidth();
+		ArcProto p1Proto = TecMoCMOS.tech.findArcProto("Polysilicon-1");
+		double p1Width = p1Proto.getWidth();
+
+		// make two arcs to connect them
+		PortInst contactPort = contactNode.getPort();
+		PortInst m1Port = metal1Pin.getPort();
+		PortInst p1Port = poly1Pin.getPort();
+		ArcInst metalArc = ArcInst.newInstance(m1Proto, m1Width, contactPort, m1Port);
+		ArcInst polyArc = ArcInst.newInstance(p1Proto, p1Width, contactPort, p1Port);
+		System.out.println("Created two arcs to join them");
+
+		contactNode.getInfo();
+		metal1Pin.getInfo();
+		poly1Pin.getInfo();
+		metalArc.getInfo();
+		polyArc.getInfo();
+		System.out.println("*********************** TERMINATED SUCCESSFULLY ***********************");
+	}
 
 	// ------------------------- private data ----------------------------
 
@@ -95,8 +117,7 @@ public final class Electric
 	 * on the Java side. */
 	public static void error(boolean pred, String msg)
 	{
-		if (pred)
-			error(msg);
+		if (pred) error(msg);
 	}
 
 }

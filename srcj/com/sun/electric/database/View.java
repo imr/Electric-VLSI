@@ -8,31 +8,53 @@ import java.util.HashMap;
  */
 public class View extends ElectricObject
 {
-	private String fullName;
-	private String shortName;
-	private int type;
-	private static HashMap views = new HashMap();
+	// -------------------------- private data -----------------------------
 
-	/** view contains only text */							public final static int TEXTVIEW   =01;	
-	/** view is one of multiple pages  */					public final static int MULTIPAGEVIEW   =02;	
-	/** view is statically defined and cannot be deleted */ public final static int PERMANENTVIEW   =04;	
+	/** view contains only text */							private final static int TEXTVIEW   =01;	
+	/** view is one of multiple pages  */					private final static int MULTIPAGEVIEW   =02;	
+	/** view is statically defined and cannot be deleted */ private final static int PERMANENTVIEW   =04;	
 
-	/** the unknown view */					public static final View unknown = newInstance("unknown", "");
-	/** the simulation snapshot view */		public static final View simsnap = newInstance("simulation-snapshot", "sim");
-	/** the NetLisp (netlist) view */		public static final View netlistNetlisp = newTextInstance("netlist-netlisp-format", "net-netlisp");
-	/** the RSIM (netlist) view */			public static final View netlistRsim = newTextInstance("netlist-rsim-format", "net-rsim");
-	/** the SILOS (netlist) view */			public static final View netlistSilos = newTextInstance("netlist-silos-format", "net-silos");
-	/** the QUISC (netlist) view */			public static final View netlistQuisc = newTextInstance("netlist-quisc-format", "net-quisc");
-	/** the ALS (netlist) view */			public static final View netlistAls = newTextInstance("netlist-als-format", "net-als");
-	/** the general Netlist view */			public static final View netlist = newTextInstance("netlist", "net");
-	/** the VHDL view */					public static final View vhdl = newTextInstance("VHDL", "vhdl");
-	/** the Verilog view */					public static final View verilog = newTextInstance("Verilog", "ver");
-	/** the Skeleton view */				public static final View skeleton = newInstance("skeleton", "sk");
-	/** the Compensated view */				public static final View comp = newInstance("compensated", "comp");
-	/** the Documentation view */			public static final View doc = newTextInstance("documentation", "doc");
-	/** the Icon view */					public static final View icon = newInstance("icon", "ic");
-	/** the Schematic view */				public static final View schematic = newInstance("schematic", "sch");
-	/** the Layout view */					public static final View layout = newInstance("layout", "lay");
+	/** the full name of the view */						private String fullName;
+	/** the abbreviation of the view */						private String shortName;
+	/** flag bits for the view */							private int type;
+	/** a list of all views in existence */					private static HashMap views = new HashMap();
+
+	// -------------------------- public data -----------------------------
+
+	/** the unknown view */
+		public static final View unknown = newInstance("unknown", "");
+	/** the simulation snapshot view */
+		public static final View simsnap = newInstance("simulation-snapshot", "sim");
+	/** the NetLisp (netlist) view */
+		public static final View netlistNetlisp = newTextInstance("netlist-netlisp-format", "net-netlisp");
+	/** the RSIM (netlist) view */
+		public static final View netlistRsim = newTextInstance("netlist-rsim-format", "net-rsim");
+	/** the SILOS (netlist) view */
+		public static final View netlistSilos = newTextInstance("netlist-silos-format", "net-silos");
+	/** the QUISC (netlist) view */
+		public static final View netlistQuisc = newTextInstance("netlist-quisc-format", "net-quisc");
+	/** the ALS (netlist) view */
+		public static final View netlistAls = newTextInstance("netlist-als-format", "net-als");
+	/** the general Netlist view */
+		public static final View netlist = newTextInstance("netlist", "net");
+	/** the VHDL view */
+		public static final View vhdl = newTextInstance("VHDL", "vhdl");
+	/** the Verilog view */
+		public static final View verilog = newTextInstance("Verilog", "ver");
+	/** the Skeleton view */
+		public static final View skeleton = newInstance("skeleton", "sk");
+	/** the Compensated view */
+		public static final View comp = newInstance("compensated", "comp");
+	/** the Documentation view */
+		public static final View doc = newTextInstance("documentation", "doc");
+	/** the Icon view */
+		public static final View icon = newInstance("icon", "ic");
+	/** the Schematic view */
+		public static final View schematic = newInstance("schematic", "sch");
+	/** the Layout view */
+		public static final View layout = newInstance("layout", "lay");
+
+	// -------------------------- private methods -----------------------------
 
 	private View(String fullName, String shortName, int type)
 	{
@@ -64,6 +86,8 @@ public class View extends ElectricObject
 		return v;
 	}
 
+	// -------------------------- public methods -----------------------------
+
 	public static View newInstance(String fullName, String shortName)
 	{
 		return makeInstance(fullName, shortName, 0);
@@ -87,24 +111,27 @@ public class View extends ElectricObject
 	 * get the full name of this view.  This is a complete word, like
 	 * schematic
 	 */
-	public String getFullName()
-	{
-		return fullName;
-	}
+	public String getFullName() { return fullName; }
 
 	/**
 	 * get the short name of this view.  This is the short sequence of
 	 * characters you usually see inside the {} in Facet descriptions,
 	 * e.g. sch
 	 */
-	public String getShortName()
-	{
-		return shortName;
-	}
+	public String getShortName() { return shortName; }
+
+	/** Get the Text-view bit */
+	public boolean isTextView() { return (type & TEXTVIEW) != 0; }
+
+	/** Get the Multipage-view bit */
+	public boolean isMultiPageView() { return (type & MULTIPAGEVIEW) != 0; }
+
+	/** Get the ermanent-view bit */
+	public boolean isPermanentView() { return (type & PERMANENTVIEW) != 0; }
 
 	public String toString()
 	{
-		return "View " + fullName + " (" + shortName + ")";
+		return "View " + fullName;
 	}
 
 } // end of class View

@@ -43,52 +43,16 @@ public class ElectricObject
 			}
 		}
 	}
-
-	protected static int round(double num)
-	{
-		return (int) Math.round(num);
-	}
+//
+//	protected static int round(double num)
+//	{
+//		return (int) Math.round(num);
+//	}
 
 	// Create an object that represents a C-side Electric structure
 	protected ElectricObject()
 	{
 //		Electric.construct(this, cptr);
-	}
-
-	private void printVal(Object val)
-	{
-		if (val == null)
-		{
-			System.out.print("null");
-		} else if (val instanceof Double)
-		{
-			System.out.print("Double: ");
-		} else if (val instanceof Float)
-		{
-			System.out.print("Float: ");
-		} else if (val instanceof Integer)
-		{
-			System.out.print("Integer: ");
-		} else if (val instanceof String)
-		{
-			System.out.print("String: ");
-		} else if (val instanceof Double[])
-		{
-			System.out.print("Double[]: ");
-		} else if (val instanceof Float[])
-		{
-			System.out.print("Float[]: ");
-		} else if (val instanceof Integer[])
-		{
-			System.out.print("Integer[]: ");
-		} else if (val instanceof String[])
-		{
-			System.out.print("String[]: ");
-		} else
-		{
-			System.out.print("Unknown type: ");
-		}
-		System.out.println(val);
 	}
 
 	/** put an object value associated with a name */
@@ -111,15 +75,6 @@ public class ElectricObject
 	{
 		return false;
 	}
-
-	/* set a variable that actually represents one of the fields of this
-	 * object.  If the variable matches, return true, otherwise, return
-	 * false.
-	 *
-	 protected boolean putPrivateVar(String name, int value) {
-	 return false;
-	 }
-	*/
 
 	/** put an object into an array value associated with a name */
 	protected void putVar(String name, Object value, int idx)
@@ -203,52 +158,6 @@ public class ElectricObject
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////
-
-	/** Check to make sure this object is in the database.  use this
-	 * method when you only want to check the hashtable, and not do
-	 * class-specific checks.  Otherwise, use checkobj(SanityAnswer)
-	protected void verify(SanityAnswer ans)
-	{
-		// make sure our address is in the hashtable, and the thing in
-		// the hashtable points to us
-		//Integer i= new Integer(cptr);
-		//Object obj= cache.get(i);
-		Object obj = Electric.objectFromAddress(cptr);
-		if (obj == null)
-		{
-			ans.oops(this +" not found in database hashtable");
-		}
-		if (obj != this)
-		{
-			ans.oops(obj + " is in database hashtable instead of " + this);
-		}
-	} */
-
-	/** Sanity check on the database for this object.  Every Electric
-	 * object should have one of these.  subclasses of Electric must
-	 * make sure to call super.checkobj(ans);
-	 * @param ans the data structure in which to record errors.
-	 * @return true if the database check passes, false if
-	 * it fails.
-	void checkobj(SanityAnswer ans)
-	{
-		verify(ans);
-	} */
-
-	// -------------------------- public methods -------------------------------
-	// Convert Electric internal units to lambda units
-//	static double baseToLambda(int base)
-//	{
-//		return Electric.baseToLambda(base);
-//	}
-
-	// Convert lambda units to Electric internal units
-	static int lambdaToBase(double lam)
-	{
-		return Electric.lambdaToBase(lam);
-	}
-
 	public void setVar(String name, ElectricObject value)
 	{
 		error(name == null, "ElectricObject.setVar: null name");
@@ -285,8 +194,7 @@ public class ElectricObject
 	{
 		error(this instanceof Tool, "Tools can't be deleted");
 		error(this instanceof PrimitivePort, "PrimitivePorts can't be deleted");
-		error(
-			this instanceof Connection,
+		error(this instanceof Connection,
 			"Connections can't be deleted, " + "delete entire ArcInst instead");
 		error(this instanceof ArcProto, "ArcProtos can't be deleted");
 
@@ -366,14 +274,15 @@ public class ElectricObject
 	 * such object. */
 	public Object getVar(String name, VarContext context)
 	{
-		if (vars == null)
-			return null;
-
-		Object v = vars.get(name);
-		if (!(v instanceof VarCode))
-			return v;
-
-		return ((VarCode) v).eval(context);
+//		if (vars == null)
+//			return null;
+//
+//		Object v = vars.get(name);
+//		if (!(v instanceof VarCode))
+//			return v;
+//
+//		return ((VarCode) v).eval(context);
+		return null;
 	}
 
 	/** Equivalent to getVar(name, VarContext.globalContext). */
@@ -417,30 +326,6 @@ public class ElectricObject
 		return vars.keySet().iterator();
 	}
 
-	/**  Print out all the Electric variables on this object.
-	 *
-	 * <p>
-	 * @param context A design hierarchy path that identifies a
-	 * specific instance.  This is needed, for example, to get Logical
-	 * Effort device sizes.  If context is null then printVariables()
-	 * uses VarContext.globalContext. */
-	public void printVariables(VarContext context)
-	{
-		if (context == null)
-			context = VarContext.globalContext;
-		System.out.println("Printing all variables:");
-		Iterator varNms = getVarNames();
-		while (varNms.hasNext())
-		{
-			String varNm = (String) varNms.next();
-			error(varNm == null, "variable with no name?");
-			System.out.print("       " + varNm + ": ");
-			Object val = getVar(varNm, context);
-			printVal(val);
-		}
-		System.out.println("Done Printing all variables:");
-	}
-
 	public static void error(boolean pred, String msg)
 	{
 		Electric.error(pred, msg);
@@ -451,13 +336,6 @@ public class ElectricObject
 		Electric.error(msg);
 	}
 
-	/** Return the address of the C-side object represented by this Java
-	 * object
-	public int getAddr()
-	{
-		return cptr;
-	} */
-
 	/** This object as a string.  Will always contain the type of the
 	 * object and the c-side address as a Hexidecimal number.  May also
 	 * include more interesting information.  For objects with names,
@@ -466,4 +344,65 @@ public class ElectricObject
 	{
 		return getClass().getName();
 	}
+
+//	/**  Print out all the Electric variables on this object.
+//	 *
+//	 * <p>
+//	 * @param context A design hierarchy path that identifies a
+//	 * specific instance.  This is needed, for example, to get Logical
+//	 * Effort device sizes.  If context is null then printVariables()
+//	 * uses VarContext.globalContext. */
+//	public void printVariables(VarContext context)
+//	{
+//		if (context == null)
+//			context = VarContext.globalContext;
+//		System.out.println("Printing all variables:");
+//		Iterator varNms = getVarNames();
+//		while (varNms.hasNext())
+//		{
+//			String varNm = (String) varNms.next();
+//			error(varNm == null, "variable with no name?");
+//			System.out.print("       " + varNm + ": ");
+//			Object val = getVar(varNm, context);
+//			printVal(val);
+//		}
+//		System.out.println("Done Printing all variables:");
+//	}
+
+//	private void printVal(Object val)
+//	{
+//		if (val == null)
+//		{
+//			System.out.print("null");
+//		} else if (val instanceof Double)
+//		{
+//			System.out.print("Double: ");
+//		} else if (val instanceof Float)
+//		{
+//			System.out.print("Float: ");
+//		} else if (val instanceof Integer)
+//		{
+//			System.out.print("Integer: ");
+//		} else if (val instanceof String)
+//		{
+//			System.out.print("String: ");
+//		} else if (val instanceof Double[])
+//		{
+//			System.out.print("Double[]: ");
+//		} else if (val instanceof Float[])
+//		{
+//			System.out.print("Float[]: ");
+//		} else if (val instanceof Integer[])
+//		{
+//			System.out.print("Integer[]: ");
+//		} else if (val instanceof String[])
+//		{
+//			System.out.print("String[]: ");
+//		} else
+//		{
+//			System.out.print("Unknown type: ");
+//		}
+//		System.out.println(val);
+//	}
+
 }

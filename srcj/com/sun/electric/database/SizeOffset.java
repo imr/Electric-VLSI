@@ -2,12 +2,12 @@ package com.sun.electric.database;
 
 // In Electric, nonexistant "invisible" material surrounds many
 // NodeProtos and ArcProtos.  For example, in the MOCMOS technology,
-// if you ask Electric for a 5 lambda square metal-1/metal-2 contact
-// you get a 4 lambda square metal-1 and 4 lambda square metal-2
-// surrounded by a 1/2 lambda "invisible" perimeter.  This perimeter
-// doesn't scale.  If you ask for an 8 lambda square metal-1/metal-2
-// contact you get a 9 lambda square metal-1 and metal-2 and a 1/2
-// lambda surround.
+// if you ask Electric for a 5 square metal-1/metal-2 contact
+// you get a 4 square metal-1 and 4 square metal-2
+// surrounded by a 1/2 "invisible" perimeter.  This perimeter
+// doesn't scale.  If you ask for an 8 square metal-1/metal-2
+// contact you get a 9 square metal-1 and metal-2 and a 1/2
+// surround.
 //
 // This invisible surround is a pain for a Jose client to deal
 // with. My goal is to hide this from Jose client programs. 
@@ -26,19 +26,12 @@ class SizeOffset
 		this.hx = hx;
 		this.hy = hy;
 	}
+
 	public String toString()
 	{
 		return "SizeOffset = {\n"
-			+ "    x: ["
-			+ lx
-			+ " - "
-			+ hx
-			+ "]\n"
-			+ "    y: ["
-			+ ly
-			+ " - "
-			+ hy
-			+ "]\n"
+			+ "    x: [" + lx + "-" + hx + "]\n"
+			+ "    y: [" + ly + "-" + hy + "]\n"
 			+ "}\n";
 	}
 }

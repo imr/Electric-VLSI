@@ -1,5 +1,6 @@
 package com.sun.electric.database;
 
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -13,28 +14,29 @@ import java.util.Iterator;
 public class Tool extends ElectricObject
 {
 	// The name of this tool
-	private String name;
+	private String toolName;
+	private int toolState;
 
 	// the static list of all tools
-	private static ArrayList tools = new ArrayList();
+	private static List tools = new ArrayList();
 
-	/** set if tool is on */								public static final int TOOLON=                    01;
-	/** set if tool is running in background */				public static final int TOOLBG=                    02;
-	/** set if tool will fix errors */						public static final int TOOLFIX=                   04;
-	/** set if tool is coded in interpretive language */	public static final int TOOLLANG=                 010;
-	/** set if tool functions incrementally */				public static final int TOOLINCREMENTAL=          020;
-	/** set if tool does analysis */						public static final int TOOLANALYSIS=             040;
-	/** set if tool does synthesis */						public static final int TOOLSYNTHESIS=           0100;
+	/** set if tool is on */								public static final int TOOLON=             01;
+	/** set if tool is running in background */				public static final int TOOLBG=             02;
+	/** set if tool will fix errors */						public static final int TOOLFIX=            04;
+	/** set if tool is coded in interpretive language */	public static final int TOOLLANG=          010;
+	/** set if tool functions incrementally */				public static final int TOOLINCREMENTAL=   020;
+	/** set if tool does analysis */						public static final int TOOLANALYSIS=      040;
+	/** set if tool does synthesis */						public static final int TOOLSYNTHESIS=    0100;
 
-	private Tool(String name)
+	private Tool(String toolName)
 	{
-		this.name = name;
+		this.toolName = toolName;
 	}
 
 	/** Initialize this tool with a name */
-	public static final Tool newInstance(String name)
+	public static final Tool newInstance(String toolName)
 	{
-		Tool t = new Tool(name);
+		Tool t = new Tool(toolName);
 		return t;
 	}
 
@@ -65,13 +67,10 @@ public class Tool extends ElectricObject
 	}
 
 	/** Get the name of this tool */
-	public String getName()
-	{
-		return name;
-	}
+	public String getName() { return toolName; }
 
 	public String toString()
 	{
-		return "Tool '" + name;
+		return "Tool '" + toolName;
 	}
 }

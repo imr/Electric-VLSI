@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -24,7 +25,7 @@ public class Cell extends NodeProto
 
 	private class VersionGroup
 	{
-		ArrayList versions;
+		List versions;
 		public VersionGroup(Cell f)
 		{
 			versions = new ArrayList();
@@ -53,42 +54,23 @@ public class Cell extends NodeProto
 	private static final Point2D.Double ORIGIN = new Point2D.Double(0, 0);
 	private static int currentTime = 0;
 
-	private Technology tech;			// best guess technology
-	private CellGroup cellGroup;		// what group this is a cell of
-	private VersionGroup versionGroup;	// what history this is a cell of
-	private Library lib;				// what library this is a cell of
-	private View view;					// what type of view this cell expresses
-	private Date creationDate;			// when this cell was created
-	private Date revisionDate;			// when this cell was last modified
-	private int version;				// version of this cell
-	private NodeInst referencePoint = null; // cell-Center
-	private ArrayList essenBounds = new ArrayList(); // essential-bounds
-	private ArrayList nodes;			// NodeInsts that comprise this cell
-	private ArrayList arcs;				// ArcInsts that comprise this cell
-	private int userbits;				// Miscellaneous userbits copied from C.
-	private int timeStamp;
+	/** best guess technology */					private Technology tech;
+	/** what group this is a cell of */				private CellGroup cellGroup;
+	/** what history this is a cell of */			private VersionGroup versionGroup;
+	/** what library this is a cell of */			private Library lib;
+	/** what type of view this cell expresses */	private View view;
+	/** when this cell was created */				private Date creationDate;
+	/** when this cell was last modified */			private Date revisionDate;
+	/** version of this cell */						private int version;
+	/** cell-Center */								private NodeInst referencePoint = null;
+	/** essential-bounds */							private List essenBounds = new ArrayList();
+	/** NodeInsts that comprise this cell */		private List nodes;
+	/** ArcInsts that comprise this cell */			private List arcs;
+	/** Flag bits for the cell */					private int userbits;
+	/** time stamp for marking */					private int timeStamp;
+	/** the bounds of the Cell */					private Rectangle2D.Double elecBounds;
 
 	// ------------------ protected and private methods -----------------------
-
-	// constant initialization
-//	{
-//		if (SHORT_RESISTORS.size() == 0)
-//		{
-//			Technology schematic = Technology.findTechnology("schematic");
-//			error(schematic == null, "can't find schematic technology");
-//			NodeProto res = schematic.findNodeProto("Resistor");
-//			error(res == null, "can't find NodeProto: schematic:Resistor");
-//			PortProto a = res.findPort("a");
-//			error(a == null, "can't find Resistor port a");
-//			PortProto b = res.findPort("b");
-//			error(b == null, "can't find Resistor port b");
-//			ArrayList shorted = new ArrayList();
-//			shorted.add(a);
-//			shorted.add(b);
-//
-//			SHORT_RESISTORS.add(shorted);
-//		}
-//	}
 
 	private Cell(Library cellLib, String name, int cellVersion, View cellView)
 	{
@@ -113,6 +95,54 @@ public class Cell extends NodeProto
 //		cellGroup.merge(nxtCellGrp);
 	}
 
+	public static class Name
+	{
+		String name;
+		View   view;
+		int    version;
+		
+		private Name() {}
+		
+		public static Name parseName(String name)
+		{
+			// figure out the view and version of the cell
+			Name n = new Name();
+			n.view = null;
+			int openCurly = name.indexOf('{');
+			int closeCurly = name.lastIndexOf('}');
+			if (openCurly != -1 && closeCurly != -1)
+			{
+				String viewName = name.substring(openCurly+1, closeCurly);
+				n.view = View.getView(viewName);
+				if (n.view == null)
+				{
+					System.out.println("Unknown view: " + viewName);
+					return null;
+				}
+			}
+
+			// figure out the version
+			n.version = 0;
+			int semicolon = name.indexOf(';');
+			if (semicolon != -1)
+			{
+				n.version = Integer.parseInt(name.substring(semicolon));
+				if (n.version <= 0)
+				{
+					System.out.println("Cell versions must be positive, this is " + n.version);
+					return null;
+				}
+			}
+
+			// get the pure cell name
+			if (semicolon == -1) semicolon = name.length();
+			if (openCurly == -1) openCurly = name.length();
+			int nameEnd = Math.min(semicolon, openCurly);
+			n.name = name.substring(0, nameEnd);
+			return n;
+		}
+	}
+
 	/**
 	 * Create a new Cell in library "lib" named "name".
 	 * The name should be something like "foo;2{sch}".
@@ -126,49 +156,18 @@ public class Cell extends NodeProto
 			System.out.println("Cannot create cell " + name + " in library " + lib.getLibName() + " ...already exists");
 			return(null);
 		}
-		
-		// figure out the view and version of the cell
-		View cellView = null;
-		int openCurly = name.indexOf('{');
-		int closeCurly = name.lastIndexOf('}');
-		if (openCurly != -1 && closeCurly != -1)
-		{
-			String viewName = name.substring(openCurly+1, closeCurly);
-			cellView = View.getView(viewName);
-			if (cellView == null)
-			{
-				System.out.println("Unknown view: " + viewName);
-				return null;
-			}
-		}
-		
-		// figure out the version
-		int explicitVersion = 0;
-		int semicolon = name.indexOf(';');
-		if (semicolon != -1)
-		{
-//			explicitVersion = Integer.ParseInt(name.substring(semicolon), 10);
-			if (explicitVersion <= 0)
-			{
-				System.out.println("Cell versions must be positive, this is " + explicitVersion);
-				return null;
-			}
-		}
 
-		// get the pure cell name
-		if (semicolon == -1) semicolon = name.length();
-		if (openCurly == -1) openCurly = name.length();
-		int nameEnd = Math.min(semicolon, openCurly);
-		String pureCellName = name.substring(0, nameEnd);
+		Name n = Name.parseName(name);
+		if (n == null) return null;
 
 		// make sure this version isn't in use
-		if (explicitVersion > 0)
+		if (n.version > 0)
 		{
 			for (Iterator it = lib.getCells(); it.hasNext();)
 			{
 				Cell c = (Cell) it.next();
-				if (pureCellName.equals(c.getProtoName()) && cellView == c.getView() &&
-					explicitVersion == c.getVersion())
+				if (n.name.equals(c.getProtoName()) && n.view == c.getView() &&
+					n.version == c.getVersion())
 				{
 					System.out.println("Already a cell with this version");
 					return null;
@@ -177,18 +176,17 @@ public class Cell extends NodeProto
 		} else
 		{
 			// find a new version
-			explicitVersion = 1;
+			n.version = 1;
 			for (Iterator it = lib.getCells(); it.hasNext();)
 			{
 				Cell c = (Cell) it.next();
-				if (pureCellName.equals(c.getProtoName()) && cellView == c.getView() &&
-					c.getVersion() >= explicitVersion)
-						explicitVersion = c.getVersion() + 1;
+				if (n.name.equals(c.getProtoName()) && n.view == c.getView() &&
+					c.getVersion() >= n.version)
+						n.version = c.getVersion() + 1;
 			}
 		}
 
-		Cell c = new Cell(lib, pureCellName, explicitVersion, cellView);
-//		c.setReferencePoint(0, 0); // for 0, units don't matter
+		Cell c = new Cell(lib, n.name, n.version, n.view);
 		return c;
 	}
 
@@ -199,11 +197,10 @@ public class Cell extends NodeProto
 		cellGroup.remove(this);
 		versionGroup.remove(this);
 		lib.removeCell(this); // remove ourselves from the library
-		removeAll(nodes); // kill nodes
+//		removeAll(nodes); // kill nodes
 
 		// arcs should have been killed by ditching the nodes
-		error(
-			arcs.size() != 0,
+		error(arcs.size() != 0,
 			"Arcs should have been removed when the nodes were killed");
 
 		super.remove();
@@ -526,21 +523,11 @@ public class Cell extends NodeProto
 			elecBounds.height);
 	}
 
-	public SizeOffset getSizeOffset()
-	{
-		// Cells never have a size offset
-		return new SizeOffset(0, 0, 0, 0);
-	}
+	public double getDefWidth() { return elecBounds.width; }
+	public double getDefHeight() { return elecBounds.height; }
 
-	/** If there is an instance of the Cell-Center then return its
-	 * absolute coordinates; otherwise return (0, 0). Base units.*/
-	Point2D.Double getRefPointBase()
-	{
-		if (referencePoint != null)
-			return referencePoint.getOriginBase();
-		else
-			return ORIGIN;
-	}
+	public double getWidthOffset() { return 0; }
+	public double getHeightOffset() { return 0; }
 
 	/** If there are two or more essential bounds return the bounding
 	 * box that surrounds all of them; otherwise return null; */
@@ -555,11 +542,11 @@ public class Cell extends NodeProto
 
 		for (int i = 0; i < essenBounds.size(); i++)
 		{
-			Point2D.Double p = ((NodeInst) essenBounds.get(i)).getOriginBase();
-			minX = Math.min(minX, p.x);
-			maxX = Math.max(maxX, p.x);
-			minY = Math.min(minY, p.y);
-			maxY = Math.max(maxY, p.y);
+			NodeInst ni = (NodeInst) essenBounds.get(i);
+			minX = Math.min(minX, ni.getX());
+			maxX = Math.max(maxX, ni.getX());
+			minY = Math.min(minY, ni.getY());
+			maxY = Math.max(maxY, ni.getY());
 		}
 
 		return new Rectangle2D.Double(minX, minY, maxX - minX, maxY - minY);
@@ -585,13 +572,8 @@ public class Cell extends NodeProto
 			} else
 			{
 				NodeInst newInst =
-					NodeInst.newInstance(oldProto,
-						oldInst.getScaleX(),
-						oldInst.getScaleY(),
-						oldInst.getX(),
-						oldInst.getY(),
-						oldInst.getAngle(),
-						f);
+					NodeInst.newInstance(oldProto,new Point2D.Double(oldInst.getX(), oldInst.getY()),
+						oldInst.getXSize(), oldInst.getYSize(), oldInst.getAngle(), f);
 				String nm = oldInst.getName();
 				if (nm != null)
 					newInst.setName(nm);
@@ -623,14 +605,9 @@ public class Cell extends NodeProto
 			Connection c1 = ai.getConnection(true);
 			Point2D p0 = c0.getLocation();
 			Point2D p1 = c1.getLocation();
-			ArcInst.newInstance(ai.getProto(),
-				ai.getWidth(),
-				getNewPortInst(c0.getPortInst(), oldToNew),
-				p0.getX(),
-				p0.getY(),
-				getNewPortInst(c1.getPortInst(), oldToNew),
-				p1.getX(),
-				p1.getY());
+			ArcInst.newInstance(ai.getProto(), ai.getWidth(),
+				getNewPortInst(c0.getPortInst(), oldToNew), p0.getX(), p0.getY(),
+				getNewPortInst(c1.getPortInst(), oldToNew), p1.getX(), p1.getY());
 		}
 	}
 	private void copyExports(Cell f, HashMap oldToNew)
@@ -640,7 +617,7 @@ public class Cell extends NodeProto
 			Export e = (Export) it.next();
 			PortInst newPort = getNewPortInst(e.getPortInst(), oldToNew);
 			error(newPort == null, "can't find new PortInst to export");
-			f.newExport(e.getName(), e.getRole(), newPort);
+			f.newExport(e.getName(), newPort);
 		}
 	}
 
@@ -652,27 +629,6 @@ public class Cell extends NodeProto
 		copyArcs(f, oldToNew);
 		copyExports(f, oldToNew);
 	}
-
-	//
-	// This is a truly disgusting KLUDGE! RKao
-	//
-	// When a Jose client makes a change to a Cell, the ancestors of that
-	// Cell must potentially have their bounds updated.  For the sake of
-	// efficiency, Electric sometimes postpones this computation until
-	// after a number of changes have been made. Unfortunately, Electric
-	// sometimes delays notifying Jose of an update to a Cell's bounds
-	// until it is too late; Jose uses an obsolete bounds to compute the
-	// bounds for a NodeInst.  The result is that the NodeInst gets scaled
-	// and positioned incorrectly.
-	//
-	// My attempted solution is to explicitly ask Electric to update the
-	// bounds whenever the Jose client does something that will eventually
-	// directly or indirectly the bounds.  This is error prone.  I hope
-	// that it works.
-//	void updateBounds()
-//	{
-//		Electric.updateCellBounds(getAddr());
-//	}
 
 	protected void getInfo()
 	{
@@ -755,24 +711,15 @@ public class Cell extends NodeProto
 	public static final ArrayList SHORT_RESISTORS = new ArrayList();
 
 	// ------------------------- public methods -----------------------------
-	public CellGroup getCellGroup()
-	{
-		return cellGroup;
-	}
-	public Library getLibrary()
-	{
-		return lib;
-	}
-	public View getView()
-	{
-		return view;
-	}
+	public CellGroup getCellGroup() { return cellGroup; }
+	public Library getLibrary() { return lib; }
+	public View getView() { return view; }
 
 	/** Create an export for this Cell.
 	 * @param name the name of the new Export
 	 * @param role the Export's type 
 	 * @param port the PortInst that will be exported */
-	public Export newExport(String name, int role, PortInst port)
+	public Export newExport(String name, PortInst port)
 	{
 		/* RKao: Why do we care that export name has both '[' and '_' ?
 		   if ((name.indexOf('[')>=0) && (name.indexOf('_')>=0)) {
@@ -806,23 +753,17 @@ public class Cell extends NodeProto
 	 * @param ap the ArcProto indicating what layer I want to create an
 	 * export on.
 	 * @param hintW width of the arc hint
-	 * @param x the x coordinate of the layer pin. Lambda units.
-	 * @param y the y coordinate of the layer pin. Lambda units. */
-	public Export newExport(
-		String name,
-		int role,
-		ArcProto ap,
-		double w,
-		double x,
-		double y)
+	 * @param x the x coordinate of the layer pins.
+	 * @param y the y coordinate of the layer pin. */
+	public Export newExport(String name, ArcProto ap, double w, double x, double y)
 	{
 		NodeProto np = ap.findPinProto();
 		error(np == null, "Cell.newExport: This layer has no layer-pin");
 
-		NodeInst ni = NodeInst.newInstance(np, 1, 1, x, y, 0, this);
+		NodeInst ni = NodeInst.newInstance(np, new Point2D.Double(1, 1), x, y, 0, this);
 		ArcInst.newInstance(ap, w, ni.getPort(), ni.getPort());
 
-		return newExport(name, role, ni.getPort());
+		return newExport(name, ni.getPort());
 	}
 
 	/** Get Export with specified name. @return null if not found */
@@ -863,10 +804,7 @@ public class Cell extends NodeProto
 	}
 
 	/** Return the version number of this Cell */
-	public int getVersion()
-	{
-		return version;
-	}
+	public int getVersion() { return version; }
 
 	/** Get an ordered array of the versions of this Cell.  NOTE: the
 	 * array is sorted, but the version number may have little to do
@@ -953,18 +891,19 @@ public class Cell extends NodeProto
 	}
 
 	/** If this Cell contains an instance of the Cell-Center then
-	 * return its absolute coordinates; otherwise return (0, 0). Lambda
-	 * units.*/
+	 * return its absolute coordinates; otherwise return (0, 0).
+	 */
 	public Point2D.Double getReferencePoint()
 	{
-		Point2D.Double p = getRefPointBase();
-		return new Point2D.Double(p.x, p.y);
+//		Point2D.Double p = getRefPointBase();
+//		return new Point2D.Double(p.x, p.y);
+		return new Point2D.Double(0, 0);
 	}
 
 	/** If there is no instance of Cell-Center then create one.
 	 * Position the Cell-Center at the absolute coordinates: (x,
 	 * y). From now on, all positions in this Cell will be interpreted
-	 * relative to the position of the Cell-Center.  Lambda units */
+	 * relative to the position of the Cell-Center. */
 	public void setReferencePoint(double x, double y)
 	{
 		if (referencePoint == null)
@@ -974,7 +913,7 @@ public class Cell extends NodeProto
 			PrimitiveNode cellCenter = generic.findNodeProto("Cell-Center");
 			error(cellCenter == null,
 				"can't find PrimitiveNode: Cell-Center");
-			referencePoint = NodeInst.newInstance(cellCenter, 1, 1, 0, 0, 0, this);
+			referencePoint = NodeInst.newInstance(cellCenter, new Point2D.Double(1, 1), 0, 0, 0, this);
 		}
 
 		// Tricky because alterShape interprets its arguments relative to
@@ -982,7 +921,7 @@ public class Cell extends NodeProto
 		Point2D r = getReferencePoint();
 		// absolute coordinates of Cell-Center
 //		referencePoint.alterShape(0, 0, x - r.getX(), y - r.getY(), 0);
-		referencePoint.setHardToSelect(true);
+		referencePoint.setHardSelect();
 	}
 
 	/** Create a copy of this Cell. Warning: this routine doesn't yet
@@ -1002,14 +941,6 @@ public class Cell extends NodeProto
 //		return f;
 //	}
 
-	public String toString()
-	{
-		String viewNm = "<NO VIEW!>";
-		if (view != null)
-			viewNm = view.getShortName();
-		return "Cell " + describe();
-	}
-
 	/** sanity check method used by Geometric.checkobj */
 	public boolean containsInstance(Geometric thing)
 	{
@@ -1025,4 +956,9 @@ public class Cell extends NodeProto
 		}
 	}
 	
+	public String toString()
+	{
+		return "Cell " + describe();
+	}
+
 }

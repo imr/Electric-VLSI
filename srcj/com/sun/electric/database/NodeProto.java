@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -19,102 +20,162 @@ import java.util.Iterator;
  */
 public abstract class NodeProto extends ElectricObject
 {
-	/** node is unknown type */								public static final int NPUNKNOWN=             0;
-	/** node is a single-layer pin */						public static final int NPPIN=                 1;
-	/** node is a two-layer contact (one point) */			public static final int NPCONTACT=             2;
-	/** node is a single-layer node */						public static final int NPNODE=                3;
-	/** node connects all ports */							public static final int NPCONNECT=             4;
-	/** node is MOS enhancement transistor */				public static final int NPTRANMOS=             5;
-	/** node is MOS depletion transistor */					public static final int NPTRADMOS=             6;
-	/** node is MOS complementary transistor */				public static final int NPTRAPMOS=             7;
-	/** node is NPN junction transistor */					public static final int NPTRANPN=              8;
-	/** node is PNP junction transistor */					public static final int NPTRAPNP=              9;
-	/** node is N-channel junction transistor */			public static final int NPTRANJFET=           10;
-	/** node is P-channel junction transistor */			public static final int NPTRAPJFET=           11;
-	/** node is MESFET depletion transistor */				public static final int NPTRADMES=            12;
-	/** node is MESFET enhancement transistor */			public static final int NPTRAEMES=            13;
-	/** node is prototype-defined transistor */				public static final int NPTRANSREF=           14;
-	/** node is undetermined transistor */					public static final int NPTRANS=              15;
-	/** node is 4-port MOS enhancement transistor */		public static final int NPTRA4NMOS=           16;
-	/** node is 4-port MOS depletion transistor */			public static final int NPTRA4DMOS=           17;
-	/** node is 4-port MOS complementary transistor */		public static final int NPTRA4PMOS=           18;
-	/** node is 4-port NPN junction transistor */			public static final int NPTRA4NPN=            19;
-	/** node is 4-port PNP junction transistor */			public static final int NPTRA4PNP=            20;
-	/** node is 4-port N-channel junction transistor */		public static final int NPTRA4NJFET=          21;
-	/** node is 4-port P-channel junction transistor */		public static final int NPTRA4PJFET=          22;
-	/** node is 4-port MESFET depletion transistor */		public static final int NPTRA4DMES=           23;
-	/** node is 4-port MESFET enhancement transistor */		public static final int NPTRA4EMES=           24;
-	/** node is E2L transistor */							public static final int NPTRANS4=             25;
-	/** node is resistor */									public static final int NPRESIST=             26;
-	/** node is capacitor */								public static final int NPCAPAC=              27;
-	/** node is electrolytic capacitor */					public static final int NPECAPAC=             28;
-	/** node is diode */									public static final int NPDIODE=              29;
-	/** node is zener diode */								public static final int NPDIODEZ=             30;
-	/** node is inductor */									public static final int NPINDUCT=             31;
-	/** node is meter */									public static final int NPMETER=              32;
-	/** node is transistor base */							public static final int NPBASE=               33;
-	/** node is transistor emitter */						public static final int NPEMIT=               34;
-	/** node is transistor collector */						public static final int NPCOLLECT=            35;
-	/** node is buffer */									public static final int NPBUFFER=             36;
-	/** node is AND gate */									public static final int NPGATEAND=            37;
-	/** node is OR gate */									public static final int NPGATEOR=             38;
-	/** node is XOR gate */									public static final int NPGATEXOR=            39;
-	/** node is flip-flop */								public static final int NPFLIPFLOP=           40;
-	/** node is multiplexor */								public static final int NPMUX=                41;
-	/** node is connected to power */						public static final int NPCONPOWER=           42;
-	/** node is connected to ground */						public static final int NPCONGROUND=          43;
-	/** node is source */									public static final int NPSOURCE=             44;
-	/** node is connected to substrate */					public static final int NPSUBSTRATE=          45;
-	/** node is connected to well */						public static final int NPWELL=               46;
-	/** node is pure artwork */								public static final int NPART=                47;
-	/** node is an array */									public static final int NPARRAY=              48;
-	/** node is an alignment object */						public static final int NPALIGN=              49;
-	/** node is a current-controlled voltage source */		public static final int NPCCVS=               50;
-	/** node is a current-controlled current source */		public static final int NPCCCS=               51;
-	/** node is a voltage-controlled voltage source */		public static final int NPVCVS=               52;
-	/** node is a voltage-controlled current source */		public static final int NPVCCS=               53;
-	/** node is a transmission line */						public static final int NPTLINE=              54;
-
-	/** set if nonmanhattan instances shrink */				public static final int NODESHRINK=           01;
-	/** set if instances should be expanded */				public static final int WANTNEXPAND=          02;
-	/** node function (from efunction.h) */					public static final int NFUNCTION=          0774;
-	/** right shift for NFUNCTION */						public static final int NFUNCTIONSH=           2;
-	/** set if instances can be wiped */					public static final int ARCSWIPE=          01000;
-	/** set if node is to be kept square in size */			public static final int NSQUARE=           02000;
-	/** primitive can hold trace information */				public static final int HOLDSTRACE=        04000;
-	/** set to reevaluate this cell's network */			public static final int REDOCELLNET=      010000;
-	/** set to erase if connected to 1 or 2 arcs */			public static final int WIPEON1OR2=       020000;
-	/** set if primitive is lockable (cannot move) */		public static final int LOCKEDPRIM=       040000;
-	/** set if primitive is selectable by edge, not area */	public static final int NEDGESELECT=     0100000;
-	/** set if nonmanhattan arcs on this shrink */			public static final int ARCSHRINK=       0200000;
-	//  used by database:                                                                           01400000
-	/** set if not used (don't put in menu) */				public static final int NNOTUSED=       02000000;
-	/** set if everything in cell is locked */				public static final int NPLOCKED=       04000000;
-	/** set if instances in cell are locked */				public static final int NPILOCKED=     010000000;
-	/** set if cell is part of a "cell library" */			public static final int INCELLLIBRARY= 020000000;
-	/** set if cell is from a technology-library */			public static final int TECEDITCELL=   040000000;
-
-	// ---------------------- inner classes ------------------------------
-	static class ElectricPosition
+	/**
+	 * Function is a typesafe enum class that describes the function of an arcproto.
+	 */
+	static public class Function
 	{
-		int lx, ly, hx, hy, angle, transpose;
-		public String toString()
-		{
-			return "ElectricPosition {\n"
-				+ "    x: [" + lx + " : " + hx + "]\n"
-				+ "    y: [" + ly + " : " + hy + "]\n"
-				+ "    angle: " + angle + "\n"
-				+ "    transpose: " + transpose + "\n}\n";
-		}
-	}
+		private final String name;
+		private final String shortName;
+		private final String constantName;
 
+		private Function(String name, String shortName, String constantName)
+		{
+			this.name = name;
+			this.shortName = shortName;
+			this.constantName = constantName;
+		}
+
+		public String toString() { return name; }
+
+		/** node is unknown type */
+			public static final Function UNKNOWN=   new Function("unknown",						"node",     "NPUNKNOWN");
+		/** node is a single-layer pin */
+			public static final Function PIN=       new Function("pin",							"pin",      "NPPIN");
+		/** node is a two-layer contact (one point) */
+			public static final Function CONTACT=   new Function("contact",						"contact",  "NPCONTACT");
+		/** node is a single-layer node */
+			public static final Function NODE=      new Function("pure-layer-node",				"plnode",   "NPNODE");
+		/** node connects all ports */
+			public static final Function CONNECT=   new Function("connection",					"conn",     "NPCONNECT");
+		/** node is MOS enhancement transistor */
+			public static final Function TRANMOS=   new Function("nMOS-transistor",				"nmos",     "NPTRANMOS");
+		/** node is MOS depletion transistor */
+			public static final Function TRADMOS=   new Function("DMOS-transistor",				"dmos",     "NPTRADMOS");
+		/** node is MOS complementary transistor */
+			public static final Function TRAPMOS=   new Function("pMOS-transistor",				"pmos",     "NPTRAPMOS");
+		/** node is NPN junction transistor */
+			public static final Function TRANPN=    new Function("NPN-transistor",				"npn",      "NPTRANPN");
+		/** node is PNP junction transistor */
+			public static final Function TRAPNP=    new Function("PNP-transistor",				"pnp",      "NPTRAPNP");
+		/** node is N-channel junction transistor */
+			public static final Function TRANJFET=  new Function("n-type-JFET-transistor",		"njfet",    "NPTRANJFET");
+		/** node is P-channel junction transistor */
+			public static final Function TRAPJFET=  new Function("p-type-JFET-transistor",		"pjfet",    "NPTRAPJFET");
+		/** node is MESFET depletion transistor */
+			public static final Function TRADMES=   new Function("depletion-mesfet",			"dmes",     "NPTRADMES");
+		/** node is MESFET enhancement transistor */
+			public static final Function TRAEMES=   new Function("enhancement-mesfet",			"emes",     "NPTRAEMES");
+		/** node is prototype-defined transistor */
+			public static final Function TRANSREF=  new Function("prototype-defined-transistor","tref",     "NPTRANSREF");
+		/** node is undetermined transistor */
+			public static final Function TRANS=     new Function("transistor",					"trans",    "NPTRANS");
+		/** node is 4-port MOS enhancement transistor */
+			public static final Function TRA4NMOS=  new Function("4-port-nMOS-transistor",		"nmos4p",   "NPTRA4NMOS");
+		/** node is 4-port MOS depletion transistor */
+			public static final Function TRA4DMOS=  new Function("4-port-DMOS-transistor",		"dmos4p",   "NPTRA4DMOS");
+		/** node is 4-port MOS complementary transistor */
+			public static final Function TRA4PMOS=  new Function("4-port-pMOS-transistor",		"pmos4p",   "NPTRA4PMOS");
+		/** node is 4-port NPN junction transistor */
+			public static final Function TRA4NPN=   new Function("4-port-NPN-transistor",		"npn4p",    "NPTRA4NPN");
+		/** node is 4-port PNP junction transistor */
+			public static final Function TRA4PNP=   new Function("4-port-PNP-transistor",		"pnp4p",    "NPTRA4PNP");
+		/** node is 4-port N-channel junction transistor */
+			public static final Function TRA4NJFET= new Function("4-port-n-type-JFET-transistor","njfet4p", "NPTRA4NJFET");
+		/** node is 4-port P-channel junction transistor */
+			public static final Function TRA4PJFET= new Function("4-port-p-type-JFET-transistor","pjfet4p", "NPTRA4PJFET");
+		/** node is 4-port MESFET depletion transistor */
+			public static final Function TRA4DMES=  new Function("4-port-depletion-mesfet",		"dmes4p",   "NPTRA4DMES");
+		/** node is 4-port MESFET enhancement transistor */
+			public static final Function TRA4EMES=  new Function("4-port-enhancement-mesfet",	"emes4p",   "NPTRA4EMES");
+		/** node is E2L transistor */
+			public static final Function TRANS4=    new Function("4-port-transistor",			"trans4p",  "NPTRANS4");
+		/** node is resistor */
+			public static final Function RESIST=    new Function("resistor",					"res",      "NPRESIST");
+		/** node is capacitor */
+			public static final Function CAPAC=     new Function("capacitor",					"cap",      "NPCAPAC");
+		/** node is electrolytic capacitor */
+			public static final Function ECAPAC=    new Function("electrolytic-capacitor",		"ecap",     "NPECAPAC");
+		/** node is diode */
+			public static final Function DIODE=     new Function("diode",						"diode",    "NPDIODE");
+		/** node is zener diode */
+			public static final Function DIODEZ=    new Function("zener-diode",					"zdiode",   "NPDIODEZ");
+		/** node is inductor */
+			public static final Function INDUCT=    new Function("inductor",					"ind",      "NPINDUCT");
+		/** node is meter */
+			public static final Function METER=     new Function("meter",						"meter",    "NPMETER");
+		/** node is transistor base */
+			public static final Function BASE=      new Function("base",						"base",     "NPBASE");
+		/** node is transistor emitter */
+			public static final Function EMIT=      new Function("emitter",						"emit",     "NPEMIT");
+		/** node is transistor collector */
+			public static final Function COLLECT=   new Function("collector",					"coll",     "NPCOLLECT");
+		/** node is buffer */
+			public static final Function BUFFER=    new Function("buffer",						"buf",      "NPBUFFER");
+		/** node is AND gate */
+			public static final Function GATEAND=   new Function("AND-gate",					"and",      "NPGATEAND");
+		/** node is OR gate */
+			public static final Function GATEOR=    new Function("OR-gate",						"or",       "NPGATEOR");
+		/** node is XOR gate */
+			public static final Function GATEXOR=   new Function("XOR-gate",					"xor",      "NPGATEXOR");
+		/** node is flip-flop */
+			public static final Function FLIPFLOP=  new Function("flip-flop",					"ff",       "NPFLIPFLOP");
+		/** node is multiplexor */
+			public static final Function MUX=       new Function("multiplexor",					"mux",      "NPMUX");
+		/** node is connected to power */
+			public static final Function CONPOWER=  new Function("power",						"pwr",      "NPCONPOWER");
+		/** node is connected to ground */
+			public static final Function CONGROUND= new Function("ground",						"gnd",      "NPCONGROUND");
+		/** node is source */
+			public static final Function SOURCE=    new Function("source",						"source",   "NPSOURCE");
+		/** node is connected to substrate */
+			public static final Function SUBSTRATE= new Function("substrate",					"substr",   "NPSUBSTRATE");
+		/** node is connected to well */
+			public static final Function WELL=      new Function("well",						"well",     "NPWELL");
+		/** node is pure artwork */
+			public static final Function ART=       new Function("artwork",						"art",      "NPART");
+		/** node is an array */
+			public static final Function ARRAY=     new Function("array",						"array",    "NPARRAY");
+		/** node is an alignment object */
+			public static final Function ALIGN=     new Function("align",						"align",    "NPALIGN");
+		/** node is a current-controlled voltage source */
+			public static final Function CCVS=      new Function("ccvs",						"ccvs",     "NPCCVS");
+		/** node is a current-controlled current source */
+			public static final Function CCCS=      new Function("cccs",						"cccs",     "NPCCCS");
+		/** node is a voltage-controlled voltage source */
+			public static final Function VCVS=      new Function("vcvs",						"vcvs",     "NPVCVS");
+		/** node is a voltage-controlled current source */
+			public static final Function VCCS=      new Function("vccs",						"vccs",     "NPVCCS");
+		/** node is a transmission line */
+			public static final Function TLINE=     new Function("transmission-line",			"transm",   "NPTLINE");
+	}
 	// ------------------------ private data --------------------------
 
-	/** the name of the NodeProto */				protected String protoName;
-	/** the exports in the NodeProto */				private ArrayList ports;
-	/** the bounds of the NodeProto */				protected Rectangle2D.Double elecBounds;
-	/** JNetworks that comprise this NodeProto */	private ArrayList networks;
-	/** All instances of this NodeProto */			private ArrayList instances;
+	/** set if nonmanhattan instances shrink */				private static final int NODESHRINK=           01;
+	/** set if instances should be expanded */				private static final int WANTNEXPAND=          02;
+	/** node function (from efunction.h) */					private static final int NFUNCTION=          0774;
+	/** right shift for NFUNCTION */						private static final int NFUNCTIONSH=           2;
+	/** set if instances can be wiped */					private static final int ARCSWIPE=          01000;
+	/** set if node is to be kept square in size */			private static final int NSQUARE=           02000;
+	/** primitive can hold trace information */				private static final int HOLDSTRACE=        04000;
+//	/** set to reevaluate this cell's network */			private static final int REDOCELLNET=      010000;
+	/** set to erase if connected to 1 or 2 arcs */			private static final int WIPEON1OR2=       020000;
+	/** set if primitive is lockable (cannot move) */		private static final int LOCKEDPRIM=       040000;
+	/** set if primitive is selectable by edge, not area */	private static final int NEDGESELECT=     0100000;
+	/** set if nonmanhattan arcs on this shrink */			private static final int ARCSHRINK=       0200000;
+	//  used by database:                                                                            01400000
+	/** set if not used (don't put in menu) */				private static final int NNOTUSED=       02000000;
+	/** set if everything in cell is locked */				private static final int NPLOCKED=       04000000;
+	/** set if instances in cell are locked */				private static final int NPILOCKED=     010000000;
+	/** set if cell is part of a "cell library" */			private static final int INCELLLIBRARY= 020000000;
+	/** set if cell is from a technology-library */			private static final int TECEDITCELL=   040000000;
+
+	/** the name of the NodeProto */						protected String protoName;
+	/** the exports in the NodeProto */						private List ports;
+	/** JNetworks that comprise this NodeProto */			private List networks;
+	/** All instances of this NodeProto */					private List instances;
+	/** flag bits */										private int userBits;
+	/** the function of this NodeProto */					private Function function;
 
 	// ----------------- protected and private methods -----------------
 
@@ -123,13 +184,7 @@ public abstract class NodeProto extends ElectricObject
 		ports = new ArrayList();
 		instances = new ArrayList();
 		networks = new ArrayList();
-		elecBounds = new Rectangle2D.Double(0, 0, 0, 0);
-	}
-
-	// Get the Electric bounds. This includes invisible widths. Base units.
-	Rectangle2D.Double getElecBounds()
-	{
-		return elecBounds;
+		function = Function.UNKNOWN;
 	}
 
 	/**
@@ -193,7 +248,8 @@ public abstract class NodeProto extends ElectricObject
 	void remove()
 	{
 		// kill ports
-		removeAll(ports);
+//		removeAll(ports);
+
 		// unhook from networks
 		while (networks.size() > 0)
 		{
@@ -210,20 +266,120 @@ public abstract class NodeProto extends ElectricObject
 
 	// ----------------------- public methods -----------------------
 
-	/** A NodeProto's <i>reference point</i> is (0, 0) unless the
-	 * NodeProto is a Cell containing an instance of a Cell-Center in
-	 * which case the reference point is the location of that
-	 * Cell-Center instance.  Base units. */
-	abstract Point2D.Double getRefPointBase();
+	/** Set the Shrink bit */
+	public void setShrunk() { userBits |= NODESHRINK; }
+	/** Clear the Shrink bit */
+	public void clearShrunk() { userBits &= ~NODESHRINK; }
+	/** Get the Shrink bit */
+	public boolean isShrunk() { return (userBits & NODESHRINK) != 0; }
 
-	public abstract SizeOffset getSizeOffset();
+	/** Set the Want-Expansion bit */
+	public void setWantExpanded() { userBits |= WANTNEXPAND; }
+	/** Clear the Want-Expansion bit */
+	public void clearWantExpanded() { userBits &= ~WANTNEXPAND; }
+	/** Get the Want-Expansion bit */
+	public boolean isWantExpanded() { return (userBits & WANTNEXPAND) != 0; }
+
+	/** Set the Arc function */
+	public void setFunction(Function function) { this.function = function; }
+	/** Get the Arc function */
+	public Function getFunction() { return function; }
+
+	/** Set the Arcs-Wipe bit */
+	public void setArcsWipe() { userBits |= ARCSWIPE; }
+	/** Clear the Arcs-Wipe bit */
+	public void clearArcsWipe() { userBits &= ~ARCSWIPE; }
+	/** Get the Arcs-Wipe bit */
+	public boolean isArcsWipe() { return (userBits & ARCSWIPE) != 0; }
+
+	/** Set the Square-Node bit */
+	public void setSquare() { userBits |= NSQUARE; }
+	/** Clear the Square-Node bit */
+	public void clearSquare() { userBits &= ~NSQUARE; }
+	/** Get the Square-Node bit */
+	public boolean isSquare() { return (userBits & NSQUARE) != 0; }
+
+	/** Set the Holds-Outline bit */
+	public void setHoldsOutline() { userBits |= HOLDSTRACE; }
+	/** Clear the Holds-Outline bit */
+	public void clearHoldsOutline() { userBits &= ~HOLDSTRACE; }
+	/** Get the Holds-Outline bit */
+	public boolean isHoldsOutline() { return (userBits & HOLDSTRACE) != 0; }
+
+	/** Set the Wipes (erases) if 1 or 2 arcs connected bit */
+	public void setWipeOn1or2() { userBits |= WIPEON1OR2; }
+	/** Clear the Wipes (erases) if 1 or 2 arcs connected bit */
+	public void clearWipeOn1or2() { userBits &= ~WIPEON1OR2; }
+	/** Get the Wipes (erases) if 1 or 2 arcs connected bit */
+	public boolean isWipeOn1or2() { return (userBits & WIPEON1OR2) != 0; }
+
+	/** Set the Locked-Primitive bit */
+	public void setLockedPrim() { userBits |= LOCKEDPRIM; }
+	/** Clear the Locked-Primitive bit */
+	public void clearLockedPrim() { userBits &= ~LOCKEDPRIM; }
+	/** Get the Locked-Primitive bit */
+	public boolean isLockedPrim() { return (userBits & LOCKEDPRIM) != 0; }
+
+	/** Set the Edge-Select bit */
+	public void setEdgeSelect() { userBits |= NEDGESELECT; }
+	/** Clear the Edge-Select bit */
+	public void clearEdgeSelect() { userBits &= ~NEDGESELECT; }
+	/** Get the Edge-Select bit */
+	public boolean isEdgeSelect() { return (userBits & NEDGESELECT) != 0; }
+
+	/** Set the bit if nonmanhattan arcs can shrink this node */
+	public void setArcsShrink() { userBits |= ARCSHRINK; }
+	/** Clear the bit if nonmanhattan arcs can shrink this node */
+	public void clearArcsShrink() { userBits &= ~ARCSHRINK; }
+	/** Get the bit if nonmanhattan arcs can shrink this node */
+	public boolean isArcsShrink() { return (userBits & ARCSHRINK) != 0; }
+
+	/** Set the All-Contents-Locked bit */
+	public void setAllLocked() { userBits |= NPLOCKED; }
+	/** Clear the All-Contents-Locked bit */
+	public void clearAllLocked() { userBits &= ~NPLOCKED; }
+	/** Get the All-Contents-Locked bit */
+	public boolean isAllLocked() { return (userBits & NPLOCKED) != 0; }
+
+	/** Set the Not-Used bit */
+	public void setNotUsed() { userBits |= NNOTUSED; }
+	/** Clear the Not-Used bit */
+	public void clearNotUsed() { userBits &= ~NNOTUSED; }
+	/** Get the Not-Used bit */
+	public boolean isNotUsed() { return (userBits & NNOTUSED) != 0; }
+
+	/** Set the Instances-Locked bit */
+	public void setInstancesLocked() { userBits |= NPILOCKED; }
+	/** Clear the Instances-Locked bit */
+	public void clearInstancesLocked() { userBits &= ~NPILOCKED; }
+	/** Get the Instances-Locked bit */
+	public boolean isInstancesLocked() { return (userBits & NPILOCKED) != 0; }
+
+	/** Set the In-Cell-Library bit */
+	public void setInCellLibrary() { userBits |= INCELLLIBRARY; }
+	/** Clear the In-Cell-Library bit */
+	public void clearInCellLibrary() { userBits &= ~INCELLLIBRARY; }
+	/** Get the In-Cell-Library bit */
+	public boolean isInCellLibrary() { return (userBits & INCELLLIBRARY) != 0; }
+
+	/** Set the In-Technology-Library bit */
+	public void setInTechnologyLibrary() { userBits |= TECEDITCELL; }
+	/** Clear the In-Technology-Library bit */
+	public void clearInTechnologyLibrary() { userBits &= ~TECEDITCELL; }
+	/** Get the In-Technology-Library bit */
+	public boolean isInTechnologyLibrary() { return (userBits & TECEDITCELL) != 0; }
+
+	public abstract double getDefWidth();
+	public abstract double getDefHeight();
+	public abstract double getWidthOffset();
+	public abstract double getHeightOffset();
 
 	public abstract Technology getTechnology();
 
 	/** A NodeProto's <i>reference point</i> is (0, 0) unless the
 	 * NodeProto is a Cell containing an instance of a Cell-Center in
 	 * which case the reference point is the location of that
-	 * Cell-Center instance.  Lambda units. */
+	 * Cell-Center instance. */
 	public abstract Point2D.Double getReferencePoint();
 
 	/** Can this node connect to a particular arc?
@@ -267,6 +423,86 @@ public abstract class NodeProto extends ElectricObject
 		return null;
 	}
 
+	public static NodeProto findNodeProto(String line)
+	{
+		Technology tech = Technology.getCurrent();
+		Library lib = Library.getCurrent();
+		boolean saidtech = false;
+		boolean saidlib = false;
+		int colon = line.indexOf(':');
+		String withoutPrefix;
+		if (colon == -1) withoutPrefix = line; else
+		{
+			String prefix = line.substring(0, colon);
+			Technology t = Technology.findTechnology(prefix);
+			if (t != null)
+			{
+				tech = t;
+				saidtech = true;
+			}
+			Library l = Library.findLibrary(prefix);
+			if (l != null)
+			{
+				lib = l;
+				saidlib = true;
+			}
+			withoutPrefix = line.substring(colon+1);
+		}
+
+		/* try primitives in the technology */
+		if (!saidlib)
+		{
+			PrimitiveNode np = tech.findNodeProto(withoutPrefix);
+			if (np != null) return np;
+		}
+		
+		if (!saidtech)
+		{
+			Cell np = lib.findNodeProto(withoutPrefix);
+			if (np != null) return np;
+		}
+		return null;
+	}
+
+//		/* get the view and version information */
+//		for(pt = line; *pt != 0; pt++) if (*pt == ';' || *pt == '{') break;
+//		nameend = pt;
+//		wantversion = -1;
+//		wantview = el_unknownview;
+//		if (*pt == ';')
+//		{
+//			wantversion = myatoi(pt+1);
+//			for(pt++; *pt != 0; pt++) if (*pt == '{') break;
+//		}
+//		if (*pt == '{')
+//		{
+//			viewname = pt = (pt + 1);
+//			for(; *pt != 0; pt++) if (*pt == '}') break;
+//			if (*pt != '}') return(NONODEPROTO);
+//			*pt = 0;
+//			for(v = el_views; v != NOVIEW; v = v->nextview)
+//				if (namesame(v->sviewname, viewname) == 0 || namesame(v->viewname, viewname) == 0) break;
+//			*pt = '}';
+//			if (v == NOVIEW) return(NONODEPROTO);
+//			wantview = v;
+//		}
+//		save = *nameend;
+//		*nameend = 0;
+//		np = db_findnodeprotoname(line, wantview, lib);
+//		if (np == NONODEPROTO && wantview == el_unknownview)
+//		{
+//			/* search for any view */
+//			for(np = lib->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
+//				if (namesame(line, np->protoname) == 0) break;
+//		}
+//		*nameend = (CHAR)save;
+//		if (np == NONODEPROTO) return(NONODEPROTO);
+//		if (wantversion < 0 || np->version == wantversion) return(np);
+//		for(np = np->prevversion; np != NONODEPROTO; np = np->prevversion)
+//			if (np->version == wantversion) return(np);
+//		return(NONODEPROTO);
+//	}
+
 	/**
 	 * Get an iterator over all PortProtos of this NodeProto
 	 */
@@ -303,220 +539,9 @@ public abstract class NodeProto extends ElectricObject
 		return networks.iterator();
 	}
 
-	// From Jose's position variables generate the equivalent Electric
-	// position variables.
-	//
-	// This NodeProto is the child. parent is the Cell that will
-	// contain an instance of this NodeProto.
-	//
-	// Jose positions objects by:
-	// 1) scaling by SX and SY
-	// 2) rotating counter-clockwise by angleJ
-	// 3) translating by DX and DY.  DX and DY are Cell-Center relative.
-	// 
-	// See SML# 2003-0379 for description of Jose position mathematics.
-	// Base units.
-//	ElectricPosition joseToElecPosition(double SX, double SY, int DX, int DY,
-//		double angleJ, Cell parent)
-//	{
-//		ElectricPosition ep = new ElectricPosition();
-//
-//		error(
-//			(this instanceof Cell)
-//				&& ((SX != 1 && SX != -1) || (SY != 1 && SY != -1)),
-//			"Cells must be scaled by 1 or -1.");
-//
-//		Point g = parent.getRefPointBase(); // parent reference point
-//		Point f = getRefPointBase(); // child reference point
-//
-//		double sin = Math.sin(angleJ * Math.PI / 180);
-//		double cos = Math.cos(angleJ * Math.PI / 180);
-//
-//		// dX and dY are absolute.
-//		// DX and DY are from the Memo's equation 35.
-//		double dX = -f.x * SX * cos + f.y * SY * sin + DX + g.x;
-//		double dY = -f.x * SX * sin - f.y * SY * cos + DY + g.y;
-//
-//		double signX = SX >= 0 ? 1 : -1;
-//		double signY = SY >= 0 ? 1 : -1;
-//
-//		// Electric's transpose
-//		ep.transpose = signX != signY ? 1 : 0;
-//
-//		// Electric's angle
-//		double angleE = 0;
-//		if (SX >= 0 && SY >= 0)
-//		{
-//			angleE = angleJ;
-//		} else if (SX < 0 && SY < 0)
-//		{
-//			angleE = 180 + angleJ;
-//		} else if (SX < 0 && SY >= 0)
-//		{
-//			angleE = 90 - angleJ;
-//		} else if (SX >= 0 && SY < 0)
-//		{
-//			angleE = 270 - angleJ;
-//		} else
-//		{
-//			error("programming error: all cases should have been covered");
-//		}
-//		ep.angle = round((720 + angleE) * 10) % 3600;
-//
-//		// Electric's scale
-//		double seX = signX * SX;
-//		double seY = signY * SY;
-//
-//		// Proto
-//		Rectangle2D.Double r = elecBounds;
-//
-//		// RKao debug
-//		//System.out.println("Proto bounds in electric units: "+r);
-//
-//		double pX = r.x + r.width / 2.0; // center
-//		double pY = r.y + r.height / 2.0;
-//		double pW = r.width; // width and height
-//		double pH = r.height;
-//
-//		// Electric's center
-//		double cX = dX + signX * pX * cos - signY * pY * sin;
-//		double cY = dY + signX * pX * sin + signY * pY * cos;
-//
-//		// RKao debug
-//		//System.out.println("(cX, cY): ("+cX+", "+cY+")");
-//
-//		// Electric's bounding box
-//		ep.lx = round(cX - (seX * pW) / 2);
-//		ep.hx = round(cX + (seX * pW) / 2);
-//		ep.ly = round(cY - (seY * pH) / 2);
-//		ep.hy = round(cY + (seY * pH) / 2);
-//
-//		return ep;
-//	}
-
-	// Modify the scales to make it look as if the client is scaling
-	// only the visible portion of the NodeProto. For example a 1X 5
-	// lambda metal-1/metal-2 via consists of a 4 lambda metal-1/metal-2
-	// plus a 1/2 lambda invisible surround. If a client requests a 2X
-	// scaling of that give him an 8 lambda metal-1/metal-2 plus a 1/2
-	// lambda invisible surround.  Without the following two routines a
-	// 2X scaling yields a 9 lambda metal-1/metal-2 via plus a 1/2
-	// lambda surround because the surround doesn't scale.
-//	double hideInvisScaleX(double clientScaleX)
-//	{
-//		int invisW = 0;   // sizeOffset.lx + sizeOffset.hx;
-//		double totW = elecBounds.width;
-//		double joseScaleX =
-//			totW == 0
-//				? 1
-//				: (invisW + (totW - invisW) * Math.abs(clientScaleX)) / totW;
-//		return clientScaleX < 0 ? -joseScaleX : joseScaleX;
-//	}
-//	double hideInvisScaleY(double clientScaleY)
-//	{
-//		int invisH = 0;   // sizeOffset.ly + sizeOffset.hy;
-//		double totH = elecBounds.height;
-//		double joseScaleY =
-//			totH == 0
-//				? 1
-//				: (invisH + (totH - invisH) * Math.abs(clientScaleY)) / totH;
-//		return clientScaleY < 0 ? -joseScaleY : joseScaleY;
-//	}
-
-	// Modify width and height to make it look as if the client is
-	// specifying only the visible portion of the NodeProto. Base units.
-//	double hideInvisWidToScale(int clientW)
-//	{
-//		double defW = elecBounds.width;
-//		double scaleX =
-//			(defW == 0 || clientW == 0)
-//				? 1
-//				: (Math.abs(clientW) + sizeOffset.lx + sizeOffset.hx) / defW;
-//		return clientW < 0 ? -scaleX : scaleX;
-//	}
-//	double hideInvisHeiToScale(int clientH)
-//	{
-//		double defH = elecBounds.height;
-//		double scaleY =
-//			(defH == 0 || clientH == 0)
-//				? 1
-//				: (Math.abs(clientH) + sizeOffset.ly + sizeOffset.hy) / defH;
-//		return clientH < 0 ? -scaleY : scaleY;
-//	}
-
-	/**
-	 * Add an equivalent NodeProto, which can be swapped with ease with
-	 * some other NodeProto.  Don't create this unless it's needed
-	 * TODO: implement this, or toss it. (Not an exact match to the c-side
-	 * structures
-	 */
-	/* RKao comment this out until I understand the intention
-	   public void addEquivalent(NodeProto other) {
-	   // TODO: make sure other isn't already in there
-	   if (equiv==null) {
-	   equiv= new ArrayList();
-	   }
-	   equiv.add(other);
-	   }
-	*/
-
-	/**
-	 * remove a NodeProto that was in the equivalent list.  See
-	 * <code>addEquivalent</code> for more info
-	 */
-	/* RKao comment this out until I understand the intention
-	   public void removeEquivalent(NodeProto np) {
-	   // TODO: make sure the other is in the list
-	   if (equiv!=null) {
-	   equiv.remove(np);
-	   }
-	   }
-	*/
-
-	/**
-	 * get a list of equivalent nodes, as an iterator.  See 
-	 * <code>addEquivalent</code> for more info
-	 */
-	/* RKao comment this out until I understand the intention
-	   public Iterator getEquivalents() {
-	   return equiv.iterator();
-	   }
-	*/
-
-	/** Get the default bounding box in Lambda units.
-	 *
-	 * <p> This is the default bounding box that would result if this
-	 * NodeProto were instantiated with scaleX=scaleY=1, (x,y) = (0, 0),
-	 * and angle=0.
-	 * 
-	 * <p> If this is a Cell with instances of two or more
-	 * Essential-Bounds PrimitiveNodes then return the smallest bounding
-	 * box that contains all of them.
-	 *
-	 * <p> Note that this routine excludes materials, real and
-	 * imaginary, that surround Electric's NodeProtos. 
-	 *
-	 * <p> The coordinates are relative to this NodeProto's reference
-	 * point.
-	public Rectangle2D getBounds()
+	/** printable version of this object */
+	public String toString()
 	{
-		if (this instanceof Cell)
-			 ((Cell) this).updateBounds();
-
-		Point2D rp = getReferencePoint();
-
-		Rectangle v = getVisBounds();
-		if (this instanceof Cell)
-		{
-			Rectangle eb = ((Cell) this).findEssentialBounds();
-			if (eb != null)
-				v = eb;
-		}
-
-		return new Rectangle2D.Double(
-			v.x - rp.getX(),
-			v.y - rp.getY(),
-			v.width,
-			v.height);
-	} */
+		return "NodeProto " + describe();
+	}
 }

@@ -61,7 +61,7 @@ public class CmdLine
 		entry = new JTextField();
 		entry.addActionListener(this);
 		entry.addKeyListener(this);
-		info = new JTextArea(6, 60);
+		info = new JTextArea(40, 80);
 		info.addCaretListener(this);
 		info.setLineWrap(false);
 		JScrollPane scroll =
@@ -75,7 +75,7 @@ public class CmdLine
 		jf.getContentPane().add(scroll, BorderLayout.CENTER);
 		jf.pack();
 		// TODO: find location for this window
-		jf.setLocation(300, 640);
+		jf.setLocation(200, 200);
 		jf.show();
 	}
 

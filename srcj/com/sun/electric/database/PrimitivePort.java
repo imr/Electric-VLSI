@@ -14,37 +14,43 @@ public class PrimitivePort extends PortProto
 	// ---------------------------- private data --------------------------
 	//private ShapeProxy proxy; // a proxy determines the port's bounds
 	private ArcProto portArcs[]; // Immutable list of possible connection types.
-	private String protoName;
-	private int initialBits;
-	private int [][] location;
+	private EdgeH left;
+	private EdgeV bottom;
+	private EdgeH right;
+	private EdgeV top;
+	private Technology tech;
+	protected PortProto.Function function;
 
 	// ---------------------- protected and private methods ----------------
-	private PrimitivePort(ArcProto [] portArcs, String protoName, int portAngle, int portRange, int portTopology, int [][] location)
+	private PrimitivePort(Technology tech, ArcProto [] portArcs, String protoName, int portAngle, int portRange,
+		int portTopology, PortProto.Function function, EdgeH left, EdgeV bottom, EdgeH right, EdgeV top)
 	{
+//		super(parent, protoName, userbits);
+		this.tech = tech;
 		this.portArcs = portArcs;
 		this.protoName = protoName;
-		this.initialBits = (portAngle<<PortProto.PORTANGLESH) |
+		this.userBits = (portAngle<<PortProto.PORTANGLESH) |
 						(portRange << PortProto.PORTARANGESH) |
 						(portTopology << PortProto.PORTNETSH);
-		this.location = location;
+		this.function = function;
+		this.left = left;
+		this.bottom = bottom;
+		this.right = right;
+		this.top = top;
 	}
 
-	public static PrimitivePort newInstance(ArcProto [] portArcs, String protoName, int portAngle, int portRange, int portTopology,
-		int [][] location)
+	public static PrimitivePort newInstance(Technology tech, ArcProto [] portArcs, String protoName, int portAngle, int portRange,
+		int portTopology, PortProto.Function function, EdgeH left, EdgeV bottom, EdgeH right, EdgeV top)
 	{
-		PrimitivePort pp = new PrimitivePort(portArcs, protoName, portAngle, portRange, portTopology, location);
+		PrimitivePort pp = new PrimitivePort(tech, portArcs, protoName, portAngle, portRange,
+			portTopology, function, left, bottom, right, top);
 		return pp;
 	}
 
-	// Get the bounds for this port with respect to some NodeInst.  A
-	// port can scale with its owner, so it doesn't make sense to ask
-	// for the bounds of a port without a NodeInst.  The NodeInst should
-	// be an instance of the NodeProto that this port belongs to,
-	// although this isn't checked.
-	Poly getBounds(NodeInst ni)
+	// Get the bounds for this port with respect to some NodeInst.
+	Poly getPoly(NodeInst ni)
 	{
-		Poly portpoly = new Poly(null, 0, 0, 0, 0);
-		return portpoly;
+		return tech.getPoly(ni, this);
 	}
 
 	protected void getInfo()
@@ -58,28 +64,13 @@ public class PrimitivePort extends PortProto
 	}
 
 	// ------------------------ public methods ------------------------
-	public String toString()
-	{
-		return "PrimitivePort " + getName();
-	}
 
 	/** Return this object (it *is* a base port) */
-	public PrimitivePort getBasePort()
-	{
-		return this;
-	}
-
-	/** Get the first "real" (non-zero width) ArcProto style that can
-	 * connect to this port. */
-//	public ArcProto getWire()
-//	{
-//		for (int i = 0; i < portArcs.length; i++)
-//		{
-//			if (portArcs[i].getBaseWidth() > 0)
-//				return portArcs[i];
-//		}
-//		return portArcs[0];
-//	}
+	public PrimitivePort getBasePort() { return this; }
+	public EdgeH getLeft() { return left; }
+	public EdgeH getRight() { return right; }
+	public EdgeV getTop() { return top; }
+	public EdgeV getBottom() { return bottom; }
 
 	/** can this port connect to a particular arc type?
 	 * @param arc the arc type to test for
@@ -130,4 +121,21 @@ public class PrimitivePort extends PortProto
 	{
 		return new ArcTypeIterator(portArcs);
 	}
+
+	public String toString()
+	{
+		return "PrimitivePort " + protoName;
+	}
+
+	/** Get the first "real" (non-zero width) ArcProto style that can
+	 * connect to this port. */
+//	public ArcProto getWire()
+//	{
+//		for (int i = 0; i < portArcs.length; i++)
+//		{
+//			if (portArcs[i].getBaseWidth() > 0)
+//				return portArcs[i];
+//		}
+//		return portArcs[0];
+//	}
 }

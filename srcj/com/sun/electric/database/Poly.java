@@ -12,45 +12,58 @@ import java.awt.geom.Rectangle2D;
  * coordinates, and a specific Layer. */
 public class Poly implements Shape
 {
+	/**
+	 * Function is a typesafe enum class that describes the function of an arcproto.
+	 */
+	static public class Type
+	{
+		private Type()
+		{
+		}
+
+		public String toString() { return "Polygon type"; }
+
+		// polygons ************
+		/** closed polygon, filled in */					public static final Type FILLED=         new Type();
+		/** closed polygon, outline  */						public static final Type CLOSED=         new Type();
+		// rectangles ************
+		/** closed rectangle, filled in */					public static final Type FILLEDRECT=     new Type();
+		/** closed rectangle, outline */					public static final Type CLOSEDRECT=     new Type();
+		/** closed rectangle, outline crossed */			public static final Type CROSSED=        new Type();
+		// lines ************
+		/** open outline, solid */							public static final Type OPENED=         new Type();
+		/** open outline, dotted */							public static final Type OPENEDT1=       new Type();
+		/** open outline, dashed  */						public static final Type OPENEDT2=       new Type();
+		/** open outline, thicker */						public static final Type OPENEDT3=       new Type();
+		/** open outline pushed by 1 */						public static final Type OPENEDO1=       new Type();
+		/** vector endpoint pairs, solid */					public static final Type VECTORS=        new Type();
+		// curves ************
+		/** circle at [0] radius to [1] */					public static final Type CIRCLE=         new Type();
+		/** thick circle at [0] radius to [1] */			public static final Type THICKCIRCLE=    new Type();
+		/** filled circle */								public static final Type DISC=           new Type();
+		/** arc of circle at [0] ends [1] and [2] */		public static final Type CIRCLEARC=      new Type();
+		/** thick arc of circle at [0] ends [1] and [2] */	public static final Type THICKCIRCLEARC= new Type();
+		// text ************
+		/** text at center */								public static final Type TEXTCENT=       new Type();
+		/** text below top edge */							public static final Type TEXTTOP=        new Type();
+		/** text above bottom edge */						public static final Type TEXTBOT=        new Type();
+		/** text to right of left edge */					public static final Type TEXTLEFT=       new Type();
+		/** text to left of right edge */					public static final Type TEXTRIGHT=      new Type();
+		/** text to lower-right of top-left corner */		public static final Type TEXTTOPLEFT=    new Type();
+		/** text to upper-right of bottom-left corner */	public static final Type TEXTBOTLEFT=    new Type();
+		/** text to lower-left of top-right corner */		public static final Type TEXTTOPRIGHT=   new Type();
+		/** text to upper-left of bottom-right corner */	public static final Type TEXTBOTRIGHT=   new Type();
+		/** text that fits in box (may shrink) */			public static final Type TEXTBOX=        new Type();
+		// miscellaneous ************
+		/** grid dots in the window */						public static final Type GRIDDOTS=       new Type();
+		/** cross */										public static final Type CROSS=          new Type();
+		/** big cross */									public static final Type BIGCROSS=       new Type();
+	}
+
 	private Layer layer;
 	private double xpts[], ypts[];
 	private Rectangle2D.Double bounds;
-
-	// polygons ************
-	/** closed polygon, filled in */						public static final int FILLED=          0;
-	/** closed polygon, outline  */							public static final int CLOSED=          1;
-	// rectangles ************
-	/** closed rectangle, filled in */						public static final int FILLEDRECT=      2;
-	/** closed rectangle, outline */						public static final int CLOSEDRECT=      3;
-	/** closed rectangle, outline crossed */				public static final int CROSSED=         4;
-	// lines ************
-	/** open outline, solid */								public static final int OPENED=          5;
-	/** open outline, dotted */								public static final int OPENEDT1=        6;
-	/** open outline, dashed  */							public static final int OPENEDT2=        7;
-	/** open outline, thicker */							public static final int OPENEDT3=        8;
-	/** open outline pushed by 1 */							public static final int OPENEDO1=        9;
-	/** vector endpoint pairs, solid */						public static final int VECTORS=        10;
-	// curves ************
-	/** circle at [0] radius to [1] */						public static final int CIRCLE=         11;
-	/** thick circle at [0] radius to [1] */				public static final int THICKCIRCLE=    12;
-	/** filled circle */									public static final int DISC=           13;
-	/** arc of circle at [0] ends [1] and [2] */			public static final int CIRCLEARC=      14;
-	/** thick arc of circle at [0] ends [1] and [2] */		public static final int THICKCIRCLEARC= 15;
-	// text ************
-	/** text at center */									public static final int TEXTCENT=       16;
-	/** text below top edge */								public static final int TEXTTOP=        17;
-	/** text above bottom edge */							public static final int TEXTBOT=        18;
-	/** text to right of left edge */						public static final int TEXTLEFT=       19;
-	/** text to left of right edge */						public static final int TEXTRIGHT=      20;
-	/** text to lower-right of top-left corner */			public static final int TEXTTOPLEFT=    21;
-	/** text to upper-right of bottom-left corner */		public static final int TEXTBOTLEFT=    22;
-	/** text to lower-left of top-right corner */			public static final int TEXTTOPRIGHT=   23;
-	/** text to upper-left of bottom-right corner */		public static final int TEXTBOTRIGHT=   24;
-	/** text that fits in box (may shrink) */				public static final int TEXTBOX=        25;
-	// miscellaneous ************
-	/** grid dots in the window */							public static final int GRIDDOTS=       26;
-	/** cross */											public static final int CROSS=          27;
-	/** big cross */										public static final int BIGCROSS=       28;
+	private int style;
 
 	/* text font sizes (in VARIABLE, NODEINST, PORTPROTO, and POLYGON->textdescription) */
 	/** points from 1 to TXTMAXPOINTS */					public static final int TXTPOINTS=        077;
@@ -59,49 +72,13 @@ public class Poly implements Shape
 //	public static final int TXTSETPOINTS(p)   ((p)<<TXTPOINTSSH)
 //	public static final int TXTGETPOINTS(p)   (((p)&TXTPOINTS)>>TXTPOINTSSH)
 
-	public static final int TXTQLAMBDA=    077700;		
-	public static final int TXTQLAMBDASH=       6;		
-	public static final int TXTMAXQLAMBDA=    511;
-//	public static final int TXTSETQLAMBDA(ql) ((ql)<<TXTQLAMBDASH)
-//	public static final int TXTGETQLAMBDA(ql) (((ql)&TXTQLAMBDA)>>TXTQLAMBDASH)
+	public static final int TXTQGRID=    077700;		
+	public static final int TXTQGRIDSH=       6;		
+	public static final int TXTMAXQGRID=    511;
+//	public static final int TXTSETQGRID(ql) ((ql)<<TXTQGRIDSH)
+//	public static final int TXTGETQGRIDql) (((ql)&TXTQGRID)>>TXTQGRIDSH)
 	/** fixed-width text for text editing */			public static final int TXTEDITOR=     077770;
 	/** text for menu selection */						public static final int TXTMENU=       077771;
-
-	/** Get a transformed copy of this polygon, including scale, offset,
-	 * and rotation.
-	 * @param sw factor to scale width
-	 * @param sh factor to scale height
-	 * @param dx horizontal offset amount
-	 * @param dy vertical offset amount
-	 * @param cos cosine of the angle of rotation
-	 * @param sin sine of the angle of rotation */
-	public Poly transform(
-		double sw,
-		double sh,
-		double dx,
-		double dy,
-		double cos,
-		double sin)
-	{
-		double nx[] = new double[xpts.length];
-		double ny[] = new double[ypts.length];
-		for (int i = 0; i < nx.length; i++)
-		{
-			nx[i] = (xpts[i] * sw * cos - ypts[i] * sh * sin + dx);
-			ny[i] = (ypts[i] * sh * cos + xpts[i] * sw * sin + dy);
-		}
-		return new Poly(layer, nx, ny);
-	}
-
-	/** Get a transformed copy of this polygon, including offset and rotation.
-	 * @param dx horizontal offset amount
-	 * @param dy vertical offset amount
-	 * @param cos cosine of the angle of rotation
-	 * @param sin sine of the angle of rotation */
-	public Poly transform(double dx, double dy, double cos, double sin)
-	{
-		return transform(1, 1, dx, dy, cos, sin);
-	}
 
 	/** Paint this Poly */
 //	public void paint(Graphics2D g)
@@ -123,19 +100,52 @@ public class Poly implements Shape
 //	}
 
 	/** Create a new Poly given (x,y) points and a specific Layer */
-	public Poly(Layer lay, double xpts[], double ypts[])
+	public Poly(double xpts[], double ypts[])
 	{
 		this.xpts = xpts;
 		this.ypts = ypts;
-		this.layer = lay;
+		layer = null;
+		style = 0;
+		bounds = null;
 	}
 
 	/** Create a new rectangular Poly given a specific Layer */
-	public Poly(Layer lay, double x, double y, double w, double h)
+	public Poly(double cX, double cY, double width, double height)
 	{
-		this.xpts = new double[] { x, x + w, x + w, x };
-		this.ypts = new double[] { y, y, y + h, y + h };
-		this.layer = lay;
+		double halfWidth = width / 2;
+		double halfHeight = height / 2;
+		this.xpts = new double[] { cX-halfWidth,  cX+halfWidth,  cX+halfWidth,  cX-halfWidth };
+		this.ypts = new double[] { cY-halfHeight, cY-halfHeight, cY+halfHeight, cY+halfHeight };
+		layer = null;
+		style = 0;
+		bounds = null;
+	}
+
+	public Layer getLayer() { return layer; }
+	public void setLayer(Layer layer) { this.layer = layer; }
+
+	public int getStyle() { return style; }
+	public void setStyle(int style) { this.style = style; }
+
+	/** Get a transformed copy of this polygon, including scale, offset,
+	 * and rotation.
+	 * @param width factor to scale width
+	 * @param height factor to scale height
+	 * @param cx horizontal offset amount
+	 * @param cy vertical offset amount
+	 * @param cos cosine of the angle of rotation
+	 * @param sin sine of the angle of rotation */
+	public void transform(
+		double width, double height,
+		double cx, double cy,
+		double cos, double sin)
+	{
+		for (int i = 0; i < xpts.length; i++)
+		{
+			double newX = ( xpts[i] * width * cos + ypts[i] * height * sin + cx);
+			double newY = (-xpts[i] * width * sin + ypts[i] * height * cos + cy);
+			xpts[i] = newX;   ypts[i] = newY;
+		}
 	}
 
 	// SHAPE REQUIREMENTS:
@@ -175,42 +185,46 @@ public class Poly implements Shape
 		return intersects(r.getX(), r.getY(), r.getWidth(), r.getHeight());
 	}
 
-	/** Get the bounds of this poly, as a Rectangle2D */
-	public Rectangle2D getBounds2D()
-	{
-		if (bounds == null)
-			calcBounds();
-		return bounds;
-	}
-
 	/** Get the x coordinate of the center of this poly */
-	public int getCenterX()
+	public double getCenterX()
 	{
-		Rectangle b = getBounds();
-		return b.x + b.width / 2;
+		Rectangle2D b = getBounds2D();
+		return b.getCenterX();
 	}
 
 	/** Get the y coordinate of the center of this poly */
-	public int getCenterY()
+	public double getCenterY()
 	{
-		Rectangle b = getBounds();
-		return b.y + b.height / 2;
+		Rectangle2D b = getBounds2D();
+		return b.getCenterY();
+	}
+
+	/** Get the bounds of this poly, as a Rectangle2D */
+	public Rectangle2D getBounds2D()
+	{
+		if (bounds == null) calcBounds();
+		return bounds;
+	}
+
+	/** Get the bounds of this poly, as a Rectangle2D */
+	public Rectangle2D.Double getBounds2DDouble()
+	{
+		if (bounds == null) calcBounds();
+		return bounds;
 	}
 
 	/** Get the bounds of this poly, as a Rectangle */
 	public Rectangle getBounds()
 	{
+		if (bounds == null) calcBounds();
 		Rectangle2D r = getBounds2D();
-		return new Rectangle(
-			ElectricObject.round(r.getX()),
-			ElectricObject.round(r.getY()),
-			ElectricObject.round(r.getWidth()),
-			ElectricObject.round(r.getHeight()));
+		return new Rectangle((int)r.getX(), (int)r.getY(), (int)r.getWidth(), (int)r.getHeight());
 	}
 
 	protected void calcBounds()
 	{
 		double lx, ly, hx, hy;
+
 		if (xpts.length == 0)
 		{
 			bounds = new Rectangle2D.Double();
@@ -220,14 +234,10 @@ public class Poly implements Shape
 		ly = hy = ypts[0];
 		for (int i = 1; i < xpts.length; i++)
 		{
-			if (xpts[i] < lx)
-				lx = xpts[i];
-			if (xpts[i] > hx)
-				hx = xpts[i];
-			if (ypts[i] < ly)
-				ly = ypts[i];
-			if (ypts[i] > hy)
-				hy = ypts[i];
+			if (xpts[i] < lx) lx = xpts[i];
+			if (xpts[i] > hx) hx = xpts[i];
+			if (ypts[i] < ly) ly = ypts[i];
+			if (ypts[i] > hy) hy = ypts[i];
 		}
 		bounds = new Rectangle2D.Double(lx, ly, hx - lx, hy - ly);
 	}
@@ -300,4 +310,14 @@ public class Poly implements Shape
 	{
 		return getPathIterator(at);
 	}
+
+//	/** Get a transformed copy of this polygon, including offset and rotation.
+//	 * @param dx horizontal offset amount
+//	 * @param dy vertical offset amount
+//	 * @param cos cosine of the angle of rotation
+//	 * @param sin sine of the angle of rotation */
+//	public Poly transform(double dx, double dy, double cos, double sin)
+//	{
+//		return transform(1, 1, dx, dy, cos, sin);
+//	}
 }

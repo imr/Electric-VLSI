@@ -12,6 +12,43 @@ import java.util.Iterator;
  */
 public class ArcProto extends ElectricObject
 {
+	/**
+	 * ArcProto.Function is a typesafe enum class that describes the function of an arcproto.
+	 */
+	static public class Function
+	{
+		private final String name;
+
+		private Function(String name) { this.name = name; }
+
+		public String toString() { return name; }
+
+		public static final Function UNKNOWN = new Function("unknown");
+		public static final Function METAL1 = new Function("metal-1");
+		public static final Function METAL2 = new Function("metal-2");
+		public static final Function METAL3 = new Function("metal-3");
+		public static final Function METAL4 = new Function("metal-4");
+		public static final Function METAL5 = new Function("metal-5");
+		public static final Function METAL6 = new Function("metal-6");
+		public static final Function METAL7 = new Function("metal-7");
+		public static final Function METAL8 = new Function("metal-8");
+		public static final Function METAL9 = new Function("metal-9");
+		public static final Function METAL10 = new Function("metal-10");
+		public static final Function METAL11 = new Function("metal-11");
+		public static final Function METAL12 = new Function("metal-12");
+		public static final Function POLY1 = new Function("polysilicon-1");
+		public static final Function POLY2 = new Function("polysilicon-2");
+		public static final Function POLY3 = new Function("polysilicon-3");
+		public static final Function DIFF = new Function("diffusion");
+		public static final Function DIFFP = new Function("p-diffusion");
+		public static final Function DIFFN = new Function("n-diffusion");
+		public static final Function DIFFS = new Function("substrate-diffusion");
+		public static final Function DIFFW = new Function("well-diffusion");
+		public static final Function BUS = new Function("bus");
+		public static final Function UNROUTED = new Function("unrouted");
+		public static final Function NONELEC = new Function("nonelectrical");
+	}
+
 	// ----------------------- private data -------------------------------
 
 	/** Name of this prototype */						private String protoName;
@@ -19,6 +56,7 @@ public class ArcProto extends ElectricObject
 	/** Width of other the material */					private double widthOffset;
 	/** Technology of this type of arc */				private Technology tech;
 	/** Flags for this arc */							private int userBits;
+	/** function of this arc */							private Function function;
 	/** Layers in this arc */							private Technology.ArcLayer [] layers;
 
 	// the meaning of the "userBits" field:
@@ -36,34 +74,6 @@ public class ArcProto extends ElectricObject
 	/** right shift for AANGLEINC */					private static final int AANGLEINCSH=        13;
 	/** set if arc is selectable by edge, not area */	private static final int AEDGESELECT= 020000000;
 
-	// ----------------------- PUBLIC CONSTANTS -------------------------------
-
-	// Arc functions:
-	/** arc is unknown type */							public static final int APUNKNOWN=           0;
-	/** arc is metal, layer 1 */						public static final int APMETAL1=            1;
-	/** arc is metal, layer 2 */						public static final int APMETAL2=            2;
-	/** arc is metal, layer 3 */						public static final int APMETAL3=            3;
-	/** arc is metal, layer 4 */						public static final int APMETAL4=            4;
-	/** arc is metal, layer 5 */						public static final int APMETAL5=            5;
-	/** arc is metal, layer 6 */						public static final int APMETAL6=            6;
-	/** arc is metal, layer 7 */						public static final int APMETAL7=            7;
-	/** arc is metal, layer 8 */						public static final int APMETAL8=            8;
-	/** arc is metal, layer 9 */						public static final int APMETAL9=            9;
-	/** arc is metal, layer 10 */						public static final int APMETAL10=          10;
-	/** arc is metal, layer 11 */						public static final int APMETAL11=          11;
-	/** arc is metal, layer 12 */						public static final int APMETAL12=          12;
-	/** arc is polysilicon, layer 1 */					public static final int APPOLY1=            13;
-	/** arc is polysilicon, layer 2 */					public static final int APPOLY2=            14;
-	/** arc is polysilicon, layer 3 */					public static final int APPOLY3=            15;
-	/** arc is diffusion */								public static final int APDIFF=             16;
-	/** arc is P-type diffusion */						public static final int APDIFFP=            17;
-	/** arc is N-type diffusion */						public static final int APDIFFN=            18;
-	/** arc is substrate diffusion */					public static final int APDIFFS=            19;
-	/** arc is well diffusion */						public static final int APDIFFW=            20;
-	/** arc is multi-wire bus */						public static final int APBUS=              21;
-	/** arc is unrouted specification */				public static final int APUNROUTED=         22;
-	/** arc is nonelectrical */							public static final int APNONELEC=          23;
-
 	// ----------------- protected and private methods -------------------------
 
 	private ArcProto(Technology tech, String protoName, double defaultWidth, Technology.ArcLayer [] layers)
@@ -73,6 +83,7 @@ public class ArcProto extends ElectricObject
 		this.widthOffset = 0;
 		this.tech = tech;
 		this.userBits = 0;
+		this.function = Function.UNKNOWN;
 		this.layers = layers;
 	}
 
@@ -97,18 +108,14 @@ public class ArcProto extends ElectricObject
 		return ap;
 	}
 
-	public String getProtoName()
-	{
-		return protoName;
-	}
+	public String getProtoName() { return protoName; }
 
-	public double getDefaultWidth()
-	{
-		return defaultWidth;
-	}
+	public Technology getTechnology() { return tech; }
+
+	public double getDefaultWidth() { return defaultWidth; }
 
 	/**
-	 * Set the default width of this type of arc in Lambda units.
+	 * Set the default width of this type of arc.
 	 */
 	public void setWidthOffset(double widthOffset)
 	{
@@ -119,17 +126,14 @@ public class ArcProto extends ElectricObject
 		}
 		this.widthOffset = widthOffset;
 	}
-	/** Get the default width of this type of arc in Lambda units.
+	/** Get the default width of this type of arc.
 	 *
 	 * <p> Exclude the surrounding material. For example, diffusion arcs
 	 * are always accompanied by a surrounding well and select. However,
 	 * this call returns only the width of the diffusion. */
-	public double getWidthOffset()
-	{
-		return widthOffset;
-	}
+	public double getWidthOffset() { return widthOffset; }
 
-	/** Get the default width of this type of arc in Lambda units.
+	/** Get the default width of this type of arc.
 	 *
 	 * <p> Exclude the surrounding material. For example, diffusion arcs
 	 * are always accompanied by a surrounding well and select. However,
@@ -139,81 +143,76 @@ public class ArcProto extends ElectricObject
 		return defaultWidth - widthOffset;
 	}
 
-	public Technology getTechnology()
-	{
-		return tech;
-	}
-
 	/** Set the Rigid bit */
 	public void setRigid() { userBits |= WANTFIX; }
 	/** Clear the Rigid bit */
 	public void clearRigid() { userBits &= ~WANTFIX; }
 	/** Get the Rigid bit */
-	public boolean getRigid() { return (userBits & WANTFIX) != 0; }
+	public boolean isRigid() { return (userBits & WANTFIX) != 0; }
 
 	/** Set the Fixed-angle bit */
 	public void setFixedAngle() { userBits |= WANTFIXANG; }
 	/** Clear the Fixed-angle bit */
 	public void clearFixedAngle() { userBits &= ~WANTFIXANG; }
 	/** Get the Fixed-angle bit */
-	public boolean getFixedAngle() { return (userBits & WANTFIXANG) != 0; }
+	public boolean isFixedAngle() { return (userBits & WANTFIXANG) != 0; }
 
 	/** Set the Slidable bit */
 	public void setSlidable() { userBits &= ~WANTCANTSLIDE; }
 	/** Clear the Slidable bit */
 	public void clearSlidable() { userBits |= WANTCANTSLIDE; }
 	/** Get the Slidable bit */
-	public boolean getSlidable() { return (userBits & WANTCANTSLIDE) == 0; }
+	public boolean isSlidable() { return (userBits & WANTCANTSLIDE) == 0; }
 
 	/** Set the End-extension bit */
-	public void setEndExtend() { userBits &= ~WANTCANTSLIDE; }
+	public void setExtended() { userBits &= ~WANTCANTSLIDE; }
 	/** Clear the End-extension bit */
-	public void clearEndExtend() { userBits |= WANTCANTSLIDE; }
+	public void clearExtended() { userBits |= WANTCANTSLIDE; }
 	/** Get the End-extension bit */
-	public boolean getEndExtend() { return (userBits & WANTCANTSLIDE) == 0; }
+	public boolean isExtended() { return (userBits & WANTCANTSLIDE) == 0; }
 
 	/** Set the Negated bit */
 	public void setNegated() { userBits |= WANTNEGATED; }
 	/** Clear the Negated bit */
 	public void clearNegated() { userBits &= ~WANTNEGATED; }
 	/** Get the Negated bit */
-	public boolean getNegated() { return (userBits & WANTNEGATED) != 0; }
+	public boolean isNegated() { return (userBits & WANTNEGATED) != 0; }
 
 	/** Set the Directional bit */
 	public void setDirectional() { userBits |= WANTDIRECTIONAL; }
 	/** Clear the Directional bit */
 	public void clearDirectional() { userBits &= ~WANTDIRECTIONAL; }
 	/** Get the Directional bit */
-	public boolean getDirectional() { return (userBits & WANTDIRECTIONAL) != 0; }
+	public boolean isDirectional() { return (userBits & WANTDIRECTIONAL) != 0; }
 
 	/** Set the Can-Wipe bit */
-	public void setCanWipe() { userBits |= CANWIPE; }
+	public void setWipable() { userBits |= CANWIPE; }
 	/** Clear the Can-Wipe bit */
-	public void clearCanWipe() { userBits &= ~CANWIPE; }
+	public void clearWipable() { userBits &= ~CANWIPE; }
 	/** Get the Can-Wipe bit */
-	public boolean getCanWipe() { return (userBits & CANWIPE) != 0; }
+	public boolean isWipable() { return (userBits & CANWIPE) != 0; }
 
 	/** Set the Can-Curve bit */
-	public void setCanCurve() { userBits |= CANCURVE; }
+	public void setCurvable() { userBits |= CANCURVE; }
 	/** Clear the Can-Curve bit */
-	public void clearCanCurve() { userBits &= ~CANCURVE; }
+	public void clearCurvable() { userBits &= ~CANCURVE; }
 	/** Get the Can-Curve bit */
-	public boolean getCanCurve() { return (userBits & CANCURVE) != 0; }
+	public boolean isCurvable() { return (userBits & CANCURVE) != 0; }
 
 	/** Set the Edge-Select bit */
 	public void setEdgeSelect() { userBits |= AEDGESELECT; }
 	/** Clear the Edge-Select bit */
-	public void cleardgeSelect() { userBits &= ~AEDGESELECT; }
+	public void clearEdgeSelect() { userBits &= ~AEDGESELECT; }
 	/** Get the Edge-Select bit */
-	public boolean getdgeSelect() { return (userBits & AEDGESELECT) != 0; }
+	public boolean isEdgeSelect() { return (userBits & AEDGESELECT) != 0; }
 
 	/** Set the arc function */
-	public void setFunction(int function) { userBits = (userBits & ~AFUNCTION) | (function << AFUNCTIONSH); }
+	public void setFunction(ArcProto.Function function) { this.function = function; }
 	/** Get the arc function */
-	public int getFunction() { return (userBits & AFUNCTION) >> AFUNCTIONSH; }
+	public ArcProto.Function getFunction() { return function; }
 
 	/** Set the arc angle increment */
-	public void setAngleIncrement(int function) { userBits = (userBits & ~AANGLEINC) | (function << AANGLEINCSH); }
+	public void setAngleIncrement(int value) { userBits = (userBits & ~AANGLEINC) | (value << AANGLEINCSH); }
 	/** Get the arc angle increment */
 	public int getAngleIncrement() { return (userBits & AANGLEINC) >> AANGLEINCSH; }
 
@@ -255,7 +254,7 @@ public class ArcProto extends ElectricObject
 	/** printable version of this object */
 	public String toString()
 	{
-		return "ArcProto: " + protoName;
+		return "ArcProto " + describe();
 	}
 
 }

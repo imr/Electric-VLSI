@@ -1,5 +1,6 @@
 package com.sun.electric.database;
 
+import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -16,31 +17,31 @@ import java.util.Iterator;
  */
 public class Library extends ElectricObject
 {
-	/** library has changed significantly */				public static final int LIBCHANGEDMAJOR=           01;
-	/** recheck networks in library */						public static final int REDOCELLLIB=               02;
-	/** set if library came from disk */					public static final int READFROMDISK=              04;
-	/** internal units in library (see INTERNALUNITS) */	public static final int LIBUNITS=                 070;
-	/** right shift for LIBUNITS */							public static final int LIBUNITSSH=                 3;
-	/** library has changed insignificantly */				public static final int LIBCHANGEDMINOR=         0100;
-	/** library is "hidden" (clipboard library) */			public static final int HIDDENLIBRARY=           0200;
-	/** library is unwanted (used during input) */			public static final int UNWANTEDLIB=             0400;
-
 	// ------------------------ private data ------------------------------
-	private String libName; // name of this library 
-	private String fileName; // file location of this library
-	private HashMap lambdaSizes; // units are half-nanometers
-	private ArrayList cells; // list of Cells in this library
-	private Cell curCell; // Cell currently being edited
 
-	// static list of all libraries in Electric
-	private static ArrayList libraries = new ArrayList();
-	private static Library curLib = null;
+	/** library has changed significantly */				private static final int LIBCHANGEDMAJOR=           01;
+//	/** recheck networks in library */						private static final int REDOCELLLIB=               02;
+	/** set if library came from disk */					private static final int READFROMDISK=              04;
+	/** internal units in library (see INTERNALUNITS) */	private static final int LIBUNITS=                 070;
+	/** right shift for LIBUNITS */							private static final int LIBUNITSSH=                 3;
+	/** library has changed insignificantly */				private static final int LIBCHANGEDMINOR=         0100;
+	/** library is "hidden" (clipboard library) */			private static final int HIDDENLIBRARY=           0200;
+//	/** library is unwanted (used during input) */			private static final int UNWANTEDLIB=             0400;
+
+	/** name of this library  */							private String libName;
+	/** file location of this library */					private String fileName;
+	/** list of Cells in this library */					private ArrayList cells;
+	/** Cell currently being edited */						private Cell curCell;
+	/** flag bits */										private int userBits;
+
+	/** static list of all libraries in Electric */			private static List libraries = new ArrayList();
+	/** the current library in Electric */					private static Library curLib = null;
 
 	// ----------------- private and protected methods --------------------
+
 	private Library(String libName, String fileName)
 	{
 		this.cells = new ArrayList();
-		this.lambdaSizes = new HashMap();
 		this.curCell = null;
 		this.libName = libName;
 		this.fileName = fileName;
@@ -69,12 +70,40 @@ public class Library extends ElectricObject
 		cells.remove(c);
 	}
 
-	protected void setLambda(double lambda, Technology tech)
-	{
-		lambdaSizes.put(tech, new Double(lambda));
-	}
-
 	// ----------------- public interface --------------------
+
+	/** Set the Major-Change bit */
+	public void setChangedMajor() { userBits |= LIBCHANGEDMAJOR; }
+	/** Clear the Major-Change bit */
+	public void clearChangedMajor() { userBits &= ~LIBCHANGEDMAJOR; }
+	/** Get the Major-Change bit */
+	public boolean isChangedMajor() { return (userBits & LIBCHANGEDMAJOR) != 0; }
+
+	/** Set the Minor-Change bit */
+	public void setChangedMinor() { userBits |= LIBCHANGEDMINOR; }
+	/** Clear the Minor-Change bit */
+	public void clearChangedMinor() { userBits &= ~LIBCHANGEDMINOR; }
+	/** Get the Minor-Change bit */
+	public boolean isChangedMinor() { return (userBits & LIBCHANGEDMINOR) != 0; }
+
+	/** Set the Came-from-Disk bit */
+	public void setFromDisk() { userBits |= READFROMDISK; }
+	/** Clear the Came-from-Disk bit */
+	public void clearFromDisk() { userBits &= ~READFROMDISK; }
+	/** Get the Came-from-Disk bit */
+	public boolean isFromDisk() { return (userBits & READFROMDISK) != 0; }
+
+	/** Set the Hidden bit */
+	public void setHidden() { userBits |= HIDDENLIBRARY; }
+	/** Clear the Hidden bit */
+	public void clearHidden() { userBits &= ~HIDDENLIBRARY; }
+	/** Get the Hidden bit */
+	public boolean isHidden() { return (userBits & HIDDENLIBRARY) != 0; }
+
+	/** Set the Units value */
+	public void setUnits(int value) { userBits = (userBits & ~LIBUNITS) | (value << LIBUNITSSH); }
+	/** Get the Units value */
+	public int getUnits() { return (userBits & LIBUNITS) >> LIBUNITSSH; }
 
 	/**
 	 * The factory to create new libraries.
@@ -127,18 +156,12 @@ public class Library extends ElectricObject
 	/**
 	 * Return the current Library
 	 */
-	public static Library getCurrent()
-	{
-		return curLib;
-	}
+	public static Library getCurrent() { return curLib; }
 	
 	/**
 	 * Set the current Library
 	 */
-	public static void setCurrent(Library lib)
-	{
-		curLib = lib;
-	}
+	public static void setCurrent(Library lib) { curLib = lib; }
 
 	/**
 	 * Check all currently loaded Libraries for one named <code>libName</code>.
@@ -166,37 +189,14 @@ public class Library extends ElectricObject
 	}
 
 	/**
-	 * get the size of a lambda, in half-namometers (base units)
-	 * for a particular technology
-	 */
-	public double getLambdaSize(Technology tech)
-	{
-		Double lambdaObject = (Double) lambdaSizes.get(tech);
-		double lambda = lambdaObject.doubleValue();
-		if (lambda == 0.0)
-		{
-			return tech.getDefLambda();
-		} else
-		{
-			return lambda;
-		}
-	}
-
-	/**
 	 * Get the name of this Library
 	 */
-	public String getLibName()
-	{
-		return libName;
-	}
+	public String getLibName() { return libName; }
 
 	/**
 	 * Get the disk file of this Library
 	 */
-	public String getLibFile()
-	{
-		return fileName;
-	}
+	public String getLibFile() { return fileName; }
 
 	public String toString()
 	{
@@ -220,11 +220,16 @@ public class Library extends ElectricObject
 	 */
 	public Cell findNodeProto(String name)
 	{
-		for (int i = 0; i < cells.size(); i++)
+		Cell.Name n = Cell.Name.parseName(name);
+		if (n == null) return null;
+
+		for (Iterator it = cells.iterator(); it.hasNext();)
 		{
-			Cell f = (Cell) cells.get(i);
-			if (name.equalsIgnoreCase(f.describeNodeProto()))
-				return f;
+			Cell c = (Cell) it.next();
+			if (!n.name.equalsIgnoreCase(c.getProtoName())) continue;
+			if (n.view != c.getView()) continue;
+			if (n.version > 0 && n.version != c.getVersion()) continue;
+			return c;
 		}
 		return null;
 	}

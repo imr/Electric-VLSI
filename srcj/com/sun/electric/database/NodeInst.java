@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -17,51 +18,52 @@ import java.util.Iterator;
 public class NodeInst extends Geometric
 {
 	// -------------------------- constants --------------------------------
-	/** node is not in use */								public static final int DEADN=                     01;
-	/** node has text that is far away */					public static final int NHASFARTEXT=               02;
-	/** if on, draw node expanded */						public static final int NEXPAND=                   04;
-	/** set if node not drawn due to wiping arcs */			public static final int WIPED=                    010;
-	/** set if node is to be drawn shortened */				public static final int NSHORT=                   020;
-	//  used by database:                                                                                    0140
-	/** if on, this nodeinst is marked for death */			public static final int KILLN=                   0200;
-	/** nodeinst re-drawing is scheduled */					public static final int REWANTN=                 0400;
-	/** only local nodeinst re-drawing desired */			public static final int RELOCLN=                01000;
-	/** transparent nodeinst re-draw is done */				public static final int RETDONN=                02000;
-	/** opaque nodeinst re-draw is done */					public static final int REODONN=                04000;
-	/** general flag used in spreading and highlighting */	public static final int NODEFLAGBIT=           010000;
-	/** if on, nodeinst wants to be (un)expanded */			public static final int WANTEXP=               020000;
-	/** temporary flag for nodeinst display */				public static final int TEMPFLG=               040000;
-	/** set if hard to select */							public static final int HARDSELECTN=          0100000;
-	/** set if node only visible inside cell */				public static final int NVISIBLEINSIDE=     040000000;
-	/** technology-specific bits for primitives */			public static final int NTECHBITS=          037400000;
-	/** right-shift of NTECHBITS */							public static final int NTECHBITSSH=               17;
-	/** set if node is locked (can't be changed) */			public static final int NILOCKED=          0100000000;
+//	/** node is not in use */								private static final int DEADN=                     01;
+	/** node has text that is far away */					private static final int NHASFARTEXT=               02;
+	/** if on, draw node expanded */						private static final int NEXPAND=                   04;
+	/** set if node not drawn due to wiping arcs */			private static final int WIPED=                    010;
+	/** set if node is to be drawn shortened */				private static final int NSHORT=                   020;
+	//  used by database:                                                                                     0140
+//	/** if on, this nodeinst is marked for death */			private static final int KILLN=                   0200;
+//	/** nodeinst re-drawing is scheduled */					private static final int REWANTN=                 0400;
+//	/** only local nodeinst re-drawing desired */			private static final int RELOCLN=                01000;
+//	/** transparent nodeinst re-draw is done */				private static final int RETDONN=                02000;
+//	/** opaque nodeinst re-draw is done */					private static final int REODONN=                04000;
+	/** general flag used in spreading and highlighting */	private static final int NODEFLAGBIT=           010000;
+//	/** if on, nodeinst wants to be (un)expanded */			private static final int WANTEXP=               020000;
+//	/** temporary flag for nodeinst display */				private static final int TEMPFLG=               040000;
+	/** set if hard to select */							private static final int HARDSELECTN=          0100000;
+	/** set if node only visible inside cell */				private static final int NVISIBLEINSIDE=     040000000;
+	/** technology-specific bits for primitives */			private static final int NTECHBITS=          037400000;
+	/** right-shift of NTECHBITS */							private static final int NTECHBITSSH=               17;
+	/** set if node is locked (can't be changed) */			private static final int NILOCKED=          0100000000;
 
 	// Name of Variable holding instance name.
 	private static final String VAR_INST_NAME = "NODE_name";
 
 	// ---------------------- private data ----------------------------------
 	/** prototype of this node instance */					private NodeProto prototype;
-	/** flag bits for this node instance */					private int userbits;
+	/** flag bits for this node instance */					private int userBits;
 	/** labling information for this node instance */		private int textbits;
 	/** HashTable of portInsts on this node instance */		private HashMap portMap;
-	/** List of connections belonging to this instance */	private ArrayList connections;
-	/** List of Exports belonging to this node instance */	private ArrayList exports;
+	/** List of connections belonging to this instance */	private List connections;
+	/** List of Exports belonging to this node instance */	private List exports;
 
 	// --------------------- private and protected methods ---------------------
-	private NodeInst(NodeProto prototype, double dX, double dY, double sX, double sY, double angle, Cell parent)
+	private NodeInst(NodeProto prototype, Point2D.Double center, double width, double height, double angle, Cell parent)
 	{
 		// initialize parent class (Geometric)
-		this.dX = dX;   this.dY = dY;
-		this.sX = sX;   this.sY = sY;
+		this.cX = center.x;   this.cY = center.y;
+		this.sX = width;   this.sY = height;
 		this.angle = angle;
 		this.cos = Math.cos(angle);
 		this.sin = Math.sin(angle);
-		this.parent = parent;
+		updateGeometric();
+		setParent(parent);
 
 		// initialize this object
 		this.prototype = prototype;
-		this.userbits = 0;
+		this.userBits = 0;
 		this.textbits = 0;
 		portMap = new HashMap();
 		connections = new ArrayList();
@@ -70,6 +72,13 @@ public class NodeInst extends Geometric
 		// add to linked lists
 		prototype.addInstance(this);
 		parent.addNode(this);
+	}
+
+	/** recalculate the transform on this arc to get the endpoints
+	 * where they should be. */
+	void updateGeometric()
+	{
+		updateGeometricBounds();
 	}
 
 	/** Make a new instance of this NodeProto.
@@ -98,21 +107,21 @@ public class NodeInst extends Geometric
 	 * mirrors about the x axis. If this is a Cell then scaleY must be
 	 * 1 or -1.
 	 * @param x the horizontal coordinate of the origin of the
-	 * NodeInst. This is in units of lambda.
+	 * NodeInst.
 	 * @param y the vertical coordinate of the origin of the
-	 * NodeInst. This is in units of lambda.
+	 * NodeInst.
 	 * @param angle the rotation of the NodeInst. This is in units of
 	 * degrees.
 	 * @param parent the Cell to contain the new instance.
 	 * @return the instance created
 	 */
-	public static NodeInst newInstance(NodeProto type, double dX, double dY, double sX, double sY,
+	public static NodeInst newInstance(NodeProto type, Point2D.Double center, double width, double height,
 		double angle, Cell parent)
 	{
 //		if (this instanceof Cell)
 //			 ((Cell) this).updateBounds();
 
-		NodeInst ni = new NodeInst(type, dX, dY, sX, sY, angle, parent);
+		NodeInst ni = new NodeInst(type, center, width, height, angle, parent);
 		
 		// create all of the portInsts on this node inst
 		for (Iterator it = type.getPorts(); it.hasNext();)
@@ -127,15 +136,15 @@ public class NodeInst extends Geometric
 
 	public void delete()
 	{
-		// avoid removing items from the same list we're iterating over
-		ArrayList conns = (ArrayList) connections.clone();
-		for (Iterator it = conns.iterator(); it.hasNext();)
-		{
-			Connection c = (Connection) it.next();
-			ArcInst ai = c.getArc();
-			ai.delete();
-		}
-		super.delete();
+//		// avoid removing items from the same list we're iterating over
+//		ArrayList conns = (ArrayList) connections.clone();
+//		for (Iterator it = conns.iterator(); it.hasNext();)
+//		{
+//			Connection c = (Connection) it.next();
+//			ArcInst ai = c.getArc();
+//			ai.delete();
+//		}
+//		super.delete();
 	}
 
 	/** Is this NodeInst an icon of its parent?  This occurs because a
@@ -153,23 +162,12 @@ public class NodeInst extends Geometric
 	{
 		if (var.equals("userbits"))
 		{
-			userbits = ((Integer) value).intValue();
+			userBits = ((Integer) value).intValue();
 			return true;
 		}
 		return false;
 	}
 
-	// Set the indicated bits to TRUE in the userbits field.
-	void setUserBits(int bitMask)
-	{
-		setVar("userbits", userbits | bitMask);
-	}
-
-	// Set the indicated bits to FALSE in the userbits field.
-	void clearUserBits(int bitMask)
-	{
-		setVar("userbits", userbits & ~bitMask);
-	}
 
 	void addExport(Export e)
 	{
@@ -214,45 +212,29 @@ public class NodeInst extends Geometric
 		super.remove();
 	}
 
-	protected void getInfo()
+	public void getInfo()
 	{
-		System.out.println(" Prototype: " + prototype);
-		System.out.print(" Userbits: " + Integer.toHexString(userbits) + " [");
-		if ((userbits & 1) != 0)
-			System.out.print(" DEADN");
-		if ((userbits & 2) != 0)
-			System.out.print(" NHASFARTEXT");
-		if ((userbits & 4) != 0)
-			System.out.print(" NEXPAND");
-		if ((userbits & 010) != 0)
-			System.out.print(" WIPED");
-		if ((userbits & 020) != 0)
-			System.out.print(" NSHORT");
-		System.out.println(" ]");
-		System.out.println(" Connections (" + connections.size() + ")");
-		for (int i = 0; i < connections.size(); i++)
-		{
-			Connection c = (Connection) connections.get(i);
-			System.out.println(
-				"     "
-					+ c.getArc().getProto().getProtoName()
-					+ " on "
-					+ c.getPortInst().getPortProto().getName());
-		}
-		System.out.println(" Textbits: 0" + Integer.toOctalString(textbits));
-		Iterator it = prototype.getPorts();
-		if (it.hasNext())
-		{
-			System.out.println("Ports:");
-		}
-		while (it.hasNext())
+		System.out.println("--------- NODE INSTANCE: ---------");
+		System.out.println(" Prototype: " + prototype.describe());
+		super.getInfo();
+		System.out.println(" Ports:");
+		for(Iterator it = prototype.getPorts(); it.hasNext();)
 		{
 			PortProto pp = (PortProto) it.next();
-			Poly p = pp.getBounds(this);
-			System.out.println(
-				"     " + pp + " at " + p.getCenterX() + "," + p.getCenterY());
+			Poly p = pp.getPoly(this);
+			System.out.println("     " + pp + " at " + p.getCenterX() + "," + p.getCenterY());
 		}
-		if (exports != null)
+		if (connections.size() != 0)
+		{
+			System.out.println(" Connections (" + connections.size() + ")");
+			for (int i = 0; i < connections.size(); i++)
+			{
+				Connection c = (Connection) connections.get(i);
+				System.out.println("     " + c.getArc().getProto().getProtoName()
+					+ " on " + c.getPortInst().getPortProto().getName());
+			}
+		}
+		if (exports.size() != 0)
 		{
 			System.out.println(" Exports (" + exports.size() + ")");
 			for (int i = 0; i < exports.size(); i++)
@@ -261,7 +243,6 @@ public class NodeInst extends Geometric
 				System.out.println("     " + ex);
 			}
 		}
-		super.getInfo();
 	}
 
 	/** sanity check function, used by Connection.checkobj */
@@ -288,7 +269,6 @@ public class NodeInst extends Geometric
 		{
 			Export e = (Export) toMove.get(i);
 
-			int expRole = e.getRole();
 			String expNm = e.getName();
 			String portNm = e.getPortInst().getPortProto().getName();
 			e.delete();
@@ -298,11 +278,100 @@ public class NodeInst extends Geometric
 				"NodeInst.moveExports: can't find port: "
 					+ portNm
 					+ " on new inst");
-			parent.newExport(expNm, expRole, newPort);
+			parent.newExport(expNm, newPort);
 		}
 	}
 
 	// ------------------------ public methods -------------------------------
+
+	/** Set the Far-Text bit */
+	public void setFarText() { userBits |= NHASFARTEXT; }
+	/** Clear the Far-Text bit */
+	public void clearFarText() { userBits &= ~NHASFARTEXT; }
+	/** Get the Far-Text bit */
+	public boolean isFarText() { return (userBits & NHASFARTEXT) != 0; }
+
+	/** Set the Expanded bit */
+	public void setExpanded() { userBits |= NEXPAND; }
+	/** Clear the Expanded bit */
+	public void clearExpanded() { userBits &= ~NEXPAND; }
+	/** Get the Expanded bit */
+	public boolean isExpanded() { return (userBits & NEXPAND) != 0; }
+
+	/** Set the Wiped bit */
+	public void setWiped() { userBits |= WIPED; }
+	/** Clear the Wiped bit */
+	public void clearWiped() { userBits &= ~WIPED; }
+	/** Get the Wiped bit */
+	public boolean isWiped() { return (userBits & WIPED) != 0; }
+
+	/** Set the Shortened bit */
+	public void setShortened() { userBits |= NSHORT; }
+	/** Clear the Shortened bit */
+	public void clearShortened() { userBits &= ~NSHORT; }
+	/** Get the Shortened bit */
+	public boolean isShortened() { return (userBits & NSHORT) != 0; }
+
+	/** Set the general flag bit */
+	public void setFlagged() { userBits |= NODEFLAGBIT; }
+	/** Clear the general flag bit */
+	public void clearFlagged() { userBits &= ~NODEFLAGBIT; }
+	/** Get the general flag bit */
+	public boolean isFlagged() { return (userBits & NODEFLAGBIT) != 0; }
+
+	/** Set the Hard-to-Select bit */
+	public void setHardSelect() { userBits |= HARDSELECTN; }
+	/** Clear the Hard-to-Select bit */
+	public void clearHardSelect() { userBits &= ~HARDSELECTN; }
+	/** Get the Hard-to-Select bit */
+	public boolean isHardSelect() { return (userBits & HARDSELECTN) != 0; }
+
+	/** Set the Visible-Inside bit */
+	public void setVisInside() { userBits |= NVISIBLEINSIDE; }
+	/** Clear the Visible-Inside bit */
+	public void clearVisInside() { userBits &= ~NVISIBLEINSIDE; }
+	/** Get the Visible-Inside bit */
+	public boolean isVisInside() { return (userBits & NVISIBLEINSIDE) != 0; }
+
+	/** Set the Locked bit */
+	public void setLocked() { userBits |= NILOCKED; }
+	/** Clear the Locked bit */
+	public void clearLocked() { userBits &= ~NILOCKED; }
+	/** Get the Locked bit */
+	public boolean isLocked() { return (userBits & NILOCKED) != 0; }
+
+	/** Set the Technology-specific value */
+	public void setTechSpecific(int value) { userBits = (userBits & ~NTECHBITS) | (value << NTECHBITSSH); }
+	/** Get the Locked bit */
+	public int getTechSpecific() { return (userBits & NTECHBITS) >> NTECHBITSSH; }
+
+	public Poly [] getShape()
+	{
+		if (!(prototype instanceof PrimitiveNode)) return null;
+		PrimitiveNode np = (PrimitiveNode)prototype;
+		Technology.NodeLayer [] primLayers = np.getLayers();
+		for(int i = 0; i < primLayers.length; i++)
+		{
+			Technology.NodeLayer primLayer = primLayers[i];
+			int representation = primLayer.getRepresentation();
+			Poly.Type style = primLayer.getStyle();
+			if (representation == Technology.NodeLayer.BOX)
+			{
+				if (style == Poly.Type.FILLEDRECT || style == Poly.Type.CLOSEDRECT)
+				{
+				} else
+				{
+			//		double lowX = 
+//					subrange(ni->lowx, ni->highx, lay->points[0], lay->points[1],
+//						lay->points[4], lay->points[5], &poly->xv[0], &poly->xv[2], lambda);
+//					subrange(ni->lowy, ni->highy, lay->points[2], lay->points[3],
+//						lay->points[6], lay->points[7], &poly->yv[0], &poly->yv[1], lambda);
+				}
+			}
+		}
+		return null;
+	}
+
 	/** Get an iterator for all PortInst's */
 	public Iterator getPorts()
 	{
@@ -358,29 +427,6 @@ public class NodeInst extends Geometric
 		}
 	}
 
-	/** Get the user bits (see Electric internals manual for their meaning) */
-	public int getUserBits()
-	{
-		return userbits;
-	}
-
-	public void setHardToSelect(boolean hard)
-	{
-		if (hard)
-			setUserBits(HARDSELECTN);
-		else
-			clearUserBits(HARDSELECTN);
-	}
-
-	/** Draw NodeInst with its insides showing. */
-	public void setDrawExpanded(boolean e)
-	{
-		if (e)
-			setUserBits(NEXPAND);
-		else
-			clearUserBits(NEXPAND);
-	}
-
 	public NodeProto getProto()
 	{
 		return prototype;
@@ -409,31 +455,36 @@ public class NodeInst extends Geometric
 		setVar(VAR_INST_NAME, val);
 	}
 
-	/** Get the location of the NodeProto's reference point in the
-	 * coordinate space of the Cell containing this NodeInst. Lambda
-	 * units. */
-	public Point2D getReferencePoint()
+	public String describe()
 	{
-		// Tricky! First transform the reference point in BASE units.
-		Point2D.Double p = prototype.getRefPointBase();
-		Poly poly =
-			new Poly(null, new double[] { p.x }, new double[] { p.y });
-		Poly xformedPoly = xformPoly(poly);
-		Rectangle2D xr = xformedPoly.getBounds2D();
-
-		// Then convert the transformed point to lambda units.
-		double x = xr.getX();
-		double y = xr.getY();
-
-		// return coordinates relative to the reference point in the parent Cell
-		Point2D rpPar = getParent().getReferencePoint(); // lambda units
-		return new Point2D.Double(x - rpPar.getX(), y - rpPar.getY());
+		return prototype.getProtoName();
 	}
 
 	public String toString()
 	{
-		return "Inst of " + prototype;
+		return "NodeInst " + prototype.getProtoName();
 	}
+
+	/** Get the location of the NodeProto's reference point in the
+	 * coordinate space of the Cell containing this NodeInst.
+	 */
+//	public Point2D getReferencePoint()
+//	{
+//		// Tricky! First transform the reference point in BASE units.
+//		Point2D.Double p = prototype.getRefPointBase();
+//		Poly poly =
+//			new Poly(new double[] { p.x }, new double[] { p.y });
+//		Poly xformedPoly = xformPoly(poly);
+//		Rectangle2D xr = xformedPoly.getBounds2D();
+//
+//		// Then convert the transformed point
+//		double x = xr.getX();
+//		double y = xr.getY();
+//
+//		// return coordinates relative to the reference point in the parent Cell
+//		Point2D rpPar = getParent().getReferencePoint();
+//		return new Point2D.Double(x - rpPar.getX(), y - rpPar.getY());
+//	}
 
 	// Orientation of a line
 //	private static final int HORIZONTAL = 0;
@@ -548,7 +599,7 @@ public class NodeInst extends Geometric
 //	}
 
 	/** Change the size, angle, and position of this NodeInst.<br> See
-	 * <code>NodeProto.newInst()</code> for details. Lambda units. */
+	 * <code>NodeProto.newInst()</code> for details. */
 //	public void alterShape(
 //		double scaleX,
 //		double scaleY,
@@ -560,14 +611,6 @@ public class NodeInst extends Geometric
 ////		if (p instanceof Cell)
 ////			 ((Cell) p).updateBounds();
 //
-//		NodeProto.ElectricPosition ep =
-//			p.joseToElecPosition(
-//				p.hideInvisScaleX(scaleX),
-//				p.hideInvisScaleY(scaleY),
-//				lambdaToBase(x),
-//				lambdaToBase(y),
-//				angle,
-//				getParent());
 //		Electric.modifyNodeInst(this.getAddr(), ep.lx, ep.ly, ep.hx, ep.hy, ep.angle, ep.transpose);
 //	}
 
@@ -576,8 +619,8 @@ public class NodeInst extends Geometric
 	 * nothing.
 	 * @param dScaleX multiply x scale by dScaleX
 	 * @param dScaleY multiple y scale by dScaleY
-	 * @param dX add dX to current x position. Lambda units.
-	 * @param dY add dY to current y position.  Lambda units.
+	 * @param dX add dX to current x position.
+	 * @param dY add dY to current y position.
 	 * @param dAngle add dAngle to current angle. Degree units. */
 //	public void alterShapeRel(
 //		double dScaleX,

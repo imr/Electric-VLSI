@@ -1,5 +1,6 @@
 package com.sun.electric.database;
 
+import java.util.List;
 import java.util.ArrayList;
 import java.awt.Rectangle;
 
@@ -15,7 +16,7 @@ public class WindowPart extends ElectricObject
 	private Cell current;
 	private Rectangle bounds;
 
-	private static ArrayList windows = new ArrayList();
+	private static List windows = new ArrayList();
 
 	protected WindowPart()
 	{
@@ -84,15 +85,8 @@ public class WindowPart extends ElectricObject
 	protected void getInfo()
 	{
 		System.out.println(" Editing: " + current);
-		System.out.println(
-			" Bounds: "
-				+ bounds.x
-				+ ","
-				+ bounds.y
-				+ "  "
-				+ bounds.width
-				+ " x "
-				+ bounds.height);
+		System.out.println(" Bounds: " + bounds.x + "," + bounds.y
+			+ "  " + bounds.width + " x " + bounds.height);
 		super.getInfo();
 	}
 }
