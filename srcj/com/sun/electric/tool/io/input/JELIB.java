@@ -308,6 +308,8 @@ public class JELIB extends LibraryFiles
 					if (version.compareTo(Version.parseVersion(revisions[revision])) < 0) break;
 				}
 				addVariables(lib, pieces, 2, filePath, lineReader.getLineNumber());
+
+				lib.setVersion(version);
 				continue;
 			}
 

@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ap: *********************************
 
+IMP: (11/18/04, GVG) DRC will ignore goodDRCDates if library was created with old JElectric version.
+
+BUG: (11/18/04, GVG) Not removing goodDRCDate from cells that didn't pass DRC.
+FIX: Collect the information and do it in SaveJob
+
+BUG: (11/18/04, GVG) ChangeCell.contains() not detecting repeated elements.
+FIX: Put back original code
+
 BUG: (11/18/04, SMR) Cross-library copy doesn't sort cell names properly.
 FIX: In "CrossLibCopy.showCells()", use "nameSameNumeric".
 
@@ -28,7 +36,7 @@ FIX: In Cell.copyNodeProto() ignore existing cross-library references.
 
 BUG: (11/16/04, RK) NCC: NCC crashes if A and B are in the same Cell group and A instantiates B.
 
-IMP/MAN: (11/16/04, GVG) DRC: dates stored disabled.
+IMP/MAN: (11/16/04, GVG) DRC: dates stored disabled (OUT)
 
 BUG: (11/16/04, GVG) Rounding issue in Quick.lookForCrossPolygons()
 FIX: round bounding box before looking for points. This fixes JonG's DRC notch error reported on 11/09/05 (90nm tech)

@@ -746,6 +746,7 @@ public class ELIB extends LibraryFiles
 		lib.clearChangedMajor();
 		lib.clearChangedMinor();
 		lib.setFromDisk();
+		lib.setVersion(version);
 
 		// get the lambda values in the library
 		for(int i=0; i<techCount; i++)

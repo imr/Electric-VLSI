@@ -617,7 +617,6 @@ public class Technology
 		// set the current technology, given priority to user defined
         Technology  tech = Technology.findTechnology(User.getDefaultTechnology());
         if (tech == null) tech = MoCMOS.tech;
-		//MoCMOS.tech.setCurrent();
         tech.setCurrent();
 
 		// setup the generic technology to handle all connections

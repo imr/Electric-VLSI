@@ -146,7 +146,7 @@ public class MoCMOS extends Technology
 	private Technology.NodeLayer pTransistorSelectLayer, nTransistorSelectLayer;
 
 	// design rule constants
-	/** wide rules apply to geometry larger than this */				private static final double WIDELIMIT = 100;
+	/** wide rules apply to geometry larger than this */				private static final double WIDELIMIT = 10;
 
 	private DRCTemplate [] theRules = new DRCTemplate[]
 	{

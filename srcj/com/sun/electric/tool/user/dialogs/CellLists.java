@@ -34,6 +34,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.Main;
 
 import java.awt.geom.Rectangle2D;
 import java.io.BufferedOutputStream;
@@ -211,8 +212,8 @@ public class CellLists extends EDialog
 		if (maxlen < 0) line += "\t"; else line += " ";
 
 		boolean goodDRC = false;
-		Date lastGoodDate = null; // DRC.getLastDRCDate(cell);
-		if (lastGoodDate != null && cell.getRevisionDate().before(lastGoodDate)) goodDRC = true;
+		Date lastGoodDate = DRC.getLastDRCDate(cell);
+		if (!Main.getDebug() && lastGoodDate != null && cell.getRevisionDate().before(lastGoodDate)) goodDRC = true;
 		if (goodDRC) line += "D"; else line += " ";
 		if (maxlen < 0) line += "\t"; else line += " ";
 

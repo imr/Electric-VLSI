@@ -25,10 +25,7 @@ package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.text.CellName;
-import com.sun.electric.database.text.Name;
-import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.*;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
@@ -59,6 +56,7 @@ import javax.swing.JOptionPane;
 public class Library extends ElectricObject
 {
 	/** key of Variable holding font associations. */		public static final Variable.Key FONT_ASSOCIATIONS = ElectricObject.newKey("LIB_font_associations");
+	/** key of Variable holding library version */		    public static final Variable.Key LIBRARY_VERSION = ElectricObject.newKey("LIB_version");
 
 	// ------------------------ private data ------------------------------
 
@@ -960,4 +958,15 @@ public class Library extends ElectricObject
         Collections.sort(sortedList, new TextUtils.CellsByName());
         return sortedList;
     }
+
+	/**
+	 * Method to set library version found in header as internal variable.
+	 * Such variable will not be saved.
+	 * @param version
+	 */
+	public void setVersion(Version version)
+	{
+		Variable newVar = newVar(Library.LIBRARY_VERSION, version);
+		newVar.setDontSave();
+	}
 }

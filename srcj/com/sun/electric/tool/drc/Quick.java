@@ -33,6 +33,7 @@ import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
@@ -179,8 +180,8 @@ public class Quick
 	/** total errors found in all threads. */					private int totalMsgFound;
 	/** a NodeInst that is too tiny for its connection. */		private NodeInst tinyNodeInst;
 	/** the other Geometric in "tiny" errors. */				private Geometric tinyGeometric;
-	/** for tracking the time of good DRC. */					//private HashMap goodDRCDate = new HashMap();
-	/** for tracking the time of good DRC. */					//private boolean haveGoodDRCDate;
+	/** for tracking the time of good DRC. */					private HashMap goodDRCDate = new HashMap();
+	/** for tracking cells that need to clean good DRC vars */	private HashMap cleanDRCDate = new HashMap();
 	/** for logging errors */                                   private ErrorLogger errorLogger;
 	/** for logging incremental errors */                       private static ErrorLogger errorLoggerIncremental = null;
 	/** Top cell for DRC */                                     private Cell topCell;
@@ -243,7 +244,7 @@ public class Quick
 		buildLayerInteractions(tech);
 
 		// clean out the cache of instances
-		clearInstanceCache();
+	    instanceInteractionList.clear();
 
 		// determine maximum DRC interaction distance
 		worstInteractionDistance = DRC.getWorstSpacingDistance(tech);
@@ -368,16 +369,18 @@ public class Quick
 		accumulateExclusion(cell, DBMath.MATID);
 
 		// now do the DRC
-		//haveGoodDRCDate = false;
+
+		boolean validVersion = true;
+	    Object version = cell.getLibrary().getVar(Library.LIBRARY_VERSION, Version.class);
+		if (version != null) version = ((Variable)version).getObject();
+		if (version != null) validVersion = ((Version)version).compareTo(Version.getVersion()) >=0;
 		errorLogger = null;
         int logsFound = 0;
 		if (count == 0)
 		{
 			// just do full DRC here
 			errorLogger = ErrorLogger.newInstance("DRC (full)");
-//			if (!dr_quickparalleldrc) begintraversehierarchy();
-			checkThisCell(cell, 0, bounds);
-//			if (!dr_quickparalleldrc) endtraversehierarchy();
+			checkThisCell(cell, 0, bounds, validVersion);
 
 			// sort the errors by layer
 			errorLogger.sortLogs();
@@ -401,39 +404,51 @@ public class Quick
             logsFound = errorLogger.getNumLogs() - logsFound;
         }
 
-//		if (!Main.getDebug() && haveGoodDRCDate && count == 0)
-//		{
-//			// some cells were sucessfully checked: save that information in the database
-//			SaveDRCDates job = new SaveDRCDates(goodDRCDate);
-//		}
+		if (count != 0) goodDRCDate.clear();
+
+		// some cells were sucessfully checked: save that information in the database
+	    // some cells don't have valid DRC date anymore and therefore they should be clean
+	    if (goodDRCDate.size() > 0 || cleanDRCDate.size() > 0)
+	    {
+		    UpdateDRCDates job = new UpdateDRCDates(goodDRCDate, cleanDRCDate);
+	    }
+
         return logsFound;
 	}
 
 	/**
 	 * Class to save good DRC dates in a new thread.
 	 */
-//	private static class SaveDRCDates extends Job
-//	{
-//		HashMap goodDRCDate;
-//
-//		protected SaveDRCDates(HashMap goodDRCDate)
-//		{
-//			super("Remember DRC Successes", DRC.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-//			this.goodDRCDate = goodDRCDate;
-//			startJob();
-//		}
-//
-//		public boolean doIt()
-//		{
-//			for(Iterator it = goodDRCDate.keySet().iterator(); it.hasNext(); )
-//			{
-//				Cell cell = (Cell)it.next();
-//				Date now = (Date)goodDRCDate.get(cell);
-//				DRC.setLastDRCDate(cell, now);
-//			}
-//			return true;
-//		}
-//	}
+	private static class UpdateDRCDates extends Job
+	{
+		HashMap goodDRCDate;
+		HashMap cleanDRCDate;
+
+		protected UpdateDRCDates(HashMap goodDRCDate, HashMap cleanDRCDate)
+		{
+			super("Remember DRC Successes and/or Delete Obsolete Dates", DRC.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.goodDRCDate = goodDRCDate;
+			this.cleanDRCDate = cleanDRCDate;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			for(Iterator it = goodDRCDate.keySet().iterator(); it.hasNext(); )
+			{
+				Cell cell = (Cell)it.next();
+				Date now = (Date)goodDRCDate.get(cell);
+				DRC.setLastDRCDate(cell, now);
+			}
+
+			for(Iterator it = cleanDRCDate.keySet().iterator(); it.hasNext(); )
+			{
+				Cell cell = (Cell)it.next();
+				DRC.cleanDRCDate(cell);
+			}
+			return true;
+		}
+	}
 
 	/*************************** QUICK DRC CELL EXAMINATION ***************************/
 
@@ -441,7 +456,7 @@ public class Quick
 	 * Method to check the contents of cell "cell" with global network index "globalIndex".
 	 * Returns positive if errors are found, zero if no errors are found, negative on internal error.
 	 */
-	private int checkThisCell(Cell cell, int globalIndex, Rectangle2D bounds)
+	private int checkThisCell(Cell cell, int globalIndex, Rectangle2D bounds, boolean validVersion)
 	{
 		// Job aborted or scheduled for abort
 		if (job != null && job.checkAbort()) return -1;
@@ -495,7 +510,7 @@ public class Quick
 			// recursively check the subcell
 			CheckInst ci = (CheckInst)checkInsts.get(ni);
 			int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
-			int retval = checkThisCell((Cell)np, localIndex, subBounds);
+			int retval = checkThisCell((Cell)np, localIndex, subBounds, validVersion);
 			if (retval < 0)
 				return -1;
 			if (retval > 0) allSubCellsStillOK = false;
@@ -506,15 +521,15 @@ public class Quick
 		cp.cellChecked = true;
 
 		// if the cell hasn't changed since the last good check, stop now
-//		if (allSubCellsStillOK)
-//		{
-//			Date lastGoodDate = DRC.getLastDRCDate(cell);
-//			if (lastGoodDate != null)
-//			{
-//				Date lastChangeDate = cell.getRevisionDate();
-//				if (lastGoodDate.after(lastChangeDate)) return 0;
-//			}
-//		}
+		if (validVersion && allSubCellsStillOK)
+		{
+			Date lastGoodDate = DRC.getLastDRCDate(cell);
+			if (lastGoodDate != null)
+			{
+				Date lastChangeDate = cell.getRevisionDate();
+				if (lastGoodDate.after(lastChangeDate)) return 0;
+			}
+		}
 
 		// announce progress
 		System.out.println("Checking cell " + cell.describe());
@@ -556,6 +571,16 @@ public class Quick
 			}
 		}
 
+		// If message founds, then remove any possible good date
+		if (totalMsgFound > 0)
+		{
+			cleanDRCDate.put(cell, cell);
+		}
+		else
+		{
+			goodDRCDate.put(cell, new Date());
+		}
+
 		// if there were no errors, remember that
 		if (errorLogger != null)
 		{
@@ -563,8 +588,6 @@ public class Quick
 			int localWarnings = errorLogger.getNumWarnings() - prevWarns;
 			if (localErrors == 0 &&  localWarnings == 0)
 			{
-				//goodDRCDate.put(cell, new Date());
-				//haveGoodDRCDate = true;
 				System.out.println("   No errors/warnings found");
 			} else
 			{
@@ -760,6 +783,7 @@ public class Quick
 		// get network numbering for the instance
 		CheckInst ci = (CheckInst)checkInsts.get(ni);
 		int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
+        boolean errorFound = false;
 
 		// look for other instances surrounding this one
 		Rectangle2D nodeBounds = ni.getBounds();
@@ -793,12 +817,10 @@ public class Quick
 				nearNodeBounds.getHeight() + worstInteractionDistance*2);
 
 			// recursively search instance "ni" in the vicinity of "oNi"
-//			if (!dr_quickparalleldrc) downhierarchy(ni, ni->proto, 0);
-			checkCellInstContents(subBounds, ni, upTrans,
-				localIndex, oNi, globalIndex);
-//			if (!dr_quickparalleldrc) uphierarchy();
+			boolean ret = checkCellInstContents(subBounds, ni, upTrans, localIndex, oNi, globalIndex);
+			if (ret) errorFound = true;
 		}
-		return false;
+		return errorFound;
 	}
 
 	/**
@@ -848,10 +870,13 @@ public class Quick
 
 					int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
 
-//					if (!dr_quickparalleldrc) downhierarchy(ni, ni->proto, 0);
 					// changes Sept04: subBound by bb
-					checkCellInstContents(bb, ni, subUpTrans, localIndex, oNi, topGlobalIndex);
-//					if (!dr_quickparalleldrc) uphierarchy();
+					boolean ret = checkCellInstContents(bb, ni, subUpTrans, localIndex, oNi, topGlobalIndex);
+					if (ret)
+					{
+						if (onlyFirstError) return true;
+						logsFound = true;
+					}
 				} else
 				{
 					AffineTransform rTrans = ni.rotateOut();
@@ -1784,14 +1809,6 @@ public class Quick
 	}
 
 	/**
-	 * Method to remove all instance interaction information.
-	 */
-	private void clearInstanceCache()
-	{
-		instanceInteractionList.clear();
-	}
-
-	/**
 	 * Method to look for the instance-interaction in "dii" in the global list of instances interactions
 	 * that have already been checked.  Returns the entry if it is found, NOINSTINTER if not.
 	 */
@@ -2430,6 +2447,7 @@ public class Quick
 		double flx = Math.min(pt1.getX(), pt2.getX());   double fhx = Math.max(pt1.getX(), pt2.getX());
 		double fly = Math.min(pt1.getY(), pt2.getY());   double fhy = Math.max(pt1.getY(), pt2.getY());
 		Rectangle2D bounds = new Rectangle2D.Double(flx, fly, DBMath.round(fhx-flx), DBMath.round(fhy-fly));
+        // Mind bounding boxes could have zero width or height
 
 		// search the cell for geometry that fills the notch
 		boolean [] pointsFound = new boolean[2];
@@ -2559,12 +2577,7 @@ public class Quick
 		{
 			Geometric g = (Geometric)it.next();
 
-			if (g == geo1 || g == geo2)
-			{
-				continue;
-				//System.out.println("Skip in lookForLayerNew");
-			}
-
+			// if (g == geo1 || g == geo2) not valid condition
 			// I can't skip geometries to exclude from the search
 			if (g instanceof NodeInst)
 			{
