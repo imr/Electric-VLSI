@@ -170,6 +170,38 @@ public class NccBottomUp {
 		}
 		return false;
 	}
+	/** Very Subtle: If the exact same Cell is used by both designs being 
+	 * compared (for example if you're comparing 2 schematics) then
+	 * cellContextsInGroup will contain two CellContexts for that Cell, each 
+	 * with a different context. If there are the only 2 objects in 
+	 * cellContextsInGroup (ie these 2) then this is desireable because NCC
+	 * will compare the two CellContexts thereby creating the SubcircuitInfo
+	 * necessary to treat the Cell hierarchically for higher level comparisons.
+	 *  
+	 * <p>However, if cellContextsInGroup is larger than two then the two
+	 * CellContexts that refer to the same Cell are unnecessary and can, in
+	 * fact, be harmful.  For example, if cellContextsInGroup contained 
+	 * {A, B, B} then NCC might compare {A, B} and {A, B}. The second 
+	 * comparison is redundant. Worse, it confuses a lower layer of software 
+	 * which panics when it tries to create a second Subcircuit model for B. */ 
+	private void purgeUnnecessaryDuplicateCells(List cellContextsInGroup) {
+		Set cells = new HashSet();
+		for (Iterator it=cellContextsInGroup.iterator(); 
+		     it.hasNext() && cellContextsInGroup.size()>2;) {
+			Cell c = ((CellContext)it.next()).cell;
+			if (cells.contains(c))  it.remove();
+			else  cells.add(c);
+		}
+	}
+	private void printCells(List cellContextsInGroup) {
+		System.out.print("Cells in group: ");
+		for (Iterator it=cellContextsInGroup.iterator(); it.hasNext();) {
+			CellContext cc = (CellContext) it.next();
+			Cell c = cc.cell;
+			System.out.print(c.getName()+" ");
+		}
+		System.out.println();
+	}
 	/** @return the result of comparing all Cells in CellGroup. If we are
 	 * supposed to build just a black box but we couldn't then return null */
 	private NccResult compareCellsInGroup(List cellContextsInGroup, 
@@ -193,6 +225,8 @@ public class NccBottomUp {
 
 		boolean blackBoxAnn = hasBlackBoxAnnotation(cellContextsInGroup);
 
+		purgeUnnecessaryDuplicateCells(cellContextsInGroup);
+		
 		CellContext refCC = 
 			selectAndRemoveReferenceCellContext(cellContextsInGroup);
 		for (Iterator it=cellContextsInGroup.iterator(); it.hasNext();) {
@@ -220,6 +254,10 @@ public class NccBottomUp {
 	 * <p>Since Java-Electric's CellGroups aren't completely functional yet
 	 * simulate the addition of Cells (e.g. from other libraries) to a 
 	 * CellGroup using the joinGroup annotation.
+	 * 
+	 * <p>Tricky: If a Cell is used in two layouts or two schematics then 
+	 * that Cell will occur twice in returned List, each with a 
+	 * different VarContext. This has advantages and pitfalls.
 	 * @return a list of CellContexts to compare */
 	private List getUsedCellsInGroup(Cell cell, CellUsage use1, 
 	                                 CellUsage use2) {
@@ -254,21 +292,10 @@ public class NccBottomUp {
 		
 		List cellsInGroupList = new ArrayList();
 		cellsInGroupList.addAll(cellsInGroup);
-		
-		// No need for trickery. Cell used in two layouts or two schematics 
-		// always adds two CellContexts to cellsInGroup.
-//		/* Tricky: If the user compares two layouts or two schematics, we'd
-//		 * like to perform the comparison hierarchically when the designs share
-//		 * the same Cell. If the CellGroup size is >2 then this will 
-//		 * automatically happen. However, if the CellGroup size is 1 then we 
-//		 * need to force an artificial comparison of that Cell with itself in 
-//		 * order to add the required information to HierarchyInfo. */
-//		if (cellsInGroup.size()==1) {
-//			Cell onlyCell = (Cell) cellsInGroup.iterator().next();
-//			if (use1.cellIsUsed(onlyCell) && use2.cellIsUsed(onlyCell)) 
-//				cellsInGroupList.add(onlyCell);
-//		} 
-		
+
+//		System.out.println("Seed cell: "+cell.getName());
+//		printCells(cellsInGroupList);
+
 		return cellsInGroupList;
 	}
 	
@@ -288,15 +315,36 @@ public class NccBottomUp {
 		return false;
 	}
 	
+	private boolean alreadyCompared(Set compared, List cellCtxtsInGroup) {
+		int num=0, numComp=0;
+		for (Iterator it=cellCtxtsInGroup.iterator(); it.hasNext();) {
+			CellContext cc = (CellContext) it.next();
+			if (compared.contains(cc)) numComp++;
+			num++;
+		}
+		LayoutLib.error(numComp!=0 && numComp!=num, 
+						"cell group partially processed");
+		return numComp>0;
+	}
+
 	private NccResult compareCellGroups(CellUsage use1, CellUsage use2,
 	                                    boolean hierarchical, 
 	                                    boolean skipPassed, 
 	                                    NccOptions options) {
 		NccResult result = new NccResult(true, true, true, null);
+		Set compared = new HashSet();
 		HierarchyInfo hierInfo = new HierarchyInfo();
 		for (Iterator it=use1.cellsInReverseTopologicalOrder(); it.hasNext();) {
 			Cell cell = (Cell) it.next();
 			List cellContextsInGroup = getUsedCellsInGroup(cell, use1, use2);
+
+			// Really subtle! If A instantiates B and B instantiates C and if A, B, 
+			// and C are all in the same Cell group then this loop will encounter
+			// the Cell group {A, B, C} three times!  Only perform the comparison
+			// once.
+			if (alreadyCompared(compared, cellContextsInGroup)) continue;
+			compared.addAll(cellContextsInGroup);
+			
 			String grpNm = cell.getLibrary().getName()+":"+cell.getName();
 			NccResult r = compareCellsInGroup(cellContextsInGroup, grpNm,
 											  hierInfo, hierarchical, 
@@ -308,8 +356,8 @@ public class NccBottomUp {
 				);
 				return result;
 			}
-			boolean saveEquivDataOfTopCell = !it.hasNext();
-			result.andEquals(r, saveEquivDataOfTopCell);
+			boolean saveEquivalenceDataOfTopCell = !it.hasNext();
+			result.andEquals(r, saveEquivalenceDataOfTopCell);
 
 			if (!result.match() && options.haltAfterFirstMismatch) {
 				System.out.println( 

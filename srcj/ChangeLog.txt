@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ap: *********************************
 
+BUG: (11/16/04, RK) NCC: NCC crashes if A and B are in the same Cell group and A instantiates B.
+
 IMP/MAN: (11/16/04, GVG) DRC: dates stored disabled.
 
 BUG: (11/16/04, GVG) Rounding issue in Quick.lookForCrossPolygons()
