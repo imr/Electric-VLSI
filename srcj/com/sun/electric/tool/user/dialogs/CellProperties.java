@@ -23,42 +23,24 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.awt.Dimension;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.HashMap;
-import javax.swing.JList;
+
 import javax.swing.DefaultListModel;
+import javax.swing.JList;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.text.Document;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.awt.Insets;
-import java.awt.GridBagConstraints;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.awt.GridBagLayout;
-import javax.swing.ButtonGroup;
-import javax.swing.JTextField;
-import javax.swing.JRadioButton;
-import javax.swing.JCheckBox;
-import javax.swing.JScrollPane;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JButton;
-import javax.swing.text.BadLocationException;
 
 /**
  * Class to handle the "Cell Properties" dialog.
@@ -111,7 +93,7 @@ public class CellProperties extends EDialog
 
 				// remember the characteristic spacing
 				double cX = 0, cY = 0;
-				Dimension spacing = cell.getCharacteristicSpacing();
+				Dimension2D spacing = cell.getCharacteristicSpacing();
 				if (spacing != null)
 				{
 					cX = spacing.getWidth();

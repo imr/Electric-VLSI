@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.io.output;
 
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
@@ -39,7 +40,6 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
 
-import java.awt.Dimension;
 import java.util.Date;
 
 /**
@@ -149,7 +149,7 @@ public class IRSIM extends Output
 			printWriter.print(" " + iinfo.getUniqueNetName(gnet, "/"));
 			printWriter.print(" " + iinfo.getUniqueNetName(snet, "/"));
 			printWriter.print(" " + iinfo.getUniqueNetName(dnet, "/"));
-            Dimension dim = ni.getTransistorSize(iinfo.getContext());
+            Dimension2D dim = ni.getTransistorSize(iinfo.getContext());
             float m = iinfo.getMFactor();
 			printWriter.print(" " + dim.getHeight());                // length
 			printWriter.print(" " + (double)m * dim.getWidth());     // width

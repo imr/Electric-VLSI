@@ -23,47 +23,47 @@
  */
 package com.sun.electric.tool.io.output;
 
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.network.Global;
-import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.simulation.Simulation;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Exec;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.ExecDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WaveformWindow;
-import com.sun.electric.tool.io.input.Simulate;
 
-import java.awt.Dimension;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.io.File;
+import java.net.URL;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.HashMap;
-import java.util.Date;
-import java.net.URL;
 
 /**
  * This is the Simulation Interface tool.
@@ -888,11 +888,11 @@ public class Spice extends Topology
 			if (modelName != null) infstr.append(" " + modelName);
 
 			// compute length and width (or area for nonMOS transistors)
-			Dimension size = ni.getTransistorSize(context);
-			if (size.width > 0 || size.height > 0)
+			Dimension2D size = ni.getTransistorSize(context);
+			if (size.getWidth() > 0 || size.getHeight() > 0)
 			{
-				double w = maskScale * size.width;
-				double l = maskScale * size.height;
+				double w = maskScale * size.getWidth();
+				double l = maskScale * size.getHeight();
 				if (!Simulation.isSpiceWriteTransSizeInLambda())
 				{
 					// make into microns (convert to nanometers then divide by 1000)

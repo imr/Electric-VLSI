@@ -25,6 +25,7 @@ package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.network.Netlist;
@@ -33,31 +34,38 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.FlagSet;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.TextWindow;
+import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.awt.Dimension;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.AffineTransform;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 import javax.swing.JOptionPane;
 
 /**
@@ -902,7 +910,7 @@ public class Cell extends NodeProto implements Comparable
 	 * @return a dimension that is the characteristic spacing for this cell.
 	 * Returns null if there is no spacing defined.
 	 */
-	public Dimension getCharacteristicSpacing()
+	public Dimension2D getCharacteristicSpacing()
 	{
 		Variable var = getVar(CHARACTERISTIC_SPACING);
 		if (var != null)
@@ -911,14 +919,12 @@ public class Cell extends NodeProto implements Comparable
 			if (obj instanceof Integer[])
 			{
 				Integer [] iSpac = (Integer [])obj;
-				Dimension spacing = new Dimension();
-				spacing.setSize(iSpac[0].intValue(), iSpac[1].intValue());
+				Dimension2D spacing = new Dimension2D.Double(iSpac[0].intValue(), iSpac[1].intValue());
 				return spacing;
 			} else if (obj instanceof Double[])
 			{
 				Double [] dSpac = (Double [])obj;
-				Dimension spacing = new Dimension();
-				spacing.setSize(dSpac[0].doubleValue(), dSpac[1].doubleValue());
+				Dimension2D spacing = new Dimension2D.Double(dSpac[0].doubleValue(), dSpac[1].doubleValue());
 				return spacing;
 			}
 		}

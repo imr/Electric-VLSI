@@ -25,39 +25,39 @@ package com.sun.electric.technology.technologies;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitiveArc;
-import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 
-import java.awt.geom.Dimension2D;
-import java.awt.geom.Point2D;
 import java.awt.Dimension;
-import java.util.Iterator;
-import java.util.HashMap;
-import java.util.List;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 
 /**
@@ -2112,19 +2112,17 @@ public class Schematics extends Technology
 	 * and the height of the Dimension is the length of the transistor.
 	 * For non-FET transistors, the width of the dimension is the area of the transistor.
 	 */
-	public Dimension getTransistorSize(NodeInst ni, VarContext context)
+	public Dimension2D getTransistorSize(NodeInst ni, VarContext context)
 	{
 		if (ni.isFET())
 		{
 	        double length = VarContext.objectToDouble(context.evalVar(ni.getVar(ATTR_LENGTH)), 0);
 	        double width = VarContext.objectToDouble(context.evalVar(ni.getVar(ATTR_WIDTH)), 0);
-	        Dimension dim = new Dimension();
-	        dim.setSize(width, length);
+			Dimension2D dim = new Dimension2D.Double(width, length);
 	        return dim;
 		}
 		double area = VarContext.objectToDouble(context.evalVar(ni.getVar(ATTR_AREA)), 0);
-		Dimension dim = new Dimension();
-		dim.setSize(area, 0);
+		Dimension2D dim = new Dimension2D.Double(area, 0);
 		return dim;
     }
 

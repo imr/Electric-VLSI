@@ -23,36 +23,35 @@
  */
 package com.sun.electric.tool.erc;
 
+import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.ErrorLogger.ErrorLog;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.awt.Dimension;
 import java.awt.geom.AffineTransform;
-import java.util.Iterator;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * This is the Antenna checker of the Electrical Rule Checker tool.
@@ -429,8 +428,8 @@ public class ERCAntenna
 				} else
 				{
 					// touching the gate side of the transistor
-					Dimension dim = thisni.getTransistorSize(VarContext.globalContext);
-					totalGateArea += dim.height * dim.width;
+					Dimension2D dim = thisni.getTransistorSize(VarContext.globalContext);
+					totalGateArea += dim.getHeight() * dim.getWidth();
 					ret = ERCANTPATHGATE;
 				}
 			} else

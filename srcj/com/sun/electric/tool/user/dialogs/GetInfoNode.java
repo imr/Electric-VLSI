@@ -23,44 +23,48 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.change.DatabaseChangeListener;
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.change.DatabaseChangeListener;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Artwork;
-import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.MoCMOS;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.HighlightListener;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Dimension;
 import java.awt.geom.Point2D;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.prefs.Preferences;
-import javax.swing.*;
+
+import javax.swing.DefaultListModel;
+import javax.swing.JFrame;
+import javax.swing.JList;
+import javax.swing.ListSelectionModel;
 
 
 /**
@@ -398,7 +402,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		{
 			/* serpentine transistor: show width, edit length */
 			serpWidth = 0;
-			Dimension size = ni.getTransistorSize(null);
+			Dimension2D size = ni.getTransistorSize(null);
 			if (size.getWidth() > 0 && size.getHeight() > 0)
 			{
 				textFieldLabel.setText("Width=" + size.getWidth() + "; Length:");
@@ -449,15 +453,15 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		if (np == Schematics.tech.transistorNode || np == Schematics.tech.transistor4Node)
 		{
 			textField.setEditable(true);
-			Dimension d = ni.getTransistorSize(VarContext.globalContext);
+			Dimension2D d = ni.getTransistorSize(VarContext.globalContext);
 			if (ni.isFET())
 			{
 				textFieldLabel.setText("Width / length:");
-				initialTextField = d.width + " / " + d.height;
+				initialTextField = d.getWidth() + " / " + d.getHeight();
 			} else
 			{
 				textFieldLabel.setText("Area:");
-				initialTextField = Double.toString(d.width);
+				initialTextField = Double.toString(d.getWidth());
 			}
 			textField.setText(initialTextField);
 

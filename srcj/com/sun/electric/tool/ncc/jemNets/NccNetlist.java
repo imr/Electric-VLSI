@@ -40,6 +40,7 @@ import java.util.StringTokenizer;
 import java.util.Collection;
 import java.util.Set;
 
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
@@ -393,7 +394,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 //		}
 		double width=0, length=0;
 		if (globals.getOptions().checkSizes) {
-			Dimension dim = ni.getTransistorSize(info.getContext());
+			Dimension2D dim = ni.getTransistorSize(info.getContext());
 			width = mul * dim.getWidth();
 			length = dim.getHeight();
 		}

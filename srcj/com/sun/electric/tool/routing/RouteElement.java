@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.routing;
 
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
@@ -579,7 +580,7 @@ public class RouteElement {
 				if (np instanceof PrimitiveNode)
 				{
 					PrimitiveNode pNp = (PrimitiveNode)np;
-					Dimension autoGrowth = pNp.getAutoGrowth();
+					Dimension2D autoGrowth = pNp.getAutoGrowth();
 					if (autoGrowth != null)
 					{
 						// grow the node to allow expandable port to fit
@@ -595,7 +596,7 @@ public class RouteElement {
 				if (np instanceof PrimitiveNode)
 				{
 					PrimitiveNode pNp = (PrimitiveNode)np;
-					Dimension autoGrowth = pNp.getAutoGrowth();
+					Dimension2D autoGrowth = pNp.getAutoGrowth();
 					if (autoGrowth != null)
 					{
 						// grow the node to allow expandable port to fit

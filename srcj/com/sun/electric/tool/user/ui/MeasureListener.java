@@ -23,23 +23,21 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.Highlight;
 
-import java.awt.Dimension;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseWheelListener;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 public class MeasureListener
 	implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
@@ -52,10 +50,9 @@ public class MeasureListener
 
 	private MeasureListener() {}
 
-	public static Dimension getLastMeasuredDistance()
+	public static Dimension2D getLastMeasuredDistance()
 	{
-		Dimension dim = new Dimension();
-		dim.setSize(lastMeasuredDistanceX, lastMeasuredDistanceY);
+		Dimension2D dim = new Dimension2D.Double(lastMeasuredDistanceX, lastMeasuredDistanceY);
 		return dim;
 	}
 

@@ -26,6 +26,7 @@ package com.sun.electric.database.topology;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -47,17 +48,16 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 
-import java.awt.Dimension;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.AffineTransform;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * A NodeInst is an instance of a NodeProto (a PrimitiveNode or a Cell).
@@ -2073,7 +2073,7 @@ public class NodeInst extends Geometric implements Nodable
      * pass in VarContext.globalContext if no context needed.
 	 * @return the size of the NodeInst.
 	 */
-	public Dimension getTransistorSize(VarContext context)
+	public Dimension2D getTransistorSize(VarContext context)
 	{
 		PrimitiveNode np = (PrimitiveNode)protoType;
 		return np.getTechnology().getTransistorSize(this, context);

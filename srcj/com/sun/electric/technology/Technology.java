@@ -25,6 +25,7 @@ package com.sun.electric.technology;
 
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
@@ -1076,14 +1077,13 @@ public class Technology extends ElectricObject
      * pass in VarContext.globalContext if no context needed.
 	 * @return the size of the NodeInst.
 	 */
-	public Dimension getTransistorSize(NodeInst ni, VarContext context)
+	public Dimension2D getTransistorSize(NodeInst ni, VarContext context)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		SizeOffset so = ni.getSizeOffset();
 		double width = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
 		double height = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
-		Dimension dim = new Dimension();
-		dim.setSize(width, height);
+		Dimension2D dim = new Dimension2D.Double(width, height);
 		return dim;
 	}
 

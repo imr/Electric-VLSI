@@ -23,36 +23,37 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.Quick;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Clipboard;
-import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.MeasureListener;
+import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.Dimension2D;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Comparator;
-import java.util.Collections;
+
 import javax.swing.JOptionPane;
 
 
@@ -175,12 +176,12 @@ public class Array extends EDialog
 		}
 
 		// see if there was a measured distance
-		Dimension dim = MeasureListener.getLastMeasuredDistance();
-		if (dim.width > 0 || dim.height > 0)
+		Dimension2D dim = MeasureListener.getLastMeasuredDistance();
+		if (dim.getWidth() > 0 || dim.getHeight() > 0)
 		{
 			spaceByMeasuredDistance.setEnabled(true);
-			spacingMeasuredX = dim.width;
-			spacingMeasuredY = dim.height;
+			spacingMeasuredX = dim.getWidth();
+			spacingMeasuredY = dim.getHeight();
 			if (lastSpacingType == SPACING_MEASURED)
 			{
 				lastXDistance = spacingMeasuredX;

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.technology;
 
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
 
@@ -55,7 +56,7 @@ public class PrimitiveNode extends NodeProto
 	/** minimum width and height */					private double minWidth, minHeight;
 	/** minimum width and height rule */			private String minSizeRule;
 	/** offset from database to user */				private SizeOffset offset;
-	/** amount to automatically grow to fit arcs */	private Dimension autoGrowth;
+	/** amount to automatically grow to fit arcs */	private Dimension2D autoGrowth;
 
 	/** counter for enumerating primitive nodes */	private static int primNodeNumber = 0;
 	/** Pref map for node width. */					private static HashMap defaultWidthPrefs = new HashMap();
@@ -330,7 +331,7 @@ public class PrimitiveNode extends NodeProto
 	 * These nodes have ports that can accomodate any number of arcs.
 	 * @param autoGrowth the amount to grow this PrimitiveNode when arcs don't fit.
 	 */
-	public void setAutoGrowth(double dX, double dY) { autoGrowth = new Dimension();   autoGrowth.setSize(dX, dY); }
+	public void setAutoGrowth(double dX, double dY) { autoGrowth = new Dimension2D.Double(dX, dY); }
 
 	/**
 	 * Method to get the auto-growth factor for this PrimitiveNode.
@@ -341,7 +342,7 @@ public class PrimitiveNode extends NodeProto
 	 * These nodes have ports that can accomodate any number of arcs.
 	 * @return the amount to grow this PrimitiveNode when arcs don't fit.
 	 */
-	public Dimension getAutoGrowth() { return autoGrowth; }
+	public Dimension2D getAutoGrowth() { return autoGrowth; }
 
 	/**
 	 * Method to return the Technology of this PrimitiveNode.
