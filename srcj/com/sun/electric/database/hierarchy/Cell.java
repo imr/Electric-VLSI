@@ -2895,7 +2895,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	public void putInOwnCellGroup()
 	{
-		if (cellGroup.getNumCells() == 1) return;
+		if (cellGroup != null && cellGroup.getNumCells() == 1) return;
 
 		CellGroup newGroup = new CellGroup();
 		setCellGroup(newGroup);

@@ -50,6 +50,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.ncc.basic.TransitiveRelation;
 import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.geom.AffineTransform;
@@ -58,10 +59,11 @@ import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Set;
 
 /**
  * This class reads files in new library file (.jelib) format.
@@ -158,6 +160,7 @@ public class JELIB extends LibraryFiles
 		PrimitiveNode curPrim = null;
 		externalCells = new HashMap();
 		externalExports = new HashMap();
+		ArrayList groupLines = new ArrayList();
 		for(;;)
 		{
 			// get keyword from file
@@ -180,11 +183,7 @@ public class JELIB extends LibraryFiles
 						", Cell declaration needs " + numPieces + " fields: " + line, null, -1);
 					continue;
 				}
-				String name;
-				if (revision >= 1)
-					name = unQuote((String)pieces.get(0));
-				else
-					name = unQuote((String)pieces.get(0)) + ";" + pieces.get(2) + "{" + pieces.get(1) + "}";
+				String name = revision >= 1 ? unQuote((String)pieces.get(0)) : unQuote((String)pieces.get(0)) + ";" + pieces.get(2) + "{" + pieces.get(1) + "}";
 				Cell newCell = Cell.newInstance(lib, name);
 				if (newCell == null)
 				{
@@ -441,6 +440,7 @@ public class JELIB extends LibraryFiles
 				}
 
 				PrimitivePort pp = (PrimitivePort)curPrim.findPortProto(primPortName);
+				if (pp == null) pp = curTech.convertOldPortName(primPortName, curPrim);
 				if (pp == null)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
@@ -481,6 +481,7 @@ public class JELIB extends LibraryFiles
 			{
 				// group information
 				List pieces = parseLine(line);
+				Cell[] groupLine = new Cell[pieces.size()];
 				Cell firstCell = null;
 				for(int i=0; i<pieces.size(); i++)
 				{
@@ -495,27 +496,75 @@ public class JELIB extends LibraryFiles
 							", Cannot find cell " + cellName, null, -1);
 						break;
 					}
-
-					// the first entry is the "main schematic cell"
-					if (firstCell == null)
-					{
-						firstCell = cell;
-						cell.putInOwnCellGroup();
-					} else
-					{
-						cell.joinGroup(firstCell);
-					}
-					if (i == 0)
-					{
-						if (cell.isSchematic() && cell.getNewestVersion() == cell)
-							cell.getCellGroup().setMainSchematics(cell);
-					}
+					groupLine[i] = cell;
 				}
+				groupLines.add(groupLine);
 				continue;
 			}
 
 			Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
 				", Unrecognized line: " + line, null, -1);
+		}
+
+		// collect the cells by common protoName and by "groupLines" relation
+		TransitiveRelation transitive = new TransitiveRelation();
+		HashMap/*<String,String>*/ protoNames = new HashMap();
+		for (Iterator cit = lib.getCells(); cit.hasNext();)
+		{
+			Cell cell = (Cell)cit.next();
+			String protoName = (String)protoNames.get(cell.getName());
+			if (protoName == null)
+			{
+				protoName = cell.getName();
+				protoNames.put(protoName, protoName);
+			}
+			transitive.theseAreRelated(cell, protoName);
+		}
+		for (Iterator git = groupLines.iterator(); git.hasNext(); )
+		{
+			Cell[] groupLine = (Cell[])git.next();
+			Cell firstCell = null;
+			for (int i = 0; i < groupLine.length; i++)
+			{
+				if (groupLine[i] == null) continue;
+				if (firstCell == null)
+					firstCell = groupLine[i];
+				else
+					transitive.theseAreRelated(firstCell, groupLine[i]);
+			}
+		}
+
+		// create the cell groups
+		for (Iterator git = transitive.getSetsOfRelatives(); git.hasNext();)
+		{
+			Set group = (Set)git.next();
+			Cell.CellGroup cg = new Cell.CellGroup();
+			
+			Cell firstCell = null;
+			for (Iterator it = group.iterator(); it.hasNext();)
+			{
+				Object o = it.next();
+				if (!(o instanceof Cell)) continue;
+				Cell cell = (Cell)o;
+				if (firstCell == null)
+				{
+					cell.putInOwnCellGroup();
+					firstCell = cell;
+				} else
+				{
+					cell.joinGroup(firstCell);
+				}
+			}
+		}
+
+		// set main schematic cells
+		for (Iterator git = groupLines.iterator(); git.hasNext(); )
+		{
+			Cell[] groupLine = (Cell[])git.next();
+			Cell firstCell = groupLine[0];
+			if (firstCell == null) continue;
+			if (firstCell.isSchematic() && firstCell.getNewestVersion() == firstCell)
+				firstCell.getCellGroup().setMainSchematics(firstCell);
 		}
 
 		// sensibility check: shouldn't all cells with the same root name be in the same group?
@@ -630,7 +679,7 @@ public class JELIB extends LibraryFiles
 			}
 			String protoName = unQuote((String)pieces.get(0));
 			// figure out the name for this node.  Handle the form: "Sig"12
-			String diskNodeName = (String)pieces.get(1);
+			String diskNodeName = revision >= 1 ? (String)pieces.get(1) : unQuote((String)pieces.get(1));
 			String nodeName = diskNodeName;
 			if (nodeName.charAt(0) == '"')
 			{
@@ -638,9 +687,9 @@ public class JELIB extends LibraryFiles
 				if (lastQuote > 1)
 				{
 					nodeName = nodeName.substring(1, lastQuote);
+					if (revision >= 1) nodeName = unQuote(nodeName);
 				}
 			}
-			nodeName = unQuote(nodeName);
 			String nameTextDescriptorInfo = (String)pieces.get(2);
 			double x = TextUtils.atof((String)pieces.get(3));
 			double y = TextUtils.atof((String)pieces.get(4));
@@ -852,7 +901,7 @@ public class JELIB extends LibraryFiles
 				continue;
 			}
 			String exportName = unQuote((String)pieces.get(0));
-			String nodeName = (String)pieces.get(2);
+			String nodeName = revision >= 1 ? (String)pieces.get(2) : unQuote((String)pieces.get(2));
 			String portName = unQuote((String)pieces.get(3));
 			Point2D pos = null;
 			if (revision < 1)
@@ -930,14 +979,14 @@ public class JELIB extends LibraryFiles
 			String arcName = unQuote((String)pieces.get(1));
 			double wid = TextUtils.atof((String)pieces.get(3));
 
-			String headNodeName = (String)pieces.get(5);
+			String headNodeName = revision >= 1 ? (String)pieces.get(5) : unQuote((String)pieces.get(5));
 			String headPortName = unQuote((String)pieces.get(6));
 			double headX = TextUtils.atof((String)pieces.get(7));
 			double headY = TextUtils.atof((String)pieces.get(8));
 			PortInst headPI = figureOutPortInst(cell, headPortName, headNodeName, new Point2D.Double(headX, headY), diskName, cc.fileName, cc.lineNumber + line);
 			if (headPI == null) continue;
 
-			String tailNodeName = (String)pieces.get(9);
+			String tailNodeName = revision >= 1 ? (String)pieces.get(9) : unQuote((String)pieces.get(9));
 			String tailPortName = unQuote((String)pieces.get(10));
 			double tailX = TextUtils.atof((String)pieces.get(11));
 			double tailY = TextUtils.atof((String)pieces.get(12));
@@ -1035,6 +1084,12 @@ public class JELIB extends LibraryFiles
 		} else
 		{
 			pi = ni.findPortInst(portName);
+			if (pi == null && ni.getProto() instanceof PrimitiveNode)
+			{
+				PrimitiveNode primNode = (PrimitiveNode)ni.getProto();
+				PrimitivePort primPort = primNode.getTechnology().convertOldPortName(portName, primNode);
+				if (primPort != null) pi = ni.findPortInstFromProto(primPort);
+			}
 		}
 
 		// primitives use the name match

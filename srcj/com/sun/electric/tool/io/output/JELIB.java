@@ -605,7 +605,13 @@ public class JELIB extends Output
 	{
 		if (indices == null) return convertString(ni.getName());
 		Integer index = (Integer)indices.get(ni);
-		if (index != null) return "\"" + convertQuotedString(ni.getName()) + "\"" + index;
+		if (index != null)
+		{
+			if (NEWREVISION)
+				return "\"" + convertQuotedString(ni.getName()) + "\"" + index;
+			else
+				return convertString("\"" + ni.getName() + "\"" + index);
+		}
 		return convertString(ni.getName());
 	}
 
