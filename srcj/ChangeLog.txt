@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02e: *********************************
 
+IMP/MAN: (01/27/04, JKG) Added option under GDS preferences to have brackets in
+    export names converted to underscores.
+
 IMP: (01/26/05, GVG) TSMC90nm: thick active contacts including thick active arcs
 
 IMP/MAN: (01/26/05, SMR) Removed the command "Windows / Special Zoom / Zoom Box" because

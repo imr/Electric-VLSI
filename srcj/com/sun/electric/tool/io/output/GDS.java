@@ -254,6 +254,10 @@ public class GDS extends Geometry
 
 				// now the string
 				String str = pp.getName();
+                if (IOTool.getGDSOutputConvertsBracketsInExports()) {
+                    // convert brackets to underscores
+                    str = str.replaceAll("[\\[\\]]", "_");
+                }
                 outputString(str, HDR_STRING);
 				outputHeader(HDR_ENDEL, 0);
 			}

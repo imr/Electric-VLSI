@@ -415,6 +415,19 @@ public class IOTool extends Tool
 	 */
 	public static void setGDSOutDefaultTextLayer(int num) { cacheGDSOutDefaultTextLayer.setInt(num); }
 
+    private static Pref cacheGDSOutputConvertsBracketsInExports = Pref.makeBooleanPref("GDSOutputConvertsBracketsInExports", IOTool.tool.prefs, true);
+    static { cacheGDSOutputConvertsBracketsInExports.attachToObject(IOTool.tool, "IO/GDS tab", "GDS output converts brackets in exports"); }
+    /**
+     * Method to get the state of whether the GDS writer converts brackets
+     * to underscores in export names.
+     */
+    public static boolean getGDSOutputConvertsBracketsInExports() { return cacheGDSOutputConvertsBracketsInExports.getBoolean(); }
+    /**
+     * Method to set the state of whether the GDS writer converts brackets 
+     * to underscores in export names.
+     */
+    public static void setGDSOutputConvertsBracketsInExports(boolean b) { cacheGDSOutputConvertsBracketsInExports.setBoolean(b); }
+
 	private static Pref cacheGDSInIncludesText = Pref.makeBooleanPref("GDSInIncludesText", IOTool.tool.prefs, false);
 	/**
 	 * Method to tell whether GDS Input ignores text.
