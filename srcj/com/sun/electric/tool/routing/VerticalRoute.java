@@ -101,6 +101,13 @@ public class VerticalRoute {
                           ArcProto [] startArcs, ArcProto [] endArcs) {
         this.startPort = startPort;
         this.endPort = endPort;
+        // special case: if port is a universal port, limit arc lists, otherwise
+        // searching entire space for best connection will take forever
+        if (startPort.getBasePort().getParent() == Generic.tech.universalPinNode &&
+            endPort.getBasePort().getParent() == Generic.tech.universalPinNode) {
+            startArc = endArc = User.tool.getCurrentArcProto();
+            startArcs = endArcs = new ArcProto [] { startArc };
+        }
         this.startArc = startArc;
         this.endArc = endArc;
         this.startArcs = copyArcArray(startArcs);
@@ -340,7 +347,7 @@ public class VerticalRoute {
                 specifiedRoute.endArc = endArc;
                 searchNumber = 0;
                 if (DEBUGSEARCH) System.out.println("** Start search startArc="+startArc+", endArc="+endArc);
-                findConnectingPorts(startArc, endArc, "");
+                findConnectingPorts(startArc, endArc, new StringBuffer());
             }
         }
 
@@ -388,15 +395,19 @@ public class VerticalRoute {
      * @param endArc connect to this arc
      * @param ds spacing for debug messages, if enabled
      */
-    private void findConnectingPorts(ArcProto startArc, ArcProto endArc, String ds) {
+    private void findConnectingPorts(ArcProto startArc, ArcProto endArc, StringBuffer ds) {
+
+        // throw away route if it's longer than shortest good route
+        if (specifiedRoute.size() > getShortestRouteLength())
+            return;
 
         if (startArc == endArc) {
             saveRoute(specifiedRoute);
             return;    // don't need anything to connect between them
         }
 
-        ds += "  ";
-        if (searchNumber > SEARCHLIMIT) return;
+        ds.append("  ");
+        if (searchNumber > SEARCHLIMIT) { throw new Error("Search limit reached in VerticalRoute"); }
         searchNumber++;
         Technology tech = startArc.getTechnology();
 
@@ -472,10 +483,41 @@ public class VerticalRoute {
             System.out.println("** Found Route for: startArc="+route.startArc+", endArc="+route.endArc);
             route.printRoute();
         }
+        int shortestLength = getShortestRouteLength();
+        if (route.size() > shortestLength) {
+            // ignore it
+            return;
+        }
         SpecifiedRoute loggedRoute = new SpecifiedRoute();
         loggedRoute.startArc = route.startArc;
         loggedRoute.endArc = route.endArc;
         loggedRoute.addAll(route);
         allSpecifiedRoutes.add(loggedRoute);
+        boolean trim = true;
+        while (trim) {
+            // remove shorter routes
+            Iterator it = null;
+            for (it = allSpecifiedRoutes.iterator(); it.hasNext(); ) {
+                SpecifiedRoute r = (SpecifiedRoute)it.next();
+                if (r.size() > shortestLength) {
+                    allSpecifiedRoutes.remove(r);
+                    break;
+                }
+            }
+            if (!it.hasNext()) {
+                trim = false;           // done trimming
+            }
+        }
+    }
+
+    /**
+     * Get the length of the shortest route.
+     */
+    private int getShortestRouteLength() {
+        // Because all routes should be of the
+        // shortest length, just return the length of the first route
+        if (allSpecifiedRoutes.size() == 0) return Integer.MAX_VALUE;
+        SpecifiedRoute r = (SpecifiedRoute)allSpecifiedRoutes.get(0);
+        return r.size();
     }
 }
