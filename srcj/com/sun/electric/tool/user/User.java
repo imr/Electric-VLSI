@@ -585,7 +585,7 @@ public class User extends Listener
 	 */
 	public static void setDefGridYBoldFrequency(int dist) { cacheDefGridYBoldFrequency.setInt(dist); }
 
-	private static Pref cacheShowCursorCoordinates = Pref.makeBooleanPref("ShowCursorCoordinates", User.tool.prefs, false);
+	private static Pref cacheShowCursorCoordinates = Pref.makeBooleanPref("ShowCursorCoordinates", User.tool.prefs, true);
 	/**
 	 * Method to tell whether to show the cursor coordinates as they move in the edit window.
 	 * The default is "false".
