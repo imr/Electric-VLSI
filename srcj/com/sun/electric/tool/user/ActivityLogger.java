@@ -49,7 +49,7 @@ public class ActivityLogger {
             BufferedOutputStream bout = new BufferedOutputStream(fos);
             out = new PrintWriter(bout);
             // redirect stderr to the log file
-            System.setErr(new PrintStream(bout, true));
+            //System.setErr(new PrintStream(bout, true));
         } catch (IOException e) {
             System.out.println("Warning: Activity Log disabled: "+e.getMessage());
         }
