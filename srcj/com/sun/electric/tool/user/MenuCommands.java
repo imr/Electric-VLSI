@@ -502,12 +502,10 @@ public final class MenuCommands
 		selListSubMenu.addMenuItem("Make Selected Hard", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectMakeHardCommand(); }});
 		selListSubMenu.addSeparator();
-		m = selListSubMenu.addMenuItem("Push Selection", KeyStroke.getKeyStroke('1', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { selectMakeEasyCommand(); }});
-		m.setEnabled(false);
-		m = selListSubMenu.addMenuItem("Pop Selection", KeyStroke.getKeyStroke('3', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { selectMakeEasyCommand(); }});
-		m.setEnabled(false);
+		selListSubMenu.addMenuItem("Push Selection", KeyStroke.getKeyStroke('1', buckyBit),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Highlight.pushHighlight(); }});
+		selListSubMenu.addMenuItem("Pop Selection", KeyStroke.getKeyStroke('3', buckyBit),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Highlight.popHighlight(); }});
 		selListSubMenu.addSeparator();
 		selListSubMenu.addMenuItem("Enclosed Objects", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectEnclosedObjectsCommand(); }});

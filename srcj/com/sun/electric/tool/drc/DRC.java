@@ -376,7 +376,7 @@ public class DRC extends Tool
 		if (currentRules != null && tech == currentTechnology) return currentRules;
 
 		// constructing design rules: start with factory rules
-		Rules currentRules = tech.getFactoryDesignRules();
+		currentRules = tech.getFactoryDesignRules();
 		if (currentRules != null)
 		{
 			// add overrides

@@ -1441,7 +1441,8 @@ public class NodeInst extends Geometric implements Nodable
 		int sz = portInsts.size();
 		if (sz != 1)
 		{
-			System.out.println("NodeInst.getOnlyPort: there isn't exactly one port: " + sz);
+			System.out.println("NodeInst.getOnlyPortInst: Cell " + parent.describe() +
+				", node " + describe() + " doesn't have just one port, it has " + sz);
 			return null;
 		}
 		return (PortInst) portInsts.get(0);

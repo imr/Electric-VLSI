@@ -138,6 +138,7 @@ public class Highlight
 
 	/** Screen offset for display of highlighting. */			private static int highOffX, highOffY;
 	/** the highlighted objects. */								private static List highlightList = new ArrayList();
+	/** the stack of highlights. */								private static List highlightStack = new ArrayList();
     /** last list of highlighted objects */                     private static List lastHighlightsList = new ArrayList();
 
     /** List of HighlightListeners */                           private static List highlightListeners = new ArrayList();
@@ -254,6 +255,68 @@ public class Highlight
 		return h;
 	}
 
+	/**
+	 * Method to push the current highlight list onto a stack.
+	 */
+	public static synchronized void pushHighlight()
+	{
+		// make a copy of the highlighted list
+		List pushable = new ArrayList();
+		for(Iterator it = highlightList.iterator(); it.hasNext(); )
+			pushable.add(it.next());
+		highlightStack.add(pushable);
+	}
+
+	/**
+	 * Method to pop the current highlight list from the stack.
+	 */
+	public static synchronized void popHighlight()
+	{
+		int stackSize = highlightStack.size();
+		if (stackSize <= 0)
+		{
+			System.out.println("There is no highlighting saved on the highlight stack");
+			return;
+		}
+
+		// get the stacked highlight
+		List popable = (List)highlightStack.get(stackSize-1);
+		highlightStack.remove(stackSize-1);
+
+		// validate each highlight as it is added
+		clear();
+		for(Iterator it = popable.iterator(); it.hasNext(); )
+		{
+			Highlight h = (Highlight)it.next();
+			if (h.type == Type.EOBJ)
+			{
+				if (h.cell.objInCell(h.eobj))
+				{
+					Highlight newH = addElectricObject(h.eobj, h.cell);
+					newH.setPoint(h.point);
+				}
+			} else if (h.type == Type.TEXT)
+			{
+				if (h.cell.objInCell(h.eobj))
+				{
+					Highlight newH = Highlight.addText(h.eobj, h.cell, h.var, h.name);
+				}
+			} else if (h.type == Type.BBOX)
+			{
+				Highlight newH = addArea(h.bounds, h.cell);
+			} else if (h.type == Type.LINE)
+			{
+				Highlight newH = addLine(h.pt1, h.pt2, h.cell);
+			} else if (h.type == Type.THICKLINE)
+			{
+				Highlight newH = addThickLine(h.pt1, h.pt2, h.center, h.cell);
+			} else if (h.type == Type.MESSAGE)
+			{
+				Highlight newH = addMessage(h.cell, h.msg, h.center);
+			}
+		}
+		finished();
+	}
 	/**
 	 * Method to add a text selection to the list of highlighted objects.
 	 * @param cell the Cell in which this area resides.

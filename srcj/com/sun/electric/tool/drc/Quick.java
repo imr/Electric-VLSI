@@ -358,6 +358,7 @@ public class Quick
 		ErrorLog.initLogging("DRC");
 		if (count == 0)
 		{
+
 			// just do standard DRC here
 //			if (!dr_quickparalleldrc) begintraversehierarchy();
 			checkThisCell(cell, 0, bounds);

@@ -2257,6 +2257,32 @@ public class Cell extends NodeProto implements Comparable
 	}
 
 	/**
+	 * Method to tell whether an ElectricObject exists in this Cell.
+	 * Used when saving and restoring highlighting to ensure that the object still
+	 * exists.
+	 * @param eObj the ElectricObject in question
+	 * @return true if that ElectricObject is in this Cell.
+	 */
+	public boolean objInCell(ElectricObject eObj)
+	{
+		if (eObj instanceof NodeInst)
+		{
+			for(Iterator it = getNodes(); it.hasNext(); )
+				if ((ElectricObject)it.next() == eObj) return true;
+		} else if (eObj instanceof ArcInst)
+		{
+			for(Iterator it = getArcs(); it.hasNext(); )
+				if ((ElectricObject)it.next() == eObj) return true;
+		} else if (eObj instanceof PortInst)
+		{
+			NodeInst ni = ((PortInst)eObj).getNodeInst();
+			for(Iterator it = getNodes(); it.hasNext(); )
+				if ((ElectricObject)it.next() == ni) return true;
+		}
+		return false;
+	}
+
+	/**
 	 * Method to set change lock of cells in up-tree of this cell.
 	 */
 	public void setChangeLock()
