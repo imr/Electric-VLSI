@@ -77,7 +77,7 @@ public class MenuBar extends JMenuBar
      */
     public static class MenuBarGroup implements ActionListener {
 
-        /** all groups */                                               private static HashMap menuBarGroups = new HashMap();
+        /** all groups */                                               private static final HashMap menuBarGroups = new HashMap();
 
         /** Name of this group */                                       private String name;
         /** Preferences for User Bindings */                            private Preferences prefs;

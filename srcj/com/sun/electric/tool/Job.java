@@ -172,7 +172,7 @@ public abstract class Job implements ActionListener, Runnable {
 						job.started = true;
                         if (job instanceof InthreadExamineJob) {
                             // notify thread that it can run.
-                            InthreadExamineJob ijob = (InthreadExamineJob)job;
+                            final InthreadExamineJob ijob = (InthreadExamineJob)job;
                             boolean started = false;
                             synchronized(ijob.mutex) {
                                 if (ijob.waiting) {
@@ -236,7 +236,7 @@ public abstract class Job implements ActionListener, Runnable {
          * @param wait true to wait for lock if not available now, false to not wait
          * @return true if lock acquired, false otherwise (if wait is true, this method always returns true)
          */
-        private boolean addInthreadExamineJob(InthreadExamineJob j, boolean wait) {
+        private boolean addInthreadExamineJob(final InthreadExamineJob j, boolean wait) {
             synchronized(this) {
                 // check if change job running or queued: if so, can't run immediately
                 if (isChangeJobQueuedOrRunning()) {
@@ -765,7 +765,7 @@ public abstract class Job implements ActionListener, Runnable {
     }
 
     private static class SwingExamineJob extends Job {
-        /** Map of Runnables to waiting Jobs */         private static Map waitingJobs = new HashMap();
+        /** Map of Runnables to waiting Jobs */         private static final Map waitingJobs = new HashMap();
         /** The runnable to run in the Swing thread */  private Runnable task;
         /** the singular key */                         private Object singularKey;
 

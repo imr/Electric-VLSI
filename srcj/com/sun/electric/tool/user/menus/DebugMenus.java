@@ -1213,7 +1213,7 @@ public class DebugMenus {
 
     private static class TestObject {
         private int count;
-        private Object mutex;
+        private final Object mutex;
         private TestObject() {
             mutex = new Object();
             count = 0;
@@ -1245,7 +1245,7 @@ public class DebugMenus {
         }
 
         private static class CountJob extends Job {
-            private Object mutex;
+            private final Object mutex;
             private CountJob(Object mutex) {
                 super("CountJob", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
                 this.mutex = mutex;
