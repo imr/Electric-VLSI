@@ -1376,6 +1376,7 @@ public class ELIB1 extends LibraryFiles
 					if (readArcInst(arcIndex, stat))
 					{
 						System.out.println("Error reading arc");
+						ErrorLogger.MessageLog error = Input.errorLogger.logError("Error reading arc index "+ arcIndex, cell, 1);
 						return true;
 					}
 					arcIndex++;
@@ -1384,6 +1385,7 @@ public class ELIB1 extends LibraryFiles
 					if (readNodeInst(nodeIndex, cellIndex, stat))
 					{
 						System.out.println("Error reading node");
+						ErrorLogger.MessageLog error = Input.errorLogger.logError("Error reading node index "+ nodeIndex, cell, 1);
 						return true;
 					}
 					nodeIndex++;
@@ -1396,6 +1398,7 @@ public class ELIB1 extends LibraryFiles
 					if (readArcInst(arcIndex, stat))
 					{
 						System.out.println("Error reading arc");
+						ErrorLogger.MessageLog error = Input.errorLogger.logError("Error reading arc index "+ arcIndex, cell, 1);
 						return true;
 					}
 					arcIndex++;
@@ -1404,6 +1407,7 @@ public class ELIB1 extends LibraryFiles
 				{
 					if (readNodeInst(nodeIndex, cellIndex, stat))
 					{
+						ErrorLogger.MessageLog error = Input.errorLogger.logError("Error reading node index "+ nodeIndex, cell, 1);
 						System.out.println("Error reading node index " + nodeIndex + " in cell " + cell.describe() + " of library " + lib.getName());
 						return true;
 					}
