@@ -2630,7 +2630,7 @@ public final class MenuCommands
 				}
 			}
 
-			tree.print();
+			// tree.print();
 
 			// With polygons collected, new geometries are calculated
 			Highlight.clear();
@@ -2640,10 +2640,10 @@ public final class MenuCommands
 			for(Iterator it = tree.getKeyIterator(); it.hasNext(); )
 			{
 				Layer layer = (Layer)it.next();
-				List list = tree.getObjects(layer, (List)allLayers.get(layer));
+				Set set = tree.getObjects(layer, (List)allLayers.get(layer));
 
 				// Ready to create new implants.
-				for(Iterator i = list.iterator(); i.hasNext(); )
+				for(Iterator i = set.iterator(); i.hasNext(); )
 				{
 					Rectangle2D rect = (Rectangle2D)i.next();
 					Point2D center = new Point2D.Double(rect.getCenterX(), rect.getCenterY());

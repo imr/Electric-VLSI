@@ -77,16 +77,16 @@ public class PolyQTree {
 	 * @param layer
 	 * @return List contains all leave elements
 	 */
-	public List getObjects(Object layer, List excludeList)
+	public Set getObjects(Object layer, List excludeList)
 	{
-		List objList = new ArrayList();
+		Set objSet = new HashSet();
 		PolyQNode root = (PolyQNode)layers.get(layer);
 
 		if (root != null)
 		{
-			root.getLeafObjects(objList, excludeList);
+			root.getLeafObjects(objSet, excludeList);
 		}
-		return (objList);
+		return (objSet);
 	}
 
 	/**
@@ -111,7 +111,7 @@ public class PolyQTree {
 
 	private static class PolyQNode
     {
-		private List nodes;
+		private Set nodes; // If Set, no need to check whether they are duplicated or not. Java will do it for you
 		private PolyQNode[] children;
 
 		/**
@@ -167,27 +167,33 @@ public class PolyQTree {
 		}
 
 		/**
-		 * Collects recursive leaf elements in a list
-		 * @param list
+		 * Collects recursive leaf elements in a list. Uses set to avoid
+		 * duplicate elements (qtree could sort same element in all quadrants
+		 * @param set
+		 * @param excludeList list of original geometries
 		 */
-		protected void getLeafObjects(List list, List excludeList)
+		protected void getLeafObjects(Set set, List excludeList)
 		{
-			list.addAll(nodes);
-			if ( excludeList != null )
+			if (nodes != null)
 			{
-				// Make sure objects are not the originals
-				// Not sure how efficient this is
-				list.removeAll(excludeList);
+				set.addAll(nodes);
+				if ( excludeList != null )
+				{
+					// Make sure objects are not the originals
+					// Not sure how efficient this is
+					set.removeAll(excludeList);
+				}
 			}
 			if (children == null) return;
 			for (int i = 0; i < PolyQTree.MAX_NUM_CHILDREN; i++)
-				children[i].getLeafObjects(list, excludeList);
+				children[i].getLeafObjects(set, excludeList);
 		}
 		/**
 		 *   print function for debugging purposes
 		 */
 		protected void print()
 		{
+			if (nodes == null) return;
 			for (Iterator it = nodes.iterator(); it.hasNext();)
 				System.out.println("Rectangle " + (Rectangle2D)it.next());
 			if (children == null) return;
@@ -203,6 +209,30 @@ public class PolyQTree {
 		{
 			System.out.println("To implement") ;
 			return (false);
+		}
+
+		/**
+		 * Original Rectangle2D:intersects doesn't detect when two elements are touching
+		 * @param a
+		 * @param b
+		 * @return
+		 */
+		private static boolean intersects(Rectangle2D a, Rectangle2D b)
+		{
+			double x = b.getX();
+			double y = b.getY();
+			double w = b.getWidth();
+			double h = b.getHeight();
+
+			if (a.isEmpty() || w <= 0 || h <= 0) {
+	            return false;
+			}
+			double x0 = a.getX();
+			double y0 = a.getY();
+			return ((x + w) >= x0 &&
+				(y + h) >= y0 &&
+				x <= (x0 + a.getWidth()) &&
+				y <= (y0 + a.getHeight()));
 		}
 
 		/**
@@ -242,6 +272,7 @@ public class PolyQTree {
 
 					// I should test equals first?
 					if (!node.equals(obj) && node.intersects(obj))
+					//if (!node.equals(obj) && intersects(node, obj))
 					{
 						obj.add(node);
 						deleteList.add(node);
@@ -284,7 +315,7 @@ public class PolyQTree {
 			}
 			if (nodes == null)
 			{
-				nodes = new ArrayList();
+				nodes = new HashSet();
 			}
 			if (nodes.size() < PolyQTree.MAX_NUM_CHILDREN)
 			{
