@@ -28,6 +28,7 @@ import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
@@ -551,7 +552,7 @@ public class ErrorLog
 						break;
 				}
 				if (showCell == null) continue;
-				cells.add(showCell);
+				cells.add(showCell.describe());
 			}
 
 			// be sure that all requested cells are shown
@@ -559,7 +560,8 @@ public class ErrorLog
 			for(Iterator it = cells.iterator(); it.hasNext(); )
 			{	
 				// see if the cell is already being displayed
-				Cell showCell = (Cell)it.next();
+				String cellName = (String)it.next();
+				Cell showCell = (Cell)NodeProto.findNodeProto(cellName);
 //				for(w = el_topwindowpart; w != NOWINDOWPART; w = w->nextwindowpart)
 //					if (w->curnodeproto == showCell) break;
 //				if (w != NOWINDOWPART)

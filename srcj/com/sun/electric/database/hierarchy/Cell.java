@@ -42,6 +42,7 @@ import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
@@ -906,7 +907,27 @@ public class Cell extends NodeProto
 			for(int i = 0; i < nodes.size(); i++ )
 			{
 				NodeInst ni = (NodeInst) nodes.get(i);
-				if (ni.getProto() == Generic.tech.cellCenterNode) continue;
+				NodeProto np = ni.getProto();
+
+				// special case: do not include "cell center" or "essential-bounds" primitives from Generic
+				if (np == Generic.tech.cellCenterNode || np == Generic.tech.essentialBoundsNode) continue;
+
+				// special case for invisible pins: do not include if inheritable or interior-only
+				if (np == Generic.tech.invisiblePinNode)
+				{
+					boolean found = false;
+					for(Iterator it = ni.getVariables(); it.hasNext(); )
+					{
+						Variable var = (Variable)it.next();
+						if (var.isDisplay())
+						{
+							TextDescriptor td = var.getTextDescriptor();
+							if (td.isInterior() || td.isInherit()) { found = true;   break; }
+						}
+					}
+					if (found) continue;
+				}
+
 				Rectangle2D bounds = ni.getBounds();
 				double lowx = bounds.getMinX();
 				double highx = bounds.getMaxX();

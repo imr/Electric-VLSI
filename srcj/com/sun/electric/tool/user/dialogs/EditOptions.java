@@ -1465,7 +1465,7 @@ public class EditOptions extends javax.swing.JDialog
         jLabel40 = new javax.swing.JLabel();
         layerName = new javax.swing.JComboBox();
         colors = new javax.swing.JPanel();
-        jColorChooser1 = new javax.swing.JColorChooser();
+        colorChooser = new javax.swing.JColorChooser();
         text = new javax.swing.JPanel();
         top = new javax.swing.JPanel();
         jLabel41 = new javax.swing.JLabel();
@@ -1563,8 +1563,8 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         general.add(generalBeepAfterLongJobs, gridBagConstraints);
 
         generalPlayClickSounds.setText("Click sounds when arcs are created");
@@ -1572,8 +1572,8 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         general.add(generalPlayClickSounds, gridBagConstraints);
 
         generalExpandableDialogsFull.setText("Expandable dialogs default to full-size");
@@ -1581,8 +1581,8 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         general.add(generalExpandableDialogsFull, gridBagConstraints);
 
         generalIncludeDateAndVersion.setText("Include date and version in output files");
@@ -1590,8 +1590,8 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         general.add(generalIncludeDateAndVersion, gridBagConstraints);
 
         generalShowFileDialog.setText("Show file-selection dialog before writing netlists");
@@ -1599,16 +1599,16 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         general.add(generalShowFileDialog, gridBagConstraints);
 
         jLabel46.setText("Maximum errors to report:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         general.add(jLabel46, gridBagConstraints);
 
         generalErrorLimit.setColumns(6);
@@ -1623,8 +1623,8 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 6;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         general.add(jLabel50, gridBagConstraints);
 
         generalMotionHysteresis.setColumns(6);
@@ -1744,7 +1744,6 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
         newNode.add(jPanel2, gridBagConstraints);
 
         jPanel3.setLayout(new java.awt.GridBagLayout());
@@ -1806,7 +1805,6 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
         newNode.add(jPanel3, gridBagConstraints);
 
         jPanel4.setLayout(new java.awt.GridBagLayout());
@@ -1868,7 +1866,6 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
         newNode.add(jPanel4, gridBagConstraints);
 
         tabPane.addTab("New Nodes", newNode);
@@ -1931,7 +1928,6 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
         newArc.add(jPanel7, gridBagConstraints);
 
         jPanel8.setLayout(new java.awt.GridBagLayout());
@@ -1992,16 +1988,14 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
         newArc.add(jPanel8, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         newArc.add(arcProtoList, gridBagConstraints);
 
         jLabel5.setText("For Arc:");
@@ -2332,7 +2326,6 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 7;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         icon.add(iconCurrentCell, gridBagConstraints);
 
@@ -2481,7 +2474,6 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
         icon.add(jPanel5, gridBagConstraints);
 
         jLabel31.setText("Instance location:");
@@ -2598,7 +2590,6 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
         icon.add(jPanel6, gridBagConstraints);
 
         iconReverseOrder.setText("Place Exports in Reverse Alphabetical Order");
@@ -2754,7 +2745,6 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
         grid.add(gridPart, gridBagConstraints);
 
         alignPart.setLayout(new java.awt.GridBagLayout());
@@ -2808,7 +2798,6 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
         grid.add(alignPart, gridBagConstraints);
 
         tabPane.addTab("Grid/Alignment", grid);
@@ -2837,7 +2826,7 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        colors.add(jColorChooser1, gridBagConstraints);
+        colors.add(colorChooser, gridBagConstraints);
 
         tabPane.addTab("Colors", colors);
 
@@ -3406,7 +3395,6 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
         technology.add(jPanel1, gridBagConstraints);
 
         jPanel9.setLayout(new java.awt.GridBagLayout());
@@ -3472,8 +3460,8 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(4, 40, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 40, 4, 4);
         getContentPane().add(cancel, gridBagConstraints);
 
         ok.setText("OK");
@@ -3488,8 +3476,8 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 40);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 40);
         getContentPane().add(ok, gridBagConstraints);
 
         pack();
@@ -3539,6 +3527,7 @@ public class EditOptions extends javax.swing.JDialog
     private javax.swing.JTextField arcWidth;
     private javax.swing.JPanel bottom;
     private javax.swing.JButton cancel;
+    private javax.swing.JColorChooser colorChooser;
     private javax.swing.JPanel colors;
     private javax.swing.ButtonGroup exportGroup;
     private javax.swing.JPanel frame;
@@ -3593,7 +3582,6 @@ public class EditOptions extends javax.swing.JDialog
     private javax.swing.JComboBox iconOutputPos;
     private javax.swing.JComboBox iconPowerPos;
     private javax.swing.JCheckBox iconReverseOrder;
-    private javax.swing.JColorChooser jColorChooser1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;

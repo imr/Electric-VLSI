@@ -177,17 +177,29 @@ public class DRC extends Tool
 	{
 		Cell curCell = Library.needCurCell();
 		if (curCell == null) return;
-        CheckHierarchically job = new CheckHierarchically(curCell);
+        CheckHierarchically job = new CheckHierarchically(curCell, false);
+	}
+
+	/**
+	 * Method to check the selected area of the current cell hierarchically.
+	 */
+	public static void checkAreaHierarchically()
+	{
+		Cell curCell = Library.needCurCell();
+		if (curCell == null) return;
+        CheckHierarchically job = new CheckHierarchically(curCell, true);
 	}
 
 	protected static class CheckHierarchically extends Job
 	{
 		Cell cell;
+		boolean justArea;
 
-		protected CheckHierarchically(Cell cell)
+		protected CheckHierarchically(Cell cell, boolean justArea)
 		{
 			super("Design-Rule Check", tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.cell = cell;
+			this.justArea = justArea;
 			this.startJob();
 		}
 
@@ -197,19 +209,12 @@ public class DRC extends Tool
 			if (cell.getView() == View.SCHEMATIC || cell.getTechnology() == Schematics.tech)
 			{
 				// hierarchical check of schematics
-				System.out.println("Cannot do Schematic DRC yet");
-//				for(lib = el_curlib; lib != NOLIBRARY; lib = lib->nextlibrary)
-//					for(np = lib->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
-//						np->temp1 = 0;
-//				initerrorlogging(_("Schematic DRC"));
-				DRCSchematics.dr_checkschematiccellrecursively(cell);
-//				dr_checkschematiccellrecursively(cell);
-//				errorcount = numerrors();
-//				if (errorcount != 0) ttyputmsg(_("TOTAL OF %ld ERRORS FOUND"), errorcount);
-//				termerrorlogging(TRUE);
-				return;
+				DRCSchematics.doCheck(cell);
+			} else
+			{
+				// hierarchical check of layout
+				DRCQuick.doCheck(cell, 0, null, null, justArea);
 			}
-			DRCQuick.doCheck(cell, 0, null, null, false);
 			long endTime = System.currentTimeMillis();
 			int errorcount = ErrorLog.numErrors();
 			System.out.println(errorcount + " errors found (took " + Job.getElapsedTime(endTime - startTime) + ")");

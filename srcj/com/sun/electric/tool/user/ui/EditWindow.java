@@ -407,13 +407,14 @@ public class EditWindow extends JPanel
 			} else
 			{
 				// draw the outline
-				Poly poly = new Poly(ni.getBounds());
+				Rectangle2D bounds = ni.getBounds();
+				Poly poly = new Poly(bounds.getCenterX(), bounds.getCenterY(), ni.getXSize(), ni.getYSize());
 				AffineTransform localPureTrans = ni.rotateOutAboutTrueCenter(trans);
 				poly.transform(localPureTrans);
 				g2.setColor(Color.black);
 				g2.setStroke(solidLine);
 				g2.draw(poly);
-				Rectangle2D bounds = poly.getBounds2D();
+				bounds = poly.getBounds2D();
 				TextDescriptor descript = ni.getProtoTextDescriptor();
 				drawText(g2, bounds.getMinX(), bounds.getMaxX(), bounds.getMinY(), bounds.getMaxY(),
 					Poly.Type.TEXTBOX, descript, np.describe(), Color.black);
@@ -1059,8 +1060,6 @@ public class EditWindow extends JPanel
 	 */
 	public void setOffset(Point2D off) { offx = off.getX();   offy = off.getY(); }
 
-	private static final double SCALEFACTOR = 50;
-
 	/**
 	 * Method called when the bottom scrollbar changes.
 	 */
@@ -1074,10 +1073,12 @@ public class EditWindow extends JPanel
 
 		JScrollBar bottom = this.wf.getBottomScrollBar();
 		int xThumbPos = bottom.getValue();
-		int computedXThumbPos = (int)((offx - xCenter) / xWidth * SCALEFACTOR) + 100;
+		int scrollBarResolution = WindowFrame.getScrollBarResolution();
+		double scaleFactor = scrollBarResolution / 4;
+		int computedXThumbPos = (int)((offx - xCenter) / xWidth * scaleFactor) + scrollBarResolution/2;
 		if (computedXThumbPos != xThumbPos)
 		{
-			offx = (xThumbPos-100.0)/SCALEFACTOR * xWidth + xCenter;
+			offx = (xThumbPos-scrollBarResolution/2)/scaleFactor * xWidth + xCenter;
 			redraw();
 		}
 	}
@@ -1095,10 +1096,12 @@ public class EditWindow extends JPanel
 
 		JScrollBar right = this.wf.getRightScrollBar();
 		int yThumbPos = right.getValue();
-		int computedYThumbPos = (int)((yCenter - offy) / yHeight * SCALEFACTOR) + 100;
+		int scrollBarResolution = WindowFrame.getScrollBarResolution();
+		double scaleFactor = scrollBarResolution / 4;
+		int computedYThumbPos = (int)((yCenter - offy) / yHeight * scaleFactor) + scrollBarResolution/2;
 		if (computedYThumbPos != yThumbPos)
 		{
-			offy = yCenter - (yThumbPos - 100.0) / SCALEFACTOR * yHeight;
+			offy = yCenter - (yThumbPos - scrollBarResolution/2) / scaleFactor * yHeight;
 			redraw();
 		}
 	}
@@ -1115,15 +1118,18 @@ public class EditWindow extends JPanel
 		right.setEnabled(cell != null);
 		if (cell != null)
 		{
+			int scrollBarResolution = WindowFrame.getScrollBarResolution();
+			double scaleFactor = scrollBarResolution / 4;
+
 			Rectangle2D bounds = cell.getBounds();
 			double xWidth = bounds.getWidth();
 			double xCenter = bounds.getCenterX();
-			int xThumbPos = (int)((offx - xCenter) / xWidth * SCALEFACTOR) + 100;
+			int xThumbPos = (int)((offx - xCenter) / xWidth * scaleFactor) + scrollBarResolution/2;
 			bottom.setValue(xThumbPos);
 
 			double yHeight = bounds.getHeight();
 			double yCenter = bounds.getCenterY();
-			int yThumbPos = (int)((yCenter - offy) / yHeight * SCALEFACTOR) + 100;
+			int yThumbPos = (int)((yCenter - offy) / yHeight * scaleFactor) + scrollBarResolution/2;
 			right.setValue(yThumbPos);
 		}
 	}

@@ -287,6 +287,10 @@ public class ToolOptions extends javax.swing.JDialog
 				requestedDRCClearDates = true;
 			}
 		});
+
+		drcIncrementalOn.setEnabled(false);
+		drcUseMultipleThreads.setEnabled(false);
+		drcNumberOfThreads.setEditable(false);
 		drcEditRulesDeck.setEnabled(false);		
 	}
 

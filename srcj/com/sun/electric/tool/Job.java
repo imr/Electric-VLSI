@@ -32,6 +32,7 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.user.ui.ExplorerTree;
+import com.sun.electric.tool.user.User;
 
 import java.lang.Thread;
 import java.util.List;
@@ -47,6 +48,7 @@ import javax.swing.JMenuItem;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.Point;
+import java.awt.Toolkit;
 
 /**
  * Jobs are processes that will run in the background, such as 
@@ -316,7 +318,10 @@ public abstract class Job implements ActionListener, Runnable {
 		// say something if it took more than a minute
 		if (endTime - startTime >= 60*1000)
 		{
-			// TODO : should 'ding' or make some noise so the user knows the job is done
+			if (User.isBeepAfterLongJobs())
+			{
+				Toolkit.getDefaultToolkit().beep();
+			}
 			System.out.println(this.getInfo());
 		}
     }

@@ -392,6 +392,8 @@ public final class UserMenuCommands
 		toolMenu.add(drcSubMenu);
 		drcSubMenu.addMenuItem("Check Hierarchically", KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0), 
             new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(); }});
+		drcSubMenu.addMenuItem("Check Selection Area Hierarchically", null, 
+            new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkAreaHierarchically(); }});
 
 		Menu simulationSubMenu = Menu.createMenu("Simulation (SPICE)", 'S');
 		toolMenu.add(simulationSubMenu);

@@ -23,660 +23,733 @@
  */
 package com.sun.electric.tool.drc;
 
+import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Name;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.FlagSet;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.user.ErrorLog;
+
+import java.util.Iterator;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 
 public class DRCSchematics
 {
-	public static void dr_checkschematiccellrecursively(Cell cell)
+	private static FlagSet cellsCheckedBit;
+
+	public static void doCheck(Cell cell)
 	{
-//		cell->temp1 = 1;
-//		for(ni = cell->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//		{
-//			if (ni->proto->primindex != 0) continue;
-//			cnp = contentsview(ni->proto);
-//			if (cnp == NONODEPROTO) cnp = ni->proto;
-//			if (cnp->temp1 != 0) continue;
-//
-//			// ignore documentation icon
-//			if (isiconof(ni->proto, cell)) continue;
-//
-//			dr_checkschematiccellrecursively(cnp);
-//		}
-//
-//		// now check this cell
-//		ttyputmsg(_("Checking schematic cell %s"), describenodeproto(cell));
-//		dr_checkschematiccell(cell, FALSE);
+		cellsCheckedBit = NodeProto.getFlagSet(1);
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			{
+				Cell c = (Cell)cIt.next();
+				c.clearBit(cellsCheckedBit);
+			}
+		}
+
+		ErrorLog.initLogging("Schematic DRC");
+		checkSchematicCellRecursively(cell);
+		ErrorLog.termLogging(true);
+		cellsCheckedBit.freeFlagSet();
 	}
 
-//	void dr_checkschematiccell(NODEPROTO *cell, BOOLEAN justthis)
-//	{
-//		REGISTER NODEINST *ni;
-//		REGISTER ARCINST *ai;
-//		REGISTER INTBIG errorcount, initialerrorcount, thiserrors;
-//		REGISTER CHAR *indent;
-//
-//		if (justthis) initerrorlogging(_("Schematic DRC"));
-//		initialerrorcount = numerrors();
-//		for(ni = cell->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//			dr_schdocheck(ni->geom);
-//		for(ai = cell->firstarcinst; ai != NOARCINST; ai = ai->nextarcinst)
-//			dr_schdocheck(ai->geom);
-//		errorcount = numerrors();
-//		thiserrors = errorcount - initialerrorcount;
-//		if (justthis) indent = x_(""); else
-//			indent = x_("   ");
-//		if (thiserrors == 0) ttyputmsg(_("%sNo errors found"), indent); else
-//			ttyputmsg(_("%s%ld errors found"), indent, thiserrors);
-//		if (justthis) termerrorlogging(TRUE);
-//	}
+	private static void checkSchematicCellRecursively(Cell cell)
+	{
+		cell.setBit(cellsCheckedBit);
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			NodeProto np = ni.getProto();
+			if (!(np instanceof Cell)) continue;
+			Cell subCell = (Cell)np;
+
+			Cell contentsCell = subCell.contentsView();
+			if (contentsCell == null) contentsCell = subCell;
+			if (contentsCell.isBit(cellsCheckedBit)) continue;
+
+			// ignore documentation icon
+			if (ni.isIconOfParent()) continue;
+
+			checkSchematicCellRecursively(contentsCell);
+		}
+
+		// now check this cell
+		System.out.println("Checking schematic cell " + cell.describe());
+		checkSchematicCell(cell, false);
+	}
+
+	private static void checkSchematicCell(Cell cell, boolean justThis)
+	{
+		if (justThis) ErrorLog.initLogging("Schematic DRC");
+		int initialErrorCount = ErrorLog.numErrors();
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			schematicDoCheck(ni);
+		}
+		for(Iterator it = cell.getArcs(); it.hasNext(); )
+		{
+			ArcInst ai = (ArcInst)it.next();
+			schematicDoCheck(ai);
+		}
+		int errorCount = ErrorLog.numErrors();
+		int thisErrors = errorCount - initialErrorCount;
+		String indent = "   ";
+		if (justThis) indent = "";
+		if (thisErrors == 0) System.out.println(indent + "No errors found"); else
+			System.out.println(indent + thisErrors + " errors found");
+		if (justThis) ErrorLog.termLogging(true);
+	}
 
 	/*
-	 * Routine to check schematic object "geom".
+	 * Method to check schematic object "geom".
 	 */
-//	void dr_schdocheck(GEOM *geom)
-//	{
-//		REGISTER NODEPROTO *cell, *np;
-//		REGISTER NODEINST *ni;
-//		REGISTER ARCINST *ai;
-//		ARCINST **thearcs;
-//		REGISTER PORTARCINST *pi;
-//		REGISTER PORTPROTO *pp;
-//		REGISTER VARIABLE *var, *fvar;
-//		REGISTER BOOLEAN checkdangle;
-//		REGISTER INTBIG i, j, fun, signals, portwidth, nodesize;
-//		INTBIG x, y;
-//		void *err, *infstr;
-//		UINTBIG descript[TEXTDESCRIPTSIZE];
-//
-//		cell = geomparent(geom);
-//		if (geom->entryisnode)
-//		{
-//			ni = geom->entryaddr.ni;
-//
-//			// check for bus pins that don't connect to any bus arcs
-//			if (ni->proto == sch_buspinprim)
-//			{
-//				// proceed only if it has no exports on it
-//				if (ni->firstportexpinst == NOPORTEXPINST)
-//				{
-//					// must not connect to any bus arcs
-//					for(pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//						if (pi->conarcinst->proto == sch_busarc) break;
-//					if (pi == NOPORTARCINST)
-//					{
-//						err = logerror(_("Bus pin does not connect to any bus arcs"), cell, 0);
-//						addgeomtoerror(err, geom, TRUE, 0, 0);
-//						return;
-//					}
-//				}
-//
-//				// flag bus pin if more than 1 wire is connected
-//				i = 0;
-//				for(pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//					if (pi->conarcinst->proto == sch_wirearc) i++;
-//				if (i > 1)
-//				{
-//					err = logerror(_("Wire arcs cannot connect through a bus pin"), cell, 0);
-//					addgeomtoerror(err, geom, TRUE, 0, 0);
-//					for(pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//						if (pi->conarcinst->proto == sch_wirearc)
-//							addgeomtoerror(err, pi->conarcinst->geom, TRUE, 0, 0);
-//					return;
-//				}
-//			}
-//
-//			// check all pins
-//			if ((ni->proto->userbits&NFUNCTION) >> NFUNCTIONSH == NPPIN)
-//			{
-//				// may be stranded if there are no exports or arcs
-//				if (ni->firstportexpinst == NOPORTEXPINST && ni->firstportarcinst == NOPORTARCINST)
-//				{
-//					// see if the pin has displayable variables on it
-//					for(i=0; i<ni->numvar; i++)
-//					{
-//						var = &ni->firstvar[i];
-//						if ((var->type&VDISPLAY) != 0) break;
-//					}
-//					if (i >= ni->numvar)
-//					{
-//						err = logerror(_("Stranded pin (not connected or exported)"), cell, 0);
-//						addgeomtoerror(err, geom, TRUE, 0, 0);
-//						return;
-//					}
-//				}
-//
-//				if (isinlinepin(ni, &thearcs))
-//				{
-//					err = logerror(_("Unnecessary pin (between 2 arcs)"), cell, 0);
-//					addgeomtoerror(err, geom, TRUE, 0, 0);
-//					return;
-//				}
-//
-//				if (invisiblepinwithoffsettext(ni, &x, &y, FALSE))
-//				{
-//					err = logerror(_("Invisible pin has text in different location"), cell, 0);
-//					addgeomtoerror(err, geom, TRUE, 0, 0);
-//					addlinetoerror(err, (ni->lowx+ni->highx)/2, (ni->lowy+ni->highy)/2, x, y);
-//					return;
-//				}
-//			}
-//
-//			// check parameters
-//			if (ni->proto->primindex == 0)
-//			{
-//				np = contentsview(ni->proto);
-//				if (np == NONODEPROTO) np = ni->proto;
-//
-//				// ensure that this node matches the parameter list
-//				for(i=0; i<ni->numvar; i++)
-//				{
-//					var = &ni->firstvar[i];
-//					if (TDGETISPARAM(var->textdescript) == 0) continue;
-//					fvar = NOVARIABLE;
-//					for(j=0; j<np->numvar; j++)
-//					{
-//						fvar = &np->firstvar[j];
-//						if (TDGETISPARAM(fvar->textdescript) == 0) continue;
-//						if (namesame(makename(var->key), makename(fvar->key)) == 0) break;
-//					}
-//					if (j >= np->numvar)
-//					{
-//						// this node's parameter is no longer on the cell: delete from instance
-//						infstr = initinfstr();
-//						formatinfstr(infstr, _("Parameter '%s' on node %s is invalid and has been deleted"),
-//							truevariablename(var), describenodeinst(ni));
-//						err = logerror(returninfstr(infstr), cell, 0);
-//						addgeomtoerror(err, geom, TRUE, 0, 0);
-//						startobjectchange((INTBIG)ni, VNODEINST);
-//						(void)delvalkey((INTBIG)ni, VNODEINST, var->key);
-//						endobjectchange((INTBIG)ni, VNODEINST);
+	private static void schematicDoCheck(Geometric geom)
+	{
+		Cell cell = geom.getParent();
+		if (geom instanceof NodeInst)
+		{
+			NodeInst ni = (NodeInst)geom;
+			NodeProto np = ni.getProto();
+
+			// check for bus pins that don't connect to any bus arcs
+			if (np == Schematics.tech.busPinNode)
+			{
+				// proceed only if it has no exports on it
+				if (ni.getNumExports() == 0)
+				{
+					// must not connect to any bus arcs
+					boolean found = false;
+					for(Iterator it = ni.getConnections(); it.hasNext(); )
+					{
+						Connection con = (Connection)it.next();
+						if (con.getArc().getProto() == Schematics.tech.bus_arc) { found = true;   break; }
+					}
+					if (!found)
+					{
+						ErrorLog err = ErrorLog.logError("Bus pin does not connect to any bus arcs", cell, 0);
+						err.addGeom(geom, true, 0, null);
+						return;
+					}
+				}
+
+				// flag bus pin if more than 1 wire is connected
+				int i = 0;
+				for(Iterator it = ni.getConnections(); it.hasNext(); )
+				{
+					Connection con = (Connection)it.next();
+					if (con.getArc().getProto() == Schematics.tech.wire_arc) i++;
+				}
+				if (i > 1)
+				{
+					ErrorLog err = ErrorLog.logError("Wire arcs cannot connect through a bus pin", cell, 0);
+					err.addGeom(geom, true, 0, null);
+					for(Iterator it = ni.getConnections(); it.hasNext(); )
+					{
+						Connection con = (Connection)it.next();
+						if (con.getArc().getProto() == Schematics.tech.wire_arc) i++;
+							err.addGeom(con.getArc(), true, 0, null);
+					}
+					return;
+				}
+			}
+
+			// check all pins
+			if (np.getFunction() == NodeProto.Function.PIN)
+			{
+				// may be stranded if there are no exports or arcs
+				if (ni.getNumExports() == 0 && ni.getNumConnections() == 0)
+				{
+					// see if the pin has displayable variables on it
+					boolean found = false;
+					for(Iterator it = ni.getVariables(); it.hasNext(); )
+					{
+						Variable var = (Variable)it.next();
+						if (var.isDisplay()) { found = true;   break; }
+					}
+					if (!found)
+					{
+						ErrorLog err = ErrorLog.logError("Stranded pin (not connected or exported)", cell, 0);
+						err.addGeom(geom, true, 0, null);
+						return;
+					}
+				}
+
+				if (ni.isInlinePin())
+				{
+					ErrorLog err = ErrorLog.logError("Unnecessary pin (between 2 arcs)", cell, 0);
+					err.addGeom(geom, true, 0, null);
+					return;
+				}
+
+				Point2D pinLoc = ni.invisiblePinWithOffsetText(false);
+				if (pinLoc != null)
+				{
+					ErrorLog err = ErrorLog.logError("Invisible pin has text in different location", cell, 0);
+					err.addGeom(geom, true, 0, null);
+					err.addLine(ni.getGrabCenterX(), ni.getGrabCenterY(), pinLoc.getX(), pinLoc.getY());
+					return;
+				}
+			}
+
+			// check parameters
+			if (np instanceof Cell)
+			{
+				Cell instCell = (Cell)np;
+				Cell contentsCell = instCell.contentsView();
+				if (contentsCell == null) contentsCell = instCell;
+
+				// ensure that this node matches the parameter list
+				for(Iterator it = ni.getVariables(); it.hasNext(); )
+				{
+					Variable var = (Variable)it.next();
+					TextDescriptor td = var.getTextDescriptor();
+					if (!td.isParam()) continue;
+
+					TextDescriptor foundTD = null;
+					for(Iterator cIt = contentsCell.getVariables(); cIt.hasNext(); )
+					{
+						Variable fVar = (Variable)cIt.next();
+						TextDescriptor fTd = fVar.getTextDescriptor();
+						if (!fTd.isParam()) continue;
+						if (var.getKey() == fVar.getKey()) { foundTD = fTd;   break; }
+					}
+					if (foundTD == null)
+					{
+						// this node's parameter is no longer on the cell: delete from instance
+						String trueVarName = var.getTrueName();
+						ErrorLog err = ErrorLog.logError("Parameter '" + trueVarName + "' on node " + ni.describe() +
+//							" is invalid and has been deleted", cell, 0);
+							" is invalid", cell, 0);
+						err.addGeom(geom, true, 0, null);
+
+						// this is broken:
+//						ni.delVar(var.getKey());
 //						i--;
-//					} else
-//					{
-//						// this node's parameter is still on the cell: make sure units are OK
-//						if (TDGETUNITS(var->textdescript) != TDGETUNITS(fvar->textdescript))
-//						{
-//							infstr = initinfstr();
-//							formatinfstr(infstr, _("Parameter '%s' on node %s had incorrect units (now fixed)"),
-//								truevariablename(var), describenodeinst(ni));
-//							err = logerror(returninfstr(infstr), cell, 0);
-//							addgeomtoerror(err, geom, TRUE, 0, 0);
-//							startobjectchange((INTBIG)ni, VNODEINST);
-//							TDCOPY(descript, var->textdescript);
-//							TDSETUNITS(descript, TDGETUNITS(fvar->textdescript));
-//							modifydescript((INTBIG)ni, VNODEINST, var, descript);
-//							endobjectchange((INTBIG)ni, VNODEINST);
-//						}
-//
-//						// make sure visibility is OK
-//						if (TDGETINTERIOR(fvar->textdescript) != 0)
-//						{
-//							if ((var->type&VDISPLAY) != 0)
-//							{
-//								infstr = initinfstr();
-//								formatinfstr(infstr, _("Parameter '%s' on node %s should not be visible (now fixed)"),
-//									truevariablename(var), describenodeinst(ni));
-//								err = logerror(returninfstr(infstr), cell, 0);
-//								addgeomtoerror(err, geom, TRUE, 0, 0);
-//								startobjectchange((INTBIG)ni, VNODEINST);
-//								var->type &= ~VDISPLAY;
-//								endobjectchange((INTBIG)ni, VNODEINST);
-//							}
-//						} else
-//						{
-//							if ((var->type&VDISPLAY) == 0)
-//							{
-//								infstr = initinfstr();
-//								formatinfstr(infstr, _("Parameter '%s' on node %s should be visible (now fixed)"),
-//									truevariablename(var), describenodeinst(ni));
-//								err = logerror(returninfstr(infstr), cell, 0);
-//								addgeomtoerror(err, geom, TRUE, 0, 0);
-//								startobjectchange((INTBIG)ni, VNODEINST);
-//								var->type |= VDISPLAY;
-//								endobjectchange((INTBIG)ni, VNODEINST);
-//							}
-//						}
-//					}
-//				}
-//			}
-//		} else
-//		{
-//			ai = geom->entryaddr.ai;
-//
-//			// check for being floating if it does not have a visible name on it
-//			var = getvalkey((INTBIG)ai, VARCINST, -1, el_arc_name_key);
-//			if (var == NOVARIABLE || (var->type&VDISPLAY) == 0) checkdangle = TRUE; else
-//				checkdangle = FALSE;
-//			if (checkdangle)
-//			{
-//				// do not check for dangle when busses are on named networks
-//				if (ai->proto == sch_busarc)
+					} else
+					{
+						// this node's parameter is still on the cell: make sure units are OK
+						if (td.getUnit() != foundTD.getUnit())
+						{
+							String trueVarName = var.getTrueName();
+							ErrorLog err = ErrorLog.logError("Parameter '" + trueVarName + "' on node " + ni.describe() +
+								" had incorrect units (now fixed)", cell, 0);
+							err.addGeom(geom, true, 0, null);
+							td.setUnit(foundTD.getUnit());
+						}
+
+						// make sure visibility is OK
+						if (foundTD.isInterior())
+						{
+							if (var.isDisplay())
+							{
+								String trueVarName = var.getTrueName();
+								ErrorLog err = ErrorLog.logError("Parameter '" + trueVarName + "' on node " + ni.describe() +
+									" should not be visible (now fixed)", cell, 0);
+								err.addGeom(geom, true, 0, null);
+								var.clearDisplay();
+							}
+						} else
+						{
+							if (!var.isDisplay())
+							{
+								String trueVarName = var.getTrueName();
+								ErrorLog err = ErrorLog.logError("Parameter '" + trueVarName + "' on node " + ni.describe() +
+									" should be visible (now fixed)", cell, 0);
+								err.addGeom(geom, true, 0, null);
+								var.setDisplay();
+							}
+						}
+					}
+				}
+			}
+		} else
+		{
+			ArcInst ai = (ArcInst)geom;
+
+			// check for being floating if it does not have a visible name on it
+			boolean checkDangle = false;
+			Name arcName = ai.getNameKey();
+			if (arcName == null || arcName.isTempname()) checkDangle = true;
+			if (checkDangle)
+			{
+				// do not check for dangle when busses are on named networks
+//				if (ai.getProto() == Schematics.tech.bus_arc)
 //				{
-//					if (ai->network->namecount > 0 && ai->network->tempname == 0) checkdangle = FALSE;
+//					if (ai->network->namecount > 0 && ai->network->tempname == 0) checkDangle = false;
 //				}
-//			}
-//			if (checkdangle)
-//			{
-//				// check to see if this arc is floating
-//				for(i=0; i<2; i++)
-//				{
-//					ni = ai->end[i].nodeinst;
-//
-//					// OK if not a pin
-//					fun = nodefunction(ni);
-//					if (fun != NPPIN) continue;
-//
-//					// OK if it has exports on it
-//					if (ni->firstportexpinst != NOPORTEXPINST) continue;
-//
-//					// OK if it connects to more than 1 arc
-//					if (ni->firstportarcinst == NOPORTARCINST) continue;
-//					if (ni->firstportarcinst->nextportarcinst != NOPORTARCINST) continue;
-//
-//					// the arc dangles
-//					err = logerror(_("Arc dangles"), cell, 0);
-//					addgeomtoerror(err, geom, TRUE, 0, 0);
-//					return;
-//				}
-//			}
-//
-//
-//			// check to see if its width is sensible
-//			signals = ai->network->buswidth;
-//			if (signals < 1) signals = 1;
-//			for(i=0; i<2; i++)
-//			{
-//				ni = ai->end[i].nodeinst;
-//				if (ni->proto->primindex != 0) continue;
-//				np = contentsview(ni->proto);
-//				if (np == NONODEPROTO) np = ni->proto;
-//				pp = equivalentport(ni->proto, ai->end[i].portarcinst->proto, np);
-//				if (pp == NOPORTPROTO)
-//				{
-//					infstr = initinfstr();
-//					formatinfstr(infstr, _("Arc %s connects to port %s of node %s, but there is no equivalent port in cell %s"),
-//						describearcinst(ai), ai->end[i].portarcinst->proto->protoname, describenodeinst(ni), describenodeproto(np));
-//					err = logerror(returninfstr(infstr), cell, 0);
-//					addgeomtoerror(err, geom, TRUE, 0, 0);
-//					addgeomtoerror(err, ni->geom, TRUE, 0, 0);
-//					continue;
-//				}
-//				portwidth = pp->network->buswidth;
-//				if (portwidth < 1) portwidth = 1;
-//				nodesize = ni->arraysize;
-//				if (nodesize <= 0) nodesize = 1;
-//				if (signals != portwidth && signals != portwidth*nodesize)
-//				{
-//					infstr = initinfstr();
-//					formatinfstr(infstr, _("Arc %s (%ld wide) connects to port %s of node %s (%ld wide)"),
-//						describearcinst(ai), signals, pp->protoname, describenodeinst(ni), portwidth);
-//					err = logerror(returninfstr(infstr), cell, 0);
-//					addgeomtoerror(err, geom, TRUE, 0, 0);
-//					addgeomtoerror(err, ni->geom, TRUE, 0, 0);
-//				}
-//			}
-//		}
-//
-//		// check for overlap
-//		dr_schcheckobjectvicinity(geom, geom, el_matid);
-//	}
+			}
+			if (checkDangle)
+			{
+				// check to see if this arc is floating
+				for(int i=0; i<2; i++)
+				{
+					Connection con = ai.getConnection(i);
+					NodeInst ni = con.getPortInst().getNodeInst();
+
+					// OK if not a pin
+					if (ni.getProto().getFunction() != NodeProto.Function.PIN) continue;
+
+					// OK if it has exports on it
+					if (ni.getNumExports() != 0) continue;
+
+					// OK if it connects to more than 1 arc
+					if (ni.getNumConnections() != 1) continue;
+
+					// the arc dangles
+					ErrorLog err = ErrorLog.logError("Arc dangles", cell, 0);
+					err.addGeom(geom, true, 0, null);
+					return;
+				}
+			}
+
+			// check to see if its width is sensible
+			int signals = ai.getBusWidth();
+			if (signals < 1) signals = 1;
+			for(int i=0; i<2; i++)
+			{
+				Connection con = ai.getConnection(i);
+				PortInst pi = con.getPortInst();
+				NodeInst ni = pi.getNodeInst();
+				if (!(ni.getProto() instanceof Cell)) continue;
+				Cell subNp = (Cell)ni.getProto();
+				Cell np = subNp.contentsView();
+				if (np == null) np = subNp;
+
+				PortProto pp = pi.getPortProto().getEquivalent();
+				if (pp == null || pp == pi.getPortProto())
+				{
+					ErrorLog err = ErrorLog.logError("Arc " + ai.describe() + " connects to port " +
+						pi.getPortProto().getProtoName() + " of node " + ni.describe() +
+						", but there is no equivalent port in cell " + np.describe(), cell, 0);
+					err.addGeom(geom, true, 0, null);
+					err.addGeom(ni, true, 0, null);
+					continue;
+				}
+				int portWidth = Network.getBusWidth((Export)pp);
+				if (portWidth < 1) portWidth = 1;
+				int nodeSize = ni.getNameKey().busWidth();
+				if (nodeSize <= 0) nodeSize = 1;
+				if (signals != portWidth && signals != portWidth*nodeSize)
+				{
+					ErrorLog err = ErrorLog.logError("Arc " + ai.describe() + " (" + signals + " wide) connects to port " +
+						pp.getProtoName() + " of node " + ni.describe() +
+						" (" + portWidth + " wide)", cell, 0);
+					err.addGeom(geom, true, 0, null);
+					err.addGeom(ni, true, 0, null);
+				}
+			}
+		}
+
+		// check for overlap
+		checkObjectVicinity(geom, geom, EMath.MATID);
+	}
 
 	/*
-	 * Routine to check whether object "geom" has a DRC violation with a neighboring object.
+	 * Method to check whether object "geom" has a DRC violation with a neighboring object.
 	 */
-//	void dr_schcheckobjectvicinity(GEOM *topgeom, GEOM *geom, XARRAY trans)
-//	{
-//		REGISTER INTBIG i, total;
-//		REGISTER NODEINST *ni, *subni;
-//		REGISTER ARCINST *ai, *subai;
-//		XARRAY xformr, xformt, subrot, localtrans;
-//		static POLYGON *poly = NOPOLYGON;
-//
-//		needstaticpolygon(&poly, 4, dr_tool->cluster);
-//		if (geom->entryisnode)
-//		{
-//			ni = geom->entryaddr.ni;
-//			makerot(ni, xformr);
-//			transmult(xformr, trans, localtrans);
-//			if (ni->proto->primindex == 0)
-//			{
-//				if ((ni->userbits&NEXPAND) != 0)
-//				{
-//					// expand the instance
-//					maketrans(ni, xformt);
-//					transmult(xformt, localtrans, subrot);
-//					for(subni = ni->proto->firstnodeinst; subni != NONODEINST; subni = subni->nextnodeinst)
-//						dr_schcheckobjectvicinity(topgeom, subni->geom, subrot); 
-//					for(subai = ni->proto->firstarcinst; subai != NOARCINST; subai = subai->nextarcinst)
-//						dr_schcheckobjectvicinity(topgeom, subai->geom, subrot); 
-//				}
-//			} else
-//			{
-//				// primitive
-//				total = nodepolys(ni, 0, NOWINDOWPART);
-//				for(i=0; i<total; i++)
-//				{
-//					shapenodepoly(ni, i, poly);
-//					xformpoly(poly, localtrans);
-//					(void)dr_schcheckpolygonvicinity(topgeom, poly);
-//				}
-//			}
-//		} else
-//		{
-//			ai = geom->entryaddr.ai;
-//			total = arcpolys(ai, NOWINDOWPART);
-//			for(i=0; i<total; i++)
-//			{
-//				shapearcpoly(ai, i, poly);
-//				xformpoly(poly, trans);
-//				(void)dr_schcheckpolygonvicinity(topgeom, poly);
-//			}
-//		}
-//	}
+	private static void checkObjectVicinity(Geometric topGeom, Geometric geom, AffineTransform trans)
+	{
+		if (geom instanceof NodeInst)
+		{
+			NodeInst ni = (NodeInst)geom;
+			NodeProto np = ni.getProto();
+			AffineTransform localTrans = ni.rotateOut();
+			localTrans.preConcatenate(trans);
+//			transmult(xformR, trans, localTrans);
+			if (np instanceof Cell)
+			{
+				if (ni.isExpanded())
+				{
+					// expand the instance
+					AffineTransform subRot = ni.translateOut();
+					subRot.preConcatenate(localTrans);
+//					transmult(xformt, localtrans, subRot);
+					Cell subCell = (Cell)np;
+					for(Iterator it = subCell.getNodes(); it.hasNext(); )
+					{
+						NodeInst subNi = (NodeInst)it.next();
+						checkObjectVicinity(topGeom, subNi, subRot); 
+					}
+					for(Iterator it = subCell.getArcs(); it.hasNext(); )
+					{
+						ArcInst subAi = (ArcInst)it.next();
+						checkObjectVicinity(topGeom, subAi, subRot); 
+					}
+				}
+			} else
+			{
+				// primitive
+				Technology tech = np.getTechnology();
+				Poly [] polyList = tech.getShapeOfNode(ni, null);
+				int total = polyList.length;
+				for(int i=0; i<total; i++)
+				{
+					Poly poly = polyList[i];
+					poly.transform(localTrans);
+					checkPolygonVicinity(topGeom, poly);
+				}
+			}
+		} else
+		{
+			ArcInst ai = (ArcInst)geom;
+			Technology tech = ai.getProto().getTechnology();
+			Poly [] polyList = tech.getShapeOfArc(ai, null);
+			int total = polyList.length;
+			for(int i=0; i<total; i++)
+			{
+				Poly poly = polyList[i];
+				poly.transform(trans);
+				checkPolygonVicinity(topGeom, poly);
+			}
+		}
+	}
 
 	/*
-	 * Routine to check whether polygon "poly" from object "geom" has a DRC violation
+	 * Method to check whether polygon "poly" from object "geom" has a DRC violation
 	 * with a neighboring object.  Returns TRUE if an error was found.
 	 */
-//	BOOLEAN dr_schcheckpolygonvicinity(GEOM *geom, POLYGON *poly)
-//	{
-//		REGISTER NODEINST *ni, *oni;
-//		REGISTER ARCINST *ai, *oai;
-//		REGISTER NODEPROTO *cell;
-//		REGISTER GEOM *ogeom;
-//		REGISTER PORTARCINST *pi;
-//		REGISTER NETWORK *net;
-//		REGISTER BOOLEAN connected;
-//		REGISTER INTBIG i, sea;
-//
-//		// don't check text
-//		if (poly->style == TEXTCENT || poly->style == TEXTTOP ||
-//			poly->style == TEXTBOT || poly->style == TEXTLEFT ||
-//			poly->style == TEXTRIGHT || poly->style == TEXTTOPLEFT ||
-//			poly->style == TEXTBOTLEFT || poly->style == TEXTTOPRIGHT ||
-//			poly->style == TEXTBOTRIGHT || poly->style == TEXTBOX ||
-//			poly->style == GRIDDOTS) return(FALSE);
-//
-//		cell = geomparent(geom);
-//		if (geom->entryisnode) ni = geom->entryaddr.ni; else ai = geom->entryaddr.ai;
-//		sea = initsearch(geom->lowx, geom->highx, geom->lowy, geom->highy, cell);
-//		for(;;)
-//		{
-//			ogeom = nextobject(sea);
-//			if (ogeom == NOGEOM) break;
-//
-//			// canonicalize so that errors are found only once
-//			if ((INTBIG)geom <= (INTBIG)ogeom) continue;
-//
-//			// what type of object was found in area
-//			if (ogeom->entryisnode)
-//			{
-//				// found node nearby
-//				oni = ogeom->entryaddr.ni;
-//				if (geom->entryisnode)
-//				{
-//					// this is node, nearby is node: see if two nodes touch
-//					for(net = cell->firstnetwork; net != NONETWORK; net = net->nextnetwork)
-//						net->temp1 = 0;
-//					for(pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//						pi->conarcinst->network->temp1 |= 1;
-//					for(pi = oni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//						pi->conarcinst->network->temp1 |= 2;
-//					for(net = cell->firstnetwork; net != NONETWORK; net = net->nextnetwork)
-//						if (net->temp1 = 3) break;
-//					if (net != NONETWORK) continue;
-//				} else
-//				{			
-//					// this is arc, nearby is node: see if electrically connected
-//					for(pi = oni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//						if (pi->conarcinst->network == ai->network) break;
-//					if (pi != NOPORTARCINST) continue;
-//				}
-//
-//				// no connection: check for touching another
-//				if (dr_schcheckpoly(geom, poly, ogeom, ogeom, el_matid, FALSE))
-//				{
-//					termsearch(sea);
-//					return(TRUE);
-//				}
-//			} else
-//			{
-//				// found arc nearby
-//				oai = ogeom->entryaddr.ai;
-//				if (geom->entryisnode)
-//				{
-//					// this is node, nearby is arc: see if electrically connected
-//					for(pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//						if (pi->conarcinst->network == oai->network) break;
-//					if (pi != NOPORTARCINST) continue;
-//
-//					if (dr_schcheckpoly(geom, poly, ogeom, ogeom, el_matid, FALSE))
-//					{
-//						termsearch(sea);
-//						return(TRUE);
-//					}
-//				} else
-//				{
-//					// this is arc, nearby is arc: check for colinearity
-//					if (dr_schcheckcolinear(ai, oai))
-//					{
-//						termsearch(sea);
-//						return(TRUE);
-//					}
-//
-//					// if not connected, check to see if they touch
-//					connected = FALSE;
-//					if (ai->network == oai->network) connected = TRUE; else
-//					{
-//						if (ai->network->buswidth > 1 && oai->network->buswidth <= 1)
-//						{
-//							for(i=0; i<ai->network->buswidth; i++)
-//								if (ai->network->networklist[i] == oai->network) break;
-//							if (i < ai->network->buswidth) connected = TRUE;
-//						} else if (oai->network->buswidth > 1 && ai->network->buswidth <= 1)
-//						{
-//							for(i=0; i<oai->network->buswidth; i++)
-//								if (oai->network->networklist[i] == ai->network) break;
-//							if (i < oai->network->buswidth) connected = TRUE;
-//						}
-//					}
-//					if (!connected)
-//					{
-//						if (dr_schcheckpoly(geom, poly, ogeom, ogeom, el_matid, TRUE))
-//						{
-//							termsearch(sea);
-//							return(TRUE);
-//						}
-//					}
-//				}
-//			}
-//		}
-//		return(TRUE);
-//	}
+	private static boolean checkPolygonVicinity(Geometric geom, Poly poly)
+	{
+		// don't check text
+		Poly.Type style = poly.getStyle();
+		if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTTOP ||
+			style == Poly.Type.TEXTBOT || style == Poly.Type.TEXTLEFT ||
+			style == Poly.Type.TEXTRIGHT || style == Poly.Type.TEXTTOPLEFT ||
+			style == Poly.Type.TEXTBOTLEFT || style == Poly.Type.TEXTTOPRIGHT ||
+			style == Poly.Type.TEXTBOTRIGHT || style == Poly.Type.TEXTBOX) return false;
+
+		Cell cell = geom.getParent();
+		NodeInst ni = null;
+		ArcInst ai = null;
+		if (geom instanceof NodeInst) ni = (NodeInst)geom; else ai = (ArcInst)geom;
+		Rectangle2D bounds = geom.getBounds();
+		Geometric.Search sea = new Geometric.Search(bounds, cell);
+		for(;;)
+		{
+			Geometric oGeom = sea.nextObject();
+			if (oGeom == null) break;
+
+			// canonicalize so that errors are found only once
+//			if ((INTBIG)geom <= (INTBIG)oGeom) continue;
+			if (geom == oGeom) continue;
+
+			// what type of object was found in area
+			if (oGeom instanceof NodeInst)
+			{
+				// found node nearby
+				NodeInst oNi = (NodeInst)oGeom;
+				if (geom instanceof NodeInst)
+				{
+					// this is node, nearby is node: see if two nodes touch
+					boolean found = false;
+					for(Iterator it = ni.getConnections(); it.hasNext(); )
+					{
+						Connection con = (Connection)it.next();
+						JNetwork net = con.getArc().getNetwork(0);
+						for(Iterator oIt = oNi.getConnections(); oIt.hasNext(); )
+						{
+							Connection oCon = (Connection)oIt.next();
+							JNetwork oNet = oCon.getArc().getNetwork(0);
+							if (net == oNet) { found = true;   break; }
+						}
+						if (found) break;
+					}
+					if (found) continue;
+				} else
+				{			
+					// this is arc, nearby is node: see if electrically connected
+					JNetwork net = ai.getNetwork(0);
+					boolean found = false;
+					for(Iterator oIt = oNi.getConnections(); oIt.hasNext(); )
+					{
+						Connection oCon = (Connection)oIt.next();
+						JNetwork oNet = oCon.getArc().getNetwork(0);
+						if (net == oNet) { found = true;   break; }
+					}
+					if (found) continue;
+				}
+
+				// no connection: check for touching another
+				if (checkPoly(geom, poly, oGeom, oGeom, EMath.MATID, false))
+				{
+					return true;
+				}
+			} else
+			{
+				// found arc nearby
+				ArcInst oAi = (ArcInst)oGeom;
+				if (geom instanceof NodeInst)
+				{
+					// this is node, nearby is arc: see if electrically connected
+					JNetwork oNet = oAi.getNetwork(0);
+					boolean found = false;
+					for(Iterator it = ni.getConnections(); it.hasNext(); )
+					{
+						Connection con = (Connection)it.next();
+						JNetwork net = con.getArc().getNetwork(0);
+						if (net == oNet) { found = true;   break; }
+					}
+					if (found) continue;
+
+					if (checkPoly(geom, poly, oGeom, oGeom, EMath.MATID, false))
+					{
+						return true;
+					}
+				} else
+				{
+					// this is arc, nearby is arc: check for colinearity
+					if (checkColinear(ai, oAi))
+					{
+						return true;
+					}
+
+					// if not connected, check to see if they touch
+					boolean connected = false;
+					JNetwork net = ai.getNetwork(0);
+					JNetwork oNet = oAi.getNetwork(0);
+					if (net == oNet) connected = true; else
+					{
+						int aiBusWidth = ai.getBusWidth();
+						int oAiBusWidth = oAi.getBusWidth();
+						if (aiBusWidth > 1 && oAiBusWidth <= 1)
+						{
+							for(int i=0; i<aiBusWidth; i++)
+							{
+								if (ai.getNetwork(i) == oAi.getNetwork(0)) { connected = true;   break; }
+							}
+						} else if (oAiBusWidth > 1 && aiBusWidth <= 1)
+						{
+							for(int i=0; i<oAiBusWidth; i++)
+							{
+								if (oAi.getNetwork(i) == ai.getNetwork(0)) { connected = true;   break; }
+							}
+						}
+					}
+					if (!connected)
+					{
+						if (checkPoly(geom, poly, oGeom, oGeom, EMath.MATID, true))
+						{
+							return true;
+						}
+					}
+				}
+			}
+		}
+		return true;
+	}
 
 	/*
 	 * Check polygon "poly" from object "geom" against
-	 * geom "ogeom" transformed by "otrans" (and really on top-level object "otopgeom").
+	 * geom "oGeom" transformed by "otrans" (and really on top-level object "oTopGeom").
 	 * Returns TRUE if an error was found.
 	 */
-//	BOOLEAN dr_schcheckpoly(GEOM *geom, POLYGON *poly, GEOM *otopgeom, GEOM *ogeom, XARRAY otrans,
-//		BOOLEAN cancross)
-//	{
-//		REGISTER INTBIG i, total;
-//		REGISTER NODEINST *ni, *subni;
-//		REGISTER ARCINST *ai, *subai;
-//		XARRAY xformr, xformt, thistrans, subrot;
-//		static POLYGON *opoly = NOPOLYGON;
-//
-//		needstaticpolygon(&opoly, 4, dr_tool->cluster);
-//		if (ogeom->entryisnode)
-//		{
-//			ni = ogeom->entryaddr.ni;
-//			makerot(ni, xformr);
-//			transmult(xformr, otrans, thistrans);
-//			if (ni->proto->primindex == 0)
-//			{
-//				maketrans(ni, xformt);
-//				transmult(xformt, thistrans, subrot);
-//				for(subni = ni->proto->firstnodeinst; subni != NONODEINST; subni = subni->nextnodeinst)
-//				{
-//					if (dr_schcheckpoly(geom, poly, otopgeom, subni->geom, subrot, cancross))
-//						return(TRUE);
-//				}
-//				for(subai = ni->proto->firstarcinst; subai != NOARCINST; subai = subai->nextarcinst)
-//				{
-//					if (dr_schcheckpoly(geom, poly, otopgeom, subai->geom, subrot, cancross))
-//						return(TRUE);
-//				}
-//			} else
-//			{
-//				total = nodepolys(ni, 0, NOWINDOWPART);
-//				for(i=0; i<total; i++)
-//				{
-//					shapenodepoly(ni, i, opoly);
-//					xformpoly(opoly, thistrans);
-//					if (dr_checkpolyagainstpoly(geom, poly, otopgeom, opoly, cancross))
-//						return(TRUE);
-//				}
-//			}
-//		} else
-//		{
-//			ai = ogeom->entryaddr.ai;
-//			total = arcpolys(ai, NOWINDOWPART);
-//			for(i=0; i<total; i++)
-//			{
-//				shapearcpoly(ai, i, opoly);
-//				xformpoly(opoly, otrans);
-//				if (dr_checkpolyagainstpoly(geom, poly, otopgeom, opoly, cancross))
-//					return(TRUE);
-//			}
-//		}
-//		return(FALSE);
-//	}
+	private static boolean checkPoly(Geometric geom, Poly poly, Geometric oTopGeom, Geometric oGeom, AffineTransform oTrans,
+		boolean canCross)
+	{
+		if (oGeom instanceof NodeInst)
+		{
+			NodeInst ni = (NodeInst)oGeom;
+			NodeProto np = ni.getProto();
+			AffineTransform thisTrans = ni.rotateOut();
+			thisTrans.preConcatenate(oTrans);
+//			transmult(xformr, otrans, thisTrans);
+			if (np instanceof Cell)
+			{
+				AffineTransform subRot = ni.translateOut();
+				subRot.preConcatenate(thisTrans);
+//				transmult(xformt, thistrans, subRot);
+				Cell subCell = (Cell)np;
+				for(Iterator it = subCell.getNodes(); it.hasNext(); )
+				{
+					NodeInst subNi = (NodeInst)it.next();
+					if (checkPoly(geom, poly, oTopGeom, subNi, subRot, canCross))
+						return true;
+				}
+				for(Iterator it = subCell.getArcs(); it.hasNext(); )
+				{
+					ArcInst subAi = (ArcInst)it.next();
+					if (checkPoly(geom, poly, oTopGeom, subAi, subRot, canCross))
+						return true;
+				}
+			} else
+			{
+				Technology tech = np.getTechnology();
+				Poly [] polyList = tech.getShapeOfNode(ni, null);
+				int total = polyList.length;
+				for(int i=0; i<total; i++)
+				{
+					Poly nodePoly = polyList[i];
+					nodePoly.transform(thisTrans);
+					if (checkPolyAgainstPoly(geom, poly, oTopGeom, nodePoly, canCross))
+						return true;
+				}
+			}
+		} else
+		{
+			ArcInst ai = (ArcInst)oGeom;
+			Technology tech = ai.getProto().getTechnology();
+			Poly [] polyList = tech.getShapeOfArc(ai, null);
+			int total = polyList.length;
+			for(int i=0; i<total; i++)
+			{
+				Poly oPoly = polyList[i];
+				oPoly.transform(oTrans);
+				if (checkPolyAgainstPoly(geom, poly, oTopGeom, oPoly, canCross))
+					return true;
+			}
+		}
+		return false;
+	}
 
 	/*
 	 * Check polygon "poly" from object "geom" against
-	 * polygon "opoly" from object "ogeom".
-	 * If "cancross" is TRUE, they can cross each other (but an endpoint cannot touch).
+	 * polygon "opoly" from object "oGeom".
+	 * If "canCross" is TRUE, they can cross each other (but an endpoint cannot touch).
 	 * Returns TRUE if an error was found.
 	 */
-//	BOOLEAN dr_checkpolyagainstpoly(GEOM *geom, POLYGON *poly, GEOM *ogeom, POLYGON *opoly, BOOLEAN cancross)
-//	{
-//		REGISTER void *err;
-//		REGISTER INTBIG i;
-//
-//		if (cancross)
-//		{
-//			for(i=0; i<poly->count; i++)
-//			{
-//				if (polydistance(opoly, poly->xv[i], poly->yv[i]) <= 0) break;
-//			}
-//			if (i >= poly->count)
-//			{
-//				// none in "poly" touched one in "opoly", try other way
-//				for(i=0; i<opoly->count; i++)
-//				{
-//					if (polydistance(poly, opoly->xv[i], opoly->yv[i]) <= 0) break;
-//				}
-//				if (i >= opoly->count) return(FALSE);
-//			}
-//		} else
-//		{
-//			if (!polyintersect(poly, opoly)) return(FALSE);
-//		}
-//
-//		// report the error
-//		err = logerror(_("Objects touch"), geomparent(geom), 0);
-//		addgeomtoerror(err, geom, TRUE, 0, 0);
-//		addgeomtoerror(err, ogeom, TRUE, 0, 0);
-//		return(TRUE);
-//	}
+	private static boolean checkPolyAgainstPoly(Geometric geom, Poly poly, Geometric oGeom, Poly opoly, boolean canCross)
+	{
+		if (canCross)
+		{
+			Point2D [] pointList = poly.getPoints();
+			Rectangle2D pointRect = new Rectangle2D.Double();
+			boolean found = false;
+			for(int i=0; i<pointList.length; i++)
+			{
+				pointRect.setRect(pointList[i].getX(), pointList[i].getY(), 0, 0);
+				if (opoly.polyDistance(pointRect) <= 0) { found = true;   break; }
+			}
+			if (!found)
+			{
+				// none in "poly" touched one in "opoly", try other way
+				pointList = opoly.getPoints();
+				found = false;
+				for(int i=0; i<pointList.length; i++)
+				{
+					pointRect.setRect(pointList[i].getX(), pointList[i].getY(), 0, 0);
+					if (poly.polyDistance(pointRect) <= 0) { found = true;   break; }
+				}
+				if (!found) return false;
+			}
+		} else
+		{
+			if (!poly.intersects(opoly)) return false;
+		}
+
+		// report the error
+		ErrorLog err = ErrorLog.logError("Objects touch", geom.getParent(), 0);
+		err.addGeom(geom, true, 0, null);
+		err.addGeom(oGeom, true, 0, null);
+		return true;
+	}
 
 	/*
-	 * Routine to check whether arc "ai" is colinear with another.
+	 * Method to check whether arc "ai" is colinear with another.
 	 * Returns TRUE if an error was found.
 	 */
-//	BOOLEAN dr_schcheckcolinear(ARCINST *ai, ARCINST *oai)
-//	{
-//		REGISTER INTBIG lowx, highx, lowy, highy, olow, ohigh, ang, oang, fx, fy, tx, ty,
-//			ofx, ofy, otx, oty, dist, gdist, frx, fry, tox, toy, ca, sa;
-//		REGISTER void *err;
-//
-//		// get information about the other line
-//		fx = ai->end[0].xpos;   fy = ai->end[0].ypos;
-//		tx = ai->end[1].xpos;   ty = ai->end[1].ypos;
-//		ofx = oai->end[0].xpos;   ofy = oai->end[0].ypos;
-//		otx = oai->end[1].xpos;   oty = oai->end[1].ypos;
-//		if (ofx == otx && ofy == oty) return(FALSE);
-//
-//		// see if they are colinear
-//		lowx = mini(fx, tx);
-//		highx = maxi(fx, tx);
-//		lowy = mini(fy, ty);
-//		highy = maxi(fy, ty);
-//		if (fx == tx)
-//		{
-//			// vertical line
-//			olow = mini(ofy, oty);
-//			ohigh = maxi(ofy, oty);
-//			if (ofx != fx || otx != fx) return(FALSE);
-//			if (lowy >= ohigh || highy <= olow) return(FALSE);
-//			ang = 900;
-//		} else if (fy == ty)
-//		{
-//			// horizontal line
-//			olow = mini(ofx, otx);
-//			ohigh = maxi(ofx, otx);
-//			if (ofy != fy || oty != fy) return(FALSE);
-//			if (lowx >= ohigh || highx <= olow) return(FALSE);
-//			ang = 0;
-//		} else
-//		{
-//			// general case
-//			ang = figureangle(fx, fy, tx, ty);
-//			oang = figureangle(ofx, ofy, otx, oty);
-//			if (ang != oang && mini(ang, oang) + 1800 != maxi(ang, oang)) return(FALSE);
-//			if (muldiv(ofx-fx, ty-fy, tx-fx) != ofy-fy) return(FALSE);
-//			if (muldiv(otx-fx, ty-fy, tx-fx) != oty-fy) return(FALSE);
-//			olow = mini(ofy, oty);
-//			ohigh = maxi(ofy, oty);
-//			if (lowy >= ohigh || highy <= olow) return(FALSE);
-//			olow = mini(ofx, otx);
-//			ohigh = maxi(ofx, otx);
-//			if (lowx >= ohigh || highx <= olow) return(FALSE);
-//		}
-//		err = logerror(_("Arcs overlap"), ai->parent, 0);
-//		addgeomtoerror(err, ai->geom, TRUE, 0, 0);
-//		addgeomtoerror(err, oai->geom, TRUE, 0, 0);
-//
-//		// add information that shows the arcs
-//		ang = (ang + 900) % 3600;
-//		dist = ai->parent->lib->lambda[ai->parent->tech->techindex] * 2;
-//		gdist = dist / 2;
-//		ca = cosine(ang);   sa = sine(ang);
-//		frx = fx + mult(dist, ca);
-//		fry = fy + mult(dist, sa);
-//		tox = tx + mult(dist, ca);
-//		toy = ty + mult(dist, sa);
-//		fx = fx + mult(gdist, ca);
-//		fy = fy + mult(gdist, sa);
-//		tx = tx + mult(gdist, ca);
-//		ty = ty + mult(gdist, sa);
-//		addlinetoerror(err, frx, fry, tox, toy);
-//		addlinetoerror(err, frx, fry, fx, fy);
-//		addlinetoerror(err, tx, ty, tox, toy);
-//
-//		frx = ofx - mult(dist, ca);
-//		fry = ofy - mult(dist, sa);
-//		tox = otx - mult(dist, ca);
-//		toy = oty - mult(dist, sa);
-//		ofx = ofx - mult(gdist, ca);
-//		ofy = ofy - mult(gdist, sa);
-//		otx = otx - mult(gdist, ca);
-//		oty = oty - mult(gdist, sa);
-//		addlinetoerror(err, frx, fry, tox, toy);
-//		addlinetoerror(err, frx, fry, ofx, ofy);
-//		addlinetoerror(err, otx, oty, tox, toy);
-//		return(TRUE);
-//	}
+	private static boolean checkColinear(ArcInst ai, ArcInst oAi)
+	{
+		// get information about the other line
+		double fx = ai.getHead().getLocation().getX();
+		double fy = ai.getHead().getLocation().getY();
+		double tx = ai.getTail().getLocation().getX();
+		double ty = ai.getTail().getLocation().getY();
+		double oFx = oAi.getHead().getLocation().getX();
+		double oFy = oAi.getHead().getLocation().getY();
+		double oTx = oAi.getTail().getLocation().getX();
+		double oTy = oAi.getTail().getLocation().getY();
+		if (oFx == oTx && oFy == oTy) return false;
+
+		// see if they are colinear
+		double lowX = Math.min(fx, tx);
+		double highX = Math.max(fx, tx);
+		double lowY = Math.min(fy, ty);
+		double highY = Math.max(fy, ty);
+		int ang = 0;
+		if (fx == tx)
+		{
+			// vertical line
+			double oLow = Math.min(oFy, oTy);
+			double oHigh = Math.max(oFy, oTy);
+			if (oFx != fx || oTx != fx) return false;
+			if (lowY >= oHigh || highY <= oLow) return false;
+			ang = 900;
+		} else if (fy == ty)
+		{
+			// horizontal line
+			double oLow = Math.min(oFx, oTx);
+			double oHigh = Math.max(oFx, oTx);
+			if (oFy != fy || oTy != fy) return false;
+			if (lowX >= oHigh || highX <= oLow) return false;
+			ang = 0;
+		} else
+		{
+			// general case
+			ang = EMath.figureAngle(new Point2D.Double(fx, fy), new Point2D.Double(tx, ty));
+			int oAng = EMath.figureAngle(new Point2D.Double(oFx, oFy), new Point2D.Double(oTx, oTy));
+			if (ang != oAng && Math.min(ang, oAng) + 1800 != Math.max(ang, oAng)) return false;
+			if ((oFx-fx) * (ty-fy) / (tx-fx) != oFy-fy) return false;
+			if ((oTx-fx) * (ty-fy) / (tx-fx) != oTy-fy) return false;
+			double oLow = Math.min(oFy, oTy);
+			double oHigh = Math.max(oFy, oTy);
+			if (lowY >= oHigh || highY <= oLow) return false;
+			oLow = Math.min(oFx, oTx);
+			oHigh = Math.max(oFx, oTx);
+			if (lowX >= oHigh || highX <= oLow) return false;
+		}
+		ErrorLog err = ErrorLog.logError("Arcs overlap", ai.getParent(), 0);
+		err.addGeom(ai, true, 0, null);
+		err.addGeom(oAi, true, 0, null);
+
+		// add information that shows the arcs
+		ang = (ang + 900) % 3600;
+		double dist = 2;
+		double gDist = dist / 2;
+		double ca = Math.cos(ang);   double sa = Math.sin(ang);
+		double frX = fx + dist * ca;
+		double frY = fy + dist * sa;
+		double toX = tx + dist * ca;
+		double toY = ty + dist * sa;
+		fx = fx + gDist * ca;
+		fy = fy + gDist * sa;
+		tx = tx + gDist * ca;
+		ty = ty + gDist * sa;
+		err.addLine(frX, frY, toX, toY);
+		err.addLine(frX, frY, fx, fy);
+		err.addLine(tx, ty, toX, toY);
+
+		frX = oFx - dist * ca;
+		frY = oFy - dist * sa;
+		toX = oTx - dist * ca;
+		toY = oTy - dist * sa;
+		oFx = oFx - gDist * ca;
+		oFy = oFy - gDist * sa;
+		oTx = oTx - gDist * ca;
+		oTy = oTy - gDist * sa;
+		err.addLine(frX, frY, toX, toY);
+		err.addLine(frX, frY, oFx, oFy);
+		err.addLine(oTx, oTy, toX, toY);
+		return true;
+	}
 }

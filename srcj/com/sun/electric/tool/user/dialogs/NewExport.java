@@ -64,6 +64,7 @@ public class NewExport extends javax.swing.JDialog
 			exportCharacteristics.addItem(ch.getName());
 		}
 		referenceExport.setEditable(false);
+		exportName.grabFocus();
 	}
 
 	/** This method is called from within the constructor to
@@ -122,6 +123,14 @@ public class NewExport extends javax.swing.JDialog
         getContentPane().add(jLabel3, gridBagConstraints);
 
         exportName.setPreferredSize(new java.awt.Dimension(250, 20));
+        exportName.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                exportNameActionPerformed(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
@@ -194,6 +203,14 @@ public class NewExport extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 40);
         getContentPane().add(ok, gridBagConstraints);
 
+        referenceExport.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                referenceExportActionPerformed(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
@@ -203,6 +220,16 @@ public class NewExport extends javax.swing.JDialog
 
         pack();
     }//GEN-END:initComponents
+
+	private void referenceExportActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_referenceExportActionPerformed
+	{//GEN-HEADEREND:event_referenceExportActionPerformed
+		okActionPerformed(evt);
+	}//GEN-LAST:event_referenceExportActionPerformed
+
+	private void exportNameActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_exportNameActionPerformed
+	{//GEN-HEADEREND:event_exportNameActionPerformed
+		okActionPerformed(evt);
+	}//GEN-LAST:event_exportNameActionPerformed
 
 	private void exportCharacteristicsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_exportCharacteristicsActionPerformed
 	{//GEN-HEADEREND:event_exportCharacteristicsActionPerformed

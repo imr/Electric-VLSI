@@ -218,7 +218,7 @@ public class DRCQuick
 	 * entry in "validity" TRUE if it is DRC clean.
 	 * If "justArea" is TRUE, only check in the selected area.
 	 */
-	public static void doCheck(Cell cell, int count, NodeInst [] nodesToCheck, boolean [] validity, boolean justarea)
+	public static void doCheck(Cell cell, int count, NodeInst [] nodesToCheck, boolean [] validity, boolean justArea)
 	{
 		// get the current DRC options
 		onlyFirstError = DRC.isOneErrorPerCell();
@@ -387,7 +387,7 @@ public class DRCQuick
 		accumulateExclusion(cell, EMath.MATID);
 
  		Rectangle2D bounds = null;
-		if (justarea)
+		if (justArea)
 		{
 			EditWindow wnd = EditWindow.getCurrent();
 			bounds = Highlight.getHighlightedArea(wnd);
@@ -400,7 +400,7 @@ public class DRCQuick
 		{
 			// just do standard DRC here
 //			if (!dr_quickparalleldrc) begintraversehierarchy();
-			checkThisCell(cell, 0, bounds, justarea);
+			checkThisCell(cell, 0, bounds, justArea);
 //			if (!dr_quickparalleldrc) endtraversehierarchy();
 
 			// sort the errors by layer
@@ -408,7 +408,7 @@ public class DRCQuick
 		} else
 		{
 			// check only these "count" instances
-			dr_quickchecktheseinstances(cell, count, nodesToCheck, validity);
+			checkTheseInstances(cell, count, nodesToCheck, validity);
 		}
 
 		ErrorLog.termLogging(true);
@@ -465,11 +465,19 @@ public class DRCQuick
 			if (ni.isIconOfParent()) continue;
 
 			// ignore if not in the area
-//			if (justArea)
-//			{
-//				if (ni->geom->lowx >= hx || ni->geom->highx <= lx ||
-//					ni->geom->lowy >= hy || ni->geom->highy <= ly) continue;
-//			}
+			Rectangle2D subBounds = bounds;
+			if (justArea)
+			{
+				if (!ni.getBounds().intersects(bounds)) continue;
+
+				AffineTransform trans = ni.rotateIn();
+				AffineTransform xTrnI = ni.translateIn();
+				trans.preConcatenate(xTrnI);
+//				transmult(xrot, xtrn, trans);
+				subBounds = new Rectangle2D.Double();
+				subBounds.setRect(bounds);
+				EMath.transformRect(subBounds, trans);
+			}
 
 			CheckProto cp = (CheckProto)checkProtos.get(np);
 			if (cp.cellChecked && !cp.cellParameterized) continue;
@@ -478,7 +486,7 @@ public class DRCQuick
 			CheckInst ci = (CheckInst)checkInsts.get(ni);
 			int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
 //			if (!dr_quickparalleldrc) downhierarchy(ni, np, 0);
-			int retval = checkThisCell((Cell)np, localIndex, bounds, false);
+			int retval = checkThisCell((Cell)np, localIndex, subBounds, justArea);
 //			if (!dr_quickparalleldrc) uphierarchy();
 			if (retval < 0) return(-1);
 			if (retval > 0) allSubCellsStillOK = false;
@@ -543,9 +551,6 @@ public class DRCQuick
 			Long now = new Long(EMath.dateToSeconds(new Date()));
 			goodDRCDate.put(cell, now);
 			haveGoodDRCDate = true;
-
-//			(void)setvalkey((INTBIG)cell, VNODEPROTO, dr_lastgooddrckey,
-//				(INTBIG)getcurrenttime(), VINTEGER);
 			System.out.println("   No errors found");
 		} else
 		{
@@ -1441,7 +1446,7 @@ public class DRCQuick
 	 * Method to examine, in cell "cell", the "count" instances in "nodesToCheck".
 	 * If they are DRC clean, set the associated entry in "validity" to TRUE.
 	 */
-	private static void dr_quickchecktheseinstances(Cell cell, int count, NodeInst [] nodesToCheck, boolean [] validity)
+	private static void checkTheseInstances(Cell cell, int count, NodeInst [] nodesToCheck, boolean [] validity)
 	{
 		int globalIndex = 0;
 
@@ -1465,7 +1470,7 @@ public class DRCQuick
 				if (geom == null) break;
 				if (geom instanceof ArcInst)
 				{
-					if (dr_quickcheckgeomagainstinstance(geom, ni))
+					if (checkGeomAgainstInstance(geom, ni))
 					{
 						validity[i] = false;
 						break;
@@ -1476,7 +1481,7 @@ public class DRCQuick
 				if (oNi.getProto() instanceof PrimitiveNode)
 				{
 					// found a primitive node: check it against the instance contents
-					if (dr_quickcheckgeomagainstinstance(geom, ni))
+					if (checkGeomAgainstInstance(geom, ni))
 					{
 						validity[i] = false;
 						break;
@@ -1527,7 +1532,7 @@ public class DRCQuick
 	 * Method to check primitive object "geom" (an arcinst or primitive nodeinst) against cell instance "ni".
 	 * Returns TRUE if there are design-rule violations in their interaction.
 	 */
-	private static boolean dr_quickcheckgeomagainstinstance(Geometric geom, NodeInst ni)
+	private static boolean checkGeomAgainstInstance(Geometric geom, NodeInst ni)
 	{
 		NodeProto np = ni.getProto();
 		int globalIndex = 0;

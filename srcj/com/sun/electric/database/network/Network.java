@@ -26,10 +26,12 @@ package com.sun.electric.database.network;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -231,13 +233,25 @@ public class Network extends Tool
 	}
 
 	/**
-	 * Method to return the bus width on this ArcInst.
-	 * @return the either the bus width on this ArcInst.
+	 * Method to return the bus width on an ArcInst.
+	 * @param ai the ArcInst to examine.
+	 * @return the bus width on the ArcInst.
 	 */
 	public static int getBusWidth(ArcInst ai)
 	{
 		NetCell netCell = getNetCell(ai.getParent());
 		return netCell.getBusWidth(ai);
+	}
+
+	/**
+	 * Method to return the bus width on an Export.
+	 * @param e the Export to examine.
+	 * @return the bus width of the Export.
+	 */
+	public static int getBusWidth(Export e)
+	{
+		Name protoName = e.getProtoNameKey();
+		return protoName.busWidth();
 	}
 
 	/****************************** CHANGE LISTENER ******************************/

@@ -203,7 +203,7 @@ public class GetInfoArc extends javax.swing.JDialog
 		}
 		network.setText(netName);
 		name.setText(initialName);
-		width.setText(Double.toString(initialWidth));
+		width.setText(Double.toString(initialWidth - ai.getProto().getWidthOffset()));
 		busSize.setText(Integer.toString(busWidth));
 		angle.setText(Double.toString(ai.getAngle() / 10.0));
 		easyToSelect.setSelected(initialEasyToSelect);
@@ -807,7 +807,7 @@ public class GetInfoArc extends javax.swing.JDialog
 				changed = true;
 			}
 
-			double currentWidth = Double.parseDouble(dialog.width.getText());
+			double currentWidth = Double.parseDouble(dialog.width.getText()) + ai.getProto().getWidthOffset();
 			if (!EMath.doublesEqual(currentWidth, dialog.initialWidth) || changed)
 			{
 				ai.modify(currentWidth - dialog.initialWidth, 0, 0, 0, 0);

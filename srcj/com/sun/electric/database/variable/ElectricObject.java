@@ -220,7 +220,9 @@ public class ElectricObject
 			pointList[0] = new Point2D.Double(cX+offX, cY+offY);
 			polys[i] = new Poly(pointList);
 			polys[i].setStyle(style);
-			polys[i].setString(var.describe(i, -1, wnd.getVarContext(), this));
+			VarContext context = null;
+			if (wnd != null) context = wnd.getVarContext();
+			polys[i].setString(var.describe(i, -1, context, this));
 			polys[i].setTextDescriptor(td);
 			polys[i].setLayer(null);
 			polys[i].setVariable(var);

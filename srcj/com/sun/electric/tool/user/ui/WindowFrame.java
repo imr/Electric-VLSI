@@ -89,6 +89,8 @@ public class WindowFrame
 	/** the explorer part of a frame. */				private static DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Explorer");
 	/** the explorer part of a frame. */				private static DefaultTreeModel treeModel = null;
 
+	private static final int SCROLLBARRESOLUTION = 200;
+
 	// constructor
 	private WindowFrame() {}
 
@@ -124,8 +126,9 @@ public class WindowFrame
 		frame.circuitPanel = new JPanel(new GridBagLayout());
 
 		// the horizontal scroll bar in the edit window
-		frame.bottomScrollBar = new JScrollBar(JScrollBar.HORIZONTAL, 100, 10, 0, 210);
-		frame.bottomScrollBar.setBlockIncrement(50);
+		int thumbSize = SCROLLBARRESOLUTION / 20;
+		frame.bottomScrollBar = new JScrollBar(JScrollBar.HORIZONTAL, SCROLLBARRESOLUTION/2, thumbSize, 0, SCROLLBARRESOLUTION+thumbSize);
+		frame.bottomScrollBar.setBlockIncrement(SCROLLBARRESOLUTION / 4);
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0;   gbc.gridy = 1;
 		gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -134,8 +137,8 @@ public class WindowFrame
 		frame.bottomScrollBar.setValue(frame.bottomScrollBar.getMaximum()/2);
 
 		// the vertical scroll bar in the edit window
-		frame.rightScrollBar = new JScrollBar(JScrollBar.VERTICAL, 100, 10, 0, 210);
-		frame.rightScrollBar.setBlockIncrement(50);
+		frame.rightScrollBar = new JScrollBar(JScrollBar.VERTICAL, SCROLLBARRESOLUTION/2, thumbSize, 0, SCROLLBARRESOLUTION+thumbSize);
+		frame.rightScrollBar.setBlockIncrement(SCROLLBARRESOLUTION / 4);
 		gbc = new GridBagConstraints();
 		gbc.gridx = 1;   gbc.gridy = 0;
 		gbc.fill = GridBagConstraints.VERTICAL;
@@ -252,6 +255,13 @@ public class WindowFrame
 		windowList.remove(this);
 		if (curWindowFrame == this) curWindowFrame = null;
 	}
+
+	/**
+	 * Method to return the scroll bar resolution.
+	 * This is the extent of the JScrollBar.
+	 * @return the scroll bar resolution.
+	 */
+	public static int getScrollBarResolution() { return SCROLLBARRESOLUTION; }
 
 	/**
 	 * Method to return the horizontal scroll bar at the bottom of the edit window.

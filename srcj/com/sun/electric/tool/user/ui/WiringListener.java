@@ -60,6 +60,13 @@ import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
+import java.io.InputStream;
+import java.io.IOException;
+import java.lang.InterruptedException;
+import sun.audio.AudioStream;
+import sun.audio.AudioPlayer;
+import java.net.URL;
+
 class WiringListener
 	implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
 {
@@ -366,8 +373,42 @@ class WiringListener
 				if (arcsCreated != 0) report += arcsCreated + " arcs";
 				if (nodesCreated != 0) report += " and " + nodesCreated + " nodes";
 				System.out.println(report);
+				playSound(arcsCreated);
 			}
 			Highlight.finished();
+		}
+
+		private void playSound(int arcsCreated)
+		{
+			if (User.isPlayClickSoundsWhenCreatingArcs())
+			{
+				try
+				{
+					URL url = getClass().getResource("Click.wav");
+					if (url == null) return;
+					InputStream in = url.openStream();
+					AudioStream as = new AudioStream(in);
+					if (arcsCreated > 3) arcsCreated = 3;
+					for(int i=0; i<arcsCreated; i++)
+					{
+						if (i != 0)
+						{
+							// wait for the last one to finish
+//							try
+//							{
+//								AudioPlayer.player.wait();
+//							} catch (InterruptedException e)
+//							{
+//							}
+						}
+						AudioPlayer.player.start(as);
+					}
+				} catch (IOException e)
+				{
+					System.out.println("Error playing 'click' sound");
+					return;
+				}
+			}
 		}
 	}
 

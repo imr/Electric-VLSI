@@ -800,24 +800,6 @@ public class NodeInst extends Geometric implements Nodable
 	public boolean isMirroredAboutYAxis() { return sX<0; }
 
 	/**
-	 * Method to return the true center of this NodeInst.
-	 * For primitives, this is the same as the geometric center.
-	 * For cell instances, this is the location of the cell-center inside of the cell definition.
-	 * @return the true center of this NodeInst.
-	 */
-//	public Point2D getTrueCenter()
-//	{
-//		if (getProto() instanceof PrimitiveNode) return center;
-//
-//		// build a transformation for the center point
-//		AffineTransform transOut = transformOut();
-//		AffineTransform trans = rotateOut(transOut);
-//		Point2D trueCenter = new Point2D.Double(0, 0);
-//		trans.transform(trueCenter, trueCenter);
-//		return trueCenter;
-//	}
-
-	/**
 	 * Method to return the starting and ending angle of an arc described by this NodeInst.
 	 * These values can be found in the "ART_degrees" variable on the NodeInst.
 	 * @return a 2-long double array with the starting offset in the first entry (a value in radians)
@@ -1761,6 +1743,65 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
+	 * Method to tell whether this NodeInst is a pin that is "inline".
+	 * An inline pin is one that connects in the middle between two arcs.
+	 * The arcs must line up such that the pin can be removed and the arcs replaced with a single
+	 * arc that is in the same place as the former two.
+	 * @return true if this NodeInst is an inline pin.
+	 */
+	public boolean isInlinePin()
+	{
+		if (protoType.getFunction() != NodeProto.Function.PIN) return false;
+
+		// see if the pin is connected to two arcs along the same slope
+		int j = 0;
+		ArcInst [] reconAr = new ArcInst[2];
+		Point2D [] delta = new Point2D.Double[2];
+		for(Iterator it = getConnections(); it.hasNext(); )
+		{
+			Connection con = (Connection)it.next();
+			if (j >= 2) { j = 0;   break; }
+			ArcInst ai = con.getArc();
+			reconAr[j] = ai;
+			Connection thisCon = ai.getHead();
+			Connection thatCon = ai.getTail();
+			if (thatCon == con)
+			{
+				thisCon = ai.getTail();
+				thatCon = ai.getHead();
+			}
+			delta[j] = new Point2D.Double(thatCon.getLocation().getX() - thisCon.getLocation().getX(),
+				thatCon.getLocation().getY() - thisCon.getLocation().getY());
+			j++;
+		}
+		if (j != 2) return false;
+
+		// must connect to two arcs of the same type and width
+		if (reconAr[0].getProto() != reconAr[1].getProto()) return false;
+		if (reconAr[0].getWidth() != reconAr[1].getWidth()) return false;
+
+		// arcs must be along the same angle, and not be curved
+		if (delta[0].getX() != 0 || delta[0].getY() != 0 || delta[1].getX() != 0 || delta[1].getY() != 0)
+		{
+			Point2D zero = new Point2D.Double(0, 0);
+			if ((delta[0].getX() != 0 || delta[0].getY() != 0) && (delta[1].getX() != 0 || delta[1].getY() != 0) &&
+				EMath.figureAngle(zero, delta[0]) !=
+				EMath.figureAngle(delta[1], zero)) return false;
+		}
+		if (reconAr[0].getVar("ARC_radius") != null) return false;
+		if (reconAr[1].getVar("ARC_radius") != null) return false;
+
+		// the arcs must not have network names on them
+		Name name0 = reconAr[0].getNameKey();
+		Name name1 = reconAr[1].getNameKey();
+		if (name0 != null && name1 != null)
+		{
+			if (!name0.isTempname() && !name1.isTempname()) return false;
+		}
+		return true;
+	}
+
+	/**
 	 * Method to tell whether this NodeInst can connect to a given ArcProto.
 	 * @param arc the type of arc to test for.
 	 * @return the first port that can connect to this node, or
@@ -1894,6 +1935,74 @@ public class NodeInst extends Geometric implements Nodable
 		if (getNumExports() != 0) return true;
 		if (numDisplayableVariables(false) != 0) return true;
 		return false;
+	}
+
+	/*
+	 * Method to tell if this NodeInst is an invisible-pin with text that is offset away from the pin center.
+	 * Since invisible pins with text are never shown, their text should not be offset.
+	 * @return the coordinates of the pin, if it has offset text.
+	 * Returns null if the pin is valid (or if it isn't a pin or doesn't have text).
+	 */
+	public Point2D invisiblePinWithOffsetText(boolean repair)
+	{
+		// look for pins that are invisible and have text in different location
+		if (protoType.getFunction() != NodeProto.Function.PIN) return null;
+		if (this.getNumConnections() != 0) return null;
+
+		// stop now if this isn't invisible
+		if (protoType != Generic.tech.invisiblePinNode)
+		{
+			Technology tech = protoType.getTechnology();
+			Poly [] polyList = tech.getShapeOfNode(this, null);
+			if (polyList.length > 0)
+			{
+				Poly.Type style = polyList[0].getStyle();
+				if (style != Poly.Type.TEXTCENT && style != Poly.Type.TEXTTOP &&
+					style != Poly.Type.TEXTBOT && style != Poly.Type.TEXTLEFT &&
+					style != Poly.Type.TEXTRIGHT && style != Poly.Type.TEXTTOPLEFT &&
+					style != Poly.Type.TEXTBOTLEFT && style != Poly.Type.TEXTTOPRIGHT &&
+					style != Poly.Type.TEXTBOTRIGHT && style != Poly.Type.TEXTBOX) return null;
+			}
+		}
+
+		// invisible: look for offset text
+		for(Iterator it = getExports(); it.hasNext(); )
+		{
+			Export pp = (Export)it.next();
+			TextDescriptor td = pp.getTextDescriptor();
+			if (td.getXOff() != 0 || td.getYOff() != 0)
+			{
+				Point2D retVal = new Point2D.Double(getGrabCenterX() + td.getXOff(), getGrabCenterY() +td.getYOff());
+//				if (repair)
+//				{
+//					(void)startobjectchange((INTBIG)ni, VNODEINST);
+//					TDSETOFF(pp->textdescript, 0, 0);
+//					(void)setind((INTBIG)pp, VPORTPROTO, x_("textdescript"), 0, pp->textdescript[0]);
+//					(void)setind((INTBIG)pp, VPORTPROTO, x_("textdescript"), 1, pp->textdescript[1]);
+//					(void)endobjectchange((INTBIG)ni, VNODEINST);
+//				}
+				return retVal;
+			}
+		}
+
+		for(Iterator it = this.getVariables(); it.hasNext(); )
+		{
+			Variable var = (Variable)it.next();
+			TextDescriptor td = var.getTextDescriptor();
+			if (var.isDisplay() && (td.getXOff() != 0 || td.getYOff() != 0))
+			{
+				Point2D retVal = new Point2D.Double(getGrabCenterX() + td.getXOff(), getGrabCenterY() +td.getYOff());
+//				if (repair)
+//				{
+//					(void)startobjectchange((INTBIG)ni, VNODEINST);
+//					TDSETOFF(var->textdescript, 0, 0);
+//					modifydescript((INTBIG)ni, VNODEINST, var, var->textdescript);
+//					(void)endobjectchange((INTBIG)ni, VNODEINST);
+//				}
+				return retVal;
+			}
+		}
+		return null;
 	}
 
 	/**
