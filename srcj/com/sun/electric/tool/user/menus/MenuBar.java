@@ -125,6 +125,9 @@ public class MenuBar extends JMenuBar
         /** Update associated MenuItems in any other JMenuBars on a state change */
         public void actionPerformed(ActionEvent e)
         {
+            // register action completed in messages window
+            MessagesWindow.userCommandIssued();
+
             AbstractButton source = (AbstractButton)e.getSource();
             String name;
             if (source instanceof ToolBarButton) name = ((ToolBarButton)source).getName(); else
@@ -440,9 +443,6 @@ public class MenuBar extends JMenuBar
         if (!retValue)
             retValue = menuBarGroup.keyBindingManager.processKeyEvent(e);
         // *do not* pass it to menus
-
-        // register action completed in messages window
-        MessagesWindow.userCommandIssued();
 
         return retValue;
     }
