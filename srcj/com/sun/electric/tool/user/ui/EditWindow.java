@@ -451,18 +451,6 @@ public class EditWindow extends JPanel
 	public void setWindowTitle()
 	{
 		if (wf == null) return;
-		/*
-		if (cell == null)
-		{
-			wf.setTitle("***NONE***");
-			return;
-		}
-
-		String title = cell.describe();
-		if (cell.getLibrary() != Library.getCurrent())
-			title += " - Current library: " + Library.getCurrent().getName();
-		wf.setTitle(title);
-		*/
 		wf.setTitle(wf.composeTitle(cell, ""));
 	}
 

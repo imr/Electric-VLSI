@@ -2913,17 +2913,6 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	public void setWindowTitle()
 	{
 		if (wf == null) return;
-		/*
-		if (sd.getCell() == null)
-		{
-			wf.setTitle("***WAVEFORM WITH NO CELL***");
-			return;
-		}
-
-		String title = "Waveform for " + sd.getCell().describe();
-		if (sd.getCell().getLibrary() != Library.getCurrent())
-			title += " - Current library: " + Library.getCurrent().getName();
-			*/
 		wf.setTitle(wf.composeTitle(sd.getCell(), "Waveform for "));
 	}
 

@@ -1545,8 +1545,8 @@ public class Cell extends NodeProto implements Comparable
 	public String describe()
 	{
 		String name = "";
-		if (lib != Library.getCurrent())
-			name += lib.getName() + ":";
+		//if (lib != Library.getCurrent())
+		name += lib.getName() + ":";
 		name += noLibDescribe();
 		return name;
 	}
