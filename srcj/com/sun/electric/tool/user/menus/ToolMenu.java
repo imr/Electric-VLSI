@@ -289,6 +289,7 @@ public class ToolMenu {
 		//------------------- Logical Effort
 
 		MenuBar.Menu logEffortSubMenu = new MenuBar.Menu("Logical Effort", 'L');
+        toolMenu.add(logEffortSubMenu);
 		logEffortSubMenu.addMenuItem("Optimize for Equal Gate Delays", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { optimizeEqualGateDelaysCommand(true); }});
 		logEffortSubMenu.addMenuItem("Optimize for Equal Gate Delays (no caching)", null,
@@ -301,7 +302,6 @@ public class ToolMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { clearSizesNodableCommand(); }});
 		logEffortSubMenu.addMenuItem("Clear Sizes in all Libraries", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { clearSizesCommand(); }});
-		toolMenu.add(logEffortSubMenu);
 
 		//------------------- Routing
 
@@ -402,6 +402,10 @@ public class ToolMenu {
 		curEdit.setCell(curEdit.getCell(), VarContext.globalContext);
 
 		// optimize cell for equal gate delays
+        if (curEdit.getCell() == null) {
+            System.out.println("No current cell");
+            return;
+        }
 		letool.optimizeEqualGateDelays(curEdit.getCell(), curEdit.getVarContext(), curEdit, newAlg);
 	}
 
