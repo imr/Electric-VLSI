@@ -60,6 +60,8 @@ public class InputLibrary extends Input
 	/** The number of Cells in the file. */									protected int nodeProtoCount;
 	/** A list of cells being read. */										protected Cell [] nodeProtoList;
 	/** lambda value for each cell of the library */						protected double [] cellLambda;
+	/** total number of cells in all read libraries */						protected static int totalCells;
+	/** number of cells constructed so far. */								protected static int cellsConstructed;
 
 	static class NodeInstList
 	{
@@ -127,11 +129,16 @@ public class InputLibrary extends Input
 
 	public static void cleanupLibraryInput()
 	{
+		progress.setNote("Constructing cell contents...");
+		progress.setProgress(0);
+
 		// clear flag bits for scanning the library hierarchically
+		totalCells = 0;
 		FlagSet markCellForNodes = NodeProto.getFlagSet(1);
 		for(Iterator it = libsBeingRead.values().iterator(); it.hasNext(); )
 		{
 			InputLibrary reader = (InputLibrary)it.next();
+			totalCells += reader.nodeProtoCount;
 			for(int cellIndex=0; cellIndex<reader.nodeProtoCount; cellIndex++)
 			{
 				Cell cell = reader.nodeProtoList[cellIndex];
@@ -141,6 +148,7 @@ public class InputLibrary extends Input
 				cell.clearBit(markCellForNodes);
 			}
 		}
+		cellsConstructed = 0;
 
 		// now recursively adjust lambda sizes
 		if (InputLibrary.VERBOSE)

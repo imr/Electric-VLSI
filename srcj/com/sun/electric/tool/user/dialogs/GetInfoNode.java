@@ -702,11 +702,12 @@ public class GetInfoNode extends javax.swing.JDialog
 			boolean changed = false;
 			NodeProto np = ni.getProto();
 
-			String currentName = dialog.name.getText();
+			String currentName = dialog.name.getText().trim();
 			if (!currentName.equals(dialog.initialName))
 			{
-				ni.setName(currentName);
 				dialog.initialName = new String(currentName);
+				if (currentName.length() == 0) currentName = null;
+				ni.setName(currentName);
 				changed = true;
 			}
 

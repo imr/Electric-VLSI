@@ -461,12 +461,13 @@ public class CircuitChanges
 							if (geom instanceof NodeInst)
 							{
 								NodeInst ni = (NodeInst)geom;
-//								ni.setName("");
+								ni.setName(null);
 								ni.modifyInstance(0, 0, 0, 0, 0);
 							} else
 							{
 								ArcInst ai = (ArcInst)geom;
-//								ai.setName("");
+								ai.setName(null);
+								ai.modify(0, 0, 0, 0, 0);
 							}
 						}
 					} else

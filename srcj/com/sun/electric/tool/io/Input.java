@@ -126,6 +126,11 @@ public class Input extends IOTool
 		//Undo.noUndoAllowed();
 		InputLibrary.initializeLibraryInput();
 		Undo.changesQuiet(true);
+
+		// show progress
+		progress = new Progress("Reading library " + fileName + "...");
+		progress.setProgress(0);
+
 		Library lib = readALibrary(fileName, null, type);
 		if (InputLibrary.VERBOSE)
 			System.out.println("Done reading data for all libraries");
@@ -133,6 +138,9 @@ public class Input extends IOTool
 		InputLibrary.cleanupLibraryInput();
 		if (InputLibrary.VERBOSE)
 			System.out.println("Done instantiating data for all libraries");
+
+		progress.close();
+		progress = null;
 
 		Undo.changesQuiet(false);
 		Network.reload();
@@ -214,20 +222,8 @@ public class Input extends IOTool
 		    new BufferedInputStream(in.fileInputStream, READ_BUFFER_SIZE);
 		in.dataInputStream = new DataInputStream(bufStrm);
 
-		// show progress
-		if (topLevel && progress == null)
-		{
-			progress = new Progress("Reading library "+lib.getLibName()+"...");
-			progress.setProgress(0);
-		}
-
 		// read the library
 		boolean error = in.readInputLibrary();
-		if (topLevel && progress != null)
-		{
-			progress.close();
-			progress = null;
-		}
 		try
 		{
 			in.fileInputStream.close();

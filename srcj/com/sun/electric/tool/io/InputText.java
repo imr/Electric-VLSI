@@ -370,10 +370,13 @@ public class InputText extends InputLibrary
 		}
 		scanNodesForRecursion(cell, markCellForNodes, nodePrototypes, 0, numNodes);
 
-		// now fill in the nodes
+		// report progress
 		if (InputLibrary.VERBOSE)
 			System.out.println("Text: Doing contents of cell " + cell.describe() + " in library " + lib.getLibName());
+		cellsConstructed++;
+		progress.setProgress(cellsConstructed * 100 / totalCells);
 
+		// now fill in the nodes
 		double lambda = cellLambda[cellIndex];
 		Point2D offset = realizeNode(cell, nil, lambda);
 		nodeProtoOffX[cellIndex] = offset.getX();
@@ -601,7 +604,8 @@ public class InputText extends InputLibrary
 //				System.out.println("Cell " + cell.describe() + ", arc " + ap.describe() + " tail at (" +
 //					ail.arcTailX[j] + "," + ail.arcTailY[j] + ") not in port");
 
-			ai.lowLevelPopulate(ap, width, tailPortInst, tailPt, headPortInst, headPt);
+			int defAngle = ai.lowLevelGetArcAngle() * 10;
+			ai.lowLevelPopulate(ap, width, tailPortInst, tailPt, headPortInst, headPt, defAngle);
 			if (name != null) ai.setNameKey(name);
 			ai.lowLevelLink();
 		}

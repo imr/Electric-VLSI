@@ -719,11 +719,12 @@ public class GetInfoArc extends javax.swing.JDialog
 		{
 			boolean changed = false;
 
-			String currentName = dialog.name.getText();
+			String currentName = dialog.name.getText().trim();
 			if (!currentName.equals(dialog.initialName))
 			{
-				ai.setName(currentName);
 				dialog.initialName = new String(currentName);
+				if (currentName.length() == 0) currentName = null;
+				ai.setName(currentName);
 				changed = true;
 			}
 			boolean currentEasyToSelect = dialog.easyToSelect.isSelected();

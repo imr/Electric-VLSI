@@ -322,7 +322,7 @@ public class EditWindow extends JPanel
 long startTime = System.currentTimeMillis();
 			drawImage();
 long endTime = System.currentTimeMillis();
-System.out.println("Rendering took "+(endTime-startTime)+" milliseconds");
+//System.out.println("Rendering took "+(endTime-startTime)+" milliseconds");
 		}
 		g.drawImage(offscreen.getImage(), 0, 0, this);
 

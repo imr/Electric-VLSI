@@ -1064,9 +1064,11 @@ public class InputBinary extends InputLibrary
 		// recursively scan the nodes to the bottom and only proceed when everything below is built
 		scanNodesForRecursion(cell, recursiveSetupFlag, nodeInstList.protoType, startNode, endNode);
 
-		// now fill in the nodes
+		// report progress
 		if (InputLibrary.VERBOSE)
 			System.out.println("Binary: Doing contents of cell " + cell.describe() + " in library " + lib.getLibName());
+		cellsConstructed++;
+		progress.setProgress(cellsConstructed * 100 / totalCells);
 
 		// finish initializing the NodeInsts in the cell: start with the cell-center
 		double lambda = cellLambda[cellIndex];
@@ -1294,7 +1296,8 @@ public class InputBinary extends InputLibrary
 					" because ends are unknown");
 				continue;
 			}
-			ai.lowLevelPopulate(ap, width, tailPortInst, new Point2D.Double(tailX, tailY), headPortInst, new Point2D.Double(headX, headY));
+			int defAngle = ai.lowLevelGetArcAngle() * 10;
+			ai.lowLevelPopulate(ap, width, tailPortInst, new Point2D.Double(tailX, tailY), headPortInst, new Point2D.Double(headX, headY), defAngle);
 			if (name != null) ai.setNameKey(name);
 			ai.lowLevelLink();
 		}

@@ -212,7 +212,7 @@ public class ArcInst extends Geometric
 
 		// create the arc that connects them
 		ArcInst ai = ArcInst.lowLevelAllocate();
-		ai.lowLevelPopulate(ap, ap.getDefaultWidth(), piH, new Point2D.Double(xH, yH), piT, new Point2D.Double(xT, yT));
+		ai.lowLevelPopulate(ap, ap.getDefaultWidth(), piH, new Point2D.Double(xH, yH), piT, new Point2D.Double(xT, yT), 0);
 		return ai;
 	}
 
@@ -253,7 +253,7 @@ public class ArcInst extends Geometric
 		PortInst head, Point2D headPt, PortInst tail, Point2D tailPt, String name)
 	{
 		ArcInst ai = lowLevelAllocate();
-		if (ai.lowLevelPopulate(type, width, head, headPt, tail, tailPt)) return null;
+		if (ai.lowLevelPopulate(type, width, head, headPt, tail, tailPt, 0)) return null;
 		if (!ai.stillInPort(ai.getHead(), headPt, false))
 		{
 			Cell parent = head.getNodeInst().getParent();
@@ -375,15 +375,16 @@ public class ArcInst extends Geometric
 	 * @param headPt the coordinate of the head end PortInst.
 	 * @param tailPort the tail end PortInst.
 	 * @param tailPt the coordinate of the tail end PortInst.
+	 * @param defAngle the default angle of this arc (if the endpoints are coincident).
 	 * @return true on error.
 	 */
 	public boolean lowLevelPopulate(ArcProto protoType, double width,
-		PortInst headPort, Point2D headPt, PortInst tailPort, Point2D tailPt)
+		PortInst headPort, Point2D headPt, PortInst tailPort, Point2D tailPt, int defAngle)
 	{
 		// initialize this object
 		this.protoType = protoType;
 
-		if (width <= 0)
+		if (width < 0)
 			width = protoType.getWidth();
 		this.width = width;
 
@@ -418,7 +419,7 @@ public class ArcInst extends Geometric
 		ends[TAILEND] = new Connection(this, tailPort, tailPt);
 		
 		// fill in the geometry
-		updateGeometric();
+		updateGeometric(defAngle);
 
 		return false;
 	}
@@ -492,7 +493,7 @@ public class ArcInst extends Geometric
 			Point2D pt = ends[TAILEND].getLocation();
 			ends[TAILEND].setLocation(new Point2D.Double(EMath.smooth(dTailX+pt.getX()), EMath.smooth(pt.getY()+dTailY)));
 		}
-		updateGeometric();
+		updateGeometric(getAngle());
 
 		// update end shrinkage information
 		for(int k=0; k<2; k++)
@@ -841,14 +842,14 @@ public class ArcInst extends Geometric
 	/**
 	 * Method to recompute the Geometric information on this ArcInst.
 	 */
-	private void updateGeometric()
+	private void updateGeometric(int defAngle)
 	{
 		Point2D p1 = ends[HEADEND].getLocation();
 		Point2D p2 = ends[TAILEND].getLocation();
 		double dx = p2.getX() - p1.getX();
 		double dy = p2.getY() - p1.getY();
 		length = Math.sqrt(dx * dx + dy * dy);
-		if (p1.equals(p2)) angle = 0; else
+		if (p1.equals(p2)) angle = defAngle; else
 			angle = EMath.figureAngle(p1, p2);
 
 		// compute the bounds
