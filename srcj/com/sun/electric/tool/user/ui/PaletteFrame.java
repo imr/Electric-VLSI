@@ -31,6 +31,7 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.Technology;
@@ -39,9 +40,11 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.simulation.Spice;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.io.Input;
 
 import java.util.Iterator;
 import java.util.List;
@@ -81,7 +84,7 @@ import javax.swing.JMenuItem;
  */
 public class PaletteFrame
 {
-	/** the edit window part */							private PalettetWindow wnd;
+	/** the edit window part */							private PalettePanel panel;
 	/** the internal frame (if MDI). */					private JInternalFrame jif;
 	/** the top-level frame (if SDI). */				private JFrame jf;
 	/** the number of palette entries. */				private int menuX = -1, menuY = -1;
@@ -89,167 +92,234 @@ public class PaletteFrame
 	/** the list of objects in the palette. */			private List inPalette;
 	/** the currently selected Node in the palette. */	private NodeProto highlightedNode;
 
-	static class PlaceNodeListener
-		implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
+	// constructor, never called
+	private PaletteFrame() {}
+
+	/**
+	 * Routine to create a new window on the screen that displays the component menu.
+	 * @return the PaletteFrame that shows the component menu.
+	 */
+	public static PaletteFrame newInstance()
 	{
-		private int oldx, oldy;
-		private Point2D drawnLoc;
-		private boolean doingMotionDrag;
-		private Object toDraw;
-		private EventListener oldListener;
-		private Cursor oldCursor;
-		private boolean isDrawn;
-		private PalettetWindow window;
+		PaletteFrame palette = new PaletteFrame();
 
-		private PlaceNodeListener(PalettetWindow window, Object toDraw, EventListener oldListener, Cursor oldCursor)
+		// initialize the frame
+		Dimension screenSize = TopLevel.getScreenSize();
+		int screenHeight = (int)screenSize.getHeight();
+		Dimension frameSize = new Dimension(100, screenHeight-100);
+		if (TopLevel.isMDIMode())
 		{
-			this.window = window;
-			this.toDraw = toDraw;
-			this.oldListener = oldListener;
-			this.oldCursor = oldCursor;
-			this.isDrawn = false;
+			palette.jif = new JInternalFrame("Components", true, false, false, false);
+			palette.jif.setSize(frameSize);
+			palette.jif.setLocation(0, 0);
+			palette.jif.setAutoscrolls(true);
+		} else
+		{
+			palette.jf = new JFrame("Components");
+			palette.jf.setSize(frameSize);
+			palette.jf.setLocation(0, 0);
+			palette.jf.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		}
 
-		public void setParameter(Object toDraw) { this.toDraw = toDraw; }
-
-		private void updateBox(EditWindow wnd, int oldx, int oldy)
+		// create a paletteWindow and a selector combobox
+		palette.panel = new PalettePanel(palette);
+		JComboBox selector = new JComboBox();
+		List techList = Technology.getTechnologiesSortedByName();
+		for(Iterator it = techList.iterator(); it.hasNext(); )
 		{
-			if (isDrawn)
-			{
-				// undraw it
-				Highlight.clear();
-			}
-
-			// draw it
-			drawnLoc = wnd.screenToDatabase(oldx, oldy);
-			wnd.gridAlign(drawnLoc, 1);
-			NodeProto np = null;
-			if (toDraw instanceof NodeInst)
-			{
-				NodeInst ni = (NodeInst)toDraw;
-				np = ni.getProto();
-			}
-			if (toDraw instanceof NodeProto)
-			{
-				np = (NodeProto)toDraw;
-			}
-			if (np != null)
-			{
-				SizeOffset so = np.getSizeOffset();
-				double trueSizeX = np.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
-				double trueSizeY = np.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
-				double lowX = drawnLoc.getX() - trueSizeX/2;
-				double lowY = drawnLoc.getY() - trueSizeY/2;
-				Highlight h = Highlight.addArea(new Rectangle2D.Double(lowX, lowY, trueSizeX, trueSizeY), wnd.getCell());
-				isDrawn = true;
-				wnd.repaint();
-			}
+			Technology tech = (Technology)it.next();
+			if (tech == Generic.tech) continue;
+			selector.addItem(tech.getTechName());
 		}
+		selector.setSelectedItem(Technology.getCurrent().getTechName());
+        selector.addActionListener(new TechnologyPopupActionListener(palette));
 
-		public void mouseReleased(MouseEvent evt)
+		if (TopLevel.isMDIMode())
 		{
-			oldx = evt.getX();
-			oldy = evt.getY();
-			EditWindow wnd = (EditWindow)evt.getSource();
-			Point2D where = wnd.screenToDatabase(oldx, oldy);
-			wnd.gridAlign(where, 1);
-
-			// schedule the node to be created
-			NodeInst ni = null;
-			NodeProto np = null;
-			if (toDraw instanceof NodeProto)
-			{
-				np = (NodeProto)toDraw;
-			} else if (toDraw instanceof NodeInst)
-			{
-				ni = (NodeInst)toDraw;
-				np = ni.getProto();
-			}
-			String descript = "Create ";
-			if (np instanceof Cell) descript += ((Cell)np).noLibDescribe(); else
-				descript += np.getProtoName() + " Primitive";
-			PlaceNewNode job = new PlaceNewNode(descript, toDraw, where, wnd.getCell());
-
-			// restore the former listener to the edit windows
-			Highlight.clear();
-			EditWindow.setListener(oldListener);
-			window.frame.highlightedNode = null;
-			TopLevel.setCurrentCursor(oldCursor);
-			window.repaint();
-		}
-
-		public void mousePressed(MouseEvent evt) {}
-		public void mouseClicked(MouseEvent evt) {}
-		public void mouseEntered(MouseEvent evt) {}
-		public void mouseExited(MouseEvent evt) {}
-		public void mouseMoved(MouseEvent evt)
+			palette.jif.getContentPane().setLayout(new java.awt.BorderLayout());
+			palette.jif.getContentPane().add(palette.panel, BorderLayout.CENTER);
+			palette.jif.getContentPane().add(selector, BorderLayout.SOUTH);
+			palette.jif.show();
+			TopLevel.addToDesktop(palette.jif);
+			palette.jif.moveToFront();
+		} else
 		{
-			updateBox((EditWindow)evt.getSource(), evt.getX(), evt.getY());
+			palette.jf.getContentPane().setLayout(new java.awt.BorderLayout());
+			palette.jf.getContentPane().add(palette.panel, BorderLayout.CENTER);
+			palette.jf.getContentPane().add(selector, BorderLayout.SOUTH);
+			palette.jf.show();
 		}
-
-		public void mouseDragged(MouseEvent evt)
-		{
-			updateBox((EditWindow)evt.getSource(), evt.getX(), evt.getY());
-		}
-
-		public void mouseWheelMoved(MouseWheelEvent evt) {}
-
-		public void keyPressed(KeyEvent evt)
-		{
-			int chr = evt.getKeyCode();
-			EditWindow wnd = (EditWindow)evt.getSource();
-			if (chr == KeyEvent.VK_A)
-			{
-				// abort?
-			}
-		}
-
-		public void keyReleased(KeyEvent evt) {}
-		public void keyTyped(KeyEvent evt) {}
+		return palette;
 	}
 
-	/** class that creates the node selected from the component menu */
-	protected static class PlaceNewNode extends Job
+	public PalettePanel getPanel() { return panel; }
+
+	public void loadForTechnology()
 	{
-		Object toDraw;
-		Point2D where;
-		Cell cell;
-
-		protected PlaceNewNode(String description, Object toDraw, Point2D where, Cell cell)
+		Technology tech = Technology.getCurrent();
+		inPalette = new ArrayList();
+		if (tech == Schematics.tech)
 		{
-			super(description, User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.toDraw = toDraw;
-			this.where = where;
-			this.cell = cell;
-			this.startJob();
-		}
+			menuX = 2;
+			menuY = 14;
+			inPalette.add(Schematics.tech.wire_arc);
+			inPalette.add(Schematics.tech.wirePinNode);
+			inPalette.add("Spice");
+			inPalette.add(Schematics.tech.offpageNode);
+			inPalette.add(Schematics.tech.globalNode);
+			inPalette.add(Schematics.tech.powerNode);
+			inPalette.add(Schematics.tech.resistorNode);
+			inPalette.add(Schematics.tech.capacitorNode);
+			inPalette.add(makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRADMES, 900));
+			inPalette.add(makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRANPN, 900));
+			inPalette.add(Schematics.tech.flipflopNode);
+			inPalette.add(Schematics.tech.muxNode);
+			inPalette.add(Schematics.tech.xorNode);
+			inPalette.add(null);
 
-		public void doIt()
+			inPalette.add(Schematics.tech.bus_arc);
+			inPalette.add(Schematics.tech.busPinNode);
+			inPalette.add("Inst.");
+			inPalette.add(Schematics.tech.wireConNode);
+			inPalette.add(Schematics.tech.switchNode);
+			inPalette.add(Schematics.tech.groundNode);
+			inPalette.add(Schematics.tech.inductorNode);
+			inPalette.add(Schematics.tech.diodeNode);
+			inPalette.add(makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAPJFET, 900));
+			inPalette.add(makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRANMOS, 900));
+			inPalette.add(Schematics.tech.bufferNode);
+			inPalette.add(Schematics.tech.andNode);
+			inPalette.add(Schematics.tech.orNode);
+			inPalette.add(Schematics.tech.bboxNode);
+		} else if (tech == Artwork.tech)
 		{
-			NodeProto np = null;
-			NodeInst ni = null;
-			if (toDraw instanceof NodeProto)
+			menuX = 2;
+			menuY = 12;
+			inPalette.add(Artwork.tech.solidArc);
+			inPalette.add(Artwork.tech.thickerArc);
+			inPalette.add("Inst.");
+			inPalette.add(Artwork.tech.openedPolygonNode);
+			inPalette.add(Artwork.tech.openedThickerPolygonNode);
+			inPalette.add(Artwork.tech.filledTriangleNode);
+			inPalette.add(Artwork.tech.filledBoxNode);
+			inPalette.add(makeNodeInst(Artwork.tech.filledPolygonNode, NodeProto.Function.ART, 0));
+			inPalette.add(Artwork.tech.filledCircleNode);
+			inPalette.add(Artwork.tech.pinNode);
+			inPalette.add(Artwork.tech.crossedBoxNode);
+			inPalette.add(Artwork.tech.thickCircleNode);
+
+			inPalette.add(Artwork.tech.dottedArc);
+			inPalette.add(Artwork.tech.dashedArc);
+			inPalette.add("Text");
+			inPalette.add(Artwork.tech.openedDottedPolygonNode);
+			inPalette.add(Artwork.tech.openedDashedPolygonNode);
+			inPalette.add(Artwork.tech.triangleNode);
+			inPalette.add(Artwork.tech.boxNode);
+			inPalette.add(makeNodeInst(Artwork.tech.closedPolygonNode, NodeProto.Function.ART, 0));
+			inPalette.add(Artwork.tech.circleNode);
+			inPalette.add("Export");
+			inPalette.add(Artwork.tech.arrowNode);
+			inPalette.add(makeNodeInst(Artwork.tech.splineNode, NodeProto.Function.ART, 0));
+		} else
+		{
+			int pinTotal = 0, pureTotal = 0, compTotal = 0, arcTotal = 0;
+			ArcProto firstHighlightedArc = null;
+			highlightedNode = null;
+			for(Iterator it = tech.getArcs(); it.hasNext(); )
 			{
-				np = (NodeProto)toDraw;
-			} else if (toDraw instanceof NodeInst)
-			{
-				ni = (NodeInst)toDraw;
-				np = ni.getProto();
+				PrimitiveArc ap = (PrimitiveArc)it.next();
+				if (ap.isNotUsed()) continue;
+				PrimitiveNode np = ap.findPinProto();
+				if (np != null && np.isNotUsed()) continue;			
+				if (firstHighlightedArc == null) firstHighlightedArc = ap;
+				arcTotal++;
+				inPalette.add(ap);
 			}
-			NodeInst newNi = NodeInst.newInstance(np, where, np.getDefWidth(), np.getDefHeight(), 0, cell, null);
-			if (newNi == null) return;
-			if (ni != null) newNi.setTechSpecific(ni.getTechSpecific());
-			np.getTechnology().setDefaultOutline(newNi);
-			Highlight.addGeometric(newNi);
+			User.tool.setCurrentArcProto(firstHighlightedArc);
+			inPalette.add("Inst.");
+			for(Iterator it = tech.getNodes(); it.hasNext(); )
+			{
+				PrimitiveNode np = (PrimitiveNode)it.next();
+				if (np.isNotUsed()) continue;
+				NodeProto.Function fun = np.getFunction();
+				if (fun == NodeProto.Function.PIN)
+				{
+					pinTotal++;
+					inPalette.add(np);
+				} else if (fun == NodeProto.Function.NODE) pureTotal++; else
+				{
+					compTotal++;
+					inPalette.add(np);
+				}
+			}
+			if (pinTotal + compTotal == 0) pinTotal = pureTotal;
+			menuY = arcTotal + pinTotal + compTotal + 1;
+			menuX = 1;
+			if (menuY > 40)
+			{
+				menuY = (menuY+2) / 3;
+				menuX = 3;
+			} else if (menuY > 20)
+			{
+				menuY = (menuY+1) / 2;
+				menuX = 2;
+			}
+		}
+		Dimension size = TopLevel.getScreenSize();
+		entrySize = (int)size.getWidth() / menuX;
+		int ysize = (int)(size.getHeight()-100) / menuY;
+		if (ysize < entrySize) entrySize = ysize;
+		size.setSize(entrySize*menuX+1, entrySize*menuY+1);
+		if (TopLevel.isMDIMode())
+		{
+			jif.setSize(size);
+		} else
+		{
+			jf.setSize(size);
+		}
+		panel.repaint();
+	}
+
+	private static NodeInst makeNodeInst(NodeProto np, NodeProto.Function func, int angle)
+	{
+		NodeInst ni = NodeInst.lowLevelAllocate();
+		ni.lowLevelPopulate(np, new Point2D.Double(0,0), np.getDefWidth(), np.getDefHeight(), angle, null);
+		np.getTechnology().setPrimitiveFunction(ni, func);
+//		Undo.setNextChangeQuiet();
+		np.getTechnology().setDefaultOutline(ni);
+		return ni;
+	}
+
+	// The class that watches changes to the technology popup at the bottom of the component menu
+	static class TechnologyPopupActionListener implements ActionListener
+	{
+		PaletteFrame palette;
+
+		TechnologyPopupActionListener(PaletteFrame palette) { this.palette = palette; }
+
+		public void actionPerformed(java.awt.event.ActionEvent evt)
+		{
+			// the popup of libraies changed
+			JComboBox cb = (JComboBox)evt.getSource();
+			String techName = (String)cb.getSelectedItem();
+			Technology  tech = Technology.findTechnology(techName);
+			if (tech != null)
+			{
+				tech.setCurrent();
+				palette.loadForTechnology();					
+			}
 		}
 	}
 
-	public static class PalettetWindow extends JPanel
+	/**
+	 * Class to define the JPanel in the component menu.
+	 */
+	public static class PalettePanel extends JPanel
 		implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
 	{
 		PaletteFrame frame;
 
-		PalettetWindow(PaletteFrame frame)
+		PalettePanel(PaletteFrame frame)
 		{
 			this.frame = frame;
 			addKeyListener(this);
@@ -265,11 +335,11 @@ public class PaletteFrame
 		 */
 		public void mousePressed(java.awt.event.MouseEvent e)
 		{
-			PalettetWindow pf = (PalettetWindow)e.getSource();
-			int x = e.getX() / (pf.frame.entrySize+1);
-			int y = pf.frame.menuY - (e.getY() / (pf.frame.entrySize+1)) - 1;
+			PalettePanel panel = (PalettePanel)e.getSource();
+			int x = e.getX() / (panel.frame.entrySize+1);
+			int y = panel.frame.menuY - (e.getY() / (panel.frame.entrySize+1)) - 1;
 			int index = x * frame.menuY + y;
-			Object obj = pf.frame.inPalette.get(index);
+			Object obj = panel.frame.inPalette.get(index);
 			if (obj instanceof NodeProto || obj instanceof NodeInst)
 			{
 				JMenuItem menuItem;
@@ -277,34 +347,34 @@ public class PaletteFrame
 				{
 					JPopupMenu menu = new JPopupMenu("Diode");
 					menu.add(menuItem = new JMenuItem("Normal Diode"));
-					menuItem.addActionListener(new PlacePopupListener(pf, Schematics.tech.diodeNode));
+					menuItem.addActionListener(new PlacePopupListener(panel, Schematics.tech.diodeNode));
 					menu.add(menuItem = new JMenuItem("Zener Diode"));
-					menuItem.addActionListener(new PlacePopupListener(pf, makeNodeInst(Schematics.tech.diodeNode, NodeProto.Function.DIODEZ, 0)));
-					menu.show(pf, e.getX(), e.getY());
+					menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.diodeNode, NodeProto.Function.DIODEZ, 0)));
+					menu.show(panel, e.getX(), e.getY());
 					return;
 				}
 				if (obj == Schematics.tech.capacitorNode)
 				{
 					JPopupMenu menu = new JPopupMenu("Capacitor");
 					menu.add(menuItem = new JMenuItem("Normal Capacitor"));
-					menuItem.addActionListener(new PlacePopupListener(pf, Schematics.tech.capacitorNode));
+					menuItem.addActionListener(new PlacePopupListener(panel, Schematics.tech.capacitorNode));
 					menu.add(menuItem = new JMenuItem("Electrolytic Capacitor"));
-					menuItem.addActionListener(new PlacePopupListener(pf, makeNodeInst(Schematics.tech.capacitorNode, NodeProto.Function.ECAPAC, 0)));
-					menu.show(pf, e.getX(), e.getY());
+					menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.capacitorNode, NodeProto.Function.ECAPAC, 0)));
+					menu.show(panel, e.getX(), e.getY());
 					return;
 				}
 				if (obj == Schematics.tech.flipflopNode)
 				{
 					JPopupMenu menu = new JPopupMenu("Flip-flop");
 					menu.add(menuItem = new JMenuItem("R-S"));
-					menuItem.addActionListener(new PlacePopupListener(pf, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOP, 0)));
+					menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOP, 0)));
 					menu.add(menuItem = new JMenuItem("J-K"));
-					menuItem.addActionListener(new PlacePopupListener(pf, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOP, 0)));
+					menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOP, 0)));
 					menu.add(menuItem = new JMenuItem("D"));
-					menuItem.addActionListener(new PlacePopupListener(pf, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOP, 0)));
+					menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOP, 0)));
 					menu.add(menuItem = new JMenuItem("T"));
-					menuItem.addActionListener(new PlacePopupListener(pf, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOP, 0)));
-					menu.show(pf, e.getX(), e.getY());
+					menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOP, 0)));
+					menu.show(panel, e.getX(), e.getY());
 					return;
 				}
 				if (obj instanceof NodeInst && ((NodeInst)obj).getProto() == Schematics.tech.transistorNode)
@@ -314,60 +384,60 @@ public class PaletteFrame
 					{
 						JPopupMenu menu = new JPopupMenu("MOS");
 						menu.add(menuItem = new JMenuItem("nMOS"));
-						menuItem.addActionListener(new PlacePopupListener(pf, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRANMOS, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRANMOS, 0)));
 						menu.add(menuItem = new JMenuItem("PMOS"));
-						menuItem.addActionListener(new PlacePopupListener(pf, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAPMOS, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAPMOS, 0)));
 						menu.add(menuItem = new JMenuItem("DMOS"));
-						menuItem.addActionListener(new PlacePopupListener(pf, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRADMOS, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRADMOS, 0)));
 						menu.add(menuItem = new JMenuItem("nMOS 4-port"));
-						menuItem.addActionListener(new PlacePopupListener(pf, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4NMOS, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4NMOS, 0)));
 						menu.add(menuItem = new JMenuItem("PMOS 4-port"));
-						menuItem.addActionListener(new PlacePopupListener(pf, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4PMOS, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4PMOS, 0)));
 						menu.add(menuItem = new JMenuItem("DMOS 4-port"));
-						menuItem.addActionListener(new PlacePopupListener(pf, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4DMOS, 0)));
-						menu.show(pf, e.getX(), e.getY());
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4DMOS, 0)));
+						menu.show(panel, e.getX(), e.getY());
 						return;
 					}
 					if (ni.getFunction() == NodeProto.Function.TRANPN)
 					{
 						JPopupMenu menu = new JPopupMenu("Bipolar");
 						menu.add(menuItem = new JMenuItem("NPN"));
-						menuItem.addActionListener(new PlacePopupListener(pf, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRANPN, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRANPN, 0)));
 						menu.add(menuItem = new JMenuItem("PNP"));
-						menuItem.addActionListener(new PlacePopupListener(pf, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAPNP, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAPNP, 0)));
 						menu.add(menuItem = new JMenuItem("NPN 4-port"));
-						menuItem.addActionListener(new PlacePopupListener(pf, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4NPN, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4NPN, 0)));
 						menu.add(menuItem = new JMenuItem("PNP 4-port"));
-						menuItem.addActionListener(new PlacePopupListener(pf, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4PNP, 0)));
-						menu.show(pf, e.getX(), e.getY());
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4PNP, 0)));
+						menu.show(panel, e.getX(), e.getY());
 						return;
 					}
 					if (ni.getFunction() == NodeProto.Function.TRADMES)
 					{
 						JPopupMenu menu = new JPopupMenu("DMES/EMES");
 						menu.add(menuItem = new JMenuItem("DMES"));
-						menuItem.addActionListener(new PlacePopupListener(pf, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRADMES, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRADMES, 0)));
 						menu.add(menuItem = new JMenuItem("EMES"));
-						menuItem.addActionListener(new PlacePopupListener(pf, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAEMES, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAEMES, 0)));
 						menu.add(menuItem = new JMenuItem("DMES 4-port"));
-						menuItem.addActionListener(new PlacePopupListener(pf, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4DMES, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4DMES, 0)));
 						menu.add(menuItem = new JMenuItem("EMES 4-port"));
-						menuItem.addActionListener(new PlacePopupListener(pf, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4EMES, 0)));
-						menu.show(pf, e.getX(), e.getY());
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4EMES, 0)));
+						menu.show(panel, e.getX(), e.getY());
 						return;
 					}
 					if (ni.getFunction() == NodeProto.Function.TRAPJFET)
 					{
 						JPopupMenu menu = new JPopupMenu("FET");
 						menu.add(menuItem = new JMenuItem("PJFET"));
-						menuItem.addActionListener(new PlacePopupListener(pf, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAPJFET, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAPJFET, 0)));
 						menu.add(menuItem = new JMenuItem("NJFET"));
-						menuItem.addActionListener(new PlacePopupListener(pf, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRANJFET, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRANJFET, 0)));
 						menu.add(menuItem = new JMenuItem("PJFET 4-port"));
-						menuItem.addActionListener(new PlacePopupListener(pf, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4PJFET, 0)));
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4PJFET, 0)));
 						menu.add(menuItem = new JMenuItem("NJFET 4-port"));
-						menuItem.addActionListener(new PlacePopupListener(pf, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4NJFET, 0)));
-						menu.show(pf, e.getX(), e.getY());
+						menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.transistor4Node, NodeProto.Function.TRA4NJFET, 0)));
+						menu.show(panel, e.getX(), e.getY());
 						return;
 					}
 				}
@@ -395,7 +465,7 @@ public class PaletteFrame
 						((PlaceNodeListener)currentListener).setParameter(np);
 					} else
 					{
-						currentListener = new PlaceNodeListener(pf, obj, oldListener, oldCursor);
+						currentListener = new PlaceNodeListener(panel, obj, oldListener, oldCursor);
 						EditWindow.setListener(currentListener);
 					}
 					frame.highlightedNode = np;
@@ -418,28 +488,79 @@ public class PaletteFrame
 					{
 						Cell cell = (Cell)it.next();
 						JMenuItem menuItem = new JMenuItem(cell.describe());
-						menuItem.addActionListener(new PlacePopupListener(pf, cell));
+						menuItem.addActionListener(new PlacePopupListener(panel, cell));
 						cellMenu.add(menuItem);
 					}
-					cellMenu.show(pf, e.getX(), e.getY());
+					cellMenu.show(panel, e.getX(), e.getY());
 				} if (msg.equals("Spice"))
 				{
 					JPopupMenu cellMenu = new JPopupMenu("Spice");
-					JMenuItem menuItem = new JMenuItem("Ground");
-					menuItem.addActionListener(new PlacePopupListener(pf, Schematics.tech.groundNode));
-					cellMenu.add(menuItem);
-					cellMenu.show(pf, e.getX(), e.getY());
+
+					String currentSpiceLib = Spice.getSpicePartsLibrary();
+					Library spiceLib = Library.findLibrary(currentSpiceLib);
+					if (spiceLib == null)
+					{
+						// must read the Spice library from disk
+						String fileName = LibFile.getLibFile(currentSpiceLib + ".txt");
+						ReadSpiceLibrary job = new ReadSpiceLibrary(fileName, cellMenu, panel, e.getX(), e.getY());
+					} else
+					{
+						for(Iterator it = spiceLib.getCells(); it.hasNext(); )
+						{
+							Cell cell = (Cell)it.next();
+							JMenuItem menuItem = new JMenuItem(cell.getProtoName());
+							menuItem.addActionListener(new PlacePopupListener(panel, cell));
+							cellMenu.add(menuItem);
+						}
+						cellMenu.show(panel, e.getX(), e.getY());
+					}
 				}
 			}
 			repaint();
 		}
 
+		/**
+		 * Class to read a Spice library in a new thread.
+		 */
+		protected static class ReadSpiceLibrary extends Job
+		{
+			String fileName;
+			JPopupMenu cellMenu;
+			PalettePanel panel;
+			int x, y;
+			protected ReadSpiceLibrary(String fileName, JPopupMenu cellMenu, PalettePanel panel, int x, int y)
+			{
+				super("Read Spice Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+				this.fileName = fileName;
+				this.cellMenu = cellMenu;
+				this.panel = panel;
+				this.x = x;
+				this.y = y;
+				this.startJob();
+			}
+
+			public void doIt()
+			{
+				Library lib = Input.readLibrary(fileName, Input.ImportType.TEXT);
+				Undo.noUndoAllowed();
+				if (lib == null) return;
+				for(Iterator it = lib.getCells(); it.hasNext(); )
+				{
+					Cell cell = (Cell)it.next();
+					JMenuItem menuItem = new JMenuItem(cell.getProtoName());
+					menuItem.addActionListener(new PlacePopupListener(panel, cell));
+					cellMenu.add(menuItem);
+				}
+				cellMenu.show(panel, x, y);
+			}
+		}
+
 		static class PlacePopupListener implements ActionListener
 		{
-			PalettetWindow pf;
+			PalettePanel panel;
 			Object obj;
 
-			PlacePopupListener(PalettetWindow pf, Object obj) { super();  this.pf = pf;   this.obj = obj; }
+			PlacePopupListener(PalettePanel panel, Object obj) { super();  this.panel = panel;   this.obj = obj; }
 
 			public void actionPerformed(java.awt.event.ActionEvent evt)
 			{
@@ -458,10 +579,10 @@ public class PaletteFrame
 					((PlaceNodeListener)currentListener).setParameter(obj);
 				} else
 				{
-					currentListener = new PlaceNodeListener(pf, obj, oldListener, oldCursor);
+					currentListener = new PlaceNodeListener(panel, obj, oldListener, oldCursor);
 					EditWindow.setListener(currentListener);
 				}
-				PaletteFrame frame = pf.getFrame();
+				PaletteFrame frame = panel.getFrame();
 //				frame.highlightedNode = obj;
 			}
 		};
@@ -699,222 +820,158 @@ public class PaletteFrame
 		}
 	}
 
-	// constructor
-	private PaletteFrame() {}
-
-	/**
-	 * Routine to create a new window on the screen that displays a Cell.
-	 * @param cell the cell to display.
-	 * @return the PaletteFrame that shows the Cell.
-	 */
-	public static PaletteFrame newInstance()
+	static class PlaceNodeListener
+		implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
 	{
-		PaletteFrame palette = new PaletteFrame();
+		private int oldx, oldy;
+		private Point2D drawnLoc;
+		private boolean doingMotionDrag;
+		private Object toDraw;
+		private EventListener oldListener;
+		private Cursor oldCursor;
+		private boolean isDrawn;
+		private PalettePanel window;
 
-		// initialize the frame
-		Dimension screenSize = TopLevel.getScreenSize();
-		int screenHeight = (int)screenSize.getHeight();
-		Dimension frameSize = new Dimension(100, screenHeight-100);
-		if (TopLevel.isMDIMode())
+		private PlaceNodeListener(PalettePanel window, Object toDraw, EventListener oldListener, Cursor oldCursor)
 		{
-			palette.jif = new JInternalFrame("Components", true, false, false, false);
-			palette.jif.setSize(frameSize);
-			palette.jif.setLocation(0, 0);
-			palette.jif.setAutoscrolls(true);
-		} else
-		{
-			palette.jf = new JFrame("Components");
-			palette.jf.setSize(frameSize);
-			palette.jf.setLocation(0, 0);
-			palette.jf.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+			this.window = window;
+			this.toDraw = toDraw;
+			this.oldListener = oldListener;
+			this.oldCursor = oldCursor;
+			this.isDrawn = false;
 		}
 
-		// create a paletteWindow and a selector combobox
-		palette.wnd = new PalettetWindow(palette);
-		JComboBox selector = new JComboBox();
-		List techList = Technology.getTechnologiesSortedByName();
-		for(Iterator it = techList.iterator(); it.hasNext(); )
-		{
-			Technology tech = (Technology)it.next();
-			if (tech == Generic.tech) continue;
-			selector.addItem(tech.getTechName());
-		}
-		selector.setSelectedItem(Technology.getCurrent().getTechName());
-        selector.addActionListener(new TechnologyPopupActioListener(palette));
+		public void setParameter(Object toDraw) { this.toDraw = toDraw; }
 
-		if (TopLevel.isMDIMode())
+		private void updateBox(EditWindow wnd, int oldx, int oldy)
 		{
-			palette.jif.getContentPane().setLayout(new java.awt.BorderLayout());
-			palette.jif.getContentPane().add(palette.wnd, BorderLayout.CENTER);
-			palette.jif.getContentPane().add(selector, BorderLayout.SOUTH);
-			palette.jif.show();
-			TopLevel.addToDesktop(palette.jif);
-			palette.jif.moveToFront();
-		} else
-		{
-			palette.jf.getContentPane().setLayout(new java.awt.BorderLayout());
-			palette.jf.getContentPane().add(palette.wnd, BorderLayout.CENTER);
-			palette.jf.getContentPane().add(selector, BorderLayout.SOUTH);
-			palette.jf.show();
+			if (isDrawn)
+			{
+				// undraw it
+				Highlight.clear();
+			}
+
+			// draw it
+			drawnLoc = wnd.screenToDatabase(oldx, oldy);
+			wnd.gridAlign(drawnLoc, 1);
+			NodeProto np = null;
+			if (toDraw instanceof NodeInst)
+			{
+				NodeInst ni = (NodeInst)toDraw;
+				np = ni.getProto();
+			}
+			if (toDraw instanceof NodeProto)
+			{
+				np = (NodeProto)toDraw;
+			}
+			if (np != null)
+			{
+				SizeOffset so = np.getSizeOffset();
+				double trueSizeX = np.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
+				double trueSizeY = np.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
+				double lowX = drawnLoc.getX() - trueSizeX/2;
+				double lowY = drawnLoc.getY() - trueSizeY/2;
+				Highlight h = Highlight.addArea(new Rectangle2D.Double(lowX, lowY, trueSizeX, trueSizeY), wnd.getCell());
+				isDrawn = true;
+				wnd.repaint();
+			}
 		}
-		return palette;
+
+		public void mouseReleased(MouseEvent evt)
+		{
+			oldx = evt.getX();
+			oldy = evt.getY();
+			EditWindow wnd = (EditWindow)evt.getSource();
+			Point2D where = wnd.screenToDatabase(oldx, oldy);
+			wnd.gridAlign(where, 1);
+
+			// schedule the node to be created
+			NodeInst ni = null;
+			NodeProto np = null;
+			if (toDraw instanceof NodeProto)
+			{
+				np = (NodeProto)toDraw;
+			} else if (toDraw instanceof NodeInst)
+			{
+				ni = (NodeInst)toDraw;
+				np = ni.getProto();
+			}
+			String descript = "Create ";
+			if (np instanceof Cell) descript += ((Cell)np).noLibDescribe(); else
+				descript += np.getProtoName() + " Primitive";
+			PlaceNewNode job = new PlaceNewNode(descript, toDraw, where, wnd.getCell());
+
+			// restore the former listener to the edit windows
+			Highlight.clear();
+			EditWindow.setListener(oldListener);
+			window.frame.highlightedNode = null;
+			TopLevel.setCurrentCursor(oldCursor);
+			window.repaint();
+		}
+
+		public void mousePressed(MouseEvent evt) {}
+		public void mouseClicked(MouseEvent evt) {}
+		public void mouseEntered(MouseEvent evt) {}
+		public void mouseExited(MouseEvent evt) {}
+		public void mouseMoved(MouseEvent evt)
+		{
+			updateBox((EditWindow)evt.getSource(), evt.getX(), evt.getY());
+		}
+
+		public void mouseDragged(MouseEvent evt)
+		{
+			updateBox((EditWindow)evt.getSource(), evt.getX(), evt.getY());
+		}
+
+		public void mouseWheelMoved(MouseWheelEvent evt) {}
+
+		public void keyPressed(KeyEvent evt)
+		{
+			int chr = evt.getKeyCode();
+			EditWindow wnd = (EditWindow)evt.getSource();
+			if (chr == KeyEvent.VK_A)
+			{
+				// abort?
+			}
+		}
+
+		public void keyReleased(KeyEvent evt) {}
+		public void keyTyped(KeyEvent evt) {}
 	}
-	
-	static class TechnologyPopupActioListener implements ActionListener
+
+	/** class that creates the node selected from the component menu */
+	protected static class PlaceNewNode extends Job
 	{
-		PaletteFrame palette;
+		Object toDraw;
+		Point2D where;
+		Cell cell;
 
-		TechnologyPopupActioListener(PaletteFrame palette) { this.palette = palette; }
-
-		public void actionPerformed(java.awt.event.ActionEvent evt)
+		protected PlaceNewNode(String description, Object toDraw, Point2D where, Cell cell)
 		{
-			// the popup of libraies changed
-			JComboBox cb = (JComboBox)evt.getSource();
-			String techName = (String)cb.getSelectedItem();
-			Technology  tech = Technology.findTechnology(techName);
-			if (tech != null)
-			{
-				tech.setCurrent();
-				palette.loadForTechnology();					
-			}
+			super(description, User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.toDraw = toDraw;
+			this.where = where;
+			this.cell = cell;
+			this.startJob();
 		}
-	}
 
-	public PalettetWindow getWindow() { return wnd; }
-
-	private static NodeInst makeNodeInst(NodeProto np, NodeProto.Function func, int angle)
-	{
-		NodeInst ni = NodeInst.lowLevelAllocate();
-		ni.lowLevelPopulate(np, new Point2D.Double(0,0), np.getDefWidth(), np.getDefHeight(), angle, null);
-		np.getTechnology().setPrimitiveFunction(ni, func);
-//		Undo.setNextChangeQuiet();
-		np.getTechnology().setDefaultOutline(ni);
-		return ni;
-	}
-
-	public void loadForTechnology()
-	{
-		Technology tech = Technology.getCurrent();
-		inPalette = new ArrayList();
-		if (tech == Schematics.tech)
+		public void doIt()
 		{
-			menuX = 2;
-			menuY = 14;
-			inPalette.add(Schematics.tech.wire_arc);
-			inPalette.add(Schematics.tech.wirePinNode);
-			inPalette.add("Spice");
-			inPalette.add(Schematics.tech.offpageNode);
-			inPalette.add(Schematics.tech.globalNode);
-			inPalette.add(Schematics.tech.powerNode);
-			inPalette.add(Schematics.tech.resistorNode);
-			inPalette.add(Schematics.tech.capacitorNode);
-			inPalette.add(makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRADMES, 900));
-			inPalette.add(makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRANPN, 900));
-			inPalette.add(Schematics.tech.flipflopNode);
-			inPalette.add(Schematics.tech.muxNode);
-			inPalette.add(Schematics.tech.xorNode);
-			inPalette.add(null);
-
-			inPalette.add(Schematics.tech.bus_arc);
-			inPalette.add(Schematics.tech.busPinNode);
-			inPalette.add("Inst.");
-			inPalette.add(Schematics.tech.wireConNode);
-			inPalette.add(Schematics.tech.switchNode);
-			inPalette.add(Schematics.tech.groundNode);
-			inPalette.add(Schematics.tech.inductorNode);
-			inPalette.add(Schematics.tech.diodeNode);
-			inPalette.add(makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRAPJFET, 900));
-			inPalette.add(makeNodeInst(Schematics.tech.transistorNode, NodeProto.Function.TRANMOS, 900));
-			inPalette.add(Schematics.tech.bufferNode);
-			inPalette.add(Schematics.tech.andNode);
-			inPalette.add(Schematics.tech.orNode);
-			inPalette.add(Schematics.tech.bboxNode);
-		} else if (tech == Artwork.tech)
-		{
-			menuX = 2;
-			menuY = 12;
-			inPalette.add(Artwork.tech.solidArc);
-			inPalette.add(Artwork.tech.thickerArc);
-			inPalette.add("Inst.");
-			inPalette.add(Artwork.tech.openedPolygonNode);
-			inPalette.add(Artwork.tech.openedThickerPolygonNode);
-			inPalette.add(Artwork.tech.filledTriangleNode);
-			inPalette.add(Artwork.tech.filledBoxNode);
-			inPalette.add(makeNodeInst(Artwork.tech.filledPolygonNode, NodeProto.Function.ART, 0));
-			inPalette.add(Artwork.tech.filledCircleNode);
-			inPalette.add(Artwork.tech.pinNode);
-			inPalette.add(Artwork.tech.crossedBoxNode);
-			inPalette.add(Artwork.tech.thickCircleNode);
-
-			inPalette.add(Artwork.tech.dottedArc);
-			inPalette.add(Artwork.tech.dashedArc);
-			inPalette.add("Text");
-			inPalette.add(Artwork.tech.openedDottedPolygonNode);
-			inPalette.add(Artwork.tech.openedDashedPolygonNode);
-			inPalette.add(Artwork.tech.triangleNode);
-			inPalette.add(Artwork.tech.boxNode);
-			inPalette.add(makeNodeInst(Artwork.tech.closedPolygonNode, NodeProto.Function.ART, 0));
-			inPalette.add(Artwork.tech.circleNode);
-			inPalette.add("Export");
-			inPalette.add(Artwork.tech.arrowNode);
-			inPalette.add(makeNodeInst(Artwork.tech.splineNode, NodeProto.Function.ART, 0));
-		} else
-		{
-			int pinTotal = 0, pureTotal = 0, compTotal = 0, arcTotal = 0;
-			ArcProto firstHighlightedArc = null;
-			highlightedNode = null;
-			for(Iterator it = tech.getArcs(); it.hasNext(); )
+			NodeProto np = null;
+			NodeInst ni = null;
+			if (toDraw instanceof NodeProto)
 			{
-				PrimitiveArc ap = (PrimitiveArc)it.next();
-				if (ap.isNotUsed()) continue;
-				PrimitiveNode np = ap.findPinProto();
-				if (np != null && np.isNotUsed()) continue;			
-				if (firstHighlightedArc == null) firstHighlightedArc = ap;
-				arcTotal++;
-				inPalette.add(ap);
+				np = (NodeProto)toDraw;
+			} else if (toDraw instanceof NodeInst)
+			{
+				ni = (NodeInst)toDraw;
+				np = ni.getProto();
 			}
-			User.tool.setCurrentArcProto(firstHighlightedArc);
-			inPalette.add("Inst.");
-			for(Iterator it = tech.getNodes(); it.hasNext(); )
-			{
-				PrimitiveNode np = (PrimitiveNode)it.next();
-				if (np.isNotUsed()) continue;
-				NodeProto.Function fun = np.getFunction();
-				if (fun == NodeProto.Function.PIN)
-				{
-					pinTotal++;
-					inPalette.add(np);
-				} else if (fun == NodeProto.Function.NODE) pureTotal++; else
-				{
-					compTotal++;
-					inPalette.add(np);
-				}
-			}
-			if (pinTotal + compTotal == 0) pinTotal = pureTotal;
-			menuY = arcTotal + pinTotal + compTotal + 1;
-			menuX = 1;
-			if (menuY > 40)
-			{
-				menuY = (menuY+2) / 3;
-				menuX = 3;
-			} else if (menuY > 20)
-			{
-				menuY = (menuY+1) / 2;
-				menuX = 2;
-			}
+			NodeInst newNi = NodeInst.newInstance(np, where, np.getDefWidth(), np.getDefHeight(), 0, cell, null);
+			if (newNi == null) return;
+			if (ni != null) newNi.setTechSpecific(ni.getTechSpecific());
+			np.getTechnology().setDefaultOutline(newNi);
+			Highlight.addGeometric(newNi);
 		}
-		Dimension size = TopLevel.getScreenSize();
-		entrySize = (int)size.getWidth() / menuX;
-		int ysize = (int)(size.getHeight()-100) / menuY;
-		if (ysize < entrySize) entrySize = ysize;
-		size.setSize(entrySize*menuX+1, entrySize*menuY+1);
-		if (TopLevel.isMDIMode())
-		{
-			jif.setSize(size);
-		} else
-		{
-			jf.setSize(size);
-		}
-		wnd.repaint();
 	}
 }

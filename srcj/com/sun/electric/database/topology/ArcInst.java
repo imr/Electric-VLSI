@@ -622,8 +622,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 
 			// compute the angle
 			int ang = ai.getAngle() / 10;
-			if (ai.getHead().getPortInst().getPortProto() == con.getPortInst().getPortProto() &&
-				ai.getHead().getPortInst().getNodeInst() == ni) ang += 180;
+			if (ai.getHead() == con) ang += 180;
 			ang %= 360;
 			if ((ang%90) != 0) off90++;
 			if (total < MAXANGLES) shortAngles[total++] = ang; else
@@ -799,6 +798,39 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	}
 
 	/****************************** MISCELLANEOUS ******************************/
+
+	/**
+	 * Routine to check and repair data structure errors in this ArcInst.
+	 */
+	public int checkAndRepair()
+	{
+		int errorCount = 0;
+
+		// see if the ends are in their ports
+		Point2D headPt = getHead().getLocation();
+		if (!stillInPort(getHead(), headPt, false))
+		{
+			System.out.println("Cell " + parent.describe() + ", arc " + describe() +
+				": head not in port, is at (" + headPt.getX() + "," + headPt.getY() + ")");
+			errorCount++;
+		}
+		Point2D tailPt = getTail().getLocation();
+		if (!stillInPort(getTail(), tailPt, false))
+		{
+			System.out.println("Cell " + parent.describe() + ", arc " + describe() +
+				": tail not in port, is at (" + headPt.getX() + "," + headPt.getY() + ")");
+			errorCount++;
+		}
+
+		// make sure width is not negative
+		if (getWidth() < 0)
+		{
+			System.out.println("Cell " + parent.describe() + ", arc " + describe() +
+				": has negative width (" + getWidth() + ")");
+			errorCount++;
+		}
+		return errorCount;
+	}
 
 	/**
 	 * Routine to return the prototype of this ArcInst.

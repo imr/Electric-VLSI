@@ -631,6 +631,77 @@ public class Cell extends NodeProto
 	}
 
 	/**
+	 * Routine to check and repair data structure errors in this Cell.
+	 */
+	public int checkAndRepair()
+	{
+		int errorCount = 0;
+
+		// make sure that every connection is on an arc and a node
+		HashMap connections = new HashMap();
+		for(Iterator it = getArcs(); it.hasNext(); )
+		{
+			ArcInst ai = (ArcInst)it.next();
+			errorCount += ai.checkAndRepair();
+			ArcInst otherAi = (ArcInst)connections.get(ai.getHead());
+			if (otherAi != null)
+			{
+				System.out.println("Cell " + describe() + ", Arc " + ai.describe() +
+					": head connection already on other arc " + otherAi.describe());
+				errorCount++;
+			} else
+			{
+				connections.put(ai.getHead(), ai);
+			}
+
+			otherAi = (ArcInst)connections.get(ai.getTail());
+			if (otherAi != null)
+			{
+				System.out.println("Cell " + describe() + ", Arc " + ai.describe() +
+					": tail connection already on other arc " + otherAi.describe());
+				errorCount++;
+			} else
+			{
+				connections.put(ai.getTail(), ai);
+			}
+		}
+
+		// now make sure that all nodes reference them
+		for(Iterator it = getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			for(Iterator pIt = ni.getConnections(); pIt.hasNext(); )
+			{
+				Connection con = (Connection)pIt.next();
+				ArcInst ai = (ArcInst)connections.get(con);
+				if (ai == null)
+				{
+					System.out.println("Cell " + describe() + ", Node " + ni.describe() +
+						": has connection to unknown arc: " + con.getArc().describe() +
+						" (node has " + ni.getNumConnections() + " connections)");
+					errorCount++;
+				} else
+				{
+					connections.put(con, null);
+				}
+			}
+		}
+
+		// finally check to see if there are any left in the hash table
+		for(Iterator it = connections.values().iterator(); it.hasNext(); )
+		{
+			ArcInst ai = (ArcInst)it.next();
+			if (ai != null)
+			{
+				System.out.println("Cell " + describe() + ", Arc " + ai.describe() +
+					": connection is not on any node");
+				errorCount++;
+			}
+		}
+		return errorCount;
+	}
+
+	/**
 	 * Routine to set change lock of cells in up-tree of this cell.
 	 */
 	public void setChangeLock()

@@ -75,13 +75,13 @@ public class WindowFrame
 		{
 			frame.jif = new JInternalFrame(cell.describe(), true, true, true, true);
 			frame.jif.setSize(frameSize);
-			frame.jif.setLocation(windowOffset+100, windowOffset);
+			frame.jif.setLocation(windowOffset+150, windowOffset);
 			frame.jif.setAutoscrolls(true);
 		} else
 		{
 			frame.jf = new TopLevel("Electric - "+cell.describe(), frameSize);
 			frame.jf.setSize(frameSize);
-			frame.jf.setLocation(windowOffset+100, windowOffset);
+			frame.jf.setLocation(windowOffset+150, windowOffset);
 		}
 		windowOffset += 70;
 		if (windowOffset > 300) windowOffset = 0;

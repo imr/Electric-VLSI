@@ -258,6 +258,20 @@ public class Library extends ElectricObject
 	// ----------------- public interface --------------------
 
 	/**
+	 * Routine to check and repair data structure errors in this Library.
+	 */
+	public int checkAndRepair()
+	{
+		int errorCount = 0;
+		for(Iterator it = getCells(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			errorCount += cell.checkAndRepair();
+		}
+		return errorCount;
+	}
+
+	/**
 	 * Routine to indicate that this Library has changed in a major way.
 	 * Major changes include creation, deletion, or modification of circuit elements.
 	 */

@@ -100,7 +100,7 @@ public class MessagesWindow
 		contentFrame.setLayout(new BorderLayout());
 		contentFrame.add(entry, BorderLayout.SOUTH);
 		contentFrame.add(scroll, BorderLayout.CENTER);
-		jf.setLocation(100, scrnSize.height/3*2);
+		jf.setLocation(150, scrnSize.height/3*2);
 		if (TopLevel.isMDIMode())
 		{
 			((JInternalFrame)jf).pack();

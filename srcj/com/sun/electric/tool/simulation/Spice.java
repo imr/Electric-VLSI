@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.simulation;
 
+import com.sun.electric.lib.LibFile;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.DialogOpenFile;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -64,6 +65,14 @@ public class Spice
 
 	public static String getOutputFormat() { return only.prefs.get("SpiceOutputFormat", "Standard"); }
 	public static void setOutputFormat(String format) { only.prefs.put("SpiceOutputFormat", format); }
+
+	public static String getSpicePartsLibrary()
+	{
+		String [] libNames = LibFile.getSpicePartsLibraries();
+		return only.prefs.get("SpicePartsLibrary", libNames[0]);
+	}
+	public static void setSpicePartsLibrary(String parts) { only.prefs.put("SpicePartsLibrary", parts); }
+
 
 	public static String getHeaderCardInfo() { return only.prefs.get("SpiceHeaderCardInfo", ""); }
 	public static void setHeaderCardInfo(String info) { only.prefs.put("SpiceHeaderCardInfo", info); }

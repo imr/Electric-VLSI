@@ -104,4 +104,13 @@ public class Connection extends ElectricObject
 	{
 		return arc.getHead() == this;
 	}
+
+	/**
+	 * Returns a printable version of this Connection.
+	 * @return a printable version of this Connection.
+	 */
+	public String toString()
+	{
+		return "Connection";
+	}
 }

@@ -52,8 +52,22 @@ public class LibFile
 	{
 		URL url = theOne.getClass().getResource(fileName);
 		if (url == null) return null;
+		// should do url.getInputStream() to open it directly
 		String file = url.getFile();
 		return file;
+	}
+
+	/**
+	 * Routine to find all files that are SPICE parts libraries.
+	 * @return an array of strings that name the SPICE parts libraries.
+	 */
+	public static String [] getSpicePartsLibraries()
+	{
+		// until we find a way to search the resources, this will have to do
+		String [] libNames = new String[2];
+		libNames[0] = "spiceparts";
+		libNames[1] = "spicepartsS3";
+		return libNames;
 	}
 
 }

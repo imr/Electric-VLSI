@@ -694,13 +694,14 @@ public class OutputBinary extends Output
 			{
 				Connection con = (Connection)it.next();
 				ArcInst ai = con.getArc();
-				PortInst pi = con.getPortInst();
 				int i = ai.getTempInt() << 1;
-				if (ai.getHead().getPortInst() == pi) i += 0; else i += 1;
+				if (ai.getHead() == con) i += 0; else i += 1;
 				writeBigInteger(i);
 
 				// write the portinst prototype
-				writeBigInteger(pi.getPortProto().getTempInt());
+				PortInst pi = con.getPortInst();
+				int protoIndex = pi.getPortProto().getTempInt();
+				writeBigInteger(protoIndex);
 
 				// write the variable information
 				writeNoVariables();
@@ -769,7 +770,7 @@ public class OutputBinary extends Output
 		writeBigInteger(ai.getProto().getTempInt());
 
 		// write basic arcinst information
-		Technology tech = ai.getProto().getTechnology();
+		Technology tech = ai.getParent().getTechnology();
 		writeBigInteger((int)(ai.getWidth() * tech.getScale()));
 
 		// write the arcinst head information

@@ -228,6 +228,8 @@ public final class UserMenuCommands
 		menuBar.add(helpMenu);
 		helpMenu.addMenuItem("About Electric...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { aboutCommand(); } });
+		helpMenu.addMenuItem("Check and Repair Libraries...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { checkAndRepairCommand(); } });
 
 		// setup Russell's test menu
 		Menu russMenu = Menu.createMenu("Russell", 'R');
@@ -869,6 +871,18 @@ public final class UserMenuCommands
 		JFrame jf = TopLevel.getCurrentJFrame();
 		About dialog = new About(jf, true);
 		dialog.show();
+	}
+
+	public static void checkAndRepairCommand()
+	{
+		int errorCount = 0;
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			errorCount += lib.checkAndRepair();
+		}
+		if (errorCount > 0) System.out.println("Found " + errorCount + " errors"); else
+			System.out.println("No errors found");
 	}
 
 //	public static void showRTreeCommand()

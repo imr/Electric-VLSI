@@ -28,6 +28,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.Tool;
@@ -170,7 +171,7 @@ public class ToolOptions extends javax.swing.JDialog
 
 	private JList spiceLayerList, spiceCellList;
 	private DefaultListModel spiceLayerListModel, spiceCellListModel;
-	private String spiceEngineInitial, spiceLevelInitial, spiceOutputFormatInitial;
+	private String spiceEngineInitial, spiceLevelInitial, spiceOutputFormatInitial, spicePartsLibraryInitial;
 	private boolean spiceUseParasiticsInitial, spiceUseNodeNamesInitial, spiceForceGlobalPwrGndInitial;
 	private boolean spiceUseCellParametersInitial, spiceWriteTransSizesInLambdaInitial;
 	private double spiceTechMinResistanceInitial, spiceTechMinCapacitanceInitial;
@@ -227,8 +228,12 @@ public class ToolOptions extends javax.swing.JDialog
 		spiceWriteTransSizesInLambda.setSelected(spiceWriteTransSizesInLambdaInitial);
 
 		spiceRunParameters.setEnabled(false);
-		spicePrimitivesetPopup.addItem("spiceparts");
-		spicePrimitivesetPopup.setEnabled(false);
+
+		spicePartsLibraryInitial = Spice.getSpicePartsLibrary();
+		String [] libFiles = LibFile.getSpicePartsLibraries();
+		for(int i=0; i<libFiles.length; i++)
+			spicePrimitivesetPopup.addItem(libFiles[i]);
+		spicePrimitivesetPopup.setSelectedItem(spicePartsLibraryInitial);
 
 		// the next section: parasitic values
 		spiceTechnology.setText("For technology " + curTech.getTechName());
@@ -339,6 +344,9 @@ public class ToolOptions extends javax.swing.JDialog
 
 		stringNow = (String)spiceOutputFormatPopup.getSelectedItem();
 		if (!spiceOutputFormatInitial.equals(stringNow)) Spice.setOutputFormat(stringNow);
+
+		stringNow = (String)spicePrimitivesetPopup.getSelectedItem();
+		if (!spicePartsLibraryInitial.equals(stringNow)) Spice.setSpicePartsLibrary(stringNow);
 
 		boolean booleanNow = spiceUseNodeNames.isSelected();
 		if (spiceUseNodeNamesInitial != booleanNow) Spice.setUseNodeNames(booleanNow);
