@@ -186,7 +186,9 @@ public class Output
 				File newFile = new File(libFile.getPath());
 				if (newFile.exists())
 				{
-					newFile.renameTo(oldFile);
+					if (!newFile.renameTo(oldFile)) {
+                        System.out.println("Rename Failed: "+newFile.getAbsoluteFile()+" to "+oldFile.getAbsoluteFile());                        
+                    }
 				}
 			} else if (backupScheme == 2)
 			{
@@ -205,7 +207,9 @@ public class Output
 						backupFileName += "." + TextUtils.getExtension(libFile);
 						File oldFile = new File(backupFileName);
 						if (oldFile.exists()) continue;
-						newFile.renameTo(oldFile);
+						if (!newFile.renameTo(oldFile)) {
+                            System.out.println("Rename Failed: "+newFile.getAbsoluteFile()+" to "+oldFile.getAbsoluteFile());
+                        }
 						break;
 					}
 				}
